@@ -11,7 +11,9 @@ export * as oak from "https://deno.land/x/oak@v7.4.0/mod.ts";
 const start = new Date().getTime();
 globalThis.performance = {
   now() {
-    return new Date().getTime() - start;
+    const now = new Date().getTime() - start;
+    console.log(now);
+    return now;
   },
 };
 import * as esbuild from "https://gist.githubusercontent.com/lucacasonato/358c6b7e8198bfb2cf3d220e49fdcf5f/raw/257dbbbc87fb5f82052b0fa455bd73f4ed07dd81/esbuild-wasm.js";
