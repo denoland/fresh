@@ -1,30 +1,51 @@
-import { join, toFileUrl } from "https://deno.land/std@0.95.0/path/mod.ts";
-import { walk } from "https://deno.land/std@0.95.0/fs/walk.ts";
+import { parseArgs } from "./src/cli/deps.ts";
+import { initSubcommand } from "./src/cli/init.ts";
+import { routesSubcommand } from "./src/cli/routes.ts";
 
-const files = [];
-const pagesDir = join(Deno.cwd(), "./pages");
-const pagesUrl = new URL(pagesDir, "file:///");
-for await (
-  const entry of walk(pagesDir, {
-    includeDirs: false,
-    includeFiles: true,
-    exts: ["tsx", "jsx"],
-  })
-) {
-  if (entry.isFile) {
-    const file = toFileUrl(entry.path).href.substring(pagesUrl.href.length);
-    files.push(file);
-  }
-}
+const VERSION = "0.1.0";
 
-const output = `import { setup } from "../server.ts";
+const help = `fresh ${VERSION}
+Preact, but super edgy.
 
-${files.map((file, i) => `import * as $${i} from "./pages${file}";`).join("\n")}
+To initalize a new project:
+  fresh init ./myproject
 
-setup([${
-  files.map((file, i) => `[$${i}, "./pages${file}"]`)
-    .join(", ")
-}], import.meta.url);
+To (re-)generate route manifest:
+  fresh routes
+
+SUBCOMMANDS:
+    init      Initalize a fresh project
+    routes    (Re-)generate the route manifest file
 `;
 
-Deno.writeTextFile("./server.ts", output);
+const args = parseArgs(Deno.args, {
+  alias: {
+    "help": "h",
+    "version": "V",
+  },
+  boolean: [
+    "help",
+    "version",
+  ],
+});
+
+const subcommand = args._.shift();
+switch (subcommand) {
+  case "init":
+    await initSubcommand(args);
+    break;
+  case "routes":
+    await routesSubcommand();
+    break;
+  default:
+    if (args.version) {
+      console.log(`deployctl ${VERSION}`);
+      Deno.exit(0);
+    }
+    if (args.help) {
+      console.log(help);
+      Deno.exit(0);
+    }
+    console.error(help);
+    Deno.exit(1);
+}
