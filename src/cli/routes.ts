@@ -1,8 +1,43 @@
 import { join, toFileUrl, walk } from "./deps.ts";
 
-export async function routesSubcommand() {
+const help = `fresh routes
+
+Regenerate the route mapping for your fresh project.
+
+To regenerate the mapping in the current directory:
+  fresh routes
+
+To regenerate the mapping in the './foobar' subdirectory:
+  fresh routes ./foobar
+
+USAGE:
+    fresh routes [OPTIONS] [DIRECTORY]
+
+OPTIONS:
+    -h, --help                 Prints help information
+`;
+
+export interface Args {
+  help: boolean;
+}
+
+export async function routesSubcommand(rawArgs: Record<string, any>) {
+  const args: Args = {
+    help: !!rawArgs.help,
+  };
+  const directory: string | null = typeof rawArgs._[0] === "string"
+    ? rawArgs._[0]
+    : Deno.cwd();
+  if (args.help) {
+    console.log(help);
+    Deno.exit(0);
+  }
+  await routes(directory);
+}
+
+export async function routes(directory: string) {
   const files = [];
-  const pagesDir = join(Deno.cwd(), "./pages");
+  const pagesDir = join(Deno.cwd(), directory, "./pages");
   const pagesUrl = new URL(pagesDir, "file:///");
   const folder = walk(pagesDir, {
     includeDirs: false,
@@ -30,5 +65,5 @@ setup([${
   }], import.meta.url);
 `;
 
-  await Deno.writeTextFile("./server.ts", output);
+  await Deno.writeTextFile(join(directory, "./server.ts"), output);
 }

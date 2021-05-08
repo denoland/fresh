@@ -35,7 +35,7 @@ switch (subcommand) {
     await initSubcommand(args);
     break;
   case "routes":
-    await routesSubcommand();
+    await routesSubcommand(args);
     break;
   default:
     if (args.version) {

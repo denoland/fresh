@@ -32,6 +32,7 @@ addEventListener("DOMContentLoaded", () => {
     write: false,
     bundle: true,
     minify: true,
+    treeShaking: true,
     platform: "neutral",
     outfile: "",
     jsxFactory: "h",

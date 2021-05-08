@@ -1,5 +1,6 @@
 import { join } from "./deps.ts";
 import { error } from "./error.ts";
+import { routes } from "./routes.ts";
 
 const help = `fresh init
 
@@ -10,10 +11,10 @@ To generate a project in the './foobar' subdirectory:
   fresh init ./foobar
 
 To generate a project in the current directory:
-fresh init .
+  fresh init .
 
 USAGE:
-fresh init [OPTIONS] <DIRECTORY>
+    fresh init [OPTIONS] <DIRECTORY>
 
 OPTIONS:
     -h, --help                 Prints help information
@@ -143,4 +144,6 @@ fresh routes
     join(directory, "README.md"),
     README_MD,
   );
+
+  await routes(directory);
 }
