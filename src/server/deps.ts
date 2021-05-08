@@ -16,4 +16,4 @@ globalThis.performance = {
 };
 import * as esbuild from "https://gist.githubusercontent.com/lucacasonato/358c6b7e8198bfb2cf3d220e49fdcf5f/raw/3714cb0f59606eefc29ed0fea36d4cd93549938b/esbuild-wasm.js";
 export { esbuild };
-export { denoPlugin } from "https://raw.githubusercontent.com/lucacasonato/esbuild_deno_loader/c5ee642f4552078324badbf1b541c7222c07d5ff/mod.ts";
+export { denoPlugin } from "https://raw.githubusercontent.com/lucacasonato/esbuild_deno_loader/fa2219c3df9494da6c33e3e4dffb1a33b5cc0345/mod.ts";
