@@ -8,7 +8,7 @@ export default function Home() {
         file, and refresh.
       </p>
       <Counter />
-      <p>{IS_BROWSER ? "Viewing JIT render." : "Viewing browser render."}</p>
+      <p>{IS_BROWSER ? "Viewing browser render." : "Viewing JIT render."}</p>
     </div>
   );
 }
