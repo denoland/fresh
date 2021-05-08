@@ -6,7 +6,7 @@ export function setup(pageModules: PageModules[], selfUrl: string) {
   const pages = createPages(pageModules, baseUrl);
   const app = createServer(pages);
   app.addEventListener("error", (err) => {
-    console.error(err.message);
+    console.error(err);
   });
 
   addEventListener("fetch", app.fetchEventHandler());
