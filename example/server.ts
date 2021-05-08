@@ -2,7 +2,7 @@
 // This file SHOULD be checked into source version control.
 // To update this file, run `fresh routes`.
   
-import { setup } from "../server.ts";
+import { setup } from "file:///mnt/starship/Projects/github.com/lucacasonato/fresh/server.ts";
 
 import * as $0 from "./pages/[name].tsx";
 import * as $1 from "./pages/index.tsx";

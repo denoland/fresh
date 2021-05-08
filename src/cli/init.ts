@@ -60,7 +60,7 @@ async function init(directory: string) {
     import.meta.url,
   )}";\n`;
   await Deno.writeTextFile(join(directory, "deps.ts"), DEPS_TS);
-  const PAGES_INDEX_TSX = `import { h, useState } from "../deps.ts";
+  const PAGES_INDEX_TSX = `import { h, IS_BROWSER, useState } from "../deps.ts";
 
 export default function Home() {
   return (
@@ -70,6 +70,7 @@ export default function Home() {
         file, and refresh.
       </p>
       <Counter />
+      <p>{IS_BROWSER ? "Viewing JIT render." : "Viewing browser render."}</p>
     </div>
   );
 }
@@ -78,8 +79,12 @@ function Counter() {
   const [count, setCount] = useState(0);
   return <div>
     <p>{count}</p>
-    <button onClick={() => setCount(count - 1)}>-1</button>
-    <button onClick={() => setCount(count + 1)}>+1</button>
+    <button onClick={() => setCount(count - 1)} disabled={!IS_BROWSER}>
+      -1
+    </button>
+    <button onClick={() => setCount(count + 1)} disabled={!IS_BROWSER}>
+      +1
+    </button>
   </div>;
 }
 `;
