@@ -10,7 +10,3 @@ export default function Home(props: PageProps) {
     </div>
   );
 }
-
-export function self() {
-  return import.meta.url;
-}

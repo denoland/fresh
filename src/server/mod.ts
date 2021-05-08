@@ -1,7 +1,7 @@
 import { createPages, PageModules } from "./routes.ts";
 import { createServer } from "./server.ts";
 
-export function setup(pageModules: PageModules[], selfUrl: string) {
+export function setup(pageModules: [PageModules, string][], selfUrl: string) {
   const baseUrl = new URL("./", selfUrl).href;
   const pages = createPages(pageModules, baseUrl);
   const app = createServer(pages);

@@ -4,7 +4,6 @@ import { PageProps } from "../runtime/types.ts";
 
 export interface PageModules {
   default: rt.ComponentType<PageProps>;
-  self: () => string;
 }
 
 export interface Page {
@@ -14,10 +13,13 @@ export interface Page {
   component: rt.ComponentType<PageProps>;
 }
 
-export function createPages(pageModules: PageModules[], baseUrl: string): Page[] {
+export function createPages(
+  pageModules: [PageModules, string][],
+  baseUrl: string,
+): Page[] {
   const pages: Page[] = [];
-  for (const pageModule of pageModules) {
-    const url = pageModule.self();
+  for (const [pageModule, self] of pageModules) {
+    const url = new URL(self, baseUrl).href;
     if (!url.startsWith(baseUrl)) {
       throw new TypeError("Page is not a child of the basepath.");
     }

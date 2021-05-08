@@ -21,7 +21,10 @@ const output = `import { setup } from "../server.ts";
 
 ${files.map((file, i) => `import * as $${i} from "./pages${file}";`).join("\n")}
 
-setup([${files.map((_, i) => `$${i}`).join(", ")}], import.meta.url);
+setup([${
+  files.map((file, i) => `[$${i}, "./pages${file}"]`)
+    .join(", ")
+}], import.meta.url);
 `;
 
 Deno.writeTextFile("./server.ts", output);
