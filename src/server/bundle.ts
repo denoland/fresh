@@ -8,7 +8,9 @@ async function ensureEsbuildInialized() {
       wasmURL: "https://unpkg.com/esbuild-wasm@0.11.19/esbuild.wasm",
       worker: false,
     });
+    console.log("init");
     await esbuildInitalized;
+    console.log("initalized");
     esbuildInitalized = true;
   } else if (esbuildInitalized instanceof Promise) {
     await esbuildInitalized;
@@ -27,6 +29,7 @@ addEventListener("DOMContentLoaded", () => {
 });
 `;
   await ensureEsbuildInialized();
+  console.log("bundle");
   const bundle = await esbuild.build({
     plugins: [denoPlugin({ loader: "portable" })],
     write: false,
@@ -41,5 +44,6 @@ addEventListener("DOMContentLoaded", () => {
       sourcefile: `fresh://entrypoint/${page.name}`,
     },
   });
+  console.log("bundled");
   return bundle.outputFiles[0].text;
 }
