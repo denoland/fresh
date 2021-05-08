@@ -1,12 +1,11 @@
-import { h, PageProps, useState } from "../deps.ts";
+import { h } from "../deps.ts";
 
-export default function Home(props: PageProps) {
-  const [counter, setCounter] = useState(0);
+interface Props {
+  params: {
+    name: string;
+  };
+}
 
-  return (
-    <div>
-      Hello {props.params.name}! {counter}{" "}
-      <button onClick={() => setCounter(counter + 1)}>+1</button>
-    </div>
-  );
+export default function Greet(props: Props) {
+  return <div>Hello {props.params.name}</div>;
 }
