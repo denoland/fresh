@@ -8,10 +8,10 @@ export { extname } from "https://deno.land/std@0.95.0/path/mod.ts";
 export * as oak from "https://deno.land/x/oak@v7.4.0/mod.ts";
 
 // -- esbuild --
-const start = new Date().getTime();
+let now = 1;
 globalThis.performance = {
   now() {
-    const now = new Date().getTime() - start;
+    now++;
     console.log(now);
     return now;
   },
