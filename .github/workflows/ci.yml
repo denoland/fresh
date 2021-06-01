@@ -25,9 +25,11 @@ jobs:
           deno-version: ${{ matrix.deno }}
 
       - name: Verify formatting
+        if: startsWith(matrix.os, 'ubuntu') && matrix.deno == 'canary'
         run: deno fmt --check
 
       - name: Run linter
+        if: startsWith(matrix.os, 'ubuntu') && matrix.deno == 'canary'
         run: deno lint
 
       - name: Cache dependencies
