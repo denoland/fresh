@@ -24,6 +24,7 @@ export interface Args {
   help: boolean;
 }
 
+// deno-lint-ignore no-explicit-any
 export async function initSubcommand(rawArgs: Record<string, any>) {
   const args: Args = {
     help: !!rawArgs.help,
@@ -95,9 +96,7 @@ function Counter() {
   const PAGES_GREET_TSX = `import { h } from "../deps.ts";
 
 interface Props {
-  params: {
-    name: string;
-  };
+  params: Record<string, string | string[]>;
 }
 
 export default function Greet(props: Props) {
@@ -122,6 +121,16 @@ export default function Greet(props: Props) {
     join(directory, "tsconfig.json"),
     TSCONFIG_JSON,
   );
+  const serverUrl = new URL("../../server.ts", import.meta.url);
+  const MAIN_TS = `import { start } from "${serverUrl}";
+import routes from "./routes.gen.ts";
+
+start(routes);
+`;
+  await Deno.writeTextFile(
+    join(directory, "main.ts"),
+    MAIN_TS,
+  );
   const README_MD = `# fresh project
   
 ### Usage
@@ -135,7 +144,7 @@ deno install --allow-read --allow-write --allow-env --allow-net --allow-run --no
 Start the project:
 
 \`\`\`
-deployctl run --no-check --watch server.ts
+deployctl run --no-check --watch main.ts
 \`\`\`
 
 After adding, removing, or moving a page in the \`pages\` directory, run:
