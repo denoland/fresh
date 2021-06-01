@@ -1,6 +1,6 @@
 import { renderToString } from "./deps.ts";
 import * as rt from "../runtime/deps.ts";
-import { Page } from "./page.ts";
+import { Page } from "./routes.ts";
 import { BUILD_ID, INTERNAL_PREFIX, JS_PREFIX } from "./constants.ts";
 
 export function render(page: Page, params: Record<string, string>): string {

@@ -1,17 +1,23 @@
 import { oak } from "./deps.ts";
-import { Page, PageModule, processRoutes } from "./page.ts";
+import {
+  ApiRoute,
+  ApiRouteModule,
+  Page,
+  PageModule,
+  processRoutes,
+} from "./routes.ts";
 import { installRoutes } from "./router.ts";
 
 export interface Routes {
-  pages: Record<string, PageModule>;
+  pages: Record<string, PageModule | ApiRouteModule>;
   baseUrl: string;
 }
 
-export { installRoutes };
+export { installRoutes, oak };
 
 export function start(routes: Routes) {
-  const pages = processRoutes(routes);
-  const app = createDefaultServer(pages);
+  const [pages, apiRoutes] = processRoutes(routes);
+  const app = createDefaultServer(pages, apiRoutes);
   app.addEventListener("error", (err) => {
     console.error(err.error);
   });
@@ -19,10 +25,13 @@ export function start(routes: Routes) {
   addEventListener("fetch", app.fetchEventHandler());
 }
 
-export function createDefaultServer(pages: Page[]): oak.Application {
+export function createDefaultServer(
+  pages: Page[],
+  apiRoutes: ApiRoute[],
+): oak.Application {
   const router = new oak.Router();
 
-  installRoutes(router, pages);
+  installRoutes(router, pages, apiRoutes);
 
   const app = new oak.Application();
 

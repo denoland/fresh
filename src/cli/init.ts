@@ -55,12 +55,17 @@ async function init(directory: string) {
     }
   }
 
-  await Deno.mkdir(join(directory, "pages"), { recursive: true });
+  await Deno.mkdir(join(directory, "pages", "api"), { recursive: true });
   const DEPS_TS = `export * from "${new URL(
     "../../runtime.ts",
     import.meta.url,
   )}";\n`;
   await Deno.writeTextFile(join(directory, "deps.ts"), DEPS_TS);
+  const API_DEPS_TS = `export * from "${new URL(
+    "../../server.ts",
+    import.meta.url,
+  )}";\n`;
+  await Deno.writeTextFile(join(directory, "api_deps.ts"), API_DEPS_TS);
   const PAGES_INDEX_TSX = `import { h, IS_BROWSER, useState } from "../deps.ts";
 
 export default function Home() {
@@ -107,6 +112,31 @@ export default function Greet(props: Props) {
     join(directory, "pages", "[name].tsx"),
     PAGES_GREET_TSX,
   );
+  const PAGES_API_JOKE_TS = `import { oak } from "../../api_deps.ts";
+
+// Jokes courtesy of https://punsandoneliners.com/randomness/programmer-jokes/
+const JOKES = [
+  "Why do Java developers often wear glasses? They can’t C#.",
+  "A SQL query walks into a bar, goes up to two tables and says “can I join you?",
+  "Wasn’t hard to crack Forrest Gump’s password. 1forrest1.",
+  "I love pressing the F5 key. It’s refreshing.",
+  "Called IT support and a chap from Australia came to fix my network connection.  I asked “Do you come from a LAN down under?”",
+  "There are 10 types of people in the world. Those who understand binary and those who don’t.",
+  "Why are assembly programmers often wet? They work below C level.",
+  "My favourite computer based band is the Black IPs.",
+  "What programme do you use to predict the music tastes of former US presidential candidates? An Al Gore Rhythm.",
+  "An SEO expert walked into a bar, pub, inn, tavern, hostelry, public house.",
+];
+
+export default (ctx: oak.Context) => {
+  const randomIndex = Math.floor(Math.random() * 10);
+  ctx.response.body = JOKES[randomIndex];
+};
+`;
+  await Deno.writeTextFile(
+    join(directory, "pages", "api", "joke.ts"),
+    PAGES_API_JOKE_TS,
+  );
   const TSCONFIG_JSON = JSON.stringify(
     {
       "compilerOptions": {
@@ -116,7 +146,7 @@ export default function Greet(props: Props) {
     },
     undefined,
     2,
-  );
+  ) + "\n";
   await Deno.writeTextFile(
     join(directory, "tsconfig.json"),
     TSCONFIG_JSON,
@@ -132,7 +162,7 @@ start(routes);
     MAIN_TS,
   );
   const README_MD = `# fresh project
-  
+
 ### Usage
 
 Install deployctl:
@@ -152,7 +182,6 @@ After adding, removing, or moving a page in the \`pages\` directory, run:
 \`\`\`
 fresh routes
 \`\`\`
-
 `;
   await Deno.writeTextFile(
     join(directory, "README.md"),
