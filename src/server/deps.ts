@@ -3,12 +3,13 @@ export { renderToString } from "https://x.lcas.dev/preact@10.5.12/ssr.js";
 
 // -- std --
 export { extname } from "https://deno.land/std@0.95.0/path/mod.ts";
+export { generate as generateUuid } from "https://deno.land/std@0.95.0/uuid/v4.ts";
 
 // -- oak --
 export * as oak from "https://deno.land/x/oak@v7.4.0/mod.ts";
 
 // -- esbuild --
-let start = new Date().getTime();
+const start = new Date().getTime();
 globalThis.performance = {
   now() {
     return new Date().getTime() - start;

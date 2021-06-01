@@ -1,5 +1,5 @@
 # fresh project
-  
+
 ### Usage
 
 Install deployctl:
@@ -11,7 +11,7 @@ deno install --allow-read --allow-write --allow-env --allow-net --allow-run --no
 Start the project:
 
 ```
-deployctl run --no-check --watch server.ts
+deployctl run --no-check --watch main.ts
 ```
 
 After adding, removing, or moving a page in the `pages` directory, run:
@@ -19,4 +19,3 @@ After adding, removing, or moving a page in the `pages` directory, run:
 ```
 fresh routes
 ```
-

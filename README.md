@@ -10,7 +10,7 @@ and without the need of a build step. Fresh embraces isomorphic JavaScript like
 never before. Write a JSX component, have it render on the edge just-in-time,
 and then enhance it with client side JS for great interactivity.
 
-Fresh does not have a build step - you write your code, deploy it to 
+Fresh does not have a build step - you write your code, deploy it to
 [Deno Deploy](https://deno.com/deploy), and from there everything is handled by
 the framework.
 
@@ -25,7 +25,7 @@ the framework.
 ## Install
 
 To install, run the following command. This will add `fresh` CLI to your PATH.
-Make sure to have Deno 1.9.1 or later installed.
+Make sure to have Deno 1.10.3 or later installed.
 
 ```sh
 deno install -A -f --no-check https://deno.land/x/fresh/cli.ts
@@ -43,11 +43,11 @@ fresh init myproject
 To now start the project, use [`deployctl`](https://deno.land/x/deploy):
 
 ```
-deployctl run --no-check --watch server.ts
+deployctl run --no-check --watch main.ts
 ```
 
 To deploy the script to [Deno Deploy](https://deno.com/deploy), push your
-project to GitHub, create a `fresh` project, and link it to `server.ts` file in
+project to GitHub, create a `fresh` project, and link it to `main.ts` file in
 the created repository.
 
 To learn more about how to use `fresh`, visit the documentation.

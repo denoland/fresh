@@ -1,8 +1,9 @@
 import { extname } from "./deps.ts";
 import * as rt from "../runtime/deps.ts";
 import { PageProps } from "../runtime/types.ts";
+import { Routes } from "./mod.ts";
 
-export interface PageModules {
+export interface PageModule {
   default: rt.ComponentType<PageProps>;
 }
 
@@ -13,12 +14,16 @@ export interface Page {
   component: rt.ComponentType<PageProps>;
 }
 
-export function createPages(
-  pageModules: [PageModules, string][],
-  baseUrl: string,
-): Page[] {
+/**
+ * Process the routes into individual pages.
+ */
+export function processRoutes(routes: Routes): Page[] {
+  // Get the routes' base URL.
+  const baseUrl = new URL("./", routes.baseUrl).href;
+
+  // Extract all pages, and prepare them into this `Page` structure.
   const pages: Page[] = [];
-  for (const [pageModule, self] of pageModules) {
+  for (const [self, pageModule] of Object.entries(routes.pages)) {
     const url = new URL(self, baseUrl).href;
     if (!url.startsWith(baseUrl)) {
       throw new TypeError("Page is not a child of the basepath.");
@@ -35,6 +40,8 @@ export function createPages(
     pages.push(page);
   }
 
+  // Sort pages by theur relative routing priority, based on the parts in the
+  // route matcher.
   pages.sort((a, b) => {
     const partsA = a.route.split("/");
     const partsB = b.route.split("/");
@@ -54,6 +61,7 @@ export function createPages(
   return pages;
 }
 
+/** Transform a filesystem URL path to a `path-to-regex` style matcher. */
 function pathToRoute(path: string): string {
   const parts = path.split("/");
   if (parts[parts.length - 1] === "index") {
