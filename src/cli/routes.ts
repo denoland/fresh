@@ -43,7 +43,7 @@ export async function routes(directory: string) {
   const folder = walk(pagesDir, {
     includeDirs: false,
     includeFiles: true,
-    exts: ["tsx", "jsx"],
+    exts: ["tsx", "jsx", "ts", "js"],
   });
   for await (const entry of folder) {
     if (entry.isFile) {
