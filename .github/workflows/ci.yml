@@ -1,0 +1,39 @@
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  test:
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      matrix:
+        deno: ["v1.x", "canary"]
+        os: [macOS-latest, windows-latest, ubuntu-latest]
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v2
+
+      - name: Setup Deno
+        uses: denoland/setup-deno@v1
+        with:
+          deno-version: ${{ matrix.deno }}
+
+      - name: Verify formatting
+        if: startsWith(matrix.os, 'ubuntu') && matrix.deno == 'canary'
+        run: deno fmt --check
+
+      - name: Run linter
+        if: startsWith(matrix.os, 'ubuntu') && matrix.deno == 'canary'
+        run: deno lint
+
+      - name: Cache dependencies
+        run: deno cache --no-check src/*/deps.ts
+
+#       - name: Run tests
+#         run: deno test -A --unstable
