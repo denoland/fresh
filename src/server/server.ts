@@ -1,9 +1,9 @@
 import { oak } from "./deps.ts";
 import { bundle } from "./bundle.ts";
 import { render } from "./render.ts";
-import { Page } from "./routes.ts";
+import { API, Page } from "./routes.ts";
 
-export function createServer(pages: Page[]): oak.Application {
+export function createServer(pages: Page[], apis: API[]): oak.Application {
   const router = new oak.Router();
 
   for (const page of pages) {
@@ -19,6 +19,10 @@ export function createServer(pages: Page[]): oak.Application {
       ctx.response.type = "js";
       ctx.response.body = js;
     });
+  }
+
+  for (const api of apis) {
+    router.get<Record<string, string>>(api.route, api.handler);
   }
 
   const app = new oak.Application();

@@ -2,9 +2,10 @@
 // This file SHOULD be checked into source version control.
 // To update this file, run `fresh routes`.
   
-import { setup } from "../server.ts";
+import { setup } from "file:///Users/lucacasonato/projects/github.com/lucacasonato/fresh/server.ts";
 
-import * as $0 from "./pages/[name].tsx";
-import * as $1 from "./pages/index.tsx";
+import * as $p0 from "./pages/index.tsx";
+import * as $p1 from "./pages/[name].tsx";
+import * as $a0 from "./pages/api/version.ts";
 
-setup([[$0, "./pages/[name].tsx"], [$1, "./pages/index.tsx"]], import.meta.url);
+setup([[$p0, "./pages/index.tsx"], [$p1, "./pages/[name].tsx"]], [[$a0, "./pages/api/version.ts"]], import.meta.url);
