@@ -35,5 +35,5 @@ jobs:
       - name: Cache dependencies
         run: deno cache --no-check src/*/deps.ts
 
-#       - name: Run tests
-#         run: deno test -A --unstable
+      - name: Run tests
+        run: deno test -A --unstable --config ./tsconfig.json --no-check

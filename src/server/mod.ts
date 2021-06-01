@@ -13,7 +13,7 @@ export interface Routes {
   baseUrl: string;
 }
 
-export { installRoutes, oak };
+export { installRoutes, oak, processRoutes };
 
 export function start(routes: Routes) {
   const [pages, apiRoutes] = processRoutes(routes);
