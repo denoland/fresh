@@ -38,7 +38,7 @@ export async function routesSubcommand(rawArgs: Record<string, any>) {
 
 export async function routes(directory: string) {
   const files = [];
-  const pagesDir = join(Deno.cwd(), directory, "./pages");
+  const pagesDir = join(directory, "./pages");
   const pagesUrl = new URL(pagesDir, "file:///");
   const folder = walk(pagesDir, {
     includeDirs: false,
