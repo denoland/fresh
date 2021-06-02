@@ -1,5 +1,5 @@
-> :warning: DO NOT USE. THIS DOES NOT WORK, and is just a POC for JIT JS
-> bundling.
+> :warning: DO NOT USE. WHILE CERTAIN FEATURES MIGHT BE WORKING, MANY THINGS ARE
+> STILL SUBJECT TO CHANGE AT ANY TIME.
 
 # fresh
 
