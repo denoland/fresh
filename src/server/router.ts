@@ -34,9 +34,8 @@ export function installRoutes(
     routes[apiRoute.route] = apiRoute.handler;
   }
 
-  routes[`/${INTERNAL_PREFIX}/${JS_PREFIX}/${BUILD_ID}/:path*`] = internalRoute(
-    bundler,
-  );
+  routes[`/${INTERNAL_PREFIX}/${JS_PREFIX}/${BUILD_ID}/:path*`] =
+    internalBundleAssetRoute(bundler);
 
   return routes;
 }
@@ -49,7 +48,7 @@ function bundleAssetUrl(path: string) {
  * Returns a router that contains all fresh routes. Should be mounted at
  * constants.INTERNAL_PREFIX
  */
-function internalRoute(bundler: Bundler): router.MatchHandler {
+function internalBundleAssetRoute(bundler: Bundler): router.MatchHandler {
   return async (_req, match) => {
     const path = `/${match.params.path}`;
     const file = await bundler.get(path);
@@ -70,6 +69,8 @@ function internalRoute(bundler: Bundler): router.MatchHandler {
       });
     }
 
-    return res ?? new Response();
+    return res ?? new Response(null, {
+      status: 404,
+    });
   };
 }
