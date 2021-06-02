@@ -10,11 +10,16 @@ export function installRoutes(
   pages: Page[],
   apiRoutes: ApiRoute[],
 ) {
+  const bundler = new Bundler(pages);
+
   for (const page of pages) {
+    const bundlePath = `/${page.name}.js`;
+    const imports = [bundleAssetUrl(bundlePath)];
     router.get<Record<string, string>>(page.route, (ctx) => {
       ctx.response.status = 200;
       ctx.response.type = "html";
-      ctx.response.body = render(page, ctx.params);
+      const preloads = bundler.getPreloads(bundlePath).map(bundleAssetUrl);
+      ctx.response.body = render(page, imports, preloads, ctx.params);
     });
   }
 
@@ -22,7 +27,7 @@ export function installRoutes(
     router.all(apiRoute.route, apiRoute.handler);
   }
 
-  const internal = internalRouter(pages);
+  const internal = internalRouter(bundler);
 
   router.use(
     INTERNAL_PREFIX,
@@ -31,13 +36,15 @@ export function installRoutes(
   );
 }
 
+function bundleAssetUrl(path: string) {
+  return `${INTERNAL_PREFIX}${JS_PREFIX}/${BUILD_ID}${path}`;
+}
+
 /**
  * Returns a router that contains all fresh routes. Should be mounted at
  * constants.INTERNAL_PREFIX
  */
-function internalRouter(pages: Page[]): oak.Router {
-  const bundler = new Bundler(pages);
-
+function internalRouter(bundler: Bundler): oak.Router {
   const router = new oak.Router();
 
   router.get(`${JS_PREFIX}/${BUILD_ID}/:path*`, async (ctx) => {

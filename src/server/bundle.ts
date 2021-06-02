@@ -18,6 +18,7 @@ async function ensureEsbuildInialized() {
 export class Bundler {
   #pages: Page[];
   #cache: Map<string, Uint8Array> | Promise<void> | undefined = undefined;
+  #preloads = new Map<string, string[]>();
 
   constructor(pages: Page[]) {
     this.#pages = pages;
@@ -42,9 +43,20 @@ export class Bundler {
       outfile: "",
       jsxFactory: "h",
       jsxFragment: "Fragment",
+      metafile: true,
       outdir: `/`,
       entryPoints,
     });
+
+    const metafileOutputs = bundle.metafile!.outputs;
+
+    for (const path in metafileOutputs) {
+      const meta = metafileOutputs[path];
+      const imports = meta.imports
+        .filter(({ kind }) => kind === "import-statement")
+        .map(({ path }) => `/${path}`);
+      this.#preloads.set(`/${path}`, imports);
+    }
 
     const cache = new Map<string, Uint8Array>();
     for (const file of bundle.outputFiles) {
@@ -68,6 +80,10 @@ export class Bundler {
   async get(path: string): Promise<Uint8Array | null> {
     const cache = await this.cache();
     return cache.get(path) ?? null;
+  }
+
+  getPreloads(path: string): string[] {
+    return this.#preloads.get(path) ?? [];
   }
 }
 
