@@ -38,34 +38,52 @@ the path to a folder you would like to initalize a `fresh` project in. To
 initalize a project in the current working directory, pass `.` as the first
 argument.
 
-## Structure of a project
+Now move into the directory you just created / initalized (for example
+`cd my-project`).
 
-Initalizing a project will generate multiple files. For now the most important
-files are `main.ts`, `routes.gen.ts`, and the pages and api routes in the
-`pages` subfolder.
+To learn more about how projects are structured, take a look at the
+[Project Structure](./project-structure.md) documentation.
 
-The `main.ts` file is the entrypoint to your project. It is the file you link in
-Deno Deploy, or run locally with `deployctl`.
+## Running the project locally
 
-The `routes.gen.ts` file is a manifest of all pages and api routes in a project.
-When moving around or creating new pages, this file needs to be updated. This is
-done automatically when you run the `fresh routes` command. You never have to
-edit this file manually.
+You can now run your new project locally with `deployctl`:
 
-The files in the `pages` subfolder describe the HTML pages and API endpoints of
-your application. Files inside the `pages/api` subdirectory are treated as API
-routes, while all other files are treated as possibly dynamic HTML pages.
+```
+deployctl run --watch --no-check ./main.ts
+```
 
-## File system routing
+The `--watch` option will cause your script to be reloaded on any changes to the
+source. If you do not want this you can omit the `--watch` option.
 
-The naming and location of files in the `pages` folder is important because they
-are used to specify the route where a specific API endpoint or HTML page is
-available. This concept is called filesystem routing.
+After you have started the project, you can view it in your browser at
+http://localhost:8080. You will first get served a JIT server rendered page,
+which will get hydrated using client side JS after a few moments.
 
-As an example, the HTML page described by `index.tsx` would be served at `/`,
-while the `about.tsx` page would be served at `/about`. This filesystem routing
-is also capable of dynamic path segments: `/posts/[post].jsx` would be be used
-for requests to `/posts/foo`, `/posts/bar`, or `/posts/baz`, but not for
-`/posts/foo/comments` (that would be matched by `/posts/[post]/comments.tsx`).
-Multi-level dynamic segments are also possible: `/[owner]/[repo]/[...path]`
-would match `/denoland/deno/README.md` and `/lucacasonato/fresh/cli/build.rs`.
+## Deploying the project to Deno Deploy
+
+To deploy your project you will need to push the source code to either a web
+server, or GitHub.com. Fresh currently only supports public GitHub repositories.
+For this guide we will use GitHub.com and the Deno Deploy GitHub integration.
+
+First create a new repository on GitHub.com with the same account you signed up
+to Deno Deploy with (or an organization you can access from that account). Then
+follow the setup instructions for GitHub on your machine, and push your code
+into the repository.
+
+Now go back to GitHub and open the `main.ts` file that you pushed. Copy the URL
+in the address bar. It should look something like this:
+`https://github.com/lucacasonato/fresh/blob/main/example/main.ts`. Visit your
+project on dash.deno.com, enter the URL you copied into the
+`Link GitHub repository` input box in the project settings, and press `Link`.
+You might need to grant the Deno Deploy app permission to the repository at this
+point (follow prompts on the Deno Deploy dashboard).
+
+Your project is now linked to Deno Deploy and will automatically deployed on
+every push. Your project now has a URL you can visit to view your site live.
+Example: https://fresh.deno.dev
+
+## Next steps
+
+Now that the project is deployed, it is time to make some changes to the default
+project. For that read the guides on [project structure](./project-structure.md)
+and [file system routing](./file-system-routing.md)

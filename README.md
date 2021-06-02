@@ -50,4 +50,5 @@ To deploy the script to [Deno Deploy](https://deno.com/deploy), push your
 project to GitHub, create a `fresh` project, and link it to `main.ts` file in
 the created repository.
 
-To learn more about how to use `fresh`, visit the documentation.
+For a more in-depth getting started guide, visit the
+[Getting Started](./docs/getting-started.md) page in the `fresh` docs.
