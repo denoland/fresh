@@ -1,4 +1,4 @@
-import { extname, oak } from "./deps.ts";
+import { mediaTypeLookup, router } from "./deps.ts";
 import { Bundler } from "./bundle.ts";
 import { render } from "./render.ts";
 import { ApiRoute, Page } from "./routes.ts";
@@ -6,34 +6,38 @@ import { BUILD_ID, INTERNAL_PREFIX, JS_PREFIX } from "./constants.ts";
 
 /** This function installs all routes required by fresh onto an oak router. */
 export function installRoutes(
-  router: oak.Router,
   pages: Page[],
   apiRoutes: ApiRoute[],
-) {
+): router.Routes {
   const bundler = new Bundler(pages);
+
+  const routes: router.Routes = {};
 
   for (const page of pages) {
     const bundlePath = `/${page.name}.js`;
     const imports = [bundleAssetUrl(bundlePath)];
-    router.get<Record<string, string>>(page.route, (ctx) => {
-      ctx.response.status = 200;
-      ctx.response.type = "html";
+    routes[page.route] = (_, match) => {
       const preloads = bundler.getPreloads(bundlePath).map(bundleAssetUrl);
-      ctx.response.body = render(page, imports, preloads, ctx.params);
-    });
+      return new Response(
+        render(page, imports, preloads, match.params),
+        {
+          status: 200,
+          headers: {
+            "Content-Type": "text/html; charset=utf-8",
+          },
+        },
+      );
+    };
   }
 
   for (const apiRoute of apiRoutes) {
-    router.all(apiRoute.route, apiRoute.handler);
+    routes[apiRoute.route] = apiRoute.handler;
   }
 
-  const internal = internalRouter(bundler);
+  routes[`/${INTERNAL_PREFIX}/${JS_PREFIX}/${BUILD_ID}/:path*`] =
+    internalBundleAssetRoute(bundler);
 
-  router.use(
-    INTERNAL_PREFIX,
-    internal.routes(),
-    internal.allowedMethods(),
-  );
+  return routes;
 }
 
 function bundleAssetUrl(path: string) {
@@ -44,22 +48,29 @@ function bundleAssetUrl(path: string) {
  * Returns a router that contains all fresh routes. Should be mounted at
  * constants.INTERNAL_PREFIX
  */
-function internalRouter(bundler: Bundler): oak.Router {
-  const router = new oak.Router();
-
-  router.get(`${JS_PREFIX}/${BUILD_ID}/:path*`, async (ctx) => {
-    const path = `/${ctx.params.path}`;
+function internalBundleAssetRoute(bundler: Bundler): router.MatchHandler {
+  return async (_req, match) => {
+    const path = `/${match.params.path}`;
     const file = await bundler.get(path);
+    let res;
     if (file) {
-      ctx.response.status = 200;
-      ctx.response.type = extname(path);
-      ctx.response.body = file;
-      ctx.response.headers.set(
-        "Cache-Control",
-        "public, max-age=604800, immutable",
-      );
-    }
-  });
+      const headers = new Headers({
+        "Cache-Control": "public, max-age=604800, immutable",
+      });
 
-  return router;
+      const contentType = mediaTypeLookup(path);
+      if (contentType) {
+        headers.set("Content-Type", contentType);
+      }
+
+      res = new Response(file, {
+        status: 200,
+        headers,
+      });
+    }
+
+    return res ?? new Response(null, {
+      status: 404,
+    });
+  };
 }

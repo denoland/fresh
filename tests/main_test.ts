@@ -1,15 +1,11 @@
-import { installRoutes, oak, processRoutes } from "../server.ts";
+import { createDefaultRouter, processRoutes } from "../server.ts";
 import { assert, assertEquals, assertStringIncludes } from "./deps.ts";
 import routes from "./fixture/routes.gen.ts";
 
-const router = new oak.Router();
-installRoutes(router, ...processRoutes(routes));
-const app = new oak.Application();
-app.use(router.routes());
-app.use(router.allowedMethods());
+const router = createDefaultRouter(...processRoutes(routes));
 
 Deno.test("/ page prerender", async () => {
-  const resp = await app.handle(new Request("https://fresh.deno.dev/"));
+  const resp = await router(new Request("https://fresh.deno.dev/"));
   assert(resp);
   assertEquals(resp.status, 200);
   assertEquals(resp.headers.get("content-type"), "text/html; charset=utf-8");
@@ -23,7 +19,7 @@ Deno.test("/ page prerender", async () => {
 });
 
 Deno.test("/[name] page prerender", async () => {
-  const resp = await app.handle(new Request("https://fresh.deno.dev/foo"));
+  const resp = await router(new Request("https://fresh.deno.dev/foo"));
   assert(resp);
   assertEquals(resp.status, 200);
   assertEquals(resp.headers.get("content-type"), "text/html; charset=utf-8");
@@ -37,7 +33,7 @@ Deno.test("/[name] page prerender", async () => {
 });
 
 Deno.test("/api/name", async () => {
-  const resp = await app.handle(new Request("https://fresh.deno.dev/api/name"));
+  const resp = await router(new Request("https://fresh.deno.dev/api/name"));
   assert(resp);
   assertEquals(resp.status, 200);
   assertEquals(
@@ -49,7 +45,7 @@ Deno.test("/api/name", async () => {
 });
 
 Deno.test("/api/xyz not found", async () => {
-  const resp = await app.handle(new Request("https://fresh.deno.dev/api/xyz"));
+  const resp = await router(new Request("https://fresh.deno.dev/api/xyz"));
   assert(resp);
   assertEquals(resp.status, 404);
 });

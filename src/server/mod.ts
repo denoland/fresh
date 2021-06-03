@@ -1,4 +1,4 @@
-import { oak } from "./deps.ts";
+import { router } from "./deps.ts";
 import {
   ApiRoute,
   ApiRouteModule,
@@ -13,30 +13,19 @@ export interface Routes {
   baseUrl: string;
 }
 
-export { installRoutes, oak, processRoutes };
+export { installRoutes, processRoutes, router };
 
 export function start(routes: Routes) {
   const [pages, apiRoutes] = processRoutes(routes);
-  const app = createDefaultServer(pages, apiRoutes);
-  app.addEventListener("error", (err) => {
-    console.error(err.error);
+  const app = createDefaultRouter(pages, apiRoutes);
+  addEventListener("fetch", (event: FetchEvent) => {
+    event.respondWith(app(event.request));
   });
-
-  addEventListener("fetch", app.fetchEventHandler());
 }
 
-export function createDefaultServer(
+export function createDefaultRouter(
   pages: Page[],
   apiRoutes: ApiRoute[],
-): oak.Application {
-  const router = new oak.Router();
-
-  installRoutes(router, pages, apiRoutes);
-
-  const app = new oak.Application();
-
-  app.use(router.routes());
-  app.use(router.allowedMethods());
-
-  return app;
+): router.RequestHandler {
+  return router.router(installRoutes(pages, apiRoutes));
 }

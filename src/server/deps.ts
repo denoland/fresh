@@ -5,8 +5,11 @@ export { renderToString } from "https://x.lcas.dev/preact@10.5.12/ssr.js";
 export { extname } from "https://deno.land/std@0.95.0/path/mod.ts";
 export { generate as generateUuid } from "https://deno.land/std@0.95.0/uuid/v4.ts";
 
-// -- oak --
-export * as oak from "https://deno.land/x/oak@v7.4.0/mod.ts";
+// -- router --
+export * as router from "https://crux.land/router@0.0.2";
+
+// -- media types --
+export { lookup as mediaTypeLookup } from "https://deno.land/x/media_types@v2.8.4/mod.ts";
 
 // -- esbuild --
 const start = new Date().getTime();

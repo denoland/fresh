@@ -1,4 +1,4 @@
-import { extname, oak } from "./deps.ts";
+import { extname, router } from "./deps.ts";
 import * as rt from "../runtime/deps.ts";
 import { PageProps } from "../runtime/types.ts";
 import { Routes } from "./mod.ts";
@@ -15,14 +15,14 @@ export interface Page {
 }
 
 export interface ApiRouteModule {
-  default: oak.RouterMiddleware<Record<string, string>>;
+  default: router.MatchHandler;
 }
 
 export interface ApiRoute {
   route: string;
   url: string;
   name: string;
-  handler: oak.RouterMiddleware<Record<string, string>>;
+  handler: router.MatchHandler;
 }
 
 /**
@@ -49,7 +49,7 @@ export function processRoutes(routes: Routes): [Page[], ApiRoute[]] {
         route,
         url,
         name,
-        handler: module.default as oak.RouterMiddleware<Record<string, string>>,
+        handler: module.default as router.MatchHandler,
       };
       apiRoutes.push(apiRoute);
     } else {

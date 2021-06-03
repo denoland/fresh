@@ -1,5 +1,7 @@
-import { oak } from "../../api_deps.ts";
-
-export default (ctx: oak.Context) => {
-  ctx.response.body = { name: "fresh" };
+export default () => {
+  return new Response(JSON.stringify({ name: "fresh" }), {
+    headers: {
+      "Content-Type": "application/json; charset=utf-8",
+    },
+  });
 };
