@@ -27,14 +27,5 @@ export function createDefaultRouter(
   pages: Page[],
   apiRoutes: ApiRoute[],
 ): router.RequestHandler {
-  return router.router(
-    installRoutes(pages, apiRoutes),
-    () => new Response(null, { status: 404 }),
-    (_req, err) => {
-      console.error(err);
-      return new Response(null, {
-        status: 500,
-      });
-    },
-  );
+  return router.router(installRoutes(pages, apiRoutes));
 }
