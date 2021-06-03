@@ -8,10 +8,10 @@ import { BUILD_ID, INTERNAL_PREFIX, JS_PREFIX } from "./constants.ts";
 export function installRoutes(
   pages: Page[],
   apiRoutes: ApiRoute[],
-): Record<string, router.MatchHandler> {
+): router.Routes {
   const bundler = new Bundler(pages);
 
-  const routes: Record<string, router.MatchHandler> = {};
+  const routes: router.Routes = {};
 
   for (const page of pages) {
     const bundlePath = `/${page.name}.js`;
@@ -19,7 +19,7 @@ export function installRoutes(
     routes[page.route] = (_, match) => {
       const preloads = bundler.getPreloads(bundlePath).map(bundleAssetUrl);
       return new Response(
-        render(page, imports, preloads, match.params as Record<string, string>),
+        render(page, imports, preloads, match.params),
         {
           status: 200,
           headers: {
