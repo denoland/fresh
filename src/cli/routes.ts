@@ -1,4 +1,4 @@
-import { join, toFileUrl, walk } from "./deps.ts";
+import { join, resolve, toFileUrl, walk } from "./deps.ts";
 
 const help = `fresh routes
 
@@ -37,6 +37,7 @@ export async function routesSubcommand(rawArgs: Record<string, any>) {
 }
 
 export async function routes(directory: string) {
+  directory = resolve(directory);
   const files = [];
   const pagesDir = join(directory, "./pages");
   const pagesUrl = new URL(pagesDir, "file:///");
@@ -71,5 +72,7 @@ const routes = {
 export default routes;
 `;
 
-  await Deno.writeTextFile(join(directory, "./routes.gen.ts"), output);
+  const routeManifestPath = join(directory, "./routes.gen.ts");
+  await Deno.writeTextFile(routeManifestPath, output);
+  console.log("Route manifest generated and written to", routeManifestPath);
 }

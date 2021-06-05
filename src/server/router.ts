@@ -34,7 +34,7 @@ export function installRoutes(
     routes[apiRoute.route] = apiRoute.handler;
   }
 
-  routes[`/${INTERNAL_PREFIX}/${JS_PREFIX}/${BUILD_ID}/:path*`] =
+  routes[`${INTERNAL_PREFIX}${JS_PREFIX}/${BUILD_ID}/:path*`] =
     internalBundleAssetRoute(bundler);
 
   return routes;
