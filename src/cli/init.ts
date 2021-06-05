@@ -107,7 +107,8 @@ export default function Greet(props: Props) {
     join(directory, "pages", "[name].tsx"),
     PAGES_GREET_TSX,
   );
-  const PAGES_API_JOKE_TS = `// Jokes courtesy of https://punsandoneliners.com/randomness/programmer-jokes/
+  const PAGES_API_JOKE_TS =
+    `// Jokes courtesy of https://punsandoneliners.com/randomness/programmer-jokes/
 const JOKES = [
   "Why do Java developers often wear glasses? They can’t C#.",
   "A SQL query walks into a bar, goes up to two tables and says “can I join you?",
