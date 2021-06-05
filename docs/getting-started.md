@@ -22,7 +22,7 @@ inside an existing project. The `fresh` CLI is not required for most development
 or in CI, as `fresh` does not have a build step. To install `fresh`:
 
 ```
-deno install -A -f --no-check https://raw.githubusercontent.com/lucacasonato/fresh/main/cli.ts
+deno install -A -f --no-check -n fresh https://raw.githubusercontent.com/lucacasonato/fresh/main/cli.ts
 ```
 
 ## Creating a new project
