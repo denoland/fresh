@@ -1,7 +1,16 @@
-import { extname, router } from "./deps.ts";
+import { extname, mediaTypeLookup, router } from "./deps.ts";
 import * as rt from "../runtime/deps.ts";
 import { PageProps } from "../runtime/types.ts";
 import { Routes } from "./mod.ts";
+import {
+  DEFAULT_DOCUMENT,
+  DocumentHandler,
+  DocumentModule,
+} from "./document.tsx";
+import { Bundler } from "./bundle.ts";
+import { INTERNAL_PREFIX } from "./constants.ts";
+import { JS_PREFIX } from "./constants.ts";
+import { BUILD_ID } from "./constants.ts";
 
 export interface PageModule {
   default: rt.ComponentType<PageProps>;
@@ -25,48 +34,139 @@ export interface ApiRoute {
   handler: router.MatchHandler;
 }
 
-/**
- * Process the routes into individual pages.
- */
-export function processRoutes(routes: Routes): [Page[], ApiRoute[]] {
-  // Get the routes' base URL.
-  const baseUrl = new URL("./", routes.baseUrl).href;
+export class ServerContext {
+  #pages: Page[];
+  #apiRoutes: ApiRoute[];
+  #document: DocumentHandler;
+  #bundler: Bundler;
 
-  // Extract all pages, and prepare them into this `Page` structure.
-  const pages: Page[] = [];
-  const apiRoutes: ApiRoute[] = [];
-  for (const [self, module] of Object.entries(routes.pages)) {
-    const url = new URL(self, baseUrl).href;
-    if (!url.startsWith(baseUrl)) {
-      throw new TypeError("Page is not a child of the basepath.");
-    }
-    const path = url.substring(baseUrl.length).substring("pages".length);
-    const baseRoute = path.substring(1, path.length - extname(path).length);
-    const route = pathToRoute(baseRoute);
-    const name = baseRoute.replace("/", "-");
-    if (path.startsWith("/api")) {
-      const apiRoute: ApiRoute = {
-        route,
-        url,
-        name,
-        handler: module.default as router.MatchHandler,
-      };
-      apiRoutes.push(apiRoute);
-    } else {
-      const page: Page = {
-        route,
-        url,
-        name,
-        component: module.default as rt.ComponentType<PageProps>,
-      };
-      pages.push(page);
-    }
+  constructor(pages: Page[], apiRoutes: ApiRoute[], document: DocumentHandler) {
+    this.#pages = pages;
+    this.#apiRoutes = apiRoutes;
+    this.#document = document;
+    this.#bundler = new Bundler(pages);
   }
 
-  sortRoutes(pages);
-  sortRoutes(apiRoutes);
+  /**
+   * Process the routes into individual components and pages.
+   */
+  static fromRoutes(routes: Routes): ServerContext {
+    // Get the routes' base URL.
+    const baseUrl = new URL("./", routes.baseUrl).href;
 
-  return [pages, apiRoutes];
+    // Extract all pages, and prepare them into this `Page` structure.
+    const pages: Page[] = [];
+    const apiRoutes: ApiRoute[] = [];
+    // deno-lint-ignore no-explicit-any
+    let document: DocumentHandler<any> = DEFAULT_DOCUMENT;
+    for (const [self, module] of Object.entries(routes.pages)) {
+      const url = new URL(self, baseUrl).href;
+      if (!url.startsWith(baseUrl)) {
+        throw new TypeError("Page is not a child of the basepath.");
+      }
+      const path = url.substring(baseUrl.length).substring("pages".length);
+      const baseRoute = path.substring(1, path.length - extname(path).length);
+      const route = pathToRoute(baseRoute);
+      const name = baseRoute.replace("/", "-");
+      if (path.startsWith("/api/")) {
+        const apiRoute: ApiRoute = {
+          route,
+          url,
+          name,
+          handler: module.default as router.MatchHandler,
+        };
+        apiRoutes.push(apiRoute);
+      } else if (!path.startsWith("/_")) {
+        const page: Page = {
+          route,
+          url,
+          name,
+          component: module.default as rt.ComponentType<PageProps>,
+        };
+        pages.push(page);
+      } else if (path.startsWith("/_document.")) {
+        document = new DocumentHandler(module as DocumentModule);
+      }
+    }
+
+    sortRoutes(pages);
+    sortRoutes(apiRoutes);
+
+    return new ServerContext(pages, apiRoutes, document);
+  }
+
+  /** This function installs all routes required by fresh onto an oak router. */
+  routes(): router.Routes {
+    const routes: router.Routes = {};
+
+    for (const page of this.#pages) {
+      const bundlePath = `/${page.name}.js`;
+      const imports = [bundleAssetUrl(bundlePath)];
+      routes[page.route] = (_, match) => {
+        const preloads = this.#bundler.getPreloads(bundlePath).map(
+          bundleAssetUrl,
+        );
+        return new Response(
+          this.#document.render({
+            page,
+            imports,
+            preloads,
+            params: match.params,
+          }),
+          {
+            status: 200,
+            headers: {
+              "Content-Type": "text/html; charset=utf-8",
+            },
+          },
+        );
+      };
+    }
+
+    for (const apiRoute of this.#apiRoutes) {
+      routes[apiRoute.route] = apiRoute.handler;
+    }
+
+    routes[`${INTERNAL_PREFIX}${JS_PREFIX}/${BUILD_ID}/:path*`] = this
+      .#bundleAssetRoute();
+
+    return routes;
+  }
+
+  /**
+   * Returns a router that contains all fresh routes. Should be mounted at
+   * constants.INTERNAL_PREFIX
+   */
+  #bundleAssetRoute = (): router.MatchHandler => {
+    return async (_req, match) => {
+      const path = `/${match.params.path}`;
+      const file = await this.#bundler.get(path);
+      let res;
+      if (file) {
+        const headers = new Headers({
+          "Cache-Control": "public, max-age=604800, immutable",
+        });
+
+        const contentType = mediaTypeLookup(path);
+        if (contentType) {
+          headers.set("Content-Type", contentType);
+        }
+
+        res = new Response(file, {
+          status: 200,
+          headers,
+        });
+      }
+
+      return res ?? new Response(null, {
+        status: 404,
+      });
+    };
+  };
+}
+
+function bundleAssetUrl(path: string) {
+  return `${INTERNAL_PREFIX}${JS_PREFIX}/${BUILD_ID}${path}`;
 }
 
 /**

@@ -123,7 +123,7 @@ import { h, render } from "${runtime.href}";
 
 addEventListener("DOMContentLoaded", () => {
   const props = JSON.parse(document.getElementById("__FRSH_PROPS").textContent);
-  render(h(Page, props), document.body);  
+  render(h(Page, props), document.getElementById("__FRSH"));  
 });
 `;
           return { contents, loader: "js" };
