@@ -23,9 +23,7 @@ export type ApiRouteModule = {
       | "POST"
       | "PUT"
       | "DELETE"
-      | "CONNECT"
       | "OPTIONS"
-      | "TRACE"
       | "PATCH"
   ]?: router.MatchHandler;
 };
