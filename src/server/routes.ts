@@ -32,7 +32,7 @@ export interface ApiRoute {
   route: string;
   url: string;
   name: string;
-  handlers: ApiRouteModule;
+  handlers: Record<string, router.MatchHandler>;
 }
 
 /**
