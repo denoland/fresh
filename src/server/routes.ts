@@ -14,15 +14,27 @@ export interface Page {
   component: rt.ComponentType<PageProps>;
 }
 
-export interface ApiRouteModule {
-  default: router.MatchHandler;
-}
+export type ApiRouteModule = {
+  [
+    K in
+      | "default"
+      | "GET"
+      | "HEAD"
+      | "POST"
+      | "PUT"
+      | "DELETE"
+      | "CONNECT"
+      | "OPTIONS"
+      | "TRACE"
+      | "PATCH"
+  ]?: router.MatchHandler;
+};
 
 export interface ApiRoute {
   route: string;
   url: string;
   name: string;
-  handler: router.MatchHandler;
+  handlers: ApiRouteModule;
 }
 
 /**
@@ -49,7 +61,7 @@ export function processRoutes(routes: Routes): [Page[], ApiRoute[]] {
         route,
         url,
         name,
-        handler: module.default as router.MatchHandler,
+        handlers: module as ApiRouteModule,
       };
       apiRoutes.push(apiRoute);
     } else {

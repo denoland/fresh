@@ -30,8 +30,16 @@ export function installRoutes(
     };
   }
 
-  for (const apiRoute of apiRoutes) {
-    routes[apiRoute.route] = apiRoute.handler;
+  for (const { route, handlers } of apiRoutes) {
+    for (const [method, handler] of Object.entries(handlers)) {
+      if (handler) {
+        if (method === "default") {
+          routes[route] = handler;
+        } else {
+          routes[`${method}@${route}`] = handler;
+        }
+      }
+    }
   }
 
   routes[`${INTERNAL_PREFIX}${JS_PREFIX}/${BUILD_ID}/:path*`] =

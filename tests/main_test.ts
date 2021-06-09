@@ -32,8 +32,20 @@ Deno.test("/[name] page prerender", async () => {
   );
 });
 
-Deno.test("/api/name", async () => {
+Deno.test("/api/name - GET", async () => {
   const resp = await router(new Request("https://fresh.deno.dev/api/name"));
+  assert(resp);
+  assertEquals(resp.status, 200);
+  const body = await resp.text();
+  assertEquals(body, "Get fresh!");
+});
+
+Deno.test("/api/name - default", async () => {
+  const resp = await router(
+    new Request("https://fresh.deno.dev/api/name", {
+      method: "POST",
+    }),
+  );
   assert(resp);
   assertEquals(resp.status, 200);
   assertEquals(
