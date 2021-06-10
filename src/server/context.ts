@@ -108,7 +108,6 @@ export class ServerContext {
       }
     }
 
-
     routes[`${INTERNAL_PREFIX}${JS_PREFIX}/${BUILD_ID}/:path*`] = this
       .#bundleAssetRoute();
 
