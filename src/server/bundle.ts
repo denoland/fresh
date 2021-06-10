@@ -119,11 +119,19 @@ function freshPlugin(pageList: Page[]): esbuild.Plugin {
           if (!page) return null;
           const contents = `
 import Page from "${page.url}";
-import { h, render } from "${runtime.href}";
+import { h, render, DATA_CONTEXT } from "${runtime.href}";
 
 addEventListener("DOMContentLoaded", () => {
-  const props = JSON.parse(document.getElementById("__FRSH_PROPS").textContent);
-  render(h(Page, props), document.body);  
+  const { params, data } = JSON.parse(document.getElementById("__FRSH_PROPS").textContent);
+  try {
+    render(h(DATA_CONTEXT.Provider, { value: new Map(data) }, h(Page, { params })), document.getElementById("__FRSH"));  
+  } catch(err) {
+    if (err instanceof Promise) {
+      console.error("Render tried to suspend without a suspense boundary.");
+    } else {
+      console.error("Render threw an error:", err);
+    }
+  }
 });
 `;
           return { contents, loader: "js" };

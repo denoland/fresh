@@ -7,7 +7,7 @@ import { INTERNAL_PREFIX } from "./constants.ts";
 import { JS_PREFIX } from "./constants.ts";
 import { BUILD_ID } from "./constants.ts";
 import { ApiRoute, Page } from "./types.ts";
-import { render } from "./render.ts";
+import { render } from "./render.tsx";
 
 export class ServerContext {
   #pages: Page[];
@@ -77,11 +77,11 @@ export class ServerContext {
     for (const page of this.#pages) {
       const bundlePath = `/${page.name}.js`;
       const imports = [bundleAssetUrl(bundlePath)];
-      routes[page.route] = (_, match) => {
+      routes[page.route] = async (_, match) => {
         const preloads = this.#bundler.getPreloads(bundlePath).map(
           bundleAssetUrl,
         );
-        const body = render({
+        const body = await render({
           page,
           imports,
           preloads,

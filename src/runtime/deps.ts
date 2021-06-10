@@ -21,3 +21,4 @@ export {
   useRef,
   useState,
 } from "https://x.lcas.dev/preact@10.5.12/hooks.js";
+import "https://x.lcas.dev/preact@10.5.12/debug.js";
