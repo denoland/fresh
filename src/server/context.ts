@@ -46,7 +46,7 @@ export class ServerContext {
           name,
           handlers: Object.fromEntries(
             Object.entries(module).filter(([method]) =>
-              router.METHODS.includes(method)
+              router.METHODS.includes(method) || method === "default"
             ),
           ),
         };
