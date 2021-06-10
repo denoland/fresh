@@ -1,5 +1,5 @@
 import { denoPlugin, esbuild } from "./deps.ts";
-import { Page } from "./routes.ts";
+import { Page } from "./types.ts";
 
 let esbuildInitalized: boolean | Promise<void> = false;
 async function ensureEsbuildInialized() {
