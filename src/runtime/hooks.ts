@@ -10,7 +10,7 @@ export type Fetcher<T> = (key: string) => T | Promise<T>;
  * On the client the hook will return the data that was computed during JIT
  * rendering. If `useData` is called on the client with a different key than
  * during JIT rendering, an error will occur.
- * 
+ *
  * The fetcher can be asynchronous. The render will be suspended while waiting
  * for the asynchronous data to be ready. Once the promise is ready we rerender.
  * Because of the suspense it is possible that a page or component can be
