@@ -15,17 +15,7 @@ export interface Page {
 }
 
 export type ApiRouteModule = {
-  [
-    K in
-      | "default"
-      | "GET"
-      | "HEAD"
-      | "POST"
-      | "PUT"
-      | "DELETE"
-      | "OPTIONS"
-      | "PATCH"
-  ]?: router.MatchHandler;
+  [K in "default" | typeof router.METHODS[number]]?: router.MatchHandler;
 };
 
 export interface ApiRoute {
@@ -59,7 +49,11 @@ export function processRoutes(routes: Routes): [Page[], ApiRoute[]] {
         route,
         url,
         name,
-        handlers: module as ApiRouteModule,
+        handlers: Object.fromEntries(
+          Object.entries(module).filter(([method]) =>
+            router.METHODS.includes(method)
+          ),
+        ),
       };
       apiRoutes.push(apiRoute);
     } else {
