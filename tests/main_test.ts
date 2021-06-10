@@ -14,7 +14,11 @@ Deno.test("/ page prerender", async () => {
   assertStringIncludes(body, "<p>Viewing JIT render.</p>");
   assertStringIncludes(
     body,
-    `<script id="__FRSH_PROPS" type="application/json">{"params":{}}</script>`,
+    `<script id="__FRSH_PROPS" type="application/json">`,
+  );
+  assertStringIncludes(
+    body,
+    `"params":{}`,
   );
 });
 
@@ -28,7 +32,11 @@ Deno.test("/[name] page prerender", async () => {
   assertStringIncludes(body, "<div>Hello foo</div>");
   assertStringIncludes(
     body,
-    `<script id="__FRSH_PROPS" type="application/json">{"params":{"name":"foo"}}</script>`,
+    `<script id="__FRSH_PROPS" type="application/json">`,
+  );
+  assertStringIncludes(
+    body,
+    `"params":{"name":"foo"}`,
   );
 });
 
