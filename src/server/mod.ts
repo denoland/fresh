@@ -1,31 +1,18 @@
+import { ServerContext } from "./context.ts";
 import { router } from "./deps.ts";
-import {
-  ApiRoute,
-  ApiRouteModule,
-  Page,
-  PageModule,
-  processRoutes,
-} from "./routes.ts";
-import { installRoutes } from "./router.ts";
+import { ApiRouteModule, PageModule } from "./types.ts";
 
 export interface Routes {
   pages: Record<string, PageModule | ApiRouteModule>;
   baseUrl: string;
 }
 
-export { installRoutes, processRoutes, router };
+export { router, ServerContext };
 
 export function start(routes: Routes) {
-  const [pages, apiRoutes] = processRoutes(routes);
-  const app = createDefaultRouter(pages, apiRoutes);
+  const ctx = ServerContext.fromRoutes(routes);
+  const app = router.router(ctx.routes());
   addEventListener("fetch", (event: FetchEvent) => {
     event.respondWith(app(event.request));
   });
-}
-
-export function createDefaultRouter(
-  pages: Page[],
-  apiRoutes: ApiRoute[],
-): router.RequestHandler {
-  return router.router(installRoutes(pages, apiRoutes));
 }
