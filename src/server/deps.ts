@@ -6,7 +6,7 @@ export { extname } from "https://deno.land/std@0.95.0/path/mod.ts";
 export { generate as generateUuid } from "https://deno.land/std@0.95.0/uuid/v4.ts";
 
 // -- router --
-export * as router from "https://crux.land/router@0.0.2";
+export * as router from "https://crux.land/router@0.0.4";
 
 // -- media types --
 export { lookup as mediaTypeLookup } from "https://deno.land/x/media_types@v2.8.4/mod.ts";

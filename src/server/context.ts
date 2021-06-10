@@ -44,7 +44,11 @@ export class ServerContext {
           route,
           url,
           name,
-          handler: module.default as router.MatchHandler,
+          handlers: Object.fromEntries(
+            Object.entries(module).filter(([method]) =>
+              router.METHODS.includes(method) || method === "default"
+            ),
+          ),
         };
         apiRoutes.push(apiRoute);
       } else if (!path.startsWith("/_")) {
@@ -92,8 +96,16 @@ export class ServerContext {
       };
     }
 
-    for (const apiRoute of this.#apiRoutes) {
-      routes[apiRoute.route] = apiRoute.handler;
+    for (const { route, handlers } of this.#apiRoutes) {
+      for (const [method, handler] of Object.entries(handlers)) {
+        if (handler) {
+          if (method === "default") {
+            routes[route] = handler;
+          } else {
+            routes[`${method}@${route}`] = handler;
+          }
+        }
+      }
     }
 
     routes[`${INTERNAL_PREFIX}${JS_PREFIX}/${BUILD_ID}/:path*`] = this

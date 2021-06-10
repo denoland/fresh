@@ -32,8 +32,20 @@ Deno.test("/[name] page prerender", async () => {
   );
 });
 
-Deno.test("/api/name", async () => {
+Deno.test("/api/name - GET", async () => {
   const resp = await router(new Request("https://fresh.deno.dev/api/name"));
+  assert(resp);
+  assertEquals(resp.status, 200);
+  const body = await resp.text();
+  assertEquals(body, "Get fresh!");
+});
+
+Deno.test("/api/name - default", async () => {
+  const resp = await router(
+    new Request("https://fresh.deno.dev/api/name", {
+      method: "POST",
+    }),
+  );
   assert(resp);
   assertEquals(resp.status, 200);
   assertEquals(
@@ -42,6 +54,20 @@ Deno.test("/api/name", async () => {
   );
   const body = await resp.json();
   assertEquals(body, { name: "fresh" });
+});
+
+Deno.test("/api/get_only - NOTAMETHOD", async () => {
+  const resp = await router(
+    new Request("https://fresh.deno.dev/api/get_only", {
+      method: "NOTAMETHOD",
+    }),
+  );
+  assert(resp);
+  assertEquals(resp.status, 405);
+  assertEquals(
+    resp.headers.get("accept"),
+    "GET",
+  );
 });
 
 Deno.test("/api/xyz not found", async () => {

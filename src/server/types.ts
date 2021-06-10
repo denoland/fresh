@@ -13,13 +13,13 @@ export interface Page {
   component: ComponentType<PageProps>;
 }
 
-export interface ApiRouteModule {
-  default: router.MatchHandler;
-}
+export type ApiRouteModule = {
+  [K in "default" | typeof router.METHODS[number]]?: router.MatchHandler;
+};
 
 export interface ApiRoute {
   route: string;
   url: string;
   name: string;
-  handler: router.MatchHandler;
+  handlers: Record<string, router.MatchHandler>;
 }
