@@ -56,6 +56,20 @@ Deno.test("/api/name - default", async () => {
   assertEquals(body, { name: "fresh" });
 });
 
+Deno.test("/api/get_only - NOTAMETHOD", async () => {
+  const resp = await router(
+    new Request("https://fresh.deno.dev/api/get_only", {
+      method: "NOTAMETHOD",
+    }),
+  );
+  assert(resp);
+  assertEquals(resp.status, 405);
+  assertEquals(
+    resp.headers.get("accept"),
+    "GET",
+  );
+});
+
 Deno.test("/api/xyz not found", async () => {
   const resp = await router(new Request("https://fresh.deno.dev/api/xyz"));
   assert(resp);
