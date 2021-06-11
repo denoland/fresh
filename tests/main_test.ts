@@ -11,6 +11,7 @@ Deno.test("/ page prerender", async () => {
   assertEquals(resp.headers.get("content-type"), "text/html; charset=utf-8");
   const body = await resp.text();
   assertStringIncludes(body, "index.js");
+  assertStringIncludes(body, "<p>Hello!</p>");
   assertStringIncludes(body, "<p>Viewing JIT render.</p>");
   assertStringIncludes(
     body,
@@ -19,6 +20,10 @@ Deno.test("/ page prerender", async () => {
   assertStringIncludes(
     body,
     `"params":{}`,
+  );
+  assertStringIncludes(
+    body,
+    `"data":[["home","Hello!"]]`,
   );
 });
 
