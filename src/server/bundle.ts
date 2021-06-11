@@ -122,9 +122,9 @@ import Page from "${page.url}";
 import { h, render, DATA_CONTEXT } from "${runtime.href}";
 
 addEventListener("DOMContentLoaded", () => {
-  const { params, data } = JSON.parse(document.getElementById("__FRSH_PROPS").textContent);
+  const { params, data } = JSON.parse(document.getElementById("__FRSH_PROPS")?.textContent ?? "{}");
   try {
-    render(h(DATA_CONTEXT.Provider, { value: new Map(data) }, h(Page, { params })), document.getElementById("__FRSH"));  
+    render(h(DATA_CONTEXT.Provider, { value: new Map(data ?? []) }, h(Page, { params: params ?? {} })), document.getElementById("__FRSH"));  
   } catch(err) {
     if (err instanceof Promise) {
       console.error("Render tried to suspend without a suspense boundary.");

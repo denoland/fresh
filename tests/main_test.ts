@@ -17,10 +17,7 @@ Deno.test("/ page prerender", async () => {
     body,
     `<script id="__FRSH_PROPS" type="application/json">`,
   );
-  assertStringIncludes(
-    body,
-    `"params":{}`,
-  );
+  assert(!body.includes(`"params"`));
   assertStringIncludes(
     body,
     `"data":[["home","Hello!"]]`,
