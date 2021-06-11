@@ -85,5 +85,6 @@ Example: https://fresh.deno.dev
 ## Next steps
 
 Now that the project is deployed, it is time to make some changes to the default
-project. For that read the guides on [project structure](./project-structure.md)
+project. For that read the guides on
+[project structure](./project-structure.md), [data fetching](./data-fetching.md)
 and [file system routing](./file-system-routing.md)
