@@ -53,6 +53,10 @@ export async function render(opts: RenderOptions): Promise<string> {
     templateProps = undefined;
   }
 
+  if (opts.imports.length === 0) {
+    templateProps = undefined;
+  }
+
   const html = template({
     bodyHtml,
     imports: opts.imports,

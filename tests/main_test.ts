@@ -85,3 +85,15 @@ Deno.test("/api/xyz not found", async () => {
   assert(resp);
   assertEquals(resp.status, 404);
 });
+
+Deno.test("/static page prerender", async () => {
+  const resp = await router(new Request("https://fresh.deno.dev/static"));
+  assert(resp);
+  assertEquals(resp.status, 200);
+  assertEquals(resp.headers.get("content-type"), "text/html; charset=utf-8");
+  const body = await resp.text();
+  assert(!body.includes(`static.js`));
+  assert(!body.includes(`</script>`));
+  assertStringIncludes(body, "<p>This is a static page.</p>");
+  assert(!body.includes("__FRSH_PROPS"));
+});
