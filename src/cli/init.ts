@@ -1,4 +1,4 @@
-import { join } from "./deps.ts";
+import { join, resolve } from "./deps.ts";
 import { error } from "./error.ts";
 import { routes } from "./routes.ts";
 
@@ -44,6 +44,8 @@ export async function initSubcommand(rawArgs: Record<string, any>) {
 }
 
 async function init(directory: string) {
+  directory = resolve(directory);
+
   try {
     const dir = [...Deno.readDirSync(directory)];
     if (dir.length > 0) {
