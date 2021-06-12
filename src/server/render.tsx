@@ -96,12 +96,26 @@ export async function render(opts: RenderOptions): Promise<string> {
 
   opts.renderer.postRender(ctx, bodyHtml);
 
+  let templateProps: {
+    params?: Record<string, string>;
+    data?: [string, unknown][];
+  } | undefined = { params: opts.params, data: [...dataCache.entries()] };
+  if (Object.entries(templateProps.params!).length === 0) {
+    delete templateProps.params;
+  }
+  if (templateProps.data!.length === 0) {
+    delete templateProps.data;
+  }
+  if (Object.entries(templateProps).length === 0) {
+    templateProps = undefined;
+  }
+
   const html = template({
     bodyHtml,
     imports: opts.imports,
     preloads: opts.preloads,
     head: ctx.head,
-    props: { params: opts.params, data: [...dataCache.entries()] },
+    props: templateProps,
   });
 
   return html;
@@ -116,8 +130,6 @@ export interface TemplateOptions {
 }
 
 export function template(opts: TemplateOptions): string {
-  const props = JSON.stringify(opts.props);
-
   const page = (
     <html>
       <head>
@@ -127,11 +139,13 @@ export function template(opts: TemplateOptions): string {
       </head>
       <body>
         <div dangerouslySetInnerHTML={{ __html: opts.bodyHtml }} id="__FRSH" />
-        <script
-          id="__FRSH_PROPS"
-          type="application/json"
-          dangerouslySetInnerHTML={{ __html: props }}
-        />
+        {opts.props !== undefined
+          ? <script
+            id="__FRSH_PROPS"
+            type="application/json"
+            dangerouslySetInnerHTML={{ __html: JSON.stringify(opts.props) }}
+          />
+          : null}
       </body>
     </html>
   );
