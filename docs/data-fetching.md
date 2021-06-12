@@ -1,8 +1,8 @@
 # Data fetching
 
 Not all pages can be server rendered synchronously - some pages are dynamic and
-require fetching fetching some data from an external source. This data fetching
-is often asynchronous.
+require fetching some data from an external source. This data fetching is often
+asynchronous.
 
 Fresh supports asynchronous data fetch in server render using suspense. This
 allows render to be interupted to wait for a promise to resolve. Once the
