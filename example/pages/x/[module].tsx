@@ -1,4 +1,4 @@
-import { h, PageProps, useData } from "../../deps.ts";
+import { h, PageConfig, PageProps, useData } from "../../deps.ts";
 
 export default function ModuleInfoPage({ params }: PageProps) {
   const module = params.module;
@@ -32,3 +32,5 @@ async function fetcher(url: string): Promise<ModuleInfo | null> {
   if (resp.status === 200) return resp.json();
   return null;
 }
+
+export const config: PageConfig = { runtimeJS: false };

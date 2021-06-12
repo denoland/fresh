@@ -1,9 +1,10 @@
 import { ComponentType } from "../runtime/deps.ts";
 import { router } from "./deps.ts";
-import { PageProps } from "../runtime/types.ts";
+import { PageConfig, PageProps } from "../runtime/types.ts";
 
 export interface PageModule {
   default: ComponentType<PageProps>;
+  config?: PageConfig;
 }
 
 export interface Page {
@@ -11,6 +12,7 @@ export interface Page {
   url: string;
   name: string;
   component: ComponentType<PageProps>;
+  runtimeJS: boolean;
 }
 
 export type ApiRouteModule = {

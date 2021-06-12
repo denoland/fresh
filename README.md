@@ -15,12 +15,15 @@ Fresh does not have a build step - you write your code, deploy it to
 the framework.
 
 - No build step
-- Zero config
+- Zero config necessary
 - JIT rendering on the edge
-- Tiny (example is 3KB of JS)
-- Client side hydration
+- Tiny (example is 0-3KB of runtime JS)<sup>1</sup>
+- Optional client side hydration
 - TypeScript out of the box
 - File-system routing à la Next.js
+
+_<sup>1</sup> Client side hydration can be disabled per page. This results in
+**no JS** being shipped to the client._
 
 ## Install
 

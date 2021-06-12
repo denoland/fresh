@@ -1,12 +1,10 @@
 import { extname, mediaTypeLookup, router } from "./deps.ts";
-import * as rt from "../runtime/deps.ts";
-import { PageProps } from "../runtime/types.ts";
 import { Routes } from "./mod.ts";
 import { Bundler } from "./bundle.ts";
 import { INTERNAL_PREFIX } from "./constants.ts";
 import { JS_PREFIX } from "./constants.ts";
 import { BUILD_ID } from "./constants.ts";
-import { ApiRoute, Page } from "./types.ts";
+import { ApiRoute, ApiRouteModule, Page, PageModule } from "./types.ts";
 import { render } from "./render.tsx";
 
 export class ServerContext {
@@ -40,23 +38,26 @@ export class ServerContext {
       const route = pathToRoute(baseRoute);
       const name = baseRoute.replace("/", "-");
       if (path.startsWith("/api/")) {
+        const handlers = Object.fromEntries(
+          Object.entries(module as ApiRouteModule).filter(([method]) =>
+            method === "default" || router.METHODS.includes(method)
+          ),
+        );
         const apiRoute: ApiRoute = {
           route,
           url,
           name,
-          handlers: Object.fromEntries(
-            Object.entries(module).filter(([method]) =>
-              router.METHODS.includes(method) || method === "default"
-            ),
-          ),
+          handlers,
         };
         apiRoutes.push(apiRoute);
       } else if (!path.startsWith("/_")) {
+        const { default: component, config } = (module as PageModule);
         const page: Page = {
           route,
           url,
           name,
-          component: module.default as rt.ComponentType<PageProps>,
+          component,
+          runtimeJS: config?.runtimeJS ?? true,
         };
         pages.push(page);
       }
@@ -83,8 +84,8 @@ export class ServerContext {
         );
         const body = await render({
           page,
-          imports,
-          preloads,
+          imports: page.runtimeJS ? imports : [],
+          preloads: page.runtimeJS ? preloads : [],
           params: match.params,
         });
         return new Response(body, {
