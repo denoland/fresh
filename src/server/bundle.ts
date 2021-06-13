@@ -33,19 +33,21 @@ export class Bundler {
 
     await ensureEsbuildInialized();
     const bundle = await esbuild.build({
-      plugins: [freshPlugin(this.#pages), denoPlugin({ loader: "portable" })],
-      write: false,
       bundle: true,
-      minify: true,
-      treeShaking: true,
-      splitting: true,
-      platform: "neutral",
-      outfile: "",
+      entryPoints,
+      format: "esm",
       jsxFactory: "h",
       jsxFragment: "Fragment",
       metafile: true,
+      minify: true,
       outdir: `/`,
-      entryPoints,
+      outfile: "",
+      platform: "neutral",
+      plugins: [freshPlugin(this.#pages), denoPlugin({ loader: "portable" })],
+      splitting: true,
+      target: ["chrome89", "firefox88", "safari13"],
+      treeShaking: true,
+      write: false,
     });
 
     const metafileOutputs = bundle.metafile!.outputs;

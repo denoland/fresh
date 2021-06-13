@@ -6,6 +6,7 @@ import { JS_PREFIX } from "./constants.ts";
 import { BUILD_ID } from "./constants.ts";
 import {
   ApiRoute,
+  ApiRouteModule,
   Page,
   PageModule,
   Renderer,
@@ -47,23 +48,26 @@ export class ServerContext {
       const route = pathToRoute(baseRoute);
       const name = baseRoute.replace("/", "-");
       if (path.startsWith("/api/")) {
+        const handlers = Object.fromEntries(
+          Object.entries(module as ApiRouteModule).filter(([method]) =>
+            method === "default" || router.METHODS.includes(method)
+          ),
+        );
         const apiRoute: ApiRoute = {
           route,
           url,
           name,
-          handlers: Object.fromEntries(
-            Object.entries(module).filter(([method]) =>
-              router.METHODS.includes(method) || method === "default"
-            ),
-          ),
+          handlers,
         };
         apiRoutes.push(apiRoute);
       } else if (!path.startsWith("/_")) {
+        const { default: component, config } = (module as PageModule);
         const page: Page = {
           route,
           url,
           name,
-          component: (module as PageModule).default,
+          component,
+          runtimeJS: config?.runtimeJS ?? true,
         };
         pages.push(page);
       } else if (
@@ -95,8 +99,8 @@ export class ServerContext {
         );
         const body = await render({
           page,
-          imports,
-          preloads,
+          imports: page.runtimeJS ? imports : [],
+          preloads: page.runtimeJS ? preloads : [],
           renderer: this.#renderer,
           params: match.params,
         });
