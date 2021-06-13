@@ -29,7 +29,7 @@ export interface ApiRoute {
 
 export interface RendererModule {
   render(ctx: RenderContext, render: RenderFn): void;
-  postRender(ctx: RenderContext): void;
+  postRender(ctx: RenderContext, bodyHtml: string): void;
 }
 
 export interface Renderer {
