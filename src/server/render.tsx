@@ -1,13 +1,47 @@
-import { renderToString } from "./deps.ts";
-import { h } from "../runtime/deps.ts";
+import { generateUuid, renderToString } from "./deps.ts";
+import { ComponentChild, h } from "../runtime/deps.ts";
 import { DATA_CONTEXT } from "../runtime/hooks.ts";
-import { Page } from "./types.ts";
+import { Page, Renderer } from "./types.ts";
 
 export interface RenderOptions {
   page: Page;
   imports: string[];
   preloads: string[];
   params: Record<string, string>;
+  renderer: Renderer;
+}
+
+export type RenderFn = () => void;
+
+export class RenderContext {
+  #id: string;
+  #state: Map<string, unknown> = new Map();
+  #head: ComponentChild[] = [];
+
+  constructor(id: string) {
+    this.#id = id;
+  }
+
+  /** A unique ID for this logical JIT render. */
+  get id(): string {
+    return this.#id;
+  }
+
+  /**
+   * State that is persisted between multiple renders with the same render
+   * context. This is useful because one logical JIT render could have multiple
+   * preact render passes due to suspense.
+   */
+  get state(): Map<string, unknown> {
+    return this.#state;
+  }
+
+  /**
+   * Items to add to the <head> for this render.
+   */
+  get head(): ComponentChild[] {
+    return this.#head;
+  }
 }
 
 const MAX_SUSPENSE_DEPTH = 10;
@@ -22,22 +56,45 @@ export async function render(opts: RenderOptions): Promise<string> {
     children: h(opts.page.component, props),
   });
 
+  const ctx = new RenderContext(generateUuid());
+
   let suspended = 0;
-  const render = (): string | Promise<string> => {
+  const renderWithRenderer = (): string | Promise<string> => {
     if (++suspended > MAX_SUSPENSE_DEPTH) {
       throw new Error(
         `Reached maximum suspense depth of ${MAX_SUSPENSE_DEPTH}.`,
       );
     }
-    try {
-      return renderToString(vnode);
-    } catch (e) {
-      if (e && e.then) return e.then(render);
-      throw e;
+
+    let body: string | null = null;
+    let promise: Promise<unknown> | null = null;
+
+    function render() {
+      try {
+        body = renderToString(vnode);
+      } catch (e) {
+        if (e && e.then) {
+          promise = e;
+          return;
+        }
+        throw e;
+      }
+    }
+
+    opts.renderer.render(ctx, render);
+
+    if (body !== null) {
+      return body;
+    } else if (promise !== null) {
+      return (promise as Promise<unknown>).then(renderWithRenderer);
+    } else {
+      throw new Error("`render` function not called by renderer.");
     }
   };
 
-  const bodyHtml = await render();
+  const bodyHtml = await renderWithRenderer();
+
+  opts.renderer.postRender(ctx, bodyHtml);
 
   let templateProps: {
     params?: Record<string, string>;
@@ -61,6 +118,7 @@ export async function render(opts: RenderOptions): Promise<string> {
     bodyHtml,
     imports: opts.imports,
     preloads: opts.preloads,
+    head: ctx.head,
     props: templateProps,
   });
 
@@ -70,6 +128,7 @@ export async function render(opts: RenderOptions): Promise<string> {
 export interface TemplateOptions {
   bodyHtml: string;
   imports: string[];
+  head: ComponentChild[];
   preloads: string[];
   props: unknown;
 }
@@ -80,6 +139,7 @@ export function template(opts: TemplateOptions): string {
       <head>
         {opts.preloads.map((src) => <link rel="modulepreload" href={src} />)}
         {opts.imports.map((src) => <script src={src} type="module"></script>)}
+        {opts.head}
       </head>
       <body>
         <div dangerouslySetInnerHTML={{ __html: opts.bodyHtml }} id="__FRSH" />

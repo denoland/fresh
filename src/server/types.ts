@@ -1,6 +1,7 @@
 import { ComponentType } from "../runtime/deps.ts";
 import { router } from "./deps.ts";
 import { PageConfig, PageProps } from "../runtime/types.ts";
+import { RenderContext, RenderFn } from "./render.tsx";
 
 export interface PageModule {
   default: ComponentType<PageProps>;
@@ -24,4 +25,14 @@ export interface ApiRoute {
   url: string;
   name: string;
   handlers: Record<string, router.MatchHandler>;
+}
+
+export interface RendererModule {
+  render(ctx: RenderContext, render: RenderFn): void;
+  postRender(ctx: RenderContext, bodyHtml: string): void;
+}
+
+export interface Renderer {
+  render(ctx: RenderContext, render: RenderFn): void;
+  postRender(ctx: RenderContext, bodyHtml: string): void;
 }

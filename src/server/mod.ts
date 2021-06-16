@@ -1,9 +1,11 @@
 import { ServerContext } from "./context.ts";
 import { router } from "./deps.ts";
-import { ApiRouteModule, PageModule } from "./types.ts";
+import { ApiRouteModule, PageModule, RendererModule } from "./types.ts";
+export { RenderContext } from "./render.tsx";
+export type { RenderFn } from "./render.tsx";
 
 export interface Routes {
-  pages: Record<string, PageModule | ApiRouteModule>;
+  pages: Record<string, PageModule | ApiRouteModule | RendererModule>;
   baseUrl: string;
 }
 

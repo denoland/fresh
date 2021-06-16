@@ -4,17 +4,26 @@ import { Bundler } from "./bundle.ts";
 import { INTERNAL_PREFIX } from "./constants.ts";
 import { JS_PREFIX } from "./constants.ts";
 import { BUILD_ID } from "./constants.ts";
-import { ApiRoute, ApiRouteModule, Page, PageModule } from "./types.ts";
+import {
+  ApiRoute,
+  ApiRouteModule,
+  Page,
+  PageModule,
+  Renderer,
+  RendererModule,
+} from "./types.ts";
 import { render } from "./render.tsx";
 
 export class ServerContext {
   #pages: Page[];
   #apiRoutes: ApiRoute[];
   #bundler: Bundler;
+  #renderer: Renderer;
 
-  constructor(pages: Page[], apiRoutes: ApiRoute[]) {
+  constructor(pages: Page[], apiRoutes: ApiRoute[], renderer: Renderer) {
     this.#pages = pages;
     this.#apiRoutes = apiRoutes;
+    this.#renderer = renderer;
     this.#bundler = new Bundler(pages);
   }
 
@@ -28,6 +37,7 @@ export class ServerContext {
     // Extract all pages, and prepare them into this `Page` structure.
     const pages: Page[] = [];
     const apiRoutes: ApiRoute[] = [];
+    let renderer: Renderer = DEFAULT_RENDERER;
     for (const [self, module] of Object.entries(routes.pages)) {
       const url = new URL(self, baseUrl).href;
       if (!url.startsWith(baseUrl)) {
@@ -60,12 +70,17 @@ export class ServerContext {
           runtimeJS: config?.runtimeJS ?? true,
         };
         pages.push(page);
+      } else if (
+        path === "/_render.tsx" || path === "/_render.ts" ||
+        path === "/_render.jsx" || path === "/_render.js"
+      ) {
+        renderer = module as RendererModule;
       }
     }
     sortRoutes(pages);
     sortRoutes(apiRoutes);
 
-    return new ServerContext(pages, apiRoutes);
+    return new ServerContext(pages, apiRoutes, renderer);
   }
 
   /**
@@ -86,6 +101,7 @@ export class ServerContext {
           page,
           imports: page.runtimeJS ? imports : [],
           preloads: page.runtimeJS ? preloads : [],
+          renderer: this.#renderer,
           params: match.params,
         });
         return new Response(body, {
@@ -150,6 +166,13 @@ export class ServerContext {
 function bundleAssetUrl(path: string) {
   return `${INTERNAL_PREFIX}${JS_PREFIX}/${BUILD_ID}${path}`;
 }
+
+const DEFAULT_RENDERER: Renderer = {
+  render(_ctx, render) {
+    render();
+  },
+  postRender(_ctx) {},
+};
 
 /**
  * Sort pages by their relative routing priority, based on the parts in the
