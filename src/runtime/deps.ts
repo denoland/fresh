@@ -1,13 +1,4 @@
-export * from "https://x.lcas.dev/preact@10.5.12/mod.js";
-export type {
-  CreateHandle,
-  EffectCallback,
-  Inputs,
-  PropRef,
-  Reducer,
-  Ref,
-  StateUpdater,
-} from "https://x.lcas.dev/preact@10.5.12/hooks.js";
+export * from "https://esm.sh/preact@10.5.14";
 export {
   useCallback,
   useContext,
@@ -20,4 +11,13 @@ export {
   useReducer,
   useRef,
   useState,
-} from "https://x.lcas.dev/preact@10.5.12/hooks.js";
+} from "https://esm.sh/preact@10.5.14/hooks";
+export type {
+  CreateHandle,
+  EffectCallback,
+  Inputs,
+  PropRef,
+  Reducer,
+  Ref,
+  StateUpdater,
+} from "https://esm.sh/preact@10.5.14/hooks";
