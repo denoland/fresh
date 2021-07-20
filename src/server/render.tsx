@@ -1,4 +1,4 @@
-import { generateUuid, renderToString } from "./deps.ts";
+import { renderToString } from "./deps.ts";
 import { ComponentChild, h } from "../runtime/deps.ts";
 import { DATA_CONTEXT } from "../runtime/hooks.ts";
 import { Page, Renderer } from "./types.ts";
@@ -56,7 +56,7 @@ export async function render(opts: RenderOptions): Promise<string> {
     children: h(opts.page.component, props),
   });
 
-  const ctx = new RenderContext(generateUuid());
+  const ctx = new RenderContext(crypto.randomUUID());
 
   let suspended = 0;
   const renderWithRenderer = (): string | Promise<string> => {
