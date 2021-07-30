@@ -5,7 +5,7 @@ important files are `main.ts`, `routes.gen.ts`, and the pages and api routes in
 the `pages` subfolder.
 
 The `main.ts` file is the entrypoint to your project. It is the file you link in
-Deno Deploy, or run locally with `deployctl`.
+Deno Deploy, or run locally with the `deno` CLI.
 
 The `routes.gen.ts` file is a manifest of all pages and api routes in a project.
 When moving around or creating new pages, this file needs to be updated. This is

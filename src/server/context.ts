@@ -50,7 +50,8 @@ export class ServerContext {
       if (path.startsWith("/api/")) {
         const handlers = Object.fromEntries(
           Object.entries(module as ApiRouteModule).filter(([method]) =>
-            method === "default" || router.METHODS.includes(method)
+            method === "default" ||
+            (router.METHODS as readonly string[]).includes(method)
           ),
         );
         const apiRoute: ApiRoute = {

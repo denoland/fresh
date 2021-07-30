@@ -39,7 +39,7 @@ switch (subcommand) {
     break;
   default:
     if (args.version) {
-      console.log(`deployctl ${VERSION}`);
+      console.log(`fresh ${VERSION}`);
       Deno.exit(0);
     }
     if (args.help) {
