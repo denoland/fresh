@@ -4,14 +4,10 @@ Welcome to the `fresh` documentation.
 
 ## Requirements
 
-The documentation assumes you have Deno 1.9.2 or later, and `deployctl` 0.3.0
-installed.
+The documentation assumes you have Deno 1.12.0 or later installed.
 
 To install Deno, follow the installation instructions in the manual:
 https://deno.land/manual/getting_started/installation
-
-To install `deployctl`, follow the installation instructions here:
-https://deno.land/x/deploy#install
 
 ## Setup
 
@@ -46,10 +42,10 @@ To learn more about how projects are structured, take a look at the
 
 ## Running the project locally
 
-You can now run your new project locally with `deployctl`:
+You can now run your new project locally using the `deno` CLI:
 
 ```
-deployctl run --watch --no-check ./main.ts
+deno run -A --unstable --config tsconfig.json --watch main.ts
 ```
 
 The `--watch` option will cause your script to be reloaded on any changes to the

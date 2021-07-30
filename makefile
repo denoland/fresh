@@ -8,4 +8,4 @@ test:
 	deno test --no-check -A --config tsconfig.json
 
 watch_example:
-	deployctl run --watch --no-check example/main.ts
+	deno run -A --unstable --config example/tsconfig.json --watch example/main.ts
