@@ -7,6 +7,7 @@ export interface RenderOptions {
   page: Page;
   imports: string[];
   preloads: string[];
+  url: URL;
   params: Record<string, string>;
   renderer: Renderer;
 }
@@ -17,9 +18,13 @@ export class RenderContext {
   #id: string;
   #state: Map<string, unknown> = new Map();
   #head: ComponentChild[] = [];
+  #url: URL;
+  #route: string;
 
-  constructor(id: string) {
+  constructor(id: string, url: URL, route: string) {
     this.#id = id;
+    this.#url = url;
+    this.#route = route;
   }
 
   /** A unique ID for this logical JIT render. */
@@ -42,12 +47,23 @@ export class RenderContext {
   get head(): ComponentChild[] {
     return this.#head;
   }
+
+  /** The URL of the page being rendered. */
+  get url(): URL {
+    return this.#url;
+  }
+
+  /** The route matcher (e.g. /blog/:id) that the request matched for this page
+   * to be rendered. */
+  get route(): string {
+    return this.#route;
+  }
 }
 
 const MAX_SUSPENSE_DEPTH = 10;
 
 export async function render(opts: RenderOptions): Promise<string> {
-  const props = { params: opts.params };
+  const props = { params: opts.params, url: opts.url, route: opts.page.route };
 
   const dataCache = new Map();
 
@@ -56,7 +72,7 @@ export async function render(opts: RenderOptions): Promise<string> {
     children: h(opts.page.component, props),
   });
 
-  const ctx = new RenderContext(crypto.randomUUID());
+  const ctx = new RenderContext(crypto.randomUUID(), opts.url, opts.page.route);
 
   let suspended = 0;
   const renderWithRenderer = (): string | Promise<string> => {

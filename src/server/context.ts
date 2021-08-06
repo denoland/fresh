@@ -94,7 +94,7 @@ export class ServerContext {
     for (const page of this.#pages) {
       const bundlePath = `/${page.name}.js`;
       const imports = [bundleAssetUrl(bundlePath)];
-      routes[page.route] = async (_, match) => {
+      routes[page.route] = async (req, match) => {
         const preloads = this.#bundler.getPreloads(bundlePath).map(
           bundleAssetUrl,
         );
@@ -103,6 +103,7 @@ export class ServerContext {
           imports: page.runtimeJS ? imports : [],
           preloads: page.runtimeJS ? preloads : [],
           renderer: this.#renderer,
+          url: new URL(req.url),
           params: match.params,
         });
         return new Response(body, {
