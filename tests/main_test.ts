@@ -10,6 +10,7 @@ Deno.test("/ page prerender", async () => {
   assertEquals(resp.status, 200);
   assertEquals(resp.headers.get("content-type"), "text/html; charset=utf-8");
   const body = await resp.text();
+  assertStringIncludes(body, `<html lang="en">`);
   assertStringIncludes(body, "index.js");
   assertStringIncludes(body, "<p>Hello!</p>");
   assertStringIncludes(body, "<p>Viewing JIT render.</p>");
