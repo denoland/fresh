@@ -2,12 +2,14 @@ import { renderToString } from "./deps.ts";
 import { ComponentChild, h } from "../runtime/deps.ts";
 import { DATA_CONTEXT } from "../runtime/hooks.ts";
 import { Page, Renderer } from "./types.ts";
+import { PageProps } from "../runtime/types.ts";
 
 export interface RenderOptions {
   page: Page;
   imports: string[];
   preloads: string[];
-  params: Record<string, string>;
+  url: URL;
+  params: Record<string, string | string[]>;
   renderer: Renderer;
 }
 
@@ -17,9 +19,13 @@ export class RenderContext {
   #id: string;
   #state: Map<string, unknown> = new Map();
   #head: ComponentChild[] = [];
+  #url: URL;
+  #route: string;
 
-  constructor(id: string) {
+  constructor(id: string, url: URL, route: string) {
     this.#id = id;
+    this.#url = url;
+    this.#route = route;
   }
 
   /** A unique ID for this logical JIT render. */
@@ -42,12 +48,23 @@ export class RenderContext {
   get head(): ComponentChild[] {
     return this.#head;
   }
+
+  /** The URL of the page being rendered. */
+  get url(): URL {
+    return this.#url;
+  }
+
+  /** The route matcher (e.g. /blog/:id) that the request matched for this page
+   * to be rendered. */
+  get route(): string {
+    return this.#route;
+  }
 }
 
 const MAX_SUSPENSE_DEPTH = 10;
 
 export async function render(opts: RenderOptions): Promise<string> {
-  const props = { params: opts.params };
+  const props = { params: opts.params, url: opts.url, route: opts.page.route };
 
   const dataCache = new Map();
 
@@ -56,7 +73,7 @@ export async function render(opts: RenderOptions): Promise<string> {
     children: h(opts.page.component, props),
   });
 
-  const ctx = new RenderContext(crypto.randomUUID());
+  const ctx = new RenderContext(crypto.randomUUID(), opts.url, opts.page.route);
 
   let suspended = 0;
   const renderWithRenderer = (): string | Promise<string> => {
@@ -97,19 +114,15 @@ export async function render(opts: RenderOptions): Promise<string> {
   opts.renderer.postRender(ctx, bodyHtml);
 
   let templateProps: {
-    params?: Record<string, string>;
+    props: PageProps;
     data?: [string, unknown][];
-  } | undefined = { params: opts.params, data: [...dataCache.entries()] };
-  if (Object.entries(templateProps.params!).length === 0) {
-    delete templateProps.params;
-  }
+  } | undefined = { props, data: [...dataCache.entries()] };
   if (templateProps.data!.length === 0) {
     delete templateProps.data;
   }
-  if (Object.entries(templateProps).length === 0) {
-    templateProps = undefined;
-  }
 
+  // If this is a static render (runtimeJS is false), then we don't need to
+  // render the props into the template.
   if (opts.imports.length === 0) {
     templateProps = undefined;
   }
@@ -144,11 +157,13 @@ export function template(opts: TemplateOptions): string {
       <body>
         <div dangerouslySetInnerHTML={{ __html: opts.bodyHtml }} id="__FRSH" />
         {opts.props !== undefined
-          ? <script
-            id="__FRSH_PROPS"
-            type="application/json"
-            dangerouslySetInnerHTML={{ __html: JSON.stringify(opts.props) }}
-          />
+          ? (
+            <script
+              id="__FRSH_PROPS"
+              type="application/json"
+              dangerouslySetInnerHTML={{ __html: JSON.stringify(opts.props) }}
+            />
+          )
           : null}
       </body>
     </html>

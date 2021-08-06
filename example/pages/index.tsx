@@ -19,23 +19,25 @@ export default function Home() {
 
 function Counter() {
   const [count, setCount] = useState(0);
-  return <div class={tw`mt-4 border rounded p-4 text-center`}>
-    <p class={tw`text-lg font-medium`}>Current count: {count}</p>
-    <div class={tw`flex gap-2 mt-4 justify-center`}>
-      <RoundedButton
-        type="button"
-        onClick={() => setCount(count - 1)}
-        disabled={!IS_BROWSER}
-      >
-        <IconMinus />
-      </RoundedButton>
-      <RoundedButton
-        type="button"
-        onClick={() => setCount(count + 1)}
-        disabled={!IS_BROWSER}
-      >
-        <IconPlus />
-      </RoundedButton>
+  return (
+    <div class={tw`mt-4 border rounded p-4 text-center`}>
+      <p class={tw`text-lg font-medium`}>Current count: {count}</p>
+      <div class={tw`flex gap-2 mt-4 justify-center`}>
+        <RoundedButton
+          type="button"
+          onClick={() => setCount(count - 1)}
+          disabled={!IS_BROWSER}
+        >
+          <IconMinus />
+        </RoundedButton>
+        <RoundedButton
+          type="button"
+          onClick={() => setCount(count + 1)}
+          disabled={!IS_BROWSER}
+        >
+          <IconPlus />
+        </RoundedButton>
+      </div>
     </div>
-  </div>;
+  );
 }

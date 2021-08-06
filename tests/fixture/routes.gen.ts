@@ -2,19 +2,21 @@
 // This file SHOULD be checked into source version control.
 // To update this file, run `fresh routes`.
 
-import * as $0 from "./pages/api/name.ts";
-import * as $1 from "./pages/api/get_only.ts";
-import * as $2 from "./pages/static.tsx";
-import * as $3 from "./pages/[name].tsx";
-import * as $4 from "./pages/index.tsx";
+import * as $0 from "./pages/index.tsx";
+import * as $1 from "./pages/static.tsx";
+import * as $2 from "./pages/props/[id].tsx";
+import * as $3 from "./pages/api/get_only.ts";
+import * as $4 from "./pages/api/name.ts";
+import * as $5 from "./pages/[name].tsx";
 
 const routes = {
   pages: {
-    "./pages/api/name.ts": $0,
-    "./pages/api/get_only.ts": $1,
-    "./pages/static.tsx": $2,
-    "./pages/[name].tsx": $3,
-    "./pages/index.tsx": $4,
+    "./pages/index.tsx": $0,
+    "./pages/static.tsx": $1,
+    "./pages/props/[id].tsx": $2,
+    "./pages/api/get_only.ts": $3,
+    "./pages/api/name.ts": $4,
+    "./pages/[name].tsx": $5,
   },
   baseUrl: import.meta.url,
 };
