@@ -2,13 +2,14 @@ import { renderToString } from "./deps.ts";
 import { ComponentChild, h } from "../runtime/deps.ts";
 import { DATA_CONTEXT } from "../runtime/hooks.ts";
 import { Page, Renderer } from "./types.ts";
+import { PageProps } from "../runtime/types.ts";
 
 export interface RenderOptions {
   page: Page;
   imports: string[];
   preloads: string[];
   url: URL;
-  params: Record<string, string>;
+  params: Record<string, string | string[]>;
   renderer: Renderer;
 }
 
@@ -113,19 +114,15 @@ export async function render(opts: RenderOptions): Promise<string> {
   opts.renderer.postRender(ctx, bodyHtml);
 
   let templateProps: {
-    params?: Record<string, string>;
+    props: PageProps;
     data?: [string, unknown][];
-  } | undefined = { params: opts.params, data: [...dataCache.entries()] };
-  if (Object.entries(templateProps.params!).length === 0) {
-    delete templateProps.params;
-  }
+  } | undefined = { props, data: [...dataCache.entries()] };
   if (templateProps.data!.length === 0) {
     delete templateProps.data;
   }
-  if (Object.entries(templateProps).length === 0) {
-    templateProps = undefined;
-  }
 
+  // If this is a static render (runtimeJS is false), then we don't need to
+  // render the props into the template.
   if (opts.imports.length === 0) {
     templateProps = undefined;
   }
