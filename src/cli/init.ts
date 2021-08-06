@@ -141,13 +141,14 @@ export const handler = (_req: Request): Response => {
   const serverUrl = new URL("../../server.ts", import.meta.url);
   const MAIN_TS = `/// <reference no-default-lib="true" />
 /// <reference lib="dom" />
+/// <reference lib="dom.asynciterable" />
 /// <reference lib="deno.ns" />
 /// <reference lib="deno.unstable" />
 
 import { start } from "${serverUrl}";
 import routes from "./routes.gen.ts";
 
-start(routes);
+await start(routes);
 `;
   await Deno.writeTextFile(
     join(directory, "main.ts"),

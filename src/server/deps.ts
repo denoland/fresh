@@ -2,7 +2,13 @@
 export { renderToString } from "https://esm.sh/preact-render-to-string@5.1.19?deps=preact@10.5.14";
 
 // -- std --
-export { extname } from "https://deno.land/std@0.108.0/path/mod.ts";
+export {
+  extname,
+  fromFileUrl,
+  toFileUrl,
+} from "https://deno.land/std@0.108.0/path/mod.ts";
+export { walk } from "https://deno.land/std@0.108.0/fs/walk.ts";
+export { listenAndServe } from "https://deno.land/std@0.108.0/http/server.ts";
 
 // -- router --
 export * as router from "https://crux.land/router@0.0.4";
