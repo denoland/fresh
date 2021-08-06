@@ -21,6 +21,7 @@ export class RenderContext {
   #head: ComponentChild[] = [];
   #url: URL;
   #route: string;
+  #lang = "en";
 
   constructor(id: string, url: URL, route: string) {
     this.#id = id;
@@ -58,6 +59,14 @@ export class RenderContext {
    * to be rendered. */
   get route(): string {
     return this.#route;
+  }
+
+  /** The language of the page being rendered. Defaults to "en". */
+  get lang(): string {
+    return this.#lang;
+  }
+  set lang(lang: string) {
+    this.#lang = lang;
   }
 }
 
@@ -133,6 +142,7 @@ export async function render(opts: RenderOptions): Promise<string> {
     preloads: opts.preloads,
     head: ctx.head,
     props: templateProps,
+    lang: ctx.lang,
   });
 
   return html;
@@ -144,11 +154,12 @@ export interface TemplateOptions {
   head: ComponentChild[];
   preloads: string[];
   props: unknown;
+  lang: string;
 }
 
 export function template(opts: TemplateOptions): string {
   const page = (
-    <html>
+    <html lang={opts.lang}>
       <head>
         {opts.preloads.map((src) => <link rel="modulepreload" href={src} />)}
         {opts.imports.map((src) => <script src={src} type="module"></script>)}
