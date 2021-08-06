@@ -157,11 +157,13 @@ export function template(opts: TemplateOptions): string {
       <body>
         <div dangerouslySetInnerHTML={{ __html: opts.bodyHtml }} id="__FRSH" />
         {opts.props !== undefined
-          ? <script
-            id="__FRSH_PROPS"
-            type="application/json"
-            dangerouslySetInnerHTML={{ __html: JSON.stringify(opts.props) }}
-          />
+          ? (
+            <script
+              id="__FRSH_PROPS"
+              type="application/json"
+              dangerouslySetInnerHTML={{ __html: JSON.stringify(opts.props) }}
+            />
+          )
           : null}
       </body>
     </html>

@@ -15,11 +15,13 @@ export default function ModuleInfoPage({ params }: PageProps) {
   }
 
   const { latest, versions } = info;
-  return <p>
-    The module `{params.module}` has {versions.length} versions, with {latest}
-    {" "}
-    being the most recent.
-  </p>;
+  return (
+    <p>
+      The module `{params.module}` has {versions.length} versions, with {latest}
+      {" "}
+      being the most recent.
+    </p>
+  );
 }
 
 interface ModuleInfo {
