@@ -1,3 +1,5 @@
+/** @jsx h */
+
 import { RoundedButton } from "../components/Button.tsx";
 import { IconMinus, IconPlus } from "../components/Icons.tsx";
 import { h, IS_BROWSER, tw, useState } from "../deps.ts";

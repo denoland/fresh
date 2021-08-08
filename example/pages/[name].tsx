@@ -1,3 +1,5 @@
+/** @jsx h */
+
 import { h } from "../deps.ts";
 
 interface Props {

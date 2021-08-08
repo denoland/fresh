@@ -1,3 +1,5 @@
+/** @jsx h */
+
 import { h, tw } from "../deps.ts";
 
 export function RoundedButton(props: h.JSX.HTMLAttributes<HTMLButtonElement>) {

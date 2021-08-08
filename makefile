@@ -5,7 +5,7 @@ lint:
 	deno lint
 
 test:
-	deno test --no-check -A --config tsconfig.json
+	deno test --no-check -A
 
 watch_example:
-	deno run -A --unstable --config example/tsconfig.json --watch example/main.ts
+	deno run -A --unstable --watch example/main.ts

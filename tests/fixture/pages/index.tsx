@@ -1,3 +1,5 @@
+/** @jsx h */
+
 import { h, IS_BROWSER, useData } from "../deps.ts";
 
 export default function Home() {
