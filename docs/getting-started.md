@@ -45,7 +45,7 @@ To learn more about how projects are structured, take a look at the
 You can now run your new project locally using the `deno` CLI:
 
 ```
-deno run -A --unstable --config tsconfig.json --watch main.ts
+deno run -A --unstable --watch main.ts
 ```
 
 The `--watch` option will cause your script to be reloaded on any changes to the

@@ -1,3 +1,5 @@
+/** @jsx h */
+
 import { h, PageConfig, PageProps, useData } from "../../deps.ts";
 
 export default function ModuleInfoPage({ params }: PageProps) {

@@ -63,7 +63,8 @@ async function init(directory: string) {
     import.meta.url,
   )}";\n`;
   await Deno.writeTextFile(join(directory, "deps.ts"), DEPS_TS);
-  const PAGES_INDEX_TSX = `import { h, IS_BROWSER, useState } from "../deps.ts";
+  const PAGES_INDEX_TSX = `/** @jsx h */
+import { h, IS_BROWSER, useState } from "../deps.ts";
 
 export default function Home() {
   return (
@@ -97,7 +98,8 @@ function Counter() {
     join(directory, "pages", "index.tsx"),
     PAGES_INDEX_TSX,
   );
-  const PAGES_GREET_TSX = `import { h } from "../deps.ts";
+  const PAGES_GREET_TSX = `/** @jsx h */
+import { h } from "../deps.ts";
 
 interface Props {
   params: Record<string, string | string[]>;
@@ -136,23 +138,13 @@ export default (_req: Request): Response => {
     join(directory, "pages", "api", "joke.ts"),
     PAGES_API_JOKE_TS,
   );
-  const TSCONFIG_JSON = JSON.stringify(
-    {
-      "compilerOptions": {
-        "lib": ["dom", "deno.ns", "deno.unstable"],
-        "jsxFactory": "h",
-        "jsxFragmentFactory": "Fragment",
-      },
-    },
-    undefined,
-    2,
-  ) + "\n";
-  await Deno.writeTextFile(
-    join(directory, "tsconfig.json"),
-    TSCONFIG_JSON,
-  );
   const serverUrl = new URL("../../server.ts", import.meta.url);
-  const MAIN_TS = `import { start } from "${serverUrl}";
+  const MAIN_TS = `/// <reference no-default-lib="true" />
+/// <reference lib="dom" />
+/// <reference lib="deno.ns" />
+/// <reference lib="deno.unstable" />
+
+import { start } from "${serverUrl}";
 import routes from "./routes.gen.ts";
 
 start(routes);
@@ -168,7 +160,7 @@ start(routes);
 Start the project:
 
 \`\`\`
-deno run -A --unstable --config tsconfig.json --watch main.ts
+deno run -A --unstable --watch main.ts
 \`\`\`
 
 After adding, removing, or moving a page in the \`pages\` directory, run:

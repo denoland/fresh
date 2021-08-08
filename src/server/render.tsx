@@ -1,3 +1,5 @@
+/** @jsx h */
+
 import { renderToString } from "./deps.ts";
 import { ComponentChild, h } from "../runtime/deps.ts";
 import { DATA_CONTEXT } from "../runtime/hooks.ts";
