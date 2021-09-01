@@ -1,5 +1,5 @@
 // -- preact --
-export { renderToString } from "https://esm.sh/preact-render-to-string@5.1.19?deps=preact@10.5.14";
+export { renderToString } from "https://x.lcas.dev/preact@10.5.11/ssr.js";
 
 // -- std --
 export { extname } from "https://deno.land/std@0.102.0/path/mod.ts";
