@@ -1,10 +1,7 @@
 // This module adds twind support.
 
-import {
-  getStyleTagProperties,
-  virtualSheet,
-} from "https://esm.sh/twind/sheets";
-import { h, setup } from "../deps.ts";
+import { virtualSheet } from "https://esm.sh/twind/sheets";
+import { setup } from "../deps.ts";
 import { RenderContext, RenderFn } from "../server_deps.ts";
 
 const sheet = virtualSheet();
