@@ -59,7 +59,7 @@ export class ServerContext {
           name,
           component,
           handler,
-          runtimeJS: config?.runtimeJS ?? true,
+          runtimeJS: config?.runtimeJS ?? false,
         };
         pages.push(page);
       } else if (

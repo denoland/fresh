@@ -2,7 +2,7 @@
 
 import { RoundedButton } from "../components/Button.tsx";
 import { IconMinus, IconPlus } from "../components/Icons.tsx";
-import { h, IS_BROWSER, tw, useState } from "../deps.ts";
+import { h, IS_BROWSER, PageConfig, tw, useState } from "../deps.ts";
 
 export default function Home() {
   return (
@@ -43,3 +43,5 @@ function Counter() {
     </div>
   );
 }
+
+export const config: PageConfig = { runtimeJS: true };

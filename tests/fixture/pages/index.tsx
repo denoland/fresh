@@ -1,6 +1,6 @@
 /** @jsx h */
 
-import { h, IS_BROWSER, useData } from "../deps.ts";
+import { h, IS_BROWSER, PageConfig, useData } from "../deps.ts";
 
 export default function Home() {
   const message = useData("home", (key) => {
@@ -15,3 +15,5 @@ export default function Home() {
     </div>
   );
 }
+
+export const config: PageConfig = { runtimeJS: true };

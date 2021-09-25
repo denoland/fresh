@@ -1,7 +1,9 @@
 /** @jsx h */
 
-import { h, PageProps } from "../../deps.ts";
+import { h, PageConfig, PageProps } from "../../deps.ts";
 
 export default function Home(props: PageProps) {
   return <div>{JSON.stringify(props)}</div>;
 }
+
+export const config: PageConfig = { runtimeJS: true };
