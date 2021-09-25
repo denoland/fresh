@@ -128,7 +128,7 @@ const JOKES = [
   "An SEO expert walked into a bar, pub, inn, tavern, hostelry, public house.",
 ];
 
-export default (_req: Request): Response => {
+export const handler = (_req: Request): Response => {
   const randomIndex = Math.floor(Math.random() * 10);
   const body = JOKES[randomIndex];
   return new Response(body);
