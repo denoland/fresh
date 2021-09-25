@@ -21,12 +21,12 @@ export interface PageConfig {
   /**
    * By default, runtime JS is disabled. This means that interactivity on the
    * client that depends on Preact or other JS code will not function.
-   * 
+   *
    * Runtime JS can be enabled by setting `runtimeJS` to `true`.
-   * 
+   *
    * It is recommended to keep runtime JavaScript disabled for static pages that
    * do not require interactivity, like marketing or blog pages.
-   * 
+   *
    * Note that the runtime JS feature will likely be overhauled in the future to
    * provide more granular control over which components need to be hydrated on
    * the client.
