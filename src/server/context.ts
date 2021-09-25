@@ -41,10 +41,13 @@ export class ServerContext {
       }
       const path = url.substring(baseUrl.length).substring("pages".length);
       const baseRoute = path.substring(1, path.length - extname(path).length);
-      const route = pathToRoute(baseRoute);
       const name = baseRoute.replace("/", "-");
       if (!path.startsWith("/_")) {
         const { default: component, config } = (module as PageModule);
+        let route = pathToRoute(baseRoute);
+        if (config?.routeOverride) {
+          route = String(config.routeOverride);
+        }
         let { handler } = (module as PageModule);
         handler ??= {};
         if (
@@ -59,7 +62,7 @@ export class ServerContext {
           name,
           component,
           handler,
-          runtimeJS: config?.runtimeJS ?? false,
+          runtimeJS: Boolean(config?.runtimeJS ?? false),
         };
         pages.push(page);
       } else if (
