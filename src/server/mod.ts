@@ -13,7 +13,9 @@ export interface Routes {
 export { ServerContext };
 
 export async function start(routes: Routes) {
+  const start = performance.now();
   const ctx = await ServerContext.fromRoutes(routes);
+  console.debug(`ServerContext created in ${performance.now() - start}ms`);
   console.log("Server listening on http://localhost:8000");
   await listenAndServe(":8000", ctx.handler());
 }
