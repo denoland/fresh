@@ -2,19 +2,21 @@
 // This file SHOULD be checked into source version control.
 // To update this file, run `fresh routes`.
 
-import * as $0 from "./pages/api/joke.ts";
+import * as $0 from "./pages/index.tsx";
 import * as $1 from "./pages/_render.ts";
-import * as $2 from "./pages/x/[module].tsx";
-import * as $3 from "./pages/[name].tsx";
-import * as $4 from "./pages/index.tsx";
+import * as $2 from "./pages/suspense.tsx";
+import * as $3 from "./pages/api/joke.ts";
+import * as $4 from "./pages/[name].tsx";
+import * as $5 from "./pages/x/[module].tsx";
 
 const routes = {
   pages: {
-    "./pages/api/joke.ts": $0,
+    "./pages/index.tsx": $0,
     "./pages/_render.ts": $1,
-    "./pages/x/[module].tsx": $2,
-    "./pages/[name].tsx": $3,
-    "./pages/index.tsx": $4,
+    "./pages/suspense.tsx": $2,
+    "./pages/api/joke.ts": $3,
+    "./pages/[name].tsx": $4,
+    "./pages/x/[module].tsx": $5,
   },
   baseUrl: import.meta.url,
 };

@@ -144,11 +144,12 @@ export class ServerContext {
         params: Record<string, string | string[]>,
       ) => {
         if (page.component === undefined) return undefined;
+        // deno-lint-ignore require-await
         const render = async () => {
           const preloads = page.runtimeJS
             ? this.#bundler.getPreloads(bundlePath).map(bundleAssetUrl)
             : [];
-          const body = await internalRender({
+          const body = internalRender({
             page,
             imports,
             preloads,
@@ -156,7 +157,15 @@ export class ServerContext {
             url: new URL(req.url),
             params,
           });
-          return new Response(body, {
+          const bodyStream = new ReadableStream<Uint8Array>({
+            async start(controller) {
+              for await (const chunk of body) {
+                controller.enqueue(new TextEncoder().encode(chunk));
+              }
+              controller.close();
+            },
+          });
+          return new Response(bodyStream, {
             status: 200,
             headers: {
               "content-type": "text/html; charset=utf-8",
@@ -243,7 +252,6 @@ const DEFAULT_RENDERER: Renderer = {
   render(_ctx, render) {
     render();
   },
-  postRender(_ctx) {},
 };
 
 /**

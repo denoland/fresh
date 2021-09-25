@@ -34,10 +34,8 @@ export interface Page {
 
 export interface RendererModule {
   render(ctx: RenderContext, render: RenderFn): void;
-  postRender(ctx: RenderContext, bodyHtml: string): void;
 }
 
 export interface Renderer {
   render(ctx: RenderContext, render: RenderFn): void;
-  postRender(ctx: RenderContext, bodyHtml: string): void;
 }
