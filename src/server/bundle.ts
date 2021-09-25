@@ -1,13 +1,17 @@
-import { denoPlugin, esbuild } from "./deps.ts";
+import { denoPlugin, esbuild, esbuildTypes } from "./deps.ts";
 import { Page } from "./types.ts";
 
 let esbuildInitalized: boolean | Promise<void> = false;
 async function ensureEsbuildInialized() {
   if (esbuildInitalized === false) {
-    esbuildInitalized = esbuild.initialize({
-      wasmURL: "https://unpkg.com/esbuild-wasm@0.11.19/esbuild.wasm",
-      worker: false,
-    });
+    if (Deno.run === undefined) {
+      esbuildInitalized = esbuild.initialize({
+        wasmURL: "https://unpkg.com/esbuild-wasm@0.11.19/esbuild.wasm",
+        worker: false,
+      });
+    } else {
+      esbuild.initialize({});
+    }
     await esbuildInitalized;
     esbuildInitalized = true;
   } else if (esbuildInitalized instanceof Promise) {
@@ -43,7 +47,7 @@ export class Bundler {
       platform: "neutral",
       plugins: [freshPlugin(this.#pages), denoPlugin()],
       splitting: true,
-      target: ["chrome89", "firefox88", "safari13"],
+      target: ["chrome90", "firefox88", "safari13"],
       treeShaking: true,
       write: false,
     });
@@ -87,7 +91,7 @@ export class Bundler {
   }
 }
 
-function freshPlugin(pageList: Page[]): esbuild.Plugin {
+function freshPlugin(pageList: Page[]): esbuildTypes.Plugin {
   const runtime = new URL("../../runtime.ts", import.meta.url);
 
   const pageMap = new Map<string, Page>();
@@ -100,8 +104,8 @@ function freshPlugin(pageList: Page[]): esbuild.Plugin {
     name: "fresh",
     setup(build) {
       build.onResolve({ filter: /fresh:\/\/.*/ }, function onResolve(
-        args: esbuild.OnResolveArgs,
-      ): esbuild.OnResolveResult | null | undefined {
+        args: esbuildTypes.OnResolveArgs,
+      ): esbuildTypes.OnResolveResult | null | undefined {
         return ({
           path: args.path,
           namespace: "fresh",
@@ -111,8 +115,8 @@ function freshPlugin(pageList: Page[]): esbuild.Plugin {
       build.onLoad(
         { filter: /.*/, namespace: "fresh" },
         function onLoad(
-          args: esbuild.OnLoadArgs,
-        ): esbuild.OnLoadResult | null | undefined {
+          args: esbuildTypes.OnLoadArgs,
+        ): esbuildTypes.OnLoadResult | null | undefined {
           const url = new URL(args.path);
           const path = url.pathname;
           const page = pageMap.get(path);
