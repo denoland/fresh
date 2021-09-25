@@ -5,24 +5,21 @@ import { INTERNAL_PREFIX } from "./constants.ts";
 import { JS_PREFIX } from "./constants.ts";
 import { BUILD_ID } from "./constants.ts";
 import {
-  ApiRoute,
-  ApiRouteModule,
+  Handler,
   Page,
   PageModule,
   Renderer,
   RendererModule,
 } from "./types.ts";
-import { render } from "./render.tsx";
+import { render as internalRender } from "./render.tsx";
 
 export class ServerContext {
   #pages: Page[];
-  #apiRoutes: ApiRoute[];
   #bundler: Bundler;
   #renderer: Renderer;
 
-  constructor(pages: Page[], apiRoutes: ApiRoute[], renderer: Renderer) {
+  constructor(pages: Page[], renderer: Renderer) {
     this.#pages = pages;
-    this.#apiRoutes = apiRoutes;
     this.#renderer = renderer;
     this.#bundler = new Bundler(pages);
   }
@@ -34,9 +31,8 @@ export class ServerContext {
     // Get the routes' base URL.
     const baseUrl = new URL("./", routes.baseUrl).href;
 
-    // Extract all pages, and prepare them into this `Page` structure.
+    // Extract all routes, and prepare them into the `Page` structure.
     const pages: Page[] = [];
-    const apiRoutes: ApiRoute[] = [];
     let renderer: Renderer = DEFAULT_RENDERER;
     for (const [self, module] of Object.entries(routes.pages)) {
       const url = new URL(self, baseUrl).href;
@@ -47,27 +43,22 @@ export class ServerContext {
       const baseRoute = path.substring(1, path.length - extname(path).length);
       const route = pathToRoute(baseRoute);
       const name = baseRoute.replace("/", "-");
-      if (path.startsWith("/api/")) {
-        const handlers = Object.fromEntries(
-          Object.entries(module as ApiRouteModule).filter(([method]) =>
-            method === "default" ||
-            (router.METHODS as readonly string[]).includes(method)
-          ),
-        );
-        const apiRoute: ApiRoute = {
-          route,
-          url,
-          name,
-          handlers,
-        };
-        apiRoutes.push(apiRoute);
-      } else if (!path.startsWith("/_")) {
+      if (!path.startsWith("/_")) {
         const { default: component, config } = (module as PageModule);
+        let { handler } = (module as PageModule);
+        handler ??= {};
+        if (
+          component &&
+          typeof handler === "object" && handler.GET === undefined
+        ) {
+          handler.GET = ({ render }) => render!();
+        }
         const page: Page = {
           route,
           url,
           name,
           component,
+          handler,
           runtimeJS: config?.runtimeJS ?? true,
         };
         pages.push(page);
@@ -79,9 +70,8 @@ export class ServerContext {
       }
     }
     sortRoutes(pages);
-    sortRoutes(apiRoutes);
 
-    return new ServerContext(pages, apiRoutes, renderer);
+    return new ServerContext(pages, renderer);
   }
 
   /**
@@ -93,36 +83,45 @@ export class ServerContext {
 
     for (const page of this.#pages) {
       const bundlePath = `/${page.name}.js`;
-      const imports = [bundleAssetUrl(bundlePath)];
-      routes[page.route] = async (req, match) => {
-        const preloads = this.#bundler.getPreloads(bundlePath).map(
-          bundleAssetUrl,
-        );
-        const body = await render({
-          page,
-          imports: page.runtimeJS ? imports : [],
-          preloads: page.runtimeJS ? preloads : [],
-          renderer: this.#renderer,
-          url: new URL(req.url),
-          params: match.params,
-        });
-        return new Response(body, {
-          status: 200,
-          headers: {
-            "content-type": "text/html; charset=utf-8",
-          },
-        });
+      const imports = page.runtimeJS ? [bundleAssetUrl(bundlePath)] : [];
+      const createRender = (
+        req: Request,
+        params: Record<string, string | string[]>,
+      ) => {
+        if (page.component === undefined) return undefined;
+        const render = async () => {
+          const preloads = page.runtimeJS
+            ? this.#bundler.getPreloads(bundlePath).map(bundleAssetUrl)
+            : [];
+          const body = await internalRender({
+            page,
+            imports,
+            preloads,
+            renderer: this.#renderer,
+            url: new URL(req.url),
+            params,
+          });
+          return new Response(body, {
+            status: 200,
+            headers: {
+              "content-type": "text/html; charset=utf-8",
+            },
+          });
+        };
+        return render;
       };
-    }
 
-    for (const { route, handlers } of this.#apiRoutes) {
-      for (const [method, handler] of Object.entries(handlers)) {
-        if (handler) {
-          if (method === "default") {
-            routes[route] = handler;
-          } else {
-            routes[`${method}@${route}`] = handler;
-          }
+      if (typeof page.handler === "function") {
+        routes[page.route] = (req, match) =>
+          (page.handler as Handler)({
+            req,
+            match,
+            render: createRender(req, match.params),
+          });
+      } else {
+        for (const [method, handler] of Object.entries(page.handler)) {
+          routes[`${method}@${page.route}`] = (req, match) =>
+            handler({ req, match, render: createRender(req, match.params) });
         }
       }
     }

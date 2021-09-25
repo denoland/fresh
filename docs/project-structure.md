@@ -13,9 +13,8 @@ done automatically when you run the `fresh routes` command. You never have to
 edit this file manually.
 
 The files in the `pages` subfolder describe the HTML pages and API endpoints of
-your application. Files inside the `pages/api` subdirectory are treated as API
-routes, while all other files are treated as possibly dynamic HTML pages. More
-info about how the `pages` subfolder works can be found on the
+your application. All pages can act as both API endpoints and possibly dynamic
+HTML pages. More info about how the `pages` subfolder works can be found on the
 [file system routing](./file-system-routing.md) page.
 
 Finally there is a `deps.ts` and `api_deps.ts`. These files are the central

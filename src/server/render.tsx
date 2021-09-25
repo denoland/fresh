@@ -81,7 +81,7 @@ export async function render(opts: RenderOptions): Promise<string> {
 
   const vnode = h(DATA_CONTEXT.Provider, {
     value: dataCache,
-    children: h(opts.page.component, props),
+    children: h(opts.page.component!, props),
   });
 
   const ctx = new RenderContext(crypto.randomUUID(), opts.url, opts.page.route);
