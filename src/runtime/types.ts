@@ -32,4 +32,12 @@ export interface PageConfig {
    * the client.
    */
   runtimeJS?: boolean;
+
+  /**
+   * A route override for the page. This is useful for pages where the route
+   * can not be expressed through the filesystem routing capabilities.
+   *
+   * The route override must be a path-to-regexp compatible route matcher.
+   */
+  routeOverride?: string;
 }

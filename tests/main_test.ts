@@ -123,3 +123,18 @@ Deno.test("/static page prerender", async () => {
   assertStringIncludes(body, "<p>This is a static page.</p>");
   assert(!body.includes("__FRSH_PROPS"));
 });
+
+Deno.test("/books/:id page - /books/123", async () => {
+  const resp = await router(new Request("https://fresh.deno.dev/books/123"));
+  assert(resp);
+  assertEquals(resp.status, 200);
+  assertEquals(resp.headers.get("content-type"), "text/html; charset=utf-8");
+  const body = await resp.text();
+  assertStringIncludes(body, "<div>Book 123</div>");
+});
+
+Deno.test("/books/:id page - /books/abc", async () => {
+  const resp = await router(new Request("https://fresh.deno.dev/books/abc"));
+  assert(resp);
+  assertEquals(resp.status, 404);
+});
