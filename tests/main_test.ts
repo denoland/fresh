@@ -54,28 +54,46 @@ Deno.test("/[name] page prerender", async () => {
   );
 });
 
-Deno.test("/api/name - GET", async () => {
-  const resp = await router(new Request("https://fresh.deno.dev/api/name"));
+Deno.test("/intercept - GET html", async () => {
+  const req = new Request("https://fresh.deno.dev/intercept", {
+    headers: { "accept": "text/html" },
+  });
+  const resp = await router(req);
   assert(resp);
   assertEquals(resp.status, 200);
   const body = await resp.text();
-  assertEquals(body, "Get fresh!");
+  assert(body.includes("<div>This is HTML</div>"));
 });
 
-Deno.test("/api/name - default", async () => {
-  const resp = await router(
-    new Request("https://fresh.deno.dev/api/name", {
-      method: "POST",
-    }),
-  );
+Deno.test("/intercept - GET text", async () => {
+  const req = new Request("https://fresh.deno.dev/intercept", {
+    headers: { "accept": "text/plain" },
+  });
+  const resp = await router(req);
   assert(resp);
   assertEquals(resp.status, 200);
-  assertEquals(
-    resp.headers.get("content-type"),
-    "application/json; charset=utf-8",
-  );
-  const body = await resp.json();
-  assertEquals(body, { name: "fresh" });
+  const body = await resp.text();
+  assertEquals(body, "This is plain text");
+});
+
+Deno.test("/intercept - POST", async () => {
+  const req = new Request("https://fresh.deno.dev/intercept", {
+    method: "POST",
+  });
+  const resp = await router(req);
+  assert(resp);
+  assertEquals(resp.status, 200);
+  const body = await resp.text();
+  assertEquals(body, "POST response");
+});
+
+Deno.test("/intercept - DELETE", async () => {
+  const req = new Request("https://fresh.deno.dev/intercept", {
+    method: "DELETE",
+  });
+  const resp = await router(req);
+  assert(resp);
+  assertEquals(resp.status, 405);
 });
 
 Deno.test("/api/get_only - NOTAMETHOD", async () => {
@@ -86,10 +104,6 @@ Deno.test("/api/get_only - NOTAMETHOD", async () => {
   );
   assert(resp);
   assertEquals(resp.status, 405);
-  assertEquals(
-    resp.headers.get("accept"),
-    "GET",
-  );
 });
 
 Deno.test("/api/xyz not found", async () => {

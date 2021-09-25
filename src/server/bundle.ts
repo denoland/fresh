@@ -32,7 +32,9 @@ export class Bundler {
     const entryPoints: Record<string, string> = {};
 
     for (const page of this.#pages) {
-      entryPoints[page.name] = `fresh:///${page.name}`;
+      if (page.component !== undefined && page.runtimeJS) {
+        entryPoints[page.name] = `fresh:///${page.name}`;
+      }
     }
 
     await ensureEsbuildInialized();
