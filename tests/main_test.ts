@@ -1,8 +1,9 @@
-import { router as r, ServerContext } from "../server.ts";
+import { ServerContext } from "../server.ts";
 import { assert, assertEquals, assertStringIncludes } from "./deps.ts";
 import routes from "./fixture/routes.gen.ts";
 
-const router = r.router(ServerContext.fromRoutes(routes).routes());
+const ctx = await ServerContext.fromRoutes(routes);
+const router = ctx.handler();
 
 Deno.test("/ page prerender", async () => {
   const resp = await router(new Request("https://fresh.deno.dev/"));

@@ -1,4 +1,11 @@
-import { extname, mediaTypeLookup, router } from "./deps.ts";
+import {
+  extname,
+  fromFileUrl,
+  mediaTypeLookup,
+  router,
+  toFileUrl,
+  walk,
+} from "./deps.ts";
 import { Routes } from "./mod.ts";
 import { Bundler } from "./bundle.ts";
 import { INTERNAL_PREFIX } from "./constants.ts";
@@ -15,11 +22,17 @@ import { render as internalRender } from "./render.tsx";
 
 export class ServerContext {
   #pages: Page[];
+  #staticFiles: [URL, string][];
   #bundler: Bundler;
   #renderer: Renderer;
 
-  constructor(pages: Page[], renderer: Renderer) {
+  constructor(
+    pages: Page[],
+    staticFiles: [URL, string][],
+    renderer: Renderer,
+  ) {
     this.#pages = pages;
+    this.#staticFiles = staticFiles;
     this.#renderer = renderer;
     this.#bundler = new Bundler(pages);
   }
@@ -27,7 +40,7 @@ export class ServerContext {
   /**
    * Process the routes into individual components and pages.
    */
-  static fromRoutes(routes: Routes): ServerContext {
+  static async fromRoutes(routes: Routes): Promise<ServerContext> {
     // Get the routes' base URL.
     const baseUrl = new URL("./", routes.baseUrl).href;
 
@@ -74,15 +87,54 @@ export class ServerContext {
     }
     sortRoutes(pages);
 
-    return new ServerContext(pages, renderer);
+    const staticFiles: [URL, string][] = [];
+    try {
+      const staticFolder = new URL("./static", routes.baseUrl);
+      // TODO(lucacasonato): remove the extranious Deno.readDir when
+      // https://github.com/denoland/deno_std/issues/1310 is fixed.
+      for await (const _ of Deno.readDir(fromFileUrl(staticFolder))) {
+        // do nothing
+      }
+      const entires = walk(fromFileUrl(staticFolder), {
+        includeFiles: true,
+        includeDirs: false,
+        followSymlinks: false,
+      });
+      for await (const entry of entires) {
+        const path = toFileUrl(entry.path);
+        const subpath = path.href.substring(staticFolder.href.length);
+        staticFiles.push([path, subpath]);
+      }
+    } catch (err) {
+      if (err instanceof Deno.errors.NotFound) {
+        // Do nothing.
+      } else {
+        throw err;
+      }
+    }
+    return new ServerContext(pages, staticFiles, renderer);
+  }
+
+  /**
+   * This functions returns a request handler that handles all routes required
+   * by fresh, including static files.
+   */
+  handler(): router.RequestHandler {
+    return router.router(this.#routes());
   }
 
   /**
    * This function returns all routes required by fresh as an extended
    * path-to-regex, to handler mapping.
    */
-  routes(): router.Routes {
+  #routes(): router.Routes {
     const routes: router.Routes = {};
+
+    // Add the static file routes.
+    for (const [fullPath, path] of this.#staticFiles) {
+      const route = sanitizePathToRegex(path);
+      routes[`GET@${route}`] = this.#staticFileHandler(fullPath);
+    }
 
     for (const page of this.#pages) {
       const bundlePath = `/${page.name}.js`;
@@ -133,6 +185,22 @@ export class ServerContext {
       .#bundleAssetRoute();
 
     return routes;
+  }
+
+  #staticFileHandler(fullPath: URL): router.MatchHandler {
+    return async (_req: Request) => {
+      try {
+        const data = await Deno.readFile(fullPath);
+        const contentType = mediaTypeLookup(extname(fullPath.href)) ??
+          "application/octet-stream";
+        return new Response(data, { headers: { "content-type": contentType } });
+      } catch (err) {
+        if (err instanceof Deno.errors.NotFound) {
+          return new Response("404 Not Found", { status: 404 });
+        }
+        throw err;
+      }
+    };
   }
 
   /**
@@ -218,4 +286,27 @@ function pathToRoute(path: string): string {
     })
     .join("/");
   return route;
+}
+
+// Normalize a path for use in a URL. Returns null if the path is unparsable.
+export function normalizeURLPath(path: string): string | null {
+  try {
+    const pathUrl = new URL("file:///");
+    pathUrl.pathname = path;
+    return pathUrl.pathname;
+  } catch {
+    return null;
+  }
+}
+
+function sanitizePathToRegex(path: string): string {
+  return path
+    .replaceAll("\*", "\\*")
+    .replaceAll("\+", "\\+")
+    .replaceAll("\?", "\\?")
+    .replaceAll("\{", "\\{")
+    .replaceAll("\}", "\\}")
+    .replaceAll("\(", "\\(")
+    .replaceAll("\)", "\\)")
+    .replaceAll("\:", "\\:");
 }
