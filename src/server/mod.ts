@@ -1,5 +1,5 @@
 import { ServerContext } from "./context.ts";
-import { listenAndServe, router } from "./deps.ts";
+import { listenAndServe } from "./deps.ts";
 import { PageModule, RendererModule } from "./types.ts";
 export type { Handler, HandlerContext, Handlers } from "./types.ts";
 export { RenderContext } from "./render.tsx";
