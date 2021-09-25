@@ -22,8 +22,8 @@ the framework.
 - TypeScript out of the box
 - File-system routing à la Next.js
 
-_<sup>1</sup> Client side hydration can be disabled per page. This results in
-**no JS** being shipped to the client._
+_<sup>1</sup> Client side hydration can be enabled per page. By default **no
+JS** is shipped to the client._
 
 ## Install
 
