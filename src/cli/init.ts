@@ -113,8 +113,10 @@ export default function Greet(props: Props) {
     join(directory, "pages", "[name].tsx"),
     PAGES_GREET_TSX,
   );
-  const PAGES_API_JOKE_TS =
-    `// Jokes courtesy of https://punsandoneliners.com/randomness/programmer-jokes/
+  const serverUrl = new URL("../../server.ts", import.meta.url);
+  const PAGES_API_JOKE_TS = `import { HandlerContext } from "${serverUrl}";
+
+// Jokes courtesy of https://punsandoneliners.com/randomness/programmer-jokes/
 const JOKES = [
   "Why do Java developers often wear glasses? They can’t C#.",
   "A SQL query walks into a bar, goes up to two tables and says “can I join you?",
@@ -128,7 +130,7 @@ const JOKES = [
   "An SEO expert walked into a bar, pub, inn, tavern, hostelry, public house.",
 ];
 
-export const handler = (_req: Request): Response => {
+export const handler = (_ctx: HandlerContext): Response => {
   const randomIndex = Math.floor(Math.random() * 10);
   const body = JOKES[randomIndex];
   return new Response(body);
@@ -138,7 +140,6 @@ export const handler = (_req: Request): Response => {
     join(directory, "pages", "api", "joke.ts"),
     PAGES_API_JOKE_TS,
   );
-  const serverUrl = new URL("../../server.ts", import.meta.url);
   const MAIN_TS = `/// <reference no-default-lib="true" />
 /// <reference lib="dom" />
 /// <reference lib="dom.asynciterable" />
