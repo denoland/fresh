@@ -64,7 +64,7 @@ async function init(directory: string) {
   )}";\n`;
   await Deno.writeTextFile(join(directory, "deps.ts"), DEPS_TS);
   const PAGES_INDEX_TSX = `/** @jsx h */
-import { h, IS_BROWSER, useState } from "../deps.ts";
+import { h, IS_BROWSER, PageConfig, useState } from "../deps.ts";
 
 export default function Home() {
   return (
@@ -93,6 +93,9 @@ function Counter() {
     </div>
   );
 }
+
+export const config: PageConfig = { runtimeJS: true };
+
 `;
   await Deno.writeTextFile(
     join(directory, "pages", "index.tsx"),
