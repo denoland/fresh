@@ -44,8 +44,8 @@ export class Bundler {
       format: "esm",
       metafile: true,
       minify: true,
-      outdir: '.',
-      // This is requried to ensure the format of the outputFiles path is the same 
+      outdir: ".",
+      // This is requried to ensure the format of the outputFiles path is the same
       // between windows and linux
       absWorkingDir,
       outfile: "",
@@ -69,7 +69,10 @@ export class Bundler {
     const cache = new Map<string, Uint8Array>();
     const absDirUrlLength = toFileUrl(absWorkingDir).href.length;
     for (const file of bundle.outputFiles) {
-      cache.set(toFileUrl(file.path).href.substring(absDirUrlLength), file.contents);
+      cache.set(
+        toFileUrl(file.path).href.substring(absDirUrlLength),
+        file.contents,
+      );
     }
     this.#cache = cache;
 
@@ -88,8 +91,6 @@ export class Bundler {
 
   async get(path: string): Promise<Uint8Array | null> {
     const cache = await this.cache();
-    console.log('path', path)
-    console.log('cache', cache)
     return cache.get(path) ?? null;
   }
 
