@@ -114,8 +114,8 @@ export default function Greet(props: Props) {
     PAGES_GREET_TSX,
   );
   const serverUrl = new URL("../../server.ts", import.meta.url);
-  const PAGES_API_JOKE_TS =
-    `import { HandlerContext } from "${serverUrl}";
+  const PAGES_API_JOKE_TS = `import { HandlerContext } from "${serverUrl}";
+
 // Jokes courtesy of https://punsandoneliners.com/randomness/programmer-jokes/
 const JOKES = [
   "Why do Java developers often wear glasses? They can’t C#.",
