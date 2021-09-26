@@ -18,7 +18,7 @@ function AddTodoForm() {
   return (
     <form method="POST">
       <input type="text" name="text" />
-      <button type="submit">Add</button>
+      <button type="submit" style="margin-left: 4px">Add</button>
     </form>
   );
 }
