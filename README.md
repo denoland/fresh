@@ -46,7 +46,7 @@ fresh init myproject
 To now start the project, call `deno run`:
 
 ```
-deno run -A --unstable --watch main.ts
+deno run -A --watch main.ts
 ```
 
 To deploy the script to [Deno Deploy](https://deno.com/deploy), push your
