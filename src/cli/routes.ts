@@ -40,7 +40,8 @@ export async function routes(directory: string) {
   directory = resolve(directory);
   const files = [];
   const pagesDir = join(directory, "./pages");
-  const pagesUrl = new URL(pagesDir, "file:///");
+  const pagesUrl = toFileUrl(pagesDir);
+  console.log(new URL(pagesDir, "file:///"), pagesUrl)
   const folder = walk(pagesDir, {
     includeDirs: false,
     includeFiles: true,
