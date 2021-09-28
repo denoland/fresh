@@ -1,4 +1,4 @@
-import { denoPlugin, esbuild, esbuildTypes } from "./deps.ts";
+import { denoPlugin, esbuild, esbuildTypes, toFileUrl } from "./deps.ts";
 import { Page } from "./types.ts";
 
 let esbuildInitalized: boolean | Promise<void> = false;
@@ -36,7 +36,7 @@ export class Bundler {
         entryPoints[page.name] = `fresh:///${page.name}`;
       }
     }
-
+    const absWorkingDir = Deno.cwd();
     await ensureEsbuildInialized();
     const bundle = await esbuild.build({
       bundle: true,
@@ -44,7 +44,10 @@ export class Bundler {
       format: "esm",
       metafile: true,
       minify: true,
-      outdir: `/`,
+      outdir: ".",
+      // This is requried to ensure the format of the outputFiles path is the same
+      // between windows and linux
+      absWorkingDir,
       outfile: "",
       platform: "neutral",
       plugins: [freshPlugin(this.#pages), denoPlugin()],
@@ -53,7 +56,6 @@ export class Bundler {
       treeShaking: true,
       write: false,
     });
-
     const metafileOutputs = bundle.metafile!.outputs;
 
     for (const path in metafileOutputs) {
@@ -65,8 +67,12 @@ export class Bundler {
     }
 
     const cache = new Map<string, Uint8Array>();
+    const absDirUrlLength = toFileUrl(absWorkingDir).href.length;
     for (const file of bundle.outputFiles) {
-      cache.set(file.path, file.contents);
+      cache.set(
+        toFileUrl(file.path).href.substring(absDirUrlLength),
+        file.contents,
+      );
     }
     this.#cache = cache;
 
