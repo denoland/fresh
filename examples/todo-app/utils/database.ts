@@ -1,4 +1,4 @@
-import { Client } from "https://raw.githubusercontent.com/denodrivers/postgres/86c9080ff2298272384f202d1f356c72a367c72b/mod.ts";
+import { Client } from "https://raw.githubusercontent.com/denodrivers/postgres/72f523cb9d8f863204a3fa02f52d534e7ce30ccf/mod.ts";
 
 export interface Todo {
   id: number;
