@@ -7,5 +7,5 @@ lint:
 test:
 	deno test -A
 
-watch_example:
-	deno run -A --unstable --watch --no-check example/main.ts
+dev:
+	deno run -A --watch --no-check www/main.ts
