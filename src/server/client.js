@@ -17,10 +17,12 @@
 
   /** @type {HTMLStyleElement} */
   const sheetElement = document.getElementById("__FRSH_STYLE");
-  const rules = sheetElement.childNodes[0].textContent.split(`\n`);
-  sheetElement.removeChild(sheetElement.firstChild);
-  for (const rule of rules) {
-    sheetElement.append(document.createTextNode(rule));
+  const rules = sheetElement.childNodes[0]?.textContent.split("\n");
+  if (rules !== undefined) {
+    sheetElement.removeChild(sheetElement.firstChild);
+    for (const rule of rules) {
+      sheetElement.append(document.createTextNode(rule));
+    }
   }
   /** Insert new style rules. */
   window.$ST = (inserts) => {
