@@ -1,11 +1,14 @@
 /** @jsx h */
 /** @jsxFrag Fragment */
 
-import { Fragment, h, tw } from "../deps.ts";
+import { Fragment, h, Head, tw } from "../deps.ts";
 
 export default function MainPage() {
   return (
     <>
+      <Head>
+        <title>fresh - The next-gen web framework.</title>
+      </Head>
       <Hero />
       <NavigationBar active="/" />
       <Intro />

@@ -1,11 +1,12 @@
 /** @jsx h */
 
 import { renderToString } from "./deps.ts";
-import { ComponentChild, ComponentChildren, h } from "../runtime/deps.ts";
+import { ComponentChildren, h } from "../runtime/deps.ts";
 import { DATA_CONTEXT } from "../runtime/hooks.ts";
 import { Page, Renderer } from "./types.ts";
 import { PageProps } from "../runtime/types.ts";
 import { SUSPENSE_CONTEXT } from "../runtime/suspense.ts";
+import { HEAD_CONTEXT } from "../runtime/head.ts";
 
 export interface RenderOptions {
   page: Page;
@@ -105,12 +106,16 @@ export async function* render(opts: RenderOptions): AsyncIterable<string> {
 
   const dataCache = new Map();
   const suspenseQueue: ComponentChildren[] = [];
+  const headComponents: ComponentChildren[] = [];
 
-  const vnode = h(DATA_CONTEXT.Provider, {
-    value: dataCache,
-    children: h(SUSPENSE_CONTEXT.Provider, {
-      value: suspenseQueue,
-      children: h(opts.page.component!, props),
+  const vnode = h(HEAD_CONTEXT.Provider, {
+    value: headComponents,
+    children: h(DATA_CONTEXT.Provider, {
+      value: dataCache,
+      children: h(SUSPENSE_CONTEXT.Provider, {
+        value: suspenseQueue,
+        children: h(opts.page.component!, props),
+      }),
     }),
   });
 
@@ -120,6 +125,8 @@ export async function* render(opts: RenderOptions): AsyncIterable<string> {
   const renderWithRenderer = (): string | Promise<string> => {
     // Clear the suspense queue
     suspenseQueue.splice(0, suspenseQueue.length);
+    // Clear the head components
+    headComponents.splice(0, headComponents.length);
 
     if (++suspended > MAX_SUSPENSE_DEPTH) {
       throw new Error(
@@ -171,6 +178,7 @@ export async function* render(opts: RenderOptions): AsyncIterable<string> {
 
   const html = template({
     bodyHtml,
+    headComponents,
     imports: opts.imports,
     preloads: opts.preloads,
     styles: ctx.styles,
@@ -261,6 +269,7 @@ export async function suspenseRender(
 
 export interface TemplateOptions {
   bodyHtml: string;
+  headComponents: ComponentChildren[];
   imports: string[];
   styles: string[];
   preloads: string[];
@@ -281,6 +290,7 @@ export function template(opts: TemplateOptions): string {
           id="__FRSH_STYLE"
           dangerouslySetInnerHTML={{ __html: opts.styles.join("\n") }}
         />
+        {opts.headComponents}
       </head>
       <body>
         <div dangerouslySetInnerHTML={{ __html: opts.bodyHtml }} id="__FRSH" />
