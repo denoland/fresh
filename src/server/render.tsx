@@ -191,8 +191,7 @@ export async function* render(opts: RenderOptions): AsyncIterable<string> {
 
   if (suspenseQueue.length > 0) {
     // minified client-side JS
-    yield `<script>(()=>{window.$SR=(e=>{const t=document.getElementById("S:"+e),o=document.getElementById("E:"+e),d=document.getElementById("R:"+e);for(d.parentNode.removeChild(d);t.nextSibling!==o;)t.parentNode.removeChild(t.nextSibling);for(;d.firstChild;)t.parentNode.insertBefore(d.firstChild,o);t.parentNode.removeChild(t),o.parentNode.removeChild(o)});const e=document.getElementById("__FRSH_STYLE"),t=e.childNodes[0].textContent.split("\n");e.removeChild(e.firstChild);for(const o of t)e.append(document.createTextNode(o));window.$ST=(t=>{for(const[o,d]of t)e.insertBefore(document.createTextNode(o),e.childNodes[d])})})();</script>`
-      .replaceAll("\n", "\\n");
+    yield '<script>(()=>{window.$SR=t=>{const e=document.getElementById("S:"+t),o=document.getElementById("E:"+t),d=document.getElementById("R:"+t);for(d.parentNode.removeChild(d);e.nextSibling!==o;)e.parentNode.removeChild(e.nextSibling);for(;d.firstChild;)e.parentNode.insertBefore(d.firstChild,o);e.parentNode.removeChild(e),o.parentNode.removeChild(o)};const n=document.getElementById("__FRSH_STYLE"),r=n.childNodes[0]?.textContent.split(`\n`);if(r!==void 0){n.removeChild(n.firstChild);for(const t of r)n.append(document.createTextNode(t))}window.$ST=t=>{for(const[e,o]of t)n.insertBefore(document.createTextNode(e),n.childNodes[o])}})();\n</script>';
   }
 
   // TODO(lucacasonato): parallelize this
