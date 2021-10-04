@@ -159,8 +159,15 @@ export class ServerContext {
           });
           const bodyStream = new ReadableStream<Uint8Array>({
             async start(controller) {
-              for await (const chunk of body) {
-                controller.enqueue(new TextEncoder().encode(chunk));
+              try {
+                for await (const chunk of body) {
+                  controller.enqueue(new TextEncoder().encode(chunk));
+                }
+              } catch (err) {
+                console.log("Rendering failed:\n", err);
+                controller.enqueue(
+                  new TextEncoder().encode("500 Internal Server Error"),
+                );
               }
               controller.close();
             },
