@@ -187,12 +187,12 @@ export class ServerContext {
           (page.handler as Handler)({
             req,
             match,
-            render: createRender(req, match.params),
+            render: createRender(req, match),
           });
       } else {
         for (const [method, handler] of Object.entries(page.handler)) {
           routes[`${method}@${page.route}`] = (req, match) =>
-            handler({ req, match, render: createRender(req, match.params) });
+            handler({ req, match, render: createRender(req, match) });
         }
       }
     }
@@ -225,7 +225,7 @@ export class ServerContext {
    */
   #bundleAssetRoute = (): router.MatchHandler => {
     return async (_req, match) => {
-      const path = `/${match.params.path}`;
+      const path = `/${match.path}`;
       const file = await this.#bundler.get(path);
       let res;
       if (file) {

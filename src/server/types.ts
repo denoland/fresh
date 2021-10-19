@@ -9,11 +9,9 @@ export interface PageModule {
   config?: PageConfig;
 }
 
-export interface HandlerContext<
-  T extends Record<string, string> = Record<string, string>,
-> {
+export interface HandlerContext {
   req: Request;
-  match: router.MatchResult<T>;
+  match: Record<string, string>;
   render?: () => Promise<Response>;
 }
 
