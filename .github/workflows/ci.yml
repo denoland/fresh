@@ -33,7 +33,7 @@ jobs:
         run: deno lint
 
       - name: Cache dependencies
-        run: deno cache --no-check src/*/deps.ts
+        run: deno cache --no-check src/cli/deps.ts src/runtime/deps.ts src/server/deps.ts
 
       - name: Run tests
         run: deno test -A --no-check

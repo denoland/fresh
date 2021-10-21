@@ -11,7 +11,7 @@ export { walk } from "https://deno.land/std@0.108.0/fs/walk.ts";
 export { listenAndServe } from "https://deno.land/std@0.108.0/http/server.ts";
 
 // -- router --
-export * as router from "https://crux.land/router@0.0.4";
+export * as router from "https://crux.land/router@0.0.5";
 
 // -- media types --
 export { lookup as mediaTypeLookup } from "https://deno.land/x/media_types@v2.10.2/mod.ts";
