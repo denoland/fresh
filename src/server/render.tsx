@@ -7,6 +7,7 @@ import { Page, Renderer } from "./types.ts";
 import { PageProps } from "../runtime/types.ts";
 import { SUSPENSE_CONTEXT } from "../runtime/suspense.ts";
 import { HEAD_CONTEXT } from "../runtime/head.ts";
+import { REFRESH_JS_URL } from "./constants.ts";
 
 export interface RenderOptions {
   page: Page;
@@ -172,7 +173,10 @@ export async function* render(opts: RenderOptions): AsyncIterable<string> {
 
   // If this is a static render (runtimeJS is false), then we don't need to
   // render the props into the template.
-  if (opts.imports.length === 0) {
+  if (
+    opts.imports.length === 0 ||
+    (opts.imports.length === 1 && opts.imports[0] === REFRESH_JS_URL)
+  ) {
     templateProps = undefined;
   }
 

@@ -8,7 +8,7 @@ import {
 } from "./deps.ts";
 import { Routes } from "./mod.ts";
 import { Bundler } from "./bundle.ts";
-import { INTERNAL_PREFIX } from "./constants.ts";
+import { ALIVE_URL, INTERNAL_PREFIX, REFRESH_JS_URL } from "./constants.ts";
 import { JS_PREFIX } from "./constants.ts";
 import { BUILD_ID } from "./constants.ts";
 import {
@@ -21,6 +21,7 @@ import {
 import { render as internalRender } from "./render.tsx";
 
 export class ServerContext {
+  #dev: boolean;
   #pages: Page[];
   #staticFiles: [URL, string][];
   #bundler: Bundler;
@@ -35,6 +36,7 @@ export class ServerContext {
     this.#staticFiles = staticFiles;
     this.#renderer = renderer;
     this.#bundler = new Bundler(pages);
+    this.#dev = typeof Deno.env.get("DENO_DEPLOYMENT_ID") !== "string"; // Env var is only set in prod (on Deploy).
   }
 
   /**
@@ -139,6 +141,9 @@ export class ServerContext {
     for (const page of this.#pages) {
       const bundlePath = `/${page.name}.js`;
       const imports = page.runtimeJS ? [bundleAssetUrl(bundlePath)] : [];
+      if (this.#dev) {
+        imports.push(REFRESH_JS_URL);
+      }
       const createRender = (
         req: Request,
         params: Record<string, string | string[]>,
@@ -199,6 +204,39 @@ export class ServerContext {
 
     routes[`${INTERNAL_PREFIX}${JS_PREFIX}/${BUILD_ID}/:path*`] = this
       .#bundleAssetRoute();
+
+    if (this.#dev) {
+      routes[REFRESH_JS_URL] = () => {
+        const js =
+          `const buildId = "${BUILD_ID}"; new EventSource("${ALIVE_URL}").addEventListener("message", (e) => { if (e.data !== buildId) { location.reload(); } });`;
+        return new Response(new TextEncoder().encode(js), {
+          headers: {
+            "content-type": "application/javascript; charset=utf-8",
+          },
+        });
+      };
+      routes[ALIVE_URL] = () => {
+        let timerId: number | undefined = undefined;
+        const body = new ReadableStream({
+          start(controller) {
+            controller.enqueue(`data: ${BUILD_ID}\nretry: 100\n\n`);
+            timerId = setInterval(() => {
+              controller.enqueue(`data: ${BUILD_ID}\n\n`);
+            }, 1000);
+          },
+          cancel() {
+            if (timerId !== undefined) {
+              clearInterval(timerId);
+            }
+          },
+        });
+        return new Response(body.pipeThrough(new TextEncoderStream()), {
+          headers: {
+            "content-type": "text/event-stream",
+          },
+        });
+      };
+    }
 
     return routes;
   }
