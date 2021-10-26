@@ -8,7 +8,7 @@ import {
 } from "./deps.ts";
 import { Routes } from "./mod.ts";
 import { Bundler } from "./bundle.ts";
-import { INTERNAL_PREFIX } from "./constants.ts";
+import { ALIVE_URL, INTERNAL_PREFIX, REFRESH_JS_URL } from "./constants.ts";
 import { JS_PREFIX } from "./constants.ts";
 import { BUILD_ID } from "./constants.ts";
 import {
@@ -142,7 +142,7 @@ export class ServerContext {
       const bundlePath = `/${page.name}.js`;
       const imports = page.runtimeJS ? [bundleAssetUrl(bundlePath)] : [];
       if (this.#dev) {
-        imports.push(`${INTERNAL_PREFIX}/refresh.js`);
+        imports.push(REFRESH_JS_URL);
       }
       const createRender = (
         req: Request,
@@ -206,16 +206,16 @@ export class ServerContext {
       .#bundleAssetRoute();
 
     if (this.#dev) {
-      routes[`${INTERNAL_PREFIX}/refresh.js`] = () => {
+      routes[REFRESH_JS_URL] = () => {
         const js =
-          `const buildId = "${BUILD_ID}"; new EventSource("${INTERNAL_PREFIX}/alive").addEventListener("message", (e) => { if (e.data !== buildId) { location.reload(); } });`;
+          `const buildId = "${BUILD_ID}"; new EventSource("${ALIVE_URL}").addEventListener("message", (e) => { if (e.data !== buildId) { location.reload(); } });`;
         return new Response(new TextEncoder().encode(js), {
           headers: {
             "content-type": "application/javascript; charset=utf-8",
           },
         });
       };
-      routes[`${INTERNAL_PREFIX}/alive`] = () => {
+      routes[ALIVE_URL] = () => {
         let timerId: number | undefined = undefined;
         const body = new ReadableStream({
           start(controller) {
