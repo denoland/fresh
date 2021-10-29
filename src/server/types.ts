@@ -28,6 +28,7 @@ export interface Page {
   component?: ComponentType<PageProps>;
   handler: Handler | Handlers;
   runtimeJS: boolean;
+  csp: boolean;
 }
 
 export interface RendererModule {
