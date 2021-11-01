@@ -8,6 +8,8 @@ import { PageProps } from "../runtime/types.ts";
 import { SUSPENSE_CONTEXT } from "../runtime/suspense.ts";
 import { HEAD_CONTEXT } from "../runtime/head.ts";
 import { REFRESH_JS_URL } from "./constants.ts";
+import { CSP_CONTEXT, nonce, NONE, UNSAFE_INLINE } from "../runtime/csp.ts";
+import { ContentSecurityPolicy } from "../runtime/csp.ts";
 
 export interface RenderOptions {
   page: Page;
@@ -102,20 +104,31 @@ const MAX_SUSPENSE_DEPTH = 10;
  *    sent to the client. On the client the HTML will be slotted into the DOM
  *    at the location of the original `<Suspense>` node.
  */
-export async function* render(opts: RenderOptions): AsyncIterable<string> {
+export async function* render(
+  opts: RenderOptions,
+): AsyncIterable<string | [string, ContentSecurityPolicy | undefined]> {
   const props = { params: opts.params, url: opts.url, route: opts.page.route };
 
+  const csp: ContentSecurityPolicy | undefined = opts.page.csp
+    ? {
+      directives: { defaultSrc: [NONE], styleSrc: [UNSAFE_INLINE] },
+      reportOnly: false,
+    }
+    : undefined;
   const dataCache = new Map();
   const suspenseQueue: ComponentChildren[] = [];
   const headComponents: ComponentChildren[] = [];
 
-  const vnode = h(HEAD_CONTEXT.Provider, {
-    value: headComponents,
-    children: h(DATA_CONTEXT.Provider, {
-      value: dataCache,
-      children: h(SUSPENSE_CONTEXT.Provider, {
-        value: suspenseQueue,
-        children: h(opts.page.component!, props),
+  const vnode = h(CSP_CONTEXT.Provider, {
+    value: csp,
+    children: h(HEAD_CONTEXT.Provider, {
+      value: headComponents,
+      children: h(DATA_CONTEXT.Provider, {
+        value: dataCache,
+        children: h(SUSPENSE_CONTEXT.Provider, {
+          value: suspenseQueue,
+          children: h(opts.page.component!, props),
+        }),
       }),
     }),
   });
@@ -180,27 +193,63 @@ export async function* render(opts: RenderOptions): AsyncIterable<string> {
     templateProps = undefined;
   }
 
+  const imports = opts.imports.map((url) => {
+    const randomNonce = crypto.randomUUID().replace(/-/g, "");
+    if (csp) {
+      csp.directives.scriptSrc = [
+        ...csp.directives.scriptSrc ?? [],
+        nonce(randomNonce),
+      ];
+    }
+    return [url, randomNonce] as const;
+  });
+
   const html = template({
     bodyHtml,
     headComponents,
-    imports: opts.imports,
+    imports,
     preloads: opts.preloads,
     styles: ctx.styles,
     props: templateProps,
     lang: ctx.lang,
   });
 
-  let clientStyles = [...ctx.styles];
-  yield html;
+  const suspenseNonces = suspenseQueue.map(() => {
+    const randomNonce = crypto.randomUUID().replace(/-/g, "");
+    if (csp) {
+      csp.directives.scriptSrc = [
+        ...csp.directives.scriptSrc ?? [],
+        nonce(randomNonce),
+      ];
+    }
+    return randomNonce;
+  });
 
+  let suspenseScript = "";
   if (suspenseQueue.length > 0) {
+    const randomNonce = crypto.randomUUID().replace(/-/g, "");
+    if (csp) {
+      csp.directives.scriptSrc = [
+        ...csp.directives.scriptSrc ?? [],
+        nonce(randomNonce),
+      ];
+    }
     // minified client-side JS
-    yield '<script>(()=>{window.$SR=t=>{const e=document.getElementById("S:"+t),o=document.getElementById("E:"+t),d=document.getElementById("R:"+t);for(d.parentNode.removeChild(d);e.nextSibling!==o;)e.parentNode.removeChild(e.nextSibling);for(;d.firstChild;)e.parentNode.insertBefore(d.firstChild,o);e.parentNode.removeChild(e),o.parentNode.removeChild(o)};const n=document.getElementById("__FRSH_STYLE"),r=n.childNodes[0]?.textContent.split(`\n`);if(r!==void 0){n.removeChild(n.firstChild);for(const t of r)n.append(document.createTextNode(t))}window.$ST=t=>{for(const[e,o]of t)n.insertBefore(document.createTextNode(e),n.childNodes[o])}})();\n</script>';
+    suspenseScript = '<script nonce="' + randomNonce +
+      '">(()=>{window.$SR=t=>{const e=document.getElementById("S:"+t),o=document.getElementById("E:"+t),d=document.getElementById("R:"+t);for(d.parentNode.removeChild(d);e.nextSibling!==o;)e.parentNode.removeChild(e.nextSibling);for(;d.firstChild;)e.parentNode.insertBefore(d.firstChild,o);e.parentNode.removeChild(e),o.parentNode.removeChild(o)};const n=document.getElementById("__FRSH_STYLE"),r=n.childNodes[0]?.textContent.split(`\n`);if(r!==void 0){n.removeChild(n.firstChild);for(const t of r)n.append(document.createTextNode(t))}window.$ST=t=>{for(const[e,o]of t)n.insertBefore(document.createTextNode(e),n.childNodes[o])}})();\n</script>';
   }
+
+  let clientStyles = [...ctx.styles];
+  yield [html + suspenseScript, csp];
 
   // TODO(lucacasonato): parallelize this
   for (const [id, children] of suspenseQueue.entries()) {
-    const fragment = await suspenseRender(opts.renderer, ctx, id + 1, children);
+    let [fragment, script] = await suspenseRender(
+      opts.renderer,
+      ctx,
+      id + 1,
+      children,
+    );
 
     const cssInserts: [string, number][] = [];
     for (const [i, style] of ctx.styles.entries()) {
@@ -211,10 +260,10 @@ export async function* render(opts: RenderOptions): AsyncIterable<string> {
     clientStyles = [...ctx.styles];
 
     if (cssInserts.length > 0) {
-      yield `<script>$ST(${JSON.stringify(cssInserts)});</script>`;
+      script = `$ST(${JSON.stringify(cssInserts)});\n${script};`;
     }
 
-    yield fragment;
+    yield `${fragment}<script nonce="${suspenseNonces[id]}">${script}</script>`;
   }
 }
 
@@ -223,7 +272,7 @@ export async function suspenseRender(
   ctx: RenderContext,
   id: number,
   children: ComponentChildren,
-): Promise<string> {
+): Promise<[string, string]> {
   const dataCache = new Map();
 
   const vnode = h(DATA_CONTEXT.Provider, {
@@ -267,13 +316,13 @@ export async function suspenseRender(
 
   const html = await renderWithRenderer();
 
-  return `<div hidden id="R:${id}">${html}</div><script>$SR(${id})</script>`;
+  return [`<div hidden id="R:${id}">${html}</div>`, `$SR(${id});`];
 }
 
 export interface TemplateOptions {
   bodyHtml: string;
   headComponents: ComponentChildren[];
-  imports: string[];
+  imports: (readonly [string, string])[];
   styles: string[];
   preloads: string[];
   props: unknown;
@@ -288,7 +337,9 @@ export function template(opts: TemplateOptions): string {
         <meta http-equiv="X-UA-Compatible" content="IE=edge" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         {opts.preloads.map((src) => <link rel="modulepreload" href={src} />)}
-        {opts.imports.map((src) => <script src={src} type="module"></script>)}
+        {opts.imports.map(([src, nonce]) => (
+          <script src={src} nonce={nonce} type="module"></script>
+        ))}
         <style
           id="__FRSH_STYLE"
           dangerouslySetInnerHTML={{ __html: opts.styles.join("\n") }}

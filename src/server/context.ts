@@ -19,6 +19,11 @@ import {
   RendererModule,
 } from "./types.ts";
 import { render as internalRender } from "./render.tsx";
+import {
+  ContentSecurityPolicy,
+  ContentSecurityPolicyDirectives,
+  SELF,
+} from "../runtime/csp.ts";
 
 export class ServerContext {
   #dev: boolean;
@@ -78,6 +83,7 @@ export class ServerContext {
           component,
           handler,
           runtimeJS: Boolean(config?.runtimeJS ?? false),
+          csp: Boolean(config?.csp ?? false),
         };
         pages.push(page);
       } else if (
@@ -149,7 +155,6 @@ export class ServerContext {
         params: Record<string, string | string[]>,
       ) => {
         if (page.component === undefined) return undefined;
-        // deno-lint-ignore require-await
         const render = async () => {
           const preloads = page.runtimeJS
             ? this.#bundler.getPreloads(bundlePath).map(bundleAssetUrl)
@@ -162,11 +167,45 @@ export class ServerContext {
             url: new URL(req.url),
             params,
           });
+          const headers: Record<string, string> = {
+            "content-type": "text/html; charset=utf-8",
+          };
+          let firstChunk: string;
+          const iterator = body[Symbol.asyncIterator]();
+          try {
+            const { value, done } = await iterator.next();
+            if (done) throw new Error("Body is empty.");
+            firstChunk = value[0];
+            const csp: ContentSecurityPolicy | undefined = value[1];
+            if (csp) {
+              if (this.#dev) {
+                csp.directives.connectSrc = [
+                  ...(csp.directives.connectSrc ?? []),
+                  SELF,
+                ];
+              }
+              const directive = serializeCSPDirectives(csp.directives);
+              if (csp.reportOnly) {
+                headers["content-security-policy-report-only"] = directive;
+              } else {
+                headers["content-security-policy"] = directive;
+              }
+            }
+          } catch (err) {
+            console.error("Error rendering page", err);
+            return new Response("500 Internal Server Error", {
+              status: 500,
+              headers: {
+                "content-type": "text/plain",
+              },
+            });
+          }
           const bodyStream = new ReadableStream<Uint8Array>({
             async start(controller) {
+              controller.enqueue(new TextEncoder().encode(firstChunk));
               try {
                 for await (const chunk of body) {
-                  controller.enqueue(new TextEncoder().encode(chunk));
+                  controller.enqueue(new TextEncoder().encode(chunk as string));
                 }
               } catch (err) {
                 console.log("Rendering failed:\n", err);
@@ -177,12 +216,7 @@ export class ServerContext {
               controller.close();
             },
           });
-          return new Response(bodyStream, {
-            status: 200,
-            headers: {
-              "content-type": "text/html; charset=utf-8",
-            },
-          });
+          return new Response(bodyStream, { status: 200, headers });
         };
         return render;
       };
@@ -362,4 +396,16 @@ function sanitizePathToRegex(path: string): string {
     .replaceAll("\(", "\\(")
     .replaceAll("\)", "\\)")
     .replaceAll("\:", "\\:");
+}
+
+function serializeCSPDirectives(csp: ContentSecurityPolicyDirectives): string {
+  return Object.entries(csp)
+    .filter(([_key, value]) => value !== undefined)
+    .map(([k, v]: [string, string | string[]]) => {
+      // Turn camel case into snake case.
+      const key = k.replace(/[A-Z]/g, (m) => `-${m.toLowerCase()}`);
+      const value = Array.isArray(v) ? v.join(" ") : v;
+      return `${key} ${value}`;
+    })
+    .join("; ");
 }
