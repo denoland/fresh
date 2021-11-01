@@ -13,6 +13,8 @@ import { JS_PREFIX } from "./constants.ts";
 import { BUILD_ID } from "./constants.ts";
 import {
   Handler,
+  Middleware,
+  MiddlewareModule,
   Page,
   PageModule,
   Renderer,
@@ -31,15 +33,18 @@ export class ServerContext {
   #staticFiles: [URL, string][];
   #bundler: Bundler;
   #renderer: Renderer;
+  #middleware: Middleware;
 
   constructor(
     pages: Page[],
     staticFiles: [URL, string][],
     renderer: Renderer,
+    middleware: Middleware,
   ) {
     this.#pages = pages;
     this.#staticFiles = staticFiles;
     this.#renderer = renderer;
+    this.#middleware = middleware;
     this.#bundler = new Bundler(pages);
     this.#dev = typeof Deno.env.get("DENO_DEPLOYMENT_ID") !== "string"; // Env var is only set in prod (on Deploy).
   }
@@ -54,6 +59,7 @@ export class ServerContext {
     // Extract all routes, and prepare them into the `Page` structure.
     const pages: Page[] = [];
     let renderer: Renderer = DEFAULT_RENDERER;
+    let middleware: Middleware = DEFAULT_MIDDLEWARE;
     for (const [self, module] of Object.entries(routes.pages)) {
       const url = new URL(self, baseUrl).href;
       if (!url.startsWith(baseUrl)) {
@@ -91,6 +97,11 @@ export class ServerContext {
         path === "/_render.jsx" || path === "/_render.js"
       ) {
         renderer = module as RendererModule;
+      } else if (
+        path === "/_middleware.tsx" || path === "/_middleware.ts" ||
+        path === "/_middleware.jsx" || path === "/_middleware.js"
+      ) {
+        middleware = module as MiddlewareModule;
       }
     }
     sortRoutes(pages);
@@ -120,7 +131,7 @@ export class ServerContext {
         throw err;
       }
     }
-    return new ServerContext(pages, staticFiles, renderer);
+    return new ServerContext(pages, staticFiles, renderer, middleware);
   }
 
   /**
@@ -128,7 +139,12 @@ export class ServerContext {
    * by fresh, including static files.
    */
   handler(): router.RequestHandler {
-    return router.router(this.#routes());
+    const inner = router.router(this.#routes());
+    const middleware = this.#middleware;
+    return function handler(req: Request) {
+      const handle = () => Promise.resolve(inner(req));
+      return middleware.handler(req, handle);
+    };
   }
 
   /**
@@ -331,6 +347,10 @@ const DEFAULT_RENDERER: Renderer = {
   render(_ctx, render) {
     render();
   },
+};
+
+const DEFAULT_MIDDLEWARE: Middleware = {
+  handler: (_, handle) => handle(),
 };
 
 /**

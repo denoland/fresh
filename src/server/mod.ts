@@ -1,12 +1,12 @@
 import { ServerContext } from "./context.ts";
 import { listenAndServe } from "./deps.ts";
-import { PageModule, RendererModule } from "./types.ts";
+import { MiddlewareModule, PageModule, RendererModule } from "./types.ts";
 export type { Handler, HandlerContext, Handlers } from "./types.ts";
 export { RenderContext } from "./render.tsx";
 export type { RenderFn } from "./render.tsx";
 
 export interface Routes {
-  pages: Record<string, PageModule | RendererModule>;
+  pages: Record<string, PageModule | RendererModule | MiddlewareModule>;
   baseUrl: string;
 }
 

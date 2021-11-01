@@ -38,3 +38,17 @@ export interface RendererModule {
 export interface Renderer {
   render(ctx: RenderContext, render: RenderFn): void;
 }
+
+export interface MiddlewareModule {
+  handler(
+    req: Request,
+    handle: () => Promise<Response>,
+  ): Response | Promise<Response>;
+}
+
+export interface Middleware {
+  handler(
+    req: Request,
+    handle: () => Promise<Response>,
+  ): Response | Promise<Response>;
+}
