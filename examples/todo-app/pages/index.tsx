@@ -48,5 +48,3 @@ export const handler = {
     return Response.redirect(ctx.req.url, 303);
   },
 };
-
-export const config: PageConfig = { csp: true };

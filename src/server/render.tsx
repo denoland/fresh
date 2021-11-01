@@ -82,6 +82,13 @@ export class RenderContext {
 
 const MAX_SUSPENSE_DEPTH = 10;
 
+function defaultCsp() {
+  return {
+    directives: { defaultSrc: [NONE], styleSrc: [UNSAFE_INLINE] },
+    reportOnly: false,
+  };
+}
+
 /**
  * This function renders out a page. Rendering is asynchronous, and streaming.
  * Rendering happens in multiple steps, because of the need to handle suspense.
@@ -110,10 +117,7 @@ export async function* render(
   const props = { params: opts.params, url: opts.url, route: opts.page.route };
 
   const csp: ContentSecurityPolicy | undefined = opts.page.csp
-    ? {
-      directives: { defaultSrc: [NONE], styleSrc: [UNSAFE_INLINE] },
-      reportOnly: false,
-    }
+    ? defaultCsp()
     : undefined;
   const dataCache = new Map();
   const suspenseQueue: ComponentChildren[] = [];
@@ -137,6 +141,12 @@ export async function* render(
 
   let suspended = 0;
   const renderWithRenderer = (): string | Promise<string> => {
+    if (csp) {
+      // Clear the csp
+      const newCsp = defaultCsp();
+      csp.directives = newCsp.directives;
+      csp.reportOnly = newCsp.reportOnly;
+    }
     // Clear the suspense queue
     suspenseQueue.splice(0, suspenseQueue.length);
     // Clear the head components
