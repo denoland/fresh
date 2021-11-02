@@ -13,7 +13,7 @@ export function Head(props: HeadProps) {
   } catch (err) {
     console.log("Rendering of Head component failed:\n", err);
     throw new Error(
-      "<Head> component is not supported in the browser, or during suspense renders.",
+      "<Head> component is not supported in the browser, or during suspense renders: " + err,
     );
   }
   context.push(props.children);
