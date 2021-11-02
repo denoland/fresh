@@ -11,9 +11,8 @@ export function Head(props: HeadProps) {
   try {
     context = useContext(HEAD_CONTEXT);
   } catch (err) {
-    console.log("Rendering of Head component failed:\n", err);
     throw new Error(
-      "<Head> component is not supported in the browser, or during suspense renders: " + err,
+      "<Head> component is not supported in the browser, or during suspense renders: " + err.message,
     );
   }
   context.push(props.children);
