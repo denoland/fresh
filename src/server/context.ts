@@ -146,7 +146,7 @@ export class ServerContext {
       // to their non-trailing slash counterpart.
       // Ex: /about/ -> /about
       const url = new URL(req.url);
-      if (url.pathname.endsWith("/")) {
+      if (url.pathname.length > 1 && url.pathname.endsWith("/")) {
         url.pathname = url.pathname.slice(0, -1);
         return Response.redirect(url, 307);
       }
