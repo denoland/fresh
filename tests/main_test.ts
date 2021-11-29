@@ -139,3 +139,13 @@ Deno.test("/books/:id page - /books/abc", async () => {
   assert(resp);
   assertEquals(resp.status, 404);
 });
+
+Deno.test("redirect /pages/fresh/ to /pages/fresh", async () => {
+  const resp = await router(new Request("https://fresh.deno.dev/pages/fresh/"));
+  assert(resp);
+  assertEquals(resp.status, 307);
+  assertEquals(
+    resp.headers.get("location"),
+    "https://fresh.deno.dev/pages/fresh",
+  );
+});

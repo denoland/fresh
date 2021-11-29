@@ -142,6 +142,14 @@ export class ServerContext {
     const inner = router.router(this.#routes());
     const middleware = this.#middleware;
     return function handler(req: Request) {
+      // Redirect requests that end with a trailing slash
+      // to their non-trailing slash counterpart.
+      // Ex: /about/ -> /about
+      const url = new URL(req.url);
+      if (url.pathname.length > 1 && url.pathname.endsWith("/")) {
+        url.pathname = url.pathname.slice(0, -1);
+        return Response.redirect(url, 307);
+      }
       const handle = () => Promise.resolve(inner(req));
       return middleware.handler(req, handle);
     };
