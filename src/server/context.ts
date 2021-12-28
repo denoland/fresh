@@ -148,7 +148,7 @@ export class ServerContext {
       const url = new URL(req.url);
       if (url.pathname.length > 1 && url.pathname.endsWith("/")) {
         url.pathname = url.pathname.slice(0, -1);
-        return Response.redirect(url, 307);
+        return Response.redirect(url.href, 307);
       }
       const handle = () => Promise.resolve(inner(req));
       return middleware.handler(req, handle);
