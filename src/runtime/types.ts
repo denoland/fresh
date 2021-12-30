@@ -1,4 +1,4 @@
-export interface PageProps {
+export interface PageProps<T extends Record<string, unknown>> {
   /** The URL of the request that resulted in this page being rendered. */
   url: URL;
 
@@ -19,7 +19,7 @@ export interface PageProps {
   /**
    * Additional arguments were passed to HandlerContext.render
    */
-  renderArgs?: Record<string, unknown>;
+  renderArgs?: T;
 }
 
 export interface PageConfig {
