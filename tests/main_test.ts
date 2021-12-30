@@ -106,7 +106,7 @@ Deno.test("/intercept_args - GET html", async () => {
   assert(resp);
   assertEquals(resp.status, 200);
   const body = await resp.text();
-  assert(body.includes("<div>Hello</div>"));
+  assert(body.includes("<div>intercepted</div>"));
 });
 
 Deno.test("/api/get_only - NOTAMETHOD", async () => {

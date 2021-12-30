@@ -4,7 +4,7 @@ import { h } from "../deps.ts";
 import { HandlerContext } from "../../../server.ts";
 
 interface MyRenderArgs extends Record<string, unknown> {
-  hello: string;
+  info: string;
 }
 
 export default function Page({
@@ -12,14 +12,14 @@ export default function Page({
 }: {
   renderArgs: MyRenderArgs;
 }) {
-  return <div>{renderArgs.hello}</div>;
+  return <div>{renderArgs.info}</div>;
 }
 
 export const handler = {
   GET({ req, render }: HandlerContext) {
     if (req.headers.get("accept")?.includes("text/html")) {
       return render!({
-        hello: "world",
+        info: "intercepted",
       } as MyRenderArgs);
     } else {
       return new Response("This is plain text");
