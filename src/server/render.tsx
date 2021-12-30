@@ -18,7 +18,7 @@ export interface RenderOptions {
   url: URL;
   params: Record<string, string | string[]>;
   renderer: Renderer;
-  renderArgs?: Record<string, unknown>;
+  renderData?: Record<string, unknown>;
 }
 
 export type RenderFn = () => void;
@@ -119,7 +119,7 @@ export async function* render(
     params: opts.params,
     url: opts.url,
     route: opts.page.route,
-    renderArgs: opts.renderArgs,
+    renderData: opts.renderData,
   };
 
   const csp: ContentSecurityPolicy | undefined = opts.page.csp

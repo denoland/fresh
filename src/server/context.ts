@@ -179,7 +179,7 @@ export class ServerContext {
         params: Record<string, string | string[]>,
       ) => {
         if (page.component === undefined) return undefined;
-        const render = async (renderArgs?: Record<string, unknown>) => {
+        const render = async (renderData?: Record<string, unknown>) => {
           const preloads = page.runtimeJS
             ? this.#bundler.getPreloads(bundlePath).map(bundleAssetUrl)
             : [];
@@ -190,7 +190,7 @@ export class ServerContext {
             renderer: this.#renderer,
             url: new URL(req.url),
             params,
-            renderArgs,
+            renderData,
           });
           const headers: Record<string, string> = {
             "content-type": "text/html; charset=utf-8",

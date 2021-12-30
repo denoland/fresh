@@ -3,16 +3,16 @@
 import { h } from "../deps.ts";
 import { HandlerContext } from "../../../server.ts";
 
-interface MyRenderArgs extends Record<string, unknown> {
+interface renderData extends Record<string, unknown> {
   info: string;
 }
 
 export default function Page({
-  renderArgs,
+  renderData,
 }: {
-  renderArgs: MyRenderArgs;
+  renderData: renderData;
 }) {
-  return <div>{renderArgs.info}</div>;
+  return <div>{renderData.info}</div>;
 }
 
 export const handler = {
@@ -20,7 +20,7 @@ export const handler = {
     if (req.headers.get("accept")?.includes("text/html")) {
       return render!({
         info: "intercepted",
-      } as MyRenderArgs);
+      } as renderData);
     } else {
       return new Response("This is plain text");
     }
