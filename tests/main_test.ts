@@ -10,6 +10,7 @@ Deno.test("/ page prerender", async () => {
   assert(resp);
   assertEquals(resp.status, 200);
   assertEquals(resp.headers.get("content-type"), "text/html; charset=utf-8");
+  assertEquals(resp.headers.get("server"), "fresh test server");
   const body = await resp.text();
   assertStringIncludes(body, `<html lang="en">`);
   assertStringIncludes(body, "index.js");
@@ -131,7 +132,6 @@ Deno.test("/static page prerender", async () => {
   assertEquals(resp.headers.get("content-type"), "text/html; charset=utf-8");
   const body = await resp.text();
   assert(!body.includes(`static.js`));
-  assert(!body.includes(`</script>`));
   assertStringIncludes(body, "<p>This is a static page.</p>");
   assert(!body.includes("__FRSH_PROPS"));
 });
@@ -149,4 +149,14 @@ Deno.test("/books/:id page - /books/abc", async () => {
   const resp = await router(new Request("https://fresh.deno.dev/books/abc"));
   assert(resp);
   assertEquals(resp.status, 404);
+});
+
+Deno.test("redirect /pages/fresh/ to /pages/fresh", async () => {
+  const resp = await router(new Request("https://fresh.deno.dev/pages/fresh/"));
+  assert(resp);
+  assertEquals(resp.status, 307);
+  assertEquals(
+    resp.headers.get("location"),
+    "https://fresh.deno.dev/pages/fresh",
+  );
 });

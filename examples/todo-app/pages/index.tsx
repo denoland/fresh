@@ -1,5 +1,5 @@
 /** @jsx h */
-import { h, HandlerContext, Suspense, useData } from "../deps.ts";
+import { h, HandlerContext, PageConfig, Suspense, useData } from "../deps.ts";
 import { getDatabase, Todo } from "../utils/database.ts";
 
 export default function TodoListPage() {

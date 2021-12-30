@@ -9,11 +9,9 @@ export interface PageModule {
   config?: PageConfig;
 }
 
-export interface HandlerContext<
-  T extends Record<string, string> = Record<string, string>,
-> {
+export interface HandlerContext {
   req: Request;
-  match: router.MatchResult<T>;
+  match: Record<string, string>;
   render?: (args?: Record<string, unknown>) => Promise<Response>;
 }
 
@@ -30,6 +28,7 @@ export interface Page {
   component?: ComponentType<PageProps>;
   handler: Handler | Handlers;
   runtimeJS: boolean;
+  csp: boolean;
 }
 
 export interface RendererModule {
@@ -38,4 +37,18 @@ export interface RendererModule {
 
 export interface Renderer {
   render(ctx: RenderContext, render: RenderFn): void;
+}
+
+export interface MiddlewareModule {
+  handler(
+    req: Request,
+    handle: () => Promise<Response>,
+  ): Response | Promise<Response>;
+}
+
+export interface Middleware {
+  handler(
+    req: Request,
+    handle: () => Promise<Response>,
+  ): Response | Promise<Response>;
 }

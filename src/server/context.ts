@@ -8,33 +8,45 @@ import {
 } from "./deps.ts";
 import { Routes } from "./mod.ts";
 import { Bundler } from "./bundle.ts";
-import { INTERNAL_PREFIX } from "./constants.ts";
+import { ALIVE_URL, INTERNAL_PREFIX, REFRESH_JS_URL } from "./constants.ts";
 import { JS_PREFIX } from "./constants.ts";
 import { BUILD_ID } from "./constants.ts";
 import {
   Handler,
+  Middleware,
+  MiddlewareModule,
   Page,
   PageModule,
   Renderer,
   RendererModule,
 } from "./types.ts";
 import { render as internalRender } from "./render.tsx";
+import {
+  ContentSecurityPolicy,
+  ContentSecurityPolicyDirectives,
+  SELF,
+} from "../runtime/csp.ts";
 
 export class ServerContext {
+  #dev: boolean;
   #pages: Page[];
   #staticFiles: [URL, string][];
   #bundler: Bundler;
   #renderer: Renderer;
+  #middleware: Middleware;
 
   constructor(
     pages: Page[],
     staticFiles: [URL, string][],
     renderer: Renderer,
+    middleware: Middleware,
   ) {
     this.#pages = pages;
     this.#staticFiles = staticFiles;
     this.#renderer = renderer;
+    this.#middleware = middleware;
     this.#bundler = new Bundler(pages);
+    this.#dev = typeof Deno.env.get("DENO_DEPLOYMENT_ID") !== "string"; // Env var is only set in prod (on Deploy).
   }
 
   /**
@@ -47,6 +59,7 @@ export class ServerContext {
     // Extract all routes, and prepare them into the `Page` structure.
     const pages: Page[] = [];
     let renderer: Renderer = DEFAULT_RENDERER;
+    let middleware: Middleware = DEFAULT_MIDDLEWARE;
     for (const [self, module] of Object.entries(routes.pages)) {
       const url = new URL(self, baseUrl).href;
       if (!url.startsWith(baseUrl)) {
@@ -76,6 +89,7 @@ export class ServerContext {
           component,
           handler,
           runtimeJS: Boolean(config?.runtimeJS ?? false),
+          csp: Boolean(config?.csp ?? false),
         };
         pages.push(page);
       } else if (
@@ -83,6 +97,11 @@ export class ServerContext {
         path === "/_render.jsx" || path === "/_render.js"
       ) {
         renderer = module as RendererModule;
+      } else if (
+        path === "/_middleware.tsx" || path === "/_middleware.ts" ||
+        path === "/_middleware.jsx" || path === "/_middleware.js"
+      ) {
+        middleware = module as MiddlewareModule;
       }
     }
     sortRoutes(pages);
@@ -112,7 +131,7 @@ export class ServerContext {
         throw err;
       }
     }
-    return new ServerContext(pages, staticFiles, renderer);
+    return new ServerContext(pages, staticFiles, renderer, middleware);
   }
 
   /**
@@ -120,7 +139,20 @@ export class ServerContext {
    * by fresh, including static files.
    */
   handler(): router.RequestHandler {
-    return router.router(this.#routes());
+    const inner = router.router(this.#routes());
+    const middleware = this.#middleware;
+    return function handler(req: Request) {
+      // Redirect requests that end with a trailing slash
+      // to their non-trailing slash counterpart.
+      // Ex: /about/ -> /about
+      const url = new URL(req.url);
+      if (url.pathname.length > 1 && url.pathname.endsWith("/")) {
+        url.pathname = url.pathname.slice(0, -1);
+        return Response.redirect(url.href, 307);
+      }
+      const handle = () => Promise.resolve(inner(req));
+      return middleware.handler(req, handle);
+    };
   }
 
   /**
@@ -139,12 +171,14 @@ export class ServerContext {
     for (const page of this.#pages) {
       const bundlePath = `/${page.name}.js`;
       const imports = page.runtimeJS ? [bundleAssetUrl(bundlePath)] : [];
+      if (this.#dev) {
+        imports.push(REFRESH_JS_URL);
+      }
       const createRender = (
         req: Request,
         params: Record<string, string | string[]>,
       ) => {
         if (page.component === undefined) return undefined;
-        // deno-lint-ignore require-await
         const render = async (renderArgs?: Record<string, unknown>) => {
           const preloads = page.runtimeJS
             ? this.#bundler.getPreloads(bundlePath).map(bundleAssetUrl)
@@ -158,11 +192,45 @@ export class ServerContext {
             params,
             renderArgs,
           });
+          const headers: Record<string, string> = {
+            "content-type": "text/html; charset=utf-8",
+          };
+          let firstChunk: string;
+          const iterator = body[Symbol.asyncIterator]();
+          try {
+            const { value, done } = await iterator.next();
+            if (done) throw new Error("Body is empty.");
+            firstChunk = value[0];
+            const csp: ContentSecurityPolicy | undefined = value[1];
+            if (csp) {
+              if (this.#dev) {
+                csp.directives.connectSrc = [
+                  ...(csp.directives.connectSrc ?? []),
+                  SELF,
+                ];
+              }
+              const directive = serializeCSPDirectives(csp.directives);
+              if (csp.reportOnly) {
+                headers["content-security-policy-report-only"] = directive;
+              } else {
+                headers["content-security-policy"] = directive;
+              }
+            }
+          } catch (err) {
+            console.error("Error rendering page", err);
+            return new Response("500 Internal Server Error", {
+              status: 500,
+              headers: {
+                "content-type": "text/plain",
+              },
+            });
+          }
           const bodyStream = new ReadableStream<Uint8Array>({
             async start(controller) {
+              controller.enqueue(new TextEncoder().encode(firstChunk));
               try {
                 for await (const chunk of body) {
-                  controller.enqueue(new TextEncoder().encode(chunk));
+                  controller.enqueue(new TextEncoder().encode(chunk as string));
                 }
               } catch (err) {
                 console.log("Rendering failed:\n", err);
@@ -173,12 +241,7 @@ export class ServerContext {
               controller.close();
             },
           });
-          return new Response(bodyStream, {
-            status: 200,
-            headers: {
-              "content-type": "text/html; charset=utf-8",
-            },
-          });
+          return new Response(bodyStream, { status: 200, headers });
         };
         return render;
       };
@@ -188,18 +251,51 @@ export class ServerContext {
           (page.handler as Handler)({
             req,
             match,
-            render: createRender(req, match.params),
+            render: createRender(req, match),
           });
       } else {
         for (const [method, handler] of Object.entries(page.handler)) {
           routes[`${method}@${page.route}`] = (req, match) =>
-            handler({ req, match, render: createRender(req, match.params) });
+            handler({ req, match, render: createRender(req, match) });
         }
       }
     }
 
     routes[`${INTERNAL_PREFIX}${JS_PREFIX}/${BUILD_ID}/:path*`] = this
       .#bundleAssetRoute();
+
+    if (this.#dev) {
+      routes[REFRESH_JS_URL] = () => {
+        const js =
+          `const buildId = "${BUILD_ID}"; new EventSource("${ALIVE_URL}").addEventListener("message", (e) => { if (e.data !== buildId) { location.reload(); } });`;
+        return new Response(new TextEncoder().encode(js), {
+          headers: {
+            "content-type": "application/javascript; charset=utf-8",
+          },
+        });
+      };
+      routes[ALIVE_URL] = () => {
+        let timerId: number | undefined = undefined;
+        const body = new ReadableStream({
+          start(controller) {
+            controller.enqueue(`data: ${BUILD_ID}\nretry: 100\n\n`);
+            timerId = setInterval(() => {
+              controller.enqueue(`data: ${BUILD_ID}\n\n`);
+            }, 1000);
+          },
+          cancel() {
+            if (timerId !== undefined) {
+              clearInterval(timerId);
+            }
+          },
+        });
+        return new Response(body.pipeThrough(new TextEncoderStream()), {
+          headers: {
+            "content-type": "text/event-stream",
+          },
+        });
+      };
+    }
 
     return routes;
   }
@@ -226,7 +322,7 @@ export class ServerContext {
    */
   #bundleAssetRoute = (): router.MatchHandler => {
     return async (_req, match) => {
-      const path = `/${match.params.path}`;
+      const path = `/${match.path}`;
       const file = await this.#bundler.get(path);
       let res;
       if (file) {
@@ -260,6 +356,10 @@ const DEFAULT_RENDERER: Renderer = {
   render(_ctx, render) {
     render();
   },
+};
+
+const DEFAULT_MIDDLEWARE: Middleware = {
+  handler: (_, handle) => handle(),
 };
 
 /**
@@ -325,4 +425,16 @@ function sanitizePathToRegex(path: string): string {
     .replaceAll("\(", "\\(")
     .replaceAll("\)", "\\)")
     .replaceAll("\:", "\\:");
+}
+
+function serializeCSPDirectives(csp: ContentSecurityPolicyDirectives): string {
+  return Object.entries(csp)
+    .filter(([_key, value]) => value !== undefined)
+    .map(([k, v]: [string, string | string[]]) => {
+      // Turn camel case into snake case.
+      const key = k.replace(/[A-Z]/g, (m) => `-${m.toLowerCase()}`);
+      const value = Array.isArray(v) ? v.join(" ") : v;
+      return `${key} ${value}`;
+    })
+    .join("; ");
 }
