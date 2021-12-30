@@ -14,7 +14,7 @@ export interface HandlerContext<
 > {
   req: Request;
   match: router.MatchResult<T>;
-  render?: () => Promise<Response>;
+  render?: (args?: Record<string, unknown>) => Promise<Response>;
 }
 
 export type Handler = (ctx: HandlerContext) => Response | Promise<Response>;

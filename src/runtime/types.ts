@@ -15,6 +15,11 @@ export interface PageProps {
    * be `{ path: [ 'bar', 'baz' ] }`.
    */
   params: Record<string, string | string[]>;
+
+  /**
+   * Additional arguments were passed to HandlerContext.render
+   */
+  renderArgs?: Record<string, unknown>;
 }
 
 export interface PageConfig {

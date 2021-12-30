@@ -145,7 +145,7 @@ export class ServerContext {
       ) => {
         if (page.component === undefined) return undefined;
         // deno-lint-ignore require-await
-        const render = async () => {
+        const render = async (renderArgs?: Record<string, unknown>) => {
           const preloads = page.runtimeJS
             ? this.#bundler.getPreloads(bundlePath).map(bundleAssetUrl)
             : [];
@@ -156,6 +156,7 @@ export class ServerContext {
             renderer: this.#renderer,
             url: new URL(req.url),
             params,
+            renderArgs,
           });
           const bodyStream = new ReadableStream<Uint8Array>({
             async start(controller) {

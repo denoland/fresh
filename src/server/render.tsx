@@ -15,6 +15,7 @@ export interface RenderOptions {
   url: URL;
   params: Record<string, string | string[]>;
   renderer: Renderer;
+  renderArgs?: Record<string, unknown>;
 }
 
 export type RenderFn = () => void;
@@ -102,7 +103,12 @@ const MAX_SUSPENSE_DEPTH = 10;
  *    at the location of the original `<Suspense>` node.
  */
 export async function* render(opts: RenderOptions): AsyncIterable<string> {
-  const props = { params: opts.params, url: opts.url, route: opts.page.route };
+  const props = {
+    params: opts.params,
+    url: opts.url,
+    route: opts.page.route,
+    renderArgs: opts.renderArgs,
+  };
 
   const dataCache = new Map();
   const suspenseQueue: ComponentChildren[] = [];
