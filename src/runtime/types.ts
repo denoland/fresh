@@ -17,9 +17,10 @@ export interface PageProps<T extends Record<string, unknown>> {
   params: Record<string, string | string[]>;
 
   /**
-   * Additional arguments were passed to HandlerContext.render
+   * Additional data passed into `HandlerContext.render`. Not present by
+   * default.
    */
-  renderArgs?: T;
+  renderData?: T;
 }
 
 export interface PageConfig {
