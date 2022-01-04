@@ -27,17 +27,28 @@ import {
   SELF,
 } from "../runtime/csp.ts";
 
+interface StaticFile {
+  /** The URL to the static file on disk. */
+  localUrl: URL;
+  /** The path to the file as it would be in the incoming request. */
+  path: string;
+  /** The size of the file. */
+  size: number;
+  /** The content-type of the file. */
+  contentType: string;
+}
+
 export class ServerContext {
   #dev: boolean;
   #pages: Page[];
-  #staticFiles: [URL, string][];
+  #staticFiles: StaticFile[];
   #bundler: Bundler;
   #renderer: Renderer;
   #middleware: Middleware;
 
   constructor(
     pages: Page[],
-    staticFiles: [URL, string][],
+    staticFiles: StaticFile[],
     renderer: Renderer,
     middleware: Middleware,
   ) {
@@ -106,7 +117,7 @@ export class ServerContext {
     }
     sortRoutes(pages);
 
-    const staticFiles: [URL, string][] = [];
+    const staticFiles: StaticFile[] = [];
     try {
       const staticFolder = new URL("./static", routes.baseUrl);
       // TODO(lucacasonato): remove the extranious Deno.readDir when
@@ -120,9 +131,18 @@ export class ServerContext {
         followSymlinks: false,
       });
       for await (const entry of entires) {
-        const path = toFileUrl(entry.path);
-        const subpath = path.href.substring(staticFolder.href.length);
-        staticFiles.push([path, subpath]);
+        const localUrl = toFileUrl(entry.path);
+        const path = localUrl.href.substring(staticFolder.href.length);
+        const stat = await Deno.stat(localUrl);
+        const contentType = mediaTypeLookup(extname(path)) ??
+          "application/octet-stream";
+        const staticFile: StaticFile = {
+          localUrl,
+          path,
+          size: stat.size,
+          contentType,
+        };
+        staticFiles.push(staticFile);
       }
     } catch (err) {
       if (err instanceof Deno.errors.NotFound) {
@@ -163,9 +183,13 @@ export class ServerContext {
     const routes: router.Routes = {};
 
     // Add the static file routes.
-    for (const [fullPath, path] of this.#staticFiles) {
+    for (const { localUrl, path, size, contentType } of this.#staticFiles) {
       const route = sanitizePathToRegex(path);
-      routes[`GET@${route}`] = this.#staticFileHandler(fullPath);
+      routes[`GET@${route}`] = this.#staticFileHandler(
+        localUrl,
+        size,
+        contentType,
+      );
     }
 
     for (const page of this.#pages) {
@@ -299,19 +323,19 @@ export class ServerContext {
     return routes;
   }
 
-  #staticFileHandler(fullPath: URL): router.MatchHandler {
+  #staticFileHandler(
+    localUrl: URL,
+    size: number,
+    contentType: string,
+  ): router.MatchHandler {
     return async (_req: Request) => {
-      try {
-        const data = await Deno.readFile(fullPath);
-        const contentType = mediaTypeLookup(extname(fullPath.href)) ??
-          "application/octet-stream";
-        return new Response(data, { headers: { "content-type": contentType } });
-      } catch (err) {
-        if (err instanceof Deno.errors.NotFound) {
-          return new Response("404 Not Found", { status: 404 });
-        }
-        throw err;
-      }
+      const resp = await fetch(localUrl);
+      return new Response(resp.body, {
+        headers: {
+          "content-type": contentType,
+          "content-length": String(size),
+        },
+      });
     };
   }
 
