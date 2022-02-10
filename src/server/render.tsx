@@ -174,7 +174,10 @@ export async function* render(
       }
     }
 
-    opts.renderer.render(ctx, render);
+    const maybeNewBody = opts.renderer.render(ctx, render);
+    if (typeof maybeNewBody === "string") {
+      body = maybeNewBody;
+    }
 
     if (body !== null) {
       return body;
