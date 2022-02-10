@@ -20,7 +20,7 @@ export interface RenderOptions {
   renderer: Renderer;
 }
 
-export type RenderFn = () => void;
+export type RenderFn = () => void | string;
 
 export class RenderContext {
   #id: string;
@@ -164,6 +164,7 @@ export async function* render(
     function render() {
       try {
         body = renderToString(vnode);
+        return body;
       } catch (e) {
         if (e && e.then) {
           promise = e;
