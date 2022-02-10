@@ -12,6 +12,7 @@ import { ALIVE_URL, INTERNAL_PREFIX, REFRESH_JS_URL } from "./constants.ts";
 import { JS_PREFIX } from "./constants.ts";
 import { BUILD_ID } from "./constants.ts";
 import {
+  AppModule,
   Handler,
   Middleware,
   MiddlewareModule,
@@ -45,17 +46,20 @@ export class ServerContext {
   #bundler: Bundler;
   #renderer: Renderer;
   #middleware: Middleware;
+  #app: AppModule;
 
   constructor(
     pages: Page[],
     staticFiles: StaticFile[],
     renderer: Renderer,
     middleware: Middleware,
+    app: AppModule,
   ) {
     this.#pages = pages;
     this.#staticFiles = staticFiles;
     this.#renderer = renderer;
     this.#middleware = middleware;
+    this.#app = app;
     this.#bundler = new Bundler(pages);
     this.#dev = typeof Deno.env.get("DENO_DEPLOYMENT_ID") !== "string"; // Env var is only set in prod (on Deploy).
   }
@@ -71,6 +75,7 @@ export class ServerContext {
     const pages: Page[] = [];
     let renderer: Renderer = DEFAULT_RENDERER;
     let middleware: Middleware = DEFAULT_MIDDLEWARE;
+    let app: AppModule = DEFAULT_APP;
     for (const [self, module] of Object.entries(routes.pages)) {
       const url = new URL(self, baseUrl).href;
       if (!url.startsWith(baseUrl)) {
@@ -113,6 +118,11 @@ export class ServerContext {
         path === "/_middleware.jsx" || path === "/_middleware.js"
       ) {
         middleware = module as MiddlewareModule;
+      } else if (
+        path === "/_app.tsx" || path === "/_app.ts" ||
+        path === "/_app.jsx" || path === "/_app.js"
+      ) {
+        app = module as AppModule;
       }
     }
     sortRoutes(pages);
@@ -151,7 +161,7 @@ export class ServerContext {
         throw err;
       }
     }
-    return new ServerContext(pages, staticFiles, renderer, middleware);
+    return new ServerContext(pages, staticFiles, renderer, middleware, app);
   }
 
   /**
@@ -209,6 +219,7 @@ export class ServerContext {
             : [];
           const body = internalRender({
             page,
+            app: this.#app,
             imports,
             preloads,
             renderer: this.#renderer,
@@ -383,6 +394,10 @@ const DEFAULT_RENDERER: Renderer = {
 
 const DEFAULT_MIDDLEWARE: Middleware = {
   handler: (_, handle) => handle(),
+};
+
+const DEFAULT_APP: AppModule = {
+  default: ({ Component }) => Component,
 };
 
 /**

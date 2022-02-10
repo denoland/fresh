@@ -1,3 +1,5 @@
+import { ComponentType } from "./deps.ts";
+
 export interface PageProps {
   /** The URL of the request that resulted in this page being rendered. */
   url: URL;
@@ -15,6 +17,10 @@ export interface PageProps {
    * be `{ path: [ 'bar', 'baz' ] }`.
    */
   params: Record<string, string | string[]>;
+}
+
+export interface AppProps {
+  Component: ComponentType<{}>;
 }
 
 export interface PageConfig {

@@ -1,6 +1,6 @@
 import { ComponentType } from "../runtime/deps.ts";
 import { router } from "./deps.ts";
-import { PageConfig, PageProps } from "../runtime/types.ts";
+import { AppProps, PageConfig, PageProps } from "../runtime/types.ts";
 import { RenderContext, RenderFn } from "./render.tsx";
 
 export interface PageModule {
@@ -51,4 +51,8 @@ export interface Middleware {
     req: Request,
     handle: () => Promise<Response>,
   ): Response | Promise<Response>;
+}
+
+export interface AppModule {
+  default: ComponentType<AppProps>;
 }
