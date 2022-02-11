@@ -44,8 +44,12 @@ export interface ErrorHandlerContext {
 }
 
 export type Handler = (ctx: HandlerContext) => Response | Promise<Response>;
-export type UnknownHandler = (ctx: UnknownHandlerContext) => Response | Promise<Response>;
-export type ErrorHandler = (ctx: ErrorHandlerContext) => Response | Promise<Response>;
+export type UnknownHandler = (
+  ctx: UnknownHandlerContext,
+) => Response | Promise<Response>;
+export type ErrorHandler = (
+  ctx: ErrorHandlerContext,
+) => Response | Promise<Response>;
 
 export type Handlers = {
   [K in typeof router.METHODS[number]]?: Handler;
