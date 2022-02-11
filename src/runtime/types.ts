@@ -1,4 +1,6 @@
-export interface PageProps<T extends Record<string, unknown>> {
+export interface PageProps<
+  T extends Record<string, unknown> = Record<never, never>,
+> {
   /** The URL of the request that resulted in this page being rendered. */
   url: URL;
 
