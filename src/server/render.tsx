@@ -22,6 +22,7 @@ export interface RenderOptions {
   url: URL;
   params: Record<string, string | string[]>;
   renderer: Renderer;
+  renderData?: Record<string, unknown>;
   error?: unknown;
 }
 
@@ -119,7 +120,12 @@ function defaultCsp() {
 export async function* render(
   opts: RenderOptions,
 ): AsyncIterable<string | [string, ContentSecurityPolicy | undefined]> {
-  const props: Record<string, unknown> = { params: opts.params, url: opts.url, route: opts.page.route };
+  const props: Record<string, unknown> = {
+    params: opts.params,
+    url: opts.url,
+    route: opts.page.route,
+    renderData: opts.renderData,
+  };
   if (opts.error) {
     props.error = opts.error;
   }

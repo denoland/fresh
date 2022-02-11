@@ -29,7 +29,7 @@ export interface ErrorPageModule {
 export interface HandlerContext {
   req: Request;
   match: Record<string, string>;
-  render?: () => Promise<Response>;
+  render?: (args?: Record<string, unknown>) => Promise<Response>;
 }
 
 export interface UnknownHandlerContext {

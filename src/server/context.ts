@@ -243,7 +243,7 @@ export class ServerContext {
         error?: unknown,
       ) => {
         if (page.component === undefined) return undefined;
-        return async () => {
+        return async (renderData?: Record<string, unknown>) => {
           const preloads = page.runtimeJS
             ? this.#bundler.getPreloads(bundlePath).map(bundleAssetUrl)
             : [];
@@ -254,6 +254,7 @@ export class ServerContext {
             renderer: this.#renderer,
             url: new URL(req.url),
             params,
+            renderData,
             error,
           });
 
