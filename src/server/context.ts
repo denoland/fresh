@@ -6,7 +6,7 @@ import {
   toFileUrl,
   walk,
 } from "./deps.ts";
-import { Handlers, Routes } from "./mod.ts";
+import { Routes } from "./mod.ts";
 import { Bundler } from "./bundle.ts";
 import { ALIVE_URL, INTERNAL_PREFIX, REFRESH_JS_URL } from "./constants.ts";
 import { JS_PREFIX } from "./constants.ts";
@@ -30,8 +30,6 @@ import {
   ContentSecurityPolicyDirectives,
   SELF,
 } from "../runtime/csp.ts";
-import { ComponentType } from "../runtime/deps.ts";
-import { ErrorPageProps } from "../runtime/types.ts";
 
 interface StaticFile {
   /** The URL to the static file on disk. */
