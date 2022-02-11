@@ -18,6 +18,7 @@ export interface RenderOptions {
   url: URL;
   params: Record<string, string | string[]>;
   renderer: Renderer;
+  renderData?: Record<string, unknown>;
 }
 
 export type RenderFn = () => void;
@@ -114,7 +115,12 @@ function defaultCsp() {
 export async function* render(
   opts: RenderOptions,
 ): AsyncIterable<string | [string, ContentSecurityPolicy | undefined]> {
-  const props = { params: opts.params, url: opts.url, route: opts.page.route };
+  const props = {
+    params: opts.params,
+    url: opts.url,
+    route: opts.page.route,
+    renderData: opts.renderData,
+  };
 
   const csp: ContentSecurityPolicy | undefined = opts.page.csp
     ? defaultCsp()
