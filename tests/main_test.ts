@@ -98,6 +98,17 @@ Deno.test("/intercept - DELETE", async () => {
   assertEquals(resp.status, 405);
 });
 
+Deno.test("/intercept_args - GET html", async () => {
+  const req = new Request("https://fresh.deno.dev/intercept_args", {
+    headers: { "accept": "text/html" },
+  });
+  const resp = await router(req);
+  assert(resp);
+  assertEquals(resp.status, 200);
+  const body = await resp.text();
+  assert(body.includes("<div>intercepted</div>"));
+});
+
 Deno.test("/api/get_only - NOTAMETHOD", async () => {
   const resp = await router(
     new Request("https://fresh.deno.dev/api/get_only", {

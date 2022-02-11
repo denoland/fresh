@@ -1,6 +1,6 @@
 import { ComponentType } from "./deps.ts";
 
-export interface PageProps {
+export interface PageProps<T extends Record<string, unknown>> {
   /** The URL of the request that resulted in this page being rendered. */
   url: URL;
 
@@ -17,6 +17,12 @@ export interface PageProps {
    * be `{ path: [ 'bar', 'baz' ] }`.
    */
   params: Record<string, string | string[]>;
+
+  /**
+   * Additional data passed into `HandlerContext.render`. Not present by
+   * default.
+   */
+  renderData?: T;
 }
 
 export interface AppProps {
