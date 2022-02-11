@@ -12,14 +12,17 @@ import { ALIVE_URL, INTERNAL_PREFIX, REFRESH_JS_URL } from "./constants.ts";
 import { JS_PREFIX } from "./constants.ts";
 import { BUILD_ID } from "./constants.ts";
 import {
-  ErrorPage, ErrorPageModule,
+  ErrorPage,
+  ErrorPageModule,
   Handler,
   Middleware,
   MiddlewareModule,
   Page,
   PageModule,
   Renderer,
-  RendererModule, UnknownPage, UnknownPageModule,
+  RendererModule,
+  UnknownPage,
+  UnknownPageModule,
 } from "./types.ts";
 import { render as internalRender } from "./render.tsx";
 import {
@@ -128,7 +131,8 @@ export class ServerContext {
         path === "/_404.tsx" || path === "/_404.ts" ||
         path === "/_404.jsx" || path === "/_404.js"
       ) {
-        const { default: component, config, handler } = (module as UnknownPageModule);
+        const { default: component, config, handler } =
+          (module as UnknownPageModule);
         notFound = {
           route: pathToRoute(baseRoute),
           url,
@@ -142,13 +146,15 @@ export class ServerContext {
         path === "/_500.tsx" || path === "/_500.ts" ||
         path === "/_500.jsx" || path === "/_500.js"
       ) {
-        const { default: component, config, handler } = (module as ErrorPageModule);
+        const { default: component, config, handler } =
+          (module as ErrorPageModule);
         error = {
           route: pathToRoute(baseRoute),
           url,
           name,
           component,
-          handler: handler ?? ((ctx) => router.defaultErrorHandler(ctx.req, ctx.error)),
+          handler: handler ??
+            ((ctx) => router.defaultErrorHandler(ctx.req, ctx.error)),
           runtimeJS: Boolean(config?.runtimeJS ?? false),
           csp: Boolean(config?.csp ?? false),
         };
@@ -190,7 +196,14 @@ export class ServerContext {
         throw err;
       }
     }
-    return new ServerContext(pages, staticFiles, renderer, middleware, notFound, error);
+    return new ServerContext(
+      pages,
+      staticFiles,
+      renderer,
+      middleware,
+      notFound,
+      error,
+    );
   }
 
   /**
@@ -310,7 +323,7 @@ export class ServerContext {
           return new Response(bodyStream, { status: 200, headers });
         };
       };
-    }
+    };
 
     for (const page of this.#pages) {
       const createRender = genRender(page);
