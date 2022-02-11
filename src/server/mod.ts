@@ -11,7 +11,10 @@ export { RenderContext } from "./render.tsx";
 export type { RenderFn } from "./render.tsx";
 
 export interface Routes {
-  pages: Record<string, PageModule | RendererModule | MiddlewareModule | AppModule>;
+  pages: Record<
+    string,
+    PageModule | RendererModule | MiddlewareModule | AppModule
+  >;
   baseUrl: string;
 }
 

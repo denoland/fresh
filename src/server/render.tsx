@@ -3,7 +3,7 @@
 import { renderToString } from "./deps.ts";
 import { ComponentChildren, h } from "../runtime/deps.ts";
 import { DATA_CONTEXT } from "../runtime/hooks.ts";
-import { Page, Renderer, AppModule } from "./types.ts";
+import { AppModule, Page, Renderer } from "./types.ts";
 import { PageProps } from "../runtime/types.ts";
 import { SUSPENSE_CONTEXT } from "../runtime/suspense.ts";
 import { HEAD_CONTEXT } from "../runtime/head.ts";
@@ -13,7 +13,7 @@ import { ContentSecurityPolicy } from "../runtime/csp.ts";
 
 export interface RenderOptions {
   page: Page;
-  app: AppModule,
+  app: AppModule;
   imports: string[];
   preloads: string[];
   url: URL;
