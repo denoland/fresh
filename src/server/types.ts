@@ -32,11 +32,11 @@ export interface Page {
 }
 
 export interface RendererModule {
-  render(ctx: RenderContext, render: RenderFn): void;
+  render(ctx: RenderContext, render: RenderFn): undefined | string;
 }
 
 export interface Renderer {
-  render(ctx: RenderContext, render: RenderFn): void;
+  render(ctx: RenderContext, render: RenderFn): undefined | string;
 }
 
 export interface MiddlewareModule {

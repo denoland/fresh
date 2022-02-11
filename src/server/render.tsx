@@ -310,6 +310,7 @@ export async function suspenseRender(
     function render() {
       try {
         body = renderToString(vnode);
+        return body;
       } catch (e) {
         if (e && e.then) {
           promise = e;
