@@ -26,7 +26,7 @@ export interface PageProps<T extends Record<string, unknown>> {
 }
 
 export interface AppProps {
-  Component: ComponentType<{}>;
+  Component: ComponentType<Record<never, never>>;
 }
 
 export interface PageConfig {
