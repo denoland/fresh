@@ -164,7 +164,7 @@ Deno.test("redirect /pages/fresh/ to /pages/fresh", async () => {
 });
 
 Deno.test("/failure", async () => {
-  const resp = await router(new Request("https://fresh.deno.dev/pages/fresh/"));
+  const resp = await router(new Request("https://fresh.deno.dev/failure"));
   assert(resp);
   assertEquals(resp.status, 500);
   const body = await resp.text();
