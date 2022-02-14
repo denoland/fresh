@@ -1,6 +1,6 @@
 /** @jsx h */
 
-import { h, PageProps, PageConfig } from "../deps.ts";
+import { h, PageConfig, PageProps } from "../deps.ts";
 
 export default function WildcardPage({ params }: PageProps) {
   if (typeof params.path === "string") {
