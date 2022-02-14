@@ -314,7 +314,7 @@ export async function suspenseRender(
       } catch (e) {
         if (e && e.then) {
           promise = e;
-          return;
+          return "";
         }
         throw e;
       }
