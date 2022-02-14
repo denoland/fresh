@@ -129,10 +129,8 @@ export class ServerContext {
         path === "/_404.tsx" || path === "/_404.ts" ||
         path === "/_404.jsx" || path === "/_404.js"
       ) {
-        const { default: component, config } =
-          (module as UnknownPageModule);
-        let { handler } =
-          (module as UnknownPageModule);
+        const { default: component, config } = (module as UnknownPageModule);
+        let { handler } = (module as UnknownPageModule);
         if (component && handler === undefined) {
           handler = ({ render }) => render!();
         }
@@ -150,10 +148,8 @@ export class ServerContext {
         path === "/_500.tsx" || path === "/_500.ts" ||
         path === "/_500.jsx" || path === "/_500.js"
       ) {
-        const { default: component, config } =
-          (module as ErrorPageModule);
-        let { handler } =
-          (module as ErrorPageModule);
+        const { default: component, config } = (module as ErrorPageModule);
+        let { handler } = (module as ErrorPageModule);
         if (component && handler === undefined) {
           handler = ({ render }) => render!();
         }
