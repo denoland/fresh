@@ -129,8 +129,14 @@ export class ServerContext {
         path === "/_404.tsx" || path === "/_404.ts" ||
         path === "/_404.jsx" || path === "/_404.js"
       ) {
-        const { default: component, config, handler } =
+        const { default: component, config } =
           (module as UnknownPageModule);
+        let { handler } =
+          (module as UnknownPageModule);
+        if (component && handler === undefined) {
+          handler = ({ render }) => render!();
+        }
+
         notFound = {
           route: pathToRoute(baseRoute),
           url,
@@ -144,8 +150,14 @@ export class ServerContext {
         path === "/_500.tsx" || path === "/_500.ts" ||
         path === "/_500.jsx" || path === "/_500.js"
       ) {
-        const { default: component, config, handler } =
+        const { default: component, config } =
           (module as ErrorPageModule);
+        let { handler } =
+          (module as ErrorPageModule);
+        if (component && handler === undefined) {
+          handler = ({ render }) => render!();
+        }
+
         error = {
           route: pathToRoute(baseRoute),
           url,
@@ -242,7 +254,7 @@ export class ServerContext {
       );
     }
 
-    const genRender = (page: Page) => {
+    const genRender = (page: Page, status: number) => {
       const bundlePath = `/${page.name}.js`;
       const imports = page.runtimeJS ? [bundleAssetUrl(bundlePath)] : [];
       if (this.#dev) {
@@ -318,13 +330,13 @@ export class ServerContext {
               controller.close();
             },
           });
-          return new Response(bodyStream, { status: 200, headers });
+          return new Response(bodyStream, { status, headers });
         };
       };
     };
 
     for (const page of this.#pages) {
-      const createRender = genRender(page);
+      const createRender = genRender(page, 200);
       if (typeof page.handler === "function") {
         routes[page.route] = (req, match) =>
           (page.handler as Handler)({
@@ -340,7 +352,7 @@ export class ServerContext {
       }
     }
 
-    const unknownHandlerRender = genRender(this.#notFound);
+    const unknownHandlerRender = genRender(this.#notFound, 404);
     const unknownHandler = (req: Request) =>
       (this.#notFound.handler as Handler)({
         req,
@@ -348,7 +360,7 @@ export class ServerContext {
         render: unknownHandlerRender(req, {}),
       });
 
-    const errorHandlerRender = genRender(this.#error);
+    const errorHandlerRender = genRender(this.#error, 500);
     const errorHandler = (req: Request, error: unknown) =>
       (this.#notFound.handler as Handler)({
         req,
