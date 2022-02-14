@@ -160,3 +160,11 @@ Deno.test("redirect /pages/fresh/ to /pages/fresh", async () => {
     "https://fresh.deno.dev/pages/fresh",
   );
 });
+
+Deno.test("/foo/:path*", async () => {
+  const resp = await router(new Request("https://fresh.deno.dev/foo/bar/baz"));
+  assert(resp);
+  assertEquals(resp.status, 200);
+  const body = await resp.text();
+  assert(body.includes("bar/baz"));
+});

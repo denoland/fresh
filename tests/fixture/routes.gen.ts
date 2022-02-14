@@ -8,9 +8,10 @@ import * as $2 from "./pages/intercept_args.tsx";
 import * as $3 from "./pages/props/[id].tsx";
 import * as $4 from "./pages/_middleware.ts";
 import * as $5 from "./pages/books/[id].tsx";
-import * as $6 from "./pages/api/get_only.ts";
-import * as $7 from "./pages/intercept.tsx";
-import * as $8 from "./pages/[name].tsx";
+import * as $6 from "./pages/wildcard.tsx";
+import * as $7 from "./pages/api/get_only.ts";
+import * as $8 from "./pages/intercept.tsx";
+import * as $9 from "./pages/[name].tsx";
 
 const routes = {
   pages: {
@@ -20,9 +21,10 @@ const routes = {
     "./pages/props/[id].tsx": $3,
     "./pages/_middleware.ts": $4,
     "./pages/books/[id].tsx": $5,
-    "./pages/api/get_only.ts": $6,
-    "./pages/intercept.tsx": $7,
-    "./pages/[name].tsx": $8,
+    "./pages/wildcard.tsx": $6,
+    "./pages/api/get_only.ts": $7,
+    "./pages/intercept.tsx": $8,
+    "./pages/[name].tsx": $9,
   },
   baseUrl: import.meta.url,
 };
