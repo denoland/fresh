@@ -5,24 +5,26 @@
 import * as $0 from "./pages/index.tsx";
 import * as $1 from "./pages/static.tsx";
 import * as $2 from "./pages/intercept_args.tsx";
-import * as $3 from "./pages/props/[id].tsx";
-import * as $4 from "./pages/_middleware.ts";
-import * as $5 from "./pages/books/[id].tsx";
-import * as $6 from "./pages/api/get_only.ts";
-import * as $7 from "./pages/intercept.tsx";
-import * as $8 from "./pages/[name].tsx";
+import * as $3 from "./pages/_render.ts";
+import * as $4 from "./pages/props/[id].tsx";
+import * as $5 from "./pages/_middleware.ts";
+import * as $6 from "./pages/books/[id].tsx";
+import * as $7 from "./pages/api/get_only.ts";
+import * as $8 from "./pages/intercept.tsx";
+import * as $9 from "./pages/[name].tsx";
 
 const routes = {
   pages: {
     "./pages/index.tsx": $0,
     "./pages/static.tsx": $1,
     "./pages/intercept_args.tsx": $2,
-    "./pages/props/[id].tsx": $3,
-    "./pages/_middleware.ts": $4,
-    "./pages/books/[id].tsx": $5,
-    "./pages/api/get_only.ts": $6,
-    "./pages/intercept.tsx": $7,
-    "./pages/[name].tsx": $8,
+    "./pages/_render.ts": $3,
+    "./pages/props/[id].tsx": $4,
+    "./pages/_middleware.ts": $5,
+    "./pages/books/[id].tsx": $6,
+    "./pages/api/get_only.ts": $7,
+    "./pages/intercept.tsx": $8,
+    "./pages/[name].tsx": $9,
   },
   baseUrl: import.meta.url,
 };
