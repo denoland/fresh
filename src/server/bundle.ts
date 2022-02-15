@@ -152,12 +152,12 @@ addEventListener("DOMContentLoaded", () => {
 
       // exclude code located in server_lib from the bundle
       build.onLoad(
-        { filter: /.*\/server_lib*/ }, 
+        { filter: /.*\/server_lib*/ },
         function onLoad(): esbuildTypes.OnLoadResult | null | undefined {
-          const contents = `export const fetcher = () => {}`
+          const contents = `export const fetcher = () => {}`;
           return { contents, loader: "ts" };
         },
-      )
-    },  
+      );
+    },
   };
 }

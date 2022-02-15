@@ -26,34 +26,33 @@ Deno.test("/ page prerender", async () => {
     `"data":[["home","Hello!"],["home2","called db with secret"]]`,
   );
 
-
   /**
    * test that the code located under server_lib
    * is not included in the bundle
    */
-  
+
   // capture the address of the js script
-  const jsPath = body.match(/script src=\"(\/_frsh\/js\/.*?)\"/)?.[1]
-  assert(jsPath)
+  const jsPath = body.match(/script src=\"(\/_frsh\/js\/.*?)\"/)?.[1];
+  assert(jsPath);
 
   // retrieve the bundle
   const respJs = await router(
     new Request(`https://fresh.deno.dev${jsPath}`, {
       method: "GET",
-      headers: { "accept": "*/*" }
+      headers: { "accept": "*/*" },
     }),
   );
 
-  const respJsBody = await respJs.text()
-  assert(respJsBody.includes('public_key'))
-  assert(!respJsBody.includes('super_secret_key'))
+  const respJsBody = await respJs.text();
+  assert(respJsBody.includes("public_key"));
+  assert(!respJsBody.includes("super_secret_key"));
 
   // somehow some resources are left open
   // not sure which one
   // forcely closing them
-  for ( const [key, value] of Object.entries(Deno.resources())){
-    if (value.includes('child')) {
-      Deno.close(+key)
+  for (const [key, value] of Object.entries(Deno.resources())) {
+    if (value.includes("child")) {
+      Deno.close(+key);
     }
   }
 });
