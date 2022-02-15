@@ -26,7 +26,7 @@ export interface RenderOptions {
   error?: unknown;
 }
 
-export type RenderFn = () => void;
+export type RenderFn = () => string;
 
 export class RenderContext {
   #id: string;
@@ -178,10 +178,11 @@ export async function* render(
     function render() {
       try {
         body = renderToString(vnode);
+        return body;
       } catch (e) {
         if (e && e.then) {
           promise = e;
-          return;
+          return "";
         }
         throw e;
       }
@@ -318,10 +319,11 @@ export async function suspenseRender(
     function render() {
       try {
         body = renderToString(vnode);
+        return body;
       } catch (e) {
         if (e && e.then) {
           promise = e;
-          return;
+          return "";
         }
         throw e;
       }
