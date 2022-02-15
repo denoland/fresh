@@ -3,8 +3,12 @@
 import { renderToString } from "./deps.ts";
 import { ComponentChildren, h } from "../runtime/deps.ts";
 import { DATA_CONTEXT } from "../runtime/hooks.ts";
-import { AppModule, Page, Renderer } from "./types.ts";
-import { PageProps } from "../runtime/types.ts";
+import { AppModule, ErrorPage, Page, Renderer, UnknownPage } from "./types.ts";
+import {
+  ErrorPageProps,
+  PageProps,
+  UnknownPageProps,
+} from "../runtime/types.ts";
 import { SUSPENSE_CONTEXT } from "../runtime/suspense.ts";
 import { HEAD_CONTEXT } from "../runtime/head.ts";
 import { REFRESH_JS_URL } from "./constants.ts";
@@ -12,7 +16,7 @@ import { CSP_CONTEXT, nonce, NONE, UNSAFE_INLINE } from "../runtime/csp.ts";
 import { ContentSecurityPolicy } from "../runtime/csp.ts";
 
 export interface RenderOptions {
-  page: Page;
+  page: Page | UnknownPage | ErrorPage;
   app: AppModule;
   imports: string[];
   preloads: string[];
@@ -20,9 +24,10 @@ export interface RenderOptions {
   params: Record<string, string | string[]>;
   renderer: Renderer;
   renderData?: Record<string, unknown>;
+  error?: unknown;
 }
 
-export type RenderFn = () => void;
+export type RenderFn = () => string;
 
 export class RenderContext {
   #id: string;
@@ -116,12 +121,15 @@ function defaultCsp() {
 export async function* render(
   opts: RenderOptions,
 ): AsyncIterable<string | [string, ContentSecurityPolicy | undefined]> {
-  const props = {
+  const props: Record<string, unknown> = {
     params: opts.params,
     url: opts.url,
     route: opts.page.route,
     renderData: opts.renderData,
   };
+  if (opts.error) {
+    props.error = opts.error;
+  }
 
   const csp: ContentSecurityPolicy | undefined = opts.page.csp
     ? defaultCsp()
@@ -173,10 +181,11 @@ export async function* render(
     function render() {
       try {
         body = renderToString(vnode);
+        return body;
       } catch (e) {
         if (e && e.then) {
           promise = e;
-          return;
+          return "";
         }
         throw e;
       }
@@ -196,7 +205,7 @@ export async function* render(
   const bodyHtml = await renderWithRenderer();
 
   let templateProps: {
-    props: PageProps;
+    props: PageProps | UnknownPageProps | ErrorPageProps;
     data?: [string, unknown][];
   } | undefined = { props, data: [...dataCache.entries()] };
   if (templateProps.data!.length === 0) {
@@ -313,10 +322,11 @@ export async function suspenseRender(
     function render() {
       try {
         body = renderToString(vnode);
+        return body;
       } catch (e) {
         if (e && e.then) {
           promise = e;
-          return;
+          return "";
         }
         throw e;
       }

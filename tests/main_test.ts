@@ -39,20 +39,20 @@ Deno.test("/props/123 page prerender", async () => {
 });
 
 Deno.test("/[name] page prerender", async () => {
-  const resp = await router(new Request("https://fresh.deno.dev/foo"));
+  const resp = await router(new Request("https://fresh.deno.dev/bar"));
   assert(resp);
   assertEquals(resp.status, 200);
   assertEquals(resp.headers.get("content-type"), "text/html; charset=utf-8");
   const body = await resp.text();
   assertStringIncludes(body, "[name].js");
-  assertStringIncludes(body, "<div>Hello foo</div>");
+  assertStringIncludes(body, "<div>Hello bar</div>");
   assertStringIncludes(
     body,
     `<script id="__FRSH_PROPS" type="application/json">`,
   );
   assertStringIncludes(
     body,
-    `"params":{"name":"foo"}`,
+    `"params":{"name":"bar"}`,
   );
 });
 
@@ -123,6 +123,8 @@ Deno.test("/api/xyz not found", async () => {
   const resp = await router(new Request("https://fresh.deno.dev/api/xyz"));
   assert(resp);
   assertEquals(resp.status, 404);
+  const body = await resp.text();
+  assert(body.includes("404 not found: /api/xyz"));
 });
 
 Deno.test("/static page prerender", async () => {
@@ -159,4 +161,20 @@ Deno.test("redirect /pages/fresh/ to /pages/fresh", async () => {
     resp.headers.get("location"),
     "https://fresh.deno.dev/pages/fresh",
   );
+});
+
+Deno.test("/failure", async () => {
+  const resp = await router(new Request("https://fresh.deno.dev/failure"));
+  assert(resp);
+  assertEquals(resp.status, 500);
+  const body = await resp.text();
+  assert(body.includes("500 internal error: it errored!"));
+});
+
+Deno.test("/foo/:path*", async () => {
+  const resp = await router(new Request("https://fresh.deno.dev/foo/bar/baz"));
+  assert(resp);
+  assertEquals(resp.status, 200);
+  const body = await resp.text();
+  assert(body.includes("bar/baz"));
 });

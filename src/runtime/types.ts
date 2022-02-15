@@ -1,6 +1,8 @@
 import { ComponentType } from "./deps.ts";
 
-export interface PageProps<T extends Record<string, unknown>> {
+export interface PageProps<
+  T extends Record<string, unknown> = Record<never, never>,
+> {
   /** The URL of the request that resulted in this page being rendered. */
   url: URL;
 
@@ -14,9 +16,9 @@ export interface PageProps<T extends Record<string, unknown>> {
    * For the `/foo/:bar` route with url `/foo/123`, `params` would be
    * `{ bar: '123' }`. For a route with no matchers, `params` would be `{}`. For
    * a wildcard route, like `/foo/:path*` with url `/foo/bar/baz`, `params` would
-   * be `{ path: [ 'bar', 'baz' ] }`.
+   * be `{ path: 'bar/baz' }`.
    */
-  params: Record<string, string | string[]>;
+  params: Record<string, string>;
 
   /**
    * Additional data passed into `HandlerContext.render`. Not present by
@@ -27,6 +29,27 @@ export interface PageProps<T extends Record<string, unknown>> {
 
 export interface AppProps {
   Component: ComponentType<Record<never, never>>;
+}
+
+export interface UnknownPageProps {
+  /** The URL of the request that resulted in this page being rendered. */
+  url: URL;
+
+  /** The route matcher (e.g. /blog/:id) that the request matched for this page
+   * to be rendered. */
+  route: string;
+}
+
+export interface ErrorPageProps {
+  /** The URL of the request that resulted in this page being rendered. */
+  url: URL;
+
+  /** The route matcher (e.g. /blog/:id) that the request matched for this page
+   * to be rendered. */
+  route: string;
+
+  /** The error that caused the error page to be loaded. */
+  error: unknown;
 }
 
 export interface PageConfig {
