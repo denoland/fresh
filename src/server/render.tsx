@@ -196,7 +196,7 @@ export async function* render(
     props: PageProps;
     data?: [string, unknown][];
   } | undefined = { props, data: [...dataCache.entries()] };
-  if (templateProps.data!.length === 0) {
+  if (templateProps?.data!.length === 0) {
     delete templateProps.data;
   }
 
