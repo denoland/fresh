@@ -12,6 +12,8 @@ import { ALIVE_URL, INTERNAL_PREFIX, REFRESH_JS_URL } from "./constants.ts";
 import { JS_PREFIX } from "./constants.ts";
 import { BUILD_ID } from "./constants.ts";
 import {
+  ErrorPage,
+  ErrorPageModule,
   Handler,
   Middleware,
   MiddlewareModule,
@@ -19,6 +21,8 @@ import {
   PageModule,
   Renderer,
   RendererModule,
+  UnknownPage,
+  UnknownPageModule,
 } from "./types.ts";
 import { render as internalRender } from "./render.tsx";
 import {
@@ -45,17 +49,23 @@ export class ServerContext {
   #bundler: Bundler;
   #renderer: Renderer;
   #middleware: Middleware;
+  #notFound: UnknownPage;
+  #error: ErrorPage;
 
   constructor(
     pages: Page[],
     staticFiles: StaticFile[],
     renderer: Renderer,
     middleware: Middleware,
+    notFound: UnknownPage,
+    error: ErrorPage,
   ) {
     this.#pages = pages;
     this.#staticFiles = staticFiles;
     this.#renderer = renderer;
     this.#middleware = middleware;
+    this.#notFound = notFound;
+    this.#error = error;
     this.#bundler = new Bundler(pages);
     this.#dev = typeof Deno.env.get("DENO_DEPLOYMENT_ID") !== "string"; // Env var is only set in prod (on Deploy).
   }
@@ -71,6 +81,8 @@ export class ServerContext {
     const pages: Page[] = [];
     let renderer: Renderer = DEFAULT_RENDERER;
     let middleware: Middleware = DEFAULT_MIDDLEWARE;
+    let notFound: UnknownPage = DEFAULT_NOT_FOUND;
+    let error: ErrorPage = DEFAULT_ERROR;
     for (const [self, module] of Object.entries(routes.pages)) {
       const url = new URL(self, baseUrl).href;
       if (!url.startsWith(baseUrl)) {
@@ -113,6 +125,45 @@ export class ServerContext {
         path === "/_middleware.jsx" || path === "/_middleware.js"
       ) {
         middleware = module as MiddlewareModule;
+      } else if (
+        path === "/_404.tsx" || path === "/_404.ts" ||
+        path === "/_404.jsx" || path === "/_404.js"
+      ) {
+        const { default: component, config } = (module as UnknownPageModule);
+        let { handler } = (module as UnknownPageModule);
+        if (component && handler === undefined) {
+          handler = ({ render }) => render!();
+        }
+
+        notFound = {
+          route: pathToRoute(baseRoute),
+          url,
+          name,
+          component,
+          handler: handler ?? ((ctx) => router.defaultOtherHandler(ctx.req)),
+          runtimeJS: Boolean(config?.runtimeJS ?? false),
+          csp: Boolean(config?.csp ?? false),
+        };
+      } else if (
+        path === "/_500.tsx" || path === "/_500.ts" ||
+        path === "/_500.jsx" || path === "/_500.js"
+      ) {
+        const { default: component, config } = (module as ErrorPageModule);
+        let { handler } = (module as ErrorPageModule);
+        if (component && handler === undefined) {
+          handler = ({ render }) => render!();
+        }
+
+        error = {
+          route: pathToRoute(baseRoute),
+          url,
+          name,
+          component,
+          handler: handler ??
+            ((ctx) => router.defaultErrorHandler(ctx.req, ctx.error)),
+          runtimeJS: Boolean(config?.runtimeJS ?? false),
+          csp: Boolean(config?.csp ?? false),
+        };
       }
     }
     sortRoutes(pages);
@@ -151,7 +202,14 @@ export class ServerContext {
         throw err;
       }
     }
-    return new ServerContext(pages, staticFiles, renderer, middleware);
+    return new ServerContext(
+      pages,
+      staticFiles,
+      renderer,
+      middleware,
+      notFound,
+      error,
+    );
   }
 
   /**
@@ -159,7 +217,7 @@ export class ServerContext {
    * by fresh, including static files.
    */
   handler(): router.RequestHandler {
-    const inner = router.router(this.#routes());
+    const inner = router.router(...this.#routes());
     const middleware = this.#middleware;
     return function handler(req: Request) {
       // Redirect requests that end with a trailing slash
@@ -179,7 +237,7 @@ export class ServerContext {
    * This function returns all routes required by fresh as an extended
    * path-to-regex, to handler mapping.
    */
-  #routes(): router.Routes {
+  #routes(): [router.Routes, router.RequestHandler, router.ErrorHandler] {
     const routes: router.Routes = {};
 
     // Add the static file routes.
@@ -192,18 +250,19 @@ export class ServerContext {
       );
     }
 
-    for (const page of this.#pages) {
+    const genRender = (page: Page, status: number) => {
       const bundlePath = `/${page.name}.js`;
       const imports = page.runtimeJS ? [bundleAssetUrl(bundlePath)] : [];
       if (this.#dev) {
         imports.push(REFRESH_JS_URL);
       }
-      const createRender = (
+      return (
         req: Request,
         params: Record<string, string | string[]>,
+        error?: unknown,
       ) => {
         if (page.component === undefined) return undefined;
-        const render = async (renderData?: Record<string, unknown>) => {
+        return async (renderData?: Record<string, unknown>) => {
           const preloads = page.runtimeJS
             ? this.#bundler.getPreloads(bundlePath).map(bundleAssetUrl)
             : [];
@@ -215,7 +274,9 @@ export class ServerContext {
             url: new URL(req.url),
             params,
             renderData,
+            error,
           });
+
           const headers: Record<string, string> = {
             "content-type": "text/html; charset=utf-8",
           };
@@ -242,7 +303,7 @@ export class ServerContext {
             }
           } catch (err) {
             console.error("Error rendering page", err);
-            return new Response("500 Internal Server Error", {
+            throw new Response("500 Internal Server Error", {
               status: 500,
               headers: {
                 "content-type": "text/plain",
@@ -265,11 +326,13 @@ export class ServerContext {
               controller.close();
             },
           });
-          return new Response(bodyStream, { status: 200, headers });
+          return new Response(bodyStream, { status, headers });
         };
-        return render;
       };
+    };
 
+    for (const page of this.#pages) {
+      const createRender = genRender(page, 200);
       if (typeof page.handler === "function") {
         routes[page.route] = (req, match) =>
           (page.handler as Handler)({
@@ -284,6 +347,22 @@ export class ServerContext {
         }
       }
     }
+
+    const unknownHandlerRender = genRender(this.#notFound, 404);
+    const unknownHandler = (req: Request) =>
+      (this.#notFound.handler as Handler)({
+        req,
+        match: {},
+        render: unknownHandlerRender(req, {}),
+      });
+
+    const errorHandlerRender = genRender(this.#error, 500);
+    const errorHandler = (req: Request, error: unknown) =>
+      (this.#notFound.handler as Handler)({
+        req,
+        match: {},
+        render: errorHandlerRender(req, {}, error),
+      });
 
     routes[`${INTERNAL_PREFIX}${JS_PREFIX}/${BUILD_ID}/:path*`] = this
       .#bundleAssetRoute();
@@ -321,7 +400,7 @@ export class ServerContext {
       };
     }
 
-    return routes;
+    return [routes, unknownHandler, errorHandler];
   }
 
   #staticFileHandler(
@@ -384,6 +463,24 @@ const DEFAULT_RENDERER: Renderer = {
 
 const DEFAULT_MIDDLEWARE: Middleware = {
   handler: (_, handle) => handle(),
+};
+
+const DEFAULT_NOT_FOUND: UnknownPage = {
+  route: "",
+  url: "",
+  name: "_404",
+  handler: (ctx) => router.defaultOtherHandler(ctx.req),
+  runtimeJS: false,
+  csp: false,
+};
+
+const DEFAULT_ERROR: ErrorPage = {
+  route: "",
+  url: "",
+  name: "_500",
+  handler: (ctx) => router.defaultErrorHandler(ctx.req, ctx.error),
+  runtimeJS: false,
+  csp: false,
 };
 
 /**
