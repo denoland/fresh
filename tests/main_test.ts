@@ -36,6 +36,7 @@ Deno.test("/ page prerender", async () => {
   const jsPath = body.match(/script src=\"(\/_frsh\/js\/.*?)\"/)?.[1]
   assert(jsPath)
 
+  // retrieve the bundle
   const respJs = await router(
     new Request(`https://fresh.deno.dev${jsPath}`, {
       method: "GET",
@@ -48,10 +49,13 @@ Deno.test("/ page prerender", async () => {
   assert(!respJsBody.includes('super_secret_key'))
 
   // somehow some resources are left open
-  // didn't manage to exactly find them
-  Deno.close(6)
-  Deno.close(7)
-  Deno.close(8)
+  // not sure which one
+  // forcely closing them
+  for ( const [key, value] of Object.entries(Deno.resources())){
+    if (value.includes('child')) {
+      Deno.close(+key)
+    }
+  }
 });
 
 Deno.test("/props/123 page prerender", async () => {

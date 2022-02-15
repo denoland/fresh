@@ -23,7 +23,9 @@ Here is a usage example of a `useData` hook where the fetcher fetches the URL
 provided as the key as JSON:
 
 ```tsx
+// ./pages/index.tsx
 import { h, PageProps, useData } from "../deps.ts";
+import { fetcher } from "../server_lib/db.ts"
 
 export default function Page(_props: PageProps) {
   const info = useData("https://cdn.deno.land/std/meta/versions.json", fetcher);
@@ -41,13 +43,16 @@ export default function Page(_props: PageProps) {
     </p>
   );
 }
+```
 
+```tsx
+// ./server_lib/db.ts 
 interface ModuleInfo {
   latest: string;
   versions: string[];
 }
 
-async function fetcher(url: string): Promise<ModuleInfo | null> {
+export async function fetcher(url: string): Promise<ModuleInfo | null> {
   const resp = await fetch(url);
   if (resp.status === 200) return resp.json();
   return null;
@@ -57,3 +62,7 @@ async function fetcher(url: string): Promise<ModuleInfo | null> {
 The `useData` can not generate data client side. Calling `useData` on the client
 with a key that no data was generated for on the server will result in `useData`
 throwing an error.
+
+For reducing client bundle size and security, it is recommended to exclude the `fetcher` function code from the client bundle. To do that, the `fetcher` function must be:
+- Imported from inside a folder called `server_lib`
+- Imported as a name import called `fetcher`
