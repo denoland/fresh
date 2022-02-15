@@ -25,6 +25,27 @@ export interface PageProps<
   renderData?: T;
 }
 
+export interface UnknownPageProps {
+  /** The URL of the request that resulted in this page being rendered. */
+  url: URL;
+
+  /** The route matcher (e.g. /blog/:id) that the request matched for this page
+   * to be rendered. */
+  route: string;
+}
+
+export interface ErrorPageProps {
+  /** The URL of the request that resulted in this page being rendered. */
+  url: URL;
+
+  /** The route matcher (e.g. /blog/:id) that the request matched for this page
+   * to be rendered. */
+  route: string;
+
+  /** The error that caused the error page to be loaded. */
+  error: unknown;
+}
+
 export interface PageConfig {
   /**
    * By default, runtime JS is disabled. This means that interactivity on the

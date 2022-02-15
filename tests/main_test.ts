@@ -123,6 +123,8 @@ Deno.test("/api/xyz not found", async () => {
   const resp = await router(new Request("https://fresh.deno.dev/api/xyz"));
   assert(resp);
   assertEquals(resp.status, 404);
+  const body = await resp.text();
+  assert(body.includes("404 not found: /api/xyz"));
 });
 
 Deno.test("/static page prerender", async () => {
@@ -159,4 +161,12 @@ Deno.test("redirect /pages/fresh/ to /pages/fresh", async () => {
     resp.headers.get("location"),
     "https://fresh.deno.dev/pages/fresh",
   );
+});
+
+Deno.test("/failure", async () => {
+  const resp = await router(new Request("https://fresh.deno.dev/failure"));
+  assert(resp);
+  assertEquals(resp.status, 500);
+  const body = await resp.text();
+  assert(body.includes("500 internal error: it errored!"));
 });
