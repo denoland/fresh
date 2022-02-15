@@ -14,9 +14,9 @@ export interface PageProps<
    * For the `/foo/:bar` route with url `/foo/123`, `params` would be
    * `{ bar: '123' }`. For a route with no matchers, `params` would be `{}`. For
    * a wildcard route, like `/foo/:path*` with url `/foo/bar/baz`, `params` would
-   * be `{ path: [ 'bar', 'baz' ] }`.
+   * be `{ path: 'bar/baz' }`.
    */
-  params: Record<string, string | string[]>;
+  params: Record<string, string>;
 
   /**
    * Additional data passed into `HandlerContext.render`. Not present by
