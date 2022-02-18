@@ -12,6 +12,7 @@ import { ALIVE_URL, INTERNAL_PREFIX, REFRESH_JS_URL } from "./constants.ts";
 import { JS_PREFIX } from "./constants.ts";
 import { BUILD_ID } from "./constants.ts";
 import {
+  AppModule,
   ErrorPage,
   ErrorPageModule,
   Handler,
@@ -30,6 +31,7 @@ import {
   ContentSecurityPolicyDirectives,
   SELF,
 } from "../runtime/csp.ts";
+import { h } from "../runtime/deps.ts";
 
 interface StaticFile {
   /** The URL to the static file on disk. */
@@ -49,6 +51,7 @@ export class ServerContext {
   #bundler: Bundler;
   #renderer: Renderer;
   #middleware: Middleware;
+  #app: AppModule;
   #notFound: UnknownPage;
   #error: ErrorPage;
 
@@ -57,6 +60,7 @@ export class ServerContext {
     staticFiles: StaticFile[],
     renderer: Renderer,
     middleware: Middleware,
+    app: AppModule,
     notFound: UnknownPage,
     error: ErrorPage,
   ) {
@@ -64,6 +68,7 @@ export class ServerContext {
     this.#staticFiles = staticFiles;
     this.#renderer = renderer;
     this.#middleware = middleware;
+    this.#app = app;
     this.#notFound = notFound;
     this.#error = error;
     this.#bundler = new Bundler(pages);
@@ -81,6 +86,7 @@ export class ServerContext {
     const pages: Page[] = [];
     let renderer: Renderer = DEFAULT_RENDERER;
     let middleware: Middleware = DEFAULT_MIDDLEWARE;
+    let app: AppModule = DEFAULT_APP;
     let notFound: UnknownPage = DEFAULT_NOT_FOUND;
     let error: ErrorPage = DEFAULT_ERROR;
     for (const [self, module] of Object.entries(routes.pages)) {
@@ -125,6 +131,11 @@ export class ServerContext {
         path === "/_middleware.jsx" || path === "/_middleware.js"
       ) {
         middleware = module as MiddlewareModule;
+      } else if (
+        path === "/_app.tsx" || path === "/_app.ts" ||
+        path === "/_app.jsx" || path === "/_app.js"
+      ) {
+        app = module as AppModule;
       } else if (
         path === "/_404.tsx" || path === "/_404.ts" ||
         path === "/_404.jsx" || path === "/_404.js"
@@ -207,6 +218,7 @@ export class ServerContext {
       staticFiles,
       renderer,
       middleware,
+      app,
       notFound,
       error,
     );
@@ -268,6 +280,7 @@ export class ServerContext {
             : [];
           const body = internalRender({
             page,
+            app: this.#app,
             imports,
             preloads,
             renderer: this.#renderer,
@@ -463,6 +476,10 @@ const DEFAULT_RENDERER: Renderer = {
 
 const DEFAULT_MIDDLEWARE: Middleware = {
   handler: (_, handle) => handle(),
+};
+
+const DEFAULT_APP: AppModule = {
+  default: ({ Component }) => h(Component, {}),
 };
 
 const DEFAULT_NOT_FOUND: UnknownPage = {

@@ -16,6 +16,7 @@ import * as $10 from "./pages/_500.tsx";
 import * as $11 from "./pages/intercept.tsx";
 import * as $12 from "./pages/_404.tsx";
 import * as $13 from "./pages/[name].tsx";
+import * as $14 from "./pages/_app.tsx";
 
 const routes = {
   pages: {
@@ -33,6 +34,7 @@ const routes = {
     "./pages/intercept.tsx": $11,
     "./pages/_404.tsx": $12,
     "./pages/[name].tsx": $13,
+    "./pages/_app.tsx": $14,
   },
   baseUrl: import.meta.url,
 };
