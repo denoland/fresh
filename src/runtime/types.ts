@@ -1,7 +1,7 @@
 import { ComponentType } from "./deps.ts";
 
 export interface PageProps<
-  T extends Record<string, unknown> = Record<never, never>,
+  T extends Record<string, unknown> = Record<string, unknown>,
 > {
   /** The URL of the request that resulted in this page being rendered. */
   url: URL;

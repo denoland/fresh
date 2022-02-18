@@ -147,7 +147,9 @@ export async function* render(
         children: h(SUSPENSE_CONTEXT.Provider, {
           value: suspenseQueue,
           children: h(opts.app.default, {
-            Component: () => h(opts.page.component!, props),
+            Component() {
+              return h(opts.page.component!, props);
+            },
           }),
         }),
       }),

@@ -31,6 +31,7 @@ import {
   ContentSecurityPolicyDirectives,
   SELF,
 } from "../runtime/csp.ts";
+import { h } from "../runtime/deps.ts";
 
 interface StaticFile {
   /** The URL to the static file on disk. */
@@ -478,7 +479,7 @@ const DEFAULT_MIDDLEWARE: Middleware = {
 };
 
 const DEFAULT_APP: AppModule = {
-  default: ({ Component }) => Component,
+  default: ({ Component }) => h(Component, {}),
 };
 
 const DEFAULT_NOT_FOUND: UnknownPage = {
