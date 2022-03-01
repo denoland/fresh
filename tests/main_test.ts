@@ -187,7 +187,7 @@ Deno.test("static file", async () => {
   const resp = await router(new Request("https://fresh.deno.dev/foo.txt"));
   assertEquals(resp.status, 200);
   const body = await resp.text();
-  assertEquals(body, "bar\n");
+  assert(body.startsWith("bar"));
   assert(resp.headers.get("etag"));
 
   const resp2 = await router(

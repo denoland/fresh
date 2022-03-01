@@ -209,7 +209,6 @@ export class ServerContext {
             .map((byte) => byte.toString(16).padStart(2, "0"))
             .join("")
         );
-        console.log(etag);
         const staticFile: StaticFile = {
           localUrl,
           path,
