@@ -178,3 +178,20 @@ Deno.test("/foo/:path*", async () => {
   const body = await resp.text();
   assert(body.includes("bar/baz"));
 });
+
+Deno.test("static file", async () => {
+  const resp = await router(new Request("https://fresh.deno.dev/foo.txt"));
+  assertEquals(resp.status, 200);
+  const body = await resp.text();
+  assertEquals(body, "bar\n");
+  assert(resp.headers.get("etag"));
+
+  const resp2 = await router(
+    new Request("https://fresh.deno.dev/foo.txt", {
+      headers: {
+        "if-none-match": resp.headers.get("etag")!,
+      },
+    }),
+  );
+  assertEquals(resp2.status, 304);
+});
