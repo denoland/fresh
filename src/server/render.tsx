@@ -3,7 +3,7 @@
 import { renderToString } from "./deps.ts";
 import { ComponentChildren, h } from "../runtime/deps.ts";
 import { DATA_CONTEXT } from "../runtime/hooks.ts";
-import { ErrorPage, Page, Renderer, UnknownPage } from "./types.ts";
+import { AppModule, ErrorPage, Page, Renderer, UnknownPage } from "./types.ts";
 import {
   ErrorPageProps,
   PageProps,
@@ -17,6 +17,7 @@ import { ContentSecurityPolicy } from "../runtime/csp.ts";
 
 export interface RenderOptions {
   page: Page | UnknownPage | ErrorPage;
+  app: AppModule;
   imports: string[];
   preloads: string[];
   url: URL;
@@ -145,7 +146,11 @@ export async function* render(
         value: dataCache,
         children: h(SUSPENSE_CONTEXT.Provider, {
           value: suspenseQueue,
-          children: h(opts.page.component!, props),
+          children: h(opts.app.default, {
+            Component() {
+              return h(opts.page.component!, props);
+            },
+          }),
         }),
       }),
     }),

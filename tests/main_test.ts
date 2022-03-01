@@ -24,6 +24,10 @@ Deno.test("/ page prerender", async () => {
     body,
     `"data":[["home","Hello!"]]`,
   );
+  assertStringIncludes(
+    body,
+    `<meta name="description" content="Hello world!" />`,
+  );
 });
 
 Deno.test("/props/123 page prerender", async () => {
