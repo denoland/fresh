@@ -39,32 +39,62 @@ export async function manifestSubcommand(rawArgs: Record<string, any>) {
 export async function manifest(directory: string) {
   directory = resolve(directory);
   const routes = [];
-  const routesDir = join(directory, "./routes");
-  const routesUrl = toFileUrl(routesDir);
-  const routesFolder = walk(routesDir, {
-    includeDirs: false,
-    includeFiles: true,
-    exts: ["tsx", "jsx", "ts", "js"],
-  });
-  for await (const entry of routesFolder) {
-    if (entry.isFile) {
-      const file = toFileUrl(entry.path).href.substring(routesUrl.href.length);
-      routes.push(file);
+  try {
+    const routesDir = join(directory, "./routes");
+    const routesUrl = toFileUrl(routesDir);
+    // TODO(lucacasonato): remove the extranious Deno.readDir when
+    // https://github.com/denoland/deno_std/issues/1310 is fixed.
+    for await (const _ of Deno.readDir(routesDir)) {
+      // do nothing
+    }
+    const routesFolder = walk(routesDir, {
+      includeDirs: false,
+      includeFiles: true,
+      exts: ["tsx", "jsx", "ts", "js"],
+    });
+    for await (const entry of routesFolder) {
+      if (entry.isFile) {
+        const file = toFileUrl(entry.path).href.substring(
+          routesUrl.href.length,
+        );
+        routes.push(file);
+      }
+    }
+  } catch (err) {
+    if (err instanceof Deno.errors.NotFound) {
+      // Do nothing.
+    } else {
+      throw err;
     }
   }
 
   const islands = [];
-  const islandsDir = join(directory, "./islands");
-  const islandsUrl = toFileUrl(islandsDir);
-  const islandsFolder = walk(islandsDir, {
-    includeDirs: false,
-    includeFiles: true,
-    exts: ["tsx", "jsx", "ts", "js"],
-  });
-  for await (const entry of islandsFolder) {
-    if (entry.isFile) {
-      const file = toFileUrl(entry.path).href.substring(islandsUrl.href.length);
-      islands.push(file);
+  try {
+    const islandsDir = join(directory, "./islands");
+    const islandsUrl = toFileUrl(islandsDir);
+    // TODO(lucacasonato): remove the extranious Deno.readDir when
+    // https://github.com/denoland/deno_std/issues/1310 is fixed.
+    for await (const _ of Deno.readDir(islandsDir)) {
+      // do nothing
+    }
+    const islandsFolder = walk(islandsDir, {
+      includeDirs: false,
+      includeFiles: true,
+      exts: ["tsx", "jsx", "ts", "js"],
+    });
+    for await (const entry of islandsFolder) {
+      if (entry.isFile) {
+        const file = toFileUrl(entry.path).href.substring(
+          islandsUrl.href.length,
+        );
+        islands.push(file);
+      }
+    }
+  } catch (err) {
+    if (err instanceof Deno.errors.NotFound) {
+      // Do nothing.
+    } else {
+      throw err;
     }
   }
 

@@ -1,8 +1,7 @@
 // This module adds twind support.
 
-import { virtualSheet } from "https://esm.sh/twind/sheets";
-import { setup } from "../deps.ts";
-import { RenderContext, RenderFn } from "../server_deps.ts";
+import { setup } from "../client_deps.ts";
+import { RenderContext, RenderFn, virtualSheet } from "../server_deps.ts";
 
 const sheet = virtualSheet();
 sheet.reset();
