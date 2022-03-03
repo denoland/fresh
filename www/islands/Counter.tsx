@@ -15,13 +15,18 @@ export default function Counter(props: CounterProps) {
         `bg-gray-100 p-4 border border-gray-200 flex items-center justify-around`}
     >
       <RoundedButton
+        title="Subtract 1"
         onClick={() => setCount(count - 1)}
         disabled={!IS_BROWSER}
       >
         <IconMinus />
       </RoundedButton>
       <div class={tw`text-3xl`}>{count}</div>
-      <RoundedButton onClick={() => setCount(count + 1)} disabled={!IS_BROWSER}>
+      <RoundedButton
+        title="Add 1"
+        onClick={() => setCount(count + 1)}
+        disabled={!IS_BROWSER}
+      >
         <IconPlus />
       </RoundedButton>
     </div>
