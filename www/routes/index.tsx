@@ -149,7 +149,7 @@ function GettingStarted() {
         You can now open{" "}
         <a
           href="http://localhost:8000"
-          class={tw`text-blue-500 hover:underline`}
+          class={tw`text-blue-600 hover:underline`}
         >
           http://localhost:8000
         </a>{" "}
