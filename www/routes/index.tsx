@@ -34,9 +34,9 @@ function Hero() {
       <h1 class={title}>
         fresh
       </h1>
-      <h3 class={subtitle}>
+      <p class={subtitle}>
         The next-gen web framework.
-      </h3>
+      </p>
     </section>
   );
 }
