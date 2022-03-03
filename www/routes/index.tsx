@@ -112,11 +112,11 @@ function Intro() {
 function GettingStarted() {
   return (
     <section class={tw`max-w-screen-sm mx-auto my-16 px(4 sm:6 md:8)`}>
-      <h3 id="getting-started" class={tw`text(xl gray-600) font-bold`}>
+      <h2 id="getting-started" class={tw`text(xl gray-600) font-bold`}>
         <a href="#getting-started" class={tw`hover:underline`}>
           Getting started
         </a>
-      </h3>
+      </h2>
       <p class={tw`my-4 text-gray-600`}>
         To get started, make sure you have the{" "}
         <a href="https://deno.land" class={tw`text-blue-600 hover:underline`}>
@@ -173,11 +173,11 @@ function Example() {
     <section
       class={tw`max-w-screen-sm mx-auto my-16 px(4 sm:6 md:8)`}
     >
-      <h3 id="example" class={tw`text(xl gray-600) font-bold`}>
+      <h2 id="example" class={tw`text(xl gray-600) font-bold`}>
         <a href="#example" class={tw`hover:underline`}>
           Example
         </a>
-      </h3>
+      </h2>
       <p class={tw`my-4 text-gray-600`}>
         This text is being server side rendered on the fly. It was rendered at
         {" "}
