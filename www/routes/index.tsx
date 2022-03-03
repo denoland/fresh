@@ -9,6 +9,10 @@ export default function MainPage() {
     <>
       <Head>
         <title>fresh - The next-gen web framework.</title>
+        <meta
+          name="description"
+          content="The next-gen web framework. Just in time edge rendering, island based interactivity, and no configuration TypeScript support."
+        />
       </Head>
       <Hero />
       <NavigationBar active="/" />
@@ -115,7 +119,7 @@ function GettingStarted() {
       </h3>
       <p class={tw`my-4 text-gray-600`}>
         To get started, make sure you have the{" "}
-        <a href="https://deno.land" class={tw`text-blue-500 hover:underline`}>
+        <a href="https://deno.land" class={tw`text-blue-600 hover:underline`}>
           Deno CLI
         </a>{" "}
         installed.
@@ -153,7 +157,7 @@ function GettingStarted() {
       </p>
       <p class={tw`my-4 text-gray-600`}>
         A more in-depth getting started guide is available in{" "}
-        <a href="/docs" class={tw`text-blue-500 hover:underline`}>the docs</a>.
+        <a href="/docs" class={tw`text-blue-600 hover:underline`}>the docs</a>.
       </p>
     </section>
   );
