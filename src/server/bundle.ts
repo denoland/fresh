@@ -1,5 +1,5 @@
 import { denoPlugin, esbuild, esbuildTypes, toFileUrl } from "./deps.ts";
-import { Page } from "./types.ts";
+import { Island } from "./types.ts";
 
 let esbuildInitalized: boolean | Promise<void> = false;
 async function ensureEsbuildInialized() {
@@ -20,22 +20,20 @@ async function ensureEsbuildInialized() {
 }
 
 export class Bundler {
-  #pages: Page[];
+  #islands: Island[];
   #cache: Map<string, Uint8Array> | Promise<void> | undefined = undefined;
-  #preloads = new Map<string, string[]>();
 
-  constructor(pages: Page[]) {
-    this.#pages = pages;
+  constructor(islands: Island[]) {
+    this.#islands = islands;
   }
 
   async bundle() {
     const entryPoints: Record<string, string> = {};
 
-    for (const page of this.#pages) {
-      if (page.component !== undefined && page.runtimeJS) {
-        entryPoints[page.name] = `fresh:///${page.name}`;
-      }
+    for (const island of this.#islands) {
+      entryPoints[island.id] = `fresh:///${island.id}`;
     }
+
     const absWorkingDir = Deno.cwd();
     await ensureEsbuildInialized();
     const bundle = await esbuild.build({
@@ -50,21 +48,21 @@ export class Bundler {
       absWorkingDir,
       outfile: "",
       platform: "neutral",
-      plugins: [freshPlugin(this.#pages), denoPlugin()],
+      plugins: [freshPlugin(this.#islands), denoPlugin()],
       splitting: true,
       target: ["chrome90", "firefox88", "safari13"],
       treeShaking: true,
       write: false,
     });
-    const metafileOutputs = bundle.metafile!.outputs;
+    // const metafileOutputs = bundle.metafile!.outputs;
 
-    for (const path in metafileOutputs) {
-      const meta = metafileOutputs[path];
-      const imports = meta.imports
-        .filter(({ kind }) => kind === "import-statement")
-        .map(({ path }) => `/${path}`);
-      this.#preloads.set(`/${path}`, imports);
-    }
+    // for (const path in metafileOutputs) {
+    //   const meta = metafileOutputs[path];
+    //   const imports = meta.imports
+    //     .filter(({ kind }) => kind === "import-statement")
+    //     .map(({ path }) => `/${path}`);
+    //   this.#preloads.set(`/${path}`, imports);
+    // }
 
     const cache = new Map<string, Uint8Array>();
     const absDirUrlLength = toFileUrl(absWorkingDir).href.length;
@@ -94,18 +92,18 @@ export class Bundler {
     return cache.get(path) ?? null;
   }
 
-  getPreloads(path: string): string[] {
-    return this.#preloads.get(path) ?? [];
-  }
+  // getPreloads(path: string): string[] {
+  //   return this.#preloads.get(path) ?? [];
+  // }
 }
 
-function freshPlugin(pageList: Page[]): esbuildTypes.Plugin {
+function freshPlugin(islands: Island[]): esbuildTypes.Plugin {
   const runtime = new URL("../../runtime.ts", import.meta.url);
 
-  const pageMap = new Map<string, Page>();
+  const islandMap = new Map<string, Island>();
 
-  for (const page of pageList) {
-    pageMap.set(`/${page.name}`, page);
+  for (const island of islands) {
+    islandMap.set(`/${island.id}`, island);
   }
 
   return {
@@ -127,24 +125,21 @@ function freshPlugin(pageList: Page[]): esbuildTypes.Plugin {
         ): esbuildTypes.OnLoadResult | null | undefined {
           const url = new URL(args.path);
           const path = url.pathname;
-          const page = pageMap.get(path);
-          if (!page) return null;
+          const island = islandMap.get(path);
+          if (!island) return null;
           const contents = `
-import Page from "${page.url}";
-import { h, render, DATA_CONTEXT } from "${runtime.href}";
+import ${island.name} from "${island.url}";
+import { h, render } from "${runtime.href}";
 
-addEventListener("DOMContentLoaded", () => {
-  const { params, data } = JSON.parse(document.getElementById("__FRSH_PROPS")?.textContent ?? "{}");
-  try {
-    render(h(DATA_CONTEXT.Provider, { value: new Map(data ?? []) }, h(Page, { params: params ?? {} })), document.getElementById("__FRSH"));  
-  } catch(err) {
-    if (err instanceof Promise) {
-      console.error("Render tried to suspend without a suspense boundary.");
-    } else {
-      console.error("Render threw an error:", err);
-    }
+class ${island.name}Island extends HTMLElement {
+  constructor() {
+    super();
+    const props = JSON.parse(this.getAttribute("props"));
+    render(h(${island.name}, props), this);
   }
-});
+}
+
+customElements.define("frsh-${island.id}", ${island.name}Island);
 `;
           return { contents, loader: "js" };
         },

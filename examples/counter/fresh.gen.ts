@@ -3,14 +3,14 @@
 // To update this file, run `fresh generate`.
 
 import * as $0 from "./routes/index.tsx";
-import * as $1 from "./partials/Counter.tsx";
+import * as $1 from "./islands/Counter.tsx";
 
 const manifest = {
   routes: {
     "./routes/index.tsx": $0,
   },
-  partials: {
-    "./partials/Counter.tsx": $1,
+  islands: {
+    "./islands/Counter.tsx": $1,
   },
   baseUrl: import.meta.url,
 };

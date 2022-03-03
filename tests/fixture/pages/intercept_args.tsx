@@ -1,26 +1,22 @@
 /** @jsx h */
 
-import { h } from "../deps.ts";
+import { h, PageProps } from "../deps.ts";
 import { HandlerContext } from "../../../server.ts";
 
-interface renderData extends Record<string, unknown> {
+interface Data extends Record<string, unknown> {
   info: string;
 }
 
-export default function Page({
-  renderData,
-}: {
-  renderData: renderData;
-}) {
-  return <div>{renderData.info}</div>;
+export default function Page({ data }: PageProps<Data>) {
+  return <div>{data.info}</div>;
 }
 
 export const handler = {
-  GET({ req, render }: HandlerContext) {
+  GET({ req, render }: HandlerContext<Data>) {
     if (req.headers.get("accept")?.includes("text/html")) {
-      return render!({
+      return render({
         info: "intercepted",
-      } as renderData);
+      });
     } else {
       return new Response("This is plain text");
     }

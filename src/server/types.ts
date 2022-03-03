@@ -9,9 +9,9 @@ import {
 } from "../runtime/types.ts";
 import { RenderContext, RenderFn } from "./render.tsx";
 
-export interface PageModule {
-  default?: ComponentType<PageProps>;
-  handler?: Handler | Handlers;
+export interface PageModule<Data = undefined> {
+  default?: ComponentType<PageProps<Data>>;
+  handler?: Handler<Data> | Handlers<Data>;
   config?: PageConfig;
 }
 
@@ -27,24 +27,30 @@ export interface ErrorPageModule {
   config?: PageConfig;
 }
 
-export interface HandlerContext {
+export interface IslandModule {
+  default: ComponentType<unknown>;
+}
+
+export interface HandlerContext<T = undefined> {
   req: Request;
   match: Record<string, string>;
-  render?: (args?: Record<string, unknown>) => Promise<Response>;
+  render: (data: T) => Response;
 }
 
 export interface UnknownHandlerContext {
   req: Request;
-  render?: () => Promise<Response>;
+  render: () => Response;
 }
 
 export interface ErrorHandlerContext {
   req: Request;
   error: unknown;
-  render?: () => Promise<Response>;
+  render: () => Response;
 }
 
-export type Handler = (ctx: HandlerContext) => Response | Promise<Response>;
+export type Handler<T = undefined> = (
+  ctx: HandlerContext<T>,
+) => Response | Promise<Response>;
 export type UnknownHandler = (
   ctx: UnknownHandlerContext,
 ) => Response | Promise<Response>;
@@ -52,17 +58,16 @@ export type ErrorHandler = (
   ctx: ErrorHandlerContext,
 ) => Response | Promise<Response>;
 
-export type Handlers = {
-  [K in typeof router.METHODS[number]]?: Handler;
+export type Handlers<T = undefined> = {
+  [K in typeof router.METHODS[number]]?: Handler<T>;
 };
 
-export interface Page {
+export interface Page<Data = undefined> {
   route: string;
   url: string;
   name: string;
-  component?: ComponentType<PageProps>;
-  handler: Handler | Handlers;
-  runtimeJS: boolean;
+  component?: ComponentType<PageProps<Data>>;
+  handler: Handler<Data> | Handlers<Data>;
   csp: boolean;
 }
 
@@ -110,4 +115,11 @@ export interface Middleware {
 
 export interface AppModule {
   default: ComponentType<AppProps>;
+}
+
+export interface Island {
+  id: string;
+  name: string;
+  url: string;
+  component: ComponentType<unknown>;
 }

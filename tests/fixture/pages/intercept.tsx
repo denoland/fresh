@@ -10,7 +10,7 @@ export default function Page() {
 export const handler = {
   GET({ req, render }: HandlerContext) {
     if (req.headers.get("accept")?.includes("text/html")) {
-      return render!();
+      return render(undefined);
     } else {
       return new Response("This is plain text");
     }
