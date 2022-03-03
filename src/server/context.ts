@@ -42,6 +42,8 @@ interface StaticFile {
   size: number;
   /** The content-type of the file. */
   contentType: string;
+  /** Hash of the file contents. */
+  etag: string;
 }
 
 export class ServerContext {
@@ -192,17 +194,27 @@ export class ServerContext {
         includeDirs: false,
         followSymlinks: false,
       });
+      const encoder = new TextEncoder();
       for await (const entry of entires) {
         const localUrl = toFileUrl(entry.path);
         const path = localUrl.href.substring(staticFolder.href.length);
         const stat = await Deno.stat(localUrl);
         const contentType = mediaTypeLookup(extname(path)) ??
           "application/octet-stream";
+        const etag = await crypto.subtle.digest(
+          "SHA-1",
+          encoder.encode(BUILD_ID + path),
+        ).then((hash) =>
+          Array.from(new Uint8Array(hash))
+            .map((byte) => byte.toString(16).padStart(2, "0"))
+            .join("")
+        );
         const staticFile: StaticFile = {
           localUrl,
           path,
           size: stat.size,
           contentType,
+          etag,
         };
         staticFiles.push(staticFile);
       }
@@ -253,12 +265,15 @@ export class ServerContext {
     const routes: router.Routes = {};
 
     // Add the static file routes.
-    for (const { localUrl, path, size, contentType } of this.#staticFiles) {
+    for (
+      const { localUrl, path, size, contentType, etag } of this.#staticFiles
+    ) {
       const route = sanitizePathToRegex(path);
       routes[`GET@${route}`] = this.#staticFileHandler(
         localUrl,
         size,
         contentType,
+        etag,
       );
     }
 
@@ -420,15 +435,21 @@ export class ServerContext {
     localUrl: URL,
     size: number,
     contentType: string,
+    etag: string,
   ): router.MatchHandler {
-    return async (_req: Request) => {
-      const resp = await fetch(localUrl);
-      return new Response(resp.body, {
-        headers: {
-          "content-type": contentType,
-          "content-length": String(size),
-        },
-      });
+    return async (req: Request) => {
+      if (req.headers.get("if-none-match") === etag) {
+        return new Response(null, { status: 304 });
+      } else {
+        const resp = await fetch(localUrl);
+        return new Response(resp.body, {
+          headers: {
+            "content-type": contentType,
+            "content-length": String(size),
+            "etag": etag,
+          },
+        });
+      }
     };
   }
 
