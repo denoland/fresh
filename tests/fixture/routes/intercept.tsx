@@ -1,6 +1,6 @@
 /** @jsx h */
 
-import { h } from "../deps.ts";
+import { h } from "../client_deps.ts";
 import { HandlerContext } from "../../../server.ts";
 
 export default function Page() {
@@ -10,7 +10,7 @@ export default function Page() {
 export const handler = {
   GET({ req, render }: HandlerContext) {
     if (req.headers.get("accept")?.includes("text/html")) {
-      return render(undefined);
+      return render();
     } else {
       return new Response("This is plain text");
     }

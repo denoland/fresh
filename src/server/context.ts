@@ -112,7 +112,7 @@ export class ServerContext {
           component &&
           typeof handler === "object" && handler.GET === undefined
         ) {
-          handler.GET = ({ render }) => render(undefined);
+          handler.GET = ({ render }) => render();
         }
         const page: Page = {
           route,
@@ -303,10 +303,10 @@ export class ServerContext {
         params: Record<string, string>,
         error?: unknown,
       ) => {
-        if (page.component === undefined) {
-          throw new Error("This page does not have a component to render.");
-        }
         return (data?: Data) => {
+          if (page.component === undefined) {
+            throw new Error("This page does not have a component to render.");
+          }
           const preloads: string[] = [];
           let resp;
           try {

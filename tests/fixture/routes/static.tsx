@@ -1,6 +1,6 @@
 /** @jsx h */
 
-import { h } from "../deps.ts";
+import { h } from "../client_deps.ts";
 
 export default function StaticPage() {
   return <p>This is a static page.</p>;

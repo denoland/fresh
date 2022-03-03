@@ -1,8 +1,8 @@
 import { ServerContext } from "../server.ts";
 import { assert, assertEquals, assertStringIncludes } from "./deps.ts";
-import routes from "./fixture/routes.gen.ts";
+import manifest from "./fixture/fresh.gen.ts";
 
-const ctx = await ServerContext.fromRoutes(routes);
+const ctx = await ServerContext.fromManifest(manifest);
 const router = ctx.handler();
 
 Deno.test("/ page prerender", async () => {
@@ -13,16 +13,12 @@ Deno.test("/ page prerender", async () => {
   assertEquals(resp.headers.get("server"), "fresh test server");
   const body = await resp.text();
   assertStringIncludes(body, `<html lang="en">`);
-  assertStringIncludes(body, "index.js");
+  assertStringIncludes(body, "test.js");
   assertStringIncludes(body, "<p>Hello!</p>");
   assertStringIncludes(body, "<p>Viewing JIT render.</p>");
   assertStringIncludes(
     body,
-    `<script id="__FRSH_PROPS" type="application/json">`,
-  );
-  assertStringIncludes(
-    body,
-    `"data":[["home","Hello!"]]`,
+    `props="{&quot;message&quot;:&quot;Hello!&quot;}">`,
   );
   assertStringIncludes(
     body,
@@ -38,7 +34,7 @@ Deno.test("/props/123 page prerender", async () => {
   const body = await resp.text();
   assertStringIncludes(
     body,
-    `{"props":{"params":{"id":"123"},"url":"https://fresh.deno.dev/props/123","route":"/props/:id"}}`,
+    `{&quot;params&quot;:{&quot;id&quot;:&quot;123&quot;},&quot;url&quot;:&quot;https://fresh.deno.dev/props/123&quot;,&quot;route&quot;:&quot;/props/:id&quot;}`,
   );
 });
 
@@ -48,16 +44,7 @@ Deno.test("/[name] page prerender", async () => {
   assertEquals(resp.status, 200);
   assertEquals(resp.headers.get("content-type"), "text/html; charset=utf-8");
   const body = await resp.text();
-  assertStringIncludes(body, "[name].js");
   assertStringIncludes(body, "<div>Hello bar</div>");
-  assertStringIncludes(
-    body,
-    `<script id="__FRSH_PROPS" type="application/json">`,
-  );
-  assertStringIncludes(
-    body,
-    `"params":{"name":"bar"}`,
-  );
 });
 
 Deno.test("/intercept - GET html", async () => {

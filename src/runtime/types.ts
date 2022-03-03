@@ -1,6 +1,7 @@
 import { ComponentType } from "./deps.ts";
 
-export interface PageProps<T = undefined> {
+// deno-lint-ignore no-explicit-any
+export interface PageProps<T = any> {
   /** The URL of the request that resulted in this page being rendered. */
   url: URL;
 

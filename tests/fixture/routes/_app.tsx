@@ -1,7 +1,7 @@
 /** @jsx h */
 /** @jsxFrag Fragment */
 
-import { AppProps, Fragment, h, Head } from "../deps.ts";
+import { AppProps, Fragment, h, Head } from "../client_deps.ts";
 
 export default function App(props: AppProps) {
   return (

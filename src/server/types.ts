@@ -9,9 +9,9 @@ import {
 } from "../runtime/types.ts";
 import { RenderContext, RenderFn } from "./render.tsx";
 
-export interface PageModule<Data = undefined> {
-  default?: ComponentType<PageProps<Data>>;
-  handler?: Handler<Data> | Handlers<Data>;
+export interface PageModule {
+  default?: ComponentType<PageProps>;
+  handler?: Handler | Handlers;
   config?: PageConfig;
 }
 
@@ -28,13 +28,14 @@ export interface ErrorPageModule {
 }
 
 export interface IslandModule {
+  // deno-lint-ignore no-explicit-any
   default: ComponentType<any>;
 }
 
-export interface HandlerContext<T = undefined> {
+export interface HandlerContext<T = unknown> {
   req: Request;
   match: Record<string, string>;
-  render: (data: T) => Response;
+  render: (data?: T) => Response;
 }
 
 export interface UnknownHandlerContext {
@@ -48,7 +49,8 @@ export interface ErrorHandlerContext {
   render: () => Response;
 }
 
-export type Handler<T = undefined> = (
+// deno-lint-ignore no-explicit-any
+export type Handler<T = any> = (
   ctx: HandlerContext<T>,
 ) => Response | Promise<Response>;
 export type UnknownHandler = (
@@ -58,11 +60,13 @@ export type ErrorHandler = (
   ctx: ErrorHandlerContext,
 ) => Response | Promise<Response>;
 
-export type Handlers<T = undefined> = {
+// deno-lint-ignore no-explicit-any
+export type Handlers<T = any> = {
   [K in typeof router.METHODS[number]]?: Handler<T>;
 };
 
-export interface Page<Data = undefined> {
+// deno-lint-ignore no-explicit-any
+export interface Page<Data = any> {
   route: string;
   url: string;
   name: string;

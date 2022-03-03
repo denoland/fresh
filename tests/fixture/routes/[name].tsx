@@ -1,6 +1,6 @@
 /** @jsx h */
 
-import { h, PageConfig } from "../deps.ts";
+import { h } from "../client_deps.ts";
 
 interface Props {
   params: Record<string, string | string[]>;
@@ -9,5 +9,3 @@ interface Props {
 export default function Greet(props: Props) {
   return <div>Hello {props.params.name}</div>;
 }
-
-export const config: PageConfig = { runtimeJS: true };

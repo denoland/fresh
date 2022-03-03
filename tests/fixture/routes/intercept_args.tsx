@@ -1,7 +1,7 @@
 /** @jsx h */
 
-import { h, PageProps } from "../deps.ts";
-import { HandlerContext } from "../../../server.ts";
+import { h, PageProps } from "../client_deps.ts";
+import { HandlerContext, Handlers } from "../../../server.ts";
 
 interface Data extends Record<string, unknown> {
   info: string;
@@ -11,8 +11,8 @@ export default function Page({ data }: PageProps<Data>) {
   return <div>{data.info}</div>;
 }
 
-export const handler = {
-  GET({ req, render }: HandlerContext<Data>) {
+export const handler: Handlers<Data> = {
+  GET({ req, render }) {
     if (req.headers.get("accept")?.includes("text/html")) {
       return render({
         info: "intercepted",
