@@ -28,7 +28,7 @@ export interface ErrorPageModule {
 }
 
 export interface IslandModule {
-  default: ComponentType<unknown>;
+  default: ComponentType<any>;
 }
 
 export interface HandlerContext<T = undefined> {

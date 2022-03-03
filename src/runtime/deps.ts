@@ -1,4 +1,4 @@
-export * from "https://esm.sh/preact@10.5.14";
+export * from "https://esm.sh/preact@10.6.6";
 export {
   useCallback,
   useContext,
@@ -11,7 +11,7 @@ export {
   useReducer,
   useRef,
   useState,
-} from "https://esm.sh/preact@10.5.14/hooks";
+} from "https://esm.sh/preact@10.6.6/hooks";
 export type {
   CreateHandle,
   EffectCallback,
@@ -20,4 +20,4 @@ export type {
   Reducer,
   Ref,
   StateUpdater,
-} from "https://esm.sh/preact@10.5.14/hooks";
+} from "https://esm.sh/preact@10.6.6/hooks";

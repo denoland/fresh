@@ -1,7 +1,11 @@
 /** @jsx h */
-import { h, IS_BROWSER, useState } from "../deps.ts";
+import { h, IS_BROWSER, useState } from "../client_deps.ts";
 
-export default function Counter(props: { start: number }) {
+interface CounterProps {
+  start: number;
+}
+
+export default function Counter(props: CounterProps) {
   const [count, setCount] = useState(props.start);
   return (
     <div>
