@@ -188,7 +188,7 @@ After adding, removing, or moving a page in the \`routes\` or directory, or addi
 removing, or moving an island in the \`islands\` directory, run:
 
 \`\`\`
-fresh maniofest
+fresh manifest
 \`\`\`
 `;
   await Deno.writeTextFile(
