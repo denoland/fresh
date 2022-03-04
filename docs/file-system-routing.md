@@ -1,6 +1,6 @@
 # File system routing
 
-The naming and location of files in the `pages` folder is important because
+The naming and location of files in the `routes` folder is important because
 these are used to specify the route where a specific API endpoint or HTML page
 is available. This concept is called file system routing.
 

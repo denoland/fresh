@@ -1,4 +1,4 @@
-import { start } from "../../server.ts";
-import routes from "./routes.gen.ts";
+import { start } from "./server_deps.ts";
+import routes from "./fresh.gen.ts";
 
 await start(routes);

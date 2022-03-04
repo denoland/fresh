@@ -1,8 +1,7 @@
 import { ComponentType } from "./deps.ts";
 
-export interface PageProps<
-  T extends Record<string, unknown> = Record<string, unknown>,
-> {
+// deno-lint-ignore no-explicit-any
+export interface PageProps<T = any> {
   /** The URL of the request that resulted in this page being rendered. */
   url: URL;
 
@@ -21,10 +20,10 @@ export interface PageProps<
   params: Record<string, string>;
 
   /**
-   * Additional data passed into `HandlerContext.render`. Not present by
-   * default.
+   * Additional data passed into `HandlerContext.render`. Defaults to
+   * `undefined`.
    */
-  renderData?: T;
+  data: T;
 }
 
 export interface AppProps {

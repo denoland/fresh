@@ -1,6 +1,6 @@
 import { join, resolve } from "./deps.ts";
 import { error } from "./error.ts";
-import { routes } from "./routes.ts";
+import { manifest } from "./manifest.ts";
 
 const help = `fresh init
 
@@ -57,30 +57,50 @@ async function init(directory: string) {
     }
   }
 
-  await Deno.mkdir(join(directory, "pages", "api"), { recursive: true });
-  const DEPS_TS = `export * from "${new URL(
+  await Deno.mkdir(join(directory, "routes", "api"), { recursive: true });
+  await Deno.mkdir(join(directory, "islands"), { recursive: true });
+
+  const CLIENT_DEPS_TS = `export * from "${new URL(
     "../../runtime.ts",
     import.meta.url,
   )}";\n`;
-  await Deno.writeTextFile(join(directory, "deps.ts"), DEPS_TS);
-  const PAGES_INDEX_TSX = `/** @jsx h */
-import { h, IS_BROWSER, PageConfig, useState } from "../deps.ts";
+  await Deno.writeTextFile(join(directory, "client_deps.ts"), CLIENT_DEPS_TS);
+  const SERVER_DEPS_TS = `export * from "${new URL(
+    "../../server.ts",
+    import.meta.url,
+  )}";\n`;
+  await Deno.writeTextFile(join(directory, "server_deps.ts"), SERVER_DEPS_TS);
+
+  const ROUTES_INDEX_TSX = `/** @jsx h */
+import { h } from "../client_deps.ts";
+import Counter from "../islands/Counter.tsx";
 
 export default function Home() {
   return (
     <div>
       <p>
-        Welcome to \`fresh\`. Try update this message in the ./pages/index.tsx
+        Welcome to \`fresh\`. Try update this message in the ./routes/index.tsx
         file, and refresh.
       </p>
-      <Counter />
-      <p>{IS_BROWSER ? "Viewing browser render." : "Viewing JIT render."}</p>
+      <Counter start={3} />
     </div>
   );
 }
+`;
+  await Deno.writeTextFile(
+    join(directory, "routes", "index.tsx"),
+    ROUTES_INDEX_TSX,
+  );
 
-function Counter() {
-  const [count, setCount] = useState(0);
+  const ISLANDS_COUNTER_TSX = `/** @jsx h */
+import { h, IS_BROWSER, useState } from "../client_deps.ts";
+
+interface CounterProps {
+  start: number;
+}
+
+export default function Counter(props: CounterProps) {
+  const [count, setCount] = useState(props.start);
   return (
     <div>
       <p>{count}</p>
@@ -93,31 +113,26 @@ function Counter() {
     </div>
   );
 }
-
-export const config: PageConfig = { runtimeJS: true };
-
 `;
   await Deno.writeTextFile(
-    join(directory, "pages", "index.tsx"),
-    PAGES_INDEX_TSX,
+    join(directory, "islands", "Counter.tsx"),
+    ISLANDS_COUNTER_TSX,
   );
-  const PAGES_GREET_TSX = `/** @jsx h */
-import { h } from "../deps.ts";
 
-interface Props {
-  params: Record<string, string | string[]>;
-}
+  const ROUTES_GREET_TSX = `/** @jsx h */
+import { h, PageProps } from "../client_deps.ts";
 
-export default function Greet(props: Props) {
+export default function Greet(props: PageProps) {
   return <div>Hello {props.params.name}</div>;
 }
 `;
   await Deno.writeTextFile(
-    join(directory, "pages", "[name].tsx"),
-    PAGES_GREET_TSX,
+    join(directory, "routes", "[name].tsx"),
+    ROUTES_GREET_TSX,
   );
-  const serverUrl = new URL("../../server.ts", import.meta.url);
-  const PAGES_API_JOKE_TS = `import { HandlerContext } from "${serverUrl}";
+
+  const ROUTES_API_JOKE_TS =
+    `import { HandlerContext } from "../server_deps.ts";
 
 // Jokes courtesy of https://punsandoneliners.com/randomness/programmer-jokes/
 const JOKES = [
@@ -140,19 +155,20 @@ export const handler = (_ctx: HandlerContext): Response => {
 };
 `;
   await Deno.writeTextFile(
-    join(directory, "pages", "api", "joke.ts"),
-    PAGES_API_JOKE_TS,
+    join(directory, "routes", "api", "joke.ts"),
+    ROUTES_API_JOKE_TS,
   );
+
   const MAIN_TS = `/// <reference no-default-lib="true" />
 /// <reference lib="dom" />
 /// <reference lib="dom.asynciterable" />
 /// <reference lib="deno.ns" />
 /// <reference lib="deno.unstable" />
 
-import { start } from "${serverUrl}";
-import routes from "./routes.gen.ts";
+import { start } from "./server_deps.ts";
+import manifest from "./fresh.gen.ts";
 
-await start(routes);
+await start(manifest);
 `;
   await Deno.writeTextFile(
     join(directory, "main.ts"),
@@ -168,10 +184,11 @@ Start the project:
 deno run -A --watch main.ts
 \`\`\`
 
-After adding, removing, or moving a page in the \`pages\` directory, run:
+After adding, removing, or moving a page in the \`routes\` or directory, or adding,
+removing, or moving an island in the \`islands\` directory, run:
 
 \`\`\`
-fresh routes
+fresh manifest
 \`\`\`
 `;
   await Deno.writeTextFile(
@@ -179,5 +196,5 @@ fresh routes
     README_MD,
   );
 
-  await routes(directory);
+  await manifest(directory);
 }

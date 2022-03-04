@@ -5,6 +5,6 @@
 /// <reference lib="deno.unstable" />
 
 import { start } from "./server_deps.ts";
-import routes from "./fresh.gen.ts";
+import manifest from "./fresh.gen.ts";
 
-await start(routes);
+await start(manifest);

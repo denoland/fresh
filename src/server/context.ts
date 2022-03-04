@@ -6,7 +6,7 @@ import {
   toFileUrl,
   walk,
 } from "./deps.ts";
-import { Routes } from "./mod.ts";
+import { Manifest } from "./mod.ts";
 import { Bundler } from "./bundle.ts";
 import { ALIVE_URL, INTERNAL_PREFIX, REFRESH_JS_URL } from "./constants.ts";
 import { JS_PREFIX } from "./constants.ts";
@@ -16,6 +16,7 @@ import {
   ErrorPage,
   ErrorPageModule,
   Handler,
+  Island,
   Middleware,
   MiddlewareModule,
   Page,
@@ -26,11 +27,7 @@ import {
   UnknownPageModule,
 } from "./types.ts";
 import { render as internalRender } from "./render.tsx";
-import {
-  ContentSecurityPolicy,
-  ContentSecurityPolicyDirectives,
-  SELF,
-} from "../runtime/csp.ts";
+import { ContentSecurityPolicyDirectives, SELF } from "../runtime/csp.ts";
 import { h } from "../runtime/deps.ts";
 
 interface StaticFile {
@@ -49,6 +46,7 @@ interface StaticFile {
 export class ServerContext {
   #dev: boolean;
   #pages: Page[];
+  #islands: Island[];
   #staticFiles: StaticFile[];
   #bundler: Bundler;
   #renderer: Renderer;
@@ -59,6 +57,7 @@ export class ServerContext {
 
   constructor(
     pages: Page[],
+    islands: Island[],
     staticFiles: StaticFile[],
     renderer: Renderer,
     middleware: Middleware,
@@ -67,36 +66,38 @@ export class ServerContext {
     error: ErrorPage,
   ) {
     this.#pages = pages;
+    this.#islands = islands;
     this.#staticFiles = staticFiles;
     this.#renderer = renderer;
     this.#middleware = middleware;
     this.#app = app;
     this.#notFound = notFound;
     this.#error = error;
-    this.#bundler = new Bundler(pages);
+    this.#bundler = new Bundler(this.#islands);
     this.#dev = typeof Deno.env.get("DENO_DEPLOYMENT_ID") !== "string"; // Env var is only set in prod (on Deploy).
   }
 
   /**
-   * Process the routes into individual components and pages.
+   * Process the manifest into individual components and pages.
    */
-  static async fromRoutes(routes: Routes): Promise<ServerContext> {
-    // Get the routes' base URL.
-    const baseUrl = new URL("./", routes.baseUrl).href;
+  static async fromManifest(manifest: Manifest): Promise<ServerContext> {
+    // Get the manifest' base URL.
+    const baseUrl = new URL("./", manifest.baseUrl).href;
 
     // Extract all routes, and prepare them into the `Page` structure.
     const pages: Page[] = [];
+    const islands: Island[] = [];
     let renderer: Renderer = DEFAULT_RENDERER;
     let middleware: Middleware = DEFAULT_MIDDLEWARE;
     let app: AppModule = DEFAULT_APP;
     let notFound: UnknownPage = DEFAULT_NOT_FOUND;
     let error: ErrorPage = DEFAULT_ERROR;
-    for (const [self, module] of Object.entries(routes.pages)) {
+    for (const [self, module] of Object.entries(manifest.routes)) {
       const url = new URL(self, baseUrl).href;
       if (!url.startsWith(baseUrl)) {
         throw new TypeError("Page is not a child of the basepath.");
       }
-      const path = url.substring(baseUrl.length).substring("pages".length);
+      const path = url.substring(baseUrl.length).substring("routes".length);
       const baseRoute = path.substring(1, path.length - extname(path).length);
       const name = baseRoute.replace("/", "-");
       if (!path.startsWith("/_")) {
@@ -111,7 +112,7 @@ export class ServerContext {
           component &&
           typeof handler === "object" && handler.GET === undefined
         ) {
-          handler.GET = ({ render }) => render!();
+          handler.GET = ({ render }) => render();
         }
         const page: Page = {
           route,
@@ -119,7 +120,6 @@ export class ServerContext {
           name,
           component,
           handler,
-          runtimeJS: Boolean(config?.runtimeJS ?? false),
           csp: Boolean(config?.csp ?? false),
         };
         pages.push(page);
@@ -145,7 +145,7 @@ export class ServerContext {
         const { default: component, config } = (module as UnknownPageModule);
         let { handler } = (module as UnknownPageModule);
         if (component && handler === undefined) {
-          handler = ({ render }) => render!();
+          handler = ({ render }) => render();
         }
 
         notFound = {
@@ -164,7 +164,7 @@ export class ServerContext {
         const { default: component, config } = (module as ErrorPageModule);
         let { handler } = (module as ErrorPageModule);
         if (component && handler === undefined) {
-          handler = ({ render }) => render!();
+          handler = ({ render }) => render();
         }
 
         error = {
@@ -181,9 +181,21 @@ export class ServerContext {
     }
     sortRoutes(pages);
 
+    for (const [self, module] of Object.entries(manifest.islands)) {
+      const url = new URL(self, baseUrl).href;
+      if (!url.startsWith(baseUrl)) {
+        throw new TypeError("Page is not a child of the basepath.");
+      }
+      const path = url.substring(baseUrl.length).substring("islands".length);
+      const baseRoute = path.substring(1, path.length - extname(path).length);
+      const name = baseRoute.replace("/", "");
+      const id = name.toLowerCase();
+      islands.push({ id, name, url, component: module.default });
+    }
+
     const staticFiles: StaticFile[] = [];
     try {
-      const staticFolder = new URL("./static", routes.baseUrl);
+      const staticFolder = new URL("./static", manifest.baseUrl);
       // TODO(lucacasonato): remove the extranious Deno.readDir when
       // https://github.com/denoland/deno_std/issues/1310 is fixed.
       for await (const _ of Deno.readDir(fromFileUrl(staticFolder))) {
@@ -227,6 +239,7 @@ export class ServerContext {
     }
     return new ServerContext(
       pages,
+      islands,
       staticFiles,
       renderer,
       middleware,
@@ -277,84 +290,67 @@ export class ServerContext {
       );
     }
 
-    const genRender = (page: Page, status: number) => {
-      const bundlePath = `/${page.name}.js`;
-      const imports = page.runtimeJS ? [bundleAssetUrl(bundlePath)] : [];
+    const genRender = <Data = undefined>(
+      page: Page<Data> | UnknownPage | ErrorPage,
+      status: number,
+    ) => {
+      const imports: string[] = [];
       if (this.#dev) {
         imports.push(REFRESH_JS_URL);
       }
       return (
         req: Request,
-        params: Record<string, string | string[]>,
+        params: Record<string, string>,
         error?: unknown,
       ) => {
-        if (page.component === undefined) return undefined;
-        return async (renderData?: Record<string, unknown>) => {
-          const preloads = page.runtimeJS
-            ? this.#bundler.getPreloads(bundlePath).map(bundleAssetUrl)
-            : [];
-          const body = internalRender({
-            page,
-            app: this.#app,
-            imports,
-            preloads,
-            renderer: this.#renderer,
-            url: new URL(req.url),
-            params,
-            renderData,
-            error,
-          });
-
-          const headers: Record<string, string> = {
-            "content-type": "text/html; charset=utf-8",
-          };
-          let firstChunk: string;
-          const iterator = body[Symbol.asyncIterator]();
+        return (data?: Data) => {
+          if (page.component === undefined) {
+            throw new Error("This page does not have a component to render.");
+          }
+          const preloads: string[] = [];
+          let resp;
           try {
-            const { value, done } = await iterator.next();
-            if (done) throw new Error("Body is empty.");
-            firstChunk = value[0];
-            const csp: ContentSecurityPolicy | undefined = value[1];
-            if (csp) {
-              if (this.#dev) {
-                csp.directives.connectSrc = [
-                  ...(csp.directives.connectSrc ?? []),
-                  SELF,
-                ];
-              }
-              const directive = serializeCSPDirectives(csp.directives);
-              if (csp.reportOnly) {
-                headers["content-security-policy-report-only"] = directive;
-              } else {
-                headers["content-security-policy"] = directive;
-              }
-            }
+            resp = internalRender({
+              page,
+              islands: this.#islands,
+              app: this.#app,
+              imports,
+              preloads,
+              renderer: this.#renderer,
+              url: new URL(req.url),
+              params,
+              data,
+              error,
+            });
           } catch (err) {
             console.error("Error rendering page", err);
-            throw new Response("500 Internal Server Error", {
+            return new Response("500 Internal Server Error", {
               status: 500,
               headers: {
                 "content-type": "text/plain",
               },
             });
           }
-          const bodyStream = new ReadableStream<Uint8Array>({
-            async start(controller) {
-              controller.enqueue(new TextEncoder().encode(firstChunk));
-              try {
-                for await (const chunk of body) {
-                  controller.enqueue(new TextEncoder().encode(chunk as string));
-                }
-              } catch (err) {
-                console.log("Rendering failed:\n", err);
-                controller.enqueue(
-                  new TextEncoder().encode("500 Internal Server Error"),
-                );
-              }
-              controller.close();
-            },
-          });
-          return new Response(bodyStream, { status, headers });
+          const headers: Record<string, string> = {
+            "content-type": "text/html; charset=utf-8",
+          };
+
+          const [body, csp] = resp;
+          if (csp) {
+            if (this.#dev) {
+              csp.directives.connectSrc = [
+                ...(csp.directives.connectSrc ?? []),
+                SELF,
+              ];
+            }
+            const directive = serializeCSPDirectives(csp.directives);
+            if (csp.reportOnly) {
+              headers["content-security-policy-report-only"] = directive;
+            } else {
+              headers["content-security-policy"] = directive;
+            }
+          }
+          return new Response(body, { status, headers });
         };
       };
     };
@@ -378,17 +374,16 @@ export class ServerContext {
 
     const unknownHandlerRender = genRender(this.#notFound, 404);
     const unknownHandler = (req: Request) =>
-      (this.#notFound.handler as Handler)({
+      this.#notFound.handler({
         req,
-        match: {},
         render: unknownHandlerRender(req, {}),
       });
 
     const errorHandlerRender = genRender(this.#error, 500);
     const errorHandler = (req: Request, error: unknown) =>
-      (this.#notFound.handler as Handler)({
+      this.#error.handler({
         req,
-        match: {},
+        error,
         render: errorHandlerRender(req, {}, error),
       });
 
@@ -483,10 +478,6 @@ export class ServerContext {
       });
     };
   };
-}
-
-function bundleAssetUrl(path: string) {
-  return `${INTERNAL_PREFIX}${JS_PREFIX}/${BUILD_ID}${path}`;
 }
 
 const DEFAULT_RENDERER: Renderer = {

@@ -66,13 +66,11 @@ to Deno Deploy with (or an organization you can access from that account). Then
 follow the setup instructions for GitHub on your machine, and push your code
 into the repository.
 
-Now go back to GitHub and open the `main.ts` file that you pushed. Copy the URL
-in the address bar. It should look something like this:
-`https://github.com/lucacasonato/fresh/blob/main/example/main.ts`. Visit your
-project on dash.deno.com, enter the URL you copied into the
-`Link GitHub repository` input box in the project settings, and press `Link`.
-You might need to grant the Deno Deploy app permission to the repository at this
-point (follow prompts on the Deno Deploy dashboard).
+Visit your project on dash.deno.com, go to the "Git" tab in the settings, select
+your organization and repository, select your production branch (usually
+`main`), and finally select your entrypoint module (`main.ts`. You might need to
+grant the Deno Deploy app permission to the repository at this point (follow
+prompts on the Deno Deploy dashboard).
 
 Your project is now linked to Deno Deploy and will automatically deployed on
 every push. Your project now has a URL you can visit to view your site live.

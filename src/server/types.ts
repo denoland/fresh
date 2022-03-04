@@ -27,24 +27,32 @@ export interface ErrorPageModule {
   config?: PageConfig;
 }
 
-export interface HandlerContext {
+export interface IslandModule {
+  // deno-lint-ignore no-explicit-any
+  default: ComponentType<any>;
+}
+
+export interface HandlerContext<T = unknown> {
   req: Request;
   match: Record<string, string>;
-  render?: (args?: Record<string, unknown>) => Promise<Response>;
+  render: (data?: T) => Response;
 }
 
 export interface UnknownHandlerContext {
   req: Request;
-  render?: () => Promise<Response>;
+  render: () => Response;
 }
 
 export interface ErrorHandlerContext {
   req: Request;
   error: unknown;
-  render?: () => Promise<Response>;
+  render: () => Response;
 }
 
-export type Handler = (ctx: HandlerContext) => Response | Promise<Response>;
+// deno-lint-ignore no-explicit-any
+export type Handler<T = any> = (
+  ctx: HandlerContext<T>,
+) => Response | Promise<Response>;
 export type UnknownHandler = (
   ctx: UnknownHandlerContext,
 ) => Response | Promise<Response>;
@@ -52,17 +60,18 @@ export type ErrorHandler = (
   ctx: ErrorHandlerContext,
 ) => Response | Promise<Response>;
 
-export type Handlers = {
-  [K in typeof router.METHODS[number]]?: Handler;
+// deno-lint-ignore no-explicit-any
+export type Handlers<T = any> = {
+  [K in typeof router.METHODS[number]]?: Handler<T>;
 };
 
-export interface Page {
+// deno-lint-ignore no-explicit-any
+export interface Page<Data = any> {
   route: string;
   url: string;
   name: string;
-  component?: ComponentType<PageProps>;
-  handler: Handler | Handlers;
-  runtimeJS: boolean;
+  component?: ComponentType<PageProps<Data>>;
+  handler: Handler<Data> | Handlers<Data>;
   csp: boolean;
 }
 
@@ -110,4 +119,11 @@ export interface Middleware {
 
 export interface AppModule {
   default: ComponentType<AppProps>;
+}
+
+export interface Island {
+  id: string;
+  name: string;
+  url: string;
+  component: ComponentType<unknown>;
 }

@@ -1,29 +1,35 @@
 /** @jsx h */
-
 import { renderToString } from "./deps.ts";
-import { ComponentChildren, h } from "../runtime/deps.ts";
-import { DATA_CONTEXT } from "../runtime/hooks.ts";
-import { AppModule, ErrorPage, Page, Renderer, UnknownPage } from "./types.ts";
 import {
-  ErrorPageProps,
-  PageProps,
-  UnknownPageProps,
-} from "../runtime/types.ts";
-import { SUSPENSE_CONTEXT } from "../runtime/suspense.ts";
+  ComponentChildren,
+  ComponentType,
+  h,
+  options,
+  VNode,
+} from "../runtime/deps.ts";
+import {
+  AppModule,
+  ErrorPage,
+  Island,
+  Page,
+  Renderer,
+  UnknownPage,
+} from "./types.ts";
 import { HEAD_CONTEXT } from "../runtime/head.ts";
-import { REFRESH_JS_URL } from "./constants.ts";
 import { CSP_CONTEXT, nonce, NONE, UNSAFE_INLINE } from "../runtime/csp.ts";
 import { ContentSecurityPolicy } from "../runtime/csp.ts";
+import { BUILD_ID, INTERNAL_PREFIX, JS_PREFIX } from "./constants.ts";
 
-export interface RenderOptions {
-  page: Page | UnknownPage | ErrorPage;
+export interface RenderOptions<Data> {
+  page: Page<Data> | UnknownPage | ErrorPage;
+  islands: Island[];
   app: AppModule;
   imports: string[];
   preloads: string[];
   url: URL;
   params: Record<string, string | string[]>;
   renderer: Renderer;
-  renderData?: Record<string, unknown>;
+  data?: Data;
   error?: unknown;
 }
 
@@ -87,8 +93,6 @@ export class RenderContext {
   }
 }
 
-const MAX_SUSPENSE_DEPTH = 10;
-
 function defaultCsp() {
   return {
     directives: { defaultSrc: [NONE], styleSrc: [UNSAFE_INLINE] },
@@ -118,14 +122,14 @@ function defaultCsp() {
  *    sent to the client. On the client the HTML will be slotted into the DOM
  *    at the location of the original `<Suspense>` node.
  */
-export async function* render(
-  opts: RenderOptions,
-): AsyncIterable<string | [string, ContentSecurityPolicy | undefined]> {
+export function render<Data>(
+  opts: RenderOptions<Data>,
+): [string, ContentSecurityPolicy | undefined] {
   const props: Record<string, unknown> = {
     params: opts.params,
     url: opts.url,
     route: opts.page.route,
-    renderData: opts.renderData,
+    data: opts.data,
   };
   if (opts.error) {
     props.error = opts.error;
@@ -134,93 +138,48 @@ export async function* render(
   const csp: ContentSecurityPolicy | undefined = opts.page.csp
     ? defaultCsp()
     : undefined;
-  const dataCache = new Map();
-  const suspenseQueue: ComponentChildren[] = [];
   const headComponents: ComponentChildren[] = [];
 
   const vnode = h(CSP_CONTEXT.Provider, {
     value: csp,
     children: h(HEAD_CONTEXT.Provider, {
       value: headComponents,
-      children: h(DATA_CONTEXT.Provider, {
-        value: dataCache,
-        children: h(SUSPENSE_CONTEXT.Provider, {
-          value: suspenseQueue,
-          children: h(opts.app.default, {
-            Component() {
-              return h(opts.page.component!, props);
-            },
-          }),
-        }),
+      children: h(opts.app.default, {
+        Component() {
+          return h(opts.page.component! as ComponentType<unknown>, props);
+        },
       }),
     }),
   });
 
   const ctx = new RenderContext(crypto.randomUUID(), opts.url, opts.page.route);
 
-  let suspended = 0;
-  const renderWithRenderer = (): string | Promise<string> => {
-    if (csp) {
-      // Clear the csp
-      const newCsp = defaultCsp();
-      csp.directives = newCsp.directives;
-      csp.reportOnly = newCsp.reportOnly;
-    }
-    // Clear the suspense queue
-    suspenseQueue.splice(0, suspenseQueue.length);
-    // Clear the head components
-    headComponents.splice(0, headComponents.length);
+  if (csp) {
+    // Clear the csp
+    const newCsp = defaultCsp();
+    csp.directives = newCsp.directives;
+    csp.reportOnly = newCsp.reportOnly;
+  }
+  // Clear the head components
+  headComponents.splice(0, headComponents.length);
 
-    if (++suspended > MAX_SUSPENSE_DEPTH) {
-      throw new Error(
-        `Reached maximum suspense depth of ${MAX_SUSPENSE_DEPTH}.`,
-      );
-    }
+  // Setup the interesting VNode types
+  ISLANDS.splice(0, ISLANDS.length, ...opts.islands);
 
-    let body: string | null = null;
-    let promise: Promise<unknown> | null = null;
+  // Clear the encountered vnodes
+  ENCOUNTERED_ISLANDS.clear();
 
-    function render() {
-      try {
-        body = renderToString(vnode);
-        return body;
-      } catch (e) {
-        if (e && e.then) {
-          promise = e;
-          return "";
-        }
-        throw e;
-      }
-    }
+  let bodyHtml: string | null = null;
 
-    opts.renderer.render(ctx, render);
-
-    if (body !== null) {
-      return body;
-    } else if (promise !== null) {
-      return (promise as Promise<unknown>).then(renderWithRenderer);
-    } else {
-      throw new Error("`render` function not called by renderer.");
-    }
-  };
-
-  const bodyHtml = await renderWithRenderer();
-
-  let templateProps: {
-    props: PageProps | UnknownPageProps | ErrorPageProps;
-    data?: [string, unknown][];
-  } | undefined = { props, data: [...dataCache.entries()] };
-  if (templateProps.data!.length === 0) {
-    delete templateProps.data;
+  function render() {
+    bodyHtml = renderToString(vnode);
+    return bodyHtml;
   }
 
-  // If this is a static render (runtimeJS is false), then we don't need to
-  // render the props into the template.
-  if (
-    opts.imports.length === 0 ||
-    (opts.imports.length === 1 && opts.imports[0] === REFRESH_JS_URL)
-  ) {
-    templateProps = undefined;
+  opts.renderer.render(ctx, render);
+
+  if (bodyHtml === null) {
+    throw new Error("`render` function not called by renderer.");
   }
 
   const imports = opts.imports.map((url) => {
@@ -234,120 +193,32 @@ export async function* render(
     return [url, randomNonce] as const;
   });
 
+  for (const island of ENCOUNTERED_ISLANDS) {
+    const randomNonce = crypto.randomUUID().replace(/-/g, "");
+    if (csp) {
+      csp.directives.scriptSrc = [
+        ...csp.directives.scriptSrc ?? [],
+        nonce(randomNonce),
+      ];
+    }
+    const url = bundleAssetUrl(`/${island.id}.js`);
+    imports.push([url, randomNonce] as const);
+  }
+
   const html = template({
     bodyHtml,
     headComponents,
     imports,
     preloads: opts.preloads,
     styles: ctx.styles,
-    props: templateProps,
     lang: ctx.lang,
   });
 
-  const suspenseNonces = suspenseQueue.map(() => {
-    const randomNonce = crypto.randomUUID().replace(/-/g, "");
-    if (csp) {
-      csp.directives.scriptSrc = [
-        ...csp.directives.scriptSrc ?? [],
-        nonce(randomNonce),
-      ];
-    }
-    return randomNonce;
-  });
-
-  let suspenseScript = "";
-  if (suspenseQueue.length > 0) {
-    const randomNonce = crypto.randomUUID().replace(/-/g, "");
-    if (csp) {
-      csp.directives.scriptSrc = [
-        ...csp.directives.scriptSrc ?? [],
-        nonce(randomNonce),
-      ];
-    }
-    // minified client-side JS
-    suspenseScript = '<script nonce="' + randomNonce +
-      '">(()=>{window.$SR=t=>{const e=document.getElementById("S:"+t),o=document.getElementById("E:"+t),d=document.getElementById("R:"+t);for(d.parentNode.removeChild(d);e.nextSibling!==o;)e.parentNode.removeChild(e.nextSibling);for(;d.firstChild;)e.parentNode.insertBefore(d.firstChild,o);e.parentNode.removeChild(e),o.parentNode.removeChild(o)};const n=document.getElementById("__FRSH_STYLE"),r=n.childNodes[0]?.textContent.split(`\n`);if(r!==void 0){n.removeChild(n.firstChild);for(const t of r)n.append(document.createTextNode(t))}window.$ST=t=>{for(const[e,o]of t)n.insertBefore(document.createTextNode(e),n.childNodes[o])}})();\n</script>';
-  }
-
-  let clientStyles = [...ctx.styles];
-  yield [html + suspenseScript, csp];
-
-  // TODO(lucacasonato): parallelize this
-  for (const [id, children] of suspenseQueue.entries()) {
-    let [fragment, script] = await suspenseRender(
-      opts.renderer,
-      ctx,
-      id + 1,
-      children,
-    );
-
-    const cssInserts: [string, number][] = [];
-    for (const [i, style] of ctx.styles.entries()) {
-      if (!clientStyles.includes(style)) {
-        cssInserts.push([style, i]);
-      }
-    }
-    clientStyles = [...ctx.styles];
-
-    if (cssInserts.length > 0) {
-      script = `$ST(${JSON.stringify(cssInserts)});\n${script};`;
-    }
-
-    yield `${fragment}<script nonce="${suspenseNonces[id]}">${script}</script>`;
-  }
+  return [html, csp];
 }
 
-export async function suspenseRender(
-  renderer: Renderer,
-  ctx: RenderContext,
-  id: number,
-  children: ComponentChildren,
-): Promise<[string, string]> {
-  const dataCache = new Map();
-
-  const vnode = h(DATA_CONTEXT.Provider, {
-    value: dataCache,
-    children,
-  });
-
-  let suspended = 0;
-  const renderWithRenderer = (): string | Promise<string> => {
-    if (++suspended > MAX_SUSPENSE_DEPTH) {
-      throw new Error(
-        `Reached maximum suspense depth of ${MAX_SUSPENSE_DEPTH}.`,
-      );
-    }
-
-    let body: string | null = null;
-    let promise: Promise<unknown> | null = null;
-
-    function render() {
-      try {
-        body = renderToString(vnode);
-        return body;
-      } catch (e) {
-        if (e && e.then) {
-          promise = e;
-          return "";
-        }
-        throw e;
-      }
-    }
-
-    renderer.render(ctx, render);
-
-    if (body !== null) {
-      return body;
-    } else if (promise !== null) {
-      return (promise as Promise<unknown>).then(renderWithRenderer);
-    } else {
-      throw new Error("`render` function not called by renderer.");
-    }
-  };
-
-  const html = await renderWithRenderer();
-
-  return [`<div hidden id="R:${id}">${html}</div>`, `$SR(${id});`];
+function bundleAssetUrl(path: string) {
+  return `${INTERNAL_PREFIX}${JS_PREFIX}/${BUILD_ID}${path}`;
 }
 
 export interface TemplateOptions {
@@ -356,7 +227,6 @@ export interface TemplateOptions {
   imports: (readonly [string, string])[];
   styles: string[];
   preloads: string[];
-  props: unknown;
   lang: string;
 }
 
@@ -377,20 +247,35 @@ export function template(opts: TemplateOptions): string {
         />
         {opts.headComponents}
       </head>
-      <body>
-        <div dangerouslySetInnerHTML={{ __html: opts.bodyHtml }} id="__FRSH" />
-        {opts.props !== undefined
-          ? (
-            <script
-              id="__FRSH_PROPS"
-              type="application/json"
-              dangerouslySetInnerHTML={{ __html: JSON.stringify(opts.props) }}
-            />
-          )
-          : null}
-      </body>
+      <body dangerouslySetInnerHTML={{ __html: opts.bodyHtml }} />
     </html>
   );
 
   return "<!DOCTYPE html>" + renderToString(page);
 }
+
+// Set up a preact option hook to track when vnode with custom functions are
+// created.
+const ISLANDS: Island[] = [];
+const ENCOUNTERED_ISLANDS: Set<Island> = new Set([]);
+const originalHook = options.vnode;
+let ignoreNext = false;
+options.vnode = (vnode) => {
+  const originalType = vnode.type as ComponentType<unknown>;
+  if (typeof vnode.type === "function") {
+    const island = ISLANDS.find((island) => island.component === originalType);
+    if (island) {
+      if (ignoreNext) {
+        ignoreNext = false;
+        return;
+      }
+      ENCOUNTERED_ISLANDS.add(island);
+      vnode.type = (props) => {
+        ignoreNext = true;
+        const child = h(originalType, props);
+        return h(`frsh-${island.id}`, { props: JSON.stringify(props) }, child);
+      };
+    }
+  }
+  if (originalHook) originalHook(vnode);
+};

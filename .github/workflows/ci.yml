@@ -36,4 +36,7 @@ jobs:
         run: deno cache --no-check src/cli/deps.ts src/runtime/deps.ts src/server/deps.ts
 
       - name: Run tests
-        run: deno test -A --no-check
+        run: deno test -A --no-check=remote
+
+      - name: Type check website
+        run: deno cache --no-check=remote www/main.ts

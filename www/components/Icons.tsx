@@ -1,6 +1,6 @@
 /** @jsx h */
 
-import { h, tw } from "../deps.ts";
+import { h, tw } from "../client_deps.ts";
 
 export function IconMinus() {
   return (
