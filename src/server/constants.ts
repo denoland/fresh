@@ -5,6 +5,10 @@ export const BUILD_ID = Deno.env.get("DENO_DEPLOYMENT_ID") ||
   crypto.randomUUID();
 export const JS_PREFIX = `/js`;
 
+export function bundleAssetUrl(path: string) {
+  return `${INTERNAL_PREFIX}${JS_PREFIX}/${BUILD_ID}${path}`;
+}
+
 declare global {
   interface Crypto {
     randomUUID(): string;
