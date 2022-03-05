@@ -132,7 +132,7 @@ export default function Greet(props: PageProps) {
   );
 
   const ROUTES_API_JOKE_TS =
-    `import { HandlerContext } from "../server_deps.ts";
+    `import { HandlerContext } from "../../server_deps.ts";
 
 // Jokes courtesy of https://punsandoneliners.com/randomness/programmer-jokes/
 const JOKES = [
