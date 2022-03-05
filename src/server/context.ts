@@ -8,11 +8,7 @@ import {
 } from "./deps.ts";
 import { Manifest } from "./mod.ts";
 import { Bundler } from "./bundle.ts";
-import {
-  ALIVE_URL,
-  INTERNAL_PREFIX,
-  REFRESH_JS_URL,
-} from "./constants.ts";
+import { ALIVE_URL, INTERNAL_PREFIX, REFRESH_JS_URL } from "./constants.ts";
 import { JS_PREFIX } from "./constants.ts";
 import { BUILD_ID } from "./constants.ts";
 import {
