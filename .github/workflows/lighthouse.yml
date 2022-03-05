@@ -7,4 +7,4 @@ jobs:
     if: github.event.deployment_status.state == 'success' && github.event.deployment_status.creator.login == 'deno-deploy[bot]'
     runs-on: ubuntu-latest
     steps:
-      - run: echo "${{ github.event.deployment_status.target_url }}" 
+      - run: echo "${{ toJson(github) }}" 
