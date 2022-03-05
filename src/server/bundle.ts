@@ -6,7 +6,7 @@ async function ensureEsbuildInialized() {
   if (esbuildInitalized === false) {
     if (Deno.run === undefined) {
       esbuildInitalized = esbuild.initialize({
-        wasmURL: "https://unpkg.com/esbuild-wasm@0.11.19/esbuild.wasm",
+        wasmURL: new URL("./esbuild-wasm/esbuild.wasm", import.meta.url).href,
         worker: false,
       });
     } else {
@@ -52,7 +52,7 @@ export class Bundler {
       platform: "neutral",
       plugins: [denoPlugin()],
       splitting: true,
-      target: ["chrome90", "firefox88", "safari13"],
+      target: ["chrome96", "firefox95", "safari14"],
       treeShaking: true,
       write: false,
     });
