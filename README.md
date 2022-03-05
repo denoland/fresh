@@ -28,7 +28,7 @@ JS** is shipped to the client._
 ## Install
 
 To install, run the following command. This will add `fresh` CLI to your PATH.
-Make sure to have Deno 1.10.3 or later installed.
+Make sure to have Deno 1.12.0 or later installed.
 
 ```sh
 deno install -A -f --no-check -n fresh https://raw.githubusercontent.com/lucacasonato/fresh/main/cli.ts
@@ -40,7 +40,7 @@ The `fresh` CLI can scaffold a new project for you. To scaffold a project in the
 `myproject` folder, run the following:
 
 ```sh
-fresh init myproject
+fresh init my-project
 ```
 
 To now start the project, call `deno run`:
