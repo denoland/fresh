@@ -23,9 +23,9 @@ export const handler: Handlers<Data> = {
       });
     }
     if (!path.includes("/")) {
-      path = `${path}/index.md`;
+      path = `${path}/index`;
     }
-    const url = new URL("../../../docs/" + path, import.meta.url);
+    const url = new URL(`../../../docs/${path}.md`, import.meta.url);
     let markdown: string | null = null;
     try {
       markdown = await Deno.readTextFile(url);
