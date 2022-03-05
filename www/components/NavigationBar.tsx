@@ -2,7 +2,7 @@
 
 import { h, tw } from "../client_deps.ts";
 
-export default function NavigationBar(props: { active: string; }) {
+export default function NavigationBar(props: { active: string }) {
   const items = [
     {
       name: "Home",
@@ -21,7 +21,9 @@ export default function NavigationBar(props: { active: string; }) {
           <li>
             <a
               href={item.href}
-              class={tw`text-gray-600 hover:underline ${props.active == item.href ? "font-bold" : ""}`}
+              class={tw`text-gray-600 hover:underline ${
+                props.active == item.href ? "font-bold" : ""
+              }`}
             >
               {item.name}
             </a>
