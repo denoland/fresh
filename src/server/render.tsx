@@ -196,9 +196,41 @@ export function render<Data>(
     return [url, randomNonce] as const;
   });
 
-  let islandImports = "";
-  let islandRegistry = "";
-  for (const island of ENCOUNTERED_ISLANDS) {
+  if (ENCOUNTERED_ISLANDS.size > 0) {
+    // Load the main.js script
+    {
+      const randomNonce = crypto.randomUUID().replace(/-/g, "");
+      if (csp) {
+        csp.directives.scriptSrc = [
+          ...csp.directives.scriptSrc ?? [],
+          nonce(randomNonce),
+        ];
+      }
+      const url = bundleAssetUrl("/main.js");
+      imports.push([url, randomNonce] as const);
+    }
+
+    // Prepare the inline script that loads and revives the islands
+    let islandImports = "";
+    let islandRegistry = "";
+    for (const island of ENCOUNTERED_ISLANDS) {
+      const randomNonce = crypto.randomUUID().replace(/-/g, "");
+      if (csp) {
+        csp.directives.scriptSrc = [
+          ...csp.directives.scriptSrc ?? [],
+          nonce(randomNonce),
+        ];
+      }
+      const url = bundleAssetUrl(`/island-${island.id}.js`);
+      imports.push([url, randomNonce] as const);
+      islandImports += `\nimport ${island.name} from "${url}";`;
+      islandRegistry += `\n  ${island.id}: ${island.name},`;
+    }
+    const initCode = `import { revive } from "${
+      bundleAssetUrl("/main.js")
+    }";${islandImports}\nrevive({${islandRegistry}\n});`;
+
+    // Append the inline script to the body
     const randomNonce = crypto.randomUUID().replace(/-/g, "");
     if (csp) {
       csp.directives.scriptSrc = [
@@ -206,28 +238,11 @@ export function render<Data>(
         nonce(randomNonce),
       ];
     }
-    const url = bundleAssetUrl(`/island-${island.id}.js`);
-    imports.push([url, randomNonce] as const);
-    islandImports += `\nimport ${island.name} from "${url}";`;
-    islandRegistry += `\n  ${island.id}: ${island.name},`;
+    (bodyHtml as string) +=
+      `<script id="__FRSH_ISLAND_PROPS" type="application/json">${
+        JSON.stringify(ISLAND_PROPS)
+      }</script><script type="module" nonce="${randomNonce}">${initCode}</script>`;
   }
-
-  const initCode = `import { revive } from "${
-    bundleAssetUrl("/main.js")
-  }";${islandImports}\nrevive({${islandRegistry}\n});`;
-
-  const randomNonce = crypto.randomUUID().replace(/-/g, "");
-  if (csp) {
-    csp.directives.scriptSrc = [
-      ...csp.directives.scriptSrc ?? [],
-      nonce(randomNonce),
-    ];
-  }
-
-  (bodyHtml as string) +=
-    `<script id="__FRSH_ISLAND_PROPS" type="application/json">${
-      JSON.stringify(ISLAND_PROPS)
-    }</script><script type="module" nonce="${randomNonce}">${initCode}</script>`;
 
   const html = template({
     bodyHtml,

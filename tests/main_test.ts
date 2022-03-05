@@ -52,7 +52,7 @@ Deno.test("/intercept - GET html", async () => {
   assert(resp);
   assertEquals(resp.status, 200);
   const body = await resp.text();
-  assert(body.includes("<div>This is HTML</div>"));
+  assertStringIncludes(body, "<div>This is HTML</div>");
 });
 
 Deno.test("/intercept - GET text", async () => {
@@ -94,7 +94,7 @@ Deno.test("/intercept_args - GET html", async () => {
   assert(resp);
   assertEquals(resp.status, 200);
   const body = await resp.text();
-  assert(body.includes("<div>intercepted</div>"));
+  assertStringIncludes(body, "<div>intercepted</div>");
 });
 
 Deno.test("/api/get_only - NOTAMETHOD", async () => {
@@ -112,7 +112,7 @@ Deno.test("/api/xyz not found", async () => {
   assert(resp);
   assertEquals(resp.status, 404);
   const body = await resp.text();
-  assert(body.includes("404 not found: /api/xyz"));
+  assertStringIncludes(body, "404 not found: /api/xyz");
 });
 
 Deno.test("/static page prerender", async () => {
@@ -121,9 +121,10 @@ Deno.test("/static page prerender", async () => {
   assertEquals(resp.status, 200);
   assertEquals(resp.headers.get("content-type"), "text/html; charset=utf-8");
   const body = await resp.text();
-  assert(!body.includes(`static.js`));
+  assert(!body.includes(`main.js`));
+  assert(!body.includes(`island-test.js`));
   assertStringIncludes(body, "<p>This is a static page.</p>");
-  assert(!body.includes("__FRSH_PROPS"));
+  assert(!body.includes("__FRSH_ISLAND_PROPS"));
 });
 
 Deno.test("/books/:id page - /books/123", async () => {

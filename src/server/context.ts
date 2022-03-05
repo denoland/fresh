@@ -10,7 +10,6 @@ import { Manifest } from "./mod.ts";
 import { Bundler } from "./bundle.ts";
 import {
   ALIVE_URL,
-  bundleAssetUrl,
   INTERNAL_PREFIX,
   REFRESH_JS_URL,
 } from "./constants.ts";
@@ -299,7 +298,7 @@ export class ServerContext {
       page: Page<Data> | UnknownPage | ErrorPage,
       status: number,
     ) => {
-      const imports: string[] = [bundleAssetUrl("/main.js")];
+      const imports: string[] = [];
       if (this.#dev) {
         imports.push(REFRESH_JS_URL);
       }
