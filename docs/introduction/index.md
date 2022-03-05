@@ -9,3 +9,5 @@ just-in-time (JIT) rendering on the server, `fresh` also provides a framework
 for seamlessly rendering certain components on the client for maximum
 interactivity. It uses [Preact][preact] and JSX for rendering on both the server
 and the client.
+
+[preact]: https://preactjs.com/
