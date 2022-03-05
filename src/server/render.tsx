@@ -18,7 +18,7 @@ import {
 import { HEAD_CONTEXT } from "../runtime/head.ts";
 import { CSP_CONTEXT, nonce, NONE, UNSAFE_INLINE } from "../runtime/csp.ts";
 import { ContentSecurityPolicy } from "../runtime/csp.ts";
-import { BUILD_ID, INTERNAL_PREFIX, JS_PREFIX } from "./constants.ts";
+import { bundleAssetUrl } from "./constants.ts";
 
 export interface RenderOptions<Data> {
   page: Page<Data> | UnknownPage | ErrorPage;
@@ -169,6 +169,9 @@ export function render<Data>(
   // Clear the encountered vnodes
   ENCOUNTERED_ISLANDS.clear();
 
+  // Clear the island props
+  ISLAND_PROPS = [];
+
   let bodyHtml: string | null = null;
 
   function render() {
@@ -193,6 +196,8 @@ export function render<Data>(
     return [url, randomNonce] as const;
   });
 
+  let islandImports = "";
+  let islandRegistry = "";
   for (const island of ENCOUNTERED_ISLANDS) {
     const randomNonce = crypto.randomUUID().replace(/-/g, "");
     if (csp) {
@@ -201,9 +206,28 @@ export function render<Data>(
         nonce(randomNonce),
       ];
     }
-    const url = bundleAssetUrl(`/${island.id}.js`);
+    const url = bundleAssetUrl(`/island-${island.id}.js`);
     imports.push([url, randomNonce] as const);
+    islandImports += `\nimport ${island.name} from "${url}";`;
+    islandRegistry += `\n  ${island.id}: ${island.name},`;
   }
+
+  const initCode = `import { revive } from "${
+    bundleAssetUrl("/main.js")
+  }";${islandImports}\nrevive({${islandRegistry}\n});`;
+
+  const randomNonce = crypto.randomUUID().replace(/-/g, "");
+  if (csp) {
+    csp.directives.scriptSrc = [
+      ...csp.directives.scriptSrc ?? [],
+      nonce(randomNonce),
+    ];
+  }
+
+  (bodyHtml as string) +=
+    `<script id="__FRSH_ISLAND_PROPS" type="application/json">${
+      JSON.stringify(ISLAND_PROPS)
+    }</script><script type="module" nonce="${randomNonce}">${initCode}</script>`;
 
   const html = template({
     bodyHtml,
@@ -215,10 +239,6 @@ export function render<Data>(
   });
 
   return [html, csp];
-}
-
-function bundleAssetUrl(path: string) {
-  return `${INTERNAL_PREFIX}${JS_PREFIX}/${BUILD_ID}${path}`;
 }
 
 export interface TemplateOptions {
@@ -258,6 +278,7 @@ export function template(opts: TemplateOptions): string {
 // created.
 const ISLANDS: Island[] = [];
 const ENCOUNTERED_ISLANDS: Set<Island> = new Set([]);
+let ISLAND_PROPS: unknown[] = [];
 const originalHook = options.vnode;
 let ignoreNext = false;
 options.vnode = (vnode) => {
@@ -273,7 +294,12 @@ options.vnode = (vnode) => {
       vnode.type = (props) => {
         ignoreNext = true;
         const child = h(originalType, props);
-        return h(`frsh-${island.id}`, { props: JSON.stringify(props) }, child);
+        ISLAND_PROPS.push(props);
+        return h(
+          `!--frsh-${island.id}:${ISLAND_PROPS.length - 1}--`,
+          null,
+          child,
+        );
       };
     }
   }

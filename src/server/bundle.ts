@@ -1,4 +1,4 @@
-import { denoPlugin, esbuild, esbuildTypes, toFileUrl } from "./deps.ts";
+import { denoPlugin, esbuild, toFileUrl } from "./deps.ts";
 import { Island } from "./types.ts";
 
 let esbuildInitalized: boolean | Promise<void> = false;
@@ -28,10 +28,12 @@ export class Bundler {
   }
 
   async bundle() {
-    const entryPoints: Record<string, string> = {};
+    const entryPoints: Record<string, string> = {
+      "main": new URL("../../src/runtime/main.ts", import.meta.url).href,
+    };
 
     for (const island of this.#islands) {
-      entryPoints[island.id] = `fresh:///${island.id}`;
+      entryPoints[`island-${island.id}`] = island.url;
     }
 
     const absWorkingDir = Deno.cwd();
@@ -48,7 +50,7 @@ export class Bundler {
       absWorkingDir,
       outfile: "",
       platform: "neutral",
-      plugins: [freshPlugin(this.#islands), denoPlugin()],
+      plugins: [denoPlugin()],
       splitting: true,
       target: ["chrome90", "firefox88", "safari13"],
       treeShaking: true,
@@ -95,55 +97,4 @@ export class Bundler {
   // getPreloads(path: string): string[] {
   //   return this.#preloads.get(path) ?? [];
   // }
-}
-
-function freshPlugin(islands: Island[]): esbuildTypes.Plugin {
-  const runtime = new URL("../../runtime.ts", import.meta.url);
-
-  const islandMap = new Map<string, Island>();
-
-  for (const island of islands) {
-    islandMap.set(`/${island.id}`, island);
-  }
-
-  return {
-    name: "fresh",
-    setup(build) {
-      build.onResolve({ filter: /fresh:\/\/.*/ }, function onResolve(
-        args: esbuildTypes.OnResolveArgs,
-      ): esbuildTypes.OnResolveResult | null | undefined {
-        return ({
-          path: args.path,
-          namespace: "fresh",
-        });
-      });
-
-      build.onLoad(
-        { filter: /.*/, namespace: "fresh" },
-        function onLoad(
-          args: esbuildTypes.OnLoadArgs,
-        ): esbuildTypes.OnLoadResult | null | undefined {
-          const url = new URL(args.path);
-          const path = url.pathname;
-          const island = islandMap.get(path);
-          if (!island) return null;
-          const contents = `
-import ${island.name} from "${island.url}";
-import { h, render } from "${runtime.href}";
-
-class ${island.name}Island extends HTMLElement {
-  constructor() {
-    super();
-    const props = JSON.parse(this.getAttribute("props"));
-    render(h(${island.name}, props), this);
-  }
-}
-
-customElements.define("frsh-${island.id}", ${island.name}Island);
-`;
-          return { contents, loader: "js" };
-        },
-      );
-    },
-  };
 }
