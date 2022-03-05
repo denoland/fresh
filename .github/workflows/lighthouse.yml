@@ -1,10 +1,26 @@
-name: lighthouse
+name: live
 
 on: [deployment_status]
 
 jobs:
   lighthouse:
-    if: github.event.deployment_status.state == 'success' && github.event.deployment_status.creator.login == 'deno-deploy[bot]'
+    name: lighthouse
     runs-on: ubuntu-latest
+    if: github.event.deployment_status.state == 'success' && github.event.deployment_status.creator.login == 'deno-deploy[bot]'
+
+    env:
+      URL: ${{ github.event.deployment_status.environment_url }}
+
     steps:
-      - run: echo "${{ toJson(github) }}" 
+      - uses: actions/checkout@v2
+
+      - name: Install Node.js 16.x
+        uses: actions/setup-node@v1
+        with:
+          node-version: 16.x
+
+      - name: Install Lighthouse CI
+        run: npm install -g @lhci/cli@0.9.x
+
+      - name: Run Lighthouse
+        run: lhci autorun --collect.url="$URL"
