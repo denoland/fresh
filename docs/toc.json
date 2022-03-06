@@ -9,7 +9,7 @@
       ["scaffold-a-project", "Scaffold a project"],
       ["create-a-route", "Create a route"],
       ["fetching-data", "Fetching data"],
-      ["handling-form-submissions", "Handling form submissions"],
+      ["form-submissions", "Form submissions"],
       ["adding-interactivity", "Adding interactivity"],
       ["deploy-to-production", "Deploy to production"]
     ]
