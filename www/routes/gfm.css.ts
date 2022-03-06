@@ -1,9 +1,10 @@
-import { gfm, HandlerContext } from "../server_deps.ts";
+import { gfm, Handlers } from "../server_deps.ts";
 
 // TODO(lucacasonato): hash the file and use the hash as the filename, and serve
 // with high-cacheability headers.
 
-const extraCSS = `
+const CSS = `${gfm.CSS}
+
 ol.nested {
 	counter-reset: item;
 }
@@ -29,15 +30,12 @@ ol.nested li:before {
   list-style: numeric;
 }`;
 
-export const handler = {
-  GET: (_ctx: HandlerContext) => {
-    return new Response(
-      gfm.CSS + extraCSS,
-      {
-        headers: {
-          "content-type": "text/css",
-        },
+export const handler: Handlers = {
+  GET: () => {
+    return new Response(CSS, {
+      headers: {
+        "content-type": "text/css",
       },
-    );
+    });
   },
 };

@@ -22,8 +22,8 @@ interface Page extends TableOfContentsEntry {
 }
 
 export const handler: Handlers<Data> = {
-  async GET(ctx) {
-    const slug = ctx.match.slug;
+  async GET(_req, ctx) {
+    const slug = ctx.params.slug;
     if (slug === "") {
       return new Response("", {
         status: 307,
