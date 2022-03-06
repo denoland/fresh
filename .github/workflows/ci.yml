@@ -40,3 +40,6 @@ jobs:
 
       - name: Type check website
         run: deno cache --no-check=remote www/main.ts
+
+      - name: Type check examples/counter
+        run: deno cache --no-check=remote examples/counter/main.ts
