@@ -186,7 +186,9 @@ Deno.test("static file", async () => {
 });
 
 Deno.test("/params/:path*", async () => {
-  const resp = await router(new Request("https://fresh.deno.dev/params/bar/baz"));
+  const resp = await router(
+    new Request("https://fresh.deno.dev/params/bar/baz"),
+  );
   assert(resp);
   assertEquals(resp.status, 200);
   const body = await resp.text();
