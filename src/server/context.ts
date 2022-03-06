@@ -154,7 +154,6 @@ export class ServerContext {
           name,
           component,
           handler: handler ?? ((req) => router.defaultOtherHandler(req)),
-          runtimeJS: Boolean(config?.runtimeJS ?? false),
           csp: Boolean(config?.csp ?? false),
         };
       } else if (
@@ -174,7 +173,6 @@ export class ServerContext {
           component,
           handler: handler ??
             ((req, ctx) => router.defaultErrorHandler(req, ctx.error)),
-          runtimeJS: Boolean(config?.runtimeJS ?? false),
           csp: Boolean(config?.csp ?? false),
         };
       }
@@ -502,7 +500,6 @@ const DEFAULT_NOT_FOUND: UnknownPage = {
   url: "",
   name: "_404",
   handler: (req) => router.defaultOtherHandler(req),
-  runtimeJS: false,
   csp: false,
 };
 
@@ -511,7 +508,6 @@ const DEFAULT_ERROR: ErrorPage = {
   url: "",
   name: "_500",
   handler: (req, ctx) => router.defaultErrorHandler(req, ctx.error),
-  runtimeJS: false,
   csp: false,
 };
 

@@ -85,7 +85,6 @@ export interface UnknownPage {
   name: string;
   component?: ComponentType<UnknownPageProps>;
   handler: UnknownHandler;
-  runtimeJS: boolean;
   csp: boolean;
 }
 
@@ -95,7 +94,6 @@ export interface ErrorPage {
   name: string;
   component?: ComponentType<ErrorPageProps>;
   handler: ErrorHandler;
-  runtimeJS: boolean;
   csp: boolean;
 }
 
