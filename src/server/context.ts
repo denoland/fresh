@@ -376,17 +376,19 @@ export class ServerContext {
       this.#notFound.handler(
         req,
         {
-        render: unknownHandlerRender(req, {}),
-      });
+          render: unknownHandlerRender(req, {}),
+        },
+      );
 
     const errorHandlerRender = genRender(this.#error, 500);
     const errorHandler = (req: Request, error: unknown) =>
       this.#error.handler(
         req,
         {
-        error,
-        render: errorHandlerRender(req, {}, error),
-      });
+          error,
+          render: errorHandlerRender(req, {}, error),
+        },
+      );
 
     routes[`${INTERNAL_PREFIX}${JS_PREFIX}/${BUILD_ID}/:path*`] = this
       .#bundleAssetRoute();
