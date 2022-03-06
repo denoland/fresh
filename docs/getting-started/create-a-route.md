@@ -23,7 +23,7 @@ this, one needs to create a new `routes/about.tsx` file. In this file, we can
 declare a component that should be rendered every time a user visits the page.
 This is done with JSX.
 
-> To learn more about JSX, you can read [this article][jsx] in the React
+> ℹ️ To learn more about JSX, you can read [this article][jsx] in the React
 > documentation. Beware that `fresh` does not use React, but rather
 > [Preact][preact], a lighter weight virtual dom library that works similar to
 > React.
@@ -44,7 +44,7 @@ export default function AboutPage() {
 }
 ```
 
-> The first two lines are the JSX pragma, and the import for the JSX create
+> ℹ️ The first two lines are the JSX pragma, and the import for the JSX create
 > element function. These are just boilerplate. You don't need to know exactly
 > what they do - they just ensure that JSX get's rendered correctly.
 
@@ -61,8 +61,9 @@ $ fresh manifest
 Manifest generated and written to ./my-project/fresh.gen.ts
 ```
 
-> Updating the manifest needs to be done every time you add, remove, or rename a
-> page. It does not need to be done if just the contents of a page are edited.
+> ℹ️ Updating the manifest needs to be done every time you add, remove, or
+> rename a page. It does not need to be done if just the contents of a page are
+> edited.
 
 Now the page will be visible at `http://localhost:8000/about`.
 
