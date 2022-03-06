@@ -77,7 +77,7 @@ function Intro() {
       </ul>
       <p class={tw`text-gray-600`}>
         Fresh embraces the tried and true design of server side rendering and
-        processing.
+        progressive enhancement on the client side.
       </p>
     </section>
   );
