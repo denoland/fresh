@@ -1,5 +1,8 @@
 import { gfm, HandlerContext } from "../server_deps.ts";
 
+// TODO(lucacasonato): hash the file and use the hash as the filename, and serve
+// with high-cacheability headers.
+
 const extraCSS = `
 ol.nested {
 	counter-reset: item;

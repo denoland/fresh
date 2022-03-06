@@ -1,1 +1,17 @@
-> TODO(lucacasonato): this page still needs to be written
+In this chapter of the `fresh` documentation, you'll be introduced to the
+framework. You'll learn how to create a new project, run it locally, edit and
+create pages, fetch data, handle user interactions, and how to then deploy the
+project to [Deno Deploy][deno-deploy].
+
+The documentation assumes you have Deno 1.12.0 or later installed.
+
+To install Deno, follow the
+[installation instructions in the Deno manual][manual-installation].
+
+For the best user experience, you should also set up your editor or IDE to play
+nice with Deno. Documentation for this can also be found
+[in the manual][manual-editors].
+
+[deno-deploy]: https://deno.com/deploy
+[manual-installation]: https://deno.land/manual/getting_started/installation
+[manual-editors]: https://deno.land/manual/getting_started/setup_your_environment
