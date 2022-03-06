@@ -358,15 +358,15 @@ export class ServerContext {
     for (const page of this.#pages) {
       const createRender = genRender(page, 200);
       if (typeof page.handler === "function") {
-        routes[page.route] = (req, match) =>
+        routes[page.route] = (req, params) =>
           (page.handler as Handler)(req, {
-            match,
-            render: createRender(req, match),
+            params,
+            render: createRender(req, params),
           });
       } else {
         for (const [method, handler] of Object.entries(page.handler)) {
-          routes[`${method}@${page.route}`] = (req, match) =>
-            handler(req, { match, render: createRender(req, match) });
+          routes[`${method}@${page.route}`] = (req, params) =>
+            handler(req, { params, render: createRender(req, params) });
         }
       }
     }
@@ -456,8 +456,8 @@ export class ServerContext {
    * constants.INTERNAL_PREFIX
    */
   #bundleAssetRoute = (): router.MatchHandler => {
-    return async (_req, match) => {
-      const path = `/${match.path}`;
+    return async (_req, params) => {
+      const path = `/${params.path}`;
       const file = await this.#bundler.get(path);
       let res;
       if (file) {

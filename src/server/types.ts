@@ -33,7 +33,7 @@ export interface IslandModule {
 }
 
 export interface HandlerContext<T = unknown> {
-  match: Record<string, string>;
+  params: Record<string, string>;
   render: (data?: T) => Response;
 }
 
