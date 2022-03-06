@@ -1,10 +1,65 @@
 import RAW_TOC from "../../docs/toc.json" assert { type: "json" };
 
-export type TableOfContents = Record<string, TableOfContentsEntry>;
+type RawTableOfContents = Record<string, RawTableOfContentsEntry>;
 
-export interface TableOfContentsEntry {
+interface RawTableOfContentsEntry {
   title: string;
   pages?: [string, string][];
 }
 
-export const TOC = RAW_TOC as unknown as TableOfContents;
+export interface TableOfContentsEntry {
+  title: string;
+  category?: string;
+  href: string;
+  file: string;
+}
+
+export interface TableOfContentsCategory {
+  title: string;
+  href: string;
+  entries: TableOfContentsCategoryEntry[];
+}
+
+export interface TableOfContentsCategoryEntry {
+  title: string;
+  href: string;
+}
+
+export const TABLE_OF_CONTENTS: Record<string, TableOfContentsEntry> = {};
+export const CATEGORIES: TableOfContentsCategory[] = [];
+
+for (const parent in (RAW_TOC as unknown as RawTableOfContents)) {
+  const rawEntry = (RAW_TOC as unknown as RawTableOfContents)[parent];
+  const href = `/docs/${parent}`;
+  const file = `docs/${parent}/index.md`;
+  const entry = {
+    title: rawEntry.title,
+    href,
+    file,
+  };
+  TABLE_OF_CONTENTS[parent] = entry;
+  const category: TableOfContentsCategory = {
+    title: rawEntry.title,
+    href,
+    entries: [],
+  };
+  CATEGORIES.push(category);
+  if (rawEntry.pages) {
+    for (const [id, title] of rawEntry.pages) {
+      const slug = `${parent}/${id}`;
+      const href = `/docs/${slug}`;
+      const file = `docs/${slug}.md`;
+      const entry = {
+        title,
+        category: id,
+        href,
+        file,
+      };
+      TABLE_OF_CONTENTS[slug] = entry;
+      category.entries.push({
+        title,
+        href,
+      });
+    }
+  }
+}

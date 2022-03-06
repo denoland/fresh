@@ -19,11 +19,11 @@ ol.nested li:before {
 }
 
 .markdown-body ul {
-  list-style: disk
+  list-style: disc;
 }
 
-.markdown-body ul {
-  list-style: numeric
+.markdown-body ol {
+  list-style: numeric;
 }`;
 
 export const handler = {

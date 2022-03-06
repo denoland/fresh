@@ -7,50 +7,35 @@ import DocsSidebar from "../../components/DocsSidebar.tsx";
 import Footer from "../../components/Footer.tsx";
 import NavigationBar from "../../components/NavigationBar.tsx";
 import WarningBanner from "../../components/WarningBanner.tsx";
-import { TOC } from "../../data/docs.ts";
+import { TABLE_OF_CONTENTS, TableOfContentsEntry } from "../../data/docs.ts";
 
 interface Data {
-  page: Page | null;
+  page: Page;
 }
 
-interface Page {
-  title: string;
+interface Page extends TableOfContentsEntry {
   markdown: string;
 }
 
 export const handler: Handlers<Data> = {
   async GET(ctx) {
-    let path = ctx.match.slug;
-    if (path === "") {
+    const slug = ctx.match.slug;
+    if (slug === "") {
       return new Response("", {
         status: 307,
         headers: { location: "/docs/introduction" },
       });
     }
-    if (!path.includes("/")) {
-      path = `${path}/index`;
+    const entry = TABLE_OF_CONTENTS[slug];
+    if (!entry) {
+      return new Response("404 Page not found", {
+        status: 404,
+      });
     }
-    const url = new URL(`../../../docs/${path}.md`, import.meta.url);
-    let page: Page | null = null;
-    try {
-      const markdown = await Deno.readTextFile(url);
-      let title: string | null = null;
-      const parts = ctx.match.slug.split("/");
-      if (parts.length === 1) {
-        title = TOC[parts[0]].title;
-      } else {
-        title = TOC[parts[0]].pages!.find(([id]) => id === parts[1])![1];
-      }
-      page = { title, markdown };
-    } catch (err) {
-      if (!(err instanceof Deno.errors.NotFound)) {
-        throw err;
-      }
-    }
+    const url = new URL(`../../../${entry.file}`, import.meta.url);
+    const markdown = await Deno.readTextFile(url);
+    const page = { ...entry, markdown };
     const resp = ctx.render({ page });
-    if (page === null) {
-      return new Response(resp.body, { ...resp, status: 404 });
-    }
     return resp;
   },
 };
@@ -80,10 +65,7 @@ function Header() {
     >
       <div>
         <p class={title}>
-          <a href="/">
-            fresh
-          </a>{" "}
-          <span class={pageName}>docs</span>
+          <a href="/">fresh</a> <span class={pageName}>docs</span>
         </p>
         <p class={subtitle}>The next-gen web framework.</p>
       </div>
@@ -91,24 +73,20 @@ function Header() {
   );
 }
 
-function Main(props: { path: string; page: Page | null }) {
+function Main(props: { path: string; page: Page }) {
   const main = tw`mx-auto max-w-screen-lg px-4 grid grid-cols-8 gap-6`;
   return (
     <div class={main}>
       <DocsSidebar path={props.path} />
-      <Content path={props.path} page={props.page} />
+      <Content page={props.page} />
     </div>
   );
 }
 
-function Content(props: { path: string; page: Page | null }) {
+function Content(props: { page: Page }) {
   const main = tw`col-span-6 py-8`;
   const title = tw`text(4xl gray-900) tracking-tight font-extrabold`;
   const body = tw`mt-6`;
-  props.page ??= {
-    title: "Not Found",
-    markdown: "The article you were looking for was not found.",
-  };
   const html = gfm.render(props.page.markdown);
   return (
     <main class={main}>
