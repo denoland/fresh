@@ -27,7 +27,7 @@ then adds a custom header to the response before returning it:
 /** @jsx h */
 import { h, Handlers } from "../client_deps.ts";
 
-export const handler: Handler = {
+export const handler: Handlers = {
   GET(req, ctx) {
     const resp = ctx.render();
     resp.headers.set("X-Custom-Header", "Hello");
@@ -54,7 +54,7 @@ response:
 
 import { Handlers } from "../client_deps.ts";
 
-export const handler: Handler = {
+export const handler: Handlers = {
   GET(req) {
     const uuid = crypto.randomUUID();
     return new Response(JSON.stringify(uuid), {
