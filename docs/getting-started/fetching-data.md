@@ -4,4 +4,4 @@ to read a file from disk (markdown for a blog post), or fetch some user data
 from an API or database.
 
 These operations are all asynchronous. Rendering however, is always synchronous.
-To make this work anyway, `fresh` provides a way 
+To make this work anyway, `fresh` provides a way
