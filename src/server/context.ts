@@ -112,7 +112,7 @@ export class ServerContext {
           component &&
           typeof handler === "object" && handler.GET === undefined
         ) {
-          handler.GET = ({ render }) => render();
+          handler.GET = (_req, { render }) => render();
         }
         const page: Page = {
           route,
@@ -145,7 +145,7 @@ export class ServerContext {
         const { default: component, config } = (module as UnknownPageModule);
         let { handler } = (module as UnknownPageModule);
         if (component && handler === undefined) {
-          handler = ({ render }) => render();
+          handler = (_req, { render }) => render();
         }
 
         notFound = {
@@ -153,7 +153,7 @@ export class ServerContext {
           url,
           name,
           component,
-          handler: handler ?? ((ctx) => router.defaultOtherHandler(ctx.req)),
+          handler: handler ?? ((req) => router.defaultOtherHandler(req)),
           runtimeJS: Boolean(config?.runtimeJS ?? false),
           csp: Boolean(config?.csp ?? false),
         };
@@ -164,7 +164,7 @@ export class ServerContext {
         const { default: component, config } = (module as ErrorPageModule);
         let { handler } = (module as ErrorPageModule);
         if (component && handler === undefined) {
-          handler = ({ render }) => render();
+          handler = (_req, { render }) => render();
         }
 
         error = {
@@ -173,7 +173,7 @@ export class ServerContext {
           name,
           component,
           handler: handler ??
-            ((ctx) => router.defaultErrorHandler(ctx.req, ctx.error)),
+            ((req, ctx) => router.defaultErrorHandler(req, ctx.error)),
           runtimeJS: Boolean(config?.runtimeJS ?? false),
           csp: Boolean(config?.csp ?? false),
         };
@@ -266,7 +266,7 @@ export class ServerContext {
         return Response.redirect(url.href, 307);
       }
       const handle = () => Promise.resolve(inner(req));
-      return middleware.handler(req, handle);
+      return middleware.handler(req, { handle });
     };
   }
 
@@ -358,34 +358,37 @@ export class ServerContext {
     for (const page of this.#pages) {
       const createRender = genRender(page, 200);
       if (typeof page.handler === "function") {
-        routes[page.route] = (req, match) =>
-          (page.handler as Handler)({
-            req,
-            match,
-            render: createRender(req, match),
+        routes[page.route] = (req, params) =>
+          (page.handler as Handler)(req, {
+            params,
+            render: createRender(req, params),
           });
       } else {
         for (const [method, handler] of Object.entries(page.handler)) {
-          routes[`${method}@${page.route}`] = (req, match) =>
-            handler({ req, match, render: createRender(req, match) });
+          routes[`${method}@${page.route}`] = (req, params) =>
+            handler(req, { params, render: createRender(req, params) });
         }
       }
     }
 
     const unknownHandlerRender = genRender(this.#notFound, 404);
     const unknownHandler = (req: Request) =>
-      this.#notFound.handler({
+      this.#notFound.handler(
         req,
-        render: unknownHandlerRender(req, {}),
-      });
+        {
+          render: unknownHandlerRender(req, {}),
+        },
+      );
 
     const errorHandlerRender = genRender(this.#error, 500);
     const errorHandler = (req: Request, error: unknown) =>
-      this.#error.handler({
+      this.#error.handler(
         req,
-        error,
-        render: errorHandlerRender(req, {}, error),
-      });
+        {
+          error,
+          render: errorHandlerRender(req, {}, error),
+        },
+      );
 
     routes[`${INTERNAL_PREFIX}${JS_PREFIX}/${BUILD_ID}/:path*`] = this
       .#bundleAssetRoute();
@@ -453,8 +456,8 @@ export class ServerContext {
    * constants.INTERNAL_PREFIX
    */
   #bundleAssetRoute = (): router.MatchHandler => {
-    return async (_req, match) => {
-      const path = `/${match.path}`;
+    return async (_req, params) => {
+      const path = `/${params.path}`;
       const file = await this.#bundler.get(path);
       let res;
       if (file) {
@@ -487,7 +490,7 @@ const DEFAULT_RENDERER: Renderer = {
 };
 
 const DEFAULT_MIDDLEWARE: Middleware = {
-  handler: (_, handle) => handle(),
+  handler: (_, ctx) => ctx.handle(),
 };
 
 const DEFAULT_APP: AppModule = {
@@ -498,7 +501,7 @@ const DEFAULT_NOT_FOUND: UnknownPage = {
   route: "",
   url: "",
   name: "_404",
-  handler: (ctx) => router.defaultOtherHandler(ctx.req),
+  handler: (req) => router.defaultOtherHandler(req),
   runtimeJS: false,
   csp: false,
 };
@@ -507,7 +510,7 @@ const DEFAULT_ERROR: ErrorPage = {
   route: "",
   url: "",
   name: "_500",
-  handler: (ctx) => router.defaultErrorHandler(ctx.req, ctx.error),
+  handler: (req, ctx) => router.defaultErrorHandler(req, ctx.error),
   runtimeJS: false,
   csp: false,
 };
