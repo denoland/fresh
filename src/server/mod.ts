@@ -1,5 +1,5 @@
 import { ServerContext } from "./context.ts";
-import { listenAndServe } from "./deps.ts";
+import { serve } from "./deps.ts";
 import {
   AppModule,
   ErrorPageModule,
@@ -32,5 +32,7 @@ export { ServerContext };
 export async function start(routes: Manifest) {
   const ctx = await ServerContext.fromManifest(routes);
   console.log("Server listening on http://localhost:8000");
-  await listenAndServe(":8000", ctx.handler());
+  await serve(ctx.handler(), {
+    port: 8000,
+  });
 }
