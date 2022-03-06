@@ -67,11 +67,11 @@ Manifest generated and written to ./my-project/fresh.gen.ts
 
 Now the page will be visible at `http://localhost:8000/about`.
 
-You can find more in depth information about routes on the
+<!-- You can find more in depth information about routes on the
 [_Concepts: Routes_][concepts-routes] documentation page page. The following
-pages in the _Getting Started_ guide will also explain more features of routes.
+pages in the _Getting Started_ guide will also explain more features of routes. -->
 
 [concepts-routing]: /docs/concepts/routing
 [jsx]: https://reactjs.org/docs/introducing-jsx.html
 [preact]: https://preactjs.com/
-[concepts-routes]: /docs/concepts/routes
+<!-- [concepts-routes]: /docs/concepts/routes -->

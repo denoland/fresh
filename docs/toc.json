@@ -9,6 +9,7 @@
       ["create-a-project", "Create a project"],
       ["running-locally", "Running locally"],
       ["create-a-route", "Create a route"],
+      ["dynamic-routes", "Dynamic routes"],
       ["fetching-data", "Fetching data"],
       ["form-submissions", "Form submissions"],
       ["adding-interactivity", "Adding interactivity"],
