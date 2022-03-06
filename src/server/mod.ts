@@ -9,7 +9,12 @@ import {
   RendererModule,
   UnknownPageModule,
 } from "./types.ts";
-export type { Handler, HandlerContext, Handlers } from "./types.ts";
+export type {
+  Handler,
+  HandlerContext,
+  Handlers,
+  MiddlewareHandlerContext,
+} from "./types.ts";
 export { RenderContext } from "./render.tsx";
 export type { RenderFn } from "./render.tsx";
 

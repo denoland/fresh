@@ -1,7 +1,5 @@
-import { HandlerContext } from "../../../server.ts";
-
 export const handler = {
-  GET(_ctx: HandlerContext) {
+  GET() {
     throw Error("it errored!");
   },
 };

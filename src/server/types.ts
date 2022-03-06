@@ -33,30 +33,34 @@ export interface IslandModule {
 }
 
 export interface HandlerContext<T = unknown> {
-  req: Request;
   match: Record<string, string>;
   render: (data?: T) => Response;
 }
 
 export interface UnknownHandlerContext {
-  req: Request;
   render: () => Response;
 }
 
 export interface ErrorHandlerContext {
-  req: Request;
   error: unknown;
   render: () => Response;
 }
 
+export interface MiddlewareHandlerContext {
+  handle: () => Promise<Response>;
+}
+
 // deno-lint-ignore no-explicit-any
 export type Handler<T = any> = (
+  req: Request,
   ctx: HandlerContext<T>,
 ) => Response | Promise<Response>;
 export type UnknownHandler = (
+  req: Request,
   ctx: UnknownHandlerContext,
 ) => Response | Promise<Response>;
 export type ErrorHandler = (
+  req: Request,
   ctx: ErrorHandlerContext,
 ) => Response | Promise<Response>;
 
@@ -106,14 +110,14 @@ export interface Renderer {
 export interface MiddlewareModule {
   handler(
     req: Request,
-    handle: () => Promise<Response>,
+    ctx: MiddlewareHandlerContext,
   ): Response | Promise<Response>;
 }
 
 export interface Middleware {
   handler(
     req: Request,
-    handle: () => Promise<Response>,
+    ctx: MiddlewareHandlerContext,
   ): Response | Promise<Response>;
 }
 
