@@ -34,10 +34,15 @@ export function revive(islands: Record<string, ComponentType>) {
     const tag = node!.nodeType === 8 &&
       ((node as Comment).data.match(/^\s*frsh-(.*)\s*$/) || [])[1];
     if (tag) {
+      const startNode = node!;
       const children = [];
       const parent = node!.parentNode;
       while ((node = node!.nextSibling) && node.nodeType !== 8) {
         children.push(node);
+      }
+      startNode.parentNode!.removeChild(startNode);
+      if (node) {
+        node.parentNode?.removeChild(node);
       }
       const [id, n] = tag.split(":");
       render(
