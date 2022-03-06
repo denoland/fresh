@@ -1,13 +1,17 @@
 /** @jsx h */
 /** @jsxFrag Fragment */
 
-import { Fragment, h, Head, PageProps, tw } from "../../client_deps.ts";
+import { apply, Fragment, h, Head, PageProps, tw } from "../../client_deps.ts";
 import { gfm, Handlers } from "../../server_deps.ts";
 import DocsSidebar from "../../components/DocsSidebar.tsx";
 import Footer from "../../components/Footer.tsx";
 import NavigationBar from "../../components/NavigationBar.tsx";
 import WarningBanner from "../../components/WarningBanner.tsx";
-import { TABLE_OF_CONTENTS, TableOfContentsEntry } from "../../data/docs.ts";
+import {
+  SLUGS,
+  TABLE_OF_CONTENTS,
+  TableOfContentsEntry,
+} from "../../data/docs.ts";
 
 interface Data {
   page: Page;
@@ -96,6 +100,52 @@ function Content(props: { page: Page }) {
         class={`${body} markdown-body`}
         dangerouslySetInnerHTML={{ __html: html }}
       />
+      <ForwardBackButtons slug={props.page.slug} />
     </main>
+  );
+}
+
+const button = apply`p-2 bg-gray-100 w-full border(1 gray-200) grid`;
+
+function ForwardBackButtons(props: { slug: string }) {
+  const currentIndex = SLUGS.findIndex((slug) => slug === props.slug);
+  const previousSlug = SLUGS[currentIndex - 1];
+  const nextSlug = SLUGS[currentIndex + 1];
+  const previous = TABLE_OF_CONTENTS[previousSlug];
+  const next = TABLE_OF_CONTENTS[nextSlug];
+
+  const upper = tw`text(sm gray-600)`;
+  const category = tw`font-normal`;
+  const lower = tw`text-gray-900 font-medium`;
+
+  return (
+    <div class={tw`mt-8 flex gap-4`}>
+      {previous && (
+        <a href={previous.href} class={tw`${button} text-left`}>
+          <span class={upper}>{"<-"} Previous</span>
+          <span class={lower}>
+            <span class={category}>
+              {previous.category
+                ? `${TABLE_OF_CONTENTS[previous.category].title}: `
+                : ""}
+            </span>
+            {previous.title}
+          </span>
+        </a>
+      )}
+      {next && (
+        <a href={next.href} class={tw`${button} text-right`}>
+          <span class={upper}>Next {"->"}</span>
+          <span class={lower}>
+            <span class={category}>
+              {next.category
+                ? `${TABLE_OF_CONTENTS[next.category].title}: `
+                : ""}
+            </span>
+            {next.title}
+          </span>
+        </a>
+      )}
+    </div>
   );
 }

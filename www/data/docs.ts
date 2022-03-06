@@ -8,6 +8,7 @@ interface RawTableOfContentsEntry {
 }
 
 export interface TableOfContentsEntry {
+  slug: string;
   title: string;
   category?: string;
   href: string;
@@ -33,6 +34,7 @@ for (const parent in (RAW_TOC as unknown as RawTableOfContents)) {
   const href = `/docs/${parent}`;
   const file = `docs/${parent}/index.md`;
   const entry = {
+    slug: parent,
     title: rawEntry.title,
     href,
     file,
@@ -49,12 +51,7 @@ for (const parent in (RAW_TOC as unknown as RawTableOfContents)) {
       const slug = `${parent}/${id}`;
       const href = `/docs/${slug}`;
       const file = `docs/${slug}.md`;
-      const entry = {
-        title,
-        category: id,
-        href,
-        file,
-      };
+      const entry = { slug, title, category: parent, href, file };
       TABLE_OF_CONTENTS[slug] = entry;
       category.entries.push({
         title,
@@ -63,3 +60,5 @@ for (const parent in (RAW_TOC as unknown as RawTableOfContents)) {
     }
   }
 }
+
+export const SLUGS = Object.keys(TABLE_OF_CONTENTS);
