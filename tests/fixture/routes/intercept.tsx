@@ -8,7 +8,7 @@ export default function Page() {
 }
 
 export const handler = {
-  GET({ req, render }: HandlerContext) {
+  GET(req: Request, { render }: HandlerContext) {
     if (req.headers.get("accept")?.includes("text/html")) {
       return render();
     } else {

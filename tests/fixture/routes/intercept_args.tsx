@@ -12,7 +12,7 @@ export default function Page({ data }: PageProps<Data>) {
 }
 
 export const handler: Handlers<Data> = {
-  GET({ req, render }) {
+  GET(req, { render }) {
     if (req.headers.get("accept")?.includes("text/html")) {
       return render({
         info: "intercepted",
