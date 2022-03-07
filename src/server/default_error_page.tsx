@@ -34,7 +34,14 @@ export default function DefaultErrorPage(props: ErrorPageProps) {
           width: "50%",
         }}
       >
-        <p style={{ margin: 0, fontSize: "12pt", padding: 16 }}>
+        <p
+          style={{
+            margin: 0,
+            fontSize: "12pt",
+            padding: 16,
+            fontFamily: "sans-serif",
+          }}
+        >
           An error occured during route handling or page rendering.
         </p>
         {message && (
@@ -45,6 +52,7 @@ export default function DefaultErrorPage(props: ErrorPageProps) {
               overflowY: "auto",
               padding: 16,
               paddingTop: 0,
+              fontFamily: "monospace",
             }}
           >
             {message}
