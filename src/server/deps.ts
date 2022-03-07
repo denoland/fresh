@@ -9,9 +9,13 @@ export {
 } from "https://deno.land/std@0.128.0/path/mod.ts";
 export { walk } from "https://deno.land/std@0.128.0/fs/walk.ts";
 export { serve } from "https://deno.land/std@0.128.0/http/server.ts";
+export type {
+  ConnInfo,
+  Handler as RequestHandler,
+} from "https://deno.land/std@0.128.0/http/server.ts";
 
 // -- router --
-export * as router from "https://crux.land/router@0.0.5";
+export * as router from "https://crux.land/router@0.0.6";
 
 // -- media types --
 export { lookup as mediaTypeLookup } from "https://deno.land/x/media_types@v2.10.2/mod.ts";
