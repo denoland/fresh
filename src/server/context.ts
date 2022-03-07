@@ -8,9 +8,14 @@ import {
 } from "./deps.ts";
 import { Manifest } from "./mod.ts";
 import { Bundler } from "./bundle.ts";
-import { ALIVE_URL, INTERNAL_PREFIX, REFRESH_JS_URL } from "./constants.ts";
-import { JS_PREFIX } from "./constants.ts";
-import { BUILD_ID } from "./constants.ts";
+import {
+  ALIVE_URL,
+  BUILD_ID,
+  INTERNAL_PREFIX,
+  JS_PREFIX,
+  REFRESH_JS_URL,
+} from "./constants.ts";
+import DefaultErrorHandler from "./default_error_page.tsx";
 import {
   AppModule,
   ErrorPage,
@@ -306,29 +311,19 @@ export class ServerContext {
             throw new Error("This page does not have a component to render.");
           }
           const preloads: string[] = [];
-          let resp;
-          try {
-            resp = internalRender({
-              page,
-              islands: this.#islands,
-              app: this.#app,
-              imports,
-              preloads,
-              renderer: this.#renderer,
-              url: new URL(req.url),
-              params,
-              data,
-              error,
-            });
-          } catch (err) {
-            console.error("Error rendering page", err);
-            return new Response("500 Internal Server Error", {
-              status: 500,
-              headers: {
-                "content-type": "text/plain",
-              },
-            });
-          }
+          const resp = internalRender({
+            page,
+            islands: this.#islands,
+            app: this.#app,
+            imports,
+            preloads,
+            renderer: this.#renderer,
+            url: new URL(req.url),
+            params,
+            data,
+            error,
+          });
+
           const headers: Record<string, string> = {
             "content-type": "text/html; charset=utf-8",
           };
@@ -379,14 +374,20 @@ export class ServerContext {
       );
 
     const errorHandlerRender = genRender(this.#error, 500);
-    const errorHandler = (req: Request, error: unknown) =>
-      this.#error.handler(
+    const errorHandler = (req: Request, error: unknown) => {
+      console.error(
+        "%cAn error occured during route handling or page rendering.",
+        "color:red",
+        error,
+      );
+      return this.#error.handler(
         req,
         {
           error,
           render: errorHandlerRender(req, {}, error),
         },
       );
+    };
 
     routes[`${INTERNAL_PREFIX}${JS_PREFIX}/${BUILD_ID}/:path*`] = this
       .#bundleAssetRoute();
@@ -507,7 +508,8 @@ const DEFAULT_ERROR: ErrorPage = {
   route: "",
   url: "",
   name: "_500",
-  handler: (req, ctx) => router.defaultErrorHandler(req, ctx.error),
+  component: DefaultErrorHandler,
+  handler: (_req, ctx) => ctx.render(),
   csp: false,
 };
 
