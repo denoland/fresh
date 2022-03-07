@@ -160,7 +160,7 @@ function DesktopSidebar(props: { path: string }) {
 function Content(props: { page: Page }) {
   const main = tw`py-8`;
   const title = tw`text(4xl gray-900) tracking-tight font-extrabold mt-6`;
-  const body = tw`mt-6`;
+  const body = tw`mt-6 overflow-hidden`;
   const html = gfm.render(props.page.markdown);
   return (
     <main class={main}>
