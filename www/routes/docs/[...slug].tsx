@@ -62,7 +62,7 @@ export default function DocsPage(props: PageProps<Data>) {
 function Header() {
   const header = tw`mx-auto max-w-screen-lg flex gap-3 justify-between`;
   const sidebarButton = tw
-    `px-4 py-4 md:hidden border(l-2 gray-100) h-max flex items-center hover:bg-gray-50`;
+    `px-4 py-4 md:hidden border(l-2 gray-100) flex items-center hover:bg-gray-50`;
   return (
     <header class={header}>
       <div class={tw`p-4`}>
@@ -158,9 +158,9 @@ function DesktopSidebar(props: { path: string }) {
 }
 
 function Content(props: { page: Page }) {
-  const main = tw`py-8`;
+  const main = tw`py-8 overflow-hidden`;
   const title = tw`text(4xl gray-900) tracking-tight font-extrabold mt-6`;
-  const body = tw`mt-6 overflow-hidden`;
+  const body = tw`mt-6`;
   const html = gfm.render(props.page.markdown);
   return (
     <main class={main}>
@@ -189,7 +189,7 @@ function ForwardBackButtons(props: { slug: string }) {
   const lower = tw`text-gray-900 font-medium`;
 
   return (
-    <div class={tw`mt-8 flex gap-4`}>
+    <div class={tw`mt-8 flex flex(col md:row) gap-4`}>
       {previous && (
         <a href={previous.href} class={tw`${button} text-left`}>
           <span class={upper}>{"<-"} Previous</span>
