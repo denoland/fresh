@@ -9,13 +9,11 @@ import {
 
 export default function DocsSidebar(props: { path: string }) {
   return (
-    <aside class={tw`col-span-2 py-8 pr-4 border(r-2 gray-100)`}>
-      <ol class={tw`list-decimal list-inside font-semibold` + " nested"}>
-        {CATEGORIES.map((category) => (
-          <SidebarCategory path={props.path} category={category} />
-        ))}
-      </ol>
-    </aside>
+    <ol class={tw`list-decimal list-inside font-semibold` + " nested"}>
+      {CATEGORIES.map((category) => (
+        <SidebarCategory path={props.path} category={category} />
+      ))}
+    </ol>
   );
 }
 

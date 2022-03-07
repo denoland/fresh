@@ -28,7 +28,12 @@ ol.nested li:before {
 
 .markdown-body ol {
   list-style: numeric;
-}`;
+}
+
+.toggle:checked + .toggled {
+	display: block;
+}
+`;
 
 export const handler: Handlers = {
   GET: () => {
