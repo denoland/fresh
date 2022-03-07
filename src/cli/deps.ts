@@ -1,5 +1,6 @@
 // std
 export {
+  extname,
   join,
   resolve,
   toFileUrl,
