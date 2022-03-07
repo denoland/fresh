@@ -5,6 +5,7 @@ import { Fragment, h, Head, tw } from "../client_deps.ts";
 import Counter from "../islands/Counter.tsx";
 
 export default function MainPage() {
+  throw new Error("Boom!");
   return (
     <>
       <Head>

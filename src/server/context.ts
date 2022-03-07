@@ -5,10 +5,12 @@ import {
   router,
   toFileUrl,
   walk,
+  red,
 } from "./deps.ts";
 import { Manifest } from "./mod.ts";
 import { Bundler } from "./bundle.ts";
 import { ALIVE_URL, INTERNAL_PREFIX, REFRESH_JS_URL } from "./constants.ts";
+import DefaultErrorHandler from "./components/500.tsx";
 import { JS_PREFIX } from "./constants.ts";
 import { BUILD_ID } from "./constants.ts";
 import {
@@ -321,7 +323,9 @@ export class ServerContext {
               error,
             });
           } catch (err) {
-            console.error("Error rendering page", err);
+            // TODO(bartlomieju): do nicer formatting
+            console.error(red("Error rendering page"), err);
+            // return router.defaultErrorHandler(ctx.req, ctx.error);
             return new Response("500 Internal Server Error", {
               status: 500,
               headers: {
@@ -507,7 +511,13 @@ const DEFAULT_ERROR: ErrorPage = {
   route: "",
   url: "",
   name: "_500",
+<<<<<<< HEAD
   handler: (req, ctx) => router.defaultErrorHandler(req, ctx.error),
+=======
+  component: DefaultErrorHandler.default,
+  handler: (ctx) => ctx.render(),
+  runtimeJS: false,
+>>>>>>> 1588b6b (wip)
   csp: false,
 };
 
