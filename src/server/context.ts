@@ -174,8 +174,7 @@ export class ServerContext {
           name,
           component,
           handler: handler ??
-            ((req, ctx) =>
-              router.defaultErrorHandler(req, ctx.connInfo, ctx.error)),
+            ((req, ctx) => router.defaultErrorHandler(req, ctx, ctx.error)),
           csp: Boolean(config?.csp ?? false),
         };
       }
@@ -267,7 +266,7 @@ export class ServerContext {
         return Response.redirect(url.href, 307);
       }
       const handle = () => Promise.resolve(inner(req, connInfo));
-      return middleware.handler(req, { handle, connInfo });
+      return middleware.handler(req, { handle, ...connInfo });
     };
   }
 
@@ -361,7 +360,7 @@ export class ServerContext {
       if (typeof page.handler === "function") {
         routes[page.route] = (req, connInfo, params) =>
           (page.handler as Handler)(req, {
-            connInfo,
+            ...connInfo,
             params,
             render: createRender(req, params),
           });
@@ -369,8 +368,8 @@ export class ServerContext {
         for (const [method, handler] of Object.entries(page.handler)) {
           routes[`${method}@${page.route}`] = (req, connInfo, params) =>
             handler(req, {
+              ...connInfo,
               params,
-              connInfo,
               render: createRender(req, params),
             });
         }
@@ -382,7 +381,7 @@ export class ServerContext {
       this.#notFound.handler(
         req,
         {
-          connInfo,
+          ...connInfo,
           render: unknownHandlerRender(req, {}),
         },
       );
@@ -392,7 +391,7 @@ export class ServerContext {
       this.#error.handler(
         req,
         {
-          connInfo,
+          ...connInfo,
           error,
           render: errorHandlerRender(req, {}, error),
         },
@@ -517,8 +516,7 @@ const DEFAULT_ERROR: ErrorPage = {
   route: "",
   url: "",
   name: "_500",
-  handler: (req, ctx) =>
-    router.defaultErrorHandler(req, ctx.connInfo, ctx.error),
+  handler: (req, ctx) => router.defaultErrorHandler(req, ctx, ctx.error),
   csp: false,
 };
 

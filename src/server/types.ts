@@ -32,25 +32,21 @@ export interface IslandModule {
   default: ComponentType<any>;
 }
 
-export interface HandlerContext<T = unknown> {
-  connInfo: ConnInfo;
+export interface HandlerContext<T = unknown> extends ConnInfo {
   params: Record<string, string>;
   render: (data?: T) => Response;
 }
 
-export interface UnknownHandlerContext {
-  connInfo: ConnInfo;
+export interface UnknownHandlerContext extends ConnInfo {
   render: () => Response;
 }
 
-export interface ErrorHandlerContext {
-  connInfo: ConnInfo;
+export interface ErrorHandlerContext extends ConnInfo {
   error: unknown;
   render: () => Response;
 }
 
-export interface MiddlewareHandlerContext {
-  connInfo: ConnInfo;
+export interface MiddlewareHandlerContext extends ConnInfo {
   handle: () => Promise<Response>;
 }
 
