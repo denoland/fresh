@@ -502,7 +502,7 @@ const DEFAULT_ERROR: ErrorPage = {
   url: "",
   name: "_500",
   component: DefaultErrorHandler,
-  handler: (req, ctx) => ctx.render(),
+  handler: (_req, ctx) => ctx.render(),
   csp: false,
 };
 
