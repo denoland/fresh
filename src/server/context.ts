@@ -2,10 +2,10 @@ import {
   extname,
   fromFileUrl,
   mediaTypeLookup,
+  red,
   router,
   toFileUrl,
   walk,
-  red,
 } from "./deps.ts";
 import { Manifest } from "./mod.ts";
 import { Bundler } from "./bundle.ts";
@@ -308,31 +308,19 @@ export class ServerContext {
             throw new Error("This page does not have a component to render.");
           }
           const preloads: string[] = [];
-          let resp;
-          try {
-            resp = internalRender({
-              page,
-              islands: this.#islands,
-              app: this.#app,
-              imports,
-              preloads,
-              renderer: this.#renderer,
-              url: new URL(req.url),
-              params,
-              data,
-              error,
-            });
-          } catch (err) {
-            // TODO(bartlomieju): do nicer formatting
-            console.error(red("Error rendering page"), err);
-            // return router.defaultErrorHandler(ctx.req, ctx.error);
-            return new Response("500 Internal Server Error", {
-              status: 500,
-              headers: {
-                "content-type": "text/plain",
-              },
-            });
-          }
+          const resp = internalRender({
+            page,
+            islands: this.#islands,
+            app: this.#app,
+            imports,
+            preloads,
+            renderer: this.#renderer,
+            url: new URL(req.url),
+            params,
+            data,
+            error,
+          });
+
           const headers: Record<string, string> = {
             "content-type": "text/html; charset=utf-8",
           };
@@ -383,14 +371,16 @@ export class ServerContext {
       );
 
     const errorHandlerRender = genRender(this.#error, 500);
-    const errorHandler = (req: Request, error: unknown) =>
-      this.#error.handler(
+    const errorHandler = (req: Request, error: unknown) => {
+      console.error(red("Error"), error);
+      return this.#error.handler(
         req,
         {
           error,
           render: errorHandlerRender(req, {}, error),
         },
       );
+    };
 
     routes[`${INTERNAL_PREFIX}${JS_PREFIX}/${BUILD_ID}/:path*`] = this
       .#bundleAssetRoute();
@@ -511,13 +501,8 @@ const DEFAULT_ERROR: ErrorPage = {
   route: "",
   url: "",
   name: "_500",
-<<<<<<< HEAD
-  handler: (req, ctx) => router.defaultErrorHandler(req, ctx.error),
-=======
-  component: DefaultErrorHandler.default,
-  handler: (ctx) => ctx.render(),
-  runtimeJS: false,
->>>>>>> 1588b6b (wip)
+  component: DefaultErrorHandler,
+  handler: (req, ctx) => ctx.render(),
   csp: false,
 };
 

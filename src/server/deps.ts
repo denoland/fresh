@@ -26,6 +26,4 @@ const esbuild: typeof esbuildWasm = Deno.run === undefined
   : esbuildNative;
 export { esbuild, esbuildWasm as esbuildTypes };
 export { denoPlugin } from "https://deno.land/x/esbuild_deno_loader@0.4.0/mod.ts";
-export {
-  red,
-} from "https://deno.land/std@0.102.0/fmt/colors.ts";
+export { red } from "https://deno.land/std@0.102.0/fmt/colors.ts";
