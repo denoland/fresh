@@ -89,7 +89,7 @@ function Main(props: { path: string; page: Page }) {
 
 function Content(props: { page: Page }) {
   const main = tw`col-span-6 py-8`;
-  const title = tw`text(4xl gray-900) tracking-tight font-extrabold`;
+  const title = tw`text(4xl gray-900) tracking-tight font-extrabold mt-6`;
   const body = tw`mt-6`;
   const html = gfm.render(props.page.markdown);
   return (
