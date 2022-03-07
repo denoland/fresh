@@ -11,7 +11,10 @@ Deno.test("error page rendered", async () => {
   assertEquals(resp.status, 500);
   assertEquals(resp.headers.get("content-type"), "text/html; charset=utf-8");
   const body = await resp.text();
-  assertStringIncludes(body, `There was an error rendering the page`);
+  assertStringIncludes(
+    body,
+    `An error occured during route handling or page rendering.`,
+  );
   assertStringIncludes(body, `Error: boom!`);
   assertStringIncludes(body, `at render`);
 });

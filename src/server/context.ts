@@ -2,17 +2,20 @@ import {
   extname,
   fromFileUrl,
   mediaTypeLookup,
-  red,
   router,
   toFileUrl,
   walk,
 } from "./deps.ts";
 import { Manifest } from "./mod.ts";
 import { Bundler } from "./bundle.ts";
-import { ALIVE_URL, INTERNAL_PREFIX, REFRESH_JS_URL } from "./constants.ts";
-import DefaultErrorHandler from "./components/500.tsx";
-import { JS_PREFIX } from "./constants.ts";
-import { BUILD_ID } from "./constants.ts";
+import {
+  ALIVE_URL,
+  BUILD_ID,
+  INTERNAL_PREFIX,
+  JS_PREFIX,
+  REFRESH_JS_URL,
+} from "./constants.ts";
+import DefaultErrorHandler from "./default_error_page.tsx";
 import {
   AppModule,
   ErrorPage,
@@ -372,7 +375,11 @@ export class ServerContext {
 
     const errorHandlerRender = genRender(this.#error, 500);
     const errorHandler = (req: Request, error: unknown) => {
-      console.error(red("Error"), error);
+      console.error(
+        "%cAn error occured during route handling or page rendering.",
+        "color:red",
+        error,
+      );
       return this.#error.handler(
         req,
         {

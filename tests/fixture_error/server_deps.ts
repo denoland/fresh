@@ -1,1 +1,1 @@
-export * from "file:///Users/ib/dev/fresh/server.ts";
+export * from "../../server.ts";
