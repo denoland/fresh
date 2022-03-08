@@ -207,3 +207,11 @@ Deno.test("/params/:path*", async () => {
   const body = await resp.text();
   assertEquals(body, "bar/baz");
 });
+
+Deno.test("/connInfo", async () => {
+  const resp = await router(new Request("https://fresh.deno.dev/connInfo"));
+  assert(resp);
+  assertEquals(resp.status, 200);
+  const body = await resp.text();
+  assertEquals(body, "127.0.0.1");
+});

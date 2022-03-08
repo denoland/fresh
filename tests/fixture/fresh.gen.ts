@@ -10,14 +10,15 @@ import * as $4 from "./routes/_middleware.ts";
 import * as $5 from "./routes/_render.ts";
 import * as $6 from "./routes/api/get_only.ts";
 import * as $7 from "./routes/books/[id].tsx";
-import * as $8 from "./routes/failure.ts";
-import * as $9 from "./routes/index.tsx";
-import * as $10 from "./routes/intercept.tsx";
-import * as $11 from "./routes/intercept_args.tsx";
-import * as $12 from "./routes/params.tsx";
-import * as $13 from "./routes/props/[id].tsx";
-import * as $14 from "./routes/static.tsx";
-import * as $15 from "./routes/wildcard.tsx";
+import * as $8 from "./routes/connInfo.ts";
+import * as $9 from "./routes/failure.ts";
+import * as $10 from "./routes/index.tsx";
+import * as $11 from "./routes/intercept.tsx";
+import * as $12 from "./routes/intercept_args.tsx";
+import * as $13 from "./routes/params.tsx";
+import * as $14 from "./routes/props/[id].tsx";
+import * as $15 from "./routes/static.tsx";
+import * as $16 from "./routes/wildcard.tsx";
 import * as $$0 from "./islands/Test.tsx";
 
 const manifest = {
@@ -30,14 +31,15 @@ const manifest = {
     "./routes/_render.ts": $5,
     "./routes/api/get_only.ts": $6,
     "./routes/books/[id].tsx": $7,
-    "./routes/failure.ts": $8,
-    "./routes/index.tsx": $9,
-    "./routes/intercept.tsx": $10,
-    "./routes/intercept_args.tsx": $11,
-    "./routes/params.tsx": $12,
-    "./routes/props/[id].tsx": $13,
-    "./routes/static.tsx": $14,
-    "./routes/wildcard.tsx": $15,
+    "./routes/connInfo.ts": $8,
+    "./routes/failure.ts": $9,
+    "./routes/index.tsx": $10,
+    "./routes/intercept.tsx": $11,
+    "./routes/intercept_args.tsx": $12,
+    "./routes/params.tsx": $13,
+    "./routes/props/[id].tsx": $14,
+    "./routes/static.tsx": $15,
+    "./routes/wildcard.tsx": $16,
   },
   islands: {
     "./islands/Test.tsx": $$0,
