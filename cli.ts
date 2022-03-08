@@ -5,7 +5,7 @@ import { manifestSubcommand } from "./src/cli/manifest.ts";
 const VERSION = "0.1.0";
 
 const help = `fresh ${VERSION}
-Preact, but super edgy.
+The next-gen web framework.
 
 To initalize a new project:
   fresh init ./myproject

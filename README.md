@@ -3,7 +3,7 @@
 
 # fresh
 
-Preact, but super edgy.
+The next-gen web framework.
 
 Fresh is a web framework that lets you build projects very fast, highly dynamic,
 and without the need of a build step. Fresh embraces isomorphic JavaScript like
@@ -21,9 +21,6 @@ the framework.
 - Optional client side hydration
 - TypeScript out of the box
 - File-system routing à la Next.js
-
-_<sup>1</sup> Client side hydration can be enabled per page. By default **no
-JS** is shipped to the client._
 
 ## Install
 
