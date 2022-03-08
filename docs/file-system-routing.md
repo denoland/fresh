@@ -6,7 +6,7 @@ is available. This concept is called file system routing.
 
 As an example, the HTML page described by `index.tsx` would be served at `/`,
 while the `about.tsx` page would be served at `/about`. File system routing is
-also capable of dynamic path segments: `/posts/[post].jsx` would be be used for
+also capable of dynamic path segments: `/posts/[post].jsx` would be used for
 requests to `/posts/foo`, `/posts/bar`, or `/posts/baz`, but not for
 `/posts/foo/comments` (that would be matched by `/posts/[post]/comments.tsx`).
 Multi-level dynamic segments are also possible: `/[owner]/[repo]/[...path]`
