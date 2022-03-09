@@ -3,7 +3,20 @@ import { assert, assertEquals, assertStringIncludes } from "./deps.ts";
 import manifest from "./fixture/fresh.gen.ts";
 
 const ctx = await ServerContext.fromManifest(manifest);
-const router = ctx.handler();
+const router = (req: Request) => {
+  return ctx.handler()(req, {
+    localAddr: {
+      transport: "tcp",
+      hostname: "127.0.0.1",
+      port: 80,
+    },
+    remoteAddr: {
+      transport: "tcp",
+      hostname: "127.0.0.1",
+      port: 80,
+    },
+  });
+};
 
 Deno.test("/ page prerender", async () => {
   const resp = await router(new Request("https://fresh.deno.dev/"));
@@ -193,4 +206,12 @@ Deno.test("/params/:path*", async () => {
   assertEquals(resp.status, 200);
   const body = await resp.text();
   assertEquals(body, "bar/baz");
+});
+
+Deno.test("/connInfo", async () => {
+  const resp = await router(new Request("https://fresh.deno.dev/connInfo"));
+  assert(resp);
+  assertEquals(resp.status, 200);
+  const body = await resp.text();
+  assertEquals(body, "127.0.0.1");
 });

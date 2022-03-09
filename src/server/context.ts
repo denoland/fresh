@@ -1,7 +1,9 @@
 import {
+  ConnInfo,
   extname,
   fromFileUrl,
   mediaTypeLookup,
+  RequestHandler,
   router,
   toFileUrl,
   walk,
@@ -177,7 +179,7 @@ export class ServerContext {
           name,
           component,
           handler: handler ??
-            ((req, ctx) => router.defaultErrorHandler(req, ctx.error)),
+            ((req, ctx) => router.defaultErrorHandler(req, ctx, ctx.error)),
           csp: Boolean(config?.csp ?? false),
         };
       }
@@ -256,10 +258,10 @@ export class ServerContext {
    * This functions returns a request handler that handles all routes required
    * by fresh, including static files.
    */
-  handler(): router.RequestHandler {
+  handler(): RequestHandler {
     const inner = router.router(...this.#routes());
     const middleware = this.#middleware;
-    return function handler(req: Request) {
+    return function handler(req: Request, connInfo: ConnInfo) {
       // Redirect requests that end with a trailing slash
       // to their non-trailing slash counterpart.
       // Ex: /about/ -> /about
@@ -268,8 +270,8 @@ export class ServerContext {
         url.pathname = url.pathname.slice(0, -1);
         return Response.redirect(url.href, 307);
       }
-      const handle = () => Promise.resolve(inner(req));
-      return middleware.handler(req, { handle });
+      const handle = () => Promise.resolve(inner(req, connInfo));
+      return middleware.handler(req, { handle, ...connInfo });
     };
   }
 
@@ -277,7 +279,7 @@ export class ServerContext {
    * This function returns all routes required by fresh as an extended
    * path-to-regex, to handler mapping.
    */
-  #routes(): [router.Routes, router.RequestHandler, router.ErrorHandler] {
+  #routes(): [router.Routes, RequestHandler, router.ErrorHandler] {
     const routes: router.Routes = {};
 
     // Add the static file routes.
@@ -351,30 +353,36 @@ export class ServerContext {
     for (const page of this.#pages) {
       const createRender = genRender(page, 200);
       if (typeof page.handler === "function") {
-        routes[page.route] = (req, params) =>
+        routes[page.route] = (req, connInfo, params) =>
           (page.handler as Handler)(req, {
+            ...connInfo,
             params,
             render: createRender(req, params),
           });
       } else {
         for (const [method, handler] of Object.entries(page.handler)) {
-          routes[`${method}@${page.route}`] = (req, params) =>
-            handler(req, { params, render: createRender(req, params) });
+          routes[`${method}@${page.route}`] = (req, connInfo, params) =>
+            handler(req, {
+              ...connInfo,
+              params,
+              render: createRender(req, params),
+            });
         }
       }
     }
 
     const unknownHandlerRender = genRender(this.#notFound, 404);
-    const unknownHandler = (req: Request) =>
+    const unknownHandler = (req: Request, connInfo: ConnInfo) =>
       this.#notFound.handler(
         req,
         {
+          ...connInfo,
           render: unknownHandlerRender(req, {}),
         },
       );
 
     const errorHandlerRender = genRender(this.#error, 500);
-    const errorHandler = (req: Request, error: unknown) => {
+    const errorHandler = (req: Request, connInfo: ConnInfo, error: unknown) => {
       console.error(
         "%cAn error occured during route handling or page rendering.",
         "color:red",
@@ -383,6 +391,7 @@ export class ServerContext {
       return this.#error.handler(
         req,
         {
+          ...connInfo,
           error,
           render: errorHandlerRender(req, {}, error),
         },
@@ -455,7 +464,7 @@ export class ServerContext {
    * constants.INTERNAL_PREFIX
    */
   #bundleAssetRoute = (): router.MatchHandler => {
-    return async (_req, params) => {
+    return async (_req, _connInfo, params) => {
       const path = `/${params.path}`;
       const file = await this.#bundler.get(path);
       let res;

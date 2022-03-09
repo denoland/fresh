@@ -3,7 +3,20 @@ import { assert, assertEquals, assertStringIncludes } from "./deps.ts";
 import manifest from "./fixture_error/fresh.gen.ts";
 
 const ctx = await ServerContext.fromManifest(manifest);
-const router = ctx.handler();
+const router = (req: Request) => {
+  return ctx.handler()(req, {
+    localAddr: {
+      transport: "tcp",
+      hostname: "127.0.0.1",
+      port: 80,
+    },
+    remoteAddr: {
+      transport: "tcp",
+      hostname: "127.0.0.1",
+      port: 80,
+    },
+  });
+};
 
 Deno.test("error page rendered", async () => {
   const resp = await router(new Request("https://fresh.deno.dev/"));

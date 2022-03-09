@@ -1,5 +1,5 @@
 import { ComponentType } from "../runtime/deps.ts";
-import { router } from "./deps.ts";
+import { ConnInfo, router } from "./deps.ts";
 import {
   AppProps,
   ErrorPageProps,
@@ -32,21 +32,21 @@ export interface IslandModule {
   default: ComponentType<any>;
 }
 
-export interface HandlerContext<T = unknown> {
+export interface HandlerContext<T = unknown> extends ConnInfo {
   params: Record<string, string>;
   render: (data?: T) => Response;
 }
 
-export interface UnknownHandlerContext {
+export interface UnknownHandlerContext extends ConnInfo {
   render: () => Response;
 }
 
-export interface ErrorHandlerContext {
+export interface ErrorHandlerContext extends ConnInfo {
   error: unknown;
   render: () => Response;
 }
 
-export interface MiddlewareHandlerContext {
+export interface MiddlewareHandlerContext extends ConnInfo {
   handle: () => Promise<Response>;
 }
 
