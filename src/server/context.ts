@@ -454,7 +454,7 @@ export class ServerContext {
             "content-type": contentType,
             "content-length": String(size),
             "etag": etag,
-            "cache-control": "public, max-age=31536000, immutable"
+            "cache-control": "public, max-age=31536000, immutable",
           },
         });
       }

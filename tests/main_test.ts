@@ -187,17 +187,22 @@ Deno.test("static file", async () => {
   const resp = await router(new Request("https://fresh.deno.dev/"));
   const body = await resp.text();
   // retrieve the BUILD_ID
-  const BUILD_ID = body.match(/"BUILD_ID":"(.*?)"/)?.[1]
+  const BUILD_ID = body.match(/"BUILD_ID":"(.*?)"/)?.[1];
   assert(BUILD_ID);
-  const imgFilePath = body.match(/img src="(.*?)"/)?.[1]
+  const imgFilePath = body.match(/img src="(.*?)"/)?.[1];
   assert(imgFilePath);
   assert(imgFilePath.includes(BUILD_ID));
 
   // check the static file is served corectly
-  const resp2 = await router(new Request(`https://fresh.deno.dev${imgFilePath}`));
-  const _ = await resp2.text()
+  const resp2 = await router(
+    new Request(`https://fresh.deno.dev${imgFilePath}`),
+  );
+  const _ = await resp2.text();
   assertEquals(resp2.status, 200);
-  assertEquals(resp2.headers.get('cache-control'), "public, max-age=31536000, immutable");
+  assertEquals(
+    resp2.headers.get("cache-control"),
+    "public, max-age=31536000, immutable",
+  );
 
   const resp3 = await router(
     new Request(`https://fresh.deno.dev${imgFilePath}`, {
