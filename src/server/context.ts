@@ -12,6 +12,7 @@ import { Manifest } from "./mod.ts";
 import { Bundler } from "./bundle.ts";
 import {
   ALIVE_URL,
+  asset,
   BUILD_ID,
   INTERNAL_PREFIX,
   JS_PREFIX,
@@ -214,7 +215,7 @@ export class ServerContext {
       const encoder = new TextEncoder();
       for await (const entry of entires) {
         const localUrl = toFileUrl(entry.path);
-        const path = localUrl.href.substring(staticFolder.href.length);
+        const path = asset(localUrl.href.substring(staticFolder.href.length));
         const stat = await Deno.stat(localUrl);
         const contentType = mediaTypeLookup(extname(path)) ??
           "application/octet-stream";
@@ -453,6 +454,7 @@ export class ServerContext {
             "content-type": contentType,
             "content-length": String(size),
             "etag": etag,
+            "cache-control": "public, max-age=31536000, immutable"
           },
         });
       }

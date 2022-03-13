@@ -5,7 +5,6 @@ import {
   ComponentType,
   h,
   options,
-  VNode,
 } from "../runtime/deps.ts";
 import {
   AppModule,
@@ -18,7 +17,7 @@ import {
 import { HEAD_CONTEXT } from "../runtime/head.ts";
 import { CSP_CONTEXT, nonce, NONE, UNSAFE_INLINE } from "../runtime/csp.ts";
 import { ContentSecurityPolicy } from "../runtime/csp.ts";
-import { bundleAssetUrl } from "./constants.ts";
+import { BUILD_ID, bundleAssetUrl } from "./constants.ts";
 
 export interface RenderOptions<Data> {
   page: Page<Data> | UnknownPage | ErrorPage;
@@ -185,6 +184,12 @@ export function render<Data>(
     throw new Error("`render` function not called by renderer.");
   }
 
+  // Inject the BUILD_ID as data for client script to retrieve it
+  (bodyHtml as string) +=
+  `<script id="__FRSH_BUILD_ID" type="application/json">${
+    JSON.stringify({BUILD_ID: '____FRESH_BUILD_ID____'})
+  }</script>`;
+
   const imports = opts.imports.map((url) => {
     const randomNonce = crypto.randomUUID().replace(/-/g, "");
     if (csp) {
@@ -286,7 +291,7 @@ export function template(opts: TemplateOptions): string {
     </html>
   );
 
-  return "<!DOCTYPE html>" + renderToString(page);
+  return "<!DOCTYPE html>" + renderToString(page).replaceAll('____FRESH_BUILD_ID____', BUILD_ID);
 }
 
 // Set up a preact option hook to track when vnode with custom functions are

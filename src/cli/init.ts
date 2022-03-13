@@ -165,11 +165,6 @@ export const handler = (_req: Request, _ctx: HandlerContext): Response => {
 /// <reference lib="deno.ns" />
 /// <reference lib="deno.unstable" />
 
-declare global {
-  // deno-lint-ignore no-explicit-any no-var
-  var URLPattern: any;
-}
-
 import { start } from "./server_deps.ts";
 import manifest from "./fresh.gen.ts";
 

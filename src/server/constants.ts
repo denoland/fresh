@@ -1,4 +1,6 @@
-export const INTERNAL_PREFIX = "/_frsh";
+import { INTERNAL_PREFIX, STATIC_PREFIX } from "../shared/constants.ts";
+export * from "../shared/constants.ts";
+
 export const REFRESH_JS_URL = `${INTERNAL_PREFIX}/refresh.js`;
 export const ALIVE_URL = `${INTERNAL_PREFIX}/alive`;
 export const BUILD_ID = Deno.env.get("DENO_DEPLOYMENT_ID") ||
@@ -8,6 +10,10 @@ export const DEBUG = !Deno.env.get("DENO_DEPLOYMENT_ID");
 
 export function bundleAssetUrl(path: string) {
   return `${INTERNAL_PREFIX}${JS_PREFIX}/${BUILD_ID}${path}`;
+}
+
+export function asset(path: string) {
+  return `${INTERNAL_PREFIX}${STATIC_PREFIX}/${BUILD_ID}${path}`;
 }
 
 declare global {
