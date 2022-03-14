@@ -182,18 +182,32 @@ Deno.test("/foo/:path*", async () => {
   assert(body.includes("bar/baz"));
 });
 
-Deno.test("static file", async () => {
+Deno.test("static file - by file path", async () => {
+  const resp = await router(new Request("https://fresh.deno.dev/foo.txt"));
+  assertEquals(resp.status, 200);
+  const body = await resp.text();
+  assert(body.startsWith("bar"));
+  assert(resp.headers.get("etag"));
+
+  const resp2 = await router(
+    new Request("https://fresh.deno.dev/foo.txt", {
+      headers: {
+        "if-none-match": resp.headers.get("etag")!,
+      },
+    }),
+  );
+  assertEquals(resp2.status, 304);
+});
+
+Deno.test("static file - by 'hashed' path", async () => {
   // Check that the file path have the BUILD_ID
   const resp = await router(new Request("https://fresh.deno.dev/"));
   const body = await resp.text();
-  // retrieve the BUILD_ID
-  const BUILD_ID = body.match(/"BUILD_ID":"(.*?)"/)?.[1];
-  assert(BUILD_ID);
   const imgFilePath = body.match(/img src="(.*?)"/)?.[1];
   assert(imgFilePath);
-  assert(imgFilePath.includes(BUILD_ID));
+  assert(imgFilePath.includes(globalThis.__FRSH_BUILD_ID));
 
-  // check the static file is served corectly
+  // check the static file is served corectly under its cacheable route
   const resp2 = await router(
     new Request(`https://fresh.deno.dev${imgFilePath}`),
   );

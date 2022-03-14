@@ -184,12 +184,6 @@ export function render<Data>(
     throw new Error("`render` function not called by renderer.");
   }
 
-  // Inject the BUILD_ID as data for client script to retrieve it
-  (bodyHtml as string) +=
-    `<script id="__FRSH_BUILD_ID" type="application/json">${
-      JSON.stringify({ BUILD_ID: "____FRESH_BUILD_ID____" })
-    }</script>`;
-
   const imports = opts.imports.map((url) => {
     const randomNonce = crypto.randomUUID().replace(/-/g, "");
     if (csp) {
@@ -291,8 +285,7 @@ export function template(opts: TemplateOptions): string {
     </html>
   );
 
-  return "<!DOCTYPE html>" +
-    renderToString(page).replaceAll("____FRESH_BUILD_ID____", BUILD_ID);
+  return "<!DOCTYPE html>" + renderToString(page);
 }
 
 // Set up a preact option hook to track when vnode with custom functions are
