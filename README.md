@@ -51,4 +51,4 @@ project to GitHub, create a `fresh` project, and link it to `main.ts` file in
 the created repository.
 
 For a more in-depth getting started guide, visit the
-[Getting Started](./docs/getting-started.md) page in the `fresh` website.
+[Getting Started](./docs/getting-started.md) page in the `fresh` docs.
