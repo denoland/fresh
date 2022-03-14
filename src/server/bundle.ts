@@ -41,7 +41,7 @@ export class Bundler {
     await ensureEsbuildInialized();
     const bundle = await esbuild.build({
       bundle: true,
-      define: { "globalThis.__FRSH_BUILD_ID": BUILD_ID },
+      define: { __FRSH_BUILD_ID: `"${BUILD_ID}"` },
       entryPoints,
       format: "esm",
       metafile: true,

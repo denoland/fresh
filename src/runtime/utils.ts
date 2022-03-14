@@ -9,5 +9,5 @@ export const IS_BROWSER = typeof document !== "undefined";
  * @param path a path to a file in the static folder asset. e.g. /style.css
  */
 export function asset(path: string) {
-  return `${INTERNAL_PREFIX}${STATIC_PREFIX}/${globalThis.__FRSH_BUILD_ID}${path}`;
+  return `${INTERNAL_PREFIX}${STATIC_PREFIX}/` + __FRSH_BUILD_ID + path;
 }
