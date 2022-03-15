@@ -277,6 +277,42 @@ export class ServerContext {
   #routes(): [router.Routes, RequestHandler, router.ErrorHandler] {
     const routes: router.Routes = {};
 
+    routes[`${INTERNAL_PREFIX}${JS_PREFIX}/${BUILD_ID}/:path*`] = this
+      .#bundleAssetRoute();
+
+    if (this.#dev) {
+      routes[REFRESH_JS_URL] = () => {
+        const js =
+          `const buildId = "${BUILD_ID}"; new EventSource("${ALIVE_URL}").addEventListener("message", (e) => { if (e.data !== buildId) { location.reload(); } });`;
+        return new Response(new TextEncoder().encode(js), {
+          headers: {
+            "content-type": "application/javascript; charset=utf-8",
+          },
+        });
+      };
+      routes[ALIVE_URL] = () => {
+        let timerId: number | undefined = undefined;
+        const body = new ReadableStream({
+          start(controller) {
+            controller.enqueue(`data: ${BUILD_ID}\nretry: 100\n\n`);
+            timerId = setInterval(() => {
+              controller.enqueue(`data: ${BUILD_ID}\n\n`);
+            }, 1000);
+          },
+          cancel() {
+            if (timerId !== undefined) {
+              clearInterval(timerId);
+            }
+          },
+        });
+        return new Response(body.pipeThrough(new TextEncoderStream()), {
+          headers: {
+            "content-type": "text/event-stream",
+          },
+        });
+      };
+    }
+
     // Add the static file routes.
     // each files has 2 static routes:
     // - one serving the file at its location without a "cache bursting" mechanism
@@ -404,42 +440,6 @@ export class ServerContext {
         },
       );
     };
-
-    routes[`${INTERNAL_PREFIX}${JS_PREFIX}/${BUILD_ID}/:path*`] = this
-      .#bundleAssetRoute();
-
-    if (this.#dev) {
-      routes[REFRESH_JS_URL] = () => {
-        const js =
-          `const buildId = "${BUILD_ID}"; new EventSource("${ALIVE_URL}").addEventListener("message", (e) => { if (e.data !== buildId) { location.reload(); } });`;
-        return new Response(new TextEncoder().encode(js), {
-          headers: {
-            "content-type": "application/javascript; charset=utf-8",
-          },
-        });
-      };
-      routes[ALIVE_URL] = () => {
-        let timerId: number | undefined = undefined;
-        const body = new ReadableStream({
-          start(controller) {
-            controller.enqueue(`data: ${BUILD_ID}\nretry: 100\n\n`);
-            timerId = setInterval(() => {
-              controller.enqueue(`data: ${BUILD_ID}\n\n`);
-            }, 1000);
-          },
-          cancel() {
-            if (timerId !== undefined) {
-              clearInterval(timerId);
-            }
-          },
-        });
-        return new Response(body.pipeThrough(new TextEncoderStream()), {
-          headers: {
-            "content-type": "text/event-stream",
-          },
-        });
-      };
-    }
 
     return [routes, unknownHandler, errorHandler];
   }
