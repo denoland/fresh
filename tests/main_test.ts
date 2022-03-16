@@ -137,6 +137,7 @@ Deno.test("/static page prerender", async () => {
   assert(!body.includes(`main.js`));
   assert(!body.includes(`island-test.js`));
   assertStringIncludes(body, "<p>This is a static page.</p>");
+  assertStringIncludes(body, `src="/_frsh/static`);
   assert(!body.includes("__FRSH_ISLAND_PROPS"));
 });
 
@@ -181,7 +182,7 @@ Deno.test("/foo/:path*", async () => {
   assert(body.includes("bar/baz"));
 });
 
-Deno.test("static file", async () => {
+Deno.test("static file - by file path", async () => {
   const resp = await router(new Request("https://fresh.deno.dev/foo.txt"));
   assertEquals(resp.status, 200);
   const body = await resp.text();
@@ -196,6 +197,35 @@ Deno.test("static file", async () => {
     }),
   );
   assertEquals(resp2.status, 304);
+});
+
+Deno.test("static file - by 'hashed' path", async () => {
+  // Check that the file path have the BUILD_ID
+  const resp = await router(new Request("https://fresh.deno.dev/"));
+  const body = await resp.text();
+  const imgFilePath = body.match(/img src="(.*?)"/)?.[1];
+  assert(imgFilePath);
+  assert(imgFilePath.includes(globalThis.__FRSH_BUILD_ID));
+
+  // check the static file is served corectly under its cacheable route
+  const resp2 = await router(
+    new Request(`https://fresh.deno.dev${imgFilePath}`),
+  );
+  const _ = await resp2.text();
+  assertEquals(resp2.status, 200);
+  assertEquals(
+    resp2.headers.get("cache-control"),
+    "public, max-age=31536000, immutable",
+  );
+
+  const resp3 = await router(
+    new Request(`https://fresh.deno.dev${imgFilePath}`, {
+      headers: {
+        "if-none-match": resp2.headers.get("etag")!,
+      },
+    }),
+  );
+  assertEquals(resp3.status, 304);
 });
 
 Deno.test("/params/:path*", async () => {

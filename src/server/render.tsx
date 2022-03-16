@@ -5,7 +5,6 @@ import {
   ComponentType,
   h,
   options,
-  VNode,
 } from "../runtime/deps.ts";
 import {
   AppModule,
@@ -18,7 +17,7 @@ import {
 import { HEAD_CONTEXT } from "../runtime/head.ts";
 import { CSP_CONTEXT, nonce, NONE, UNSAFE_INLINE } from "../runtime/csp.ts";
 import { ContentSecurityPolicy } from "../runtime/csp.ts";
-import { bundleAssetUrl } from "./constants.ts";
+import { BUILD_ID, bundleAssetUrl } from "./constants.ts";
 
 export interface RenderOptions<Data> {
   page: Page<Data> | UnknownPage | ErrorPage;
