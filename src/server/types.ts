@@ -49,6 +49,7 @@ export interface ErrorHandlerContext extends ConnInfo {
 
 export interface MiddlewareHandlerContext extends ConnInfo {
   handle: (state?: Record<string, unknown>) => Promise<Response>;
+  state: Record<string, unknown>
 }
 
 // deno-lint-ignore no-explicit-any

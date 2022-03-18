@@ -13,7 +13,6 @@ import { Bundler } from "./bundle.ts";
 import {
   ALIVE_URL,
   BUILD_ID,
-  INTERNAL_PREFIX,
   JS_PREFIX,
   REFRESH_JS_URL,
 } from "./constants.ts";
@@ -142,7 +141,7 @@ export class ServerContext {
         path.endsWith("/_middleware.tsx") || path.endsWith("/_middleware.ts") ||
         path.endsWith("/_middleware.jsx") || path.endsWith("/_middleware.js")
       ) {
-        const route = pathToRoute(baseRoute);
+        const route = pathToRoute(baseRoute).slice(0, -'_middleware'.length);
         middlewares.push({ route , ...module as MiddlewareModule });
       } else if (
         path === "/_app.tsx" || path === "/_app.ts" ||
@@ -260,14 +259,17 @@ export class ServerContext {
 
 
   applyMiddl(middlewares: MiddlewareRoute[]) {
+    console.log('mw', middlewares)
     return (req: Request, connInfo: ConnInfo, inner: router.Handler) => {
     // identify middlewares to apply if any, with their depth level
     const middlewaresToApply: [number, Middleware][] = [];
     const reqURL = new URL(req.url);
     if (middlewares) {
-      for (const [path, middlewareHandler] of Object.entries(middlewares)) {
-        if (reqURL.pathname.startsWith(path)){
-          middlewaresToApply.push([path.split('/').length, middlewareHandler])
+      for (const { route, handler } of middlewares) {
+        console.log('ddddddd', reqURL.pathname, route)
+        if (reqURL.pathname.startsWith(route)){
+          console.log('register to apply')
+          middlewaresToApply.push([route.split('/').length, { handler }])
         }
       }
     }
@@ -281,14 +283,26 @@ export class ServerContext {
     // const withMidlewares = (handler: MatchHandler, req: Request, connInfo: ConnInfo, state: Record<string, unknown>): Response | Promise<Response> => {
     //   // const state1 = state
     //   // const middlewareMain = 
-      if (middlewaresToApply.length === 0) {
+    if (middlewaresToApply.length === 0) {
+        console.log("no mw")
         return inner(req, connInfo, {})
       } 
       
+      if (middlewaresToApply.length === 1) {
+        console.log("1 mw") 
+        return middlewaresToApply[0][1].handler(req, { 
+          handle: (state: any) => Promise.resolve(inner(req, connInfo, state)), 
+          ...connInfo, 
+          state: {} 
+        })
+      } 
+
+
       let res: Response | Promise<Response>
-      for (let i = 0; i < middlewaresToApply.length - 1 ; i++) {
+      console.log("applyign mw!!", middlewaresToApply.length)
+      for (let i = 0; i < middlewaresToApply.length ; i++) {
+        console.log(`mw${i}`)
         const inner = middlewaresToApply[i-1][1]
-        // @ts-ignore dd
         const handle = (state: Record<string, unknown> = {}) => Promise.resolve(inner.handler(req, { handle, ...connInfo, state }));
         // @ts-ignore dd
         res = middlewaresToApply[i][1].handler(req, { handle, ...connInfo, state })

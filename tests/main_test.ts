@@ -57,12 +57,18 @@ Deno.test("/[name] page prerender", async () => {
   assertStringIncludes(body, "<div>Hello bar</div>");
 });
 
-Deno.test("/middleware", async () => {
-  const resp = await router(new Request("https://fresh.deno.dev/api/middleware_data"));
-  assert(resp);
-  assertEquals(resp.status, 200);
-  const body = await resp.text();
-  assertStringIncludes(body, "this is my state data");
+Deno.test({
+  name: "/middleware",
+  only: true,
+  fn: async () => {
+    const resp = await router(
+      new Request("https://fresh.deno.dev/api/middleware_data"),
+    );
+    assert(resp);
+    assertEquals(resp.status, 200);
+    const body = await resp.text();
+    assertStringIncludes(body, "this is my state data");
+  },
 });
 
 Deno.test("/intercept - GET html", async () => {
