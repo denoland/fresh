@@ -159,7 +159,10 @@ export const handler = (_req: Request, _ctx: HandlerContext): Response => {
     ROUTES_API_JOKE_TS,
   );
 
-  const MAIN_TS = `/// <reference no-default-lib="true" />
+  const MAIN_TS =
+    `#!/usr/bin/env -S deno run --allow-read --allow-net --allow-env --allow-run --allow-hrtime --no-check --watch
+
+/// <reference no-default-lib="true" />
 /// <reference lib="dom" />
 /// <reference lib="dom.asynciterable" />
 /// <reference lib="deno.ns" />
@@ -170,10 +173,14 @@ import manifest from "./fresh.gen.ts";
 
 await start(manifest);
 `;
-  await Deno.writeTextFile(
-    join(directory, "main.ts"),
-    MAIN_TS,
-  );
+  const MAIN_TS_PATH = join(directory, "main.ts");
+  await Deno.writeTextFile(MAIN_TS_PATH, MAIN_TS);
+  try {
+    await Deno.chmod(MAIN_TS_PATH, 0o777);
+  } catch {
+    // this throws on windows
+  }
+
   const README_MD = `# fresh project
 
 ### Usage
