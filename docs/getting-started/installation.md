@@ -11,7 +11,7 @@ an existing project, you do not need to install or use the `fresh` CLI.
 To install the `fresh` CLI:
 
 ```
-deno install -A -f --no-check -n fresh https://raw.githubusercontent.com/lucacasonato/fresh/main/cli.ts
+deno install -A -f --no-check -n fresh -r https://raw.githubusercontent.com/lucacasonato/fresh/main/cli.ts
 ```
 
 The tool should now be available as `fresh` in your terminal. To try out if

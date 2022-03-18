@@ -1,3 +1,4 @@
+import { BUILD_ID } from "./constants.ts";
 import { denoPlugin, esbuild, toFileUrl } from "./deps.ts";
 import { Island } from "./types.ts";
 
@@ -40,6 +41,7 @@ export class Bundler {
     await ensureEsbuildInialized();
     const bundle = await esbuild.build({
       bundle: true,
+      define: { __FRSH_BUILD_ID: `"${BUILD_ID}"` },
       entryPoints,
       format: "esm",
       metafile: true,

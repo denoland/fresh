@@ -105,7 +105,7 @@ function GettingStarted() {
         Then, run the following command to install the `fresh` CLI:
       </p>
       <pre class={tw`overflow-x-auto py-2 px-4 bg(gray-100)`}>
-        deno install -A -f --no-check -n fresh
+        deno install -A -f --no-check -n fresh -r
         https://raw.githubusercontent.com/lucacasonato/fresh/main/cli.ts
       </pre>
       <p class={tw`text-gray-600`}>

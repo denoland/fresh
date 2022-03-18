@@ -17,6 +17,7 @@ import {
   JS_PREFIX,
   REFRESH_JS_URL,
 } from "./constants.ts";
+
 import DefaultErrorHandler from "./default_error_page.tsx";
 import {
   AppModule,
@@ -37,7 +38,7 @@ import {
 import { render as internalRender } from "./render.tsx";
 import { ContentSecurityPolicyDirectives, SELF } from "../runtime/csp.ts";
 import { h } from "../runtime/deps.ts";
-import { defaultUnknownMethodHandler } from "./crux-router.ts";
+import { asset, INTERNAL_PREFIX } from "../runtime/utils.ts";
 
 interface StaticFile {
   /** The URL to the static file on disk. */
@@ -361,6 +362,9 @@ export class ServerContext {
     }
 
     // Add the static file routes.
+    // each files has 2 static routes:
+    // - one serving the file at its location without a "cache bursting" mechanism
+    // - one containing the BUILD_ID in the path that can be cached
     for (
       const { localUrl, path, size, contentType, etag } of this.#staticFiles
     ) {
@@ -370,6 +374,15 @@ export class ServerContext {
         size,
         contentType,
         etag,
+      );
+
+      const hashedRoute = sanitizePathToRegex(asset(path));
+      routes[`GET@${hashedRoute}`] = this.#staticFileHandler(
+        localUrl,
+        size,
+        contentType,
+        etag,
+        true,
       );
     }
 
@@ -491,18 +504,25 @@ export class ServerContext {
     size: number,
     contentType: string,
     etag: string,
+    isCacheable?: boolean,
   ): router.MatchHandler {
     return async (req: Request) => {
       if (req.headers.get("if-none-match") === etag) {
         return new Response(null, { status: 304 });
       } else {
         const resp = await fetch(localUrl);
+        const headers = new Headers({
+          "content-type": contentType,
+          "content-length": String(size),
+          "etag": etag,
+        });
+
+        if (isCacheable) {
+          headers.set("Cache-Control", "public, max-age=31536000, immutable");
+        }
+
         return new Response(resp.body, {
-          headers: {
-            "content-type": contentType,
-            "content-length": String(size),
-            "etag": etag,
-          },
+          headers,
         });
       }
     };
