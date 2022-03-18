@@ -26,6 +26,7 @@ import {
   Island,
   Middleware,
   MiddlewareModule,
+  MiddlewareRoute,
   Page,
   PageModule,
   Renderer,
@@ -36,6 +37,7 @@ import {
 import { render as internalRender } from "./render.tsx";
 import { ContentSecurityPolicyDirectives, SELF } from "../runtime/csp.ts";
 import { h } from "../runtime/deps.ts";
+import { defaultUnknownMethodHandler } from "./crux-router.ts";
 
 interface StaticFile {
   /** The URL to the static file on disk. */
@@ -57,7 +59,7 @@ export class ServerContext {
   #staticFiles: StaticFile[];
   #bundler: Bundler;
   #renderer: Renderer;
-  #middleware: Middleware;
+  #middlewares: MiddlewareRoute[];
   #app: AppModule;
   #notFound: UnknownPage;
   #error: ErrorPage;
@@ -67,7 +69,7 @@ export class ServerContext {
     islands: Island[],
     staticFiles: StaticFile[],
     renderer: Renderer,
-    middleware: Middleware,
+    middlewares: MiddlewareRoute[],
     app: AppModule,
     notFound: UnknownPage,
     error: ErrorPage,
@@ -76,7 +78,7 @@ export class ServerContext {
     this.#islands = islands;
     this.#staticFiles = staticFiles;
     this.#renderer = renderer;
-    this.#middleware = middleware;
+    this.#middlewares = middlewares;
     this.#app = app;
     this.#notFound = notFound;
     this.#error = error;
@@ -95,7 +97,7 @@ export class ServerContext {
     const pages: Page[] = [];
     const islands: Island[] = [];
     let renderer: Renderer = DEFAULT_RENDERER;
-    let middleware: Middleware = DEFAULT_MIDDLEWARE;
+    const middlewares: MiddlewareRoute[] = [];
     let app: AppModule = DEFAULT_APP;
     let notFound: UnknownPage = DEFAULT_NOT_FOUND;
     let error: ErrorPage = DEFAULT_ERROR;
@@ -136,10 +138,11 @@ export class ServerContext {
       ) {
         renderer = module as RendererModule;
       } else if (
-        path === "/_middleware.tsx" || path === "/_middleware.ts" ||
-        path === "/_middleware.jsx" || path === "/_middleware.js"
+        path.endsWith("/_middleware.tsx") || path.endsWith("/_middleware.ts") ||
+        path.endsWith("/_middleware.jsx") || path.endsWith("/_middleware.js")
       ) {
-        middleware = module as MiddlewareModule;
+        const route = pathToRoute(baseRoute);
+        middlewares.push({ route , ...module as MiddlewareModule });
       } else if (
         path === "/_app.tsx" || path === "/_app.ts" ||
         path === "/_app.jsx" || path === "/_app.js"
@@ -247,11 +250,51 @@ export class ServerContext {
       islands,
       staticFiles,
       renderer,
-      middleware,
+      middlewares,
       app,
       notFound,
       error,
     );
+  }
+
+
+  applyMiddl(middlewares: MiddlewareRoute[]) {
+    return (req: Request, connInfo: ConnInfo, inner: router.Handler) => {
+    // identify middlewares to apply if any, with their depth level
+    const middlewaresToApply: [number, Middleware][] = [];
+    const reqURL = new URL(req.url);
+    if (middlewares) {
+      for (const [path, middlewareHandler] of Object.entries(middlewares)) {
+        if (reqURL.pathname.startsWith(path)){
+          middlewaresToApply.push([path.split('/').length, middlewareHandler])
+        }
+      }
+    }
+    // sort middlewares to apply by their depth
+    middlewaresToApply.sort((a, b) => b[0] - a[0]) 
+
+    // const handle = (state: Record<string, unknown> = {}) => Promise.resolve(inner(req, connInfo, state));
+    // return middleware.handler(req, { handle, ...connInfo });
+    
+    // // apply the middlewares
+    // const withMidlewares = (handler: MatchHandler, req: Request, connInfo: ConnInfo, state: Record<string, unknown>): Response | Promise<Response> => {
+    //   // const state1 = state
+    //   // const middlewareMain = 
+      if (middlewaresToApply.length === 0) {
+        return inner(req, connInfo, {})
+      } 
+      
+      let res: Response | Promise<Response>
+      for (let i = 0; i < middlewaresToApply.length - 1 ; i++) {
+        const inner = middlewaresToApply[i-1][1]
+        // @ts-ignore dd
+        const handle = (state: Record<string, unknown> = {}) => Promise.resolve(inner.handler(req, { handle, ...connInfo, state }));
+        // @ts-ignore dd
+        res = middlewaresToApply[i][1].handler(req, { handle, ...connInfo, state })
+      }
+      return res!;
+    //}
+    }
   }
 
   /**
@@ -260,7 +303,7 @@ export class ServerContext {
    */
   handler(): RequestHandler {
     const inner = router.router(...this.#routes());
-    const middleware = this.#middleware;
+    const md = this.applyMiddl(this.#middlewares);
     return function handler(req: Request, connInfo: ConnInfo) {
       // Redirect requests that end with a trailing slash
       // to their non-trailing slash counterpart.
@@ -270,8 +313,7 @@ export class ServerContext {
         url.pathname = url.pathname.slice(0, -1);
         return Response.redirect(url.href, 307);
       }
-      const handle = () => Promise.resolve(inner(req, connInfo));
-      return middleware.handler(req, { handle, ...connInfo });
+      return md(req, connInfo, inner);
     };
   }
 
@@ -386,20 +428,27 @@ export class ServerContext {
       };
     };
 
+    const middlewares: router.Middlewares = {};
+    for (const middelware of this.#middlewares) {
+      middlewares[middelware.route] = middelware
+    }
+    
     for (const page of this.#pages) {
       const createRender = genRender(page, 200);
       if (typeof page.handler === "function") {
-        routes[page.route] = (req, connInfo, params) =>
+        routes[page.route] = (req, connInfo, state, params) =>
           (page.handler as Handler)(req, {
             ...connInfo,
+            state,
             params,
             render: createRender(req, params),
           });
       } else {
         for (const [method, handler] of Object.entries(page.handler)) {
-          routes[`${method}@${page.route}`] = (req, connInfo, params) =>
+          routes[`${method}@${page.route}`] = (req, connInfo, state, params) =>
             handler(req, {
               ...connInfo,
+              state,
               params,
               render: createRender(req, params),
             });
@@ -464,7 +513,7 @@ export class ServerContext {
    * constants.INTERNAL_PREFIX
    */
   #bundleAssetRoute = (): router.MatchHandler => {
-    return async (_req, _connInfo, params) => {
+    return async (_req, _connInfo, _state, params) => {
       const path = `/${params.path}`;
       const file = await this.#bundler.get(path);
       let res;

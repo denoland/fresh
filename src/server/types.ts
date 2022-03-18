@@ -32,9 +32,10 @@ export interface IslandModule {
   default: ComponentType<any>;
 }
 
-export interface HandlerContext<T = unknown> extends ConnInfo {
+export interface HandlerContext<T = unknown, TState = unknown> extends ConnInfo {
   params: Record<string, string>;
   render: (data?: T) => Response;
+  state: TState
 }
 
 export interface UnknownHandlerContext extends ConnInfo {
@@ -47,13 +48,13 @@ export interface ErrorHandlerContext extends ConnInfo {
 }
 
 export interface MiddlewareHandlerContext extends ConnInfo {
-  handle: () => Promise<Response>;
+  handle: (state?: Record<string, unknown>) => Promise<Response>;
 }
 
 // deno-lint-ignore no-explicit-any
-export type Handler<T = any> = (
+export type Handler<T = any, TState = any> = (
   req: Request,
-  ctx: HandlerContext<T>,
+  ctx: HandlerContext<T, TState>,
 ) => Response | Promise<Response>;
 export type UnknownHandler = (
   req: Request,
@@ -65,8 +66,8 @@ export type ErrorHandler = (
 ) => Response | Promise<Response>;
 
 // deno-lint-ignore no-explicit-any
-export type Handlers<T = any> = {
-  [K in typeof router.METHODS[number]]?: Handler<T>;
+export type Handlers<T = any, TState = any> = {
+  [K in typeof router.METHODS[number]]?: Handler<T, TState>;
 };
 
 // deno-lint-ignore no-explicit-any
@@ -117,6 +118,10 @@ export interface Middleware {
     req: Request,
     ctx: MiddlewareHandlerContext,
   ): Response | Promise<Response>;
+}
+
+export interface MiddlewareRoute extends Middleware {
+  route: string
 }
 
 export interface AppModule {
