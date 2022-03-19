@@ -21,10 +21,11 @@ import * as $15 from "./routes/layeredMdw/layer2/_middleware.ts";
 import * as $16 from "./routes/layeredMdw/layer2/abc.ts";
 import * as $17 from "./routes/layeredMdw/layer2/layer3/[id].ts";
 import * as $18 from "./routes/layeredMdw/layer2/layer3/_middlware.ts";
-import * as $19 from "./routes/params.tsx";
-import * as $20 from "./routes/props/[id].tsx";
-import * as $21 from "./routes/static.tsx";
-import * as $22 from "./routes/wildcard.tsx";
+import * as $19 from "./routes/middleware_root.ts";
+import * as $20 from "./routes/params.tsx";
+import * as $21 from "./routes/props/[id].tsx";
+import * as $22 from "./routes/static.tsx";
+import * as $23 from "./routes/wildcard.tsx";
 import * as $$0 from "./islands/Test.tsx";
 
 const manifest = {
@@ -48,10 +49,11 @@ const manifest = {
     "./routes/layeredMdw/layer2/abc.ts": $16,
     "./routes/layeredMdw/layer2/layer3/[id].ts": $17,
     "./routes/layeredMdw/layer2/layer3/_middlware.ts": $18,
-    "./routes/params.tsx": $19,
-    "./routes/props/[id].tsx": $20,
-    "./routes/static.tsx": $21,
-    "./routes/wildcard.tsx": $22,
+    "./routes/middleware_root.ts": $19,
+    "./routes/params.tsx": $20,
+    "./routes/props/[id].tsx": $21,
+    "./routes/static.tsx": $22,
+    "./routes/wildcard.tsx": $23,
   },
   islands: {
     "./islands/Test.tsx": $$0,
