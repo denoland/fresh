@@ -320,17 +320,23 @@ Deno.test({
     const middlewares = [
       // should apply
       {
-        route: "/api",
+        route: "_middleware",
       },
       {
-        route: "/api/:id/def",
+        route: "api/_middleware",
       },
       {
-        route: "/api/:books/:id",
+        route: "api/[id]/_middleware",
       },
       // should not apply
       {
-        route: "/api/bcd",
+        route: "api/xyz/_middleware",
+      },
+      {
+        route: "api/[id]/xyz/_middleware",
+      },
+      {
+        route: "api/[id]/[path]/_middleware",
       },
     ] as MiddlewareRoute[];
 

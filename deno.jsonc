@@ -1,0 +1,7 @@
+{
+  "tasks": {
+    "test": "deno test -A --no-check --watch",
+    "fixture": "deno run -A --no-check --watch ./tests/fixture/main.ts",
+    "doc": "deno run -A --watch=www/static,src/,docs/ --no-check www/main.ts"
+  }
+}

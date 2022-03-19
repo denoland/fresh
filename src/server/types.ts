@@ -123,7 +123,7 @@ export interface Middleware {
 
 export interface MiddlewareRoute extends Middleware {
   /**
-   * path-to-regex style route
+   * filesystem url path
    */
   route: string
 }

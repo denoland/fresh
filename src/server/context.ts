@@ -136,8 +136,7 @@ export class ServerContext {
         path.endsWith("/_middleware.tsx") || path.endsWith("/_middleware.ts") ||
         path.endsWith("/_middleware.jsx") || path.endsWith("/_middleware.js")
       ) {
-        const route = pathToRoute(baseRoute).slice(0, -"_middleware".length);
-        middlewares.push({ route, ...module as MiddlewareModule });
+        middlewares.push({ route: baseRoute, ...module as MiddlewareModule });
       } else if (
         path === "/_app.tsx" || path === "/_app.ts" ||
         path === "/_app.jsx" || path === "/_app.js"
@@ -613,32 +612,22 @@ const DEFAULT_ERROR: ErrorPage = {
  */
 export function selectMiddlewares(url: string, middlewares: MiddlewareRoute[]) {
   const selectedMw: [number, Middleware][] = [];
-  let reqURL = new URL(url);
+  const reqURL = new URL(url);
 
-  // TODO: is it the most efficient algorithm ?
-  let stop = false
-  while (!stop) {
-    console.log('ss', reqURL.pathname)
-    for (const { route, handler } of middlewares) {
-      // check for each subpath of url if it is matching the middleware path
-      const pattern = new URLPattern({
-        pathname: route,
-      });
-      const res = pattern.exec(reqURL);
-      if (res) {
-        console.log('match!', reqURL.pathname)
-        selectedMw.push([route.split("/").length, { handler }]);
-        break; // there could be only 1 middleware by layer
-      }
+  for (const { route, handler } of middlewares) {
+    const regRoute = pathToRoute(route).slice(0, -"_middleware".length);
+    // check for each subpath of url if it is matching the middleware path
+    const pattern = new URLPattern({
+      pathname: `${regRoute}*`,
+    });
+    const res = pattern.exec(reqURL);
+    if (res) {
+      selectedMw.push([route.split("/").length, { handler }]);
     }
-    const parentPathArr = reqURL.pathname.split('/')
-    stop = !parentPathArr.pop()
-    reqURL = new URL(`http://localhost${parentPathArr.join('/')}`)
   }
 
   // sort middlewares to apply by their layer level from the deepest layer to the root
   const mws = selectedMw.sort((a, b) => b[0] - a[0]).map((mw) => mw[1]);
-  console.log('ms', mws)
   return mws;
 }
 
