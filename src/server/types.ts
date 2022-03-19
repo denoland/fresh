@@ -32,10 +32,11 @@ export interface IslandModule {
   default: ComponentType<any>;
 }
 
-export interface HandlerContext<T = unknown, TState = unknown> extends ConnInfo {
+export interface HandlerContext<T = unknown, TState = unknown>
+  extends ConnInfo {
   params: Record<string, string>;
   render: (data?: T) => Response;
-  state: TState
+  state: TState;
 }
 
 export interface UnknownHandlerContext extends ConnInfo {
@@ -49,7 +50,7 @@ export interface ErrorHandlerContext extends ConnInfo {
 
 export interface MiddlewareHandlerContext extends ConnInfo {
   handle: (state?: Record<string, unknown>) => Promise<Response>;
-  state: Record<string, unknown>
+  state: Record<string, unknown>;
 }
 
 // deno-lint-ignore no-explicit-any
@@ -125,7 +126,7 @@ export interface MiddlewareRoute extends Middleware {
   /**
    * filesystem url path
    */
-  route: string
+  route: string;
 }
 
 export interface AppModule {
@@ -141,5 +142,5 @@ export interface Island {
 
 declare global {
   // deno-lint-ignore no-explicit-any no-var
-  var URLPattern: any
+  var URLPattern: any;
 }

@@ -1,8 +1,6 @@
 // Copyright 2022 denosaurs. All rights reserved. MIT license.
 
-import type {
-  ConnInfo,
-} from "https://deno.land/std@0.128.0/http/server.ts";
+import type { ConnInfo } from "https://deno.land/std@0.128.0/http/server.ts";
 
 export type Handler = (
   req: Request,
@@ -49,13 +47,14 @@ export type MatchHandler = (
  */
 export type Routes = Record<string, MatchHandler>;
 
-// 
-export interface MiddlewareHandlerContext<T = Record<string, unknown>> extends ConnInfo {
+//
+export interface MiddlewareHandlerContext<T = Record<string, unknown>>
+  extends ConnInfo {
   handle: (state?: Record<string, unknown>) => Promise<Response>;
-  state: T
+  state: T;
 }
 
-// 
+//
 export interface Middleware<T = Record<string, unknown>> {
   handler(
     req: Request,
@@ -67,7 +66,7 @@ export interface Middleware<T = Record<string, unknown>> {
  * A record of middleware paths and `MatchHandler`s which are called when a route
  * path is composed by the path of the middleware.
  */
- export type Middlewares = Record<string, Middleware>;
+export type Middlewares = Record<string, Middleware>;
 
 /**
  * The default other handler for the router
@@ -168,8 +167,6 @@ export function router(
           internalRoutes[methodOrPath]["any"] = handler;
         }
       }
-
-      
 
       // identify the route for the given request
       for (const [path, methods] of Object.entries(internalRoutes)) {
