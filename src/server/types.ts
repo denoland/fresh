@@ -122,6 +122,9 @@ export interface Middleware {
 }
 
 export interface MiddlewareRoute extends Middleware {
+  /**
+   * path-to-regex style route
+   */
   route: string
 }
 
@@ -134,4 +137,9 @@ export interface Island {
   name: string;
   url: string;
   component: ComponentType<unknown>;
+}
+
+declare global {
+  // deno-lint-ignore no-explicit-any no-var
+  var URLPattern: any
 }

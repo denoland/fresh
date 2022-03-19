@@ -10,12 +10,7 @@ import {
 } from "./deps.ts";
 import { Manifest } from "./mod.ts";
 import { Bundler } from "./bundle.ts";
-import {
-  ALIVE_URL,
-  BUILD_ID,
-  JS_PREFIX,
-  REFRESH_JS_URL,
-} from "./constants.ts";
+import { ALIVE_URL, BUILD_ID, JS_PREFIX, REFRESH_JS_URL } from "./constants.ts";
 
 import DefaultErrorHandler from "./default_error_page.tsx";
 import {
@@ -141,9 +136,8 @@ export class ServerContext {
         path.endsWith("/_middleware.tsx") || path.endsWith("/_middleware.ts") ||
         path.endsWith("/_middleware.jsx") || path.endsWith("/_middleware.js")
       ) {
-        console.log(path)
-        const route = pathToRoute(baseRoute).slice(0, -'_middleware'.length);
-        middlewares.push({ route , ...module as MiddlewareModule });
+        const route = pathToRoute(baseRoute).slice(0, -"_middleware".length);
+        middlewares.push({ route, ...module as MiddlewareModule });
       } else if (
         path === "/_app.tsx" || path === "/_app.ts" ||
         path === "/_app.jsx" || path === "/_app.js"
@@ -246,7 +240,7 @@ export class ServerContext {
         throw err;
       }
     }
-    console.log('mws!!!', middlewares)
+
     return new ServerContext(
       pages,
       islands,
@@ -259,67 +253,13 @@ export class ServerContext {
     );
   }
 
-
-  applyMiddl(middlewares: MiddlewareRoute[]) {
-    console.log('mw', middlewares)
-    return (req: Request, connInfo: ConnInfo, inner: router.Handler) => {
-    // identify middlewares to apply if any, with their depth level
-    const middlewaresToApply: [number, Middleware][] = [];
-    const reqURL = new URL(req.url);
-    if (middlewares) {
-      for (const { route, handler } of middlewares) {
-        console.log('ddddddd', reqURL.pathname, route)
-        if (reqURL.pathname.startsWith(route)){
-          console.log('register to apply')
-          middlewaresToApply.push([route.split('/').length, { handler }])
-        }
-      }
-    }
-    // sort middlewares to apply by their depth
-    middlewaresToApply.sort((a, b) => b[0] - a[0]) 
-
-    // const handle = (state: Record<string, unknown> = {}) => Promise.resolve(inner(req, connInfo, state));
-    // return middleware.handler(req, { handle, ...connInfo });
-    
-    // // apply the middlewares
-    // const withMidlewares = (handler: MatchHandler, req: Request, connInfo: ConnInfo, state: Record<string, unknown>): Response | Promise<Response> => {
-    //   // const state1 = state
-    //   // const middlewareMain = 
-    if (middlewaresToApply.length === 0) {
-        console.log("no mw")
-        return inner(req, connInfo, {})
-      } 
-      
-      if (middlewaresToApply.length === 1) {
-        console.log("1 mw") 
-        return middlewaresToApply[0][1].handler(req, { 
-          handle: (state: any) => Promise.resolve(inner(req, connInfo, state)), 
-          ...connInfo, 
-          state: {} 
-        })
-      } 
-
-
-      let res: Response | Promise<Response>
-      console.log("applying mw!!", middlewaresToApply.length)
-      for (let i = 1; i < middlewaresToApply.length ; i++) {
-        console.log(`mw${i}`)
-        const inner = middlewaresToApply[i-1][1]
-        const handle = (state: Record<string, unknown> = {}) => Promise.resolve(inner.handler(req, { handle, ...connInfo, state }));
-        res = middlewaresToApply[i][1].handler(req, { handle, ...connInfo, state: {} })
-      }
-      return res!;
-    //}
-    }
-  }
-
   /**
    * This functions returns a request handler that handles all routes required
    * by fresh, including static files.
    */
   handler(): RequestHandler {
     const inner = router.router(...this.#routes());
-    const md = this.applyMiddl(this.#middlewares);
+    const withMiddlewares = this.#composeMiddlewares(this.#middlewares);
     return function handler(req: Request, connInfo: ConnInfo) {
       // Redirect requests that end with a trailing slash
       // to their non-trailing slash counterpart.
@@ -329,7 +269,66 @@ export class ServerContext {
         url.pathname = url.pathname.slice(0, -1);
         return Response.redirect(url.href, 307);
       }
-      return md(req, connInfo, inner);
+      return withMiddlewares(req, connInfo, inner);
+    };
+  }
+
+  /**
+   * Identify which middlewares should be apply for a request
+   * chain them and return a handler response
+   */
+  #composeMiddlewares(middlewares: MiddlewareRoute[]) {
+    return (req: Request, connInfo: ConnInfo, inner: router.Handler) => {
+      // identify middlewares to apply, if any, with their layer level
+      const mws = selectMiddlewares(req.url, middlewares);
+
+      // if no middleware, return handler
+      if (mws.length === 0) {
+        return inner(req, connInfo, {});
+      }
+
+      if (mws.length === 1) {
+        return mws[0].handler(req, {
+          handle: (state: any) => Promise.resolve(inner(req, connInfo, state)),
+          ...connInfo,
+          state: {},
+        });
+      }
+
+      // apply all the middlewares
+      const deepestMw = mws.shift();
+      const shallowMw = mws.pop();
+      const handle0 = (outerState: any) =>
+        Promise.resolve(
+          deepestMw!.handler(req, {
+            handle: (state: any) =>
+              Promise.resolve(
+                inner(req, connInfo, { ...outerState, ...state }),
+              ),
+            ...connInfo,
+            state: { ...outerState },
+          }),
+        );
+
+      const handlers = [handle0];
+      for (const [i, mw] of mws.entries()) {
+        const handleItem = (outerState: any) =>
+          Promise.resolve(
+            mw.handler(req, {
+              handle: (state: any) =>
+                Promise.resolve(handlers[i]({ ...outerState, ...state })),
+              ...connInfo,
+              state: { ...outerState },
+            }),
+          );
+        handlers.push(handleItem);
+      }
+
+      return shallowMw!.handler(req, {
+        handle: handlers.pop()!,
+        ...connInfo,
+        state: {},
+      });
     };
   }
 
@@ -458,9 +457,9 @@ export class ServerContext {
 
     const middlewares: router.Middlewares = {};
     for (const middelware of this.#middlewares) {
-      middlewares[middelware.route] = middelware
+      middlewares[middelware.route] = middelware;
     }
-    
+
     for (const page of this.#pages) {
       const createRender = genRender(page, 200);
       if (typeof page.handler === "function") {
@@ -581,9 +580,9 @@ const DEFAULT_RENDERER: Renderer = {
   },
 };
 
-const DEFAULT_MIDDLEWARE: Middleware = {
-  handler: (_, ctx) => ctx.handle(),
-};
+// const DEFAULT_MIDDLEWARE: Middleware = {
+//   handler: (_, ctx) => ctx.handle(),
+// };
 
 const DEFAULT_APP: AppModule = {
   default: ({ Component }) => h(Component, {}),
@@ -605,6 +604,43 @@ const DEFAULT_ERROR: ErrorPage = {
   handler: (_req, ctx) => ctx.render(),
   csp: false,
 };
+
+/**
+ * Return a list of middlewares that needs to be applied for request url
+ * @param url the request url
+ * @param middlewares Array of middlewares handlers and their routes as path-to-regexp style
+ * @returns
+ */
+export function selectMiddlewares(url: string, middlewares: MiddlewareRoute[]) {
+  const selectedMw: [number, Middleware][] = [];
+  let reqURL = new URL(url);
+
+  // TODO: is it the most efficient algorithm ?
+  let stop = false
+  while (!stop) {
+    console.log('ss', reqURL.pathname)
+    for (const { route, handler } of middlewares) {
+      // check for each subpath of url if it is matching the middleware path
+      const pattern = new URLPattern({
+        pathname: route,
+      });
+      const res = pattern.exec(reqURL);
+      if (res) {
+        console.log('match!', reqURL.pathname)
+        selectedMw.push([route.split("/").length, { handler }]);
+        break; // there could be only 1 middleware by layer
+      }
+    }
+    const parentPathArr = reqURL.pathname.split('/')
+    stop = !parentPathArr.pop()
+    reqURL = new URL(`http://localhost${parentPathArr.join('/')}`)
+  }
+
+  // sort middlewares to apply by their layer level from the deepest layer to the root
+  const mws = selectedMw.sort((a, b) => b[0] - a[0]).map((mw) => mw[1]);
+  console.log('ms', mws)
+  return mws;
+}
 
 /**
  * Sort pages by their relative routing priority, based on the parts in the

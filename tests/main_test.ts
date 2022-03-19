@@ -1,4 +1,6 @@
 import { ServerContext } from "../server.ts";
+import { selectMiddlewares } from "../src/server/context.ts";
+import { MiddlewareRoute } from "../src/server/types.ts";
 import { assert, assertEquals, assertStringIncludes } from "./deps.ts";
 import manifest from "./fixture/fresh.gen.ts";
 
@@ -248,10 +250,9 @@ Deno.test("/connInfo", async () => {
 
 Deno.test({
   name: "/middleware - root",
-  only: true,
   fn: async () => {
     const resp = await router(
-      new Request("https://fresh.deno.dev/api/middleware_data"),
+      new Request("https://fresh.deno.dev/middleware_root"),
     );
     assert(resp);
     assertEquals(resp.status, 200);
@@ -263,7 +264,6 @@ Deno.test({
 
 Deno.test({
   name: "/middleware - layer 2 middleware",
-  only: true,
   fn: async () => {
     const resp = await router(
       new Request("https://fresh.deno.dev/layeredMdw/layer2/abc"),
@@ -282,7 +282,7 @@ Deno.test({
     );
     assert(resp1);
     assertEquals(resp1.status, 200);
-    const body1 = await resp.text();
+    const body1 = await resp1.text();
     assertStringIncludes(body1, "root_mw");
     assertStringIncludes(body1, "layer1_mw");
     // layered 2 should not run layer 2 or 3 middleware
@@ -293,7 +293,6 @@ Deno.test({
 
 Deno.test({
   name: "/middleware - layer 3 middleware ",
-  only: true,
   fn: async () => {
     // layered 3 should contain layer 3 middleware data
     const resp = await router(
@@ -305,8 +304,37 @@ Deno.test({
     assertStringIncludes(body, "root_mw");
     assertStringIncludes(body, "layer1_mw");
     assertStringIncludes(body, "layer3_mw");
-    // the response should be the 
-    assertEquals(resp.headers.get("server"), "fresh test server");
     assertEquals(resp.headers.get("layer3"), "fresh test server layer3");
+    // the below ensure that the middlewware are applied in the correct order.
+    // i.e response header set from layer3 middleware is overwritten
+    // by the reponse header in layer 0
+    assertEquals(resp.headers.get("server"), "fresh test server");
+  },
+});
+
+Deno.test({
+  name: "/middleware - selectMiddlewares",
+  only: true,
+  fn: () => {
+    const url = "https://fresh.deno.dev/api/abc/def";
+    const middlewares = [
+      // should apply
+      {
+        route: "/api",
+      },
+      {
+        route: "/api/:id/def",
+      },
+      {
+        route: "/api/:books/:id",
+      },
+      // should not apply
+      {
+        route: "/api/bcd",
+      },
+    ] as MiddlewareRoute[];
+
+    const mws = selectMiddlewares(url, middlewares);
+    assert(mws.length === 3);
   },
 });

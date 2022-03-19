@@ -20,7 +20,7 @@ import * as $14 from "./routes/layeredMdw/layer2-no-mw/without_mw.ts";
 import * as $15 from "./routes/layeredMdw/layer2/_middleware.ts";
 import * as $16 from "./routes/layeredMdw/layer2/abc.ts";
 import * as $17 from "./routes/layeredMdw/layer2/layer3/[id].ts";
-import * as $18 from "./routes/layeredMdw/layer2/layer3/_middlware.ts";
+import * as $18 from "./routes/layeredMdw/layer2/layer3/_middleware.ts";
 import * as $19 from "./routes/middleware_root.ts";
 import * as $20 from "./routes/params.tsx";
 import * as $21 from "./routes/props/[id].tsx";
@@ -48,7 +48,7 @@ const manifest = {
     "./routes/layeredMdw/layer2/_middleware.ts": $15,
     "./routes/layeredMdw/layer2/abc.ts": $16,
     "./routes/layeredMdw/layer2/layer3/[id].ts": $17,
-    "./routes/layeredMdw/layer2/layer3/_middlware.ts": $18,
+    "./routes/layeredMdw/layer2/layer3/_middleware.ts": $18,
     "./routes/middleware_root.ts": $19,
     "./routes/params.tsx": $20,
     "./routes/props/[id].tsx": $21,
