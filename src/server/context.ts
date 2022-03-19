@@ -109,7 +109,7 @@ export class ServerContext {
       const path = url.substring(baseUrl.length).substring("routes".length);
       const baseRoute = path.substring(1, path.length - extname(path).length);
       const name = baseRoute.replace("/", "-");
-      if (!path.startsWith("/_")) {
+      if (!path.startsWith("/_") && !path.includes("/_middleware")) {
         const { default: component, config } = (module as PageModule);
         let route = pathToRoute(baseRoute);
         if (config?.routeOverride) {
@@ -141,6 +141,7 @@ export class ServerContext {
         path.endsWith("/_middleware.tsx") || path.endsWith("/_middleware.ts") ||
         path.endsWith("/_middleware.jsx") || path.endsWith("/_middleware.js")
       ) {
+        console.log(path)
         const route = pathToRoute(baseRoute).slice(0, -'_middleware'.length);
         middlewares.push({ route , ...module as MiddlewareModule });
       } else if (
@@ -245,6 +246,7 @@ export class ServerContext {
         throw err;
       }
     }
+    console.log('mws!!!', middlewares)
     return new ServerContext(
       pages,
       islands,
@@ -299,13 +301,12 @@ export class ServerContext {
 
 
       let res: Response | Promise<Response>
-      console.log("applyign mw!!", middlewaresToApply.length)
-      for (let i = 0; i < middlewaresToApply.length ; i++) {
+      console.log("applying mw!!", middlewaresToApply.length)
+      for (let i = 1; i < middlewaresToApply.length ; i++) {
         console.log(`mw${i}`)
         const inner = middlewaresToApply[i-1][1]
         const handle = (state: Record<string, unknown> = {}) => Promise.resolve(inner.handler(req, { handle, ...connInfo, state }));
-        // @ts-ignore dd
-        res = middlewaresToApply[i][1].handler(req, { handle, ...connInfo, state })
+        res = middlewaresToApply[i][1].handler(req, { handle, ...connInfo, state: {} })
       }
       return res!;
     //}

@@ -57,20 +57,6 @@ Deno.test("/[name] page prerender", async () => {
   assertStringIncludes(body, "<div>Hello bar</div>");
 });
 
-Deno.test({
-  name: "/middleware",
-  only: true,
-  fn: async () => {
-    const resp = await router(
-      new Request("https://fresh.deno.dev/api/middleware_data"),
-    );
-    assert(resp);
-    assertEquals(resp.status, 200);
-    const body = await resp.text();
-    assertStringIncludes(body, "this is my state data");
-  },
-});
-
 Deno.test("/intercept - GET html", async () => {
   const req = new Request("https://fresh.deno.dev/intercept", {
     headers: { "accept": "text/html" },
@@ -258,4 +244,69 @@ Deno.test("/connInfo", async () => {
   assertEquals(resp.status, 200);
   const body = await resp.text();
   assertEquals(body, "127.0.0.1");
+});
+
+Deno.test({
+  name: "/middleware - root",
+  only: true,
+  fn: async () => {
+    const resp = await router(
+      new Request("https://fresh.deno.dev/api/middleware_data"),
+    );
+    assert(resp);
+    assertEquals(resp.status, 200);
+    const body = await resp.text();
+    assertStringIncludes(body, "root_mw");
+    assert(!body.includes("layer1_mw"));
+  },
+});
+
+Deno.test({
+  name: "/middleware - layer 2 middleware",
+  only: true,
+  fn: async () => {
+    const resp = await router(
+      new Request("https://fresh.deno.dev/layeredMdw/layer2/abc"),
+    );
+    assert(resp);
+    assertEquals(resp.status, 200);
+    const body = await resp.text();
+    assertStringIncludes(body, "root_mw");
+    assertStringIncludes(body, "layer1_mw");
+    assertStringIncludes(body, "layer2_mw");
+    // layered 2 should not run layer 3 middleware
+    assert(!body.includes("layer3_mw"));
+
+    const resp1 = await router(
+      new Request("https://fresh.deno.dev/layeredMdw/layer2-no-mw/without_mw"),
+    );
+    assert(resp1);
+    assertEquals(resp1.status, 200);
+    const body1 = await resp.text();
+    assertStringIncludes(body1, "root_mw");
+    assertStringIncludes(body1, "layer1_mw");
+    // layered 2 should not run layer 2 or 3 middleware
+    assert(!body1.includes("layer2_mw"));
+    assert(!body1.includes("layer3_mw"));
+  },
+});
+
+Deno.test({
+  name: "/middleware - layer 3 middleware ",
+  only: true,
+  fn: async () => {
+    // layered 3 should contain layer 3 middleware data
+    const resp = await router(
+      new Request("https://fresh.deno.dev/layeredMdw/layer2/layer3/abc"),
+    );
+    assert(resp);
+    assertEquals(resp.status, 200);
+    const body = await resp.text();
+    assertStringIncludes(body, "root_mw");
+    assertStringIncludes(body, "layer1_mw");
+    assertStringIncludes(body, "layer3_mw");
+    // the response should be the 
+    assertEquals(resp.headers.get("server"), "fresh test server");
+    assertEquals(resp.headers.get("layer3"), "fresh test server layer3");
+  },
 });
