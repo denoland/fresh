@@ -273,7 +273,7 @@ export class ServerContext {
   }
 
   /**
-   * Identify which middlewares should be apply for a request
+   * Identify which middlewares should be applied for a request,
    * chain them and return a handler response
    */
   #composeMiddlewares(middlewares: MiddlewareRoute[]) {
@@ -288,7 +288,7 @@ export class ServerContext {
 
       if (mws.length === 1) {
         return mws[0].handler(req, {
-          handle: (state: any) => Promise.resolve(inner(req, connInfo, state)),
+          handle: (state: Record<string, unknown> = {}) => Promise.resolve(inner(req, connInfo, state)),
           ...connInfo,
           state: {},
         });
@@ -297,10 +297,10 @@ export class ServerContext {
       // apply all the middlewares
       const deepestMw = mws.shift();
       const shallowMw = mws.pop();
-      const handle0 = (outerState: any) =>
+      const handle0 = (outerState: Record<string, unknown> = {}) =>
         Promise.resolve(
           deepestMw!.handler(req, {
-            handle: (state: any) =>
+            handle: (state: Record<string, unknown> = {}) =>
               Promise.resolve(
                 inner(req, connInfo, { ...outerState, ...state }),
               ),
@@ -311,10 +311,10 @@ export class ServerContext {
 
       const handlers = [handle0];
       for (const [i, mw] of mws.entries()) {
-        const handleItem = (outerState: any) =>
+        const handleItem = (outerState: Record<string, unknown> = {}) =>
           Promise.resolve(
             mw.handler(req, {
-              handle: (state: any) =>
+              handle: (state: Record<string, unknown> = {}) =>
                 Promise.resolve(handlers[i]({ ...outerState, ...state })),
               ...connInfo,
               state: { ...outerState },
