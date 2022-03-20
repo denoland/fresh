@@ -1,9 +1,9 @@
 > TODO(lucacasonato): this page still needs to be written
 
-A middleware is defined in a `_middleware.ts` file. 
-It will intercept the request in order for you to perform custom logic. A
-middleware has a `handle` function to trigger child handlers. This function
-can be passed an options argument that is then available in the child handler as the `state` property.
+A middleware is defined in a `_middleware.ts` file. It will intercept the
+request in order for you to perform custom logic. A middleware has a `handle`
+function to trigger child handlers. This function can be passed an options
+argument that is then available in the child handler as the `state` property.
 
 ```ts
 // routes/_middleware.ts
@@ -32,5 +32,5 @@ The middlewares are scoped and layered. So for example if there is both a
 `routes/admin/_middleware.ts`, before finally being handled by a
 `routes/admin/[name].tsx` handler.
 
-Even if an argument is not passed to the `ctx.handle()` function, the state from the
-upper layer middleware will be passed down to the lower layer middleware.
+Even if an argument is not passed to the `ctx.handle()` function, the state from
+the upper layer middleware will be passed down to the lower layer middleware.
