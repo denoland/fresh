@@ -43,3 +43,36 @@ jobs:
 
       - name: Type check examples/counter
         run: deno cache --no-check=remote examples/counter/main.ts
+
+  integration-test:
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      matrix:
+        deno: ["v1.x", "canary"]
+        os: [macOS-latest, windows-latest, ubuntu-latest]
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v2
+
+      - name: Setup Deno
+        uses: denoland/setup-deno@v1
+        with:
+          deno-version: ${{ matrix.deno }}
+
+      - name: Install Fresh
+        run: deno install -A -f --no-check -n fresh -r ./cli.ts
+
+      - name: Fresh Init
+        run: fresh init foobar
+
+      - name: Check file generation
+        run: .github/scripts/check-generated-files.sh foobar
+
+      - name: Start up the server & Access it
+        run: .github/scripts/check-server-startup.sh foobar
+
+      - name: Type check main.ts
+        working-directory: ./foobar
+        run: deno cache --no-check=remote main.ts
