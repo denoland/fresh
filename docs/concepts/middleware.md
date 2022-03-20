@@ -26,3 +26,5 @@ export const handler: Handlers<any, { data: string }> = {
 ```
 
 The middlewares can be layered. So for example if there is both a `routes/_middleware.ts` and a `routes/admin/_middleware.ts`, then a request to `/admin/foobar` would first go to `routes/_middleware.ts`, then through `routes/admin/_middleware.ts`, before finally being handled by a `routes/admin/[name].tsx` handler.
+
+Note: Even if argument is passed to the `ctx.handle()`, the state from the parent middleware will be passed down to the next handler or middleware.
