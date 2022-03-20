@@ -40,18 +40,21 @@ export interface HandlerContext<T = unknown, TState = Record<string, unknown>>
   state: TState;
 }
 
-export interface UnknownHandlerContext<TState = Record<string, unknown>> extends ConnInfo {
+export interface UnknownHandlerContext<TState = Record<string, unknown>>
+  extends ConnInfo {
   render: () => Response;
-  state: TState
+  state: TState;
 }
 
-export interface ErrorHandlerContext<TState = Record<string, unknown>> extends ConnInfo {
+export interface ErrorHandlerContext<TState = Record<string, unknown>>
+  extends ConnInfo {
   error: unknown;
   render: () => Response;
   state: TState;
 }
 
-export interface MiddlewareHandlerContext<TState = Record<string, unknown>> extends ConnInfo {
+export interface MiddlewareHandlerContext<TState = Record<string, unknown>>
+  extends ConnInfo {
   handle: (state?: Record<string, unknown>) => Promise<Response>;
   state: TState;
 }

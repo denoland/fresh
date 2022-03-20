@@ -6,7 +6,7 @@ interface State {
   layer2: string;
 }
 
-export const handler: Handlers<any, State> = {
+export const handler: Handlers<undefined, State> = {
   GET(_req: Request, { state }) {
     return new Response(JSON.stringify(state));
   },

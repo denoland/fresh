@@ -199,7 +199,12 @@ export function router(
               res.pathname.groups,
             );
           } else {
-            return await unknownMethod(req, connInfo, state, Object.keys(methods));
+            return await unknownMethod(
+              req,
+              connInfo,
+              state,
+              Object.keys(methods),
+            );
           }
         }
       }

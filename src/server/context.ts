@@ -176,7 +176,8 @@ export class ServerContext {
           name,
           component,
           handler: handler ??
-            ((req, ctx) => router.defaultErrorHandler(req, ctx, ctx.state, ctx.error)),
+            ((req, ctx) =>
+              router.defaultErrorHandler(req, ctx, ctx.state, ctx.error)),
           csp: Boolean(config?.csp ?? false),
         };
       }
@@ -288,7 +289,8 @@ export class ServerContext {
 
       if (mws.length === 1) {
         return mws[0].handler(req, {
-          handle: (state: Record<string, unknown> = {}) => Promise.resolve(inner(req, connInfo, state)),
+          handle: (state: Record<string, unknown> = {}) =>
+            Promise.resolve(inner(req, connInfo, state)),
           ...connInfo,
           state: {},
         });
@@ -483,18 +485,27 @@ export class ServerContext {
     }
 
     const unknownHandlerRender = genRender(this.#notFound, 404);
-    const unknownHandler = (req: Request, connInfo: ConnInfo, state: Record<string, unknown>) =>
+    const unknownHandler = (
+      req: Request,
+      connInfo: ConnInfo,
+      state: Record<string, unknown>,
+    ) =>
       this.#notFound.handler(
         req,
         {
           ...connInfo,
           render: unknownHandlerRender(req, {}),
-          state
+          state,
         },
       );
 
     const errorHandlerRender = genRender(this.#error, 500);
-    const errorHandler = (req: Request, connInfo: ConnInfo, state: Record<string, unknown>, error: unknown) => {
+    const errorHandler = (
+      req: Request,
+      connInfo: ConnInfo,
+      state: Record<string, unknown>,
+      error: unknown,
+    ) => {
       console.error(
         "%cAn error occured during route handling or page rendering.",
         "color:red",
@@ -506,7 +517,7 @@ export class ServerContext {
           ...connInfo,
           error,
           render: errorHandlerRender(req, {}, error),
-          state 
+          state,
         },
       );
     };
