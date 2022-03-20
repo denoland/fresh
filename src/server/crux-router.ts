@@ -15,6 +15,7 @@ export type Handler = (
 export type ErrorHandler = (
   req: Request,
   connInfo: ConnInfo,
+  state: Record<string, unknown>,
   err: unknown,
 ) => Response | Promise<Response>;
 
@@ -24,6 +25,7 @@ export type ErrorHandler = (
 export type UnknownMethodHandler = (
   req: Request,
   connInfo: ConnInfo,
+  state: Record<string, unknown>,
   knownMethods: string[],
 ) => Response | Promise<Response>;
 
@@ -33,7 +35,7 @@ export type UnknownMethodHandler = (
 export type MatchHandler = (
   req: Request,
   connInfo: ConnInfo,
-  state: unknown,
+  state: Record<string, unknown>,
   match: Record<string, string>,
 ) => Response | Promise<Response>;
 
@@ -83,6 +85,7 @@ export function defaultOtherHandler(_req: Request): Response {
 export function defaultErrorHandler(
   _req: Request,
   _connInfo: ConnInfo,
+  _state: Record<string, unknown>,
   err: unknown,
 ): Response {
   console.error(err);
@@ -98,6 +101,7 @@ export function defaultErrorHandler(
 export function defaultUnknownMethodHandler(
   _req: Request,
   _connInfo: ConnInfo,
+  _state: Record<string, unknown>,
   knownMethods: string[],
 ): Response {
   return new Response(null, {
@@ -148,7 +152,6 @@ export function router(
   other: Handler = defaultOtherHandler,
   error: ErrorHandler = defaultErrorHandler,
   unknownMethod: UnknownMethodHandler = defaultUnknownMethodHandler,
-  // middlewares: Middlewares = {}
 ): Handler {
   return async (req, connInfo, state) => {
     try {
@@ -196,14 +199,14 @@ export function router(
               res.pathname.groups,
             );
           } else {
-            return await unknownMethod(req, connInfo, Object.keys(methods));
+            return await unknownMethod(req, connInfo, state, Object.keys(methods));
           }
         }
       }
 
       return await other(req, connInfo, state);
     } catch (err) {
-      return error(req, connInfo, err);
+      return error(req, connInfo, state, err);
     }
   };
 }

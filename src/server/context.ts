@@ -176,7 +176,7 @@ export class ServerContext {
           name,
           component,
           handler: handler ??
-            ((req, ctx) => router.defaultErrorHandler(req, ctx, ctx.error)),
+            ((req, ctx) => router.defaultErrorHandler(req, ctx, ctx.state, ctx.error)),
           csp: Boolean(config?.csp ?? false),
         };
       }
@@ -335,7 +335,7 @@ export class ServerContext {
    * This function returns all routes required by fresh as an extended
    * path-to-regex, to handler mapping.
    */
-  #routes(): [router.Routes, RequestHandler, router.ErrorHandler] {
+  #routes(): [router.Routes, router.Handler, router.ErrorHandler] {
     const routes: router.Routes = {};
 
     routes[`${INTERNAL_PREFIX}${JS_PREFIX}/${BUILD_ID}/:path*`] = this
@@ -483,17 +483,18 @@ export class ServerContext {
     }
 
     const unknownHandlerRender = genRender(this.#notFound, 404);
-    const unknownHandler = (req: Request, connInfo: ConnInfo) =>
+    const unknownHandler = (req: Request, connInfo: ConnInfo, state: Record<string, unknown>) =>
       this.#notFound.handler(
         req,
         {
           ...connInfo,
           render: unknownHandlerRender(req, {}),
+          state
         },
       );
 
     const errorHandlerRender = genRender(this.#error, 500);
-    const errorHandler = (req: Request, connInfo: ConnInfo, error: unknown) => {
+    const errorHandler = (req: Request, connInfo: ConnInfo, state: Record<string, unknown>, error: unknown) => {
       console.error(
         "%cAn error occured during route handling or page rendering.",
         "color:red",
@@ -505,6 +506,7 @@ export class ServerContext {
           ...connInfo,
           error,
           render: errorHandlerRender(req, {}, error),
+          state 
         },
       );
     };
@@ -578,10 +580,6 @@ const DEFAULT_RENDERER: Renderer = {
     render();
   },
 };
-
-// const DEFAULT_MIDDLEWARE: Middleware = {
-//   handler: (_, ctx) => ctx.handle(),
-// };
 
 const DEFAULT_APP: AppModule = {
   default: ({ Component }) => h(Component, {}),

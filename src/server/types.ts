@@ -11,7 +11,8 @@ import { RenderContext, RenderFn } from "./render.tsx";
 
 export interface PageModule {
   default?: ComponentType<PageProps>;
-  handler?: Handler | Handlers;
+  // deno-lint-ignore no-explicit-any
+  handler?: Handler<any, any> | Handlers<any, any>;
   config?: PageConfig;
 }
 
@@ -32,29 +33,31 @@ export interface IslandModule {
   default: ComponentType<any>;
 }
 
-export interface HandlerContext<T = unknown, TState = unknown>
+export interface HandlerContext<T = unknown, TState = Record<string, unknown>>
   extends ConnInfo {
   params: Record<string, string>;
   render: (data?: T) => Response;
   state: TState;
 }
 
-export interface UnknownHandlerContext extends ConnInfo {
+export interface UnknownHandlerContext<TState = Record<string, unknown>> extends ConnInfo {
   render: () => Response;
+  state: TState
 }
 
-export interface ErrorHandlerContext extends ConnInfo {
+export interface ErrorHandlerContext<TState = Record<string, unknown>> extends ConnInfo {
   error: unknown;
   render: () => Response;
+  state: TState;
 }
 
-export interface MiddlewareHandlerContext extends ConnInfo {
+export interface MiddlewareHandlerContext<TState = Record<string, unknown>> extends ConnInfo {
   handle: (state?: Record<string, unknown>) => Promise<Response>;
-  state: Record<string, unknown>;
+  state: TState;
 }
 
 // deno-lint-ignore no-explicit-any
-export type Handler<T = any, TState = any> = (
+export type Handler<T = any, TState = Record<string, unknown>> = (
   req: Request,
   ctx: HandlerContext<T, TState>,
 ) => Response | Promise<Response>;
@@ -68,7 +71,7 @@ export type ErrorHandler = (
 ) => Response | Promise<Response>;
 
 // deno-lint-ignore no-explicit-any
-export type Handlers<T = any, TState = any> = {
+export type Handlers<T = any, TState = Record<string, unknown>> = {
   [K in typeof router.METHODS[number]]?: Handler<T, TState>;
 };
 
@@ -108,17 +111,17 @@ export interface Renderer {
   render(ctx: RenderContext, render: RenderFn): void;
 }
 
-export interface MiddlewareModule {
+export interface MiddlewareModule<TState = Record<string, unknown>> {
   handler(
     req: Request,
-    ctx: MiddlewareHandlerContext,
+    ctx: MiddlewareHandlerContext<TState>,
   ): Response | Promise<Response>;
 }
 
-export interface Middleware {
+export interface Middleware<TState = Record<string, unknown>> {
   handler(
     req: Request,
-    ctx: MiddlewareHandlerContext,
+    ctx: MiddlewareHandlerContext<TState>,
   ): Response | Promise<Response>;
 }
 

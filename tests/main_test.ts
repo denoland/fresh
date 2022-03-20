@@ -314,11 +314,10 @@ Deno.test({
 
 Deno.test({
   name: "/middleware - selectMiddlewares",
-  only: true,
   fn: () => {
     const url = "https://fresh.deno.dev/api/abc/def";
     const middlewares = [
-      // should apply
+      // should select
       {
         route: "_middleware",
       },
@@ -328,7 +327,7 @@ Deno.test({
       {
         route: "api/[id]/_middleware",
       },
-      // should not apply
+      // should not select
       {
         route: "api/xyz/_middleware",
       },
