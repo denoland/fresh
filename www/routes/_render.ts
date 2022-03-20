@@ -5,7 +5,7 @@ import { RenderContext, RenderFn, virtualSheet } from "../server_deps.ts";
 
 const sheet = virtualSheet();
 sheet.reset();
-// @ts-expect-error `Type 'VirtualSheet' is missing the following properties from type 'Sheet<unknown>': target, insert`. A virtualSheet has these properties. ts bug ? 
+// @ts-expect-error `Type 'VirtualSheet' is missing the following properties from type 'Sheet<unknown>': target, insert`. A virtualSheet has these properties. ts bug ?
 setup({ sheet });
 
 export function render(ctx: RenderContext, render: RenderFn) {
