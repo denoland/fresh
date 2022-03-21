@@ -27,19 +27,6 @@ const assertFileExistence = async (tree: FileTree[], dirname?: string) => {
   }
 };
 
-const waitForServer = async (port: number, retry = 5) => {
-  for (let i = 0; i < retry; i++) {
-    const lsof = Deno.run({
-      cmd: ["lsof", "-ti", `:${port}`],
-      stdout: "null",
-    });
-    const { code: lsofCode } = await lsof.status();
-    lsof.close();
-    if (lsofCode === 0) break;
-    await new Promise((r) => setTimeout(r, 500));
-  }
-};
-
 Deno.test("fresh init", async (t) => {
   // Preparation
   const tmpDirName = await Deno.makeTempDir();
