@@ -36,7 +36,7 @@ const waitForServer = async (port: number, retry = 5) => {
     const { code: lsofCode } = await lsof.status();
     lsof.close();
     if (lsofCode === 0) break;
-    await new Promise(r => setTimeout(r, 500));
+    await new Promise((r) => setTimeout(r, 500));
   }
 };
 
@@ -112,18 +112,4 @@ Deno.test("fresh init", async (t) => {
     serverProcess.kill("SIGTERM");
     serverProcess.close();
   });
-
-  await t.step("type check", async () => {
-    const typeCheckProcess = Deno.run({
-      cmd: ["deno", "cache", "--no-check=remote", "main.ts"],
-      stdout: "null",
-      stderr: "null",
-    });
-    const { code } = await typeCheckProcess.status();
-    typeCheckProcess.close();
-    assertEquals(code, 0);
-  });
-
-  // Cleanup
-  await Deno.remove(tmpDirName, { recursive: true });
 });
