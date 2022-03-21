@@ -99,10 +99,16 @@ Deno.test("fresh init", async (t) => {
     Deno.chdir(tmpDirName);
     const serverProcess = Deno.run({
       cmd: ["deno", "run", "-A", "--no-check", "main.ts"],
-      stdout: "null",
+      stdout: "piped",
     });
 
-    await waitForServer(8000);
+    const lines = serverProcess.stdout.readable
+     .pipeThrough(new TextDecoderStream())
+     .pipeThrough(new TextLineStream());
+     
+   for await (const line of lines) {
+     if (line.includes("Listening on http://") break;
+   }
 
     // Access the root page
     const res = await fetch("http://localhost:8000");
