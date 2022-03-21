@@ -1,4 +1,4 @@
-import { assert, assertEquals } from "./deps.ts";
+import { assert, assertEquals, TextLineStream } from "./deps.ts";
 
 type FileTree = {
   type: "file";
@@ -90,12 +90,12 @@ Deno.test("fresh init", async (t) => {
     });
 
     const lines = serverProcess.stdout.readable
-     .pipeThrough(new TextDecoderStream())
-     .pipeThrough(new TextLineStream());
-     
-   for await (const line of lines) {
-     if (line.includes("Listening on http://") break;
-   }
+      .pipeThrough(new TextDecoderStream())
+      .pipeThrough(new TextLineStream());
+
+    for await (const line of lines) {
+      if (line.includes("Listening on http://")) break;
+    }
 
     // Access the root page
     const res = await fetch("http://localhost:8000");
