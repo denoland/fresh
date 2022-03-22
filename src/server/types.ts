@@ -142,7 +142,7 @@ export interface MiddlewareRoute extends Middleware {
    * URLPattern of the route
    */
   // deno-lint-ignore no-explicit-any
-  regPattern: any;
+  pattern: any;
 }
 
 export interface AppModule {

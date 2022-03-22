@@ -595,8 +595,8 @@ export function selectMiddlewares(url: string, middlewares: MiddlewareRoute[]) {
   const selectedMws: Middleware[] = [];
   const reqURL = new URL(url);
 
-  for (const { regPattern, handler } of middlewares) {
-    const res = regPattern.exec(reqURL);
+  for (const { pattern, handler } of middlewares) {
+    const res = pattern.exec(reqURL);
     if (res) {
       selectedMws.push({ handler });
     }
@@ -684,6 +684,6 @@ function serializeCSPDirectives(csp: ContentSecurityPolicyDirectives): string {
 
 export function middlewarePathToPattern(baseRoute: string) {
   const regRoute = pathToRoute(baseRoute).slice(0, -"_middleware".length);
-  const regPattern = new URLPattern({ pathname: `${regRoute}*` });
-  return { route: regRoute, regPattern };
+  const pattern = new URLPattern({ pathname: `${regRoute}*` });
+  return { route: regRoute, pattern };
 }
