@@ -85,10 +85,10 @@ Deno.test({
     });
 
     await t.step("start up the server and access the root page", async () => {
-      Deno.chdir(tmpDirName);
       const serverProcess = Deno.run({
         cmd: ["deno", "run", "-A", "--no-check", "main.ts"],
         stdout: "piped",
+        cwd: tmpDirName
       });
 
       const lines = serverProcess.stdout.readable
