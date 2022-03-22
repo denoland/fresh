@@ -9,6 +9,10 @@ import {
 } from "../runtime/types.ts";
 import { RenderContext, RenderFn } from "./render.tsx";
 
+export interface TState {
+  state: Record<string, unknown>;
+}
+
 export interface PageModule {
   default?: ComponentType<PageProps>;
   // deno-lint-ignore no-explicit-any
@@ -55,7 +59,7 @@ export interface ErrorHandlerContext<TState = Record<string, unknown>>
 
 export interface MiddlewareHandlerContext<TState = Record<string, unknown>>
   extends ConnInfo {
-  handle: (state?: Record<string, unknown>) => Promise<Response>;
+  next: () => Promise<Response>;
   state: TState;
 }
 
@@ -114,7 +118,8 @@ export interface Renderer {
   render(ctx: RenderContext, render: RenderFn): void;
 }
 
-export interface MiddlewareModule<TState = Record<string, unknown>> {
+// deno-lint-ignore no-explicit-any
+export interface MiddlewareModule<TState = any> {
   handler(
     req: Request,
     ctx: MiddlewareHandlerContext<TState>,
@@ -130,9 +135,14 @@ export interface Middleware<TState = Record<string, unknown>> {
 
 export interface MiddlewareRoute extends Middleware {
   /**
-   * filesystem url path
+   * path-to-regexp style url path
    */
   route: string;
+  /**
+   * URLPattern of the route
+   */
+  // deno-lint-ignore no-explicit-any
+  regPattern: any;
 }
 
 export interface AppModule {
@@ -144,9 +154,4 @@ export interface Island {
   name: string;
   url: string;
   component: ComponentType<unknown>;
-}
-
-declare global {
-  // deno-lint-ignore no-explicit-any no-var
-  var URLPattern: any;
 }

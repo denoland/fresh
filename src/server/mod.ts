@@ -1,3 +1,8 @@
+declare global {
+  // deno-lint-ignore no-explicit-any no-var
+  var URLPattern: any;
+}
+
 import { ServerContext } from "./context.ts";
 import { serve } from "./deps.ts";
 import {

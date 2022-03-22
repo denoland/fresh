@@ -2,40 +2,38 @@
 
 import type { ConnInfo } from "https://deno.land/std@0.128.0/http/server.ts";
 
-export type Handler = (
+type HandlerContext<T = unknown> = T & ConnInfo;
+
+export type Handler<T = unknown> = (
   req: Request,
-  connInfo: ConnInfo,
-  state: Record<string, unknown>,
+  ctx: HandlerContext<T>,
 ) => Response | Promise<Response>;
 
 /**
  * A handler type for anytime the `MatchHandler` or `other` parameter handler
  * fails
  */
-export type ErrorHandler = (
+export type ErrorHandler<T = unknown> = (
   req: Request,
-  connInfo: ConnInfo,
-  state: Record<string, unknown>,
+  ctx: HandlerContext<T>,
   err: unknown,
 ) => Response | Promise<Response>;
 
 /**
  * A handler type for anytime a method is received that is not defined
  */
-export type UnknownMethodHandler = (
+export type UnknownMethodHandler<T = unknown> = (
   req: Request,
-  connInfo: ConnInfo,
-  state: Record<string, unknown>,
+  ctx: HandlerContext<T>,
   knownMethods: string[],
 ) => Response | Promise<Response>;
 
 /**
  * A handler type for a router path match which gets passed the matched values
  */
-export type MatchHandler = (
+export type MatchHandler<T = unknown> = (
   req: Request,
-  connInfo: ConnInfo,
-  state: Record<string, unknown>,
+  ctx: HandlerContext<T>,
   match: Record<string, string>,
 ) => Response | Promise<Response>;
 
@@ -47,28 +45,7 @@ export type MatchHandler = (
  * to prefix a route with a method name and the `@` sign. For example a route only
  * accepting `GET` requests would look like: `GET@/`.
  */
-export type Routes = Record<string, MatchHandler>;
-
-//
-export interface MiddlewareHandlerContext<T = Record<string, unknown>>
-  extends ConnInfo {
-  handle: (state?: Record<string, unknown>) => Promise<Response>;
-  state: T;
-}
-
-//
-export interface Middleware<T = Record<string, unknown>> {
-  handler(
-    req: Request,
-    ctx: MiddlewareHandlerContext<T>,
-  ): Response | Promise<Response>;
-}
-
-/**
- * A record of middleware paths and `MatchHandler`s which are called when a route
- * path is composed by the path of the middleware.
- */
-export type Middlewares = Record<string, Middleware>;
+export type Routes<T> = Record<string, MatchHandler<T>>;
 
 /**
  * The default other handler for the router
@@ -84,8 +61,7 @@ export function defaultOtherHandler(_req: Request): Response {
  */
 export function defaultErrorHandler(
   _req: Request,
-  _connInfo: ConnInfo,
-  _state: Record<string, unknown>,
+  _ctx: HandlerContext,
   err: unknown,
 ): Response {
   console.error(err);
@@ -100,8 +76,7 @@ export function defaultErrorHandler(
  */
 export function defaultUnknownMethodHandler(
   _req: Request,
-  _connInfo: ConnInfo,
-  _state: Record<string, unknown>,
+  _ctx: HandlerContext,
   knownMethods: string[],
 ): Response {
   return new Response(null, {
@@ -147,16 +122,17 @@ const methodRegex = new RegExp(`(?<=^(?:${METHODS.join("|")}))@`);
  * that is not defined is used
  * @returns A deno std compatible request handler
  */
-export function router(
-  routes: Routes,
-  other: Handler = defaultOtherHandler,
-  error: ErrorHandler = defaultErrorHandler,
-  unknownMethod: UnknownMethodHandler = defaultUnknownMethodHandler,
-): Handler {
-  return async (req, connInfo, state) => {
+export function router<T = unknown>(
+  routes: Routes<T>,
+  other: Handler<T> = defaultOtherHandler,
+  error: ErrorHandler<T> = defaultErrorHandler,
+  unknownMethod: UnknownMethodHandler<T> = defaultUnknownMethodHandler,
+): Handler<T> {
+  return async (req, ctx) => {
     try {
       // route > method > handler
-      const internalRoutes: Record<string, Record<string, MatchHandler>> = {};
+      const internalRoutes: Record<string, Record<string, MatchHandler<T>>> =
+        {};
 
       // group the method for each route path
       for (const [route, handler] of Object.entries(routes)) {
@@ -185,8 +161,7 @@ export function router(
             if (req.method === method) {
               return await handler(
                 req,
-                connInfo,
-                state,
+                ctx,
                 res.pathname.groups,
               );
             }
@@ -194,24 +169,22 @@ export function router(
           if (methods["any"]) {
             return await methods["any"](
               req,
-              connInfo,
-              state,
+              ctx,
               res.pathname.groups,
             );
           } else {
             return await unknownMethod(
               req,
-              connInfo,
-              state,
+              ctx,
               Object.keys(methods),
             );
           }
         }
       }
 
-      return await other(req, connInfo, state);
+      return await other(req, ctx);
     } catch (err) {
-      return error(req, connInfo, state, err);
+      return error(req, ctx, err);
     }
   };
 }

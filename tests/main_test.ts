@@ -1,5 +1,8 @@
 import { ServerContext } from "../server.ts";
-import { selectMiddlewares } from "../src/server/context.ts";
+import {
+  middlewarePathToPattern,
+  selectMiddlewares,
+} from "../src/server/context.ts";
 import { MiddlewareRoute } from "../src/server/types.ts";
 import { assert, assertEquals, assertStringIncludes } from "./deps.ts";
 import manifest from "./fixture/fresh.gen.ts";
@@ -316,30 +319,22 @@ Deno.test({
   name: "/middleware - selectMiddlewares",
   fn: () => {
     const url = "https://fresh.deno.dev/api/abc/def";
-    const middlewares = [
+    const middlewaresPath = [
       // should select
-      {
-        route: "_middleware",
-      },
-      {
-        route: "api/_middleware",
-      },
-      {
-        route: "api/[id]/_middleware",
-      },
-      // should not select
-      {
-        route: "api/xyz/_middleware",
-      },
-      {
-        route: "api/[id]/xyz/_middleware",
-      },
-      {
-        route: "api/[id]/[path]/_middleware",
-      },
-    ] as MiddlewareRoute[];
+      "_middleware",
+      "api/_middleware",
+      "api/[id]/_middleware",
 
-    const mws = selectMiddlewares(url, middlewares);
+      // should not select
+      "api/xyz/_middleware",
+      "api/[id]/xyz/_middleware",
+      "api/[id]/[path]/_middleware",
+      "api/[id]/[path]/foo/_middleware",
+    ];
+    const mwRoutes = middlewaresPath.map((path) =>
+      middlewarePathToPattern(path)
+    ) as MiddlewareRoute[];
+    const mws = selectMiddlewares(url, mwRoutes);
     assert(mws.length === 3);
   },
 });
