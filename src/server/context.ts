@@ -282,54 +282,26 @@ export class ServerContext {
       // identify middlewares to apply, if any, with their layer level
       const mws = selectMiddlewares(req.url, middlewares);
 
-      // if no middleware, return handler
-      if (mws.length === 0) {
-        return inner(req, connInfo, {});
-      }
+      const handlers = [];
 
-      if (mws.length === 1) {
-        return mws[0].handler(req, {
-          handle: (state: Record<string, unknown> = {}) =>
-            Promise.resolve(inner(req, connInfo, state)),
-          ...connInfo,
-          state: {},
-        });
-      }
-
-      // apply all the middlewares
-      const deepestMw = mws.shift();
-      const shallowMw = mws.pop();
-      const handle0 = (outerState: Record<string, unknown> = {}) =>
-        Promise.resolve(
-          deepestMw!.handler(req, {
-            handle: (state: Record<string, unknown> = {}) =>
-              Promise.resolve(
-                inner(req, connInfo, { ...outerState, ...state }),
-              ),
-            ...connInfo,
-            state: { ...outerState },
-          }),
-        );
-
-      const handlers = [handle0];
-      for (const [i, mw] of mws.entries()) {
-        const handleItem = (outerState: Record<string, unknown> = {}) =>
-          Promise.resolve(
-            mw.handler(req, {
-              handle: (state: Record<string, unknown> = {}) =>
-                Promise.resolve(handlers[i]({ ...outerState, ...state })),
-              ...connInfo,
-              state: { ...outerState },
-            }),
-          );
-        handlers.push(handleItem);
-      }
-
-      return shallowMw!.handler(req, {
-        handle: handlers.pop()!,
+      const ctx = {
+        next() {
+          const handler = handlers.shift();
+          return handler();
+        },
         ...connInfo,
         state: {},
-      });
+      }; 
+     
+      for (const mw of mws) {
+        handlers.push(() => mw.handler(req, ctx));
+      }
+      
+      // It'd be nice to not pass `connInfo` && `ctx.state` here, and instead just pass `ctx` directly.
+      handlers.push(() => inner(req, connInfo, ctx.state));
+      
+      const handler = handlers.shift();
+      return handler();
     };
   }
 
