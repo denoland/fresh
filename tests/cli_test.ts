@@ -88,7 +88,7 @@ Deno.test({
       const serverProcess = Deno.run({
         cmd: ["deno", "run", "-A", "--no-check", "main.ts"],
         stdout: "piped",
-        cwd: tmpDirName
+        cwd: tmpDirName,
       });
 
       const lines = serverProcess.stdout.readable
