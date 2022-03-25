@@ -34,16 +34,16 @@ export interface IslandModule {
 
 export interface HandlerContext<T = unknown> extends ConnInfo {
   params: Record<string, string>;
-  render: (data?: T) => Response;
+  render: (data?: T) => Response | Promise<Response>;
 }
 
 export interface UnknownHandlerContext extends ConnInfo {
-  render: () => Response;
+  render: () => Response | Promise<Response>;
 }
 
 export interface ErrorHandlerContext extends ConnInfo {
   error: unknown;
-  render: () => Response;
+  render: () => Response | Promise<Response>;
 }
 
 export interface MiddlewareHandlerContext extends ConnInfo {

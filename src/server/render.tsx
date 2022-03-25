@@ -123,7 +123,7 @@ function defaultCsp() {
  */
 export async function render<Data>(
   opts: RenderOptions<Data>,
-): [string, ContentSecurityPolicy | undefined] {
+): Promise<[string, ContentSecurityPolicy | undefined]> {
   const props: Record<string, unknown> = {
     params: opts.params,
     url: opts.url,
@@ -178,7 +178,7 @@ export async function render<Data>(
     return bodyHtml;
   }
 
-  await opts.renderer.render(ctx, render);
+  await opts.renderer.render(ctx, render as RenderFn);
 
   if (bodyHtml === null) {
     throw new Error("`render` function not called by renderer.");
