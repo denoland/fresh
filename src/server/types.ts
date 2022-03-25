@@ -98,11 +98,11 @@ export interface ErrorPage {
 }
 
 export interface RendererModule {
-  render(ctx: RenderContext, render: RenderFn): void;
+  render(ctx: RenderContext, render: RenderFn): void | Promise<void>;
 }
 
 export interface Renderer {
-  render(ctx: RenderContext, render: RenderFn): void;
+  render(ctx: RenderContext, render: RenderFn): void | Promise<void>;
 }
 
 export interface MiddlewareModule {
