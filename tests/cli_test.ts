@@ -17,12 +17,12 @@ const assertFileExistence = async (tree: FileTree[], dirname?: string) => {
   for (const t of tree) {
     if (t.type === "report") continue;
 
-    const stat = await Deno.stat([dirname, t.name].join("/"));
+    const stat = await Deno.stat(dirname ? [dirname, t.name].join("/") : t.name);
     assertEquals(t.type === "file", stat.isFile);
 
     if (t.type === "directory") {
       assert(stat.isDirectory);
-      await assertFileExistence(t.contents, [dirname, t.name].join("/"));
+      await assertFileExistence(t.contents, dirname ? [dirname, t.name].join("/") : t.name);
     }
   }
 };
