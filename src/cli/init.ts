@@ -181,6 +181,14 @@ await start(manifest);
     // this throws on windows
   }
 
+  const DENO_CONFIG = `{
+  "tasks": {
+    "start": "deno run -A --watch main.ts"
+  }
+}`;
+
+  await Deno.writeTextFile(join(directory, "deno.json"), DENO_CONFIG);
+
   const README_MD = `# fresh project
 
 ### Usage
@@ -188,7 +196,7 @@ await start(manifest);
 Start the project:
 
 \`\`\`
-deno run -A --watch main.ts
+deno task start
 \`\`\`
 
 After adding, removing, or moving a page in the \`routes\` or directory, or adding,
