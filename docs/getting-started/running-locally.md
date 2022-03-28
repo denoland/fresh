@@ -7,8 +7,8 @@ Watcher Process started.
 Server listening on http://localhost:8000
 ```
 
-If you want to start manually without Deno task, `deno run` the `main.ts` with the appropriate
-flags. You will need to provide permission flags for:
+If you want to start manually without Deno task, `deno run` the `main.ts` with
+the appropriate flags. You will need to provide permission flags for:
 
 - **`--allow-net`**: This is required to start the HTTP server.
 - **`--allow-read`**: This is required to read (static) files from disk.
