@@ -48,8 +48,15 @@ async function init(directory: string) {
 
   try {
     const dir = [...Deno.readDirSync(directory)];
-    if (dir.length > 0) {
-      error("Directory is not empty.");
+    if (dir.length === 1 && dir[0].name === ".git" && dir[0].isDirectory) {
+      console.log(
+        `%cThe directory '${directory}' is a git repository.`,
+        "color: yellow; font-weight: bold",
+      );
+    } else {
+      if (dir.length > 0) {
+        error("Directory is not empty.");
+      }
     }
   } catch (err) {
     if (!(err instanceof Deno.errors.NotFound)) {
