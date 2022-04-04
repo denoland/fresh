@@ -3,6 +3,7 @@
 
 import { Fragment, h, Head, tw } from "../client_deps.ts";
 import Counter from "../islands/Counter.tsx";
+import LemonDrop from "../islands/LemonDrop.tsx";
 import NavigationBar from "../components/NavigationBar.tsx";
 import Footer from "../components/Footer.tsx";
 import WarningBanner from "../components/WarningBanner.tsx";
@@ -28,20 +29,30 @@ export default function MainPage() {
 }
 
 function Hero() {
-  const container = tw`w-full h-64 flex justify-center items-center flex-col`;
+  const container = tw`w-full flex justify-center items-center flex-col bg(green-200)`;
   const title = tw
     `text(4xl sm:5xl lg:6xl gray-900 center) sm:tracking-tight font-extrabold`;
   const subtitle = tw`mt-4 text(2xl gray-600 center)`;
+  const nav = tw`flex justify-end items-center bg(green-200)`;
+  const a = tw`border(1 black) inline-flex items-center h-10 px-4 m-4 text-black bg-transparent rounded hover:bg-white`;
 
   return (
+    <Fragment>
+    <div class={nav}>
+      <div class={a}>
+          Document
+      </div>
+    </div>
     <section class={container}>
-      <h1 class={title}>
+      <LemonDrop />
+      {/* <h1 class={title}>
         fresh
       </h1>
       <p class={subtitle}>
         The next-gen web framework.
-      </p>
+      </p> */}
     </section>
+    </Fragment>
   );
 }
 
