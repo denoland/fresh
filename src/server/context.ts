@@ -347,7 +347,7 @@ export class ServerContext {
     for (const page of this.#pages) {
       const createRender = genRender(page, 200);
       if (typeof page.handler === "function") {
-        routes[page.route] = (req, match) =>
+        routes[page.route] = (req, _, match) =>
           (page.handler as Handler)({
             req,
             match,
@@ -355,7 +355,7 @@ export class ServerContext {
           });
       } else {
         for (const [method, handler] of Object.entries(page.handler)) {
-          routes[`${method}@${page.route}`] = (req, match) =>
+          routes[`${method}@${page.route}`] = (req, _, match) =>
             handler({ req, match, render: createRender(req, match) });
         }
       }
@@ -370,7 +370,7 @@ export class ServerContext {
       });
 
     const errorHandlerRender = genRender(this.#error, 500);
-    const errorHandler = (req: Request, error: unknown) =>
+    const errorHandler = (req: Request, _: unknown, error: unknown) =>
       (this.#notFound.handler as Handler)({
         req,
         match: {},
