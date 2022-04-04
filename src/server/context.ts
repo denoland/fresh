@@ -274,8 +274,10 @@ export class ServerContext {
    * This function returns all routes required by fresh as an extended
    * path-to-regex, to handler mapping.
    */
-  #routes(): [router.Routes, RequestHandler, router.ErrorHandler] {
-    const routes: router.Routes = {};
+  // deno-lint-ignore ban-types
+  #routes(): [router.Routes<{}>, RequestHandler, router.ErrorHandler] {
+    // deno-lint-ignore ban-types
+    const routes: router.Routes<{}> = {};
 
     routes[`${INTERNAL_PREFIX}${JS_PREFIX}/${BUILD_ID}/:path*`] = this
       .#bundleAssetRoute();

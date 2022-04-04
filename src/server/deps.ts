@@ -15,7 +15,7 @@ export type {
 } from "https://deno.land/std@0.128.0/http/server.ts";
 
 // -- router --
-export * as router from "https://crux.land/router@0.0.6";
+export * as router from "https://crux.land/router@0.0.8";
 
 // -- media types --
 export { lookup as mediaTypeLookup } from "https://deno.land/x/media_types@v2.10.2/mod.ts";
