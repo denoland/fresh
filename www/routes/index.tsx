@@ -125,10 +125,10 @@ function GettingStarted() {
       <p class={tw`text-gray-600`}>
         You can now open{" "}
         <a
-          href="http://localhost:8000"
+          href="http://0.0.0.0:8000"
           class={tw`text-blue-600 hover:underline`}
         >
-          http://localhost:8000
+          http://0.0.0.0:8000
         </a>{" "}
         in your browser to view the page.
       </p>

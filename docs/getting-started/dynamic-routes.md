@@ -40,7 +40,7 @@ parameters, the raw `url`, and the `route` name can also be found in here.
 
 As this is a new page, the manifest needs to be updated again: `fresh manifest`.
 
-Navigating to `https://localhost:8000/greet/Luca` will now render a page showing
+Navigating to `https://0.0.0.0:8000/greet/Luca` will now render a page showing
 "Greetings to you, Luca!".
 
 The [_Concepts: Routing_][concepts-routing] page has more information about

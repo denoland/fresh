@@ -49,7 +49,7 @@ export default function AboutPage() {
 > what they do - they just ensure that JSX get's rendered correctly.
 
 This alone is not yet enough to actually view the page in the browser though. If
-one tries to visit `http://localhost:8000/about`, the server will return a 404
+one tries to visit `http://0.0.0.0:8000/about`, the server will return a 404
 code.
 
 Before `fresh` can render the page, the `fresh.gen.ts` manifest needs to be
@@ -65,7 +65,7 @@ Manifest generated and written to ./my-project/fresh.gen.ts
 > rename a page. It does not need to be done if just the contents of a page are
 > edited.
 
-Now the page will be visible at `http://localhost:8000/about`.
+Now the page will be visible at `http://0.0.0.0:8000/about`.
 
 <!-- You can find more in depth information about routes on the
 [_Concepts: Routes_][concepts-routes] documentation page page. The following
