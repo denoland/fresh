@@ -21,9 +21,9 @@ export * as router from "https://crux.land/router@0.0.6";
 export { lookup as mediaTypeLookup } from "https://deno.land/x/media_types@v2.10.2/mod.ts";
 
 // -- esbuild --
-// @deno-types="https://deno.land/x/esbuild@v0.14.25/mod.d.ts"
-import * as esbuildWasm from "./esbuild-wasm/browser.js";
-import * as esbuildNative from "https://deno.land/x/esbuild@v0.14.25/mod.js";
+// @deno-types="https://deno.land/x/esbuild@v0.14.34/mod.d.ts"
+import * as esbuildWasm from "https://unpkg.com/esbuild-wasm@0.14.34/esm/browser.js";
+import * as esbuildNative from "https://deno.land/x/esbuild@v0.14.34/mod.js";
 // @ts-ignore trust me
 const esbuild: typeof esbuildWasm = Deno.run === undefined
   ? esbuildWasm
