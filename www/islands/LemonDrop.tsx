@@ -1,6 +1,6 @@
 /** @jsx h */
-import { h, IS_BROWSER, tw, useState, useEffect, useRef, Fragment } from "../client_deps.ts";
-import { WaveTank, Spring } from "./WaveTank.ts";
+import { Fragment, h, useEffect, useRef, useState } from "../client_deps.ts";
+import { Spring, WaveTank } from "./WaveTank.ts";
 
 function easeInCirc(x: number) {
   return 1 - Math.sqrt(1 - Math.pow(x, 2));
@@ -47,10 +47,11 @@ function LemonDrop() {
     waveTank.update(waveTank.springs);
     setSprings([...waveTank.springs]);
 
-    const offset = 500
-    const saw = (timestamp + offset) / 2000 - Math.floor((timestamp + offset) / 2000);
+    const offset = 500;
+    const saw = (timestamp + offset) / 2000 -
+      Math.floor((timestamp + offset) / 2000);
     if (saw < 0.01) {
-      drop()
+      drop();
     }
     requestIdRef.current = globalThis.requestAnimationFrame(update);
   }
@@ -61,7 +62,7 @@ function LemonDrop() {
 
   function drop() {
     const dropPosition = Math.round(
-      ((widthRef.current / 2 - 30) / widthRef.current) * 100
+      ((widthRef.current / 2 - 30) / widthRef.current) * 100,
     );
     waveTank.springs[dropPosition].p = -60;
   }
@@ -77,7 +78,7 @@ function LemonDrop() {
 
     return () => {
       globalThis.removeEventListener("resize", resize);
-      if(requestIdRef.current !== undefined) {
+      if (requestIdRef.current !== undefined) {
         cancelAnimationFrame(requestIdRef.current);
       }
     };
@@ -87,11 +88,11 @@ function LemonDrop() {
     <Fragment>
       <svg
         width="100"
-        height="280"
-        viewBox="0 0 100 280"
+        height="300"
+        viewBox="0 0 100 300"
         fill="none"
         xmlns="http://www.w3.org/2000/svg"
-        style={{ marginTop: "12rem" }}
+        style={{ marginTop: "10rem" }}
       >
         <circle cx="18" cy={dropy} r="4" fill="white"></circle>
         <path
@@ -117,7 +118,8 @@ function LemonDrop() {
           points={springsPath}
           fill="white"
           transform="translate(0, 50)"
-        ></polygon>
+        >
+        </polygon>
       </svg>
     </Fragment>
   );
