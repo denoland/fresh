@@ -101,6 +101,7 @@ Deno.test({
         .pipeThrough(new TextLineStream());
 
       for await (const line of lines) {
+        console.log(line);
         if (line.includes("Server listening on http://")) break;
       }
       await lines.cancel();
