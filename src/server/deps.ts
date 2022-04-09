@@ -29,4 +29,4 @@ const esbuild: typeof esbuildWasm = Deno.run === undefined
   ? esbuildWasm
   : esbuildNative;
 export { esbuild, esbuildWasm as esbuildTypes };
-export { denoPlugin } from "https://deno.land/x/esbuild_deno_loader@0.4.0/mod.ts";
+export { denoPlugin } from "https://deno.land/x/esbuild_deno_loader@0.4.2/mod.ts";
