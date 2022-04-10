@@ -26,7 +26,7 @@ function LemonDrop() {
   const springsPath = `${points.map((x) => x.join(",")).join(" ")}`;
   const juice = `M18 ${63 + counter} C15 ${63 + counter} 16 ${
     63 + counter
-  } 12 61L9.00001 56C2.00001 33 62 -3.17097e-05 80 12C103 27 44 56 29 58C27 58 25 59 24 61C20 ${
+  } 12 61L9 56C2 33 62 -3 80 12C103 27 44 56 29 58C27 58 25 59 24 61C20 ${
     63 + counter
   } 21 ${63 + counter} 18 ${63 + counter}Z`;
 
