@@ -7,7 +7,7 @@ import {
   useRef,
   useState,
 } from "../client_deps.ts";
-import { Spring, WaveTank } from "./WaveTank.ts";
+import { Spring, WaveTank } from "../components/WaveTank.ts";
 
 function easeInCirc(x: number) {
   return 1 - Math.sqrt(1 - Math.pow(x, 2));
