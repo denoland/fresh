@@ -71,7 +71,7 @@ function Intro() {
     <section
       class={tw`max-w-screen-sm mx-auto my-16 px(4 sm:6 md:8) space-y-4`}
     >
-      <img src="/illust.jpeg" class={tw`w-64 mx-auto`} alt="fresh" />
+      <img src="/illust.jpeg" class={tw`w-64 mx-auto`} alt="deno is drinking fresh lemon squash" />
 
       <h2 class={title}>
         The next-gen web framework.
