@@ -1,5 +1,5 @@
 /** @jsx h */
-import { Fragment, h, useEffect, useRef, useState } from "../client_deps.ts";
+import { Fragment, h, useEffect, useRef, useState, tw } from "../client_deps.ts";
 import { Spring, WaveTank } from "./WaveTank.ts";
 
 function easeInCirc(x: number) {
@@ -92,7 +92,7 @@ function LemonDrop() {
         viewBox="0 0 100 300"
         fill="none"
         xmlns="http://www.w3.org/2000/svg"
-        style={{ marginTop: "10rem" }}
+        class={tw`mt-36`}
       >
         <circle cx="18" cy={dropy} r="4" fill="white"></circle>
         <path
@@ -113,7 +113,7 @@ function LemonDrop() {
           fill="#fff"
         />
       </svg>
-      <svg width={width} height="100" style={{ marginTop: "-20px" }}>
+      <svg width={width} height="100" class={tw`-mt-5`}>
         <polygon
           points={springsPath}
           fill="white"
