@@ -21,7 +21,6 @@ export class WaveTank {
 
   update(springs: Spring[]) {
     for (const i of springs) {
-      // positionに応じた加速度が得られる
       const a = -this.k * i.p - this.damping * i.v;
       i.p += i.v;
       i.v += a;
