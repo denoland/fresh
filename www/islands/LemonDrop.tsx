@@ -6,8 +6,9 @@ function easeInCirc(x: number) {
   return 1 - Math.sqrt(1 - Math.pow(x, 2));
 }
 
+const waveTank = new WaveTank();
+
 function LemonDrop() {
-  const waveTank = new WaveTank();
   const [counter, setCounter] = useState(0);
   const [dropy, setDropy] = useState(10);
   const [width, setWidth] = useState(window.innerWidth);
