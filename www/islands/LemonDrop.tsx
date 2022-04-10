@@ -10,7 +10,7 @@ const waveTank = new WaveTank();
 
 function LemonDrop() {
   const [counter, setCounter] = useState(0);
-  const [dropy, setDropy] = useState(10);
+  const [dropy, setDropy] = useState(60);
   const [width, setWidth] = useState(window.innerWidth);
   const widthRef = useRef(width);
   const [springs, setSprings] = useState<Spring[]>([]);
