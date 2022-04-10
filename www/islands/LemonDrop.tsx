@@ -1,5 +1,12 @@
 /** @jsx h */
-import { Fragment, h, useEffect, useRef, useState, tw } from "../client_deps.ts";
+import {
+  Fragment,
+  h,
+  tw,
+  useEffect,
+  useRef,
+  useState,
+} from "../client_deps.ts";
 import { Spring, WaveTank } from "./WaveTank.ts";
 
 function easeInCirc(x: number) {
