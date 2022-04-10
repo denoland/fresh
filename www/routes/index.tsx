@@ -56,7 +56,7 @@ function ListItem(props: ListItemProps) {
   return (
     <div class={tw`flex mt-3`}>
       <Leaf />
-      <div class={tw`pl-4`}>
+      <div class={tw`pl-4 flex-1`}>
         {props.children}
       </div>
     </div>
