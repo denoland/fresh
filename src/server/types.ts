@@ -9,7 +9,7 @@ import {
 } from "../runtime/types.ts";
 import { RenderContext, RenderFn } from "./render.tsx";
 
-export interface TState {
+export interface RouterState {
   state: Record<string, unknown>;
 }
 
@@ -39,36 +39,36 @@ export interface IslandModule {
   default: ComponentType<any>;
 }
 
-export interface HandlerContext<T = unknown, TState = Record<string, unknown>>
+export interface HandlerContext<Data = unknown, State = Record<string, unknown>>
   extends ConnInfo {
   params: Record<string, string>;
-  render: (data?: T) => Response | Promise<Response>;
-  state: TState;
+  render: (data?: Data) => Response | Promise<Response>;
+  state: State;
 }
 
-export interface UnknownHandlerContext<TState = Record<string, unknown>>
+export interface UnknownHandlerContext<State = Record<string, unknown>>
   extends ConnInfo {
   render: () => Response | Promise<Response>;
-  state: TState;
+  state: State;
 }
 
-export interface ErrorHandlerContext<TState = Record<string, unknown>>
+export interface ErrorHandlerContext<State = Record<string, unknown>>
   extends ConnInfo {
   error: unknown;
   render: () => Response | Promise<Response>;
-  state: TState;
+  state: State;
 }
 
-export interface MiddlewareHandlerContext<TState = Record<string, unknown>>
+export interface MiddlewareHandlerContext<State = Record<string, unknown>>
   extends ConnInfo {
   next: () => Promise<Response>;
-  state: TState;
+  state: State;
 }
 
 // deno-lint-ignore no-explicit-any
-export type Handler<T = any, TState = Record<string, unknown>> = (
+export type Handler<T = any, State = Record<string, unknown>> = (
   req: Request,
-  ctx: HandlerContext<T, TState>,
+  ctx: HandlerContext<T, State>,
 ) => Response | Promise<Response>;
 export type UnknownHandler = (
   req: Request,
@@ -80,8 +80,8 @@ export type ErrorHandler = (
 ) => Response | Promise<Response>;
 
 // deno-lint-ignore no-explicit-any
-export type Handlers<T = any, TState = Record<string, unknown>> = {
-  [K in typeof router.METHODS[number]]?: Handler<T, TState>;
+export type Handlers<T = any, State = Record<string, unknown>> = {
+  [K in typeof router.METHODS[number]]?: Handler<T, State>;
 };
 
 // deno-lint-ignore no-explicit-any
@@ -121,17 +121,17 @@ export interface Renderer {
 }
 
 // deno-lint-ignore no-explicit-any
-export interface MiddlewareModule<TState = any> {
+export interface MiddlewareModule<State = any> {
   handler(
     req: Request,
-    ctx: MiddlewareHandlerContext<TState>,
+    ctx: MiddlewareHandlerContext<State>,
   ): Response | Promise<Response>;
 }
 
-export interface Middleware<TState = Record<string, unknown>> {
+export interface Middleware<State = Record<string, unknown>> {
   handler(
     req: Request,
-    ctx: MiddlewareHandlerContext<TState>,
+    ctx: MiddlewareHandlerContext<State>,
   ): Response | Promise<Response>;
 }
 

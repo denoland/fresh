@@ -26,7 +26,7 @@ import {
   PageModule,
   Renderer,
   RendererModule,
-  TState,
+  RouterState,
   UnknownPage,
   UnknownPageModule,
 } from "./types.ts";
@@ -262,7 +262,7 @@ export class ServerContext {
    * by fresh, including static files.
    */
   handler(): RequestHandler {
-    const inner = router.router<TState>(...this.#routes());
+    const inner = router.router<RouterState>(...this.#routes());
     const withMiddlewares = this.#composeMiddlewares(this.#middlewares);
     return function handler(req: Request, connInfo: ConnInfo) {
       // Redirect requests that end with a trailing slash
@@ -285,7 +285,7 @@ export class ServerContext {
     return (
       req: Request,
       connInfo: ConnInfo,
-      inner: router.Handler<TState>,
+      inner: router.Handler<RouterState>,
     ) => {
       // identify middlewares to apply, if any.
       // middlewares should be already sorted from deepest to shallow layer
@@ -318,11 +318,11 @@ export class ServerContext {
    * path-to-regex, to handler mapping.
    */
   #routes(): [
-    router.Routes<TState>,
-    router.Handler<TState>,
-    router.ErrorHandler<TState>,
+    router.Routes<RouterState>,
+    router.Handler<RouterState>,
+    router.ErrorHandler<RouterState>,
   ] {
-    const routes: router.Routes<TState> = {};
+    const routes: router.Routes<RouterState> = {};
 
     routes[`${INTERNAL_PREFIX}${JS_PREFIX}/${BUILD_ID}/:path*`] = this
       .#bundleAssetRoute();
@@ -462,7 +462,7 @@ export class ServerContext {
     }
 
     const unknownHandlerRender = genRender(this.#notFound, 404);
-    const unknownHandler: router.Handler<TState> = (
+    const unknownHandler: router.Handler<RouterState> = (
       req,
       ctx,
     ) =>
@@ -475,7 +475,7 @@ export class ServerContext {
       );
 
     const errorHandlerRender = genRender(this.#error, 500);
-    const errorHandler: router.ErrorHandler<TState> = (
+    const errorHandler: router.ErrorHandler<RouterState> = (
       req,
       ctx,
       error,

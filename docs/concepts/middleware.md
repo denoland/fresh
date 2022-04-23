@@ -9,11 +9,11 @@ property that can be used to pass arbituary data to following handlers.
 // routes/_middleware.ts
 import { MiddlewareHandlerContext } from "../server_deps.ts";
 
-interface TState {
+interface State {
   data: string
 }
 
-export async function handler(req: Request, ctx: MiddlewareHandlerContext<TState>) {
+export async function handler(req: Request, ctx: MiddlewareHandlerContext<State>) {
   ctx.state.data = 'myData'
   const resp = await ctx.next();
   resp.headers.set('server','fresh server')  
