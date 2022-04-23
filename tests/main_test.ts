@@ -1,9 +1,4 @@
 import { ServerContext } from "../server.ts";
-import {
-  middlewarePathToPattern,
-  selectMiddlewares,
-} from "../src/server/context.ts";
-import { MiddlewareRoute } from "../src/server/types.ts";
 import { assert, assertEquals, assertStringIncludes } from "./deps.ts";
 import manifest from "./fixture/fresh.gen.ts";
 
@@ -312,29 +307,5 @@ Deno.test({
     // i.e response header set from layer3 middleware is overwritten
     // by the reponse header in layer 0
     assertEquals(resp.headers.get("server"), "fresh test server");
-  },
-});
-
-Deno.test({
-  name: "/middleware - selectMiddlewares",
-  fn: () => {
-    const url = "https://fresh.deno.dev/api/abc/def";
-    const middlewaresPath = [
-      // should select
-      "_middleware",
-      "api/_middleware",
-      "api/[id]/_middleware",
-
-      // should not select
-      "api/xyz/_middleware",
-      "api/[id]/xyz/_middleware",
-      "api/[id]/[path]/_middleware",
-      "api/[id]/[path]/foo/_middleware",
-    ];
-    const mwRoutes = middlewaresPath.map((path) =>
-      middlewarePathToPattern(path)
-    ) as MiddlewareRoute[];
-    const mws = selectMiddlewares(url, mwRoutes);
-    assert(mws.length === 3);
   },
 });

@@ -105,7 +105,10 @@ export class ServerContext {
       const path = url.substring(baseUrl.length).substring("routes".length);
       const baseRoute = path.substring(1, path.length - extname(path).length);
       const name = baseRoute.replace("/", "-");
-      if (!path.startsWith("/_") && !path.includes("/_middleware")) {
+      const isMiddleware = path.endsWith("/_middleware.tsx") ||
+        path.endsWith("/_middleware.ts") || path.endsWith("/_middleware.jsx") ||
+        path.endsWith("/_middleware.js");
+      if (!path.startsWith("/_") && !isMiddleware) {
         const { default: component, config } = (module as PageModule);
         let route = pathToRoute(baseRoute);
         if (config?.routeOverride) {
@@ -133,10 +136,7 @@ export class ServerContext {
         path === "/_render.jsx" || path === "/_render.js"
       ) {
         renderer = module as RendererModule;
-      } else if (
-        path.endsWith("/_middleware.tsx") || path.endsWith("/_middleware.ts") ||
-        path.endsWith("/_middleware.jsx") || path.endsWith("/_middleware.js")
-      ) {
+      } else if (isMiddleware) {
         middlewares.push({
           ...middlewarePathToPattern(baseRoute),
           ...module as MiddlewareModule,
@@ -683,7 +683,8 @@ function serializeCSPDirectives(csp: ContentSecurityPolicyDirectives): string {
 }
 
 export function middlewarePathToPattern(baseRoute: string) {
-  const regRoute = pathToRoute(baseRoute).slice(0, -"_middleware".length);
+  baseRoute = baseRoute.slice(0, -"_middleware".length);
+  const regRoute = pathToRoute(baseRoute);
   const pattern = new URLPattern({ pathname: `${regRoute}*` });
   return { route: regRoute, pattern };
 }
