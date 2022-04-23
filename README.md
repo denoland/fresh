@@ -40,10 +40,10 @@ The `fresh` CLI can scaffold a new project for you. To scaffold a project in the
 fresh init my-project
 ```
 
-To now start the project, call `deno run`:
+To now start the project, use `deno task`:
 
 ```
-deno run -A --watch main.ts
+deno task start
 ```
 
 To deploy the script to [Deno Deploy](https://deno.com/deploy), push your
