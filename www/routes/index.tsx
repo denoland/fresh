@@ -64,7 +64,7 @@ function ListItem(props: ListItemProps) {
 
 function Intro() {
   const title = tw
-    `text(4xl sm:4xl lg:4xl gray-900 center) sm:tracking-tight font-extrabold`;
+    `py-4 text(4xl sm:4xl lg:4xl gray-900 center) sm:tracking-tight font-extrabold`;
 
   return (
     <section

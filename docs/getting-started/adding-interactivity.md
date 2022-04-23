@@ -15,9 +15,9 @@ little "islands" of interactivity, in a sea of otherwise static content.
 create "island components" that are _also_ rendered client side. To do this,
 `fresh` projects have a special `islands/` folder. The modules in this folder
 each encapsulate a single island component. The name of the module should be the
-pascal case name of the island component. For example a counter component would
-be defined in the file `islands/Counter.tsx`. A buy now button would be defined
-in the file `islands/BuyNowButton.tsx`.
+[pascal case][pascal-case] name of the island component. For example a counter
+component would be defined in the file `islands/Counter.tsx`. A buy now button
+would be defined in the file `islands/BuyNowButton.tsx`.
 
 Here is an example of an island component that counts down to a specific time.
 
@@ -88,3 +88,4 @@ components need to be registered in the manifest file. This means that
 removed, or renamed.
 
 [islands-architechture]: https://jasonformat.com/islands-architecture
+[pascal-case]: https://en.wiktionary.org/wiki/Pascal_case
