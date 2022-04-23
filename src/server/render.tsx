@@ -121,9 +121,9 @@ function defaultCsp() {
  *    sent to the client. On the client the HTML will be slotted into the DOM
  *    at the location of the original `<Suspense>` node.
  */
-export function render<Data>(
+export async function render<Data>(
   opts: RenderOptions<Data>,
-): [string, ContentSecurityPolicy | undefined] {
+): Promise<[string, ContentSecurityPolicy | undefined]> {
   const props: Record<string, unknown> = {
     params: opts.params,
     url: opts.url,
@@ -178,7 +178,7 @@ export function render<Data>(
     return bodyHtml;
   }
 
-  opts.renderer.render(ctx, render);
+  await opts.renderer.render(ctx, render as RenderFn);
 
   if (bodyHtml === null) {
     throw new Error("`render` function not called by renderer.");

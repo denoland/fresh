@@ -7,6 +7,7 @@ import {
   MiddlewareModule,
   PageModule,
   RendererModule,
+  StartOptions,
   UnknownPageModule,
 } from "./types.ts";
 export type {
@@ -34,10 +35,15 @@ export interface Manifest {
 
 export { ServerContext };
 
-export async function start(routes: Manifest) {
+export async function start(
+  routes: Manifest,
+  opts?: StartOptions,
+) {
   const ctx = await ServerContext.fromManifest(routes);
-  console.log("Server listening on http://localhost:8000");
-  await serve(ctx.handler(), {
-    port: 8000,
-  });
+  console.log(
+    `Server listening on http://${opts?.hostname ?? "localhost"}:${
+      opts?.port ?? 8000
+    }`,
+  );
+  await serve(ctx.handler(), opts);
 }
