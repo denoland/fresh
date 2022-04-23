@@ -6,3 +6,4 @@ export {
 export {
   TextLineStream,
 } from "https://deno.land/std@0.129.0/streams/delimiter.ts";
+export { delay } from "https://deno.land/std@0.129.0/async/delay.ts";
