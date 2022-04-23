@@ -48,7 +48,12 @@ async function init(directory: string) {
 
   try {
     const dir = [...Deno.readDirSync(directory)];
-    if (dir.length > 0) {
+    if (
+      dir.length > 0 &&
+      !confirm(
+        "This is no Empty directory, some Files could get deleted, do you want to continue?",
+      )
+    ) {
       error("Directory is not empty.");
     }
   } catch (err) {
