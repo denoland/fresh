@@ -9,11 +9,16 @@ import {
 } from "../runtime/types.ts";
 import { RenderContext, RenderFn } from "./render.tsx";
 
+export interface RouterState {
+  state: Record<string, unknown>;
+}
+
 export type StartOptions = ServeInit;
 
 export interface PageModule {
   default?: ComponentType<PageProps>;
-  handler?: Handler | Handlers;
+  // deno-lint-ignore no-explicit-any
+  handler?: Handler<any, any> | Handlers<any, any>;
   config?: PageConfig;
 }
 
@@ -34,28 +39,36 @@ export interface IslandModule {
   default: ComponentType<any>;
 }
 
-export interface HandlerContext<T = unknown> extends ConnInfo {
+export interface HandlerContext<Data = unknown, State = Record<string, unknown>>
+  extends ConnInfo {
   params: Record<string, string>;
-  render: (data?: T) => Response | Promise<Response>;
+  render: (data?: Data) => Response | Promise<Response>;
+  state: State;
 }
 
-export interface UnknownHandlerContext extends ConnInfo {
+export interface UnknownHandlerContext<State = Record<string, unknown>>
+  extends ConnInfo {
   render: () => Response | Promise<Response>;
+  state: State;
 }
 
-export interface ErrorHandlerContext extends ConnInfo {
+export interface ErrorHandlerContext<State = Record<string, unknown>>
+  extends ConnInfo {
   error: unknown;
   render: () => Response | Promise<Response>;
+  state: State;
 }
 
-export interface MiddlewareHandlerContext extends ConnInfo {
-  handle: () => Promise<Response>;
+export interface MiddlewareHandlerContext<State = Record<string, unknown>>
+  extends ConnInfo {
+  next: () => Promise<Response>;
+  state: State;
 }
 
 // deno-lint-ignore no-explicit-any
-export type Handler<T = any> = (
+export type Handler<T = any, State = Record<string, unknown>> = (
   req: Request,
-  ctx: HandlerContext<T>,
+  ctx: HandlerContext<T, State>,
 ) => Response | Promise<Response>;
 export type UnknownHandler = (
   req: Request,
@@ -67,8 +80,8 @@ export type ErrorHandler = (
 ) => Response | Promise<Response>;
 
 // deno-lint-ignore no-explicit-any
-export type Handlers<T = any> = {
-  [K in typeof router.METHODS[number]]?: Handler<T>;
+export type Handlers<T = any, State = Record<string, unknown>> = {
+  [K in typeof router.METHODS[number]]?: Handler<T, State>;
 };
 
 // deno-lint-ignore no-explicit-any
@@ -107,18 +120,31 @@ export interface Renderer {
   render(ctx: RenderContext, render: RenderFn): void | Promise<void>;
 }
 
-export interface MiddlewareModule {
+// deno-lint-ignore no-explicit-any
+export interface MiddlewareModule<State = any> {
   handler(
     req: Request,
-    ctx: MiddlewareHandlerContext,
+    ctx: MiddlewareHandlerContext<State>,
   ): Response | Promise<Response>;
 }
 
-export interface Middleware {
+export interface Middleware<State = Record<string, unknown>> {
   handler(
     req: Request,
-    ctx: MiddlewareHandlerContext,
+    ctx: MiddlewareHandlerContext<State>,
   ): Response | Promise<Response>;
+}
+
+export interface MiddlewareRoute extends Middleware {
+  /**
+   * path-to-regexp style url path
+   */
+  route: string;
+  /**
+   * URLPattern of the route
+   */
+  // deno-lint-ignore no-explicit-any
+  pattern: any;
 }
 
 export interface AppModule {

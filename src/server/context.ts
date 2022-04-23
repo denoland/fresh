@@ -11,6 +11,7 @@ import {
 import { Manifest } from "./mod.ts";
 import { Bundler } from "./bundle.ts";
 import { ALIVE_URL, BUILD_ID, JS_PREFIX, REFRESH_JS_URL } from "./constants.ts";
+
 import DefaultErrorHandler from "./default_error_page.tsx";
 import {
   AppModule,
@@ -20,10 +21,12 @@ import {
   Island,
   Middleware,
   MiddlewareModule,
+  MiddlewareRoute,
   Page,
   PageModule,
   Renderer,
   RendererModule,
+  RouterState,
   UnknownPage,
   UnknownPageModule,
 } from "./types.ts";
@@ -52,7 +55,7 @@ export class ServerContext {
   #staticFiles: StaticFile[];
   #bundler: Bundler;
   #renderer: Renderer;
-  #middleware: Middleware;
+  #middlewares: MiddlewareRoute[];
   #app: AppModule;
   #notFound: UnknownPage;
   #error: ErrorPage;
@@ -62,7 +65,7 @@ export class ServerContext {
     islands: Island[],
     staticFiles: StaticFile[],
     renderer: Renderer,
-    middleware: Middleware,
+    middlewares: MiddlewareRoute[],
     app: AppModule,
     notFound: UnknownPage,
     error: ErrorPage,
@@ -71,7 +74,7 @@ export class ServerContext {
     this.#islands = islands;
     this.#staticFiles = staticFiles;
     this.#renderer = renderer;
-    this.#middleware = middleware;
+    this.#middlewares = middlewares;
     this.#app = app;
     this.#notFound = notFound;
     this.#error = error;
@@ -90,7 +93,7 @@ export class ServerContext {
     const pages: Page[] = [];
     const islands: Island[] = [];
     let renderer: Renderer = DEFAULT_RENDERER;
-    let middleware: Middleware = DEFAULT_MIDDLEWARE;
+    const middlewares: MiddlewareRoute[] = [];
     let app: AppModule = DEFAULT_APP;
     let notFound: UnknownPage = DEFAULT_NOT_FOUND;
     let error: ErrorPage = DEFAULT_ERROR;
@@ -102,7 +105,10 @@ export class ServerContext {
       const path = url.substring(baseUrl.length).substring("routes".length);
       const baseRoute = path.substring(1, path.length - extname(path).length);
       const name = baseRoute.replace("/", "-");
-      if (!path.startsWith("/_")) {
+      const isMiddleware = path.endsWith("/_middleware.tsx") ||
+        path.endsWith("/_middleware.ts") || path.endsWith("/_middleware.jsx") ||
+        path.endsWith("/_middleware.js");
+      if (!path.startsWith("/_") && !isMiddleware) {
         const { default: component, config } = (module as PageModule);
         let route = pathToRoute(baseRoute);
         if (config?.routeOverride) {
@@ -130,11 +136,11 @@ export class ServerContext {
         path === "/_render.jsx" || path === "/_render.js"
       ) {
         renderer = module as RendererModule;
-      } else if (
-        path === "/_middleware.tsx" || path === "/_middleware.ts" ||
-        path === "/_middleware.jsx" || path === "/_middleware.js"
-      ) {
-        middleware = module as MiddlewareModule;
+      } else if (isMiddleware) {
+        middlewares.push({
+          ...middlewarePathToPattern(baseRoute),
+          ...module as MiddlewareModule,
+        });
       } else if (
         path === "/_app.tsx" || path === "/_app.ts" ||
         path === "/_app.jsx" || path === "/_app.js"
@@ -180,6 +186,7 @@ export class ServerContext {
       }
     }
     sortRoutes(pages);
+    sortRoutes(middlewares);
 
     for (const [self, module] of Object.entries(manifest.islands)) {
       const url = new URL(self, baseUrl).href;
@@ -237,12 +244,13 @@ export class ServerContext {
         throw err;
       }
     }
+
     return new ServerContext(
       pages,
       islands,
       staticFiles,
       renderer,
-      middleware,
+      middlewares,
       app,
       notFound,
       error,
@@ -254,8 +262,8 @@ export class ServerContext {
    * by fresh, including static files.
    */
   handler(): RequestHandler {
-    const inner = router.router(...this.#routes());
-    const middleware = this.#middleware;
+    const inner = router.router<RouterState>(...this.#routes());
+    const withMiddlewares = this.#composeMiddlewares(this.#middlewares);
     return function handler(req: Request, connInfo: ConnInfo) {
       // Redirect requests that end with a trailing slash
       // to their non-trailing slash counterpart.
@@ -265,8 +273,43 @@ export class ServerContext {
         url.pathname = url.pathname.slice(0, -1);
         return Response.redirect(url.href, 307);
       }
-      const handle = () => Promise.resolve(inner(req, connInfo));
-      return middleware.handler(req, { handle, ...connInfo });
+      return withMiddlewares(req, connInfo, inner);
+    };
+  }
+
+  /**
+   * Identify which middlewares should be applied for a request,
+   * chain them and return a handler response
+   */
+  #composeMiddlewares(middlewares: MiddlewareRoute[]) {
+    return (
+      req: Request,
+      connInfo: ConnInfo,
+      inner: router.Handler<RouterState>,
+    ) => {
+      // identify middlewares to apply, if any.
+      // middlewares should be already sorted from deepest to shallow layer
+      const mws = selectMiddlewares(req.url, middlewares);
+
+      const handlers: (() => Response | Promise<Response>)[] = [];
+
+      const ctx = {
+        next() {
+          const handler = handlers.shift()!;
+          return Promise.resolve(handler());
+        },
+        ...connInfo,
+        state: {},
+      };
+
+      for (const mw of mws) {
+        handlers.push(() => mw.handler(req, ctx));
+      }
+
+      handlers.push(() => inner(req, ctx));
+
+      const handler = handlers.shift()!;
+      return handler();
     };
   }
 
@@ -274,8 +317,12 @@ export class ServerContext {
    * This function returns all routes required by fresh as an extended
    * path-to-regex, to handler mapping.
    */
-  #routes(): [router.Routes, RequestHandler, router.ErrorHandler] {
-    const routes: router.Routes = {};
+  #routes(): [
+    router.Routes<RouterState>,
+    router.Handler<RouterState>,
+    router.ErrorHandler<RouterState>,
+  ] {
+    const routes: router.Routes<RouterState> = {};
 
     routes[`${INTERNAL_PREFIX}${JS_PREFIX}/${BUILD_ID}/:path*`] = this
       .#bundleAssetRoute();
@@ -396,17 +443,17 @@ export class ServerContext {
     for (const page of this.#pages) {
       const createRender = genRender(page, 200);
       if (typeof page.handler === "function") {
-        routes[page.route] = (req, connInfo, params) =>
+        routes[page.route] = (req, ctx, params) =>
           (page.handler as Handler)(req, {
-            ...connInfo,
+            ...ctx,
             params,
             render: createRender(req, params),
           });
       } else {
         for (const [method, handler] of Object.entries(page.handler)) {
-          routes[`${method}@${page.route}`] = (req, connInfo, params) =>
+          routes[`${method}@${page.route}`] = (req, ctx, params) =>
             handler(req, {
-              ...connInfo,
+              ...ctx,
               params,
               render: createRender(req, params),
             });
@@ -415,17 +462,24 @@ export class ServerContext {
     }
 
     const unknownHandlerRender = genRender(this.#notFound, 404);
-    const unknownHandler = (req: Request, connInfo: ConnInfo) =>
+    const unknownHandler: router.Handler<RouterState> = (
+      req,
+      ctx,
+    ) =>
       this.#notFound.handler(
         req,
         {
-          ...connInfo,
+          ...ctx,
           render: unknownHandlerRender(req, {}),
         },
       );
 
     const errorHandlerRender = genRender(this.#error, 500);
-    const errorHandler = (req: Request, connInfo: ConnInfo, error: unknown) => {
+    const errorHandler: router.ErrorHandler<RouterState> = (
+      req,
+      ctx,
+      error,
+    ) => {
       console.error(
         "%cAn error occured during route handling or page rendering.",
         "color:red",
@@ -434,7 +488,7 @@ export class ServerContext {
       return this.#error.handler(
         req,
         {
-          ...connInfo,
+          ...ctx,
           error,
           render: errorHandlerRender(req, {}, error),
         },
@@ -478,7 +532,7 @@ export class ServerContext {
    * constants.INTERNAL_PREFIX
    */
   #bundleAssetRoute = (): router.MatchHandler => {
-    return async (_req, _connInfo, params) => {
+    return async (_req, _ctx, params) => {
       const path = `/${params.path}`;
       const file = await this.#bundler.get(path);
       let res;
@@ -511,10 +565,6 @@ const DEFAULT_RENDERER: Renderer = {
   },
 };
 
-const DEFAULT_MIDDLEWARE: Middleware = {
-  handler: (_, ctx) => ctx.handle(),
-};
-
 const DEFAULT_APP: AppModule = {
   default: ({ Component }) => h(Component, {}),
 };
@@ -535,6 +585,25 @@ const DEFAULT_ERROR: ErrorPage = {
   handler: (_req, ctx) => ctx.render(),
   csp: false,
 };
+
+/**
+ * Return a list of middlewares that needs to be applied for request url
+ * @param url the request url
+ * @param middlewares Array of middlewares handlers and their routes as path-to-regexp style
+ */
+export function selectMiddlewares(url: string, middlewares: MiddlewareRoute[]) {
+  const selectedMws: Middleware[] = [];
+  const reqURL = new URL(url);
+
+  for (const { pattern, handler } of middlewares) {
+    const res = pattern.exec(reqURL);
+    if (res) {
+      selectedMws.push({ handler });
+    }
+  }
+
+  return selectedMws;
+}
 
 /**
  * Sort pages by their relative routing priority, based on the parts in the
@@ -611,4 +680,11 @@ function serializeCSPDirectives(csp: ContentSecurityPolicyDirectives): string {
       return `${key} ${value}`;
     })
     .join("; ");
+}
+
+export function middlewarePathToPattern(baseRoute: string) {
+  baseRoute = baseRoute.slice(0, -"_middleware".length);
+  const regRoute = pathToRoute(baseRoute);
+  const pattern = new URLPattern({ pathname: `${regRoute}*` });
+  return { route: regRoute, pattern };
 }
