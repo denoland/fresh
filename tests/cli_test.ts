@@ -1,4 +1,4 @@
-import { assert, assertEquals, TextLineStream } from "./deps.ts";
+import { assert, assertEquals, delay, TextLineStream } from "./deps.ts";
 
 type FileTree = {
   type: "file";
@@ -93,6 +93,7 @@ Deno.test({
       const serverProcess = Deno.run({
         cmd: ["deno", "run", "-A", "--no-check", "main.ts"],
         stdout: "piped",
+        stderr: "inherit",
         cwd: tmpDirName,
       });
 
@@ -100,16 +101,26 @@ Deno.test({
         .pipeThrough(new TextDecoderStream())
         .pipeThrough(new TextLineStream());
 
+      let started = false;
       for await (const line of lines) {
-        if (line.includes("Server listening on http://")) break;
+        console.log(line);
+        if (line.includes("Server listening on http://")) {
+          started = true;
+          break;
+        }
       }
-      await lines.cancel();
+      if (!started) {
+        throw new Error("Server didn't start up");
+      }
+
+      await delay(500);
 
       // Access the root page
       const res = await fetch("http://localhost:8000");
       await res.body?.cancel();
       assertEquals(res.status, 200);
 
+      await lines.cancel();
       serverProcess.kill("SIGTERM");
       serverProcess.close();
     });
