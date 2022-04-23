@@ -1,5 +1,5 @@
 import { ComponentType } from "../runtime/deps.ts";
-import { ConnInfo, router } from "./deps.ts";
+import { ConnInfo, router, ServeInit } from "./deps.ts";
 import {
   AppProps,
   ErrorPageProps,
@@ -8,6 +8,8 @@ import {
   UnknownPageProps,
 } from "../runtime/types.ts";
 import { RenderContext, RenderFn } from "./render.tsx";
+
+export type StartOptions = ServeInit;
 
 export interface PageModule {
   default?: ComponentType<PageProps>;

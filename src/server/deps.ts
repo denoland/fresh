@@ -12,6 +12,7 @@ export { serve } from "https://deno.land/std@0.128.0/http/server.ts";
 export type {
   ConnInfo,
   Handler as RequestHandler,
+  ServeInit,
 } from "https://deno.land/std@0.128.0/http/server.ts";
 
 // -- router --
