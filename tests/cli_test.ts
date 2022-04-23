@@ -1,4 +1,4 @@
-import { assert, assertEquals, TextLineStream } from "./deps.ts";
+import { assert, assertEquals, delay, TextLineStream } from "./deps.ts";
 
 type FileTree = {
   type: "file";
@@ -93,6 +93,7 @@ Deno.test({
       const serverProcess = Deno.run({
         cmd: ["deno", "run", "-A", "--no-check", "main.ts"],
         stdout: "piped",
+        stderr: "inherit",
         cwd: tmpDirName,
       });
 
@@ -106,6 +107,8 @@ Deno.test({
       }
       await lines.cancel();
 
+      await delay(500);
+      
       // Access the root page
       const res = await fetch("http://localhost:8000");
       await res.body?.cancel();
