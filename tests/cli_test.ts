@@ -101,7 +101,7 @@ Deno.test({
         .pipeThrough(new TextDecoderStream())
         .pipeThrough(new TextLineStream());
 
-      let started = true;
+      let started = false;
       for await (const line of lines) {
         console.log(line);
         if (line.includes("Server listening on http://")) {
@@ -109,7 +109,6 @@ Deno.test({
           break;
         }
       }
-      await lines.cancel();
       if (!started) {
         throw new Error("Server didn't start up");
       }
@@ -121,6 +120,7 @@ Deno.test({
       await res.body?.cancel();
       assertEquals(res.status, 200);
 
+      await lines.cancel();
       serverProcess.kill("SIGTERM");
       serverProcess.close();
     });
