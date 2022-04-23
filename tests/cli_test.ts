@@ -116,7 +116,7 @@ Deno.test({
       await delay(500);
 
       // Access the root page
-      const res = await fetch("http://0.0.0.0:8000");
+      const res = await fetch("http://localhost:8000");
       await res.body?.cancel();
       assertEquals(res.status, 200);
 

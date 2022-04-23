@@ -52,8 +52,8 @@ The `--watch` option will cause your script to be reloaded on any changes to the
 source. If you do not want this you can omit the `--watch` option.
 
 After you have started the project, you can view it in your browser at
-http://0.0.0.0:8000. You will first get served a JIT server rendered page, which
-will get hydrated using client side JS after a few moments.
+http://localhost:8000. You will first get served a JIT server rendered page,
+which will get hydrated using client side JS after a few moments.
 
 ## Deploying the project to Deno Deploy
 

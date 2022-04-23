@@ -41,7 +41,7 @@ export async function start(
 ) {
   const ctx = await ServerContext.fromManifest(routes);
   console.log(
-    `Server listening on http://${opts?.hostname ?? "0.0.0.0"}:${
+    `Server listening on http://${opts?.hostname ?? "localhost"}:${
       opts?.port ?? 8000
     }`,
   );
