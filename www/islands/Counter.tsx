@@ -17,7 +17,7 @@ export default function Counter(props: CounterProps) {
       <RoundedButton
         title="Subtract 1"
         onClick={() => setCount(count - 1)}
-        disabled={!IS_BROWSER}
+        disabled={!IS_BROWSER || count <= 0}
       >
         <IconMinus />
       </RoundedButton>

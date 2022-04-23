@@ -1,0 +1,7 @@
+{
+  "tasks": {
+    "test": "deno test -A --no-check=remote --watch",
+    "fixture": "deno run -A --no-check=remote --watch ./tests/fixture/main.ts",
+    "doc": "deno run -A --no-check=remote --watch=www/static,src/,docs/ www/main.ts"
+  }
+}

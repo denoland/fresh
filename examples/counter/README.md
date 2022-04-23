@@ -5,7 +5,7 @@
 Start the project:
 
 ```
-deno run -A --watch main.ts
+deno task start
 ```
 
 After adding, removing, or moving a page in the `routes` or directory, or

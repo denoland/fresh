@@ -59,14 +59,25 @@ export default function DocsPage(props: PageProps<Data>) {
   );
 }
 
+function Logo() {
+  return (
+    <a href="/" class={tw`flex mr-2`}>
+      <img src="/fresh-logo.svg" alt="Fresh logo" width={40} height={40} />
+    </a>
+  );
+}
+
 function Header() {
   const header = tw`mx-auto max-w-screen-lg flex gap-3 justify-between`;
   const sidebarButton = tw
     `px-4 py-4 md:hidden border(l-2 gray-100) flex items-center hover:bg-gray-50`;
   return (
     <header class={header}>
-      <div class={tw`p-4`}>
-        <Title />
+      <div class={tw`p-4 flex`}>
+        <Logo />
+        <div>
+          <Title />
+        </div>
       </div>
       <label for="docs_sidebar" class={sidebarButton}>
         <svg
