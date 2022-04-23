@@ -351,12 +351,12 @@ export class ServerContext {
         params: Record<string, string>,
         error?: unknown,
       ) => {
-        return (data?: Data) => {
+        return async (data?: Data) => {
           if (page.component === undefined) {
             throw new Error("This page does not have a component to render.");
           }
           const preloads: string[] = [];
-          const resp = internalRender({
+          const resp = await internalRender({
             page,
             islands: this.#islands,
             app: this.#app,
