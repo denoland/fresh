@@ -19,7 +19,6 @@ export default function MainPage() {
         />
       </Head>
       <Hero />
-      {/* <NavigationBar active="/" /> */}
       <Intro />
       <GettingStarted />
       <Example />
@@ -74,6 +73,8 @@ function Intro() {
       <img
         src="/illust.jpeg"
         class={tw`w-64 mx-auto`}
+        width={256}
+        height={217}
         alt="deno is drinking fresh lemon squash"
       />
 
