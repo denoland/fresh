@@ -1,11 +1,12 @@
 /** @jsx h */
 /** @jsxFrag Fragment */
 
-import { Fragment, h, Head, tw } from "../client_deps.ts";
+import { ComponentChildren, Fragment, h, Head, tw } from "../client_deps.ts";
 import Counter from "../islands/Counter.tsx";
-import NavigationBar from "../components/NavigationBar.tsx";
+import LemonDrop from "../islands/LemonDrop.tsx";
 import Footer from "../components/Footer.tsx";
 import WarningBanner from "../components/WarningBanner.tsx";
+import { Leaf } from "../components/Icons.tsx";
 
 export default function MainPage() {
   return (
@@ -18,7 +19,7 @@ export default function MainPage() {
         />
       </Head>
       <Hero />
-      <NavigationBar active="/" />
+      {/* <NavigationBar active="/" /> */}
       <Intro />
       <GettingStarted />
       <Example />
@@ -28,53 +29,85 @@ export default function MainPage() {
 }
 
 function Hero() {
-  const container = tw`w-full h-64 flex justify-center items-center flex-col`;
-  const title = tw
-    `text(4xl sm:5xl lg:6xl gray-900 center) sm:tracking-tight font-extrabold`;
-  const subtitle = tw`mt-4 text(2xl gray-600 center)`;
+  const container = tw
+    `w-full flex justify-center items-center flex-col bg(green-200)`;
+  const nav = tw`flex justify-end items-center bg(green-200)`;
+  const a = tw
+    `border(1 black) inline-flex items-center h-10 px-4 m-4 text-black bg-transparent rounded hover:bg-white`;
 
   return (
-    <section class={container}>
-      <h1 class={title}>
-        fresh
-      </h1>
-      <p class={subtitle}>
-        The next-gen web framework.
-      </p>
-    </section>
+    <Fragment>
+      <div class={nav}>
+        <a href="/docs" class={a}>
+          Documentation
+        </a>
+      </div>
+      <section class={container}>
+        <LemonDrop />
+      </section>
+    </Fragment>
+  );
+}
+export interface ListItemProps {
+  children: ComponentChildren;
+}
+
+function ListItem(props: ListItemProps) {
+  return (
+    <div class={tw`flex mt-3`}>
+      <Leaf />
+      <div class={tw`pl-4 flex-1`}>
+        {props.children}
+      </div>
+    </div>
   );
 }
 
 function Intro() {
+  const title = tw
+    `text(4xl sm:4xl lg:4xl gray-900 center) sm:tracking-tight font-extrabold`;
+
   return (
     <section
       class={tw`max-w-screen-sm mx-auto my-16 px(4 sm:6 md:8) space-y-4`}
     >
+      <img
+        src="/illust.jpeg"
+        class={tw`w-64 mx-auto`}
+        alt="deno is drinking fresh lemon squash"
+      />
+
+      <h2 class={title}>
+        The next-gen web framework.
+      </h2>
+
       <p class={tw`text-gray-600`}>
         Fresh is a next generation web framework, built for speed, reliability,
         and simplicity. Some stand out features:
       </p>
-      <ul class={tw`text-gray-600 list-disc list-inside pl-4`}>
-        <li>
+
+      <div>
+        <ListItem>
           <b>Just-in-time rendering</b> on the edge.
-        </li>
-        <li>
+        </ListItem>
+        <ListItem>
           <b>Island based client hydration</b> for maximum interactivity.
-        </li>
-        <li>
+        </ListItem>
+        <ListItem>
           <b>Zero runtime overhead</b>: no JS is shipped to the client by
           default.
-        </li>
-        <li>
+        </ListItem>
+        <ListItem>
           <b>No build step</b>.
-        </li>
-        <li>
+        </ListItem>
+        <ListItem>
           <b>No configuration</b> necessary.
-        </li>
-        <li>
+        </ListItem>
+        <ListItem>
           <b>TypeScript support</b> out of the box.
-        </li>
-      </ul>
+        </ListItem>
+      </div>
+
       <p class={tw`text-gray-600`}>
         Fresh embraces the tried and true design of server side rendering and
         progressive enhancement on the client side.
