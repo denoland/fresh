@@ -101,14 +101,21 @@ Deno.test({
         .pipeThrough(new TextDecoderStream())
         .pipeThrough(new TextLineStream());
 
+      let started = true;
       for await (const line of lines) {
         console.log(line);
-        if (line.includes("Server listening on http://")) break;
+        if (line.includes("Server listening on http://")) {
+          started = true;
+          break;
+        }
       }
       await lines.cancel();
+      if (!started) {
+        throw new Error("Server didn't start up");
+      }
 
       await delay(500);
-      
+
       // Access the root page
       const res = await fetch("http://localhost:8000");
       await res.body?.cancel();
