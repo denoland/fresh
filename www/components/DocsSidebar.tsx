@@ -18,7 +18,7 @@ export default function DocsSidebar(props: { path: string }) {
 }
 
 const link = apply`text(gray-900 hover:gray-600)`;
-const linkActive = apply`text(blue-600 hover:blue-500)`;
+const linkActive = apply`text(green-600 hover:green-500)`;
 
 export function SidebarCategory(props: {
   path: string;
