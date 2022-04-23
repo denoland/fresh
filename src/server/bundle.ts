@@ -7,7 +7,7 @@ async function ensureEsbuildInialized() {
   if (esbuildInitalized === false) {
     if (Deno.run === undefined) {
       esbuildInitalized = esbuild.initialize({
-        wasmURL: new URL("./esbuild-wasm/esbuild.wasm", import.meta.url).href,
+        wasmURL: "https://unpkg.com/esbuild-wasm@0.14.34/esbuild.wasm",
         worker: false,
       });
     } else {
