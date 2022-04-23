@@ -1,6 +1,14 @@
 The next step after scaffolding out a new project, is to actually start it. To
-do this you can just `deno run` the `main.ts` file with the appropriate flags.
-You will need to provide permission flags for:
+do this you can just `deno task start`.
+
+```
+$ deno task start
+Watcher Process started.
+Server listening on http://localhost:8000
+```
+
+If you want to start manually without Deno task, `deno run` the `main.ts` with
+the appropriate flags. You will need to provide permission flags for:
 
 - **`--allow-net`**: This is required to start the HTTP server.
 - **`--allow-read`**: This is required to read (static) files from disk.

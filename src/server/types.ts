@@ -40,20 +40,20 @@ export interface IslandModule {
 export interface HandlerContext<T = unknown, TState = Record<string, unknown>>
   extends ConnInfo {
   params: Record<string, string>;
-  render: (data?: T) => Response;
+  render: (data?: T) => Response | Promise<Response>;
   state: TState;
 }
 
 export interface UnknownHandlerContext<TState = Record<string, unknown>>
   extends ConnInfo {
-  render: () => Response;
+  render: () => Response | Promise<Response>;
   state: TState;
 }
 
 export interface ErrorHandlerContext<TState = Record<string, unknown>>
   extends ConnInfo {
   error: unknown;
-  render: () => Response;
+  render: () => Response | Promise<Response>;
   state: TState;
 }
 
@@ -111,11 +111,11 @@ export interface ErrorPage {
 }
 
 export interface RendererModule {
-  render(ctx: RenderContext, render: RenderFn): void;
+  render(ctx: RenderContext, render: RenderFn): void | Promise<void>;
 }
 
 export interface Renderer {
-  render(ctx: RenderContext, render: RenderFn): void;
+  render(ctx: RenderContext, render: RenderFn): void | Promise<void>;
 }
 
 // deno-lint-ignore no-explicit-any

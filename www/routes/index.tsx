@@ -153,7 +153,7 @@ function GettingStarted() {
         to start the development server:
       </p>
       <pre class={tw`overflow-x-auto py-2 px-4 bg(gray-100)`}>
-        deno run -A --watch main.ts
+        deno task start
       </pre>
       <p class={tw`text-gray-600`}>
         You can now open{" "}

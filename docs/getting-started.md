@@ -4,7 +4,7 @@ Welcome to the `fresh` documentation.
 
 ## Requirements
 
-The documentation assumes you have Deno 1.12.0 or later installed.
+The documentation assumes you have Deno 1.20.1 or later installed.
 
 To install Deno, follow the installation instructions in the manual:
 https://deno.land/manual/getting_started/installation
@@ -45,11 +45,12 @@ To learn more about how projects are structured, take a look at the
 You can now run your new project locally using the `deno` CLI:
 
 ```
-deno run -A --watch main.ts
+deno task start
 ```
 
-The `--watch` option will cause your script to be reloaded on any changes to the
-source. If you do not want this you can omit the `--watch` option.
+The `--watch` option in `start` task will cause your script to be reloaded on
+any changes to the source. If you do not want this you can omit the `--watch`
+option in `deno.json`.
 
 After you have started the project, you can view it in your browser at
 http://localhost:8000. You will first get served a JIT server rendered page,
