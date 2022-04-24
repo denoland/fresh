@@ -85,30 +85,32 @@ function Header() {
   const sidebarButton = tw
     `px-4 py-4 md:hidden border(l-2 gray-100) flex items-center hover:bg-gray-50`;
   return (
-    <header class={header}>
-      <div class={tw`p-4 flex`}>
-        <Logo />
-        <div>
-          <Title />
+    <div class={tw`bg-green-200`}>
+      <header class={header}>
+        <div class={tw`p-4 flex`}>
+          <Logo />
+          <div>
+            <Title />
+          </div>
         </div>
-      </div>
-      <label for="docs_sidebar" class={sidebarButton}>
-        <svg
-          class={tw`h-6 w-6`}
-          stroke="currentColor"
-          fill="none"
-          viewBox="0 0 24 24"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth="2"
-            d="M4 6h16M4 12h16M4 18h7"
+        <label for="docs_sidebar" class={sidebarButton}>
+          <svg
+            class={tw`h-6 w-6`}
+            stroke="currentColor"
+            fill="none"
+            viewBox="0 0 24 24"
           >
-          </path>
-        </svg>
-      </label>
-    </header>
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth="2"
+              d="M4 6h16M4 12h16M4 18h7"
+            >
+            </path>
+          </svg>
+        </label>
+      </header>
+    </div>
   );
 }
 
