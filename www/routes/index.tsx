@@ -77,13 +77,28 @@ function Intro() {
     <section
       class={tw`max-w-screen-sm mx-auto my-16 px(4 sm:6 md:8) space-y-4`}
     >
-      <img
-        src={asset("/illust.jpeg")}
-        class={tw`w-64 mx-auto`}
-        width={256}
-        height={217}
-        alt="deno is drinking fresh lemon squash"
-      />
+      <picture>
+        <source
+          srcset={`${asset("/illustration/2x.avif")} 2x, ${
+            asset("/illustration/1x.avif")
+          }`}
+          type="image/avif"
+        />
+        <source
+          srcset={`${asset("/illustration/2x.webp")} 2x, ${
+            asset("/illustration/1x.webp")
+          }`}
+          type="image/webp"
+        />
+        <img
+          src={asset("/illustration/1x.jpeg")}
+          srcset={`${asset("/illustration/2x.jpeg")} 2x`}
+          class={tw`w-64 mx-auto`}
+          width={800}
+          height={678}
+          alt="deno is drinking fresh lemon squash"
+        />
+      </picture>
 
       <h2 class={title}>
         The next-gen web framework.
