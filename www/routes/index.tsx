@@ -16,25 +16,23 @@ import Footer from "../components/Footer.tsx";
 import WarningBanner from "../components/WarningBanner.tsx";
 import { Leaf } from "../components/Icons.tsx";
 
+const TITLE = "fresh - The next-gen web framework.";
+const DESCRIPTION =
+  "The next-gen web framework. Just in time edge rendering, island based interactivity, and no configuration TypeScript support.";
+
 export default function MainPage(props: PageProps) {
+  const ogImageUrl = new URL(asset("/home-og.png"), props.url).href;
+
   return (
     <>
       <Head>
-        <title>fresh - The next-gen web framework.</title>
-        <meta
-          name="description"
-          content="The next-gen web framework. Just in time edge rendering, island based interactivity, and no configuration TypeScript support."
-        />
-        <meta
-          property="og:title"
-          content="fresh - The next-gen web framework."
-        />
+        <title>{TITLE}</title>
+        <meta name="description" content={DESCRIPTION} />
+        <meta property="og:title" content={TITLE} />
+        <meta property="og:description" content={DESCRIPTION} />
         <meta property="og:type" content="website" />
         <meta property="og:url" content={props.url.href} />
-        <meta
-          property="og:image"
-          content={new URL(asset("/home-og.png"), props.url).href}
-        />
+        <meta property="og:image" content={ogImageUrl} />
       </Head>
       <Hero />
       <Intro />
