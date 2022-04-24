@@ -18,7 +18,7 @@ import { Leaf } from "../components/Icons.tsx";
 
 const TITLE = "fresh - The next-gen web framework.";
 const DESCRIPTION =
-  "Just in time edge rendering, island based interactivity, and no config TypeScript support using Deno.";
+  "Just in time edge rendering, island based interactivity, and no configuration TypeScript support using Deno.";
 
 export default function MainPage(props: PageProps) {
   const ogImageUrl = new URL(asset("/home-og.png"), props.url).href;
