@@ -81,6 +81,11 @@ function LemonDrop() {
   }, [width]);
 
   useEffect(() => {
+    const mediaQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
+    if (mediaQuery.matches) {
+      return;
+    }
+
     requestIdRef.current = requestAnimationFrame(update);
     globalThis.addEventListener("resize", resize);
     resize();
