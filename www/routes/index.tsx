@@ -1,7 +1,14 @@
 /** @jsx h */
 /** @jsxFrag Fragment */
 
-import { ComponentChildren, Fragment, h, Head, tw } from "../client_deps.ts";
+import {
+  asset,
+  ComponentChildren,
+  Fragment,
+  h,
+  Head,
+  tw,
+} from "../client_deps.ts";
 import Counter from "../islands/Counter.tsx";
 import LemonDrop from "../islands/LemonDrop.tsx";
 import Footer from "../components/Footer.tsx";
@@ -71,7 +78,7 @@ function Intro() {
       class={tw`max-w-screen-sm mx-auto my-16 px(4 sm:6 md:8) space-y-4`}
     >
       <img
-        src="/illust.jpeg"
+        src={asset("/illust.jpeg")}
         class={tw`w-64 mx-auto`}
         width={256}
         height={217}

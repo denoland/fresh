@@ -1,7 +1,15 @@
 /** @jsx h */
 /** @jsxFrag Fragment */
 
-import { apply, Fragment, h, Head, PageProps, tw } from "../../client_deps.ts";
+import {
+  apply,
+  asset,
+  Fragment,
+  h,
+  Head,
+  PageProps,
+  tw,
+} from "../../client_deps.ts";
 import { gfm, Handlers } from "../../server_deps.ts";
 import DocsSidebar from "../../components/DocsSidebar.tsx";
 import Footer from "../../components/Footer.tsx";
@@ -49,7 +57,7 @@ export default function DocsPage(props: PageProps<Data>) {
     <>
       <Head>
         <title>{props.data.page?.title ?? "Not Found"} | fresh docs</title>
-        <link rel="stylesheet" href="/gfm.css" />
+        <link rel="stylesheet" href={`/gfm.css?build=${__FRSH_BUILD_ID}`} />
       </Head>
       <Header />
       <NavigationBar active="/docs" />
@@ -62,7 +70,12 @@ export default function DocsPage(props: PageProps<Data>) {
 function Logo() {
   return (
     <a href="/" class={tw`flex mr-2`}>
-      <img src="/fresh-logo.svg" alt="Fresh logo" width={40} height={40} />
+      <img
+        src={asset("/fresh-logo.svg")}
+        alt="Fresh logo"
+        width={40}
+        height={40}
+      />
     </a>
   );
 }
