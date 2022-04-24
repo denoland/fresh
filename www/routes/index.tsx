@@ -7,6 +7,7 @@ import {
   Fragment,
   h,
   Head,
+  PageProps,
   tw,
 } from "../client_deps.ts";
 import Counter from "../islands/Counter.tsx";
@@ -15,7 +16,7 @@ import Footer from "../components/Footer.tsx";
 import WarningBanner from "../components/WarningBanner.tsx";
 import { Leaf } from "../components/Icons.tsx";
 
-export default function MainPage() {
+export default function MainPage(props: PageProps) {
   return (
     <>
       <Head>
@@ -23,6 +24,16 @@ export default function MainPage() {
         <meta
           name="description"
           content="The next-gen web framework. Just in time edge rendering, island based interactivity, and no configuration TypeScript support."
+        />
+        <meta
+          property="og:title"
+          content="fresh - The next-gen web framework."
+        />
+        <meta property="og:type" content="website" />
+        <meta property="og:url" content={props.url.href} />
+        <meta
+          property="og:image"
+          content={new URL(asset("/home-og.png"), props.url).href}
         />
       </Head>
       <Hero />
