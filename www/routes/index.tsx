@@ -7,6 +7,7 @@ import {
   Fragment,
   h,
   Head,
+  PageProps,
   tw,
 } from "../client_deps.ts";
 import Counter from "../islands/Counter.tsx";
@@ -15,15 +16,23 @@ import Footer from "../components/Footer.tsx";
 import WarningBanner from "../components/WarningBanner.tsx";
 import { Leaf } from "../components/Icons.tsx";
 
-export default function MainPage() {
+const TITLE = "fresh - The next-gen web framework.";
+const DESCRIPTION =
+  "Just in time edge rendering, island based interactivity, and no configuration TypeScript support using Deno.";
+
+export default function MainPage(props: PageProps) {
+  const ogImageUrl = new URL(asset("/home-og.png"), props.url).href;
+
   return (
     <>
       <Head>
-        <title>fresh - The next-gen web framework.</title>
-        <meta
-          name="description"
-          content="The next-gen web framework. Just in time edge rendering, island based interactivity, and no configuration TypeScript support."
-        />
+        <title>{TITLE}</title>
+        <meta name="description" content={DESCRIPTION} />
+        <meta property="og:title" content={TITLE} />
+        <meta property="og:description" content={DESCRIPTION} />
+        <meta property="og:type" content="website" />
+        <meta property="og:url" content={props.url.href} />
+        <meta property="og:image" content={ogImageUrl} />
       </Head>
       <Hero />
       <Intro />
