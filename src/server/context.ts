@@ -6,6 +6,7 @@ import {
   RequestHandler,
   router,
   toFileUrl,
+  UAParser,
   walk,
 } from "./deps.ts";
 import { Manifest } from "./mod.ts";
@@ -532,13 +533,43 @@ export class ServerContext {
    * constants.INTERNAL_PREFIX
    */
   #bundleAssetRoute = (): router.MatchHandler => {
-    return async (_req, _ctx, params) => {
+    return async (req, _ctx, params) => {
+      let target = undefined;
+
+      const userAgent = req.headers.get("user-agent");
+      if (userAgent !== null) {
+        const ua = new UAParser(userAgent);
+        const engine = ua.getEngine();
+        switch (engine.name) {
+          case "Blink":
+            if (engine.version) {
+              target = `chrome${engine.version.split(".", 1)[0]}`;
+            }
+            break;
+          case "Gecko":
+            if (engine.version) {
+              target = `firefox${engine.version.split(".", 1)[0]}`;
+            }
+            break;
+          case "WebKit": {
+            const browser = ua.getBrowser();
+            if (browser.name === "Safari" && browser.version) {
+              target = `safari${browser.version.split(",", 1)[0]}`;
+            }
+            break;
+          }
+          default:
+            break;
+        }
+      }
+
       const path = `/${params.path}`;
-      const file = await this.#bundler.get(path);
+      const file = await this.#bundler.get(path, target);
       let res;
       if (file) {
         const headers = new Headers({
           "Cache-Control": "public, max-age=604800, immutable",
+          "Vary": "User-Agent",
         });
 
         const contentType = mediaTypeLookup(path);
@@ -554,6 +585,9 @@ export class ServerContext {
 
       return res ?? new Response(null, {
         status: 404,
+        headers: {
+          "Vary": "User-Agent",
+        },
       });
     };
   };

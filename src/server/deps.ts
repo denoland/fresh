@@ -31,3 +31,6 @@ const esbuild: typeof esbuildWasm = Deno.run === undefined
   : esbuildNative;
 export { esbuild, esbuildWasm as esbuildTypes };
 export { denoPlugin } from "https://deno.land/x/esbuild_deno_loader@0.4.2/mod.ts";
+
+// -- ua-parser-js --
+export { UAParser } from "https://esm.sh/ua-parser-js@1.0.2";
