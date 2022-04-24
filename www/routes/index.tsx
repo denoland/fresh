@@ -45,8 +45,8 @@ export default function MainPage(props: PageProps) {
 
 function Hero() {
   const container = tw
-    `w-full flex justify-center items-center flex-col bg(green-200)`;
-  const nav = tw`flex justify-end items-center bg(green-200)`;
+    `w-full flex justify-center items-center flex-col bg-green-300`;
+  const nav = tw`flex justify-end items-center bg-green-300`;
   const a = tw
     `border(1 black) inline-flex items-center h-10 px-4 m-4 text-black bg-transparent rounded hover:bg-white`;
 
