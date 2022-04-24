@@ -7,6 +7,14 @@ const LINKS = [
     title: "Source",
     href: "https://github.com/lucacasonato/fresh",
   },
+  {
+    title: "License",
+    href: "https://github.com/lucacasonato/fresh/blob/main/LICENSE",
+  },
+  {
+    title: "Code of Conduct",
+    href: "https://github.com/lucacasonato/fresh/blob/main/CODE_OF_CONDUCT.md",
+  },
 ];
 
 export default function Footer() {
