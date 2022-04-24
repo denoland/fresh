@@ -16,13 +16,14 @@ function easeInCirc(x: number) {
 const waveTank = new WaveTank();
 
 function LemonDrop() {
+  const SVG_WIDTH = 100;
   const [counter, setCounter] = useState(0);
   const [dropy, setDropy] = useState(60);
-  const [width, setWidth] = useState(window.innerWidth);
+  const [width, setWidth] = useState(SVG_WIDTH);
   const widthRef = useRef(width);
-  const [springs, setSprings] = useState<Spring[]>([]);
+  const [springs, setSprings] = useState<Spring[]>(waveTank.springs);
   const requestIdRef = useRef<number>();
-  const grid = width / waveTank.waveLength;
+  const grid = SVG_WIDTH / waveTank.waveLength;
   const points = [
     [0, 100],
     [0, 0],
@@ -80,6 +81,11 @@ function LemonDrop() {
   }, [width]);
 
   useEffect(() => {
+    const mediaQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
+    if (mediaQuery.matches) {
+      return;
+    }
+
     requestIdRef.current = requestAnimationFrame(update);
     globalThis.addEventListener("resize", resize);
     resize();
@@ -123,7 +129,13 @@ function LemonDrop() {
           fill="#fff"
         />
       </svg>
-      <svg width={width} height="100" class={tw`-mt-5`}>
+      <svg
+        width="100%"
+        height="100px"
+        viewBox="0 0 100 100"
+        preserveAspectRatio="none"
+        class={tw`-mt-5`}
+      >
         <polygon
           points={springsPath}
           fill="white"
