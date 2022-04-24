@@ -69,7 +69,7 @@ export default function DocsPage(props: PageProps<Data>) {
 
 function Logo() {
   return (
-    <a href="/" class={tw`flex mr-2`}>
+    <a href="/" class={tw`flex mr-3 items-center`}>
       <img
         src={asset("/fresh-logo.svg")}
         alt="Fresh logo"
