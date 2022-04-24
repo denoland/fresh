@@ -3,6 +3,8 @@
 
 # fresh
 
+<img align="right" src="./www/static/fresh-logo.svg" height="150px" alt="the fresh logo: a sliced lemon dripping with juice">
+
 The next-gen web framework.
 
 Fresh is a web framework that lets you build projects very fast, highly dynamic,
