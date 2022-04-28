@@ -69,15 +69,15 @@ async function init(directory: string) {
     "../../runtime.ts",
     import.meta.url,
   )}";\n`;
-  await Deno.writeTextFile(join(directory, "client_deps.ts"), CLIENT_DEPS_TS);
+  await Deno.writeTextFile(join(directory, "deps.client.ts"), CLIENT_DEPS_TS);
   const SERVER_DEPS_TS = `export * from "${new URL(
     "../../server.ts",
     import.meta.url,
   )}";\n`;
-  await Deno.writeTextFile(join(directory, "server_deps.ts"), SERVER_DEPS_TS);
+  await Deno.writeTextFile(join(directory, "deps.server.ts"), SERVER_DEPS_TS);
 
   const ROUTES_INDEX_TSX = `/** @jsx h */
-import { h } from "../client_deps.ts";
+import { h } from "../deps.client.ts";
 import Counter from "../islands/Counter.tsx";
 
 export default function Home() {
@@ -98,7 +98,7 @@ export default function Home() {
   );
 
   const ISLANDS_COUNTER_TSX = `/** @jsx h */
-import { h, IS_BROWSER, useState } from "../client_deps.ts";
+import { h, IS_BROWSER, useState } from "../deps.client.ts";
 
 interface CounterProps {
   start: number;
@@ -125,7 +125,7 @@ export default function Counter(props: CounterProps) {
   );
 
   const ROUTES_GREET_TSX = `/** @jsx h */
-import { h, PageProps } from "../client_deps.ts";
+import { h, PageProps } from "../deps.client.ts";
 
 export default function Greet(props: PageProps) {
   return <div>Hello {props.params.name}</div>;
@@ -137,7 +137,7 @@ export default function Greet(props: PageProps) {
   );
 
   const ROUTES_API_JOKE_TS =
-    `import { HandlerContext } from "../../server_deps.ts";
+    `import { HandlerContext } from "../../deps.server.ts";
 
 // Jokes courtesy of https://punsandoneliners.com/randomness/programmer-jokes/
 const JOKES = [
@@ -173,7 +173,7 @@ export const handler = (_req: Request, _ctx: HandlerContext): Response => {
 /// <reference lib="deno.ns" />
 /// <reference lib="deno.unstable" />
 
-import { start } from "./server_deps.ts";
+import { start } from "./deps.server.ts";
 import manifest from "./fresh.gen.ts";
 
 await start(manifest);

@@ -1,6 +1,6 @@
 /** @jsx h */
 
-import { h, PageConfig } from "../client_deps.ts";
+import { h, PageConfig } from "../deps.client.ts";
 import { HandlerContext } from "../../../server.ts";
 
 export const handler = {

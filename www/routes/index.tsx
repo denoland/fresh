@@ -9,7 +9,7 @@ import {
   Head,
   PageProps,
   tw,
-} from "../client_deps.ts";
+} from "../deps.client.ts";
 import Counter from "../islands/Counter.tsx";
 import LemonDrop from "../islands/LemonDrop.tsx";
 import Footer from "../components/Footer.tsx";

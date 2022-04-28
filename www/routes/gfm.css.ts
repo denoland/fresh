@@ -1,4 +1,4 @@
-import { gfm, Handlers } from "../server_deps.ts";
+import { gfm, Handlers } from "../deps.server.ts";
 
 // TODO(lucacasonato): hash the file and use the hash as the filename, and serve
 // with high-cacheability headers.

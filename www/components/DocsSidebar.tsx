@@ -1,6 +1,6 @@
 /** @jsx h */
 
-import { apply, h, tw } from "../client_deps.ts";
+import { apply, h, tw } from "../deps.client.ts";
 import {
   CATEGORIES,
   TableOfContentsCategory,

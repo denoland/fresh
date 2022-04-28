@@ -32,7 +32,7 @@ This is done with JSX.
 // routes/about.tsx
 
 /** @jsx h */
-import { h } from "../client_deps.ts";
+import { h } from "../deps.client.ts";
 
 export default function AboutPage() {
   return (

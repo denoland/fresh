@@ -1,6 +1,6 @@
 /** @jsx h */
 
-import { h, tw } from "../client_deps.ts";
+import { h, tw } from "../deps.client.ts";
 
 export default function WarningBanner() {
   const warning = tw`bg-yellow-100 border(1 yellow-200) p-4 mb-4`;

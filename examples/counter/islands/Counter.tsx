@@ -1,5 +1,5 @@
 /** @jsx h */
-import { h, IS_BROWSER, useState } from "../client_deps.ts";
+import { h, IS_BROWSER, useState } from "../deps.client.ts";
 
 interface CounterProps {
   start: number;

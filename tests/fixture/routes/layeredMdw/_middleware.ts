@@ -1,4 +1,4 @@
-import { MiddlewareHandlerContext } from "../../server_deps.ts";
+import { MiddlewareHandlerContext } from "../../deps.server.ts";
 
 export async function handler(_req: Request, ctx: MiddlewareHandlerContext) {
   ctx.state.layer1 = "layer1_mw";

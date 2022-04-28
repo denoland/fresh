@@ -17,8 +17,8 @@ your application. All routes can act as both API endpoints and dynamic HTML
 pages. More info about how the `routes` subdirectory works can be found on the
 [file system routing](./file-system-routing.md) page.
 
-Finally there is a `client_deps.ts` and `server_deps.ts`. These files are the
-central location for all external imports. The `client_deps.ts` file is used for
+Finally there is a `deps.client.ts` and `deps.server.ts`. These files are the
+central location for all external imports. The `deps.client.ts` file is used for
 runtime dependencies (ones that are used both in routes and islands), and the
-`server_deps.ts` file is used for server only dependencies (for example ones
+`deps.server.ts` file is used for server only dependencies (for example ones
 used in API routes or middleware).
