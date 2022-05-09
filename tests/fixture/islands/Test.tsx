@@ -1,12 +1,12 @@
 /** @jsx h */
 
-import { asset, h } from "../client_deps.ts";
+import { h } from "../client_deps.ts";
 
 export default function Test(props: { message: string }) {
   return (
     <div>
       <p>{props.message}</p>
-      <img src={asset("/image.png")} />
+      <img id="img-in-island" src="/image.png" height={130} />
     </div>
   );
 }
