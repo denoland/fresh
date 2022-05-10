@@ -17,8 +17,8 @@ export function asset(path: string) {
 export function assetHashingHook(vnode: VNode) {
   if (vnode.type === "img") {
     const props = (vnode.props as HTMLImageElement);
-    // deno-lint-ignore no-explicit-any
     if (
+      // deno-lint-ignore no-explicit-any
       props.src && !(props as any)["data-no-auto-hashing"] &&
       // do not apply the for assets that are already targetting the a frsh special handling
       !props.src.startsWith(INTERNAL_PREFIX) &&
