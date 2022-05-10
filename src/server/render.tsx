@@ -297,7 +297,7 @@ let ISLAND_PROPS: unknown[] = [];
 const originalHook = options.vnode;
 let ignoreNext = false;
 options.vnode = (vnode) => {
-  assetHashingHook(vnode)
+  assetHashingHook(vnode);
   const originalType = vnode.type as ComponentType<unknown>;
   if (typeof vnode.type === "function") {
     const island = ISLANDS.find((island) => island.component === originalType);

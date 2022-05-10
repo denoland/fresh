@@ -201,7 +201,9 @@ Deno.test("static file - by file path", async () => {
 
 Deno.test("static file - by 'hashed' path", async () => {
   // Check that the file path have the BUILD_ID
-  const resp = await router(new Request("https://fresh.deno.dev/assetsCaching"));
+  const resp = await router(
+    new Request("https://fresh.deno.dev/assetsCaching"),
+  );
   const body = await resp.text();
   const imgFilePath = body.match(/img id="img-with-hashing" src="(.*?)"/)?.[1];
   assert(imgFilePath);
@@ -227,23 +229,38 @@ Deno.test("static file - by 'hashed' path", async () => {
   );
   assertEquals(resp3.status, 304);
 
-  const imgFilePathWithExplicitHashing = body.match(/img id="img-with-explicit-hashing" src="(.*?)"/)?.[1];
+  const imgFilePathWithExplicitHashing = body.match(
+    /img id="img-with-explicit-hashing" src="(.*?)"/,
+  )?.[1];
   assert(imgFilePathWithExplicitHashing);
-  const numberOfBuildIDInPath = imgFilePathWithExplicitHashing.split('/').filter(st => st === globalThis.__FRSH_BUILD_ID).length
-  assert(numberOfBuildIDInPath === 1, `explicit hashing incorrect. found ${numberOfBuildIDInPath} BUILDID in path`)
+  const numberOfBuildIDInPath =
+    imgFilePathWithExplicitHashing.split("/").filter((st) =>
+      st === globalThis.__FRSH_BUILD_ID
+    ).length;
+  assert(
+    numberOfBuildIDInPath === 1,
+    `explicit hashing incorrect. found ${numberOfBuildIDInPath} BUILDID in path`,
+  );
 
-  const imgFilePathWithNoCache = body.match(/img id="img-without-hashing" src="(.*?)"/)?.[1];
+  const imgFilePathWithNoCache = body.match(
+    /img id="img-without-hashing" src="(.*?)"/,
+  )?.[1];
   assert(imgFilePathWithNoCache);
-  assert(!imgFilePathWithNoCache.includes(globalThis.__FRSH_BUILD_ID), "img-without-hashing")
+  assert(
+    !imgFilePathWithNoCache.includes(globalThis.__FRSH_BUILD_ID),
+    "img-without-hashing",
+  );
 
   const imgInIsland = body.match(/img id="img-in-island" src="(.*?)"/)?.[1];
   assert(imgInIsland);
-  assert(imgInIsland.includes(globalThis.__FRSH_BUILD_ID), 'img-in-island')
-  
+  assert(imgInIsland.includes(globalThis.__FRSH_BUILD_ID), "img-in-island");
+
   const imgMissing = body.match(/img id="img-missing" src="(.*?)"/)?.[1];
   assert(imgMissing);
-  assert(!imgMissing.includes(globalThis.__FRSH_BUILD_ID), 'Applying hash on unknown asset')
-
+  assert(
+    !imgMissing.includes(globalThis.__FRSH_BUILD_ID),
+    "Applying hash on unknown asset",
+  );
 });
 
 Deno.test("/params/:path*", async () => {

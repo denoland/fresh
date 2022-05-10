@@ -14,16 +14,18 @@ export function asset(path: string) {
   return `${INTERNAL_PREFIX}${STATIC_PREFIX}/${__FRSH_BUILD_ID}${path}`;
 }
 
-export function assetHashingHook(vnode: VNode){
+export function assetHashingHook(vnode: VNode) {
   if (vnode.type === "img") {
-    const props = (vnode.props as HTMLImageElement)
+    const props = (vnode.props as HTMLImageElement);
     // deno-lint-ignore no-explicit-any
-    if (props.src && !(props as any)['data-no-auto-hashing'] 
+    if (
+      props.src && !(props as any)["data-no-auto-hashing"] &&
       // do not apply the for assets that are already targetting the a frsh special handling
-      && !props.src.startsWith(INTERNAL_PREFIX)
+      !props.src.startsWith(INTERNAL_PREFIX) &&
       // Only apply for assets that is referenced from the static folder, i.e path starting by '/'
-      && props.src.startsWith('/')) {
-      (vnode.props as HTMLImageElement).src = asset(props.src)
-    }  
+      props.src.startsWith("/")
+    ) {
+      (vnode.props as HTMLImageElement).src = asset(props.src);
+    }
   }
 }
