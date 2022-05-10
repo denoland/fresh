@@ -20,7 +20,4 @@ declare global {
 
   // deno-lint-ignore no-var
   var __FRSH_BUILD_ID: string;
-
-  // deno-lint-ignore no-explicit-any no-var
-  var URLPattern: any;
 }
