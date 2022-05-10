@@ -16,4 +16,4 @@ By default img elements used in fresh will automatically use the "hashed" path.
 
 If you want to disable this for an element, add the data attribute `data-no-auto-hashing` to the element.
 
-If you want to explicitly build the `hashed` use the `asset` function exported from the `client_deps.ts` file.
+If you want to explicitly build the `hashed` use the `asset` function exported from `runtime.ts`.
