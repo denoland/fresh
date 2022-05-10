@@ -3,7 +3,6 @@ import {
   assert,
   assertEquals,
   assertStringIncludes,
-  Puppeteer,
 } from "./deps.ts";
 import manifest from "./fixture/fresh.gen.ts";
 
