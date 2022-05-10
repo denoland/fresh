@@ -20,7 +20,7 @@ export default function Home() {
       <img
         id="img-without-hashing"
         src="/image.png"
-        data-no-caching={true}
+        data-no-auto-hashing={true}
         height={130}
       />
 

@@ -18,7 +18,7 @@ export function assetHashingHook(vnode: VNode){
   if (vnode.type === "img") {
     const props = (vnode.props as HTMLImageElement)
     // deno-lint-ignore no-explicit-any
-    if (props.src && !(props as any)['data-no-caching'] 
+    if (props.src && !(props as any)['data-no-auto-hashing'] 
       // do not apply the for assets that are already targetting the a frsh special handling
       && !props.src.startsWith(INTERNAL_PREFIX)
       // Only apply for assets that is referenced from the static folder, i.e path starting by '/'
