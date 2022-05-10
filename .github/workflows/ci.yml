@@ -35,8 +35,13 @@ jobs:
       - name: Cache dependencies
         run: deno cache --no-check src/cli/deps.ts src/runtime/deps.ts src/server/deps.ts
 
-      - name: Setup puppeteer
-        run: PUPPETEER_PRODUCT=chrome deno run -A --unstable https://deno.land/x/puppeteer@9.0.2/install.ts
+      - name: Setup puppeteer linux / mac
+        if: startsWith(matrix.os, 'ubuntu') || startsWith(matrix.os, 'mac')
+        run: set "PUPPETEER_PRODUCT=chrome" && deno run -A --unstable https://deno.land/x/puppeteer@9.0.2/install.ts
+
+      - name: Run linter
+        if: startsWith(matrix.os, 'windows')
+        run: deno lint
 
       - name: Run tests
         run: deno test -A --no-check=remote
