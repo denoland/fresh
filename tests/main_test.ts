@@ -1,9 +1,5 @@
 import { ServerContext } from "../server.ts";
-import {
-  assert,
-  assertEquals,
-  assertStringIncludes,
-} from "./deps.ts";
+import { assert, assertEquals, assertStringIncludes } from "./deps.ts";
 import manifest from "./fixture/fresh.gen.ts";
 
 const ctx = await ServerContext.fromManifest(manifest);
