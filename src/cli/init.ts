@@ -188,7 +188,7 @@ await start(manifest);
 
   const DENO_CONFIG = `{
   "tasks": {
-    "start": "deno run -A --watch main.ts"
+    "start": "deno run -A --watch --no-check main.ts"
   }
 }`;
 
