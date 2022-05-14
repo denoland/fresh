@@ -1,4 +1,10 @@
-import { assert, assertEquals, delay, TextLineStream } from "./deps.ts";
+import {
+  assert,
+  assertEquals,
+  delay,
+  puppeteer,
+  TextLineStream,
+} from "./deps.ts";
 
 type FileTree = {
   type: "file";
@@ -119,6 +125,24 @@ Deno.test({
       const res = await fetch("http://localhost:8000");
       await res.body?.cancel();
       assertEquals(res.status, 200);
+
+      // verify the island is revived.
+      const browser = await puppeteer.launch();
+      const page = await browser.newPage();
+
+      await page.goto("http://localhost:8000");
+      await delay(500);
+      const counter = await page.$("body > div > div > p");
+      let counterValue = await counter?.evaluate((el) => el.textContent);
+      assert(counterValue === "3");
+
+      const buttonPlus = await page.$("body > div > div > button:nth-child(3)");
+      await buttonPlus?.click();
+
+      counterValue = await counter?.evaluate((el) => el.textContent);
+      assert(counterValue === "4");
+
+      await browser.close();
 
       await lines.cancel();
       serverProcess.kill("SIGTERM");

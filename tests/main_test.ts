@@ -290,7 +290,7 @@ Deno.test({
 });
 
 Deno.test({
-  name: "/middleware - layer 3 middleware ",
+  name: "/middleware - layer 3 middleware",
   fn: async () => {
     // layered 3 should contain layer 3 middleware data
     const resp = await router(
