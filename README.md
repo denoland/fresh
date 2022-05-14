@@ -58,4 +58,5 @@ project to GitHub, create a `fresh` project, and link it to `main.ts` file in
 the created repository.
 
 For a more in-depth getting started guide, visit the
-[Getting Started](https://fresh.deno.dev/docs/getting-started) page in the `fresh` docs.
+[Getting Started](https://fresh.deno.dev/docs/getting-started) page in the
+`fresh` docs.
