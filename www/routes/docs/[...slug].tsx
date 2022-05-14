@@ -10,7 +10,7 @@ import {
   PageProps,
   tw,
 } from "../../client_deps.ts";
-import { gfm, Handlers } from "../../server_deps.ts";
+import { frontMatter, gfm, Handlers } from "../../server_deps.ts";
 import DocsSidebar from "../../components/DocsSidebar.tsx";
 import Footer from "../../components/Footer.tsx";
 import NavigationBar from "../../components/NavigationBar.tsx";
@@ -27,6 +27,7 @@ interface Data {
 
 interface Page extends TableOfContentsEntry {
   markdown: string;
+  frontMatterData: Record<string, string>;
 }
 
 export const handler: Handlers<Data> = {
@@ -45,19 +46,28 @@ export const handler: Handlers<Data> = {
       });
     }
     const url = new URL(`../../../${entry.file}`, import.meta.url);
-    const markdown = await Deno.readTextFile(url);
-    const page = { ...entry, markdown };
+    const fileContent = await Deno.readTextFile(url);
+    const { content, data } = frontMatter(fileContent) as {
+      data: Record<string, string>;
+      content: string;
+    };
+    const page = { ...entry, markdown: content, frontMatterData: data };
     const resp = ctx.render({ page });
     return resp;
   },
 };
 
 export default function DocsPage(props: PageProps<Data>) {
+  const maybeDescription = props.data.page.frontMatterData.description;
+
   return (
     <>
       <Head>
         <title>{props.data.page?.title ?? "Not Found"} | fresh docs</title>
         <link rel="stylesheet" href={`/gfm.css?build=${__FRSH_BUILD_ID}`} />
+        {maybeDescription && (
+          <meta name="description" content={maybeDescription} />
+        )}
       </Head>
       <Header />
       <NavigationBar active="/docs" />
