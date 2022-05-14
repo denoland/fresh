@@ -1,5 +1,10 @@
-import { assert, assertEquals, delay, TextLineStream } from "./deps.ts";
-import puppeteer from "./deps.ts";
+import {
+  assert,
+  assertEquals,
+  delay,
+  puppeteer,
+  TextLineStream,
+} from "./deps.ts";
 
 type FileTree = {
   type: "file";
