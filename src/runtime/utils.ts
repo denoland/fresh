@@ -28,30 +28,28 @@ export function assetHashingHook(vnode: VNode) {
   if (vnode.type === "img" || vnode.type === "source") {
     const props = (vnode.props as HTMLImageElement);
     // deno-lint-ignore no-explicit-any
-    if ((props as any)["data-no-auto-hashing"]) {
-      // skip
-    } else {
-      // apply for src
-      if (
-        props.src &&
-        // do not apply the for assets that are already targetting a fresh special handling
-        !props.src.startsWith(INTERNAL_PREFIX) &&
-        // Only apply for assets that is referenced from the static folder, i.e path starting by '/'
-        props.src.startsWith("/")
-      ) {
-        (vnode.props as HTMLImageElement).src = asset(props.src);
-      }
+    if ((props as any)["data-no-auto-hashing"]) return;
 
-      // apply for srcset
-      if (
-        props.srcset &&
-        // do not apply the for assets that are already targetting a fresh special handling
-        !props.srcset.startsWith(INTERNAL_PREFIX) &&
-        // Only apply for assets that is referenced from the static folder, i.e path starting by '/'
-        props.srcset.startsWith("/")
-      ) {
-        (vnode.props as HTMLImageElement).srcset = assetSrcSet(props.srcset);
-      }
+    // apply for src
+    if (
+      props.src &&
+      // do not apply the for assets that are already targetting a fresh special handling
+      !props.src.startsWith(INTERNAL_PREFIX) &&
+      // Only apply for assets that is referenced from the static folder, i.e path starting by '/'
+      props.src.startsWith("/")
+    ) {
+      props.src = asset(props.src);
+    }
+
+    // apply for srcset
+    if (
+      props.srcset &&
+      // do not apply the for assets that are already targetting a fresh special handling
+      !props.srcset.startsWith(INTERNAL_PREFIX) &&
+      // Only apply for assets that is referenced from the static folder, i.e path starting by '/'
+      props.srcset.startsWith("/")
+    ) {
+      props.srcset = assetSrcSet(props.srcset);
     }
   }
 }
