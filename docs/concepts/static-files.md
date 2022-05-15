@@ -18,7 +18,8 @@ The static files are served by the server under 2 paths:
   client cache whenever a new deployment is done. The response is served with a
   cache expiry of 1 year.
 
-By default img elements used in fresh will automatically use the "hashed" path.
+By default the `img` and `source` elements used in fresh will automatically use
+the "hashed" path for the `src` and `srcset` attributes.
 
 If you want to disable this for an element, add the data attribute
 `data-no-auto-hashing` to the element.

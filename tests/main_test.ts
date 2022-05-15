@@ -1,4 +1,5 @@
 import { ServerContext } from "../server.ts";
+import { assetSrcSet } from "../src/runtime/utils.ts";
 import { assert, assertEquals, assertStringIncludes } from "./deps.ts";
 import manifest from "./fixture/fresh.gen.ts";
 
@@ -229,6 +230,7 @@ Deno.test("static file - by 'hashed' path", async () => {
   );
   assertEquals(resp3.status, 304);
 
+  // ensure asset hook is not applied on file that already have a hashed path
   const imgFilePathWithExplicitHashing = body.match(
     /img id="img-with-explicit-hashing" src="(.*?)"/,
   )?.[1];
@@ -242,6 +244,7 @@ Deno.test("static file - by 'hashed' path", async () => {
     `explicit hashing incorrect. found ${numberOfBuildIDInPath} BUILDID in path`,
   );
 
+  // ensure asset hook is not applied on file explicitly excluded with attribute
   const imgFilePathWithNoCache = body.match(
     /img id="img-without-hashing" src="(.*?)"/,
   )?.[1];
@@ -251,10 +254,21 @@ Deno.test("static file - by 'hashed' path", async () => {
     "img-without-hashing",
   );
 
+  // ensure asset hook is applied on img within an island
   const imgInIsland = body.match(/img id="img-in-island" src="(.*?)"/)?.[1];
   assert(imgInIsland);
   assert(imgInIsland.includes(globalThis.__FRSH_BUILD_ID), "img-in-island");
 
+  // verify that the asset hook is applied to the srcset
+  const imgInIslandSrcSet = body.match(/srcset="(.*?)"/)?.[1];
+  assert(imgInIslandSrcSet);
+  assertEquals(
+    imgInIslandSrcSet,
+    `/_frsh/static/${globalThis.__FRSH_BUILD_ID}/image.png 1x`,
+    "img-in-island-srcset",
+  );
+
+  // verify that the asset hook is not applied to img outside reference out of the static folder
   const imgMissing = body.match(/img id="img-missing" src="(.*?)"/)?.[1];
   assert(imgMissing);
   assert(
@@ -343,4 +357,23 @@ Deno.test({
     // by the reponse header in layer 0
     assertEquals(resp.headers.get("server"), "fresh test server");
   },
+});
+
+Deno.test("applyAssetSrcSet", () => {
+  let srcset = "";
+  let expected = "";
+
+  srcset = "/illustration/2x.avif";
+  expected = `/_frsh/static/${globalThis.__FRSH_BUILD_ID}/illustration/2x.avif`;
+  assert(assetSrcSet(srcset), expected);
+
+  srcset = "/illustration/2x.avif 2x, /illustration/1x.avif";
+  expected =
+    `/_frsh/static/${globalThis.__FRSH_BUILD_ID}/illustration/2x.avif 2x, /_frsh/static/${globalThis.__FRSH_BUILD_ID}/illustration/1x.avif`;
+  assertEquals(assetSrcSet(srcset), expected);
+
+  srcset = "/illustration/1x.avif,    /illustration/2x.avif 2x";
+  expected =
+    `/_frsh/static/${globalThis.__FRSH_BUILD_ID}/illustration/1x.avif, /_frsh/static/${globalThis.__FRSH_BUILD_ID}/illustration/2x.avif 2x`;
+  assertEquals(assetSrcSet(srcset), expected);
 });

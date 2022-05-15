@@ -14,18 +14,44 @@ export function asset(path: string) {
   return `${INTERNAL_PREFIX}${STATIC_PREFIX}/${__FRSH_BUILD_ID}${path}`;
 }
 
+// apply the asset function a srcset
+export function assetSrcSet(srcset: string) {
+  const srcsetParts = srcset.split(",");
+  return srcsetParts.map((part) => {
+    const sections = part.trim().split(" ");
+    sections[0] = asset(sections[0]);
+    return sections.join(" ");
+  }).join(", ");
+}
+
 export function assetHashingHook(vnode: VNode) {
-  if (vnode.type === "img") {
+  if (vnode.type === "img" || vnode.type === "source") {
     const props = (vnode.props as HTMLImageElement);
-    if (
-      // deno-lint-ignore no-explicit-any
-      props.src && !(props as any)["data-no-auto-hashing"] &&
-      // do not apply the for assets that are already targetting the a frsh special handling
-      !props.src.startsWith(INTERNAL_PREFIX) &&
-      // Only apply for assets that is referenced from the static folder, i.e path starting by '/'
-      props.src.startsWith("/")
-    ) {
-      (vnode.props as HTMLImageElement).src = asset(props.src);
+    // deno-lint-ignore no-explicit-any
+    if ((props as any)["data-no-auto-hashing"]) {
+      // skip
+    } else {
+      // apply for src
+      if (
+        props.src &&
+        // do not apply the for assets that are already targetting a fresh special handling
+        !props.src.startsWith(INTERNAL_PREFIX) &&
+        // Only apply for assets that is referenced from the static folder, i.e path starting by '/'
+        props.src.startsWith("/")
+      ) {
+        (vnode.props as HTMLImageElement).src = asset(props.src);
+      }
+
+      // apply for srcset
+      if (
+        props.srcset &&
+        // do not apply the for assets that are already targetting a fresh special handling
+        !props.srcset.startsWith(INTERNAL_PREFIX) &&
+        // Only apply for assets that is referenced from the static folder, i.e path starting by '/'
+        props.srcset.startsWith("/")
+      ) {
+        (vnode.props as HTMLImageElement).srcset = assetSrcSet(props.srcset);
+      }
     }
   }
 }
