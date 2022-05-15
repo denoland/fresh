@@ -87,6 +87,13 @@ Deno.test({
             ],
           },
           { "type": "file", "name": "server_deps.ts" },
+          {
+            "type": "directory",
+            "name": "static",
+            "contents": [
+              { "type": "file", "name": "logo.svg" },
+            ],
+          },
         ],
       },
       { "type": "report", "directories": 3, "files": 9 },
