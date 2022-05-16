@@ -20,7 +20,11 @@ export function asset(path: string) {
     }
     url.searchParams.set(ASSET_CACHE_BUST_KEY, __FRSH_BUILD_ID);
     return url.pathname + url.search + url.hash;
-  } catch {
+  } catch (err) {
+    console.warn(
+      `Failed to create asset() URL, falling back to regular path ('${path}'):`,
+      err,
+    );
     return path;
   }
 }
