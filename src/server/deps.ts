@@ -22,12 +22,12 @@ export * as router from "https://crux.land/router@0.0.11";
 export { lookup as mediaTypeLookup } from "https://deno.land/x/media_types@v2.10.2/mod.ts";
 
 // -- esbuild --
-// @deno-types="https://deno.land/x/esbuild@v0.14.34/mod.d.ts"
-import * as esbuildWasm from "https://unpkg.com/esbuild-wasm@0.14.34/esm/browser.js";
-import * as esbuildNative from "https://deno.land/x/esbuild@v0.14.34/mod.js";
+// @deno-types="https://deno.land/x/esbuild@v0.14.39/mod.d.ts"
+import * as esbuildWasm from "https://unpkg.com/esbuild-wasm@0.14.39/esm/browser.js";
+import * as esbuildNative from "https://deno.land/x/esbuild@v0.14.39/mod.js";
 // @ts-ignore trust me
 const esbuild: typeof esbuildWasm = Deno.run === undefined
   ? esbuildWasm
   : esbuildNative;
 export { esbuild, esbuildWasm as esbuildTypes };
-export { denoPlugin } from "https://deno.land/x/esbuild_deno_loader@0.4.2/mod.ts";
+export { denoPlugin } from "https://deno.land/x/esbuild_deno_loader@0.4.3/mod.ts";
