@@ -134,7 +134,7 @@ Deno.test({
       assertEquals(res.status, 200);
 
       // verify the island is revived.
-      const browser = await puppeteer.launch();
+      const browser = await puppeteer.launch({ args: ["--no-sandbox"] });
       const page = await browser.newPage();
 
       await page.goto("http://localhost:8000");
