@@ -51,7 +51,7 @@ export const handler: Handlers<Data> = {
       data: Record<string, string>;
       content: string;
     };
-    const page = { ...entry, markdown: content, frontMatterData: data };
+    const page = { ...entry, markdown: content, frontMatterData: data ?? {} };
     const resp = ctx.render({ page });
     return resp;
   },
