@@ -52,7 +52,7 @@ jobs:
           restore-keys: chrome-${{ runner.os }}-
 
       - name: Cache Chrome (Windows)
-        if: startsWith(matrix.os, 'mac')
+        if: startsWith(matrix.os, 'win')
         uses: actions/cache@v2
         with:
           path: $LOCALAPPDATA/deno
