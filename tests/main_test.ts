@@ -138,7 +138,7 @@ Deno.test("/static page prerender", async () => {
   assert(!body.includes(`main.js`));
   assert(!body.includes(`island-test.js`));
   assertStringIncludes(body, "<p>This is a static page.</p>");
-  assertStringIncludes(body, `src="/_frsh/static`);
+  assertStringIncludes(body, `src="/image.png?__frsh_c=`);
   assert(!body.includes("__FRSH_ISLAND_PROPS"));
 });
 
@@ -208,7 +208,7 @@ Deno.test("static file - by 'hashed' path", async () => {
   const body = await resp.text();
   const imgFilePath = body.match(/img id="img-with-hashing" src="(.*?)"/)?.[1];
   assert(imgFilePath);
-  assert(imgFilePath.includes(globalThis.__FRSH_BUILD_ID));
+  assert(imgFilePath.includes(`?__frsh_c=${globalThis.__FRSH_BUILD_ID}`));
 
   // check the static file is served corectly under its cacheable route
   const resp2 = await router(
