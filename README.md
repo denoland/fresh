@@ -24,6 +24,11 @@ the framework.
 - TypeScript out of the box
 - File-system routing à la Next.js
 
+## Documentation
+
+The [documentation](https://fresh.deno.dev/docs/) is available on
+[fresh.deno.dev](https://fresh.deno.dev/).
+
 ## Install
 
 To install, run the following command. This will add `fresh` CLI to your PATH.
@@ -53,4 +58,5 @@ project to GitHub, create a `fresh` project, and link it to `main.ts` file in
 the created repository.
 
 For a more in-depth getting started guide, visit the
-[Getting Started](./docs/getting-started.md) page in the `fresh` docs.
+[Getting Started](https://fresh.deno.dev/docs/getting-started) page in the
+`fresh` docs.

@@ -5,6 +5,7 @@ import * as colors from "https://esm.sh/twind@0.16.16/colors";
 export { apply, setup, tw };
 export const theme = {
   colors: {
+    blue: colors.blue,
     black: colors.black,
     gray: colors.gray,
     green: colors.green,
