@@ -33,7 +33,7 @@ import {
 import { render as internalRender } from "./render.tsx";
 import { ContentSecurityPolicyDirectives, SELF } from "../runtime/csp.ts";
 import { h } from "../runtime/deps.ts";
-import { asset, INTERNAL_PREFIX } from "../runtime/utils.ts";
+import { ASSET_CACHE_BUST_KEY, INTERNAL_PREFIX } from "../runtime/utils.ts";
 
 interface StaticFile {
   /** The URL to the static file on disk. */
@@ -374,15 +374,6 @@ export class ServerContext {
         contentType,
         etag,
       );
-
-      const hashedRoute = sanitizePathToRegex(asset(path));
-      routes[`GET@${hashedRoute}`] = this.#staticFileHandler(
-        localUrl,
-        size,
-        contentType,
-        etag,
-        true,
-      );
     }
 
     const genRender = <Data = undefined>(
@@ -503,9 +494,16 @@ export class ServerContext {
     size: number,
     contentType: string,
     etag: string,
-    isCacheable?: boolean,
   ): router.MatchHandler {
     return async (req: Request) => {
+      const url = new URL(req.url);
+      const key = url.searchParams.get(ASSET_CACHE_BUST_KEY);
+      if (key !== null && BUILD_ID !== key) {
+        return new Response("Not Found", {
+          status: 404,
+          headers: { "content-type": "text/plain" },
+        });
+      }
       if (req.headers.get("if-none-match") === etag) {
         return new Response(null, { status: 304 });
       } else {
@@ -515,11 +513,9 @@ export class ServerContext {
           "content-length": String(size),
           "etag": etag,
         });
-
-        if (isCacheable) {
+        if (key !== null) {
           headers.set("Cache-Control", "public, max-age=31536000, immutable");
         }
-
         return new Response(resp.body, {
           headers,
         });
