@@ -1,3 +1,9 @@
+---
+description: |
+  Fetch data for routes dynamically by creating a custom handler and passing
+  data to the render function. 
+---
+
 All of the pages in the demo project so far have not used any dynamic data
 during rendering. In real projects, this is often different. In many cases you
 may need to read a file from disk (e.g. markdown for a blog post), or fetch some

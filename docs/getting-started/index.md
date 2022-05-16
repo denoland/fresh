@@ -1,3 +1,10 @@
+---
+description: |
+  In this chapter of the `fresh` documentation, you'll be introduced to the
+  framework. Create a new project, run it locally, edit and create pages, fetch
+  data, handle user interactions, and deploy it.
+---
+
 In this chapter of the `fresh` documentation, you'll be introduced to the
 framework. You'll learn how to create a new project, run it locally, edit and
 create pages, fetch data, handle user interactions, and how to then deploy the

@@ -1,3 +1,9 @@
+---
+description: |
+  Create a new fresh project by running `fresh init`. This scaffolds out the
+  various files and folders a fresh project needs.
+---
+
 New `fresh` projects can be created with the `fresh` CLI tool. It will scaffold
 out a new project with some example files to get you started.
 
@@ -33,7 +39,7 @@ dependencies:
   be referenced by modules that might be shipped to the client. By default this
   just re-exports the `fresh` server libraries.
 
-Finally, two folders are created that contain your routes and islands
+Two important folders are also created that contain your routes and islands
 respectively:
 
 - **`routes/`**: This folder contains all of the routes in your project. The
@@ -44,3 +50,8 @@ respectively:
   project. The name of each file corresponds to the name of the island defined
   in that file. Code inside of this folder can be run from both client and
   server. You'll learn more about islands later in this chapter.
+
+Finally a **`static/`** folder is created that contains static files that are
+automatically served "as is". [Learn more about static files][static-files].
+
+[static-files]: ../concepts/static-files

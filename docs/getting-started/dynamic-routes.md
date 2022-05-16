@@ -1,3 +1,9 @@
+---
+description: |
+  Create a dynamic route in fresh by adding a dynamic segment to the route name
+  in the routes' file name on disk: `/greet/[name].tsx`.
+---
+
 The `/about` route created on the last page is pretty static. It does not matter
 what query or path parameters are passed to the route, it will always render the
 same page. Let's create a `/greet/:name` that will render a page with a greeting

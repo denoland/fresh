@@ -1,3 +1,9 @@
+---
+description: |
+  Robustly handle user inputs using HTML `<form>` elements client side, and form
+  submission handlers server side.
+---
+
 Forms are a common mechanism for letting users interact with applications. In
 the last few years it has become more and more common for web applications to
 move form submission entirely to the client. This is can have useful properties
