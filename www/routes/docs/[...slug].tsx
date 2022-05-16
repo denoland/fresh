@@ -27,7 +27,7 @@ interface Data {
 
 interface Page extends TableOfContentsEntry {
   markdown: string;
-  frontMatterData: Record<string, string>;
+  data: Record<string, unknown>;
 }
 
 export const handler: Handlers<Data> = {
@@ -51,23 +51,25 @@ export const handler: Handlers<Data> = {
       data: Record<string, string>;
       content: string;
     };
-    const page = { ...entry, markdown: content, frontMatterData: data ?? {} };
+    const page = { ...entry, markdown: content, data: data ?? {} };
     const resp = ctx.render({ page });
     return resp;
   },
 };
 
 export default function DocsPage(props: PageProps<Data>) {
-  const maybeDescription = props.data.page.frontMatterData.description;
+  let description;
+
+  if (props.data.page.data.description) {
+    description = String(props.data.page.data.description);
+  }
 
   return (
     <>
       <Head>
         <title>{props.data.page?.title ?? "Not Found"} | fresh docs</title>
         <link rel="stylesheet" href={`/gfm.css?build=${__FRSH_BUILD_ID}`} />
-        {maybeDescription && (
-          <meta name="description" content={maybeDescription} />
-        )}
+        {description && <meta name="description" content={description} />}
       </Head>
       <Header />
       <NavigationBar active="/docs" />
