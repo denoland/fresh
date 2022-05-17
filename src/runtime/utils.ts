@@ -41,13 +41,19 @@ export function assetSrcSet(srcset: string) {
   }).join(", ");
 }
 
-export function assetHashingHook(vnode: VNode) {
+export function assetHashingHook(
+  vnode: VNode<{
+    src?: string;
+    srcset?: string;
+    ["data-fresh-disable-lock"]?: boolean;
+  }>,
+) {
   if (vnode.type === "img" || vnode.type === "source") {
-    const props = (vnode.props as HTMLImageElement);
-    // deno-lint-ignore no-explicit-any
-    if ((props as any)["data-no-auto-hashing"]) return;
-
-    if (typeof props.src === "string") props.src = asset(props.src);
+    const { props } = vnode;
+    if (props["data-fresh-disable-lock"]) return;
+    if (typeof props.src === "string") {
+      props.src = asset(props.src);
+    }
     if (typeof props.srcset === "string") {
       props.srcset = assetSrcSet(props.srcset);
     }

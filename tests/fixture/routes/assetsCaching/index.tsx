@@ -13,7 +13,7 @@ export default function Home() {
       <img
         id="img-without-hashing"
         src="/image.png"
-        data-no-auto-hashing={true}
+        data-fresh-disable-lock
         height={130}
       />
 
