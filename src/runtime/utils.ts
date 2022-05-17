@@ -48,6 +48,8 @@ export function assetHashingHook(vnode: VNode) {
     if ((props as any)["data-no-auto-hashing"]) return;
 
     if (typeof props.src === "string") props.src = asset(props.src);
-    if (typeof props.srcset === "string") props.srcset = assetSrcSet(props.srcset);
+    if (typeof props.srcset === "string") {
+      props.srcset = assetSrcSet(props.srcset);
+    }
   }
 }
