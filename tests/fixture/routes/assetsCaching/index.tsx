@@ -9,13 +9,6 @@ export default function Home() {
       <div style={{ marginTop: 20 }}>img-with-hashing</div>
       <img id="img-with-hashing" src="/image.png" height={130} />
 
-      <div style={{ marginTop: 20 }}>img-with-explicit-hashing</div>
-      <img
-        id="img-with-explicit-hashing"
-        src={asset("/image.png")}
-        height={130}
-      />
-
       <div style={{ marginTop: 20 }}>img-without-hashing</div>
       <img
         id="img-without-hashing"

@@ -96,7 +96,7 @@ function Intro() {
           type="image/webp"
         />
         <img
-          src="/illustration/1x.jpeg"
+          src="/illustration/1x.jpg"
           srcset="/illustration/2x.jpeg 2x"
           class={tw`w-64 mx-auto`}
           width={800}
