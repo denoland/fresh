@@ -1,3 +1,9 @@
+---
+description: |
+  Add custom handlers to a route to customize HTTP headers, implement API
+  routes, do data fetching for a rendered page, or handle form submissions.
+---
+
 Routes actually consist of two parts: handlers, and the page component. Up to
 now, only the page component has been discussed in this chapter.
 

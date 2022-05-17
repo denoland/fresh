@@ -11,6 +11,7 @@ export const theme = {
     green: colors.green,
     white: colors.white,
     yellow: colors.yellow,
+    transparent: "transparent",
   },
 };
 if (IS_BROWSER) {

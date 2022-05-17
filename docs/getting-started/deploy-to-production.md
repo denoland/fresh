@@ -1,3 +1,9 @@
+---
+description: |
+  Deploy a fresh application to Deno Deploy in seconds, making it available on
+  the edge globally - resulting in fantastic user latency worldwide.
+---
+
 As a final step in the getting started guide, we'll deploy the demo site to the
 public internet using [Deno Deploy][deno-deploy]. Deno Deploy is a globally
 distributed edge runtime built by the Deno company that allows developers to

@@ -1,3 +1,10 @@
+---
+description: |
+  `fresh` is a full stack modern web framework for JavaScript and TypeScript
+  developers, designed to make it trivial to create high-quality, performant,
+  and personalized web applications.
+---
+
 `fresh` is a full stack modern web framework for JavaScript and TypeScript
 developers, designed to make it trivial to create high-quality, performant, and
 personalized web applications. You can use it to create your home page, a blog,

@@ -1,3 +1,9 @@
+---
+description: |
+  Install the `fresh` CLI tool to scaffold new projects and generate the fresh
+  manifest. The CLI tool can be installed with `deno install`. 
+---
+
 `fresh` comes with a CLI tool, conveniently also called `fresh`. It is used to
 scaffold new projects and generate the fresh manifest (more on that later). This
 tool is only needed to create a new project, or to re-generate the fresh

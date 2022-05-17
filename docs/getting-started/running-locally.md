@@ -1,3 +1,9 @@
+---
+description: |
+  To start a fresh project, just run `deno task start`. This will start the
+  project with default permission flags, in watch mode.
+---
+
 The next step after scaffolding out a new project, is to actually start it. To
 do this you can just `deno task start`.
 

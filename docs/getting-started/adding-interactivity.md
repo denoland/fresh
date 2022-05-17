@@ -1,3 +1,9 @@
+---
+description: |
+  Add JavaScript based interactivity to your project without sacrificing user
+  experience, by using fresh's powerful islands system. 
+---
+
 Up to now none of the pages in the demo project have contained any client side
 JavaScript. This is great for resiliency and performance, but it can also limit
 the possibilities of interactivity. In many current generation web frameworks,

@@ -1,3 +1,9 @@
+---
+description: |
+  Create a new route to a fresh project by creating a new file in the `routes/`
+  folder. 
+---
+
 After getting the project running locally, the next step is to add a new route
 to the project. Routes encapsulate the logic for handling requests to a
 particular path in your project. They can be used to handle API requests, or
