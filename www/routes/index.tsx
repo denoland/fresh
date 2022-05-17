@@ -97,7 +97,7 @@ function Intro() {
         />
         <img
           src="/illustration/1x.jpg"
-          srcset="/illustration/2x.jpeg 2x"
+          srcset="/illustration/2x.jpg 2x"
           class={tw`w-64 mx-auto`}
           width={800}
           height={678}
