@@ -33,8 +33,8 @@ export function revive(islands: Record<string, ComponentType>) {
   function walk(node: Node | null) {
     const tag = node!.nodeType === 8 &&
       ((node as Comment).data.match(/^\s*frsh-(.*)\s*$/) || [])[1];
-    let endNode: Node | null = null
-      if (tag) {
+    let endNode: Node | null = null;
+    if (tag) {
       const startNode = node!;
       const children = [];
       const parent = node!.parentNode;
@@ -53,7 +53,7 @@ export function revive(islands: Record<string, ComponentType>) {
           // deno-lint-ignore no-explicit-any
         ) as any as HTMLElement,
       );
-      endNode = node
+      endNode = node;
     }
 
     const sib = node!.nextSibling;

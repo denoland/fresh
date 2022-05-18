@@ -3,7 +3,7 @@ import { h, IS_BROWSER, useState } from "../client_deps.ts";
 
 interface CounterProps {
   start: number;
-  id: string
+  id: string;
 }
 
 export default function Counter(props: CounterProps) {
