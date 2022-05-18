@@ -1,4 +1,4 @@
-import { assert, delay, puppeteer } from "./deps.ts";
+import { assert, delay, puppeteer, TextLineStream } from "./deps.ts";
 
 Deno.test({
   name: "island tests",
@@ -6,15 +6,32 @@ Deno.test({
     // Preparation
     const serverProcess = Deno.run({
       cmd: ["deno", "run", "-A", "--no-check", "./tests/fixture/main.ts"],
-      // stdout: "piped",
-      // stderr: "inherit",
+      stdout: "piped",
+      stderr: "inherit",
     });
+
+    const decoder = new TextDecoderStream();
+    const lines = serverProcess.stdout.readable
+      .pipeThrough(decoder)
+      .pipeThrough(new TextLineStream());
+
+    let started = false;
+    for await (const line of lines) {
+      console.log(line);
+      if (line.includes("Server listening on http://")) {
+        started = true;
+        break;
+      }
+    }
+    if (!started) {
+      throw new Error("Server didn't start up");
+    }
 
     // verify the island is revived.
     const browser = await puppeteer.launch({ args: ["--no-sandbox"] });
     const page = await browser.newPage();
 
-    await delay(100);
+    await delay(500);
 
     await t.step("Ensure 2 islands on 1 page are revived", async () => {
       await page.goto("http://localhost:8000/islands");
@@ -43,7 +60,10 @@ Deno.test({
 
     await browser.close();
 
+    await lines.cancel();
     serverProcess.kill("SIGTERM");
     serverProcess.close();
   },
+  sanitizeOps: false,
+  sanitizeResources: false,
 });
