@@ -187,16 +187,34 @@ Deno.test("static file - by file path", async () => {
   assertEquals(resp.status, 200);
   const body = await resp.text();
   assert(body.startsWith("bar"));
-  assert(resp.headers.get("etag"));
+  const etag = resp.headers.get("etag");
+  assert(etag);
+  // The etag is not weak, because this did not go through content encoding, so
+  // this is not a real server.
+  assert(!etag.startsWith("W/"), "etag should be weak");
+  assertEquals(resp.headers.get("content-type"), "text/plain");
 
   const resp2 = await router(
     new Request("https://fresh.deno.dev/foo.txt", {
       headers: {
-        "if-none-match": resp.headers.get("etag")!,
+        "if-none-match": etag,
       },
     }),
   );
   assertEquals(resp2.status, 304);
+  assertEquals(resp2.headers.get("etag"), etag);
+  assertEquals(resp2.headers.get("content-type"), "text/plain");
+
+  const resp3 = await router(
+    new Request("https://fresh.deno.dev/foo.txt", {
+      headers: {
+        "if-none-match": `W/${etag}`,
+      },
+    }),
+  );
+  assertEquals(resp3.status, 304);
+  assertEquals(resp3.headers.get("etag"), etag);
+  assertEquals(resp3.headers.get("content-type"), "text/plain");
 });
 
 Deno.test("static file - by 'hashed' path", async () => {
