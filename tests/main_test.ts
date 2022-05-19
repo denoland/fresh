@@ -219,9 +219,11 @@ Deno.test("static file - by file path", async () => {
 
 Deno.test("static file - by 'hashed' path", async () => {
   // Check that the file path have the BUILD_ID
-  const resp = await router(new Request("https://fresh.deno.dev/"));
+  const resp = await router(
+    new Request("https://fresh.deno.dev/assetsCaching"),
+  );
   const body = await resp.text();
-  const imgFilePath = body.match(/img src="(.*?)"/)?.[1];
+  const imgFilePath = body.match(/img id="img-with-hashing" src="(.*?)"/)?.[1];
   assert(imgFilePath);
   assert(imgFilePath.includes(`?__frsh_c=${globalThis.__FRSH_BUILD_ID}`));
 
@@ -244,6 +246,38 @@ Deno.test("static file - by 'hashed' path", async () => {
     }),
   );
   assertEquals(resp3.status, 304);
+
+  // ensure asset hook is not applied on file explicitly excluded with attribute
+  const imgFilePathWithNoCache = body.match(
+    /img id="img-without-hashing" src="(.*?)"/,
+  )?.[1];
+  assert(imgFilePathWithNoCache);
+  assert(
+    !imgFilePathWithNoCache.includes(globalThis.__FRSH_BUILD_ID),
+    "img-without-hashing",
+  );
+
+  // ensure asset hook is applied on img within an island
+  const imgInIsland = body.match(/img id="img-in-island" src="(.*?)"/)?.[1];
+  assert(imgInIsland);
+  assert(imgInIsland.includes(globalThis.__FRSH_BUILD_ID), "img-in-island");
+
+  // verify that the asset hook is applied to the srcset
+  const imgInIslandSrcSet = body.match(/srcset="(.*?)"/)?.[1];
+  assert(imgInIslandSrcSet);
+  console.log(imgInIslandSrcSet);
+  assert(
+    imgInIslandSrcSet.includes(globalThis.__FRSH_BUILD_ID),
+    "img-in-island-srcset",
+  );
+
+  // verify that the asset hook is not applied to img outside reference out of the static folder
+  const imgMissing = body.match(/img id="img-missing" src="(.*?)"/)?.[1];
+  assert(imgMissing);
+  assert(
+    !imgMissing.includes(globalThis.__FRSH_BUILD_ID),
+    "Applying hash on unknown asset",
+  );
 });
 
 Deno.test("/params/:path*", async () => {

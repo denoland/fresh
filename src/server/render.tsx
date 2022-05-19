@@ -18,6 +18,7 @@ import { HEAD_CONTEXT } from "../runtime/head.ts";
 import { CSP_CONTEXT, nonce, NONE, UNSAFE_INLINE } from "../runtime/csp.ts";
 import { ContentSecurityPolicy } from "../runtime/csp.ts";
 import { bundleAssetUrl } from "./constants.ts";
+import { assetHashingHook } from "../runtime/utils.ts";
 
 export interface RenderOptions<Data> {
   page: Page<Data> | UnknownPage | ErrorPage;
@@ -296,6 +297,7 @@ let ISLAND_PROPS: unknown[] = [];
 const originalHook = options.vnode;
 let ignoreNext = false;
 options.vnode = (vnode) => {
+  assetHashingHook(vnode);
   const originalType = vnode.type as ComponentType<unknown>;
   if (typeof vnode.type === "function") {
     const island = ISLANDS.find((island) => island.component === originalType);

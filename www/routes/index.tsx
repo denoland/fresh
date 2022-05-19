@@ -88,20 +88,16 @@ function Intro() {
     >
       <picture>
         <source
-          srcset={`${asset("/illustration/2x.avif")} 2x, ${
-            asset("/illustration/1x.avif")
-          }`}
+          srcset="/illustration/2x.avif 2x, /illustration/1x.avif"
           type="image/avif"
         />
         <source
-          srcset={`${asset("/illustration/2x.webp")} 2x, ${
-            asset("/illustration/1x.webp")
-          }`}
+          srcset="/illustration/2x.webp2x, /illustration/1x.webp"
           type="image/webp"
         />
         <img
-          src={asset("/illustration/1x.jpeg")}
-          srcset={`${asset("/illustration/2x.jpeg")} 2x`}
+          src="/illustration/1x.jpg"
+          srcset="/illustration/2x.jpg 2x"
           class={tw`w-64 mx-auto`}
           width={800}
           height={678}

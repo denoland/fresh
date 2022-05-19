@@ -1,4 +1,5 @@
-import { ComponentType, h, render } from "./deps.ts";
+import { ComponentType, h, options, render } from "./deps.ts";
+import { assetHashingHook } from "./utils.ts";
 
 function createRootFragment(
   parent: Element,
@@ -61,3 +62,9 @@ export function revive(islands: Record<string, ComponentType>) {
   }
   walk(document.body);
 }
+
+const originalHook = options.vnode;
+options.vnode = (vnode) => {
+  assetHashingHook(vnode);
+  if (originalHook) originalHook(vnode);
+};
