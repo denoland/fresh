@@ -43,6 +43,18 @@ Deno.test("assetSrcSet", () => {
   // test with extra spaces
   assertEquals(
     assetSrcSet("/img-s.png 300w,  /img-l.png  600w , /img-xl.png  900w"),
-    "/img-s.png?__frsh_c=ID123 300w, /img-l.png?__frsh_c=ID123  600w, /img-xl.png?__frsh_c=ID123  900w",
+    "/img-s.png?__frsh_c=ID123 300w,  /img-l.png?__frsh_c=ID123  600w , /img-xl.png?__frsh_c=ID123  900w",
+  );
+
+  // test with ( syntax
+  assertEquals(
+    assetSrcSet("/img.png ( 140,0w)"),
+    "/img.png ( 140,0w)",
+  );
+
+  // test with invalid parts
+  assertEquals(
+    assetSrcSet("/img.png,, /img-s.png 300w"),
+    "/img.png,, /img-s.png 300w",
   );
 });

@@ -31,14 +31,23 @@ export function asset(path: string) {
   }
 }
 
-// apply the asset function a srcset
-export function assetSrcSet(srcset: string) {
-  const srcsetParts = srcset.split(",");
-  return srcsetParts.map((part) => {
-    const sections = part.trim().split(" ");
-    sections[0] = asset(sections[0]);
-    return sections.join(" ");
-  }).join(", ");
+/** Apply the `asset` function to urls in a `srcset` attribute. */
+export function assetSrcSet(srcset: string): string {
+  if (srcset.includes("(")) return srcset; // Bail if the srcset contains complicated syntax.
+  const parts = srcset.split(",");
+  const constructed = [];
+  for (const part of parts) {
+    const trimmed = part.trimStart();
+    const leadingWhitespace = part.length - trimmed.length;
+    if (trimmed === "") return srcset; // Bail if the srcset is malformed.
+    let urlEnd = trimmed.indexOf(" ");
+    if (urlEnd === -1) urlEnd = trimmed.length;
+    const leading = part.substring(0, leadingWhitespace);
+    const url = trimmed.substring(0, urlEnd);
+    const trailing = trimmed.substring(urlEnd);
+    constructed.push(leading + asset(url) + trailing);
+  }
+  return constructed.join(",");
 }
 
 export function assetHashingHook(
