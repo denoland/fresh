@@ -1,4 +1,4 @@
-import { assert, delay, puppeteer, TextLineStream } from "./deps.ts";
+import { assert, puppeteer, TextLineStream } from "./deps.ts";
 
 Deno.test({
   name: "island tests",
@@ -31,14 +31,11 @@ Deno.test({
     const browser = await puppeteer.launch({ args: ["--no-sandbox"] });
     const page = await browser.newPage();
 
-    await delay(500);
-
     await t.step("Ensure 2 islands on 1 page are revived", async () => {
       await page.goto("http://localhost:8000/islands");
-      await delay(500);
 
       // counter 1
-      const counter1 = await page.$("#counter1 > p");
+      const counter1 = await page.waitForSelector("#counter1 > p");
       let counter1Value = await counter1?.evaluate((el) => el.textContent);
       assert(counter1Value === "3");
 

@@ -1,10 +1,4 @@
-import {
-  assert,
-  assertEquals,
-  delay,
-  puppeteer,
-  TextLineStream,
-} from "./deps.ts";
+import { assert, assertEquals, puppeteer, TextLineStream } from "./deps.ts";
 
 type FileTree = {
   type: "file";
@@ -126,8 +120,6 @@ Deno.test({
         throw new Error("Server didn't start up");
       }
 
-      await delay(500);
-
       // Access the root page
       const res = await fetch("http://localhost:8000");
       await res.body?.cancel();
@@ -138,8 +130,7 @@ Deno.test({
       const page = await browser.newPage();
 
       await page.goto("http://localhost:8000");
-      await delay(500);
-      const counter = await page.$("body > div > div > p");
+      const counter = await page.waitForSelector("body > div > div > p");
       let counterValue = await counter?.evaluate((el) => el.textContent);
       assert(counterValue === "3");
 
