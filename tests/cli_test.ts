@@ -136,9 +136,7 @@ Deno.test({
       // verify the island is revived.
       const browser = await puppeteer.launch({ args: ["--no-sandbox"] });
       const page = await browser.newPage();
-
-      await page.goto("http://localhost:8000");
-      await delay(500);
+      await page.goto("http://localhost:8000", { waitUntil: "networkidle2" });
       const counter = await page.$("body > div > div > p");
       let counterValue = await counter?.evaluate((el) => el.textContent);
       assert(counterValue === "3");
@@ -148,7 +146,7 @@ Deno.test({
 
       counterValue = await counter?.evaluate((el) => el.textContent);
       assert(counterValue === "4");
-
+      await page.close();
       await browser.close();
 
       await lines.cancel();
