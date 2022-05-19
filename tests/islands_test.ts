@@ -29,32 +29,30 @@ Deno.test({
 
     await delay(100);
 
-    // verify the island is revived.
     const browser = await puppeteer.launch({ args: ["--no-sandbox"] });
     const page = await browser.newPage();
 
+    async function counterTest(counterId: string, originalValue: number) {
+      const pElem = await page.waitForSelector(`#${counterId} > p`);
+      let value = await pElem?.evaluate((el) => el.textContent);
+      assert(value === `${originalValue}`, `${counterId} first value`);
+
+      const buttonPlus = await page.$(`#b-${counterId}`);
+      await buttonPlus?.click();
+      value = await pElem?.evaluate((el) => el.textContent);
+      assert(value === `${originalValue + 1}`, `${counterId} click`);
+    }
+
+    await page.goto("http://localhost:8000/islands");
+
     await t.step("Ensure 2 islands on 1 page are revived", async () => {
-      await page.goto("http://localhost:8000/islands");
+      await counterTest("counter1", 3);
+      await counterTest("counter2", 10);
+    });
 
-      // counter 1
-      const counter1 = await page.waitForSelector("#counter1 > p");
-      let counter1Value = await counter1?.evaluate((el) => el.textContent);
-      assert(counter1Value === "3");
-
-      const c1ButtonPlus = await page.$("#counter1 > button:nth-child(3)");
-      await c1ButtonPlus?.click();
-      counter1Value = await counter1?.evaluate((el) => el.textContent);
-      assert(counter1Value === "4");
-
-      // counter 2
-      const counter2 = await page.$("#counter2 > p");
-      let counter2Value = await counter2?.evaluate((el) => el.textContent);
-      assert(counter2Value === "10");
-
-      const c2ButtonPlus = await page.$("#counter2 > button:nth-child(3)");
-      await c2ButtonPlus?.click();
-      counter2Value = await counter2?.evaluate((el) => el.textContent);
-      assert(counter2Value === "11");
+    await t.step("Ensure nested island are revived", async () => {
+      await counterTest("outer1", 100);
+      await counterTest("inner1", 110);
     });
 
     await browser.close();

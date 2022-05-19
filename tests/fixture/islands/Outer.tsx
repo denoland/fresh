@@ -1,15 +1,17 @@
 /** @jsx h */
 import { h, IS_BROWSER, useState } from "../client_deps.ts";
+import Inner from "./Inner.tsx";
 
-interface CounterProps {
+interface OuterProps {
   start: number;
   id: string;
 }
 
-export default function Counter(props: CounterProps) {
+export default function Outer(props: OuterProps) {
   const [count, setCount] = useState(props.start);
   return (
     <div id={props.id}>
+      <Inner id="inner1" start={110} />
       <p>{count}</p>
       <button
         id={`b-${props.id}`}

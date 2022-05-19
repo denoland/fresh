@@ -1,12 +1,12 @@
 /** @jsx h */
 import { h, IS_BROWSER, useState } from "../client_deps.ts";
 
-interface CounterProps {
+interface InnerProps {
   start: number;
   id: string;
 }
 
-export default function Counter(props: CounterProps) {
+export default function Inner(props: InnerProps) {
   const [count, setCount] = useState(props.start);
   return (
     <div id={props.id}>

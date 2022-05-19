@@ -28,7 +28,9 @@ import * as $22 from "./routes/props/[id].tsx";
 import * as $23 from "./routes/static.tsx";
 import * as $24 from "./routes/wildcard.tsx";
 import * as $$0 from "./islands/Counter.tsx";
-import * as $$1 from "./islands/Test.tsx";
+import * as $$1 from "./islands/Inner.tsx";
+import * as $$2 from "./islands/Outer.tsx";
+import * as $$3 from "./islands/Test.tsx";
 
 const manifest = {
   routes: {
@@ -60,7 +62,9 @@ const manifest = {
   },
   islands: {
     "./islands/Counter.tsx": $$0,
-    "./islands/Test.tsx": $$1,
+    "./islands/Inner.tsx": $$1,
+    "./islands/Outer.tsx": $$2,
+    "./islands/Test.tsx": $$3,
   },
   baseUrl: import.meta.url,
 };
