@@ -1,4 +1,4 @@
-import { assert, puppeteer, TextLineStream } from "./deps.ts";
+import { assert, delay, puppeteer, TextLineStream } from "./deps.ts";
 
 Deno.test({
   name: "island tests",
@@ -26,6 +26,8 @@ Deno.test({
     if (!started) {
       throw new Error("Server didn't start up");
     }
+
+    await delay(100);
 
     // verify the island is revived.
     const browser = await puppeteer.launch({ args: ["--no-sandbox"] });
