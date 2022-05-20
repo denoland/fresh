@@ -1,7 +1,7 @@
 {
   "tasks": {
-    "test": "deno test -A --no-check=remote --watch",
-    "fixture": "deno run -A --watch ./tests/fixture/main.ts",
-    "doc": "deno run -A --watch=www/static,src/,docs/ www/main.ts"
+    "test": "deno test -A --no-check=remote && deno check www/main.ts && deno check examples/counter/main.ts",
+    "fixture": "deno run -A --watch ./tests/fixture/main.ts & deno run -A ./cli.ts manifest --watch ./tests/fixture",
+    "www": "deno run -A --watch=www/static,docs/ ./www/main.ts & deno run -A ./cli.ts manifest --watch ./www"
   }
 }
