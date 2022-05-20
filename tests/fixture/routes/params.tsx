@@ -1,6 +1,6 @@
 /** @jsx h */
 
-import { h, PageConfig } from "../client_deps.ts";
+import { h, RouteConfig } from "../client_deps.ts";
 import { HandlerContext } from "../../../server.ts";
 
 export const handler = {
@@ -9,6 +9,6 @@ export const handler = {
   },
 };
 
-export const config: PageConfig = {
+export const config: RouteConfig = {
   routeOverride: "/params/:path*",
 };
