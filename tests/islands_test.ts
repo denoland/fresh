@@ -43,7 +43,7 @@ Deno.test({
       assert(value === `${originalValue + 1}`, `${counterId} click`);
     }
 
-    await page.goto("http://localhost:8000/islands");
+    await page.goto("http://localhost:8000/islands", { waitUntil: "networkidle2" });
 
     await t.step("Ensure 2 islands on 1 page are revived", async () => {
       await counterTest("counter1", 3);
