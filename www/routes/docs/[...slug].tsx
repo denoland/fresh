@@ -83,7 +83,7 @@ function Logo() {
   return (
     <a href="/" class={tw`flex mr-3 items-center`}>
       <img
-        src={asset("/logo.svg")}
+        src="/logo.svg"
         alt="Fresh logo"
         width={40}
         height={40}

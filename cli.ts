@@ -22,10 +22,12 @@ const args = parseArgs(Deno.args, {
   alias: {
     "help": "h",
     "version": "V",
+    "watch": "w",
   },
   boolean: [
     "help",
     "version",
+    "watch",
   ],
 });
 

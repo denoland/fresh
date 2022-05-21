@@ -499,26 +499,31 @@ export class ServerContext {
       const url = new URL(req.url);
       const key = url.searchParams.get(ASSET_CACHE_BUST_KEY);
       if (key !== null && BUILD_ID !== key) {
-        return new Response("Not Found", {
-          status: 404,
-          headers: { "content-type": "text/plain" },
+        url.searchParams.delete(ASSET_CACHE_BUST_KEY);
+        const location = url.pathname + url.search;
+        return new Response("", {
+          status: 307,
+          headers: {
+            "content-type": "text/plain",
+            location,
+          },
         });
       }
-      if (req.headers.get("if-none-match") === etag) {
-        return new Response(null, { status: 304 });
+      const headers = new Headers({
+        "content-type": contentType,
+        etag,
+        vary: "If-None-Match",
+      });
+      if (key !== null) {
+        headers.set("Cache-Control", "public, max-age=31536000, immutable");
+      }
+      const ifNoneMatch = req.headers.get("if-none-match");
+      if (ifNoneMatch === etag || ifNoneMatch === "W/" + etag) {
+        return new Response(null, { status: 304, headers });
       } else {
-        const resp = await fetch(localUrl);
-        const headers = new Headers({
-          "content-type": contentType,
-          "content-length": String(size),
-          "etag": etag,
-        });
-        if (key !== null) {
-          headers.set("Cache-Control", "public, max-age=31536000, immutable");
-        }
-        return new Response(resp.body, {
-          headers,
-        });
+        const file = await Deno.open(localUrl);
+        headers.set("content-length", String(size));
+        return new Response(file.readable, { headers });
       }
     };
   }
