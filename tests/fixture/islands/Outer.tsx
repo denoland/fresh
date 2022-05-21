@@ -1,6 +1,6 @@
 /** @jsx h */
 import { h, IS_BROWSER, useState } from "../client_deps.ts";
-import Inner from "./Inner.tsx";
+import Counter from "./Counter.tsx";
 
 interface OuterProps {
   start: number;
@@ -11,7 +11,7 @@ export default function Outer(props: OuterProps) {
   const [count, setCount] = useState(props.start);
   return (
     <div id={props.id}>
-      <Inner id="inner1" start={110} />
+      <Counter id="inner1" start={110} />
       <p>{count}</p>
       <button
         id={`b-${props.id}`}
