@@ -74,7 +74,7 @@ jobs:
         run: deno check --remote cli.ts
 
       - name: Type check website
-        run: deno check --remote www/main.ts
+        run: deno check --remote main.ts
         working-directory: www/
 
       - name: Type check examples/counter
