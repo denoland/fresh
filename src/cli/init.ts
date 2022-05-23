@@ -20,6 +20,9 @@ OPTIONS:
     -h, --help                 Prints help information
 `;
 
+const CONFIRM_EMPTY_MESSAGE =
+  "The target directory is not empty (files could get overwritten). Do you want to continue anyway?";
+
 export interface Args {
   help: boolean;
 }
@@ -48,12 +51,9 @@ async function init(directory: string) {
 
   try {
     const dir = [...Deno.readDirSync(directory)];
-    if (
-      dir.length > 0 &&
-      !confirm(
-        "The target directory is not empty (files could get overwritten). Do you want to continue anyway?",
-      )
-    ) {
+    const isEmpty = dir.length === 0 ||
+      dir.length === 1 && dir[0].name === ".git";
+    if (!isEmpty && !confirm(CONFIRM_EMPTY_MESSAGE)) {
       error("Directory is not empty.");
     }
   } catch (err) {
