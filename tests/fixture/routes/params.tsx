@@ -1,6 +1,6 @@
 /** @jsx h */
 
-import { h, RouteConfig } from "../client_deps.ts";
+import { h, RouteConfig } from "../deps.client.ts";
 import { HandlerContext } from "../../../server.ts";
 
 export const handler = {

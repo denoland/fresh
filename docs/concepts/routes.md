@@ -22,7 +22,7 @@ Let's look at a basic route that returns a plain text string:
 ```tsx
 // routes/plain.tsx
 
-import { HandlerContext, Handlers } from "../server_deps.ts";
+import { HandlerContext, Handlers } from "../deps.server.ts";
 
 export const handler: Handlers = {
   GET(ctx: HandlerContext) {
@@ -43,7 +43,7 @@ Now, let's render some HTML using the route component. Another example:
 // routes/html.tsx
 
 /** @jsx h */
-import { h, PageProps } from "../client_deps.ts";
+import { h, PageProps } from "../deps.client.ts";
 
 export default function Page(props: PageProps) {
   return <div>You are on the page '{props.url.href}'.</div>;
@@ -65,8 +65,8 @@ response after rendering the page component.
 // routes/html.tsx
 
 /** @jsx h */
-import { h, PageProps } from "../client_deps.ts";
-import { HandlerContext, Handlers } from "../server_deps.ts";
+import { h, PageProps } from "../deps.client.ts";
+import { HandlerContext, Handlers } from "../deps.server.ts";
 
 export const handler: Handlers = {
   GET(ctx: HandlerContext) {

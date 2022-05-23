@@ -1,6 +1,6 @@
 /** @jsx h */
 
-import { h, PageProps } from "../client_deps.ts";
+import { h, PageProps } from "../deps.client.ts";
 import { HandlerContext, Handlers } from "../../../server.ts";
 
 interface Data extends Record<string, unknown> {

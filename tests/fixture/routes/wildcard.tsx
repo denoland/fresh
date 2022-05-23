@@ -1,6 +1,6 @@
 /** @jsx h */
 
-import { h, PageProps, RouteConfig } from "../client_deps.ts";
+import { h, PageProps, RouteConfig } from "../deps.client.ts";
 
 export default function WildcardPage({ params }: PageProps) {
   if (typeof params.path === "string") {
