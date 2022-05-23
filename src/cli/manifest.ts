@@ -180,23 +180,23 @@ export async function manifest(directory: string, watch: boolean) {
   if (!watch) return;
 
   const watcher = Deno.watchFs(directory, { recursive: true });
-  for await (const _ of watcher) {
+  for await (const e of watcher) {
+    if (e.kind === "access") continue;
     const newManifest = await collect(directory);
-    // check if the manifests are identical
-    const routesSet = new Set([
-      ...currentManifest.routes,
-      ...newManifest.routes,
-    ]);
-    const islandsSet = new Set([
-      ...currentManifest.islands,
-      ...newManifest.islands,
-    ]);
     if (
-      routesSet.size !== newManifest.routes.length ||
-      islandsSet.size !== newManifest.islands.length
+      !arraysEqual(newManifest.routes, currentManifest.routes) ||
+      !arraysEqual(newManifest.islands, currentManifest.islands)
     ) {
       currentManifest = newManifest;
       await generate(directory, currentManifest);
     }
   }
+}
+
+function arraysEqual<T>(a: T[], b: T[]): boolean {
+  if (a.length !== b.length) return false;
+  for (let i = 0; i < a.length; ++i) {
+    if (a[i] !== b[i]) return false;
+  }
+  return true;
 }
