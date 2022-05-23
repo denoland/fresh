@@ -51,7 +51,7 @@ async function init(directory: string) {
     if (
       dir.length > 0 &&
       !confirm(
-        "This is no Empty directory, some Files could get deleted, do you want to continue?",
+        "The target directory is not empty (files could get overwritten). Do you want to continue anyway?",
       )
     ) {
       error("Directory is not empty.");
