@@ -15,7 +15,7 @@ used to pass arbituary data to downstream (or upstream) handlers.
 
 ```ts
 // routes/_middleware.ts
-import { MiddlewareHandlerContext } from "../server_deps.ts";
+import { MiddlewareHandlerContext } from "../deps.server.ts";
 
 interface State {
   data: string;

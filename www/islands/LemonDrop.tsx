@@ -6,7 +6,7 @@ import {
   useEffect,
   useRef,
   useState,
-} from "../client_deps.ts";
+} from "../deps.client.ts";
 import { Spring, WaveTank } from "../components/WaveTank.ts";
 
 function easeInCirc(x: number) {

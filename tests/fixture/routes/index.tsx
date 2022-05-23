@@ -1,6 +1,6 @@
 /** @jsx h */
 
-import { h, IS_BROWSER } from "../client_deps.ts";
+import { h, IS_BROWSER } from "../deps.client.ts";
 import Test from "../islands/Test.tsx";
 
 export default function Home() {

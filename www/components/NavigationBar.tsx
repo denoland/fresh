@@ -1,6 +1,6 @@
 /** @jsx h */
 
-import { h, tw } from "../client_deps.ts";
+import { h, tw } from "../deps.client.ts";
 
 export default function NavigationBar(props: { active: string }) {
   const items = [

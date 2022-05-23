@@ -1,6 +1,6 @@
 /** @jsx h */
 
-import { asset, h } from "../../client_deps.ts";
+import { asset, h } from "../../deps.client.ts";
 import Test from "../../islands/Test.tsx";
 
 export default function Home() {

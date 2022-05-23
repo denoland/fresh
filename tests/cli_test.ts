@@ -61,7 +61,7 @@ Deno.test({
         "name": tmpDirName,
         "contents": [
           { "type": "file", "name": "README.md" },
-          { "type": "file", "name": "client_deps.ts" },
+          { "type": "file", "name": "deps.client.ts" },
           { "type": "file", "name": "fresh.gen.ts" },
           {
             "type": "directory",
@@ -86,7 +86,7 @@ Deno.test({
               { "type": "file", "name": "index.tsx" },
             ],
           },
-          { "type": "file", "name": "server_deps.ts" },
+          { "type": "file", "name": "deps.server.ts" },
           {
             "type": "directory",
             "name": "static",

@@ -9,8 +9,8 @@ import {
   Head,
   PageProps,
   tw,
-} from "../../client_deps.ts";
-import { frontMatter, gfm, Handlers } from "../../server_deps.ts";
+} from "../../deps.client.ts";
+import { frontMatter, gfm, Handlers } from "../../deps.server.ts";
 import DocsSidebar from "../../components/DocsSidebar.tsx";
 import Footer from "../../components/Footer.tsx";
 import NavigationBar from "../../components/NavigationBar.tsx";

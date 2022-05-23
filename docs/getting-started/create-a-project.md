@@ -29,11 +29,11 @@ files, only two are strictly necessary for a fresh project:
 In addition to these two files, two other files are created that manage
 dependencies:
 
-- **`client_deps.ts`**: This file contains dependencies that you need on the
+- **`deps.client.ts`**: This file contains dependencies that you need on the
   client, and possibly also on the server. It should be assumed that all of the
   dependencies referenced by this file will be shipped to the client. By
   default, it just re-exports the `fresh` runtime.
-- **`server_deps.ts`**: This file contains dependencies that are only used on
+- **`deps.server.ts`**: This file contains dependencies that are only used on
   the server. These are often things like database drivers, API clients, or
   other code that should only be executed on the server. This file should never
   be referenced by modules that might be shipped to the client. By default this
