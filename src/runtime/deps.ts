@@ -1,4 +1,5 @@
 export * from "https://esm.sh/preact@10.6.6";
+export { jsx, jsxDEV, jsxs } from "https://esm.sh/preact@10.6.6/jsx-runtime";
 export {
   useCallback,
   useContext,
