@@ -231,5 +231,5 @@ fresh manifest
     README_MD,
   );
 
-  await manifest(directory);
+  await manifest(directory, false);
 }

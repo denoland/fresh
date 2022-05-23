@@ -68,10 +68,19 @@ jobs:
         run: set "PUPPETEER_PRODUCT=chrome" && deno run -A --unstable https://deno.land/x/puppeteer@9.0.2/install.ts
 
       - name: Run tests
-        run: deno test -A --no-check=remote
+        run: deno test -A
+
+      - name: Type check CLI
+        run: deno check --remote cli.ts
 
       - name: Type check website
-        run: deno cache --no-check=remote www/main.ts
+        run: deno check --remote www/main.ts
 
       - name: Type check examples/counter
-        run: deno cache --no-check=remote examples/counter/main.ts
+        run: deno check --remote examples/counter/main.ts
+
+      - name: Type check tests/fixture
+        run: deno check tests/fixture/main.ts
+
+      - name: Type check tests/fixture_error
+        run: deno check tests/fixture_error/main.ts
