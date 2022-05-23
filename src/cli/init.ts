@@ -66,19 +66,19 @@ async function init(directory: string) {
   await Deno.mkdir(join(directory, "islands"), { recursive: true });
   await Deno.mkdir(join(directory, "static"), { recursive: true });
 
-  const DEPS_CLIENT_TS = `export * from "${new URL(
-    "../../runtime.ts",
-    import.meta.url,
-  )}";\n`;
-  await Deno.writeTextFile(join(directory, "deps.client.ts"), DEPS_CLIENT_TS);
-  const DEPS_SERVER_TS = `export * from "${new URL(
-    "../../server.ts",
-    import.meta.url,
-  )}";\n`;
-  await Deno.writeTextFile(join(directory, "deps.server.ts"), DEPS_SERVER_TS);
+  const IMPORT_MAP_JSON = JSON.stringify(
+    {
+      "imports": {
+        "$fresh/": new URL("../../", import.meta.url).href,
+      },
+    },
+    null,
+    2,
+  );
+  await Deno.writeTextFile(join(directory, "import_map.json"), IMPORT_MAP_JSON);
 
   const ROUTES_INDEX_TSX = `/** @jsx h */
-import { h } from "../deps.client.ts";
+import { h } from "$fresh/runtime.ts";
 import Counter from "../islands/Counter.tsx";
 
 export default function Home() {
@@ -100,7 +100,7 @@ export default function Home() {
   );
 
   const ISLANDS_COUNTER_TSX = `/** @jsx h */
-import { h, IS_BROWSER, useState } from "../deps.client.ts";
+import { h, IS_BROWSER, useState } from "$fresh/runtime.ts";
 
 interface CounterProps {
   start: number;
@@ -127,7 +127,7 @@ export default function Counter(props: CounterProps) {
   );
 
   const ROUTES_GREET_TSX = `/** @jsx h */
-import { h, PageProps } from "../deps.client.ts";
+import { h, PageProps } from "$fresh/runtime.ts";
 
 export default function Greet(props: PageProps) {
   return <div>Hello {props.params.name}</div>;
@@ -138,8 +138,7 @@ export default function Greet(props: PageProps) {
     ROUTES_GREET_TSX,
   );
 
-  const ROUTES_API_JOKE_TS =
-    `import { HandlerContext } from "../../deps.server.ts";
+  const ROUTES_API_JOKE_TS = `import { HandlerContext } from "$fresh/server.ts";
 
 // Jokes courtesy of https://punsandoneliners.com/randomness/programmer-jokes/
 const JOKES = [
@@ -188,7 +187,7 @@ export const handler = (_req: Request, _ctx: HandlerContext): Response => {
 /// <reference lib="deno.ns" />
 /// <reference lib="deno.unstable" />
 
-import { start } from "./deps.server.ts";
+import { start } from "$fresh/server.ts";
 import manifest from "./fresh.gen.ts";
 
 await start(manifest);
@@ -201,11 +200,16 @@ await start(manifest);
     // this throws on windows
   }
 
-  const DENO_CONFIG = `{
-  "tasks": {
-    "start": "deno run -A --watch --no-check main.ts"
-  }
-}`;
+  const DENO_CONFIG = JSON.stringify(
+    {
+      tasks: {
+        start: "deno run -A --watch --no-check main.ts",
+      },
+      importMap: "./import_map.json",
+    },
+    null,
+    2,
+  );
 
   await Deno.writeTextFile(join(directory, "deno.json"), DENO_CONFIG);
 

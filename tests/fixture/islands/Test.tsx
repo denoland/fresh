@@ -1,6 +1,6 @@
 /** @jsx h */
 
-import { h } from "../deps.client.ts";
+import { h } from "$fresh/runtime.ts";
 
 export default function Test(props: { message: string }) {
   return (

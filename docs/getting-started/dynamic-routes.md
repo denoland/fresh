@@ -28,7 +28,7 @@ as arguments in it's `props` object though.
 // routes/greet/[name].tsx
 
 /** @jsx h */
-import { h, PageProps } from "../../deps.client.ts";
+import { h, PageProps } from "$fresh/runtime.ts";
 
 export default function AboutPage(props: PageProps) {
   const { name } = props.params;

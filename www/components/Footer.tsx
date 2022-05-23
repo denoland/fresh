@@ -1,6 +1,7 @@
 /** @jsx h */
 
-import { h, tw } from "../deps.client.ts";
+import { h } from "$fresh/runtime.ts";
+import { tw } from "../utils/twind.ts";
 
 const LINKS = [
   {

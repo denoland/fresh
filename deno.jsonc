@@ -1,7 +1,8 @@
 {
   "tasks": {
-    "test": "deno test -A --no-check=remote && deno check www/main.ts && deno check cli.ts",
+    "test": "deno test -A --no-check=remote && deno check --config=www/deno.json www/main.ts && deno check cli.ts",
     "fixture": "deno run -A --watch ./tests/fixture/main.ts & deno run -A ./cli.ts manifest --watch ./tests/fixture",
     "www": "deno run -A --watch=www/static,docs/ ./www/main.ts & deno run -A ./cli.ts manifest --watch ./www"
-  }
+  },
+  "importMap": "./tests/fixture/import_map.json"
 }

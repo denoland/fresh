@@ -1,6 +1,7 @@
 /** @jsx h */
 
-import { h, tw } from "../deps.client.ts";
+import { h } from "$fresh/runtime.ts";
+import { tw } from "../utils/twind.ts";
 
 export default function WarningBanner() {
   const warning = tw`bg-yellow-100 border(1 yellow-200) p-4 mb-4`;

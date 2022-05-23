@@ -1,0 +1,6 @@
+{
+  "tasks": {
+    "start": "deno run -A --watch main.ts & deno run -A ../cli.ts manifest --watch"
+  },
+  "importMap": "./import_map.json"
+}

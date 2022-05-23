@@ -74,13 +74,17 @@ jobs:
         run: deno check --remote cli.ts
 
       - name: Type check website
-        run: deno check --remote www/main.ts
+        run: deno check --remote main.ts
+        working-directory: www/
 
       - name: Type check examples/counter
-        run: deno check --remote examples/counter/main.ts
+        run: deno check --remote main.ts
+        working-directory: examples/counter
 
       - name: Type check tests/fixture
-        run: deno check tests/fixture/main.ts
+        run: deno check main.ts
+        working-directory: tests/fixture/
 
       - name: Type check tests/fixture_error
-        run: deno check tests/fixture_error/main.ts
+        run: deno check main.ts
+        working-directory: tests/fixture_error/

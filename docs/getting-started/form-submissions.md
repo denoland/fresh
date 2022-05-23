@@ -33,8 +33,8 @@ server side:
 // routes/search.tsx
 
 /** @jsx h */
-import { h, PageProps } from "../../deps.client.ts";
-import { Handlers } from "../../deps.server.ts";
+import { h, PageProps } from "$fresh/runtime.ts";
+import { Handlers } from "$fresh/server.ts";
 
 const NAMES = ["Alice", "Bob", "Charlie", "Dave", "Eve", "Frank"];
 

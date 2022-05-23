@@ -8,8 +8,8 @@ import {
   h,
   Head,
   PageProps,
-  tw,
-} from "../deps.client.ts";
+} from "$fresh/runtime.ts";
+import { tw } from "../utils/twind.ts";
 import Counter from "../islands/Counter.tsx";
 import LemonDrop from "../islands/LemonDrop.tsx";
 import Footer from "../components/Footer.tsx";

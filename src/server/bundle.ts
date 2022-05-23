@@ -21,11 +21,13 @@ async function ensureEsbuildInialized() {
 }
 
 export class Bundler {
+  #importMapURL: URL;
   #islands: Island[];
   #cache: Map<string, Uint8Array> | Promise<void> | undefined = undefined;
 
-  constructor(islands: Island[]) {
+  constructor(islands: Island[], importMapURL: URL) {
     this.#islands = islands;
+    this.#importMapURL = importMapURL;
   }
 
   async bundle() {
@@ -52,7 +54,7 @@ export class Bundler {
       absWorkingDir,
       outfile: "",
       platform: "neutral",
-      plugins: [denoPlugin()],
+      plugins: [denoPlugin({ importMapURL: this.#importMapURL })],
       splitting: true,
       target: ["chrome96", "firefox95", "safari14"],
       treeShaking: true,

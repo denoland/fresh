@@ -1,6 +1,6 @@
 /** @jsx h */
 
-import { h } from "../deps.client.ts";
+import { h } from "$fresh/runtime.ts";
 
 interface Props {
   params: Record<string, string | string[]>;

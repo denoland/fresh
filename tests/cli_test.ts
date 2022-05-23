@@ -61,7 +61,7 @@ Deno.test({
         "name": tmpDirName,
         "contents": [
           { "type": "file", "name": "README.md" },
-          { "type": "file", "name": "deps.client.ts" },
+          { "type": "file", "name": "import_map.json" },
           { "type": "file", "name": "fresh.gen.ts" },
           {
             "type": "directory",
@@ -86,7 +86,6 @@ Deno.test({
               { "type": "file", "name": "index.tsx" },
             ],
           },
-          { "type": "file", "name": "deps.server.ts" },
           {
             "type": "directory",
             "name": "static",
@@ -96,7 +95,7 @@ Deno.test({
           },
         ],
       },
-      { "type": "report", "directories": 3, "files": 9 },
+      { "type": "report", "directories": 3, "files": 8 },
     ];
     await t.step("check generated files", async () => {
       await assertFileExistence(targetFileTree);

@@ -1,12 +1,7 @@
 /** @jsx h */
-import {
-  Fragment,
-  h,
-  tw,
-  useEffect,
-  useRef,
-  useState,
-} from "../deps.client.ts";
+/** @jsxFrag Fragment */
+import { Fragment, h, useEffect, useRef, useState } from "$fresh/runtime.ts";
+import { tw } from "../utils/twind.ts";
 import { Spring, WaveTank } from "../components/WaveTank.ts";
 
 function easeInCirc(x: number) {
@@ -99,7 +94,7 @@ function LemonDrop() {
   }, []);
 
   return (
-    <Fragment>
+    <>
       <svg
         width="100"
         height="300"
@@ -143,7 +138,7 @@ function LemonDrop() {
         >
         </polygon>
       </svg>
-    </Fragment>
+    </>
   );
 }
 

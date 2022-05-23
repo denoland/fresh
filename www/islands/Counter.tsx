@@ -1,5 +1,6 @@
 /** @jsx h */
-import { h, IS_BROWSER, tw, useState } from "../deps.client.ts";
+import { h, IS_BROWSER, useState } from "$fresh/runtime.ts";
+import { tw } from "../utils/twind.ts";
 import { RoundedButton } from "../components/Button.tsx";
 import { IconMinus, IconPlus } from "../components/Icons.tsx";
 

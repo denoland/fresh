@@ -1,6 +1,8 @@
 /** @jsx h */
 
-import { apply, h, tw } from "../deps.client.ts";
+import { h } from "$fresh/runtime.ts";
+import { apply, tw } from "../utils/twind.ts";
+
 import {
   CATEGORIES,
   TableOfContentsCategory,

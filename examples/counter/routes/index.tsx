@@ -1,5 +1,5 @@
 /** @jsx h */
-import { h } from "../deps.client.ts";
+import { h } from "$fresh/runtime.ts";
 import Counter from "../islands/Counter.tsx";
 
 export default function Home() {

@@ -1,0 +1,8 @@
+{
+  ".": "THIS FILE EXISTS ONLY FOR VSCODE! IT IS NOT USED AT RUNTIME.",
+  "imports": {
+    "$fresh/": "../",
+    "$twind": "https://esm.sh/twind@0.16.16",
+    "$twind/": "https://esm.sh/twind@0.16.16/"
+  }
+}
