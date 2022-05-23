@@ -1,6 +1,6 @@
 /** @jsx h */
 
-import { h, PageConfig, PageProps } from "../client_deps.ts";
+import { h, PageProps, RouteConfig } from "../client_deps.ts";
 
 export default function WildcardPage({ params }: PageProps) {
   if (typeof params.path === "string") {
@@ -10,6 +10,6 @@ export default function WildcardPage({ params }: PageProps) {
   }
 }
 
-export const config: PageConfig = {
+export const config: RouteConfig = {
   routeOverride: "/foo/:path*",
 };

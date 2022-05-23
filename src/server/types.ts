@@ -3,8 +3,8 @@ import { ConnInfo, router, ServeInit } from "./deps.ts";
 import {
   AppProps,
   ErrorPageProps,
-  PageConfig,
   PageProps,
+  RouteConfig,
   UnknownPageProps,
 } from "../runtime/types.ts";
 import { RenderContext, RenderFn } from "./render.tsx";
@@ -19,19 +19,19 @@ export interface PageModule {
   default?: ComponentType<PageProps>;
   // deno-lint-ignore no-explicit-any
   handler?: Handler<any, any> | Handlers<any, any>;
-  config?: PageConfig;
+  config?: RouteConfig;
 }
 
 export interface UnknownPageModule {
   default?: ComponentType<UnknownPageProps>;
   handler?: UnknownHandler;
-  config?: PageConfig;
+  config?: RouteConfig;
 }
 
 export interface ErrorPageModule {
   default?: ComponentType<ErrorPageProps>;
   handler?: ErrorHandler;
-  config?: PageConfig;
+  config?: RouteConfig;
 }
 
 export interface IslandModule {
