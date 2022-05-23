@@ -31,7 +31,7 @@ Here is an example of an island component that counts down to a specific time.
 // islands/Countdown.tsx
 
 /** @jsx h */
-import { h, useEffect, useMemo, useState } from "../deps.client.ts";
+import { h, useEffect, useMemo, useState } from "$fresh/runtime.ts";
 
 const timeFmt = new Intl.RelativeTimeFormat("en-US");
 
@@ -73,7 +73,7 @@ client with the correct props:
 // routes/countdown.tsx
 
 /** @jsx h */
-import { h } from "../deps.client.ts";
+import { h } from "$fresh/runtime.ts";
 import { Countdown } from "../islands/Countdown.tsx";
 
 export default function Page() {
