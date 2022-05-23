@@ -69,7 +69,6 @@ async function init(directory: string) {
   const IMPORT_MAP_JSON = JSON.stringify(
     {
       "imports": {
-        "@/": "./",
         "$fresh/": new URL("../../", import.meta.url).href,
       },
     },
@@ -80,7 +79,7 @@ async function init(directory: string) {
 
   const ROUTES_INDEX_TSX = `/** @jsx h */
 import { h } from "$fresh/runtime.ts";
-import Counter from "@/islands/Counter.tsx";
+import Counter from "../islands/Counter.tsx";
 
 export default function Home() {
   return (

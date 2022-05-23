@@ -1,0 +1,7 @@
+{
+  "imports": {
+    "$fresh/": "../",
+    "$twind": "https://esm.sh/twind@0.16.16",
+    "$twind/": "https://esm.sh/twind@0.16.16/"
+  }
+}
