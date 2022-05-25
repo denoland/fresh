@@ -68,5 +68,6 @@ For a request to `/admin` the request flow like this:
 For a request to `/admin/signin` the request flow like this:
 
 1. The `routes/_middleware.ts` middleware is invoked.
-2. Calling `ctx.next()` will invoke the `routes/admin/_middleware.ts` middleware.
+2. Calling `ctx.next()` will invoke the `routes/admin/_middleware.ts`
+   middleware.
 3. Calling `ctx.next()` will invoke the `routes/admin/signin.ts` handler.
