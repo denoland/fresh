@@ -31,7 +31,8 @@ then adds a custom header to the response before returning it:
 // routes/about.tsx
 
 /** @jsx h */
-import { h, Handlers } from "$fresh/runtime.ts";
+import { h } from "$fresh/runtime.ts";
+import { Handlers } from "$fresh/server.ts";
 
 export const handler: Handlers = {
   GET(req, ctx) {
@@ -58,7 +59,7 @@ response:
 ```ts
 // routes/api/random-uuid.ts
 
-import { Handlers } from "$fresh/runtime.ts";
+import { Handlers } from "$fresh/server.ts";
 
 export const handler: Handlers = {
   GET(req) {
