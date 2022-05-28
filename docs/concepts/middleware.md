@@ -48,7 +48,7 @@ specific first).
 
 For example, take a project with the following routes:
 
-- `routes/_middlware.ts`
+- `routes/_middleware.ts`
 - `routes/index.ts`
 - `routes/admin/_middleware.ts`
 - `routes/admin/index.ts`
@@ -56,17 +56,18 @@ For example, take a project with the following routes:
 
 For a request to `/` the request will flow like this:
 
-1. The `routes/_middlware.ts` middlware is invoked.
+1. The `routes/_middleware.ts` middleware is invoked.
 2. Calling `ctx.next()` will invoke the `routes/index.ts` handler.
 
 For a request to `/admin` the request flow like this:
 
-1. The `routes/_middlware.ts` middlware is invoked.
+1. The `routes/_middleware.ts` middleware is invoked.
 2. Calling `ctx.next()` will invoke the `routes/admin/_middleware.ts` middlware.
 3. Calling `ctx.next()` will invoke the `routes/admin/index.ts` handler.
 
 For a request to `/admin/signin` the request flow like this:
 
-1. The `routes/_middlware.ts` middlware is invoked.
-2. Calling `ctx.next()` will invoke the `routes/admin/_middleware.ts` middlware.
+1. The `routes/_middleware.ts` middleware is invoked.
+2. Calling `ctx.next()` will invoke the `routes/admin/_middleware.ts`
+   middleware.
 3. Calling `ctx.next()` will invoke the `routes/admin/signin.ts` handler.

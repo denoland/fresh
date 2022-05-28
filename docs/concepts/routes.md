@@ -69,8 +69,8 @@ import { h, PageProps } from "$fresh/runtime.ts";
 import { HandlerContext, Handlers } from "$fresh/server.ts";
 
 export const handler: Handlers = {
-  GET(ctx: HandlerContext) {
-    const resp = ctx.render();
+  async GET(ctx: HandlerContext) {
+    const resp = await ctx.render();
     resp.headers.set("X-Custom-Header", "Hello World");
     return resp;
   },
