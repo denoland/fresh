@@ -35,8 +35,8 @@ import { h } from "$fresh/runtime.ts";
 import { Handlers } from "$fresh/server.ts";
 
 export const handler: Handlers = {
-  GET(req, ctx) {
-    const resp = ctx.render();
+  async GET(req, ctx) {
+    const resp = await ctx.render();
     resp.headers.set("X-Custom-Header", "Hello");
     return resp;
   },
