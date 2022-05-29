@@ -30,7 +30,7 @@ as arguments in it's `props` object though.
 /** @jsx h */
 import { h, PageProps } from "$fresh/runtime.ts";
 
-export default function AboutPage(props: PageProps) {
+export default function GreetPage(props: PageProps) {
   const { name } = props.params;
   return (
     <main>
