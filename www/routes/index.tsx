@@ -92,7 +92,7 @@ function Intro() {
           type="image/avif"
         />
         <source
-          srcset="/illustration/2x.webp2x, /illustration/1x.webp"
+          srcset="/illustration/2x.webp 2x, /illustration/1x.webp"
           type="image/webp"
         />
         <img
