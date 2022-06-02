@@ -1,44 +1,12 @@
-import { extname, join, resolve, toFileUrl, walk } from "./deps.ts";
+import {
+  dirname,
+  extname,
+  fromFileUrl,
+  join,
+  toFileUrl,
+  walk,
+} from "./deps.ts";
 import { error } from "./error.ts";
-
-const help = `fresh manifest
-
-Regenerate the fresh.gen.ts manifest for your fresh project.
-
-To regenerate the mapping in the current directory:
-  fresh manifest
-
-To regenerate the mapping in the './foobar' subdirectory:
-  fresh manifest ./foobar
-
-USAGE:
-    fresh manifest [OPTIONS] [DIRECTORY]
-
-OPTIONS:
-    -h, --help                 Prints help information
-    -w, --watch                Watch for changes and regenerate as needed
-`;
-
-export interface Args {
-  help: boolean;
-  watch: boolean;
-}
-
-// deno-lint-ignore no-explicit-any
-export async function manifestSubcommand(rawArgs: Record<string, any>) {
-  const args: Args = {
-    help: !!rawArgs.help,
-    watch: !!rawArgs.watch,
-  };
-  const directory: string | null = typeof rawArgs._[0] === "string"
-    ? rawArgs._[0]
-    : Deno.cwd();
-  if (args.help) {
-    console.log(help);
-    Deno.exit(0);
-  }
-  await manifest(directory, args.watch);
-}
 
 interface Manifest {
   routes: string[];
@@ -171,26 +139,28 @@ export default manifest;
   );
 }
 
-export async function manifest(directory: string, watch: boolean) {
-  directory = resolve(directory);
+export async function dev(base: string, entrypoint: string) {
+  entrypoint = new URL(entrypoint, base).href;
 
-  let currentManifest = await collect(directory);
-  await generate(directory, currentManifest);
+  const dir = dirname(fromFileUrl(base));
 
-  if (!watch) return;
-
-  const watcher = Deno.watchFs(directory, { recursive: true });
-  for await (const e of watcher) {
-    if (e.kind === "access") continue;
-    const newManifest = await collect(directory);
-    if (
-      !arraysEqual(newManifest.routes, currentManifest.routes) ||
-      !arraysEqual(newManifest.islands, currentManifest.islands)
-    ) {
-      currentManifest = newManifest;
-      await generate(directory, currentManifest);
-    }
+  let currentManifest: Manifest;
+  const prevManifest = Deno.env.get("FRSH_DEV_PREVIOUS_MANIFEST");
+  if (prevManifest) {
+    currentManifest = JSON.parse(prevManifest);
+  } else {
+    currentManifest = { islands: [], routes: [] };
   }
+  const newManifest = await collect(dir);
+  Deno.env.set("FRSH_DEV_PREVIOUS_MANIFEST", JSON.stringify(newManifest));
+
+  const manifestChanged =
+    !arraysEqual(newManifest.routes, currentManifest.routes) ||
+    !arraysEqual(newManifest.islands, currentManifest.islands);
+
+  if (manifestChanged) await generate(dir, newManifest);
+
+  await import(entrypoint);
 }
 
 function arraysEqual<T>(a: T[], b: T[]): boolean {
