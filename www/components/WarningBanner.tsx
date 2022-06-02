@@ -8,9 +8,9 @@ export default function WarningBanner() {
   return (
     <div class={warning}>
       ⚠️ Do not use Fresh for production usecases yet, unless you are very
-      actively tracking the Fresh repository for updates. The framework is
-      still undergoing very frequent core functionality changes. You can expect
-      a mostly stable release very soon.
+      actively tracking the Fresh repository for updates. The framework is still
+      undergoing very frequent core functionality changes. You can expect a
+      mostly stable release very soon.
     </div>
   );
 }
