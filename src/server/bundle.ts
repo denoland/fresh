@@ -56,7 +56,7 @@ export class Bundler {
       platform: "neutral",
       plugins: [denoPlugin({ importMapURL: this.#importMapURL })],
       splitting: true,
-      target: ["chrome96", "firefox95", "safari14"],
+      target: ["chrome99", "firefox99", "safari15"],
       treeShaking: true,
       write: false,
     });
