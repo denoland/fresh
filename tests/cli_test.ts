@@ -39,7 +39,7 @@ const assertFileExistence = async (tree: FileTree[], dirname?: string) => {
 };
 
 Deno.test({
-  name: "fresh init",
+  name: "fresh-init",
   async fn(t) {
     // Preparation
     const tmpDirName = await Deno.makeTempDir();

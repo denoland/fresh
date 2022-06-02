@@ -5,7 +5,6 @@
   "getting-started": {
     "title": "Getting Started",
     "pages": [
-      ["installation", "Installation"],
       ["create-a-project", "Create a project"],
       ["running-locally", "Running locally"],
       ["create-a-route", "Create a route"],

@@ -13,8 +13,4 @@ Start the project:
 deno run -A --watch main.ts
 ```
 
-After adding, removing, or moving a page in the `pages` directory, run:
-
-```
-fresh manifest
-```
+This will watch the project directory and restart as necessary.

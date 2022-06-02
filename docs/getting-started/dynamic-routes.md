@@ -44,8 +44,6 @@ The `PageProps` interface actually contains a bunch of useful properties that
 can be used to customize the rendered output. Next to the matched url pattern
 parameters, the raw `url`, and the `route` name can also be found in here.
 
-As this is a new page, the manifest needs to be updated again: `fresh manifest`.
-
 Navigating to `https://localhost:8000/greet/Luca` will now render a page showing
 "Greetings to you, Luca!".
 
