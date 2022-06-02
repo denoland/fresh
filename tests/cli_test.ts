@@ -46,7 +46,7 @@ Deno.test({
 
     await t.step("execute init command", async () => {
       const cliProcess = Deno.run({
-        cmd: ["deno", "run", "-A", "--no-check", "cli.ts", "init", tmpDirName],
+        cmd: ["deno", "run", "-A", "--no-check", "init.ts", tmpDirName],
         stdout: "null",
       });
       const { code } = await cliProcess.status();
