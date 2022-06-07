@@ -125,7 +125,7 @@ Deno.test({
         throw new Error("Server didn't start up");
       }
 
-      await delay(500);
+      await delay(100);
 
       // Access the root page
       const res = await fetch("http://localhost:8000");

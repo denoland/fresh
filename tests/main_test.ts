@@ -265,7 +265,6 @@ Deno.test("static file - by 'hashed' path", async () => {
   // verify that the asset hook is applied to the srcset
   const imgInIslandSrcSet = body.match(/srcset="(.*?)"/)?.[1];
   assert(imgInIslandSrcSet);
-  console.log(imgInIslandSrcSet);
   assert(
     imgInIslandSrcSet.includes(globalThis.__FRSH_BUILD_ID),
     "img-in-island-srcset",
