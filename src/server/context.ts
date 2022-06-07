@@ -69,6 +69,7 @@ export class ServerContext {
     app: AppModule,
     notFound: UnknownPage,
     error: ErrorPage,
+    importMapURL: URL,
   ) {
     this.#pages = pages;
     this.#islands = islands;
@@ -78,7 +79,7 @@ export class ServerContext {
     this.#app = app;
     this.#notFound = notFound;
     this.#error = error;
-    this.#bundler = new Bundler(this.#islands);
+    this.#bundler = new Bundler(this.#islands, importMapURL);
     this.#dev = typeof Deno.env.get("DENO_DEPLOYMENT_ID") !== "string"; // Env var is only set in prod (on Deploy).
   }
 
@@ -88,6 +89,7 @@ export class ServerContext {
   static async fromManifest(manifest: Manifest): Promise<ServerContext> {
     // Get the manifest' base URL.
     const baseUrl = new URL("./", manifest.baseUrl).href;
+    const importMapURL = new URL("./import_map.json", manifest.baseUrl);
 
     // Extract all routes, and prepare them into the `Page` structure.
     const pages: Page[] = [];
@@ -254,6 +256,7 @@ export class ServerContext {
       app,
       notFound,
       error,
+      importMapURL,
     );
   }
 

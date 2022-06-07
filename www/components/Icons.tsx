@@ -1,6 +1,7 @@
 /** @jsx h */
 
-import { h, tw } from "../client_deps.ts";
+import { h } from "$fresh/runtime.ts";
+import { tw } from "../utils/twind.ts";
 
 export function IconMinus() {
   return (

@@ -8,8 +8,8 @@ import {
   h,
   Head,
   PageProps,
-  tw,
-} from "../client_deps.ts";
+} from "$fresh/runtime.ts";
+import { tw } from "../utils/twind.ts";
 import Counter from "../islands/Counter.tsx";
 import LemonDrop from "../islands/LemonDrop.tsx";
 import Footer from "../components/Footer.tsx";
@@ -92,7 +92,7 @@ function Intro() {
           type="image/avif"
         />
         <source
-          srcset="/illustration/2x.webp2x, /illustration/1x.webp"
+          srcset="/illustration/2x.webp 2x, /illustration/1x.webp"
           type="image/webp"
         />
         <img

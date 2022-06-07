@@ -1,4 +1,4 @@
-import { MiddlewareHandlerContext } from "../../../server_deps.ts";
+import { MiddlewareHandlerContext } from "$fresh/server.ts";
 
 interface State {
   root: string;

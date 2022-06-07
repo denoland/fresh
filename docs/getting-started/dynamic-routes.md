@@ -28,9 +28,9 @@ as arguments in it's `props` object though.
 // routes/greet/[name].tsx
 
 /** @jsx h */
-import { h, PageProps } from "../../client_deps.ts";
+import { h, PageProps } from "$fresh/runtime.ts";
 
-export default function AboutPage(props: PageProps) {
+export default function GreetPage(props: PageProps) {
   const { name } = props.params;
   return (
     <main>

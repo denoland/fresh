@@ -24,8 +24,8 @@ renders it in a page component.
 // routes/github/[username].tsx
 
 /** @jsx h */
-import { h, PageProps } from "../../client_deps.ts";
-import { Handlers } from "../../server_deps.ts";
+import { h, PageProps } from "$fresh/runtime.ts";
+import { Handlers } from "$fresh/server.ts";
 
 interface User {
   login: string;

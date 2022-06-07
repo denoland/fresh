@@ -1,6 +1,6 @@
 /** @jsx h */
 
-import { h } from "../client_deps.ts";
+import { h } from "$fresh/runtime.ts";
 import { HandlerContext } from "../../../server.ts";
 
 export default function Page() {

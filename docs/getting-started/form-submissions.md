@@ -16,7 +16,7 @@ around the HTML `<form>` element.
 next chapter explains how to progressively enhance your forms with client side
 JavaScript to make them more interactive.
 
-The way forms work in the browser, is that they peform a HTML navigation action
+The way forms work in the browser, is that they perform a HTML navigation action
 when the user submits the form. In most cases this means that when the form is
 submitted, a GET or POST request is sent to the server with the form data, which
 then responds with a new page to render.
@@ -33,8 +33,8 @@ server side:
 // routes/search.tsx
 
 /** @jsx h */
-import { h, PageProps } from "../../client_deps.ts";
-import { Handlers } from "../../server_deps.ts";
+import { h, PageProps } from "$fresh/runtime.ts";
+import { Handlers } from "$fresh/server.ts";
 
 const NAMES = ["Alice", "Bob", "Charlie", "Dave", "Eve", "Frank"];
 
