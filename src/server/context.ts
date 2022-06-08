@@ -193,12 +193,17 @@ export class ServerContext {
     for (const [self, module] of Object.entries(manifest.islands)) {
       const url = new URL(self, baseUrl).href;
       if (!url.startsWith(baseUrl)) {
-        throw new TypeError("Page is not a child of the basepath.");
+        throw new TypeError("Island is not a child of the basepath.");
       }
       const path = url.substring(baseUrl.length).substring("islands".length);
       const baseRoute = path.substring(1, path.length - extname(path).length);
       const name = baseRoute.replace("/", "");
       const id = name.toLowerCase();
+      if (typeof module.default !== "function") {
+        throw new TypeError(
+          `Islands must default export a component ('${self}').`,
+        );
+      }
       islands.push({ id, name, url, component: module.default });
     }
 
