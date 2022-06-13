@@ -14,7 +14,7 @@ This is not very flexible, especially considering that most pages will only have
 small pieces of content that require interactivity. For example a otherwise
 static page might need a little bit of JavaScript to power a image carousel or
 "buy now" button. This model is often called
-[islands architechture][islands-architechture]. This refers to a page having
+[islands architecture][islands-architecture]. This refers to a page having
 little "islands" of interactivity, in a sea of otherwise static content.
 
 `fresh` embraces this model. All pages are rendered server side, but you can
@@ -93,5 +93,5 @@ components need to be registered in the manifest file. This means that
 `fresh manifest` needs to be run every time a new island component is added,
 removed, or renamed.
 
-[islands-architechture]: https://jasonformat.com/islands-architecture
+[islands-architecture]: https://jasonformat.com/islands-architecture
 [pascal-case]: https://en.wiktionary.org/wiki/Pascal_case
