@@ -11,7 +11,7 @@ personalized web applications. You can use it to create your home page, a blog,
 a large web application like GitHub or Twitter, or anything else you can think
 of.
 
-At it's core, `fresh` is a combination of a routing framework and templating
+At its core, `fresh` is a combination of a routing framework and templating
 engine that renders pages on demand, on the server. In addition to this
 just-in-time (JIT) rendering on the server, `fresh` also provides an interface
 for seamlessly rendering some components on the client for maximum
