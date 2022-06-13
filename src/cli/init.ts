@@ -143,7 +143,7 @@ export default function Greet(props: PageProps) {
 // Jokes courtesy of https://punsandoneliners.com/randomness/programmer-jokes/
 const JOKES = [
   "Why do Java developers often wear glasses? They can’t C#.",
-  "A SQL query walks into a bar, goes up to two tables and says “can I join you?",
+  "A SQL query walks into a bar, goes up to two tables and says “can I join you?“",
   "Wasn’t hard to crack Forrest Gump’s password. 1forrest1.",
   "I love pressing the F5 key. It’s refreshing.",
   "Called IT support and a chap from Australia came to fix my network connection.  I asked “Do you come from a LAN down under?”",
