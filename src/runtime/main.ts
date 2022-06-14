@@ -34,17 +34,17 @@ export function revive(islands: Record<string, ComponentType>) {
   function walk(node: Node | null) {
     const tag = node!.nodeType === 8 &&
       ((node as Comment).data.match(/^\s*frsh-(.*)\s*$/) || [])[1];
+    let endNode: Node | null = null;
     if (tag) {
       const startNode = node!;
       const children = [];
       const parent = node!.parentNode;
+      // collect all children of the island
       while ((node = node!.nextSibling) && node.nodeType !== 8) {
         children.push(node);
       }
-      startNode.parentNode!.removeChild(startNode);
-      if (node) {
-        node.parentNode?.removeChild(node);
-      }
+      startNode.parentNode!.removeChild(startNode); // remove start tag node
+
       const [id, n] = tag.split(":");
       render(
         h(islands[id], ISLAND_PROPS[Number(n)]),
@@ -54,11 +54,17 @@ export function revive(islands: Record<string, ComponentType>) {
           // deno-lint-ignore no-explicit-any
         ) as any as HTMLElement,
       );
+      endNode = node;
     }
+
     const sib = node!.nextSibling;
-    if (sib) walk(sib as Comment);
     const fc = node!.firstChild;
-    if (fc) walk(fc as Comment);
+    if (endNode) {
+      endNode.parentNode?.removeChild(endNode); // remove end tag node
+    }
+
+    if (sib) walk(sib);
+    if (fc) walk(fc);
   }
   walk(document.body);
 }

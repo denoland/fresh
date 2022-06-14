@@ -14,7 +14,7 @@ This is not very flexible, especially considering that most pages will only have
 small pieces of content that require interactivity. For example a otherwise
 static page might need a little bit of JavaScript to power a image carousel or
 "buy now" button. This model is often called
-[islands architechture][islands-architechture]. This refers to a page having
+[islands architecture][islands-architecture]. This refers to a page having
 little "islands" of interactivity, in a sea of otherwise static content.
 
 Fresh embraces this model. All pages are rendered server side, but you can
@@ -74,7 +74,7 @@ client with the correct props:
 
 /** @jsx h */
 import { h } from "$fresh/runtime.ts";
-import { Countdown } from "../islands/Countdown.tsx";
+import Countdown from "../islands/Countdown.tsx";
 
 export default function Page() {
   const date = new Date();
@@ -89,5 +89,5 @@ export default function Page() {
 
 The page that is rendered on the client now has an interactive countdown.
 
-[islands-architechture]: https://jasonformat.com/islands-architecture
+[islands-architecture]: https://jasonformat.com/islands-architecture
 [pascal-case]: https://en.wiktionary.org/wiki/Pascal_case
