@@ -33,7 +33,7 @@ jobs:
         run: deno lint
 
       - name: Cache dependencies
-        run: deno cache --no-check src/cli/deps.ts src/runtime/deps.ts src/server/deps.ts
+        run: deno cache --no-check src/dev/deps.ts src/runtime/deps.ts src/server/deps.ts
 
       - name: Cache Chrome (Linux)
         if: startsWith(matrix.os, 'ubuntu')
@@ -70,21 +70,21 @@ jobs:
       - name: Run tests
         run: deno test -A
 
-      - name: Type check CLI
-        run: deno check --remote cli.ts
+      - name: Type check init script
+        run: deno check --remote init.ts
 
       - name: Type check website
-        run: deno check --remote main.ts
+        run: deno check --remote main.ts dev.ts
         working-directory: www/
 
       - name: Type check examples/counter
-        run: deno check --remote main.ts
+        run: deno check --remote main.ts dev.ts
         working-directory: examples/counter
 
       - name: Type check tests/fixture
-        run: deno check main.ts
+        run: deno check main.ts dev.ts
         working-directory: tests/fixture/
 
       - name: Type check tests/fixture_error
-        run: deno check main.ts
+        run: deno check main.ts dev.ts
         working-directory: tests/fixture_error/

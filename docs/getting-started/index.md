@@ -1,16 +1,16 @@
 ---
 description: |
-  In this chapter of the `fresh` documentation, you'll be introduced to the
+  In this chapter of the Fresh documentation, you'll be introduced to the
   framework. Create a new project, run it locally, edit and create pages, fetch
   data, handle user interactions, and deploy it.
 ---
 
-In this chapter of the `fresh` documentation, you'll be introduced to the
+In this chapter of the Fresh documentation, you'll be introduced to the
 framework. You'll learn how to create a new project, run it locally, edit and
 create pages, fetch data, handle user interactions, and how to then deploy the
 project to [Deno Deploy][deno-deploy].
 
-The documentation assumes you have Deno 1.12.0 or later installed.
+The documentation assumes you have Deno 1.22.3 or later installed.
 
 To install Deno, follow the
 [installation instructions in the Deno manual][manual-installation].

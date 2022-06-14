@@ -17,10 +17,10 @@ static page might need a little bit of JavaScript to power a image carousel or
 [islands architecture][islands-architecture]. This refers to a page having
 little "islands" of interactivity, in a sea of otherwise static content.
 
-`fresh` embraces this model. All pages are rendered server side, but you can
+Fresh embraces this model. All pages are rendered server side, but you can
 create "island components" that are _also_ rendered client side. To do this,
-`fresh` projects have a special `islands/` folder. The modules in this folder
-each encapsulate a single island component. The name of the module should be the
+Fresh projects have a special `islands/` folder. The modules in this folder each
+encapsulate a single island component. The name of the module should be the
 [pascal case][pascal-case] name of the island component. For example a counter
 component would be defined in the file `islands/Counter.tsx`. A buy now button
 would be defined in the file `islands/BuyNowButton.tsx`.
@@ -87,11 +87,7 @@ export default function Page() {
 }
 ```
 
-Before trying this out, one must run `fresh manifest` again to update the
-`fresh.gen.ts` file with the new island component. Just like routes, island
-components need to be registered in the manifest file. This means that
-`fresh manifest` needs to be run every time a new island component is added,
-removed, or renamed.
+The page that is rendered on the client now has an interactive countdown.
 
 [islands-architecture]: https://jasonformat.com/islands-architecture
 [pascal-case]: https://en.wiktionary.org/wiki/Pascal_case
