@@ -160,7 +160,7 @@ function GettingStarted() {
         <a href="https://deno.land" class={tw`text-blue-600 hover:underline`}>
           Deno CLI
         </a>{" "}
-        version 1.23.0 or higher installed.
+        version 1.22.3 or higher installed.
       </p>
       <p class={tw`text-gray-600`}>
         Then you can use the Fresh init script to bootstrap a new project:
