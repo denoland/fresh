@@ -1,5 +1,5 @@
-> :warning: DO NOT USE. WHILE CERTAIN FEATURES MIGHT BE WORKING, MANY THINGS ARE
-> STILL SUBJECT TO CHANGE AT ANY TIME.
+> :warning: Not yet 1.0. Many things are subject to change. Documentation is
+> lacking in many places. Try it out and give us feedback!
 
 # fresh
 
