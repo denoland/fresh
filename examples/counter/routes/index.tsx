@@ -6,7 +6,7 @@ export default function Home() {
   return (
     <div>
       <p>
-        Welcome to Fresh. Try update this message in the ./routes/index.tsx
+        Welcome to Fresh. Try to update this message in the ./routes/index.tsx
         file, and refresh.
       </p>
       <Counter start={3} />
