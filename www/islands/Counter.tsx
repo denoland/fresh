@@ -22,7 +22,7 @@ export default function Counter(props: CounterProps) {
       >
         <IconMinus />
       </RoundedButton>
-      <div class={tw`text-3xl`}>{count}</div>
+      <div class={tw`text-3xl tabular-nums`}>{count}</div>
       <RoundedButton
         title="Add 1"
         onClick={() => setCount(count + 1)}
