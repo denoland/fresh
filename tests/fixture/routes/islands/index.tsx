@@ -9,7 +9,7 @@ export default function Home() {
     <div>
       <Counter id="counter1" start={3} />
       <Counter id="counter2" start={10} />
-      <Test message=""/>
+      <Test message="" />
     </div>
   );
 }
