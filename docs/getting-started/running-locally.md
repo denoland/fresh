@@ -24,9 +24,9 @@ the appropriate flags. You will need to provide permission flags for:
   the hood during development to do type stripping. In production this is done
   using a WebAssembly binary.
 
-For development, you also want to run with the `--watch` flag, so the fresh
-server will automatically reload whenever you make a change to your code. By
-default `--watch` only watches over files in your module graph. Some project
+For development, you also want to run with the [`--watch` flag][--watch], so the
+fresh server will automatically reload whenever you make a change to your code.
+By default `--watch` only watches over files in your module graph. Some project
 files like static files are not part of the module graph, but you probably want
 to restart/reload whenever you make a change to them too. This can be done by
 passing the extra folder as an argument: `--watch=static/`.
@@ -49,3 +49,5 @@ Server listening on http://localhost:8000
 If you now visit http://localhost:8000, you can see the running project. Try
 change some of the text in `routes/index.tsx` and see how the page updates
 automatically when you save the file.
+
+[--watch]: https://deno.land/manual/getting_started/command_line_interface#watch-mode
