@@ -6,7 +6,7 @@ description: |
 
 Forms are a common mechanism for letting users interact with applications. In
 the last few years it has become more and more common for web applications to
-move form submission entirely to the client. This is can have useful properties
+move form submission entirely to the client. This can have useful properties
 for interactivity, but it is much worse for resiliency and user experience as a
 whole. Browsers have great built in systems for form submission, revolving
 around the HTML `<form>` element.
