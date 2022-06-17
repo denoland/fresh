@@ -52,17 +52,17 @@ Deno.test({
       await counterTest("counter2", 10);
     });
 
-    await t.step("Ensure an island revive correctly the 'hash' path", async () => {
-      // ensure it is the same as on the server
+    await t.step("Ensure an island revive an img 'hash' path", async () => {      
+      // Ensure src path has __frsh_c=
+      const pElem = await page.waitForSelector(`#img-in-island`);
+      const srcString = (await pElem?.getProperty('src'))?.toString()!
+      assertStringIncludes(srcString, 'image.png?__frsh_c=');
+      
+      // Ensure src path is the same as server rendered
       const resp = await fetch(new Request("http://localhost:8000/islands"));
       const body = await resp.text();
       const imgFilePath = body.match(/img id="img-in-island" src="(.*?)"/)?.[1]!;
-      
-      // assertStringIncludes(body, "<div>Book 123</div>");
-      const pElem = await page.waitForSelector(`#img-in-island`);
-      const srcString = (await pElem?.getProperty('src'))?.toString()!
       assertStringIncludes(srcString, imgFilePath)
-      assertStringIncludes(srcString, 'image.png?__frsh_c=');
     });
 
     await browser.close();
