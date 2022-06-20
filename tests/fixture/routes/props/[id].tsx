@@ -1,6 +1,6 @@
 /** @jsx h */
-
-import { h, PageProps } from "$fresh/runtime.ts";
+import { h } from "preact";
+import { PageProps } from "$fresh/runtime.ts";
 
 export default function Home(props: PageProps) {
   return <div>{JSON.stringify(props)}</div>;

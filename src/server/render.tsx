@@ -1,11 +1,6 @@
 /** @jsx h */
-import { renderToString } from "./deps.ts";
-import {
-  ComponentChildren,
-  ComponentType,
-  h,
-  options,
-} from "../runtime/deps.ts";
+import { renderToString } from "preact-render-to-string";
+import { ComponentChildren, ComponentType, h, options } from "preact";
 import {
   AppModule,
   ErrorPage,

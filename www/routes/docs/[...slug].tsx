@@ -1,7 +1,7 @@
 /** @jsx h */
 /** @jsxFrag Fragment */
-
-import { Fragment, h, Head, PageProps } from "$fresh/runtime.ts";
+import { Fragment, h } from "preact";
+import { Head, PageProps } from "$fresh/runtime.ts";
 import { Handlers } from "$fresh/server.ts";
 import { apply, tw } from "../../utils/twind.ts";
 import { frontMatter, gfm } from "../../utils/markdown.ts";

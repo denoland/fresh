@@ -1,7 +1,6 @@
 /** @jsx h */
-
-import { h } from "$fresh/runtime.ts";
-import { HandlerContext } from "../../../server.ts";
+import { h } from "preact";
+import { HandlerContext } from "$fresh/server.ts";
 
 export default function Page() {
   return <div>This is HTML</div>;

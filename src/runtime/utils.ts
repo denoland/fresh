@@ -1,4 +1,4 @@
-import { VNode } from "./deps.ts";
+import { VNode } from "preact";
 
 export const INTERNAL_PREFIX = "/_frsh";
 export const ASSET_CACHE_BUST_KEY = "__frsh_c";

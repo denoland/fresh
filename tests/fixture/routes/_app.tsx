@@ -1,7 +1,7 @@
 /** @jsx h */
 /** @jsxFrag Fragment */
-
-import { AppProps, Fragment, h, Head } from "$fresh/runtime.ts";
+import { Fragment, h } from "preact";
+import { AppProps, Head } from "$fresh/runtime.ts";
 
 export default function App(props: AppProps) {
   return (

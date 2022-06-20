@@ -1,6 +1,6 @@
 /** @jsx h */
 
-import { h } from "../runtime/deps.ts";
+import { h } from "preact";
 import { DEBUG } from "./constants.ts";
 import type { ErrorPageProps } from "../runtime/types.ts";
 

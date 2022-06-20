@@ -1,6 +1,6 @@
 /** @jsx h */
-
-import { h, RouteConfig } from "$fresh/runtime.ts";
+import { h } from "preact";
+import { RouteConfig } from "$fresh/runtime.ts";
 import { HandlerContext } from "../../../server.ts";
 
 export const handler = {

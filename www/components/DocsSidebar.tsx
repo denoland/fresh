@@ -1,6 +1,5 @@
 /** @jsx h */
-
-import { h } from "$fresh/runtime.ts";
+import { h } from "preact";
 import { apply, tw } from "../utils/twind.ts";
 
 import {
