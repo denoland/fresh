@@ -29,6 +29,7 @@ const USE_TWIND_MESSAGE =
 
 const flags = parse(Deno.args, {
   boolean: ["force", "twind"],
+  default: { "force": null, "twind": null },
 });
 
 if (flags._.length !== 1) {
@@ -42,7 +43,10 @@ try {
   const dir = [...Deno.readDirSync(directory)];
   const isEmpty = dir.length === 0 ||
     dir.length === 1 && dir[0].name === ".git";
-  if (!isEmpty && !(flags.force || confirm(CONFIRM_EMPTY_MESSAGE))) {
+  if (
+    !isEmpty &&
+    !(flags.force === null ? confirm(CONFIRM_EMPTY_MESSAGE) : flags.force)
+  ) {
     error("Directory is not empty.");
   }
 } catch (err) {
@@ -51,7 +55,9 @@ try {
   }
 }
 
-const useTwind = flags.twind || confirm(USE_TWIND_MESSAGE);
+const useTwind = flags.twind === null
+  ? confirm(USE_TWIND_MESSAGE)
+  : flags.twind;
 
 await Deno.mkdir(join(directory, "routes", "api"), { recursive: true });
 await Deno.mkdir(join(directory, "islands"), { recursive: true });
