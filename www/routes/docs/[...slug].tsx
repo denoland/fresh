@@ -239,7 +239,7 @@ function ForwardBackButtons(props: { slug: string }) {
     <div class={tw`mt-8 flex flex(col md:row) gap-4`}>
       {previous && (
         <a href={previous.href} class={tw`${button} text-left`}>
-          <span class={upper}>{"<-"} Previous</span>
+          <span class={upper}>{"←"} Previous</span>
           <span class={lower}>
             <span class={category}>
               {previous.category
@@ -252,7 +252,7 @@ function ForwardBackButtons(props: { slug: string }) {
       )}
       {next && (
         <a href={next.href} class={tw`${button} text-right`}>
-          <span class={upper}>Next {"->"}</span>
+          <span class={upper}>Next {"→"}</span>
           <span class={lower}>
             <span class={category}>
               {next.category
