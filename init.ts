@@ -177,7 +177,7 @@ await start(manifest);
 const MAIN_TS_PATH = join(directory, "main.ts");
 await Deno.writeTextFile(MAIN_TS_PATH, MAIN_TS);
 
-const DEV_TS = `#!/usr/bin/env -S deno run -A --watch=static/,routes/,islands/
+const DEV_TS = `#!/usr/bin/env -S deno run -A --watch=static/,routes/
 
 import dev from "$fresh/dev.ts";
 
@@ -194,7 +194,7 @@ try {
 const DENO_CONFIG = JSON.stringify(
   {
     tasks: {
-      start: "deno run -A --watch=static/,routes/,islands/ --no-check dev.ts",
+      start: "deno run -A --watch=static/,routes/ dev.ts",
     },
     importMap: "./import_map.json",
   },
