@@ -1,6 +1,3 @@
-// -- preact --
-export { renderToString } from "https://esm.sh/preact-render-to-string@5.1.20?deps=preact@10.6.6";
-
 // -- std --
 export {
   extname,

@@ -28,7 +28,8 @@ as arguments in it's `props` object though.
 // routes/greet/[name].tsx
 
 /** @jsx h */
-import { h, PageProps } from "$fresh/runtime.ts";
+import { h } from "preact";
+import { PageProps } from "$fresh/runtime.ts";
 
 export default function GreetPage(props: PageProps) {
   const { name } = props.params;

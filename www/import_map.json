@@ -2,6 +2,9 @@
   "imports": {
     "$fresh/": "../",
     "$twind": "https://esm.sh/twind@0.16.16",
-    "$twind/": "https://esm.sh/twind@0.16.16/"
+    "$twind/": "https://esm.sh/twind@0.16.16/",
+    "preact": "https://esm.sh/preact@10.6.6",
+    "preact/": "https://esm.sh/preact@10.6.6/",
+    "preact-render-to-string": "https://esm.sh/preact-render-to-string@5.1.20?deps=preact@10.6.6"
   }
 }

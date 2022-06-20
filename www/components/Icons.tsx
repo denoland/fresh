@@ -1,6 +1,5 @@
 /** @jsx h */
-
-import { h } from "$fresh/runtime.ts";
+import { h } from "preact";
 import { tw } from "../utils/twind.ts";
 
 export function IconMinus() {

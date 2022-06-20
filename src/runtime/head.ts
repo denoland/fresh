@@ -1,4 +1,5 @@
-import { ComponentChildren, createContext, useContext } from "./deps.ts";
+import { ComponentChildren, createContext } from "preact";
+import { useContext } from "preact/hooks";
 
 export interface HeadProps {
   children: ComponentChildren;

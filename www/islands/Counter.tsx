@@ -1,5 +1,7 @@
 /** @jsx h */
-import { h, IS_BROWSER, useState } from "$fresh/runtime.ts";
+import { h } from "preact";
+import { useState } from "preact/hooks";
+import { IS_BROWSER } from "$fresh/runtime.ts";
 import { tw } from "../utils/twind.ts";
 import { RoundedButton } from "../components/Button.tsx";
 import { IconMinus, IconPlus } from "../components/Icons.tsx";

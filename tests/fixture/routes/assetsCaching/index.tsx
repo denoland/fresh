@@ -1,6 +1,5 @@
 /** @jsx h */
-
-import { asset, h } from "$fresh/runtime.ts";
+import { h } from "preact";
 import Test from "../../islands/Test.tsx";
 
 export default function Home() {

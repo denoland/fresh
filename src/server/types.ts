@@ -1,4 +1,4 @@
-import { ComponentType } from "../runtime/deps.ts";
+import { ComponentType } from "preact";
 import { ConnInfo, router, ServeInit } from "./deps.ts";
 import {
   AppProps,

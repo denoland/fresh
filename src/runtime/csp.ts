@@ -1,4 +1,5 @@
-import { createContext, useContext } from "./deps.ts";
+import { createContext } from "preact";
+import { useContext } from "preact/hooks";
 
 export const SELF = "'self'";
 export const UNSAFE_INLINE = "'unsafe-inline'";

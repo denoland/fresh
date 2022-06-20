@@ -8,10 +8,10 @@ import {
   toFileUrl,
   walk,
 } from "./deps.ts";
+import { h } from "preact";
 import { Manifest } from "./mod.ts";
 import { Bundler } from "./bundle.ts";
 import { ALIVE_URL, BUILD_ID, JS_PREFIX, REFRESH_JS_URL } from "./constants.ts";
-
 import DefaultErrorHandler from "./default_error_page.tsx";
 import {
   AppModule,
@@ -32,7 +32,6 @@ import {
 } from "./types.ts";
 import { render as internalRender } from "./render.tsx";
 import { ContentSecurityPolicyDirectives, SELF } from "../runtime/csp.ts";
-import { h } from "../runtime/deps.ts";
 import { ASSET_CACHE_BUST_KEY, INTERNAL_PREFIX } from "../runtime/utils.ts";
 
 interface StaticFile {

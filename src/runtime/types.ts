@@ -1,4 +1,4 @@
-import { ComponentType } from "./deps.ts";
+import { ComponentType } from "preact";
 
 // deno-lint-ignore no-explicit-any
 export interface PageProps<T = any> {

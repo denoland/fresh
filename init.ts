@@ -48,6 +48,10 @@ const IMPORT_MAP_JSON = JSON.stringify(
   {
     "imports": {
       "$fresh/": new URL("./", import.meta.url).href,
+      "preact": "https://esm.sh/preact@10.6.6",
+      "preact/": "https://esm.sh/preact@10.6.6/",
+      "preact-render-to-string":
+        "https://esm.sh/preact-render-to-string@5.1.20?deps=preact@10.6.6",
     },
   },
   null,
@@ -56,7 +60,7 @@ const IMPORT_MAP_JSON = JSON.stringify(
 await Deno.writeTextFile(join(directory, "import_map.json"), IMPORT_MAP_JSON);
 
 const ROUTES_INDEX_TSX = `/** @jsx h */
-import { h } from "$fresh/runtime.ts";
+import { h } from "preact";
 import Counter from "../islands/Counter.tsx";
 
 export default function Home() {
@@ -78,7 +82,9 @@ await Deno.writeTextFile(
 );
 
 const ISLANDS_COUNTER_TSX = `/** @jsx h */
-import { h, IS_BROWSER, useState } from "$fresh/runtime.ts";
+import { h } from "preact";
+import { useState } from "preact/hooks";
+import { IS_BROWSER } from "$fresh/runtime.ts";
 
 interface CounterProps {
   start: number;
@@ -105,7 +111,8 @@ await Deno.writeTextFile(
 );
 
 const ROUTES_GREET_TSX = `/** @jsx h */
-import { h, PageProps } from "$fresh/runtime.ts";
+import { h } from "preact";
+import { PageProps } from "$fresh/runtime.ts";
 
 export default function Greet(props: PageProps) {
   return <div>Hello {props.params.name}</div>;

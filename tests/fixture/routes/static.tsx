@@ -1,6 +1,6 @@
 /** @jsx h */
-
-import { asset, h } from "$fresh/runtime.ts";
+import { h } from "preact";
+import { asset } from "$fresh/runtime.ts";
 
 export default function StaticPage() {
   return (

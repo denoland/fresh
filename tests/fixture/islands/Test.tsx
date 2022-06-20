@@ -1,6 +1,5 @@
 /** @jsx h */
-
-import { h } from "$fresh/runtime.ts";
+import { h } from "preact";
 
 export default function Test(props: { message: string }) {
   return (
