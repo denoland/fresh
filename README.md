@@ -35,7 +35,7 @@ You can scaffold a new project by running the Fresh init script. To scaffold a
 project in the `myproject` folder, run the following:
 
 ```sh
-deno run -A --no-check https://raw.githubusercontent.com/lucacasonato/fresh/main/init.ts my-project
+deno run -A https://raw.githubusercontent.com/lucacasonato/fresh/main/init.ts my-project
 ```
 
 To now start the project, use `deno task`:

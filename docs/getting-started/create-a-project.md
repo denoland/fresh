@@ -10,7 +10,7 @@ will scaffold out a new project with some example files to get you started.
 To create a new project in the directory `"my-project"`, run:
 
 ```
-$ deno run -A --no-check https://raw.githubusercontent.com/lucacasonato/fresh/main/init.ts my-project
+$ deno run -A https://raw.githubusercontent.com/lucacasonato/fresh/main/init.ts my-project
 The manifest has been generated for 3 routes and 1 islands.
 
 Project created!

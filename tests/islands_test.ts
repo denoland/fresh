@@ -5,7 +5,7 @@ Deno.test({
   async fn(t) {
     // Preparation
     const serverProcess = Deno.run({
-      cmd: ["deno", "run", "-A", "--no-check", "./tests/fixture/main.ts"],
+      cmd: ["deno", "run", "-A", "./tests/fixture/main.ts"],
       stdout: "piped",
       stderr: "inherit",
     });

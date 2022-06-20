@@ -153,13 +153,13 @@ function GettingStarted() {
         <a href="https://deno.land" class={tw`text-blue-600 hover:underline`}>
           Deno CLI
         </a>{" "}
-        version 1.22.3 or higher installed.
+        version 1.23.0 or higher installed.
       </p>
       <p class={tw`text-gray-600`}>
         Then you can use the Fresh init script to bootstrap a new project:
       </p>
       <pre class={tw`overflow-x-auto py-2 px-4 bg(gray-100)`}>
-        {"deno run -A --no-check https://raw.githubusercontent.com/lucacasonato/fresh/main/init.ts my-app"}
+        {"deno run -A https://raw.githubusercontent.com/lucacasonato/fresh/main/init.ts my-app"}
       </pre>
       <p class={tw`text-gray-600`}>
         Enter the newly created project directory and run the following command

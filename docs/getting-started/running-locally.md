@@ -29,19 +29,14 @@ fresh server will automatically reload whenever you make a change to your code.
 By default `--watch` only watches over files in your module graph. Some project
 files like static files are not part of the module graph, but you probably want
 to restart/reload whenever you make a change to them too. This can be done by
-passing the extra folder as an argument: `--watch=static/`.
-
-Finally you might want to add a `--no-check` flag to disable the type checking
-during development. Typically many people already get type checking from their
-editor through the use of the Deno language server, so this is a good way to
-speed up the inner loop iteration time. During CI you probably want to run with
-`--no-check=remote` disable type checking of remote dependencies (because these
-are out of your control).
+passing the extra folder as an argument: `--watch=static/`. You should also add
+`routes/` to the watch list, so that the server restarts automatically whenever
+you add a new route.
 
 Combining all of this we get the following `deno run` command:
 
 ```
-$ deno run --allow-net --allow-read --allow-env --allow-run --watch=static/ --no-check main.ts
+$ deno run --allow-net --allow-read --allow-env --allow-run --watch=static/,routes/ main.ts
 Watcher Process started.
 Server listening on http://localhost:8000
 ```
