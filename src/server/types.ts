@@ -7,13 +7,22 @@ import {
   RouteConfig,
   UnknownPageProps,
 } from "../runtime/types.ts";
-import { RenderContext, RenderFn } from "./render.tsx";
+import { InnerRenderFunction, RenderContext } from "./render.tsx";
 
 export interface RouterState {
   state: Record<string, unknown>;
 }
 
-export type StartOptions = ServeInit;
+export type StartOptions = ServeInit & FreshOptions;
+
+export interface FreshOptions {
+  render?: RenderFunction;
+}
+
+export type RenderFunction = (
+  ctx: RenderContext,
+  render: InnerRenderFunction,
+) => void | Promise<void>;
 
 export interface PageModule {
   default?: ComponentType<PageProps>;
@@ -110,14 +119,6 @@ export interface ErrorPage {
   component?: ComponentType<ErrorPageProps>;
   handler: ErrorHandler;
   csp: boolean;
-}
-
-export interface RendererModule {
-  render(ctx: RenderContext, render: RenderFn): void | Promise<void>;
-}
-
-export interface Renderer {
-  render(ctx: RenderContext, render: RenderFn): void | Promise<void>;
 }
 
 // deno-lint-ignore no-explicit-any

@@ -6,7 +6,7 @@ import {
   ErrorPage,
   Island,
   Page,
-  Renderer,
+  RenderFunction,
   UnknownPage,
 } from "./types.ts";
 import { HEAD_CONTEXT } from "../runtime/head.ts";
@@ -23,12 +23,12 @@ export interface RenderOptions<Data> {
   preloads: string[];
   url: URL;
   params: Record<string, string | string[]>;
-  renderer: Renderer;
+  renderFn: RenderFunction;
   data?: Data;
   error?: unknown;
 }
 
-export type RenderFn = () => string;
+export type InnerRenderFunction = () => string;
 
 export class RenderContext {
   #id: string;
@@ -174,10 +174,10 @@ export async function render<Data>(
     return bodyHtml;
   }
 
-  await opts.renderer.render(ctx, render as RenderFn);
+  await opts.renderFn(ctx, render as InnerRenderFunction);
 
   if (bodyHtml === null) {
-    throw new Error("`render` function not called by renderer.");
+    throw new Error("The `render` function was not called by the renderer.");
   }
 
   const imports = opts.imports.map((url) => {
