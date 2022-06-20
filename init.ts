@@ -1,4 +1,4 @@
-import { join, resolve } from "./src/dev/deps.ts";
+import { join, parse, resolve } from "./src/dev/deps.ts";
 import { error } from "./src/dev/error.ts";
 import { collect, generate } from "./src/dev/mod.ts";
 
@@ -15,12 +15,24 @@ To generate a project in the current directory:
 
 USAGE:
     fresh-init <DIRECTORY>
+
+OPTIONS:
+    --force   Overwrite existing files
+    --twind   Setup project to use 'twind' for styling
 `;
 
 const CONFIRM_EMPTY_MESSAGE =
   "The target directory is not empty (files could get overwritten). Do you want to continue anyway?";
 
-if (Deno.args.length !== 1) {
+const USE_TWIND_MESSAGE =
+  "Do you want to use 'twind' (https://twind.dev/) for styling?";
+
+const flags = parse(Deno.args, {
+  boolean: ["force", "twind"],
+  default: { "force": null, "twind": null },
+});
+
+if (flags._.length !== 1) {
   error(help);
 }
 
@@ -31,7 +43,10 @@ try {
   const dir = [...Deno.readDirSync(directory)];
   const isEmpty = dir.length === 0 ||
     dir.length === 1 && dir[0].name === ".git";
-  if (!isEmpty && !confirm(CONFIRM_EMPTY_MESSAGE)) {
+  if (
+    !isEmpty &&
+    !(flags.force === null ? confirm(CONFIRM_EMPTY_MESSAGE) : flags.force)
+  ) {
     error("Directory is not empty.");
   }
 } catch (err) {
@@ -40,34 +55,46 @@ try {
   }
 }
 
+const useTwind = flags.twind === null
+  ? confirm(USE_TWIND_MESSAGE)
+  : flags.twind;
+
 await Deno.mkdir(join(directory, "routes", "api"), { recursive: true });
 await Deno.mkdir(join(directory, "islands"), { recursive: true });
 await Deno.mkdir(join(directory, "static"), { recursive: true });
+if (useTwind) await Deno.mkdir(join(directory, "utils"), { recursive: true });
 
-const IMPORT_MAP_JSON = JSON.stringify(
-  {
-    "imports": {
-      "$fresh/": new URL("./", import.meta.url).href,
-      "preact": "https://esm.sh/preact@10.6.6",
-      "preact/": "https://esm.sh/preact@10.6.6/",
-      "preact-render-to-string":
-        "https://esm.sh/preact-render-to-string@5.1.20?deps=preact@10.6.6",
-    },
-  },
-  null,
-  2,
-);
+const importMap = {
+  "imports": {
+    "$fresh/": new URL("./", import.meta.url).href,
+    "preact": "https://esm.sh/preact@10.6.6",
+    "preact/": "https://esm.sh/preact@10.6.6/",
+    "preact-render-to-string":
+      "https://esm.sh/preact-render-to-string@5.1.20?deps=preact@10.6.6",
+  } as Record<string, string>,
+};
+if (useTwind) {
+  importMap.imports["$twind"] = "https://esm.sh/twind@0.16.17";
+  importMap.imports["$twind/"] = "https://esm.sh/twind@0.16.17/";
+  importMap.imports["twind"] = "./utils/twind.ts";
+}
+const IMPORT_MAP_JSON = JSON.stringify(importMap, null, 2) + "\n";
 await Deno.writeTextFile(join(directory, "import_map.json"), IMPORT_MAP_JSON);
 
-const ROUTES_INDEX_TSX = `/** @jsx h */
-import { h } from "preact";
-import Counter from "../islands/Counter.tsx";
+let ROUTES_INDEX_TSX = `/** @jsx h */
+import { h } from "preact";\n`;
+if (useTwind) ROUTES_INDEX_TSX += `import { tw } from "twind";\n`;
+ROUTES_INDEX_TSX += `import Counter from "../islands/Counter.tsx";
 
 export default function Home() {
   return (
-    <div>
-      <img src="/logo.svg" height="100px" alt="the fresh logo: a sliced lemon dripping with juice" />
-      <p>
+    <div${useTwind ? " class={tw\`p-4 mx-auto max-w-screen-md\`}" : ""}>
+      <img
+        src="/logo.svg"
+        height="100px"
+        alt="the fresh logo: a sliced lemon dripping with juice"
+      />
+      <p${useTwind ? " class={tw\`my-6\`}" : ""}>
         Welcome to \`fresh\`. Try update this message in the ./routes/index.tsx
         file, and refresh.
       </p>
@@ -81,18 +108,44 @@ await Deno.writeTextFile(
   ROUTES_INDEX_TSX,
 );
 
-const ISLANDS_COUNTER_TSX = `/** @jsx h */
+let ISLANDS_COUNTER_TSX = `/** @jsx h */
 import { h } from "preact";
 import { useState } from "preact/hooks";
 import { IS_BROWSER } from "$fresh/runtime.ts";
-
+${useTwind ? 'import { tw } from "twind";\n' : ""}
 interface CounterProps {
   start: number;
 }
 
 export default function Counter(props: CounterProps) {
   const [count, setCount] = useState(props.start);
-  return (
+`;
+
+if (useTwind) {
+  ISLANDS_COUNTER_TSX +=
+    `  const btn = tw\`px-2 py-1 border(gray-100 1) hover:bg-gray-200\`;\n`;
+  ISLANDS_COUNTER_TSX += `  return (
+    <div class={tw\`flex gap-2 w-full\`}>
+      <p class={tw\`flex-grow-1 font-bold text-xl\`}>{count}</p>
+      <button
+        class={btn}
+        onClick={() => setCount(count - 1)}
+        disabled={!IS_BROWSER}
+      >
+        -1
+      </button>
+      <button
+        class={btn}
+        onClick={() => setCount(count + 1)}
+        disabled={!IS_BROWSER}
+      >
+        +1
+      </button>
+    </div>
+  );
+`;
+} else {
+  ISLANDS_COUNTER_TSX += `  return (
     <div>
       <p>{count}</p>
       <button onClick={() => setCount(count - 1)} disabled={!IS_BROWSER}>
@@ -103,8 +156,9 @@ export default function Counter(props: CounterProps) {
       </button>
     </div>
   );
-}
 `;
+}
+ISLANDS_COUNTER_TSX += `}\n`;
 await Deno.writeTextFile(
   join(directory, "islands", "Counter.tsx"),
   ISLANDS_COUNTER_TSX,
@@ -150,6 +204,22 @@ await Deno.writeTextFile(
   ROUTES_API_JOKE_TS,
 );
 
+const UTILS_TWIND_TS = `import { IS_BROWSER } from "$fresh/runtime.ts";
+import { Configuration, setup } from "$twind";
+export * from "$twind";
+export const config: Configuration = {
+  darkMode: "class",
+  mode: "silent",
+};
+if (IS_BROWSER) setup(config);
+`;
+if (useTwind) {
+  await Deno.writeTextFile(
+    join(directory, "utils", "twind.ts"),
+    UTILS_TWIND_TS,
+  );
+}
+
 const STATIC_LOGO =
   `<svg width="40" height="40" fill="none" xmlns="http://www.w3.org/2000/svg">
   <path d="M34.092 8.845C38.929 20.652 34.092 27 30 30.5c1 3.5-2.986 4.222-4.5 2.5-4.457 1.537-13.512 1.487-20-5C2 24.5 4.73 16.714 14 11.5c8-4.5 16-7 20.092-2.655Z" fill="#FFDB1E"/>
@@ -163,7 +233,7 @@ await Deno.writeTextFile(
   STATIC_LOGO,
 );
 
-const MAIN_TS = `/// <reference no-default-lib="true" />
+let MAIN_TS = `/// <reference no-default-lib="true" />
 /// <reference lib="dom" />
 /// <reference lib="dom.asynciterable" />
 /// <reference lib="deno.ns" />
@@ -171,9 +241,30 @@ const MAIN_TS = `/// <reference no-default-lib="true" />
 
 import { start } from "$fresh/server.ts";
 import manifest from "./fresh.gen.ts";
-
-await start(manifest);
 `;
+
+if (useTwind) {
+  MAIN_TS += `
+import { virtualSheet } from "$twind/sheets";
+import { config, setup } from "twind";
+
+const sheet = virtualSheet();
+sheet.reset();
+setup({ ...config, sheet });
+
+function render(ctx, render) {
+  const snapshot = ctx.state.get("twind") as unknown[] | null;
+  sheet.reset(snapshot || undefined);
+  render();
+  ctx.styles.splice(0, ctx.styles.length, ...(sheet).target);
+  const newSnapshot = sheet.reset();
+  ctx.state.set("twind", newSnapshot);
+}
+
+`;
+}
+
+MAIN_TS += `await start(manifest${useTwind ? ", { render }" : ""});\n`;
 const MAIN_TS_PATH = join(directory, "main.ts");
 await Deno.writeTextFile(MAIN_TS_PATH, MAIN_TS);
 
@@ -191,16 +282,13 @@ try {
   // this throws on windows
 }
 
-const DENO_CONFIG = JSON.stringify(
-  {
-    tasks: {
-      start: "deno run -A --watch=static/,routes/ dev.ts",
-    },
-    importMap: "./import_map.json",
+const config = {
+  tasks: {
+    start: "deno run -A --watch=static/,routes/ dev.ts",
   },
-  null,
-  2,
-);
+  importMap: "./import_map.json",
+};
+const DENO_CONFIG = JSON.stringify(config, null, 2) + "\n";
 
 await Deno.writeTextFile(join(directory, "deno.json"), DENO_CONFIG);
 
