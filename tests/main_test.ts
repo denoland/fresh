@@ -1,8 +1,9 @@
 import { ServerContext } from "../server.ts";
 import { assert, assertEquals, assertStringIncludes } from "./deps.ts";
 import manifest from "./fixture/fresh.gen.ts";
+import options from "./fixture/options.ts";
 
-const ctx = await ServerContext.fromManifest(manifest);
+const ctx = await ServerContext.fromManifest(manifest, options);
 const router = (req: Request) => {
   return ctx.handler()(req, {
     localAddr: {

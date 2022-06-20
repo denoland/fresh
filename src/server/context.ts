@@ -17,6 +17,7 @@ import {
   AppModule,
   ErrorPage,
   ErrorPageModule,
+  FreshOptions,
   Handler,
   Island,
   Middleware,
@@ -24,8 +25,7 @@ import {
   MiddlewareRoute,
   Page,
   PageModule,
-  Renderer,
-  RendererModule,
+  RenderFunction,
   RouterState,
   UnknownPage,
   UnknownPageModule,
@@ -53,7 +53,7 @@ export class ServerContext {
   #islands: Island[];
   #staticFiles: StaticFile[];
   #bundler: Bundler;
-  #renderer: Renderer;
+  #renderFn: RenderFunction;
   #middlewares: MiddlewareRoute[];
   #app: AppModule;
   #notFound: UnknownPage;
@@ -63,7 +63,7 @@ export class ServerContext {
     pages: Page[],
     islands: Island[],
     staticFiles: StaticFile[],
-    renderer: Renderer,
+    renderfn: RenderFunction,
     middlewares: MiddlewareRoute[],
     app: AppModule,
     notFound: UnknownPage,
@@ -73,7 +73,7 @@ export class ServerContext {
     this.#pages = pages;
     this.#islands = islands;
     this.#staticFiles = staticFiles;
-    this.#renderer = renderer;
+    this.#renderFn = renderfn;
     this.#middlewares = middlewares;
     this.#app = app;
     this.#notFound = notFound;
@@ -85,7 +85,10 @@ export class ServerContext {
   /**
    * Process the manifest into individual components and pages.
    */
-  static async fromManifest(manifest: Manifest): Promise<ServerContext> {
+  static async fromManifest(
+    manifest: Manifest,
+    opts: FreshOptions,
+  ): Promise<ServerContext> {
     // Get the manifest' base URL.
     const baseUrl = new URL("./", manifest.baseUrl).href;
     const importMapURL = new URL("./import_map.json", manifest.baseUrl);
@@ -93,7 +96,6 @@ export class ServerContext {
     // Extract all routes, and prepare them into the `Page` structure.
     const pages: Page[] = [];
     const islands: Island[] = [];
-    let renderer: Renderer = DEFAULT_RENDERER;
     const middlewares: MiddlewareRoute[] = [];
     let app: AppModule = DEFAULT_APP;
     let notFound: UnknownPage = DEFAULT_NOT_FOUND;
@@ -132,11 +134,6 @@ export class ServerContext {
           csp: Boolean(config?.csp ?? false),
         };
         pages.push(page);
-      } else if (
-        path === "/_render.tsx" || path === "/_render.ts" ||
-        path === "/_render.jsx" || path === "/_render.js"
-      ) {
-        renderer = module as RendererModule;
       } else if (isMiddleware) {
         middlewares.push({
           ...middlewarePathToPattern(baseRoute),
@@ -255,7 +252,7 @@ export class ServerContext {
       pages,
       islands,
       staticFiles,
-      renderer,
+      opts.render ?? DEFAULT_RENDER_FN,
       middlewares,
       app,
       notFound,
@@ -407,7 +404,7 @@ export class ServerContext {
             app: this.#app,
             imports,
             preloads,
-            renderer: this.#renderer,
+            renderFn: this.#renderFn,
             url: new URL(req.url),
             params,
             data,
@@ -567,10 +564,8 @@ export class ServerContext {
   };
 }
 
-const DEFAULT_RENDERER: Renderer = {
-  render(_ctx, render) {
-    render();
-  },
+const DEFAULT_RENDER_FN: RenderFunction = (_ctx, render) => {
+  render();
 };
 
 const DEFAULT_APP: AppModule = {

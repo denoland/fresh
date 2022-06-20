@@ -3,7 +3,7 @@ import { REFRESH_JS_URL } from "../src/server/constants.ts";
 import { assert, assertEquals, assertStringIncludes } from "./deps.ts";
 import manifest from "./fixture_error/fresh.gen.ts";
 
-const ctx = await ServerContext.fromManifest(manifest);
+const ctx = await ServerContext.fromManifest(manifest, {});
 const router = (req: Request) => {
   return ctx.handler()(req, {
     localAddr: {
