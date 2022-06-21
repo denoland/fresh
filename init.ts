@@ -166,7 +166,7 @@ await Deno.writeTextFile(
 
 const ROUTES_GREET_TSX = `/** @jsx h */
 import { h } from "preact";
-import { PageProps } from "$fresh/runtime.ts";
+import { PageProps } from "$fresh/server.ts";
 
 export default function Greet(props: PageProps) {
   return <div>Hello {props.params.name}</div>;

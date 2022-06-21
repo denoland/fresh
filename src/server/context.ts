@@ -23,16 +23,19 @@ import {
   Middleware,
   MiddlewareModule,
   MiddlewareRoute,
-  Page,
-  PageModule,
   RenderFunction,
-  RouterState,
+  Route,
+  RouteModule,
   UnknownPage,
   UnknownPageModule,
 } from "./types.ts";
 import { render as internalRender } from "./render.tsx";
 import { ContentSecurityPolicyDirectives, SELF } from "../runtime/csp.ts";
 import { ASSET_CACHE_BUST_KEY, INTERNAL_PREFIX } from "../runtime/utils.ts";
+
+interface RouterState {
+  state: Record<string, unknown>;
+}
 
 interface StaticFile {
   /** The URL to the static file on disk. */
@@ -49,7 +52,7 @@ interface StaticFile {
 
 export class ServerContext {
   #dev: boolean;
-  #pages: Page[];
+  #routes: Route[];
   #islands: Island[];
   #staticFiles: StaticFile[];
   #bundler: Bundler;
@@ -60,7 +63,7 @@ export class ServerContext {
   #error: ErrorPage;
 
   constructor(
-    pages: Page[],
+    routes: Route[],
     islands: Island[],
     staticFiles: StaticFile[],
     renderfn: RenderFunction,
@@ -70,7 +73,7 @@ export class ServerContext {
     error: ErrorPage,
     importMapURL: URL,
   ) {
-    this.#pages = pages;
+    this.#routes = routes;
     this.#islands = islands;
     this.#staticFiles = staticFiles;
     this.#renderFn = renderfn;
@@ -94,7 +97,7 @@ export class ServerContext {
     const importMapURL = new URL("./import_map.json", manifest.baseUrl);
 
     // Extract all routes, and prepare them into the `Page` structure.
-    const pages: Page[] = [];
+    const routes: Route[] = [];
     const islands: Island[] = [];
     const middlewares: MiddlewareRoute[] = [];
     let app: AppModule = DEFAULT_APP;
@@ -112,12 +115,12 @@ export class ServerContext {
         path.endsWith("/_middleware.ts") || path.endsWith("/_middleware.jsx") ||
         path.endsWith("/_middleware.js");
       if (!path.startsWith("/_") && !isMiddleware) {
-        const { default: component, config } = (module as PageModule);
-        let route = pathToRoute(baseRoute);
+        const { default: component, config } = (module as RouteModule);
+        let pattern = pathToPattern(baseRoute);
         if (config?.routeOverride) {
-          route = String(config.routeOverride);
+          pattern = String(config.routeOverride);
         }
-        let { handler } = (module as PageModule);
+        let { handler } = (module as RouteModule);
         handler ??= {};
         if (
           component &&
@@ -125,15 +128,15 @@ export class ServerContext {
         ) {
           handler.GET = (_req, { render }) => render();
         }
-        const page: Page = {
-          route,
+        const route: Route = {
+          pattern,
           url,
           name,
           component,
           handler,
           csp: Boolean(config?.csp ?? false),
         };
-        pages.push(page);
+        routes.push(route);
       } else if (isMiddleware) {
         middlewares.push({
           ...middlewarePathToPattern(baseRoute),
@@ -155,7 +158,7 @@ export class ServerContext {
         }
 
         notFound = {
-          route: pathToRoute(baseRoute),
+          pattern: pathToPattern(baseRoute),
           url,
           name,
           component,
@@ -173,7 +176,7 @@ export class ServerContext {
         }
 
         error = {
-          route: pathToRoute(baseRoute),
+          pattern: pathToPattern(baseRoute),
           url,
           name,
           component,
@@ -183,7 +186,7 @@ export class ServerContext {
         };
       }
     }
-    sortRoutes(pages);
+    sortRoutes(routes);
     sortRoutes(middlewares);
 
     for (const [self, module] of Object.entries(manifest.islands)) {
@@ -249,7 +252,7 @@ export class ServerContext {
     }
 
     return new ServerContext(
-      pages,
+      routes,
       islands,
       staticFiles,
       opts.render ?? DEFAULT_RENDER_FN,
@@ -266,7 +269,7 @@ export class ServerContext {
    * by fresh, including static files.
    */
   handler(): RequestHandler {
-    const inner = router.router<RouterState>(...this.#routes());
+    const inner = router.router<RouterState>(...this.#handlers());
     const withMiddlewares = this.#composeMiddlewares(this.#middlewares);
     return function handler(req: Request, connInfo: ConnInfo) {
       // Redirect requests that end with a trailing slash
@@ -321,7 +324,7 @@ export class ServerContext {
    * This function returns all routes required by fresh as an extended
    * path-to-regex, to handler mapping.
    */
-  #routes(): [
+  #handlers(): [
     router.Routes<RouterState>,
     router.Handler<RouterState>,
     router.ErrorHandler<RouterState>,
@@ -381,7 +384,7 @@ export class ServerContext {
     }
 
     const genRender = <Data = undefined>(
-      page: Page<Data> | UnknownPage | ErrorPage,
+      route: Route<Data> | UnknownPage | ErrorPage,
       status: number,
     ) => {
       const imports: string[] = [];
@@ -394,12 +397,12 @@ export class ServerContext {
         error?: unknown,
       ) => {
         return async (data?: Data) => {
-          if (page.component === undefined) {
+          if (route.component === undefined) {
             throw new Error("This page does not have a component to render.");
           }
           const preloads: string[] = [];
           const resp = await internalRender({
-            page,
+            route,
             islands: this.#islands,
             app: this.#app,
             imports,
@@ -435,18 +438,18 @@ export class ServerContext {
       };
     };
 
-    for (const page of this.#pages) {
-      const createRender = genRender(page, 200);
-      if (typeof page.handler === "function") {
-        routes[page.route] = (req, ctx, params) =>
-          (page.handler as Handler)(req, {
+    for (const route of this.#routes) {
+      const createRender = genRender(route, 200);
+      if (typeof route.handler === "function") {
+        routes[route.pattern] = (req, ctx, params) =>
+          (route.handler as Handler)(req, {
             ...ctx,
             params,
             render: createRender(req, params),
           });
       } else {
-        for (const [method, handler] of Object.entries(page.handler)) {
-          routes[`${method}@${page.route}`] = (req, ctx, params) =>
+        for (const [method, handler] of Object.entries(route.handler)) {
+          routes[`${method}@${route.pattern}`] = (req, ctx, params) =>
             handler(req, {
               ...ctx,
               params,
@@ -573,7 +576,7 @@ const DEFAULT_APP: AppModule = {
 };
 
 const DEFAULT_NOT_FOUND: UnknownPage = {
-  route: "",
+  pattern: "",
   url: "",
   name: "_404",
   handler: (req) => router.defaultOtherHandler(req),
@@ -581,7 +584,7 @@ const DEFAULT_NOT_FOUND: UnknownPage = {
 };
 
 const DEFAULT_ERROR: ErrorPage = {
-  route: "",
+  pattern: "",
   url: "",
   name: "_500",
   component: DefaultErrorHandler,
@@ -598,8 +601,8 @@ export function selectMiddlewares(url: string, middlewares: MiddlewareRoute[]) {
   const selectedMws: Middleware[] = [];
   const reqURL = new URL(url);
 
-  for (const { pattern, handler } of middlewares) {
-    const res = pattern.exec(reqURL);
+  for (const { compiledPattern, handler } of middlewares) {
+    const res = compiledPattern.exec(reqURL);
     if (res) {
       selectedMws.push({ handler });
     }
@@ -612,10 +615,10 @@ export function selectMiddlewares(url: string, middlewares: MiddlewareRoute[]) {
  * Sort pages by their relative routing priority, based on the parts in the
  * route matcher
  */
-function sortRoutes<T extends { route: string }>(routes: T[]) {
+function sortRoutes<T extends { pattern: string }>(routes: T[]) {
   routes.sort((a, b) => {
-    const partsA = a.route.split("/");
-    const partsB = b.route.split("/");
+    const partsA = a.pattern.split("/");
+    const partsB = b.pattern.split("/");
     for (let i = 0; i < Math.max(partsA.length, partsB.length); i++) {
       const partA = partsA[i];
       const partB = partsB[i];
@@ -631,7 +634,7 @@ function sortRoutes<T extends { route: string }>(routes: T[]) {
 }
 
 /** Transform a filesystem URL path to a `path-to-regex` style matcher. */
-function pathToRoute(path: string): string {
+function pathToPattern(path: string): string {
   const parts = path.split("/");
   if (parts[parts.length - 1] === "index") {
     parts.pop();
@@ -687,7 +690,7 @@ function serializeCSPDirectives(csp: ContentSecurityPolicyDirectives): string {
 
 export function middlewarePathToPattern(baseRoute: string) {
   baseRoute = baseRoute.slice(0, -"_middleware".length);
-  const regRoute = pathToRoute(baseRoute);
-  const pattern = new URLPattern({ pathname: `${regRoute}*` });
-  return { route: regRoute, pattern };
+  const pattern = pathToPattern(baseRoute);
+  const compiledPattern = new URLPattern({ pathname: `${pattern}*` });
+  return { pattern, compiledPattern };
 }

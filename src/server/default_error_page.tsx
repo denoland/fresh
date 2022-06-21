@@ -2,7 +2,7 @@
 
 import { h } from "preact";
 import { DEBUG } from "./constants.ts";
-import type { ErrorPageProps } from "../runtime/types.ts";
+import type { ErrorPageProps } from "./types.ts";
 
 export default function DefaultErrorPage(props: ErrorPageProps) {
   const { error } = props;

@@ -1,7 +1,6 @@
 /** @jsx h */
 import { h } from "preact";
-import { PageProps } from "$fresh/runtime.ts";
-import { Handlers } from "$fresh/server.ts";
+import { Handlers, PageProps } from "$fresh/server.ts";
 
 interface Data extends Record<string, unknown> {
   info: string;
