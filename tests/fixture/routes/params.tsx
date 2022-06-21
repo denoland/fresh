@@ -1,7 +1,5 @@
 /** @jsx h */
-import { h } from "preact";
-import { RouteConfig } from "$fresh/runtime.ts";
-import { HandlerContext } from "../../../server.ts";
+import { HandlerContext, RouteConfig } from "$fresh/server.ts";
 
 export const handler = {
   GET(_req: Request, { params }: HandlerContext) {

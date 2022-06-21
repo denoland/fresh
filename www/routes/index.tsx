@@ -1,7 +1,8 @@
 /** @jsx h */
 /** @jsxFrag Fragment */
 import { ComponentChildren, Fragment, h } from "preact";
-import { asset, Head, PageProps } from "$fresh/runtime.ts";
+import { asset, Head } from "$fresh/runtime.ts";
+import { PageProps } from "$fresh/server.ts";
 import { tw } from "../utils/twind.ts";
 import Counter from "../islands/Counter.tsx";
 import LemonDrop from "../islands/LemonDrop.tsx";
