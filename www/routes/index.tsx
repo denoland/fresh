@@ -2,13 +2,28 @@
 /** @jsxFrag Fragment */
 import { ComponentChildren, Fragment, h } from "preact";
 import { asset, Head } from "$fresh/runtime.ts";
-import { PageProps } from "$fresh/server.ts";
+import { Handlers, PageProps } from "$fresh/server.ts";
 import { tw } from "../utils/twind.ts";
 import Counter from "../islands/Counter.tsx";
 import LemonDrop from "../islands/LemonDrop.tsx";
 import Footer from "../components/Footer.tsx";
 import WarningBanner from "../components/WarningBanner.tsx";
 import { Leaf } from "../components/Icons.tsx";
+import VERSIONS from "../../versions.json" assert { type: "json" };
+
+export const handler: Handlers = {
+  GET(req, ctx) {
+    const accept = req.headers.get("accept");
+    if (accept && !accept.includes("text/html")) {
+      const path = `/@${VERSIONS[0]}/init.ts`;
+      return new Response(`Redirecting to ${path}`, {
+        headers: { "Location": path },
+        status: 307,
+      });
+    }
+    return ctx.render();
+  },
+};
 
 const TITLE = "fresh - The next-gen web framework.";
 const DESCRIPTION =
@@ -16,6 +31,7 @@ const DESCRIPTION =
 
 export default function MainPage(props: PageProps) {
   const ogImageUrl = new URL(asset("/home-og.png"), props.url).href;
+  const origin = `${props.url.protocol}//${props.url.host}`;
 
   return (
     <>
@@ -30,7 +46,7 @@ export default function MainPage(props: PageProps) {
       </Head>
       <Hero />
       <Intro />
-      <GettingStarted />
+      <GettingStarted origin={origin} />
       <Example />
       <Footer />
     </>
@@ -138,7 +154,7 @@ function Intro() {
   );
 }
 
-function GettingStarted() {
+function GettingStarted(props: { origin: string }) {
   return (
     <section
       class={tw`max-w-screen-sm mx-auto my-16 px(4 sm:6 md:8) space-y-4`}
@@ -160,7 +176,7 @@ function GettingStarted() {
         Then you can use the Fresh init script to bootstrap a new project:
       </p>
       <pre class={tw`overflow-x-auto py-2 px-4 bg(gray-100)`}>
-        {"deno run -A https://raw.githubusercontent.com/lucacasonato/fresh/main/init.ts my-app"}
+        {`deno run -A ${props.origin} my-app`}
       </pre>
       <p class={tw`text-gray-600`}>
         Enter the newly created project directory and run the following command
