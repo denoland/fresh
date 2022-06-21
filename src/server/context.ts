@@ -11,7 +11,7 @@ import {
 import { h } from "preact";
 import { Manifest } from "./mod.ts";
 import { Bundler } from "./bundle.ts";
-import { ALIVE_URL, BUILD_ID, JS_PREFIX, REFRESH_JS_URL } from "./constants.ts";
+import { ALIVE_URL, BUILD_ID, JS_PREFIX, REFRESH_JS_URL, DENO_ENV } from "./constants.ts";
 import DefaultErrorHandler from "./default_error_page.tsx";
 import {
   AppModule,
@@ -82,7 +82,7 @@ export class ServerContext {
     this.#notFound = notFound;
     this.#error = error;
     this.#bundler = new Bundler(this.#islands, importMapURL);
-    this.#dev = typeof Deno.env.get("DENO_DEPLOYMENT_ID") !== "string"; // Env var is only set in prod (on Deploy).
+    this.#dev = !Deno.env.get("DENO_DEPLOYMENT_ID") && DENO_ENV !== "prod";
   }
 
   /**
