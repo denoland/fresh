@@ -233,6 +233,13 @@ await Deno.writeTextFile(
   STATIC_LOGO,
 );
 
+const faviconArrayBuffer = await fetch("https://fresh.deno.dev/favicon.ico")
+  .then((d) => d.arrayBuffer());
+await Deno.writeFile(
+  join(directory, "static", "favicon.ico"),
+  new Uint8Array(faviconArrayBuffer),
+);
+
 let MAIN_TS = `/// <reference no-default-lib="true" />
 /// <reference lib="dom" />
 /// <reference lib="dom.asynciterable" />
