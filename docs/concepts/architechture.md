@@ -1,6 +1,6 @@
 ---
 description: |
-  Fresh's architechture is designed to make it easy to build fast, scalable, and reliable applications.
+  Fresh's architecture is designed to make it easy to build fast, scalable, and reliable applications.
 ---
 
 Fresh is designed to make it easy to build fast, scalable, and reliable
