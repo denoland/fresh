@@ -239,7 +239,9 @@ let MAIN_TS = `/// <reference no-default-lib="true" />
 /// <reference lib="deno.ns" />
 /// <reference lib="deno.unstable" />
 
-import { start } from "$fresh/server.ts";
+import { ${
+  useTwind ? "InnerRenderFunction, RenderContext, " : ""
+}start } from "$fresh/server.ts";
 import manifest from "./fresh.gen.ts";
 `;
 
@@ -252,7 +254,7 @@ const sheet = virtualSheet();
 sheet.reset();
 setup({ ...config, sheet });
 
-function render(ctx, render) {
+function render(ctx: RenderContext, render: InnerRenderFunction) {
   const snapshot = ctx.state.get("twind") as unknown[] | null;
   sheet.reset(snapshot || undefined);
   render();
