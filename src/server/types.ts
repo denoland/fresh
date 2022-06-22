@@ -27,7 +27,7 @@ export interface PageProps<T = any> {
   route: string;
 
   /**
-   * The paramteres that were matched from the route.
+   * The parameters that were matched from the route.
    *
    * For the `/foo/:bar` route with url `/foo/123`, `params` would be
    * `{ bar: '123' }`. For a route with no matchers, `params` would be `{}`. For
