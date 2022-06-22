@@ -104,7 +104,7 @@ Deno.test({
 
     await t.step("start up the server and access the root page", async () => {
       const serverProcess = Deno.run({
-        cmd: ["deno", "run", "-A", "main.ts"],
+        cmd: ["deno", "run", "-A", "--check", "main.ts"],
         stdout: "piped",
         stderr: "inherit",
         cwd: tmpDirName,
@@ -231,7 +231,7 @@ Deno.test({
 
     await t.step("start up the server and access the root page", async () => {
       const serverProcess = Deno.run({
-        cmd: ["deno", "run", "-A", "main.ts"],
+        cmd: ["deno", "run", "-A", "--check", "main.ts"],
         stdout: "piped",
         stderr: "inherit",
         cwd: tmpDirName,
