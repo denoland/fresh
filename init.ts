@@ -67,10 +67,10 @@ if (useTwind) await Deno.mkdir(join(directory, "utils"), { recursive: true });
 const importMap = {
   "imports": {
     "$fresh/": new URL("./", import.meta.url).href,
-    "preact": "https://esm.sh/preact@10.6.6",
-    "preact/": "https://esm.sh/preact@10.6.6/",
+    "preact": "https://esm.sh/preact@10.8.1",
+    "preact/": "https://esm.sh/preact@10.8.1/",
     "preact-render-to-string":
-      "https://esm.sh/preact-render-to-string@5.1.20?deps=preact@10.6.6",
+      "https://esm.sh/preact-render-to-string@5.2.0?deps=preact@10.8.1",
   } as Record<string, string>,
 };
 if (useTwind) {
