@@ -97,17 +97,8 @@ function Intro() {
       class={tw`max-w-screen-sm mx-auto my-16 px(4 sm:6 md:8) space-y-4`}
     >
       <picture>
-        <source
-          srcset="/illustration/2x.avif 2x, /illustration/1x.avif"
-          type="image/avif"
-        />
-        <source
-          srcset="/illustration/2x.webp 2x, /illustration/1x.webp"
-          type="image/webp"
-        />
         <img
-          src="/illustration/1x.jpg"
-          srcset="/illustration/2x.jpg 2x"
+          src="/illustration/lemon-squash.svg"
           class={tw`w-64 mx-auto`}
           width={800}
           height={678}
