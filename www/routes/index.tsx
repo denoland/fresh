@@ -44,11 +44,15 @@ export default function MainPage(props: PageProps) {
         <meta property="og:url" content={props.url.href} />
         <meta property="og:image" content={ogImageUrl} />
       </Head>
-      <Hero />
-      <Intro />
-      <GettingStarted origin={origin} />
-      <Example />
-      <Footer />
+      <div class={tw`flex flex-col min-h-screen`}>
+        <Hero />
+        <div class={tw`flex-1`}>
+          <Intro />
+          <GettingStarted origin={origin} />
+          <Example />
+        </div>
+        <Footer />
+      </div>
     </>
   );
 }
