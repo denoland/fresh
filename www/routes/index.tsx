@@ -15,7 +15,7 @@ export const handler: Handlers = {
   GET(req, ctx) {
     const accept = req.headers.get("accept");
     if (accept && !accept.includes("text/html")) {
-      const path = `/@${VERSIONS[0]}/init.ts`;
+      const path = `https://deno.land/x/fresh@${VERSIONS[0]}/init.ts`;
       return new Response(`Redirecting to ${path}`, {
         headers: { "Location": path },
         status: 307,
