@@ -153,6 +153,8 @@ Deno.test({
       await lines.cancel();
       serverProcess.kill("SIGTERM");
       serverProcess.close();
+
+      await Deno.remove(tmpDirName, { recursive: true });
     });
   },
   sanitizeOps: false,
@@ -286,6 +288,8 @@ Deno.test({
       await lines.cancel();
       serverProcess.kill("SIGTERM");
       serverProcess.close();
+
+      await Deno.remove(tmpDirName, { recursive: true });
     });
   },
   sanitizeOps: false,
