@@ -292,65 +292,60 @@ Deno.test({
   sanitizeResources: false,
 });
 
-Deno.test({
-  name: "fresh-init error(help)",
-  async fn(t) {
-    const includeText = "fresh-init";
+Deno.test("fresh-init error(help)", async function (t) {
+  const includeText = "fresh-init";
 
-    await t.step(
-      "execute invalid init command (deno run -A init.ts)",
-      async () => {
-        const cliProcess = Deno.run({
-          cmd: ["deno", "run", "-A", "init.ts"],
-          stderr: "piped",
-        });
-        const { code } = await cliProcess.status();
-        cliProcess.close();
-        assertEquals(code, 1);
+  await t.step(
+    "execute invalid init command (deno run -A init.ts)",
+    async () => {
+      const cliProcess = Deno.run({
+        cmd: ["deno", "run", "-A", "init.ts"],
+        stderr: "piped",
+      });
+      const { code } = await cliProcess.status();
+      cliProcess.close();
+      assertEquals(code, 1);
 
-        const rawError = await cliProcess.stderrOutput();
-        const errorString = new TextDecoder().decode(rawError);
+      const rawError = await cliProcess.stderrOutput();
+      const errorString = new TextDecoder().decode(rawError);
 
-        assertStringIncludes(errorString, includeText);
-      },
-    );
+      assertStringIncludes(errorString, includeText);
+    },
+  );
 
-    await t.step(
-      "execute invalid init command (deno run -A init.ts -f)",
-      async () => {
-        const cliProcess = Deno.run({
-          cmd: ["deno", "run", "-A", "init.ts", "-f"],
-          stderr: "piped",
-        });
-        const { code } = await cliProcess.status();
-        cliProcess.close();
-        assertEquals(code, 1);
+  await t.step(
+    "execute invalid init command (deno run -A init.ts -f)",
+    async () => {
+      const cliProcess = Deno.run({
+        cmd: ["deno", "run", "-A", "init.ts", "-f"],
+        stderr: "piped",
+      });
+      const { code } = await cliProcess.status();
+      cliProcess.close();
+      assertEquals(code, 1);
 
-        const rawError = await cliProcess.stderrOutput();
-        const errorString = new TextDecoder().decode(rawError);
+      const rawError = await cliProcess.stderrOutput();
+      const errorString = new TextDecoder().decode(rawError);
 
-        assertStringIncludes(errorString, includeText);
-      },
-    );
+      assertStringIncludes(errorString, includeText);
+    },
+  );
 
-    await t.step(
-      "execute invalid init command (deno run -A init.ts --foo)",
-      async () => {
-        const cliProcess = Deno.run({
-          cmd: ["deno", "run", "-A", "init.ts", "--foo"],
-          stderr: "piped",
-        });
-        const { code } = await cliProcess.status();
-        cliProcess.close();
-        assertEquals(code, 1);
+  await t.step(
+    "execute invalid init command (deno run -A init.ts --foo)",
+    async () => {
+      const cliProcess = Deno.run({
+        cmd: ["deno", "run", "-A", "init.ts", "--foo"],
+        stderr: "piped",
+      });
+      const { code } = await cliProcess.status();
+      cliProcess.close();
+      assertEquals(code, 1);
 
-        const rawError = await cliProcess.stderrOutput();
-        const errorString = new TextDecoder().decode(rawError);
+      const rawError = await cliProcess.stderrOutput();
+      const errorString = new TextDecoder().decode(rawError);
 
-        assertStringIncludes(errorString, includeText);
-      },
-    );
-  },
-  sanitizeOps: false,
-  sanitizeResources: false,
+      assertStringIncludes(errorString, includeText);
+    },
+  );
 });
