@@ -1,4 +1,10 @@
-import { assert, delay, puppeteer, TextLineStream } from "./deps.ts";
+import {
+  assert,
+  assertStringIncludes,
+  delay,
+  puppeteer,
+  TextLineStream,
+} from "./deps.ts";
 
 Deno.test({
   name: "island tests",
@@ -50,6 +56,20 @@ Deno.test({
     await t.step("Ensure 2 islands on 1 page are revived", async () => {
       await counterTest("counter1", 3);
       await counterTest("counter2", 10);
+    });
+
+    await t.step("Ensure an island revive an img 'hash' path", async () => {
+      // Ensure src path has __frsh_c=
+      const pElem = await page.waitForSelector(`#img-in-island`);
+      const srcString = (await pElem?.getProperty("src"))?.toString()!;
+      assertStringIncludes(srcString, "image.png?__frsh_c=");
+
+      // Ensure src path is the same as server rendered
+      const resp = await fetch(new Request("http://localhost:8000/islands"));
+      const body = await resp.text();
+      const imgFilePath = body.match(/img id="img-in-island" src="(.*?)"/)
+        ?.[1]!;
+      assertStringIncludes(srcString, imgFilePath);
     });
 
     await browser.close();

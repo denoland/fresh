@@ -29,7 +29,7 @@ as arguments in it's `props` object though.
 
 /** @jsx h */
 import { h } from "preact";
-import { PageProps } from "$fresh/runtime.ts";
+import { PageProps } from "$fresh/server.ts";
 
 export default function GreetPage(props: PageProps) {
   const { name } = props.params;

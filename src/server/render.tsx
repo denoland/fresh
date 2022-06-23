@@ -5,8 +5,8 @@ import {
   AppModule,
   ErrorPage,
   Island,
-  Page,
   RenderFunction,
+  Route,
   UnknownPage,
 } from "./types.ts";
 import { HEAD_CONTEXT } from "../runtime/head.ts";
@@ -16,7 +16,7 @@ import { bundleAssetUrl } from "./constants.ts";
 import { assetHashingHook } from "../runtime/utils.ts";
 
 export interface RenderOptions<Data> {
-  page: Page<Data> | UnknownPage | ErrorPage;
+  route: Route<Data> | UnknownPage | ErrorPage;
   islands: Island[];
   app: AppModule;
   imports: string[];
@@ -123,14 +123,14 @@ export async function render<Data>(
   const props: Record<string, unknown> = {
     params: opts.params,
     url: opts.url,
-    route: opts.page.route,
+    route: opts.route.pattern,
     data: opts.data,
   };
   if (opts.error) {
     props.error = opts.error;
   }
 
-  const csp: ContentSecurityPolicy | undefined = opts.page.csp
+  const csp: ContentSecurityPolicy | undefined = opts.route.csp
     ? defaultCsp()
     : undefined;
   const headComponents: ComponentChildren[] = [];
@@ -141,13 +141,17 @@ export async function render<Data>(
       value: headComponents,
       children: h(opts.app.default, {
         Component() {
-          return h(opts.page.component! as ComponentType<unknown>, props);
+          return h(opts.route.component! as ComponentType<unknown>, props);
         },
       }),
     }),
   });
 
-  const ctx = new RenderContext(crypto.randomUUID(), opts.url, opts.page.route);
+  const ctx = new RenderContext(
+    crypto.randomUUID(),
+    opts.url,
+    opts.route.pattern,
+  );
 
   if (csp) {
     // Clear the csp
