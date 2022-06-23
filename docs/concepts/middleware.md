@@ -10,8 +10,8 @@ handler. This allows modifying or checking requests and responses. Common
 use-cases for this are logging, authentication, and performance monitoring.
 
 Each middleware gets passed a `next` function in the context argument that is
-used to trigger child handlers. The `ctx` also has a `state` property that can be
-used to pass arbitrary data to downstream (or upstream) handlers.
+used to trigger child handlers. The `ctx` also has a `state` property that can
+be used to pass arbitrary data to downstream (or upstream) handlers.
 
 ```ts
 // routes/_middleware.ts
