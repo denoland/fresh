@@ -1,11 +1,11 @@
 ---
 description: |
-  Fresh's architechture is designed to make it easy to build fast, scalable, and reliable applications.
+  Fresh's architecture is designed to make it easy to build fast, scalable, and reliable applications.
 ---
 
-Fresh is designed to makes it easy to build fast, scalable, and reliable
+Fresh is designed to make it easy to build fast, scalable, and reliable
 applications. To do this, it makes opinionated decisions about how one should
-build web applications. These decisions are backed by strong emperial data
+build web applications. These decisions are backed by strong empirical data
 gathered from experts in the field. Some examples of these principles are:
 
 - Page load times should be reduced to a minimum.
