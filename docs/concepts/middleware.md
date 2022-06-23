@@ -10,8 +10,8 @@ handler. This allows modifying or checking requests and responses. Common
 use-cases for this are logging, authentication, and performance monitoring.
 
 Each middleware gets passed a `next` function in the context argument that is
-used trigger child handlers. The `ctx` also has a `state` property that can be
-used to pass arbituary data to downstream (or upstream) handlers.
+used to trigger child handlers. The `ctx` also has a `state` property that can
+be used to pass arbitrary data to downstream (or upstream) handlers.
 
 ```ts
 // routes/_middleware.ts
@@ -59,13 +59,13 @@ For a request to `/` the request will flow like this:
 1. The `routes/_middleware.ts` middleware is invoked.
 2. Calling `ctx.next()` will invoke the `routes/index.ts` handler.
 
-For a request to `/admin` the request flow like this:
+For a request to `/admin` the request flows like this:
 
 1. The `routes/_middleware.ts` middleware is invoked.
 2. Calling `ctx.next()` will invoke the `routes/admin/_middleware.ts` middlware.
 3. Calling `ctx.next()` will invoke the `routes/admin/index.ts` handler.
 
-For a request to `/admin/signin` the request flow like this:
+For a request to `/admin/signin` the request flows like this:
 
 1. The `routes/_middleware.ts` middleware is invoked.
 2. Calling `ctx.next()` will invoke the `routes/admin/_middleware.ts`
