@@ -6,7 +6,7 @@ export function RoundedButton(props: h.JSX.HTMLAttributes<HTMLButtonElement>) {
   return (
     <button
       style={{
-        touchAction: 'manipulation',
+        touchAction: "manipulation",
       }}
       {...props}
       class={tw
