@@ -1,6 +1,6 @@
 /** @jsx h */
 import { h } from "preact";
-import { PageProps, RouteConfig } from "$fresh/runtime.ts";
+import { PageProps, RouteConfig } from "$fresh/server.ts";
 
 export default function WildcardPage({ params }: PageProps) {
   if (typeof params.path === "string") {

@@ -1,8 +1,8 @@
 /** @jsx h */
 /** @jsxFrag Fragment */
 import { Fragment, h } from "preact";
-import { Head, PageProps } from "$fresh/runtime.ts";
-import { Handlers } from "$fresh/server.ts";
+import { Head } from "$fresh/runtime.ts";
+import { Handlers, PageProps } from "$fresh/server.ts";
 import { apply, tw } from "../../utils/twind.ts";
 import { frontMatter, gfm } from "../../utils/markdown.ts";
 
@@ -66,10 +66,12 @@ export default function DocsPage(props: PageProps<Data>) {
         <link rel="stylesheet" href={`/gfm.css?build=${__FRSH_BUILD_ID}`} />
         {description && <meta name="description" content={description} />}
       </Head>
-      <Header />
-      <NavigationBar active="/docs" />
-      <Main path={props.url.pathname} page={props.data.page} />
-      <Footer />
+      <div class={tw`flex flex-col min-h-screen`}>
+        <Header />
+        <NavigationBar active="/docs" />
+        <Main path={props.url.pathname} page={props.data.page} />
+        <Footer />
+      </div>
     </>
   );
 }
@@ -152,13 +154,13 @@ function Title() {
 function Main(props: { path: string; page: Page }) {
   const main = tw`mx-auto max-w-screen-lg px-4 flex gap-6`;
   return (
-    <>
+    <div class={tw`flex-1`}>
       <MobileSidebar path={props.path} />
       <div class={main}>
         <DesktopSidebar path={props.path} />
         <Content page={props.page} />
       </div>
-    </>
+    </div>
   );
 }
 

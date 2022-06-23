@@ -1,5 +1,3 @@
-> TODO(lucacasonato): complete this page
-
 At it's core, routes describe how a request for a given path should be handled,
 and what the response should be. To do this, routes have two main parts: the
 handler, and the component. A route can have either one, or both, but never
@@ -44,7 +42,7 @@ Now, let's render some HTML using the route component. Another example:
 
 /** @jsx h */
 import { h } from "preact";
-import { PageProps } from "$fresh/runtime.ts";
+import { PageProps } from "$fresh/server.ts";
 
 export default function Page(props: PageProps) {
   return <div>You are on the page '{props.url.href}'.</div>;
@@ -67,8 +65,7 @@ response after rendering the page component.
 
 /** @jsx h */
 import { h } from "preact";
-import { PageProps } from "$fresh/runtime.ts";
-import { HandlerContext, Handlers } from "$fresh/server.ts";
+import { HandlerContext, Handlers, PageProps } from "$fresh/server.ts";
 
 export const handler: Handlers = {
   async GET(ctx: HandlerContext) {

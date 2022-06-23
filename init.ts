@@ -67,10 +67,10 @@ if (useTwind) await Deno.mkdir(join(directory, "utils"), { recursive: true });
 const importMap = {
   "imports": {
     "$fresh/": new URL("./", import.meta.url).href,
-    "preact": "https://esm.sh/preact@10.6.6",
-    "preact/": "https://esm.sh/preact@10.6.6/",
+    "preact": "https://esm.sh/preact@10.8.1",
+    "preact/": "https://esm.sh/preact@10.8.1/",
     "preact-render-to-string":
-      "https://esm.sh/preact-render-to-string@5.1.20?deps=preact@10.6.6",
+      "https://esm.sh/preact-render-to-string@5.2.0?deps=preact@10.8.1",
   } as Record<string, string>,
 };
 if (useTwind) {
@@ -166,7 +166,7 @@ await Deno.writeTextFile(
 
 const ROUTES_GREET_TSX = `/** @jsx h */
 import { h } from "preact";
-import { PageProps } from "$fresh/runtime.ts";
+import { PageProps } from "$fresh/server.ts";
 
 export default function Greet(props: PageProps) {
   return <div>Hello {props.params.name}</div>;
@@ -239,7 +239,9 @@ let MAIN_TS = `/// <reference no-default-lib="true" />
 /// <reference lib="deno.ns" />
 /// <reference lib="deno.unstable" />
 
-import { start } from "$fresh/server.ts";
+import { ${
+  useTwind ? "InnerRenderFunction, RenderContext, " : ""
+}start } from "$fresh/server.ts";
 import manifest from "./fresh.gen.ts";
 `;
 
@@ -252,7 +254,7 @@ const sheet = virtualSheet();
 sheet.reset();
 setup({ ...config, sheet });
 
-function render(ctx, render) {
+function render(ctx: RenderContext, render: InnerRenderFunction) {
   const snapshot = ctx.state.get("twind") as unknown[] | null;
   sheet.reset(snapshot || undefined);
   render();
