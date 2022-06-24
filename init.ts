@@ -1,6 +1,23 @@
-import { join, parse, resolve } from "./src/dev/deps.ts";
+import { gte, join, parse, resolve } from "./src/dev/deps.ts";
 import { error } from "./src/dev/error.ts";
 import { collect, generate } from "./src/dev/mod.ts";
+
+const MIN_VERSION = "1.23.0";
+
+// Check that the minimum supported Deno version is being used.
+if (!gte(Deno.version.deno, MIN_VERSION)) {
+  let message =
+    `Deno version ${MIN_VERSION} or higher is required. Please update Deno.\n\n`;
+
+  if (Deno.execPath().includes("homebrew")) {
+    message +=
+      "You seem to have installed Deno via homebrew. To update, run: `brew upgrade deno`\n";
+  } else {
+    message += "To update, run: `deno upgrade`\n";
+  }
+
+  error(message);
+}
 
 const help = `fresh-init
 
