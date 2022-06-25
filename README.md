@@ -1,4 +1,4 @@
-> :warning: Not yet 1.0. Many things are subject to change. Documentation is
+> **Warning** Not yet 1.0. Many things are subject to change. Documentation is
 > lacking in many places. Try it out and give us feedback!
 
 # fresh
