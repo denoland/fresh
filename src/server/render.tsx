@@ -26,6 +26,7 @@ export interface RenderOptions<Data> {
   renderFn: RenderFunction;
   data?: Data;
   error?: unknown;
+  lang?: string;
 }
 
 export type InnerRenderFunction = () => string;
@@ -36,12 +37,13 @@ export class RenderContext {
   #styles: string[] = [];
   #url: URL;
   #route: string;
-  #lang = "en";
+  #lang: string;
 
-  constructor(id: string, url: URL, route: string) {
+  constructor(id: string, url: URL, route: string, lang: string) {
     this.#id = id;
     this.#url = url;
     this.#route = route;
+    this.#lang = lang;
   }
 
   /** A unique ID for this logical JIT render. */
@@ -151,6 +153,7 @@ export async function render<Data>(
     crypto.randomUUID(),
     opts.url,
     opts.route.pattern,
+    opts.lang ?? "en",
   );
 
   if (csp) {
