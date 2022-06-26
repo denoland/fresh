@@ -153,7 +153,7 @@ export async function render<Data>(
     crypto.randomUUID(),
     opts.url,
     opts.route.pattern,
-    opts.lang ?? 'en',
+    opts.lang ?? "en",
   );
 
   if (csp) {
