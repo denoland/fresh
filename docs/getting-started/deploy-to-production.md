@@ -23,7 +23,7 @@ select the repository, the production branch (`main`), and the entrypoint file
 deploy it to the internet. The project is now be available at
 https://$PROJECT_NAME.deno.dev.
 
-Everytime the code in the GitHub repository is updated, it will be deployed
+Every time the code in the GitHub repository is updated, it will be deployed
 either as a preview or production deployment. Production deployments are only
 created for changes to the default/production branch (often `main`).
 

@@ -11,7 +11,7 @@ interactivity, but it is much worse for resiliency and user experience as a
 whole. Browsers have great built in systems for form submission, revolving
 around the HTML `<form>` element.
 
-Fresh builds the core of it's form submission infrastructure around the native
+Fresh builds the core of its form submission infrastructure around the native
 `<form>` element. This page explains how to use `<form>` in Fresh, and the next
 chapter explains how to progressively enhance your forms with client side
 JavaScript to make them more interactive.
