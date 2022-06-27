@@ -91,16 +91,16 @@ const importMap = {
   } as Record<string, string>,
 };
 if (useTwind) {
-  importMap.imports["$twind"] = "https://esm.sh/twind@0.16.17";
-  importMap.imports["$twind/"] = "https://esm.sh/twind@0.16.17/";
-  importMap.imports["twind"] = "./utils/twind.ts";
+  importMap.imports["@twind"] = "./utils/twind.ts";
+  importMap.imports["twind"] = "https://esm.sh/twind@0.16.17";
+  importMap.imports["twind/"] = "https://esm.sh/twind@0.16.17/";
 }
 const IMPORT_MAP_JSON = JSON.stringify(importMap, null, 2) + "\n";
 await Deno.writeTextFile(join(directory, "import_map.json"), IMPORT_MAP_JSON);
 
 let ROUTES_INDEX_TSX = `/** @jsx h */
 import { h } from "preact";\n`;
-if (useTwind) ROUTES_INDEX_TSX += `import { tw } from "twind";\n`;
+if (useTwind) ROUTES_INDEX_TSX += `import { tw } from "@twind";\n`;
 ROUTES_INDEX_TSX += `import Counter from "../islands/Counter.tsx";
 
 export default function Home() {
@@ -129,7 +129,7 @@ let ISLANDS_COUNTER_TSX = `/** @jsx h */
 import { h } from "preact";
 import { useState } from "preact/hooks";
 import { IS_BROWSER } from "$fresh/runtime.ts";
-${useTwind ? 'import { tw } from "twind";\n' : ""}
+${useTwind ? 'import { tw } from "@twind";\n' : ""}
 interface CounterProps {
   start: number;
 }
@@ -222,8 +222,8 @@ await Deno.writeTextFile(
 );
 
 const UTILS_TWIND_TS = `import { IS_BROWSER } from "$fresh/runtime.ts";
-import { Configuration, setup } from "$twind";
-export * from "$twind";
+import { Configuration, setup } from "twind";
+export * from "twind";
 export const config: Configuration = {
   darkMode: "class",
   mode: "silent",
@@ -275,8 +275,8 @@ import manifest from "./fresh.gen.ts";
 
 if (useTwind) {
   MAIN_TS += `
-import { virtualSheet } from "$twind/sheets";
-import { config, setup } from "twind";
+import { config, setup } from "@twind";
+import { virtualSheet } from "twind/sheets";
 
 const sheet = virtualSheet();
 sheet.reset();

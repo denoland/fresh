@@ -1,6 +1,6 @@
 /** @jsx h */
 import { h } from "preact";
-import { tw } from "../utils/twind.ts";
+import { tw } from "@twind";
 
 export default function NavigationBar(props: { active: string }) {
   const items = [

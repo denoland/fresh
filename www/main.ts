@@ -5,8 +5,8 @@
 /// <reference lib="deno.unstable" />
 
 import { start } from "$fresh/server.ts";
-import { virtualSheet } from "$twind/sheets";
-import { setup, theme } from "./utils/twind.ts";
+import { virtualSheet } from "twind/sheets";
+import { setup, theme } from "@twind";
 
 import routes from "./fresh.gen.ts";
 

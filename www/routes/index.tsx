@@ -3,7 +3,7 @@
 import { ComponentChildren, Fragment, h } from "preact";
 import { asset, Head } from "$fresh/runtime.ts";
 import { Handlers, PageProps } from "$fresh/server.ts";
-import { tw } from "../utils/twind.ts";
+import { tw } from "@twind";
 import Counter from "../islands/Counter.tsx";
 import LemonDrop from "../islands/LemonDrop.tsx";
 import Footer from "../components/Footer.tsx";

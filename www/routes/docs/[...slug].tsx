@@ -3,7 +3,7 @@
 import { Fragment, h } from "preact";
 import { Head } from "$fresh/runtime.ts";
 import { Handlers, PageProps } from "$fresh/server.ts";
-import { apply, tw } from "../../utils/twind.ts";
+import { apply, tw } from "@twind";
 import { frontMatter, gfm } from "../../utils/markdown.ts";
 
 import DocsSidebar from "../../components/DocsSidebar.tsx";
