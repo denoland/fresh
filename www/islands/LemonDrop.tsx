@@ -2,7 +2,7 @@
 /** @jsxFrag Fragment */
 import { Fragment, h } from "preact";
 import { useEffect, useRef, useState } from "preact/hooks";
-import { tw } from "../utils/twind.ts";
+import { tw } from "@twind";
 import { Spring, WaveTank } from "../components/WaveTank.ts";
 
 function easeInCirc(x: number) {

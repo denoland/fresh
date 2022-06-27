@@ -1,6 +1,6 @@
 /** @jsx h */
 import { h } from "preact";
-import { tw } from "../utils/twind.ts";
+import { tw } from "@twind";
 
 export default function WarningBanner() {
   const warning = tw`bg-yellow-100 border(1 yellow-200) p-4 mb-4`;
