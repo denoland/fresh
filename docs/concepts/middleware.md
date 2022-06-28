@@ -1,7 +1,6 @@
 ---
 description: |
-  Add middleware routes to intercept requests or responses for analytics
-  purposes, access control, or anything else.
+  Add middleware routes to intercept requests or responses for analytics purposes, access control, or anything else.
 ---
 
 A middleware is defined in a `_middleware.ts` file. It will intercept the

@@ -1,3 +1,8 @@
+---
+description: |
+  Routes are the basic building block of fresh applications. They are used to define the behaviour the application when a given path is requested.
+---
+
 At their core, routes describe how a request for a given path should be handled,
 and what the response should be. To do this, routes have two main parts: the
 handler, and the component. A route can have either one, or both, but never
