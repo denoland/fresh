@@ -3,7 +3,7 @@ import { Handlers } from "$fresh/server.ts";
 import { parse } from "$semver/mod.ts";
 import VERSIONS from "../../versions.json" assert { type: "json" };
 
-const BASE_URL = "https://raw.githubusercontent.com/lucacasonato/fresh/";
+const BASE_URL = "https://raw.githubusercontent.com/denoland/fresh/";
 
 export const handler: Handlers = {
   async GET(req, ctx) {
