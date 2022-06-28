@@ -21,14 +21,12 @@
     "pages": [
       ["architechture", "Architecture"],
       ["routes", "Routes"],
-      ["route-handlers", "Route handlers"],
       ["islands", "Interactive islands"],
       ["static-files", "Static files"],
       ["middleware", "Route middleware"],
       ["error-pages", "Error pages"],
       ["routing", "Routing"],
-      ["data-fetching", "Data fetching"],
-      ["styling", "Styling"]
+      ["data-fetching", "Data fetching"]
     ]
   }
 }
