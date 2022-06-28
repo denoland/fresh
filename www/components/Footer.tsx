@@ -5,15 +5,15 @@ import { tw } from "@twind";
 const LINKS = [
   {
     title: "Source",
-    href: "https://github.com/lucacasonato/fresh",
+    href: "https://github.com/denoland/fresh",
   },
   {
     title: "License",
-    href: "https://github.com/lucacasonato/fresh/blob/main/LICENSE",
+    href: "https://github.com/denoland/fresh/blob/main/LICENSE",
   },
   {
     title: "Code of Conduct",
-    href: "https://github.com/lucacasonato/fresh/blob/main/CODE_OF_CONDUCT.md",
+    href: "https://github.com/denoland/fresh/blob/main/CODE_OF_CONDUCT.md",
   },
 ];
 
