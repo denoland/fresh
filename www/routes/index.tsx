@@ -7,7 +7,6 @@ import { tw } from "@twind";
 import Counter from "../islands/Counter.tsx";
 import LemonDrop from "../islands/LemonDrop.tsx";
 import Footer from "../components/Footer.tsx";
-import WarningBanner from "../components/WarningBanner.tsx";
 import { Leaf } from "../components/Icons.tsx";
 import VERSIONS from "../../versions.json" assert { type: "json" };
 
@@ -159,7 +158,6 @@ function GettingStarted(props: { origin: string }) {
           Getting started
         </a>
       </h2>
-      <WarningBanner />
       <p class={tw`text-gray-600`}>
         To get started, make sure you have the{" "}
         <a href="https://deno.land" class={tw`text-blue-600 hover:underline`}>
