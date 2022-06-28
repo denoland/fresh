@@ -12,13 +12,13 @@ The handler is a function that is called for every request to the route. It
 needs to return a response that is then sent to the client. The response could
 be anything: a plain text string, a JSON object, an HTML page, a WebSocket
 connection, a streaming file, or pretty much anything else. The handler is
-passed a `render` function that it can call to invoke rendering the component.
+passed a `render` function that it can call to invoke rendering a component.
 
 The component is the template for a page. It is a JSX element that is rendered
 on the server. The page component gets passed props that can be used by it to
-determine exactly what should be rendered. By default the request URL, the
-matches from the URL pattern match, and any data passed to the handler's
-`render` function are passed to the component as props.
+determine exactly what should be rendered. By default components receives props
+consisting of: the request URL, the matches from the URL pattern match, and any
+data passed to the handler's `render` function.
 
 Let's look at a basic route that returns a plain text string:
 
@@ -38,9 +38,10 @@ To define a handler, one needs to export a `handler` function or object from the
 route module. If the handler is an object, each key in the object is the name of
 the HTTP method that the handler should be called for. For example the `GET`
 handler above is called for `GET` requests. If the handler is a function, it is
-called for all requests regardless of the method.
+called for all requests regardless of the method. If a HTTP method does not have
+a corresponding handler, a 405 HTTP error is returned.
 
-Now, let's render some HTML using the route component. Another example:
+Now, let's render some HTML using the route component:
 
 ```tsx
 // routes/html.tsx
