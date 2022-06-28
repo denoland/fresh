@@ -16,9 +16,9 @@ passed a `render` function that it can call to invoke rendering a component.
 
 The component is the template for a page. It is a JSX element that is rendered
 on the server. The page component gets passed props that can be used by it to
-determine exactly what should be rendered. By default components receives props consisting of: the request URL, the
-matches from the URL pattern match, and any data passed to the handler's
-`render` function.
+determine exactly what should be rendered. By default components receives props
+consisting of: the request URL, the matches from the URL pattern match, and any
+data passed to the handler's `render` function.
 
 Let's look at a basic route that returns a plain text string:
 
@@ -38,8 +38,8 @@ To define a handler, one needs to export a `handler` function or object from the
 route module. If the handler is an object, each key in the object is the name of
 the HTTP method that the handler should be called for. For example the `GET`
 handler above is called for `GET` requests. If the handler is a function, it is
-called for all requests regardless of the method. If a HTTP method does
-not have a corresponding handler, a 405 HTTP error is returned.
+called for all requests regardless of the method. If a HTTP method does not have
+a corresponding handler, a 405 HTTP error is returned.
 
 Now, let's render some HTML using the route component:
 
