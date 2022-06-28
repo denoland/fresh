@@ -27,7 +27,6 @@
       ["error-pages", "Error pages"],
       ["routing", "Routing"],
       ["data-fetching", "Data fetching"],
-      ["styling", "Styling"]
     ]
   }
 }
