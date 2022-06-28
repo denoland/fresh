@@ -21,7 +21,6 @@
     "pages": [
       ["architechture", "Architecture"],
       ["routes", "Routes"],
-      ["route-handlers", "Route handlers"],
       ["islands", "Interactive islands"],
       ["static-files", "Static files"],
       ["middleware", "Route middleware"],
