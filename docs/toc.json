@@ -26,7 +26,7 @@
       ["middleware", "Route middleware"],
       ["error-pages", "Error pages"],
       ["routing", "Routing"],
-      ["data-fetching", "Data fetching"],
+      ["data-fetching", "Data fetching"]
     ]
   }
 }
