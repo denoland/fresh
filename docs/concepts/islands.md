@@ -30,7 +30,7 @@ export default function MyIsland() {
 }
 ```
 
-An island can be used in a page like a regular preact component. Fresh will take
+An island can be used in a page like a regular Preact component. Fresh will take
 care of automatically re-hydrating the island on the client.
 
 Passing props to islands is supported, but only if the props are JSON
