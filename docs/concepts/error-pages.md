@@ -3,7 +3,7 @@ description: |
   Error pages can be used to customize the page that is shown when an error occurs in the application.
 ---
 
-Fresh supports customizing the `404 Not Found``, and the `500 Internal Server Error``
+Fresh supports customizing the `404 Not Found`, and the `500 Internal Server Error`
 pages. These are shown when a request is made but no matching route exists, and
 when a middelware, route handler, or page component throws an error
 respectively.
