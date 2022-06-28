@@ -9,7 +9,6 @@ import { frontMatter, gfm } from "../../utils/markdown.ts";
 import DocsSidebar from "../../components/DocsSidebar.tsx";
 import Footer from "../../components/Footer.tsx";
 import NavigationBar from "../../components/NavigationBar.tsx";
-import WarningBanner from "../../components/WarningBanner.tsx";
 import {
   SLUGS,
   TABLE_OF_CONTENTS,
@@ -213,7 +212,6 @@ function Content(props: { page: Page }) {
   const html = gfm.render(props.page.markdown);
   return (
     <main class={main}>
-      <WarningBanner />
       <h1 class={title}>{props.page.title}</h1>
       <div
         class={`${body} markdown-body`}
