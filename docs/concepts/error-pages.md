@@ -5,7 +5,7 @@ description: |
 
 Fresh supports customizing the `404 Not Found`, and the
 `500 Internal Server Error` pages. These are shown when a request is made but no
-matching route exists, and when a middelware, route handler, or page component
+matching route exists, and when a middleware, route handler, or page component
 throws an error respectively.
 
 The 404 page can be customized by creating a `_404.tsx` file in the `routes/`

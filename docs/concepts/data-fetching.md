@@ -3,10 +3,10 @@ description: |
   Data fetching in Fresh happens inside of route handler functions. These can pass route data to the page via page props.
 ---
 
-Server side data fetching in Fresh is acomplished through asynchronous
+Server side data fetching in Fresh is accomplished through asynchronous
 [handler functions][route-handlers]. These handler functions can call a
 `ctx.render()` function with the data to be rendered as an argument. This data
-can then be retreived by the page component through the `data` property on the
+can then be retrieved by the page component through the `data` property on the
 `props`.
 
 Here is an example:
