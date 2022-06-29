@@ -4,7 +4,7 @@ description: |
   scaffolds out the various files and folders a fresh project needs.
 ---
 
-New Fresh projects can be created with using the fresh project creation tool. It
+New Fresh projects can be created by using the fresh project creation tool. It
 will scaffold out a new project with some example files to get you started.
 
 To create a new project in the directory `"my-project"`, run:
@@ -20,10 +20,10 @@ Run `deno task start` in the project directory to get started.
 This will create a directory containing some files and directories. There are 4
 files that are strictly necessary to run a fresh project:
 
-- **`dev.ts`**: This is the development entrypoint for your project. This is the
-  file that you run to start your project. This file doesn't need to be called
-  `dev.ts`, but this is the convention.
-- **`main.ts`**: This is the production entrypoint for your project. It is the
+- **`dev.ts`**: This is the development entry point for your project. This is
+  the file that you run to start your project. This file doesn't need to be
+  called `dev.ts`, but this is the convention.
+- **`main.ts`**: This is the production entry point for your project. It is the
   file that you link to Deno Deploy. This file doesn't actually need to be
   `main.ts`, but this is the convention.
 - **`fresh.gen.ts`**: This is the manifest file that contains information about
@@ -45,7 +45,7 @@ Two important folders are also created that contain your routes and islands
 respectively:
 
 - **`routes/`**: This folder contains all of the routes in your project. The
-  names of each file in this folder corresponds to the path where that page will
+  names of each file in this folder correspond to the path where that page will
   be accessed. Code inside of this folder is never directly shipped to the
   client. You'll learn more about how routes work in the next section.
 - **`islands/`**: This folder contains all of the interactive islands in your
