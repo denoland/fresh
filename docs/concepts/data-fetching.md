@@ -4,7 +4,7 @@ description: |
 ---
 
 Server side data fetching in Fresh is accomplished through asynchronous
-[handler functions][route-handlers]. These handler functions can call a
+[handler functions][custom-handlers]. These handler functions can call a
 `ctx.render()` function with the data to be rendered as an argument. This data
 can then be retrieved by the page component through the `data` property on the
 `props`.
@@ -42,4 +42,4 @@ The type parameter on the `PageProps`, `Handlers`, `Handler`, and
 data. Fresh enforces during type checking that the types in all of these fields
 are compatible within a single page.
 
-[route-handlers]: ./route-handlers
+[route-handlers]: ../getting-started/custom-handlers
