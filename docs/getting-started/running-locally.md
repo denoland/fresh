@@ -33,6 +33,11 @@ passing the extra folder as an argument: `--watch=static/`. You should also add
 `routes/` to the watch list, so that the server restarts automatically whenever
 you add a new route.
 
+If you want to change the port or host, modify `main.ts` like this:
+```js
+await start(manifest, { render, port: 3000, hostname: '0.0.0.0' });
+```
+
 Combining all of this we get the following `deno run` command:
 
 ```
