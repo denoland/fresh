@@ -98,6 +98,6 @@ export async function start(routes: Manifest, opts: StartOptions = {}) {
     args.hostname || Deno.env.get("HOSTNAME") || opts.hostname || "0.0.0.0";
 
   const ctx = await ServerContext.fromManifest(routes, opts);
-  console.log(`Started server on http://${hostname || "localhost"}:${port}`);
+  console.log(`Server listening on http://${hostname || "localhost"}:${port}`);
   await serve(ctx.handler(), { ...opts, port, hostname });
 }
