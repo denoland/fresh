@@ -14,7 +14,8 @@ $ deno run -A -r https://fresh.deno.dev my-project
 The manifest has been generated for 3 routes and 1 islands.
 
 Project created!
-Run `deno task start` in the project directory to get started.
+Run `cd my-project` to get in the project directory.
+And then `deno task start` to get started.
 ```
 
 This will create a directory containing some files and directories. There are 4
