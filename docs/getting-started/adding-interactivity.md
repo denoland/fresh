@@ -50,7 +50,7 @@ export default function Countdown(props: { target: string }) {
         if (now > target) {
           clearInterval(timer);
         }
-        return new Date()
+        return new Date();
       });
     }, 1000);
     return () => clearInterval(timer);
