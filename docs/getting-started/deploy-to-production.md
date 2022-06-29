@@ -20,7 +20,7 @@ new project.
 After creating the project, head to the "Git" tab in the project settings,
 select the repository, the production branch (`main`), and the entrypoint file
 (`main.ts`). This will link the project to the repository and automatically
-deploy it to the internet. The project is now be available at
+deploy it to the internet. The project will now be available at
 https://$PROJECT_NAME.deno.dev.
 
 Every time the code in the GitHub repository is updated, it will be deployed
