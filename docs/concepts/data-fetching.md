@@ -42,4 +42,4 @@ The type parameter on the `PageProps`, `Handlers`, `Handler`, and
 data. Fresh enforces during type checking that the types in all of these fields
 are compatible within a single page.
 
-[route-handlers]: ../getting-started/custom-handlers
+[custom-handlers]: ../getting-started/custom-handlers
