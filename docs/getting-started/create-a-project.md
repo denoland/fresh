@@ -20,9 +20,9 @@ Run `deno task start` in the project directory to get started.
 This will create a directory containing some files and directories. There are 4
 files that are strictly necessary to run a fresh project:
 
-- **`dev.ts`**: This is the development entry point for your project. This is the
-  file that you run to start your project. This file doesn't need to be called
-  `dev.ts`, but this is the convention.
+- **`dev.ts`**: This is the development entry point for your project. This is
+  the file that you run to start your project. This file doesn't need to be
+  called `dev.ts`, but this is the convention.
 - **`main.ts`**: This is the production entry point for your project. It is the
   file that you link to Deno Deploy. This file doesn't actually need to be
   `main.ts`, but this is the convention.
