@@ -63,8 +63,8 @@ export async function start(routes: Manifest, opts: StartOptions = {}) {
   try {
     args = parse(Deno.args, {
       alias: aliases,
-      // Treat all args as strings
-      string: Object.entries(aliases).flat(),
+      string: ["port", "hostname"],
+      boolean: ["help"],
       unknown: (arg) => {
         throw new Error(`Unknown or unexpected option: ${arg}`);
       },
@@ -96,8 +96,9 @@ export async function start(routes: Manifest, opts: StartOptions = {}) {
     8000;
   const hostname: string =
     args.hostname || Deno.env.get("HOSTNAME") || opts.hostname || "0.0.0.0";
+  const hostnameDisplayName = hostname.replace(/^0.0.0.0$/, "localhost");
 
   const ctx = await ServerContext.fromManifest(routes, opts);
-  console.log(`Server listening on http://${hostname || "localhost"}:${port}`);
+  console.log(`Server listening on http://${hostnameDisplayName}:${port}`);
   await serve(ctx.handler(), { ...opts, port, hostname });
 }
