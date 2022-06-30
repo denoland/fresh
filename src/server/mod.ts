@@ -1,5 +1,5 @@
 import { ServerContext } from "./context.ts";
-import { serve, parse } from "./deps.ts";
+import { parse, serve } from "./deps.ts";
 import { error } from "./error.ts";
 import {
   AppModule,
@@ -89,13 +89,12 @@ export async function start(routes: Manifest, opts: StartOptions = {}) {
     Deno.exit(0);
   }
 
-  const port: number =
-    (args.port && parseInt(args.port)) ||
+  const port: number = (args.port && parseInt(args.port)) ||
     (Deno.env.get("PORT") && parseInt(Deno.env.get("PORT")!)) ||
     opts.port ||
     8000;
-  const hostname: string =
-    args.hostname || Deno.env.get("HOSTNAME") || opts.hostname || "0.0.0.0";
+  const hostname: string = args.hostname || Deno.env.get("HOSTNAME") ||
+    opts.hostname || "0.0.0.0";
   const hostnameDisplayName = hostname.replace(/^0.0.0.0$/, "localhost");
 
   const ctx = await ServerContext.fromManifest(routes, opts);
