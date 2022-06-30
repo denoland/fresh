@@ -7,13 +7,13 @@ The next-gen web framework.
 Fresh is a next generation web framework, built for speed, reliability, and
 simplicity. Some stand out features:
 
-- Just-in-time rendering on the edge.
-- Island based client hydration for maximum interactivity.
-- Zero runtime overhead: no JS is shipped to the client by default.
-- No build step.
-- No configuration necessary.
-- TypeScript support out of the box.
-- File-system routing à la Next.js
+-   Just-in-time rendering on the edge.
+-   Island based client hydration for maximum interactivity.
+-   Zero runtime overhead: no JS is shipped to the client by default.
+-   No build step.
+-   No configuration necessary.
+-   TypeScript support out of the box.
+-   File-system routing à la Next.js
 
 ## Documentation
 
@@ -23,10 +23,16 @@ The [documentation](https://fresh.deno.dev/docs/) is available on
 ## Getting started
 
 You can scaffold a new project by running the Fresh init script. To scaffold a
-project in the `myproject` folder, run the following:
+project in the `my-project` folder, run the following:
 
 ```sh
 deno run -A -r https://fresh.deno.dev my-project
+```
+
+Go to `my-project` folder:
+
+```
+cd my-project
 ```
 
 To now start the project, use `deno task`:
