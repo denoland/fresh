@@ -267,8 +267,9 @@ let MAIN_TS = `/// <reference no-default-lib="true" />
 /// <reference lib="deno.ns" />
 /// <reference lib="deno.unstable" />
 
-import { ${useTwind ? "InnerRenderFunction, RenderContext, " : ""
-  }start } from "$fresh/server.ts";
+import { ${
+  useTwind ? "InnerRenderFunction, RenderContext, " : ""
+}start } from "$fresh/server.ts";
 import manifest from "./fresh.gen.ts";
 `;
 

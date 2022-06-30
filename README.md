@@ -7,13 +7,13 @@ The next-gen web framework.
 Fresh is a next generation web framework, built for speed, reliability, and
 simplicity. Some stand out features:
 
--   Just-in-time rendering on the edge.
--   Island based client hydration for maximum interactivity.
--   Zero runtime overhead: no JS is shipped to the client by default.
--   No build step.
--   No configuration necessary.
--   TypeScript support out of the box.
--   File-system routing à la Next.js
+- Just-in-time rendering on the edge.
+- Island based client hydration for maximum interactivity.
+- Zero runtime overhead: no JS is shipped to the client by default.
+- No build step.
+- No configuration necessary.
+- TypeScript support out of the box.
+- File-system routing à la Next.js
 
 ## Documentation
 
