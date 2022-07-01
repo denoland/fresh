@@ -79,6 +79,7 @@ const useTwind = flags.twind === null
 await Deno.mkdir(join(directory, "routes", "api"), { recursive: true });
 await Deno.mkdir(join(directory, "islands"), { recursive: true });
 await Deno.mkdir(join(directory, "static"), { recursive: true });
+await Deno.mkdir(join(directory, "components"), { recursive: true });
 if (useTwind) await Deno.mkdir(join(directory, "utils"), { recursive: true });
 
 const importMap = {
@@ -125,10 +126,27 @@ await Deno.writeTextFile(
   ROUTES_INDEX_TSX,
 );
 
+const COMPONENTS_BUTTON_TSX = `/** @jsx h */
+import { h } from "preact";
+import { IS_BROWSER } from "$fresh/runtime.ts";
+${useTwind ? 'import { tw } from "@twind";\n' : ""}
+
+export default function Button(props: h.JSX.HTMLAttributes<HTMLButtonElement>)) {
+  return (
+    <button {...props} ${useTwind ? "class={tw\`px-2 py-1 border(gray-100 2) hover:bg-gray-200\`}" : ""} />
+  );
+}
+`;
+await Deno.writeTextFile(
+  join(directory, "components", "Button.tsx"),
+  COMPONENTS_BUTTON_TSX,
+)
+
 let ISLANDS_COUNTER_TSX = `/** @jsx h */
 import { h } from "preact";
 import { useState } from "preact/hooks";
 import { IS_BROWSER } from "$fresh/runtime.ts";
+import { Button} from "../components/Button.tsx";
 ${useTwind ? 'import { tw } from "@twind";\n' : ""}
 interface CounterProps {
   start: number;
@@ -139,25 +157,21 @@ export default function Counter(props: CounterProps) {
 `;
 
 if (useTwind) {
-  ISLANDS_COUNTER_TSX +=
-    `  const btn = tw\`px-2 py-1 border(gray-100 1) hover:bg-gray-200\`;\n`;
   ISLANDS_COUNTER_TSX += `  return (
     <div class={tw\`flex gap-2 w-full\`}>
       <p class={tw\`flex-grow-1 font-bold text-xl\`}>{count}</p>
-      <button
-        class={btn}
-        onClick={() => setCount(count - 1)}
+      <Button
         disabled={!IS_BROWSER}
+        onClick={() => setCount(count - 1)}
       >
         -1
-      </button>
-      <button
-        class={btn}
-        onClick={() => setCount(count + 1)}
+      </Button>
+      <Button
         disabled={!IS_BROWSER}
+        onClick={() => setCount(count + 1)}
       >
         +1
-      </button>
+      </Button>
     </div>
   );
 `;
@@ -165,12 +179,18 @@ if (useTwind) {
   ISLANDS_COUNTER_TSX += `  return (
     <div>
       <p>{count}</p>
-      <button onClick={() => setCount(count - 1)} disabled={!IS_BROWSER}>
+      <Button
+        disabled={!IS_BROWSER}
+        onClick={() => setCount(count - 1)}
+      >
         -1
-      </button>
-      <button onClick={() => setCount(count + 1)} disabled={!IS_BROWSER}>
+      </Button>
+      <Button
+        disabled={!IS_BROWSER}
+        onClick={() => setCount(count + 1)}
+      >
         +1
-      </button>
+      </Button>
     </div>
   );
 `;
