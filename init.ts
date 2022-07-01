@@ -114,7 +114,9 @@ export default function Home() {
       />
       <p${useTwind ? " class={tw\`my-6\`}" : ""}>
         Welcome to \`fresh\`. Try update this message in the{" "}
-        <code${useTwind ? " class={tw\`bg-gray-100 py-1 px-2\`}" : ""}>./routes/index.tsx</code>{" "}
+        <code${
+  useTwind ? " class={tw\`bg-gray-100 py-1 px-2\`}" : ""
+}>./routes/index.tsx</code>{" "}
         file, and refresh.
       </p>
       <Counter start={3} />
@@ -203,13 +205,21 @@ export default function Hello() {
     <div>
       <p${useTwind ? " class={tw\`mt-5 mb-2\`}" : ""}>
         This is an interactive shared component. It's not in{" "}
-        <code${useTwind ? " class={tw\`bg-gray-100 py-1 px-2\`}" : ""}>./inslands</code>{" "}
+        <code${
+  useTwind ? " class={tw\`bg-gray-100 py-1 px-2\`}" : ""
+}>./inslands</code>{" "}
         dir, but it was imported into a component that lives inside it
       </p>
-      <h1${useTwind ? " class={tw\`font-bold text-2xl\`}" : ""}>Hello {username}</h1>
+      <h1${
+  useTwind ? " class={tw\`font-bold text-2xl\`}" : ""
+}>Hello {username}</h1>
       <input
         type="text"
-        class=${useTwind ? "{tw\`border border-gray-300 text-gray-900 rounded block w-full p-2 my-2\`}" : '"my-input"'}
+        class=${
+  useTwind
+    ? "{tw\`border border-gray-300 text-gray-900 rounded block w-full p-2 my-2\`}"
+    : '"my-input"'
+}
         placeholder="Name:"
         onKeyUp={(e) => setUserName((e.target as HTMLInputElement).value)}
       />
@@ -222,7 +232,6 @@ await Deno.writeTextFile(
   join(directory, "components", "Hello.tsx"),
   HELLO_COMPONENT_TSX,
 );
-
 
 const ROUTES_GREET_TSX = `/** @jsx h */
 import { h } from "preact";
