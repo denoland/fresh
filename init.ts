@@ -78,6 +78,7 @@ const useTwind = flags.twind === null
 
 await Deno.mkdir(join(directory, "routes", "api"), { recursive: true });
 await Deno.mkdir(join(directory, "islands"), { recursive: true });
+await Deno.mkdir(join(directory, "components"), { recursive: true });
 await Deno.mkdir(join(directory, "static"), { recursive: true });
 if (useTwind) await Deno.mkdir(join(directory, "utils"), { recursive: true });
 
@@ -112,7 +113,8 @@ export default function Home() {
         alt="the fresh logo: a sliced lemon dripping with juice"
       />
       <p${useTwind ? " class={tw\`my-6\`}" : ""}>
-        Welcome to \`fresh\`. Try update this message in the ./routes/index.tsx
+        Welcome to \`fresh\`. Try update this message in the{" "}
+        <code${useTwind ? " class={tw\`bg-gray-100 py-1 px-2\`}" : ""}>./routes/index.tsx</code>{" "}
         file, and refresh.
       </p>
       <Counter start={3} />
@@ -130,6 +132,9 @@ import { h } from "preact";
 import { useState } from "preact/hooks";
 import { IS_BROWSER } from "$fresh/runtime.ts";
 ${useTwind ? 'import { tw } from "@twind";\n' : ""}
+
+import Hello from "../components/Hello.tsx";
+
 interface CounterProps {
   start: number;
 }
@@ -142,35 +147,41 @@ if (useTwind) {
   ISLANDS_COUNTER_TSX +=
     `  const btn = tw\`px-2 py-1 border(gray-100 1) hover:bg-gray-200\`;\n`;
   ISLANDS_COUNTER_TSX += `  return (
-    <div class={tw\`flex gap-2 w-full\`}>
-      <p class={tw\`flex-grow-1 font-bold text-xl\`}>{count}</p>
-      <button
-        class={btn}
-        onClick={() => setCount(count - 1)}
-        disabled={!IS_BROWSER}
-      >
-        -1
-      </button>
-      <button
-        class={btn}
-        onClick={() => setCount(count + 1)}
-        disabled={!IS_BROWSER}
-      >
-        +1
-      </button>
+    <div>
+      <div class={tw\`flex gap-2 w-full\`}>
+        <p class={tw\`flex-grow-1 font-bold text-xl\`}>{count}</p>
+        <button
+          class={btn}
+          onClick={() => setCount(count - 1)}
+          disabled={!IS_BROWSER}
+        >
+          -1
+        </button>
+        <button
+          class={btn}
+          onClick={() => setCount(count + 1)}
+          disabled={!IS_BROWSER}
+        >
+          +1
+        </button>
+      </div>
+      <Hello />
     </div>
   );
 `;
 } else {
   ISLANDS_COUNTER_TSX += `  return (
     <div>
-      <p>{count}</p>
-      <button onClick={() => setCount(count - 1)} disabled={!IS_BROWSER}>
-        -1
-      </button>
-      <button onClick={() => setCount(count + 1)} disabled={!IS_BROWSER}>
-        +1
-      </button>
+      <div>
+        <p>{count}</p>
+        <button onClick={() => setCount(count - 1)} disabled={!IS_BROWSER}>
+          -1
+        </button>
+        <button onClick={() => setCount(count + 1)} disabled={!IS_BROWSER}>
+          +1
+        </button>
+      </div>
+      <Hello />
     </div>
   );
 `;
@@ -180,6 +191,38 @@ await Deno.writeTextFile(
   join(directory, "islands", "Counter.tsx"),
   ISLANDS_COUNTER_TSX,
 );
+
+const HELLO_COMPONENT_TSX = `/** @jsx h */
+import { h } from "preact";
+import { useState } from "preact/hooks";
+${useTwind ? 'import { tw } from "@twind";\n' : ""}
+
+export default function Hello() {
+  const [username, setUserName] = useState("??");
+  return (
+    <div>
+      <p${useTwind ? " class={tw\`mt-5 mb-2\`}" : ""}>
+        This is an interactive shared component. It's not in{" "}
+        <code${useTwind ? " class={tw\`bg-gray-100 py-1 px-2\`}" : ""}>./inslands</code>{" "}
+        dir, but it was imported into a component that lives inside it
+      </p>
+      <h1${useTwind ? " class={tw\`font-bold text-2xl\`}" : ""}>Hello {username}</h1>
+      <input
+        type="text"
+        class=${useTwind ? "{tw\`border border-gray-300 text-gray-900 rounded block w-full p-2 my-2\`}" : '"my-input"'}
+        placeholder="Name:"
+        onKeyUp={(e) => setUserName((e.target as HTMLInputElement).value)}
+      />
+    </div>
+  );
+}
+`;
+
+await Deno.writeTextFile(
+  join(directory, "components", "Hello.tsx"),
+  HELLO_COMPONENT_TSX,
+);
+
 
 const ROUTES_GREET_TSX = `/** @jsx h */
 import { h } from "preact";
