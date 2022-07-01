@@ -6,7 +6,7 @@ description: |
 
 After getting the project running locally, the next step is to add a new route
 to the project. Routes encapsulate the logic for handling requests to a
-particular path in your project. They can be used to handle API requests, or
+particular path in your project. They can be used to handle API requests or
 render HTML pages. For now we are going to do the latter.
 
 Routes are defined as files in the `routes` directory. The file name of the
