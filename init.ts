@@ -131,7 +131,7 @@ import { h } from "preact";
 import { IS_BROWSER } from "$fresh/runtime.ts";
 ${useTwind ? 'import { tw } from "@twind";\n' : ""}
 
-export default function Button(props: h.JSX.HTMLAttributes<HTMLButtonElement>) {
+export function Button(props: h.JSX.HTMLAttributes<HTMLButtonElement>) {
   return (
     <button {...props} ${useTwind ? "class={tw\`px-2 py-1 border(gray-100 2) hover:bg-gray-200\`}" : ""} />
   );
