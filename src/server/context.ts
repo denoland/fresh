@@ -276,11 +276,12 @@ export class ServerContext {
       // to their non-trailing slash counterpart.
       // Ex: /about/ -> /about
       const url = new URL(req.url);
-      if (url.pathname.length > 1 && url.pathname.endsWith("/")) {
+      const pathname = url.pathname;
+      if (pathname.length > 1 && pathname.endsWith("/")) {
         url.pathname = url.pathname.slice(0, -1);
         return Response.redirect(url.href, 307);
       }
-      return withMiddlewares(req, connInfo, inner);
+      return withMiddlewares(req, url, connInfo, inner);
     };
   }
 
@@ -291,12 +292,13 @@ export class ServerContext {
   #composeMiddlewares(middlewares: MiddlewareRoute[]) {
     return (
       req: Request,
+      url: URL,
       connInfo: ConnInfo,
       inner: router.Handler<RouterState>,
     ) => {
       // identify middlewares to apply, if any.
       // middlewares should be already sorted from deepest to shallow layer
-      const mws = selectMiddlewares(req.url, middlewares);
+      const mws = selectMiddlewares(url, middlewares);
 
       const handlers: (() => Response | Promise<Response>)[] = [];
 
@@ -597,12 +599,11 @@ const DEFAULT_ERROR: ErrorPage = {
  * @param url the request url
  * @param middlewares Array of middlewares handlers and their routes as path-to-regexp style
  */
-export function selectMiddlewares(url: string, middlewares: MiddlewareRoute[]) {
+export function selectMiddlewares(url: URL, middlewares: MiddlewareRoute[]) {
   const selectedMws: Middleware[] = [];
-  const reqURL = new URL(url);
 
   for (const { compiledPattern, handler } of middlewares) {
-    const res = compiledPattern.exec(reqURL);
+    const res = compiledPattern.exec(url);
     if (res) {
       selectedMws.push({ handler });
     }
