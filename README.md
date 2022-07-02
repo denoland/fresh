@@ -13,7 +13,7 @@ simplicity. Some stand out features:
 - No build step.
 - No configuration necessary.
 - TypeScript support out of the box.
-- File-system routing à la Next.js
+- File-system routing like a Next.js
 
 ## Documentation
 
@@ -23,7 +23,7 @@ The [documentation](https://fresh.deno.dev/docs/) is available on
 ## Getting started
 
 You can scaffold a new project by running the Fresh init script. To scaffold a
-project in the `myproject` folder, run the following:
+project in the `my-project` folder, run the following:
 
 ```sh
 deno run -A -r https://fresh.deno.dev my-project
