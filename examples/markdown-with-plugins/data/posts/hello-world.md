@@ -1,11 +1,11 @@
 ---
-title: 'Hello, World!'
-publishedOn: '2022-07-02'
-image: 'https://images.unsplash.com/photo-1587324438673-56c78a866b15?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1480&q=80'
+title: "Hello, World!"
+publishedOn: "2022-07-02"
+image: "https://images.unsplash.com/photo-1587324438673-56c78a866b15?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1480&q=80"
 ---
 
 ```js
-// here's some heavily customized syntax highlighting
+// A comment
 const loremFetcher = async (id: string) => {
   const url = `https://jsonplaceholder.typicode.com/comments`;
   const ipsum = await fetch(`${url}/?postId=${id}`);
