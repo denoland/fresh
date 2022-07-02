@@ -26,12 +26,15 @@ import {
   RenderFunction,
   Route,
   RouteModule,
+  Root,
+  RootModule,
   UnknownPage,
   UnknownPageModule,
 } from "./types.ts";
 import { render as internalRender } from "./render.tsx";
 import { ContentSecurityPolicyDirectives, SELF } from "../runtime/csp.ts";
 import { ASSET_CACHE_BUST_KEY, INTERNAL_PREFIX } from "../runtime/utils.ts";
+import { DefaultRoot } from "./template.tsx"
 
 interface RouterState {
   state: Record<string, unknown>;
@@ -61,6 +64,7 @@ export class ServerContext {
   #app: AppModule;
   #notFound: UnknownPage;
   #error: ErrorPage;
+  #root: Root
 
   constructor(
     routes: Route[],
@@ -72,6 +76,7 @@ export class ServerContext {
     notFound: UnknownPage,
     error: ErrorPage,
     importMapURL: URL,
+    root: Root,
   ) {
     this.#routes = routes;
     this.#islands = islands;
@@ -83,6 +88,7 @@ export class ServerContext {
     this.#error = error;
     this.#bundler = new Bundler(this.#islands, importMapURL);
     this.#dev = typeof Deno.env.get("DENO_DEPLOYMENT_ID") !== "string"; // Env var is only set in prod (on Deploy).
+    this.#root = root;
   }
 
   /**
@@ -103,6 +109,7 @@ export class ServerContext {
     let app: AppModule = DEFAULT_APP;
     let notFound: UnknownPage = DEFAULT_NOT_FOUND;
     let error: ErrorPage = DEFAULT_ERROR;
+    let root: Root = DEFAULT_ROOT;
     for (const [self, module] of Object.entries(manifest.routes)) {
       const url = new URL(self, baseUrl).href;
       if (!url.startsWith(baseUrl)) {
@@ -184,6 +191,25 @@ export class ServerContext {
             ((req, ctx) => router.defaultErrorHandler(req, ctx, ctx.error)),
           csp: Boolean(config?.csp ?? false),
         };
+      } else if (
+        path === "/_root.tsx" || path === "/_root.ts" ||
+        path === "/_root.jsx" || path === "/_root.js"
+      ) {
+        const { default: component } = (module as RootModule);
+        // let { handler } = (module as RootModule);
+        // if (component && handler === undefined) {
+        //   handler = (_req, { render }) => render();
+        // }
+
+        root = {
+          pattern: pathToPattern(baseRoute),
+          url,
+          name,
+          component,
+          // handler: handler ??
+          //   ((req, ctx) => router.defaultErrorHandler(req, ctx, ctx.error)),
+          // csp: Boolean(config?.csp ?? false),
+        };
       }
     }
     sortRoutes(routes);
@@ -261,6 +287,7 @@ export class ServerContext {
       notFound,
       error,
       importMapURL,
+      root,
     );
   }
 
@@ -412,6 +439,7 @@ export class ServerContext {
             params,
             data,
             error,
+            root: this.#root,
           });
 
           const headers: Record<string, string> = {
@@ -590,6 +618,15 @@ const DEFAULT_ERROR: ErrorPage = {
   component: DefaultErrorHandler,
   handler: (_req, ctx) => ctx.render(),
   csp: false,
+};
+
+const DEFAULT_ROOT: Root = {
+  pattern: "",
+  url: "",
+  name: "_root",
+  component: DefaultRoot,
+  // handler: (_req, ctx) => ctx.render(),
+  // csp: false,
 };
 
 /**

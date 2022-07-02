@@ -8,12 +8,14 @@ import {
   RenderFunction,
   Route,
   UnknownPage,
+  Root,
 } from "./types.ts";
 import { HEAD_CONTEXT } from "../runtime/head.ts";
 import { CSP_CONTEXT, nonce, NONE, UNSAFE_INLINE } from "../runtime/csp.ts";
 import { ContentSecurityPolicy } from "../runtime/csp.ts";
 import { bundleAssetUrl } from "./constants.ts";
 import { assetHashingHook } from "../runtime/utils.ts";
+import { Template, TemplateOptions } from "./template.tsx";
 
 export interface RenderOptions<Data> {
   route: Route<Data> | UnknownPage | ErrorPage;
@@ -27,6 +29,7 @@ export interface RenderOptions<Data> {
   data?: Data;
   error?: unknown;
   lang?: string;
+  root: Root
 }
 
 export type InnerRenderFunction = () => string;
@@ -253,42 +256,14 @@ export async function render<Data>(
     preloads: opts.preloads,
     styles: ctx.styles,
     lang: ctx.lang,
+    root: opts.root,
   });
 
   return [html, csp];
 }
 
-export interface TemplateOptions {
-  bodyHtml: string;
-  headComponents: ComponentChildren[];
-  imports: (readonly [string, string])[];
-  styles: string[];
-  preloads: string[];
-  lang: string;
-}
-
 export function template(opts: TemplateOptions): string {
-  const page = (
-    <html lang={opts.lang}>
-      <head>
-        <meta charSet="UTF-8" />
-        <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        {opts.preloads.map((src) => <link rel="modulepreload" href={src} />)}
-        {opts.imports.map(([src, nonce]) => (
-          <script src={src} nonce={nonce} type="module"></script>
-        ))}
-        <style
-          id="__FRSH_STYLE"
-          dangerouslySetInnerHTML={{ __html: opts.styles.join("\n") }}
-        />
-        {opts.headComponents}
-      </head>
-      <body dangerouslySetInnerHTML={{ __html: opts.bodyHtml }} />
-    </html>
-  );
-
-  return "<!DOCTYPE html>" + renderToString(page);
+  return "<!DOCTYPE html>" + renderToString(<Template {...opts} />);
 }
 
 // Set up a preact option hook to track when vnode with custom functions are
@@ -316,7 +291,7 @@ options.vnode = (vnode) => {
         return h(
           `!--frsh-${island.id}:${ISLAND_PROPS.length - 1}--`,
           null,
-          child,
+          child
         );
       };
     }

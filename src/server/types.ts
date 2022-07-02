@@ -106,6 +106,44 @@ export interface AppModule {
   default: ComponentType<AppProps>;
 }
 
+// --- ROOT ---
+
+export interface RootProps {
+  // /** The URL of the request that resulted in this page being rendered. */
+  // url: URL;
+
+  // /** The route matcher (e.g. /blog/:id) that the request matched for this page
+  //  * to be rendered. */
+  // route: string;
+  lang: string
+}
+
+// export interface UnknownHandlerContext<State = Record<string, unknown>>
+//   extends ConnInfo {
+//   render: () => Response | Promise<Response>;
+//   state: State;
+// }
+
+// export type RootHandler = (
+//   req: Request,
+//   ctx: UnknownHandlerContext,
+// ) => Response | Promise<Response>;
+
+export interface RootModule {
+  default?: ComponentType<RootProps>;
+  // handler?: UnknownHandler;
+  // config?: RouteConfig;
+}
+
+export interface Root {
+  pattern: string;
+  url: string;
+  name: string;
+  component: ComponentType<RootProps>;
+  // handler: UnknownHandler;
+  // csp: boolean;
+}
+
 // --- UNKNOWN PAGE ---
 
 export interface UnknownPageProps {

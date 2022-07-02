@@ -29,6 +29,7 @@ export type {
 } from "./types.ts";
 export { RenderContext } from "./render.tsx";
 export type { InnerRenderFunction } from "./render.tsx";
+export { Body, Links, Meta, Scripts, Styles } from "./template.tsx";
 
 export interface Manifest {
   routes: Record<
