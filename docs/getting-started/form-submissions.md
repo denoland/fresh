@@ -34,6 +34,7 @@ server side:
 
 /** @jsx h */
 import { h } from "preact";
+import { tw } from "@twind";
 import { Handlers, PageProps } from "$fresh/server.ts";
 
 const NAMES = ["Alice", "Bob", "Charlie", "Dave", "Eve", "Frank"];
@@ -55,13 +56,37 @@ export const handler: Handlers<Data> = {
 export default function Page({ data }: PageProps<Data>) {
   const { results, query } = data;
   return (
-    <div>
-      <form>
-        <input type="text" name="q" value={query} />
-        <button type="submit">Search</button>
+    <div class={tw`text-center my-10`}>
+      <form class={tw`flex items-center justify-center`}>
+        <input
+          type="text"
+          name="q"
+          value={query}
+          class={tw`border border-black mx-1`}
+        />
+        <button type="submit">
+          <svg
+            class={tw`w-6 h-6`}
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+            >
+            </path>
+          </svg>
+        </button>
       </form>
-      <ul>
-        {results.map((name) => <li key={name}>{name}</li>)}
+      <p class={tw`mt-10 text-4xl`}>Result</p>
+      <ul class={tw`mt-10 grid grid-cols-1 md:grid-cols-3 mx-20 gap-10`}>
+        {results.map((name) => (
+          <li class={tw`shadow-lg p-3`} key={name}>{name}</li>
+        ))}
       </ul>
     </div>
   );
