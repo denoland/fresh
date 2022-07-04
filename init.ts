@@ -343,4 +343,5 @@ const manifest = await collect(directory);
 await generate(directory, manifest);
 
 console.log("\n%cProject created!", "color: green; font-weight: bold");
-console.log("Run \`deno task start\` in the project directory to get started.");
+console.log("\`cd my-project\` to enter to the project directory.");
+console.log("Run \`deno task start\` to start the development server.");

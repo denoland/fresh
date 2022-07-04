@@ -25,8 +25,8 @@ File names are mapped to route patterns as follows:
 - Paths where the last path segment follows the structure `[...<ident>]` are
   treated as having a wildcard suffix.
 
-Here is a table of file names, and which route patterns they map to, and which
-paths they might match:
+Here is a table of file names, which route patterns they map to, and which paths
+they might match:
 
 | File name                 | Route pattern          | Matching paths             |
 | ------------------------- | ---------------------- | -------------------------- |
