@@ -690,7 +690,10 @@ function serializeCSPDirectives(csp: ContentSecurityPolicyDirectives): string {
 
 export function middlewarePathToPattern(baseRoute: string) {
   baseRoute = baseRoute.slice(0, -"_middleware".length);
-  const pattern = pathToPattern(baseRoute);
-  const compiledPattern = new URLPattern({ pathname: `${pattern}*` });
+  let pattern = pathToPattern(baseRoute);
+  if (pattern.endsWith("/")) {
+    pattern = pattern.slice(0, -1) + "{/*}?";
+  }
+  const compiledPattern = new URLPattern({ pathname: pattern });
   return { pattern, compiledPattern };
 }
