@@ -36,6 +36,7 @@ USAGE:
 OPTIONS:
     --force   Overwrite existing files
     --twind   Setup project to use 'twind' for styling
+    --vscode  Setup project for VSCode
 `;
 
 const CONFIRM_EMPTY_MESSAGE =
@@ -44,9 +45,11 @@ const CONFIRM_EMPTY_MESSAGE =
 const USE_TWIND_MESSAGE =
   "Do you want to use 'twind' (https://twind.dev/) for styling?";
 
+const USE_VSCODE_MESSAGE = "Do you use VS Code?";
+
 const flags = parse(Deno.args, {
-  boolean: ["force", "twind"],
-  default: { "force": null, "twind": null },
+  boolean: ["force", "twind", "vscode"],
+  default: { "force": null, "twind": null, "vscode": null },
 });
 
 if (flags._.length !== 1) {
@@ -76,9 +79,16 @@ const useTwind = flags.twind === null
   ? confirm(USE_TWIND_MESSAGE)
   : flags.twind;
 
+const useVSCode = flags.vscode === null
+  ? confirm(USE_VSCODE_MESSAGE)
+  : flags.vscode;
+
 await Deno.mkdir(join(directory, "routes", "api"), { recursive: true });
 await Deno.mkdir(join(directory, "islands"), { recursive: true });
 await Deno.mkdir(join(directory, "static"), { recursive: true });
+if (useVSCode) {
+  await Deno.mkdir(join(directory, ".vscode"), { recursive: true });
+}
 if (useTwind) await Deno.mkdir(join(directory, "utils"), { recursive: true });
 
 const importMap = {
@@ -338,6 +348,32 @@ await Deno.writeTextFile(
   join(directory, "README.md"),
   README_MD,
 );
+
+const vscodeSettings = {
+  "deno.enable": true,
+};
+
+const VSCODE_SETTINGS = JSON.stringify(vscodeSettings, null, 2) + "\n";
+
+if (useVSCode) {
+  await Deno.writeTextFile(
+    join(directory, ".vscode", "settings.json"),
+    VSCODE_SETTINGS,
+  );
+}
+
+const vscodeExtensions = {
+  recommendations: ["denoland.vscode-deno"],
+};
+
+const VSCODE_EXTENSIONS = JSON.stringify(vscodeExtensions, null, 2) + "\n";
+
+if (useVSCode) {
+  await Deno.writeTextFile(
+    join(directory, ".vscode", "extensions.json"),
+    VSCODE_EXTENSIONS,
+  );
+}
 
 const manifest = await collect(directory);
 await generate(directory, manifest);
