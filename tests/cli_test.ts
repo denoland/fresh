@@ -14,16 +14,10 @@ type FileTree = {
   type: "directory";
   name: string;
   contents: FileTree[];
-} | {
-  type: "report";
-  directories: number;
-  files: number;
 };
 
 const assertFileExistence = async (tree: FileTree[], dirname?: string) => {
   for (const t of tree) {
-    if (t.type === "report") continue;
-
     const stat = await Deno.stat(
       dirname ? [dirname, t.name].join("/") : t.name,
     );
@@ -47,7 +41,15 @@ Deno.test({
 
     await t.step("execute init command", async () => {
       const cliProcess = Deno.run({
-        cmd: ["deno", "run", "-A", "init.ts", tmpDirName, "--no-twind"],
+        cmd: [
+          "deno",
+          "run",
+          "-A",
+          "init.ts",
+          tmpDirName,
+          "--no-twind",
+          "--no-vscode",
+        ],
         stdout: "null",
       });
       const { code } = await cliProcess.status();
@@ -96,7 +98,6 @@ Deno.test({
           },
         ],
       },
-      { "type": "report", "directories": 3, "files": 8 },
     ];
 
     await t.step("check generated files", async () => {
@@ -160,14 +161,22 @@ Deno.test({
 });
 
 Deno.test({
-  name: "fresh-init --twind",
+  name: "fresh-init --twind --vscode",
   async fn(t) {
     // Preparation
     const tmpDirName = await Deno.makeTempDir();
 
     await t.step("execute init command", async () => {
       const cliProcess = Deno.run({
-        cmd: ["deno", "run", "-A", "init.ts", tmpDirName, "--twind"],
+        cmd: [
+          "deno",
+          "run",
+          "-A",
+          "init.ts",
+          tmpDirName,
+          "--twind",
+          "--vscode",
+        ],
         stdout: "null",
       });
       const { code } = await cliProcess.status();
@@ -221,9 +230,16 @@ Deno.test({
               { "type": "file", "name": "twind.ts" },
             ],
           },
+          {
+            "type": "directory",
+            "name": ".vscode",
+            "contents": [
+              { "type": "file", "name": "settings.json" },
+              { "type": "file", "name": "extensions.json" },
+            ],
+          },
         ],
       },
-      { "type": "report", "directories": 4, "files": 9 },
     ];
 
     await t.step("check generated files", async () => {
