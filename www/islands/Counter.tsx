@@ -15,7 +15,7 @@ export default function Counter(props: CounterProps) {
   return (
     <div
       class={tw
-        `bg-gray-100 p-4 border border-gray-200 flex items-center justify-around`}
+        `bg-gray-100 p-4 flex items-center justify-around`}
     >
       <RoundedButton
         title="Subtract 1"
