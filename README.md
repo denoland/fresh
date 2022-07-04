@@ -6,8 +6,6 @@ The next-gen web framework.
 
 [Documentation](#documentation) | [Getting started](#getting-started)
 
-<p align="center"><img  src="./www/static/logo.svg" height="200px" alt="the fresh logo: a sliced lemon dripping with juice"></p>
-
 **Fresh** is a next generation web framework, built for speed, reliability, and
 simplicity.
 
