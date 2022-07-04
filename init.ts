@@ -86,7 +86,9 @@ const useVSCode = flags.vscode === null
 await Deno.mkdir(join(directory, "routes", "api"), { recursive: true });
 await Deno.mkdir(join(directory, "islands"), { recursive: true });
 await Deno.mkdir(join(directory, "static"), { recursive: true });
-if (useVSCode) await Deno.mkdir(join(directory, ".vscode"), { recursive: true });
+if (useVSCode) {
+  await Deno.mkdir(join(directory, ".vscode"), { recursive: true });
+}
 if (useTwind) await Deno.mkdir(join(directory, "utils"), { recursive: true });
 
 const importMap = {
@@ -356,7 +358,7 @@ const VSCODE_SETTINGS = JSON.stringify(vscodeSettings, null, 2) + "\n";
 if (useVSCode) {
   await Deno.writeTextFile(
     join(directory, ".vscode", "settings.json"),
-    VSCODE_SETTINGS
+    VSCODE_SETTINGS,
   );
 }
 
@@ -369,7 +371,7 @@ const VSCODE_EXTENSIONS = JSON.stringify(vscodeExtensions, null, 2) + "\n";
 if (useVSCode) {
   await Deno.writeTextFile(
     join(directory, ".vscode", "extensions.json"),
-    VSCODE_EXTENSIONS
+    VSCODE_EXTENSIONS,
   );
 }
 
