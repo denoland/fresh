@@ -400,6 +400,11 @@ export class ServerContext {
           if (route.component === undefined) {
             throw new Error("This page does not have a component to render.");
           }
+
+          if (typeof route.component === 'function' && route.component.constructor.name === "AsyncFunction") {
+            throw new Error("Async components are not supported.");
+          }
+
           const preloads: string[] = [];
           const resp = await internalRender({
             route,
