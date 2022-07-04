@@ -4,8 +4,6 @@
 
 <img align="right" src="./www/static/logo.svg" height="150px" alt="the fresh logo: a sliced lemon dripping with juice">
 
-The next-gen web framework.
-
 **Fresh** is a next generation web framework, built for speed, reliability, and
 simplicity.
 
