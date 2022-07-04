@@ -17,7 +17,7 @@ Some stand-out features:
 - Island based client hydration for maximum interactivity.
 - Zero runtime overhead: no JS is shipped to the client by default.
 - No build step.
-- No configuration is necessary.
+- No configuration necessary.
 - TypeScript support out of the box.
 - File-system routing à la Next.js.
 
