@@ -9,6 +9,7 @@ import LemonDrop from "../islands/LemonDrop.tsx";
 import Footer from "../components/Footer.tsx";
 import { Leaf } from "../components/Icons.tsx";
 import VERSIONS from "../../versions.json" assert { type: "json" };
+import { STATUS_TEMPORARY_REDIRECT } from "../../status.ts";
 
 export const handler: Handlers = {
   GET(req, ctx) {
@@ -16,8 +17,8 @@ export const handler: Handlers = {
     if (accept && !accept.includes("text/html")) {
       const path = `https://deno.land/x/fresh@${VERSIONS[0]}/init.ts`;
       return new Response(`Redirecting to ${path}`, {
-        headers: { "Location": path },
-        status: 307,
+        headers: { Location: path },
+        status: STATUS_TEMPORARY_REDIRECT,
       });
     }
     return ctx.render();
@@ -84,9 +85,7 @@ function ListItem(props: ListItemProps) {
   return (
     <div class={tw`flex mt-3`}>
       <Leaf />
-      <div class={tw`pl-4 flex-1`}>
-        {props.children}
-      </div>
+      <div class={tw`pl-4 flex-1`}>{props.children}</div>
     </div>
   );
 }
@@ -109,9 +108,7 @@ function Intro() {
         />
       </picture>
 
-      <h2 class={title}>
-        The next-gen web framework.
-      </h2>
+      <h2 class={title}>The next-gen web framework.</h2>
 
       <p class={tw`text-gray-600`}>
         Fresh is a next generation web framework, built for speed, reliability,
@@ -190,7 +187,10 @@ function GettingStarted(props: { origin: string }) {
       </p>
       <p class={tw`text-gray-600`}>
         A more in-depth getting started guide is available in{" "}
-        <a href="/docs" class={tw`text-blue-600 hover:underline`}>the docs</a>.
+        <a href="/docs" class={tw`text-blue-600 hover:underline`}>
+          the docs
+        </a>
+        .
       </p>
     </section>
   );

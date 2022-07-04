@@ -14,6 +14,10 @@ import {
   TABLE_OF_CONTENTS,
   TableOfContentsEntry,
 } from "../../data/docs.ts";
+import {
+  STATUS_NOT_FOUND,
+  STATUS_TEMPORARY_REDIRECT,
+} from "../../../status.ts";
 
 interface Data {
   page: Page;
@@ -29,14 +33,14 @@ export const handler: Handlers<Data> = {
     const slug = ctx.params.slug;
     if (slug === "") {
       return new Response("", {
-        status: 307,
+        status: STATUS_TEMPORARY_REDIRECT,
         headers: { location: "/docs/introduction" },
       });
     }
     const entry = TABLE_OF_CONTENTS[slug];
     if (!entry) {
       return new Response("404 Page not found", {
-        status: 404,
+        status: STATUS_NOT_FOUND,
       });
     }
     const url = new URL(`../../../${entry.file}`, import.meta.url);
@@ -78,12 +82,7 @@ export default function DocsPage(props: PageProps<Data>) {
 function Logo() {
   return (
     <a href="/" class={tw`flex mr-3 items-center`}>
-      <img
-        src="/logo.svg"
-        alt="Fresh logo"
-        width={40}
-        height={40}
-      />
+      <img src="/logo.svg" alt="Fresh logo" width={40} height={40} />
     </a>
   );
 }

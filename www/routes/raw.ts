@@ -1,6 +1,7 @@
 import { RouteConfig } from "$fresh/server.ts";
 import { Handlers } from "$fresh/server.ts";
 import { parse } from "$semver/mod.ts";
+import { STATUS_BAD_REQUEST, STATUS_NOT_FOUND } from "../../status.ts";
 import VERSIONS from "../../versions.json" assert { type: "json" };
 
 const BASE_URL = "https://raw.githubusercontent.com/denoland/fresh/";
@@ -13,11 +14,11 @@ export const handler: Handlers = {
 
     const semver = parse(version, { includePrerelease: true, loose: false });
     if (!semver) {
-      return new Response("Invalid version", { status: 400 });
+      return new Response("Invalid version", { status: STATUS_BAD_REQUEST });
     }
 
     if (!VERSIONS.includes(semver.version)) {
-      return new Response("Version not found", { status: 404 });
+      return new Response("Version not found", { status: STATUS_NOT_FOUND });
     }
 
     const url = `${BASE_URL}${semver.version}/${path}`;

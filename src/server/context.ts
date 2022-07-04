@@ -32,6 +32,13 @@ import {
 import { render as internalRender } from "./render.tsx";
 import { ContentSecurityPolicyDirectives, SELF } from "../runtime/csp.ts";
 import { ASSET_CACHE_BUST_KEY, INTERNAL_PREFIX } from "../runtime/utils.ts";
+import {
+  STATUS_INTERNAL_SERVER_ERROR,
+  STATUS_NOT_FOUND,
+  STATUS_NOT_MODIFIED,
+  STATUS_OK,
+  STATUS_TEMPORARY_REDIRECT,
+} from "../../status.ts";
 
 interface RouterState {
   state: Record<string, unknown>;
@@ -112,19 +119,21 @@ export class ServerContext {
       const baseRoute = path.substring(1, path.length - extname(path).length);
       const name = baseRoute.replace("/", "-");
       const isMiddleware = path.endsWith("/_middleware.tsx") ||
-        path.endsWith("/_middleware.ts") || path.endsWith("/_middleware.jsx") ||
+        path.endsWith("/_middleware.ts") ||
+        path.endsWith("/_middleware.jsx") ||
         path.endsWith("/_middleware.js");
       if (!path.startsWith("/_") && !isMiddleware) {
-        const { default: component, config } = (module as RouteModule);
+        const { default: component, config } = module as RouteModule;
         let pattern = pathToPattern(baseRoute);
         if (config?.routeOverride) {
           pattern = String(config.routeOverride);
         }
-        let { handler } = (module as RouteModule);
+        let { handler } = module as RouteModule;
         handler ??= {};
         if (
           component &&
-          typeof handler === "object" && handler.GET === undefined
+          typeof handler === "object" &&
+          handler.GET === undefined
         ) {
           handler.GET = (_req, { render }) => render();
         }
@@ -140,19 +149,23 @@ export class ServerContext {
       } else if (isMiddleware) {
         middlewares.push({
           ...middlewarePathToPattern(baseRoute),
-          ...module as MiddlewareModule,
+          ...(module as MiddlewareModule),
         });
       } else if (
-        path === "/_app.tsx" || path === "/_app.ts" ||
-        path === "/_app.jsx" || path === "/_app.js"
+        path === "/_app.tsx" ||
+        path === "/_app.ts" ||
+        path === "/_app.jsx" ||
+        path === "/_app.js"
       ) {
         app = module as AppModule;
       } else if (
-        path === "/_404.tsx" || path === "/_404.ts" ||
-        path === "/_404.jsx" || path === "/_404.js"
+        path === "/_404.tsx" ||
+        path === "/_404.ts" ||
+        path === "/_404.jsx" ||
+        path === "/_404.js"
       ) {
-        const { default: component, config } = (module as UnknownPageModule);
-        let { handler } = (module as UnknownPageModule);
+        const { default: component, config } = module as UnknownPageModule;
+        let { handler } = module as UnknownPageModule;
         if (component && handler === undefined) {
           handler = (_req, { render }) => render();
         }
@@ -166,11 +179,13 @@ export class ServerContext {
           csp: Boolean(config?.csp ?? false),
         };
       } else if (
-        path === "/_500.tsx" || path === "/_500.ts" ||
-        path === "/_500.jsx" || path === "/_500.js"
+        path === "/_500.tsx" ||
+        path === "/_500.ts" ||
+        path === "/_500.jsx" ||
+        path === "/_500.js"
       ) {
-        const { default: component, config } = (module as ErrorPageModule);
-        let { handler } = (module as ErrorPageModule);
+        const { default: component, config } = module as ErrorPageModule;
+        let { handler } = module as ErrorPageModule;
         if (component && handler === undefined) {
           handler = (_req, { render }) => render();
         }
@@ -226,14 +241,13 @@ export class ServerContext {
         const stat = await Deno.stat(localUrl);
         const contentType = mediaTypeLookup(extname(path)) ??
           "application/octet-stream";
-        const etag = await crypto.subtle.digest(
-          "SHA-1",
-          encoder.encode(BUILD_ID + path),
-        ).then((hash) =>
-          Array.from(new Uint8Array(hash))
-            .map((byte) => byte.toString(16).padStart(2, "0"))
-            .join("")
-        );
+        const etag = await crypto.subtle
+          .digest("SHA-1", encoder.encode(BUILD_ID + path))
+          .then((hash) =>
+            Array.from(new Uint8Array(hash))
+              .map((byte) => byte.toString(16).padStart(2, "0"))
+              .join("")
+          );
         const staticFile: StaticFile = {
           localUrl,
           path,
@@ -278,7 +292,7 @@ export class ServerContext {
       const url = new URL(req.url);
       if (url.pathname.length > 1 && url.pathname.endsWith("/")) {
         url.pathname = url.pathname.slice(0, -1);
-        return Response.redirect(url.href, 307);
+        return Response.redirect(url.href, STATUS_TEMPORARY_REDIRECT);
       }
       return withMiddlewares(req, connInfo, inner);
     };
@@ -372,7 +386,8 @@ export class ServerContext {
     // - one serving the file at its location without a "cache bursting" mechanism
     // - one containing the BUILD_ID in the path that can be cached
     for (
-      const { localUrl, path, size, contentType, etag } of this.#staticFiles
+      const { localUrl, path, size, contentType, etag } of this
+        .#staticFiles
     ) {
       const route = sanitizePathToRegex(path);
       routes[`GET@${route}`] = this.#staticFileHandler(
@@ -439,7 +454,7 @@ export class ServerContext {
     };
 
     for (const route of this.#routes) {
-      const createRender = genRender(route, 200);
+      const createRender = genRender(route, STATUS_OK);
       if (typeof route.handler === "function") {
         routes[route.pattern] = (req, ctx, params) =>
           (route.handler as Handler)(req, {
@@ -459,20 +474,17 @@ export class ServerContext {
       }
     }
 
-    const unknownHandlerRender = genRender(this.#notFound, 404);
-    const unknownHandler: router.Handler<RouterState> = (
-      req,
-      ctx,
-    ) =>
-      this.#notFound.handler(
-        req,
-        {
-          ...ctx,
-          render: unknownHandlerRender(req, {}),
-        },
-      );
+    const unknownHandlerRender = genRender(this.#notFound, STATUS_NOT_FOUND);
+    const unknownHandler: router.Handler<RouterState> = (req, ctx) =>
+      this.#notFound.handler(req, {
+        ...ctx,
+        render: unknownHandlerRender(req, {}),
+      });
 
-    const errorHandlerRender = genRender(this.#error, 500);
+    const errorHandlerRender = genRender(
+      this.#error,
+      STATUS_INTERNAL_SERVER_ERROR,
+    );
     const errorHandler: router.ErrorHandler<RouterState> = (
       req,
       ctx,
@@ -483,14 +495,11 @@ export class ServerContext {
         "color:red",
         error,
       );
-      return this.#error.handler(
-        req,
-        {
-          ...ctx,
-          error,
-          render: errorHandlerRender(req, {}, error),
-        },
-      );
+      return this.#error.handler(req, {
+        ...ctx,
+        error,
+        render: errorHandlerRender(req, {}, error),
+      });
     };
 
     return [routes, unknownHandler, errorHandler];
@@ -526,7 +535,7 @@ export class ServerContext {
       }
       const ifNoneMatch = req.headers.get("if-none-match");
       if (ifNoneMatch === etag || ifNoneMatch === "W/" + etag) {
-        return new Response(null, { status: 304, headers });
+        return new Response(null, { status: STATUS_NOT_MODIFIED, headers });
       } else {
         const file = await Deno.open(localUrl);
         headers.set("content-length", String(size));
@@ -555,14 +564,17 @@ export class ServerContext {
         }
 
         res = new Response(file, {
-          status: 200,
+          status: STATUS_OK,
           headers,
         });
       }
 
-      return res ?? new Response(null, {
-        status: 404,
-      });
+      return (
+        res ??
+          new Response(null, {
+            status: STATUS_NOT_FOUND,
+          })
+      );
     };
   };
 }
@@ -639,17 +651,18 @@ function pathToPattern(path: string): string {
   if (parts[parts.length - 1] === "index") {
     parts.pop();
   }
-  const route = "/" + parts
-    .map((part) => {
-      if (part.startsWith("[...") && part.endsWith("]")) {
-        return `:${part.slice(4, part.length - 1)}*`;
-      }
-      if (part.startsWith("[") && part.endsWith("]")) {
-        return `:${part.slice(1, part.length - 1)}`;
-      }
-      return part;
-    })
-    .join("/");
+  const route = "/" +
+    parts
+      .map((part) => {
+        if (part.startsWith("[...") && part.endsWith("]")) {
+          return `:${part.slice(4, part.length - 1)}*`;
+        }
+        if (part.startsWith("[") && part.endsWith("]")) {
+          return `:${part.slice(1, part.length - 1)}`;
+        }
+        return part;
+      })
+      .join("/");
   return route;
 }
 
@@ -666,14 +679,14 @@ export function normalizeURLPath(path: string): string | null {
 
 function sanitizePathToRegex(path: string): string {
   return path
-    .replaceAll("\*", "\\*")
-    .replaceAll("\+", "\\+")
-    .replaceAll("\?", "\\?")
-    .replaceAll("\{", "\\{")
-    .replaceAll("\}", "\\}")
-    .replaceAll("\(", "\\(")
-    .replaceAll("\)", "\\)")
-    .replaceAll("\:", "\\:");
+    .replaceAll("*", "\\*")
+    .replaceAll("+", "\\+")
+    .replaceAll("?", "\\?")
+    .replaceAll("{", "\\{")
+    .replaceAll("}", "\\}")
+    .replaceAll("(", "\\(")
+    .replaceAll(")", "\\)")
+    .replaceAll(":", "\\:");
 }
 
 function serializeCSPDirectives(csp: ContentSecurityPolicyDirectives): string {
