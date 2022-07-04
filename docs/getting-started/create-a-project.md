@@ -7,15 +7,16 @@ description: |
 New Fresh projects can be created by using the fresh project creation tool. It
 will scaffold out a new project with some example files to get you started.
 
-To create a new project in the directory `"my-project"`, run:
+To create a new project, run:
 
 ```
-$ deno run -A -r https://fresh.deno.dev my-project
-The manifest has been generated for 3 routes and 1 islands.
-
-Project created!
-Run `deno task start` in the project directory to get started.
+deno run -A -r https://fresh.deno.dev my-project
+cd my-project
+deno task start
 ```
+
+This will scaffold out the new project, then switch into the newly created
+directory, and then start the development server.
 
 This will create a directory containing some files and directories. There are 4
 files that are strictly necessary to run a fresh project:

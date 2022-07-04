@@ -9,7 +9,7 @@ on the file extension of the file on disk. Assets are also automatically
 streamed from disk to the client to improve performance and efficiency for both
 user and server.
 
-Fresh also adds an `etag` header to assets automatically, and handles the
+Fresh also adds an `etag` header to assets automatically and handles the
 `If-None-Match` header for incoming requests.
 
 ### Caching
@@ -19,7 +19,7 @@ in many scenarios, so fresh makes it easy to serve assets with long cache
 lifetimes too.
 
 The first approach to do this is manual. The client runtime exports an `asset`
-function that takes an absolute path to the static asset, and returns a "locked"
+function that takes an absolute path to the static asset and returns a "locked"
 version of this path that contains a build ID for cache busting. When the asset
 is requested at this "locked" path, it will be served with a cache lifetime of
 one year.
