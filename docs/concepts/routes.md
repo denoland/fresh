@@ -74,7 +74,7 @@ import { h } from "preact";
 import { HandlerContext, Handlers, PageProps } from "$fresh/server.ts";
 
 export const handler: Handlers = {
-  async GET(ctx: HandlerContext) {
+  async GET(_req: Request, ctx: HandlerContext) {
     const resp = await ctx.render();
     resp.headers.set("X-Custom-Header", "Hello World");
     return resp;
