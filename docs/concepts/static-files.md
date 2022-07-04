@@ -15,7 +15,7 @@ Fresh also adds an `etag` header to assets automatically and handles the
 ### Caching
 
 By default, no caching headers are added to assets. This can be disadvantageous
-in many scenarios, so fresh makes it easy to serve assets with long cache
+in many scenarios, so Fresh makes it easy to serve assets with long cache
 lifetimes too.
 
 The first approach to do this is manual. The client runtime exports an `asset`

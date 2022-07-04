@@ -11,7 +11,7 @@ you get the choice of shipping no JavaScript to the client or shipping a
 renderer for the entire page.
 
 This is not very flexible, especially considering that most pages will only have
-small pieces of content that require interactivity. For example an otherwise
+small pieces of content that require interactivity. For example, an otherwise
 static page might need a little bit of JavaScript to power an image carousel or
 "buy now" button. This model is often called
 [islands architecture][islands-architecture]. This refers to a page having

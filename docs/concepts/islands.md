@@ -9,7 +9,7 @@ components in Fresh, as they are usually just rendered on the server.
 
 Islands are defined by creating a file in the `islands/` folder in a Fresh
 project. The name of this file must be a PascalCase name of the island. The file
-must have a default export that is a regular preact component.
+must have a default export that is a regular Preact component.
 
 ```tsx
 // islands/MyIsland.tsx
