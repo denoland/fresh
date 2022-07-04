@@ -46,10 +46,12 @@ export default function Countdown(props: { target: string }) {
   // date as long as the component is mounted.
   useEffect(() => {
     const timer = setInterval(() => {
-      setNow(new Date());
-      if (now > target) {
-        clearInterval(timer);
-      }
+      setNow((now) => {
+        if (now > target) {
+          clearInterval(timer);
+        }
+        return new Date();
+      });
     }, 1000);
     return () => clearInterval(timer);
   }, [props.target]);
