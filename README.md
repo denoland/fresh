@@ -1,10 +1,10 @@
+[Documentation](#documentation) | [Getting started](#getting-started)
+
 # fresh
 
 <img align="right" src="./www/static/logo.svg" height="150px" alt="the fresh logo: a sliced lemon dripping with juice">
 
 The next-gen web framework.
-
-[Documentation](#documentation) | [Getting started](#getting-started)
 
 **Fresh** is a next generation web framework, built for speed, reliability, and
 simplicity.
