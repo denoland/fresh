@@ -1,32 +1,30 @@
 # fresh
 
-[Documentation](#documentation) | [Getting started](#getting-started)
+<img align="right" src="./www/static/logo.svg" height="150px" alt="the fresh logo: a sliced lemon dripping with juice">
 
-### The next-gen web framework.
+The next-gen web framework.
+
+[Documentation](#documentation) | [Getting started](#getting-started)
 
 <p align="center"><img  src="./www/static/logo.svg" height="200px" alt="the fresh logo: a sliced lemon dripping with juice"></p>
 
-**Fresh** is a next-generation web framework, built for _speed_, reliability,
-and simplicity.
+**Fresh** is a next generation web framework, built for speed, reliability, and
+simplicity.
 
 Some stand-out features:
 
 - Just-in-time rendering on the edge.
-- Island-based client hydration for maximum interactivity.
+- Island based client hydration for maximum interactivity.
 - Zero runtime overhead: no JS is shipped to the client by default.
 - No build step.
 - No configuration is necessary.
 - TypeScript support out of the box.
 - File-system routing à la Next.js.
 
-<a name="documentation" />
-
 ## 📖 Documentation
 
 The [documentation](https://fresh.deno.dev/docs/) is available on
 [fresh.deno.dev](https://fresh.deno.dev/).
-
-<a name="getting-started" />
 
 ## 🚀 Getting started
 
