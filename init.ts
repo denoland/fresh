@@ -128,7 +128,6 @@ await Deno.writeTextFile(
 
 const COMPONENTS_BUTTON_TSX = `/** @jsx h */
 import { h } from "preact";
-import { IS_BROWSER } from "$fresh/runtime.ts";
 ${useTwind ? 'import { tw } from "@twind";\n' : ""}
 
 export function Button(props: h.JSX.HTMLAttributes<HTMLButtonElement>) {
