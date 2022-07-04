@@ -7,7 +7,7 @@ description: |
 Up to now none of the pages in the demo project have contained any client side
 JavaScript. This is great for resiliency and performance, but it can also limit
 the possibilities of interactivity. In many current generation web frameworks,
-you get the choice of shipping no JavaScript to the client, or shipping a
+you get the choice of shipping no JavaScript to the client or shipping a
 renderer for the entire page.
 
 This is not very flexible, especially considering that most pages will only have
