@@ -9,16 +9,16 @@ Deno.test("selectMiddlewares", () => {
     "_middleware",
     "api/_middleware",
     "api/[id]/_middleware",
+    "api/[id]/[path]/_middleware",
 
     // should not select
     "api/xyz/_middleware",
     "api/[id]/xyz/_middleware",
-    "api/[id]/[path]/_middleware",
     "api/[id]/[path]/foo/_middleware",
   ];
   const mwRoutes = middlewaresPath.map((path) =>
     middlewarePathToPattern(path)
   ) as MiddlewareRoute[];
   const mws = selectMiddlewares(url, mwRoutes);
-  assert(mws.length === 3);
+  assert(mws.length === 4);
 });
