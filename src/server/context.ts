@@ -677,7 +677,10 @@ function sanitizePathToRegex(path: string): string {
 }
 
 function toPascalCase(text: string): string {
-  return text.replace(/(^\w|-\w)/g, (substring) => substring.replace(/-/, "").toUpperCase());
+  return text.replace(
+    /(^\w|-\w)/g,
+    (substring) => substring.replace(/-/, "").toUpperCase(),
+  );
 }
 
 function sanitizeIslandName(name: string): string {
