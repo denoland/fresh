@@ -1,0 +1,7 @@
+export const STATUS_OK = 200; // RFC 7231, 6.3.1
+export const STATUS_NOT_MODIFIED = 304; // RFC 7232, 4.1
+export const STATUS_TEMPORARY_REDIRECT = 307; // RFC 7231, 6.4.7
+export const STATUS_BAD_REQUEST = 400; // RFC 7231, 6.5.1
+export const STATUS_NOT_FOUND = 404; // RFC 7231, 6.5.4
+export const STATUS_METHOD_NOT_ALLOWED = 405; // RFC 7231, 6.5.5
+export const STATUS_INTERNAL_SERVER_ERROR = 500; // RFC 7231, 6.6.1
