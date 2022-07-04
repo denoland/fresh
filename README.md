@@ -23,10 +23,16 @@ The [documentation](https://fresh.deno.dev/docs/) is available on
 ## Getting started
 
 You can scaffold a new project by running the Fresh init script. To scaffold a
-project in the `myproject` folder, run the following:
+project in the `my-project` folder, run the following:
 
 ```sh
 deno run -A -r https://fresh.deno.dev my-project
+```
+
+Go to `my-project` folder:
+
+```
+cd my-project
 ```
 
 To now start the project, use `deno task`:
