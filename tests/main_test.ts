@@ -1,5 +1,4 @@
-import { ServerContext } from "../server.ts";
-import { Status } from "../src/server/deps.ts";
+import { ServerContext,Status } from "../server.ts";
 import { assert, assertEquals, assertStringIncludes } from "./deps.ts";
 import manifest from "./fixture/fresh.gen.ts";
 import options from "./fixture/options.ts";

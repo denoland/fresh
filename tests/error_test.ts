@@ -1,6 +1,5 @@
-import { ServerContext } from "../server.ts";
+import { ServerContext,Status } from "../server.ts";
 import { REFRESH_JS_URL } from "../src/server/constants.ts";
-import { Status } from "../src/server/deps.ts";
 import { assert, assertEquals, assertStringIncludes } from "./deps.ts";
 import manifest from "./fixture_error/fresh.gen.ts";
 
