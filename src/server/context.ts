@@ -402,7 +402,7 @@ export class ServerContext {
           }
 
           if (typeof route.component === 'function' && route.component.constructor.name === "AsyncFunction") {
-            throw new Error("Async components are not supported.");
+            throw new Error("Async components are not supported. Fetch data inside of the loader, as described in the docs: https://fresh.deno.dev/docs/getting-started/fetching-data");
           }
 
           const preloads: string[] = [];
