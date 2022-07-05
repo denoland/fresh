@@ -23,4 +23,7 @@ await start(routes, {
     const newSnapshot = sheet.reset();
     ctx.state.set("twindSnapshot", newSnapshot);
   },
+  router: {
+    trailingSlash: true
+  }
 });

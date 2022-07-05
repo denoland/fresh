@@ -26,6 +26,7 @@ import {
   RenderFunction,
   Route,
   RouteModule,
+  RouterOptions,
   UnknownPage,
   UnknownPageModule,
 } from "./types.ts";
@@ -61,6 +62,7 @@ export class ServerContext {
   #app: AppModule;
   #notFound: UnknownPage;
   #error: ErrorPage;
+  #routerOptions: RouterOptions
 
   constructor(
     routes: Route[],
@@ -72,6 +74,7 @@ export class ServerContext {
     notFound: UnknownPage,
     error: ErrorPage,
     importMapURL: URL,
+    routerOptions: RouterOptions
   ) {
     this.#routes = routes;
     this.#islands = islands;
@@ -83,6 +86,7 @@ export class ServerContext {
     this.#error = error;
     this.#bundler = new Bundler(this.#islands, importMapURL);
     this.#dev = typeof Deno.env.get("DENO_DEPLOYMENT_ID") !== "string"; // Env var is only set in prod (on Deploy).
+    this.#routerOptions = routerOptions;    
   }
 
   /**
@@ -261,6 +265,7 @@ export class ServerContext {
       notFound,
       error,
       importMapURL,
+      opts.router ?? DEFAULT_ROUTER_OPTIONS,
     );
   }
 
@@ -271,15 +276,19 @@ export class ServerContext {
   handler(): RequestHandler {
     const inner = router.router<RouterState>(...this.#handlers());
     const withMiddlewares = this.#composeMiddlewares(this.#middlewares);
+    const trailingSlashEnabled = this.#routerOptions?.trailingSlash
     return function handler(req: Request, connInfo: ConnInfo) {
       // Redirect requests that end with a trailing slash
       // to their non-trailing slash counterpart.
       // Ex: /about/ -> /about
       const url = new URL(req.url);
-      if (url.pathname.length > 1 && url.pathname.endsWith("/")) {
+      if (url.pathname.length > 1 && url.pathname.endsWith("/") && !trailingSlashEnabled) {
         url.pathname = url.pathname.slice(0, -1);
         return Response.redirect(url.href, 307);
+      } else if (trailingSlashEnabled && !url.pathname.endsWith("/")) {
+        return Response.redirect(url.href + '/', 308);
       }
+      
       return withMiddlewares(req, connInfo, inner);
     };
   }
@@ -310,7 +319,7 @@ export class ServerContext {
       };
 
       for (const mw of mws) {
-        handlers.push(() => mw.handler(req, ctx));
+        handlers.push(() => mw.handler(req, ctx));        
       }
 
       handlers.push(() => inner(req, ctx));
@@ -449,6 +458,10 @@ export class ServerContext {
     };
 
     for (const route of this.#routes) {
+      
+      if(this.#routerOptions.trailingSlash) 
+        route.pattern += '/'
+      
       const createRender = genRender(route, 200);
       if (typeof route.handler === "function") {
         routes[route.pattern] = (req, ctx, params) =>
@@ -580,6 +593,10 @@ export class ServerContext {
 const DEFAULT_RENDER_FN: RenderFunction = (_ctx, render) => {
   render();
 };
+
+const DEFAULT_ROUTER_OPTIONS: RouterOptions = {
+  trailingSlash: false
+}
 
 const DEFAULT_APP: AppModule = {
   default: ({ Component }) => h(Component, {}),
