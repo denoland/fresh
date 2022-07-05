@@ -351,6 +351,7 @@ await Deno.writeTextFile(
 
 const vscodeSettings = {
   "deno.enable": true,
+  "deno.importMap": "./import_map.json"
 };
 
 const VSCODE_SETTINGS = JSON.stringify(vscodeSettings, null, 2) + "\n";
