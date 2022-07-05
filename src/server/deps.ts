@@ -6,6 +6,7 @@ export {
 } from "https://deno.land/std@0.128.0/path/mod.ts";
 export { walk } from "https://deno.land/std@0.128.0/fs/walk.ts";
 export { serve } from "https://deno.land/std@0.128.0/http/server.ts";
+export { Status } from "https://deno.land/std@0.128.0/http/http_status.ts";
 export type {
   ConnInfo,
   Handler as RequestHandler,

@@ -1,4 +1,4 @@
-import { STATUS_OK } from "../status.ts";
+import { Status } from "../src/server/deps.ts";
 import {
   assert,
   assertEquals,
@@ -134,7 +134,7 @@ Deno.test({
       // Access the root page
       const res = await fetch("http://localhost:8000");
       await res.body?.cancel();
-      assertEquals(res.status, STATUS_OK);
+      assertEquals(res.status, Status.OK);
 
       // verify the island is revived.
       const browser = await puppeteer.launch({ args: ["--no-sandbox"] });
@@ -276,7 +276,7 @@ Deno.test({
       // Access the root page
       const res = await fetch("http://localhost:8000");
       await res.body?.cancel();
-      assertEquals(res.status, STATUS_OK);
+      assertEquals(res.status, Status.OK);
 
       // verify the island is revived.
       const browser = await puppeteer.launch({ args: ["--no-sandbox"] });

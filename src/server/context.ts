@@ -5,6 +5,7 @@ import {
   mediaTypeLookup,
   RequestHandler,
   router,
+  Status,
   toFileUrl,
   walk,
 } from "./deps.ts";
@@ -32,8 +33,6 @@ import {
 import { render as internalRender } from "./render.tsx";
 import { ContentSecurityPolicyDirectives, SELF } from "../runtime/csp.ts";
 import { ASSET_CACHE_BUST_KEY, INTERNAL_PREFIX } from "../runtime/utils.ts";
-import { STATUS_INTERNAL_SERVER_ERROR, STATUS_NOT_FOUND, STATUS_OK, STATUS_TEMPORARY_REDIRECT } from "../../status.ts";
-
 interface RouterState {
   state: Record<string, unknown>;
 }
@@ -279,7 +278,7 @@ export class ServerContext {
       const url = new URL(req.url);
       if (url.pathname.length > 1 && url.pathname.endsWith("/")) {
         url.pathname = url.pathname.slice(0, -1);
-        return Response.redirect(url.href, STATUS_TEMPORARY_REDIRECT);
+        return Response.redirect(url.href, Status.TemporaryRedirect);
       }
       return withMiddlewares(req, connInfo, inner);
     };
@@ -440,7 +439,7 @@ export class ServerContext {
     };
 
     for (const route of this.#routes) {
-      const createRender = genRender(route, STATUS_OK);
+      const createRender = genRender(route, Status.OK);
       if (typeof route.handler === "function") {
         routes[route.pattern] = (req, ctx, params) =>
           (route.handler as Handler)(req, {
@@ -460,7 +459,7 @@ export class ServerContext {
       }
     }
 
-    const unknownHandlerRender = genRender(this.#notFound, STATUS_NOT_FOUND);
+    const unknownHandlerRender = genRender(this.#notFound, Status.NotFound);
     const unknownHandler: router.Handler<RouterState> = (
       req,
       ctx,
@@ -473,7 +472,7 @@ export class ServerContext {
         },
       );
 
-    const errorHandlerRender = genRender(this.#error, STATUS_INTERNAL_SERVER_ERROR);
+    const errorHandlerRender = genRender(this.#error, Status.InternalServerError);
     const errorHandler: router.ErrorHandler<RouterState> = (
       req,
       ctx,
