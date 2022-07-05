@@ -76,7 +76,7 @@ export interface HandlerContext<Data = unknown, State = Record<string, unknown>>
 // deno-lint-ignore no-explicit-any
 export type Handler<T = any, State = Record<string, unknown>> = (
   req: Request,
-  ctx: HandlerContext<T, State>
+  ctx: HandlerContext<T, State>,
 ) => Response | Promise<Response>;
 
 // deno-lint-ignore no-explicit-any
@@ -130,7 +130,7 @@ export interface UnknownHandlerContext<State = Record<string, unknown>>
 
 export type UnknownHandler = (
   req: Request,
-  ctx: UnknownHandlerContext
+  ctx: UnknownHandlerContext,
 ) => Response | Promise<Response>;
 
 export interface UnknownPageModule {
@@ -170,7 +170,7 @@ export interface ErrorHandlerContext<State = Record<string, unknown>>
 }
 export type ErrorHandler = (
   req: Request,
-  ctx: ErrorHandlerContext
+  ctx: ErrorHandlerContext,
 ) => Response | Promise<Response>;
 
 export interface ErrorPageModule {
@@ -211,14 +211,14 @@ export interface MiddlewareRoute extends Middleware {
 export interface MiddlewareModule<State = any> {
   handler(
     req: Request,
-    ctx: MiddlewareHandlerContext<State>
+    ctx: MiddlewareHandlerContext<State>,
   ): Response | Promise<Response>;
 }
 
 export interface Middleware<State = Record<string, unknown>> {
   handler(
     req: Request,
-    ctx: MiddlewareHandlerContext<State>
+    ctx: MiddlewareHandlerContext<State>,
   ): Response | Promise<Response>;
 }
 
