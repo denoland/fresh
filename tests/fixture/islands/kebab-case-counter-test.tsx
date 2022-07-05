@@ -8,7 +8,9 @@ interface KebabCaseFileNameTestProps {
   id: string;
 }
 
-export default function KebabCaseFileNameTest(props: KebabCaseFileNameTestProps) {
+export default function KebabCaseFileNameTest(
+  props: KebabCaseFileNameTestProps,
+) {
   const [count, setCount] = useState(props.start);
   return (
     <div id={props.id}>
