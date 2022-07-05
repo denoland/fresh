@@ -472,7 +472,10 @@ export class ServerContext {
         },
       );
 
-    const errorHandlerRender = genRender(this.#error, Status.InternalServerError);
+    const errorHandlerRender = genRender(
+      this.#error,
+      Status.InternalServerError,
+    );
     const errorHandler: router.ErrorHandler<RouterState> = (
       req,
       ctx,
