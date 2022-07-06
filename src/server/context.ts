@@ -196,7 +196,7 @@ export class ServerContext {
       }
       const path = url.substring(baseUrl.length).substring("islands".length);
       const baseRoute = path.substring(1, path.length - extname(path).length);
-      const name = baseRoute.replace("/", "");
+      const name = sanitizeIslandName(baseRoute);
       const id = name.toLowerCase();
       if (typeof module.default !== "function") {
         throw new TypeError(
@@ -674,6 +674,18 @@ function sanitizePathToRegex(path: string): string {
     .replaceAll("\(", "\\(")
     .replaceAll("\)", "\\)")
     .replaceAll("\:", "\\:");
+}
+
+function toPascalCase(text: string): string {
+  return text.replace(
+    /(^\w|-\w)/g,
+    (substring) => substring.replace(/-/, "").toUpperCase(),
+  );
+}
+
+function sanitizeIslandName(name: string): string {
+  const fileName = name.replace("/", "");
+  return toPascalCase(fileName);
 }
 
 function serializeCSPDirectives(csp: ContentSecurityPolicyDirectives): string {
