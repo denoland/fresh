@@ -9,7 +9,7 @@ This is the fresh website source. The fresh website contains:
 
 Start the project:
 
-
+```
 deno task start
-
+```
 This will watch the project directory and restart as necessary.
