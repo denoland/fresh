@@ -4,7 +4,7 @@ import { Fragment, h } from "preact";
 import { Handlers, PageProps } from "$fresh/server.ts";
 import { frontMatter, gfm } from "../utils/markdown.ts";
 import { tw } from "@twind";
-import { Head } from "https://deno.land/x/fresh@1.0.1/src/runtime/head.ts";
+import { Head } from "$fresh/runtime.ts";
 
 interface Page {
   markdown: string;
