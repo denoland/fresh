@@ -19,7 +19,9 @@ export default function Joke(props: Props) {
             <p class={text}>{JOKES[index]}</p>
             <button
                 class={btn}
-                onClick={() => setIndex(Math.floor(Math.random() * 10))}
+                onClick={() =>
+                    setIndex(Math.floor(Math.random() * JOKES.length))
+                }
                 disabled={!IS_BROWSER}
             >
                 Another One!
