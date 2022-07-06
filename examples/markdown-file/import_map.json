@@ -1,11 +1,18 @@
 {
   "imports": {
     "$fresh/": "../../",
+
     "preact": "https://esm.sh/preact@10.8.2",
     "preact/": "https://esm.sh/preact@10.8.2/",
     "preact-render-to-string": "https://esm.sh/preact-render-to-string@5.2.0?deps=preact@10.8.2",
+
     "@twind": "./utils/twind.ts",
     "twind": "https://esm.sh/twind@0.16.17",
-    "twind/": "https://esm.sh/twind@0.16.17/"
+    "twind/": "https://esm.sh/twind@0.16.17/",
+
+    "prism": "https://esm.sh/prismjs@1.27.0",
+    "prism/": "https://esm.sh/prismjs@1.27.0/",
+    
+    "gfm": "https://deno.land/x/gfm@0.1.19/mod.ts"
   }
 }
