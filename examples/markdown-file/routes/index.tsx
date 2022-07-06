@@ -4,7 +4,7 @@ import { Fragment, h } from "preact";
 import { Handlers, PageProps } from "$fresh/server.ts";
 import { frontMatter, gfm } from "../utils/markdown.ts";
 import { tw } from "@twind";
-import { Head } from "$fresh/runtime.ts";
+import { asset, Head } from "$fresh/runtime.ts";
 
 interface Page {
   markdown: string;
@@ -46,7 +46,7 @@ export default function MarkdownPage({ data }: PageProps<Page | null>) {
     <>
       <Head>
         <title>Markdown</title>
-        <link rel="stylesheet" href={`/gfm.css?build=${__FRSH_BUILD_ID}`} />
+        <link rel="stylesheet" href={asset("/gfm.css")} />
       </Head>
       <div class={tw`flex flex-col min-h-screen place-items-center`}>
         <main class={main}>
