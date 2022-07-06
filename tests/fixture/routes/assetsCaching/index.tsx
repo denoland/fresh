@@ -1,4 +1,4 @@
-/** @jsx h */
+
 import { h } from "preact";
 import Test from "../../islands/Test.tsx";
 

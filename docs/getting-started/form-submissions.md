@@ -32,7 +32,6 @@ server side:
 ```tsx
 // routes/search.tsx
 
-/** @jsx h */
 import { h } from "preact";
 import { Handlers, PageProps } from "$fresh/server.ts";
 

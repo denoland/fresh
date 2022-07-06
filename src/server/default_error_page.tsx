@@ -1,5 +1,3 @@
-/** @jsx h */
-
 import { h } from "preact";
 import { DEBUG } from "./constants.ts";
 import type { ErrorPageProps } from "./types.ts";

@@ -37,7 +37,6 @@ This is done with JSX.
 ```tsx
 // routes/about.tsx
 
-/** @jsx h */
 import { h } from "preact";
 
 export default function AboutPage() {

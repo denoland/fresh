@@ -1,4 +1,4 @@
-/** @jsx h */
+
 import { renderToString } from "preact-render-to-string";
 import { ComponentChildren, ComponentType, h, options } from "preact";
 import {

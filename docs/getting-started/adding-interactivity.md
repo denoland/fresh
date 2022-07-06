@@ -30,7 +30,6 @@ Here is an example of an island component that counts down to a specific time.
 ```tsx
 // islands/Countdown.tsx
 
-/** @jsx h */
 import { h } from "preact";
 import { useEffect, useState } from "preact/hooks";
 
@@ -75,7 +74,6 @@ client with the correct props:
 ```tsx
 // routes/countdown.tsx
 
-/** @jsx h */
 import { h } from "preact";
 import Countdown from "../islands/Countdown.tsx";
 

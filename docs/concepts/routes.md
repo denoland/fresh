@@ -46,7 +46,6 @@ Now, let's render some HTML using the route component:
 ```tsx
 // routes/html.tsx
 
-/** @jsx h */
 import { h } from "preact";
 import { PageProps } from "$fresh/server.ts";
 
@@ -69,7 +68,6 @@ response after rendering the page component.
 ```tsx
 // routes/html.tsx
 
-/** @jsx h */
 import { h } from "preact";
 import { HandlerContext, Handlers, PageProps } from "$fresh/server.ts";
 

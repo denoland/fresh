@@ -13,7 +13,6 @@ folder. The file must have a default export that is a regular Preact component.
 A props object of type `UnknownPageProps` is passed in as an argument.
 
 ```tsx
-/** @jsx h */
 import { h } from "preact";
 import { UnknownPageProps } from "$fresh/server.ts";
 
@@ -27,7 +26,6 @@ folder. The file must have a default export that is a regular Preact component.
 A props object of type `ErrorPageProps` is passed in as an argument.
 
 ```tsx
-/** @jsx h */
 import { h } from "preact";
 import { ErrorPageProps } from "$fresh/server.ts";
 

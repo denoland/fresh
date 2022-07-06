@@ -14,7 +14,6 @@ must have a default export that is a regular Preact component.
 ```tsx
 // islands/MyIsland.tsx
 
-/** @jsx h */
 import { h } from "preact";
 import { useState } from "preact/hooks";
 

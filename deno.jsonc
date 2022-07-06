@@ -1,4 +1,9 @@
 {
+  "compilerOptions": {
+    "jsx": "react-jsx",
+    "jsxImportSource": "preact",
+    "jsxFactory": "h"
+  },
   "tasks": {
     "test": "deno test -A && deno check --config=www/deno.json www/main.ts www/dev.ts && deno check init.ts",
     "fixture": "deno run -A --watch=static/,routes/ tests/fixture/dev.ts",

@@ -1,4 +1,4 @@
-/** @jsx h */
+
 import { h } from "preact";
 
 export default function Test(props: { message: string }) {

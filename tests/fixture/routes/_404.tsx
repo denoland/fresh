@@ -1,4 +1,4 @@
-/** @jsx h */
+
 import { h } from "preact";
 import { UnknownPageProps } from "$fresh/server.ts";
 

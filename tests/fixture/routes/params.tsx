@@ -1,4 +1,4 @@
-/** @jsx h */
+
 import { HandlerContext, RouteConfig } from "$fresh/server.ts";
 
 export const handler = {

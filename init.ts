@@ -113,8 +113,7 @@ await Deno.writeTextFile(
   IMPORT_MAP_JSON,
 );
 
-let ROUTES_INDEX_TSX = `/** @jsx h */
-import { h } from "preact";\n`;
+let ROUTES_INDEX_TSX = `import { h } from "preact";\n`;
 if (useTwind) ROUTES_INDEX_TSX += `import { tw } from "@twind";\n`;
 ROUTES_INDEX_TSX += `import Counter from "../islands/Counter.tsx";
 
@@ -140,8 +139,7 @@ await Deno.writeTextFile(
   ROUTES_INDEX_TSX,
 );
 
-let ISLANDS_COUNTER_TSX = `/** @jsx h */
-import { h } from "preact";
+let ISLANDS_COUNTER_TSX = `import { h } from "preact";
 import { useState } from "preact/hooks";
 import { IS_BROWSER } from "$fresh/runtime.ts";
 ${useTwind ? 'import { tw } from "@twind";\n' : ""}
@@ -196,8 +194,7 @@ await Deno.writeTextFile(
   ISLANDS_COUNTER_TSX,
 );
 
-const ROUTES_GREET_TSX = `/** @jsx h */
-import { h } from "preact";
+const ROUTES_GREET_TSX = `import { h } from "preact";
 import { PageProps } from "$fresh/server.ts";
 
 export default function Greet(props: PageProps) {
@@ -328,6 +325,11 @@ try {
 }
 
 const config = {
+  compilerOptions: {
+    jsx: "react-jsx",
+    jsxImportSource: "preact",
+    jsxFactory: "h"
+  },
   tasks: {
     start: "deno run -A --watch=static/,routes/ dev.ts",
   },
