@@ -12,7 +12,7 @@
 
     "prism": "https://esm.sh/prismjs@1.27.0",
     "prism/": "https://esm.sh/prismjs@1.27.0/",
-    
+
     "gfm": "https://deno.land/x/gfm@0.1.19/mod.ts"
   }
 }
