@@ -1,4 +1,4 @@
-[Documentation](#documentation) | [Getting started](#getting-started)
+[Documentation](#-documentation) | [Getting started](#-getting-started)
 
 # fresh
 
