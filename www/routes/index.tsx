@@ -169,7 +169,7 @@ function GettingStarted(props: { origin: string }) {
         Then you can use the Fresh init script to bootstrap a new project:
       </p>
       <pre class={tw`overflow-x-auto py-2 px-4 bg(gray-100)`}>
-        {`deno run -A -r ${props.origin} my-app`}
+        {`deno run -A -r ${props.origin} my-project`}
       </pre>
       <p class={tw`text-gray-600`}>
         Enter the newly created project directory and run the following command
