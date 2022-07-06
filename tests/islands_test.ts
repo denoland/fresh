@@ -73,6 +73,12 @@ Deno.test({
       assertStringIncludes(srcString, imgFilePath);
     });
 
+    await t.step("Ensure nested island are revived", async () => {
+      await counterTest("outer1", 100);
+      await counterTest("inner1", 110);
+      await counterTest("top-level-outer", 120);
+    });
+
     await browser.close();
 
     await lines.cancel();

@@ -30,17 +30,24 @@ const ISLAND_PROPS: any[] = JSON.parse(
   ISLAND_PROPS_COMPONENT?.textContent ?? "[]",
 );
 
+function matchFreshTag(node: Node) {
+  return node.nodeType === 8 &&
+    (node as Comment).data.match(/^\s*frsh-(.*)\s*$/);
+}
+
 export function revive(islands: Record<string, ComponentType>) {
   function walk(node: Node | null) {
-    const tag = node!.nodeType === 8 &&
-      ((node as Comment).data.match(/^\s*frsh-(.*)\s*$/) || [])[1];
+    const tag = (matchFreshTag(node!) || [])[1];
     let endNode: Node | null = null;
     if (tag) {
       const startNode = node!;
       const children = [];
       const parent = node!.parentNode;
       // collect all children of the island
-      while ((node = node!.nextSibling) && node.nodeType !== 8) {
+      while (
+        (node = node!.nextSibling) &&
+        (node.nodeType !== 8 || matchFreshTag(node))
+      ) {
         children.push(node);
       }
       startNode.parentNode!.removeChild(startNode); // remove start tag node
