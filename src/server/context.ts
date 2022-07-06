@@ -461,7 +461,7 @@ export class ServerContext {
     };
 
     for (const route of this.#routes) {
-      if (this.#routerOptions.trailingSlash) {
+      if (this.#routerOptions.trailingSlash && route.pattern != "/") {
         route.pattern += "/";
       }
 
