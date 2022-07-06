@@ -38,8 +38,8 @@ To define a handler, one needs to export a `handler` function or object from the
 route module. If the handler is an object, each key in the object is the name of
 the HTTP method that the handler should be called for. For example the `GET`
 handler above is called for `GET` requests. If the handler is a function, it is
-called for all requests regardless of the method. If a HTTP method does not have
-a corresponding handler, a 405 HTTP error is returned.
+called for all requests regardless of the method. If an HTTP method does not
+have a corresponding handler, a 405 HTTP error is returned.
 
 Now, let's render some HTML using the route component:
 
@@ -74,7 +74,7 @@ import { h } from "preact";
 import { HandlerContext, Handlers, PageProps } from "$fresh/server.ts";
 
 export const handler: Handlers = {
-  async GET(ctx: HandlerContext) {
+  async GET(_req: Request, ctx: HandlerContext) {
     const resp = await ctx.render();
     resp.headers.set("X-Custom-Header", "Hello World");
     return resp;

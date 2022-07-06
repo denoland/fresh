@@ -3,7 +3,7 @@ import { denoPlugin, esbuild, toFileUrl } from "./deps.ts";
 import { Island } from "./types.ts";
 
 let esbuildInitalized: boolean | Promise<void> = false;
-async function ensureEsbuildInialized() {
+async function ensureEsbuildInitialized() {
   if (esbuildInitalized === false) {
     if (Deno.run === undefined) {
       esbuildInitalized = esbuild.initialize({
@@ -40,7 +40,7 @@ export class Bundler {
     }
 
     const absWorkingDir = Deno.cwd();
-    await ensureEsbuildInialized();
+    await ensureEsbuildInitialized();
     const bundle = await esbuild.build({
       bundle: true,
       define: { __FRSH_BUILD_ID: `"${BUILD_ID}"` },

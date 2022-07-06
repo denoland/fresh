@@ -105,7 +105,7 @@ export class ServerContext {
     let error: ErrorPage = DEFAULT_ERROR;
     for (const [self, module] of Object.entries(manifest.routes)) {
       const url = new URL(self, baseUrl).href;
-      if (!url.startsWith(baseUrl)) {
+      if (!url.startsWith(baseUrl + "routes")) {
         throw new TypeError("Page is not a child of the basepath.");
       }
       const path = url.substring(baseUrl.length).substring("routes".length);
@@ -690,7 +690,10 @@ function serializeCSPDirectives(csp: ContentSecurityPolicyDirectives): string {
 
 export function middlewarePathToPattern(baseRoute: string) {
   baseRoute = baseRoute.slice(0, -"_middleware".length);
-  const pattern = pathToPattern(baseRoute);
-  const compiledPattern = new URLPattern({ pathname: `${pattern}*` });
+  let pattern = pathToPattern(baseRoute);
+  if (pattern.endsWith("/")) {
+    pattern = pattern.slice(0, -1) + "{/*}?";
+  }
+  const compiledPattern = new URLPattern({ pathname: pattern });
   return { pattern, compiledPattern };
 }
