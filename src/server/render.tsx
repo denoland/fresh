@@ -35,6 +35,7 @@ export class RenderContext {
   #id: string;
   #state: Map<string, unknown> = new Map();
   #styles: string[] = [];
+  #styleSheets: string[] = [];
   #url: URL;
   #route: string;
   #lang: string;
@@ -68,6 +69,16 @@ export class RenderContext {
    */
   get styles(): string[] {
     return this.#styles;
+  }
+
+  /**
+   * All of the CSS stylesheet links that should be included into the document.
+   * Adding to this list across multiple renders is supported (even across
+   * suspense!). The CSS stylesheet links will always be inserted on the client
+   * in the order specified here.
+   */
+  get styleSheets(): string[] {
+    return this.#styleSheets;
   }
 
   /** The URL of the page being rendered. */
@@ -252,6 +263,7 @@ export async function render<Data>(
     imports,
     preloads: opts.preloads,
     styles: ctx.styles,
+    styleSheets: ctx.styleSheets,
     lang: ctx.lang,
   });
 
@@ -263,6 +275,7 @@ export interface TemplateOptions {
   headComponents: ComponentChildren[];
   imports: (readonly [string, string])[];
   styles: string[];
+  styleSheets: string[];
   preloads: string[];
   lang: string;
 }
@@ -274,6 +287,7 @@ export function template(opts: TemplateOptions): string {
         <meta charSet="UTF-8" />
         <meta http-equiv="X-UA-Compatible" content="IE=edge" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        {opts.styleSheets.map((src) => <link rel="stylesheet" href={src} />)}
         {opts.preloads.map((src) => <link rel="modulepreload" href={src} />)}
         {opts.imports.map(([src, nonce]) => (
           <script src={src} nonce={nonce} type="module"></script>

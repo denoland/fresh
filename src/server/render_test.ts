@@ -8,6 +8,7 @@ Deno.test("check lang", () => {
     imports: [],
     preloads: [],
     styles: [],
+    styleSheets: [],
     lang: lang,
   });
   assertStringIncludes(body, `<html lang="${lang}">`);
