@@ -354,6 +354,20 @@ await Deno.writeTextFile(
   README_MD,
 );
 
+const GITIGNORE = `.vscode
+
+# local env files
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+`;
+
+await Deno.writeTextFile(
+  join(resolvedDirectory, ".gitignore"),
+  GITIGNORE,
+);
+
 const vscodeSettings = {
   "deno.enable": true,
 };
