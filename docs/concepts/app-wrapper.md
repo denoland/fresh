@@ -7,7 +7,7 @@ An application wrapper is defined in an `_app.tsx` file in `routes/` folder. It 
 
 It receives component through props which is to be wrapped. For instance, it allows to introduce a global container for the whole application.
 
-```ts
+```tsx
 // routes/_app.tsx
 
 /** @jsx h */
@@ -25,13 +25,14 @@ export default function App({Component}: AppProps) {
 
 There is also a possibility to modify the document template by using special tags `html`, `Head` or `body`. This can be done in any other Preact component, but using it in the application wrapper lets you define one common document template.
 
-```ts
+```tsx
 // routes/_app.tsx
 
 /** @jsx h */
 import { h } from "preact";
 import { asset, Head } from "$fresh/runtime.ts";
 import { AppProps } from "$fresh/src/server/types.ts";
+
 export default function App({ Component }: AppProps) {
   return (
     <html data-custom="data">
