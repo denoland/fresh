@@ -29,23 +29,22 @@ There is also a possibility to modify the document template by using special tag
 // routes/_app.tsx
 
 /** @jsx h */
-import {Component, h} from 'preact';
-import {asset, Head} from '$fresh/runtime.ts';
-import {AppProps} from '$fresh/src/server/types.ts';
-
-export default function App({Component}: AppProps) {
-    return (
-        <html data-custom="data">
-            <Head>
-                <title>Fresh</title>
-                <link rel="stylesheet" href={asset('style.css')}/>
-            </Head>
-            <body class="bodyClass">
-                <Component/>
-            </body>
-        </html>
-    )
-};
+import { h } from "preact";
+import { asset, Head } from "$fresh/runtime.ts";
+import { AppProps } from "$fresh/src/server/types.ts";
+export default function App({ Component }: AppProps) {
+  return (
+    <html data-custom="data">
+      <Head>
+        <title>Fresh</title>
+        <link rel="stylesheet" href={asset("style.css")} />
+      </Head>
+      <body class="bodyClass">
+        <Component />
+      </body>
+    </html>
+  );
+}
 ```
 
 Currently, there is no way of overriding default tags/attributes from provided template.
