@@ -99,7 +99,7 @@ const importMap = {
     "preact": "https://esm.sh/preact@10.8.2",
     "preact/": "https://esm.sh/preact@10.8.2/",
     "preact-render-to-string":
-      "https://esm.sh/preact-render-to-string@5.2.0?deps=preact@10.8.2",
+      "https://esm.sh/preact-render-to-string@5.2.0?external=preact",
   } as Record<string, string>,
 };
 if (useTwind) {
