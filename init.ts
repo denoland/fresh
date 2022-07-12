@@ -356,6 +356,8 @@ await Deno.writeTextFile(
 
 const vscodeSettings = {
   "deno.enable": true,
+  "deno.lint": true,
+  "editor.defaultFormatter": "denoland.vscode-deno",
 };
 
 const VSCODE_SETTINGS = JSON.stringify(vscodeSettings, null, 2) + "\n";
