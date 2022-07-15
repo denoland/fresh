@@ -95,6 +95,7 @@ if (useTwind) {
 
 const importMap = {
   "imports": {
+    "@/": "./",
     "$fresh/": new URL("./", import.meta.url).href,
     "preact": "https://esm.sh/preact@10.8.2",
     "preact/": "https://esm.sh/preact@10.8.2/",
@@ -116,7 +117,7 @@ await Deno.writeTextFile(
 let ROUTES_INDEX_TSX = `/** @jsx h */
 import { h } from "preact";\n`;
 if (useTwind) ROUTES_INDEX_TSX += `import { tw } from "@twind";\n`;
-ROUTES_INDEX_TSX += `import Counter from "../islands/Counter.tsx";
+ROUTES_INDEX_TSX += `import Counter from "@/islands/Counter.tsx";
 
 export default function Home() {
   return (
