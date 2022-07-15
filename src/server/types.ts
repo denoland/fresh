@@ -6,8 +6,13 @@ import { InnerRenderFunction, RenderContext } from "./render.tsx";
 
 export type StartOptions = ServeInit & FreshOptions;
 
+export interface RouterOptions {
+  trailingSlash?: boolean;
+}
+
 export interface FreshOptions {
   render?: RenderFunction;
+  router?: RouterOptions;
 }
 
 export type RenderFunction = (
