@@ -1,5 +1,6 @@
 import { ServerContext } from "./context.ts";
 import { serve } from "./deps.ts";
+export { Status } from "./deps.ts";
 import {
   AppModule,
   ErrorPageModule,
