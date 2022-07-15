@@ -105,7 +105,7 @@ export class ServerContext {
     let error: ErrorPage = DEFAULT_ERROR;
     for (const [self, module] of Object.entries(manifest.routes)) {
       const url = new URL(self, baseUrl).href;
-      if (!url.startsWith(baseUrl)) {
+      if (!url.startsWith(baseUrl + "routes")) {
         throw new TypeError("Page is not a child of the basepath.");
       }
       const path = url.substring(baseUrl.length).substring("routes".length);
@@ -196,7 +196,7 @@ export class ServerContext {
       }
       const path = url.substring(baseUrl.length).substring("islands".length);
       const baseRoute = path.substring(1, path.length - extname(path).length);
-      const name = baseRoute.replace("/", "");
+      const name = sanitizeIslandName(baseRoute);
       const id = name.toLowerCase();
       if (typeof module.default !== "function") {
         throw new TypeError(
@@ -400,6 +400,16 @@ export class ServerContext {
           if (route.component === undefined) {
             throw new Error("This page does not have a component to render.");
           }
+
+          if (
+            typeof route.component === "function" &&
+            route.component.constructor.name === "AsyncFunction"
+          ) {
+            throw new Error(
+              "Async components are not supported. Fetch data inside of a route handler, as described in the docs: https://fresh.deno.dev/docs/getting-started/fetching-data",
+            );
+          }
+
           const preloads: string[] = [];
           const resp = await internalRender({
             route,
@@ -674,6 +684,18 @@ function sanitizePathToRegex(path: string): string {
     .replaceAll("\(", "\\(")
     .replaceAll("\)", "\\)")
     .replaceAll("\:", "\\:");
+}
+
+function toPascalCase(text: string): string {
+  return text.replace(
+    /(^\w|-\w)/g,
+    (substring) => substring.replace(/-/, "").toUpperCase(),
+  );
+}
+
+function sanitizeIslandName(name: string): string {
+  const fileName = name.replace("/", "");
+  return toPascalCase(fileName);
 }
 
 function serializeCSPDirectives(csp: ContentSecurityPolicyDirectives): string {
