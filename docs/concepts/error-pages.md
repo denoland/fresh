@@ -26,9 +26,10 @@ export default function NotFoundPage({ url }: UnknownPageProps) {
 
 #### Manually render 404 pages
 
-The `_404.tsx` file will be invoked automatically when no route matches the URL. In some
-cases, one needs to manually trigger the rendering of the 404 page, for example when the route did match, but the requested resource does not exist. This can be achieved with
-`ctx.renderNotFound`.
+The `_404.tsx` file will be invoked automatically when no route matches the URL.
+In some cases, one needs to manually trigger the rendering of the 404 page, for
+example when the route did match, but the requested resource does not exist.
+This can be achieved with `ctx.renderNotFound`.
 
 ```tsx
 /** @jsx h */
