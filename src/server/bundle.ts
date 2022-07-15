@@ -2,21 +2,21 @@ import { BUILD_ID } from "./constants.ts";
 import { denoPlugin, esbuild, toFileUrl } from "./deps.ts";
 import { Island } from "./types.ts";
 
-let esbuildInitalized: boolean | Promise<void> = false;
+let esbuildInitialized: boolean | Promise<void> = false;
 async function ensureEsbuildInitialized() {
-  if (esbuildInitalized === false) {
+  if (esbuildInitialized === false) {
     if (Deno.run === undefined) {
-      esbuildInitalized = esbuild.initialize({
+      esbuildInitialized = esbuild.initialize({
         wasmURL: "https://unpkg.com/esbuild-wasm@0.14.39/esbuild.wasm",
         worker: false,
       });
     } else {
       esbuild.initialize({});
     }
-    await esbuildInitalized;
-    esbuildInitalized = true;
-  } else if (esbuildInitalized instanceof Promise) {
-    await esbuildInitalized;
+    await esbuildInitialized;
+    esbuildInitialized = true;
+  } else if (esbuildInitialized instanceof Promise) {
+    await esbuildInitialized;
   }
 }
 
