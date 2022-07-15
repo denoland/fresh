@@ -45,6 +45,8 @@ export interface Manifest {
 
 export { ServerContext };
 
+const defaultPort = parseInt(Deno.env.get("PORT") || "") || 8000;
+
 export async function start(
   routes: Manifest,
   opts: StartOptions = {},
@@ -52,8 +54,11 @@ export async function start(
   const ctx = await ServerContext.fromManifest(routes, opts);
   console.log(
     `Server listening on http://${opts?.hostname ?? "localhost"}:${
-      opts?.port ?? 8000
+      opts?.port ?? defaultPort
     }`,
   );
-  await serve(ctx.handler(), opts);
+  await serve(ctx.handler(), {
+    ...opts,
+    port: opts?.port ?? defaultPort,
+  });
 }

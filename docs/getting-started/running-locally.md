@@ -40,6 +40,12 @@ call in `main.ts` to include an explicit port number:
 await start(manifest, { port: 3000 });
 ```
 
+You can also change the port by setting the `PORT` environment variable:
+
+```
+$ PORT=3000 deno task start
+```
+
 Combining all of this we get the following `deno run` command:
 
 ```
