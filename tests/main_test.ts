@@ -392,3 +392,14 @@ Deno.test({
     assertEquals(resp.headers.get("server"), "fresh test server");
   },
 });
+
+Deno.test({
+  name: "/not_found",
+  fn: async () => {
+    const resp = await router(new Request("https://fresh.deno.dev/not_found"));
+    assert(resp);
+    assertEquals(resp.status, 404);
+    const body = await resp.text();
+    assertStringIncludes(body, "404 not found: /not_found");
+  },
+});

@@ -65,6 +65,7 @@ export interface HandlerContext<Data = unknown, State = Record<string, unknown>>
   extends ConnInfo {
   params: Record<string, string>;
   render: (data?: Data) => Response | Promise<Response>;
+  renderNotFound: () => Response | Promise<Response>;
   state: State;
 }
 

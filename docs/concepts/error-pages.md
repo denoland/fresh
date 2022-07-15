@@ -8,6 +8,8 @@ Fresh supports customizing the `404 Not Found`, and the
 matching route exists, and when a middleware, route handler, or page component
 throws an error respectively.
 
+### 404: Not Found
+
 The 404 page can be customized by creating a `_404.tsx` file in the `routes/`
 folder. The file must have a default export that is a regular Preact component.
 A props object of type `UnknownPageProps` is passed in as an argument.
@@ -21,6 +23,40 @@ export default function NotFoundPage({ url }: UnknownPageProps) {
   return <p>404 not found: {url.pathname}</p>;
 }
 ```
+
+#### Manually render 404 pages
+
+The `_404.tsx` file will be invoked automatically when no route matches the URL.
+In some cases, one needs to manually trigger the rendering of the 404 page, for
+example when the route did match, but the requested resource does not exist.
+This can be achieved with `ctx.renderNotFound`.
+
+```tsx
+/** @jsx h */
+import { h } from "preact";
+import { Handlers, PageProps } from "$fresh/server.ts";
+
+export handler: Handlers = {
+  async GET(req, ctx) {
+    const blogpost = await fetchBlogpost(ctx.params.slug)
+    if (!blogpost) {
+      return ctx.renderNotFound();
+    }
+    return ctx.render({ blogpost })
+  }
+}
+
+export default function BlogpostPage({ data }) {
+  return (
+    <article>
+      <h1>{data.blogpost.title}</h1>
+      {/* rest of your page */}
+    </article>
+  );
+}
+```
+
+### 500: Internal Server Error
 
 The 500 page can be customized by creating a `_500.tsx` file in the `routes/`
 folder. The file must have a default export that is a regular Preact component.
