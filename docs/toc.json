@@ -19,7 +19,7 @@
   "concepts": {
     "title": "Concepts",
     "pages": [
-      ["architechture", "Architecture"],
+      ["architecture", "Architecture"],
       ["routes", "Routes"],
       ["islands", "Interactive islands"],
       ["static-files", "Static files"],
