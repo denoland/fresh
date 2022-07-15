@@ -105,7 +105,7 @@ export class ServerContext {
     let error: ErrorPage = DEFAULT_ERROR;
     for (const [self, module] of Object.entries(manifest.routes)) {
       const url = new URL(self, baseUrl).href;
-      if (!url.startsWith(baseUrl)) {
+      if (!url.startsWith(baseUrl + "routes")) {
         throw new TypeError("Page is not a child of the basepath.");
       }
       const path = url.substring(baseUrl.length).substring("routes".length);
@@ -196,7 +196,7 @@ export class ServerContext {
       }
       const path = url.substring(baseUrl.length).substring("islands".length);
       const baseRoute = path.substring(1, path.length - extname(path).length);
-      const name = baseRoute.replace("/", "");
+      const name = sanitizeIslandName(baseRoute);
       const id = name.toLowerCase();
       if (typeof module.default !== "function") {
         throw new TypeError(
@@ -337,7 +337,7 @@ export class ServerContext {
     if (this.#dev) {
       routes[REFRESH_JS_URL] = () => {
         const js =
-          `const buildId = "${BUILD_ID}"; new EventSource("${ALIVE_URL}").addEventListener("message", (e) => { if (e.data !== buildId) { location.reload(); } });`;
+          `let reloading = false; const buildId = "${BUILD_ID}"; new EventSource("${ALIVE_URL}").addEventListener("message", (e) => { if (e.data !== buildId && !reloading) { reloading = true; location.reload(); } });`;
         return new Response(new TextEncoder().encode(js), {
           headers: {
             "content-type": "application/javascript; charset=utf-8",
@@ -400,6 +400,16 @@ export class ServerContext {
           if (route.component === undefined) {
             throw new Error("This page does not have a component to render.");
           }
+
+          if (
+            typeof route.component === "function" &&
+            route.component.constructor.name === "AsyncFunction"
+          ) {
+            throw new Error(
+              "Async components are not supported. Fetch data inside of a route handler, as described in the docs: https://fresh.deno.dev/docs/getting-started/fetching-data",
+            );
+          }
+
           const preloads: string[] = [];
           const resp = await internalRender({
             route,
@@ -676,6 +686,18 @@ function sanitizePathToRegex(path: string): string {
     .replaceAll("\:", "\\:");
 }
 
+function toPascalCase(text: string): string {
+  return text.replace(
+    /(^\w|-\w)/g,
+    (substring) => substring.replace(/-/, "").toUpperCase(),
+  );
+}
+
+function sanitizeIslandName(name: string): string {
+  const fileName = name.replace("/", "");
+  return toPascalCase(fileName);
+}
+
 function serializeCSPDirectives(csp: ContentSecurityPolicyDirectives): string {
   return Object.entries(csp)
     .filter(([_key, value]) => value !== undefined)
@@ -690,7 +712,10 @@ function serializeCSPDirectives(csp: ContentSecurityPolicyDirectives): string {
 
 export function middlewarePathToPattern(baseRoute: string) {
   baseRoute = baseRoute.slice(0, -"_middleware".length);
-  const pattern = pathToPattern(baseRoute);
-  const compiledPattern = new URLPattern({ pathname: `${pattern}*` });
+  let pattern = pathToPattern(baseRoute);
+  if (pattern.endsWith("/")) {
+    pattern = pattern.slice(0, -1) + "{/*}?";
+  }
+  const compiledPattern = new URLPattern({ pathname: pattern });
   return { pattern, compiledPattern };
 }

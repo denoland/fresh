@@ -321,6 +321,37 @@ Deno.test({
     assert(resp);
     assertEquals(resp.status, 200);
     const body = await resp.text();
+    console.log(body);
+    assertStringIncludes(body, "root_mw");
+    assertStringIncludes(body, "layer1_mw");
+    assertStringIncludes(body, "layer2_mw");
+    // layered 2 should not run layer 3 middleware
+    assert(!body.includes("layer3_mw"));
+
+    const resp1 = await router(
+      new Request("https://fresh.deno.dev/layeredMdw/layer2-no-mw/without_mw"),
+    );
+    assert(resp1);
+    assertEquals(resp1.status, 200);
+    const body1 = await resp1.text();
+    assertStringIncludes(body1, "root_mw");
+    assertStringIncludes(body1, "layer1_mw");
+    // layered 2 should not run layer 2 or 3 middleware
+    assert(!body1.includes("layer2_mw"));
+    assert(!body1.includes("layer3_mw"));
+  },
+});
+
+Deno.test({
+  name: "/middleware - layer 2 middleware at index",
+  fn: async () => {
+    const resp = await router(
+      new Request("https://fresh.deno.dev/layeredMdw/layer2"),
+    );
+    assert(resp);
+    assertEquals(resp.status, 200);
+    const body = await resp.text();
+    console.log(body);
     assertStringIncludes(body, "root_mw");
     assertStringIncludes(body, "layer1_mw");
     assertStringIncludes(body, "layer2_mw");

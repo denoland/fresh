@@ -11,15 +11,15 @@ interactivity, but it is much worse for resiliency and user experience as a
 whole. Browsers have great built in systems for form submission, revolving
 around the HTML `<form>` element.
 
-Fresh builds the core of it's form submission infrastructure around the native
+Fresh builds the core of its form submission infrastructure around the native
 `<form>` element. This page explains how to use `<form>` in Fresh, and the next
 chapter explains how to progressively enhance your forms with client side
 JavaScript to make them more interactive.
 
-The way forms work in the browser, is that they perform a HTML navigation action
-when the user submits the form. In most cases this means that when the form is
-submitted, a GET or POST request is sent to the server with the form data, which
-then responds with a new page to render.
+The way forms work in the browser, is that they perform an HTML navigation
+action when the user submits the form. In most cases this means that when the
+form is submitted, a GET or POST request is sent to the server with the form
+data, which then responds with a new page to render.
 
 Fresh can handle both GET and POST requests through the
 [custom handlers][custom-handlers] feature of routes. The handlers can perform

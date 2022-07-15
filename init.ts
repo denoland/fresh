@@ -1,6 +1,23 @@
-import { join, parse, resolve } from "./src/dev/deps.ts";
+import { gte, join, parse, resolve } from "./src/dev/deps.ts";
 import { error } from "./src/dev/error.ts";
 import { collect, generate } from "./src/dev/mod.ts";
+
+const MIN_VERSION = "1.23.0";
+
+// Check that the minimum supported Deno version is being used.
+if (!gte(Deno.version.deno, MIN_VERSION)) {
+  let message =
+    `Deno version ${MIN_VERSION} or higher is required. Please update Deno.\n\n`;
+
+  if (Deno.execPath().includes("homebrew")) {
+    message +=
+      "You seem to have installed Deno via homebrew. To update, run: `brew upgrade deno`\n";
+  } else {
+    message += "To update, run: `deno upgrade`\n";
+  }
+
+  error(message);
+}
 
 const help = `fresh-init
 
@@ -19,6 +36,7 @@ USAGE:
 OPTIONS:
     --force   Overwrite existing files
     --twind   Setup project to use 'twind' for styling
+    --vscode  Setup project for VSCode
 `;
 
 const CONFIRM_EMPTY_MESSAGE =
@@ -27,20 +45,22 @@ const CONFIRM_EMPTY_MESSAGE =
 const USE_TWIND_MESSAGE =
   "Do you want to use 'twind' (https://twind.dev/) for styling?";
 
+const USE_VSCODE_MESSAGE = "Do you use VS Code?";
+
 const flags = parse(Deno.args, {
-  boolean: ["force", "twind"],
-  default: { "force": null, "twind": null },
+  boolean: ["force", "twind", "vscode"],
+  default: { "force": null, "twind": null, "vscode": null },
 });
 
 if (flags._.length !== 1) {
   error(help);
 }
 
-let directory = Deno.args[0];
-directory = resolve(directory);
+const unresolvedDirectory = Deno.args[0];
+const resolvedDirectory = resolve(unresolvedDirectory);
 
 try {
-  const dir = [...Deno.readDirSync(directory)];
+  const dir = [...Deno.readDirSync(resolvedDirectory)];
   const isEmpty = dir.length === 0 ||
     dir.length === 1 && dir[0].name === ".git";
   if (
@@ -59,31 +79,43 @@ const useTwind = flags.twind === null
   ? confirm(USE_TWIND_MESSAGE)
   : flags.twind;
 
-await Deno.mkdir(join(directory, "routes", "api"), { recursive: true });
-await Deno.mkdir(join(directory, "islands"), { recursive: true });
-await Deno.mkdir(join(directory, "static"), { recursive: true });
-if (useTwind) await Deno.mkdir(join(directory, "utils"), { recursive: true });
+const useVSCode = flags.vscode === null
+  ? confirm(USE_VSCODE_MESSAGE)
+  : flags.vscode;
+
+await Deno.mkdir(join(resolvedDirectory, "routes", "api"), { recursive: true });
+await Deno.mkdir(join(resolvedDirectory, "islands"), { recursive: true });
+await Deno.mkdir(join(resolvedDirectory, "static"), { recursive: true });
+if (useVSCode) {
+  await Deno.mkdir(join(resolvedDirectory, ".vscode"), { recursive: true });
+}
+if (useTwind) {
+  await Deno.mkdir(join(resolvedDirectory, "utils"), { recursive: true });
+}
 
 const importMap = {
   "imports": {
     "$fresh/": new URL("./", import.meta.url).href,
-    "preact": "https://esm.sh/preact@10.8.1",
-    "preact/": "https://esm.sh/preact@10.8.1/",
+    "preact": "https://esm.sh/preact@10.8.2",
+    "preact/": "https://esm.sh/preact@10.8.2/",
     "preact-render-to-string":
-      "https://esm.sh/preact-render-to-string@5.2.0?deps=preact@10.8.1",
+      "https://esm.sh/preact-render-to-string@5.2.0?external=preact",
   } as Record<string, string>,
 };
 if (useTwind) {
-  importMap.imports["$twind"] = "https://esm.sh/twind@0.16.17";
-  importMap.imports["$twind/"] = "https://esm.sh/twind@0.16.17/";
-  importMap.imports["twind"] = "./utils/twind.ts";
+  importMap.imports["@twind"] = "./utils/twind.ts";
+  importMap.imports["twind"] = "https://esm.sh/twind@0.16.17";
+  importMap.imports["twind/"] = "https://esm.sh/twind@0.16.17/";
 }
 const IMPORT_MAP_JSON = JSON.stringify(importMap, null, 2) + "\n";
-await Deno.writeTextFile(join(directory, "import_map.json"), IMPORT_MAP_JSON);
+await Deno.writeTextFile(
+  join(resolvedDirectory, "import_map.json"),
+  IMPORT_MAP_JSON,
+);
 
 let ROUTES_INDEX_TSX = `/** @jsx h */
 import { h } from "preact";\n`;
-if (useTwind) ROUTES_INDEX_TSX += `import { tw } from "twind";\n`;
+if (useTwind) ROUTES_INDEX_TSX += `import { tw } from "@twind";\n`;
 ROUTES_INDEX_TSX += `import Counter from "../islands/Counter.tsx";
 
 export default function Home() {
@@ -95,7 +127,7 @@ export default function Home() {
         alt="the fresh logo: a sliced lemon dripping with juice"
       />
       <p${useTwind ? " class={tw\`my-6\`}" : ""}>
-        Welcome to \`fresh\`. Try update this message in the ./routes/index.tsx
+        Welcome to \`fresh\`. Try updating this message in the ./routes/index.tsx
         file, and refresh.
       </p>
       <Counter start={3} />
@@ -104,7 +136,7 @@ export default function Home() {
 }
 `;
 await Deno.writeTextFile(
-  join(directory, "routes", "index.tsx"),
+  join(resolvedDirectory, "routes", "index.tsx"),
   ROUTES_INDEX_TSX,
 );
 
@@ -112,7 +144,7 @@ let ISLANDS_COUNTER_TSX = `/** @jsx h */
 import { h } from "preact";
 import { useState } from "preact/hooks";
 import { IS_BROWSER } from "$fresh/runtime.ts";
-${useTwind ? 'import { tw } from "twind";\n' : ""}
+${useTwind ? 'import { tw } from "@twind";\n' : ""}
 interface CounterProps {
   start: number;
 }
@@ -160,7 +192,7 @@ if (useTwind) {
 }
 ISLANDS_COUNTER_TSX += `}\n`;
 await Deno.writeTextFile(
-  join(directory, "islands", "Counter.tsx"),
+  join(resolvedDirectory, "islands", "Counter.tsx"),
   ISLANDS_COUNTER_TSX,
 );
 
@@ -173,7 +205,7 @@ export default function Greet(props: PageProps) {
 }
 `;
 await Deno.writeTextFile(
-  join(directory, "routes", "[name].tsx"),
+  join(resolvedDirectory, "routes", "[name].tsx"),
   ROUTES_GREET_TSX,
 );
 
@@ -194,19 +226,19 @@ const JOKES = [
 ];
 
 export const handler = (_req: Request, _ctx: HandlerContext): Response => {
-  const randomIndex = Math.floor(Math.random() * 10);
+  const randomIndex = Math.floor(Math.random() * JOKES.length);
   const body = JOKES[randomIndex];
   return new Response(body);
 };
 `;
 await Deno.writeTextFile(
-  join(directory, "routes", "api", "joke.ts"),
+  join(resolvedDirectory, "routes", "api", "joke.ts"),
   ROUTES_API_JOKE_TS,
 );
 
 const UTILS_TWIND_TS = `import { IS_BROWSER } from "$fresh/runtime.ts";
-import { Configuration, setup } from "$twind";
-export * from "$twind";
+import { Configuration, setup } from "twind";
+export * from "twind";
 export const config: Configuration = {
   darkMode: "class",
   mode: "silent",
@@ -215,7 +247,7 @@ if (IS_BROWSER) setup(config);
 `;
 if (useTwind) {
   await Deno.writeTextFile(
-    join(directory, "utils", "twind.ts"),
+    join(resolvedDirectory, "utils", "twind.ts"),
     UTILS_TWIND_TS,
   );
 }
@@ -229,9 +261,20 @@ const STATIC_LOGO =
 </svg>`;
 
 await Deno.writeTextFile(
-  join(directory, "static", "logo.svg"),
+  join(resolvedDirectory, "static", "logo.svg"),
   STATIC_LOGO,
 );
+
+try {
+  const faviconArrayBuffer = await fetch("https://fresh.deno.dev/favicon.ico")
+    .then((d) => d.arrayBuffer());
+  await Deno.writeFile(
+    join(resolvedDirectory, "static", "favicon.ico"),
+    new Uint8Array(faviconArrayBuffer),
+  );
+} catch {
+  // Skip this and be silent if there is a nework issue.
+}
 
 let MAIN_TS = `/// <reference no-default-lib="true" />
 /// <reference lib="dom" />
@@ -247,8 +290,8 @@ import manifest from "./fresh.gen.ts";
 
 if (useTwind) {
   MAIN_TS += `
-import { virtualSheet } from "$twind/sheets";
-import { config, setup } from "twind";
+import { config, setup } from "@twind";
+import { virtualSheet } from "twind/sheets";
 
 const sheet = virtualSheet();
 sheet.reset();
@@ -267,7 +310,7 @@ function render(ctx: RenderContext, render: InnerRenderFunction) {
 }
 
 MAIN_TS += `await start(manifest${useTwind ? ", { render }" : ""});\n`;
-const MAIN_TS_PATH = join(directory, "main.ts");
+const MAIN_TS_PATH = join(resolvedDirectory, "main.ts");
 await Deno.writeTextFile(MAIN_TS_PATH, MAIN_TS);
 
 const DEV_TS = `#!/usr/bin/env -S deno run -A --watch=static/,routes/
@@ -276,7 +319,7 @@ import dev from "$fresh/dev.ts";
 
 await dev(import.meta.url, "./main.ts");
 `;
-const DEV_TS_PATH = join(directory, "dev.ts");
+const DEV_TS_PATH = join(resolvedDirectory, "dev.ts");
 await Deno.writeTextFile(DEV_TS_PATH, DEV_TS);
 try {
   await Deno.chmod(DEV_TS_PATH, 0o777);
@@ -292,7 +335,7 @@ const config = {
 };
 const DENO_CONFIG = JSON.stringify(config, null, 2) + "\n";
 
-await Deno.writeTextFile(join(directory, "deno.json"), DENO_CONFIG);
+await Deno.writeTextFile(join(resolvedDirectory, "deno.json"), DENO_CONFIG);
 
 const README_MD = `# fresh project
 
@@ -307,12 +350,44 @@ deno task start
 This will watch the project directory and restart as necessary.
 `;
 await Deno.writeTextFile(
-  join(directory, "README.md"),
+  join(resolvedDirectory, "README.md"),
   README_MD,
 );
 
-const manifest = await collect(directory);
-await generate(directory, manifest);
+const vscodeSettings = {
+  "deno.enable": true,
+  "deno.lint": true,
+  "editor.defaultFormatter": "denoland.vscode-deno",
+};
 
+const VSCODE_SETTINGS = JSON.stringify(vscodeSettings, null, 2) + "\n";
+
+if (useVSCode) {
+  await Deno.writeTextFile(
+    join(resolvedDirectory, ".vscode", "settings.json"),
+    VSCODE_SETTINGS,
+  );
+}
+
+const vscodeExtensions = {
+  recommendations: ["denoland.vscode-deno"],
+};
+
+const VSCODE_EXTENSIONS = JSON.stringify(vscodeExtensions, null, 2) + "\n";
+
+if (useVSCode) {
+  await Deno.writeTextFile(
+    join(resolvedDirectory, ".vscode", "extensions.json"),
+    VSCODE_EXTENSIONS,
+  );
+}
+
+const manifest = await collect(resolvedDirectory);
+await generate(resolvedDirectory, manifest);
+
+// Specifically print unresolvedDirectory, rather than resolvedDirectory in order to
+// not leak personal info (e.g. `/Users/MyName`)
 console.log("\n%cProject created!", "color: green; font-weight: bold");
-console.log("Run \`deno task start\` in the project directory to get started.");
+console.log(`\nIn order to start the development server, run:\n`);
+console.log(`$ cd ${unresolvedDirectory}`);
+console.log("$ deno task start");

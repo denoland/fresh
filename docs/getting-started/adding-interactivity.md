@@ -7,11 +7,11 @@ description: |
 Up to now none of the pages in the demo project have contained any client side
 JavaScript. This is great for resiliency and performance, but it can also limit
 the possibilities of interactivity. In many current generation web frameworks,
-you get the choice of shipping no JavaScript to the client, or shipping a
+you get the choice of shipping no JavaScript to the client or shipping a
 renderer for the entire page.
 
 This is not very flexible, especially considering that most pages will only have
-small pieces of content that require interactivity. For example an otherwise
+small pieces of content that require interactivity. For example, an otherwise
 static page might need a little bit of JavaScript to power an image carousel or
 "buy now" button. This model is often called
 [islands architecture][islands-architecture]. This refers to a page having
@@ -46,10 +46,12 @@ export default function Countdown(props: { target: string }) {
   // date as long as the component is mounted.
   useEffect(() => {
     const timer = setInterval(() => {
-      setNow(new Date());
-      if (now > target) {
-        clearInterval(timer);
-      }
+      setNow((now) => {
+        if (now > target) {
+          clearInterval(timer);
+        }
+        return new Date();
+      });
     }, 1000);
     return () => clearInterval(timer);
   }, [props.target]);

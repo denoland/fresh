@@ -6,7 +6,7 @@ description: |
 
 After getting the project running locally, the next step is to add a new route
 to the project. Routes encapsulate the logic for handling requests to a
-particular path in your project. They can be used to handle API requests, or
+particular path in your project. They can be used to handle API requests or
 render HTML pages. For now we are going to do the latter.
 
 Routes are defined as files in the `routes` directory. The file name of the
@@ -52,12 +52,12 @@ export default function AboutPage() {
 
 > ℹ️ The first two lines are the JSX pragma, and the import for the JSX create
 > element function. These are just boilerplate. You don't need to know exactly
-> what they do - they just ensure that JSX get's rendered correctly.
+> what they do - they just ensure that JSX gets rendered correctly.
 
 The new page will be visible at `http://localhost:8000/about`.
 
 <!-- You can find more in depth information about routes on the
-[_Concepts: Routes_][concepts-routes] documentation page page. The following
+[_Concepts: Routes_][concepts-routes] documentation page. The following
 pages in the _Getting Started_ guide will also explain more features of routes. -->
 
 [concepts-routing]: /docs/concepts/routing

@@ -3,11 +3,10 @@
 import { ComponentChildren, Fragment, h } from "preact";
 import { asset, Head } from "$fresh/runtime.ts";
 import { Handlers, PageProps } from "$fresh/server.ts";
-import { tw } from "../utils/twind.ts";
+import { tw } from "@twind";
 import Counter from "../islands/Counter.tsx";
 import LemonDrop from "../islands/LemonDrop.tsx";
 import Footer from "../components/Footer.tsx";
-import WarningBanner from "../components/WarningBanner.tsx";
 import { Leaf } from "../components/Icons.tsx";
 import VERSIONS from "../../versions.json" assert { type: "json" };
 
@@ -159,7 +158,6 @@ function GettingStarted(props: { origin: string }) {
           Getting started
         </a>
       </h2>
-      <WarningBanner />
       <p class={tw`text-gray-600`}>
         To get started, make sure you have the{" "}
         <a href="https://deno.land" class={tw`text-blue-600 hover:underline`}>
@@ -171,7 +169,7 @@ function GettingStarted(props: { origin: string }) {
         Then you can use the Fresh init script to bootstrap a new project:
       </p>
       <pre class={tw`overflow-x-auto py-2 px-4 bg(gray-100)`}>
-        {`deno run -A -r ${props.origin} my-app`}
+        {`deno run -A -r ${props.origin} my-project`}
       </pre>
       <p class={tw`text-gray-600`}>
         Enter the newly created project directory and run the following command
