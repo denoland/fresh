@@ -388,5 +388,6 @@ await generate(resolvedDirectory, manifest);
 // Specifically print unresolvedDirectory, rather than resolvedDirectory in order to
 // not leak personal info (e.g. `/Users/MyName`)
 console.log("\n%cProject created!", "color: green; font-weight: bold");
-console.log(`\`cd ${unresolvedDirectory}\` to enter to the project directory.`);
-console.log("Run \`deno task start\` to start the development server.");
+console.log(`\nIn order to start the development server, run:\n`);
+console.log(`$ cd ${unresolvedDirectory}`);
+console.log("$ deno task start");
