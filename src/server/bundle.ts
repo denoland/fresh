@@ -1,6 +1,6 @@
 import { BUILD_ID } from "./constants.ts";
 import { denoPlugin, esbuild, toFileUrl } from "./deps.ts";
-import { Island } from "./types.ts";
+import { Island, Plugin } from "./types.ts";
 
 let esbuildInitialized: boolean | Promise<void> = false;
 async function ensureEsbuildInitialized() {
@@ -23,10 +23,12 @@ async function ensureEsbuildInitialized() {
 export class Bundler {
   #importMapURL: URL;
   #islands: Island[];
+  #plugins: Plugin[];
   #cache: Map<string, Uint8Array> | Promise<void> | undefined = undefined;
 
-  constructor(islands: Island[], importMapURL: URL) {
+  constructor(islands: Island[], plugins: Plugin[], importMapURL: URL) {
     this.#islands = islands;
+    this.#plugins = plugins;
     this.#importMapURL = importMapURL;
   }
 
@@ -37,6 +39,12 @@ export class Bundler {
 
     for (const island of this.#islands) {
       entryPoints[`island-${island.id}`] = island.url;
+    }
+
+    for (const plugin of this.#plugins) {
+      for (const [name, url] of Object.entries(plugin.entrypoints ?? {})) {
+        entryPoints[`plugin-${plugin.name}-${name}`] = url;
+      }
     }
 
     const absWorkingDir = Deno.cwd();
