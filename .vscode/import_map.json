@@ -9,7 +9,7 @@
 
     "preact": "https://esm.sh/preact@10.8.2",
     "preact/": "https://esm.sh/preact@10.8.2/",
-    "preact-render-to-string": "https://esm.sh/preact-render-to-string@5.2.0?deps=preact@10.8.2",
+    "preact-render-to-string": "https://esm.sh/preact-render-to-string@5.2.0?external=preact",
 
     "$semver/": "https://deno.land/x/semver@v1.4.0/"
   }
