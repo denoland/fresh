@@ -55,7 +55,7 @@ export default function BlogpostPage({ data }) {
 }
 ```
 
-### 500
+### 500: Internal Server Error
 
 The 500 page can be customized by creating a `_500.tsx` file in the `routes/`
 folder. The file must have a default export that is a regular Preact component.
