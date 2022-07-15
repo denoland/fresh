@@ -100,7 +100,7 @@ const importMap = {
     "preact": "https://esm.sh/preact@10.8.2",
     "preact/": "https://esm.sh/preact@10.8.2/",
     "preact-render-to-string":
-      "https://esm.sh/preact-render-to-string@5.2.0?deps=preact@10.8.2",
+      "https://esm.sh/preact-render-to-string@5.2.0?external=preact",
   } as Record<string, string>,
 };
 if (useTwind) {
@@ -128,7 +128,7 @@ export default function Home() {
         alt="the fresh logo: a sliced lemon dripping with juice"
       />
       <p${useTwind ? " class={tw\`my-6\`}" : ""}>
-        Welcome to \`fresh\`. Try update this message in the ./routes/index.tsx
+        Welcome to \`fresh\`. Try updating this message in the ./routes/index.tsx
         file, and refresh.
       </p>
       <Counter start={3} />
@@ -357,6 +357,8 @@ await Deno.writeTextFile(
 
 const vscodeSettings = {
   "deno.enable": true,
+  "deno.lint": true,
+  "editor.defaultFormatter": "denoland.vscode-deno",
 };
 
 const VSCODE_SETTINGS = JSON.stringify(vscodeSettings, null, 2) + "\n";
@@ -387,5 +389,6 @@ await generate(resolvedDirectory, manifest);
 // Specifically print unresolvedDirectory, rather than resolvedDirectory in order to
 // not leak personal info (e.g. `/Users/MyName`)
 console.log("\n%cProject created!", "color: green; font-weight: bold");
-console.log(`\`cd ${unresolvedDirectory}\` to enter to the project directory.`);
-console.log("Run \`deno task start\` to start the development server.");
+console.log(`\nIn order to start the development server, run:\n`);
+console.log(`$ cd ${unresolvedDirectory}`);
+console.log("$ deno task start");
