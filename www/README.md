@@ -9,7 +9,10 @@ This is the fresh website source. The fresh website contains:
 
 Start the project:
 
-'''bash
-deno task start
-'''
+
+```
+deno run -A --watch main.ts
+```
+
+
 This will watch the project directory and restart as necessary.
