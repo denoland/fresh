@@ -57,5 +57,8 @@ export async function start(
       opts?.port ?? defaultPort
     }`,
   );
-  await serve(ctx.handler(), opts);
+  await serve(ctx.handler(), {
+    ...opts,
+    port: opts?.port ?? defaultPort,
+  });
 }
