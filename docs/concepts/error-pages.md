@@ -8,7 +8,7 @@ Fresh supports customizing the `404 Not Found`, and the
 matching route exists, and when a middleware, route handler, or page component
 throws an error respectively.
 
-### 404
+### 404: Not Found
 
 The 404 page can be customized by creating a `_404.tsx` file in the `routes/`
 folder. The file must have a default export that is a regular Preact component.
