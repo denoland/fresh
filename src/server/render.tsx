@@ -10,6 +10,7 @@ import {
   UnknownPage,
 } from "./types.ts";
 import { HEAD_CONTEXT } from "../runtime/head.ts";
+import { ISLAND_CONTEXT, useWithinIsland } from "../runtime/island.ts";
 import { CSP_CONTEXT, nonce, NONE, UNSAFE_INLINE } from "../runtime/csp.ts";
 import { ContentSecurityPolicy } from "../runtime/csp.ts";
 import { bundleAssetUrl } from "./constants.ts";
@@ -139,12 +140,15 @@ export async function render<Data>(
 
   const vnode = h(CSP_CONTEXT.Provider, {
     value: csp,
-    children: h(HEAD_CONTEXT.Provider, {
-      value: headComponents,
-      children: h(opts.app.default, {
-        Component() {
-          return h(opts.route.component! as ComponentType<unknown>, props);
-        },
+    children: h(ISLAND_CONTEXT.Provider, {
+      value: false,
+      children: h(HEAD_CONTEXT.Provider, {
+        value: headComponents,
+        children: h(opts.app.default, {
+          Component() {
+            return h(opts.route.component! as ComponentType<unknown>, props);
+          },
+        }),
       }),
     }),
   });
@@ -191,7 +195,7 @@ export async function render<Data>(
     const randomNonce = crypto.randomUUID().replace(/-/g, "");
     if (csp) {
       csp.directives.scriptSrc = [
-        ...csp.directives.scriptSrc ?? [],
+        ...(csp.directives.scriptSrc ?? []),
         nonce(randomNonce),
       ];
     }
@@ -204,7 +208,7 @@ export async function render<Data>(
       const randomNonce = crypto.randomUUID().replace(/-/g, "");
       if (csp) {
         csp.directives.scriptSrc = [
-          ...csp.directives.scriptSrc ?? [],
+          ...(csp.directives.scriptSrc ?? []),
           nonce(randomNonce),
         ];
       }
@@ -219,7 +223,7 @@ export async function render<Data>(
       const randomNonce = crypto.randomUUID().replace(/-/g, "");
       if (csp) {
         csp.directives.scriptSrc = [
-          ...csp.directives.scriptSrc ?? [],
+          ...(csp.directives.scriptSrc ?? []),
           nonce(randomNonce),
         ];
       }
@@ -229,20 +233,24 @@ export async function render<Data>(
       islandRegistry += `\n  ${island.id}: ${island.name},`;
     }
     const initCode = `import { revive } from "${
-      bundleAssetUrl("/main.js")
+      bundleAssetUrl(
+        "/main.js",
+      )
     }";${islandImports}\nrevive({${islandRegistry}\n});`;
 
     // Append the inline script to the body
     const randomNonce = crypto.randomUUID().replace(/-/g, "");
     if (csp) {
       csp.directives.scriptSrc = [
-        ...csp.directives.scriptSrc ?? [],
+        ...(csp.directives.scriptSrc ?? []),
         nonce(randomNonce),
       ];
     }
     (bodyHtml as string) +=
       `<script id="__FRSH_ISLAND_PROPS" type="application/json">${
-        JSON.stringify(ISLAND_PROPS)
+        JSON.stringify(
+          ISLAND_PROPS,
+        )
       }</script><script type="module" nonce="${randomNonce}">${initCode}</script>`;
   }
 
@@ -310,14 +318,23 @@ options.vnode = (vnode) => {
       }
       ENCOUNTERED_ISLANDS.add(island);
       vnode.type = (props) => {
+        const withinIsland = useWithinIsland();
+
         ignoreNext = true;
         const child = h(originalType, props);
-        ISLAND_PROPS.push(props);
-        return h(
-          `!--frsh-${island.id}:${ISLAND_PROPS.length - 1}--`,
-          null,
-          child,
-        );
+
+        if (withinIsland) {
+          return child;
+        } else {
+          ISLAND_PROPS.push(props);
+
+          return h(`!--frsh-${island.id}:${ISLAND_PROPS.length - 1}--`, {
+            children: h(ISLAND_CONTEXT.Provider, {
+              value: true,
+              children: child,
+            }),
+          });
+        }
       };
     }
   }
