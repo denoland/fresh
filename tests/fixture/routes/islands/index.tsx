@@ -2,6 +2,7 @@
 import { h } from "preact";
 import Counter from "../../islands/Counter.tsx";
 import KebabCaseFileNameTest from "../../islands/kebab-case-counter-test.tsx";
+import NestedCounter from "../../islands/Nested.tsx";
 import Test from "../../islands/Test.tsx";
 
 export default function Home() {
@@ -10,6 +11,7 @@ export default function Home() {
       <Counter id="counter1" start={3} />
       <Counter id="counter2" start={10} />
       <KebabCaseFileNameTest id="kebab-case-file-counter" start={5} />
+      <NestedCounter id="counter3" start={5} />
       <Test message="" />
     </div>
   );

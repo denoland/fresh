@@ -38,6 +38,11 @@ Deno.test({
     const browser = await puppeteer.launch({ args: ["--no-sandbox"] });
     const page = await browser.newPage();
 
+    let hasNoErrors = true;
+    page.on("pageerror", () => {
+      hasNoErrors = false;
+    });
+
     async function counterTest(counterId: string, originalValue: number) {
       const pElem = await page.waitForSelector(`#${counterId} > p`);
       let value = await pElem?.evaluate((el) => el.textContent);
@@ -47,6 +52,7 @@ Deno.test({
       await buttonPlus?.click();
       value = await pElem?.evaluate((el) => el.textContent);
       assert(value === `${originalValue + 1}`, `${counterId} click`);
+      assert(hasNoErrors, "has page errors");
     }
 
     await page.goto("http://localhost:8000/islands", {
@@ -57,6 +63,7 @@ Deno.test({
       await counterTest("counter1", 3);
       await counterTest("counter2", 10);
       await counterTest("kebab-case-file-counter", 5);
+      await counterTest("counter3", 5);
     });
 
     await t.step("Ensure an island revive an img 'hash' path", async () => {
@@ -68,8 +75,9 @@ Deno.test({
       // Ensure src path is the same as server rendered
       const resp = await fetch(new Request("http://localhost:8000/islands"));
       const body = await resp.text();
-      const imgFilePath = body.match(/img id="img-in-island" src="(.*?)"/)
-        ?.[1]!;
+      const imgFilePath = body.match(
+        /img id="img-in-island" src="(.*?)"/,
+      )?.[1]!;
       assertStringIncludes(srcString, imgFilePath);
     });
 
