@@ -13,5 +13,4 @@ Start the project:
 deno run -A --watch main.ts
 ```
 
-
 This will watch the project directory and restart as necessary.
