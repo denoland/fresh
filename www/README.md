@@ -9,7 +9,6 @@ This is the fresh website source. The fresh website contains:
 
 Start the project:
 
-
 ```
 deno run -A --watch main.ts
 ```
