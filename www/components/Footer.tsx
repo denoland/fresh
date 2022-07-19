@@ -34,7 +34,7 @@ export default function Footer() {
         ))}
       </div>
       <div class={copyright}>
-        <span>© {new Date().getFullYear()} The FRESH docs authors</span>
+        <span>© {new Date().getFullYear()} The FRESH authors</span>
       </div>
     </footer>
   );
