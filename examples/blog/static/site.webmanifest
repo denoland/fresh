@@ -1,0 +1,14 @@
+{
+  "name": "Harsh Mangalam",
+  "short_name": "H.M",
+  "icons": [
+    {
+      "src": "/favicon.ico",
+      "sizes": "192x192",
+      "type": "image/ico"
+    }
+  ],
+  "theme_color": "#A9ADC1",
+  "background_color": "#1f2028",
+  "display": "standalone"
+}
