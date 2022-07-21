@@ -11,7 +11,7 @@ export const handler: Handlers = {
     const isHTML = accept?.includes("text/html");
     const { version, path } = ctx.params;
 
-    const semver = parse(version, { includePrerelease: true, loose: false });
+    const semver = parse(version, { includePrerelease: true });
     if (!semver) {
       return new Response("Invalid version", { status: 400 });
     }
