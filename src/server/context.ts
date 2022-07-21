@@ -489,7 +489,7 @@ export class ServerContext {
       error,
     ) => {
       console.error(
-        "%cAn error occured during route handling or page rendering.",
+        "%cAn error occurred during route handling or page rendering.",
         "color:red",
         error,
       );
