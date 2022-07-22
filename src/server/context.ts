@@ -23,6 +23,7 @@ import {
   Middleware,
   MiddlewareModule,
   MiddlewareRoute,
+  Plugin,
   RenderFunction,
   Route,
   RouteModule,
@@ -61,6 +62,7 @@ export class ServerContext {
   #app: AppModule;
   #notFound: UnknownPage;
   #error: ErrorPage;
+  #plugins: Plugin[];
 
   constructor(
     routes: Route[],
@@ -71,6 +73,7 @@ export class ServerContext {
     app: AppModule,
     notFound: UnknownPage,
     error: ErrorPage,
+    plugins: Plugin[],
     importMapURL: URL,
   ) {
     this.#routes = routes;
@@ -81,7 +84,8 @@ export class ServerContext {
     this.#app = app;
     this.#notFound = notFound;
     this.#error = error;
-    this.#bundler = new Bundler(this.#islands, importMapURL);
+    this.#plugins = plugins;
+    this.#bundler = new Bundler(this.#islands, this.#plugins, importMapURL);
     this.#dev = typeof Deno.env.get("DENO_DEPLOYMENT_ID") !== "string"; // Env var is only set in prod (on Deploy).
   }
 
@@ -260,6 +264,7 @@ export class ServerContext {
       app,
       notFound,
       error,
+      opts.plugins ?? [],
       importMapURL,
     );
   }
@@ -414,6 +419,7 @@ export class ServerContext {
           const resp = await internalRender({
             route,
             islands: this.#islands,
+            plugins: this.#plugins,
             app: this.#app,
             imports,
             preloads,
