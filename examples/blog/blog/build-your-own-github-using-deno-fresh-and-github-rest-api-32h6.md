@@ -87,7 +87,7 @@ export const handler: Handlers = {
         headers: {
           location: `/${username}`,
         },
-        status: 302,
+        status: Status.Found,
       });
     } catch (error) {
       return ctx.render({ error: error.message });
