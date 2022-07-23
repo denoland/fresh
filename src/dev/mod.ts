@@ -5,6 +5,7 @@ import {
   join,
   toFileUrl,
   walk,
+  pparse,
 } from "./deps.ts";
 import { error } from "./error.ts";
 
@@ -33,7 +34,7 @@ export async function collect(directory: string): Promise<Manifest> {
     for await (const entry of routesFolder) {
       if (entry.isFile) {
         const file = toFileUrl(entry.path).href.substring(
-          routesUrl.href.length,
+          routesUrl.href.length
         );
         routes.push(file);
       }
@@ -53,7 +54,7 @@ export async function collect(directory: string): Promise<Manifest> {
     for await (const entry of Deno.readDir(islandsDir)) {
       if (entry.isDirectory) {
         error(
-          `Found subdirectory '${entry.name}' in islands/. The islands/ folder must not contain any subdirectories.`,
+          `Found subdirectory '${entry.name}' in islands/. The islands/ folder must not contain any subdirectories.`
         );
       }
       if (entry.isFile) {
@@ -83,28 +84,23 @@ export async function generate(directory: string, manifest: Manifest) {
 // This file SHOULD be checked into source version control.
 // This file is automatically updated during development when running \`dev.ts\`.
 
-${
-    routes.map((file, i) => `import * as $${i} from "./routes${file}";`).join(
-      "\n",
-    )
-  }
-${
-    islands.map((file, i) => `import * as $$${i} from "./islands${file}";`)
-      .join("\n")
-  }
+${routes
+  .map((file, i) => `import * as $${i} from "./routes${file}";`)
+  .join("\n")}
+${islands
+  .map((file, i) => `import * as $$${i} from "./islands${file}";`)
+  .join("\n")}
 
 const manifest = {
   routes: {
-    ${
-    routes.map((file, i) => `${JSON.stringify(`./routes${file}`)}: $${i},`)
-      .join("\n    ")
-  }
+    ${routes
+      .map((file, i) => `${JSON.stringify(`./routes${file}`)}: $${i},`)
+      .join("\n    ")}
   },
   islands: {
-    ${
-    islands.map((file, i) => `${JSON.stringify(`./islands${file}`)}: $$${i},`)
-      .join("\n    ")
-  }
+    ${islands
+      .map((file, i) => `${JSON.stringify(`./islands${file}`)}: $$${i},`)
+      .join("\n    ")}
   },
   baseUrl: import.meta.url,
 };
@@ -135,8 +131,53 @@ export default manifest;
   await Deno.writeTextFile(manifestPath, manifestStr);
   console.log(
     `%cThe manifest has been generated for ${routes.length} routes and ${islands.length} islands.`,
-    "color: blue; font-weight: bold",
+    "color: blue; font-weight: bold"
   );
+}
+
+interface IMapper {
+  dir: string;
+  file: string;
+}
+export async function routeWarnings(directory: string) {
+  const manifest = await collect(directory);
+  const { routes } = manifest;
+
+  // iterate each route
+  const mapped = routes.map((route: string): IMapper => {
+    const parsed = pparse(route);
+    return { dir: parsed.dir, file: parsed.base };
+  });
+
+  const routesPerDepth = mapped.reduce(
+    (totals: any, p) => ({ ...totals, [p.dir]: (totals[p.dir] || 0) + 1 }),
+    {}
+  );
+
+  const errors = () => {
+    const output = [];
+    for (const [key, value] of Object.entries(routesPerDepth)) {
+      const ones = mapped.filter((p) => {
+        return (
+          p.dir === key && routesPerDepth[key] > 1 && p.file.match(/\[(.*?)\]/g)
+        );
+      });
+      if (ones.length > 0) {
+        output.push(`routes${key}`);
+      }
+    }
+    return output;
+  };
+
+  const errorsList = errors();
+  if (errorsList.length > 0) {
+    console.log(
+      `%cCheck ${errorsList} for potential routing issues.
+You may have dynamic and static routes overwriting each other.
+Please check the documentation for more information. http://localhost:8000/docs/getting-started/dynamic-routes`,
+      "color: red; font-weight: bold"
+    );
+  }
 }
 
 export async function dev(base: string, entrypoint: string) {
@@ -159,6 +200,8 @@ export async function dev(base: string, entrypoint: string) {
     !arraysEqual(newManifest.islands, currentManifest.islands);
 
   if (manifestChanged) await generate(dir, newManifest);
+
+  await routeWarnings(dir);
 
   await import(entrypoint);
 }
