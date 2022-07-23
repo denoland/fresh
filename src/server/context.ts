@@ -29,7 +29,7 @@ import {
   UnknownPage,
   UnknownPageModule,
 } from "./types.ts";
-import { render as internalRender } from "./render.tsx";
+import { render as internalRender, RenderContext } from "./render.tsx";
 import { ContentSecurityPolicyDirectives, SELF } from "../runtime/csp.ts";
 import { ASSET_CACHE_BUST_KEY, INTERNAL_PREFIX } from "../runtime/utils.ts";
 
@@ -455,7 +455,7 @@ export class ServerContext {
           (route.handler as Handler)(req, {
             ...ctx,
             params,
-            render: createRender(req, params),
+            render: createRender(req, { ...params, ...extractContextParams(ctx) }),
           });
       } else {
         for (const [method, handler] of Object.entries(route.handler)) {
@@ -463,7 +463,7 @@ export class ServerContext {
             handler(req, {
               ...ctx,
               params,
-              render: createRender(req, params),
+              render: createRender(req, { ...params, ...extractContextParams(ctx) }),
             });
         }
       }
@@ -718,4 +718,12 @@ export function middlewarePathToPattern(baseRoute: string) {
   }
   const compiledPattern = new URLPattern({ pathname: pattern });
   return { pattern, compiledPattern };
+}
+
+// Allowed options that can be set from middleware
+function extractContextParams(ctx: RenderContext) {
+  return {
+    bodyClass: ctx.bodyClass || "",
+    lang: ctx.lang || "en",
+  };
 }

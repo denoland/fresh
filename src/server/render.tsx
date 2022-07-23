@@ -27,6 +27,7 @@ export interface RenderOptions<Data> {
   data?: Data;
   error?: unknown;
   lang?: string;
+  bodyClass?: string;
 }
 
 export type InnerRenderFunction = () => string;
@@ -38,12 +39,14 @@ export class RenderContext {
   #url: URL;
   #route: string;
   #lang: string;
+  #bodyClass: string;
 
-  constructor(id: string, url: URL, route: string, lang: string) {
+  constructor(id: string, url: URL, route: string, lang: string, bodyClass: string) {
     this.#id = id;
     this.#url = url;
     this.#route = route;
     this.#lang = lang;
+    this.#bodyClass = bodyClass;
   }
 
   /** A unique ID for this logical JIT render. */
@@ -87,6 +90,14 @@ export class RenderContext {
   }
   set lang(lang: string) {
     this.#lang = lang;
+  }
+
+  /** The class to add to the body tag, useful for applying a dark theme. */
+  get bodyClass(): string {
+    return this.#bodyClass;
+  }
+  set bodyClass(bodyClass: string) {
+    this.#bodyClass = bodyClass;
   }
 }
 
@@ -153,7 +164,8 @@ export async function render<Data>(
     crypto.randomUUID(),
     opts.url,
     opts.route.pattern,
-    opts.lang ?? "en",
+    opts.params.lang,
+    opts.params.bodyClass,
   );
 
   if (csp) {
@@ -253,6 +265,7 @@ export async function render<Data>(
     preloads: opts.preloads,
     styles: ctx.styles,
     lang: ctx.lang,
+    bodyClass: ctx.bodyClass,
   });
 
   return [html, csp];
@@ -265,9 +278,12 @@ export interface TemplateOptions {
   styles: string[];
   preloads: string[];
   lang: string;
+  bodyClass: string;
 }
 
 export function template(opts: TemplateOptions): string {
+  const optionalBodyClass = opts.bodyClass !== "" ? { class: opts.bodyClass } : {};
+
   const page = (
     <html lang={opts.lang}>
       <head>
@@ -284,7 +300,7 @@ export function template(opts: TemplateOptions): string {
         />
         {opts.headComponents}
       </head>
-      <body dangerouslySetInnerHTML={{ __html: opts.bodyHtml }} />
+      <body {...optionalBodyClass} dangerouslySetInnerHTML={{ __html: opts.bodyHtml }} />
     </html>
   );
 
