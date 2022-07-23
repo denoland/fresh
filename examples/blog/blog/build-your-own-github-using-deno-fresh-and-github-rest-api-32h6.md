@@ -54,6 +54,8 @@ import { h } from "preact";
 import { tw } from "@twind";
 import { PageProps, Handlers } from "$fresh/server.ts";
 import { fetchUserInfo } from "../services/github.ts";
+import { Status } from "https://deno.land/std@0.146.0/http/http_status.ts";
+
 import Layout from "../components/Layout.tsx";
 
 export const handler: Handlers = {
@@ -71,10 +73,10 @@ export const handler: Handlers = {
       // check if username exists
       const [status] = await fetchUserInfo(String(username));
       // handle different error status code
-      if (status === 404) {
+      if (status === Status.NotFound) {
         return ctx.render({ error: "User not found" });
       }
-      if (status === 403) {
+      if (status === Status.Forbidden) {
         return ctx.render({
           error: "Exceeded github api limit try after an hour",
         });
