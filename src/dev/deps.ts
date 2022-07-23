@@ -6,6 +6,7 @@ export {
   join,
   resolve,
   toFileUrl,
+  parse as pparse,
 } from "https://deno.land/std@0.128.0/path/mod.ts";
 export { walk } from "https://deno.land/std@0.128.0/fs/walk.ts";
 export { bold, red } from "https://deno.land/std@0.128.0/fmt/colors.ts";
