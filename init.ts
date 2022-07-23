@@ -108,10 +108,11 @@ if (useTwind) {
   importMap.imports["twind/"] = "https://esm.sh/twind@0.16.17/";
 }
 const IMPORT_MAP_JSON = JSON.stringify(importMap, null, 2) + "\n";
-await Deno.writeTextFile(
+const WRITING_FILES = [];
+WRITING_FILES.push(Deno.writeTextFile(
   join(resolvedDirectory, "import_map.json"),
   IMPORT_MAP_JSON,
-);
+));
 
 let ROUTES_INDEX_TSX = `/** @jsx h */
 import { h } from "preact";\n`;
@@ -135,10 +136,10 @@ export default function Home() {
   );
 }
 `;
-await Deno.writeTextFile(
+WRITING_FILES.push(Deno.writeTextFile(
   join(resolvedDirectory, "routes", "index.tsx"),
   ROUTES_INDEX_TSX,
-);
+));
 
 let ISLANDS_COUNTER_TSX = `/** @jsx h */
 import { h } from "preact";
@@ -191,10 +192,10 @@ if (useTwind) {
 `;
 }
 ISLANDS_COUNTER_TSX += `}\n`;
-await Deno.writeTextFile(
+WRITING_FILES.push(Deno.writeTextFile(
   join(resolvedDirectory, "islands", "Counter.tsx"),
   ISLANDS_COUNTER_TSX,
-);
+));
 
 const ROUTES_GREET_TSX = `/** @jsx h */
 import { h } from "preact";
@@ -204,10 +205,10 @@ export default function Greet(props: PageProps) {
   return <div>Hello {props.params.name}</div>;
 }
 `;
-await Deno.writeTextFile(
+WRITING_FILES.push(Deno.writeTextFile(
   join(resolvedDirectory, "routes", "[name].tsx"),
   ROUTES_GREET_TSX,
-);
+));
 
 const ROUTES_API_JOKE_TS = `import { HandlerContext } from "$fresh/server.ts";
 
@@ -231,10 +232,10 @@ export const handler = (_req: Request, _ctx: HandlerContext): Response => {
   return new Response(body);
 };
 `;
-await Deno.writeTextFile(
+WRITING_FILES.push(Deno.writeTextFile(
   join(resolvedDirectory, "routes", "api", "joke.ts"),
   ROUTES_API_JOKE_TS,
-);
+));
 
 const UTILS_TWIND_TS = `import { IS_BROWSER } from "$fresh/runtime.ts";
 import { Configuration, setup } from "twind";
@@ -246,10 +247,10 @@ export const config: Configuration = {
 if (IS_BROWSER) setup(config);
 `;
 if (useTwind) {
-  await Deno.writeTextFile(
+  WRITING_FILES.push(Deno.writeTextFile(
     join(resolvedDirectory, "utils", "twind.ts"),
     UTILS_TWIND_TS,
-  );
+  ));
 }
 
 const STATIC_LOGO =
@@ -260,10 +261,10 @@ const STATIC_LOGO =
   <path d="M14.297 16.49c.985-.747 1.644-1.01 2.099-2.526.566.121.841-.08 1.29-.701.324.466 1.657.608 2.453.701-.715.451-1.057.852-1.452 2.106-1.464-.611-3.167-.302-4.39.42Z" fill="#fff"/>
 </svg>`;
 
-await Deno.writeTextFile(
+WRITING_FILES.push(Deno.writeTextFile(
   join(resolvedDirectory, "static", "logo.svg"),
   STATIC_LOGO,
-);
+));
 
 try {
   const faviconArrayBuffer = await fetch("https://fresh.deno.dev/favicon.ico")
@@ -311,7 +312,7 @@ function render(ctx: RenderContext, render: InnerRenderFunction) {
 
 MAIN_TS += `await start(manifest${useTwind ? ", { render }" : ""});\n`;
 const MAIN_TS_PATH = join(resolvedDirectory, "main.ts");
-await Deno.writeTextFile(MAIN_TS_PATH, MAIN_TS);
+WRITING_FILES.push(Deno.writeTextFile(MAIN_TS_PATH, MAIN_TS));
 
 const DEV_TS = `#!/usr/bin/env -S deno run -A --watch=static/,routes/
 
@@ -320,7 +321,7 @@ import dev from "$fresh/dev.ts";
 await dev(import.meta.url, "./main.ts");
 `;
 const DEV_TS_PATH = join(resolvedDirectory, "dev.ts");
-await Deno.writeTextFile(DEV_TS_PATH, DEV_TS);
+WRITING_FILES.push(Deno.writeTextFile(DEV_TS_PATH, DEV_TS));
 try {
   await Deno.chmod(DEV_TS_PATH, 0o777);
 } catch {
@@ -335,7 +336,9 @@ const config = {
 };
 const DENO_CONFIG = JSON.stringify(config, null, 2) + "\n";
 
-await Deno.writeTextFile(join(resolvedDirectory, "deno.json"), DENO_CONFIG);
+WRITING_FILES.push(
+  Deno.writeTextFile(join(resolvedDirectory, "deno.json"), DENO_CONFIG),
+);
 
 const README_MD = `# fresh project
 
@@ -349,10 +352,10 @@ deno task start
 
 This will watch the project directory and restart as necessary.
 `;
-await Deno.writeTextFile(
+WRITING_FILES.push(Deno.writeTextFile(
   join(resolvedDirectory, "README.md"),
   README_MD,
-);
+));
 
 const vscodeSettings = {
   "deno.enable": true,
@@ -363,10 +366,10 @@ const vscodeSettings = {
 const VSCODE_SETTINGS = JSON.stringify(vscodeSettings, null, 2) + "\n";
 
 if (useVSCode) {
-  await Deno.writeTextFile(
+  WRITING_FILES.push(Deno.writeTextFile(
     join(resolvedDirectory, ".vscode", "settings.json"),
     VSCODE_SETTINGS,
-  );
+  ));
 }
 
 const vscodeExtensions = {
@@ -376,14 +379,17 @@ const vscodeExtensions = {
 const VSCODE_EXTENSIONS = JSON.stringify(vscodeExtensions, null, 2) + "\n";
 
 if (useVSCode) {
-  await Deno.writeTextFile(
+  WRITING_FILES.push(Deno.writeTextFile(
     join(resolvedDirectory, ".vscode", "extensions.json"),
     VSCODE_EXTENSIONS,
-  );
+  ));
 }
 
 const manifest = await collect(resolvedDirectory);
 await generate(resolvedDirectory, manifest);
+
+console.log("%cFinishing writing files", "color: yellow; font-weight: thin;");
+await Promise.all(WRITING_FILES);
 
 // Specifically print unresolvedDirectory, rather than resolvedDirectory in order to
 // not leak personal info (e.g. `/Users/MyName`)
