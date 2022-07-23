@@ -8,7 +8,20 @@ Deno.test("check lang", () => {
     imports: [],
     preloads: [],
     styles: [],
-    lang: lang,
+    lang,
   });
   assertStringIncludes(body, `<html lang="${lang}">`);
+});
+Deno.test("check bodyClass", () => {
+  const bodyClass = "dark";
+  const body = template({
+    bodyHtml: "",
+    headComponents: [],
+    imports: [],
+    preloads: [],
+    styles: [],
+    lang: "",
+    bodyClass,
+  });
+  assertStringIncludes(body, `<body class="${bodyClass}">`);
 });
