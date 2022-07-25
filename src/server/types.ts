@@ -8,6 +8,7 @@ export type StartOptions = ServeInit & FreshOptions;
 
 export interface FreshOptions {
   render?: RenderFunction;
+  applyColorSchemeBodyClass?: boolean;
 }
 
 export type RenderFunction = (

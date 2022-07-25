@@ -61,6 +61,7 @@ export class ServerContext {
   #app: AppModule;
   #notFound: UnknownPage;
   #error: ErrorPage;
+  #applyColorSchemeBodyClass: boolean;
 
   constructor(
     routes: Route[],
@@ -72,6 +73,7 @@ export class ServerContext {
     notFound: UnknownPage,
     error: ErrorPage,
     importMapURL: URL,
+    applyColorSchemeBodyClass: boolean,
   ) {
     this.#routes = routes;
     this.#islands = islands;
@@ -83,6 +85,7 @@ export class ServerContext {
     this.#error = error;
     this.#bundler = new Bundler(this.#islands, importMapURL);
     this.#dev = typeof Deno.env.get("DENO_DEPLOYMENT_ID") !== "string"; // Env var is only set in prod (on Deploy).
+    this.#applyColorSchemeBodyClass = applyColorSchemeBodyClass;
   }
 
   /**
@@ -261,6 +264,7 @@ export class ServerContext {
       notFound,
       error,
       importMapURL,
+      !!opts.applyColorSchemeBodyClass,
     );
   }
 
@@ -410,6 +414,11 @@ export class ServerContext {
             );
           }
 
+          let bodyClass = '';
+          if (this.#applyColorSchemeBodyClass) {
+            bodyClass = req.headers.get("Sec-CH-Prefers-Color-Scheme");
+          }
+
           const preloads: string[] = [];
           const resp = await internalRender({
             route,
@@ -422,11 +431,18 @@ export class ServerContext {
             params,
             data,
             error,
+            bodyClass,
           });
 
           const headers: Record<string, string> = {
             "content-type": "text/html; charset=utf-8",
           };
+
+          if (this.#applyColorSchemeBodyClass) {
+            headers["Accept-CH"] = "Sec-CH-Prefers-Color-Scheme";
+            headers["Vary"] = "Sec-CH-Prefers-Color-Scheme";
+            headers["Critical-CH"] = "Sec-CH-Prefers-Color-Scheme";
+          }
 
           const [body, csp] = resp;
           if (csp) {
