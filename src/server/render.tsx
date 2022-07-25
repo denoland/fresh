@@ -39,9 +39,9 @@ export class RenderContext {
   #url: URL;
   #route: string;
   #lang: string;
-  #bodyClass: string | undefined;
+  #bodyClass: string;
 
-  constructor(id: string, url: URL, route: string, lang: string, bodyClass: string | undefined) {
+  constructor(id: string, url: URL, route: string, lang: string, bodyClass: string) {
     this.#id = id;
     this.#url = url;
     this.#route = route;
@@ -93,8 +93,11 @@ export class RenderContext {
   }
 
   /** The class to add to the body tag, useful for applying a dark theme. */
-  get bodyClass(): string | undefined {
+  get bodyClass(): string {
     return this.#bodyClass;
+  }
+  set bodyClass(bodyClass: string) {
+    this.#bodyClass = bodyClass;
   }
 }
 
@@ -162,7 +165,7 @@ export async function render<Data>(
     opts.url,
     opts.route.pattern,
     opts.lang ?? "en",
-    opts.bodyClass,
+    opts.bodyClass ?? "",
   );
 
   if (csp) {
@@ -275,11 +278,11 @@ export interface TemplateOptions {
   styles: string[];
   preloads: string[];
   lang: string;
-  bodyClass?: string | undefined;
+  bodyClass: string;
 }
 
 export function template(opts: TemplateOptions): string {
-  const optionalBodyClass = opts.bodyClass ? { class: opts.bodyClass } : {};
+  const optionalBodyClass = opts.bodyClass !== "" ? { class: opts.bodyClass } : {};
 
   const page = (
     <html lang={opts.lang}>
