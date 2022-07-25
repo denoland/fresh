@@ -272,7 +272,6 @@ export function template(opts: TemplateOptions): string {
     <html lang={opts.lang}>
       <head>
         <meta charSet="UTF-8" />
-        <meta http-equiv="X-UA-Compatible" content="IE=edge" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         {opts.preloads.map((src) => <link rel="modulepreload" href={src} />)}
         {opts.imports.map(([src, nonce]) => (
