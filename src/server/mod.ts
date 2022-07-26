@@ -1,5 +1,5 @@
 import { ServerContext } from "./context.ts";
-import { serve } from "./deps.ts";
+import { Server } from "./deps.ts";
 import {
   AppModule,
   ErrorPageModule,
@@ -45,15 +45,37 @@ export interface Manifest {
 
 export { ServerContext };
 
+export async function getServer(
+  routes: Manifest,
+  opts: StartOptions = {},
+): Promise<Server> {
+  const ctx = await ServerContext.fromManifest(routes, opts);
+
+  const server = new Server({
+    handler: ctx.handler(),
+    port: opts.port ?? 8000,
+    hostname: opts.hostname ?? "0.0.0.0",
+    onError: opts.onError,
+    ...opts,
+  });
+
+  if (opts?.signal) {
+    opts.signal.onabort = () => server.close();
+  }
+
+  return server;
+}
+
 export async function start(
   routes: Manifest,
   opts: StartOptions = {},
 ) {
-  const ctx = await ServerContext.fromManifest(routes, opts);
+  const server = await getServer(routes, opts);
   console.log(
     `Server listening on http://${opts?.hostname ?? "localhost"}:${
       opts?.port ?? 8000
     }`,
   );
-  await serve(ctx.handler(), opts);
+
+  return await server.listenAndServe();
 }
