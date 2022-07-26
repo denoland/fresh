@@ -5,22 +5,9 @@
 /// <reference lib="deno.unstable" />
 
 import { start } from "$fresh/server.ts";
-import { virtualSheet } from "twind/sheets";
-import { setup, theme } from "@twind";
+import twindPlugin from "$fresh/plugins/twind.ts";
 
-import routes from "./fresh.gen.ts";
+import manifest from "./fresh.gen.ts";
+import twindConfig from "./twind.config.js";
 
-const sheet = virtualSheet();
-sheet.reset();
-setup({ sheet, theme });
-
-await start(routes, {
-  render(ctx, render) {
-    const snapshot = ctx.state.get("twindSnapshot") as unknown[] | null;
-    sheet.reset(snapshot || undefined);
-    render();
-    ctx.styles.splice(0, ctx.styles.length, ...(sheet).target);
-    const newSnapshot = sheet.reset();
-    ctx.state.set("twindSnapshot", newSnapshot);
-  },
-});
+await start(manifest, { plugins: [twindPlugin(twindConfig)] });

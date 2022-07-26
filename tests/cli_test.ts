@@ -193,6 +193,7 @@ Deno.test({
           { "type": "file", "name": "README.md" },
           { "type": "file", "name": "import_map.json" },
           { "type": "file", "name": "fresh.gen.ts" },
+          { "type": "file", "name": "twind.config.js" },
           {
             "type": "directory",
             "name": "islands",
@@ -221,13 +222,6 @@ Deno.test({
             "name": "static",
             "contents": [
               { "type": "file", "name": "logo.svg" },
-            ],
-          },
-          {
-            "type": "directory",
-            "name": "utils",
-            "contents": [
-              { "type": "file", "name": "twind.ts" },
             ],
           },
           {

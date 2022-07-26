@@ -24,13 +24,8 @@ function createRootFragment(
   };
 }
 
-const ISLAND_PROPS_COMPONENT = document.getElementById("__FRSH_ISLAND_PROPS");
 // deno-lint-ignore no-explicit-any
-const ISLAND_PROPS: any[] = JSON.parse(
-  ISLAND_PROPS_COMPONENT?.textContent ?? "[]",
-);
-
-export function revive(islands: Record<string, ComponentType>) {
+export function revive(islands: Record<string, ComponentType>, props: any[]) {
   function walk(node: Node | null) {
     const tag = node!.nodeType === 8 &&
       ((node as Comment).data.match(/^\s*frsh-(.*)\s*$/) || [])[1];
@@ -47,7 +42,7 @@ export function revive(islands: Record<string, ComponentType>) {
 
       const [id, n] = tag.split(":");
       render(
-        h(islands[id], ISLAND_PROPS[Number(n)]),
+        h(islands[id], props[Number(n)]),
         createRootFragment(
           parent! as HTMLElement,
           children,

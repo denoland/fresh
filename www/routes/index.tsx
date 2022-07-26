@@ -3,7 +3,6 @@
 import { ComponentChildren, Fragment, h } from "preact";
 import { asset, Head } from "$fresh/runtime.ts";
 import { Handlers, PageProps } from "$fresh/server.ts";
-import { tw } from "@twind";
 import Counter from "../islands/Counter.tsx";
 import LemonDrop from "../islands/LemonDrop.tsx";
 import Footer from "../components/Footer.tsx";
@@ -43,9 +42,9 @@ export default function MainPage(props: PageProps) {
         <meta property="og:url" content={props.url.href} />
         <meta property="og:image" content={ogImageUrl} />
       </Head>
-      <div class={tw`flex flex-col min-h-screen`}>
+      <div class="flex flex-col min-h-screen">
         <Hero />
-        <div class={tw`flex-1`}>
+        <div class="flex-1">
           <Intro />
           <GettingStarted origin={origin} />
           <Example />
@@ -57,20 +56,17 @@ export default function MainPage(props: PageProps) {
 }
 
 function Hero() {
-  const container = tw
-    `w-full flex justify-center items-center flex-col bg-green-300`;
-  const nav = tw`flex justify-end items-center bg-green-300`;
-  const a = tw
-    `border(1 black) inline-flex items-center h-10 px-4 m-4 text-black bg-transparent rounded hover:bg-white`;
-
   return (
     <Fragment>
-      <div class={nav}>
-        <a href="/docs" class={a}>
+      <div class="flex justify-end items-center bg-green-300">
+        <a
+          href="/docs"
+          class="border(1 black) inline-flex items-center h-10 px-4 m-4 text-black bg-transparent rounded hover:bg-white"
+        >
           Documentation
         </a>
       </div>
-      <section class={container}>
+      <section class="w-full flex justify-center items-center flex-col bg-green-300">
         <LemonDrop />
       </section>
     </Fragment>
@@ -82,9 +78,9 @@ export interface ListItemProps {
 
 function ListItem(props: ListItemProps) {
   return (
-    <div class={tw`flex mt-3`}>
+    <div class="flex mt-3">
       <Leaf />
-      <div class={tw`pl-4 flex-1`}>
+      <div class="pl-4 flex-1">
         {props.children}
       </div>
     </div>
@@ -92,28 +88,23 @@ function ListItem(props: ListItemProps) {
 }
 
 function Intro() {
-  const title = tw
-    `py-4 text(4xl sm:4xl lg:4xl gray-900 center) sm:tracking-tight font-extrabold`;
-
   return (
-    <section
-      class={tw`max-w-screen-sm mx-auto my-16 px(4 sm:6 md:8) space-y-4`}
-    >
+    <section class="max-w-screen-sm mx-auto my-16 px(4 sm:6 md:8) space-y-4">
       <picture>
         <img
           src="/illustration/lemon-squash.svg"
-          class={tw`w-64 mx-auto`}
+          class="w-64 mx-auto"
           width={800}
           height={678}
           alt="deno is drinking fresh lemon squash"
         />
       </picture>
 
-      <h2 class={title}>
+      <h2 class="py-4 text(4xl sm:4xl lg:4xl gray-900 center) sm:tracking-tight font-extrabold">
         The next-gen web framework.
       </h2>
 
-      <p class={tw`text-gray-600`}>
+      <p class="text-gray-600">
         Fresh is a next generation web framework, built for speed, reliability,
         and simplicity. Some stand out features:
       </p>
@@ -140,7 +131,7 @@ function Intro() {
         </ListItem>
       </div>
 
-      <p class={tw`text-gray-600`}>
+      <p class="text-gray-600">
         Fresh embraces the tried and true design of server side rendering and
         progressive enhancement on the client side.
       </p>
@@ -150,47 +141,45 @@ function Intro() {
 
 function GettingStarted(props: { origin: string }) {
   return (
-    <section
-      class={tw`max-w-screen-sm mx-auto my-16 px(4 sm:6 md:8) space-y-4`}
-    >
-      <h2 id="getting-started" class={tw`text(xl gray-600) font-bold`}>
-        <a href="#getting-started" class={tw`hover:underline`}>
+    <section class="max-w-screen-sm mx-auto my-16 px(4 sm:6 md:8) space-y-4">
+      <h2 id="getting-started" class="text(xl gray-600) font-bold">
+        <a href="#getting-started" class="hover:underline">
           Getting started
         </a>
       </h2>
-      <p class={tw`text-gray-600`}>
+      <p class="text-gray-600">
         To get started, make sure you have the{" "}
-        <a href="https://deno.land" class={tw`text-blue-600 hover:underline`}>
+        <a href="https://deno.land" class="text-blue-600 hover:underline">
           Deno CLI
         </a>{" "}
         version 1.23.0 or higher installed.
       </p>
-      <p class={tw`text-gray-600`}>
+      <p class="text-gray-600">
         Then you can use the Fresh init script to bootstrap a new project:
       </p>
-      <pre class={tw`overflow-x-auto py-2 px-4 bg(gray-100)`}>
+      <pre class="overflow-x-auto py-2 px-4 bg(gray-100)">
         {`deno run -A -r ${props.origin} my-project`}
       </pre>
-      <p class={tw`text-gray-600`}>
+      <p class="text-gray-600">
         Enter the newly created project directory and run the following command
         to start the development server:
       </p>
-      <pre class={tw`overflow-x-auto py-2 px-4 bg(gray-100)`}>
+      <pre class="overflow-x-auto py-2 px-4 bg(gray-100)">
         deno task start
       </pre>
-      <p class={tw`text-gray-600`}>
+      <p class="text-gray-600">
         You can now open{" "}
         <a
           href="http://localhost:8000"
-          class={tw`text-blue-600 hover:underline`}
+          class="text-blue-600 hover:underline"
         >
           http://localhost:8000
         </a>{" "}
         in your browser to view the page.
       </p>
-      <p class={tw`text-gray-600`}>
+      <p class="text-gray-600">
         A more in-depth getting started guide is available in{" "}
-        <a href="/docs" class={tw`text-blue-600 hover:underline`}>the docs</a>.
+        <a href="/docs" class="text-blue-600 hover:underline">the docs</a>.
       </p>
     </section>
   );
@@ -203,26 +192,24 @@ const timeFmt = new Intl.DateTimeFormat("en-US", {
 
 function Example() {
   return (
-    <section
-      class={tw`max-w-screen-sm mx-auto my-16 px(4 sm:6 md:8) space-y-4`}
-    >
-      <h2 id="example" class={tw`text(xl gray-600) font-bold`}>
-        <a href="#example" class={tw`hover:underline`}>
+    <section class="max-w-screen-sm mx-auto my-16 px(4 sm:6 md:8) space-y-4">
+      <h2 id="example" class="text(xl gray-600) font-bold">
+        <a href="#example" class="hover:underline">
           Example
         </a>
       </h2>
-      <p class={tw`text-gray-600`}>
+      <p class="text-gray-600">
         This text is being server side rendered on the fly. It was rendered at
         {" "}
         {timeFmt.format(new Date())}.
       </p>
-      <p class={tw`text-gray-600`}>
+      <p class="text-gray-600">
         The counter below was rendered on the server with a starting value of 3,
         and was then hydrated on the client to provide interactivity. Try out
         the buttons!
       </p>
       <Counter start={3} />
-      <p class={tw`text-gray-600`}>
+      <p class="text-gray-600">
         Only the JS required to render that counter is sent to the client.
       </p>
     </section>
