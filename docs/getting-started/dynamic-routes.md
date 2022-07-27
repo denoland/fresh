@@ -19,6 +19,12 @@ make any path segment dynamic, just put square brackets around that segment in
 the file name. For example the `/greet/:name` route maps to the file name
 `routes/greet/[name].tsx`.
 
+> :warning: Warning, it is possible to create both static and dynamic routes in
+> the same directory causing potential routing problems. Fresh will always
+> choose the static route first however while in developer mode Fresh will try
+> and check your routes as you create them and display any such routing
+> conflicts to the terminal.
+
 Just like the static `/about` route, the dynamic `/greet/:name` route will
 render a page. The module must once again expose a component as a default
 export. This time the component will receive the matched path segment properties
