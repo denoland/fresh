@@ -3,12 +3,17 @@ import { BUILD_ID } from "./constants.ts";
 import { denoPlugin, esbuild, toFileUrl } from "./deps.ts";
 import { Island, Plugin } from "./types.ts";
 
+export interface JSXConfig {
+  jsx: "react" | "react-jsx";
+  jsxImportSource?: string;
+}
+
 let esbuildInitialized: boolean | Promise<void> = false;
 async function ensureEsbuildInitialized() {
   if (esbuildInitialized === false) {
     if (Deno.run === undefined) {
       esbuildInitialized = esbuild.initialize({
-        wasmURL: "https://unpkg.com/esbuild-wasm@0.14.51/esbuild.wasm",
+        wasmURL: "https://deno.land/x/esbuild@v0.14.51/esbuild.wasm",
         worker: false,
       });
     } else {
@@ -21,8 +26,14 @@ async function ensureEsbuildInitialized() {
   }
 }
 
+const JSX_RUNTIME_MODE = {
+  "react": "transform",
+  "react-jsx": "automatic",
+} as const;
+
 export class Bundler {
   #importMapURL: URL;
+  #jsxConfig: JSXConfig;
   #islands: Island[];
   #plugins: Plugin[];
   #cache: Map<string, Uint8Array> | Promise<void> | undefined = undefined;
@@ -32,11 +43,13 @@ export class Bundler {
     islands: Island[],
     plugins: Plugin[],
     importMapURL: URL,
+    jsxConfig: JSXConfig,
     dev: boolean,
   ) {
     this.#islands = islands;
     this.#plugins = plugins;
     this.#importMapURL = importMapURL;
+    this.#jsxConfig = jsxConfig;
     this.#dev = dev;
   }
 
@@ -82,6 +95,8 @@ export class Bundler {
       target: ["chrome99", "firefox99", "safari15"],
       treeShaking: true,
       write: false,
+      jsx: JSX_RUNTIME_MODE[this.#jsxConfig.jsx],
+      jsxImportSource: this.#jsxConfig.jsxImportSource,
     });
     // const metafileOutputs = bundle.metafile!.outputs;
 

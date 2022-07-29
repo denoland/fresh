@@ -1,13 +1,10 @@
-/** @jsx h */
-/** @jsxFrag Fragment */
-import { Fragment, h } from "preact";
 import LemonDrop from "../islands/LemonDrop.tsx";
 
 export function ServerCodePage(
   props: { serverCode: number; codeDescription: string },
 ) {
   return (
-    <Fragment>
+    <>
       <section>
         <div class="w-full flex justify-center items-center flex-col bg-green-300">
           <LemonDrop />
@@ -26,7 +23,7 @@ export function ServerCodePage(
           </p>
         </div>
       </section>
-    </Fragment>
+    </>
   );
 }
 

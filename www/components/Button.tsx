@@ -1,6 +1,3 @@
-/** @jsx h */
-import { h } from "preact";
-
 export function RoundedButton(props: h.JSX.HTMLAttributes<HTMLButtonElement>) {
   return (
     <button
