@@ -149,7 +149,7 @@ export function Button(props: h.JSX.HTMLAttributes<HTMLButtonElement>) {
   return (
     <button
       {...props}
-      disabled={props.disabled ?? IS_BROWSER}
+      disabled={!IS_BROWSER || props.disabled}
     ${
   useTwind
     ? "  class={tw\`px-2 py-1 border(gray-100 2) hover:bg-gray-200\`}\n    "
@@ -166,6 +166,7 @@ await Deno.writeTextFile(
 const ISLANDS_COUNTER_TSX = `/** @jsx h */
 import { h } from "preact";
 import { useState } from "preact/hooks";
+${useTwind ? 'import { tw } from "@twind";\n' : ""}
 import { Button } from "../components/Button.tsx";
 
 interface CounterProps {
@@ -175,8 +176,10 @@ interface CounterProps {
 export default function Counter(props: CounterProps) {
   const [count, setCount] = useState(props.start);
   return (
-    <div class={tw\`flex gap-2 w-full\`}>
-      <p class={tw\`flex-grow-1 font-bold text-xl\`}>{count}</p>
+    <div${useTwind ? " class={tw\`flex gap-2 w-full\`}" : ""}>
+      <p${
+  useTwind ? " class={tw\`flex-grow-1 font-bold text-xl\`}" : ""
+}>{count}</p>
       <Button onClick={() => setCount(count - 1)}>-1</Button>
       <Button onClick={() => setCount(count + 1)}>+1</Button>
     </div>

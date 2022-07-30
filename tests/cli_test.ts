@@ -68,6 +68,13 @@ Deno.test({
           { "type": "file", "name": "fresh.gen.ts" },
           {
             "type": "directory",
+            "name": "components",
+            "contents": [
+              { "type": "file", "name": "Button.tsx" },
+            ],
+          },
+          {
+            "type": "directory",
             "name": "islands",
             "contents": [
               { "type": "file", "name": "Counter.tsx" },
@@ -152,7 +159,6 @@ Deno.test({
       await delay(100);
 
       counterValue = await counter?.evaluate((el) => el.textContent);
-      console.log(counterValue);
       assert(counterValue === "4");
       await page.close();
       await browser.close();
@@ -200,6 +206,13 @@ Deno.test({
           { "type": "file", "name": "README.md" },
           { "type": "file", "name": "import_map.json" },
           { "type": "file", "name": "fresh.gen.ts" },
+          {
+            "type": "directory",
+            "name": "components",
+            "contents": [
+              { "type": "file", "name": "Button.tsx" },
+            ],
+          },
           {
             "type": "directory",
             "name": "islands",
