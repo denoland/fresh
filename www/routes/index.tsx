@@ -57,11 +57,11 @@ export default function MainPage(props: PageProps) {
 }
 
 function Hero() {
-  const container = tw
-    `w-full flex justify-center items-center flex-col bg-green-300`;
+  const container =
+    tw`w-full flex justify-center items-center flex-col bg-green-300`;
   const nav = tw`flex justify-end items-center bg-green-300`;
-  const a = tw
-    `border(1 black) inline-flex items-center h-10 px-4 m-4 text-black bg-transparent rounded hover:bg-white`;
+  const a =
+    tw`border(1 black) inline-flex items-center h-10 px-4 m-4 text-black bg-transparent rounded hover:bg-white`;
 
   return (
     <Fragment>
@@ -92,8 +92,8 @@ function ListItem(props: ListItemProps) {
 }
 
 function Intro() {
-  const title = tw
-    `py-4 text(4xl sm:4xl lg:4xl gray-900 center) sm:tracking-tight font-extrabold`;
+  const title =
+    tw`py-4 text(4xl sm:4xl lg:4xl gray-900 center) sm:tracking-tight font-extrabold`;
 
   return (
     <section
