@@ -14,8 +14,7 @@ export default function Counter(props: CounterProps) {
   const [count, setCount] = useState(props.start);
   return (
     <div
-      class={tw
-        `bg-gray-100 p-4 border border-gray-200 flex items-center justify-around`}
+      class={tw`bg-gray-100 p-4 border border-gray-200 flex items-center justify-around`}
     >
       <RoundedButton
         title="Subtract 1"
