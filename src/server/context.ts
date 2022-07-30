@@ -2,11 +2,11 @@ import {
   ConnInfo,
   extname,
   fromFileUrl,
-  mediaTypeLookup,
   RequestHandler,
   router,
   Status,
   toFileUrl,
+  typeByExtension,
   walk,
 } from "./deps.ts";
 import { h } from "preact";
@@ -224,7 +224,7 @@ export class ServerContext {
         const localUrl = toFileUrl(entry.path);
         const path = localUrl.href.substring(staticFolder.href.length);
         const stat = await Deno.stat(localUrl);
-        const contentType = mediaTypeLookup(extname(path)) ??
+        const contentType = typeByExtension(extname(path)) ??
           "application/octet-stream";
         const etag = await crypto.subtle.digest(
           "SHA-1",
@@ -492,7 +492,7 @@ export class ServerContext {
       error,
     ) => {
       console.error(
-        "%cAn error occured during route handling or page rendering.",
+        "%cAn error occurred during route handling or page rendering.",
         "color:red",
         error,
       );
@@ -562,7 +562,7 @@ export class ServerContext {
           "Cache-Control": "public, max-age=604800, immutable",
         });
 
-        const contentType = mediaTypeLookup(path);
+        const contentType = typeByExtension(extname(path));
         if (contentType) {
           headers.set("Content-Type", contentType);
         }

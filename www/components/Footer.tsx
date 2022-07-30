@@ -18,10 +18,10 @@ const LINKS = [
 ];
 
 export default function Footer() {
-  const footer = tw
-    `border(t-2 gray-200) bg-gray-100 h-32 flex flex-col gap-4 justify-center`;
-  const inner = tw
-    `mx-auto max-w-screen-lg flex items-center justify-center gap-8`;
+  const footer =
+    tw`border(t-2 gray-200) bg-gray-100 h-32 flex flex-col gap-4 justify-center`;
+  const inner =
+    tw`mx-auto max-w-screen-lg flex items-center justify-center gap-8`;
   const linkStyle = tw`text-gray-600 hover:underline`;
   const copyright = tw`text(gray-600 center)`;
   return (
@@ -34,7 +34,7 @@ export default function Footer() {
         ))}
       </div>
       <div class={copyright}>
-        <span>© {new Date().getFullYear()} the fresh authors</span>
+        <span>© {new Date().getFullYear()} the Fresh authors</span>
       </div>
     </footer>
   );
