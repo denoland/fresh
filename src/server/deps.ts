@@ -11,6 +11,7 @@ export type {
   Handler as RequestHandler,
   ServeInit,
 } from "https://deno.land/std@0.150.0/http/server.ts";
+export { Status } from "https://deno.land/std@0.150.0/http/http_status.ts";
 export {
   typeByExtension,
 } from "https://deno.land/std@0.150.0/media_types/mod.ts";
