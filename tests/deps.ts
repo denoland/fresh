@@ -8,9 +8,9 @@ export {
   assert,
   assertEquals,
   assertStringIncludes,
-} from "https://deno.land/std@0.129.0/testing/asserts.ts";
+} from "https://deno.land/std@0.150.0/testing/asserts.ts";
 export {
   TextLineStream,
-} from "https://deno.land/std@0.129.0/streams/delimiter.ts";
-export { delay } from "https://deno.land/std@0.129.0/async/delay.ts";
-export { default as puppeteer } from "https://deno.land/x/puppeteer@9.0.2/mod.ts";
+} from "https://deno.land/std@0.150.0/streams/delimiter.ts";
+export { delay } from "https://deno.land/std@0.150.0/async/delay.ts";
+export { default as puppeteer } from "https://deno.land/x/puppeteer@14.1.1/mod.ts";
