@@ -50,10 +50,5 @@ export async function start(
   opts: StartOptions = {},
 ) {
   const ctx = await ServerContext.fromManifest(routes, opts);
-  console.log(
-    `Server listening on http://${opts?.hostname ?? "localhost"}:${
-      opts?.port ?? 8000
-    }`,
-  );
   await serve(ctx.handler(), opts);
 }
