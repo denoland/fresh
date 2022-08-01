@@ -21,7 +21,7 @@ Fresh embraces this model. All pages are rendered server side, but you can
 create "island components" that are _also_ rendered client side. To do this,
 Fresh projects have a special `islands/` folder. The modules in this folder each
 encapsulate a single island component. The name of the module should be the
-[pascal case][pascal-case] or [kebab case](kebab-case) name of the island
+[pascal case][pascal-case] or [kebab case][kebab-case] name of the island
 component. For example a counter component would be defined in the file
 `islands/Counter.tsx`. A buy now button would be defined in the file
 `islands/BuyNowButton.tsx`.
