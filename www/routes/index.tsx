@@ -7,8 +7,8 @@ import { tw } from "@twind";
 import Counter from "../islands/Counter.tsx";
 import LemonDrop from "../islands/LemonDrop.tsx";
 import Footer from "../components/Footer.tsx";
-import { Leaf } from "../components/Icons.tsx";
 import VERSIONS from "../../versions.json" assert { type: "json" };
+import * as FeatureIcons from "../components/FeatureIcons.tsx";
 
 export const handler: Handlers = {
   GET(req, ctx) {
@@ -76,18 +76,61 @@ function Hero() {
     </Fragment>
   );
 }
-export interface ListItemProps {
-  children: ComponentChildren;
-}
 
-function ListItem(props: ListItemProps) {
+function Features() {
+  const wrapper = tw`flex md:flex-row flex-col md:gap-20 gap-5 md:pt-10`;
+  const item = tw`md:w-56 flex md:flex-col items-center gap-5`;
+  const desc = tw`flex-1`;
+
   return (
-    <div class={tw`flex mt-3`}>
-      <Leaf />
-      <div class={tw`pl-4 flex-1`}>
-        {props.children}
+    <>
+      <div class={wrapper}>
+        <div class={item}>
+          <FeatureIcons.Globe />
+          <div class={desc}>
+            <b>Just-in-time rendering</b> on the edge.
+          </div>
+        </div>
+
+        <div class={item}>
+          <FeatureIcons.Island />
+          <div class={desc}>
+            <b>Island based client hydration</b> for maximum interactivity.
+          </div>
+        </div>
+
+        <div class={item}>
+          <FeatureIcons.LightWeight />
+          <div class={desc}>
+            <b>Zero runtime overhead</b>: no JS is shipped to the client by
+            default.
+          </div>
+        </div>
       </div>
-    </div>
+
+      <div class={wrapper}>
+        <div class={item}>
+          <FeatureIcons.NoBuild />
+          <div>
+            <b>No build step</b>.
+          </div>
+        </div>
+
+        <div class={item}>
+          <FeatureIcons.Gabage />
+          <div>
+            <b>No configuration</b> necessary.
+          </div>
+        </div>
+
+        <div class={item}>
+          <FeatureIcons.TypeScript />
+          <div>
+            <b>TypeScript support</b> out of the box.
+          </div>
+        </div>
+      </div>
+    </>
   );
 }
 
@@ -97,7 +140,7 @@ function Intro() {
 
   return (
     <section
-      class={tw`max-w-screen-sm mx-auto my-16 px(4 sm:6 md:8) space-y-4`}
+      class={tw`max-w-screen-md mx-auto my-16 px(4 sm:6 md:8) space-y-4`}
     >
       <picture>
         <img
@@ -118,27 +161,7 @@ function Intro() {
         and simplicity. Some stand out features:
       </p>
 
-      <div>
-        <ListItem>
-          <b>Just-in-time rendering</b> on the edge.
-        </ListItem>
-        <ListItem>
-          <b>Island based client hydration</b> for maximum interactivity.
-        </ListItem>
-        <ListItem>
-          <b>Zero runtime overhead</b>: no JS is shipped to the client by
-          default.
-        </ListItem>
-        <ListItem>
-          <b>No build step</b>.
-        </ListItem>
-        <ListItem>
-          <b>No configuration</b> necessary.
-        </ListItem>
-        <ListItem>
-          <b>TypeScript support</b> out of the box.
-        </ListItem>
-      </div>
+      <Features />
 
       <p class={tw`text-gray-600`}>
         Fresh embraces the tried and true design of server side rendering and
@@ -151,7 +174,7 @@ function Intro() {
 function GettingStarted(props: { origin: string }) {
   return (
     <section
-      class={tw`max-w-screen-sm mx-auto my-16 px(4 sm:6 md:8) space-y-4`}
+      class={tw`max-w-screen-md mx-auto my-16 px(4 sm:6 md:8) space-y-4`}
     >
       <h2 id="getting-started" class={tw`text(xl gray-600) font-bold`}>
         <a href="#getting-started" class={tw`hover:underline`}>
@@ -204,7 +227,7 @@ const timeFmt = new Intl.DateTimeFormat("en-US", {
 function Example() {
   return (
     <section
-      class={tw`max-w-screen-sm mx-auto my-16 px(4 sm:6 md:8) space-y-4`}
+      class={tw`max-w-screen-md mx-auto my-16 px(4 sm:6 md:8) space-y-4`}
     >
       <h2 id="example" class={tw`text(xl gray-600) font-bold`}>
         <a href="#example" class={tw`hover:underline`}>
