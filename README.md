@@ -36,7 +36,7 @@ deno run -A -r https://fresh.deno.dev deno-fresh-demo
 Then navigate to the newly created project folder:
 
 ```
-cd my-project
+cd deno-fresh-demo
 ```
 
 From within your project folder, start the development server using the
