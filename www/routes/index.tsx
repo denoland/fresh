@@ -136,30 +136,33 @@ function Features() {
 
 function Intro() {
   const title =
-    tw`py-4 text(4xl sm:4xl lg:4xl gray-900 center) sm:tracking-tight font-extrabold`;
+    tw`py-2 text(5xl sm:5xl lg:5xl gray-900) sm:tracking-tight font-extrabold`;
 
   return (
     <section
       class={tw`max-w-screen-md mx-auto my-16 px(4 sm:6 md:8) space-y-4`}
     >
-      <picture>
-        <img
-          src="/illustration/lemon-squash.svg"
-          class={tw`w-64 mx-auto`}
-          width={800}
-          height={678}
-          alt="deno is drinking fresh lemon squash"
-        />
-      </picture>
+      <div class={tw`md:flex items-center`}>
+        <div class={tw`flex-1 text-center md:text-left`}>
+          <h2 class={title}>
+            The <span class={tw`text-green-500`}>next-gen</span> web framework.
+          </h2>
 
-      <h2 class={title}>
-        The next-gen web framework.
-      </h2>
+          <p class={tw`text-gray-600`}>
+            Built for speed, reliability, and simplicity.
+          </p>
+        </div>
 
-      <p class={tw`text-gray-600`}>
-        Fresh is a next generation web framework, built for speed, reliability,
-        and simplicity. Some stand out features:
-      </p>
+        <picture>
+          <img
+            src="/illustration/lemon-squash.svg"
+            class={tw`w-80 mx-auto`}
+            width={800}
+            height={678}
+            alt="deno is drinking fresh lemon squash"
+          />
+        </picture>
+      </div>
 
       <Features />
 
