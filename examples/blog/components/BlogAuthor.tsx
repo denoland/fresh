@@ -1,14 +1,11 @@
 /** @jsx h */
 import { h } from "preact";
 import { tw } from "@twind";
-
+import { Author } from "types/author.ts";
 export default function BlogAuthor({
   authorName,
   authorAvatar,
-}: {
-  authorAvatar: string;
-  authorName: string;
-}) {
+}: Author) {
   return (
     <div class={tw`flex items-center space-x-3`}>
       <img
