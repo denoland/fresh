@@ -14,7 +14,7 @@ export const handler: Handlers = {
   async GET(req, ctx) {
     try {
       const BLOG_DIR = "blog";
-      const { slug } = ctx.params
+      const { slug } = ctx.params;
 
       const postPath = `${BLOG_DIR}/${slug}.md`;
       // check file exists
@@ -43,8 +43,10 @@ export const handler: Handlers = {
   },
 };
 
-export default function Blog({ data }: PageProps) {
-  const post: PostDetail = data?.post;
+export default function Blog({
+  data,
+}: PageProps<{ post: PostDetail; github: any }>) {
+  const post = data?.post;
   const github = data?.github;
 
   return (
