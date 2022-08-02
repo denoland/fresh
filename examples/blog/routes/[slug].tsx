@@ -14,7 +14,7 @@ export const handler: Handlers = {
   async GET(req, ctx) {
     try {
       const BLOG_DIR = "blog";
-      const slug = ctx.params.slug;
+      const { slug } = ctx.params
 
       const postPath = `${BLOG_DIR}/${slug}.md`;
       // check file exists
