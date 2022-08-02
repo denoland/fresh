@@ -9,7 +9,7 @@ import { fetchRepoMetadata } from "utils/github.ts";
 import GithubRepo from "components/GithubRepo.tsx";
 import Tag from "../components/Tag.tsx";
 import BlogAuthor from "../components/BlogAuthor.tsx";
-
+import { Status } from "https://deno.land/std@0.146.0/http/http_status.ts";
 export const handler: Handlers = {
   async GET(req, ctx) {
     try {
@@ -36,7 +36,7 @@ export const handler: Handlers = {
     } catch (error) {
       // redirect to home page if post not found
       return new Response(undefined, {
-        status: 302,
+        status: Status.Found,
         headers: { location: "/" },
       });
     }
