@@ -9,6 +9,7 @@ import LemonDrop from "../islands/LemonDrop.tsx";
 import Footer from "../components/Footer.tsx";
 import VERSIONS from "../../versions.json" assert { type: "json" };
 import * as FeatureIcons from "../components/FeatureIcons.tsx";
+import CopyButton from "../islands/CopyButton.tsx";
 
 export const handler: Handlers = {
   GET(req, ctx) {
@@ -175,6 +176,8 @@ function Intro() {
 }
 
 function GettingStarted(props: { origin: string }) {
+  const initCommand = `deno run -A -r ${props.origin} my-project`;
+
   return (
     <section
       class={tw`max-w-screen-md mx-auto my-16 px(4 sm:6 md:8) space-y-4`}
@@ -194,9 +197,13 @@ function GettingStarted(props: { origin: string }) {
       <p class={tw`text-gray-600`}>
         Then you can use the Fresh init script to bootstrap a new project:
       </p>
-      <pre class={tw`overflow-x-auto py-2 px-4 bg(gray-100)`}>
-        {`deno run -A -r ${props.origin} my-project`}
-      </pre>
+      <div class={tw`py-2 px-4 bg(gray-100) flex`}>
+        <pre class={tw`overflow-x-auto flex-1`}>
+          {initCommand}
+        </pre>
+
+        <CopyButton text={initCommand} />
+      </div>
       <p class={tw`text-gray-600`}>
         Enter the newly created project directory and run the following command
         to start the development server:
