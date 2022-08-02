@@ -90,8 +90,8 @@ function Logo() {
 
 function Header() {
   const header = tw`mx-auto max-w-screen-lg flex gap-3 justify-between`;
-  const sidebarButton = tw
-    `px-4 py-4 md:hidden border(l-2 green-200) flex items-center hover:bg-green-100`;
+  const sidebarButton =
+    tw`px-4 py-4 md:hidden border(l-2 green-200) flex items-center hover:bg-green-100`;
   return (
     <div class={tw`bg-green-300`}>
       <header class={header}>
@@ -123,8 +123,8 @@ function Header() {
 }
 
 function Title() {
-  const title = tw
-    `text(2xl gray-900) tracking-tight font-extrabold flex items-center gap-1`;
+  const title =
+    tw`text(2xl gray-900) tracking-tight font-extrabold flex items-center gap-1`;
   const pageName = tw`font-light block pb-[1px]`;
   const subtitle = tw`text(sm gray-700)`;
   return (
@@ -166,8 +166,8 @@ function Main(props: { path: string; page: Page }) {
 function MobileSidebar(props: { path: string }) {
   const container = tw`fixed inset-0 flex z-40 hidden` + " toggled";
   const backdrop = tw`absolute inset-0 bg-gray-600 opacity-75`;
-  const sidebar = tw
-    `relative flex-1 flex flex-col w-[16rem] h-full bg-white border(r-2 gray-100)`;
+  const sidebar =
+    tw`relative flex-1 flex flex-col w-[16rem] h-full bg-white border(r-2 gray-100)`;
   const heading = tw`p-4 border(b-2 gray-100) bg-green-300`;
   const items = tw`pt-2 pb-16 px-4 overflow-x-auto`;
   return (
@@ -197,8 +197,7 @@ function MobileSidebar(props: { path: string }) {
 function DesktopSidebar(props: { path: string }) {
   return (
     <nav
-      class={tw
-        `w-[16rem] flex-shrink-0 hidden md:block py-8 pr-4 border(r-2 gray-100)`}
+      class={tw`w-[16rem] flex-shrink-0 hidden md:block py-8 pr-4 border(r-2 gray-100)`}
     >
       <DocsSidebar path={props.path} />
     </nav>
