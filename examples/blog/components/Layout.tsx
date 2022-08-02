@@ -23,23 +23,23 @@ export default function Layout({ title, children }: LayoutProps) {
       </Head>
       {/* navbar  */}
       <nav
-        className={tw`flex justify-between items-center max-w-5xl py-8 mx-auto px-4`}
+        class={tw`flex justify-between items-center max-w-5xl py-8 mx-auto px-4`}
       >
         <a href="/">
-          <h1 className={tw`text-3xl font-medium`}>Fresh Blog</h1>
+          <h1 class={tw`text-3xl font-medium`}>Fresh Blog</h1>
         </a>
 
         <section>
           <ThemeSwitcher />
         </section>
       </nav>
-      <main className={tw`px-4 max-w-5xl mx-auto`}>{children}</main>
+      <main class={tw`px-4 max-w-5xl mx-auto`}>{children}</main>
       <footer
-        className={tw` mt-8 py-16 px-4 max-w-5xl mx-auto flex flex-col space-y-2 items-center justify-center`}
+        class={tw` mt-8 py-16 px-4 max-w-5xl mx-auto flex flex-col space-y-2 items-center justify-center`}
       >
         <a href="https://github.com/harshmangalam/freshBlog" target="_blank">
           <svg
-            className={tw`h-10 w-10 inline`}
+            class={tw`h-10 w-10 inline`}
             fill="currentColor"
             viewBox="0 0 24 24"
           >
@@ -50,7 +50,7 @@ export default function Layout({ title, children }: LayoutProps) {
             ></path>
           </svg>
         </a>
-        <p className={tw`text-lg`}>Fresh Blog - {new Date().getFullYear()}</p>
+        <p class={tw`text-lg`}>Fresh Blog - {new Date().getFullYear()}</p>
       </footer>
     </div>
   );

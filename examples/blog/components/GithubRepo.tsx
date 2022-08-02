@@ -22,30 +22,30 @@ export default function GithubRepo({
   html_url,
 }: GithubRepoProps) {
   return (
-    <article className={tw`border  rounded-lg p-4 dark:border-gray-700`}>
-      <div className={tw`flex items-center justify-between`}>
+    <article class={tw`border  rounded-lg p-4 dark:border-gray-700`}>
+      <div class={tw`flex items-center justify-between`}>
         <a
           href={html_url}
           target="_blank"
-          className={tw`font-bold block flex-1 dark:text-gray-100 hover:underline`}
+          class={tw`font-bold block flex-1 dark:text-gray-100 hover:underline`}
         >
           {name}
         </a>
 
         <p
-          className={tw`text-xs px-2 py-1 border text-gray-500 dark:text-gray-400 rounded-full dark:border-gray-400`}
+          class={tw`text-xs px-2 py-1 border text-gray-500 dark:text-gray-400 rounded-full dark:border-gray-400`}
         >
           {isPrivate ? "Private" : "Public"}
         </p>
       </div>
 
-      <p className={tw`mt-4 text-sm text-gray-500 dark:text-gray-400`}>{description}</p>
+      <p class={tw`mt-4 text-sm text-gray-500 dark:text-gray-400`}>{description}</p>
 
-      <div className={tw`mt-4 flex items-center space-x-4 `}>
+      <div class={tw`mt-4 flex items-center space-x-4 `}>
         <div>
-          <p className={tw`text-sm text-gray-500 dark:text-gray-400`}> {language}</p>
+          <p class={tw`text-sm text-gray-500 dark:text-gray-400`}> {language}</p>
         </div>
-        <div className={tw`flex items-center space-x-2`}>
+        <div class={tw`flex items-center space-x-2`}>
           <div>
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -60,9 +60,9 @@ export default function GithubRepo({
               ></path>
             </svg>
           </div>
-          <p className={tw`text-xs dark:text-gray-300`}>{stargazers_count}</p>
+          <p class={tw`text-xs dark:text-gray-300`}>{stargazers_count}</p>
         </div>
-        <div className={tw`flex items-center space-x-2`}>
+        <div class={tw`flex items-center space-x-2`}>
           <div>
             <svg
               aria-label="forks"
@@ -80,7 +80,7 @@ export default function GithubRepo({
               ></path>
             </svg>
           </div>
-          <p className={tw`text-xs dark:text-gray-300`}>{forks_count}</p>
+          <p class={tw`text-xs dark:text-gray-300`}>{forks_count}</p>
         </div>
       </div>
     </article>
