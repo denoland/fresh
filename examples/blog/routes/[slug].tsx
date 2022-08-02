@@ -53,26 +53,26 @@ export default function Blog({ data }: PageProps) {
         <img
           src={post.poster}
           alt="Post cover image"
-          className={tw`blog-post--img rounded-lg`}
+          class={tw`blog-post--img rounded-lg`}
         />
       </div>
-      <h2 className={tw`font-medium text-3xl mt-8`}>{post.title}</h2>
-      <p className={tw`mt-2 text-gray-600 text-lg dark:text-gray-400`}>
+      <h2 class={tw`font-medium text-3xl mt-8`}>{post.title}</h2>
+      <p class={tw`mt-2 text-gray-600 text-lg dark:text-gray-400`}>
         {post.postedAt}
       </p>
-      <div className={tw`mt-4`}>
+      <div class={tw`mt-4`}>
         <BlogAuthor
           authorAvatar={post.authorAvatar}
           authorName={post.authorName}
         />
-        <div className={tw`mt-4 flex flex-wrap gap-4`}>
+        <div class={tw`mt-4 flex flex-wrap gap-4`}>
           {post.tags.map((tag) => (
             <Tag title={tag} key={tag} />
           ))}
         </div>
-        <div className={tw`mt-4`}>{github && <GithubRepo {...github} />}</div>
+        <div class={tw`mt-4`}>{github && <GithubRepo {...github} />}</div>
         <div
-          className={tw`mt-8 prose lg:prose-xl overflow-x-auto dark:text-gray-400`}
+          class={tw`mt-8 prose lg:prose-xl overflow-x-auto dark:text-gray-400`}
           dangerouslySetInnerHTML={{ __html: post.content }}
         ></div>
       </div>

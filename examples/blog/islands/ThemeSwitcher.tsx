@@ -31,12 +31,12 @@ export default function ThemeSwitcher() {
       aria-label="theme switcher"
       disabled={!IS_BROWSER}
       onClick={handleDarkMode}
-      className={tw`rounded-full border border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-600 focus:outline-none h-10 w-10 grid place-items-center text-gray-500`}
+      class={tw`rounded-full border border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-600 focus:outline-none h-10 w-10 grid place-items-center text-gray-500`}
     >
       {darkMode ? (
         <svg
           xmlns="http://www.w3.org/2000/svg"
-          className={tw`h-7 w-7`}
+          class={tw`h-7 w-7`}
           viewBox="0 0 20 20"
           fill="currentColor"
         >
@@ -45,7 +45,7 @@ export default function ThemeSwitcher() {
       ) : (
         <svg
           xmlns="http://www.w3.org/2000/svg"
-          className={tw`h-7 w-7`}
+          class={tw`h-7 w-7`}
           viewBox="0 0 20 20"
           fill="currentColor"
         >
