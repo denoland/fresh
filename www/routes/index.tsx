@@ -177,6 +177,7 @@ function Intro() {
 
 function GettingStarted(props: { origin: string }) {
   const initCommand = `deno run -A -r ${props.origin} my-project`;
+  const startCommand = `deno task start`;
 
   return (
     <section
@@ -197,7 +198,7 @@ function GettingStarted(props: { origin: string }) {
       <p class={tw`text-gray-600`}>
         Then you can use the Fresh init script to bootstrap a new project:
       </p>
-      <div class={tw`py-2 px-4 bg(gray-100) flex`}>
+      <div class={tw`py-2 px-4 bg(gray-100) flex group`}>
         <pre class={tw`overflow-x-auto flex-1`}>
           {initCommand}
         </pre>
@@ -208,9 +209,14 @@ function GettingStarted(props: { origin: string }) {
         Enter the newly created project directory and run the following command
         to start the development server:
       </p>
-      <pre class={tw`overflow-x-auto py-2 px-4 bg(gray-100)`}>
-        deno task start
-      </pre>
+      <div class={tw`py-2 px-4 bg(gray-100) flex group`}>
+        <pre class={tw`overflow-x-auto flex-1`}>
+          {startCommand}
+        </pre>
+
+        <CopyButton text={startCommand} />
+      </div>
+
       <p class={tw`text-gray-600`}>
         You can now open{" "}
         <a
