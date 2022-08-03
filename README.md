@@ -27,7 +27,7 @@ The [documentation](https://fresh.deno.dev/docs/) is available on
 Install [Deno CLI](https://deno.land/) version 1.23.0 or higher.
 
 You can scaffold a new project by running the Fresh init script. To scaffold a
-project in the `my-project` folder, run the following:
+project in the `deno-fresh-demo` folder, run the following:
 
 ```sh
 deno run -A -r https://fresh.deno.dev deno-fresh-demo
