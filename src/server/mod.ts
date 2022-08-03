@@ -53,3 +53,5 @@ export async function start(
   const ctx = await ServerContext.fromManifest(routes, opts);
   await serve(ctx.handler(), opts);
 }
+
+export { setPageTitle } from "../server/render.tsx";

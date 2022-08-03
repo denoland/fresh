@@ -267,12 +267,16 @@ export interface TemplateOptions {
   lang: string;
 }
 
+let pageTitle = "Hello Fresh";
+export const setPageTitle = (title: string) => (pageTitle = title);
+
 export function template(opts: TemplateOptions): string {
   const page = (
     <html lang={opts.lang}>
       <head>
         <meta charSet="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>{pageTitle}</title>
         {opts.preloads.map((src) => <link rel="modulepreload" href={src} />)}
         {opts.imports.map(([src, nonce]) => (
           <script src={src} nonce={nonce} type="module"></script>
