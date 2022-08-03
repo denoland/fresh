@@ -34,9 +34,6 @@ files that are strictly necessary to run a fresh project:
   manage dependencies for the project. This allows for easy importing and
   updating of dependencies.
 
-You can also move these files into a `src` (or any directory).
-[Learn more about using a `src` directory][src-directory]
-
 A **`deno.json`** file is also created in the project directory. This file does
 two things:
 
@@ -63,4 +60,3 @@ automatically served "as is". [Learn more about static files][static-files].
 [import-map]: https://deno.land/manual/linking_to_external_code/import_maps
 [task-runner]: https://deno.land/manual/tools/task_runner
 [static-files]: ../concepts/static-files
-[src-directory]: ../concepts/src-directory
