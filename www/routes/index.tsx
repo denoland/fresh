@@ -186,7 +186,7 @@ function GettingStarted(props: { origin: string }) {
           Quick Start
         </a>
       </h2>
-      <p class={tw`text-gray-600 flex gap-1 mb-4`}>
+      <p class={tw`text-gray-600 flex gap-1 mb-4 bg-gray-100 p-2 rounded`}>
         <span class={tw`text-gray-400`}>
         <Info />
         </span>
