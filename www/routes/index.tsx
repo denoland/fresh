@@ -10,6 +10,7 @@ import Footer from "../components/Footer.tsx";
 import VERSIONS from "../../versions.json" assert { type: "json" };
 import * as FeatureIcons from "../components/FeatureIcons.tsx";
 import CopyArea from "../islands/CopyArea.tsx";
+import { Info } from "../components/Icons.tsx";
 
 export const handler: Handlers = {
   GET(req, ctx) {
@@ -180,20 +181,22 @@ function GettingStarted(props: { origin: string }) {
     <section
       class={tw`max-w-screen-md mx-auto my-16 px(4 sm:6 md:8) space-y-4`}
     >
-      <h2 id="getting-started" class={tw`text(xl gray-600) font-bold`}>
+      <h2 id="getting-started" class={tw`text(3xl gray-600) font-bold`}>
         <a href="#getting-started" class={tw`hover:underline`}>
-          Getting started
+          Quick Start
         </a>
       </h2>
-      <p class={tw`text-gray-600`}>
-        To get started, make sure you have the{" "}
+      <p class={tw`text-gray-600 flex gap-1 mb-4`}>
+        <span class={tw`text-gray-400`}>
+        <Info />
+        </span>
         <a href="https://deno.land" class={tw`text-blue-600 hover:underline`}>
           Deno CLI
         </a>{" "}
-        version 1.23.0 or higher installed.
+        version 1.23.0 or higher required.
       </p>
       <p class={tw`text-gray-600`}>
-        Then you can use the Fresh init script to bootstrap a new project:
+        To bootstrap a new project:
       </p>
 
       <CopyArea>{`deno run -A -r ${props.origin} my-project`}</CopyArea>
@@ -216,7 +219,7 @@ function GettingStarted(props: { origin: string }) {
         in your browser to view the page.
       </p>
       <p class={tw`text-gray-600`}>
-        A more in-depth getting started guide is available in{" "}
+        A more in-depth <a href="/docs/getting-started" class={tw`text-blue-600 hover:underline`}>Getting Started Guide</a> is available in{" "}
         <a href="/docs" class={tw`text-blue-600 hover:underline`}>the docs</a>.
       </p>
     </section>
@@ -233,7 +236,7 @@ function Example() {
     <section
       class={tw`max-w-screen-md mx-auto my-16 px(4 sm:6 md:8) space-y-4`}
     >
-      <h2 id="example" class={tw`text(xl gray-600) font-bold`}>
+      <h2 id="example" class={tw`text(3xl gray-600) font-bold`}>
         <a href="#example" class={tw`hover:underline`}>
           Example
         </a>
