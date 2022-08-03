@@ -86,6 +86,7 @@ const useVSCode = flags.vscode === null
 await Deno.mkdir(join(resolvedDirectory, "routes", "api"), { recursive: true });
 await Deno.mkdir(join(resolvedDirectory, "islands"), { recursive: true });
 await Deno.mkdir(join(resolvedDirectory, "static"), { recursive: true });
+await Deno.mkdir(join(resolvedDirectory, "components"), { recursive: true });
 if (useVSCode) {
   await Deno.mkdir(join(resolvedDirectory, ".vscode"), { recursive: true });
 }
@@ -96,10 +97,10 @@ if (useTwind) {
 const importMap = {
   "imports": {
     "$fresh/": new URL("./", import.meta.url).href,
-    "preact": "https://esm.sh/preact@10.8.2",
-    "preact/": "https://esm.sh/preact@10.8.2/",
+    "preact": "https://esm.sh/preact@10.10.0",
+    "preact/": "https://esm.sh/preact@10.10.0/",
     "preact-render-to-string":
-      "https://esm.sh/preact-render-to-string@5.2.0?deps=preact@10.8.2",
+      "https://esm.sh/preact-render-to-string@5.2.1?external=preact",
   } as Record<string, string>,
 };
 if (useTwind) {
@@ -127,7 +128,7 @@ export default function Home() {
         alt="the fresh logo: a sliced lemon dripping with juice"
       />
       <p${useTwind ? " class={tw\`my-6\`}" : ""}>
-        Welcome to \`fresh\`. Try update this message in the ./routes/index.tsx
+        Welcome to \`fresh\`. Try updating this message in the ./routes/index.tsx
         file, and refresh.
       </p>
       <Counter start={3} />
@@ -140,57 +141,52 @@ await Deno.writeTextFile(
   ROUTES_INDEX_TSX,
 );
 
-let ISLANDS_COUNTER_TSX = `/** @jsx h */
+const COMPONENTS_BUTTON_TSX = `/** @jsx h */
 import { h } from "preact";
-import { useState } from "preact/hooks";
 import { IS_BROWSER } from "$fresh/runtime.ts";
 ${useTwind ? 'import { tw } from "@twind";\n' : ""}
+export function Button(props: h.JSX.HTMLAttributes<HTMLButtonElement>) {
+  return (
+    <button
+      {...props}
+      disabled={!IS_BROWSER || props.disabled}
+    ${
+  useTwind
+    ? "  class={tw\`px-2 py-1 border(gray-100 2) hover:bg-gray-200\`}\n    "
+    : ""
+}/>
+  );
+}
+`;
+await Deno.writeTextFile(
+  join(resolvedDirectory, "components", "Button.tsx"),
+  COMPONENTS_BUTTON_TSX,
+);
+
+const ISLANDS_COUNTER_TSX = `/** @jsx h */
+import { h } from "preact";
+import { useState } from "preact/hooks";
+${useTwind ? 'import { tw } from "@twind";\n' : ""}
+import { Button } from "../components/Button.tsx";
+
 interface CounterProps {
   start: number;
 }
 
 export default function Counter(props: CounterProps) {
   const [count, setCount] = useState(props.start);
+  return (
+    <div${useTwind ? " class={tw\`flex gap-2 w-full\`}" : ""}>
+      <p${
+  useTwind ? " class={tw\`flex-grow-1 font-bold text-xl\`}" : ""
+}>{count}</p>
+      <Button onClick={() => setCount(count - 1)}>-1</Button>
+      <Button onClick={() => setCount(count + 1)}>+1</Button>
+    </div>
+  );
+}
 `;
 
-if (useTwind) {
-  ISLANDS_COUNTER_TSX +=
-    `  const btn = tw\`px-2 py-1 border(gray-100 1) hover:bg-gray-200\`;\n`;
-  ISLANDS_COUNTER_TSX += `  return (
-    <div class={tw\`flex gap-2 w-full\`}>
-      <p class={tw\`flex-grow-1 font-bold text-xl\`}>{count}</p>
-      <button
-        class={btn}
-        onClick={() => setCount(count - 1)}
-        disabled={!IS_BROWSER}
-      >
-        -1
-      </button>
-      <button
-        class={btn}
-        onClick={() => setCount(count + 1)}
-        disabled={!IS_BROWSER}
-      >
-        +1
-      </button>
-    </div>
-  );
-`;
-} else {
-  ISLANDS_COUNTER_TSX += `  return (
-    <div>
-      <p>{count}</p>
-      <button onClick={() => setCount(count - 1)} disabled={!IS_BROWSER}>
-        -1
-      </button>
-      <button onClick={() => setCount(count + 1)} disabled={!IS_BROWSER}>
-        +1
-      </button>
-    </div>
-  );
-`;
-}
-ISLANDS_COUNTER_TSX += `}\n`;
 await Deno.writeTextFile(
   join(resolvedDirectory, "islands", "Counter.tsx"),
   ISLANDS_COUNTER_TSX,
@@ -356,6 +352,8 @@ await Deno.writeTextFile(
 
 const vscodeSettings = {
   "deno.enable": true,
+  "deno.lint": true,
+  "editor.defaultFormatter": "denoland.vscode-deno",
 };
 
 const VSCODE_SETTINGS = JSON.stringify(vscodeSettings, null, 2) + "\n";
@@ -386,5 +384,6 @@ await generate(resolvedDirectory, manifest);
 // Specifically print unresolvedDirectory, rather than resolvedDirectory in order to
 // not leak personal info (e.g. `/Users/MyName`)
 console.log("\n%cProject created!", "color: green; font-weight: bold");
-console.log(`\`cd ${unresolvedDirectory}\` to enter to the project directory.`);
-console.log("Run \`deno task start\` to start the development server.");
+console.log(`\nIn order to start the development server, run:\n`);
+console.log(`$ cd ${unresolvedDirectory}`);
+console.log("$ deno task start");

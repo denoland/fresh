@@ -23,8 +23,7 @@ Deno.test({
 
     let started = false;
     for await (const line of lines) {
-      console.log(line);
-      if (line.includes("Server listening on http://")) {
+      if (line.includes("Listening on http://")) {
         started = true;
         break;
       }
@@ -45,6 +44,7 @@ Deno.test({
 
       const buttonPlus = await page.$(`#b-${counterId}`);
       await buttonPlus?.click();
+      await delay(100);
       value = await pElem?.evaluate((el) => el.textContent);
       assert(value === `${originalValue + 1}`, `${counterId} click`);
     }
