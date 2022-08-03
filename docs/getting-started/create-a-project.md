@@ -34,6 +34,9 @@ files that are strictly necessary to run a fresh project:
   manage dependencies for the project. This allows for easy importing and
   updating of dependencies.
 
+You can also move these files into a `src` (or any directory).
+[Learn more about using a `src` directory][src-directory]
+
 A **`deno.json`** file is also created in the project directory. This file does
 two things:
 
@@ -57,40 +60,7 @@ respectively:
 Finally a **`static/`** folder is created that contains static files that are
 automatically served "as is". [Learn more about static files][static-files].
 
-### Code in `src` directory
-
-If you'd like your code to live in a `src` or any other directory you'll need to move your `import_map.json`, `dev.ts`, `main.ts`, `routes/`, `islands/`, and `static/` files/directories into the prefered directory. Your directory/file structure should end up looking like something below:
-
-```
-.
-├── deno.json
-├── src/
-│   ├── islands/
-│   │   ├── Counter.tsx
-│   │   └── ...
-│   ├── routes/
-│   │   ├── index.tsx
-│   │   └── ...
-│   ├── static/
-│   │   └── ...
-│   ├── dev.ts
-│   ├── import_map.json
-│   ├── main.ts
-│   └── ...
-└── ...
-```
-
-You will also need to update your `deno.json` with the new entrypoint and import map location like so:
-
-```json
-{
-  "tasks": {
-    "start": "deno run -A --watch=src/static/,src/routes/ src/dev.ts"
-  },
-  "importMap": "./src/import_map.json"
-}
-```
-
 [import-map]: https://deno.land/manual/linking_to_external_code/import_maps
 [task-runner]: https://deno.land/manual/tools/task_runner
 [static-files]: ../concepts/static-files
+[src-directory]: ../concepts/src-directory
