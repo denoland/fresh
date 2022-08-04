@@ -23,8 +23,8 @@ Fresh projects have a special `islands/` folder. The modules in this folder each
 encapsulate a single island component. The name of the module should be the
 [pascal case][pascal-case] or [kebab case][kebab-case] name of the island
 component. For example a counter component would be defined in the file
-`islands/Counter.tsx`. A buy now button would be defined in the file
-`islands/BuyNowButton.tsx`.
+`islands/Counter.tsx`. A buy now button could be defined in the file
+`islands/buy-now-button.tsx`.
 
 Here is an example of an island component that counts down to a specific time.
 
