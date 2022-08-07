@@ -99,6 +99,13 @@ export interface Route<Data = any> {
 // --- APP ---
 
 export interface AppProps {
+  /** The URL of the request that resulted in this page being rendered. */
+  url: URL;
+
+  /** The route matcher (e.g. /blog/:id) that the request matched for this page
+   * to be rendered. */
+  route: string;
+
   Component: ComponentType<Record<never, never>>;
 }
 
