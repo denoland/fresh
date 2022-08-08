@@ -10,7 +10,34 @@ import Footer from "../components/Footer.tsx";
 import VERSIONS from "../../versions.json" assert { type: "json" };
 import * as FeatureIcons from "../components/FeatureIcons.tsx";
 import CopyArea from "../islands/CopyArea.tsx";
-import { Info } from "../components/Icons.tsx";
+import { GitHub, Info } from "../components/Icons.tsx";
+
+interface ShowcaseItem {
+  title: string;
+  image: string;
+  source: string;
+  link: string;
+}
+const showcase: ShowcaseItem[] = [
+  {
+    title: "Deno Merch",
+    link: "https://merch.deno.com/",
+    source: "https://github.com/denoland/merch",
+    image: "/screenshot/merch.png",
+  },
+  {
+    title: "Deno Merch",
+    link: "https://merch.deno.com/",
+    source: "https://github.com/denoland/merch",
+    image: "/screenshot/merch.png",
+  },
+  {
+    title: "Deno Merch",
+    link: "https://merch.deno.com/",
+    source: "https://github.com/denoland/merch",
+    image: "/screenshot/merch.png",
+  },
+];
 
 export const handler: Handlers = {
   GET(req, ctx) {
@@ -51,6 +78,7 @@ export default function MainPage(props: PageProps) {
           <Intro />
           <GettingStarted origin={origin} />
           <Example />
+          <Showcase items={showcase} />
         </div>
         <Footer />
       </div>
@@ -188,7 +216,7 @@ function GettingStarted(props: { origin: string }) {
       </h2>
       <p class={tw`text-gray-600 flex gap-1 mb-4 bg-gray-100 p-2 rounded`}>
         <span class={tw`text-gray-400`}>
-        <Info />
+          <Info />
         </span>
         <a href="https://deno.land" class={tw`text-blue-600 hover:underline`}>
           Deno CLI
@@ -219,7 +247,14 @@ function GettingStarted(props: { origin: string }) {
         in your browser to view the page.
       </p>
       <p class={tw`text-gray-600`}>
-        A more in-depth <a href="/docs/getting-started" class={tw`text-blue-600 hover:underline`}>Getting Started Guide</a> is available in{" "}
+        A more in-depth
+        <a
+          href="/docs/getting-started"
+          class={tw`text-blue-600 hover:underline`}
+        >
+          Getting Started Guide
+        </a>
+        is available in
         <a href="/docs" class={tw`text-blue-600 hover:underline`}>the docs</a>.
       </p>
     </section>
@@ -255,6 +290,39 @@ function Example() {
       <p class={tw`text-gray-600`}>
         Only the JS required to render that counter is sent to the client.
       </p>
+    </section>
+  );
+}
+
+function Showcase({ items }: { items: ShowcaseItem[] }) {
+  return (
+    <section
+      class={tw`max-w-screen-md mx-auto my-16 px(4 sm:6 md:8) space-y-4`}
+    >
+      <h2 id="showcase" class={tw`text(3xl gray-600) font-bold`}>
+        <a href="#showcase" class={tw`hover:underline`}>
+          Showcase
+        </a>
+      </h2>
+      <div class={tw`md:flex justify-between`}>
+        {items.map((item) => (
+          <div>
+            <a href={item.link}>
+              <img
+                src={item.image}
+                class={tw`w-full md:w-56 rounded shadow-lg`}
+                alt="screenshot"
+              />
+            </a>
+            <div class={tw`text-gray-600 flex gap-2 my-2 items-center`}>
+              <a href={item.link}>{item.title}</a>
+              <a href={item.source}>
+                <GitHub />
+              </a>
+            </div>
+          </div>
+        ))}
+      </div>
     </section>
   );
 }

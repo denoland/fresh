@@ -32,7 +32,9 @@ export default function CopyArea(props: { children: ComponentChildren }) {
   }, [copied]);
 
   return (
-    <div class={tw`py-2 px-4 bg(gray-800) rounded text-white flex items-center group`}>
+    <div
+      class={tw`py-2 px-4 bg(gray-800) rounded text-white flex items-center group`}
+    >
       <pre class={tw`overflow-x-auto flex-1`}>
         {props.children}
       </pre>
@@ -48,7 +50,9 @@ export default function CopyArea(props: { children: ComponentChildren }) {
         <button
           aria-label="Copy to Clipboard"
           disabled={!IS_BROWSER}
-          class={tw`rounded p-1.5 border border-gray-300 hover:bg-gray-700 ${ copied ? "text-green-500" : ""} relative`}
+          class={tw`rounded p-1.5 border border-gray-300 hover:bg-gray-700 ${
+            copied ? "text-green-500" : ""
+          } relative`}
           onClick={handleClick}
         >
           {copied ? <Icons.Check /> : <Icons.Copy />}
