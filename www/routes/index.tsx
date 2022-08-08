@@ -10,34 +10,15 @@ import Footer from "../components/Footer.tsx";
 import VERSIONS from "../../versions.json" assert { type: "json" };
 import * as FeatureIcons from "../components/FeatureIcons.tsx";
 import CopyArea from "../islands/CopyArea.tsx";
-import { GitHub, Info } from "../components/Icons.tsx";
+import * as Icons from "../components/Icons.tsx";
+import projects from "../data/showcase.json" assert { type: "json" };
 
-interface ShowcaseItem {
-  title: string;
+interface Project {
   image: string;
-  source: string;
+  title: string;
   link: string;
+  github?: string;
 }
-const showcase: ShowcaseItem[] = [
-  {
-    title: "Deno Merch",
-    link: "https://merch.deno.com/",
-    source: "https://github.com/denoland/merch",
-    image: "/screenshot/merch.png",
-  },
-  {
-    title: "Deno Merch",
-    link: "https://merch.deno.com/",
-    source: "https://github.com/denoland/merch",
-    image: "/screenshot/merch.png",
-  },
-  {
-    title: "Deno Merch",
-    link: "https://merch.deno.com/",
-    source: "https://github.com/denoland/merch",
-    image: "/screenshot/merch.png",
-  },
-];
 
 export const handler: Handlers = {
   GET(req, ctx) {
@@ -78,7 +59,7 @@ export default function MainPage(props: PageProps) {
           <Intro />
           <GettingStarted origin={origin} />
           <Example />
-          <Showcase items={showcase} />
+          <Showcase items={projects} />
         </div>
         <Footer />
       </div>
@@ -216,7 +197,7 @@ function GettingStarted(props: { origin: string }) {
       </h2>
       <p class={tw`text-gray-600 flex gap-1 mb-4 bg-gray-100 p-2 rounded`}>
         <span class={tw`text-gray-400`}>
-          <Info />
+          <Icons.Info />
         </span>
         <a href="https://deno.land" class={tw`text-blue-600 hover:underline`}>
           Deno CLI
@@ -294,7 +275,7 @@ function Example() {
   );
 }
 
-function Showcase({ items }: { items: ShowcaseItem[] }) {
+function Showcase({ items }: { items: Project[] }) {
   return (
     <section
       class={tw`max-w-screen-md mx-auto my-16 px(4 sm:6 md:8) space-y-4`}
@@ -304,21 +285,30 @@ function Showcase({ items }: { items: ShowcaseItem[] }) {
           Showcase
         </a>
       </h2>
-      <div class={tw`md:flex justify-between`}>
-        {items.map((item) => (
-          <div>
-            <a href={item.link}>
+      <div class={tw`flex-col md:flex-row flex justify-between items-center`}>
+        {items.map((project) => (
+          <div class={tw`w-56`}>
+            <a href={project.link}>
               <img
-                src={item.image}
-                class={tw`w-full md:w-56 rounded shadow-lg`}
-                alt="screenshot"
+                loading="lazy"
+                src={project.image}
+                alt={project.title}
+                class={tw`object-contain shadow-lg rounded-lg w-56`}
               />
             </a>
-            <div class={tw`text-gray-600 flex gap-2 my-2 items-center`}>
-              <a href={item.link}>{item.title}</a>
-              <a href={item.source}>
-                <GitHub />
-              </a>
+            <div class={tw`mt-4 flex items-center`}>
+              <div class={tw`text-lg flex-1`}>
+                <a href={project.link}>{project.title}</a>
+              </div>
+              {project.github && (
+                <a
+                  href={`https://github.com/${project.github}`}
+                  class={tw`ml-2 text-gray-500 hover:text-gray-700`}
+                >
+                  <span class={tw`sr-only`}>GitHub</span>
+                  <Icons.GitHub class="inline float-right" />
+                </a>
+              )}
             </div>
           </div>
         ))}
