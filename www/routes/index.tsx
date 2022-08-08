@@ -192,7 +192,7 @@ function GettingStarted(props: { origin: string }) {
     >
       <h2 id="getting-started" class={tw`text(3xl gray-600) font-bold`}>
         <a href="#getting-started" class={tw`hover:underline`}>
-          Quick Start
+          Getting Started
         </a>
       </h2>
       <p class={tw`text-gray-600 flex gap-1 mb-4 bg-gray-100 p-2 rounded`}>
