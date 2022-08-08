@@ -285,7 +285,9 @@ function Showcase({ items }: { items: Project[] }) {
           Showcase
         </a>
       </h2>
-      <div class={tw`flex-col md:flex-row flex justify-between items-center`}>
+      <div
+        class={tw`pt-8 gap-20 md:gap-0 flex-col md:flex-row flex justify-between items-center`}
+      >
         {items.map((project) => (
           <div class={tw`w-56`}>
             <a href={project.link}>
