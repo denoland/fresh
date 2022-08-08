@@ -14,7 +14,7 @@ gathered from experts in the field. Some examples of these principles are:
 
 The single biggest architecture decision that Fresh makes is its usage of the
 [islands architecture][islands] pattern. This means that Fresh applications ship
-pure HTML to the client by default. Parts of server-rendered page can then be
+pure HTML to the client by default. Parts of a server-rendered page can then be
 independently re-hydrated with interactive widgets (islands). This means that
 the client is only responsible for rendering parts of the page that are
 interactive enough to warrant the extra effort. Any content that is purely
