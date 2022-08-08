@@ -228,14 +228,14 @@ function GettingStarted(props: { origin: string }) {
         in your browser to view the page.
       </p>
       <p class={tw`text-gray-600`}>
-        A more in-depth
+        A more in-depth{" "}
         <a
           href="/docs/getting-started"
           class={tw`text-blue-600 hover:underline`}
         >
           Getting Started Guide
-        </a>
-        is available in
+        </a>{" "}
+        is available in{" "}
         <a href="/docs" class={tw`text-blue-600 hover:underline`}>the docs</a>.
       </p>
     </section>
