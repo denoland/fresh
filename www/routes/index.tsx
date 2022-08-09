@@ -202,7 +202,7 @@ function GettingStarted(props: { origin: string }) {
         <a href="https://deno.land" class={tw`text-blue-600 hover:underline`}>
           Deno CLI
         </a>{" "}
-        version 1.23.0 or higher required.
+        version 1.23.0 or higher is required.
       </p>
       <p class={tw`text-gray-600`}>
         To bootstrap a new project:
