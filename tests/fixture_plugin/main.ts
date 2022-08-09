@@ -4,9 +4,6 @@
 /// <reference lib="deno.ns" />
 
 import { start } from "$fresh/server.ts";
-import twindPlugin from "$fresh/plugins/twind.ts";
-
 import manifest from "./fresh.gen.ts";
-import twindConfig from "./twind.config.js";
-
-await start(manifest, { plugins: [twindPlugin(twindConfig)] });
+import options from "./options.ts";
+await start(manifest, options);

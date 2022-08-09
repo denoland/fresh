@@ -1,11 +1,10 @@
 /** @jsx h */
 import { h } from "preact";
-import { tw } from "@twind";
 
 export function NoBuild() {
   return (
     <svg
-      class={tw`md:bg-yellow-200 rounded-full w-20 h-20`}
+      class="md:bg-yellow-200 rounded-full w-20 h-20"
       viewBox="0 0 75 75"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
@@ -34,7 +33,7 @@ export function NoBuild() {
 export function TypeScript() {
   return (
     <svg
-      class={tw`md:bg-blue-200 rounded-full w-20 h-20`}
+      class="md:bg-blue-200 rounded-full w-20 h-20"
       viewBox="0 0 75 75"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
@@ -103,7 +102,7 @@ export function TypeScript() {
 export function Island() {
   return (
     <svg
-      class={tw`md:bg-blue-200 rounded-full w-20 h-20`}
+      class="md:bg-blue-200 rounded-full w-20 h-20"
       viewBox="0 0 75 75"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
@@ -145,7 +144,7 @@ export function Island() {
 export function Globe() {
   return (
     <svg
-      class={tw`md:bg-green-200 rounded-full w-20 h-20`}
+      class="md:bg-green-200 rounded-full w-20 h-20"
       viewBox="0 0 75 75"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
@@ -165,7 +164,7 @@ export function Globe() {
 export function LightWeight() {
   return (
     <svg
-      class={tw`md:bg-yellow-200 rounded-full w-20 h-20`}
+      class="md:bg-yellow-200 rounded-full w-20 h-20"
       viewBox="0 0 75 75"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
@@ -208,7 +207,7 @@ export function LightWeight() {
 export function Gabage() {
   return (
     <svg
-      class={tw`md:bg-green-200 rounded-full w-20 h-20`}
+      class="md:bg-green-200 rounded-full w-20 h-20"
       viewBox="0 0 75 75"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"

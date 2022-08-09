@@ -2,7 +2,6 @@
 import { ComponentChildren, h } from "preact";
 import { useEffect, useState } from "preact/hooks";
 import { IS_BROWSER } from "$fresh/runtime.ts";
-import { tw } from "@twind";
 import * as Icons from "../components/Icons.tsx";
 
 export default function CopyArea(props: { children: ComponentChildren }) {
@@ -32,16 +31,12 @@ export default function CopyArea(props: { children: ComponentChildren }) {
   }, [copied]);
 
   return (
-    <div
-      class={tw`py-2 px-4 bg(gray-800) rounded text-white flex items-center`}
-    >
-      <pre class={tw`overflow-x-auto flex-1`}>
+    <div class="py-2 px-4 bg(gray-800) rounded text-white flex items-center">
+      <pre class="overflow-x-auto flex-1">
         {props.children}
       </pre>
 
-      <div
-        class={tw`relative`}
-      >
+      <div class="relative">
         <div
           class={tw`transition ease-in-out absolute pointer-events-none bg-gray-900 text-white absolute p-2 -top-1/3 left-1/2 transform -translate-x-1/2 -translate-y-full box-border rounded opacity-0 ${
             copied && "opacity-100"

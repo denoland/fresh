@@ -1,11 +1,10 @@
 /** @jsx h */
 import { h } from "preact";
-import { tw } from "@twind";
 
 export function IconMinus() {
   return (
     <svg
-      class={tw`h-6 w-6`}
+      class="h-6 w-6"
       xmlns="http://www.w3.org/2000/svg"
       fill="none"
       viewBox="0 0 24 24"
@@ -25,7 +24,7 @@ export function IconMinus() {
 export function IconPlus() {
   return (
     <svg
-      class={tw`h-6 w-6`}
+      class="h-6 w-6"
       xmlns="http://www.w3.org/2000/svg"
       fill="none"
       viewBox="0 0 24 24"
@@ -62,7 +61,7 @@ export function Leaf() {
 export function Copy() {
   return (
     <svg
-      class={tw`h-4 w-4`}
+      class="h-4 w-4"
       viewBox="0 0 15 15"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
@@ -80,7 +79,7 @@ export function Check() {
   return (
     <svg
       xmlns="http://www.w3.org/2000/svg"
-      class={tw`h-4 w-4`}
+      class="h-4 w-4"
       fill="none"
       viewBox="0 0 24 24"
       stroke="currentColor"
@@ -118,7 +117,7 @@ export function Info() {
 export function GitHub(props: { class?: string }) {
   return (
     <svg
-      class={tw`h-6 w-6 ${props.class ?? ""}`}
+      class={`h-6 w-6 ${props.class ?? ""}`}
       fill="currentColor"
       viewBox="0 0 24 24"
     >
