@@ -89,59 +89,55 @@ function Hero() {
 }
 
 function Features() {
-  const wrapper = tw`flex md:flex-row flex-col md:gap-20 gap-5 md:pt-10`;
-  const item = tw`md:w-56 flex md:flex-col items-center gap-5`;
+  const wrapper = tw`grid md:grid-cols-3 gap-6 md:gap-14`;
+  const item = tw`flex md:flex-col items-center gap-5`;
   const desc = tw`flex-1 md:text-center`;
 
   return (
-    <>
-      <div class={wrapper}>
-        <div class={item}>
-          <FeatureIcons.Globe />
-          <div class={desc}>
-            <b>Just-in-time rendering</b> on the edge.
-          </div>
-        </div>
-
-        <div class={item}>
-          <FeatureIcons.Island />
-          <div class={desc}>
-            <b>Island based client hydration</b> for maximum interactivity.
-          </div>
-        </div>
-
-        <div class={item}>
-          <FeatureIcons.LightWeight />
-          <div class={desc}>
-            <b>Zero runtime overhead</b>: no JS is shipped to the client by
-            default.
-          </div>
+    <div class={wrapper}>
+      <div class={item}>
+        <FeatureIcons.Globe />
+        <div class={desc}>
+          <b>Just-in-time rendering</b> on the edge.
         </div>
       </div>
 
-      <div class={wrapper}>
-        <div class={item}>
-          <FeatureIcons.NoBuild />
-          <div class={desc}>
-            <b>No build step</b>.
-          </div>
-        </div>
-
-        <div class={item}>
-          <FeatureIcons.Gabage />
-          <div class={desc}>
-            <b>No configuration</b> necessary.
-          </div>
-        </div>
-
-        <div class={item}>
-          <FeatureIcons.TypeScript />
-          <div class={desc}>
-            <b>TypeScript support</b> out of the box.
-          </div>
+      <div class={item}>
+        <FeatureIcons.Island />
+        <div class={desc}>
+          <b>Island based client hydration</b> for maximum interactivity.
         </div>
       </div>
-    </>
+
+      <div class={item}>
+        <FeatureIcons.LightWeight />
+        <div class={desc}>
+          <b>Zero runtime overhead</b>: no JS is shipped to the client by
+          default.
+        </div>
+      </div>
+
+      <div class={item}>
+        <FeatureIcons.NoBuild />
+        <div class={desc}>
+          <b>No build step</b>.
+        </div>
+      </div>
+
+      <div class={item}>
+        <FeatureIcons.Gabage />
+        <div class={desc}>
+          <b>No configuration</b> necessary.
+        </div>
+      </div>
+
+      <div class={item}>
+        <FeatureIcons.TypeScript />
+        <div class={desc}>
+          <b>TypeScript support</b> out of the box.
+        </div>
+      </div>
+    </div>
   );
 }
 
@@ -151,7 +147,7 @@ function Intro() {
 
   return (
     <section
-      class={tw`max-w-screen-md mx-auto my-16 px(4 sm:6 md:8) space-y-4`}
+      class={tw`max-w-screen-md mx-auto my-16 px(4 sm:6 md:8) space-y-12`}
     >
       <div class={tw`md:flex items-center`}>
         <div class={tw`flex-1 text-center md:text-left`}>
@@ -159,12 +155,12 @@ function Intro() {
             The <span class={tw`text-green-500`}>next-gen</span> web framework.
           </h2>
 
-          <p class={tw`text-gray-600`}>
+          <p class={tw`mt-4 text-gray-600`}>
             Built for speed, reliability, and simplicity.
           </p>
         </div>
 
-        <picture>
+        <picture class={tw`block mt-4 md:mt-0`}>
           <img
             src="/illustration/lemon-squash.svg"
             class={tw`w-80 mx-auto`}
