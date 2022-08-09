@@ -31,14 +31,14 @@ export default function CopyArea(props: { children: ComponentChildren }) {
   }, [copied]);
 
   return (
-    <div class="py-2 px-4 bg(gray-800) rounded text-white flex items-center">
-      <pre class="overflow-x-auto flex-1">
+    <div class="bg(gray-800) rounded text-white flex items-center">
+      <pre class="overflow-x-auto flex-1 py-2 px-4">
         {props.children}
       </pre>
 
-      <div class="relative">
+      <div class="relative my-2 mr-4">
         <div
-          class={tw`transition ease-in-out absolute pointer-events-none bg-gray-900 text-white absolute p-2 -top-1/3 left-1/2 transform -translate-x-1/2 -translate-y-full box-border rounded opacity-0 ${
+          class={`transition ease-in-out absolute pointer-events-none bg-gray-900 text-white absolute p-2 -top-1/3 left-1/2 transform -translate-x-1/2 -translate-y-full box-border rounded opacity-0 ${
             copied && "opacity-100"
           }`}
         >
@@ -47,7 +47,7 @@ export default function CopyArea(props: { children: ComponentChildren }) {
         <button
           aria-label="Copy to Clipboard"
           disabled={!IS_BROWSER}
-          class={tw`rounded p-1.5 border border-gray-300 hover:bg-gray-700 ${
+          class={`rounded p-1.5 border border-gray-300 hover:bg-gray-700 ${
             copied ? "text-green-500" : ""
           } relative`}
           onClick={handleClick}

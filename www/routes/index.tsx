@@ -179,19 +179,38 @@ function GettingStarted(props: { origin: string }) {
           Getting Started
         </a>
       </h2>
+      <div class="text-gray-600 flex gap-1 mb-4 bg-gray-100 p-2 rounded">
+        <div class="text-gray-400">
+          <Icons.Info />
+        </div>
+        <p>
+          <a href="https://deno.land" class="text-blue-600 hover:underline">
+            Deno CLI
+          </a>{" "}
+          version 1.23.0 or higher is required.{" "}
+          <a
+            href="https://deno.land/manual/getting_started/installation"
+            class="text-blue-600 hover:underline"
+          >
+            Install
+          </a>{" "}
+          or{" "}
+          <a
+            href="https://deno.land/manual/getting_started/installation#updating"
+            class="text-blue-600 hover:underline"
+          >
+            update
+          </a>.
+        </p>
+      </div>
       <p class="text-gray-600">
-        To get started, make sure you have the{" "}
-        <a href="https://deno.land" class="text-blue-600 hover:underline">
-          Deno CLI
-        </a>{" "}
-        version 1.23.0 or higher installed.
+        To bootstrap a new project:
       </p>
-      <p class="text-gray-600">
-        Then you can use the Fresh init script to bootstrap a new project:
-      </p>
-      <pre class="overflow-x-auto py-2 px-4 bg(gray-100)">
+
+      <CopyArea>
         {`deno run -A -r ${props.origin} my-project`}
-      </pre>
+      </CopyArea>
+
       <p class="text-gray-600">
         Enter the newly created project directory and run the following command
         to start the development server:
@@ -215,9 +234,9 @@ function GettingStarted(props: { origin: string }) {
           href="/docs/getting-started"
           class="text-blue-600 hover:underline"
         >
-          Getting Started Guide
+          <i>Getting Started</i>
         </a>{" "}
-        is available in{" "}
+        guide is available in{" "}
         <a href="/docs" class="text-blue-600 hover:underline">the docs</a>.
       </p>
     </section>
@@ -263,15 +282,27 @@ function Showcase({ items }: { items: Project[] }) {
           Showcase
         </a>
       </h2>
-      <div class="pt-8 gap-20 md:gap-0 flex-col md:flex-row flex justify-between items-center">
+      <p class="text-gray-600">
+        Below is a selection of projects that have been built with Fresh.{" "}
+        <a
+          href="https://github.com/denoland/fresh/blob/main/www/data/showcase.json"
+          class="text-blue-600 hover:underline"
+        >
+          Add yours!
+        </a>
+      </p>
+      <div class="pt-8 gap-20 md:gap-4 flex-col md:flex-row flex justify-between items-center">
         {items.map((project) => (
-          <div class="w-56 group">
+          <div class="w-full max-w-sm group">
             <a href={project.link} tabIndex={-1}>
               <img
                 loading="lazy"
                 src={project.image}
                 alt={project.title}
-                class="object-contain shadow-lg group-hover:shadow-xl rounded-lg w-56"
+                width={720}
+                height={420}
+                style={{ aspectRatio: "16/9" }}
+                class="object-cover shadow-lg group-hover:(shadow-xl opacity-70) rounded-lg"
               />
             </a>
             <div class="mt-4 flex items-center">
