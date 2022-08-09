@@ -46,7 +46,7 @@ This pattern will be used instead of the file path based pattern:
 
 import { RouteConfig } from "$fresh/runtime.ts";
 
-const config: RouteConfig = {
+export const config: RouteConfig = {
   routeOverride: "/x/:module@:version/:path*",
 };
 
