@@ -448,6 +448,8 @@ export class ServerContext {
       };
     };
 
+    const createUnknownRender = genRender(this.#notFound, Status.NotFound);
+
     for (const route of this.#routes) {
       const createRender = genRender(route, Status.OK);
       if (typeof route.handler === "function") {
@@ -456,6 +458,7 @@ export class ServerContext {
             ...ctx,
             params,
             render: createRender(req, params),
+            renderNotFound: createUnknownRender(req, {}),
           });
       } else {
         for (const [method, handler] of Object.entries(route.handler)) {
@@ -464,12 +467,12 @@ export class ServerContext {
               ...ctx,
               params,
               render: createRender(req, params),
+              renderNotFound: createUnknownRender(req, {}),
             });
         }
       }
     }
 
-    const unknownHandlerRender = genRender(this.#notFound, Status.NotFound);
     const unknownHandler: router.Handler<RouterState> = (
       req,
       ctx,
@@ -478,7 +481,7 @@ export class ServerContext {
         req,
         {
           ...ctx,
-          render: unknownHandlerRender(req, {}),
+          render: createUnknownRender(req, {}),
         },
       );
 
