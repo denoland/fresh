@@ -289,17 +289,17 @@ function Showcase({ items }: { items: Project[] }) {
         class={tw`pt-8 gap-20 md:gap-0 flex-col md:flex-row flex justify-between items-center`}
       >
         {items.map((project) => (
-          <div class={tw`w-56`}>
-            <a href={project.link}>
+          <div class={tw`w-56 group`}>
+            <a href={project.link} tabIndex={-1}>
               <img
                 loading="lazy"
                 src={project.image}
                 alt={project.title}
-                class={tw`object-contain shadow-lg rounded-lg w-56`}
+                class={tw`object-contain shadow-lg group-hover:shadow-xl rounded-lg w-56`}
               />
             </a>
             <div class={tw`mt-4 flex items-center`}>
-              <div class={tw`text-lg flex-1`}>
+              <div class={tw`text-lg flex-1 group-hover:text-underline`}>
                 <a href={project.link}>{project.title}</a>
               </div>
               {project.github && (
