@@ -195,28 +195,30 @@ function GettingStarted(props: { origin: string }) {
           Getting Started
         </a>
       </h2>
-      <p class={tw`text-gray-600 flex gap-1 mb-4 bg-gray-100 p-2 rounded`}>
-        <span class={tw`text-gray-400`}>
+      <div class={tw`text-gray-600 flex gap-1 mb-4 bg-gray-100 p-2 rounded`}>
+        <div class={tw`text-gray-400`}>
           <Icons.Info />
-        </span>
-        <a href="https://deno.land" class={tw`text-blue-600 hover:underline`}>
-          Deno CLI
-        </a>{" "}
-        version 1.23.0 or higher is required. Please{" "}
-        <a
-          href="https://deno.land/manual/getting_started/installation"
-          class={tw`text-blue-600 hover:underline`}
-        >
-          Install
-        </a>{" "}
-        or{" "}
-        <a
-          href="https://deno.land/manual/getting_started/installation#updating"
-          class={tw`text-blue-600 hover:underline`}
-        >
-          update
-        </a>.
-      </p>
+        </div>
+        <p>
+          <a href="https://deno.land" class={tw`text-blue-600 hover:underline`}>
+            Deno CLI
+          </a>{" "}
+          version 1.23.0 or higher is required. Please{" "}
+          <a
+            href="https://deno.land/manual/getting_started/installation"
+            class={tw`text-blue-600 hover:underline`}
+          >
+            Install
+          </a>{" "}
+          or{" "}
+          <a
+            href="https://deno.land/manual/getting_started/installation#updating"
+            class={tw`text-blue-600 hover:underline`}
+          >
+            update
+          </a>.
+        </p>
+      </div>
       <p class={tw`text-gray-600`}>
         To bootstrap a new project:
       </p>
