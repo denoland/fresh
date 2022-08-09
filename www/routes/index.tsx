@@ -202,7 +202,20 @@ function GettingStarted(props: { origin: string }) {
         <a href="https://deno.land" class={tw`text-blue-600 hover:underline`}>
           Deno CLI
         </a>{" "}
-        version 1.23.0 or higher is required.
+        version 1.23.0 or higher is required. Please{" "}
+        <a
+          href="https://deno.land/manual/getting_started/installation"
+          class={tw`text-blue-600 hover:underline`}
+        >
+          Install
+        </a>{" "}
+        or{" "}
+        <a
+          href="https://deno.land/manual/getting_started/installation#updating"
+          class={tw`text-blue-600 hover:underline`}
+        >
+          update
+        </a>.
       </p>
       <p class={tw`text-gray-600`}>
         To bootstrap a new project:
