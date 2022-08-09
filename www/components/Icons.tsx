@@ -1,11 +1,10 @@
 /** @jsx h */
 import { h } from "preact";
-import { tw } from "@twind";
 
 export function IconMinus() {
   return (
     <svg
-      class={tw`h-6 w-6`}
+      class="h-6 w-6"
       xmlns="http://www.w3.org/2000/svg"
       fill="none"
       viewBox="0 0 24 24"
@@ -25,7 +24,7 @@ export function IconMinus() {
 export function IconPlus() {
   return (
     <svg
-      class={tw`h-6 w-6`}
+      class="h-6 w-6"
       xmlns="http://www.w3.org/2000/svg"
       fill="none"
       viewBox="0 0 24 24"
