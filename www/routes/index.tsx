@@ -1,6 +1,6 @@
 /** @jsx h */
 /** @jsxFrag Fragment */
-import { ComponentChildren, Fragment, h } from "preact";
+import { Fragment, h } from "preact";
 import { asset, Head } from "$fresh/runtime.ts";
 import { Handlers, PageProps } from "$fresh/server.ts";
 import Counter from "../islands/Counter.tsx";
@@ -297,16 +297,17 @@ function Showcase({ items }: { items: Project[] }) {
             <a href={project.link} tabIndex={-1}>
               <img
                 loading="lazy"
-                src={project.image}
+                src={`/showcase/${project.image}1x.jpg`}
+                srcset={`/showcase/${project.image}2x.jpg 2x, /showcase/${project.image}1x.jpg 1x`}
                 alt={project.title}
-                width={720}
-                height={420}
+                width={600}
+                height={337}
                 style={{ aspectRatio: "16/9" }}
                 class="object-cover shadow-lg group-hover:(shadow-xl opacity-70) rounded-lg"
               />
             </a>
             <div class="mt-4 flex items-center">
-              <div class="text-lg flex-1 group-hover:text-underline">
+              <div class="text(lg gray-600) flex-1 group-hover:text-underline">
                 <a href={project.link}>{project.title}</a>
               </div>
               {project.github && (
