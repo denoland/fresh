@@ -91,7 +91,7 @@ function Hero() {
 function Features() {
   const wrapper = tw`flex md:flex-row flex-col md:gap-20 gap-5 md:pt-10`;
   const item = tw`md:w-56 flex md:flex-col items-center gap-5`;
-  const desc = tw`flex-1`;
+  const desc = tw`flex-1 text-center`;
 
   return (
     <>
@@ -122,21 +122,21 @@ function Features() {
       <div class={wrapper}>
         <div class={item}>
           <FeatureIcons.NoBuild />
-          <div>
+          <div class={desc}>
             <b>No build step</b>.
           </div>
         </div>
 
         <div class={item}>
           <FeatureIcons.Gabage />
-          <div>
+          <div class={desc}>
             <b>No configuration</b> necessary.
           </div>
         </div>
 
         <div class={item}>
           <FeatureIcons.TypeScript />
-          <div>
+          <div class={desc}>
             <b>TypeScript support</b> out of the box.
           </div>
         </div>
