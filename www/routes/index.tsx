@@ -141,7 +141,7 @@ function Intro() {
     <section class="max-w-screen-md mx-auto my-16 px(4 sm:6 md:8) space-y-12">
       <div class="md:flex items-center">
         <div class="flex-1 text-center md:text-left">
-          <h2 class="py-2 text(5xl sm:5xl lg:5xl gray-900) sm:tracking-tight font-extrabold">
+          <h2 class="py-2 text(5xl sm:5xl lg:5xl gray-900) sm:tracking-tight sm:leading-[1.1]! font-extrabold">
             The <span class="text-green-500">next-gen</span> web framework.
           </h2>
 
