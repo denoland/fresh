@@ -91,7 +91,7 @@ function Hero() {
 function Features() {
   const wrapper = tw`flex md:flex-row flex-col md:gap-20 gap-5 md:pt-10`;
   const item = tw`md:w-56 flex md:flex-col items-center gap-5`;
-  const desc = tw`flex-1 text-center`;
+  const desc = tw`flex-1 md:text-center`;
 
   return (
     <>
