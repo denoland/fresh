@@ -33,14 +33,14 @@ export default function CopyArea(props: { children: ComponentChildren }) {
 
   return (
     <div
-      class={tw`py-2 px-4 bg(gray-800) rounded text-white flex items-center group`}
+      class={tw`py-2 px-4 bg(gray-800) rounded text-white flex items-center`}
     >
       <pre class={tw`overflow-x-auto flex-1`}>
         {props.children}
       </pre>
 
       <div
-        class={tw`relative opacity-0 group-hover:opacity-100 focus-within:opacity-100`}
+        class={tw`relative`}
       >
         <div
           class={tw`transition ease-in-out absolute pointer-events-none bg-gray-900 text-white absolute p-2 -top-1/3 left-1/2 transform -translate-x-1/2 -translate-y-full box-border rounded opacity-0 ${
