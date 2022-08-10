@@ -6,7 +6,7 @@ import {
   toFileUrl,
   walk,
 } from "./deps.ts";
-import { error } from "./error.ts";
+import { Fout } from "./error.ts";
 
 interface Manifest {
   routes: string[];
@@ -52,9 +52,10 @@ export async function collect(directory: string): Promise<Manifest> {
     const islandsUrl = toFileUrl(islandsDir);
     for await (const entry of Deno.readDir(islandsDir)) {
       if (entry.isDirectory) {
-        error(
-          `Found subdirectory '${entry.name}' in islands/. The islands/ folder must not contain any subdirectories.`,
-        );
+        Fout(`Found subdirectory '${entry.name}' in islands/ dir.`, {
+          errId: "wrong-usage",
+          note: "The islands/ folder must not contain any subdirectories.",
+        });
       }
       if (entry.isFile) {
         const ext = extname(entry.name);

@@ -1,22 +1,20 @@
 import { gte, join, parse, resolve } from "./src/dev/deps.ts";
-import { error } from "./src/dev/error.ts";
+import { Fout } from "./src/dev/error.ts";
 import { collect, generate } from "./src/dev/mod.ts";
 
 const MIN_VERSION = "1.23.0";
 
 // Check that the minimum supported Deno version is being used.
 if (!gte(Deno.version.deno, MIN_VERSION)) {
-  let message =
-    `Deno version ${MIN_VERSION} or higher is required. Please update Deno.\n\n`;
-
-  if (Deno.execPath().includes("homebrew")) {
-    message +=
-      "You seem to have installed Deno via homebrew. To update, run: `brew upgrade deno`\n";
-  } else {
-    message += "To update, run: `deno upgrade`\n";
-  }
-
-  error(message);
+  Fout(
+    `Deno version ${MIN_VERSION} or higher is required. Please update Deno.\n\n`,
+    {
+      errId: "legacy-ver",
+      note: (Deno.execPath().includes("homebrew")
+        ? "You seem to have installed Deno via homebrew. To update, run: `brew upgrade deno`\n"
+        : "To update, run: `deno upgrade`\n"),
+    },
+  );
 }
 
 const help = `fresh-init
@@ -53,7 +51,9 @@ const flags = parse(Deno.args, {
 });
 
 if (flags._.length !== 1) {
-  error(help);
+  Fout("Couldn't parse passed flags", {
+    note: "Proper usage:\n" + help,
+  });
 }
 
 const unresolvedDirectory = Deno.args[0];
@@ -67,7 +67,7 @@ try {
     !isEmpty &&
     !(flags.force === null ? confirm(CONFIRM_EMPTY_MESSAGE) : flags.force)
   ) {
-    error("Directory is not empty.");
+    Fout("Directory is not empty.");
   }
 } catch (err) {
   if (!(err instanceof Deno.errors.NotFound)) {
