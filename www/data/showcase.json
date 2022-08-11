@@ -16,5 +16,11 @@
     "link": "https://fresh.deno.dev/",
     "github": "denoland/fresh/tree/main/www",
     "image": "fresh"
+  },
+  {
+    "title": "FreshHub",
+    "link": "https://freshhub.deno.dev/",
+    "github": "harshmangalam/freshHub",
+    "image": "fresh"
   }
 ]
