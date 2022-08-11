@@ -4,7 +4,7 @@ import { h } from "preact";
 export function NoBuild() {
   return (
     <svg
-      class="bg-yellow-200 rounded-full w-20 h-20"
+      class="bg-green-200 md:bg-yellow-200 rounded-full w-20 h-20"
       viewBox="0 0 75 75"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
@@ -33,7 +33,7 @@ export function NoBuild() {
 export function TypeScript() {
   return (
     <svg
-      class="bg-blue-200 rounded-full w-20 h-20"
+      class="bg-yellow-200 md:bg-blue-200 rounded-full w-20 h-20"
       viewBox="0 0 75 75"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
@@ -207,7 +207,7 @@ export function LightWeight() {
 export function Gabage() {
   return (
     <svg
-      class="bg-green-200 rounded-full w-20 h-20"
+      class="bg-blue-200 md:bg-green-200 rounded-full w-20 h-20"
       viewBox="0 0 75 75"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
