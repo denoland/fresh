@@ -24,10 +24,11 @@ import * as $18 from "./routes/layeredMdw/layer2/index.ts";
 import * as $19 from "./routes/layeredMdw/layer2/layer3/[id].ts";
 import * as $20 from "./routes/layeredMdw/layer2/layer3/_middleware.ts";
 import * as $21 from "./routes/middleware_root.ts";
-import * as $22 from "./routes/params.tsx";
-import * as $23 from "./routes/props/[id].tsx";
-import * as $24 from "./routes/static.tsx";
-import * as $25 from "./routes/wildcard.tsx";
+import * as $22 from "./routes/not_found.ts";
+import * as $23 from "./routes/params.tsx";
+import * as $24 from "./routes/props/[id].tsx";
+import * as $25 from "./routes/static.tsx";
+import * as $26 from "./routes/wildcard.tsx";
 import * as $$0 from "./islands/Counter.tsx";
 import * as $$1 from "./islands/Test.tsx";
 import * as $$2 from "./islands/kebab-case-counter-test.tsx";
@@ -56,10 +57,11 @@ const manifest = {
     "./routes/layeredMdw/layer2/layer3/[id].ts": $19,
     "./routes/layeredMdw/layer2/layer3/_middleware.ts": $20,
     "./routes/middleware_root.ts": $21,
-    "./routes/params.tsx": $22,
-    "./routes/props/[id].tsx": $23,
-    "./routes/static.tsx": $24,
-    "./routes/wildcard.tsx": $25,
+    "./routes/not_found.ts": $22,
+    "./routes/params.tsx": $23,
+    "./routes/props/[id].tsx": $24,
+    "./routes/static.tsx": $25,
+    "./routes/wildcard.tsx": $26,
   },
   islands: {
     "./islands/Counter.tsx": $$0,
