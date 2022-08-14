@@ -16,5 +16,10 @@
     "link": "https://fresh.deno.dev/",
     "github": "denoland/fresh/tree/main/www",
     "image": "fresh"
+  },
+  {
+    "title": "Fondest Landing Page",
+    "link": "https://fondest.com",
+    "image": "fondest"
   }
 ]
