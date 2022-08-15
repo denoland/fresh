@@ -456,25 +456,36 @@ export class ServerContext {
 
     const createUnknownRender = genRender(this.#notFound, Status.NotFound);
 
+    const decodeParams = (params: Record<string, string>) =>
+      Object.fromEntries(
+        Object.entries(params).map((
+          [key, value],
+        ) => [key, decodeURIComponent(value)]),
+      );
+
     for (const route of this.#routes) {
       const createRender = genRender(route, Status.OK);
       if (typeof route.handler === "function") {
-        routes[route.pattern] = (req, ctx, params) =>
-          (route.handler as Handler)(req, {
+        routes[route.pattern] = (req, ctx, params) => {
+          params = decodeParams(params);
+          return (route.handler as Handler)(req, {
             ...ctx,
             params,
             render: createRender(req, params),
             renderNotFound: createUnknownRender(req, {}),
           });
+        };
       } else {
         for (const [method, handler] of Object.entries(route.handler)) {
-          routes[`${method}@${route.pattern}`] = (req, ctx, params) =>
-            handler(req, {
+          routes[`${method}@${route.pattern}`] = (req, ctx, params) => {
+            params = decodeParams(params);
+            return handler(req, {
               ...ctx,
               params,
               render: createRender(req, params),
               renderNotFound: createUnknownRender(req, {}),
             });
+          };
         }
       }
     }
