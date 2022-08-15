@@ -1,5 +1,6 @@
 import { ServerContext } from "./context.ts";
 import { Server } from "./deps.ts";
+export { Status } from "./deps.ts";
 import {
   AppModule,
   ErrorPageModule,
@@ -77,5 +78,5 @@ export async function start(
     }`,
   );
 
-  return await server.listenAndServe();
+  await server.listenAndServe();
 }
