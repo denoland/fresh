@@ -1,6 +1,6 @@
 import { RouteConfig } from "$fresh/server.ts";
 import { Handlers } from "$fresh/server.ts";
-import { parse } from "$semver/mod.ts";
+import { parse } from "$std/semver/mod.ts";
 import VERSIONS from "../../versions.json" assert { type: "json" };
 
 const BASE_URL = "https://raw.githubusercontent.com/denoland/fresh/";
@@ -11,7 +11,7 @@ export const handler: Handlers = {
     const isHTML = accept?.includes("text/html");
     const { version, path } = ctx.params;
 
-    const semver = parse(version, { includePrerelease: true, loose: false });
+    const semver = parse(version, { includePrerelease: true });
     if (!semver) {
       return new Response("Invalid version", { status: 400 });
     }
