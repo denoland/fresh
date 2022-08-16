@@ -20,6 +20,10 @@ export function ServerCodePage(
           <p class="p-4 text(2xl) md:text(3xl)">
             {props.codeDescription}
           </p>
+
+          <p class="p-4">
+            <a href="/" class="hover:underline">Back to the Homepage</a>
+          </p>
         </div>
       </section>
     </Fragment>
