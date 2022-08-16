@@ -8,8 +8,8 @@ export function ServerCodePage(
 ) {
   return (
     <Fragment>
-      <section class="w-full flex flex-wrap justify-center">
-        <div class="w-screen bg-green-300">
+      <section>
+        <div class="w-full flex justify-center items-center flex-col bg-green-300">
           <LemonDrop />
         </div>
         <div class="text-center">
