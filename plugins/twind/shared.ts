@@ -2,6 +2,7 @@ import { JSX, options as preactOptions, VNode } from "preact";
 import {
   Configuration,
   DarkMode,
+  Preflight,
   setup as twSetup,
   Sheet,
   ThemeConfiguration,
@@ -20,6 +21,11 @@ export interface Options {
    * The twind theme to use.
    */
   theme?: ThemeConfiguration;
+
+  /**
+   * Configures preflight settings to inject base styles or fonts.
+   */
+  preflight?: Preflight;
 
   /**
    * ```js
@@ -51,6 +57,7 @@ export function setup(options: Options, sheet: Sheet) {
     darkMode: options.darkMode,
     hash: options.hash,
     mode: "silent",
+    preflight: options.preflight,
     sheet,
     variants: options.variants,
     theme: options.theme,
