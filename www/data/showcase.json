@@ -16,5 +16,10 @@
     "link": "https://fresh.deno.dev/",
     "github": "denoland/fresh/tree/main/www",
     "image": "fresh"
+  },
+  {
+    "title": "Local SEO Studio",
+    "link": "https://www.localseo.studio/",
+    "image": "localseostudio"
   }
 ]
