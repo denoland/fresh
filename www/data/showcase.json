@@ -6,6 +6,12 @@
     "image": "merch"
   },
   {
+    "title": "Saleor + Deno Merch",
+    "link": "https://saleor-deno-merch.deno.dev/",
+    "github": "saleor/deno-merch",
+    "image": "saleor-merch"
+  },
+  {
     "title": "Deno Chat",
     "link": "https://showcase-chat.deno.dev/",
     "github": "denoland/showcase_chat",
