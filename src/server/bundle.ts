@@ -25,16 +25,25 @@ export class Bundler {
   #islands: Island[];
   #plugins: Plugin[];
   #cache: Map<string, Uint8Array> | Promise<void> | undefined = undefined;
+  #dev: boolean;
 
-  constructor(islands: Island[], plugins: Plugin[], importMapURL: URL) {
+  constructor(
+    islands: Island[],
+    plugins: Plugin[],
+    importMapURL: URL,
+    dev: boolean
+  ) {
     this.#islands = islands;
     this.#plugins = plugins;
     this.#importMapURL = importMapURL;
+    this.#dev = dev;
   }
 
   async bundle() {
     const entryPoints: Record<string, string> = {
-      "main": new URL("../../src/runtime/main.ts", import.meta.url).href,
+      main: this.#dev
+        ? new URL("../../src/runtime/main_dev.ts", import.meta.url).href
+        : new URL("../../src/runtime/main.ts", import.meta.url).href,
     };
 
     for (const island of this.#islands) {
