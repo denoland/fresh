@@ -2,10 +2,11 @@ import {
   ConnInfo,
   extname,
   fromFileUrl,
-  mediaTypeLookup,
   RequestHandler,
   router,
+  Status,
   toFileUrl,
+  typeByExtension,
   walk,
 } from "./deps.ts";
 import { h } from "preact";
@@ -23,6 +24,7 @@ import {
   Middleware,
   MiddlewareModule,
   MiddlewareRoute,
+  Plugin,
   RenderFunction,
   Route,
   RouteModule,
@@ -32,7 +34,6 @@ import {
 import { render as internalRender } from "./render.tsx";
 import { ContentSecurityPolicyDirectives, SELF } from "../runtime/csp.ts";
 import { ASSET_CACHE_BUST_KEY, INTERNAL_PREFIX } from "../runtime/utils.ts";
-
 interface RouterState {
   state: Record<string, unknown>;
 }
@@ -61,6 +62,7 @@ export class ServerContext {
   #app: AppModule;
   #notFound: UnknownPage;
   #error: ErrorPage;
+  #plugins: Plugin[];
 
   constructor(
     routes: Route[],
@@ -71,6 +73,7 @@ export class ServerContext {
     app: AppModule,
     notFound: UnknownPage,
     error: ErrorPage,
+    plugins: Plugin[],
     importMapURL: URL,
   ) {
     this.#routes = routes;
@@ -81,7 +84,8 @@ export class ServerContext {
     this.#app = app;
     this.#notFound = notFound;
     this.#error = error;
-    this.#bundler = new Bundler(this.#islands, importMapURL);
+    this.#plugins = plugins;
+    this.#bundler = new Bundler(this.#islands, this.#plugins, importMapURL);
     this.#dev = typeof Deno.env.get("DENO_DEPLOYMENT_ID") !== "string"; // Env var is only set in prod (on Deploy).
   }
 
@@ -224,7 +228,7 @@ export class ServerContext {
         const localUrl = toFileUrl(entry.path);
         const path = localUrl.href.substring(staticFolder.href.length);
         const stat = await Deno.stat(localUrl);
-        const contentType = mediaTypeLookup(extname(path)) ??
+        const contentType = typeByExtension(extname(path)) ??
           "application/octet-stream";
         const etag = await crypto.subtle.digest(
           "SHA-1",
@@ -260,6 +264,7 @@ export class ServerContext {
       app,
       notFound,
       error,
+      opts.plugins ?? [],
       importMapURL,
     );
   }
@@ -278,7 +283,7 @@ export class ServerContext {
       const url = new URL(req.url);
       if (url.pathname.length > 1 && url.pathname.endsWith("/")) {
         url.pathname = url.pathname.slice(0, -1);
-        return Response.redirect(url.href, 307);
+        return Response.redirect(url.href, Status.TemporaryRedirect);
       }
       return withMiddlewares(req, connInfo, inner);
     };
@@ -337,8 +342,8 @@ export class ServerContext {
     if (this.#dev) {
       routes[REFRESH_JS_URL] = () => {
         const js =
-          `let reloading = false; const buildId = "${BUILD_ID}"; new EventSource("${ALIVE_URL}").addEventListener("message", (e) => { if (e.data !== buildId && !reloading) { reloading = true; location.reload(); } });`;
-        return new Response(new TextEncoder().encode(js), {
+          `new EventSource("${ALIVE_URL}").addEventListener("message", function listener(e) { if (e.data !== "${BUILD_ID}") { this.removeEventListener('message', listener); location.reload(); } });`;
+        return new Response(js, {
           headers: {
             "content-type": "application/javascript; charset=utf-8",
           },
@@ -414,6 +419,7 @@ export class ServerContext {
           const resp = await internalRender({
             route,
             islands: this.#islands,
+            plugins: this.#plugins,
             app: this.#app,
             imports,
             preloads,
@@ -448,14 +454,17 @@ export class ServerContext {
       };
     };
 
+    const createUnknownRender = genRender(this.#notFound, Status.NotFound);
+
     for (const route of this.#routes) {
-      const createRender = genRender(route, 200);
+      const createRender = genRender(route, Status.OK);
       if (typeof route.handler === "function") {
         routes[route.pattern] = (req, ctx, params) =>
           (route.handler as Handler)(req, {
             ...ctx,
             params,
             render: createRender(req, params),
+            renderNotFound: createUnknownRender(req, {}),
           });
       } else {
         for (const [method, handler] of Object.entries(route.handler)) {
@@ -464,12 +473,12 @@ export class ServerContext {
               ...ctx,
               params,
               render: createRender(req, params),
+              renderNotFound: createUnknownRender(req, {}),
             });
         }
       }
     }
 
-    const unknownHandlerRender = genRender(this.#notFound, 404);
     const unknownHandler: router.Handler<RouterState> = (
       req,
       ctx,
@@ -478,18 +487,21 @@ export class ServerContext {
         req,
         {
           ...ctx,
-          render: unknownHandlerRender(req, {}),
+          render: createUnknownRender(req, {}),
         },
       );
 
-    const errorHandlerRender = genRender(this.#error, 500);
+    const errorHandlerRender = genRender(
+      this.#error,
+      Status.InternalServerError,
+    );
     const errorHandler: router.ErrorHandler<RouterState> = (
       req,
       ctx,
       error,
     ) => {
       console.error(
-        "%cAn error occured during route handling or page rendering.",
+        "%cAn error occurred during route handling or page rendering.",
         "color:red",
         error,
       );
@@ -559,7 +571,7 @@ export class ServerContext {
           "Cache-Control": "public, max-age=604800, immutable",
         });
 
-        const contentType = mediaTypeLookup(path);
+        const contentType = typeByExtension(extname(path));
         if (contentType) {
           headers.set("Content-Type", contentType);
         }

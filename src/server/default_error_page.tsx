@@ -44,20 +44,18 @@ export default function DefaultErrorPage(props: ErrorPageProps) {
         >
           An error occured during route handling or page rendering.
         </p>
-        {message && (
-          <pre
-            style={{
-              margin: 0,
-              fontSize: "12pt",
-              overflowY: "auto",
-              padding: 16,
-              paddingTop: 0,
-              fontFamily: "monospace",
-            }}
-          >
+        {message && <pre
+          style={{
+            margin: 0,
+            fontSize: "12pt",
+            overflowY: "auto",
+            padding: 16,
+            paddingTop: 0,
+            fontFamily: "monospace",
+          }}
+        >
             {message}
-          </pre>
-        )}
+        </pre>}
       </div>
     </div>
   );

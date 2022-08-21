@@ -1,32 +1,34 @@
 import { BUILD_ID } from "./constants.ts";
 import { denoPlugin, esbuild, toFileUrl } from "./deps.ts";
-import { Island } from "./types.ts";
+import { Island, Plugin } from "./types.ts";
 
-let esbuildInitalized: boolean | Promise<void> = false;
+let esbuildInitialized: boolean | Promise<void> = false;
 async function ensureEsbuildInitialized() {
-  if (esbuildInitalized === false) {
+  if (esbuildInitialized === false) {
     if (Deno.run === undefined) {
-      esbuildInitalized = esbuild.initialize({
-        wasmURL: "https://unpkg.com/esbuild-wasm@0.14.39/esbuild.wasm",
+      esbuildInitialized = esbuild.initialize({
+        wasmURL: "https://unpkg.com/esbuild-wasm@0.14.51/esbuild.wasm",
         worker: false,
       });
     } else {
       esbuild.initialize({});
     }
-    await esbuildInitalized;
-    esbuildInitalized = true;
-  } else if (esbuildInitalized instanceof Promise) {
-    await esbuildInitalized;
+    await esbuildInitialized;
+    esbuildInitialized = true;
+  } else if (esbuildInitialized instanceof Promise) {
+    await esbuildInitialized;
   }
 }
 
 export class Bundler {
   #importMapURL: URL;
   #islands: Island[];
+  #plugins: Plugin[];
   #cache: Map<string, Uint8Array> | Promise<void> | undefined = undefined;
 
-  constructor(islands: Island[], importMapURL: URL) {
+  constructor(islands: Island[], plugins: Plugin[], importMapURL: URL) {
     this.#islands = islands;
+    this.#plugins = plugins;
     this.#importMapURL = importMapURL;
   }
 
@@ -37,6 +39,12 @@ export class Bundler {
 
     for (const island of this.#islands) {
       entryPoints[`island-${island.id}`] = island.url;
+    }
+
+    for (const plugin of this.#plugins) {
+      for (const [name, url] of Object.entries(plugin.entrypoints ?? {})) {
+        entryPoints[`plugin-${plugin.name}-${name}`] = url;
+      }
     }
 
     const absWorkingDir = Deno.cwd();

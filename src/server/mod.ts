@@ -1,5 +1,6 @@
 import { ServerContext } from "./context.ts";
 import { serve } from "./deps.ts";
+export { Status } from "./deps.ts";
 import {
   AppModule,
   ErrorPageModule,
@@ -20,6 +21,10 @@ export type {
   Handlers,
   MiddlewareHandlerContext,
   PageProps,
+  Plugin,
+  PluginRenderResult,
+  PluginRenderScripts,
+  PluginRenderStyleTag,
   RenderFunction,
   RouteConfig,
   StartOptions,
@@ -52,6 +57,7 @@ export async function start(
   opts: StartOptions = {},
 ) {
   const ctx = await ServerContext.fromManifest(routes, opts);
+  
   console.log(
     `Server listening on http://${opts?.hostname ?? "localhost"}:${
       opts?.port ?? defaultPort

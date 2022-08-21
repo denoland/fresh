@@ -86,24 +86,21 @@ const useVSCode = flags.vscode === null
 await Deno.mkdir(join(resolvedDirectory, "routes", "api"), { recursive: true });
 await Deno.mkdir(join(resolvedDirectory, "islands"), { recursive: true });
 await Deno.mkdir(join(resolvedDirectory, "static"), { recursive: true });
+await Deno.mkdir(join(resolvedDirectory, "components"), { recursive: true });
 if (useVSCode) {
   await Deno.mkdir(join(resolvedDirectory, ".vscode"), { recursive: true });
-}
-if (useTwind) {
-  await Deno.mkdir(join(resolvedDirectory, "utils"), { recursive: true });
 }
 
 const importMap = {
   "imports": {
     "$fresh/": new URL("./", import.meta.url).href,
-    "preact": "https://esm.sh/preact@10.8.2",
-    "preact/": "https://esm.sh/preact@10.8.2/",
+    "preact": "https://esm.sh/preact@10.10.0",
+    "preact/": "https://esm.sh/preact@10.10.0/",
     "preact-render-to-string":
-      "https://esm.sh/preact-render-to-string@5.2.0?deps=preact@10.8.2",
+      "https://esm.sh/preact-render-to-string@5.2.1?external=preact",
   } as Record<string, string>,
 };
 if (useTwind) {
-  importMap.imports["@twind"] = "./utils/twind.ts";
   importMap.imports["twind"] = "https://esm.sh/twind@0.16.17";
   importMap.imports["twind/"] = "https://esm.sh/twind@0.16.17/";
 }
@@ -113,21 +110,20 @@ await Deno.writeTextFile(
   IMPORT_MAP_JSON,
 );
 
-let ROUTES_INDEX_TSX = `/** @jsx h */
-import { h } from "preact";\n`;
-if (useTwind) ROUTES_INDEX_TSX += `import { tw } from "@twind";\n`;
-ROUTES_INDEX_TSX += `import Counter from "../islands/Counter.tsx";
+const ROUTES_INDEX_TSX = `/** @jsx h */
+import { h } from "preact";
+import Counter from "../islands/Counter.tsx";
 
 export default function Home() {
   return (
-    <div${useTwind ? " class={tw\`p-4 mx-auto max-w-screen-md\`}" : ""}>
+    <div${useTwind ? ` class="p-4 mx-auto max-w-screen-md"` : ""}>
       <img
         src="/logo.svg"
-        height="100px"
+        ${useTwind ? `class="w-32 h-32"` : `width="128"\n        height="128"`}
         alt="the fresh logo: a sliced lemon dripping with juice"
       />
-      <p${useTwind ? " class={tw\`my-6\`}" : ""}>
-        Welcome to \`fresh\`. Try update this message in the ./routes/index.tsx
+      <p${useTwind ? ` class="my-6"` : ""}>
+        Welcome to \`fresh\`. Try updating this message in the ./routes/index.tsx
         file, and refresh.
       </p>
       <Counter start={3} />
@@ -140,57 +136,47 @@ await Deno.writeTextFile(
   ROUTES_INDEX_TSX,
 );
 
-let ISLANDS_COUNTER_TSX = `/** @jsx h */
+const COMPONENTS_BUTTON_TSX = `/** @jsx h */
+import { h } from "preact";
+import { IS_BROWSER } from "$fresh/runtime.ts";
+export function Button(props: h.JSX.HTMLAttributes<HTMLButtonElement>) {
+  return (
+    <button
+      {...props}
+      disabled={!IS_BROWSER || props.disabled}
+${
+  useTwind
+    ? '      class="px-2 py-1 border(gray-100 2) hover:bg-gray-200"\n'
+    : ""
+}    />
+  );
+}
+`;
+await Deno.writeTextFile(
+  join(resolvedDirectory, "components", "Button.tsx"),
+  COMPONENTS_BUTTON_TSX,
+);
+
+const ISLANDS_COUNTER_TSX = `/** @jsx h */
 import { h } from "preact";
 import { useState } from "preact/hooks";
-import { IS_BROWSER } from "$fresh/runtime.ts";
-${useTwind ? 'import { tw } from "@twind";\n' : ""}
+import { Button } from "../components/Button.tsx";
+
 interface CounterProps {
   start: number;
 }
 
 export default function Counter(props: CounterProps) {
   const [count, setCount] = useState(props.start);
-`;
-
-if (useTwind) {
-  ISLANDS_COUNTER_TSX +=
-    `  const btn = tw\`px-2 py-1 border(gray-100 1) hover:bg-gray-200\`;\n`;
-  ISLANDS_COUNTER_TSX += `  return (
-    <div class={tw\`flex gap-2 w-full\`}>
-      <p class={tw\`flex-grow-1 font-bold text-xl\`}>{count}</p>
-      <button
-        class={btn}
-        onClick={() => setCount(count - 1)}
-        disabled={!IS_BROWSER}
-      >
-        -1
-      </button>
-      <button
-        class={btn}
-        onClick={() => setCount(count + 1)}
-        disabled={!IS_BROWSER}
-      >
-        +1
-      </button>
+  return (
+    <div${useTwind ? ' class="flex gap-2 w-full"' : ""}>
+      <p${useTwind ? ' class="flex-grow-1 font-bold text-xl"' : ""}>{count}</p>
+      <Button onClick={() => setCount(count - 1)}>-1</Button>
+      <Button onClick={() => setCount(count + 1)}>+1</Button>
     </div>
   );
-`;
-} else {
-  ISLANDS_COUNTER_TSX += `  return (
-    <div>
-      <p>{count}</p>
-      <button onClick={() => setCount(count - 1)} disabled={!IS_BROWSER}>
-        -1
-      </button>
-      <button onClick={() => setCount(count + 1)} disabled={!IS_BROWSER}>
-        +1
-      </button>
-    </div>
-  );
-`;
 }
-ISLANDS_COUNTER_TSX += `}\n`;
+`;
 await Deno.writeTextFile(
   join(resolvedDirectory, "islands", "Counter.tsx"),
   ISLANDS_COUNTER_TSX,
@@ -236,19 +222,14 @@ await Deno.writeTextFile(
   ROUTES_API_JOKE_TS,
 );
 
-const UTILS_TWIND_TS = `import { IS_BROWSER } from "$fresh/runtime.ts";
-import { Configuration, setup } from "twind";
-export * from "twind";
-export const config: Configuration = {
-  darkMode: "class",
-  mode: "silent",
-};
-if (IS_BROWSER) setup(config);
+const TWIND_CONFIG_JS =
+  `/** @type {import("$fresh/plugins/twind.ts").Options} */
+export default {};
 `;
 if (useTwind) {
   await Deno.writeTextFile(
-    join(resolvedDirectory, "utils", "twind.ts"),
-    UTILS_TWIND_TS,
+    join(resolvedDirectory, "twind.config.js"),
+    TWIND_CONFIG_JS,
   );
 }
 
@@ -280,36 +261,22 @@ let MAIN_TS = `/// <reference no-default-lib="true" />
 /// <reference lib="dom" />
 /// <reference lib="dom.asynciterable" />
 /// <reference lib="deno.ns" />
-/// <reference lib="deno.unstable" />
 
-import { ${
-  useTwind ? "InnerRenderFunction, RenderContext, " : ""
-}start } from "$fresh/server.ts";
+import { start } from "$fresh/server.ts";
 import manifest from "./fresh.gen.ts";
 `;
 
 if (useTwind) {
   MAIN_TS += `
-import { config, setup } from "@twind";
-import { virtualSheet } from "twind/sheets";
-
-const sheet = virtualSheet();
-sheet.reset();
-setup({ ...config, sheet });
-
-function render(ctx: RenderContext, render: InnerRenderFunction) {
-  const snapshot = ctx.state.get("twind") as unknown[] | null;
-  sheet.reset(snapshot || undefined);
-  render();
-  ctx.styles.splice(0, ctx.styles.length, ...(sheet).target);
-  const newSnapshot = sheet.reset();
-  ctx.state.set("twind", newSnapshot);
-}
-
+import twindPlugin from "$fresh/plugins/twind.ts";
+import twindConfig from "./twind.config.js";
 `;
 }
 
-MAIN_TS += `await start(manifest${useTwind ? ", { render }" : ""});\n`;
+MAIN_TS += `
+await start(manifest${
+  useTwind ? ", { plugins: [twindPlugin(twindConfig)] }" : ""
+});\n`;
 const MAIN_TS_PATH = join(resolvedDirectory, "main.ts");
 await Deno.writeTextFile(MAIN_TS_PATH, MAIN_TS);
 
@@ -356,6 +323,8 @@ await Deno.writeTextFile(
 
 const vscodeSettings = {
   "deno.enable": true,
+  "deno.lint": true,
+  "editor.defaultFormatter": "denoland.vscode-deno",
 };
 
 const VSCODE_SETTINGS = JSON.stringify(vscodeSettings, null, 2) + "\n";
@@ -370,6 +339,10 @@ if (useVSCode) {
 const vscodeExtensions = {
   recommendations: ["denoland.vscode-deno"],
 };
+
+if (useTwind) {
+  vscodeExtensions.recommendations.push("sastan.twind-intellisense");
+}
 
 const VSCODE_EXTENSIONS = JSON.stringify(vscodeExtensions, null, 2) + "\n";
 
@@ -386,5 +359,6 @@ await generate(resolvedDirectory, manifest);
 // Specifically print unresolvedDirectory, rather than resolvedDirectory in order to
 // not leak personal info (e.g. `/Users/MyName`)
 console.log("\n%cProject created!", "color: green; font-weight: bold");
-console.log(`\`cd ${unresolvedDirectory}\` to enter to the project directory.`);
-console.log("Run \`deno task start\` to start the development server.");
+console.log(`\nIn order to start the development server, run:\n`);
+console.log(`$ cd ${unresolvedDirectory}`);
+console.log("$ deno task start");
