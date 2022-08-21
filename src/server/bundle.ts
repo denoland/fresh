@@ -1,3 +1,4 @@
+import { BuildOptions } from "https://deno.land/x/esbuild@v0.14.51/mod.js";
 import { BUILD_ID } from "./constants.ts";
 import { denoPlugin, esbuild, toFileUrl } from "./deps.ts";
 import { Island, Plugin } from "./types.ts";
@@ -58,13 +59,18 @@ export class Bundler {
 
     const absWorkingDir = Deno.cwd();
     await ensureEsbuildInitialized();
+    // In dev-mode we skip identifier minification to be able to show proper
+    // component names in Preact DevTools instead of single characters.
+    const minifyOptions: Partial<BuildOptions> = this.#dev
+      ? { minifyIdentifiers: false, minifySyntax: true, minifyWhitespace: true }
+      : { minify: true };
     const bundle = await esbuild.build({
       bundle: true,
       define: { __FRSH_BUILD_ID: `"${BUILD_ID}"` },
       entryPoints,
       format: "esm",
       metafile: true,
-      minify: true,
+      ...minifyOptions,
       outdir: ".",
       // This is requried to ensure the format of the outputFiles path is the same
       // between windows and linux
