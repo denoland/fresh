@@ -16,5 +16,10 @@
     "link": "https://fresh.deno.dev/",
     "github": "denoland/fresh/tree/main/www",
     "image": "fresh"
+  },
+  {
+    "title": "ANDBOUNDS Inc.",
+    "link": "https://andbounds.com/",
+    "image": "andbounds"
   }
 ]
