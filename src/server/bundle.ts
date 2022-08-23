@@ -32,7 +32,7 @@ export class Bundler {
     islands: Island[],
     plugins: Plugin[],
     importMapURL: URL,
-    dev: boolean
+    dev: boolean,
   ) {
     this.#islands = islands;
     this.#plugins = plugins;
