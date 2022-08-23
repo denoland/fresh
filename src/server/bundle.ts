@@ -1,6 +1,7 @@
+import { BuildOptions } from "https://deno.land/x/esbuild@v0.14.51/mod.js";
 import { BUILD_ID } from "./constants.ts";
 import { denoPlugin, esbuild, toFileUrl } from "./deps.ts";
-import { Island } from "./types.ts";
+import { Island, Plugin } from "./types.ts";
 
 let esbuildInitialized: boolean | Promise<void> = false;
 async function ensureEsbuildInitialized() {
@@ -23,31 +24,53 @@ async function ensureEsbuildInitialized() {
 export class Bundler {
   #importMapURL: URL;
   #islands: Island[];
+  #plugins: Plugin[];
   #cache: Map<string, Uint8Array> | Promise<void> | undefined = undefined;
+  #dev: boolean;
 
-  constructor(islands: Island[], importMapURL: URL) {
+  constructor(
+    islands: Island[],
+    plugins: Plugin[],
+    importMapURL: URL,
+    dev: boolean,
+  ) {
     this.#islands = islands;
+    this.#plugins = plugins;
     this.#importMapURL = importMapURL;
+    this.#dev = dev;
   }
 
   async bundle() {
     const entryPoints: Record<string, string> = {
-      "main": new URL("../../src/runtime/main.ts", import.meta.url).href,
+      main: this.#dev
+        ? new URL("../../src/runtime/main_dev.ts", import.meta.url).href
+        : new URL("../../src/runtime/main.ts", import.meta.url).href,
     };
 
     for (const island of this.#islands) {
       entryPoints[`island-${island.id}`] = island.url;
     }
 
+    for (const plugin of this.#plugins) {
+      for (const [name, url] of Object.entries(plugin.entrypoints ?? {})) {
+        entryPoints[`plugin-${plugin.name}-${name}`] = url;
+      }
+    }
+
     const absWorkingDir = Deno.cwd();
     await ensureEsbuildInitialized();
+    // In dev-mode we skip identifier minification to be able to show proper
+    // component names in Preact DevTools instead of single characters.
+    const minifyOptions: Partial<BuildOptions> = this.#dev
+      ? { minifyIdentifiers: false, minifySyntax: true, minifyWhitespace: true }
+      : { minify: true };
     const bundle = await esbuild.build({
       bundle: true,
       define: { __FRSH_BUILD_ID: `"${BUILD_ID}"` },
       entryPoints,
       format: "esm",
       metafile: true,
-      minify: true,
+      ...minifyOptions,
       outdir: ".",
       // This is requried to ensure the format of the outputFiles path is the same
       // between windows and linux

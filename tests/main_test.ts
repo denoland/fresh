@@ -30,7 +30,7 @@ Deno.test("/ page prerender", async () => {
   assertStringIncludes(body, "test.js");
   assertStringIncludes(body, "<p>Hello!</p>");
   assertStringIncludes(body, "<p>Viewing JIT render.</p>");
-  assertStringIncludes(body, `>[{"message":"Hello!"}]</script>`);
+  assertStringIncludes(body, `>[[{"message":"Hello!"}],[]]</script>`);
   assertStringIncludes(
     body,
     `<meta name="description" content="Hello world!" />`,
@@ -421,5 +421,16 @@ Deno.test({
     // i.e response header set from layer3 middleware is overwritten
     // by the reponse header in layer 0
     assertEquals(resp.headers.get("server"), "fresh test server");
+  },
+});
+
+Deno.test({
+  name: "/not_found",
+  fn: async () => {
+    const resp = await router(new Request("https://fresh.deno.dev/not_found"));
+    assert(resp);
+    assertEquals(resp.status, 404);
+    const body = await resp.text();
+    assertStringIncludes(body, "404 not found: /not_found");
   },
 });

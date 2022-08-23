@@ -3,7 +3,7 @@ import {
   extname,
   fromFileUrl,
   RequestHandler,
-  router,
+  rutt,
   Status,
   toFileUrl,
   typeByExtension,
@@ -24,6 +24,7 @@ import {
   Middleware,
   MiddlewareModule,
   MiddlewareRoute,
+  Plugin,
   RenderFunction,
   Route,
   RouteModule,
@@ -61,6 +62,7 @@ export class ServerContext {
   #app: AppModule;
   #notFound: UnknownPage;
   #error: ErrorPage;
+  #plugins: Plugin[];
 
   constructor(
     routes: Route[],
@@ -71,6 +73,7 @@ export class ServerContext {
     app: AppModule,
     notFound: UnknownPage,
     error: ErrorPage,
+    plugins: Plugin[],
     importMapURL: URL,
   ) {
     this.#routes = routes;
@@ -81,8 +84,14 @@ export class ServerContext {
     this.#app = app;
     this.#notFound = notFound;
     this.#error = error;
-    this.#bundler = new Bundler(this.#islands, importMapURL);
+    this.#plugins = plugins;
     this.#dev = typeof Deno.env.get("DENO_DEPLOYMENT_ID") !== "string"; // Env var is only set in prod (on Deploy).
+    this.#bundler = new Bundler(
+      this.#islands,
+      this.#plugins,
+      importMapURL,
+      this.#dev,
+    );
   }
 
   /**
@@ -162,7 +171,7 @@ export class ServerContext {
           url,
           name,
           component,
-          handler: handler ?? ((req) => router.defaultOtherHandler(req)),
+          handler: handler ?? ((req) => rutt.defaultOtherHandler(req)),
           csp: Boolean(config?.csp ?? false),
         };
       } else if (
@@ -181,7 +190,7 @@ export class ServerContext {
           name,
           component,
           handler: handler ??
-            ((req, ctx) => router.defaultErrorHandler(req, ctx, ctx.error)),
+            ((req, ctx) => rutt.defaultErrorHandler(req, ctx, ctx.error)),
           csp: Boolean(config?.csp ?? false),
         };
       }
@@ -260,6 +269,7 @@ export class ServerContext {
       app,
       notFound,
       error,
+      opts.plugins ?? [],
       importMapURL,
     );
   }
@@ -269,7 +279,7 @@ export class ServerContext {
    * by fresh, including static files.
    */
   handler(): RequestHandler {
-    const inner = router.router<RouterState>(...this.#handlers());
+    const inner = rutt.router<RouterState>(...this.#handlers());
     const withMiddlewares = this.#composeMiddlewares(this.#middlewares);
     return function handler(req: Request, connInfo: ConnInfo) {
       // Redirect requests that end with a trailing slash
@@ -292,7 +302,7 @@ export class ServerContext {
     return (
       req: Request,
       connInfo: ConnInfo,
-      inner: router.Handler<RouterState>,
+      inner: rutt.Handler<RouterState>,
     ) => {
       // identify middlewares to apply, if any.
       // middlewares should be already sorted from deepest to shallow layer
@@ -332,11 +342,11 @@ export class ServerContext {
    * path-to-regex, to handler mapping.
    */
   #handlers(): [
-    router.Routes<RouterState>,
-    router.Handler<RouterState>,
-    router.ErrorHandler<RouterState>,
+    rutt.Routes<RouterState>,
+    rutt.Handler<RouterState>,
+    rutt.ErrorHandler<RouterState>,
   ] {
-    const routes: router.Routes<RouterState> = {};
+    const routes: rutt.Routes<RouterState> = {};
 
     routes[`${INTERNAL_PREFIX}${JS_PREFIX}/${BUILD_ID}/:path*`] = this
       .#bundleAssetRoute();
@@ -344,8 +354,8 @@ export class ServerContext {
     if (this.#dev) {
       routes[REFRESH_JS_URL] = () => {
         const js =
-          `let reloading = false; const buildId = "${BUILD_ID}"; new EventSource("${ALIVE_URL}").addEventListener("message", (e) => { if (e.data !== buildId && !reloading) { reloading = true; location.reload(); } });`;
-        return new Response(new TextEncoder().encode(js), {
+          `new EventSource("${ALIVE_URL}").addEventListener("message", function listener(e) { if (e.data !== "${BUILD_ID}") { this.removeEventListener('message', listener); location.reload(); } });`;
+        return new Response(js, {
           headers: {
             "content-type": "application/javascript; charset=utf-8",
           },
@@ -421,6 +431,7 @@ export class ServerContext {
           const resp = await internalRender({
             route,
             islands: this.#islands,
+            plugins: this.#plugins,
             app: this.#app,
             imports,
             preloads,
@@ -455,6 +466,8 @@ export class ServerContext {
       };
     };
 
+    const createUnknownRender = genRender(this.#notFound, Status.NotFound);
+
     for (const route of this.#routes) {
       const createRender = genRender(route, Status.OK);
       if (typeof route.handler === "function") {
@@ -463,6 +476,7 @@ export class ServerContext {
             ...ctx,
             params,
             render: createRender(req, params),
+            renderNotFound: createUnknownRender(req, {}),
           });
       } else {
         for (const [method, handler] of Object.entries(route.handler)) {
@@ -471,13 +485,13 @@ export class ServerContext {
               ...ctx,
               params,
               render: createRender(req, params),
+              renderNotFound: createUnknownRender(req, {}),
             });
         }
       }
     }
 
-    const unknownHandlerRender = genRender(this.#notFound, Status.NotFound);
-    const unknownHandler: router.Handler<RouterState> = (
+    const unknownHandler: rutt.Handler<RouterState> = (
       req,
       ctx,
     ) =>
@@ -485,7 +499,7 @@ export class ServerContext {
         req,
         {
           ...ctx,
-          render: unknownHandlerRender(req, {}),
+          render: createUnknownRender(req, {}),
         },
       );
 
@@ -493,7 +507,7 @@ export class ServerContext {
       this.#error,
       Status.InternalServerError,
     );
-    const errorHandler: router.ErrorHandler<RouterState> = (
+    const errorHandler: rutt.ErrorHandler<RouterState> = (
       req,
       ctx,
       error,
@@ -521,7 +535,7 @@ export class ServerContext {
     size: number,
     contentType: string,
     etag: string,
-  ): router.MatchHandler {
+  ): rutt.MatchHandler {
     return async (req: Request) => {
       const url = new URL(req.url);
       const key = url.searchParams.get(ASSET_CACHE_BUST_KEY);
@@ -559,7 +573,7 @@ export class ServerContext {
    * Returns a router that contains all fresh routes. Should be mounted at
    * constants.INTERNAL_PREFIX
    */
-  #bundleAssetRoute = (): router.MatchHandler => {
+  #bundleAssetRoute = (): rutt.MatchHandler => {
     return async (_req, _ctx, params) => {
       const path = `/${params.path}`;
       const file = await this.#bundler.get(path);
@@ -599,7 +613,7 @@ const DEFAULT_NOT_FOUND: UnknownPage = {
   pattern: "",
   url: "",
   name: "_404",
-  handler: (req) => router.defaultOtherHandler(req),
+  handler: (req) => rutt.defaultOtherHandler(req),
   csp: false,
 };
 
