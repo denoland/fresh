@@ -16,5 +16,11 @@
     "link": "https://fresh.deno.dev/",
     "github": "denoland/fresh/tree/main/www",
     "image": "fresh"
+  },
+  {
+    "title": "Fresh Strapi",
+    "link": "https://fresh-strapi.deno.dev/",
+    "github": "hyprtxt/fresh-strapi.deno.dev",
+    "image": "fresh-strapi"
   }
 ]
