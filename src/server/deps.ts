@@ -16,8 +16,8 @@ export {
   typeByExtension,
 } from "https://deno.land/std@0.150.0/media_types/mod.ts";
 
-// -- router --
-export * as router from "https://crux.land/router@0.0.11";
+// -- rutt --
+export * as rutt from "https://deno.land/x/rutt@0.0.13/mod.ts";
 
 // -- esbuild --
 // @deno-types="https://deno.land/x/esbuild@v0.14.51/mod.d.ts"
