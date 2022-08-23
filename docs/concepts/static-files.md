@@ -1,3 +1,8 @@
+---
+description: |
+  Fresh has built-in support for serving static files. This is useful for serving images, CSS, and other static assets.
+---
+
 Fresh automatically serves static assets placed in a `static/` directory in the
 project root. These assets are served at the root of the webserver, with a
 higher priority than routes. This means that if a given request matches a file
