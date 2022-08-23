@@ -19,6 +19,7 @@ export type {
   Handler,
   HandlerContext,
   Handlers,
+  MiddlewareHandler,
   MiddlewareHandlerContext,
   PageProps,
   Plugin,
