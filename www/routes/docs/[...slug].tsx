@@ -38,11 +38,8 @@ export const handler: Handlers<Data> = {
     }
     const url = new URL(`../../../${entry.file}`, import.meta.url);
     const fileContent = await Deno.readTextFile(url);
-    const { content, data } = frontMatter(fileContent) as {
-      data: Record<string, string>;
-      content: string;
-    };
-    const page = { ...entry, markdown: content, data: data ?? {} };
+    const { body, attrs } = frontMatter<Record<string, unknown>>(fileContent);
+    const page = { ...entry, markdown: body, data: attrs ?? {} };
     const resp = ctx.render({ page });
     return resp;
   },
