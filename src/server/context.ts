@@ -85,8 +85,13 @@ export class ServerContext {
     this.#notFound = notFound;
     this.#error = error;
     this.#plugins = plugins;
-    this.#bundler = new Bundler(this.#islands, this.#plugins, importMapURL);
     this.#dev = typeof Deno.env.get("DENO_DEPLOYMENT_ID") !== "string"; // Env var is only set in prod (on Deploy).
+    this.#bundler = new Bundler(
+      this.#islands,
+      this.#plugins,
+      importMapURL,
+      this.#dev,
+    );
   }
 
   /**
