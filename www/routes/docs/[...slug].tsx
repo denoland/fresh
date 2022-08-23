@@ -34,17 +34,12 @@ export const handler: Handlers<Data> = {
     }
     const entry = TABLE_OF_CONTENTS[slug];
     if (!entry) {
-      return new Response("404 Page not found", {
-        status: 404,
-      });
+      return ctx.renderNotFound();
     }
     const url = new URL(`../../../${entry.file}`, import.meta.url);
     const fileContent = await Deno.readTextFile(url);
-    const { content, data } = frontMatter(fileContent) as {
-      data: Record<string, string>;
-      content: string;
-    };
-    const page = { ...entry, markdown: content, data: data ?? {} };
+    const { body, attrs } = frontMatter<Record<string, unknown>>(fileContent);
+    const page = { ...entry, markdown: body, data: attrs ?? {} };
     const resp = ctx.render({ page });
     return resp;
   },
