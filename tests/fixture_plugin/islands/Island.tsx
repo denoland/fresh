@@ -1,5 +1,3 @@
-/** @jsx h */
-import { h } from "preact";
 import { IS_BROWSER } from "../../../src/runtime/utils.ts";
 
 export default function Island() {

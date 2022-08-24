@@ -53,7 +53,7 @@ export interface Manifest {
 export interface DenoConfig {
   importMap: string;
   compilerOptions?: {
-    jsx?: "react" | "react-jsx";
+    jsx?: string;
     jsxImportSource?: string;
   };
 }

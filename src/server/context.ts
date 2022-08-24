@@ -106,7 +106,7 @@ export class ServerContext {
     // Get the manifest' base URL.
     const baseUrl = new URL("./", manifest.baseUrl).href;
 
-    const config = manifest.config || { importMap: "../import_map.json" };
+    const config = manifest.config || { importMap: "./import_map.json" };
     if (typeof config.importMap !== "string") {
       throw new Error("deno.json must contain an 'importMap' property.");
     }
@@ -114,8 +114,21 @@ export class ServerContext {
 
     config.compilerOptions ??= {};
 
+    let jsx: "react" | "react-jsx";
+    switch (config.compilerOptions.jsx) {
+      case "react":
+      case undefined:
+        jsx = "react";
+        break;
+      case "react-jsx":
+        jsx = "react-jsx";
+        break;
+      default:
+        throw new Error("Unknown jsx option: " + config.compilerOptions.jsx);
+    }
+
     const jsxConfig: JSXConfig = {
-      jsx: config.compilerOptions.jsx ?? "react",
+      jsx,
       jsxImportSource: config.compilerOptions.jsxImportSource,
     };
 

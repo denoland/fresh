@@ -1,5 +1,3 @@
-/** @jsx h */
-import { h } from "preact";
 import Island from "../islands/Island.tsx";
 import { inject } from "../utils/css-inject-plugin.ts";
 

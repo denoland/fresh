@@ -119,9 +119,10 @@ await Deno.writeTextFile(
   ROUTES_INDEX_TSX,
 );
 
-const COMPONENTS_BUTTON_TSX = `import { IS_BROWSER } from "$fresh/runtime.ts";
+const COMPONENTS_BUTTON_TSX = `import { JSX } from "preact";
+import { IS_BROWSER } from "$fresh/runtime.ts";
 
-export function Button(props: h.JSX.HTMLAttributes<HTMLButtonElement>) {
+export function Button(props: JSX.HTMLAttributes<HTMLButtonElement>) {
   return (
     <button
       {...props}
