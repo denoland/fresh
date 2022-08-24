@@ -65,4 +65,21 @@ docs.
 ## Badges
 
 ![Made with Fresh](./www/static/fresh-badge.svg)
+
+```
+[![Made with Fresh](https://fresh.deno.dev/fresh-badge.svg)](https://fresh.deno.dev)
+```
+
+```
+<a href="https://fresh.deno.dev"><img width="197" height="37" src="https://fresh.deno.dev/fresh-badge.svg" /></a>
+```
+
 ![Made with Fresh(dark)](./www/static/fresh-badge-dark.svg)
+
+```
+[![Made with Fresh](https://fresh.deno.dev/fresh-badge-dark.svg)](https://fresh.deno.dev)
+```
+
+```
+<a href="https://fresh.deno.dev"><img width="197" height="37" src="https://fresh.deno.dev/fresh-badge-dark.svg" /></a>
+```
