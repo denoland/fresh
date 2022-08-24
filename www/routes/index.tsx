@@ -291,9 +291,9 @@ function Showcase({ items }: { items: Project[] }) {
           Add yours!
         </a>
       </p>
-      <div class="pt-8 gap-20 md:gap-4 flex-col md:flex-row flex justify-between items-center">
+      <div class="pt-8 gap-20 md:gap-4 grid grid-cols(1 sm:2 md:3)">
         {items.map((project) => (
-          <div class="w-full max-w-sm group">
+          <div class="w-full max-w-sm mx-auto group">
             <a href={project.link} tabIndex={-1}>
               <img
                 loading="lazy"
