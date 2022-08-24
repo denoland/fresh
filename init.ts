@@ -94,10 +94,10 @@ if (useVSCode) {
 const importMap = {
   "imports": {
     "$fresh/": new URL("./", import.meta.url).href,
-    "preact": "https://esm.sh/preact@10.10.0",
-    "preact/": "https://esm.sh/preact@10.10.0/",
+    "preact": "https://esm.sh/preact@10.10.6",
+    "preact/": "https://esm.sh/preact@10.10.6/",
     "preact-render-to-string":
-      "https://esm.sh/preact-render-to-string@5.2.1?external=preact",
+      "https://esm.sh/preact-render-to-string@5.2.2?external=preact",
   } as Record<string, string>,
 };
 if (useTwind) {
@@ -259,6 +259,7 @@ try {
 
 let MAIN_TS = `/// <reference no-default-lib="true" />
 /// <reference lib="dom" />
+/// <reference lib="dom.iterable" />
 /// <reference lib="dom.asynciterable" />
 /// <reference lib="deno.ns" />
 

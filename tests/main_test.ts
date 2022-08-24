@@ -313,6 +313,37 @@ Deno.test({
 });
 
 Deno.test({
+  name: "/middleware - mixedHandler(cors)",
+  fn: async () => {
+    const resp = await router(
+      new Request("https://fresh.deno.dev/middleware_root", {
+        method: "OPTIONS",
+      }),
+    );
+    assert(resp);
+
+    // test cors handler
+    assertEquals(resp.status, Status.NoContent);
+  },
+});
+
+Deno.test({
+  name: "/middleware - mixedHandler(log)",
+  fn: async () => {
+    const resp = await router(
+      new Request("https://fresh.deno.dev/middleware_root"),
+    );
+    assert(resp);
+    assertEquals(resp.status, Status.OK);
+
+    // test log handler
+    const latency = resp.headers.get("latency");
+    assert(latency);
+    assert(+latency >= 0, `latency=${latency}ms `);
+  },
+});
+
+Deno.test({
   name: "/middleware - layer 2 middleware",
   fn: async () => {
     const resp = await router(
