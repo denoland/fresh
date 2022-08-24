@@ -1,5 +1,6 @@
 // std
 export {
+  basename,
   dirname,
   extname,
   fromFileUrl,
@@ -10,3 +11,4 @@ export {
 export { walk } from "https://deno.land/std@0.150.0/fs/walk.ts";
 export { parse } from "https://deno.land/std@0.150.0/flags/mod.ts";
 export { gte } from "https://deno.land/std@0.150.0/semver/mod.ts";
+export { bgRed, dim, red } from "https://deno.land/std@0.151.0/fmt/colors.ts";
