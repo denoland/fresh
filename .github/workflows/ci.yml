@@ -62,11 +62,11 @@ jobs:
 
       - name: Install Chromium (Unix)
         if: startsWith(matrix.os, 'ubuntu') || startsWith(matrix.os, 'mac')
-        run: PUPPETEER_PRODUCT=chrome deno run -A --unstable https://deno.land/x/puppeteer@14.1.1/install.ts
+        run: PUPPETEER_PRODUCT=chrome deno run -A --unstable https://deno.land/x/puppeteer@16.2.0/install.ts
 
       - name: Install Chromium (Windows)
         if: startsWith(matrix.os, 'windows')
-        run: set "PUPPETEER_PRODUCT=chrome" && deno run -A --unstable https://deno.land/x/puppeteer@14.1.1/install.ts
+        run: set "PUPPETEER_PRODUCT=chrome" && deno run -A --unstable https://deno.land/x/puppeteer@16.2.0/install.ts
 
       - name: Run tests
         run: deno test -A
