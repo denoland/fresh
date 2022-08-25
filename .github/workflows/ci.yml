@@ -41,32 +41,32 @@ jobs:
         uses: actions/cache@v2
         with:
           path: ~/.cache/deno/deno_puppeteer
-          key: chrome-991974-${{ runner.os }}-${{ hashFiles('tests/deps.ts') }}
-          restore-keys: chrome-991974-${{ runner.os }}-
+          key: chrome-1022525-${{ runner.os }}-${{ hashFiles('tests/deps.ts') }}
+          restore-keys: chrome-1022525-${{ runner.os }}-
 
       - name: Cache Chrome (macOS)
         if: startsWith(matrix.os, 'mac')
         uses: actions/cache@v2
         with:
           path: ~/Library/Caches/deno/deno_puppeteer
-          key: chrome-991974-${{ runner.os }}-${{ hashFiles('tests/deps.ts') }}
-          restore-keys: chrome-991974-${{ runner.os }}-
+          key: chrome-1022525-${{ runner.os }}-${{ hashFiles('tests/deps.ts') }}
+          restore-keys: chrome-1022525-${{ runner.os }}-
 
       - name: Cache Chrome (Windows)
         if: startsWith(matrix.os, 'win')
         uses: actions/cache@v2
         with:
           path: "C:\\Users\\RUNNER~1\\AppData\\Local\\deno\\deno_puppeteer"
-          key: chrome-991974-${{ runner.os }}-${{ hashFiles('tests/deps.ts') }}
-          restore-keys: chrome-991974-${{ runner.os }}-
+          key: chrome-1022525-${{ runner.os }}-${{ hashFiles('tests/deps.ts') }}
+          restore-keys: chrome-1022525-${{ runner.os }}-
 
       - name: Install Chromium (Unix)
         if: startsWith(matrix.os, 'ubuntu') || startsWith(matrix.os, 'mac')
-        run: PUPPETEER_PRODUCT=chrome deno run -A --unstable https://deno.land/x/puppeteer@14.1.1/install.ts
+        run: PUPPETEER_PRODUCT=chrome deno run -A --unstable https://deno.land/x/puppeteer@16.2.0/install.ts
 
       - name: Install Chromium (Windows)
         if: startsWith(matrix.os, 'windows')
-        run: set "PUPPETEER_PRODUCT=chrome" && deno run -A --unstable https://deno.land/x/puppeteer@14.1.1/install.ts
+        run: set "PUPPETEER_PRODUCT=chrome" && deno run -A --unstable https://deno.land/x/puppeteer@16.2.0/install.ts
 
       - name: Run tests
         run: deno test -A
