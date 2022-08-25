@@ -61,3 +61,25 @@ To deploy the project to the live internet, you can use
 For a more in-depth getting started guide, visit the
 [Getting Started](https://fresh.deno.dev/docs/getting-started) page in the Fresh
 docs.
+
+## Badges
+
+![Made with Fresh](./www/static/fresh-badge.svg)
+
+```
+[![Made with Fresh](https://fresh.deno.dev/fresh-badge.svg)](https://fresh.deno.dev)
+```
+
+```
+<a href="https://fresh.deno.dev"><img width="197" height="37" src="https://fresh.deno.dev/fresh-badge.svg" /></a>
+```
+
+![Made with Fresh(dark)](./www/static/fresh-badge-dark.svg)
+
+```
+[![Made with Fresh](https://fresh.deno.dev/fresh-badge-dark.svg)](https://fresh.deno.dev)
+```
+
+```
+<a href="https://fresh.deno.dev"><img width="197" height="37" src="https://fresh.deno.dev/fresh-badge-dark.svg" /></a>
+```
