@@ -9,7 +9,7 @@ import {
 } from "./deps.ts";
 import { error } from "./error.ts";
 
-const MIN_DENO_VERSION = "1.24.2+578f12d";
+const MIN_DENO_VERSION = "1.25.0";
 
 export function ensureMinDenoVersion() {
   // Check that the minimum supported Deno version is being used.
