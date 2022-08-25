@@ -62,6 +62,23 @@ For a more in-depth getting started guide, visit the
 [Getting Started](https://fresh.deno.dev/docs/getting-started) page in the Fresh
 docs.
 
+## ✅ Running tests
+
+Once you've installed Deno and Fresh, you'll also
+[need to install deno-puppeteer](https://github.com/lucacasonato/deno-puppeteer#installation)
+as this is used by some of the tests. It's also a great tool for automating your
+browsers if you've not tried it before!
+
+Run the Fresh tests with this command:
+
+```
+deno task test
+```
+
+If you're seeing failing tests on the `main` branch, then
+[check that deno-puppeteer is working properly](https://github.com/lucacasonato/deno-puppeteer#usage)
+and you are running Deno version 1.23.0 or higher.
+
 ## Badges
 
 ![Made with Fresh](./www/static/fresh-badge.svg)
