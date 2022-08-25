@@ -35,14 +35,14 @@ deno run -A -r https://fresh.deno.dev deno-fresh-demo
 
 Then navigate to the newly created project folder:
 
-```
+```sh
 cd deno-fresh-demo
 ```
 
 From within your project folder, start the development server using the
 `deno task` command:
 
-```
+```sh
 deno task start
 ```
 
@@ -71,7 +71,7 @@ browsers if you've not tried it before!
 
 Run the Fresh tests with this command:
 
-```
+```sh
 deno task test
 ```
 
