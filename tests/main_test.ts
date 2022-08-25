@@ -183,6 +183,15 @@ Deno.test("/foo/:path*", async () => {
   assert(body.includes("bar/baz"));
 });
 
+Deno.test("decodes parameters", async () => {
+  const resp = await router(new Request("https://fresh.deno.dev/this has spaces"));
+  assert(resp);
+  assertEquals(resp.status, Status.OK);
+  const body = await resp.text();
+  console.log(body)
+  assert(body.includes("this has spaces"));
+});
+
 Deno.test("static file - by file path", async () => {
   const resp = await router(new Request("https://fresh.deno.dev/foo.txt"));
   assertEquals(resp.status, Status.OK);
