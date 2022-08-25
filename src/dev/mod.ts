@@ -13,7 +13,7 @@ const MIN_DENO_VERSION = "1.25.0";
 
 export function ensureMinDenoVersion() {
   // Check that the minimum supported Deno version is being used.
-  if (!gte(Deno.version.deno, MIN_DENO_VERSION)) {
+  if (!gte(Deno.version.deno, MIN_DENO_VERSION, { includePrerelease: false })) {
     let message =
       `Deno version ${MIN_DENO_VERSION} or higher is required. Please update Deno.\n\n`;
 
