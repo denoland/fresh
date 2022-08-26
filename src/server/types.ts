@@ -204,19 +204,18 @@ export interface MiddlewareRoute extends Middleware {
   compiledPattern: URLPattern;
 }
 
+export type MiddlewareHandler<State = Record<string, unknown>> = (
+  req: Request,
+  ctx: MiddlewareHandlerContext<State>,
+) => Response | Promise<Response>;
+
 // deno-lint-ignore no-explicit-any
 export interface MiddlewareModule<State = any> {
-  handler(
-    req: Request,
-    ctx: MiddlewareHandlerContext<State>,
-  ): Response | Promise<Response>;
+  handler: MiddlewareHandler<State> | MiddlewareHandler<State>[];
 }
 
 export interface Middleware<State = Record<string, unknown>> {
-  handler(
-    req: Request,
-    ctx: MiddlewareHandlerContext<State>,
-  ): Response | Promise<Response>;
+  handler: MiddlewareHandler<State> | MiddlewareHandler<State>[];
 }
 
 // --- ISLANDS ---

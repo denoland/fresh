@@ -5,9 +5,9 @@
     "twind": "https://esm.sh/twind@0.16.17",
     "twind/": "https://esm.sh/twind@0.16.17/",
 
-    "preact": "https://esm.sh/preact@10.10.0",
-    "preact/": "https://esm.sh/preact@10.10.0/",
-    "preact-render-to-string": "https://esm.sh/preact-render-to-string@5.2.1?external=preact",
+    "preact": "https://esm.sh/preact@10.10.6",
+    "preact/": "https://esm.sh/preact@10.10.6/",
+    "preact-render-to-string": "https://esm.sh/preact-render-to-string@5.2.2?external=preact",
 
     "$std/": "https://deno.land/std@0.150.0/"
   }

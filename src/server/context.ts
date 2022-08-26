@@ -320,7 +320,14 @@ export class ServerContext {
       };
 
       for (const mw of mws) {
-        handlers.push(() => mw.handler(req, ctx));
+        if (mw.handler instanceof Array) {
+          for (const handler of mw.handler) {
+            handlers.push(() => handler(req, ctx));
+          }
+        } else {
+          const handler = mw.handler;
+          handlers.push(() => handler(req, ctx));
+        }
       }
 
       handlers.push(() => inner(req, ctx));
