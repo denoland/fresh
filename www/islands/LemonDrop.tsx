@@ -1,6 +1,3 @@
-/** @jsx h */
-/** @jsxFrag Fragment */
-import { Fragment, h } from "preact";
 import { useEffect, useRef, useState } from "preact/hooks";
 import { Spring, WaveTank } from "../components/WaveTank.ts";
 

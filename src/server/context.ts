@@ -11,9 +11,9 @@ import {
 } from "./deps.ts";
 import { h } from "preact";
 import { Manifest } from "./mod.ts";
-import { Bundler } from "./bundle.ts";
+import { Bundler, JSXConfig } from "./bundle.ts";
 import { ALIVE_URL, BUILD_ID, JS_PREFIX, REFRESH_JS_URL } from "./constants.ts";
-import DefaultErrorHandler from "./default_error_page.tsx";
+import DefaultErrorHandler from "./default_error_page.ts";
 import {
   AppModule,
   ErrorPage,
@@ -31,7 +31,7 @@ import {
   UnknownPage,
   UnknownPageModule,
 } from "./types.ts";
-import { render as internalRender } from "./render.tsx";
+import { render as internalRender } from "./render.ts";
 import { ContentSecurityPolicyDirectives, SELF } from "../runtime/csp.ts";
 import { ASSET_CACHE_BUST_KEY, INTERNAL_PREFIX } from "../runtime/utils.ts";
 interface RouterState {
@@ -75,6 +75,7 @@ export class ServerContext {
     error: ErrorPage,
     plugins: Plugin[],
     importMapURL: URL,
+    jsxConfig: JSXConfig,
   ) {
     this.#routes = routes;
     this.#islands = islands;
@@ -90,6 +91,7 @@ export class ServerContext {
       this.#islands,
       this.#plugins,
       importMapURL,
+      jsxConfig,
       this.#dev,
     );
   }
@@ -103,7 +105,32 @@ export class ServerContext {
   ): Promise<ServerContext> {
     // Get the manifest' base URL.
     const baseUrl = new URL("./", manifest.baseUrl).href;
-    const importMapURL = new URL("./import_map.json", manifest.baseUrl);
+
+    const config = manifest.config || { importMap: "./import_map.json" };
+    if (typeof config.importMap !== "string") {
+      throw new Error("deno.json must contain an 'importMap' property.");
+    }
+    const importMapURL = new URL(config.importMap, manifest.baseUrl);
+
+    config.compilerOptions ??= {};
+
+    let jsx: "react" | "react-jsx";
+    switch (config.compilerOptions.jsx) {
+      case "react":
+      case undefined:
+        jsx = "react";
+        break;
+      case "react-jsx":
+        jsx = "react-jsx";
+        break;
+      default:
+        throw new Error("Unknown jsx option: " + config.compilerOptions.jsx);
+    }
+
+    const jsxConfig: JSXConfig = {
+      jsx,
+      jsxImportSource: config.compilerOptions.jsxImportSource,
+    };
 
     // Extract all routes, and prepare them into the `Page` structure.
     const routes: Route[] = [];
@@ -271,6 +298,7 @@ export class ServerContext {
       error,
       opts.plugins ?? [],
       importMapURL,
+      jsxConfig,
     );
   }
 

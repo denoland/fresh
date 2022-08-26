@@ -1,6 +1,6 @@
 import { ComponentType } from "preact";
 import { ConnInfo, rutt, ServeInit } from "./deps.ts";
-import { InnerRenderFunction, RenderContext } from "./render.tsx";
+import { InnerRenderFunction, RenderContext } from "./render.ts";
 
 // --- APPLICATION CONFIGURATION ---
 

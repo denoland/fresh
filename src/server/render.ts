@@ -1,4 +1,3 @@
-/** @jsx h */
 import { renderToString } from "preact-render-to-string";
 import { ComponentChildren, ComponentType, h, options } from "preact";
 import {
@@ -18,7 +17,6 @@ import { CSP_CONTEXT, nonce, NONE, UNSAFE_INLINE } from "../runtime/csp.ts";
 import { ContentSecurityPolicy } from "../runtime/csp.ts";
 import { bundleAssetUrl } from "./constants.ts";
 import { assetHashingHook } from "../runtime/utils.ts";
-import { f } from "https://dev.jspm.io/npm:@jspm/core@1.1.1/nodelibs/chunk-0c2d1322.js";
 
 export interface RenderOptions<Data> {
   route: Route<Data> | UnknownPage | ErrorPage;
@@ -348,21 +346,27 @@ export interface TemplateOptions {
 }
 
 export function template(opts: TemplateOptions): string {
-  const page = (
-    <html lang={opts.lang}>
-      <head>
-        <meta charSet="UTF-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        {opts.preloads.map((src) => <link rel="modulepreload" href={src} />)}
-        {opts.imports.map(([src, nonce]) => (
-          <script src={src} nonce={nonce} type="module"></script>
-        ))}
-        {opts.headComponents}
-      </head>
-      <body dangerouslySetInnerHTML={{ __html: opts.bodyHtml }} />
-    </html>
+  const page = h(
+    "html",
+    { lang: opts.lang },
+    h(
+      "head",
+      null,
+      h("meta", { charSet: "UTF-8" }),
+      h("meta", {
+        name: "viewport",
+        content: "width=device-width, initial-scale=1.0",
+      }),
+      opts.preloads.map((src) =>
+        h("link", { rel: "modulepreload", href: src })
+      ),
+      opts.imports.map(([src, nonce]) =>
+        h("script", { src: src, nonce: nonce, type: "module" })
+      ),
+      opts.headComponents,
+    ),
+    h("body", { dangerouslySetInnerHTML: { __html: opts.bodyHtml } }),
   );
-
   return "<!DOCTYPE html>" + renderToString(page);
 }
 
