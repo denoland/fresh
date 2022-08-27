@@ -1,7 +1,28 @@
 ---
 description: |
-  Put your code in a directory of your choosing (i.e. src, app, etc.)
+  Fresh directory layout and how to customize it.
 ---
+
+Out of the box your project should look like so:
+
+```
+.
+├── islands/
+│   ├── Counter.tsx
+│   └── ...
+├── routes/
+│   ├── index.tsx
+│   └── ...
+├── static/
+│   └── ...
+├── deno.json
+├── dev.ts
+├── import_map.json
+├── main.ts
+└── ...
+```
+
+### Using a `src` directory
 
 If you'd like your code to live in a `src` or any other directory you'll need
 to move your `import_map.json`, `dev.ts`, `main.ts`, `routes/`, `islands/`,
@@ -33,7 +54,7 @@ import map location like so:
 ```json
 {
   "tasks": {
-    "start": "deno run -A --watch=src/static/,src/routes/ src/dev.ts"
+    "start": "deno run -A --watch=src/ src/dev.ts"
   },
   "importMap": "./src/import_map.json"
 }
