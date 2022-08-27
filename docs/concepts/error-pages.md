@@ -36,7 +36,7 @@ This can be achieved with `ctx.renderNotFound`.
 import { h } from "preact";
 import { Handlers, PageProps } from "$fresh/server.ts";
 
-export handler: Handlers = {
+export const handler: Handlers = {
   async GET(req, ctx) {
     const blogpost = await fetchBlogpost(ctx.params.slug)
     if (!blogpost) {
