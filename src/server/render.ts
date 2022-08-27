@@ -1,10 +1,13 @@
-/** @jsx h */
 import { renderToString } from "preact-render-to-string";
 import { ComponentChildren, ComponentType, h, options } from "preact";
 import {
   AppModule,
   ErrorPage,
   Island,
+  Plugin,
+  PluginRenderFunctionResult,
+  PluginRenderResult,
+  PluginRenderStyleTag,
   RenderFunction,
   Route,
   UnknownPage,
@@ -18,6 +21,7 @@ import { assetHashingHook } from "../runtime/utils.ts";
 export interface RenderOptions<Data> {
   route: Route<Data> | UnknownPage | ErrorPage;
   islands: Island[];
+  plugins: Plugin[];
   app: AppModule;
   imports: string[];
   preloads: string[];
@@ -176,16 +180,45 @@ export async function render<Data>(
 
   let bodyHtml: string | null = null;
 
-  function render() {
+  function realRender(): string {
     bodyHtml = renderToString(vnode);
     return bodyHtml;
   }
 
-  await opts.renderFn(ctx, render as InnerRenderFunction);
+  const plugins = opts.plugins.filter((p) => p.render !== null);
+  const renderResults: [Plugin, PluginRenderResult][] = [];
+
+  function render(): PluginRenderFunctionResult {
+    const plugin = plugins.shift();
+    if (plugin) {
+      const res = plugin.render!({ render });
+      if (res === undefined) {
+        throw new Error(
+          `${plugin?.name}'s render hook did not return a PluginRenderResult object.`,
+        );
+      }
+      renderResults.push([plugin, res]);
+    } else {
+      realRender();
+    }
+    if (bodyHtml === null) {
+      throw new Error(
+        `The 'render' function was not called by ${plugin?.name}'s render hook.`,
+      );
+    }
+    return {
+      htmlText: bodyHtml,
+      requiresHydration: ENCOUNTERED_ISLANDS.size > 0,
+    };
+  }
+
+  await opts.renderFn(ctx, () => render().htmlText);
 
   if (bodyHtml === null) {
     throw new Error("The `render` function was not called by the renderer.");
   }
+
+  bodyHtml = bodyHtml as string;
 
   const imports = opts.imports.map((url) => {
     const randomNonce = crypto.randomUUID().replace(/-/g, "");
@@ -197,6 +230,32 @@ export async function render<Data>(
     }
     return [url, randomNonce] as const;
   });
+
+  const state: [islands: unknown[], plugins: unknown[]] = [ISLAND_PROPS, []];
+  const styleTags: PluginRenderStyleTag[] = [];
+
+  let script =
+    `const STATE_COMPONENT = document.getElementById("__FRSH_STATE");const STATE = JSON.parse(STATE_COMPONENT?.textContent ?? "[[],[]]");`;
+
+  for (const [plugin, res] of renderResults) {
+    for (const hydrate of res.scripts ?? []) {
+      const i = state[1].push(hydrate.state) - 1;
+      const randomNonce = crypto.randomUUID().replace(/-/g, "");
+      if (csp) {
+        csp.directives.scriptSrc = [
+          ...csp.directives.scriptSrc ?? [],
+          nonce(randomNonce),
+        ];
+      }
+      const url = bundleAssetUrl(
+        `/plugin-${plugin.name}-${hydrate.entrypoint}.js`,
+      );
+      imports.push([url, randomNonce] as const);
+
+      script += `import p${i} from "${url}";p${i}(STATE[1][${i}]);`;
+    }
+    styleTags.splice(styleTags.length, 0, ...res.styles ?? []);
+  }
 
   if (ENCOUNTERED_ISLANDS.size > 0) {
     // Load the main.js script
@@ -212,8 +271,9 @@ export async function render<Data>(
       imports.push([url, randomNonce] as const);
     }
 
+    script += `import { revive } from "${bundleAssetUrl("/main.js")}";`;
+
     // Prepare the inline script that loads and revives the islands
-    let islandImports = "";
     let islandRegistry = "";
     for (const island of ENCOUNTERED_ISLANDS) {
       const randomNonce = crypto.randomUUID().replace(/-/g, "");
@@ -225,12 +285,17 @@ export async function render<Data>(
       }
       const url = bundleAssetUrl(`/island-${island.id}.js`);
       imports.push([url, randomNonce] as const);
-      islandImports += `\nimport ${island.name} from "${url}";`;
-      islandRegistry += `\n  ${island.id}: ${island.name},`;
+      script += `import ${island.name} from "${url}";`;
+      islandRegistry += `${island.id}:${island.name},`;
     }
-    const initCode = `import { revive } from "${
-      bundleAssetUrl("/main.js")
-    }";${islandImports}\nrevive({${islandRegistry}\n});`;
+    script += `revive({${islandRegistry}}, STATE[0]);`;
+  }
+
+  if (state[0].length > 0 || state[1].length > 0) {
+    // Append state to the body
+    bodyHtml += `<script id="__FRSH_STATE" type="application/json">${
+      JSON.stringify(state)
+    }</script>`;
 
     // Append the inline script to the body
     const randomNonce = crypto.randomUUID().replace(/-/g, "");
@@ -240,10 +305,25 @@ export async function render<Data>(
         nonce(randomNonce),
       ];
     }
-    (bodyHtml as string) +=
-      `<script id="__FRSH_ISLAND_PROPS" type="application/json">${
-        JSON.stringify(ISLAND_PROPS)
-      }</script><script type="module" nonce="${randomNonce}">${initCode}</script>`;
+    bodyHtml +=
+      `<script type="module" nonce="${randomNonce}">${script}</script>`;
+  }
+
+  if (ctx.styles.length > 0) {
+    const node = h("style", {
+      id: "__FRSH_STYLE",
+      dangerouslySetInnerHTML: { __html: ctx.styles.join("\n") },
+    });
+    headComponents.splice(0, 0, node);
+  }
+
+  for (const style of styleTags) {
+    const node = h("style", {
+      id: style.id,
+      dangerouslySetInnerHTML: { __html: style.cssText },
+      media: style.media,
+    });
+    headComponents.splice(0, 0, node);
   }
 
   const html = template({
@@ -251,7 +331,6 @@ export async function render<Data>(
     headComponents,
     imports,
     preloads: opts.preloads,
-    styles: ctx.styles,
     lang: ctx.lang,
   });
 
@@ -262,31 +341,32 @@ export interface TemplateOptions {
   bodyHtml: string;
   headComponents: ComponentChildren[];
   imports: (readonly [string, string])[];
-  styles: string[];
   preloads: string[];
   lang: string;
 }
 
 export function template(opts: TemplateOptions): string {
-  const page = (
-    <html lang={opts.lang}>
-      <head>
-        <meta charSet="UTF-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        {opts.preloads.map((src) => <link rel="modulepreload" href={src} />)}
-        {opts.imports.map(([src, nonce]) => (
-          <script src={src} nonce={nonce} type="module"></script>
-        ))}
-        <style
-          id="__FRSH_STYLE"
-          dangerouslySetInnerHTML={{ __html: opts.styles.join("\n") }}
-        />
-        {opts.headComponents}
-      </head>
-      <body dangerouslySetInnerHTML={{ __html: opts.bodyHtml }} />
-    </html>
+  const page = h(
+    "html",
+    { lang: opts.lang },
+    h(
+      "head",
+      null,
+      h("meta", { charSet: "UTF-8" }),
+      h("meta", {
+        name: "viewport",
+        content: "width=device-width, initial-scale=1.0",
+      }),
+      opts.preloads.map((src) =>
+        h("link", { rel: "modulepreload", href: src })
+      ),
+      opts.imports.map(([src, nonce]) =>
+        h("script", { src: src, nonce: nonce, type: "module" })
+      ),
+      opts.headComponents,
+    ),
+    h("body", { dangerouslySetInnerHTML: { __html: opts.bodyHtml } }),
   );
-
   return "<!DOCTYPE html>" + renderToString(page);
 }
 
