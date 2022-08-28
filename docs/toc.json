@@ -13,7 +13,8 @@
       ["fetching-data", "Fetching data"],
       ["form-submissions", "Form submissions"],
       ["adding-interactivity", "Adding interactivity"],
-      ["deploy-to-production", "Deploy to production"]
+      ["deploy-to-production", "Deploy to production"],
+      ["deploy-without-deno-deploy", "Deploy w/o Deno Deploy"]
     ]
   },
   "concepts": {
