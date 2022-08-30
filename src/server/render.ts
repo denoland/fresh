@@ -113,9 +113,9 @@ function defaultCsp() {
  *     complete and a body string is returned.
  *   - During rendering, every time a `<Suspense>` is rendered, it, and it's
  *     attached children are recorded for later rendering.
- * 3. Once the inital render is complete, the body string is fitted into the
+ * 3. Once the initial render is complete, the body string is fitted into the
  *    HTML wrapper template.
- * 4. The full inital render in the template is yielded to be sent to the
+ * 4. The full initial render in the template is yielded to be sent to the
  *    client.
  * 5. Now the suspended vnodes are rendered. These are individually rendered
  *    like described in step 2 above. Once each node is done rendering, it
