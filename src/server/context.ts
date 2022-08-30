@@ -3,7 +3,7 @@ import {
   extname,
   fromFileUrl,
   RequestHandler,
-  router,
+  rutt,
   Status,
   toFileUrl,
   typeByExtension,
@@ -11,9 +11,9 @@ import {
 } from "./deps.ts";
 import { h } from "preact";
 import { Manifest } from "./mod.ts";
-import { Bundler } from "./bundle.ts";
+import { Bundler, JSXConfig } from "./bundle.ts";
 import { ALIVE_URL, BUILD_ID, JS_PREFIX, REFRESH_JS_URL } from "./constants.ts";
-import DefaultErrorHandler from "./default_error_page.tsx";
+import DefaultErrorHandler from "./default_error_page.ts";
 import {
   AppModule,
   ErrorPage,
@@ -31,7 +31,7 @@ import {
   UnknownPage,
   UnknownPageModule,
 } from "./types.ts";
-import { render as internalRender } from "./render.tsx";
+import { render as internalRender } from "./render.ts";
 import { ContentSecurityPolicyDirectives, SELF } from "../runtime/csp.ts";
 import { ASSET_CACHE_BUST_KEY, INTERNAL_PREFIX } from "../runtime/utils.ts";
 interface RouterState {
@@ -75,6 +75,7 @@ export class ServerContext {
     error: ErrorPage,
     plugins: Plugin[],
     importMapURL: URL,
+    jsxConfig: JSXConfig,
   ) {
     this.#routes = routes;
     this.#islands = islands;
@@ -85,8 +86,14 @@ export class ServerContext {
     this.#notFound = notFound;
     this.#error = error;
     this.#plugins = plugins;
-    this.#bundler = new Bundler(this.#islands, this.#plugins, importMapURL);
     this.#dev = typeof Deno.env.get("DENO_DEPLOYMENT_ID") !== "string"; // Env var is only set in prod (on Deploy).
+    this.#bundler = new Bundler(
+      this.#islands,
+      this.#plugins,
+      importMapURL,
+      jsxConfig,
+      this.#dev,
+    );
   }
 
   /**
@@ -98,7 +105,32 @@ export class ServerContext {
   ): Promise<ServerContext> {
     // Get the manifest' base URL.
     const baseUrl = new URL("./", manifest.baseUrl).href;
-    const importMapURL = new URL("./import_map.json", manifest.baseUrl);
+
+    const config = manifest.config || { importMap: "./import_map.json" };
+    if (typeof config.importMap !== "string") {
+      throw new Error("deno.json must contain an 'importMap' property.");
+    }
+    const importMapURL = new URL(config.importMap, manifest.baseUrl);
+
+    config.compilerOptions ??= {};
+
+    let jsx: "react" | "react-jsx";
+    switch (config.compilerOptions.jsx) {
+      case "react":
+      case undefined:
+        jsx = "react";
+        break;
+      case "react-jsx":
+        jsx = "react-jsx";
+        break;
+      default:
+        throw new Error("Unknown jsx option: " + config.compilerOptions.jsx);
+    }
+
+    const jsxConfig: JSXConfig = {
+      jsx,
+      jsxImportSource: config.compilerOptions.jsxImportSource,
+    };
 
     // Extract all routes, and prepare them into the `Page` structure.
     const routes: Route[] = [];
@@ -166,7 +198,7 @@ export class ServerContext {
           url,
           name,
           component,
-          handler: handler ?? ((req) => router.defaultOtherHandler(req)),
+          handler: handler ?? ((req) => rutt.defaultOtherHandler(req)),
           csp: Boolean(config?.csp ?? false),
         };
       } else if (
@@ -185,7 +217,7 @@ export class ServerContext {
           name,
           component,
           handler: handler ??
-            ((req, ctx) => router.defaultErrorHandler(req, ctx, ctx.error)),
+            ((req, ctx) => rutt.defaultErrorHandler(req, ctx, ctx.error)),
           csp: Boolean(config?.csp ?? false),
         };
       }
@@ -266,6 +298,7 @@ export class ServerContext {
       error,
       opts.plugins ?? [],
       importMapURL,
+      jsxConfig,
     );
   }
 
@@ -274,7 +307,7 @@ export class ServerContext {
    * by fresh, including static files.
    */
   handler(): RequestHandler {
-    const inner = router.router<RouterState>(...this.#handlers());
+    const inner = rutt.router<RouterState>(...this.#handlers());
     const withMiddlewares = this.#composeMiddlewares(this.#middlewares);
     return function handler(req: Request, connInfo: ConnInfo) {
       // Redirect requests that end with a trailing slash
@@ -297,7 +330,7 @@ export class ServerContext {
     return (
       req: Request,
       connInfo: ConnInfo,
-      inner: router.Handler<RouterState>,
+      inner: rutt.Handler<RouterState>,
     ) => {
       // identify middlewares to apply, if any.
       // middlewares should be already sorted from deepest to shallow layer
@@ -315,7 +348,14 @@ export class ServerContext {
       };
 
       for (const mw of mws) {
-        handlers.push(() => mw.handler(req, ctx));
+        if (mw.handler instanceof Array) {
+          for (const handler of mw.handler) {
+            handlers.push(() => handler(req, ctx));
+          }
+        } else {
+          const handler = mw.handler;
+          handlers.push(() => handler(req, ctx));
+        }
       }
 
       handlers.push(() => inner(req, ctx));
@@ -330,11 +370,11 @@ export class ServerContext {
    * path-to-regex, to handler mapping.
    */
   #handlers(): [
-    router.Routes<RouterState>,
-    router.Handler<RouterState>,
-    router.ErrorHandler<RouterState>,
+    rutt.Routes<RouterState>,
+    rutt.Handler<RouterState>,
+    rutt.ErrorHandler<RouterState>,
   ] {
-    const routes: router.Routes<RouterState> = {};
+    const routes: rutt.Routes<RouterState> = {};
 
     routes[`${INTERNAL_PREFIX}${JS_PREFIX}/${BUILD_ID}/:path*`] = this
       .#bundleAssetRoute();
@@ -479,7 +519,7 @@ export class ServerContext {
       }
     }
 
-    const unknownHandler: router.Handler<RouterState> = (
+    const unknownHandler: rutt.Handler<RouterState> = (
       req,
       ctx,
     ) =>
@@ -495,7 +535,7 @@ export class ServerContext {
       this.#error,
       Status.InternalServerError,
     );
-    const errorHandler: router.ErrorHandler<RouterState> = (
+    const errorHandler: rutt.ErrorHandler<RouterState> = (
       req,
       ctx,
       error,
@@ -523,7 +563,7 @@ export class ServerContext {
     size: number,
     contentType: string,
     etag: string,
-  ): router.MatchHandler {
+  ): rutt.MatchHandler {
     return async (req: Request) => {
       const url = new URL(req.url);
       const key = url.searchParams.get(ASSET_CACHE_BUST_KEY);
@@ -561,7 +601,7 @@ export class ServerContext {
    * Returns a router that contains all fresh routes. Should be mounted at
    * constants.INTERNAL_PREFIX
    */
-  #bundleAssetRoute = (): router.MatchHandler => {
+  #bundleAssetRoute = (): rutt.MatchHandler => {
     return async (_req, _ctx, params) => {
       const path = `/${params.path}`;
       const file = await this.#bundler.get(path);
@@ -601,7 +641,7 @@ const DEFAULT_NOT_FOUND: UnknownPage = {
   pattern: "",
   url: "",
   name: "_404",
-  handler: (req) => router.defaultOtherHandler(req),
+  handler: (req) => rutt.defaultOtherHandler(req),
   csp: false,
 };
 

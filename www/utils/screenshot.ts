@@ -1,4 +1,4 @@
-import puppeteer from "https://deno.land/x/puppeteer@14.1.1/mod.ts";
+import puppeteer from "https://deno.land/x/puppeteer@16.2.0/mod.ts";
 
 const url = Deno.args[0];
 const id = Deno.args[1];

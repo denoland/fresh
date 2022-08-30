@@ -1,6 +1,3 @@
-/** @jsx h */
-import { h } from "preact";
-
 export function NoBuild() {
   return (
     <svg
