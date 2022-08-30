@@ -5,5 +5,9 @@
     "www": "deno run -A --watch=static/,routes/ www/dev.ts",
     "screenshot": "deno run -A www/utils/screenshot.ts"
   },
-  "importMap": "./tests/fixture/import_map.json"
+  "importMap": "./.vscode/import_map.json",
+  "compilerOptions": {
+    "jsx": "react-jsx",
+    "jsxImportSource": "preact"
+  }
 }

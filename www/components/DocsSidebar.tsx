@@ -1,6 +1,3 @@
-/** @jsx h */
-import { h } from "preact";
-
 import {
   CATEGORIES,
   TableOfContentsCategory,

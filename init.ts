@@ -1,23 +1,8 @@
-import { gte, join, parse, resolve } from "./src/dev/deps.ts";
+import { join, parse, resolve } from "./src/dev/deps.ts";
 import { error } from "./src/dev/error.ts";
-import { collect, generate } from "./src/dev/mod.ts";
+import { collect, ensureMinDenoVersion, generate } from "./src/dev/mod.ts";
 
-const MIN_VERSION = "1.23.0";
-
-// Check that the minimum supported Deno version is being used.
-if (!gte(Deno.version.deno, MIN_VERSION)) {
-  let message =
-    `Deno version ${MIN_VERSION} or higher is required. Please update Deno.\n\n`;
-
-  if (Deno.execPath().includes("homebrew")) {
-    message +=
-      "You seem to have installed Deno via homebrew. To update, run: `brew upgrade deno`\n";
-  } else {
-    message += "To update, run: `deno upgrade`\n";
-  }
-
-  error(message);
-}
+ensureMinDenoVersion();
 
 const help = `fresh-init
 
@@ -110,9 +95,7 @@ await Deno.writeTextFile(
   IMPORT_MAP_JSON,
 );
 
-const ROUTES_INDEX_TSX = `/** @jsx h */
-import { h } from "preact";
-import Counter from "../islands/Counter.tsx";
+const ROUTES_INDEX_TSX = `import Counter from "../islands/Counter.tsx";
 
 export default function Home() {
   return (
@@ -136,10 +119,10 @@ await Deno.writeTextFile(
   ROUTES_INDEX_TSX,
 );
 
-const COMPONENTS_BUTTON_TSX = `/** @jsx h */
-import { h } from "preact";
+const COMPONENTS_BUTTON_TSX = `import { JSX } from "preact";
 import { IS_BROWSER } from "$fresh/runtime.ts";
-export function Button(props: h.JSX.HTMLAttributes<HTMLButtonElement>) {
+
+export function Button(props: JSX.HTMLAttributes<HTMLButtonElement>) {
   return (
     <button
       {...props}
@@ -157,9 +140,7 @@ await Deno.writeTextFile(
   COMPONENTS_BUTTON_TSX,
 );
 
-const ISLANDS_COUNTER_TSX = `/** @jsx h */
-import { h } from "preact";
-import { useState } from "preact/hooks";
+const ISLANDS_COUNTER_TSX = `import { useState } from "preact/hooks";
 import { Button } from "../components/Button.tsx";
 
 interface CounterProps {
@@ -182,9 +163,7 @@ await Deno.writeTextFile(
   ISLANDS_COUNTER_TSX,
 );
 
-const ROUTES_GREET_TSX = `/** @jsx h */
-import { h } from "preact";
-import { PageProps } from "$fresh/server.ts";
+const ROUTES_GREET_TSX = `import { PageProps } from "$fresh/server.ts";
 
 export default function Greet(props: PageProps) {
   return <div>Hello {props.params.name}</div>;
@@ -300,6 +279,10 @@ const config = {
     start: "deno run -A --watch=static/,routes/ dev.ts",
   },
   importMap: "./import_map.json",
+  compilerOptions: {
+    jsx: "react-jsx",
+    jsxImportSource: "preact",
+  },
 };
 const DENO_CONFIG = JSON.stringify(config, null, 2) + "\n";
 
