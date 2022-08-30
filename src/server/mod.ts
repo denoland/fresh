@@ -50,7 +50,7 @@ export interface Manifest {
 
 export { ServerContext };
 
-const defaultPort = parseInt(Deno.env.get("PORT") || "") || 8000;
+const defaultPort = parseInt(Deno.env.get("PORT") || "8000");
 
 export async function start(
   routes: Manifest,
