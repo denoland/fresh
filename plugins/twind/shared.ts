@@ -10,32 +10,10 @@ import {
 
 export const STYLE_ELEMENT_ID = "__FRSH_TWIND";
 
-export interface Options {
-  /**
-   * Determines the dark mode strategy (default: `"media"`).
-   */
-  darkMode?: DarkMode;
-
-  /**
-   * The twind theme to use.
-   */
-  theme?: ThemeConfiguration;
-
-  /**
-   * ```js
-   * {
-   *   ':new-variant': '& .selector',
-   * }
-   * ```
-   */
-  variants?: Record<string, string>;
-
-  /**
-   * Configure wether the class names should be emitted "as is", or if they
-   * should be hashed.
-   */
-  hash?: boolean;
-}
+/**
+ * Twind configuration for configuring dark mode, theme, plugins, variants, etc.
+ */
+export type Options = Omit<Configuration, "mode" | "sheet">;
 
 declare module "preact" {
   namespace JSX {
@@ -48,12 +26,9 @@ declare module "preact" {
 
 export function setup(options: Options, sheet: Sheet) {
   const config: Configuration = {
-    darkMode: options.darkMode,
-    hash: options.hash,
+    ...options,
     mode: "silent",
     sheet,
-    variants: options.variants,
-    theme: options.theme,
   };
   twSetup(config);
 
