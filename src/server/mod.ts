@@ -60,10 +60,12 @@ export interface DenoConfig {
 
 export { ServerContext };
 
-export async function start(
-  routes: Manifest,
-  opts: StartOptions = {},
-) {
+export async function start(routes: Manifest, opts: StartOptions = {}) {
   const ctx = await ServerContext.fromManifest(routes, opts);
-  await serve(ctx.handler(), opts);
+
+  if (opts.experimentalDenoServe === true) {
+    await Deno.serve(ctx.handler() as Deno.ServeHandler, opts);
+  } else {
+    await serve(ctx.handler(), opts);
+  }
 }
