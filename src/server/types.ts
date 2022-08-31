@@ -248,7 +248,7 @@ export interface Plugin {
   name: string;
 
   /** A map of a snake-case names to a import specifiers. The entrypoints
-   * declared here can later be used in the "hydrate" option of
+   * declared here can later be used in the "scripts" option of
    * `PluginRenderResult` to load the entrypoint's code on the client.
    */
   entrypoints?: Record<string, string>;
