@@ -1,4 +1,4 @@
-import LemonDrop from "../islands/LemonDrop.tsx";
+import LemonDrop from "../components/LemonDrop.island.tsx";
 
 export function ServerCodePage(
   props: { serverCode: number; codeDescription: string },

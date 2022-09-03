@@ -35,7 +35,7 @@ interface Manifest {
 
 export async function collect(directory: string): Promise<Manifest> {
   const routesDir = join(directory, "./routes");
-  const islandsDir = join(directory, "./islands");
+  const islandsDir = join(directory, "./components");
 
   const routes = [];
   try {
@@ -71,14 +71,10 @@ export async function collect(directory: string): Promise<Manifest> {
   try {
     const islandsUrl = toFileUrl(islandsDir);
     for await (const entry of Deno.readDir(islandsDir)) {
-      if (entry.isDirectory) {
-        error(
-          `Found subdirectory '${entry.name}' in islands/. The islands/ folder must not contain any subdirectories.`,
-        );
-      }
+      if (entry.isDirectory) continue
       if (entry.isFile) {
-        const ext = extname(entry.name);
-        if (![".tsx", ".jsx", ".ts", ".js"].includes(ext)) continue;
+        // const ext = extname(entry.name);
+        if (!["island.tsx", "island.ts", "island.jsx", "island.js"].some(ext => entry.name.endsWith(ext))) continue;
         const path = join(islandsDir, entry.name);
         const file = toFileUrl(path).href.substring(islandsUrl.href.length);
         islands.push(file);
@@ -110,7 +106,7 @@ ${
     )
   }
 ${
-    islands.map((file, i) => `import * as $$${i} from "./islands${file}";`)
+    islands.map((file, i) => `import * as $$${i} from "./components${file}";`)
       .join("\n")
   }
 
@@ -123,7 +119,7 @@ const manifest = {
   },
   islands: {
     ${
-    islands.map((file, i) => `${JSON.stringify(`./islands${file}`)}: $$${i},`)
+    islands.map((file, i) => `${JSON.stringify(`./components${file}`)}: $$${i},`)
       .join("\n    ")
   }
   },
