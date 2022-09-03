@@ -33,7 +33,7 @@ jobs:
         run: deno lint
 
       - name: Cache dependencies
-        if: startsWith(matrix.os, 'ubuntu') && matrix.deno == 'v1.x' # TODO: remove once https://github.com/denoland/deno/issues/15558 is fixed.
+        if: startsWith(matrix.os, 'ubuntu') && matrix.deno == 'v1.x'
         run: deno cache --no-check --import-map=./www/import_map.json src/dev/deps.ts src/server/deps.ts www/main.ts
 
       - name: Cache Chrome (Linux)
