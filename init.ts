@@ -309,6 +309,10 @@ const vscodeSettings = {
   "deno.enable": true,
   "deno.lint": true,
   "editor.defaultFormatter": "denoland.vscode-deno",
+
+  // Workaround to prevent import issues. Details here:
+  //  https://github.com/denoland/vscode_deno/issues/595#issuecomment-1001559714
+  "typescript.tsserver.experimental.enableProjectDiagnostics": false
 };
 
 const VSCODE_SETTINGS = JSON.stringify(vscodeSettings, null, 2) + "\n";
