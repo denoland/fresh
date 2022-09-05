@@ -30,8 +30,6 @@ then adds a custom header to the response before returning it:
 ```tsx
 // routes/about.tsx
 
-/** @jsx h */
-import { h } from "preact";
 import { Handlers } from "$fresh/server.ts";
 
 export const handler: Handlers = {
