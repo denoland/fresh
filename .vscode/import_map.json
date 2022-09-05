@@ -11,6 +11,7 @@
     "preact": "https://esm.sh/preact@10.10.6",
     "preact/": "https://esm.sh/preact@10.10.6/",
     "preact-render-to-string": "https://esm.sh/preact-render-to-string@5.2.2?external=preact",
+    "@preact/signals": "https://esm.sh/@preact/signals@1.0.0?external=preact,preact/hooks",
 
     "$std/": "https://deno.land/std@0.150.0/"
   }
