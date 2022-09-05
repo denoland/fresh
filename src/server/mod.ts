@@ -62,7 +62,7 @@ export { ServerContext };
 
 export async function start(routes: Manifest, opts: StartOptions = {}) {
   const ctx = await ServerContext.fromManifest(routes, opts);
-
+  opts.port ??= 8000;
   if (opts.experimentalDenoServe === true) {
     // @ts-ignore as `Deno.serve` is still unstable.
     await Deno.serve(ctx.handler() as Deno.ServeHandler, opts);
