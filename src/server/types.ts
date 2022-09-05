@@ -4,20 +4,24 @@ import { InnerRenderFunction, RenderContext } from "./render.ts";
 
 // --- APPLICATION CONFIGURATION ---
 
-export type StartOptions = ServeInit & FreshOptions;
+export type StartOptions = ServeInit & FreshOptions & {
+  /**
+   * UNSTABLE: use the `Deno.serve` API as the underlying HTTP server instead of
+   * the `std/http` API. Do not use this in production.
+   *
+   * This option is experimental and may be removed in a future Fresh release.
+   */
+  experimentalDenoServe?: boolean;
+};
 
 export interface FreshOptions {
   render?: RenderFunction;
   plugins?: Plugin[];
-  /**
-   * UNSTABLE: Enable the new experimental Deno.serve function.
-   */
-  experimentalDenoServe?: boolean;
 }
 
 export type RenderFunction = (
   ctx: RenderContext,
-  render: InnerRenderFunction
+  render: InnerRenderFunction,
 ) => void | Promise<void>;
 
 /// --- ROUTES ---
@@ -77,7 +81,7 @@ export interface HandlerContext<Data = unknown, State = Record<string, unknown>>
 // deno-lint-ignore no-explicit-any
 export type Handler<T = any, State = Record<string, unknown>> = (
   req: Request,
-  ctx: HandlerContext<T, State>
+  ctx: HandlerContext<T, State>,
 ) => Response | Promise<Response>;
 
 // deno-lint-ignore no-explicit-any
@@ -131,7 +135,7 @@ export interface UnknownHandlerContext<State = Record<string, unknown>>
 
 export type UnknownHandler = (
   req: Request,
-  ctx: UnknownHandlerContext
+  ctx: UnknownHandlerContext,
 ) => Response | Promise<Response>;
 
 export interface UnknownPageModule {
@@ -171,7 +175,7 @@ export interface ErrorHandlerContext<State = Record<string, unknown>>
 }
 export type ErrorHandler = (
   req: Request,
-  ctx: ErrorHandlerContext
+  ctx: ErrorHandlerContext,
 ) => Response | Promise<Response>;
 
 export interface ErrorPageModule {
@@ -210,7 +214,7 @@ export interface MiddlewareRoute extends Middleware {
 
 export type MiddlewareHandler<State = Record<string, unknown>> = (
   req: Request,
-  ctx: MiddlewareHandlerContext<State>
+  ctx: MiddlewareHandlerContext<State>,
 ) => Response | Promise<Response>;
 
 // deno-lint-ignore no-explicit-any
