@@ -194,7 +194,7 @@ Deno.test("/foo/:path*", async () => {
 Deno.test("static files in custom directory", async () => {
   const newCtx = await ServerContext.fromManifest(manifest, {
     ...options,
-    staticDir: "./custom-dir",
+    staticDir: "./custom_static",
   });
   const newRouter = (req: Request) => {
     return newCtx.handler()(req, {
