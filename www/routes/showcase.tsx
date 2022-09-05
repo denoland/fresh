@@ -18,10 +18,44 @@ export default function ShowcasePage() {
         <div class="flex-1">
           <Showcase items={projects} />
 
+          <section class="max-w-screen-lg mx-auto my-16 px(4 sm:6 md:8) space-y-4">
+            <h2 class="text(3xl gray-600) font-bold">
+              Badge
+            </h2>
+
+            <p>
+              When you create a website with Fresh, please use this badge if you
+              like.
+            </p>
+
+            <img
+              width="197"
+              height="37"
+              src="https://fresh.deno.dev/fresh-badge.svg"
+              alt="Made with Fresh"
+            />
+
+            <img
+              width="197"
+              height="37"
+              src="https://fresh.deno.dev/fresh-badge-dark.svg"
+              alt="Made with Fresh"
+            />
+
+            <p>
+              <a
+                href="https://github.com/denoland/fresh#badges"
+                class="text-blue-600 hover:underline focus:underline"
+              >
+                Usage
+              </a>
+            </p>
+          </section>
+
           <img
             src="/illustration/deno-plush.svg"
             alt="a deno plush is holding a lemon"
-            class="mx-auto w-48 mt-32"
+            class="mx-auto w-48 mt-16"
           />
         </div>
 
@@ -34,7 +68,7 @@ export default function ShowcasePage() {
 function Showcase({ items }: { items: Project[] }) {
   return (
     <section class="max-w-screen-lg mx-auto my-16 px(4 sm:6 md:8) space-y-4">
-      <h2 id="showcase" class="text(3xl gray-600) font-bold">
+      <h2 class="text(3xl gray-600) font-bold">
         Showcase
       </h2>
       <p class="text-gray-600">
