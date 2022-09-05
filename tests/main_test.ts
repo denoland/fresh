@@ -1,11 +1,19 @@
 import { ServerContext, Status } from "../server.ts";
-import { assert, assertEquals, assertStringIncludes } from "./deps.ts";
+import {
+  assert,
+  assertEquals,
+  assertStringIncludes,
+  delay,
+  puppeteer,
+  TextLineStream,
+} from "./deps.ts";
 import manifest from "./fixture/fresh.gen.ts";
 import options from "./fixture/options.ts";
 
 const ctx = await ServerContext.fromManifest(manifest, options);
+const handler = ctx.handler();
 const router = (req: Request) => {
-  return ctx.handler()(req, {
+  return handler(req, {
     localAddr: {
       transport: "tcp",
       hostname: "127.0.0.1",
@@ -341,6 +349,37 @@ Deno.test({
 });
 
 Deno.test({
+  name: "/middleware - mixedHandler(cors)",
+  fn: async () => {
+    const resp = await router(
+      new Request("https://fresh.deno.dev/middleware_root", {
+        method: "OPTIONS",
+      }),
+    );
+    assert(resp);
+
+    // test cors handler
+    assertEquals(resp.status, Status.NoContent);
+  },
+});
+
+Deno.test({
+  name: "/middleware - mixedHandler(log)",
+  fn: async () => {
+    const resp = await router(
+      new Request("https://fresh.deno.dev/middleware_root"),
+    );
+    assert(resp);
+    assertEquals(resp.status, Status.OK);
+
+    // test log handler
+    const latency = resp.headers.get("latency");
+    assert(latency);
+    assert(+latency >= 0, `latency=${latency}ms `);
+  },
+});
+
+Deno.test({
   name: "/middleware - layer 2 middleware",
   fn: async () => {
     const resp = await router(
@@ -430,4 +469,59 @@ Deno.test({
     const body = await resp.text();
     assertStringIncludes(body, "404 not found: /not_found");
   },
+});
+
+Deno.test("jsx pragma works", {
+  sanitizeOps: false,
+  sanitizeResources: false,
+}, async (t) => {
+  // Preparation
+  const serverProcess = Deno.run({
+    cmd: ["deno", "run", "-A", "./tests/fixture_jsx_pragma/main.ts"],
+    stdout: "piped",
+    stderr: "inherit",
+  });
+
+  const decoder = new TextDecoderStream();
+  const lines = serverProcess.stdout.readable
+    .pipeThrough(decoder)
+    .pipeThrough(new TextLineStream());
+
+  let started = false;
+  for await (const line of lines) {
+    if (line.includes("Listening on http://")) {
+      started = true;
+      break;
+    }
+  }
+  if (!started) {
+    throw new Error("Server didn't start up");
+  }
+
+  await delay(100);
+
+  await t.step("ssr", async () => {
+    const resp = await fetch("http://localhost:8000");
+    assertEquals(resp.status, Status.OK);
+    const text = await resp.text();
+    assertStringIncludes(text, "Hello World");
+    assertStringIncludes(text, "ssr");
+  });
+
+  const browser = await puppeteer.launch({ args: ["--no-sandbox"] });
+  const page = await browser.newPage();
+
+  await page.goto("http://localhost:8000", {
+    waitUntil: "networkidle2",
+  });
+
+  await t.step("island is revived", async () => {
+    await page.waitForSelector("#csr");
+  });
+
+  await browser.close();
+
+  await lines.cancel();
+  serverProcess.kill("SIGTERM");
+  serverProcess.close();
 });

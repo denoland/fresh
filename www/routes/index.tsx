@@ -1,6 +1,3 @@
-/** @jsx h */
-/** @jsxFrag Fragment */
-import { Fragment, h } from "preact";
 import { asset, Head } from "$fresh/runtime.ts";
 import { Handlers, PageProps } from "$fresh/server.ts";
 import Counter from "../islands/Counter.tsx";
@@ -68,7 +65,7 @@ export default function MainPage(props: PageProps) {
 
 function Hero() {
   return (
-    <Fragment>
+    <>
       <div class="flex justify-end items-center bg-green-300">
         <a
           href="/docs"
@@ -80,7 +77,7 @@ function Hero() {
       <section class="w-full flex justify-center items-center flex-col bg-green-300">
         <LemonDrop />
       </section>
-    </Fragment>
+    </>
   );
 }
 
