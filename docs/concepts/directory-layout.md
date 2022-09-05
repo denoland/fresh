@@ -24,10 +24,10 @@ Out of the box your project should look like so:
 
 ### Using a `src` directory
 
-If you'd like your code to live in a `src` or any other directory you'll need
-to move your `import_map.json`, `dev.ts`, `main.ts`, `routes/`, `islands/`,
-and `static/` files/directories into the prefered directory. Your
-directory/file structure should end up looking like something below:
+If you'd like your code to live in a `src`, or any other directory of your 
+choosing, you'll need to move your `import_map.json`, `dev.ts`, `main.ts`, 
+`routes/`, `islands/`, and `static/` files/directories into that directory. 
+Your project directory layout should end up looking like something below:
 
 ```
 .
@@ -48,7 +48,7 @@ directory/file structure should end up looking like something below:
 └── ...
 ```
 
-You will also need to update your `deno.json` with the new entrypoint and
+You will also need to update your `deno.json` to point to new entrypoint and
 import map location like so:
 
 ```json
