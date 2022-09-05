@@ -30,8 +30,6 @@ is requested at this "locked" path, it will be served with a cache lifetime of
 one year.
 
 ```jsx
-/** @jsx h */
-import { h } from "preact";
 import { asset } from "$fresh/runtime.ts";
 
 export default function Page() {

@@ -27,8 +27,6 @@ as arguments in its `props` object though.
 ```tsx
 // routes/greet/[name].tsx
 
-/** @jsx h */
-import { h } from "preact";
 import { PageProps } from "$fresh/server.ts";
 
 export default function GreetPage(props: PageProps) {
