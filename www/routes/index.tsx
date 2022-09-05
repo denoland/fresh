@@ -273,15 +273,6 @@ function Showcase() {
           Showcase
         </a>
       </h2>
-      <p class="text-gray-600">
-        Below is a selection of projects that have been built with Fresh.{" "}
-        <a
-          href="https://github.com/denoland/fresh/blob/main/www/data/showcase.json"
-          class="text-blue-600 hover:underline"
-        >
-          Add yours!
-        </a>
-      </p>
       <Projects items={projects.slice(0, 3)} class="gap-8" />
 
       <div class="flex gap-2 items-center justify-end text-blue-600">
