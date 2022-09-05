@@ -27,6 +27,7 @@
       ["error-pages", "Error pages"],
       ["routing", "Routing"],
       ["data-fetching", "Data fetching"],
+      ["deployment", "Deployment"],
       ["directory-layout", "Directory layout"]
     ]
   }

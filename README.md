@@ -71,7 +71,9 @@ docs.
 ```
 
 ```
-<a href="https://fresh.deno.dev"><img width="197" height="37" src="https://fresh.deno.dev/fresh-badge.svg" /></a>
+<a href="https://fresh.deno.dev">
+   <img width="197" height="37" src="https://fresh.deno.dev/fresh-badge.svg" alt="Made with Fresh" />
+</a>
 ```
 
 ![Made with Fresh(dark)](./www/static/fresh-badge-dark.svg)
@@ -81,5 +83,7 @@ docs.
 ```
 
 ```
-<a href="https://fresh.deno.dev"><img width="197" height="37" src="https://fresh.deno.dev/fresh-badge-dark.svg" /></a>
+<a href="https://fresh.deno.dev">
+   <img width="197" height="37" src="https://fresh.deno.dev/fresh-badge-dark.svg" alt="Made with Fresh" />
+</a>
 ```

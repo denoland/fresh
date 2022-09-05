@@ -102,26 +102,8 @@ function defaultCsp() {
 }
 
 /**
- * This function renders out a page. Rendering is asynchronous, and streaming.
- * Rendering happens in multiple steps, because of the need to handle suspense.
- *
- * 1. The page's vnode tree is constructed.
- * 2. The page's vnode tree is passed to the renderer.
- *   - If the rendering throws a promise, the promise is awaited before
- *     continuing. This allows the renderer to handle async hooks.
- *   - Once the rendering throws no more promises, the initial render is
- *     complete and a body string is returned.
- *   - During rendering, every time a `<Suspense>` is rendered, it, and it's
- *     attached children are recorded for later rendering.
- * 3. Once the inital render is complete, the body string is fitted into the
- *    HTML wrapper template.
- * 4. The full inital render in the template is yielded to be sent to the
- *    client.
- * 5. Now the suspended vnodes are rendered. These are individually rendered
- *    like described in step 2 above. Once each node is done rendering, it
- *    wrapped in some boilderplate HTML, and suffixed with some JS, and then
- *    sent to the client. On the client the HTML will be slotted into the DOM
- *    at the location of the original `<Suspense>` node.
+ * This function renders out a page. Rendering is synchronous and non streaming.
+ * Suspense boundaries are not supported.
  */
 export async function render<Data>(
   opts: RenderOptions<Data>,
