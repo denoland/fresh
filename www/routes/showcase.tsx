@@ -23,9 +23,9 @@ export default function ShowcasePage() {
               Badge
             </h2>
 
-            <p>
-              When you create a website with Fresh, please use this badge if you
-              like.
+            <p class="text-gray-600">
+              You can add these stylish badges to your project's README to show
+              that it was built with Fresh.
             </p>
 
             <img
@@ -47,7 +47,7 @@ export default function ShowcasePage() {
                 href="https://github.com/denoland/fresh#badges"
                 class="text-blue-600 hover:underline focus:underline"
               >
-                Usage
+                Usage instructions
               </a>
             </p>
           </section>
