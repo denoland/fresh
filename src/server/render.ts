@@ -334,7 +334,7 @@ export function template(opts: TemplateOptions): string {
     h(
       "head",
       null,
-      h("meta", { charSet: "UTF-8" }),
+      h("meta", { charset: "UTF-8" }),
       h("meta", {
         name: "viewport",
         content: "width=device-width, initial-scale=1.0",
