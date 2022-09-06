@@ -273,12 +273,14 @@ function Showcase() {
           Showcase
         </a>
       </h2>
+      <p class="text-gray-600">
+        Below is a selection of projects that have been built with Fresh.
+      </p>
       <Projects items={projects.slice(0, 3)} class="gap-8" />
-
       <div class="flex gap-2 items-center justify-end text-blue-600">
         <Icons.ArrowRight />
-        <a href="./showcase" class=" hover:underline focus:underline">
-          Discover Showcases
+        <a href="./showcase" class="hover:underline focus:underline">
+          View more
         </a>
       </div>
     </section>
