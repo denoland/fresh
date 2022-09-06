@@ -201,14 +201,16 @@ await Deno.writeTextFile(
   ROUTES_API_JOKE_TS,
 );
 
-const TWIND_CONFIG_JS =
-  `/** @type {import("$fresh/plugins/twind.ts").Options} */
-export default {};
+const TWIND_CONFIG_TS = `import { Options } from "$fresh/plugins/twind.ts";
+
+export default {
+  selfURL: import.meta.url,
+} as Options;
 `;
 if (useTwind) {
   await Deno.writeTextFile(
-    join(resolvedDirectory, "twind.config.js"),
-    TWIND_CONFIG_JS,
+    join(resolvedDirectory, "twind.config.ts"),
+    TWIND_CONFIG_TS,
   );
 }
 
@@ -249,7 +251,7 @@ import manifest from "./fresh.gen.ts";
 if (useTwind) {
   MAIN_TS += `
 import twindPlugin from "$fresh/plugins/twind.ts";
-import twindConfig from "./twind.config.js";
+import twindConfig from "./twind.config.ts";
 `;
 }
 
