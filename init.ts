@@ -1,6 +1,7 @@
 import { join, parse, resolve } from "./src/dev/deps.ts";
 import { error } from "./src/dev/error.ts";
 import { collect, ensureMinDenoVersion, generate } from "./src/dev/mod.ts";
+import { freshImports, twindImports } from "./src/dev/imports.ts";
 
 ensureMinDenoVersion();
 
@@ -76,19 +77,9 @@ if (useVSCode) {
   await Deno.mkdir(join(resolvedDirectory, ".vscode"), { recursive: true });
 }
 
-const importMap = {
-  "imports": {
-    "$fresh/": new URL("./", import.meta.url).href,
-    "preact": "https://esm.sh/preact@10.10.6",
-    "preact/": "https://esm.sh/preact@10.10.6/",
-    "preact-render-to-string":
-      "https://esm.sh/preact-render-to-string@5.2.2?external=preact",
-  } as Record<string, string>,
-};
-if (useTwind) {
-  importMap.imports["twind"] = "https://esm.sh/twind@0.16.17";
-  importMap.imports["twind/"] = "https://esm.sh/twind@0.16.17/";
-}
+const importMap = { imports: {} as Record<string, string> };
+freshImports(importMap.imports);
+if (useTwind) twindImports(importMap.imports);
 const IMPORT_MAP_JSON = JSON.stringify(importMap, null, 2) + "\n";
 await Deno.writeTextFile(
   join(resolvedDirectory, "import_map.json"),
