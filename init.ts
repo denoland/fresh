@@ -28,7 +28,7 @@ const CONFIRM_EMPTY_MESSAGE =
   "The target directory is not empty (files could get overwritten). Do you want to continue anyway?";
 
 const USE_TWIND_MESSAGE =
-  "Do you want to use 'twind' (https://twind.dev/) for styling?";
+  "Fresh has built in support for styling using Tailwind CSS. Do you want to use this?";
 
 const USE_VSCODE_MESSAGE = "Do you use VS Code?";
 
@@ -40,6 +40,12 @@ const flags = parse(Deno.args, {
 if (flags._.length !== 1) {
   error(help);
 }
+
+console.log(
+  `\n%c  🍋 Fresh: the next-gen web framework.  %c\n`,
+  "background-color: #86efac; color: black; font-weight: bold",
+  "",
+);
 
 const unresolvedDirectory = Deno.args[0];
 const resolvedDirectory = resolve(unresolvedDirectory);
@@ -59,6 +65,7 @@ try {
     throw err;
   }
 }
+console.log("%cLet's set up your new Fresh project.\n", "font-weight: bold");
 
 const useTwind = flags.twind === null
   ? confirm(USE_TWIND_MESSAGE)
@@ -344,7 +351,28 @@ await generate(resolvedDirectory, manifest);
 
 // Specifically print unresolvedDirectory, rather than resolvedDirectory in order to
 // not leak personal info (e.g. `/Users/MyName`)
-console.log("\n%cProject created!", "color: green; font-weight: bold");
-console.log(`\nIn order to start the development server, run:\n`);
-console.log(`$ cd ${unresolvedDirectory}`);
-console.log("$ deno task start");
+console.log("\n%cProject initialized!\n", "color: green; font-weight: bold");
+
+console.log(
+  `Enter your project directory using %ccd ${unresolvedDirectory}%c.`,
+  "color: cyan",
+  "",
+);
+console.log(
+  "Run %cdeno task start%c to start the project. %cCTRL-C%c to stop.",
+  "color: cyan",
+  "",
+  "color: cyan",
+  "",
+);
+console.log();
+console.log(
+  "Stuck? Join our Discord %chttps://discord.gg/deno",
+  "color: cyan",
+  "",
+);
+console.log();
+console.log(
+  "%cHappy hacking! 🦕",
+  "color: gray",
+);
