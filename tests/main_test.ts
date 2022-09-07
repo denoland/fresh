@@ -191,6 +191,34 @@ Deno.test("/foo/:path*", async () => {
   assert(body.includes("bar/baz"));
 });
 
+Deno.test("static files in custom directory", async () => {
+  const newCtx = await ServerContext.fromManifest(manifest, {
+    ...options,
+    staticDir: "./custom_static",
+  });
+  const newRouter = (req: Request) => {
+    return newCtx.handler()(req, {
+      localAddr: {
+        transport: "tcp",
+        hostname: "127.0.0.1",
+        port: 80,
+      },
+      remoteAddr: {
+        transport: "tcp",
+        hostname: "127.0.0.1",
+        port: 80,
+      },
+    });
+  };
+
+  const resp = await newRouter(
+    new Request("https://fresh.deno.dev/custom.txt"),
+  );
+  assertEquals(resp.status, Status.OK);
+  const body = await resp.text();
+  assert(body.startsWith("dir"));
+});
+
 Deno.test("static file - by file path", async () => {
   const resp = await router(new Request("https://fresh.deno.dev/foo.txt"));
   assertEquals(resp.status, Status.OK);

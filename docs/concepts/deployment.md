@@ -17,8 +17,8 @@ The recommended way to deploy Fresh is by using Deno Deploy. Deno Deploy
 provides a GitHub integration that can deploy your Fresh projects to its'
 globally distributed edge network in seconds, automatically.
 
-View [the getting started guide][../getting-started/deploy-to-production] for
-instructions on how to deploy Fresh to Deno Deploy.
+View [the getting started guide][deploy-to-production] for instructions on how
+to deploy Fresh to Deno Deploy.
 
 ## Docker
 
@@ -71,3 +71,5 @@ documentation.
 
 [aws-container-registry]: https://docs.aws.amazon.com/AmazonECS/latest/userguide/create-container-image.html#create-container-image-push-ecr
 [gcp-container-registry]: https://cloud.google.com/container-registry/docs/pushing-and-pulling
+[deno-deploy]: https://deno.com/deploy
+[deploy-to-production]: /docs/getting-started/deploy-to-production
