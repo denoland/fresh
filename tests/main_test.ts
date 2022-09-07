@@ -474,7 +474,7 @@ Deno.test({
 Deno.test("experimental Deno.serve", {
   sanitizeOps: false,
   sanitizeResources: false,
-  ignore: Deno.build.os === "windows" // TODO: Deno.serve hang on Windows?
+  ignore: Deno.build.os === "windows", // TODO: Deno.serve hang on Windows?
 }, async (t) => {
   // Preparation
   const serverProcess = Deno.run({
