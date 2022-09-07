@@ -4,7 +4,15 @@ import { InnerRenderFunction, RenderContext } from "./render.ts";
 
 // --- APPLICATION CONFIGURATION ---
 
-export type StartOptions = ServeInit & FreshOptions;
+export type StartOptions = ServeInit & FreshOptions & {
+  /**
+   * UNSTABLE: use the `Deno.serve` API as the underlying HTTP server instead of
+   * the `std/http` API. Do not use this in production.
+   *
+   * This option is experimental and may be removed in a future Fresh release.
+   */
+  experimentalDenoServe?: boolean;
+};
 
 export interface FreshOptions {
   render?: RenderFunction;
