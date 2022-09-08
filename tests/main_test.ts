@@ -471,6 +471,77 @@ Deno.test({
   },
 });
 
+Deno.test("experimental Deno.serve", {
+  sanitizeOps: false,
+  sanitizeResources: false,
+  ignore: Deno.build.os === "windows", // TODO: Deno.serve hang on Windows?
+}, async (t) => {
+  // Preparation
+  const serverProcess = Deno.run({
+    cmd: [
+      "deno",
+      "run",
+      "-A",
+      "--unstable",
+      "./tests/fixture/main.ts",
+      "--experimental-deno-serve",
+    ],
+    stdout: "piped",
+    stderr: "inherit",
+  });
+
+  const decoder = new TextDecoderStream();
+  const lines = serverProcess.stdout.readable
+    .pipeThrough(decoder)
+    .pipeThrough(new TextLineStream());
+
+  let started = false;
+  for await (const line of lines) {
+    if (line.includes("Listening on http://")) {
+      started = true;
+      break;
+    }
+  }
+  if (!started) {
+    throw new Error("Server didn't start up");
+  }
+
+  await delay(100);
+
+  await t.step("ssr", async () => {
+    const resp = await fetch("http://localhost:8000");
+    assert(resp);
+    assertEquals(resp.status, Status.OK);
+    assertEquals(resp.headers.get("content-type"), "text/html; charset=utf-8");
+    assertEquals(resp.headers.get("server"), "fresh test server");
+    const body = await resp.text();
+    assertStringIncludes(body, `<html lang="en">`);
+    assertStringIncludes(body, "test.js");
+    assertStringIncludes(body, "<p>Hello!</p>");
+    assertStringIncludes(body, "<p>Viewing JIT render.</p>");
+    assertStringIncludes(body, `>[[{"message":"Hello!"}],[]]</script>`);
+    assertStringIncludes(
+      body,
+      `<meta name="description" content="Hello world!" />`,
+    );
+  });
+
+  await t.step("static file", async () => {
+    const resp = await fetch("http://localhost:8000/foo.txt");
+    assertEquals(resp.status, Status.OK);
+    const body = await resp.text();
+    assert(body.startsWith("bar"));
+    const etag = resp.headers.get("etag");
+    assert(etag);
+    assert(!etag.startsWith("W/"), "etag should be weak");
+    assertEquals(resp.headers.get("content-type"), "text/plain");
+  });
+
+  await lines.cancel();
+  serverProcess.kill("SIGTERM");
+  serverProcess.close();
+});
+
 Deno.test("jsx pragma works", {
   sanitizeOps: false,
   sanitizeResources: false,

@@ -4,7 +4,15 @@ import { InnerRenderFunction, RenderContext } from "./render.ts";
 
 // --- APPLICATION CONFIGURATION ---
 
-export type StartOptions = ServeInit & FreshOptions;
+export type StartOptions = ServeInit & FreshOptions & {
+  /**
+   * UNSTABLE: use the `Deno.serve` API as the underlying HTTP server instead of
+   * the `std/http` API. Do not use this in production.
+   *
+   * This option is experimental and may be removed in a future Fresh release.
+   */
+  experimentalDenoServe?: boolean;
+};
 
 export interface FreshOptions {
   render?: RenderFunction;
@@ -240,7 +248,7 @@ export interface Plugin {
   name: string;
 
   /** A map of a snake-case names to a import specifiers. The entrypoints
-   * declared here can later be used in the "hydrate" option of
+   * declared here can later be used in the "scripts" option of
    * `PluginRenderResult` to load the entrypoint's code on the client.
    */
   entrypoints?: Record<string, string>;

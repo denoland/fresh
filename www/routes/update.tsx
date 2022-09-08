@@ -11,16 +11,16 @@ import Projects from "../components/Projects.tsx";
 import projects from "../data/showcase.json" assert { type: "json" };
 
 export const handler: Handlers = {
-  GET(req, ctx) {
+  GET(req) {
     const accept = req.headers.get("accept");
+    let path = "/docs/concepts/updating";
     if (accept && !accept.includes("text/html")) {
-      const path = `https://deno.land/x/fresh@${VERSIONS[0]}/init.ts`;
-      return new Response(`Redirecting to ${path}`, {
-        headers: { "Location": path },
-        status: 307,
-      });
+      path = `https://deno.land/x/fresh@${VERSIONS[0]}/update.ts`;
     }
-    return ctx.render();
+    return new Response(`Redirecting to ${path}`, {
+      headers: { "Location": path },
+      status: 307,
+    });
   },
 };
 
