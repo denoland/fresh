@@ -138,7 +138,7 @@ await Deno.writeTextFile(
   COMPONENTS_BUTTON_TSX,
 );
 
-const ISLANDS_COUNTER_TSX = `import { useSignal } from "preact/signals";
+const ISLANDS_COUNTER_TSX = `import { useSignal } from "@preact/signals";
 import { Button } from "../components/Button.tsx";
 
 interface CounterProps {
