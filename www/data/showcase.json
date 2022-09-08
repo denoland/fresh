@@ -29,5 +29,10 @@
     "link": "https://fresh-strapi.deno.dev/",
     "github": "hyprtxt/fresh-strapi.deno.dev",
     "image": "fresh-strapi"
+  },
+  {
+    "title": "ANDBOUNDS Inc.",
+    "link": "https://andbounds.com/",
+    "image": "andbounds"
   }
 ]
