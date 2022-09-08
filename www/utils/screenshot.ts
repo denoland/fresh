@@ -17,7 +17,6 @@ const browser = await puppeteer.launch({
 const page = await browser.newPage();
 await page.goto(url, { waitUntil: "networkidle2" });
 const png2x = join(outDir, `${id}.png`);
-await page.evaluate("window.scroll(0, 100000)");
 await page.screenshot({ path: png2x });
 
 await browser.close();
