@@ -7,9 +7,14 @@ export type { Options };
 export default function twind(options: Options): Plugin {
   const sheet = virtualSheet();
   setup(options, sheet);
+  const main = `data:application/javascript,import hydrate from "${
+    new URL("./twind/main.ts", import.meta.url).href
+  }";
+import options from "${options.selfURL}";
+export default function(state) { hydrate(options, state); }`;
   return {
     name: "twind",
-    entrypoints: { "main": new URL("./twind/main.ts", import.meta.url).href },
+    entrypoints: { "main": main },
     render(ctx) {
       sheet.reset(undefined);
       const res = ctx.render();
@@ -28,7 +33,7 @@ export default function twind(options: Options): Plugin {
             mappings.push([key, value]);
           }
         }
-        const state = [options, precedences, mappings];
+        const state = [precedences, mappings];
         scripts.push({ entrypoint: "main", state });
       }
       return {
