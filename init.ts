@@ -138,7 +138,7 @@ await Deno.writeTextFile(
   COMPONENTS_BUTTON_TSX,
 );
 
-const ISLANDS_COUNTER_TSX = `import { useState } from "preact/hooks";
+const ISLANDS_COUNTER_TSX = `import { useSignal } from "@preact/signals"; 
 import { Button } from "../components/Button.tsx";
 
 interface CounterProps {
@@ -146,12 +146,12 @@ interface CounterProps {
 }
 
 export default function Counter(props: CounterProps) {
-  const [count, setCount] = useState(props.start);
+  const count = useSignal(props.start);
   return (
     <div${useTwind ? ' class="flex gap-2 w-full"' : ""}>
       <p${useTwind ? ' class="flex-grow-1 font-bold text-xl"' : ""}>{count}</p>
-      <Button onClick={() => setCount(count - 1)}>-1</Button>
-      <Button onClick={() => setCount(count + 1)}>+1</Button>
+      <Button onClick={() => count.value--}>-1</Button>
+      <Button onClick={() => count.value++}>+1</Button>
     </div>
   );
 }
