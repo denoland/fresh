@@ -29,7 +29,8 @@ import * as $22 from "./routes/not_found.ts";
 import * as $23 from "./routes/params.tsx";
 import * as $24 from "./routes/props/[id].tsx";
 import * as $25 from "./routes/static.tsx";
-import * as $26 from "./routes/wildcard.tsx";
+import * as $26 from "./routes/status_overwrite.tsx";
+import * as $27 from "./routes/wildcard.tsx";
 import * as $$0 from "./islands/Counter.tsx";
 import * as $$1 from "./islands/Test.tsx";
 import * as $$2 from "./islands/kebab-case-counter-test.tsx";
@@ -62,7 +63,8 @@ const manifest = {
     "./routes/params.tsx": $23,
     "./routes/props/[id].tsx": $24,
     "./routes/static.tsx": $25,
-    "./routes/wildcard.tsx": $26,
+    "./routes/status_overwrite.tsx": $26,
+    "./routes/wildcard.tsx": $27,
   },
   islands: {
     "./islands/Counter.tsx": $$0,

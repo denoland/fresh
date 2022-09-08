@@ -119,6 +119,17 @@ Deno.test("/intercept_args - GET html", async () => {
   assertStringIncludes(body, "<div>intercepted</div>");
 });
 
+Deno.test("/status_overwrite", async () => {
+  const req = new Request("https://fresh.deno.dev/status_overwrite", {
+    headers: { "accept": "text/html" },
+  });
+  const resp = await router(req);
+  assert(resp);
+  assertEquals(resp.status, Status.Unauthorized);
+  const body = await resp.text();
+  assertStringIncludes(body, "<div>This is HTML</div>");
+});
+
 Deno.test("/api/get_only - NOTAMETHOD", async () => {
   const resp = await router(
     new Request("https://fresh.deno.dev/api/get_only", {

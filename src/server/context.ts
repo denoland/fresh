@@ -444,7 +444,7 @@ export class ServerContext {
         params: Record<string, string>,
         error?: unknown,
       ) => {
-        return async (data?: Data) => {
+        return async (data?: Data, statusOverwrite?: number) => {
           if (route.component === undefined) {
             throw new Error("This page does not have a component to render.");
           }
@@ -492,7 +492,10 @@ export class ServerContext {
               headers["content-security-policy"] = directive;
             }
           }
-          return new Response(body, { status, headers });
+          return new Response(body, {
+            status: statusOverwrite ?? status,
+            headers,
+          });
         };
       };
     };
