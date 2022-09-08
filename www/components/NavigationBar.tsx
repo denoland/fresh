@@ -1,6 +1,3 @@
-/** @jsx h */
-import { h } from "preact";
-
 export default function NavigationBar(props: { active: string }) {
   const items = [
     {
@@ -10,6 +7,10 @@ export default function NavigationBar(props: { active: string }) {
     {
       name: "Docs",
       href: "/docs",
+    },
+    {
+      name: "Showcase",
+      href: "/showcase",
     },
   ];
 
