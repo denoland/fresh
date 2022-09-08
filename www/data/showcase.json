@@ -23,5 +23,11 @@
     "link": "https://saleor-deno-merch.deno.dev/",
     "github": "saleor/deno-merch",
     "image": "saleor-deno"
+  },
+  {
+    "title": "Fresh Strapi",
+    "link": "https://fresh-strapi.deno.dev/",
+    "github": "hyprtxt/fresh-strapi.deno.dev",
+    "image": "fresh-strapi"
   }
 ]
