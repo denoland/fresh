@@ -71,12 +71,16 @@ export interface RouteConfig {
   csp?: boolean;
 }
 
+export interface RenderOptions {
+  statusOverwrite?: number;
+}
+
 export interface HandlerContext<Data = unknown, State = Record<string, unknown>>
   extends ConnInfo {
   params: Record<string, string>;
   render: (
     data?: Data,
-    statusOverwrite?: number,
+    options?: RenderOptions,
   ) => Response | Promise<Response>;
   renderNotFound: () => Response | Promise<Response>;
   state: State;

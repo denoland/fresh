@@ -6,6 +6,6 @@ export default function Page() {
 
 export const handler = {
   GET(req: Request, { render }: HandlerContext) {
-    return render(undefined, 401);
+    return render(undefined, { statusOverwrite: 401 });
   },
 };
