@@ -1,0 +1,12 @@
+{
+  "imports": {
+    "$fresh/": "https://deno.land/x/fresh@1.1.0/",
+    "preact": "https://esm.sh/preact@10.10.6",
+    "preact/": "https://esm.sh/preact@10.10.6/",
+    "preact-render-to-string": "https://esm.sh/*preact-render-to-string@5.2.3/",
+    "@preact/signals": "https://esm.sh/*@preact/signals@1.0.3",
+    "@preact/signals-core": "https://esm.sh/*@preact/signals-core@1.0.1",
+    "twind": "https://esm.sh/twind@0.16.17",
+    "twind/": "https://esm.sh/twind@0.16.17/"
+  }
+}
