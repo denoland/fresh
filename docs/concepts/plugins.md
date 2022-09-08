@@ -11,7 +11,8 @@ initializing them in their `main.ts` file:
 ```ts
 // main.ts
 
-// ...
+import { start } from "$fresh/server.ts";
+import manifest from "./fresh.gen.ts";
 
 import twindPlugin from "$fresh/plugins/twind.ts";
 import twindConfig from "./twind.config.js";
@@ -25,6 +26,13 @@ await start(manifest, {
 ```
 
 Currently, the only available first-party plugin is the Twind plugin.
+Third-party plugins are also supported - they can be imported from any HTTP
+server, like any other Deno module.
+
+Plugin hooks are executed in the order that the plugins are defined in the
+`plugins` array. This means that the first plugin in the array will be executed
+first, and the last plugin in the array will be executed last. For many plugins,
+this does not matter, but for some plugins it may.
 
 ## Creating a plugin
 
