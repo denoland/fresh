@@ -44,6 +44,7 @@ export default function MainPage(props: PageProps) {
         <meta property="og:image" content={ogImageUrl} />
       </Head>
       <div class="flex flex-col min-h-screen">
+        <HelloBar />
         <Hero />
         <div class="flex-1">
           <Intro />
@@ -54,6 +55,20 @@ export default function MainPage(props: PageProps) {
         <Footer />
       </div>
     </>
+  );
+}
+
+function HelloBar() {
+  return (
+    <a
+      class="bg-green-400 text-black border(b green-500) p-3 text-center group"
+      href="https://deno.com/blog/fresh-1.1"
+    >
+      <b>Fresh v1.1</b> has been released with support for <b>automatic JSX</b>,
+      {" "}
+      <b>plugins</b>, <b>DevTools support</b>, and more!{"  "}
+      <span class="group-hover:underline">→</span>
+    </a>
   );
 }
 
