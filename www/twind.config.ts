@@ -1,7 +1,8 @@
+import { Options } from "$fresh/plugins/twind.ts";
 import * as colors from "twind/colors";
 
-/** @type {import("$fresh/plugins/twind.ts").Options} */
 export default {
+  selfURL: import.meta.url,
   theme: {
     colors: {
       blue: colors.blue,
@@ -13,4 +14,4 @@ export default {
       transparent: "transparent",
     },
   },
-};
+} as Options;

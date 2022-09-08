@@ -4,8 +4,9 @@ import { assert, assertEquals, assertStringIncludes } from "./deps.ts";
 import manifest from "./fixture_error/fresh.gen.ts";
 
 const ctx = await ServerContext.fromManifest(manifest, {});
+const handler = ctx.handler();
 const router = (req: Request) => {
-  return ctx.handler()(req, {
+  return handler(req, {
     localAddr: {
       transport: "tcp",
       hostname: "127.0.0.1",

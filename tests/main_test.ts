@@ -1,11 +1,19 @@
 import { ServerContext, Status } from "../server.ts";
-import { assert, assertEquals, assertStringIncludes } from "./deps.ts";
+import {
+  assert,
+  assertEquals,
+  assertStringIncludes,
+  delay,
+  puppeteer,
+  TextLineStream,
+} from "./deps.ts";
 import manifest from "./fixture/fresh.gen.ts";
 import options from "./fixture/options.ts";
 
 const ctx = await ServerContext.fromManifest(manifest, options);
+const handler = ctx.handler();
 const router = (req: Request) => {
-  return ctx.handler()(req, {
+  return handler(req, {
     localAddr: {
       transport: "tcp",
       hostname: "127.0.0.1",
@@ -181,6 +189,34 @@ Deno.test("/foo/:path*", async () => {
   assertEquals(resp.status, Status.OK);
   const body = await resp.text();
   assert(body.includes("bar/baz"));
+});
+
+Deno.test("static files in custom directory", async () => {
+  const newCtx = await ServerContext.fromManifest(manifest, {
+    ...options,
+    staticDir: "./custom_static",
+  });
+  const newRouter = (req: Request) => {
+    return newCtx.handler()(req, {
+      localAddr: {
+        transport: "tcp",
+        hostname: "127.0.0.1",
+        port: 80,
+      },
+      remoteAddr: {
+        transport: "tcp",
+        hostname: "127.0.0.1",
+        port: 80,
+      },
+    });
+  };
+
+  const resp = await newRouter(
+    new Request("https://fresh.deno.dev/custom.txt"),
+  );
+  assertEquals(resp.status, Status.OK);
+  const body = await resp.text();
+  assert(body.startsWith("dir"));
 });
 
 Deno.test("static file - by file path", async () => {
@@ -433,4 +469,130 @@ Deno.test({
     const body = await resp.text();
     assertStringIncludes(body, "404 not found: /not_found");
   },
+});
+
+Deno.test("experimental Deno.serve", {
+  sanitizeOps: false,
+  sanitizeResources: false,
+  ignore: Deno.build.os === "windows", // TODO: Deno.serve hang on Windows?
+}, async (t) => {
+  // Preparation
+  const serverProcess = Deno.run({
+    cmd: [
+      "deno",
+      "run",
+      "-A",
+      "--unstable",
+      "./tests/fixture/main.ts",
+      "--experimental-deno-serve",
+    ],
+    stdout: "piped",
+    stderr: "inherit",
+  });
+
+  const decoder = new TextDecoderStream();
+  const lines = serverProcess.stdout.readable
+    .pipeThrough(decoder)
+    .pipeThrough(new TextLineStream());
+
+  let started = false;
+  for await (const line of lines) {
+    if (line.includes("Listening on http://")) {
+      started = true;
+      break;
+    }
+  }
+  if (!started) {
+    throw new Error("Server didn't start up");
+  }
+
+  await delay(100);
+
+  await t.step("ssr", async () => {
+    const resp = await fetch("http://localhost:8000");
+    assert(resp);
+    assertEquals(resp.status, Status.OK);
+    assertEquals(resp.headers.get("content-type"), "text/html; charset=utf-8");
+    assertEquals(resp.headers.get("server"), "fresh test server");
+    const body = await resp.text();
+    assertStringIncludes(body, `<html lang="en">`);
+    assertStringIncludes(body, "test.js");
+    assertStringIncludes(body, "<p>Hello!</p>");
+    assertStringIncludes(body, "<p>Viewing JIT render.</p>");
+    assertStringIncludes(body, `>[[{"message":"Hello!"}],[]]</script>`);
+    assertStringIncludes(
+      body,
+      `<meta name="description" content="Hello world!" />`,
+    );
+  });
+
+  await t.step("static file", async () => {
+    const resp = await fetch("http://localhost:8000/foo.txt");
+    assertEquals(resp.status, Status.OK);
+    const body = await resp.text();
+    assert(body.startsWith("bar"));
+    const etag = resp.headers.get("etag");
+    assert(etag);
+    assert(!etag.startsWith("W/"), "etag should be weak");
+    assertEquals(resp.headers.get("content-type"), "text/plain");
+  });
+
+  await lines.cancel();
+  serverProcess.kill("SIGTERM");
+  serverProcess.close();
+});
+
+Deno.test("jsx pragma works", {
+  sanitizeOps: false,
+  sanitizeResources: false,
+}, async (t) => {
+  // Preparation
+  const serverProcess = Deno.run({
+    cmd: ["deno", "run", "-A", "./tests/fixture_jsx_pragma/main.ts"],
+    stdout: "piped",
+    stderr: "inherit",
+  });
+
+  const decoder = new TextDecoderStream();
+  const lines = serverProcess.stdout.readable
+    .pipeThrough(decoder)
+    .pipeThrough(new TextLineStream());
+
+  let started = false;
+  for await (const line of lines) {
+    if (line.includes("Listening on http://")) {
+      started = true;
+      break;
+    }
+  }
+  if (!started) {
+    throw new Error("Server didn't start up");
+  }
+
+  await delay(100);
+
+  await t.step("ssr", async () => {
+    const resp = await fetch("http://localhost:8000");
+    assertEquals(resp.status, Status.OK);
+    const text = await resp.text();
+    assertStringIncludes(text, "Hello World");
+    assertStringIncludes(text, "ssr");
+  });
+
+  const browser = await puppeteer.launch({ args: ["--no-sandbox"] });
+  const page = await browser.newPage();
+
+  await page.goto("http://localhost:8000", {
+    waitUntil: "networkidle2",
+  });
+
+  await t.step("island is revived", async () => {
+    await page.waitForSelector("#csr");
+  });
+
+  await browser.close();
+
+  await lines.cancel();
+  serverProcess.kill("SIGTERM");
+  serverProcess.close();
 });
