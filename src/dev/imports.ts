@@ -1,6 +1,7 @@
 export const RECOMMENDED_PREACT_VERSION = "10.10.6";
 export const RECOMMENDED_PREACT_RTS_VERSION = "5.2.3";
-export const RECOMMENDED_PREACT_SIGNALS_VERSION = "1.0.2";
+export const RECOMMENDED_PREACT_SIGNALS_VERSION = "1.0.3";
+export const RECOMMENDED_PREACT_SIGNALS_CORE_VERSION = "1.0.1";
 export const RECOMMENDED_TWIND_VERSION = "0.16.17";
 
 export function freshImports(imports: Record<string, string>) {
@@ -12,7 +13,7 @@ export function freshImports(imports: Record<string, string>) {
   imports["@preact/signals"] =
     `https://esm.sh/*@preact/signals@${RECOMMENDED_PREACT_SIGNALS_VERSION}`;
   imports["@preact/signals-core"] =
-    `https://esm.sh/@preact/signals-core@${RECOMMENDED_PREACT_SIGNALS_VERSION}`;
+    `https://esm.sh/*@preact/signals-core@${RECOMMENDED_PREACT_SIGNALS_CORE_VERSION}`;
 }
 
 export function twindImports(imports: Record<string, string>) {
