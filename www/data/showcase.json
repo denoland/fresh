@@ -5,7 +5,6 @@
     "github": "denoland/merch",
     "image": "merch"
   },
-
   {
     "title": "Deno Chat",
     "link": "https://showcase-chat.deno.dev/",
@@ -17,6 +16,12 @@
     "link": "https://fresh.deno.dev/",
     "github": "denoland/fresh/tree/main/www",
     "image": "fresh"
+  },
+  {
+    "title": "diKnow",
+    "link": "https://xyntechx-diknow.deno.dev/",
+    "github": "xyntechx/diKnow",
+    "image": "diKnow"
   },
   {
     "title": "Saleor + Deno Merch",
