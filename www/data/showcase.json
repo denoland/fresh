@@ -39,5 +39,11 @@
     "title": "ANDBOUNDS Inc.",
     "link": "https://andbounds.com/",
     "image": "andbounds"
+  },
+  {
+    "title": "im@sparql Data Dashboard",
+    "link": "https://imasparql-data-dashboard.deno.dev/",
+    "github": "arrow2nd/imasparql-data-dashboard",
+    "image": "imasparql-dd"
   }
 ]
