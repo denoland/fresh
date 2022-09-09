@@ -173,7 +173,7 @@ Deno.test({
 });
 
 Deno.test({
-  name: "fresh-init --twind --vscode",
+  name: "fresh-init --twind --dotenv --vscode",
   async fn(t) {
     // Preparation
     const tmpDirName = await Deno.makeTempDir();
@@ -187,6 +187,7 @@ Deno.test({
           "init.ts",
           tmpDirName,
           "--twind",
+          "--dotenv",
           "--vscode",
         ],
         stdin: "null",
@@ -252,6 +253,7 @@ Deno.test({
               { "type": "file", "name": "extensions.json" },
             ],
           },
+          { "type": "file", "name": ".gitignore" },
         ],
       },
     ];
