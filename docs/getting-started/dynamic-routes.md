@@ -22,13 +22,11 @@ the file name. For example the `/greet/:name` route maps to the file name
 Just like the static `/about` route, the dynamic `/greet/:name` route will
 render a page. The module must once again expose a component as a default
 export. This time the component will receive the matched path segment properties
-as arguments in it's `props` object though.
+as arguments in its `props` object though.
 
 ```tsx
 // routes/greet/[name].tsx
 
-/** @jsx h */
-import { h } from "preact";
 import { PageProps } from "$fresh/server.ts";
 
 export default function GreetPage(props: PageProps) {
