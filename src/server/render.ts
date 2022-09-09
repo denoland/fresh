@@ -17,6 +17,7 @@ import { CSP_CONTEXT, nonce, NONE, UNSAFE_INLINE } from "../runtime/csp.ts";
 import { ContentSecurityPolicy } from "../runtime/csp.ts";
 import { bundleAssetUrl } from "./constants.ts";
 import { assetHashingHook } from "../runtime/utils.ts";
+import { htmlEscapeJsonString } from "./htmlescape.ts";
 
 export interface RenderOptions<Data> {
   route: Route<Data> | UnknownPage | ErrorPage;
@@ -276,7 +277,7 @@ export async function render<Data>(
   if (state[0].length > 0 || state[1].length > 0) {
     // Append state to the body
     bodyHtml += `<script id="__FRSH_STATE" type="application/json">${
-      JSON.stringify(state)
+      htmlEscapeJsonString(JSON.stringify(state))
     }</script>`;
 
     // Append the inline script to the body
