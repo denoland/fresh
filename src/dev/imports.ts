@@ -20,3 +20,8 @@ export function twindImports(imports: Record<string, string>) {
   imports["twind"] = `https://esm.sh/twind@${RECOMMENDED_TWIND_VERSION}`;
   imports["twind/"] = `https://esm.sh/twind@${RECOMMENDED_TWIND_VERSION}/`;
 }
+
+export function dotenvImports(imports: Record<string, string>) {
+  // always use latest version
+  imports["$std/"] = `https://deno.land/std/`;
+}
