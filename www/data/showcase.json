@@ -45,5 +45,10 @@
     "link": "https://imasparql-data-dashboard.deno.dev/",
     "github": "arrow2nd/imasparql-data-dashboard",
     "image": "imasparql-dd"
+  },
+  {
+    "title": "YCRM",
+    "link": "https://ycrm.xyz/",
+    "image": "ycrm"
   }
 ]
