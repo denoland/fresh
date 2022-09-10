@@ -35,6 +35,10 @@ Deno.test("/static page prerender", async () => {
   assertStringIncludes(body, '<style id="abc">body { color: red; }</style>');
   assert(!body.includes(`>{"v":[[],[]]}</script>`));
   assert(!body.includes(`import`));
+  assertStringIncludes(
+    body,
+    '<style id="def">h1 { text-decoration: underline; }</style>',
+  );
 });
 
 Deno.test("/with-island prerender", async () => {
@@ -48,6 +52,10 @@ Deno.test("/with-island prerender", async () => {
   );
   assertStringIncludes(body, `>{"v":[[{}],["JS injected!"]]}</script>`);
   assertStringIncludes(body, `/plugin-js-inject-main.js"`);
+  assertStringIncludes(
+    body,
+    '<style id="def">h1 { text-decoration: underline; } h1 { font-style: italic; }</style>',
+  );
 });
 
 Deno.test({

@@ -168,18 +168,18 @@ export async function render<Data>(
 
   let bodyHtml: string | null = null;
 
-  function realRender(): string {
+  function renderInner(): string {
     bodyHtml = renderToString(vnode);
     return bodyHtml;
   }
 
-  const plugins = opts.plugins.filter((p) => p.render !== null);
+  const syncPlugins = opts.plugins.filter((p) => p.render);
   const renderResults: [Plugin, PluginRenderResult][] = [];
 
-  function render(): PluginRenderFunctionResult {
-    const plugin = plugins.shift();
+  function renderSync(): PluginRenderFunctionResult {
+    const plugin = syncPlugins.shift();
     if (plugin) {
-      const res = plugin.render!({ render });
+      const res = plugin.render!({ render: renderSync });
       if (res === undefined) {
         throw new Error(
           `${plugin?.name}'s render hook did not return a PluginRenderResult object.`,
@@ -187,7 +187,7 @@ export async function render<Data>(
       }
       renderResults.push([plugin, res]);
     } else {
-      realRender();
+      renderInner();
     }
     if (bodyHtml === null) {
       throw new Error(
@@ -200,13 +200,39 @@ export async function render<Data>(
     };
   }
 
-  await opts.renderFn(ctx, () => render().htmlText);
+  const asyncPlugins = opts.plugins.filter((p) => p.renderAsync);
 
-  if (bodyHtml === null) {
-    throw new Error("The `render` function was not called by the renderer.");
+  async function renderAsync(): Promise<PluginRenderFunctionResult> {
+    const plugin = asyncPlugins.shift();
+    if (plugin) {
+      const res = await plugin.renderAsync!({ renderAsync });
+      if (res === undefined) {
+        throw new Error(
+          `${plugin?.name}'s async render hook did not return a PluginRenderResult object.`,
+        );
+      }
+      renderResults.push([plugin, res]);
+      if (bodyHtml === null) {
+        throw new Error(
+          `The 'renderAsync' function was not called by ${plugin?.name}'s async render hook.`,
+        );
+      }
+    } else {
+      await opts.renderFn(ctx, () => renderSync().htmlText);
+      if (bodyHtml === null) {
+        throw new Error(
+          `The 'render' function was not called by the legacy async render hook.`,
+        );
+      }
+    }
+    return {
+      htmlText: bodyHtml,
+      requiresHydration: ENCOUNTERED_ISLANDS.size > 0,
+    };
   }
 
-  bodyHtml = bodyHtml as string;
+  await renderAsync();
+  bodyHtml = bodyHtml as unknown as string;
 
   const imports: [string, string][] = [];
   const preloadSet = new Set<string>();
