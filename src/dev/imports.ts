@@ -3,6 +3,7 @@ export const RECOMMENDED_PREACT_RTS_VERSION = "5.2.3";
 export const RECOMMENDED_PREACT_SIGNALS_VERSION = "1.0.3";
 export const RECOMMENDED_PREACT_SIGNALS_CORE_VERSION = "1.0.1";
 export const RECOMMENDED_TWIND_VERSION = "0.16.17";
+export const RECOMMENDED_STD_VERSION = "0.155.0";
 
 export function freshImports(imports: Record<string, string>) {
   imports["$fresh/"] = new URL("../../", import.meta.url).href;
@@ -22,6 +23,5 @@ export function twindImports(imports: Record<string, string>) {
 }
 
 export function dotenvImports(imports: Record<string, string>) {
-  // always use latest version
-  imports["$std/"] = `https://deno.land/std/`;
+  imports["$std/"] = `https://deno.land/std@${RECOMMENDED_STD_VERSION}/`;
 }
