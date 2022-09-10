@@ -38,7 +38,7 @@ const USE_VSCODE_MESSAGE = "Do you use VS Code?";
 
 const flags = parse(Deno.args, {
   boolean: ["force", "twind", "dotenv", "vscode"],
-  default: { "force": null, "twind": null, "dotenv": null, "vscode": null },
+  default: { "force": null, "twind": null, "dotenv": true, "vscode": null },
 });
 
 if (flags._.length !== 1) {
