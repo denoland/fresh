@@ -257,10 +257,18 @@ export async function render<Data>(
       const url = addImport("/deserializer.js");
       script += `import { deserialize } from "${url}";`;
     }
+    if (res.hasSignals) {
+      const url = addImport("/signals.js");
+      script += `import { signal } from "${url}";`;
+    }
     script += `const ST = document.getElementById("__FRSH_STATE").textContent;`;
     script += `const STATE = `;
     if (res.requiresDeserializer) {
-      script += `deserialize(ST);`;
+      if (res.hasSignals) {
+        script += `deserialize(ST, signal);`;
+      } else {
+        script += `deserialize(ST);`;
+      }
     } else {
       script += `JSON.parse(ST).v;`;
     }
