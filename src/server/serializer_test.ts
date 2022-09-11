@@ -22,6 +22,16 @@ Deno.test("serializer - primitives & plain objects", async (t) => {
   assertEquals(deserialized, data);
 });
 
+Deno.test("serializer - Uint8Array", async (t) => {
+  const data = { a: new Uint8Array([1, 2, 3]) };
+  const res = serialize(data);
+  assert(res.requiresDeserializer);
+  assert(!res.hasSignals);
+  await assertSnapshot(t, res.serialized);
+  const deserialized = deserialize(res.serialized);
+  assertEquals(deserialized, data);
+});
+
 Deno.test("serializer - signals", async (t) => {
   const data = {
     a: 1,
