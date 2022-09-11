@@ -1,5 +1,3 @@
-/** @jsx h */
-import { h } from "preact";
 import { HandlerContext } from "$fresh/server.ts";
 
 export default function Page() {
