@@ -62,8 +62,8 @@ version:
 
 -     "preact": "https://esm.sh/preact@10.8.1",
 -     "preact/": "https://esm.sh/preact@10.8.1/",
-+     "preact": "https://esm.sh/preact@10.10.6",
-+     "preact/": "https://esm.sh/preact@10.10.6/",
++     "preact": "https://esm.sh/preact@10.11.0",
++     "preact/": "https://esm.sh/preact@10.11.0/",
 
 -     "preact-render-to-string": "https://esm.sh/*preact-render-to-string@5.2.0",
 +     "preact-render-to-string": "https://esm.sh/*preact-render-to-string@5.2.2",
