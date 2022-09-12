@@ -19,6 +19,6 @@ Deno.test("selectMiddlewares", () => {
   const mwRoutes = middlewaresPath.map((path) =>
     middlewarePathToPattern(path)
   ) as MiddlewareRoute[];
-  const mws = selectMiddlewares(url, mwRoutes);
+  const mws = selectMiddlewares(new URL(url), mwRoutes);
   assert(mws.length === 4);
 });

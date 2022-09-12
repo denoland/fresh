@@ -200,6 +200,7 @@ export interface MiddlewareHandlerContext<State = Record<string, unknown>>
   extends ConnInfo {
   next: () => Promise<Response>;
   state: State;
+  targetRoute: Route | null;
 }
 
 export interface MiddlewareRoute extends Middleware {

@@ -337,7 +337,8 @@ export class ServerContext {
     ) => {
       // identify middlewares to apply, if any.
       // middlewares should be already sorted from deepest to shallow layer
-      const mws = selectMiddlewares(req.url, middlewares);
+      const url = new URL(req.url);
+      const mws = selectMiddlewares(url, middlewares);
 
       const handlers: (() => Response | Promise<Response>)[] = [];
 
@@ -348,6 +349,7 @@ export class ServerContext {
         },
         ...connInfo,
         state: {},
+        targetRoute: targetRoute(url, this.#routes),
       };
 
       for (const mw of mws) {
@@ -662,12 +664,11 @@ const DEFAULT_ERROR: ErrorPage = {
  * @param url the request url
  * @param middlewares Array of middlewares handlers and their routes as path-to-regexp style
  */
-export function selectMiddlewares(url: string, middlewares: MiddlewareRoute[]) {
+export function selectMiddlewares(url: URL, middlewares: MiddlewareRoute[]) {
   const selectedMws: Middleware[] = [];
-  const reqURL = new URL(url);
 
   for (const { compiledPattern, handler } of middlewares) {
-    const res = compiledPattern.exec(reqURL);
+    const res = compiledPattern.exec(url);
     if (res) {
       selectedMws.push({ handler });
     }
@@ -773,4 +774,16 @@ export function middlewarePathToPattern(baseRoute: string) {
   }
   const compiledPattern = new URLPattern({ pathname: pattern });
   return { pattern, compiledPattern };
+}
+
+export function targetRoute(url: URL, routes: Route[]) {
+  for (const route of routes) {
+    const pattern = new URLPattern({ pathname: route.pattern });
+    const res = pattern.exec(url);
+    if (res) {
+      return route;
+    }
+  }
+
+  return null;
 }
