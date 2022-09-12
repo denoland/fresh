@@ -117,11 +117,11 @@ Deno.test({
       assert(false, "There is XSS");
     });
 
-    await page.goto("http://localhost:8000/islands", {
+    await page.goto("http://localhost:8000/evil", {
       waitUntil: "networkidle2",
     });
 
-    await t.step("Prevent XSS on Island", async () => {
+    await t.step("prevent XSS on Island", async () => {
       const bodyElem = await page.waitForSelector(`body`);
       const value = await bodyElem?.evaluate((el) => el.getInnerHTML());
 
