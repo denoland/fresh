@@ -494,7 +494,8 @@ export class ServerContext {
             }
           }
           return new Response(body, {
-            status: options?.statusOverwrite ?? status,
+            status: options?.status ?? status,
+            statusText: options?.statusText,
             headers,
           });
         };

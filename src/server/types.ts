@@ -72,7 +72,8 @@ export interface RouteConfig {
 }
 
 export interface RenderOptions {
-  statusOverwrite?: number;
+  status?: number;
+  statusText?: string;
 }
 
 export interface HandlerContext<Data = unknown, State = Record<string, unknown>>
