@@ -41,7 +41,7 @@ To run the auto updater, run the following command from the root of your
 project:
 
 ```bash
-$ deno run -A https://fresh.deno.dev/update .
+$ deno run -A -r https://fresh.deno.dev/update .
 ```
 
 You will be prompted to confirm the changes that will be made to your project.
