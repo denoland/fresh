@@ -123,11 +123,11 @@ Deno.test({
 
     await t.step("Prevent XSS on Island", async () => {
       const bodyElem = await page.waitForSelector(`body`);
-      const value = await bodyElem?.evaluate((el) => el.textContent);
+      const value = await bodyElem?.evaluate((el) => el.getInnerHTML());
 
       assertStringIncludes(
         value,
-        `{"message":"\u003c/script\u003e\u003cscript\u003ealert('test')\u003c/script\u003e"}`,
+        `{"message":"\\u003c/script\\u003e\\u003cscript\\u003ealert('test')\\u003c/script\\u003e"}`,
         `XSS is not escaped`,
       );
     });
