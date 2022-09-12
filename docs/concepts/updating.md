@@ -41,7 +41,7 @@ To run the auto updater, run the following command from the root of your
 project:
 
 ```bash
-$ deno run -A https://fresh.deno.dev/update .
+$ deno run -A -r https://fresh.deno.dev/update .
 ```
 
 You will be prompted to confirm the changes that will be made to your project.
@@ -62,8 +62,8 @@ version:
 
 -     "preact": "https://esm.sh/preact@10.8.1",
 -     "preact/": "https://esm.sh/preact@10.8.1/",
-+     "preact": "https://esm.sh/preact@10.10.6",
-+     "preact/": "https://esm.sh/preact@10.10.6/",
++     "preact": "https://esm.sh/preact@10.11.0",
++     "preact/": "https://esm.sh/preact@10.11.0/",
 
 -     "preact-render-to-string": "https://esm.sh/*preact-render-to-string@5.2.0",
 +     "preact-render-to-string": "https://esm.sh/*preact-render-to-string@5.2.2",

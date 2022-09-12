@@ -28,6 +28,7 @@
       ["routing", "Routing"],
       ["data-fetching", "Data fetching"],
       ["deployment", "Deployment"],
+      ["plugins", "Plugins"],
       ["updating", "Updating Fresh"]
     ]
   }
