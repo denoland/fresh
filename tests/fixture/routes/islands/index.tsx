@@ -9,6 +9,7 @@ export default function Home() {
       <Counter id="counter2" start={10} />
       <KebabCaseFileNameTest id="kebab-case-file-counter" start={5} />
       <Test message="" />
+      <Test message={`</script><script>alert('test')</script>`} />
     </div>
   );
 }
