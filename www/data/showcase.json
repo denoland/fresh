@@ -36,6 +36,12 @@
     "image": "fresh-strapi"
   },
   {
+    "title": "Video Poker Academy",
+    "link": "https://videopoker.academy/",
+    "github": "hyprtxt/videopoker.academy",
+    "image": "videopoker-academy"
+  },
+  {
     "title": "ANDBOUNDS Inc.",
     "link": "https://andbounds.com/",
     "image": "andbounds"
