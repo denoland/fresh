@@ -105,7 +105,9 @@ export default function Home() {
       <div${useTwind ? ` class="p-4 mx-auto max-w-screen-md"` : ""}>
         <img
           src="/logo.svg"
-          ${useTwind ? `class="w-32 h-32"` : `width="128"\n          height="128"`}
+          ${
+  useTwind ? `class="w-32 h-32"` : `width="128"\n          height="128"`
+}
           alt="the fresh logo: a sliced lemon dripping with juice"
         />
         <p${useTwind ? ` class="my-6"` : ""}>
