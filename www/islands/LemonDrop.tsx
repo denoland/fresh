@@ -1,8 +1,4 @@
-/** @jsx h */
-/** @jsxFrag Fragment */
-import { Fragment, h } from "preact";
 import { useEffect, useRef, useState } from "preact/hooks";
-import { tw } from "@twind";
 import { Spring, WaveTank } from "../components/WaveTank.ts";
 
 function easeInCirc(x: number) {
@@ -102,7 +98,7 @@ function LemonDrop() {
         viewBox="0 0 100 300"
         fill="none"
         xmlns="http://www.w3.org/2000/svg"
-        class={tw`mt-36`}
+        class="mt-36"
         role="img"
         aria-label="Fresh logo"
       >
@@ -130,7 +126,7 @@ function LemonDrop() {
         height="100px"
         viewBox="0 0 100 100"
         preserveAspectRatio="none"
-        class={tw`-mt-5`}
+        class="-mt-5"
       >
         <polygon
           points={springsPath}

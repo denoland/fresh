@@ -20,6 +20,8 @@ determine exactly what should be rendered. By default components receives props
 consisting of: the request URL, the matches from the URL pattern match, and any
 data passed to the handler's `render` function.
 
+## Handler route
+
 Let's look at a basic route that returns a plain text string:
 
 ```tsx
@@ -41,13 +43,13 @@ handler above is called for `GET` requests. If the handler is a function, it is
 called for all requests regardless of the method. If an HTTP method does not
 have a corresponding handler, a 405 HTTP error is returned.
 
+## Component route
+
 Now, let's render some HTML using the route component:
 
 ```tsx
 // routes/html.tsx
 
-/** @jsx h */
-import { h } from "preact";
 import { PageProps } from "$fresh/server.ts";
 
 export default function Page(props: PageProps) {
@@ -63,14 +65,14 @@ default handler is used that just renders out the page component if present. You
 can also override the default handler though to modify how exactly rendering
 should work.
 
+## Mixed handler and component route
+
 In the below example, a custom handler is used to add a custom header to the
 response after rendering the page component.
 
 ```tsx
 // routes/html.tsx
 
-/** @jsx h */
-import { h } from "preact";
 import { HandlerContext, Handlers, PageProps } from "$fresh/server.ts";
 
 export const handler: Handlers = {

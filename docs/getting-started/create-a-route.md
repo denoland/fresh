@@ -37,9 +37,6 @@ This is done with JSX.
 ```tsx
 // routes/about.tsx
 
-/** @jsx h */
-import { h } from "preact";
-
 export default function AboutPage() {
   return (
     <main>
@@ -49,10 +46,6 @@ export default function AboutPage() {
   );
 }
 ```
-
-> ℹ️ The first two lines are the JSX pragma, and the import for the JSX create
-> element function. These are just boilerplate. You don't need to know exactly
-> what they do - they just ensure that JSX gets rendered correctly.
 
 The new page will be visible at `http://localhost:8000/about`.
 

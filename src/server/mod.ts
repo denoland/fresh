@@ -1,5 +1,6 @@
 import { ServerContext } from "./context.ts";
 import { serve } from "./deps.ts";
+export { Status } from "./deps.ts";
 import {
   AppModule,
   ErrorPageModule,
@@ -18,8 +19,13 @@ export type {
   Handler,
   HandlerContext,
   Handlers,
+  MiddlewareHandler,
   MiddlewareHandlerContext,
   PageProps,
+  Plugin,
+  PluginRenderResult,
+  PluginRenderScripts,
+  PluginRenderStyleTag,
   RenderFunction,
   RouteConfig,
   StartOptions,
@@ -27,8 +33,8 @@ export type {
   UnknownHandlerContext,
   UnknownPageProps,
 } from "./types.ts";
-export { RenderContext } from "./render.tsx";
-export type { InnerRenderFunction } from "./render.tsx";
+export { RenderContext } from "./render.ts";
+export type { InnerRenderFunction } from "./render.ts";
 
 export interface Manifest {
   routes: Record<
@@ -41,19 +47,26 @@ export interface Manifest {
   >;
   islands: Record<string, IslandModule>;
   baseUrl: string;
+  config?: DenoConfig;
+}
+
+export interface DenoConfig {
+  importMap: string;
+  compilerOptions?: {
+    jsx?: string;
+    jsxImportSource?: string;
+  };
 }
 
 export { ServerContext };
 
-export async function start(
-  routes: Manifest,
-  opts: StartOptions = {},
-) {
+export async function start(routes: Manifest, opts: StartOptions = {}) {
   const ctx = await ServerContext.fromManifest(routes, opts);
-  console.log(
-    `Server listening on http://${opts?.hostname ?? "localhost"}:${
-      opts?.port ?? 8000
-    }`,
-  );
-  await serve(ctx.handler(), opts);
+  opts.port ??= 8000;
+  if (opts.experimentalDenoServe === true) {
+    // @ts-ignore as `Deno.serve` is still unstable.
+    await Deno.serve(ctx.handler() as Deno.ServeHandler, opts);
+  } else {
+    await serve(ctx.handler(), opts);
+  }
 }
