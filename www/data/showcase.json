@@ -61,5 +61,11 @@
     "title": "Optimem app",
     "link": "https://optimem.org/",
     "image": "optimem"
+  },
+  {
+    "title": "Fresh Blog",
+    "link": "https://fresh-blog.littlesticks.dev/",
+    "github": "littlesticks/fresh-blog",
+    "image": "fresh-blog"
   }
 ]
