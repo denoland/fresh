@@ -14,6 +14,7 @@ import {
 } from "./types.ts";
 import { HEAD_CONTEXT } from "../runtime/head.ts";
 import { CSP_CONTEXT, nonce, NONE, UNSAFE_INLINE } from "../runtime/csp.ts";
+import { ROUTE_CONTEXT } from '../runtime/route.ts';
 import { ContentSecurityPolicy } from "../runtime/csp.ts";
 import { bundleAssetUrl } from "./constants.ts";
 import { assetHashingHook } from "../runtime/utils.ts";
@@ -128,11 +129,14 @@ export async function render<Data>(
     value: csp,
     children: h(HEAD_CONTEXT.Provider, {
       value: headComponents,
-      children: h(opts.app.default, {
-        Component() {
-          return h(opts.route.component! as ComponentType<unknown>, props);
-        },
-      }),
+      children: h(ROUTE_CONTEXT.Provider, {
+        value: opts.route.pattern,
+        children: h(opts.app.default, {
+          Component() {
+            return h(opts.route.component! as ComponentType<unknown>, props);
+          },
+        }),
+      })
     }),
   });
 
@@ -276,9 +280,8 @@ export async function render<Data>(
 
   if (state[0].length > 0 || state[1].length > 0) {
     // Append state to the body
-    bodyHtml += `<script id="__FRSH_STATE" type="application/json">${
-      htmlEscapeJsonString(JSON.stringify(state))
-    }</script>`;
+    bodyHtml += `<script id="__FRSH_STATE" type="application/json">${htmlEscapeJsonString(JSON.stringify(state))
+      }</script>`;
 
     // Append the inline script to the body
     const randomNonce = crypto.randomUUID().replace(/-/g, "");
