@@ -1,7 +1,11 @@
 import { join, parse, resolve } from "./src/dev/deps.ts";
 import { error } from "./src/dev/error.ts";
 import { collect, ensureMinDenoVersion, generate } from "./src/dev/mod.ts";
-import { dotenvImports, freshImports, twindImports } from "./src/dev/imports.ts";
+import {
+  dotenvImports,
+  freshImports,
+  twindImports,
+} from "./src/dev/imports.ts";
 
 ensureMinDenoVersion();
 
@@ -97,7 +101,7 @@ const GITIGNORE = `# dotenv environment variable files
 .env.test.local
 .env.production.local
 .env.local
-`
+`;
 
 if (useDotenv) {
   await Deno.writeTextFile(
@@ -109,7 +113,7 @@ if (useDotenv) {
 const importMap = { imports: {} as Record<string, string> };
 freshImports(importMap.imports);
 if (useTwind) twindImports(importMap.imports);
-if (useDotenv) dotenvImports(importMap.imports)
+if (useDotenv) dotenvImports(importMap.imports);
 const IMPORT_MAP_JSON = JSON.stringify(importMap, null, 2) + "\n";
 await Deno.writeTextFile(
   join(resolvedDirectory, "import_map.json"),
@@ -264,12 +268,11 @@ let MAIN_TS = `/// <reference no-default-lib="true" />
 /// <reference lib="dom.iterable" />
 /// <reference lib="dom.asynciterable" />
 /// <reference lib="deno.ns" />
-${useDotenv ? 'import "$std/dotenv/load.ts";' : ''}
+${useDotenv ? 'import "$std/dotenv/load.ts";' : ""}
 
 import { start } from "$fresh/server.ts";
 import manifest from "./fresh.gen.ts";
 `;
-
 
 if (useTwind) {
   MAIN_TS += `
