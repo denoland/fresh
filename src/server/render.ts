@@ -328,35 +328,31 @@ export interface TemplateOptions {
   lang: string;
 }
 
-/**
- * Splices and returns the first child VNode that satisfies the predicate, if
- * any. The children array is modified in place if a matching VNode is found.
- */
-function extractVNode(
-  children: ComponentChildren[],
-  predicate: (vnode: VNode<Record<string, unknown>>) => boolean,
-): VNode | null {
-  for (let i = 0; i < children.length; i++) {
-    const child = children[i];
-    if (!child || typeof child !== "object") {
-      continue;
-    }
-    if (Array.isArray(child)) {
-      const vnode = extractVNode(child, predicate);
-      if (vnode) {
-        return vnode;
-      }
-      continue;
-    }
-    if ("type" in child && predicate(child)) {
-      children.splice(i, 1);
-      return child;
-    }
-  }
-  return null;
-}
-
 export function template(opts: TemplateOptions): string {
+  function extractVNode(
+    children: ComponentChildren[],
+    predicate: (vnode: VNode<Record<string, unknown>>) => boolean,
+  ): VNode | null {
+    for (let i = 0; i < children.length; i++) {
+      const child = children[i];
+      if (!child || typeof child !== "object") {
+        continue;
+      }
+      if (Array.isArray(child)) {
+        const vnode = extractVNode(child, predicate);
+        if (vnode) {
+          return vnode;
+        }
+        continue;
+      }
+      if ("type" in child && predicate(child)) {
+        children.splice(i, 1);
+        return child;
+      }
+    }
+    return null;
+  }
+  
   const charSet = extractVNode(opts.headComponents, vnode => (
     vnode.type === "meta" && "charSet" in vnode.props
   ));
