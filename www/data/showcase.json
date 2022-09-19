@@ -67,5 +67,11 @@
     "link": "https://fresh-blog.littlesticks.dev/",
     "github": "littlesticks/fresh-blog",
     "image": "fresh-blog"
+  },
+  {
+    "title": "Cool Catboys",
+    "link": "https://cool-catboys.deno.dev",
+    "github": "CTMarin/cool-catboy",
+    "image": "cool-catboys"
   }
 ]
