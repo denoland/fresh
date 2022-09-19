@@ -1,5 +1,5 @@
 import { renderToString } from "preact-render-to-string";
-import { ComponentChildren, ComponentType, h, options } from "preact";
+import { VNode, ComponentChildren, ComponentType, h, options } from "preact";
 import {
   AppModule,
   ErrorPage,
@@ -328,15 +328,50 @@ export interface TemplateOptions {
   lang: string;
 }
 
+/**
+ * Splices and returns the first child VNode that satisfies the predicate, if
+ * any. The children array is modified in place if a matching VNode is found.
+ */
+function extractVNode(
+  children: ComponentChildren[],
+  predicate: (vnode: VNode<Record<string, unknown>>) => boolean,
+): VNode | null {
+  for (let i = 0; i < children.length; i++) {
+    const child = children[i];
+    if (!child || typeof child !== "object") {
+      continue;
+    }
+    if (Array.isArray(child)) {
+      const vnode = extractVNode(child, predicate);
+      if (vnode) {
+        return vnode;
+      }
+      continue;
+    }
+    if ("type" in child && predicate(child)) {
+      children.splice(i, 1);
+      return child;
+    }
+  }
+  return null;
+}
+
 export function template(opts: TemplateOptions): string {
+  const charSet = extractVNode(opts.headComponents, vnode => (
+    vnode.type === "meta" && "charSet" in vnode.props
+  ));
+  const viewport = extractVNode(opts.headComponents, vnode => (
+    vnode.type === "meta" && vnode.props.name === "viewport"
+  ));
+
   const page = h(
     "html",
     { lang: opts.lang },
     h(
       "head",
       null,
-      h("meta", { charSet: "UTF-8" }),
-      h("meta", {
+      charSet ?? h("meta", { charSet: "UTF-8" }),
+      viewport ?? h("meta", {
         name: "viewport",
         content: "width=device-width, initial-scale=1.0",
       }),
