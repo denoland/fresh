@@ -1,5 +1,5 @@
 import { renderToString } from "preact-render-to-string";
-import { VNode, ComponentChildren, ComponentType, h, options } from "preact";
+import { ComponentChildren, ComponentType, h, options, VNode } from "preact";
 import {
   AppModule,
   ErrorPage,
@@ -352,11 +352,11 @@ export function template(opts: TemplateOptions): string {
     }
     return null;
   }
-  
-  const charSet = extractVNode(opts.headComponents, vnode => (
+
+  const charSet = extractVNode(opts.headComponents, (vnode) => (
     vnode.type === "meta" && "charSet" in vnode.props
   ));
-  const viewport = extractVNode(opts.headComponents, vnode => (
+  const viewport = extractVNode(opts.headComponents, (vnode) => (
     vnode.type === "meta" && vnode.props.name === "viewport"
   ));
 
