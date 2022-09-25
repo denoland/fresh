@@ -367,11 +367,11 @@ export class ServerContext {
 
       try {
         return await handler();
-      } catch (e) {
-        if (e instanceof Response) {
-          return e;
+      } catch (err) {
+        if (err instanceof Response) {
+          return err;
         }
-        throw e;
+        throw err;
       }
     };
   }
