@@ -330,7 +330,7 @@ export class ServerContext {
    * chain them and return a handler response
    */
   #composeMiddlewares(middlewares: MiddlewareRoute[]) {
-    return (
+    return async (
       req: Request,
       connInfo: ConnInfo,
       inner: rutt.Handler<RouterState>,
@@ -364,7 +364,15 @@ export class ServerContext {
       handlers.push(() => inner(req, ctx));
 
       const handler = handlers.shift()!;
-      return handler();
+
+      try {
+        return await handler()
+      } catch (e) {
+        if (e instanceof Response) {
+          return e
+        }
+        throw e
+      }
     };
   }
 
@@ -543,6 +551,9 @@ export class ServerContext {
       ctx,
       error,
     ) => {
+      if (error instanceof Response) {
+        return error
+      }
       console.error(
         "%cAn error occurred during route handling or page rendering.",
         "color:red",
