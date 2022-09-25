@@ -21,16 +21,26 @@ export default function Projects(props: ProjectProps) {
       {props.items.map((project) => (
         <div class="w-full max-w-sm mx-auto group">
           <a href={project.link} tabIndex={-1}>
-            <img
-              loading="lazy"
-              src={`/showcase/${project.image}1x.jpg`}
-              srcset={`/showcase/${project.image}2x.jpg 2x, /showcase/${project.image}1x.jpg 1x`}
-              alt={project.title}
-              width={600}
-              height={337}
-              style={{ aspectRatio: "16/9" }}
-              class="object-cover shadow-lg group-hover:(shadow-xl opacity-70) rounded-lg"
-            />
+            <picture>
+              <source
+                srcset={`/showcase/${project.image}2x.avif 2x, /showcase/${project.image}1x.avif 1x`}
+                type="image/avif"
+              />
+              <source
+                srcset={`/showcase/${project.image}2x.png 2x, /showcase/${project.image}1x.png 1x`}
+                type="image/png"
+              />
+              <img
+                loading="lazy"
+                src={`/showcase/${project.image}1x.jpg`}
+                srcset={`/showcase/${project.image}2x.jpg 2x, /showcase/${project.image}1x.jpg 1x`}
+                alt={project.title}
+                width={600}
+                height={337}
+                style={{ aspectRatio: "16/9" }}
+                class="object-cover shadow-lg group-hover:(shadow-xl opacity-70) rounded-lg"
+              />
+            </picture>
           </a>
           <div class="mt-4 flex items-center">
             <div class="text(lg gray-600) flex-1 group-hover:text-underline">
