@@ -366,12 +366,12 @@ export class ServerContext {
       const handler = handlers.shift()!;
 
       try {
-        return await handler()
+        return await handler();
       } catch (e) {
         if (e instanceof Response) {
-          return e
+          return e;
         }
-        throw e
+        throw e;
       }
     };
   }
@@ -552,7 +552,7 @@ export class ServerContext {
       error,
     ) => {
       if (error instanceof Response) {
-        return error
+        return error;
       }
       console.error(
         "%cAn error occurred during route handling or page rendering.",

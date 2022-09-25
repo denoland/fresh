@@ -1,3 +1,3 @@
 export default function Page() {
-  return <p>Not Intercepted</p>
+  return <p>Not Intercepted</p>;
 }

@@ -1,9 +1,5 @@
 import { ServerContext, Status } from "../server.ts";
-import {
-  assert,
-  assertEquals,
-  assertStringIncludes,
-} from "./deps.ts";
+import { assert, assertEquals, assertStringIncludes } from "./deps.ts";
 import manifest from "./fixture_throw_response/fresh.gen.ts";
 
 const ctx = await ServerContext.fromManifest(manifest, {});
@@ -29,7 +25,7 @@ Deno.test("server renders responses thrown while rendering pages", async () => {
   assertEquals(resp.status, Status.OK);
   const body = await resp.text();
   assertStringIncludes(body, `Intercepted`);
-  assert(!body.includes('Not Intercepted'))
+  assert(!body.includes("Not Intercepted"));
 });
 
 Deno.test("server renders responses thrown in handlers", async () => {
@@ -38,5 +34,5 @@ Deno.test("server renders responses thrown in handlers", async () => {
   assertEquals(resp.status, Status.OK);
   const body = await resp.text();
   assertStringIncludes(body, `Intercepted`);
-  assert(!body.includes('Not Intercepted'))
+  assert(!body.includes("Not Intercepted"));
 });
