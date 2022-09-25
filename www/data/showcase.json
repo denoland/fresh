@@ -67,5 +67,10 @@
     "link": "https://fresh-blog.littlesticks.dev/",
     "github": "littlesticks/fresh-blog",
     "image": "fresh-blog"
+  },
+  {
+    "title": "Balello",
+    "link": "https://balello.com",
+    "image": "balello"
   }
 ]
