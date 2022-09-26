@@ -68,10 +68,10 @@
     "github": "littlesticks/fresh-blog",
     "image": "fresh-blog"
   },
-    {
+  {
     "title": "Portfolio Page",
     "link": "http://adamsobotka.deno.dev/",
     "github": "vorcigernix/adamsobotka",
-    "image": "porfolio"
+    "image": "adam-portfolio"
   }
 ]
