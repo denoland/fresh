@@ -21,17 +21,16 @@ Fresh embraces this model. All pages are rendered server side, but you can
 create "island components" that are _also_ rendered client side. To do this,
 Fresh projects have a special `islands/` folder. The modules in this folder each
 encapsulate a single island component. The name of the module should be the
-[pascal case][pascal-case] name of the island component. For example a counter
-component would be defined in the file `islands/Counter.tsx`. A buy now button
-would be defined in the file `islands/BuyNowButton.tsx`.
+[pascal case][pascal-case] or [kebab case][kebab-case] name of the island
+component. For example a counter component would be defined in the file
+`islands/Counter.tsx`. A buy now button could be defined in the file
+`islands/buy-now-button.tsx`.
 
 Here is an example of an island component that counts down to a specific time.
 
 ```tsx
 // islands/Countdown.tsx
 
-/** @jsx h */
-import { h } from "preact";
 import { useEffect, useState } from "preact/hooks";
 
 const timeFmt = new Intl.RelativeTimeFormat("en-US");
@@ -75,8 +74,6 @@ client with the correct props:
 ```tsx
 // routes/countdown.tsx
 
-/** @jsx h */
-import { h } from "preact";
 import Countdown from "../islands/Countdown.tsx";
 
 export default function Page() {
@@ -94,3 +91,4 @@ The page that is rendered on the client now has an interactive countdown.
 
 [islands-architecture]: https://jasonformat.com/islands-architecture
 [pascal-case]: https://en.wiktionary.org/wiki/Pascal_case
+[kebab-case]: https://en.wiktionary.org/wiki/kebab_case

@@ -1,3 +1,8 @@
+---
+description: |
+  Fresh has built-in support for serving static files. This is useful for serving images, CSS, and other static assets.
+---
+
 Fresh automatically serves static assets placed in a `static/` directory in the
 project root. These assets are served at the root of the webserver, with a
 higher priority than routes. This means that if a given request matches a file
@@ -25,8 +30,6 @@ is requested at this "locked" path, it will be served with a cache lifetime of
 one year.
 
 ```jsx
-/** @jsx h */
-import { h } from "preact";
 import { asset } from "$fresh/runtime.ts";
 
 export default function Page() {
