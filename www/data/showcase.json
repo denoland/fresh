@@ -69,6 +69,12 @@
     "image": "fresh-blog"
   },
   {
+    "title": "Developer Portfolio",
+    "link": "https://hazn.me",
+    "github": "haznai/fresh-test",
+    "image": "hazn"
+  },
+  {
     "title": "Fresh Project Manager",
     "link": "https://xyntechx-project-manager.deno.dev/",
     "github": "xyntechx/NexLiber-Projects/tree/main/Fresh%20Project%20Manager",
