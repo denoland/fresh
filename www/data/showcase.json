@@ -69,6 +69,12 @@
     "image": "fresh-blog"
   },
   {
+    "title": "Fresh Project Manager",
+    "link": "https://xyntechx-project-manager.deno.dev/",
+    "github": "xyntechx/NexLiber-Projects/tree/main/Fresh%20Project%20Manager",
+    "image": "fresh-project-manager"
+  },
+  {
     "title": "Portfolio Page",
     "link": "http://adamsobotka.deno.dev/",
     "github": "vorcigernix/adamsobotka",
