@@ -102,20 +102,31 @@ export default function Home() {
       <Head>
         <title>Fresh App</title>
       </Head>
-      <div${useTwind ? ` class="p-4 mx-auto max-w-screen-md"` : ""}>
+      <main${
+  useTwind
+    ? ` class="p-4 w-screen h-screen flex items-center justify-center flex-col bg-green-300"`
+    : ` style={{ padding: "1rem", width: "100vw", height: "100vh", display: "flex", alignItems: "center", justifyContent: "center", flexDirection: "column", backgroundColor: "rgb(134 239 172)", margin: "-1rem", // to prevent overflow fontFamily: \`ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji"\`, }}`
+}>
         <img
           src="/logo.svg"
           ${
-  useTwind ? `class="w-32 h-32"` : `width="128"\n          height="128"`
+  useTwind ? `class="w-32 h-32"` : `style={{ width: "8rem", height: "8rem", }}`
 }
           alt="the fresh logo: a sliced lemon dripping with juice"
         />
-        <p${useTwind ? ` class="my-6"` : ""}>
-          Welcome to \`fresh\`. Try updating this message in the ./routes/index.tsx
-          file, and refresh.
+        <p${
+  useTwind
+    ? ` class="my-6 text-center text-lg"`
+    : ` style={{ marginTop: "1.5rem", marginBottom: "1.5rem", textAlign: "center", fontSize: "1.125rem", lineHeight: "1.75rem", }}`
+}>
+          Welcome to{" "}
+          <span${
+  useTwind ? ` class="font-bold"` : ` style={{ fontWeight: "700" }}`
+}>fresh</span>. Try updating this message in the
+          ./routes/index.tsx file, and refresh.
         </p>
         <Counter start={3} />
-      </div>
+      </main>
     </>
   );
 }
@@ -127,16 +138,21 @@ await Deno.writeTextFile(
 
 const COMPONENTS_BUTTON_TSX = `import { JSX } from "preact";
 import { IS_BROWSER } from "$fresh/runtime.ts";
+${!useTwind ? `import { useState } from "preact/hooks";` : ""}
 
 export function Button(props: JSX.HTMLAttributes<HTMLButtonElement>) {
+  ${!useTwind ? `const [onHover, setOnHover] = useState(false);` : ""}
+
   return (
     <button
       {...props}
       disabled={!IS_BROWSER || props.disabled}
 ${
   useTwind
-    ? '      class="px-2 py-1 border(gray-100 2) hover:bg-gray-200"\n'
-    : ""
+    ? `      class="px-5 py-1 border border-gray-100 rounded-md transition-colors outline-none hover:(bg-gray-100 text-green-500) focus:outline-none"`
+    : `      onMouseOver={() => setOnHover(true)}
+             onMouseOut={() => setOnHover(false)}
+             style={{ padding: "0.25rem 1.25rem", borderWidth: "1px", borderColor: "rgb(243 244 246 / 1)", borderRadius: "0.375rem", borderStyle: "solid", transitionProperty: "color background-color", transitionTimingFunction: "cubic-bezier(0.4, 0, 0.2, 1)", transitionDuration: "150ms", outline: "2px solid transparent", outlineOffset: "2px", backgroundColor: onHover ? "rgb(243 244 246 / 1)" : "transparent", color: onHover ? "rgb(34 197 94 / 1)" : "black", cursor: "pointer",}}`
 }    />
   );
 }
@@ -156,8 +172,16 @@ interface CounterProps {
 export default function Counter(props: CounterProps) {
   const [count, setCount] = useState(props.start);
   return (
-    <div${useTwind ? ' class="flex gap-2 w-full"' : ""}>
-      <p${useTwind ? ' class="flex-grow-1 font-bold text-xl"' : ""}>{count}</p>
+    <div${
+  useTwind
+    ? ` class="flex gap-2 md:w-2/5 w-3/5"`
+    : ` style={{display: "flex", gap: "0.5rem", width: "40%"}}`
+}>
+          <p${
+  useTwind
+    ? ` class="flex-grow-1 font-bold text-xl"`
+    : ` style={{flexGrow: "1", fontWeight: "700", fontSize: "1.25rem", lineHeight: "1.75rem"}}`
+}>{count}</p>
       <Button onClick={() => setCount(count - 1)}>-1</Button>
       <Button onClick={() => setCount(count + 1)}>+1</Button>
     </div>
