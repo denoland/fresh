@@ -146,8 +146,10 @@ export function Button(props: JSX.HTMLAttributes<HTMLButtonElement>) {
       disabled={!IS_BROWSER || props.disabled}
 ${
   useTwind
-    ? '      class="px-5 py-1 border border-gray-100 rounded-md transition-colors outline-none hover:(bg-gray-100 text-green-500) focus:outline-none"\n'
-    : '      onMouseOver={() => setOnHover(true)}\nonMouseOut={() => setOnHover(false)}\nstyle={{ padding: "0.25rem 1.25rem", borderWidth: "1px", borderColor: "rgb(243 244 246 / 1)", borderRadius: "0.375rem", borderStyle: "solid", transitionProperty: "color background-color", transitionTimingFunction: "cubic-bezier(0.4, 0, 0.2, 1)", transitionDuration: "150ms", outline: "2px solid transparent", outlineOffset: "2px", backgroundColor: onHover ? "rgb(243 244 246 / 1)" : "transparent", color: onHover ? "rgb(34 197 94 / 1)" : "black", cursor: "pointer",}}\n'
+    ? `      class="px-5 py-1 border border-gray-100 rounded-md transition-colors outline-none hover:(bg-gray-100 text-green-500) focus:outline-none"`
+    : `      onMouseOver={() => setOnHover(true)}
+             onMouseOut={() => setOnHover(false)}
+             style={{ padding: "0.25rem 1.25rem", borderWidth: "1px", borderColor: "rgb(243 244 246 / 1)", borderRadius: "0.375rem", borderStyle: "solid", transitionProperty: "color background-color", transitionTimingFunction: "cubic-bezier(0.4, 0, 0.2, 1)", transitionDuration: "150ms", outline: "2px solid transparent", outlineOffset: "2px", backgroundColor: onHover ? "rgb(243 244 246 / 1)" : "transparent", color: onHover ? "rgb(34 197 94 / 1)" : "black", cursor: "pointer",}}`
 }    />
   );
 }
