@@ -69,6 +69,11 @@
     "image": "fresh-blog"
   },
   {
+    "title": "Balello",
+    "link": "https://balello.com",
+    "image": "balello"
+  },
+  {
     "title": "Developer Portfolio",
     "link": "https://hazn.me",
     "github": "haznai/fresh-test",
