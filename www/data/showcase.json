@@ -90,5 +90,11 @@
     "link": "http://adamsobotka.deno.dev/",
     "github": "vorcigernix/adamsobotka",
     "image": "adam-portfolio"
+  },
+  {
+    "title": "Developer Portfolio",
+    "link": "https://mooxl.dev",
+    "github": "mooxl/fresh.mooxl.dev",
+    "image": "mooxl"
   }
 ]
