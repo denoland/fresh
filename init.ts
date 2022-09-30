@@ -119,7 +119,7 @@ export default function Home() {
           Welcome to{" "}
           <span${
   useTwind ? ` class="font-bold"` : ` style={{ fontWeight: "700" }}`
-}>fresh</span$>. Try updating this message in the
+}>fresh</span>. Try updating this message in the
           ./routes/index.tsx file, and refresh.
         </p>
         <Counter start={3} />
