@@ -96,6 +96,7 @@ await Deno.writeTextFile(
 
 const ROUTES_INDEX_TSX = `import { Head } from "$fresh/runtime.ts";
 import Counter from "../islands/Counter.tsx";
+${!useTwind && `import styles from "../styles/index.ts";`}
 
 export default function Home() {
   return (
