@@ -80,6 +80,7 @@ await Deno.mkdir(join(resolvedDirectory, "routes", "api"), { recursive: true });
 await Deno.mkdir(join(resolvedDirectory, "islands"), { recursive: true });
 await Deno.mkdir(join(resolvedDirectory, "static"), { recursive: true });
 await Deno.mkdir(join(resolvedDirectory, "components"), { recursive: true });
+await Deno.mkdir(join(resolvedDirectory, "styles"), { recursive: true });
 if (useVSCode) {
   await Deno.mkdir(join(resolvedDirectory, ".vscode"), { recursive: true });
 }
