@@ -123,7 +123,7 @@ export default function Home() {
           ./routes/index.tsx file, and refresh.
         </p>
         <Counter start={3} />
-      </div>
+      </main>
     </>
   );
 }
@@ -217,7 +217,8 @@ const STYLES_INDEX_TS = `const styles = {
   },
 };
 
-export default styles;`;
+export default styles;
+`;
 await Deno.writeTextFile(
   join(resolvedDirectory, "styles", "index.ts"),
   STYLES_INDEX_TS,
