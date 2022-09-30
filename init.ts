@@ -102,7 +102,7 @@ export default function Home() {
       <Head>
         <title>Fresh App</title>
       </Head>
-      <div${useTwind ? ` class="p-4 mx-auto max-w-screen-md"` : ""}>
+      <main${useTwind ? ` class="p-4 w-screen h-screen flex items-center justify-center flex-col bg-green-300"` : ""}>
         <img
           src="/logo.svg"
           ${
@@ -110,12 +110,11 @@ export default function Home() {
 }
           alt="the fresh logo: a sliced lemon dripping with juice"
         />
-        <p${useTwind ? ` class="my-6"` : ""}>
-          Welcome to \`fresh\`. Try updating this message in the ./routes/index.tsx
-          file, and refresh.
+        <p${useTwind ? ` class="my-6 text-center text-lg"` : ""}>
+          Welcome to <span${useTwind ? ` class="font-bold"` : ""}>fresh</span>. Try updating this message in the ./routes/index.tsx file, and refresh.
         </p>
         <Counter start={3} />
-      </div>
+      </main>
     </>
   );
 }
@@ -135,7 +134,7 @@ export function Button(props: JSX.HTMLAttributes<HTMLButtonElement>) {
       disabled={!IS_BROWSER || props.disabled}
 ${
   useTwind
-    ? '      class="px-2 py-1 border(gray-100 2) hover:bg-gray-200"\n'
+    ? '      class="px-5 py-1 border border-gray-100 rounded-md transition-colors outline-none hover:(bg-gray-100 text-green-500) focus:outline-none"\n'
     : ""
 }    />
   );
@@ -156,7 +155,7 @@ interface CounterProps {
 export default function Counter(props: CounterProps) {
   const [count, setCount] = useState(props.start);
   return (
-    <div${useTwind ? ' class="flex gap-2 w-full"' : ""}>
+    <div${useTwind ? ' class="flex gap-2 md:w-2/5 w-3/5"' : ""}>
       <p${useTwind ? ' class="flex-grow-1 font-bold text-xl"' : ""}>{count}</p>
       <Button onClick={() => setCount(count - 1)}>-1</Button>
       <Button onClick={() => setCount(count + 1)}>+1</Button>
