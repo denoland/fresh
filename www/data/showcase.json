@@ -90,5 +90,11 @@
     "link": "http://adamsobotka.deno.dev/",
     "github": "vorcigernix/adamsobotka",
     "image": "adam-portfolio"
+  },
+  {
+    "title": "Paquet",
+    "link": "https://paquet.shop",
+    "github": "fructoland/paquet",
+    "image": "paquet"
   }
 ]
