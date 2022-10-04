@@ -42,6 +42,12 @@
     "image": "videopoker-academy"
   },
   {
+    "title": "D3no Data",
+    "link": "https://d3nodata.deno.dev/",
+    "github": "D3nosaurs/d3nodata-website",
+    "image": "d3nodata"
+  },
+  {
     "title": "ANDBOUNDS Inc.",
     "link": "https://andbounds.com/",
     "image": "andbounds"
