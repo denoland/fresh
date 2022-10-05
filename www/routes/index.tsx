@@ -75,14 +75,28 @@ function HelloBar() {
 function Hero() {
   return (
     <>
-      <div class="flex justify-end items-center bg-green-300">
+      <nav class="flex gap-2 p-4 justify-end items-center bg-green-300">
         <a
           href="/docs"
-          class="border(1 black) inline-flex items-center h-10 px-4 m-4 text-black bg-transparent rounded hover:bg-white"
+          class="border(1 black) inline-flex items-center h-10 px-4 text-black bg-transparent rounded hover:bg-white"
         >
           Documentation
         </a>
-      </div>
+        <a
+          href="https://github.com/denoland/fresh"
+          class="px-4 hover:text-white"
+        >
+          <span class='sr-only'>GitHub</span>
+          <Icons.GitHub  />
+        </a>
+        <a
+          href="https://discord.com/channels/684898665143206084/991511118524715139"
+          class='px-4 hover:text-white'
+        >
+          <span class='sr-only'>Discord</span>
+          <Icons.Discord />
+        </a>
+      </nav>
       <section class="w-full flex justify-center items-center flex-col bg-green-300">
         <LemonDrop />
       </section>
