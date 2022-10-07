@@ -90,5 +90,11 @@
     "link": "http://adamsobotka.deno.dev/",
     "github": "vorcigernix/adamsobotka",
     "image": "adam-portfolio"
+  },
+  {
+    "title": "LDkit",
+    "link": "https://ldkit.io",
+    "github": "karelklima/ldkit",
+    "image": "ldkit"
   }
 ]
