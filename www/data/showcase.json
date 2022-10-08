@@ -90,5 +90,11 @@
     "link": "http://adamsobotka.deno.dev/",
     "github": "vorcigernix/adamsobotka",
     "image": "adam-portfolio"
+  },
+  {
+    "title": "Fresh Hacker News",
+    "link": "https://fresh-hacker-news.deno.dev/",
+    "github": "morinokami/fresh-hacker",
+    "image": "hn"
   }
 ]
