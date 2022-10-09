@@ -15,8 +15,6 @@ folder. The file must have a default export that is a regular Preact component.
 A props object of type `UnknownPageProps` is passed in as an argument.
 
 ```tsx
-/** @jsx h */
-import { h } from "preact";
 import { UnknownPageProps } from "$fresh/server.ts";
 
 export default function NotFoundPage({ url }: UnknownPageProps) {
@@ -32,8 +30,6 @@ example when the route did match, but the requested resource does not exist.
 This can be achieved with `ctx.renderNotFound`.
 
 ```tsx
-/** @jsx h */
-import { h } from "preact";
 import { Handlers, PageProps } from "$fresh/server.ts";
 
 export const handler: Handlers = {
@@ -63,8 +59,6 @@ folder. The file must have a default export that is a regular Preact component.
 A props object of type `ErrorPageProps` is passed in as an argument.
 
 ```tsx
-/** @jsx h */
-import { h } from "preact";
 import { ErrorPageProps } from "$fresh/server.ts";
 
 export default function Error500Page({ error }: ErrorPageProps) {

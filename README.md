@@ -24,7 +24,7 @@ The [documentation](https://fresh.deno.dev/docs/) is available on
 
 ## 🚀 Getting started
 
-Install [Deno CLI](https://deno.land/) version 1.23.0 or higher.
+Install [Deno CLI](https://deno.land/) version 1.25.0 or higher.
 
 You can scaffold a new project by running the Fresh init script. To scaffold a
 project in the `deno-fresh-demo` folder, run the following:
@@ -66,11 +66,11 @@ docs.
 
 ![Made with Fresh](./www/static/fresh-badge.svg)
 
-```
+```md
 [![Made with Fresh](https://fresh.deno.dev/fresh-badge.svg)](https://fresh.deno.dev)
 ```
 
-```
+```html
 <a href="https://fresh.deno.dev">
    <img width="197" height="37" src="https://fresh.deno.dev/fresh-badge.svg" alt="Made with Fresh" />
 </a>
@@ -78,11 +78,11 @@ docs.
 
 ![Made with Fresh(dark)](./www/static/fresh-badge-dark.svg)
 
-```
+```md
 [![Made with Fresh](https://fresh.deno.dev/fresh-badge-dark.svg)](https://fresh.deno.dev)
 ```
 
-```
+```html
 <a href="https://fresh.deno.dev">
    <img width="197" height="37" src="https://fresh.deno.dev/fresh-badge-dark.svg" alt="Made with Fresh" />
 </a>
