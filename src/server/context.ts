@@ -641,7 +641,7 @@ const DEFAULT_RENDER_FN: RenderFunction = (_ctx, render) => {
 };
 
 const DEFAULT_APP: AppModule = {
-  default: ({ RouteComponent }) => h(RouteComponent, {}),
+  default: ({ Component }) => h(Component, {}),
 };
 
 const DEFAULT_NOT_FOUND: UnknownPage = {

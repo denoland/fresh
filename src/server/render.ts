@@ -130,7 +130,7 @@ export async function render<Data, State = Record<string, unknown>>(
     children: h(HEAD_CONTEXT.Provider, {
       value: headComponents,
       children: h(opts.app.default, {
-        RouteComponent() {
+        Component() {
           return h(opts.route.component! as ComponentType<unknown>, props);
         },
         contextState: opts.contextState,

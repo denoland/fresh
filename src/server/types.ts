@@ -110,7 +110,7 @@ export interface Route<Data = any> {
 // --- APP ---
 
 export interface AppProps<State = Record<string, unknown>> {
-  RouteComponent: ComponentType<Record<never, never>>;
+  Component: ComponentType<Record<never, never>>;
   contextState: State;
 }
 
