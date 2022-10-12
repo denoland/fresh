@@ -19,11 +19,12 @@ import { bundleAssetUrl } from "./constants.ts";
 import { assetHashingHook } from "../runtime/utils.ts";
 import { htmlEscapeJsonString } from "./htmlescape.ts";
 
-export interface RenderOptions<Data> {
+export interface RenderOptions<Data, State = Record<string, unknown>> {
   route: Route<Data> | UnknownPage | ErrorPage;
   islands: Island[];
   plugins: Plugin[];
   app: AppModule;
+  contextState: State;
   imports: string[];
   preloads: string[];
   url: URL;
@@ -106,8 +107,8 @@ function defaultCsp() {
  * This function renders out a page. Rendering is synchronous and non streaming.
  * Suspense boundaries are not supported.
  */
-export async function render<Data>(
-  opts: RenderOptions<Data>,
+export async function render<Data, State = Record<string, unknown>>(
+  opts: RenderOptions<Data, State>,
 ): Promise<[string, ContentSecurityPolicy | undefined]> {
   const props: Record<string, unknown> = {
     params: opts.params,
@@ -129,9 +130,10 @@ export async function render<Data>(
     children: h(HEAD_CONTEXT.Provider, {
       value: headComponents,
       children: h(opts.app.default, {
-        Component() {
+        RouteComponent() {
           return h(opts.route.component! as ComponentType<unknown>, props);
         },
+        contextState: opts.contextState,
       }),
     }),
   });

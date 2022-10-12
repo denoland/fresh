@@ -431,7 +431,7 @@ export class ServerContext {
       );
     }
 
-    const genRender = <Data = undefined>(
+    const genRender = <Data = undefined, State = Record<string, unknown>>(
       route: Route<Data> | UnknownPage | ErrorPage,
       status: number,
     ) => {
@@ -442,6 +442,7 @@ export class ServerContext {
       return (
         req: Request,
         params: Record<string, string>,
+        contextState?: State,
         error?: unknown,
       ) => {
         return async (data?: Data) => {
@@ -464,6 +465,7 @@ export class ServerContext {
             islands: this.#islands,
             plugins: this.#plugins,
             app: this.#app,
+            contextState: contextState,
             imports,
             preloads,
             renderFn: this.#renderFn,
@@ -502,22 +504,24 @@ export class ServerContext {
     for (const route of this.#routes) {
       const createRender = genRender(route, Status.OK);
       if (typeof route.handler === "function") {
-        routes[route.pattern] = (req, ctx, params) =>
-          (route.handler as Handler)(req, {
+        routes[route.pattern] = (req, ctx, params) => {
+          return (route.handler as Handler)(req, {
             ...ctx,
             params,
-            render: createRender(req, params),
+            render: createRender(req, params, ctx.state),
             renderNotFound: createUnknownRender(req, {}),
           });
+        };
       } else {
         for (const [method, handler] of Object.entries(route.handler)) {
-          routes[`${method}@${route.pattern}`] = (req, ctx, params) =>
-            handler(req, {
+          routes[`${method}@${route.pattern}`] = (req, ctx, params) => {
+            return handler(req, {
               ...ctx,
               params,
-              render: createRender(req, params),
+              render: createRender(req, params, ctx.state),
               renderNotFound: createUnknownRender(req, {}),
             });
+          };
         }
       }
     }
@@ -553,7 +557,7 @@ export class ServerContext {
         {
           ...ctx,
           error,
-          render: errorHandlerRender(req, {}, error),
+          render: errorHandlerRender(req, {}, ctx.state, error),
         },
       );
     };
@@ -637,7 +641,7 @@ const DEFAULT_RENDER_FN: RenderFunction = (_ctx, render) => {
 };
 
 const DEFAULT_APP: AppModule = {
-  default: ({ Component }) => h(Component, {}),
+  default: ({ RouteComponent }) => h(RouteComponent, {}),
 };
 
 const DEFAULT_NOT_FOUND: UnknownPage = {
