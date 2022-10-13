@@ -31,5 +31,8 @@
       ["plugins", "Plugins"],
       ["updating", "Updating Fresh"]
     ]
+  },
+  "integrations": {
+    "title": "Integrations"
   }
 }
