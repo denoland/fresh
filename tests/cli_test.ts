@@ -169,9 +169,6 @@ Deno.test({
       serverProcess.close();
     });
 
-    // In a Windows, the following error occurs if `delay` is not performed.
-    // `Error: The process cannot access the file because it is being used by another process. `
-    // await delay(100);
     await Deno.remove(tmpDirName, { recursive: true });
   },
   sanitizeOps: false,
@@ -324,12 +321,10 @@ Deno.test({
 
       await lines.cancel();
       serverProcess.kill("SIGTERM");
+      await serverProcess.status();
       serverProcess.close();
     });
 
-    // In a Windows, the following error occurs if `delay` is not performed.
-    // `Error: The process cannot access the file because it is being used by another process. `
-    await delay(100);
     await Deno.remove(tmpDirName, { recursive: true });
   },
   sanitizeOps: false,
