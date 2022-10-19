@@ -101,5 +101,11 @@
     "title": "Kita",
     "link": "https://kita.ge",
     "image": "kita"
+  },
+  {
+    "title": "LDkit",
+    "link": "https://ldkit.io",
+    "github": "karelklima/ldkit",
+    "image": "ldkit"
   }
 ]
