@@ -92,6 +92,17 @@
     "image": "adam-portfolio"
   },
   {
+    "title": "Fresh Hacker News",
+    "link": "https://fresh-hacker-news.deno.dev/",
+    "github": "morinokami/fresh-hacker",
+    "image": "hn"
+  },
+  {
+    "title": "Kita",
+    "link": "https://kita.ge",
+    "image": "kita"
+  },
+  {
     "title": "LDkit",
     "link": "https://ldkit.io",
     "github": "karelklima/ldkit",
