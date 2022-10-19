@@ -18,11 +18,15 @@ export default function(state) { hydrate(options, state); }`;
     render(ctx) {
       sheet.reset(undefined);
       const res = ctx.render();
-      const cssText = [...sheet.target].join("\n");
+      const cssTexts = [...sheet.target];
       const snapshot = sheet.reset();
       const scripts = [];
+      let cssText: string;
       if (res.requiresHydration) {
-        const precedences = snapshot[1];
+        const precedences = snapshot[1] as number[];
+        cssText = cssTexts.map((cssText, i) =>
+          `${cssText}/*${precedences[i].toString(36)}*/`
+        ).join("\n");
         const mappings: (string | [string, string])[] = [];
         for (
           const [key, value] of (snapshot[3] as Map<string, string>).entries()
@@ -33,8 +37,9 @@ export default function(state) { hydrate(options, state); }`;
             mappings.push([key, value]);
           }
         }
-        const state = [precedences, mappings];
-        scripts.push({ entrypoint: "main", state });
+        scripts.push({ entrypoint: "main", state: mappings });
+      } else {
+        cssText = cssTexts.join("\n");
       }
       return {
         scripts,
