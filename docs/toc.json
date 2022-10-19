@@ -26,6 +26,7 @@
       ["middleware", "Route middleware"],
       ["error-pages", "Error pages"],
       ["routing", "Routing"],
+      ["HTTP-methods", "HTTP Methods"],
       ["data-fetching", "Data fetching"],
       ["deployment", "Deployment"],
       ["plugins", "Plugins"],
