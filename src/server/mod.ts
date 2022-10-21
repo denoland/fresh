@@ -36,12 +36,12 @@ export type {
 export { RenderContext } from "./render.ts";
 export type { InnerRenderFunction } from "./render.ts";
 
-export interface Manifest {
+export interface Manifest<State extends Record<string, unknown> | undefined> {
   routes: Record<
     string,
     | RouteModule
     | MiddlewareModule
-    | AppModule
+    | AppModule<State>
     | ErrorPageModule
     | UnknownPageModule
   >;
@@ -60,7 +60,10 @@ export interface DenoConfig {
 
 export { ServerContext };
 
-export async function start(routes: Manifest, opts: StartOptions = {}) {
+export async function start<State extends Record<string, unknown> | undefined>(
+  routes: Manifest<State>,
+  opts: StartOptions = {},
+) {
   const ctx = await ServerContext.fromManifest(routes, opts);
   opts.port ??= 8000;
   if (opts.experimentalDenoServe === true) {

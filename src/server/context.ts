@@ -99,8 +99,8 @@ export class ServerContext {
   /**
    * Process the manifest into individual components and pages.
    */
-  static async fromManifest(
-    manifest: Manifest,
+  static async fromManifest<State extends Record<string, unknown> | undefined>(
+    manifest: Manifest<State>,
     opts: FreshOptions,
   ): Promise<ServerContext> {
     // Get the manifest' base URL.
