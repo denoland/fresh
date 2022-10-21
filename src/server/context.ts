@@ -431,7 +431,10 @@ export class ServerContext {
       );
     }
 
-    const genRender = <Data = undefined, State = Record<string, unknown>>(
+    const genRender = <
+      Data extends undefined,
+      State extends Record<string, unknown> | undefined,
+    >(
       route: Route<Data> | UnknownPage | ErrorPage,
       status: number,
     ) => {
@@ -442,7 +445,7 @@ export class ServerContext {
       return (
         req: Request,
         params: Record<string, string>,
-        contextState?: State,
+        state?: State,
         error?: unknown,
       ) => {
         return async (data?: Data) => {
@@ -465,7 +468,7 @@ export class ServerContext {
             islands: this.#islands,
             plugins: this.#plugins,
             app: this.#app,
-            contextState: contextState,
+            state: state,
             imports,
             preloads,
             renderFn: this.#renderFn,

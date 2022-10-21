@@ -19,12 +19,15 @@ import { bundleAssetUrl } from "./constants.ts";
 import { assetHashingHook } from "../runtime/utils.ts";
 import { htmlEscapeJsonString } from "./htmlescape.ts";
 
-export interface RenderOptions<Data, State = Record<string, unknown>> {
+export interface RenderOptions<
+  Data,
+  State = Record<string, unknown> | undefined,
+> {
   route: Route<Data> | UnknownPage | ErrorPage;
   islands: Island[];
   plugins: Plugin[];
-  app: AppModule;
-  contextState: State;
+  app: AppModule<State>;
+  state: State;
   imports: string[];
   preloads: string[];
   url: URL;
@@ -133,7 +136,7 @@ export async function render<Data, State = Record<string, unknown>>(
         Component() {
           return h(opts.route.component! as ComponentType<unknown>, props);
         },
-        contextState: opts.contextState,
+        contextState: opts.state,
       }),
     }),
   });

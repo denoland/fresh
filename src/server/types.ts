@@ -109,13 +109,13 @@ export interface Route<Data = any> {
 
 // --- APP ---
 
-export interface AppProps<State = Record<string, unknown>> {
+export interface AppProps<State = Record<string, unknown> | undefined> {
   Component: ComponentType<Record<never, never>>;
   contextState: State;
 }
 
-export interface AppModule {
-  default: ComponentType<AppProps>;
+export interface AppModule<State = Record<string, unknown> | undefined> {
+  default: ComponentType<AppProps<State>>;
 }
 
 // --- UNKNOWN PAGE ---
@@ -132,7 +132,7 @@ export interface UnknownPageProps {
 export interface UnknownHandlerContext<State = Record<string, unknown>>
   extends ConnInfo {
   render: () => Response | Promise<Response>;
-  contextState: State;
+  state: State;
 }
 
 export type UnknownHandler = (
@@ -173,7 +173,7 @@ export interface ErrorHandlerContext<State = Record<string, unknown>>
   extends ConnInfo {
   error: unknown;
   render: () => Response | Promise<Response>;
-  contextState: State;
+  state: State;
 }
 export type ErrorHandler = (
   req: Request,
@@ -200,7 +200,7 @@ export interface ErrorPage {
 export interface MiddlewareHandlerContext<State = Record<string, unknown>>
   extends ConnInfo {
   next: () => Promise<Response>;
-  contextState: State;
+  state: State;
 }
 
 export interface MiddlewareRoute extends Middleware {
