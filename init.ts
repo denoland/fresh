@@ -182,7 +182,8 @@ await Deno.writeTextFile(
   ISLANDS_COUNTER_TSX,
 );
 
-const ROUTES_GREET_TSX = `import { PageProps } from "$fresh/server.ts";
+const ROUTES_GREET_TSX = `import { Head } from "$fresh/runtime.ts";
+import { PageProps } from "$fresh/server.ts";
 
 export default function Greet(props: PageProps) {
   return (
