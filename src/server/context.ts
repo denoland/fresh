@@ -21,6 +21,8 @@ import {
   FreshOptions,
   Handler,
   Island,
+  LayoutRoute,
+  LayoutModule,
   Middleware,
   MiddlewareModule,
   MiddlewareRoute,
@@ -134,6 +136,7 @@ export class ServerContext {
 
     // Extract all routes, and prepare them into the `Page` structure.
     const routes: Route[] = [];
+    const layouts: LayoutRoute[] = [];
     const islands: Island[] = [];
     const middlewares: MiddlewareRoute[] = [];
     let app: AppModule = DEFAULT_APP;
@@ -150,7 +153,14 @@ export class ServerContext {
       const isMiddleware = path.endsWith("/_middleware.tsx") ||
         path.endsWith("/_middleware.ts") || path.endsWith("/_middleware.jsx") ||
         path.endsWith("/_middleware.js");
-      if (!path.startsWith("/_") && !isMiddleware) {
+      const isLayout = Boolean(path.match(/\/_layout!?.[jt]sx?$/));
+      if (isLayout) {
+        layouts.push({
+          top: baseRoute.endsWith("!"),
+          ...middlewarePathToPattern(baseRoute.replace("!", ""), "_layout"),
+          ...module as LayoutModule,
+        });
+      } else if (!path.startsWith("/_") && !isMiddleware) {
         const { default: component, config } = (module as RouteModule);
         let pattern = pathToPattern(baseRoute);
         if (config?.routeOverride) {
@@ -224,6 +234,8 @@ export class ServerContext {
     }
     sortRoutes(routes);
     sortRoutes(middlewares);
+
+    applyLayouts(routes, layouts);
 
     for (const [self, module] of Object.entries(manifest.islands)) {
       const url = new URL(self, baseUrl).href;
@@ -676,6 +688,32 @@ export function selectMiddlewares(url: string, middlewares: MiddlewareRoute[]) {
   return selectedMws;
 }
 
+function applyLayouts(routes: Route[], layouts: LayoutRoute[]) {
+  const layoutMap = Object.fromEntries(
+    layouts.map((layout) => [layout.pattern, layout]),
+  );
+
+  for (const route of routes) {
+    if (!route.component) {
+      continue;
+    }
+
+    let path = route.pattern + "/";
+    do {
+      path = path.replace(/\/[^/]*$/, "");
+
+      const layout = layoutMap[path + "{/*}?"];
+      if (layout) {
+        route.component = layout.default(route.component);
+
+        if (layout.top) {
+          break;
+        }
+      }
+    } while (path);
+  }
+}
+
 /**
  * Sort pages by their relative routing priority, based on the parts in the
  * route matcher
@@ -765,8 +803,8 @@ function serializeCSPDirectives(csp: ContentSecurityPolicyDirectives): string {
     .join("; ");
 }
 
-export function middlewarePathToPattern(baseRoute: string) {
-  baseRoute = baseRoute.slice(0, -"_middleware".length);
+export function middlewarePathToPattern(baseRoute: string, suffix = "_middleware") {
+  baseRoute = baseRoute.slice(0, -suffix.length);
   let pattern = pathToPattern(baseRoute);
   if (pattern.endsWith("/")) {
     pattern = pattern.slice(0, -1) + "{/*}?";

@@ -5,6 +5,7 @@ import {
   AppModule,
   ErrorPageModule,
   IslandModule,
+  LayoutModule,
   MiddlewareModule,
   RouteModule,
   StartOptions,
@@ -41,6 +42,7 @@ export interface Manifest {
     string,
     | RouteModule
     | MiddlewareModule
+    | LayoutModule
     | AppModule
     | ErrorPageModule
     | UnknownPageModule
