@@ -102,7 +102,11 @@ export default function Home() {
       <Head>
         <title>Fresh App</title>
       </Head>
-      <div${useTwind ? ` class="p-4 mx-auto max-w-screen-md"` : ""}>
+      <main${
+  useTwind
+    ? ` class="p-4 w-screen min-h-screen bg-green-300 flex items-center justify-center flex-col"`
+    : ""
+}>
         <img
           src="/logo.svg"
           ${
@@ -110,12 +114,21 @@ export default function Home() {
 }
           alt="the fresh logo: a sliced lemon dripping with juice"
         />
-        <p${useTwind ? ` class="my-6"` : ""}>
-          Welcome to \`fresh\`. Try updating this message in the ./routes/index.tsx
-          file, and refresh.
-        </p>
+        <h1${useTwind ? ` class="my-6 text-xl"` : ""}>
+          Welcome to{" "}
+          <a
+            href="https://fresh.deno.dev"
+            target="_blank"
+            ${useTwind ? ` class="underline hover:text-white"` : ""}
+          >
+            fresh
+          </a>. Try updating this message in the{" "}
+          <span ${
+  useTwind ? ` class="font-bold"` : ""
+}>./routes/index.tsx</span> file, and refresh.
+        </h1>
         <Counter start={3} />
-      </div>
+      </main>
     </>
   );
 }
@@ -135,7 +148,7 @@ export function Button(props: JSX.HTMLAttributes<HTMLButtonElement>) {
       disabled={!IS_BROWSER || props.disabled}
 ${
   useTwind
-    ? '      class="px-2 py-1 border(gray-100 2) hover:bg-gray-200"\n'
+    ? '      class="px-2 py-1 border(black 2) hover:border(white 2) rounded-md w-1/5 focus:outline-none"\n'
     : ""
 }    />
   );
@@ -156,9 +169,9 @@ interface CounterProps {
 export default function Counter(props: CounterProps) {
   const [count, setCount] = useState(props.start);
   return (
-    <div${useTwind ? ' class="flex gap-2 w-full"' : ""}>
-      <p${useTwind ? ' class="flex-grow-1 font-bold text-xl"' : ""}>{count}</p>
+    <div${useTwind ? ' class="flex gap-2 w-1/2"' : ""}>
       <Button onClick={() => setCount(count - 1)}>-1</Button>
+      <p class="flex-grow-1 font-bold text-xl text-center">{count}</p>
       <Button onClick={() => setCount(count + 1)}>+1</Button>
     </div>
   );
@@ -172,7 +185,24 @@ await Deno.writeTextFile(
 const ROUTES_GREET_TSX = `import { PageProps } from "$fresh/server.ts";
 
 export default function Greet(props: PageProps) {
-  return <div>Hello {props.params.name}</div>;
+  return (
+    <>
+      <Head>
+        <title>Fresh App</title>
+      </Head>
+      <main${
+  useTwind
+    ? ' class="p-4 w-screen min-h-screen bg-green-300 flex items-center justify-center flex-col"'
+    : ""
+}>
+        <h1${useTwind ? ' class="my-6 text-xl"' : ""}>
+          Hello <span${
+  useTwind ? ' class="font-bold"' : ""
+}>{props.params.name}</span>
+        </h1>
+      </main>
+    </>
+  );
 }
 `;
 await Deno.writeTextFile(
