@@ -59,7 +59,7 @@ export default function DocsPage(props: PageProps<Data>) {
         {description && <meta name="description" content={description} />}
       </Head>
       <div class="flex flex-col min-h-screen">
-        <DocsHeader />
+        <DocsHeader title="docs" />
         <NavigationBar active="/docs" />
         <Main path={props.url.pathname} page={props.data.page} />
         <Footer />

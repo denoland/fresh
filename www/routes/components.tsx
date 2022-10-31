@@ -61,7 +61,7 @@ export default function Home(props: PageProps<HomeProps>) {
       <Head>
         <title>Components | fresh</title>
       </Head>
-      <DocsHeader />
+      <DocsHeader title="components" />
       <NavigationBar active="/components" />
 
       <section class="my-16 px(4 sm:6 md:8) mx-auto max-w-screen-lg space-y-5">
