@@ -14,17 +14,21 @@ import { Head } from "$fresh/runtime.ts";
 import { Handlers, PageProps } from "$fresh/server.ts";
 import { ComponentChildren } from "preact";
 
+function getSource(path: string) {
+  return Deno.readTextFile(new URL(path, import.meta.url));
+}
+
 export const handler: Handlers<HomeProps> = {
   async GET(req, ctx) {
     const props: HomeProps = {
       sources: {
-        "Button": await Deno.readTextFile("./components/gallery/Button.tsx"),
-        "ColoredButton": await Deno.readTextFile(
-          "./components/gallery/ColoredButton.tsx",
+        "Button": await getSource("../components/gallery/Button.tsx"),
+        "ColoredButton": await getSource(
+          "../components/gallery/ColoredButton.tsx",
         ),
-        "Input": await Deno.readTextFile("./components/gallery/Input.tsx"),
-        "Header": await Deno.readTextFile("./components/gallery/Header.tsx"),
-        "Footer": await Deno.readTextFile("./components/gallery/Footer.tsx"),
+        "Input": await getSource("../components/gallery/Input.tsx"),
+        "Header": await getSource("../components/gallery/Header.tsx"),
+        "Footer": await getSource("../components/gallery/Footer.tsx"),
       },
     };
     return ctx.render(props);
