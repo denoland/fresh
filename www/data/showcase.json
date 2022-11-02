@@ -113,5 +113,10 @@
     "link": "https://ldkit.io",
     "github": "karelklima/ldkit",
     "image": "ldkit"
+  },
+  {
+    "title": "Wricord",
+    "link": "https://wricord.com",
+    "image": "wricord"
   }
 ]
