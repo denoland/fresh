@@ -81,6 +81,12 @@
     "image": "fresh-blog"
   },
   {
+    "title": "Fresh ToDo List App",
+    "link": "https://fresh-todo-list.deno.dev/",
+    "github": "MrSaeedNasiri/fresh-todo-list",
+    "image": "fresh-todo"
+  },
+  {
     "title": "Balello",
     "link": "https://balello.com",
     "image": "balello"
