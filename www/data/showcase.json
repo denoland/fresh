@@ -18,6 +18,12 @@
     "image": "fresh"
   },
   {
+    "title": "CGPA(AU R-2021) Calculator",
+    "link": "https://cgpa-au-2021.deno.dev",
+    "github": "codesculpture/cgpa-au-2021",
+    "image": "cgpa-au-2021"
+  },
+  {
     "title": "diKnow",
     "link": "https://xyntechx-diknow.deno.dev/",
     "github": "xyntechx/diKnow",
