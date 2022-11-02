@@ -104,6 +104,12 @@
     "image": "adam-portfolio"
   },
   {
+    "title": "Paquet",
+    "link": "https://paquet.shop",
+    "github": "fructoland/paquet",
+    "image": "paquet"
+  },
+  {
     "title": "Joe Salinas Site",
     "link": "https://joesalinas.dev",
     "image": "joesalinasdev"
