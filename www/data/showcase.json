@@ -157,5 +157,11 @@
     "title": "Wricord",
     "link": "https://wricord.com",
     "image": "wricord"
+  },
+  {
+    "title": "Do not remove this, it's for prevent conflicting by trailing comma",
+    "link": "",
+    "github": "",
+    "image": ""
   }
 ]
