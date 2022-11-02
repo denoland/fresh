@@ -2,11 +2,31 @@ import {
   dirname,
   extname,
   fromFileUrl,
+  gte,
   join,
   toFileUrl,
   walk,
 } from "./deps.ts";
 import { error } from "./error.ts";
+
+const MIN_DENO_VERSION = "1.25.0";
+
+export function ensureMinDenoVersion() {
+  // Check that the minimum supported Deno version is being used.
+  if (!gte(Deno.version.deno, MIN_DENO_VERSION)) {
+    let message =
+      `Deno version ${MIN_DENO_VERSION} or higher is required. Please update Deno.\n\n`;
+
+    if (Deno.execPath().includes("homebrew")) {
+      message +=
+        "You seem to have installed Deno via homebrew. To update, run: `brew upgrade deno`\n";
+    } else {
+      message += "To update, run: `deno upgrade`\n";
+    }
+
+    error(message);
+  }
+}
 
 interface Manifest {
   routes: string[];
@@ -83,6 +103,7 @@ export async function generate(directory: string, manifest: Manifest) {
 // This file SHOULD be checked into source version control.
 // This file is automatically updated during development when running \`dev.ts\`.
 
+import config from "./deno.json" assert { type: "json" };
 ${
     routes.map((file, i) => `import * as $${i} from "./routes${file}";`).join(
       "\n",
@@ -107,6 +128,7 @@ const manifest = {
   }
   },
   baseUrl: import.meta.url,
+  config,
 };
 
 export default manifest;
@@ -140,6 +162,8 @@ export default manifest;
 }
 
 export async function dev(base: string, entrypoint: string) {
+  ensureMinDenoVersion();
+
   entrypoint = new URL(entrypoint, base).href;
 
   const dir = dirname(fromFileUrl(base));
