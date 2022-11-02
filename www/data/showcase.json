@@ -98,6 +98,11 @@
     "image": "adam-portfolio"
   },
   {
+    "title": "Joe Salinas Site",
+    "link": "https://joesalinas.dev",
+    "image": "joesalinasdev"
+  },
+  {
     "title": "Fresh Hacker News",
     "link": "https://fresh-hacker-news.deno.dev/",
     "github": "morinokami/fresh-hacker",
