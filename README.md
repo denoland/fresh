@@ -2,7 +2,7 @@
 
 # fresh
 
-<img align="right" src="./www/static/logo.svg" height="150px" alt="the fresh logo: a sliced lemon dripping with juice">
+<img align="right" src="https://fresh.deno.dev/logo.svg" height="150px" alt="the fresh logo: a sliced lemon dripping with juice">
 
 **Fresh** is a next generation web framework, built for speed, reliability, and
 simplicity.
