@@ -1,21 +1,30 @@
 import { Sheet } from "twind";
 import { Options, setup, STYLE_ELEMENT_ID } from "./shared.ts";
 
-type State = [Options, string[], [string, string][]];
+type State = [string, string][];
 
-export default function hydrate(state: State) {
+export default function hydrate(options: Options, state: State) {
   const el = document.getElementById(STYLE_ELEMENT_ID) as HTMLStyleElement;
-  const rules = new Set(el.innerText.split("\n"));
-  const precedences = state[1];
-  const mappings = new Map(state[2]
-    .map((v) => typeof v === "string" ? [v, v] : v));
+  const rules = new Set<string>();
+  const precedences: number[] = [];
+  const mappings = new Map(
+    state.map((v) => typeof v === "string" ? [v, v] : v),
+  );
   // deno-lint-ignore no-explicit-any
   const sheetState: any[] = [precedences, rules, mappings, true];
   const target = el.sheet!;
+  const ruleText = Array.from(target.cssRules).map((r) => r.cssText);
+  for (const r of ruleText) {
+    const m = r.lastIndexOf("/*");
+    const precedence = parseInt(r.slice(m + 2, -2), 36);
+    const rule = r.slice(0, m);
+    rules.add(rule);
+    precedences.push(precedence);
+  }
   const sheet: Sheet = {
     target,
     insert: (rule, index) => target.insertRule(rule, index),
     init: (cb) => cb(sheetState.shift()),
   };
-  setup(state[0], sheet);
+  setup(options, sheet);
 }
