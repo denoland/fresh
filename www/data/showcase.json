@@ -159,6 +159,12 @@
     "image": "imasparql-dd"
   },
   {
+    "title": "kadode portal",
+    "link": "https://portal.kado.day/",
+    "github": "KadodeProject/kadode_portal",
+    "image": "kadode_portal"
+  },
+  {
     "title": "Do not remove this, it's for prevent conflicting by trailing comma",
     "link": "",
     "github": "",
