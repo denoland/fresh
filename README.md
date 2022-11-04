@@ -64,15 +64,20 @@ docs.
 
 ## Adding your project to the showcase
 
-If you feel that your project would be helpful to other fresh users, please consider putting your project on the [showcase](https://fresh.deno.dev/showcase). However, websites that are just for promotional purposes may not be listed.
+If you feel that your project would be helpful to other fresh users, please
+consider putting your project on the
+[showcase](https://fresh.deno.dev/showcase). However, websites that are just for
+promotional purposes may not be listed.
 
 To take a screenshot, run the following command.
 
 ```sh
 deno task screenshot [url] [your-app-name]
-````
+```
 
-Then add your site to [showcase.json](https://github.com/denoland/fresh/blob/main/www/data/showcase.json), preferably with source code on GitHub, but not required.
+Then add your site to
+[showcase.json](https://github.com/denoland/fresh/blob/main/www/data/showcase.json),
+preferably with source code on GitHub, but not required.
 
 ## Badges
 
