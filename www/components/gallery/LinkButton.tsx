@@ -9,8 +9,6 @@ export default function LinkButton(
       class={`inline-block cursor-pointer px-3 py-2 bg-white rounded hover:bg-gray-100 ${
         props.class ?? ""
       }`}
-    >
-      {props.children}
-    </a>
+    />
   );
 }

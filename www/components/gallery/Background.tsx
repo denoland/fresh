@@ -1,15 +1,11 @@
-import { ComponentChildren } from "preact";
+import { JSX } from "preact";
 
-type Props = {
-  children: ComponentChildren;
-};
-export default function Background({ children }: Props) {
+export default function Background(props: JSX.HTMLAttributes<HTMLDivElement>) {
   return (
     <div
+      {...props}
       class="bg-gray-200 py-16 px-8 flex items-center justify-center rounded"
       style="background-image: url(/gallery/grid.svg)"
-    >
-      {children}
-    </div>
+    />
   );
 }
