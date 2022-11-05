@@ -64,6 +64,10 @@ export default function Home(props: PageProps<HomeProps>) {
     <div class="bg-white h-full">
       <Head>
         <title>Components | fresh</title>
+        <link
+          rel="stylesheet"
+          href="https://esm.sh/prismjs@1.27.0/themes/prism-dark.min.css"
+        />
       </Head>
       <DocsHeader title="components" />
       <NavigationBar active="/components" />
