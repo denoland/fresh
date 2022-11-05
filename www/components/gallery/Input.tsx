@@ -5,7 +5,8 @@ export default function Input(props: JSX.HTMLAttributes<HTMLInputElement>) {
   return (
     <input
       {...props}
-      class={`px-3 py-2 bg-white rounded border(gray-500 2) ${
+      disabled={!IS_BROWSER || props.disabled}
+      class={`px-3 py-2 bg-white rounded border(gray-500 2) disabled:opacity-50 disabled:cursor-not-allowed ${
         props.class ?? ""
       }`}
     />

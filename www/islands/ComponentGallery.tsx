@@ -89,6 +89,7 @@ export default function ComponentGallery(props: ComponentGalleryProps) {
         source={props.sources.Input}
       >
         <Input placeholder="Placeholder" />
+        <Input class="ml-2" placeholder="Disabled" disabled />
       </Section>
 
       <Section title="Header" source={props.sources.Header}>
