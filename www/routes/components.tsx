@@ -1,12 +1,14 @@
 import CodeBox from "../islands/CodeBox.tsx";
 import Background from "../components/gallery/Background.tsx";
 import Button from "../components/gallery/Button.tsx";
+import LinkButton from "../components/gallery/LinkButton.tsx";
 import ColoredButton from "../components/gallery/ColoredButton.tsx";
 import Input from "../components/gallery/Input.tsx";
 import Header from "../components/gallery/Header.tsx";
 import Footer from "../components/gallery/Footer.tsx";
 import PageFooter from "../components/Footer.tsx";
-import HappyIcon from "https://deno.land/x/tabler_icons_tsx@0.0.1/tsx/mood-crazy-happy.tsx";
+import IconHappy from "https://deno.land/x/tabler_icons_tsx@0.0.2/tsx/mood-crazy-happy.tsx";
+import IconHeart from "https://deno.land/x/tabler_icons_tsx@0.0.2/tsx/heart.tsx";
 import DocsHeader from "../components/DocsHeader.tsx";
 import NavigationBar from "../components/NavigationBar.tsx";
 
@@ -23,6 +25,7 @@ export const handler: Handlers<HomeProps> = {
     const props: HomeProps = {
       sources: {
         "Button": await getSource("../components/gallery/Button.tsx"),
+        "LinkButton": await getSource("../components/gallery/LinkButton.tsx"),
         "ColoredButton": await getSource(
           "../components/gallery/ColoredButton.tsx",
         ),
@@ -43,12 +46,20 @@ interface SectionProps {
   title: string;
   children: ComponentChildren;
   source: string;
+  island?: boolean;
 }
 
 function Section(props: SectionProps) {
   return (
     <div>
-      <h2 class="text-2xl font-bold">{props.title}</h2>
+      <h2 class="text-2xl font-bold py-2">
+        {props.title}
+        {props.island && (
+          <span class="text-sm font-normal inline-block bg-green-200 rounded px-2 mx-2">
+            island
+          </span>
+        )}
+      </h2>
 
       <Background>
         {props.children}
@@ -81,12 +92,16 @@ export default function Home(props: PageProps<HomeProps>) {
         </p>
       </section>
       <div class="p-4 mx-auto max-w-screen-lg space-y-24 mb-16">
-        <Section title="Button" source={props.data.sources.Button}>
+        <Section
+          title="Button"
+          island={true}
+          source={props.data.sources.Button}
+        >
           <Button>
             Click me
           </Button>
           <Button class="flex gap-1 ml-2">
-            <HappyIcon class="w-6 h-6 inline-block text-gray-500" />
+            <IconHappy class="w-6 h-6 inline-block text-gray-500" />
             <div>
               With an Icon
             </div>
@@ -94,6 +109,7 @@ export default function Home(props: PageProps<HomeProps>) {
         </Section>
         <Section
           title="ColoredButton"
+          island={true}
           source={props.data.sources.ColoredButton}
         >
           <ColoredButton>
@@ -102,7 +118,18 @@ export default function Home(props: PageProps<HomeProps>) {
         </Section>
 
         <Section
+          title="LinkButton"
+          source={props.data.sources.LinkButton}
+        >
+          <LinkButton>
+            <IconHeart class="w-5 h-5 mr-1 inline-block text-gray-400" />
+            Like me
+          </LinkButton>
+        </Section>
+
+        <Section
           title="Input"
+          island={true}
           source={props.data.sources.Input}
         >
           <Input placeholder="Placeholder" />
