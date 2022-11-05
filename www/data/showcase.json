@@ -165,6 +165,12 @@
     "image": "kadode_portal"
   },
   {
+    "title": "Craig's Deno Diary",
+    "link": "https://deno-blog.com",
+    "github": "https://github.com/cdoremus/deno-blog",
+    "image": "deno-diary"
+  },
+  {
     "title": "Do not remove this, it's for prevent conflicting by trailing comma",
     "link": "",
     "github": "",
