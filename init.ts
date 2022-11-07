@@ -215,7 +215,7 @@ export default {
 `;
 if (useTwind) {
   await Deno.writeTextFile(
-    join(resolvedDirectory, "twind.config.ts"),
+    join(resolvedDirectory, "tailwind.config.ts"),
     TWIND_CONFIG_TS,
   );
 }
@@ -257,7 +257,7 @@ import manifest from "./fresh.gen.ts";
 if (useTwind) {
   MAIN_TS += `
 import twindPlugin from "$fresh/plugins/twind.ts";
-import twindConfig from "./twind.config.ts";
+import twindConfig from "./tailwind.config.ts";
 `;
 }
 
