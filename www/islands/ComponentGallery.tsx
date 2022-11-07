@@ -53,13 +53,13 @@ export default function ComponentGallery(props: ComponentGalleryProps) {
         <Button>
           Click me
         </Button>
-        <Button class="flex gap-1 ml-2">
+        <Button class="flex gap-1">
           <IconHappy class="w-6 h-6 inline-block text-gray-500" />
           <div>
             With an Icon
           </div>
         </Button>
-        <Button disabled class="ml-2">
+        <Button disabled>
           Disabled
         </Button>
       </Section>
@@ -89,7 +89,7 @@ export default function ComponentGallery(props: ComponentGalleryProps) {
         source={props.sources.Input}
       >
         <Input placeholder="Placeholder" />
-        <Input class="ml-2" placeholder="Disabled" disabled />
+        <Input placeholder="Disabled" disabled />
       </Section>
 
       <Section title="Header" source={props.sources.Header}>
