@@ -59,7 +59,7 @@ export default function DocsPage(props: PageProps<Data>) {
         {description && <meta name="description" content={description} />}
       </Head>
       <div class="flex flex-col min-h-screen">
-        <DocsHeader />
+        <DocsHeader title="docs" />
         <NavigationBar active="/docs" />
         <Main path={props.url.pathname} page={props.data.page} />
         <Footer />
@@ -97,7 +97,7 @@ function MobileSidebar(props: { path: string }) {
         />
         <div class="relative flex-1 flex flex-col w-[16rem] h-full bg-white border(r-2 gray-100)">
           <div class="p-4 border(b-2 gray-100) bg-green-300">
-            <DocsTitle />
+            <DocsTitle title="docs" />
           </div>
           <nav class="pt-2 pb-16 px-4 overflow-x-auto">
             <DocsSidebar path={props.path} />

@@ -28,7 +28,7 @@ Deno.test("error page rendered", async () => {
   const body = await resp.text();
   assertStringIncludes(
     body,
-    `An error occured during route handling or page rendering.`,
+    `An error occurred during route handling or page rendering.`,
   );
   assertStringIncludes(body, `Error: boom!`);
   assertStringIncludes(body, `at render`);
