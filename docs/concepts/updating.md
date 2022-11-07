@@ -118,5 +118,5 @@ update your `main.ts` file to import the twind plugin and add it to the plugins
 array. It will also update your files to remove many unnecessary uses of the
 `tw` function, and remove unnecessary twind imports. While the code mod can
 handle most cases, you may need to manually update some code. Additionally you
-will need to manually update your `twind.config.ts` if you use a custom
+will need to manually update your `tailwind.config.ts` if you use a custom
 configuration.
