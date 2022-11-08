@@ -12,10 +12,12 @@ export default function Header({ active }: Props) {
   ];
 
   return (
-    <div class="bg-white w-full max-w-screen-lg py-6 px-8 flex items-center justify-center">
-      <LemonIcon />
-      <div class="text-2xl flex-1 ml-1 font-bold">
-        Fresh
+    <div class="bg-white w-full max-w-screen-lg py-6 px-8 flex flex-col md:flex-row gap-4">
+      <div class="flex items-center flex-1">
+        <LemonIcon />
+        <div class="text-2xl  ml-1 font-bold">
+          Fresh
+        </div>
       </div>
       <ul class="flex items-center gap-6">
         {menus.map((menu) => (

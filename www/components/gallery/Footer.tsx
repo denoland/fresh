@@ -27,7 +27,7 @@ export default function Footer({ children }: Props) {
   ];
 
   return (
-    <div class="bg-white flex w-full max-w-screen-lg gap-16 px-8 py-8 text-sm">
+    <div class="bg-white flex flex-col md:flex-row w-full max-w-screen-lg gap-8 md:gap-16 px-8 py-8 text-sm">
       <div class="flex-1">
         <div class="flex items-center gap-1">
           <LemonIcon class="inline-block" />
