@@ -31,6 +31,13 @@ export const handler: Handlers<Data> = {
         headers: { location: "/docs/introduction" },
       });
     }
+    if (slug === "concepts/architechture") {
+      return new Response("", {
+        status: 307,
+        headers: { location: "/docs/concepts/architecture" },
+      });
+    }
+
     const entry = TABLE_OF_CONTENTS[slug];
     if (!entry) {
       return ctx.renderNotFound();
