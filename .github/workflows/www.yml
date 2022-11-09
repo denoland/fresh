@@ -1,0 +1,32 @@
+name: www
+
+on:
+  push:
+    branches: [main]
+    paths: [www]
+  pull_request:
+    branches: [main]
+    paths: [www]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v3
+
+      - name: Setup Deno
+        uses: denoland/setup-deno@v1
+
+      - name: Verify formatting
+        run: deno fmt --check
+        working-directory: www/
+
+      - name: Run linter
+        run: deno lint
+        working-directory: www/
+
+      - name: Type check website
+        run: deno check --remote main.ts dev.ts
+        working-directory: www/
