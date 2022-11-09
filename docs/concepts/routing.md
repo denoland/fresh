@@ -25,8 +25,8 @@ File names are mapped to route patterns as follows:
 - Paths where the last path segment follows the structure `[...<ident>]` are
   treated as having a wildcard suffix.
 
-Here is a table of file names, and which route patterns they map to, and which
-paths they might match:
+Here is a table of file names, which route patterns they map to, and which paths
+they might match:
 
 | File name                 | Route pattern          | Matching paths             |
 | ------------------------- | ---------------------- | -------------------------- |
@@ -44,9 +44,9 @@ This pattern will be used instead of the file path based pattern:
 ```ts
 // routes/x.ts
 
-import { RouteConfig } from "$fresh/runtime.ts";
+import { RouteConfig } from "$fresh/server.ts";
 
-const config: RouteConfig = {
+export const config: RouteConfig = {
   routeOverride: "/x/:module@:version/:path*",
 };
 

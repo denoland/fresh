@@ -2,17 +2,18 @@ import {
   ConnInfo,
   extname,
   fromFileUrl,
-  mediaTypeLookup,
   RequestHandler,
-  router,
+  rutt,
+  Status,
   toFileUrl,
+  typeByExtension,
   walk,
 } from "./deps.ts";
 import { h } from "preact";
 import { Manifest } from "./mod.ts";
-import { Bundler } from "./bundle.ts";
+import { Bundler, JSXConfig } from "./bundle.ts";
 import { ALIVE_URL, BUILD_ID, JS_PREFIX, REFRESH_JS_URL } from "./constants.ts";
-import DefaultErrorHandler from "./default_error_page.tsx";
+import DefaultErrorHandler from "./default_error_page.ts";
 import {
   AppModule,
   ErrorPage,
@@ -23,16 +24,16 @@ import {
   Middleware,
   MiddlewareModule,
   MiddlewareRoute,
+  Plugin,
   RenderFunction,
   Route,
   RouteModule,
   UnknownPage,
   UnknownPageModule,
 } from "./types.ts";
-import { render as internalRender } from "./render.tsx";
+import { render as internalRender } from "./render.ts";
 import { ContentSecurityPolicyDirectives, SELF } from "../runtime/csp.ts";
 import { ASSET_CACHE_BUST_KEY, INTERNAL_PREFIX } from "../runtime/utils.ts";
-
 interface RouterState {
   state: Record<string, unknown>;
 }
@@ -61,6 +62,7 @@ export class ServerContext {
   #app: AppModule;
   #notFound: UnknownPage;
   #error: ErrorPage;
+  #plugins: Plugin[];
 
   constructor(
     routes: Route[],
@@ -71,7 +73,9 @@ export class ServerContext {
     app: AppModule,
     notFound: UnknownPage,
     error: ErrorPage,
+    plugins: Plugin[],
     importMapURL: URL,
+    jsxConfig: JSXConfig,
   ) {
     this.#routes = routes;
     this.#islands = islands;
@@ -81,8 +85,15 @@ export class ServerContext {
     this.#app = app;
     this.#notFound = notFound;
     this.#error = error;
-    this.#bundler = new Bundler(this.#islands, importMapURL);
+    this.#plugins = plugins;
     this.#dev = typeof Deno.env.get("DENO_DEPLOYMENT_ID") !== "string"; // Env var is only set in prod (on Deploy).
+    this.#bundler = new Bundler(
+      this.#islands,
+      this.#plugins,
+      importMapURL,
+      jsxConfig,
+      this.#dev,
+    );
   }
 
   /**
@@ -94,7 +105,32 @@ export class ServerContext {
   ): Promise<ServerContext> {
     // Get the manifest' base URL.
     const baseUrl = new URL("./", manifest.baseUrl).href;
-    const importMapURL = new URL("./import_map.json", manifest.baseUrl);
+
+    const config = manifest.config || { importMap: "./import_map.json" };
+    if (typeof config.importMap !== "string") {
+      throw new Error("deno.json must contain an 'importMap' property.");
+    }
+    const importMapURL = new URL(config.importMap, manifest.baseUrl);
+
+    config.compilerOptions ??= {};
+
+    let jsx: "react" | "react-jsx";
+    switch (config.compilerOptions.jsx) {
+      case "react":
+      case undefined:
+        jsx = "react";
+        break;
+      case "react-jsx":
+        jsx = "react-jsx";
+        break;
+      default:
+        throw new Error("Unknown jsx option: " + config.compilerOptions.jsx);
+    }
+
+    const jsxConfig: JSXConfig = {
+      jsx,
+      jsxImportSource: config.compilerOptions.jsxImportSource,
+    };
 
     // Extract all routes, and prepare them into the `Page` structure.
     const routes: Route[] = [];
@@ -105,7 +141,7 @@ export class ServerContext {
     let error: ErrorPage = DEFAULT_ERROR;
     for (const [self, module] of Object.entries(manifest.routes)) {
       const url = new URL(self, baseUrl).href;
-      if (!url.startsWith(baseUrl)) {
+      if (!url.startsWith(baseUrl + "routes")) {
         throw new TypeError("Page is not a child of the basepath.");
       }
       const path = url.substring(baseUrl.length).substring("routes".length);
@@ -162,7 +198,7 @@ export class ServerContext {
           url,
           name,
           component,
-          handler: handler ?? ((req) => router.defaultOtherHandler(req)),
+          handler: handler ?? ((req) => rutt.defaultOtherHandler(req)),
           csp: Boolean(config?.csp ?? false),
         };
       } else if (
@@ -181,7 +217,7 @@ export class ServerContext {
           name,
           component,
           handler: handler ??
-            ((req, ctx) => router.defaultErrorHandler(req, ctx, ctx.error)),
+            ((req, ctx) => rutt.defaultErrorHandler(req, ctx, ctx.error)),
           csp: Boolean(config?.csp ?? false),
         };
       }
@@ -196,7 +232,7 @@ export class ServerContext {
       }
       const path = url.substring(baseUrl.length).substring("islands".length);
       const baseRoute = path.substring(1, path.length - extname(path).length);
-      const name = baseRoute.replace("/", "");
+      const name = sanitizeIslandName(baseRoute);
       const id = name.toLowerCase();
       if (typeof module.default !== "function") {
         throw new TypeError(
@@ -208,7 +244,10 @@ export class ServerContext {
 
     const staticFiles: StaticFile[] = [];
     try {
-      const staticFolder = new URL("./static", manifest.baseUrl);
+      const staticFolder = new URL(
+        opts.staticDir ?? "./static",
+        manifest.baseUrl,
+      );
       // TODO(lucacasonato): remove the extranious Deno.readDir when
       // https://github.com/denoland/deno_std/issues/1310 is fixed.
       for await (const _ of Deno.readDir(fromFileUrl(staticFolder))) {
@@ -224,7 +263,7 @@ export class ServerContext {
         const localUrl = toFileUrl(entry.path);
         const path = localUrl.href.substring(staticFolder.href.length);
         const stat = await Deno.stat(localUrl);
-        const contentType = mediaTypeLookup(extname(path)) ??
+        const contentType = typeByExtension(extname(path)) ??
           "application/octet-stream";
         const etag = await crypto.subtle.digest(
           "SHA-1",
@@ -260,7 +299,9 @@ export class ServerContext {
       app,
       notFound,
       error,
+      opts.plugins ?? [],
       importMapURL,
+      jsxConfig,
     );
   }
 
@@ -269,7 +310,7 @@ export class ServerContext {
    * by fresh, including static files.
    */
   handler(): RequestHandler {
-    const inner = router.router<RouterState>(...this.#handlers());
+    const inner = rutt.router<RouterState>(...this.#handlers());
     const withMiddlewares = this.#composeMiddlewares(this.#middlewares);
     return function handler(req: Request, connInfo: ConnInfo) {
       // Redirect requests that end with a trailing slash
@@ -278,7 +319,7 @@ export class ServerContext {
       const url = new URL(req.url);
       if (url.pathname.length > 1 && url.pathname.endsWith("/")) {
         url.pathname = url.pathname.slice(0, -1);
-        return Response.redirect(url.href, 307);
+        return Response.redirect(url.href, Status.TemporaryRedirect);
       }
       return withMiddlewares(req, connInfo, inner);
     };
@@ -292,7 +333,7 @@ export class ServerContext {
     return (
       req: Request,
       connInfo: ConnInfo,
-      inner: router.Handler<RouterState>,
+      inner: rutt.Handler<RouterState>,
     ) => {
       // identify middlewares to apply, if any.
       // middlewares should be already sorted from deepest to shallow layer
@@ -310,7 +351,14 @@ export class ServerContext {
       };
 
       for (const mw of mws) {
-        handlers.push(() => mw.handler(req, ctx));
+        if (mw.handler instanceof Array) {
+          for (const handler of mw.handler) {
+            handlers.push(() => handler(req, ctx));
+          }
+        } else {
+          const handler = mw.handler;
+          handlers.push(() => handler(req, ctx));
+        }
       }
 
       handlers.push(() => inner(req, ctx));
@@ -325,11 +373,11 @@ export class ServerContext {
    * path-to-regex, to handler mapping.
    */
   #handlers(): [
-    router.Routes<RouterState>,
-    router.Handler<RouterState>,
-    router.ErrorHandler<RouterState>,
+    rutt.Routes<RouterState>,
+    rutt.Handler<RouterState>,
+    rutt.ErrorHandler<RouterState>,
   ] {
-    const routes: router.Routes<RouterState> = {};
+    const routes: rutt.Routes<RouterState> = {};
 
     routes[`${INTERNAL_PREFIX}${JS_PREFIX}/${BUILD_ID}/:path*`] = this
       .#bundleAssetRoute();
@@ -337,8 +385,8 @@ export class ServerContext {
     if (this.#dev) {
       routes[REFRESH_JS_URL] = () => {
         const js =
-          `let reloading = false; const buildId = "${BUILD_ID}"; new EventSource("${ALIVE_URL}").addEventListener("message", (e) => { if (e.data !== buildId && !reloading) { reloading = true; location.reload(); } });`;
-        return new Response(new TextEncoder().encode(js), {
+          `new EventSource("${ALIVE_URL}").addEventListener("message", function listener(e) { if (e.data !== "${BUILD_ID}") { this.removeEventListener('message', listener); location.reload(); } });`;
+        return new Response(js, {
           headers: {
             "content-type": "application/javascript; charset=utf-8",
           },
@@ -400,10 +448,21 @@ export class ServerContext {
           if (route.component === undefined) {
             throw new Error("This page does not have a component to render.");
           }
+
+          if (
+            typeof route.component === "function" &&
+            route.component.constructor.name === "AsyncFunction"
+          ) {
+            throw new Error(
+              "Async components are not supported. Fetch data inside of a route handler, as described in the docs: https://fresh.deno.dev/docs/getting-started/fetching-data",
+            );
+          }
+
           const preloads: string[] = [];
           const resp = await internalRender({
             route,
             islands: this.#islands,
+            plugins: this.#plugins,
             app: this.#app,
             imports,
             preloads,
@@ -438,14 +497,17 @@ export class ServerContext {
       };
     };
 
+    const createUnknownRender = genRender(this.#notFound, Status.NotFound);
+
     for (const route of this.#routes) {
-      const createRender = genRender(route, 200);
+      const createRender = genRender(route, Status.OK);
       if (typeof route.handler === "function") {
         routes[route.pattern] = (req, ctx, params) =>
           (route.handler as Handler)(req, {
             ...ctx,
             params,
             render: createRender(req, params),
+            renderNotFound: createUnknownRender(req, {}),
           });
       } else {
         for (const [method, handler] of Object.entries(route.handler)) {
@@ -454,13 +516,13 @@ export class ServerContext {
               ...ctx,
               params,
               render: createRender(req, params),
+              renderNotFound: createUnknownRender(req, {}),
             });
         }
       }
     }
 
-    const unknownHandlerRender = genRender(this.#notFound, 404);
-    const unknownHandler: router.Handler<RouterState> = (
+    const unknownHandler: rutt.Handler<RouterState> = (
       req,
       ctx,
     ) =>
@@ -468,18 +530,21 @@ export class ServerContext {
         req,
         {
           ...ctx,
-          render: unknownHandlerRender(req, {}),
+          render: createUnknownRender(req, {}),
         },
       );
 
-    const errorHandlerRender = genRender(this.#error, 500);
-    const errorHandler: router.ErrorHandler<RouterState> = (
+    const errorHandlerRender = genRender(
+      this.#error,
+      Status.InternalServerError,
+    );
+    const errorHandler: rutt.ErrorHandler<RouterState> = (
       req,
       ctx,
       error,
     ) => {
       console.error(
-        "%cAn error occured during route handling or page rendering.",
+        "%cAn error occurred during route handling or page rendering.",
         "color:red",
         error,
       );
@@ -501,7 +566,7 @@ export class ServerContext {
     size: number,
     contentType: string,
     etag: string,
-  ): router.MatchHandler {
+  ): rutt.MatchHandler {
     return async (req: Request) => {
       const url = new URL(req.url);
       const key = url.searchParams.get(ASSET_CACHE_BUST_KEY);
@@ -539,7 +604,7 @@ export class ServerContext {
    * Returns a router that contains all fresh routes. Should be mounted at
    * constants.INTERNAL_PREFIX
    */
-  #bundleAssetRoute = (): router.MatchHandler => {
+  #bundleAssetRoute = (): rutt.MatchHandler => {
     return async (_req, _ctx, params) => {
       const path = `/${params.path}`;
       const file = await this.#bundler.get(path);
@@ -549,7 +614,7 @@ export class ServerContext {
           "Cache-Control": "public, max-age=604800, immutable",
         });
 
-        const contentType = mediaTypeLookup(path);
+        const contentType = typeByExtension(extname(path));
         if (contentType) {
           headers.set("Content-Type", contentType);
         }
@@ -579,7 +644,7 @@ const DEFAULT_NOT_FOUND: UnknownPage = {
   pattern: "",
   url: "",
   name: "_404",
-  handler: (req) => router.defaultOtherHandler(req),
+  handler: (req) => rutt.defaultOtherHandler(req),
   csp: false,
 };
 
@@ -676,6 +741,18 @@ function sanitizePathToRegex(path: string): string {
     .replaceAll("\:", "\\:");
 }
 
+function toPascalCase(text: string): string {
+  return text.replace(
+    /(^\w|-\w)/g,
+    (substring) => substring.replace(/-/, "").toUpperCase(),
+  );
+}
+
+function sanitizeIslandName(name: string): string {
+  const fileName = name.replace("/", "");
+  return toPascalCase(fileName);
+}
+
 function serializeCSPDirectives(csp: ContentSecurityPolicyDirectives): string {
   return Object.entries(csp)
     .filter(([_key, value]) => value !== undefined)
@@ -690,7 +767,10 @@ function serializeCSPDirectives(csp: ContentSecurityPolicyDirectives): string {
 
 export function middlewarePathToPattern(baseRoute: string) {
   baseRoute = baseRoute.slice(0, -"_middleware".length);
-  const pattern = pathToPattern(baseRoute);
-  const compiledPattern = new URLPattern({ pathname: `${pattern}*` });
+  let pattern = pathToPattern(baseRoute);
+  if (pattern.endsWith("/")) {
+    pattern = pattern.slice(0, -1) + "{/*}?";
+  }
+  const compiledPattern = new URLPattern({ pathname: pattern });
   return { pattern, compiledPattern };
 }

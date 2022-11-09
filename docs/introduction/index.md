@@ -21,7 +21,7 @@ and the client.
 Fresh also does not have a build step. The code you write is also directly the
 code that is run on the server, and the code that is executed on the client. Any
 necessary transpilation of TypeScript or JSX to plain JavaScript is done on the
-fly, just when it is needed. This allows for insanely fast iteration loops, and
+fly, just when it is needed. This allows for insanely fast iteration loops and
 very very fast deployments.
 
 Fresh projects can be deployed manually to any platform with `deno`, but it is

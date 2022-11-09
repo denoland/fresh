@@ -1,53 +1,96 @@
+import { BuildOptions } from "https://deno.land/x/esbuild@v0.14.51/mod.js";
 import { BUILD_ID } from "./constants.ts";
 import { denoPlugin, esbuild, toFileUrl } from "./deps.ts";
-import { Island } from "./types.ts";
+import { Island, Plugin } from "./types.ts";
 
-let esbuildInitalized: boolean | Promise<void> = false;
-async function ensureEsbuildInialized() {
-  if (esbuildInitalized === false) {
+export interface JSXConfig {
+  jsx: "react" | "react-jsx";
+  jsxImportSource?: string;
+}
+
+let esbuildInitialized: boolean | Promise<void> = false;
+async function ensureEsbuildInitialized() {
+  if (esbuildInitialized === false) {
     if (Deno.run === undefined) {
-      esbuildInitalized = esbuild.initialize({
-        wasmURL: "https://unpkg.com/esbuild-wasm@0.14.39/esbuild.wasm",
-        worker: false,
+      const wasmURL = new URL("./esbuild_v0.14.51.wasm", import.meta.url).href;
+      esbuildInitialized = fetch(wasmURL).then(async (r) => {
+        const resp = new Response(r.body, {
+          headers: { "Content-Type": "application/wasm" },
+        });
+        const wasmModule = await WebAssembly.compileStreaming(resp);
+        await esbuild.initialize({
+          wasmModule,
+          worker: false,
+        });
       });
     } else {
       esbuild.initialize({});
     }
-    await esbuildInitalized;
-    esbuildInitalized = true;
-  } else if (esbuildInitalized instanceof Promise) {
-    await esbuildInitalized;
+    await esbuildInitialized;
+    esbuildInitialized = true;
+  } else if (esbuildInitialized instanceof Promise) {
+    await esbuildInitialized;
   }
 }
 
+const JSX_RUNTIME_MODE = {
+  "react": "transform",
+  "react-jsx": "automatic",
+} as const;
+
 export class Bundler {
   #importMapURL: URL;
+  #jsxConfig: JSXConfig;
   #islands: Island[];
+  #plugins: Plugin[];
   #cache: Map<string, Uint8Array> | Promise<void> | undefined = undefined;
+  #dev: boolean;
 
-  constructor(islands: Island[], importMapURL: URL) {
+  constructor(
+    islands: Island[],
+    plugins: Plugin[],
+    importMapURL: URL,
+    jsxConfig: JSXConfig,
+    dev: boolean,
+  ) {
     this.#islands = islands;
+    this.#plugins = plugins;
     this.#importMapURL = importMapURL;
+    this.#jsxConfig = jsxConfig;
+    this.#dev = dev;
   }
 
   async bundle() {
     const entryPoints: Record<string, string> = {
-      "main": new URL("../../src/runtime/main.ts", import.meta.url).href,
+      main: this.#dev
+        ? new URL("../../src/runtime/main_dev.ts", import.meta.url).href
+        : new URL("../../src/runtime/main.ts", import.meta.url).href,
     };
 
     for (const island of this.#islands) {
       entryPoints[`island-${island.id}`] = island.url;
     }
 
+    for (const plugin of this.#plugins) {
+      for (const [name, url] of Object.entries(plugin.entrypoints ?? {})) {
+        entryPoints[`plugin-${plugin.name}-${name}`] = url;
+      }
+    }
+
     const absWorkingDir = Deno.cwd();
-    await ensureEsbuildInialized();
+    await ensureEsbuildInitialized();
+    // In dev-mode we skip identifier minification to be able to show proper
+    // component names in Preact DevTools instead of single characters.
+    const minifyOptions: Partial<BuildOptions> = this.#dev
+      ? { minifyIdentifiers: false, minifySyntax: true, minifyWhitespace: true }
+      : { minify: true };
     const bundle = await esbuild.build({
       bundle: true,
       define: { __FRSH_BUILD_ID: `"${BUILD_ID}"` },
       entryPoints,
       format: "esm",
       metafile: true,
-      minify: true,
+      ...minifyOptions,
       outdir: ".",
       // This is requried to ensure the format of the outputFiles path is the same
       // between windows and linux
@@ -55,10 +98,13 @@ export class Bundler {
       outfile: "",
       platform: "neutral",
       plugins: [denoPlugin({ importMapURL: this.#importMapURL })],
+      sourcemap: this.#dev ? "linked" : false,
       splitting: true,
       target: ["chrome99", "firefox99", "safari15"],
       treeShaking: true,
       write: false,
+      jsx: JSX_RUNTIME_MODE[this.#jsxConfig.jsx],
+      jsxImportSource: this.#jsxConfig.jsxImportSource,
     });
     // const metafileOutputs = bundle.metafile!.outputs;
 
