@@ -44,7 +44,6 @@ export default function MainPage(props: PageProps) {
         <meta property="og:image" content={ogImageUrl} />
       </Head>
       <div class="flex flex-col min-h-screen">
-        <HelloBar />
         <Hero />
         <div class="flex-1">
           <Intro />
