@@ -15,7 +15,7 @@ Some stand-out features:
 - No build step.
 - No configuration necessary.
 - TypeScript support out of the box.
-- File-system routing à la Next.js.
+- File-system routing like Next.js.
 
 ## 📖 Documentation
 
