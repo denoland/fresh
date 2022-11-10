@@ -3,8 +3,10 @@ name: ci
 on:
   push:
     branches: [main]
+    paths-ignore: [www]
   pull_request:
     branches: [main]
+    paths-ignore: [www]
 
 jobs:
   test:
