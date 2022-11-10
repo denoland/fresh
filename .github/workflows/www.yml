@@ -3,10 +3,10 @@ name: www
 on:
   push:
     branches: [main]
-    paths: [www]
+    paths: [www/**]
   pull_request:
     branches: [main]
-    paths: [www]
+    paths: [www/**]
 
 jobs:
   test:
