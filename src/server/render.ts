@@ -128,6 +128,7 @@ export async function render<Data, State = Record<string, unknown>>(
     : undefined;
   const headComponents: ComponentChildren[] = [];
 
+  console.log("opts.state:", opts.state);
   const vnode = h(CSP_CONTEXT.Provider, {
     value: csp,
     children: h(HEAD_CONTEXT.Provider, {
