@@ -512,7 +512,7 @@ export class ServerContext {
             ...ctx,
             params,
             render: createRender(req, params, ctx.state),
-            renderNotFound: createUnknownRender(req, {}),
+            renderNotFound: createUnknownRender(req, {}, ctx.state),
           });
         };
       } else {
@@ -522,7 +522,7 @@ export class ServerContext {
               ...ctx,
               params,
               render: createRender(req, params, ctx.state),
-              renderNotFound: createUnknownRender(req, {}),
+              renderNotFound: createUnknownRender(req, {}, ctx.state),
             });
           };
         }
