@@ -537,7 +537,7 @@ export class ServerContext {
         req,
         {
           ...ctx,
-          render: createUnknownRender(req, {}),
+          render: createUnknownRender(req, {}, ctx.state),
         },
       );
 
