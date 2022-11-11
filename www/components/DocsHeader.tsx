@@ -1,13 +1,13 @@
 import DocsTitle from "./DocsTitle.tsx";
 
-export default function DocsHeader() {
+export default function DocsHeader(props: { title: string }) {
   return (
     <div class="bg-green-300">
       <header class="mx-auto max-w-screen-lg flex gap-3 justify-between">
         <div class="p-4 flex">
           <Logo />
           <div>
-            <DocsTitle />
+            <DocsTitle title={props.title} />
           </div>
         </div>
         <label
