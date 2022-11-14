@@ -14,7 +14,7 @@ Here are instructions for specific providers / systems:
 ## Deno Deploy
 
 The recommended way to deploy Fresh is by using Deno Deploy. Deno Deploy
-provides a GitHub integration that can deploy your Fresh projects to its'
+provides a GitHub integration that can deploy your Fresh projects to its
 globally distributed edge network in seconds, automatically.
 
 View [the getting started guide][deploy-to-production] for instructions on how

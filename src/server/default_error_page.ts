@@ -42,7 +42,7 @@ export default function DefaultErrorPage(props: ErrorPageProps) {
           padding: 16,
           fontFamily: "sans-serif",
         },
-      }, "An error occured during route handling or page rendering."),
+      }, "An error occurred during route handling or page rendering."),
       message && h("pre", {
         style: {
           margin: 0,
