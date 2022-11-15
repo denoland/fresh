@@ -10,6 +10,17 @@ on:
 
 jobs:
   test:
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      matrix:
+        deno: ["v1.x", "canary"]
+        os: [macOS-latest, windows-latest, ubuntu-latest]
+        
+    steps:
+      - run: 'echo "No build required"'
+
+  www:
     runs-on: ubuntu-latest
 
     steps:
