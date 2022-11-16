@@ -37,7 +37,7 @@ If you want to change the port or host, modify the options bag of the `start()`
 call in `main.ts` to include an explicit port number:
 
 ```js
-await start(manifest, { port: 3000 });
+await start(manifest, { port: 8000 });
 ```
 
 Combining all of this we get the following `deno run` command:
