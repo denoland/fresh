@@ -16,3 +16,5 @@ render charts on the server and client.
 A live demo can be found here: https://fresh-charts.deno.dev/
 
 Documentation for the module can be found here: https://deno.land/x/fresh_charts
+
+[chart-js]: https://www.chartjs.org/ "Chart.js"
