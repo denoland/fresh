@@ -11,8 +11,7 @@ export default function ShowcasePage() {
       <Head>
         <title>Showcase | fresh</title>
       </Head>
-      <DocsHeader title="showcase" />
-      <NavigationBar active="/showcase" />
+      <DocsHeader title="showcase" active="/showcase" />
 
       <div class="flex flex-col min-h-screen">
         <div class="flex-1">

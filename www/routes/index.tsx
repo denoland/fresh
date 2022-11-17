@@ -47,8 +47,7 @@ export default function MainPage(props: PageProps) {
       </Head>
 
       <div class="flex flex-col min-h-screen">
-        <DocsHeader title="" />
-        <NavigationBar active="/" />
+        <DocsHeader title="" active="/" />
 
         <HelloBar />
         <Hero />
@@ -81,14 +80,6 @@ function HelloBar() {
 function Hero() {
   return (
     <>
-      <div class="flex justify-end items-center bg-green-300">
-        <a
-          href="/docs"
-          class="border(1 black) inline-flex items-center h-10 px-4 m-4 text-black bg-transparent rounded hover:bg-white"
-        >
-          Documentation
-        </a>
-      </div>
       <section class="w-full flex justify-center items-center flex-col bg-green-300">
         <LemonDrop />
       </section>

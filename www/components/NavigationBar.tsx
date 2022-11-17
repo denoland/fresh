@@ -1,9 +1,7 @@
-export default function NavigationBar(props: { active: string }) {
+export default function NavigationBar(
+  props: { active: string; class?: string },
+) {
   const items = [
-    {
-      name: "Home",
-      href: "/",
-    },
     {
       name: "Docs",
       href: "/docs",
@@ -19,13 +17,13 @@ export default function NavigationBar(props: { active: string }) {
   ];
 
   return (
-    <nav class="bg-green-200 py-2">
-      <ul class="flex justify-center gap-8 mx-4">
+    <nav class={"flex " + props.class ?? ""}>
+      <ul class="flex justify-center items-center gap-4 mx-4">
         {items.map((item) => (
           <li>
             <a
               href={item.href}
-              class={`text-gray-600 hover:underline ${
+              class={`p-2 text-gray-600 hover:underline ${
                 props.active == item.href ? "font-bold" : ""
               }`}
             >
