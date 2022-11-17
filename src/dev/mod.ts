@@ -161,6 +161,13 @@ export default manifest;
   );
 }
 
+export async function collectAndGenerate(entrypoint: string) {
+  const dir = dirname(fromFileUrl(entrypoint));
+
+  const manifest = await collect(dir);
+  await generate(dir, manifest);
+}
+
 export async function dev(base: string, entrypoint: string) {
   ensureMinDenoVersion();
 
