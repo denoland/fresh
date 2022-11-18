@@ -270,7 +270,7 @@ await Deno.writeTextFile(MAIN_TS_PATH, MAIN_TS);
 
 const DEV_TS = `#!/usr/bin/env -S deno run -A --watch=static/,routes/
 
-import dev from "$fresh/dev.ts";
+import { dev } from "$fresh/dev.ts";
 
 await dev(import.meta.url, "./main.ts");
 `;
