@@ -16,10 +16,10 @@ export default function(state) { hydrate(options, state); }`;
     name: "twind",
     entrypoints: { "main": main },
     render(ctx) {
-      sheet.reset(undefined);
+      sheet.clear();
       const res = ctx.render();
       const cssTexts = [...sheet.target];
-      const snapshot = sheet.reset();
+      const snapshot = sheet.clear();
       const scripts = [];
       let cssText: string;
       if (res.requiresHydration) {
