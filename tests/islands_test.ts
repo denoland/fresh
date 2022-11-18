@@ -73,6 +73,16 @@ Deno.test({
       assertStringIncludes(srcString, imgFilePath);
     });
 
+    await t.step("Ensure an island revives non-JSON props", async () => {
+      let pElem = await page.waitForSelector(`#u8-single-bytelength`);
+      let value = await pElem?.evaluate((el) => el.textContent);
+      assert(value === "3");
+
+      pElem = await page.waitForSelector(`#u8-array-bytelength`);
+      value = await pElem?.evaluate((el) => el.textContent);
+      assert(value === "5");
+    });
+
     await browser.close();
 
     await lines.cancel();

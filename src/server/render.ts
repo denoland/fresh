@@ -18,6 +18,7 @@ import { ContentSecurityPolicy } from "../runtime/csp.ts";
 import { bundleAssetUrl } from "./constants.ts";
 import { assetHashingHook } from "../runtime/utils.ts";
 import { htmlEscapeJsonString } from "./htmlescape.ts";
+import { encodeProps } from "../shared/prop_encoding.ts";
 
 export interface RenderOptions<Data> {
   route: Route<Data> | UnknownPage | ErrorPage;
@@ -374,7 +375,7 @@ options.vnode = (vnode) => {
       vnode.type = (props) => {
         ignoreNext = true;
         const child = h(originalType, props);
-        ISLAND_PROPS.push(props);
+        ISLAND_PROPS.push(encodeProps(props));
         return h(
           `!--frsh-${island.id}:${ISLAND_PROPS.length - 1}--`,
           null,

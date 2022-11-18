@@ -1,5 +1,6 @@
 import { ComponentType, h, options, render } from "preact";
 import { assetHashingHook } from "./utils.ts";
+import { decodeProps } from "../shared/prop_encoding.ts";
 
 function createRootFragment(
   parent: Element,
@@ -42,7 +43,7 @@ export function revive(islands: Record<string, ComponentType>, props: any[]) {
 
       const [id, n] = tag.split(":");
       render(
-        h(islands[id], props[Number(n)]),
+        h(islands[id], decodeProps(props[Number(n)])),
         createRootFragment(
           parent! as HTMLElement,
           children,
