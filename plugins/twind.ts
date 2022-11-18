@@ -1,4 +1,4 @@
-import { virtualSheet } from "twind/sheets";
+import { virtual } from "twind";
 import { Plugin } from "../server.ts";
 
 import { Options, setup, STYLE_ELEMENT_ID } from "./twind/shared.ts";
