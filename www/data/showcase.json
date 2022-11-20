@@ -18,8 +18,6 @@
     "image": "fresh"
   },
   {
-<<<<<<< HEAD
-=======
     "title": "Paquet",
     "link": "https://paquet.shop",
     "github": "fructoland/paquet",
@@ -56,7 +54,6 @@
     "image": "ldkit"
   },
   {
->>>>>>> upstream/main
     "title": "CGPA(AU R-2021) Calculator",
     "link": "https://cgpa-au-2021.deno.dev",
     "github": "codesculpture/cgpa-au-2021",
