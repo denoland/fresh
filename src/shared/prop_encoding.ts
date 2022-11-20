@@ -2,6 +2,7 @@ import {
   decode,
   encode,
 } from "https://deno.land/std@0.150.0/encoding/base64.ts";
+import CRC32 from "https://esm.sh/crc-32@1.2.2";
 
 function replaceValues<T>(
   obj: Record<PropertyKey, unknown>,
@@ -56,15 +57,28 @@ const unpack = (val: unknown): [EncodedType, string] => {
   return [parseInt(s.slice(0, 2), 16), s.slice(2)];
 };
 
-export function encodeProps(props: Record<PropertyKey, unknown>) {
-  return replaceValues(props, (val) => {
-    if (val instanceof Uint8Array) {
-      return pack(EncodedType.UINT8ARRAY, encode(val));
-    }
-  });
+export type EncodedState = {
+  props: Record<PropertyKey, unknown>;
+  crcs: number[];
+};
+
+export function encodeProps(props: Record<PropertyKey, unknown>): EncodedState {
+  const crcs: EncodedState["crcs"] = [];
+  return {
+    props: replaceValues(props, (val) => {
+      if (val instanceof Uint8Array) {
+        crcs.push(CRC32.buf(val));
+        return pack(EncodedType.UINT8ARRAY, encode(val));
+      }
+    }),
+    crcs,
+  };
 }
 
-export function decodeProps(props: Record<PropertyKey, unknown>) {
+export function decodeProps({ props, crcs }: EncodedState) {
+  const check = (val: Uint8Array) =>
+    crcs.includes(CRC32.buf(val)) ? val : undefined;
+
   return replaceValues(props, (val) => {
     const [type, data] = unpack(val);
 
@@ -72,7 +86,7 @@ export function decodeProps(props: Record<PropertyKey, unknown>) {
       case EncodedType.UNKNOWN:
         return undefined;
       case EncodedType.UINT8ARRAY:
-        return decode(data);
+        return check(decode(data));
       default:
         throw new Error(`Unknown type "${type}"`);
     }
