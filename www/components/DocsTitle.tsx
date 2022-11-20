@@ -1,4 +1,4 @@
-export default function DocsTitle() {
+export default function DocsTitle(props: { title: string }) {
   return (
     <>
       <a
@@ -18,7 +18,7 @@ export default function DocsTitle() {
             fill="#0A140C"
           />
         </svg>
-        <span class="font-light block pb-[1px]">docs</span>
+        <span class="font-light block pb-[1px]">{props.title}</span>
       </a>
       <p class="text(sm gray-700)">The next-gen web framework.</p>
     </>

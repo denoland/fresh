@@ -12,6 +12,10 @@ export default function NavigationBar(props: { active: string }) {
       name: "Showcase",
       href: "/showcase",
     },
+    {
+      name: "Components",
+      href: "/components",
+    },
   ];
 
   return (
