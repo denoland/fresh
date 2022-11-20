@@ -162,6 +162,24 @@
     "image": "imasparql-dd"
   },
   {
+    "title": "kadode portal",
+    "link": "https://portal.kado.day/",
+    "github": "KadodeProject/kadode_portal",
+    "image": "kadode_portal"
+  },
+  {
+    "title": "Craig's Deno Diary",
+    "link": "https://deno-blog.com",
+    "github": "https://github.com/cdoremus/deno-blog",
+    "image": "deno-diary"
+  },
+  {
+    "title": "Melon",
+    "link": "https://m.not-ivy.dev/",
+    "github": "not-ivy/melon",
+    "image": "melon"
+  },
+  {
     "title": "Do not remove this, it's for prevent conflicting by trailing comma",
     "link": "",
     "github": "",
