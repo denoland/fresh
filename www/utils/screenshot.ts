@@ -23,7 +23,6 @@ if(!id){
 
 const outDir = "./www/static/showcase";
 const browser = await puppeteer.launch({
-	executablePath: "C:/Program Files/Google/Chrome/Application/chrome.exe", 
   defaultViewport: { width: 1200, height: 675 },
 });
 const page = await browser.newPage();
