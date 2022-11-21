@@ -1,4 +1,4 @@
-import { template } from "./render.tsx";
+import { template } from "./render.ts";
 import { assertStringIncludes } from "../../tests/deps.ts";
 
 Deno.test("check lang", () => {

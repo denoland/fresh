@@ -2,7 +2,7 @@
 
 # fresh
 
-<img align="right" src="./www/static/logo.svg" height="150px" alt="the fresh logo: a sliced lemon dripping with juice">
+<img align="right" src="https://fresh.deno.dev/logo.svg" height="150px" alt="the fresh logo: a sliced lemon dripping with juice">
 
 **Fresh** is a next generation web framework, built for speed, reliability, and
 simplicity.
@@ -24,7 +24,7 @@ The [documentation](https://fresh.deno.dev/docs/) is available on
 
 ## 🚀 Getting started
 
-Install [Deno CLI](https://deno.land/) version 1.23.0 or higher.
+Install [Deno CLI](https://deno.land/) version 1.25.0 or higher.
 
 You can scaffold a new project by running the Fresh init script. To scaffold a
 project in the `deno-fresh-demo` folder, run the following:
@@ -61,3 +61,46 @@ To deploy the project to the live internet, you can use
 For a more in-depth getting started guide, visit the
 [Getting Started](https://fresh.deno.dev/docs/getting-started) page in the Fresh
 docs.
+
+## Adding your project to the showcase
+
+If you feel that your project would be helpful to other fresh users, please
+consider putting your project on the
+[showcase](https://fresh.deno.dev/showcase). However, websites that are just for
+promotional purposes may not be listed.
+
+To take a screenshot, run the following command.
+
+```sh
+deno task screenshot [url] [your-app-name]
+```
+
+Then add your site to
+[showcase.json](https://github.com/denoland/fresh/blob/main/www/data/showcase.json),
+preferably with source code on GitHub, but not required.
+
+## Badges
+
+![Made with Fresh](./www/static/fresh-badge.svg)
+
+```md
+[![Made with Fresh](https://fresh.deno.dev/fresh-badge.svg)](https://fresh.deno.dev)
+```
+
+```html
+<a href="https://fresh.deno.dev">
+   <img width="197" height="37" src="https://fresh.deno.dev/fresh-badge.svg" alt="Made with Fresh" />
+</a>
+```
+
+![Made with Fresh(dark)](./www/static/fresh-badge-dark.svg)
+
+```md
+[![Made with Fresh](https://fresh.deno.dev/fresh-badge-dark.svg)](https://fresh.deno.dev)
+```
+
+```html
+<a href="https://fresh.deno.dev">
+   <img width="197" height="37" src="https://fresh.deno.dev/fresh-badge-dark.svg" alt="Made with Fresh" />
+</a>
+```

@@ -1,5 +1,3 @@
-/** @jsx h */
-import { h } from "preact";
 import { inject } from "../utils/css-inject-plugin.ts";
 
 export default function Home() {

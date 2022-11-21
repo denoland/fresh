@@ -1,14 +1,23 @@
 import { ComponentType } from "preact";
-import { ConnInfo, router, ServeInit } from "./deps.ts";
-import { InnerRenderFunction, RenderContext } from "./render.tsx";
+import { ConnInfo, rutt, ServeInit } from "./deps.ts";
+import { InnerRenderFunction, RenderContext } from "./render.ts";
 
 // --- APPLICATION CONFIGURATION ---
 
-export type StartOptions = ServeInit & FreshOptions;
+export type StartOptions = ServeInit & FreshOptions & {
+  /**
+   * UNSTABLE: use the `Deno.serve` API as the underlying HTTP server instead of
+   * the `std/http` API. Do not use this in production.
+   *
+   * This option is experimental and may be removed in a future Fresh release.
+   */
+  experimentalDenoServe?: boolean;
+};
 
 export interface FreshOptions {
   render?: RenderFunction;
   plugins?: Plugin[];
+  staticDir?: string;
 }
 
 export type RenderFunction = (
@@ -78,7 +87,7 @@ export type Handler<T = any, State = Record<string, unknown>> = (
 
 // deno-lint-ignore no-explicit-any
 export type Handlers<T = any, State = Record<string, unknown>> = {
-  [K in typeof router.METHODS[number]]?: Handler<T, State>;
+  [K in typeof rutt.METHODS[number]]?: Handler<T, State>;
 };
 
 export interface RouteModule {
@@ -204,19 +213,18 @@ export interface MiddlewareRoute extends Middleware {
   compiledPattern: URLPattern;
 }
 
+export type MiddlewareHandler<State = Record<string, unknown>> = (
+  req: Request,
+  ctx: MiddlewareHandlerContext<State>,
+) => Response | Promise<Response>;
+
 // deno-lint-ignore no-explicit-any
 export interface MiddlewareModule<State = any> {
-  handler(
-    req: Request,
-    ctx: MiddlewareHandlerContext<State>,
-  ): Response | Promise<Response>;
+  handler: MiddlewareHandler<State> | MiddlewareHandler<State>[];
 }
 
 export interface Middleware<State = Record<string, unknown>> {
-  handler(
-    req: Request,
-    ctx: MiddlewareHandlerContext<State>,
-  ): Response | Promise<Response>;
+  handler: MiddlewareHandler<State> | MiddlewareHandler<State>[];
 }
 
 // --- ISLANDS ---
@@ -240,7 +248,7 @@ export interface Plugin {
   name: string;
 
   /** A map of a snake-case names to a import specifiers. The entrypoints
-   * declared here can later be used in the "hydrate" option of
+   * declared here can later be used in the "scripts" option of
    * `PluginRenderResult` to load the entrypoint's code on the client.
    */
   entrypoints?: Record<string, string>;

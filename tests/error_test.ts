@@ -4,8 +4,9 @@ import { assert, assertEquals, assertStringIncludes } from "./deps.ts";
 import manifest from "./fixture_error/fresh.gen.ts";
 
 const ctx = await ServerContext.fromManifest(manifest, {});
+const handler = ctx.handler();
 const router = (req: Request) => {
-  return ctx.handler()(req, {
+  return handler(req, {
     localAddr: {
       transport: "tcp",
       hostname: "127.0.0.1",
@@ -27,7 +28,7 @@ Deno.test("error page rendered", async () => {
   const body = await resp.text();
   assertStringIncludes(
     body,
-    `An error occured during route handling or page rendering.`,
+    `An error occurred during route handling or page rendering.`,
   );
   assertStringIncludes(body, `Error: boom!`);
   assertStringIncludes(body, `at render`);

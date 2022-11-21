@@ -1,6 +1,3 @@
-/** @jsx h */
-/** @jsxFrag Fragment */
-import { Fragment, h } from "preact";
 import { asset, Head } from "$fresh/runtime.ts";
 import { Handlers, PageProps } from "$fresh/server.ts";
 import Counter from "../islands/Counter.tsx";
@@ -10,14 +7,8 @@ import VERSIONS from "../../versions.json" assert { type: "json" };
 import * as FeatureIcons from "../components/FeatureIcons.tsx";
 import CopyArea from "../islands/CopyArea.tsx";
 import * as Icons from "../components/Icons.tsx";
+import Projects from "../components/Projects.tsx";
 import projects from "../data/showcase.json" assert { type: "json" };
-
-interface Project {
-  image: string;
-  title: string;
-  link: string;
-  github?: string;
-}
 
 export const handler: Handlers = {
   GET(req, ctx) {
@@ -53,12 +44,13 @@ export default function MainPage(props: PageProps) {
         <meta property="og:image" content={ogImageUrl} />
       </Head>
       <div class="flex flex-col min-h-screen">
+        <HelloBar />
         <Hero />
         <div class="flex-1">
           <Intro />
           <GettingStarted origin={origin} />
           <Example />
-          <Showcase items={projects} />
+          <Showcase />
         </div>
         <Footer />
       </div>
@@ -66,9 +58,23 @@ export default function MainPage(props: PageProps) {
   );
 }
 
+function HelloBar() {
+  return (
+    <a
+      class="bg-green-400 text-black border(b green-500) p-3 text-center group"
+      href="https://deno.com/blog/fresh-1.1"
+    >
+      <b>Fresh v1.1</b> has been released with support for <b>automatic JSX</b>,
+      {" "}
+      <b>plugins</b>, <b>DevTools support</b>, and more!{"  "}
+      <span class="group-hover:underline">→</span>
+    </a>
+  );
+}
+
 function Hero() {
   return (
-    <Fragment>
+    <>
       <div class="flex justify-end items-center bg-green-300">
         <a
           href="/docs"
@@ -80,7 +86,7 @@ function Hero() {
       <section class="w-full flex justify-center items-center flex-col bg-green-300">
         <LemonDrop />
       </section>
-    </Fragment>
+    </>
   );
 }
 
@@ -187,7 +193,7 @@ function GettingStarted(props: { origin: string }) {
           <a href="https://deno.land" class="text-blue-600 hover:underline">
             Deno CLI
           </a>{" "}
-          version 1.23.0 or higher is required.{" "}
+          version 1.25.0 or higher is required.{" "}
           <a
             href="https://deno.land/manual/getting_started/installation"
             class="text-blue-600 hover:underline"
@@ -274,7 +280,7 @@ function Example() {
   );
 }
 
-function Showcase({ items }: { items: Project[] }) {
+function Showcase() {
   return (
     <section class="max-w-screen-md mx-auto my-16 px(4 sm:6 md:8) space-y-4">
       <h2 id="showcase" class="text(3xl gray-600) font-bold">
@@ -283,45 +289,14 @@ function Showcase({ items }: { items: Project[] }) {
         </a>
       </h2>
       <p class="text-gray-600">
-        Below is a selection of projects that have been built with Fresh.{" "}
-        <a
-          href="https://github.com/denoland/fresh/blob/main/www/data/showcase.json"
-          class="text-blue-600 hover:underline"
-        >
-          Add yours!
-        </a>
+        Below is a selection of projects that have been built with Fresh.
       </p>
-      <div class="pt-8 gap-20 md:gap-4 flex-col md:flex-row flex justify-between items-center">
-        {items.map((project) => (
-          <div class="w-full max-w-sm group">
-            <a href={project.link} tabIndex={-1}>
-              <img
-                loading="lazy"
-                src={`/showcase/${project.image}1x.jpg`}
-                srcset={`/showcase/${project.image}2x.jpg 2x, /showcase/${project.image}1x.jpg 1x`}
-                alt={project.title}
-                width={600}
-                height={337}
-                style={{ aspectRatio: "16/9" }}
-                class="object-cover shadow-lg group-hover:(shadow-xl opacity-70) rounded-lg"
-              />
-            </a>
-            <div class="mt-4 flex items-center">
-              <div class="text(lg gray-600) flex-1 group-hover:text-underline">
-                <a href={project.link}>{project.title}</a>
-              </div>
-              {project.github && (
-                <a
-                  href={`https://github.com/${project.github}`}
-                  class="ml-2 text-gray-500 hover:text-gray-700"
-                >
-                  <span class="sr-only">GitHub</span>
-                  <Icons.GitHub class="inline float-right" />
-                </a>
-              )}
-            </div>
-          </div>
-        ))}
+      <Projects items={projects.slice(0, 3)} class="gap-8" />
+      <div class="flex gap-2 items-center justify-end text-blue-600">
+        <Icons.ArrowRight />
+        <a href="./showcase" class="hover:underline focus:underline">
+          View more
+        </a>
       </div>
     </section>
   );
