@@ -26,11 +26,14 @@ const browser = await puppeteer.launch({
 });
 const page = await browser.newPage();
 await page.goto(url, { waitUntil: "networkidle2" });
-const png2x = join(outDir, `${id}.png`);
 const raw = await page.screenshot();
 
 await browser.close();
 
+if (!(raw instanceof Uint8Array)) {
+  console.log("Invalid Image");
+  Deno.exit(0);
+}
 // convert to jpeg
 const image2x = await Image.decode(raw);
 const jpeg2x = join(outDir, `${id}2x.jpg`);
