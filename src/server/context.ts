@@ -226,10 +226,13 @@ export class ServerContext {
     sortRoutes(middlewares);
 
     for (const [self, module] of Object.entries(manifest.islands)) {
-      const url = new URL(self, baseUrl).href;        
+      const url = new URL(self, baseUrl).href;
       let baseRoute = self.substring(0, self.length - extname(self).length);
-      if(self.startsWith("./islands/")) {
-        baseRoute = self.substring("./islands/".length, self.length - extname(self).length);
+      if (self.startsWith("./islands/")) {
+        baseRoute = self.substring(
+          "./islands/".length,
+          self.length - extname(self).length,
+        );
       }
       const name = sanitizeIslandName(baseRoute);
       const id = name.toLowerCase();
@@ -751,7 +754,7 @@ function sanitizeIslandName(name: string): string {
   // Remove all non-alphanumeric characters to make a safe variable name
   let fileName = name.replaceAll(/[^a-zA-Z0-9_]/g, "_");
   // Append $ to in case the variable name would start with a numeric
-  if(fileName.match(/^[0-9]/)) {fileName = "$" + fileName;}
+  if (fileName.match(/^[0-9]/)) fileName = "$" + fileName;
   return toPascalCase(fileName);
 }
 

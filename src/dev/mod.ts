@@ -1,11 +1,4 @@
-import {
-  dirname,
-  fromFileUrl,
-  gte,
-  join,
-  toFileUrl,
-  walk,
-} from "./deps.ts";
+import { dirname, fromFileUrl, gte, join, toFileUrl, walk } from "./deps.ts";
 import { error } from "./error.ts";
 
 const MIN_DENO_VERSION = "1.25.0";
@@ -32,7 +25,10 @@ interface Manifest {
   islands: string[];
 }
 
-export async function collect(directory: string, islandsPaths: string[]): Promise<Manifest> {
+export async function collect(
+  directory: string,
+  islandsPaths: string[],
+): Promise<Manifest> {
   const routesDir = join(directory, "./routes");
 
   const routes = [];
@@ -62,8 +58,8 @@ export async function collect(directory: string, islandsPaths: string[]): Promis
 
   const islands = [];
   try {
-    for(const islandPath of islandsPaths) {
-      if(isURL(islandPath)) {
+    for (const islandPath of islandsPaths) {
+      if (isURL(islandPath)) {
         islands.push(islandPath);
         continue;
       }
@@ -160,7 +156,11 @@ export default manifest;
   );
 }
 
-export async function dev(base: string, entrypoint: string, islandsPaths: string | string[] = "./islands") {
+export async function dev(
+  base: string,
+  entrypoint: string,
+  islandsPaths: string | string[] = "./islands",
+) {
   ensureMinDenoVersion();
 
   entrypoint = new URL(entrypoint, base).href;
