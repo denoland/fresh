@@ -226,12 +226,11 @@ export class ServerContext {
     sortRoutes(middlewares);
 
     for (const [self, module] of Object.entries(manifest.islands)) {
-      const url = new URL(self, baseUrl).href;
-      if (!url.startsWith(baseUrl)) {
-        throw new TypeError("Island is not a child of the basepath.");
+      const url = new URL(self, baseUrl).href;        
+      let baseRoute = self.substring(0, self.length - extname(self).length);
+      if(self.startsWith("./islands/")) {
+        baseRoute = self.substring("./islands/".length, self.length - extname(self).length);
       }
-      const path = url.substring(baseUrl.length).substring("islands".length);
-      const baseRoute = path.substring(1, path.length - extname(path).length);
       const name = sanitizeIslandName(baseRoute);
       const id = name.toLowerCase();
       if (typeof module.default !== "function") {
@@ -749,7 +748,10 @@ function toPascalCase(text: string): string {
 }
 
 function sanitizeIslandName(name: string): string {
-  const fileName = name.replace("/", "");
+  // Remove all non-alphanumeric characters to make a safe variable name
+  let fileName = name.replaceAll(/[^a-zA-Z0-9_]/g, "_");
+  // Append $ to in case the variable name would start with a numeric
+  if(fileName.match(/^[0-9]/)) {fileName = "$" + fileName;}
   return toPascalCase(fileName);
 }
 

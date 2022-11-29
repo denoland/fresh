@@ -1,6 +1,5 @@
 import {
   dirname,
-  extname,
   fromFileUrl,
   gte,
   join,
@@ -33,18 +32,12 @@ interface Manifest {
   islands: string[];
 }
 
-export async function collect(directory: string): Promise<Manifest> {
+export async function collect(directory: string, islandsPaths: string[]): Promise<Manifest> {
   const routesDir = join(directory, "./routes");
-  const islandsDir = join(directory, "./islands");
 
   const routes = [];
   try {
     const routesUrl = toFileUrl(routesDir);
-    // TODO(lucacasonato): remove the extranious Deno.readDir when
-    // https://github.com/denoland/deno_std/issues/1310 is fixed.
-    for await (const _ of Deno.readDir(routesDir)) {
-      // do nothing
-    }
     const routesFolder = walk(routesDir, {
       includeDirs: false,
       includeFiles: true,
@@ -69,19 +62,25 @@ export async function collect(directory: string): Promise<Manifest> {
 
   const islands = [];
   try {
-    const islandsUrl = toFileUrl(islandsDir);
-    for await (const entry of Deno.readDir(islandsDir)) {
-      if (entry.isDirectory) {
-        error(
-          `Found subdirectory '${entry.name}' in islands/. The islands/ folder must not contain any subdirectories.`,
-        );
+    for(const islandPath of islandsPaths) {
+      if(isURL(islandPath)) {
+        islands.push(islandPath);
+        continue;
       }
-      if (entry.isFile) {
-        const ext = extname(entry.name);
-        if (![".tsx", ".jsx", ".ts", ".js"].includes(ext)) continue;
-        const path = join(islandsDir, entry.name);
-        const file = toFileUrl(path).href.substring(islandsUrl.href.length);
-        islands.push(file);
+      const islandsDir = join(directory, islandPath);
+      const islandsUrl = toFileUrl(islandsDir);
+      const islandFolders = walk(islandsDir, {
+        includeDirs: false,
+        includeFiles: true,
+        exts: ["tsx", "jsx", "ts", "js"],
+      });
+      for await (const entry of islandFolders) {
+        if (entry.isFile) {
+          const file = toFileUrl(entry.path).href.substring(
+            islandsUrl.href.length,
+          );
+          islands.push(islandPath + file);
+        }
       }
     }
   } catch (err) {
@@ -110,7 +109,7 @@ ${
     )
   }
 ${
-    islands.map((file, i) => `import * as $$${i} from "./islands${file}";`)
+    islands.map((file, i) => `import * as $$${i} from "${file}";`)
       .join("\n")
   }
 
@@ -123,7 +122,7 @@ const manifest = {
   },
   islands: {
     ${
-    islands.map((file, i) => `${JSON.stringify(`./islands${file}`)}: $$${i},`)
+    islands.map((file, i) => `${JSON.stringify(`${file}`)}: $$${i},`)
       .join("\n    ")
   }
   },
@@ -161,12 +160,13 @@ export default manifest;
   );
 }
 
-export async function dev(base: string, entrypoint: string) {
+export async function dev(base: string, entrypoint: string, islandsPaths: string | string[] = "./islands") {
   ensureMinDenoVersion();
 
   entrypoint = new URL(entrypoint, base).href;
 
   const dir = dirname(fromFileUrl(base));
+  islandsPaths = Array.isArray(islandsPaths) ? islandsPaths : [islandsPaths];
 
   let currentManifest: Manifest;
   const prevManifest = Deno.env.get("FRSH_DEV_PREVIOUS_MANIFEST");
@@ -175,7 +175,7 @@ export async function dev(base: string, entrypoint: string) {
   } else {
     currentManifest = { islands: [], routes: [] };
   }
-  const newManifest = await collect(dir);
+  const newManifest = await collect(dir, islandsPaths);
   Deno.env.set("FRSH_DEV_PREVIOUS_MANIFEST", JSON.stringify(newManifest));
 
   const manifestChanged =
@@ -193,4 +193,13 @@ function arraysEqual<T>(a: T[], b: T[]): boolean {
     if (a[i] !== b[i]) return false;
   }
   return true;
+}
+
+function isURL(url: unknown): boolean {
+  try {
+    new URL(url as string);
+    return true;
+  } catch {
+    return false;
+  }
 }
