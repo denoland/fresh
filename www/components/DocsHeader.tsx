@@ -3,7 +3,7 @@ import NavigationBar from "./NavigationBar.tsx";
 
 export default function DocsHeader(props: { title: string; active: string }) {
   return (
-    <div class="">
+    <div>
       <header class="mx-auto max-w-screen-lg flex gap-3 justify-between">
         <div class="p-4 flex items-center">
           <Logo />
