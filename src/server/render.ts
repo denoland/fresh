@@ -174,7 +174,11 @@ export async function render<Data>(
   function render(): PluginRenderFunctionResult {
     const plugin = plugins.shift();
     if (plugin) {
-      const res = plugin.render!({ render });
+      const res = plugin.render!({
+          context: ctx,
+          render,
+          vnode,
+        });
       if (res === undefined) {
         throw new Error(
           `${plugin?.name}'s render hook did not return a PluginRenderResult object.`,

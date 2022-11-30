@@ -38,7 +38,8 @@ Deno.test("/static page prerender", async () => {
 });
 
 Deno.test("/with-island prerender", async () => {
-  const resp = await router(new Request("https://fresh.deno.dev/with-island"));
+  const url = "https://fresh.deno.dev/with-island"
+  const resp = await router(new Request(url));
   assert(resp);
   assertEquals(resp.status, Status.OK);
   const body = await resp.text();
@@ -46,7 +47,7 @@ Deno.test("/with-island prerender", async () => {
     body,
     '<style id="abc">body { color: red; } h1 { color: blue; }</style>',
   );
-  assertStringIncludes(body, `>[[{}],["JS injected!"]]</script>`);
+  assertStringIncludes(body, `>[[{}],["JS injected! type:function url:${url}"]]</script>`);
   assertStringIncludes(body, `/plugin-js-inject-main.js"`);
 });
 
@@ -80,8 +81,8 @@ Deno.test({
 
     const browser = await puppeteer.launch({ args: ["--no-sandbox"] });
     const page = await browser.newPage();
-
-    await page.goto("http://localhost:8000/with-island", {
+    const url = "http://localhost:8000/with-island"
+    await page.goto(url, {
       waitUntil: "networkidle2",
     });
 
@@ -91,7 +92,7 @@ Deno.test({
 
     await t.step("title was updated", async () => {
       const title = await page.title();
-      assertEquals(title, "JS injected!");
+      assertEquals(title, `JS injected! type:function url:${url}`);
     });
 
     await browser.close();
