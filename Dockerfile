@@ -46,8 +46,6 @@ RUN apt-get -qq update \
     libdrm2 \
     libxkbcommon0 \
     libxshmfence1 \
-    && apt-get -qq remove --purge -y \
-# Do not remove ca-certificates as it is required by puppeteer.
     && apt-get -y -qq autoremove \
     && apt-get -qq clean \
     && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
