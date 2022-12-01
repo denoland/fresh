@@ -1,8 +1,7 @@
 import { Head } from "$fresh/runtime.ts";
 import Projects, { Project } from "../components/Projects.tsx";
-import DocsHeader from "../components/DocsHeader.tsx";
+import Header from "../components/Header.tsx";
 import Footer from "../components/Footer.tsx";
-import NavigationBar from "../components/NavigationBar.tsx";
 import projects from "../data/showcase.json" assert { type: "json" };
 
 export default function ShowcasePage() {
@@ -11,8 +10,7 @@ export default function ShowcasePage() {
       <Head>
         <title>Showcase | fresh</title>
       </Head>
-      <DocsHeader title="showcase" />
-      <NavigationBar active="/showcase" />
+      <Header title="showcase" active="/showcase" />
 
       <div class="flex flex-col min-h-screen">
         <div class="flex-1">

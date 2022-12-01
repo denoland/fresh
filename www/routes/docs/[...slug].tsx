@@ -2,11 +2,10 @@ import { Head } from "$fresh/runtime.ts";
 import { Handlers, PageProps } from "$fresh/server.ts";
 import { frontMatter, gfm } from "../../utils/markdown.ts";
 
+import Header from "../../components/Header.tsx";
 import DocsTitle from "../../components/DocsTitle.tsx";
-import DocsHeader from "../../components/DocsHeader.tsx";
 import DocsSidebar from "../../components/DocsSidebar.tsx";
 import Footer from "../../components/Footer.tsx";
-import NavigationBar from "../../components/NavigationBar.tsx";
 import {
   SLUGS,
   TABLE_OF_CONTENTS,
@@ -66,19 +65,42 @@ export default function DocsPage(props: PageProps<Data>) {
         {description && <meta name="description" content={description} />}
       </Head>
       <div class="flex flex-col min-h-screen">
-        <DocsHeader title="docs" />
-        <NavigationBar active="/docs" />
+        <Header title="docs" active="/docs" />
         <Main path={props.url.pathname} page={props.data.page} />
         <Footer />
       </div>
     </>
   );
 }
-
+import IconBooks from "https://deno.land/x/tabler_icons_tsx@0.0.1/tsx/books.tsx";
 function Main(props: { path: string; page: Page }) {
   return (
     <div class="flex-1">
       <MobileSidebar path={props.path} />
+      <div class="flex mx-auto max-w-screen-lg px-4 py-5 justify-end">
+        <label
+          for="docs_sidebar"
+          class="px-4 py-3 md:hidden flex items-center hover:bg-gray-100 rounded gap-2"
+        >
+          <svg
+            class="h-6 w-6"
+            stroke="currentColor"
+            fill="none"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth="2"
+              d="M4 6h16M4 12h16M4 18h7"
+            >
+            </path>
+          </svg>
+          <div>
+            Menu
+          </div>
+        </label>
+      </div>
       <div class="mx-auto max-w-screen-lg px-4 flex gap-6">
         <DesktopSidebar path={props.path} />
         <Content page={props.page} />
@@ -126,7 +148,7 @@ function DesktopSidebar(props: { path: string }) {
 function Content(props: { page: Page }) {
   const html = gfm.render(props.page.markdown);
   return (
-    <main class="py-8 overflow-hidden">
+    <main class="py-6 overflow-hidden">
       <h1 class="text(4xl gray-900) tracking-tight font-extrabold mt-6">
         {props.page.title}
       </h1>
