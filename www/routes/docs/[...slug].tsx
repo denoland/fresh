@@ -2,8 +2,8 @@ import { Head } from "$fresh/runtime.ts";
 import { Handlers, PageProps } from "$fresh/server.ts";
 import { frontMatter, gfm } from "../../utils/markdown.ts";
 
+import Header from "../../components/Header.tsx";
 import DocsTitle from "../../components/DocsTitle.tsx";
-import DocsHeader from "../../components/DocsHeader.tsx";
 import DocsSidebar from "../../components/DocsSidebar.tsx";
 import Footer from "../../components/Footer.tsx";
 import {
@@ -65,7 +65,7 @@ export default function DocsPage(props: PageProps<Data>) {
         {description && <meta name="description" content={description} />}
       </Head>
       <div class="flex flex-col min-h-screen">
-        <DocsHeader title="docs" active="/docs" />
+        <Header title="docs" active="/docs" />
         <Main path={props.url.pathname} page={props.data.page} />
         <Footer />
       </div>

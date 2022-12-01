@@ -1,16 +1,17 @@
 import DocsTitle from "./DocsTitle.tsx";
+import NavigationBar from "./NavigationBar.tsx";
 
-export default function DocsHeader(props: { title: string }) {
+export default function Header(props: { title: string; active: string }) {
   return (
-    <div class="bg-green-300">
+    <div>
       <header class="mx-auto max-w-screen-lg flex gap-3 justify-between">
-        <div class="p-4 flex">
+        <div class="p-4 flex items-center">
           <Logo />
-          <div>
-            <DocsTitle title={props.title} />
-          </div>
+          <DocsTitle title={props.title} />
         </div>
+        <NavigationBar class="hidden md:flex" active={props.active} />
       </header>
+      <NavigationBar class="md:hidden pb-3" active={props.active} />
     </div>
   );
 }

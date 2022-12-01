@@ -9,8 +9,7 @@ import CopyArea from "../islands/CopyArea.tsx";
 import * as Icons from "../components/Icons.tsx";
 import Projects from "../components/Projects.tsx";
 import projects from "../data/showcase.json" assert { type: "json" };
-import DocsHeader from "../components/DocsHeader.tsx";
-import NavigationBar from "../components/NavigationBar.tsx";
+import Header from "../components/Header.tsx";
 
 export const handler: Handlers = {
   GET(req, ctx) {
@@ -47,7 +46,7 @@ export default function MainPage(props: PageProps) {
       </Head>
 
       <div class="flex flex-col min-h-screen">
-        <DocsHeader title="" active="/" />
+        <Header title="" active="/" />
 
         <HelloBar />
         <Hero />
