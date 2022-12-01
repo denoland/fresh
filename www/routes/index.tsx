@@ -46,10 +46,12 @@ export default function MainPage(props: PageProps) {
       </Head>
 
       <div class="flex flex-col min-h-screen">
-        <Header title="" active="/" />
+        <div class="bg-green-300 flex flex-col">
+          <HelloBar />
+          <Header title="" active="/" />
 
-        <HelloBar />
-        <Hero />
+          <Hero />
+        </div>
         <div class="flex-1">
           <Intro />
           <GettingStarted origin={origin} />
