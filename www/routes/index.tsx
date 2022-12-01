@@ -9,6 +9,7 @@ import CopyArea from "../islands/CopyArea.tsx";
 import * as Icons from "../components/Icons.tsx";
 import Projects from "../components/Projects.tsx";
 import projects from "../data/showcase.json" assert { type: "json" };
+import Header from "../components/Header.tsx";
 
 export const handler: Handlers = {
   GET(req, ctx) {
@@ -43,9 +44,14 @@ export default function MainPage(props: PageProps) {
         <meta property="og:url" content={props.url.href} />
         <meta property="og:image" content={ogImageUrl} />
       </Head>
+
       <div class="flex flex-col min-h-screen">
-        <HelloBar />
-        <Hero />
+        <div class="bg-green-300 flex flex-col">
+          <HelloBar />
+          <Header title="" active="/" />
+
+          <Hero />
+        </div>
         <div class="flex-1">
           <Intro />
           <GettingStarted origin={origin} />
@@ -75,28 +81,6 @@ function HelloBar() {
 function Hero() {
   return (
     <>
-      <nav class="flex gap-2 p-4 justify-end items-center bg-green-300">
-        <a
-          href="/docs"
-          class="border(1 black) inline-flex items-center h-10 px-4 text-black bg-transparent rounded hover:bg-white"
-        >
-          Documentation
-        </a>
-        <a
-          href="https://github.com/denoland/fresh"
-          class="px-4 hover:text-white"
-        >
-          <span class='sr-only'>GitHub</span>
-          <Icons.GitHub  />
-        </a>
-        <a
-          href="https://discord.com/channels/684898665143206084/991511118524715139"
-          class='px-4 hover:text-white'
-        >
-          <span class='sr-only'>Discord</span>
-          <Icons.Discord />
-        </a>
-      </nav>
       <section class="w-full flex justify-center items-center flex-col bg-green-300">
         <LemonDrop />
       </section>
@@ -162,7 +146,7 @@ function Intro() {
       <div class="md:flex items-center">
         <div class="flex-1 text-center md:text-left">
           <h2 class="py-2 text(5xl sm:5xl lg:5xl gray-900) sm:tracking-tight sm:leading-[1.1]! font-extrabold">
-            The <span class="text-green-500">next-gen</span> web framework.
+            The <span class="text-green-600">next-gen</span> web framework.
           </h2>
 
           <p class="mt-4 text-gray-600">
