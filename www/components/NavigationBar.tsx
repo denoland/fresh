@@ -16,6 +16,10 @@ export default function NavigationBar(
       name: "Components",
       href: "/components",
     },
+    {
+      name: "Discord",
+      href: "https://discord.com/invite/deno",
+    },
   ];
   const isHome = props.active == "/";
   return (
@@ -42,14 +46,6 @@ export default function NavigationBar(
             class="hover:text-green-600 inline-block"
           >
             <Icons.GitHub />
-          </a>
-        </li>
-        <li class="flex items-center">
-          <a
-            href="https://discord.com/channels/684898665143206084/991511118524715139"
-            class="hover:text-green-600 inline-block"
-          >
-            <Icons.Discord />
           </a>
         </li>
       </ul>
