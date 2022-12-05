@@ -189,6 +189,12 @@
     "image": "webhook-manager"
   },
   {
+    "title": "Moe Counter",
+    "link": "https://count.nekooftheabyss.moe/",
+    "github": "retraigo/moe-counter",
+    "image": "moe-counter"
+  },
+  {
     "title": "Do not remove this, it's for prevent conflicting by trailing comma",
     "link": "",
     "github": "",
