@@ -177,6 +177,12 @@
     "image": "melon"
   },
   {
+    "title": "Game Orb",
+    "link": "https://fabimc-game-orb.deno.dev/",
+    "github": "fabimc/game-orb",
+    "image": "game-orb"
+  },
+  {
     "title": "Webhook Manager",
     "link": "https://webhook-demo.deno.dev/",
     "github": "avnigenc/deno-fresh-webhook-demo",
