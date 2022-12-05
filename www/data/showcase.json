@@ -195,6 +195,12 @@
     "image": "moe-counter"
   },
   {
+    "title": "Deno Jobs",
+    "link": "https://vacancy.deno.dev/",
+    "github": "VofSwords/deno-jobs",
+    "image": "deno-jobs"
+  },
+  {
     "title": "Do not remove this, it's for prevent conflicting by trailing comma",
     "link": "",
     "github": "",
