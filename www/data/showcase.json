@@ -201,6 +201,11 @@
     "image": "deno-jobs"
   },
   {
+    "title": "java.minidoodle",
+    "link": "https://javaminidoodle.de/",
+    "image": "javaminidoodle"
+  },
+  {
     "title": "Do not remove this, it's for prevent conflicting by trailing comma",
     "link": "",
     "github": "",
