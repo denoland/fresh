@@ -201,10 +201,15 @@
     "image": "deno-jobs"
   },
   {
+    "title": "java.minidoodle",
+    "link": "https://javaminidoodle.de/",
+    "image": "javaminidoodle"
+  },
+  {
     "title": "Ppaste",
     "link": "https://ppaste.deno.dev/",
     "github": "n4ze3m/p-paste",
-    "image": "ppaste"
+    "image": "ppaste"  
   },
   {
     "title": "Do not remove this, it's for prevent conflicting by trailing comma",
