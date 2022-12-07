@@ -45,6 +45,7 @@ export class Bundler {
   #plugins: Plugin[];
   #cache: Map<string, Uint8Array> | Promise<void> | undefined = undefined;
   #dev: boolean;
+  #mainEntryPoint: string | undefined = undefined;
 
   constructor(
     islands: Island[],
@@ -52,19 +53,27 @@ export class Bundler {
     importMapURL: URL,
     jsxConfig: JSXConfig,
     dev: boolean,
+    mainEntryPoint: string | undefined,
   ) {
     this.#islands = islands;
     this.#plugins = plugins;
     this.#importMapURL = importMapURL;
     this.#jsxConfig = jsxConfig;
     this.#dev = dev;
+    this.#mainEntryPoint = mainEntryPoint;
+  }
+
+  getMainEntrypoint() {
+    if (this.#mainEntryPoint) return this.#mainEntryPoint;
+    if (this.#dev) {
+      return new URL("../../src/runtime/main_dev.ts", import.meta.url).href
+    }
+    return new URL("../../src/runtime/main.ts", import.meta.url).href;
   }
 
   async bundle() {
     const entryPoints: Record<string, string> = {
-      main: this.#dev
-        ? new URL("../../src/runtime/main_dev.ts", import.meta.url).href
-        : new URL("../../src/runtime/main.ts", import.meta.url).href,
+      main: this.getMainEntrypoint()
     };
 
     for (const island of this.#islands) {
