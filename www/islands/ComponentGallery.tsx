@@ -109,7 +109,7 @@ export default function ComponentGallery(props: ComponentGalleryProps) {
 
       <Section title="Features" source={props.sources.Features}>
         <Features />
-      </Section>      
+      </Section>
     </>
   );
 }
