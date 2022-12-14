@@ -1,6 +1,5 @@
 import PageFooter from "../components/Footer.tsx";
-import DocsHeader from "../components/DocsHeader.tsx";
-import NavigationBar from "../components/NavigationBar.tsx";
+import Header from "../components/Header.tsx";
 import ComponentGallery from "../islands/ComponentGallery.tsx";
 
 import { Head } from "$fresh/runtime.ts";
@@ -42,8 +41,7 @@ export default function Home(props: PageProps<HomeProps>) {
           href="https://esm.sh/prismjs@1.27.0/themes/prism-dark.min.css"
         />
       </Head>
-      <DocsHeader title="components" />
-      <NavigationBar active="/components" />
+      <Header title="components" active="/components" />
 
       <section class="my-16 px(4 sm:6 md:8) mx-auto max-w-screen-lg space-y-5">
         <h2 class="text(3xl gray-600) font-bold">

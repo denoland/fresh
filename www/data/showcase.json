@@ -177,6 +177,41 @@
     "image": "melon"
   },
   {
+    "title": "Game Orb",
+    "link": "https://fabimc-game-orb.deno.dev/",
+    "github": "fabimc/game-orb",
+    "image": "game-orb"
+  },
+  {
+    "title": "Webhook Manager",
+    "link": "https://webhook-demo.deno.dev/",
+    "github": "avnigenc/deno-fresh-webhook-demo",
+    "image": "webhook-manager"
+  },
+  {
+    "title": "Moe Counter",
+    "link": "https://count.nekooftheabyss.moe/",
+    "github": "retraigo/moe-counter",
+    "image": "moe-counter"
+  },
+  {
+    "title": "Deno Jobs",
+    "link": "https://vacancy.deno.dev/",
+    "github": "VofSwords/deno-jobs",
+    "image": "deno-jobs"
+  },
+  {
+    "title": "java.minidoodle",
+    "link": "https://javaminidoodle.de/",
+    "image": "javaminidoodle"
+  },
+  {
+    "title": "Ppaste",
+    "link": "https://ppaste.deno.dev/",
+    "github": "n4ze3m/p-paste",
+    "image": "ppaste"
+  },
+  {
     "title": "Do not remove this, it's for prevent conflicting by trailing comma",
     "link": "",
     "github": "",
