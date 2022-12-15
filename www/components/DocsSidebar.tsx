@@ -1,16 +1,22 @@
+import { Head } from "$fresh/runtime.ts";
 import {
   CATEGORIES,
   TableOfContentsCategory,
   TableOfContentsCategoryEntry,
 } from "../data/docs.ts";
+import SearchButton from "../islands/SearchButton.tsx";
 
 export default function DocsSidebar(props: { path: string }) {
+  const id = String(Math.random()).replaceAll(".", "");
   return (
-    <ol class="list-decimal list-inside font-semibold nested">
-      {CATEGORIES.map((category) => (
-        <SidebarCategory path={props.path} category={category} />
-      ))}
-    </ol>
+    <>
+      <SearchButton />
+      <ol class="list-decimal list-inside font-semibold nested">
+        {CATEGORIES.map((category) => (
+          <SidebarCategory path={props.path} category={category} />
+        ))}
+      </ol>
+    </>
   );
 }
 
