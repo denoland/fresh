@@ -19,10 +19,10 @@ export default function SearchButton() {
       <Head>
         <link
           rel="stylesheet"
-          href="https://cdn.jsdelivr.net/npm/@docsearch/css@3"
+          href="/docsearch.css"
         />
       </Head>
-      <div ref={ref}></div>
+      <div class="h-9" ref={ref}></div>
     </>
   );
 }
