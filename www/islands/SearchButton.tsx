@@ -7,9 +7,9 @@ export default function SearchButton() {
   useEffect(() => {
     if (ref.current) {
       docsearch({
-        appId: "R2IYF7ETH7",
-        apiKey: "599cec31baffa4868cae4e79f180729b",
-        indexName: "docsearch",
+        appId: "CWUS37S0PK",
+        apiKey: "caa591b6dcb2c9308551361d954a728b",
+        indexName: "fresh",
         container: ref.current,
       });
     }
