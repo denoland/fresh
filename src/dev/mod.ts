@@ -5,10 +5,10 @@ import {
   gte,
   isWindows,
   join,
+  posixSEP,
   relative,
   SEP,
   walk,
-  posixSEP
 } from "./deps.ts";
 import { error } from "./error.ts";
 
