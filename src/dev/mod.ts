@@ -7,7 +7,6 @@ import {
   join,
   relative,
   SEP,
-  SEP_PATTERN,
   walk,
   posixSEP
 } from "./deps.ts";
@@ -243,7 +242,7 @@ function getManifestItemFromPath(directory: string, filePath: string) {
   }
 
   if (isWindows) {
-    relativePath = relativePath.replaceAll(SEP_PATTERN, posixSEP);
+    relativePath = relativePath.replaceAll(SEP, posixSEP);
   }
 
   return relativePath;

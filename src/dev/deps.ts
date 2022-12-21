@@ -7,7 +7,6 @@ export {
   relative,
   resolve,
   SEP,
-  SEP_PATTERN,
 } from "https://deno.land/std@0.150.0/path/mod.ts";
 export { sep as posixSEP } from "https://deno.land/std@0.150.0/path/posix.ts";
 export { walk } from "https://deno.land/std@0.150.0/fs/walk.ts";
