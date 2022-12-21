@@ -176,5 +176,5 @@ await start(manifest, { plugins: [twindPlugin(twindConfig)] });\n`;
   }
 }
 
-const manifest = await collect(resolvedDirectory, ["./islands"]);
+const manifest = await collect(resolvedDirectory);
 await generate(resolvedDirectory, manifest);

@@ -1,4 +1,12 @@
-import { dirname, fromFileUrl, gte, join, toFileUrl, walk } from "./deps.ts";
+import {
+  dirname,
+  expandGlob,
+  fromFileUrl,
+  gte,
+  join,
+  posixRelative,
+  walk,
+} from "./deps.ts";
 import { error } from "./error.ts";
 
 const MIN_DENO_VERSION = "1.25.0";
@@ -27,13 +35,16 @@ interface Manifest {
 
 export async function collect(
   directory: string,
-  islandsPaths: string[],
+  options?: Partial<Options>,
 ): Promise<Manifest> {
+  const resolvedOptions: Options = {
+    ...defaultOptions,
+    ...options,
+  };
   const routesDir = join(directory, "./routes");
 
-  const routes = [];
+  let routes = [];
   try {
-    const routesUrl = toFileUrl(routesDir);
     const routesFolder = walk(routesDir, {
       includeDirs: false,
       includeFiles: true,
@@ -41,10 +52,9 @@ export async function collect(
     });
     for await (const entry of routesFolder) {
       if (entry.isFile) {
-        const file = toFileUrl(entry.path).href.substring(
-          routesUrl.href.length,
-        );
-        routes.push(file);
+        const relativeFile = posixRelative(directory, entry.path);
+        const fixedFilePath = fixRelativePath(relativeFile);
+        routes.push(fixedFilePath);
       }
     }
   } catch (err) {
@@ -56,26 +66,35 @@ export async function collect(
   }
   routes.sort();
 
-  const islands = [];
+  const islands: string[] = [];
   try {
-    for (const islandPath of islandsPaths) {
+    for (const islandPath of resolvedOptions.islandPaths) {
       if (isURL(islandPath)) {
         islands.push(islandPath);
         continue;
       }
       const islandsDir = join(directory, islandPath);
-      const islandsUrl = toFileUrl(islandsDir);
       const islandFolders = walk(islandsDir, {
         includeDirs: false,
-        includeFiles: true,
-        exts: ["tsx", "jsx", "ts", "js"],
       });
       for await (const entry of islandFolders) {
         if (entry.isFile) {
-          const file = toFileUrl(entry.path).href.substring(
-            islandsUrl.href.length,
-          );
-          islands.push(islandPath + file);
+          const relativeFile = posixRelative(directory, entry.path);
+          const fixedFilePath = fixRelativePath(relativeFile);
+          islands.push(fixedFilePath);
+        }
+      }
+    }
+
+    for (const islandGlob of resolvedOptions.islandGlobs) {
+      const islandFiles = expandGlob(islandGlob, {
+        includeDirs: false,
+      });
+      for await (const entry of islandFiles) {
+        if (entry.isFile) {
+          const relativeFile = posixRelative(directory, entry.path);
+          const fixedFilePath = fixRelativePath(relativeFile);
+          islands.push(fixedFilePath);
         }
       }
     }
@@ -87,7 +106,8 @@ export async function collect(
     }
   }
   islands.sort();
-
+  // Remove any islands that are in the routes directory in case they are mixed via globs
+  routes = routes.filter((r) => islands.indexOf(r) === -1);
   return { routes, islands };
 }
 
@@ -100,7 +120,7 @@ export async function generate(directory: string, manifest: Manifest) {
 
 import config from "./deno.json" assert { type: "json" };
 ${
-    routes.map((file, i) => `import * as $${i} from "./routes${file}";`).join(
+    routes.map((file, i) => `import * as $${i} from "${file}";`).join(
       "\n",
     )
   }
@@ -112,7 +132,7 @@ ${
 const manifest = {
   routes: {
     ${
-    routes.map((file, i) => `${JSON.stringify(`./routes${file}`)}: $${i},`)
+    routes.map((file, i) => `${JSON.stringify(`${file}`)}: $${i},`)
       .join("\n    ")
   }
   },
@@ -156,17 +176,27 @@ export default manifest;
   );
 }
 
+const defaultOptions = {
+  islandPaths: ["./islands"],
+  islandGlobs: [] as string[],
+};
+
+type Options = typeof defaultOptions;
+
 export async function dev(
   base: string,
   entrypoint: string,
-  islandsPaths: string | string[] = "./islands",
+  options?: Partial<Options>,
 ) {
   ensureMinDenoVersion();
+  const resolvedOptions: Options = {
+    ...defaultOptions,
+    ...options,
+  };
 
   entrypoint = new URL(entrypoint, base).href;
 
   const dir = dirname(fromFileUrl(base));
-  islandsPaths = Array.isArray(islandsPaths) ? islandsPaths : [islandsPaths];
 
   let currentManifest: Manifest;
   const prevManifest = Deno.env.get("FRSH_DEV_PREVIOUS_MANIFEST");
@@ -175,7 +205,7 @@ export async function dev(
   } else {
     currentManifest = { islands: [], routes: [] };
   }
-  const newManifest = await collect(dir, islandsPaths);
+  const newManifest = await collect(dir, resolvedOptions);
   Deno.env.set("FRSH_DEV_PREVIOUS_MANIFEST", JSON.stringify(newManifest));
 
   const manifestChanged =
@@ -202,4 +232,11 @@ function isURL(url: unknown): boolean {
   } catch {
     return false;
   }
+}
+
+function fixRelativePath(filePath: string) {
+  if (!filePath.startsWith(".") && !filePath.startsWith("/")) {
+    return `./${filePath}`;
+  }
+  return filePath;
 }

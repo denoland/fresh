@@ -5,9 +5,10 @@ export {
   fromFileUrl,
   join,
   resolve,
-  toFileUrl,
 } from "https://deno.land/std@0.150.0/path/mod.ts";
+export { relative as posixRelative } from "https://deno.land/std@0.150.0/path/posix.ts";
 export { walk } from "https://deno.land/std@0.150.0/fs/walk.ts";
+export { expandGlob } from "https://deno.land/std@0.150.0/fs/mod.ts";
 export { parse } from "https://deno.land/std@0.150.0/flags/mod.ts";
 export { gte } from "https://deno.land/std@0.150.0/semver/mod.ts";
 

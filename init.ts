@@ -345,7 +345,7 @@ if (useVSCode) {
   );
 }
 
-const manifest = await collect(resolvedDirectory, ["./islands"]);
+const manifest = await collect(resolvedDirectory);
 await generate(resolvedDirectory, manifest);
 
 // Specifically print unresolvedDirectory, rather than resolvedDirectory in order to
