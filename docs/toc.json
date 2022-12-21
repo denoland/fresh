@@ -19,14 +19,20 @@
   "concepts": {
     "title": "Concepts",
     "pages": [
-      ["architechture", "Architecture"],
+      ["architecture", "Architecture"],
       ["routes", "Routes"],
       ["islands", "Interactive islands"],
       ["static-files", "Static files"],
       ["middleware", "Route middleware"],
       ["error-pages", "Error pages"],
       ["routing", "Routing"],
-      ["data-fetching", "Data fetching"]
+      ["data-fetching", "Data fetching"],
+      ["deployment", "Deployment"],
+      ["plugins", "Plugins"],
+      ["updating", "Updating Fresh"]
     ]
+  },
+  "integrations": {
+    "title": "Integrations"
   }
 }

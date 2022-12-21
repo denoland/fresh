@@ -165,8 +165,11 @@ Deno.test({
 
       await lines.cancel();
       serverProcess.kill("SIGTERM");
+      await serverProcess.status();
       serverProcess.close();
     });
+
+    await Deno.remove(tmpDirName, { recursive: true });
   },
   sanitizeOps: false,
   sanitizeResources: false,
@@ -206,7 +209,7 @@ Deno.test({
           { "type": "file", "name": "README.md" },
           { "type": "file", "name": "import_map.json" },
           { "type": "file", "name": "fresh.gen.ts" },
-          { "type": "file", "name": "twind.config.js" },
+          { "type": "file", "name": "twind.config.ts" },
           {
             "type": "directory",
             "name": "components",
@@ -318,8 +321,11 @@ Deno.test({
 
       await lines.cancel();
       serverProcess.kill("SIGTERM");
+      await serverProcess.status();
       serverProcess.close();
     });
+
+    await Deno.remove(tmpDirName, { recursive: true });
   },
   sanitizeOps: false,
   sanitizeResources: false,

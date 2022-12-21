@@ -1,6 +1,7 @@
 import { join, parse, resolve } from "./src/dev/deps.ts";
 import { error } from "./src/dev/error.ts";
 import { collect, ensureMinDenoVersion, generate } from "./src/dev/mod.ts";
+import { freshImports, twindImports } from "./src/dev/imports.ts";
 
 ensureMinDenoVersion();
 
@@ -28,7 +29,7 @@ const CONFIRM_EMPTY_MESSAGE =
   "The target directory is not empty (files could get overwritten). Do you want to continue anyway?";
 
 const USE_TWIND_MESSAGE =
-  "Do you want to use 'twind' (https://twind.dev/) for styling?";
+  "Fresh has built in support for styling using Tailwind CSS. Do you want to use this?";
 
 const USE_VSCODE_MESSAGE = "Do you use VS Code?";
 
@@ -40,6 +41,12 @@ const flags = parse(Deno.args, {
 if (flags._.length !== 1) {
   error(help);
 }
+
+console.log(
+  `\n%c  🍋 Fresh: the next-gen web framework.  %c\n`,
+  "background-color: #86efac; color: black; font-weight: bold",
+  "",
+);
 
 const unresolvedDirectory = Deno.args[0];
 const resolvedDirectory = resolve(unresolvedDirectory);
@@ -59,6 +66,7 @@ try {
     throw err;
   }
 }
+console.log("%cLet's set up your new Fresh project.\n", "font-weight: bold");
 
 const useTwind = flags.twind === null
   ? confirm(USE_TWIND_MESSAGE)
@@ -76,41 +84,39 @@ if (useVSCode) {
   await Deno.mkdir(join(resolvedDirectory, ".vscode"), { recursive: true });
 }
 
-const importMap = {
-  "imports": {
-    "$fresh/": new URL("./", import.meta.url).href,
-    "preact": "https://esm.sh/preact@10.10.6",
-    "preact/": "https://esm.sh/preact@10.10.6/",
-    "preact-render-to-string":
-      "https://esm.sh/preact-render-to-string@5.2.2?external=preact",
-  } as Record<string, string>,
-};
-if (useTwind) {
-  importMap.imports["twind"] = "https://esm.sh/twind@0.16.17";
-  importMap.imports["twind/"] = "https://esm.sh/twind@0.16.17/";
-}
+const importMap = { imports: {} as Record<string, string> };
+freshImports(importMap.imports);
+if (useTwind) twindImports(importMap.imports);
 const IMPORT_MAP_JSON = JSON.stringify(importMap, null, 2) + "\n";
 await Deno.writeTextFile(
   join(resolvedDirectory, "import_map.json"),
   IMPORT_MAP_JSON,
 );
 
-const ROUTES_INDEX_TSX = `import Counter from "../islands/Counter.tsx";
+const ROUTES_INDEX_TSX = `import { Head } from "$fresh/runtime.ts";
+import Counter from "../islands/Counter.tsx";
 
 export default function Home() {
   return (
-    <div${useTwind ? ` class="p-4 mx-auto max-w-screen-md"` : ""}>
-      <img
-        src="/logo.svg"
-        ${useTwind ? `class="w-32 h-32"` : `width="128"\n        height="128"`}
-        alt="the fresh logo: a sliced lemon dripping with juice"
-      />
-      <p${useTwind ? ` class="my-6"` : ""}>
-        Welcome to \`fresh\`. Try updating this message in the ./routes/index.tsx
-        file, and refresh.
-      </p>
-      <Counter start={3} />
-    </div>
+    <>
+      <Head>
+        <title>Fresh App</title>
+      </Head>
+      <div${useTwind ? ` class="p-4 mx-auto max-w-screen-md"` : ""}>
+        <img
+          src="/logo.svg"
+          ${
+  useTwind ? `class="w-32 h-32"` : `width="128"\n          height="128"`
+}
+          alt="the fresh logo: a sliced lemon dripping with juice"
+        />
+        <p${useTwind ? ` class="my-6"` : ""}>
+          Welcome to \`fresh\`. Try updating this message in the ./routes/index.tsx
+          file, and refresh.
+        </p>
+        <Counter start={3} />
+      </div>
+    </>
   );
 }
 `;
@@ -201,14 +207,16 @@ await Deno.writeTextFile(
   ROUTES_API_JOKE_TS,
 );
 
-const TWIND_CONFIG_JS =
-  `/** @type {import("$fresh/plugins/twind.ts").Options} */
-export default {};
+const TWIND_CONFIG_TS = `import { Options } from "$fresh/plugins/twind.ts";
+
+export default {
+  selfURL: import.meta.url,
+} as Options;
 `;
 if (useTwind) {
   await Deno.writeTextFile(
-    join(resolvedDirectory, "twind.config.js"),
-    TWIND_CONFIG_JS,
+    join(resolvedDirectory, "twind.config.ts"),
+    TWIND_CONFIG_TS,
   );
 }
 
@@ -249,7 +257,7 @@ import manifest from "./fresh.gen.ts";
 if (useTwind) {
   MAIN_TS += `
 import twindPlugin from "$fresh/plugins/twind.ts";
-import twindConfig from "./twind.config.js";
+import twindConfig from "./twind.config.ts";
 `;
 }
 
@@ -342,7 +350,28 @@ await generate(resolvedDirectory, manifest);
 
 // Specifically print unresolvedDirectory, rather than resolvedDirectory in order to
 // not leak personal info (e.g. `/Users/MyName`)
-console.log("\n%cProject created!", "color: green; font-weight: bold");
-console.log(`\nIn order to start the development server, run:\n`);
-console.log(`$ cd ${unresolvedDirectory}`);
-console.log("$ deno task start");
+console.log("\n%cProject initialized!\n", "color: green; font-weight: bold");
+
+console.log(
+  `Enter your project directory using %ccd ${unresolvedDirectory}%c.`,
+  "color: cyan",
+  "",
+);
+console.log(
+  "Run %cdeno task start%c to start the project. %cCTRL-C%c to stop.",
+  "color: cyan",
+  "",
+  "color: cyan",
+  "",
+);
+console.log();
+console.log(
+  "Stuck? Join our Discord %chttps://discord.gg/deno",
+  "color: cyan",
+  "",
+);
+console.log();
+console.log(
+  "%cHappy hacking! 🦕",
+  "color: gray",
+);

@@ -60,21 +60,15 @@ export interface DenoConfig {
 
 export { ServerContext };
 
-const defaultPort = parseInt(Deno.env.get("PORT") || "8000");
+const port = parseInt(Deno.env.get("PORT") || "8000");
 
-export async function start(
-  routes: Manifest,
-  opts: StartOptions = {},
-) {
+export async function start(routes: Manifest, opts: StartOptions = {}) {
   const ctx = await ServerContext.fromManifest(routes, opts);
-  
-  console.log(
-    `Server listening on http://${opts?.hostname ?? "localhost"}:${
-      opts?.port ?? defaultPort
-    }`,
-  );
-  await serve(ctx.handler(), {
-    ...opts,
-    port: opts?.port ?? defaultPort,
-  });
+  opts.port ??= port;
+  if (opts.experimentalDenoServe === true) {
+    // @ts-ignore as `Deno.serve` is still unstable.
+    await Deno.serve(ctx.handler() as Deno.ServeHandler, opts);
+  } else {
+    await serve(ctx.handler(), opts);
+  }
 }
