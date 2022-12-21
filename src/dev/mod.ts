@@ -3,9 +3,13 @@ import {
   expandGlob,
   fromFileUrl,
   gte,
+  isWindows,
   join,
-  posixRelative,
+  relative,
+  SEP,
+  SEP_PATTERN,
   walk,
+  posixSEP
 } from "./deps.ts";
 import { error } from "./error.ts";
 
@@ -52,9 +56,8 @@ export async function collect(
     });
     for await (const entry of routesFolder) {
       if (entry.isFile) {
-        const relativeFile = posixRelative(directory, entry.path);
-        const fixedFilePath = fixRelativePath(relativeFile);
-        routes.push(fixedFilePath);
+        const item = getManifestItemFromPath(directory, entry.path);
+        routes.push(item);
       }
     }
   } catch (err) {
@@ -79,9 +82,8 @@ export async function collect(
       });
       for await (const entry of islandFolders) {
         if (entry.isFile) {
-          const relativeFile = posixRelative(directory, entry.path);
-          const fixedFilePath = fixRelativePath(relativeFile);
-          islands.push(fixedFilePath);
+          const item = getManifestItemFromPath(directory, entry.path);
+          islands.push(item);
         }
       }
     }
@@ -92,9 +94,8 @@ export async function collect(
       });
       for await (const entry of islandFiles) {
         if (entry.isFile) {
-          const relativeFile = posixRelative(directory, entry.path);
-          const fixedFilePath = fixRelativePath(relativeFile);
-          islands.push(fixedFilePath);
+          const item = getManifestItemFromPath(directory, entry.path);
+          islands.push(item);
         }
       }
     }
@@ -234,9 +235,16 @@ function isURL(url: unknown): boolean {
   }
 }
 
-function fixRelativePath(filePath: string) {
-  if (!filePath.startsWith(".") && !filePath.startsWith("/")) {
-    return `./${filePath}`;
+function getManifestItemFromPath(directory: string, filePath: string) {
+  let relativePath = relative(directory, filePath);
+
+  if (!relativePath.startsWith(".") && !relativePath.startsWith(SEP)) {
+    relativePath = `.${SEP}${relativePath}`;
   }
-  return filePath;
+
+  if (isWindows) {
+    relativePath = relativePath.replaceAll(SEP_PATTERN, posixSEP);
+  }
+
+  return relativePath;
 }
