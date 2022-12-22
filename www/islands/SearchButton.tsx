@@ -22,7 +22,7 @@ export default function SearchButton() {
           href="/docsearch.css"
         />
       </Head>
-      <div class="h-9" ref={ref}></div>
+      <div class="h-9 mb-6" ref={ref}></div>
     </>
   );
 }
