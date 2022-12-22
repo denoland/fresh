@@ -4,6 +4,8 @@ import ColoredButton from "../components/gallery/ColoredButton.tsx";
 import Input from "../components/gallery/Input.tsx";
 import Header from "../components/gallery/Header.tsx";
 import Footer from "../components/gallery/Footer.tsx";
+import Hero from "../components/gallery/Hero.tsx";
+import Features from "../components/gallery/Features.tsx";
 import { ComponentChildren } from "preact";
 import IconHappy from "https://deno.land/x/tabler_icons_tsx@0.0.2/tsx/mood-crazy-happy.tsx";
 import IconHeart from "https://deno.land/x/tabler_icons_tsx@0.0.2/tsx/heart.tsx";
@@ -99,6 +101,14 @@ export default function ComponentGallery(props: ComponentGalleryProps) {
       <Section title="Footer" source={props.sources.Footer}>
         <Footer>
         </Footer>
+      </Section>
+
+      <Section title="Hero" source={props.sources.Hero}>
+        <Hero />
+      </Section>
+
+      <Section title="Features" source={props.sources.Features}>
+        <Features />
       </Section>
     </>
   );
