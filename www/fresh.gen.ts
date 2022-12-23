@@ -16,6 +16,7 @@ import * as $$0 from "./islands/ComponentGallery.tsx";
 import * as $$1 from "./islands/CopyArea.tsx";
 import * as $$2 from "./islands/Counter.tsx";
 import * as $$3 from "./islands/LemonDrop.tsx";
+import * as $$4 from "./islands/SearchButton.tsx";
 
 const manifest = {
   routes: {
@@ -34,6 +35,7 @@ const manifest = {
     "./islands/CopyArea.tsx": $$1,
     "./islands/Counter.tsx": $$2,
     "./islands/LemonDrop.tsx": $$3,
+    "./islands/SearchButton.tsx": $$4,
   },
   baseUrl: import.meta.url,
   config,
