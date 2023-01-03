@@ -105,9 +105,8 @@ export async function generate(directory: string, manifest: Manifest) {
 
 import config from "./deno.json" assert { type: "json" };
 ${
-    routes.map((file, i) => `import * as $${i} from "./routes${file}";`).join(
-      "\n",
-    )
+    routes.map((file, i) => `import * as $${i} from "./routes${file}";`)
+      .join("\n")
   }
 ${
     islands.map((file, i) => `import * as $$${i} from "./islands${file}";`)
@@ -123,7 +122,8 @@ const manifest = {
   },
   islands: {
     ${
-    islands.map((file, i) => `${JSON.stringify(`./islands${file}`)}: $$${i},`)
+    islands
+      .map((file, i) => `${JSON.stringify(`./islands${file}`)}: $$${i},`)
       .join("\n    ")
   }
   },
@@ -134,27 +134,35 @@ const manifest = {
 export default manifest;
 `;
 
+  const manifestPath = join(directory, "./fresh.gen.ts");
+
+  const manifestFile = await Deno.open(manifestPath, {
+    write: true,
+    create: true,
+  });
+
   const proc = Deno.run({
     cmd: [Deno.execPath(), "fmt", "-"],
     stdin: "piped",
     stdout: "piped",
     stderr: "null",
   });
-  const raw = new ReadableStream({
+
+  await new ReadableStream<Uint8Array>({
     start(controller) {
       controller.enqueue(new TextEncoder().encode(output));
       controller.close();
     },
-  });
-  await raw.pipeTo(proc.stdin.writable);
-  const out = await proc.output();
+  })
+    .pipeThrough({
+      writable: proc.stdin.writable,
+      readable: proc.stdout.readable,
+    })
+    .pipeTo(manifestFile.writable);
+
   await proc.status();
   proc.close();
 
-  const manifestStr = new TextDecoder().decode(out);
-  const manifestPath = join(directory, "./fresh.gen.ts");
-
-  await Deno.writeTextFile(manifestPath, manifestStr);
   console.log(
     `%cThe manifest has been generated for ${routes.length} routes and ${islands.length} islands.`,
     "color: blue; font-weight: bold",
