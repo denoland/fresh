@@ -12,7 +12,6 @@
     "@preact/signals-core": "https://esm.sh/@preact/signals-core@1.0.1",
 
     "$std/": "https://deno.land/std@0.150.0/",
-    "$ga4": "https://raw.githubusercontent.com/denoland/ga4/main/mod.ts",
-    "$ga": "https://deno.land/x/g_a@0.1.2/mod.ts"
+    "$ga4": "https://raw.githubusercontent.com/denoland/ga4/main/mod.ts"
   }
 }

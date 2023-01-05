@@ -1,9 +1,6 @@
 import { MiddlewareHandlerContext } from "$fresh/server.ts";
-import { createReporter } from "$ga";
 import type { Event } from "$ga4";
 import { GA4Report, isDocument, isServerError } from "$ga4";
-
-const ga = createReporter({ id: Deno.env.get("GA_TRACKING_ID_FOR_HUMANS") });
 
 const GA4_MEASUREMENT_ID = Deno.env.get("GA4_MEASUREMENT_ID");
 
@@ -97,13 +94,6 @@ export async function handler(
     err = e;
     throw e;
   } finally {
-    ga(
-      req,
-      { remoteAddr: ctx.remoteAddr },
-      res!,
-      start,
-      err,
-    );
     ga4(
       req,
       ctx,
