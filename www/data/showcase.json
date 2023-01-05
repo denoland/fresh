@@ -224,6 +224,12 @@
     "image": "grape-chat"
   },
   {
+    "title": "Sinkopasi personal site",
+    "link": "https://sinkopasi.com/",
+    "github": "kriskornel/sinkopasi-fresh",
+    "image": "sinkopasi"
+  },
+  {
     "title": "Do not remove this, it's for prevent conflicting by trailing comma",
     "link": "",
     "github": "",
