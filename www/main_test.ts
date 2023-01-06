@@ -4,7 +4,7 @@ import { delay } from "$std/async/delay.ts";
 
 Deno.test("CORS should not set on GET /fresh-badge.svg", {
   sanitizeResources: false,
-}, async (t) => {
+}, async () => {
   const serverProcess = Deno.run({
     cmd: ["deno", "run", "-A", "./main.ts"],
     stdin: "null",
