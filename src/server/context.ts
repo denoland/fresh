@@ -151,12 +151,12 @@ export class ServerContext {
         path.endsWith("/_middleware.ts") || path.endsWith("/_middleware.jsx") ||
         path.endsWith("/_middleware.js");
       if (!path.startsWith("/_") && !isMiddleware) {
-        const { default: component, config } = (module as RouteModule);
+        const { default: component, config } = module as RouteModule;
         let pattern = pathToPattern(baseRoute);
         if (config?.routeOverride) {
           pattern = String(config.routeOverride);
         }
-        let { handler } = (module as RouteModule);
+        let { handler } = module as RouteModule;
         handler ??= {};
         if (
           component &&
@@ -187,8 +187,8 @@ export class ServerContext {
         path === "/_404.tsx" || path === "/_404.ts" ||
         path === "/_404.jsx" || path === "/_404.js"
       ) {
-        const { default: component, config } = (module as UnknownPageModule);
-        let { handler } = (module as UnknownPageModule);
+        const { default: component, config } = module as UnknownPageModule;
+        let { handler } = module as UnknownPageModule;
         if (component && handler === undefined) {
           handler = (_req, { render }) => render();
         }
@@ -205,8 +205,8 @@ export class ServerContext {
         path === "/_500.tsx" || path === "/_500.ts" ||
         path === "/_500.jsx" || path === "/_500.js"
       ) {
-        const { default: component, config } = (module as ErrorPageModule);
-        let { handler } = (module as ErrorPageModule);
+        const { default: component, config } = module as ErrorPageModule;
+        let { handler } = module as ErrorPageModule;
         if (component && handler === undefined) {
           handler = (_req, { render }) => render();
         }
