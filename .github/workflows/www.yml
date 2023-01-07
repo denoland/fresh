@@ -30,3 +30,7 @@ jobs:
       - name: Type check website
         run: deno check main.ts dev.ts
         working-directory: www/
+
+      - name: Run tests
+        run: deno test -A
+        working-directory: www/
