@@ -26,7 +26,6 @@ Deno.test("CORS should not set on GET /fresh-badge.svg", {
   if (!started) {
     throw new Error("Server didn't start up");
   }
-  await delay(100);
 
   const res = await fetch("http://localhost:8000/fresh-badge.svg");
   await res.body?.cancel();
