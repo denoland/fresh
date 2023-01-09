@@ -76,15 +76,6 @@ export async function handler(
   try {
     const resp = await ctx.next();
     const headers = new Headers(resp.headers);
-    headers.set(
-      "Strict-Transport-Security",
-      "max-age=63072000; includeSubDomains; preload",
-    );
-    headers.set("X-Content-Type-Options", "nosniff");
-    headers.set("X-Frame-Options", "DENY");
-    headers.set("Cross-Origin-Resource-Policy", "same-origin");
-    headers.set("Cross-Origin-Opener-Policy", "same-origin");
-    headers.set("Cross-Origin-Embedder-Policy", "same-origin");
     res = new Response(resp.body, { status: resp.status, headers });
     return res;
   } catch (e) {
