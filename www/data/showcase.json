@@ -224,6 +224,12 @@
     "image": "grape-chat"
   },
   {
+    "title": "Fresh Notion Blog",
+    "link": "https://fresh-notion-blog.deno.dev/",
+    "github": "xijaja/fresh-notion-blog",
+    "image": "fresh-notion-blog"
+  },
+  {
     "title": "Do not remove this, it's for prevent conflicting by trailing comma",
     "link": "",
     "github": "",
