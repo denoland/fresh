@@ -15,7 +15,7 @@ import {
 import { HEAD_CONTEXT } from "../runtime/head.ts";
 import { CSP_CONTEXT, nonce, NONE, UNSAFE_INLINE } from "../runtime/csp.ts";
 import { ContentSecurityPolicy } from "../runtime/csp.ts";
-import { bundleAssetUrl } from "./constants.ts";
+import { bundleAssetUrl as bundleAssetUrlStatic } from "./constants.ts";
 import { assetHashingHook } from "../runtime/utils.ts";
 import { htmlEscapeJsonString } from "./htmlescape.ts";
 
@@ -27,6 +27,7 @@ export interface RenderOptions<Data> {
   imports: string[];
   preloads: string[];
   url: URL;
+  base: string;
   params: Record<string, string | string[]>;
   renderFn: RenderFunction;
   data?: Data;
@@ -118,6 +119,9 @@ export async function render<Data>(
   if (opts.error) {
     props.error = opts.error;
   }
+
+  const bundleAssetUrl = (path: string) =>
+    opts.base + bundleAssetUrlStatic(path);
 
   const csp: ContentSecurityPolicy | undefined = opts.route.csp
     ? defaultCsp()

@@ -459,6 +459,10 @@ export class ServerContext {
           }
 
           const preloads: string[] = [];
+          const base = (req.headers.get("X-Fresh-Base-Url") ?? "").replace(
+            /\/$/,
+            "",
+          );
           const resp = await internalRender({
             route,
             islands: this.#islands,
@@ -468,6 +472,7 @@ export class ServerContext {
             preloads,
             renderFn: this.#renderFn,
             url: new URL(req.url),
+            base,
             params,
             data,
             error,
