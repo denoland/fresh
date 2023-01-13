@@ -1,4 +1,4 @@
-import { BuildOptions } from "https://deno.land/x/esbuild@v0.14.51/mod.js";
+import { BuildOptions } from "https://deno.land/x/esbuild@v0.16.17/mod.js";
 import { BUILD_ID } from "./constants.ts";
 import { denoPlugin, esbuild, toFileUrl } from "./deps.ts";
 import { Island, Plugin } from "./types.ts";
