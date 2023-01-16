@@ -229,6 +229,12 @@
     "github": "xijaja/fresh-notion-blog",
     "image": "fresh-notion-blog"
   },
+   {
+    "title": "Denosar",
+    "link": "https://https://denosoar.deno.dev//",
+    "github": "Denosoar-GUI/Denosoar-GUI",
+    "image": "super-deno"
+  },
   {
     "title": "Do not remove this, it's for prevent conflicting by trailing comma",
     "link": "",
