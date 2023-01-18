@@ -230,6 +230,12 @@
     "image": "fresh-notion-blog"
   },
   {
+    "title": "Deno Paste",
+    "link": "https://deno-paste.deno.dev/",
+    "github": "stephenmelnicki/deno_paste",
+    "image": "deno-paste"
+  },
+  {
     "title": "Do not remove this, it's for prevent conflicting by trailing comma",
     "link": "",
     "github": "",
