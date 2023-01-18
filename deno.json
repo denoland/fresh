@@ -9,5 +9,10 @@
   "compilerOptions": {
     "jsx": "react-jsx",
     "jsxImportSource": "preact"
+  },
+  "test": {
+    "files": {
+      "exclude": ["www/"]
+    }
   }
 }
