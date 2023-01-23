@@ -5,11 +5,12 @@ export {
   toFileUrl,
 } from "https://deno.land/std@0.150.0/path/mod.ts";
 export { walk } from "https://deno.land/std@0.150.0/fs/walk.ts";
-export { serve } from "https://deno.land/std@0.150.0/http/server.ts";
+export { serve, serveTls } from "https://deno.land/std@0.150.0/http/server.ts";
 export type {
   ConnInfo,
   Handler as RequestHandler,
   ServeInit,
+  ServeTlsInit
 } from "https://deno.land/std@0.150.0/http/server.ts";
 export { Status } from "https://deno.land/std@0.150.0/http/http_status.ts";
 export {
