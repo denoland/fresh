@@ -20,9 +20,9 @@ export {
 export * as rutt from "https://deno.land/x/rutt@0.0.14/mod.ts";
 
 // -- esbuild --
-// @deno-types="https://deno.land/x/esbuild@v0.17.2/mod.d.ts"
-import * as esbuildWasm from "https://deno.land/x/esbuild@v0.17.2/wasm.js";
-import * as esbuildNative from "https://deno.land/x/esbuild@v0.17.2/mod.js";
+// @deno-types="https://deno.land/x/esbuild@v0.17.4/mod.d.ts"
+import * as esbuildWasm from "https://deno.land/x/esbuild@v0.17.4/wasm.js";
+import * as esbuildNative from "https://deno.land/x/esbuild@v0.17.4/mod.js";
 // @ts-ignore trust me
 const esbuild: typeof esbuildWasm = Deno.run === undefined
   ? esbuildWasm
