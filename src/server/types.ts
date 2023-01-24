@@ -253,6 +253,10 @@ export interface Plugin {
    */
   entrypoints?: Record<string, string>;
 
+  routes?: PluginRoute[]
+
+  middlewares?: PluginMiddlewear[]
+
   /** The render hook is called on the server every time some JSX needs to
    * be turned into HTML. The render hook needs to call the `ctx.render`
    * function exactly once.
@@ -303,4 +307,14 @@ export interface PluginRenderFunctionResult {
    * client.
    */
   requiresHydration: boolean;
+}
+
+export interface PluginMiddlewear {
+  path: string;
+  handler: MiddlewareHandler
+}
+
+export interface PluginRoute {
+  path: string;
+  module: RouteModule
 }

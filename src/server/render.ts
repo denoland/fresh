@@ -174,13 +174,17 @@ export async function render<Data>(
   function render(): PluginRenderFunctionResult {
     const plugin = plugins.shift();
     if (plugin) {
-      const res = plugin.render!({ render });
-      if (res === undefined) {
-        throw new Error(
-          `${plugin?.name}'s render hook did not return a PluginRenderResult object.`,
-        );
+      if (plugin.render) {
+        const res = plugin.render!({ render });
+        if (res === undefined) {
+          throw new Error(
+            `${plugin?.name}'s render hook did not return a PluginRenderResult object.`,
+          );
+        }
+        renderResults.push([plugin, res]);
+      } else {  
+        render()
       }
-      renderResults.push([plugin, res]);
     } else {
       realRender();
     }
