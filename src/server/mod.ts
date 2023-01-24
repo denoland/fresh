@@ -62,7 +62,10 @@ export interface DenoConfig {
 
 export { ServerContext };
 
-export async function start(routes: Manifest, opts: StartOptions | TlsStartOptions = {}) {
+export async function start(
+  routes: Manifest,
+  opts: StartOptions | TlsStartOptions = {},
+) {
   opts.port ??= 8000;
   if ((opts as TlsStartOptions).keyFile || (opts as TlsStartOptions).certFile) {
     startTls(routes, opts as TlsStartOptions);
@@ -72,7 +75,7 @@ export async function start(routes: Manifest, opts: StartOptions | TlsStartOptio
       // @ts-ignore as `Deno.serve` is still unstable.
       await Deno.serve(ctx.handler() as Deno.ServeHandler, opts);
     } else {
-      await serve(ctx.handler(), opts)
+      await serve(ctx.handler(), opts);
     }
   }
 }
@@ -80,7 +83,7 @@ export async function start(routes: Manifest, opts: StartOptions | TlsStartOptio
 async function startTls(routes: Manifest, opts: TlsStartOptions) {
   const ctx = await ServerContext.fromManifest(routes, opts);
   if (opts.experimentalDenoServe === true) {
-    const denoServeTlsOptions: StartOptions & { cert: string, key: string } = {
+    const denoServeTlsOptions: StartOptions & { cert: string; key: string } = {
       cert: opts.certFile,
       key: opts.keyFile,
       hostname: opts.hostname,
@@ -90,12 +93,12 @@ async function startTls(routes: Manifest, opts: TlsStartOptions) {
       render: opts.render,
       port: opts.port,
       signal: opts.signal,
-      staticDir: opts.staticDir
+      staticDir: opts.staticDir,
     };
 
     // @ts-ignore as `Deno.serve` is still unstable.
     await Deno.serve(ctx.handler() as Deno.ServeHandler, denoServeTlsOptions);
   } else {
-    await serveTls(ctx.handler(), opts)
+    await serveTls(ctx.handler(), opts);
   }
 }
