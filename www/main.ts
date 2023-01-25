@@ -6,8 +6,12 @@
 
 import { start } from "$fresh/server.ts";
 import twindPlugin from "$fresh/plugins/twind.ts";
+import ga4Plugin from "$fresh/plugins/ga4.ts";
 
 import manifest from "./fresh.gen.ts";
 import twindConfig from "./twind.config.ts";
 
-await start(manifest, { plugins: [twindPlugin(twindConfig)] });
+const GA4_MEASUREMENT_ID = Deno.env.get("GA4_MEASUREMENT_ID")  || "";
+
+await start(manifest, { plugins: [ twindPlugin(twindConfig), ga4Plugin(GA4_MEASUREMENT_ID) ] });
+

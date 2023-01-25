@@ -2,7 +2,7 @@ import { MiddlewareHandlerContext } from "$fresh/server.ts";
 import type { Event } from "$ga4";
 import { GA4Report, isDocument, isServerError } from "$ga4";
 
-const GA4_MEASUREMENT_ID = Deno.env.get("GA4_MEASUREMENT_ID");
+let GA4_MEASUREMENT_ID = ""
 
 function ga4(
   request: Request,
@@ -49,7 +49,7 @@ function ga4(
     }
 
     // Create basic report.
-    const measurementId = GA4_MEASUREMENT_ID;
+    const measurementId = GA4_MEASUREMENT_ID;   
     const report = new GA4Report({ measurementId, request, response, conn });
 
     // Override the default (page_view) event.
@@ -60,13 +60,15 @@ function ga4(
       report.events.push(exceptionEvent);
     }
 
+    console.log(report);
+    
     await report.send();
   }).catch((err) => {
     console.error(`Internal error: ${err}`);
   });
 }
 
-export async function handler(
+async function handler(
   req: Request,
   ctx: MiddlewareHandlerContext,
 ): Promise<Response> {
@@ -92,5 +94,17 @@ export async function handler(
       start,
       err,
     );
+  }
+}
+
+export default function ga4Plugin(ga4MeasurementId: string) {
+  GA4_MEASUREMENT_ID = ga4MeasurementId
+  console.log(ga4MeasurementId);
+  
+  return {
+    name: "ga4", 
+    middlewares: [
+      { path: "/", handler }
+    ] 
   }
 }
