@@ -158,7 +158,7 @@ export class ServerContext {
         path.endsWith("/_middleware.ts") || path.endsWith("/_middleware.jsx") ||
         path.endsWith("/_middleware.js");
       if (!path.startsWith("/_") && !isMiddleware) {
-        const { default: component, config } = module as RouteModule;
+        const { default: component, config } = module as RouteModule;       
         let pattern = pathToPattern(baseRoute);
         if (config?.routeOverride) {
           pattern = String(config.routeOverride);
@@ -787,7 +787,7 @@ function getMiddlewareRoutesFromPlugins(plugins: Plugin[]): Record<string, Middl
     .map((middleware: PluginMiddlewear) => ({ [`./routes${middleware.path}_middleware.ts`]: { handler: middleware.handler } })) || []));
 }
 
-function getRoutesFromPlugins(plugins: Plugin[]): Record<string, MiddlewareModule> {
+function getRoutesFromPlugins(plugins: Plugin[]): Record<string, RouteModule> {
   return (Object.assign({}, ...[...new Set(([] as PluginRoute[]).concat(...plugins.map((p) => p.routes || [])))]
-    .map((route: PluginRoute) => ({ [`./routes${route.path}.ts`]: route.module })) || []));
+    .map((route: PluginRoute) => ({ [`./routes${route.path}.ts`]: { default: route.component, handler: route.handler } as RouteModule })) || []));
 }

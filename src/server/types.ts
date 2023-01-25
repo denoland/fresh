@@ -316,5 +316,7 @@ export interface PluginMiddlewear {
 
 export interface PluginRoute {
   path: string;
-  module: RouteModule
+  component?: ComponentType<PageProps>;
+  // deno-lint-ignore no-explicit-any
+  handler?: Handler<any, any> | Handlers<any, any>;
 }
