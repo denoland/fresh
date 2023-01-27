@@ -1,4 +1,3 @@
-import options from "../../tests/fixture/options.ts";
 import { ServerContext } from "./context.ts";
 import { serve, serveTls } from "./deps.ts";
 export { Status } from "./deps.ts";
