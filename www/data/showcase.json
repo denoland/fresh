@@ -177,6 +177,71 @@
     "image": "melon"
   },
   {
+    "title": "Game Orb",
+    "link": "https://fabimc-game-orb.deno.dev/",
+    "github": "fabimc/game-orb",
+    "image": "game-orb"
+  },
+  {
+    "title": "Webhook Manager",
+    "link": "https://webhook-demo.deno.dev/",
+    "github": "avnigenc/deno-fresh-webhook-demo",
+    "image": "webhook-manager"
+  },
+  {
+    "title": "Moe Counter",
+    "link": "https://count.nekooftheabyss.moe/",
+    "github": "retraigo/moe-counter",
+    "image": "moe-counter"
+  },
+  {
+    "title": "Deno Jobs",
+    "link": "https://vacancy.deno.dev/",
+    "github": "VofSwords/deno-jobs",
+    "image": "deno-jobs"
+  },
+  {
+    "title": "java.minidoodle",
+    "link": "https://javaminidoodle.de/",
+    "image": "javaminidoodle"
+  },
+  {
+    "title": "Ppaste",
+    "link": "https://ppaste.deno.dev/",
+    "github": "n4ze3m/p-paste",
+    "image": "ppaste"
+  },
+  {
+    "title": "Linksapp",
+    "link": "https://linksapp.deno.dev/",
+    "github": "commune-org/linksapp-fresh",
+    "image": "linksapp"
+  },
+  {
+    "title": "Grape Chat",
+    "link": "https://grape-chat.miqsel.net/",
+    "github": "yahiro07/grape-chat",
+    "image": "grape-chat"
+  },
+  {
+    "title": "Fresh Notion Blog",
+    "link": "https://fresh-notion-blog.deno.dev/",
+    "github": "xijaja/fresh-notion-blog",
+    "image": "fresh-notion-blog"
+  },
+  {
+    "title": "Deno Paste",
+    "link": "https://deno-paste.deno.dev/",
+    "github": "stephenmelnicki/deno_paste",
+    "image": "deno-paste"
+  },
+  {
+    "title": "m33t",
+    "link": "https://m33t.deno.dev/",
+    "github": "dunkbing/m33t",
+    "image": "m33t"
+  },
+  {
     "title": "Do not remove this, it's for prevent conflicting by trailing comma",
     "link": "",
     "github": "",
