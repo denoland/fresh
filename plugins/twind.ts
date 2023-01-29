@@ -1,11 +1,11 @@
-import { virtualSheet } from "twind/sheets";
+import { virtual } from "twind";
 import { Plugin } from "../server.ts";
 
 import { Options, setup, STYLE_ELEMENT_ID } from "./twind/shared.ts";
 export type { Options };
 
 export default function twind(options: Options): Plugin {
-  const sheet = virtualSheet();
+  const sheet = virtual();
   setup(options, sheet);
   const main = `data:application/javascript,import hydrate from "${
     new URL("./twind/main.ts", import.meta.url).href
@@ -16,10 +16,10 @@ export default function(state) { hydrate(options, state); }`;
     name: "twind",
     entrypoints: { "main": main },
     render(ctx) {
-      sheet.reset(undefined);
+      sheet.clear();
       const res = ctx.render();
       const cssTexts = [...sheet.target];
-      const snapshot = sheet.reset();
+      const snapshot = sheet.clear();
       const scripts = [];
       let cssText: string;
       if (res.requiresHydration) {
