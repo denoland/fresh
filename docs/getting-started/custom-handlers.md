@@ -30,10 +30,10 @@ then adds a custom header to the response before returning it:
 ```tsx
 // routes/about.tsx
 
-import { Handlers } from "$fresh/server.ts";
+import { HandlerContext, Handlers } from "$fresh/server.ts";
 
 export const handler: Handlers = {
-  async GET(req, ctx) {
+  async GET(_req: Request, ctx: HandlerContext) {
     const resp = await ctx.render();
     resp.headers.set("X-Custom-Header", "Hello");
     return resp;
@@ -60,7 +60,7 @@ response:
 import { Handlers } from "$fresh/server.ts";
 
 export const handler: Handlers = {
-  GET(req) {
+  GET(_req: Request) {
     const uuid = crypto.randomUUID();
     return new Response(JSON.stringify(uuid), {
       headers: { "Content-Type": "application/json" },
