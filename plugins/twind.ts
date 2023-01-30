@@ -4,6 +4,9 @@ import { Plugin } from "../server.ts";
 import { Options, setup, STYLE_ELEMENT_ID } from "./twind/shared.ts";
 export type { Options };
 
+// Include it on vendor since it's being included on esbuild.
+const _vendor0 = () => import('./twind/main.ts')
+
 export default function twind(options: Options): Plugin {
   const sheet = virtualSheet();
   setup(options, sheet);
