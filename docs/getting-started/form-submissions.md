@@ -32,7 +32,7 @@ server side:
 ```tsx
 // routes/search.tsx
 
-import { Handlers, PageProps } from "$fresh/server.ts";
+import { HandlerContext, Handlers, PageProps } from "$fresh/server.ts";
 
 const NAMES = ["Alice", "Bob", "Charlie", "Dave", "Eve", "Frank"];
 
