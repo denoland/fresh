@@ -11,5 +11,5 @@ import manifest from "./fresh.gen.ts";
 import twindConfig from "./twind.config.ts";
 
 
-await start(manifest, { plugins: [ twindPlugin(twindConfig) ] });
+await start(manifest, { plugins: [twindPlugin(twindConfig)] });
 
