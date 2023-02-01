@@ -128,8 +128,8 @@ function MobileSidebar(props: { path: string }) {
           <div class="p-4 border(b-2 gray-100) bg-green-300">
             <DocsTitle title="docs" />
           </div>
-          <nav class="pt-2 pb-16 px-4 overflow-x-auto">
-            <DocsSidebar path={props.path} />
+          <nav class="pt-6 pb-16 px-4 overflow-x-auto">
+            <DocsSidebar mobile path={props.path} />
           </nav>
         </div>
       </div>

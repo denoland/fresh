@@ -60,7 +60,7 @@ $ docker build --build-arg GIT_REVISION=$(git rev-parse HEAD) -t my-fresh-app .
 Then run your Docker container:
 
 ```sh
-$ docker run -t -i -p 80:8000 fresh-app
+$ docker run -t -i -p 80:8000 my-fresh-app
 ```
 
 To deploy to a cloud provider, push it to a container registry and follow their

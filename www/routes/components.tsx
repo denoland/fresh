@@ -21,6 +21,8 @@ export const handler: Handlers<HomeProps> = {
         "Input": await getSource("../components/gallery/Input.tsx"),
         "Header": await getSource("../components/gallery/Header.tsx"),
         "Footer": await getSource("../components/gallery/Footer.tsx"),
+        "Hero": await getSource("../components/gallery/Hero.tsx"),
+        "Features": await getSource("../components/gallery/Features.tsx"),
       },
     };
     return ctx.render(props);
