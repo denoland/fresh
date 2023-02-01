@@ -54,7 +54,7 @@ const plugin: Plugin = {
 ```
 
 A plugin containing only a name is technically valid, but not very useful. To be
-able to do anything with a plugin, it must register some hooks.
+able to do anything with a plugin, it must register some hooks or routes.
 
 ### Hook: `render`
 
@@ -99,3 +99,20 @@ serializable JavaScript value.
 
 For an example of a plugin that uses the `render` hook, see the first-party
 [Twind plugin](https://github.com/denoland/fresh/blob/main/plugins/twind.ts).
+
+### Plugin routes and middlewares
+
+You can create routes and middlewares that get loaded and rendered like the 
+normal [routes](/docs/getting-started/create-a-route) and [middlewares](/docs/concepts/middleware).
+
+The plugin routes and middlewares need a defined path in the format of a file 
+name without a filetype inside the routes directory(E.g. ``blog/index``, ``blog/[slug]``).
+
+For more examples see the [_Concepts: Routing_](/docs/concepts/concepts-routing) page. 
+
+To create a middleware you need to create a ``MiddlewareHandler`` function. 
+
+And to create a route you can create both a Handler and a/or component.
+
+For an example af a plugin that uses plugin routes and middlewares, see the 
+[Oauth2 plugin](https://github.com/RoeHH/fresh_oauth2) by roehh which is currently work in progress.

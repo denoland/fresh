@@ -310,13 +310,18 @@ export interface PluginRenderFunctionResult {
 }
 
 export interface PluginMiddlewear {
+  /** A path in the format of a filename path without filetype */
   path: string;
+
   handler: MiddlewareHandler
 }
 
 export interface PluginRoute {
+  /** A path in the format of a filename path without filetype */
   path: string;
+
   component?: ComponentType<PageProps>;
+
   // deno-lint-ignore no-explicit-any
   handler?: Handler<any, any> | Handlers<any, any>;
 }
