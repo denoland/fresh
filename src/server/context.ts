@@ -148,7 +148,7 @@ export class ServerContext {
       ...Object.entries(getRoutesFromPlugins(opts.plugins || []))
     ]) {
       const url = new URL(self, baseUrl).href;
-      if (!url.startsWith(baseUrl + "routes")) {       
+      if (!url.startsWith(baseUrl + "routes")) {
         throw new TypeError("Page is not a child of the basepath.");
       }
       const path = url.substring(baseUrl.length).substring("routes".length);
@@ -158,7 +158,7 @@ export class ServerContext {
         path.endsWith("/_middleware.ts") || path.endsWith("/_middleware.jsx") ||
         path.endsWith("/_middleware.js");
       if (!path.startsWith("/_") && !isMiddleware) {
-        const { default: component, config } = module as RouteModule;       
+        const { default: component, config } = module as RouteModule;
         let pattern = pathToPattern(baseRoute);
         if (config?.routeOverride) {
           pattern = String(config.routeOverride);
