@@ -115,4 +115,4 @@ To create a middleware you need to create a ``MiddlewareHandler`` function.
 And to create a route you can create both a Handler and a/or component.
 
 For an example af a plugin that uses plugin routes and middlewares, see the 
-[Oauth2 plugin](https://github.com/RoeHH/fresh_oauth2) by roehh which is currently work in progress.
+[Oauth2 plugin](https://github.com/RoeHH/fresh_oauth2) which is currently work in progress.
