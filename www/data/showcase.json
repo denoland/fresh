@@ -96,6 +96,12 @@
     "image": "mooxl"
   },
   {
+    "title": "Developer Portfolio",
+    "link": "https://guillaumecomte.deno.dev",
+    "github": "guigui64/www",
+    "image": "guigui64"
+  },
+  {
     "title": "Joe Salinas Site",
     "link": "https://joesalinas.dev",
     "image": "joesalinasdev"
