@@ -253,9 +253,9 @@ export interface Plugin {
    */
   entrypoints?: Record<string, string>;
 
-  routes?: PluginRoute[]
+  routes?: PluginRoute[];
 
-  middlewares?: PluginMiddlewear[]
+  middlewares?: PluginMiddlewear[];
 
   /** The render hook is called on the server every time some JSX needs to
    * be turned into HTML. The render hook needs to call the `ctx.render`
@@ -313,7 +313,7 @@ export interface PluginMiddlewear {
   /** A path in the format of a filename path without filetype */
   path: string;
 
-  handler: MiddlewareHandler
+  handler: MiddlewareHandler;
 }
 
 export interface PluginRoute {

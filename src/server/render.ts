@@ -182,8 +182,8 @@ export async function render<Data>(
           );
         }
         renderResults.push([plugin, res]);
-      } else {  
-        render()
+      } else {
+        render();
       }
     } else {
       realRender();
