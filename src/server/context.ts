@@ -798,7 +798,7 @@ function getMiddlewareRoutesFromPlugins(
     ]
       .map((middleware: PluginMiddlewear) => ({
         [`./routes${middleware.path}_middleware.ts`]: {
-          handler: middleware.handler,
+          handler: middleware.middleware.handler,
         },
       })) || [],
   ));

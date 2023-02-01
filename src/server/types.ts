@@ -313,7 +313,7 @@ export interface PluginMiddlewear {
   /** A path in the format of a filename path without filetype */
   path: string;
 
-  handler: MiddlewareHandler;
+  middleware: Middleware;
 }
 
 export interface PluginRoute {
