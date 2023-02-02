@@ -4,7 +4,7 @@ import {
   Sheet,
   tw,
   TwindConfig,
-} from "https://esm.sh/@twind/core@1.0.3";
+} from "https://esm.sh/@twind/core@1.1.3";
 
 export const STYLE_ELEMENT_ID = "__FRSH_TWIND";
 
