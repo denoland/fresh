@@ -28,4 +28,5 @@ const esbuild: typeof esbuildWasm = Deno.run === undefined
   ? esbuildWasm
   : esbuildNative;
 export { esbuild, esbuildWasm as esbuildTypes };
+// TODO(lino-levan): replace with tagged version
 export { denoPlugin } from "https://raw.githubusercontent.com/lucacasonato/esbuild_deno_loader/b4b3ffb43e9380865ad12ab4d1c64c0ae0ca96cd/mod.ts";
