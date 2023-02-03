@@ -25,8 +25,11 @@ function createRootFragment(
 }
 
 // deno-lint-ignore no-explicit-any
-export function revive(islands: Record<string, ComponentType>, props: any[]) {
-  function walk(node: Node | null) {
+export function revive(
+  islands: Record<string, ComponentType>,
+  props: any[],
+) {
+  async function walk(node: Node | null) {
     const tag = node!.nodeType === 8 &&
       ((node as Comment).data.match(/^\s*frsh-(.*)\s*$/) || [])[1];
     let endNode: Node | null = null;
@@ -41,14 +44,16 @@ export function revive(islands: Record<string, ComponentType>, props: any[]) {
       startNode.parentNode!.removeChild(startNode); // remove start tag node
 
       const [id, n] = tag.split(":");
-      render(
-        h(islands[id], props[Number(n)]),
-        createRootFragment(
-          parent! as HTMLElement,
-          children,
-          // deno-lint-ignore no-explicit-any
-        ) as any as HTMLElement,
-      );
+      await scheduler?.postTask(() => {
+        render(
+          h(islands[id], props[Number(n)]),
+          createRootFragment(
+            parent! as HTMLElement,
+            children,
+            // deno-lint-ignore no-explicit-any
+          ) as any as HTMLElement,
+        );
+      }, { priority: "user-visible" });
       endNode = node;
     }
 
@@ -58,6 +63,7 @@ export function revive(islands: Record<string, ComponentType>, props: any[]) {
       endNode.parentNode?.removeChild(endNode); // remove end tag node
     }
 
+    // BFS
     if (sib) walk(sib);
     if (fc) walk(fc);
   }
