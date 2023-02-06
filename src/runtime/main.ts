@@ -44,7 +44,7 @@ export function revive(
       startNode.parentNode!.removeChild(startNode); // remove start tag node
 
       const [id, n] = tag.split(":");
-      await scheduler?.postTask(() => {
+      const _render = () => {
         render(
           h(islands[id], props[Number(n)]),
           createRootFragment(
@@ -53,7 +53,9 @@ export function revive(
             // deno-lint-ignore no-explicit-any
           ) as any as HTMLElement,
         );
-      }, { priority: "user-visible" });
+      };
+      // TODO: Run this under a flag
+      await (scheduler?.postTask(_render) ?? setTimeout(_render, 0));
       endNode = node;
     }
 
