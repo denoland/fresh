@@ -65,7 +65,6 @@ export function revive(
       endNode.parentNode?.removeChild(endNode); // remove end tag node
     }
 
-    // BFS
     if (sib) walk(sib);
     if (fc) walk(fc);
   }
