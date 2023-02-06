@@ -55,7 +55,9 @@ export function revive(
         );
       };
       // TODO: Run this under a flag
-      await (scheduler?.postTask(_render) ?? setTimeout(_render, 0));
+      "scheduler" in window
+        ? await scheduler!.postTask(_render)
+        : setTimeout(_render, 0);
       endNode = node;
     }
 
