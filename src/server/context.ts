@@ -313,13 +313,17 @@ export class ServerContext {
     const inner = rutt.router<RouterState>(...this.#handlers());
     const withMiddlewares = this.#composeMiddlewares(this.#middlewares);
     return function handler(req: Request, connInfo: ConnInfo) {
-      // Redirect requests that end with a trailing slash
-      // to their non-trailing slash counterpart.
+      // Redirect requests that end with a trailing slash to their non-trailing
+      // slash counterpart.
       // Ex: /about/ -> /about
       const url = new URL(req.url);
       if (url.pathname.length > 1 && url.pathname.endsWith("/")) {
-        url.pathname = url.pathname.slice(0, -1);
-        return Response.redirect(url.href, Status.TemporaryRedirect);
+        const path = url.pathname.slice(0, -1);
+        const location = `${path}${url.search}`;
+        return new Response(null, {
+          status: Status.TemporaryRedirect,
+          headers: { location },
+        });
       }
       return withMiddlewares(req, connInfo, inner);
     };
