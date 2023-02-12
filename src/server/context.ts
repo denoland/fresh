@@ -336,7 +336,7 @@ export class ServerContext {
       inner: rutt.Handler<RouterState>,
     ) => {
       // identify middlewares to apply, if any.
-      // middlewares should be already sorted from deepest to shallow layer
+      // middlewares should be already sorted by priority
       const mws = selectMiddlewares(req.url, middlewares);
 
       const handlers: (() => Response | Promise<Response>)[] = [];
@@ -354,11 +354,15 @@ export class ServerContext {
       for (const mw of mws) {
         if (mw.mw.handler instanceof Array) {
           for (const handler of mw.mw.handler) {
-            handlers.push(() => handler(req, { ...ctx, middlewareParams: mw.middlewareParams}));
+            handlers.push(() =>
+              handler(req, { ...ctx, middlewareParams: mw.middlewareParams })
+            );
           }
         } else {
           const handler = mw.mw.handler;
-          handlers.push(() => handler(req, { ...ctx, middlewareParams: mw.middlewareParams}));
+          handlers.push(() =>
+            handler(req, { ...ctx, middlewareParams: mw.middlewareParams })
+          );
         }
       }
 
@@ -664,18 +668,24 @@ const DEFAULT_ERROR: ErrorPage = {
  * @param middlewares Array of middlewares handlers and their routes as path-to-regexp style
  */
 export function selectMiddlewares(url: string, middlewares: MiddlewareRoute[]) {
-  const selectedMws: { mw: Middleware, middlewareParams: Record<string, string> } [] = [];
+  const selectedMws: {
+    mw: Middleware;
+    middlewareParams: Record<string, string>;
+  }[] = [];
   const reqURL = new URL(url);
 
   for (const { compiledPattern, handler } of middlewares) {
     const res = compiledPattern.exec(reqURL.toString());
     if (res) {
       const middlewareParams = res.pathname.groups;
-      delete middlewareParams["0"]
-      selectedMws.push({ mw: { handler}, middlewareParams: res.pathname.groups });
+      delete middlewareParams["0"];
+      selectedMws.push({
+        mw: { handler },
+        middlewareParams: res.pathname.groups,
+      });
     }
   }
-  
+
   return selectedMws;
 }
 
@@ -683,7 +693,7 @@ export function selectMiddlewares(url: string, middlewares: MiddlewareRoute[]) {
  * Sort pages by their relative routing priority, based on the parts in the
  * route matcher
  */
-function sortRoutes<T extends { pattern: string }>(routes: T[]) {
+export function sortRoutes<T extends { pattern: string }>(routes: T[]) {
   routes.sort((a, b) => {
     const partsA = a.pattern.split("/");
     const partsB = b.pattern.split("/");
