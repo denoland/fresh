@@ -1,15 +1,15 @@
-import { assert } from "../../tests/deps.ts";
+import { assert, assertEquals } from "../../tests/deps.ts";
 import { middlewarePathToPattern, selectMiddlewares } from "./context.ts";
 import { MiddlewareRoute } from "./types.ts";
 
 Deno.test("selectMiddlewares", () => {
-  const url = "https://fresh.deno.dev/api/abc/def";
+  const url = "https://fresh.deno.dev/api/level1/level2/end";
   const middlewaresPath = [
     // should select
-    "_middleware",
-    "api/_middleware",
-    "api/[id]/_middleware",
     "api/[id]/[path]/_middleware",
+    "api/[id]/_middleware",
+    "api/_middleware",
+    "_middleware",
 
     // should not select
     "api/xyz/_middleware",
@@ -21,4 +21,14 @@ Deno.test("selectMiddlewares", () => {
   ) as MiddlewareRoute[];
   const mws = selectMiddlewares(url, mwRoutes);
   assert(mws.length === 4);
+
+  assertEquals(mws[0].middlewareParams, {
+    id: 'level1',
+    path:'level2'
+  });
+  assertEquals(mws[1].middlewareParams, {
+    id: 'level1',
+  });
+  assertEquals(mws[2].middlewareParams, {});
+  assertEquals(mws[3].middlewareParams, {});
 });

@@ -348,16 +348,17 @@ export class ServerContext {
         },
         ...connInfo,
         state: {},
+        middlewareParams: {},
       };
 
       for (const mw of mws) {
-        if (mw.handler instanceof Array) {
-          for (const handler of mw.handler) {
-            handlers.push(() => handler(req, ctx));
+        if (mw.mw.handler instanceof Array) {
+          for (const handler of mw.mw.handler) {
+            handlers.push(() => handler(req, { ...ctx, middlewareParams: mw.middlewareParams}));
           }
         } else {
-          const handler = mw.handler;
-          handlers.push(() => handler(req, ctx));
+          const handler = mw.mw.handler;
+          handlers.push(() => handler(req, { ...ctx, middlewareParams: mw.middlewareParams}));
         }
       }
 
@@ -663,16 +664,18 @@ const DEFAULT_ERROR: ErrorPage = {
  * @param middlewares Array of middlewares handlers and their routes as path-to-regexp style
  */
 export function selectMiddlewares(url: string, middlewares: MiddlewareRoute[]) {
-  const selectedMws: Middleware[] = [];
+  const selectedMws: { mw: Middleware, middlewareParams: Record<string, string> } [] = [];
   const reqURL = new URL(url);
 
   for (const { compiledPattern, handler } of middlewares) {
-    const res = compiledPattern.exec(reqURL);
+    const res = compiledPattern.exec(reqURL.toString());
     if (res) {
-      selectedMws.push({ handler });
+      const middlewareParams = res.pathname.groups;
+      delete middlewareParams["0"]
+      selectedMws.push({ mw: { handler}, middlewareParams: res.pathname.groups });
     }
   }
-
+  
   return selectedMws;
 }
 

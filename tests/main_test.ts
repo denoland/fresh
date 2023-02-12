@@ -461,6 +461,25 @@ Deno.test({
 });
 
 Deno.test({
+  name: "/middleware - middlewareParams",
+  fn: async () => {
+    const resp = await router(
+      new Request(
+        "https://fresh.deno.dev/layeredMdw/layer2-with-params/tenant1/resource1",
+      ),
+    );
+    assert(resp);
+    assertEquals(resp.status, Status.OK);
+    const _body = await resp.text();
+    assertEquals(
+      resp.headers.get("middlewareParams"),
+      JSON.stringify({ tenantId: "tenant1" }),
+    );
+    assertEquals(resp.headers.get("server"), "fresh test server");
+  },
+});
+
+Deno.test({
   name: "/not_found",
   fn: async () => {
     const resp = await router(new Request("https://fresh.deno.dev/not_found"));

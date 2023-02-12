@@ -200,6 +200,14 @@ export interface MiddlewareHandlerContext<State = Record<string, unknown>>
   extends ConnInfo {
   next: () => Promise<Response>;
   state: State;
+
+  /**
+   * Params that are upstream from the middleware.
+   * Warning! This does NOT contains all the params for the route.
+   * for a route: /api/[id1]/[id2]/foo. an a middleware located at 
+   * /api/[id1]/_middleware. middlewareParams will only have a param of 'id1'
+   */
+  middlewareParams: Record<string, string>
 }
 
 export interface MiddlewareRoute extends Middleware {
