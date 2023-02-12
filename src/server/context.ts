@@ -697,7 +697,7 @@ export function selectMiddlewares(url: string, middlewares: MiddlewareRoute[]) {
  * Sort pages by their relative routing priority, based on the parts in the
  * route matcher
  */
-export function sortRoutes<T extends { pattern: string }>(routes: T[]) {
+function sortRoutes<T extends { pattern: string }>(routes: T[]) {
   routes.sort((a, b) => {
     const partsA = a.pattern.split("/");
     const partsB = b.pattern.split("/");
