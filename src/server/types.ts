@@ -204,8 +204,12 @@ export interface MiddlewareHandlerContext<State = Record<string, unknown>>
   /**
    * Params that are upstream from the middleware.
    * Warning! This does NOT contains all the params for the route.
-   * for a route: /api/[id1]/[id2]/foo. an a middleware located at
-   * /api/[id1]/_middleware. middlewareParams will only have a param of 'id1'
+   *
+   * For example:
+   * With a route '/api/[id1]/[id2]/foo'
+   * and a middleware located at '/api/[id1]/_middleware',
+   * middlewareParams will only have a property of 'id1'.
+   * 'id2 will' be undefined
    */
   middlewareParams: Record<string, string>;
 }

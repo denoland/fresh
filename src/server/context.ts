@@ -679,7 +679,7 @@ export function selectMiddlewares(url: string, middlewares: MiddlewareRoute[]) {
     if (res) {
       const middlewareParams: Record<string, string> = {};
       for (const key in res.pathname.groups ?? {}) {
-        if (key === "0") continue
+        if (key === "0") continue;
         middlewareParams[key] = decodeURIComponent(res.pathname.groups[key]);
       }
 
