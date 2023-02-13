@@ -309,7 +309,7 @@ export interface PluginRenderFunctionResult {
   requiresHydration: boolean;
 }
 
-export interface PluginMiddlewear {
+export interface PluginMiddleware {
   /** A path in the format of a filename path without filetype */
   path: string;
 

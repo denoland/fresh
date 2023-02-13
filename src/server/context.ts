@@ -25,7 +25,7 @@ import {
   MiddlewareModule,
   MiddlewareRoute,
   Plugin,
-  PluginMiddlewear,
+  PluginMiddleware,
   PluginRoute,
   RenderFunction,
   Route,
@@ -791,12 +791,12 @@ function getMiddlewareRoutesFromPlugins(
     {},
     ...[
       ...new Set(
-        ([] as PluginMiddlewear[]).concat(
+        ([] as PluginMiddleware[]).concat(
           ...plugins.map((p) => p.middlewares || []),
         ),
       ),
     ]
-      .map((middleware: PluginMiddlewear) => ({
+      .map((middleware: PluginMiddleware) => ({
         [`./routes${middleware.path}_middleware.ts`]: {
           handler: middleware.middleware.handler,
         },
