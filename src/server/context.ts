@@ -748,8 +748,8 @@ function toPascalCase(text: string): string {
   );
 }
 
-function sanitizeIslandName(name: string): string {
-  const fileName = name.replace("/", "");
+export function sanitizeIslandName(name: string): string {
+  const fileName = name.split("/").filter(Boolean).map(toPascalCase).join("_");
   return toPascalCase(fileName);
 }
 
