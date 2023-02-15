@@ -331,6 +331,7 @@ export class ServerContext {
       }
       const res = await withMiddlewares(req, connInfo, inner);
       if (originalMethod === "HEAD") {
+        res.body?.cancel();
         return new Response(null, {
           headers: res.headers,
           status: res.status,

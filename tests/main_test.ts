@@ -252,6 +252,13 @@ Deno.test("static file - by file path", async () => {
   assertEquals(resp3.status, Status.NotModified);
   assertEquals(resp3.headers.get("etag"), etag);
   assertEquals(resp3.headers.get("content-type"), "text/plain");
+
+  const resp4 = await router(
+    new Request("https://fresh.deno.dev/foo.txt", {
+      method: "HEAD"
+    }),
+  );
+  assertEquals(resp4.status, Status.OK);
 });
 
 Deno.test("static file - by 'hashed' path", async () => {
