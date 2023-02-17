@@ -148,9 +148,9 @@ export default manifest;
     },
   });
   await raw.pipeTo(proc.stdin);
-  const out = await proc.output();
+  const { stdout } = await proc.output();
 
-  const manifestStr = new TextDecoder().decode(out.stdout);
+  const manifestStr = new TextDecoder().decode(stdout);
   const manifestPath = join(directory, "./fresh.gen.ts");
 
   await Deno.writeTextFile(manifestPath, manifestStr);
