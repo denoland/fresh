@@ -2,6 +2,7 @@ import { gte, join, posix, relative, walk, WalkEntry } from "./deps.ts";
 import { error } from "./error.ts";
 
 const MIN_DENO_VERSION = "1.31.0";
+const TEST_FILE_PATTERN = /[\.|_]test\.[t|j]s(x)?$/;
 
 export function ensureMinDenoVersion() {
   // Check that the minimum supported Deno version is being used.
@@ -37,6 +38,7 @@ async function collectDir(
     includeDirs: false,
     includeFiles: true,
     exts: ["tsx", "jsx", "ts", "js"],
+    skip: [TEST_FILE_PATTERN],
   });
 
   for await (const entry of routesFolder) {
