@@ -26,6 +26,7 @@ Fresh can handle both GET and POST requests through the
 any necessary processing on the form data, and then pass data to the
 `ctx.render()` call to render a new page.
 
+## `GET` example
 Here is an example implementing a search form that filters an array of names
 server side:
 
@@ -70,6 +71,42 @@ When the user submits the form, the browser will navigate to `/search` with the
 query set as the `q` query parameter in the URL. The `GET` handler will then
 filter the names array based on the query, and pass it to the page component for
 rendering.
+
+## `POST` example
+Here's an example processing a simple form submission request:
+
+```tsx
+// routes/subscribe.tsx
+import { Handlers } from "$fresh/server.ts";
+
+export const handler: Handlers = {
+  async GET(req, ctx) {
+    return await ctx.render();
+  },
+  async POST(req, ctx) {
+    try {
+      const form = await req.formData();
+      const email = form.get("email");
+      return new Response(JSON.stringify({ email }));
+    } catch (error) {
+      return new Response(JSON.stringify(error));
+    }
+  },
+};
+
+export default function Subscribe() {
+  return (
+    <>
+      <form method="post">
+        <input type="email" name="email" value="" />
+        <button type="submit">Subscribe</button>
+      </form>
+    </>
+  );
+};
+```
+
+When the user submits the form, Deno will access a specific `email` value from a `formData()` and return its representation as a JSON array.
 
 <!-- TODO(lucacasonato): link to todo app example when that is built again -->
 
