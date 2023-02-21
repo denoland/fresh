@@ -153,7 +153,7 @@ function Content(props: { page: Page }) {
         {props.page.title}
       </h1>
       <div
-        class="mt-6 markdown-body"
+        class="mt-6 markdown-body p-2 rounded"
         dangerouslySetInnerHTML={{ __html: html }}
       />
       <ForwardBackButtons slug={props.page.slug} />
