@@ -1,4 +1,4 @@
-import { stringify, virtual } from "https://esm.sh/@twind/core@1.0.3";
+import { stringify, virtual } from "https://esm.sh/@twind/core@1.1.3";
 import { Plugin } from "../server.ts";
 
 import { Options, setup, STYLE_ELEMENT_ID } from "./twindv1/shared.ts";
