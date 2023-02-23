@@ -17,7 +17,7 @@ export {
 } from "https://deno.land/std@0.177.0/media_types/mod.ts";
 
 // -- rutt --
-export * as rutt from "https://deno.land/x/rutt@0.0.14/mod.ts";
+export * as rutt from "https://deno.land/x/rutt@0.1.0/mod.ts";
 
 // -- esbuild --
 // @deno-types="https://deno.land/x/esbuild@v0.17.2/mod.d.ts"
