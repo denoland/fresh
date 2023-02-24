@@ -254,6 +254,12 @@
     "image": "yaml-to-ts"
   },
   {
+    "title": "Denosoar",
+    "link": "https://denosoar.deno.dev/",
+    "github": "Denosoar-GUI/Denosoar-GUI",
+    "image": "super-deno"
+  },
+  {
     "title": "Do not remove this, it's for prevent conflicting by trailing comma",
     "link": "",
     "github": "",
