@@ -260,6 +260,12 @@
     "image": "super-deno"
   },
   {
+    "title": "link-maker",
+    "link": "https://link-maker.deno.dev/",
+    "github": "kuizuo/link-maker",
+    "image": "link-maker"
+  },
+  {
     "title": "Do not remove this, it's for prevent conflicting by trailing comma",
     "link": "",
     "github": "",
