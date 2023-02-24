@@ -96,6 +96,12 @@
     "image": "mooxl"
   },
   {
+    "title": "Developer Portfolio",
+    "link": "https://guillaumecomte.deno.dev",
+    "github": "guigui64/www",
+    "image": "guigui64"
+  },
+  {
     "title": "Joe Salinas Site",
     "link": "https://joesalinas.dev",
     "image": "joesalinasdev"
@@ -228,6 +234,24 @@
     "link": "https://fresh-notion-blog.deno.dev/",
     "github": "xijaja/fresh-notion-blog",
     "image": "fresh-notion-blog"
+  },
+  {
+    "title": "Deno Paste",
+    "link": "https://deno-paste.deno.dev/",
+    "github": "stephenmelnicki/deno_paste",
+    "image": "deno-paste"
+  },
+  {
+    "title": "m33t",
+    "link": "https://m33t.deno.dev/",
+    "github": "dunkbing/m33t",
+    "image": "m33t"
+  },
+  {
+    "title": "YAML to TypeScript",
+    "link": "https://yaml-to-ts.deno.dev/",
+    "github": "jiawei397/yaml_to_ts_web",
+    "image": "yaml-to-ts"
   },
   {
     "title": "Denosoar",
