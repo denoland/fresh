@@ -374,10 +374,8 @@ export class ServerContext {
    */
   #handlers(): [
     rutt.Routes<RouterState>,
-    {
-      otherHandler: rutt.Handler<RouterState>;
-      errorHandler: rutt.ErrorHandler<RouterState>;
-    },
+    rutt.Handler<RouterState>,
+    rutt.ErrorHandler<RouterState>,
   ] {
     const routes: rutt.Routes<RouterState> = {};
 
@@ -524,7 +522,7 @@ export class ServerContext {
       }
     }
 
-    const otherHandler: rutt.Handler<RouterState> = (
+    const unknownHandler: rutt.Handler<RouterState> = (
       req,
       ctx,
     ) =>
@@ -560,7 +558,7 @@ export class ServerContext {
       );
     };
 
-    return [routes, { otherHandler, errorHandler }];
+    return [routes, unknownHandler, errorHandler];
   }
 
   #staticFileHandler(

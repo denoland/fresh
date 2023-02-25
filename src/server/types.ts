@@ -87,7 +87,7 @@ export type Handler<T = any, State = Record<string, unknown>> = (
 
 // deno-lint-ignore no-explicit-any
 export type Handlers<T = any, State = Record<string, unknown>> = {
-  [K in typeof rutt.knownMethods[number]]?: Handler<T, State>;
+  [K in typeof rutt.METHODS[number]]?: Handler<T, State>;
 };
 
 export interface RouteModule {

@@ -1,4 +1,4 @@
-import { BuildOptions } from "https://deno.land/x/esbuild@v0.17.2/mod.js";
+import { BuildOptions } from "https://deno.land/x/esbuild@v0.14.51/mod.js";
 import { BUILD_ID } from "./constants.ts";
 import { denoPlugin, esbuild, toFileUrl } from "./deps.ts";
 import { Island, Plugin } from "./types.ts";
@@ -12,7 +12,7 @@ let esbuildInitialized: boolean | Promise<void> = false;
 async function ensureEsbuildInitialized() {
   if (esbuildInitialized === false) {
     if (Deno.Command === undefined) {
-      const wasmURL = new URL("./esbuild_v0.17.2.wasm", import.meta.url).href;
+      const wasmURL = new URL("./esbuild_v0.14.51.wasm", import.meta.url).href;
       esbuildInitialized = fetch(wasmURL).then(async (r) => {
         const resp = new Response(r.body, {
           headers: { "Content-Type": "application/wasm" },
