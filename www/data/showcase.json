@@ -96,6 +96,12 @@
     "image": "mooxl"
   },
   {
+    "title": "Developer Portfolio",
+    "link": "https://guillaumecomte.deno.dev",
+    "github": "guigui64/www",
+    "image": "guigui64"
+  },
+  {
     "title": "Joe Salinas Site",
     "link": "https://joesalinas.dev",
     "image": "joesalinasdev"
@@ -240,6 +246,18 @@
     "link": "https://m33t.deno.dev/",
     "github": "dunkbing/m33t",
     "image": "m33t"
+  },
+  {
+    "title": "YAML to TypeScript",
+    "link": "https://yaml-to-ts.deno.dev/",
+    "github": "jiawei397/yaml_to_ts_web",
+    "image": "yaml-to-ts"
+  },
+  {
+    "title": "Denosoar",
+    "link": "https://denosoar.deno.dev/",
+    "github": "Denosoar-GUI/Denosoar-GUI",
+    "image": "super-deno"
   },
   {
     "title": "Do not remove this, it's for prevent conflicting by trailing comma",

@@ -5,6 +5,7 @@ import {
   assertStringIncludes,
   delay,
   puppeteer,
+  retry,
   TextLineStream,
 } from "./deps.ts";
 
@@ -169,7 +170,7 @@ Deno.test({
       serverProcess.close();
     });
 
-    await Deno.remove(tmpDirName, { recursive: true });
+    await retry(() => Deno.remove(tmpDirName, { recursive: true }));
   },
   sanitizeOps: false,
   sanitizeResources: false,
@@ -325,7 +326,7 @@ Deno.test({
       serverProcess.close();
     });
 
-    await Deno.remove(tmpDirName, { recursive: true });
+    await retry(() => Deno.remove(tmpDirName, { recursive: true }));
   },
   sanitizeOps: false,
   sanitizeResources: false,
