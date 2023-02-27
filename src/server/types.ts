@@ -255,7 +255,7 @@ export interface Plugin {
 
   routes?: PluginRoute[];
 
-  middlewares?: PluginMiddlewear[];
+  middlewares?: PluginMiddleware[];
 
   /** The render hook is called on the server every time some JSX needs to
    * be turned into HTML. The render hook needs to call the `ctx.render`
