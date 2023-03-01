@@ -1,5 +1,6 @@
 // https://github.com/denoland/fresh/pull/1050
 import { useEffect, useState } from "preact/hooks";
+import { cmpCssRules } from "../utils/utils.ts";
 
 /**
  * Returns a cssrulelist of styleElement matching the selector.
@@ -8,30 +9,6 @@ import { useEffect, useState } from "preact/hooks";
 function getCssrules(selector: string) {
   const elem = document.querySelector(selector) as HTMLStyleElement;
   return elem?.sheet?.cssRules;
-}
-
-/**
- * Returns the number of csstext duplicates that compare two cssrulelist.
- *
- */
-function cmpCssRules(a: CSSRuleList, b: CSSRuleList) {
-  const aCssTextArray = Array.from(a).map((elem: CSSRule) => {
-    return elem.cssText;
-  });
-  const bCssTextArray = Array.from(b).map((elem: CSSRule) => {
-    return elem.cssText;
-  });
-  const bCssTextSet = new Set(bCssTextArray);
-
-  const duplicateRules = aCssTextArray.filter((value) => {
-    return bCssTextSet.has(value);
-  });
-
-  console.group("Duplicated cssRules");
-  console.log(duplicateRules);
-  console.groupEnd();
-
-  return duplicateRules.length;
 }
 
 export default function CheckDuplication() {
