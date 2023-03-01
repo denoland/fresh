@@ -4,7 +4,6 @@ import { cmpCssRules } from "../utils/utils.ts";
 
 /**
  * Returns a cssrulelist of styleElement matching the selector.
- *
  */
 function getCssrules(selector: string) {
   const elem = document.querySelector(selector) as HTMLStyleElement;
@@ -27,7 +26,7 @@ export default function CheckDuplication() {
     // get <style data-twind="claimed">
     // see https://github.com/tw-in-js/twind/blob/main/packages/core/src/sheets.ts#L5-L16
     setCssRulesClaimed(
-      getCssrules('[data-twind="claimed"]:not(#__FRSH_TWIND)')
+      getCssrules('[data-twind="claimed"]:not(#__FRSH_TWIND)'),
     );
   });
 
@@ -40,12 +39,16 @@ export default function CheckDuplication() {
           if (cssRulesFRSHTWIND != null && cssRulesClaimed != null) {
             return (
               <div>
-                <p>Error : </p>
-                <p id="numDuplicates">{`${cmpCssRules(
-                  cssRulesFRSHTWIND,
-                  cssRulesClaimed
-                )}`}</p>
-                <p> cssrules are duplicated</p>
+                <p>Error :</p>
+                <p id="numDuplicates">
+                  {`${
+                    cmpCssRules(
+                      cssRulesFRSHTWIND,
+                      cssRulesClaimed,
+                    )
+                  }`}
+                </p>
+                <p>cssrules are duplicated</p>
               </div>
             );
           } else if (cssRulesFRSHTWIND != null && cssRulesClaimed == null) {

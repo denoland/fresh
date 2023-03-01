@@ -1,8 +1,8 @@
 import {
-  setup,
-  TwindConfig,
   cssom,
   getSheet,
+  setup,
+  TwindConfig,
 } from "https://esm.sh/@twind/core@1.1.3";
 import { STYLE_ELEMENT_ID } from "./shared.ts";
 

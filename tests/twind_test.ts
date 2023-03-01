@@ -36,7 +36,6 @@ Deno.test({
     /**
      * Compare the class of element of any id with the selectorText of cssrules in stylesheet.
      * Ensure that twind compliles the class of element.
-     *
      */
     async function compiledCssRulesTest(id: string, styleId: string) {
       const elemClassList = await page.evaluate((selector) => {
@@ -70,7 +69,7 @@ Deno.test({
       for (const elemClass of elemClassList) {
         assert(
           twindCssRulesSet.has("." + elemClass),
-          `'${elemClass}' is not compiled by twind`
+          `'${elemClass}' is not compiled by twind`,
         );
       }
     }
@@ -130,7 +129,7 @@ Deno.test({
      */
     async function noDuplicatesTest(
       twindStyleElemSelector: string,
-      twindClaimedStyleElemSelector: string
+      twindClaimedStyleElemSelector: string,
     ) {
       const twindCssRuleList = await page.evaluate((selector) => {
         const elem = document.querySelector(selector) as HTMLStyleElement;
@@ -167,7 +166,7 @@ Deno.test({
 
       const numDuplicates = cmpStringArray(
         twindCssRuleList,
-        twindClaimedCssRuleList
+        twindClaimedCssRuleList,
       );
 
       assert(false, `${numDuplicates} cssrules are duplicated`);
@@ -180,7 +179,7 @@ Deno.test({
     await t.step("Ensure no dupulicate twind cssrules in islands", async () => {
       await noDuplicatesTest(
         "#__FRSH_TWIND",
-        '[data-twind="claimed"]:not(#__FRSH_TWIND)'
+        '[data-twind="claimed"]:not(#__FRSH_TWIND)',
       );
     });
 
@@ -238,19 +237,19 @@ Deno.test({
           const numCssRules = cssRules?.length;
 
           return numCssRules != null ? numCssRules : NaN;
-        }
+        },
       );
 
       assert(
         !isNaN(numCssRulesBeforeInsert),
-        "StyleElement(#${twindStyleId}) is no exists"
+        "StyleElement(#${twindStyleId}) is no exists",
       );
 
       const hasClassBeforeInsert = await page.$eval(
         "#currentNumCssRules",
         (el) => {
           return Array.from(el.classList) as string[];
-        }
+        },
       );
 
       // After click, `text-green-600` is inserted to the class of the element in #currentNumCssRules.
@@ -258,17 +257,16 @@ Deno.test({
         return el.click();
       });
 
-      const [numCssRulesAfterInsert, twindCssRulesAfterInsert] =
-        await page.$eval(`#${twindStyleId}`, (el) => {
+      const [numCssRulesAfterInsert, twindCssRulesAfterInsert] = await page
+        .$eval(`#${twindStyleId}`, (el) => {
           const styleElem = el as HTMLStyleElement;
           const cssRules = styleElem.sheet?.cssRules;
           const numCssRules = cssRules?.length;
-          const cssRulesSelectorTextArray =
-            cssRules != null
-              ? Array.from(cssRules).map((el) => {
-                  return (el as CSSStyleRule).selectorText;
-                })
-              : null;
+          const cssRulesSelectorTextArray = cssRules != null
+            ? Array.from(cssRules).map((el) => {
+              return (el as CSSStyleRule).selectorText;
+            })
+            : null;
 
           return [
             numCssRules != null ? numCssRules : NaN,
@@ -278,14 +276,14 @@ Deno.test({
 
       assert(
         !isNaN(numCssRulesAfterInsert),
-        `StyleElement(#${twindStyleId}) is no exists`
+        `StyleElement(#${twindStyleId}) is no exists`,
       );
 
       const hasClassAfterInsert = await page.$eval(
         "#currentNumCssRules",
         (el) => {
           return Array.from(el.classList) as string[];
-        }
+        },
       );
 
       const hasClassBeforeInsertSet = new Set(hasClassBeforeInsert);
@@ -299,7 +297,7 @@ Deno.test({
       for (const insertedClass of insertedClassArray) {
         assert(
           twindCssRulesAfterInsertSet.has(`.${insertedClass}`),
-          `'${insertedClass} has been inserted into a style sheet other than <style id="${twindStyleId}">'`
+          `'${insertedClass} has been inserted into a style sheet other than <style id="${twindStyleId}">'`,
         );
       }
 
@@ -308,7 +306,7 @@ Deno.test({
       // and the cssrule will increase.
       assert(
         numCssRulesBeforeInsert !== numCssRulesAfterInsert,
-        `Cssrule has been inserted into a style sheet other than <style id="${twindStyleId}"> or it was compiled at the time of SSR.`
+        `Cssrule has been inserted into a style sheet other than <style id="${twindStyleId}"> or it was compiled at the time of SSR.`,
       );
     }
 
@@ -320,7 +318,7 @@ Deno.test({
       "Ensure that the class dynamically inserted in islands is compiled",
       async () => {
         await DynamicallyInsertCssrulesTest("__FRSH_TWIND");
-      }
+      },
     );
 
     await browser.close();

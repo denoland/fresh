@@ -1,6 +1,5 @@
 /**
  * Returns the number of string duplicates that compare two string[].
- *
  */
 export function cmpStringArray(a: string[], b: string[]) {
   const bSet = new Set(b);
@@ -14,7 +13,6 @@ export function cmpStringArray(a: string[], b: string[]) {
 
 /**
  * Returns the number of csstext duplicates that compare two cssrulelist.
- *
  */
 export function cmpCssRules(a: CSSRuleList, b: CSSRuleList) {
   const aCssTextArray = Array.from(a).map((elem: CSSRule) => {

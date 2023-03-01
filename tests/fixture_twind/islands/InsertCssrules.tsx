@@ -3,7 +3,6 @@ import { useEffect, useState } from "preact/hooks";
 
 /**
  * Returns a number of cssrules set by twind.
- *
  */
 function getNumCssrules(): number | undefined {
   const elem = document.getElementById("__FRSH_TWIND") as HTMLStyleElement;
@@ -12,7 +11,7 @@ function getNumCssrules(): number | undefined {
 
 export default function InsertCssrules() {
   const [numDefCssRules, setNumDefCssRules] = useState<number | undefined>(
-    undefined
+    undefined,
   );
   const [numCssRules, setNumCssRules] = useState<number | undefined>(undefined);
   const [insertedStyles, setInsertedStyles] = useState("");
@@ -32,7 +31,7 @@ export default function InsertCssrules() {
       <h2>Insert cssrule in islands</h2>
       <div>
         <div>
-          <p>Default Number of __FRSH_TWIND CssRules : </p>
+          <p>Default Number of __FRSH_TWIND CssRules :</p>
           <p id="defaultNumCssRules" class={`text-xl`}>
             {numDefCssRules ? numDefCssRules : "Error : Cannot get cssrules"}
           </p>
@@ -50,9 +49,7 @@ export default function InsertCssrules() {
           } else if (numDefCssRules === numCssRules) {
             return (
               <p id="errorInsertCssrules">
-                {
-                  'Error: A cssrule has been inserted into a style sheet other than <style id="__FRSH_TWIND">'
-                }
+                {'Error: A cssrule has been inserted into a style sheet other than <style id="__FRSH_TWIND">'}
               </p>
             );
           } else {
