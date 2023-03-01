@@ -32,7 +32,8 @@ export default function CheckDuplication() {
   });
 
   return (
-    <div>
+    <div class="p-2">
+      {/* At least one class is required in the islands for hydrate to work. */}
       <h2>Check duplicated cssrules</h2>
       <div>
         {(() => {
