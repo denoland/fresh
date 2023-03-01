@@ -6,7 +6,7 @@ import {
   TextLineStream,
 } from "./deps.ts";
 
-import { cmpCssRules } from "./fixture_twind/utils/utils.ts";
+import { cmpStringArray } from "./fixture_twind/utils/utils.ts";
 
 Deno.test({
   name: "twind static test",
@@ -136,7 +136,14 @@ Deno.test({
     ) {
       const twindCssRuleList = await page.evaluate((selector) => {
         const elem = document.querySelector(selector) as HTMLStyleElement;
-        return elem?.sheet?.cssRules;
+        const cssRules = elem?.sheet?.cssRules;
+        if (cssRules != null) {
+          return Array.from(cssRules).map((el) => {
+            return el.cssText;
+          });
+        } else {
+          return null;
+        }
       }, twindStyleElemSelector);
 
       if (twindCssRuleList == null) {
@@ -145,7 +152,14 @@ Deno.test({
 
       const twindClaimedCssRuleList = await page.evaluate((selector) => {
         const elem = document.querySelector(selector) as HTMLStyleElement;
-        return elem?.sheet?.cssRules;
+        const cssRules = elem?.sheet?.cssRules;
+        if (cssRules != null) {
+          return Array.from(cssRules).map((el) => {
+            return el.cssText;
+          });
+        } else {
+          return null;
+        }
       }, twindClaimedStyleElemSelector);
 
       if (twindClaimedCssRuleList == null) {
@@ -153,7 +167,7 @@ Deno.test({
         return;
       }
 
-      const numDuplicates = cmpCssRules(
+      const numDuplicates = cmpStringArray(
         twindCssRuleList,
         twindClaimedCssRuleList
       );
