@@ -51,6 +51,7 @@ Deno.test({
           return [];
         }
       }, `#${id}`);
+      assert(elemClassList.length !== 0, `Element of id=${id} has no class`);
 
       const twindCssRules = await page.evaluate((selector) => {
         const styleElem = document.querySelector(selector);
