@@ -193,3 +193,132 @@ Deno.test({
   sanitizeOps: false,
   sanitizeResources: false,
 });
+
+Deno.test({
+  name: "Dynamically insert cssrules",
+  async fn(t) {
+    // Preparation
+    const serverProcess = Deno.run({
+      cmd: ["deno", "run", "-A", "./tests/fixture_twind/main.ts"],
+      stdout: "piped",
+      stderr: "inherit",
+    });
+
+    const decoder = new TextDecoderStream();
+    const lines = serverProcess.stdout.readable
+      .pipeThrough(decoder)
+      .pipeThrough(new TextLineStream());
+
+    let started = false;
+    for await (const line of lines) {
+      if (line.includes("Listening on http://")) {
+        started = true;
+        break;
+      }
+    }
+    if (!started) {
+      throw new Error("Server didn't start up");
+    }
+
+    await delay(100);
+
+    const browser = await puppeteer.launch({ args: ["--no-sandbox"] });
+    const page = await browser.newPage();
+
+    async function DynamicallyInsertCssrulesTest() {
+      const numCssRulesBeforeInsert = await page.$eval(
+        "#__FRSH_TWIND",
+        (el) => {
+          const styleElem = el as HTMLStyleElement;
+          const cssRules = styleElem.sheet?.cssRules;
+          const numCssRules = cssRules?.length;
+
+          return numCssRules != null ? numCssRules : NaN;
+        }
+      );
+
+      assert(
+        !isNaN(numCssRulesBeforeInsert),
+        "StyleElement(#__FRSH_TWIND) is no exists"
+      );
+
+      const hasClassBeforeInsert = await page.$eval(
+        "#currentNumCssRules",
+        (el) => {
+          return Array.from(el.classList) as string[];
+        }
+      );
+
+      // After clicking, `text-green-600` is added to the class of the element in #currentNumCssRules.
+      await page.$eval("#insertCssRuleButton", (el) => {
+        return el.click();
+      });
+
+      const [numCssRulesAfterInsert, twindCssRulesAfterInsert] =
+        await page.$eval("#__FRSH_TWIND", (el) => {
+          const styleElem = el as HTMLStyleElement;
+          const cssRules = styleElem.sheet?.cssRules;
+          const numCssRules = cssRules?.length;
+          const cssRulesSelectorTextArray =
+            cssRules != null
+              ? Array.from(cssRules).map((el) => {
+                  return (el as CSSStyleRule).selectorText;
+                })
+              : null;
+
+          return [
+            numCssRules != null ? numCssRules : NaN,
+            cssRulesSelectorTextArray,
+          ] as [number, string[] | null];
+        });
+
+      assert(
+        !isNaN(numCssRulesAfterInsert),
+        "StyleElement(#__FRSH_TWIND) is no exists"
+      );
+
+      const hasClassAfterInsert = await page.$eval(
+        "#currentNumCssRules",
+        (el) => {
+          return Array.from(el.classList) as string[];
+        }
+      );
+
+      const hasClassBeforeInsertSet = new Set(hasClassBeforeInsert);
+      const addedClassArray = hasClassAfterInsert.filter((c) => {
+        return !hasClassBeforeInsertSet.has(c);
+      });
+
+      const twindCssRulesAfterInsertSet = new Set(twindCssRulesAfterInsert);
+
+      for (const addedClass of addedClassArray) {
+        assert(
+          twindCssRulesAfterInsertSet.has(`.${addedClass}`),
+          `'${addedClass} has been inserted into a style sheet other than <style id="__FRSH_TWIND">'`
+        );
+      }
+
+      // If twind in csr monitors <style id="__FRSH_TWIND"> ,the class just inserted will be compiled and the cssrule will increase.
+      assert(
+        numCssRulesBeforeInsert !== numCssRulesAfterInsert,
+        'A cssrule has been inserted into a style sheet other than <style id="__FRSH_TWIND">'
+      );
+    }
+
+    await page.goto("http://localhost:8000/insert-cssrules", {
+      waitUntil: "networkidle2",
+    });
+
+    await t.step("Ensure ....", async () => {
+      await DynamicallyInsertCssrulesTest();
+    });
+
+    await browser.close();
+
+    await lines.cancel();
+    serverProcess.kill("SIGTERM");
+    serverProcess.close();
+  },
+  sanitizeOps: false,
+  sanitizeResources: false,
+});
