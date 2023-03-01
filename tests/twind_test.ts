@@ -225,9 +225,9 @@ Deno.test({
     const browser = await puppeteer.launch({ args: ["--no-sandbox"] });
     const page = await browser.newPage();
 
-    async function DynamicallyInsertCssrulesTest() {
+    async function DynamicallyInsertCssrulesTest(twindStyleId: string) {
       const numCssRulesBeforeInsert = await page.$eval(
-        "#__FRSH_TWIND",
+        `#${twindStyleId}`,
         (el) => {
           const styleElem = el as HTMLStyleElement;
           const cssRules = styleElem.sheet?.cssRules;
@@ -239,7 +239,7 @@ Deno.test({
 
       assert(
         !isNaN(numCssRulesBeforeInsert),
-        "StyleElement(#__FRSH_TWIND) is no exists"
+        "StyleElement(#${twindStyleId}) is no exists"
       );
 
       const hasClassBeforeInsert = await page.$eval(
@@ -255,7 +255,7 @@ Deno.test({
       });
 
       const [numCssRulesAfterInsert, twindCssRulesAfterInsert] =
-        await page.$eval("#__FRSH_TWIND", (el) => {
+        await page.$eval(`#${twindStyleId}`, (el) => {
           const styleElem = el as HTMLStyleElement;
           const cssRules = styleElem.sheet?.cssRules;
           const numCssRules = cssRules?.length;
@@ -274,7 +274,7 @@ Deno.test({
 
       assert(
         !isNaN(numCssRulesAfterInsert),
-        "StyleElement(#__FRSH_TWIND) is no exists"
+        `StyleElement(#${twindStyleId}) is no exists`
       );
 
       const hasClassAfterInsert = await page.$eval(
@@ -289,19 +289,21 @@ Deno.test({
         return !hasClassBeforeInsertSet.has(c);
       });
 
+      // Check if the added class is compiled by twind.
       const twindCssRulesAfterInsertSet = new Set(twindCssRulesAfterInsert);
-
       for (const addedClass of addedClassArray) {
         assert(
           twindCssRulesAfterInsertSet.has(`.${addedClass}`),
-          `'${addedClass} has been inserted into a style sheet other than <style id="__FRSH_TWIND">'`
+          `'${addedClass} has been inserted into a style sheet other than <style id="${twindStyleId}">'`
         );
       }
 
-      // If twind in csr monitors <style id="__FRSH_TWIND"> ,the class just inserted will be compiled and the cssrule will increase.
+      // If twind in csr monitors <style id="${twindStyleId}"> ,
+      // the class(not compiled) just inserted will be compiled
+      // and the cssrule will increase.
       assert(
         numCssRulesBeforeInsert !== numCssRulesAfterInsert,
-        'A cssrule has been inserted into a style sheet other than <style id="__FRSH_TWIND">'
+        `A cssrule has been inserted into a style sheet other than <style id="${twindStyleId}">`
       );
     }
 
@@ -310,7 +312,7 @@ Deno.test({
     });
 
     await t.step("Ensure ....", async () => {
-      await DynamicallyInsertCssrulesTest();
+      await DynamicallyInsertCssrulesTest("__FRSH_TWIND");
     });
 
     await browser.close();
