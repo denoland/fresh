@@ -1,10 +1,4 @@
-import {
-  assert,
-  assertStringIncludes,
-  delay,
-  puppeteer,
-  TextLineStream,
-} from "./deps.ts";
+import { assert, delay, puppeteer, TextLineStream } from "./deps.ts";
 
 import { cmpStringArray } from "./fixture_twind/utils/utils.ts";
 
@@ -130,6 +124,10 @@ Deno.test({
     const browser = await puppeteer.launch({ args: ["--no-sandbox"] });
     const page = await browser.newPage();
 
+    /**
+     * Ensure that the cssrule of the two style elements specified do not duplicate.
+     * PR946 fails and PR1050 passes.
+     */
     async function noDuplicatesTest(
       twindStyleElemSelector: string,
       twindClaimedStyleElemSelector: string
