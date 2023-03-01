@@ -225,6 +225,10 @@ Deno.test({
     const browser = await puppeteer.launch({ args: ["--no-sandbox"] });
     const page = await browser.newPage();
 
+    /**
+     * Ensure that the class dynamically inserted in islands is compiled by twind.
+     * PR946 fails and PR1050 passes.
+     */
     async function DynamicallyInsertCssrulesTest(twindStyleId: string) {
       const numCssRulesBeforeInsert = await page.$eval(
         `#${twindStyleId}`,
@@ -249,7 +253,7 @@ Deno.test({
         }
       );
 
-      // After clicking, `text-green-600` is added to the class of the element in #currentNumCssRules.
+      // After click, `text-green-600` is inserted to the class of the element in #currentNumCssRules.
       await page.$eval("#insertCssRuleButton", (el) => {
         return el.click();
       });
@@ -285,16 +289,17 @@ Deno.test({
       );
 
       const hasClassBeforeInsertSet = new Set(hasClassBeforeInsert);
-      const addedClassArray = hasClassAfterInsert.filter((c) => {
+
+      const insertedClassArray = hasClassAfterInsert.filter((c) => {
         return !hasClassBeforeInsertSet.has(c);
       });
 
       // Check if the added class is compiled by twind.
       const twindCssRulesAfterInsertSet = new Set(twindCssRulesAfterInsert);
-      for (const addedClass of addedClassArray) {
+      for (const insertedClass of insertedClassArray) {
         assert(
-          twindCssRulesAfterInsertSet.has(`.${addedClass}`),
-          `'${addedClass} has been inserted into a style sheet other than <style id="${twindStyleId}">'`
+          twindCssRulesAfterInsertSet.has(`.${insertedClass}`),
+          `'${insertedClass} has been inserted into a style sheet other than <style id="${twindStyleId}">'`
         );
       }
 
@@ -303,7 +308,7 @@ Deno.test({
       // and the cssrule will increase.
       assert(
         numCssRulesBeforeInsert !== numCssRulesAfterInsert,
-        `A cssrule has been inserted into a style sheet other than <style id="${twindStyleId}">`
+        `Cssrule has been inserted into a style sheet other than <style id="${twindStyleId}"> or it was compiled at the time of SSR.`
       );
     }
 
@@ -311,9 +316,12 @@ Deno.test({
       waitUntil: "networkidle2",
     });
 
-    await t.step("Ensure ....", async () => {
-      await DynamicallyInsertCssrulesTest("__FRSH_TWIND");
-    });
+    await t.step(
+      "Ensure that the class dynamically inserted in islands is compiled",
+      async () => {
+        await DynamicallyInsertCssrulesTest("__FRSH_TWIND");
+      }
+    );
 
     await browser.close();
 
