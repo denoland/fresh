@@ -3,8 +3,8 @@ description: |
   Fresh can be deployed to a variety of platforms easily.
 ---
 
-While Fresh is designed to be deployed to [Deno Deploy][deno-deploy], it can can
-be deployed to any system or platform that can run a Deno based web server.
+While Fresh is designed to be deployed to [Deno Deploy][deno-deploy], it can be
+deployed to any system or platform that can run a Deno based web server.
 
 Here are instructions for specific providers / systems:
 
