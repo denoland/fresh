@@ -29,7 +29,7 @@
       ["data-fetching", "Data fetching"],
       ["deployment", "Deployment"],
       ["plugins", "Plugins"],
-      ["updating", "Updating Fresh"],
+      ["updating", "Updating Fresh"]
       ["app-wrapper", "Application wrapper"]
     ]
   },
