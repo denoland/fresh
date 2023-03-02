@@ -3,9 +3,12 @@ description: |
   Add a global application wrapper to provide common meta tags or context for application routes.
 ---
 
-An application wrapper is defined in an `_app.tsx` file in `routes/` folder. It must contain a default export that is a regular Preact component. Only one such wrapper is allowed per application.
+An application wrapper is defined in an `_app.tsx` file in `routes/` folder. It
+must contain a default export that is a regular Preact component. Only one such
+wrapper is allowed per application.
 
-It receives component through props which is to be wrapped. For instance, it allows to introduce a global container for the whole application.
+It receives component through props which is to be wrapped. For instance, it
+allows to introduce a global container for the whole application.
 
 ```tsx
 // routes/_app.tsx
@@ -14,7 +17,7 @@ It receives component through props which is to be wrapped. For instance, it all
 import { h } from "preact";
 import { AppProps } from "$fresh/server.ts";
 
-export default function App({Component}: AppProps) {
+export default function App({ Component }: AppProps) {
   return (
     <div class="wrapper">
       <Component />
@@ -23,7 +26,10 @@ export default function App({Component}: AppProps) {
 }
 ```
 
-There is also a possibility to modify the document template by using special tags `html`, `Head` or `body`. This can be done in any other Preact component, but using it in the application wrapper lets you define one common document template.
+There is also a possibility to modify the document template by using special
+tags `html`, `Head` or `body`. This can be done in any other Preact component,
+but using it in the application wrapper lets you define one common document
+template.
 
 ```tsx
 // routes/_app.tsx
@@ -48,4 +54,5 @@ export default function App({ Component }: AppProps) {
 }
 ```
 
-Currently, there is no way of overriding default tags/attributes from provided template.
+Currently, there is no way of overriding default tags/attributes from provided
+template.

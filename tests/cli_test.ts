@@ -1,9 +1,11 @@
+import { Status } from "../src/server/deps.ts";
 import {
   assert,
   assertEquals,
   assertStringIncludes,
   delay,
   puppeteer,
+  retry,
   TextLineStream,
 } from "./deps.ts";
 
@@ -47,9 +49,8 @@ Deno.test({
           "-A",
           "init.ts",
           tmpDirName,
-          "--no-twind",
-          "--no-vscode",
         ],
+        stdin: "null",
         stdout: "null",
       });
       const { code } = await cliProcess.status();
@@ -66,6 +67,13 @@ Deno.test({
           { "type": "file", "name": "README.md" },
           { "type": "file", "name": "import_map.json" },
           { "type": "file", "name": "fresh.gen.ts" },
+          {
+            "type": "directory",
+            "name": "components",
+            "contents": [
+              { "type": "file", "name": "Button.tsx" },
+            ],
+          },
           {
             "type": "directory",
             "name": "islands",
@@ -107,6 +115,7 @@ Deno.test({
     await t.step("start up the server and access the root page", async () => {
       const serverProcess = Deno.run({
         cmd: ["deno", "run", "-A", "--check", "main.ts"],
+        stdin: "null",
         stdout: "piped",
         stderr: "inherit",
         cwd: tmpDirName,
@@ -119,7 +128,7 @@ Deno.test({
       let started = false;
       for await (const line of lines) {
         console.log(line);
-        if (line.includes("Server listening on http://")) {
+        if (line.includes("Listening on http://")) {
           started = true;
           break;
         }
@@ -133,10 +142,12 @@ Deno.test({
       // Access the root page
       const res = await fetch("http://localhost:8000");
       await res.body?.cancel();
-      assertEquals(res.status, 200);
+      assertEquals(res.status, Status.OK);
 
       // verify the island is revived.
-      const browser = await puppeteer.launch({ args: ["--no-sandbox"] });
+      const browser = await puppeteer.launch({
+        args: ["--no-sandbox"],
+      });
       const page = await browser.newPage();
       await page.goto("http://localhost:8000", { waitUntil: "networkidle2" });
       const counter = await page.$("body > div > div > p");
@@ -146,6 +157,8 @@ Deno.test({
       const buttonPlus = await page.$("body > div > div > button:nth-child(3)");
       await buttonPlus?.click();
 
+      await delay(100);
+
       counterValue = await counter?.evaluate((el) => el.textContent);
       assert(counterValue === "4");
       await page.close();
@@ -153,8 +166,11 @@ Deno.test({
 
       await lines.cancel();
       serverProcess.kill("SIGTERM");
+      await serverProcess.status();
       serverProcess.close();
     });
+
+    await retry(() => Deno.remove(tmpDirName, { recursive: true }));
   },
   sanitizeOps: false,
   sanitizeResources: false,
@@ -177,6 +193,7 @@ Deno.test({
           "--twind",
           "--vscode",
         ],
+        stdin: "null",
         stdout: "null",
       });
       const { code } = await cliProcess.status();
@@ -193,6 +210,14 @@ Deno.test({
           { "type": "file", "name": "README.md" },
           { "type": "file", "name": "import_map.json" },
           { "type": "file", "name": "fresh.gen.ts" },
+          { "type": "file", "name": "twind.config.ts" },
+          {
+            "type": "directory",
+            "name": "components",
+            "contents": [
+              { "type": "file", "name": "Button.tsx" },
+            ],
+          },
           {
             "type": "directory",
             "name": "islands",
@@ -225,13 +250,6 @@ Deno.test({
           },
           {
             "type": "directory",
-            "name": "utils",
-            "contents": [
-              { "type": "file", "name": "twind.ts" },
-            ],
-          },
-          {
-            "type": "directory",
             "name": ".vscode",
             "contents": [
               { "type": "file", "name": "settings.json" },
@@ -249,6 +267,7 @@ Deno.test({
     await t.step("start up the server and access the root page", async () => {
       const serverProcess = Deno.run({
         cmd: ["deno", "run", "-A", "--check", "main.ts"],
+        stdin: "null",
         stdout: "piped",
         stderr: "inherit",
         cwd: tmpDirName,
@@ -261,7 +280,7 @@ Deno.test({
       let started = false;
       for await (const line of lines) {
         console.log(line);
-        if (line.includes("Server listening on http://")) {
+        if (line.includes("Listening on http://")) {
           started = true;
           break;
         }
@@ -275,7 +294,7 @@ Deno.test({
       // Access the root page
       const res = await fetch("http://localhost:8000");
       await res.body?.cancel();
-      assertEquals(res.status, 200);
+      assertEquals(res.status, Status.OK);
 
       // verify the island is revived.
       const browser = await puppeteer.launch({ args: ["--no-sandbox"] });
@@ -294,6 +313,8 @@ Deno.test({
       const buttonPlus = await page.$("body > div > div > button:nth-child(3)");
       await buttonPlus?.click();
 
+      await delay(100);
+
       counterValue = await counter?.evaluate((el) => el.textContent);
       assert(counterValue === "4");
       await page.close();
@@ -301,8 +322,11 @@ Deno.test({
 
       await lines.cancel();
       serverProcess.kill("SIGTERM");
+      await serverProcess.status();
       serverProcess.close();
     });
+
+    await retry(() => Deno.remove(tmpDirName, { recursive: true }));
   },
   sanitizeOps: false,
   sanitizeResources: false,
@@ -316,6 +340,7 @@ Deno.test("fresh-init error(help)", async function (t) {
     async () => {
       const cliProcess = Deno.run({
         cmd: ["deno", "run", "-A", "init.ts"],
+        stdin: "null",
         stderr: "piped",
       });
       const { code } = await cliProcess.status();
@@ -334,6 +359,7 @@ Deno.test("fresh-init error(help)", async function (t) {
     async () => {
       const cliProcess = Deno.run({
         cmd: ["deno", "run", "-A", "init.ts", "-f"],
+        stdin: "null",
         stderr: "piped",
       });
       const { code } = await cliProcess.status();
@@ -352,6 +378,7 @@ Deno.test("fresh-init error(help)", async function (t) {
     async () => {
       const cliProcess = Deno.run({
         cmd: ["deno", "run", "-A", "init.ts", "--foo"],
+        stdin: "null",
         stderr: "piped",
       });
       const { code } = await cliProcess.status();
