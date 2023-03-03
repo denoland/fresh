@@ -1,7 +1,6 @@
 import { assertEquals } from "../../tests/deps.ts";
 import { asset, assetSrcSet } from "./utils.ts";
 
-// @ts-ignore trust me
 globalThis.__FRSH_BUILD_ID = "ID123";
 
 Deno.test("asset", () => {

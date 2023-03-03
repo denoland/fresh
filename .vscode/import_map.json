@@ -14,6 +14,6 @@
     "@preact/signals": "https://esm.sh/*@preact/signals@1.0.3",
     "@preact/signals-core": "https://esm.sh/@preact/signals-core@1.0.1",
 
-    "$std/": "https://deno.land/std@0.177.0/"
+    "$std/": "https://deno.land/std@0.150.0/"
   }
 }
