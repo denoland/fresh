@@ -312,7 +312,7 @@ export class ServerContext {
   handler(): RequestHandler {
     const inner = rutt.router<RouterState>(...this.#handlers());
     const withMiddlewares = this.#composeMiddlewares(this.#middlewares);
-    return function handler(req: Request, connInfo: ConnInfo) {
+    return async function handler(req: Request, connInfo: ConnInfo) {
       // Redirect requests that end with a trailing slash to their non-trailing
       // slash counterpart.
       // Ex: /about/ -> /about
@@ -325,7 +325,24 @@ export class ServerContext {
           headers: { location },
         });
       }
-      return withMiddlewares(req, connInfo, inner);
+
+      // HEAD requests should be handled as GET requests
+      // but without the body.
+      const originalMethod = req.method;
+      // Internally, HEAD is handled in the same way as GET.
+      if (req.method === "HEAD") {
+        req = new Request(req.url, { method: "GET", headers: req.headers });
+      }
+      const res = await withMiddlewares(req, connInfo, inner);
+      if (originalMethod === "HEAD") {
+        res.body?.cancel();
+        return new Response(null, {
+          headers: res.headers,
+          status: res.status,
+          statusText: res.statusText,
+        });
+      }
+      return res;
     };
   }
 
