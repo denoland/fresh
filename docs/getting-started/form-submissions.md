@@ -26,7 +26,6 @@ Fresh can handle both GET and POST requests through the
 any necessary processing on the form data, and then pass data to the
 `ctx.render()` call to render a new page.
 
-## `GET` example
 Here is an example implementing a search form that filters an array of names
 server side:
 
