@@ -254,6 +254,29 @@ Deno.test("static file - by file path", async () => {
   assertEquals(resp3.headers.get("content-type"), "text/plain");
 });
 
+Deno.test("HEAD request", async () => {
+  // Static file
+  const resp = await router(
+    new Request("https://fresh.deno.dev/foo.txt", {
+      method: "HEAD",
+    }),
+  );
+  assertEquals(resp.status, Status.OK);
+  const body = await resp.text();
+  assertEquals(body, "");
+
+  // route
+  const resp2 = await router(
+    new Request("https://fresh.deno.dev/books/123", {
+      method: "HEAD",
+    }),
+  );
+  assert(resp2);
+  assertEquals(resp2.status, Status.OK);
+  const body2 = await resp2.text();
+  assertEquals(body2, "");
+});
+
 Deno.test("static file - by 'hashed' path", async () => {
   // Check that the file path have the BUILD_ID
   const resp = await router(
