@@ -11,7 +11,7 @@ export interface JSXConfig {
 let esbuildInitialized: boolean | Promise<void> = false;
 async function ensureEsbuildInitialized() {
   if (esbuildInitialized === false) {
-    if (Deno.Command === undefined) {
+    if (Deno.run === undefined) {
       const wasmURL = new URL("./esbuild_v0.14.51.wasm", import.meta.url).href;
       esbuildInitialized = fetch(wasmURL).then(async (r) => {
         const resp = new Response(r.body, {

@@ -24,7 +24,7 @@ export * as rutt from "https://deno.land/x/rutt@0.0.14/mod.ts";
 import * as esbuildWasm from "https://deno.land/x/esbuild@v0.14.51/wasm.js";
 import * as esbuildNative from "https://deno.land/x/esbuild@v0.14.51/mod.js";
 // @ts-ignore trust me
-const esbuild: typeof esbuildWasm = Deno.Command === undefined
+const esbuild: typeof esbuildWasm = Deno.run === undefined
   ? esbuildWasm
   : esbuildNative;
 export { esbuild, esbuildWasm as esbuildTypes };
