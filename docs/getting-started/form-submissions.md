@@ -72,8 +72,11 @@ query set as the `q` query parameter in the URL. The `GET` handler will then
 filter the names array based on the query, and pass it to the page component for
 rendering.
 
-## `POST` example
-Here's an example processing a simple form submission request:
+## POST request with `multipart/form-data`
+
+Forms can either submit as a GET request with URL search parameter encoding, or as a POST request with `multipart/form-data`.
+
+This example demonstrates how to handle `multipart/form-data` `<form>` submissions:
 
 ```tsx
 // routes/subscribe.tsx
