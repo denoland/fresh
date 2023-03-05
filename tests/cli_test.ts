@@ -324,7 +324,7 @@ Deno.test({
   sanitizeResources: false,
 });
 
-Deno.test("fresh-init error(help)", { sanitizeOps: false }, async function (t) {
+Deno.test("fresh-init error(help)", async function (t) {
   const includeText = "fresh-init";
 
   await t.step(
