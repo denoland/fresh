@@ -13,8 +13,6 @@ allows to introduce a global container for the whole application.
 ```tsx
 // routes/_app.tsx
 
-/** @jsx h */
-import { h } from "preact";
 import { AppProps } from "$fresh/server.ts";
 
 export default function App({ Component }: AppProps) {
@@ -34,8 +32,6 @@ template.
 ```tsx
 // routes/_app.tsx
 
-/** @jsx h */
-import { h } from "preact";
 import { asset, Head } from "$fresh/runtime.ts";
 import { AppProps } from "$fresh/src/server/types.ts";
 
