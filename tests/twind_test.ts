@@ -88,8 +88,6 @@ Deno.test({
     serverProcess.kill("SIGTERM");
     serverProcess.close();
   },
-  sanitizeOps: false,
-  sanitizeResources: false,
 });
 
 Deno.test({
@@ -189,8 +187,6 @@ Deno.test({
     serverProcess.kill("SIGTERM");
     serverProcess.close();
   },
-  sanitizeOps: false,
-  sanitizeResources: false,
 });
 
 Deno.test({
@@ -324,6 +320,4 @@ Deno.test({
     serverProcess.kill("SIGTERM");
     serverProcess.close();
   },
-  sanitizeOps: false,
-  sanitizeResources: false,
 });
