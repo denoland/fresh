@@ -86,13 +86,13 @@ export const handler: Handlers = {
     return await ctx.render();
   },
   async POST(req, ctx) {
-    try {
       const form = await req.formData();
-      const email = form.get("email");
-      return new Response(JSON.stringify({ email }));
-    } catch (error) {
-      return new Response(JSON.stringify(error));
-    }
+      const email = form.get("email")?.toString() || null;
+      if (email) {
+        return new Response(JSON.stringify({ email }));
+      } else {
+        return new Response(null, { status: 400 });
+      }
   },
 };
 
@@ -108,7 +108,7 @@ export default function Subscribe() {
 };
 ```
 
-When the user submits the form, Deno will access a specific `email` value from a `formData()` and return its representation as a JSON array.
+When the user submits the form, Deno will access a specific `email` value from a `formData()` and return its representation as a JSON object.
 
 <!-- TODO(lucacasonato): link to todo app example when that is built again -->
 
