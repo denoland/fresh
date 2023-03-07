@@ -52,7 +52,7 @@ export default function CheckDuplication() {
               </div>
             );
           } else if (cssRulesFRSHTWIND != null && cssRulesClaimed == null) {
-            return <p id="okNoDuplicates">Ok : No dupicates</p>;
+            return <p id="okNoDuplicates">Ok : No duplicates</p>;
           } else {
             return (
               <p id="errorNoExistsRules">Error : Cssrules does not exist</p>
