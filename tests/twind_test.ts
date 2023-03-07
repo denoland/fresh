@@ -269,13 +269,13 @@ Deno.test({
 
       const classBeforeInsertSet = new Set(classBeforeInsert);
 
-      const insertedClassArray = classAfterInsert.filter((c) => {
+      const dynInsertedClassArray = classAfterInsert.filter((c) => {
         return !classBeforeInsertSet.has(c);
       });
 
       // Check if the added class is compiled by twind.
       const twindCssRulesAfterInsertSet = new Set(twindCssRulesAfterInsert);
-      for (const insertedClass of insertedClassArray) {
+      for (const insertedClass of dynInsertedClassArray) {
         assert(
           twindCssRulesAfterInsertSet.has(`.${insertedClass}`),
           `'${insertedClass} has been inserted into a style sheet other than <style id="${twindStyleId}">'`,

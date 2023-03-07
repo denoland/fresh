@@ -34,32 +34,30 @@ export default function CheckDuplication() {
     <div class="p-2">
       {/* At least one class is required in the islands for hydrate to work. */}
       <h2>Check duplicated cssrules</h2>
-      <div>
-        {(() => {
-          if (cssRulesFRSHTWIND != null && cssRulesClaimed != null) {
-            return (
-              <div>
-                <p>Error :</p>
-                <p id="numDuplicates">
-                  {`${
-                    cmpCssRules(
-                      cssRulesFRSHTWIND,
-                      cssRulesClaimed,
-                    )
-                  }`}
-                </p>
-                <p>cssrules are duplicated</p>
-              </div>
-            );
-          } else if (cssRulesFRSHTWIND != null && cssRulesClaimed == null) {
-            return <p id="okNoDuplicates">Ok : No duplicates</p>;
-          } else {
-            return (
-              <p id="errorNoExistsRules">Error : Cssrules does not exist</p>
-            );
-          }
-        })()}
-      </div>
+
+      {/* Status of duplicates */}
+      {(() => {
+        if (cssRulesFRSHTWIND != null && cssRulesClaimed != null) {
+          return (
+            <div>
+              <p>Error :</p>
+              <p id="numDuplicates">
+                {`${
+                  cmpCssRules(
+                    cssRulesFRSHTWIND,
+                    cssRulesClaimed,
+                  )
+                }`}
+              </p>
+              <p>cssrules are duplicated</p>
+            </div>
+          );
+        } else if (cssRulesFRSHTWIND != null && cssRulesClaimed == null) {
+          return <p id="okNoDuplicates">Ok : No duplicates</p>;
+        } else {
+          return <p id="errorNoExistsRules">Error : Cssrules does not exist</p>;
+        }
+      })()}
     </div>
   );
 }
