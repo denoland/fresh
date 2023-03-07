@@ -1,37 +1,81 @@
 import { assert, delay, puppeteer, TextLineStream } from "./deps.ts";
 
-import { cmpStringArray } from "./fixture_twind/utils/utils.ts";
+import { cmpStringArray } from "./fixture_twind_hydrate/utils/utils.ts";
+
+/**
+ * Start the server with the main file.
+ *
+ * Returns a page instance and a method to terminate the server.
+ */
+async function setUpServer(path: string) {
+  const serverProcessCmd = new Deno.Command("deno", {
+    args: [
+      "run",
+      "-A",
+      path,
+    ],
+    stdout: "piped",
+    stderr: "inherit",
+  });
+
+  const serverProcess = serverProcessCmd.spawn();
+
+  const lines = serverProcess.stdout
+    .pipeThrough(new TextDecoderStream())
+    .pipeThrough(new TextLineStream());
+
+  let started = false;
+
+  for await (const line of lines) {
+    if (line.includes("Listening on http://")) {
+      started = true;
+      break;
+    }
+  }
+  if (!started) {
+    throw new Error("Server didn't start up");
+  }
+
+  await delay(100);
+
+  const browser = await puppeteer.launch({ args: ["--no-sandbox"] });
+  const page = await browser.newPage();
+
+  /**
+   * terminate server
+   */
+  const terminate = async () => {
+    await browser.close();
+
+    serverProcess.kill("SIGKILL");
+    await serverProcess.status;
+
+    // TextDecoder leaks, so close it manually.
+    const denoResourcesMap = new Map(
+      Object.entries(Deno.resources()).map(([rid, representation]) => {
+        return [representation, parseInt(rid)];
+      }),
+    );
+    const textDecoderRid = denoResourcesMap.get("textDecoder");
+    if (textDecoderRid != null) {
+      Deno.close(textDecoderRid);
+    }
+  };
+
+  return { page: page, terminate: terminate };
+}
+
+/**
+ * Main file path
+ */
+const MAIN_FILE_PATH = "./tests/fixture_twind_hydrate/main.ts";
 
 Deno.test({
   name: "twind static test",
   async fn(t) {
     // Preparation
-    const serverProcess = Deno.run({
-      cmd: ["deno", "run", "-A", "./tests/fixture_twind/main.ts"],
-      stdout: "piped",
-      stderr: "inherit",
-    });
-
-    const decoder = new TextDecoderStream();
-    const lines = serverProcess.stdout.readable
-      .pipeThrough(decoder)
-      .pipeThrough(new TextLineStream());
-
-    let started = false;
-    for await (const line of lines) {
-      if (line.includes("Listening on http://")) {
-        started = true;
-        break;
-      }
-    }
-    if (!started) {
-      throw new Error("Server didn't start up");
-    }
-
-    await delay(100);
-
-    const browser = await puppeteer.launch({ args: ["--no-sandbox"] });
-    const page = await browser.newPage();
+    const server = await setUpServer(MAIN_FILE_PATH);
+    const page = server.page;
 
     /**
      * Compare the class of element of any id with the selectorText of cssrules in stylesheet.
@@ -82,11 +126,7 @@ Deno.test({
       await compiledCssRulesTest("helloTwind", "__FRSH_TWIND");
     });
 
-    await browser.close();
-
-    await lines.cancel();
-    serverProcess.kill("SIGTERM");
-    serverProcess.close();
+    await server.terminate();
   },
 });
 
@@ -94,32 +134,8 @@ Deno.test({
   name: "No duplicate twind cssrules",
   async fn(t) {
     // Preparation
-    const serverProcess = Deno.run({
-      cmd: ["deno", "run", "-A", "./tests/fixture_twind/main.ts"],
-      stdout: "piped",
-      stderr: "inherit",
-    });
-
-    const decoder = new TextDecoderStream();
-    const lines = serverProcess.stdout.readable
-      .pipeThrough(decoder)
-      .pipeThrough(new TextLineStream());
-
-    let started = false;
-    for await (const line of lines) {
-      if (line.includes("Listening on http://")) {
-        started = true;
-        break;
-      }
-    }
-    if (!started) {
-      throw new Error("Server didn't start up");
-    }
-
-    await delay(100);
-
-    const browser = await puppeteer.launch({ args: ["--no-sandbox"] });
-    const page = await browser.newPage();
+    const server = await setUpServer(MAIN_FILE_PATH);
+    const page = server.page;
 
     /**
      * Ensure that the cssrule of the two style elements specified do not duplicate.
@@ -181,11 +197,7 @@ Deno.test({
       );
     });
 
-    await browser.close();
-
-    await lines.cancel();
-    serverProcess.kill("SIGTERM");
-    serverProcess.close();
+    await server.terminate();
   },
 });
 
@@ -193,32 +205,8 @@ Deno.test({
   name: "Dynamically insert cssrules",
   async fn(t) {
     // Preparation
-    const serverProcess = Deno.run({
-      cmd: ["deno", "run", "-A", "./tests/fixture_twind/main.ts"],
-      stdout: "piped",
-      stderr: "inherit",
-    });
-
-    const decoder = new TextDecoderStream();
-    const lines = serverProcess.stdout.readable
-      .pipeThrough(decoder)
-      .pipeThrough(new TextLineStream());
-
-    let started = false;
-    for await (const line of lines) {
-      if (line.includes("Listening on http://")) {
-        started = true;
-        break;
-      }
-    }
-    if (!started) {
-      throw new Error("Server didn't start up");
-    }
-
-    await delay(100);
-
-    const browser = await puppeteer.launch({ args: ["--no-sandbox"] });
-    const page = await browser.newPage();
+    const server = await setUpServer(MAIN_FILE_PATH);
+    const page = server.page;
 
     /**
      * Ensure that the class dynamically inserted in islands is compiled by twind.
@@ -314,10 +302,6 @@ Deno.test({
       },
     );
 
-    await browser.close();
-
-    await lines.cancel();
-    serverProcess.kill("SIGTERM");
-    serverProcess.close();
+    await server.terminate();
   },
 });
