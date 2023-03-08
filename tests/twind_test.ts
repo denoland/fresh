@@ -122,6 +122,9 @@ Deno.test({
       waitUntil: "networkidle2",
     });
 
+    // For avoid leaking async ops.
+    await delay(10);
+
     await t.step("Twind complies cssrules from dom class in ssr", async () => {
       await compiledCssRulesTest("helloTwind", "__FRSH_TWIND");
     });
@@ -189,6 +192,9 @@ Deno.test({
     await page.goto("http://localhost:8000/check-duplication", {
       waitUntil: "networkidle2",
     });
+
+    // For avoid leaking async ops.
+    await delay(10);
 
     await t.step("Ensure no dupulicate twind cssrules in islands", async () => {
       await noDuplicatesTest(
@@ -294,6 +300,9 @@ Deno.test({
     await page.goto("http://localhost:8000/insert-cssrules", {
       waitUntil: "networkidle2",
     });
+
+    // For avoid leaking async ops.
+    await delay(10);
 
     await t.step(
       "Ensure that the class dynamically inserted in islands is compiled",
