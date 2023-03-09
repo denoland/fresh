@@ -10,14 +10,14 @@ Deno.test({
   name: "island tests",
   async fn(t) {
     // Preparation
-    const serverProcess = Deno.run({
-      cmd: ["deno", "run", "-A", "./tests/fixture/main.ts"],
+    const serverProcess = new Deno.Command(Deno.execPath(), {
+      args: ["run", "-A", "./tests/fixture/main.ts"],
       stdout: "piped",
       stderr: "inherit",
-    });
+    }).spawn();
 
     const decoder = new TextDecoderStream();
-    const lines = serverProcess.stdout.readable
+    const lines = serverProcess.stdout
       .pipeThrough(decoder)
       .pipeThrough(new TextLineStream());
 
@@ -77,7 +77,6 @@ Deno.test({
 
     await lines.cancel();
     serverProcess.kill("SIGTERM");
-    serverProcess.close();
   },
   sanitizeOps: false,
   sanitizeResources: false,
@@ -87,14 +86,14 @@ Deno.test({
   name: "island tests with </script>",
   async fn(t) {
     // Preparation
-    const serverProcess = Deno.run({
-      cmd: ["deno", "run", "-A", "./tests/fixture/main.ts"],
+    const serverProcess = new Deno.Command(Deno.execPath(), {
+      args: ["run", "-A", "./tests/fixture/main.ts"],
       stdout: "piped",
       stderr: "inherit",
-    });
+    }).spawn();
 
     const decoder = new TextDecoderStream();
-    const lines = serverProcess.stdout.readable
+    const lines = serverProcess.stdout
       .pipeThrough(decoder)
       .pipeThrough(new TextLineStream());
 
@@ -136,7 +135,6 @@ Deno.test({
 
     await lines.cancel();
     serverProcess.kill("SIGTERM");
-    serverProcess.close();
   },
   sanitizeOps: false,
   sanitizeResources: false,
