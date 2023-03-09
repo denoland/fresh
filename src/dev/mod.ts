@@ -134,24 +134,23 @@ const manifest = {
 export default manifest;
 `;
 
-  const proc = Deno.run({
-    cmd: [Deno.execPath(), "fmt", "-"],
+  const proc = new Deno.Command(Deno.execPath(), {
+    args: ["fmt", "-"],
     stdin: "piped",
     stdout: "piped",
     stderr: "null",
-  });
+  }).spawn();
+
   const raw = new ReadableStream({
     start(controller) {
       controller.enqueue(new TextEncoder().encode(output));
       controller.close();
     },
   });
-  await raw.pipeTo(proc.stdin.writable);
-  const out = await proc.output();
-  await proc.status();
-  proc.close();
+  await raw.pipeTo(proc.stdin);
+  const { stdout } = await proc.output();
 
-  const manifestStr = new TextDecoder().decode(out);
+  const manifestStr = new TextDecoder().decode(stdout);
   const manifestPath = join(directory, "./fresh.gen.ts");
 
   await Deno.writeTextFile(manifestPath, manifestStr);
