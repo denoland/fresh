@@ -1,17 +1,19 @@
 import { assertEquals } from "$std/testing/asserts.ts";
 import { TextLineStream } from "$std/streams/delimiter.ts";
+import { delay } from "$std/async/delay.ts";
 
 Deno.test("CORS should not set on GET /fresh-badge.svg", {
   sanitizeResources: false,
 }, async () => {
-  const serverProcess = Deno.run({
-    cmd: ["deno", "run", "-A", "./main.ts"],
+  const serverProcess = new Deno.Command(Deno.execPath(), {
+    args: ["run", "-A", "./main.ts"],
     stdin: "null",
     stdout: "piped",
     stderr: "inherit",
-  });
+  }).spawn();
+
   const decoder = new TextDecoderStream();
-  const lines = serverProcess.stdout.readable
+  const lines = serverProcess.stdout
     .pipeThrough(decoder)
     .pipeThrough(new TextLineStream());
 
@@ -33,5 +35,6 @@ Deno.test("CORS should not set on GET /fresh-badge.svg", {
 
   await lines.cancel();
   serverProcess.kill("SIGTERM");
-  serverProcess.close();
+  // await for the server to close
+  await delay(100);
 });
