@@ -21,10 +21,14 @@ Documentation for the module can be found here: https://deno.land/x/fresh_charts
 
 ## `fresh_marionette`
 
-Fresh Marionette allows you to start writing end 2 end browser tests in your Fresh projects with a single import. Then you can run those browser tests in a GitHub Actions workflow.
+Fresh Marionette allows you to start writing end 2 end browser tests in your
+Fresh projects with a single import. Then you can run those browser tests in a
+GitHub Actions workflow.
 
-Documentation for the module can be found here: https://deno.land/x/fresh_marionette
+Documentation for the module can be found here:
+https://deno.land/x/fresh_marionette
 
-An example project that runs the tests in a GitHub Actions workflow: https://marionette.deno.dev
+An example project that runs the tests in a GitHub Actions workflow:
+https://marionette.deno.dev
 
 Fresh Marionette works with VSCode too! - https://youtu.be/OG77NdqL164
