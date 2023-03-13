@@ -266,6 +266,12 @@
     "image": "link-maker"
   },
   {
+    "title": "Delicious",
+    "link": "https://sking.deno.dev/",
+    "github": "shijianzhong/fresh-blog-system",
+    "image": "fresh-blog-system"
+  },
+  {
     "title": "Do not remove this, it's for prevent conflicting by trailing comma",
     "link": "",
     "github": "",
