@@ -54,14 +54,14 @@ Deno.test({
   name: "/with-island hydration",
   async fn(t) {
     // Preparation
-    const serverProcess = Deno.run({
-      cmd: ["deno", "run", "-A", "./tests/fixture_plugin/main.ts"],
+    const serverProcess = new Deno.Command(Deno.execPath(), {
+      args: ["run", "-A", "./tests/fixture_plugin/main.ts"],
       stdout: "piped",
       stderr: "inherit",
-    });
+    }).spawn();
 
     const decoder = new TextDecoderStream();
-    const lines = serverProcess.stdout.readable
+    const lines = serverProcess.stdout
       .pipeThrough(decoder)
       .pipeThrough(new TextLineStream());
 
@@ -98,7 +98,6 @@ Deno.test({
 
     await lines.cancel();
     serverProcess.kill("SIGTERM");
-    serverProcess.close();
   },
   sanitizeOps: false,
   sanitizeResources: false,
