@@ -87,7 +87,7 @@ export const handler: Handlers = {
   },
   async POST(req, ctx) {
       const form = await req.formData();
-      const email = form.get("email")?.toString() || null;
+      const email = form.get("email")?.toString();
       if (email && typeof email === 'string') {
         return new Response(JSON.stringify({ email }));
       } else {
