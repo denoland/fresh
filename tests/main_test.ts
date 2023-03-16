@@ -500,9 +500,8 @@ Deno.test("experimental Deno.serve", {
   ignore: Deno.build.os === "windows", // TODO: Deno.serve hang on Windows?
 }, async (t) => {
   // Preparation
-  const serverProcess = Deno.run({
-    cmd: [
-      "deno",
+  const serverProcess = new Deno.Command(Deno.execPath(), {
+    args: [
       "run",
       "-A",
       "--unstable",
@@ -511,10 +510,10 @@ Deno.test("experimental Deno.serve", {
     ],
     stdout: "piped",
     stderr: "inherit",
-  });
+  }).spawn();
 
   const decoder = new TextDecoderStream();
-  const lines = serverProcess.stdout.readable
+  const lines = serverProcess.stdout
     .pipeThrough(decoder)
     .pipeThrough(new TextLineStream());
 
@@ -562,7 +561,6 @@ Deno.test("experimental Deno.serve", {
 
   await lines.cancel();
   serverProcess.kill("SIGTERM");
-  serverProcess.close();
 });
 
 Deno.test("jsx pragma works", {
@@ -570,14 +568,14 @@ Deno.test("jsx pragma works", {
   sanitizeResources: false,
 }, async (t) => {
   // Preparation
-  const serverProcess = Deno.run({
-    cmd: ["deno", "run", "-A", "./tests/fixture_jsx_pragma/main.ts"],
+  const serverProcess = new Deno.Command(Deno.execPath(), {
+    args: ["run", "-A", "./tests/fixture_jsx_pragma/main.ts"],
     stdout: "piped",
     stderr: "inherit",
-  });
+  }).spawn();
 
   const decoder = new TextDecoderStream();
-  const lines = serverProcess.stdout.readable
+  const lines = serverProcess.stdout
     .pipeThrough(decoder)
     .pipeThrough(new TextLineStream());
 
@@ -617,5 +615,4 @@ Deno.test("jsx pragma works", {
 
   await lines.cancel();
   serverProcess.kill("SIGTERM");
-  serverProcess.close();
 });
