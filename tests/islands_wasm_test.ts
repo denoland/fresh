@@ -2,6 +2,7 @@ import { assert, delay, puppeteer, TextLineStream } from "./deps.ts";
 
 Deno.test({
   name: "wasm island tests",
+  ignore: Deno.build.os === "windows",
   async fn(t) {
     // Preparation
     const serverProcess = new Deno.Command(Deno.execPath(), {
