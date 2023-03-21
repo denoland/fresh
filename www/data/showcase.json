@@ -257,13 +257,19 @@
     "title": "Denosoar",
     "link": "https://denosoar.deno.dev/",
     "github": "Denosoar-GUI/Denosoar-GUI",
-    "image": "super-deno"
+    "image": "Denosoar"
   },
   {
     "title": "link-maker",
     "link": "https://link-maker.deno.dev/",
     "github": "kuizuo/link-maker",
     "image": "link-maker"
+  },
+  {
+    "title": "Delicious",
+    "link": "https://sking.deno.dev/",
+    "github": "shijianzhong/fresh-blog-system",
+    "image": "fresh-blog-system"
   },
   {
     "title": "Do not remove this, it's for prevent conflicting by trailing comma",
