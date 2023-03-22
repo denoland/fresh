@@ -56,7 +56,7 @@ export class ServerContext {
   #routes: Route[];
   #islands: Island[];
   #staticFiles: StaticFile[];
-  #bundler: Bundler;
+  bundler: Bundler;
   #renderFn: RenderFunction;
   #middlewares: MiddlewareRoute[];
   #app: AppModule;
@@ -87,7 +87,7 @@ export class ServerContext {
     this.#error = error;
     this.#plugins = plugins;
     this.#dev = typeof Deno.env.get("DENO_DEPLOYMENT_ID") !== "string"; // Env var is only set in prod (on Deploy).
-    this.#bundler = new Bundler(
+    this.bundler = new Bundler(
       this.#islands,
       this.#plugins,
       importMapURL,
@@ -626,7 +626,7 @@ export class ServerContext {
   #bundleAssetRoute = (): rutt.MatchHandler => {
     return async (_req, _ctx, params) => {
       const path = `/${params.path}`;
-      const file = await this.#bundler.get(path);
+      const file = await this.bundler.get(path);
       let res;
       if (file) {
         const headers = new Headers({

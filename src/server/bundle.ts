@@ -61,6 +61,23 @@ export class Bundler {
   }
 
   async bundle() {
+    try {
+      await Deno.lstat("./_frsh")
+      const cache = new Map<string, Uint8Array>();
+      for await (const file of Deno.readDir("./_frsh")) {
+        cache.set(
+          "/"+file.name,
+          await Deno.readFile("./_frsh/"+file.name),
+        );
+      }
+      this.#cache = cache;
+      return
+    }
+    catch(err) {
+      console.log(err)
+      // no-op
+    }
+
     const entryPoints: Record<string, string> = {
       main: this.#dev
         ? new URL("../../src/runtime/main_dev.ts", import.meta.url).href
@@ -70,6 +87,8 @@ export class Bundler {
     for (const island of this.#islands) {
       entryPoints[`island-${island.id}`] = island.url;
     }
+
+    console.log(this.#plugins)
 
     for (const plugin of this.#plugins) {
       for (const [name, url] of Object.entries(plugin.entrypoints ?? {})) {
@@ -141,6 +160,7 @@ export class Bundler {
 
   async get(path: string): Promise<Uint8Array | null> {
     const cache = await this.cache();
+    console.log(path)
     return cache.get(path) ?? null;
   }
 
