@@ -266,6 +266,12 @@
     "image": "link-maker"
   },
   {
+    "title": "fresh-slides",
+    "link": "https://slides.deno.dev/",
+    "github": "Hyprtxt/slides.deno.dev",
+    "image": "fresh-slides"
+  },
+  {
     "title": "Do not remove this, it's for prevent conflicting by trailing comma",
     "link": "",
     "github": "",
