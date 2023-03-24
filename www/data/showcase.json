@@ -272,6 +272,12 @@
     "image": "fresh-blog-system"
   },
   {
+    "title": "Fresh Slides",
+    "link": "https://slides.deno.dev/",
+    "github": "Hyprtxt/slides.deno.dev",
+    "image": "fresh-slides"
+  },
+  {
     "title": "Do not remove this, it's for prevent conflicting by trailing comma",
     "link": "",
     "github": "",
