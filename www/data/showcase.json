@@ -272,6 +272,12 @@
     "image": "fresh-blog-system"
   },
   {
+    "title": "Alvaro Vanegas Sites",
+    "link": "https://ajvanegasv.dev/",
+    "github": "https://github.com/ajvanegasv/my-portfolio",
+    "image": "ajvanegasv"
+  },
+  {
     "title": "Do not remove this, it's for prevent conflicting by trailing comma",
     "link": "",
     "github": "",
