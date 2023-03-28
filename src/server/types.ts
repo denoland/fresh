@@ -1,4 +1,4 @@
-import { ComponentType } from "preact";
+import { ComponentType, VNode } from "preact";
 import { ConnInfo, rutt, ServeInit } from "./deps.ts";
 import { InnerRenderFunction, RenderContext } from "./render.ts";
 
@@ -260,18 +260,20 @@ export interface Plugin {
    * The hook can return a `PluginRenderResult` object that can do things like
    * inject CSS into the page, or load additional JS files on the client.
    */
-  render?(ctx: PluginRenderContext): PluginRenderResult;
+  render?<V extends VNode<P>, P, T = unknown>(ctx: PluginRenderContext<V, P>): PluginRenderResult<T>;
 }
 
-export interface PluginRenderContext {
+export interface PluginRenderContext<V extends VNode<P>, P> {
   render: PluginRenderFunction;
+  vnode: V;
+  context: RenderContext;
 }
 
-export interface PluginRenderResult {
+export interface PluginRenderResult<T = unknown> {
   /** CSS styles to be injected into the page. */
   styles?: PluginRenderStyleTag[];
   /** JS scripts to ship to the client. */
-  scripts?: PluginRenderScripts[];
+  scripts?: PluginRenderScripts<T>[];
 }
 
 export interface PluginRenderStyleTag {
@@ -280,7 +282,7 @@ export interface PluginRenderStyleTag {
   id?: string;
 }
 
-export interface PluginRenderScripts {
+export interface PluginRenderScripts<T = unknown> {
   /** The "key" of the entrypoint (as specified in `Plugin.entrypoints`) for the
    * script that should be loaded. The script must be an ES module that exports
    * a default function.
@@ -291,7 +293,7 @@ export interface PluginRenderScripts {
   /** The state argument that is passed to the default export invocation of the
    * entrypoint's default export. The state must be JSON-serializable.
    */
-  state: unknown;
+  state: T;
 }
 
 export type PluginRenderFunction = () => PluginRenderFunctionResult;

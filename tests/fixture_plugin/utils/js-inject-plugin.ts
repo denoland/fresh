@@ -8,7 +8,12 @@ export default {
   render(ctx) {
     const res = ctx.render();
     if (res.requiresHydration) {
-      return { scripts: [{ entrypoint: "main", state: "JS injected!" }] };
+      return { 
+        scripts: [{ 
+          entrypoint: "main", 
+          state: "JS injected!" + " type:" + typeof(ctx.vnode.type) + " url:" + ctx.context.url 
+        }] 
+      };
     }
     return {};
   },
