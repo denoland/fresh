@@ -18,6 +18,48 @@
     "image": "fresh"
   },
   {
+    "title": "Paquet",
+    "link": "https://paquet.shop",
+    "github": "fructoland/paquet",
+    "image": "paquet"
+  },
+  {
+    "title": "Video Poker Academy",
+    "link": "https://videopoker.academy/",
+    "github": "hyprtxt/videopoker.academy",
+    "image": "videopoker-academy"
+  },
+  {
+    "title": "D3no Data",
+    "link": "https://d3nodata.deno.dev/",
+    "github": "D3nosaurs/d3nodata-website",
+    "image": "d3nodata"
+  },
+  {
+    "title": "Fresh Blog",
+    "link": "https://fresh-blog.littlesticks.dev/",
+    "github": "littlesticks/fresh-blog",
+    "image": "fresh-blog"
+  },
+  {
+    "title": "Fresh Hacker News",
+    "link": "https://fresh-hacker-news.deno.dev/",
+    "github": "morinokami/fresh-hacker",
+    "image": "hn"
+  },
+  {
+    "title": "LDkit",
+    "link": "https://ldkit.io",
+    "github": "karelklima/ldkit",
+    "image": "ldkit"
+  },
+  {
+    "title": "CGPA(AU R-2021) Calculator",
+    "link": "https://cgpa-au-2021.deno.dev",
+    "github": "codesculpture/cgpa-au-2021",
+    "image": "cgpa-au-2021"
+  },
+  {
     "title": "diKnow",
     "link": "https://xyntechx-diknow.deno.dev/",
     "github": "xyntechx/diKnow",
@@ -36,9 +78,85 @@
     "image": "fresh-strapi"
   },
   {
+    "title": "Developer Portfolio",
+    "link": "https://hazn.me",
+    "github": "haznai/fresh-test",
+    "image": "hazn"
+  },
+  {
+    "title": "Portfolio Page",
+    "link": "http://adamsobotka.deno.dev/",
+    "github": "vorcigernix/adamsobotka",
+    "image": "adam-portfolio"
+  },
+  {
+    "title": "Developer Portfolio",
+    "link": "https://mooxl.dev",
+    "github": "mooxl/fresh.mooxl.dev",
+    "image": "mooxl"
+  },
+  {
+    "title": "Developer Portfolio",
+    "link": "https://guillaumecomte.deno.dev",
+    "github": "guigui64/www",
+    "image": "guigui64"
+  },
+  {
+    "title": "Joe Salinas Site",
+    "link": "https://joesalinas.dev",
+    "image": "joesalinasdev"
+  },
+  {
+    "title": "Fresh Project Manager",
+    "link": "https://xyntechx-project-manager.deno.dev/",
+    "github": "xyntechx/NexLiber-Projects/tree/main/Fresh%20Project%20Manager",
+    "image": "fresh-project-manager"
+  },
+  {
+    "title": "Fresh ToDo List App",
+    "link": "https://fresh-todo-list.deno.dev/",
+    "github": "MrSaeedNasiri/fresh-todo-list",
+    "image": "fresh-todo"
+  },
+  {
+    "title": "Kita",
+    "link": "https://kita.ge",
+    "image": "kita"
+  },
+  {
+    "title": "Optimem app",
+    "link": "https://optimem.org/",
+    "image": "optimem"
+  },
+  {
+    "title": "Balello",
+    "link": "https://balello.com",
+    "image": "balello"
+  },
+  {
+    "title": "Wricord",
+    "link": "https://wricord.com",
+    "image": "wricord"
+  },
+  {
     "title": "ANDBOUNDS Inc.",
     "link": "https://andbounds.com/",
     "image": "andbounds"
+  },
+  {
+    "title": "YCRM",
+    "link": "https://ycrm.xyz/",
+    "image": "ycrm"
+  },
+  {
+    "title": "Local SEO Studio",
+    "link": "https://www.localseo.studio/",
+    "image": "localseostudio"
+  },
+  {
+    "title": "Fondest Landing Page",
+    "link": "https://fondest.com",
+    "image": "fondest"
   },
   {
     "title": "im@sparql Data Dashboard",
@@ -47,8 +165,116 @@
     "image": "imasparql-dd"
   },
   {
-    "title": "YCRM",
-    "link": "https://ycrm.xyz/",
-    "image": "ycrm"
+    "title": "kadode portal",
+    "link": "https://portal.kado.day/",
+    "github": "KadodeProject/kadode_portal",
+    "image": "kadode_portal"
+  },
+  {
+    "title": "Craig's Deno Diary",
+    "link": "https://deno-blog.com",
+    "github": "https://github.com/cdoremus/deno-blog",
+    "image": "deno-diary"
+  },
+  {
+    "title": "Melon",
+    "link": "https://m.not-ivy.dev/",
+    "github": "not-ivy/melon",
+    "image": "melon"
+  },
+  {
+    "title": "Game Orb",
+    "link": "https://fabimc-game-orb.deno.dev/",
+    "github": "fabimc/game-orb",
+    "image": "game-orb"
+  },
+  {
+    "title": "Webhook Manager",
+    "link": "https://webhook-demo.deno.dev/",
+    "github": "avnigenc/deno-fresh-webhook-demo",
+    "image": "webhook-manager"
+  },
+  {
+    "title": "Moe Counter",
+    "link": "https://count.nekooftheabyss.moe/",
+    "github": "retraigo/moe-counter",
+    "image": "moe-counter"
+  },
+  {
+    "title": "Deno Jobs",
+    "link": "https://vacancy.deno.dev/",
+    "github": "VofSwords/deno-jobs",
+    "image": "deno-jobs"
+  },
+  {
+    "title": "java.minidoodle",
+    "link": "https://javaminidoodle.de/",
+    "image": "javaminidoodle"
+  },
+  {
+    "title": "Ppaste",
+    "link": "https://ppaste.deno.dev/",
+    "github": "n4ze3m/p-paste",
+    "image": "ppaste"
+  },
+  {
+    "title": "Linksapp",
+    "link": "https://linksapp.deno.dev/",
+    "github": "commune-org/linksapp-fresh",
+    "image": "linksapp"
+  },
+  {
+    "title": "Grape Chat",
+    "link": "https://grape-chat.miqsel.net/",
+    "github": "yahiro07/grape-chat",
+    "image": "grape-chat"
+  },
+  {
+    "title": "Fresh Notion Blog",
+    "link": "https://fresh-notion-blog.deno.dev/",
+    "github": "xijaja/fresh-notion-blog",
+    "image": "fresh-notion-blog"
+  },
+  {
+    "title": "Deno Paste",
+    "link": "https://deno-paste.deno.dev/",
+    "github": "stephenmelnicki/deno_paste",
+    "image": "deno-paste"
+  },
+  {
+    "title": "m33t",
+    "link": "https://m33t.deno.dev/",
+    "github": "dunkbing/m33t",
+    "image": "m33t"
+  },
+  {
+    "title": "YAML to TypeScript",
+    "link": "https://yaml-to-ts.deno.dev/",
+    "github": "jiawei397/yaml_to_ts_web",
+    "image": "yaml-to-ts"
+  },
+  {
+    "title": "Denosoar",
+    "link": "https://denosoar.deno.dev/",
+    "github": "Denosoar-GUI/Denosoar-GUI",
+    "image": "Denosoar"
+  },
+  {
+    "title": "link-maker",
+    "link": "https://link-maker.deno.dev/",
+    "github": "kuizuo/link-maker",
+    "image": "link-maker"
+  },
+  {
+    "title": "Delicious",
+    "link": "https://sking.deno.dev/",
+    "github": "shijianzhong/fresh-blog-system",
+    "image": "fresh-blog-system"
+  },
+  {
+    "title": "Do not remove this, it's for prevent conflicting by trailing comma",
+    "link": "",
+    "github": "",
+    "image": ""
   }
 ]
