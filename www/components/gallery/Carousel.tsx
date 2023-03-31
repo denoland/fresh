@@ -8,22 +8,22 @@ import { tw } from "twind";
 const SLIDE_DATA = [
   {
     text: "slide one",
-    color: "bg-green-500",
+    color: "bg-green-300",
     url: asset("/illustration/deno-plush.svg"),
   },
   {
     text: "slide too",
-    color: "bg-yellow-500",
+    color: "bg-yellow-300",
     url: asset("/illustration/lemon-squash.svg"),
   },
   {
     text: "slide three",
-    color: "bg-blue-500",
+    color: "bg-blue-300",
     url: asset("/illustration/deno-plush.svg"),
   },
   {
     text: "slide four",
-    color: "bg-gray-500",
+    color: "bg-gray-300",
     url: asset("/illustration/lemon-squash.svg"),
   },
 ];
