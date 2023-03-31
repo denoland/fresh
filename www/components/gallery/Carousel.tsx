@@ -1,5 +1,5 @@
 import { useSignal } from "@preact/signals";
-import { useEffect, useRef } from "preact/hooks";
+import { useEffect } from "preact/hooks";
 import IconCircleChevronsRight from "https://deno.land/x/tabler_icons_tsx@0.0.3/tsx/circle-chevrons-right.tsx";
 import IconCircleChevronsLeft from "https://deno.land/x/tabler_icons_tsx@0.0.3/tsx/circle-chevrons-left.tsx";
 import { asset } from "$fresh/runtime.ts";
@@ -29,8 +29,8 @@ const SLIDE_DATA = [
 ];
 
 type SlideProps = {
-  class: string;
-  key: number;
+  class?: string;
+  key?: number;
   data: {
     text: string;
     color: string;
@@ -40,13 +40,14 @@ type SlideProps = {
 
 const Slide = (props: SlideProps) => {
   const { key, data } = props;
+  const { color, text, url } = data;
   if (props.class === undefined) props.class = "";
   const clazz =
-    `${props.class} h-80 w-full ${data.color} text-center text-white p-5`;
+    `${props.class} ${color} h-80 w-full text-center text-white p-5`;
   return (
     <div key={key} class={clazz}>
-      {data.text}
-      <img src={data.url} />
+      {text}
+      <img src={url} />
     </div>
   );
 };
@@ -66,9 +67,7 @@ const Carousel = (props: CarouselProps) => {
   const SHOW_NAVIGATION = props.showNavigation === false ? false : true;
   const SLIDE_INTERVAL = props.interval ? props.interval : 3500;
   const currentSlide = useSignal(props.currentSlide ? props.currentSlide : 0);
-
   const automatic = useSignal(props.automatic ? true : false);
-  const slideshow = useRef(null);
 
   const slideClasses = (idx = 0, number_slides = 1) => {
     let outgoingSlide = currentSlide.value - 1;
@@ -139,61 +138,56 @@ const Carousel = (props: CarouselProps) => {
     currentSlide.value = slide_index;
   };
 
-  const DotsNavigation = () => {
-    return (
-      <div
-        class={`slide_nav z-30 w-full ${NAVIGATION_COLOR} absolute bottom-0 flex justify-center cursor-pointer`}
-      >
-        {SLIDE_DATA.map((_item, idx) => {
-          return (
-            <div
-              class="px-1 hover:text-grey"
-              onClick={() => {
-                goToSlide(idx);
-              }}
-            >
-              {idx === currentSlide.value ? <>●</> : <>○</>}
-            </div>
-          );
-        })}
-      </div>
-    );
-  };
+  const DotsNavigation = () => (
+    <div
+      class={`slide_nav z-30 w-full ${NAVIGATION_COLOR} absolute bottom-0 flex justify-center cursor-pointer`}
+    >
+      {SLIDE_DATA.map((_item, idx) => {
+        return (
+          <div
+            class="px-1 hover:text-grey"
+            onClick={() => {
+              goToSlide(idx);
+            }}
+          >
+            {idx === currentSlide.value ? <>●</> : <>○</>}
+          </div>
+        );
+      })}
+    </div>
+  );
 
   return (
-    <>
-      <div
-        ref={slideshow}
-        class={`slideshow relative flex-1 flex-end p-0 overflow-hidden ${
-          props.class !== undefined ? props.class : ""
-        }`}
-      >
-        <IconCircleChevronsLeft
-          class={`left-0 ${CHEVRON_STYLE}`}
-          style="top: calc(50% - 20px)"
-          onClick={() => chevronClick(previousSlide)}
-        />
-        <IconCircleChevronsRight
-          class={`right-0 ${CHEVRON_STYLE}`}
-          style="top: calc(50% - 20px)"
-          onClick={() => chevronClick(nextSlide)}
-        />
-        {SLIDE_DATA.map((item, idx) => (
-          <Slide
-            data={item}
-            key={idx}
-            class={slideClasses(idx, SLIDE_DATA.length)}
-          />
-        ))}
-        {SHOW_NAVIGATION &&
-          <DotsNavigation />}
+    <div
+      class={`slideshow relative flex-1 flex-end p-0 overflow-hidden ${
+        props.class !== undefined ? props.class : ""
+      }`}
+    >
+      <IconCircleChevronsLeft
+        class={`left-0 ${CHEVRON_STYLE}`}
+        style="top: calc(50% - 20px)"
+        onClick={() => chevronClick(previousSlide)}
+      />
+      <IconCircleChevronsRight
+        class={`right-0 ${CHEVRON_STYLE}`}
+        style="top: calc(50% - 20px)"
+        onClick={() => chevronClick(nextSlide)}
+      />
+      {SLIDE_DATA.map((item, idx) => (
         <Slide
-          data={SLIDE_DATA[0]}
-          key={0}
-          class="opacity-0 pointer-events-none"
+          data={item}
+          key={idx}
+          class={slideClasses(idx, SLIDE_DATA.length)}
         />
-      </div>
-    </>
+      ))}
+      {SHOW_NAVIGATION &&
+        <DotsNavigation />}
+      <Slide
+        data={SLIDE_DATA[0]}
+        key={0}
+        class="opacity-0 pointer-events-none"
+      />
+    </div>
   );
 };
 
