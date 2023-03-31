@@ -52,11 +52,11 @@ const Slide = (props: SlideProps) => {
 };
 
 type CarouselProps = {
-  showNavigation: boolean;
-  interval: number;
-  currentSlide: number;
-  automatic: boolean;
-  class: string;
+  showNavigation?: boolean;
+  interval?: number;
+  currentSlide?: number;
+  automatic?: boolean;
+  class?: string;
 };
 
 const Carousel = (props: CarouselProps) => {
