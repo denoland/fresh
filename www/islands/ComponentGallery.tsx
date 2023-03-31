@@ -6,6 +6,7 @@ import Header from "../components/gallery/Header.tsx";
 import Footer from "../components/gallery/Footer.tsx";
 import Hero from "../components/gallery/Hero.tsx";
 import Features from "../components/gallery/Features.tsx";
+import Carousel from "../components/gallery/Carousel.tsx";
 import { ComponentChildren } from "preact";
 import IconHappy from "https://deno.land/x/tabler_icons_tsx@0.0.2/tsx/mood-crazy-happy.tsx";
 import IconHeart from "https://deno.land/x/tabler_icons_tsx@0.0.2/tsx/heart.tsx";
@@ -109,6 +110,10 @@ export default function ComponentGallery(props: ComponentGalleryProps) {
 
       <Section title="Features" source={props.sources.Features}>
         <Features />
+      </Section>
+
+      <Section title="Carousel" source={props.sources.Carousel}>
+        <Carousel automatic />
       </Section>
     </>
   );
