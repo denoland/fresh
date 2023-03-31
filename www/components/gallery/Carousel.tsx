@@ -42,7 +42,7 @@ const Slide = (props: SlideProps) => {
   const { key, data } = props;
   if (props.class === undefined) props.class = "";
   const clazz =
-  `${props.class} h-80 w-full ${data.color} text-center text-white p-5`;
+    `${props.class} h-80 w-full ${data.color} text-center text-white p-5`;
   return (
     <div key={key} class={clazz}>
       {data.text}
