@@ -63,7 +63,7 @@ type CarouselProps = {
 const Carousel = (props: CarouselProps) => {
   const NAVIGATION_COLOR = `text-white`;
   const CHEVRON_STYLE =
-    `absolute z-30 w-10 h-10 hover:text-grey ${NAVIGATION_COLOR} cursor-pointer`;
+    `absolute z-30 w-10 h-10 hover:text-gray ${NAVIGATION_COLOR} cursor-pointer`;
   const SHOW_NAVIGATION = props.showNavigation === false ? false : true;
   const SLIDE_INTERVAL = props.interval ? props.interval : 3500;
   const currentSlide = useSignal(props.currentSlide ? props.currentSlide : 0);
@@ -145,7 +145,7 @@ const Carousel = (props: CarouselProps) => {
       {SLIDE_DATA.map((_item, idx) => {
         return (
           <div
-            class="px-1 hover:text-grey"
+            class="px-1 hover:text-gray"
             onClick={() => {
               goToSlide(idx);
             }}
