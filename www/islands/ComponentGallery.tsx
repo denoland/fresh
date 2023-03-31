@@ -113,7 +113,7 @@ export default function ComponentGallery(props: ComponentGalleryProps) {
       </Section>
 
       <Section title="Carousel" source={props.sources.Carousel}>
-        <Carousel automatic />
+        <Carousel />
       </Section>
     </>
   );

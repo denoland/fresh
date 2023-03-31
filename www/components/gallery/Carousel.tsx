@@ -67,7 +67,7 @@ const Carousel = (props: CarouselProps) => {
   const SHOW_NAVIGATION = props.showNavigation === false ? false : true;
   const SLIDE_INTERVAL = props.interval ? props.interval : 3500;
   const currentSlide = useSignal(props.currentSlide ? props.currentSlide : 0);
-  const automatic = useSignal(props.automatic ? true : false);
+  const automatic = useSignal(props.automatic === false ? false : true);
 
   const slideClasses = (idx = 0) => {
     let outgoingSlide = currentSlide.value - 1;
