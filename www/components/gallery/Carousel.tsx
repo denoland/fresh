@@ -114,7 +114,7 @@ const Carousel = (props: CarouselProps) => {
   }, []);
 
   const ArrowKeyNavigation = () => {
-    const keydownHandler = (event: any) => {
+    const keydownHandler = (event: KeyboardEvent) => {
       if (automatic.value) automatic.value = false;
       switch (event.code) {
         case "ArrowLeft":
