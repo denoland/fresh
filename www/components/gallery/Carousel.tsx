@@ -28,30 +28,44 @@ const SLIDE_DATA = [
   },
 ];
 
-const Slide = (props) => {
-  const { index, data } = props;
+type SlideProps = {
+  class: string;
+  key: number;
+  data: {
+    text: string;
+    color: string;
+    url: string;
+  };
+};
+
+const Slide = (props: SlideProps) => {
+  const { key, data } = props;
   if (props.class === undefined) props.class = "";
   const clazz =
-    `${props.class} h-80 w-full ${data.color} text-center text-white p-5`;
+  `${props.class} h-80 w-full ${data.color} text-center text-white p-5`;
   return (
-    <div index={index} class={clazz}>
+    <div key={key} class={clazz}>
       {data.text}
       <img src={data.url} />
     </div>
   );
 };
 
-const Carousel = (props) => {
+type CarouselProps = {
+  showNavigation: boolean;
+  interval: number;
+  currentSlide: number;
+  automatic: boolean;
+  class: string;
+};
+
+const Carousel = (props: CarouselProps) => {
   const NAVIGATION_COLOR = `text-white`;
   const CHEVRON_STYLE =
     `absolute z-30 w-10 h-10 hover:text-grey ${NAVIGATION_COLOR} cursor-pointer`;
   const SHOW_NAVIGATION = props.showNavigation === false ? false : true;
-  const SLIDE_INTERVAL = parseInt(props.interval)
-    ? parseInt(props.interval)
-    : 3500;
-  const currentSlide = useSignal(
-    parseInt(props.currentSlide) ? parseInt(props.currentSlide) : 0,
-  );
+  const SLIDE_INTERVAL = props.interval ? props.interval : 3500;
+  const currentSlide = useSignal(props.currentSlide ? props.currentSlide : 0);
 
   const automatic = useSignal(props.automatic ? true : false);
   const slideshow = useRef(null);
@@ -72,8 +86,7 @@ const Carousel = (props) => {
   };
 
   const nextSlide = () => {
-    const numberSlides = slideshow.current.querySelectorAll(".slide");
-    if (numberSlides.length === currentSlide.value + 1) {
+    if (SLIDE_DATA.length === currentSlide.value + 1) {
       currentSlide.value = 0;
     } else {
       currentSlide.value++;
@@ -81,9 +94,8 @@ const Carousel = (props) => {
   };
 
   const previousSlide = () => {
-    const numberSlides = slideshow.current.querySelectorAll(".slide");
     if (currentSlide.value === 0) {
-      currentSlide.value = numberSlides.length - 1;
+      currentSlide.value = SLIDE_DATA.length - 1;
     } else {
       currentSlide.value--;
     }
@@ -102,7 +114,7 @@ const Carousel = (props) => {
   }, []);
 
   const ArrowKeyNavigation = () => {
-    const keydownHandler = (event) => {
+    const keydownHandler = (event: any) => {
       if (automatic.value) automatic.value = false;
       switch (event.code) {
         case "ArrowLeft":
@@ -169,7 +181,7 @@ const Carousel = (props) => {
         {SLIDE_DATA.map((item, idx) => (
           <Slide
             data={item}
-            index={idx}
+            key={idx}
             class={slideClasses(idx, SLIDE_DATA.length)}
           />
         ))}
@@ -177,6 +189,7 @@ const Carousel = (props) => {
           <DotsNavigation />}
         <Slide
           data={SLIDE_DATA[0]}
+          key={0}
           class="opacity-0 pointer-events-none"
         />
       </div>
