@@ -23,7 +23,7 @@ const SLIDE_DATA = [
   },
   {
     text: "slide four",
-    color: "bg-gray-300",
+    color: "bg-yellow-300",
     url: asset("/illustration/lemon-squash.svg"),
   },
 ];
@@ -43,7 +43,7 @@ const Slide = (props: SlideProps) => {
   const { color, text, url } = data;
   if (props.class === undefined) props.class = "";
   const clazz =
-    `${props.class} ${color} h-80 w-full text-center text-white p-5`;
+    `${props.class} ${color} h-80 w-full text-center text-black p-5`;
   return (
     <div key={key} class={clazz}>
       {text}
@@ -61,9 +61,9 @@ type CarouselProps = {
 };
 
 const Carousel = (props: CarouselProps) => {
-  const NAVIGATION_COLOR = `text-white`;
+  const NAVIGATION_COLOR = `hover:text-gray-300 text-white`;
   const CHEVRON_STYLE =
-    `absolute z-30 w-10 h-10 hover:text-gray ${NAVIGATION_COLOR} cursor-pointer`;
+    `absolute z-30 w-10 h-10 ${NAVIGATION_COLOR} cursor-pointer`;
   const SHOW_NAVIGATION = props.showNavigation === false ? false : true;
   const SLIDE_INTERVAL = props.interval ? props.interval : 3500;
   const currentSlide = useSignal(props.currentSlide ? props.currentSlide : 0);
@@ -140,12 +140,12 @@ const Carousel = (props: CarouselProps) => {
 
   const DotsNavigation = () => (
     <div
-      class={`slide_nav z-30 w-full ${NAVIGATION_COLOR} absolute bottom-0 flex justify-center cursor-pointer`}
+      class={"slide_nav z-30 w-full absolute bottom-0 flex justify-center cursor-pointer"}
     >
       {SLIDE_DATA.map((_item, idx) => {
         return (
           <div
-            class="px-1 hover:text-gray"
+            class={`px-1 ${NAVIGATION_COLOR}`}
             onClick={() => {
               goToSlide(idx);
             }}
