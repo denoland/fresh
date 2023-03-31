@@ -69,11 +69,11 @@ const Carousel = (props: CarouselProps) => {
   const currentSlide = useSignal(props.currentSlide ? props.currentSlide : 0);
   const automatic = useSignal(props.automatic ? true : false);
 
-  const slideClasses = (idx = 0, number_slides = 1) => {
+  const slideClasses = (idx = 0) => {
     let outgoingSlide = currentSlide.value - 1;
     let incomingSlide = currentSlide.value + 1;
-    if (outgoingSlide === -1) outgoingSlide = number_slides - 1;
-    if (incomingSlide === number_slides) incomingSlide = 0;
+    if (outgoingSlide === -1) outgoingSlide = SLIDE_DATA.length - 1;
+    if (incomingSlide === SLIDE_DATA.length) incomingSlide = 0;
     // console.log(outgoingSlide, currentSlide.value, incomingSlide)
     const TRANSITION_CLASS = () => {
       if (currentSlide.value === idx) return "translate-x-0 z-20";
@@ -177,7 +177,7 @@ const Carousel = (props: CarouselProps) => {
         <Slide
           data={item}
           key={idx}
-          class={slideClasses(idx, SLIDE_DATA.length)}
+          class={slideClasses(idx)}
         />
       ))}
       {SHOW_NAVIGATION &&
