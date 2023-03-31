@@ -43,7 +43,10 @@ const Slide = (props: SlideProps) => {
   const { color, text, url } = data;
   if (props.class === undefined) props.class = "";
   return (
-    <div key={key} class={`${props.class} ${color} h-80 w-full text-center text-black p-5`}>
+    <div
+      key={key}
+      class={`${props.class} ${color} h-80 w-full text-center text-black p-5`}
+    >
       {text}
       <img src={url} />
     </div>
