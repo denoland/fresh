@@ -18,7 +18,7 @@ export default function Projects(props: ProjectProps) {
         props.class ?? ""
       }`}
     >
-      {props.items.map((project) => (
+      {props.items.filter((item) => item.link.length > 0).map((project) => (
         <div class="w-full max-w-sm mx-auto group">
           <a href={project.link} tabIndex={-1}>
             <img

@@ -5,6 +5,7 @@ import {
   assertStringIncludes,
   delay,
   puppeteer,
+  retry,
   TextLineStream,
 } from "./deps.ts";
 
@@ -41,9 +42,8 @@ Deno.test({
     const tmpDirName = await Deno.makeTempDir();
 
     await t.step("execute init command", async () => {
-      const cliProcess = Deno.run({
-        cmd: [
-          "deno",
+      const cliProcess = new Deno.Command(Deno.execPath(), {
+        args: [
           "run",
           "-A",
           "init.ts",
@@ -52,8 +52,7 @@ Deno.test({
         stdin: "null",
         stdout: "null",
       });
-      const { code } = await cliProcess.status();
-      cliProcess.close();
+      const { code } = await cliProcess.output();
       assertEquals(code, 0);
     });
 
@@ -112,15 +111,15 @@ Deno.test({
     });
 
     await t.step("start up the server and access the root page", async () => {
-      const serverProcess = Deno.run({
-        cmd: ["deno", "run", "-A", "--check", "main.ts"],
+      const serverProcess = new Deno.Command(Deno.execPath(), {
+        args: ["run", "-A", "--check", "main.ts"],
         stdin: "null",
         stdout: "piped",
         stderr: "inherit",
         cwd: tmpDirName,
-      });
+      }).spawn();
 
-      const lines = serverProcess.stdout.readable
+      const lines = serverProcess.stdout
         .pipeThrough(new TextDecoderStream())
         .pipeThrough(new TextLineStream());
 
@@ -165,10 +164,11 @@ Deno.test({
 
       await lines.cancel();
       serverProcess.kill("SIGTERM");
-      serverProcess.close();
+      await delay(100);
     });
+
+    await retry(() => Deno.remove(tmpDirName, { recursive: true }));
   },
-  sanitizeOps: false,
   sanitizeResources: false,
 });
 
@@ -179,9 +179,8 @@ Deno.test({
     const tmpDirName = await Deno.makeTempDir();
 
     await t.step("execute init command", async () => {
-      const cliProcess = Deno.run({
-        cmd: [
-          "deno",
+      const cliProcess = new Deno.Command(Deno.execPath(), {
+        args: [
           "run",
           "-A",
           "init.ts",
@@ -192,8 +191,7 @@ Deno.test({
         stdin: "null",
         stdout: "null",
       });
-      const { code } = await cliProcess.status();
-      cliProcess.close();
+      const { code } = await cliProcess.output();
       assertEquals(code, 0);
     });
 
@@ -261,15 +259,15 @@ Deno.test({
     });
 
     await t.step("start up the server and access the root page", async () => {
-      const serverProcess = Deno.run({
-        cmd: ["deno", "run", "-A", "--check", "main.ts"],
+      const serverProcess = new Deno.Command(Deno.execPath(), {
+        args: ["run", "-A", "--check", "main.ts"],
         stdin: "null",
         stdout: "piped",
         stderr: "inherit",
         cwd: tmpDirName,
-      });
+      }).spawn();
 
-      const lines = serverProcess.stdout.readable
+      const lines = serverProcess.stdout
         .pipeThrough(new TextDecoderStream())
         .pipeThrough(new TextLineStream());
 
@@ -318,10 +316,11 @@ Deno.test({
 
       await lines.cancel();
       serverProcess.kill("SIGTERM");
-      serverProcess.close();
+      await delay(100);
     });
+
+    await retry(() => Deno.remove(tmpDirName, { recursive: true }));
   },
-  sanitizeOps: false,
   sanitizeResources: false,
 });
 
@@ -331,18 +330,15 @@ Deno.test("fresh-init error(help)", async function (t) {
   await t.step(
     "execute invalid init command (deno run -A init.ts)",
     async () => {
-      const cliProcess = Deno.run({
-        cmd: ["deno", "run", "-A", "init.ts"],
+      const cliProcess = new Deno.Command(Deno.execPath(), {
+        args: ["run", "-A", "init.ts"],
         stdin: "null",
         stderr: "piped",
       });
-      const { code } = await cliProcess.status();
-      cliProcess.close();
+      const { code, stderr } = await cliProcess.output();
       assertEquals(code, 1);
 
-      const rawError = await cliProcess.stderrOutput();
-      const errorString = new TextDecoder().decode(rawError);
-
+      const errorString = new TextDecoder().decode(stderr);
       assertStringIncludes(errorString, includeText);
     },
   );
@@ -350,18 +346,13 @@ Deno.test("fresh-init error(help)", async function (t) {
   await t.step(
     "execute invalid init command (deno run -A init.ts -f)",
     async () => {
-      const cliProcess = Deno.run({
-        cmd: ["deno", "run", "-A", "init.ts", "-f"],
-        stdin: "null",
-        stderr: "piped",
+      const cliProcess = new Deno.Command(Deno.execPath(), {
+        args: ["run", "-A", "init.ts", "-f"],
       });
-      const { code } = await cliProcess.status();
-      cliProcess.close();
+      const { code, stderr } = await cliProcess.output();
       assertEquals(code, 1);
 
-      const rawError = await cliProcess.stderrOutput();
-      const errorString = new TextDecoder().decode(rawError);
-
+      const errorString = new TextDecoder().decode(stderr);
       assertStringIncludes(errorString, includeText);
     },
   );
@@ -369,18 +360,13 @@ Deno.test("fresh-init error(help)", async function (t) {
   await t.step(
     "execute invalid init command (deno run -A init.ts --foo)",
     async () => {
-      const cliProcess = Deno.run({
-        cmd: ["deno", "run", "-A", "init.ts", "--foo"],
-        stdin: "null",
-        stderr: "piped",
+      const cliProcess = new Deno.Command(Deno.execPath(), {
+        args: ["run", "-A", "init.ts", "--foo"],
       });
-      const { code } = await cliProcess.status();
-      cliProcess.close();
+      const { code, stderr } = await cliProcess.output();
       assertEquals(code, 1);
 
-      const rawError = await cliProcess.stderrOutput();
-      const errorString = new TextDecoder().decode(rawError);
-
+      const errorString = new TextDecoder().decode(stderr);
       assertStringIncludes(errorString, includeText);
     },
   );

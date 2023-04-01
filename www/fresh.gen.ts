@@ -5,31 +5,39 @@
 import config from "./deno.json" assert { type: "json" };
 import * as $0 from "./routes/_404.tsx";
 import * as $1 from "./routes/_500.tsx";
-import * as $2 from "./routes/docs/[...slug].tsx";
-import * as $3 from "./routes/gfm.css.ts";
-import * as $4 from "./routes/index.tsx";
-import * as $5 from "./routes/raw.ts";
-import * as $6 from "./routes/showcase.tsx";
-import * as $7 from "./routes/update.tsx";
-import * as $$0 from "./islands/CopyArea.tsx";
-import * as $$1 from "./islands/Counter.tsx";
-import * as $$2 from "./islands/LemonDrop.tsx";
+import * as $2 from "./routes/_middleware.ts";
+import * as $3 from "./routes/components.tsx";
+import * as $4 from "./routes/docs/[...slug].tsx";
+import * as $5 from "./routes/gfm.css.ts";
+import * as $6 from "./routes/index.tsx";
+import * as $7 from "./routes/raw.ts";
+import * as $8 from "./routes/showcase.tsx";
+import * as $9 from "./routes/update.tsx";
+import * as $$0 from "./islands/ComponentGallery.tsx";
+import * as $$1 from "./islands/CopyArea.tsx";
+import * as $$2 from "./islands/Counter.tsx";
+import * as $$3 from "./islands/LemonDrop.tsx";
+import * as $$4 from "./islands/SearchButton.tsx";
 
 const manifest = {
   routes: {
     "./routes/_404.tsx": $0,
     "./routes/_500.tsx": $1,
-    "./routes/docs/[...slug].tsx": $2,
-    "./routes/gfm.css.ts": $3,
-    "./routes/index.tsx": $4,
-    "./routes/raw.ts": $5,
-    "./routes/showcase.tsx": $6,
-    "./routes/update.tsx": $7,
+    "./routes/_middleware.ts": $2,
+    "./routes/components.tsx": $3,
+    "./routes/docs/[...slug].tsx": $4,
+    "./routes/gfm.css.ts": $5,
+    "./routes/index.tsx": $6,
+    "./routes/raw.ts": $7,
+    "./routes/showcase.tsx": $8,
+    "./routes/update.tsx": $9,
   },
   islands: {
-    "./islands/CopyArea.tsx": $$0,
-    "./islands/Counter.tsx": $$1,
-    "./islands/LemonDrop.tsx": $$2,
+    "./islands/ComponentGallery.tsx": $$0,
+    "./islands/CopyArea.tsx": $$1,
+    "./islands/Counter.tsx": $$2,
+    "./islands/LemonDrop.tsx": $$3,
+    "./islands/SearchButton.tsx": $$4,
   },
   baseUrl: import.meta.url,
   config,
