@@ -150,6 +150,7 @@ const Carousel = (props: CarouselProps) => {
             onClick={() => {
               goToSlide(idx);
             }}
+            key={idx}
           >
             {idx === currentSlide.value ? <>●</> : <>○</>}
           </div>
