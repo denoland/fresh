@@ -404,7 +404,7 @@ export class ServerContext {
     if (this.#dev) {
       routes[REFRESH_JS_URL] = () => {
         const js =
-          `new EventSource("${ALIVE_URL}").addEventListener("message", function listener(e) { if (e.data !== "${BUILD_ID}") { this.removeEventListener('message', listener); location.reload(); } });`;
+          `new EventSource(".${ALIVE_URL}").addEventListener("message", function listener(e) { if (e.data !== "${BUILD_ID}") { this.removeEventListener('message', listener); location.reload(); } });`;
         return new Response(js, {
           headers: {
             "content-type": "application/javascript; charset=utf-8",
@@ -456,7 +456,7 @@ export class ServerContext {
     ) => {
       const imports: string[] = [];
       if (this.#dev) {
-        imports.push(REFRESH_JS_URL);
+        imports.push(`.${REFRESH_JS_URL}`);
       }
       return (
         req: Request,
