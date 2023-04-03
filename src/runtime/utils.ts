@@ -1,6 +1,8 @@
 import { VNode } from "preact";
 
-export const INTERNAL_PREFIX = Deno.env.get("INTERNAL_PREFIX") || "/_frsh";
+export const INTERNAL_PREFIX = typeof Deno !== "undefined"
+  ? (Deno.env.get("INTERNAL_PREFIX") || "/_frsh")
+  : "/_frsh";
 export const ASSET_CACHE_BUST_KEY = "__frsh_c";
 
 export const IS_BROWSER = typeof document !== "undefined";
