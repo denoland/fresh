@@ -555,7 +555,7 @@ Deno.test("experimental Deno.serve", {
     assert(body.startsWith("bar"));
     const etag = resp.headers.get("etag");
     assert(etag);
-    // Enable this assertion when new Deno.serve is released.
+    // TODO(kt3k): Enable this assertion when new Deno.serve is released.
     // https://github.com/denoland/deno/pull/18568
     // assert(etag.startsWith("W/"), "etag should be weak");
     assertEquals(resp.headers.get("content-type"), "text/plain");
