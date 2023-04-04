@@ -14,7 +14,10 @@ jobs:
 
     strategy:
       matrix:
-        deno: ["v1.x", "canary"]
+        # TODO(kt3k): Change this back to ["v1.x", "canary"]
+        # when denoland/deno#18572 is released.
+        # Note: v1.32.2 and v1.32.3 are not compatible with Fresh.
+        deno: ["v1.32.1", "canary"]
         os: [macOS-latest, windows-latest, ubuntu-latest]
 
     steps:
