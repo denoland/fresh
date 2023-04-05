@@ -18,10 +18,10 @@ JavaScript to make them more interactive.
 
 The way forms work in the browser, is that they perform an HTML navigation
 action when the user submits the form. In most cases this means that when the
-form is submitted, a GET or POST request is sent to the server with the form
+form is submitted, a `GET` or `POST` request is sent to the server with the form
 data, which then responds with a new page to render.
 
-Fresh can handle both GET and POST requests through the
+Fresh can handle both `GET` and `POST` requests through the
 [custom handlers][custom-handlers] feature of routes. The handlers can perform
 any necessary processing on the form data, and then pass data to the
 `ctx.render()` call to render a new page.
@@ -71,45 +71,9 @@ query set as the `q` query parameter in the URL. The `GET` handler will then
 filter the names array based on the query, and pass it to the page component for
 rendering.
 
-## POST request with `multipart/form-data`
-
-Forms can either submit as a GET request with URL search parameter encoding, or as a POST request with `multipart/form-data`.
-
-This example demonstrates how to handle `multipart/form-data` `<form>` submissions:
-
-```tsx
-// routes/subscribe.tsx
-import { Handlers } from "$fresh/server.ts";
-
-export const handler: Handlers = {
-  async GET(req, ctx) {
-    return await ctx.render();
-  },
-  async POST(req, ctx) {
-      const form = await req.formData();
-      const email = form.get("email")?.toString();
-      if (email) {
-        return new Response(JSON.stringify({ email }));
-      } else {
-        return new Response(null, { status: 400 });
-      }
-  },
-};
-
-export default function Subscribe() {
-  return (
-    <>
-      <form method="post">
-        <input type="email" name="email" value="" />
-        <button type="submit">Subscribe</button>
-      </form>
-    </>
-  );
-};
-```
-
-When the user submits the form, Deno will access a specific `email` value from a `formData()` and return its representation as a JSON object.
+[Learn more about using forms in Fresh][concepts-forms].
 
 <!-- TODO(lucacasonato): link to todo app example when that is built again -->
 
 [custom-handlers]: /docs/getting-started/custom-handlers
+[concepts-forms]: /docs/concepts/forms
