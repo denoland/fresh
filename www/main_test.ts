@@ -1,5 +1,5 @@
 import { assertEquals } from "$std/testing/asserts.ts";
-import { TextLineStream } from "$std/streams/delimiter.ts";
+import { TextLineStream } from "$std/streams/text_line_stream.ts";
 import { delay } from "$std/async/delay.ts";
 
 Deno.test("CORS should not set on GET /fresh-badge.svg", {
