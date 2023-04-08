@@ -1,5 +1,5 @@
 import { useSignal } from "@preact/signals";
-import { useEffect } from "preact/hooks";
+import { useEffect, useRef } from "preact/hooks";
 import IconCircleChevronsRight from "https://deno.land/x/tabler_icons_tsx@0.0.3/tsx/circle-chevrons-right.tsx";
 import IconCircleChevronsLeft from "https://deno.land/x/tabler_icons_tsx@0.0.3/tsx/circle-chevrons-left.tsx";
 import { asset } from "$fresh/runtime.ts";
@@ -69,6 +69,7 @@ const Carousel = (props: CarouselProps) => {
   const SLIDE_INTERVAL = props.interval ? props.interval : 3500;
   const currentSlide = useSignal(props.currentSlide ? props.currentSlide : 0);
   const automatic = useSignal(props.automatic === false ? false : true);
+  const slideshowRef = useRef(null);
 
   const slideClasses = (idx = 0) => {
     let outgoingSlide = currentSlide.value - 1;
@@ -113,27 +114,6 @@ const Carousel = (props: CarouselProps) => {
     return () => clearInterval(interval);
   }, []);
 
-  const ArrowKeyNavigation = () => {
-    const keydownHandler = (event: KeyboardEvent) => {
-      if (automatic.value) automatic.value = false;
-      switch (event.code) {
-        case "ArrowLeft":
-          event.preventDefault();
-          previousSlide();
-          break;
-        case "ArrowRight":
-          event.preventDefault();
-          nextSlide();
-          break;
-        default:
-          break;
-      }
-    };
-    document.addEventListener("keydown", keydownHandler);
-    return () => document.removeEventListener("keydown", keydownHandler);
-  };
-  useEffect(ArrowKeyNavigation, []);
-
   const goToSlide = (slide_index = 0) => {
     if (automatic.value) automatic.value = false;
     currentSlide.value = slide_index;
@@ -161,6 +141,7 @@ const Carousel = (props: CarouselProps) => {
 
   return (
     <div
+      ref={slideshowRef}
       class={`slideshow relative flex-1 flex-end p-0 overflow-hidden ${
         props.class !== undefined ? props.class : ""
       }`}
