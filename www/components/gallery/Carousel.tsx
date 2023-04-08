@@ -131,7 +131,8 @@ const Carousel = (props: CarouselProps) => {
       }
     };
     slideshowRef.current.addEventListener("keydown", keydownHandler);
-    return () => slideshowRef.current.removeEventListener("keydown", keydownHandler);
+    return () =>
+      slideshowRef.current.removeEventListener("keydown", keydownHandler);
   };
   useEffect(ArrowKeyNavigation, []);
 
