@@ -284,6 +284,12 @@
     "image": "ajvanegasv"
   },
   {
+    "title": "Teams Template",
+    "link": "https://teams-template.deno.dev/",
+    "github": "davit-b/teams-template",
+    "image": "teams-template"
+  },
+  {
     "title": "Do not remove this, it's for prevent conflicting by trailing comma",
     "link": "",
     "github": "",
