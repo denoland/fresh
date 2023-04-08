@@ -114,6 +114,27 @@ const Carousel = (props: CarouselProps) => {
     return () => clearInterval(interval);
   }, []);
 
+  const ArrowKeyNavigation = () => {
+    const keydownHandler = (event: KeyboardEvent) => {
+      if (automatic.value) automatic.value = false;
+      switch (event.code) {
+        case "ArrowLeft":
+          event.preventDefault();
+          previousSlide();
+          break;
+        case "ArrowRight":
+          event.preventDefault();
+          nextSlide();
+          break;
+        default:
+          break;
+      }
+    };
+    slideshowRef.current.addEventListener("keydown", keydownHandler);
+    return () => slideshowRef.current.removeEventListener("keydown", keydownHandler);
+  };
+  useEffect(ArrowKeyNavigation, []);
+
   const goToSlide = (slide_index = 0) => {
     if (automatic.value) automatic.value = false;
     currentSlide.value = slide_index;
@@ -145,6 +166,7 @@ const Carousel = (props: CarouselProps) => {
       class={`slideshow relative flex-1 flex-end p-0 overflow-hidden ${
         props.class !== undefined ? props.class : ""
       }`}
+      tabIndex={0}
     >
       <IconCircleChevronsLeft
         class={`left-0 ${CHEVRON_STYLE}`}
