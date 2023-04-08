@@ -69,7 +69,7 @@ const Carousel = (props: CarouselProps) => {
   const SLIDE_INTERVAL = props.interval ? props.interval : 3500;
   const currentSlide = useSignal(props.currentSlide ? props.currentSlide : 0);
   const automatic = useSignal(props.automatic === false ? false : true);
-  const slideshowRef = useRef(null);
+  const slideshowRef = useRef<HTMLDivElement>(null);
 
   const slideClasses = (idx = 0) => {
     let outgoingSlide = currentSlide.value - 1;
@@ -130,9 +130,9 @@ const Carousel = (props: CarouselProps) => {
           break;
       }
     };
-    slideshowRef.current.addEventListener("keydown", keydownHandler);
+    slideshowRef.current?.addEventListener("keydown", keydownHandler);
     return () =>
-      slideshowRef.current.removeEventListener("keydown", keydownHandler);
+      slideshowRef.current?.removeEventListener("keydown", keydownHandler);
   };
   useEffect(ArrowKeyNavigation, []);
 
