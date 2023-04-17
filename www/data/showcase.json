@@ -1,5 +1,11 @@
 [
   {
+    "title": "Deno SaaSKit",
+    "link": "https://saaskit.deno.dev/",
+    "github": "denoland/saaskit",
+    "image": "deno-saaskit"
+  },
+  {
     "title": "Deno Merch",
     "link": "https://merch.deno.com/",
     "github": "denoland/merch",
@@ -270,6 +276,12 @@
     "link": "https://sking.deno.dev/",
     "github": "shijianzhong/fresh-blog-system",
     "image": "fresh-blog-system"
+  },
+  {
+    "title": "Alvaro Vanegas Sites",
+    "link": "https://ajvanegasv.dev/",
+    "github": "ajvanegasv/my-portfolio",
+    "image": "ajvanegasv"
   },
   {
     "title": "Fresh Slides",
