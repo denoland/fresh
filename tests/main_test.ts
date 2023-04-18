@@ -125,7 +125,6 @@ Deno.test("/api/get_only - NOTAMETHOD", async () => {
       method: "NOTAMETHOD",
     }),
   );
-  console.log(resp, await resp.text());
   assert(resp);
   assertEquals(resp.status, Status.MethodNotAllowed);
 });

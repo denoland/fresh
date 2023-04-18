@@ -109,7 +109,7 @@ export function router<T = unknown>(
     for (const [method, handler] of Object.entries(methods)) {
       if (method === "default") {
         entry.default = handler;
-      } else {
+      } else if (knownMethods.includes(method as KnownMethod)) {
         entry.methods[method as KnownMethod] = handler;
       }
     }
@@ -153,3 +153,5 @@ export function router<T = unknown>(
     }
   };
 }
+
+Deno.serve(router({ "/": {fvdbf: () => new Response("foo")}}))
