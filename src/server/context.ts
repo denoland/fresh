@@ -3,13 +3,13 @@ import {
   extname,
   fromFileUrl,
   RequestHandler,
-  rutt,
   Status,
   toFileUrl,
   typeByExtension,
   walk,
 } from "./deps.ts";
 import { h } from "preact";
+import * as router from "./router.ts";
 import { Manifest } from "./mod.ts";
 import { Bundler, JSXConfig } from "./bundle.ts";
 import { ALIVE_URL, BUILD_ID, JS_PREFIX, REFRESH_JS_URL } from "./constants.ts";
@@ -198,7 +198,7 @@ export class ServerContext {
           url,
           name,
           component,
-          handler: handler ?? ((req) => rutt.defaultOtherHandler(req)),
+          handler: handler ?? ((req) => router.defaultOtherHandler(req)),
           csp: Boolean(config?.csp ?? false),
         };
       } else if (
@@ -217,7 +217,7 @@ export class ServerContext {
           name,
           component,
           handler: handler ??
-            ((req, ctx) => rutt.defaultErrorHandler(req, ctx, ctx.error)),
+            ((req, ctx) => router.defaultErrorHandler(req, ctx, ctx.error)),
           csp: Boolean(config?.csp ?? false),
         };
       }
@@ -310,7 +310,7 @@ export class ServerContext {
    * by fresh, including static files.
    */
   handler(): RequestHandler {
-    const inner = rutt.router<RouterState>(...this.#handlers());
+    const inner = router.router<RouterState>(...this.#handlers());
     const withMiddlewares = this.#composeMiddlewares(this.#middlewares);
     return async function handler(req: Request, connInfo: ConnInfo) {
       // Redirect requests that end with a trailing slash
@@ -350,7 +350,7 @@ export class ServerContext {
     return (
       req: Request,
       connInfo: ConnInfo,
-      inner: rutt.Handler<RouterState>,
+      inner: router.Handler<RouterState>,
     ) => {
       // identify middlewares to apply, if any.
       // middlewares should be already sorted from deepest to shallow layer
@@ -390,19 +390,19 @@ export class ServerContext {
    * path-to-regex, to handler mapping.
    */
   #handlers(): [
-    rutt.Routes<RouterState>,
+    router.Routes<RouterState>,
     {
-      otherHandler: rutt.Handler<RouterState>;
-      errorHandler: rutt.ErrorHandler<RouterState>;
+      otherHandler: router.Handler<RouterState>;
+      errorHandler: router.ErrorHandler<RouterState>;
     },
   ] {
-    const routes: rutt.Routes<RouterState> = {};
+    const routes: router.Routes<RouterState> = {};
 
-    routes[`${INTERNAL_PREFIX}${JS_PREFIX}/${BUILD_ID}/:path*`] = this
+    routes[`${INTERNAL_PREFIX}${JS_PREFIX}/${BUILD_ID}/:path*`].default = this
       .#bundleAssetRoute();
 
     if (this.#dev) {
-      routes[REFRESH_JS_URL] = () => {
+      routes[REFRESH_JS_URL].default = () => {
         const js =
           `new EventSource("${ALIVE_URL}").addEventListener("message", function listener(e) { if (e.data !== "${BUILD_ID}") { this.removeEventListener('message', listener); location.reload(); } });`;
         return new Response(js, {
@@ -411,7 +411,7 @@ export class ServerContext {
           },
         });
       };
-      routes[ALIVE_URL] = () => {
+      routes[ALIVE_URL].default = () => {
         let timerId: number | undefined = undefined;
         const body = new ReadableStream({
           start(controller) {
@@ -442,7 +442,7 @@ export class ServerContext {
       const { localUrl, path, size, contentType, etag } of this.#staticFiles
     ) {
       const route = sanitizePathToRegex(path);
-      routes[`GET@${route}`] = this.#staticFileHandler(
+      routes[route]["GET"] = this.#staticFileHandler(
         localUrl,
         size,
         contentType,
@@ -521,7 +521,7 @@ export class ServerContext {
     for (const route of this.#routes) {
       const createRender = genRender(route, Status.OK);
       if (typeof route.handler === "function") {
-        routes[route.pattern] = (req, ctx, params) =>
+        routes[route.pattern].default = (req, ctx, params) =>
           (route.handler as Handler)(req, {
             ...ctx,
             params,
@@ -529,8 +529,14 @@ export class ServerContext {
             renderNotFound: createUnknownRender(req, {}),
           });
       } else {
+        //@ts-ignore this should be working
+        routes[route.pattern] = {};
         for (const [method, handler] of Object.entries(route.handler)) {
-          routes[`${method}@${route.pattern}`] = (req, ctx, params) =>
+          routes[route.pattern][method as router.KnownMethod] = (
+            req,
+            ctx,
+            params,
+          ) =>
             handler(req, {
               ...ctx,
               params,
@@ -541,7 +547,7 @@ export class ServerContext {
       }
     }
 
-    const otherHandler: rutt.Handler<RouterState> = (
+    const otherHandler: router.Handler<RouterState> = (
       req,
       ctx,
     ) =>
@@ -557,7 +563,7 @@ export class ServerContext {
       this.#error,
       Status.InternalServerError,
     );
-    const errorHandler: rutt.ErrorHandler<RouterState> = (
+    const errorHandler: router.ErrorHandler<RouterState> = (
       req,
       ctx,
       error,
@@ -585,7 +591,7 @@ export class ServerContext {
     size: number,
     contentType: string,
     etag: string,
-  ): rutt.MatchHandler {
+  ): router.MatchHandler {
     return async (req: Request) => {
       const url = new URL(req.url);
       const key = url.searchParams.get(ASSET_CACHE_BUST_KEY);
@@ -623,7 +629,7 @@ export class ServerContext {
    * Returns a router that contains all fresh routes. Should be mounted at
    * constants.INTERNAL_PREFIX
    */
-  #bundleAssetRoute = (): rutt.MatchHandler => {
+  #bundleAssetRoute = (): router.MatchHandler => {
     return async (_req, _ctx, params) => {
       const path = `/${params.path}`;
       const file = await this.#bundler.get(path);
@@ -663,7 +669,7 @@ const DEFAULT_NOT_FOUND: UnknownPage = {
   pattern: "",
   url: "",
   name: "_404",
-  handler: (req) => rutt.defaultOtherHandler(req),
+  handler: (req) => router.defaultOtherHandler(req),
   csp: false,
 };
 
