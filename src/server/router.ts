@@ -10,8 +10,9 @@ export type Handler<T = unknown> = (
 
 export type FinalHandler<T = unknown> = (
   req: Request,
-  ctx: MiddlewareHandlerContext<T>,
+  ctx: HandlerContext<T>,
   handlers: (() => Response | Promise<Response>)[],
+  middlewareCtx: MiddlewareHandlerContext<T>,
 ) => Response | Promise<Response>;
 
 export type ErrorHandler<T = unknown> = (
@@ -141,13 +142,13 @@ export function router<T = unknown>(
   processRoutes(processedRoutes, staticRoutes, "static");
   processRoutes(processedRoutes, routes, "route");
 
-  return async (req, ctx, handlers) => {
+  return async (req, ctx, handlers, middlewareCtx) => {
     try {
       for (const route of processedRoutes) {
         const res = route.pattern.exec(req.url);
 
         if (res !== null) {
-          ctx.routeKind = route.kind;
+          middlewareCtx.routeKind = route.kind;
           const groups = res?.pathname.groups ?? {};
 
           for (const key in groups) {
@@ -157,13 +158,13 @@ export function router<T = unknown>(
           for (const [method, handler] of Object.entries(route.methods)) {
             if (req.method === method) {
               handlers.push(() => handler(req, ctx, groups));
-              return await ctx.next();
+              return await middlewareCtx.next();
             }
           }
 
           if (route.default) {
             handlers.push(() => route.default!(req, ctx, groups));
-            return await ctx.next();
+            return await middlewareCtx.next();
           } else {
             handlers.push(() =>
               unknownMethodHandler!(
@@ -172,18 +173,18 @@ export function router<T = unknown>(
                 Object.keys(route.methods) as KnownMethod[],
               )
             );
-            return await ctx.next();
+            return await middlewareCtx.next();
           }
         }
       }
 
-      ctx.routeKind = "notFound";
+      middlewareCtx.routeKind = "notFound";
       handlers.push(() => otherHandler!(req, ctx));
-      return await ctx.next();
+      return await middlewareCtx.next();
     } catch (err) {
-      ctx.routeKind = "error";
+      middlewareCtx.routeKind = "error";
       handlers.push(() => errorHandler!(req, ctx, err));
-      return ctx.next();
+      return middlewareCtx.next();
     }
   };
 }

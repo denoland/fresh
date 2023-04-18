@@ -359,7 +359,7 @@ export class ServerContext {
 
       const handlers: (() => Response | Promise<Response>)[] = [];
 
-      const ctx: MiddlewareHandlerContext = {
+      const middlewareCtx: MiddlewareHandlerContext = {
         next() {
           const handler = handlers.shift()!;
           return Promise.resolve(handler());
@@ -372,15 +372,23 @@ export class ServerContext {
       for (const mw of mws) {
         if (mw.handler instanceof Array) {
           for (const handler of mw.handler) {
-            handlers.push(() => handler(req, ctx));
+            handlers.push(() => handler(req, middlewareCtx));
           }
         } else {
           const handler = mw.handler;
-          handlers.push(() => handler(req, ctx));
+          handlers.push(() => handler(req, middlewareCtx));
         }
       }
 
-      return inner(req, ctx, handlers);
+      return inner(
+        req,
+        {
+          ...connInfo,
+          state: middlewareCtx.state,
+        },
+        handlers,
+        middlewareCtx,
+      );
     };
   }
 
