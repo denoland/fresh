@@ -446,12 +446,14 @@ export class ServerContext {
       const { localUrl, path, size, contentType, etag } of this.#staticFiles
     ) {
       const route = sanitizePathToRegex(path);
-      routes[route]["GET"] = this.#staticFileHandler(
-        localUrl,
-        size,
-        contentType,
-        etag,
-      );
+      routes[route] = {
+        "GET": this.#staticFileHandler(
+          localUrl,
+          size,
+          contentType,
+          etag,
+        ),
+      }
     }
 
     const genRender = <Data = undefined>(
