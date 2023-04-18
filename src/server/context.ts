@@ -22,6 +22,7 @@ import {
   Handler,
   Island,
   Middleware,
+  MiddlewareHandlerContext,
   MiddlewareModule,
   MiddlewareRoute,
   Plugin,
@@ -30,7 +31,6 @@ import {
   RouteModule,
   UnknownPage,
   UnknownPageModule,
-  MiddlewareHandlerContext,
 } from "./types.ts";
 import { render as internalRender } from "./render.ts";
 import { ContentSecurityPolicyDirectives, SELF } from "../runtime/csp.ts";
@@ -389,9 +389,9 @@ export class ServerContext {
    * path-to-regex, to handler mapping.
    */
   #handlers(): {
-    internalRoutes: router.Routes<RouterState>,
-    staticRoutes: router.Routes<RouterState>,
-    routes: router.Routes<RouterState>,
+    internalRoutes: router.Routes<RouterState>;
+    staticRoutes: router.Routes<RouterState>;
+    routes: router.Routes<RouterState>;
 
     otherHandler: router.Handler<RouterState>;
     errorHandler: router.ErrorHandler<RouterState>;

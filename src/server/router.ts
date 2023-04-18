@@ -48,9 +48,9 @@ export type InternalRoute<T = {}> = {
 };
 
 export interface RouterOptions<T> {
-  internalRoutes: Routes<T>,
-  staticRoutes: Routes<T>,
-  routes: Routes<T>,
+  internalRoutes: Routes<T>;
+  staticRoutes: Routes<T>;
+  routes: Routes<T>;
   otherHandler: Handler<T>;
   errorHandler: ErrorHandler<T>;
   unknownMethodHandler?: UnknownMethodHandler<T>;
@@ -99,7 +99,11 @@ export function defaultUnknownMethodHandler(
   });
 }
 
-function processRoutes<T>(processedRoutes: InternalRoute<T>[], routes: Routes<T>, kind: RouteKinds) {
+function processRoutes<T>(
+  processedRoutes: InternalRoute<T>[],
+  routes: Routes<T>,
+  kind: RouteKinds,
+) {
   for (const [path, methods] of Object.entries(routes)) {
     const entry: InternalRoute<T> = {
       pattern: new URLPattern({ pathname: path }),
@@ -121,9 +125,14 @@ function processRoutes<T>(processedRoutes: InternalRoute<T>[], routes: Routes<T>
 }
 
 export function router<T = unknown>(
-  { internalRoutes,
+  {
+    internalRoutes,
     staticRoutes,
-    routes, otherHandler, errorHandler, unknownMethodHandler }: RouterOptions<T>,
+    routes,
+    otherHandler,
+    errorHandler,
+    unknownMethodHandler,
+  }: RouterOptions<T>,
 ): FinalHandler<T> {
   unknownMethodHandler ??= defaultUnknownMethodHandler;
 
@@ -156,11 +165,13 @@ export function router<T = unknown>(
             handlers.push(() => route.default!(req, ctx, groups));
             return await ctx.next();
           } else {
-            handlers.push(() => unknownMethodHandler!(
-              req,
-              ctx,
-              Object.keys(route.methods) as KnownMethod[],
-            ));
+            handlers.push(() =>
+              unknownMethodHandler!(
+                req,
+                ctx,
+                Object.keys(route.methods) as KnownMethod[],
+              )
+            );
             return await ctx.next();
           }
         }
