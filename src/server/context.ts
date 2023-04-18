@@ -30,6 +30,7 @@ import {
   RouteModule,
   UnknownPage,
   UnknownPageModule,
+  MiddlewareHandlerContext,
 } from "./types.ts";
 import { render as internalRender } from "./render.ts";
 import { ContentSecurityPolicyDirectives, SELF } from "../runtime/csp.ts";
@@ -310,7 +311,7 @@ export class ServerContext {
    * by fresh, including static files.
    */
   handler(): RequestHandler {
-    const inner = router.router<RouterState>(...this.#handlers());
+    const inner = router.router<RouterState>(this.#handlers());
     const withMiddlewares = this.#composeMiddlewares(this.#middlewares);
     return async function handler(req: Request, connInfo: ConnInfo) {
       // Redirect requests that end with a trailing slash
@@ -350,7 +351,7 @@ export class ServerContext {
     return (
       req: Request,
       connInfo: ConnInfo,
-      inner: router.Handler<RouterState>,
+      inner: router.FinalHandler<RouterState>,
     ) => {
       // identify middlewares to apply, if any.
       // middlewares should be already sorted from deepest to shallow layer
@@ -358,13 +359,14 @@ export class ServerContext {
 
       const handlers: (() => Response | Promise<Response>)[] = [];
 
-      const ctx = {
+      const ctx: MiddlewareHandlerContext = {
         next() {
           const handler = handlers.shift()!;
           return Promise.resolve(handler());
         },
         ...connInfo,
         state: {},
+        routeKind: "route",
       };
 
       for (const mw of mws) {
@@ -378,10 +380,7 @@ export class ServerContext {
         }
       }
 
-      handlers.push(() => inner(req, ctx));
-
-      const handler = handlers.shift()!;
-      return handler();
+      return inner(req, ctx, handlers);
     };
   }
 
@@ -389,20 +388,23 @@ export class ServerContext {
    * This function returns all routes required by fresh as an extended
    * path-to-regex, to handler mapping.
    */
-  #handlers(): [
-    router.Routes<RouterState>,
-    {
-      otherHandler: router.Handler<RouterState>;
-      errorHandler: router.ErrorHandler<RouterState>;
-    },
-  ] {
+  #handlers(): {
+    internalRoutes: router.Routes<RouterState>,
+    staticRoutes: router.Routes<RouterState>,
+    routes: router.Routes<RouterState>,
+
+    otherHandler: router.Handler<RouterState>;
+    errorHandler: router.ErrorHandler<RouterState>;
+  } {
+    const internalRoutes: router.Routes<RouterState> = {};
+    const staticRoutes: router.Routes<RouterState> = {};
     const routes: router.Routes<RouterState> = {};
 
-    routes[`${INTERNAL_PREFIX}${JS_PREFIX}/${BUILD_ID}/:path*`] = {
+    internalRoutes[`${INTERNAL_PREFIX}${JS_PREFIX}/${BUILD_ID}/:path*`] = {
       default: this.#bundleAssetRoute(),
     };
     if (this.#dev) {
-      routes[REFRESH_JS_URL] = {
+      internalRoutes[REFRESH_JS_URL] = {
         default: () => {
           const js =
             `new EventSource("${ALIVE_URL}").addEventListener("message", function listener(e) { if (e.data !== "${BUILD_ID}") { this.removeEventListener('message', listener); location.reload(); } });`;
@@ -413,7 +415,7 @@ export class ServerContext {
           });
         },
       };
-      routes[ALIVE_URL] = {
+      internalRoutes[ALIVE_URL] = {
         default: () => {
           let timerId: number | undefined = undefined;
           const body = new ReadableStream({
@@ -446,7 +448,7 @@ export class ServerContext {
       const { localUrl, path, size, contentType, etag } of this.#staticFiles
     ) {
       const route = sanitizePathToRegex(path);
-      routes[route] = {
+      staticRoutes[route] = {
         "GET": this.#staticFileHandler(
           localUrl,
           size,
@@ -590,7 +592,7 @@ export class ServerContext {
       );
     };
 
-    return [routes, { otherHandler, errorHandler }];
+    return { internalRoutes, staticRoutes, routes, otherHandler, errorHandler };
   }
 
   #staticFileHandler(
