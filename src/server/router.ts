@@ -27,7 +27,7 @@ export type MatchHandler<T = unknown> = (
 
 // deno-lint-ignore ban-types
 export interface Routes<T = {}> {
-  [key: string]: Record<KnownMethod | "default", MatchHandler<T>>;
+  [key: string]: { [K in KnownMethod | "default"]?: MatchHandler<T> };
 }
 
 // deno-lint-ignore ban-types

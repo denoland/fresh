@@ -398,39 +398,43 @@ export class ServerContext {
   ] {
     const routes: router.Routes<RouterState> = {};
 
-    routes[`${INTERNAL_PREFIX}${JS_PREFIX}/${BUILD_ID}/:path*`].default = this
-      .#bundleAssetRoute();
-
+    routes[`${INTERNAL_PREFIX}${JS_PREFIX}/${BUILD_ID}/:path*`] = {
+      default: this.#bundleAssetRoute(),
+    };
     if (this.#dev) {
-      routes[REFRESH_JS_URL].default = () => {
-        const js =
-          `new EventSource("${ALIVE_URL}").addEventListener("message", function listener(e) { if (e.data !== "${BUILD_ID}") { this.removeEventListener('message', listener); location.reload(); } });`;
-        return new Response(js, {
-          headers: {
-            "content-type": "application/javascript; charset=utf-8",
-          },
-        });
+      routes[REFRESH_JS_URL] = {
+        default: () => {
+          const js =
+            `new EventSource("${ALIVE_URL}").addEventListener("message", function listener(e) { if (e.data !== "${BUILD_ID}") { this.removeEventListener('message', listener); location.reload(); } });`;
+          return new Response(js, {
+            headers: {
+              "content-type": "application/javascript; charset=utf-8",
+            },
+          });
+        },
       };
-      routes[ALIVE_URL].default = () => {
-        let timerId: number | undefined = undefined;
-        const body = new ReadableStream({
-          start(controller) {
-            controller.enqueue(`data: ${BUILD_ID}\nretry: 100\n\n`);
-            timerId = setInterval(() => {
-              controller.enqueue(`data: ${BUILD_ID}\n\n`);
-            }, 1000);
-          },
-          cancel() {
-            if (timerId !== undefined) {
-              clearInterval(timerId);
-            }
-          },
-        });
-        return new Response(body.pipeThrough(new TextEncoderStream()), {
-          headers: {
-            "content-type": "text/event-stream",
-          },
-        });
+      routes[ALIVE_URL] = {
+        default: () => {
+          let timerId: number | undefined = undefined;
+          const body = new ReadableStream({
+            start(controller) {
+              controller.enqueue(`data: ${BUILD_ID}\nretry: 100\n\n`);
+              timerId = setInterval(() => {
+                controller.enqueue(`data: ${BUILD_ID}\n\n`);
+              }, 1000);
+            },
+            cancel() {
+              if (timerId !== undefined) {
+                clearInterval(timerId);
+              }
+            },
+          });
+          return new Response(body.pipeThrough(new TextEncoderStream()), {
+            headers: {
+              "content-type": "text/event-stream",
+            },
+          });
+        },
       };
     }
 
@@ -521,15 +525,16 @@ export class ServerContext {
     for (const route of this.#routes) {
       const createRender = genRender(route, Status.OK);
       if (typeof route.handler === "function") {
-        routes[route.pattern].default = (req, ctx, params) =>
-          (route.handler as Handler)(req, {
-            ...ctx,
-            params,
-            render: createRender(req, params),
-            renderNotFound: createUnknownRender(req, {}),
-          });
+        routes[route.pattern] = {
+          default: (req, ctx, params) =>
+            (route.handler as Handler)(req, {
+              ...ctx,
+              params,
+              render: createRender(req, params),
+              renderNotFound: createUnknownRender(req, {}),
+            }),
+        };
       } else {
-        //@ts-ignore this should be working
         routes[route.pattern] = {};
         for (const [method, handler] of Object.entries(route.handler)) {
           routes[route.pattern][method as router.KnownMethod] = (
