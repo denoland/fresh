@@ -1,5 +1,6 @@
 import { ComponentType } from "preact";
-import { ConnInfo, rutt, ServeInit } from "./deps.ts";
+import { ConnInfo, ServeInit } from "./deps.ts";
+import * as router from "./router.ts";
 import { InnerRenderFunction, RenderContext } from "./render.ts";
 
 // --- APPLICATION CONFIGURATION ---
@@ -87,7 +88,7 @@ export type Handler<T = any, State = Record<string, unknown>> = (
 
 // deno-lint-ignore no-explicit-any
 export type Handlers<T = any, State = Record<string, unknown>> = {
-  [K in typeof rutt.knownMethods[number]]?: Handler<T, State>;
+  [K in router.KnownMethod]?: Handler<T, State>;
 };
 
 export interface RouteModule {
