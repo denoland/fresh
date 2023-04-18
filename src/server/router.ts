@@ -12,7 +12,7 @@ export type FinalHandler<T = unknown> = (
   req: Request,
   ctx: HandlerContext<T>,
   handlers: (() => Response | Promise<Response>)[],
-  middlewareCtx: MiddlewareHandlerContext<T>,
+  middlewareCtx: MiddlewareHandlerContext & T,
 ) => Response | Promise<Response>;
 
 export type ErrorHandler<T = unknown> = (
