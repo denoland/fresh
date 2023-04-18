@@ -453,7 +453,7 @@ export class ServerContext {
           contentType,
           etag,
         ),
-      }
+      };
     }
 
     const genRender = <Data = undefined>(
