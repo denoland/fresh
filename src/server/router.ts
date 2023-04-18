@@ -153,5 +153,3 @@ export function router<T = unknown>(
     }
   };
 }
-
-Deno.serve(router({ "/": {fvdbf: () => new Response("foo")}}))
