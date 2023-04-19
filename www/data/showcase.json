@@ -284,6 +284,12 @@
     "image": "ajvanegasv"
   },
   {
+    "title": "FestWithMe",
+    "link": "https://fest-with-me.deno.dev/",
+    "github": "rnaidenov/fest-with-me",
+    "image": "festwithme"
+  },
+  {
     "title": "Do not remove this, it's for prevent conflicting by trailing comma",
     "link": "",
     "github": "",
