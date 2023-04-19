@@ -50,8 +50,18 @@ async function rootHandler(
   return resp;
 }
 
+async function kindHandler(
+  _req: Request,
+  ctx: MiddlewareHandlerContext,
+) {
+  const resp = await ctx.next();
+  resp.headers.set("routeKind", ctx.routeKind);
+  return resp;
+}
+
 export const handler: MiddlewareHandler | MiddlewareHandler[] = [
   rootHandler,
   logHandler,
+  kindHandler,
   corsHandler,
 ];
