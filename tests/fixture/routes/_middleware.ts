@@ -55,7 +55,7 @@ async function kindHandler(
   ctx: MiddlewareHandlerContext,
 ) {
   const resp = await ctx.next();
-  resp.headers.set("routeKind", ctx.routeKind);
+  resp.headers.set("destination", ctx.destination);
   return resp;
 }
 

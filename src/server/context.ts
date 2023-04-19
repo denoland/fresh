@@ -366,7 +366,7 @@ export class ServerContext {
         },
         ...connInfo,
         state: {},
-        routeKind: "route",
+        destination: "route",
       };
 
       for (const mw of mws) {

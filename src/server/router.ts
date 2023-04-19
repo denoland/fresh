@@ -38,14 +38,14 @@ export interface Routes<T = {}> {
   [key: string]: { [K in KnownMethod | "default"]?: MatchHandler<T> };
 }
 
-export type RouteKinds = "internal" | "static" | "route" | "notFound" | "error";
+export type RouteKind = "internal" | "static" | "route" | "notFound" | "error";
 
 // deno-lint-ignore ban-types
 export type InternalRoute<T = {}> = {
   pattern: URLPattern;
   methods: { [K in KnownMethod]?: MatchHandler<T> };
   default?: MatchHandler<T>;
-  kind: RouteKinds;
+  kind: RouteKind;
 };
 
 export interface RouterOptions<T> {
@@ -103,7 +103,7 @@ export function defaultUnknownMethodHandler(
 function processRoutes<T>(
   processedRoutes: InternalRoute<T>[],
   routes: Routes<T>,
-  kind: RouteKinds,
+  kind: RouteKind,
 ) {
   for (const [path, methods] of Object.entries(routes)) {
     const entry: InternalRoute<T> = {
@@ -148,7 +148,7 @@ export function router<T = unknown>(
         const res = route.pattern.exec(req.url);
 
         if (res !== null) {
-          middlewareCtx.routeKind = route.kind;
+          middlewareCtx.destination = route.kind;
           const groups = res?.pathname.groups ?? {};
 
           for (const key in groups) {
@@ -178,11 +178,11 @@ export function router<T = unknown>(
         }
       }
 
-      middlewareCtx.routeKind = "notFound";
+      middlewareCtx.destination = "notFound";
       handlers.push(() => otherHandler!(req, ctx));
       return await middlewareCtx.next();
     } catch (err) {
-      middlewareCtx.routeKind = "error";
+      middlewareCtx.destination = "error";
       handlers.push(() => errorHandler!(req, ctx, err));
       return middlewareCtx.next();
     }
