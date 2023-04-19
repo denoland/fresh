@@ -509,15 +509,8 @@ Deno.test("middleware destination", async (t) => {
     await resp.body?.cancel();
   });
 
-  await t.step("error", async () => {
-    const resp = await router(new Request("https://fresh.deno.dev/failure"));
-    assert(resp);
-    assertEquals(resp.headers.get("destination"), "error");
-    await resp.body?.cancel();
-  });
-
   await t.step("notFound", async () => {
-    const resp = await router(new Request("https://fresh.deno.dev/hello"));
+    const resp = await router(new Request("https://fresh.deno.dev/foo/bar"));
     assert(resp);
     assertEquals(resp.headers.get("destination"), "notFound");
     await resp.body?.cancel();

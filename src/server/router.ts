@@ -38,7 +38,7 @@ export interface Routes<T = {}> {
   [key: string]: { [K in KnownMethod | "default"]?: MatchHandler<T> };
 }
 
-export type RouteKind = "internal" | "static" | "route" | "notFound" | "error";
+export type RouteKind = "internal" | "static" | "route" | "notFound";
 
 // deno-lint-ignore ban-types
 export type InternalRoute<T = {}> = {
@@ -182,7 +182,6 @@ export function router<T = unknown>(
       handlers.push(() => otherHandler!(req, ctx));
       return await middlewareCtx.next();
     } catch (err) {
-      middlewareCtx.destination = "error";
       handlers.push(() => errorHandler!(req, ctx, err));
       return middlewareCtx.next();
     }
