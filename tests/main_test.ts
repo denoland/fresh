@@ -495,6 +495,13 @@ Deno.test({
 });
 
 Deno.test("middleware destination", async (t) => {
+  await t.step("internal", async () => {
+    const resp = await router(new Request("https://fresh.deno.dev/_frsh/refresh.js"));
+    assert(resp);
+    assertEquals(resp.headers.get("destination"), "internal");
+    await resp.body?.cancel();
+  });
+
   await t.step("static", async () => {
     const resp = await router(new Request("https://fresh.deno.dev/foo.txt"));
     assert(resp);
