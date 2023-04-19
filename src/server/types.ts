@@ -201,7 +201,7 @@ export interface MiddlewareHandlerContext<State = Record<string, unknown>>
   extends ConnInfo {
   next: () => Promise<Response>;
   state: State;
-  destination: router.RouteKind;
+  destination: router.DestinationKind;
 }
 
 export interface MiddlewareRoute extends Middleware {

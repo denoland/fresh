@@ -11,7 +11,7 @@ export type FinalHandler<T = unknown> = (
   req: Request,
   ctx: HandlerContext<T>,
 ) => {
-  destination: RouteKind;
+  destination: DestinationKind;
   handler: () => Response | Promise<Response>;
 };
 
@@ -38,14 +38,14 @@ export interface Routes<T = {}> {
   [key: string]: { [K in KnownMethod | "default"]?: MatchHandler<T> };
 }
 
-export type RouteKind = "internal" | "static" | "route" | "notFound";
+export type DestinationKind = "internal" | "static" | "route" | "notFound";
 
 // deno-lint-ignore ban-types
 export type InternalRoute<T = {}> = {
   pattern: URLPattern;
   methods: { [K in KnownMethod]?: MatchHandler<T> };
   default?: MatchHandler<T>;
-  kind: RouteKind;
+  destination: DestinationKind;
 };
 
 export interface RouterOptions<T> {
@@ -103,14 +103,14 @@ export function defaultUnknownMethodHandler(
 function processRoutes<T>(
   processedRoutes: InternalRoute<T>[],
   routes: Routes<T>,
-  kind: RouteKind,
+  destination: DestinationKind,
 ) {
   for (const [path, methods] of Object.entries(routes)) {
     const entry: InternalRoute<T> = {
       pattern: new URLPattern({ pathname: path }),
       methods: {},
       default: undefined,
-      kind,
+      destination,
     };
 
     for (const [method, handler] of Object.entries(methods)) {
@@ -155,7 +155,7 @@ export function router<T = unknown>(
         for (const [method, handler] of Object.entries(route.methods)) {
           if (req.method === method) {
             return {
-              destination: route.kind,
+              destination: route.destination,
               handler: () => handler(req, ctx, groups),
             };
           }
@@ -163,12 +163,12 @@ export function router<T = unknown>(
 
         if (route.default) {
           return {
-            destination: route.kind,
+            destination: route.destination,
             handler: () => route.default!(req, ctx, groups),
           };
         } else {
           return {
-            destination: route.kind,
+            destination: route.destination,
             handler: () =>
               unknownMethodHandler!(
                 req,
