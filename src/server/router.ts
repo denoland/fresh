@@ -1,5 +1,4 @@
 import type { ConnInfo } from "./deps.ts";
-import { MiddlewareHandlerContext } from "./types.ts";
 
 type HandlerContext<T = unknown> = T & ConnInfo;
 
@@ -11,9 +10,10 @@ export type Handler<T = unknown> = (
 export type FinalHandler<T = unknown> = (
   req: Request,
   ctx: HandlerContext<T>,
-  handlers: (() => Response | Promise<Response>)[],
-  middlewareCtx: MiddlewareHandlerContext & T,
-) => Response | Promise<Response>;
+) => {
+  destination: RouteKind;
+  handler: () => Response | Promise<Response>;
+};
 
 export type ErrorHandler<T = unknown> = (
   req: Request,
@@ -131,7 +131,6 @@ export function router<T = unknown>(
     staticRoutes,
     routes,
     otherHandler,
-    errorHandler,
     unknownMethodHandler,
   }: RouterOptions<T>,
 ): FinalHandler<T> {
@@ -142,48 +141,48 @@ export function router<T = unknown>(
   processRoutes(processedRoutes, staticRoutes, "static");
   processRoutes(processedRoutes, routes, "route");
 
-  return async (req, ctx, handlers, middlewareCtx) => {
-    try {
-      for (const route of processedRoutes) {
-        const res = route.pattern.exec(req.url);
+  return (req, ctx) => {
+    for (const route of processedRoutes) {
+      const res = route.pattern.exec(req.url);
 
-        if (res !== null) {
-          middlewareCtx.destination = route.kind;
-          const groups = res?.pathname.groups ?? {};
+      if (res !== null) {
+        const groups = res?.pathname.groups ?? {};
 
-          for (const key in groups) {
-            groups[key] = decodeURIComponent(groups[key]);
+        for (const key in groups) {
+          groups[key] = decodeURIComponent(groups[key]);
+        }
+
+        for (const [method, handler] of Object.entries(route.methods)) {
+          if (req.method === method) {
+            return {
+              destination: route.kind,
+              handler: () => handler(req, ctx, groups),
+            };
           }
+        }
 
-          for (const [method, handler] of Object.entries(route.methods)) {
-            if (req.method === method) {
-              handlers.push(() => handler(req, ctx, groups));
-              return await middlewareCtx.next();
-            }
-          }
-
-          if (route.default) {
-            handlers.push(() => route.default!(req, ctx, groups));
-            return await middlewareCtx.next();
-          } else {
-            handlers.push(() =>
+        if (route.default) {
+          return {
+            destination: route.kind,
+            handler: () => route.default!(req, ctx, groups),
+          };
+        } else {
+          return {
+            destination: route.kind,
+            handler: () =>
               unknownMethodHandler!(
                 req,
                 ctx,
                 Object.keys(route.methods) as KnownMethod[],
-              )
-            );
-            return await middlewareCtx.next();
-          }
+              ),
+          };
         }
       }
-
-      middlewareCtx.destination = "notFound";
-      handlers.push(() => otherHandler!(req, ctx));
-      return await middlewareCtx.next();
-    } catch (err) {
-      handlers.push(() => errorHandler!(req, ctx, err));
-      return middlewareCtx.next();
     }
+
+    return {
+      destination: "notFound",
+      handler: () => otherHandler!(req, ctx),
+    };
   };
 }

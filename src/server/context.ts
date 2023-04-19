@@ -311,8 +311,12 @@ export class ServerContext {
    * by fresh, including static files.
    */
   handler(): RequestHandler {
-    const inner = router.router<RouterState>(this.#handlers());
-    const withMiddlewares = this.#composeMiddlewares(this.#middlewares);
+    const handlers = this.#handlers();
+    const inner = router.router<RouterState>(handlers);
+    const withMiddlewares = this.#composeMiddlewares(
+      this.#middlewares,
+      handlers.errorHandler,
+    );
     return async function handler(req: Request, connInfo: ConnInfo) {
       // Redirect requests that end with a trailing slash
       // to their non-trailing slash counterpart.
@@ -347,7 +351,10 @@ export class ServerContext {
    * Identify which middlewares should be applied for a request,
    * chain them and return a handler response
    */
-  #composeMiddlewares(middlewares: MiddlewareRoute[]) {
+  #composeMiddlewares(
+    middlewares: MiddlewareRoute[],
+    errorHandler: router.ErrorHandler<RouterState>,
+  ) {
     return (
       req: Request,
       connInfo: ConnInfo,
@@ -380,15 +387,17 @@ export class ServerContext {
         }
       }
 
-      return inner(
+      const ctx = {
+        ...connInfo,
+        state: middlewareCtx.state,
+      };
+      const { destination, handler } = inner(
         req,
-        {
-          ...connInfo,
-          state: middlewareCtx.state,
-        },
-        handlers,
-        middlewareCtx,
+        ctx,
       );
+      handlers.push(handler);
+      middlewareCtx.destination = destination;
+      return middlewareCtx.next().catch((e) => errorHandler(req, ctx, e));
     };
   }
 
