@@ -7,6 +7,14 @@ export type Handler<T = unknown> = (
   ctx: HandlerContext<T>,
 ) => Response | Promise<Response>;
 
+export type FinalHandler<T = unknown> = (
+  req: Request,
+  ctx: HandlerContext<T>,
+) => {
+  destination: DestinationKind;
+  handler: () => Response | Promise<Response>;
+};
+
 export type ErrorHandler<T = unknown> = (
   req: Request,
   ctx: HandlerContext<T>,
@@ -30,16 +38,22 @@ export interface Routes<T = {}> {
   [key: string]: { [K in KnownMethod | "default"]?: MatchHandler<T> };
 }
 
+export type DestinationKind = "internal" | "static" | "route" | "notFound";
+
 // deno-lint-ignore ban-types
 export type InternalRoute<T = {}> = {
   pattern: URLPattern;
   methods: { [K in KnownMethod]?: MatchHandler<T> };
   default?: MatchHandler<T>;
+  destination: DestinationKind;
 };
 
 export interface RouterOptions<T> {
-  otherHandler?: Handler<T>;
-  errorHandler?: ErrorHandler<T>;
+  internalRoutes: Routes<T>;
+  staticRoutes: Routes<T>;
+  routes: Routes<T>;
+  otherHandler: Handler<T>;
+  errorHandler: ErrorHandler<T>;
   unknownMethodHandler?: UnknownMethodHandler<T>;
 }
 
@@ -86,24 +100,17 @@ export function defaultUnknownMethodHandler(
   });
 }
 
-export function router<T = unknown>(
+function processRoutes<T>(
+  processedRoutes: InternalRoute<T>[],
   routes: Routes<T>,
-  { otherHandler, errorHandler, unknownMethodHandler }: RouterOptions<T> = {
-    otherHandler: defaultOtherHandler,
-    errorHandler: defaultErrorHandler,
-    unknownMethodHandler: defaultUnknownMethodHandler,
-  },
-): Handler<T> {
-  otherHandler ??= defaultOtherHandler;
-  errorHandler ??= defaultErrorHandler;
-  unknownMethodHandler ??= defaultUnknownMethodHandler;
-
-  const internalRoutes: InternalRoute<T>[] = [];
+  destination: DestinationKind,
+) {
   for (const [path, methods] of Object.entries(routes)) {
     const entry: InternalRoute<T> = {
       pattern: new URLPattern({ pathname: path }),
       methods: {},
       default: undefined,
+      destination,
     };
 
     for (const [method, handler] of Object.entries(methods)) {
@@ -114,42 +121,68 @@ export function router<T = unknown>(
       }
     }
 
-    internalRoutes.push(entry);
+    processedRoutes.push(entry);
   }
+}
 
-  return async (req, ctx) => {
-    try {
-      for (const route of internalRoutes) {
-        const res = route.pattern.exec(req.url);
+export function router<T = unknown>(
+  {
+    internalRoutes,
+    staticRoutes,
+    routes,
+    otherHandler,
+    unknownMethodHandler,
+  }: RouterOptions<T>,
+): FinalHandler<T> {
+  unknownMethodHandler ??= defaultUnknownMethodHandler;
 
-        if (res !== null) {
-          const groups = res?.pathname.groups ?? {};
+  const processedRoutes: InternalRoute<T>[] = [];
+  processRoutes(processedRoutes, internalRoutes, "internal");
+  processRoutes(processedRoutes, staticRoutes, "static");
+  processRoutes(processedRoutes, routes, "route");
 
-          for (const key in groups) {
-            groups[key] = decodeURIComponent(groups[key]);
-          }
+  return (req, ctx) => {
+    for (const route of processedRoutes) {
+      const res = route.pattern.exec(req.url);
 
-          for (const [method, handler] of Object.entries(route.methods)) {
-            if (req.method === method) {
-              return await handler(req, ctx, groups);
-            }
-          }
+      if (res !== null) {
+        const groups = res?.pathname.groups ?? {};
 
-          if (route.default) {
-            return await route.default(req, ctx, groups);
-          } else {
-            return await unknownMethodHandler!(
-              req,
-              ctx,
-              Object.keys(route.methods) as KnownMethod[],
-            );
+        for (const key in groups) {
+          groups[key] = decodeURIComponent(groups[key]);
+        }
+
+        for (const [method, handler] of Object.entries(route.methods)) {
+          if (req.method === method) {
+            return {
+              destination: route.destination,
+              handler: () => handler(req, ctx, groups),
+            };
           }
         }
-      }
 
-      return await otherHandler!(req, ctx);
-    } catch (err) {
-      return errorHandler!(req, ctx, err);
+        if (route.default) {
+          return {
+            destination: route.destination,
+            handler: () => route.default!(req, ctx, groups),
+          };
+        } else {
+          return {
+            destination: route.destination,
+            handler: () =>
+              unknownMethodHandler!(
+                req,
+                ctx,
+                Object.keys(route.methods) as KnownMethod[],
+              ),
+          };
+        }
+      }
     }
+
+    return {
+      destination: "notFound",
+      handler: () => otherHandler!(req, ctx),
+    };
   };
 }

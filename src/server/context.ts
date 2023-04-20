@@ -22,6 +22,7 @@ import {
   Handler,
   Island,
   Middleware,
+  MiddlewareHandlerContext,
   MiddlewareModule,
   MiddlewareRoute,
   Plugin,
@@ -310,8 +311,12 @@ export class ServerContext {
    * by fresh, including static files.
    */
   handler(): RequestHandler {
-    const inner = router.router<RouterState>(...this.#handlers());
-    const withMiddlewares = this.#composeMiddlewares(this.#middlewares);
+    const handlers = this.#handlers();
+    const inner = router.router<RouterState>(handlers);
+    const withMiddlewares = this.#composeMiddlewares(
+      this.#middlewares,
+      handlers.errorHandler,
+    );
     return async function handler(req: Request, connInfo: ConnInfo) {
       // Redirect requests that end with a trailing slash
       // to their non-trailing slash counterpart.
@@ -346,11 +351,14 @@ export class ServerContext {
    * Identify which middlewares should be applied for a request,
    * chain them and return a handler response
    */
-  #composeMiddlewares(middlewares: MiddlewareRoute[]) {
+  #composeMiddlewares(
+    middlewares: MiddlewareRoute[],
+    errorHandler: router.ErrorHandler<RouterState>,
+  ) {
     return (
       req: Request,
       connInfo: ConnInfo,
-      inner: router.Handler<RouterState>,
+      inner: router.FinalHandler<RouterState>,
     ) => {
       // identify middlewares to apply, if any.
       // middlewares should be already sorted from deepest to shallow layer
@@ -358,30 +366,38 @@ export class ServerContext {
 
       const handlers: (() => Response | Promise<Response>)[] = [];
 
-      const ctx = {
+      const middlewareCtx: MiddlewareHandlerContext = {
         next() {
           const handler = handlers.shift()!;
           return Promise.resolve(handler());
         },
         ...connInfo,
         state: {},
+        destination: "route",
       };
 
       for (const mw of mws) {
         if (mw.handler instanceof Array) {
           for (const handler of mw.handler) {
-            handlers.push(() => handler(req, ctx));
+            handlers.push(() => handler(req, middlewareCtx));
           }
         } else {
           const handler = mw.handler;
-          handlers.push(() => handler(req, ctx));
+          handlers.push(() => handler(req, middlewareCtx));
         }
       }
 
-      handlers.push(() => inner(req, ctx));
-
-      const handler = handlers.shift()!;
-      return handler();
+      const ctx = {
+        ...connInfo,
+        state: middlewareCtx.state,
+      };
+      const { destination, handler } = inner(
+        req,
+        ctx,
+      );
+      handlers.push(handler);
+      middlewareCtx.destination = destination;
+      return middlewareCtx.next().catch((e) => errorHandler(req, ctx, e));
     };
   }
 
@@ -389,20 +405,23 @@ export class ServerContext {
    * This function returns all routes required by fresh as an extended
    * path-to-regex, to handler mapping.
    */
-  #handlers(): [
-    router.Routes<RouterState>,
-    {
-      otherHandler: router.Handler<RouterState>;
-      errorHandler: router.ErrorHandler<RouterState>;
-    },
-  ] {
+  #handlers(): {
+    internalRoutes: router.Routes<RouterState>;
+    staticRoutes: router.Routes<RouterState>;
+    routes: router.Routes<RouterState>;
+
+    otherHandler: router.Handler<RouterState>;
+    errorHandler: router.ErrorHandler<RouterState>;
+  } {
+    const internalRoutes: router.Routes<RouterState> = {};
+    const staticRoutes: router.Routes<RouterState> = {};
     const routes: router.Routes<RouterState> = {};
 
-    routes[`${INTERNAL_PREFIX}${JS_PREFIX}/${BUILD_ID}/:path*`] = {
+    internalRoutes[`${INTERNAL_PREFIX}${JS_PREFIX}/${BUILD_ID}/:path*`] = {
       default: this.#bundleAssetRoute(),
     };
     if (this.#dev) {
-      routes[REFRESH_JS_URL] = {
+      internalRoutes[REFRESH_JS_URL] = {
         default: () => {
           const js =
             `new EventSource("${ALIVE_URL}").addEventListener("message", function listener(e) { if (e.data !== "${BUILD_ID}") { this.removeEventListener('message', listener); location.reload(); } });`;
@@ -413,7 +432,7 @@ export class ServerContext {
           });
         },
       };
-      routes[ALIVE_URL] = {
+      internalRoutes[ALIVE_URL] = {
         default: () => {
           let timerId: number | undefined = undefined;
           const body = new ReadableStream({
@@ -446,7 +465,7 @@ export class ServerContext {
       const { localUrl, path, size, contentType, etag } of this.#staticFiles
     ) {
       const route = sanitizePathToRegex(path);
-      routes[route] = {
+      staticRoutes[route] = {
         "GET": this.#staticFileHandler(
           localUrl,
           size,
@@ -590,7 +609,7 @@ export class ServerContext {
       );
     };
 
-    return [routes, { otherHandler, errorHandler }];
+    return { internalRoutes, staticRoutes, routes, otherHandler, errorHandler };
   }
 
   #staticFileHandler(
