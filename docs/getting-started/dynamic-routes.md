@@ -43,7 +43,7 @@ The `PageProps` interface actually contains a bunch of useful properties that
 can be used to customize the rendered output. Next to the matched url pattern
 parameters, the raw `url`, and the `route` name can also be found in here.
 
-Navigating to `https://localhost:8000/greet/Luca` will now render a page showing
+Navigating to `http://localhost:8000/greet/Luca` will now render a page showing
 "Greetings to you, Luca!".
 
 The [_Concepts: Routing_][concepts-routing] page has more information about
