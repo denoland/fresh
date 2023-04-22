@@ -494,6 +494,38 @@ Deno.test({
   },
 });
 
+Deno.test("middleware destination", async (t) => {
+  await t.step("internal", async () => {
+    const resp = await router(
+      new Request("https://fresh.deno.dev/_frsh/refresh.js"),
+    );
+    assert(resp);
+    assertEquals(resp.headers.get("destination"), "internal");
+    await resp.body?.cancel();
+  });
+
+  await t.step("static", async () => {
+    const resp = await router(new Request("https://fresh.deno.dev/foo.txt"));
+    assert(resp);
+    assertEquals(resp.headers.get("destination"), "static");
+    await resp.body?.cancel();
+  });
+
+  await t.step("route", async () => {
+    const resp = await router(new Request("https://fresh.deno.dev/"));
+    assert(resp);
+    assertEquals(resp.headers.get("destination"), "route");
+    await resp.body?.cancel();
+  });
+
+  await t.step("notFound", async () => {
+    const resp = await router(new Request("https://fresh.deno.dev/bar/bar"));
+    assert(resp);
+    assertEquals(resp.headers.get("destination"), "notFound");
+    await resp.body?.cancel();
+  });
+});
+
 Deno.test("experimental Deno.serve", {
   sanitizeOps: false,
   sanitizeResources: false,
