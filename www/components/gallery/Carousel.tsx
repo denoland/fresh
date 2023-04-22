@@ -1,29 +1,29 @@
+import { tw } from "twind";
+import { asset } from "$fresh/runtime.ts";
 import { useSignal } from "@preact/signals";
 import { useEffect, useRef } from "preact/hooks";
 import IconCircleChevronsRight from "https://deno.land/x/tabler_icons_tsx@0.0.3/tsx/circle-chevrons-right.tsx";
 import IconCircleChevronsLeft from "https://deno.land/x/tabler_icons_tsx@0.0.3/tsx/circle-chevrons-left.tsx";
-import { asset } from "$fresh/runtime.ts";
-import { tw } from "twind";
 
 const SLIDE_DATA = [
   {
-    text: "slide one",
     color: "bg-green-300",
+    text: "slide one",
     url: asset("/illustration/deno-plush.svg"),
   },
   {
-    text: "slide too",
     color: "bg-yellow-300",
+    text: "slide too",
     url: asset("/illustration/lemon-squash.svg"),
   },
   {
-    text: "slide three",
     color: "bg-blue-300",
+    text: "slide three",
     url: asset("/illustration/deno-plush.svg"),
   },
   {
-    text: "slide four",
     color: "bg-yellow-300",
+    text: "slide four",
     url: asset("/illustration/lemon-squash.svg"),
   },
 ];
@@ -32,8 +32,8 @@ type SlideProps = {
   class?: string;
   key?: number;
   data: {
-    text: string;
     color: string;
+    text: string;
     url: string;
   };
 };
@@ -190,7 +190,6 @@ const Carousel = (props: CarouselProps) => {
         <DotsNavigation />}
       <Slide
         data={SLIDE_DATA[0]}
-        key={0}
         class="opacity-0 pointer-events-none"
       />
     </div>
