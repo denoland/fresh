@@ -1,4 +1,5 @@
-import { useEffect, useRef, useState } from "preact/hooks";
+import { useSignal } from "@preact/signals";
+import { useEffect, useRef } from "preact/hooks";
 import IconCircleChevronsRight from "https://deno.land/x/tabler_icons_tsx@0.0.3/tsx/circle-chevrons-right.tsx";
 import IconCircleChevronsLeft from "https://deno.land/x/tabler_icons_tsx@0.0.3/tsx/circle-chevrons-left.tsx";
 import { asset } from "$fresh/runtime.ts";
@@ -66,22 +67,18 @@ const Carousel = (props: CarouselProps) => {
     `absolute z-30 w-10 h-10 ${NAVIGATION_COLOR} cursor-pointer`;
   const SHOW_NAVIGATION = props.showNavigation === false ? false : true;
   const SLIDE_INTERVAL = props.interval ? props.interval : 3500;
-  const [currentSlide, setCurrentSlide] = useState(
-    props.currentSlide ? props.currentSlide : 0,
-  );
-  const [automatic, setAutomatic] = useState(
-    props.automatic === false ? false : true,
-  );
+  const currentSlide = useSignal(props.currentSlide ? props.currentSlide : 0);
+  const automatic = useSignal(props.automatic === false ? false : true);
   const slideshowRef = useRef<HTMLDivElement>(null);
 
   const slideClasses = (idx = 0) => {
-    let outgoingSlide = currentSlide - 1;
-    let incomingSlide = currentSlide + 1;
+    let outgoingSlide = currentSlide.value - 1;
+    let incomingSlide = currentSlide.value + 1;
     if (outgoingSlide === -1) outgoingSlide = SLIDE_DATA.length - 1;
     if (incomingSlide === SLIDE_DATA.length) incomingSlide = 0;
-    // console.log(outgoingSlide, currentSlide, incomingSlide, automatic)
+    // console.log(outgoingSlide, currentSlide.value, incomingSlide)
     const TRANSITION_CLASS = () => {
-      if (currentSlide === idx) return "translate-x-0 z-20";
+      if (currentSlide.value === idx) return "translate-x-0 z-20";
       if (incomingSlide === idx) return "translate-x-full z-10";
       if (outgoingSlide === idx) return "-translate-x-full z-10";
       return "translate-x-full";
@@ -90,36 +87,36 @@ const Carousel = (props: CarouselProps) => {
   };
 
   const nextSlide = () => {
-    if (SLIDE_DATA.length === currentSlide + 1) {
-      setCurrentSlide(0);
+    if (SLIDE_DATA.length === currentSlide.value + 1) {
+      currentSlide.value = 0;
     } else {
-      setCurrentSlide(currentSlide + 1);
+      currentSlide.value++;
     }
   };
 
   const previousSlide = () => {
-    if (currentSlide === 0) {
-      setCurrentSlide(SLIDE_DATA.length - 1);
+    if (currentSlide.value === 0) {
+      currentSlide.value = SLIDE_DATA.length - 1;
     } else {
-      setCurrentSlide(currentSlide - 1);
+      currentSlide.value--;
     }
   };
 
   const chevronClick = (doCallback = () => {}) => {
-    if (automatic) setAutomatic(false);
+    if (automatic.value) automatic.value = false;
     return doCallback();
   };
 
   useEffect(() => {
     const interval = setInterval(() => {
-      if (automatic) nextSlide();
+      if (automatic.value) nextSlide();
     }, SLIDE_INTERVAL);
     return () => clearInterval(interval);
   }, []);
 
   const ArrowKeyNavigation = () => {
     const keydownHandler = (event: KeyboardEvent) => {
-      if (automatic) setAutomatic(false);
+      if (automatic.value) automatic.value = false;
       switch (event.code) {
         case "ArrowLeft":
           event.preventDefault();
@@ -140,8 +137,8 @@ const Carousel = (props: CarouselProps) => {
   useEffect(ArrowKeyNavigation, []);
 
   const goToSlide = (slide_index = 0) => {
-    if (automatic) setAutomatic(false);
-    setCurrentSlide(slide_index);
+    if (automatic.value) automatic.value = false;
+    currentSlide.value = slide_index;
   };
 
   const DotsNavigation = () => (
@@ -157,7 +154,7 @@ const Carousel = (props: CarouselProps) => {
             }}
             key={idx}
           >
-            {idx === currentSlide ? <>●</> : <>○</>}
+            {idx === currentSlide.value ? <>●</> : <>○</>}
           </div>
         );
       })}
