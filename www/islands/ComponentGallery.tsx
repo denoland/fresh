@@ -23,7 +23,7 @@ interface SectionProps {
 function Section(props: SectionProps) {
   return (
     <div>
-      <h2 class="text-2xl font-bold py-2">
+      <h2 class="text-2xl font-bold py-2" id={props.title}>
         {props.title}
         {props.island && (
           <span class="text-sm font-normal inline-block bg-green-200 rounded px-2 mx-2">

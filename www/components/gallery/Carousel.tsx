@@ -30,7 +30,7 @@ const SLIDE_DATA = [
 
 type SlideProps = {
   class?: string;
-  key?: number;
+  key: number;
   data: {
     color: string;
     text: string;
