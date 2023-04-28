@@ -8,6 +8,8 @@ import {
   retry,
   TextLineStream,
 } from "./deps.ts";
+import * as path from "$std/path/mod.ts";
+import { assertNotMatch } from "https://deno.land/std@0.178.0/testing/asserts.ts";
 
 type FileTree = {
   type: "file";
@@ -370,4 +372,28 @@ Deno.test("fresh-init error(help)", async function (t) {
       assertStringIncludes(errorString, includeText);
     },
   );
+});
+
+Deno.test("fresh-init .", async function (t) {
+  // Preparation
+  const tmpDirName = await Deno.makeTempDir();
+
+  await t.step("execute init command", async () => {
+    const cliProcess = new Deno.Command(Deno.execPath(), {
+      args: [
+        "run",
+        "-A",
+        path.join(Deno.cwd(), "init.ts"),
+        ".",
+      ],
+      cwd: tmpDirName,
+      stdin: "null",
+      stdout: "piped",
+      stderr: "piped",
+    });
+    const { code, stdout } = await cliProcess.output();
+    const output = new TextDecoder().decode(stdout);
+    assertNotMatch(output, /Enter your project directory/);
+    assertEquals(code, 0);
+  });
 });
