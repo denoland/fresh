@@ -146,10 +146,15 @@ export function router<T = unknown>(
       const res = route.pattern.exec(req.url);
 
       if (res !== null) {
-        const groups = res?.pathname.groups ?? {};
+        const groups: Record<string, string> = {};
+        const matched = res?.pathname.groups;
 
-        for (const key in groups) {
-          groups[key] = decodeURIComponent(groups[key]);
+        for (const key in matched) {
+          const value = matched[key];
+
+          if (value !== undefined) {
+            groups[key] = decodeURIComponent(value);
+          }
         }
 
         for (const [method, handler] of Object.entries(route.methods)) {
