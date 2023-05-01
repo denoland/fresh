@@ -21,6 +21,7 @@
     "pages": [
       ["architecture", "Architecture"],
       ["routes", "Routes"],
+      ["forms", "Forms"],
       ["islands", "Interactive islands"],
       ["static-files", "Static files"],
       ["middleware", "Route middleware"],

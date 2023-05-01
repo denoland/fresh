@@ -23,6 +23,7 @@ export const handler: Handlers<HomeProps> = {
         "Footer": await getSource("../components/gallery/Footer.tsx"),
         "Hero": await getSource("../components/gallery/Hero.tsx"),
         "Features": await getSource("../components/gallery/Features.tsx"),
+        "Carousel": await getSource("../components/gallery/Carousel.tsx"),
       },
     };
     return ctx.render(props);

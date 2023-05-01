@@ -352,11 +352,13 @@ await generate(resolvedDirectory, manifest);
 // not leak personal info (e.g. `/Users/MyName`)
 console.log("\n%cProject initialized!\n", "color: green; font-weight: bold");
 
-console.log(
-  `Enter your project directory using %ccd ${unresolvedDirectory}%c.`,
-  "color: cyan",
-  "",
-);
+if (unresolvedDirectory !== ".") {
+  console.log(
+    `Enter your project directory using %ccd ${unresolvedDirectory}%c.`,
+    "color: cyan",
+    "",
+  );
+}
 console.log(
   "Run %cdeno task start%c to start the project. %cCTRL-C%c to stop.",
   "color: cyan",

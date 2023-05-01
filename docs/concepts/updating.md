@@ -21,7 +21,7 @@ below.
 | Fresh version | Preact           | preact-render-to-string | Deno      |
 | ------------- | ---------------- | ----------------------- | --------- |
 | 1.0.0-1.0.2   | >=10.8.1 <11.0.0 | >=5.2.0 <6.0.0          | >= 1.23.0 |
-| 1.1.0-1.1.4   | >=10.8.1 <11.0.0 | >=5.2.0 <6.0.0          | >= 1.25.0 |
+| 1.1.0-1.1.5   | >=10.8.1 <11.0.0 | >=5.2.0 <6.0.0          | >= 1.25.0 |
 
 ## Updating dependencies
 
@@ -58,7 +58,7 @@ version:
   {
     "imports": {
 -     "$fresh/": "https://deno.land/x/fresh@1.0.2/",
-+     "$fresh/": "https://deno.land/x/fresh@1.1.4/",
++     "$fresh/": "https://deno.land/x/fresh@1.1.5/",
 
 -     "preact": "https://esm.sh/preact@10.8.1",
 -     "preact/": "https://esm.sh/preact@10.8.1/",
