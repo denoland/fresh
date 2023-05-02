@@ -30,6 +30,7 @@ export interface RenderOptions<Data> {
   params: Record<string, string | string[]>;
   renderFn: RenderFunction;
   data?: Data;
+  state?: Record<string, unknown>;
   error?: unknown;
   lang?: string;
 }
@@ -114,6 +115,7 @@ export async function render<Data>(
     url: opts.url,
     route: opts.route.pattern,
     data: opts.data,
+    state: opts.state,
   };
   if (opts.error) {
     props.error = opts.error;

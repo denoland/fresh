@@ -29,7 +29,7 @@ export type RenderFunction = (
 /// --- ROUTES ---
 
 // deno-lint-ignore no-explicit-any
-export interface PageProps<T = any> {
+export interface PageProps<T = any, S = Record<string, unknown>> {
   /** The URL of the request that resulted in this page being rendered. */
   url: URL;
 
@@ -52,6 +52,7 @@ export interface PageProps<T = any> {
    * `undefined`.
    */
   data: T;
+  state: S;
 }
 
 export interface RouteConfig {
