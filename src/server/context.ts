@@ -35,7 +35,6 @@ import {
 import { render as internalRender } from "./render.ts";
 import { ContentSecurityPolicyDirectives, SELF } from "../runtime/csp.ts";
 import { ASSET_CACHE_BUST_KEY, INTERNAL_PREFIX } from "../runtime/utils.ts";
-import { refleshJs } from "./reflesh.ts";
 interface RouterState {
   state: Record<string, unknown>;
 }
@@ -424,7 +423,7 @@ export class ServerContext {
     if (this.#dev) {
       internalRoutes[REFRESH_JS_URL] = {
         default: () => {
-          return new Response(refleshJs(ALIVE_URL, BUILD_ID), {
+          return new Response(refreshJs(ALIVE_URL, BUILD_ID), {
             headers: {
               "content-type": "application/javascript; charset=utf-8",
             },
@@ -823,4 +822,17 @@ export function middlewarePathToPattern(baseRoute: string) {
   }
   const compiledPattern = new URLPattern({ pathname: pattern });
   return { pattern, compiledPattern };
+}
+
+function refreshJs(aliveUrl: string, buildId: string) {
+  return `let es = new EventSource("${aliveUrl}");
+window.addEventListener("beforeunload", (event) => {
+  es.close();
+});
+es.addEventListener("message", function listener(e) {
+  if (e.data !== "${buildId}") {
+    this.removeEventListener("message", listener);
+    location.reload();
+  }
+});`;
 }
