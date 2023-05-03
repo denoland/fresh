@@ -1,14 +1,15 @@
 export function refleshJs(aliveUrl: string, buildId: string) {
   return minifyScript(`
-  new EventSource("${aliveUrl}").addEventListener(
-    "message",
-    function listener(e) {
-      if (e.data !== "${buildId}") {
-        this.removeEventListener("message", listener);
-        location.reload();
-      }
+  let es = new EventSource("${aliveUrl}");
+  window.addEventListener("beforeunload", (event) => {
+    es.close();
+  });
+  es.addEventListener("message", function listener(e) {
+    if (e.data !== "${buildId}") {
+      this.removeEventListener("message", listener);
+      location.reload();
     }
-  );
+  });
 `);
 }
 

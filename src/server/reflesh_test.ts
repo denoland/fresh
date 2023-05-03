@@ -4,6 +4,6 @@ import { refleshJs } from "./reflesh.ts";
 Deno.test("minifyRefreshScript", () => {
   assertEquals(
     refleshJs("http://localhost:8000", "abc123"),
-    `new EventSource("http://localhost:8000").addEventListener( "message", function listener(e) { if (e.data !== "abc123") { this.removeEventListener("message", listener); location.reload(); } } );`
+    `let es = new EventSource("http://localhost:8000"); window.addEventListener("beforeunload", (event) => { es.close(); }); es.addEventListener("message", function listener(e) { if (e.data !== "abc123") { this.removeEventListener("message", listener); location.reload(); } });`
   );
 });
