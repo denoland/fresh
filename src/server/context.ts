@@ -35,6 +35,7 @@ import {
 import { render as internalRender } from "./render.ts";
 import { ContentSecurityPolicyDirectives, SELF } from "../runtime/csp.ts";
 import { ASSET_CACHE_BUST_KEY, INTERNAL_PREFIX } from "../runtime/utils.ts";
+import { refleshJs } from "./reflesh.ts";
 interface RouterState {
   state: Record<string, unknown>;
 }
@@ -423,9 +424,7 @@ export class ServerContext {
     if (this.#dev) {
       internalRoutes[REFRESH_JS_URL] = {
         default: () => {
-          const js =
-            `new EventSource("${ALIVE_URL}").addEventListener("message", function listener(e) { if (e.data !== "${BUILD_ID}") { this.removeEventListener('message', listener); location.reload(); } });`;
-          return new Response(js, {
+          return new Response(refleshJs(ALIVE_URL, BUILD_ID), {
             headers: {
               "content-type": "application/javascript; charset=utf-8",
             },
