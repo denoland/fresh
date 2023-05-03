@@ -423,9 +423,7 @@ export class ServerContext {
     if (this.#dev) {
       internalRoutes[REFRESH_JS_URL] = {
         default: () => {
-          const js =
-            `new EventSource("${ALIVE_URL}").addEventListener("message", function listener(e) { if (e.data !== "${BUILD_ID}") { this.removeEventListener('message', listener); location.reload(); } });`;
-          return new Response(js, {
+          return new Response(refreshJs(ALIVE_URL, BUILD_ID), {
             headers: {
               "content-type": "application/javascript; charset=utf-8",
             },
@@ -824,4 +822,17 @@ export function middlewarePathToPattern(baseRoute: string) {
   }
   const compiledPattern = new URLPattern({ pathname: pattern });
   return { pattern, compiledPattern };
+}
+
+function refreshJs(aliveUrl: string, buildId: string) {
+  return `let es = new EventSource("${aliveUrl}");
+window.addEventListener("beforeunload", (event) => {
+  es.close();
+});
+es.addEventListener("message", function listener(e) {
+  if (e.data !== "${buildId}") {
+    this.removeEventListener("message", listener);
+    location.reload();
+  }
+});`;
 }
