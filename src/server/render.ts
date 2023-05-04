@@ -34,7 +34,7 @@ export interface RenderOptions<Data> {
   lang?: string;
 }
 
-export type InnerRenderFunction = () => string;
+export type InnerRenderFunction = () => string | Promise<string>;
 
 export class RenderContext {
   #id: string;
@@ -171,10 +171,10 @@ export async function render<Data>(
   const plugins = opts.plugins.filter((p) => p.render !== null);
   const renderResults: [Plugin, PluginRenderResult][] = [];
 
-  function render(): PluginRenderFunctionResult {
+  async function render(): Promise<PluginRenderFunctionResult> {
     const plugin = plugins.shift();
     if (plugin) {
-      const res = plugin.render!({ render });
+      const res = await plugin.render!({ render });
       if (res === undefined) {
         throw new Error(
           `${plugin?.name}'s render hook did not return a PluginRenderResult object.`,
@@ -195,7 +195,7 @@ export async function render<Data>(
     };
   }
 
-  await opts.renderFn(ctx, () => render().htmlText);
+  await opts.renderFn(ctx, async () => (await render()).htmlText);
 
   if (bodyHtml === null) {
     throw new Error("The `render` function was not called by the renderer.");

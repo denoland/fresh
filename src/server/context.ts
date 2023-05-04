@@ -683,8 +683,8 @@ export class ServerContext {
   };
 }
 
-const DEFAULT_RENDER_FN: RenderFunction = (_ctx, render) => {
-  render();
+const DEFAULT_RENDER_FN: RenderFunction = async (_ctx, render) => {
+  await render();
 };
 
 const DEFAULT_APP: AppModule = {

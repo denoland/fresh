@@ -7,9 +7,9 @@ export function inject(cssText: string) {
 
 export default {
   name: "css-inject",
-  render(ctx) {
+  async render(ctx) {
     CSS_TO_INJECT = "";
-    const res = ctx.render();
+    const res = await ctx.render();
     if (res.requiresHydration) {
       CSS_TO_INJECT += " h1 { color: blue; }";
     }
