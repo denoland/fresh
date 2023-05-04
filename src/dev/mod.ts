@@ -4,6 +4,7 @@ import {
   fromFileUrl,
   gte,
   join,
+  parsePath,
   toFileUrl,
   walk,
 } from "./deps.ts";
@@ -105,25 +106,28 @@ export async function generate(directory: string, manifest: Manifest) {
 
 import config from "./deno.json" assert { type: "json" };
 ${
-    routes.map((file, i) => `import * as $${i} from "./routes${file}";`).join(
-      "\n",
-    )
+    routes
+      .map((file, i) => `import * as $${i} from "./routes${file}";`)
+      .join("\n")
   }
 ${
-    islands.map((file, i) => `import * as $$${i} from "./islands${file}";`)
+    islands
+      .map((file, i) => `import * as $$${i} from "./islands${file}";`)
       .join("\n")
   }
 
 const manifest = {
   routes: {
     ${
-    routes.map((file, i) => `${JSON.stringify(`./routes${file}`)}: $${i},`)
+    routes
+      .map((file, i) => `${JSON.stringify(`./routes${file}`)}: $${i},`)
       .join("\n    ")
   }
   },
   islands: {
     ${
-    islands.map((file, i) => `${JSON.stringify(`./islands${file}`)}: $$${i},`)
+    islands
+      .map((file, i) => `${JSON.stringify(`./islands${file}`)}: $$${i},`)
       .join("\n    ")
   }
   },
@@ -160,6 +164,51 @@ export default manifest;
   );
 }
 
+interface IMapper {
+  dir: string;
+  file: string;
+}
+export async function routeWarnings(directory: string) {
+  const manifest = await collect(directory);
+  const { routes } = manifest;
+
+  // iterate each route
+  const mapped = routes.map((route: string): IMapper => {
+    const parsed = parsePath(route);
+    return { dir: parsed.dir, file: parsed.base };
+  });
+
+  const routesPerDepth = mapped.reduce(
+    (totals: {[key: string]: number}, p) => ({ ...totals, [p.dir]: (totals[p.dir] || 0) + 1 }),
+    {},
+  );
+
+  const errors = () => {
+    const output = [];
+    for (const [key, value] of Object.entries(routesPerDepth)) {
+      const ones = mapped.filter((p) => {
+        return (
+          p.dir === key && routesPerDepth[key] > 1 && p.file.match(/\[(.*?)\]/g)
+        );
+      });
+      if (ones.length > 0) {
+        output.push(`routes${key}`);
+      }
+    }
+    return output;
+  };
+
+  const errorsList = errors();
+  if (errorsList.length > 0) {
+    console.log(
+      `%cCheck ${errorsList} for potential routing issues.
+You may have dynamic and static routes overwriting each other.
+Please check the documentation for more information. http://localhost:8000/docs/getting-started/dynamic-routes`,
+      "color: red; font-weight: bold",
+    );
+  }
+}
+
 export async function dev(base: string, entrypoint: string) {
   ensureMinDenoVersion();
 
@@ -182,6 +231,8 @@ export async function dev(base: string, entrypoint: string) {
     !arraysEqual(newManifest.islands, currentManifest.islands);
 
   if (manifestChanged) await generate(dir, newManifest);
+
+  await routeWarnings(dir);
 
   await import(entrypoint);
 }
