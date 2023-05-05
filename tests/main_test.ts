@@ -175,6 +175,16 @@ Deno.test("redirect /pages/fresh/ to /pages/fresh", async () => {
   );
 });
 
+Deno.test("redirect /pages/////fresh///// to /pages/fresh", async () => {
+  const resp = await router(new Request("https://fresh.deno.dev/pages/////fresh/////"));
+  assert(resp);
+  assertEquals(resp.status, Status.TemporaryRedirect);
+  assertEquals(
+    resp.headers.get("location"),
+    "https://fresh.deno.dev/pages/fresh",
+  );
+});
+
 Deno.test("/failure", async () => {
   const resp = await router(new Request("https://fresh.deno.dev/failure"));
   assert(resp);
