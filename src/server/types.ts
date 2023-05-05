@@ -111,6 +111,7 @@ export interface Route<Data = any> {
 // --- APP ---
 
 export interface AppProps {
+  page: Record<string, unknown>;
   Component: ComponentType<Record<never, never>>;
 }
 

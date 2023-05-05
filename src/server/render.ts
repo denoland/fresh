@@ -129,6 +129,7 @@ export async function render<Data>(
     children: h(HEAD_CONTEXT.Provider, {
       value: headComponents,
       children: h(opts.app.default, {
+        page: props,
         Component() {
           return h(opts.route.component! as ComponentType<unknown>, props);
         },
