@@ -321,9 +321,17 @@ export class ServerContext {
       // Redirect requests that end with a trailing slash
       // to their non-trailing slash counterpart.
       // Ex: /about/ -> /about
+      // Redirect requests that have multiple slashes in a row
+      // to have a single slash
+      // Ex: /a///b -> /a/b
       const url = new URL(req.url);
-      if (url.pathname.length > 1 && url.pathname.endsWith("/")) {
-        url.pathname = url.pathname.replace(/\/+/g, '/').slice(0, -1);
+      const hasExtraSlashesPattern = /(\/{2,}|.\/$)/
+      const hasExtraSlashes = url.pathname.match(hasExtraSlashesPattern) !== null;
+      
+      if (hasExtraSlashes) {
+        url.pathname = url.pathname
+          .replace(/\/+/g, '/') // collapse multiple slashes
+          .replace(/\/$/, ''); // remove trailing slashes
         return Response.redirect(url.href, Status.TemporaryRedirect);
       }
 
