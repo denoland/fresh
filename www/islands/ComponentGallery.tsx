@@ -112,7 +112,7 @@ export default function ComponentGallery(props: ComponentGalleryProps) {
         <Features />
       </Section>
 
-      <Section title="Carousel" source={props.sources.Carousel}>
+      <Section title="Carousel" island={true} source={props.sources.Carousel}>
         <Carousel />
       </Section>
     </>
