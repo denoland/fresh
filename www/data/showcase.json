@@ -1,5 +1,11 @@
 [
   {
+    "title": "Deno SaaSKit",
+    "link": "https://saaskit.deno.dev/",
+    "github": "denoland/saaskit",
+    "image": "deno-saaskit"
+  },
+  {
     "title": "Deno Merch",
     "link": "https://merch.deno.com/",
     "github": "denoland/merch",
@@ -270,6 +276,24 @@
     "link": "https://sking.deno.dev/",
     "github": "shijianzhong/fresh-blog-system",
     "image": "fresh-blog-system"
+  },
+  {
+    "title": "Alvaro Vanegas Sites",
+    "link": "https://ajvanegasv.dev/",
+    "github": "ajvanegasv/my-portfolio",
+    "image": "ajvanegasv"
+  },
+  {
+    "title": "Teams Template",
+    "link": "https://teams-template.deno.dev/",
+    "github": "davit-b/teams-template",
+    "image": "teams-template"
+  },
+  {
+    "title": "FestWithMe",
+    "link": "https://fest-with-me.deno.dev/",
+    "github": "rnaidenov/fest-with-me",
+    "image": "festwithme"
   },
   {
     "title": "Do not remove this, it's for prevent conflicting by trailing comma",
