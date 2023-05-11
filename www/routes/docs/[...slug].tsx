@@ -72,7 +72,7 @@ export default function DocsPage(props: PageProps<Data>) {
     </>
   );
 }
-import IconBooks from "https://deno.land/x/tabler_icons_tsx@0.0.1/tsx/books.tsx";
+
 function Main(props: { path: string; page: Page }) {
   return (
     <div class="flex-1">
