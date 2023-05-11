@@ -295,6 +295,12 @@
     "github": "rnaidenov/fest-with-me",
     "image": "festwithme"
   },
+    {
+    "title": "Vite + Preact + Fresh + Nx",
+    "link": "https://github.com/NinekoTheCat/Fresh-Vite-Preact",
+    "github": "NinekoTheCat/Fresh-Vite-Preact",
+    "image": ""
+  },
   {
     "title": "Do not remove this, it's for prevent conflicting by trailing comma",
     "link": "",
