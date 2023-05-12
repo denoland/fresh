@@ -111,8 +111,8 @@ export default function Home() {
           alt="the fresh logo: a sliced lemon dripping with juice"
         />
         <p${useTwind ? ` class="my-6"` : ""}>
-          Welcome to \`fresh\`. Try updating this message in the ./routes/index.tsx
-          file, and refresh.
+          Welcome to \`fresh\`. Try updating this message in the
+          ./routes/index.tsx file, and refresh.
         </p>
         <Counter start={3} />
       </div>
@@ -352,11 +352,13 @@ await generate(resolvedDirectory, manifest);
 // not leak personal info (e.g. `/Users/MyName`)
 console.log("\n%cProject initialized!\n", "color: green; font-weight: bold");
 
-console.log(
-  `Enter your project directory using %ccd ${unresolvedDirectory}%c.`,
-  "color: cyan",
-  "",
-);
+if (unresolvedDirectory !== ".") {
+  console.log(
+    `Enter your project directory using %ccd ${unresolvedDirectory}%c.`,
+    "color: cyan",
+    "",
+  );
+}
 console.log(
   "Run %cdeno task start%c to start the project. %cCTRL-C%c to stop.",
   "color: cyan",
