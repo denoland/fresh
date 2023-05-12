@@ -296,6 +296,12 @@
     "image": "festwithme"
   },
   {
+    "title": "Pollify",
+    "link": "https://pollify.deno.dev/",
+    "github": "n4ze3m/pollify",
+    "image": "pollify"
+  },
+  {
     "title": "JPT ChatGPT Rooms",
     "link": "https://jpt.ma/",
     "github": "zizwar/jpt",
