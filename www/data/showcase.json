@@ -302,6 +302,12 @@
     "image": "pollify"
   },
   {
+    "title": "JPT ChatGPT Rooms",
+    "link": "https://jpt.ma/",
+    "github": "zizwar/jpt",
+    "image": "jptchat"
+  },
+  {
     "title": "Do not remove this, it's for prevent conflicting by trailing comma",
     "link": "",
     "github": "",
