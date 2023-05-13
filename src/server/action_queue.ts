@@ -1,4 +1,6 @@
-interface ActionQueueItem<TAction extends (...args: unknown[]) => unknown> {
+export interface ActionQueueItem<
+  TAction extends (...args: unknown[]) => unknown,
+> {
   action: TAction;
   args?: Parameters<TAction>;
   resolve: (payload: ReturnType<TAction>) => void;
@@ -7,7 +9,7 @@ interface ActionQueueItem<TAction extends (...args: unknown[]) => unknown> {
 }
 
 // deno-lint-ignore no-explicit-any
-class ActionQueue<TAction extends (...args: any[]) => any> {
+export class ActionQueue<TAction extends (...args: any[]) => any> {
   #pendingPromise: boolean;
   #items: ActionQueueItem<TAction>[];
 
@@ -44,54 +46,3 @@ class ActionQueue<TAction extends (...args: any[]) => any> {
     return true;
   }
 }
-
-const q = new ActionQueue();
-const start = Date.now();
-
-async function original(...args: any) {
-  await new Promise((resolve) => setTimeout(resolve, 1000));
-  return args[0];
-}
-
-function sync(...args: any) {
-  return args[0];
-}
-const ns = [0, 1, 2, 3, 4];
-
-function originalMap() {
-  return Promise.all(ns.map((v) => {
-    return original(v);
-  }));
-}
-function wrappedMap() {
-  return Promise.all(ns.map((v) => {
-    return q.enqueue(original, [v]);
-  }));
-}
-function syncMap() {
-  return Promise.all(ns.map((v) => {
-    return q.enqueue(sync, [v]);
-  }));
-}
-
-// console.log(await originalMap());
-// console.log(await wrappedMap());
-console.log(await syncMap());
-// console.log(await original(1, "a"));
-
-console.log(Date.now() - start);
-
-// this.#renderQueue = new ActionQueue<RenderAsyncFunction>();
-
-// // Create a render queue, and wrap all the render functions
-// this.#renderAsyncFn = async (...args) => {
-//   try {
-//     const result = await this.#renderQueue?.enqueue(
-//       renderfn as RenderAsyncFunction,
-//       args,
-//     );
-//     return result;
-//   } catch (error) {
-//     throw error;
-//   }
-// };

@@ -36,6 +36,7 @@ import {
 import { render as internalRender } from "./render.ts";
 import { ContentSecurityPolicyDirectives, SELF } from "../runtime/csp.ts";
 import { ASSET_CACHE_BUST_KEY, INTERNAL_PREFIX } from "../runtime/utils.ts";
+import { ActionQueue } from "./action_queue.ts";
 interface RouterState {
   state: Record<string, unknown>;
 }
@@ -66,6 +67,7 @@ export class ServerContext {
   #error: ErrorPage;
   #plugins: Plugin[];
   #pluginsAsync: PluginAsync[];
+  #renderQueue: ActionQueue<RenderFunction>;
 
   constructor(
     routes: Route[],
@@ -99,6 +101,25 @@ export class ServerContext {
       jsxConfig,
       this.#dev,
     );
+
+    this.#renderQueue = new ActionQueue<RenderFunction>();
+
+    if (pluginsAsync.length > 0) {
+      // Create a render queue, and wrap all the render functions
+      this.#renderFn = async (...args) => {
+        try {
+          const result = await this.#renderQueue?.enqueue(
+            renderfn,
+            args,
+          );
+          return result;
+        } catch (error) {
+          throw error;
+        }
+      };
+    } else {
+      this.#renderFn = renderfn;
+    }
   }
 
   /**
