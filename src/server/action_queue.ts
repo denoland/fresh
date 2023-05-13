@@ -80,3 +80,18 @@ console.log(await syncMap());
 // console.log(await original(1, "a"));
 
 console.log(Date.now() - start);
+
+// this.#renderQueue = new ActionQueue<RenderAsyncFunction>();
+
+// // Create a render queue, and wrap all the render functions
+// this.#renderAsyncFn = async (...args) => {
+//   try {
+//     const result = await this.#renderQueue?.enqueue(
+//       renderfn as RenderAsyncFunction,
+//       args,
+//     );
+//     return result;
+//   } catch (error) {
+//     throw error;
+//   }
+// };
