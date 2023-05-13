@@ -23,6 +23,7 @@ export type {
   MiddlewareHandlerContext,
   PageProps,
   Plugin,
+  PluginAsync,
   PluginRenderResult,
   PluginRenderScripts,
   PluginRenderStyleTag,
