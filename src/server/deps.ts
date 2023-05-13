@@ -15,6 +15,7 @@ export { Status } from "https://deno.land/std@0.178.0/http/http_status.ts";
 export {
   typeByExtension,
 } from "https://deno.land/std@0.178.0/media_types/mod.ts";
+export { toHashString } from "https://deno.land/std@0.178.0/crypto/to_hash_string.ts";
 
 // -- esbuild --
 // @deno-types="https://deno.land/x/esbuild@v0.17.11/mod.d.ts"
