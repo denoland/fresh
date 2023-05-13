@@ -18,6 +18,7 @@ export type StartOptions = ServeInit & FreshOptions & {
 export interface FreshOptions {
   render?: RenderFunction;
   plugins?: Plugin[];
+  pluginsAsync?: PluginAsync[];
   staticDir?: string;
 }
 
@@ -265,8 +266,18 @@ export interface Plugin {
   render?(ctx: PluginRenderContext): PluginRenderResult;
 }
 
+export interface PluginAsync {
+  name: string;
+  entrypoints?: Record<string, string>;
+  render?(ctx: PluginRenderAsyncContext): Promise<PluginRenderResult>;
+}
+
 export interface PluginRenderContext {
   render: PluginRenderFunction;
+}
+
+export interface PluginRenderAsyncContext {
+  render: PluginRenderAsyncFunction;
 }
 
 export interface PluginRenderResult {
@@ -297,6 +308,9 @@ export interface PluginRenderScripts {
 }
 
 export type PluginRenderFunction = () => PluginRenderFunctionResult;
+export type PluginRenderAsyncFunction = () => Promise<
+  PluginRenderFunctionResult
+>;
 
 export interface PluginRenderFunctionResult {
   /** The HTML text that was rendered. */

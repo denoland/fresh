@@ -26,6 +26,7 @@ import {
   MiddlewareModule,
   MiddlewareRoute,
   Plugin,
+  PluginAsync,
   RenderFunction,
   Route,
   RouteModule,
@@ -64,6 +65,7 @@ export class ServerContext {
   #notFound: UnknownPage;
   #error: ErrorPage;
   #plugins: Plugin[];
+  #pluginsAsync: PluginAsync[];
 
   constructor(
     routes: Route[],
@@ -75,6 +77,7 @@ export class ServerContext {
     notFound: UnknownPage,
     error: ErrorPage,
     plugins: Plugin[],
+    pluginsAsync: PluginAsync[],
     importMapURL: URL,
     jsxConfig: JSXConfig,
   ) {
@@ -87,6 +90,7 @@ export class ServerContext {
     this.#notFound = notFound;
     this.#error = error;
     this.#plugins = plugins;
+    this.#pluginsAsync = pluginsAsync;
     this.#dev = typeof Deno.env.get("DENO_DEPLOYMENT_ID") !== "string"; // Env var is only set in prod (on Deploy).
     this.#bundler = new Bundler(
       this.#islands,
@@ -291,6 +295,10 @@ export class ServerContext {
       }
     }
 
+    if (opts.plugins?.length && opts.pluginsAsync?.length) {
+      throw new Error("Can't use both plugins and pluginsAsync");
+    }
+
     return new ServerContext(
       routes,
       islands,
@@ -301,6 +309,7 @@ export class ServerContext {
       notFound,
       error,
       opts.plugins ?? [],
+      opts.pluginsAsync ?? [],
       importMapURL,
       jsxConfig,
     );
@@ -502,6 +511,7 @@ export class ServerContext {
             route,
             islands: this.#islands,
             plugins: this.#plugins,
+            pluginsAsync: this.#pluginsAsync,
             app: this.#app,
             imports,
             preloads,

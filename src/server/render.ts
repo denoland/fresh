@@ -5,6 +5,7 @@ import {
   ErrorPage,
   Island,
   Plugin,
+  PluginAsync,
   PluginRenderFunctionResult,
   PluginRenderResult,
   PluginRenderStyleTag,
@@ -23,6 +24,7 @@ export interface RenderOptions<Data> {
   route: Route<Data> | UnknownPage | ErrorPage;
   islands: Island[];
   plugins: Plugin[];
+  pluginsAsync: PluginAsync[];
   app: AppModule;
   imports: string[];
   preloads: string[];
@@ -34,7 +36,7 @@ export interface RenderOptions<Data> {
   lang?: string;
 }
 
-export type InnerRenderFunction = () => string;
+export type InnerRenderFunction = () => string | Promise<string>;
 
 export class RenderContext {
   #id: string;
@@ -169,7 +171,8 @@ export async function render<Data>(
   }
 
   const plugins = opts.plugins.filter((p) => p.render !== null);
-  const renderResults: [Plugin, PluginRenderResult][] = [];
+  const pluginsAsync = opts.pluginsAsync.filter((p) => p.render !== null);
+  const renderResults: [Plugin | PluginAsync, PluginRenderResult][] = [];
 
   function render(): PluginRenderFunctionResult {
     const plugin = plugins.shift();
@@ -195,7 +198,35 @@ export async function render<Data>(
     };
   }
 
-  await opts.renderFn(ctx, () => render().htmlText);
+  async function renderAsync(): Promise<PluginRenderFunctionResult> {
+    const plugin = pluginsAsync.shift();
+    if (plugin) {
+      const res = await plugin.render!({ render: renderAsync });
+      if (res === undefined) {
+        throw new Error(
+          `${plugin?.name}'s render hook did not return a PluginRenderResult object.`,
+        );
+      }
+      renderResults.push([plugin, res]);
+    } else {
+      realRender();
+    }
+    if (bodyHtml === null) {
+      throw new Error(
+        `The 'render' function was not called by ${plugin?.name}'s render hook.`,
+      );
+    }
+    return {
+      htmlText: bodyHtml,
+      requiresHydration: ENCOUNTERED_ISLANDS.size > 0,
+    };
+  }
+
+  if (pluginsAsync.length > 0) {
+    await opts.renderFn(ctx, async () => (await renderAsync()).htmlText);
+  } else {
+    await opts.renderFn(ctx, () => render().htmlText);
+  }
 
   if (bodyHtml === null) {
     throw new Error("The `render` function was not called by the renderer.");

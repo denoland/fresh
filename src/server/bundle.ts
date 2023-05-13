@@ -1,7 +1,7 @@
 import { BuildOptions } from "https://deno.land/x/esbuild@v0.17.11/mod.js";
 import { BUILD_ID } from "./constants.ts";
 import { denoPlugin, esbuild, toFileUrl } from "./deps.ts";
-import { Island, Plugin } from "./types.ts";
+import { Island, Plugin, PluginAsync } from "./types.ts";
 
 export interface JSXConfig {
   jsx: "react" | "react-jsx";
@@ -43,13 +43,13 @@ export class Bundler {
   #importMapURL: URL;
   #jsxConfig: JSXConfig;
   #islands: Island[];
-  #plugins: Plugin[];
+  #plugins: Plugin[] | PluginAsync[];
   #cache: Map<string, Uint8Array> | Promise<void> | undefined = undefined;
   #dev: boolean;
 
   constructor(
     islands: Island[],
-    plugins: Plugin[],
+    plugins: Plugin[] | PluginAsync[],
     importMapURL: URL,
     jsxConfig: JSXConfig,
     dev: boolean,
