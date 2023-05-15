@@ -100,7 +100,7 @@ export class Bundler {
       plugins: [denoPlugin({ importMapURL: this.#importMapURL })],
       sourcemap: this.#dev ? "linked" : false,
       splitting: true,
-      target: ["chrome99", "firefox99", "safari15"],
+      target: ["chrome99", "firefox99", "safari11", "safari15"],
       treeShaking: true,
       write: false,
       jsx: JSX_RUNTIME_MODE[this.#jsxConfig.jsx],
