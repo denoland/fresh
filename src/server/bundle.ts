@@ -92,7 +92,36 @@ const bundle = async (
   });
   // const metafileOutputs = bundle.metafile!.outputs;
 
-  const duration = (performance.now() - start) / 1e3;
+    const absWorkingDir = Deno.cwd();
+    await ensureEsbuildInitialized();
+    // In dev-mode we skip identifier minification to be able to show proper
+    // component names in Preact DevTools instead of single characters.
+    const minifyOptions: Partial<BuildOptions> = this.#dev
+      ? { minifyIdentifiers: false, minifySyntax: true, minifyWhitespace: true }
+      : { minify: true };
+    const bundle = await esbuild.build({
+      bundle: true,
+      define: { __FRSH_BUILD_ID: `"${BUILD_ID}"` },
+      entryPoints,
+      format: "esm",
+      metafile: true,
+      ...minifyOptions,
+      outdir: ".",
+      // This is requried to ensure the format of the outputFiles path is the same
+      // between windows and linux
+      absWorkingDir,
+      outfile: "",
+      platform: "neutral",
+      plugins: [denoPlugin({ importMapURL: this.#importMapURL })],
+      sourcemap: this.#dev ? "linked" : false,
+      splitting: true,
+      target: ["chrome99", "firefox99", "safari11", "safari15"],
+      treeShaking: true,
+      write: false,
+      jsx: JSX_RUNTIME_MODE[this.#jsxConfig.jsx],
+      jsxImportSource: this.#jsxConfig.jsxImportSource,
+    });
+    // const metafileOutputs = bundle.metafile!.outputs;
 
   console.log(
     `📦 ${dev ? "Development" : "Production"} bundle ready in ${
