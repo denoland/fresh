@@ -77,6 +77,7 @@ export class ServerContext {
     plugins: Plugin[],
     importMapURL: URL,
     jsxConfig: JSXConfig,
+    additionalESBuildTargets: string[] = [],
   ) {
     this.#routes = routes;
     this.#islands = islands;
@@ -94,6 +95,7 @@ export class ServerContext {
       importMapURL,
       jsxConfig,
       this.#dev,
+      additionalESBuildTargets,
     );
   }
 
@@ -303,6 +305,7 @@ export class ServerContext {
       opts.plugins ?? [],
       importMapURL,
       jsxConfig,
+      opts.additionalESBuildTargets,
     );
   }
 

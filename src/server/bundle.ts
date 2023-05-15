@@ -46,6 +46,7 @@ export class Bundler {
   #plugins: Plugin[];
   #cache: Map<string, Uint8Array> | Promise<void> | undefined = undefined;
   #dev: boolean;
+  #additionalTargets: string[];
 
   constructor(
     islands: Island[],
@@ -53,7 +54,9 @@ export class Bundler {
     importMapURL: URL,
     jsxConfig: JSXConfig,
     dev: boolean,
+    additionalTargets?: string[],
   ) {
+    this.#additionalTargets = additionalTargets ?? [];
     this.#islands = islands;
     this.#plugins = plugins;
     this.#importMapURL = importMapURL;
@@ -101,7 +104,7 @@ export class Bundler {
       plugins: [denoPlugin({ importMapURL: this.#importMapURL })],
       sourcemap: this.#dev ? "linked" : false,
       splitting: true,
-      target: ["chrome99", "firefox99", "safari15"],
+      target: ["chrome99", "firefox99", "safari15", ...this.#additionalTargets],
       treeShaking: true,
       write: false,
       jsx: JSX_RUNTIME_MODE[this.#jsxConfig.jsx],

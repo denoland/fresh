@@ -19,6 +19,7 @@ export interface FreshOptions {
   render?: RenderFunction;
   plugins?: Plugin[];
   staticDir?: string;
+  additionalESBuildTargets?: string[];
 }
 
 export type RenderFunction = (
