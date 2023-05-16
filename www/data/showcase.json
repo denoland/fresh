@@ -308,6 +308,16 @@
     "image": "jptchat"
   },
   {
+    "title": "Mieszko",
+    "link": "https://mieszko.xyz/",
+    "image": "mieszko"
+  },
+  {
+    "title": "Awesome Fresh",
+    "link": "https://uki00a.github.io/awesome-fresh/",
+    "image": "awesome-fresh"
+  },
+  {
     "title": "Do not remove this, it's for prevent conflicting by trailing comma",
     "link": "",
     "github": "",
