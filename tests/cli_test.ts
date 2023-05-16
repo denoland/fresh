@@ -173,7 +173,7 @@ Deno.test({
 });
 
 Deno.test({
-  name: "fresh-init --twind --dotenv --vscode",
+  name: "fresh-init --twind --vscode",
   async fn(t) {
     // Preparation
     const tmpDirName = await Deno.makeTempDir();
@@ -187,7 +187,6 @@ Deno.test({
           "init.ts",
           tmpDirName,
           "--twind",
-          "--dotenv",
           "--vscode",
         ],
         stdin: "null",
