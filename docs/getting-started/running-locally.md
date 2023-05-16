@@ -5,7 +5,8 @@ description: |
 ---
 
 The next step after scaffolding out a new project, is to actually start it. To
-do this you can just `deno task start`.
+do this you can just `deno task start`. Environment variables will be
+automatically read from `.env`.
 
 ```
 $ deno task start
