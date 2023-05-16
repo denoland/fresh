@@ -296,6 +296,28 @@
     "image": "festwithme"
   },
   {
+    "title": "Pollify",
+    "link": "https://pollify.deno.dev/",
+    "github": "n4ze3m/pollify",
+    "image": "pollify"
+  },
+  {
+    "title": "JPT ChatGPT Rooms",
+    "link": "https://jpt.ma/",
+    "github": "zizwar/jpt",
+    "image": "jptchat"
+  },
+  {
+    "title": "Mieszko",
+    "link": "https://mieszko.xyz/",
+    "image": "mieszko"
+  },
+  {
+    "title": "Awesome Fresh",
+    "link": "https://uki00a.github.io/awesome-fresh/",
+    "image": "awesome-fresh"
+  },
+  {
     "title": "Do not remove this, it's for prevent conflicting by trailing comma",
     "link": "",
     "github": "",

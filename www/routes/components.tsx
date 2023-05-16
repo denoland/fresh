@@ -23,6 +23,7 @@ export const handler: Handlers<HomeProps> = {
         "Footer": await getSource("../components/gallery/Footer.tsx"),
         "Hero": await getSource("../components/gallery/Hero.tsx"),
         "Features": await getSource("../components/gallery/Features.tsx"),
+        "Carousel": await getSource("../components/gallery/Carousel.tsx"),
       },
     };
     return ctx.render(props);
@@ -45,7 +46,7 @@ export default function Home(props: PageProps<HomeProps>) {
       </Head>
       <Header title="components" active="/components" />
 
-      <section class="my-16 px(4 sm:6 md:8) mx-auto max-w-screen-lg space-y-5">
+      <section class="my-16 px(4 sm:6 md:8) mx-auto max-w-screen-lg space-y-4">
         <h2 class="text(3xl gray-600) font-bold">
           Fresh Components
         </h2>

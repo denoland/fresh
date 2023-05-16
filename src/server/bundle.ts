@@ -11,6 +11,7 @@ export interface JSXConfig {
 let esbuildInitialized: boolean | Promise<void> = false;
 async function ensureEsbuildInitialized() {
   if (esbuildInitialized === false) {
+    // deno-lint-ignore no-deprecated-deno-api
     if (Deno.run === undefined) {
       const wasmURL = new URL("./esbuild_v0.17.11.wasm", import.meta.url).href;
       esbuildInitialized = fetch(wasmURL).then(async (r) => {

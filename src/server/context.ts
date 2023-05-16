@@ -318,17 +318,14 @@ export class ServerContext {
       handlers.errorHandler,
     );
     return async function handler(req: Request, connInfo: ConnInfo) {
-      // Redirect requests that end with a trailing slash
-      // to their non-trailing slash counterpart.
-      // Ex: /about/ -> /about
+      // Redirect requests that end with a trailing slash to their non-trailing
+      // slash counterpart.
       const url = new URL(req.url);
-      if (url.pathname.length > 1 && url.pathname.endsWith("/")) {
-        url.pathname = url.pathname.slice(0, -1);
+      if (cleanPathname(url)) {
         return Response.redirect(url.href, Status.TemporaryRedirect);
       }
 
-      // HEAD requests should be handled as GET requests
-      // but without the body.
+      // HEAD requests should be handled as GET requests but without the body.
       const originalMethod = req.method;
       // Internally, HEAD is handled in the same way as GET.
       if (req.method === "HEAD") {
@@ -423,9 +420,7 @@ export class ServerContext {
     if (this.#dev) {
       internalRoutes[REFRESH_JS_URL] = {
         default: () => {
-          const js =
-            `new EventSource("${ALIVE_URL}").addEventListener("message", function listener(e) { if (e.data !== "${BUILD_ID}") { this.removeEventListener('message', listener); location.reload(); } });`;
-          return new Response(js, {
+          return new Response(refreshJs(ALIVE_URL, BUILD_ID), {
             headers: {
               "content-type": "application/javascript; charset=utf-8",
             },
@@ -824,4 +819,32 @@ export function middlewarePathToPattern(baseRoute: string) {
   }
   const compiledPattern = new URLPattern({ pathname: pattern });
   return { pattern, compiledPattern };
+}
+
+function refreshJs(aliveUrl: string, buildId: string) {
+  return `let es = new EventSource("${aliveUrl}");
+window.addEventListener("beforeunload", (event) => {
+  es.close();
+});
+es.addEventListener("message", function listener(e) {
+  if (e.data !== "${buildId}") {
+    this.removeEventListener("message", listener);
+    location.reload();
+  }
+});`;
+}
+
+/**
+ * Clean the pathname in the given URL by removing all trailing slashes.
+ *
+ * Returns true if the pathname was changed.
+ */
+export function cleanPathname(url: URL): boolean {
+  const pathname = url.pathname.replace(/\/+$/, "");
+  if (pathname === "") return false;
+  if (pathname !== url.pathname) {
+    url.pathname = pathname;
+    return true;
+  }
+  return false;
 }
