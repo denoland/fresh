@@ -26,7 +26,6 @@ USAGE:
 OPTIONS:
     --force   Overwrite existing files
     --twind   Setup project to use 'twind' for styling
-    --dotenv  Setup project to use 'dotenv' for read environment variable files
     --vscode  Setup project for VSCode
 `;
 
@@ -36,13 +35,11 @@ const CONFIRM_EMPTY_MESSAGE =
 const USE_TWIND_MESSAGE =
   "Fresh has built in support for styling using Tailwind CSS. Do you want to use this?";
 
-const USE_DOTENV_MESSAGE = "Do you want use dotenv?";
-
 const USE_VSCODE_MESSAGE = "Do you use VS Code?";
 
 const flags = parse(Deno.args, {
-  boolean: ["force", "twind", "dotenv", "vscode"],
-  default: { "force": null, "twind": null, "dotenv": true, "vscode": null },
+  boolean: ["force", "twind", "vscode"],
+  default: { "force": null, "twind": null, "vscode": null },
 });
 
 if (flags._.length !== 1) {
@@ -79,10 +76,6 @@ const useTwind = flags.twind === null
   ? confirm(USE_TWIND_MESSAGE)
   : flags.twind;
 
-const useDotenv = flags.dotenv === null
-  ? confirm(USE_DOTENV_MESSAGE)
-  : flags.dotenv;
-
 const useVSCode = flags.vscode === null
   ? confirm(USE_VSCODE_MESSAGE)
   : flags.vscode;
@@ -103,17 +96,15 @@ const GITIGNORE = `# dotenv environment variable files
 .env.local
 `;
 
-if (useDotenv) {
-  await Deno.writeTextFile(
-    join(resolvedDirectory, ".gitignore"),
-    GITIGNORE,
-  );
-}
+await Deno.writeTextFile(
+  join(resolvedDirectory, ".gitignore"),
+  GITIGNORE,
+);
 
 const importMap = { imports: {} as Record<string, string> };
 freshImports(importMap.imports);
 if (useTwind) twindImports(importMap.imports);
-if (useDotenv) dotenvImports(importMap.imports);
+dotenvImports(importMap.imports);
 const IMPORT_MAP_JSON = JSON.stringify(importMap, null, 2) + "\n";
 await Deno.writeTextFile(
   join(resolvedDirectory, "import_map.json"),
@@ -268,7 +259,8 @@ let MAIN_TS = `/// <reference no-default-lib="true" />
 /// <reference lib="dom.iterable" />
 /// <reference lib="dom.asynciterable" />
 /// <reference lib="deno.ns" />
-${useDotenv ? 'import "$std/dotenv/load.ts";' : ""}
+
+import "$std/dotenv/load.ts";
 
 import { start } from "$fresh/server.ts";
 import manifest from "./fresh.gen.ts";
