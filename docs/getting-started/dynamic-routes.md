@@ -6,23 +6,23 @@ description: |
 
 The `/about` route created on the last page is pretty static. It does not matter
 what query or path parameters are passed to the route, it will always render the
-same page. Let's create a `/:name` that will render a page with a greeting
-that contains the name passed in the path.
+same page. Let's create a `/:name` that will render a page with a greeting that
+contains the name passed in the path.
 
 Before diving in, a quick refresher on "dynamic" routes. Dynamic routes don't
 just match a single static path, but rather a whole bunch of different paths
-based on a pattern. For example, the `/:name` route will match the paths
-`/Luca` and `/John`, but not `/Luca/John`.
+based on a pattern. For example, the `/:name` route will match the paths `/Luca`
+and `/John`, but not `/Luca/John`.
 
 Fresh supports dynamic routes out of the box through file system routing. To
 make any path segment dynamic, just put square brackets around that segment in
 the file name. For example the `/:name` route maps to the file name
 `routes/[name].tsx`.
 
-Just like the static `/about` route, the dynamic `/:name` route will
-render a page. The module must once again expose a component as a default
-export. This time the component will receive the matched path segment properties
-as arguments in its `props` object though.
+Just like the static `/about` route, the dynamic `/:name` route will render a
+page. The module must once again expose a component as a default export. This
+time the component will receive the matched path segment properties as arguments
+in its `props` object though.
 
 ```tsx
 // routes/[name].tsx

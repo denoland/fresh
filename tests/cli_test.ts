@@ -252,6 +252,7 @@ Deno.test({
               { "type": "file", "name": "extensions.json" },
             ],
           },
+          { "type": "file", "name": ".gitignore" },
         ],
       },
     ];
