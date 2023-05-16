@@ -10,14 +10,14 @@ Deno.test({
   name: "island tests",
   async fn(t) {
     // Preparation
-    const serverProcess = Deno.run({
-      cmd: ["deno", "run", "-A", "./tests/fixture/main.ts"],
+    const serverProcess = new Deno.Command(Deno.execPath(), {
+      args: ["run", "-A", "./tests/fixture/main.ts"],
       stdout: "piped",
       stderr: "inherit",
-    });
+    }).spawn();
 
     const decoder = new TextDecoderStream();
-    const lines = serverProcess.stdout.readable
+    const lines = serverProcess.stdout
       .pipeThrough(decoder)
       .pipeThrough(new TextLineStream());
 
@@ -77,7 +77,64 @@ Deno.test({
 
     await lines.cancel();
     serverProcess.kill("SIGTERM");
-    serverProcess.close();
+  },
+  sanitizeOps: false,
+  sanitizeResources: false,
+});
+
+Deno.test({
+  name: "island tests with </script>",
+  async fn(t) {
+    // Preparation
+    const serverProcess = new Deno.Command(Deno.execPath(), {
+      args: ["run", "-A", "./tests/fixture/main.ts"],
+      stdout: "piped",
+      stderr: "inherit",
+    }).spawn();
+
+    const decoder = new TextDecoderStream();
+    const lines = serverProcess.stdout
+      .pipeThrough(decoder)
+      .pipeThrough(new TextLineStream());
+
+    let started = false;
+    for await (const line of lines) {
+      if (line.includes("Listening on http://")) {
+        started = true;
+        break;
+      }
+    }
+    if (!started) {
+      throw new Error("Server didn't start up");
+    }
+
+    await delay(100);
+
+    const browser = await puppeteer.launch({ args: ["--no-sandbox"] });
+    const page = await browser.newPage();
+    page.on("dialog", () => {
+      assert(false, "There is XSS");
+    });
+
+    await page.goto("http://localhost:8000/evil", {
+      waitUntil: "networkidle2",
+    });
+
+    await t.step("prevent XSS on Island", async () => {
+      const bodyElem = await page.waitForSelector(`body`);
+      const value = await bodyElem?.evaluate((el) => el.getInnerHTML());
+
+      assertStringIncludes(
+        value,
+        `{"message":"\\u003c/script\\u003e\\u003cscript\\u003ealert('test')\\u003c/script\\u003e"}`,
+        `XSS is not escaped`,
+      );
+    });
+
+    await browser.close();
+
+    await lines.cancel();
+    serverProcess.kill("SIGTERM");
   },
   sanitizeOps: false,
   sanitizeResources: false,
