@@ -9,6 +9,14 @@ import {
 } from "preact";
 import { assetHashingHook } from "../utils.ts";
 
+declare global {
+  interface Window {
+    scheduler?: {
+      postTask: (cb: () => void) => void;
+    };
+  }
+}
+
 function createRootFragment(
   parent: Element,
   replaceNode: Node | Node[],
@@ -233,6 +241,7 @@ function _walkInner(
                 ) as any as HTMLElement,
               );
 
+
             "scheduler" in window
               // `scheduler.postTask` is async but that can easily
               // fire in the background. We don't want waiting for
@@ -312,6 +321,9 @@ function _walkInner(
 
     sib = sib.nextSibling;
   }
+
+  performance.mark("revive-start");
+  performance.measure("revive", "revive-start");
 }
 
 const originalHook = options.vnode;
