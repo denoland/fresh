@@ -1,6 +1,14 @@
 import { ComponentType, h, options, render } from "preact";
 import { assetHashingHook } from "../utils.ts";
 
+declare global {
+  interface Window {
+    scheduler?: {
+      postTask: (cb: () => void) => void;
+    };
+  }
+}
+
 function createRootFragment(
   parent: Element,
   replaceNode: Node | Node[],
@@ -32,7 +40,7 @@ export function revive(islands: Record<string, ComponentType>, props: any[]) {
     let endNode: Node | null = null;
     if (tag) {
       const startNode = node!;
-      const children = [];
+      const children: Node[] = [];
       const parent = node!.parentNode;
       // collect all children of the island
       while ((node = node!.nextSibling) && node.nodeType !== 8) {
@@ -42,6 +50,7 @@ export function revive(islands: Record<string, ComponentType>, props: any[]) {
 
       const [id, n] = tag.split(":");
       const _render = () => {
+        performance.mark(tag);
         render(
           h(islands[id], props[Number(n)]),
           createRootFragment(
@@ -50,9 +59,11 @@ export function revive(islands: Record<string, ComponentType>, props: any[]) {
             // deno-lint-ignore no-explicit-any
           ) as any as HTMLElement,
         );
+        performance.measure(`hydrate: ${id}`, tag);
       };
+
       "scheduler" in window
-        ? await scheduler!.postTask(_render)
+        ? await window.scheduler!.postTask(_render)
         : setTimeout(_render, 0);
       endNode = node;
     }
@@ -66,7 +77,10 @@ export function revive(islands: Record<string, ComponentType>, props: any[]) {
     if (sib) walk(sib);
     if (fc) walk(fc);
   }
+
+  performance.mark("revive-start");
   walk(document.body);
+  performance.measure("revive", "revive-start");
 }
 
 const originalHook = options.vnode;
