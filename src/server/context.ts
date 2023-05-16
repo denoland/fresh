@@ -325,14 +325,9 @@ export class ServerContext {
         return Response.redirect(url.href, Status.TemporaryRedirect);
       }
 
-      // HEAD requests should be handled as GET requests but without the body.
-      const originalMethod = req.method;
-      // Internally, HEAD is handled in the same way as GET.
-      if (req.method === "HEAD") {
-        req = new Request(req.url, { method: "GET", headers: req.headers });
-      }
       const res = await withMiddlewares(req, connInfo, inner);
-      if (originalMethod === "HEAD") {
+      // Internally, HEAD is handled in the same way as GET if not overriden.
+      if (req.method === "HEAD") {
         res.body?.cancel();
         return new Response(null, {
           headers: res.headers,
