@@ -6,6 +6,7 @@ jobs:
   lighthouse:
     name: lighthouse
     runs-on: ubuntu-latest
+    timeout-minutes: 5
     if: github.event.deployment_status.state == 'success' && github.event.deployment_status.creator.login == 'deno-deploy[bot]'
 
     env:

@@ -175,6 +175,38 @@ Deno.test("redirect /pages/fresh/ to /pages/fresh", async () => {
   );
 });
 
+Deno.test("redirect /pages/////fresh///// to /pages/////fresh", async () => {
+  const resp = await router(
+    new Request("https://fresh.deno.dev/pages/////fresh/////"),
+  );
+  assert(resp);
+  assertEquals(resp.status, Status.TemporaryRedirect);
+  assertEquals(
+    resp.headers.get("location"),
+    "https://fresh.deno.dev/pages/////fresh",
+  );
+});
+
+Deno.test("redirect /pages/////fresh/ to /pages/////fresh", async () => {
+  const resp = await router(
+    new Request("https://fresh.deno.dev/pages/////fresh/"),
+  );
+  assert(resp);
+  assertEquals(resp.status, Status.TemporaryRedirect);
+  assertEquals(
+    resp.headers.get("location"),
+    "https://fresh.deno.dev/pages/////fresh",
+  );
+});
+
+Deno.test("no redirect for /pages/////fresh", async () => {
+  const resp = await router(
+    new Request("https://fresh.deno.dev/pages/////fresh"),
+  );
+  assert(resp);
+  assertEquals(resp.status, Status.NotFound);
+});
+
 Deno.test("/failure", async () => {
   const resp = await router(new Request("https://fresh.deno.dev/failure"));
   assert(resp);
@@ -252,6 +284,29 @@ Deno.test("static file - by file path", async () => {
   assertEquals(resp3.status, Status.NotModified);
   assertEquals(resp3.headers.get("etag"), etag);
   assertEquals(resp3.headers.get("content-type"), "text/plain");
+});
+
+Deno.test("HEAD request", async () => {
+  // Static file
+  const resp = await router(
+    new Request("https://fresh.deno.dev/foo.txt", {
+      method: "HEAD",
+    }),
+  );
+  assertEquals(resp.status, Status.OK);
+  const body = await resp.text();
+  assertEquals(body, "");
+
+  // route
+  const resp2 = await router(
+    new Request("https://fresh.deno.dev/books/123", {
+      method: "HEAD",
+    }),
+  );
+  assert(resp2);
+  assertEquals(resp2.status, Status.OK);
+  const body2 = await resp2.text();
+  assertEquals(body2, "");
 });
 
 Deno.test("static file - by 'hashed' path", async () => {
@@ -471,15 +526,46 @@ Deno.test({
   },
 });
 
+Deno.test("middleware destination", async (t) => {
+  await t.step("internal", async () => {
+    const resp = await router(
+      new Request("https://fresh.deno.dev/_frsh/refresh.js"),
+    );
+    assert(resp);
+    assertEquals(resp.headers.get("destination"), "internal");
+    await resp.body?.cancel();
+  });
+
+  await t.step("static", async () => {
+    const resp = await router(new Request("https://fresh.deno.dev/foo.txt"));
+    assert(resp);
+    assertEquals(resp.headers.get("destination"), "static");
+    await resp.body?.cancel();
+  });
+
+  await t.step("route", async () => {
+    const resp = await router(new Request("https://fresh.deno.dev/"));
+    assert(resp);
+    assertEquals(resp.headers.get("destination"), "route");
+    await resp.body?.cancel();
+  });
+
+  await t.step("notFound", async () => {
+    const resp = await router(new Request("https://fresh.deno.dev/bar/bar"));
+    assert(resp);
+    assertEquals(resp.headers.get("destination"), "notFound");
+    await resp.body?.cancel();
+  });
+});
+
 Deno.test("experimental Deno.serve", {
   sanitizeOps: false,
   sanitizeResources: false,
   ignore: Deno.build.os === "windows", // TODO: Deno.serve hang on Windows?
 }, async (t) => {
   // Preparation
-  const serverProcess = Deno.run({
-    cmd: [
-      "deno",
+  const serverProcess = new Deno.Command(Deno.execPath(), {
+    args: [
       "run",
       "-A",
       "--unstable",
@@ -488,10 +574,10 @@ Deno.test("experimental Deno.serve", {
     ],
     stdout: "piped",
     stderr: "inherit",
-  });
+  }).spawn();
 
   const decoder = new TextDecoderStream();
-  const lines = serverProcess.stdout.readable
+  const lines = serverProcess.stdout
     .pipeThrough(decoder)
     .pipeThrough(new TextLineStream());
 
@@ -533,13 +619,14 @@ Deno.test("experimental Deno.serve", {
     assert(body.startsWith("bar"));
     const etag = resp.headers.get("etag");
     assert(etag);
-    assert(!etag.startsWith("W/"), "etag should be weak");
+    // TODO(kt3k): Enable this assertion when new Deno.serve is released.
+    // https://github.com/denoland/deno/pull/18568
+    // assert(etag.startsWith("W/"), "etag should be weak");
     assertEquals(resp.headers.get("content-type"), "text/plain");
   });
 
   await lines.cancel();
   serverProcess.kill("SIGTERM");
-  serverProcess.close();
 });
 
 Deno.test("jsx pragma works", {
@@ -547,14 +634,14 @@ Deno.test("jsx pragma works", {
   sanitizeResources: false,
 }, async (t) => {
   // Preparation
-  const serverProcess = Deno.run({
-    cmd: ["deno", "run", "-A", "./tests/fixture_jsx_pragma/main.ts"],
+  const serverProcess = new Deno.Command(Deno.execPath(), {
+    args: ["run", "-A", "./tests/fixture_jsx_pragma/main.ts"],
     stdout: "piped",
     stderr: "inherit",
-  });
+  }).spawn();
 
   const decoder = new TextDecoderStream();
-  const lines = serverProcess.stdout.readable
+  const lines = serverProcess.stdout
     .pipeThrough(decoder)
     .pipeThrough(new TextLineStream());
 
@@ -594,5 +681,4 @@ Deno.test("jsx pragma works", {
 
   await lines.cancel();
   serverProcess.kill("SIGTERM");
-  serverProcess.close();
 });

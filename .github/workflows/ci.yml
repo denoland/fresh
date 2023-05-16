@@ -3,16 +3,20 @@ name: ci
 on:
   push:
     branches: [main]
+    paths-ignore: [www/**]
   pull_request:
     branches: [main]
+    paths-ignore: [www/**]
 
 jobs:
   test:
     runs-on: ${{ matrix.os }}
+    timeout-minutes: 10
 
     strategy:
       matrix:
-        deno: ["v1.x", "canary"]
+        # FIXME: temporarially disabled 1.x until https://github.com/denoland/deno/commit/64e072e499d36ca824db297a493667415ed67cdf is released
+        deno: ["canary"]
         os: [macOS-latest, windows-latest, ubuntu-latest]
 
     steps:
@@ -75,7 +79,7 @@ jobs:
         run: deno check --remote init.ts
 
       - name: Type check website
-        run: deno check --remote main.ts dev.ts
+        run: deno check main.ts dev.ts
         working-directory: www/
 
       - name: Type check examples/counter

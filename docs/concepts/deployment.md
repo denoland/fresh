@@ -3,8 +3,8 @@ description: |
   Fresh can be deployed to a variety of platforms easily.
 ---
 
-While Fresh is designed to be deployed to [Deno Deploy][deno-deploy], it can can
-be deployed to any system or platform that can run a Deno based web server.
+While Fresh is designed to be deployed to [Deno Deploy][deno-deploy], it can be
+deployed to any system or platform that can run a Deno based web server.
 
 Here are instructions for specific providers / systems:
 
@@ -14,7 +14,7 @@ Here are instructions for specific providers / systems:
 ## Deno Deploy
 
 The recommended way to deploy Fresh is by using Deno Deploy. Deno Deploy
-provides a GitHub integration that can deploy your Fresh projects to its'
+provides a GitHub integration that can deploy your Fresh projects to its
 globally distributed edge network in seconds, automatically.
 
 View [the getting started guide][deploy-to-production] for instructions on how
@@ -36,7 +36,7 @@ caching **will** cause your project to not function correctly.
 Here is an example `Dockerfile` for a Fresh project:
 
 ```dockerfile
-FROM denoland/deno:1.25.0
+FROM denoland/deno:1.33.2
 
 ARG GIT_REVISION
 ENV DENO_DEPLOYMENT_ID=${GIT_REVISION}
@@ -60,7 +60,7 @@ $ docker build --build-arg GIT_REVISION=$(git rev-parse HEAD) -t my-fresh-app .
 Then run your Docker container:
 
 ```sh
-$ docker run -t -i -p 80:8000 fresh-app
+$ docker run -t -i -p 80:8000 my-fresh-app
 ```
 
 To deploy to a cloud provider, push it to a container registry and follow their

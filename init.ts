@@ -111,22 +111,30 @@ await Deno.writeTextFile(
   IMPORT_MAP_JSON,
 );
 
-const ROUTES_INDEX_TSX = `import Counter from "../islands/Counter.tsx";
+const ROUTES_INDEX_TSX = `import { Head } from "$fresh/runtime.ts";
+import Counter from "../islands/Counter.tsx";
 
 export default function Home() {
   return (
-    <div${useTwind ? ` class="p-4 mx-auto max-w-screen-md"` : ""}>
-      <img
-        src="/logo.svg"
-        ${useTwind ? `class="w-32 h-32"` : `width="128"\n        height="128"`}
-        alt="the fresh logo: a sliced lemon dripping with juice"
-      />
-      <p${useTwind ? ` class="my-6"` : ""}>
-        Welcome to \`fresh\`. Try updating this message in the ./routes/index.tsx
-        file, and refresh.
-      </p>
-      <Counter start={3} />
-    </div>
+    <>
+      <Head>
+        <title>Fresh App</title>
+      </Head>
+      <div${useTwind ? ` class="p-4 mx-auto max-w-screen-md"` : ""}>
+        <img
+          src="/logo.svg"
+          ${
+  useTwind ? `class="w-32 h-32"` : `width="128"\n          height="128"`
+}
+          alt="the fresh logo: a sliced lemon dripping with juice"
+        />
+        <p${useTwind ? ` class="my-6"` : ""}>
+          Welcome to \`fresh\`. Try updating this message in the
+          ./routes/index.tsx file, and refresh.
+        </p>
+        <Counter start={3} />
+      </div>
+    </>
   );
 }
 `;
@@ -364,11 +372,13 @@ await generate(resolvedDirectory, manifest);
 // not leak personal info (e.g. `/Users/MyName`)
 console.log("\n%cProject initialized!\n", "color: green; font-weight: bold");
 
-console.log(
-  `Enter your project directory using %ccd ${unresolvedDirectory}%c.`,
-  "color: cyan",
-  "",
-);
+if (unresolvedDirectory !== ".") {
+  console.log(
+    `Enter your project directory using %ccd ${unresolvedDirectory}%c.`,
+    "color: cyan",
+    "",
+  );
+}
 console.log(
   "Run %cdeno task start%c to start the project. %cCTRL-C%c to stop.",
   "color: cyan",
