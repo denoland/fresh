@@ -175,6 +175,38 @@ Deno.test("redirect /pages/fresh/ to /pages/fresh", async () => {
   );
 });
 
+Deno.test("redirect /pages/////fresh///// to /pages/////fresh", async () => {
+  const resp = await router(
+    new Request("https://fresh.deno.dev/pages/////fresh/////"),
+  );
+  assert(resp);
+  assertEquals(resp.status, Status.TemporaryRedirect);
+  assertEquals(
+    resp.headers.get("location"),
+    "https://fresh.deno.dev/pages/////fresh",
+  );
+});
+
+Deno.test("redirect /pages/////fresh/ to /pages/////fresh", async () => {
+  const resp = await router(
+    new Request("https://fresh.deno.dev/pages/////fresh/"),
+  );
+  assert(resp);
+  assertEquals(resp.status, Status.TemporaryRedirect);
+  assertEquals(
+    resp.headers.get("location"),
+    "https://fresh.deno.dev/pages/////fresh",
+  );
+});
+
+Deno.test("no redirect for /pages/////fresh", async () => {
+  const resp = await router(
+    new Request("https://fresh.deno.dev/pages/////fresh"),
+  );
+  assert(resp);
+  assertEquals(resp.status, Status.NotFound);
+});
+
 Deno.test("/failure", async () => {
   const resp = await router(new Request("https://fresh.deno.dev/failure"));
   assert(resp);
@@ -494,6 +526,38 @@ Deno.test({
   },
 });
 
+Deno.test("middleware destination", async (t) => {
+  await t.step("internal", async () => {
+    const resp = await router(
+      new Request("https://fresh.deno.dev/_frsh/refresh.js"),
+    );
+    assert(resp);
+    assertEquals(resp.headers.get("destination"), "internal");
+    await resp.body?.cancel();
+  });
+
+  await t.step("static", async () => {
+    const resp = await router(new Request("https://fresh.deno.dev/foo.txt"));
+    assert(resp);
+    assertEquals(resp.headers.get("destination"), "static");
+    await resp.body?.cancel();
+  });
+
+  await t.step("route", async () => {
+    const resp = await router(new Request("https://fresh.deno.dev/"));
+    assert(resp);
+    assertEquals(resp.headers.get("destination"), "route");
+    await resp.body?.cancel();
+  });
+
+  await t.step("notFound", async () => {
+    const resp = await router(new Request("https://fresh.deno.dev/bar/bar"));
+    assert(resp);
+    assertEquals(resp.headers.get("destination"), "notFound");
+    await resp.body?.cancel();
+  });
+});
+
 Deno.test("experimental Deno.serve", {
   sanitizeOps: false,
   sanitizeResources: false,
@@ -555,7 +619,9 @@ Deno.test("experimental Deno.serve", {
     assert(body.startsWith("bar"));
     const etag = resp.headers.get("etag");
     assert(etag);
-    assert(!etag.startsWith("W/"), "etag should be weak");
+    // TODO(kt3k): Enable this assertion when new Deno.serve is released.
+    // https://github.com/denoland/deno/pull/18568
+    // assert(etag.startsWith("W/"), "etag should be weak");
     assertEquals(resp.headers.get("content-type"), "text/plain");
   });
 

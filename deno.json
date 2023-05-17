@@ -12,8 +12,6 @@
     "jsxImportSource": "preact"
   },
   "test": {
-    "files": {
-      "exclude": ["www/"]
-    }
+    "exclude": ["www/"]
   }
 }
