@@ -271,7 +271,8 @@ export async function render<Data>(
       script += `import ${island.name} from "${url}";`;
       islandRegistry += `${island.id}:${island.name},`;
     }
-    script += `revive({${islandRegistry}}, STATE[0]);`;
+    script +=
+      `try { revive({${islandRegistry}}, STATE[0]); } catch(err) { console.log("revive err", err);throw err; };`;
   }
 
   if (state[0].length > 0 || state[1].length > 0) {
