@@ -14,6 +14,7 @@ jobs:
     timeout-minutes: 10
 
     strategy:
+      fail-fast: false
       matrix:
         # FIXME: temporarially disabled 1.x until https://github.com/denoland/deno/commit/64e072e499d36ca824db297a493667415ed67cdf is released
         deno: ["canary"]
