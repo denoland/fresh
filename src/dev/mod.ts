@@ -22,6 +22,11 @@ export function ensureMinDenoVersion() {
 
 async function collectDir(dir: string): Promise<string[]> {
   const paths = [];
+  // TODO(lucacasonato): remove the extraneous Deno.readDir when
+  // https://github.com/denoland/deno_std/issues/1310 is fixed.
+  for await (const _ of Deno.readDir(dir)) {
+    // do nothing
+  }
   const routesFolder = walk(dir, {
     includeDirs: false,
     includeFiles: true,
