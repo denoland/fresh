@@ -1,4 +1,4 @@
-import { dirname, fromFileUrl, gte, join, walk } from "./deps.ts";
+import { dirname, fromFileUrl, gte, join, relative, walk } from "./deps.ts";
 import { error } from "./error.ts";
 
 const MIN_DENO_VERSION = "1.25.0";
@@ -22,18 +22,13 @@ export function ensureMinDenoVersion() {
 
 async function collectDir(dir: string): Promise<string[]> {
   const paths = [];
-  // TODO(lucacasonato): remove the extraneous Deno.readDir when
-  // https://github.com/denoland/deno_std/issues/1310 is fixed.
-  for await (const _ of Deno.readDir(dir)) {
-    // do nothing
-  }
   const routesFolder = walk(dir, {
     includeDirs: false,
     includeFiles: true,
     exts: ["tsx", "jsx", "ts", "js"],
   });
   for await (const entry of routesFolder) {
-    const path = entry.path.replace(dir, "");
+    const path = "/" + relative(dir, entry.path);
     paths.push(path);
   }
   paths.sort();
