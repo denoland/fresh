@@ -497,14 +497,13 @@ export class ServerContext {
             );
           }
 
-          const preloads: string[] = [];
           const resp = await internalRender({
             route,
             islands: this.#islands,
             plugins: this.#plugins,
             app: this.#app,
             imports,
-            preloads,
+            dependencyMap: this.#bundler.dependencyMap,
             renderFn: this.#renderFn,
             url: new URL(req.url),
             params,
@@ -516,7 +515,7 @@ export class ServerContext {
             "content-type": "text/html; charset=utf-8",
           };
 
-          const [body, csp] = resp;
+          const [body, csp, preloadUrls] = resp;
           if (csp) {
             if (this.#dev) {
               csp.directives.connectSrc = [
@@ -530,6 +529,11 @@ export class ServerContext {
             } else {
               headers["content-security-policy"] = directive;
             }
+          }
+          if (preloadUrls.length) {
+            headers.link = preloadUrls
+              .map((url) => `<${url}>; rel="modulepreload"`)
+              .join(", ");
           }
           return new Response(body, { status, headers });
         };

@@ -25,7 +25,7 @@ export interface RenderOptions<Data> {
   plugins: Plugin[];
   app: AppModule;
   imports: string[];
-  preloads: string[];
+  dependencyMap: Map<string, string[]>;
   url: URL;
   params: Record<string, string | string[]>;
   renderFn: RenderFunction;
@@ -108,7 +108,7 @@ function defaultCsp() {
  */
 export async function render<Data>(
   opts: RenderOptions<Data>,
-): Promise<[string, ContentSecurityPolicy | undefined]> {
+): Promise<[string, ContentSecurityPolicy | undefined, string[]]> {
   const props: Record<string, unknown> = {
     params: opts.params,
     url: opts.url,
@@ -203,7 +203,9 @@ export async function render<Data>(
 
   bodyHtml = bodyHtml as string;
 
-  const imports = opts.imports.map((url) => {
+  const imports: (readonly [string, string])[] = [];
+  const preloadSet = new Set<string>();
+  for (const url of opts.imports) {
     const randomNonce = crypto.randomUUID().replace(/-/g, "");
     if (csp) {
       csp.directives.scriptSrc = [
@@ -211,8 +213,9 @@ export async function render<Data>(
         nonce(randomNonce),
       ];
     }
-    return [url, randomNonce] as const;
-  });
+    imports.push([url, randomNonce] as const);
+    preloadSet.add(url);
+  }
 
   const state: [islands: unknown[], plugins: unknown[]] = [ISLAND_PROPS, []];
   const styleTags: PluginRenderStyleTag[] = [];
@@ -230,10 +233,14 @@ export async function render<Data>(
           nonce(randomNonce),
         ];
       }
-      const url = bundleAssetUrl(
-        `/plugin-${plugin.name}-${hydrate.entrypoint}.js`,
-      );
+      const assetPath = `/plugin-${plugin.name}-${hydrate.entrypoint}.js`;
+      const url = bundleAssetUrl(assetPath);
       imports.push([url, randomNonce] as const);
+      preloadSet.add(url);
+      for (const path of opts.dependencyMap.get(assetPath) ?? []) {
+        const url = bundleAssetUrl(path);
+        preloadSet.add(url);
+      }
 
       script += `import p${i} from "${url}";p${i}(STATE[1][${i}]);`;
     }
@@ -250,8 +257,14 @@ export async function render<Data>(
           nonce(randomNonce),
         ];
       }
-      const url = bundleAssetUrl("/main.js");
+      const assetPath = "/main.js";
+      const url = bundleAssetUrl(assetPath);
       imports.push([url, randomNonce] as const);
+      preloadSet.add(url);
+      for (const path of opts.dependencyMap.get(assetPath) ?? []) {
+        const url = bundleAssetUrl(path);
+        preloadSet.add(url);
+      }
     }
 
     script += `import { revive } from "${bundleAssetUrl("/main.js")}";`;
@@ -266,8 +279,14 @@ export async function render<Data>(
           nonce(randomNonce),
         ];
       }
-      const url = bundleAssetUrl(`/island-${island.id}.js`);
+      const assetPath = `/island-${island.id}.js`;
+      const url = bundleAssetUrl(assetPath);
       imports.push([url, randomNonce] as const);
+      preloadSet.add(url);
+      for (const path of opts.dependencyMap.get(assetPath) ?? []) {
+        const url = bundleAssetUrl(path);
+        preloadSet.add(url);
+      }
       script += `import ${island.name} from "${url}";`;
       islandRegistry += `${island.id}:${island.name},`;
     }
@@ -309,15 +328,16 @@ export async function render<Data>(
     headComponents.splice(0, 0, node);
   }
 
+  const preloads = [...preloadSet];
   const html = template({
     bodyHtml,
     headComponents,
     imports,
-    preloads: opts.preloads,
+    preloads,
     lang: ctx.lang,
   });
 
-  return [html, csp];
+  return [html, csp, preloads];
 }
 
 export interface TemplateOptions {
