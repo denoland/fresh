@@ -303,6 +303,7 @@ try {
 }
 
 const config = {
+  lock: false,
   tasks: {
     start: "deno run -A --watch=static/,routes/ dev.ts",
   },
