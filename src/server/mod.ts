@@ -47,11 +47,11 @@ export interface Manifest {
   >;
   islands: Record<string, IslandModule>;
   baseUrl: string;
-  config?: DenoConfig;
 }
 
 export interface DenoConfig {
-  importMap: string;
+  imports?: Record<string, string>;
+  importMap?: string;
   compilerOptions?: {
     jsx?: string;
     jsxImportSource?: string;

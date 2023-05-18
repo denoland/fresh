@@ -65,7 +65,6 @@ Deno.test({
         "name": tmpDirName,
         "contents": [
           { "type": "file", "name": "README.md" },
-          { "type": "file", "name": "import_map.json" },
           { "type": "file", "name": "fresh.gen.ts" },
           {
             "type": "directory",
@@ -204,7 +203,6 @@ Deno.test({
         "name": tmpDirName,
         "contents": [
           { "type": "file", "name": "README.md" },
-          { "type": "file", "name": "import_map.json" },
           { "type": "file", "name": "fresh.gen.ts" },
           { "type": "file", "name": "twind.config.ts" },
           {

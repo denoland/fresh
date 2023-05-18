@@ -38,7 +38,7 @@ jobs:
 
       - name: Cache dependencies
         if: startsWith(matrix.os, 'ubuntu') && matrix.deno == 'v1.x'
-        run: deno cache --no-check --import-map=./www/import_map.json src/dev/deps.ts src/server/deps.ts www/main.ts
+        run: deno cache --config=www/deno.json src/dev/deps.ts src/server/deps.ts www/main.ts
 
       - name: Cache Chrome (Linux)
         if: startsWith(matrix.os, 'ubuntu')

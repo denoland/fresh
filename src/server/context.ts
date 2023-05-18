@@ -1,7 +1,10 @@
 import {
   ConnInfo,
+  dirname,
   extname,
   fromFileUrl,
+  join,
+  JSONC,
   RequestHandler,
   Status,
   toFileUrl,
@@ -10,7 +13,7 @@ import {
 } from "./deps.ts";
 import { h } from "preact";
 import * as router from "./router.ts";
-import { Manifest } from "./mod.ts";
+import { DenoConfig, Manifest } from "./mod.ts";
 import { ALIVE_URL, JS_PREFIX, REFRESH_JS_URL } from "./constants.ts";
 import { BUILD_ID } from "./build_id.ts";
 import DefaultErrorHandler from "./default_error_page.ts";
@@ -45,6 +48,12 @@ import {
 
 interface RouterState {
   state: Record<string, unknown>;
+}
+
+function isObject(value: unknown) {
+  return typeof value === "object" &&
+    !Array.isArray(value) &&
+    value !== null;
 }
 
 interface StaticFile {
@@ -83,7 +92,7 @@ export class ServerContext {
     notFound: UnknownPage,
     error: ErrorPage,
     plugins: Plugin[],
-    importMapURL: URL,
+    configPath: string,
     jsxConfig: JSXConfig,
   ) {
     this.#routes = routes;
@@ -99,7 +108,7 @@ export class ServerContext {
     this.#builder = new EsbuildBuilder({
       buildID: BUILD_ID,
       entrypoints: collectEntrypoints(this.#dev, this.#islands, this.#plugins),
-      importMapURL,
+      configPath,
       dev: this.#dev,
       jsxConfig,
     });
@@ -115,11 +124,14 @@ export class ServerContext {
     // Get the manifest' base URL.
     const baseUrl = new URL("./", manifest.baseUrl).href;
 
-    const config = manifest.config || { importMap: "./import_map.json" };
-    if (typeof config.importMap !== "string") {
-      throw new Error("deno.json must contain an 'importMap' property.");
+    const { config, path: configPath } = await readDenoConfig(
+      fromFileUrl(baseUrl),
+    );
+    if (typeof config.importMap !== "string" && !isObject(config.imports)) {
+      throw new Error(
+        "deno.json must contain an 'importMap' or 'imports' property.",
+      );
     }
-    const importMapURL = new URL(config.importMap, manifest.baseUrl);
 
     config.compilerOptions ??= {};
 
@@ -318,7 +330,7 @@ export class ServerContext {
       notFound,
       error,
       opts.plugins ?? [],
-      importMapURL,
+      configPath,
       jsxConfig,
     );
   }
@@ -936,4 +948,34 @@ function collectEntrypoints(
   }
 
   return entryPoints;
+}
+
+async function readDenoConfig(
+  directory: string,
+): Promise<{ config: DenoConfig; path: string }> {
+  let dir = directory;
+  while (true) {
+    for (const name of ["deno.jsonc", "deno.json"]) {
+      const path = join(dir, name);
+      try {
+        const file = await Deno.readTextFile(path);
+        if (name.endsWith(".jsonc")) {
+          return { config: JSONC.parse(file) as DenoConfig, path };
+        } else {
+          return { config: JSON.parse(file), path };
+        }
+      } catch (err) {
+        if (!(err instanceof Deno.errors.NotFound)) {
+          throw err;
+        }
+        const parent = dirname(dir);
+        if (parent === dir) {
+          throw new Error(
+            `Could not find a deno.json file in the current directory or any parent directory.`,
+          );
+        }
+        dir = parent;
+      }
+    }
+  }
 }
