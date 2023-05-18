@@ -6,6 +6,7 @@ export {
   join,
   relative,
   resolve,
+  SEP,
   toFileUrl,
 } from "https://deno.land/std@0.178.0/path/mod.ts";
 export { walk } from "https://deno.land/std@0.178.0/fs/walk.ts";

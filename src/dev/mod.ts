@@ -1,4 +1,12 @@
-import { dirname, fromFileUrl, gte, join, relative, walk } from "./deps.ts";
+import {
+  dirname,
+  fromFileUrl,
+  gte,
+  join,
+  relative,
+  SEP,
+  walk,
+} from "./deps.ts";
 import { error } from "./error.ts";
 
 const MIN_DENO_VERSION = "1.25.0";
@@ -28,7 +36,7 @@ async function collectDir(dir: string): Promise<string[]> {
     exts: ["tsx", "jsx", "ts", "js"],
   });
   for await (const entry of routesFolder) {
-    const path = "/" + relative(dir, entry.path);
+    const path = SEP + relative(dir, entry.path);
     paths.push(path);
   }
   paths.sort();
