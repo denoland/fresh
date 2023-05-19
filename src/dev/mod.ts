@@ -3,8 +3,7 @@ import {
   fromFileUrl,
   gte,
   join,
-  relative,
-  SEP,
+  toFileUrl,
   walk,
 } from "./deps.ts";
 import { error } from "./error.ts";
