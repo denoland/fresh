@@ -10,11 +10,11 @@ export function freshImports(imports: Record<string, string>) {
   imports["preact"] = `https://esm.sh/preact@${RECOMMENDED_PREACT_VERSION}`;
   imports["preact/"] = `https://esm.sh/preact@${RECOMMENDED_PREACT_VERSION}/`;
   imports["preact-render-to-string"] =
-    `https://esm.sh/*preact-render-to-string@${RECOMMENDED_PREACT_RTS_VERSION}`;
+    `https://esm.sh/*preact-render-to-string@${RECOMMENDED_PREACT_RTS_VERSION}?pin=stable`;
   imports["@preact/signals"] =
-    `https://esm.sh/*@preact/signals@${RECOMMENDED_PREACT_SIGNALS_VERSION}`;
+    `https://esm.sh/*@preact/signals@${RECOMMENDED_PREACT_SIGNALS_VERSION}?pin=stable`;
   imports["@preact/signals-core"] =
-    `https://esm.sh/*@preact/signals-core@${RECOMMENDED_PREACT_SIGNALS_CORE_VERSION}`;
+    `https://esm.sh/*@preact/signals-core@${RECOMMENDED_PREACT_SIGNALS_CORE_VERSION}?pin=stable`;
 }
 
 export function twindImports(imports: Record<string, string>) {
