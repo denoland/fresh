@@ -3,6 +3,7 @@ export const RECOMMENDED_PREACT_RTS_VERSION = "5.2.6";
 export const RECOMMENDED_PREACT_SIGNALS_VERSION = "1.1.3";
 export const RECOMMENDED_PREACT_SIGNALS_CORE_VERSION = "1.2.3";
 export const RECOMMENDED_TWIND_VERSION = "0.16.19";
+export const RECOMMENDED_STD_VERSION = "0.187.0";
 
 export function freshImports(imports: Record<string, string>) {
   imports["$fresh/"] = new URL("../../", import.meta.url).href;
@@ -19,4 +20,8 @@ export function freshImports(imports: Record<string, string>) {
 export function twindImports(imports: Record<string, string>) {
   imports["twind"] = `https://esm.sh/twind@${RECOMMENDED_TWIND_VERSION}`;
   imports["twind/"] = `https://esm.sh/twind@${RECOMMENDED_TWIND_VERSION}/`;
+}
+
+export function dotenvImports(imports: Record<string, string>) {
+  imports["$std/"] = `https://deno.land/std@${RECOMMENDED_STD_VERSION}/`;
 }

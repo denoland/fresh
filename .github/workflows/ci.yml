@@ -14,14 +14,14 @@ jobs:
     timeout-minutes: 10
 
     strategy:
+      fail-fast: false
       matrix:
-        # FIXME: temporarially disabled 1.x until https://github.com/denoland/deno/commit/64e072e499d36ca824db297a493667415ed67cdf is released
-        deno: ["canary"]
+        deno: ["v1.x", "canary"]
         os: [macOS-latest, windows-latest, ubuntu-latest]
 
     steps:
       - name: Checkout repo
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Setup Deno
         uses: denoland/setup-deno@v1
@@ -42,7 +42,7 @@ jobs:
 
       - name: Cache Chrome (Linux)
         if: startsWith(matrix.os, 'ubuntu')
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           path: ~/.cache/deno/deno_puppeteer
           key: chrome-1022525-${{ runner.os }}-${{ hashFiles('tests/deps.ts') }}
@@ -50,7 +50,7 @@ jobs:
 
       - name: Cache Chrome (macOS)
         if: startsWith(matrix.os, 'mac')
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           path: ~/Library/Caches/deno/deno_puppeteer
           key: chrome-1022525-${{ runner.os }}-${{ hashFiles('tests/deps.ts') }}
@@ -58,7 +58,7 @@ jobs:
 
       - name: Cache Chrome (Windows)
         if: startsWith(matrix.os, 'win')
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           path: "C:\\Users\\RUNNER~1\\AppData\\Local\\deno\\deno_puppeteer"
           key: chrome-1022525-${{ runner.os }}-${{ hashFiles('tests/deps.ts') }}
