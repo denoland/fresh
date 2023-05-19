@@ -1,11 +1,4 @@
-import {
-  dirname,
-  fromFileUrl,
-  gte,
-  join,
-  toFileUrl,
-  walk,
-} from "./deps.ts";
+import { dirname, fromFileUrl, gte, join, toFileUrl, walk } from "./deps.ts";
 import { error } from "./error.ts";
 
 const MIN_DENO_VERSION = "1.25.0";
