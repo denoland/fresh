@@ -29,6 +29,7 @@ export function ensureMinDenoVersion() {
 }
 
 async function collectDir(dir: string): Promise<string[]> {
+  const dirUrl = toFileUrl(dir);
   const paths = [];
   const routesFolder = walk(dir, {
     includeDirs: false,
@@ -36,7 +37,9 @@ async function collectDir(dir: string): Promise<string[]> {
     exts: ["tsx", "jsx", "ts", "js"],
   });
   for await (const entry of routesFolder) {
-    const path = SEP + relative(dir, entry.path);
+    const path = toFileUrl(entry.path).href.substring(
+      dirUrl.href.length,
+    );
     paths.push(path);
   }
   paths.sort();
