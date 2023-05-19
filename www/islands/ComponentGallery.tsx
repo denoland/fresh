@@ -78,6 +78,7 @@ export default function ComponentGallery(props: ComponentGalleryProps) {
 
       <Section
         title="LinkButton"
+        island={true}
         source={props.sources.LinkButton}
       >
         <LinkButton>
