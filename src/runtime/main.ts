@@ -65,7 +65,7 @@ export function revive(islands: Record<string, ComponentType>, props: any[]) {
 
     const sib = node!.nextSibling;
     const fc = node!.firstChild;
-    
+
     if (endNode) {
       endNode.parentNode?.removeChild(endNode); // remove end tag node
     }
