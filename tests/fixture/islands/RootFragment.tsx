@@ -6,11 +6,9 @@ export default function RootFragment() {
   return (
     <>
       Hello
-
       <div onClick={() => setShown(true)} id="root-fragment-click-me">
         World
       </div>
-
       {shown && <div>I'm rendered now</div>}
     </>
   );
