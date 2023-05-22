@@ -65,7 +65,7 @@ async function withPage(fn: (page: Page) => Promise<void>) {
   }).spawn();
 
   const textDecoderStream = new TextDecoderStream();
-  const textLineStream = new TextLineStream()
+  const textLineStream = new TextLineStream();
 
   const lines = serverProcess.stdout
     .pipeThrough(textDecoderStream)
@@ -199,7 +199,7 @@ Deno.test({
   },
 
   sanitizeOps: false,
-  sanitizeResources: false
+  sanitizeResources: false,
 });
 
 async function getIslandParentTextContent(page: Page) {

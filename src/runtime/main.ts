@@ -10,20 +10,15 @@ function createRootFragment(
   // @ts-ignore this is fine
   return parent.__k = {
     nodeType: 1,
-
     parentNode: parent,
-
     firstChild: replaceNode[0],
     childNodes: replaceNode,
-
     insertBefore(node: Node, child: Node) {
       parent.insertBefore(node, child);
     },
-
     appendChild(child: Node) {
       parent.appendChild(child);
     },
-
     removeChild(child: Node) {
       parent.removeChild(child);
     },
@@ -35,23 +30,18 @@ export function revive(islands: Record<string, ComponentType>, props: any[]) {
   function walk(node: Node | null) {
     const tag = node!.nodeType === 8 &&
       ((node as Comment).data.match(/^\s*frsh-(.*)\s*$/) || [])[1];
-
     let endNode: Node | null = null;
-
     if (tag) {
       const startNode = node!;
       const children = [];
       const parent = node!.parentNode;
-
       // collect all children of the island
       while ((node = node!.nextSibling) && node.nodeType !== 8) {
         children.push(node);
       }
-
       startNode.parentNode!.removeChild(startNode); // remove start tag node
 
       const [id, n] = tag.split(":");
-
       render(
         h(islands[id], props[Number(n)]),
         createRootFragment(
@@ -65,7 +55,6 @@ export function revive(islands: Record<string, ComponentType>, props: any[]) {
 
     const sib = node!.nextSibling;
     const fc = node!.firstChild;
-    
     if (endNode) {
       endNode.parentNode?.removeChild(endNode); // remove end tag node
     }
