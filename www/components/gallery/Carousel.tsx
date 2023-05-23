@@ -13,7 +13,7 @@ const SLIDE_DATA = [
   },
   {
     color: "bg-yellow-300",
-    text: "slide too",
+    text: "slide two",
     url: asset("/illustration/lemon-squash.svg"),
   },
   {
