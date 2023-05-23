@@ -1,4 +1,5 @@
-[Documentation](#-documentation) | [Getting started](#-getting-started)
+[Documentation](#-documentation) | [Getting started](#-getting-started) |
+[API Reference](https://deno.land/x/fresh?doc)
 
 # fresh
 
