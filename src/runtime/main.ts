@@ -6,31 +6,26 @@ function createRootFragment(
   replaceNode: Node | Node[],
 ) {
   replaceNode = ([] as Node[]).concat(replaceNode);
-  const s = replaceNode[replaceNode.length - 1].nextSibling;
-  function insert(c: Node, r: Node) {
-    parent.insertBefore(c, r || s);
-  }
   // @ts-ignore this is fine
   return parent.__k = {
     nodeType: 1,
     parentNode: parent,
     firstChild: replaceNode[0],
     childNodes: replaceNode,
-    insertBefore: insert,
-    appendChild: insert,
-    removeChild: function (c: Node) {
-      parent.removeChild(c);
+    insertBefore(node: Node, child: Node) {
+      parent.insertBefore(node, child);
+    },
+    appendChild(child: Node) {
+      parent.appendChild(child);
+    },
+    removeChild(child: Node) {
+      parent.removeChild(child);
     },
   };
 }
 
-const ISLAND_PROPS_COMPONENT = document.getElementById("__FRSH_ISLAND_PROPS");
 // deno-lint-ignore no-explicit-any
-const ISLAND_PROPS: any[] = JSON.parse(
-  ISLAND_PROPS_COMPONENT?.textContent ?? "[]",
-);
-
-export function revive(islands: Record<string, ComponentType>) {
+export function revive(islands: Record<string, ComponentType>, props: any[]) {
   function walk(node: Node | null) {
     const tag = node!.nodeType === 8 &&
       ((node as Comment).data.match(/^\s*frsh-(.*)\s*$/) || [])[1];
@@ -47,7 +42,7 @@ export function revive(islands: Record<string, ComponentType>) {
 
       const [id, n] = tag.split(":");
       render(
-        h(islands[id], ISLAND_PROPS[Number(n)]),
+        h(islands[id], props[Number(n)]),
         createRootFragment(
           parent! as HTMLElement,
           children,

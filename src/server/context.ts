@@ -3,17 +3,17 @@ import {
   extname,
   fromFileUrl,
   RequestHandler,
-  router,
   Status,
   toFileUrl,
   typeByExtension,
   walk,
 } from "./deps.ts";
 import { h } from "preact";
+import * as router from "./router.ts";
 import { Manifest } from "./mod.ts";
-import { Bundler } from "./bundle.ts";
+import { Bundler, JSXConfig } from "./bundle.ts";
 import { ALIVE_URL, BUILD_ID, JS_PREFIX, REFRESH_JS_URL } from "./constants.ts";
-import DefaultErrorHandler from "./default_error_page.tsx";
+import DefaultErrorHandler from "./default_error_page.ts";
 import {
   AppModule,
   ErrorPage,
@@ -22,15 +22,17 @@ import {
   Handler,
   Island,
   Middleware,
+  MiddlewareHandlerContext,
   MiddlewareModule,
   MiddlewareRoute,
+  Plugin,
   RenderFunction,
   Route,
   RouteModule,
   UnknownPage,
   UnknownPageModule,
 } from "./types.ts";
-import { render as internalRender } from "./render.tsx";
+import { render as internalRender } from "./render.ts";
 import { ContentSecurityPolicyDirectives, SELF } from "../runtime/csp.ts";
 import { ASSET_CACHE_BUST_KEY, INTERNAL_PREFIX } from "../runtime/utils.ts";
 interface RouterState {
@@ -61,6 +63,7 @@ export class ServerContext {
   #app: AppModule;
   #notFound: UnknownPage;
   #error: ErrorPage;
+  #plugins: Plugin[];
 
   constructor(
     routes: Route[],
@@ -71,7 +74,9 @@ export class ServerContext {
     app: AppModule,
     notFound: UnknownPage,
     error: ErrorPage,
+    plugins: Plugin[],
     importMapURL: URL,
+    jsxConfig: JSXConfig,
   ) {
     this.#routes = routes;
     this.#islands = islands;
@@ -81,8 +86,15 @@ export class ServerContext {
     this.#app = app;
     this.#notFound = notFound;
     this.#error = error;
-    this.#bundler = new Bundler(this.#islands, importMapURL);
+    this.#plugins = plugins;
     this.#dev = typeof Deno.env.get("DENO_DEPLOYMENT_ID") !== "string"; // Env var is only set in prod (on Deploy).
+    this.#bundler = new Bundler(
+      this.#islands,
+      this.#plugins,
+      importMapURL,
+      jsxConfig,
+      this.#dev,
+    );
   }
 
   /**
@@ -94,7 +106,32 @@ export class ServerContext {
   ): Promise<ServerContext> {
     // Get the manifest' base URL.
     const baseUrl = new URL("./", manifest.baseUrl).href;
-    const importMapURL = new URL("./import_map.json", manifest.baseUrl);
+
+    const config = manifest.config || { importMap: "./import_map.json" };
+    if (typeof config.importMap !== "string") {
+      throw new Error("deno.json must contain an 'importMap' property.");
+    }
+    const importMapURL = new URL(config.importMap, manifest.baseUrl);
+
+    config.compilerOptions ??= {};
+
+    let jsx: "react" | "react-jsx";
+    switch (config.compilerOptions.jsx) {
+      case "react":
+      case undefined:
+        jsx = "react";
+        break;
+      case "react-jsx":
+        jsx = "react-jsx";
+        break;
+      default:
+        throw new Error("Unknown jsx option: " + config.compilerOptions.jsx);
+    }
+
+    const jsxConfig: JSXConfig = {
+      jsx,
+      jsxImportSource: config.compilerOptions.jsxImportSource,
+    };
 
     // Extract all routes, and prepare them into the `Page` structure.
     const routes: Route[] = [];
@@ -115,12 +152,12 @@ export class ServerContext {
         path.endsWith("/_middleware.ts") || path.endsWith("/_middleware.jsx") ||
         path.endsWith("/_middleware.js");
       if (!path.startsWith("/_") && !isMiddleware) {
-        const { default: component, config } = (module as RouteModule);
+        const { default: component, config } = module as RouteModule;
         let pattern = pathToPattern(baseRoute);
         if (config?.routeOverride) {
           pattern = String(config.routeOverride);
         }
-        let { handler } = (module as RouteModule);
+        let { handler } = module as RouteModule;
         handler ??= {};
         if (
           component &&
@@ -151,8 +188,8 @@ export class ServerContext {
         path === "/_404.tsx" || path === "/_404.ts" ||
         path === "/_404.jsx" || path === "/_404.js"
       ) {
-        const { default: component, config } = (module as UnknownPageModule);
-        let { handler } = (module as UnknownPageModule);
+        const { default: component, config } = module as UnknownPageModule;
+        let { handler } = module as UnknownPageModule;
         if (component && handler === undefined) {
           handler = (_req, { render }) => render();
         }
@@ -169,8 +206,8 @@ export class ServerContext {
         path === "/_500.tsx" || path === "/_500.ts" ||
         path === "/_500.jsx" || path === "/_500.js"
       ) {
-        const { default: component, config } = (module as ErrorPageModule);
-        let { handler } = (module as ErrorPageModule);
+        const { default: component, config } = module as ErrorPageModule;
+        let { handler } = module as ErrorPageModule;
         if (component && handler === undefined) {
           handler = (_req, { render }) => render();
         }
@@ -208,7 +245,10 @@ export class ServerContext {
 
     const staticFiles: StaticFile[] = [];
     try {
-      const staticFolder = new URL("./static", manifest.baseUrl);
+      const staticFolder = new URL(
+        opts.staticDir ?? "./static",
+        manifest.baseUrl,
+      );
       // TODO(lucacasonato): remove the extranious Deno.readDir when
       // https://github.com/denoland/deno_std/issues/1310 is fixed.
       for await (const _ of Deno.readDir(fromFileUrl(staticFolder))) {
@@ -260,7 +300,9 @@ export class ServerContext {
       app,
       notFound,
       error,
+      opts.plugins ?? [],
       importMapURL,
+      jsxConfig,
     );
   }
 
@@ -269,18 +311,36 @@ export class ServerContext {
    * by fresh, including static files.
    */
   handler(): RequestHandler {
-    const inner = router.router<RouterState>(...this.#handlers());
-    const withMiddlewares = this.#composeMiddlewares(this.#middlewares);
-    return function handler(req: Request, connInfo: ConnInfo) {
-      // Redirect requests that end with a trailing slash
-      // to their non-trailing slash counterpart.
-      // Ex: /about/ -> /about
+    const handlers = this.#handlers();
+    const inner = router.router<RouterState>(handlers);
+    const withMiddlewares = this.#composeMiddlewares(
+      this.#middlewares,
+      handlers.errorHandler,
+    );
+    return async function handler(req: Request, connInfo: ConnInfo) {
+      // Redirect requests that end with a trailing slash to their non-trailing
+      // slash counterpart.
       const url = new URL(req.url);
-      if (url.pathname.length > 1 && url.pathname.endsWith("/")) {
-        url.pathname = url.pathname.slice(0, -1);
+      if (cleanPathname(url)) {
         return Response.redirect(url.href, Status.TemporaryRedirect);
       }
-      return withMiddlewares(req, connInfo, inner);
+
+      // HEAD requests should be handled as GET requests but without the body.
+      const originalMethod = req.method;
+      // Internally, HEAD is handled in the same way as GET.
+      if (req.method === "HEAD") {
+        req = new Request(req.url, { method: "GET", headers: req.headers });
+      }
+      const res = await withMiddlewares(req, connInfo, inner);
+      if (originalMethod === "HEAD") {
+        res.body?.cancel();
+        return new Response(null, {
+          headers: res.headers,
+          status: res.status,
+          statusText: res.statusText,
+        });
+      }
+      return res;
     };
   }
 
@@ -288,11 +348,14 @@ export class ServerContext {
    * Identify which middlewares should be applied for a request,
    * chain them and return a handler response
    */
-  #composeMiddlewares(middlewares: MiddlewareRoute[]) {
+  #composeMiddlewares(
+    middlewares: MiddlewareRoute[],
+    errorHandler: router.ErrorHandler<RouterState>,
+  ) {
     return (
       req: Request,
       connInfo: ConnInfo,
-      inner: router.Handler<RouterState>,
+      inner: router.FinalHandler<RouterState>,
     ) => {
       // identify middlewares to apply, if any.
       // middlewares should be already sorted from deepest to shallow layer
@@ -300,23 +363,38 @@ export class ServerContext {
 
       const handlers: (() => Response | Promise<Response>)[] = [];
 
-      const ctx = {
+      const middlewareCtx: MiddlewareHandlerContext = {
         next() {
           const handler = handlers.shift()!;
           return Promise.resolve(handler());
         },
         ...connInfo,
         state: {},
+        destination: "route",
       };
 
       for (const mw of mws) {
-        handlers.push(() => mw.handler(req, ctx));
+        if (mw.handler instanceof Array) {
+          for (const handler of mw.handler) {
+            handlers.push(() => handler(req, middlewareCtx));
+          }
+        } else {
+          const handler = mw.handler;
+          handlers.push(() => handler(req, middlewareCtx));
+        }
       }
 
-      handlers.push(() => inner(req, ctx));
-
-      const handler = handlers.shift()!;
-      return handler();
+      const ctx = {
+        ...connInfo,
+        state: middlewareCtx.state,
+      };
+      const { destination, handler } = inner(
+        req,
+        ctx,
+      );
+      handlers.push(handler);
+      middlewareCtx.destination = destination;
+      return middlewareCtx.next().catch((e) => errorHandler(req, ctx, e));
     };
   }
 
@@ -324,46 +402,53 @@ export class ServerContext {
    * This function returns all routes required by fresh as an extended
    * path-to-regex, to handler mapping.
    */
-  #handlers(): [
-    router.Routes<RouterState>,
-    router.Handler<RouterState>,
-    router.ErrorHandler<RouterState>,
-  ] {
+  #handlers(): {
+    internalRoutes: router.Routes<RouterState>;
+    staticRoutes: router.Routes<RouterState>;
+    routes: router.Routes<RouterState>;
+
+    otherHandler: router.Handler<RouterState>;
+    errorHandler: router.ErrorHandler<RouterState>;
+  } {
+    const internalRoutes: router.Routes<RouterState> = {};
+    const staticRoutes: router.Routes<RouterState> = {};
     const routes: router.Routes<RouterState> = {};
 
-    routes[`${INTERNAL_PREFIX}${JS_PREFIX}/${BUILD_ID}/:path*`] = this
-      .#bundleAssetRoute();
-
+    internalRoutes[`${INTERNAL_PREFIX}${JS_PREFIX}/${BUILD_ID}/:path*`] = {
+      default: this.#bundleAssetRoute(),
+    };
     if (this.#dev) {
-      routes[REFRESH_JS_URL] = () => {
-        const js =
-          `let reloading = false; const buildId = "${BUILD_ID}"; new EventSource("${ALIVE_URL}").addEventListener("message", (e) => { if (e.data !== buildId && !reloading) { reloading = true; location.reload(); } });`;
-        return new Response(new TextEncoder().encode(js), {
-          headers: {
-            "content-type": "application/javascript; charset=utf-8",
-          },
-        });
+      internalRoutes[REFRESH_JS_URL] = {
+        default: () => {
+          return new Response(refreshJs(ALIVE_URL, BUILD_ID), {
+            headers: {
+              "content-type": "application/javascript; charset=utf-8",
+            },
+          });
+        },
       };
-      routes[ALIVE_URL] = () => {
-        let timerId: number | undefined = undefined;
-        const body = new ReadableStream({
-          start(controller) {
-            controller.enqueue(`data: ${BUILD_ID}\nretry: 100\n\n`);
-            timerId = setInterval(() => {
-              controller.enqueue(`data: ${BUILD_ID}\n\n`);
-            }, 1000);
-          },
-          cancel() {
-            if (timerId !== undefined) {
-              clearInterval(timerId);
-            }
-          },
-        });
-        return new Response(body.pipeThrough(new TextEncoderStream()), {
-          headers: {
-            "content-type": "text/event-stream",
-          },
-        });
+      internalRoutes[ALIVE_URL] = {
+        default: () => {
+          let timerId: number | undefined = undefined;
+          const body = new ReadableStream({
+            start(controller) {
+              controller.enqueue(`data: ${BUILD_ID}\nretry: 100\n\n`);
+              timerId = setInterval(() => {
+                controller.enqueue(`data: ${BUILD_ID}\n\n`);
+              }, 1000);
+            },
+            cancel() {
+              if (timerId !== undefined) {
+                clearInterval(timerId);
+              }
+            },
+          });
+          return new Response(body.pipeThrough(new TextEncoderStream()), {
+            headers: {
+              "content-type": "text/event-stream",
+            },
+          });
+        },
       };
     }
 
@@ -375,12 +460,14 @@ export class ServerContext {
       const { localUrl, path, size, contentType, etag } of this.#staticFiles
     ) {
       const route = sanitizePathToRegex(path);
-      routes[`GET@${route}`] = this.#staticFileHandler(
-        localUrl,
-        size,
-        contentType,
-        etag,
-      );
+      staticRoutes[route] = {
+        "GET": this.#staticFileHandler(
+          localUrl,
+          size,
+          contentType,
+          etag,
+        ),
+      };
     }
 
     const genRender = <Data = undefined>(
@@ -414,6 +501,7 @@ export class ServerContext {
           const resp = await internalRender({
             route,
             islands: this.#islands,
+            plugins: this.#plugins,
             app: this.#app,
             imports,
             preloads,
@@ -448,29 +536,39 @@ export class ServerContext {
       };
     };
 
+    const createUnknownRender = genRender(this.#notFound, Status.NotFound);
+
     for (const route of this.#routes) {
       const createRender = genRender(route, Status.OK);
       if (typeof route.handler === "function") {
-        routes[route.pattern] = (req, ctx, params) =>
-          (route.handler as Handler)(req, {
-            ...ctx,
-            params,
-            render: createRender(req, params),
-          });
+        routes[route.pattern] = {
+          default: (req, ctx, params) =>
+            (route.handler as Handler)(req, {
+              ...ctx,
+              params,
+              render: createRender(req, params),
+              renderNotFound: createUnknownRender(req, {}),
+            }),
+        };
       } else {
+        routes[route.pattern] = {};
         for (const [method, handler] of Object.entries(route.handler)) {
-          routes[`${method}@${route.pattern}`] = (req, ctx, params) =>
+          routes[route.pattern][method as router.KnownMethod] = (
+            req,
+            ctx,
+            params,
+          ) =>
             handler(req, {
               ...ctx,
               params,
               render: createRender(req, params),
+              renderNotFound: createUnknownRender(req, {}),
             });
         }
       }
     }
 
-    const unknownHandlerRender = genRender(this.#notFound, Status.NotFound);
-    const unknownHandler: router.Handler<RouterState> = (
+    const otherHandler: router.Handler<RouterState> = (
       req,
       ctx,
     ) =>
@@ -478,7 +576,7 @@ export class ServerContext {
         req,
         {
           ...ctx,
-          render: unknownHandlerRender(req, {}),
+          render: createUnknownRender(req, {}),
         },
       );
 
@@ -506,7 +604,7 @@ export class ServerContext {
       );
     };
 
-    return [routes, unknownHandler, errorHandler];
+    return { internalRoutes, staticRoutes, routes, otherHandler, errorHandler };
   }
 
   #staticFileHandler(
@@ -721,4 +819,32 @@ export function middlewarePathToPattern(baseRoute: string) {
   }
   const compiledPattern = new URLPattern({ pathname: pattern });
   return { pattern, compiledPattern };
+}
+
+function refreshJs(aliveUrl: string, buildId: string) {
+  return `let es = new EventSource("${aliveUrl}");
+window.addEventListener("beforeunload", (event) => {
+  es.close();
+});
+es.addEventListener("message", function listener(e) {
+  if (e.data !== "${buildId}") {
+    this.removeEventListener("message", listener);
+    location.reload();
+  }
+});`;
+}
+
+/**
+ * Clean the pathname in the given URL by removing all trailing slashes.
+ *
+ * Returns true if the pathname was changed.
+ */
+export function cleanPathname(url: URL): boolean {
+  const pathname = url.pathname.replace(/\/+$/, "");
+  if (pathname === "") return false;
+  if (pathname !== url.pathname) {
+    url.pathname = pathname;
+    return true;
+  }
+  return false;
 }

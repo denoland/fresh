@@ -71,3 +71,22 @@ For a request to `/admin/signin` the request flows like this:
 2. Calling `ctx.next()` will invoke the `routes/admin/_middleware.ts`
    middleware.
 3. Calling `ctx.next()` will invoke the `routes/admin/signin.ts` handler.
+
+A single middleware file can also define multiple middlewares (all for the same
+route) by exporting an array of handlers instead of a single handler. For
+example:
+
+```ts
+// routes/_middleware.ts
+
+export const handler = [
+  async function middleware1(req, ctx) {
+    // do something
+    return ctx.next();
+  },
+  async function middleware2(req, ctx) {
+    // do something
+    return ctx.next();
+  },
+];
+```
