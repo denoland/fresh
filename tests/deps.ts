@@ -8,12 +8,12 @@ export {
   assert,
   assertEquals,
   assertStringIncludes,
-} from "https://deno.land/std@0.178.0/testing/asserts.ts";
+} from "https://deno.land/std@0.188.0/testing/asserts.ts";
 export {
   TextLineStream,
-} from "https://deno.land/std@0.178.0/streams/text_line_stream.ts";
-export { delay } from "https://deno.land/std@0.178.0/async/delay.ts";
-export { retry } from "https://deno.land/std@0.178.0/async/retry.ts";
+} from "https://deno.land/std@0.188.0/streams/text_line_stream.ts";
+export { delay } from "https://deno.land/std@0.188.0/async/delay.ts";
+export { retry } from "https://deno.land/std@0.188.0/async/retry.ts";
 export {
   default as puppeteer,
   Page,
