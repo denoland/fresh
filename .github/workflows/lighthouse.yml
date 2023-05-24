@@ -13,12 +13,10 @@ jobs:
       URL: ${{ github.event.deployment_status.environment_url }}
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
 
-      - name: Install Node.js 16.x
-        uses: actions/setup-node@v1
-        with:
-          node-version: 16.x
+      - name: Install Node.js
+        uses: actions/setup-node@v3
 
       - name: Install Lighthouse CI
         run: npm install -g @lhci/cli@0.9.x

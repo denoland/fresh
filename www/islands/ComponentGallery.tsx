@@ -8,8 +8,8 @@ import Hero from "../components/gallery/Hero.tsx";
 import Features from "../components/gallery/Features.tsx";
 import Carousel from "../components/gallery/Carousel.tsx";
 import { ComponentChildren } from "preact";
-import IconHappy from "https://deno.land/x/tabler_icons_tsx@0.0.2/tsx/mood-crazy-happy.tsx";
-import IconHeart from "https://deno.land/x/tabler_icons_tsx@0.0.2/tsx/heart.tsx";
+import IconHappy from "https://deno.land/x/tabler_icons_tsx@0.0.3/tsx/mood-crazy-happy.tsx";
+import IconHeart from "https://deno.land/x/tabler_icons_tsx@0.0.3/tsx/heart.tsx";
 import Background from "../components/gallery/Background.tsx";
 import CodeBox from "../components/gallery/CodeBox.tsx";
 
@@ -23,7 +23,7 @@ interface SectionProps {
 function Section(props: SectionProps) {
   return (
     <div>
-      <h2 class="text-2xl font-bold py-2">
+      <h2 class="text-2xl font-bold py-2" id={props.title}>
         {props.title}
         {props.island && (
           <span class="text-sm font-normal inline-block bg-green-200 rounded px-2 mx-2">
@@ -112,7 +112,7 @@ export default function ComponentGallery(props: ComponentGalleryProps) {
         <Features />
       </Section>
 
-      <Section title="Carousel" source={props.sources.Carousel}>
+      <Section title="Carousel" island={true} source={props.sources.Carousel}>
         <Carousel />
       </Section>
     </>

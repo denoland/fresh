@@ -157,6 +157,11 @@ export function router<T = unknown>(
           }
         }
 
+        // If not overridden, HEAD requests should be handled as GET requests but without the body.
+        if (req.method === "HEAD" && !route.methods["HEAD"]) {
+          req = new Request(req.url, { method: "GET", headers: req.headers });
+        }
+
         for (const [method, handler] of Object.entries(route.methods)) {
           if (req.method === method) {
             return {
