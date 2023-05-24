@@ -199,7 +199,7 @@ Deno.test("redirect /pages/fresh/ to /pages/fresh", async () => {
   assertEquals(resp.status, Status.TemporaryRedirect);
   assertEquals(
     resp.headers.get("location"),
-    "https://fresh.deno.dev/pages/fresh",
+    "/pages/fresh",
   );
 });
 
@@ -211,7 +211,7 @@ Deno.test("redirect /pages/////fresh///// to /pages/////fresh", async () => {
   assertEquals(resp.status, Status.TemporaryRedirect);
   assertEquals(
     resp.headers.get("location"),
-    "https://fresh.deno.dev/pages/////fresh",
+    "/pages/////fresh",
   );
 });
 
@@ -223,7 +223,7 @@ Deno.test("redirect /pages/////fresh/ to /pages/////fresh", async () => {
   assertEquals(resp.status, Status.TemporaryRedirect);
   assertEquals(
     resp.headers.get("location"),
-    "https://fresh.deno.dev/pages/////fresh",
+    "/pages/////fresh",
   );
 });
 
