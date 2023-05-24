@@ -326,7 +326,7 @@ export class ServerContext {
       }
 
       const res = await withMiddlewares(req, connInfo, inner);
-      // Internally, HEAD is handled in the same way as GET if not overriden.
+      // Internally, HEAD is handled in the same way as GET if not overridden.
       if (req.method === "HEAD") {
         res.body?.cancel();
         return new Response(null, {
