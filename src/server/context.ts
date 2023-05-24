@@ -323,7 +323,8 @@ export class ServerContext {
       // Ex: /about/ -> /about
       const url = new URL(req.url);
       if (url.pathname.length > 1 && url.pathname.endsWith("/")) {
-        const path = url.pathname.slice(0, -1);
+        // Remove trailing slashes
+        const path = url.pathname.replace(/\/+$/, "");
         const location = `${path}${url.search}`;
         return new Response(null, {
           status: Status.TemporaryRedirect,
