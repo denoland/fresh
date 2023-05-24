@@ -205,3 +205,20 @@ Deno.test({
 async function getIslandParentTextContent(page: Page) {
   return await page.$eval("#island-parent", (el: Element) => el.textContent);
 }
+
+Deno.test({
+  name: 'island that returns `null`',
+
+  async fn(_t) {
+    await withPage(async page => {
+      await page.goto('http://localhost:8000/islands/returning_null', {
+        waitUntil: 'networkidle2'
+      })
+    
+      await page.waitForSelector('.added-by-use-effect')
+    })
+  },
+  
+    sanitizeOps: false,
+    sanitizeResources: false
+})
