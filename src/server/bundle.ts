@@ -125,6 +125,10 @@ export class Bundler {
         file.contents,
       );
     }
+    cache.set(
+      "/metafile.json",
+      new TextEncoder().encode(JSON.stringify(bundle.metafile)),
+    );
     this.#cache = cache;
 
     return;
