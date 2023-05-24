@@ -60,7 +60,7 @@ export function revive(islands: Record<string, ComponentType>, props: any[]) {
       const [id, n] = tag.split(":");
 
       nextTick(() => {
-        performance.mark(tag)
+        performance.mark(tag);
         render(
           h(islands[id], props[Number(n)]),
           createRootFragment(

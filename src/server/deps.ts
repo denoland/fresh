@@ -2,15 +2,9 @@
 export {
   extname,
   fromFileUrl,
-  join,
   toFileUrl,
 } from "https://deno.land/std@0.178.0/path/mod.ts";
-export {
-  emptyDir,
-  ensureDir,
-  walk,
-} from "https://deno.land/std@0.178.0/fs/mod.ts";
-export * as colors from "https://deno.land/std@0.178.0/fmt/colors.ts";
+export { walk } from "https://deno.land/std@0.178.0/fs/walk.ts";
 export { serve } from "https://deno.land/std@0.178.0/http/server.ts";
 export type {
   ConnInfo,
@@ -24,11 +18,15 @@ export {
 export { toHashString } from "https://deno.land/std@0.178.0/crypto/to_hash_string.ts";
 
 // -- esbuild --
-export * as esbuild from "https://deno.land/x/esbuild@v0.17.11/mod.js";
-export type {
-  BuildOptions,
-  BuildResult,
-} from "https://deno.land/x/esbuild@v0.17.11/mod.js";
+// @deno-types="https://deno.land/x/esbuild@v0.17.11/mod.d.ts"
+import * as esbuildWasm from "https://deno.land/x/esbuild@v0.17.11/wasm.js";
+import * as esbuildNative from "https://deno.land/x/esbuild@v0.17.11/mod.js";
+// @ts-ignore trust me
+// deno-lint-ignore no-deprecated-deno-api
+const esbuild: typeof esbuildWasm = Deno.run === undefined
+  ? esbuildWasm
+  : esbuildNative;
+export { esbuild, esbuildWasm as esbuildTypes };
 
 // TODO(lino-levan): Replace with versioned import
 export { denoPlugin } from "https://raw.githubusercontent.com/lucacasonato/esbuild_deno_loader/8031f71afa1bbcd3237a94b11f53a2e5c5c0e7bf/mod.ts";
