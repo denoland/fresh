@@ -279,7 +279,7 @@ export class ServerContext {
         staticFiles.push(staticFile);
       }
     } catch (err) {
-      if (err instanceof Deno.errors.NotFound) {
+      if (err.cause instanceof Deno.errors.NotFound) {
         // Do nothing.
       } else {
         throw err;

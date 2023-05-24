@@ -4,7 +4,7 @@ export {
   fromFileUrl,
   toFileUrl,
 } from "https://deno.land/std@0.178.0/path/mod.ts";
-export { walk } from "https://deno.land/std@0.178.0/fs/walk.ts";
+export { walk } from "https://deno.land/std@0.188.0/fs/walk.ts";
 export { serve } from "https://deno.land/std@0.178.0/http/server.ts";
 export type {
   ConnInfo,
