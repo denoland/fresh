@@ -20,7 +20,7 @@ export function asset(path: string) {
     ) {
       return path;
     }
-    url.searchParams.set(ASSET_CACHE_BUST_KEY, __FRSH_BUILD_ID);
+    url.searchParams.set(ASSET_CACHE_BUST_KEY, globalThis.__FRSH_BUILD_ID);
     return url.pathname + url.search + url.hash;
   } catch (err) {
     console.warn(
