@@ -8,7 +8,17 @@ export interface JSXConfig {
   jsxImportSource?: string;
 }
 
+const ignoreAlreadyInitialized = (err: Error) => {
+  if (err?.message === `Cannot call "initialize" more than once`) {
+    return;
+  }
+  throw err;
+};
+
 let esbuildInitialized: boolean | Promise<void> = false;
+
+export const isEsbuildInitialized = () => esbuildInitialized;
+
 async function ensureEsbuildInitialized() {
   if (esbuildInitialized === false) {
     // deno-lint-ignore no-deprecated-deno-api
@@ -19,13 +29,15 @@ async function ensureEsbuildInitialized() {
           headers: { "Content-Type": "application/wasm" },
         });
         const wasmModule = await WebAssembly.compileStreaming(resp);
-        await esbuild.initialize({
-          wasmModule,
-          worker: false,
-        });
+        await esbuild
+          .initialize({
+            wasmModule,
+            worker: false,
+          })
+          .catch(ignoreAlreadyInitialized);
       });
     } else {
-      esbuild.initialize({});
+      esbuild.initialize({}).catch(ignoreAlreadyInitialized);
     }
     await esbuildInitialized;
     esbuildInitialized = true;
@@ -35,7 +47,7 @@ async function ensureEsbuildInitialized() {
 }
 
 const JSX_RUNTIME_MODE = {
-  "react": "transform",
+  react: "transform",
   "react-jsx": "automatic",
 } as const;
 
@@ -52,7 +64,7 @@ export class Bundler {
     plugins: Plugin[],
     importMapURL: URL,
     jsxConfig: JSXConfig,
-    dev: boolean,
+    dev: boolean
   ) {
     this.#islands = islands;
     this.#plugins = plugins;
@@ -122,7 +134,7 @@ export class Bundler {
     for (const file of bundle.outputFiles) {
       cache.set(
         toFileUrl(file.path).href.substring(absDirUrlLength),
-        file.contents,
+        file.contents
       );
     }
     this.#cache = cache;
