@@ -34,14 +34,16 @@ care of automatically re-hydrating the island on the client.
 Passing props to islands is supported, but only if the props are JSON
 serializable. This means that you can only pass:
 
-* Primitive types `string`, `boolean`, and `null`
-* Most `number`s (`Infinity`, `-Infinity`, and `NaN` are silently converted to
+- Primitive types `string`, `boolean`, and `null`
+- Most `number`s (`Infinity`, `-Infinity`, and `NaN` are silently converted to
   `null`, and `bigint`s are not supported)
-* Plain objects with string keys and primitive, plain object, or array values
-* Arrays containing primitives, plain objects, or other arrays
+- Plain objects with string keys and primitive, plain object, or array values
+- Arrays containing primitives, plain objects, or other arrays
 
-It is currently not possible to pass complex objects like `Date`,
-custom classes, or functions. This means that it is not possible to pass
-`children` to an island, as `children` are VNodes, which are not serializable.
+It is currently not possible to pass complex objects like `Date`, custom
+classes, or functions. This means that it is not possible to pass `children` to
+an island, as `children` are VNodes, which are not serializable. To find out
+more about JSON serializable values, check out
+[how `JSON.stringify()` works](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/JSON/stringify#description).
 
 It is also not supported to nest islands within other islands.
