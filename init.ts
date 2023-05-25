@@ -103,6 +103,7 @@ await Deno.writeTextFile(
 
 const importMap = { imports: {} as Record<string, string> };
 freshImports(importMap.imports);
+console.log(importMap.imports);
 if (useTwind) twindImports(importMap.imports);
 dotenvImports(importMap.imports);
 const IMPORT_MAP_JSON = JSON.stringify(importMap, null, 2) + "\n";
