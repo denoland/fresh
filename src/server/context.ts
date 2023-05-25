@@ -11,7 +11,7 @@ import {
 import { h } from "preact";
 import * as router from "./router.ts";
 import { Manifest } from "./mod.ts";
-import { Bundler, JSXConfig } from "./bundle.ts";
+import { AssetsStorage, createAssetsStorage, JSXConfig } from "./bundle.ts";
 import { ALIVE_URL, BUILD_ID, JS_PREFIX, REFRESH_JS_URL } from "./constants.ts";
 import DefaultErrorHandler from "./default_error_page.ts";
 import {
@@ -57,7 +57,7 @@ export class ServerContext {
   #routes: Route[];
   #islands: Island[];
   #staticFiles: StaticFile[];
-  #bundler: Bundler;
+  #assets: Promise<AssetsStorage>;
   #renderFn: RenderFunction;
   #middlewares: MiddlewareRoute[];
   #app: AppModule;
@@ -88,13 +88,13 @@ export class ServerContext {
     this.#error = error;
     this.#plugins = plugins;
     this.#dev = typeof Deno.env.get("DENO_DEPLOYMENT_ID") !== "string"; // Env var is only set in prod (on Deploy).
-    this.#bundler = new Bundler(
-      this.#islands,
-      this.#plugins,
+    this.#assets = createAssetsStorage({
+      islands: this.#islands,
+      plugins: this.#plugins,
       importMapURL,
       jsxConfig,
-      this.#dev,
-    );
+      dev: this.#dev,
+    });
   }
 
   /**
@@ -655,7 +655,7 @@ export class ServerContext {
   #bundleAssetRoute = (): router.MatchHandler => {
     return async (_req, _ctx, params) => {
       const path = `/${params.path}`;
-      const file = await this.#bundler.get(path);
+      const file = (await this.#assets).get(path);
       let res;
       if (file) {
         const headers = new Headers({
