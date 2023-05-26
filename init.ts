@@ -112,8 +112,8 @@ await Deno.writeTextFile(
 );
 
 const ROUTES_INDEX_TSX = `import { Head } from "$fresh/runtime.ts";
-// import Counter from "@/islands/Counter.tsx";
-import Counter from "../islands/Counter.tsx";
+import Counter from "@/islands/Counter.tsx";
+//import Counter from "../islands/Counter.tsx";
 
 export default function Home() {
   return (
@@ -166,8 +166,8 @@ await Deno.writeTextFile(
 );
 
 const ISLANDS_COUNTER_TSX = `import { useState } from "preact/hooks";
-import { Button } from "@/components/Button.tsx";
-// import { Button } from "../components/Button.tsx";
+// import { Button } from "@/components/Button.tsx";
+import { Button } from "../components/Button.tsx";
 
 interface CounterProps {
   start: number;
