@@ -103,7 +103,6 @@ await Deno.writeTextFile(
 
 const importMap = { imports: {} as Record<string, string> };
 freshImports(importMap.imports);
-console.log(importMap.imports);
 if (useTwind) twindImports(importMap.imports);
 dotenvImports(importMap.imports);
 const IMPORT_MAP_JSON = JSON.stringify(importMap, null, 2) + "\n";
@@ -113,7 +112,8 @@ await Deno.writeTextFile(
 );
 
 const ROUTES_INDEX_TSX = `import { Head } from "$fresh/runtime.ts";
-import Counter from "@/islands/Counter.tsx";
+// import Counter from "@/islands/Counter.tsx";
+import Counter from "../islands/Counter.tsx";
 
 export default function Home() {
   return (
@@ -166,7 +166,8 @@ await Deno.writeTextFile(
 );
 
 const ISLANDS_COUNTER_TSX = `import { useState } from "preact/hooks";
-import { Button } from "@/components/Button.tsx";
+// import { Button } from "@/components/Button.tsx";
+import { Button } from "../components/Button.tsx";
 
 interface CounterProps {
   start: number;
