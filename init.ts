@@ -166,8 +166,8 @@ await Deno.writeTextFile(
 );
 
 const ISLANDS_COUNTER_TSX = `import { useState } from "preact/hooks";
-// import { Button } from "@/components/Button.tsx";
-import { Button } from "../components/Button.tsx";
+import { Button } from "@/components/Button.tsx";
+// import { Button } from "../components/Button.tsx";
 
 interface CounterProps {
   start: number;
