@@ -57,7 +57,7 @@ export class ServerContext {
   #routes: Route[];
   #islands: Island[];
   #staticFiles: StaticFile[];
-  #assets: Promise<AssetsStorage>;
+  #assets: AssetsStorage;
   #renderFn: RenderFunction;
   #middlewares: MiddlewareRoute[];
   #app: AppModule;
@@ -655,7 +655,7 @@ export class ServerContext {
   #bundleAssetRoute = (): router.MatchHandler => {
     return async (_req, _ctx, params) => {
       const path = `/${params.path}`;
-      const file = (await this.#assets).get(path);
+      const file = await this.#assets.get(path);
       let res;
       if (file) {
         const headers = new Headers({
