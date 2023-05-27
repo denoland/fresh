@@ -9,35 +9,38 @@ import * as $2 from "./routes/_500.tsx";
 import * as $3 from "./routes/_app.tsx";
 import * as $4 from "./routes/_middleware.ts";
 import * as $5 from "./routes/api/get_only.ts";
-import * as $6 from "./routes/assetsCaching/index.tsx";
-import * as $7 from "./routes/books/[id].tsx";
-import * as $8 from "./routes/connInfo.ts";
-import * as $9 from "./routes/evil.tsx";
-import * as $10 from "./routes/failure.ts";
-import * as $11 from "./routes/index.tsx";
-import * as $12 from "./routes/intercept.tsx";
-import * as $13 from "./routes/intercept_args.tsx";
-import * as $14 from "./routes/islands/index.tsx";
-import * as $15 from "./routes/islands/root_fragment.tsx";
-import * as $16 from "./routes/islands/root_fragment_conditional_first.tsx";
-import * as $17 from "./routes/layeredMdw/_middleware.ts";
-import * as $18 from "./routes/layeredMdw/layer2-no-mw/without_mw.ts";
-import * as $19 from "./routes/layeredMdw/layer2/_middleware.ts";
-import * as $20 from "./routes/layeredMdw/layer2/abc.ts";
-import * as $21 from "./routes/layeredMdw/layer2/index.ts";
-import * as $22 from "./routes/layeredMdw/layer2/layer3/[id].ts";
-import * as $23 from "./routes/layeredMdw/layer2/layer3/_middleware.ts";
-import * as $24 from "./routes/middleware_root.ts";
-import * as $25 from "./routes/not_found.ts";
-import * as $26 from "./routes/params.tsx";
-import * as $27 from "./routes/props/[id].tsx";
-import * as $28 from "./routes/static.tsx";
-import * as $29 from "./routes/wildcard.tsx";
+import * as $6 from "./routes/api/head_override.ts";
+import * as $7 from "./routes/assetsCaching/index.tsx";
+import * as $8 from "./routes/books/[id].tsx";
+import * as $9 from "./routes/connInfo.ts";
+import * as $10 from "./routes/evil.tsx";
+import * as $11 from "./routes/failure.ts";
+import * as $12 from "./routes/index.tsx";
+import * as $13 from "./routes/intercept.tsx";
+import * as $14 from "./routes/intercept_args.tsx";
+import * as $15 from "./routes/islands/index.tsx";
+import * as $16 from "./routes/islands/returning_null.tsx";
+import * as $17 from "./routes/islands/root_fragment.tsx";
+import * as $18 from "./routes/islands/root_fragment_conditional_first.tsx";
+import * as $19 from "./routes/layeredMdw/_middleware.ts";
+import * as $20 from "./routes/layeredMdw/layer2-no-mw/without_mw.ts";
+import * as $21 from "./routes/layeredMdw/layer2/_middleware.ts";
+import * as $22 from "./routes/layeredMdw/layer2/abc.ts";
+import * as $23 from "./routes/layeredMdw/layer2/index.ts";
+import * as $24 from "./routes/layeredMdw/layer2/layer3/[id].ts";
+import * as $25 from "./routes/layeredMdw/layer2/layer3/_middleware.ts";
+import * as $26 from "./routes/middleware_root.ts";
+import * as $27 from "./routes/not_found.ts";
+import * as $28 from "./routes/params.tsx";
+import * as $29 from "./routes/props/[id].tsx";
+import * as $30 from "./routes/static.tsx";
+import * as $31 from "./routes/wildcard.tsx";
 import * as $$0 from "./islands/Counter.tsx";
-import * as $$1 from "./islands/RootFragment.tsx";
-import * as $$2 from "./islands/RootFragmentWithConditionalFirst.tsx";
-import * as $$3 from "./islands/Test.tsx";
-import * as $$4 from "./islands/kebab-case-counter-test.tsx";
+import * as $$1 from "./islands/ReturningNull.tsx";
+import * as $$2 from "./islands/RootFragment.tsx";
+import * as $$3 from "./islands/RootFragmentWithConditionalFirst.tsx";
+import * as $$4 from "./islands/Test.tsx";
+import * as $$5 from "./islands/kebab-case-counter-test.tsx";
 
 const manifest = {
   routes: {
@@ -47,37 +50,40 @@ const manifest = {
     "./routes/_app.tsx": $3,
     "./routes/_middleware.ts": $4,
     "./routes/api/get_only.ts": $5,
-    "./routes/assetsCaching/index.tsx": $6,
-    "./routes/books/[id].tsx": $7,
-    "./routes/connInfo.ts": $8,
-    "./routes/evil.tsx": $9,
-    "./routes/failure.ts": $10,
-    "./routes/index.tsx": $11,
-    "./routes/intercept.tsx": $12,
-    "./routes/intercept_args.tsx": $13,
-    "./routes/islands/index.tsx": $14,
-    "./routes/islands/root_fragment.tsx": $15,
-    "./routes/islands/root_fragment_conditional_first.tsx": $16,
-    "./routes/layeredMdw/_middleware.ts": $17,
-    "./routes/layeredMdw/layer2-no-mw/without_mw.ts": $18,
-    "./routes/layeredMdw/layer2/_middleware.ts": $19,
-    "./routes/layeredMdw/layer2/abc.ts": $20,
-    "./routes/layeredMdw/layer2/index.ts": $21,
-    "./routes/layeredMdw/layer2/layer3/[id].ts": $22,
-    "./routes/layeredMdw/layer2/layer3/_middleware.ts": $23,
-    "./routes/middleware_root.ts": $24,
-    "./routes/not_found.ts": $25,
-    "./routes/params.tsx": $26,
-    "./routes/props/[id].tsx": $27,
-    "./routes/static.tsx": $28,
-    "./routes/wildcard.tsx": $29,
+    "./routes/api/head_override.ts": $6,
+    "./routes/assetsCaching/index.tsx": $7,
+    "./routes/books/[id].tsx": $8,
+    "./routes/connInfo.ts": $9,
+    "./routes/evil.tsx": $10,
+    "./routes/failure.ts": $11,
+    "./routes/index.tsx": $12,
+    "./routes/intercept.tsx": $13,
+    "./routes/intercept_args.tsx": $14,
+    "./routes/islands/index.tsx": $15,
+    "./routes/islands/returning_null.tsx": $16,
+    "./routes/islands/root_fragment.tsx": $17,
+    "./routes/islands/root_fragment_conditional_first.tsx": $18,
+    "./routes/layeredMdw/_middleware.ts": $19,
+    "./routes/layeredMdw/layer2-no-mw/without_mw.ts": $20,
+    "./routes/layeredMdw/layer2/_middleware.ts": $21,
+    "./routes/layeredMdw/layer2/abc.ts": $22,
+    "./routes/layeredMdw/layer2/index.ts": $23,
+    "./routes/layeredMdw/layer2/layer3/[id].ts": $24,
+    "./routes/layeredMdw/layer2/layer3/_middleware.ts": $25,
+    "./routes/middleware_root.ts": $26,
+    "./routes/not_found.ts": $27,
+    "./routes/params.tsx": $28,
+    "./routes/props/[id].tsx": $29,
+    "./routes/static.tsx": $30,
+    "./routes/wildcard.tsx": $31,
   },
   islands: {
     "./islands/Counter.tsx": $$0,
-    "./islands/RootFragment.tsx": $$1,
-    "./islands/RootFragmentWithConditionalFirst.tsx": $$2,
-    "./islands/Test.tsx": $$3,
-    "./islands/kebab-case-counter-test.tsx": $$4,
+    "./islands/ReturningNull.tsx": $$1,
+    "./islands/RootFragment.tsx": $$2,
+    "./islands/RootFragmentWithConditionalFirst.tsx": $$3,
+    "./islands/Test.tsx": $$4,
+    "./islands/kebab-case-counter-test.tsx": $$5,
   },
   baseUrl: import.meta.url,
   config,

@@ -66,6 +66,34 @@ Deno.test("/[name] page prerender", async () => {
   assertStringIncludes(body, "<div>Hello bar</div>");
 });
 
+Deno.test("/intercept - HEAD", async () => {
+  const req = new Request("https://fresh.deno.dev/api/head_override", {
+    method: "HEAD",
+  });
+  const resp = await router(req);
+  assert(resp);
+  assertEquals(resp.status, Status.NoContent);
+  assertEquals(resp.body, null);
+  assertEquals(
+    resp.headers.get("content-type"),
+    "text/html; charset=utf-8",
+  );
+});
+
+Deno.test("/intercept - HEAD fallback", async () => {
+  const req = new Request("https://fresh.deno.dev/api/get_only", {
+    method: "HEAD",
+  });
+  const resp = await router(req);
+  assert(resp);
+  assertEquals(resp.status, Status.OK);
+  assertEquals(resp.body, null);
+  assertEquals(
+    resp.headers.get("content-type"),
+    "application/json; charset=utf-8",
+  );
+});
+
 Deno.test("/intercept - GET html", async () => {
   const req = new Request("https://fresh.deno.dev/intercept", {
     headers: { "accept": "text/html" },
@@ -171,7 +199,7 @@ Deno.test("redirect /pages/fresh/ to /pages/fresh", async () => {
   assertEquals(resp.status, Status.TemporaryRedirect);
   assertEquals(
     resp.headers.get("location"),
-    "https://fresh.deno.dev/pages/fresh",
+    "/pages/fresh",
   );
 });
 
@@ -183,7 +211,7 @@ Deno.test("redirect /pages/////fresh///// to /pages/////fresh", async () => {
   assertEquals(resp.status, Status.TemporaryRedirect);
   assertEquals(
     resp.headers.get("location"),
-    "https://fresh.deno.dev/pages/////fresh",
+    "/pages/////fresh",
   );
 });
 
@@ -195,7 +223,7 @@ Deno.test("redirect /pages/////fresh/ to /pages/////fresh", async () => {
   assertEquals(resp.status, Status.TemporaryRedirect);
   assertEquals(
     resp.headers.get("location"),
-    "https://fresh.deno.dev/pages/////fresh",
+    "/pages/////fresh",
   );
 });
 

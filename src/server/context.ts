@@ -315,19 +315,21 @@ export class ServerContext {
     return async function handler(req: Request, connInfo: ConnInfo) {
       // Redirect requests that end with a trailing slash to their non-trailing
       // slash counterpart.
+      // Ex: /about/ -> /about
       const url = new URL(req.url);
-      if (cleanPathname(url)) {
-        return Response.redirect(url.href, Status.TemporaryRedirect);
+      if (url.pathname.length > 1 && url.pathname.endsWith("/")) {
+        // Remove trailing slashes
+        const path = url.pathname.replace(/\/+$/, "");
+        const location = `${path}${url.search}`;
+        return new Response(null, {
+          status: Status.TemporaryRedirect,
+          headers: { location },
+        });
       }
 
-      // HEAD requests should be handled as GET requests but without the body.
-      const originalMethod = req.method;
-      // Internally, HEAD is handled in the same way as GET.
-      if (req.method === "HEAD") {
-        req = new Request(req.url, { method: "GET", headers: req.headers });
-      }
       const res = await withMiddlewares(req, connInfo, inner);
-      if (originalMethod === "HEAD") {
+      // Internally, HEAD is handled in the same way as GET if not overridden.
+      if (req.method === "HEAD") {
         res.body?.cancel();
         return new Response(null, {
           headers: res.headers,
@@ -827,19 +829,4 @@ es.addEventListener("message", function listener(e) {
     location.reload();
   }
 });`;
-}
-
-/**
- * Clean the pathname in the given URL by removing all trailing slashes.
- *
- * Returns true if the pathname was changed.
- */
-export function cleanPathname(url: URL): boolean {
-  const pathname = url.pathname.replace(/\/+$/, "");
-  if (pathname === "") return false;
-  if (pathname !== url.pathname) {
-    url.pathname = pathname;
-    return true;
-  }
-  return false;
 }
