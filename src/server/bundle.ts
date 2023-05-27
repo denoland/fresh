@@ -1,7 +1,14 @@
 import { BuildOptions } from "https://deno.land/x/esbuild@v0.17.11/mod.js";
-import { BUILD_ID } from "./constants.ts";
-import { denoPlugin, esbuild, toFileUrl } from "./deps.ts";
+import {
+  denoPlugin,
+  esbuild,
+  esbuildTypes,
+  escape,
+  fromFileUrl,
+  toFileUrl,
+} from "./deps.ts";
 import { Island, Plugin } from "./types.ts";
+import { BUILD_ID } from "./build_id.ts";
 
 export interface JSXConfig {
   jsx: "react" | "react-jsx";
@@ -87,7 +94,6 @@ export class Bundler {
       : { minify: true };
     const bundle = await esbuild.build({
       bundle: true,
-      define: { __FRSH_BUILD_ID: `"${BUILD_ID}"` },
       entryPoints,
       format: "esm",
       metafile: true,
@@ -98,7 +104,10 @@ export class Bundler {
       absWorkingDir,
       outfile: "",
       platform: "neutral",
-      plugins: [denoPlugin({ importMapURL: this.#importMapURL })],
+      plugins: [
+        buildIdPlugin(BUILD_ID),
+        denoPlugin({ importMapURL: this.#importMapURL }),
+      ],
       sourcemap: this.#dev ? "linked" : false,
       splitting: true,
       target: ["chrome99", "firefox99", "safari15"],
@@ -148,4 +157,19 @@ export class Bundler {
   // getPreloads(path: string): string[] {
   //   return this.#preloads.get(path) ?? [];
   // }
+}
+
+function buildIdPlugin(buildId: string): esbuildTypes.Plugin {
+  const file = import.meta.resolve("../runtime/build_id.ts");
+  const url = new URL(file);
+  const path = fromFileUrl(url);
+  return {
+    name: "fresh-build-id",
+    setup(build) {
+      build.onLoad(
+        { filter: new RegExp(escape(path)), namespace: "file" },
+        () => ({ contents: `export const BUILD_ID = "${buildId}";` }),
+      );
+    },
+  };
 }
