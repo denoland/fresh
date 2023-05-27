@@ -4,6 +4,7 @@ import {
   fromFileUrl,
   gte,
   join,
+  relative,
   toFileUrl,
   walk,
 } from "./deps.ts";
@@ -91,6 +92,31 @@ export async function collect(directory: string): Promise<Manifest> {
   return { routes, islands };
 }
 
+async function findDenoConfig(directory: string) {
+  let dir = directory;
+  while (true) {
+    const path = join(dir, "deno.json");
+    try {
+      await Deno.stat(path);
+      break;
+    } catch (err) {
+      if (!(err instanceof Deno.errors.NotFound)) {
+        throw err;
+      }
+      const parent = dirname(dir);
+      if (parent === dir) {
+        error(
+          `Could not find a deno.json file in the current directory or any parent directory.`,
+        );
+      }
+      dir = parent;
+    }
+  }
+
+  // convert into import path, would be cool if there is a stdlib function
+  return `${relative(directory, dir).replace(/\\/g, "/") || "."}/deno.json`;
+}
+
 export async function generate(directory: string, manifest: Manifest) {
   const { routes, islands } = manifest;
 
@@ -98,7 +124,7 @@ export async function generate(directory: string, manifest: Manifest) {
 // This file SHOULD be checked into source version control.
 // This file is automatically updated during development when running \`dev.ts\`.
 
-import config from "./deno.json" assert { type: "json" };
+import config from "${await findDenoConfig(directory)}" assert { type: "json" };
 ${
     routes.map((file, i) => `import * as $${i} from "./routes${file}";`).join(
       "\n",
