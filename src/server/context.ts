@@ -55,6 +55,7 @@ interface StaticFile {
 export class ServerContext {
   #dev: boolean;
   #routes: Route[];
+  #staticRoutes: StaticFile[];
   #islands: Island[];
   #staticFiles: StaticFile[];
   #bundler: Bundler;
@@ -67,6 +68,7 @@ export class ServerContext {
 
   constructor(
     routes: Route[],
+    staticRoutes: StaticFile[],
     islands: Island[],
     staticFiles: StaticFile[],
     renderfn: RenderFunction,
@@ -79,6 +81,7 @@ export class ServerContext {
     jsxConfig: JSXConfig,
   ) {
     this.#routes = routes;
+    this.#staticRoutes = staticRoutes;
     this.#islands = islands;
     this.#staticFiles = staticFiles;
     this.#renderFn = renderfn;
@@ -137,9 +140,42 @@ export class ServerContext {
     const routes: Route[] = [];
     const islands: Island[] = [];
     const middlewares: MiddlewareRoute[] = [];
+    const encoder = new TextEncoder();
     let app: AppModule = DEFAULT_APP;
     let notFound: UnknownPage = DEFAULT_NOT_FOUND;
     let error: ErrorPage = DEFAULT_ERROR;
+    const staticRoutes: StaticFile[] = [];
+    for (const [self, staticPath] of Object.entries(manifest.staticRoutes ?? {})) {
+      const url = new URL(self, baseUrl).href;
+      // console.log('static route', self, staticPath, url)
+      if (!url.startsWith(baseUrl + "staticRoutes")) {
+        throw new TypeError("Page is not a child of the basepath.");
+      }
+      const path = url.substring(baseUrl.length - 1);
+      const fileUrl = new URL(staticPath, baseUrl)
+      // const localUrl = toFileUrl(url)
+      const stat = await Deno.stat(fileUrl);
+      const contentType = typeByExtension(extname(url)) ??
+          "application/octet-stream";
+      const etag = await crypto.subtle.digest(
+        "SHA-1",
+        encoder.encode(BUILD_ID + self),
+      ).then((hash) =>
+        Array.from(new Uint8Array(hash))
+          .map((byte) => byte.toString(16).padStart(2, "0"))
+          .join("")
+      );
+      const staticRoute = {
+        localUrl: fileUrl,
+        path,
+        size: stat.size,
+        contentType,
+        etag,
+      };
+      console.log('static route1', staticRoute)
+      staticRoutes.push(staticRoute);
+    }
+
     for (const [self, module] of Object.entries(manifest.routes)) {
       const url = new URL(self, baseUrl).href;
       if (!url.startsWith(baseUrl + "routes")) {
@@ -254,7 +290,7 @@ export class ServerContext {
         includeDirs: false,
         followSymlinks: false,
       });
-      const encoder = new TextEncoder();
+      // const encoder = new TextEncoder();
       for await (const entry of entires) {
         const localUrl = toFileUrl(entry.path);
         const path = localUrl.href.substring(staticFolder.href.length);
@@ -276,6 +312,7 @@ export class ServerContext {
           contentType,
           etag,
         };
+        console.log(staticFile)
         staticFiles.push(staticFile);
       }
     } catch (err) {
@@ -288,6 +325,7 @@ export class ServerContext {
 
     return new ServerContext(
       routes,
+      staticRoutes,
       islands,
       staticFiles,
       opts.render ?? DEFAULT_RENDER_FN,
@@ -465,6 +503,19 @@ export class ServerContext {
           etag,
         ),
       };
+    }
+
+    for (
+      const { localUrl, path, size, contentType, etag } of this.#staticRoutes
+    ) {
+      const route = sanitizePathToRegex(path);
+      routes[`GET@${route}`] = this.#staticFileHandler(
+        localUrl,
+        size,
+        contentType,
+        etag,
+      );
+      console.log(routes)
     }
 
     const genRender = <Data = undefined>(

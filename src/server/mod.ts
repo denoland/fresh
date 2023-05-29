@@ -45,6 +45,7 @@ export interface Manifest {
     | ErrorPageModule
     | UnknownPageModule
   >;
+  staticRoutes: Record<string, string>;
   islands: Record<string, IslandModule>;
   baseUrl: string;
   config?: DenoConfig;
