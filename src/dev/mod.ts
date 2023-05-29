@@ -40,11 +40,6 @@ export async function collect(directory: string): Promise<Manifest> {
   const routes = [];
   try {
     const routesUrl = toFileUrl(routesDir);
-    // TODO(lucacasonato): remove the extranious Deno.readDir when
-    // https://github.com/denoland/deno_std/issues/1310 is fixed.
-    for await (const _ of Deno.readDir(routesDir)) {
-      // do nothing
-    }
     const routesFolder = walk(routesDir, {
       includeDirs: false,
       includeFiles: true,
@@ -59,7 +54,7 @@ export async function collect(directory: string): Promise<Manifest> {
       }
     }
   } catch (err) {
-    if (err instanceof Deno.errors.NotFound) {
+    if (err.cause instanceof Deno.errors.NotFound) {
       // Do nothing.
     } else {
       throw err;
