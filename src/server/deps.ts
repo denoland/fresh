@@ -16,6 +16,7 @@ export {
   typeByExtension,
 } from "https://deno.land/std@0.189.0/media_types/mod.ts";
 export { toHashString } from "https://deno.land/std@0.189.0/crypto/to_hash_string.ts";
+export { escape } from "https://deno.land/std@0.189.0/regexp/escape.ts";
 
 // -- esbuild --
 // @deno-types="https://deno.land/x/esbuild@v0.17.11/mod.d.ts"

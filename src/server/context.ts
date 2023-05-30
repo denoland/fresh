@@ -12,7 +12,8 @@ import { h } from "preact";
 import * as router from "./router.ts";
 import { Manifest } from "./mod.ts";
 import { Bundler, JSXConfig } from "./bundle.ts";
-import { ALIVE_URL, BUILD_ID, JS_PREFIX, REFRESH_JS_URL } from "./constants.ts";
+import { ALIVE_URL, JS_PREFIX, REFRESH_JS_URL } from "./constants.ts";
+import { BUILD_ID } from "./build_id.ts";
 import DefaultErrorHandler from "./default_error_page.ts";
 import {
   AppModule,
@@ -160,10 +161,24 @@ export class ServerContext {
         let { handler } = module as RouteModule;
         handler ??= {};
         if (
-          component &&
-          typeof handler === "object" && handler.GET === undefined
+          component && typeof handler === "object" && handler.GET === undefined
         ) {
           handler.GET = (_req, { render }) => render();
+        }
+        if (
+          typeof handler === "object" && handler.GET !== undefined &&
+          handler.HEAD === undefined
+        ) {
+          const GET = handler.GET;
+          handler.HEAD = async (req, ctx) => {
+            const resp = await GET(req, ctx);
+            resp.body?.cancel();
+            return new Response(null, {
+              headers: resp.headers,
+              status: resp.status,
+              statusText: resp.statusText,
+            });
+          };
         }
         const route: Route = {
           pattern,
@@ -327,17 +342,7 @@ export class ServerContext {
         });
       }
 
-      const res = await withMiddlewares(req, connInfo, inner);
-      // Internally, HEAD is handled in the same way as GET if not overridden.
-      if (req.method === "HEAD") {
-        res.body?.cancel();
-        return new Response(null, {
-          headers: res.headers,
-          status: res.status,
-          statusText: res.statusText,
-        });
-      }
-      return res;
+      return await withMiddlewares(req, connInfo, inner);
     };
   }
 
@@ -458,7 +463,12 @@ export class ServerContext {
     ) {
       const route = sanitizePathToRegex(path);
       staticRoutes[route] = {
-        "GET": this.#staticFileHandler(
+        "HEAD": this.#staticFileHeadHandler(
+          size,
+          contentType,
+          etag,
+        ),
+        "GET": this.#staticFileGetHandler(
           localUrl,
           size,
           contentType,
@@ -604,7 +614,43 @@ export class ServerContext {
     return { internalRoutes, staticRoutes, routes, otherHandler, errorHandler };
   }
 
-  #staticFileHandler(
+  #staticFileHeadHandler(
+    size: number,
+    contentType: string,
+    etag: string,
+  ): router.MatchHandler {
+    return (req: Request) => {
+      const url = new URL(req.url);
+      const key = url.searchParams.get(ASSET_CACHE_BUST_KEY);
+      if (key !== null && BUILD_ID !== key) {
+        url.searchParams.delete(ASSET_CACHE_BUST_KEY);
+        const location = url.pathname + url.search;
+        return new Response(null, {
+          status: 307,
+          headers: {
+            location,
+          },
+        });
+      }
+      const headers = new Headers({
+        "content-type": contentType,
+        etag,
+        vary: "If-None-Match",
+      });
+      if (key !== null) {
+        headers.set("Cache-Control", "public, max-age=31536000, immutable");
+      }
+      const ifNoneMatch = req.headers.get("if-none-match");
+      if (ifNoneMatch === etag || ifNoneMatch === "W/" + etag) {
+        return new Response(null, { status: 304, headers });
+      } else {
+        headers.set("content-length", String(size));
+        return new Response(null, { status: 200, headers });
+      }
+    };
+  }
+
+  #staticFileGetHandler(
     localUrl: URL,
     size: number,
     contentType: string,
