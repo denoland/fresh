@@ -624,10 +624,9 @@ export class ServerContext {
       if (key !== null && BUILD_ID !== key) {
         url.searchParams.delete(ASSET_CACHE_BUST_KEY);
         const location = url.pathname + url.search;
-        return new Response("", {
+        return new Response(null, {
           status: 307,
           headers: {
-            "content-type": "text/plain",
             location,
           },
         });
