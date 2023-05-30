@@ -405,71 +405,65 @@ Deno.test({
     // Preparation
     const tmpDirName = await Deno.makeTempDir();
 
-    await t.step("execute init command", async () => {
-      await Deno.mkdir(path.join(tmpDirName, "subdirectory"));
+    await Deno.mkdir(path.join(tmpDirName, "subdirectory"));
 
-      const cliProcess = new Deno.Command(Deno.execPath(), {
-        args: [
-          "run",
-          "-A",
-          path.join(Deno.cwd(), "init.ts"),
-          "subdirectory/subsubdirectory",
-        ],
-        cwd: tmpDirName,
-        stdin: "null",
-        stdout: "piped",
-        stderr: "piped",
-      });
-      const { code } = await cliProcess.output();
-      assertEquals(code, 0);
+    const cliProcess = new Deno.Command(Deno.execPath(), {
+      args: [
+        "run",
+        "-A",
+        path.join(Deno.cwd(), "init.ts"),
+        "subdirectory/subsubdirectory",
+      ],
+      cwd: tmpDirName,
+      stdin: "null",
+      stdout: "piped",
+      stderr: "inherit",
     });
 
-    await t.step(
-      "move deno.json and import_map.json one level up",
-      async () => {
-        await Deno.rename(
-          path.join(tmpDirName, "subdirectory", "subsubdirectory", "deno.json"),
-          path.join(tmpDirName, "deno.json"),
-        );
-        await Deno.rename(
-          path.join(
-            tmpDirName,
-            "subdirectory",
-            "subsubdirectory",
-            "import_map.json",
-          ),
-          path.join(tmpDirName, "import_map.json"),
-        );
-      },
+    await cliProcess.output();
+
+    // "move deno.json and import_map.json one level up"
+    await Deno.rename(
+      path.join(tmpDirName, "subdirectory", "subsubdirectory", "deno.json"),
+      path.join(tmpDirName, "deno.json"),
+    );
+    await Deno.rename(
+      path.join(
+        tmpDirName,
+        "subdirectory",
+        "subsubdirectory",
+        "import_map.json",
+      ),
+      path.join(tmpDirName, "import_map.json"),
     );
 
-    await t.step("check generated files", async () => {
-      const targetFileTree: FileTree[] = [
-        {
-          "type": "directory",
-          "name": tmpDirName,
-          "contents": [
-            { "type": "file", "name": "deno.json" },
-            { "type": "file", "name": "import_map.json" },
-            {
-              "type": "directory",
-              "name": "subdirectory",
-              contents: [
-                {
-                  "type": "directory",
-                  "name": "subsubdirectory",
-                  "contents": [
-                    { "type": "file", "name": "main.ts" },
-                    { "type": "file", "name": "dev.ts" },
-                    { "type": "file", "name": "fresh.gen.ts" },
-                  ],
-                },
-              ],
-            },
-          ],
-        },
-      ];
+    const targetFileTree: FileTree[] = [
+      {
+        "type": "directory",
+        "name": tmpDirName,
+        "contents": [
+          { "type": "file", "name": "deno.json" },
+          { "type": "file", "name": "import_map.json" },
+          {
+            "type": "directory",
+            "name": "subdirectory",
+            contents: [
+              {
+                "type": "directory",
+                "name": "subsubdirectory",
+                "contents": [
+                  { "type": "file", "name": "main.ts" },
+                  { "type": "file", "name": "dev.ts" },
+                  { "type": "file", "name": "fresh.gen.ts" },
+                ],
+              },
+            ],
+          },
+        ],
+      },
+    ];
 
+    await t.step("check generated files", async () => {
       await assertFileExistence(targetFileTree);
     });
 
@@ -494,9 +488,8 @@ Deno.test({
           break;
         }
       }
-      if (!started) {
-        throw new Error("Server didn't start up");
-      }
+
+      assert(started, "Server didn't start up");
 
       await delay(100);
 
