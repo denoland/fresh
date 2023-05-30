@@ -1,7 +1,7 @@
 import { createHandler } from "$fresh/server.ts";
 import manifest from "../fresh.gen.ts";
 import { superdeno } from "superdeno/mod.ts";
-import { assertEquals } from "std/testing/asserts.ts";
+import { assertEquals } from "$std/testing/asserts.ts";
 import { type RequestHandlerLike } from "superdeno/src/types.ts";
 import { Document, DOMParser } from "deno_dom/deno-dom-wasm.ts";
 
