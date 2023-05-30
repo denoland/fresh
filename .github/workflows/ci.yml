@@ -82,9 +82,9 @@ jobs:
         run: deno check main.ts dev.ts
         working-directory: www/
 
-      - name: Type check examples/counter
+      - name: Type check demo
         run: deno check --remote main.ts dev.ts
-        working-directory: examples/counter
+        working-directory: demo
 
       - name: Type check tests/fixture
         run: deno check main.ts dev.ts
