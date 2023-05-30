@@ -40,7 +40,8 @@ import * as $$1 from "./islands/ReturningNull.tsx";
 import * as $$2 from "./islands/RootFragment.tsx";
 import * as $$3 from "./islands/RootFragmentWithConditionalFirst.tsx";
 import * as $$4 from "./islands/Test.tsx";
-import * as $$5 from "./islands/kebab-case-counter-test.tsx";
+import * as $$5 from "./islands/folder/Counter.tsx";
+import * as $$6 from "./islands/kebab-case-counter-test.tsx";
 
 const manifest = {
   routes: {
@@ -83,7 +84,8 @@ const manifest = {
     "./islands/RootFragment.tsx": $$2,
     "./islands/RootFragmentWithConditionalFirst.tsx": $$3,
     "./islands/Test.tsx": $$4,
-    "./islands/kebab-case-counter-test.tsx": $$5,
+    "./islands/folder/Counter.tsx": $$5,
+    "./islands/kebab-case-counter-test.tsx": $$6,
   },
   baseUrl: import.meta.url,
   config,
