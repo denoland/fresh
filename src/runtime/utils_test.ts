@@ -48,12 +48,12 @@ Deno.test("assetSrcSet", () => {
   // test with ( syntax
   assertEquals(
     assetSrcSet("/img.png ( 140,0w)"),
-    `/img.png ( 140,0w)`,
+    "/img.png ( 140,0w)",
   );
 
   // test with invalid parts
   assertEquals(
     assetSrcSet("/img.png,, /img-s.png 300w"),
-    `/img.png,, /img-s.png 300w`,
+    "/img.png,, /img-s.png 300w",
   );
 });
