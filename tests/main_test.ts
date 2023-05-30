@@ -9,6 +9,7 @@ import {
 } from "./deps.ts";
 import manifest from "./fixture/fresh.gen.ts";
 import options from "./fixture/options.ts";
+import { BUILD_ID } from "../src/server/build_id.ts";
 
 const ctx = await ServerContext.fromManifest(manifest, options);
 const handler = ctx.handler();
@@ -64,6 +65,34 @@ Deno.test("/[name] page prerender", async () => {
   assertEquals(resp.headers.get("content-type"), "text/html; charset=utf-8");
   const body = await resp.text();
   assertStringIncludes(body, "<div>Hello bar</div>");
+});
+
+Deno.test("/intercept - HEAD", async () => {
+  const req = new Request("https://fresh.deno.dev/api/head_override", {
+    method: "HEAD",
+  });
+  const resp = await router(req);
+  assert(resp);
+  assertEquals(resp.status, Status.NoContent);
+  assertEquals(resp.body, null);
+  assertEquals(
+    resp.headers.get("content-type"),
+    "text/html; charset=utf-8",
+  );
+});
+
+Deno.test("/intercept - HEAD fallback", async () => {
+  const req = new Request("https://fresh.deno.dev/api/get_only", {
+    method: "HEAD",
+  });
+  const resp = await router(req);
+  assert(resp);
+  assertEquals(resp.status, Status.OK);
+  assertEquals(resp.body, null);
+  assertEquals(
+    resp.headers.get("content-type"),
+    "application/json; charset=utf-8",
+  );
 });
 
 Deno.test("/intercept - GET html", async () => {
@@ -171,7 +200,7 @@ Deno.test("redirect /pages/fresh/ to /pages/fresh", async () => {
   assertEquals(resp.status, Status.TemporaryRedirect);
   assertEquals(
     resp.headers.get("location"),
-    "https://fresh.deno.dev/pages/fresh",
+    "/pages/fresh",
   );
 });
 
@@ -183,7 +212,7 @@ Deno.test("redirect /pages/////fresh///// to /pages/////fresh", async () => {
   assertEquals(resp.status, Status.TemporaryRedirect);
   assertEquals(
     resp.headers.get("location"),
-    "https://fresh.deno.dev/pages/////fresh",
+    "/pages/////fresh",
   );
 });
 
@@ -195,7 +224,7 @@ Deno.test("redirect /pages/////fresh/ to /pages/////fresh", async () => {
   assertEquals(resp.status, Status.TemporaryRedirect);
   assertEquals(
     resp.headers.get("location"),
-    "https://fresh.deno.dev/pages/////fresh",
+    "/pages/////fresh",
   );
 });
 
@@ -317,7 +346,7 @@ Deno.test("static file - by 'hashed' path", async () => {
   const body = await resp.text();
   const imgFilePath = body.match(/img id="img-with-hashing" src="(.*?)"/)?.[1];
   assert(imgFilePath);
-  assert(imgFilePath.includes(`?__frsh_c=${globalThis.__FRSH_BUILD_ID}`));
+  assert(imgFilePath.includes(`?__frsh_c=${BUILD_ID}`));
 
   // check the static file is served corectly under its cacheable route
   const resp2 = await router(
@@ -345,20 +374,20 @@ Deno.test("static file - by 'hashed' path", async () => {
   )?.[1];
   assert(imgFilePathWithNoCache);
   assert(
-    !imgFilePathWithNoCache.includes(globalThis.__FRSH_BUILD_ID),
+    !imgFilePathWithNoCache.includes(BUILD_ID),
     "img-without-hashing",
   );
 
   // ensure asset hook is applied on img within an island
   const imgInIsland = body.match(/img id="img-in-island" src="(.*?)"/)?.[1];
   assert(imgInIsland);
-  assert(imgInIsland.includes(globalThis.__FRSH_BUILD_ID), "img-in-island");
+  assert(imgInIsland.includes(BUILD_ID), "img-in-island");
 
   // verify that the asset hook is applied to the srcset
   const imgInIslandSrcSet = body.match(/srcset="(.*?)"/)?.[1];
   assert(imgInIslandSrcSet);
   assert(
-    imgInIslandSrcSet.includes(globalThis.__FRSH_BUILD_ID),
+    imgInIslandSrcSet.includes(BUILD_ID),
     "img-in-island-srcset",
   );
 
@@ -366,7 +395,7 @@ Deno.test("static file - by 'hashed' path", async () => {
   const imgMissing = body.match(/img id="img-missing" src="(.*?)"/)?.[1];
   assert(imgMissing);
   assert(
-    !imgMissing.includes(globalThis.__FRSH_BUILD_ID),
+    !imgMissing.includes(BUILD_ID),
     "Applying hash on unknown asset",
   );
 });
