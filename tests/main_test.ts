@@ -67,7 +67,7 @@ Deno.test("/[name] page prerender", async () => {
   assertStringIncludes(body, "<div>Hello bar</div>");
 });
 
-Deno.test("/intercept - HEAD", async () => {
+Deno.test("/api/head_override - HEAD", async () => {
   const req = new Request("https://fresh.deno.dev/api/head_override", {
     method: "HEAD",
   });
@@ -81,7 +81,7 @@ Deno.test("/intercept - HEAD", async () => {
   );
 });
 
-Deno.test("/intercept - HEAD fallback", async () => {
+Deno.test("/api/get_only - HEAD fallback", async () => {
   const req = new Request("https://fresh.deno.dev/api/get_only", {
     method: "HEAD",
   });
