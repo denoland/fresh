@@ -3,7 +3,8 @@ description: |
   By creating an application handler, you can write tests.
 ---
 
-We can be create an application handler from `createHandler()` and use develop for testing HTTP.
+We can be create an application handler from `createHandler()` and use develop
+for testing HTTP.
 
 An example of testing three URLs and two HTTP request methods is as follows
 
