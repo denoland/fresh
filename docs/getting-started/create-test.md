@@ -107,7 +107,7 @@ Deno.test("HTTP assert test.", async (t) => {
 
 ### import map
 
-```json
+```jsonc
 // import_map.json
 {
   "imports": {
