@@ -9,6 +9,7 @@ export {
   assertEquals,
   assertStringIncludes,
 } from "https://deno.land/std@0.189.0/testing/asserts.ts";
+export { assertSnapshot } from "https://deno.land/std@0.189.0/testing/snapshot.ts";
 export {
   TextLineStream,
 } from "https://deno.land/std@0.189.0/streams/text_line_stream.ts";
