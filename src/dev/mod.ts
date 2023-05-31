@@ -1,12 +1,4 @@
-import {
-  dirname,
-  extname,
-  fromFileUrl,
-  gte,
-  join,
-  toFileUrl,
-  walk,
-} from "./deps.ts";
+import { dirname, fromFileUrl, gte, join, toFileUrl, walk } from "./deps.ts";
 import { error } from "./error.ts";
 
 const MIN_DENO_VERSION = "1.25.0";
@@ -28,70 +20,34 @@ export function ensureMinDenoVersion() {
   }
 }
 
+async function collectDir(dir: string): Promise<string[]> {
+  const dirUrl = toFileUrl(dir);
+  const paths = [];
+  const routesFolder = walk(dir, {
+    includeDirs: false,
+    includeFiles: true,
+    exts: ["tsx", "jsx", "ts", "js"],
+  });
+  for await (const entry of routesFolder) {
+    const path = toFileUrl(entry.path).href.substring(
+      dirUrl.href.length,
+    );
+    paths.push(path);
+  }
+  paths.sort();
+  return paths;
+}
+
 interface Manifest {
   routes: string[];
   islands: string[];
 }
 
 export async function collect(directory: string): Promise<Manifest> {
-  const routesDir = join(directory, "./routes");
-  const islandsDir = join(directory, "./islands");
-
-  const routes = [];
-  try {
-    const routesUrl = toFileUrl(routesDir);
-    // TODO(lucacasonato): remove the extranious Deno.readDir when
-    // https://github.com/denoland/deno_std/issues/1310 is fixed.
-    for await (const _ of Deno.readDir(routesDir)) {
-      // do nothing
-    }
-    const routesFolder = walk(routesDir, {
-      includeDirs: false,
-      includeFiles: true,
-      exts: ["tsx", "jsx", "ts", "js"],
-    });
-    for await (const entry of routesFolder) {
-      if (entry.isFile) {
-        const file = toFileUrl(entry.path).href.substring(
-          routesUrl.href.length,
-        );
-        routes.push(file);
-      }
-    }
-  } catch (err) {
-    if (err instanceof Deno.errors.NotFound) {
-      // Do nothing.
-    } else {
-      throw err;
-    }
-  }
-  routes.sort();
-
-  const islands = [];
-  try {
-    const islandsUrl = toFileUrl(islandsDir);
-    for await (const entry of Deno.readDir(islandsDir)) {
-      if (entry.isDirectory) {
-        error(
-          `Found subdirectory '${entry.name}' in islands/. The islands/ folder must not contain any subdirectories.`,
-        );
-      }
-      if (entry.isFile) {
-        const ext = extname(entry.name);
-        if (![".tsx", ".jsx", ".ts", ".js"].includes(ext)) continue;
-        const path = join(islandsDir, entry.name);
-        const file = toFileUrl(path).href.substring(islandsUrl.href.length);
-        islands.push(file);
-      }
-    }
-  } catch (err) {
-    if (err instanceof Deno.errors.NotFound) {
-      // Do nothing.
-    } else {
-      throw err;
-    }
-  }
-  islands.sort();
+  const [routes, islands] = await Promise.all([
+    collectDir(join(directory, "./routes")),
+    collectDir(join(directory, "./islands")),
+  ]);
 
   return { routes, islands };
 }
@@ -134,24 +90,23 @@ const manifest = {
 export default manifest;
 `;
 
-  const proc = Deno.run({
-    cmd: [Deno.execPath(), "fmt", "-"],
+  const proc = new Deno.Command(Deno.execPath(), {
+    args: ["fmt", "-"],
     stdin: "piped",
     stdout: "piped",
     stderr: "null",
-  });
+  }).spawn();
+
   const raw = new ReadableStream({
     start(controller) {
       controller.enqueue(new TextEncoder().encode(output));
       controller.close();
     },
   });
-  await raw.pipeTo(proc.stdin.writable);
-  const out = await proc.output();
-  await proc.status();
-  proc.close();
+  await raw.pipeTo(proc.stdin);
+  const { stdout } = await proc.output();
 
-  const manifestStr = new TextDecoder().decode(out);
+  const manifestStr = new TextDecoder().decode(stdout);
   const manifestPath = join(directory, "./fresh.gen.ts");
 
   await Deno.writeTextFile(manifestPath, manifestStr);

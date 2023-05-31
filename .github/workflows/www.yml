@@ -11,6 +11,7 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
+    timeout-minutes: 5
 
     steps:
       - name: Checkout repo
@@ -28,5 +29,9 @@ jobs:
         working-directory: www/
 
       - name: Type check website
-        run: deno check --remote main.ts dev.ts
+        run: deno check main.ts dev.ts
+        working-directory: www/
+
+      - name: Run tests
+        run: deno test -A
         working-directory: www/
