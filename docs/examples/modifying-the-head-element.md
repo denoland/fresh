@@ -1,10 +1,10 @@
-# Modifying Web Page Metadata via the `<Head />` Element
+# Modifying the `<head>` Element
 
-We can use the `<Head />` component in `/runtime.ts` to modify the `<head />`
-element. For example by adding changes to the inner components of `<Head />` we
-can add new element to the `<head />` component of the display page.
+We can use the `<Head />` component in `$fresh/runtime.ts` to modify the
+`<head>` element. By adding changes to the inner components of `<Head />` we can
+add a new components to the `<head />` element of the display page.
 
-## Common component for modifying `<head />`
+## Common components for modifying `<head>`
 
 - `<title>` Setting the document title
 - `<meta>` Specifying metadata

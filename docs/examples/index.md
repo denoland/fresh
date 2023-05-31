@@ -8,4 +8,4 @@ that you may like in your Fresh project. If there's a specific example you'd
 like to see here, please open
 [a GitHub discussion](https://github.com/denoland/fresh/discussions/new?category=ideas).
 
-- [Modifying Web Page Metadata via the `<Head />`Element](modifying-the-head-element.md)
+- [Modifying Web Page Metadata via the `<head>` Element](modifying-the-head-element.md)
