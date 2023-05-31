@@ -8,6 +8,16 @@ interface Signal<T> {
   value: T;
 }
 
+function b64decode(b64: string): Uint8Array {
+  const binString = atob(b64);
+  const size = binString.length;
+  const bytes = new Uint8Array(size);
+  for (let i = 0; i < size; i++) {
+    bytes[i] = binString.charCodeAt(i);
+  }
+  return bytes;
+}
+
 export function deserialize(
   str: string,
   signal?: <T>(a: T) => Signal<T>,
@@ -18,6 +28,9 @@ export function deserialize(
       const v: any = value;
       if (v[KEY] === "s") {
         return signal!(v.v);
+      }
+      if (v[KEY] === "u8a") {
+        return b64decode(v.d);
       }
       if (v[KEY] === "l") {
         const val = v.v;
