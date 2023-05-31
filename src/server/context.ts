@@ -28,6 +28,7 @@ import {
   MiddlewareRoute,
   Plugin,
   RenderFunction,
+  RenderOptions,
   Route,
   RouteModule,
   UnknownPage,
@@ -490,7 +491,7 @@ export class ServerContext {
         params: Record<string, string>,
         error?: unknown,
       ) => {
-        return async (data?: Data) => {
+        return async (data?: Data, options?: RenderOptions) => {
           if (route.component === undefined) {
             throw new Error("This page does not have a component to render.");
           }
@@ -538,7 +539,16 @@ export class ServerContext {
               headers["content-security-policy"] = directive;
             }
           }
-          return new Response(body, { status, headers });
+          return new Response(body, {
+            status: options?.status ?? status,
+            statusText: options?.statusText,
+            headers: options?.headers
+              ? {
+                ...headers,
+                ...options.headers,
+              }
+              : headers,
+          });
         };
       };
     };
