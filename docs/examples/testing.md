@@ -65,80 +65,43 @@ const CONN_INFO: ConnInfo = {
 };
 
 Deno.test("HTTP assert test.", async (t) => {
+  const handler = await createHandler(manifest);
+  
   await t.step("#1 GET /", async () => {
-    const handler = await createHandler(manifest);
     const response = await handler(new Request("http://127.0.0.1/"), CONN_INFO);
-
     assertEquals(response.status, 200);
   });
 
   await t.step("#2 POST /", async () => {
-    const handler = await createHandler(manifest);
-
     const formData = new FormData();
     formData.append("text", "Deno!");
-
     const request = new Request("http://127.0.0.1/", {
       method: "POST",
       body: formData,
     });
-
     const response = await handler(request, CONN_INFO);
-
     assertEquals(response.status, 303);
   });
 
-  await t.step("#3 GET /foo", async () => {
-    const handler = await createHandler(manifest);
-
+  await t.step("#3 GET /foo", async () => {    
     const request = new Request("http://127.0.0.1/foo");
-
     const response = await handler(request, CONN_INFO);
     const text = await response.text();
-
     assertExists(text.match(/<div>Hello Foo!<\/div>/));
   });
-
-  await t.step("#4 GET /foo/bar", async () => {
-    const handler = await createHandler(manifest);
-
-    const request = new Request("http://127.0.0.1/foo/bar");
-
-    const response = await handler(request, CONN_INFO);
-
-    assertEquals(response.status, 404);
-  });
 });
-```
-
-### import map
-
-```jsonc
-// import_map.json
-{
-  "imports": {
-    "$fresh/": "../../",
-    "preact": "https://esm.sh/preact@10.13.1",
-    "preact/": "https://esm.sh/preact@10.13.1/",
-    "preact-render-to-string": "https://esm.sh/*preact-render-to-string@5.2.6",
-    "superdeno/": "https://deno.land/x/superdeno/",
-    "std/testing/": "https://deno.land/std@0.190.0/testing/",
-    "deno_dom/": "https://deno.land/x/deno_dom/"
-  }
-}
 ```
 
 ### Execution Example
 
 ```sh
 $ deno test --allow-read --allow-env --allow-net
-running 1 test from ./test/main_test.ts
+running 1 test from ./tests/main_test.ts
 HTTP assert test. ...
-  #1 GET / ... ok (87ms)
-  #2 POST / ... ok (79ms)
-  #3 GET /foo ... ok (78ms)
-  #4 GET /foo/bar ... ok (76ms)
-HTTP assert test. ... ok (358ms)
+  #1 GET / ... ok (31ms)
+  #2 POST / ... ok (35ms)
+  #3 GET /foo ... ok (12ms)
+HTTP assert test. ... ok (118ms)
 
-ok | 1 passed (4 steps) | 0 failed (535ms)
+ok | 1 passed (3 steps) | 0 failed (236ms)
 ```
