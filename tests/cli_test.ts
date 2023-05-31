@@ -1,3 +1,5 @@
+import * as path from "$std/path/mod.ts";
+import { assertNotMatch } from "https://deno.land/std@0.189.0/testing/asserts.ts";
 import { Status } from "../src/server/deps.ts";
 import {
   assert,
@@ -8,8 +10,6 @@ import {
   retry,
   TextLineStream,
 } from "./deps.ts";
-import * as path from "$std/path/mod.ts";
-import { assertNotMatch } from "https://deno.land/std@0.189.0/testing/asserts.ts";
 
 type FileTree = {
   type: "file";
@@ -397,4 +397,108 @@ Deno.test("fresh-init .", async function (t) {
     assertNotMatch(output, /Enter your project directory/);
     assertEquals(code, 0);
   });
+});
+
+Deno.test({
+  name: "fresh-init subdirectory",
+  async fn(t) {
+    // Preparation
+    const tmpDirName = await Deno.makeTempDir();
+
+    await Deno.mkdir(path.join(tmpDirName, "subdirectory"));
+
+    const cliProcess = new Deno.Command(Deno.execPath(), {
+      args: [
+        "run",
+        "-A",
+        path.join(Deno.cwd(), "init.ts"),
+        "subdirectory/subsubdirectory",
+      ],
+      cwd: tmpDirName,
+      stdin: "null",
+      stdout: "piped",
+      stderr: "inherit",
+    });
+
+    await cliProcess.output();
+
+    // "move deno.json and import_map.json one level up"
+    await Deno.rename(
+      path.join(tmpDirName, "subdirectory", "subsubdirectory", "deno.json"),
+      path.join(tmpDirName, "deno.json"),
+    );
+    await Deno.rename(
+      path.join(
+        tmpDirName,
+        "subdirectory",
+        "subsubdirectory",
+        "import_map.json",
+      ),
+      path.join(tmpDirName, "import_map.json"),
+    );
+
+    const targetFileTree: FileTree[] = [
+      {
+        "type": "directory",
+        "name": tmpDirName,
+        "contents": [
+          { "type": "file", "name": "deno.json" },
+          { "type": "file", "name": "import_map.json" },
+          {
+            "type": "directory",
+            "name": "subdirectory",
+            contents: [
+              {
+                "type": "directory",
+                "name": "subsubdirectory",
+                "contents": [
+                  { "type": "file", "name": "main.ts" },
+                  { "type": "file", "name": "dev.ts" },
+                  { "type": "file", "name": "fresh.gen.ts" },
+                ],
+              },
+            ],
+          },
+        ],
+      },
+    ];
+
+    await t.step("check generated files", async () => {
+      await assertFileExistence(targetFileTree);
+    });
+
+    await t.step("start up the server", async () => {
+      const serverProcess = new Deno.Command(Deno.execPath(), {
+        args: ["run", "-A", "--check", "subdirectory/subsubdirectory/dev.ts"],
+        stdin: "null",
+        stdout: "piped",
+        stderr: "inherit",
+        cwd: tmpDirName,
+      }).spawn();
+
+      const lines = serverProcess.stdout
+        .pipeThrough(new TextDecoderStream())
+        .pipeThrough(new TextLineStream());
+
+      let started = false;
+      for await (const line of lines) {
+        console.log(line);
+        if (line.includes("Listening on http://")) {
+          started = true;
+          break;
+        }
+      }
+
+      assert(started, "Server didn't start up");
+
+      await delay(100);
+
+      await lines.cancel();
+      serverProcess.kill("SIGTERM");
+      await delay(100);
+    });
+
+    await retry(() => Deno.remove(tmpDirName, { recursive: true }));
+  },
+  sanitizeResources: false,
 });
