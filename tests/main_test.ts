@@ -9,6 +9,7 @@ import {
 } from "./deps.ts";
 import manifest from "./fixture/fresh.gen.ts";
 import options from "./fixture/options.ts";
+import { BUILD_ID } from "../src/server/build_id.ts";
 
 const ctx = await ServerContext.fromManifest(manifest, options);
 const handler = ctx.handler();
@@ -38,7 +39,7 @@ Deno.test("/ page prerender", async () => {
   assertStringIncludes(body, "test.js");
   assertStringIncludes(body, "<p>Hello!</p>");
   assertStringIncludes(body, "<p>Viewing JIT render.</p>");
-  assertStringIncludes(body, `>[[{"message":"Hello!"}],[]]</script>`);
+  assertStringIncludes(body, `>{"v":[[{"message":"Hello!"}],[]]}</script>`);
   assertStringIncludes(
     body,
     `<meta name="description" content="Hello world!" />`,
@@ -66,7 +67,7 @@ Deno.test("/[name] page prerender", async () => {
   assertStringIncludes(body, "<div>Hello bar</div>");
 });
 
-Deno.test("/intercept - HEAD", async () => {
+Deno.test("/api/head_override - HEAD", async () => {
   const req = new Request("https://fresh.deno.dev/api/head_override", {
     method: "HEAD",
   });
@@ -80,7 +81,7 @@ Deno.test("/intercept - HEAD", async () => {
   );
 });
 
-Deno.test("/intercept - HEAD fallback", async () => {
+Deno.test("/api/get_only - HEAD fallback", async () => {
   const req = new Request("https://fresh.deno.dev/api/get_only", {
     method: "HEAD",
   });
@@ -145,6 +146,18 @@ Deno.test("/intercept_args - GET html", async () => {
   assertEquals(resp.status, Status.OK);
   const body = await resp.text();
   assertStringIncludes(body, "<div>intercepted</div>");
+});
+
+Deno.test("/status_overwrite", async () => {
+  const req = new Request("https://fresh.deno.dev/status_overwrite", {
+    headers: { "accept": "text/html" },
+  });
+  const resp = await router(req);
+  assert(resp);
+  assertEquals(resp.status, Status.Unauthorized);
+  assertEquals(resp.headers.get("x-some-header"), "foo");
+  const body = await resp.text();
+  assertStringIncludes(body, "<div>This is HTML</div>");
 });
 
 Deno.test("/api/get_only - NOTAMETHOD", async () => {
@@ -345,7 +358,7 @@ Deno.test("static file - by 'hashed' path", async () => {
   const body = await resp.text();
   const imgFilePath = body.match(/img id="img-with-hashing" src="(.*?)"/)?.[1];
   assert(imgFilePath);
-  assert(imgFilePath.includes(`?__frsh_c=${globalThis.__FRSH_BUILD_ID}`));
+  assert(imgFilePath.includes(`?__frsh_c=${BUILD_ID}`));
 
   // check the static file is served corectly under its cacheable route
   const resp2 = await router(
@@ -373,20 +386,20 @@ Deno.test("static file - by 'hashed' path", async () => {
   )?.[1];
   assert(imgFilePathWithNoCache);
   assert(
-    !imgFilePathWithNoCache.includes(globalThis.__FRSH_BUILD_ID),
+    !imgFilePathWithNoCache.includes(BUILD_ID),
     "img-without-hashing",
   );
 
   // ensure asset hook is applied on img within an island
   const imgInIsland = body.match(/img id="img-in-island" src="(.*?)"/)?.[1];
   assert(imgInIsland);
-  assert(imgInIsland.includes(globalThis.__FRSH_BUILD_ID), "img-in-island");
+  assert(imgInIsland.includes(BUILD_ID), "img-in-island");
 
   // verify that the asset hook is applied to the srcset
   const imgInIslandSrcSet = body.match(/srcset="(.*?)"/)?.[1];
   assert(imgInIslandSrcSet);
   assert(
-    imgInIslandSrcSet.includes(globalThis.__FRSH_BUILD_ID),
+    imgInIslandSrcSet.includes(BUILD_ID),
     "img-in-island-srcset",
   );
 
@@ -394,7 +407,7 @@ Deno.test("static file - by 'hashed' path", async () => {
   const imgMissing = body.match(/img id="img-missing" src="(.*?)"/)?.[1];
   assert(imgMissing);
   assert(
-    !imgMissing.includes(globalThis.__FRSH_BUILD_ID),
+    !imgMissing.includes(BUILD_ID),
     "Applying hash on unknown asset",
   );
 });
@@ -633,7 +646,7 @@ Deno.test("experimental Deno.serve", {
     assertStringIncludes(body, "test.js");
     assertStringIncludes(body, "<p>Hello!</p>");
     assertStringIncludes(body, "<p>Viewing JIT render.</p>");
-    assertStringIncludes(body, `>[[{"message":"Hello!"}],[]]</script>`);
+    assertStringIncludes(body, `>{"v":[[{"message":"Hello!"}],[]]}</script>`);
     assertStringIncludes(
       body,
       `<meta name="description" content="Hello world!" />`,

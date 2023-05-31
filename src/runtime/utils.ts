@@ -1,4 +1,5 @@
 import { VNode } from "preact";
+import { BUILD_ID } from "./build_id.ts";
 
 export const INTERNAL_PREFIX = "/_frsh";
 export const ASSET_CACHE_BUST_KEY = "__frsh_c";
@@ -20,7 +21,7 @@ export function asset(path: string) {
     ) {
       return path;
     }
-    url.searchParams.set(ASSET_CACHE_BUST_KEY, __FRSH_BUILD_ID);
+    url.searchParams.set(ASSET_CACHE_BUST_KEY, BUILD_ID);
     return url.pathname + url.search + url.hash;
   } catch (err) {
     console.warn(

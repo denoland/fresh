@@ -72,10 +72,16 @@ export interface RouteConfig {
   csp?: boolean;
 }
 
+// deno-lint-ignore no-empty-interface
+export interface RenderOptions extends ResponseInit {}
+
 export interface HandlerContext<Data = unknown, State = Record<string, unknown>>
   extends ConnInfo {
   params: Record<string, string>;
-  render: (data?: Data) => Response | Promise<Response>;
+  render: (
+    data?: Data,
+    options?: RenderOptions,
+  ) => Response | Promise<Response>;
   renderNotFound: () => Response | Promise<Response>;
   state: State;
 }

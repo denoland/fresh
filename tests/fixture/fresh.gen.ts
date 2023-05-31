@@ -34,13 +34,15 @@ import * as $27 from "./routes/not_found.ts";
 import * as $28 from "./routes/params.tsx";
 import * as $29 from "./routes/props/[id].tsx";
 import * as $30 from "./routes/static.tsx";
-import * as $31 from "./routes/wildcard.tsx";
+import * as $31 from "./routes/status_overwrite.tsx";
+import * as $32 from "./routes/wildcard.tsx";
 import * as $$0 from "./islands/Counter.tsx";
 import * as $$1 from "./islands/ReturningNull.tsx";
 import * as $$2 from "./islands/RootFragment.tsx";
 import * as $$3 from "./islands/RootFragmentWithConditionalFirst.tsx";
 import * as $$4 from "./islands/Test.tsx";
-import * as $$5 from "./islands/kebab-case-counter-test.tsx";
+import * as $$5 from "./islands/folder/Counter.tsx";
+import * as $$6 from "./islands/kebab-case-counter-test.tsx";
 
 const manifest = {
   routes: {
@@ -75,7 +77,8 @@ const manifest = {
     "./routes/params.tsx": $28,
     "./routes/props/[id].tsx": $29,
     "./routes/static.tsx": $30,
-    "./routes/wildcard.tsx": $31,
+    "./routes/status_overwrite.tsx": $31,
+    "./routes/wildcard.tsx": $32,
   },
   islands: {
     "./islands/Counter.tsx": $$0,
@@ -83,7 +86,8 @@ const manifest = {
     "./islands/RootFragment.tsx": $$2,
     "./islands/RootFragmentWithConditionalFirst.tsx": $$3,
     "./islands/Test.tsx": $$4,
-    "./islands/kebab-case-counter-test.tsx": $$5,
+    "./islands/folder/Counter.tsx": $$5,
+    "./islands/kebab-case-counter-test.tsx": $$6,
   },
   baseUrl: import.meta.url,
   config,

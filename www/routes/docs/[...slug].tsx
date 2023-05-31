@@ -1,4 +1,4 @@
-import { Head } from "$fresh/runtime.ts";
+import { asset, Head } from "$fresh/runtime.ts";
 import { Handlers, PageProps } from "$fresh/server.ts";
 import { frontMatter, gfm } from "../../utils/markdown.ts";
 
@@ -61,7 +61,7 @@ export default function DocsPage(props: PageProps<Data>) {
     <>
       <Head>
         <title>{props.data.page?.title ?? "Not Found"} | fresh docs</title>
-        <link rel="stylesheet" href={`/gfm.css?build=${__FRSH_BUILD_ID}`} />
+        <link rel="stylesheet" href={asset("/gfm.css")} />
         {description && <meta name="description" content={description} />}
       </Head>
       <div class="flex flex-col min-h-screen">

@@ -18,6 +18,7 @@ import { ContentSecurityPolicy } from "../runtime/csp.ts";
 import { bundleAssetUrl } from "./constants.ts";
 import { assetHashingHook } from "../runtime/utils.ts";
 import { htmlEscapeJsonString } from "./htmlescape.ts";
+import { serialize } from "./serializer.ts";
 
 export interface RenderOptions<Data> {
   route: Route<Data> | UnknownPage | ErrorPage;
@@ -203,7 +204,8 @@ export async function render<Data>(
 
   bodyHtml = bodyHtml as string;
 
-  const imports = opts.imports.map((url) => {
+  const imports: [string, string][] = [];
+  function addImport(path: string): string {
     const randomNonce = crypto.randomUUID().replace(/-/g, "");
     if (csp) {
       csp.directives.scriptSrc = [
@@ -211,76 +213,93 @@ export async function render<Data>(
         nonce(randomNonce),
       ];
     }
-    return [url, randomNonce] as const;
-  });
+    const url = bundleAssetUrl(path);
+    imports.push([url, randomNonce]);
+    return url;
+  }
+
+  for (const url of opts.imports) {
+    const randomNonce = crypto.randomUUID().replace(/-/g, "");
+    if (csp) {
+      csp.directives.scriptSrc = [
+        ...csp.directives.scriptSrc ?? [],
+        nonce(randomNonce),
+      ];
+    }
+    imports.push([url, randomNonce]);
+  }
 
   const state: [islands: unknown[], plugins: unknown[]] = [ISLAND_PROPS, []];
   const styleTags: PluginRenderStyleTag[] = [];
-
-  let script =
-    `const STATE_COMPONENT = document.getElementById("__FRSH_STATE");const STATE = JSON.parse(STATE_COMPONENT?.textContent ?? "[[],[]]");`;
+  const pluginScripts: [string, string, number][] = [];
 
   for (const [plugin, res] of renderResults) {
     for (const hydrate of res.scripts ?? []) {
       const i = state[1].push(hydrate.state) - 1;
-      const randomNonce = crypto.randomUUID().replace(/-/g, "");
-      if (csp) {
-        csp.directives.scriptSrc = [
-          ...csp.directives.scriptSrc ?? [],
-          nonce(randomNonce),
-        ];
-      }
-      const url = bundleAssetUrl(
-        `/plugin-${plugin.name}-${hydrate.entrypoint}.js`,
-      );
-      imports.push([url, randomNonce] as const);
-
-      script += `import p${i} from "${url}";p${i}(STATE[1][${i}]);`;
+      pluginScripts.push([plugin.name, hydrate.entrypoint, i]);
     }
     styleTags.splice(styleTags.length, 0, ...res.styles ?? []);
   }
 
+  // The inline script that will hydrate the page.
+  let script = "";
+
+  // Serialize the state into the <script id=__FRSH_STATE> tag and generate the
+  // inline script to deserialize it. This script starts by deserializing the
+  // state in the tag. This potentially requires importing @preact/signals.
+  if (state[0].length > 0 || state[1].length > 0) {
+    const res = serialize(state);
+    const escapedState = htmlEscapeJsonString(res.serialized);
+    bodyHtml +=
+      `<script id="__FRSH_STATE" type="application/json">${escapedState}</script>`;
+
+    if (res.requiresDeserializer) {
+      const url = addImport("/deserializer.js");
+      script += `import { deserialize } from "${url}";`;
+    }
+    if (res.hasSignals) {
+      const url = addImport("/signals.js");
+      script += `import { signal } from "${url}";`;
+    }
+    script += `const ST = document.getElementById("__FRSH_STATE").textContent;`;
+    script += `const STATE = `;
+    if (res.requiresDeserializer) {
+      if (res.hasSignals) {
+        script += `deserialize(ST, signal);`;
+      } else {
+        script += `deserialize(ST);`;
+      }
+    } else {
+      script += `JSON.parse(ST).v;`;
+    }
+  }
+
+  // Then it imports all plugin scripts and executes them (with their respective
+  // state).
+  for (const [pluginName, entrypoint, i] of pluginScripts) {
+    const url = addImport(`/plugin-${pluginName}-${entrypoint}.js`);
+    script += `import p${i} from "${url}";p${i}(STATE[1][${i}]);`;
+  }
+
+  // Finally, it loads all island scripts and hydrates the islands using the
+  // reviver from the "main" script.
   if (ENCOUNTERED_ISLANDS.size > 0) {
     // Load the main.js script
-    {
-      const randomNonce = crypto.randomUUID().replace(/-/g, "");
-      if (csp) {
-        csp.directives.scriptSrc = [
-          ...csp.directives.scriptSrc ?? [],
-          nonce(randomNonce),
-        ];
-      }
-      const url = bundleAssetUrl("/main.js");
-      imports.push([url, randomNonce] as const);
-    }
-
-    script += `import { revive } from "${bundleAssetUrl("/main.js")}";`;
+    const url = addImport("/main.js");
+    script += `import { revive } from "${url}";`;
 
     // Prepare the inline script that loads and revives the islands
     let islandRegistry = "";
     for (const island of ENCOUNTERED_ISLANDS) {
-      const randomNonce = crypto.randomUUID().replace(/-/g, "");
-      if (csp) {
-        csp.directives.scriptSrc = [
-          ...csp.directives.scriptSrc ?? [],
-          nonce(randomNonce),
-        ];
-      }
-      const url = bundleAssetUrl(`/island-${island.id}.js`);
-      imports.push([url, randomNonce] as const);
+      const url = addImport(`/island-${island.id}.js`);
       script += `import ${island.name} from "${url}";`;
       islandRegistry += `${island.id}:${island.name},`;
     }
     script += `revive({${islandRegistry}}, STATE[0]);`;
   }
 
-  if (state[0].length > 0 || state[1].length > 0) {
-    // Append state to the body
-    bodyHtml += `<script id="__FRSH_STATE" type="application/json">${
-      htmlEscapeJsonString(JSON.stringify(state))
-    }</script>`;
-
-    // Append the inline script to the body
+  // Append the inline script.
+  if (script !== "") {
     const randomNonce = crypto.randomUUID().replace(/-/g, "");
     if (csp) {
       csp.directives.scriptSrc = [
