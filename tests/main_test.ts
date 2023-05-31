@@ -39,7 +39,7 @@ Deno.test("/ page prerender", async () => {
   assertStringIncludes(body, "test.js");
   assertStringIncludes(body, "<p>Hello!</p>");
   assertStringIncludes(body, "<p>Viewing JIT render.</p>");
-  assertStringIncludes(body, `>[[{"message":"Hello!"}],[]]</script>`);
+  assertStringIncludes(body, `>{"v":[[{"message":"Hello!"}],[]]}</script>`);
   assertStringIncludes(
     body,
     `<meta name="description" content="Hello world!" />`,
@@ -146,6 +146,18 @@ Deno.test("/intercept_args - GET html", async () => {
   assertEquals(resp.status, Status.OK);
   const body = await resp.text();
   assertStringIncludes(body, "<div>intercepted</div>");
+});
+
+Deno.test("/status_overwrite", async () => {
+  const req = new Request("https://fresh.deno.dev/status_overwrite", {
+    headers: { "accept": "text/html" },
+  });
+  const resp = await router(req);
+  assert(resp);
+  assertEquals(resp.status, Status.Unauthorized);
+  assertEquals(resp.headers.get("x-some-header"), "foo");
+  const body = await resp.text();
+  assertStringIncludes(body, "<div>This is HTML</div>");
 });
 
 Deno.test("/api/get_only - NOTAMETHOD", async () => {
@@ -634,7 +646,7 @@ Deno.test("experimental Deno.serve", {
     assertStringIncludes(body, "test.js");
     assertStringIncludes(body, "<p>Hello!</p>");
     assertStringIncludes(body, "<p>Viewing JIT render.</p>");
-    assertStringIncludes(body, `>[[{"message":"Hello!"}],[]]</script>`);
+    assertStringIncludes(body, `>{"v":[[{"message":"Hello!"}],[]]}</script>`);
     assertStringIncludes(
       body,
       `<meta name="description" content="Hello world!" />`,

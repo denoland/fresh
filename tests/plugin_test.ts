@@ -33,7 +33,7 @@ Deno.test("/static page prerender", async () => {
   assertEquals(resp.status, Status.OK);
   const body = await resp.text();
   assertStringIncludes(body, '<style id="abc">body { color: red; }</style>');
-  assert(!body.includes(`>[[],[]]</script>`));
+  assert(!body.includes(`>{"v":[[],[]]}</script>`));
   assert(!body.includes(`import`));
 });
 
@@ -46,7 +46,7 @@ Deno.test("/with-island prerender", async () => {
     body,
     '<style id="abc">body { color: red; } h1 { color: blue; }</style>',
   );
-  assertStringIncludes(body, `>[[{}],["JS injected!"]]</script>`);
+  assertStringIncludes(body, `>{"v":[[{}],["JS injected!"]]}</script>`);
   assertStringIncludes(body, `/plugin-js-inject-main.js"`);
 });
 
