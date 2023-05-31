@@ -13,8 +13,7 @@
       ["fetching-data", "Fetching data"],
       ["form-submissions", "Form submissions"],
       ["adding-interactivity", "Adding interactivity"],
-      ["deploy-to-production", "Deploy to production"],
-      ["create-test", "Create test"]
+      ["deploy-to-production", "Deploy to production"]
     ]
   },
   "concepts": {

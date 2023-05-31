@@ -1,49 +1,56 @@
 import { createHandler } from "$fresh/server.ts";
 import manifest from "../fresh.gen.ts";
-import { superdeno } from "superdeno/mod.ts";
-import { assertEquals } from "$std/testing/asserts.ts";
-import { type RequestHandlerLike } from "superdeno/src/types.ts";
-import { Document, DOMParser } from "deno_dom/deno-dom-wasm.ts";
+import { assertEquals,assertExists } from "$std/testing/asserts.ts";
+import type { ConnInfo } from "../../../src/server/deps.ts";
+
+const CONN_INFO: ConnInfo = {
+  localAddr: { hostname: "127.0.0.1", port: 8000, transport: "tcp" },
+  remoteAddr: { hostname: "127.0.0.1", port: 53496, transport: "tcp" },
+};
 
 Deno.test("HTTP assert test.", async (t) => {
   await t.step("#1 GET /", async () => {
-    const handler = await createHandler(manifest) as RequestHandlerLike;
+    const handler = await createHandler(manifest);
+    const response = await handler(new Request("http://127.0.0.1/"), CONN_INFO);
 
-    await superdeno(handler)
-      .get("/")
-      .expect(200);
+    assertEquals(response.status, 200);
   });
 
   await t.step("#2 POST /", async () => {
-    const server = await createHandler(manifest) as RequestHandlerLike;
+    const handler = await createHandler(manifest);
 
-    await superdeno(server)
-      .post("/")
-      .set("Content-Type", "application/x-www-form-urlencoded")
-      .send("text=Deno!")
-      .expect(303);
+    const formData = new FormData();
+    formData.append("text", "Deno!");
+
+    const request = new Request("http://127.0.0.1/", {
+      method: "POST",
+      body: formData,
+    });
+
+    const response = await handler(request, CONN_INFO);
+
+    assertEquals(response.status, 303);
   });
 
   await t.step("#3 GET /foo", async () => {
-    const server = await createHandler(manifest) as RequestHandlerLike;
+    const handler = await createHandler(manifest);
 
-    const r = await superdeno(server)
-      .get("/foo")
-      .expect(200);
+    const request = new Request("http://127.0.0.1/foo");
 
-    const document: Document = new DOMParser().parseFromString(
-      r.text,
-      "text/html",
-    )!;
+    const response = await handler(request, CONN_INFO);
+    const text = await response.text();
 
-    assertEquals(document.querySelector("div")?.innerText, "Hello Foo!");
+    assertExists(text.match(/<div>Hello Foo!<\/div>/))
   });
 
-  await t.step("#4 GET /foo/bar", async () => {
-    const server = await createHandler(manifest) as RequestHandlerLike;
 
-    await superdeno(server)
-      .get("/foo/bar")
-      .expect(404);
+  await t.step("#4 GET /foo/bar", async () => {
+    const handler = await createHandler(manifest);
+
+    const request = new Request("http://127.0.0.1/foo/bar");
+
+    const response = await handler(request, CONN_INFO);
+
+    assertEquals(response.status, 404);
   });
 });
