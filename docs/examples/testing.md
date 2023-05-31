@@ -52,7 +52,7 @@ export default function Foo() {
 ### Test code
 
 ```ts
-// examples\test\test\main_test.ts
+// tests/main_test.ts
 
 import { createHandler } from "$fresh/server.ts";
 import manifest from "../fresh.gen.ts";
