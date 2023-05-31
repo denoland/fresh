@@ -11,8 +11,6 @@
     "preact-render-to-string": "https://esm.sh/*preact-render-to-string@5.2.6",
     "@preact/signals": "https://esm.sh/*@preact/signals@1.1.3",
     "@preact/signals-core": "https://esm.sh/@preact/signals-core@1.2.3",
-    "$std/": "https://deno.land/std@0.189.0/",
-    "superdeno/": "https://deno.land/x/superdeno/",
-    "deno_dom/": "https://deno.land/x/deno_dom/"
+    "$std/": "https://deno.land/std@0.189.0/"
   }
 }
