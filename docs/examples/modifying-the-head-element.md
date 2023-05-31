@@ -1,7 +1,7 @@
 # Modifying the `<head>` Element
 
-We can use the `<Head />` component in `$fresh/runtime.ts` to modify the `<head>`
-element. For example:
+We can use the `<Head />` component in `$fresh/runtime.ts` to modify the
+`<head>` element. For example:
 
 ```tsx
 import { Head } from "$fresh/runtime.ts";
