@@ -39,7 +39,7 @@ Deno.test("/ page prerender", async () => {
   assertStringIncludes(body, "test.js");
   assertStringIncludes(body, "<p>Hello!</p>");
   assertStringIncludes(body, "<p>Viewing JIT render.</p>");
-  assertStringIncludes(body, `>[[{"message":"Hello!"}],[]]</script>`);
+  assertStringIncludes(body, `>{"v":[[{"message":"Hello!"}],[]]}</script>`);
   assertStringIncludes(
     body,
     `<meta name="description" content="Hello world!" />`,
@@ -646,7 +646,7 @@ Deno.test("experimental Deno.serve", {
     assertStringIncludes(body, "test.js");
     assertStringIncludes(body, "<p>Hello!</p>");
     assertStringIncludes(body, "<p>Viewing JIT render.</p>");
-    assertStringIncludes(body, `>[[{"message":"Hello!"}],[]]</script>`);
+    assertStringIncludes(body, `>{"v":[[{"message":"Hello!"}],[]]}</script>`);
     assertStringIncludes(
       body,
       `<meta name="description" content="Hello world!" />`,

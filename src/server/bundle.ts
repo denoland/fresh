@@ -1,4 +1,3 @@
-import { BuildOptions } from "https://deno.land/x/esbuild@v0.17.11/mod.js";
 import {
   denoPlugin,
   esbuild,
@@ -69,10 +68,12 @@ export class Bundler {
   }
 
   async bundle() {
+    const entrypointBase = "../../src/runtime/entrypoints";
     const entryPoints: Record<string, string> = {
       main: this.#dev
-        ? new URL("../../src/runtime/main_dev.ts", import.meta.url).href
-        : new URL("../../src/runtime/main.ts", import.meta.url).href,
+        ? import.meta.resolve(`${entrypointBase}/main_dev.ts`)
+        : import.meta.resolve(`${entrypointBase}/main.ts`),
+      deserializer: import.meta.resolve(`${entrypointBase}/deserializer.ts`),
     };
 
     for (const island of this.#islands) {
@@ -89,7 +90,7 @@ export class Bundler {
     await ensureEsbuildInitialized();
     // In dev-mode we skip identifier minification to be able to show proper
     // component names in Preact DevTools instead of single characters.
-    const minifyOptions: Partial<BuildOptions> = this.#dev
+    const minifyOptions: Partial<esbuildTypes.BuildOptions> = this.#dev
       ? { minifyIdentifiers: false, minifySyntax: true, minifyWhitespace: true }
       : { minify: true };
     const bundle = await esbuild.build({
@@ -116,8 +117,8 @@ export class Bundler {
       jsx: JSX_RUNTIME_MODE[this.#jsxConfig.jsx],
       jsxImportSource: this.#jsxConfig.jsxImportSource,
     });
-    // const metafileOutputs = bundle.metafile!.outputs;
 
+    // const metafileOutputs = bundle.metafile!.outputs;
     // for (const path in metafileOutputs) {
     //   const meta = metafileOutputs[path];
     //   const imports = meta.imports

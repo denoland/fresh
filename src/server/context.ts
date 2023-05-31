@@ -483,9 +483,7 @@ export class ServerContext {
       status: number,
     ) => {
       const imports: string[] = [];
-      if (this.#dev) {
-        imports.push(REFRESH_JS_URL);
-      }
+      if (this.#dev) imports.push(REFRESH_JS_URL);
       return (
         req: Request,
         params: Record<string, string>,
