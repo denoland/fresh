@@ -72,10 +72,7 @@ export interface RouteConfig {
   csp?: boolean;
 }
 
-export interface RenderOptions {
-  status?: number;
-  statusText?: string;
-}
+export interface RenderOptions extends ResponseInit {}
 
 export interface HandlerContext<Data = unknown, State = Record<string, unknown>>
   extends ConnInfo {

@@ -6,6 +6,6 @@ export default function Page() {
 
 export const handler = {
   GET(req: Request, { render }: HandlerContext) {
-    return render(undefined, { status: 401 });
+    return render(undefined, { status: 401, headers: { "x-some-header": "foo" } });
   },
 };

@@ -542,7 +542,12 @@ export class ServerContext {
           return new Response(body, {
             status: options?.status ?? status,
             statusText: options?.statusText,
-            headers,
+            headers: options?.headers
+              ? {
+                ...headers,
+                ...options.headers,
+              }
+              : headers,
           });
         };
       };

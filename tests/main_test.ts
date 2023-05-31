@@ -155,6 +155,7 @@ Deno.test("/status_overwrite", async () => {
   const resp = await router(req);
   assert(resp);
   assertEquals(resp.status, Status.Unauthorized);
+  assertEquals(resp.headers.get("x-some-header"), "foo");
   const body = await resp.text();
   assertStringIncludes(body, "<div>This is HTML</div>");
 });
