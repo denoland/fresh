@@ -1,6 +1,6 @@
 import { BuildOptions } from "https://deno.land/x/esbuild@v0.17.11/mod.js";
 import {
-  denoPlugin,
+  denoPlugins,
   esbuild,
   esbuildTypes,
   escape,
@@ -106,7 +106,7 @@ export class Bundler {
       platform: "neutral",
       plugins: [
         buildIdPlugin(BUILD_ID),
-        denoPlugin({ importMapURL: this.#importMapURL }),
+        ...denoPlugins({ importMapURL: this.#importMapURL.toString() }),
       ],
       sourcemap: this.#dev ? "linked" : false,
       splitting: true,
