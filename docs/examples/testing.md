@@ -56,7 +56,7 @@ export default function Foo() {
 
 import { createHandler } from "$fresh/server.ts";
 import manifest from "../fresh.gen.ts";
-import { assertEquals,assertExists } from "$std/testing/asserts.ts";
+import { assertEquals, assertExists } from "$std/testing/asserts.ts";
 import type { ConnInfo } from "../../../src/server/deps.ts";
 
 const CONN_INFO: ConnInfo = {
