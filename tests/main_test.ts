@@ -44,6 +44,7 @@ Deno.test("/ page prerender", async () => {
     body,
     `<meta name="description" content="Hello world!" />`,
   );
+  assertStringIncludes(body, `<link rel="modulepreload"`);
 });
 
 Deno.test("/props/123 page prerender", async () => {
