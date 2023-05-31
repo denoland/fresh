@@ -1,14 +1,16 @@
-# Modifying Web Page Metadata via the `<Head /> `Element
+# Modifying the `<head>` Element
 
-  We can use the ` <Head /> ` component in `/runtime.ts`to modify the ` <head /> ` element. For example:  
-  ``` 
+We can use the `<Head />` component in `$fresh/runtime.ts` to modify the `<head>`
+element. For example:
+
+```tsx
 import { Head } from "$fresh/runtime.ts";
 import Counter from "../islands/Counter.tsx";
 
 export default function Home() {
   return (
     <>
-      <Head>  
+      <Head>
         <title>Fresh App</title>
         <p>Fresh App</p>
       </Head>
@@ -22,12 +24,13 @@ export default function Home() {
           Welcome to `fresh`. Try updating this message in the
           ./routes/index.tsx file, and refresh.
         </p>
-        <Counter start={3 } />
-        </div>
+        <Counter start={3} />
+      </div>
     </>
   );
 }
+```
 
-```  
-![Alt text](image/Head.png)  
-By adding changes to the inner components of ` <Head /> ` we can add a new  paragraph to the ` <head /> ` element of the display page. 
+![Alt text](image/Head.png) By adding changes to the inner components of
+`<Head />` we can add a new paragraph to the `<head>` element of the display
+page.
