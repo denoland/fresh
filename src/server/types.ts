@@ -116,7 +116,7 @@ export interface Route<Data = any> {
 
 // --- APP ---
 
-export interface AppProps {
+export interface AppProps extends PageProps {
   Component: ComponentType<Record<never, never>>;
 }
 
