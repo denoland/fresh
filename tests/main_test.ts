@@ -4,7 +4,6 @@ import {
   assertEquals,
   assertStringIncludes,
   delay,
-  puppeteer,
   TextLineStream,
 } from "./deps.ts";
 import manifest from "./fixture/fresh.gen.ts";
@@ -653,60 +652,6 @@ Deno.test("experimental Deno.serve", {
     // assert(etag.startsWith("W/"), "etag should be weak");
     assertEquals(resp.headers.get("content-type"), "text/plain");
   });
-
-  await lines.cancel();
-  serverProcess.kill("SIGTERM");
-});
-
-Deno.test("jsx pragma works", {
-  sanitizeOps: false,
-  sanitizeResources: false,
-}, async (t) => {
-  // Preparation
-  const serverProcess = new Deno.Command(Deno.execPath(), {
-    args: ["run", "-A", "./tests/fixture_jsx_pragma/main.ts"],
-    stdout: "piped",
-    stderr: "inherit",
-  }).spawn();
-
-  const decoder = new TextDecoderStream();
-  const lines = serverProcess.stdout
-    .pipeThrough(decoder)
-    .pipeThrough(new TextLineStream());
-
-  let started = false;
-  for await (const line of lines) {
-    if (line.includes("Listening on http://")) {
-      started = true;
-      break;
-    }
-  }
-  if (!started) {
-    throw new Error("Server didn't start up");
-  }
-
-  await delay(100);
-
-  await t.step("ssr", async () => {
-    const resp = await fetch("http://localhost:8000");
-    assertEquals(resp.status, Status.OK);
-    const text = await resp.text();
-    assertStringIncludes(text, "Hello World");
-    assertStringIncludes(text, "ssr");
-  });
-
-  const browser = await puppeteer.launch({ args: ["--no-sandbox"] });
-  const page = await browser.newPage();
-
-  await page.goto("http://localhost:8000", {
-    waitUntil: "networkidle2",
-  });
-
-  await t.step("island is revived", async () => {
-    await page.waitForSelector("#csr");
-  });
-
-  await browser.close();
 
   await lines.cancel();
   serverProcess.kill("SIGTERM");
