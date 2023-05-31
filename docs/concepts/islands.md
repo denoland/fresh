@@ -39,6 +39,7 @@ Fresh can serialize the following types of values:
   `null`, and `bigint`s are not supported)
 - Plain objects with string keys and serializable values
 - Arrays containing serializable values
+- Preact Signals (if the inner value is serializable)
 
 Circular references are supported. If an object or signal is referenced multiple
 times, it is only serialized once and the references are restored upon

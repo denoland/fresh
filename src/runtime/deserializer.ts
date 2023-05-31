@@ -3,11 +3,22 @@
 
 export const KEY = "_f";
 
-export function deserialize(str: string): unknown {
+interface Signal<T> {
+  peek(): T;
+  value: T;
+}
+
+export function deserialize(
+  str: string,
+  signal?: <T>(a: T) => Signal<T>,
+): unknown {
   function reviver(this: unknown, _key: string, value: unknown): unknown {
     if (typeof value === "object" && value && KEY in value) {
       // deno-lint-ignore no-explicit-any
       const v: any = value;
+      if (v[KEY] === "s") {
+        return signal!(v.v);
+      }
       if (v[KEY] === "l") {
         const val = v.v;
         val[KEY] = v.k;

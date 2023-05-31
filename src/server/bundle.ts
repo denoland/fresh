@@ -76,6 +76,13 @@ export class Bundler {
       deserializer: import.meta.resolve(`${entrypointBase}/deserializer.ts`),
     };
 
+    try {
+      import.meta.resolve("@preact/signals");
+      entryPoints.signals = import.meta.resolve(`${entrypointBase}/signals.ts`);
+    } catch {
+      // @preact/signals is not in the import map
+    }
+
     for (const island of this.#islands) {
       entryPoints[`island-${island.id}`] = island.url;
     }

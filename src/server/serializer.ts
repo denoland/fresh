@@ -8,6 +8,7 @@
  * - `string`
  * - `array`
  * - `object` (no prototypes)
+ * - `Signal` from `@preact/signals`
  *
  * Circular references are supported and objects with the same reference are
  * serialized only once.
@@ -22,10 +23,29 @@ interface SerializeResult {
   /** If the deserializer is required to deserialize this string. If this is
    * `false` the serialized string can be deserialized with `JSON.parse`. */
   requiresDeserializer: boolean;
+  /** If the serialization contains serialized signals. If this is `true` the
+   * deserializer must be passed a factory functions for signals. */
+  hasSignals: boolean;
+}
+
+interface Signal {
+  peek(): unknown;
+  value: unknown;
+}
+
+// deno-lint-ignore no-explicit-any
+function isSignal(x: any): x is Signal {
+  return (
+    x !== null &&
+    typeof x === "object" &&
+    typeof x.peek === "function" &&
+    "value" in x
+  );
 }
 
 export function serialize(data: unknown): SerializeResult {
   let requiresDeserializer = false;
+  let hasSignals = false;
   const seen = new Map<unknown, (string | null)[]>();
   const references = new Map<(string | null)[], (string | null)[][]>();
 
@@ -63,7 +83,8 @@ export function serialize(data: unknown): SerializeResult {
     // these cases, we have to change the contents of the key stack to match the
     // deserialized object.
     if (typeof this === "object" && this !== null && KEY in this) {
-      if (this[KEY] === "l" && key === "v") key = null;
+      if (this[KEY] === "s" && key === "v") key = "value"; // signals
+      if (this[KEY] === "l" && key === "v") key = null; // literals (magic key object)
     }
 
     if (this !== toSerialize) {
@@ -91,7 +112,13 @@ export function serialize(data: unknown): SerializeResult {
       }
     }
 
-    if (typeof value === "object" && value && KEY in value) {
+    if (isSignal(value)) {
+      requiresDeserializer = true;
+      hasSignals = true;
+      const res = { [KEY]: "s", v: value.peek() };
+      parentStack.push(res);
+      return res;
+    } else if (typeof value === "object" && value && KEY in value) {
       requiresDeserializer = true;
       // deno-lint-ignore no-explicit-any
       const v: any = { ...value };
@@ -107,5 +134,5 @@ export function serialize(data: unknown): SerializeResult {
   }
 
   const serialized = JSON.stringify(toSerialize, replacer);
-  return { serialized, requiresDeserializer };
+  return { serialized, requiresDeserializer, hasSignals };
 }
