@@ -170,12 +170,20 @@ export class Bundler {
 function buildIdPlugin(buildId: string): esbuildTypes.Plugin {
   const file = import.meta.resolve("../runtime/build_id.ts");
   const url = new URL(file);
-  const path = fromFileUrl(url);
+  let options: esbuildTypes.OnLoadOptions;
+  if (url.protocol === "file:") {
+    const path = fromFileUrl(url);
+    options = { filter: new RegExp(escape(path)), namespace: "file" };
+  } else {
+    const namespace = url.protocol.slice(0, -1);
+    const path = url.href.slice(namespace.length + 1);
+    options = { filter: new RegExp(escape(path)), namespace };
+  }
   return {
     name: "fresh-build-id",
     setup(build) {
       build.onLoad(
-        { filter: new RegExp(escape(path)), namespace: "file" },
+        options,
         () => ({ contents: `export const BUILD_ID = "${buildId}";` }),
       );
     },
