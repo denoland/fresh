@@ -11,7 +11,6 @@ import {
 import { h } from "preact";
 import * as router from "./router.ts";
 import { Manifest } from "./mod.ts";
-import { Bundler, JSXConfig } from "./bundle.ts";
 import { ALIVE_URL, JS_PREFIX, REFRESH_JS_URL } from "./constants.ts";
 import { BUILD_ID } from "./build_id.ts";
 import DefaultErrorHandler from "./default_error_page.ts";
@@ -37,6 +36,13 @@ import {
 import { render as internalRender } from "./render.ts";
 import { ContentSecurityPolicyDirectives, SELF } from "../runtime/csp.ts";
 import { ASSET_CACHE_BUST_KEY, INTERNAL_PREFIX } from "../runtime/utils.ts";
+import {
+  Builder,
+  BuildSnapshot,
+  EsbuildBuilder,
+  JSXConfig,
+} from "../build/mod.ts";
+
 interface RouterState {
   state: Record<string, unknown>;
 }
@@ -59,13 +65,13 @@ export class ServerContext {
   #routes: Route[];
   #islands: Island[];
   #staticFiles: StaticFile[];
-  #bundler: Bundler;
   #renderFn: RenderFunction;
   #middlewares: MiddlewareRoute[];
   #app: AppModule;
   #notFound: UnknownPage;
   #error: ErrorPage;
   #plugins: Plugin[];
+  #builder: Builder | Promise<BuildSnapshot> | BuildSnapshot;
 
   constructor(
     routes: Route[],
@@ -90,13 +96,13 @@ export class ServerContext {
     this.#error = error;
     this.#plugins = plugins;
     this.#dev = typeof Deno.env.get("DENO_DEPLOYMENT_ID") !== "string"; // Env var is only set in prod (on Deploy).
-    this.#bundler = new Bundler(
-      this.#islands,
-      this.#plugins,
+    this.#builder = new EsbuildBuilder({
+      buildID: BUILD_ID,
+      entrypoints: collectEntrypoints(this.#dev, this.#islands, this.#plugins),
       importMapURL,
+      dev: this.#dev,
       jsxConfig,
-      this.#dev,
-    );
+    });
   }
 
   /**
@@ -347,6 +353,28 @@ export class ServerContext {
     };
   }
 
+  #maybeBuildSnapshot(): BuildSnapshot | null {
+    if ("build" in this.#builder || this.#builder instanceof Promise) {
+      return null;
+    }
+    return this.#builder;
+  }
+
+  async #buildSnapshot() {
+    if ("build" in this.#builder) {
+      const builder = this.#builder;
+      this.#builder = builder.build();
+      try {
+        const snapshot = await this.#builder;
+        this.#builder = snapshot;
+      } catch (err) {
+        this.#builder = builder;
+        throw err;
+      }
+    }
+    return this.#builder;
+  }
+
   /**
    * Identify which middlewares should be applied for a request,
    * chain them and return a handler response
@@ -509,7 +537,10 @@ export class ServerContext {
             plugins: this.#plugins,
             app: this.#app,
             imports,
-            dependencyMap: this.#bundler.dependencyMap,
+            dependenciesFn: (path) => {
+              const snapshot = this.#maybeBuildSnapshot();
+              return snapshot?.dependencies(path) ?? [];
+            },
             renderFn: this.#renderFn,
             url: new URL(req.url),
             params,
@@ -699,27 +730,20 @@ export class ServerContext {
    */
   #bundleAssetRoute = (): router.MatchHandler => {
     return async (_req, _ctx, params) => {
-      const path = `/${params.path}`;
-      const file = await this.#bundler.get(path);
-      let res;
-      if (file) {
-        const headers = new Headers({
-          "Cache-Control": "public, max-age=604800, immutable",
-        });
+      const snapshot = await this.#buildSnapshot();
+      const contents = snapshot.read(params.path);
+      if (!contents) return new Response(null, { status: 404 });
 
-        const contentType = typeByExtension(extname(path));
-        if (contentType) {
-          headers.set("Content-Type", contentType);
-        }
+      const headers: Record<string, string> = {
+        "Cache-Control": "public, max-age=604800, immutable",
+      };
 
-        res = new Response(file, {
-          status: 200,
-          headers,
-        });
-      }
+      const contentType = typeByExtension(extname(params.path));
+      if (contentType) headers["Content-Type"] = contentType;
 
-      return res ?? new Response(null, {
-        status: 404,
+      return new Response(contents, {
+        status: 200,
+        headers,
       });
     };
   };
@@ -879,4 +903,37 @@ es.addEventListener("message", function listener(e) {
     location.reload();
   }
 });`;
+}
+
+function collectEntrypoints(
+  dev: boolean,
+  islands: Island[],
+  plugins: Plugin[],
+): Record<string, string> {
+  const entrypointBase = "../runtime/entrypoints";
+  const entryPoints: Record<string, string> = {
+    main: dev
+      ? import.meta.resolve(`${entrypointBase}/main_dev.ts`)
+      : import.meta.resolve(`${entrypointBase}/main.ts`),
+    deserializer: import.meta.resolve(`${entrypointBase}/deserializer.ts`),
+  };
+
+  try {
+    import.meta.resolve("@preact/signals");
+    entryPoints.signals = import.meta.resolve(`${entrypointBase}/signals.ts`);
+  } catch {
+    // @preact/signals is not in the import map
+  }
+
+  for (const island of islands) {
+    entryPoints[`island-${island.id}`] = island.url;
+  }
+
+  for (const plugin of plugins) {
+    for (const [name, url] of Object.entries(plugin.entrypoints ?? {})) {
+      entryPoints[`plugin-${plugin.name}-${name}`] = url;
+    }
+  }
+
+  return entryPoints;
 }

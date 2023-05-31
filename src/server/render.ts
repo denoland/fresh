@@ -26,7 +26,7 @@ export interface RenderOptions<Data> {
   plugins: Plugin[];
   app: AppModule;
   imports: string[];
-  dependencyMap: Map<string, string[]>;
+  dependenciesFn: (path: string) => string[];
   url: URL;
   params: Record<string, string | string[]>;
   renderFn: RenderFunction;
@@ -221,7 +221,7 @@ export async function render<Data>(
     const url = bundleAssetUrl(path);
     imports.push([url, randomNonce]);
     preloadSet.add(url);
-    for (const depPath of opts.dependencyMap.get(path) ?? []) {
+    for (const depPath of opts.dependenciesFn(path)) {
       const url = bundleAssetUrl(depPath);
       preloadSet.add(url);
     }
