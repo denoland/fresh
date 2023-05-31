@@ -1,6 +1,6 @@
-# Modifying Web Page Metadata via the ```<Head /> ```Element
+# Modifying Web Page Metadata via the `<Head /> `Element
 
-  We can use the ``` <Head /> ``` component in ```/runtime.ts``` to modify the ``` <head /> ``` element. For example:  
+  We can use the ` <Head /> ` component in `/runtime.ts`to modify the ` <head /> ` element. For example:  
   ``` 
 import { Head } from "$fresh/runtime.ts";
 import Counter from "../islands/Counter.tsx";
@@ -30,4 +30,4 @@ export default function Home() {
 
 ```  
 ![Alt text](image/Head.png)  
-By adding changes to the inner components of ``` <Head /> ``` we can add a new  paragraph to the ``` <head /> ``` element of the display page. 
+By adding changes to the inner components of ` <Head /> ` we can add a new  paragraph to the ` <head /> ` element of the display page. 
