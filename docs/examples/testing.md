@@ -84,7 +84,10 @@ Deno.test("HTTP assert test.", async (t) => {
   });
 
   await t.step("#3 GET /foo", async () => {
-    const response = await handler(new Request("http://127.0.0.1/foo"), CONN_INFO);
+    const response = await handler(
+      new Request("http://127.0.0.1/foo"), 
+      CONN_INFO
+    );
     const text = await response.text();
     assertExists(text.match(/<div>Hello Foo!<\/div>/));
   });
