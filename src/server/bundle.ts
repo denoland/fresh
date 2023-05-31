@@ -106,7 +106,7 @@ export class Bundler {
       platform: "neutral",
       plugins: [
         buildIdPlugin(BUILD_ID),
-        ...denoPlugins({ importMapURL: this.#importMapURL.toString() }),
+        ...denoPlugins({ importMapURL: this.#importMapURL.href }),
       ],
       sourcemap: this.#dev ? "linked" : false,
       splitting: true,
