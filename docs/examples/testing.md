@@ -66,7 +66,7 @@ const CONN_INFO: ConnInfo = {
 
 Deno.test("HTTP assert test.", async (t) => {
   const handler = await createHandler(manifest);
-  
+
   await t.step("#1 GET /", async () => {
     const response = await handler(new Request("http://127.0.0.1/"), CONN_INFO);
     assertEquals(response.status, 200);
