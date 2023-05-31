@@ -43,7 +43,6 @@ Deno.test("HTTP assert test.", async (t) => {
     assertExists(text.match(/<div>Hello Foo!<\/div>/))
   });
 
-
   await t.step("#4 GET /foo/bar", async () => {
     const handler = await createHandler(manifest);
 
