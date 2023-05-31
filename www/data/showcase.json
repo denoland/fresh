@@ -318,6 +318,12 @@
     "image": "awesome-fresh"
   },
   {
+    "title": "Learn Mandarin",
+    "link": "https://mandarin.deno.dev/",
+    "github": "silvercrow/mandarin",
+    "image": "learn-mandarin"
+  },
+  {
     "title": "Do not remove this, it's for prevent conflicting by trailing comma",
     "link": "",
     "github": "",

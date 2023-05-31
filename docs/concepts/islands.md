@@ -31,10 +31,23 @@ export default function MyIsland() {
 An island can be used in a page like a regular Preact component. Fresh will take
 care of automatically re-hydrating the island on the client.
 
-Passing props to islands is supported, but only if the props are JSON
-serializable. This means that you can only pass primitive types, plain objects,
-and arrays. It is currently not possible to pass complex objects like `Date`,
-custom classes, or functions. This means that it is not possible to pass
-`children` to an island, as `children` are VNodes, which are not serializable.
+Passing props to islands is supported, but only if the props are serializable.
+Fresh can serialize the following types of values:
+
+- Primitive types `string`, `boolean`, and `null`
+- Most `number`s (`Infinity`, `-Infinity`, and `NaN` are silently converted to
+  `null`, and `bigint`s are not supported)
+- Plain objects with string keys and serializable values
+- Arrays containing serializable values
+- Uint8Array
+- Preact Signals (if the inner value is serializable)
+
+Circular references are supported. If an object or signal is referenced multiple
+times, it is only serialized once and the references are restored upon
+deserialization.
+
+Passing complex objects like `Date`, custom classes, or functions is not
+supported. This means that it is not possible to pass `children` to an island,
+as `children` are VNodes, which are not serializable.
 
 It is also not supported to nest islands within other islands.

@@ -12,7 +12,8 @@ import { h } from "preact";
 import * as router from "./router.ts";
 import { Manifest } from "./mod.ts";
 import { Bundler, JSXConfig } from "./bundle.ts";
-import { ALIVE_URL, BUILD_ID, JS_PREFIX, REFRESH_JS_URL } from "./constants.ts";
+import { ALIVE_URL, JS_PREFIX, REFRESH_JS_URL } from "./constants.ts";
+import { BUILD_ID } from "./build_id.ts";
 import DefaultErrorHandler from "./default_error_page.ts";
 import {
   AppModule,
@@ -27,6 +28,7 @@ import {
   MiddlewareRoute,
   Plugin,
   RenderFunction,
+  RenderOptions,
   Route,
   RouteModule,
   UnknownPage,
@@ -160,10 +162,24 @@ export class ServerContext {
         let { handler } = module as RouteModule;
         handler ??= {};
         if (
-          component &&
-          typeof handler === "object" && handler.GET === undefined
+          component && typeof handler === "object" && handler.GET === undefined
         ) {
           handler.GET = (_req, { render }) => render();
+        }
+        if (
+          typeof handler === "object" && handler.GET !== undefined &&
+          handler.HEAD === undefined
+        ) {
+          const GET = handler.GET;
+          handler.HEAD = async (req, ctx) => {
+            const resp = await GET(req, ctx);
+            resp.body?.cancel();
+            return new Response(null, {
+              headers: resp.headers,
+              status: resp.status,
+              statusText: resp.statusText,
+            });
+          };
         }
         const route: Route = {
           pattern,
@@ -249,11 +265,6 @@ export class ServerContext {
         opts.staticDir ?? "./static",
         manifest.baseUrl,
       );
-      // TODO(lucacasonato): remove the extranious Deno.readDir when
-      // https://github.com/denoland/deno_std/issues/1310 is fixed.
-      for await (const _ of Deno.readDir(fromFileUrl(staticFolder))) {
-        // do nothing
-      }
       const entires = walk(fromFileUrl(staticFolder), {
         includeFiles: true,
         includeDirs: false,
@@ -284,7 +295,7 @@ export class ServerContext {
         staticFiles.push(staticFile);
       }
     } catch (err) {
-      if (err instanceof Deno.errors.NotFound) {
+      if (err.cause instanceof Deno.errors.NotFound) {
         // Do nothing.
       } else {
         throw err;
@@ -320,27 +331,19 @@ export class ServerContext {
     return async function handler(req: Request, connInfo: ConnInfo) {
       // Redirect requests that end with a trailing slash to their non-trailing
       // slash counterpart.
+      // Ex: /about/ -> /about
       const url = new URL(req.url);
-      if (cleanPathname(url)) {
-        return Response.redirect(url.href, Status.TemporaryRedirect);
-      }
-
-      // HEAD requests should be handled as GET requests but without the body.
-      const originalMethod = req.method;
-      // Internally, HEAD is handled in the same way as GET.
-      if (req.method === "HEAD") {
-        req = new Request(req.url, { method: "GET", headers: req.headers });
-      }
-      const res = await withMiddlewares(req, connInfo, inner);
-      if (originalMethod === "HEAD") {
-        res.body?.cancel();
+      if (url.pathname.length > 1 && url.pathname.endsWith("/")) {
+        // Remove trailing slashes
+        const path = url.pathname.replace(/\/+$/, "");
+        const location = `${path}${url.search}`;
         return new Response(null, {
-          headers: res.headers,
-          status: res.status,
-          statusText: res.statusText,
+          status: Status.TemporaryRedirect,
+          headers: { location },
         });
       }
-      return res;
+
+      return await withMiddlewares(req, connInfo, inner);
     };
   }
 
@@ -461,7 +464,12 @@ export class ServerContext {
     ) {
       const route = sanitizePathToRegex(path);
       staticRoutes[route] = {
-        "GET": this.#staticFileHandler(
+        "HEAD": this.#staticFileHeadHandler(
+          size,
+          contentType,
+          etag,
+        ),
+        "GET": this.#staticFileGetHandler(
           localUrl,
           size,
           contentType,
@@ -475,15 +483,13 @@ export class ServerContext {
       status: number,
     ) => {
       const imports: string[] = [];
-      if (this.#dev) {
-        imports.push(REFRESH_JS_URL);
-      }
+      if (this.#dev) imports.push(REFRESH_JS_URL);
       return (
         req: Request,
         params: Record<string, string>,
         error?: unknown,
       ) => {
-        return async (data?: Data) => {
+        return async (data?: Data, options?: RenderOptions) => {
           if (route.component === undefined) {
             throw new Error("This page does not have a component to render.");
           }
@@ -515,7 +521,7 @@ export class ServerContext {
             "content-type": "text/html; charset=utf-8",
           };
 
-          const [body, csp, preloadUrls] = resp;
+          const [body, csp] = resp;
           if (csp) {
             if (this.#dev) {
               csp.directives.connectSrc = [
@@ -530,12 +536,13 @@ export class ServerContext {
               headers["content-security-policy"] = directive;
             }
           }
-          if (preloadUrls.length) {
-            headers.link = preloadUrls
-              .map((url) => `<${url}>; rel="modulepreload"`)
-              .join(", ");
-          }
-          return new Response(body, { status, headers });
+          return new Response(body, {
+            status: options?.status ?? status,
+            statusText: options?.statusText,
+            headers: options?.headers
+              ? { ...headers, ...options.headers }
+              : headers,
+          });
         };
       };
     };
@@ -611,7 +618,43 @@ export class ServerContext {
     return { internalRoutes, staticRoutes, routes, otherHandler, errorHandler };
   }
 
-  #staticFileHandler(
+  #staticFileHeadHandler(
+    size: number,
+    contentType: string,
+    etag: string,
+  ): router.MatchHandler {
+    return (req: Request) => {
+      const url = new URL(req.url);
+      const key = url.searchParams.get(ASSET_CACHE_BUST_KEY);
+      if (key !== null && BUILD_ID !== key) {
+        url.searchParams.delete(ASSET_CACHE_BUST_KEY);
+        const location = url.pathname + url.search;
+        return new Response(null, {
+          status: 307,
+          headers: {
+            location,
+          },
+        });
+      }
+      const headers = new Headers({
+        "content-type": contentType,
+        etag,
+        vary: "If-None-Match",
+      });
+      if (key !== null) {
+        headers.set("Cache-Control", "public, max-age=31536000, immutable");
+      }
+      const ifNoneMatch = req.headers.get("if-none-match");
+      if (ifNoneMatch === etag || ifNoneMatch === "W/" + etag) {
+        return new Response(null, { status: 304, headers });
+      } else {
+        headers.set("content-length", String(size));
+        return new Response(null, { status: 200, headers });
+      }
+    };
+  }
+
+  #staticFileGetHandler(
     localUrl: URL,
     size: number,
     contentType: string,
@@ -836,19 +879,4 @@ es.addEventListener("message", function listener(e) {
     location.reload();
   }
 });`;
-}
-
-/**
- * Clean the pathname in the given URL by removing all trailing slashes.
- *
- * Returns true if the pathname was changed.
- */
-export function cleanPathname(url: URL): boolean {
-  const pathname = url.pathname.replace(/\/+$/, "");
-  if (pathname === "") return false;
-  if (pathname !== url.pathname) {
-    url.pathname = pathname;
-    return true;
-  }
-  return false;
 }
