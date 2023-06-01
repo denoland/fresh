@@ -1,7 +1,13 @@
-import { BuildOptions } from "https://deno.land/x/esbuild@v0.14.51/mod.js";
-import { BUILD_ID } from "./constants.ts";
-import { denoPlugin, esbuild, toFileUrl } from "./deps.ts";
+import {
+  denoPlugins,
+  esbuild,
+  esbuildTypes,
+  escape,
+  fromFileUrl,
+  toFileUrl,
+} from "./deps.ts";
 import { Island, Plugin } from "./types.ts";
+import { BUILD_ID } from "./build_id.ts";
 
 export interface JSXConfig {
   jsx: "react" | "react-jsx";
@@ -11,10 +17,18 @@ export interface JSXConfig {
 let esbuildInitialized: boolean | Promise<void> = false;
 async function ensureEsbuildInitialized() {
   if (esbuildInitialized === false) {
+    // deno-lint-ignore no-deprecated-deno-api
     if (Deno.run === undefined) {
-      esbuildInitialized = esbuild.initialize({
-        wasmURL: "https://deno.land/x/esbuild@v0.14.51/esbuild.wasm",
-        worker: false,
+      const wasmURL = new URL("./esbuild_v0.17.11.wasm", import.meta.url).href;
+      esbuildInitialized = fetch(wasmURL).then(async (r) => {
+        const resp = new Response(r.body, {
+          headers: { "Content-Type": "application/wasm" },
+        });
+        const wasmModule = await WebAssembly.compileStreaming(resp);
+        await esbuild.initialize({
+          wasmModule,
+          worker: false,
+        });
       });
     } else {
       esbuild.initialize({});
@@ -38,6 +52,7 @@ export class Bundler {
   #plugins: Plugin[];
   #cache: Map<string, Uint8Array> | Promise<void> | undefined = undefined;
   #dev: boolean;
+  dependencyMap = new Map<string, string[]>();
 
   constructor(
     islands: Island[],
@@ -54,11 +69,20 @@ export class Bundler {
   }
 
   async bundle() {
+    const entrypointBase = "../../src/runtime/entrypoints";
     const entryPoints: Record<string, string> = {
       main: this.#dev
-        ? new URL("../../src/runtime/main_dev.ts", import.meta.url).href
-        : new URL("../../src/runtime/main.ts", import.meta.url).href,
+        ? import.meta.resolve(`${entrypointBase}/main_dev.ts`)
+        : import.meta.resolve(`${entrypointBase}/main.ts`),
+      deserializer: import.meta.resolve(`${entrypointBase}/deserializer.ts`),
     };
+
+    try {
+      import.meta.resolve("@preact/signals");
+      entryPoints.signals = import.meta.resolve(`${entrypointBase}/signals.ts`);
+    } catch {
+      // @preact/signals is not in the import map
+    }
 
     for (const island of this.#islands) {
       entryPoints[`island-${island.id}`] = island.url;
@@ -74,12 +98,11 @@ export class Bundler {
     await ensureEsbuildInitialized();
     // In dev-mode we skip identifier minification to be able to show proper
     // component names in Preact DevTools instead of single characters.
-    const minifyOptions: Partial<BuildOptions> = this.#dev
+    const minifyOptions: Partial<esbuildTypes.BuildOptions> = this.#dev
       ? { minifyIdentifiers: false, minifySyntax: true, minifyWhitespace: true }
       : { minify: true };
     const bundle = await esbuild.build({
       bundle: true,
-      define: { __FRSH_BUILD_ID: `"${BUILD_ID}"` },
       entryPoints,
       format: "esm",
       metafile: true,
@@ -90,7 +113,11 @@ export class Bundler {
       absWorkingDir,
       outfile: "",
       platform: "neutral",
-      plugins: [denoPlugin({ importMapURL: this.#importMapURL })],
+      plugins: [
+        buildIdPlugin(BUILD_ID),
+        ...denoPlugins({ importMapURL: this.#importMapURL.href }),
+      ],
+      sourcemap: this.#dev ? "linked" : false,
       splitting: true,
       target: ["chrome99", "firefox99", "safari15"],
       treeShaking: true,
@@ -98,15 +125,15 @@ export class Bundler {
       jsx: JSX_RUNTIME_MODE[this.#jsxConfig.jsx],
       jsxImportSource: this.#jsxConfig.jsxImportSource,
     });
-    // const metafileOutputs = bundle.metafile!.outputs;
+    const metafileOutputs = bundle.metafile!.outputs;
 
-    // for (const path in metafileOutputs) {
-    //   const meta = metafileOutputs[path];
-    //   const imports = meta.imports
-    //     .filter(({ kind }) => kind === "import-statement")
-    //     .map(({ path }) => `/${path}`);
-    //   this.#preloads.set(`/${path}`, imports);
-    // }
+    for (const path in metafileOutputs) {
+      const meta = metafileOutputs[path];
+      const imports = meta.imports
+        .filter(({ kind }) => kind === "import-statement")
+        .map(({ path }) => `/${path}`);
+      this.dependencyMap.set(`/${path}`, imports);
+    }
 
     const cache = new Map<string, Uint8Array>();
     const absDirUrlLength = toFileUrl(absWorkingDir).href.length;
@@ -135,8 +162,27 @@ export class Bundler {
     const cache = await this.cache();
     return cache.get(path) ?? null;
   }
+}
 
-  // getPreloads(path: string): string[] {
-  //   return this.#preloads.get(path) ?? [];
-  // }
+function buildIdPlugin(buildId: string): esbuildTypes.Plugin {
+  const file = import.meta.resolve("../runtime/build_id.ts");
+  const url = new URL(file);
+  let options: esbuildTypes.OnLoadOptions;
+  if (url.protocol === "file:") {
+    const path = fromFileUrl(url);
+    options = { filter: new RegExp(escape(path)), namespace: "file" };
+  } else {
+    const namespace = url.protocol.slice(0, -1);
+    const path = url.href.slice(namespace.length + 1);
+    options = { filter: new RegExp(escape(path)), namespace };
+  }
+  return {
+    name: "fresh-build-id",
+    setup(build) {
+      build.onLoad(
+        options,
+        () => ({ contents: `export const BUILD_ID = "${buildId}";` }),
+      );
+    },
+  };
 }

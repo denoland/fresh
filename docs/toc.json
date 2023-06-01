@@ -19,8 +19,9 @@
   "concepts": {
     "title": "Concepts",
     "pages": [
-      ["architechture", "Architecture"],
+      ["architecture", "Architecture"],
       ["routes", "Routes"],
+      ["forms", "Forms"],
       ["islands", "Interactive islands"],
       ["static-files", "Static files"],
       ["middleware", "Route middleware"],
@@ -28,7 +29,12 @@
       ["routing", "Routing"],
       ["data-fetching", "Data fetching"],
       ["deployment", "Deployment"],
-      ["updating", "Updating Fresh"]
+      ["plugins", "Plugins"],
+      ["updating", "Updating Fresh"],
+      ["app-wrapper", "Application wrapper"]
     ]
+  },
+  "integrations": {
+    "title": "Integrations"
   }
 }

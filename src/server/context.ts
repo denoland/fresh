@@ -3,16 +3,17 @@ import {
   extname,
   fromFileUrl,
   RequestHandler,
-  rutt,
   Status,
   toFileUrl,
   typeByExtension,
   walk,
 } from "./deps.ts";
 import { h } from "preact";
+import * as router from "./router.ts";
 import { Manifest } from "./mod.ts";
 import { Bundler, JSXConfig } from "./bundle.ts";
-import { ALIVE_URL, BUILD_ID, JS_PREFIX, REFRESH_JS_URL } from "./constants.ts";
+import { ALIVE_URL, JS_PREFIX, REFRESH_JS_URL } from "./constants.ts";
+import { BUILD_ID } from "./build_id.ts";
 import DefaultErrorHandler from "./default_error_page.ts";
 import {
   AppModule,
@@ -22,10 +23,12 @@ import {
   Handler,
   Island,
   Middleware,
+  MiddlewareHandlerContext,
   MiddlewareModule,
   MiddlewareRoute,
   Plugin,
   RenderFunction,
+  RenderOptions,
   Route,
   RouteModule,
   UnknownPage,
@@ -151,18 +154,32 @@ export class ServerContext {
         path.endsWith("/_middleware.ts") || path.endsWith("/_middleware.jsx") ||
         path.endsWith("/_middleware.js");
       if (!path.startsWith("/_") && !isMiddleware) {
-        const { default: component, config } = (module as RouteModule);
+        const { default: component, config } = module as RouteModule;
         let pattern = pathToPattern(baseRoute);
         if (config?.routeOverride) {
           pattern = String(config.routeOverride);
         }
-        let { handler } = (module as RouteModule);
+        let { handler } = module as RouteModule;
         handler ??= {};
         if (
-          component &&
-          typeof handler === "object" && handler.GET === undefined
+          component && typeof handler === "object" && handler.GET === undefined
         ) {
           handler.GET = (_req, { render }) => render();
+        }
+        if (
+          typeof handler === "object" && handler.GET !== undefined &&
+          handler.HEAD === undefined
+        ) {
+          const GET = handler.GET;
+          handler.HEAD = async (req, ctx) => {
+            const resp = await GET(req, ctx);
+            resp.body?.cancel();
+            return new Response(null, {
+              headers: resp.headers,
+              status: resp.status,
+              statusText: resp.statusText,
+            });
+          };
         }
         const route: Route = {
           pattern,
@@ -187,8 +204,8 @@ export class ServerContext {
         path === "/_404.tsx" || path === "/_404.ts" ||
         path === "/_404.jsx" || path === "/_404.js"
       ) {
-        const { default: component, config } = (module as UnknownPageModule);
-        let { handler } = (module as UnknownPageModule);
+        const { default: component, config } = module as UnknownPageModule;
+        let { handler } = module as UnknownPageModule;
         if (component && handler === undefined) {
           handler = (_req, { render }) => render();
         }
@@ -198,15 +215,15 @@ export class ServerContext {
           url,
           name,
           component,
-          handler: handler ?? ((req) => rutt.defaultOtherHandler(req)),
+          handler: handler ?? ((req) => router.defaultOtherHandler(req)),
           csp: Boolean(config?.csp ?? false),
         };
       } else if (
         path === "/_500.tsx" || path === "/_500.ts" ||
         path === "/_500.jsx" || path === "/_500.js"
       ) {
-        const { default: component, config } = (module as ErrorPageModule);
-        let { handler } = (module as ErrorPageModule);
+        const { default: component, config } = module as ErrorPageModule;
+        let { handler } = module as ErrorPageModule;
         if (component && handler === undefined) {
           handler = (_req, { render }) => render();
         }
@@ -217,7 +234,7 @@ export class ServerContext {
           name,
           component,
           handler: handler ??
-            ((req, ctx) => rutt.defaultErrorHandler(req, ctx, ctx.error)),
+            ((req, ctx) => router.defaultErrorHandler(req, ctx, ctx.error)),
           csp: Boolean(config?.csp ?? false),
         };
       }
@@ -248,11 +265,6 @@ export class ServerContext {
         opts.staticDir ?? "./static",
         manifest.baseUrl,
       );
-      // TODO(lucacasonato): remove the extranious Deno.readDir when
-      // https://github.com/denoland/deno_std/issues/1310 is fixed.
-      for await (const _ of Deno.readDir(fromFileUrl(staticFolder))) {
-        // do nothing
-      }
       const entires = walk(fromFileUrl(staticFolder), {
         includeFiles: true,
         includeDirs: false,
@@ -283,7 +295,7 @@ export class ServerContext {
         staticFiles.push(staticFile);
       }
     } catch (err) {
-      if (err instanceof Deno.errors.NotFound) {
+      if (err.cause instanceof Deno.errors.NotFound) {
         // Do nothing.
       } else {
         throw err;
@@ -310,18 +322,28 @@ export class ServerContext {
    * by fresh, including static files.
    */
   handler(): RequestHandler {
-    const inner = rutt.router<RouterState>(...this.#handlers());
-    const withMiddlewares = this.#composeMiddlewares(this.#middlewares);
-    return function handler(req: Request, connInfo: ConnInfo) {
-      // Redirect requests that end with a trailing slash
-      // to their non-trailing slash counterpart.
+    const handlers = this.#handlers();
+    const inner = router.router<RouterState>(handlers);
+    const withMiddlewares = this.#composeMiddlewares(
+      this.#middlewares,
+      handlers.errorHandler,
+    );
+    return async function handler(req: Request, connInfo: ConnInfo) {
+      // Redirect requests that end with a trailing slash to their non-trailing
+      // slash counterpart.
       // Ex: /about/ -> /about
       const url = new URL(req.url);
       if (url.pathname.length > 1 && url.pathname.endsWith("/")) {
-        url.pathname = url.pathname.slice(0, -1);
-        return Response.redirect(url.href, Status.TemporaryRedirect);
+        // Remove trailing slashes
+        const path = url.pathname.replace(/\/+$/, "");
+        const location = `${path}${url.search}`;
+        return new Response(null, {
+          status: Status.TemporaryRedirect,
+          headers: { location },
+        });
       }
-      return withMiddlewares(req, connInfo, inner);
+
+      return await withMiddlewares(req, connInfo, inner);
     };
   }
 
@@ -329,11 +351,14 @@ export class ServerContext {
    * Identify which middlewares should be applied for a request,
    * chain them and return a handler response
    */
-  #composeMiddlewares(middlewares: MiddlewareRoute[]) {
+  #composeMiddlewares(
+    middlewares: MiddlewareRoute[],
+    errorHandler: router.ErrorHandler<RouterState>,
+  ) {
     return (
       req: Request,
       connInfo: ConnInfo,
-      inner: rutt.Handler<RouterState>,
+      inner: router.FinalHandler<RouterState>,
     ) => {
       // identify middlewares to apply, if any.
       // middlewares should be already sorted from deepest to shallow layer
@@ -341,30 +366,38 @@ export class ServerContext {
 
       const handlers: (() => Response | Promise<Response>)[] = [];
 
-      const ctx = {
+      const middlewareCtx: MiddlewareHandlerContext = {
         next() {
           const handler = handlers.shift()!;
           return Promise.resolve(handler());
         },
         ...connInfo,
         state: {},
+        destination: "route",
       };
 
       for (const mw of mws) {
         if (mw.handler instanceof Array) {
           for (const handler of mw.handler) {
-            handlers.push(() => handler(req, ctx));
+            handlers.push(() => handler(req, middlewareCtx));
           }
         } else {
           const handler = mw.handler;
-          handlers.push(() => handler(req, ctx));
+          handlers.push(() => handler(req, middlewareCtx));
         }
       }
 
-      handlers.push(() => inner(req, ctx));
-
-      const handler = handlers.shift()!;
-      return handler();
+      const ctx = {
+        ...connInfo,
+        state: middlewareCtx.state,
+      };
+      const { destination, handler } = inner(
+        req,
+        ctx,
+      );
+      handlers.push(handler);
+      middlewareCtx.destination = destination;
+      return middlewareCtx.next().catch((e) => errorHandler(req, ctx, e));
     };
   }
 
@@ -372,46 +405,53 @@ export class ServerContext {
    * This function returns all routes required by fresh as an extended
    * path-to-regex, to handler mapping.
    */
-  #handlers(): [
-    rutt.Routes<RouterState>,
-    rutt.Handler<RouterState>,
-    rutt.ErrorHandler<RouterState>,
-  ] {
-    const routes: rutt.Routes<RouterState> = {};
+  #handlers(): {
+    internalRoutes: router.Routes<RouterState>;
+    staticRoutes: router.Routes<RouterState>;
+    routes: router.Routes<RouterState>;
 
-    routes[`${INTERNAL_PREFIX}${JS_PREFIX}/${BUILD_ID}/:path*`] = this
-      .#bundleAssetRoute();
+    otherHandler: router.Handler<RouterState>;
+    errorHandler: router.ErrorHandler<RouterState>;
+  } {
+    const internalRoutes: router.Routes<RouterState> = {};
+    const staticRoutes: router.Routes<RouterState> = {};
+    const routes: router.Routes<RouterState> = {};
 
+    internalRoutes[`${INTERNAL_PREFIX}${JS_PREFIX}/${BUILD_ID}/:path*`] = {
+      default: this.#bundleAssetRoute(),
+    };
     if (this.#dev) {
-      routes[REFRESH_JS_URL] = () => {
-        const js =
-          `new EventSource("${ALIVE_URL}").addEventListener("message", function listener(e) { if (e.data !== "${BUILD_ID}") { this.removeEventListener('message', listener); location.reload(); } });`;
-        return new Response(js, {
-          headers: {
-            "content-type": "application/javascript; charset=utf-8",
-          },
-        });
+      internalRoutes[REFRESH_JS_URL] = {
+        default: () => {
+          return new Response(refreshJs(ALIVE_URL, BUILD_ID), {
+            headers: {
+              "content-type": "application/javascript; charset=utf-8",
+            },
+          });
+        },
       };
-      routes[ALIVE_URL] = () => {
-        let timerId: number | undefined = undefined;
-        const body = new ReadableStream({
-          start(controller) {
-            controller.enqueue(`data: ${BUILD_ID}\nretry: 100\n\n`);
-            timerId = setInterval(() => {
-              controller.enqueue(`data: ${BUILD_ID}\n\n`);
-            }, 1000);
-          },
-          cancel() {
-            if (timerId !== undefined) {
-              clearInterval(timerId);
-            }
-          },
-        });
-        return new Response(body.pipeThrough(new TextEncoderStream()), {
-          headers: {
-            "content-type": "text/event-stream",
-          },
-        });
+      internalRoutes[ALIVE_URL] = {
+        default: () => {
+          let timerId: number | undefined = undefined;
+          const body = new ReadableStream({
+            start(controller) {
+              controller.enqueue(`data: ${BUILD_ID}\nretry: 100\n\n`);
+              timerId = setInterval(() => {
+                controller.enqueue(`data: ${BUILD_ID}\n\n`);
+              }, 1000);
+            },
+            cancel() {
+              if (timerId !== undefined) {
+                clearInterval(timerId);
+              }
+            },
+          });
+          return new Response(body.pipeThrough(new TextEncoderStream()), {
+            headers: {
+              "content-type": "text/event-stream",
+            },
+          });
+        },
       };
     }
 
@@ -423,12 +463,19 @@ export class ServerContext {
       const { localUrl, path, size, contentType, etag } of this.#staticFiles
     ) {
       const route = sanitizePathToRegex(path);
-      routes[`GET@${route}`] = this.#staticFileHandler(
-        localUrl,
-        size,
-        contentType,
-        etag,
-      );
+      staticRoutes[route] = {
+        "HEAD": this.#staticFileHeadHandler(
+          size,
+          contentType,
+          etag,
+        ),
+        "GET": this.#staticFileGetHandler(
+          localUrl,
+          size,
+          contentType,
+          etag,
+        ),
+      };
     }
 
     const genRender = <Data = undefined>(
@@ -436,15 +483,13 @@ export class ServerContext {
       status: number,
     ) => {
       const imports: string[] = [];
-      if (this.#dev) {
-        imports.push(REFRESH_JS_URL);
-      }
+      if (this.#dev) imports.push(REFRESH_JS_URL);
       return (
         req: Request,
         params: Record<string, string>,
         error?: unknown,
       ) => {
-        return async (data?: Data) => {
+        return async (data?: Data, options?: RenderOptions) => {
           if (route.component === undefined) {
             throw new Error("This page does not have a component to render.");
           }
@@ -458,14 +503,13 @@ export class ServerContext {
             );
           }
 
-          const preloads: string[] = [];
           const resp = await internalRender({
             route,
             islands: this.#islands,
             plugins: this.#plugins,
             app: this.#app,
             imports,
-            preloads,
+            dependencyMap: this.#bundler.dependencyMap,
             renderFn: this.#renderFn,
             url: new URL(req.url),
             params,
@@ -492,7 +536,13 @@ export class ServerContext {
               headers["content-security-policy"] = directive;
             }
           }
-          return new Response(body, { status, headers });
+          return new Response(body, {
+            status: options?.status ?? status,
+            statusText: options?.statusText,
+            headers: options?.headers
+              ? { ...headers, ...options.headers }
+              : headers,
+          });
         };
       };
     };
@@ -502,16 +552,23 @@ export class ServerContext {
     for (const route of this.#routes) {
       const createRender = genRender(route, Status.OK);
       if (typeof route.handler === "function") {
-        routes[route.pattern] = (req, ctx, params) =>
-          (route.handler as Handler)(req, {
-            ...ctx,
-            params,
-            render: createRender(req, params),
-            renderNotFound: createUnknownRender(req, {}),
-          });
+        routes[route.pattern] = {
+          default: (req, ctx, params) =>
+            (route.handler as Handler)(req, {
+              ...ctx,
+              params,
+              render: createRender(req, params),
+              renderNotFound: createUnknownRender(req, {}),
+            }),
+        };
       } else {
+        routes[route.pattern] = {};
         for (const [method, handler] of Object.entries(route.handler)) {
-          routes[`${method}@${route.pattern}`] = (req, ctx, params) =>
+          routes[route.pattern][method as router.KnownMethod] = (
+            req,
+            ctx,
+            params,
+          ) =>
             handler(req, {
               ...ctx,
               params,
@@ -522,7 +579,7 @@ export class ServerContext {
       }
     }
 
-    const unknownHandler: rutt.Handler<RouterState> = (
+    const otherHandler: router.Handler<RouterState> = (
       req,
       ctx,
     ) =>
@@ -538,7 +595,7 @@ export class ServerContext {
       this.#error,
       Status.InternalServerError,
     );
-    const errorHandler: rutt.ErrorHandler<RouterState> = (
+    const errorHandler: router.ErrorHandler<RouterState> = (
       req,
       ctx,
       error,
@@ -558,15 +615,51 @@ export class ServerContext {
       );
     };
 
-    return [routes, unknownHandler, errorHandler];
+    return { internalRoutes, staticRoutes, routes, otherHandler, errorHandler };
   }
 
-  #staticFileHandler(
+  #staticFileHeadHandler(
+    size: number,
+    contentType: string,
+    etag: string,
+  ): router.MatchHandler {
+    return (req: Request) => {
+      const url = new URL(req.url);
+      const key = url.searchParams.get(ASSET_CACHE_BUST_KEY);
+      if (key !== null && BUILD_ID !== key) {
+        url.searchParams.delete(ASSET_CACHE_BUST_KEY);
+        const location = url.pathname + url.search;
+        return new Response(null, {
+          status: 307,
+          headers: {
+            location,
+          },
+        });
+      }
+      const headers = new Headers({
+        "content-type": contentType,
+        etag,
+        vary: "If-None-Match",
+      });
+      if (key !== null) {
+        headers.set("Cache-Control", "public, max-age=31536000, immutable");
+      }
+      const ifNoneMatch = req.headers.get("if-none-match");
+      if (ifNoneMatch === etag || ifNoneMatch === "W/" + etag) {
+        return new Response(null, { status: 304, headers });
+      } else {
+        headers.set("content-length", String(size));
+        return new Response(null, { status: 200, headers });
+      }
+    };
+  }
+
+  #staticFileGetHandler(
     localUrl: URL,
     size: number,
     contentType: string,
     etag: string,
-  ): rutt.MatchHandler {
+  ): router.MatchHandler {
     return async (req: Request) => {
       const url = new URL(req.url);
       const key = url.searchParams.get(ASSET_CACHE_BUST_KEY);
@@ -604,7 +697,7 @@ export class ServerContext {
    * Returns a router that contains all fresh routes. Should be mounted at
    * constants.INTERNAL_PREFIX
    */
-  #bundleAssetRoute = (): rutt.MatchHandler => {
+  #bundleAssetRoute = (): router.MatchHandler => {
     return async (_req, _ctx, params) => {
       const path = `/${params.path}`;
       const file = await this.#bundler.get(path);
@@ -644,7 +737,7 @@ const DEFAULT_NOT_FOUND: UnknownPage = {
   pattern: "",
   url: "",
   name: "_404",
-  handler: (req) => rutt.defaultOtherHandler(req),
+  handler: (req) => router.defaultOtherHandler(req),
   csp: false,
 };
 
@@ -773,4 +866,17 @@ export function middlewarePathToPattern(baseRoute: string) {
   }
   const compiledPattern = new URLPattern({ pathname: pattern });
   return { pattern, compiledPattern };
+}
+
+function refreshJs(aliveUrl: string, buildId: string) {
+  return `let es = new EventSource("${aliveUrl}");
+window.addEventListener("beforeunload", (event) => {
+  es.close();
+});
+es.addEventListener("message", function listener(e) {
+  if (e.data !== "${buildId}") {
+    this.removeEventListener("message", listener);
+    location.reload();
+  }
+});`;
 }

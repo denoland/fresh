@@ -1,7 +1,11 @@
 import { join, parse, resolve } from "./src/dev/deps.ts";
 import { error } from "./src/dev/error.ts";
 import { collect, ensureMinDenoVersion, generate } from "./src/dev/mod.ts";
-import { freshImports, twindImports } from "./src/dev/imports.ts";
+import {
+  dotenvImports,
+  freshImports,
+  twindImports,
+} from "./src/dev/imports.ts";
 
 ensureMinDenoVersion();
 
@@ -84,31 +88,53 @@ if (useVSCode) {
   await Deno.mkdir(join(resolvedDirectory, ".vscode"), { recursive: true });
 }
 
+const GITIGNORE = `# dotenv environment variable files
+.env
+.env.development.local
+.env.test.local
+.env.production.local
+.env.local
+`;
+
+await Deno.writeTextFile(
+  join(resolvedDirectory, ".gitignore"),
+  GITIGNORE,
+);
+
 const importMap = { imports: {} as Record<string, string> };
 freshImports(importMap.imports);
 if (useTwind) twindImports(importMap.imports);
+dotenvImports(importMap.imports);
 const IMPORT_MAP_JSON = JSON.stringify(importMap, null, 2) + "\n";
 await Deno.writeTextFile(
   join(resolvedDirectory, "import_map.json"),
   IMPORT_MAP_JSON,
 );
 
-const ROUTES_INDEX_TSX = `import Counter from "../islands/Counter.tsx";
+const ROUTES_INDEX_TSX = `import { Head } from "$fresh/runtime.ts";
+import Counter from "../islands/Counter.tsx";
 
 export default function Home() {
   return (
-    <div${useTwind ? ` class="p-4 mx-auto max-w-screen-md"` : ""}>
-      <img
-        src="/logo.svg"
-        ${useTwind ? `class="w-32 h-32"` : `width="128"\n        height="128"`}
-        alt="the fresh logo: a sliced lemon dripping with juice"
-      />
-      <p${useTwind ? ` class="my-6"` : ""}>
-        Welcome to \`fresh\`. Try updating this message in the ./routes/index.tsx
-        file, and refresh.
-      </p>
-      <Counter start={3} />
-    </div>
+    <>
+      <Head>
+        <title>Fresh App</title>
+      </Head>
+      <div${useTwind ? ` class="p-4 mx-auto max-w-screen-md"` : ""}>
+        <img
+          src="/logo.svg"
+          ${
+  useTwind ? `class="w-32 h-32"` : `width="128"\n          height="128"`
+}
+          alt="the fresh logo: a sliced lemon dripping with juice"
+        />
+        <p${useTwind ? ` class="my-6"` : ""}>
+          Welcome to \`fresh\`. Try updating this message in the
+          ./routes/index.tsx file, and refresh.
+        </p>
+        <Counter start={3} />
+      </div>
+    </>
   );
 }
 `;
@@ -242,6 +268,8 @@ let MAIN_TS = `/// <reference no-default-lib="true" />
 /// <reference lib="dom.asynciterable" />
 /// <reference lib="deno.ns" />
 
+import "$std/dotenv/load.ts";
+
 import { start } from "$fresh/server.ts";
 import manifest from "./fresh.gen.ts";
 `;
@@ -275,6 +303,7 @@ try {
 }
 
 const config = {
+  lock: false,
   tasks: {
     start: "deno run -A --watch=static/,routes/ dev.ts",
   },
@@ -344,11 +373,13 @@ await generate(resolvedDirectory, manifest);
 // not leak personal info (e.g. `/Users/MyName`)
 console.log("\n%cProject initialized!\n", "color: green; font-weight: bold");
 
-console.log(
-  `Enter your project directory using %ccd ${unresolvedDirectory}%c.`,
-  "color: cyan",
-  "",
-);
+if (unresolvedDirectory !== ".") {
+  console.log(
+    `Enter your project directory using %ccd ${unresolvedDirectory}%c.`,
+    "color: cyan",
+    "",
+  );
+}
 console.log(
   "Run %cdeno task start%c to start the project. %cCTRL-C%c to stop.",
   "color: cyan",
