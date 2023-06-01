@@ -42,7 +42,7 @@ Deno.test("/ page prerender", async () => {
   assertStringIncludes(body, `>{"v":[[{"message":"Hello!"}],[]]}</script>`);
   assertStringIncludes(
     body,
-    `<meta name="description" content="Hello world!" />`,
+    '<meta name="description" content="Hello world!"/>',
   );
   assertStringIncludes(body, `<link rel="modulepreload"`);
 });
@@ -650,7 +650,7 @@ Deno.test("experimental Deno.serve", {
     assertStringIncludes(body, `>{"v":[[{"message":"Hello!"}],[]]}</script>`);
     assertStringIncludes(
       body,
-      `<meta name="description" content="Hello world!" />`,
+      '<meta name="description" content="Hello world!"/>',
     );
   });
 
