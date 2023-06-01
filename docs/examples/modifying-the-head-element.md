@@ -1,15 +1,16 @@
-# Modifying the `<head>` Element
+---
+description: |
+  By adding inner components to Fresh's head element, we add inner components to the HTML head element of the web page.
+---
 
 We can use the `<Head />` component in `$fresh/runtime.ts` to modify the
-`<head>` element. By adding changes to the inner components of `<Head />` we can
-add a new components to the `<head />` element of the display page.
+`<head>` element. By adding inner components to `<Head />`, we add inner
+components to the `<head>` element of the web page. Some uses include:
 
-## Common components for modifying `<head>`
-
-- `<title>` Setting the document title
-- `<meta>` Specifying metadata
-- `<link>` Link external resources
-- `<script>` reference JavaScript code
+- Setting the document title using `<title>`
+- Specifying page metadata using `<meta>`
+- Linking to external resources using `<link>`
+- Including JavaScript code using `<script>`
 
 ```tsx
 // routes/index.tsx
