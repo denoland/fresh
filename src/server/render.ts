@@ -26,7 +26,7 @@ export interface RenderOptions<Data> {
   plugins: Plugin[];
   app: AppModule;
   imports: string[];
-  preloads: string[];
+  dependencyMap: Map<string, string[]>;
   url: URL;
   params: Record<string, string | string[]>;
   renderFn: RenderFunction;
@@ -209,6 +209,7 @@ export async function render<Data>(
   bodyHtml = bodyHtml as string;
 
   const imports: [string, string][] = [];
+  const preloadSet = new Set<string>();
   function addImport(path: string): string {
     const randomNonce = crypto.randomUUID().replace(/-/g, "");
     if (csp) {
@@ -219,6 +220,11 @@ export async function render<Data>(
     }
     const url = bundleAssetUrl(path);
     imports.push([url, randomNonce]);
+    preloadSet.add(url);
+    for (const depPath of opts.dependencyMap.get(path) ?? []) {
+      const url = bundleAssetUrl(depPath);
+      preloadSet.add(url);
+    }
     return url;
   }
 
@@ -332,11 +338,12 @@ export async function render<Data>(
     headComponents.splice(0, 0, node);
   }
 
+  const preloads = [...preloadSet];
   const html = template({
     bodyHtml,
     headComponents,
     imports,
-    preloads: opts.preloads,
+    preloads,
     lang: ctx.lang,
   });
 

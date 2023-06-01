@@ -503,14 +503,13 @@ export class ServerContext {
             );
           }
 
-          const preloads: string[] = [];
           const resp = await internalRender({
             route,
             islands: this.#islands,
             plugins: this.#plugins,
             app: this.#app,
             imports,
-            preloads,
+            dependencyMap: this.#bundler.dependencyMap,
             renderFn: this.#renderFn,
             url: new URL(req.url),
             params,
@@ -541,10 +540,7 @@ export class ServerContext {
             status: options?.status ?? status,
             statusText: options?.statusText,
             headers: options?.headers
-              ? {
-                ...headers,
-                ...options.headers,
-              }
+              ? { ...headers, ...options.headers }
               : headers,
           });
         };

@@ -52,6 +52,7 @@ export class Bundler {
   #plugins: Plugin[];
   #cache: Map<string, Uint8Array> | Promise<void> | undefined = undefined;
   #dev: boolean;
+  dependencyMap = new Map<string, string[]>();
 
   constructor(
     islands: Island[],
@@ -124,15 +125,15 @@ export class Bundler {
       jsx: JSX_RUNTIME_MODE[this.#jsxConfig.jsx],
       jsxImportSource: this.#jsxConfig.jsxImportSource,
     });
+    const metafileOutputs = bundle.metafile!.outputs;
 
-    // const metafileOutputs = bundle.metafile!.outputs;
-    // for (const path in metafileOutputs) {
-    //   const meta = metafileOutputs[path];
-    //   const imports = meta.imports
-    //     .filter(({ kind }) => kind === "import-statement")
-    //     .map(({ path }) => `/${path}`);
-    //   this.#preloads.set(`/${path}`, imports);
-    // }
+    for (const path in metafileOutputs) {
+      const meta = metafileOutputs[path];
+      const imports = meta.imports
+        .filter(({ kind }) => kind === "import-statement")
+        .map(({ path }) => `/${path}`);
+      this.dependencyMap.set(`/${path}`, imports);
+    }
 
     const cache = new Map<string, Uint8Array>();
     const absDirUrlLength = toFileUrl(absWorkingDir).href.length;
@@ -161,10 +162,6 @@ export class Bundler {
     const cache = await this.cache();
     return cache.get(path) ?? null;
   }
-
-  // getPreloads(path: string): string[] {
-  //   return this.#preloads.get(path) ?? [];
-  // }
 }
 
 function buildIdPlugin(buildId: string): esbuildTypes.Plugin {
