@@ -222,7 +222,7 @@ export async function render<Data>(
     imports.push([url, randomNonce]);
     preloadSet.add(url);
     for (const depPath of opts.dependenciesFn(path)) {
-      const url = bundleAssetUrl(depPath);
+      const url = bundleAssetUrl(`/${depPath}`);
       preloadSet.add(url);
     }
     return url;
