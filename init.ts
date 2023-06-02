@@ -112,9 +112,11 @@ await Deno.writeTextFile(
 );
 
 const ROUTES_INDEX_TSX = `import { Head } from "$fresh/runtime.ts";
+import { useSignal } from "@preact/signals";
 import Counter from "../islands/Counter.tsx";
 
 export default function Home() {
+  const count = useSignal(3);
   return (
     <>
       <Head>
@@ -132,7 +134,7 @@ export default function Home() {
           Welcome to \`fresh\`. Try updating this message in the
           ./routes/index.tsx file, and refresh.
         </p>
-        <Counter start={3} />
+        <Counter count={count} />
       </div>
     </>
   );
@@ -164,20 +166,21 @@ await Deno.writeTextFile(
   COMPONENTS_BUTTON_TSX,
 );
 
-const ISLANDS_COUNTER_TSX = `import { useState } from "preact/hooks";
+const ISLANDS_COUNTER_TSX = `import type { Signal } from "@preact/signals";
 import { Button } from "../components/Button.tsx";
 
 interface CounterProps {
-  start: number;
+  count: Signal<number>;
 }
 
 export default function Counter(props: CounterProps) {
-  const [count, setCount] = useState(props.start);
   return (
     <div${useTwind ? ' class="flex gap-2 w-full"' : ""}>
-      <p${useTwind ? ' class="flex-grow-1 font-bold text-xl"' : ""}>{count}</p>
-      <Button onClick={() => setCount(count - 1)}>-1</Button>
-      <Button onClick={() => setCount(count + 1)}>+1</Button>
+      <p${
+  useTwind ? ' class="flex-grow-1 font-bold text-xl"' : ""
+}>{props.count}</p>
+      <Button onClick={() => props.count.value -= 1}>-1</Button>
+      <Button onClick={() => props.count.value += 1}>+1</Button>
     </div>
   );
 }
