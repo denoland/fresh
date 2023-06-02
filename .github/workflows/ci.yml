@@ -72,6 +72,12 @@ jobs:
         if: startsWith(matrix.os, 'windows')
         run: set "PUPPETEER_PRODUCT=chrome" && deno run -A --unstable https://deno.land/x/puppeteer@16.2.0/install.ts
 
+      - name: Setup tmate session
+        uses: mxschmitt/action-tmate@v3
+        if: startsWith(matrix.os, 'windows')
+        with:
+          limit-access-to-actor: true
+
       - name: Run tests
         run: deno test -A
 
