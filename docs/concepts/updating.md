@@ -66,7 +66,7 @@ version:
 +     "preact/": "https://esm.sh/preact@10.11.0/",
 
 -     "preact-render-to-string": "https://esm.sh/*preact-render-to-string@5.2.0",
-+     "preact-render-to-string": "https://esm.sh/*preact-render-to-string@5.2.4",
++     "preact-render-to-string": "https://esm.sh/*preact-render-to-string@6.0.3",
 
       "twind": "https://esm.sh/twind@0.16.17",
       "twind/": "https://esm.sh/twind@0.16.17/"
