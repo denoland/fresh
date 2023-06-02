@@ -1,10 +1,11 @@
 import { ComponentChildren } from "preact";
-import { useEffect, useState } from "preact/hooks";
+import { useEffect } from "preact/hooks";
 import { IS_BROWSER } from "$fresh/runtime.ts";
 import * as Icons from "../components/Icons.tsx";
+import { useSignal } from "@preact/signals";
 
 export default function CopyArea(props: { children: ComponentChildren }) {
-  const [copied, setCopied] = useState(false);
+  const copied = useSignal(false);
 
   async function handleClick() {
     if (props.children === undefined || props.children === null) {
@@ -12,22 +13,22 @@ export default function CopyArea(props: { children: ComponentChildren }) {
     }
     try {
       await navigator.clipboard.writeText(props.children.toString());
-      setCopied(true);
+      copied.value = true;
     } catch (error) {
-      setCopied(false);
+      copied.value = false;
       console.error((error && error.message) || "Copy failed");
     }
   }
 
   useEffect(() => {
-    if (!copied) {
+    if (!copied.value) {
       return;
     }
     const timer = setTimeout(() => {
-      setCopied(false);
+      copied.value = false;
     }, 2000);
     return () => clearTimeout(timer);
-  }, [copied]);
+  }, [copied.value]);
 
   return (
     <div class="bg(gray-800) rounded text-white flex items-center">
@@ -47,7 +48,7 @@ export default function CopyArea(props: { children: ComponentChildren }) {
           aria-label="Copy to Clipboard"
           disabled={!IS_BROWSER}
           class={`rounded p-1.5 border border-gray-300 hover:bg-gray-700 ${
-            copied ? "text-green-500" : ""
+            copied.value ? "text-green-500" : ""
           } relative`}
           onClick={handleClick}
         >

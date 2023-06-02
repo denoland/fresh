@@ -14,15 +14,14 @@ island. The file must have a default export that is a regular Preact component.
 ```tsx
 // islands/MyIsland.tsx
 
-import { useState } from "preact/hooks";
+import type { Signal } from "@preact/signals";
 
 export default function MyIsland() {
-  const [count, setCount] = useState(0);
+  const count = useSignal(0);
 
   return (
     <div>
-      Counter is at {count}.{" "}
-      <button onClick={() => setCount(count + 1)}>+</button>
+      Counter is at {count}. <button onClick={() => count.value += 1}>+</button>
     </div>
   );
 }
