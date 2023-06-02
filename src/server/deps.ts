@@ -3,20 +3,20 @@ export {
   extname,
   fromFileUrl,
   toFileUrl,
-} from "https://deno.land/std@0.189.0/path/mod.ts";
-export { walk } from "https://deno.land/std@0.189.0/fs/walk.ts";
-export { serve } from "https://deno.land/std@0.189.0/http/server.ts";
+} from "https://deno.land/std@0.190.0/path/mod.ts";
+export { walk } from "https://deno.land/std@0.190.0/fs/walk.ts";
+export { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 export type {
   ConnInfo,
   Handler as RequestHandler,
   ServeInit,
-} from "https://deno.land/std@0.189.0/http/server.ts";
-export { Status } from "https://deno.land/std@0.189.0/http/http_status.ts";
+} from "https://deno.land/std@0.190.0/http/server.ts";
+export { Status } from "https://deno.land/std@0.190.0/http/http_status.ts";
 export {
   typeByExtension,
-} from "https://deno.land/std@0.189.0/media_types/mod.ts";
-export { toHashString } from "https://deno.land/std@0.189.0/crypto/to_hash_string.ts";
-export { escape } from "https://deno.land/std@0.189.0/regexp/escape.ts";
+} from "https://deno.land/std@0.190.0/media_types/mod.ts";
+export { toHashString } from "https://deno.land/std@0.190.0/crypto/to_hash_string.ts";
+export { escape } from "https://deno.land/std@0.190.0/regexp/escape.ts";
 
 // -- esbuild --
 // @deno-types="https://deno.land/x/esbuild@v0.17.11/mod.d.ts"
