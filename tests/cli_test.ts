@@ -420,19 +420,10 @@ Deno.test({
 
     await cliProcess.output();
 
-    // "move deno.json and import_map.json one level up"
+    // move deno.json one level up
     await Deno.rename(
       path.join(tmpDirName, "subdirectory", "subsubdirectory", "deno.json"),
       path.join(tmpDirName, "deno.json"),
-    );
-    await Deno.rename(
-      path.join(
-        tmpDirName,
-        "subdirectory",
-        "subsubdirectory",
-        "import_map.json",
-      ),
-      path.join(tmpDirName, "import_map.json"),
     );
 
     const targetFileTree: FileTree[] = [
@@ -441,7 +432,6 @@ Deno.test({
         "name": tmpDirName,
         "contents": [
           { "type": "file", "name": "deno.json" },
-          { "type": "file", "name": "import_map.json" },
           {
             "type": "directory",
             "name": "subdirectory",

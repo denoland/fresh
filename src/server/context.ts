@@ -955,7 +955,7 @@ async function readDenoConfig(
 ): Promise<{ config: DenoConfig; path: string }> {
   let dir = directory;
   while (true) {
-    for (const name of ["deno.jsonc", "deno.json"]) {
+    for (const name of ["deno.json", "deno.jsonc"]) {
       const path = join(dir, name);
       try {
         const file = await Deno.readTextFile(path);
