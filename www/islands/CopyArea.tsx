@@ -39,7 +39,7 @@ export default function CopyArea(props: { children: ComponentChildren }) {
       <div class="relative my-2 mr-4">
         <div
           class={`transition ease-in-out absolute pointer-events-none bg-gray-900 text-white absolute p-2 -top-1/3 left-1/2 transform -translate-x-1/2 -translate-y-full box-border rounded opacity-0 ${
-            copied && "opacity-100"
+            copied.value && "opacity-100"
           }`}
         >
           Copied!
@@ -52,7 +52,7 @@ export default function CopyArea(props: { children: ComponentChildren }) {
           } relative`}
           onClick={handleClick}
         >
-          {copied ? <Icons.Check /> : <Icons.Copy />}
+          {copied.value ? <Icons.Check /> : <Icons.Copy />}
         </button>
       </div>
     </div>
