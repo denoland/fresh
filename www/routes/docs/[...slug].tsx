@@ -51,7 +51,9 @@ export const handler: Handlers<Data> = {
 };
 
 export default function DocsPage(props: PageProps<Data>) {
-  let description;
+  const ogImageUrl = new URL(asset("/home-og.png"), props.url).href;
+  const title = `${props.data.page?.title ?? "Not Found"} | fresh docs`;
+  let description = "Fresh Document";
 
   if (props.data.page.data.description) {
     description = String(props.data.page.data.description);
@@ -60,9 +62,14 @@ export default function DocsPage(props: PageProps<Data>) {
   return (
     <>
       <Head>
-        <title>{props.data.page?.title ?? "Not Found"} | fresh docs</title>
+        <title>{title}</title>
         <link rel="stylesheet" href={asset("/gfm.css")} />
-        {description && <meta name="description" content={description} />}
+        <meta name="description" content={description} />
+        <meta property="og:title" content={title} />
+        <meta property="og:description" content={description} />
+        <meta property="og:type" content="website" />
+        <meta property="og:url" content={props.url.href} />
+        <meta property="og:image" content={ogImageUrl} />
       </Head>
       <div class="flex flex-col min-h-screen">
         <Header title="docs" active="/docs" />

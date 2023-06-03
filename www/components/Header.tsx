@@ -25,7 +25,7 @@ export default function Header(props: { title: string; active: string }) {
 
 function Logo() {
   return (
-    <a href="/" class="flex mr-3 items-center">
+    <a href="/" class="flex mr-3 items-center" aria-label="Top Page">
       <img
         src="/logo.svg"
         alt="Fresh logo"

@@ -67,6 +67,7 @@ export default function Footer({ children }: Props) {
         <a
           href="https://github.com/denoland/fresh"
           class="inline-block hover:text-black"
+          aria-label="GitHub"
         >
           <BrandGithub />
         </a>
