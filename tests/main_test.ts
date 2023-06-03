@@ -752,7 +752,7 @@ Deno.test("preloading javascript files", {
     throw new Error("Server didn't start up");
   }
 
-  await delay(2000); // wait running esbuild
+  await delay(10000); // wait running esbuild
 
   const browser = await puppeteer.launch({ args: ["--no-sandbox"] });
   const page = await browser.newPage();
