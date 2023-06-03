@@ -762,6 +762,12 @@ Deno.test("preloading javascript files", {
       waitUntil: "networkidle2",
     });
 
+    await delay(20000); // wait running esbuild
+
+    await page.goto("http://localhost:8000", {
+      waitUntil: "networkidle2",
+    });
+
     const preloads: string[] = await page.$$eval(
       'link[rel="modulepreload"]',
       (elements) => elements.map((element) => element.getAttribute("href")),
