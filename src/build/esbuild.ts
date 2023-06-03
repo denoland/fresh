@@ -4,6 +4,7 @@ import {
   esbuildTypes,
   esbuildWasmURL,
   fromFileUrl,
+  regexpEscape,
   toFileUrl,
 } from "./deps.ts";
 import { Builder, BuildSnapshot } from "./mod.ts";
@@ -143,11 +144,13 @@ function buildIdPlugin(buildId: string): esbuildTypes.Plugin {
   let options: esbuildTypes.OnLoadOptions;
   if (url.protocol === "file:") {
     const path = fromFileUrl(url);
-    options = { filter: new RegExp(escape(path)), namespace: "file" };
+    const filter = new RegExp(`^${regexpEscape(path)}$`);
+    options = { filter, namespace: "file" };
   } else {
     const namespace = url.protocol.slice(0, -1);
     const path = url.href.slice(namespace.length + 1);
-    options = { filter: new RegExp(escape(path)), namespace };
+    const filter = new RegExp(`^${regexpEscape(path)}$`);
+    options = { filter, namespace };
   }
   return {
     name: "fresh-build-id",
