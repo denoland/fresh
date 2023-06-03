@@ -766,9 +766,21 @@ Deno.test("preloading javascript files", {
       'link[rel="modulepreload"]',
       (elements) => elements.map((element) => element.getAttribute("href")),
     );
-    assert(preloads.some((url) => url.match(/\/_frsh\/js\/.*\/main\.js/)));
-    assert(preloads.some((url) => url.match(/\/_frsh\/js\/.*\/island-.*\.js/)));
-    assert(preloads.some((url) => url.match(/\/_frsh\/js\/.*\/chunk-.*\.js/)));
+
+    console.log(preloads);
+
+    assert(
+      preloads.some((url) => url.match(/\/_frsh\/js\/.*\/main\.js/)),
+      "preloads does not include main.js",
+    );
+    assert(
+      preloads.some((url) => url.match(/\/_frsh\/js\/.*\/island-.*\.js/)),
+      "preloads does not include island-*.js",
+    );
+    assert(
+      preloads.some((url) => url.match(/\/_frsh\/js\/.*\/chunk-.*\.js/)),
+      "preloads does not include chunk-*.js",
+    );
   } finally {
     await browser.close();
 
