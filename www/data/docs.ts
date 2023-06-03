@@ -32,7 +32,9 @@ export const CATEGORIES: TableOfContentsCategory[] = [];
 for (const parent in (RAW_TOC as unknown as RawTableOfContents)) {
   const rawEntry = (RAW_TOC as unknown as RawTableOfContents)[parent];
   const href = `/docs/${parent}`;
-  const file = `docs/${parent}/index.md`;
+  const file = parent === "examples"
+    ? `docs/examples.md`
+    : `docs/${parent}/index.md`;
   const entry = {
     slug: parent,
     title: rawEntry.title,
