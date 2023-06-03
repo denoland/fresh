@@ -1,5 +1,5 @@
 import * as path from "$std/path/mod.ts";
-import { assertNotMatch } from "https://deno.land/std@0.189.0/testing/asserts.ts";
+import { assertNotMatch } from "https://deno.land/std@0.190.0/testing/asserts.ts";
 import { Status } from "../src/server/deps.ts";
 import {
   assert,
