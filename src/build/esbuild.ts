@@ -110,6 +110,8 @@ export class EsbuildBuilder implements Builder {
         dependencies.set(path, [...seen]);
       }
 
+      console.error(dependencies);
+
       return new EsbuildSnapshot(files, dependencies);
     } finally {
       stopEsbuild();
