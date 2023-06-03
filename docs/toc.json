@@ -39,8 +39,6 @@
   },
   "examples": {
     "title": "Examples",
-    "pages": [
-      ["modifying-the-head-element", "Modifying the Head Element"]
-    ]
+    "pages": [["modifying-the-head", "Modifying the <head>"]]
   }
 }
