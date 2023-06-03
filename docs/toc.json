@@ -36,5 +36,11 @@
   },
   "integrations": {
     "title": "Integrations"
+  },
+  "examples": {
+    "title": "Examples",
+    "pages": [
+      ["modifying-the-head-element", "Modifying the Head Element"]
+    ]
   }
 }
