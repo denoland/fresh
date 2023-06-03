@@ -1,5 +1,6 @@
 import type { Signal } from "@preact/signals";
 import { IS_BROWSER } from "$fresh/runtime.ts";
+import isNumber from "npm:is-number";
 
 interface CounterProps {
   count: Signal<number>;
@@ -7,6 +8,7 @@ interface CounterProps {
 }
 
 export default function Counter(props: CounterProps) {
+  if (!isNumber(props.count)) throw new TypeError("count must be a number");
   return (
     <div id={props.id}>
       <p>{props.count}</p>
