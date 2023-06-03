@@ -2,8 +2,8 @@
 export {
   fromFileUrl,
   toFileUrl,
-} from "https://deno.land/std@0.189.0/path/mod.ts";
-export { escape as regexpEscape } from "https://deno.land/std@0.189.0/regexp/escape.ts";
+} from "https://deno.land/std@0.190.0/path/mod.ts";
+export { escape as regexpEscape } from "https://deno.land/std@0.190.0/regexp/escape.ts";
 
 // -- esbuild --
 // @deno-types="https://deno.land/x/esbuild@v0.17.11/mod.d.ts"
@@ -17,4 +17,4 @@ const esbuild: typeof esbuildWasm = Deno.run === undefined
 const esbuildWasmURL = new URL("./esbuild_v0.17.11.wasm", import.meta.url).href;
 export { esbuild, esbuildWasm as esbuildTypes, esbuildWasmURL };
 
-export { denoPlugins } from "https://deno.land/x/esbuild_deno_loader@0.7.0/mod.ts";
+export { denoPlugins } from "https://deno.land/x/esbuild_deno_loader@0.7.2/mod.ts";

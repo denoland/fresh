@@ -101,16 +101,6 @@ await Deno.writeTextFile(
   GITIGNORE,
 );
 
-const importMap = { imports: {} as Record<string, string> };
-freshImports(importMap.imports);
-if (useTwind) twindImports(importMap.imports);
-dotenvImports(importMap.imports);
-const IMPORT_MAP_JSON = JSON.stringify(importMap, null, 2) + "\n";
-await Deno.writeTextFile(
-  join(resolvedDirectory, "import_map.json"),
-  IMPORT_MAP_JSON,
-);
-
 const ROUTES_INDEX_TSX = `import { Head } from "$fresh/runtime.ts";
 import { useSignal } from "@preact/signals";
 import Counter from "../islands/Counter.tsx";
@@ -310,12 +300,16 @@ const config = {
   tasks: {
     start: "deno run -A --watch=static/,routes/ dev.ts",
   },
-  importMap: "./import_map.json",
+  imports: {} as Record<string, string>,
   compilerOptions: {
     jsx: "react-jsx",
     jsxImportSource: "preact",
   },
 };
+freshImports(config.imports);
+if (useTwind) twindImports(config.imports);
+dotenvImports(config.imports);
+
 const DENO_CONFIG = JSON.stringify(config, null, 2) + "\n";
 
 await Deno.writeTextFile(join(resolvedDirectory, "deno.json"), DENO_CONFIG);

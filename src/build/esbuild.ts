@@ -16,8 +16,8 @@ export interface EsbuildBuilderOptions {
   entrypoints: Record<string, string>;
   /** Whether or not this is a dev build. */
   dev: boolean;
-  /** The import map URL. */
-  importMapURL: URL;
+  /** The path to the deno.json / deno.jsonc config file. */
+  configPath: string;
   /** The JSX configuration. */
   jsxConfig: JSXConfig;
 }
@@ -74,7 +74,7 @@ export class EsbuildBuilder implements Builder {
 
         plugins: [
           buildIdPlugin(opts.buildID),
-          ...denoPlugins({ importMapURL: opts.importMapURL.href }),
+          ...denoPlugins({ configPath: opts.configPath }),
         ],
       });
 
