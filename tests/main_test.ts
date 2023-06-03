@@ -724,3 +724,55 @@ Deno.test("jsx pragma works", {
   await lines.cancel();
   serverProcess.kill("SIGTERM");
 });
+
+Deno.test("preloading javascript files", {
+  sanitizeOps: false,
+  sanitizeResources: false,
+}, async () => {
+  // Preparation
+  const serverProcess = new Deno.Command(Deno.execPath(), {
+    args: ["run", "-A", "./tests/fixture/main.ts"],
+    stdout: "piped",
+    stderr: "inherit",
+  }).spawn();
+
+  const decoder = new TextDecoderStream();
+  const lines = serverProcess.stdout
+    .pipeThrough(decoder)
+    .pipeThrough(new TextLineStream());
+
+  let started = false;
+  for await (const line of lines) {
+    if (line.includes("Listening on http://")) {
+      started = true;
+      break;
+    }
+  }
+  if (!started) {
+    throw new Error("Server didn't start up");
+  }
+
+  await delay(2000); // wait running esbuild
+
+  const browser = await puppeteer.launch({ args: ["--no-sandbox"] });
+  const page = await browser.newPage();
+
+  try {
+    await page.goto("http://localhost:8000", {
+      waitUntil: "networkidle2",
+    });
+
+    const preloads: string[] = await page.$$eval(
+      'link[rel="modulepreload"]',
+      (elements) => elements.map((element) => element.getAttribute("href")),
+    );
+    assert(preloads.some((url) => url.match(/\/_frsh\/js\/.*\/main\.js/)));
+    assert(preloads.some((url) => url.match(/\/_frsh\/js\/.*\/island-.*\.js/)));
+    assert(preloads.some((url) => url.match(/\/_frsh\/js\/.*\/chunk-.*\.js/)));
+  } finally {
+    await browser.close();
+
+    await lines.cancel();
+    serverProcess.kill("SIGTERM");
+  }
+});
