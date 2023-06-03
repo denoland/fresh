@@ -90,24 +90,11 @@ export class EsbuildBuilder implements Builder {
 
       const metaOutputs = new Map(Object.entries(bundle.metafile.outputs));
 
-      // deno-lint-ignore no-inner-declarations
-      function walk(path: string, seen: Set<string>) {
-        if (seen.has(path)) return;
-        seen.add(path);
-        const entry = metaOutputs.get(path);
-        if (entry === undefined) return;
-        for (const dep of entry.imports) {
-          if (dep.kind === "import-statement") {
-            walk(dep.path, seen);
-          }
-        }
-      }
-
       for (const [path, entry] of metaOutputs.entries()) {
-        if (entry.entryPoint === undefined) continue;
-        const seen = new Set<string>();
-        walk(path, seen);
-        dependencies.set(path, [...seen]);
+        const imports = entry.imports
+          .filter(({ kind }) => kind === "import-statement")
+          .map(({ path }) => path);
+        dependencies.set(path, imports);
       }
 
       return new EsbuildSnapshot(files, dependencies);

@@ -218,7 +218,7 @@ export async function render<Data>(
         nonce(randomNonce),
       ];
     }
-    const url = bundleAssetUrl(path);
+    const url = bundleAssetUrl(`/${path}`);
     imports.push([url, randomNonce]);
     preloadSet.add(url);
     for (const depPath of opts.dependenciesFn(path)) {
@@ -264,11 +264,11 @@ export async function render<Data>(
       `<script id="__FRSH_STATE" type="application/json">${escapedState}</script>`;
 
     if (res.requiresDeserializer) {
-      const url = addImport("/deserializer.js");
+      const url = addImport("deserializer.js");
       script += `import { deserialize } from "${url}";`;
     }
     if (res.hasSignals) {
-      const url = addImport("/signals.js");
+      const url = addImport("signals.js");
       script += `import { signal } from "${url}";`;
     }
     script += `const ST = document.getElementById("__FRSH_STATE").textContent;`;
@@ -287,7 +287,7 @@ export async function render<Data>(
   // Then it imports all plugin scripts and executes them (with their respective
   // state).
   for (const [pluginName, entrypoint, i] of pluginScripts) {
-    const url = addImport(`/plugin-${pluginName}-${entrypoint}.js`);
+    const url = addImport(`plugin-${pluginName}-${entrypoint}.js`);
     script += `import p${i} from "${url}";p${i}(STATE[1][${i}]);`;
   }
 
@@ -295,13 +295,13 @@ export async function render<Data>(
   // reviver from the "main" script.
   if (ENCOUNTERED_ISLANDS.size > 0) {
     // Load the main.js script
-    const url = addImport("/main.js");
+    const url = addImport("main.js");
     script += `import { revive } from "${url}";`;
 
     // Prepare the inline script that loads and revives the islands
     let islandRegistry = "";
     for (const island of ENCOUNTERED_ISLANDS) {
-      const url = addImport(`/island-${island.id}.js`);
+      const url = addImport(`island-${island.id}.js`);
       script += `import ${island.name} from "${url}";`;
       islandRegistry += `${island.id}:${island.name},`;
     }
