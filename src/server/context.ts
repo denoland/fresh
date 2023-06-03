@@ -551,11 +551,6 @@ export class ServerContext {
             imports,
             dependenciesFn: (path) => {
               const snapshot = this.#maybeBuildSnapshot();
-              console.error(
-                "dependenciesFn",
-                path,
-                snapshot?.dependencies(path),
-              );
               return snapshot?.dependencies(path) ?? [];
             },
             renderFn: this.#renderFn,

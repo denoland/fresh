@@ -752,17 +752,16 @@ Deno.test("preloading javascript files", {
     throw new Error("Server didn't start up");
   }
 
-  await delay(20000); // wait running esbuild
-
   const browser = await puppeteer.launch({ args: ["--no-sandbox"] });
   const page = await browser.newPage();
 
   try {
+    // request js file to start esbuild execution
     await page.goto("http://localhost:8000", {
       waitUntil: "networkidle2",
     });
 
-    await delay(20000); // wait running esbuild
+    await delay(5000); // wait running esbuild
 
     await page.goto("http://localhost:8000", {
       waitUntil: "networkidle2",
@@ -772,8 +771,6 @@ Deno.test("preloading javascript files", {
       'link[rel="modulepreload"]',
       (elements) => elements.map((element) => element.getAttribute("href")),
     );
-
-    console.log(preloads);
 
     assert(
       preloads.some((url) => url.match(/\/_frsh\/js\/.*\/main\.js/)),
