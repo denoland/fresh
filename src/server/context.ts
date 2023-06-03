@@ -968,14 +968,14 @@ async function readDenoConfig(
         if (!(err instanceof Deno.errors.NotFound)) {
           throw err;
         }
-        const parent = dirname(dir);
-        if (parent === dir) {
-          throw new Error(
-            `Could not find a deno.json file in the current directory or any parent directory.`,
-          );
-        }
-        dir = parent;
       }
     }
+    const parent = dirname(dir);
+    if (parent === dir) {
+      throw new Error(
+        `Could not find a deno.json file in the current directory or any parent directory.`,
+      );
+    }
+    dir = parent;
   }
 }
