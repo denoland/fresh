@@ -47,11 +47,11 @@ export interface Manifest {
   >;
   islands: Record<string, IslandModule>;
   baseUrl: string;
-  config?: DenoConfig;
 }
 
 export interface DenoConfig {
-  importMap: string;
+  imports?: Record<string, string>;
+  importMap?: string;
   compilerOptions?: {
     jsx?: string;
     jsxImportSource?: string;
@@ -60,6 +60,13 @@ export interface DenoConfig {
 
 export { ServerContext };
 
+export async function createHandler(
+  routes: Manifest,
+  opts: StartOptions = {},
+) {
+  const ctx = await ServerContext.fromManifest(routes, opts);
+  return ctx.handler();
+}
 export async function start(routes: Manifest, opts: StartOptions = {}) {
   const ctx = await ServerContext.fromManifest(routes, opts);
   opts.port ??= 8000;

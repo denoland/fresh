@@ -1,7 +1,10 @@
 import {
   ConnInfo,
+  dirname,
   extname,
   fromFileUrl,
+  join,
+  JSONC,
   RequestHandler,
   Status,
   toFileUrl,
@@ -10,9 +13,9 @@ import {
 } from "./deps.ts";
 import { h } from "preact";
 import * as router from "./router.ts";
-import { Manifest } from "./mod.ts";
-import { Bundler, JSXConfig } from "./bundle.ts";
-import { ALIVE_URL, BUILD_ID, JS_PREFIX, REFRESH_JS_URL } from "./constants.ts";
+import { DenoConfig, Manifest } from "./mod.ts";
+import { ALIVE_URL, JS_PREFIX, REFRESH_JS_URL } from "./constants.ts";
+import { BUILD_ID } from "./build_id.ts";
 import DefaultErrorHandler from "./default_error_page.ts";
 import {
   AppModule,
@@ -27,6 +30,7 @@ import {
   MiddlewareRoute,
   Plugin,
   RenderFunction,
+  RenderOptions,
   Route,
   RouteModule,
   UnknownPage,
@@ -35,8 +39,21 @@ import {
 import { render as internalRender } from "./render.ts";
 import { ContentSecurityPolicyDirectives, SELF } from "../runtime/csp.ts";
 import { ASSET_CACHE_BUST_KEY, INTERNAL_PREFIX } from "../runtime/utils.ts";
+import {
+  Builder,
+  BuildSnapshot,
+  EsbuildBuilder,
+  JSXConfig,
+} from "../build/mod.ts";
+
 interface RouterState {
   state: Record<string, unknown>;
+}
+
+function isObject(value: unknown) {
+  return typeof value === "object" &&
+    !Array.isArray(value) &&
+    value !== null;
 }
 
 interface StaticFile {
@@ -57,13 +74,13 @@ export class ServerContext {
   #routes: Route[];
   #islands: Island[];
   #staticFiles: StaticFile[];
-  #bundler: Bundler;
   #renderFn: RenderFunction;
   #middlewares: MiddlewareRoute[];
   #app: AppModule;
   #notFound: UnknownPage;
   #error: ErrorPage;
   #plugins: Plugin[];
+  #builder: Builder | Promise<BuildSnapshot> | BuildSnapshot;
 
   constructor(
     routes: Route[],
@@ -75,7 +92,7 @@ export class ServerContext {
     notFound: UnknownPage,
     error: ErrorPage,
     plugins: Plugin[],
-    importMapURL: URL,
+    configPath: string,
     jsxConfig: JSXConfig,
   ) {
     this.#routes = routes;
@@ -88,13 +105,13 @@ export class ServerContext {
     this.#error = error;
     this.#plugins = plugins;
     this.#dev = typeof Deno.env.get("DENO_DEPLOYMENT_ID") !== "string"; // Env var is only set in prod (on Deploy).
-    this.#bundler = new Bundler(
-      this.#islands,
-      this.#plugins,
-      importMapURL,
+    this.#builder = new EsbuildBuilder({
+      buildID: BUILD_ID,
+      entrypoints: collectEntrypoints(this.#dev, this.#islands, this.#plugins),
+      configPath,
+      dev: this.#dev,
       jsxConfig,
-      this.#dev,
-    );
+    });
   }
 
   /**
@@ -107,11 +124,14 @@ export class ServerContext {
     // Get the manifest' base URL.
     const baseUrl = new URL("./", manifest.baseUrl).href;
 
-    const config = manifest.config || { importMap: "./import_map.json" };
-    if (typeof config.importMap !== "string") {
-      throw new Error("deno.json must contain an 'importMap' property.");
+    const { config, path: configPath } = await readDenoConfig(
+      fromFileUrl(baseUrl),
+    );
+    if (typeof config.importMap !== "string" && !isObject(config.imports)) {
+      throw new Error(
+        "deno.json must contain an 'importMap' or 'imports' property.",
+      );
     }
-    const importMapURL = new URL(config.importMap, manifest.baseUrl);
 
     config.compilerOptions ??= {};
 
@@ -160,10 +180,24 @@ export class ServerContext {
         let { handler } = module as RouteModule;
         handler ??= {};
         if (
-          component &&
-          typeof handler === "object" && handler.GET === undefined
+          component && typeof handler === "object" && handler.GET === undefined
         ) {
           handler.GET = (_req, { render }) => render();
+        }
+        if (
+          typeof handler === "object" && handler.GET !== undefined &&
+          handler.HEAD === undefined
+        ) {
+          const GET = handler.GET;
+          handler.HEAD = async (req, ctx) => {
+            const resp = await GET(req, ctx);
+            resp.body?.cancel();
+            return new Response(null, {
+              headers: resp.headers,
+              status: resp.status,
+              statusText: resp.statusText,
+            });
+          };
         }
         const route: Route = {
           pattern,
@@ -249,11 +283,6 @@ export class ServerContext {
         opts.staticDir ?? "./static",
         manifest.baseUrl,
       );
-      // TODO(lucacasonato): remove the extranious Deno.readDir when
-      // https://github.com/denoland/deno_std/issues/1310 is fixed.
-      for await (const _ of Deno.readDir(fromFileUrl(staticFolder))) {
-        // do nothing
-      }
       const entires = walk(fromFileUrl(staticFolder), {
         includeFiles: true,
         includeDirs: false,
@@ -284,7 +313,7 @@ export class ServerContext {
         staticFiles.push(staticFile);
       }
     } catch (err) {
-      if (err instanceof Deno.errors.NotFound) {
+      if (err.cause instanceof Deno.errors.NotFound) {
         // Do nothing.
       } else {
         throw err;
@@ -301,7 +330,7 @@ export class ServerContext {
       notFound,
       error,
       opts.plugins ?? [],
-      importMapURL,
+      configPath,
       jsxConfig,
     );
   }
@@ -320,28 +349,42 @@ export class ServerContext {
     return async function handler(req: Request, connInfo: ConnInfo) {
       // Redirect requests that end with a trailing slash to their non-trailing
       // slash counterpart.
+      // Ex: /about/ -> /about
       const url = new URL(req.url);
-      if (cleanPathname(url)) {
-        return Response.redirect(url.href, Status.TemporaryRedirect);
-      }
-
-      // HEAD requests should be handled as GET requests but without the body.
-      const originalMethod = req.method;
-      // Internally, HEAD is handled in the same way as GET.
-      if (req.method === "HEAD") {
-        req = new Request(req.url, { method: "GET", headers: req.headers });
-      }
-      const res = await withMiddlewares(req, connInfo, inner);
-      if (originalMethod === "HEAD") {
-        res.body?.cancel();
+      if (url.pathname.length > 1 && url.pathname.endsWith("/")) {
+        // Remove trailing slashes
+        const path = url.pathname.replace(/\/+$/, "");
+        const location = `${path}${url.search}`;
         return new Response(null, {
-          headers: res.headers,
-          status: res.status,
-          statusText: res.statusText,
+          status: Status.TemporaryRedirect,
+          headers: { location },
         });
       }
-      return res;
+
+      return await withMiddlewares(req, connInfo, inner);
     };
+  }
+
+  #maybeBuildSnapshot(): BuildSnapshot | null {
+    if ("build" in this.#builder || this.#builder instanceof Promise) {
+      return null;
+    }
+    return this.#builder;
+  }
+
+  async #buildSnapshot() {
+    if ("build" in this.#builder) {
+      const builder = this.#builder;
+      this.#builder = builder.build();
+      try {
+        const snapshot = await this.#builder;
+        this.#builder = snapshot;
+      } catch (err) {
+        this.#builder = builder;
+        throw err;
+      }
+    }
+    return this.#builder;
   }
 
   /**
@@ -461,7 +504,12 @@ export class ServerContext {
     ) {
       const route = sanitizePathToRegex(path);
       staticRoutes[route] = {
-        "GET": this.#staticFileHandler(
+        "HEAD": this.#staticFileHeadHandler(
+          size,
+          contentType,
+          etag,
+        ),
+        "GET": this.#staticFileGetHandler(
           localUrl,
           size,
           contentType,
@@ -475,15 +523,13 @@ export class ServerContext {
       status: number,
     ) => {
       const imports: string[] = [];
-      if (this.#dev) {
-        imports.push(REFRESH_JS_URL);
-      }
+      if (this.#dev) imports.push(REFRESH_JS_URL);
       return (
         req: Request,
         params: Record<string, string>,
         error?: unknown,
       ) => {
-        return async (data?: Data) => {
+        return async (data?: Data, options?: RenderOptions) => {
           if (route.component === undefined) {
             throw new Error("This page does not have a component to render.");
           }
@@ -497,14 +543,16 @@ export class ServerContext {
             );
           }
 
-          const preloads: string[] = [];
           const resp = await internalRender({
             route,
             islands: this.#islands,
             plugins: this.#plugins,
             app: this.#app,
             imports,
-            preloads,
+            dependenciesFn: (path) => {
+              const snapshot = this.#maybeBuildSnapshot();
+              return snapshot?.dependencies(path) ?? [];
+            },
             renderFn: this.#renderFn,
             url: new URL(req.url),
             params,
@@ -531,7 +579,13 @@ export class ServerContext {
               headers["content-security-policy"] = directive;
             }
           }
-          return new Response(body, { status, headers });
+          return new Response(body, {
+            status: options?.status ?? status,
+            statusText: options?.statusText,
+            headers: options?.headers
+              ? { ...headers, ...options.headers }
+              : headers,
+          });
         };
       };
     };
@@ -607,7 +661,43 @@ export class ServerContext {
     return { internalRoutes, staticRoutes, routes, otherHandler, errorHandler };
   }
 
-  #staticFileHandler(
+  #staticFileHeadHandler(
+    size: number,
+    contentType: string,
+    etag: string,
+  ): router.MatchHandler {
+    return (req: Request) => {
+      const url = new URL(req.url);
+      const key = url.searchParams.get(ASSET_CACHE_BUST_KEY);
+      if (key !== null && BUILD_ID !== key) {
+        url.searchParams.delete(ASSET_CACHE_BUST_KEY);
+        const location = url.pathname + url.search;
+        return new Response(null, {
+          status: 307,
+          headers: {
+            location,
+          },
+        });
+      }
+      const headers = new Headers({
+        "content-type": contentType,
+        etag,
+        vary: "If-None-Match",
+      });
+      if (key !== null) {
+        headers.set("Cache-Control", "public, max-age=31536000, immutable");
+      }
+      const ifNoneMatch = req.headers.get("if-none-match");
+      if (ifNoneMatch === etag || ifNoneMatch === "W/" + etag) {
+        return new Response(null, { status: 304, headers });
+      } else {
+        headers.set("content-length", String(size));
+        return new Response(null, { status: 200, headers });
+      }
+    };
+  }
+
+  #staticFileGetHandler(
     localUrl: URL,
     size: number,
     contentType: string,
@@ -652,27 +742,20 @@ export class ServerContext {
    */
   #bundleAssetRoute = (): router.MatchHandler => {
     return async (_req, _ctx, params) => {
-      const path = `/${params.path}`;
-      const file = await this.#bundler.get(path);
-      let res;
-      if (file) {
-        const headers = new Headers({
-          "Cache-Control": "public, max-age=604800, immutable",
-        });
+      const snapshot = await this.#buildSnapshot();
+      const contents = snapshot.read(params.path);
+      if (!contents) return new Response(null, { status: 404 });
 
-        const contentType = typeByExtension(extname(path));
-        if (contentType) {
-          headers.set("Content-Type", contentType);
-        }
+      const headers: Record<string, string> = {
+        "Cache-Control": "public, max-age=604800, immutable",
+      };
 
-        res = new Response(file, {
-          status: 200,
-          headers,
-        });
-      }
+      const contentType = typeByExtension(extname(params.path));
+      if (contentType) headers["Content-Type"] = contentType;
 
-      return res ?? new Response(null, {
-        status: 404,
+      return new Response(contents, {
+        status: 200,
+        headers,
       });
     };
   };
@@ -834,17 +917,65 @@ es.addEventListener("message", function listener(e) {
 });`;
 }
 
-/**
- * Clean the pathname in the given URL by removing all trailing slashes.
- *
- * Returns true if the pathname was changed.
- */
-export function cleanPathname(url: URL): boolean {
-  const pathname = url.pathname.replace(/\/+$/, "");
-  if (pathname === "") return false;
-  if (pathname !== url.pathname) {
-    url.pathname = pathname;
-    return true;
+function collectEntrypoints(
+  dev: boolean,
+  islands: Island[],
+  plugins: Plugin[],
+): Record<string, string> {
+  const entrypointBase = "../runtime/entrypoints";
+  const entryPoints: Record<string, string> = {
+    main: dev
+      ? import.meta.resolve(`${entrypointBase}/main_dev.ts`)
+      : import.meta.resolve(`${entrypointBase}/main.ts`),
+    deserializer: import.meta.resolve(`${entrypointBase}/deserializer.ts`),
+  };
+
+  try {
+    import.meta.resolve("@preact/signals");
+    entryPoints.signals = import.meta.resolve(`${entrypointBase}/signals.ts`);
+  } catch {
+    // @preact/signals is not in the import map
   }
-  return false;
+
+  for (const island of islands) {
+    entryPoints[`island-${island.id}`] = island.url;
+  }
+
+  for (const plugin of plugins) {
+    for (const [name, url] of Object.entries(plugin.entrypoints ?? {})) {
+      entryPoints[`plugin-${plugin.name}-${name}`] = url;
+    }
+  }
+
+  return entryPoints;
+}
+
+async function readDenoConfig(
+  directory: string,
+): Promise<{ config: DenoConfig; path: string }> {
+  let dir = directory;
+  while (true) {
+    for (const name of ["deno.json", "deno.jsonc"]) {
+      const path = join(dir, name);
+      try {
+        const file = await Deno.readTextFile(path);
+        if (name.endsWith(".jsonc")) {
+          return { config: JSONC.parse(file) as DenoConfig, path };
+        } else {
+          return { config: JSON.parse(file), path };
+        }
+      } catch (err) {
+        if (!(err instanceof Deno.errors.NotFound)) {
+          throw err;
+        }
+      }
+    }
+    const parent = dirname(dir);
+    if (parent === dir) {
+      throw new Error(
+        `Could not find a deno.json file in the current directory or any parent directory.`,
+      );
+    }
+    dir = parent;
+  }
 }
