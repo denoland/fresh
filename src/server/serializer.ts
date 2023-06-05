@@ -16,6 +16,7 @@
  *
  * The corresponding deserializer is in `src/runtime/deserializer.ts`.
  */
+import { Fragment, type VNode } from "preact";
 import { KEY } from "../runtime/deserializer.ts";
 
 interface SerializeResult {
@@ -42,6 +43,11 @@ function isSignal(x: any): x is Signal {
     typeof x.peek === "function" &&
     "value" in x
   );
+}
+
+// deno-lint-ignore no-explicit-any
+function isPreactVNode(x: any): x is VNode {
+  return typeof x === "object" && x !== null && x.constructor === undefined;
 }
 
 export function serialize(data: unknown): SerializeResult {
@@ -131,6 +137,28 @@ export function serialize(data: unknown): SerializeResult {
       const k = v[KEY];
       delete v[KEY];
       const res = { [KEY]: "l", k, v };
+      parentStack.push(res);
+      return res;
+    } else if (isPreactVNode(value)) {
+      requiresDeserializer = true;
+
+      let type = value.type;
+      if (typeof value.type === "function") {
+        if (value.type === Fragment) {
+          type = "_F";
+        } else {
+          throw new TypeError(
+            `Preact components cannot be passed as children to islands. Found component ${
+              value.type.displayName || value.type.name || "anonymous"
+            }.`,
+          );
+        }
+      }
+
+      const props = value.key
+        ? { ...value.props, key: value.key }
+        : value.props;
+      const res = { [KEY]: "pv", type, props };
       parentStack.push(res);
       return res;
     } else {

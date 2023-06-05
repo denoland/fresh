@@ -1,5 +1,6 @@
 import { useSignal } from "@preact/signals";
 import Counter from "../islands/Counter.tsx";
+import PassThrough from "../islands/Passthrough.tsx";
 
 export default function Home() {
   const count = useSignal(3);
@@ -12,6 +13,9 @@ export default function Home() {
       <Counter count={count} />
       <Counter count={count} />
       <Counter count={count} />
+      <PassThrough>
+        <h1 key="abc">asd test</h1>
+      </PassThrough>
     </div>
   );
 }

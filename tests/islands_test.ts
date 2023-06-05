@@ -222,3 +222,37 @@ Deno.test({
   sanitizeOps: false,
   sanitizeResources: false,
 });
+
+Deno.test({
+  name: "island receives DOM JSX children",
+
+  async fn(_t) {
+    await withPage(async (page) => {
+      await page.goto("http://localhost:8000/islands/dom_only_children", {
+        waitUntil: "networkidle2",
+      });
+
+      await page.waitForSelector("h1.it-works");
+    });
+  },
+
+  sanitizeOps: false,
+  sanitizeResources: false,
+});
+
+Deno.test({
+  name: "island receives DOM JSX children with Fragments",
+
+  async fn(_t) {
+    await withPage(async (page) => {
+      await page.goto("http://localhost:8000/islands/dom_children_fragments", {
+        waitUntil: "networkidle2",
+      });
+
+      await page.waitForSelector("h1.it-works");
+    });
+  },
+
+  sanitizeOps: false,
+  sanitizeResources: false,
+});

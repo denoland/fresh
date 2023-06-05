@@ -1,6 +1,8 @@
 // Run `deno run -A npm:esbuild --minify src/runtime/deserializer.ts` to minify
 // this file. It is embedded into src/server/deserializer_code.ts.
 
+import { Fragment, h } from "preact";
+
 export const KEY = "_f";
 
 interface Signal<T> {
@@ -36,6 +38,10 @@ export function deserialize(
         const val = v.v;
         val[KEY] = v.k;
         return val;
+      }
+      if (v[KEY] === "pv") {
+        const type = v.type === "_F" ? Fragment : v.type;
+        return h(type, v.props);
       }
       throw new Error(`Unknown key: ${v[KEY]}`);
     }
