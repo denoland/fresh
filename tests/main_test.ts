@@ -791,3 +791,46 @@ Deno.test("preloading javascript files", {
     serverProcess.kill("SIGTERM");
   }
 });
+
+Deno.test("PORT environment variable", {
+  sanitizeOps: false,
+  sanitizeResources: false,
+}, async () => {
+  const PORT = "8765";
+  // Preparation
+  const serverProcess = new Deno.Command(Deno.execPath(), {
+    args: [
+      "run",
+      "-A",
+      "./tests/fixture/main.ts",
+    ],
+    stdout: "piped",
+    stderr: "inherit",
+    env: { PORT },
+  }).spawn();
+
+  const decoder = new TextDecoderStream();
+  const lines = serverProcess.stdout
+    .pipeThrough(decoder)
+    .pipeThrough(new TextLineStream());
+
+  let started = false;
+  for await (const line of lines) {
+    if (line.includes("Listening on http://") && line.includes(PORT)) {
+      started = true;
+      break;
+    }
+  }
+  if (!started) {
+    throw new Error("Server didn't start up");
+  }
+
+  await delay(100);
+
+  const resp = await fetch("http://localhost:" + PORT);
+  assert(resp);
+  assertEquals(resp.status, Status.OK);
+
+  await lines.cancel();
+  serverProcess.kill("SIGTERM");
+});
