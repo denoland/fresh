@@ -5,11 +5,11 @@ import {
   assertStringIncludes,
   delay,
   puppeteer,
-  TextLineStream,
 } from "./deps.ts";
 import manifest from "./fixture/fresh.gen.ts";
 import options from "./fixture/options.ts";
 import { BUILD_ID } from "../src/server/build_id.ts";
+import { startFreshServer } from "./test_utils.ts";
 
 const ctx = await ServerContext.fromManifest(manifest, options);
 const handler = ctx.handler();
@@ -606,7 +606,7 @@ Deno.test("experimental Deno.serve", {
   ignore: Deno.build.os === "windows", // TODO: Deno.serve hang on Windows?
 }, async (t) => {
   // Preparation
-  const serverProcess = new Deno.Command(Deno.execPath(), {
+  const { serverProcess, lines } = await startFreshServer({
     args: [
       "run",
       "-A",
@@ -614,25 +614,7 @@ Deno.test("experimental Deno.serve", {
       "./tests/fixture/main.ts",
       "--experimental-deno-serve",
     ],
-    stdout: "piped",
-    stderr: "inherit",
-  }).spawn();
-
-  const decoder = new TextDecoderStream();
-  const lines = serverProcess.stdout
-    .pipeThrough(decoder)
-    .pipeThrough(new TextLineStream());
-
-  let started = false;
-  for await (const line of lines) {
-    if (line.includes("Listening on http://")) {
-      started = true;
-      break;
-    }
-  }
-  if (!started) {
-    throw new Error("Server didn't start up");
-  }
+  });
 
   await delay(100);
 
@@ -676,27 +658,9 @@ Deno.test("jsx pragma works", {
   sanitizeResources: false,
 }, async (t) => {
   // Preparation
-  const serverProcess = new Deno.Command(Deno.execPath(), {
+  const { serverProcess, lines } = await startFreshServer({
     args: ["run", "-A", "./tests/fixture_jsx_pragma/main.ts"],
-    stdout: "piped",
-    stderr: "inherit",
-  }).spawn();
-
-  const decoder = new TextDecoderStream();
-  const lines = serverProcess.stdout
-    .pipeThrough(decoder)
-    .pipeThrough(new TextLineStream());
-
-  let started = false;
-  for await (const line of lines) {
-    if (line.includes("Listening on http://")) {
-      started = true;
-      break;
-    }
-  }
-  if (!started) {
-    throw new Error("Server didn't start up");
-  }
+  });
 
   await delay(100);
 
@@ -730,27 +694,9 @@ Deno.test("preloading javascript files", {
   sanitizeResources: false,
 }, async () => {
   // Preparation
-  const serverProcess = new Deno.Command(Deno.execPath(), {
+  const { serverProcess, lines } = await startFreshServer({
     args: ["run", "-A", "./tests/fixture/main.ts"],
-    stdout: "piped",
-    stderr: "inherit",
-  }).spawn();
-
-  const decoder = new TextDecoderStream();
-  const lines = serverProcess.stdout
-    .pipeThrough(decoder)
-    .pipeThrough(new TextLineStream());
-
-  let started = false;
-  for await (const line of lines) {
-    if (line.includes("Listening on http://")) {
-      started = true;
-      break;
-    }
-  }
-  if (!started) {
-    throw new Error("Server didn't start up");
-  }
+  });
 
   const browser = await puppeteer.launch({ args: ["--no-sandbox"] });
   const page = await browser.newPage();
@@ -798,32 +744,10 @@ Deno.test("PORT environment variable", {
 }, async () => {
   const PORT = "8765";
   // Preparation
-  const serverProcess = new Deno.Command(Deno.execPath(), {
-    args: [
-      "run",
-      "-A",
-      "./tests/fixture/main.ts",
-    ],
-    stdout: "piped",
-    stderr: "inherit",
+  const { serverProcess, lines } = await startFreshServer({
+    args: ["run", "-A", "./tests/fixture/main.ts"],
     env: { PORT },
-  }).spawn();
-
-  const decoder = new TextDecoderStream();
-  const lines = serverProcess.stdout
-    .pipeThrough(decoder)
-    .pipeThrough(new TextLineStream());
-
-  let started = false;
-  for await (const line of lines) {
-    if (line.includes("Listening on http://") && line.includes(PORT)) {
-      started = true;
-      break;
-    }
-  }
-  if (!started) {
-    throw new Error("Server didn't start up");
-  }
+  });
 
   await delay(100);
 
