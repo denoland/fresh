@@ -47,11 +47,11 @@ export interface Manifest {
   >;
   islands: Record<string, IslandModule>;
   baseUrl: string;
-  config?: DenoConfig;
 }
 
 export interface DenoConfig {
-  importMap: string;
+  imports?: Record<string, string>;
+  importMap?: string;
   compilerOptions?: {
     jsx?: string;
     jsxImportSource?: string;
@@ -60,11 +60,17 @@ export interface DenoConfig {
 
 export { ServerContext };
 
-const port = parseInt(Deno.env.get("PORT") || "8000");
+export async function createHandler(
+  routes: Manifest,
+  opts: StartOptions = {},
+) {
+  const ctx = await ServerContext.fromManifest(routes, opts);
+  return ctx.handler();
+}
 
 export async function start(routes: Manifest, opts: StartOptions = {}) {
   const ctx = await ServerContext.fromManifest(routes, opts);
-  opts.port ??= port;
+  opts.port ??= parseInt(Deno.env.get("PORT") || "8000");
   if (opts.experimentalDenoServe === true) {
     // @ts-ignore as `Deno.serve` is still unstable.
     await Deno.serve(ctx.handler() as Deno.ServeHandler, opts);

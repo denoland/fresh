@@ -9,6 +9,7 @@ import {
 } from "./deps.ts";
 import manifest from "./fixture/fresh.gen.ts";
 import options from "./fixture/options.ts";
+import { BUILD_ID } from "../src/server/build_id.ts";
 
 const ctx = await ServerContext.fromManifest(manifest, options);
 const handler = ctx.handler();
@@ -38,11 +39,12 @@ Deno.test("/ page prerender", async () => {
   assertStringIncludes(body, "test.js");
   assertStringIncludes(body, "<p>Hello!</p>");
   assertStringIncludes(body, "<p>Viewing JIT render.</p>");
-  assertStringIncludes(body, `>[[{"message":"Hello!"}],[]]</script>`);
+  assertStringIncludes(body, `>{"v":[[{"message":"Hello!"}],[]]}</script>`);
   assertStringIncludes(
     body,
-    `<meta name="description" content="Hello world!" />`,
+    '<meta name="description" content="Hello world!"/>',
   );
+  assertStringIncludes(body, `<link rel="modulepreload"`);
 });
 
 Deno.test("/props/123 page prerender", async () => {
@@ -64,6 +66,34 @@ Deno.test("/[name] page prerender", async () => {
   assertEquals(resp.headers.get("content-type"), "text/html; charset=utf-8");
   const body = await resp.text();
   assertStringIncludes(body, "<div>Hello bar</div>");
+});
+
+Deno.test("/api/head_override - HEAD", async () => {
+  const req = new Request("https://fresh.deno.dev/api/head_override", {
+    method: "HEAD",
+  });
+  const resp = await router(req);
+  assert(resp);
+  assertEquals(resp.status, Status.NoContent);
+  assertEquals(resp.body, null);
+  assertEquals(
+    resp.headers.get("content-type"),
+    "text/html; charset=utf-8",
+  );
+});
+
+Deno.test("/api/get_only - HEAD fallback", async () => {
+  const req = new Request("https://fresh.deno.dev/api/get_only", {
+    method: "HEAD",
+  });
+  const resp = await router(req);
+  assert(resp);
+  assertEquals(resp.status, Status.OK);
+  assertEquals(resp.body, null);
+  assertEquals(
+    resp.headers.get("content-type"),
+    "application/json; charset=utf-8",
+  );
 });
 
 Deno.test("/intercept - GET html", async () => {
@@ -119,6 +149,18 @@ Deno.test("/intercept_args - GET html", async () => {
   assertStringIncludes(body, "<div>intercepted</div>");
 });
 
+Deno.test("/status_overwrite", async () => {
+  const req = new Request("https://fresh.deno.dev/status_overwrite", {
+    headers: { "accept": "text/html" },
+  });
+  const resp = await router(req);
+  assert(resp);
+  assertEquals(resp.status, Status.Unauthorized);
+  assertEquals(resp.headers.get("x-some-header"), "foo");
+  const body = await resp.text();
+  assertStringIncludes(body, "<div>This is HTML</div>");
+});
+
 Deno.test("/api/get_only - NOTAMETHOD", async () => {
   const resp = await router(
     new Request("https://fresh.deno.dev/api/get_only", {
@@ -171,8 +213,40 @@ Deno.test("redirect /pages/fresh/ to /pages/fresh", async () => {
   assertEquals(resp.status, Status.TemporaryRedirect);
   assertEquals(
     resp.headers.get("location"),
-    "https://fresh.deno.dev/pages/fresh",
+    "/pages/fresh",
   );
+});
+
+Deno.test("redirect /pages/////fresh///// to /pages/////fresh", async () => {
+  const resp = await router(
+    new Request("https://fresh.deno.dev/pages/////fresh/////"),
+  );
+  assert(resp);
+  assertEquals(resp.status, Status.TemporaryRedirect);
+  assertEquals(
+    resp.headers.get("location"),
+    "/pages/////fresh",
+  );
+});
+
+Deno.test("redirect /pages/////fresh/ to /pages/////fresh", async () => {
+  const resp = await router(
+    new Request("https://fresh.deno.dev/pages/////fresh/"),
+  );
+  assert(resp);
+  assertEquals(resp.status, Status.TemporaryRedirect);
+  assertEquals(
+    resp.headers.get("location"),
+    "/pages/////fresh",
+  );
+});
+
+Deno.test("no redirect for /pages/////fresh", async () => {
+  const resp = await router(
+    new Request("https://fresh.deno.dev/pages/////fresh"),
+  );
+  assert(resp);
+  assertEquals(resp.status, Status.NotFound);
 });
 
 Deno.test("/failure", async () => {
@@ -254,6 +328,29 @@ Deno.test("static file - by file path", async () => {
   assertEquals(resp3.headers.get("content-type"), "text/plain");
 });
 
+Deno.test("HEAD request", async () => {
+  // Static file
+  const resp = await router(
+    new Request("https://fresh.deno.dev/foo.txt", {
+      method: "HEAD",
+    }),
+  );
+  assertEquals(resp.status, Status.OK);
+  const body = await resp.text();
+  assertEquals(body, "");
+
+  // route
+  const resp2 = await router(
+    new Request("https://fresh.deno.dev/books/123", {
+      method: "HEAD",
+    }),
+  );
+  assert(resp2);
+  assertEquals(resp2.status, Status.OK);
+  const body2 = await resp2.text();
+  assertEquals(body2, "");
+});
+
 Deno.test("static file - by 'hashed' path", async () => {
   // Check that the file path have the BUILD_ID
   const resp = await router(
@@ -262,7 +359,7 @@ Deno.test("static file - by 'hashed' path", async () => {
   const body = await resp.text();
   const imgFilePath = body.match(/img id="img-with-hashing" src="(.*?)"/)?.[1];
   assert(imgFilePath);
-  assert(imgFilePath.includes(`?__frsh_c=${globalThis.__FRSH_BUILD_ID}`));
+  assert(imgFilePath.includes(`?__frsh_c=${BUILD_ID}`));
 
   // check the static file is served corectly under its cacheable route
   const resp2 = await router(
@@ -290,20 +387,20 @@ Deno.test("static file - by 'hashed' path", async () => {
   )?.[1];
   assert(imgFilePathWithNoCache);
   assert(
-    !imgFilePathWithNoCache.includes(globalThis.__FRSH_BUILD_ID),
+    !imgFilePathWithNoCache.includes(BUILD_ID),
     "img-without-hashing",
   );
 
   // ensure asset hook is applied on img within an island
   const imgInIsland = body.match(/img id="img-in-island" src="(.*?)"/)?.[1];
   assert(imgInIsland);
-  assert(imgInIsland.includes(globalThis.__FRSH_BUILD_ID), "img-in-island");
+  assert(imgInIsland.includes(BUILD_ID), "img-in-island");
 
   // verify that the asset hook is applied to the srcset
   const imgInIslandSrcSet = body.match(/srcset="(.*?)"/)?.[1];
   assert(imgInIslandSrcSet);
   assert(
-    imgInIslandSrcSet.includes(globalThis.__FRSH_BUILD_ID),
+    imgInIslandSrcSet.includes(BUILD_ID),
     "img-in-island-srcset",
   );
 
@@ -311,7 +408,7 @@ Deno.test("static file - by 'hashed' path", async () => {
   const imgMissing = body.match(/img id="img-missing" src="(.*?)"/)?.[1];
   assert(imgMissing);
   assert(
-    !imgMissing.includes(globalThis.__FRSH_BUILD_ID),
+    !imgMissing.includes(BUILD_ID),
     "Applying hash on unknown asset",
   );
 });
@@ -471,15 +568,46 @@ Deno.test({
   },
 });
 
+Deno.test("middleware destination", async (t) => {
+  await t.step("internal", async () => {
+    const resp = await router(
+      new Request("https://fresh.deno.dev/_frsh/refresh.js"),
+    );
+    assert(resp);
+    assertEquals(resp.headers.get("destination"), "internal");
+    await resp.body?.cancel();
+  });
+
+  await t.step("static", async () => {
+    const resp = await router(new Request("https://fresh.deno.dev/foo.txt"));
+    assert(resp);
+    assertEquals(resp.headers.get("destination"), "static");
+    await resp.body?.cancel();
+  });
+
+  await t.step("route", async () => {
+    const resp = await router(new Request("https://fresh.deno.dev/"));
+    assert(resp);
+    assertEquals(resp.headers.get("destination"), "route");
+    await resp.body?.cancel();
+  });
+
+  await t.step("notFound", async () => {
+    const resp = await router(new Request("https://fresh.deno.dev/bar/bar"));
+    assert(resp);
+    assertEquals(resp.headers.get("destination"), "notFound");
+    await resp.body?.cancel();
+  });
+});
+
 Deno.test("experimental Deno.serve", {
   sanitizeOps: false,
   sanitizeResources: false,
   ignore: Deno.build.os === "windows", // TODO: Deno.serve hang on Windows?
 }, async (t) => {
   // Preparation
-  const serverProcess = Deno.run({
-    cmd: [
-      "deno",
+  const serverProcess = new Deno.Command(Deno.execPath(), {
+    args: [
       "run",
       "-A",
       "--unstable",
@@ -488,10 +616,10 @@ Deno.test("experimental Deno.serve", {
     ],
     stdout: "piped",
     stderr: "inherit",
-  });
+  }).spawn();
 
   const decoder = new TextDecoderStream();
-  const lines = serverProcess.stdout.readable
+  const lines = serverProcess.stdout
     .pipeThrough(decoder)
     .pipeThrough(new TextLineStream());
 
@@ -519,10 +647,10 @@ Deno.test("experimental Deno.serve", {
     assertStringIncludes(body, "test.js");
     assertStringIncludes(body, "<p>Hello!</p>");
     assertStringIncludes(body, "<p>Viewing JIT render.</p>");
-    assertStringIncludes(body, `>[[{"message":"Hello!"}],[]]</script>`);
+    assertStringIncludes(body, `>{"v":[[{"message":"Hello!"}],[]]}</script>`);
     assertStringIncludes(
       body,
-      `<meta name="description" content="Hello world!" />`,
+      '<meta name="description" content="Hello world!"/>',
     );
   });
 
@@ -533,13 +661,14 @@ Deno.test("experimental Deno.serve", {
     assert(body.startsWith("bar"));
     const etag = resp.headers.get("etag");
     assert(etag);
-    assert(!etag.startsWith("W/"), "etag should be weak");
+    // TODO(kt3k): Enable this assertion when new Deno.serve is released.
+    // https://github.com/denoland/deno/pull/18568
+    // assert(etag.startsWith("W/"), "etag should be weak");
     assertEquals(resp.headers.get("content-type"), "text/plain");
   });
 
   await lines.cancel();
   serverProcess.kill("SIGTERM");
-  serverProcess.close();
 });
 
 Deno.test("jsx pragma works", {
@@ -547,14 +676,14 @@ Deno.test("jsx pragma works", {
   sanitizeResources: false,
 }, async (t) => {
   // Preparation
-  const serverProcess = Deno.run({
-    cmd: ["deno", "run", "-A", "./tests/fixture_jsx_pragma/main.ts"],
+  const serverProcess = new Deno.Command(Deno.execPath(), {
+    args: ["run", "-A", "./tests/fixture_jsx_pragma/main.ts"],
     stdout: "piped",
     stderr: "inherit",
-  });
+  }).spawn();
 
   const decoder = new TextDecoderStream();
-  const lines = serverProcess.stdout.readable
+  const lines = serverProcess.stdout
     .pipeThrough(decoder)
     .pipeThrough(new TextLineStream());
 
@@ -594,5 +723,71 @@ Deno.test("jsx pragma works", {
 
   await lines.cancel();
   serverProcess.kill("SIGTERM");
-  serverProcess.close();
+});
+
+Deno.test("preloading javascript files", {
+  sanitizeOps: false,
+  sanitizeResources: false,
+}, async () => {
+  // Preparation
+  const serverProcess = new Deno.Command(Deno.execPath(), {
+    args: ["run", "-A", "./tests/fixture/main.ts"],
+    stdout: "piped",
+    stderr: "inherit",
+  }).spawn();
+
+  const decoder = new TextDecoderStream();
+  const lines = serverProcess.stdout
+    .pipeThrough(decoder)
+    .pipeThrough(new TextLineStream());
+
+  let started = false;
+  for await (const line of lines) {
+    if (line.includes("Listening on http://")) {
+      started = true;
+      break;
+    }
+  }
+  if (!started) {
+    throw new Error("Server didn't start up");
+  }
+
+  const browser = await puppeteer.launch({ args: ["--no-sandbox"] });
+  const page = await browser.newPage();
+
+  try {
+    // request js file to start esbuild execution
+    await page.goto("http://localhost:8000", {
+      waitUntil: "networkidle2",
+    });
+
+    await delay(5000); // wait running esbuild
+
+    await page.goto("http://localhost:8000", {
+      waitUntil: "networkidle2",
+    });
+
+    const preloads: string[] = await page.$$eval(
+      'link[rel="modulepreload"]',
+      (elements) => elements.map((element) => element.getAttribute("href")),
+    );
+
+    assert(
+      preloads.some((url) => url.match(/\/_frsh\/js\/.*\/main\.js/)),
+      "preloads does not include main.js",
+    );
+    assert(
+      preloads.some((url) => url.match(/\/_frsh\/js\/.*\/island-.*\.js/)),
+      "preloads does not include island-*.js",
+    );
+    assert(
+      preloads.some((url) => url.match(/\/_frsh\/js\/.*\/chunk-.*\.js/)),
+      "preloads does not include chunk-*.js",
+    );
+  } finally {
+    await browser.close();
+
+    await lines.cancel();
+    serverProcess.kill("SIGTERM");
+  }
 });

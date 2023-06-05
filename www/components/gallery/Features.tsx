@@ -1,7 +1,7 @@
-import IconAlarm from "https://deno.land/x/tabler_icons_tsx@0.0.2/tsx/alarm.tsx";
-import IconAirBalloon from "https://deno.land/x/tabler_icons_tsx@0.0.2/tsx/air-balloon.tsx";
-import IconArmchair from "https://deno.land/x/tabler_icons_tsx@0.0.2/tsx/armchair.tsx";
-import IconChevronRight from "https://deno.land/x/tabler_icons_tsx@0.0.2/tsx/chevron-right.tsx";
+import IconAlarm from "https://deno.land/x/tabler_icons_tsx@0.0.3/tsx/alarm.tsx";
+import IconAirBalloon from "https://deno.land/x/tabler_icons_tsx@0.0.3/tsx/air-balloon.tsx";
+import IconArmchair from "https://deno.land/x/tabler_icons_tsx@0.0.3/tsx/armchair.tsx";
+import IconChevronRight from "https://deno.land/x/tabler_icons_tsx@0.0.3/tsx/chevron-right.tsx";
 
 export default function Features() {
   const featureItems = [

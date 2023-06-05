@@ -1,4 +1,4 @@
-import { Head } from "$fresh/runtime.ts";
+import { asset, Head } from "$fresh/runtime.ts";
 import { Handlers, PageProps } from "$fresh/server.ts";
 import { frontMatter, gfm } from "../../utils/markdown.ts";
 
@@ -51,7 +51,9 @@ export const handler: Handlers<Data> = {
 };
 
 export default function DocsPage(props: PageProps<Data>) {
-  let description;
+  const ogImageUrl = new URL(asset("/home-og.png"), props.url).href;
+  const title = `${props.data.page?.title ?? "Not Found"} | fresh docs`;
+  let description = "Fresh Document";
 
   if (props.data.page.data.description) {
     description = String(props.data.page.data.description);
@@ -60,9 +62,14 @@ export default function DocsPage(props: PageProps<Data>) {
   return (
     <>
       <Head>
-        <title>{props.data.page?.title ?? "Not Found"} | fresh docs</title>
-        <link rel="stylesheet" href={`/gfm.css?build=${__FRSH_BUILD_ID}`} />
-        {description && <meta name="description" content={description} />}
+        <title>{title}</title>
+        <link rel="stylesheet" href={asset("/gfm.css")} />
+        <meta name="description" content={description} />
+        <meta property="og:title" content={title} />
+        <meta property="og:description" content={description} />
+        <meta property="og:type" content="website" />
+        <meta property="og:url" content={props.url.href} />
+        <meta property="og:image" content={ogImageUrl} />
       </Head>
       <div class="flex flex-col min-h-screen">
         <Header title="docs" active="/docs" />
@@ -72,7 +79,7 @@ export default function DocsPage(props: PageProps<Data>) {
     </>
   );
 }
-import IconBooks from "https://deno.land/x/tabler_icons_tsx@0.0.1/tsx/books.tsx";
+
 function Main(props: { path: string; page: Page }) {
   return (
     <div class="flex-1">
@@ -128,8 +135,8 @@ function MobileSidebar(props: { path: string }) {
           <div class="p-4 border(b-2 gray-100) bg-green-300">
             <DocsTitle title="docs" />
           </div>
-          <nav class="pt-2 pb-16 px-4 overflow-x-auto">
-            <DocsSidebar path={props.path} />
+          <nav class="pt-6 pb-16 px-4 overflow-x-auto">
+            <DocsSidebar mobile path={props.path} />
           </nav>
         </div>
       </div>

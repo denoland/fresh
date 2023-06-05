@@ -6,18 +6,17 @@ jobs:
   lighthouse:
     name: lighthouse
     runs-on: ubuntu-latest
+    timeout-minutes: 5
     if: github.event.deployment_status.state == 'success' && github.event.deployment_status.creator.login == 'deno-deploy[bot]'
 
     env:
       URL: ${{ github.event.deployment_status.environment_url }}
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
 
-      - name: Install Node.js 16.x
-        uses: actions/setup-node@v1
-        with:
-          node-version: 16.x
+      - name: Install Node.js
+        uses: actions/setup-node@v3
 
       - name: Install Lighthouse CI
         run: npm install -g @lhci/cli@0.9.x
