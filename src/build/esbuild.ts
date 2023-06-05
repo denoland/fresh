@@ -23,7 +23,7 @@ export interface EsbuildBuilderOptions {
 }
 
 export interface JSXConfig {
-  jsx: "react" | "react-jsx";
+  jsx: "react" | "react-jsx" | "react-jsxdev";
   jsxImportSource?: string;
 }
 
@@ -107,6 +107,7 @@ export class EsbuildBuilder implements Builder {
 const JSX_RUNTIME_MODE = {
   "react": "transform",
   "react-jsx": "automatic",
+  "react-jsxdev": "automatic",
 } as const;
 
 async function initEsbuild() {

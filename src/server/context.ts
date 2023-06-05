@@ -135,7 +135,7 @@ export class ServerContext {
 
     config.compilerOptions ??= {};
 
-    let jsx: "react" | "react-jsx";
+    let jsx: "react" | "react-jsx" | "react-jsxdev";
     switch (config.compilerOptions.jsx) {
       case "react":
       case undefined:
@@ -143,6 +143,9 @@ export class ServerContext {
         break;
       case "react-jsx":
         jsx = "react-jsx";
+        break;
+      case "react-jsxdev":
+        jsx = "react-jsxdev";
         break;
       default:
         throw new Error("Unknown jsx option: " + config.compilerOptions.jsx);
