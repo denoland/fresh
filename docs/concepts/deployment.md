@@ -44,7 +44,7 @@ ENV DENO_DEPLOYMENT_ID=${GIT_REVISION}
 WORKDIR /app
 
 COPY . .
-RUN deno cache main.ts --import-map=import_map.json
+RUN deno cache main.ts
 
 EXPOSE 8000
 

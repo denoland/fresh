@@ -30,9 +30,10 @@ Deno.test({
         waitUntil: "networkidle2",
       });
 
-      await t.step("Ensure 3 islands on 1 page are revived", async () => {
+      await t.step("Ensure 4 islands on 1 page are revived", async () => {
         await counterTest("counter1", 3);
         await counterTest("counter2", 10);
+        await counterTest("folder-counter", 3);
         await counterTest("kebab-case-file-counter", 5);
       });
 
@@ -103,7 +104,6 @@ async function didServerStart(
       return true;
     }
   }
-
   return false;
 }
 
@@ -205,3 +205,20 @@ Deno.test({
 async function getIslandParentTextContent(page: Page) {
   return await page.$eval("#island-parent", (el: Element) => el.textContent);
 }
+
+Deno.test({
+  name: "island that returns `null`",
+
+  async fn(_t) {
+    await withPage(async (page) => {
+      await page.goto("http://localhost:8000/islands/returning_null", {
+        waitUntil: "networkidle2",
+      });
+
+      await page.waitForSelector(".added-by-use-effect");
+    });
+  },
+
+  sanitizeOps: false,
+  sanitizeResources: false,
+});

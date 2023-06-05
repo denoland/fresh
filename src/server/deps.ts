@@ -1,21 +1,25 @@
 // -- std --
 export {
+  dirname,
   extname,
   fromFileUrl,
+  join,
   toFileUrl,
-} from "https://deno.land/std@0.178.0/path/mod.ts";
-export { walk } from "https://deno.land/std@0.178.0/fs/walk.ts";
-export { serve } from "https://deno.land/std@0.178.0/http/server.ts";
+} from "https://deno.land/std@0.190.0/path/mod.ts";
+export { walk } from "https://deno.land/std@0.190.0/fs/walk.ts";
+export { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 export type {
   ConnInfo,
   Handler as RequestHandler,
   ServeInit,
-} from "https://deno.land/std@0.178.0/http/server.ts";
-export { Status } from "https://deno.land/std@0.178.0/http/http_status.ts";
+} from "https://deno.land/std@0.190.0/http/server.ts";
+export { Status } from "https://deno.land/std@0.190.0/http/http_status.ts";
 export {
   typeByExtension,
-} from "https://deno.land/std@0.178.0/media_types/mod.ts";
-export { toHashString } from "https://deno.land/std@0.178.0/crypto/to_hash_string.ts";
+} from "https://deno.land/std@0.190.0/media_types/mod.ts";
+export { toHashString } from "https://deno.land/std@0.190.0/crypto/to_hash_string.ts";
+export { escape } from "https://deno.land/std@0.190.0/regexp/escape.ts";
+export * as JSONC from "https://deno.land/std@0.190.0/jsonc/mod.ts";
 
 // -- esbuild --
 // @deno-types="https://deno.land/x/esbuild@v0.17.11/mod.d.ts"
@@ -28,5 +32,4 @@ const esbuild: typeof esbuildWasm = Deno.run === undefined
   : esbuildNative;
 export { esbuild, esbuildWasm as esbuildTypes };
 
-// TODO(lino-levan): Replace with versioned import
-export { denoPlugin } from "https://raw.githubusercontent.com/lucacasonato/esbuild_deno_loader/8031f71afa1bbcd3237a94b11f53a2e5c5c0e7bf/mod.ts";
+export { denoPlugins } from "https://deno.land/x/esbuild_deno_loader@0.7.0/mod.ts";

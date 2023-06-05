@@ -1,5 +1,5 @@
 import { ComponentType, h, options, render } from "preact";
-import { assetHashingHook } from "./utils.ts";
+import { assetHashingHook } from "../utils.ts";
 
 function createRootFragment(
   parent: Element,
