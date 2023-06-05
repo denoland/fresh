@@ -18,10 +18,10 @@ JavaScript to make them more interactive.
 
 The way forms work in the browser, is that they perform an HTML navigation
 action when the user submits the form. In most cases this means that when the
-form is submitted, a GET or POST request is sent to the server with the form
+form is submitted, a `GET` or `POST` request is sent to the server with the form
 data, which then responds with a new page to render.
 
-Fresh can handle both GET and POST requests through the
+Fresh can handle both `GET` and `POST` requests through the
 [custom handlers][custom-handlers] feature of routes. The handlers can perform
 any necessary processing on the form data, and then pass data to the
 `ctx.render()` call to render a new page.
@@ -71,6 +71,9 @@ query set as the `q` query parameter in the URL. The `GET` handler will then
 filter the names array based on the query, and pass it to the page component for
 rendering.
 
+[Learn more about using forms in Fresh][concepts-forms].
+
 <!-- TODO(lucacasonato): link to todo app example when that is built again -->
 
 [custom-handlers]: /docs/getting-started/custom-handlers
+[concepts-forms]: /docs/concepts/forms

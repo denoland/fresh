@@ -27,24 +27,21 @@ const unresolvedDirectory = Deno.args[0];
 const resolvedDirectory = resolve(unresolvedDirectory);
 
 // Update dependencies in the import map.
-const IMPORT_MAP_PATH = join(resolvedDirectory, "import_map.json");
-let importMapText = await Deno.readTextFile(IMPORT_MAP_PATH);
-const importMap = JSON.parse(importMapText);
-freshImports(importMap.imports);
-if (importMap.imports["twind"]) {
-  twindImports(importMap.imports);
+const DENO_JSON_PATH = join(resolvedDirectory, "deno.json");
+let denoJsonText = await Deno.readTextFile(DENO_JSON_PATH);
+let denoJson = JSON.parse(denoJsonText);
+freshImports(denoJson.imports);
+if (denoJson.imports["twind"]) {
+  twindImports(denoJson.imports);
 }
-importMapText = JSON.stringify(importMap, null, 2);
-await Deno.writeTextFile(IMPORT_MAP_PATH, importMapText);
+denoJsonText = JSON.stringify(denoJson, null, 2);
+await Deno.writeTextFile(DENO_JSON_PATH, denoJsonText);
 
 // Code mod for classic JSX -> automatic JSX.
 const JSX_CODEMOD =
   `This project is using the classic JSX transform. Would you like to update to the
 automatic JSX transform? This will remove the /** @jsx h */ pragma from your
 source code and add the jsx: "react-jsx" compiler option to your deno.json file.`;
-const DENO_JSON_PATH = join(resolvedDirectory, "deno.json");
-let denoJsonText = await Deno.readTextFile(DENO_JSON_PATH);
-const denoJson = JSON.parse(denoJsonText);
 if (denoJson.compilerOptions?.jsx !== "react-jsx" && confirm(JSX_CODEMOD)) {
   console.log("Updating config file...");
   denoJson.compilerOptions = denoJson.compilerOptions || {};
@@ -88,12 +85,12 @@ const TWIND_CODEMOD =
   `This project is using an old version of the twind integration. Would you like to
 update to the new twind plugin? This will remove the 'class={tw\`border\`}'
 boilerplate from your source code replace it with the simpler 'class="border"'.`;
-if (importMap.imports["@twind"] && confirm(TWIND_CODEMOD)) {
-  await Deno.remove(join(resolvedDirectory, importMap.imports["@twind"]));
+if (denoJson.imports["@twind"] && confirm(TWIND_CODEMOD)) {
+  await Deno.remove(join(resolvedDirectory, denoJson.imports["@twind"]));
 
-  delete importMap.imports["@twind"];
-  importMapText = JSON.stringify(importMap, null, 2);
-  await Deno.writeTextFile(IMPORT_MAP_PATH, importMapText);
+  delete denoJson.imports["@twind"];
+  denoJson = JSON.stringify(denoJson, null, 2);
+  await Deno.writeTextFile(DENO_JSON_PATH, denoJson);
 
   const MAIN_TS = `/// <reference no-default-lib="true" />
 /// <reference lib="dom" />
