@@ -208,7 +208,19 @@ export async function render<Data>(
 
   bodyHtml = bodyHtml as string;
 
-  const imports: [string, string][] = [];
+  const moduleScripts: [string, string][] = [];
+
+  for (const url of opts.imports) {
+    const randomNonce = crypto.randomUUID().replace(/-/g, "");
+    if (csp) {
+      csp.directives.scriptSrc = [
+        ...csp.directives.scriptSrc ?? [],
+        nonce(randomNonce),
+      ];
+    }
+    moduleScripts.push([url, randomNonce]);
+  }
+
   const preloadSet = new Set<string>();
   function addImport(path: string): string {
     const randomNonce = crypto.randomUUID().replace(/-/g, "");
@@ -219,24 +231,12 @@ export async function render<Data>(
       ];
     }
     const url = bundleAssetUrl(`/${path}`);
-    imports.push([url, randomNonce]);
     preloadSet.add(url);
     for (const depPath of opts.dependenciesFn(path)) {
       const url = bundleAssetUrl(`/${depPath}`);
       preloadSet.add(url);
     }
     return url;
-  }
-
-  for (const url of opts.imports) {
-    const randomNonce = crypto.randomUUID().replace(/-/g, "");
-    if (csp) {
-      csp.directives.scriptSrc = [
-        ...csp.directives.scriptSrc ?? [],
-        nonce(randomNonce),
-      ];
-    }
-    imports.push([url, randomNonce]);
   }
 
   const state: [islands: unknown[], plugins: unknown[]] = [ISLAND_PROPS, []];
@@ -342,7 +342,7 @@ export async function render<Data>(
   const html = template({
     bodyHtml,
     headComponents,
-    imports,
+    moduleScripts,
     preloads,
     lang: ctx.lang,
   });
@@ -353,7 +353,7 @@ export async function render<Data>(
 export interface TemplateOptions {
   bodyHtml: string;
   headComponents: ComponentChildren[];
-  imports: (readonly [string, string])[];
+  moduleScripts: (readonly [string, string])[];
   preloads: string[];
   lang: string;
 }
@@ -373,7 +373,7 @@ export function template(opts: TemplateOptions): string {
       opts.preloads.map((src) =>
         h("link", { rel: "modulepreload", href: src })
       ),
-      opts.imports.map(([src, nonce]) =>
+      opts.moduleScripts.map(([src, nonce]) =>
         h("script", { src: src, nonce: nonce, type: "module" })
       ),
       opts.headComponents,
