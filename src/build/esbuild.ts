@@ -54,7 +54,7 @@ export class EsbuildBuilder implements Builder {
       const bundle = await esbuild.build({
         entryPoints: opts.entrypoints,
 
-        platform: "neutral",
+        platform: "browser",
         target: ["chrome99", "firefox99", "safari15"],
 
         format: "esm",
