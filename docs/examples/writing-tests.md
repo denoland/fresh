@@ -4,7 +4,8 @@ description: |
 ---
 
 You can write tests for your Fresh project by creating an application handler
-through `createHandler()`.
+through
+[`createHandler()`](https://deno.land/x/fresh/server.ts?doc=&s=createHandler).
 
 ## 1. Create your routes
 
