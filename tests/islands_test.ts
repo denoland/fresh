@@ -58,9 +58,13 @@ Deno.test({
   sanitizeResources: false,
 });
 
-async function withPage(fn: (page: Page) => Promise<void>) {
+function withPage(fn: (page: Page) => Promise<void>) {
+  return withPageName("./tests/fixture/main.ts", fn);
+}
+
+async function withPageName(name: string, fn: (page: Page) => Promise<void>) {
   const serverProcess = new Deno.Command(Deno.execPath(), {
-    args: ["run", "-A", "./tests/fixture/main.ts"],
+    args: ["run", "-A", name],
     stdout: "piped",
     stderr: "inherit",
   }).spawn();
@@ -216,6 +220,25 @@ Deno.test({
       });
 
       await page.waitForSelector(".added-by-use-effect");
+    });
+  },
+
+  sanitizeOps: false,
+  sanitizeResources: false,
+});
+
+Deno.test({
+  name: "island using `npm:` specifiers",
+
+  async fn(_t) {
+    await withPageName("./tests/fixture_npm/main.ts", async (page) => {
+      await page.setJavaScriptEnabled(false);
+      await page.goto("http://localhost:8000/", { waitUntil: "networkidle2" });
+      assert(await page.waitForSelector("#server-true"));
+
+      await page.setJavaScriptEnabled(true);
+      await page.reload({ waitUntil: "networkidle2" });
+      assert(await page.waitForSelector("#browser-true"));
     });
   },
 

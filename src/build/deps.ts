@@ -17,4 +17,4 @@ const esbuild: typeof esbuildWasm = Deno.run === undefined
 const esbuildWasmURL = new URL("./esbuild_v0.17.19.wasm", import.meta.url).href;
 export { esbuild, esbuildWasm as esbuildTypes, esbuildWasmURL };
 
-export { denoPlugins } from "https://deno.land/x/esbuild_deno_loader@0.8.0/mod.ts";
+export { denoPlugins } from "https://deno.land/x/esbuild_deno_loader@0.8.1/mod.ts";
