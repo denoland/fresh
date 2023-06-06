@@ -1,34 +1,31 @@
 import { ComponentType, h, options, render } from "preact";
-import { assetHashingHook } from "./utils.ts";
+import { assetHashingHook } from "../utils.ts";
 
 function createRootFragment(
   parent: Element,
   replaceNode: Node | Node[],
 ) {
   replaceNode = ([] as Node[]).concat(replaceNode);
-  const s = replaceNode[replaceNode.length - 1].nextSibling;
-  function insert(c: Node, r: Node) {
-    parent.insertBefore(c, r || s);
-  }
   // @ts-ignore this is fine
   return parent.__k = {
     nodeType: 1,
     parentNode: parent,
     firstChild: replaceNode[0],
     childNodes: replaceNode,
-    insertBefore: insert,
-    appendChild: insert,
-    removeChild: function (c: Node) {
-      parent.removeChild(c);
+    insertBefore(node: Node, child: Node) {
+      parent.insertBefore(node, child);
+    },
+    appendChild(child: Node) {
+      parent.appendChild(child);
+    },
+    removeChild(child: Node) {
+      parent.removeChild(child);
     },
   };
 }
 
 // deno-lint-ignore no-explicit-any
-export function revive(
-  islands: Record<string, ComponentType>,
-  props: any[],
-) {
+export function revive(islands: Record<string, ComponentType>, props: any[]) {
   async function walk(node: Node | null) {
     const tag = node!.nodeType === 8 &&
       ((node as Comment).data.match(/^\s*frsh-(.*)\s*$/) || [])[1];
@@ -54,7 +51,6 @@ export function revive(
           ) as any as HTMLElement,
         );
       };
-      // TODO: Run this under a flag
       "scheduler" in window
         ? await scheduler!.postTask(_render)
         : setTimeout(_render, 0);
