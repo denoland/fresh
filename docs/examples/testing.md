@@ -66,29 +66,27 @@ Deno.test("HTTP assert test.", async (t) => {
   const handler = await createHandler(manifest);
 
   await t.step("#1 GET /", async () => {
-    const response = await handler(new Request("http://127.0.0.1/"), CONN_INFO);
-    assertEquals(response.status, 200);
+    const resp = await handler(new Request("http://127.0.0.1/"), CONN_INFO);
+    assertEquals(resp.status, 200);
   });
 
   await t.step("#2 POST /", async () => {
     const formData = new FormData();
     formData.append("text", "Deno!");
-    const request = new Request("http://127.0.0.1/", {
+    const req = new Request("http://127.0.0.1/", {
       method: "POST",
       body: formData,
     });
-    const response = await handler(request, CONN_INFO);
-    assertEquals(response.status, 303);
+    const resp = await handler(req, CONN_INFO);
+    assertEquals(resp.status, 303);
   });
 
   await t.step("#3 GET /foo", async () => {
-    const response = await handler(
+    const resp = await handler(
       new Request("http://127.0.0.1/foo"),
       CONN_INFO,
     );
-    console.log(response);
-    const text = await response.text();
-    console.log(text);
+    const text = await resp.text();
     assert(text.includes("<div>Hello Foo!</div>"));
   });
 });
