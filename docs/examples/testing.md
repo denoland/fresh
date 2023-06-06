@@ -1,34 +1,32 @@
 ---
 description: |
-  By creating an application handler, you can write tests.
+  You can write HTTP tests for your Fresh project by creating an application handler.
 ---
 
-We can be create an application handler from `createHandler()` and use develop
-for testing HTTP.
+You can write tests for your Fresh project by creating an application handler
+through `createHandler()`.
 
-An example of testing three URLs and two HTTP request methods is as follows
-
-### handlers source
+## 1. Create your routes
 
 ```tsx
 // routes/index.tsx
 
-import { HandlerContext, Handlers } from "$fresh/server.ts";
+import { Handlers } from "$fresh/server.ts";
 
 export const handler: Handlers = {
-  async POST(req: Request, ctx: HandlerContext) {
+  async POST(req) {
     const form = await req.formData();
 
     // Processing something
 
-    return new Response("", {
+    return new Response(null, {
       status: 303,
-      headers: { Location: "/" },
+      headers: { location: "/" },
     });
   },
 };
 
-export default function Index() {
+export default function HomePage() {
   return (
     <div>
       Hello Deno!
@@ -40,7 +38,7 @@ export default function Index() {
 ```tsx
 // routes/foo.tsx
 
-export default function Foo() {
+export default function FooPage() {
   return (
     <div>
       Hello Foo!
@@ -49,15 +47,15 @@ export default function Foo() {
 }
 ```
 
-### Test code
+## 2. Write your tests
 
 ```ts
 // tests/main_test.ts
 
 import { createHandler } from "$fresh/server.ts";
 import manifest from "../fresh.gen.ts";
-import { assertEquals, assertExists } from "$std/testing/asserts.ts";
-import type { ConnInfo } from "../../../src/server/deps.ts";
+import { assert, assertEquals } from "$std/testing/asserts.ts";
+import type { ConnInfo } from "$std/http/server.ts";
 
 const CONN_INFO: ConnInfo = {
   localAddr: { hostname: "127.0.0.1", port: 8000, transport: "tcp" },
@@ -88,13 +86,15 @@ Deno.test("HTTP assert test.", async (t) => {
       new Request("http://127.0.0.1/foo"),
       CONN_INFO,
     );
+    console.log(response);
     const text = await response.text();
-    assertExists(text.match(/<div>Hello Foo!<\/div>/));
+    console.log(text);
+    assert(text.includes("<div>Hello Foo!</div>"));
   });
 });
 ```
 
-### Execution Example
+## 3. Run the tests
 
 ```sh
 $ deno test --allow-read --allow-env --allow-net
