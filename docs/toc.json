@@ -19,8 +19,9 @@
   "concepts": {
     "title": "Concepts",
     "pages": [
-      ["architechture", "Architecture"],
+      ["architecture", "Architecture"],
       ["routes", "Routes"],
+      ["forms", "Forms"],
       ["islands", "Interactive islands"],
       ["static-files", "Static files"],
       ["middleware", "Route middleware"],
@@ -30,7 +31,15 @@
       ["deployment", "Deployment"],
       ["plugins", "Plugins"],
       ["updating", "Updating Fresh"],
+      ["app-wrapper", "Application wrapper"],
       ["directory-layout", "Directory layout"]
     ]
+  },
+  "integrations": {
+    "title": "Integrations"
+  },
+  "examples": {
+    "title": "Examples",
+    "pages": [["modifying-the-head", "Modifying the <head>"]]
   }
 }

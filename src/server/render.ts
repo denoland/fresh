@@ -17,6 +17,8 @@ import { CSP_CONTEXT, nonce, NONE, UNSAFE_INLINE } from "../runtime/csp.ts";
 import { ContentSecurityPolicy } from "../runtime/csp.ts";
 import { bundleAssetUrl } from "./constants.ts";
 import { assetHashingHook } from "../runtime/utils.ts";
+import { htmlEscapeJsonString } from "./htmlescape.ts";
+import { serialize } from "./serializer.ts";
 
 export interface RenderOptions<Data> {
   route: Route<Data> | UnknownPage | ErrorPage;
@@ -24,7 +26,7 @@ export interface RenderOptions<Data> {
   plugins: Plugin[];
   app: AppModule;
   imports: string[];
-  preloads: string[];
+  dependenciesFn: (path: string) => string[];
   url: URL;
   params: Record<string, string | string[]>;
   renderFn: RenderFunction;
@@ -128,6 +130,10 @@ export async function render<Data>(
     children: h(HEAD_CONTEXT.Provider, {
       value: headComponents,
       children: h(opts.app.default, {
+        params: opts.params as Record<string, string>,
+        url: opts.url,
+        route: opts.route.pattern,
+        data: opts.data,
         Component() {
           return h(opts.route.component! as ComponentType<unknown>, props);
         },
@@ -162,18 +168,18 @@ export async function render<Data>(
 
   let bodyHtml: string | null = null;
 
-  function realRender(): string {
+  function renderInner(): string {
     bodyHtml = renderToString(vnode);
     return bodyHtml;
   }
 
-  const plugins = opts.plugins.filter((p) => p.render !== null);
+  const syncPlugins = opts.plugins.filter((p) => p.render);
   const renderResults: [Plugin, PluginRenderResult][] = [];
 
-  function render(): PluginRenderFunctionResult {
-    const plugin = plugins.shift();
+  function renderSync(): PluginRenderFunctionResult {
+    const plugin = syncPlugins.shift();
     if (plugin) {
-      const res = plugin.render!({ render });
+      const res = plugin.render!({ render: renderSync });
       if (res === undefined) {
         throw new Error(
           `${plugin?.name}'s render hook did not return a PluginRenderResult object.`,
@@ -181,7 +187,7 @@ export async function render<Data>(
       }
       renderResults.push([plugin, res]);
     } else {
-      realRender();
+      renderInner();
     }
     if (bodyHtml === null) {
       throw new Error(
@@ -194,15 +200,43 @@ export async function render<Data>(
     };
   }
 
-  await opts.renderFn(ctx, () => render().htmlText);
+  const asyncPlugins = opts.plugins.filter((p) => p.renderAsync);
 
-  if (bodyHtml === null) {
-    throw new Error("The `render` function was not called by the renderer.");
+  async function renderAsync(): Promise<PluginRenderFunctionResult> {
+    const plugin = asyncPlugins.shift();
+    if (plugin) {
+      const res = await plugin.renderAsync!({ renderAsync });
+      if (res === undefined) {
+        throw new Error(
+          `${plugin?.name}'s async render hook did not return a PluginRenderResult object.`,
+        );
+      }
+      renderResults.push([plugin, res]);
+      if (bodyHtml === null) {
+        throw new Error(
+          `The 'renderAsync' function was not called by ${plugin?.name}'s async render hook.`,
+        );
+      }
+    } else {
+      await opts.renderFn(ctx, () => renderSync().htmlText);
+      if (bodyHtml === null) {
+        throw new Error(
+          `The 'render' function was not called by the legacy async render hook.`,
+        );
+      }
+    }
+    return {
+      htmlText: bodyHtml,
+      requiresHydration: ENCOUNTERED_ISLANDS.size > 0,
+    };
   }
 
-  bodyHtml = bodyHtml as string;
+  await renderAsync();
+  bodyHtml = bodyHtml as unknown as string;
 
-  const imports = opts.imports.map((url) => {
+  const moduleScripts: [string, string][] = [];
+
+  for (const url of opts.imports) {
     const randomNonce = crypto.randomUUID().replace(/-/g, "");
     if (csp) {
       csp.directives.scriptSrc = [
@@ -210,76 +244,98 @@ export async function render<Data>(
         nonce(randomNonce),
       ];
     }
-    return [url, randomNonce] as const;
-  });
+    moduleScripts.push([url, randomNonce]);
+  }
+
+  const preloadSet = new Set<string>();
+  function addImport(path: string): string {
+    const randomNonce = crypto.randomUUID().replace(/-/g, "");
+    if (csp) {
+      csp.directives.scriptSrc = [
+        ...csp.directives.scriptSrc ?? [],
+        nonce(randomNonce),
+      ];
+    }
+    const url = bundleAssetUrl(`/${path}`);
+    preloadSet.add(url);
+    for (const depPath of opts.dependenciesFn(path)) {
+      const url = bundleAssetUrl(`/${depPath}`);
+      preloadSet.add(url);
+    }
+    return url;
+  }
 
   const state: [islands: unknown[], plugins: unknown[]] = [ISLAND_PROPS, []];
   const styleTags: PluginRenderStyleTag[] = [];
-
-  let script =
-    `const STATE_COMPONENT = document.getElementById("__FRSH_STATE");const STATE = JSON.parse(STATE_COMPONENT?.textContent ?? "[[],[]]");`;
+  const pluginScripts: [string, string, number][] = [];
 
   for (const [plugin, res] of renderResults) {
     for (const hydrate of res.scripts ?? []) {
       const i = state[1].push(hydrate.state) - 1;
-      const randomNonce = crypto.randomUUID().replace(/-/g, "");
-      if (csp) {
-        csp.directives.scriptSrc = [
-          ...csp.directives.scriptSrc ?? [],
-          nonce(randomNonce),
-        ];
-      }
-      const url = bundleAssetUrl(
-        `/plugin-${plugin.name}-${hydrate.entrypoint}.js`,
-      );
-      imports.push([url, randomNonce] as const);
-
-      script += `import p${i} from "${url}";p${i}(STATE[1][${i}]);`;
+      pluginScripts.push([plugin.name, hydrate.entrypoint, i]);
     }
     styleTags.splice(styleTags.length, 0, ...res.styles ?? []);
   }
 
+  // The inline script that will hydrate the page.
+  let script = "";
+
+  // Serialize the state into the <script id=__FRSH_STATE> tag and generate the
+  // inline script to deserialize it. This script starts by deserializing the
+  // state in the tag. This potentially requires importing @preact/signals.
+  if (state[0].length > 0 || state[1].length > 0) {
+    const res = serialize(state);
+    const escapedState = htmlEscapeJsonString(res.serialized);
+    bodyHtml +=
+      `<script id="__FRSH_STATE" type="application/json">${escapedState}</script>`;
+
+    if (res.requiresDeserializer) {
+      const url = addImport("deserializer.js");
+      script += `import { deserialize } from "${url}";`;
+    }
+    if (res.hasSignals) {
+      const url = addImport("signals.js");
+      script += `import { signal } from "${url}";`;
+    }
+    script += `const ST = document.getElementById("__FRSH_STATE").textContent;`;
+    script += `const STATE = `;
+    if (res.requiresDeserializer) {
+      if (res.hasSignals) {
+        script += `deserialize(ST, signal);`;
+      } else {
+        script += `deserialize(ST);`;
+      }
+    } else {
+      script += `JSON.parse(ST).v;`;
+    }
+  }
+
+  // Then it imports all plugin scripts and executes them (with their respective
+  // state).
+  for (const [pluginName, entrypoint, i] of pluginScripts) {
+    const url = addImport(`plugin-${pluginName}-${entrypoint}.js`);
+    script += `import p${i} from "${url}";p${i}(STATE[1][${i}]);`;
+  }
+
+  // Finally, it loads all island scripts and hydrates the islands using the
+  // reviver from the "main" script.
   if (ENCOUNTERED_ISLANDS.size > 0) {
     // Load the main.js script
-    {
-      const randomNonce = crypto.randomUUID().replace(/-/g, "");
-      if (csp) {
-        csp.directives.scriptSrc = [
-          ...csp.directives.scriptSrc ?? [],
-          nonce(randomNonce),
-        ];
-      }
-      const url = bundleAssetUrl("/main.js");
-      imports.push([url, randomNonce] as const);
-    }
-
-    script += `import { revive } from "${bundleAssetUrl("/main.js")}";`;
+    const url = addImport("main.js");
+    script += `import { revive } from "${url}";`;
 
     // Prepare the inline script that loads and revives the islands
     let islandRegistry = "";
     for (const island of ENCOUNTERED_ISLANDS) {
-      const randomNonce = crypto.randomUUID().replace(/-/g, "");
-      if (csp) {
-        csp.directives.scriptSrc = [
-          ...csp.directives.scriptSrc ?? [],
-          nonce(randomNonce),
-        ];
-      }
-      const url = bundleAssetUrl(`/island-${island.id}.js`);
-      imports.push([url, randomNonce] as const);
+      const url = addImport(`island-${island.id}.js`);
       script += `import ${island.name} from "${url}";`;
       islandRegistry += `${island.id}:${island.name},`;
     }
     script += `revive({${islandRegistry}}, STATE[0]);`;
   }
 
-  if (state[0].length > 0 || state[1].length > 0) {
-    // Append state to the body
-    bodyHtml += `<script id="__FRSH_STATE" type="application/json">${
-      JSON.stringify(state)
-    }</script>`;
-
-    // Append the inline script to the body
+  // Append the inline script.
+  if (script !== "") {
     const randomNonce = crypto.randomUUID().replace(/-/g, "");
     if (csp) {
       csp.directives.scriptSrc = [
@@ -308,11 +364,12 @@ export async function render<Data>(
     headComponents.splice(0, 0, node);
   }
 
+  const preloads = [...preloadSet];
   const html = template({
     bodyHtml,
     headComponents,
-    imports,
-    preloads: opts.preloads,
+    moduleScripts,
+    preloads,
     lang: ctx.lang,
   });
 
@@ -322,7 +379,7 @@ export async function render<Data>(
 export interface TemplateOptions {
   bodyHtml: string;
   headComponents: ComponentChildren[];
-  imports: (readonly [string, string])[];
+  moduleScripts: (readonly [string, string])[];
   preloads: string[];
   lang: string;
 }
@@ -334,7 +391,7 @@ export function template(opts: TemplateOptions): string {
     h(
       "head",
       null,
-      h("meta", { charset: "UTF-8" }),
+      h("meta", { charSet: "UTF-8" }),
       h("meta", {
         name: "viewport",
         content: "width=device-width, initial-scale=1.0",
@@ -342,7 +399,7 @@ export function template(opts: TemplateOptions): string {
       opts.preloads.map((src) =>
         h("link", { rel: "modulepreload", href: src })
       ),
-      opts.imports.map(([src, nonce]) =>
+      opts.moduleScripts.map(([src, nonce]) =>
         h("script", { src: src, nonce: nonce, type: "module" })
       ),
       opts.headComponents,

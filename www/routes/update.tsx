@@ -178,7 +178,7 @@ function GettingStarted(props: { origin: string }) {
           <a href="https://deno.land" class="text-blue-600 hover:underline">
             Deno CLI
           </a>{" "}
-          version 1.23.0 or higher is required.{" "}
+          version 1.25.0 or higher is required.{" "}
           <a
             href="https://deno.land/manual/getting_started/installation"
             class="text-blue-600 hover:underline"
@@ -199,7 +199,7 @@ function GettingStarted(props: { origin: string }) {
       </p>
 
       <CopyArea>
-        {`deno run -A -r ${props.origin} my-project`}
+        {`deno run -A -r ${props.origin} deno-fresh-demo`}
       </CopyArea>
 
       <p class="text-gray-600">

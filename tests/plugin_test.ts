@@ -33,8 +33,12 @@ Deno.test("/static page prerender", async () => {
   assertEquals(resp.status, Status.OK);
   const body = await resp.text();
   assertStringIncludes(body, '<style id="abc">body { color: red; }</style>');
-  assert(!body.includes(`>[[],[]]</script>`));
+  assert(!body.includes(`>{"v":[[],[]]}</script>`));
   assert(!body.includes(`import`));
+  assertStringIncludes(
+    body,
+    '<style id="def">h1 { text-decoration: underline; }</style>',
+  );
 });
 
 Deno.test("/with-island prerender", async () => {
@@ -46,22 +50,26 @@ Deno.test("/with-island prerender", async () => {
     body,
     '<style id="abc">body { color: red; } h1 { color: blue; }</style>',
   );
-  assertStringIncludes(body, `>[[{}],["JS injected!"]]</script>`);
+  assertStringIncludes(body, `>{"v":[[{}],["JS injected!"]]}</script>`);
   assertStringIncludes(body, `/plugin-js-inject-main.js"`);
+  assertStringIncludes(
+    body,
+    '<style id="def">h1 { text-decoration: underline; } h1 { font-style: italic; }</style>',
+  );
 });
 
 Deno.test({
   name: "/with-island hydration",
   async fn(t) {
     // Preparation
-    const serverProcess = Deno.run({
-      cmd: ["deno", "run", "-A", "./tests/fixture_plugin/main.ts"],
+    const serverProcess = new Deno.Command(Deno.execPath(), {
+      args: ["run", "-A", "./tests/fixture_plugin/main.ts"],
       stdout: "piped",
       stderr: "inherit",
-    });
+    }).spawn();
 
     const decoder = new TextDecoderStream();
-    const lines = serverProcess.stdout.readable
+    const lines = serverProcess.stdout
       .pipeThrough(decoder)
       .pipeThrough(new TextLineStream());
 
@@ -98,7 +106,6 @@ Deno.test({
 
     await lines.cancel();
     serverProcess.kill("SIGTERM");
-    serverProcess.close();
   },
   sanitizeOps: false,
   sanitizeResources: false,

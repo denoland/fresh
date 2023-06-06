@@ -1,18 +1,27 @@
-import { Head } from "$fresh/runtime.ts";
+import { asset, Head } from "$fresh/runtime.ts";
+import { PageProps } from "$fresh/server.ts";
 import Projects, { Project } from "../components/Projects.tsx";
-import DocsHeader from "../components/DocsHeader.tsx";
+import Header from "../components/Header.tsx";
 import Footer from "../components/Footer.tsx";
-import NavigationBar from "../components/NavigationBar.tsx";
 import projects from "../data/showcase.json" assert { type: "json" };
 
-export default function ShowcasePage() {
+const TITLE = "Showcase | fresh";
+const DESCRIPTION = "Selection of projects that have been built with Fresh.";
+
+export default function ShowcasePage(props: PageProps) {
+  const ogImageUrl = new URL(asset("/home-og.png"), props.url).href;
   return (
     <>
       <Head>
-        <title>Showcase | fresh</title>
+        <title>{TITLE}</title>
+        <meta name="description" content={DESCRIPTION} />
+        <meta property="og:title" content={TITLE} />
+        <meta property="og:description" content={DESCRIPTION} />
+        <meta property="og:type" content="website" />
+        <meta property="og:url" content={props.url.href} />
+        <meta property="og:image" content={ogImageUrl} />
       </Head>
-      <DocsHeader />
-      <NavigationBar active="/showcase" />
+      <Header title="showcase" active="/showcase" />
 
       <div class="flex flex-col min-h-screen">
         <div class="flex-1">
