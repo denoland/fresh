@@ -5,7 +5,8 @@ description: |
 ---
 
 The next step after scaffolding out a new project, is to actually start it. To
-do this you can just `deno task start`.
+do this you can just `deno task start`. Environment variables will be
+automatically read from `.env`.
 
 ```
 $ deno task start
@@ -38,6 +39,12 @@ call in `main.ts` to include an explicit port number:
 
 ```js
 await start(manifest, { port: 3000 });
+```
+
+You can also change the port by setting the `PORT` environment variable:
+
+```
+$ PORT=3000 deno task start
 ```
 
 Combining all of this we get the following `deno run` command:

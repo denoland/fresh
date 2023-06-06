@@ -1,6 +1,7 @@
 // https://github.com/denoland/fresh/pull/1050
-import { useEffect, useState } from "preact/hooks";
+import { useEffect } from "preact/hooks";
 import { cmpCssRules } from "../utils/utils.ts";
+import { useSignal } from "@preact/signals";
 
 /**
  * Returns a cssrulelist of styleElement matching the selector.
@@ -11,22 +12,18 @@ function getCssrules(selector: string) {
 }
 
 export default function CheckDuplication() {
-  const [cssRulesFRSHTWIND, setCssRulesFRSHTWIND] = useState<
-    undefined | CSSRuleList
-  >(undefined);
-  const [cssRulesClaimed, setCssRulesClaimed] = useState<
-    undefined | CSSRuleList
-  >(undefined);
+  const cssRulesFRSHTWIND = useSignal<undefined | CSSRuleList>(undefined);
+  const cssRulesClaimed = useSignal<undefined | CSSRuleList>(undefined);
 
   // Init
   useEffect(() => {
     // get <style id="__FRSH_TWIND">
-    setCssRulesFRSHTWIND(getCssrules("#__FRSH_TWIND"));
+    cssRulesFRSHTWIND.value = getCssrules("#__FRSH_TWIND");
 
     // get <style data-twind="claimed">
     // see https://github.com/tw-in-js/twind/blob/main/packages/core/src/sheets.ts#L5-L16
-    setCssRulesClaimed(
-      getCssrules('[data-twind="claimed"]:not(#__FRSH_TWIND)'),
+    cssRulesClaimed.value = getCssrules(
+      '[data-twind="claimed"]:not(#__FRSH_TWIND)',
     );
   });
 
@@ -37,22 +34,24 @@ export default function CheckDuplication() {
 
       {/* Status of duplicates */}
       {(() => {
-        if (cssRulesFRSHTWIND != null && cssRulesClaimed != null) {
+        if (cssRulesFRSHTWIND.value != null && cssRulesClaimed.value != null) {
           return (
             <div>
               <p>Error :</p>
               <p id="numDuplicates">
                 {`${
                   cmpCssRules(
-                    cssRulesFRSHTWIND,
-                    cssRulesClaimed,
+                    cssRulesFRSHTWIND.value,
+                    cssRulesClaimed.value,
                   )
                 }`}
               </p>
               <p>cssrules are duplicated</p>
             </div>
           );
-        } else if (cssRulesFRSHTWIND != null && cssRulesClaimed == null) {
+        } else if (
+          cssRulesFRSHTWIND.value != null && cssRulesClaimed.value == null
+        ) {
           return <p id="okNoDuplicates">Ok : No duplicates</p>;
         } else {
           return <p id="errorNoExistsRules">Error : Cssrules does not exist</p>;

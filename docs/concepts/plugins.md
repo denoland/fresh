@@ -99,3 +99,29 @@ serializable JavaScript value.
 
 For an example of a plugin that uses the `render` hook, see the first-party
 [Twind plugin](https://github.com/denoland/fresh/blob/main/plugins/twind.ts).
+
+### Hook: `renderAsync`
+
+This hook is largely the same as the `render` hook, with a couple of key
+differences to make asynchronous style and script generation possible. It must
+asynchronously return its
+[`PluginRenderResult`](https://deno.land/x/fresh/server.ts?s=PluginRenderResult),
+either from an `async/await` function or wrapped within a promise.
+
+The render hook is called with the
+[`AsyncPluginRenderContext`](https://deno.land/x/fresh/server.ts?s=AsyncPluginRenderContext)
+object, which contains a `renderAsync()` method. This method must be invoked
+during the render hook to actually render the page. It is a terminal error to
+not call the `renderAsync()` method during the render hook.
+
+This is useful for when plugins are generating styles and scripts with
+asynchronous dependencies based on the `htmlText`. Unlike the synchronous render
+hook, async render hooks for multiple pages can be running at the same time.
+This means that unlike the synchronous render hook, you can not use global
+variables to propagate state between the render hook and the renderer.
+
+The `renderAsync` hooks start before any page rendering occurs, and finish after
+all rendering is complete -- they wrap around the underlying JSX->string
+rendering, plugin `render` hooks, and the
+[`RenderFunction`](https://deno.land/x/fresh/server.ts?s=RenderFunction) that
+may be provided to Fresh's `start` entrypoint in the `main.ts` file.

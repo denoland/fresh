@@ -1,18 +1,21 @@
 import {
   ConnInfo,
+  dirname,
   extname,
   fromFileUrl,
+  join,
+  JSONC,
   RequestHandler,
-  rutt,
   Status,
   toFileUrl,
   typeByExtension,
   walk,
 } from "./deps.ts";
 import { h } from "preact";
-import { Manifest } from "./mod.ts";
-import { Bundler, JSXConfig } from "./bundle.ts";
-import { ALIVE_URL, BUILD_ID, JS_PREFIX, REFRESH_JS_URL } from "./constants.ts";
+import * as router from "./router.ts";
+import { DenoConfig, Manifest } from "./mod.ts";
+import { ALIVE_URL, JS_PREFIX, REFRESH_JS_URL } from "./constants.ts";
+import { BUILD_ID } from "./build_id.ts";
 import DefaultErrorHandler from "./default_error_page.ts";
 import {
   AppModule,
@@ -22,10 +25,12 @@ import {
   Handler,
   Island,
   Middleware,
+  MiddlewareHandlerContext,
   MiddlewareModule,
   MiddlewareRoute,
   Plugin,
   RenderFunction,
+  RenderOptions,
   Route,
   RouteModule,
   UnknownPage,
@@ -34,8 +39,21 @@ import {
 import { render as internalRender } from "./render.ts";
 import { ContentSecurityPolicyDirectives, SELF } from "../runtime/csp.ts";
 import { ASSET_CACHE_BUST_KEY, INTERNAL_PREFIX } from "../runtime/utils.ts";
+import {
+  Builder,
+  BuildSnapshot,
+  EsbuildBuilder,
+  JSXConfig,
+} from "../build/mod.ts";
+
 interface RouterState {
   state: Record<string, unknown>;
+}
+
+function isObject(value: unknown) {
+  return typeof value === "object" &&
+    !Array.isArray(value) &&
+    value !== null;
 }
 
 interface StaticFile {
@@ -56,13 +74,13 @@ export class ServerContext {
   #routes: Route[];
   #islands: Island[];
   #staticFiles: StaticFile[];
-  #bundler: Bundler;
   #renderFn: RenderFunction;
   #middlewares: MiddlewareRoute[];
   #app: AppModule;
   #notFound: UnknownPage;
   #error: ErrorPage;
   #plugins: Plugin[];
+  #builder: Builder | Promise<BuildSnapshot> | BuildSnapshot;
 
   constructor(
     routes: Route[],
@@ -74,7 +92,7 @@ export class ServerContext {
     notFound: UnknownPage,
     error: ErrorPage,
     plugins: Plugin[],
-    importMapURL: URL,
+    configPath: string,
     jsxConfig: JSXConfig,
   ) {
     this.#routes = routes;
@@ -87,13 +105,13 @@ export class ServerContext {
     this.#error = error;
     this.#plugins = plugins;
     this.#dev = typeof Deno.env.get("DENO_DEPLOYMENT_ID") !== "string"; // Env var is only set in prod (on Deploy).
-    this.#bundler = new Bundler(
-      this.#islands,
-      this.#plugins,
-      importMapURL,
+    this.#builder = new EsbuildBuilder({
+      buildID: BUILD_ID,
+      entrypoints: collectEntrypoints(this.#dev, this.#islands, this.#plugins),
+      configPath,
+      dev: this.#dev,
       jsxConfig,
-      this.#dev,
-    );
+    });
   }
 
   /**
@@ -106,11 +124,14 @@ export class ServerContext {
     // Get the manifest' base URL.
     const baseUrl = new URL("./", manifest.baseUrl).href;
 
-    const config = manifest.config || { importMap: "./import_map.json" };
-    if (typeof config.importMap !== "string") {
-      throw new Error("deno.json must contain an 'importMap' property.");
+    const { config, path: configPath } = await readDenoConfig(
+      fromFileUrl(baseUrl),
+    );
+    if (typeof config.importMap !== "string" && !isObject(config.imports)) {
+      throw new Error(
+        "deno.json must contain an 'importMap' or 'imports' property.",
+      );
     }
-    const importMapURL = new URL(config.importMap, manifest.baseUrl);
 
     config.compilerOptions ??= {};
 
@@ -159,10 +180,24 @@ export class ServerContext {
         let { handler } = module as RouteModule;
         handler ??= {};
         if (
-          component &&
-          typeof handler === "object" && handler.GET === undefined
+          component && typeof handler === "object" && handler.GET === undefined
         ) {
           handler.GET = (_req, { render }) => render();
+        }
+        if (
+          typeof handler === "object" && handler.GET !== undefined &&
+          handler.HEAD === undefined
+        ) {
+          const GET = handler.GET;
+          handler.HEAD = async (req, ctx) => {
+            const resp = await GET(req, ctx);
+            resp.body?.cancel();
+            return new Response(null, {
+              headers: resp.headers,
+              status: resp.status,
+              statusText: resp.statusText,
+            });
+          };
         }
         const route: Route = {
           pattern,
@@ -198,7 +233,7 @@ export class ServerContext {
           url,
           name,
           component,
-          handler: handler ?? ((req) => rutt.defaultOtherHandler(req)),
+          handler: handler ?? ((req) => router.defaultOtherHandler(req)),
           csp: Boolean(config?.csp ?? false),
         };
       } else if (
@@ -217,7 +252,7 @@ export class ServerContext {
           name,
           component,
           handler: handler ??
-            ((req, ctx) => rutt.defaultErrorHandler(req, ctx, ctx.error)),
+            ((req, ctx) => router.defaultErrorHandler(req, ctx, ctx.error)),
           csp: Boolean(config?.csp ?? false),
         };
       }
@@ -248,11 +283,6 @@ export class ServerContext {
         opts.staticDir ?? "./static",
         manifest.baseUrl,
       );
-      // TODO(lucacasonato): remove the extranious Deno.readDir when
-      // https://github.com/denoland/deno_std/issues/1310 is fixed.
-      for await (const _ of Deno.readDir(fromFileUrl(staticFolder))) {
-        // do nothing
-      }
       const entires = walk(fromFileUrl(staticFolder), {
         includeFiles: true,
         includeDirs: false,
@@ -283,7 +313,7 @@ export class ServerContext {
         staticFiles.push(staticFile);
       }
     } catch (err) {
-      if (err instanceof Deno.errors.NotFound) {
+      if (err.cause instanceof Deno.errors.NotFound) {
         // Do nothing.
       } else {
         throw err;
@@ -300,7 +330,7 @@ export class ServerContext {
       notFound,
       error,
       opts.plugins ?? [],
-      importMapURL,
+      configPath,
       jsxConfig,
     );
   }
@@ -310,47 +340,65 @@ export class ServerContext {
    * by fresh, including static files.
    */
   handler(): RequestHandler {
-    const inner = rutt.router<RouterState>(...this.#handlers());
-    const withMiddlewares = this.#composeMiddlewares(this.#middlewares);
+    const handlers = this.#handlers();
+    const inner = router.router<RouterState>(handlers);
+    const withMiddlewares = this.#composeMiddlewares(
+      this.#middlewares,
+      handlers.errorHandler,
+    );
     return async function handler(req: Request, connInfo: ConnInfo) {
-      // Redirect requests that end with a trailing slash
-      // to their non-trailing slash counterpart.
+      // Redirect requests that end with a trailing slash to their non-trailing
+      // slash counterpart.
       // Ex: /about/ -> /about
       const url = new URL(req.url);
       if (url.pathname.length > 1 && url.pathname.endsWith("/")) {
-        url.pathname = url.pathname.slice(0, -1);
-        return Response.redirect(url.href, Status.TemporaryRedirect);
-      }
-
-      // HEAD requests should be handled as GET requests
-      // but without the body.
-      const originalMethod = req.method;
-      // Internally, HEAD is handled in the same way as GET.
-      if (req.method === "HEAD") {
-        req = new Request(req.url, { method: "GET", headers: req.headers });
-      }
-      const res = await withMiddlewares(req, connInfo, inner);
-      if (originalMethod === "HEAD") {
-        res.body?.cancel();
+        // Remove trailing slashes
+        const path = url.pathname.replace(/\/+$/, "");
+        const location = `${path}${url.search}`;
         return new Response(null, {
-          headers: res.headers,
-          status: res.status,
-          statusText: res.statusText,
+          status: Status.TemporaryRedirect,
+          headers: { location },
         });
       }
-      return res;
+
+      return await withMiddlewares(req, connInfo, inner);
     };
+  }
+
+  #maybeBuildSnapshot(): BuildSnapshot | null {
+    if ("build" in this.#builder || this.#builder instanceof Promise) {
+      return null;
+    }
+    return this.#builder;
+  }
+
+  async #buildSnapshot() {
+    if ("build" in this.#builder) {
+      const builder = this.#builder;
+      this.#builder = builder.build();
+      try {
+        const snapshot = await this.#builder;
+        this.#builder = snapshot;
+      } catch (err) {
+        this.#builder = builder;
+        throw err;
+      }
+    }
+    return this.#builder;
   }
 
   /**
    * Identify which middlewares should be applied for a request,
    * chain them and return a handler response
    */
-  #composeMiddlewares(middlewares: MiddlewareRoute[]) {
+  #composeMiddlewares(
+    middlewares: MiddlewareRoute[],
+    errorHandler: router.ErrorHandler<RouterState>,
+  ) {
     return (
       req: Request,
       connInfo: ConnInfo,
-      inner: rutt.Handler<RouterState>,
+      inner: router.FinalHandler<RouterState>,
     ) => {
       // identify middlewares to apply, if any.
       // middlewares should be already sorted from deepest to shallow layer
@@ -358,30 +406,38 @@ export class ServerContext {
 
       const handlers: (() => Response | Promise<Response>)[] = [];
 
-      const ctx = {
+      const middlewareCtx: MiddlewareHandlerContext = {
         next() {
           const handler = handlers.shift()!;
           return Promise.resolve(handler());
         },
         ...connInfo,
         state: {},
+        destination: "route",
       };
 
       for (const mw of mws) {
         if (mw.handler instanceof Array) {
           for (const handler of mw.handler) {
-            handlers.push(() => handler(req, ctx));
+            handlers.push(() => handler(req, middlewareCtx));
           }
         } else {
           const handler = mw.handler;
-          handlers.push(() => handler(req, ctx));
+          handlers.push(() => handler(req, middlewareCtx));
         }
       }
 
-      handlers.push(() => inner(req, ctx));
-
-      const handler = handlers.shift()!;
-      return handler();
+      const ctx = {
+        ...connInfo,
+        state: middlewareCtx.state,
+      };
+      const { destination, handler } = inner(
+        req,
+        ctx,
+      );
+      handlers.push(handler);
+      middlewareCtx.destination = destination;
+      return middlewareCtx.next().catch((e) => errorHandler(req, ctx, e));
     };
   }
 
@@ -389,48 +445,53 @@ export class ServerContext {
    * This function returns all routes required by fresh as an extended
    * path-to-regex, to handler mapping.
    */
-  #handlers(): [
-    rutt.Routes<RouterState>,
-    {
-      otherHandler: rutt.Handler<RouterState>;
-      errorHandler: rutt.ErrorHandler<RouterState>;
-    },
-  ] {
-    const routes: rutt.Routes<RouterState> = {};
+  #handlers(): {
+    internalRoutes: router.Routes<RouterState>;
+    staticRoutes: router.Routes<RouterState>;
+    routes: router.Routes<RouterState>;
 
-    routes[`${INTERNAL_PREFIX}${JS_PREFIX}/${BUILD_ID}/:path*`] = this
-      .#bundleAssetRoute();
+    otherHandler: router.Handler<RouterState>;
+    errorHandler: router.ErrorHandler<RouterState>;
+  } {
+    const internalRoutes: router.Routes<RouterState> = {};
+    const staticRoutes: router.Routes<RouterState> = {};
+    const routes: router.Routes<RouterState> = {};
 
+    internalRoutes[`${INTERNAL_PREFIX}${JS_PREFIX}/${BUILD_ID}/:path*`] = {
+      default: this.#bundleAssetRoute(),
+    };
     if (this.#dev) {
-      routes[REFRESH_JS_URL] = () => {
-        const js =
-          `new EventSource("${ALIVE_URL}").addEventListener("message", function listener(e) { if (e.data !== "${BUILD_ID}") { this.removeEventListener('message', listener); location.reload(); } });`;
-        return new Response(js, {
-          headers: {
-            "content-type": "application/javascript; charset=utf-8",
-          },
-        });
+      internalRoutes[REFRESH_JS_URL] = {
+        default: () => {
+          return new Response(refreshJs(ALIVE_URL, BUILD_ID), {
+            headers: {
+              "content-type": "application/javascript; charset=utf-8",
+            },
+          });
+        },
       };
-      routes[ALIVE_URL] = () => {
-        let timerId: number | undefined = undefined;
-        const body = new ReadableStream({
-          start(controller) {
-            controller.enqueue(`data: ${BUILD_ID}\nretry: 100\n\n`);
-            timerId = setInterval(() => {
-              controller.enqueue(`data: ${BUILD_ID}\n\n`);
-            }, 1000);
-          },
-          cancel() {
-            if (timerId !== undefined) {
-              clearInterval(timerId);
-            }
-          },
-        });
-        return new Response(body.pipeThrough(new TextEncoderStream()), {
-          headers: {
-            "content-type": "text/event-stream",
-          },
-        });
+      internalRoutes[ALIVE_URL] = {
+        default: () => {
+          let timerId: number | undefined = undefined;
+          const body = new ReadableStream({
+            start(controller) {
+              controller.enqueue(`data: ${BUILD_ID}\nretry: 100\n\n`);
+              timerId = setInterval(() => {
+                controller.enqueue(`data: ${BUILD_ID}\n\n`);
+              }, 1000);
+            },
+            cancel() {
+              if (timerId !== undefined) {
+                clearInterval(timerId);
+              }
+            },
+          });
+          return new Response(body.pipeThrough(new TextEncoderStream()), {
+            headers: {
+              "content-type": "text/event-stream",
+            },
+          });
+        },
       };
     }
 
@@ -442,12 +503,19 @@ export class ServerContext {
       const { localUrl, path, size, contentType, etag } of this.#staticFiles
     ) {
       const route = sanitizePathToRegex(path);
-      routes[`GET@${route}`] = this.#staticFileHandler(
-        localUrl,
-        size,
-        contentType,
-        etag,
-      );
+      staticRoutes[route] = {
+        "HEAD": this.#staticFileHeadHandler(
+          size,
+          contentType,
+          etag,
+        ),
+        "GET": this.#staticFileGetHandler(
+          localUrl,
+          size,
+          contentType,
+          etag,
+        ),
+      };
     }
 
     const genRender = <Data = undefined>(
@@ -455,15 +523,13 @@ export class ServerContext {
       status: number,
     ) => {
       const imports: string[] = [];
-      if (this.#dev) {
-        imports.push(REFRESH_JS_URL);
-      }
+      if (this.#dev) imports.push(REFRESH_JS_URL);
       return (
         req: Request,
         params: Record<string, string>,
         error?: unknown,
       ) => {
-        return async (data?: Data) => {
+        return async (data?: Data, options?: RenderOptions) => {
           if (route.component === undefined) {
             throw new Error("This page does not have a component to render.");
           }
@@ -477,14 +543,16 @@ export class ServerContext {
             );
           }
 
-          const preloads: string[] = [];
           const resp = await internalRender({
             route,
             islands: this.#islands,
             plugins: this.#plugins,
             app: this.#app,
             imports,
-            preloads,
+            dependenciesFn: (path) => {
+              const snapshot = this.#maybeBuildSnapshot();
+              return snapshot?.dependencies(path) ?? [];
+            },
             renderFn: this.#renderFn,
             url: new URL(req.url),
             params,
@@ -511,7 +579,13 @@ export class ServerContext {
               headers["content-security-policy"] = directive;
             }
           }
-          return new Response(body, { status, headers });
+          return new Response(body, {
+            status: options?.status ?? status,
+            statusText: options?.statusText,
+            headers: options?.headers
+              ? { ...headers, ...options.headers }
+              : headers,
+          });
         };
       };
     };
@@ -521,16 +595,23 @@ export class ServerContext {
     for (const route of this.#routes) {
       const createRender = genRender(route, Status.OK);
       if (typeof route.handler === "function") {
-        routes[route.pattern] = (req, ctx, params) =>
-          (route.handler as Handler)(req, {
-            ...ctx,
-            params,
-            render: createRender(req, params),
-            renderNotFound: createUnknownRender(req, {}),
-          });
+        routes[route.pattern] = {
+          default: (req, ctx, params) =>
+            (route.handler as Handler)(req, {
+              ...ctx,
+              params,
+              render: createRender(req, params),
+              renderNotFound: createUnknownRender(req, {}),
+            }),
+        };
       } else {
+        routes[route.pattern] = {};
         for (const [method, handler] of Object.entries(route.handler)) {
-          routes[`${method}@${route.pattern}`] = (req, ctx, params) =>
+          routes[route.pattern][method as router.KnownMethod] = (
+            req,
+            ctx,
+            params,
+          ) =>
             handler(req, {
               ...ctx,
               params,
@@ -541,7 +622,7 @@ export class ServerContext {
       }
     }
 
-    const otherHandler: rutt.Handler<RouterState> = (
+    const otherHandler: router.Handler<RouterState> = (
       req,
       ctx,
     ) =>
@@ -557,7 +638,7 @@ export class ServerContext {
       this.#error,
       Status.InternalServerError,
     );
-    const errorHandler: rutt.ErrorHandler<RouterState> = (
+    const errorHandler: router.ErrorHandler<RouterState> = (
       req,
       ctx,
       error,
@@ -577,15 +658,51 @@ export class ServerContext {
       );
     };
 
-    return [routes, { otherHandler, errorHandler }];
+    return { internalRoutes, staticRoutes, routes, otherHandler, errorHandler };
   }
 
-  #staticFileHandler(
+  #staticFileHeadHandler(
+    size: number,
+    contentType: string,
+    etag: string,
+  ): router.MatchHandler {
+    return (req: Request) => {
+      const url = new URL(req.url);
+      const key = url.searchParams.get(ASSET_CACHE_BUST_KEY);
+      if (key !== null && BUILD_ID !== key) {
+        url.searchParams.delete(ASSET_CACHE_BUST_KEY);
+        const location = url.pathname + url.search;
+        return new Response(null, {
+          status: 307,
+          headers: {
+            location,
+          },
+        });
+      }
+      const headers = new Headers({
+        "content-type": contentType,
+        etag,
+        vary: "If-None-Match",
+      });
+      if (key !== null) {
+        headers.set("Cache-Control", "public, max-age=31536000, immutable");
+      }
+      const ifNoneMatch = req.headers.get("if-none-match");
+      if (ifNoneMatch === etag || ifNoneMatch === "W/" + etag) {
+        return new Response(null, { status: 304, headers });
+      } else {
+        headers.set("content-length", String(size));
+        return new Response(null, { status: 200, headers });
+      }
+    };
+  }
+
+  #staticFileGetHandler(
     localUrl: URL,
     size: number,
     contentType: string,
     etag: string,
-  ): rutt.MatchHandler {
+  ): router.MatchHandler {
     return async (req: Request) => {
       const url = new URL(req.url);
       const key = url.searchParams.get(ASSET_CACHE_BUST_KEY);
@@ -623,29 +740,22 @@ export class ServerContext {
    * Returns a router that contains all fresh routes. Should be mounted at
    * constants.INTERNAL_PREFIX
    */
-  #bundleAssetRoute = (): rutt.MatchHandler => {
+  #bundleAssetRoute = (): router.MatchHandler => {
     return async (_req, _ctx, params) => {
-      const path = `/${params.path}`;
-      const file = await this.#bundler.get(path);
-      let res;
-      if (file) {
-        const headers = new Headers({
-          "Cache-Control": "public, max-age=604800, immutable",
-        });
+      const snapshot = await this.#buildSnapshot();
+      const contents = snapshot.read(params.path);
+      if (!contents) return new Response(null, { status: 404 });
 
-        const contentType = typeByExtension(extname(path));
-        if (contentType) {
-          headers.set("Content-Type", contentType);
-        }
+      const headers: Record<string, string> = {
+        "Cache-Control": "public, max-age=604800, immutable",
+      };
 
-        res = new Response(file, {
-          status: 200,
-          headers,
-        });
-      }
+      const contentType = typeByExtension(extname(params.path));
+      if (contentType) headers["Content-Type"] = contentType;
 
-      return res ?? new Response(null, {
-        status: 404,
+      return new Response(contents, {
+        status: 200,
+        headers,
       });
     };
   };
@@ -663,7 +773,7 @@ const DEFAULT_NOT_FOUND: UnknownPage = {
   pattern: "",
   url: "",
   name: "_404",
-  handler: (req) => rutt.defaultOtherHandler(req),
+  handler: (req) => router.defaultOtherHandler(req),
   csp: false,
 };
 
@@ -792,4 +902,80 @@ export function middlewarePathToPattern(baseRoute: string) {
   }
   const compiledPattern = new URLPattern({ pathname: pattern });
   return { pattern, compiledPattern };
+}
+
+function refreshJs(aliveUrl: string, buildId: string) {
+  return `let es = new EventSource("${aliveUrl}");
+window.addEventListener("beforeunload", (event) => {
+  es.close();
+});
+es.addEventListener("message", function listener(e) {
+  if (e.data !== "${buildId}") {
+    this.removeEventListener("message", listener);
+    location.reload();
+  }
+});`;
+}
+
+function collectEntrypoints(
+  dev: boolean,
+  islands: Island[],
+  plugins: Plugin[],
+): Record<string, string> {
+  const entrypointBase = "../runtime/entrypoints";
+  const entryPoints: Record<string, string> = {
+    main: dev
+      ? import.meta.resolve(`${entrypointBase}/main_dev.ts`)
+      : import.meta.resolve(`${entrypointBase}/main.ts`),
+    deserializer: import.meta.resolve(`${entrypointBase}/deserializer.ts`),
+  };
+
+  try {
+    import.meta.resolve("@preact/signals");
+    entryPoints.signals = import.meta.resolve(`${entrypointBase}/signals.ts`);
+  } catch {
+    // @preact/signals is not in the import map
+  }
+
+  for (const island of islands) {
+    entryPoints[`island-${island.id}`] = island.url;
+  }
+
+  for (const plugin of plugins) {
+    for (const [name, url] of Object.entries(plugin.entrypoints ?? {})) {
+      entryPoints[`plugin-${plugin.name}-${name}`] = url;
+    }
+  }
+
+  return entryPoints;
+}
+
+async function readDenoConfig(
+  directory: string,
+): Promise<{ config: DenoConfig; path: string }> {
+  let dir = directory;
+  while (true) {
+    for (const name of ["deno.json", "deno.jsonc"]) {
+      const path = join(dir, name);
+      try {
+        const file = await Deno.readTextFile(path);
+        if (name.endsWith(".jsonc")) {
+          return { config: JSONC.parse(file) as DenoConfig, path };
+        } else {
+          return { config: JSON.parse(file), path };
+        }
+      } catch (err) {
+        if (!(err instanceof Deno.errors.NotFound)) {
+          throw err;
+        }
+      }
+    }
+    const parent = dirname(dir);
+    if (parent === dir) {
+      throw new Error(
+        `Could not find a deno.json file in the current directory or any parent directory.`,
+      );
+    }
+    dir = parent;
+  }
 }
