@@ -59,7 +59,6 @@ export async function generate(directory: string, manifest: Manifest) {
 // This file SHOULD be checked into source version control.
 // This file is automatically updated during development when running \`dev.ts\`.
 
-import config from "./deno.json" assert { type: "json" };
 ${
     routes.map((file, i) => `import * as $${i} from "./routes${file}";`).join(
       "\n",
@@ -84,7 +83,6 @@ const manifest = {
   }
   },
   baseUrl: import.meta.url,
-  config,
 };
 
 export default manifest;

@@ -48,7 +48,7 @@ const Slide = (props: SlideProps) => {
       class={`${props.class} ${color} h-80 w-full text-center text-black p-5`}
     >
       {text}
-      <img src={url} />
+      <img src={url} alt={text} />
     </div>
   );
 };

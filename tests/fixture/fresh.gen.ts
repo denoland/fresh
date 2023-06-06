@@ -2,7 +2,6 @@
 // This file SHOULD be checked into source version control.
 // This file is automatically updated during development when running `dev.ts`.
 
-import config from "./deno.json" assert { type: "json" };
 import * as $0 from "./routes/[name].tsx";
 import * as $1 from "./routes/_404.tsx";
 import * as $2 from "./routes/_500.tsx";
@@ -34,7 +33,8 @@ import * as $27 from "./routes/not_found.ts";
 import * as $28 from "./routes/params.tsx";
 import * as $29 from "./routes/props/[id].tsx";
 import * as $30 from "./routes/static.tsx";
-import * as $31 from "./routes/wildcard.tsx";
+import * as $31 from "./routes/status_overwrite.tsx";
+import * as $32 from "./routes/wildcard.tsx";
 import * as $$0 from "./islands/Counter.tsx";
 import * as $$1 from "./islands/ReturningNull.tsx";
 import * as $$2 from "./islands/RootFragment.tsx";
@@ -76,7 +76,8 @@ const manifest = {
     "./routes/params.tsx": $28,
     "./routes/props/[id].tsx": $29,
     "./routes/static.tsx": $30,
-    "./routes/wildcard.tsx": $31,
+    "./routes/status_overwrite.tsx": $31,
+    "./routes/wildcard.tsx": $32,
   },
   islands: {
     "./islands/Counter.tsx": $$0,
@@ -88,7 +89,6 @@ const manifest = {
     "./islands/kebab-case-counter-test.tsx": $$6,
   },
   baseUrl: import.meta.url,
-  config,
 };
 
 export default manifest;

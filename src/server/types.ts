@@ -72,10 +72,16 @@ export interface RouteConfig {
   csp?: boolean;
 }
 
+// deno-lint-ignore no-empty-interface
+export interface RenderOptions extends ResponseInit {}
+
 export interface HandlerContext<Data = unknown, State = Record<string, unknown>>
   extends ConnInfo {
   params: Record<string, string>;
-  render: (data?: Data) => Response | Promise<Response>;
+  render: (
+    data?: Data,
+    options?: RenderOptions,
+  ) => Response | Promise<Response>;
   renderNotFound: () => Response | Promise<Response>;
   state: State;
 }
@@ -110,7 +116,7 @@ export interface Route<Data = any> {
 
 // --- APP ---
 
-export interface AppProps {
+export interface AppProps extends PageProps {
   Component: ComponentType<Record<never, never>>;
 }
 
@@ -263,10 +269,26 @@ export interface Plugin {
    * inject CSS into the page, or load additional JS files on the client.
    */
   render?(ctx: PluginRenderContext): PluginRenderResult;
+
+  /** The asynchronous render hook is called on the server every time some
+   * JSX needs to be turned into HTML, wrapped around all synchronous render
+   * hooks. The render hook needs to call the `ctx.renderAsync` function
+   * exactly once, and await the result.
+   *
+   * This is useful for when plugins are generating styles and scripts with
+   * asynchronous dependencies. Unlike the synchronous render hook, async render
+   * hooks for multiple pages can be running at the same time. This means that
+   * unlike the synchronous render hook, you can not use global variables to
+   * propagate state between the render hook and the renderer.
+   */
+  renderAsync?(ctx: PluginAsyncRenderContext): Promise<PluginRenderResult>;
 }
 
 export interface PluginRenderContext {
   render: PluginRenderFunction;
+}
+export interface PluginAsyncRenderContext {
+  renderAsync: PluginAsyncRenderFunction;
 }
 
 export interface PluginRenderResult {
@@ -297,12 +319,14 @@ export interface PluginRenderScripts {
 }
 
 export type PluginRenderFunction = () => PluginRenderFunctionResult;
+export type PluginAsyncRenderFunction = () =>
+  | PluginRenderFunctionResult
+  | Promise<PluginRenderFunctionResult>;
 
 export interface PluginRenderFunctionResult {
   /** The HTML text that was rendered. */
   htmlText: string;
   /** If the renderer encountered any islands that require hydration on the
-   * client.
-   */
+   * client. */
   requiresHydration: boolean;
 }
