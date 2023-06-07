@@ -758,3 +758,24 @@ Deno.test("PORT environment variable", {
   await lines.cancel();
   serverProcess.kill("SIGTERM");
 });
+
+Deno.test("Don't crash when no /islands folder", {
+  sanitizeOps: false,
+  sanitizeResources: false,
+}, async () => {
+  const PORT = "8765";
+  // Preparation
+  const { serverProcess, lines } = await startFreshServer({
+    args: ["run", "-A", "./tests/fixture_no_island/main.ts"],
+    env: { PORT },
+  });
+
+  await delay(100);
+
+  const resp = await fetch("http://localhost:" + PORT);
+  assert(resp);
+  assertEquals(resp.status, Status.OK);
+
+  await lines.cancel();
+  serverProcess.kill("SIGTERM");
+});

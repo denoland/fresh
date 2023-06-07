@@ -1,4 +1,12 @@
-import { dirname, fromFileUrl, gte, join, toFileUrl, walk } from "./deps.ts";
+import {
+  dirname,
+  exists,
+  fromFileUrl,
+  gte,
+  join,
+  toFileUrl,
+  walk,
+} from "./deps.ts";
 import { error } from "./error.ts";
 
 const MIN_DENO_VERSION = "1.25.0";
@@ -22,7 +30,12 @@ export function ensureMinDenoVersion() {
 
 async function collectDir(dir: string): Promise<string[]> {
   const dirUrl = toFileUrl(dir);
-  const paths = [];
+  const paths: string[] = [];
+
+  if (!await exists(dir)) {
+    return paths;
+  }
+
   const routesFolder = walk(dir, {
     includeDirs: false,
     includeFiles: true,
