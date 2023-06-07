@@ -56,6 +56,11 @@ function isObject(value: unknown) {
     value !== null;
 }
 
+function isDevMode() {
+  // Env var is only set in prod (on Deploy).
+  return typeof Deno.env.get("DENO_DEPLOYMENT_ID") !== "string";
+}
+
 interface StaticFile {
   /** The URL to the static file on disk. */
   localUrl: URL;
@@ -94,6 +99,7 @@ export class ServerContext {
     plugins: Plugin[],
     configPath: string,
     jsxConfig: JSXConfig,
+    dev: boolean = isDevMode(),
   ) {
     this.#routes = routes;
     this.#islands = islands;
@@ -104,7 +110,7 @@ export class ServerContext {
     this.#notFound = notFound;
     this.#error = error;
     this.#plugins = plugins;
-    this.#dev = typeof Deno.env.get("DENO_DEPLOYMENT_ID") !== "string"; // Env var is only set in prod (on Deploy).
+    this.#dev = dev;
     this.#builder = new EsbuildBuilder({
       buildID: BUILD_ID,
       entrypoints: collectEntrypoints(this.#dev, this.#islands, this.#plugins),
@@ -320,6 +326,12 @@ export class ServerContext {
       }
     }
 
+    const dev = isDevMode();
+    if (dev) {
+      // Ensure that debugging hooks are set up for SSR rendering
+      await import("preact/debug");
+    }
+
     return new ServerContext(
       routes,
       islands,
@@ -332,6 +344,7 @@ export class ServerContext {
       opts.plugins ?? [],
       configPath,
       jsxConfig,
+      dev,
     );
   }
 

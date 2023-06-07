@@ -689,6 +689,44 @@ Deno.test("jsx pragma works", {
   serverProcess.kill("SIGTERM");
 });
 
+Deno.test("preact/debug is active in dev mode", {
+  sanitizeOps: false,
+  sanitizeResources: false,
+}, async (t) => {
+  // Preparation
+  const { serverProcess, lines } = await startFreshServer({
+    args: ["run", "-A", "./tests/fixture_render_error/main.ts"],
+  });
+
+  await delay(100);
+  const url = "http://localhost:8000";
+
+  await t.step("SSR error is shown", async () => {
+    const resp = await fetch(url);
+    assertEquals(resp.status, Status.InternalServerError);
+    const text = await resp.text();
+    assertStringIncludes(text, "Objects are not valid as a child");
+  });
+
+  const browser = await puppeteer.launch({ args: ["--no-sandbox"] });
+  const page = await browser.newPage();
+
+  await page.goto(url, {
+    waitUntil: "networkidle2",
+  });
+
+  await t.step("error page is shown with error message", async () => {
+    const el = await page.waitForSelector(".frsh-error-page");
+    const text = await page.evaluate((el) => el.textContent, el);
+    assertStringIncludes(text, "Objects are not valid as a child");
+  });
+
+  await browser.close();
+
+  await lines.cancel();
+  serverProcess.kill("SIGTERM");
+});
+
 Deno.test("preloading javascript files", {
   sanitizeOps: false,
   sanitizeResources: false,
