@@ -58,7 +58,7 @@ function isObject(value: unknown) {
 
 function isDevMode() {
   // Env var is only set in prod (on Deploy).
-  return typeof Deno.env.get("DENO_DEPLOYMENT_ID") !== "string";
+  return Deno.env.get("DENO_DEPLOYMENT_ID") === undefined;
 }
 
 interface StaticFile {
