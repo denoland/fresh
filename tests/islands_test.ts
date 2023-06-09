@@ -4,8 +4,8 @@ import {
   delay,
   Page,
   puppeteer,
-  TextLineStream,
 } from "./deps.ts";
+import { startFreshServer } from "./test_utils.ts";
 
 Deno.test({
   name: "island tests",
@@ -63,24 +63,11 @@ function withPage(fn: (page: Page) => Promise<void>) {
 }
 
 async function withPageName(name: string, fn: (page: Page) => Promise<void>) {
-  const serverProcess = new Deno.Command(Deno.execPath(), {
+  const { lines, serverProcess } = await startFreshServer({
     args: ["run", "-A", name],
-    stdout: "piped",
-    stderr: "inherit",
-  }).spawn();
-
-  const textDecoderStream = new TextDecoderStream();
-  const textLineStream = new TextLineStream();
-
-  const lines = serverProcess.stdout
-    .pipeThrough(textDecoderStream)
-    .pipeThrough(textLineStream);
+  });
 
   try {
-    if (!await didServerStart(lines)) {
-      throw new Error("Server didn't start up");
-    }
-
     await delay(100);
     const browser = await puppeteer.launch({ args: ["--no-sandbox"] });
 
@@ -98,17 +85,6 @@ async function withPageName(name: string, fn: (page: Page) => Promise<void>) {
     // Wait until the process exits
     await serverProcess.status;
   }
-}
-
-async function didServerStart(
-  stdoutLines: ReadableStream<string>,
-): Promise<boolean> {
-  for await (const line of stdoutLines) {
-    if (line.includes("Listening on http://")) {
-      return true;
-    }
-  }
-  return false;
 }
 
 Deno.test({
