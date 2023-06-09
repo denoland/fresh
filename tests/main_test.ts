@@ -10,7 +10,6 @@ import manifest from "./fixture/fresh.gen.ts";
 import options from "./fixture/options.ts";
 import { BUILD_ID } from "../src/server/build_id.ts";
 import { startFreshServer } from "./test_utils.ts";
-import { AssertionError } from "https://deno.land/std@0.190.0/testing/asserts.ts";
 
 const ctx = await ServerContext.fromManifest(manifest, options);
 const handler = ctx.handler();
