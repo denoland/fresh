@@ -11,7 +11,9 @@ export async function startFreshServer(options: Deno.CommandOptions) {
   const decoder = new TextDecoderStream();
   const lines: ReadableStream<string> = serverProcess.stdout
     .pipeThrough(decoder)
-    .pipeThrough(new TextLineStream());
+    .pipeThrough(new TextLineStream(), {
+      preventCancel: true,
+    });
 
   let started = false;
   for await (const line of lines) {
