@@ -28,10 +28,10 @@ The [documentation](https://fresh.deno.dev/docs/) is available on
 Install [Deno CLI](https://deno.land/) version 1.25.0 or higher.
 
 You can scaffold a new project by running the Fresh init script. To scaffold a
-project in the `deno-fresh-demo` folder, run the following:
+project run the following:
 
 ```sh
-deno run -A -r https://fresh.deno.dev deno-fresh-demo
+deno run -A -r https://fresh.deno.dev
 ```
 
 Then navigate to the newly created project folder:
@@ -90,7 +90,12 @@ preferably with source code on GitHub, but not required.
 
 ```html
 <a href="https://fresh.deno.dev">
-   <img width="197" height="37" src="https://fresh.deno.dev/fresh-badge.svg" alt="Made with Fresh" />
+  <img
+    width="197"
+    height="37"
+    src="https://fresh.deno.dev/fresh-badge.svg"
+    alt="Made with Fresh"
+  />
 </a>
 ```
 
@@ -102,6 +107,11 @@ preferably with source code on GitHub, but not required.
 
 ```html
 <a href="https://fresh.deno.dev">
-   <img width="197" height="37" src="https://fresh.deno.dev/fresh-badge-dark.svg" alt="Made with Fresh" />
+  <img
+    width="197"
+    height="37"
+    src="https://fresh.deno.dev/fresh-badge-dark.svg"
+    alt="Made with Fresh"
+  />
 </a>
 ```
