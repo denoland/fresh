@@ -289,13 +289,13 @@ export class ServerContext {
         opts.staticDir ?? "./static",
         manifest.baseUrl,
       );
-      const entires = walk(fromFileUrl(staticFolder), {
+      const entries = walk(fromFileUrl(staticFolder), {
         includeFiles: true,
         includeDirs: false,
         followSymlinks: false,
       });
       const encoder = new TextEncoder();
-      for await (const entry of entires) {
+      for await (const entry of entries) {
         const localUrl = toFileUrl(entry.path);
         const path = localUrl.href.substring(staticFolder.href.length);
         const stat = await Deno.stat(localUrl);
