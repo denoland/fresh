@@ -1,5 +1,6 @@
 import {
   assert,
+  assertEquals,
   assertStringIncludes,
   delay,
   Page,
@@ -240,6 +241,29 @@ Deno.test({
       await page.reload({ waitUntil: "networkidle2" });
       assert(await page.waitForSelector("#browser-true"));
     });
+  },
+
+  sanitizeOps: false,
+  sanitizeResources: false,
+});
+
+Deno.test({
+  name: "works with older preact-render-to-string v5",
+
+  async fn(_t) {
+    await withPageName(
+      "./tests/fixture_preact_rts_v5/main.ts",
+      async (page) => {
+        await page.goto("http://localhost:8000/", {
+          waitUntil: "networkidle2",
+        });
+        await page.waitForSelector("#foo");
+
+        await delay(100);
+        const text = await page.$eval("#foo", (el) => el.textContent);
+        assertEquals(text, "it works");
+      },
+    );
   },
 
   sanitizeOps: false,
