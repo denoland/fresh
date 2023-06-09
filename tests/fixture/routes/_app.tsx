@@ -2,7 +2,9 @@ import { Head } from "$fresh/runtime.ts";
 import { AppProps } from "$fresh/server.ts";
 
 export default function App(props: AppProps) {
-  const statefulValue = props.state?.root === "root_mw" ? "The freshest framework!" : "";
+  const statefulValue = props.state?.root === "root_mw"
+    ? "The freshest framework!"
+    : "";
   const specialCase = props.state?.stateInProps as string;
   return (
     <>

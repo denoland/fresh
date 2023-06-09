@@ -49,10 +49,10 @@ Deno.test("/ page prerender", async () => {
     body,
     '<meta name="generator" content="The freshest framework!"/>',
   );
-  if (body.includes("specialTag")) {
-    const msg = `Expected actual: "${body}" to not contain: "specialTag"`;
-    throw new AssertionError(msg);
-  }
+  assert(
+    !body.includes("specialTag"),
+    `Expected actual: "${body}" to not contain: "specialTag"`,
+  );
   assertStringIncludes(body, `<link rel="modulepreload"`);
 });
 
@@ -663,10 +663,10 @@ Deno.test("experimental Deno.serve", {
       body,
       '<meta name="generator" content="The freshest framework!"/>',
     );
-    if (body.includes("specialTag")) {
-      const msg = `Expected actual: "${body}" to not contain: "specialTag"`;
-      throw new AssertionError(msg);
-    }
+    assert(
+      !body.includes("specialTag"),
+      `Expected actual: "${body}" to not contain: "specialTag"`,
+    );
   });
 
   await t.step("static file", async () => {

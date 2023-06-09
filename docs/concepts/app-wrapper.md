@@ -17,10 +17,11 @@ set by middleware is available via `props.state`.
 
 import { AppProps } from "$fresh/server.ts";
 
-export default function App(props: AppProps) {
+export default function App({ Component, state }: AppProps) {
+  //do something with state here
   return (
     <div class="wrapper">
-      <props.Component />
+      <Component />
     </div>
   );
 }
