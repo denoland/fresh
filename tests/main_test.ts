@@ -10,6 +10,7 @@ import manifest from "./fixture/fresh.gen.ts";
 import options from "./fixture/options.ts";
 import { BUILD_ID } from "../src/server/build_id.ts";
 import { startFreshServer } from "./test_utils.ts";
+import { AssertionError } from "https://deno.land/std@0.190.0/testing/asserts.ts";
 
 const ctx = await ServerContext.fromManifest(manifest, options);
 const handler = ctx.handler();
@@ -44,6 +45,14 @@ Deno.test("/ page prerender", async () => {
     body,
     '<meta name="description" content="Hello world!"/>',
   );
+  assertStringIncludes(
+    body,
+    '<meta name="generator" content="The freshest framework!"/>',
+  );
+  if (body.includes("specialTag")) {
+    const msg = `Expected actual: "${body}" to not contain: "specialTag"`;
+    throw new AssertionError(msg);
+  }
   assertStringIncludes(body, `<link rel="modulepreload"`);
 });
 
@@ -55,7 +64,7 @@ Deno.test("/props/123 page prerender", async () => {
   const body = await resp.text();
   assertStringIncludes(
     body,
-    `{&quot;params&quot;:{&quot;id&quot;:&quot;123&quot;},&quot;url&quot;:&quot;https://fresh.deno.dev/props/123&quot;,&quot;route&quot;:&quot;/props/:id&quot;}`,
+    `{&quot;params&quot;:{&quot;id&quot;:&quot;123&quot;},&quot;url&quot;:&quot;https://fresh.deno.dev/props/123&quot;,&quot;route&quot;:&quot;/props/:id&quot;,&quot;state&quot;:{&quot;root&quot;:&quot;root_mw&quot;}}`,
   );
 });
 
@@ -431,6 +440,22 @@ Deno.test("/connInfo", async () => {
   assertEquals(body, "127.0.0.1");
 });
 
+Deno.test("state in page props", async () => {
+  const resp = await router(
+    new Request("https://fresh.deno.dev/state-in-props"),
+  );
+  assert(resp);
+  assertEquals(resp.status, Status.OK);
+  assertEquals(resp.headers.get("content-type"), "text/html; charset=utf-8");
+  const body = await resp.text();
+  assertStringIncludes(
+    body,
+    '<meta name="generator" content="The freshest framework!"/>',
+  );
+  assertStringIncludes(body, "specialTag");
+  assertStringIncludes(body, "LOOK, I AM SET FROM MIDDLEWARE");
+});
+
 Deno.test({
   name: "/middleware - root",
   fn: async () => {
@@ -634,6 +659,14 @@ Deno.test("experimental Deno.serve", {
       body,
       '<meta name="description" content="Hello world!"/>',
     );
+    assertStringIncludes(
+      body,
+      '<meta name="generator" content="The freshest framework!"/>',
+    );
+    if (body.includes("specialTag")) {
+      const msg = `Expected actual: "${body}" to not contain: "specialTag"`;
+      throw new AssertionError(msg);
+    }
   });
 
   await t.step("static file", async () => {
