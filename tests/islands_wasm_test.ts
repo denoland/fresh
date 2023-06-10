@@ -1,30 +1,14 @@
-import { assert, delay, puppeteer, TextLineStream } from "./deps.ts";
+import { assert, delay, puppeteer } from "./deps.ts";
+import { startFreshServer } from "./test_utils.ts";
 
 Deno.test({
   name: "wasm island tests",
   ignore: Deno.build.os === "windows",
   async fn(t) {
     // Preparation
-    const serverProcess = new Deno.Command(Deno.execPath(), {
+    const { lines, serverProcess } = await startFreshServer({
       args: ["run", "-A", "./tests/fixture/main_wasm.ts"],
-      stdout: "piped",
-    }).spawn();
-
-    const decoder = new TextDecoderStream();
-    const lines = serverProcess.stdout
-      .pipeThrough(decoder)
-      .pipeThrough(new TextLineStream());
-
-    let started = false;
-    for await (const line of lines) {
-      if (line.includes("Listening on http://")) {
-        started = true;
-        break;
-      }
-    }
-    if (!started) {
-      throw new Error("Server didn't start up");
-    }
+    });
 
     await delay(100);
 

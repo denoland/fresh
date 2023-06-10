@@ -36,7 +36,7 @@ caching **will** cause your project to not function correctly.
 Here is an example `Dockerfile` for a Fresh project:
 
 ```dockerfile
-FROM denoland/deno:1.25.0
+FROM denoland/deno:1.33.2
 
 ARG GIT_REVISION
 ENV DENO_DEPLOYMENT_ID=${GIT_REVISION}
@@ -44,7 +44,7 @@ ENV DENO_DEPLOYMENT_ID=${GIT_REVISION}
 WORKDIR /app
 
 COPY . .
-RUN deno cache main.ts --import-map=import_map.json
+RUN deno cache main.ts
 
 EXPOSE 8000
 

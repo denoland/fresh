@@ -2,7 +2,7 @@ import PageFooter from "../components/Footer.tsx";
 import Header from "../components/Header.tsx";
 import ComponentGallery from "../islands/ComponentGallery.tsx";
 
-import { Head } from "$fresh/runtime.ts";
+import { asset, Head } from "$fresh/runtime.ts";
 import { Handlers, PageProps } from "$fresh/server.ts";
 
 function getSource(path: string) {
@@ -23,29 +23,40 @@ export const handler: Handlers<HomeProps> = {
         "Footer": await getSource("../components/gallery/Footer.tsx"),
         "Hero": await getSource("../components/gallery/Hero.tsx"),
         "Features": await getSource("../components/gallery/Features.tsx"),
+        "Carousel": await getSource("../components/gallery/Carousel.tsx"),
       },
     };
     return ctx.render(props);
   },
 };
 
+const TITLE = "Components | fresh";
+const DESCRIPTION = "A collection of components made for Fresh.";
+
 interface HomeProps {
   sources: Record<string, string>;
 }
 
 export default function Home(props: PageProps<HomeProps>) {
+  const ogImageUrl = new URL(asset("/home-og.png"), props.url).href;
   return (
     <div class="bg-white h-full">
       <Head>
-        <title>Components | fresh</title>
+        <title>{TITLE}</title>
         <link
           rel="stylesheet"
           href="https://esm.sh/prismjs@1.27.0/themes/prism-dark.min.css"
         />
+        <meta name="description" content={DESCRIPTION} />
+        <meta property="og:title" content={TITLE} />
+        <meta property="og:description" content={DESCRIPTION} />
+        <meta property="og:type" content="website" />
+        <meta property="og:url" content={props.url.href} />
+        <meta property="og:image" content={ogImageUrl} />
       </Head>
       <Header title="components" active="/components" />
 
-      <section class="my-16 px(4 sm:6 md:8) mx-auto max-w-screen-lg space-y-5">
+      <section class="my-16 px(4 sm:6 md:8) mx-auto max-w-screen-lg space-y-4">
         <h2 class="text(3xl gray-600) font-bold">
           Fresh Components
         </h2>

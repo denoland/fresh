@@ -17,6 +17,7 @@ export default function DefaultErrorPage(props: ErrorPageProps) {
   return h(
     "div",
     {
+      class: "frsh-error-page",
       style: {
         display: "flex",
         justifyContent: "center",

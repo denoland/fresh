@@ -44,6 +44,7 @@ export default function NavigationBar(
           <a
             href="https://github.com/denoland/fresh"
             class="hover:text-green-600 inline-block"
+            aria-label="GitHub"
           >
             <Icons.GitHub />
           </a>

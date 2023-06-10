@@ -1,7 +1,11 @@
 import { join, parse, resolve } from "./src/dev/deps.ts";
 import { error } from "./src/dev/error.ts";
 import { collect, ensureMinDenoVersion, generate } from "./src/dev/mod.ts";
-import { freshImports, twindImports } from "./src/dev/imports.ts";
+import {
+  dotenvImports,
+  freshImports,
+  twindImports,
+} from "./src/dev/imports.ts";
 
 ensureMinDenoVersion();
 
@@ -84,19 +88,25 @@ if (useVSCode) {
   await Deno.mkdir(join(resolvedDirectory, ".vscode"), { recursive: true });
 }
 
-const importMap = { imports: {} as Record<string, string> };
-freshImports(importMap.imports);
-if (useTwind) twindImports(importMap.imports);
-const IMPORT_MAP_JSON = JSON.stringify(importMap, null, 2) + "\n";
+const GITIGNORE = `# dotenv environment variable files
+.env
+.env.development.local
+.env.test.local
+.env.production.local
+.env.local
+`;
+
 await Deno.writeTextFile(
-  join(resolvedDirectory, "import_map.json"),
-  IMPORT_MAP_JSON,
+  join(resolvedDirectory, ".gitignore"),
+  GITIGNORE,
 );
 
 const ROUTES_INDEX_TSX = `import { Head } from "$fresh/runtime.ts";
+import { useSignal } from "@preact/signals";
 import Counter from "../islands/Counter.tsx";
 
 export default function Home() {
+  const count = useSignal(3);
   return (
     <>
       <Head>
@@ -111,10 +121,10 @@ export default function Home() {
           alt="the fresh logo: a sliced lemon dripping with juice"
         />
         <p${useTwind ? ` class="my-6"` : ""}>
-          Welcome to \`fresh\`. Try updating this message in the ./routes/index.tsx
-          file, and refresh.
+          Welcome to \`fresh\`. Try updating this message in the
+          ./routes/index.tsx file, and refresh.
         </p>
-        <Counter start={3} />
+        <Counter count={count} />
       </div>
     </>
   );
@@ -146,20 +156,21 @@ await Deno.writeTextFile(
   COMPONENTS_BUTTON_TSX,
 );
 
-const ISLANDS_COUNTER_TSX = `import { useState } from "preact/hooks";
+const ISLANDS_COUNTER_TSX = `import type { Signal } from "@preact/signals";
 import { Button } from "../components/Button.tsx";
 
 interface CounterProps {
-  start: number;
+  count: Signal<number>;
 }
 
 export default function Counter(props: CounterProps) {
-  const [count, setCount] = useState(props.start);
   return (
     <div${useTwind ? ' class="flex gap-2 w-full"' : ""}>
-      <p${useTwind ? ' class="flex-grow-1 font-bold text-xl"' : ""}>{count}</p>
-      <Button onClick={() => setCount(count - 1)}>-1</Button>
-      <Button onClick={() => setCount(count + 1)}>+1</Button>
+      <p${
+  useTwind ? ' class="flex-grow-1 font-bold text-xl"' : ""
+}>{props.count}</p>
+      <Button onClick={() => props.count.value -= 1}>-1</Button>
+      <Button onClick={() => props.count.value += 1}>+1</Button>
     </div>
   );
 }
@@ -250,6 +261,8 @@ let MAIN_TS = `/// <reference no-default-lib="true" />
 /// <reference lib="dom.asynciterable" />
 /// <reference lib="deno.ns" />
 
+import "$std/dotenv/load.ts";
+
 import { start } from "$fresh/server.ts";
 import manifest from "./fresh.gen.ts";
 `;
@@ -283,24 +296,34 @@ try {
 }
 
 const config = {
+  lock: false,
   tasks: {
     start: "deno run -A --watch=static/,routes/ dev.ts",
   },
-  importMap: "./import_map.json",
+  imports: {} as Record<string, string>,
   compilerOptions: {
     jsx: "react-jsx",
     jsxImportSource: "preact",
   },
 };
+freshImports(config.imports);
+if (useTwind) twindImports(config.imports);
+dotenvImports(config.imports);
+
 const DENO_CONFIG = JSON.stringify(config, null, 2) + "\n";
 
 await Deno.writeTextFile(join(resolvedDirectory, "deno.json"), DENO_CONFIG);
 
-const README_MD = `# fresh project
+const README_MD = `# Fresh project
+
+Your new Fresh project is ready to go. You can follow the Fresh "Getting
+Started" guide here: https://fresh.deno.dev/docs/getting-started
 
 ### Usage
 
-Start the project:
+Make sure to install Deno: https://deno.land/manual/getting_started/installation
+
+Then start the project:
 
 \`\`\`
 deno task start
@@ -352,11 +375,13 @@ await generate(resolvedDirectory, manifest);
 // not leak personal info (e.g. `/Users/MyName`)
 console.log("\n%cProject initialized!\n", "color: green; font-weight: bold");
 
-console.log(
-  `Enter your project directory using %ccd ${unresolvedDirectory}%c.`,
-  "color: cyan",
-  "",
-);
+if (unresolvedDirectory !== ".") {
+  console.log(
+    `Enter your project directory using %ccd ${unresolvedDirectory}%c.`,
+    "color: cyan",
+    "",
+  );
+}
 console.log(
   "Run %cdeno task start%c to start the project. %cCTRL-C%c to stop.",
   "color: cyan",
