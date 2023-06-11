@@ -38,6 +38,7 @@ if (denoJson.importMap) {
   const importMap = JSON.parse(importMapText);
   denoJson.imports = importMap.imports;
   denoJson.scopes = importMap.scopes;
+  delete denoJson.importMap;
   await Deno.remove(IMPORT_MAP_PATH);
 }
 
