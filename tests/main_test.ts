@@ -5,11 +5,11 @@ import {
   assertStringIncludes,
   delay,
   puppeteer,
-  TextLineStream,
 } from "./deps.ts";
 import manifest from "./fixture/fresh.gen.ts";
 import options from "./fixture/options.ts";
 import { BUILD_ID } from "../src/server/build_id.ts";
+import { startFreshServer } from "./test_utils.ts";
 
 const ctx = await ServerContext.fromManifest(manifest, options);
 const handler = ctx.handler();
@@ -42,7 +42,7 @@ Deno.test("/ page prerender", async () => {
   assertStringIncludes(body, `>{"v":[[{"message":"Hello!"}],[]]}</script>`);
   assertStringIncludes(
     body,
-    `<meta name="description" content="Hello world!" />`,
+    '<meta name="description" content="Hello world!"/>',
   );
   assertStringIncludes(body, `<link rel="modulepreload"`);
 });
@@ -606,7 +606,7 @@ Deno.test("experimental Deno.serve", {
   ignore: Deno.build.os === "windows", // TODO: Deno.serve hang on Windows?
 }, async (t) => {
   // Preparation
-  const serverProcess = new Deno.Command(Deno.execPath(), {
+  const { serverProcess, lines } = await startFreshServer({
     args: [
       "run",
       "-A",
@@ -614,25 +614,7 @@ Deno.test("experimental Deno.serve", {
       "./tests/fixture/main.ts",
       "--experimental-deno-serve",
     ],
-    stdout: "piped",
-    stderr: "inherit",
-  }).spawn();
-
-  const decoder = new TextDecoderStream();
-  const lines = serverProcess.stdout
-    .pipeThrough(decoder)
-    .pipeThrough(new TextLineStream());
-
-  let started = false;
-  for await (const line of lines) {
-    if (line.includes("Listening on http://")) {
-      started = true;
-      break;
-    }
-  }
-  if (!started) {
-    throw new Error("Server didn't start up");
-  }
+  });
 
   await delay(100);
 
@@ -650,7 +632,7 @@ Deno.test("experimental Deno.serve", {
     assertStringIncludes(body, `>{"v":[[{"message":"Hello!"}],[]]}</script>`);
     assertStringIncludes(
       body,
-      `<meta name="description" content="Hello world!" />`,
+      '<meta name="description" content="Hello world!"/>',
     );
   });
 
@@ -676,27 +658,9 @@ Deno.test("jsx pragma works", {
   sanitizeResources: false,
 }, async (t) => {
   // Preparation
-  const serverProcess = new Deno.Command(Deno.execPath(), {
+  const { serverProcess, lines } = await startFreshServer({
     args: ["run", "-A", "./tests/fixture_jsx_pragma/main.ts"],
-    stdout: "piped",
-    stderr: "inherit",
-  }).spawn();
-
-  const decoder = new TextDecoderStream();
-  const lines = serverProcess.stdout
-    .pipeThrough(decoder)
-    .pipeThrough(new TextLineStream());
-
-  let started = false;
-  for await (const line of lines) {
-    if (line.includes("Listening on http://")) {
-      started = true;
-      break;
-    }
-  }
-  if (!started) {
-    throw new Error("Server didn't start up");
-  }
+  });
 
   await delay(100);
 
@@ -720,6 +684,114 @@ Deno.test("jsx pragma works", {
   });
 
   await browser.close();
+
+  await lines.cancel();
+  serverProcess.kill("SIGTERM");
+});
+
+Deno.test("preact/debug is active in dev mode", {
+  sanitizeOps: false,
+  sanitizeResources: false,
+}, async (t) => {
+  // Preparation
+  const { serverProcess, lines } = await startFreshServer({
+    args: ["run", "-A", "./tests/fixture_render_error/main.ts"],
+  });
+
+  await delay(100);
+  const url = "http://localhost:8000";
+
+  await t.step("SSR error is shown", async () => {
+    const resp = await fetch(url);
+    assertEquals(resp.status, Status.InternalServerError);
+    const text = await resp.text();
+    assertStringIncludes(text, "Objects are not valid as a child");
+  });
+
+  const browser = await puppeteer.launch({ args: ["--no-sandbox"] });
+  const page = await browser.newPage();
+
+  await page.goto(url, {
+    waitUntil: "networkidle2",
+  });
+
+  await t.step("error page is shown with error message", async () => {
+    const el = await page.waitForSelector(".frsh-error-page");
+    const text = await page.evaluate((el) => el.textContent, el);
+    assertStringIncludes(text, "Objects are not valid as a child");
+  });
+
+  await browser.close();
+
+  await lines.cancel();
+  serverProcess.kill("SIGTERM");
+});
+
+Deno.test("preloading javascript files", {
+  sanitizeOps: false,
+  sanitizeResources: false,
+}, async () => {
+  // Preparation
+  const { serverProcess, lines } = await startFreshServer({
+    args: ["run", "-A", "./tests/fixture/main.ts"],
+  });
+
+  const browser = await puppeteer.launch({ args: ["--no-sandbox"] });
+  const page = await browser.newPage();
+
+  try {
+    // request js file to start esbuild execution
+    await page.goto("http://localhost:8000", {
+      waitUntil: "networkidle2",
+    });
+
+    await delay(5000); // wait running esbuild
+
+    await page.goto("http://localhost:8000", {
+      waitUntil: "networkidle2",
+    });
+
+    const preloads: string[] = await page.$$eval(
+      'link[rel="modulepreload"]',
+      (elements) => elements.map((element) => element.getAttribute("href")),
+    );
+
+    assert(
+      preloads.some((url) => url.match(/\/_frsh\/js\/.*\/main\.js/)),
+      "preloads does not include main.js",
+    );
+    assert(
+      preloads.some((url) => url.match(/\/_frsh\/js\/.*\/island-.*\.js/)),
+      "preloads does not include island-*.js",
+    );
+    assert(
+      preloads.some((url) => url.match(/\/_frsh\/js\/.*\/chunk-.*\.js/)),
+      "preloads does not include chunk-*.js",
+    );
+  } finally {
+    await browser.close();
+
+    await lines.cancel();
+    serverProcess.kill("SIGTERM");
+  }
+});
+
+Deno.test("PORT environment variable", {
+  sanitizeOps: false,
+  sanitizeResources: false,
+}, async () => {
+  const PORT = "8765";
+  // Preparation
+  const { serverProcess, lines } = await startFreshServer({
+    args: ["run", "-A", "./tests/fixture/main.ts"],
+    env: { PORT },
+  });
+
+  await delay(100);
+
+  const resp = await fetch("http://localhost:" + PORT);
+  assert(resp);
+  assertEquals(resp.status, Status.OK);
 
   await lines.cancel();
   serverProcess.kill("SIGTERM");

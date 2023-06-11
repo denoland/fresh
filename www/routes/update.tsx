@@ -199,7 +199,7 @@ function GettingStarted(props: { origin: string }) {
       </p>
 
       <CopyArea>
-        {`deno run -A -r ${props.origin} my-project`}
+        {`deno run -A -r ${props.origin}`}
       </CopyArea>
 
       <p class="text-gray-600">

@@ -1,5 +1,5 @@
 import * as path from "$std/path/mod.ts";
-import { assertNotMatch } from "https://deno.land/std@0.189.0/testing/asserts.ts";
+import { assertNotMatch } from "https://deno.land/std@0.190.0/testing/asserts.ts";
 import { Status } from "../src/server/deps.ts";
 import {
   assert,
@@ -8,8 +8,8 @@ import {
   delay,
   puppeteer,
   retry,
-  TextLineStream,
 } from "./deps.ts";
+import { startFreshServer } from "./test_utils.ts";
 
 type FileTree = {
   type: "file";
@@ -65,7 +65,6 @@ Deno.test({
         "name": tmpDirName,
         "contents": [
           { "type": "file", "name": "README.md" },
-          { "type": "file", "name": "import_map.json" },
           { "type": "file", "name": "fresh.gen.ts" },
           {
             "type": "directory",
@@ -113,29 +112,10 @@ Deno.test({
     });
 
     await t.step("start up the server and access the root page", async () => {
-      const serverProcess = new Deno.Command(Deno.execPath(), {
+      const { serverProcess, lines } = await startFreshServer({
         args: ["run", "-A", "--check", "main.ts"],
-        stdin: "null",
-        stdout: "piped",
-        stderr: "inherit",
         cwd: tmpDirName,
-      }).spawn();
-
-      const lines = serverProcess.stdout
-        .pipeThrough(new TextDecoderStream())
-        .pipeThrough(new TextLineStream());
-
-      let started = false;
-      for await (const line of lines) {
-        console.log(line);
-        if (line.includes("Listening on http://")) {
-          started = true;
-          break;
-        }
-      }
-      if (!started) {
-        throw new Error("Server didn't start up");
-      }
+      });
 
       await delay(100);
 
@@ -204,7 +184,6 @@ Deno.test({
         "name": tmpDirName,
         "contents": [
           { "type": "file", "name": "README.md" },
-          { "type": "file", "name": "import_map.json" },
           { "type": "file", "name": "fresh.gen.ts" },
           { "type": "file", "name": "twind.config.ts" },
           {
@@ -262,29 +241,10 @@ Deno.test({
     });
 
     await t.step("start up the server and access the root page", async () => {
-      const serverProcess = new Deno.Command(Deno.execPath(), {
+      const { serverProcess, lines } = await startFreshServer({
         args: ["run", "-A", "--check", "main.ts"],
-        stdin: "null",
-        stdout: "piped",
-        stderr: "inherit",
         cwd: tmpDirName,
-      }).spawn();
-
-      const lines = serverProcess.stdout
-        .pipeThrough(new TextDecoderStream())
-        .pipeThrough(new TextLineStream());
-
-      let started = false;
-      for await (const line of lines) {
-        console.log(line);
-        if (line.includes("Listening on http://")) {
-          started = true;
-          break;
-        }
-      }
-      if (!started) {
-        throw new Error("Server didn't start up");
-      }
+      });
 
       await delay(100);
 
@@ -422,19 +382,10 @@ Deno.test({
 
     await cliProcess.output();
 
-    // "move deno.json and import_map.json one level up"
+    // move deno.json one level up
     await Deno.rename(
       path.join(tmpDirName, "subdirectory", "subsubdirectory", "deno.json"),
       path.join(tmpDirName, "deno.json"),
-    );
-    await Deno.rename(
-      path.join(
-        tmpDirName,
-        "subdirectory",
-        "subsubdirectory",
-        "import_map.json",
-      ),
-      path.join(tmpDirName, "import_map.json"),
     );
 
     const targetFileTree: FileTree[] = [
@@ -443,7 +394,6 @@ Deno.test({
         "name": tmpDirName,
         "contents": [
           { "type": "file", "name": "deno.json" },
-          { "type": "file", "name": "import_map.json" },
           {
             "type": "directory",
             "name": "subdirectory",
@@ -468,28 +418,10 @@ Deno.test({
     });
 
     await t.step("start up the server", async () => {
-      const serverProcess = new Deno.Command(Deno.execPath(), {
+      const { serverProcess, lines } = await startFreshServer({
         args: ["run", "-A", "--check", "subdirectory/subsubdirectory/dev.ts"],
-        stdin: "null",
-        stdout: "piped",
-        stderr: "inherit",
         cwd: tmpDirName,
-      }).spawn();
-
-      const lines = serverProcess.stdout
-        .pipeThrough(new TextDecoderStream())
-        .pipeThrough(new TextLineStream());
-
-      let started = false;
-      for await (const line of lines) {
-        console.log(line);
-        if (line.includes("Listening on http://")) {
-          started = true;
-          break;
-        }
-      }
-
-      assert(started, "Server didn't start up");
+      });
 
       await delay(100);
 

@@ -2,7 +2,6 @@
 // This file SHOULD be checked into source version control.
 // This file is automatically updated during development when running `dev.ts`.
 
-import config from "./deno.json" assert { type: "json" };
 import * as $0 from "./routes/[name].tsx";
 import * as $1 from "./routes/_404.tsx";
 import * as $2 from "./routes/_500.tsx";
@@ -90,7 +89,6 @@ const manifest = {
     "./islands/kebab-case-counter-test.tsx": $$6,
   },
   baseUrl: import.meta.url,
-  config,
 };
 
 export default manifest;

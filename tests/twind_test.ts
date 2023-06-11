@@ -1,6 +1,7 @@
-import { assert, delay, puppeteer, TextLineStream } from "./deps.ts";
+import { assert, delay, puppeteer } from "./deps.ts";
 
 import { cmpStringArray } from "./fixture_twind_hydrate/utils/utils.ts";
+import { startFreshServer } from "./test_utils.ts";
 
 /**
  * Start the server with the main file.
@@ -8,33 +9,9 @@ import { cmpStringArray } from "./fixture_twind_hydrate/utils/utils.ts";
  * Returns a page instance and a method to terminate the server.
  */
 async function setUpServer(path: string) {
-  const serverProcessCmd = new Deno.Command("deno", {
-    args: [
-      "run",
-      "-A",
-      path,
-    ],
-    stdout: "piped",
-    stderr: "inherit",
+  const { lines, serverProcess } = await startFreshServer({
+    args: ["run", "-A", path],
   });
-
-  const serverProcess = serverProcessCmd.spawn();
-
-  const lines = serverProcess.stdout
-    .pipeThrough(new TextDecoderStream())
-    .pipeThrough(new TextLineStream());
-
-  let started = false;
-
-  for await (const line of lines) {
-    if (line.includes("Listening on http://")) {
-      started = true;
-      break;
-    }
-  }
-  if (!started) {
-    throw new Error("Server didn't start up");
-  }
 
   await delay(100);
 
@@ -45,6 +22,7 @@ async function setUpServer(path: string) {
    * terminate server
    */
   const terminate = async () => {
+    await lines.cancel();
     await browser.close();
 
     serverProcess.kill("SIGKILL");

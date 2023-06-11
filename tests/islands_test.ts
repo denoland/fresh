@@ -1,11 +1,12 @@
 import {
   assert,
+  assertEquals,
   assertStringIncludes,
   delay,
   Page,
   puppeteer,
-  TextLineStream,
 } from "./deps.ts";
+import { startFreshServer } from "./test_utils.ts";
 
 Deno.test({
   name: "island tests",
@@ -58,25 +59,16 @@ Deno.test({
   sanitizeResources: false,
 });
 
-async function withPage(fn: (page: Page) => Promise<void>) {
-  const serverProcess = new Deno.Command(Deno.execPath(), {
-    args: ["run", "-A", "./tests/fixture/main.ts"],
-    stdout: "piped",
-    stderr: "inherit",
-  }).spawn();
+function withPage(fn: (page: Page) => Promise<void>) {
+  return withPageName("./tests/fixture/main.ts", fn);
+}
 
-  const textDecoderStream = new TextDecoderStream();
-  const textLineStream = new TextLineStream();
-
-  const lines = serverProcess.stdout
-    .pipeThrough(textDecoderStream)
-    .pipeThrough(textLineStream);
+async function withPageName(name: string, fn: (page: Page) => Promise<void>) {
+  const { lines, serverProcess } = await startFreshServer({
+    args: ["run", "-A", name],
+  });
 
   try {
-    if (!await didServerStart(lines)) {
-      throw new Error("Server didn't start up");
-    }
-
     await delay(100);
     const browser = await puppeteer.launch({ args: ["--no-sandbox"] });
 
@@ -94,17 +86,6 @@ async function withPage(fn: (page: Page) => Promise<void>) {
     // Wait until the process exits
     await serverProcess.status;
   }
-}
-
-async function didServerStart(
-  stdoutLines: ReadableStream<string>,
-): Promise<boolean> {
-  for await (const line of stdoutLines) {
-    if (line.includes("Listening on http://")) {
-      return true;
-    }
-  }
-  return false;
 }
 
 Deno.test({
@@ -217,6 +198,48 @@ Deno.test({
 
       await page.waitForSelector(".added-by-use-effect");
     });
+  },
+
+  sanitizeOps: false,
+  sanitizeResources: false,
+});
+
+Deno.test({
+  name: "island using `npm:` specifiers",
+
+  async fn(_t) {
+    await withPageName("./tests/fixture_npm/main.ts", async (page) => {
+      await page.setJavaScriptEnabled(false);
+      await page.goto("http://localhost:8000/", { waitUntil: "networkidle2" });
+      assert(await page.waitForSelector("#server-true"));
+
+      await page.setJavaScriptEnabled(true);
+      await page.reload({ waitUntil: "networkidle2" });
+      assert(await page.waitForSelector("#browser-true"));
+    });
+  },
+
+  sanitizeOps: false,
+  sanitizeResources: false,
+});
+
+Deno.test({
+  name: "works with older preact-render-to-string v5",
+
+  async fn(_t) {
+    await withPageName(
+      "./tests/fixture_preact_rts_v5/main.ts",
+      async (page) => {
+        await page.goto("http://localhost:8000/", {
+          waitUntil: "networkidle2",
+        });
+        await page.waitForSelector("#foo");
+
+        await delay(100);
+        const text = await page.$eval("#foo", (el) => el.textContent);
+        assertEquals(text, "it works");
+      },
+    );
   },
 
   sanitizeOps: false,

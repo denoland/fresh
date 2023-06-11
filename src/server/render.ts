@@ -1,5 +1,5 @@
 import { renderToString } from "preact-render-to-string";
-import { ComponentChildren, ComponentType, h, options } from "preact";
+import { ComponentChildren, ComponentType, Fragment, h, options } from "preact";
 import {
   AppModule,
   ErrorPage,
@@ -26,7 +26,7 @@ export interface RenderOptions<Data> {
   plugins: Plugin[];
   app: AppModule;
   imports: string[];
-  dependencyMap: Map<string, string[]>;
+  dependenciesFn: (path: string) => string[];
   url: URL;
   params: Record<string, string | string[]>;
   renderFn: RenderFunction;
@@ -168,18 +168,18 @@ export async function render<Data>(
 
   let bodyHtml: string | null = null;
 
-  function realRender(): string {
+  function renderInner(): string {
     bodyHtml = renderToString(vnode);
     return bodyHtml;
   }
 
-  const plugins = opts.plugins.filter((p) => p.render !== null);
+  const syncPlugins = opts.plugins.filter((p) => p.render);
   const renderResults: [Plugin, PluginRenderResult][] = [];
 
-  function render(): PluginRenderFunctionResult {
-    const plugin = plugins.shift();
+  function renderSync(): PluginRenderFunctionResult {
+    const plugin = syncPlugins.shift();
     if (plugin) {
-      const res = plugin.render!({ render });
+      const res = plugin.render!({ render: renderSync });
       if (res === undefined) {
         throw new Error(
           `${plugin?.name}'s render hook did not return a PluginRenderResult object.`,
@@ -187,7 +187,7 @@ export async function render<Data>(
       }
       renderResults.push([plugin, res]);
     } else {
-      realRender();
+      renderInner();
     }
     if (bodyHtml === null) {
       throw new Error(
@@ -200,33 +200,41 @@ export async function render<Data>(
     };
   }
 
-  await opts.renderFn(ctx, () => render().htmlText);
+  const asyncPlugins = opts.plugins.filter((p) => p.renderAsync);
 
-  if (bodyHtml === null) {
-    throw new Error("The `render` function was not called by the renderer.");
+  async function renderAsync(): Promise<PluginRenderFunctionResult> {
+    const plugin = asyncPlugins.shift();
+    if (plugin) {
+      const res = await plugin.renderAsync!({ renderAsync });
+      if (res === undefined) {
+        throw new Error(
+          `${plugin?.name}'s async render hook did not return a PluginRenderResult object.`,
+        );
+      }
+      renderResults.push([plugin, res]);
+      if (bodyHtml === null) {
+        throw new Error(
+          `The 'renderAsync' function was not called by ${plugin?.name}'s async render hook.`,
+        );
+      }
+    } else {
+      await opts.renderFn(ctx, () => renderSync().htmlText);
+      if (bodyHtml === null) {
+        throw new Error(
+          `The 'render' function was not called by the legacy async render hook.`,
+        );
+      }
+    }
+    return {
+      htmlText: bodyHtml,
+      requiresHydration: ENCOUNTERED_ISLANDS.size > 0,
+    };
   }
 
-  bodyHtml = bodyHtml as string;
+  await renderAsync();
+  bodyHtml = bodyHtml as unknown as string;
 
-  const imports: [string, string][] = [];
-  const preloadSet = new Set<string>();
-  function addImport(path: string): string {
-    const randomNonce = crypto.randomUUID().replace(/-/g, "");
-    if (csp) {
-      csp.directives.scriptSrc = [
-        ...csp.directives.scriptSrc ?? [],
-        nonce(randomNonce),
-      ];
-    }
-    const url = bundleAssetUrl(path);
-    imports.push([url, randomNonce]);
-    preloadSet.add(url);
-    for (const depPath of opts.dependencyMap.get(path) ?? []) {
-      const url = bundleAssetUrl(depPath);
-      preloadSet.add(url);
-    }
-    return url;
-  }
+  const moduleScripts: [string, string][] = [];
 
   for (const url of opts.imports) {
     const randomNonce = crypto.randomUUID().replace(/-/g, "");
@@ -236,7 +244,25 @@ export async function render<Data>(
         nonce(randomNonce),
       ];
     }
-    imports.push([url, randomNonce]);
+    moduleScripts.push([url, randomNonce]);
+  }
+
+  const preloadSet = new Set<string>();
+  function addImport(path: string): string {
+    const randomNonce = crypto.randomUUID().replace(/-/g, "");
+    if (csp) {
+      csp.directives.scriptSrc = [
+        ...csp.directives.scriptSrc ?? [],
+        nonce(randomNonce),
+      ];
+    }
+    const url = bundleAssetUrl(`/${path}`);
+    preloadSet.add(url);
+    for (const depPath of opts.dependenciesFn(path)) {
+      const url = bundleAssetUrl(`/${depPath}`);
+      preloadSet.add(url);
+    }
+    return url;
   }
 
   const state: [islands: unknown[], plugins: unknown[]] = [ISLAND_PROPS, []];
@@ -264,11 +290,11 @@ export async function render<Data>(
       `<script id="__FRSH_STATE" type="application/json">${escapedState}</script>`;
 
     if (res.requiresDeserializer) {
-      const url = addImport("/deserializer.js");
+      const url = addImport("deserializer.js");
       script += `import { deserialize } from "${url}";`;
     }
     if (res.hasSignals) {
-      const url = addImport("/signals.js");
+      const url = addImport("signals.js");
       script += `import { signal } from "${url}";`;
     }
     script += `const ST = document.getElementById("__FRSH_STATE").textContent;`;
@@ -287,7 +313,7 @@ export async function render<Data>(
   // Then it imports all plugin scripts and executes them (with their respective
   // state).
   for (const [pluginName, entrypoint, i] of pluginScripts) {
-    const url = addImport(`/plugin-${pluginName}-${entrypoint}.js`);
+    const url = addImport(`plugin-${pluginName}-${entrypoint}.js`);
     script += `import p${i} from "${url}";p${i}(STATE[1][${i}]);`;
   }
 
@@ -295,13 +321,13 @@ export async function render<Data>(
   // reviver from the "main" script.
   if (ENCOUNTERED_ISLANDS.size > 0) {
     // Load the main.js script
-    const url = addImport("/main.js");
+    const url = addImport("main.js");
     script += `import { revive } from "${url}";`;
 
     // Prepare the inline script that loads and revives the islands
     let islandRegistry = "";
     for (const island of ENCOUNTERED_ISLANDS) {
-      const url = addImport(`/island-${island.id}.js`);
+      const url = addImport(`island-${island.id}.js`);
       script += `import ${island.name} from "${url}";`;
       islandRegistry += `${island.id}:${island.name},`;
     }
@@ -342,7 +368,7 @@ export async function render<Data>(
   const html = template({
     bodyHtml,
     headComponents,
-    imports,
+    moduleScripts,
     preloads,
     lang: ctx.lang,
   });
@@ -353,7 +379,7 @@ export async function render<Data>(
 export interface TemplateOptions {
   bodyHtml: string;
   headComponents: ComponentChildren[];
-  imports: (readonly [string, string])[];
+  moduleScripts: (readonly [string, string])[];
   preloads: string[];
   lang: string;
 }
@@ -373,7 +399,7 @@ export function template(opts: TemplateOptions): string {
       opts.preloads.map((src) =>
         h("link", { rel: "modulepreload", href: src })
       ),
-      opts.imports.map(([src, nonce]) =>
+      opts.moduleScripts.map(([src, nonce]) =>
         h("script", { src: src, nonce: nonce, type: "module" })
       ),
       opts.headComponents,
@@ -381,6 +407,17 @@ export function template(opts: TemplateOptions): string {
     h("body", { dangerouslySetInnerHTML: { __html: opts.bodyHtml } }),
   );
   return "<!DOCTYPE html>" + renderToString(page);
+}
+
+const supportsUnstableComments = renderToString(h(Fragment, {
+  // @ts-ignore unstable features not supported in types
+  UNSTABLE_comment: "foo",
+})) !== "";
+
+if (!supportsUnstableComments) {
+  console.warn(
+    "⚠️  Found old version of 'preact-render-to-string'. Please upgrade it to >=6.1.0",
+  );
 }
 
 // Set up a preact option hook to track when vnode with custom functions are
@@ -405,11 +442,29 @@ options.vnode = (vnode) => {
         ignoreNext = true;
         const child = h(originalType, props);
         ISLAND_PROPS.push(props);
-        return h(
-          `!--frsh-${island.id}:${ISLAND_PROPS.length - 1}--`,
-          null,
-          child,
-        );
+
+        // Newer versions of preact-render-to-string allow you to render comments
+        if (supportsUnstableComments) {
+          return h(
+            Fragment,
+            null,
+            h(Fragment, {
+              // @ts-ignore unstable property is not typed
+              UNSTABLE_comment: `frsh-${island.id}:${ISLAND_PROPS.length - 1}`,
+            }),
+            child,
+            h(Fragment, {
+              // @ts-ignore unstable property is not typed
+              UNSTABLE_comment: `/frsh-${island.id}:${ISLAND_PROPS.length - 1}`,
+            }),
+          );
+        } else {
+          return h(
+            `!--frsh-${island.id}:${ISLAND_PROPS.length - 1}--`,
+            null,
+            child,
+          );
+        }
       };
     }
   }

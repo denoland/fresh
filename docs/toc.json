@@ -36,5 +36,12 @@
   },
   "integrations": {
     "title": "Integrations"
+  },
+  "examples": {
+    "title": "Examples",
+    "pages": [
+      ["modifying-the-head", "Modifying the <head>"],
+      ["setting-the-language", "Setting the language"]
+    ]
   }
 }

@@ -21,7 +21,7 @@ To generate a project in the current directory:
   fresh-init .
 
 USAGE:
-    fresh-init <DIRECTORY>
+    fresh-init [DIRECTORY]
 
 OPTIONS:
     --force   Overwrite existing files
@@ -42,17 +42,22 @@ const flags = parse(Deno.args, {
   default: { "force": null, "twind": null, "vscode": null },
 });
 
-if (flags._.length !== 1) {
-  error(help);
-}
-
 console.log(
   `\n%c  🍋 Fresh: the next-gen web framework.  %c\n`,
   "background-color: #86efac; color: black; font-weight: bold",
   "",
 );
 
-const unresolvedDirectory = Deno.args[0];
+let unresolvedDirectory = Deno.args[0];
+if (flags._.length !== 1) {
+  const userInput = prompt("Projet Name", "fresh-project");
+  if (!userInput) {
+    error(help);
+  }
+
+  unresolvedDirectory = userInput;
+}
+
 const resolvedDirectory = resolve(unresolvedDirectory);
 
 try {
@@ -101,20 +106,12 @@ await Deno.writeTextFile(
   GITIGNORE,
 );
 
-const importMap = { imports: {} as Record<string, string> };
-freshImports(importMap.imports);
-if (useTwind) twindImports(importMap.imports);
-dotenvImports(importMap.imports);
-const IMPORT_MAP_JSON = JSON.stringify(importMap, null, 2) + "\n";
-await Deno.writeTextFile(
-  join(resolvedDirectory, "import_map.json"),
-  IMPORT_MAP_JSON,
-);
-
 const ROUTES_INDEX_TSX = `import { Head } from "$fresh/runtime.ts";
+import { useSignal } from "@preact/signals";
 import Counter from "../islands/Counter.tsx";
 
 export default function Home() {
+  const count = useSignal(3);
   return (
     <>
       <Head>
@@ -132,7 +129,7 @@ export default function Home() {
           Welcome to \`fresh\`. Try updating this message in the
           ./routes/index.tsx file, and refresh.
         </p>
-        <Counter start={3} />
+        <Counter count={count} />
       </div>
     </>
   );
@@ -164,20 +161,21 @@ await Deno.writeTextFile(
   COMPONENTS_BUTTON_TSX,
 );
 
-const ISLANDS_COUNTER_TSX = `import { useState } from "preact/hooks";
+const ISLANDS_COUNTER_TSX = `import type { Signal } from "@preact/signals";
 import { Button } from "../components/Button.tsx";
 
 interface CounterProps {
-  start: number;
+  count: Signal<number>;
 }
 
 export default function Counter(props: CounterProps) {
-  const [count, setCount] = useState(props.start);
   return (
     <div${useTwind ? ' class="flex gap-2 w-full"' : ""}>
-      <p${useTwind ? ' class="flex-grow-1 font-bold text-xl"' : ""}>{count}</p>
-      <Button onClick={() => setCount(count - 1)}>-1</Button>
-      <Button onClick={() => setCount(count + 1)}>+1</Button>
+      <p${
+  useTwind ? ' class="flex-grow-1 font-bold text-xl"' : ""
+}>{props.count}</p>
+      <Button onClick={() => props.count.value -= 1}>-1</Button>
+      <Button onClick={() => props.count.value += 1}>+1</Button>
     </div>
   );
 }
@@ -307,21 +305,30 @@ const config = {
   tasks: {
     start: "deno run -A --watch=static/,routes/ dev.ts",
   },
-  importMap: "./import_map.json",
+  imports: {} as Record<string, string>,
   compilerOptions: {
     jsx: "react-jsx",
     jsxImportSource: "preact",
   },
 };
+freshImports(config.imports);
+if (useTwind) twindImports(config.imports);
+dotenvImports(config.imports);
+
 const DENO_CONFIG = JSON.stringify(config, null, 2) + "\n";
 
 await Deno.writeTextFile(join(resolvedDirectory, "deno.json"), DENO_CONFIG);
 
-const README_MD = `# fresh project
+const README_MD = `# Fresh project
+
+Your new Fresh project is ready to go. You can follow the Fresh "Getting
+Started" guide here: https://fresh.deno.dev/docs/getting-started
 
 ### Usage
 
-Start the project:
+Make sure to install Deno: https://deno.land/manual/getting_started/installation
+
+Then start the project:
 
 \`\`\`
 deno task start

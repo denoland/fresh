@@ -5,10 +5,10 @@ import {
   assertStringIncludes,
   delay,
   puppeteer,
-  TextLineStream,
 } from "./deps.ts";
 import manifest from "./fixture_plugin/fresh.gen.ts";
 import options from "./fixture_plugin/options.ts";
+import { startFreshServer } from "./test_utils.ts";
 
 const ctx = await ServerContext.fromManifest(manifest, options);
 const handler = ctx.handler();
@@ -35,6 +35,10 @@ Deno.test("/static page prerender", async () => {
   assertStringIncludes(body, '<style id="abc">body { color: red; }</style>');
   assert(!body.includes(`>{"v":[[],[]]}</script>`));
   assert(!body.includes(`import`));
+  assertStringIncludes(
+    body,
+    '<style id="def">h1 { text-decoration: underline; }</style>',
+  );
 });
 
 Deno.test("/with-island prerender", async () => {
@@ -48,33 +52,19 @@ Deno.test("/with-island prerender", async () => {
   );
   assertStringIncludes(body, `>{"v":[[{}],["JS injected!"]]}</script>`);
   assertStringIncludes(body, `/plugin-js-inject-main.js"`);
+  assertStringIncludes(
+    body,
+    '<style id="def">h1 { text-decoration: underline; } h1 { font-style: italic; }</style>',
+  );
 });
 
 Deno.test({
   name: "/with-island hydration",
   async fn(t) {
     // Preparation
-    const serverProcess = new Deno.Command(Deno.execPath(), {
+    const { lines, serverProcess } = await startFreshServer({
       args: ["run", "-A", "./tests/fixture_plugin/main.ts"],
-      stdout: "piped",
-      stderr: "inherit",
-    }).spawn();
-
-    const decoder = new TextDecoderStream();
-    const lines = serverProcess.stdout
-      .pipeThrough(decoder)
-      .pipeThrough(new TextLineStream());
-
-    let started = false;
-    for await (const line of lines) {
-      if (line.includes("Listening on http://")) {
-        started = true;
-        break;
-      }
-    }
-    if (!started) {
-      throw new Error("Server didn't start up");
-    }
+    });
 
     await delay(100);
 

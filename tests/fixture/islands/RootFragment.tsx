@@ -1,15 +1,15 @@
-import { useState } from "preact/hooks";
+import { useSignal } from "@preact/signals";
 
 export default function RootFragment() {
-  const [shown, setShown] = useState(false);
+  const shown = useSignal(false);
 
   return (
     <>
       Hello
-      <div onClick={() => setShown(true)} id="root-fragment-click-me">
+      <div onClick={() => shown.value = true} id="root-fragment-click-me">
         World
       </div>
-      {shown && <div>I'm rendered now</div>}
+      {shown.value && <div>I'm rendered now</div>}
     </>
   );
 }

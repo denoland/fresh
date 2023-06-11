@@ -1,14 +1,14 @@
-import { useState } from "preact/hooks";
+import { useSignal } from "@preact/signals";
 
 export default function RootFragmentWithConditionalFirst() {
-  const [shown, setShown] = useState(false);
+  const shown = useSignal(false);
 
   return (
     <>
-      {shown && <div>I'm rendered on top</div>}
+      {shown.value && <div>I'm rendered on top</div>}
       Hello
       <div
-        onClick={() => setShown(true)}
+        onClick={() => shown.value = true}
         id="root-fragment-conditional-first-click-me"
       >
         World
