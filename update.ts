@@ -28,12 +28,12 @@ const resolvedDirectory = resolve(unresolvedDirectory);
 
 // Update dependencies in the import map. The import map can either be embedded
 // in a deno.json file or be in a separate JSON file referenced with the
-// `import_map` key in deno.json.
+// `importMap` key in deno.json.
 const DENO_JSON_PATH = join(resolvedDirectory, "deno.json");
 let denoJsonText = await Deno.readTextFile(DENO_JSON_PATH);
 let denoJson = JSON.parse(denoJsonText);
-if (denoJson.import_map) {
-  const IMPORT_MAP_PATH = join(resolvedDirectory, denoJson.import_map);
+if (denoJson.importMap) {
+  const IMPORT_MAP_PATH = join(resolvedDirectory, denoJson.importMap);
   const importMapText = await Deno.readTextFile(IMPORT_MAP_PATH);
   const importMap = JSON.parse(importMapText);
   denoJson.imports = importMap.imports;
