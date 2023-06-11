@@ -2,6 +2,6 @@
   "recommendations": [
     "denoland.vscode-deno",
     "sastan.twind-intellisense",
-    "bradlc.vscode-tailwindcss",
+    "bradlc.vscode-tailwindcss"
   ]
 }
