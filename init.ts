@@ -292,7 +292,11 @@ import dev from "$fresh/dev.ts";
 ${
   (() => {
     if (!useVSCode || !useTwind) return "";
-    return `import generateTailwindConfigFromTwindConfig from "$fresh/plugins/vscode-twind-intellisense.ts";\n\ngenerateTailwindConfigFromTwindConfig("./twind.config.ts", "./tailwind.config.js");\n`;
+    return `import generateTailwindConfigFromTwindConfig from "$fresh/plugins/vscode-twind-intellisense.ts";
+    
+generateTailwindConfigFromTwindConfig("./twind.config.ts", "./tailwind.config.js").catch(error => {
+  console.error(error);
+});\n`;
   })()
 }
 await dev(import.meta.url, "./main.ts");
