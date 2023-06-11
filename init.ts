@@ -367,6 +367,7 @@ const vscodeExtensions = {
 
 if (useTwind) {
   vscodeExtensions.recommendations.push("sastan.twind-intellisense");
+  vscodeExtensions.recommendations.push("bradlc.vscode-tailwindcss");
 }
 
 const VSCODE_EXTENSIONS = JSON.stringify(vscodeExtensions, null, 2) + "\n";
