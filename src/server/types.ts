@@ -16,15 +16,20 @@ export type StartOptions = ServeInit & FreshOptions & {
 };
 
 export interface FreshOptions {
-  render?: RenderFunction;
+  /** @deprecated Use the `render` method of plugins instead. */
+  render?: LegacyRenderFunction;
   plugins?: Plugin[];
   staticDir?: string;
 }
 
-export type RenderFunction = (
+/** @deprecated Use the `render` method of plugins instead. */
+export type LegacyRenderFunction = (
   ctx: RenderContext,
   render: InnerRenderFunction,
 ) => void | Promise<void>;
+
+/** @deprecated Use the `render` method of plugins instead. */
+export type RenderFunction = LegacyRenderFunction;
 
 /// --- ROUTES ---
 
@@ -108,7 +113,6 @@ export interface RouteModule {
 export interface Route<Data = any> {
   pattern: string;
   url: string;
-  name: string;
   component?: ComponentType<PageProps<Data>>;
   handler: Handler<Data> | Handlers<Data>;
   csp: boolean;
@@ -153,9 +157,6 @@ export interface UnknownPageModule {
 }
 
 export interface UnknownPage {
-  pattern: string;
-  url: string;
-  name: string;
   component?: ComponentType<UnknownPageProps>;
   handler: UnknownHandler;
   csp: boolean;
@@ -193,9 +194,6 @@ export interface ErrorPageModule {
 }
 
 export interface ErrorPage {
-  pattern: string;
-  url: string;
-  name: string;
   component?: ComponentType<ErrorPageProps>;
   handler: ErrorHandler;
   csp: boolean;
@@ -232,7 +230,7 @@ export interface MiddlewareModule<State = any> {
 }
 
 export interface Middleware<State = Record<string, unknown>> {
-  handler: MiddlewareHandler<State> | MiddlewareHandler<State>[];
+  handlers: MiddlewareHandler<State>[];
 }
 
 // --- ISLANDS ---

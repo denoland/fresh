@@ -202,7 +202,6 @@ export class ServerContext {
         const route: Route = {
           pattern,
           url,
-          name,
           component,
           handler,
           csp: Boolean(config?.csp ?? false),
@@ -229,9 +228,6 @@ export class ServerContext {
         }
 
         notFound = {
-          pattern: pathToPattern(baseRoute),
-          url,
-          name,
           component,
           handler: handler ?? ((req) => router.defaultOtherHandler(req)),
           csp: Boolean(config?.csp ?? false),
@@ -534,15 +530,6 @@ export class ServerContext {
             throw new Error("This page does not have a component to render.");
           }
 
-          if (
-            typeof route.component === "function" &&
-            route.component.constructor.name === "AsyncFunction"
-          ) {
-            throw new Error(
-              "Async components are not supported. Fetch data inside of a route handler, as described in the docs: https://fresh.deno.dev/docs/getting-started/fetching-data",
-            );
-          }
-
           const resp = await internalRender({
             route,
             islands: this.#islands,
@@ -770,17 +757,11 @@ const DEFAULT_APP: AppModule = {
 };
 
 const DEFAULT_NOT_FOUND: UnknownPage = {
-  pattern: "",
-  url: "",
-  name: "_404",
   handler: (req) => router.defaultOtherHandler(req),
   csp: false,
 };
 
 const DEFAULT_ERROR: ErrorPage = {
-  pattern: "",
-  url: "",
-  name: "_500",
   component: DefaultErrorHandler,
   handler: (_req, ctx) => ctx.render(),
   csp: false,
@@ -807,7 +788,7 @@ export function selectMiddlewares(url: string, middlewares: MiddlewareRoute[]) {
 
 /**
  * Sort pages by their relative routing priority, based on the parts in the
- * route matcher
+ * route matcher.
  */
 function sortRoutes<T extends { pattern: string }>(routes: T[]) {
   routes.sort((a, b) => {
