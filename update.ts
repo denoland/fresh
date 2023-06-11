@@ -26,34 +26,27 @@ if (flags._.length !== 1) {
 const unresolvedDirectory = Deno.args[0];
 const resolvedDirectory = resolve(unresolvedDirectory);
 
-// Update dependencies in the import map.
+// Update dependencies in the import map. The import map can either be embedded
+// in a deno.json file or be in a separate JSON file referenced with the
+// `import_map` key in deno.json.
 const DENO_JSON_PATH = join(resolvedDirectory, "deno.json");
-const IMPORT_MAP_PATH = join(resolvedDirectory, "import_map.json");
 let denoJsonText = await Deno.readTextFile(DENO_JSON_PATH);
 let denoJson = JSON.parse(denoJsonText);
-let importMap = null;
-try {
+if (denoJson.import_map) {
+  const IMPORT_MAP_PATH = join(resolvedDirectory, denoJson.import_map);
   const importMapText = await Deno.readTextFile(IMPORT_MAP_PATH);
-  importMap = JSON.parse(importMapText);
-} catch (err) {
-  if (!(err instanceof Deno.errors.NotFound)) {
-    throw err;
-  }
+  const importMap = JSON.parse(importMapText);
+  denoJson.imports = importMap.imports;
+  denoJson.scopes = importMap.scopes;
+  await Deno.remove(IMPORT_MAP_PATH);
 }
-if (!denoJson.imports && !importMap) {
-  error(
-    `Could not find an import map in ${DENO_JSON_PATH} or ${IMPORT_MAP_PATH}.`,
-  );
-}
-denoJson.imports = denoJson.imports || importMap.imports;
-denoJson.scopes = denoJson.scopes || importMap.scopes;
+
 freshImports(denoJson.imports);
 if (denoJson.imports["twind"]) {
   twindImports(denoJson.imports);
 }
 denoJsonText = JSON.stringify(denoJson, null, 2);
 await Deno.writeTextFile(DENO_JSON_PATH, denoJsonText);
-if (importMap) await Deno.remove(IMPORT_MAP_PATH);
 
 // Code mod for classic JSX -> automatic JSX.
 const JSX_CODEMOD =
