@@ -10,8 +10,8 @@ will scaffold out a new project with some example files to get you started.
 To create a new project, run:
 
 ```
-deno run -A -r https://fresh.deno.dev deno-fresh-demo
-cd deno-fresh-demo
+deno run -A -r https://fresh.deno.dev
+cd fresh-project
 deno task start
 ```
 
