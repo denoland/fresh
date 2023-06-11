@@ -289,7 +289,12 @@ await Deno.writeTextFile(MAIN_TS_PATH, MAIN_TS);
 const DEV_TS = `#!/usr/bin/env -S deno run -A --watch=static/,routes/
 
 import dev from "$fresh/dev.ts";
-
+${
+  (() => {
+    if (!useVSCode || !useTwind) return "";
+    return `import generateTailwindConfigFromTwindConfig from "$fresh/plugins/vscode-twind-intellisense.ts";\n\ngenerateTailwindConfigFromTwindConfig("./twind.config.ts", "./tailwind.config.js");\n`;
+  })()
+}
 await dev(import.meta.url, "./main.ts");
 `;
 const DEV_TS_PATH = join(resolvedDirectory, "dev.ts");
