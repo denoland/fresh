@@ -23,6 +23,7 @@ export function deserialize(
   signal?: <T>(a: T) => Signal<T>,
 ): unknown {
   function reviver(this: unknown, _key: string, value: unknown): unknown {
+    console.log("REVIVE", _key, value);
     if (typeof value === "object" && value && KEY in value) {
       // deno-lint-ignore no-explicit-any
       const v: any = value;

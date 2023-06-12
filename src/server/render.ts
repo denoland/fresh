@@ -437,9 +437,30 @@ options.vnode = (vnode) => {
         ignoreNext = false;
         return;
       }
+      // console.log("ISLAND original", vnode.props);
       ENCOUNTERED_ISLANDS.add(island);
       vnode.type = (props) => {
         ignoreNext = true;
+
+        // TODO: Describe this
+        if ("children" in props) {
+          const children = props.children;
+          // @ts-ignore nonono
+          props.children = h(
+            Fragment,
+            null,
+            h(Fragment, {
+              // @ts-ignore unstable property is not typed
+              UNSTABLE_comment: `frsh-slot-${island.id}:children`,
+            }),
+            children,
+            h(Fragment, {
+              // @ts-ignore unstable property is not typed
+              UNSTABLE_comment: `/frsh-slot-${island.id}:children`,
+            }),
+          );
+        }
+
         const child = h(originalType, props);
         ISLAND_PROPS.push(props);
 

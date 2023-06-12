@@ -16,6 +16,7 @@
  *
  * The corresponding deserializer is in `src/runtime/deserializer.ts`.
  */
+import { isValidElement, VNode } from "preact";
 import { KEY } from "../runtime/deserializer.ts";
 
 interface SerializeResult {
@@ -42,6 +43,11 @@ function isSignal(x: any): x is Signal {
     typeof x.peek === "function" &&
     "value" in x
   );
+}
+
+// deno-lint-ignore no-explicit-any
+function isVNode(x: any): x is VNode {
+  return x !== null && typeof x === "object" && isValidElement(x);
 }
 
 export function serialize(data: unknown): SerializeResult {
@@ -99,6 +105,7 @@ export function serialize(data: unknown): SerializeResult {
     if (typeof value === "object" && value !== null) {
       const path = seen.get(value);
       const currentPath = [...keyStack];
+
       if (path !== undefined) {
         requiresDeserializer = true;
         const referenceArr = references.get(path);
@@ -108,6 +115,10 @@ export function serialize(data: unknown): SerializeResult {
           referenceArr.push(currentPath);
         }
         return 0;
+      } else if (isVNode(value)) {
+        const res = { __slot: key };
+        parentStack.push(res);
+        return res;
       } else {
         seen.set(value, currentPath);
       }
@@ -140,6 +151,7 @@ export function serialize(data: unknown): SerializeResult {
   }
 
   const serialized = JSON.stringify(toSerialize, replacer);
+  console.log({ serialized });
   return { serialized, requiresDeserializer, hasSignals };
 }
 
