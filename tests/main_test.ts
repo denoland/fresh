@@ -558,6 +558,21 @@ Deno.test({
 });
 
 Deno.test({
+  name: "middleware nesting order",
+  fn: async () => {
+    const resp = await router(
+      new Request(
+        "https://fresh.deno.dev/layeredMdw/nesting/acme/production/abc",
+      ),
+    );
+    assert(resp);
+    assertEquals(resp.status, Status.OK);
+    const body = await resp.text();
+    assertStringIncludes(body, "<div>1234</div>");
+  },
+});
+
+Deno.test({
   name: "/not_found",
   fn: async () => {
     const resp = await router(new Request("https://fresh.deno.dev/not_found"));

@@ -28,13 +28,17 @@ import * as $22 from "./routes/layeredMdw/layer2/abc.ts";
 import * as $23 from "./routes/layeredMdw/layer2/index.ts";
 import * as $24 from "./routes/layeredMdw/layer2/layer3/[id].ts";
 import * as $25 from "./routes/layeredMdw/layer2/layer3/_middleware.ts";
-import * as $26 from "./routes/middleware_root.ts";
-import * as $27 from "./routes/not_found.ts";
-import * as $28 from "./routes/params.tsx";
-import * as $29 from "./routes/props/[id].tsx";
-import * as $30 from "./routes/static.tsx";
-import * as $31 from "./routes/status_overwrite.tsx";
-import * as $32 from "./routes/wildcard.tsx";
+import * as $26 from "./routes/layeredMdw/nesting/[tenant]/[environment]/[id].tsx";
+import * as $27 from "./routes/layeredMdw/nesting/[tenant]/[environment]/_middleware.ts";
+import * as $28 from "./routes/layeredMdw/nesting/[tenant]/_middleware.ts";
+import * as $29 from "./routes/layeredMdw/nesting/_middleware.ts";
+import * as $30 from "./routes/middleware_root.ts";
+import * as $31 from "./routes/not_found.ts";
+import * as $32 from "./routes/params.tsx";
+import * as $33 from "./routes/props/[id].tsx";
+import * as $34 from "./routes/static.tsx";
+import * as $35 from "./routes/status_overwrite.tsx";
+import * as $36 from "./routes/wildcard.tsx";
 import * as $$0 from "./islands/Counter.tsx";
 import * as $$1 from "./islands/ReturningNull.tsx";
 import * as $$2 from "./islands/RootFragment.tsx";
@@ -71,13 +75,17 @@ const manifest = {
     "./routes/layeredMdw/layer2/index.ts": $23,
     "./routes/layeredMdw/layer2/layer3/[id].ts": $24,
     "./routes/layeredMdw/layer2/layer3/_middleware.ts": $25,
-    "./routes/middleware_root.ts": $26,
-    "./routes/not_found.ts": $27,
-    "./routes/params.tsx": $28,
-    "./routes/props/[id].tsx": $29,
-    "./routes/static.tsx": $30,
-    "./routes/status_overwrite.tsx": $31,
-    "./routes/wildcard.tsx": $32,
+    "./routes/layeredMdw/nesting/[tenant]/[environment]/[id].tsx": $26,
+    "./routes/layeredMdw/nesting/[tenant]/[environment]/_middleware.ts": $27,
+    "./routes/layeredMdw/nesting/[tenant]/_middleware.ts": $28,
+    "./routes/layeredMdw/nesting/_middleware.ts": $29,
+    "./routes/middleware_root.ts": $30,
+    "./routes/not_found.ts": $31,
+    "./routes/params.tsx": $32,
+    "./routes/props/[id].tsx": $33,
+    "./routes/static.tsx": $34,
+    "./routes/status_overwrite.tsx": $35,
+    "./routes/wildcard.tsx": $36,
   },
   islands: {
     "./islands/Counter.tsx": $$0,
