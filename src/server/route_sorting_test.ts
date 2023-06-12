@@ -7,8 +7,8 @@ Deno.test("sort middleware", () => {
     { pattern: "/layeredMdw{/*}?" },
     { pattern: "/layeredMdw/layer2{/*}?" },
     { pattern: "/layeredMdw/layer2/layer3{/*}?" },
-    { pattern: "/layeredMdw/nesting/:firstLayer/:secondLayer{/*}?" },
-    { pattern: "/layeredMdw/nesting/:firstLayer{/*}?" },
+    { pattern: "/layeredMdw/nesting/:tenant/:environment{/*}?" },
+    { pattern: "/layeredMdw/nesting/:tenant{/*}?" },
     { pattern: "/layeredMdw/nesting{/*}?" },
   ];
   const sortedRoutes = [
@@ -17,8 +17,8 @@ Deno.test("sort middleware", () => {
     { pattern: "/layeredMdw/layer2{/*}?" },
     { pattern: "/layeredMdw/nesting{/*}?" },
     { pattern: "/layeredMdw/layer2/layer3{/*}?" },
-    { pattern: "/layeredMdw/nesting/:firstLayer{/*}?" },
-    { pattern: "/layeredMdw/nesting/:firstLayer/:secondLayer{/*}?" },
+    { pattern: "/layeredMdw/nesting/:tenant{/*}?" },
+    { pattern: "/layeredMdw/nesting/:tenant/:environment{/*}?" },
   ];
   sortMiddleware(routes);
   assertEquals(routes, sortedRoutes);
@@ -45,8 +45,8 @@ Deno.test("sort routes", () => {
     { pattern: "/layeredMdw/layer2/abc" },
     { pattern: "/layeredMdw/layer2" },
     { pattern: "/layeredMdw/layer2/layer3/:id" },
-    { pattern: "/layeredMdw/nesting/:firstLayer/:secondLayer/:id" },
-    { pattern: "/layeredMdw/nesting/:firstLayer" },
+    { pattern: "/layeredMdw/nesting/:tenant/:environment/:id" },
+    { pattern: "/layeredMdw/nesting/:tenant" },
     { pattern: "/layeredMdw/nesting" },
     { pattern: "/middleware_root" },
     { pattern: "/not_found" },
@@ -76,8 +76,8 @@ Deno.test("sort routes", () => {
     { pattern: "/layeredMdw/layer2/abc" },
     { pattern: "/layeredMdw/layer2/layer3/:id" },
     { pattern: "/layeredMdw/nesting" },
-    { pattern: "/layeredMdw/nesting/:firstLayer" },
-    { pattern: "/layeredMdw/nesting/:firstLayer/:secondLayer/:id" },
+    { pattern: "/layeredMdw/nesting/:tenant" },
+    { pattern: "/layeredMdw/nesting/:tenant/:environment/:id" },
     { pattern: "/middleware_root" },
     { pattern: "/not_found" },
     { pattern: "/params/:path*" },
