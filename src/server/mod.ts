@@ -106,7 +106,7 @@ export async function start(routes: Manifest, opts: StartOptions = {}) {
         firstError = undefined;
         break;
       } catch (err) {
-        if (err.code === "EADDRINUSE") {
+        if (err instanceof Deno.errors.AddrInUse) {
           // Throw first EADDRINUSE error
           // if no port is free
           if (!firstError) {
