@@ -112,7 +112,7 @@ Deno.test({
     });
 
     await t.step("start up the server and access the root page", async () => {
-      const { serverProcess, lines } = await startFreshServer({
+      const { serverProcess, lines, address } = await startFreshServer({
         args: ["run", "-A", "--check", "main.ts"],
         cwd: tmpDirName,
       });
@@ -120,7 +120,7 @@ Deno.test({
       await delay(100);
 
       // Access the root page
-      const res = await fetch("http://localhost:8000");
+      const res = await fetch(address);
       await res.body?.cancel();
       assertEquals(res.status, Status.OK);
 
@@ -129,7 +129,7 @@ Deno.test({
         args: ["--no-sandbox"],
       });
       const page = await browser.newPage();
-      await page.goto("http://localhost:8000", { waitUntil: "networkidle2" });
+      await page.goto(address, { waitUntil: "networkidle2" });
       const counter = await page.$("body > div > div > p");
       let counterValue = await counter?.evaluate((el) => el.textContent);
       assert(counterValue === "3");
@@ -241,7 +241,7 @@ Deno.test({
     });
 
     await t.step("start up the server and access the root page", async () => {
-      const { serverProcess, lines } = await startFreshServer({
+      const { serverProcess, lines, address } = await startFreshServer({
         args: ["run", "-A", "--check", "main.ts"],
         cwd: tmpDirName,
       });
@@ -249,14 +249,14 @@ Deno.test({
       await delay(100);
 
       // Access the root page
-      const res = await fetch("http://localhost:8000");
+      const res = await fetch(address);
       await res.body?.cancel();
       assertEquals(res.status, Status.OK);
 
       // verify the island is revived.
       const browser = await puppeteer.launch({ args: ["--no-sandbox"] });
       const page = await browser.newPage();
-      await page.goto("http://localhost:8000", { waitUntil: "networkidle2" });
+      await page.goto(address, { waitUntil: "networkidle2" });
 
       const counter = await page.$("body > div > div > p");
       let counterValue = await counter?.evaluate((el) => el.textContent);

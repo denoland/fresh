@@ -5,11 +5,11 @@ import { startFreshServer } from "../tests/test_utils.ts";
 Deno.test("CORS should not set on GET /fresh-badge.svg", {
   sanitizeResources: false,
 }, async () => {
-  const { serverProcess, lines } = await startFreshServer({
+  const { serverProcess, lines, address } = await startFreshServer({
     args: ["run", "-A", "./main.ts"],
   });
 
-  const res = await fetch("http://localhost:8000/fresh-badge.svg");
+  const res = await fetch(`${address}/fresh-badge.svg`);
   await res.body?.cancel();
 
   assertEquals(res.headers.get("cross-origin-resource-policy"), null);
