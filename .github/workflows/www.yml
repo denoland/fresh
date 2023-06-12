@@ -33,5 +33,5 @@ jobs:
         working-directory: www/
 
       - name: Run tests
-        run: deno test -A
+        run: deno test -A --parallel
         working-directory: www/
