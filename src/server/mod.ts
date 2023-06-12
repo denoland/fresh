@@ -71,7 +71,6 @@ export async function createHandler(
 
 export async function start(routes: Manifest, opts: StartOptions = {}) {
   const ctx = await ServerContext.fromManifest(routes, opts);
-  opts.port ??= parseInt(Deno.env.get("PORT") || "8000");
 
   if (!opts.onListen) {
     opts.onListen = (params) => {
@@ -86,6 +85,45 @@ export async function start(routes: Manifest, opts: StartOptions = {}) {
     };
   }
 
+  const portEnv = Deno.env.get("PORT");
+  if (portEnv !== undefined) {
+    opts.port ??= parseInt(portEnv, 10);
+  }
+
+  if (opts.port) {
+    await bootServer(ctx, opts);
+  } else {
+    // No port specified, check for a free port. Instead of picking just
+    // any port we'll check if the next one is free for UX reasons.
+    // That way the user only needs to increment a number when running
+    // multiple apps vs having to remember completely different ports.
+    let firstError;
+    for (let port = 8000; port < 8020; port++) {
+      try {
+        await bootServer(ctx, { ...opts, port });
+        firstError = undefined;
+        break;
+      } catch (err) {
+        if (err.code === "EADDRINUSE") {
+          // Throw first EADDRINUSE error
+          // if no port is free
+          if (!firstError) {
+            firstError = err;
+          }
+          continue;
+        }
+
+        throw err;
+      }
+    }
+
+    if (firstError) {
+      throw firstError;
+    }
+  }
+}
+
+async function bootServer(ctx: ServerContext, opts: StartOptions) {
   if (opts.experimentalDenoServe === true) {
     // @ts-ignore as `Deno.serve` is still unstable.
     await Deno.serve({ ...opts, handler: ctx.handler() });
