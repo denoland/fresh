@@ -1,6 +1,6 @@
 import { ServerContext } from "./context.ts";
 import * as colors from "https://deno.land/std@0.190.0/fmt/colors.ts";
-import { serve, ServeHandler } from "./deps.ts";
+import { ConnInfo, serve, ServeHandler } from "./deps.ts";
 export { Status } from "./deps.ts";
 import {
   AppModule,
@@ -69,7 +69,7 @@ export { ServerContext };
 export async function createHandler(
   routes: Manifest,
   opts: StartOptions = {},
-) {
+): Promise<(req: Request, connInfo?: ConnInfo) => Promise<Response>> {
   const ctx = await ServerContext.fromManifest(routes, opts);
   return ctx.handler();
 }
