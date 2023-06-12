@@ -1,6 +1,6 @@
 import { ServerContext } from "./context.ts";
 import * as colors from "https://deno.land/std@0.190.0/fmt/colors.ts";
-import { serve } from "./deps.ts";
+import { serve, ServeHandler } from "./deps.ts";
 export { Status } from "./deps.ts";
 import {
   AppModule,
@@ -90,8 +90,10 @@ export async function start(routes: Manifest, opts: StartOptions = {}) {
     opts.port ??= parseInt(portEnv, 10);
   }
 
+  const handler = ctx.handler();
+
   if (opts.port) {
-    await bootServer(ctx, opts);
+    await bootServer(handler, opts);
   } else {
     // No port specified, check for a free port. Instead of picking just
     // any port we'll check if the next one is free for UX reasons.
@@ -100,7 +102,7 @@ export async function start(routes: Manifest, opts: StartOptions = {}) {
     let firstError;
     for (let port = 8000; port < 8020; port++) {
       try {
-        await bootServer(ctx, { ...opts, port });
+        await bootServer(handler, { ...opts, port });
         firstError = undefined;
         break;
       } catch (err) {
@@ -123,11 +125,11 @@ export async function start(routes: Manifest, opts: StartOptions = {}) {
   }
 }
 
-async function bootServer(ctx: ServerContext, opts: StartOptions) {
+async function bootServer(handler: ServeHandler, opts: StartOptions) {
   if (opts.experimentalDenoServe === true) {
     // @ts-ignore as `Deno.serve` is still unstable.
-    await Deno.serve({ ...opts, handler: ctx.handler() });
+    await Deno.serve({ ...opts, handler });
   } else {
-    await serve(ctx.handler(), opts);
+    await serve(handler, opts);
   }
 }

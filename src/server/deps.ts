@@ -7,7 +7,10 @@ export {
   toFileUrl,
 } from "https://deno.land/std@0.190.0/path/mod.ts";
 export { walk } from "https://deno.land/std@0.190.0/fs/walk.ts";
-export { serve } from "https://deno.land/std@0.190.0/http/server.ts";
+export {
+  type Handler as ServeHandler,
+  serve,
+} from "https://deno.land/std@0.190.0/http/server.ts";
 export type {
   ConnInfo,
   Handler as RequestHandler,
