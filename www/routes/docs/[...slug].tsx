@@ -140,6 +140,21 @@ function MobileSidebar(props: { path: string }) {
           </nav>
         </div>
       </div>
+      <script
+        dangerouslySetInnerHTML={{
+          __html: `
+          var input = document.querySelector('#docs_sidebar');
+          if (input) {
+            input.addEventListener("change", function (ev) {
+              var value = ev.target.checked;
+              var main = document.querySelector("main");
+              if (!main) return;
+              main.classList.toggle("overflow-hidden");
+            });
+          }
+        `,
+        }}
+      />
     </>
   );
 }
@@ -155,7 +170,7 @@ function DesktopSidebar(props: { path: string }) {
 function Content(props: { page: Page }) {
   const html = gfm.render(props.page.markdown);
   return (
-    <main class="py-6 overflow-hidden">
+    <main class="py-6">
       <h1 class="text(4xl gray-900) tracking-tight font-extrabold mt-6">
         {props.page.title}
       </h1>
