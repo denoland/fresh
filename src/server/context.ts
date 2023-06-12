@@ -46,12 +46,7 @@ import {
   SELF,
 } from "../runtime/csp.ts";
 import { ASSET_CACHE_BUST_KEY, INTERNAL_PREFIX } from "../runtime/utils.ts";
-import {
-  Builder,
-  BuildSnapshot,
-  EsbuildBuilder,
-  JSXConfig,
-} from "../build/mod.ts";
+import { Builder, EsbuildBuilder, JSXConfig } from "../build/mod.ts";
 import { InternalRoute } from "./router.ts";
 
 const DEFAULT_CONN_INFO: ServeHandlerInfo = {
@@ -94,7 +89,7 @@ export class ServerContext {
   #notFound: UnknownPage;
   #error: ErrorPage;
   #plugins: Plugin[];
-  #builder: Builder | Promise<BuildSnapshot> | BuildSnapshot;
+  #builder: Builder;
   #routerOptions: RouterOptions;
 
   constructor(
@@ -427,28 +422,6 @@ export class ServerContext {
 
       return await withMiddlewares(req, connInfo, inner);
     };
-  }
-
-  #maybeBuildSnapshot(): BuildSnapshot | null {
-    if ("build" in this.#builder || this.#builder instanceof Promise) {
-      return null;
-    }
-    return this.#builder;
-  }
-
-  async #buildSnapshot() {
-    if ("build" in this.#builder) {
-      const builder = this.#builder;
-      this.#builder = builder.build();
-      try {
-        const snapshot = await this.#builder;
-        this.#builder = snapshot;
-      } catch (err) {
-        this.#builder = builder;
-        throw err;
-      }
-    }
-    return this.#builder;
   }
 
   /**
@@ -870,8 +843,7 @@ export class ServerContext {
    */
   #bundleAssetRoute = (): router.MatchHandler => {
     return async (_req, _ctx, params) => {
-      const snapshot = await this.#buildSnapshot();
-      const contents = snapshot.read(params.path);
+      const contents = await this.#builder.read(params.path);
       if (!contents) return new Response(null, { status: 404 });
 
       const headers: Record<string, string> = {
