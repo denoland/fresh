@@ -17,7 +17,7 @@ export async function startFreshServer(options: Deno.CommandOptions) {
 
   let started = false;
   for await (const line of lines) {
-    if (line.includes("Listening on http://")) {
+    if (line.includes("Fresh ready")) {
       started = true;
       break;
     }
