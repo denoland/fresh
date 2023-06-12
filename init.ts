@@ -21,7 +21,7 @@ To generate a project in the current directory:
   fresh-init .
 
 USAGE:
-    fresh-init <DIRECTORY>
+    fresh-init [DIRECTORY]
 
 OPTIONS:
     --force   Overwrite existing files
@@ -42,17 +42,22 @@ const flags = parse(Deno.args, {
   default: { "force": null, "twind": null, "vscode": null },
 });
 
-if (flags._.length !== 1) {
-  error(help);
-}
-
 console.log(
   `\n%c  🍋 Fresh: the next-gen web framework.  %c\n`,
   "background-color: #86efac; color: black; font-weight: bold",
   "",
 );
 
-const unresolvedDirectory = Deno.args[0];
+let unresolvedDirectory = Deno.args[0];
+if (flags._.length !== 1) {
+  const userInput = prompt("Project Name", "fresh-project");
+  if (!userInput) {
+    error(help);
+  }
+
+  unresolvedDirectory = userInput;
+}
+
 const resolvedDirectory = resolve(unresolvedDirectory);
 
 try {

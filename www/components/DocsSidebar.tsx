@@ -15,9 +15,15 @@ export default function DocsSidebar(props: { path: string; mobile?: boolean }) {
           <button
             type="button"
             class="bg-gray-200 font-bold text-gray-400 rounded-full py-1 px-2 w-full mb-2"
-            // @ts-ignore: Inline event handler
-            onClick={`document.querySelector(".DocSearch.DocSearch-Button").click()`}
           >
+            <script
+              dangerouslySetInnerHTML={{
+                __html:
+                  `document.currentScript.parentNode.onclick = function () {
+                    document.querySelector(".DocSearch.DocSearch-Button").click()
+                  }`,
+              }}
+            />
             <span class="DocSearch-Button-Container">
               <svg
                 width="20"

@@ -56,6 +56,11 @@ function isObject(value: unknown) {
     value !== null;
 }
 
+function isDevMode() {
+  // Env var is only set in prod (on Deploy).
+  return Deno.env.get("DENO_DEPLOYMENT_ID") === undefined;
+}
+
 interface StaticFile {
   /** The URL to the static file on disk. */
   localUrl: URL;
@@ -94,6 +99,7 @@ export class ServerContext {
     plugins: Plugin[],
     configPath: string,
     jsxConfig: JSXConfig,
+    dev: boolean = isDevMode(),
   ) {
     this.#routes = routes;
     this.#islands = islands;
@@ -104,7 +110,7 @@ export class ServerContext {
     this.#notFound = notFound;
     this.#error = error;
     this.#plugins = plugins;
-    this.#dev = typeof Deno.env.get("DENO_DEPLOYMENT_ID") !== "string"; // Env var is only set in prod (on Deploy).
+    this.#dev = dev;
     this.#builder = new EsbuildBuilder({
       buildID: BUILD_ID,
       entrypoints: collectEntrypoints(this.#dev, this.#islands, this.#plugins),
@@ -283,13 +289,13 @@ export class ServerContext {
         opts.staticDir ?? "./static",
         manifest.baseUrl,
       );
-      const entires = walk(fromFileUrl(staticFolder), {
+      const entries = walk(fromFileUrl(staticFolder), {
         includeFiles: true,
         includeDirs: false,
         followSymlinks: false,
       });
       const encoder = new TextEncoder();
-      for await (const entry of entires) {
+      for await (const entry of entries) {
         const localUrl = toFileUrl(entry.path);
         const path = localUrl.href.substring(staticFolder.href.length);
         const stat = await Deno.stat(localUrl);
@@ -320,6 +326,12 @@ export class ServerContext {
       }
     }
 
+    const dev = isDevMode();
+    if (dev) {
+      // Ensure that debugging hooks are set up for SSR rendering
+      await import("preact/debug");
+    }
+
     return new ServerContext(
       routes,
       islands,
@@ -332,6 +344,7 @@ export class ServerContext {
       opts.plugins ?? [],
       configPath,
       jsxConfig,
+      dev,
     );
   }
 

@@ -1,6 +1,7 @@
-import { assert, delay, puppeteer, TextLineStream } from "./deps.ts";
+import { assert, delay, puppeteer } from "./deps.ts";
 
 import { cmpStringArray } from "./fixture_twind_hydrate/utils/utils.ts";
+import { startFreshServer } from "./test_utils.ts";
 
 /**
  * Start the server with the main file.
@@ -8,33 +9,9 @@ import { cmpStringArray } from "./fixture_twind_hydrate/utils/utils.ts";
  * Returns a page instance and a method to terminate the server.
  */
 async function setUpServer(path: string) {
-  const serverProcessCmd = new Deno.Command("deno", {
-    args: [
-      "run",
-      "-A",
-      path,
-    ],
-    stdout: "piped",
-    stderr: "inherit",
+  const { lines, serverProcess, address } = await startFreshServer({
+    args: ["run", "-A", path],
   });
-
-  const serverProcess = serverProcessCmd.spawn();
-
-  const lines = serverProcess.stdout
-    .pipeThrough(new TextDecoderStream())
-    .pipeThrough(new TextLineStream());
-
-  let started = false;
-
-  for await (const line of lines) {
-    if (line.includes("Listening on http://")) {
-      started = true;
-      break;
-    }
-  }
-  if (!started) {
-    throw new Error("Server didn't start up");
-  }
 
   await delay(100);
 
@@ -45,6 +22,7 @@ async function setUpServer(path: string) {
    * terminate server
    */
   const terminate = async () => {
+    await lines.cancel();
     await browser.close();
 
     serverProcess.kill("SIGKILL");
@@ -62,7 +40,7 @@ async function setUpServer(path: string) {
     }
   };
 
-  return { page: page, terminate: terminate };
+  return { page: page, terminate: terminate, address };
 }
 
 /**
@@ -118,7 +96,7 @@ Deno.test({
       }
     }
 
-    await page.goto("http://localhost:8000/static", {
+    await page.goto(`${server.address}/static`, {
       waitUntil: "networkidle2",
     });
 
@@ -189,7 +167,7 @@ Deno.test({
       assert(false, `${numDuplicates} cssrules are duplicated`);
     }
 
-    await page.goto("http://localhost:8000/check-duplication", {
+    await page.goto(`${server.address}/check-duplication`, {
       waitUntil: "networkidle2",
     });
 
@@ -297,7 +275,7 @@ Deno.test({
       );
     }
 
-    await page.goto("http://localhost:8000/insert-cssrules", {
+    await page.goto(`${server.address}/insert-cssrules`, {
       waitUntil: "networkidle2",
     });
 

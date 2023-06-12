@@ -1,5 +1,5 @@
 import { renderToString } from "preact-render-to-string";
-import { ComponentChildren, ComponentType, h, options } from "preact";
+import { ComponentChildren, ComponentType, Fragment, h, options } from "preact";
 import {
   AppModule,
   ErrorPage,
@@ -409,6 +409,17 @@ export function template(opts: TemplateOptions): string {
   return "<!DOCTYPE html>" + renderToString(page);
 }
 
+const supportsUnstableComments = renderToString(h(Fragment, {
+  // @ts-ignore unstable features not supported in types
+  UNSTABLE_comment: "foo",
+})) !== "";
+
+if (!supportsUnstableComments) {
+  console.warn(
+    "⚠️  Found old version of 'preact-render-to-string'. Please upgrade it to >=6.1.0",
+  );
+}
+
 // Set up a preact option hook to track when vnode with custom functions are
 // created.
 const ISLANDS: Island[] = [];
@@ -431,11 +442,29 @@ options.vnode = (vnode) => {
         ignoreNext = true;
         const child = h(originalType, props);
         ISLAND_PROPS.push(props);
-        return h(
-          `!--frsh-${island.id}:${ISLAND_PROPS.length - 1}--`,
-          null,
-          child,
-        );
+
+        // Newer versions of preact-render-to-string allow you to render comments
+        if (supportsUnstableComments) {
+          return h(
+            Fragment,
+            null,
+            h(Fragment, {
+              // @ts-ignore unstable property is not typed
+              UNSTABLE_comment: `frsh-${island.id}:${ISLAND_PROPS.length - 1}`,
+            }),
+            child,
+            h(Fragment, {
+              // @ts-ignore unstable property is not typed
+              UNSTABLE_comment: `/frsh-${island.id}:${ISLAND_PROPS.length - 1}`,
+            }),
+          );
+        } else {
+          return h(
+            `!--frsh-${island.id}:${ISLAND_PROPS.length - 1}--`,
+            null,
+            child,
+          );
+        }
       };
     }
   }

@@ -5,10 +5,10 @@ import {
   assertStringIncludes,
   delay,
   puppeteer,
-  TextLineStream,
 } from "./deps.ts";
 import manifest from "./fixture_plugin/fresh.gen.ts";
 import options from "./fixture_plugin/options.ts";
+import { startFreshServer } from "./test_utils.ts";
 
 const ctx = await ServerContext.fromManifest(manifest, options);
 const handler = ctx.handler();
@@ -62,34 +62,16 @@ Deno.test({
   name: "/with-island hydration",
   async fn(t) {
     // Preparation
-    const serverProcess = new Deno.Command(Deno.execPath(), {
+    const { lines, serverProcess, address } = await startFreshServer({
       args: ["run", "-A", "./tests/fixture_plugin/main.ts"],
-      stdout: "piped",
-      stderr: "inherit",
-    }).spawn();
-
-    const decoder = new TextDecoderStream();
-    const lines = serverProcess.stdout
-      .pipeThrough(decoder)
-      .pipeThrough(new TextLineStream());
-
-    let started = false;
-    for await (const line of lines) {
-      if (line.includes("Listening on http://")) {
-        started = true;
-        break;
-      }
-    }
-    if (!started) {
-      throw new Error("Server didn't start up");
-    }
+    });
 
     await delay(100);
 
     const browser = await puppeteer.launch({ args: ["--no-sandbox"] });
     const page = await browser.newPage();
 
-    await page.goto("http://localhost:8000/with-island", {
+    await page.goto(`${address}/with-island`, {
       waitUntil: "networkidle2",
     });
 

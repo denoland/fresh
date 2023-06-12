@@ -26,7 +26,7 @@ function createRootFragment(
 
 // deno-lint-ignore no-explicit-any
 export function revive(islands: Record<string, ComponentType>, props: any[]) {
-  function walk(node: Node | null) {
+  async function walk(node: Node | null) {
     const tag = node!.nodeType === 8 &&
       ((node as Comment).data.match(/^\s*frsh-(.*)\s*$/) || [])[1];
     let endNode: Node | null = null;
@@ -41,14 +41,19 @@ export function revive(islands: Record<string, ComponentType>, props: any[]) {
       startNode.parentNode!.removeChild(startNode); // remove start tag node
 
       const [id, n] = tag.split(":");
-      render(
-        h(islands[id], props[Number(n)]),
-        createRootFragment(
-          parent! as HTMLElement,
-          children,
-          // deno-lint-ignore no-explicit-any
-        ) as any as HTMLElement,
-      );
+      const _render = () => {
+        render(
+          h(islands[id], props[Number(n)]),
+          createRootFragment(
+            parent! as HTMLElement,
+            children,
+            // deno-lint-ignore no-explicit-any
+          ) as any as HTMLElement,
+        );
+      };
+      "scheduler" in window
+        ? await scheduler!.postTask(_render)
+        : setTimeout(_render, 0);
       endNode = node;
     }
 

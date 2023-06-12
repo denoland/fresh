@@ -9,4 +9,5 @@ like to see here, please open
 [a GitHub discussion](https://github.com/denoland/fresh/discussions/new?category=ideas).
 
 - [Modifying the `<head>`](./examples/modifying-the-head)
+- [Setting the language](./examples/setting-the-language)
 - [Writing Tests](./examples/writing-tests)
