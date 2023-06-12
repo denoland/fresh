@@ -50,7 +50,7 @@ console.log(
 
 let unresolvedDirectory = Deno.args[0];
 if (flags._.length !== 1) {
-  const userInput = prompt("Projet Name", "fresh-project");
+  const userInput = prompt("Project Name", "fresh-project");
   if (!userInput) {
     error(help);
   }
