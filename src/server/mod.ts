@@ -1,4 +1,5 @@
 import { ServerContext } from "./context.ts";
+import * as colors from "https://deno.land/std@0.190.0/fmt/colors.ts";
 import { serve } from "./deps.ts";
 export { Status } from "./deps.ts";
 import {
@@ -71,9 +72,23 @@ export async function createHandler(
 export async function start(routes: Manifest, opts: StartOptions = {}) {
   const ctx = await ServerContext.fromManifest(routes, opts);
   opts.port ??= parseInt(Deno.env.get("PORT") || "8000");
+
+  if (!opts.onListen) {
+    opts.onListen = (params) => {
+      console.log(
+        `\n%c 🍋 Fresh ready %c`,
+        "background-color: #86efac; color: black; font-weight: bold",
+        "",
+      );
+      const address = colors.cyan(`http://localhost:${params.port}/`);
+      const localLabel = colors.bold("Local:");
+      console.log(`    ${localLabel} ${address}\n`);
+    };
+  }
+
   if (opts.experimentalDenoServe === true) {
     // @ts-ignore as `Deno.serve` is still unstable.
-    await Deno.serve(ctx.handler() as Deno.ServeHandler, opts);
+    await Deno.serve({ ...opts, handler: ctx.handler() });
   } else {
     await serve(ctx.handler(), opts);
   }
