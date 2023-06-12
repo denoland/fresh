@@ -1,4 +1,4 @@
-import { join, parse, resolve } from "./src/dev/deps.ts";
+import { basename, join, parse, resolve } from "./src/dev/deps.ts";
 import { error } from "./src/dev/error.ts";
 import { collect, ensureMinDenoVersion, generate } from "./src/dev/mod.ts";
 import {
@@ -115,7 +115,7 @@ export default function Home() {
   return (
     <>
       <Head>
-        <title>Fresh App</title>
+        <title>${basename(resolvedDirectory)}</title>
       </Head>
       <div${useTwind ? ` class="p-4 mx-auto max-w-screen-md"` : ""}>
         <img
