@@ -165,6 +165,8 @@ function _walkInner(
 
             // For now only `props.children` is supported.
             const islandParent = vnodeStack[vnodeStack.length - 1]!;
+            // Overwrite serialized `{__slot: "children"}` with the
+            // actual vnode child.
             islandParent.props.children = wrapper;
           }
 
@@ -263,8 +265,7 @@ function _walkInner(
           props[attr.nodeName] = attr.nodeValue;
         }
         const vnode = h(sib.localName, props);
-        // FIXME: Multiple children?
-        parentVNode.props.children = vnode;
+        addPropsChild(parentVNode, vnode);
         vnodeStack.push(vnode);
       }
 

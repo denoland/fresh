@@ -10,6 +10,7 @@ function Foo(props: FooProps) {
   return (
     <div style="background: #e6afaf; border: 4px solid red; border-radius: .5rem; padding: 1rem; margin: 1rem;">
       <h2 class="foobar">This is static server content: #{props.n}</h2>
+      <h3 class="foobar">This is static server content: #{props.n}</h3>
       {props.children}
     </div>
   );
