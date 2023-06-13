@@ -107,7 +107,6 @@ export function serialize(data: unknown): SerializeResult {
     if (typeof value === "object" && value !== null) {
       const path = seen.get(value);
       const currentPath = [...keyStack];
-
       if (path !== undefined) {
         requiresDeserializer = true;
         const referenceArr = references.get(path);
