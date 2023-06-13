@@ -47,7 +47,8 @@ function isSignal(x: any): x is Signal {
 
 // deno-lint-ignore no-explicit-any
 function isVNode(x: any): x is VNode {
-  return x !== null && typeof x === "object" && isValidElement(x);
+  return x !== null && typeof x === "object" && "type" in x && "ref" in x &&
+    isValidElement(x);
 }
 
 export function serialize(data: unknown): SerializeResult {
