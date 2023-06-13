@@ -331,7 +331,7 @@ export async function render<Data>(
       script += `import ${island.name} from "${url}";`;
       islandRegistry += `${island.id}:${island.name},`;
     }
-    script += `revive({${islandRegistry}}, STATE[0]);`;
+    script += `try { revive({${islandRegistry}}, STATE[0]); } catch(err) { console.log("revive err", err); };`;
   }
 
   // Append the inline script.

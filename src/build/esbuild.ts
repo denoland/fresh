@@ -7,7 +7,9 @@ import {
   regexpEscape,
   toFileUrl,
 } from "./deps.ts";
-import { Builder, BuildSnapshot } from "./mod.ts";
+import { getDependencies, saveSnapshot } from "./kv.ts";
+import { getFile } from "./kvfs.ts";
+import { Builder } from "./mod.ts";
 
 export interface EsbuildBuilderOptions {
   /** The build ID. */
@@ -29,12 +31,58 @@ export interface JSXConfig {
 
 export class EsbuildBuilder implements Builder {
   #options: EsbuildBuilderOptions;
+  #files: Map<string, Uint8Array>;
+  #dependencies: Map<string, string[]> | null;
+  #build: Promise<void> | null;
 
   constructor(options: EsbuildBuilderOptions) {
     this.#options = options;
+    this.#files = new Map<string, Uint8Array>();
+    this.#dependencies = null;
+    this.#build = null;
   }
 
-  async build(): Promise<EsbuildSnapshot> {
+  async read(path: string) {
+    const content = this.#files.get(path) || await getFile(path);
+
+    if (content) return content;
+
+    if (!this.#build) {
+      this.#build = this.build();
+
+      this.#build
+        .then(() => saveSnapshot(this.#files, this.#dependencies!))
+        .catch((error) => console.error(error));
+    }
+
+    await this.#build;
+
+    return this.#files.get(path) || null;
+  }
+
+  // Lazy load dependencies from KV to avoid blocking first render
+  dependencies(path: string): string[] {
+    const deps = this.#dependencies?.get(path);
+
+    if (!this.#dependencies) {
+      this.#dependencies = new Map();
+
+      getDependencies().then((d) => {
+        // A build happened while we were fetching deps.
+        // It will fill deps for us with a fresh deps array
+        if (this.#build instanceof Promise) {
+          return;
+        } else if (d) {
+          this.#dependencies = d;
+        }
+      }).catch((error) => console.error(error));
+    }
+
+    return deps ?? [];
+  }
+
+  async build(): Promise<void> {
+    const start = performance.now();
     const opts = this.#options;
     try {
       await initEsbuild();
@@ -55,7 +103,7 @@ export class EsbuildBuilder implements Builder {
         entryPoints: opts.entrypoints,
 
         platform: "browser",
-        target: ["chrome99", "firefox99", "safari15"],
+        target: ["chrome99", "firefox99", "safari11", "safari15"],
 
         format: "esm",
         bundle: true,
@@ -78,14 +126,17 @@ export class EsbuildBuilder implements Builder {
         ],
       });
 
-      const files = new Map<string, Uint8Array>();
-      const dependencies = new Map<string, string[]>();
+      const dur = (performance.now() - start) / 1e3;
+      console.info(` 📦 Fresh bundle: ${dur.toFixed(2)}s`);
+
+      this.#files = new Map<string, Uint8Array>();
+      this.#dependencies = new Map<string, string[]>();
 
       const absWorkingDirLen = toFileUrl(absWorkingDir).href.length + 1;
 
       for (const file of bundle.outputFiles) {
         const path = toFileUrl(file.path).href.slice(absWorkingDirLen);
-        files.set(path, file.contents);
+        this.#files.set(path, file.contents);
       }
 
       const metaOutputs = new Map(Object.entries(bundle.metafile.outputs));
@@ -94,10 +145,8 @@ export class EsbuildBuilder implements Builder {
         const imports = entry.imports
           .filter(({ kind }) => kind === "import-statement")
           .map(({ path }) => path);
-        dependencies.set(path, imports);
+        this.#dependencies.set(path, imports);
       }
-
-      return new EsbuildSnapshot(files, dependencies);
     } finally {
       stopEsbuild();
     }
@@ -148,29 +197,4 @@ function buildIdPlugin(buildId: string): esbuildTypes.Plugin {
       );
     },
   };
-}
-
-export class EsbuildSnapshot implements BuildSnapshot {
-  #files: Map<string, Uint8Array>;
-  #dependencies: Map<string, string[]>;
-
-  constructor(
-    files: Map<string, Uint8Array>,
-    dependencies: Map<string, string[]>,
-  ) {
-    this.#files = files;
-    this.#dependencies = dependencies;
-  }
-
-  get paths(): string[] {
-    return Object.keys(this.#files);
-  }
-
-  read(path: string): Uint8Array | null {
-    return this.#files.get(path) ?? null;
-  }
-
-  dependencies(path: string): string[] {
-    return this.#dependencies.get(path) ?? [];
-  }
 }

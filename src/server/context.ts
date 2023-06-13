@@ -39,12 +39,7 @@ import {
 import { render as internalRender } from "./render.ts";
 import { ContentSecurityPolicyDirectives, SELF } from "../runtime/csp.ts";
 import { ASSET_CACHE_BUST_KEY, INTERNAL_PREFIX } from "../runtime/utils.ts";
-import {
-  Builder,
-  BuildSnapshot,
-  EsbuildBuilder,
-  JSXConfig,
-} from "../build/mod.ts";
+import { Builder, EsbuildBuilder, JSXConfig } from "../build/mod.ts";
 
 interface RouterState {
   state: Record<string, unknown>;
@@ -85,7 +80,7 @@ export class ServerContext {
   #notFound: UnknownPage;
   #error: ErrorPage;
   #plugins: Plugin[];
-  #builder: Builder | Promise<BuildSnapshot> | BuildSnapshot;
+  #builder: Builder;
 
   constructor(
     routes: Route[],
@@ -378,28 +373,6 @@ export class ServerContext {
     };
   }
 
-  #maybeBuildSnapshot(): BuildSnapshot | null {
-    if ("build" in this.#builder || this.#builder instanceof Promise) {
-      return null;
-    }
-    return this.#builder;
-  }
-
-  async #buildSnapshot() {
-    if ("build" in this.#builder) {
-      const builder = this.#builder;
-      this.#builder = builder.build();
-      try {
-        const snapshot = await this.#builder;
-        this.#builder = snapshot;
-      } catch (err) {
-        this.#builder = builder;
-        throw err;
-      }
-    }
-    return this.#builder;
-  }
-
   /**
    * Identify which middlewares should be applied for a request,
    * chain them and return a handler response
@@ -562,10 +535,7 @@ export class ServerContext {
             plugins: this.#plugins,
             app: this.#app,
             imports,
-            dependenciesFn: (path) => {
-              const snapshot = this.#maybeBuildSnapshot();
-              return snapshot?.dependencies(path) ?? [];
-            },
+            dependenciesFn: (path) => this.#builder.dependencies(path),
             renderFn: this.#renderFn,
             url: new URL(req.url),
             params,
@@ -755,8 +725,7 @@ export class ServerContext {
    */
   #bundleAssetRoute = (): router.MatchHandler => {
     return async (_req, _ctx, params) => {
-      const snapshot = await this.#buildSnapshot();
-      const contents = snapshot.read(params.path);
+      const contents = await this.#builder.read(params.path);
       if (!contents) return new Response(null, { status: 404 });
 
       const headers: Record<string, string> = {
