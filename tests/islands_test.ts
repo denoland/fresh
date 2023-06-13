@@ -248,3 +248,157 @@ Deno.test({
   sanitizeOps: false,
   sanitizeResources: false,
 });
+
+Deno.test({
+  name: "pass single JSX child to island",
+
+  async fn(_t) {
+    await withPageName(
+      "./tests/fixture_island_nesting/main.ts",
+      async (page, address) => {
+        await page.goto(`${address}/island_jsx_child`, {
+          waitUntil: "networkidle2",
+        });
+        await page.waitForSelector(".island");
+
+        await delay(100);
+        const text = await page.$eval(".island", (el) => el.textContent);
+        assertEquals(text, "it works");
+      },
+    );
+  },
+
+  sanitizeOps: false,
+  sanitizeResources: false,
+});
+
+Deno.test({
+  name: "pass multiple JSX children to island",
+
+  async fn(_t) {
+    await withPageName(
+      "./tests/fixture_island_nesting/main.ts",
+      async (page, address) => {
+        await page.goto(`${address}/island_jsx_children`, {
+          waitUntil: "networkidle2",
+        });
+        await page.waitForSelector(".island");
+
+        await delay(100);
+        const text = await page.$eval(".island", (el) => el.textContent);
+        assertEquals(text, "it works");
+      },
+    );
+  },
+
+  sanitizeOps: false,
+  sanitizeResources: false,
+});
+
+Deno.test({
+  name: "pass multiple text JSX children to island",
+
+  async fn(_t) {
+    await withPageName(
+      "./tests/fixture_island_nesting/main.ts",
+      async (page, address) => {
+        await page.goto(`${address}/island_jsx_text`, {
+          waitUntil: "networkidle2",
+        });
+        await page.waitForSelector(".island");
+
+        await delay(100);
+        const text = await page.$eval(".island", (el) => el.textContent);
+        assertEquals(text, "it works");
+      },
+    );
+  },
+
+  sanitizeOps: false,
+  sanitizeResources: false,
+});
+
+Deno.test({
+  name: "render island in island",
+
+  async fn(_t) {
+    await withPageName(
+      "./tests/fixture_island_nesting/main.ts",
+      async (page, address) => {
+        await page.goto(`${address}/island_in_island`, {
+          waitUntil: "networkidle2",
+        });
+        await page.waitForSelector(".island");
+
+        await delay(100);
+        const text = await page.$eval(
+          ".island .island p",
+          (el) => el.textContent,
+        );
+        assertEquals(text, "it works");
+      },
+    );
+  },
+
+  sanitizeOps: false,
+  sanitizeResources: false,
+});
+
+Deno.test({
+  name:
+    "render island with JSX children that render another island with JSX children",
+
+  async fn(_t) {
+    await withPageName(
+      "./tests/fixture_island_nesting/main.ts",
+      async (page, address) => {
+        await page.goto(`${address}/island_jsx_island_jsx`, {
+          waitUntil: "networkidle2",
+        });
+        await page.waitForSelector(".island");
+
+        await delay(100);
+        const text = await page.$eval(
+          ".island .server .island .server p",
+          (el) => el.textContent,
+        );
+        assertEquals(text, "it works");
+      },
+    );
+  },
+
+  sanitizeOps: false,
+  sanitizeResources: false,
+});
+
+Deno.test({
+  name: "render sibling islands",
+
+  async fn(_t) {
+    await withPageName(
+      "./tests/fixture_island_nesting/main.ts",
+      async (page, address) => {
+        await page.goto(`${address}/island_siblings`, {
+          waitUntil: "networkidle2",
+        });
+        await page.waitForSelector(".island");
+
+        await delay(100);
+        const text = await page.$eval(
+          ".island .a",
+          (el) => el.textContent,
+        );
+        assertEquals(text, "it works");
+
+        const text2 = await page.$eval(
+          ".island + .island .b",
+          (el) => el.textContent,
+        );
+        assertEquals(text2, "it works");
+      },
+    );
+  },
+
+  sanitizeOps: false,
+  sanitizeResources: false,
+});
