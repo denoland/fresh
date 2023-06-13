@@ -65,7 +65,7 @@ Fresh 1.0.2 to 1.1.3, and update Preact to the latest version:
 +     "preact/": "https://esm.sh/preact@10.11.0/",
 
 -     "preact-render-to-string": "https://esm.sh/*preact-render-to-string@5.2.0",
-+     "preact-render-to-string": "https://esm.sh/*preact-render-to-string@6.0.3",
++     "preact-render-to-string": "https://esm.sh/*preact-render-to-string@6.1.0",
 
       "twind": "https://esm.sh/twind@0.16.17",
       "twind/": "https://esm.sh/twind@0.16.17/"

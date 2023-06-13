@@ -1,5 +1,11 @@
 [
   {
+    "title": "OpenAI Semantic Search",
+    "link": "https://supabase-openai-doc-search.deno.dev/",
+    "github": "supabase-community/deno-fresh-openai-doc-search",
+    "image": "openai-semantic-search"
+  },
+  {
     "title": "Deno SaaSKit",
     "link": "https://saaskit.deno.dev/",
     "github": "denoland/saaskit",
