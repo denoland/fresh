@@ -11,7 +11,8 @@ automatically read from `.env`.
 ```
 $ deno task start
 Watcher Process started.
-Listening on http://localhost:8000
+ 🍋 Fresh ready
+     Local: http://localhost:8000
 ```
 
 If you want to start manually without Deno task, `deno run` the `main.ts` with
@@ -52,7 +53,8 @@ Combining all of this we get the following `deno run` command:
 ```
 $ deno run --allow-net --allow-read --allow-env --allow-run --watch=static/,routes/ main.ts
 Watcher Process started.
-Listening on http://localhost:8000
+ 🍋 Fresh ready
+     Local: http://localhost:8000
 ```
 
 If you now visit http://localhost:8000, you can see the running project. Try

@@ -11,7 +11,7 @@ import { startFreshServer } from "./test_utils.ts";
 Deno.test({
   name: "island tests",
   async fn(t) {
-    await withPage(async (page) => {
+    await withPage(async (page, address) => {
       async function counterTest(counterId: string, originalValue: number) {
         const pElem = await page.waitForSelector(`#${counterId} > p`);
 
@@ -27,7 +27,7 @@ Deno.test({
         assert(value === `${originalValue + 1}`, `${counterId} click`);
       }
 
-      await page.goto("http://localhost:8000/islands", {
+      await page.goto(`${address}/islands`, {
         waitUntil: "networkidle2",
       });
 
@@ -45,7 +45,7 @@ Deno.test({
         assertStringIncludes(srcString, "image.png?__frsh_c=");
 
         // Ensure src path is the same as server rendered
-        const resp = await fetch(new Request("http://localhost:8000/islands"));
+        const resp = await fetch(new Request(`${address}/islands`));
         const body = await resp.text();
 
         const imgFilePath = body.match(/img id="img-in-island" src="(.*?)"/)
@@ -59,12 +59,15 @@ Deno.test({
   sanitizeResources: false,
 });
 
-function withPage(fn: (page: Page) => Promise<void>) {
+function withPage(fn: (page: Page, address: string) => Promise<void>) {
   return withPageName("./tests/fixture/main.ts", fn);
 }
 
-async function withPageName(name: string, fn: (page: Page) => Promise<void>) {
-  const { lines, serverProcess } = await startFreshServer({
+async function withPageName(
+  name: string,
+  fn: (page: Page, address: string) => Promise<void>,
+) {
+  const { lines, serverProcess, address } = await startFreshServer({
     args: ["run", "-A", name],
   });
 
@@ -74,7 +77,7 @@ async function withPageName(name: string, fn: (page: Page) => Promise<void>) {
 
     try {
       const page = await browser.newPage();
-      await fn(page);
+      await fn(page, address);
     } finally {
       await browser.close();
     }
@@ -92,12 +95,12 @@ Deno.test({
   name: "island tests with </script>",
 
   async fn(t) {
-    await withPage(async (page) => {
+    await withPage(async (page, address) => {
       page.on("dialog", () => {
         assert(false, "There is XSS");
       });
 
-      await page.goto("http://localhost:8000/evil", {
+      await page.goto(`${address}/evil`, {
         waitUntil: "networkidle2",
       });
 
@@ -122,8 +125,8 @@ Deno.test({
   name: "island with fragment as root",
 
   async fn(_t) {
-    await withPage(async (page) => {
-      await page.goto("http://localhost:8000/islands/root_fragment", {
+    await withPage(async (page, address) => {
+      await page.goto(`${address}/islands/root_fragment`, {
         waitUntil: "networkidle2",
       });
 
@@ -157,9 +160,9 @@ Deno.test({
   name: "island with fragment as root and conditional child first",
 
   async fn(_t) {
-    await withPage(async (page) => {
+    await withPage(async (page, address) => {
       await page.goto(
-        "http://localhost:8000/islands/root_fragment_conditional_first",
+        `${address}/islands/root_fragment_conditional_first`,
         {
           waitUntil: "networkidle2",
         },
@@ -191,8 +194,8 @@ Deno.test({
   name: "island that returns `null`",
 
   async fn(_t) {
-    await withPage(async (page) => {
-      await page.goto("http://localhost:8000/islands/returning_null", {
+    await withPage(async (page, address) => {
+      await page.goto(`${address}/islands/returning_null`, {
         waitUntil: "networkidle2",
       });
 
@@ -208,9 +211,9 @@ Deno.test({
   name: "island using `npm:` specifiers",
 
   async fn(_t) {
-    await withPageName("./tests/fixture_npm/main.ts", async (page) => {
+    await withPageName("./tests/fixture_npm/main.ts", async (page, address) => {
       await page.setJavaScriptEnabled(false);
-      await page.goto("http://localhost:8000/", { waitUntil: "networkidle2" });
+      await page.goto(address, { waitUntil: "networkidle2" });
       assert(await page.waitForSelector("#server-true"));
 
       await page.setJavaScriptEnabled(true);
@@ -229,8 +232,8 @@ Deno.test({
   async fn(_t) {
     await withPageName(
       "./tests/fixture_preact_rts_v5/main.ts",
-      async (page) => {
-        await page.goto("http://localhost:8000/", {
+      async (page, address) => {
+        await page.goto(address, {
           waitUntil: "networkidle2",
         });
         await page.waitForSelector("#foo");
