@@ -1,4 +1,12 @@
-import { ComponentType, Fragment, h, options, render, VNode } from "preact";
+import {
+  ComponentChildren,
+  ComponentType,
+  Fragment,
+  h,
+  options,
+  render,
+  VNode,
+} from "preact";
 import { assetHashingHook } from "../utils.ts";
 
 function createRootFragment(
@@ -38,64 +46,6 @@ const FRESH_MARKER_REG = /^\s*frsh-(.*)\s*$/;
 
 // deno-lint-ignore no-explicit-any
 export function revive(islands: Record<string, ComponentType>, props: any[]) {
-  async function walk(node: Node) {
-    const tag = isCommentNode(node) &&
-      (node.data.match(/^\s*frsh-(.*)\s*$/) || [])[1];
-    let endNode: Node | null = null;
-    if (tag) {
-      const [id, n] = tag.split(":");
-      const islandProps = props[Number(n)];
-
-      const startNode = node as Comment;
-      const children: Node[] = [];
-      const parent = node.parentNode;
-
-      // For now we only support JSX nodes in children
-      let hasJsxChildren = "children" in islandProps;
-
-      // We use this to track opening comments
-      let stack: Array<Node | Comment> = [startNode];
-
-      // collect all children of the island
-
-      // Revive JSX children
-      // let search = startNode;
-      // if (search !== null search.nodeType = )
-
-      console.log("NODE", node, startNode);
-      startNode.parentNode!.removeChild(startNode); // remove start tag node
-
-      const _render = () => {
-        console.log("ISLAND #2", { islandProps, id });
-        if ("children" in islandProps && "__slot" in islandProps.children) {
-          console.log("YEAH", islandProps.children, tag);
-        }
-
-        render(
-          h(islands[id], islandProps),
-          createRootFragment(
-            parent! as HTMLElement,
-            children,
-            // deno-lint-ignore no-explicit-any
-          ) as any as HTMLElement,
-        );
-      };
-      "scheduler" in window
-        ? await scheduler!.postTask(_render)
-        : setTimeout(_render, 0);
-    }
-
-    const sib = node!.nextSibling;
-    const fc = node!.firstChild;
-    if (endNode) {
-      endNode.parentNode?.removeChild(endNode); // remove end tag node
-    }
-
-    if (sib) walk(sib);
-    if (fc) walk(fc);
-  }
-  // walk(document.body);
-
   _walkInner(
     islands,
     props,
@@ -103,6 +53,11 @@ export function revive(islands: Record<string, ComponentType>, props: any[]) {
     document.body,
   );
 }
+
+function ServerComponent(props: { children: ComponentChildren }): any {
+  return props.children;
+}
+ServerComponent.displayName = "ServerComponent";
 
 const enum MarkerKind {
   Island,
@@ -114,7 +69,7 @@ interface IslandMarker {
   startNode: Comment;
   endNode: Comment | null;
   comment: string;
-  data: { props: Record<string, unknown>; type: any };
+  data: string;
 }
 
 interface SlotMarker {
@@ -127,6 +82,8 @@ interface SlotMarker {
 
 type MarkerState = IslandMarker | SlotMarker;
 
+let slotI = 0;
+
 function _walkInner(
   islands: Record<string, ComponentType>,
   props: any[],
@@ -136,98 +93,12 @@ function _walkInner(
   },
   node: Node | Comment,
 ) {
-  console.log("walk", node, context.markerStack.slice());
   const { markerStack, vnodeStack } = context;
-
-  // if (isCommentNode(node)) {
-  //   if (marker) {
-  //     const isClose = node.data.startsWith("/frsh") ||
-  //       node.data ===
-  //         marker.comment;
-
-  //     if (isClose) {
-  //       console.log(
-  //         "> CLOSE",
-  //         node.data,
-  //         context.markerStack.slice(),
-  //         context.vnodeStack.slice(),
-  //       );
-  //       if (marker.kind === MarkerKind.Slot) {
-  //         console.log("   SLOT", context.vnodeStack.slice());
-  //       }
-  //       const vv = context.vnodeStack.pop();
-  //       console.log({ vv });
-  //       // if (node.data.startsWith("/frsh-slot") || node.data.s)
-  //     }
-  //   }
-
-  //   const match = node.data.match(FRESH_MARKER_REG);
-  //   if (match && match.length >= 1) {
-  //     comment = match[1];
-
-  //     // if(context.markerStack.length > 0&&comment.startsWith("/") || comment.)
-  //     if (comment.startsWith("slot-")) {
-  //       context.markerStack.push({
-  //         startNode: node,
-  //         endNode: null,
-  //         data: comment.slice("slot-".length),
-  //         kind: MarkerKind.Slot,
-  //         comment: node.data,
-  //       });
-
-  //       // @ts-ignore TS is a little confused
-  //       parentVNode = h(Fragment, { key: node.data, children: [] });
-  //       context.vnodeStack.push(parentVNode);
-  //     } else if (comment.includes(":")) {
-  //       const [id, n] = comment.split(":");
-  //       islandId = id;
-  //       islandProps = props[Number(n)];
-  //       context.markerStack.push({
-  //         startNode: node,
-  //         endNode: null,
-  //         data: islandProps,
-  //         comment: node.data,
-  //         kind: MarkerKind.Island,
-  //       });
-  //     }
-
-  //     console.log(match, comment);
-  //   }
-  // } else {
-  //   const prevParentVNode = parentVNode;
-
-  //   if (marker !== null && marker.kind === MarkerKind.Slot) {
-  //     console.log(">>> serialize slot", node);
-  //     if (isTextNode(node)) {
-  //       if (parentVNode !== null) {
-  //         (parentVNode.props.children as any[])!.push(node.data);
-  //       }
-  //     } else if (isElementNode(node)) {
-  //       const props: Record<string, unknown> = { children: [] };
-  //       for (let i = 0; i < node.attributes.length; i++) {
-  //         const attr = node.attributes[i];
-  //         props[attr.nodeName] = attr.nodeValue;
-  //       }
-
-  //       const vnode = h(node.localName, props);
-  //       parentVNode?.props.children?.push(vnode);
-  //       parentVNode = vnode;
-  //       context.vnodeStack.push(vnode);
-  //       console.log(node, vnode);
-  //     }
-  //   }
-
-  //   if (node.firstChild && node.nodeName !== "SCRIPT") {
-  //     _walkInner(islands, props, context, node.firstChild);
-  //   }
-
-  //   console.log("---", context.vnodeStack.slice(), node);
-
-  //   parentVNode = prevParentVNode;
-  // }
 
   let sib: Node | null = node;
   while (sib !== null) {
+    console.log("walk", sib, context.markerStack.slice());
+
     const marker = markerStack.length > 0
       ? markerStack[markerStack.length - 1]
       : null;
@@ -238,6 +109,7 @@ function _walkInner(
     // We use comment nodes to mark fresh islands and slots
     if (isCommentNode(sib)) {
       if (sib.data.startsWith("frsh-slot")) {
+        slotI++;
         // TODO: Are nested slots possible?
         markerStack.push({
           startNode: sib,
@@ -246,7 +118,13 @@ function _walkInner(
           kind: MarkerKind.Slot,
           comment: sib.data,
         });
-        vnodeStack.push(h(Fragment, { key: sib.data }));
+        // @ts-ignore TS gets confused
+        vnodeStack.push(h(ServerComponent, { key: sib.data }));
+        console.log(
+          "   SLOT " + slotI,
+          markerStack.slice(),
+          vnodeStack.slice(),
+        );
       } else if (
         marker !== null && (sib.data.startsWith("/frsh") ||
           marker.comment === sib.data)
@@ -261,10 +139,38 @@ function _walkInner(
 
         if (marker.kind === MarkerKind.Slot) {
           if (parent?.kind === MarkerKind.Island) {
-            const island = parent.data;
-            island.props.children = "hey ho it owrks";
-            console.log("   CHILD", marker);
+            console.log(
+              "%c revive slot in island ",
+              "background: violet; color: black",
+            );
+            console.log("   ", parentVNode);
+            const vnode = vnodeStack.pop();
+            const wrapper = h(ServerComponent, { children: vnode });
+
+            const islandParent = vnodeStack.length > 0
+              ? vnodeStack[vnodeStack.length - 1]
+              : null;
+
+            islandParent!.props.children = wrapper;
+            console.log(
+              "   %c CHILD pop ",
+              "background: yellow; color: black",
+            );
+            console.log(
+              "   ",
+              parentVNode?.type,
+              markerStack.slice(),
+              vnodeStack.slice(),
+              islandParent,
+            );
+          } else {
+            console.error("huh");
           }
+
+          // marker.startNode.remove();
+          // sib = marker.endNode.nextSibling;
+          // marker.endNode.remove();
+          // continue;
         } else if (marker.kind === MarkerKind.Island) {
           // We're ready to revive this island if it has
           // no roots of its own. Otherwise we'll treat it
@@ -273,21 +179,66 @@ function _walkInner(
             const children: Node[] = [];
 
             let child: Node | null = marker.startNode;
-            while ((child = child.nextSibling) !== null) {
-              if (child === marker.endNode) break;
+            while (
+              (child = child.nextSibling) !== null && child !== marker.endNode
+            ) {
               children.push(child);
             }
 
-            const island = marker.data;
+            console.log(
+              "%c revive root island ",
+              "background: violet; color: black",
+            );
+            console.log("   ", parentVNode);
+            console.log("   ", vnodeStack.slice());
+            const vnode = vnodeStack.pop();
 
             render(
-              h(island.type, island.props),
+              vnode,
               createRootFragment(
                 sib.parentNode! as HTMLElement,
                 children,
                 // deno-lint-ignore no-explicit-any
               ) as any as HTMLElement,
             );
+            console.error("===========");
+
+            // marker.startNode.remove();
+            // sib = marker.endNode.nextSibling;
+            // marker.endNode.remove();
+            // continue;
+          } else if (parent?.kind === MarkerKind.Slot) {
+            console.log(
+              "%c revive island in slot ",
+              "background: violet; color: black",
+            );
+            console.log("   ", parentVNode);
+            console.log(
+              "   >>> close island",
+              markerStack.slice(),
+              vnodeStack.slice(),
+            );
+            // Treat the island as a standard component when it
+            // has an island parent or a slot parent
+            const vnode = vnodeStack.pop();
+            const parent = vnodeStack.length > 0
+              ? vnodeStack[vnodeStack.length - 1]
+              : null;
+
+            // FIXME
+            console.log("%c WRONG ", "background: red; color: white");
+            console.log("    ", parent?.props.children);
+            if (parent!.props.children === null) {
+              parent!.props.children = vnode;
+            } else {
+              if (!Array.isArray(parent!.props.children)) {
+                parent!.props.children = [parent!.props.children, vnode];
+              } else {
+                parent!.props.children.push(vnode);
+              }
+            }
+          } else {
+            console.error("HUH???");
           }
         }
       } else if (sib.data.startsWith("frsh")) {
@@ -300,28 +251,59 @@ function _walkInner(
           markerStack.push({
             startNode: sib,
             endNode: null,
-            data: {
-              props: islandProps,
-              type: islands[id],
-            },
+            data: "",
             kind: MarkerKind.Island,
             comment: sib.data,
           });
+          const vnode = h(islands[id], islandProps);
+          vnodeStack.push(vnode);
         }
       }
     } else if (isTextNode(sib)) {
-      const parent = sib.parentNode;
-      if (parent !== null) {
-        if (parent.childNodes.length === 1) {
-          console.log(sib.data, sib.parentNode?.childNodes.length);
+      if (marker !== null && marker.kind === MarkerKind.Slot) {
+        if (parentVNode !== null) {
+          if (parentVNode.props.children === null) {
+            parentVNode.props.children = sib.data;
+          } else {
+            console.log(">>", parentVNode, parentVNode.props, sib.data, marker);
+            // parentVNode.props.children.push(sib.data);
+          }
+        } else {
+          console.error("huh??");
         }
       }
     } else {
-      if (marker !== null && marker.kind === MarkerKind.Slot) {
+      if (
+        parentVNode !== null && marker !== null &&
+        marker.kind === MarkerKind.Slot && isElementNode(sib)
+      ) {
+        const childLen = sib.childNodes.length;
+        const props: Record<string, unknown> = {
+          children: childLen <= 1 ? null : [],
+        };
+        for (let i = 0; i < sib.attributes.length; i++) {
+          const attr = sib.attributes[i];
+          props[attr.nodeName] = attr.nodeValue;
+        }
+        const vnode = h(sib.localName, props);
+        // TODO: Multiple children
+        parentVNode.props.children = vnode;
+        vnodeStack.push(vnode);
       }
-      console.log("DEEP", marker, parentVNode);
-      if (sib.firstChild) {
+      if (
+        sib.firstChild && (sib.nodeName !== "SCRIPT")
+      ) {
         _walkInner(islands, props, context, sib.firstChild);
+      }
+
+      if (marker !== null && marker.kind === MarkerKind.Slot) {
+        console.log("%c pop ", "background: yellow; color: black");
+        console.log(
+          "   ",
+          vnodeStack[vnodeStack.length - 1]?.type,
+          vnodeStack.slice(),
+        );
+        vnodeStack.pop();
       }
     }
 
@@ -333,4 +315,9 @@ const originalHook = options.vnode;
 options.vnode = (vnode) => {
   assetHashingHook(vnode);
   if (originalHook) originalHook(vnode);
+};
+const originalUnmount = options.unmount;
+options.unmount = (vnode) => {
+  console.error("UNMOUNTING", vnode);
+  if (originalUnmount) originalUnmount(vnode);
 };

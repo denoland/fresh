@@ -151,7 +151,6 @@ export function serialize(data: unknown): SerializeResult {
   }
 
   const serialized = JSON.stringify(toSerialize, replacer);
-  console.log({ serialized });
   return { serialized, requiresDeserializer, hasSignals };
 }
 
