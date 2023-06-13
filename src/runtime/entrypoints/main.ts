@@ -1,6 +1,7 @@
 import {
   ComponentChildren,
   ComponentType,
+  Fragment,
   h,
   options,
   render,
@@ -48,8 +49,11 @@ export function revive(islands: Record<string, ComponentType>, props: any[]) {
   _walkInner(
     islands,
     props,
+    // markerstack
     [],
-    [],
+    // Keep a root node in the vnode stack to save a couple of checks
+    // later during iteration
+    [h(Fragment, null)],
     document.body,
   );
 }
@@ -83,9 +87,36 @@ interface Marker {
   kind: MarkerKind;
   startNode: Comment;
   endNode: Comment | null;
-  comment: string;
 }
 
+/**
+ * Revive islands and stich together any server rendered content.
+ *
+ * Conceptually we're doing an inorder depth first search over the DOM
+ * to find all our comment nodes `<!--frsh-something-->` which act as
+ * a marker for islands or server rendered JSX (=slots in islands).
+ * Every island or server JSX has a start and an end marker, which
+ * means there is no _single_ root nodes for these elements.
+ * The hierarchy we need to construct for the virtual-dom tree might
+ * be rendered in a flattened manner in the DOM.
+ *
+ * Example:
+ *   <div>
+ *     <!--frsh-island:0-->
+ *     <!--frsh-slot:children-->
+ *     <p>server content</p>
+ *     <!--/frsh-slot:children-->
+ *     <!--/frsh-island:0-->
+ *   </div>
+ *
+ * Here we have a flat DOM structure, but from the virtual-dom
+ * perspective we should render:
+ *   <div> -> <Island> -> ServerComponent -> <p>server content</p>
+ *
+ * To solve this we're keeping track of the virtual-dom hierarchy
+ * in a stack-like manner, but do the actual iteration in a list-based
+ * fashion over an HTMLElement's children list.
+ */
 function _walkInner(
   islands: Record<string, ComponentType>,
   // deno-lint-ignore no-explicit-any
@@ -99,9 +130,6 @@ function _walkInner(
     const marker = markerStack.length > 0
       ? markerStack[markerStack.length - 1]
       : null;
-    const parentVNode = vnodeStack.length > 0
-      ? vnodeStack[vnodeStack.length - 1]
-      : null;
 
     // We use comment nodes to mark fresh islands and slots
     if (isCommentNode(sib)) {
@@ -112,13 +140,12 @@ function _walkInner(
           startNode: sib,
           endNode: null,
           kind: MarkerKind.Slot,
-          comment: sib.data,
         });
         // @ts-ignore TS gets confused
         vnodeStack.push(h(ServerComponent, { key: sib.data }));
       } else if (
         marker !== null && (sib.data.startsWith("/frsh") ||
-          marker.comment === sib.data)
+          marker.startNode.data === sib.data)
       ) {
         // We're closing either a slot or an island
         marker.endNode = sib;
@@ -129,19 +156,19 @@ function _walkInner(
           : null;
 
         if (marker.kind === MarkerKind.Slot) {
+          // If we're closing a slot than it's assumed that we're
+          // inside an island
           if (parent?.kind === MarkerKind.Island) {
             const vnode = vnodeStack.pop();
             // @ts-ignore TS is a little confused
             const wrapper = h(ServerComponent, { children: vnode });
 
-            const islandParent = vnodeStack.length > 0
-              ? vnodeStack[vnodeStack.length - 1]
-              : null;
-
             // For now only `props.children` is supported.
-            islandParent!.props.children = wrapper;
+            const islandParent = vnodeStack[vnodeStack.length - 1]!;
+            islandParent.props.children = wrapper;
           }
 
+          // Remove markers
           marker.startNode.remove();
           sib = sib.nextSibling;
           marker.endNode.remove();
@@ -162,15 +189,26 @@ function _walkInner(
 
             const vnode = vnodeStack.pop();
 
-            render(
-              vnode,
-              createRootFragment(
-                sib.parentNode! as HTMLElement,
-                children,
-                // deno-lint-ignore no-explicit-any
-              ) as any as HTMLElement,
-            );
+            const parentNode = sib.parentNode! as HTMLElement;
+            const _render = () =>
+              render(
+                vnode,
+                createRootFragment(
+                  parentNode,
+                  children,
+                  // deno-lint-ignore no-explicit-any
+                ) as any as HTMLElement,
+              );
 
+            "scheduler" in window
+              // `scheduler.postTask` is async but that can easily
+              // fire in the background. We don't want waiting for
+              // the hydration of an island block us.
+              // @ts-ignore scheduler API is not in types yet
+              ? scheduler!.postTask(_render)
+              : setTimeout(_render, 0);
+
+            // Remove markers
             marker.startNode.remove();
             sib = sib.nextSibling;
             marker.endNode.remove();
@@ -179,11 +217,8 @@ function _walkInner(
             // Treat the island as a standard component when it
             // has an island parent or a slot parent
             const vnode = vnodeStack.pop();
-            const parent = vnodeStack.length > 0
-              ? vnodeStack[vnodeStack.length - 1]
-              : null;
-
-            addPropsChild(parent!, vnode);
+            const parent = vnodeStack[vnodeStack.length - 1]!;
+            addPropsChild(parent, vnode);
           }
         }
       } else if (sib.data.startsWith("frsh")) {
@@ -197,24 +232,28 @@ function _walkInner(
             startNode: sib,
             endNode: null,
             kind: MarkerKind.Island,
-            comment: sib.data,
           });
           const vnode = h(islands[id], islandProps);
           vnodeStack.push(vnode);
         }
       }
     } else if (isTextNode(sib)) {
+      const parentVNode = vnodeStack[vnodeStack.length - 1]!;
       if (
-        marker !== null && marker.kind === MarkerKind.Slot &&
-        parentVNode !== null
+        marker !== null && marker.kind === MarkerKind.Slot
       ) {
         addPropsChild(parentVNode, sib.data);
       }
     } else {
+      const parentVNode = vnodeStack[vnodeStack.length - 1];
       if (
-        parentVNode !== null && marker !== null &&
+        marker !== null &&
         marker.kind === MarkerKind.Slot && isElementNode(sib)
       ) {
+        // Parse the server rendered DOM into vnodes that we can
+        // attach to the virtual-dom tree. In the future, once
+        // Preact supports a way to skip over subtrees, this
+        // can be dropped.
         const childLen = sib.childNodes.length;
         const props: Record<string, unknown> = {
           children: childLen <= 1 ? null : [],
@@ -224,6 +263,7 @@ function _walkInner(
           props[attr.nodeName] = attr.nodeValue;
         }
         const vnode = h(sib.localName, props);
+        // FIXME: Multiple children?
         parentVNode.props.children = vnode;
         vnodeStack.push(vnode);
       }
@@ -248,9 +288,4 @@ const originalHook = options.vnode;
 options.vnode = (vnode) => {
   assetHashingHook(vnode);
   if (originalHook) originalHook(vnode);
-};
-const originalUnmount = options.unmount;
-options.unmount = (vnode) => {
-  console.error("UNMOUNTING", vnode);
-  if (originalUnmount) originalUnmount(vnode);
 };
