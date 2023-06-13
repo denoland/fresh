@@ -42,8 +42,6 @@ function isElementNode(node: Node): node is HTMLElement {
   return node.nodeType === Node.ELEMENT_NODE;
 }
 
-const FRESH_MARKER_REG = /^\s*frsh-(.*)\s*$/;
-
 // deno-lint-ignore no-explicit-any
 export function revive(islands: Record<string, ComponentType>, props: any[]) {
   _walkInner(
@@ -85,6 +83,12 @@ const enum MarkerKind {
 
 interface Marker {
   kind: MarkerKind;
+  // We can remove this once we drop support for RTS <6.1.0 where
+  // we rendered incorrect comments leading to `!--` and `--` being
+  // included in the comment text. Therefore this is a normalized
+  // string representing the actual intended comment value which makes
+  // a bunch of stuff easier.
+  text: string;
   startNode: Comment;
   endNode: Comment | null;
 }
@@ -133,19 +137,28 @@ function _walkInner(
 
     // We use comment nodes to mark fresh islands and slots
     if (isCommentNode(sib)) {
-      if (sib.data.startsWith("frsh-slot")) {
+      let comment = sib.data;
+      if (comment.startsWith("!--")) {
+        comment = comment.slice(3, -2);
+      }
+
+      if (comment.startsWith("frsh-slot")) {
         // Note: Nested slots are not possible as they're flattened
         // already on the server.
         markerStack.push({
           startNode: sib,
+          text: comment,
           endNode: null,
           kind: MarkerKind.Slot,
         });
         // @ts-ignore TS gets confused
-        vnodeStack.push(h(ServerComponent, { key: sib.data }));
+        vnodeStack.push(h(ServerComponent, { key: comment }));
       } else if (
-        marker !== null && (sib.data.startsWith("/frsh") ||
-          marker.startNode.data === sib.data)
+        marker !== null && (
+          comment.startsWith("/frsh") ||
+          // Check for old Preact RTS
+          marker.text === comment
+        )
       ) {
         // We're closing either a slot or an island
         marker.endNode = sib;
@@ -221,21 +234,19 @@ function _walkInner(
             addPropsChild(parent, vnode);
           }
         }
-      } else if (sib.data.startsWith("frsh")) {
+      } else if (comment.startsWith("frsh")) {
         // We're opening a new island
-        const match = sib.data.match(FRESH_MARKER_REG);
-        if (match && match.length > 0) {
-          const [id, n] = match[1].split(":");
-          const islandProps = props[Number(n)];
+        const [id, n] = comment.slice(5).split(":");
+        const islandProps = props[Number(n)];
 
-          markerStack.push({
-            startNode: sib,
-            endNode: null,
-            kind: MarkerKind.Island,
-          });
-          const vnode = h(islands[id], islandProps);
-          vnodeStack.push(vnode);
-        }
+        markerStack.push({
+          startNode: sib,
+          endNode: null,
+          text: comment,
+          kind: MarkerKind.Island,
+        });
+        const vnode = h(islands[id], islandProps);
+        vnodeStack.push(vnode);
       }
     } else if (isTextNode(sib)) {
       const parentVNode = vnodeStack[vnodeStack.length - 1]!;
