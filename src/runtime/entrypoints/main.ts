@@ -160,14 +160,12 @@ function _walkInner(
           // inside an island
           if (parent?.kind === MarkerKind.Island) {
             const vnode = vnodeStack.pop();
-            // @ts-ignore TS is a little confused
-            const wrapper = h(ServerComponent, { children: vnode });
 
             // For now only `props.children` is supported.
             const islandParent = vnodeStack[vnodeStack.length - 1]!;
             // Overwrite serialized `{__slot: "children"}` with the
             // actual vnode child.
-            islandParent.props.children = wrapper;
+            islandParent.props.children = vnode;
           }
 
           // Remove markers
