@@ -48,7 +48,7 @@ function isSignal(x: any): x is Signal {
 // deno-lint-ignore no-explicit-any
 function isVNode(x: any): x is VNode {
   return x !== null && typeof x === "object" && "type" in x && "ref" in x &&
-    "_k" in x &&
+    "__k" in x &&
     isValidElement(x);
 }
 
@@ -117,6 +117,7 @@ export function serialize(data: unknown): SerializeResult {
         }
         return 0;
       } else if (isVNode(value)) {
+        requiresDeserializer = true;
         const res = { __slot: key };
         parentStack.push(res);
         return res;
