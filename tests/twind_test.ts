@@ -9,7 +9,7 @@ import { startFreshServer } from "./test_utils.ts";
  * Returns a page instance and a method to terminate the server.
  */
 async function setUpServer(path: string) {
-  const { lines, serverProcess } = await startFreshServer({
+  const { lines, serverProcess, address } = await startFreshServer({
     args: ["run", "-A", path],
   });
 
@@ -40,7 +40,7 @@ async function setUpServer(path: string) {
     }
   };
 
-  return { page: page, terminate: terminate };
+  return { page: page, terminate: terminate, address };
 }
 
 /**
@@ -96,7 +96,7 @@ Deno.test({
       }
     }
 
-    await page.goto("http://localhost:8000/static", {
+    await page.goto(`${server.address}/static`, {
       waitUntil: "networkidle2",
     });
 
@@ -167,7 +167,7 @@ Deno.test({
       assert(false, `${numDuplicates} cssrules are duplicated`);
     }
 
-    await page.goto("http://localhost:8000/check-duplication", {
+    await page.goto(`${server.address}/check-duplication`, {
       waitUntil: "networkidle2",
     });
 
@@ -275,7 +275,7 @@ Deno.test({
       );
     }
 
-    await page.goto("http://localhost:8000/insert-cssrules", {
+    await page.goto(`${server.address}/insert-cssrules`, {
       waitUntil: "networkidle2",
     });
 
