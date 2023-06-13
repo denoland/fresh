@@ -128,7 +128,7 @@ export async function start(routes: Manifest, opts: StartOptions = {}) {
 async function bootServer(handler: ServeHandler, opts: StartOptions) {
   if (opts.experimentalDenoServe === true) {
     // @ts-ignore as `Deno.serve` is still unstable.
-    await Deno.serve({ ...opts, handler });
+    await Deno.serve({ ...opts, handler }).finished;
   } else {
     await serve(handler, opts);
   }
