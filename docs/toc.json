@@ -42,7 +42,8 @@
     "pages": [
       ["modifying-the-head", "Modifying the <head>"],
       ["setting-the-language", "Setting the language"],
-      ["writing-tests", "Writing Tests"]
+      ["writing-tests", "Writing Tests"],
+      ["changing-the-src-dir", "Changing the source directory"]
     ]
   }
 }
