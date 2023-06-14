@@ -402,3 +402,29 @@ Deno.test({
   sanitizeOps: false,
   sanitizeResources: false,
 });
+
+Deno.test({
+  name: "serialize inner island props",
+
+  async fn(_t) {
+    await withPageName(
+      "./tests/fixture_island_nesting/main.ts",
+      async (page, address) => {
+        await page.goto(`${address}/island_nested_props`, {
+          waitUntil: "networkidle2",
+        });
+        await page.waitForSelector(".island");
+
+        await delay(100);
+        const text = await page.$eval(
+          ".island .island p",
+          (el) => el.textContent,
+        );
+        assertEquals(text, "it works");
+      },
+    );
+  },
+
+  sanitizeOps: false,
+  sanitizeResources: false,
+});

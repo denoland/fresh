@@ -8,8 +8,10 @@ import * as $2 from "./routes/island_jsx_child.tsx";
 import * as $3 from "./routes/island_jsx_children.tsx";
 import * as $4 from "./routes/island_jsx_island_jsx.tsx";
 import * as $5 from "./routes/island_jsx_text.tsx";
-import * as $6 from "./routes/island_siblings.tsx";
+import * as $6 from "./routes/island_nested_props.tsx";
+import * as $7 from "./routes/island_siblings.tsx";
 import * as $$0 from "./islands/Island.tsx";
+import * as $$1 from "./islands/IslandWithProps.tsx";
 
 const manifest = {
   routes: {
@@ -19,10 +21,12 @@ const manifest = {
     "./routes/island_jsx_children.tsx": $3,
     "./routes/island_jsx_island_jsx.tsx": $4,
     "./routes/island_jsx_text.tsx": $5,
-    "./routes/island_siblings.tsx": $6,
+    "./routes/island_nested_props.tsx": $6,
+    "./routes/island_siblings.tsx": $7,
   },
   islands: {
     "./islands/Island.tsx": $$0,
+    "./islands/IslandWithProps.tsx": $$1,
   },
   baseUrl: import.meta.url,
 };
