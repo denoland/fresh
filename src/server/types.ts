@@ -19,6 +19,14 @@ export interface FreshOptions {
   render?: RenderFunction;
   plugins?: Plugin[];
   staticDir?: string;
+  router?: RouterOptions;
+}
+
+export interface RouterOptions {
+  /**
+   *  @default [false]
+   */
+  trailingSlash?: boolean;
 }
 
 export type RenderFunction = (

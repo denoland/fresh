@@ -33,6 +33,7 @@ import {
   RenderOptions,
   Route,
   RouteModule,
+  RouterOptions,
   UnknownPage,
   UnknownPageModule,
 } from "./types.ts";
@@ -86,6 +87,7 @@ export class ServerContext {
   #error: ErrorPage;
   #plugins: Plugin[];
   #builder: Builder | Promise<BuildSnapshot> | BuildSnapshot;
+  #routerOptions: RouterOptions;
 
   constructor(
     routes: Route[],
@@ -100,6 +102,7 @@ export class ServerContext {
     configPath: string,
     jsxConfig: JSXConfig,
     dev: boolean = isDevMode(),
+    routerOptions: RouterOptions,
   ) {
     this.#routes = routes;
     this.#islands = islands;
@@ -118,6 +121,7 @@ export class ServerContext {
       dev: this.#dev,
       jsxConfig,
     });
+    this.#routerOptions = routerOptions;
   }
 
   /**
@@ -345,6 +349,7 @@ export class ServerContext {
       configPath,
       jsxConfig,
       dev,
+      opts.router ?? DEFAULT_ROUTER_OPTIONS,
     );
   }
 
@@ -359,12 +364,16 @@ export class ServerContext {
       this.#middlewares,
       handlers.errorHandler,
     );
+    const trailingSlashEnabled = this.#routerOptions?.trailingSlash;
     return async function handler(req: Request, connInfo: ConnInfo) {
       // Redirect requests that end with a trailing slash to their non-trailing
       // slash counterpart.
       // Ex: /about/ -> /about
       const url = new URL(req.url);
-      if (url.pathname.length > 1 && url.pathname.endsWith("/")) {
+      if (
+        url.pathname.length > 1 && url.pathname.endsWith("/") &&
+        !trailingSlashEnabled
+      ) {
         // Remove trailing slashes
         const path = url.pathname.replace(/\/+$/, "");
         const location = `${path}${url.search}`;
@@ -372,6 +381,8 @@ export class ServerContext {
           status: Status.TemporaryRedirect,
           headers: { location },
         });
+      } else if (trailingSlashEnabled && !url.pathname.endsWith("/")) {
+        return Response.redirect(url.href + "/", Status.PermanentRedirect);
       }
 
       return await withMiddlewares(req, connInfo, inner);
@@ -606,6 +617,9 @@ export class ServerContext {
     const createUnknownRender = genRender(this.#notFound, Status.NotFound);
 
     for (const route of this.#routes) {
+      if (this.#routerOptions.trailingSlash && route.pattern != "/") {
+        route.pattern += "/";
+      }
       const createRender = genRender(route, Status.OK);
       if (typeof route.handler === "function") {
         routes[route.pattern] = {
@@ -776,6 +790,10 @@ export class ServerContext {
 
 const DEFAULT_RENDER_FN: RenderFunction = (_ctx, render) => {
   render();
+};
+
+const DEFAULT_ROUTER_OPTIONS: RouterOptions = {
+  trailingSlash: false,
 };
 
 const DEFAULT_APP: AppModule = {
