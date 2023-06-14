@@ -49,10 +49,7 @@ Here's what the diff of `deno.json` looks like:
      "$fresh/": "file:///Users/reed/code/fresh/",
 ```
 
-(An astute observer would note that I actually generated this test project from
-my local build of Fresh, via `deno run -A -r ~/code/fresh/init.ts`).
-
-The final result of running `tree` looks like this:
+The resulting file structure looks like this:
 
 ```
 .
