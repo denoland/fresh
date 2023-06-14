@@ -118,7 +118,9 @@ export function serialize(data: unknown): SerializeResult {
         return 0;
       } else if (isVNode(value)) {
         requiresDeserializer = true;
-        const res = { __slot: key };
+        // No need to serialize JSX as we pick that up from
+        // the rendered HTML in the browser.
+        const res = null;
         parentStack.push(res);
         return res;
       } else {
