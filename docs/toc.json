@@ -42,7 +42,8 @@
     "pages": [
       ["modifying-the-head", "Modifying the <head>"],
       ["setting-the-language", "Setting the language"],
-      ["writing-tests", "Writing tests"]
+      ["writing-tests", "Writing tests"],
+      ["init-the-server", "Initializing the server"]
     ]
   }
 }
