@@ -6,8 +6,7 @@
 
 import { start } from "$fresh/server.ts";
 import routes from "./fresh.gen.ts";
-import options from "./options.ts";
 
 const experimentalDenoServe = Deno.args.includes("--experimental-deno-serve");
 
-await start(routes, { ...options, experimentalDenoServe });
+await start(routes, { experimentalDenoServe });
