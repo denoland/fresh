@@ -420,6 +420,31 @@ if (!supportsUnstableComments) {
   );
 }
 
+function wrapWithMarker(vnode: ComponentChildren, markerText: string) {
+  // Newer versions of preact-render-to-string allow you to render comments
+  if (supportsUnstableComments) {
+    return h(
+      Fragment,
+      null,
+      h(Fragment, {
+        // @ts-ignore unstable property is not typed
+        UNSTABLE_comment: markerText,
+      }),
+      vnode,
+      h(Fragment, {
+        // @ts-ignore unstable property is not typed
+        UNSTABLE_comment: "/" + markerText,
+      }),
+    );
+  } else {
+    return h(
+      `!--${markerText}--`,
+      null,
+      vnode,
+    );
+  }
+}
+
 // Set up a preact option hook to track when vnode with custom functions are
 // created.
 const ISLANDS: Island[] = [];
@@ -440,31 +465,24 @@ options.vnode = (vnode) => {
       ENCOUNTERED_ISLANDS.add(island);
       vnode.type = (props) => {
         ignoreNext = true;
+
+        // Only passing children JSX to islands is supported for now
+        if ("children" in props) {
+          const children = props.children;
+          // @ts-ignore nonono
+          props.children = wrapWithMarker(
+            children,
+            `frsh-slot-${island.id}:children`,
+          );
+        }
+
         const child = h(originalType, props);
         ISLAND_PROPS.push(props);
 
-        // Newer versions of preact-render-to-string allow you to render comments
-        if (supportsUnstableComments) {
-          return h(
-            Fragment,
-            null,
-            h(Fragment, {
-              // @ts-ignore unstable property is not typed
-              UNSTABLE_comment: `frsh-${island.id}:${ISLAND_PROPS.length - 1}`,
-            }),
-            child,
-            h(Fragment, {
-              // @ts-ignore unstable property is not typed
-              UNSTABLE_comment: `/frsh-${island.id}:${ISLAND_PROPS.length - 1}`,
-            }),
-          );
-        } else {
-          return h(
-            `!--frsh-${island.id}:${ISLAND_PROPS.length - 1}--`,
-            null,
-            child,
-          );
-        }
+        return wrapWithMarker(
+          child,
+          `frsh-${island.id}:${ISLAND_PROPS.length - 1}`,
+        );
       };
     }
   }
