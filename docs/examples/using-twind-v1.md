@@ -57,5 +57,5 @@ export default {
 };
 ```
 
-to see what other presets exist, you can go to the
+To see what other presets exist, you can go to the
 [twind docs](https://twind.style/presets).
