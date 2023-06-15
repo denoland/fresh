@@ -21,7 +21,8 @@ export default function MyIsland() {
 
   return (
     <div>
-      Counter is at {count}. <button onClick={() => count.value += 1}>+</button>
+      Counter is at {count}.{" "}
+      <button onClick={() => (count.value += 1)}>+</button>
     </div>
   );
 }
@@ -65,15 +66,15 @@ export default function Home() {
 }
 ```
 
-We can deduce which parts were rendered by the server and which parts by an
+We can deduce which parts were rendered by the server and which parts where rendered by an
 island from the HTML alone. It contains all the information we need, which
 allows us to skip the work of having to send a serialized version of
 `props.children` to the browser.
 
 ### Nesting islands
 
-Island can be nested within other islands as well. In that scenario they act
-like a normal Preact component, but still receive the serialized props if they
+Islands can be nested within other islands as well. In that scenario they act
+like a normal Preact component, but still receive the serialized props if
 any were present.
 
 ```jsx
@@ -93,7 +94,7 @@ export default function Home() {
 ```
 
 In essence, fresh allows you to mix static and interactive parts in your app in
-a way that's most optimal for your use case. We'll keep sending only the
+a way that's most optimal for your use app. We'll keep sending only the
 JavaScript that is needed for the islands to the browser.
 
 ```jsx
