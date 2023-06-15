@@ -22,7 +22,9 @@ import twindConfig from "./twind.config.ts";
 await start(manifest, { plugins: [twindPlugin(twindConfig)] });
 ```
 
-The template generates a Twind v0 project by default. If you want to use Twind v1 you can follow this guide. First of all, change the import path to use the `twindv1` plugin:
+The template generates a Twind v0 project by default. If you want to use Twind
+v1 you can follow this guide. First of all, change the import path to use the
+`twindv1` plugin:
 
 ```ts
 /// <reference no-default-lib="true" />
