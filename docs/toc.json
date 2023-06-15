@@ -31,7 +31,8 @@
       ["deployment", "Deployment"],
       ["plugins", "Plugins"],
       ["updating", "Updating Fresh"],
-      ["app-wrapper", "Application wrapper"]
+      ["app-wrapper", "Application wrapper"],
+      ["server-configuration", "Server configuration"]
     ]
   },
   "integrations": {
@@ -42,7 +43,8 @@
     "pages": [
       ["modifying-the-head", "Modifying the <head>"],
       ["setting-the-language", "Setting the language"],
-      ["writing-tests", "Writing tests"]
+      ["writing-tests", "Writing tests"],
+      ["changing-the-src-dir", "Changing the source directory"]
     ]
   }
 }
