@@ -54,16 +54,15 @@ export default function Countdown(props: { target: string }) {
     return () => clearInterval(timer);
   }, [props.target]);
 
+  const secondsLeft = Math.floor((target.getTime() - now.value.getTime()) / 1000);
+
   // If the target date has passed, we stop counting down.
-  if (now.value > target) {
+  if (secondsLeft <= 0) {
     return <span>🎉</span>;
   }
 
   // Otherwise, we format the remaining time using `Intl.RelativeTimeFormat` and
   // render it.
-  const secondsLeft = Math.floor(
-    (target.getTime() - now.value.getTime()) / 1000,
-  );
   return <span>{timeFmt.format(secondsLeft, "seconds")}</span>;
 }
 ```
