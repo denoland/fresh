@@ -66,16 +66,16 @@ export default function Home() {
 }
 ```
 
-We can deduce which parts were rendered by the server and which parts where rendered by an
-island from the HTML alone. It contains all the information we need, which
-allows us to skip the work of having to send a serialized version of
+We can deduce which parts were rendered by the server and which parts where
+rendered by an island from the HTML alone. It contains all the information we
+need, which allows us to skip the work of having to send a serialized version of
 `props.children` to the browser.
 
 ### Nesting islands
 
 Islands can be nested within other islands as well. In that scenario they act
-like a normal Preact component, but still receive the serialized props if
-any were present.
+like a normal Preact component, but still receive the serialized props if any
+were present.
 
 ```jsx
 // file: /route/index.tsx
