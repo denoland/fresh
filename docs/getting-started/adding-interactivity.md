@@ -55,7 +55,7 @@ export default function Countdown(props: { target: string }) {
   }, [props.target]);
 
   // If the target date has passed, we stop counting down.
-  if (now > target) {
+  if (now.value > target) {
     return <span>🎉</span>;
   }
 
