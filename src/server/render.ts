@@ -1,5 +1,14 @@
 import { renderToString } from "preact-render-to-string";
-import { ComponentChildren, ComponentType, Fragment, h, options } from "preact";
+import {
+  Component,
+  ComponentChildren,
+  ComponentType,
+  Fragment,
+  h,
+  Options as PreactOptions,
+  options as preactOptions,
+  VNode,
+} from "preact";
 import {
   AppModule,
   ErrorPage,
@@ -19,6 +28,16 @@ import { bundleAssetUrl } from "./constants.ts";
 import { assetHashingHook } from "../runtime/utils.ts";
 import { htmlEscapeJsonString } from "./htmlescape.ts";
 import { serialize } from "./serializer.ts";
+
+// These hooks are long stable, but when we originally added them we
+// weren't sure if they should be public.
+export interface AdvancedPreactOptions extends PreactOptions {
+  /** Attach a hook that is invoked after a tree was mounted or was updated. */
+  __c?(vnode: VNode, commitQueue: Component[]): void;
+  /** Attach a hook that is invoked before a vnode has rendered. */
+  __r?(vnode: VNode): void;
+}
+const options = preactOptions as AdvancedPreactOptions;
 
 export interface RenderOptions<Data> {
   route: Route<Data> | UnknownPage | ErrorPage;
@@ -450,18 +469,51 @@ function wrapWithMarker(vnode: ComponentChildren, markerText: string) {
 const ISLANDS: Island[] = [];
 const ENCOUNTERED_ISLANDS: Set<Island> = new Set([]);
 let ISLAND_PROPS: unknown[] = [];
+
+// Keep track of which component rendered which vnode. This allows us
+// to detect when an island is rendered within another instead of being
+// passed as children.
+let ownerStack: VNode[] = [];
+const islandOwners = new Map<VNode, VNode>();
+
 const originalHook = options.vnode;
 let ignoreNext = false;
 options.vnode = (vnode) => {
   assetHashingHook(vnode);
   const originalType = vnode.type as ComponentType<unknown>;
+
+  // Use a labelled statement that allows ous to break out of it
+  // whilst still continuing execution. We still want to call previous
+  // `options.vnode` hooks if there were any, otherwise we'd break
+  // the change for other plugins hooking into Preact.
+  patchIslands:
   if (typeof vnode.type === "function") {
     const island = ISLANDS.find((island) => island.component === originalType);
     if (island) {
+      const hasOwners = ownerStack.length > 0;
+      if (hasOwners) {
+        const prevOwner = ownerStack[ownerStack.length - 1];
+        islandOwners.set(vnode, prevOwner);
+      }
+
+      // Check if we already patched this component
       if (ignoreNext) {
         ignoreNext = false;
-        return;
+        break patchIslands;
       }
+
+      // Check if an island is rendered inside another island, not just
+      // passed as a child. Example:
+      //   function Island() {}
+      //     return <OtherIsland />
+      //   }
+      if (hasOwners) {
+        const prevOwner = ownerStack[ownerStack.length - 1];
+        if (islandOwners.has(prevOwner)) {
+          break patchIslands;
+        }
+      }
+
       ENCOUNTERED_ISLANDS.add(island);
       vnode.type = (props) => {
         ignoreNext = true;
@@ -487,4 +539,31 @@ options.vnode = (vnode) => {
     }
   }
   if (originalHook) originalHook(vnode);
+};
+
+// Keep track of owners
+const oldDiffed = options.diffed;
+const oldRender = options.__r;
+const oldCommit = options.__c;
+options.__r = (vnode) => {
+  if (
+    typeof vnode.type === "function" &&
+    vnode.type !== Fragment
+  ) {
+    ownerStack.push(vnode);
+  }
+  oldRender?.(vnode);
+};
+options.diffed = (vnode) => {
+  if (typeof vnode.type === "function") {
+    if (vnode.type !== Fragment) {
+      ownerStack.pop();
+    }
+  }
+  oldDiffed?.(vnode);
+};
+options.__c = (vnode, queue) => {
+  oldCommit?.(vnode, queue);
+  ownerStack = [];
+  islandOwners.clear();
 };
