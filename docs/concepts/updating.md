@@ -18,10 +18,11 @@ For the most part these pieces can be updated independently. Certain versions of
 Fresh may require a minimum version of a given dependency. This is documented
 below.
 
-| Fresh version | Preact           | preact-render-to-string | Deno      |
-| ------------- | ---------------- | ----------------------- | --------- |
-| 1.0.0-1.0.2   | >=10.8.1 <11.0.0 | >=5.2.0 <6.0.0          | >= 1.23.0 |
-| 1.1.0-1.1.5   | >=10.8.1 <11.0.0 | >=5.2.0 <6.0.0          | >= 1.25.0 |
+| Fresh version | Preact            | preact-render-to-string | Deno      |
+| ------------- | ----------------- | ----------------------- | --------- |
+| 1.0.0-1.0.2   | >=10.8.1 <11.0.0  | >=5.2.0 <6.0.0          | >= 1.23.0 |
+| 1.1.0-1.1.5   | >=10.8.1 <11.0.0  | >=5.2.0 <6.0.0          | >= 1.25.0 |
+| 1.2.0         | >=10.15.0 <11.0.0 | >=6.1.0                 | >= 1.25.0 |
 
 ## Updating dependencies
 
