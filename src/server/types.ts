@@ -24,7 +24,8 @@ export interface FreshOptions {
 
 export interface RouterOptions {
   /**
-   *  @default [false]
+   *  Controls whether Fresh will append a trailing slash to the URL.
+   *  @default {false}
    */
   trailingSlash?: boolean;
 }
