@@ -50,7 +50,7 @@ export type RenderFunction = (
 
 export interface RouterOptions {
   /**
-   *  @default [false]
+   *  @default {false}
    */
   trailingSlash?: boolean;
 }
