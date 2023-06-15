@@ -10,3 +10,5 @@ like to see here, please open
 
 - [Modifying the `<head>`](./examples/modifying-the-head)
 - [Setting the language](./examples/setting-the-language)
+- [Writing tests](./examples/writing-tests)
+- [Changing the source directory](./examples/changing-the-src-dir)

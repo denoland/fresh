@@ -16,6 +16,7 @@
  *
  * The corresponding deserializer is in `src/runtime/deserializer.ts`.
  */
+import { isValidElement, VNode } from "preact";
 import { KEY } from "../runtime/deserializer.ts";
 
 interface SerializeResult {
@@ -42,6 +43,13 @@ function isSignal(x: any): x is Signal {
     typeof x.peek === "function" &&
     "value" in x
   );
+}
+
+// deno-lint-ignore no-explicit-any
+function isVNode(x: any): x is VNode {
+  return x !== null && typeof x === "object" && "type" in x && "ref" in x &&
+    "__k" in x &&
+    isValidElement(x);
 }
 
 export function serialize(data: unknown): SerializeResult {
@@ -108,6 +116,13 @@ export function serialize(data: unknown): SerializeResult {
           referenceArr.push(currentPath);
         }
         return 0;
+      } else if (isVNode(value)) {
+        requiresDeserializer = true;
+        // No need to serialize JSX as we pick that up from
+        // the rendered HTML in the browser.
+        const res = null;
+        parentStack.push(res);
+        return res;
       } else {
         seen.set(value, currentPath);
       }

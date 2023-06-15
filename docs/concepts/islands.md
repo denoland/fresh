@@ -21,7 +21,8 @@ export default function MyIsland() {
 
   return (
     <div>
-      Counter is at {count}. <button onClick={() => count.value += 1}>+</button>
+      Counter is at {count}.{" "}
+      <button onClick={() => (count.value += 1)}>+</button>
     </div>
   );
 }
@@ -39,14 +40,78 @@ Fresh can serialize the following types of values:
 - Plain objects with string keys and serializable values
 - Arrays containing serializable values
 - Uint8Array
+- JSX Elements (restricted to `props.children`)
 - Preact Signals (if the inner value is serializable)
 
 Circular references are supported. If an object or signal is referenced multiple
 times, it is only serialized once and the references are restored upon
-deserialization.
+deserialization. Passing complex objects like `Date`, custom classes, or
+functions is not supported.
 
-Passing complex objects like `Date`, custom classes, or functions is not
-supported. This means that it is not possible to pass `children` to an island,
-as `children` are VNodes, which are not serializable.
+## Passing JSX to islands
 
-It is also not supported to nest islands within other islands.
+Islands support passing JSX elements via the `children` property. This allows
+you to pass static content rendered by the server to an island in the browser.
+
+```jsx
+// file: /route/index.tsx
+import MyIsland from "../islands/my-island.tsx";
+
+export default function Home() {
+  return (
+    <MyIsland>
+      <p>This text is rendered on the server</p>
+    </MyIsland>
+  );
+}
+```
+
+We can deduce which parts were rendered by the server and which parts where
+rendered by an island from the HTML alone. It contains all the information we
+need, which allows us to skip the work of having to send a serialized version of
+`props.children` to the browser.
+
+### Nesting islands
+
+Islands can be nested within other islands as well. In that scenario they act
+like a normal Preact component, but still receive the serialized props if any
+were present.
+
+```jsx
+// file: /route/index.tsx
+import MyIsland from "../islands/my-island.tsx";
+import OtherIsland from "../islands/other-island.tsx";
+
+export default function Home() {
+  return (
+    <MyIsland>
+      <OtherIsland foo="this prop will be serialized">
+        <p>This text is rendered on the server</p>
+      </OtherIsland>
+    </MyIsland>
+  );
+}
+```
+
+In essence, fresh allows you to mix static and interactive parts in your app in
+a way that's most optimal for your use app. We'll keep sending only the
+JavaScript that is needed for the islands to the browser.
+
+```jsx
+// file: /route/index.tsx
+import MyIsland from "../islands/my-island.tsx";
+import OtherIsland from "../islands/other-island.tsx";
+
+export default function Home() {
+  return (
+    <MyIsland>
+      <div>
+        <h1>Rendered by server</h1>
+        <OtherIsland>
+          <p>also rendered by server</p>
+        </OtherIsland>
+      </div>
+    </MyIsland>
+  );
+}
+```

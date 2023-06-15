@@ -62,7 +62,7 @@ Deno.test({
   name: "/with-island hydration",
   async fn(t) {
     // Preparation
-    const { lines, serverProcess } = await startFreshServer({
+    const { lines, serverProcess, address } = await startFreshServer({
       args: ["run", "-A", "./tests/fixture_plugin/main.ts"],
     });
 
@@ -71,7 +71,7 @@ Deno.test({
     const browser = await puppeteer.launch({ args: ["--no-sandbox"] });
     const page = await browser.newPage();
 
-    await page.goto("http://localhost:8000/with-island", {
+    await page.goto(`${address}/with-island`, {
       waitUntil: "networkidle2",
     });
 
