@@ -1,4 +1,32 @@
-import { delay, Page, puppeteer, TextLineStream } from "./deps.ts";
+import {
+  delay,
+  DenoDir,
+  join,
+  Page,
+  puppeteer,
+  PUPPETEER_REVISIONS,
+  puppeteerBrowsers,
+} from "./deps.ts";
+import { TextLineStream } from "./deps.ts";
+
+export async function pptrLaunch() {
+  const dir = new DenoDir();
+  const path = join(
+    dir.root,
+    "puppeteer",
+    "chrome",
+    PUPPETEER_REVISIONS.chrome,
+  );
+  const install = await puppeteerBrowsers.install({
+    cacheDir: path,
+    browser: puppeteerBrowsers.Browser.CHROME,
+    buildId: PUPPETEER_REVISIONS.chrome,
+  });
+
+  return await puppeteer.launch({
+    executablePath: install.path,
+  });
+}
 
 export async function startFreshServer(options: Deno.CommandOptions) {
   const { serverProcess, lines, address } = await spawnServer(options);
@@ -66,7 +94,7 @@ export async function startFreshServerExpectErrors(
 export async function clickWhenListenerReady(page: Page, selector: string) {
   await page.waitForSelector(selector);
   await page.waitForFunction(
-    (sel) => {
+    (sel: string) => {
       const el = document.querySelector(sel)!;
 
       // Wait for Preact to have attached either a captured or non-captured
@@ -95,7 +123,7 @@ export async function waitForText(
 ) {
   await page.waitForSelector(selector);
   await page.waitForFunction(
-    (sel, value) => {
+    (sel: string, value: string) => {
       return document.querySelector(sel)!.textContent === value;
     },
     { timeout: 2000 },

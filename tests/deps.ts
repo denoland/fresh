@@ -18,4 +18,9 @@ export { retry } from "https://deno.land/std@0.193.0/async/retry.ts";
 export {
   default as puppeteer,
   Page,
-} from "https://deno.land/x/puppeteer@16.2.0/mod.ts";
+  /** @ts-ignore this does actually exist */
+  PUPPETEER_REVISIONS,
+} from "npm:puppeteer-core@20.7.1";
+export * as puppeteerBrowsers from "npm:@puppeteer/browsers@1.4.1";
+export { join } from "https://deno.land/std@0.190.0/path/mod.ts";
+export { DenoDir } from "https://deno.land/x/deno_cache@0.4.1/mod.ts";

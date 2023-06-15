@@ -107,7 +107,7 @@ Deno.test({
 
       await t.step("prevent XSS on Island", async () => {
         const bodyElem = await page.waitForSelector(`body`);
-        const value = await bodyElem?.evaluate((el) => el.getInnerHTML());
+        const value = await bodyElem?.evaluate((el) => el.innerHTML)!;
 
         assertStringIncludes(
           value,
