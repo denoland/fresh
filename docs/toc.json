@@ -31,8 +31,7 @@
       ["deployment", "Deployment"],
       ["plugins", "Plugins"],
       ["updating", "Updating Fresh"],
-      ["app-wrapper", "Application wrapper"],
-      ["server-configuration", "Server configuration"]
+      ["app-wrapper", "Application wrapper"]
     ]
   },
   "integrations": {
