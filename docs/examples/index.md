@@ -13,3 +13,4 @@ like to see here, please open
 - [Writing tests](./examples/writing-tests)
 - [Changing the source directory](./examples/changing-the-src-dir)
 - [Initializing the server](./examples/init-the-server)
+- [Using nonstandard Fresh](./examples/using-nonstandard-fresh)
