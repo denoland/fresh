@@ -19,6 +19,15 @@ export interface FreshOptions {
   render?: RenderFunction;
   plugins?: Plugin[];
   staticDir?: string;
+  router?: RouterOptions;
+}
+
+export interface RouterOptions {
+  /**
+   *  Controls whether Fresh will append a trailing slash to the URL.
+   *  @default {false}
+   */
+  trailingSlash?: boolean;
 }
 
 export type RenderFunction = (

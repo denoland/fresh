@@ -630,7 +630,7 @@ Deno.test("experimental Deno.serve", {
   ignore: Deno.build.os === "windows", // TODO: Deno.serve hang on Windows?
 }, async (t) => {
   // Preparation
-  const { serverProcess, lines } = await startFreshServer({
+  const { serverProcess, lines, address } = await startFreshServer({
     args: [
       "run",
       "-A",
@@ -643,7 +643,7 @@ Deno.test("experimental Deno.serve", {
   await delay(100);
 
   await t.step("ssr", async () => {
-    const resp = await fetch("http://localhost:8000");
+    const resp = await fetch(address);
     assert(resp);
     assertEquals(resp.status, Status.OK);
     assertEquals(resp.headers.get("content-type"), "text/html; charset=utf-8");
@@ -669,7 +669,7 @@ Deno.test("experimental Deno.serve", {
   });
 
   await t.step("static file", async () => {
-    const resp = await fetch("http://localhost:8000/foo.txt");
+    const resp = await fetch(`${address}/foo.txt`);
     assertEquals(resp.status, Status.OK);
     const body = await resp.text();
     assert(body.startsWith("bar"));
@@ -690,14 +690,14 @@ Deno.test("jsx pragma works", {
   sanitizeResources: false,
 }, async (t) => {
   // Preparation
-  const { serverProcess, lines } = await startFreshServer({
+  const { serverProcess, lines, address } = await startFreshServer({
     args: ["run", "-A", "./tests/fixture_jsx_pragma/main.ts"],
   });
 
   await delay(100);
 
   await t.step("ssr", async () => {
-    const resp = await fetch("http://localhost:8000");
+    const resp = await fetch(address);
     assertEquals(resp.status, Status.OK);
     const text = await resp.text();
     assertStringIncludes(text, "Hello World");
@@ -707,7 +707,7 @@ Deno.test("jsx pragma works", {
   const browser = await puppeteer.launch({ args: ["--no-sandbox"] });
   const page = await browser.newPage();
 
-  await page.goto("http://localhost:8000", {
+  await page.goto(address, {
     waitUntil: "networkidle2",
   });
 
@@ -726,15 +726,14 @@ Deno.test("preact/debug is active in dev mode", {
   sanitizeResources: false,
 }, async (t) => {
   // Preparation
-  const { serverProcess, lines } = await startFreshServer({
+  const { serverProcess, lines, address } = await startFreshServer({
     args: ["run", "-A", "./tests/fixture_render_error/main.ts"],
   });
 
   await delay(100);
-  const url = "http://localhost:8000";
 
   await t.step("SSR error is shown", async () => {
-    const resp = await fetch(url);
+    const resp = await fetch(address);
     assertEquals(resp.status, Status.InternalServerError);
     const text = await resp.text();
     assertStringIncludes(text, "Objects are not valid as a child");
@@ -743,7 +742,7 @@ Deno.test("preact/debug is active in dev mode", {
   const browser = await puppeteer.launch({ args: ["--no-sandbox"] });
   const page = await browser.newPage();
 
-  await page.goto(url, {
+  await page.goto(address, {
     waitUntil: "networkidle2",
   });
 
@@ -764,7 +763,7 @@ Deno.test("preloading javascript files", {
   sanitizeResources: false,
 }, async () => {
   // Preparation
-  const { serverProcess, lines } = await startFreshServer({
+  const { serverProcess, lines, address } = await startFreshServer({
     args: ["run", "-A", "./tests/fixture/main.ts"],
   });
 
@@ -773,13 +772,13 @@ Deno.test("preloading javascript files", {
 
   try {
     // request js file to start esbuild execution
-    await page.goto("http://localhost:8000", {
+    await page.goto(address, {
       waitUntil: "networkidle2",
     });
 
     await delay(5000); // wait running esbuild
 
-    await page.goto("http://localhost:8000", {
+    await page.goto(address, {
       waitUntil: "networkidle2",
     });
 

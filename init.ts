@@ -50,7 +50,7 @@ console.log(
 
 let unresolvedDirectory = Deno.args[0];
 if (flags._.length !== 1) {
-  const userInput = prompt("Projet Name", "fresh-project");
+  const userInput = prompt("Project Name", "fresh-project");
   if (!userInput) {
     error(help);
   }
@@ -304,6 +304,7 @@ const config = {
   lock: false,
   tasks: {
     start: "deno run -A --watch=static/,routes/ dev.ts",
+    update: "deno run -A -r https://fresh.deno.dev/update .",
   },
   imports: {} as Record<string, string>,
   compilerOptions: {

@@ -68,11 +68,10 @@ function HelloBar() {
   return (
     <a
       class="bg-green-400 text-black border(b green-500) p-3 text-center group"
-      href="https://deno.com/blog/fresh-1.1"
+      href="https://deno.com/blog/fresh-1.2"
     >
-      <b>Fresh v1.1</b> has been released with support for <b>automatic JSX</b>,
-      {" "}
-      <b>plugins</b>, <b>DevTools support</b>, and more!{"  "}
+      <b>Fresh v1.2</b> has been released with <b>improved islands</b>,{" "}
+      <b>preview npm: support</b>, and more!{"  "}
       <span class="group-hover:underline">→</span>
     </a>
   );
