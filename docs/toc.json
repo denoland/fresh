@@ -46,7 +46,8 @@
       ["writing-tests", "Writing tests"],
       ["changing-the-src-dir", "Changing the source directory"],
       ["init-the-server", "Initializing the server"],
-      ["using-fresh-canary-version", "Using Fresh canary version"]
+      ["using-fresh-canary-version", "Using Fresh canary version"],
+      ["sharing-state-between-islands", "Sharing state between islands"]
     ]
   }
 }

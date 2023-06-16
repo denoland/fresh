@@ -14,3 +14,4 @@ like to see here, please open
 - [Changing the source directory](./examples/changing-the-src-dir)
 - [Initializing the server](./examples/init-the-server)
 - [Using Fresh canary version](./examples/using-fresh-canary-version)
+- [Sharing state between islands](./examples/sharing-state-between-islands)
