@@ -14,7 +14,7 @@ island. The file must have a default export that is a regular Preact component.
 ```tsx
 // islands/MyIsland.tsx
 
-import type { Signal } from "@preact/signals";
+import { useSignal } from "@preact/signals";
 
 export default function MyIsland() {
   const count = useSignal(0);
