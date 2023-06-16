@@ -345,6 +345,37 @@ Deno.test({
 });
 
 Deno.test({
+  name: "render island inside island definition",
+
+  async fn(_t) {
+    await withPageName(
+      "./tests/fixture_island_nesting/main.ts",
+      async (page, address) => {
+        await page.goto(`${address}/island_in_island_definition`, {
+          waitUntil: "networkidle2",
+        });
+        await page.waitForSelector(".island");
+
+        await delay(100);
+        const text = await page.$eval(
+          ".island .island p",
+          (el) => el.textContent,
+        );
+        assertEquals(text, "it works");
+
+        // Check that there is no duplicated content which could happen
+        // when islands aren't initialized correctly
+        const pageText = await page.$eval("#page", (el) => el.textContent);
+        assertEquals(pageText, "it works");
+      },
+    );
+  },
+
+  sanitizeOps: false,
+  sanitizeResources: false,
+});
+
+Deno.test({
   name:
     "render island with JSX children that render another island with JSX children",
 
