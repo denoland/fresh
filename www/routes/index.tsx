@@ -210,16 +210,14 @@ function GettingStarted(props: { origin: string }) {
         To bootstrap a new project:
       </p>
 
-      <CopyArea>
-        {`deno run -A -r ${props.origin}`}
-      </CopyArea>
+      <CopyArea code={`deno run -A -r ${props.origin}`} />
 
       <p class="text-gray-600">
         Enter the newly created project directory and run the following command
         to start the development server:
       </p>
 
-      <CopyArea>{`deno task start`}</CopyArea>
+      <CopyArea code={`deno task start`} />
 
       <p class="text-gray-600">
         You can now open{" "}
