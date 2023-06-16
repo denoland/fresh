@@ -4,24 +4,24 @@ description: |
 ---
 
 Pretend you have a use case where you need to modify your project to use a
-nonstandard version of Fresh. Or you want to use a slightly different
-initialization script. This page has you covered.
+canary version of Fresh. Or you want to use a slightly different initialization
+script. This page has you covered.
 
-## Nonstandard Fresh in `deno.json`
+## Canary Fresh in `deno.json`
 
-### Latest commit
+### Specific commit
 
-Let's say you like living life in the fast lane, and want the latest and
-greatest from `main`. How can you modify your project to no longer use the
-current release, but instead the most recent commit? Just make the following
-changes to your `deno.json`:
+Let's say you like living life in the fast lane, and want a particular commit.
+How can you modify your project to no longer use the current release, but
+instead this one particular commit? Just make the following changes to your
+`deno.json`:
 
 ```diff
      "update": "deno run -A -r https://fresh.deno.dev/update ."
    },
    "imports": {
 -    "$fresh/": "https://deno.land/x/fresh@1.2.0/",
-+    "$fresh/": "https://raw.githubusercontent.com/denoland/fresh/main/",
++    "$fresh/": "https://raw.githubusercontent.com/denoland/fresh/the-particular-commit-hash-here/",
      "preact": "https://esm.sh/preact@10.15.1",
      "preact/": "https://esm.sh/preact@10.15.1/",
      "preact-render-to-string": "https://esm.sh/*preact-render-to-string@6.1.0",
@@ -62,7 +62,7 @@ deno run -A -r https://fresh.deno.dev/
 do it like this:
 
 ```sh
-deno run -A -r ~/code/fresh/init.ts
+deno run -A -r path/to/fresh/init.ts
 ```
 
 (or wherever your local code lives)
