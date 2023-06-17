@@ -90,3 +90,20 @@ export const handler = [
   },
 ];
 ```
+
+It should be noted that `middleware` has access to route parameters. If you're
+running a fictitious `routes/[tenant]/admin/_middleware.ts` like this:
+
+```ts
+import { MiddlewareHandlerContext } from "$fresh/server.ts";
+
+export async function handler(_req: Request, ctx: MiddlewareHandlerContext) {
+  const currentTenant = ctx.params.tenant;
+  //do something with the tenant
+  const resp = await ctx.next();
+  return resp;
+}
+```
+
+and the request is to `mysaas.com/acme/admin/`, then `currentTenant` will have
+the value of `acme` in your middleware.
