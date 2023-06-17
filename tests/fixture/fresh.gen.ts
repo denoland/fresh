@@ -23,18 +23,21 @@ import * as $17 from "./routes/islands/root_fragment.tsx";
 import * as $18 from "./routes/islands/root_fragment_conditional_first.tsx";
 import * as $19 from "./routes/layeredMdw/_middleware.ts";
 import * as $20 from "./routes/layeredMdw/layer2-no-mw/without_mw.ts";
-import * as $21 from "./routes/layeredMdw/layer2/_middleware.ts";
-import * as $22 from "./routes/layeredMdw/layer2/abc.ts";
-import * as $23 from "./routes/layeredMdw/layer2/index.ts";
-import * as $24 from "./routes/layeredMdw/layer2/layer3/[id].ts";
-import * as $25 from "./routes/layeredMdw/layer2/layer3/_middleware.ts";
-import * as $26 from "./routes/middleware_root.ts";
-import * as $27 from "./routes/not_found.ts";
-import * as $28 from "./routes/params.tsx";
-import * as $29 from "./routes/props/[id].tsx";
-import * as $30 from "./routes/static.tsx";
-import * as $31 from "./routes/status_overwrite.tsx";
-import * as $32 from "./routes/wildcard.tsx";
+import * as $21 from "./routes/layeredMdw/layer2-with-params/[tenantId]/[id].ts";
+import * as $22 from "./routes/layeredMdw/layer2-with-params/[tenantId]/_middleware.ts";
+import * as $23 from "./routes/layeredMdw/layer2-with-params/_middleware.ts";
+import * as $24 from "./routes/layeredMdw/layer2/_middleware.ts";
+import * as $25 from "./routes/layeredMdw/layer2/abc.ts";
+import * as $26 from "./routes/layeredMdw/layer2/index.ts";
+import * as $27 from "./routes/layeredMdw/layer2/layer3/[id].ts";
+import * as $28 from "./routes/layeredMdw/layer2/layer3/_middleware.ts";
+import * as $29 from "./routes/middleware_root.ts";
+import * as $30 from "./routes/not_found.ts";
+import * as $31 from "./routes/params.tsx";
+import * as $32 from "./routes/props/[id].tsx";
+import * as $33 from "./routes/static.tsx";
+import * as $34 from "./routes/status_overwrite.tsx";
+import * as $35 from "./routes/wildcard.tsx";
 import * as $$0 from "./islands/Counter.tsx";
 import * as $$1 from "./islands/ReturningNull.tsx";
 import * as $$2 from "./islands/RootFragment.tsx";
@@ -66,18 +69,21 @@ const manifest = {
     "./routes/islands/root_fragment_conditional_first.tsx": $18,
     "./routes/layeredMdw/_middleware.ts": $19,
     "./routes/layeredMdw/layer2-no-mw/without_mw.ts": $20,
-    "./routes/layeredMdw/layer2/_middleware.ts": $21,
-    "./routes/layeredMdw/layer2/abc.ts": $22,
-    "./routes/layeredMdw/layer2/index.ts": $23,
-    "./routes/layeredMdw/layer2/layer3/[id].ts": $24,
-    "./routes/layeredMdw/layer2/layer3/_middleware.ts": $25,
-    "./routes/middleware_root.ts": $26,
-    "./routes/not_found.ts": $27,
-    "./routes/params.tsx": $28,
-    "./routes/props/[id].tsx": $29,
-    "./routes/static.tsx": $30,
-    "./routes/status_overwrite.tsx": $31,
-    "./routes/wildcard.tsx": $32,
+    "./routes/layeredMdw/layer2-with-params/[tenantId]/[id].ts": $21,
+    "./routes/layeredMdw/layer2-with-params/[tenantId]/_middleware.ts": $22,
+    "./routes/layeredMdw/layer2-with-params/_middleware.ts": $23,
+    "./routes/layeredMdw/layer2/_middleware.ts": $24,
+    "./routes/layeredMdw/layer2/abc.ts": $25,
+    "./routes/layeredMdw/layer2/index.ts": $26,
+    "./routes/layeredMdw/layer2/layer3/[id].ts": $27,
+    "./routes/layeredMdw/layer2/layer3/_middleware.ts": $28,
+    "./routes/middleware_root.ts": $29,
+    "./routes/not_found.ts": $30,
+    "./routes/params.tsx": $31,
+    "./routes/props/[id].tsx": $32,
+    "./routes/static.tsx": $33,
+    "./routes/status_overwrite.tsx": $34,
+    "./routes/wildcard.tsx": $35,
   },
   islands: {
     "./islands/Counter.tsx": $$0,
