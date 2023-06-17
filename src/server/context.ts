@@ -46,6 +46,7 @@ import {
   EsbuildBuilder,
   JSXConfig,
 } from "../build/mod.ts";
+import { InternalRoute } from "./router.ts";
 
 interface RouterState {
   state: Record<string, unknown>;
@@ -363,6 +364,7 @@ export class ServerContext {
     const withMiddlewares = this.#composeMiddlewares(
       this.#middlewares,
       handlers.errorHandler,
+      router.getParamsAndRoute<RouterState>(handlers),
     );
     const trailingSlashEnabled = this.#routerOptions?.trailingSlash;
     return async function handler(req: Request, connInfo: ConnInfo) {
@@ -418,6 +420,12 @@ export class ServerContext {
   #composeMiddlewares(
     middlewares: MiddlewareRoute[],
     errorHandler: router.ErrorHandler<RouterState>,
+    paramsAndRoute: (
+      url: string,
+    ) => {
+      route: InternalRoute<RouterState> | undefined;
+      params: Record<string, string>;
+    },
   ) {
     return (
       req: Request,
@@ -429,6 +437,7 @@ export class ServerContext {
       const mws = selectMiddlewares(req.url, middlewares);
 
       const handlers: (() => Response | Promise<Response>)[] = [];
+      const paramsAndRouteResult = paramsAndRoute(req.url);
 
       const middlewareCtx: MiddlewareHandlerContext = {
         next() {
@@ -438,6 +447,7 @@ export class ServerContext {
         ...connInfo,
         state: {},
         destination: "route",
+        params: paramsAndRouteResult.params,
       };
 
       for (const mw of mws) {
@@ -458,6 +468,8 @@ export class ServerContext {
       const { destination, handler } = inner(
         req,
         ctx,
+        paramsAndRouteResult.params,
+        paramsAndRouteResult.route,
       );
       handlers.push(handler);
       middlewareCtx.destination = destination;
