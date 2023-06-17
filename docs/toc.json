@@ -45,6 +45,7 @@
       ["setting-the-language", "Setting the language"],
       ["writing-tests", "Writing tests"],
       ["changing-the-src-dir", "Changing the source directory"],
+      ["using-twind-v1", "Using Twind v1"],
       ["init-the-server", "Initializing the server"],
       ["using-fresh-canary-version", "Using Fresh canary version"]
     ]
