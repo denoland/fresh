@@ -5,6 +5,7 @@
  * - `null`
  * - `boolean`
  * - `number`
+ * - `bigint`
  * - `string`
  * - `array`
  * - `object` (no prototypes)
@@ -132,6 +133,11 @@ export function serialize(data: unknown): SerializeResult {
       requiresDeserializer = true;
       hasSignals = true;
       const res = { [KEY]: "s", v: value.peek() };
+      parentStack.push(res);
+      return res;
+    } else if (typeof value === "bigint") {
+      requiresDeserializer = true;
+      const res = { [KEY]: "b", d: value.toString() };
       parentStack.push(res);
       return res;
     } else if (value instanceof Uint8Array) {

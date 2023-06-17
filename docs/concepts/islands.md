@@ -34,9 +34,9 @@ care of automatically re-hydrating the island on the client.
 Passing props to islands is supported, but only if the props are serializable.
 Fresh can serialize the following types of values:
 
-- Primitive types `string`, `boolean`, and `null`
+- Primitive types `string`, `boolean`, `bigint`, and `null`
 - Most `number`s (`Infinity`, `-Infinity`, and `NaN` are silently converted to
-  `null`, and `bigint`s are not supported)
+  `null`)
 - Plain objects with string keys and serializable values
 - Arrays containing serializable values
 - Uint8Array
