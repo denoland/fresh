@@ -197,6 +197,7 @@ export interface ErrorHandlerContext<State = Record<string, unknown>>
   render: () => Response | Promise<Response>;
   state: State;
 }
+
 export type ErrorHandler = (
   req: Request,
   ctx: ErrorHandlerContext,
@@ -303,6 +304,7 @@ export interface Plugin {
 export interface PluginRenderContext {
   render: PluginRenderFunction;
 }
+
 export interface PluginAsyncRenderContext {
   renderAsync: PluginAsyncRenderFunction;
 }
@@ -335,6 +337,7 @@ export interface PluginRenderScripts {
 }
 
 export type PluginRenderFunction = () => PluginRenderFunctionResult;
+
 export type PluginAsyncRenderFunction = () =>
   | PluginRenderFunctionResult
   | Promise<PluginRenderFunctionResult>;
