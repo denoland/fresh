@@ -109,7 +109,7 @@ asynchronously return its
 either from an `async/await` function or wrapped within a promise.
 
 The render hook is called with the
-[`AsyncPluginRenderContext`](https://deno.land/x/fresh/server.ts?s=AsyncPluginRenderContext)
+[`PluginAsyncRenderContext`](https://deno.land/x/fresh/server.ts?s=PluginAsyncRenderContext)
 object, which contains a `renderAsync()` method. This method must be invoked
 during the render hook to actually render the page. It is a terminal error to
 not call the `renderAsync()` method during the render hook.
