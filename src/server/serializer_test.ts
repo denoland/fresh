@@ -25,7 +25,6 @@ Deno.test("serializer - primitives & plain objects", async (t) => {
 Deno.test("serializer - bigint", async (t) => {
   const data = { a: 999999999999999999n };
   const res = serialize(data);
-  console.log(res);
   assert(res.requiresDeserializer);
   assert(!res.hasSignals);
   await assertSnapshot(t, res.serialized);
