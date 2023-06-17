@@ -24,6 +24,11 @@ export type {
   MiddlewareHandlerContext,
   PageProps,
   Plugin,
+  PluginAsyncRenderContext,
+  PluginAsyncRenderFunction,
+  PluginRenderContext,
+  PluginRenderFunction,
+  PluginRenderFunctionResult,
   PluginRenderResult,
   PluginRenderScripts,
   PluginRenderStyleTag,
@@ -128,7 +133,7 @@ export async function start(routes: Manifest, opts: StartOptions = {}) {
 async function bootServer(handler: ServeHandler, opts: StartOptions) {
   if (opts.experimentalDenoServe === true) {
     // @ts-ignore as `Deno.serve` is still unstable.
-    await Deno.serve({ ...opts, handler });
+    await Deno.serve({ ...opts, handler }).finished;
   } else {
     await serve(handler, opts);
   }

@@ -565,6 +565,7 @@ Deno.test({
     assertEquals(resp.status, 404);
     const body = await resp.text();
     assertStringIncludes(body, "404 not found: /not_found");
+    assertStringIncludes(body, "Hello Dino");
   },
 });
 

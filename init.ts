@@ -313,6 +313,7 @@ const config = {
   lock: false,
   tasks: {
     start: "deno run -A --watch=static/,routes/ dev.ts",
+    update: "deno run -A -r https://fresh.deno.dev/update .",
   },
   imports: {} as Record<string, string>,
   compilerOptions: {
