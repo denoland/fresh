@@ -11,10 +11,18 @@ import Projects from "../components/Projects.tsx";
 import projects from "../data/showcase.json" assert { type: "json" };
 import Header from "../components/Header.tsx";
 
+function isOpenGraphUA(header: string | null): boolean {
+  if (!header) {
+    return false;
+  }
+  return header.startsWith("Twitterbot") || header.startsWith("Slackbot");
+}
+
 export const handler: Handlers = {
   GET(req, ctx) {
     const accept = req.headers.get("accept");
-    if (accept && !accept.includes("text/html")) {
+    const userAgent = req.headers.get("user-agent");
+    if (!accept?.includes("text/html") && !isOpenGraphUA(userAgent)) {
       const path = `https://deno.land/x/fresh@${VERSIONS[0]}/init.ts`;
       return new Response(`Redirecting to ${path}`, {
         headers: { "Location": path },
