@@ -63,6 +63,11 @@ For a more in-depth getting started guide, visit the
 [Getting Started](https://fresh.deno.dev/docs/getting-started) page in the Fresh
 docs.
 
+## Contributing
+
+We appreciate your help! To contribute, please read our
+[contributing instructions](https://deno.com/manual/references/contributing#submitting-a-pr-to-fresh).
+
 ## Adding your project to the showcase
 
 If you feel that your project would be helpful to other fresh users, please
