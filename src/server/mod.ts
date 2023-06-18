@@ -80,11 +80,12 @@ export async function start(routes: Manifest, opts: StartOptions = {}) {
   if (!opts.onListen) {
     opts.onListen = (params) => {
       console.log(
-        `\n%c 🍋 Fresh ready %c`,
-        "background-color: #86efac; color: black; font-weight: bold",
-        "",
+        colors.bgRgb8(colors.black(colors.bold("\n 🍋 Fresh ready ")), 121),
       );
-      const address = colors.cyan(`http://localhost:${params.port}/`);
+
+      const address = colors.cyan(
+        `http://localhost:${params.port}/`,
+      );
       const localLabel = colors.bold("Local:");
       console.log(`    ${localLabel} ${address}\n`);
     };
