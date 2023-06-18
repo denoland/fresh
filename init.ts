@@ -1,4 +1,4 @@
-import { join, parse, resolve } from "./src/dev/deps.ts";
+import { basename, join, parse, resolve } from "./src/dev/deps.ts";
 import { error } from "./src/dev/error.ts";
 import { collect, ensureMinDenoVersion, generate } from "./src/dev/mod.ts";
 import {
@@ -115,7 +115,7 @@ export default function Home() {
   return (
     <>
       <Head>
-        <title>Fresh App</title>
+        <title>${basename(resolvedDirectory)}</title>
       </Head>
       <div class="px-4 py-8 mx-auto bg-[#86efac]">
         <div class="max-w-screen-md mx-auto flex flex-col items-center justify-center">

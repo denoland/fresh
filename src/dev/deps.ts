@@ -1,5 +1,6 @@
 // std
 export {
+  basename,
   dirname,
   extname,
   fromFileUrl,
