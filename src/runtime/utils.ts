@@ -1,7 +1,6 @@
 import { VNode } from "preact";
 import { BUILD_ID } from "./build_id.ts";
 
-export const INTERNAL_PREFIX = "/_frsh";
 export const ASSET_CACHE_BUST_KEY = "__frsh_c";
 
 export const IS_BROWSER = typeof document !== "undefined";

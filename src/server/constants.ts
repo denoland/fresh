@@ -1,6 +1,7 @@
-import { INTERNAL_PREFIX } from "../runtime/utils.ts";
 import { BUILD_ID } from "./build_id.ts";
 
+export const INTERNAL_PREFIX = Deno.env.get("FRESH_INTERNAL_PREFIX") ||
+  "/_frsh";
 export const REFRESH_JS_URL = `${INTERNAL_PREFIX}/refresh.js`;
 export const ALIVE_URL = `${INTERNAL_PREFIX}/alive`;
 export const JS_PREFIX = `/js`;

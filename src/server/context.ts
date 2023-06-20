@@ -13,7 +13,12 @@ import {
 import { h } from "preact";
 import * as router from "./router.ts";
 import { DenoConfig, Manifest } from "./mod.ts";
-import { ALIVE_URL, JS_PREFIX, REFRESH_JS_URL } from "./constants.ts";
+import {
+  ALIVE_URL,
+  INTERNAL_PREFIX,
+  JS_PREFIX,
+  REFRESH_JS_URL,
+} from "./constants.ts";
 import { BUILD_ID } from "./build_id.ts";
 import DefaultErrorHandler from "./default_error_page.ts";
 import {
@@ -38,7 +43,7 @@ import {
 } from "./types.ts";
 import { render as internalRender } from "./render.ts";
 import { ContentSecurityPolicyDirectives, SELF } from "../runtime/csp.ts";
-import { ASSET_CACHE_BUST_KEY, INTERNAL_PREFIX } from "../runtime/utils.ts";
+import { ASSET_CACHE_BUST_KEY } from "../runtime/utils.ts";
 import {
   Builder,
   BuildSnapshot,
