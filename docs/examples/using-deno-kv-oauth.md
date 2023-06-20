@@ -15,59 +15,105 @@ available.
 
 1. Register a [new GitHub OAuth](https://github.com/settings/applications/new)
    application, if you haven't already.
-2. Create your pre-configured OAuth client instance.
+2. Create your pre-configured OAuth client instance. For reusability the
+   instance is stored in `utils/oauth-client.ts`.
 
 ```typescript
+// utils/oauth-client.ts
 import { createGitHubOAuth2Client } from "https://deno.land/x/deno_kv_oauth/mod.ts";
 
-const oauth2Client = createGitHubOAuth2Client();
+export const oauth2Client = createGitHubOAuth2Client();
 ```
 
 3. Using the OAuth 2.0 client instance, insert the authentication flow functions
-   into your authentication routes.
+   into your authentication routes. In this example, there are dedicated handler
+   routes at `routes/auth/signin.ts`, `routes/auth/signout.ts` and
+   `routes/auth/callback.ts`. Please ensure that the `callback` handler matches
+   the Authorization callback URL in the configured OAuth application!
 
 ```typescript
-import {
-  createGitHubOAuth2Client,
-  handleCallback,
-  signIn,
-  signOut,
-} from "https://deno.land/x/deno_kv_oauth/mod.ts";
+// routes/auth/signin.ts
+import type { Handlers } from "$fresh/server.ts";
+import { signIn } from "https://deno.land/x/deno_kv_oauth/mod.ts";
+import { oauth2Client } from "../../utils/oauth-client.ts";
 
-const oauth2Client = createGitHubOAuth2Client();
-
-async function handleSignIn(request: Request) {
-  return await signIn(request, oauth2Client);
-}
-
-async function handleOAuth2Callback(request: Request) {
-  return await handleCallback(request, oauth2Client);
-}
-
-async function handleSignOut(request: Request) {
-  return await signOut(request);
-}
+export const handler: Handlers = {
+  async GET(req) {
+    return await signIn(req, oauth2Client);
+  },
+};
 ```
 
-4. Use Deno KV OAuth's helper functions where needed.
+```typescript
+// routes/auth/signout.ts
+import type { Handlers } from "$fresh/server.ts";
+import { signOut } from "https://deno.land/x/deno_kv_oauth/mod.ts";
+
+export const handler: Handlers = {
+  async GET(req) {
+    return await signOut(req, "/");
+  },
+};
+```
 
 ```typescript
+// routes/auth/callback.ts
+import type { Handlers } from "$fresh/server.ts";
+import { handleCallback } from "https://deno.land/x/deno_kv_oauth/mod.ts";
+import { oauth2Client } from "../../utils/oauth-client.ts";
+
+export const handler: Handlers = {
+  async GET(req) {
+    // `accessToken` and `sessionId` can be used for further consumption
+    const { accessToken, response, sessionId } = await handleCallback(
+      req,
+      oauth2Client,
+      "/", // an optional `redirectUrl` can be passed
+    );
+
+    return response;
+  },
+};
+```
+
+4. Use Deno KV OAuth's helper functions where needed. These could be part of a
+   `_middleware.ts` handler.
+
+```typescript
+// routes/_middleware.ts
+import type { MiddlewareHandlerContext } from "$fresh/server.ts";
 import {
-  createGitHubOAuth2Client,
   getSessionAccessToken,
   getSessionId,
 } from "https://deno.land/x/deno_kv_oauth/mod.ts";
+import { oauth2Client } from "../utils/oauth-client.ts";
 
-const oauth2Client = createGitHubOAuth2Client();
+interface State {
+  session: string | null;
+}
 
-async function handleAccountPage(request: Request) {
-  const sessionId = await getSessionId(request);
-  const isSignedIn = sessionId != null;
+export async function handler(
+  req: Request,
+  ctx: MiddlewareHandlerContext<State>,
+) {
+  const sessionId = await getSessionId(req);
+  // example: use `!!ctx.state.session` to toggle `signin`/`signout` states.
+  ctx.state.session = sessionId;
 
-  if (!isSignedIn) return new Response(null, { status: 404 });
+  if (sessionId != null) {
+    // example: use the `sessionId` to get the `accessToken` to fetch the user from GitHub.
+    const accessToken = await getSessionAccessToken(oauth2Client, sessionId);
+    const response = await fetch("https://api.github.com/user", {
+      headers: {
+        Authorization: `token ${accessToken}`,
+      },
+    });
+    const user = await response.json();
 
-  const accessToken = await getSessionAccessToken(oauth2Client, sessionId);
-  return Response.json({ isSignedIn, accessToken });
+    console.log(user);
+  }
+
+  return await ctx.next();
 }
 ```
 
@@ -83,9 +129,10 @@ There is also the possibility to define
 [custom OAuth 2.0 clients](https://deno.land/x/deno_kv_oauth#custom-oauth-20-client).
 
 ```typescript
+// utils/oauth-client.ts
 import { OAuth2Client } from "https://deno.land/x/oauth2_client/mod.ts";
 
-const client = new OAuth2Client({
+export const oauth2Client = new OAuth2Client({
   clientId: Deno.env.get("CUSTOM_CLIENT_ID")!,
   clientSecret: Deno.env.get("CUSTOM_CLIENT_SECRET")!,
   authorizationEndpointUri: "https://custom.com/oauth/authorize",
