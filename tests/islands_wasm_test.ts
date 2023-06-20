@@ -6,7 +6,7 @@ Deno.test({
   ignore: Deno.build.os === "windows",
   async fn(t) {
     // Preparation
-    const { lines, serverProcess } = await startFreshServer({
+    const { lines, serverProcess, address } = await startFreshServer({
       args: ["run", "-A", "./tests/fixture/main_wasm.ts"],
     });
 
@@ -27,7 +27,7 @@ Deno.test({
       assert(value === `${originalValue + 1}`, `${counterId} click`);
     }
 
-    await page.goto("http://localhost:8000/islands", {
+    await page.goto(`${address}/islands`, {
       waitUntil: "networkidle2",
     });
 

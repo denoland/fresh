@@ -2,6 +2,8 @@ export const snapshot = {};
 
 snapshot[`serializer - primitives & plain objects 1`] = `'{"v":{"a":1,"b":"2","c":true,"d":null,"f":[1,2,3],"g":{"a":1,"b":2,"c":3}}}'`;
 
+snapshot[`serializer - bigint 1`] = `'{"v":{"a":{"_f":"b","d":"999999999999999999"}}}'`;
+
 snapshot[`serializer - Uint8Array 1`] = `'{"v":{"a":{"_f":"u8a","d":"AQID"}}}'`;
 
 snapshot[`serializer - signals 1`] = `'{"v":{"a":1,"b":{"_f":"s","v":2}}}'`;

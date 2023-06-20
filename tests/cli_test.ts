@@ -112,7 +112,7 @@ Deno.test({
     });
 
     await t.step("start up the server and access the root page", async () => {
-      const { serverProcess, lines } = await startFreshServer({
+      const { serverProcess, lines, address } = await startFreshServer({
         args: ["run", "-A", "--check", "main.ts"],
         cwd: tmpDirName,
       });
@@ -120,7 +120,7 @@ Deno.test({
       await delay(100);
 
       // Access the root page
-      const res = await fetch("http://localhost:8000");
+      const res = await fetch(address);
       await res.body?.cancel();
       assertEquals(res.status, Status.OK);
 
@@ -129,12 +129,14 @@ Deno.test({
         args: ["--no-sandbox"],
       });
       const page = await browser.newPage();
-      await page.goto("http://localhost:8000", { waitUntil: "networkidle2" });
-      const counter = await page.$("body > div > div > p");
+      await page.goto(address, { waitUntil: "networkidle2" });
+      const counter = await page.$("body > div > div > div > p");
       let counterValue = await counter?.evaluate((el) => el.textContent);
       assert(counterValue === "3");
 
-      const buttonPlus = await page.$("body > div > div > button:nth-child(3)");
+      const buttonPlus = await page.$(
+        "body > div > div > div > button:nth-child(3)",
+      );
       await buttonPlus?.click();
 
       await delay(100);
@@ -241,7 +243,7 @@ Deno.test({
     });
 
     await t.step("start up the server and access the root page", async () => {
-      const { serverProcess, lines } = await startFreshServer({
+      const { serverProcess, lines, address } = await startFreshServer({
         args: ["run", "-A", "--check", "main.ts"],
         cwd: tmpDirName,
       });
@@ -249,25 +251,27 @@ Deno.test({
       await delay(100);
 
       // Access the root page
-      const res = await fetch("http://localhost:8000");
+      const res = await fetch(address);
       await res.body?.cancel();
       assertEquals(res.status, Status.OK);
 
       // verify the island is revived.
       const browser = await puppeteer.launch({ args: ["--no-sandbox"] });
       const page = await browser.newPage();
-      await page.goto("http://localhost:8000", { waitUntil: "networkidle2" });
+      await page.goto(address, { waitUntil: "networkidle2" });
 
-      const counter = await page.$("body > div > div > p");
+      const counter = await page.$("body > div > div > div > p");
       let counterValue = await counter?.evaluate((el) => el.textContent);
-      assert(counterValue === "3");
+      assertEquals(counterValue, "3");
 
       const fontWeight = await counter?.evaluate((el) =>
         getComputedStyle(el).fontWeight
       );
-      assertEquals(fontWeight, "700");
+      assertEquals(fontWeight, "400");
 
-      const buttonPlus = await page.$("body > div > div > button:nth-child(3)");
+      const buttonPlus = await page.$(
+        "body > div > div > div > button:nth-child(3)",
+      );
       await buttonPlus?.click();
 
       await delay(100);

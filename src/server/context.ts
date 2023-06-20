@@ -5,7 +5,6 @@ import {
   fromFileUrl,
   join,
   JSONC,
-  RequestHandler,
   Status,
   toFileUrl,
   typeByExtension,
@@ -33,6 +32,7 @@ import {
   RenderOptions,
   Route,
   RouteModule,
+  RouterOptions,
   UnknownPage,
   UnknownPageModule,
 } from "./types.ts";
@@ -45,6 +45,11 @@ import {
   EsbuildBuilder,
   JSXConfig,
 } from "../build/mod.ts";
+
+const DEFAULT_CONN_INFO: ConnInfo = {
+  localAddr: { transport: "tcp", hostname: "localhost", port: 8080 },
+  remoteAddr: { transport: "tcp", hostname: "localhost", port: 1234 },
+};
 
 interface RouterState {
   state: Record<string, unknown>;
@@ -86,6 +91,7 @@ export class ServerContext {
   #error: ErrorPage;
   #plugins: Plugin[];
   #builder: Builder | Promise<BuildSnapshot> | BuildSnapshot;
+  #routerOptions: RouterOptions;
 
   constructor(
     routes: Route[],
@@ -100,6 +106,7 @@ export class ServerContext {
     configPath: string,
     jsxConfig: JSXConfig,
     dev: boolean = isDevMode(),
+    routerOptions: RouterOptions,
   ) {
     this.#routes = routes;
     this.#islands = islands;
@@ -118,6 +125,7 @@ export class ServerContext {
       dev: this.#dev,
       jsxConfig,
     });
+    this.#routerOptions = routerOptions;
   }
 
   /**
@@ -345,6 +353,7 @@ export class ServerContext {
       configPath,
       jsxConfig,
       dev,
+      opts.router ?? DEFAULT_ROUTER_OPTIONS,
     );
   }
 
@@ -352,19 +361,26 @@ export class ServerContext {
    * This functions returns a request handler that handles all routes required
    * by fresh, including static files.
    */
-  handler(): RequestHandler {
+  handler(): (req: Request, connInfo?: ConnInfo) => Promise<Response> {
     const handlers = this.#handlers();
     const inner = router.router<RouterState>(handlers);
     const withMiddlewares = this.#composeMiddlewares(
       this.#middlewares,
       handlers.errorHandler,
     );
-    return async function handler(req: Request, connInfo: ConnInfo) {
+    const trailingSlashEnabled = this.#routerOptions?.trailingSlash;
+    return async function handler(
+      req: Request,
+      connInfo: ConnInfo = DEFAULT_CONN_INFO,
+    ) {
       // Redirect requests that end with a trailing slash to their non-trailing
       // slash counterpart.
       // Ex: /about/ -> /about
       const url = new URL(req.url);
-      if (url.pathname.length > 1 && url.pathname.endsWith("/")) {
+      if (
+        url.pathname.length > 1 && url.pathname.endsWith("/") &&
+        !trailingSlashEnabled
+      ) {
         // Remove trailing slashes
         const path = url.pathname.replace(/\/+$/, "");
         const location = `${path}${url.search}`;
@@ -372,6 +388,8 @@ export class ServerContext {
           status: Status.TemporaryRedirect,
           headers: { location },
         });
+      } else if (trailingSlashEnabled && !url.pathname.endsWith("/")) {
+        return Response.redirect(url.href + "/", Status.PermanentRedirect);
       }
 
       return await withMiddlewares(req, connInfo, inner);
@@ -606,6 +624,9 @@ export class ServerContext {
     const createUnknownRender = genRender(this.#notFound, Status.NotFound);
 
     for (const route of this.#routes) {
+      if (this.#routerOptions.trailingSlash && route.pattern != "/") {
+        route.pattern += "/";
+      }
       const createRender = genRender(route, Status.OK);
       if (typeof route.handler === "function") {
         routes[route.pattern] = {
@@ -776,6 +797,10 @@ export class ServerContext {
 
 const DEFAULT_RENDER_FN: RenderFunction = (_ctx, render) => {
   render();
+};
+
+const DEFAULT_ROUTER_OPTIONS: RouterOptions = {
+  trailingSlash: false,
 };
 
 const DEFAULT_APP: AppModule = {

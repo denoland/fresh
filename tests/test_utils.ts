@@ -15,16 +15,17 @@ export async function startFreshServer(options: Deno.CommandOptions) {
       preventCancel: true,
     });
 
-  let started = false;
+  let address = "";
   for await (const line of lines) {
-    if (line.includes("Listening on http://")) {
-      started = true;
+    const match = line.match(/https?:\/\/localhost:\d+/g);
+    if (match) {
+      address = match[0];
       break;
     }
   }
-  if (!started) {
+  if (!address) {
     throw new Error("Server didn't start up");
   }
 
-  return { serverProcess, lines };
+  return { serverProcess, lines, address };
 }

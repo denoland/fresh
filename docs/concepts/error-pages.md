@@ -36,7 +36,9 @@ export const handler: Handlers = {
   async GET(req, ctx) {
     const blogpost = await fetchBlogpost(ctx.params.slug);
     if (!blogpost) {
-      return ctx.renderNotFound();
+      return ctx.renderNotFound({
+        custom: "prop",
+      });
     }
     return ctx.render({ blogpost });
   },

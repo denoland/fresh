@@ -4,15 +4,15 @@ import { IS_BROWSER } from "$fresh/runtime.ts";
 import * as Icons from "../components/Icons.tsx";
 import { useSignal } from "@preact/signals";
 
-export default function CopyArea(props: { children: ComponentChildren }) {
+export default function CopyArea(props: { code: string }) {
   const copied = useSignal(false);
 
   async function handleClick() {
-    if (props.children === undefined || props.children === null) {
+    if (props.code === undefined || props.code === null) {
       return;
     }
     try {
-      await navigator.clipboard.writeText(props.children.toString());
+      await navigator.clipboard.writeText(props.code.toString());
       copied.value = true;
     } catch (error) {
       copied.value = false;
@@ -33,7 +33,7 @@ export default function CopyArea(props: { children: ComponentChildren }) {
   return (
     <div class="bg(gray-800) rounded text-white flex items-center">
       <pre class="overflow-x-auto flex-1 py-2 px-4">
-        {props.children}
+        {props.code}
       </pre>
 
       <div class="relative my-2 mr-4">
