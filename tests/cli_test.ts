@@ -1,5 +1,8 @@
 import * as path from "$std/path/mod.ts";
-import { assertNotMatch } from "https://deno.land/std@0.190.0/testing/asserts.ts";
+import {
+  assertMatch,
+  assertNotMatch,
+} from "https://deno.land/std@0.190.0/testing/asserts.ts";
 import { Status } from "../src/server/deps.ts";
 import {
   assert,
@@ -323,4 +326,75 @@ Deno.test({
     await retry(() => Deno.remove(tmpDirName, { recursive: true }));
   },
   sanitizeResources: false,
+});
+
+Deno.test("fresh-update", async function fn(t) {
+  // Preparation
+  const tmpDirName = await Deno.makeTempDir();
+
+  const cliProcess = new Deno.Command(Deno.execPath(), {
+    args: [
+      "run",
+      "-A",
+      path.join(Deno.cwd(), "init.ts"),
+      ".",
+    ],
+    cwd: tmpDirName,
+    stdin: "null",
+    stdout: "null",
+  });
+
+  await cliProcess.output();
+
+  await t.step("execute update command", async () => {
+    const cliProcess = new Deno.Command(Deno.execPath(), {
+      args: [
+        "run",
+        "-A",
+        path.join(Deno.cwd(), "update.ts"),
+        ".",
+      ],
+      cwd: tmpDirName,
+      stdin: "null",
+      stdout: "piped",
+    });
+
+    const { code, stdout } = await cliProcess.output();
+    const output = new TextDecoder().decode(stdout);
+
+    assertMatch(
+      output,
+      /The manifest has been generated for \d+ routes and \d+ islands./,
+    );
+    assertEquals(code, 0);
+  });
+
+  await t.step("execute update command (no islands directory)", async () => {
+    await retry(() =>
+      Deno.remove(path.join(tmpDirName, "islands"), { recursive: true })
+    );
+
+    const cliProcess = new Deno.Command(Deno.execPath(), {
+      args: [
+        "run",
+        "-A",
+        path.join(Deno.cwd(), "update.ts"),
+        ".",
+      ],
+      cwd: tmpDirName,
+      stdin: "null",
+      stdout: "piped",
+    });
+
+    const { code, stdout } = await cliProcess.output();
+    const output = new TextDecoder().decode(stdout);
+
+    assertMatch(
+      output,
+      /The manifest has been generated for \d+ routes and 0 islands./,
+    );
+    assertEquals(code, 0);
+  });
+
+  await retry(() => Deno.remove(tmpDirName, { recursive: true }));
 });

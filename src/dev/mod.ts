@@ -1,4 +1,12 @@
-import { dirname, fromFileUrl, gte, join, toFileUrl, walk } from "./deps.ts";
+import {
+  dirname,
+  fromFileUrl,
+  gte,
+  join,
+  toFileUrl,
+  walk,
+  WalkError,
+} from "./deps.ts";
 import { error } from "./error.ts";
 
 const MIN_DENO_VERSION = "1.31.0";
@@ -28,12 +36,22 @@ async function collectDir(dir: string): Promise<string[]> {
     includeFiles: true,
     exts: ["tsx", "jsx", "ts", "js"],
   });
-  for await (const entry of routesFolder) {
-    const path = toFileUrl(entry.path).href.substring(
-      dirUrl.href.length,
-    );
-    paths.push(path);
+
+  try {
+    for await (const entry of routesFolder) {
+      const path = toFileUrl(entry.path).href.substring(
+        dirUrl.href.length,
+      );
+      paths.push(path);
+    }
+  } catch (err) {
+    if (err instanceof WalkError && err.cause instanceof Deno.errors.NotFound) {
+      // Do nothing.
+      return [];
+    }
+    throw err;
   }
+
   paths.sort();
   return paths;
 }
