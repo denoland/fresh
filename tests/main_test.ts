@@ -45,7 +45,7 @@ Deno.test("/props/123 page prerender", async () => {
   );
 });
 
-Deno.test("/[name] page prerender", async () => {
+Deno.test("/greet/[name] page prerender", async () => {
   const resp = await handler(new Request("https://fresh.deno.dev/bar"));
   assert(resp);
   assertEquals(resp.status, Status.OK);
