@@ -85,7 +85,13 @@ Deno.test({
             "type": "directory",
             "name": "routes",
             "contents": [
-              { "type": "file", "name": "[name].tsx" },
+              {
+                "type": "directory",
+                "name": "greet",
+                "contents": [
+                  { "type": "file", "name": "[name].tsx" },
+                ],
+              },
               {
                 "type": "directory",
                 "name": "api",
@@ -207,7 +213,13 @@ Deno.test({
             "type": "directory",
             "name": "routes",
             "contents": [
-              { "type": "file", "name": "[name].tsx" },
+              {
+                "type": "directory",
+                "name": "greet",
+                "contents": [
+                  { "type": "file", "name": "[name].tsx" },
+                ],
+              },
               {
                 "type": "directory",
                 "name": "api",
