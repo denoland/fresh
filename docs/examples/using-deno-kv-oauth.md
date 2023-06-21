@@ -7,6 +7,10 @@ description: Easily integrate OAuth 2.0 to your Fresh project with Deno KV OAuth
 > **experimental** and is **subject to change**. It is only available when using
 > the `--unstable` flag.
 
+> ⚠️ Please note that Deno KV Oauth is still in **beta** and is **subject to
+> change**. See [the documentation](https://deno.land/x/deno_kv_oauth) for
+> further details.
+
 ## Using a pre-configured OAuth 2.0 provider
 
 This example uses GitHub as the OAuth 2.0 provider. However there is a suite of
