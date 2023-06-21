@@ -11,7 +11,7 @@ description: Easily integrate OAuth 2.0 to your Fresh project with Deno KV OAuth
 > change**. See [the documentation](https://deno.land/x/deno_kv_oauth) for
 > further details.
 
-## Using a pre-configured OAuth 2.0 provider
+## Getting Started
 
 This example uses GitHub as the OAuth 2.0 provider. However there is a suite of
 [pre-configured providers](https://deno.land/x/deno_kv_oauth#pre-configured-oauth-20-clients)
@@ -20,10 +20,10 @@ available.
 1. Register a [new GitHub OAuth](https://github.com/settings/applications/new)
    application, if you haven't already.
 2. Create your pre-configured OAuth client instance. For reusability the
-   instance is stored in `utils/oauth-client.ts`.
+   instance is stored in `utils/oauth2_client.ts`.
 
-```typescript
-// utils/oauth-client.ts
+```ts
+// utils/oauth2_client.ts
 import { createGitHubOAuth2Client } from "https://deno.land/x/deno_kv_oauth/mod.ts";
 
 export const oauth2Client = createGitHubOAuth2Client();
@@ -31,15 +31,15 @@ export const oauth2Client = createGitHubOAuth2Client();
 
 3. Using the OAuth 2.0 client instance, insert the authentication flow functions
    into your authentication routes. In this example, there are dedicated handler
-   routes at `routes/auth/signin.ts`, `routes/auth/signout.ts` and
-   `routes/auth/callback.ts`. Please ensure that the `callback` handler matches
-   the Authorization callback URL in the configured OAuth application!
+   routes at `routes/signin.ts`, `routes/signout.ts` and `routes/callback.ts`.
+   Please ensure that the `callback` handler matches the Authorization callback
+   URL in the configured OAuth application!
 
-```typescript
-// routes/auth/signin.ts
-import type { Handlers } from "$fresh/server.ts";
+```ts
+// routes/signin.ts
+import { Handlers } from "$fresh/server.ts";
 import { signIn } from "https://deno.land/x/deno_kv_oauth/mod.ts";
-import { oauth2Client } from "../../utils/oauth-client.ts";
+import { oauth2Client } from "../utils/oauth2_client.ts";
 
 export const handler: Handlers = {
   async GET(req) {
@@ -48,76 +48,82 @@ export const handler: Handlers = {
 };
 ```
 
-```typescript
-// routes/auth/signout.ts
-import type { Handlers } from "$fresh/server.ts";
+```ts
+// routes/signout.ts
+import { Handlers } from "$fresh/server.ts";
 import { signOut } from "https://deno.land/x/deno_kv_oauth/mod.ts";
 
 export const handler: Handlers = {
   async GET(req) {
-    return await signOut(req, "/");
+    return await signOut(req);
   },
 };
 ```
 
-```typescript
-// routes/auth/callback.ts
-import type { Handlers } from "$fresh/server.ts";
+```ts
+// routes/callback.ts
+import { Handlers } from "$fresh/server.ts";
 import { handleCallback } from "https://deno.land/x/deno_kv_oauth/mod.ts";
-import { oauth2Client } from "../../utils/oauth-client.ts";
+import { oauth2Client } from "../utils/oauth2_client.ts";
 
 export const handler: Handlers = {
   async GET(req) {
-    // `accessToken` and `sessionId` can be used for further consumption
-    const { accessToken, response, sessionId } = await handleCallback(
-      req,
-      oauth2Client,
-      "/", // an optional `redirectUrl` can be passed
-    );
-
+    // Return object also includes `accessToken` and `sessionId` properties.
+    const { response } = await handleCallback(req, oauth2Client);
     return response;
   },
 };
 ```
 
-4. Use Deno KV OAuth's helper functions where needed. These could be part of a
-   `_middleware.ts` handler.
+4. Use Deno KV OAuth's helper functions where needed.
 
-```typescript
-// routes/_middleware.ts
-import type { MiddlewareHandlerContext } from "$fresh/server.ts";
+```tsx
+// routes/index.tsx
+import { Handlers, PageProps } from "$fresh/server.ts";
 import {
   getSessionAccessToken,
   getSessionId,
 } from "https://deno.land/x/deno_kv_oauth/mod.ts";
-import { oauth2Client } from "../utils/oauth-client.ts";
+import { oauth2Client } from "../utils/oauth2_client.ts";
 
-interface State {
-  session: string | null;
+interface User {
+  login: string;
+  name: string;
+  avatar_url: string;
 }
 
-export async function handler(
-  req: Request,
-  ctx: MiddlewareHandlerContext<State>,
-) {
-  const sessionId = await getSessionId(req);
-  // example: use `!!ctx.state.session` to toggle `signin`/`signout` states.
-  ctx.state.session = sessionId;
+export const handler: Handlers<User | null> = {
+  async GET(req, ctx) {
+    const sessionId = await getSessionId(req);
 
-  if (sessionId != null) {
-    // example: use the `sessionId` to get the `accessToken` to fetch the user from GitHub.
+    if (!sessionId) {
+      return ctx.render(null);
+    }
+
     const accessToken = await getSessionAccessToken(oauth2Client, sessionId);
     const response = await fetch("https://api.github.com/user", {
       headers: {
         Authorization: `token ${accessToken}`,
       },
     });
-    const user = await response.json();
+    const user: User = await response.json();
+    return ctx.render(user);
+  },
+};
 
-    console.log(user);
+export default function Page({ data }: PageProps<User | null>) {
+  if (!data) {
+    return <a href="/signin">Sign In</a>;
   }
 
-  return await ctx.next();
+  return (
+    <div>
+      <img src={data.avatar_url} width={64} height={64} />
+      <h1>{data.name}</h1>
+      <p>{data.login}</p>
+      <a href="/signout">Sign Out</a>
+    </div>
+  );
 }
 ```
 
@@ -127,33 +133,13 @@ export async function handler(
 GITHUB_CLIENT_ID=xxx GITHUB_CLIENT_SECRET=xxx deno task start
 ```
 
-## Using a custom OAuth 2.0 client
+## More on Deno KV OAuth
 
-There is also the possibility to define
-[custom OAuth 2.0 clients](https://deno.land/x/deno_kv_oauth#custom-oauth-20-client).
+Follow the links to read more about:
 
-```typescript
-// utils/oauth-client.ts
-import { OAuth2Client } from "https://deno.land/x/oauth2_client/mod.ts";
-
-export const oauth2Client = new OAuth2Client({
-  clientId: Deno.env.get("CUSTOM_CLIENT_ID")!,
-  clientSecret: Deno.env.get("CUSTOM_CLIENT_SECRET")!,
-  authorizationEndpointUri: "https://custom.com/oauth/authorize",
-  tokenUri: "https://custom.com/oauth/token",
-  redirectUri: "https://my-site.com",
-});
-```
-
-## Environment Variables
-
-- `KV_PATH` (optional) - defines the path that Deno KV uses. See the API
-  reference for further details.
-- `${PROVIDER}_CLIENT_ID` and `${PROVIDER}_CLIENT_SECRET` - required when
-  creating a pre-configured OAuth 2.0 client for a given provider. E.g. for
-  Twitter, the environment variable keys are `TWITTER_CLIENT_ID` and
-  `TWITTER_CLIENT_SECRET`.
-
-> Note: reading environment variables requires the
-> --allow-env[=<VARIABLE_NAME>...] permission flag. See
-> [the manual](https://deno.com/manual/basics/permissions) for further details.
+- Using a provider from the list of
+  [pre-configured providers](https://deno.land/x/deno_kv_oauth#pre-configured-oauth-20-clients)
+- Configuring a
+  [custom OAuth 2.0 client](https://deno.land/x/deno_kv_oauth#custom-oauth-20-client)
+- Setting the mandatory
+  [environment variables](https://deno.land/x/deno_kv_oauth#environment-variables)
