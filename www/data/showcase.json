@@ -330,6 +330,12 @@
     "image": "learn-mandarin"
   },
   {
+    "title": "Deno Place",
+    "link": "https://deno-place.arruda.dev/",
+    "github": "https://github.com/arrudaricardo/deno_place",
+    "image": "deno-place"
+  },
+  {
     "title": "Url shorter and Pastebin",
     "link": "https://uspb.deno.dev/",
     "github": "jneeee/uspb",
