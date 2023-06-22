@@ -483,7 +483,9 @@ async function spawnServer(
   // @ts-ignore yes it does
   for await (const line of lines.values({ preventCancel: true })) {
     output.push(line);
-    const match = line.match(/https?:\/\/localhost:\d+/g);
+    const match = line.match(
+      /https?:\/\/localhost:\d+[\/\w_-]*/g,
+    );
     if (match) {
       address = match[0];
       break;

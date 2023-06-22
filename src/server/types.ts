@@ -145,6 +145,12 @@ export interface RouterOptions {
    *  @default {/(?:[^/]*_|[^/]*\.|)test\.(?:ts|tsx|mts|js|mjs|jsx|)\/*$/}
    */
   ignoreFilePattern?: RegExp;
+  /**
+   * Serve fresh from a base path instead of from the root.
+   *   "/foo/bar" -> http://localhost:8000/foo/bar
+   * @default {undefined}
+   */
+  basePath?: string;
 }
 
 export type RenderFunction = (
@@ -264,6 +270,7 @@ export interface HandlerContext<
   NotFoundData = Data,
 > extends ServeHandlerInfo {
   params: Record<string, string>;
+  basePath: string;
   render: (
     data?: Data,
     options?: RenderOptions,
@@ -503,6 +510,7 @@ export interface MiddlewareHandlerContext<State = Record<string, unknown>>
   destination: router.DestinationKind;
   params: Record<string, string>;
   isPartial: boolean;
+  basePath: string;
 }
 
 export interface MiddlewareRoute {

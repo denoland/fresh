@@ -12,7 +12,8 @@ export async function startServer(
         colors.bgRgb8(colors.rgb8(" 🍋 Fresh ready ", 0), 121),
       );
 
-      const address = colors.cyan(`http://localhost:${params.port}/`);
+      // const pathname = ctx.basePath ?? "/";
+      const address = colors.cyan(`http://localhost:${params.port}${pathname}`);
       const localLabel = colors.bold("Local:");
       console.log(`    ${localLabel} ${address}\n`);
     };
