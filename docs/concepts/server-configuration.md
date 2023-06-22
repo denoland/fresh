@@ -53,6 +53,12 @@ export interface RouterOptions {
    *  @default {false}
    */
   trailingSlash?: boolean;
+  /**
+   * Serve fresh from a base path instead of from the root.
+   *   "/foo/bar" -> http://localhost:8000/foo/bar
+   * @default {undefined}
+   */
+  basePath?: string;
 }
 ```
 
@@ -93,3 +99,30 @@ you can configure this to `https://www.example.com/about/` by using the
 ```ts
 await start(manifest, { router: { trailingSlash: true } });
 ```
+
+### basePath
+
+This setting allows you to serve a Fresh app from sub-path of a domain. A value
+of `/foo/bar` would serve the app from `http://localhost:8000/foo/bar` instead
+of `http://localhost:8000/` for example.
+
+This setting can also be set via the `FRESH_BASE_PATH` environment variable. It
+will take precedence over passing the `basePath` option to `start()`.
+
+The `basePath` will be automatically applied to links in your app. For example,
+when the `basePath` is `/foo/bar`, linking to `/about` will automatically become
+`/foo/bar/about`.
+
+```js
+<a href="/about">About</a>;
+```
+
+Rendered HTML:
+
+```html
+<a href="/foo/bar/about">About</a>
+```
+
+The `basePath` is also applied to the `src` and `srcset` attribute of
+`<img>`-tags, the `href` attribute of `<link>` and the `src` attribute of
+`<script>` tags.

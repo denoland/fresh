@@ -28,6 +28,8 @@ import { bundleAssetUrl } from "./constants.ts";
 import { assetHashingHook } from "../runtime/utils.ts";
 import { htmlEscapeJsonString } from "./htmlescape.ts";
 import { serialize } from "./serializer.ts";
+import { withBase } from "./router.ts";
+import { posix } from "./deps.ts";
 
 // These hooks are long stable, but when we originally added them we
 // weren't sure if they should be public.
@@ -52,6 +54,7 @@ export interface RenderOptions<Data> {
   data?: Data;
   error?: unknown;
   lang?: string;
+  basePath?: string;
 }
 
 export type InnerRenderFunction = () => string;
@@ -122,6 +125,9 @@ function defaultCsp() {
   };
 }
 
+// Use a global variable to pass it to `options.vnode`.
+let globalBase: string | undefined;
+
 /**
  * This function renders out a page. Rendering is synchronous and non streaming.
  * Suspense boundaries are not supported.
@@ -129,6 +135,7 @@ function defaultCsp() {
 export async function render<Data>(
   opts: RenderOptions<Data>,
 ): Promise<[string, ContentSecurityPolicy | undefined]> {
+  globalBase = opts.basePath;
   const props: Record<string, unknown> = {
     params: opts.params,
     url: opts.url,
@@ -390,6 +397,7 @@ export async function render<Data>(
     moduleScripts,
     preloads,
     lang: ctx.lang,
+    basePath: opts.basePath,
   });
 
   return [html, csp];
@@ -401,6 +409,7 @@ export interface TemplateOptions {
   moduleScripts: (readonly [string, string])[];
   preloads: string[];
   lang: string;
+  basePath?: string;
 }
 
 export function template(opts: TemplateOptions): string {
@@ -416,10 +425,14 @@ export function template(opts: TemplateOptions): string {
         content: "width=device-width, initial-scale=1.0",
       }),
       opts.preloads.map((src) =>
-        h("link", { rel: "modulepreload", href: src })
+        h("link", { rel: "modulepreload", href: withBase(src, opts.basePath) })
       ),
       opts.moduleScripts.map(([src, nonce]) =>
-        h("script", { src: src, nonce: nonce, type: "module" })
+        h("script", {
+          src: withBase(src, opts.basePath),
+          nonce: nonce,
+          type: "module",
+        })
       ),
       opts.headComponents,
     ),
@@ -536,6 +549,50 @@ options.vnode = (vnode) => {
           `frsh-${island.id}:${ISLAND_PROPS.length - 1}`,
         );
       };
+    }
+  } else if (
+    globalBase !== undefined && typeof vnode.type === "string"
+  ) {
+    const props = vnode.props as {
+      href?: string;
+      src?: string;
+      srcset?: string;
+    };
+    if (props.href) {
+      props.href = withBase(props.href, globalBase);
+    }
+
+    if (props.src) {
+      props.src = withBase(props.src, globalBase);
+    }
+
+    srcsetRewrite:
+    if (props.srcset) {
+      // Bail out on complex syntax that's too complicated for now
+      if (props.srcset.includes("(")) break srcsetRewrite;
+
+      const parts = props.srcset.split(",");
+      const out: string[] = [];
+      for (const part of parts) {
+        const trimmed = part.trimStart();
+        if (trimmed === "") break srcsetRewrite;
+
+        let urlEnd = trimmed.indexOf(" ");
+        if (urlEnd === -1) urlEnd = trimmed.length;
+
+        const leadingWhitespace = part.length - trimmed.length;
+        const leading = part.substring(0, leadingWhitespace);
+        const url = trimmed.substring(0, urlEnd);
+        const trailing = trimmed.substring(urlEnd);
+
+        if (url.startsWith("/")) {
+          out.push(leading + posix.join(globalBase, url) + trailing);
+        } else {
+          out.push(part);
+        }
+      }
+
+      props.srcset = out.join(",");
     }
   }
   if (originalHook) originalHook(vnode);

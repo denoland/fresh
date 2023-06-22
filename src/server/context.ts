@@ -5,6 +5,7 @@ import {
   fromFileUrl,
   join,
   JSONC,
+  posix,
   Status,
   toFileUrl,
   typeByExtension,
@@ -92,6 +93,10 @@ export class ServerContext {
   #plugins: Plugin[];
   #builder: Builder | Promise<BuildSnapshot> | BuildSnapshot;
   #routerOptions: RouterOptions;
+  #basePath: string;
+  get basePath() {
+    return this.#basePath;
+  }
 
   constructor(
     routes: Route[],
@@ -126,6 +131,14 @@ export class ServerContext {
       jsxConfig,
     });
     this.#routerOptions = routerOptions;
+    this.#basePath = Deno.env.get("FRESH_BASE_PATH") ??
+      routerOptions?.basePath ?? "";
+
+    if (this.#basePath.endsWith("/")) {
+      throw new TypeError(
+        `"basePath" option must not end with "/". Received: "${this.#basePath}"`,
+      );
+    }
   }
 
   /**
@@ -167,6 +180,11 @@ export class ServerContext {
       jsxImportSource: config.compilerOptions.jsxImportSource,
     };
 
+    let basePath = "";
+    if (opts.router?.basePath) {
+      basePath = opts.router?.basePath.slice(1) + "/";
+    }
+
     // Extract all routes, and prepare them into the `Page` structure.
     const routes: Route[] = [];
     const islands: Island[] = [];
@@ -180,8 +198,9 @@ export class ServerContext {
         throw new TypeError("Page is not a child of the basepath.");
       }
       const path = url.substring(baseUrl.length).substring("routes".length);
-      const baseRoute = path.substring(1, path.length - extname(path).length);
-      const name = baseRoute.replace("/", "-");
+      let baseRoute = path.substring(1, path.length - extname(path).length);
+      baseRoute = posix.join(basePath, baseRoute);
+      const name = baseRoute.replace(/\//g, "-");
       const isMiddleware = path.endsWith("/_middleware.tsx") ||
         path.endsWith("/_middleware.ts") || path.endsWith("/_middleware.jsx") ||
         path.endsWith("/_middleware.js");
@@ -319,7 +338,7 @@ export class ServerContext {
         );
         const staticFile: StaticFile = {
           localUrl,
-          path,
+          path: basePath ? "/" + posix.join(basePath, path) : path,
           size: stat.size,
           contentType,
           etag,
@@ -362,6 +381,7 @@ export class ServerContext {
    * by fresh, including static files.
    */
   handler(): (req: Request, connInfo?: ConnInfo) => Promise<Response> {
+    const basePath = this.#basePath;
     const handlers = this.#handlers();
     const inner = router.router<RouterState>(handlers);
     const withMiddlewares = this.#composeMiddlewares(
@@ -390,6 +410,12 @@ export class ServerContext {
         });
       } else if (trailingSlashEnabled && !url.pathname.endsWith("/")) {
         return Response.redirect(url.href + "/", Status.PermanentRedirect);
+      }
+
+      // Redirect to base path if not present in url
+      if (basePath && !url.pathname.startsWith(basePath)) {
+        const to = new URL(basePath + url.pathname, url.origin);
+        return Response.redirect(to, 302);
       }
 
       return await withMiddlewares(req, connInfo, inner);
@@ -443,6 +469,7 @@ export class ServerContext {
           return Promise.resolve(handler());
         },
         ...connInfo,
+        basePath: this.#basePath,
         state: {},
         destination: "route",
       };
@@ -488,20 +515,23 @@ export class ServerContext {
     const staticRoutes: router.Routes<RouterState> = {};
     const routes: router.Routes<RouterState> = {};
 
-    internalRoutes[`${INTERNAL_PREFIX}${JS_PREFIX}/${BUILD_ID}/:path*`] = {
+    internalRoutes[
+      `${this.#basePath}${INTERNAL_PREFIX}${JS_PREFIX}/${BUILD_ID}/:path*`
+    ] = {
       default: this.#bundleAssetRoute(),
     };
     if (this.#dev) {
-      internalRoutes[REFRESH_JS_URL] = {
+      const aliveUrl = this.#basePath + ALIVE_URL;
+      internalRoutes[this.#basePath + REFRESH_JS_URL] = {
         default: () => {
-          return new Response(refreshJs(ALIVE_URL, BUILD_ID), {
+          return new Response(refreshJs(aliveUrl, BUILD_ID), {
             headers: {
               "content-type": "application/javascript; charset=utf-8",
             },
           });
         },
       };
-      internalRoutes[ALIVE_URL] = {
+      internalRoutes[aliveUrl] = {
         default: () => {
           let timerId: number | undefined = undefined;
           const body = new ReadableStream({
@@ -589,6 +619,7 @@ export class ServerContext {
             params,
             data,
             error,
+            basePath: this.#basePath,
           });
 
           const headers: Record<string, string> = {
@@ -636,6 +667,7 @@ export class ServerContext {
               params,
               render: createRender(req, params),
               renderNotFound: createUnknownRender(req, {}),
+              basePath: this.#basePath,
             }),
         };
       } else {
@@ -651,6 +683,7 @@ export class ServerContext {
               params,
               render: createRender(req, params),
               renderNotFound: createUnknownRender(req, {}),
+              basePath: this.#basePath,
             });
         }
       }
@@ -801,6 +834,7 @@ const DEFAULT_RENDER_FN: RenderFunction = (_ctx, render) => {
 
 const DEFAULT_ROUTER_OPTIONS: RouterOptions = {
   trailingSlash: false,
+  basePath: "",
 };
 
 const DEFAULT_APP: AppModule = {

@@ -4,6 +4,7 @@ export {
   extname,
   fromFileUrl,
   join,
+  posix,
   toFileUrl,
 } from "https://deno.land/std@0.190.0/path/mod.ts";
 export { walk } from "https://deno.land/std@0.190.0/fs/walk.ts";

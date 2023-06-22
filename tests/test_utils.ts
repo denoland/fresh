@@ -17,7 +17,9 @@ export async function startFreshServer(options: Deno.CommandOptions) {
 
   let address = "";
   for await (const line of lines) {
-    const match = line.match(/https?:\/\/localhost:\d+/g);
+    const match = line.match(
+      /https?:\/\/localhost:\d+[\/\w_-]*/g,
+    );
     if (match) {
       address = match[0];
       break;

@@ -83,9 +83,8 @@ export async function start(routes: Manifest, opts: StartOptions = {}) {
         colors.bgRgb8(colors.black(colors.bold("\n 🍋 Fresh ready ")), 121),
       );
 
-      const address = colors.cyan(
-        `http://localhost:${params.port}/`,
-      );
+      const pathname = ctx.basePath ?? "/";
+      const address = colors.cyan(`http://localhost:${params.port}${pathname}`);
       const localLabel = colors.bold("Local:");
       console.log(`    ${localLabel} ${address}\n`);
     };

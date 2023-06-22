@@ -28,6 +28,12 @@ export interface RouterOptions {
    *  @default {false}
    */
   trailingSlash?: boolean;
+  /**
+   * Serve fresh from a base path instead of from the root.
+   *   "/foo/bar" -> http://localhost:8000/foo/bar
+   * @default {undefined}
+   */
+  basePath?: string;
 }
 
 export type RenderFunction = (
@@ -87,6 +93,7 @@ export interface RenderOptions extends ResponseInit {}
 export interface HandlerContext<Data = unknown, State = Record<string, unknown>>
   extends ConnInfo {
   params: Record<string, string>;
+  basePath: string;
   render: (
     data?: Data,
     options?: RenderOptions,
@@ -225,6 +232,7 @@ export interface MiddlewareHandlerContext<State = Record<string, unknown>>
   next: () => Promise<Response>;
   state: State;
   destination: router.DestinationKind;
+  basePath: string;
 }
 
 export interface MiddlewareRoute extends Middleware {

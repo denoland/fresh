@@ -196,3 +196,10 @@ export function router<T = unknown>(
     };
   };
 }
+
+export function withBase(src: string, base?: string) {
+  if (base !== undefined && src.startsWith("/") && !src.startsWith(base)) {
+    return base + src;
+  }
+  return src;
+}
