@@ -90,3 +90,29 @@ export const handler = [
   },
 ];
 ```
+
+## Middleware Destination
+
+See these [two](https://github.com/denoland/fresh/issues/521)
+[issues](https://github.com/denoland/fresh/issues/1341) which led to this
+[PR](https://github.com/denoland/fresh/pull/1123), but there is now a way to
+determine the request's destination. `MiddlewareHandlerContext` looks like this:
+
+```ts
+export interface MiddlewareHandlerContext<State = Record<string, unknown>>
+  extends ConnInfo {
+  next: () => Promise<Response>;
+  state: State;
+  destination: router.DestinationKind;
+}
+```
+
+and `router.DestinationKind` is defined like this:
+
+```ts
+export type DestinationKind = "internal" | "static" | "route" | "notFound";
+```
+
+This is useful for if you want your middleware to only run when a request is
+headed for a `route`, as opposed to something like
+`http://localhost:8001/favicon.ico`.
