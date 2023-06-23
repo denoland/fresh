@@ -58,7 +58,7 @@ export interface RouterOptions {
 
 ## Plugins
 
-See the [docs](./docs/concepts/plugins) on this topic for more detail. But for
+See the [docs](/docs/concepts/plugins) on this topic for more detail. But for
 completion, you can do something like this to load plugins:
 
 ```ts

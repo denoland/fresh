@@ -98,4 +98,4 @@ requests.
 
 Of course there's no reason why you need to use middleware in order to solve
 this. The headers can be set directly in the
-[handler](https://fresh.deno.dev/docs/getting-started/custom-handlers) as well.
+[handler](/docs/getting-started/custom-handlers) as well.
