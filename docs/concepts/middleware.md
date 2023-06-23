@@ -93,10 +93,7 @@ export const handler = [
 
 ## Middleware Destination
 
-See these [two](https://github.com/denoland/fresh/issues/521)
-[issues](https://github.com/denoland/fresh/issues/1341) which led to this
-[PR](https://github.com/denoland/fresh/pull/1123), but there is now a way to
-determine the request's destination. `MiddlewareHandlerContext` looks like this:
+To set the stage for this section, `MiddlewareHandlerContext` looks like this:
 
 ```ts
 export interface MiddlewareHandlerContext<State = Record<string, unknown>>
@@ -116,3 +113,68 @@ export type DestinationKind = "internal" | "static" | "route" | "notFound";
 This is useful for if you want your middleware to only run when a request is
 headed for a `route`, as opposed to something like
 `http://localhost:8001/favicon.ico`.
+
+### Example
+
+Initiate a new Fresh project (`deno run -A -r https://fresh.deno.dev/`) and then
+create a `_middleware.ts` file in the `routes` folder like this:
+
+```ts
+import { MiddlewareHandlerContext } from "$fresh/server.ts";
+
+export async function handler(
+  req: Request,
+  ctx: MiddlewareHandlerContext,
+) {
+  console.log(ctx.destination);
+  console.log(req.url);
+  const resp = await ctx.next();
+  return resp;
+}
+```
+
+If you start up your server (`deno task start`) you'll see the following:
+
+```
+Task start deno run -A --watch=static/,routes/ dev.ts
+Watcher Process started.
+The manifest has been generated for 4 routes and 1 islands.
+
+ 🍋 Fresh ready
+    Local: http://localhost:8000/
+
+route
+http://localhost:8000/
+internal
+http://localhost:8000/_frsh/js/3c7400558fc00915df88cb181036c0dbf73ab7f5/deserializer.js
+internal
+http://localhost:8000/_frsh/js/3c7400558fc00915df88cb181036c0dbf73ab7f5/signals.js
+internal
+http://localhost:8000/_frsh/js/3c7400558fc00915df88cb181036c0dbf73ab7f5/plugin-twind-main.js
+internal
+http://localhost:8000/_frsh/js/3c7400558fc00915df88cb181036c0dbf73ab7f5/main.js
+internal
+http://localhost:8000/_frsh/js/3c7400558fc00915df88cb181036c0dbf73ab7f5/island-counter.js
+internal
+http://localhost:8000/_frsh/refresh.js
+static
+http://localhost:8000/logo.svg?__frsh_c=3c7400558fc00915df88cb181036c0dbf73ab7f5
+internal
+http://localhost:8000/_frsh/alive
+internal
+http://localhost:8000/_frsh/js/3c7400558fc00915df88cb181036c0dbf73ab7f5/chunk-PDMKJVJ5.js
+internal
+http://localhost:8000/_frsh/js/3c7400558fc00915df88cb181036c0dbf73ab7f5/chunk-UGFDDSOV.js
+internal
+http://localhost:8000/_frsh/js/3c7400558fc00915df88cb181036c0dbf73ab7f5/chunk-RCK7U3UF.js
+```
+
+That first `route` request is for when `Fresh` responds with the root level
+`index.tsx` route. The rest, as you can see, are either `internal` or `static`
+requests. You can use `ctx.destination` to filter these out if your middleware
+is only supposed to deal with routes.
+
+For additional context, these
+[two](https://github.com/denoland/fresh/issues/521)
+[issues](https://github.com/denoland/fresh/issues/1341) led to this
+[PR](https://github.com/denoland/fresh/pull/1123) which introduced this feature.
