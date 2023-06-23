@@ -3,7 +3,9 @@
 import { serialize } from "./serializer.ts";
 import { assert, assertEquals, assertSnapshot } from "../../tests/deps.ts";
 import { deserialize, KEY } from "../runtime/deserializer.ts";
-import { signal } from "@preact/signals";
+import { signal } from "@preact/signals-core";
+import { signal as signal130 } from "@preact/signals-core@1.3.0";
+import { signal as signal123 } from "@preact/signals-core@1.2.3";
 
 Deno.test("serializer - primitives & plain objects", async (t) => {
   const data = {
@@ -56,6 +58,60 @@ Deno.test("serializer - signals", async (t) => {
   assertEquals(deserialized.a, 1);
   assertEquals(deserialized.b.value, 2);
   assertEquals(deserialized.b.peek(), 2);
+});
+
+Deno.test("serializer - @preact/signals-core 1.2.3", async (t) => {
+  const data = {
+    a: 1,
+    b: signal123(2),
+  };
+  const res = serialize(data);
+  assert(res.requiresDeserializer);
+  assert(res.hasSignals);
+  await assertSnapshot(t, res.serialized);
+  const deserialized: any = deserialize(res.serialized, signal);
+  assertEquals(typeof deserialized, "object");
+  assertEquals(deserialized.a, 1);
+  assertEquals(deserialized.b.value, 2);
+  assertEquals(deserialized.b.peek(), 2);
+});
+
+Deno.test("serializer - @preact/signals-core 1.3.0", async (t) => {
+  const data = {
+    a: 1,
+    b: signal130(2),
+  };
+  const res = serialize(data);
+  assert(res.requiresDeserializer);
+  assert(res.hasSignals);
+  await assertSnapshot(t, res.serialized);
+  const deserialized: any = deserialize(res.serialized, signal);
+  assertEquals(typeof deserialized, "object");
+  assertEquals(deserialized.a, 1);
+  assertEquals(deserialized.b.value, 2);
+  assertEquals(deserialized.b.peek(), 2);
+});
+
+Deno.test("serializer - multiple versions of @preact/signals-core", async (t) => {
+  const data = {
+    a: 1,
+    b: signal(2),
+    c: signal123(2),
+    d: signal130(2),
+  };
+  const res = serialize(data);
+  assert(res.requiresDeserializer);
+  assert(res.hasSignals);
+  await assertSnapshot(t, res.serialized);
+  const deserialized: any = deserialize(res.serialized, signal);
+  assertEquals(typeof deserialized, "object");
+  assertEquals(deserialized.a, 1);
+  assertEquals(deserialized.b.value, 2);
+  assertEquals(deserialized.b.peek(), 2);
+  assertEquals(deserialized.c.value, 2);
+  assertEquals(deserialized.c.peek(), 2);
+  assertEquals(deserialized.d.value, 2);
+  assertEquals(deserialized.d.peek(), 2);
 });
 
 Deno.test("serializer - magic key", async (t) => {
