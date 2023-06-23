@@ -173,8 +173,3 @@ That first `route` request is for when `Fresh` responds with the root level
 `index.tsx` route. The rest, as you can see, are either `internal` or `static`
 requests. You can use `ctx.destination` to filter these out if your middleware
 is only supposed to deal with routes.
-
-For additional context, these
-[two](https://github.com/denoland/fresh/issues/521)
-[issues](https://github.com/denoland/fresh/issues/1341) led to this
-[PR](https://github.com/denoland/fresh/pull/1123) which introduced this feature.
