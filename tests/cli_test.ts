@@ -347,33 +347,34 @@ Deno.test("fresh-update", async function fn(t) {
   await cliProcess.output();
 
   await t.step("execute update command", async () => {
-    const cliProcess = new Deno.Command(Deno.execPath(), {
-      args: [
-        "run",
-        "-A",
-        path.join(Deno.cwd(), "update.ts"),
-        ".",
-      ],
-      cwd: tmpDirName,
-      stdin: "null",
-      stdout: "piped",
-    });
-
-    const { code, stdout } = await cliProcess.output();
-    const output = new TextDecoder().decode(stdout);
-
-    assertMatch(
-      output,
+    await updateAndVerify(
       /The manifest has been generated for \d+ routes and \d+ islands./,
     );
-    assertEquals(code, 0);
+  });
+
+  await t.step("execute update command deno.jsonc support", async () => {
+    try {
+      Deno.renameSync(`${tmpDirName}/deno.json`, `${tmpDirName}/deno.jsonc`);
+      await updateAndVerify(
+        /The manifest has been generated for \d+ routes and \d+ islands./,
+      );
+    } finally {
+      Deno.renameSync(`${tmpDirName}/deno.jsonc`, `${tmpDirName}/deno.json`);
+    }
   });
 
   await t.step("execute update command (no islands directory)", async () => {
     await retry(() =>
       Deno.remove(path.join(tmpDirName, "islands"), { recursive: true })
     );
+    await updateAndVerify(
+      /The manifest has been generated for \d+ routes and 0 islands./,
+    );
+  });
 
+  await retry(() => Deno.remove(tmpDirName, { recursive: true }));
+
+  async function updateAndVerify(expected: RegExp) {
     const cliProcess = new Deno.Command(Deno.execPath(), {
       args: [
         "run",
@@ -391,10 +392,8 @@ Deno.test("fresh-update", async function fn(t) {
 
     assertMatch(
       output,
-      /The manifest has been generated for \d+ routes and 0 islands./,
+      expected,
     );
     assertEquals(code, 0);
-  });
-
-  await retry(() => Deno.remove(tmpDirName, { recursive: true }));
+  }
 });

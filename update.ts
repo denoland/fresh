@@ -1,4 +1,11 @@
-import { join, Node, parse, Project, resolve } from "./src/dev/deps.ts";
+import {
+  existsSync,
+  join,
+  Node,
+  parse,
+  Project,
+  resolve,
+} from "./src/dev/deps.ts";
 import { error } from "./src/dev/error.ts";
 import { freshImports, twindImports } from "./src/dev/imports.ts";
 import { collect, ensureMinDenoVersion, generate } from "./src/dev/mod.ts";
@@ -27,9 +34,17 @@ const unresolvedDirectory = Deno.args[0];
 const resolvedDirectory = resolve(unresolvedDirectory);
 
 // Update dependencies in the import map. The import map can either be embedded
-// in a deno.json file or be in a separate JSON file referenced with the
+// in a deno.json (or .jsonc) file or be in a separate JSON file referenced with the
 // `importMap` key in deno.json.
-const DENO_JSON_PATH = join(resolvedDirectory, "deno.json");
+const fileNames = ["deno.json", "deno.jsonc"];
+const DENO_JSON_PATH = fileNames
+  .map((fileName) => join(resolvedDirectory, fileName))
+  .find((path) => existsSync(path));
+if (!DENO_JSON_PATH) {
+  throw new Error(
+    `Neither deno.json nor deno.jsonc could be found in ${resolvedDirectory}`,
+  );
+}
 let denoJsonText = await Deno.readTextFile(DENO_JSON_PATH);
 let denoJson = JSON.parse(denoJsonText);
 if (denoJson.importMap) {
