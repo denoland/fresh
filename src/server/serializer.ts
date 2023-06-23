@@ -155,6 +155,22 @@ export function serialize(data: unknown): SerializeResult {
       parentStack.push(res);
       return res;
     } else {
+      if (key !== null) {
+        // Bypass signal's `.toJSON` method because we want to serialize
+        // the signal itself including the signal's value and not just
+        // the value. This is needed because `JSON.stringify` always
+        // calls `.toJSON` automatically if available.
+        // deno-lint-ignore no-explicit-any
+        const realValue = (this as any)[key];
+        if (isSignal(realValue)) {
+          requiresDeserializer = true;
+          hasSignals = true;
+          const res = { [KEY]: "s", v: realValue.peek() };
+          parentStack.push(res);
+          return res;
+        }
+      }
+
       parentStack.push(value);
       return value;
     }
