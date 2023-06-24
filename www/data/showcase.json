@@ -346,5 +346,11 @@
     "link": "",
     "github": "",
     "image": ""
+  },
+  {
+    "title": "Battleship",
+    "link": "https://battleship.deno.dev",
+    "github": "karelklima/battleship",
+    "image": "battleship"
   }
 ]
