@@ -363,6 +363,32 @@ Deno.test("fresh-update", async function fn(t) {
     }
   });
 
+  await t.step("execute update command src dir", async () => {
+    const names = [
+      "components",
+      "islands",
+      "routes",
+      "static",
+      "dev.ts",
+      "main.ts",
+      "fresh.gen.ts",
+    ];
+    try {
+      Deno.mkdirSync(tmpDirName + "/src");
+      names.forEach((x) => {
+        Deno.rename(path.join(tmpDirName, x), path.join(tmpDirName, "src", x));
+      });
+      await updateAndVerify(
+        /The manifest has been generated for (?!0 routes and 0 islands)\d+ routes and \d+ islands./,
+      );
+    } finally {
+      names.forEach((x) => {
+        Deno.rename(path.join(tmpDirName, "src", x), path.join(tmpDirName, x));
+      });
+      await retry(() => Deno.remove(tmpDirName + "/src", { recursive: true }));
+    }
+  });
+
   await t.step("execute update command (no islands directory)", async () => {
     await retry(() =>
       Deno.remove(path.join(tmpDirName, "islands"), { recursive: true })
