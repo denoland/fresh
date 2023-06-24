@@ -80,7 +80,7 @@ This is by far the most complicated option currently available. It allows you to
 configure how your components get rendered.
 
 A detailed, concrete example of this is changing the language of the `<html>`
-tag. See the documentation [here](./docs/examples/setting-the-language.md).
+tag. See the documentation [here](/docs/examples/setting-the-language).
 
 ## RouterOptions
 
