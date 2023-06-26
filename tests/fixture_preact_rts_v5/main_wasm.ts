@@ -14,8 +14,7 @@ import { parseDenoFlags } from "../deps.ts";
 
 const flags = parseDenoFlags(Deno.args, {
   boolean: ["experimental-deno-serve"],
-  string: ["certFile", "keyFile", "cert", "key"]
 })
 
-await start(routes, { ...options, experimentalDenoServe: flags["experimental-deno-serve"], keyFile: flags.keyFile, certFile: flags.certFile,  key: flags.key, cert: flags.cert });
+await start(routes, { ...options, experimentalDenoServe: flags["experimental-deno-serve"]});
 
