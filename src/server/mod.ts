@@ -1,6 +1,6 @@
 import { ServerContext } from "./context.ts";
 import * as colors from "https://deno.land/std@0.190.0/fmt/colors.ts";
-import { ConnInfo, ServeHandler, serve, serveTls } from "./deps.ts";
+import { ConnInfo, serve, ServeHandler, serveTls } from "./deps.ts";
 export { Status } from "./deps.ts";
 import {
   AppModule,
@@ -83,18 +83,21 @@ export async function createHandler(
   return ctx.handler();
 }
 
-export async function start(routes: Manifest, opts: StartOptions | StartTlsOptions = {}) {
+export async function start(
+  routes: Manifest,
+  opts: StartOptions | StartTlsOptions = {},
+) {
   const ctx = await ServerContext.fromManifest(routes, opts);
-  const tls = modeTls(opts)
+  const tls = modeTls(opts);
 
   if (!opts.onListen) {
-    opts.onListen = (params: { hostname: string; port: number; }) => {
+    opts.onListen = (params: { hostname: string; port: number }) => {
       console.log(
         colors.bgRgb8(colors.black(colors.bold("\n 🍋 Fresh ready ")), 121),
       );
 
       const address = colors.cyan(
-        `${tls ? 'https' : 'http'}://localhost:${params.port}/`,
+        `${tls ? "https" : "http"}://localhost:${params.port}/`,
       );
       const localLabel = colors.bold("Local:");
       console.log(`    ${localLabel} ${address}\n`);
@@ -150,10 +153,15 @@ export async function start(routes: Manifest, opts: StartOptions | StartTlsOptio
 }
 
 function modeTls(opts: StartOptions | StartTlsOptions): boolean {
-  return !!(opts as StartTlsOptions)?.keyFile || !!(opts as StartTlsOptions)?.certFile || !!(opts as StartTlsOptions)?.cert || !!(opts as StartTlsOptions)?.key
+  return !!(opts as StartTlsOptions)?.keyFile ||
+    !!(opts as StartTlsOptions)?.certFile ||
+    !!(opts as StartTlsOptions)?.cert || !!(opts as StartTlsOptions)?.key;
 }
 
-async function bootServer(handler: ServeHandler, opts: StartOptions | StartTlsOptions) {
+async function bootServer(
+  handler: ServeHandler,
+  opts: StartOptions | StartTlsOptions,
+) {
   if (opts.experimentalDenoServe) {
     // @ts-ignore as `Deno.serve` is still unstable.
     await Deno.serve({ ...opts, handler }).finished;
@@ -165,7 +173,9 @@ async function bootServer(handler: ServeHandler, opts: StartOptions | StartTlsOp
 async function bootServerTls(handler: ServeHandler, opts: StartTlsOptions) {
   if (opts.experimentalDenoServe) {
     if (!!opts.certFile || !!opts.keyFile) {
-      throw new UnstableFeatureError("options keyFile and certFile are not supported by unstable Deno.serve please specify cert and key according to https://deno.land/api?unstable&s=Deno.ServeTlsOptions")
+      throw new UnstableFeatureError(
+        "options keyFile and certFile are not supported by unstable Deno.serve please specify cert and key according to https://deno.land/api?unstable&s=Deno.ServeTlsOptions",
+      );
     }
     // @ts-ignore as `Deno.serve` is still unstable.
     await Deno.serve(handler, opts);

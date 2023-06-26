@@ -10,6 +10,8 @@ import routes from "./fresh.gen.ts";
 
 const flags = parseDenoFlags(Deno.args, {
   boolean: ["experimental-deno-serve"],
-})
+});
 
-await start(routes, { experimentalDenoServe: flags["experimental-deno-serve"] });
+await start(routes, {
+  experimentalDenoServe: flags["experimental-deno-serve"],
+});

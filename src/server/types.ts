@@ -85,7 +85,7 @@ export interface RouteConfig {
 }
 
 // deno-lint-ignore no-empty-interface
-export interface RenderOptions extends ResponseInit { }
+export interface RenderOptions extends ResponseInit {}
 
 export interface HandlerContext<Data = unknown, State = Record<string, unknown>>
   extends ConnInfo {

@@ -10,12 +10,12 @@ export { walk } from "https://deno.land/std@0.190.0/fs/walk.ts";
 export {
   type Handler as ServeHandler,
   serve,
-  serveTls
+  serveTls,
 } from "https://deno.land/std@0.190.0/http/server.ts";
 export type {
   ConnInfo,
   ServeInit,
-  ServeTlsInit
+  ServeTlsInit,
 } from "https://deno.land/std@0.190.0/http/server.ts";
 export { Status } from "https://deno.land/std@0.190.0/http/http_status.ts";
 export {
