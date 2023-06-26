@@ -5,7 +5,6 @@ import {
   fromFileUrl,
   join,
   JSONC,
-  RequestHandler,
   Status,
   toFileUrl,
   typeByExtension,
@@ -46,6 +45,11 @@ import {
   EsbuildBuilder,
   JSXConfig,
 } from "../build/mod.ts";
+
+const DEFAULT_CONN_INFO: ConnInfo = {
+  localAddr: { transport: "tcp", hostname: "localhost", port: 8080 },
+  remoteAddr: { transport: "tcp", hostname: "localhost", port: 1234 },
+};
 
 interface RouterState {
   state: Record<string, unknown>;
@@ -357,7 +361,7 @@ export class ServerContext {
    * This functions returns a request handler that handles all routes required
    * by fresh, including static files.
    */
-  handler(): RequestHandler {
+  handler(): (req: Request, connInfo?: ConnInfo) => Promise<Response> {
     const handlers = this.#handlers();
     const inner = router.router<RouterState>(handlers);
     const withMiddlewares = this.#composeMiddlewares(
@@ -365,7 +369,10 @@ export class ServerContext {
       handlers.errorHandler,
     );
     const trailingSlashEnabled = this.#routerOptions?.trailingSlash;
-    return async function handler(req: Request, connInfo: ConnInfo) {
+    return async function handler(
+      req: Request,
+      connInfo: ConnInfo = DEFAULT_CONN_INFO,
+    ) {
       // Redirect requests that end with a trailing slash to their non-trailing
       // slash counterpart.
       // Ex: /about/ -> /about

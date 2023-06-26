@@ -29,6 +29,9 @@ export function deserialize(
       if (v[KEY] === "s") {
         return signal!(v.v);
       }
+      if (v[KEY] === "b") {
+        return BigInt(v.d);
+      }
       if (v[KEY] === "u8a") {
         return b64decode(v.d);
       }

@@ -12,3 +12,6 @@ like to see here, please open
 - [Setting the language](./examples/setting-the-language)
 - [Writing tests](./examples/writing-tests)
 - [Changing the source directory](./examples/changing-the-src-dir)
+- [Initializing the server](./examples/init-the-server)
+- [Using Fresh canary version](./examples/using-fresh-canary-version)
+- [Dealing with CORS](./examples/dealing-with-cors)

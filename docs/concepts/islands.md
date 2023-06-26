@@ -14,7 +14,7 @@ island. The file must have a default export that is a regular Preact component.
 ```tsx
 // islands/MyIsland.tsx
 
-import type { Signal } from "@preact/signals";
+import { useSignal } from "@preact/signals";
 
 export default function MyIsland() {
   const count = useSignal(0);
@@ -34,9 +34,9 @@ care of automatically re-hydrating the island on the client.
 Passing props to islands is supported, but only if the props are serializable.
 Fresh can serialize the following types of values:
 
-- Primitive types `string`, `boolean`, and `null`
+- Primitive types `string`, `boolean`, `bigint`, and `null`
 - Most `number`s (`Infinity`, `-Infinity`, and `NaN` are silently converted to
-  `null`, and `bigint`s are not supported)
+  `null`)
 - Plain objects with string keys and serializable values
 - Arrays containing serializable values
 - Uint8Array

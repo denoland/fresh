@@ -1,4 +1,13 @@
-import { join, Node, parse, Project, resolve } from "./src/dev/deps.ts";
+import {
+  dirname,
+  existsSync,
+  join,
+  Node,
+  parse,
+  Project,
+  resolve,
+  walk,
+} from "./src/dev/deps.ts";
 import { error } from "./src/dev/error.ts";
 import { freshImports, twindImports } from "./src/dev/imports.ts";
 import { collect, ensureMinDenoVersion, generate } from "./src/dev/mod.ts";
@@ -25,11 +34,20 @@ if (flags._.length !== 1) {
 
 const unresolvedDirectory = Deno.args[0];
 const resolvedDirectory = resolve(unresolvedDirectory);
+const srcDirectory = await findSrcDirectory("main.ts", resolvedDirectory);
 
 // Update dependencies in the import map. The import map can either be embedded
-// in a deno.json file or be in a separate JSON file referenced with the
+// in a deno.json (or .jsonc) file or be in a separate JSON file referenced with the
 // `importMap` key in deno.json.
-const DENO_JSON_PATH = join(resolvedDirectory, "deno.json");
+const fileNames = ["deno.json", "deno.jsonc"];
+const DENO_JSON_PATH = fileNames
+  .map((fileName) => join(resolvedDirectory, fileName))
+  .find((path) => existsSync(path));
+if (!DENO_JSON_PATH) {
+  throw new Error(
+    `Neither deno.json nor deno.jsonc could be found in ${resolvedDirectory}`,
+  );
+}
 let denoJsonText = await Deno.readTextFile(DENO_JSON_PATH);
 let denoJson = JSON.parse(denoJsonText);
 if (denoJson.importMap) {
@@ -185,5 +203,17 @@ await start(manifest, { plugins: [twindPlugin(twindConfig)] });\n`;
   }
 }
 
-const manifest = await collect(resolvedDirectory);
-await generate(resolvedDirectory, manifest);
+const manifest = await collect(srcDirectory);
+await generate(srcDirectory, manifest);
+
+async function findSrcDirectory(
+  fileName: string,
+  directory: string,
+): Promise<string> {
+  for await (const entry of walk(directory)) {
+    if (entry.isFile && entry.name === fileName) {
+      return dirname(entry.path);
+    }
+  }
+  return resolvedDirectory;
+}

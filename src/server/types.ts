@@ -92,7 +92,7 @@ export interface HandlerContext<Data = unknown, State = Record<string, unknown>>
     data?: Data,
     options?: RenderOptions,
   ) => Response | Promise<Response>;
-  renderNotFound: () => Response | Promise<Response>;
+  renderNotFound: (data?: Data) => Response | Promise<Response>;
   state: State;
 }
 
@@ -136,13 +136,20 @@ export interface AppModule {
 
 // --- UNKNOWN PAGE ---
 
-export interface UnknownPageProps {
+// deno-lint-ignore no-explicit-any
+export interface UnknownPageProps<T = any> {
   /** The URL of the request that resulted in this page being rendered. */
   url: URL;
 
   /** The route matcher (e.g. /blog/:id) that the request matched for this page
    * to be rendered. */
   route: string;
+
+  /**
+   * Additional data passed into `HandlerContext.renderNotFound`. Defaults to
+   * `undefined`.
+   */
+  data: T;
 }
 
 export interface UnknownHandlerContext<State = Record<string, unknown>>
@@ -191,6 +198,7 @@ export interface ErrorHandlerContext<State = Record<string, unknown>>
   render: () => Response | Promise<Response>;
   state: State;
 }
+
 export type ErrorHandler = (
   req: Request,
   ctx: ErrorHandlerContext,
@@ -297,6 +305,7 @@ export interface Plugin {
 export interface PluginRenderContext {
   render: PluginRenderFunction;
 }
+
 export interface PluginAsyncRenderContext {
   renderAsync: PluginAsyncRenderFunction;
 }
@@ -329,6 +338,7 @@ export interface PluginRenderScripts {
 }
 
 export type PluginRenderFunction = () => PluginRenderFunctionResult;
+
 export type PluginAsyncRenderFunction = () =>
   | PluginRenderFunctionResult
   | Promise<PluginRenderFunctionResult>;

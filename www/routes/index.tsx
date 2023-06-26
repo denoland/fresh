@@ -11,10 +11,18 @@ import Projects from "../components/Projects.tsx";
 import projects from "../data/showcase.json" assert { type: "json" };
 import Header from "../components/Header.tsx";
 
+function isOpenGraphUA(header: string | null): boolean {
+  if (!header) {
+    return false;
+  }
+  return header.startsWith("Twitterbot") || header.startsWith("Slackbot");
+}
+
 export const handler: Handlers = {
   GET(req, ctx) {
     const accept = req.headers.get("accept");
-    if (accept && !accept.includes("text/html")) {
+    const userAgent = req.headers.get("user-agent");
+    if (!accept?.includes("text/html") && !isOpenGraphUA(userAgent)) {
       const path = `https://deno.land/x/fresh@${VERSIONS[0]}/init.ts`;
       return new Response(`Redirecting to ${path}`, {
         headers: { "Location": path },
@@ -190,7 +198,7 @@ function GettingStarted(props: { origin: string }) {
           <a href="https://deno.land" class="text-blue-600 hover:underline">
             Deno CLI
           </a>{" "}
-          version 1.25.0 or higher is required.{" "}
+          version 1.31.0 or higher is required.{" "}
           <a
             href="https://deno.land/manual/getting_started/installation"
             class="text-blue-600 hover:underline"
@@ -210,16 +218,14 @@ function GettingStarted(props: { origin: string }) {
         To bootstrap a new project:
       </p>
 
-      <CopyArea>
-        {`deno run -A -r ${props.origin}`}
-      </CopyArea>
+      <CopyArea code={`deno run -A -r ${props.origin}`} />
 
       <p class="text-gray-600">
         Enter the newly created project directory and run the following command
         to start the development server:
       </p>
 
-      <CopyArea>{`deno task start`}</CopyArea>
+      <CopyArea code={`deno task start`} />
 
       <p class="text-gray-600">
         You can now open{" "}
