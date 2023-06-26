@@ -15,3 +15,4 @@ like to see here, please open
 - [Initializing the server](./examples/init-the-server)
 - [Using Fresh canary version](./examples/using-fresh-canary-version)
 - [Dealing with CORS](./examples/dealing-with-cors)
+- [Creating a CRUD API](./examples/creating-a-crud-api)
