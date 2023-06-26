@@ -20,6 +20,7 @@ export type {
   Handler,
   HandlerContext,
   Handlers,
+  MultiHandler,
   MiddlewareHandler,
   MiddlewareHandlerContext,
   PageProps,
