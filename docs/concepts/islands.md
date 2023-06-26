@@ -14,15 +14,15 @@ island. The file must have a default export that is a regular Preact component.
 ```tsx
 // islands/MyIsland.tsx
 
-import { useState } from "preact/hooks";
+import { useSignal } from "@preact/signals";
 
 export default function MyIsland() {
-  const [count, setCount] = useState(0);
+  const count = useSignal(0);
 
   return (
     <div>
       Counter is at {count}.{" "}
-      <button onClick={() => setCount(count + 1)}>+</button>
+      <button onClick={() => (count.value += 1)}>+</button>
     </div>
   );
 }
@@ -31,10 +31,87 @@ export default function MyIsland() {
 An island can be used in a page like a regular Preact component. Fresh will take
 care of automatically re-hydrating the island on the client.
 
-Passing props to islands is supported, but only if the props are JSON
-serializable. This means that you can only pass primitive types, plain objects,
-and arrays. It is currently not possible to pass complex objects like `Date`,
-custom classes, or functions. This means that it is not possible to pass
-`children` to an island, as `children` are VNodes, which are not serializable.
+Passing props to islands is supported, but only if the props are serializable.
+Fresh can serialize the following types of values:
 
-It is also not supported to nest islands within other islands.
+- Primitive types `string`, `boolean`, `bigint`, and `null`
+- Most `number`s (`Infinity`, `-Infinity`, and `NaN` are silently converted to
+  `null`)
+- Plain objects with string keys and serializable values
+- Arrays containing serializable values
+- Uint8Array
+- JSX Elements (restricted to `props.children`)
+- Preact Signals (if the inner value is serializable)
+
+Circular references are supported. If an object or signal is referenced multiple
+times, it is only serialized once and the references are restored upon
+deserialization. Passing complex objects like `Date`, custom classes, or
+functions is not supported.
+
+## Passing JSX to islands
+
+Islands support passing JSX elements via the `children` property. This allows
+you to pass static content rendered by the server to an island in the browser.
+
+```jsx
+// file: /route/index.tsx
+import MyIsland from "../islands/my-island.tsx";
+
+export default function Home() {
+  return (
+    <MyIsland>
+      <p>This text is rendered on the server</p>
+    </MyIsland>
+  );
+}
+```
+
+We can deduce which parts were rendered by the server and which parts where
+rendered by an island from the HTML alone. It contains all the information we
+need, which allows us to skip the work of having to send a serialized version of
+`props.children` to the browser.
+
+### Nesting islands
+
+Islands can be nested within other islands as well. In that scenario they act
+like a normal Preact component, but still receive the serialized props if any
+were present.
+
+```jsx
+// file: /route/index.tsx
+import MyIsland from "../islands/my-island.tsx";
+import OtherIsland from "../islands/other-island.tsx";
+
+export default function Home() {
+  return (
+    <MyIsland>
+      <OtherIsland foo="this prop will be serialized">
+        <p>This text is rendered on the server</p>
+      </OtherIsland>
+    </MyIsland>
+  );
+}
+```
+
+In essence, fresh allows you to mix static and interactive parts in your app in
+a way that's most optimal for your use app. We'll keep sending only the
+JavaScript that is needed for the islands to the browser.
+
+```jsx
+// file: /route/index.tsx
+import MyIsland from "../islands/my-island.tsx";
+import OtherIsland from "../islands/other-island.tsx";
+
+export default function Home() {
+  return (
+    <MyIsland>
+      <div>
+        <h1>Rendered by server</h1>
+        <OtherIsland>
+          <p>also rendered by server</p>
+        </OtherIsland>
+      </div>
+    </MyIsland>
+  );
+}
+```

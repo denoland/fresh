@@ -5,10 +5,10 @@ import {
   assertStringIncludes,
   delay,
   puppeteer,
-  TextLineStream,
 } from "./deps.ts";
 import manifest from "./fixture_plugin/fresh.gen.ts";
 import options from "./fixture_plugin/options.ts";
+import { startFreshServer } from "./test_utils.ts";
 
 const ctx = await ServerContext.fromManifest(manifest, options);
 const handler = ctx.handler();
@@ -33,8 +33,12 @@ Deno.test("/static page prerender", async () => {
   assertEquals(resp.status, Status.OK);
   const body = await resp.text();
   assertStringIncludes(body, '<style id="abc">body { color: red; }</style>');
-  assert(!body.includes(`>[[],[]]</script>`));
+  assert(!body.includes(`>{"v":[[],[]]}</script>`));
   assert(!body.includes(`import`));
+  assertStringIncludes(
+    body,
+    '<style id="def">h1 { text-decoration: underline; }</style>',
+  );
 });
 
 Deno.test("/with-island prerender", async () => {
@@ -46,42 +50,28 @@ Deno.test("/with-island prerender", async () => {
     body,
     '<style id="abc">body { color: red; } h1 { color: blue; }</style>',
   );
-  assertStringIncludes(body, `>[[{}],["JS injected!"]]</script>`);
+  assertStringIncludes(body, `>{"v":[[{}],["JS injected!"]]}</script>`);
   assertStringIncludes(body, `/plugin-js-inject-main.js"`);
+  assertStringIncludes(
+    body,
+    '<style id="def">h1 { text-decoration: underline; } h1 { font-style: italic; }</style>',
+  );
 });
 
 Deno.test({
   name: "/with-island hydration",
   async fn(t) {
     // Preparation
-    const serverProcess = Deno.run({
-      cmd: ["deno", "run", "-A", "./tests/fixture_plugin/main.ts"],
-      stdout: "piped",
-      stderr: "inherit",
+    const { lines, serverProcess, address } = await startFreshServer({
+      args: ["run", "-A", "./tests/fixture_plugin/main.ts"],
     });
-
-    const decoder = new TextDecoderStream();
-    const lines = serverProcess.stdout.readable
-      .pipeThrough(decoder)
-      .pipeThrough(new TextLineStream());
-
-    let started = false;
-    for await (const line of lines) {
-      if (line.includes("Listening on http://")) {
-        started = true;
-        break;
-      }
-    }
-    if (!started) {
-      throw new Error("Server didn't start up");
-    }
 
     await delay(100);
 
     const browser = await puppeteer.launch({ args: ["--no-sandbox"] });
     const page = await browser.newPage();
 
-    await page.goto("http://localhost:8000/with-island", {
+    await page.goto(`${address}/with-island`, {
       waitUntil: "networkidle2",
     });
 
@@ -98,7 +88,6 @@ Deno.test({
 
     await lines.cancel();
     serverProcess.kill("SIGTERM");
-    serverProcess.close();
   },
   sanitizeOps: false,
   sanitizeResources: false,

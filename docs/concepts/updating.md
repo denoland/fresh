@@ -18,24 +18,25 @@ For the most part these pieces can be updated independently. Certain versions of
 Fresh may require a minimum version of a given dependency. This is documented
 below.
 
-| Fresh version | Preact           | preact-render-to-string | Deno      |
-| ------------- | ---------------- | ----------------------- | --------- |
-| 1.0.0-1.0.2   | >=10.8.1 <11.0.0 | >=5.2.0 <6.0.0          | >= 1.23.0 |
-| 1.1.0-1.1.2   | >=10.8.1 <11.0.0 | >=5.2.0 <6.0.0          | >= 1.25.0 |
+| Fresh version | Preact            | preact-render-to-string | Deno      |
+| ------------- | ----------------- | ----------------------- | --------- |
+| 1.0.0-1.0.2   | >=10.8.1 <11.0.0  | >=5.2.0 <6.0.0          | >= 1.23.0 |
+| 1.1.0-1.1.5   | >=10.8.1 <11.0.0  | >=5.2.0 <6.0.0          | >= 1.25.0 |
+| 1.2.0         | >=10.15.0 <11.0.0 | >=6.1.0                 | >= 1.25.0 |
 
 ## Updating dependencies
 
 To update your dependencies, you have two options:
 
 - Run the fresh updater to update your project dependencies.
-- Manually update the dependency versions in your `import_map.json` file.
+- Manually update the dependency versions in your `deno.json` file.
 
 ### Auto updater
 
 The auto updater is a command line tool that will update your project's
-`import_map.json` file to the latest versions of Fresh and its dependencies. It
-may also contain code mods for your project that will update your code to the
-latest recommended patterns for Fresh projects.
+`deno.json` file to the latest versions of Fresh and its dependencies. It may
+also contain code mods for your project that will update your code to the latest
+recommended patterns for Fresh projects.
 
 To run the auto updater, run the following command from the root of your
 project:
@@ -48,17 +49,16 @@ You will be prompted to confirm the changes that will be made to your project.
 
 ### Manual update
 
-To manually update your project's dependencies, you can edit the
-`import_map.json` file in the root of your projects directory. Dependency
-versions are encoded into the URLs in this file. For example, here is how to
-update a project from Fresh 1.0.2 to 1.1.2, and update Preact to the latest
-version:
+To manually update your project's dependencies, you can edit the `deno.json`
+file in the root of your projects directory. Dependency versions are encoded
+into the URLs in this file. For example, here is how to update a project from
+Fresh 1.0.2 to 1.1.3, and update Preact to the latest version:
 
 ```diff
   {
     "imports": {
 -     "$fresh/": "https://deno.land/x/fresh@1.0.2/",
-+     "$fresh/": "https://deno.land/x/fresh@1.1.2/",
++     "$fresh/": "https://deno.land/x/fresh@1.1.5/",
 
 -     "preact": "https://esm.sh/preact@10.8.1",
 -     "preact/": "https://esm.sh/preact@10.8.1/",
@@ -66,7 +66,7 @@ version:
 +     "preact/": "https://esm.sh/preact@10.11.0/",
 
 -     "preact-render-to-string": "https://esm.sh/*preact-render-to-string@5.2.0",
-+     "preact-render-to-string": "https://esm.sh/*preact-render-to-string@5.2.4",
++     "preact-render-to-string": "https://esm.sh/*preact-render-to-string@6.1.0",
 
       "twind": "https://esm.sh/twind@0.16.17",
       "twind/": "https://esm.sh/twind@0.16.17/"

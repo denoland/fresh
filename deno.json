@@ -1,8 +1,9 @@
 {
+  "lock": false,
   "tasks": {
-    "test": "deno test -A && deno check --config=www/deno.json www/main.ts www/dev.ts && deno check init.ts",
+    "test": "deno test -A --parallel && deno check --config=www/deno.json www/main.ts www/dev.ts && deno check init.ts",
     "fixture": "deno run -A --watch=static/,routes/ tests/fixture/dev.ts",
-    "www": "deno run -A --watch=www/static/,www/routes/,docs/ www/dev.ts",
+    "www": "deno task --cwd=www start",
     "screenshot": "deno run -A www/utils/screenshot.ts"
   },
   "importMap": "./.vscode/import_map.json",
@@ -11,8 +12,6 @@
     "jsxImportSource": "preact"
   },
   "test": {
-    "files": {
-      "exclude": ["www/"]
-    }
+    "exclude": ["www/"]
   }
 }

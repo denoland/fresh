@@ -1,5 +1,14 @@
 import { renderToString } from "preact-render-to-string";
-import { ComponentChildren, ComponentType, h, options } from "preact";
+import {
+  Component,
+  ComponentChildren,
+  ComponentType,
+  Fragment,
+  h,
+  Options as PreactOptions,
+  options as preactOptions,
+  VNode,
+} from "preact";
 import {
   AppModule,
   ErrorPage,
@@ -18,6 +27,17 @@ import { ContentSecurityPolicy } from "../runtime/csp.ts";
 import { bundleAssetUrl } from "./constants.ts";
 import { assetHashingHook } from "../runtime/utils.ts";
 import { htmlEscapeJsonString } from "./htmlescape.ts";
+import { serialize } from "./serializer.ts";
+
+// These hooks are long stable, but when we originally added them we
+// weren't sure if they should be public.
+export interface AdvancedPreactOptions extends PreactOptions {
+  /** Attach a hook that is invoked after a tree was mounted or was updated. */
+  __c?(vnode: VNode, commitQueue: Component[]): void;
+  /** Attach a hook that is invoked before a vnode has rendered. */
+  __r?(vnode: VNode): void;
+}
+const options = preactOptions as AdvancedPreactOptions;
 
 export interface RenderOptions<Data> {
   route: Route<Data> | UnknownPage | ErrorPage;
@@ -25,7 +45,7 @@ export interface RenderOptions<Data> {
   plugins: Plugin[];
   app: AppModule;
   imports: string[];
-  preloads: string[];
+  dependenciesFn: (path: string) => string[];
   url: URL;
   params: Record<string, string | string[]>;
   renderFn: RenderFunction;
@@ -129,6 +149,10 @@ export async function render<Data>(
     children: h(HEAD_CONTEXT.Provider, {
       value: headComponents,
       children: h(opts.app.default, {
+        params: opts.params as Record<string, string>,
+        url: opts.url,
+        route: opts.route.pattern,
+        data: opts.data,
         Component() {
           return h(opts.route.component! as ComponentType<unknown>, props);
         },
@@ -163,18 +187,18 @@ export async function render<Data>(
 
   let bodyHtml: string | null = null;
 
-  function realRender(): string {
+  function renderInner(): string {
     bodyHtml = renderToString(vnode);
     return bodyHtml;
   }
 
-  const plugins = opts.plugins.filter((p) => p.render !== null);
+  const syncPlugins = opts.plugins.filter((p) => p.render);
   const renderResults: [Plugin, PluginRenderResult][] = [];
 
-  function render(): PluginRenderFunctionResult {
-    const plugin = plugins.shift();
+  function renderSync(): PluginRenderFunctionResult {
+    const plugin = syncPlugins.shift();
     if (plugin) {
-      const res = plugin.render!({ render });
+      const res = plugin.render!({ render: renderSync });
       if (res === undefined) {
         throw new Error(
           `${plugin?.name}'s render hook did not return a PluginRenderResult object.`,
@@ -182,7 +206,7 @@ export async function render<Data>(
       }
       renderResults.push([plugin, res]);
     } else {
-      realRender();
+      renderInner();
     }
     if (bodyHtml === null) {
       throw new Error(
@@ -195,15 +219,43 @@ export async function render<Data>(
     };
   }
 
-  await opts.renderFn(ctx, () => render().htmlText);
+  const asyncPlugins = opts.plugins.filter((p) => p.renderAsync);
 
-  if (bodyHtml === null) {
-    throw new Error("The `render` function was not called by the renderer.");
+  async function renderAsync(): Promise<PluginRenderFunctionResult> {
+    const plugin = asyncPlugins.shift();
+    if (plugin) {
+      const res = await plugin.renderAsync!({ renderAsync });
+      if (res === undefined) {
+        throw new Error(
+          `${plugin?.name}'s async render hook did not return a PluginRenderResult object.`,
+        );
+      }
+      renderResults.push([plugin, res]);
+      if (bodyHtml === null) {
+        throw new Error(
+          `The 'renderAsync' function was not called by ${plugin?.name}'s async render hook.`,
+        );
+      }
+    } else {
+      await opts.renderFn(ctx, () => renderSync().htmlText);
+      if (bodyHtml === null) {
+        throw new Error(
+          `The 'render' function was not called by the legacy async render hook.`,
+        );
+      }
+    }
+    return {
+      htmlText: bodyHtml,
+      requiresHydration: ENCOUNTERED_ISLANDS.size > 0,
+    };
   }
 
-  bodyHtml = bodyHtml as string;
+  await renderAsync();
+  bodyHtml = bodyHtml as unknown as string;
 
-  const imports = opts.imports.map((url) => {
+  const moduleScripts: [string, string][] = [];
+
+  for (const url of opts.imports) {
     const randomNonce = crypto.randomUUID().replace(/-/g, "");
     if (csp) {
       csp.directives.scriptSrc = [
@@ -211,76 +263,98 @@ export async function render<Data>(
         nonce(randomNonce),
       ];
     }
-    return [url, randomNonce] as const;
-  });
+    moduleScripts.push([url, randomNonce]);
+  }
+
+  const preloadSet = new Set<string>();
+  function addImport(path: string): string {
+    const randomNonce = crypto.randomUUID().replace(/-/g, "");
+    if (csp) {
+      csp.directives.scriptSrc = [
+        ...csp.directives.scriptSrc ?? [],
+        nonce(randomNonce),
+      ];
+    }
+    const url = bundleAssetUrl(`/${path}`);
+    preloadSet.add(url);
+    for (const depPath of opts.dependenciesFn(path)) {
+      const url = bundleAssetUrl(`/${depPath}`);
+      preloadSet.add(url);
+    }
+    return url;
+  }
 
   const state: [islands: unknown[], plugins: unknown[]] = [ISLAND_PROPS, []];
   const styleTags: PluginRenderStyleTag[] = [];
-
-  let script =
-    `const STATE_COMPONENT = document.getElementById("__FRSH_STATE");const STATE = JSON.parse(STATE_COMPONENT?.textContent ?? "[[],[]]");`;
+  const pluginScripts: [string, string, number][] = [];
 
   for (const [plugin, res] of renderResults) {
     for (const hydrate of res.scripts ?? []) {
       const i = state[1].push(hydrate.state) - 1;
-      const randomNonce = crypto.randomUUID().replace(/-/g, "");
-      if (csp) {
-        csp.directives.scriptSrc = [
-          ...csp.directives.scriptSrc ?? [],
-          nonce(randomNonce),
-        ];
-      }
-      const url = bundleAssetUrl(
-        `/plugin-${plugin.name}-${hydrate.entrypoint}.js`,
-      );
-      imports.push([url, randomNonce] as const);
-
-      script += `import p${i} from "${url}";p${i}(STATE[1][${i}]);`;
+      pluginScripts.push([plugin.name, hydrate.entrypoint, i]);
     }
     styleTags.splice(styleTags.length, 0, ...res.styles ?? []);
   }
 
+  // The inline script that will hydrate the page.
+  let script = "";
+
+  // Serialize the state into the <script id=__FRSH_STATE> tag and generate the
+  // inline script to deserialize it. This script starts by deserializing the
+  // state in the tag. This potentially requires importing @preact/signals.
+  if (state[0].length > 0 || state[1].length > 0) {
+    const res = serialize(state);
+    const escapedState = htmlEscapeJsonString(res.serialized);
+    bodyHtml +=
+      `<script id="__FRSH_STATE" type="application/json">${escapedState}</script>`;
+
+    if (res.requiresDeserializer) {
+      const url = addImport("deserializer.js");
+      script += `import { deserialize } from "${url}";`;
+    }
+    if (res.hasSignals) {
+      const url = addImport("signals.js");
+      script += `import { signal } from "${url}";`;
+    }
+    script += `const ST = document.getElementById("__FRSH_STATE").textContent;`;
+    script += `const STATE = `;
+    if (res.requiresDeserializer) {
+      if (res.hasSignals) {
+        script += `deserialize(ST, signal);`;
+      } else {
+        script += `deserialize(ST);`;
+      }
+    } else {
+      script += `JSON.parse(ST).v;`;
+    }
+  }
+
+  // Then it imports all plugin scripts and executes them (with their respective
+  // state).
+  for (const [pluginName, entrypoint, i] of pluginScripts) {
+    const url = addImport(`plugin-${pluginName}-${entrypoint}.js`);
+    script += `import p${i} from "${url}";p${i}(STATE[1][${i}]);`;
+  }
+
+  // Finally, it loads all island scripts and hydrates the islands using the
+  // reviver from the "main" script.
   if (ENCOUNTERED_ISLANDS.size > 0) {
     // Load the main.js script
-    {
-      const randomNonce = crypto.randomUUID().replace(/-/g, "");
-      if (csp) {
-        csp.directives.scriptSrc = [
-          ...csp.directives.scriptSrc ?? [],
-          nonce(randomNonce),
-        ];
-      }
-      const url = bundleAssetUrl("/main.js");
-      imports.push([url, randomNonce] as const);
-    }
-
-    script += `import { revive } from "${bundleAssetUrl("/main.js")}";`;
+    const url = addImport("main.js");
+    script += `import { revive } from "${url}";`;
 
     // Prepare the inline script that loads and revives the islands
     let islandRegistry = "";
     for (const island of ENCOUNTERED_ISLANDS) {
-      const randomNonce = crypto.randomUUID().replace(/-/g, "");
-      if (csp) {
-        csp.directives.scriptSrc = [
-          ...csp.directives.scriptSrc ?? [],
-          nonce(randomNonce),
-        ];
-      }
-      const url = bundleAssetUrl(`/island-${island.id}.js`);
-      imports.push([url, randomNonce] as const);
+      const url = addImport(`island-${island.id}.js`);
       script += `import ${island.name} from "${url}";`;
       islandRegistry += `${island.id}:${island.name},`;
     }
     script += `revive({${islandRegistry}}, STATE[0]);`;
   }
 
-  if (state[0].length > 0 || state[1].length > 0) {
-    // Append state to the body
-    bodyHtml += `<script id="__FRSH_STATE" type="application/json">${
-      htmlEscapeJsonString(JSON.stringify(state))
-    }</script>`;
-
-    // Append the inline script to the body
+  // Append the inline script.
+  if (script !== "") {
     const randomNonce = crypto.randomUUID().replace(/-/g, "");
     if (csp) {
       csp.directives.scriptSrc = [
@@ -309,11 +383,12 @@ export async function render<Data>(
     headComponents.splice(0, 0, node);
   }
 
+  const preloads = [...preloadSet];
   const html = template({
     bodyHtml,
     headComponents,
-    imports,
-    preloads: opts.preloads,
+    moduleScripts,
+    preloads,
     lang: ctx.lang,
   });
 
@@ -323,7 +398,7 @@ export async function render<Data>(
 export interface TemplateOptions {
   bodyHtml: string;
   headComponents: ComponentChildren[];
-  imports: (readonly [string, string])[];
+  moduleScripts: (readonly [string, string])[];
   preloads: string[];
   lang: string;
 }
@@ -343,7 +418,7 @@ export function template(opts: TemplateOptions): string {
       opts.preloads.map((src) =>
         h("link", { rel: "modulepreload", href: src })
       ),
-      opts.imports.map(([src, nonce]) =>
+      opts.moduleScripts.map(([src, nonce]) =>
         h("script", { src: src, nonce: nonce, type: "module" })
       ),
       opts.headComponents,
@@ -353,35 +428,142 @@ export function template(opts: TemplateOptions): string {
   return "<!DOCTYPE html>" + renderToString(page);
 }
 
+const supportsUnstableComments = renderToString(h(Fragment, {
+  // @ts-ignore unstable features not supported in types
+  UNSTABLE_comment: "foo",
+})) !== "";
+
+if (!supportsUnstableComments) {
+  console.warn(
+    "⚠️  Found old version of 'preact-render-to-string'. Please upgrade it to >=6.1.0",
+  );
+}
+
+function wrapWithMarker(vnode: ComponentChildren, markerText: string) {
+  // Newer versions of preact-render-to-string allow you to render comments
+  if (supportsUnstableComments) {
+    return h(
+      Fragment,
+      null,
+      h(Fragment, {
+        // @ts-ignore unstable property is not typed
+        UNSTABLE_comment: markerText,
+      }),
+      vnode,
+      h(Fragment, {
+        // @ts-ignore unstable property is not typed
+        UNSTABLE_comment: "/" + markerText,
+      }),
+    );
+  } else {
+    return h(
+      `!--${markerText}--`,
+      null,
+      vnode,
+    );
+  }
+}
+
 // Set up a preact option hook to track when vnode with custom functions are
 // created.
 const ISLANDS: Island[] = [];
 const ENCOUNTERED_ISLANDS: Set<Island> = new Set([]);
 let ISLAND_PROPS: unknown[] = [];
+
+// Keep track of which component rendered which vnode. This allows us
+// to detect when an island is rendered within another instead of being
+// passed as children.
+let ownerStack: VNode[] = [];
+const islandOwners = new Map<VNode, VNode>();
+
 const originalHook = options.vnode;
 let ignoreNext = false;
 options.vnode = (vnode) => {
   assetHashingHook(vnode);
   const originalType = vnode.type as ComponentType<unknown>;
+
+  // Use a labelled statement that allows ous to break out of it
+  // whilst still continuing execution. We still want to call previous
+  // `options.vnode` hooks if there were any, otherwise we'd break
+  // the change for other plugins hooking into Preact.
+  patchIslands:
   if (typeof vnode.type === "function") {
     const island = ISLANDS.find((island) => island.component === originalType);
     if (island) {
+      const hasOwners = ownerStack.length > 0;
+      if (hasOwners) {
+        const prevOwner = ownerStack[ownerStack.length - 1];
+        islandOwners.set(vnode, prevOwner);
+      }
+
+      // Check if we already patched this component
       if (ignoreNext) {
         ignoreNext = false;
-        return;
+        break patchIslands;
       }
+
+      // Check if an island is rendered inside another island, not just
+      // passed as a child. Example:
+      //   function Island() {}
+      //     return <OtherIsland />
+      //   }
+      if (hasOwners) {
+        const prevOwner = ownerStack[ownerStack.length - 1];
+        if (islandOwners.has(prevOwner)) {
+          break patchIslands;
+        }
+      }
+
       ENCOUNTERED_ISLANDS.add(island);
       vnode.type = (props) => {
         ignoreNext = true;
+
+        // Only passing children JSX to islands is supported for now
+        if ("children" in props) {
+          const children = props.children;
+          // @ts-ignore nonono
+          props.children = wrapWithMarker(
+            children,
+            `frsh-slot-${island.id}:children`,
+          );
+        }
+
         const child = h(originalType, props);
         ISLAND_PROPS.push(props);
-        return h(
-          `!--frsh-${island.id}:${ISLAND_PROPS.length - 1}--`,
-          null,
+
+        return wrapWithMarker(
           child,
+          `frsh-${island.id}:${ISLAND_PROPS.length - 1}`,
         );
       };
     }
   }
   if (originalHook) originalHook(vnode);
+};
+
+// Keep track of owners
+const oldDiffed = options.diffed;
+const oldRender = options.__r;
+const oldCommit = options.__c;
+options.__r = (vnode) => {
+  if (
+    typeof vnode.type === "function" &&
+    vnode.type !== Fragment
+  ) {
+    ownerStack.push(vnode);
+  }
+  oldRender?.(vnode);
+};
+options.diffed = (vnode) => {
+  if (typeof vnode.type === "function") {
+    if (vnode.type !== Fragment) {
+      ownerStack.pop();
+    }
+  }
+  oldDiffed?.(vnode);
+};
+options.__c = (vnode, queue) => {
+  oldCommit?.(vnode, queue);
+  ownerStack = [];
+  islandOwners.clear();
 };

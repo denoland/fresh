@@ -1,4 +1,5 @@
-[Documentation](#-documentation) | [Getting started](#-getting-started)
+[Documentation](#-documentation) | [Getting started](#-getting-started) |
+[API Reference](https://deno.land/x/fresh?doc)
 
 # fresh
 
@@ -24,13 +25,13 @@ The [documentation](https://fresh.deno.dev/docs/) is available on
 
 ## 🚀 Getting started
 
-Install [Deno CLI](https://deno.land/) version 1.25.0 or higher.
+Install [Deno CLI](https://deno.land/) version 1.31.0 or higher.
 
 You can scaffold a new project by running the Fresh init script. To scaffold a
-project in the `deno-fresh-demo` folder, run the following:
+project run the following:
 
 ```sh
-deno run -A -r https://fresh.deno.dev deno-fresh-demo
+deno run -A -r https://fresh.deno.dev
 ```
 
 Then navigate to the newly created project folder:
@@ -62,6 +63,11 @@ For a more in-depth getting started guide, visit the
 [Getting Started](https://fresh.deno.dev/docs/getting-started) page in the Fresh
 docs.
 
+## Contributing
+
+We appreciate your help! To contribute, please read our
+[contributing instructions](https://deno.com/manual/references/contributing#submitting-a-pr-to-fresh).
+
 ## Adding your project to the showcase
 
 If you feel that your project would be helpful to other fresh users, please
@@ -89,7 +95,12 @@ preferably with source code on GitHub, but not required.
 
 ```html
 <a href="https://fresh.deno.dev">
-   <img width="197" height="37" src="https://fresh.deno.dev/fresh-badge.svg" alt="Made with Fresh" />
+  <img
+    width="197"
+    height="37"
+    src="https://fresh.deno.dev/fresh-badge.svg"
+    alt="Made with Fresh"
+  />
 </a>
 ```
 
@@ -101,6 +112,11 @@ preferably with source code on GitHub, but not required.
 
 ```html
 <a href="https://fresh.deno.dev">
-   <img width="197" height="37" src="https://fresh.deno.dev/fresh-badge-dark.svg" alt="Made with Fresh" />
+  <img
+    width="197"
+    height="37"
+    src="https://fresh.deno.dev/fresh-badge-dark.svg"
+    alt="Made with Fresh"
+  />
 </a>
 ```

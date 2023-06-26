@@ -12,7 +12,7 @@ that contains the name passed in the path.
 Before diving in, a quick refresher on "dynamic" routes. Dynamic routes don't
 just match a single static path, but rather a whole bunch of different paths
 based on a pattern. For example, the `/greet/:name` route will match the paths
-`/greet/Luca` and `/greet/John`, but not `/greet` or `/greet/Luca/John`.
+`/greet/Luca` and `/John`, but not `/greet/Luca/John`.
 
 Fresh supports dynamic routes out of the box through file system routing. To
 make any path segment dynamic, just put square brackets around that segment in
@@ -43,7 +43,7 @@ The `PageProps` interface actually contains a bunch of useful properties that
 can be used to customize the rendered output. Next to the matched url pattern
 parameters, the raw `url`, and the `route` name can also be found in here.
 
-Navigating to `https://localhost:8000/greet/Luca` will now render a page showing
+Navigating to `http://localhost:8000/greet/Luca` will now render a page showing
 "Greetings to you, Luca!".
 
 The [_Concepts: Routing_][concepts-routing] page has more information about

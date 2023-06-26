@@ -1,5 +1,17 @@
 [
   {
+    "title": "OpenAI Semantic Search",
+    "link": "https://supabase-openai-doc-search.deno.dev/",
+    "github": "supabase-community/deno-fresh-openai-doc-search",
+    "image": "openai-semantic-search"
+  },
+  {
+    "title": "Deno SaaSKit",
+    "link": "https://saaskit.deno.dev/",
+    "github": "denoland/saaskit",
+    "image": "deno-saaskit"
+  },
+  {
     "title": "Deno Merch",
     "link": "https://merch.deno.com/",
     "github": "denoland/merch",
@@ -94,6 +106,12 @@
     "link": "https://mooxl.dev",
     "github": "mooxl/fresh.mooxl.dev",
     "image": "mooxl"
+  },
+  {
+    "title": "Developer Portfolio",
+    "link": "https://guillaumecomte.deno.dev",
+    "github": "guigui64/www",
+    "image": "guigui64"
   },
   {
     "title": "Joe Salinas Site",
@@ -242,9 +260,97 @@
     "image": "m33t"
   },
   {
+    "title": "YAML to TypeScript",
+    "link": "https://yaml-to-ts.deno.dev/",
+    "github": "jiawei397/yaml_to_ts_web",
+    "image": "yaml-to-ts"
+  },
+  {
+    "title": "Denosoar",
+    "link": "https://denosoar.deno.dev/",
+    "github": "Denosoar-GUI/Denosoar-GUI",
+    "image": "Denosoar"
+  },
+  {
+    "title": "link-maker",
+    "link": "https://link-maker.deno.dev/",
+    "github": "kuizuo/link-maker",
+    "image": "link-maker"
+  },
+  {
+    "title": "Delicious",
+    "link": "https://sking.deno.dev/",
+    "github": "shijianzhong/fresh-blog-system",
+    "image": "fresh-blog-system"
+  },
+  {
+    "title": "Alvaro Vanegas Sites",
+    "link": "https://ajvanegasv.dev/",
+    "github": "ajvanegasv/my-portfolio",
+    "image": "ajvanegasv"
+  },
+  {
+    "title": "Teams Template",
+    "link": "https://teams-template.deno.dev/",
+    "github": "davit-b/teams-template",
+    "image": "teams-template"
+  },
+  {
+    "title": "FestWithMe",
+    "link": "https://fest-with-me.deno.dev/",
+    "github": "rnaidenov/fest-with-me",
+    "image": "festwithme"
+  },
+  {
+    "title": "Pollify",
+    "link": "https://pollify.deno.dev/",
+    "github": "n4ze3m/pollify",
+    "image": "pollify"
+  },
+  {
+    "title": "JPT ChatGPT Rooms",
+    "link": "https://jpt.ma/",
+    "github": "zizwar/jpt",
+    "image": "jptchat"
+  },
+  {
+    "title": "Mieszko",
+    "link": "https://mieszko.xyz/",
+    "image": "mieszko"
+  },
+  {
+    "title": "Awesome Fresh",
+    "link": "https://uki00a.github.io/awesome-fresh/",
+    "image": "awesome-fresh"
+  },
+  {
+    "title": "Learn Mandarin",
+    "link": "https://mandarin.deno.dev/",
+    "github": "silvercrow/mandarin",
+    "image": "learn-mandarin"
+  },
+  {
+    "title": "Deno Place",
+    "link": "https://deno-place.arruda.dev/",
+    "github": "https://github.com/arrudaricardo/deno_place",
+    "image": "deno-place"
+  },
+  {
+    "title": "Url shorter and Pastebin",
+    "link": "https://uspb.deno.dev/",
+    "github": "jneeee/uspb",
+    "image": "uspb"
+  },
+  {
     "title": "Do not remove this, it's for prevent conflicting by trailing comma",
     "link": "",
     "github": "",
     "image": ""
+  },
+  {
+    "title": "Battleship",
+    "link": "https://battleship.deno.dev",
+    "github": "karelklima/battleship",
+    "image": "battleship"
   }
 ]

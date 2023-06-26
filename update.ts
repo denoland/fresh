@@ -1,4 +1,13 @@
-import { join, Node, parse, Project, resolve } from "./src/dev/deps.ts";
+import {
+  dirname,
+  existsSync,
+  join,
+  Node,
+  parse,
+  Project,
+  resolve,
+  walk,
+} from "./src/dev/deps.ts";
 import { error } from "./src/dev/error.ts";
 import { freshImports, twindImports } from "./src/dev/imports.ts";
 import { collect, ensureMinDenoVersion, generate } from "./src/dev/mod.ts";
@@ -25,26 +34,44 @@ if (flags._.length !== 1) {
 
 const unresolvedDirectory = Deno.args[0];
 const resolvedDirectory = resolve(unresolvedDirectory);
+const srcDirectory = await findSrcDirectory("main.ts", resolvedDirectory);
 
-// Update dependencies in the import map.
-const IMPORT_MAP_PATH = join(resolvedDirectory, "import_map.json");
-let importMapText = await Deno.readTextFile(IMPORT_MAP_PATH);
-const importMap = JSON.parse(importMapText);
-freshImports(importMap.imports);
-if (importMap.imports["twind"]) {
-  twindImports(importMap.imports);
+// Update dependencies in the import map. The import map can either be embedded
+// in a deno.json (or .jsonc) file or be in a separate JSON file referenced with the
+// `importMap` key in deno.json.
+const fileNames = ["deno.json", "deno.jsonc"];
+const DENO_JSON_PATH = fileNames
+  .map((fileName) => join(resolvedDirectory, fileName))
+  .find((path) => existsSync(path));
+if (!DENO_JSON_PATH) {
+  throw new Error(
+    `Neither deno.json nor deno.jsonc could be found in ${resolvedDirectory}`,
+  );
 }
-importMapText = JSON.stringify(importMap, null, 2);
-await Deno.writeTextFile(IMPORT_MAP_PATH, importMapText);
+let denoJsonText = await Deno.readTextFile(DENO_JSON_PATH);
+let denoJson = JSON.parse(denoJsonText);
+if (denoJson.importMap) {
+  const IMPORT_MAP_PATH = join(resolvedDirectory, denoJson.importMap);
+  const importMapText = await Deno.readTextFile(IMPORT_MAP_PATH);
+  const importMap = JSON.parse(importMapText);
+  denoJson.imports = importMap.imports;
+  denoJson.scopes = importMap.scopes;
+  delete denoJson.importMap;
+  await Deno.remove(IMPORT_MAP_PATH);
+}
+
+freshImports(denoJson.imports);
+if (denoJson.imports["twind"]) {
+  twindImports(denoJson.imports);
+}
+denoJsonText = JSON.stringify(denoJson, null, 2);
+await Deno.writeTextFile(DENO_JSON_PATH, denoJsonText);
 
 // Code mod for classic JSX -> automatic JSX.
 const JSX_CODEMOD =
   `This project is using the classic JSX transform. Would you like to update to the
 automatic JSX transform? This will remove the /** @jsx h */ pragma from your
 source code and add the jsx: "react-jsx" compiler option to your deno.json file.`;
-const DENO_JSON_PATH = join(resolvedDirectory, "deno.json");
-let denoJsonText = await Deno.readTextFile(DENO_JSON_PATH);
-const denoJson = JSON.parse(denoJsonText);
 if (denoJson.compilerOptions?.jsx !== "react-jsx" && confirm(JSX_CODEMOD)) {
   console.log("Updating config file...");
   denoJson.compilerOptions = denoJson.compilerOptions || {};
@@ -88,12 +115,12 @@ const TWIND_CODEMOD =
   `This project is using an old version of the twind integration. Would you like to
 update to the new twind plugin? This will remove the 'class={tw\`border\`}'
 boilerplate from your source code replace it with the simpler 'class="border"'.`;
-if (importMap.imports["@twind"] && confirm(TWIND_CODEMOD)) {
-  await Deno.remove(join(resolvedDirectory, importMap.imports["@twind"]));
+if (denoJson.imports["@twind"] && confirm(TWIND_CODEMOD)) {
+  await Deno.remove(join(resolvedDirectory, denoJson.imports["@twind"]));
 
-  delete importMap.imports["@twind"];
-  importMapText = JSON.stringify(importMap, null, 2);
-  await Deno.writeTextFile(IMPORT_MAP_PATH, importMapText);
+  delete denoJson.imports["@twind"];
+  denoJson = JSON.stringify(denoJson, null, 2);
+  await Deno.writeTextFile(DENO_JSON_PATH, denoJson);
 
   const MAIN_TS = `/// <reference no-default-lib="true" />
 /// <reference lib="dom" />
@@ -176,5 +203,17 @@ await start(manifest, { plugins: [twindPlugin(twindConfig)] });\n`;
   }
 }
 
-const manifest = await collect(resolvedDirectory);
-await generate(resolvedDirectory, manifest);
+const manifest = await collect(srcDirectory);
+await generate(srcDirectory, manifest);
+
+async function findSrcDirectory(
+  fileName: string,
+  directory: string,
+): Promise<string> {
+  for await (const entry of walk(directory)) {
+    if (entry.isFile && entry.name === fileName) {
+      return dirname(entry.path);
+    }
+  }
+  return resolvedDirectory;
+}

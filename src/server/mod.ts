@@ -1,5 +1,6 @@
 import { ServerContext } from "./context.ts";
-import { serve, serveTls } from "./deps.ts";
+import * as colors from "https://deno.land/std@0.190.0/fmt/colors.ts";
+import { ServeHandler, serve, serveTls } from "./deps.ts";
 export { Status } from "./deps.ts";
 import {
   AppModule,
@@ -7,8 +8,8 @@ import {
   IslandModule,
   MiddlewareModule,
   RouteModule,
-  StartOptions,
-  TlsStartOptions,
+  FreshStartOptions,
+  FreshStartTlsOptions,
   UnknownPageModule,
 } from "./types.ts";
 export type {
@@ -24,12 +25,18 @@ export type {
   MiddlewareHandlerContext,
   PageProps,
   Plugin,
+  PluginAsyncRenderContext,
+  PluginAsyncRenderFunction,
+  PluginRenderContext,
+  PluginRenderFunction,
+  PluginRenderFunctionResult,
   PluginRenderResult,
   PluginRenderScripts,
   PluginRenderStyleTag,
   RenderFunction,
   RouteConfig,
-  StartOptions,
+  FreshStartOptions,
+  FreshStartTlsOptions,
   UnknownHandler,
   UnknownHandlerContext,
   UnknownPageProps,
@@ -48,11 +55,11 @@ export interface Manifest {
   >;
   islands: Record<string, IslandModule>;
   baseUrl: string;
-  config?: DenoConfig;
 }
 
 export interface DenoConfig {
-  importMap: string;
+  imports?: Record<string, string>;
+  importMap?: string;
   compilerOptions?: {
     jsx?: string;
     jsxImportSource?: string;
@@ -61,28 +68,87 @@ export interface DenoConfig {
 
 export { ServerContext };
 
-export async function start(
-  routes: Manifest,
-  opts: StartOptions | TlsStartOptions = {},
-) {
-  opts.port ??= 8000;
-  if ((opts as TlsStartOptions).keyFile || (opts as TlsStartOptions).certFile) {
-    startTls(routes, opts as TlsStartOptions);
+
+
+export async function start(routes: Manifest, opts: FreshStartOptions | FreshStartTlsOptions = {}) {
+  const ctx = await ServerContext.fromManifest(routes, opts);
+  const tls = modeTls(opts)
+
+  if (!opts.onListen) {
+    opts.onListen = (params: { hostname: string; port: number; }) => {
+      console.log(
+        colors.bgRgb8(colors.black(colors.bold("\n 🍋 Fresh ready ")), 121),
+      );
+
+      const address = colors.cyan(
+        `${tls ? 'https' : 'http'}://localhost:${params.port}/`,
+      );
+      const localLabel = colors.bold("Local:");
+      console.log(`    ${localLabel} ${address}\n`);
+    };
+  }
+
+  const portEnv = Deno.env.get("PORT");
+  if (portEnv !== undefined) {
+    opts.port ??= parseInt(portEnv, 10);
+  }
+
+  const handler = ctx.handler();
+
+  if (opts.port) {
+    await bootServer(handler, opts);
   } else {
-    const ctx = await ServerContext.fromManifest(routes, opts);
-    if (opts.experimentalDenoServe === true) {
-      // @ts-ignore as `Deno.serve` is still unstable.
-      await Deno.serve(ctx.handler() as Deno.ServeHandler, opts);
-    } else {
-      await serve(ctx.handler(), opts);
+    // No port specified, check for a free port. Instead of picking just
+    // any port we'll check if the next one is free for UX reasons.
+    // That way the user only needs to increment a number when running
+    // multiple apps vs having to remember completely different ports.
+    let firstError;
+    for (let port = 8000; port < 8020; port++) {
+      try {
+        if (tls) {
+          await bootServerTls(handler, { ...opts, port });
+
+        } else {
+          await bootServer(handler, { ...opts, port });
+        }
+        firstError = undefined;
+        break;
+      } catch (err) {
+        if (err instanceof Deno.errors.AddrInUse) {
+          // Throw first EADDRINUSE error
+          // if no port is free
+          if (!firstError) {
+            firstError = err;
+          }
+          continue;
+        }
+
+        throw err;
+      }
+    }
+
+    if (firstError) {
+      throw firstError;
     }
   }
 }
 
-async function startTls(routes: Manifest, opts: TlsStartOptions) {
-  const ctx = await ServerContext.fromManifest(routes, opts);
-  if (opts.experimentalDenoServe === true) {
-    const denoServeTlsOptions: StartOptions & { cert: string; key: string } = {
+function modeTls(opts: FreshStartOptions | FreshStartTlsOptions): boolean {
+  return !!(opts as FreshStartTlsOptions)?.keyFile || !!(opts as FreshStartTlsOptions)?.certFile
+}
+
+async function bootServer(handler: ServeHandler, opts: FreshStartOptions | FreshStartTlsOptions) {
+  if (opts.experimentalDenoServe) {
+    // @ts-ignore as `Deno.serve` is still unstable.
+    await Deno.serve({ ...opts, handler }).finished;
+  } else {
+    await serve(handler, opts);
+  }
+}
+
+async function bootServerTls(handler: ServeHandler, opts: FreshStartTlsOptions) {
+  if (opts.experimentalDenoServe) {
+    const denoServeExperimentalTlsOptions: FreshStartTlsOptions = {
       cert: opts.certFile,
       key: opts.keyFile,
       hostname: opts.hostname,
@@ -96,8 +162,8 @@ async function startTls(routes: Manifest, opts: TlsStartOptions) {
     };
 
     // @ts-ignore as `Deno.serve` is still unstable.
-    await Deno.serve(ctx.handler() as Deno.ServeHandler, denoServeTlsOptions);
+    await Deno.serve(handler, denoServeExperimentalTlsOptions);
   } else {
-    await serveTls(ctx.handler(), opts);
+    await serveTls(handler, opts);
   }
 }

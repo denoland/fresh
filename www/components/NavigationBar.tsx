@@ -17,8 +17,8 @@ export default function NavigationBar(
       href: "/components",
     },
     {
-      name: "Discord",
-      href: "https://discord.com/invite/deno",
+      name: "Blog",
+      href: "https://deno.com/blog?tag=fresh",
     },
   ];
   const isHome = props.active == "/";
@@ -44,8 +44,18 @@ export default function NavigationBar(
           <a
             href="https://github.com/denoland/fresh"
             class="hover:text-green-600 inline-block"
+            aria-label="GitHub"
           >
             <Icons.GitHub />
+          </a>
+        </li>
+        <li class="flex items-center">
+          <a
+            href="https://discord.com/invite/deno"
+            class="hover:text-green-600 inline-block"
+            aria-label="Discord"
+          >
+            <Icons.Discord />
           </a>
         </li>
       </ul>

@@ -17,6 +17,7 @@ export default function DefaultErrorPage(props: ErrorPageProps) {
   return h(
     "div",
     {
+      class: "frsh-error-page",
       style: {
         display: "flex",
         justifyContent: "center",
@@ -32,7 +33,6 @@ export default function DefaultErrorPage(props: ErrorPageProps) {
           background: "#f9fafb",
           margin: 16,
           minWidth: "300px",
-          width: "50%",
         },
       },
       h("p", {

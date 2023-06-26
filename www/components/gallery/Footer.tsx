@@ -1,6 +1,6 @@
 import { ComponentChildren } from "preact";
-import LemonIcon from "https://deno.land/x/tabler_icons_tsx@0.0.1/tsx/lemon-2.tsx";
-import BrandGithub from "https://deno.land/x/tabler_icons_tsx@0.0.1/tsx/brand-github.tsx";
+import LemonIcon from "https://deno.land/x/tabler_icons_tsx@0.0.3/tsx/lemon-2.tsx";
+import BrandGithub from "https://deno.land/x/tabler_icons_tsx@0.0.3/tsx/brand-github.tsx";
 type Props = {
   children: ComponentChildren;
 };
@@ -67,6 +67,7 @@ export default function Footer({ children }: Props) {
         <a
           href="https://github.com/denoland/fresh"
           class="inline-block hover:text-black"
+          aria-label="GitHub"
         >
           <BrandGithub />
         </a>

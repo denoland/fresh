@@ -1,16 +1,21 @@
 import { ComponentType } from "preact";
-import { ConnInfo, rutt, ServeInit, ServeTlsInit } from "./deps.ts";
+import { ConnInfo, ServeInit, ServeTlsInit } from "./deps.ts";
+import * as router from "./router.ts";
 import { InnerRenderFunction, RenderContext } from "./render.ts";
 
 // --- APPLICATION CONFIGURATION ---
 
-export type StartOptions = ServeInit & FreshOptions;
-export type TlsStartOptions = FreshOptions & ServeTlsInit & ServeInit;
+export type FreshStartOptions = ServeInit & FreshOptions & FreshExperimantal;
+export type FreshStartTlsOptions = FreshOptions & ServeTlsInit & FreshExperimantal;
 
 export interface FreshOptions {
   render?: RenderFunction;
   plugins?: Plugin[];
   staticDir?: string;
+  router?: RouterOptions;
+}
+
+export interface FreshExperimantal {
   /**
    * UNSTABLE: use the `Deno.serve` API as the underlying HTTP server instead of
    * the `std/http` API. Do not use this in production.
@@ -18,6 +23,14 @@ export interface FreshOptions {
    * This option is experimental and may be removed in a future Fresh release.
    */
   experimentalDenoServe?: boolean;
+}
+
+export interface RouterOptions {
+  /**
+   *  Controls whether Fresh will append a trailing slash to the URL.
+   *  @default {false}
+   */
+  trailingSlash?: boolean;
 }
 
 export type RenderFunction = (
@@ -71,11 +84,17 @@ export interface RouteConfig {
   csp?: boolean;
 }
 
+// deno-lint-ignore no-empty-interface
+export interface RenderOptions extends ResponseInit { }
+
 export interface HandlerContext<Data = unknown, State = Record<string, unknown>>
   extends ConnInfo {
   params: Record<string, string>;
-  render: (data?: Data) => Response | Promise<Response>;
-  renderNotFound: () => Response | Promise<Response>;
+  render: (
+    data?: Data,
+    options?: RenderOptions,
+  ) => Response | Promise<Response>;
+  renderNotFound: (data?: Data) => Response | Promise<Response>;
   state: State;
 }
 
@@ -87,7 +106,7 @@ export type Handler<T = any, State = Record<string, unknown>> = (
 
 // deno-lint-ignore no-explicit-any
 export type Handlers<T = any, State = Record<string, unknown>> = {
-  [K in typeof rutt.METHODS[number]]?: Handler<T, State>;
+  [K in router.KnownMethod]?: Handler<T, State>;
 };
 
 export interface RouteModule {
@@ -109,7 +128,7 @@ export interface Route<Data = any> {
 
 // --- APP ---
 
-export interface AppProps {
+export interface AppProps extends PageProps {
   Component: ComponentType<Record<never, never>>;
 }
 
@@ -119,13 +138,20 @@ export interface AppModule {
 
 // --- UNKNOWN PAGE ---
 
-export interface UnknownPageProps {
+// deno-lint-ignore no-explicit-any
+export interface UnknownPageProps<T = any> {
   /** The URL of the request that resulted in this page being rendered. */
   url: URL;
 
   /** The route matcher (e.g. /blog/:id) that the request matched for this page
    * to be rendered. */
   route: string;
+
+  /**
+   * Additional data passed into `HandlerContext.renderNotFound`. Defaults to
+   * `undefined`.
+   */
+  data: T;
 }
 
 export interface UnknownHandlerContext<State = Record<string, unknown>>
@@ -174,6 +200,7 @@ export interface ErrorHandlerContext<State = Record<string, unknown>>
   render: () => Response | Promise<Response>;
   state: State;
 }
+
 export type ErrorHandler = (
   req: Request,
   ctx: ErrorHandlerContext,
@@ -200,6 +227,7 @@ export interface MiddlewareHandlerContext<State = Record<string, unknown>>
   extends ConnInfo {
   next: () => Promise<Response>;
   state: State;
+  destination: router.DestinationKind;
 }
 
 export interface MiddlewareRoute extends Middleware {
@@ -261,10 +289,27 @@ export interface Plugin {
    * inject CSS into the page, or load additional JS files on the client.
    */
   render?(ctx: PluginRenderContext): PluginRenderResult;
+
+  /** The asynchronous render hook is called on the server every time some
+   * JSX needs to be turned into HTML, wrapped around all synchronous render
+   * hooks. The render hook needs to call the `ctx.renderAsync` function
+   * exactly once, and await the result.
+   *
+   * This is useful for when plugins are generating styles and scripts with
+   * asynchronous dependencies. Unlike the synchronous render hook, async render
+   * hooks for multiple pages can be running at the same time. This means that
+   * unlike the synchronous render hook, you can not use global variables to
+   * propagate state between the render hook and the renderer.
+   */
+  renderAsync?(ctx: PluginAsyncRenderContext): Promise<PluginRenderResult>;
 }
 
 export interface PluginRenderContext {
   render: PluginRenderFunction;
+}
+
+export interface PluginAsyncRenderContext {
+  renderAsync: PluginAsyncRenderFunction;
 }
 
 export interface PluginRenderResult {
@@ -296,11 +341,14 @@ export interface PluginRenderScripts {
 
 export type PluginRenderFunction = () => PluginRenderFunctionResult;
 
+export type PluginAsyncRenderFunction = () =>
+  | PluginRenderFunctionResult
+  | Promise<PluginRenderFunctionResult>;
+
 export interface PluginRenderFunctionResult {
   /** The HTML text that was rendered. */
   htmlText: string;
   /** If the renderer encountered any islands that require hydration on the
-   * client.
-   */
+   * client. */
   requiresHydration: boolean;
 }
