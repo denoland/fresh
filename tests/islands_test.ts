@@ -435,6 +435,37 @@ Deno.test({
 });
 
 Deno.test({
+  name: "render sibling islands that render nothing initially",
+
+  async fn(_t) {
+    await withPageName(
+      "./tests/fixture_island_nesting/main.ts",
+      async (page, address) => {
+        await page.goto(`${address}/island_conditional`, {
+          waitUntil: "networkidle2",
+        });
+        await page.waitForSelector("button");
+
+        await delay(100);
+        await page.click("button");
+
+        const text = await page.$eval(
+          "#page",
+          (el) => el.textContent,
+        );
+        // Button text is matched too, but this allows us
+        // to assert correct ordering. The "it works" should
+        // be left of "Toggle"
+        assertEquals(text, "it worksToggle");
+      },
+    );
+  },
+
+  sanitizeOps: false,
+  sanitizeResources: false,
+});
+
+Deno.test({
   name: "serialize inner island props",
 
   async fn(_t) {
