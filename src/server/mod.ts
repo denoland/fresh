@@ -111,7 +111,6 @@ export async function start(routes: Manifest, opts: StartOptions | StartTlsOptio
   if (opts.port) {
     if (tls) {
       await bootServerTls(handler, opts);
-
     } else {
       await bootServer(handler, opts);
     }
@@ -125,7 +124,6 @@ export async function start(routes: Manifest, opts: StartOptions | StartTlsOptio
       try {
         if (tls) {
           await bootServerTls(handler, { ...opts, port });
-
         } else {
           await bootServer(handler, { ...opts, port });
         }
