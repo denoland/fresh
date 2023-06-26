@@ -5,8 +5,12 @@
 /// <reference lib="deno.ns" />
 
 import { start } from "$fresh/server.ts";
+import { parseDenoFlags } from "../deps.ts";
 import routes from "./fresh.gen.ts";
 
-const experimentalDenoServe = Deno.args.includes("--experimental-deno-serve");
+const flags = parseDenoFlags(Deno.args, {
+  boolean: ["experimental-deno-serve"],
+  string: ["certFile", "keyFile"]
+})
 
-await start(routes, { experimentalDenoServe });
+await start(routes, {experimentalDenoServe: !!flags.experimentalDenoServe });

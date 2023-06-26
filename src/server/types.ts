@@ -5,8 +5,8 @@ import { InnerRenderFunction, RenderContext } from "./render.ts";
 
 // --- APPLICATION CONFIGURATION ---
 
-export type FreshStartOptions = ServeInit & FreshOptions & FreshExperimantal;
-export type FreshStartTlsOptions = FreshOptions & ServeTlsInit & FreshExperimantal;
+export type StartOptions = ServeInit & FreshOptions & FreshExperimantal;
+export type StartTlsOptions = FreshOptions & ServeTlsInit & FreshExperimantal;
 
 export interface FreshOptions {
   render?: RenderFunction;

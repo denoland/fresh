@@ -8,8 +8,8 @@ import {
   IslandModule,
   MiddlewareModule,
   RouteModule,
-  FreshStartOptions,
-  FreshStartTlsOptions,
+  StartOptions,
+  StartTlsOptions,
   UnknownPageModule,
 } from "./types.ts";
 export type {
@@ -35,8 +35,8 @@ export type {
   PluginRenderStyleTag,
   RenderFunction,
   RouteConfig,
-  FreshStartOptions,
-  FreshStartTlsOptions,
+  StartOptions,
+  StartTlsOptions,
   UnknownHandler,
   UnknownHandlerContext,
   UnknownPageProps,
@@ -66,11 +66,18 @@ export interface DenoConfig {
   };
 }
 
+class UnstableFeatureError extends Error {
+  constructor(msg: string) {
+    super(msg);
+    this.name = "UnstableFeatureError";
+  }
+}
+
 export { ServerContext };
 
 
 
-export async function start(routes: Manifest, opts: FreshStartOptions | FreshStartTlsOptions = {}) {
+export async function start(routes: Manifest, opts: StartOptions | StartTlsOptions = {}) {
   const ctx = await ServerContext.fromManifest(routes, opts);
   const tls = modeTls(opts)
 
@@ -96,7 +103,12 @@ export async function start(routes: Manifest, opts: FreshStartOptions | FreshSta
   const handler = ctx.handler();
 
   if (opts.port) {
-    await bootServer(handler, opts);
+    if (tls) {
+      await bootServerTls(handler, opts);
+
+    } else {
+      await bootServer(handler, opts);
+    }
   } else {
     // No port specified, check for a free port. Instead of picking just
     // any port we'll check if the next one is free for UX reasons.
@@ -133,11 +145,11 @@ export async function start(routes: Manifest, opts: FreshStartOptions | FreshSta
   }
 }
 
-function modeTls(opts: FreshStartOptions | FreshStartTlsOptions): boolean {
-  return !!(opts as FreshStartTlsOptions)?.keyFile || !!(opts as FreshStartTlsOptions)?.certFile
+function modeTls(opts: StartOptions | StartTlsOptions): boolean {
+  return !!(opts as StartTlsOptions)?.keyFile || !!(opts as StartTlsOptions)?.certFile || !!(opts as StartTlsOptions)?.cert || !!(opts as StartTlsOptions)?.key
 }
 
-async function bootServer(handler: ServeHandler, opts: FreshStartOptions | FreshStartTlsOptions) {
+async function bootServer(handler: ServeHandler, opts: StartOptions | StartTlsOptions) {
   if (opts.experimentalDenoServe) {
     // @ts-ignore as `Deno.serve` is still unstable.
     await Deno.serve({ ...opts, handler }).finished;
@@ -146,23 +158,13 @@ async function bootServer(handler: ServeHandler, opts: FreshStartOptions | Fresh
   }
 }
 
-async function bootServerTls(handler: ServeHandler, opts: FreshStartTlsOptions) {
+async function bootServerTls(handler: ServeHandler, opts: StartTlsOptions) {
   if (opts.experimentalDenoServe) {
-    const denoServeExperimentalTlsOptions: FreshStartTlsOptions = {
-      cert: opts.certFile,
-      key: opts.keyFile,
-      hostname: opts.hostname,
-      onError: opts.onError,
-      onListen: opts.onListen,
-      plugins: opts.plugins,
-      render: opts.render,
-      port: opts.port,
-      signal: opts.signal,
-      staticDir: opts.staticDir,
-    };
-
+    if (!!opts.certFile || !!opts.keyFile) {
+      throw new UnstableFeatureError("options keyFile and certFile are not supported by unstable Deno.serve please specify cert and key according to https://deno.land/api?unstable&s=Deno.ServeTlsOptions")
+    }
     // @ts-ignore as `Deno.serve` is still unstable.
-    await Deno.serve(handler, denoServeExperimentalTlsOptions);
+    await Deno.serve(handler, opts);
   } else {
     await serveTls(handler, opts);
   }
