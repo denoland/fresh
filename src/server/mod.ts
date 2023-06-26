@@ -1,6 +1,6 @@
 import { ServerContext } from "./context.ts";
 import * as colors from "https://deno.land/std@0.190.0/fmt/colors.ts";
-import { ServeHandler, serve, serveTls } from "./deps.ts";
+import { ConnInfo, ServeHandler, serve, serveTls } from "./deps.ts";
 export { Status } from "./deps.ts";
 import {
   AppModule,
@@ -75,7 +75,13 @@ class UnstableFeatureError extends Error {
 
 export { ServerContext };
 
-
+export async function createHandler(
+  routes: Manifest,
+  opts: StartOptions = {},
+): Promise<(req: Request, connInfo?: ConnInfo) => Promise<Response>> {
+  const ctx = await ServerContext.fromManifest(routes, opts);
+  return ctx.handler();
+}
 
 export async function start(routes: Manifest, opts: StartOptions | StartTlsOptions = {}) {
   const ctx = await ServerContext.fromManifest(routes, opts);
