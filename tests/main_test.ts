@@ -428,7 +428,7 @@ Deno.test("/connInfo", async () => {
 });
 
 Deno.test("state in page props", async () => {
-  const resp = await router(
+  const resp = await handler(
     new Request("https://fresh.deno.dev/state-in-props"),
   );
   assert(resp);
