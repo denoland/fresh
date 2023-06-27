@@ -27,9 +27,9 @@ Let's look at a basic route that returns a plain text string:
 ```tsx
 // routes/plain.tsx
 
-import { HandlerContext, Handlers } from "$fresh/server.ts";
+import { HandlerContext, MultiHandler } from "$fresh/server.ts";
 
-export const handler: Handlers = {
+export const handler: MultiHandler = {
   GET(_req: Request, _ctx: HandlerContext) {
     return new Response("Hello World");
   },
@@ -73,9 +73,9 @@ response after rendering the page component.
 ```tsx
 // routes/html.tsx
 
-import { HandlerContext, Handlers, PageProps } from "$fresh/server.ts";
+import { HandlerContext, MultiHandler, PageProps } from "$fresh/server.ts";
 
-export const handler: Handlers = {
+export const handler: MultiHandler = {
   async GET(_req: Request, ctx: HandlerContext) {
     const resp = await ctx.render();
     resp.headers.set("X-Custom-Header", "Hello World");
