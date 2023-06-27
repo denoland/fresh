@@ -37,23 +37,32 @@ export const handler: Handlers = {
       return response;
     }
 
-    if (isHTML) {
-      response.headers.set("Content-Type", "text/plain");
-    } else if (path.endsWith(".ts")) {
-      response.headers.set("Content-Type", "application/typescript");
-    } else if (path.endsWith(".js")) {
-      response.headers.set("Content-Type", "application/javascript");
-    } else if (path.endsWith(".tsx")) {
-      response.headers.set("Content-Type", "text/tsx");
-    } else if (path.endsWith(".jsx")) {
-      response.headers.set("Content-Type", "text/jsx");
-    } else if (path.endsWith(".json")) {
-      response.headers.set("Content-Type", "application/json");
-    } else if (path.endsWith(".wasm")) {
-      response.headers.set("Content-Type", "application/wasm");
-    } else {
-      response.headers.set("Content-Type", "text/plain");
-    }
+    switch (true) {
+      case isHTML:
+        response.headers.set("Content-Type", "text/plain");
+        break;
+      case path.endsWith(".ts"):
+        response.headers.set("Content-Type", "application/typescript");
+        break;
+      case path.endsWith(".js"):
+        response.headers.set("Content-Type", "application/javascript");
+        break;
+      case path.endsWith(".tsx"):
+        response.headers.set("Content-Type", "text/tsx");
+        break;
+      case path.endsWith(".jsx"):
+        response.headers.set("Content-Type", "text/jsx");
+        break;
+      case path.endsWith(".json"):
+        response.headers.set("Content-Type", "application/json");
+        break;
+      case path.endsWith(".wasm"):
+        response.headers.set("Content-Type", "application/wasm");
+        break;
+      default:
+        response.headers.set("Content-Type", "text/plain");
+        break;
+    }    
     return response;
   },
 };
