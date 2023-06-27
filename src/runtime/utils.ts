@@ -11,7 +11,7 @@ export const IS_BROWSER = typeof document !== "undefined";
  * specific to the current version of the application, and as such can be safely
  * served with a very long cache lifetime (1 year).
  */
-export function asset(path: string) {
+export function asset(path: string):string {
   if (!path.startsWith("/") || path.startsWith("//")) return path;
   try {
     const url = new URL(path, "https://freshassetcache.local");
