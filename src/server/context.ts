@@ -440,7 +440,20 @@ export class ServerContext {
       const middlewareCtx: MiddlewareHandlerContext = {
         next() {
           const handler = handlers.shift()!;
-          return Promise.resolve(handler());
+          try {
+            // As the `handler` can be either sync or async, depending on the user's code,
+            // the current shape of our wrapper, that is `() => handler(req, middlewareCtx)`,
+            // doesn't guarantee that all possible errors will be captured.
+            // `Promise.resolve` accept the value that should be returned to the promise
+            // chain, however, if that value is produced by the external function call,
+            // the possible `Error`, will *not* be caught by any `.catch()` attached to that chain.
+            // Because of that, we need to make sure that the produced value is pushed
+            // through the pipeline only if function was called successfully, and handle
+            // the error case manually, by returning the `Error` as rejected promise.
+            return Promise.resolve(handler());
+          } catch (e) {
+            return Promise.reject(e);
+          }
         },
         ...connInfo,
         state: {},

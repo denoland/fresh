@@ -782,3 +782,40 @@ Deno.test("PORT environment variable", {
   await lines.cancel();
   serverProcess.kill("SIGTERM");
 });
+
+Deno.test("rendering custom _500.tsx page for default handlers", {
+  sanitizeOps: false,
+  sanitizeResources: false,
+}, async (t) => {
+  // Preparation
+  const { serverProcess, lines, address } = await startFreshServer({
+    args: ["run", "-A", "./tests/fixture_custom_500/main.ts"],
+  });
+
+  await delay(100);
+
+  await t.step("SSR error is shown", async () => {
+    const resp = await fetch(address);
+    assertEquals(resp.status, Status.InternalServerError);
+    const text = await resp.text();
+    assertStringIncludes(text, "Custom 500: Pickle Rick!");
+  });
+
+  const browser = await puppeteer.launch({ args: ["--no-sandbox"] });
+  const page = await browser.newPage();
+
+  await page.goto(address, {
+    waitUntil: "networkidle2",
+  });
+
+  await t.step("error page is shown with error message", async () => {
+    const el = await page.waitForSelector(".custom-500");
+    const text = await page.evaluate((el) => el.textContent, el);
+    assertStringIncludes(text, "Custom 500: Pickle Rick!");
+  });
+
+  await browser.close();
+
+  await lines.cancel();
+  serverProcess.kill("SIGTERM");
+});

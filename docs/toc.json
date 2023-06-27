@@ -48,7 +48,8 @@
       ["using-twind-v1", "Using Twind v1"],
       ["init-the-server", "Initializing the server"],
       ["using-fresh-canary-version", "Using Fresh canary version"],
-      ["dealing-with-cors", "Dealing with CORS"]
+      ["dealing-with-cors", "Dealing with CORS"],
+      ["creating-a-crud-api", "Creating a CRUD API"]
     ]
   }
 }
