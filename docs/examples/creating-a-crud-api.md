@@ -36,12 +36,17 @@ full files are available at the bottom for reference.
 
 ```tsx
 // /routes/api/index.ts
-async POST(req, _ctx) {
-  const body = await req.text();
-  const user = JSON.parse(body) as User;
-  await upsertUser(user);
-  return new Response(JSON.stringify(user));
-},
+export const handler: Handlers<User | null> = {
+  async POST(req, _ctx) {
+    const user = await req.json() as User;
+    const userKey = ["user", user.id];
+    const ok = await kv.atomic()
+      .set(userKey, user)
+      .commit();
+    if (!ok) throw new Error("Something went wrong.");
+    return new Response(JSON.stringify(user));
+  },
+};
 ```
 
 Test this with Postman (or your favorite client) with a URL like
@@ -68,11 +73,14 @@ method. You can use `GET` to fetch database content, markdown, or static files.
 
 ```tsx
 // /routes/api/[id].ts
-async GET(_req, ctx) {
-  const id = ctx.params.id;
-  const user = await getUserById(id);
-  return new Response(JSON.stringify(user));
-},
+export const handler: Handlers<User | null> = {
+  async GET(_req, ctx) {
+    const id = ctx.params.id;
+    const key = ["user", id];
+    const user = (await kv.get<User>(key)).value!;
+    return new Response(JSON.stringify(user));
+  },
+};
 ```
 
 Let's practice retrieving our user! A `GET` request to
@@ -89,17 +97,28 @@ are differences and you should use the one that best suits your use case. Read
 more about HTTP methods on
 [MDN](https://developer.mozilla.org/en-US/docs/Web/HTTP/Methods).
 
+The short version of it: `PUT` requires the entire object to be submitted, while
+`PATCH` requires only the properties that are different to be submitted.
+
 An example of an update endpoint using `PUT`:
 
 ```tsx
 // /routes/api/[id].ts
-async PUT(req, ctx) {
-  const id = ctx.params.id;
-  const body = await req.text();
-  const userBody = JSON.parse(body) as User;
-  updateUserById(id, userBody);
-  return new Response(JSON.stringify(userBody));
-},
+export const handler: Handlers<User | null> = {
+  async PUT(req, ctx) {
+    const id = ctx.params.id;
+    const user = await req.json() as User;
+    const userKey = ["user", id];
+    const userRes = await kv.get(userKey);
+    if (!userRes.value) return new Response(`no user with id ${id} found`);
+    const ok = await kv.atomic()
+      .check(userRes)
+      .set(userKey, user)
+      .commit();
+    if (!ok) throw new Error("Something went wrong.");
+    return new Response(JSON.stringify(user));
+  },
+};
 ```
 
 Time to change their name. We'll now `PUT` a request to
@@ -118,17 +137,37 @@ We should receive:
 { "id": "2", "name": "New Name" }
 ```
 
+If, on the other hand, we chose to implement this as a `PATCH` operation, the
+request would just involve the changed property like this:
+
+```json
+{
+  "name": "New Name"
+}
+```
+
+No need to send in the id in this case.
+
 ## DELETE
 
 `DELETE` (delete) is used to delete a resource.
 
 ```tsx
 // /routes/api/[id].ts
+export const handler: Handlers<User | null> = {
   async DELETE(_req, ctx) {
     const id = ctx.params.id;
-    await deleteUserById(id);
+    const userKey = ["user", id];
+    const userRes = await kv.get(userKey);
+    if (!userRes.value) return new Response(`no user with id ${id} found`);
+    const ok = await kv.atomic()
+      .check(userRes)
+      .delete(userKey)
+      .commit();
+    if (!ok) throw new Error("Something went wrong.");
     return new Response(`user ${id} deleted`);
   },
+};
 ```
 
 Try sending `DELETE` to `http://localhost:8000/api/users/2` without a body.
@@ -162,51 +201,36 @@ const kv = await Deno.openKv();
 export const handler: Handlers<User | null> = {
   async GET(_req, ctx) {
     const id = ctx.params.id;
-    const user = await getUserById(id);
+    const key = ["user", id];
+    const user = (await kv.get<User>(key)).value!;
     return new Response(JSON.stringify(user));
   },
   async DELETE(_req, ctx) {
     const id = ctx.params.id;
-    await deleteUserById(id);
+    const userKey = ["user", id];
+    const userRes = await kv.get(userKey);
+    if (!userRes.value) return new Response(`no user with id ${id} found`);
+    const ok = await kv.atomic()
+      .check(userRes)
+      .delete(userKey)
+      .commit();
+    if (!ok) throw new Error("Something went wrong.");
     return new Response(`user ${id} deleted`);
   },
   async PUT(req, ctx) {
     const id = ctx.params.id;
-    const body = await req.text();
-    const userBody = JSON.parse(body) as User;
-    updateUserById(id, userBody);
-    return new Response(JSON.stringify(userBody));
+    const user = await req.json() as User;
+    const userKey = ["user", id];
+    const userRes = await kv.get(userKey);
+    if (!userRes.value) return new Response(`no user with id ${id} found`);
+    const ok = await kv.atomic()
+      .check(userRes)
+      .set(userKey, user)
+      .commit();
+    if (!ok) throw new Error("Something went wrong.");
+    return new Response(JSON.stringify(user));
   },
 };
-
-export async function getUserById(id: string): Promise<User> {
-  const key = ["user", id];
-  return (await kv.get<User>(key)).value!;
-}
-
-export async function deleteUserById(id: string) {
-  const userKey = ["user", id];
-  const userRes = await kv.get(userKey);
-  if (!userRes.value) return;
-
-  const ok = await kv.atomic()
-    .check(userRes)
-    .delete(userKey)
-    .commit();
-  if (!ok) throw new Error("Something went wrong.");
-}
-
-async function updateUserById(id: string, newUser: User) {
-  const userKey = ["user", id];
-  const userRes = await kv.get(userKey);
-  if (!userRes.value) return;
-
-  const ok = await kv.atomic()
-    .check(userRes)
-    .set(userKey, newUser)
-    .commit();
-  if (!ok) throw new Error("Something went wrong.");
-}
 ```
 
 </details>
@@ -226,44 +250,22 @@ const kv = await Deno.openKv();
 
 export const handler: Handlers<User | null> = {
   async GET(_req, _ctx) {
-    const users = await getAllUsers();
+    const users = [];
+    for await (const res of kv.list({ prefix: ["user"] })) {
+      users.push(res.value);
+    }
     return new Response(JSON.stringify(users));
   },
   async POST(req, _ctx) {
-    const body = await req.text();
-    const user = JSON.parse(body) as User;
-    await upsertUser(user);
+    const user = await req.json() as User;
+    const userKey = ["user", user.id];
+    const ok = await kv.atomic()
+      .set(userKey, user)
+      .commit();
+    if (!ok) throw new Error("Something went wrong.");
     return new Response(JSON.stringify(user));
   },
 };
-
-export async function upsertUser(user: User) {
-  const userKey = ["user", user.id];
-
-  const oldUser = await kv.get<User>(userKey);
-
-  if (!oldUser.value) {
-    const ok = await kv.atomic()
-      .check(oldUser)
-      .set(userKey, user)
-      .commit();
-    if (!ok) throw new Error("Something went wrong.");
-  } else {
-    const ok = await kv.atomic()
-      .check(oldUser)
-      .set(userKey, user)
-      .commit();
-    if (!ok) throw new Error("Something went wrong.");
-  }
-}
-
-export async function getAllUsers() {
-  const users = [];
-  for await (const res of kv.list({ prefix: ["user"] })) {
-    users.push(res.value);
-  }
-  return users;
-}
 ```
 
 </details>
