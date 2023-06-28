@@ -48,7 +48,9 @@ export const handler: MultiHandler = {
       return response;
     }
 
-    const value = isHTML ? "text/plain" : contentTypes.get(extname(path)) ?? "text/plain";
+    const value = isHTML
+      ? "text/plain" 
+      : contentTypes.get(extname(path)) ?? "text/plain";
     response.headers.set("Content-Type", value);
 
     return response;
