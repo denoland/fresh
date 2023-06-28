@@ -1,4 +1,4 @@
-import { Handlers } from "../../../../../server.ts";
+import { MultiHandler } from "../../../../../server.ts";
 
 interface State {
   root: string;
@@ -6,7 +6,7 @@ interface State {
   layer3: string;
 }
 
-export const handler: Handlers<undefined, State> = {
+export const handler: MultiHandler<undefined, State> = {
   GET(_req: Request, { state }) {
     return new Response(JSON.stringify(state));
   },

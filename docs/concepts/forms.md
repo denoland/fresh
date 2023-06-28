@@ -20,9 +20,9 @@ submissions:
 
 ```tsx
 // routes/subscribe.tsx
-import { Handlers } from "$fresh/server.ts";
+import { MultiHandler } from "$fresh/server.ts";
 
-export const handler: Handlers = {
+export const handler: MultiHandler = {
   async GET(req, ctx) {
     return await ctx.render();
   },

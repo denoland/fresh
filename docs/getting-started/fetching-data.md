@@ -23,7 +23,7 @@ renders it in a page component.
 ```tsx
 // routes/github/[username].tsx
 
-import { Handlers, PageProps } from "$fresh/server.ts";
+import { MultiHandler, PageProps } from "$fresh/server.ts";
 
 interface User {
   login: string;
@@ -31,7 +31,7 @@ interface User {
   avatar_url: string;
 }
 
-export const handler: Handlers<User | null> = {
+export const handler: MultiHandler<User | null> = {
   async GET(_, ctx) {
     const { username } = ctx.params;
     const resp = await fetch(`https://api.github.com/users/${username}`);
