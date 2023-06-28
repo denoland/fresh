@@ -6,10 +6,18 @@ import { extname } from "$std/path/mod.ts";
 
 const BASE_URL = "https://raw.githubusercontent.com/denoland/fresh/";
 
+const contentTypes = new Map([
+  [".html", "text/plain"],
+  [".ts", "application/typescript"],
+  [".js", "application/javascript"],
+  [".tsx", "text/tsx"],
+  [".jsx", "text/jsx"],
+  [".json", "application/json"],
+  [".wasm", "application/wasm"],
+]);
+
 export const handler: Handlers = {
-  async GET(req, ctx) {
-    const accept = req.headers.get("Accept");
-    const isHTML = accept?.includes("text/html");
+  async GET(_req, ctx) {
     const { version, path } = ctx.params;
 
     const semver = parse(version, { includePrerelease: true });
@@ -38,19 +46,8 @@ export const handler: Handlers = {
       return response;
     }
 
-    const contentTypes = new Map([
-      [".html", "text/plain"],
-      [".ts", "application/typescript"],
-      [".js", "application/javascript"],
-      [".tsx", "text/tsx"],
-      [".jsx", "text/jsx"],
-      [".json", "application/json"],
-      [".wasm", "application/wasm"],
-    ]);
-    if(isHTML){
       const value = contentTypes.get(extname(path)) ?? "text/plain";
       response.headers.set("Content-Type", value);
-    }
 
     return response;
   },
