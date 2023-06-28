@@ -17,7 +17,9 @@ const contentTypes = new Map([
 ]);
 
 export const handler: Handlers = {
-  async GET(_req, ctx) {
+  async GET(req, ctx) {
+    const accept = req.headers.get("Accept");
+    const isHTML = accept?.includes("text/html");
     const { version, path } = ctx.params;
 
     const semver = parse(version, { includePrerelease: true });
