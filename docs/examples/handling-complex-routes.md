@@ -36,15 +36,16 @@ Now if we hit the server with a request like
 show the following:
 
 ```
-module: 'bestModule'
-version: '1.33.7'
-path: 'qqqqqqq'
+{
+  module: "bestModule",
+  version: "1.33.7",
+  path: "asdf"
+}
 ```
 
 ## Complex Route Config
 
-Let's look at something a bit more complex. Issue 587 brings up the following
-example:
+Let's look at something a bit more complex:
 
 ```ts
 import { HandlerContext, RouteConfig } from "$fresh/server.ts";
