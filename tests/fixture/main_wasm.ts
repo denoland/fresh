@@ -10,13 +10,7 @@ import "./polyfill_deno_deploy.ts";
 import { start } from "$fresh/server.ts";
 import routes from "./fresh.gen.ts";
 import options from "./options.ts";
-import { parseDenoFlags } from "../deps.ts";
 
-const flags = parseDenoFlags(Deno.args, {
-  boolean: ["experimental-deno-serve"],
-});
+const experimentalDenoServe = Deno.args.includes("--experimental-deno-serve");
 
-await start(routes, {
-  ...options,
-  experimentalDenoServe: flags["experimental-deno-serve"],
-});
+await start(routes, { ...options, experimentalDenoServe });

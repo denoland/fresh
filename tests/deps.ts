@@ -19,4 +19,3 @@ export {
   default as puppeteer,
   Page,
 } from "https://deno.land/x/puppeteer@16.2.0/mod.ts";
-export { parse as parseDenoFlags } from "https://deno.land/std@0.192.0/flags/mod.ts";

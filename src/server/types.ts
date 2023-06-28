@@ -5,16 +5,6 @@ import { InnerRenderFunction, RenderContext } from "./render.ts";
 
 // --- APPLICATION CONFIGURATION ---
 
-export type StartOptions = ServeInit & FreshOptions & FreshExperimantal;
-export type StartTlsOptions = FreshOptions & ServeTlsInit & FreshExperimantal;
-
-export interface FreshOptions {
-  render?: RenderFunction;
-  plugins?: Plugin[];
-  staticDir?: string;
-  router?: RouterOptions;
-}
-
 export interface FreshExperimantal {
   /**
    * UNSTABLE: use the `Deno.serve` API as the underlying HTTP server instead of
@@ -23,6 +13,13 @@ export interface FreshExperimantal {
    * This option is experimental and may be removed in a future Fresh release.
    */
   experimentalDenoServe?: boolean;
+}
+
+export interface FreshOptions {
+  render?: RenderFunction;
+  plugins?: Plugin[];
+  staticDir?: string;
+  router?: RouterOptions;
 }
 
 export interface RouterOptions {
@@ -352,3 +349,6 @@ export interface PluginRenderFunctionResult {
    * client. */
   requiresHydration: boolean;
 }
+
+export type StartOptions = ServeInit & FreshOptions & FreshExperimantal;
+export type StartTlsOptions = FreshOptions & ServeTlsInit & FreshExperimantal;
