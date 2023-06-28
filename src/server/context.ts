@@ -571,6 +571,7 @@ export class ServerContext {
       return (
         req: Request,
         params: Record<string, string>,
+        state?: Record<string, unknown>,
         error?: unknown,
       ) => {
         return async (data?: Data, options?: RenderOptions) => {
@@ -601,6 +602,7 @@ export class ServerContext {
             url: new URL(req.url),
             params,
             data,
+            state,
             error,
           });
 
@@ -647,8 +649,8 @@ export class ServerContext {
             (route.handler as Handler)(req, {
               ...ctx,
               params,
-              render: createRender(req, params),
-              renderNotFound: createUnknownRender(req, {}),
+              render: createRender(req, params, ctx.state),
+              renderNotFound: createUnknownRender(req, params, ctx.state),
             }),
         };
       } else {
@@ -662,8 +664,8 @@ export class ServerContext {
             handler(req, {
               ...ctx,
               params,
-              render: createRender(req, params),
-              renderNotFound: createUnknownRender(req, {}),
+              render: createRender(req, params, ctx.state),
+              renderNotFound: createUnknownRender(req, params, ctx.state),
             });
         }
       }
@@ -700,7 +702,7 @@ export class ServerContext {
         {
           ...ctx,
           error,
-          render: errorHandlerRender(req, {}, error),
+          render: errorHandlerRender(req, {}, undefined, error),
         },
       );
     };

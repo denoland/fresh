@@ -22,7 +22,7 @@ Route files that render HTML are JavaScript or TypeScript modules that export a
 JSX component as their default export. This component will be rendered for every
 request to the route's path. The component receives a few properties that can be
 used to customize the rendered output, such as the current route, the url of the
-request, and handler data (more on that later).
+request, state set by middleware, and handler data (more on the last two later).
 
 In the demo project we'll create a route to handle the `/about` page. To do
 this, one needs to create a new `routes/about.tsx` file. In this file, we can
