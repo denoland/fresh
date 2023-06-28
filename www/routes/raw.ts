@@ -48,8 +48,8 @@ export const handler: Handlers = {
       return response;
     }
 
-      const value = contentTypes.get(extname(path)) ?? "text/plain";
-      response.headers.set("Content-Type", value);
+    const value = isHTML ? "text/plain" : contentTypes.get(extname(path)) ?? "text/plain";
+    response.headers.set("Content-Type", value);
 
     return response;
   },
