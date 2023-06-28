@@ -30,6 +30,14 @@ Deno.test("/ page prerender", async () => {
     body,
     '<meta name="description" content="Hello world!"/>',
   );
+  assertStringIncludes(
+    body,
+    '<meta name="generator" content="The freshest framework!"/>',
+  );
+  assert(
+    !body.includes("specialTag"),
+    `Expected actual: "${body}" to not contain: "specialTag"`,
+  );
   assertStringIncludes(body, `<link rel="modulepreload"`);
 });
 
@@ -41,7 +49,7 @@ Deno.test("/props/123 page prerender", async () => {
   const body = await resp.text();
   assertStringIncludes(
     body,
-    `{&quot;params&quot;:{&quot;id&quot;:&quot;123&quot;},&quot;url&quot;:&quot;https://fresh.deno.dev/props/123&quot;,&quot;route&quot;:&quot;/props/:id&quot;}`,
+    `{&quot;params&quot;:{&quot;id&quot;:&quot;123&quot;},&quot;url&quot;:&quot;https://fresh.deno.dev/props/123&quot;,&quot;route&quot;:&quot;/props/:id&quot;,&quot;state&quot;:{&quot;root&quot;:&quot;root_mw&quot;}}`,
   );
 });
 
@@ -419,6 +427,22 @@ Deno.test("/connInfo", async () => {
   assertEquals(body, "localhost");
 });
 
+Deno.test("state in page props", async () => {
+  const resp = await handler(
+    new Request("https://fresh.deno.dev/state-in-props"),
+  );
+  assert(resp);
+  assertEquals(resp.status, Status.OK);
+  assertEquals(resp.headers.get("content-type"), "text/html; charset=utf-8");
+  const body = await resp.text();
+  assertStringIncludes(
+    body,
+    '<meta name="generator" content="The freshest framework!"/>',
+  );
+  assertStringIncludes(body, "specialTag");
+  assertStringIncludes(body, "LOOK, I AM SET FROM MIDDLEWARE");
+});
+
 Deno.test({
   name: "/middleware - root",
   fn: async () => {
@@ -620,6 +644,14 @@ Deno.test("experimental Deno.serve", {
     assertStringIncludes(
       body,
       '<meta name="description" content="Hello world!"/>',
+    );
+    assertStringIncludes(
+      body,
+      '<meta name="generator" content="The freshest framework!"/>',
+    );
+    assert(
+      !body.includes("specialTag"),
+      `Expected actual: "${body}" to not contain: "specialTag"`,
     );
   });
 

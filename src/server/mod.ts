@@ -22,6 +22,7 @@ export type {
   Handlers,
   MiddlewareHandler,
   MiddlewareHandlerContext,
+  MultiHandler,
   PageProps,
   Plugin,
   PluginAsyncRenderContext,

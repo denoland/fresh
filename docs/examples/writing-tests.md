@@ -12,9 +12,9 @@ through
 ```tsx
 // routes/index.tsx
 
-import { Handlers } from "$fresh/server.ts";
+import { MultiHandler } from "$fresh/server.ts";
 
-export const handler: Handlers = {
+export const handler: MultiHandler = {
   async POST(req) {
     const form = await req.formData();
 

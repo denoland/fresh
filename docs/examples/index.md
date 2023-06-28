@@ -16,3 +16,5 @@ like to see here, please open
 - [Using Fresh canary version](./examples/using-fresh-canary-version)
 - [Dealing with CORS](./examples/dealing-with-cors)
 - [Creating a CRUD API](./examples/creating-a-crud-api)
+- [Handling complex routes](./examples/handling-complex-routes)
+- [Rendering markdown](./examples/rendering-markdown)
