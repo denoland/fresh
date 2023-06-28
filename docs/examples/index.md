@@ -18,3 +18,4 @@ like to see here, please open
 - [Creating a CRUD API](./examples/creating-a-crud-api)
 - [Handling complex routes](./examples/handling-complex-routes)
 - [Rendering markdown](./examples/rendering-markdown)
+- [Sharing state between islands](./examples/sharing-state-between-islands)
