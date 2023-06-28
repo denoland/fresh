@@ -46,24 +46,26 @@ here, yet.
 
 ## Multiple Sibling Islands with Shared State
 
-But we can switch things up by looking at a `Slider.tsx` like this:
+But we can switch things up by looking at a `SynchronizedSlider.tsx` like this:
 
 ```ts
-import { signal } from "@preact/signals";
+import { Signal } from "@preact/signals";
 
-const slider = signal(50);
+interface SliderProps {
+  slider: Signal<number>;
+}
 
 // This island displays a slider with a value equal to the `slider` signal's
 // value. When the slider is moved, the `slider` signal is updated.
-export default function SynchronizedSlider() {
+export default function SynchronizedSlider(props: SliderProps) {
   return (
     <input
       class="w-full"
       type="range"
       min={1}
       max={100}
-      value={slider.value}
-      onInput={(e) => slider.value = Number(e.currentTarget.value)}
+      value={props.slider.value}
+      onInput={(e) => props.slider.value = Number(e.currentTarget.value)}
     />
   );
 }
@@ -72,9 +74,16 @@ export default function SynchronizedSlider() {
 Now if we were to do the following...
 
 ```ts
-<SynchronizedSlider />
-<SynchronizedSlider />
-<SynchronizedSlider />
+export default function Home() {
+  const sliderSignal = useSignal(50);
+  return (
+    <div>
+      <SynchronizedSlider slider={sliderSignal} />
+      <SynchronizedSlider slider={sliderSignal} />
+      <SynchronizedSlider slider={sliderSignal} />
+    </div>
+  );
+}
 ```
 
 they would all use the same value.
