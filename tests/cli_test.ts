@@ -382,9 +382,13 @@ Deno.test("fresh-update", async function fn(t) {
         /The manifest has been generated for (?!0 routes and 0 islands)\d+ routes and \d+ islands./,
       );
     } finally {
-      names.forEach((x) => {
-        Deno.rename(path.join(tmpDirName, "src", x), path.join(tmpDirName, x));
-      });
+      // converted to for loop because forEach doesn't wait for promises
+      // needed to add retry here on the rename operations to fix random failures
+      for (const x of names) {
+        await retry(() =>
+          Deno.rename(path.join(tmpDirName, "src", x), path.join(tmpDirName, x))
+        );
+      }
       await retry(() => Deno.remove(tmpDirName + "/src", { recursive: true }));
     }
   });
