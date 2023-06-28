@@ -1,11 +1,11 @@
 import { RouteConfig } from "$fresh/server.ts";
-import { Handlers } from "$fresh/server.ts";
+import { MultiHandler } from "$fresh/server.ts";
 import { parse } from "$std/semver/mod.ts";
 import VERSIONS from "../../versions.json" assert { type: "json" };
 
 const BASE_URL = "https://raw.githubusercontent.com/denoland/fresh/";
 
-export const handler: Handlers = {
+export const handler: MultiHandler = {
   async GET(req, ctx) {
     const accept = req.headers.get("Accept");
     const isHTML = accept?.includes("text/html");

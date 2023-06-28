@@ -12,6 +12,7 @@ import { assetHashingHook } from "../utils.ts";
 function createRootFragment(
   parent: Element,
   replaceNode: Node | Node[],
+  endMarker: Text,
 ) {
   replaceNode = ([] as Node[]).concat(replaceNode);
   // @ts-ignore this is fine
@@ -24,7 +25,11 @@ function createRootFragment(
       parent.insertBefore(node, child);
     },
     appendChild(child: Node) {
-      parent.appendChild(child);
+      // We cannot blindly call `.append()` as that would add
+      // the new child to the very end of the parent node. This
+      // leads to ordering issues when the multiple islands
+      // share the same parent node.
+      parent.insertBefore(child, endMarker);
     },
     removeChild(child: Node) {
       parent.removeChild(child);
@@ -203,12 +208,24 @@ function _walkInner(
             const vnode = vnodeStack.pop();
 
             const parentNode = sib.parentNode! as HTMLElement;
+
+            // We need an end marker for islands because multiple
+            // islands can share the same parent node. Since
+            // islands are root-level render calls any calls to
+            // `.appendChild` would lead to a wrong result.
+            const endMarker = new Text("");
+            parentNode.insertBefore(
+              endMarker,
+              marker.endNode,
+            );
+
             const _render = () =>
               render(
                 vnode,
                 createRootFragment(
                   parentNode,
                   children,
+                  endMarker,
                   // deno-lint-ignore no-explicit-any
                 ) as any as HTMLElement,
               );

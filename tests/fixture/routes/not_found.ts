@@ -1,7 +1,9 @@
-import { Handlers } from "../../../server.ts";
+import { MultiHandler } from "../../../server.ts";
 
-export const handler: Handlers = {
+export const handler: MultiHandler = {
   GET(_req, ctx) {
-    return ctx.renderNotFound();
+    return ctx.renderNotFound({
+      hello: "Dino",
+    });
   },
 };

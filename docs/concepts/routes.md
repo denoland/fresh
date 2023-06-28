@@ -17,8 +17,9 @@ passed a `render` function that it can call to invoke rendering a component.
 The component is the template for a page. It is a JSX element that is rendered
 on the server. The page component gets passed props that can be used by it to
 determine exactly what should be rendered. By default components receives props
-consisting of: the request URL, the matches from the URL pattern match, and any
-data passed to the handler's `render` function.
+consisting of: the request URL, the matching route (as a string), the matches
+from the URL pattern match, any state set by middleware, and any data passed to
+the handler's `render` function.
 
 ## Handler route
 
@@ -27,9 +28,9 @@ Let's look at a basic route that returns a plain text string:
 ```tsx
 // routes/plain.tsx
 
-import { HandlerContext, Handlers } from "$fresh/server.ts";
+import { HandlerContext, MultiHandler } from "$fresh/server.ts";
 
-export const handler: Handlers = {
+export const handler: MultiHandler = {
   GET(_req: Request, _ctx: HandlerContext) {
     return new Response("Hello World");
   },
@@ -73,9 +74,9 @@ response after rendering the page component.
 ```tsx
 // routes/html.tsx
 
-import { HandlerContext, Handlers, PageProps } from "$fresh/server.ts";
+import { HandlerContext, MultiHandler, PageProps } from "$fresh/server.ts";
 
-export const handler: Handlers = {
+export const handler: MultiHandler = {
   async GET(_req: Request, ctx: HandlerContext) {
     const resp = await ctx.render();
     resp.headers.set("X-Custom-Header", "Hello World");

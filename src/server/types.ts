@@ -38,7 +38,7 @@ export type RenderFunction = (
 /// --- ROUTES ---
 
 // deno-lint-ignore no-explicit-any
-export interface PageProps<T = any> {
+export interface PageProps<T = any, S = Record<string, unknown>> {
   /** The URL of the request that resulted in this page being rendered. */
   url: URL;
 
@@ -61,6 +61,7 @@ export interface PageProps<T = any> {
    * `undefined`.
    */
   data: T;
+  state: S;
 }
 
 export interface RouteConfig {
@@ -91,7 +92,7 @@ export interface HandlerContext<Data = unknown, State = Record<string, unknown>>
     data?: Data,
     options?: RenderOptions,
   ) => Response | Promise<Response>;
-  renderNotFound: () => Response | Promise<Response>;
+  renderNotFound: (data?: Data) => Response | Promise<Response>;
   state: State;
 }
 
@@ -102,14 +103,19 @@ export type Handler<T = any, State = Record<string, unknown>> = (
 ) => Response | Promise<Response>;
 
 // deno-lint-ignore no-explicit-any
-export type Handlers<T = any, State = Record<string, unknown>> = {
+export type MultiHandler<T = any, State = Record<string, unknown>> = {
   [K in router.KnownMethod]?: Handler<T, State>;
 };
+
+/**
+ * @deprecated This type has been deprecated and is replaced with MultiHandler type.
+ */
+export type Handlers<T> = MultiHandler<T>;
 
 export interface RouteModule {
   default?: ComponentType<PageProps>;
   // deno-lint-ignore no-explicit-any
-  handler?: Handler<any, any> | Handlers<any, any>;
+  handler?: Handler<any, any> | MultiHandler<any, any>;
   config?: RouteConfig;
 }
 
@@ -119,7 +125,7 @@ export interface Route<Data = any> {
   url: string;
   name: string;
   component?: ComponentType<PageProps<Data>>;
-  handler: Handler<Data> | Handlers<Data>;
+  handler: Handler<Data> | MultiHandler<Data>;
   csp: boolean;
 }
 
@@ -135,13 +141,20 @@ export interface AppModule {
 
 // --- UNKNOWN PAGE ---
 
-export interface UnknownPageProps {
+// deno-lint-ignore no-explicit-any
+export interface UnknownPageProps<T = any> {
   /** The URL of the request that resulted in this page being rendered. */
   url: URL;
 
   /** The route matcher (e.g. /blog/:id) that the request matched for this page
    * to be rendered. */
   route: string;
+
+  /**
+   * Additional data passed into `HandlerContext.renderNotFound`. Defaults to
+   * `undefined`.
+   */
+  data: T;
 }
 
 export interface UnknownHandlerContext<State = Record<string, unknown>>
@@ -190,6 +203,7 @@ export interface ErrorHandlerContext<State = Record<string, unknown>>
   render: () => Response | Promise<Response>;
   state: State;
 }
+
 export type ErrorHandler = (
   req: Request,
   ctx: ErrorHandlerContext,
@@ -296,6 +310,7 @@ export interface Plugin {
 export interface PluginRenderContext {
   render: PluginRenderFunction;
 }
+
 export interface PluginAsyncRenderContext {
   renderAsync: PluginAsyncRenderFunction;
 }
@@ -328,6 +343,7 @@ export interface PluginRenderScripts {
 }
 
 export type PluginRenderFunction = () => PluginRenderFunctionResult;
+
 export type PluginAsyncRenderFunction = () =>
   | PluginRenderFunctionResult
   | Promise<PluginRenderFunctionResult>;

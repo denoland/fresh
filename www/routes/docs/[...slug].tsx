@@ -1,5 +1,5 @@
 import { asset, Head } from "$fresh/runtime.ts";
-import { Handlers, PageProps } from "$fresh/server.ts";
+import { MultiHandler, PageProps } from "$fresh/server.ts";
 import { frontMatter, gfm } from "../../utils/markdown.ts";
 
 import Header from "../../components/Header.tsx";
@@ -21,7 +21,7 @@ interface Page extends TableOfContentsEntry {
   data: Record<string, unknown>;
 }
 
-export const handler: Handlers<Data> = {
+export const handler: MultiHandler<Data> = {
   async GET(_req, ctx) {
     const slug = ctx.params.slug;
     if (slug === "") {
