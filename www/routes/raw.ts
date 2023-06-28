@@ -2,6 +2,7 @@ import { RouteConfig } from "$fresh/server.ts";
 import { Handlers } from "$fresh/server.ts";
 import { parse } from "$std/semver/mod.ts";
 import VERSIONS from "../../versions.json" assert { type: "json" };
+import { extname } from "$std/path/mod.ts";
 
 const BASE_URL = "https://raw.githubusercontent.com/denoland/fresh/";
 
@@ -37,32 +38,20 @@ export const handler: Handlers = {
       return response;
     }
 
-    switch (true) {
-      case isHTML:
-        response.headers.set("Content-Type", "text/plain");
-        break;
-      case path.endsWith(".ts"):
-        response.headers.set("Content-Type", "application/typescript");
-        break;
-      case path.endsWith(".js"):
-        response.headers.set("Content-Type", "application/javascript");
-        break;
-      case path.endsWith(".tsx"):
-        response.headers.set("Content-Type", "text/tsx");
-        break;
-      case path.endsWith(".jsx"):
-        response.headers.set("Content-Type", "text/jsx");
-        break;
-      case path.endsWith(".json"):
-        response.headers.set("Content-Type", "application/json");
-        break;
-      case path.endsWith(".wasm"):
-        response.headers.set("Content-Type", "application/wasm");
-        break;
-      default:
-        response.headers.set("Content-Type", "text/plain");
-        break;
-    }    
+    const contentTypes = new Map([
+      [".html", "text/plain"],
+      [".ts", "application/typescript"],
+      [".js", "application/javascript"],
+      [".tsx", "text/tsx"],
+      [".jsx", "text/jsx"],
+      [".json", "application/json"],
+      [".wasm", "application/wasm"],
+    ]);
+    if(isHTML){
+      const value = contentTypes.get(extname(path)) ?? "text/plain";
+      response.headers.set("Content-Type", value);
+    }
+
     return response;
   },
 };
