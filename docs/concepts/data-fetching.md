@@ -16,7 +16,7 @@ interface Project {
   stars: number;
 }
 
-export const handler: Handlers<Project> = {
+export const handler: MultiHandler<Project> = {
   async GET(_req, ctx) {
     const project = await db.projects.findOne({ id: ctx.params.id });
     if (!project) {
@@ -36,7 +36,7 @@ export default function ProjectPage(props: PageProps<Project>) {
 }
 ```
 
-The type parameter on the `PageProps`, `Handlers`, `Handler`, and
+The type parameter on the `PageProps`, `MultiHandler`, `Handler`, and
 `HandlerContext` can be used to enforce a TypeScript type to use for the render
 data. Fresh enforces during type checking that the types in all of these fields
 are compatible within a single page.
