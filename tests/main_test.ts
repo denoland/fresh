@@ -570,7 +570,7 @@ Deno.test({
 Deno.test({
   name: "middleware nesting order",
   fn: async () => {
-    const resp = await router(
+    const resp = await handler(
       new Request(
         "https://fresh.deno.dev/layeredMdw/nesting/acme/production/abc",
       ),

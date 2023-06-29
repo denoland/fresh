@@ -10,10 +10,12 @@ Deno.test("sort middleware", () => {
     { pattern: "/layeredMdw/nesting/:tenant/:environment{/*}?" },
     { pattern: "/layeredMdw/nesting/:tenant{/*}?" },
     { pattern: "/layeredMdw/nesting{/*}?" },
+    { pattern: "/state-in-props{/*}?" },
   ];
   const sortedRoutes = [
     { pattern: "{/*}?" },
     { pattern: "/layeredMdw{/*}?" },
+    { pattern: "/state-in-props{/*}?" },
     { pattern: "/layeredMdw/layer2{/*}?" },
     { pattern: "/layeredMdw/nesting{/*}?" },
     { pattern: "/layeredMdw/layer2/layer3{/*}?" },
