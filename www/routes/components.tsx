@@ -3,13 +3,13 @@ import Header from "../components/Header.tsx";
 import ComponentGallery from "../islands/ComponentGallery.tsx";
 
 import { asset, Head } from "$fresh/runtime.ts";
-import { Handlers, PageProps } from "$fresh/server.ts";
+import { MultiHandler, PageProps } from "$fresh/server.ts";
 
 function getSource(path: string) {
   return Deno.readTextFile(new URL(path, import.meta.url));
 }
 
-export const handler: Handlers<HomeProps> = {
+export const handler: MultiHandler<HomeProps> = {
   async GET(req, ctx) {
     const props: HomeProps = {
       sources: {

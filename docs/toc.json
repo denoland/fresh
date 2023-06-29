@@ -47,7 +47,12 @@
       ["changing-the-src-dir", "Changing the source directory"],
       ["using-twind-v1", "Using Twind v1"],
       ["init-the-server", "Initializing the server"],
-      ["using-fresh-canary-version", "Using Fresh canary version"]
+      ["using-fresh-canary-version", "Using Fresh canary version"],
+      ["dealing-with-cors", "Dealing with CORS"],
+      ["creating-a-crud-api", "Creating a CRUD API"],
+      ["handling-complex-routes", "Handling complex routes"],
+      ["rendering-markdown", "Rendering markdown"],
+      ["sharing-state-between-islands", "Sharing state between islands"]
     ]
   }
 }

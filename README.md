@@ -25,7 +25,7 @@ The [documentation](https://fresh.deno.dev/docs/) is available on
 
 ## 🚀 Getting started
 
-Install [Deno CLI](https://deno.land/) version 1.25.0 or higher.
+Install [Deno CLI](https://deno.land/) version 1.31.0 or higher.
 
 You can scaffold a new project by running the Fresh init script. To scaffold a
 project run the following:

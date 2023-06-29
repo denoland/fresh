@@ -30,6 +30,14 @@ Deno.test("/ page prerender", async () => {
     body,
     '<meta name="description" content="Hello world!"/>',
   );
+  assertStringIncludes(
+    body,
+    '<meta name="generator" content="The freshest framework!"/>',
+  );
+  assert(
+    !body.includes("specialTag"),
+    `Expected actual: "${body}" to not contain: "specialTag"`,
+  );
   assertStringIncludes(body, `<link rel="modulepreload"`);
 });
 
@@ -41,11 +49,11 @@ Deno.test("/props/123 page prerender", async () => {
   const body = await resp.text();
   assertStringIncludes(
     body,
-    `{&quot;params&quot;:{&quot;id&quot;:&quot;123&quot;},&quot;url&quot;:&quot;https://fresh.deno.dev/props/123&quot;,&quot;route&quot;:&quot;/props/:id&quot;}`,
+    `{&quot;params&quot;:{&quot;id&quot;:&quot;123&quot;},&quot;url&quot;:&quot;https://fresh.deno.dev/props/123&quot;,&quot;route&quot;:&quot;/props/:id&quot;,&quot;state&quot;:{&quot;root&quot;:&quot;root_mw&quot;}}`,
   );
 });
 
-Deno.test("/[name] page prerender", async () => {
+Deno.test("/greet/[name] page prerender", async () => {
   const resp = await handler(new Request("https://fresh.deno.dev/bar"));
   assert(resp);
   assertEquals(resp.status, Status.OK);
@@ -419,6 +427,22 @@ Deno.test("/connInfo", async () => {
   assertEquals(body, "localhost");
 });
 
+Deno.test("state in page props", async () => {
+  const resp = await handler(
+    new Request("https://fresh.deno.dev/state-in-props"),
+  );
+  assert(resp);
+  assertEquals(resp.status, Status.OK);
+  assertEquals(resp.headers.get("content-type"), "text/html; charset=utf-8");
+  const body = await resp.text();
+  assertStringIncludes(
+    body,
+    '<meta name="generator" content="The freshest framework!"/>',
+  );
+  assertStringIncludes(body, "specialTag");
+  assertStringIncludes(body, "LOOK, I AM SET FROM MIDDLEWARE");
+});
+
 Deno.test({
   name: "/middleware - root",
   fn: async () => {
@@ -473,7 +497,6 @@ Deno.test({
     assert(resp);
     assertEquals(resp.status, Status.OK);
     const body = await resp.text();
-    console.log(body);
     assertStringIncludes(body, "root_mw");
     assertStringIncludes(body, "layer1_mw");
     assertStringIncludes(body, "layer2_mw");
@@ -503,7 +526,6 @@ Deno.test({
     assert(resp);
     assertEquals(resp.status, Status.OK);
     const body = await resp.text();
-    console.log(body);
     assertStringIncludes(body, "root_mw");
     assertStringIncludes(body, "layer1_mw");
     assertStringIncludes(body, "layer2_mw");
@@ -622,6 +644,14 @@ Deno.test("experimental Deno.serve", {
     assertStringIncludes(
       body,
       '<meta name="description" content="Hello world!"/>',
+    );
+    assertStringIncludes(
+      body,
+      '<meta name="generator" content="The freshest framework!"/>',
+    );
+    assert(
+      !body.includes("specialTag"),
+      `Expected actual: "${body}" to not contain: "specialTag"`,
     );
   });
 
@@ -780,6 +810,43 @@ Deno.test("PORT environment variable", {
   const resp = await fetch("http://localhost:" + PORT);
   assert(resp);
   assertEquals(resp.status, Status.OK);
+
+  await lines.cancel();
+  serverProcess.kill("SIGTERM");
+});
+
+Deno.test("rendering custom _500.tsx page for default handlers", {
+  sanitizeOps: false,
+  sanitizeResources: false,
+}, async (t) => {
+  // Preparation
+  const { serverProcess, lines, address } = await startFreshServer({
+    args: ["run", "-A", "./tests/fixture_custom_500/main.ts"],
+  });
+
+  await delay(100);
+
+  await t.step("SSR error is shown", async () => {
+    const resp = await fetch(address);
+    assertEquals(resp.status, Status.InternalServerError);
+    const text = await resp.text();
+    assertStringIncludes(text, "Custom 500: Pickle Rick!");
+  });
+
+  const browser = await puppeteer.launch({ args: ["--no-sandbox"] });
+  const page = await browser.newPage();
+
+  await page.goto(address, {
+    waitUntil: "networkidle2",
+  });
+
+  await t.step("error page is shown with error message", async () => {
+    const el = await page.waitForSelector(".custom-500");
+    const text = await page.evaluate((el) => el.textContent, el);
+    assertStringIncludes(text, "Custom 500: Pickle Rick!");
+  });
+
+  await browser.close();
 
   await lines.cancel();
   serverProcess.kill("SIGTERM");
