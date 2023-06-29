@@ -7,7 +7,7 @@ description: |
 Routes actually consist of two parts: handlers, and the page component. Up to
 now, only the page component has been discussed in this chapter.
 
-Handlers are functions in the form of `Request => Response` or
+MultiHandler are functions in the form of `Request => Response` or
 `Request => Promise<Response>` that are called when a request is made to a
 particular route. There can be one handler that covers all HTTP methods or one
 handler per method.
@@ -20,9 +20,9 @@ define a custom handler use a default handler that just renders the page
 component.
 
 To define a handler in a route module, one must export it as a named export with
-the name `handler`. Handlers can have two forms: a plain function (catchall for
-all HTTP methods) or a plain object where each property is a function named by
-the HTTP method it handles.
+the name `handler`. MultiHandler can have two forms: a plain function (catchall
+for all HTTP methods) or a plain object where each property is a function named
+by the HTTP method it handles.
 
 Here is an example of a custom `GET` handler that renders the page component and
 then adds a custom header to the response before returning it:
@@ -30,9 +30,9 @@ then adds a custom header to the response before returning it:
 ```tsx
 // routes/about.tsx
 
-import { Handlers } from "$fresh/server.ts";
+import { MultiHandler } from "$fresh/server.ts";
 
-export const handler: Handlers = {
+export const handler: MultiHandler = {
   async GET(_req, ctx) {
     const resp = await ctx.render();
     resp.headers.set("X-Custom-Header", "Hello");
@@ -57,9 +57,9 @@ response:
 ```ts
 // routes/api/random-uuid.ts
 
-import { Handlers } from "$fresh/server.ts";
+import { MultiHandler } from "$fresh/server.ts";
 
-export const handler: Handlers = {
+export const handler: MultiHandler = {
   GET(_req) {
     const uuid = crypto.randomUUID();
     return new Response(JSON.stringify(uuid), {

@@ -1,5 +1,5 @@
 import { asset, Head } from "$fresh/runtime.ts";
-import { Handlers, PageProps } from "$fresh/server.ts";
+import { MultiHandler, PageProps } from "$fresh/server.ts";
 import Counter from "../islands/Counter.tsx";
 import LemonDrop from "../islands/LemonDrop.tsx";
 import Footer from "../components/Footer.tsx";
@@ -11,10 +11,18 @@ import Projects from "../components/Projects.tsx";
 import projects from "../data/showcase.json" assert { type: "json" };
 import Header from "../components/Header.tsx";
 
-export const handler: Handlers = {
+function isOpenGraphUA(header: string | null): boolean {
+  if (!header) {
+    return false;
+  }
+  return header.startsWith("Twitterbot") || header.startsWith("Slackbot");
+}
+
+export const handler: MultiHandler = {
   GET(req, ctx) {
     const accept = req.headers.get("accept");
-    if (accept && !accept.includes("text/html")) {
+    const userAgent = req.headers.get("user-agent");
+    if (!accept?.includes("text/html") && !isOpenGraphUA(userAgent)) {
       const path = `https://deno.land/x/fresh@${VERSIONS[0]}/init.ts`;
       return new Response(`Redirecting to ${path}`, {
         headers: { "Location": path },
@@ -68,11 +76,10 @@ function HelloBar() {
   return (
     <a
       class="bg-green-400 text-black border(b green-500) p-3 text-center group"
-      href="https://deno.com/blog/fresh-1.1"
+      href="https://deno.com/blog/fresh-1.2"
     >
-      <b>Fresh v1.1</b> has been released with support for <b>automatic JSX</b>,
-      {" "}
-      <b>plugins</b>, <b>DevTools support</b>, and more!{"  "}
+      <b>Fresh v1.2</b> has been released with <b>improved islands</b>,{" "}
+      <b>preview npm: support</b>, and more!{"  "}
       <span class="group-hover:underline">→</span>
     </a>
   );
@@ -191,7 +198,7 @@ function GettingStarted(props: { origin: string }) {
           <a href="https://deno.land" class="text-blue-600 hover:underline">
             Deno CLI
           </a>{" "}
-          version 1.25.0 or higher is required.{" "}
+          version 1.31.0 or higher is required.{" "}
           <a
             href="https://deno.land/manual/getting_started/installation"
             class="text-blue-600 hover:underline"
@@ -211,16 +218,14 @@ function GettingStarted(props: { origin: string }) {
         To bootstrap a new project:
       </p>
 
-      <CopyArea>
-        {`deno run -A -r ${props.origin}`}
-      </CopyArea>
+      <CopyArea code={`deno run -A -r ${props.origin}`} />
 
       <p class="text-gray-600">
         Enter the newly created project directory and run the following command
         to start the development server:
       </p>
 
-      <CopyArea>{`deno task start`}</CopyArea>
+      <CopyArea code={`deno task start`} />
 
       <p class="text-gray-600">
         You can now open{" "}

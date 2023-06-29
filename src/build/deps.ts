@@ -6,7 +6,7 @@ export {
 export { escape as regexpEscape } from "https://deno.land/std@0.190.0/regexp/escape.ts";
 
 // -- esbuild --
-// @deno-types="https://deno.land/x/esbuild@v0.17.11/mod.d.ts"
+// @deno-types="https://deno.land/x/esbuild@v0.17.19/mod.d.ts"
 import * as esbuildWasm from "https://deno.land/x/esbuild@v0.17.19/wasm.js";
 import * as esbuildNative from "https://deno.land/x/esbuild@v0.17.19/mod.js";
 // @ts-ignore trust me

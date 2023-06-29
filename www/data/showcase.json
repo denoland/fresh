@@ -1,5 +1,11 @@
 [
   {
+    "title": "OpenAI Semantic Search",
+    "link": "https://supabase-openai-doc-search.deno.dev/",
+    "github": "supabase-community/deno-fresh-openai-doc-search",
+    "image": "openai-semantic-search"
+  },
+  {
     "title": "Deno SaaSKit",
     "link": "https://saaskit.deno.dev/",
     "github": "denoland/saaskit",
@@ -324,9 +330,27 @@
     "image": "learn-mandarin"
   },
   {
+    "title": "Deno Place",
+    "link": "https://deno-place.arruda.dev/",
+    "github": "https://github.com/arrudaricardo/deno_place",
+    "image": "deno-place"
+  },
+  {
+    "title": "Url shorter and Pastebin",
+    "link": "https://uspb.deno.dev/",
+    "github": "jneeee/uspb",
+    "image": "uspb"
+  },
+  {
     "title": "Do not remove this, it's for prevent conflicting by trailing comma",
     "link": "",
     "github": "",
     "image": ""
+  },
+  {
+    "title": "Battleship",
+    "link": "https://battleship.deno.dev",
+    "github": "karelklima/battleship",
+    "image": "battleship"
   }
 ]

@@ -7,15 +7,18 @@ An application wrapper is defined in an `_app.tsx` file in `routes/` folder. It
 must contain a default export that is a regular Preact component. Only one such
 wrapper is allowed per application.
 
-It receives component through props which is to be wrapped. For instance, it
-allows to introduce a global container for the whole application.
+The component to be wrapped is received via props, in addition to a few other
+things. This allows for the introduction of a global container functioning as a
+template which can be conditioned based on state and params. Note that any state
+set by middleware is available via `props.state`.
 
 ```tsx
 // routes/_app.tsx
 
 import { AppProps } from "$fresh/server.ts";
 
-export default function App({ Component }: AppProps) {
+export default function App({ Component, state }: AppProps) {
+  //do something with state here
   return (
     <div class="wrapper">
       <Component />

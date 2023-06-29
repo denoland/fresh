@@ -31,7 +31,8 @@
       ["deployment", "Deployment"],
       ["plugins", "Plugins"],
       ["updating", "Updating Fresh"],
-      ["app-wrapper", "Application wrapper"]
+      ["app-wrapper", "Application wrapper"],
+      ["server-configuration", "Server configuration"]
     ]
   },
   "integrations": {
@@ -41,7 +42,17 @@
     "title": "Examples",
     "pages": [
       ["modifying-the-head", "Modifying the <head>"],
-      ["setting-the-language", "Setting the language"]
+      ["setting-the-language", "Setting the language"],
+      ["writing-tests", "Writing tests"],
+      ["changing-the-src-dir", "Changing the source directory"],
+      ["using-twind-v1", "Using Twind v1"],
+      ["init-the-server", "Initializing the server"],
+      ["using-fresh-canary-version", "Using Fresh canary version"],
+      ["dealing-with-cors", "Dealing with CORS"],
+      ["creating-a-crud-api", "Creating a CRUD API"],
+      ["handling-complex-routes", "Handling complex routes"],
+      ["rendering-markdown", "Rendering markdown"],
+      ["sharing-state-between-islands", "Sharing state between islands"]
     ]
   }
 }

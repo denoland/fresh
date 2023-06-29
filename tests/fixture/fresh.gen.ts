@@ -36,9 +36,11 @@ import * as $30 from "./routes/middleware_root.ts";
 import * as $31 from "./routes/not_found.ts";
 import * as $32 from "./routes/params.tsx";
 import * as $33 from "./routes/props/[id].tsx";
-import * as $34 from "./routes/static.tsx";
-import * as $35 from "./routes/status_overwrite.tsx";
-import * as $36 from "./routes/wildcard.tsx";
+import * as $34 from "./routes/state-in-props/_middleware.ts";
+import * as $35 from "./routes/state-in-props/index.tsx";
+import * as $36 from "./routes/static.tsx";
+import * as $37 from "./routes/status_overwrite.tsx";
+import * as $38 from "./routes/wildcard.tsx";
 import * as $$0 from "./islands/Counter.tsx";
 import * as $$1 from "./islands/ReturningNull.tsx";
 import * as $$2 from "./islands/RootFragment.tsx";
@@ -83,9 +85,11 @@ const manifest = {
     "./routes/not_found.ts": $31,
     "./routes/params.tsx": $32,
     "./routes/props/[id].tsx": $33,
-    "./routes/static.tsx": $34,
-    "./routes/status_overwrite.tsx": $35,
-    "./routes/wildcard.tsx": $36,
+    "./routes/state-in-props/_middleware.ts": $34,
+    "./routes/state-in-props/index.tsx": $35,
+    "./routes/static.tsx": $36,
+    "./routes/status_overwrite.tsx": $37,
+    "./routes/wildcard.tsx": $38,
   },
   islands: {
     "./islands/Counter.tsx": $$0,
