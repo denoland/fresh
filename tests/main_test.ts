@@ -570,7 +570,7 @@ Deno.test({
 Deno.test({
   name: "/middleware - middlewareParams",
   fn: async () => {
-    const resp = await router(
+    const resp = await handler(
       new Request(
         "https://fresh.deno.dev/layeredMdw/layer2-with-params/tenant1/resource1",
       ),
