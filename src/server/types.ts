@@ -351,4 +351,4 @@ export interface PluginRenderFunctionResult {
 }
 
 export type StartOptions = ServeInit & FreshOptions & FreshExperimantal;
-export type StartTlsOptions = FreshOptions & ServeTlsInit & FreshExperimantal;
+export type StartTlsOptions = ServeTlsInit & FreshOptions & FreshExperimantal;
