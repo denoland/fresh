@@ -1,5 +1,5 @@
 import { asset, Head } from "$fresh/runtime.ts";
-import { Handlers, PageProps } from "$fresh/server.ts";
+import { MultiHandler, PageProps } from "$fresh/server.ts";
 import Counter from "../islands/Counter.tsx";
 import LemonDrop from "../islands/LemonDrop.tsx";
 import Footer from "../components/Footer.tsx";
@@ -11,10 +11,18 @@ import Projects from "../components/Projects.tsx";
 import projects from "../data/showcase.json" assert { type: "json" };
 import Header from "../components/Header.tsx";
 
-export const handler: Handlers = {
+function isOpenGraphUA(header: string | null): boolean {
+  if (!header) {
+    return false;
+  }
+  return header.startsWith("Twitterbot") || header.startsWith("Slackbot");
+}
+
+export const handler: MultiHandler = {
   GET(req, ctx) {
     const accept = req.headers.get("accept");
-    if (accept && !accept.includes("text/html")) {
+    const userAgent = req.headers.get("user-agent");
+    if (!accept?.includes("text/html") && !isOpenGraphUA(userAgent)) {
       const path = `https://deno.land/x/fresh@${VERSIONS[0]}/init.ts`;
       return new Response(`Redirecting to ${path}`, {
         headers: { "Location": path },
@@ -190,7 +198,7 @@ function GettingStarted(props: { origin: string }) {
           <a href="https://deno.land" class="text-blue-600 hover:underline">
             Deno CLI
           </a>{" "}
-          version 1.25.0 or higher is required.{" "}
+          version 1.31.0 or higher is required.{" "}
           <a
             href="https://deno.land/manual/getting_started/installation"
             class="text-blue-600 hover:underline"

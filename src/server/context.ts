@@ -5,7 +5,6 @@ import {
   fromFileUrl,
   join,
   JSONC,
-  RequestHandler,
   Status,
   toFileUrl,
   typeByExtension,
@@ -47,6 +46,11 @@ import {
   JSXConfig,
 } from "../build/mod.ts";
 import { InternalRoute } from "./router.ts";
+
+const DEFAULT_CONN_INFO: ConnInfo = {
+  localAddr: { transport: "tcp", hostname: "localhost", port: 8080 },
+  remoteAddr: { transport: "tcp", hostname: "localhost", port: 1234 },
+};
 
 interface RouterState {
   state: Record<string, unknown>;
@@ -358,7 +362,7 @@ export class ServerContext {
    * This functions returns a request handler that handles all routes required
    * by fresh, including static files.
    */
-  handler(): RequestHandler {
+  handler(): (req: Request, connInfo?: ConnInfo) => Promise<Response> {
     const handlers = this.#handlers();
     const inner = router.router<RouterState>(handlers);
     const withMiddlewares = this.#composeMiddlewares(
@@ -367,7 +371,10 @@ export class ServerContext {
       router.getParamsAndRoute<RouterState>(handlers),
     );
     const trailingSlashEnabled = this.#routerOptions?.trailingSlash;
-    return async function handler(req: Request, connInfo: ConnInfo) {
+    return async function handler(
+      req: Request,
+      connInfo: ConnInfo = DEFAULT_CONN_INFO,
+    ) {
       // Redirect requests that end with a trailing slash to their non-trailing
       // slash counterpart.
       // Ex: /about/ -> /about
@@ -442,7 +449,20 @@ export class ServerContext {
       const middlewareCtx: MiddlewareHandlerContext = {
         next() {
           const handler = handlers.shift()!;
-          return Promise.resolve(handler());
+          try {
+            // As the `handler` can be either sync or async, depending on the user's code,
+            // the current shape of our wrapper, that is `() => handler(req, middlewareCtx)`,
+            // doesn't guarantee that all possible errors will be captured.
+            // `Promise.resolve` accept the value that should be returned to the promise
+            // chain, however, if that value is produced by the external function call,
+            // the possible `Error`, will *not* be caught by any `.catch()` attached to that chain.
+            // Because of that, we need to make sure that the produced value is pushed
+            // through the pipeline only if function was called successfully, and handle
+            // the error case manually, by returning the `Error` as rejected promise.
+            return Promise.resolve(handler());
+          } catch (e) {
+            return Promise.reject(e);
+          }
         },
         ...connInfo,
         state: {},
@@ -563,6 +583,7 @@ export class ServerContext {
       return (
         req: Request,
         params: Record<string, string>,
+        state?: Record<string, unknown>,
         error?: unknown,
       ) => {
         return async (data?: Data, options?: RenderOptions) => {
@@ -593,6 +614,7 @@ export class ServerContext {
             url: new URL(req.url),
             params,
             data,
+            state,
             error,
           });
 
@@ -639,8 +661,8 @@ export class ServerContext {
             (route.handler as Handler)(req, {
               ...ctx,
               params,
-              render: createRender(req, params),
-              renderNotFound: createUnknownRender(req, {}),
+              render: createRender(req, params, ctx.state),
+              renderNotFound: createUnknownRender(req, params, ctx.state),
             }),
         };
       } else {
@@ -654,8 +676,8 @@ export class ServerContext {
             handler(req, {
               ...ctx,
               params,
-              render: createRender(req, params),
-              renderNotFound: createUnknownRender(req, {}),
+              render: createRender(req, params, ctx.state),
+              renderNotFound: createUnknownRender(req, params, ctx.state),
             });
         }
       }
@@ -692,7 +714,7 @@ export class ServerContext {
         {
           ...ctx,
           error,
-          render: errorHandlerRender(req, {}, error),
+          render: errorHandlerRender(req, {}, undefined, error),
         },
       );
     };

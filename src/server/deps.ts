@@ -13,7 +13,6 @@ export {
 } from "https://deno.land/std@0.190.0/http/server.ts";
 export type {
   ConnInfo,
-  Handler as RequestHandler,
   ServeInit,
 } from "https://deno.land/std@0.190.0/http/server.ts";
 export { Status } from "https://deno.land/std@0.190.0/http/http_status.ts";

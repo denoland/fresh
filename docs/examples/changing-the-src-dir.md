@@ -18,9 +18,11 @@ you'll end up with a project like the following:
 │   └── Counter.tsx
 ├── main.ts
 ├── routes
-│   ├── [name].tsx
+│   ├── greet
+│   │   ├── [name].tsx
 │   ├── api
 │   │   └── joke.ts
+│   ├── _404.tsx
 │   └── index.tsx
 └── static
     ├── favicon.ico
@@ -64,9 +66,11 @@ The resulting file structure looks like this:
     │   └── Counter.tsx
     ├── main.ts
     ├── routes
-    │   ├── [name].tsx
+    │   ├── greet
+    │   │   ├── [name].tsx
     │   ├── api
     │   │   └── joke.ts
+    │   ├── _404.tsx
     │   └── index.tsx
     └── static
         ├── favicon.ico
