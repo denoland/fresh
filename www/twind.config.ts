@@ -14,4 +14,20 @@ export default {
       transparent: "transparent",
     },
   },
+  plugins: {
+    // Basic workaround for old twind version not supporting
+    // the `basis-*` keyword
+    "basis": (parts) => {
+      let value;
+      const arr = parts[0].split("/");
+      if (arr.length === 2) {
+        value = `${(+arr[0] / +arr[1]) * 100}%`;
+      } else if (parts.length === 1) {
+        value = parts[0];
+      }
+      return {
+        "flex-basis": value,
+      };
+    },
+  },
 } as Options;

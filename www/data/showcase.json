@@ -342,15 +342,15 @@
     "image": "uspb"
   },
   {
-    "title": "Do not remove this, it's for prevent conflicting by trailing comma",
-    "link": "",
-    "github": "",
-    "image": ""
-  },
-  {
     "title": "Battleship",
     "link": "https://battleship.deno.dev",
     "github": "karelklima/battleship",
     "image": "battleship"
+  },
+  {
+    "title": "Do not remove this, it's for preventing conflicts by trailing comma",
+    "link": "",
+    "github": "",
+    "image": ""
   }
 ]
