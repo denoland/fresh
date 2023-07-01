@@ -611,6 +611,20 @@ Deno.test("middleware destination", async (t) => {
   });
 });
 
+Deno.test("useProps", async () => {
+  const resp = await handler(
+    new Request("https://fresh.deno.dev/props-in-context"),
+  );
+  assert(resp);
+  assertEquals(resp.status, Status.OK);
+  assertEquals(resp.headers.get("content-type"), "text/html; charset=utf-8");
+  const body = await resp.text();
+  assertStringIncludes(
+    body,
+    "<div>https://fresh.deno.dev/props-in-context</div>",
+  );
+});
+
 Deno.test("experimental Deno.serve", {
   sanitizeOps: false,
   sanitizeResources: false,
