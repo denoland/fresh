@@ -401,8 +401,18 @@ html {
 }
 `;
 
-const NO_TWIND_APP_WRAPPER = `
-import { AppProps } from "$fresh/server.ts";
+const APP_WRAPPER = useTwind
+  ? `import { AppProps } from "$fresh/server.ts";
+
+export default function App({ Component }: AppProps) {
+  return (
+    <>
+      <Component />
+    </>
+  );
+}
+`
+  : `import { AppProps } from "$fresh/server.ts";
 import { Head } from "$fresh/runtime.ts";
 
 export default function App({ Component }: AppProps) {
@@ -422,12 +432,12 @@ if (!useTwind) {
     join(resolvedDirectory, "static", "styles.css"),
     NO_TWIND_STYLES,
   );
-
-  await Deno.writeTextFile(
-    join(resolvedDirectory, "routes", "_app.tsx"),
-    NO_TWIND_APP_WRAPPER,
-  );
 }
+
+await Deno.writeTextFile(
+  join(resolvedDirectory, "routes", "_app.tsx"),
+  APP_WRAPPER,
+);
 
 const STATIC_LOGO =
   `<svg width="40" height="40" fill="none" xmlns="http://www.w3.org/2000/svg">
