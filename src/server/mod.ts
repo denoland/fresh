@@ -22,6 +22,7 @@ export type {
   Handlers,
   MiddlewareHandler,
   MiddlewareHandlerContext,
+  MultiHandler,
   PageProps,
   Plugin,
   PluginAsyncRenderContext,
@@ -79,13 +80,12 @@ export async function start(routes: Manifest, opts: StartOptions = {}) {
 
   if (!opts.onListen) {
     opts.onListen = (params) => {
+      console.log();
       console.log(
-        colors.bgRgb8(colors.black(colors.bold("\n 🍋 Fresh ready ")), 121),
+        colors.bgRgb8(colors.black(colors.bold(" 🍋 Fresh ready ")), 121),
       );
 
-      const address = colors.cyan(
-        `http://localhost:${params.port}/`,
-      );
+      const address = colors.cyan(`http://localhost:${params.port}/`);
       const localLabel = colors.bold("Local:");
       console.log(`    ${localLabel} ${address}\n`);
     };

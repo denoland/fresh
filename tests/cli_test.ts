@@ -53,6 +53,7 @@ Deno.test({
       `/main.ts`,
       `/routes/greet/[name].tsx`,
       `/routes/api/joke.ts`,
+      `/routes/_app.tsx`,
       `/routes/index.tsx`,
       `/static/logo.svg`,
     ];
@@ -138,6 +139,7 @@ Deno.test({
       "/main.ts",
       "/routes/greet/[name].tsx",
       "/routes/api/joke.ts",
+      "/routes/_app.tsx",
       "/routes/index.tsx",
       "/static/logo.svg",
       "/.vscode/settings.json",
@@ -376,16 +378,22 @@ Deno.test("fresh-update", async function fn(t) {
     try {
       Deno.mkdirSync(tmpDirName + "/src");
       names.forEach((x) => {
-        Deno.rename(path.join(tmpDirName, x), path.join(tmpDirName, "src", x));
+        Deno.renameSync(
+          path.join(tmpDirName, x),
+          path.join(tmpDirName, "src", x),
+        );
       });
       await updateAndVerify(
         /The manifest has been generated for (?!0 routes and 0 islands)\d+ routes and \d+ islands./,
       );
     } finally {
       names.forEach((x) => {
-        Deno.rename(path.join(tmpDirName, "src", x), path.join(tmpDirName, x));
+        Deno.renameSync(
+          path.join(tmpDirName, "src", x),
+          path.join(tmpDirName, x),
+        );
       });
-      await retry(() => Deno.remove(tmpDirName + "/src", { recursive: true }));
+      Deno.removeSync(tmpDirName + "/src", { recursive: true });
     }
   });
 

@@ -1,11 +1,22 @@
 import { RouteConfig } from "$fresh/server.ts";
-import { Handlers } from "$fresh/server.ts";
+import { MultiHandler } from "$fresh/server.ts";
 import { parse } from "$std/semver/mod.ts";
 import VERSIONS from "../../versions.json" assert { type: "json" };
+import { extname } from "$std/path/mod.ts";
 
 const BASE_URL = "https://raw.githubusercontent.com/denoland/fresh/";
 
-export const handler: Handlers = {
+const contentTypes = new Map([
+  [".html", "text/plain"],
+  [".ts", "application/typescript"],
+  [".js", "application/javascript"],
+  [".tsx", "text/tsx"],
+  [".jsx", "text/jsx"],
+  [".json", "application/json"],
+  [".wasm", "application/wasm"],
+]);
+
+export const handler: MultiHandler = {
   async GET(req, ctx) {
     const accept = req.headers.get("Accept");
     const isHTML = accept?.includes("text/html");
@@ -37,23 +48,11 @@ export const handler: Handlers = {
       return response;
     }
 
-    if (isHTML) {
-      response.headers.set("Content-Type", "text/plain");
-    } else if (path.endsWith(".ts")) {
-      response.headers.set("Content-Type", "application/typescript");
-    } else if (path.endsWith(".js")) {
-      response.headers.set("Content-Type", "application/javascript");
-    } else if (path.endsWith(".tsx")) {
-      response.headers.set("Content-Type", "text/tsx");
-    } else if (path.endsWith(".jsx")) {
-      response.headers.set("Content-Type", "text/jsx");
-    } else if (path.endsWith(".json")) {
-      response.headers.set("Content-Type", "application/json");
-    } else if (path.endsWith(".wasm")) {
-      response.headers.set("Content-Type", "application/wasm");
-    } else {
-      response.headers.set("Content-Type", "text/plain");
-    }
+    const value = isHTML
+      ? "text/plain"
+      : contentTypes.get(extname(path)) ?? "text/plain";
+    response.headers.set("Content-Type", value);
+
     return response;
   },
 };

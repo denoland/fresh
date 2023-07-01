@@ -1,5 +1,5 @@
 import { asset, Head } from "$fresh/runtime.ts";
-import { Handlers, PageProps } from "$fresh/server.ts";
+import { MultiHandler, PageProps } from "$fresh/server.ts";
 import Counter from "../islands/Counter.tsx";
 import LemonDrop from "../islands/LemonDrop.tsx";
 import Footer from "../components/Footer.tsx";
@@ -18,7 +18,7 @@ function isOpenGraphUA(header: string | null): boolean {
   return header.startsWith("Twitterbot") || header.startsWith("Slackbot");
 }
 
-export const handler: Handlers = {
+export const handler: MultiHandler = {
   GET(req, ctx) {
     const accept = req.headers.get("accept");
     const userAgent = req.headers.get("user-agent");
@@ -61,10 +61,10 @@ export default function MainPage(props: PageProps) {
           <Hero />
         </div>
         <div class="flex-1">
-          <Intro />
-          <GettingStarted origin={origin} />
+          <Intro origin={origin} />
           <Example />
           <Showcase />
+          <StartJourney />
         </div>
         <Footer />
       </div>
@@ -96,11 +96,11 @@ function Hero() {
 }
 
 function Features() {
-  const item = "flex md:flex-col items-center gap-5";
-  const desc = "flex-1 md:text-center";
+  const item = "flex items-center gap-5";
+  const desc = "flex-1";
 
   return (
-    <div class="grid md:grid-cols-3 gap-6 md:gap-14">
+    <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-14">
       <div class={item}>
         <FeatureIcons.Globe />
         <div class={desc}>
@@ -147,146 +147,82 @@ function Features() {
   );
 }
 
-function Intro() {
+function Intro(props: { origin: string }) {
   return (
-    <section class="max-w-screen-md mx-auto my-16 px(4 sm:6 md:8) space-y-12">
-      <div class="md:flex items-center">
-        <div class="flex-1 text-center md:text-left">
-          <h2 class="py-2 text(5xl sm:5xl lg:5xl gray-900) sm:tracking-tight sm:leading-[1.1]! font-extrabold">
-            The <span class="text-green-600">next-gen</span> web framework.
-          </h2>
+    <section class="max-w-screen-xl mx-auto my-8 sm:my-16 px(4 sm:6 md:8) space-y-8 sm:space-y-16 lg:mb-32">
+      <div class="max-w-screen-xl mx-auto sm:my-8 md:my-16 sm:space-y-12 w-full">
+        <div class="md:flex items-center">
+          <div class="flex-1 text-center md:text-left">
+            <h2 class="py-2 text(5xl sm:5xl lg:6xl gray-900) sm:tracking-tight sm:leading-[1.1]! font-extrabold lg:max-w-lg mx-auto sm:mx-0">
+              The <span class="text-green-600">next-gen</span> web framework.
+            </h2>
 
-          <p class="mt-4 text-gray-600">
-            Built for speed, reliability, and simplicity.
-          </p>
+            <p class="mt-2 text-gray-600 text-xl">
+              Built for speed, reliability, and simplicity.
+            </p>
+            <div class="mt-8 flex flex-col justify-center md:justify-start sm:flex-row gap-4">
+              <div>
+                <a
+                  href="/docs/getting-started"
+                  class="inline-flex w-auto shrink-0 px-3 py-2 bg-white rounded border(gray-500 2) hover:bg-gray-200 active:bg-gray-300 disabled:(opacity-50 cursor-not-allowed) whitespace-nowrap"
+                >
+                  Get started
+                </a>
+              </div>
+              <div class="flex justify-center">
+                <CopyArea code={`deno run -A -r ${props.origin}`} />
+              </div>
+            </div>
+          </div>
+
+          <picture class="block mt-8 md:mt-0 mx-auto w-60 md:w-96 md:mr-16 xl:mr-32">
+            <img
+              src="/illustration/lemon-squash.svg"
+              width={800}
+              height={678}
+              alt="deno is drinking fresh lemon squash"
+            />
+          </picture>
         </div>
-
-        <picture class="block mt-4 md:mt-0">
-          <img
-            src="/illustration/lemon-squash.svg"
-            class="w-80 mx-auto"
-            width={800}
-            height={678}
-            alt="deno is drinking fresh lemon squash"
-          />
-        </picture>
       </div>
-
-      <Features />
-
-      <p class="text-gray-600">
+      <p class="text-gray-600 text-xl">
         Fresh embraces the tried and true design of server side rendering and
         progressive enhancement on the client side.
       </p>
+      <Features />
     </section>
   );
 }
-
-function GettingStarted(props: { origin: string }) {
-  return (
-    <section class="max-w-screen-md mx-auto my-16 px(4 sm:6 md:8) space-y-4">
-      <h2 id="getting-started" class="text(3xl gray-600) font-bold">
-        <a href="#getting-started" class="hover:underline">
-          Getting Started
-        </a>
-      </h2>
-      <div class="text-gray-600 flex gap-1 mb-4 bg-gray-100 p-2 rounded">
-        <div class="text-gray-400">
-          <Icons.Info />
-        </div>
-        <p>
-          <a href="https://deno.land" class="text-blue-600 hover:underline">
-            Deno CLI
-          </a>{" "}
-          version 1.31.0 or higher is required.{" "}
-          <a
-            href="https://deno.land/manual/getting_started/installation"
-            class="text-blue-600 hover:underline"
-          >
-            Install
-          </a>{" "}
-          or{" "}
-          <a
-            href="https://deno.land/manual/getting_started/installation#updating"
-            class="text-blue-600 hover:underline"
-          >
-            update
-          </a>.
-        </p>
-      </div>
-      <p class="text-gray-600">
-        To bootstrap a new project:
-      </p>
-
-      <CopyArea code={`deno run -A -r ${props.origin}`} />
-
-      <p class="text-gray-600">
-        Enter the newly created project directory and run the following command
-        to start the development server:
-      </p>
-
-      <CopyArea code={`deno task start`} />
-
-      <p class="text-gray-600">
-        You can now open{" "}
-        <a
-          href="http://localhost:8000"
-          class="text-blue-600 hover:underline"
-        >
-          http://localhost:8000
-        </a>{" "}
-        in your browser to view the page.
-      </p>
-      <p class="text-gray-600">
-        A more in-depth{" "}
-        <a
-          href="/docs/getting-started"
-          class="text-blue-600 hover:underline"
-        >
-          <i>Getting Started</i>
-        </a>{" "}
-        guide is available in{" "}
-        <a href="/docs" class="text-blue-600 hover:underline">the docs</a>.
-      </p>
-    </section>
-  );
-}
-
-const timeFmt = new Intl.DateTimeFormat("en-US", {
-  timeStyle: "long",
-  hour12: false,
-});
 
 function Example() {
   return (
-    <section class="max-w-screen-md mx-auto my-16 px(4 sm:6 md:8) space-y-4">
-      <h2 id="example" class="text(3xl gray-600) font-bold">
-        <a href="#example" class="hover:underline">
-          Example
-        </a>
-      </h2>
-      <p class="text-gray-600">
-        This text is being server side rendered on the fly. It was rendered at
-        {" "}
-        {timeFmt.format(new Date())}.
-      </p>
-      <p class="text-gray-600">
-        The counter below was rendered on the server with a starting value of 3,
-        and was then hydrated on the client to provide interactivity. Try out
-        the buttons!
-      </p>
-      <Counter start={3} />
-      <p class="text-gray-600">
-        Only the JS required to render that counter is sent to the client.
-      </p>
+    <section class="max-w-screen-xl mx-auto my-8 sm:my-16 md:my-24 px(4 sm:6 md:8) space-y-16">
+      <div class="flex gap-4 md:gap-16 flex-col md:flex-row justify-between items-center">
+        <div class="md:basis-1/2">
+          <h2 id="example" class="text(4xl gray-600) font-bold mb-4">
+            <a href="#example" class="hover:underline">
+              Interactive islands
+            </a>
+          </h2>
+          <p class="text-gray-600 mb-4">
+            Fresh optimizes the page by only shipping JavaScript for areas that
+            need it. The rest is completely static HTML rendered by the server.
+            This means browser need to load less code and can display your page
+            quicker.
+          </p>
+        </div>
+        <div class="md:basis-1/2">
+          <Counter start={3} />
+        </div>
+      </div>
     </section>
   );
 }
 
 function Showcase() {
   return (
-    <section class="max-w-screen-md mx-auto my-16 px(4 sm:6 md:8) space-y-4">
-      <h2 id="showcase" class="text(3xl gray-600) font-bold">
+    <section class="max-w-screen-xl mx-auto space-y-16 px(4 sm:6 md:8) space-y-4">
+      <h2 id="showcase" class="text(4xl gray-600) font-bold mb-4">
         <a href="#showcase" class="hover:underline">
           Showcase
         </a>
@@ -295,10 +231,32 @@ function Showcase() {
         Below is a selection of projects that have been built with Fresh.
       </p>
       <Projects items={projects.slice(0, 3)} class="gap-8" />
-      <div class="flex gap-2 items-center justify-end text-blue-600">
+      <div class="flex gap-2 items-center justify-center sm:justify-end text-blue-600">
         <Icons.ArrowRight />
         <a href="./showcase" class="hover:underline focus:underline">
           View more
+        </a>
+      </div>
+    </section>
+  );
+}
+
+function StartJourney() {
+  return (
+    <section class="max-w-screen-xl mx-auto py-16 px(4 sm:6 md:8) space-y-4 md:mb-16">
+      <h2 class="text(4xl gray-600) md:text-5xl font mb-4 mt-0">
+        Start your Fresh journey
+      </h2>
+      <div class="flex flex-col md:flex-row justify-start items-center gap-4">
+        <p class="text(xl gray-600)">
+          Jump right in and build your website with fresh. Lean everything you
+          need to know in seconds.
+        </p>
+        <a
+          href="/docs/getting-started"
+          class="inline-block px-3 py-2 bg-white rounded border(gray-500 2) hover:bg-gray-200 active:bg-gray-300 disabled:(opacity-50 cursor-not-allowed) whitespace-nowrap"
+        >
+          Get started
         </a>
       </div>
     </section>
