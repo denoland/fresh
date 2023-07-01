@@ -13,6 +13,7 @@ import {
   AppModule,
   ErrorPage,
   Island,
+  PageProps,
   Plugin,
   PluginRenderFunctionResult,
   PluginRenderResult,
@@ -23,6 +24,7 @@ import {
 } from "./types.ts";
 import { HEAD_CONTEXT } from "../runtime/head.ts";
 import { CSP_CONTEXT, nonce, NONE, UNSAFE_INLINE } from "../runtime/csp.ts";
+import { PROPS_CONTEXT } from "../runtime/props.ts";
 import { ContentSecurityPolicy } from "../runtime/csp.ts";
 import { bundleAssetUrl } from "./constants.ts";
 import { assetHashingHook } from "../runtime/utils.ts";
@@ -141,6 +143,14 @@ export async function render<Data>(
     props.error = opts.error;
   }
 
+  const pageProps: PageProps = {
+    params: opts.params as Record<string, string>,
+    url: opts.url,
+    route: opts.route.pattern,
+    data: opts.data,
+    state: opts.state || {},
+  };
+
   const csp: ContentSecurityPolicy | undefined = opts.route.csp
     ? defaultCsp()
     : undefined;
@@ -150,15 +160,14 @@ export async function render<Data>(
     value: csp,
     children: h(HEAD_CONTEXT.Provider, {
       value: headComponents,
-      children: h(opts.app.default, {
-        params: opts.params as Record<string, string>,
-        url: opts.url,
-        route: opts.route.pattern,
-        data: opts.data,
-        state: opts.state!,
-        Component() {
-          return h(opts.route.component! as ComponentType<unknown>, props);
-        },
+      children: h(PROPS_CONTEXT.Provider, {
+        value: pageProps,
+        children: h(opts.app.default, {
+          ...pageProps,
+          Component() {
+            return h(opts.route.component! as ComponentType<unknown>, props);
+          },
+        }),
       }),
     }),
   });
