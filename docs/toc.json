@@ -13,7 +13,8 @@
       ["fetching-data", "Fetching data"],
       ["form-submissions", "Form submissions"],
       ["adding-interactivity", "Adding interactivity"],
-      ["deploy-to-production", "Deploy to production"]
+      ["deploy-to-production", "Deploy to production"],
+      []
     ]
   },
   "concepts": {
@@ -32,7 +33,8 @@
       ["plugins", "Plugins"],
       ["updating", "Updating Fresh"],
       ["app-wrapper", "Application wrapper"],
-      ["server-configuration", "Server configuration"]
+      ["server-configuration", "Server configuration"],
+      []
     ]
   },
   "integrations": {
@@ -52,7 +54,8 @@
       ["creating-a-crud-api", "Creating a CRUD API"],
       ["handling-complex-routes", "Handling complex routes"],
       ["rendering-markdown", "Rendering markdown"],
-      ["sharing-state-between-islands", "Sharing state between islands"]
+      ["sharing-state-between-islands", "Sharing state between islands"],
+      []
     ]
   }
 }

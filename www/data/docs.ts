@@ -46,8 +46,11 @@ for (const parent in (RAW_TOC as unknown as RawTableOfContents)) {
     entries: [],
   };
   CATEGORIES.push(category);
-  if (rawEntry.pages) {
-    for (const [id, title] of rawEntry.pages) {
+  const filteredPages = rawEntry.pages?.filter(([title, page]) =>
+    title != null && page != null
+  );
+  if (filteredPages) {
+    for (const [id, title] of filteredPages) {
       const slug = `${parent}/${id}`;
       const href = `/docs/${slug}`;
       const file = `docs/${slug}.md`;
