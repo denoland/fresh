@@ -2,6 +2,7 @@ import { ComponentType } from "preact";
 import { ConnInfo, ServeInit } from "./deps.ts";
 import * as router from "./router.ts";
 import { InnerRenderFunction, RenderContext } from "./render.ts";
+import { ActionDef } from "../preact-actions/mod.ts";
 
 // --- APPLICATION CONFIGURATION ---
 
@@ -270,6 +271,19 @@ export interface Island {
   name: string;
   url: string;
   component: ComponentType<unknown>;
+}
+
+// --- Actions ---
+
+export interface FreshActionModule {
+  default: <T>(params: T) => ActionDef<T>;
+}
+
+export interface FreshAction {
+  id: string;
+  name: string;
+  url: string;
+  def: ActionDef;
 }
 
 // --- PLUGINS ---

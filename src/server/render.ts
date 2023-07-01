@@ -12,6 +12,7 @@ import {
 import {
   AppModule,
   ErrorPage,
+  FreshAction,
   Island,
   Plugin,
   PluginRenderFunctionResult,
@@ -28,6 +29,8 @@ import { bundleAssetUrl } from "./constants.ts";
 import { assetHashingHook } from "../runtime/utils.ts";
 import { htmlEscapeJsonString } from "./htmlescape.ts";
 import { serialize } from "./serializer.ts";
+import "../preact-actions/mod.ts";
+import { ActionDef } from "../preact-actions/mod.ts";
 
 // These hooks are long stable, but when we originally added them we
 // weren't sure if they should be public.
@@ -42,6 +45,7 @@ const options = preactOptions as AdvancedPreactOptions;
 export interface RenderOptions<Data> {
   route: Route<Data> | UnknownPage | ErrorPage;
   islands: Island[];
+  actions: FreshAction[];
   plugins: Plugin[];
   app: AppModule;
   imports: string[];
@@ -181,12 +185,17 @@ export async function render<Data>(
 
   // Setup the interesting VNode types
   ISLANDS.splice(0, ISLANDS.length, ...opts.islands);
+  FRESH_ACTIONS.splice(0, FRESH_ACTIONS.length, ...opts.actions);
 
   // Clear the encountered vnodes
   ENCOUNTERED_ISLANDS.clear();
 
   // Clear the island props
   ISLAND_PROPS = [];
+  ENCOUNTERED_ACTIONS.clear();
+
+  // Clear action cache
+  ACTION_PARAMS = [];
 
   let bodyHtml: string | null = null;
 
@@ -218,7 +227,8 @@ export async function render<Data>(
     }
     return {
       htmlText: bodyHtml,
-      requiresHydration: ENCOUNTERED_ISLANDS.size > 0,
+      requiresHydration: ENCOUNTERED_ISLANDS.size > 0 ||
+        ENCOUNTERED_ACTIONS.size > 0,
     };
   }
 
@@ -249,7 +259,8 @@ export async function render<Data>(
     }
     return {
       htmlText: bodyHtml,
-      requiresHydration: ENCOUNTERED_ISLANDS.size > 0,
+      requiresHydration: ENCOUNTERED_ISLANDS.size > 0 ||
+        ENCOUNTERED_ACTIONS.size > 0,
     };
   }
 
@@ -287,7 +298,11 @@ export async function render<Data>(
     return url;
   }
 
-  const state: [islands: unknown[], plugins: unknown[]] = [ISLAND_PROPS, []];
+  const state: [
+    islands: unknown[],
+    plugins: unknown[],
+    actions: unknown[],
+  ] = [ISLAND_PROPS, [], ACTION_PARAMS];
   const styleTags: PluginRenderStyleTag[] = [];
   const pluginScripts: [string, string, number][] = [];
 
@@ -296,7 +311,7 @@ export async function render<Data>(
       const i = state[1].push(hydrate.state) - 1;
       pluginScripts.push([plugin.name, hydrate.entrypoint, i]);
     }
-    styleTags.splice(styleTags.length, 0, ...res.styles ?? []);
+    styleTags.splice(styleTags.length, 0, ...(res.styles ?? []));
   }
 
   // The inline script that will hydrate the page.
@@ -305,7 +320,7 @@ export async function render<Data>(
   // Serialize the state into the <script id=__FRSH_STATE> tag and generate the
   // inline script to deserialize it. This script starts by deserializing the
   // state in the tag. This potentially requires importing @preact/signals.
-  if (state[0].length > 0 || state[1].length > 0) {
+  if (state[0].length > 0 || state[1].length > 0 || state[2].length > 0) {
     const res = serialize(state);
     const escapedState = htmlEscapeJsonString(res.serialized);
     bodyHtml +=
@@ -340,8 +355,8 @@ export async function render<Data>(
   }
 
   // Finally, it loads all island scripts and hydrates the islands using the
-  // reviver from the "main" script.
-  if (ENCOUNTERED_ISLANDS.size > 0) {
+  // reviver from the "main" script. Also used to connect actions.
+  if (ENCOUNTERED_ISLANDS.size > 0 || ENCOUNTERED_ACTIONS.size > 0) {
     // Load the main.js script
     const url = addImport("main.js");
     script += `import { revive } from "${url}";`;
@@ -353,7 +368,16 @@ export async function render<Data>(
       script += `import ${island.name} from "${url}";`;
       islandRegistry += `${island.id}:${island.name},`;
     }
-    script += `revive({${islandRegistry}}, STATE[0]);`;
+
+    let actionRegistry = "";
+    for (const action of ENCOUNTERED_ACTIONS) {
+      const url = addImport(`action-${action.id}.js`);
+      script += `import action_${action.id} from "${url}";`;
+      actionRegistry += `"${action.id}":action_${action.id},`;
+    }
+
+    script +=
+      `revive({${islandRegistry}}, {${actionRegistry}}, STATE[0], STATE[2]);`;
   }
 
   // Append the inline script.
@@ -473,6 +497,11 @@ const ISLANDS: Island[] = [];
 const ENCOUNTERED_ISLANDS: Set<Island> = new Set([]);
 let ISLAND_PROPS: unknown[] = [];
 
+// Preact actions
+const FRESH_ACTIONS: FreshAction[] = [];
+const ENCOUNTERED_ACTIONS = new Set<FreshAction>();
+let ACTION_PARAMS: unknown[] = [];
+
 // Keep track of which component rendered which vnode. This allows us
 // to detect when an island is rendered within another instead of being
 // passed as children.
@@ -540,9 +569,39 @@ options.vnode = (vnode) => {
         );
       };
     }
+  } else if (typeof vnode.type === "string") {
+    const props = vnode.props as { use?: ActionDef | ActionDef[] };
+    const action = props.use;
+    if (action) {
+      if (Array.isArray(action)) {
+        for (const act of action) {
+          addAction(vnode, act);
+        }
+      } else {
+        addAction(vnode, action);
+      }
+    }
   }
   if (originalHook) originalHook(vnode);
 };
+
+// deno-lint-ignore no-explicit-any
+function addAction(vnode: VNode<any>, def: ActionDef) {
+  const action = FRESH_ACTIONS.find((item) => item.def.fn === def.fn);
+  if (!action) return;
+
+  ENCOUNTERED_ACTIONS.add(action);
+  ACTION_PARAMS.push(def.params);
+  const attr = "data-frsh-action";
+  if (!vnode.props[attr]) {
+    vnode.props[attr] = `${action.id}:${ACTION_PARAMS.length - 1}`;
+  } else {
+    vnode.props[attr] += `,${action.id}:${ACTION_PARAMS.length - 1}`;
+  }
+
+  // Prevent the `use` prop from being rendered
+  vnode.props.use = null;
+}
 
 // Keep track of owners
 const oldDiffed = options.diffed;

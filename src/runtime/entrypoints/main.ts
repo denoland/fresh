@@ -7,6 +7,7 @@ import {
   render,
   VNode,
 } from "preact";
+import "../../preact-actions/mod.ts";
 import { assetHashingHook } from "../utils.ts";
 
 function createRootFragment(
@@ -47,11 +48,22 @@ function isElementNode(node: Node): node is HTMLElement {
   return node.nodeType === Node.ELEMENT_NODE;
 }
 
-// deno-lint-ignore no-explicit-any
-export function revive(islands: Record<string, ComponentType>, props: any[]) {
+const ACTION_ATTR = "data-frsh-action";
+
+export function revive(
+  islands: Record<string, ComponentType>,
+  // deno-lint-ignore no-explicit-any
+  actions: Record<string, any>,
+  // deno-lint-ignore no-explicit-any
+  props: any[],
+  // deno-lint-ignore no-explicit-any
+  actionParams: any[],
+) {
   _walkInner(
     islands,
+    actions,
     props,
+    actionParams,
     // markerstack
     [],
     // Keep a root node in the vnode stack to save a couple of checks
@@ -129,7 +141,11 @@ interface Marker {
 function _walkInner(
   islands: Record<string, ComponentType>,
   // deno-lint-ignore no-explicit-any
+  actions: Record<string, any>,
+  // deno-lint-ignore no-explicit-any
   props: any[],
+  // deno-lint-ignore no-explicit-any
+  actionParams: any[],
   markerStack: Marker[],
   vnodeStack: VNode[],
   node: Node | Comment,
@@ -273,6 +289,45 @@ function _walkInner(
         addPropsChild(parentVNode, sib.data);
       }
     } else {
+      // Revive actions
+      const attr = (sib as HTMLElement).getAttribute(ACTION_ATTR);
+      if (attr) {
+        if (marker === null || marker.kind === MarkerKind.Slot) {
+          sib._use = [];
+
+          let last = 0;
+          let name = "";
+          let n = -1;
+          for (let i = 0; i < attr.length; i++) {
+            switch (attr.charCodeAt(i)) {
+              case 58 /* : */:
+                name = attr.slice(last, i);
+                last = i + 1;
+                break;
+              case 44 /* , */: {
+                console.log(attr.slice(last, i));
+                n = +attr.slice(last, i);
+                last = i + 1;
+
+                const params = actionParams[n];
+                const inst = actions[name](params);
+                inst.result = inst.fn(sib, params);
+                sib._use.push(inst);
+                break;
+              }
+            }
+          }
+
+          n = +attr.slice(last);
+
+          const params = actionParams[n];
+          const inst = actions[name](params);
+          inst.result = inst.fn(sib, params);
+          sib._use.push(inst);
+        }
+        (sib as HTMLElement).removeAttribute(ACTION_ATTR);
+      }
+
       const parentVNode = vnodeStack[vnodeStack.length - 1];
       if (
         marker !== null &&
@@ -299,7 +354,15 @@ function _walkInner(
       if (
         sib.firstChild && (sib.nodeName !== "SCRIPT")
       ) {
-        _walkInner(islands, props, markerStack, vnodeStack, sib.firstChild);
+        _walkInner(
+          islands,
+          actions,
+          props,
+          actionParams,
+          markerStack,
+          vnodeStack,
+          sib.firstChild,
+        );
       }
 
       if (marker !== null && marker.kind === MarkerKind.Slot) {

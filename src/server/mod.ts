@@ -5,6 +5,7 @@ export { Status } from "./deps.ts";
 import {
   AppModule,
   ErrorPageModule,
+  FreshActionModule,
   IslandModule,
   MiddlewareModule,
   RouteModule,
@@ -53,6 +54,7 @@ export interface Manifest {
     | UnknownPageModule
   >;
   islands: Record<string, IslandModule>;
+  actions?: Record<string, FreshActionModule>;
   baseUrl: string;
 }
 

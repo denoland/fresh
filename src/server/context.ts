@@ -20,6 +20,7 @@ import {
   AppModule,
   ErrorPage,
   ErrorPageModule,
+  FreshAction,
   FreshOptions,
   Handler,
   Island,
@@ -80,6 +81,7 @@ interface StaticFile {
 }
 
 export class ServerContext {
+  #actions: FreshAction[];
   #dev: boolean;
   #routes: Route[];
   #islands: Island[];
@@ -107,9 +109,11 @@ export class ServerContext {
     jsxConfig: JSXConfig,
     dev: boolean = isDevMode(),
     routerOptions: RouterOptions,
+    actions: FreshAction[] = [],
   ) {
     this.#routes = routes;
     this.#islands = islands;
+    this.#actions = actions;
     this.#staticFiles = staticFiles;
     this.#renderFn = renderfn;
     this.#middlewares = middlewares;
@@ -120,7 +124,12 @@ export class ServerContext {
     this.#dev = dev;
     this.#builder = new EsbuildBuilder({
       buildID: BUILD_ID,
-      entrypoints: collectEntrypoints(this.#dev, this.#islands, this.#plugins),
+      entrypoints: collectEntrypoints(
+        this.#dev,
+        this.#islands,
+        this.#actions,
+        this.#plugins,
+      ),
       configPath,
       dev: this.#dev,
       jsxConfig,
@@ -170,6 +179,7 @@ export class ServerContext {
     // Extract all routes, and prepare them into the `Page` structure.
     const routes: Route[] = [];
     const islands: Island[] = [];
+    const actions: FreshAction[] = [];
     const middlewares: MiddlewareRoute[] = [];
     let app: AppModule = DEFAULT_APP;
     let notFound: UnknownPage = DEFAULT_NOT_FOUND;
@@ -291,6 +301,26 @@ export class ServerContext {
       islands.push({ id, name, url, component: module.default });
     }
 
+    if (manifest.actions) {
+      for (const [self, module] of Object.entries(manifest.actions)) {
+        const url = new URL(self, baseUrl).href;
+        if (!url.startsWith(baseUrl)) {
+          throw new TypeError("Action file is not a child of the basepath.");
+        }
+        const path = url.substring(baseUrl.length).substring("actions".length);
+        const baseRoute = path.substring(1, path.length - extname(path).length);
+        const name = sanitizeIslandName(baseRoute);
+        if (typeof module.default !== "function") {
+          throw new TypeError(
+            `Action file must export action via a default export ('${self}').`,
+          );
+        }
+        const fn = module.default;
+        const def = fn(null);
+        actions.push({ id: name.toLowerCase(), def, name, url });
+      }
+    }
+
     const staticFiles: StaticFile[] = [];
     try {
       const staticFolder = new URL(
@@ -354,6 +384,7 @@ export class ServerContext {
       jsxConfig,
       dev,
       opts.router ?? DEFAULT_ROUTER_OPTIONS,
+      actions,
     );
   }
 
@@ -591,6 +622,7 @@ export class ServerContext {
           const resp = await internalRender({
             route,
             islands: this.#islands,
+            actions: this.#actions,
             plugins: this.#plugins,
             app: this.#app,
             imports,
@@ -973,6 +1005,7 @@ es.addEventListener("message", function listener(e) {
 function collectEntrypoints(
   dev: boolean,
   islands: Island[],
+  actions: FreshAction[],
   plugins: Plugin[],
 ): Record<string, string> {
   const entrypointBase = "../runtime/entrypoints";
@@ -992,6 +1025,10 @@ function collectEntrypoints(
 
   for (const island of islands) {
     entryPoints[`island-${island.id}`] = island.url;
+  }
+
+  for (const action of actions) {
+    entryPoints[`action-${action.id}`] = action.url;
   }
 
   for (const plugin of plugins) {
