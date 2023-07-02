@@ -30,10 +30,11 @@ Deno.test({
         waitUntil: "networkidle2",
       });
 
-      await t.step("Ensure 4 islands on 1 page are revived", async () => {
+      await t.step("Ensure 5 islands on 1 page are revived", async () => {
         await counterTest("counter1", 3);
         await counterTest("counter2", 10);
         await counterTest("folder-counter", 3);
+        await counterTest("subfolder-counter", 3);
         await counterTest("kebab-case-file-counter", 5);
       });
 
