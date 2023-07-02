@@ -20,3 +20,22 @@ Deno.test({
   sanitizeOps: false,
   sanitizeResources: false,
 });
+
+Deno.test({
+  name: "uses returned response",
+
+  async fn(_t) {
+    await withPageName(
+      "./tests/fixture_server_components/main.ts",
+      async (page, address) => {
+        await page.goto(`${address}/response`);
+
+        const text = await page.$eval("body", (el) => el.textContent);
+        assertEquals(text, "it works");
+      },
+    );
+  },
+
+  sanitizeOps: false,
+  sanitizeResources: false,
+});

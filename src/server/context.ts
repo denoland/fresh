@@ -32,6 +32,7 @@ import {
   Route,
   RouteModule,
   RouterOptions,
+  RouterState,
   ServeHandlerInfo,
   UnknownPage,
   UnknownPageModule,
@@ -51,10 +52,6 @@ const DEFAULT_CONN_INFO: ServeHandlerInfo = {
   localAddr: { transport: "tcp", hostname: "localhost", port: 8080 },
   remoteAddr: { transport: "tcp", hostname: "localhost", port: 1234 },
 };
-
-interface RouterState {
-  state: Record<string, unknown>;
-}
 
 function isObject(value: unknown) {
   return typeof value === "object" &&
@@ -619,6 +616,9 @@ export class ServerContext {
           ) {
             // @ts-ignore - TODO
             const res = await route.component(req, ctx);
+            if (res instanceof Response) {
+              return res;
+            }
             route.component = () => res;
           }
 
