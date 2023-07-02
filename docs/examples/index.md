@@ -19,3 +19,4 @@ like to see here, please open
 - [Handling complex routes](./examples/handling-complex-routes)
 - [Rendering markdown](./examples/rendering-markdown)
 - [Sharing state between islands](./examples/sharing-state-between-islands)
+- [Using useProps](./examples/using-useprops)

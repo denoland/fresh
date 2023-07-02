@@ -1,4 +1,4 @@
-import { useProps } from "../../../runtime.ts";
+import { useProps } from "$fresh/runtime.ts";
 
 export default function Grandchild() {
   const props = useProps();
