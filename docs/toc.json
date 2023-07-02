@@ -20,6 +20,7 @@
     "title": "Concepts",
     "pages": [
       ["architecture", "Architecture"],
+      ["server-components", "Server Components"],
       ["routes", "Routes"],
       ["forms", "Forms"],
       ["islands", "Interactive islands"],
