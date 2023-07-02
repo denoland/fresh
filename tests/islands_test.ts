@@ -4,9 +4,8 @@ import {
   assertStringIncludes,
   delay,
   Page,
-  puppeteer,
 } from "./deps.ts";
-import { startFreshServer } from "./test_utils.ts";
+import { withPageName } from "./test_utils.ts";
 
 Deno.test({
   name: "island tests",
@@ -61,34 +60,6 @@ Deno.test({
 
 function withPage(fn: (page: Page, address: string) => Promise<void>) {
   return withPageName("./tests/fixture/main.ts", fn);
-}
-
-async function withPageName(
-  name: string,
-  fn: (page: Page, address: string) => Promise<void>,
-) {
-  const { lines, serverProcess, address } = await startFreshServer({
-    args: ["run", "-A", name],
-  });
-
-  try {
-    await delay(100);
-    const browser = await puppeteer.launch({ args: ["--no-sandbox"] });
-
-    try {
-      const page = await browser.newPage();
-      await fn(page, address);
-    } finally {
-      await browser.close();
-    }
-  } finally {
-    await lines.cancel();
-
-    serverProcess.kill("SIGTERM");
-
-    // Wait until the process exits
-    await serverProcess.status;
-  }
 }
 
 Deno.test({
