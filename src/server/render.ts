@@ -174,8 +174,8 @@ export async function render<Data>(
     typeof component === "function" &&
     component.constructor.name === "AsyncFunction"
   ) {
-    // @ts-ignore - TODO
-    const res = await component(opts.req, opts.ctx);
+    // deno-lint-ignore no-explicit-any
+    const res = await (component as any)(opts.request, opts.context);
     if (res instanceof Response) {
       return res;
     }
