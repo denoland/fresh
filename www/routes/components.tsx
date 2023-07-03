@@ -53,6 +53,7 @@ export default function Home(props: PageProps<HomeProps>) {
         <meta property="og:type" content="website" />
         <meta property="og:url" content={props.url.href} />
         <meta property="og:image" content={ogImageUrl} />
+        <meta name="view-transition" content="same-origin" />
       </Head>
       <Header title="components" active="/components" />
 
