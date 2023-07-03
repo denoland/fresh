@@ -59,6 +59,41 @@ Deno.test({
   sanitizeResources: false,
 });
 
+Deno.test({
+  name: "multiple islands exported from one file",
+  async fn(t) {
+    await withPage(async (page, address) => {
+      async function counterTest(counterId: string, originalValue: number) {
+        const pElem = await page.waitForSelector(`#${counterId} > p`);
+
+        let value = await pElem?.evaluate((el) => el.textContent);
+        assert(value === `${originalValue}`, `${counterId} first value`);
+
+        const buttonPlus = await page.$(`#b-${counterId}`);
+        await buttonPlus?.click();
+
+        await delay(100);
+
+        value = await pElem?.evaluate((el) => el.textContent);
+        assert(value === `${originalValue + 1}`, `${counterId} click`);
+      }
+
+      await page.goto(`${address}/islands/multiple_island_exports`, {
+        waitUntil: "networkidle2",
+      });
+
+      await t.step("Ensure 3 islands on 1 page are revived", async () => {
+        await counterTest("counter0", 4);
+        await counterTest("counter1", 3);
+        await counterTest("counter2", 10);
+      });
+    });
+  },
+
+  sanitizeOps: false,
+  sanitizeResources: false,
+});
+
 function withPage(fn: (page: Page, address: string) => Promise<void>) {
   return withPageName("./tests/fixture/main.ts", fn);
 }

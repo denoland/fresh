@@ -286,14 +286,21 @@ export class ServerContext {
       }
       const path = url.substring(baseUrl.length).substring("islands".length);
       const baseRoute = path.substring(1, path.length - extname(path).length);
-      const name = sanitizeIslandName(baseRoute);
-      const id = name.toLowerCase();
-      if (typeof module.default !== "function") {
-        throw new TypeError(
-          `Islands must default export a component ('${self}').`,
-        );
+
+      for (const [exportName, exportedFunction] of Object.entries(module)) {
+        if (typeof exportedFunction !== "function") {
+          continue;
+        }
+        const name = sanitizeIslandName(baseRoute);
+        const id = `${name}_${exportName}`.toLowerCase();
+        islands.push({
+          id,
+          name,
+          url,
+          component: exportedFunction,
+          exportName,
+        });
       }
-      islands.push({ id, name, url, component: module.default });
     }
 
     const staticFiles: StaticFile[] = [];

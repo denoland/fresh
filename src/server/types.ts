@@ -262,7 +262,7 @@ export interface Middleware<State = Record<string, unknown>> {
 
 export interface IslandModule {
   // deno-lint-ignore no-explicit-any
-  default: ComponentType<any>;
+  [key: string]: ComponentType<any>;
 }
 
 export interface Island {
@@ -270,6 +270,7 @@ export interface Island {
   name: string;
   url: string;
   component: ComponentType<unknown>;
+  exportName: string;
 }
 
 // --- PLUGINS ---
