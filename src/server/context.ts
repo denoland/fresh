@@ -192,6 +192,11 @@ export class ServerContext {
           pattern = String(config.routeOverride);
         }
         let { handler } = module as RouteModule;
+        if (!handler && "handlers" in module) {
+          throw new Error(
+            `Found named export "handlers" in ${self} instead of "handler". Did you mean "handler"?`,
+          );
+        }
         handler ??= {};
         if (
           component && typeof handler === "object" && handler.GET === undefined

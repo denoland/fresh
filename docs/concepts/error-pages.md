@@ -30,9 +30,9 @@ example when the route did match, but the requested resource does not exist.
 This can be achieved with `ctx.renderNotFound`.
 
 ```tsx
-import { MultiHandler, PageProps } from "$fresh/server.ts";
+import { Handlers, PageProps } from "$fresh/server.ts";
 
-export const handler: MultiHandler = {
+export const handler: Handlers = {
   async GET(req, ctx) {
     const blogpost = await fetchBlogpost(ctx.params.slug);
     if (!blogpost) {

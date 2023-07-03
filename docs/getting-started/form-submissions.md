@@ -32,7 +32,7 @@ server side:
 ```tsx
 // routes/search.tsx
 
-import { MultiHandler, PageProps } from "$fresh/server.ts";
+import { Handlers, PageProps } from "$fresh/server.ts";
 
 const NAMES = ["Alice", "Bob", "Charlie", "Dave", "Eve", "Frank"];
 
@@ -41,7 +41,7 @@ interface Data {
   query: string;
 }
 
-export const handler: MultiHandler<Data> = {
+export const handler: Handlers<Data> = {
   GET(req, ctx) {
     const url = new URL(req.url);
     const query = url.searchParams.get("q") || "";
