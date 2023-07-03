@@ -44,6 +44,8 @@ const options = preactOptions as AdvancedPreactOptions;
 options.errorBoundaries = true;
 
 export interface RenderOptions<Data> {
+  request: Request;
+  context: any;
   route: Route<Data> | UnknownPage | ErrorPage;
   islands: Island[];
   plugins: Plugin[];
@@ -133,7 +135,7 @@ function defaultCsp() {
  */
 export async function render<Data>(
   opts: RenderOptions<Data>,
-): Promise<[string, ContentSecurityPolicy | undefined]> {
+): Promise<[string, ContentSecurityPolicy | undefined] | Response> {
   const props: Record<string, unknown> = {
     params: opts.params,
     url: opts.url,
@@ -149,31 +151,6 @@ export async function render<Data>(
     ? defaultCsp()
     : undefined;
   const headComponents: ComponentChildren[] = [];
-
-  const vnode = h(CSP_CONTEXT.Provider, {
-    value: csp,
-    children: h(HEAD_CONTEXT.Provider, {
-      value: headComponents,
-      children: h(opts.app.default, {
-        params: opts.params as Record<string, string>,
-        url: opts.url,
-        route: opts.route.pattern,
-        data: opts.data,
-        state: opts.state!,
-        Component() {
-          return h(opts.route.component! as ComponentType<unknown>, props);
-        },
-      }),
-    }),
-  });
-
-  const ctx = new RenderContext(
-    crypto.randomUUID(),
-    opts.url,
-    opts.route.pattern,
-    opts.lang ?? "en",
-  );
-
   if (csp) {
     // Clear the csp
     const newCsp = defaultCsp();
@@ -191,6 +168,43 @@ export async function render<Data>(
 
   // Clear the island props
   ISLAND_PROPS = [];
+
+  let component = opts.route.component;
+  if (
+    typeof component === "function" &&
+    component.constructor.name === "AsyncFunction"
+  ) {
+    // @ts-ignore - TODO
+    const res = await component(opts.req, opts.ctx);
+    if (res instanceof Response) {
+      return res;
+    }
+    component = () => res;
+  }
+
+  const vnode = h(CSP_CONTEXT.Provider, {
+    value: csp,
+    children: h(HEAD_CONTEXT.Provider, {
+      value: headComponents,
+      children: h(opts.app.default, {
+        params: opts.params as Record<string, string>,
+        url: opts.url,
+        route: opts.route.pattern,
+        data: opts.data,
+        state: opts.state!,
+        Component() {
+          return h(component! as ComponentType<unknown>, props);
+        },
+      }),
+    }),
+  });
+
+  const ctx = new RenderContext(
+    crypto.randomUUID(),
+    opts.url,
+    opts.route.pattern,
+    opts.lang ?? "en",
+  );
 
   let bodyHtml: string | null = null;
 

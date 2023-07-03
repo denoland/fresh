@@ -610,19 +610,9 @@ export class ServerContext {
             throw new Error("This page does not have a component to render.");
           }
 
-          if (
-            typeof route.component === "function" &&
-            route.component.constructor.name === "AsyncFunction"
-          ) {
-            // @ts-ignore - TODO
-            const res = await route.component(req, ctx);
-            if (res instanceof Response) {
-              return res;
-            }
-            route.component = () => res;
-          }
-
           const resp = await internalRender({
+            request: req,
+            context: ctx,
             route,
             islands: this.#islands,
             plugins: this.#plugins,
@@ -639,6 +629,10 @@ export class ServerContext {
             state: ctx?.state,
             error,
           });
+
+          if (resp instanceof Response) {
+            return resp;
+          }
 
           const headers: Record<string, string> = {
             "content-type": "text/html; charset=utf-8",
