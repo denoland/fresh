@@ -350,8 +350,9 @@ export async function render<Data>(
     let islandRegistry = "";
     for (const island of ENCOUNTERED_ISLANDS) {
       const url = addImport(`island-${island.id}.js`);
-      script += `import ${island.name} from "${url}";`;
-      islandRegistry += `${island.id}:${island.name},`;
+      script +=
+        `import * as ${island.name}_${island.exportName} from "${url}";`;
+      islandRegistry += `${island.id}:${island.name}_${island.exportName},`;
     }
     script += `revive({${islandRegistry}}, STATE[0]);`;
   }
@@ -536,7 +537,7 @@ options.vnode = (vnode) => {
 
         return wrapWithMarker(
           child,
-          `frsh-${island.id}:${ISLAND_PROPS.length - 1}`,
+          `frsh-${island.id}:${island.exportName}:${ISLAND_PROPS.length - 1}`,
         );
       };
     }
