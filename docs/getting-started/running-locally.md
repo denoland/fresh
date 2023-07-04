@@ -66,9 +66,10 @@ automatically when you save the file.
 `deno task start` automatically starts the server in development mode.
 
 You can also check if you are running in development mode by checking the
-`FRSH_DEVMODE` environment variable: 
+`FRSH_DEVMODE` environment variable:
+
 ```js
-Deno.env.get("FRSH_DEVMODE")
+Deno.env.get("FRSH_DEVMODE");
 ```
 
 [--watch]: https://deno.land/manual/getting_started/command_line_interface#watch-mode
