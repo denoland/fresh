@@ -1,13 +1,20 @@
-import { Head } from "$fresh/runtime.ts";
 import {
   CATEGORIES,
   TableOfContentsCategory,
   TableOfContentsCategoryEntry,
 } from "../data/docs.ts";
 import SearchButton from "../islands/SearchButton.tsx";
+import VersionSelect from "../islands/VersionSelect.tsx";
+import { type VersionLink } from "../routes/docs/[...slug].tsx";
 
-export default function DocsSidebar(props: { path: string; mobile?: boolean }) {
-  const id = String(Math.random()).replaceAll(".", "");
+export default function DocsSidebar(
+  props: {
+    path: string;
+    mobile?: boolean;
+    versionLinks: VersionLink[];
+    selectedVersion: string;
+  },
+) {
   return (
     <>
       {props.mobile
@@ -47,8 +54,15 @@ export default function DocsSidebar(props: { path: string; mobile?: boolean }) {
         )
         : <SearchButton />}
 
+      <div class="mb-4">
+        <VersionSelect
+          selectedVersion={props.selectedVersion}
+          versions={props.versionLinks}
+        />
+      </div>
+
       <ol class="list-decimal list-inside font-semibold nested">
-        {CATEGORIES.map((category) => (
+        {CATEGORIES[props.selectedVersion].map((category) => (
           <SidebarCategory path={props.path} category={category} />
         ))}
       </ol>

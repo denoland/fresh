@@ -1,6 +1,6 @@
-import { MultiHandler } from "../../../server.ts";
+import { Handlers } from "../../../server.ts";
 
-export const handler: MultiHandler = {
+export const handler: Handlers = {
   GET(_req, ctx) {
     return new Response((ctx.remoteAddr as Deno.NetAddr).hostname);
   },
