@@ -1,12 +1,15 @@
-import { assertEquals } from "$std/testing/asserts.ts";
+import { assertArrayIncludes, assertEquals } from "$std/testing/asserts.ts";
 import { delay } from "$std/async/delay.ts";
-import { startFreshServer } from "../tests/test_utils.ts";
+import { startFreshServer, withPageName } from "../tests/test_utils.ts";
+import { dirname, join } from "$std/path/mod.ts";
+
+const dir = dirname(import.meta.url);
 
 Deno.test("CORS should not set on GET /fresh-badge.svg", {
   sanitizeResources: false,
 }, async () => {
   const { serverProcess, lines, address } = await startFreshServer({
-    args: ["run", "-A", "./main.ts"],
+    args: ["run", "-A", join(dir, "./main.ts")],
   });
 
   const res = await fetch(`${address}/fresh-badge.svg`);
@@ -18,4 +21,59 @@ Deno.test("CORS should not set on GET /fresh-badge.svg", {
   serverProcess.kill("SIGTERM");
   // await for the server to close
   await delay(100);
+});
+
+Deno.test("shows version selector", {
+  sanitizeResources: false,
+}, async () => {
+  await withPageName(join(dir, "./main.ts"), async (page, address) => {
+    await page.goto(`${address}/docs`);
+    await page.waitForSelector("#version");
+
+    // Check that we redirected to the first page
+    assertEquals(page.url(), `${address}/docs/introduction`);
+
+    // Wait for version selector to be enabled
+    await page.waitForSelector("#version:not([disabled])");
+
+    const options = await page.$eval("#version", (el: HTMLSelectElement) => {
+      return Array.from(el.options).map((option) => ({
+        value: option.value,
+        label: option.textContent,
+      }));
+    });
+
+    assertEquals(options.length, 2);
+    assertArrayIncludes(options, [
+      {
+        value: "canary",
+        label: "canary",
+      },
+      {
+        value: "1.2",
+        label: "1.2.x",
+      },
+    ]);
+
+    const selectValue = await page.$eval(
+      "#version",
+      (el: HTMLSelectElement) => el.value,
+    );
+    assertEquals(selectValue, "1.2");
+
+    // Go to canary page
+    await Promise.all([
+      page.waitForNavigation(),
+      page.select("#version", "canary"),
+    ]);
+
+    await page.waitForSelector("#version:not([disabled])");
+    const selectValue2 = await page.$eval(
+      "#version",
+      (el: HTMLSelectElement) => el.value,
+    );
+    assertEquals(selectValue2, "canary");
+
+    assertEquals(page.url(), `${address}/docs/canary/introduction`);
+  });
 });

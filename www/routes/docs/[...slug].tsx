@@ -1,52 +1,135 @@
-import { asset, Head } from "$fresh/runtime.ts";
 import { Handlers, PageProps } from "$fresh/server.ts";
-import { frontMatter, gfm } from "../../utils/markdown.ts";
-
-import Header from "../../components/Header.tsx";
-import DocsTitle from "../../components/DocsTitle.tsx";
+import { asset, Head } from "$fresh/runtime.ts";
 import DocsSidebar from "../../components/DocsSidebar.tsx";
+import DocsTitle from "../../components/DocsTitle.tsx";
 import Footer from "../../components/Footer.tsx";
+import Header from "../../components/Header.tsx";
 import {
-  SLUGS,
+  getFirstPageUrl,
+  LATEST_VERSION,
   TABLE_OF_CONTENTS,
   TableOfContentsEntry,
 } from "../../data/docs.ts";
+import { frontMatter, gfm } from "../../utils/markdown.ts";
+import toc from "../../../docs/toc.ts";
 
 interface Data {
   page: Page;
 }
 
+interface NavEntry {
+  title: string;
+  category?: string;
+  href: string;
+}
+
+export interface VersionLink {
+  label: string;
+  href: string;
+  value: string;
+}
+
 interface Page extends TableOfContentsEntry {
   markdown: string;
   data: Record<string, unknown>;
+  versionLinks: VersionLink[];
+  version: string;
+  prevNav?: NavEntry;
+  nextNav?: NavEntry;
 }
+
+const pattern = new URLPattern({ pathname: "/:version/:page*" });
 
 export const handler: Handlers<Data> = {
   async GET(_req, ctx) {
     const slug = ctx.params.slug;
-    if (slug === "") {
+
+    // Check if the slug is the index page of a version tag
+    if (TABLE_OF_CONTENTS[slug]) {
+      const href = getFirstPageUrl(slug);
       return new Response("", {
         status: 307,
-        headers: { location: "/docs/introduction" },
-      });
-    }
-    if (slug === "concepts/architechture") {
-      return new Response("", {
-        status: 307,
-        headers: { location: "/docs/concepts/architecture" },
+        headers: { location: href },
       });
     }
 
-    const entry = TABLE_OF_CONTENTS[slug];
+    const match = pattern.exec("https://localhost/" + slug);
+    if (!match) {
+      return ctx.renderNotFound();
+    }
+
+    let { version, page = "" } = match.pathname.groups;
+    if (!version) {
+      return ctx.renderNotFound();
+    }
+
+    // Latest version doesn't show up in the url
+    if (!TABLE_OF_CONTENTS[version]) {
+      page = version + (page ? "/" + page : "");
+      version = LATEST_VERSION;
+    }
+
+    // Check if the page exists
+    const currentToc = TABLE_OF_CONTENTS[version];
+    const entry = currentToc[page];
     if (!entry) {
       return ctx.renderNotFound();
     }
+
+    // Build up the link map for the version selector.
+    const versionLinks: VersionLink[] = [];
+    for (const version in TABLE_OF_CONTENTS) {
+      const label = toc[version].label;
+      const maybeEntry = TABLE_OF_CONTENTS[version][page];
+
+      // Check if the same page is available for this version and
+      // link to that. Pick the index page for that version if an
+      // exact match doesn't exist.
+      versionLinks.push({
+        label,
+        value: version,
+        href: maybeEntry ? maybeEntry.href : getFirstPageUrl(version),
+      });
+    }
+
+    // Add previous and next page entry if available
+
+    const entryKeys = Object.keys(currentToc);
+    const idx = entryKeys.findIndex((name) => name === entry.slug);
+
+    let nextNav: NavEntry | undefined;
+    let prevNav: NavEntry | undefined;
+    const prevEntry = currentToc[entryKeys[idx - 1]];
+    const nextEntry = currentToc[entryKeys[idx + 1]];
+
+    if (prevEntry) {
+      let category = prevEntry.category;
+      category = category ? currentToc[category].title : "";
+      prevNav = { title: prevEntry.title, category, href: prevEntry.href };
+    }
+
+    if (nextEntry) {
+      let category = nextEntry.category;
+      category = category ? currentToc[category].title : "";
+      nextNav = { title: nextEntry.title, category, href: nextEntry.href };
+    }
+
+    // Parse markdown front matter
     const url = new URL(`../../../${entry.file}`, import.meta.url);
     const fileContent = await Deno.readTextFile(url);
     const { body, attrs } = frontMatter<Record<string, unknown>>(fileContent);
-    const page = { ...entry, markdown: body, data: attrs ?? {} };
-    const resp = ctx.render({ page });
-    return resp;
+
+    return ctx.render({
+      page: {
+        ...entry,
+        markdown: body,
+        data: attrs ?? {},
+        versionLinks,
+        version,
+        prevNav,
+        nextNav,
+      },
+    });
   },
 };
 
@@ -84,7 +167,7 @@ export default function DocsPage(props: PageProps<Data>) {
 function Main(props: { path: string; page: Page }) {
   return (
     <div class="flex-1">
-      <MobileSidebar path={props.path} />
+      <MobileSidebar path={props.path} page={props.page} />
       <div class="flex mx-auto max-w-screen-lg px-4 py-5 justify-end">
         <label
           for="docs_sidebar"
@@ -110,14 +193,14 @@ function Main(props: { path: string; page: Page }) {
         </label>
       </div>
       <div class="mx-auto max-w-screen-lg px-4 flex gap-6">
-        <DesktopSidebar path={props.path} />
+        <DesktopSidebar path={props.path} page={props.page} />
         <Content page={props.page} />
       </div>
     </div>
   );
 }
 
-function MobileSidebar(props: { path: string }) {
+function MobileSidebar(props: { path: string; page: Page }) {
   return (
     <>
       <input
@@ -137,7 +220,12 @@ function MobileSidebar(props: { path: string }) {
             <DocsTitle title="docs" />
           </div>
           <nav class="pt-6 pb-16 px-4 overflow-x-auto">
-            <DocsSidebar mobile path={props.path} />
+            <DocsSidebar
+              mobile
+              path={props.path}
+              versionLinks={props.page.versionLinks}
+              selectedVersion={props.page.version}
+            />
           </nav>
         </div>
       </div>
@@ -145,10 +233,14 @@ function MobileSidebar(props: { path: string }) {
   );
 }
 
-function DesktopSidebar(props: { path: string }) {
+function DesktopSidebar(props: { path: string; page: Page }) {
   return (
     <nav class="w-[16rem] flex-shrink-0 hidden md:block py-8 pr-4 border(r-2 gray-100)">
-      <DocsSidebar path={props.path} />
+      <DocsSidebar
+        path={props.path}
+        versionLinks={props.page.versionLinks}
+        selectedVersion={props.page.version}
+      />
     </nav>
   );
 }
@@ -164,36 +256,41 @@ function Content(props: { page: Page }) {
         class="mt-6 markdown-body"
         dangerouslySetInnerHTML={{ __html: html }}
       />
-      <ForwardBackButtons slug={props.page.slug} />
+      <ForwardBackButtons
+        slug={props.page.slug}
+        version={props.page.version}
+        prev={props.page.prevNav}
+        next={props.page.nextNav}
+      />
     </main>
   );
 }
 
 const button = "p-2 bg-gray-100 w-full border(1 gray-200) grid";
 
-function ForwardBackButtons(props: { slug: string }) {
-  const currentIndex = SLUGS.findIndex((slug) => slug === props.slug);
-  const previousSlug = SLUGS[currentIndex - 1];
-  const nextSlug = SLUGS[currentIndex + 1];
-  const previous = TABLE_OF_CONTENTS[previousSlug];
-  const next = TABLE_OF_CONTENTS[nextSlug];
-
+function ForwardBackButtons(
+  props: {
+    slug: string;
+    version: string;
+    prev?: NavEntry;
+    next?: NavEntry;
+  },
+) {
+  const { prev, next } = props;
   const upper = "text(sm gray-600)";
   const category = "font-normal";
   const lower = "text-gray-900 font-medium";
 
   return (
     <div class="mt-8 flex flex(col md:row) gap-4">
-      {previous && (
-        <a href={previous.href} class={`${button} text-left`}>
+      {prev && (
+        <a href={prev.href} class={`${button} text-left`}>
           <span class={upper}>{"←"} Previous</span>
           <span class={lower}>
             <span class={category}>
-              {previous.category
-                ? `${TABLE_OF_CONTENTS[previous.category].title}: `
-                : ""}
+              {prev.category ? `${prev.category}: ` : ""}
             </span>
-            {previous.title}
+            {prev.title}
           </span>
         </a>
       )}
@@ -202,9 +299,7 @@ function ForwardBackButtons(props: { slug: string }) {
           <span class={upper}>Next {"→"}</span>
           <span class={lower}>
             <span class={category}>
-              {next.category
-                ? `${TABLE_OF_CONTENTS[next.category].title}: `
-                : ""}
+              {next.category ? `${next.category}: ` : ""}
             </span>
             {next.title}
           </span>
