@@ -132,7 +132,7 @@ export async function start(routes: Manifest, opts: StartOptions = {}) {
 }
 
 async function bootServer(handler: ServeHandler, opts: StartOptions) {
-  Deno.env.set("FRSH_DEVMODE", isDevMode());
+  Deno.env.set("FRSH_DEVMODE", isDevMode() ? "true" : "false");
   if (opts.experimentalDenoServe === true) {
     // @ts-ignore as `Deno.serve` is still unstable.
     await Deno.serve({ ...opts, handler }).finished;
