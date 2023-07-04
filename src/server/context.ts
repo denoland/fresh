@@ -45,6 +45,7 @@ import {
   EsbuildBuilder,
   JSXConfig,
 } from "../build/mod.ts";
+import { deprecate } from "../../www/utils/deprecation.ts";
 
 const DEFAULT_CONN_INFO: ConnInfo = {
   localAddr: { transport: "tcp", hostname: "localhost", port: 8080 },
@@ -191,24 +192,23 @@ export class ServerContext {
         if (config?.routeOverride) {
           pattern = String(config.routeOverride);
         }
-        let { handler } = module as RouteModule;
-        if (!handler && "handlers" in module) {
-          throw new Error(
-            `Found named export "handlers" in ${self} instead of "handler". Did you mean "handler"?`,
-          );
+        let { handlers } = module as RouteModule;
+        if (!handlers && "handler" in module) {
+          const { handler } = module as RouteModule;
+          handlers = deprecate(handler, "handler", "handlers");
         }
-        handler ??= {};
+        handlers ??= {};
         if (
-          component && typeof handler === "object" && handler.GET === undefined
+          component && typeof handlers === "object" && handlers.GET === undefined
         ) {
-          handler.GET = (_req, { render }) => render();
+          handlers.GET = (_req, { render }) => render();
         }
         if (
-          typeof handler === "object" && handler.GET !== undefined &&
-          handler.HEAD === undefined
+          typeof handlers === "object" && handlers.GET !== undefined &&
+          handlers.HEAD === undefined
         ) {
-          const GET = handler.GET;
-          handler.HEAD = async (req, ctx) => {
+          const GET = handlers.GET;
+          handlers.HEAD = async (req, ctx) => {
             const resp = await GET(req, ctx);
             resp.body?.cancel();
             return new Response(null, {
@@ -223,7 +223,7 @@ export class ServerContext {
           url,
           name,
           component,
-          handler,
+          handler: handlers,
           csp: Boolean(config?.csp ?? false),
         };
         routes.push(route);

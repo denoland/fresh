@@ -816,20 +816,22 @@ Deno.test("PORT environment variable", {
   serverProcess.kill("SIGTERM");
 });
 
-Deno.test("throw on route export 'handlers' instead of 'handler'", {
+Deno.test("works with 'handlers' instead of 'handler'", {
   sanitizeOps: false,
   sanitizeResources: false,
-}, async () => {
-  const result = await new Deno.Command(Deno.execPath(), {
-    args: ["run", "-A", "./tests/fixture_invalid_handlers/main.ts"],
-    stderr: "piped",
-    stdout: "piped",
-  }).output();
+}, async (t) => {
+  const { address } = await startFreshServer({
+    args: ["run", "-A", "./tests/fixture_valid_handlers/main.ts"],
+  });
 
-  assertEquals(result.code, 1);
+  await delay(100);
 
-  const text = new TextDecoder().decode(result.stderr);
-  assertMatch(text, /Did you mean "handler"\?/);
+  await t.step("ssr", async () => {
+    const resp = await fetch(address);
+    assertEquals(resp.status, Status.OK);
+    const text = await resp.text();
+    assertStringIncludes(text, "Valid handlers");
+  });
 });
 
 Deno.test("rendering custom _500.tsx page for default handlers", {
