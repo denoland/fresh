@@ -199,7 +199,8 @@ export class ServerContext {
         }
         handlers ??= {};
         if (
-          component && typeof handlers === "object" && handlers.GET === undefined
+          component && typeof handlers === "object" &&
+          handlers.GET === undefined
         ) {
           handlers.GET = (_req, { render }) => render();
         }
