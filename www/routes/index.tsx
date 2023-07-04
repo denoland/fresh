@@ -1,5 +1,5 @@
 import { asset, Head } from "$fresh/runtime.ts";
-import { MultiHandler, PageProps } from "$fresh/server.ts";
+import { Handlers, PageProps } from "$fresh/server.ts";
 import Counter from "../islands/Counter.tsx";
 import LemonDrop from "../islands/LemonDrop.tsx";
 import Footer from "../components/Footer.tsx";
@@ -18,7 +18,7 @@ function isOpenGraphUA(header: string | null): boolean {
   return header.startsWith("Twitterbot") || header.startsWith("Slackbot");
 }
 
-export const handler: MultiHandler = {
+export const handler: Handlers = {
   GET(req, ctx) {
     const accept = req.headers.get("accept");
     const userAgent = req.headers.get("user-agent");
@@ -51,6 +51,7 @@ export default function MainPage(props: PageProps) {
         <meta property="og:type" content="website" />
         <meta property="og:url" content={props.url.href} />
         <meta property="og:image" content={ogImageUrl} />
+        <meta name="view-transition" content="same-origin" />
       </Head>
 
       <div class="flex flex-col min-h-screen">

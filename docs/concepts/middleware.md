@@ -12,7 +12,7 @@ Each middleware gets passed a `next` function in the context argument that is
 used to trigger child handlers. The `ctx` also has a `state` property that can
 be used to pass arbitrary data to downstream (or upstream) handlers. This
 `state` is included in `PageProps` by default, which is available to both the
-special [_app](/docs/concepts/app-wrapper.md) wrapper and normal
+special [\_app](/docs/concepts/app-wrapper.md) wrapper and normal
 [routes](/docs/concepts/routes.md).
 
 ```ts
@@ -36,7 +36,7 @@ export async function handler(
 
 ```ts
 // routes/myHandler.ts
-export const handler: MultiHandler<any, { data: string }> = {
+export const handler: Handlers<any, { data: string }> = {
   GET(_req, ctx) {
     return new Response(`middleware data is ${ctx.state.data}`);
   },
@@ -125,10 +125,7 @@ create a `_middleware.ts` file in the `routes` folder like this:
 ```ts
 import { MiddlewareHandlerContext } from "$fresh/server.ts";
 
-export async function handler(
-  req: Request,
-  ctx: MiddlewareHandlerContext,
-) {
+export async function handler(req: Request, ctx: MiddlewareHandlerContext) {
   console.log(ctx.destination);
   console.log(req.url);
   const resp = await ctx.next();
