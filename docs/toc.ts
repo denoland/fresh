@@ -1,6 +1,8 @@
-{
+import { RawTableOfContents } from "../www/data/docs.ts";
+
+const toc: RawTableOfContents = {
   "introduction": {
-    "title": "Introduction"
+    "title": "Introduction",
   },
   "getting-started": {
     "title": "Getting Started",
@@ -14,8 +16,7 @@
       ["form-submissions", "Form submissions"],
       ["adding-interactivity", "Adding interactivity"],
       ["deploy-to-production", "Deploy to production"],
-      []
-    ]
+    ],
   },
   "concepts": {
     "title": "Concepts",
@@ -34,11 +35,10 @@
       ["updating", "Updating Fresh"],
       ["app-wrapper", "Application wrapper"],
       ["server-configuration", "Server configuration"],
-      []
-    ]
+    ],
   },
   "integrations": {
-    "title": "Integrations"
+    "title": "Integrations",
   },
   "examples": {
     "title": "Examples",
@@ -55,7 +55,8 @@
       ["handling-complex-routes", "Handling complex routes"],
       ["rendering-markdown", "Rendering markdown"],
       ["sharing-state-between-islands", "Sharing state between islands"],
-      []
-    ]
-  }
-}
+    ],
+  },
+};
+
+export default toc;
