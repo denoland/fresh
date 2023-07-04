@@ -1,7 +1,7 @@
-import { MultiHandler, PageProps } from "$fresh/server.ts";
+import { Handlers, PageProps } from "$fresh/server.ts";
 import Child from "../../components/Child.tsx";
 
-export const handler: MultiHandler = {
+export const handler: Handlers = {
   async GET(_req, ctx) {
     const complexValue = "computing this is really hard";
     const resp = await ctx.render(complexValue);
