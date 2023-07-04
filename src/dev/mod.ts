@@ -134,7 +134,6 @@ export default manifest;
 
 export async function dev(base: string, entrypoint: string) {
   ensureMinDenoVersion();
-  Deno.env.set("FRSH_DEVMODE", "active");
 
   entrypoint = new URL(entrypoint, base).href;
 

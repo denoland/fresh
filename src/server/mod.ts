@@ -1,4 +1,4 @@
-import { ServerContext } from "./context.ts";
+import { isDevMode, ServerContext } from "./context.ts";
 import * as colors from "https://deno.land/std@0.190.0/fmt/colors.ts";
 import { ConnInfo, serve, ServeHandler } from "./deps.ts";
 export { Status } from "./deps.ts";
@@ -132,6 +132,7 @@ export async function start(routes: Manifest, opts: StartOptions = {}) {
 }
 
 async function bootServer(handler: ServeHandler, opts: StartOptions) {
+  Deno.env.set("FRSH_DEVMODE", isDevMode());
   if (opts.experimentalDenoServe === true) {
     // @ts-ignore as `Deno.serve` is still unstable.
     await Deno.serve({ ...opts, handler }).finished;

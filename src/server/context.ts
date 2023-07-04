@@ -61,7 +61,7 @@ function isObject(value: unknown) {
     value !== null;
 }
 
-function isDevMode() {
+export function isDevMode() {
   // Env var is only set in prod (on Deploy).
   return Deno.env.get("DENO_DEPLOYMENT_ID") === undefined;
 }
