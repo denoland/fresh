@@ -1,6 +1,13 @@
-{
+type RawTableOfContents = Record<string, RawTableOfContentsEntry>;
+
+interface RawTableOfContentsEntry {
+  title: string;
+  pages?: [string, string][];
+}
+
+const toc: RawTableOfContents = {
   "introduction": {
-    "title": "Introduction"
+    "title": "Introduction",
   },
   "getting-started": {
     "title": "Getting Started",
@@ -13,8 +20,8 @@
       ["fetching-data", "Fetching data"],
       ["form-submissions", "Form submissions"],
       ["adding-interactivity", "Adding interactivity"],
-      ["deploy-to-production", "Deploy to production"]
-    ]
+      ["deploy-to-production", "Deploy to production"],
+    ],
   },
   "concepts": {
     "title": "Concepts",
@@ -32,11 +39,11 @@
       ["plugins", "Plugins"],
       ["updating", "Updating Fresh"],
       ["app-wrapper", "Application wrapper"],
-      ["server-configuration", "Server configuration"]
-    ]
+      ["server-configuration", "Server configuration"],
+    ],
   },
   "integrations": {
-    "title": "Integrations"
+    "title": "Integrations",
   },
   "examples": {
     "title": "Examples",
@@ -52,7 +59,9 @@
       ["creating-a-crud-api", "Creating a CRUD API"],
       ["handling-complex-routes", "Handling complex routes"],
       ["rendering-markdown", "Rendering markdown"],
-      ["sharing-state-between-islands", "Sharing state between islands"]
-    ]
-  }
-}
+      ["sharing-state-between-islands", "Sharing state between islands"],
+    ],
+  },
+};
+
+export default toc;

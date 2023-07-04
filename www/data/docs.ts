@@ -1,11 +1,4 @@
-import RAW_TOC from "../../docs/toc.json" assert { type: "json" };
-
-type RawTableOfContents = Record<string, RawTableOfContentsEntry>;
-
-interface RawTableOfContentsEntry {
-  title: string;
-  pages?: [string, string][];
-}
+import toc from "../../docs/toc.ts";
 
 export interface TableOfContentsEntry {
   slug: string;
@@ -29,8 +22,8 @@ export interface TableOfContentsCategoryEntry {
 export const TABLE_OF_CONTENTS: Record<string, TableOfContentsEntry> = {};
 export const CATEGORIES: TableOfContentsCategory[] = [];
 
-for (const parent in (RAW_TOC as unknown as RawTableOfContents)) {
-  const rawEntry = (RAW_TOC as unknown as RawTableOfContents)[parent];
+for (const parent in toc) {
+  const rawEntry = toc[parent];
   const href = `/docs/${parent}`;
   const file = `docs/${parent}/index.md`;
   const entry = {
@@ -46,8 +39,11 @@ for (const parent in (RAW_TOC as unknown as RawTableOfContents)) {
     entries: [],
   };
   CATEGORIES.push(category);
-  if (rawEntry.pages) {
-    for (const [id, title] of rawEntry.pages) {
+  const filteredPages = rawEntry.pages?.filter(([title, page]) =>
+    title != null && page != null
+  );
+  if (filteredPages) {
+    for (const [id, title] of filteredPages) {
       const slug = `${parent}/${id}`;
       const href = `/docs/${slug}`;
       const file = `docs/${slug}.md`;
