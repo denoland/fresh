@@ -10,6 +10,7 @@ import manifest from "./fixture/fresh.gen.ts";
 import options from "./fixture/options.ts";
 import { BUILD_ID } from "../src/server/build_id.ts";
 import { startFreshServer } from "./test_utils.ts";
+import { assertMatch } from "https://deno.land/std@0.190.0/testing/asserts.ts";
 
 const ctx = await ServerContext.fromManifest(manifest, options);
 const handler = ctx.handler();
@@ -22,7 +23,7 @@ Deno.test("/ page prerender", async () => {
   assertEquals(resp.headers.get("server"), "fresh test server");
   const body = await resp.text();
   assertStringIncludes(body, `<html lang="en">`);
-  assertStringIncludes(body, "test.js");
+  assertStringIncludes(body, "test_default.js");
   assertStringIncludes(body, "<p>Hello!</p>");
   assertStringIncludes(body, "<p>Viewing JIT render.</p>");
   assertStringIncludes(body, `>{"v":[[{"message":"Hello!"}],[]]}</script>`);
@@ -637,7 +638,7 @@ Deno.test("experimental Deno.serve", {
     assertEquals(resp.headers.get("server"), "fresh test server");
     const body = await resp.text();
     assertStringIncludes(body, `<html lang="en">`);
-    assertStringIncludes(body, "test.js");
+    assertStringIncludes(body, "test_default.js");
     assertStringIncludes(body, "<p>Hello!</p>");
     assertStringIncludes(body, "<p>Viewing JIT render.</p>");
     assertStringIncludes(body, `>{"v":[[{"message":"Hello!"}],[]]}</script>`);
@@ -813,6 +814,22 @@ Deno.test("PORT environment variable", {
 
   await lines.cancel();
   serverProcess.kill("SIGTERM");
+});
+
+Deno.test("throw on route export 'handlers' instead of 'handler'", {
+  sanitizeOps: false,
+  sanitizeResources: false,
+}, async () => {
+  const result = await new Deno.Command(Deno.execPath(), {
+    args: ["run", "-A", "./tests/fixture_invalid_handlers/main.ts"],
+    stderr: "piped",
+    stdout: "piped",
+  }).output();
+
+  assertEquals(result.code, 1);
+
+  const text = new TextDecoder().decode(result.stderr);
+  assertMatch(text, /Did you mean "handler"\?/);
 });
 
 Deno.test("rendering custom _500.tsx page for default handlers", {

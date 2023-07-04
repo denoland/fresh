@@ -1,5 +1,5 @@
 import { asset, Head } from "$fresh/runtime.ts";
-import { MultiHandler, PageProps } from "$fresh/server.ts";
+import { Handlers, PageProps } from "$fresh/server.ts";
 import { frontMatter, gfm } from "../../utils/markdown.ts";
 
 import Header from "../../components/Header.tsx";
@@ -21,7 +21,7 @@ interface Page extends TableOfContentsEntry {
   data: Record<string, unknown>;
 }
 
-export const handler: MultiHandler<Data> = {
+export const handler: Handlers<Data> = {
   async GET(_req, ctx) {
     const slug = ctx.params.slug;
     if (slug === "") {
@@ -70,6 +70,7 @@ export default function DocsPage(props: PageProps<Data>) {
         <meta property="og:type" content="website" />
         <meta property="og:url" content={props.url.href} />
         <meta property="og:image" content={ogImageUrl} />
+        <meta name="view-transition" content="same-origin" />
       </Head>
       <div class="flex flex-col min-h-screen">
         <Header title="docs" active="/docs" />

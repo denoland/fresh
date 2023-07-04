@@ -53,6 +53,7 @@ Deno.test({
       `/main.ts`,
       `/routes/greet/[name].tsx`,
       `/routes/api/joke.ts`,
+      `/routes/_app.tsx`,
       `/routes/index.tsx`,
       `/static/logo.svg`,
     ];
@@ -138,6 +139,7 @@ Deno.test({
       "/main.ts",
       "/routes/greet/[name].tsx",
       "/routes/api/joke.ts",
+      "/routes/_app.tsx",
       "/routes/index.tsx",
       "/static/logo.svg",
       "/.vscode/settings.json",
