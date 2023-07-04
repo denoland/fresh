@@ -1,4 +1,9 @@
-import { RawTableOfContents } from "../www/data/docs.ts";
+type RawTableOfContents = Record<string, RawTableOfContentsEntry>;
+
+interface RawTableOfContentsEntry {
+  title: string;
+  pages?: [string, string][];
+}
 
 const toc: RawTableOfContents = {
   "introduction": {

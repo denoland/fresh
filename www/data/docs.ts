@@ -1,12 +1,5 @@
 import toc from "../../docs/toc.ts";
 
-export type RawTableOfContents = Record<string, RawTableOfContentsEntry>;
-
-interface RawTableOfContentsEntry {
-  title: string;
-  pages?: [string, string][];
-}
-
 export interface TableOfContentsEntry {
   slug: string;
   title: string;
