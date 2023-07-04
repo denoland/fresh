@@ -117,7 +117,7 @@ export interface RouteModule {
   // deno-lint-ignore no-explicit-any
   handler?: Handler<any, any> | Handlers<any, any>;
   // deno-lint-ignore no-explicit-any
-  handlers?: Handlers<any, any>;
+  handlers?: Handler<any, any> | Handlers<any, any>;
   config?: RouteConfig;
 }
 
