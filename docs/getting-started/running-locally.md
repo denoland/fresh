@@ -61,4 +61,17 @@ If you now visit http://localhost:8000, you can see the running project. Try
 change some of the text in `routes/index.tsx` and see how the page updates
 automatically when you save the file.
 
+## Development Mode
+
+`deno task start` automatically starts the server in development mode. If you
+would like to avoid this, you can run `deno run main.ts` instead.
+
+You can also check if you are running in development mode by checking the
+`FRSH_DEVMODE` environment variable: 
+```js
+Deno.env.get("FRSH_DEVMODE")
+```
+
+It is set to `active` when running in development mode, and is undefined otherwise.
+
 [--watch]: https://deno.land/manual/getting_started/command_line_interface#watch-mode
