@@ -1,6 +1,6 @@
-import { MultiHandler, PageProps } from "$fresh/server.ts";
+import { Handlers, PageProps } from "$fresh/server.ts";
 
-export const handler: MultiHandler = {
+export const handler: Handlers = {
   async GET(_req: Request, ctx) {
     const order = ctx.state.middlewareNestingOrder as string;
     const resp = await ctx.render(order + "4");
