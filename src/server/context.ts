@@ -38,7 +38,11 @@ import {
   UnknownPageModule,
 } from "./types.ts";
 import { render as internalRender } from "./render.ts";
-import { ContentSecurityPolicyDirectives, SELF } from "../runtime/csp.ts";
+import {
+  ContentSecurityPolicy,
+  ContentSecurityPolicyDirectives,
+  SELF,
+} from "../runtime/csp.ts";
 import { ASSET_CACHE_BUST_KEY, INTERNAL_PREFIX } from "../runtime/utils.ts";
 import {
   Builder,
@@ -592,6 +596,58 @@ export class ServerContext {
       };
     }
 
+    const dependenciesFn = (path: string) => {
+      const snapshot = this.#maybeBuildSnapshot();
+      return snapshot?.dependencies(path) ?? [];
+    };
+
+    const renderNotFound = async <Data = undefined>(
+      req: Request,
+      params: Record<string, string>,
+      // deno-lint-ignore no-explicit-any
+      ctx?: any,
+      data?: Data,
+      error?: unknown,
+    ) => {
+      const notFound = this.#notFound;
+      if (!notFound.component) {
+        return sendResponse(["Not found.", undefined], {
+          status: Status.NotFound,
+          isDev: this.#dev,
+          statusText: undefined,
+          headers: undefined,
+        });
+      }
+      const imports: string[] = [];
+      const resp = await internalRender({
+        request: req,
+        context: ctx,
+        route: notFound,
+        islands: this.#islands,
+        plugins: this.#plugins,
+        app: this.#app,
+        imports,
+        dependenciesFn,
+        renderFn: this.#renderFn,
+        url: new URL(req.url),
+        params,
+        data,
+        state: ctx?.state,
+        error,
+      });
+
+      if (resp instanceof Response) {
+        return resp;
+      }
+
+      return sendResponse(resp, {
+        status: Status.NotFound,
+        isDev: this.#dev,
+        statusText: undefined,
+        headers: undefined,
+      });
+    };
+
     const genRender = <Data = undefined>(
       route: Route<Data> | UnknownPage | ErrorPage,
       status: number,
@@ -612,16 +668,18 @@ export class ServerContext {
 
           const resp = await internalRender({
             request: req,
-            context: ctx,
+            context: {
+              ...ctx,
+              renderNotFound() {
+                return renderNotFound(req, params, ctx, data, error);
+              },
+            },
             route,
             islands: this.#islands,
             plugins: this.#plugins,
             app: this.#app,
             imports,
-            dependenciesFn: (path) => {
-              const snapshot = this.#maybeBuildSnapshot();
-              return snapshot?.dependencies(path) ?? [];
-            },
+            dependenciesFn,
             renderFn: this.#renderFn,
             url: new URL(req.url),
             params,
@@ -634,37 +692,15 @@ export class ServerContext {
             return resp;
           }
 
-          const headers: Record<string, string> = {
-            "content-type": "text/html; charset=utf-8",
-          };
-
-          const [body, csp] = resp;
-          if (csp) {
-            if (this.#dev) {
-              csp.directives.connectSrc = [
-                ...(csp.directives.connectSrc ?? []),
-                SELF,
-              ];
-            }
-            const directive = serializeCSPDirectives(csp.directives);
-            if (csp.reportOnly) {
-              headers["content-security-policy-report-only"] = directive;
-            } else {
-              headers["content-security-policy"] = directive;
-            }
-          }
-          return new Response(body, {
+          return sendResponse(resp, {
             status: options?.status ?? status,
             statusText: options?.statusText,
-            headers: options?.headers
-              ? { ...headers, ...options.headers }
-              : headers,
+            headers: options?.headers,
+            isDev: this.#dev,
           });
         };
       };
     };
-
-    const createUnknownRender = genRender(this.#notFound, Status.NotFound);
 
     for (const route of this.#routes) {
       if (this.#routerOptions.trailingSlash && route.pattern != "/") {
@@ -678,7 +714,9 @@ export class ServerContext {
               ...ctx,
               params,
               render: createRender(req, params, ctx),
-              renderNotFound: createUnknownRender(req, params, ctx),
+              renderNotFound<Data = undefined>(data: Data) {
+                return renderNotFound(req, params, ctx, data);
+              },
             }),
         };
       } else {
@@ -693,7 +731,9 @@ export class ServerContext {
               ...ctx,
               params,
               render: createRender(req, params, ctx),
-              renderNotFound: createUnknownRender(req, params, ctx),
+              renderNotFound<Data = undefined>(data: Data) {
+                return renderNotFound(req, params, ctx, data);
+              },
             });
         }
       }
@@ -707,7 +747,9 @@ export class ServerContext {
         req,
         {
           ...ctx,
-          render: createUnknownRender(req, {}),
+          render() {
+            return renderNotFound(req, {}, ctx);
+          },
         },
       );
 
@@ -1093,4 +1135,39 @@ async function readDenoConfig(
     }
     dir = parent;
   }
+}
+
+function sendResponse(
+  resp: [string, ContentSecurityPolicy | undefined],
+  options: {
+    status: number;
+    statusText: string | undefined;
+    headers?: HeadersInit;
+    isDev: boolean;
+  },
+) {
+  const headers: Record<string, string> = {
+    "content-type": "text/html; charset=utf-8",
+  };
+
+  const [body, csp] = resp;
+  if (csp) {
+    if (options.isDev) {
+      csp.directives.connectSrc = [
+        ...(csp.directives.connectSrc ?? []),
+        SELF,
+      ];
+    }
+    const directive = serializeCSPDirectives(csp.directives);
+    if (csp.reportOnly) {
+      headers["content-security-policy-report-only"] = directive;
+    } else {
+      headers["content-security-policy"] = directive;
+    }
+  }
+  return new Response(body, {
+    status: options.status,
+    statusText: options.statusText,
+    headers: options.headers ? { ...headers, ...options.headers } : headers,
+  });
 }

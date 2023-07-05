@@ -37,6 +37,7 @@ export type {
   PluginRenderStyleTag,
   RenderFunction,
   RouteConfig,
+  RouteContext,
   ServeHandlerInfo,
   StartOptions,
   UnknownHandler,

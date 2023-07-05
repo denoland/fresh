@@ -1,5 +1,6 @@
 import { assertEquals } from "./deps.ts";
-import { withPageName } from "./test_utils.ts";
+import { startFreshServer, withPageName } from "./test_utils.ts";
+import { Status } from "../server.ts";
 
 Deno.test({
   name: "render async server component",
@@ -58,6 +59,76 @@ Deno.test({
         assertEquals(text, "update 1");
       },
     );
+  },
+
+  sanitizeOps: false,
+  sanitizeResources: false,
+});
+
+Deno.test({
+  name: "passes context to server component",
+
+  async fn(_t) {
+    const { lines, serverProcess, address } = await startFreshServer({
+      args: ["run", "-A", "./tests/fixture_server_components/main.ts"],
+    });
+
+    const res = await fetch(`${address}/context/foo`);
+    const json = await res.json();
+
+    assertEquals(typeof json.localAddr, "object");
+    assertEquals(typeof json.remoteAddr, "object");
+    json.localAddr.port = 8000;
+    json.remoteAddr.port = 8000;
+
+    assertEquals(
+      json,
+      {
+        localAddr: {
+          hostname: "127.0.0.1",
+          port: 8000,
+          transport: "tcp",
+        },
+        remoteAddr: {
+          hostname: "127.0.0.1",
+          port: 8000,
+          transport: "tcp",
+        },
+        renderNotFound: "Function",
+        url: `${address}/context/foo`,
+        route: "/context/:id",
+        params: {
+          id: "foo",
+        },
+        state: {},
+      },
+    );
+    await lines.cancel();
+    serverProcess.kill("SIGTERM");
+    await serverProcess.status;
+  },
+
+  sanitizeOps: false,
+  sanitizeResources: false,
+});
+
+Deno.test({
+  name: "can call context.renderNotFound()",
+
+  async fn(_t) {
+    const { lines, serverProcess, address } = await startFreshServer({
+      args: ["run", "-A", "./tests/fixture_server_components/main.ts"],
+    });
+
+    const res = await fetch(`${address}/fail`);
+
+    assertEquals(res.status, Status.NotFound);
+    const html = await res.text();
+    assertEquals(html, "Not found.");
+
+    await lines.cancel();
+    serverProcess.kill("SIGTERM");
+    await serverProcess.status;
   },
 
   sanitizeOps: false,

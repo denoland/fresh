@@ -11,6 +11,7 @@ import {
 } from "preact";
 import {
   AppModule,
+  AsyncRoute,
   ErrorPage,
   Island,
   Plugin,
@@ -175,7 +176,15 @@ export async function render<Data>(
     component.constructor.name === "AsyncFunction"
   ) {
     // deno-lint-ignore no-explicit-any
-    const res = await (component as any)(opts.request, opts.context);
+    const res = await (component as AsyncRoute<any>)(opts.request, {
+      localAddr: opts.context.localAddr,
+      remoteAddr: opts.context.remoteAddr,
+      renderNotFound: opts.context.renderNotFound,
+      url: opts.url,
+      route: opts.route.pattern,
+      params: opts.params as Record<string, string>,
+      state: opts.state ?? {},
+    });
     if (res instanceof Response) {
       return res;
     }

@@ -56,6 +56,14 @@ export interface PageProps<T = any, S = Record<string, unknown>> {
   state: S;
 }
 
+/** */
+export type RouteContext<T = unknown, S = Record<string, unknown>> =
+  & Omit<
+    HandlerContext<T, S>,
+    "render"
+  >
+  & Omit<PageProps<unknown, S>, "data">;
+
 export interface RouteConfig {
   /**
    * A route override for the page. This is useful for pages where the route
@@ -125,14 +133,15 @@ export interface RouteModule {
   config?: RouteConfig;
 }
 
+export type AsyncRoute<T> = (
+  req: Request,
+  ctx: RouteContext<T>,
+) => Promise<ComponentChildren | Response>;
 export type PageComponent<T> =
   | ComponentType<PageProps<T>>
-  | ((
-    req: Request,
-    ctx: HandlerContext<RouterState>,
-  ) => Promise<ComponentChildren | Response>)
+  | AsyncRoute<T>
   // deno-lint-ignore no-explicit-any
-  | ((props: any) => VNode<any>);
+  | ((props: any) => VNode<any> | ComponentChildren);
 
 // deno-lint-ignore no-explicit-any
 export interface Route<Data = any> {
