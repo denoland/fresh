@@ -94,7 +94,7 @@ Deno.test({
           port: 8000,
           transport: "tcp",
         },
-        renderNotFound: "Asyncfunction",
+        renderNotFound: "AsyncFunction",
         url: `${address}/context/foo`,
         route: "/context/:id",
         params: {
