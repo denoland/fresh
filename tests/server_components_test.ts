@@ -134,3 +134,29 @@ Deno.test({
   sanitizeOps: false,
   sanitizeResources: false,
 });
+
+Deno.test({
+  name: "works with async plugins",
+
+  async fn(_t) {
+    await withPageName(
+      "./tests/fixture_server_components/main.ts",
+      async (page, address) => {
+        await page.goto(`${address}/twind`);
+        await page.waitForSelector("h1");
+
+        const text = await page.$eval("body", (el) => el.textContent);
+        assertEquals(text, "it works");
+
+        // Check that CSS was applied accordingly
+        const color = await page.$eval("h1", (el) => {
+          return window.getComputedStyle(el).color;
+        });
+        assertEquals(color, "rgb(220, 38, 38)");
+      },
+    );
+  },
+
+  sanitizeOps: false,
+  sanitizeResources: false,
+});

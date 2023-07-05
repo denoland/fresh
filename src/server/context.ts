@@ -37,7 +37,7 @@ import {
   UnknownPage,
   UnknownPageModule,
 } from "./types.ts";
-import { render as internalRender } from "./render.ts";
+import { DEFAULT_RENDER_FN, render as internalRender } from "./render.ts";
 import {
   ContentSecurityPolicy,
   ContentSecurityPolicyDirectives,
@@ -879,10 +879,6 @@ export class ServerContext {
     };
   };
 }
-
-const DEFAULT_RENDER_FN: RenderFunction = (_ctx, render) => {
-  render();
-};
 
 const DEFAULT_ROUTER_OPTIONS: RouterOptions = {
   trailingSlash: false,

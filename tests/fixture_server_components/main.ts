@@ -4,5 +4,6 @@
 /// <reference lib="deno.ns" />
 
 import { start } from "$fresh/server.ts";
+import twind from "$fresh/plugins/twind.ts";
 import manifest from "./fresh.gen.ts";
-await start(manifest);
+await start(manifest, { plugins: [twind({ selfURL: import.meta.url })] });
