@@ -670,8 +670,8 @@ export class ServerContext {
             request: req,
             context: {
               ...ctx,
-              renderNotFound() {
-                return renderNotFound(req, params, ctx, data, error);
+              async renderNotFound() {
+                return await renderNotFound(req, params, ctx, data, error);
               },
             },
             route,
@@ -714,8 +714,8 @@ export class ServerContext {
               ...ctx,
               params,
               render: createRender(req, params, ctx),
-              renderNotFound<Data = undefined>(data: Data) {
-                return renderNotFound(req, params, ctx, data);
+              async renderNotFound<Data = undefined>(data: Data) {
+                return await renderNotFound(req, params, ctx, data);
               },
             }),
         };
@@ -731,8 +731,8 @@ export class ServerContext {
               ...ctx,
               params,
               render: createRender(req, params, ctx),
-              renderNotFound<Data = undefined>(data: Data) {
-                return renderNotFound(req, params, ctx, data);
+              async renderNotFound<Data = undefined>(data: Data) {
+                return await renderNotFound(req, params, ctx, data);
               },
             });
         }

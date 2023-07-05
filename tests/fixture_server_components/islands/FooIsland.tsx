@@ -4,10 +4,10 @@ export default function FooIsland() {
   const sig = useSignal(0);
   return (
     <button
-      onClick={() => sig.value = sig.peek() + 1}
+      onClick={() => sig.value += 1}
       class="bg-gray-200 py-2 px-4 rounded m-8"
     >
-      update {sig.value}
+      update {sig}
     </button>
   );
 }
