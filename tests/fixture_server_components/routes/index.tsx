@@ -11,13 +11,13 @@ for (const file of Deno.readDirSync(__dirname)) {
 
 export default function Home() {
   return (
-    <div>
-      <h1>Tests</h1>
-      <ul>
+    <div class="mx-auto max-w-md">
+      <h1 class="text-3xl font-bold my-8">Tests</h1>
+      <ul class="pl-4">
         {links.map((link) => {
           return (
-            <li key={link}>
-              <a href={`/${link}`}>{link}</a>
+            <li key={link} class="list-disc">
+              <a href={`/${link}`} class="underline">{link}</a>
             </li>
           );
         })}
