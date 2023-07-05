@@ -31,6 +31,7 @@ export function ensureMinDenoVersion() {
 async function collectDir(dir: string): Promise<string[]> {
   const dirUrl = toFileUrl(dir);
   const paths = [];
+  const fileNames = new Set<string>();
   const routesFolder = walk(dir, {
     includeDirs: false,
     includeFiles: true,
@@ -42,6 +43,15 @@ async function collectDir(dir: string): Promise<string[]> {
       const path = toFileUrl(entry.path).href.substring(
         dirUrl.href.length,
       );
+      const fileNameWithoutExt = path.split(".").slice(0, -1).join(".");
+
+      if (fileNames.has(fileNameWithoutExt)) {
+        throw new Error(
+          `Route conflict detected. Multiple files have the same name: ${dir}${fileNameWithoutExt}`,
+        );
+      }
+
+      fileNames.add(fileNameWithoutExt);
       paths.push(path);
     }
   } catch (err) {
