@@ -5,7 +5,7 @@ import { Status } from "../server.ts";
 Deno.test({
   name: "render async server component",
 
-  async fn(_t) {
+  async fn() {
     await withPageName(
       "./tests/fixture_server_components/main.ts",
       async (page, address) => {
@@ -25,7 +25,7 @@ Deno.test({
 Deno.test({
   name: "uses returned response",
 
-  async fn(_t) {
+  async fn() {
     await withPageName(
       "./tests/fixture_server_components/main.ts",
       async (page, address) => {
@@ -44,7 +44,7 @@ Deno.test({
 Deno.test({
   name: "revives islands in async server component",
 
-  async fn(_t) {
+  async fn() {
     await withPageName(
       "./tests/fixture_server_components/main.ts",
       async (page, address) => {
@@ -68,7 +68,7 @@ Deno.test({
 Deno.test({
   name: "passes context to server component",
 
-  async fn(_t) {
+  async fn() {
     const { lines, serverProcess, address } = await startFreshServer({
       args: ["run", "-A", "./tests/fixture_server_components/main.ts"],
     });
@@ -115,7 +115,7 @@ Deno.test({
 Deno.test({
   name: "can call context.renderNotFound()",
 
-  async fn(_t) {
+  async fn() {
     const { lines, serverProcess, address } = await startFreshServer({
       args: ["run", "-A", "./tests/fixture_server_components/main.ts"],
     });
@@ -138,7 +138,7 @@ Deno.test({
 Deno.test({
   name: "works with async plugins",
 
-  async fn(_t) {
+  async fn() {
     await withPageName(
       "./tests/fixture_server_components/main.ts",
       async (page, address) => {

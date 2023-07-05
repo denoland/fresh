@@ -56,7 +56,9 @@ export interface PageProps<T = any, S = Record<string, unknown>> {
   state: S;
 }
 
-/** */
+/**
+ * Context passed to async route components.
+ */
 export type RouteContext<T = unknown, S = Record<string, unknown>> =
   & Omit<
     HandlerContext<T, S>,
