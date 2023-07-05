@@ -46,6 +46,7 @@ options.errorBoundaries = true;
 
 export interface RenderOptions<Data> {
   request: Request;
+  // deno-lint-ignore no-explicit-any
   context: any;
   route: Route<Data> | UnknownPage | ErrorPage;
   islands: Island[];
