@@ -348,6 +348,11 @@
     "image": "battleship"
   },
   {
+    "title": "Kanji.Academy",
+    "link": "https://kanji.academy",
+    "image": "kanji-academy"
+  },
+  {
     "title": "Do not remove this, it's for preventing conflicts by trailing comma",
     "link": "",
     "github": "",
