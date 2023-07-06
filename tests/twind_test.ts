@@ -1,3 +1,4 @@
+import { assertEquals } from "https://deno.land/std@0.190.0/testing/asserts.ts";
 import { assert, delay, puppeteer } from "./deps.ts";
 
 import { cmpStringArray } from "./fixture_twind_hydrate/utils/utils.ts";
@@ -308,6 +309,41 @@ Deno.test({
         assert(
           !hasUnusedRules,
           "Unused CSS class '.text-red-600' found.",
+        );
+      },
+    );
+  },
+  sanitizeOps: false,
+  sanitizeResources: false,
+});
+
+Deno.test({
+  name: "Always includes classes from tw-helper",
+  async fn() {
+    await withPageName(
+      "./tests/fixture_twind_hydrate/main.ts",
+      async (page, address) => {
+        await page.goto(`${address}/unused_tw`);
+        await page.waitForSelector("#__FRSH_TWIND");
+
+        const styles = await page.$eval(
+          "#__FRSH_TWIND",
+          (el: HTMLStyleElement) => {
+            const text = el.textContent!;
+            return {
+              "text-red-600": text.includes(".text-red-600"),
+              "text-green-500": text.includes("text-green-500"),
+              "text-blue-500": text.includes("text-blue-500"),
+            };
+          },
+        );
+        assertEquals(
+          styles,
+          {
+            "text-red-600": false,
+            "text-green-500": true,
+            "text-blue-500": true,
+          },
         );
       },
     );
