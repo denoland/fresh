@@ -1,7 +1,7 @@
 import { assert, delay, puppeteer } from "./deps.ts";
 
 import { cmpStringArray } from "./fixture_twind_hydrate/utils/utils.ts";
-import { startFreshServer } from "./test_utils.ts";
+import { startFreshServer, withPageName } from "./test_utils.ts";
 
 /**
  * Start the server with the main file.
@@ -291,4 +291,27 @@ Deno.test({
 
     await server.terminate();
   },
+});
+
+Deno.test({
+  name: "Excludes classes from unused vnodes",
+  async fn() {
+    await withPageName(
+      "./tests/fixture_twind_hydrate/main.ts",
+      async (page, address) => {
+        await page.goto(`${address}/unused`);
+        await page.waitForSelector("#__FRSH_TWIND");
+
+        const hasUnusedRules = await page.$eval("#__FRSH_TWIND", (el) => {
+          return el.textContent.includes(".text-red-600");
+        });
+        assert(
+          !hasUnusedRules,
+          "Unused CSS class '.text-red-600' found.",
+        );
+      },
+    );
+  },
+  sanitizeOps: false,
+  sanitizeResources: false,
 });

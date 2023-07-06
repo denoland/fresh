@@ -1,6 +1,8 @@
 import { JSX, options as preactOptions, VNode } from "preact";
 import { Configuration, setup as twSetup, Sheet, tw } from "twind";
 
+type PreactOptions = typeof preactOptions & { __b?: (vnode: VNode) => void };
+
 export const STYLE_ELEMENT_ID = "__FRSH_TWIND";
 
 export interface Options extends Omit<Configuration, "mode" | "sheet"> {
@@ -25,9 +27,13 @@ export function setup(options: Options, sheet: Sheet) {
   };
   twSetup(config);
 
-  const originalHook = preactOptions.vnode;
-  // deno-lint-ignore no-explicit-any
-  preactOptions.vnode = (vnode: VNode<JSX.DOMAttributes<any>>) => {
+  // Hook into options._diff which is called whenever a new comparison
+  // starts in Preact.
+  const originalHook = (preactOptions as PreactOptions).__b;
+  (preactOptions as PreactOptions).__b = (
+    // deno-lint-ignore no-explicit-any
+    vnode: VNode<JSX.DOMAttributes<any>>,
+  ) => {
     if (typeof vnode.type === "string" && typeof vnode.props === "object") {
       const { props } = vnode;
       const classes: string[] = [];
