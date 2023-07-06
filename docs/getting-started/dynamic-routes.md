@@ -24,6 +24,12 @@ render a page. The module must once again expose a component as a default
 export. This time the component will receive the matched path segment properties
 as arguments in its `props` object though.
 
+> :warning: Warning, it is possible to create both static and dynamic routes in
+> the same directory causing potential routing problems. Fresh will always
+> choose the static route first. However, while in developer mode, Fresh will
+> try and check your routes as you create them and display any such routing
+> conflicts to the terminal.
+
 ```tsx
 // routes/greet/[name].tsx
 
