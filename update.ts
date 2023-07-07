@@ -73,6 +73,9 @@ if (!denoJson.lint.rules.tags) {
 if (!denoJson.lint.rules.tags.includes("fresh")) {
   denoJson.lint.rules.tags.push("fresh");
 }
+if (!denoJson.lint.rules.tags.includes("recommended")) {
+  denoJson.lint.rules.tags.push("recommended");
+}
 
 freshImports(denoJson.imports);
 if (denoJson.imports["twind"]) {
