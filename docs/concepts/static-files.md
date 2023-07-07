@@ -42,7 +42,7 @@ export default function Page() {
 ```
 
 Fresh also does this automatically for `src` and `srcset` attributes in `<img>`
-and `<source>` HTML tags. These will automatically use "locked" paths if fresh
+and `<source>` HTML tags. These will automatically use "locked" paths if Fresh
 deems it safe to do so. You can always opt out of this behaviour per tag, by
 adding the `data-fresh-disable-lock` attribute.
 
