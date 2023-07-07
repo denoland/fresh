@@ -407,7 +407,8 @@ export async function render<Data>(
         `import * as ${island.name}_${island.exportName} from "${url}";`;
       islandRegistry += `${island.id}:${island.name}_${island.exportName},`;
     }
-    script += `try { revive({${islandRegistry}}, STATE[0]); } catch(err) { console.log("revive err", err); };`;
+    script +=
+      `try { revive({${islandRegistry}}, STATE[0]); } catch(err) { console.log("revive err", err); };`;
   }
 
   // Append the inline script.

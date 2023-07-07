@@ -4,7 +4,11 @@ const CHUNKSIZE = 65536;
 const NAMESPACE = ["_frsh", "js", BUILD_ID];
 
 // @ts-ignore as `Deno.openKv` is still unstable.
-const kv = await Deno.openKv?.();
+const kv = await Deno.openKv?.().catch((e) => {
+  console.error(e);
+
+  return null;
+});
 
 export const isSupported = () => kv != null;
 
@@ -12,17 +16,17 @@ export const getFile = async (file: string) => {
   if (!isSupported()) return null;
 
   const filepath = [...NAMESPACE, file];
-  const metadata = await kv.get(filepath);
+  const metadata = await kv!.get(filepath);
 
   if (metadata?.versionstamp == null) {
     return null;
   }
 
-  console.log(` 🚣 Streaming from Deno.KV ${file}`)
+  console.log(` 🚣 Streaming from Deno.KV ${file}`);
 
   return new ReadableStream<Uint8Array>({
     start: async (sink) => {
-      for await (const chunk of kv.list({ prefix: filepath })) {
+      for await (const chunk of kv!.list({ prefix: filepath })) {
         sink.enqueue(chunk.value as Uint8Array);
       }
       sink.close();
@@ -34,10 +38,10 @@ export const saveFile = async (file: string, content: Uint8Array) => {
   if (!isSupported()) return null;
 
   const filepath = [...NAMESPACE, file];
-  const metadata = await kv.get(filepath);
+  const metadata = await kv!.get(filepath);
 
   // Current limitation: As of May 2023, KV Transactions only support a maximum of 10 operations.
-  let transaction = kv.atomic();
+  let transaction = kv!.atomic();
   let chunks = 0;
   for (; chunks * CHUNKSIZE < content.length; chunks++) {
     transaction = transaction.set(
@@ -57,10 +61,10 @@ export const housekeep = async () => {
   if (!isSupported()) return null;
 
   for await (
-    const item of kv.list({ prefix: ["_frsh", "js"] })
+    const item of kv!.list({ prefix: ["_frsh", "js"] })
   ) {
     if (item.key.includes(BUILD_ID)) continue;
 
-    await kv.delete(item.key);
+    await kv!.delete(item.key);
   }
 };
