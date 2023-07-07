@@ -12,6 +12,8 @@ import {
   StartOptions,
   UnknownPageModule,
 } from "./types.ts";
+import { UPGRADE_CHECK_INTERVAL } from "./constants.ts";
+import { updateCheck } from "./update_check.ts";
 export type {
   AppProps,
   ErrorHandler,
@@ -82,6 +84,9 @@ export async function createHandler(
 
 export async function start(routes: Manifest, opts: StartOptions = {}) {
   const ctx = await ServerContext.fromManifest(routes, opts);
+
+  // Run update check in background
+  updateCheck(UPGRADE_CHECK_INTERVAL);
 
   if (!opts.onListen) {
     opts.onListen = (params) => {
