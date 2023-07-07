@@ -1,3 +1,4 @@
+import { Browser } from "https://deno.land/x/puppeteer@16.2.0/mod.ts";
 import { delay, Page, puppeteer, TextLineStream } from "./deps.ts";
 
 export async function startFreshServer(options: Deno.CommandOptions) {
@@ -30,6 +31,28 @@ export async function startFreshServer(options: Deno.CommandOptions) {
   return { serverProcess, lines, address };
 }
 
+// @ts-ignore: fix types here
+// deno-lint-ignore no-explicit-any
+let PUPPETEER_BROWSER: any = undefined;
+export async function launchOrGetBrowser() {
+  if (PUPPETEER_BROWSER) {
+    return PUPPETEER_BROWSER;
+  }
+
+  const start = Date.now();
+  console.log("starting browser");
+  const browser = await puppeteer.launch({ args: ["--no-sandbox"] });
+  console.log("browser started in", Date.now() - start, "ms");
+  PUPPETEER_BROWSER = browser;
+  return browser;
+}
+
+export async function closeBrowser() {
+  if (typeof PUPPETEER_BROWSER !== "undefined") {
+    await PUPPETEER_BROWSER.close();
+  }
+}
+
 export async function withPageName(
   name: string,
   fn: (page: Page, address: string) => Promise<void>,
@@ -40,14 +63,10 @@ export async function withPageName(
 
   try {
     await delay(100);
-    const browser = await puppeteer.launch({ args: ["--no-sandbox"] });
+    const browser = await launchOrGetBrowser();
 
-    try {
-      const page = await browser.newPage();
-      await fn(page, address);
-    } finally {
-      await browser.close();
-    }
+    const page = await browser.newPage();
+    await fn(page, address);
   } finally {
     await lines.cancel();
 

@@ -5,7 +5,19 @@ import {
   delay,
   Page,
 } from "./deps.ts";
-import { withPageName } from "./test_utils.ts";
+import {
+  closeBrowser,
+  launchOrGetBrowser,
+  withPageName,
+} from "./test_utils.ts";
+
+globalThis.addEventListener("load", async () => {
+  await launchOrGetBrowser();
+});
+
+globalThis.addEventListener("beforeunload", async () => {
+  await closeBrowser();
+});
 
 Deno.test({
   name: "island tests",
