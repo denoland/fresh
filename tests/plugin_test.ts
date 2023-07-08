@@ -14,11 +14,6 @@ const ctx = await ServerContext.fromManifest(manifest, options);
 const handler = ctx.handler();
 const router = (req: Request) => {
   return handler(req, {
-    localAddr: {
-      transport: "tcp",
-      hostname: "127.0.0.1",
-      port: 80,
-    },
     remoteAddr: {
       transport: "tcp",
       hostname: "127.0.0.1",
