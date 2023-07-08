@@ -56,5 +56,5 @@ Deno.test("forwards slash not placed at the end of url for static file", async (
   assert(resp);
   // we should not be getting a redirect
   assertEquals(resp.status, Status.OK);
-  assertEquals(await resp.text(), "bar\n");
+  assertEquals(await resp.text(), "bar");
 });
