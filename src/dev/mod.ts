@@ -1,4 +1,12 @@
-import { dirname, fromFileUrl, gte, join, toFileUrl, walk } from "./deps.ts";
+import {
+  dirname,
+  fromFileUrl,
+  gte,
+  join,
+  posix,
+  relative,
+  walk,
+} from "./deps.ts";
 import { error } from "./error.ts";
 
 const MIN_DENO_VERSION = "1.31.0";
@@ -30,7 +38,6 @@ async function collectDir(dir: string): Promise<string[]> {
     throw err;
   }
 
-  const dirUrl = toFileUrl(dir);
   const paths = [];
   const routesFolder = walk(dir, {
     includeDirs: false,
@@ -39,10 +46,7 @@ async function collectDir(dir: string): Promise<string[]> {
   });
 
   for await (const entry of routesFolder) {
-    const path = toFileUrl(entry.path).href.substring(
-      dirUrl.href.length,
-    );
-    paths.push(path);
+    paths.push(relative(dir, entry.path));
   }
 
   paths.sort();
@@ -71,25 +75,33 @@ export async function generate(directory: string, manifest: Manifest) {
 // This file is automatically updated during development when running \`dev.ts\`.
 
 ${
-    routes.map((file, i) => `import * as $${i} from "./routes${file}";`).join(
+    routes.map((file, i) =>
+      `import * as $${i} from "./routes/${posix.normalize(file)}";`
+    ).join(
       "\n",
     )
   }
 ${
-    islands.map((file, i) => `import * as $$${i} from "./islands${file}";`)
+    islands.map((file, i) =>
+      `import * as $$${i} from "./islands/${posix.normalize(file)}";`
+    )
       .join("\n")
   }
 
 const manifest = {
   routes: {
     ${
-    routes.map((file, i) => `${JSON.stringify(`./routes${file}`)}: $${i},`)
+    routes.map((file, i) =>
+      `${JSON.stringify(`./routes/${posix.normalize(file)}`)}: $${i},`
+    )
       .join("\n    ")
   }
   },
   islands: {
     ${
-    islands.map((file, i) => `${JSON.stringify(`./islands${file}`)}: $$${i},`)
+    islands.map((file, i) =>
+      `${JSON.stringify(`./islands/${posix.normalize(file)}`)}: $$${i},`
+    )
       .join("\n    ")
   }
   },

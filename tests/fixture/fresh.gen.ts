@@ -38,7 +38,8 @@ import * as $32 from "./routes/state-in-props/_middleware.ts";
 import * as $33 from "./routes/state-in-props/index.tsx";
 import * as $34 from "./routes/static.tsx";
 import * as $35 from "./routes/status_overwrite.tsx";
-import * as $36 from "./routes/wildcard.tsx";
+import * as $36 from "./routes/umlaut-äöüß.tsx";
+import * as $37 from "./routes/wildcard.tsx";
 import * as $$0 from "./islands/Counter.tsx";
 import * as $$1 from "./islands/MultipleCounters.tsx";
 import * as $$2 from "./islands/ReturningNull.tsx";
@@ -87,7 +88,8 @@ const manifest = {
     "./routes/state-in-props/index.tsx": $33,
     "./routes/static.tsx": $34,
     "./routes/status_overwrite.tsx": $35,
-    "./routes/wildcard.tsx": $36,
+    "./routes/umlaut-äöüß.tsx": $36,
+    "./routes/wildcard.tsx": $37,
   },
   islands: {
     "./islands/Counter.tsx": $$0,
