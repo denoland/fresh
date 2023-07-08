@@ -45,7 +45,7 @@ export default function Home(props: PageProps<HomeProps>) {
         <title>{TITLE}</title>
         <link
           rel="stylesheet"
-          href="https://esm.sh/prismjs@1.27.0/themes/prism-dark.min.css"
+          href="https://esm.sh/prismjs@1.29.0/themes/prism-dark.min.css"
         />
         <meta name="description" content={DESCRIPTION} />
         <meta property="og:title" content={TITLE} />
