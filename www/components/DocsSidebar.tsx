@@ -52,7 +52,7 @@ export default function DocsSidebar(
             </span>
           </button>
         )
-        : <SearchButton />}
+        : <SearchButton class="lg:hidden" />}
 
       <div class="mb-4">
         <VersionSelect
@@ -61,7 +61,7 @@ export default function DocsSidebar(
         />
       </div>
 
-      <ol class="list-decimal list-inside font-semibold nested">
+      <ol class="list-decimal list-inside font-semibold nested ml-2.5">
         {CATEGORIES[props.selectedVersion].map((category) => (
           <SidebarCategory path={props.path} category={category} />
         ))}
@@ -71,7 +71,7 @@ export default function DocsSidebar(
 }
 
 const link = "text(gray-900 hover:gray-600)";
-const linkActive = "text(green-600 hover:green-500)";
+const linkActive = "text(green-600 hover:green-500) font-bold";
 
 export function SidebarCategory(props: {
   path: string;
@@ -83,9 +83,11 @@ export function SidebarCategory(props: {
 
   return (
     <li class="my-2 block">
-      <a href={href} class={outerLink}>{title}</a>
+      <a href={href} class={outerLink}>
+        {title}
+      </a>
       {entries.length > 0 && (
-        <ol class="pl-4 list-decimal nested">
+        <ol class="pb-2 pl-4 list-decimal nested list-outside">
           {entries.map((entry) => (
             <SidebarEntry path={props.path} entry={entry} />
           ))}
@@ -101,10 +103,12 @@ export function SidebarEntry(props: {
 }) {
   const { title, href } = props.entry;
 
-  const innerLink = `${href == props.path ? linkActive : link} font-normal`;
+  const innerLink = `${
+    href == props.path ? linkActive : link
+  } transition-colors hover:text-green-500 font-normal`;
 
   return (
-    <li class="my-0.5">
+    <li class="py-0.5">
       <a href={href} class={innerLink}>{title}</a>
     </li>
   );
