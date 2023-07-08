@@ -269,11 +269,6 @@ Deno.test("static files in custom directory", async () => {
   });
   const newRouter = (req: Request) => {
     return newCtx.handler()(req, {
-      localAddr: {
-        transport: "tcp",
-        hostname: "127.0.0.1",
-        port: 80,
-      },
       remoteAddr: {
         transport: "tcp",
         hostname: "127.0.0.1",

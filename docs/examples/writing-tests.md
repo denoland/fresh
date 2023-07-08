@@ -56,10 +56,8 @@ export default function FooPage() {
 import { createHandler } from "$fresh/server.ts";
 import manifest from "../fresh.gen.ts";
 import { assert, assertEquals } from "$std/testing/asserts.ts";
-import type { ConnInfo } from "$std/http/server.ts";
 
-const CONN_INFO: ConnInfo = {
-  localAddr: { hostname: "127.0.0.1", port: 8000, transport: "tcp" },
+const CONN_INFO: Deno.ServeHandlerInfo = {
   remoteAddr: { hostname: "127.0.0.1", port: 53496, transport: "tcp" },
 };
 

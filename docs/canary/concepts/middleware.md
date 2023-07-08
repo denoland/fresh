@@ -104,7 +104,7 @@ To set the stage for this section, `MiddlewareHandlerContext` looks like this:
 
 ```ts
 export interface MiddlewareHandlerContext<State = Record<string, unknown>>
-  extends ConnInfo {
+  extends Deno.ServeHandlerInfo {
   next: () => Promise<Response>;
   state: State;
   destination: router.DestinationKind;
