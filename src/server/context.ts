@@ -401,7 +401,16 @@ export class ServerContext {
           headers: { location },
         });
       } else if (trailingSlashEnabled && !url.pathname.endsWith("/")) {
-        return Response.redirect(url.href + "/", Status.PermanentRedirect);
+        // If the last element of the path has a "." it's a file
+        const isFile = url.pathname.split("/").at(-1)?.includes(".");
+
+        // If the path uses the internal prefix, don't redirect it
+        const isInternal = url.pathname.startsWith(INTERNAL_PREFIX);
+
+        if (!isFile && !isInternal) {
+          url.pathname += "/";
+          return Response.redirect(url, Status.PermanentRedirect);
+        }
       }
 
       return await withMiddlewares(req, connInfo, inner);
