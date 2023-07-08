@@ -1,5 +1,5 @@
 import { ServerContext } from "./context.ts";
-import * as colors from "https://deno.land/std@0.190.0/fmt/colors.ts";
+import * as colors from "https://deno.land/std@0.193.0/fmt/colors.ts";
 export { Status } from "./deps.ts";
 import {
   AppModule,
