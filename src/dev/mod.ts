@@ -67,6 +67,17 @@ export async function collect(directory: string): Promise<Manifest> {
   return { routes, islands };
 }
 
+/**
+ * Import specifiers must have forward slashes
+ */
+function toImportSpecifier(file: string) {
+  let specifier = posix.normalize(file).replace(/\\/g, "/");
+  if (!specifier.startsWith(".")) {
+    specifier = "./" + specifier;
+  }
+  return specifier;
+}
+
 export async function generate(directory: string, manifest: Manifest) {
   const { routes, islands } = manifest;
 
@@ -76,14 +87,14 @@ export async function generate(directory: string, manifest: Manifest) {
 
 ${
     routes.map((file, i) =>
-      `import * as $${i} from "./routes/${posix.normalize(file)}";`
+      `import * as $${i} from "${toImportSpecifier(join("routes", file))}";`
     ).join(
       "\n",
     )
   }
 ${
     islands.map((file, i) =>
-      `import * as $$${i} from "./islands/${posix.normalize(file)}";`
+      `import * as $$${i} from "${toImportSpecifier(join("islands", file))}";`
     )
       .join("\n")
   }
@@ -92,7 +103,7 @@ const manifest = {
   routes: {
     ${
     routes.map((file, i) =>
-      `${JSON.stringify(`./routes/${posix.normalize(file)}`)}: $${i},`
+      `${JSON.stringify(`${toImportSpecifier(join("routes", file))}`)}: $${i},`
     )
       .join("\n    ")
   }
@@ -100,7 +111,9 @@ const manifest = {
   islands: {
     ${
     islands.map((file, i) =>
-      `${JSON.stringify(`./islands/${posix.normalize(file)}`)}: $$${i},`
+      `${
+        JSON.stringify(`${toImportSpecifier(join("islands", file))}`)
+      }: $$${i},`
     )
       .join("\n    ")
   }
