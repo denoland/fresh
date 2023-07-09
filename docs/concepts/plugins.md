@@ -2,8 +2,6 @@
 description: Plugins can add new functionality to Fresh without requiring significant complexity.
 ---
 
-> Plugins are only available in Fresh 1.1 and above.
-
 Plugins can dynamically add new functionality to Fresh without exposing
 significant complexity to the user. Users can add plugins by importing and
 initializing them in their `main.ts` file:
@@ -42,7 +40,7 @@ available (explained below).
 
 A Fresh plugin is just a JavaScript object that conforms to the
 [Plugin](https://deno.land/x/fresh/server.ts?s=Plugin) interface. The only
-required property of a plugin is it's name. Names must only contain the
+required property of a plugin is its name. Names must only contain the
 characters `a`-`z`, and `_`.
 
 ```ts

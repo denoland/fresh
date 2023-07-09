@@ -2,8 +2,8 @@
 export {
   fromFileUrl,
   toFileUrl,
-} from "https://deno.land/std@0.190.0/path/mod.ts";
-export { escape as regexpEscape } from "https://deno.land/std@0.190.0/regexp/escape.ts";
+} from "https://deno.land/std@0.193.0/path/mod.ts";
+export { escape as regexpEscape } from "https://deno.land/std@0.193.0/regexp/escape.ts";
 
 // -- esbuild --
 // @deno-types="https://deno.land/x/esbuild@v0.17.19/mod.d.ts"
