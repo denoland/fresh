@@ -509,6 +509,11 @@ const config = {
     start: "deno run -A --watch=static/,routes/ dev.ts",
     update: "deno run -A -r https://fresh.deno.dev/update .",
   },
+  lint: {
+    rules: {
+      tags: ["fresh", "recommended"],
+    },
+  },
   imports: {} as Record<string, string>,
   compilerOptions: {
     jsx: "react-jsx",
