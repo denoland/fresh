@@ -9,7 +9,7 @@ import {
 import manifest from "./fixture/fresh.gen.ts";
 import options from "./fixture/options.ts";
 import { BUILD_ID } from "../src/server/build_id.ts";
-import { startFreshServer } from "./test_utils.ts";
+import { startFreshServer, withPageName } from "./test_utils.ts";
 import { assertMatch } from "https://deno.land/std@0.193.0/testing/asserts.ts";
 
 const ctx = await ServerContext.fromManifest(manifest, options);
@@ -892,4 +892,40 @@ Deno.test("rendering custom _500.tsx page for default handlers", {
 
   await lines.cancel();
   serverProcess.kill("SIGTERM");
+});
+
+Deno.test("renders error boundary", {
+  sanitizeOps: false,
+  sanitizeResources: false,
+}, async () => {
+  await withPageName("./tests/fixture/main.ts", async (page, address) => {
+    await page.goto(`${address}/error_boundary`);
+    const text = await page.$eval("body", (el) => el.textContent);
+    assertEquals(text, "it works");
+  });
+});
+
+Deno.test({
+  name: "Resolves routes with non-latin characters",
+
+  async fn() {
+    await withPageName("./tests/fixture/main.ts", async (page, address) => {
+      // Check that we can navigate to the page
+      await page.goto(`${address}/umlaut-äöüß`);
+      await page.waitForSelector("h1");
+      const text = await page.$eval("h1", (el) => el.textContent);
+      assertEquals(text, "it works");
+
+      // Check the manifest
+      const mod = (await import("./fixture/fresh.gen.ts")).default;
+
+      assert(
+        "./routes/umlaut-äöüß.tsx" in mod.routes,
+        "Umlaut route not found",
+      );
+    });
+  },
+
+  sanitizeOps: false,
+  sanitizeResources: false,
 });

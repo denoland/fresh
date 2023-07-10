@@ -168,7 +168,7 @@ function Main(props: { path: string; page: Page }) {
   return (
     <div class="flex-1">
       <MobileSidebar path={props.path} page={props.page} />
-      <div class="flex mx-auto max-w-screen-lg px-4 py-5 justify-end">
+      <div class="flex mx-auto max-w-screen-xl px-4 md:px-0 py-5 md:py-0 justify-end">
         <label
           for="docs_sidebar"
           class="px-4 py-3 md:hidden flex items-center hover:bg-gray-100 rounded gap-2"
@@ -187,12 +187,10 @@ function Main(props: { path: string; page: Page }) {
             >
             </path>
           </svg>
-          <div>
-            Menu
-          </div>
+          <div>Menu</div>
         </label>
       </div>
-      <div class="mx-auto max-w-screen-lg px-4 flex gap-6">
+      <div class="mx-auto max-w-screen-xl px-4 flex gap-6 md:gap-8">
         <DesktopSidebar path={props.path} page={props.page} />
         <Content page={props.page} />
       </div>
@@ -235,7 +233,7 @@ function MobileSidebar(props: { path: string; page: Page }) {
 
 function DesktopSidebar(props: { path: string; page: Page }) {
   return (
-    <nav class="w-[16rem] flex-shrink-0 hidden md:block py-8 pr-4 border(r-2 gray-100)">
+    <nav class="w-[18rem] flex-shrink-0 hidden md:block py-7 pr-8">
       <DocsSidebar
         path={props.path}
         versionLinks={props.page.versionLinks}
@@ -248,8 +246,8 @@ function DesktopSidebar(props: { path: string; page: Page }) {
 function Content(props: { page: Page }) {
   const html = gfm.render(props.page.markdown);
   return (
-    <main class="py-6 overflow-hidden">
-      <h1 class="text(4xl gray-900) tracking-tight font-extrabold mt-6">
+    <main class="py-6 overflow-hidden md:mr-4 lg:mr-32">
+      <h1 class="text(4xl gray-900) tracking-tight font-extrabold mt-6 md:mt-0">
         {props.page.title}
       </h1>
       <div
@@ -268,14 +266,12 @@ function Content(props: { page: Page }) {
 
 const button = "p-2 bg-gray-100 w-full border(1 gray-200) grid";
 
-function ForwardBackButtons(
-  props: {
-    slug: string;
-    version: string;
-    prev?: NavEntry;
-    next?: NavEntry;
-  },
-) {
+function ForwardBackButtons(props: {
+  slug: string;
+  version: string;
+  prev?: NavEntry;
+  next?: NavEntry;
+}) {
   const { prev, next } = props;
   const upper = "text(sm gray-600)";
   const category = "font-normal";
