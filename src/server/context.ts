@@ -1047,33 +1047,28 @@ async function readDenoConfig(
 }
 
 export function routeWarnings(routes: Route[]) {
-  type RouteMap = Record<string, { dynamic: Route[]; static: Route[] }>;
+  type RouteMap = Record<string, { dynamic: Route[] }>;
   const isDynamicRoute = (route: Route) =>
     /:\w+/.test(route.pattern) && !route.name.startsWith("islands");
-  const isStaticRoute = (route: Route) =>
-    !route.name.startsWith("islands") && !route.name.includes("index");
 
   const routesByDir = routes.reduce((routeMap: RouteMap, route) => {
     const dir = route.pattern.split("/").slice(0, -1).join("/");
-    if (!routeMap[dir]) routeMap[dir] = { dynamic: [], static: [] };
+    if (!routeMap[dir]) routeMap[dir] = { dynamic: [] };
     if (isDynamicRoute(route)) {
       routeMap[dir].dynamic.push(route);
-    } else if (isStaticRoute(route)) {
-      routeMap[dir].static.push(route);
     }
     return routeMap;
   }, {});
 
   const conflicts = Object.values(routesByDir).reduce(
     (acc: string[], map) => {
-      if (map.dynamic.length > 0 && map.static.length > 0) {
-        map.dynamic.forEach((dynamicRoute) => {
-          const staticRoutes = map.static.map((route) => `  ${route.pattern}`)
-            .join("\n");
-          const message =
-            `Potential route conflict: The dynamic route '${dynamicRoute.pattern}' will sort below the following static routes:\n${staticRoutes}\n`;
-          acc.push(message);
-        });
+      if (map.dynamic.length > 1) {
+        const conflictingRoutes = map.dynamic.map((route) =>
+          `  ${route.pattern}`
+        ).join("\n");
+        const message =
+          `Potential route conflict. The following dynamic routes may conflict:\n${conflictingRoutes}\n`;
+        acc.push(message);
       }
       return acc;
     },
