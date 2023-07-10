@@ -45,6 +45,7 @@ const toc: RawTableOfContents = {
         link: "latest",
         pages: [
           ["architecture", "Architecture", "link:latest"],
+          ["server-components", "Server Components", "link:latest"],
           ["routes", "Routes", "link:canary"],
           ["forms", "Forms", "link:latest"],
           ["islands", "Interactive islands", "link:canary"],
@@ -120,6 +121,7 @@ const toc: RawTableOfContents = {
         title: "Concepts",
         pages: [
           ["architecture", "Architecture"],
+          ["server-components", "Server Components"],
           ["routes", "Routes"],
           ["forms", "Forms"],
           ["islands", "Interactive islands"],

@@ -43,5 +43,10 @@ export default {
         "background-repeat": "no-repeat",
       };
     },
+    "grow": () => {
+      return {
+        "flex-grow": "1",
+      };
+    },
   },
 } as Options;
