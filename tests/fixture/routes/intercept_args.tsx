@@ -1,4 +1,4 @@
-import { MultiHandler, PageProps } from "$fresh/server.ts";
+import { Handlers, PageProps } from "$fresh/server.ts";
 
 interface Data extends Record<string, unknown> {
   info: string;
@@ -8,7 +8,7 @@ export default function Page({ data }: PageProps<Data>) {
   return <div>{data.info}</div>;
 }
 
-export const handler: MultiHandler<Data> = {
+export const handler: Handlers<Data> = {
   GET(req, { render }) {
     if (req.headers.get("accept")?.includes("text/html")) {
       return render({

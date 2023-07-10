@@ -54,7 +54,7 @@ Islands support passing JSX elements via the `children` property. This allows
 you to pass static content rendered by the server to an island in the browser.
 
 ```jsx
-// file: /route/index.tsx
+// route/index.tsx
 import MyIsland from "../islands/my-island.tsx";
 
 export default function Home() {
@@ -78,7 +78,7 @@ like a normal Preact component, but still receive the serialized props if any
 were present.
 
 ```jsx
-// file: /route/index.tsx
+// route/index.tsx
 import MyIsland from "../islands/my-island.tsx";
 import OtherIsland from "../islands/other-island.tsx";
 
@@ -98,7 +98,7 @@ a way that's most optimal for your use app. We'll keep sending only the
 JavaScript that is needed for the islands to the browser.
 
 ```jsx
-// file: /route/index.tsx
+// route/index.tsx
 import MyIsland from "../islands/my-island.tsx";
 import OtherIsland from "../islands/other-island.tsx";
 

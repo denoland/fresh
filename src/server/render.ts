@@ -36,8 +36,12 @@ export interface AdvancedPreactOptions extends PreactOptions {
   __c?(vnode: VNode, commitQueue: Component[]): void;
   /** Attach a hook that is invoked before a vnode has rendered. */
   __r?(vnode: VNode): void;
+  errorBoundaries?: boolean;
 }
 const options = preactOptions as AdvancedPreactOptions;
+
+// Enable error boundaries in Preact.
+options.errorBoundaries = true;
 
 export interface RenderOptions<Data> {
   route: Route<Data> | UnknownPage | ErrorPage;
@@ -350,8 +354,9 @@ export async function render<Data>(
     let islandRegistry = "";
     for (const island of ENCOUNTERED_ISLANDS) {
       const url = addImport(`island-${island.id}.js`);
-      script += `import ${island.name} from "${url}";`;
-      islandRegistry += `${island.id}:${island.name},`;
+      script +=
+        `import * as ${island.name}_${island.exportName} from "${url}";`;
+      islandRegistry += `${island.id}:${island.name}_${island.exportName},`;
     }
     script += `revive({${islandRegistry}}, STATE[0]);`;
   }
@@ -536,7 +541,7 @@ options.vnode = (vnode) => {
 
         return wrapWithMarker(
           child,
-          `frsh-${island.id}:${ISLAND_PROPS.length - 1}`,
+          `frsh-${island.id}:${island.exportName}:${ISLAND_PROPS.length - 1}`,
         );
       };
     }
