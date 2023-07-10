@@ -36,8 +36,12 @@ export interface AdvancedPreactOptions extends PreactOptions {
   __c?(vnode: VNode, commitQueue: Component[]): void;
   /** Attach a hook that is invoked before a vnode has rendered. */
   __r?(vnode: VNode): void;
+  errorBoundaries?: boolean;
 }
 const options = preactOptions as AdvancedPreactOptions;
+
+// Enable error boundaries in Preact.
+options.errorBoundaries = true;
 
 export interface RenderOptions<Data> {
   route: Route<Data> | UnknownPage | ErrorPage;
