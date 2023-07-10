@@ -353,6 +353,11 @@
     "image": "kanji-academy"
   },
   {
+    "title": "SanQizz Store",
+    "link": "https://sanqizz.deno.dev/",
+    "image": "SanQizz"
+  },
+  {
     "title": "Do not remove this, it's for preventing conflicts by trailing comma",
     "link": "",
     "github": "",
