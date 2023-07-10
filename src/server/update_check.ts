@@ -33,7 +33,10 @@ export async function updateCheck(
   getLatestVersion = fetchLatestVersion,
 ) {
   // Skip update checks on CI or Deno Deploy
-  if (Deno.env.get("CI") || Deno.env.get("FRESH_NO_UPDATE_CHECK") || !DEBUG) {
+  if (
+    Deno.env.get("CI") === "true" || Deno.env.get("FRESH_NO_UPDATE_CHECK") ||
+    !DEBUG
+  ) {
     return;
   }
 

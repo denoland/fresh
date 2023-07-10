@@ -14,6 +14,7 @@ Deno.test({
     await new Deno.Command(Deno.execPath(), {
       args: ["run", "-A", "./tests/fixture_update_check/mod.ts"],
       env: {
+        CI: "false",
         DENO_DIR: tmpDirName,
       },
     }).output();
@@ -40,6 +41,7 @@ Deno.test({
         const out = await new Deno.Command(Deno.execPath(), {
           args: ["run", "-A", "./tests/fixture_update_check/mod.ts"],
           env: {
+            CI: "false",
             [env]: "true",
             DENO_DIR: tmpDirName,
             LATEST_VERSION: "1.30.0",
@@ -74,6 +76,7 @@ Deno.test({
     const out = await new Deno.Command(Deno.execPath(), {
       args: ["run", "-A", "./tests/fixture_update_check/mod.ts"],
       env: {
+        CI: "false",
         DENO_DIR: tmpDirName,
         LATEST_VERSION: "1.30.0",
       },
@@ -107,6 +110,7 @@ Deno.test({
       const out = await new Deno.Command(Deno.execPath(), {
         args: ["run", "-A", "./tests/fixture_update_check/mod.ts"],
         env: {
+          CI: "false",
           UPDATE_INTERVAL: "100000",
           DENO_DIR: tmpDirName,
           LATEST_VERSION: "1.30.0",
@@ -121,6 +125,7 @@ Deno.test({
       const out = await new Deno.Command(Deno.execPath(), {
         args: ["run", "-A", "./tests/fixture_update_check/mod.ts"],
         env: {
+          CI: "false",
           UPDATE_INTERVAL: "100000",
           DENO_DIR: tmpDirName,
           LATEST_VERSION: "1.30.0",
@@ -135,6 +140,7 @@ Deno.test({
       const out = await new Deno.Command(Deno.execPath(), {
         args: ["run", "-A", "./tests/fixture_update_check/mod.ts"],
         env: {
+          CI: "false",
           UPDATE_INTERVAL: "1 ",
           DENO_DIR: tmpDirName,
           LATEST_VERSION: "1.30.0",
