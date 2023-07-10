@@ -1,6 +1,6 @@
 import { RouteConfig } from "$fresh/server.ts";
 import { Handlers } from "$fresh/server.ts";
-import { parse } from "$std/semver/mod.ts";
+import { format, parse } from "$std/semver/mod.ts";
 import VERSIONS from "../../versions.json" assert { type: "json" };
 import { extname } from "$std/path/mod.ts";
 
@@ -22,16 +22,16 @@ export const handler: Handlers = {
     const isHTML = accept?.includes("text/html");
     const { version, path } = ctx.params;
 
-    const semver = parse(version, { includePrerelease: true });
+    const semver = parse(version);
     if (!semver) {
       return new Response("Invalid version", { status: 400 });
     }
 
-    if (!VERSIONS.includes(semver.version)) {
+    if (!VERSIONS.includes(format(semver))) {
       return new Response("Version not found", { status: 404 });
     }
 
-    const url = `${BASE_URL}${semver.version}/${path}`;
+    const url = `${BASE_URL}${format(semver)}/${path}`;
     const r = await fetch(url, { redirect: "manual" });
     const response = new Response(r.body, r);
     response.headers.delete("content-encoding");

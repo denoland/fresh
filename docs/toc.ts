@@ -45,11 +45,11 @@ const toc: RawTableOfContents = {
         link: "latest",
         pages: [
           ["architecture", "Architecture", "link:latest"],
-          ["routes", "Routes", "link:latest"],
+          ["routes", "Routes", "link:canary"],
           ["forms", "Forms", "link:latest"],
-          ["islands", "Interactive islands", "link:latest"],
+          ["islands", "Interactive islands", "link:canary"],
           ["static-files", "Static files", "link:latest"],
-          ["middleware", "Route middleware", "link:latest"],
+          ["middleware", "Route middleware", "link:canary"],
           ["error-pages", "Error pages", "link:latest"],
           ["routing", "Routing", "link:latest"],
           ["data-fetching", "Data fetching", "link:latest"],
@@ -57,7 +57,7 @@ const toc: RawTableOfContents = {
           ["plugins", "Plugins", "link:latest"],
           ["updating", "Updating Fresh", "link:latest"],
           ["app-wrapper", "Application wrapper", "link:latest"],
-          ["server-configuration", "Server configuration", "link:latest"],
+          ["server-configuration", "Server configuration", "link:canary"],
         ],
       },
       integrations: {

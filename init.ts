@@ -509,6 +509,11 @@ const config = {
     start: "deno run -A --watch=static/,routes/ dev.ts",
     update: "deno run -A -r https://fresh.deno.dev/update .",
   },
+  lint: {
+    rules: {
+      tags: ["fresh", "recommended"],
+    },
+  },
   imports: {} as Record<string, string>,
   compilerOptions: {
     jsx: "react-jsx",
@@ -549,6 +554,18 @@ const vscodeSettings = {
   "deno.enable": true,
   "deno.lint": true,
   "editor.defaultFormatter": "denoland.vscode-deno",
+  "[typescriptreact]": {
+    "editor.defaultFormatter": "denoland.vscode-deno",
+  },
+  "[typescript]": {
+    "editor.defaultFormatter": "denoland.vscode-deno",
+  },
+  "[javascriptreact]": {
+    "editor.defaultFormatter": "denoland.vscode-deno",
+  },
+  "[javascript]": {
+    "editor.defaultFormatter": "denoland.vscode-deno",
+  },
 };
 
 const VSCODE_SETTINGS = JSON.stringify(vscodeSettings, null, 2) + "\n";
