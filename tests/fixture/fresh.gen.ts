@@ -25,21 +25,24 @@ import * as $19 from "./routes/islands/root_fragment.tsx";
 import * as $20 from "./routes/islands/root_fragment_conditional_first.tsx";
 import * as $21 from "./routes/layeredMdw/_middleware.ts";
 import * as $22 from "./routes/layeredMdw/layer2-no-mw/without_mw.ts";
-import * as $23 from "./routes/layeredMdw/layer2/_middleware.ts";
-import * as $24 from "./routes/layeredMdw/layer2/abc.ts";
-import * as $25 from "./routes/layeredMdw/layer2/index.ts";
-import * as $26 from "./routes/layeredMdw/layer2/layer3/[id].ts";
-import * as $27 from "./routes/layeredMdw/layer2/layer3/_middleware.ts";
-import * as $28 from "./routes/middleware_root.ts";
-import * as $29 from "./routes/not_found.ts";
-import * as $30 from "./routes/params.tsx";
-import * as $31 from "./routes/props/[id].tsx";
-import * as $32 from "./routes/state-in-props/_middleware.ts";
-import * as $33 from "./routes/state-in-props/index.tsx";
-import * as $34 from "./routes/static.tsx";
-import * as $35 from "./routes/status_overwrite.tsx";
-import * as $36 from "./routes/umlaut-äöüß.tsx";
-import * as $37 from "./routes/wildcard.tsx";
+import * as $23 from "./routes/layeredMdw/layer2-with-params/[tenantId]/[id].ts";
+import * as $24 from "./routes/layeredMdw/layer2-with-params/[tenantId]/_middleware.ts";
+import * as $25 from "./routes/layeredMdw/layer2-with-params/_middleware.ts";
+import * as $26 from "./routes/layeredMdw/layer2/_middleware.ts";
+import * as $27 from "./routes/layeredMdw/layer2/abc.ts";
+import * as $28 from "./routes/layeredMdw/layer2/index.ts";
+import * as $29 from "./routes/layeredMdw/layer2/layer3/[id].ts";
+import * as $30 from "./routes/layeredMdw/layer2/layer3/_middleware.ts";
+import * as $31 from "./routes/middleware_root.ts";
+import * as $32 from "./routes/not_found.ts";
+import * as $33 from "./routes/params.tsx";
+import * as $34 from "./routes/props/[id].tsx";
+import * as $35 from "./routes/state-in-props/_middleware.ts";
+import * as $36 from "./routes/state-in-props/index.tsx";
+import * as $37 from "./routes/static.tsx";
+import * as $38 from "./routes/status_overwrite.tsx";
+import * as $39 from "./routes/umlaut-äöüß.tsx";
+import * as $40 from "./routes/wildcard.tsx";
 import * as $$0 from "./islands/Counter.tsx";
 import * as $$1 from "./islands/MultipleCounters.tsx";
 import * as $$2 from "./islands/ReturningNull.tsx";
@@ -75,21 +78,24 @@ const manifest = {
     "./routes/islands/root_fragment_conditional_first.tsx": $20,
     "./routes/layeredMdw/_middleware.ts": $21,
     "./routes/layeredMdw/layer2-no-mw/without_mw.ts": $22,
-    "./routes/layeredMdw/layer2/_middleware.ts": $23,
-    "./routes/layeredMdw/layer2/abc.ts": $24,
-    "./routes/layeredMdw/layer2/index.ts": $25,
-    "./routes/layeredMdw/layer2/layer3/[id].ts": $26,
-    "./routes/layeredMdw/layer2/layer3/_middleware.ts": $27,
-    "./routes/middleware_root.ts": $28,
-    "./routes/not_found.ts": $29,
-    "./routes/params.tsx": $30,
-    "./routes/props/[id].tsx": $31,
-    "./routes/state-in-props/_middleware.ts": $32,
-    "./routes/state-in-props/index.tsx": $33,
-    "./routes/static.tsx": $34,
-    "./routes/status_overwrite.tsx": $35,
-    "./routes/umlaut-äöüß.tsx": $36,
-    "./routes/wildcard.tsx": $37,
+    "./routes/layeredMdw/layer2-with-params/[tenantId]/[id].ts": $23,
+    "./routes/layeredMdw/layer2-with-params/[tenantId]/_middleware.ts": $24,
+    "./routes/layeredMdw/layer2-with-params/_middleware.ts": $25,
+    "./routes/layeredMdw/layer2/_middleware.ts": $26,
+    "./routes/layeredMdw/layer2/abc.ts": $27,
+    "./routes/layeredMdw/layer2/index.ts": $28,
+    "./routes/layeredMdw/layer2/layer3/[id].ts": $29,
+    "./routes/layeredMdw/layer2/layer3/_middleware.ts": $30,
+    "./routes/middleware_root.ts": $31,
+    "./routes/not_found.ts": $32,
+    "./routes/params.tsx": $33,
+    "./routes/props/[id].tsx": $34,
+    "./routes/state-in-props/_middleware.ts": $35,
+    "./routes/state-in-props/index.tsx": $36,
+    "./routes/static.tsx": $37,
+    "./routes/status_overwrite.tsx": $38,
+    "./routes/umlaut-äöüß.tsx": $39,
+    "./routes/wildcard.tsx": $40,
   },
   islands: {
     "./islands/Counter.tsx": $$0,
