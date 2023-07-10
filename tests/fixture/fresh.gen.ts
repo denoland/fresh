@@ -33,16 +33,20 @@ import * as $27 from "./routes/layeredMdw/layer2/abc.ts";
 import * as $28 from "./routes/layeredMdw/layer2/index.ts";
 import * as $29 from "./routes/layeredMdw/layer2/layer3/[id].ts";
 import * as $30 from "./routes/layeredMdw/layer2/layer3/_middleware.ts";
-import * as $31 from "./routes/middleware_root.ts";
-import * as $32 from "./routes/not_found.ts";
-import * as $33 from "./routes/params.tsx";
-import * as $34 from "./routes/props/[id].tsx";
-import * as $35 from "./routes/state-in-props/_middleware.ts";
-import * as $36 from "./routes/state-in-props/index.tsx";
-import * as $37 from "./routes/static.tsx";
-import * as $38 from "./routes/status_overwrite.tsx";
-import * as $39 from "./routes/umlaut-äöüß.tsx";
-import * as $40 from "./routes/wildcard.tsx";
+import * as $31 from "./routes/layeredMdw/nesting/[tenant]/[environment]/[id].tsx";
+import * as $32 from "./routes/layeredMdw/nesting/[tenant]/[environment]/_middleware.ts";
+import * as $33 from "./routes/layeredMdw/nesting/[tenant]/_middleware.ts";
+import * as $34 from "./routes/layeredMdw/nesting/_middleware.ts";
+import * as $35 from "./routes/middleware_root.ts";
+import * as $36 from "./routes/not_found.ts";
+import * as $37 from "./routes/params.tsx";
+import * as $38 from "./routes/props/[id].tsx";
+import * as $39 from "./routes/state-in-props/_middleware.ts";
+import * as $40 from "./routes/state-in-props/index.tsx";
+import * as $41 from "./routes/static.tsx";
+import * as $42 from "./routes/status_overwrite.tsx";
+import * as $43 from "./routes/umlaut-äöüß.tsx";
+import * as $44 from "./routes/wildcard.tsx";
 import * as $$0 from "./islands/Counter.tsx";
 import * as $$1 from "./islands/MultipleCounters.tsx";
 import * as $$2 from "./islands/ReturningNull.tsx";
@@ -86,16 +90,20 @@ const manifest = {
     "./routes/layeredMdw/layer2/index.ts": $28,
     "./routes/layeredMdw/layer2/layer3/[id].ts": $29,
     "./routes/layeredMdw/layer2/layer3/_middleware.ts": $30,
-    "./routes/middleware_root.ts": $31,
-    "./routes/not_found.ts": $32,
-    "./routes/params.tsx": $33,
-    "./routes/props/[id].tsx": $34,
-    "./routes/state-in-props/_middleware.ts": $35,
-    "./routes/state-in-props/index.tsx": $36,
-    "./routes/static.tsx": $37,
-    "./routes/status_overwrite.tsx": $38,
-    "./routes/umlaut-äöüß.tsx": $39,
-    "./routes/wildcard.tsx": $40,
+    "./routes/layeredMdw/nesting/[tenant]/[environment]/[id].tsx": $31,
+    "./routes/layeredMdw/nesting/[tenant]/[environment]/_middleware.ts": $32,
+    "./routes/layeredMdw/nesting/[tenant]/_middleware.ts": $33,
+    "./routes/layeredMdw/nesting/_middleware.ts": $34,
+    "./routes/middleware_root.ts": $35,
+    "./routes/not_found.ts": $36,
+    "./routes/params.tsx": $37,
+    "./routes/props/[id].tsx": $38,
+    "./routes/state-in-props/_middleware.ts": $39,
+    "./routes/state-in-props/index.tsx": $40,
+    "./routes/static.tsx": $41,
+    "./routes/status_overwrite.tsx": $42,
+    "./routes/umlaut-äöüß.tsx": $43,
+    "./routes/wildcard.tsx": $44,
   },
   islands: {
     "./islands/Counter.tsx": $$0,

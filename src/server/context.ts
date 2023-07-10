@@ -278,7 +278,7 @@ export class ServerContext {
       }
     }
     sortRoutes(routes);
-    sortRoutes(middlewares);
+    sortMiddleware(middlewares);
 
     for (const [self, module] of Object.entries(manifest.islands)) {
       const url = new URL(self, baseUrl).href;
@@ -886,7 +886,7 @@ export function selectMiddlewares(url: string, middlewares: MiddlewareRoute[]) {
  * Sort pages by their relative routing priority, based on the parts in the
  * route matcher
  */
-function sortRoutes<T extends { pattern: string }>(routes: T[]) {
+export function sortRoutes<T extends { pattern: string }>(routes: T[]) {
   routes.sort((a, b) => {
     const partsA = a.pattern.split("/");
     const partsB = b.pattern.split("/");
@@ -902,6 +902,40 @@ function sortRoutes<T extends { pattern: string }>(routes: T[]) {
     }
     return 0;
   });
+}
+
+export function sortMiddleware<T extends { pattern: string }>(routes: T[]) {
+  routes.sort((a, b) => {
+    const partsA = a.pattern.split("/");
+    const partsB = b.pattern.split("/");
+
+    for (let i = 0; i < Math.max(partsA.length, partsB.length); i++) {
+      const partA = partsA[i];
+      const partB = partsB[i];
+
+      if (partA === undefined && partB === undefined) return 0;
+      if (partA === undefined) return -1;
+      if (partB === undefined) return 1;
+
+      if (partA === partB) continue;
+
+      const priorityA = getPriority(partA);
+      const priorityB = getPriority(partB);
+
+      if (priorityA !== priorityB) {
+        return priorityA - priorityB; // Sort in ascending order of priority
+      }
+    }
+
+    return 0;
+  });
+}
+
+function getPriority(part: string) {
+  if (part.startsWith(":")) {
+    return part.endsWith("*") ? 2 : 1;
+  }
+  return 0;
 }
 
 /** Transform a filesystem URL path to a `path-to-regex` style matcher. */
