@@ -47,6 +47,16 @@ async function collectDir(dir: string): Promise<string[]> {
   });
 
   for await (const entry of routesFolder) {
+    const fileNameWithoutExt = relative(dir, entry.path).split(".").slice(0, -1)
+      .join(".");
+
+    if (fileNames.has(fileNameWithoutExt)) {
+      throw new Error(
+        `Route conflict detected. Multiple files have the same name: ${dir}${fileNameWithoutExt}`,
+      );
+    }
+
+    fileNames.add(fileNameWithoutExt);
     paths.push(relative(dir, entry.path));
   }
 
