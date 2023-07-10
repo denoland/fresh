@@ -1,12 +1,4 @@
-import {
-  dirname,
-  fromFileUrl,
-  gte,
-  join,
-  toFileUrl,
-  walk,
-  WalkError,
-} from "./deps.ts";
+import { dirname, fromFileUrl, gte, join, toFileUrl, walk } from "./deps.ts";
 import { error } from "./error.ts";
 
 const MIN_DENO_VERSION = "1.31.0";
@@ -29,6 +21,15 @@ export function ensureMinDenoVersion() {
 }
 
 async function collectDir(dir: string): Promise<string[]> {
+  // Check if provided path is a directory
+  try {
+    const stat = await Deno.stat(dir);
+    if (!stat.isDirectory) return [];
+  } catch (err) {
+    if (err instanceof Deno.errors.NotFound) return [];
+    throw err;
+  }
+
   const dirUrl = toFileUrl(dir);
   const paths = [];
   const routesFolder = walk(dir, {
@@ -37,19 +38,11 @@ async function collectDir(dir: string): Promise<string[]> {
     exts: ["tsx", "jsx", "ts", "js"],
   });
 
-  try {
-    for await (const entry of routesFolder) {
-      const path = toFileUrl(entry.path).href.substring(
-        dirUrl.href.length,
-      );
-      paths.push(path);
-    }
-  } catch (err) {
-    if (err instanceof WalkError && err.cause instanceof Deno.errors.NotFound) {
-      // Do nothing.
-      return [];
-    }
-    throw err;
+  for await (const entry of routesFolder) {
+    const path = toFileUrl(entry.path).href.substring(
+      dirUrl.href.length,
+    );
+    paths.push(path);
   }
 
   paths.sort();
