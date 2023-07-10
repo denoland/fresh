@@ -31,6 +31,11 @@ ol.nested li:before {
   list-style: numeric;
 }
 
+.markdown-body .highlight {
+  border: 1px solid #eaeef1;
+  border-radius: .5rem;
+}
+
 .toggle:checked + .toggled {
 	display: block;
 }

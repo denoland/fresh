@@ -10,10 +10,7 @@ use-cases for this are logging, authentication, and performance monitoring.
 
 Each middleware gets passed a `next` function in the context argument that is
 used to trigger child handlers. The `ctx` also has a `state` property that can
-be used to pass arbitrary data to downstream (or upstream) handlers. This
-`state` is included in `PageProps` by default, which is available to both the
-special [\_app](/docs/concepts/app-wrapper.md) wrapper and normal
-[routes](/docs/concepts/routes.md).
+be used to pass arbitrary data to downstream (or upstream) handlers.
 
 ```ts
 // routes/_middleware.ts
@@ -50,11 +47,15 @@ specific first).
 
 For example, take a project with the following routes:
 
-- `routes/_middleware.ts`
-- `routes/index.ts`
-- `routes/admin/_middleware.ts`
-- `routes/admin/index.ts`
-- `routes/admin/signin.ts`
+```
+└── routes
+    ├── _middleware.ts
+    ├── index.ts
+    └── admin
+        ├── _middleware.ts
+        └── index.ts
+        └── signin.ts
+```
 
 For a request to `/` the request will flow like this:
 
@@ -113,9 +114,8 @@ and `router.DestinationKind` is defined like this:
 export type DestinationKind = "internal" | "static" | "route" | "notFound";
 ```
 
-This is useful for if you want your middleware to only run when a request is
-headed for a `route`, as opposed to something like
-`http://localhost:8001/favicon.ico`.
+This is useful if you want your middleware to only run when a request is headed
+for a `route`, as opposed to something like `http://localhost:8001/favicon.ico`.
 
 ### Example
 
