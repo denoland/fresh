@@ -193,6 +193,11 @@ export class ServerContext {
           pattern = String(config.routeOverride);
         }
         let { handler } = module as RouteModule;
+        if (!handler && "handlers" in module) {
+          throw new Error(
+            `Found named export "handlers" in ${self} instead of "handler". Did you mean "handler"?`,
+          );
+        }
         handler ??= {};
         if (
           component && typeof handler === "object" && handler.GET === undefined
@@ -282,14 +287,21 @@ export class ServerContext {
       }
       const path = url.substring(baseUrl.length).substring("islands".length);
       const baseRoute = path.substring(1, path.length - extname(path).length);
-      const name = sanitizeIslandName(baseRoute);
-      const id = name.toLowerCase();
-      if (typeof module.default !== "function") {
-        throw new TypeError(
-          `Islands must default export a component ('${self}').`,
-        );
+
+      for (const [exportName, exportedFunction] of Object.entries(module)) {
+        if (typeof exportedFunction !== "function") {
+          continue;
+        }
+        const name = sanitizeIslandName(baseRoute);
+        const id = `${name}_${exportName}`.toLowerCase();
+        islands.push({
+          id,
+          name,
+          url,
+          component: exportedFunction,
+          exportName,
+        });
       }
-      islands.push({ id, name, url, component: module.default });
     }
 
     const staticFiles: StaticFile[] = [];
@@ -943,7 +955,7 @@ function toPascalCase(text: string): string {
 }
 
 function sanitizeIslandName(name: string): string {
-  const fileName = name.replace("/", "");
+  const fileName = name.replaceAll("/", "_");
   return toPascalCase(fileName);
 }
 

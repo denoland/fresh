@@ -14,7 +14,7 @@ interface ProjectProps {
 export default function Projects(props: ProjectProps) {
   return (
     <div
-      class={`pt-8 grid grid-cols-1 md:grid-cols-3 items-center ${
+      class={`pt-8 grid grid-cols-1 sm:grid-cols-3 items-center ${
         props.class ?? ""
       }`}
     >
@@ -42,7 +42,7 @@ export default function Projects(props: ProjectProps) {
                 class="ml-2 text-gray-500 hover:text-gray-700"
               >
                 <span class="sr-only">GitHub</span>
-                <Icons.GitHub class="inline float-right" />
+                <Icons.GitHub class="inline float-right h-6 w-6" />
               </a>
             )}
           </div>
