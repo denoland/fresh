@@ -28,8 +28,8 @@ as arguments in its `props` object though.
 > the same directory, possibly leading to confusion. Fresh will always choose
 > the static route first. E.g. `/nested/index.ts` and `/nested/static.ts` will
 > always route ahead of `/nested/[id].ts`. Fresh will warn you of multiple
-> conflicting dynamic routes in development mode, e.g. `/nested/[dynamic1].ts` and
-> `/nested/[dynamic2].ts`.
+> conflicting dynamic routes in development mode, e.g. `/nested/[dynamic1].ts`
+> and `/nested/[dynamic2].ts`.
 
 ```tsx
 // routes/greet/[name].tsx
