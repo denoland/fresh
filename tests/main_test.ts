@@ -879,3 +879,28 @@ Deno.test("renders error boundary", {
     assertEquals(text, "it works");
   });
 });
+
+Deno.test({
+  name: "Resolves routes with non-latin characters",
+
+  async fn() {
+    await withPageName("./tests/fixture/main.ts", async (page, address) => {
+      // Check that we can navigate to the page
+      await page.goto(`${address}/umlaut-äöüß`);
+      await page.waitForSelector("h1");
+      const text = await page.$eval("h1", (el) => el.textContent);
+      assertEquals(text, "it works");
+
+      // Check the manifest
+      const mod = (await import("./fixture/fresh.gen.ts")).default;
+
+      assert(
+        "./routes/umlaut-äöüß.tsx" in mod.routes,
+        "Umlaut route not found",
+      );
+    });
+  },
+
+  sanitizeOps: false,
+  sanitizeResources: false,
+});
