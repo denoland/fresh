@@ -45,6 +45,7 @@ import {
   EsbuildBuilder,
   JSXConfig,
 } from "../build/mod.ts";
+import { InternalRoute } from "./router.ts";
 
 const DEFAULT_CONN_INFO: ConnInfo = {
   localAddr: { transport: "tcp", hostname: "localhost", port: 8080 },
@@ -192,6 +193,11 @@ export class ServerContext {
           pattern = String(config.routeOverride);
         }
         let { handler } = module as RouteModule;
+        if (!handler && "handlers" in module) {
+          throw new Error(
+            `Found named export "handlers" in ${self} instead of "handler". Did you mean "handler"?`,
+          );
+        }
         handler ??= {};
         if (
           component && typeof handler === "object" && handler.GET === undefined
@@ -272,7 +278,7 @@ export class ServerContext {
       }
     }
     sortRoutes(routes);
-    sortRoutes(middlewares);
+    sortMiddleware(middlewares);
 
     for (const [self, module] of Object.entries(manifest.islands)) {
       const url = new URL(self, baseUrl).href;
@@ -281,14 +287,21 @@ export class ServerContext {
       }
       const path = url.substring(baseUrl.length).substring("islands".length);
       const baseRoute = path.substring(1, path.length - extname(path).length);
-      const name = sanitizeIslandName(baseRoute);
-      const id = name.toLowerCase();
-      if (typeof module.default !== "function") {
-        throw new TypeError(
-          `Islands must default export a component ('${self}').`,
-        );
+
+      for (const [exportName, exportedFunction] of Object.entries(module)) {
+        if (typeof exportedFunction !== "function") {
+          continue;
+        }
+        const name = sanitizeIslandName(baseRoute);
+        const id = `${name}_${exportName}`.toLowerCase();
+        islands.push({
+          id,
+          name,
+          url,
+          component: exportedFunction,
+          exportName,
+        });
       }
-      islands.push({ id, name, url, component: module.default });
     }
 
     const staticFiles: StaticFile[] = [];
@@ -367,6 +380,7 @@ export class ServerContext {
     const withMiddlewares = this.#composeMiddlewares(
       this.#middlewares,
       handlers.errorHandler,
+      router.getParamsAndRoute<RouterState>(handlers),
     );
     const trailingSlashEnabled = this.#routerOptions?.trailingSlash;
     return async function handler(
@@ -425,6 +439,12 @@ export class ServerContext {
   #composeMiddlewares(
     middlewares: MiddlewareRoute[],
     errorHandler: router.ErrorHandler<RouterState>,
+    paramsAndRoute: (
+      url: string,
+    ) => {
+      route: InternalRoute<RouterState> | undefined;
+      params: Record<string, string>;
+    },
   ) {
     return (
       req: Request,
@@ -436,6 +456,7 @@ export class ServerContext {
       const mws = selectMiddlewares(req.url, middlewares);
 
       const handlers: (() => Response | Promise<Response>)[] = [];
+      const paramsAndRouteResult = paramsAndRoute(req.url);
 
       const middlewareCtx: MiddlewareHandlerContext = {
         next() {
@@ -458,6 +479,7 @@ export class ServerContext {
         ...connInfo,
         state: {},
         destination: "route",
+        params: paramsAndRouteResult.params,
       };
 
       for (const mw of mws) {
@@ -478,6 +500,8 @@ export class ServerContext {
       const { destination, handler } = inner(
         req,
         ctx,
+        paramsAndRouteResult.params,
+        paramsAndRouteResult.route,
       );
       handlers.push(handler);
       middlewareCtx.destination = destination;
@@ -862,7 +886,7 @@ export function selectMiddlewares(url: string, middlewares: MiddlewareRoute[]) {
  * Sort pages by their relative routing priority, based on the parts in the
  * route matcher
  */
-function sortRoutes<T extends { pattern: string }>(routes: T[]) {
+export function sortRoutes<T extends { pattern: string }>(routes: T[]) {
   routes.sort((a, b) => {
     const partsA = a.pattern.split("/");
     const partsB = b.pattern.split("/");
@@ -878,6 +902,40 @@ function sortRoutes<T extends { pattern: string }>(routes: T[]) {
     }
     return 0;
   });
+}
+
+export function sortMiddleware<T extends { pattern: string }>(routes: T[]) {
+  routes.sort((a, b) => {
+    const partsA = a.pattern.split("/");
+    const partsB = b.pattern.split("/");
+
+    for (let i = 0; i < Math.max(partsA.length, partsB.length); i++) {
+      const partA = partsA[i];
+      const partB = partsB[i];
+
+      if (partA === undefined && partB === undefined) return 0;
+      if (partA === undefined) return -1;
+      if (partB === undefined) return 1;
+
+      if (partA === partB) continue;
+
+      const priorityA = getPriority(partA);
+      const priorityB = getPriority(partB);
+
+      if (priorityA !== priorityB) {
+        return priorityA - priorityB; // Sort in ascending order of priority
+      }
+    }
+
+    return 0;
+  });
+}
+
+function getPriority(part: string) {
+  if (part.startsWith(":")) {
+    return part.endsWith("*") ? 2 : 1;
+  }
+  return 0;
 }
 
 /** Transform a filesystem URL path to a `path-to-regex` style matcher. */
@@ -931,7 +989,7 @@ function toPascalCase(text: string): string {
 }
 
 function sanitizeIslandName(name: string): string {
-  const fileName = name.replace("/", "");
+  const fileName = name.replaceAll("/", "_");
   return toPascalCase(fileName);
 }
 

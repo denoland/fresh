@@ -4,9 +4,8 @@ import {
   assertStringIncludes,
   delay,
   Page,
-  puppeteer,
 } from "./deps.ts";
-import { startFreshServer } from "./test_utils.ts";
+import { withPageName } from "./test_utils.ts";
 
 Deno.test({
   name: "island tests",
@@ -31,10 +30,11 @@ Deno.test({
         waitUntil: "networkidle2",
       });
 
-      await t.step("Ensure 4 islands on 1 page are revived", async () => {
+      await t.step("Ensure 5 islands on 1 page are revived", async () => {
         await counterTest("counter1", 3);
         await counterTest("counter2", 10);
         await counterTest("folder-counter", 3);
+        await counterTest("subfolder-counter", 3);
         await counterTest("kebab-case-file-counter", 5);
       });
 
@@ -59,36 +59,43 @@ Deno.test({
   sanitizeResources: false,
 });
 
+Deno.test({
+  name: "multiple islands exported from one file",
+  async fn(t) {
+    await withPage(async (page, address) => {
+      async function counterTest(counterId: string, originalValue: number) {
+        const pElem = await page.waitForSelector(`#${counterId} > p`);
+
+        let value = await pElem?.evaluate((el) => el.textContent);
+        assert(value === `${originalValue}`, `${counterId} first value`);
+
+        const buttonPlus = await page.$(`#b-${counterId}`);
+        await buttonPlus?.click();
+
+        await delay(100);
+
+        value = await pElem?.evaluate((el) => el.textContent);
+        assert(value === `${originalValue + 1}`, `${counterId} click`);
+      }
+
+      await page.goto(`${address}/islands/multiple_island_exports`, {
+        waitUntil: "networkidle2",
+      });
+
+      await t.step("Ensure 3 islands on 1 page are revived", async () => {
+        await counterTest("counter0", 4);
+        await counterTest("counter1", 3);
+        await counterTest("counter2", 10);
+      });
+    });
+  },
+
+  sanitizeOps: false,
+  sanitizeResources: false,
+});
+
 function withPage(fn: (page: Page, address: string) => Promise<void>) {
   return withPageName("./tests/fixture/main.ts", fn);
-}
-
-async function withPageName(
-  name: string,
-  fn: (page: Page, address: string) => Promise<void>,
-) {
-  const { lines, serverProcess, address } = await startFreshServer({
-    args: ["run", "-A", name],
-  });
-
-  try {
-    await delay(100);
-    const browser = await puppeteer.launch({ args: ["--no-sandbox"] });
-
-    try {
-      const page = await browser.newPage();
-      await fn(page, address);
-    } finally {
-      await browser.close();
-    }
-  } finally {
-    await lines.cancel();
-
-    serverProcess.kill("SIGTERM");
-
-    // Wait until the process exits
-    await serverProcess.status;
-  }
 }
 
 Deno.test({

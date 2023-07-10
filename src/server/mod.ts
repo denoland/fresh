@@ -1,5 +1,5 @@
 import { ServerContext } from "./context.ts";
-import * as colors from "https://deno.land/std@0.190.0/fmt/colors.ts";
+import * as colors from "https://deno.land/std@0.193.0/fmt/colors.ts";
 import { ConnInfo, serve, ServeHandler } from "./deps.ts";
 export { Status } from "./deps.ts";
 import {
@@ -80,13 +80,12 @@ export async function start(routes: Manifest, opts: StartOptions = {}) {
 
   if (!opts.onListen) {
     opts.onListen = (params) => {
+      console.log();
       console.log(
-        colors.bgRgb8(colors.black(colors.bold("\n 🍋 Fresh ready ")), 121),
+        colors.bgRgb8(colors.black(colors.bold(" 🍋 Fresh ready ")), 121),
       );
 
-      const address = colors.cyan(
-        `http://localhost:${params.port}/`,
-      );
+      const address = colors.cyan(`http://localhost:${params.port}/`);
       const localLabel = colors.bold("Local:");
       console.log(`    ${localLabel} ${address}\n`);
     };

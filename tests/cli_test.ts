@@ -2,7 +2,7 @@ import * as path from "$std/path/mod.ts";
 import {
   assertMatch,
   assertNotMatch,
-} from "https://deno.land/std@0.190.0/testing/asserts.ts";
+} from "https://deno.land/std@0.193.0/testing/asserts.ts";
 import { Status } from "../src/server/deps.ts";
 import {
   assert,
@@ -53,6 +53,7 @@ Deno.test({
       `/main.ts`,
       `/routes/greet/[name].tsx`,
       `/routes/api/joke.ts`,
+      `/routes/_app.tsx`,
       `/routes/index.tsx`,
       `/static/logo.svg`,
     ];
@@ -138,6 +139,7 @@ Deno.test({
       "/main.ts",
       "/routes/greet/[name].tsx",
       "/routes/api/joke.ts",
+      "/routes/_app.tsx",
       "/routes/index.tsx",
       "/static/logo.svg",
       "/.vscode/settings.json",

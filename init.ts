@@ -401,8 +401,18 @@ html {
 }
 `;
 
-const NO_TWIND_APP_WRAPPER = `
-import { AppProps } from "$fresh/server.ts";
+const APP_WRAPPER = useTwind
+  ? `import { AppProps } from "$fresh/server.ts";
+
+export default function App({ Component }: AppProps) {
+  return (
+    <>
+      <Component />
+    </>
+  );
+}
+`
+  : `import { AppProps } from "$fresh/server.ts";
 import { Head } from "$fresh/runtime.ts";
 
 export default function App({ Component }: AppProps) {
@@ -422,12 +432,12 @@ if (!useTwind) {
     join(resolvedDirectory, "static", "styles.css"),
     NO_TWIND_STYLES,
   );
-
-  await Deno.writeTextFile(
-    join(resolvedDirectory, "routes", "_app.tsx"),
-    NO_TWIND_APP_WRAPPER,
-  );
 }
+
+await Deno.writeTextFile(
+  join(resolvedDirectory, "routes", "_app.tsx"),
+  APP_WRAPPER,
+);
 
 const STATIC_LOGO =
   `<svg width="40" height="40" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -499,6 +509,11 @@ const config = {
     start: "deno run -A --watch=static/,routes/ dev.ts",
     update: "deno run -A -r https://fresh.deno.dev/update .",
   },
+  lint: {
+    rules: {
+      tags: ["fresh", "recommended"],
+    },
+  },
   imports: {} as Record<string, string>,
   compilerOptions: {
     jsx: "react-jsx",
@@ -539,6 +554,18 @@ const vscodeSettings = {
   "deno.enable": true,
   "deno.lint": true,
   "editor.defaultFormatter": "denoland.vscode-deno",
+  "[typescriptreact]": {
+    "editor.defaultFormatter": "denoland.vscode-deno",
+  },
+  "[typescript]": {
+    "editor.defaultFormatter": "denoland.vscode-deno",
+  },
+  "[javascriptreact]": {
+    "editor.defaultFormatter": "denoland.vscode-deno",
+  },
+  "[javascript]": {
+    "editor.defaultFormatter": "denoland.vscode-deno",
+  },
 };
 
 const VSCODE_SETTINGS = JSON.stringify(vscodeSettings, null, 2) + "\n";

@@ -9,7 +9,8 @@ import {
 import manifest from "./fixture/fresh.gen.ts";
 import options from "./fixture/options.ts";
 import { BUILD_ID } from "../src/server/build_id.ts";
-import { startFreshServer } from "./test_utils.ts";
+import { startFreshServer, withPageName } from "./test_utils.ts";
+import { assertMatch } from "https://deno.land/std@0.193.0/testing/asserts.ts";
 
 const ctx = await ServerContext.fromManifest(manifest, options);
 const handler = ctx.handler();
@@ -22,7 +23,7 @@ Deno.test("/ page prerender", async () => {
   assertEquals(resp.headers.get("server"), "fresh test server");
   const body = await resp.text();
   assertStringIncludes(body, `<html lang="en">`);
-  assertStringIncludes(body, "test.js");
+  assertStringIncludes(body, "test_default.js");
   assertStringIncludes(body, "<p>Hello!</p>");
   assertStringIncludes(body, "<p>Viewing JIT render.</p>");
   assertStringIncludes(body, `>{"v":[[{"message":"Hello!"}],[]]}</script>`);
@@ -568,6 +569,46 @@ Deno.test({
 });
 
 Deno.test({
+  name: "/middleware - middlewareParams",
+  fn: async () => {
+    const resp = await handler(
+      new Request(
+        "https://fresh.deno.dev/layeredMdw/layer2-with-params/tenant1/resource1",
+      ),
+    );
+    assert(resp);
+    assertEquals(resp.status, Status.OK);
+    const _body = await resp.text();
+    // assert that outer has access to all params
+    assertEquals(
+      resp.headers.get("middlewareParams_outer"),
+      JSON.stringify({ tenantId: "tenant1", id: "resource1" }),
+    );
+    // assert that inner also has access to all params
+    assertEquals(
+      resp.headers.get("middlewareParams_inner"),
+      JSON.stringify({ tenantId: "tenant1", id: "resource1" }),
+    );
+    assertEquals(resp.headers.get("server"), "fresh test server");
+  },
+});
+
+Deno.test({
+  name: "middleware nesting order",
+  fn: async () => {
+    const resp = await handler(
+      new Request(
+        "https://fresh.deno.dev/layeredMdw/nesting/acme/production/abc",
+      ),
+    );
+    assert(resp);
+    assertEquals(resp.status, Status.OK);
+    const body = await resp.text();
+    assertStringIncludes(body, "<div>1234</div>");
+  },
+});
+
+Deno.test({
   name: "/not_found",
   fn: async () => {
     const resp = await handler(new Request("https://fresh.deno.dev/not_found"));
@@ -637,7 +678,7 @@ Deno.test("experimental Deno.serve", {
     assertEquals(resp.headers.get("server"), "fresh test server");
     const body = await resp.text();
     assertStringIncludes(body, `<html lang="en">`);
-    assertStringIncludes(body, "test.js");
+    assertStringIncludes(body, "test_default.js");
     assertStringIncludes(body, "<p>Hello!</p>");
     assertStringIncludes(body, "<p>Viewing JIT render.</p>");
     assertStringIncludes(body, `>{"v":[[{"message":"Hello!"}],[]]}</script>`);
@@ -815,6 +856,22 @@ Deno.test("PORT environment variable", {
   serverProcess.kill("SIGTERM");
 });
 
+Deno.test("throw on route export 'handlers' instead of 'handler'", {
+  sanitizeOps: false,
+  sanitizeResources: false,
+}, async () => {
+  const result = await new Deno.Command(Deno.execPath(), {
+    args: ["run", "-A", "./tests/fixture_invalid_handlers/main.ts"],
+    stderr: "piped",
+    stdout: "piped",
+  }).output();
+
+  assertEquals(result.code, 1);
+
+  const text = new TextDecoder().decode(result.stderr);
+  assertMatch(text, /Did you mean "handler"\?/);
+});
+
 Deno.test("rendering custom _500.tsx page for default handlers", {
   sanitizeOps: false,
   sanitizeResources: false,
@@ -850,4 +907,40 @@ Deno.test("rendering custom _500.tsx page for default handlers", {
 
   await lines.cancel();
   serverProcess.kill("SIGTERM");
+});
+
+Deno.test("renders error boundary", {
+  sanitizeOps: false,
+  sanitizeResources: false,
+}, async () => {
+  await withPageName("./tests/fixture/main.ts", async (page, address) => {
+    await page.goto(`${address}/error_boundary`);
+    const text = await page.$eval("body", (el) => el.textContent);
+    assertEquals(text, "it works");
+  });
+});
+
+Deno.test({
+  name: "Resolves routes with non-latin characters",
+
+  async fn() {
+    await withPageName("./tests/fixture/main.ts", async (page, address) => {
+      // Check that we can navigate to the page
+      await page.goto(`${address}/umlaut-äöüß`);
+      await page.waitForSelector("h1");
+      const text = await page.$eval("h1", (el) => el.textContent);
+      assertEquals(text, "it works");
+
+      // Check the manifest
+      const mod = (await import("./fixture/fresh.gen.ts")).default;
+
+      assert(
+        "./routes/umlaut-äöüß.tsx" in mod.routes,
+        "Umlaut route not found",
+      );
+    });
+  },
+
+  sanitizeOps: false,
+  sanitizeResources: false,
 });
