@@ -1,8 +1,13 @@
 name: post_publish
 
+# on:
+#   release:
+#     types: [published]
 on:
-  release:
-    types: [published]
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
 
 jobs:
   update-dl-version:
