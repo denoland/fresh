@@ -1,4 +1,4 @@
-import { colors, join } from "./deps.ts";
+import { colors, dirname, join } from "./deps.ts";
 import { DEBUG } from "./constants.ts";
 
 interface CheckFile {
@@ -7,16 +7,34 @@ interface CheckFile {
   current_version: string;
 }
 
-async function getDenoDir(): Promise<string | undefined> {
-  const output = await new Deno.Command("deno", { args: ["info"] }).output();
-  const denoDir = colors.stripColor(new TextDecoder().decode(output.stdout))
-    .split(
-      /\n/g,
-    ).find(
-      (line) => line.startsWith("DENO_DIR"),
-    )?.replace("DENO_DIR location: ", "");
+function getHomeDir(): string | null {
+  switch (Deno.build.os) {
+    case "linux": {
+      const xdg = Deno.env.get("XDG_CACHE_HOME");
+      if (xdg) return xdg;
 
-  return denoDir;
+      const home = Deno.env.get("HOME");
+      if (home) return `${home}/.cache`;
+      break;
+    }
+
+    case "darwin": {
+      const home = Deno.env.get("HOME");
+      if (home) return `${home}/Library/Caches`;
+      break;
+    }
+
+    case "windows":
+      return Deno.env.get("LOCALAPPDATA") ?? null;
+  }
+
+  return null;
+}
+
+function getFreshCacheDir(): string | null {
+  const home = getHomeDir();
+  if (home) return join(home, "fresh");
+  return null;
 }
 
 async function fetchLatestVersion() {
@@ -30,6 +48,7 @@ async function fetchLatestVersion() {
 
 export async function updateCheck(
   interval: number,
+  getCacheDir = getFreshCacheDir,
   getLatestVersion = fetchLatestVersion,
 ) {
   // Skip update checks on CI or Deno Deploy
@@ -41,9 +60,15 @@ export async function updateCheck(
   }
 
   // Abort if we couldn't find a deno_dir
-  const denoDir = await getDenoDir();
-  if (!denoDir) {
-    return;
+  const home = getCacheDir();
+  if (!home) return;
+  const filePath = join(home, "latest.json");
+  try {
+    await Deno.mkdir(dirname(filePath), { recursive: true });
+  } catch (err) {
+    if (!(err instanceof Deno.errors.AlreadyExists)) {
+      throw err;
+    }
   }
 
   const versions = (await import("../../versions.json", {
@@ -53,7 +78,6 @@ export async function updateCheck(
     return;
   }
 
-  const filePath = join(denoDir, "fresh-latest.json");
   let checkFile: CheckFile = {
     current_version: versions[0],
     latest_version: versions[0],

@@ -7,16 +7,16 @@ import {
 import versions from "../versions.json" assert { type: "json" };
 
 Deno.test({
-  name: "stores update check file in DENO_DIR",
+  name: "stores update check file in $HOME/fresh",
   async fn() {
     const tmpDirName = await Deno.makeTempDir();
-    const filePath = join(tmpDirName, "fresh-latest.json");
+    const filePath = join(tmpDirName, "latest.json");
 
     await new Deno.Command(Deno.execPath(), {
       args: ["run", "-A", "./tests/fixture_update_check/mod.ts"],
       env: {
         CI: "false",
-        DENO_DIR: tmpDirName,
+        HOME: tmpDirName,
       },
     }).output();
 
@@ -44,7 +44,7 @@ Deno.test({
           env: {
             CI: "false",
             [env]: "true",
-            DENO_DIR: tmpDirName,
+            HOME: tmpDirName,
             LATEST_VERSION: "1.30.0",
           },
         }).output();
@@ -63,7 +63,7 @@ Deno.test({
   name: "shows update message on version mismatch",
   async fn() {
     const tmpDirName = await Deno.makeTempDir();
-    const filePath = join(tmpDirName, "fresh-latest.json");
+    const filePath = join(tmpDirName, "latest.json");
 
     await Deno.writeTextFile(
       filePath,
@@ -78,7 +78,7 @@ Deno.test({
       args: ["run", "-A", "./tests/fixture_update_check/mod.ts"],
       env: {
         CI: "false",
-        DENO_DIR: tmpDirName,
+        HOME: tmpDirName,
         LATEST_VERSION: "1.30.0",
       },
     }).output();
@@ -113,7 +113,7 @@ Deno.test({
         env: {
           CI: "false",
           UPDATE_INTERVAL: "100000",
-          DENO_DIR: tmpDirName,
+          HOME: tmpDirName,
           LATEST_VERSION: "1.30.0",
         },
       }).output();
@@ -128,7 +128,7 @@ Deno.test({
         env: {
           CI: "false",
           UPDATE_INTERVAL: "100000",
-          DENO_DIR: tmpDirName,
+          HOME: tmpDirName,
           LATEST_VERSION: "1.30.0",
         },
       }).output();
@@ -143,7 +143,7 @@ Deno.test({
         env: {
           CI: "false",
           UPDATE_INTERVAL: "1 ",
-          DENO_DIR: tmpDirName,
+          HOME: tmpDirName,
           LATEST_VERSION: "1.30.0",
         },
       }).output();

@@ -7,4 +7,4 @@ async function getLatestVersion() {
 }
 
 const interval = +(Deno.env.get("UPDATE_INTERVAL") ?? 1000);
-await updateCheck(interval, getLatestVersion);
+await updateCheck(interval, () => Deno.env.get("HOME")!, getLatestVersion);
