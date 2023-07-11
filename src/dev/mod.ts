@@ -3,9 +3,9 @@ import {
   fromFileUrl,
   gte,
   join,
-  toFileUrl,
+  posix,
+  relative,
   walk,
-  WalkError,
 } from "./deps.ts";
 import { error } from "./error.ts";
 
@@ -29,27 +29,35 @@ export function ensureMinDenoVersion() {
 }
 
 async function collectDir(dir: string): Promise<string[]> {
-  const dirUrl = toFileUrl(dir);
+  // Check if provided path is a directory
+  try {
+    const stat = await Deno.stat(dir);
+    if (!stat.isDirectory) return [];
+  } catch (err) {
+    if (err instanceof Deno.errors.NotFound) return [];
+    throw err;
+  }
+
   const paths = [];
+  const fileNames = new Set<string>();
   const routesFolder = walk(dir, {
     includeDirs: false,
     includeFiles: true,
     exts: ["tsx", "jsx", "ts", "js"],
   });
 
-  try {
-    for await (const entry of routesFolder) {
-      const path = toFileUrl(entry.path).href.substring(
-        dirUrl.href.length,
+  for await (const entry of routesFolder) {
+    const fileNameWithoutExt = relative(dir, entry.path).split(".").slice(0, -1)
+      .join(".");
+
+    if (fileNames.has(fileNameWithoutExt)) {
+      throw new Error(
+        `Route conflict detected. Multiple files have the same name: ${dir}${fileNameWithoutExt}`,
       );
-      paths.push(path);
     }
-  } catch (err) {
-    if (err instanceof WalkError && err.cause instanceof Deno.errors.NotFound) {
-      // Do nothing.
-      return [];
-    }
-    throw err;
+
+    fileNames.add(fileNameWithoutExt);
+    paths.push(relative(dir, entry.path));
   }
 
   paths.sort();
@@ -70,6 +78,17 @@ export async function collect(directory: string): Promise<Manifest> {
   return { routes, islands };
 }
 
+/**
+ * Import specifiers must have forward slashes
+ */
+function toImportSpecifier(file: string) {
+  let specifier = posix.normalize(file).replace(/\\/g, "/");
+  if (!specifier.startsWith(".")) {
+    specifier = "./" + specifier;
+  }
+  return specifier;
+}
+
 export async function generate(directory: string, manifest: Manifest) {
   const { routes, islands } = manifest;
 
@@ -78,25 +97,35 @@ export async function generate(directory: string, manifest: Manifest) {
 // This file is automatically updated during development when running \`dev.ts\`.
 
 ${
-    routes.map((file, i) => `import * as $${i} from "./routes${file}";`).join(
+    routes.map((file, i) =>
+      `import * as $${i} from "${toImportSpecifier(join("routes", file))}";`
+    ).join(
       "\n",
     )
   }
 ${
-    islands.map((file, i) => `import * as $$${i} from "./islands${file}";`)
+    islands.map((file, i) =>
+      `import * as $$${i} from "${toImportSpecifier(join("islands", file))}";`
+    )
       .join("\n")
   }
 
 const manifest = {
   routes: {
     ${
-    routes.map((file, i) => `${JSON.stringify(`./routes${file}`)}: $${i},`)
+    routes.map((file, i) =>
+      `${JSON.stringify(`${toImportSpecifier(join("routes", file))}`)}: $${i},`
+    )
       .join("\n    ")
   }
   },
   islands: {
     ${
-    islands.map((file, i) => `${JSON.stringify(`./islands${file}`)}: $$${i},`)
+    islands.map((file, i) =>
+      `${
+        JSON.stringify(`${toImportSpecifier(join("islands", file))}`)
+      }: $$${i},`
+    )
       .join("\n    ")
   }
   },

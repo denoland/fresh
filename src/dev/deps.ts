@@ -5,6 +5,7 @@ export {
   extname,
   fromFileUrl,
   join,
+  posix,
   relative,
   resolve,
   SEP,

@@ -1,28 +1,8 @@
 import { delay, Page, puppeteer, TextLineStream } from "./deps.ts";
 
 export async function startFreshServer(options: Deno.CommandOptions) {
-  const serverProcess = new Deno.Command(Deno.execPath(), {
-    ...options,
-    stdin: "null",
-    stdout: "piped",
-    stderr: "inherit",
-  }).spawn();
+  const { serverProcess, lines, address } = await spawnServer(options);
 
-  const decoder = new TextDecoderStream();
-  const lines: ReadableStream<string> = serverProcess.stdout
-    .pipeThrough(decoder)
-    .pipeThrough(new TextLineStream(), {
-      preventCancel: true,
-    });
-
-  let address = "";
-  for await (const line of lines) {
-    const match = line.match(/https?:\/\/localhost:\d+/g);
-    if (match) {
-      address = match[0];
-      break;
-    }
-  }
   if (!address) {
     throw new Error("Server didn't start up");
   }
@@ -56,4 +36,56 @@ export async function withPageName(
     // Wait until the process exits
     await serverProcess.status;
   }
+}
+
+export async function startFreshServerExpectErrors(
+  options: Deno.CommandOptions,
+) {
+  const { serverProcess, address } = await spawnServer(options, true);
+
+  if (address) {
+    throw Error("Server started correctly");
+  }
+
+  const errorDecoder = new TextDecoderStream();
+  const errorLines: ReadableStream<string> = serverProcess.stderr
+    .pipeThrough(errorDecoder)
+    .pipeThrough(new TextLineStream(), {
+      preventCancel: true,
+    });
+  let output = "";
+  for await (const line of errorLines) {
+    output += line + "\n";
+  }
+  return output;
+}
+
+async function spawnServer(
+  options: Deno.CommandOptions,
+  expectErrors = false,
+) {
+  const serverProcess = new Deno.Command(Deno.execPath(), {
+    ...options,
+    stdin: "null",
+    stdout: "piped",
+    stderr: expectErrors ? "piped" : "inherit",
+  }).spawn();
+
+  const decoder = new TextDecoderStream();
+  const lines: ReadableStream<string> = serverProcess.stdout
+    .pipeThrough(decoder)
+    .pipeThrough(new TextLineStream(), {
+      preventCancel: true,
+    });
+
+  let address = "";
+  for await (const line of lines) {
+    const match = line.match(/https?:\/\/localhost:\d+/g);
+    if (match) {
+      address = match[0];
+      break;
+    }
+  }
+
+  return { serverProcess, lines, address };
 }

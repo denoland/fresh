@@ -35,7 +35,7 @@ full files are available at the bottom for reference.
 `POST` (create) is used to create a resource.
 
 ```tsx
-// routes/api/index.ts
+// routes/api/users/index.ts
 export const handler: Handlers<User | null> = {
   async POST(req, _ctx) {
     const user = await req.json() as User;
@@ -72,7 +72,7 @@ You should receive the same thing back:
 method. You can use `GET` to fetch database content, markdown, or static files.
 
 ```tsx
-// routes/api/[id].ts
+// routes/api/users/[id].ts
 export const handler: Handlers<User | null> = {
   async GET(_req, ctx) {
     const id = ctx.params.id;
@@ -103,7 +103,7 @@ The short version of it: `PUT` requires the entire object to be submitted, while
 An example of an update endpoint using `PUT`:
 
 ```tsx
-// routes/api/[id].ts
+// routes/api/users/[id].ts
 export const handler: Handlers<User | null> = {
   async PUT(req, ctx) {
     const id = ctx.params.id;
@@ -153,7 +153,7 @@ No need to send in the id in this case.
 `DELETE` (delete) is used to delete a resource.
 
 ```tsx
-// routes/api/[id].ts
+// routes/api/users/[id].ts
 export const handler: Handlers<User | null> = {
   async DELETE(_req, ctx) {
     const id = ctx.params.id;

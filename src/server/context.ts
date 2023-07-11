@@ -44,6 +44,7 @@ import {
   EsbuildBuilder,
   JSXConfig,
 } from "../build/mod.ts";
+import { InternalRoute } from "./router.ts";
 
 const DEFAULT_CONN_INFO: Deno.ServeHandlerInfo = {
   remoteAddr: { transport: "tcp", hostname: "localhost", port: 1234 },
@@ -275,7 +276,7 @@ export class ServerContext {
       }
     }
     sortRoutes(routes);
-    sortRoutes(middlewares);
+    sortMiddleware(middlewares);
 
     for (const [self, module] of Object.entries(manifest.islands)) {
       const url = new URL(self, baseUrl).href;
@@ -380,6 +381,7 @@ export class ServerContext {
     const withMiddlewares = this.#composeMiddlewares(
       this.#middlewares,
       handlers.errorHandler,
+      router.getParamsAndRoute<RouterState>(handlers),
     );
     const trailingSlashEnabled = this.#routerOptions?.trailingSlash;
     return async function handler(
@@ -402,7 +404,16 @@ export class ServerContext {
           headers: { location },
         });
       } else if (trailingSlashEnabled && !url.pathname.endsWith("/")) {
-        return Response.redirect(url.href + "/", Status.PermanentRedirect);
+        // If the last element of the path has a "." it's a file
+        const isFile = url.pathname.split("/").at(-1)?.includes(".");
+
+        // If the path uses the internal prefix, don't redirect it
+        const isInternal = url.pathname.startsWith(INTERNAL_PREFIX);
+
+        if (!isFile && !isInternal) {
+          url.pathname += "/";
+          return Response.redirect(url, Status.PermanentRedirect);
+        }
       }
 
       return await withMiddlewares(req, connInfo, inner);
@@ -438,6 +449,12 @@ export class ServerContext {
   #composeMiddlewares(
     middlewares: MiddlewareRoute[],
     errorHandler: router.ErrorHandler<RouterState>,
+    paramsAndRoute: (
+      url: string,
+    ) => {
+      route: InternalRoute<RouterState> | undefined;
+      params: Record<string, string>;
+    },
   ) {
     return (
       req: Request,
@@ -449,6 +466,7 @@ export class ServerContext {
       const mws = selectMiddlewares(req.url, middlewares);
 
       const handlers: (() => Response | Promise<Response>)[] = [];
+      const paramsAndRouteResult = paramsAndRoute(req.url);
 
       const middlewareCtx: MiddlewareHandlerContext = {
         next() {
@@ -471,6 +489,7 @@ export class ServerContext {
         ...connInfo,
         state: {},
         destination: "route",
+        params: paramsAndRouteResult.params,
       };
 
       for (const mw of mws) {
@@ -491,6 +510,8 @@ export class ServerContext {
       const { destination, handler } = inner(
         req,
         ctx,
+        paramsAndRouteResult.params,
+        paramsAndRouteResult.route,
       );
       handlers.push(handler);
       middlewareCtx.destination = destination;
@@ -875,7 +896,7 @@ export function selectMiddlewares(url: string, middlewares: MiddlewareRoute[]) {
  * Sort pages by their relative routing priority, based on the parts in the
  * route matcher
  */
-function sortRoutes<T extends { pattern: string }>(routes: T[]) {
+export function sortRoutes<T extends { pattern: string }>(routes: T[]) {
   routes.sort((a, b) => {
     const partsA = a.pattern.split("/");
     const partsB = b.pattern.split("/");
@@ -891,6 +912,40 @@ function sortRoutes<T extends { pattern: string }>(routes: T[]) {
     }
     return 0;
   });
+}
+
+export function sortMiddleware<T extends { pattern: string }>(routes: T[]) {
+  routes.sort((a, b) => {
+    const partsA = a.pattern.split("/");
+    const partsB = b.pattern.split("/");
+
+    for (let i = 0; i < Math.max(partsA.length, partsB.length); i++) {
+      const partA = partsA[i];
+      const partB = partsB[i];
+
+      if (partA === undefined && partB === undefined) return 0;
+      if (partA === undefined) return -1;
+      if (partB === undefined) return 1;
+
+      if (partA === partB) continue;
+
+      const priorityA = getPriority(partA);
+      const priorityB = getPriority(partB);
+
+      if (priorityA !== priorityB) {
+        return priorityA - priorityB; // Sort in ascending order of priority
+      }
+    }
+
+    return 0;
+  });
+}
+
+function getPriority(part: string) {
+  if (part.startsWith(":")) {
+    return part.endsWith("*") ? 2 : 1;
+  }
+  return 0;
 }
 
 /** Transform a filesystem URL path to a `path-to-regex` style matcher. */
