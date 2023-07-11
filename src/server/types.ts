@@ -131,7 +131,9 @@ export interface Route<Data = any> {
 
 // --- APP ---
 
-export interface AppProps extends PageProps {
+// deno-lint-ignore no-explicit-any
+export interface AppProps<T = any, S = Record<string, unknown>>
+  extends PageProps<T, S> {
   Component: ComponentType<Record<never, never>>;
 }
 
