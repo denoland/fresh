@@ -4,6 +4,7 @@ import {
   assertMatch,
   assertNotMatch,
 } from "$std/testing/asserts.ts";
+import versions from "../versions.json" assert { type: "json" };
 
 Deno.test({
   name: "stores update check file in DENO_DIR",
@@ -21,8 +22,8 @@ Deno.test({
 
     const text = JSON.parse(await Deno.readTextFile(filePath));
     assertEquals(text, {
-      current_version: "1.2.0",
-      latest_version: "1.2.0",
+      current_version: versions[0],
+      latest_version: "99.99.999",
       last_checked: text.last_checked,
     });
 
