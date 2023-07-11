@@ -2,6 +2,7 @@ import { ComponentChildren, ComponentType, VNode } from "preact";
 import { ServeInit } from "./deps.ts";
 import * as router from "./router.ts";
 import { InnerRenderFunction, RenderContext } from "./render.ts";
+import { BuildSnapshot } from "../build/mod.ts";
 
 // --- APPLICATION CONFIGURATION ---
 
@@ -12,6 +13,10 @@ export interface FreshOptions {
   plugins?: Plugin[];
   staticDir?: string;
   router?: RouterOptions;
+  /**
+   * Pass a snapshot if you want to skip building assests with ESBuild during runtime.
+   */
+  snapshot?: BuildSnapshot;
 }
 
 export interface RouterOptions {

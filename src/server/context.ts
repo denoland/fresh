@@ -111,6 +111,7 @@ export class ServerContext {
     jsxConfig: JSXConfig,
     dev: boolean = isDevMode(),
     routerOptions: RouterOptions,
+    snapshot?: BuildSnapshot,
   ) {
     this.#routes = routes;
     this.#islands = islands;
@@ -122,7 +123,7 @@ export class ServerContext {
     this.#error = error;
     this.#plugins = plugins;
     this.#dev = dev;
-    this.#builder = new EsbuildBuilder({
+    this.#builder = snapshot ?? new EsbuildBuilder({
       buildID: BUILD_ID,
       entrypoints: collectEntrypoints(this.#dev, this.#islands, this.#plugins),
       configPath,
@@ -377,6 +378,7 @@ export class ServerContext {
       jsxConfig,
       dev,
       opts.router ?? DEFAULT_ROUTER_OPTIONS,
+      opts.snapshot,
     );
   }
 
@@ -436,7 +438,7 @@ export class ServerContext {
     return this.#builder;
   }
 
-  async #buildSnapshot() {
+  async buildSnapshot() {
     if ("build" in this.#builder) {
       const builder = this.#builder;
       this.#builder = builder.build();
@@ -870,7 +872,7 @@ export class ServerContext {
    */
   #bundleAssetRoute = (): router.MatchHandler => {
     return async (_req, _ctx, params) => {
-      const snapshot = await this.#buildSnapshot();
+      const snapshot = await this.buildSnapshot();
       const contents = snapshot.read(params.path);
       if (!contents) return new Response(null, { status: 404 });
 
