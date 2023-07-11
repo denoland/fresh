@@ -31,19 +31,24 @@ Deno.test({
   name: "dynamic route conflicts",
   fn() {
     const routes = [
-      { name: "control-index", pattern: "/control" },
-      { name: "control-normal_route", pattern: "/control/normal_route" },
+      { name: "control-index", pattern: "/control" }, //routes/control/index.tsx
+      { name: "control-normal_route", pattern: "/control/normal_route" }, //routes/control/normal_route.tsx
       {
         name: "two_dynamic-[second_dynamic]",
         pattern: "/two_dynamic/:second_dynamic",
-      },
-      { name: "two_dynamic-[dynamic]", pattern: "/two_dynamic/:dynamic" },
-      { name: "override-[dynamic]", pattern: "/override/:dynamic" },
-      { name: "override-override", pattern: "/override/:path*" },
+      }, //routes/two_dynamic/[second_dynamic].tsx
+      { name: "two_dynamic-[dynamic]", pattern: "/two_dynamic/:dynamic" }, //routes/two_dynamic/[dynamic].tsx
+      { name: "override-[dynamic]", pattern: "/override/:dynamic" }, //routes/override/[dynamic].tsx
+      { name: "override-override", pattern: "/override/:path*" }, //routes/override/override.tsx  note this should have a routeOverride
+      { name: "nested-[tenant]/level1", pattern: "/nested/:tenant/level1" }, //routes/nested/[tenant]/level1.tsx
+      { name: "nested-level2", pattern: "/nested/:tenant/foo" }, //routes/nested/level2.tsx  note this should have a routeOverride
+      { name: "nested2-[foo]/bar", pattern: "/nested2/:foo/bar" }, //routes/nested2/[foo]/bar.tsx
+      { name: "nested2-foo/[bar]", pattern: "/nested2/foo/:bar" }, //routes/nested2/foo/[bar].tsx
     ] as Route[];
     const expected = [
       `Potential route conflict. The following dynamic routes may conflict:\n  /two_dynamic/:second_dynamic\n  /two_dynamic/:dynamic\n`,
       `Potential route conflict. The following dynamic routes may conflict:\n  /override/:dynamic\n  /override/:path*\n`,
+      `Potential route conflict. The following dynamic routes may conflict:\n  /nested/:tenant/level1\n  /nested/:tenant/foo\n`,
     ];
     const output = routeWarnings(routes);
     assertEquals(output, expected);
