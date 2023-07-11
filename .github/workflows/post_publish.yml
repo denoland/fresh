@@ -13,7 +13,7 @@ jobs:
   update-dl-version:
     name: update dl.deno.land version
     runs-on: ubuntu-22.04
-    if: github.repository == 'denoland/deno'
+    if: github.repository == 'denoland/fresh'
     steps:
       - name: Authenticate with Google Cloud
         uses: google-github-actions/auth@v1
