@@ -7,6 +7,7 @@ export {
   toFileUrl,
 } from "https://deno.land/std@0.193.0/path/mod.ts";
 export { walk } from "https://deno.land/std@0.193.0/fs/walk.ts";
+export * as colors from "https://deno.land/std@0.193.0/fmt/colors.ts";
 export {
   type Handler as ServeHandler,
   serve,
