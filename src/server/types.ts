@@ -77,8 +77,22 @@ export interface RouteConfig {
 // deno-lint-ignore no-empty-interface
 export interface RenderOptions extends ResponseInit {}
 
+export type ServeHandlerInfo = {
+  /**
+   * Backwards compatible with std/server
+   * @deprecated
+   */
+  localAddr?: Deno.NetAddr;
+  remoteAddr: Deno.NetAddr;
+};
+
+export type ServeHandler = (
+  request: Request,
+  info: ServeHandlerInfo,
+) => Response | Promise<Response>;
+
 export interface HandlerContext<Data = unknown, State = Record<string, unknown>>
-  extends Deno.ServeHandlerInfo {
+  extends ServeHandlerInfo {
   params: Record<string, string>;
   render: (
     data?: Data,
@@ -150,7 +164,7 @@ export interface UnknownPageProps<T = any> {
 }
 
 export interface UnknownHandlerContext<State = Record<string, unknown>>
-  extends Deno.ServeHandlerInfo {
+  extends ServeHandlerInfo {
   render: () => Response | Promise<Response>;
   state: State;
 }
@@ -190,7 +204,7 @@ export interface ErrorPageProps {
 }
 
 export interface ErrorHandlerContext<State = Record<string, unknown>>
-  extends Deno.ServeHandlerInfo {
+  extends ServeHandlerInfo {
   error: unknown;
   render: () => Response | Promise<Response>;
   state: State;
@@ -219,7 +233,7 @@ export interface ErrorPage {
 // --- MIDDLEWARES ---
 
 export interface MiddlewareHandlerContext<State = Record<string, unknown>>
-  extends Deno.ServeHandlerInfo {
+  extends ServeHandlerInfo {
   next: () => Promise<Response>;
   state: State;
   destination: router.DestinationKind;

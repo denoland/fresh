@@ -1,12 +1,15 @@
 import { ServerContext } from "./context.ts";
 import * as colors from "https://deno.land/std@0.193.0/fmt/colors.ts";
 export { Status } from "./deps.ts";
+import { serve } from "./deps.ts";
 import {
   AppModule,
   ErrorPageModule,
   IslandModule,
   MiddlewareModule,
   RouteModule,
+  ServeHandler,
+  ServeHandlerInfo,
   StartOptions,
   UnknownPageModule,
 } from "./types.ts";
@@ -34,6 +37,7 @@ export type {
   PluginRenderStyleTag,
   RenderFunction,
   RouteConfig,
+  ServeHandlerInfo,
   StartOptions,
   UnknownHandler,
   UnknownHandlerContext,
@@ -70,7 +74,7 @@ export async function createHandler(
   routes: Manifest,
   opts: StartOptions = {},
 ): Promise<
-  (req: Request, connInfo?: Deno.ServeHandlerInfo) => Promise<Response>
+  (req: Request, connInfo?: ServeHandlerInfo) => Promise<Response>
 > {
   const ctx = await ServerContext.fromManifest(routes, opts);
   return ctx.handler();
@@ -132,6 +136,13 @@ export async function start(routes: Manifest, opts: StartOptions = {}) {
   }
 }
 
-async function bootServer(handler: Deno.ServeHandler, opts: StartOptions) {
-  await Deno.serve(opts, handler).finished;
+async function bootServer(handler: ServeHandler, opts: StartOptions) {
+  // @ts-ignore Ignore type error when type checking with Deno versions
+  if (typeof Deno.serve === "function") {
+    // @ts-ignore Ignore type error when type checking with Deno versions
+    await Deno.serve(opts, handler).finished;
+  } else {
+    // @ts-ignore Deprecated std serve way
+    await serve(handler, opts);
+  }
 }

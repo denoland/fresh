@@ -1,4 +1,6 @@
-type HandlerContext<T = unknown> = T & Deno.ServeHandlerInfo;
+import { ServeHandlerInfo } from "./types.ts";
+
+type HandlerContext<T = unknown> = T & ServeHandlerInfo;
 
 export type Handler<T = unknown> = (
   req: Request,

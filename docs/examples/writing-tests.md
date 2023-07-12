@@ -53,11 +53,11 @@ export default function FooPage() {
 ```ts
 // tests/main_test.ts
 
-import { createHandler } from "$fresh/server.ts";
+import { createHandler, ServeHandlerInfo } from "$fresh/server.ts";
 import manifest from "../fresh.gen.ts";
 import { assert, assertEquals } from "$std/testing/asserts.ts";
 
-const CONN_INFO: Deno.ServeHandlerInfo = {
+const CONN_INFO: ServeHandlerInfo = {
   remoteAddr: { hostname: "127.0.0.1", port: 53496, transport: "tcp" },
 };
 
