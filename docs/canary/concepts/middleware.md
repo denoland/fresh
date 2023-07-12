@@ -120,11 +120,15 @@ the value of `acme` in your middleware.
 To set the stage for this section, `MiddlewareHandlerContext` looks like this:
 
 ```ts
-export interface MiddlewareHandlerContext<State = Record<string, unknown>>
-  extends ConnInfo {
+export interface MiddlewareHandlerContext<State = Record<string, unknown>> {
   next: () => Promise<Response>;
   state: State;
   destination: router.DestinationKind;
+  remoteAddr: {
+    transport: "tcp" | "udp";
+    hostname: string;
+    port: number;
+  };
 }
 ```
 

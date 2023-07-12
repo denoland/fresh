@@ -1,19 +1,11 @@
 import { ComponentType } from "preact";
-import { ConnInfo, ServeInit } from "./deps.ts";
+import { ServeInit } from "./deps.ts";
 import * as router from "./router.ts";
 import { InnerRenderFunction, RenderContext } from "./render.ts";
 
 // --- APPLICATION CONFIGURATION ---
 
-export type StartOptions = ServeInit & FreshOptions & {
-  /**
-   * UNSTABLE: use the `Deno.serve` API as the underlying HTTP server instead of
-   * the `std/http` API. Do not use this in production.
-   *
-   * This option is experimental and may be removed in a future Fresh release.
-   */
-  experimentalDenoServe?: boolean;
-};
+export type StartOptions = ServeInit & FreshOptions;
 
 export interface FreshOptions {
   render?: RenderFunction;
@@ -85,8 +77,22 @@ export interface RouteConfig {
 // deno-lint-ignore no-empty-interface
 export interface RenderOptions extends ResponseInit {}
 
+export type ServeHandlerInfo = {
+  /**
+   * Backwards compatible with std/server
+   * @deprecated
+   */
+  localAddr?: Deno.NetAddr;
+  remoteAddr: Deno.NetAddr;
+};
+
+export type ServeHandler = (
+  request: Request,
+  info: ServeHandlerInfo,
+) => Response | Promise<Response>;
+
 export interface HandlerContext<Data = unknown, State = Record<string, unknown>>
-  extends ConnInfo {
+  extends ServeHandlerInfo {
   params: Record<string, string>;
   render: (
     data?: Data,
@@ -158,7 +164,7 @@ export interface UnknownPageProps<T = any> {
 }
 
 export interface UnknownHandlerContext<State = Record<string, unknown>>
-  extends ConnInfo {
+  extends ServeHandlerInfo {
   render: () => Response | Promise<Response>;
   state: State;
 }
@@ -198,7 +204,7 @@ export interface ErrorPageProps {
 }
 
 export interface ErrorHandlerContext<State = Record<string, unknown>>
-  extends ConnInfo {
+  extends ServeHandlerInfo {
   error: unknown;
   render: () => Response | Promise<Response>;
   state: State;
@@ -227,7 +233,7 @@ export interface ErrorPage {
 // --- MIDDLEWARES ---
 
 export interface MiddlewareHandlerContext<State = Record<string, unknown>>
-  extends ConnInfo {
+  extends ServeHandlerInfo {
   next: () => Promise<Response>;
   state: State;
   destination: router.DestinationKind;
