@@ -28,6 +28,8 @@ import {
   MiddlewareModule,
   MiddlewareRoute,
   Plugin,
+  PluginMiddleware,
+  PluginRoute,
   RenderFunction,
   RenderOptions,
   Route,
@@ -175,7 +177,14 @@ export class ServerContext {
     let app: AppModule = DEFAULT_APP;
     let notFound: UnknownPage = DEFAULT_NOT_FOUND;
     let error: ErrorPage = DEFAULT_ERROR;
-    for (const [self, module] of Object.entries(manifest.routes)) {
+    const allRoutes = [
+      ...Object.entries(manifest.routes),
+      ...Object.entries(getMiddlewareRoutesFromPlugins(opts.plugins || [])),
+      ...Object.entries(getRoutesFromPlugins(opts.plugins || [])),
+    ];
+    for (
+      const [self, module] of allRoutes
+    ) {
       const url = new URL(self, baseUrl).href;
       if (!url.startsWith(baseUrl + "routes")) {
         throw new TypeError("Page is not a child of the basepath.");
@@ -1098,4 +1107,41 @@ async function readDenoConfig(
     }
     dir = parent;
   }
+}
+
+function getMiddlewareRoutesFromPlugins(
+  plugins: Plugin[],
+): Record<string, MiddlewareModule> {
+  return (Object.assign(
+    {},
+    ...[
+      ...new Set(
+        ([] as PluginMiddleware[]).concat(
+          ...plugins.map((p) => p.middlewares || []),
+        ),
+      ),
+    ]
+      .map((middleware: PluginMiddleware) => ({
+        [`./routes${middleware.path}_middleware.ts`]: {
+          handler: middleware.middleware.handler,
+        },
+      })) || [],
+  ));
+}
+
+function getRoutesFromPlugins(plugins: Plugin[]): Record<string, RouteModule> {
+  return (Object.assign(
+    {},
+    ...[
+      ...new Set(
+        ([] as PluginRoute[]).concat(...plugins.map((p) => p.routes || [])),
+      ),
+    ]
+      .map((route: PluginRoute) => ({
+        [`./routes${route.path}.ts`]: {
+          default: route.component,
+          handler: route.handler,
+        } as RouteModule,
+      })) || [],
+  ));
 }

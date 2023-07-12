@@ -307,6 +307,10 @@ export interface Plugin {
    * propagate state between the render hook and the renderer.
    */
   renderAsync?(ctx: PluginAsyncRenderContext): Promise<PluginRenderResult>;
+
+  routes?: PluginRoute[];
+
+  middlewares?: PluginMiddleware[];
 }
 
 export interface PluginRenderContext {
@@ -356,4 +360,21 @@ export interface PluginRenderFunctionResult {
   /** If the renderer encountered any islands that require hydration on the
    * client. */
   requiresHydration: boolean;
+}
+
+export interface PluginMiddleware {
+  /** A path in the format of a filename path without filetype */
+  path: string;
+
+  middleware: Middleware;
+}
+
+export interface PluginRoute {
+  /** A path in the format of a filename path without filetype */
+  path: string;
+
+  component?: ComponentType<PageProps> | ComponentType<AppProps>;
+
+  // deno-lint-ignore no-explicit-any
+  handler?: Handler<any, any> | Handlers<any, any>;
 }
