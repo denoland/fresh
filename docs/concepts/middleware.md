@@ -108,7 +108,7 @@ export interface MiddlewareHandlerContext<State = Record<string, unknown>> {
     transport: "tcp" | "udp";
     hostname: string;
     port: number;
-  }
+  };
 }
 ```
 
