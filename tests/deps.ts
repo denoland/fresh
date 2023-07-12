@@ -19,3 +19,7 @@ export {
   default as puppeteer,
   Page,
 } from "https://deno.land/x/puppeteer@16.2.0/mod.ts";
+export type {
+  AssertTrue,
+  IsExact,
+} from "https://deno.land/std@0.193.0/testing/types.ts";
