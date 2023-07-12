@@ -647,6 +647,24 @@ Deno.test("middleware destination", async (t) => {
   });
 });
 
+Deno.test({
+  name: "middleware catch error",
+  fn: async () => {
+    const resp = await handler(
+      new Request(
+        "https://fresh.deno.dev/middleware-error-handler",
+      ),
+    );
+    assert(resp);
+    assertEquals(resp.status, Status.InternalServerError);
+    const body = await resp.text();
+    assertStringIncludes(
+      body,
+      "500 internal error: don't show the full error for security purposes",
+    );
+  },
+});
+
 Deno.test("jsx pragma works", {
   sanitizeOps: false,
   sanitizeResources: false,
