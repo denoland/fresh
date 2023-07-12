@@ -1,5 +1,4 @@
 import {
-  ConnInfo,
   dirname,
   extname,
   fromFileUrl,
@@ -35,6 +34,7 @@ import {
   Route,
   RouteModule,
   RouterOptions,
+  ServeHandlerInfo,
   UnknownPage,
   UnknownPageModule,
 } from "./types.ts";
@@ -49,7 +49,7 @@ import {
 } from "../build/mod.ts";
 import { InternalRoute } from "./router.ts";
 
-const DEFAULT_CONN_INFO: ConnInfo = {
+const DEFAULT_CONN_INFO: ServeHandlerInfo = {
   localAddr: { transport: "tcp", hostname: "localhost", port: 8080 },
   remoteAddr: { transport: "tcp", hostname: "localhost", port: 1234 },
 };
@@ -383,7 +383,7 @@ export class ServerContext {
    * This functions returns a request handler that handles all routes required
    * by fresh, including static files.
    */
-  handler(): (req: Request, connInfo?: ConnInfo) => Promise<Response> {
+  handler(): (req: Request, connInfo?: ServeHandlerInfo) => Promise<Response> {
     const handlers = this.#handlers();
     const inner = router.router<RouterState>(handlers);
     const withMiddlewares = this.#composeMiddlewares(
@@ -394,7 +394,7 @@ export class ServerContext {
     const trailingSlashEnabled = this.#routerOptions?.trailingSlash;
     return async function handler(
       req: Request,
-      connInfo: ConnInfo = DEFAULT_CONN_INFO,
+      connInfo: ServeHandlerInfo = DEFAULT_CONN_INFO,
     ) {
       // Redirect requests that end with a trailing slash to their non-trailing
       // slash counterpart.
@@ -466,7 +466,7 @@ export class ServerContext {
   ) {
     return (
       req: Request,
-      connInfo: ConnInfo,
+      connInfo: ServeHandlerInfo,
       inner: router.FinalHandler<RouterState>,
     ) => {
       // identify middlewares to apply, if any.

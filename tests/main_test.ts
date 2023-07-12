@@ -269,11 +269,6 @@ Deno.test("static files in custom directory", async () => {
   });
   const newRouter = (req: Request) => {
     return newCtx.handler()(req, {
-      localAddr: {
-        transport: "tcp",
-        hostname: "127.0.0.1",
-        port: 80,
-      },
       remoteAddr: {
         transport: "tcp",
         hostname: "127.0.0.1",
@@ -668,67 +663,6 @@ Deno.test({
       "500 internal error: don't show the full error for security purposes",
     );
   },
-});
-
-Deno.test("experimental Deno.serve", {
-  sanitizeOps: false,
-  sanitizeResources: false,
-  ignore: Deno.build.os === "windows", // TODO: Deno.serve hang on Windows?
-}, async (t) => {
-  // Preparation
-  const { serverProcess, lines, address } = await startFreshServer({
-    args: [
-      "run",
-      "-A",
-      "--unstable",
-      "./tests/fixture/main.ts",
-      "--experimental-deno-serve",
-    ],
-  });
-
-  await delay(100);
-
-  await t.step("ssr", async () => {
-    const resp = await fetch(address);
-    assert(resp);
-    assertEquals(resp.status, Status.OK);
-    assertEquals(resp.headers.get("content-type"), "text/html; charset=utf-8");
-    assertEquals(resp.headers.get("server"), "fresh test server");
-    const body = await resp.text();
-    assertStringIncludes(body, `<html lang="en">`);
-    assertStringIncludes(body, "test_default.js");
-    assertStringIncludes(body, "<p>Hello!</p>");
-    assertStringIncludes(body, "<p>Viewing JIT render.</p>");
-    assertStringIncludes(body, `>{"v":[[{"message":"Hello!"}],[]]}</script>`);
-    assertStringIncludes(
-      body,
-      '<meta name="description" content="Hello world!"/>',
-    );
-    assertStringIncludes(
-      body,
-      '<meta name="generator" content="The freshest framework!"/>',
-    );
-    assert(
-      !body.includes("specialTag"),
-      `Expected actual: "${body}" to not contain: "specialTag"`,
-    );
-  });
-
-  await t.step("static file", async () => {
-    const resp = await fetch(`${address}/foo.txt`);
-    assertEquals(resp.status, Status.OK);
-    const body = await resp.text();
-    assert(body.startsWith("bar"));
-    const etag = resp.headers.get("etag");
-    assert(etag);
-    // TODO(kt3k): Enable this assertion when new Deno.serve is released.
-    // https://github.com/denoland/deno/pull/18568
-    // assert(etag.startsWith("W/"), "etag should be weak");
-    assertEquals(resp.headers.get("content-type"), "text/plain");
-  });
-
-  await lines.cancel();
-  serverProcess.kill("SIGTERM");
 });
 
 Deno.test("jsx pragma works", {

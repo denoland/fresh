@@ -11,10 +11,7 @@ export {
   type Handler as ServeHandler,
   serve,
 } from "https://deno.land/std@0.193.0/http/server.ts";
-export type {
-  ConnInfo,
-  ServeInit,
-} from "https://deno.land/std@0.193.0/http/server.ts";
+export type { ServeInit } from "https://deno.land/std@0.193.0/http/server.ts";
 export { Status } from "https://deno.land/std@0.193.0/http/http_status.ts";
 export {
   typeByExtension,
