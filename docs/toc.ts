@@ -93,6 +93,7 @@ const toc: RawTableOfContents = {
             "Sharing state between islands",
             "link:latest",
           ],
+          ["using-deno-kv-oauth", "Using Deno KV OAuth", "link:latest"],
         ],
       },
     },
