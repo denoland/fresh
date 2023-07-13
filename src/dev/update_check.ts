@@ -1,5 +1,5 @@
 import { colors, dirname, join } from "./deps.ts";
-import { DEBUG } from "./constants.ts";
+import { DEBUG } from "../server/constants.ts";
 
 interface CheckFile {
   last_checked: string;

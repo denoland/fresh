@@ -1,4 +1,4 @@
-import { updateCheck } from "$fresh/src/server/update_check.ts";
+import { updateCheck } from "$fresh/src/dev/update_check.ts";
 
 // deno-lint-ignore require-await
 async function getLatestVersion() {

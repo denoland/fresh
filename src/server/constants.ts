@@ -9,9 +9,3 @@ export const DEBUG = !Deno.env.get("DENO_DEPLOYMENT_ID");
 export function bundleAssetUrl(path: string) {
   return `${INTERNAL_PREFIX}${JS_PREFIX}/${BUILD_ID}${path}`;
 }
-
-/**
- * How often to query the server in ms.
- * Right now that's every 24h
- */
-export const UPGRADE_CHECK_INTERVAL = 24 * 60 * 60 * 1000;
