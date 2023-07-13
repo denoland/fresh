@@ -34,12 +34,17 @@ import {
   Route,
   RouteModule,
   RouterOptions,
+  RouterState,
   ServeHandlerInfo,
   UnknownPage,
   UnknownPageModule,
 } from "./types.ts";
-import { render as internalRender } from "./render.ts";
-import { ContentSecurityPolicyDirectives, SELF } from "../runtime/csp.ts";
+import { DEFAULT_RENDER_FN, render as internalRender } from "./render.ts";
+import {
+  ContentSecurityPolicy,
+  ContentSecurityPolicyDirectives,
+  SELF,
+} from "../runtime/csp.ts";
 import { ASSET_CACHE_BUST_KEY, INTERNAL_PREFIX } from "../runtime/utils.ts";
 import {
   Builder,
@@ -53,10 +58,6 @@ const DEFAULT_CONN_INFO: ServeHandlerInfo = {
   localAddr: { transport: "tcp", hostname: "localhost", port: 8080 },
   remoteAddr: { transport: "tcp", hostname: "localhost", port: 1234 },
 };
-
-interface RouterState {
-  state: Record<string, unknown>;
-}
 
 function isObject(value: unknown) {
   return typeof value === "object" &&
@@ -604,6 +605,58 @@ export class ServerContext {
       };
     }
 
+    const dependenciesFn = (path: string) => {
+      const snapshot = this.#maybeBuildSnapshot();
+      return snapshot?.dependencies(path) ?? [];
+    };
+
+    const renderNotFound = async <Data = undefined>(
+      req: Request,
+      params: Record<string, string>,
+      // deno-lint-ignore no-explicit-any
+      ctx?: any,
+      data?: Data,
+      error?: unknown,
+    ) => {
+      const notFound = this.#notFound;
+      if (!notFound.component) {
+        return sendResponse(["Not found.", undefined], {
+          status: Status.NotFound,
+          isDev: this.#dev,
+          statusText: undefined,
+          headers: undefined,
+        });
+      }
+      const imports: string[] = [];
+      const resp = await internalRender({
+        request: req,
+        context: ctx,
+        route: notFound,
+        islands: this.#islands,
+        plugins: this.#plugins,
+        app: this.#app,
+        imports,
+        dependenciesFn,
+        renderFn: this.#renderFn,
+        url: new URL(req.url),
+        params,
+        data,
+        state: ctx?.state,
+        error,
+      });
+
+      if (resp instanceof Response) {
+        return resp;
+      }
+
+      return sendResponse(resp, {
+        status: Status.NotFound,
+        isDev: this.#dev,
+        statusText: undefined,
+        headers: undefined,
+      });
+    };
+
     const genRender = <Data = undefined>(
       route: Route<Data> | UnknownPage | ErrorPage,
       status: number,
@@ -613,7 +666,8 @@ export class ServerContext {
       return (
         req: Request,
         params: Record<string, string>,
-        state?: Record<string, unknown>,
+        // deno-lint-ignore no-explicit-any
+        ctx?: any,
         error?: unknown,
       ) => {
         return async (data?: Data, options?: RenderOptions) => {
@@ -621,64 +675,41 @@ export class ServerContext {
             throw new Error("This page does not have a component to render.");
           }
 
-          if (
-            typeof route.component === "function" &&
-            route.component.constructor.name === "AsyncFunction"
-          ) {
-            throw new Error(
-              "Async components are not supported. Fetch data inside of a route handler, as described in the docs: https://fresh.deno.dev/docs/getting-started/fetching-data",
-            );
-          }
-
           const resp = await internalRender({
+            request: req,
+            context: {
+              ...ctx,
+              async renderNotFound() {
+                return await renderNotFound(req, params, ctx, data, error);
+              },
+            },
             route,
             islands: this.#islands,
             plugins: this.#plugins,
             app: this.#app,
             imports,
-            dependenciesFn: (path) => {
-              const snapshot = this.#maybeBuildSnapshot();
-              return snapshot?.dependencies(path) ?? [];
-            },
+            dependenciesFn,
             renderFn: this.#renderFn,
             url: new URL(req.url),
             params,
             data,
-            state,
+            state: ctx?.state,
             error,
           });
 
-          const headers: Record<string, string> = {
-            "content-type": "text/html; charset=utf-8",
-          };
-
-          const [body, csp] = resp;
-          if (csp) {
-            if (this.#dev) {
-              csp.directives.connectSrc = [
-                ...(csp.directives.connectSrc ?? []),
-                SELF,
-              ];
-            }
-            const directive = serializeCSPDirectives(csp.directives);
-            if (csp.reportOnly) {
-              headers["content-security-policy-report-only"] = directive;
-            } else {
-              headers["content-security-policy"] = directive;
-            }
+          if (resp instanceof Response) {
+            return resp;
           }
-          return new Response(body, {
+
+          return sendResponse(resp, {
             status: options?.status ?? status,
             statusText: options?.statusText,
-            headers: options?.headers
-              ? { ...headers, ...options.headers }
-              : headers,
+            headers: options?.headers,
+            isDev: this.#dev,
           });
         };
       };
     };
-
-    const createUnknownRender = genRender(this.#notFound, Status.NotFound);
 
     for (const route of this.#routes) {
       if (this.#routerOptions.trailingSlash && route.pattern != "/") {
@@ -691,8 +722,10 @@ export class ServerContext {
             (route.handler as Handler)(req, {
               ...ctx,
               params,
-              render: createRender(req, params, ctx.state),
-              renderNotFound: createUnknownRender(req, params, ctx.state),
+              render: createRender(req, params, ctx),
+              async renderNotFound<Data = undefined>(data: Data) {
+                return await renderNotFound(req, params, ctx, data);
+              },
             }),
         };
       } else {
@@ -706,8 +739,10 @@ export class ServerContext {
             handler(req, {
               ...ctx,
               params,
-              render: createRender(req, params, ctx.state),
-              renderNotFound: createUnknownRender(req, params, ctx.state),
+              render: createRender(req, params, ctx),
+              async renderNotFound<Data = undefined>(data: Data) {
+                return await renderNotFound(req, params, ctx, data);
+              },
             });
         }
       }
@@ -721,7 +756,9 @@ export class ServerContext {
         req,
         {
           ...ctx,
-          render: createUnknownRender(req, {}),
+          render() {
+            return renderNotFound(req, {}, ctx);
+          },
         },
       );
 
@@ -851,10 +888,6 @@ export class ServerContext {
     };
   };
 }
-
-const DEFAULT_RENDER_FN: RenderFunction = (_ctx, render) => {
-  render();
-};
 
 const DEFAULT_ROUTER_OPTIONS: RouterOptions = {
   trailingSlash: false,
@@ -1144,4 +1177,39 @@ function getRoutesFromPlugins(plugins: Plugin[]): Record<string, RouteModule> {
         } as RouteModule,
       })) || [],
   ));
+}
+
+function sendResponse(
+  resp: [string, ContentSecurityPolicy | undefined],
+  options: {
+    status: number;
+    statusText: string | undefined;
+    headers?: HeadersInit;
+    isDev: boolean;
+  },
+) {
+  const headers: Record<string, string> = {
+    "content-type": "text/html; charset=utf-8",
+  };
+
+  const [body, csp] = resp;
+  if (csp) {
+    if (options.isDev) {
+      csp.directives.connectSrc = [
+        ...(csp.directives.connectSrc ?? []),
+        SELF,
+      ];
+    }
+    const directive = serializeCSPDirectives(csp.directives);
+    if (csp.reportOnly) {
+      headers["content-security-policy-report-only"] = directive;
+    } else {
+      headers["content-security-policy"] = directive;
+    }
+  }
+  return new Response(body, {
+    status: options.status,
+    statusText: options.statusText,
+    headers: options.headers ? { ...headers, ...options.headers } : headers,
+  });
 }

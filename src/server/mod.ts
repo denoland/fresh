@@ -1,7 +1,6 @@
 import { ServerContext } from "./context.ts";
-import * as colors from "https://deno.land/std@0.193.0/fmt/colors.ts";
 export { Status } from "./deps.ts";
-import { serve } from "./deps.ts";
+import { colors, serve } from "./deps.ts";
 import {
   AppModule,
   ErrorPageModule,
@@ -37,6 +36,7 @@ export type {
   PluginRenderStyleTag,
   RenderFunction,
   RouteConfig,
+  RouteContext,
   ServeHandlerInfo,
   StartOptions,
   UnknownHandler,
