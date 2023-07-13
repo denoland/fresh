@@ -60,6 +60,20 @@ if (denoJson.importMap) {
   await Deno.remove(IMPORT_MAP_PATH);
 }
 
+// Add fresh lint preset
+if (!denoJson.lint) {
+  denoJson.lint = {};
+}
+if (!denoJson.lint.rules) {
+  denoJson.lint.rules = {};
+}
+if (!denoJson.lint.rules.tags) {
+  denoJson.lint.rules.tags = [];
+}
+if (!denoJson.lint.rules.tags.includes("fresh")) {
+  denoJson.lint.rules.tags.push("fresh");
+}
+
 freshImports(denoJson.imports);
 if (denoJson.imports["twind"]) {
   twindImports(denoJson.imports);
