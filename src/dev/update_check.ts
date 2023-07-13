@@ -1,5 +1,4 @@
 import { colors, dirname, join } from "./deps.ts";
-import { DEBUG } from "../server/constants.ts";
 
 interface CheckFile {
   last_checked: string;
@@ -56,7 +55,7 @@ export async function updateCheck(
   if (
     Deno.env.get("CI") === "true" || FRESH_NO_UPDATE_CHECK === "true" ||
     FRESH_NO_UPDATE_CHECK === "1" ||
-    !DEBUG
+    Deno.env.get("DENO_DEPLOYMENT_ID")
   ) {
     return;
   }
