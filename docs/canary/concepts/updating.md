@@ -77,8 +77,8 @@ Fresh 1.0.2 to 1.1.3, and update Preact to the latest version:
 ## Automatic update checks
 
 Fresh will periodically check if a new Fresh version is available if it's
-running outside of CI. This happens once per day and can be disabled by
-setting the `FRESH_NO_UPDATE_CHECK=true` environment variable.
+running outside of CI. This happens once per day and can be disabled by setting
+the `FRESH_NO_UPDATE_CHECK=true` environment variable.
 
 ## Code mods
 
