@@ -74,9 +74,6 @@ export async function updateCheck(
   const versions = (await import("../../versions.json", {
     "assert": { type: "json" },
   })).default as string[];
-  if (!versions.length) {
-    return;
-  }
 
   let checkFile: CheckFile = {
     current_version: versions[0],
