@@ -1,4 +1,6 @@
+import { updateCheck } from "./update_check.ts";
 import {
+  DAY,
   dirname,
   fromFileUrl,
   gte,
@@ -163,6 +165,9 @@ export default manifest;
 
 export async function dev(base: string, entrypoint: string) {
   ensureMinDenoVersion();
+
+  // Run update check in background
+  updateCheck(DAY).catch(() => {});
 
   entrypoint = new URL(entrypoint, base).href;
 
