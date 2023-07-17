@@ -60,7 +60,6 @@ export async function updateCheck(
     return;
   }
 
-  // Abort if we couldn't find a deno_dir
   const home = getCacheDir();
   if (!home) return;
   const filePath = join(home, "latest.json");
