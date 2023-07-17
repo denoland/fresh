@@ -15,6 +15,7 @@ Deno.test({
     await new Deno.Command(Deno.execPath(), {
       args: ["run", "-A", "./tests/fixture_update_check/mod.ts"],
       env: {
+        CI: "false",
         HOME: tmpDirName,
       },
     }).output();
