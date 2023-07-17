@@ -15,7 +15,6 @@ Deno.test({
     await new Deno.Command(Deno.execPath(), {
       args: ["run", "-A", "./tests/fixture_update_check/mod.ts"],
       env: {
-        CI: "false",
         HOME: tmpDirName,
       },
     }).output();
@@ -42,7 +41,6 @@ Deno.test({
         const out = await new Deno.Command(Deno.execPath(), {
           args: ["run", "-A", "./tests/fixture_update_check/mod.ts"],
           env: {
-            CI: "false",
             [env]: "true",
             HOME: tmpDirName,
             LATEST_VERSION: "1.30.0",
