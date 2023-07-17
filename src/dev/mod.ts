@@ -1,5 +1,6 @@
 import { updateCheck } from "./update_check.ts";
 import {
+  DAY,
   dirname,
   fromFileUrl,
   gte,
@@ -11,11 +12,6 @@ import {
 import { error } from "./error.ts";
 
 const MIN_DENO_VERSION = "1.31.0";
-/**
- * How often to query the server in ms.
- * Right now that's every 24h
- */
-const UPGRADE_CHECK_INTERVAL = 24 * 60 * 60 * 1000;
 
 export function ensureMinDenoVersion() {
   // Check that the minimum supported Deno version is being used.
@@ -171,7 +167,7 @@ export async function dev(base: string, entrypoint: string) {
   ensureMinDenoVersion();
 
   // Run update check in background
-  updateCheck(UPGRADE_CHECK_INTERVAL).catch(() => {});
+  updateCheck(DAY).catch(() => {});
 
   entrypoint = new URL(entrypoint, base).href;
 
