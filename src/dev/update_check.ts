@@ -1,4 +1,4 @@
-import { colors, dirname, join } from "./deps.ts";
+import { colors, join } from "./deps.ts";
 
 interface CheckFile {
   last_checked: string;
@@ -65,7 +65,7 @@ export async function updateCheck(
   if (!home) return;
   const filePath = join(home, "latest.json");
   try {
-    await Deno.mkdir(dirname(filePath), { recursive: true });
+    await Deno.mkdir(home, { recursive: true });
   } catch (err) {
     if (!(err instanceof Deno.errors.AlreadyExists)) {
       throw err;
