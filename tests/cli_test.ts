@@ -12,7 +12,7 @@ import {
   puppeteer,
   retry,
 } from "./deps.ts";
-import { startFreshServer } from "./test_utils.ts";
+import { startFreshServer, waitForText } from "./test_utils.ts";
 
 const assertFileExistence = async (files: string[], dirname: string) => {
   for (const filePath of files) {
@@ -90,10 +90,7 @@ Deno.test({
       );
       await buttonPlus?.click();
 
-      await page.waitForFunction(() => {
-        return document.querySelector("body > div > div > div > p")!
-          .textContent === "4";
-      }, {});
+      await waitForText(page, "body > div > div > div > p", "4");
 
       counterValue = await counter?.evaluate((el) => el.textContent);
       assert(counterValue === "4");
@@ -186,10 +183,7 @@ Deno.test({
       );
       await buttonPlus?.click();
 
-      await page.waitForFunction(() => {
-        return document.querySelector("body > div > div > div > p")!
-          .textContent === "4";
-      }, {});
+      await waitForText(page, "body > div > div > div > p", "4");
 
       counterValue = await counter?.evaluate((el) => el.textContent);
       assert(counterValue === "4");
