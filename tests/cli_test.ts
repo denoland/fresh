@@ -12,7 +12,11 @@ import {
   puppeteer,
   retry,
 } from "./deps.ts";
-import { startFreshServer, waitForText } from "./test_utils.ts";
+import {
+  clickWhenListenerReady,
+  startFreshServer,
+  waitForText,
+} from "./test_utils.ts";
 
 const assertFileExistence = async (files: string[], dirname: string) => {
   for (const filePath of files) {
@@ -85,10 +89,10 @@ Deno.test({
       let counterValue = await counter?.evaluate((el) => el.textContent);
       assert(counterValue === "3");
 
-      const buttonPlus = await page.$(
+      await clickWhenListenerReady(
+        page,
         "body > div > div > div > button:nth-child(3)",
       );
-      await buttonPlus?.click();
 
       await waitForText(page, "body > div > div > div > p", "4");
 
