@@ -208,8 +208,8 @@ function Example() {
           <p class="text-gray-600 mb-4">
             Fresh optimizes the page by only shipping JavaScript for areas that
             need it. The rest is completely static HTML rendered by the server.
-            This means browser need to load less code and can display your page
-            quicker.
+            This means the browser needs to load less code and can display pages
+            more quickly.
           </p>
         </div>
         <div class="md:basis-1/2">
