@@ -1,6 +1,6 @@
 ---
 description: |
-  Fresh regularly releases new versions of the framework. This page explains how to update your project.
+  New versions of Fresh are regularly released. This page explains how to update your project.
 ---
 
 Fresh constists of multiple pieces which are independently versioned and
@@ -23,7 +23,6 @@ below.
 | 1.0.0-1.0.2   | >=10.8.1 <11.0.0  | >=5.2.0 <6.0.0          | >= 1.23.0 |
 | 1.1.0-1.1.5   | >=10.8.1 <11.0.0  | >=5.2.0 <6.0.0          | >= 1.25.0 |
 | 1.2.0         | >=10.15.0 <11.0.0 | >=6.1.0                 | >= 1.25.0 |
-| 1.3.0         | >=10.15.0 <11.0.0 | >=6.1.0                 | >= 1.35.0 |
 
 ## Updating dependencies
 
@@ -74,6 +73,12 @@ Fresh 1.0.2 to 1.1.3, and update Preact to the latest version:
     }
   }
 ```
+
+## Automatic update checks
+
+Fresh will periodically check if a new Fresh version is available if it's
+running outside of CI. This happens once per day and can be disabled by setting
+the `FRESH_NO_UPDATE_CHECK=true` environment variable.
 
 ## Code mods
 
