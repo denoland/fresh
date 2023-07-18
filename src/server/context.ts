@@ -578,11 +578,6 @@ export class ServerContext {
       };
     }
 
-    const dependenciesFn = (path: string) => {
-      const snapshot = this.#maybeBuildSnapshot();
-      return snapshot?.dependencies(path) ?? [];
-    };
-
     const renderNotFound = async <Data = undefined>(
       req: Request,
       params: Record<string, string>,
@@ -609,7 +604,7 @@ export class ServerContext {
         plugins: this.#plugins,
         app: this.#app,
         imports,
-        dependenciesFn,
+        dependenciesFn: (path) => this.#builder.dependencies(path),
         renderFn: this.#renderFn,
         url: new URL(req.url),
         params,
@@ -661,7 +656,7 @@ export class ServerContext {
             plugins: this.#plugins,
             app: this.#app,
             imports,
-            dependenciesFn,
+            dependenciesFn: (path) => this.#builder.dependencies(path),
             renderFn: this.#renderFn,
             url: new URL(req.url),
             params,
