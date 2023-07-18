@@ -8,7 +8,7 @@ import {
 } from "./deps.ts";
 import manifest from "./fixture_plugin/fresh.gen.ts";
 import options from "./fixture_plugin/options.ts";
-import { startFreshServer } from "./test_utils.ts";
+import { startFreshServer, withPageName } from "./test_utils.ts";
 
 const ctx = await ServerContext.fromManifest(manifest, options);
 const handler = ctx.handler();
@@ -66,6 +66,34 @@ Deno.test("plugin routes and middleware", async () => {
     body,
     `<title>Title Set From Plugin Config</title>`,
   );
+});
+
+Deno.test({
+  name: "plugin supports islands",
+  async fn(t) {
+    await withPageName(
+      "./tests/fixture_plugin/main.ts",
+      async (page, address) => {
+        async function idTest(id: string) {
+          const elem = await page.waitForSelector(`#${id}`);
+
+          const value = await elem?.evaluate((el) => el.textContent);
+          assert(value === `${id}`, `value ${value} not equal to id ${id}`);
+        }
+
+        await page.goto(`${address}/pluginroutewithisland`, {
+          waitUntil: "networkidle2",
+        });
+
+        await t.step("verify tags", async () => {
+          await idTest("csr");
+          await idTest("csr_alt_folder");
+        });
+      },
+    );
+  },
+  sanitizeOps: false,
+  sanitizeResources: false,
 });
 
 Deno.test({

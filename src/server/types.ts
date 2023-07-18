@@ -341,6 +341,10 @@ export interface Plugin {
   routes?: PluginRoute[];
 
   middlewares?: PluginMiddleware[];
+
+  islands?: PluginIsland[];
+
+  location?: string;
 }
 
 export interface PluginRenderContext {
@@ -407,4 +411,10 @@ export interface PluginRoute {
 
   // deno-lint-ignore no-explicit-any
   handler?: Handler<any, any> | Handlers<any, any>;
+}
+
+export interface PluginIsland {
+  name: string;
+  path: string;
+  component: ComponentType<unknown>;
 }

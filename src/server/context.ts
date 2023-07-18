@@ -22,6 +22,7 @@ import {
   FreshOptions,
   Handler,
   Island,
+  IslandModule,
   Middleware,
   MiddlewareHandlerContext,
   MiddlewareModule,
@@ -290,6 +291,23 @@ export class ServerContext {
     sortRoutes(routes);
     sortMiddleware(middlewares);
 
+    type ProcessedIsland = {
+      name: string;
+      path: string;
+      module: IslandModule;
+    };
+
+    const processedIslands: ProcessedIsland[] = (opts.plugins || [])
+      .flatMap((plugin) => {
+        if (!(plugin.islands && plugin.location)) return [];
+        const base = dirname(plugin.location);
+        return plugin.islands.map((island) => ({
+          name: island.name,
+          path: join(base, island.path),
+          module: { default: island.component },
+        }));
+      });
+
     for (const [self, module] of Object.entries(manifest.islands)) {
       const url = new URL(self, baseUrl).href;
       if (!url.startsWith(baseUrl)) {
@@ -298,16 +316,27 @@ export class ServerContext {
       const path = url.substring(baseUrl.length).substring("islands".length);
       const baseRoute = path.substring(1, path.length - extname(path).length);
 
-      for (const [exportName, exportedFunction] of Object.entries(module)) {
-        if (typeof exportedFunction !== "function") {
-          continue;
-        }
-        const name = sanitizeIslandName(baseRoute);
+      processedIslands.push({
+        name: sanitizeIslandName(baseRoute),
+        path: url,
+        module,
+      });
+    }
+
+    for (const processedIsland of processedIslands) {
+      for (
+        const [exportName, exportedFunction] of Object.entries(
+          processedIsland.module,
+        )
+      ) {
+        if (typeof exportedFunction !== "function") continue;
+        const name = processedIsland.name;
         const id = `${name}_${exportName}`.toLowerCase();
+
         islands.push({
           id,
           name,
-          url,
+          url: processedIsland.path,
           component: exportedFunction,
           exportName,
         });
