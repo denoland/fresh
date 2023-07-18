@@ -90,7 +90,10 @@ Deno.test({
       );
       await buttonPlus?.click();
 
-      await delay(100);
+      await page.waitForFunction(() => {
+        return document.querySelector("body > div > div > div > p")!
+          .textContent === "4";
+      }, {});
 
       counterValue = await counter?.evaluate((el) => el.textContent);
       assert(counterValue === "4");
@@ -183,7 +186,10 @@ Deno.test({
       );
       await buttonPlus?.click();
 
-      await delay(100);
+      await page.waitForFunction(() => {
+        return document.querySelector("body > div > div > div > p")!
+          .textContent === "4";
+      }, {});
 
       counterValue = await counter?.evaluate((el) => el.textContent);
       assert(counterValue === "4");

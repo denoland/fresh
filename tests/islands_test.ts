@@ -17,10 +17,18 @@ Deno.test({
         let value = await pElem?.evaluate((el) => el.textContent);
         assert(value === `${originalValue}`, `${counterId} first value`);
 
-        const buttonPlus = await page.$(`#b-${counterId}`);
-        await buttonPlus?.click();
+        const buttonPlus = (await page.$(`#b-${counterId}`))!;
+        await buttonPlus.click();
 
-        await delay(100);
+        await page.waitForFunction(
+          (id, value) => {
+            return document.querySelector(`#${id} > p`)!.textContent ===
+              String(value + 1);
+          },
+          { timeout: 2000 },
+          counterId,
+          originalValue,
+        );
 
         value = await pElem?.evaluate((el) => el.textContent);
         assert(value === `${originalValue + 1}`, `${counterId} click`);
