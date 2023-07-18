@@ -1,3 +1,4 @@
+import { PuppeteerLaunchOptions } from "npm:puppeteer-core@20.8.3";
 import {
   delay,
   DenoDir,
@@ -9,7 +10,7 @@ import {
 } from "./deps.ts";
 import { TextLineStream } from "./deps.ts";
 
-export async function pptrLaunch() {
+export async function pptrLaunch(options: PuppeteerLaunchOptions = {}) {
   const dir = new DenoDir();
   const path = join(
     dir.root,
@@ -24,6 +25,7 @@ export async function pptrLaunch() {
   });
 
   return await puppeteer.launch({
+    ...options,
     executablePath: install.path,
   });
 }
@@ -48,7 +50,7 @@ export async function withPageName(
 
   try {
     await delay(100);
-    const browser = await puppeteer.launch({ args: ["--no-sandbox"] });
+    const browser = await pptrLaunch({ args: ["--no-sandbox"] });
 
     try {
       const page = await browser.newPage();
