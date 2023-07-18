@@ -60,6 +60,7 @@ export function revive(
   // deno-lint-ignore no-explicit-any
   props: any[],
 ) {
+  performance.mark("revive-start");
   _walkInner(
     islands,
     props,
@@ -70,6 +71,7 @@ export function revive(
     [h(Fragment, null)],
     document.body,
   );
+  performance.measure("revive", "revive-start");
 }
 
 function ServerComponent(
@@ -230,7 +232,10 @@ function _walkInner(
               marker.endNode,
             );
 
-            const _render = () =>
+            const _render = () => {
+              const tag = marker?.text?.substring("frsh-".length) ?? "";
+              const [id] = tag.split(":");
+              performance.mark(tag);
               render(
                 vnode,
                 createRootFragment(
@@ -240,7 +245,8 @@ function _walkInner(
                   // deno-lint-ignore no-explicit-any
                 ) as any as HTMLElement,
               );
-
+              performance.measure(`hydrate: ${id}`, tag);
+            };
 
             "scheduler" in window
               // `scheduler.postTask` is async but that can easily
@@ -321,9 +327,6 @@ function _walkInner(
 
     sib = sib.nextSibling;
   }
-
-  performance.mark("revive-start");
-  performance.measure("revive", "revive-start");
 }
 
 const originalHook = options.vnode;
