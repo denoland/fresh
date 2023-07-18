@@ -223,7 +223,7 @@ Deno.test({
 
       // After click, `text-green-600` is inserted to the class of the element in #currentNumCssRules.
       await page.$eval("#insertCssRuleButton", (el) => {
-        return el.click();
+        return (el as HTMLButtonElement).click();
       });
 
       const [numCssRulesAfterInsert, twindCssRulesAfterInsert] = await page

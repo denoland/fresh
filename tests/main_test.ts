@@ -728,8 +728,8 @@ Deno.test("preact/debug is active in dev mode", {
 
   await t.step("error page is shown with error message", async () => {
     const el = await page.waitForSelector(".frsh-error-page");
-    const text = await page.evaluate((el) => el.textContent, el);
-    assertStringIncludes(text, "Objects are not valid as a child");
+    const text = await page.evaluate((el) => el.textContent, el!);
+    assertStringIncludes(text!, "Objects are not valid as a child");
   });
 
   await browser.close();
@@ -762,21 +762,22 @@ Deno.test("preloading javascript files", {
       waitUntil: "networkidle2",
     });
 
-    const preloads: string[] = await page.$$eval(
+    const preloads = await page.$$eval(
       'link[rel="modulepreload"]',
       (elements) => elements.map((element) => element.getAttribute("href")),
     );
 
+    assert(preloads);
     assert(
-      preloads.some((url) => url.match(/\/_frsh\/js\/.*\/main\.js/)),
+      preloads.some((url) => url!.match(/\/_frsh\/js\/.*\/main\.js/)),
       "preloads does not include main.js",
     );
     assert(
-      preloads.some((url) => url.match(/\/_frsh\/js\/.*\/island-.*\.js/)),
+      preloads.some((url) => url!.match(/\/_frsh\/js\/.*\/island-.*\.js/)),
       "preloads does not include island-*.js",
     );
     assert(
-      preloads.some((url) => url.match(/\/_frsh\/js\/.*\/chunk-.*\.js/)),
+      preloads.some((url) => url!.match(/\/_frsh\/js\/.*\/chunk-.*\.js/)),
       "preloads does not include chunk-*.js",
     );
   } finally {
