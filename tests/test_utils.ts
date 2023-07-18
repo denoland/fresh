@@ -24,9 +24,15 @@ export async function pptrLaunch(options: PuppeteerLaunchOptions = {}) {
     buildId: PUPPETEER_REVISIONS.chrome,
   });
 
+  const executablePath = puppeteerBrowsers.computeExecutablePath({
+    browser: install.browser,
+    buildId: install.buildId,
+    cacheDir: path,
+  });
+
   return await puppeteer.launch({
     ...options,
-    executablePath: install.path,
+    executablePath,
   });
 }
 
