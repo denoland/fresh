@@ -1,6 +1,6 @@
 import { colors, join } from "./deps.ts";
 
-interface CheckFile {
+export interface CheckFile {
   last_checked: string;
   latest_version: string;
   current_version: string;
@@ -87,6 +87,9 @@ export async function updateCheck(
       throw err;
     }
   }
+
+  // Update current version
+  checkFile.current_version = versions[0];
 
   // Only check in the specificed interval
   if (Date.now() >= new Date(checkFile.last_checked).getTime() + interval) {
