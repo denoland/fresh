@@ -56,7 +56,8 @@ export function deserialize(
         (o, k) => k === null ? o : o[k],
         v,
       );
-      parent[refPath.at(-1)!] = target;
+
+      parent[refPath.slice(-1)[0]!] = target;
     }
   }
   return v;
