@@ -55,7 +55,7 @@ const toc: RawTableOfContents = {
           ["routing", "Routing", "link:latest"],
           ["data-fetching", "Data fetching", "link:latest"],
           ["deployment", "Deployment", "link:latest"],
-          ["plugins", "Plugins", "link:latest"],
+          ["plugins", "Plugins", "link:canary"],
           ["updating", "Updating Fresh", "link:canary"],
           ["app-wrapper", "Application wrapper", "link:latest"],
           ["server-configuration", "Server configuration", "link:latest"],
