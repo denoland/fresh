@@ -1,6 +1,5 @@
 import {
   dirname,
-  existsSync,
   extname,
   fromFileUrl,
   join,
@@ -39,6 +38,7 @@ import {
   RouterOptions,
   RouterState,
   ServeHandlerInfo,
+  StaticFile,
   UnknownPage,
   UnknownPageModule,
 } from "./types.ts";
@@ -55,10 +55,13 @@ import {
   EsbuildBuilder,
   JSXConfig,
 } from "../build/mod.ts";
-import { InternalRoute, knownMethods } from "./router.ts";
+import { InternalRoute } from "./router.ts";
 import {
   assertModuleExportsDefault,
   assertNoStaticRouteConflicts,
+  assertPluginsCallRender,
+  assertPluginsCallRenderAsync,
+  assertPluginsInjectModules,
   assertRoutesHaveHandlerOrComponent,
   assertSingleModule,
   assertStaticDirSafety,
@@ -80,20 +83,6 @@ function isDevMode() {
   // Env var is only set in prod (on Deploy).
   return Deno.env.get("DENO_DEPLOYMENT_ID") === undefined;
 }
-
-interface StaticFile {
-  /** The URL to the static file on disk. */
-  localUrl: URL;
-  /** The path to the file as it would be in the incoming request. */
-  path: string;
-  /** The size of the file. */
-  size: number;
-  /** The content-type of the file. */
-  contentType: string;
-  /** Hash of the file contents. */
-  etag: string;
-}
-
 export class ServerContext {
   #dev: boolean;
   #routes: Route[];
@@ -398,8 +387,11 @@ export class ServerContext {
         () => assertModuleExportsDefault(errorModule, "_500"),
         () => assertSingleModule(routes, "_500"),
         () => assertRoutesHaveHandlerOrComponent(routes),
-        () => assertStaticDirSafety(opts.staticDir || "", defaultStaticDir),
+        () => assertStaticDirSafety(opts.staticDir ?? "", defaultStaticDir),
         () => assertNoStaticRouteConflicts(routes, staticFiles),
+        () => assertPluginsCallRender(opts.plugins ?? []),
+        () => assertPluginsCallRenderAsync(opts.plugins ?? []),
+        () => assertPluginsInjectModules(opts.plugins ?? []),
       ];
 
       const results = checks.flatMap((check) => check());
@@ -1344,112 +1336,5 @@ function sendResponse(
     status: options.status,
     statusText: options.statusText,
     headers: options.headers ? { ...headers, ...options.headers } : headers,
-  });
-}
-
-type CheckFunction = () => CheckResult[];
-
-interface CheckResult {
-  category: string;
-  message: string;
-  fileLink?: string;
-}
-
-function assertModuleExportsDefault(
-  module: AppModule | UnknownPageModule | ErrorPageModule | null,
-  moduleName: string,
-): CheckResult[] {
-  if (module && !module.default) {
-    return [{
-      category: "Module Export",
-      message: `Your ${moduleName} file does not have a default export.`,
-      fileLink: moduleName,
-    }];
-  }
-  return [];
-}
-
-function assertSingleModule(
-  routes: Route[],
-  moduleName: string,
-): CheckResult[] {
-  const moduleRoutes = routes.filter((route) =>
-    route.name.includes(moduleName)
-  );
-
-  if (moduleRoutes.length > 0) {
-    return [{
-      category: "Multiple Modules",
-      message:
-        `Only one ${moduleName} is allowed per application. It must be in the root of the /routes/ folder.`,
-    }];
-  }
-  return [];
-}
-
-function assertRoutesHaveHandlerOrComponent(routes: Route[]): CheckResult[] {
-  return routes.flatMap((route) => {
-    const hasComponent = !!route.component;
-
-    let hasHandlerMethod = false;
-    if (typeof route.handler === "object") {
-      for (const method of knownMethods) {
-        if (method in route.handler) {
-          hasHandlerMethod = true;
-          break;
-        }
-      }
-    }
-
-    if (!hasComponent && !hasHandlerMethod) {
-      return [{
-        category: "Handler or Component",
-        message:
-          `Route at ${route.url} must have a handler or component. It's possible you're missing a default export.`,
-        fileLink: route.name,
-      }];
-    }
-    return [];
-  });
-}
-
-function assertStaticDirSafety(dir: string, defaultDir: string): CheckResult[] {
-  const results: CheckResult[] = [];
-
-  if (dir === defaultDir) {
-    results.push({
-      category: "Static Directory",
-      message:
-        "You cannot use the default static directory as a static override. Please choose a different directory.",
-    });
-  }
-
-  if (existsSync(defaultDir)) {
-    results.push({
-      category: "Static Directory",
-      message:
-        "You cannot have both a static override and a default static directory. Please remove the default static directory.",
-    });
-  }
-
-  return results;
-}
-
-function assertNoStaticRouteConflicts(
-  routes: Route[],
-  staticFiles: StaticFile[],
-): CheckResult[] {
-  const routePatterns = new Set(routes.map((route) => route.pattern));
-
-  return staticFiles.flatMap((staticFile) => {
-    if (routePatterns.has(staticFile.path)) {
-      return [{
-        category: "Static File Conflict",
-        message:
-          `Static file conflict: A file exists at '${staticFile.path}' which matches a route pattern. Please rename the file or change the route pattern.`,
-        fileLink: staticFile.path,
-      }];
-    }
-    return [];
   });
 }

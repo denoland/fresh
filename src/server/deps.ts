@@ -21,3 +21,7 @@ export {
 export { toHashString } from "https://deno.land/std@0.193.0/crypto/to_hash_string.ts";
 export { escape } from "https://deno.land/std@0.193.0/regexp/escape.ts";
 export * as JSONC from "https://deno.land/std@0.193.0/jsonc/mod.ts";
+export {
+  assertSpyCalls,
+  spy,
+} from "https://deno.land/std@0.193.0/testing/mock.ts";
