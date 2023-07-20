@@ -10,6 +10,4 @@ import "./polyfill_deno_deploy.ts";
 import { start } from "$fresh/server.ts";
 import routes from "./fresh.gen.ts";
 
-const experimentalDenoServe = Deno.args.includes("--experimental-deno-serve");
-
-await start(routes, { experimentalDenoServe });
+await start(routes);

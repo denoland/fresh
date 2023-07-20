@@ -17,19 +17,10 @@ export async function start(routes: Manifest, opts: StartOptions = {});
 things get interesting. `StartOptions` looks like this:
 
 ```
-export type StartOptions = ServeInit & FreshOptions & {
-  /**
-   * UNSTABLE: use the `Deno.serve` API as the underlying HTTP server instead of
-   * the `std/http` API. Do not use this in production.
-   *
-   * This option is experimental and may be removed in a future Fresh release.
-   */
-  experimentalDenoServe?: boolean;
-};
+export type StartOptions = ServeInit & FreshOptions;
 ```
 
-You can play around with `Deno.serve` if you'd like, but heed the warning. The
-good stuff is really in...
+The good stuff is really in...
 
 ```ts
 export interface FreshOptions {

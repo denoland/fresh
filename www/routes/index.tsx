@@ -77,10 +77,11 @@ function HelloBar() {
   return (
     <a
       class="bg-green-400 text-black border(b green-500) p-3 text-center group"
-      href="https://deno.com/blog/fresh-1.2"
+      href="https://deno.com/blog/fresh-1.3"
     >
-      <b>Fresh v1.2</b> has been released with <b>improved islands</b>,{" "}
-      <b>preview npm: support</b>, and more!{"  "}
+      <b>Fresh v1.3</b> has been released with <b>async route components</b>,
+      {" "}
+      <b>plugin enhancements</b>, and more!{"  "}
       <span class="group-hover:underline">→</span>
     </a>
   );
@@ -208,8 +209,8 @@ function Example() {
           <p class="text-gray-600 mb-4">
             Fresh optimizes the page by only shipping JavaScript for areas that
             need it. The rest is completely static HTML rendered by the server.
-            This means browser need to load less code and can display your page
-            quicker.
+            This means the browser needs to load less code and can display pages
+            more quickly.
           </p>
         </div>
         <div class="md:basis-1/2">
@@ -250,7 +251,7 @@ function StartJourney() {
       </h2>
       <div class="flex flex-col md:flex-row justify-start items-center gap-4">
         <p class="text(xl gray-600)">
-          Jump right in and build your website with fresh. Lean everything you
+          Jump right in and build your website with fresh. Learn everything you
           need to know in seconds.
         </p>
         <a
