@@ -145,9 +145,8 @@ applied to any of the directives.
 
 We'll start off by having an example stylesheet defined like this:
 
-`/static/example.css`
-
 ```css
+/* static/example.css */
 h1 {
   font-size: 25px;
   font-weight: normal;
@@ -162,19 +161,11 @@ To kick things off, we'll create the following control route which doesn't do
 anything with CSP. We include a stylesheet to confirm that our sheet correctly
 styles the response.
 
-`/routes/noCSP.tsx`
-
 ```tsx
-import { HandlerContext } from "$fresh/server.ts";
+// routes/noCSP.tsx
+import { RouteContext } from "$fresh/server.ts";
 
-export const handler = async (
-  _req: Request,
-  ctx: HandlerContext,
-): Promise<Response> => {
-  return await ctx.render();
-};
-
-export default function Home() {
+export default function Home(req: Request, ctx: RouteContext) {
   return (
     <>
       <h1>This page doesn't use CSP at all. Styles will be applied.</h1>
@@ -197,20 +188,12 @@ closely, we're using the wrong URL! This will cause the browser to reject the
 stylesheet, due to the header that Fresh produces. We get a `(blocked:csp)`
 status when the browser tries to request this resource.
 
-`/routes/incorrectCSP.tsx`
-
 ```tsx
-import { HandlerContext, RouteConfig } from "$fresh/server.ts";
+// routes/incorrectCSP.tsx
+import { RouteConfig, RouteContext } from "$fresh/server.ts";
 import { useCSP } from "$fresh/runtime.ts";
 
-export const handler = async (
-  _req: Request,
-  ctx: HandlerContext,
-): Promise<Response> => {
-  return await ctx.render();
-};
-
-export default function Home() {
+export default function Home(req: Request, ctx: RouteContext) {
   useCSP((csp) => {
     if (!csp.directives.styleSrc) {
       csp.directives.styleSrc = [];
@@ -243,20 +226,12 @@ This page violates our configured CSP. Styles won't be applied.
 Let's fix our simple mistake and use the correct URL. Everything is working
 correctly here.
 
-`/routes/correctCSP.tsx`
-
 ```tsx
-import { HandlerContext, RouteConfig } from "$fresh/server.ts";
+// routes/correctCSP.tsx
+import { RouteConfig, RouteContext } from "$fresh/server.ts";
 import { useCSP } from "$fresh/runtime.ts";
 
-export const handler = async (
-  _req: Request,
-  ctx: HandlerContext,
-): Promise<Response> => {
-  return await ctx.render();
-};
-
-export default function Home() {
+export default function Home(req: Request, ctx: RouteContext) {
   useCSP((csp) => {
     if (!csp.directives.styleSrc) {
       csp.directives.styleSrc = [];
@@ -288,20 +263,12 @@ This page adheres to our configured CSP. Styles will be applied.
 
 What happens if we forget to use a `RouteConfig` in our route?
 
-`/routes/cspNoRouteConfig.tsx`
-
 ```tsx
-import { HandlerContext, RouteConfig } from "$fresh/server.ts";
+// routes/cspNoRouteConfig.tsx
+import { RouteContext } from "$fresh/server.ts";
 import { useCSP } from "$fresh/runtime.ts";
 
-export const handler = async (
-  _req: Request,
-  ctx: HandlerContext,
-): Promise<Response> => {
-  return await ctx.render();
-};
-
-export default function Home() {
+export default function Home(req: Request, ctx: RouteContext) {
   useCSP((csp) => {
     if (!csp.directives.styleSrc) {
       csp.directives.styleSrc = [];
@@ -338,20 +305,12 @@ should be able to receive `POST` requests. If the `reportOnly` flag is enabled,
 then the browser will ignore the CSP headers and log any issues to the
 `reportUri` destination.
 
-`/routes/incorrectCSPwithReport.tsx`
-
 ```tsx
-import { HandlerContext, RouteConfig } from "$fresh/server.ts";
+// routes/incorrectCSPwithReport.tsx
+import { RouteConfig, RouteContext } from "$fresh/server.ts";
 import { useCSP } from "$fresh/runtime.ts";
 
-export const handler = async (
-  _req: Request,
-  ctx: HandlerContext,
-): Promise<Response> => {
-  return await ctx.render();
-};
-
-export default function Home() {
+export default function Home(req: Request, ctx: RouteContext) {
   useCSP((csp) => {
     csp.reportOnly = true;
     if (!csp.directives.styleSrc) {
@@ -378,9 +337,8 @@ export const config: RouteConfig = {
 };
 ```
 
-`/routes/reportHandler.ts`
-
 ```ts
+// routes/reportHandler.ts
 import { HandlerContext } from "$fresh/server.ts";
 
 export const handler = {
