@@ -309,28 +309,27 @@ export async function render<Data>(
 
   bodyHtml = bodyHtml as unknown as string;
 
-  const moduleScripts: [string, string][] = [];
-
-  for (const url of opts.imports) {
-    const randomNonce = crypto.randomUUID().replace(/-/g, "");
-    if (csp) {
-      csp.directives.scriptSrc = [
-        ...csp.directives.scriptSrc ?? [],
-        nonce(randomNonce),
-      ];
+  let randomNonce: undefined | string;
+  function getRandomNonce(): string {
+    if (randomNonce === undefined) {
+      randomNonce = crypto.randomUUID().replace(/-/g, "");
+      if (csp) {
+        csp.directives.scriptSrc = [
+          ...csp.directives.scriptSrc ?? [],
+          nonce(randomNonce),
+        ];
+      }
     }
-    moduleScripts.push([url, randomNonce]);
+    return randomNonce;
+  }
+
+  const moduleScripts: [string, string][] = [];
+  for (const url of opts.imports) {
+    moduleScripts.push([url, getRandomNonce()]);
   }
 
   const preloadSet = new Set<string>();
   function addImport(path: string): string {
-    const randomNonce = crypto.randomUUID().replace(/-/g, "");
-    if (csp) {
-      csp.directives.scriptSrc = [
-        ...csp.directives.scriptSrc ?? [],
-        nonce(randomNonce),
-      ];
-    }
     const url = bundleAssetUrl(`/${path}`);
     preloadSet.add(url);
     for (const depPath of opts.dependenciesFn(path)) {
@@ -412,15 +411,8 @@ export async function render<Data>(
 
   // Append the inline script.
   if (script !== "") {
-    const randomNonce = crypto.randomUUID().replace(/-/g, "");
-    if (csp) {
-      csp.directives.scriptSrc = [
-        ...csp.directives.scriptSrc ?? [],
-        nonce(randomNonce),
-      ];
-    }
     bodyHtml +=
-      `<script type="module" nonce="${randomNonce}">${script}</script>`;
+      `<script type="module" nonce="${getRandomNonce()}">${script}</script>`;
   }
 
   if (ctx.styles.length > 0) {
