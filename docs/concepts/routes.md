@@ -142,3 +142,32 @@ export default async function MyPage(req: Request, ctx: RouteContext) {
   return <p>foo is: {value}</p>;
 }
 ```
+
+### Returning Response objects
+
+Quite often a route handler needs to render a 404 page or bail out of rendering
+in another manner. This can be done by returning a `Response` object.
+
+```tsx
+// Async route component
+export default async function MyPage(req: Request, ctx: RouteContext) {
+  const value = await loadFooValue();
+
+  // Return 404 if `value` is null
+  if (value === null) {
+    return ctx.renderNotFound();
+  }
+
+  // Returning a response object directly works too
+  if (value === "redirect") {
+    const headers = new Headers();
+    headers.set("location", "/some-other-page");
+    return new Response(null, {
+      status: 302,
+      headers,
+    });
+  }
+
+  return <p>foo is: {value}</p>;
+}
+```
