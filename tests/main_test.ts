@@ -896,3 +896,33 @@ Deno.test({
   sanitizeOps: false,
   sanitizeResources: false,
 });
+
+Deno.test({
+  name: "Generate a single nonce value per page",
+
+  async fn() {
+    await withPageName("./tests/fixture/main.ts", async (page, address) => {
+      await page.goto(address);
+      await page.waitForSelector("p");
+
+      const nonceValues = await page.evaluate(() =>
+        Array.from(
+          new Set(
+            Array.from(document.querySelectorAll("[nonce]")).map((el) =>
+              el.getAttribute("nonce")
+            ),
+          ),
+        )
+      );
+
+      assertEquals(
+        nonceValues.length,
+        1,
+        `Found more than 1 nonce value per render`,
+      );
+    });
+  },
+
+  sanitizeOps: false,
+  sanitizeResources: false,
+});
