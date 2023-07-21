@@ -11,35 +11,30 @@ rendered components and islands.
 
 Let's consider the following case with three files.
 
-`/routes/simple_example.tsx`
-
 ```tsx
-import { HandlerContext, PageProps } from "$fresh/server.ts";
+// routes/simple_example.tsx
+import { RouteContext } from "$fresh/server.ts";
 import { createContext } from "preact";
 import { Child } from "../components/Child.tsx";
 
 export const ComplexContext = createContext("");
 
-export const handler = async (
-  _req: Request,
-  ctx: HandlerContext,
-): Promise<Response> => {
-  const complexValue = "this is an expensive value to compute";
-  return await ctx.render(complexValue);
-};
-
-export default function Home(props: PageProps<string>) {
+export default async function Home(req: Request, ctx: RouteContext) {
+  const complexValue = await computeComplexValue();
   return (
-    <ComplexContext.Provider value={props.data}>
+    <ComplexContext.Provider value={complexValue}>
       <Child />
     </ComplexContext.Provider>
   );
 }
+
+async function computeComplexValue() {
+  return "this is an expensive value to compute";
+}
 ```
 
-`/components/Child.tsx`
-
 ```tsx
+// components/Child.tsx
 import { Grandchild } from "./Grandchild.tsx";
 
 export function Child() {
@@ -47,9 +42,8 @@ export function Child() {
 }
 ```
 
-`/components/Grandchild.tsx`
-
 ```tsx
+// components/Grandchild.tsx
 import { ComplexContext } from "../routes/simple_example.tsx";
 import { useContext } from "preact/hooks";
 
@@ -64,10 +58,10 @@ export function Grandchild() {
 ```
 
 What we can see here is that an apparently "complexValue" is computed in our
-`handler`, and then passed to our root component. We store this value in some
-context, and then add our child. Note that the child has no knowledge of the
-context or value, and then adds the grandchild. In the grandchild, we extract
-the complex value and render it. No prop drilling involved!
+async server component. We store this value in some context, and then add our
+child. Note that the child has no knowledge of the context or value, and then
+adds the grandchild. In the grandchild, we extract the complex value and render
+it. No prop drilling involved!
 
 When you go to `http://localhost:8000/simple_example` you'll be greeted with a
 page that has the content `this is an expensive value to compute`.
@@ -76,36 +70,30 @@ page that has the content `this is an expensive value to compute`.
 
 Let's play the same game with islands.
 
-`/routes/island_context_broken.tsx`
-
 ```tsx
-import { HandlerContext, PageProps } from "$fresh/server.ts";
+// routes/island_context_broken.tsx
+import { RouteContext } from "$fresh/server.ts";
 import { createContext } from "preact";
 import IslandChild from "../islands/IslandChild.tsx";
 
 export const ComplexContext = createContext("");
 
-export const handler = async (
-  _req: Request,
-  ctx: HandlerContext,
-): Promise<Response> => {
-  const complexValue =
-    "this is complex and won't render, because islands don't have access to our ComplexContext";
-  return await ctx.render(complexValue);
-};
-
-export default function Home(props: PageProps<string>) {
+export default async function Home(req: Request, ctx: RouteContext) {
+  const complexValue = await computeComplexValue();
   return (
-    <ComplexContext.Provider value={props.data}>
+    <ComplexContext.Provider value={complexValue}>
       <IslandChild />
     </ComplexContext.Provider>
   );
 }
+
+async function computeComplexValue() {
+  return "this is complex and won't render, because islands don't have access to our useContext";
+}
 ```
 
-`/islands/IslandChild.tsx`
-
 ```tsx
+// islands/IslandChild.tsx
 import IslandGrandchild from "./IslandGrandchild.tsx";
 
 export default function IslandChild() {
@@ -113,9 +101,8 @@ export default function IslandChild() {
 }
 ```
 
-`/islands/IslandGrandchild.tsx`
-
 ```tsx
+// islands/IslandGrandchild.tsx
 import { ComplexContext } from "../routes/island_context_broken.tsx";
 import { useContext } from "preact/hooks";
 
@@ -133,11 +120,11 @@ the route.
 ## Workaround for Islands
 
 If you really want to pass the value to the island, then you'll need to extract
-it at the last possible moment.
-
-`/routes/context_with_eventual_island.tsx`
+it at the last possible moment. For variety, we'll use the older `handler`
+approach in this example, just to show that this still works as well.
 
 ```tsx
+// routes/context_with_eventual_island.tsx
 import { HandlerContext, PageProps } from "$fresh/server.ts";
 import { createContext } from "preact";
 import { ChildWithGreatGrandchildIsland } from "../components/ChildWithGreatGrandchildIsland.tsx";
@@ -148,7 +135,7 @@ export const handler = async (
   _req: Request,
   ctx: HandlerContext,
 ): Promise<Response> => {
-  const complexValue = "this is complex";
+  const complexValue = "this is an expensive value to compute";
   return await ctx.render(complexValue);
 };
 
@@ -161,9 +148,8 @@ export default function Home(props: PageProps<string>) {
 }
 ```
 
-`/components/ChildWithGreatGrandchildIsland.tsx`
-
 ```tsx
+// components/ChildWithGreatGrandchildIsland.tsx
 import { GrandchildWithGreatGrandchildIsland } from "./GrandchildWithGreatGrandchildIsland.tsx";
 
 export function ChildWithGreatGrandchildIsland() {
@@ -171,9 +157,8 @@ export function ChildWithGreatGrandchildIsland() {
 }
 ```
 
-`/components/GrandchildWithGreatGrandchildIsland.tsx`
-
 ```tsx
+// components/GrandchildWithGreatGrandchildIsland.tsx
 import GreatGrandchild from "../islands/GreatGrandchild.tsx";
 import { ComplexContext } from "../routes/context_with_eventual_island.tsx";
 import { useContext } from "preact/hooks";
@@ -189,9 +174,8 @@ export function GrandchildWithGreatGrandchildIsland() {
 }
 ```
 
-`/islands/GreatGrandchild.tsx`
-
 ```tsx
+// islands/GreatGrandchild.tsx
 export default function IslandGrandchild(props: { complexValue: string }) {
   return <div>{props.complexValue.toUpperCase()}</div>;
 }
@@ -205,8 +189,8 @@ When we go to `http://localhost:8000/context_with_eventual_island` we'll see the
 following:
 
 ```
-this is complex
-THIS IS COMPLEX
+this is an expensive value to compute
+THIS IS AN EXPENSIVE VALUE TO COMPUTE
 ```
 
 Note that the bold text was rendered client side, since the island is working
