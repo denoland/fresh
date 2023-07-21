@@ -1,13 +1,14 @@
 import { ServerContext } from "./context.ts";
-import * as colors from "https://deno.land/std@0.190.0/fmt/colors.ts";
-import { ConnInfo, serve, ServeHandler } from "./deps.ts";
 export { Status } from "./deps.ts";
+import { colors, serve } from "./deps.ts";
 import {
   AppModule,
   ErrorPageModule,
   IslandModule,
   MiddlewareModule,
   RouteModule,
+  ServeHandler,
+  ServeHandlerInfo,
   StartOptions,
   UnknownPageModule,
 } from "./types.ts";
@@ -35,6 +36,8 @@ export type {
   PluginRenderStyleTag,
   RenderFunction,
   RouteConfig,
+  RouteContext,
+  ServeHandlerInfo,
   StartOptions,
   UnknownHandler,
   UnknownHandlerContext,
@@ -70,7 +73,9 @@ export { ServerContext };
 export async function createHandler(
   routes: Manifest,
   opts: StartOptions = {},
-): Promise<(req: Request, connInfo?: ConnInfo) => Promise<Response>> {
+): Promise<
+  (req: Request, connInfo?: ServeHandlerInfo) => Promise<Response>
+> {
   const ctx = await ServerContext.fromManifest(routes, opts);
   return ctx.handler();
 }
@@ -80,13 +85,12 @@ export async function start(routes: Manifest, opts: StartOptions = {}) {
 
   if (!opts.onListen) {
     opts.onListen = (params) => {
+      console.log();
       console.log(
-        colors.bgRgb8(colors.black(colors.bold("\n 🍋 Fresh ready ")), 121),
+        colors.bgRgb8(colors.black(colors.bold(" 🍋 Fresh ready ")), 121),
       );
 
-      const address = colors.cyan(
-        `http://localhost:${params.port}/`,
-      );
+      const address = colors.cyan(`http://localhost:${params.port}/`);
       const localLabel = colors.bold("Local:");
       console.log(`    ${localLabel} ${address}\n`);
     };
@@ -133,10 +137,12 @@ export async function start(routes: Manifest, opts: StartOptions = {}) {
 }
 
 async function bootServer(handler: ServeHandler, opts: StartOptions) {
-  if (opts.experimentalDenoServe === true) {
-    // @ts-ignore as `Deno.serve` is still unstable.
-    await Deno.serve({ ...opts, handler }).finished;
+  // @ts-ignore Ignore type error when type checking with Deno versions
+  if (typeof Deno.serve === "function") {
+    // @ts-ignore Ignore type error when type checking with Deno versions
+    await Deno.serve(opts, handler).finished;
   } else {
+    // @ts-ignore Deprecated std serve way
     await serve(handler, opts);
   }
 }

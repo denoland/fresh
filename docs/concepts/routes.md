@@ -28,9 +28,9 @@ Let's look at a basic route that returns a plain text string:
 ```tsx
 // routes/plain.tsx
 
-import { HandlerContext, MultiHandler } from "$fresh/server.ts";
+import { HandlerContext, Handlers } from "$fresh/server.ts";
 
-export const handler: MultiHandler = {
+export const handler: Handlers = {
   GET(_req: Request, _ctx: HandlerContext) {
     return new Response("Hello World");
   },
@@ -74,9 +74,9 @@ response after rendering the page component.
 ```tsx
 // routes/html.tsx
 
-import { HandlerContext, MultiHandler, PageProps } from "$fresh/server.ts";
+import { HandlerContext, Handlers, PageProps } from "$fresh/server.ts";
 
-export const handler: MultiHandler = {
+export const handler: Handlers = {
   async GET(_req: Request, ctx: HandlerContext) {
     const resp = await ctx.render();
     resp.headers.set("X-Custom-Header", "Hello World");
@@ -86,5 +86,88 @@ export const handler: MultiHandler = {
 
 export default function Page(props: PageProps) {
   return <div>You are on the page '{props.url.href}'.</div>;
+}
+```
+
+## Async route components
+
+Having a separate route handler and component function is nice, when you want to
+test these in isolation, but can become a bit cumbersome to maintain. They
+require some additional indirection of declaring an interface for the component
+`Data` when you're passing it around through `ctx.render()`.
+
+```tsx
+interface Data {
+  foo: number;
+}
+
+export const handler: Handlers<Data> = {
+  async GET(req, ctx) {
+    const value = await loadFooValue();
+    ctx.render({ foo: value });
+  },
+};
+
+export default function MyPage(props: PageProps<Data>) {
+  return <p>foo is: {props.data.foo}</p>;
+}
+```
+
+When a route has both a component and a `GET` handler, they are typically very
+closely coupled. With async route components you can merge the two together and
+avoid having to create the `Data` interface boilerplate.
+
+```tsx
+// Async route component
+export default async function MyPage(req: Request, ctx: RouteContext) {
+  const value = await loadFooValue();
+  return <p>foo is: {value}</p>;
+}
+```
+
+The code gets a little shorter with async route components. Conceptually, you
+can think of async route components inlining the `GET` handler into the
+component function. Note, that you can still add additional HTTP handlers in the
+same file like before.
+
+```tsx
+export const handler: Handlers = {
+  async POST(req) {
+    // ... do something here
+  },
+};
+
+export default async function MyPage(req: Request, ctx: RouteContext) {
+  const value = await loadFooValue();
+  return <p>foo is: {value}</p>;
+}
+```
+
+### Returning Response objects
+
+Quite often a route handler needs to render a 404 page or bail out of rendering
+in another manner. This can be done by returning a `Response` object.
+
+```tsx
+// Async route component
+export default async function MyPage(req: Request, ctx: RouteContext) {
+  const value = await loadFooValue();
+
+  // Return 404 if `value` is null
+  if (value === null) {
+    return ctx.renderNotFound();
+  }
+
+  // Returning a response object directly works too
+  if (value === "redirect") {
+    const headers = new Headers();
+    headers.set("location", "/some-other-page");
+    return new Response(null, {
+      status: 302,
+      headers,
+    });
+  }
+
+  return <p>foo is: {value}</p>;
 }
 ```

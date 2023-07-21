@@ -12,7 +12,7 @@ Each middleware gets passed a `next` function in the context argument that is
 used to trigger child handlers. The `ctx` also has a `state` property that can
 be used to pass arbitrary data to downstream (or upstream) handlers. This
 `state` is included in `PageProps` by default, which is available to both the
-special [_app](/docs/concepts/app-wrapper.md) wrapper and normal
+special [\_app](/docs/concepts/app-wrapper.md) wrapper and normal
 [routes](/docs/concepts/routes.md).
 
 ```ts
@@ -36,7 +36,7 @@ export async function handler(
 
 ```ts
 // routes/myHandler.ts
-export const handler: MultiHandler<any, { data: string }> = {
+export const handler: Handlers<any, { data: string }> = {
   GET(_req, ctx) {
     return new Response(`middleware data is ${ctx.state.data}`);
   },
@@ -50,11 +50,15 @@ specific first).
 
 For example, take a project with the following routes:
 
-- `routes/_middleware.ts`
-- `routes/index.ts`
-- `routes/admin/_middleware.ts`
-- `routes/admin/index.ts`
-- `routes/admin/signin.ts`
+```
+└── routes
+    ├── _middleware.ts
+    ├── index.ts
+    └── admin
+        ├── _middleware.ts
+        └── index.ts
+        └── signin.ts
+```
 
 For a request to `/` the request will flow like this:
 
@@ -94,16 +98,37 @@ export const handler = [
 ];
 ```
 
+It should be noted that `middleware` has access to route parameters. If you're
+running a fictitious `routes/[tenant]/admin/_middleware.ts` like this:
+
+```ts
+import { MiddlewareHandlerContext } from "$fresh/server.ts";
+
+export async function handler(_req: Request, ctx: MiddlewareHandlerContext) {
+  const currentTenant = ctx.params.tenant;
+  //do something with the tenant
+  const resp = await ctx.next();
+  return resp;
+}
+```
+
+and the request is to `mysaas.com/acme/admin/`, then `currentTenant` will have
+the value of `acme` in your middleware.
+
 ## Middleware Destination
 
 To set the stage for this section, `MiddlewareHandlerContext` looks like this:
 
 ```ts
-export interface MiddlewareHandlerContext<State = Record<string, unknown>>
-  extends ConnInfo {
+export interface MiddlewareHandlerContext<State = Record<string, unknown>> {
   next: () => Promise<Response>;
   state: State;
   destination: router.DestinationKind;
+  remoteAddr: {
+    transport: "tcp" | "udp";
+    hostname: string;
+    port: number;
+  };
 }
 ```
 
@@ -113,9 +138,8 @@ and `router.DestinationKind` is defined like this:
 export type DestinationKind = "internal" | "static" | "route" | "notFound";
 ```
 
-This is useful for if you want your middleware to only run when a request is
-headed for a `route`, as opposed to something like
-`http://localhost:8001/favicon.ico`.
+This is useful if you want your middleware to only run when a request is headed
+for a `route`, as opposed to something like `http://localhost:8001/favicon.ico`.
 
 ### Example
 
@@ -125,10 +149,7 @@ create a `_middleware.ts` file in the `routes` folder like this:
 ```ts
 import { MiddlewareHandlerContext } from "$fresh/server.ts";
 
-export async function handler(
-  req: Request,
-  ctx: MiddlewareHandlerContext,
-) {
+export async function handler(req: Request, ctx: MiddlewareHandlerContext) {
   console.log(ctx.destination);
   console.log(req.url);
   const resp = await ctx.next();

@@ -1,19 +1,11 @@
-import { ComponentType } from "preact";
-import { ConnInfo, ServeInit } from "./deps.ts";
+import { ComponentChildren, ComponentType, VNode } from "preact";
+import { ServeInit } from "./deps.ts";
 import * as router from "./router.ts";
 import { InnerRenderFunction, RenderContext } from "./render.ts";
 
 // --- APPLICATION CONFIGURATION ---
 
-export type StartOptions = ServeInit & FreshOptions & {
-  /**
-   * UNSTABLE: use the `Deno.serve` API as the underlying HTTP server instead of
-   * the `std/http` API. Do not use this in production.
-   *
-   * This option is experimental and may be removed in a future Fresh release.
-   */
-  experimentalDenoServe?: boolean;
-};
+export type StartOptions = ServeInit & FreshOptions;
 
 export interface FreshOptions {
   render?: RenderFunction;
@@ -64,6 +56,16 @@ export interface PageProps<T = any, S = Record<string, unknown>> {
   state: S;
 }
 
+/**
+ * Context passed to async route components.
+ */
+export type RouteContext<T = unknown, S = Record<string, unknown>> =
+  & Omit<
+    HandlerContext<T, S>,
+    "render"
+  >
+  & Omit<PageProps<unknown, S>, "data">;
+
 export interface RouteConfig {
   /**
    * A route override for the page. This is useful for pages where the route
@@ -85,8 +87,22 @@ export interface RouteConfig {
 // deno-lint-ignore no-empty-interface
 export interface RenderOptions extends ResponseInit {}
 
+export type ServeHandlerInfo = {
+  /**
+   * Backwards compatible with std/server
+   * @deprecated
+   */
+  localAddr?: Deno.NetAddr;
+  remoteAddr: Deno.NetAddr;
+};
+
+export type ServeHandler = (
+  request: Request,
+  info: ServeHandlerInfo,
+) => Response | Promise<Response>;
+
 export interface HandlerContext<Data = unknown, State = Record<string, unknown>>
-  extends ConnInfo {
+  extends ServeHandlerInfo {
   params: Record<string, string>;
   render: (
     data?: Data,
@@ -103,30 +119,44 @@ export type Handler<T = any, State = Record<string, unknown>> = (
 ) => Response | Promise<Response>;
 
 // deno-lint-ignore no-explicit-any
-export type MultiHandler<T = any, State = Record<string, unknown>> = {
+export type Handlers<T = any, State = Record<string, unknown>> = {
   [K in router.KnownMethod]?: Handler<T, State>;
 };
 
 /**
- * @deprecated This type has been deprecated and is replaced with MultiHandler type.
+ * @deprecated This type was a short-lived alternative to `Handlers`. Please use `Handlers` instead.
  */
-export type Handlers<T> = MultiHandler<T>;
+export type MultiHandler<T> = Handlers<T>;
 
 export interface RouteModule {
-  default?: ComponentType<PageProps>;
+  default?: PageComponent<PageProps>;
   // deno-lint-ignore no-explicit-any
-  handler?: Handler<any, any> | MultiHandler<any, any>;
+  handler?: Handler<any, any> | Handlers<any, any>;
   config?: RouteConfig;
 }
+
+export type AsyncRoute<T> = (
+  req: Request,
+  ctx: RouteContext<T>,
+) => Promise<ComponentChildren | Response>;
+export type PageComponent<T> =
+  | ComponentType<PageProps<T>>
+  | AsyncRoute<T>
+  // deno-lint-ignore no-explicit-any
+  | ((props: any) => VNode<any> | ComponentChildren);
 
 // deno-lint-ignore no-explicit-any
 export interface Route<Data = any> {
   pattern: string;
   url: string;
   name: string;
-  component?: ComponentType<PageProps<Data>>;
-  handler: Handler<Data> | MultiHandler<Data>;
+  component?: PageComponent<Data>;
+  handler: Handler<Data> | Handlers<Data>;
   csp: boolean;
+}
+
+export interface RouterState {
+  state: Record<string, unknown>;
 }
 
 // --- APP ---
@@ -158,7 +188,7 @@ export interface UnknownPageProps<T = any> {
 }
 
 export interface UnknownHandlerContext<State = Record<string, unknown>>
-  extends ConnInfo {
+  extends ServeHandlerInfo {
   render: () => Response | Promise<Response>;
   state: State;
 }
@@ -169,7 +199,7 @@ export type UnknownHandler = (
 ) => Response | Promise<Response>;
 
 export interface UnknownPageModule {
-  default?: ComponentType<UnknownPageProps>;
+  default?: PageComponent<UnknownPageProps>;
   handler?: UnknownHandler;
   config?: RouteConfig;
 }
@@ -178,7 +208,7 @@ export interface UnknownPage {
   pattern: string;
   url: string;
   name: string;
-  component?: ComponentType<UnknownPageProps>;
+  component?: PageComponent<UnknownPageProps>;
   handler: UnknownHandler;
   csp: boolean;
 }
@@ -198,7 +228,7 @@ export interface ErrorPageProps {
 }
 
 export interface ErrorHandlerContext<State = Record<string, unknown>>
-  extends ConnInfo {
+  extends ServeHandlerInfo {
   error: unknown;
   render: () => Response | Promise<Response>;
   state: State;
@@ -210,7 +240,7 @@ export type ErrorHandler = (
 ) => Response | Promise<Response>;
 
 export interface ErrorPageModule {
-  default?: ComponentType<ErrorPageProps>;
+  default?: PageComponent<ErrorPageProps>;
   handler?: ErrorHandler;
   config?: RouteConfig;
 }
@@ -219,7 +249,7 @@ export interface ErrorPage {
   pattern: string;
   url: string;
   name: string;
-  component?: ComponentType<ErrorPageProps>;
+  component?: PageComponent<ErrorPageProps>;
   handler: ErrorHandler;
   csp: boolean;
 }
@@ -227,10 +257,11 @@ export interface ErrorPage {
 // --- MIDDLEWARES ---
 
 export interface MiddlewareHandlerContext<State = Record<string, unknown>>
-  extends ConnInfo {
+  extends ServeHandlerInfo {
   next: () => Promise<Response>;
   state: State;
   destination: router.DestinationKind;
+  params: Record<string, string>;
 }
 
 export interface MiddlewareRoute extends Middleware {
@@ -262,7 +293,7 @@ export interface Middleware<State = Record<string, unknown>> {
 
 export interface IslandModule {
   // deno-lint-ignore no-explicit-any
-  default: ComponentType<any>;
+  [key: string]: ComponentType<any>;
 }
 
 export interface Island {
@@ -270,6 +301,7 @@ export interface Island {
   name: string;
   url: string;
   component: ComponentType<unknown>;
+  exportName: string;
 }
 
 // --- PLUGINS ---
@@ -305,6 +337,10 @@ export interface Plugin {
    * propagate state between the render hook and the renderer.
    */
   renderAsync?(ctx: PluginAsyncRenderContext): Promise<PluginRenderResult>;
+
+  routes?: PluginRoute[];
+
+  middlewares?: PluginMiddleware[];
 }
 
 export interface PluginRenderContext {
@@ -354,4 +390,21 @@ export interface PluginRenderFunctionResult {
   /** If the renderer encountered any islands that require hydration on the
    * client. */
   requiresHydration: boolean;
+}
+
+export interface PluginMiddleware {
+  /** A path in the format of a filename path without filetype */
+  path: string;
+
+  middleware: Middleware;
+}
+
+export interface PluginRoute {
+  /** A path in the format of a filename path without filetype */
+  path: string;
+
+  component?: ComponentType<PageProps> | ComponentType<AppProps>;
+
+  // deno-lint-ignore no-explicit-any
+  handler?: Handler<any, any> | Handlers<any, any>;
 }

@@ -1,5 +1,4 @@
 import {
-  ConnInfo,
   dirname,
   extname,
   fromFileUrl,
@@ -28,16 +27,24 @@ import {
   MiddlewareModule,
   MiddlewareRoute,
   Plugin,
+  PluginMiddleware,
+  PluginRoute,
   RenderFunction,
   RenderOptions,
   Route,
   RouteModule,
   RouterOptions,
+  RouterState,
+  ServeHandlerInfo,
   UnknownPage,
   UnknownPageModule,
 } from "./types.ts";
-import { render as internalRender } from "./render.ts";
-import { ContentSecurityPolicyDirectives, SELF } from "../runtime/csp.ts";
+import { DEFAULT_RENDER_FN, render as internalRender } from "./render.ts";
+import {
+  ContentSecurityPolicy,
+  ContentSecurityPolicyDirectives,
+  SELF,
+} from "../runtime/csp.ts";
 import { ASSET_CACHE_BUST_KEY, INTERNAL_PREFIX } from "../runtime/utils.ts";
 import {
   Builder,
@@ -45,15 +52,12 @@ import {
   EsbuildBuilder,
   JSXConfig,
 } from "../build/mod.ts";
+import { InternalRoute } from "./router.ts";
 
-const DEFAULT_CONN_INFO: ConnInfo = {
+const DEFAULT_CONN_INFO: ServeHandlerInfo = {
   localAddr: { transport: "tcp", hostname: "localhost", port: 8080 },
   remoteAddr: { transport: "tcp", hostname: "localhost", port: 1234 },
 };
-
-interface RouterState {
-  state: Record<string, unknown>;
-}
 
 function isObject(value: unknown) {
   return typeof value === "object" &&
@@ -174,7 +178,14 @@ export class ServerContext {
     let app: AppModule = DEFAULT_APP;
     let notFound: UnknownPage = DEFAULT_NOT_FOUND;
     let error: ErrorPage = DEFAULT_ERROR;
-    for (const [self, module] of Object.entries(manifest.routes)) {
+    const allRoutes = [
+      ...Object.entries(manifest.routes),
+      ...Object.entries(getMiddlewareRoutesFromPlugins(opts.plugins || [])),
+      ...Object.entries(getRoutesFromPlugins(opts.plugins || [])),
+    ];
+    for (
+      const [self, module] of allRoutes
+    ) {
       const url = new URL(self, baseUrl).href;
       if (!url.startsWith(baseUrl + "routes")) {
         throw new TypeError("Page is not a child of the basepath.");
@@ -192,6 +203,11 @@ export class ServerContext {
           pattern = String(config.routeOverride);
         }
         let { handler } = module as RouteModule;
+        if (!handler && "handlers" in module) {
+          throw new Error(
+            `Found named export "handlers" in ${self} instead of "handler". Did you mean "handler"?`,
+          );
+        }
         handler ??= {};
         if (
           component && typeof handler === "object" && handler.GET === undefined
@@ -272,7 +288,7 @@ export class ServerContext {
       }
     }
     sortRoutes(routes);
-    sortRoutes(middlewares);
+    sortMiddleware(middlewares);
 
     for (const [self, module] of Object.entries(manifest.islands)) {
       const url = new URL(self, baseUrl).href;
@@ -281,14 +297,21 @@ export class ServerContext {
       }
       const path = url.substring(baseUrl.length).substring("islands".length);
       const baseRoute = path.substring(1, path.length - extname(path).length);
-      const name = sanitizeIslandName(baseRoute);
-      const id = name.toLowerCase();
-      if (typeof module.default !== "function") {
-        throw new TypeError(
-          `Islands must default export a component ('${self}').`,
-        );
+
+      for (const [exportName, exportedFunction] of Object.entries(module)) {
+        if (typeof exportedFunction !== "function") {
+          continue;
+        }
+        const name = sanitizeIslandName(baseRoute);
+        const id = `${name}_${exportName}`.toLowerCase();
+        islands.push({
+          id,
+          name,
+          url,
+          component: exportedFunction,
+          exportName,
+        });
       }
-      islands.push({ id, name, url, component: module.default });
     }
 
     const staticFiles: StaticFile[] = [];
@@ -361,17 +384,18 @@ export class ServerContext {
    * This functions returns a request handler that handles all routes required
    * by fresh, including static files.
    */
-  handler(): (req: Request, connInfo?: ConnInfo) => Promise<Response> {
+  handler(): (req: Request, connInfo?: ServeHandlerInfo) => Promise<Response> {
     const handlers = this.#handlers();
     const inner = router.router<RouterState>(handlers);
     const withMiddlewares = this.#composeMiddlewares(
       this.#middlewares,
       handlers.errorHandler,
+      router.getParamsAndRoute<RouterState>(handlers),
     );
     const trailingSlashEnabled = this.#routerOptions?.trailingSlash;
     return async function handler(
       req: Request,
-      connInfo: ConnInfo = DEFAULT_CONN_INFO,
+      connInfo: ServeHandlerInfo = DEFAULT_CONN_INFO,
     ) {
       // Redirect requests that end with a trailing slash to their non-trailing
       // slash counterpart.
@@ -389,7 +413,16 @@ export class ServerContext {
           headers: { location },
         });
       } else if (trailingSlashEnabled && !url.pathname.endsWith("/")) {
-        return Response.redirect(url.href + "/", Status.PermanentRedirect);
+        // If the last element of the path has a "." it's a file
+        const isFile = url.pathname.split("/").at(-1)?.includes(".");
+
+        // If the path uses the internal prefix, don't redirect it
+        const isInternal = url.pathname.startsWith(INTERNAL_PREFIX);
+
+        if (!isFile && !isInternal) {
+          url.pathname += "/";
+          return Response.redirect(url, Status.PermanentRedirect);
+        }
       }
 
       return await withMiddlewares(req, connInfo, inner);
@@ -425,10 +458,16 @@ export class ServerContext {
   #composeMiddlewares(
     middlewares: MiddlewareRoute[],
     errorHandler: router.ErrorHandler<RouterState>,
+    paramsAndRoute: (
+      url: string,
+    ) => {
+      route: InternalRoute<RouterState> | undefined;
+      params: Record<string, string>;
+    },
   ) {
     return (
       req: Request,
-      connInfo: ConnInfo,
+      connInfo: ServeHandlerInfo,
       inner: router.FinalHandler<RouterState>,
     ) => {
       // identify middlewares to apply, if any.
@@ -436,6 +475,7 @@ export class ServerContext {
       const mws = selectMiddlewares(req.url, middlewares);
 
       const handlers: (() => Response | Promise<Response>)[] = [];
+      const paramsAndRouteResult = paramsAndRoute(req.url);
 
       const middlewareCtx: MiddlewareHandlerContext = {
         next() {
@@ -458,6 +498,7 @@ export class ServerContext {
         ...connInfo,
         state: {},
         destination: "route",
+        params: paramsAndRouteResult.params,
       };
 
       for (const mw of mws) {
@@ -478,6 +519,8 @@ export class ServerContext {
       const { destination, handler } = inner(
         req,
         ctx,
+        paramsAndRouteResult.params,
+        paramsAndRouteResult.route,
       );
       handlers.push(handler);
       middlewareCtx.destination = destination;
@@ -562,6 +605,58 @@ export class ServerContext {
       };
     }
 
+    const dependenciesFn = (path: string) => {
+      const snapshot = this.#maybeBuildSnapshot();
+      return snapshot?.dependencies(path) ?? [];
+    };
+
+    const renderNotFound = async <Data = undefined>(
+      req: Request,
+      params: Record<string, string>,
+      // deno-lint-ignore no-explicit-any
+      ctx?: any,
+      data?: Data,
+      error?: unknown,
+    ) => {
+      const notFound = this.#notFound;
+      if (!notFound.component) {
+        return sendResponse(["Not found.", undefined], {
+          status: Status.NotFound,
+          isDev: this.#dev,
+          statusText: undefined,
+          headers: undefined,
+        });
+      }
+      const imports: string[] = [];
+      const resp = await internalRender({
+        request: req,
+        context: ctx,
+        route: notFound,
+        islands: this.#islands,
+        plugins: this.#plugins,
+        app: this.#app,
+        imports,
+        dependenciesFn,
+        renderFn: this.#renderFn,
+        url: new URL(req.url),
+        params,
+        data,
+        state: ctx?.state,
+        error,
+      });
+
+      if (resp instanceof Response) {
+        return resp;
+      }
+
+      return sendResponse(resp, {
+        status: Status.NotFound,
+        isDev: this.#dev,
+        statusText: undefined,
+        headers: undefined,
+      });
+    };
+
     const genRender = <Data = undefined>(
       route: Route<Data> | UnknownPage | ErrorPage,
       status: number,
@@ -571,7 +666,8 @@ export class ServerContext {
       return (
         req: Request,
         params: Record<string, string>,
-        state?: Record<string, unknown>,
+        // deno-lint-ignore no-explicit-any
+        ctx?: any,
         error?: unknown,
       ) => {
         return async (data?: Data, options?: RenderOptions) => {
@@ -579,64 +675,41 @@ export class ServerContext {
             throw new Error("This page does not have a component to render.");
           }
 
-          if (
-            typeof route.component === "function" &&
-            route.component.constructor.name === "AsyncFunction"
-          ) {
-            throw new Error(
-              "Async components are not supported. Fetch data inside of a route handler, as described in the docs: https://fresh.deno.dev/docs/getting-started/fetching-data",
-            );
-          }
-
           const resp = await internalRender({
+            request: req,
+            context: {
+              ...ctx,
+              async renderNotFound() {
+                return await renderNotFound(req, params, ctx, data, error);
+              },
+            },
             route,
             islands: this.#islands,
             plugins: this.#plugins,
             app: this.#app,
             imports,
-            dependenciesFn: (path) => {
-              const snapshot = this.#maybeBuildSnapshot();
-              return snapshot?.dependencies(path) ?? [];
-            },
+            dependenciesFn,
             renderFn: this.#renderFn,
             url: new URL(req.url),
             params,
             data,
-            state,
+            state: ctx?.state,
             error,
           });
 
-          const headers: Record<string, string> = {
-            "content-type": "text/html; charset=utf-8",
-          };
-
-          const [body, csp] = resp;
-          if (csp) {
-            if (this.#dev) {
-              csp.directives.connectSrc = [
-                ...(csp.directives.connectSrc ?? []),
-                SELF,
-              ];
-            }
-            const directive = serializeCSPDirectives(csp.directives);
-            if (csp.reportOnly) {
-              headers["content-security-policy-report-only"] = directive;
-            } else {
-              headers["content-security-policy"] = directive;
-            }
+          if (resp instanceof Response) {
+            return resp;
           }
-          return new Response(body, {
+
+          return sendResponse(resp, {
             status: options?.status ?? status,
             statusText: options?.statusText,
-            headers: options?.headers
-              ? { ...headers, ...options.headers }
-              : headers,
+            headers: options?.headers,
+            isDev: this.#dev,
           });
         };
       };
     };
-
-    const createUnknownRender = genRender(this.#notFound, Status.NotFound);
 
     for (const route of this.#routes) {
       if (this.#routerOptions.trailingSlash && route.pattern != "/") {
@@ -649,8 +722,10 @@ export class ServerContext {
             (route.handler as Handler)(req, {
               ...ctx,
               params,
-              render: createRender(req, params, ctx.state),
-              renderNotFound: createUnknownRender(req, params, ctx.state),
+              render: createRender(req, params, ctx),
+              async renderNotFound<Data = undefined>(data: Data) {
+                return await renderNotFound(req, params, ctx, data);
+              },
             }),
         };
       } else {
@@ -664,8 +739,10 @@ export class ServerContext {
             handler(req, {
               ...ctx,
               params,
-              render: createRender(req, params, ctx.state),
-              renderNotFound: createUnknownRender(req, params, ctx.state),
+              render: createRender(req, params, ctx),
+              async renderNotFound<Data = undefined>(data: Data) {
+                return await renderNotFound(req, params, ctx, data);
+              },
             });
         }
       }
@@ -679,7 +756,9 @@ export class ServerContext {
         req,
         {
           ...ctx,
-          render: createUnknownRender(req, {}),
+          render() {
+            return renderNotFound(req, {}, ctx);
+          },
         },
       );
 
@@ -810,10 +889,6 @@ export class ServerContext {
   };
 }
 
-const DEFAULT_RENDER_FN: RenderFunction = (_ctx, render) => {
-  render();
-};
-
 const DEFAULT_ROUTER_OPTIONS: RouterOptions = {
   trailingSlash: false,
 };
@@ -862,7 +937,7 @@ export function selectMiddlewares(url: string, middlewares: MiddlewareRoute[]) {
  * Sort pages by their relative routing priority, based on the parts in the
  * route matcher
  */
-function sortRoutes<T extends { pattern: string }>(routes: T[]) {
+export function sortRoutes<T extends { pattern: string }>(routes: T[]) {
   routes.sort((a, b) => {
     const partsA = a.pattern.split("/");
     const partsB = b.pattern.split("/");
@@ -878,6 +953,40 @@ function sortRoutes<T extends { pattern: string }>(routes: T[]) {
     }
     return 0;
   });
+}
+
+export function sortMiddleware<T extends { pattern: string }>(routes: T[]) {
+  routes.sort((a, b) => {
+    const partsA = a.pattern.split("/");
+    const partsB = b.pattern.split("/");
+
+    for (let i = 0; i < Math.max(partsA.length, partsB.length); i++) {
+      const partA = partsA[i];
+      const partB = partsB[i];
+
+      if (partA === undefined && partB === undefined) return 0;
+      if (partA === undefined) return -1;
+      if (partB === undefined) return 1;
+
+      if (partA === partB) continue;
+
+      const priorityA = getPriority(partA);
+      const priorityB = getPriority(partB);
+
+      if (priorityA !== priorityB) {
+        return priorityA - priorityB; // Sort in ascending order of priority
+      }
+    }
+
+    return 0;
+  });
+}
+
+function getPriority(part: string) {
+  if (part.startsWith(":")) {
+    return part.endsWith("*") ? 2 : 1;
+  }
+  return 0;
 }
 
 /** Transform a filesystem URL path to a `path-to-regex` style matcher. */
@@ -931,7 +1040,7 @@ function toPascalCase(text: string): string {
 }
 
 function sanitizeIslandName(name: string): string {
-  const fileName = name.replace("/", "");
+  const fileName = name.replaceAll("/", "_");
   return toPascalCase(fileName);
 }
 
@@ -1031,4 +1140,76 @@ async function readDenoConfig(
     }
     dir = parent;
   }
+}
+
+function getMiddlewareRoutesFromPlugins(
+  plugins: Plugin[],
+): Record<string, MiddlewareModule> {
+  return (Object.assign(
+    {},
+    ...[
+      ...new Set(
+        ([] as PluginMiddleware[]).concat(
+          ...plugins.map((p) => p.middlewares || []),
+        ),
+      ),
+    ]
+      .map((middleware: PluginMiddleware) => ({
+        [`./routes${middleware.path}_middleware.ts`]: {
+          handler: middleware.middleware.handler,
+        },
+      })) || [],
+  ));
+}
+
+function getRoutesFromPlugins(plugins: Plugin[]): Record<string, RouteModule> {
+  return (Object.assign(
+    {},
+    ...[
+      ...new Set(
+        ([] as PluginRoute[]).concat(...plugins.map((p) => p.routes || [])),
+      ),
+    ]
+      .map((route: PluginRoute) => ({
+        [`./routes${route.path}.ts`]: {
+          default: route.component,
+          handler: route.handler,
+        } as RouteModule,
+      })) || [],
+  ));
+}
+
+function sendResponse(
+  resp: [string, ContentSecurityPolicy | undefined],
+  options: {
+    status: number;
+    statusText: string | undefined;
+    headers?: HeadersInit;
+    isDev: boolean;
+  },
+) {
+  const headers: Record<string, string> = {
+    "content-type": "text/html; charset=utf-8",
+  };
+
+  const [body, csp] = resp;
+  if (csp) {
+    if (options.isDev) {
+      csp.directives.connectSrc = [
+        ...(csp.directives.connectSrc ?? []),
+        SELF,
+      ];
+    }
+    const directive = serializeCSPDirectives(csp.directives);
+    if (csp.reportOnly) {
+      headers["content-security-policy-report-only"] = directive;
+    } else {
+      headers["content-security-policy"] = directive;
+    }
+  }
+  return new Response(body, {
+    status: options.status,
+    statusText: options.statusText,
+    headers: options.headers ? { ...headers, ...options.headers } : headers,
+  });
 }

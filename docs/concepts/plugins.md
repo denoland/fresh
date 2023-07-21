@@ -2,8 +2,6 @@
 description: Plugins can add new functionality to Fresh without requiring significant complexity.
 ---
 
-> Plugins are only available in Fresh 1.1 and above.
-
 Plugins can dynamically add new functionality to Fresh without exposing
 significant complexity to the user. Users can add plugins by importing and
 initializing them in their `main.ts` file:
@@ -42,7 +40,7 @@ available (explained below).
 
 A Fresh plugin is just a JavaScript object that conforms to the
 [Plugin](https://deno.land/x/fresh/server.ts?s=Plugin) interface. The only
-required property of a plugin is it's name. Names must only contain the
+required property of a plugin is its name. Names must only contain the
 characters `a`-`z`, and `_`.
 
 ```ts
@@ -54,7 +52,8 @@ const plugin: Plugin = {
 ```
 
 A plugin containing only a name is technically valid, but not very useful. To be
-able to do anything with a plugin, it must register some hooks.
+able to do anything with a plugin, it must register some hooks, middlewares, or
+routes.
 
 ### Hook: `render`
 
@@ -125,3 +124,19 @@ all rendering is complete -- they wrap around the underlying JSX->string
 rendering, plugin `render` hooks, and the
 [`RenderFunction`](https://deno.land/x/fresh/server.ts?s=RenderFunction) that
 may be provided to Fresh's `start` entrypoint in the `main.ts` file.
+
+### Routes and Middlewares
+
+You can create routes and middlewares that get loaded and rendered like the
+normal [routes](/docs/concepts/routes) and
+[middlewares](/docs/concepts/middleware).
+
+The plugin routes and middlewares need a defined path in the format of a file
+name without a filetype inside the routes directory(E.g. `blog/index`,
+`blog/[slug]`).
+
+For more examples see the [Concepts: Routing](/docs/concepts/routing) page.
+
+To create a middleware you need to create a `MiddlewareHandler` function.
+
+And to create a route you can create both a Handler and/or component.

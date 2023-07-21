@@ -15,6 +15,7 @@ The following file uses
 handle the three cases. It's assumed this file is called `[slug].tsx`:
 
 ```ts
+// routes/[slug].tsx
 import { Handlers, PageProps } from "$fresh/server.ts";
 import { extract } from "$std/front_matter/yaml.ts";
 import { CSS, render } from "$gfm";
