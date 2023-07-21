@@ -12,14 +12,16 @@ import * as $6 from "./routes/island_jsx_children.tsx";
 import * as $7 from "./routes/island_jsx_island_jsx.tsx";
 import * as $8 from "./routes/island_jsx_text.tsx";
 import * as $9 from "./routes/island_nested_props.tsx";
-import * as $10 from "./routes/island_siblings.tsx";
+import * as $10 from "./routes/island_order.tsx";
+import * as $11 from "./routes/island_siblings.tsx";
 import * as $$0 from "./islands/BooleanButton.tsx";
 import * as $$1 from "./islands/FragmentIsland.tsx";
 import * as $$2 from "./islands/Island.tsx";
-import * as $$3 from "./islands/IslandConditional.tsx";
-import * as $$4 from "./islands/IslandFn.tsx";
-import * as $$5 from "./islands/IslandInsideIsland.tsx";
-import * as $$6 from "./islands/IslandWithProps.tsx";
+import * as $$3 from "./islands/IslandCenter.tsx";
+import * as $$4 from "./islands/IslandConditional.tsx";
+import * as $$5 from "./islands/IslandFn.tsx";
+import * as $$6 from "./islands/IslandInsideIsland.tsx";
+import * as $$7 from "./islands/IslandWithProps.tsx";
 
 const manifest = {
   routes: {
@@ -33,16 +35,18 @@ const manifest = {
     "./routes/island_jsx_island_jsx.tsx": $7,
     "./routes/island_jsx_text.tsx": $8,
     "./routes/island_nested_props.tsx": $9,
-    "./routes/island_siblings.tsx": $10,
+    "./routes/island_order.tsx": $10,
+    "./routes/island_siblings.tsx": $11,
   },
   islands: {
     "./islands/BooleanButton.tsx": $$0,
     "./islands/FragmentIsland.tsx": $$1,
     "./islands/Island.tsx": $$2,
-    "./islands/IslandConditional.tsx": $$3,
-    "./islands/IslandFn.tsx": $$4,
-    "./islands/IslandInsideIsland.tsx": $$5,
-    "./islands/IslandWithProps.tsx": $$6,
+    "./islands/IslandCenter.tsx": $$3,
+    "./islands/IslandConditional.tsx": $$4,
+    "./islands/IslandFn.tsx": $$5,
+    "./islands/IslandInsideIsland.tsx": $$6,
+    "./islands/IslandWithProps.tsx": $$7,
   },
   baseUrl: import.meta.url,
 };

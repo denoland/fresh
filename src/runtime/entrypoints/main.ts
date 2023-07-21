@@ -21,8 +21,8 @@ function createRootFragment(
     parentNode: parent,
     firstChild: replaceNode[0],
     childNodes: replaceNode,
-    insertBefore(node: Node, child: Node) {
-      parent.insertBefore(node, child);
+    insertBefore(node: Node, child: Node | null) {
+      parent.insertBefore(node, child ?? endMarker);
     },
     appendChild(child: Node) {
       // We cannot blindly call `.append()` as that would add

@@ -460,3 +460,21 @@ Deno.test({
   sanitizeOps: false,
   sanitizeResources: false,
 });
+
+Deno.test({
+  name: "render nested islands in correct order",
+
+  async fn(_t) {
+    await withPageName(
+      "./tests/fixture_island_nesting/main.ts",
+      async (page, address) => {
+        await page.goto(`${address}/island_order`);
+        await page.waitForSelector(".island");
+        await waitForText(page, "#page", "leftcenterright");
+      },
+    );
+  },
+
+  sanitizeOps: false,
+  sanitizeResources: false,
+});
