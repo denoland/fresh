@@ -1,6 +1,6 @@
-import type { ConnInfo } from "./deps.ts";
+import { ServeHandlerInfo } from "./types.ts";
 
-type HandlerContext<T = unknown> = T & ConnInfo;
+type HandlerContext<T = unknown> = T & ServeHandlerInfo;
 
 export type Handler<T = unknown> = (
   req: Request,

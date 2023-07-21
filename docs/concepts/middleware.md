@@ -10,7 +10,10 @@ use-cases for this are logging, authentication, and performance monitoring.
 
 Each middleware gets passed a `next` function in the context argument that is
 used to trigger child handlers. The `ctx` also has a `state` property that can
-be used to pass arbitrary data to downstream (or upstream) handlers.
+be used to pass arbitrary data to downstream (or upstream) handlers. This
+`state` is included in `PageProps` by default, which is available to both the
+special [\_app](/docs/concepts/app-wrapper.md) wrapper and normal
+[routes](/docs/concepts/routes.md).
 
 ```ts
 // routes/_middleware.ts
@@ -95,16 +98,37 @@ export const handler = [
 ];
 ```
 
+It should be noted that `middleware` has access to route parameters. If you're
+running a fictitious `routes/[tenant]/admin/_middleware.ts` like this:
+
+```ts
+import { MiddlewareHandlerContext } from "$fresh/server.ts";
+
+export async function handler(_req: Request, ctx: MiddlewareHandlerContext) {
+  const currentTenant = ctx.params.tenant;
+  //do something with the tenant
+  const resp = await ctx.next();
+  return resp;
+}
+```
+
+and the request is to `mysaas.com/acme/admin/`, then `currentTenant` will have
+the value of `acme` in your middleware.
+
 ## Middleware Destination
 
 To set the stage for this section, `MiddlewareHandlerContext` looks like this:
 
 ```ts
-export interface MiddlewareHandlerContext<State = Record<string, unknown>>
-  extends ConnInfo {
+export interface MiddlewareHandlerContext<State = Record<string, unknown>> {
   next: () => Promise<Response>;
   state: State;
   destination: router.DestinationKind;
+  remoteAddr: {
+    transport: "tcp" | "udp";
+    hostname: string;
+    port: number;
+  };
 }
 ```
 
