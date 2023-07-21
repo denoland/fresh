@@ -21,8 +21,8 @@ function createRootFragment(
     parentNode: parent,
     firstChild: replaceNode[0],
     childNodes: replaceNode,
-    insertBefore(node: Node, child: Node) {
-      parent.insertBefore(node, child);
+    insertBefore(node: Node, child: Node | null) {
+      parent.insertBefore(node, child ?? endMarker);
     },
     appendChild(child: Node) {
       // We cannot blindly call `.append()` as that would add
@@ -305,7 +305,14 @@ function _walkInner(
         _walkInner(islands, props, markerStack, vnodeStack, sib.firstChild);
       }
 
-      if (marker !== null && marker.kind === MarkerKind.Slot) {
+      // Pop vnode if current marker is a slot or we are an island marker
+      // that was created inside another island
+      if (
+        marker !== null &&
+        (marker.kind === MarkerKind.Slot ||
+          markerStack.length > 1 &&
+            markerStack[markerStack.length - 2].kind === MarkerKind.Island)
+      ) {
         vnodeStack.pop();
       }
     }
