@@ -564,6 +564,21 @@ Deno.test({
 });
 
 Deno.test({
+  name: "/middleware - should pass state through all middlewares",
+  fn: async () => {
+    await withPageName("./tests/fixture/main.ts", async (page, address) => {
+      await page.goto(`${address}/state-middleware/foo`);
+      const text = await page.$eval("pre", (el) => el.textContent);
+      assertEquals(JSON.parse(text), {
+        handler1: "it works",
+        handler2: "it works",
+        handler3: "it works",
+      });
+    });
+  },
+});
+
+Deno.test({
   name: "/middleware - middlewareParams",
   fn: async () => {
     const resp = await handler(
