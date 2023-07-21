@@ -36,6 +36,20 @@ function getFreshCacheDir(): string | null {
   return null;
 }
 
+const SEMVER_REG = /^(\d+)\.(\d+)\.(\d+)$/;
+function sortSemver(current: string, latest: string): number {
+  if (current === latest) return 0;
+
+  const currentParts = current.match(SEMVER_REG);
+  const latestParts = latest.match(SEMVER_REG);
+  if (!currentParts || !latestParts) return 0;
+
+  if (+currentParts[0] < +latestParts[0]) return -1;
+  if (+currentParts[1] < +latestParts[1]) return -1;
+  if (+currentParts[2] < +latestParts[2]) return -1;
+  return 1;
+}
+
 async function fetchLatestVersion() {
   const res = await fetch("https://dl.deno.land/fresh/release-latest.txt");
   if (res.ok) {
@@ -45,10 +59,18 @@ async function fetchLatestVersion() {
   throw new Error(`Could not fetch latest version.`);
 }
 
+async function readCurrentVersion() {
+  const versions = (await import("../../versions.json", {
+    "assert": { type: "json" },
+  })).default as string[];
+  return versions[0];
+}
+
 export async function updateCheck(
   interval: number,
   getCacheDir = getFreshCacheDir,
   getLatestVersion = fetchLatestVersion,
+  getCurrentVersion = readCurrentVersion,
 ) {
   // Skip update checks on CI or Deno Deploy
   if (
@@ -70,13 +92,11 @@ export async function updateCheck(
     }
   }
 
-  const versions = (await import("../../versions.json", {
-    "assert": { type: "json" },
-  })).default as string[];
+  const version = await getCurrentVersion();
 
   let checkFile: CheckFile = {
-    current_version: versions[0],
-    latest_version: versions[0],
+    current_version: version,
+    latest_version: version,
     last_checked: new Date(0).toISOString(),
   };
   try {
@@ -89,7 +109,7 @@ export async function updateCheck(
   }
 
   // Update current version
-  checkFile.current_version = versions[0];
+  checkFile.current_version = version;
 
   // Only check in the specificed interval
   if (Date.now() >= new Date(checkFile.last_checked).getTime() + interval) {
@@ -105,7 +125,10 @@ export async function updateCheck(
     }
   }
 
-  if (checkFile.current_version !== checkFile.latest_version) {
+  // Only show update message if current version is smaller than latest
+  if (
+    sortSemver(checkFile.current_version, checkFile.latest_version) === -1
+  ) {
     const current = colors.bold(colors.rgb8(checkFile.current_version, 208));
     const latest = colors.bold(colors.rgb8(checkFile.latest_version, 121));
     console.log(
