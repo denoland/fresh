@@ -1,4 +1,4 @@
-import { basename, join, parse, resolve } from "./src/dev/deps.ts";
+import { basename, colors, join, parse, resolve } from "./src/dev/deps.ts";
 import { error } from "./src/dev/error.ts";
 import { collect, ensureMinDenoVersion, generate } from "./src/dev/mod.ts";
 import {
@@ -42,11 +42,14 @@ const flags = parse(Deno.args, {
   default: { "force": null, "twind": null, "vscode": null },
 });
 
+console.log();
 console.log(
-  `\n%c  🍋 Fresh: the next-gen web framework.  %c\n`,
-  "background-color: #86efac; color: black; font-weight: bold",
-  "",
+  colors.bgRgb8(
+    colors.black(colors.bold(" 🍋 Fresh: The next-gen web framework. ")),
+    121,
+  ),
 );
+console.log();
 
 let unresolvedDirectory = Deno.args[0];
 if (flags._.length !== 1) {

@@ -60,6 +60,50 @@ export async function startFreshServerExpectErrors(
   return output;
 }
 
+/**
+ * Click on an element once it has an attached click listener
+ */
+export async function clickWhenListenerReady(page: Page, selector: string) {
+  await page.waitForSelector(selector);
+  await page.waitForFunction(
+    (sel) => {
+      const el = document.querySelector(sel)!;
+
+      // Wait for Preact to have attached either a captured or non-captured
+      // click event
+      // deno-lint-ignore no-explicit-any
+      const preactListener = (el as any).l as Record<string, unknown> | null;
+      if (
+        !preactListener || typeof preactListener !== "object" ||
+        (!preactListener.clickfalse && !preactListener.clicktrue)
+      ) {
+        return false;
+      }
+
+      return true;
+    },
+    {},
+    selector,
+  );
+  await page.click(selector);
+}
+
+export async function waitForText(
+  page: Page,
+  selector: string,
+  text: string,
+) {
+  await page.waitForSelector(selector);
+  await page.waitForFunction(
+    (sel, value) => {
+      return document.querySelector(sel)!.textContent === value;
+    },
+    { timeout: 2000 },
+    selector,
+    String(text),
+  );
+}
+
 async function spawnServer(
   options: Deno.CommandOptions,
   expectErrors = false,

@@ -15,9 +15,9 @@ export default function(state) { hydrate(options, state); }`;
   return {
     name: "twind",
     entrypoints: { "main": main },
-    render(ctx) {
+    async renderAsync(ctx) {
       sheet.reset(undefined);
-      const res = ctx.render();
+      const res = await ctx.renderAsync();
       const cssTexts = [...sheet.target];
       const snapshot = sheet.reset();
       const scripts = [];
