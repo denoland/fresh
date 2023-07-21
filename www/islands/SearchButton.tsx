@@ -1,6 +1,6 @@
 import { Head } from "$fresh/runtime.ts";
 import { useEffect, useRef } from "preact/hooks";
-import docsearch from "https://esm.sh/@docsearch/js@3";
+import docsearch from "https://esm.sh/@docsearch/js@3?target=es2020";
 
 export default function SearchButton(props: { class?: string }) {
   const ref = useRef<HTMLDivElement>(null);
