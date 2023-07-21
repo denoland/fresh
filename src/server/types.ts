@@ -342,9 +342,7 @@ export interface Plugin {
 
   middlewares?: PluginMiddleware[];
 
-  islands?: PluginIsland[];
-
-  location?: string;
+  islands?: PluginIslands;
 }
 
 export interface PluginRenderContext {
@@ -413,8 +411,7 @@ export interface PluginRoute {
   handler?: Handler<any, any> | Handlers<any, any>;
 }
 
-export interface PluginIsland {
-  name: string;
-  path: string;
-  component: ComponentType<unknown>;
+export interface PluginIslands {
+  location: string;
+  names: string[];
 }

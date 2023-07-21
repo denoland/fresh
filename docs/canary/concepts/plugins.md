@@ -149,10 +149,8 @@ A very basic example can be found
 You can create islands that get loaded and rendered like normal
 [islands](/docs/concepts/islands).
 
-This behaves similar to the previous routes and middlewares, except you
-additionally _must_ provide the location of the plugin. The recommended way of
-doing this is adding a line to your plugin declaration like this:
-`location: import.meta.url`.
+You need to provide the location of your plugin and an array of island
+filenames. The intent is to somewhat mimic the manifest file.
 
 A very basic example can be found
 [here](https://github.com/denoland/fresh/blob/main/tests/fixture_plugin/utils/route-plugin.ts).

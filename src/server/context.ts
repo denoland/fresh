@@ -1,4 +1,5 @@
 import {
+  basename,
   dirname,
   extname,
   fromFileUrl,
@@ -291,30 +292,41 @@ export class ServerContext {
     sortRoutes(routes);
     sortMiddleware(middlewares);
 
-    type ProcessedIsland = {
+    const processedIslands: {
       name: string;
       path: string;
       module: IslandModule;
-    };
+    }[] = [];
 
-    const processedIslands: ProcessedIsland[] = (opts.plugins || [])
-      .flatMap((plugin) => {
-        if (!(plugin.islands && plugin.location)) return [];
-        const base = dirname(plugin.location);
-        return plugin.islands.map((island) => ({
-          name: island.name,
-          path: join(base, island.path),
-          module: { default: island.component },
-        }));
-      });
+    for (const plugin of opts.plugins || []) {
+      if (!plugin.islands) continue;
+      const base = dirname(plugin.islands.location);
+      for (const name of plugin.islands.names) {
+        const full = join(base, name);
+        const module = await import(full);
+        const fileNameWithExt = basename(full);
+        const fileName = fileNameWithExt.replace(extname(fileNameWithExt), "");
+        processedIslands.push({
+          name: sanitizeIslandName(fileName),
+          path: full,
+          module,
+        });
+      }
+    }
 
     for (const [self, module] of Object.entries(manifest.islands)) {
       const url = new URL(self, baseUrl).href;
       if (!url.startsWith(baseUrl)) {
         throw new TypeError("Island is not a child of the basepath.");
       }
-      const path = url.substring(baseUrl.length).substring("islands".length);
-      const baseRoute = path.substring(1, path.length - extname(path).length);
+      /**
+      leave any child folders within islands/ here so that we can disambiguate the following cases:
+      islands/Counter.tsx
+      islands/folder/Counter.tsx
+      islands/folder/subfolder/Counter.tsx
+       */
+      const path = url.substring(baseUrl.length).substring("islands/".length);
+      const baseRoute = path.replace(extname(path), "");
 
       processedIslands.push({
         name: sanitizeIslandName(baseRoute),

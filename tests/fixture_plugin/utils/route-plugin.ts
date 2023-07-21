@@ -2,7 +2,6 @@ import { Plugin } from "$fresh/server.ts";
 import { handler as testMiddleware } from "./sample_routes/_middleware.ts";
 import { AppBuilder } from "./sample_routes/AppBuilder.tsx";
 import Home from "./sample_routes/PluginRouteWithIsland.tsx";
-import IslandFromPlugin from "./sample_islands/IslandFromPlugin.tsx";
 export type { Options };
 
 interface Options {
@@ -23,11 +22,9 @@ export default function routePlugin(options: Options): Plugin {
       path: "/pluginroutewithisland",
       component: Home,
     }],
-    islands: [{
-      name: "IslandFromPlugin",
-      path: "./sample_islands/IslandFromPlugin.tsx",
-      component: IslandFromPlugin,
-    }],
-    location: import.meta.url,
+    islands: {
+      location: import.meta.url,
+      names: ["./sample_islands/IslandFromPlugin.tsx"],
+    },
   };
 }
