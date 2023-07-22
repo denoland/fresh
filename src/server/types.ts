@@ -169,6 +169,14 @@ export interface AppModule {
   default: ComponentType<AppProps>;
 }
 
+export interface LayoutProps extends PageProps {
+  Component: ComponentType<Record<never, never>>;
+}
+
+export interface LayoutModule {
+  default: ComponentType<LayoutProps>;
+}
+
 // --- UNKNOWN PAGE ---
 
 // deno-lint-ignore no-explicit-any

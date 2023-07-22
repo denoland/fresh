@@ -22,6 +22,7 @@ import {
   FreshOptions,
   Handler,
   Island,
+  LayoutModule,
   Middleware,
   MiddlewareHandlerContext,
   MiddlewareModule,
@@ -91,6 +92,7 @@ export class ServerContext {
   #renderFn: RenderFunction;
   #middlewares: MiddlewareRoute[];
   #app: AppModule;
+  #layout: LayoutModule;
   #notFound: UnknownPage;
   #error: ErrorPage;
   #plugins: Plugin[];
@@ -104,6 +106,7 @@ export class ServerContext {
     renderfn: RenderFunction,
     middlewares: MiddlewareRoute[],
     app: AppModule,
+    layout: LayoutModule,
     notFound: UnknownPage,
     error: ErrorPage,
     plugins: Plugin[],
@@ -118,6 +121,7 @@ export class ServerContext {
     this.#renderFn = renderfn;
     this.#middlewares = middlewares;
     this.#app = app;
+    this.#layout = layout;
     this.#notFound = notFound;
     this.#error = error;
     this.#plugins = plugins;
@@ -176,6 +180,7 @@ export class ServerContext {
     const islands: Island[] = [];
     const middlewares: MiddlewareRoute[] = [];
     let app: AppModule = DEFAULT_APP;
+    let layout: LayoutModule = DEFAULT_LAYOUT;
     let notFound: UnknownPage = DEFAULT_NOT_FOUND;
     let error: ErrorPage = DEFAULT_ERROR;
     const allRoutes = [
@@ -196,7 +201,10 @@ export class ServerContext {
       const isMiddleware = path.endsWith("/_middleware.tsx") ||
         path.endsWith("/_middleware.ts") || path.endsWith("/_middleware.jsx") ||
         path.endsWith("/_middleware.js");
-      if (!path.startsWith("/_") && !isMiddleware) {
+      if (
+        !path.startsWith("/_") && !path.startsWith(`${baseRoute}/_`) &&
+        !isMiddleware
+      ) {
         const { default: component, config } = module as RouteModule;
         let pattern = pathToPattern(baseRoute);
         if (config?.routeOverride) {
@@ -248,6 +256,13 @@ export class ServerContext {
         path === "/_app.jsx" || path === "/_app.js"
       ) {
         app = module as AppModule;
+      } else if (
+        path === `${baseRoute}/_layout.tsx` ||
+        path === `${baseRoute}/_layout.ts` ||
+        path === `${baseRoute}/_layout.jsx` ||
+        path === `${baseRoute}/_layout.js`
+      ) {
+        layout = module as LayoutModule;
       } else if (
         path === "/_404.tsx" || path === "/_404.ts" ||
         path === "/_404.jsx" || path === "/_404.js"
@@ -370,6 +385,7 @@ export class ServerContext {
       opts.render ?? DEFAULT_RENDER_FN,
       middlewares,
       app,
+      layout,
       notFound,
       error,
       opts.plugins ?? [],
@@ -894,6 +910,10 @@ const DEFAULT_ROUTER_OPTIONS: RouterOptions = {
 };
 
 const DEFAULT_APP: AppModule = {
+  default: ({ Component }) => h(Component, {}),
+};
+
+const DEFAULT_LAYOUT: LayoutModule = {
   default: ({ Component }) => h(Component, {}),
 };
 

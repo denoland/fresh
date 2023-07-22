@@ -14,6 +14,7 @@ import {
   AsyncRoute,
   ErrorPage,
   Island,
+  LayoutModule,
   Plugin,
   PluginRenderFunctionResult,
   PluginRenderResult,
@@ -56,6 +57,7 @@ export interface RenderOptions<Data> {
   islands: Island[];
   plugins: Plugin[];
   app: AppModule;
+  layout: LayoutModule;
   imports: string[];
   dependenciesFn: (path: string) => string[];
   url: URL;
@@ -200,8 +202,17 @@ export async function render<Data>(
           data: opts.data,
           state: opts.state!,
           Component() {
-            // deno-lint-ignore no-explicit-any
-            return vnode as any;
+            return h(opts.layout.default, {
+              params: opts.params as Record<string, string>,
+              url: opts.url,
+              route: opts.route.pattern,
+              data: opts.data,
+              state: opts.state!,
+              Component() {
+                // deno-lint-ignore no-explicit-any
+                return vnode as any;
+              },
+            });
           },
         }),
       }),
