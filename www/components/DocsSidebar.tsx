@@ -71,7 +71,7 @@ export default function DocsSidebar(
 }
 
 const link = "text(gray-900 hover:gray-600)";
-const linkActive = "text(green-600 hover:green-500) font-bold";
+const linkActive = "text-green-700 hover:underline font-bold";
 
 export function SidebarCategory(props: {
   path: string;
