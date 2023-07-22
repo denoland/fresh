@@ -198,12 +198,14 @@ export class ServerContext {
       const path = url.substring(baseUrl.length).substring("routes".length);
       const baseRoute = path.substring(1, path.length - extname(path).length);
       const name = baseRoute.replace("/", "-");
+      const isLayout = path.endsWith("/_layout.tsx") ||
+        path.endsWith("/_layout.ts") || path.endsWith("/_layout.jsx") ||
+        path.endsWith("/_layout.js");
       const isMiddleware = path.endsWith("/_middleware.tsx") ||
         path.endsWith("/_middleware.ts") || path.endsWith("/_middleware.jsx") ||
         path.endsWith("/_middleware.js");
       if (
-        !path.startsWith("/_") && !path.startsWith(`${baseRoute}/_`) &&
-        !isMiddleware
+        !path.startsWith("/_") && !isLayout && !isMiddleware
       ) {
         const { default: component, config } = module as RouteModule;
         let pattern = pathToPattern(baseRoute);
@@ -256,12 +258,7 @@ export class ServerContext {
         path === "/_app.jsx" || path === "/_app.js"
       ) {
         app = module as AppModule;
-      } else if (
-        path === `${baseRoute}/_layout.tsx` ||
-        path === `${baseRoute}/_layout.ts` ||
-        path === `${baseRoute}/_layout.jsx` ||
-        path === `${baseRoute}/_layout.js`
-      ) {
+      } else if (isLayout) {
         layout = module as LayoutModule;
       } else if (
         path === "/_404.tsx" || path === "/_404.ts" ||
@@ -651,6 +648,7 @@ export class ServerContext {
         islands: this.#islands,
         plugins: this.#plugins,
         app: this.#app,
+        layout: this.#layout,
         imports,
         dependenciesFn,
         renderFn: this.#renderFn,
@@ -703,6 +701,7 @@ export class ServerContext {
             islands: this.#islands,
             plugins: this.#plugins,
             app: this.#app,
+            layout: this.#layout,
             imports,
             dependenciesFn,
             renderFn: this.#renderFn,
