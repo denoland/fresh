@@ -89,11 +89,12 @@ function HelloBar() {
 
 function Hero() {
   return (
-    <>
-      <section class="w-full flex justify-center items-center flex-col bg-green-300">
-        <LemonDrop />
-      </section>
-    </>
+    <div
+      class="w-full flex justify-center items-center flex-col bg-green-300"
+      aria-hidden="true"
+    >
+      <LemonDrop />
+    </div>
   );
 }
 
