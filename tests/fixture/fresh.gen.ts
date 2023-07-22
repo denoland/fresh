@@ -43,12 +43,14 @@ import * as $37 from "./routes/middleware_root.ts";
 import * as $38 from "./routes/not_found.ts";
 import * as $39 from "./routes/params.tsx";
 import * as $40 from "./routes/props/[id].tsx";
-import * as $41 from "./routes/state-in-props/_middleware.ts";
-import * as $42 from "./routes/state-in-props/index.tsx";
-import * as $43 from "./routes/static.tsx";
-import * as $44 from "./routes/status_overwrite.tsx";
-import * as $45 from "./routes/umlaut-äöüß.tsx";
-import * as $46 from "./routes/wildcard.tsx";
+import * as $41 from "./routes/route-layout/_layout.tsx";
+import * as $42 from "./routes/route-layout/index.tsx";
+import * as $43 from "./routes/state-in-props/_middleware.ts";
+import * as $44 from "./routes/state-in-props/index.tsx";
+import * as $45 from "./routes/static.tsx";
+import * as $46 from "./routes/status_overwrite.tsx";
+import * as $47 from "./routes/umlaut-äöüß.tsx";
+import * as $48 from "./routes/wildcard.tsx";
 import * as $$0 from "./islands/Counter.tsx";
 import * as $$1 from "./islands/MultipleCounters.tsx";
 import * as $$2 from "./islands/ReturningNull.tsx";
@@ -102,12 +104,14 @@ const manifest = {
     "./routes/not_found.ts": $38,
     "./routes/params.tsx": $39,
     "./routes/props/[id].tsx": $40,
-    "./routes/state-in-props/_middleware.ts": $41,
-    "./routes/state-in-props/index.tsx": $42,
-    "./routes/static.tsx": $43,
-    "./routes/status_overwrite.tsx": $44,
-    "./routes/umlaut-äöüß.tsx": $45,
-    "./routes/wildcard.tsx": $46,
+    "./routes/route-layout/_layout.tsx": $41,
+    "./routes/route-layout/index.tsx": $42,
+    "./routes/state-in-props/_middleware.ts": $43,
+    "./routes/state-in-props/index.tsx": $44,
+    "./routes/static.tsx": $45,
+    "./routes/status_overwrite.tsx": $46,
+    "./routes/umlaut-äöüß.tsx": $47,
+    "./routes/wildcard.tsx": $48,
   },
   islands: {
     "./islands/Counter.tsx": $$0,
