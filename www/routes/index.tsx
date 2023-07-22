@@ -90,7 +90,10 @@ function HelloBar() {
 function Hero() {
   return (
     <>
-      <section class="w-full flex justify-center items-center flex-col bg-green-300">
+      <section
+        class="w-full flex justify-center items-center flex-col bg-green-300"
+        aria-hidden="true"
+      >
         <LemonDrop />
       </section>
     </>
