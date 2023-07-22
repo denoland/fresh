@@ -586,6 +586,24 @@ options.vnode = (vnode) => {
         );
       };
     }
+
+    // Serialize context providers
+    const type = vnode.type as ComponentType<unknown> & {
+      __?: { __c: string };
+    };
+    if (type.__ && type.__.__c) {
+      const contextId = type.__.__c;
+
+      const children = vnode.props.children;
+      // TODO: Only serialize in server component?
+      // TODO: Ignore fresh server context?
+      vnode.props.children = wrapWithMarker(
+        children,
+        `frsh-ctx:${contextId}`,
+      );
+
+      // console.log(type.__);
+    }
   }
   if (originalHook) originalHook(vnode);
 };

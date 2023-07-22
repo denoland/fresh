@@ -1,6 +1,7 @@
 import {
   ComponentChildren,
   ComponentType,
+  createContext,
   Fragment,
   h,
   options,
@@ -71,6 +72,19 @@ function ServerComponent(
 }
 ServerComponent.displayName = "PreactServerComponent";
 
+const contextMap = new Map<string, any>();
+function ServerContextProvider(
+  props: { contextId: string; children: ComponentChildren },
+) {
+  let context = contextMap.get(props.contextId);
+  if (!context) {
+    context = createContext(null);
+    context.__c = props.contextId;
+  }
+  return h(context.Provider, { value: null }, props.children);
+}
+ServerContextProvider.displayName = "ServerContextProvider";
+
 function addPropsChild(parent: VNode, vnode: ComponentChildren) {
   const props = parent.props;
   if (props.children === null) {
@@ -87,6 +101,7 @@ function addPropsChild(parent: VNode, vnode: ComponentChildren) {
 const enum MarkerKind {
   Island,
   Slot,
+  Context,
 }
 
 interface Marker {
@@ -99,6 +114,17 @@ interface Marker {
   text: string;
   startNode: Comment;
   endNode: Comment | null;
+}
+
+function hasParentMarker(markerStack: Marker[], kind: MarkerKind) {
+  let i = markerStack.length;
+  while (i--) {
+    if (markerStack[i].kind === kind) {
+      return true;
+    }
+  }
+
+  return false;
 }
 
 /**
@@ -150,7 +176,17 @@ function _walkInner(
         comment = comment.slice(3, -2);
       }
 
-      if (comment.startsWith("frsh-slot")) {
+      if (comment.startsWith("frsh-ctx")) {
+        markerStack.push({
+          startNode: sib,
+          text: comment,
+          endNode: null,
+          kind: MarkerKind.Context,
+        });
+        const [_text, contextId] = comment.split(":");
+        const vnode = h(ServerContextProvider, { contextId, children: null });
+        vnodeStack.push(vnode);
+      } else if (comment.startsWith("frsh-slot")) {
         // Note: Nested slots are not possible as they're flattened
         // already on the server.
         markerStack.push({
@@ -170,16 +206,25 @@ function _walkInner(
       ) {
         // We're closing either a slot or an island
         marker.endNode = sib;
-
         markerStack.pop();
-        const parent = markerStack.length > 0
-          ? markerStack[markerStack.length - 1]
-          : null;
 
-        if (marker.kind === MarkerKind.Slot) {
+        if (marker.kind === MarkerKind.Context) {
+          console.log("yeah", marker, vnodeStack.slice());
+          const children = vnodeStack.pop();
+          if (vnodeStack.length > 0) {
+            vnodeStack[vnodeStack.length - 1].props.children = children;
+            // vnodeStack.pop();
+          }
+
+          // Remove markers
+          marker.startNode.remove();
+          sib = sib.nextSibling;
+          marker.endNode.remove();
+          continue;
+        } else if (marker.kind === MarkerKind.Slot) {
           // If we're closing a slot than it's assumed that we're
           // inside an island
-          if (parent?.kind === MarkerKind.Island) {
+          if (hasParentMarker(markerStack, MarkerKind.Island)) {
             const vnode = vnodeStack.pop();
 
             // For now only `props.children` is supported.
@@ -195,10 +240,9 @@ function _walkInner(
           marker.endNode.remove();
           continue;
         } else if (marker.kind === MarkerKind.Island) {
-          // We're ready to revive this island if it has
-          // no roots of its own. Otherwise we'll treat it
-          // as a standard component
-          if (markerStack.length === 0) {
+          console.log("REVIVE?");
+          // We're ready to revive this island if there is no island above it
+          if (!hasParentMarker(markerStack, MarkerKind.Island)) {
             const children: Node[] = [];
 
             let child: Node | null = marker.startNode;
@@ -222,6 +266,7 @@ function _walkInner(
               marker.endNode,
             );
 
+            console.log("REVIVE", vnode, marker.text);
             const _render = () =>
               render(
                 vnode,
@@ -246,7 +291,7 @@ function _walkInner(
             sib = sib.nextSibling;
             marker.endNode.remove();
             continue;
-          } else if (parent?.kind === MarkerKind.Slot) {
+          } else if (hasParentMarker(markerStack, MarkerKind.Slot)) {
             // Treat the island as a standard component when it
             // has an island parent or a slot parent
             const vnode = vnodeStack.pop();
@@ -310,8 +355,7 @@ function _walkInner(
       if (
         marker !== null &&
         (marker.kind === MarkerKind.Slot ||
-          markerStack.length > 1 &&
-            markerStack[markerStack.length - 2].kind === MarkerKind.Island)
+          hasParentMarker(markerStack, MarkerKind.Island))
       ) {
         vnodeStack.pop();
       }
