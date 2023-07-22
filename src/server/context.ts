@@ -382,7 +382,7 @@ export class ServerContext {
 
   /**
    * This functions returns a request handler that handles all routes required
-   * by fresh, including static files.
+   * by Fresh, including static files.
    */
   handler(): (req: Request, connInfo?: ServeHandlerInfo) => Promise<Response> {
     const handlers = this.#handlers();

@@ -1,7 +1,7 @@
 ---
 description: |
   Add JavaScript based interactivity to your project without sacrificing user
-  experience, by using fresh's powerful islands system. 
+  experience, by using Fresh's powerful islands system. 
 ---
 
 Up to now none of the pages in the demo project have contained any client side
