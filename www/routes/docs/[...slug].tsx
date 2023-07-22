@@ -12,6 +12,11 @@ import {
 } from "../../data/docs.ts";
 import { frontMatter, gfm } from "../../utils/markdown.ts";
 import toc from "../../../docs/toc.ts";
+import { mangle } from "$marked-mangle";
+import { markedSmartypants } from "$marked-smartypants";
+
+gfm.Marked.marked.use(mangle());
+gfm.Marked.marked.use(markedSmartypants());
 
 interface Data {
   page: Page;

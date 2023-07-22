@@ -183,7 +183,7 @@
     "image": "kadode_portal"
   },
   {
-    "title": "Craig's Deno Diary",
+    "title": "Craig’s Deno Diary",
     "link": "https://deno-blog.com",
     "github": "https://github.com/cdoremus/deno-blog",
     "image": "deno-diary"
@@ -358,7 +358,7 @@
     "image": "liberchat"
   },
   {
-    "title": "Do not remove this, it's for preventing conflicts by trailing comma",
+    "title": "Do not remove this, it’s for preventing conflicts by trailing comma",
     "link": "",
     "github": "",
     "image": ""

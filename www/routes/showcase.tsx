@@ -34,7 +34,7 @@ export default function ShowcasePage(props: PageProps) {
             </h2>
 
             <p class="text-gray-600">
-              You can add these stylish badges to your project's README to show
+              You can add these stylish badges to your project’s README to show
               that it was built with Fresh.
             </p>
 
