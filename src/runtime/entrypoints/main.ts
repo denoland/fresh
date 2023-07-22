@@ -143,7 +143,7 @@ function _walkInner(
       ? markerStack[markerStack.length - 1]
       : null;
 
-    // We use comment nodes to mark fresh islands and slots
+    // We use comment nodes to mark Fresh islands and slots
     if (isCommentNode(sib)) {
       let comment = sib.data;
       if (comment.startsWith("!--")) {

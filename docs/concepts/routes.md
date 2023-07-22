@@ -1,6 +1,6 @@
 ---
 description: |
-  Routes are the basic building block of fresh applications. They are used to define the behaviour the application when a given path is requested.
+  Routes are the basic building block of Fresh applications. They are used to define the behaviour the application when a given path is requested.
 ---
 
 At their core, routes describe how a request for a given path should be handled,

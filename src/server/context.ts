@@ -529,7 +529,7 @@ export class ServerContext {
   }
 
   /**
-   * This function returns all routes required by fresh as an extended
+   * This function returns all routes required by Fresh as an extended
    * path-to-regex, to handler mapping.
    */
   #handlers(): {
@@ -865,7 +865,7 @@ export class ServerContext {
   }
 
   /**
-   * Returns a router that contains all fresh routes. Should be mounted at
+   * Returns a router that contains all Fresh routes. Should be mounted at
    * constants.INTERNAL_PREFIX
    */
   #bundleAssetRoute = (): router.MatchHandler => {
