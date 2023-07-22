@@ -6,12 +6,15 @@ export default function Layout({ Component, state }: LayoutProps) {
   return (
     <>
       <Head>
-        <meta name="description" content="Hello world from route layout!" />
-        <meta name="route-layout" content="route-layout" />
+        <meta name="description" content="Hello world from sub route layout!" />
+        <meta
+          name="route-layout-skipped-sub"
+          content="route-layout-skipped-sub"
+        />
       </Head>
 
       <div class="layout">
-        <h1>Title from Layout</h1>
+        <h2>Title from Skipped Sub Layout</h2>
 
         <Component />
       </div>

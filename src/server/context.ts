@@ -23,6 +23,7 @@ import {
   Handler,
   Island,
   LayoutModule,
+  LayoutRoute,
   Middleware,
   MiddlewareHandlerContext,
   MiddlewareModule,
@@ -92,7 +93,7 @@ export class ServerContext {
   #renderFn: RenderFunction;
   #middlewares: MiddlewareRoute[];
   #app: AppModule;
-  #layout: LayoutModule;
+  #layouts: LayoutRoute[];
   #notFound: UnknownPage;
   #error: ErrorPage;
   #plugins: Plugin[];
@@ -106,7 +107,7 @@ export class ServerContext {
     renderfn: RenderFunction,
     middlewares: MiddlewareRoute[],
     app: AppModule,
-    layout: LayoutModule,
+    layouts: LayoutRoute[],
     notFound: UnknownPage,
     error: ErrorPage,
     plugins: Plugin[],
@@ -121,7 +122,7 @@ export class ServerContext {
     this.#renderFn = renderfn;
     this.#middlewares = middlewares;
     this.#app = app;
-    this.#layout = layout;
+    this.#layouts = layouts;
     this.#notFound = notFound;
     this.#error = error;
     this.#plugins = plugins;
@@ -180,7 +181,7 @@ export class ServerContext {
     const islands: Island[] = [];
     const middlewares: MiddlewareRoute[] = [];
     let app: AppModule = DEFAULT_APP;
-    let layout: LayoutModule = DEFAULT_LAYOUT;
+    const layouts: LayoutRoute[] = [];
     let notFound: UnknownPage = DEFAULT_NOT_FOUND;
     let error: ErrorPage = DEFAULT_ERROR;
     const allRoutes = [
@@ -259,7 +260,10 @@ export class ServerContext {
       ) {
         app = module as AppModule;
       } else if (isLayout) {
-        layout = module as LayoutModule;
+        layouts.push({
+          ...layoutPathToPattern(baseRoute),
+          ...module as LayoutModule,
+        });
       } else if (
         path === "/_404.tsx" || path === "/_404.ts" ||
         path === "/_404.jsx" || path === "/_404.js"
@@ -301,6 +305,7 @@ export class ServerContext {
     }
     sortRoutes(routes);
     sortMiddleware(middlewares);
+    sortLayouts(layouts);
 
     for (const [self, module] of Object.entries(manifest.islands)) {
       const url = new URL(self, baseUrl).href;
@@ -382,7 +387,7 @@ export class ServerContext {
       opts.render ?? DEFAULT_RENDER_FN,
       middlewares,
       app,
-      layout,
+      layouts,
       notFound,
       error,
       opts.plugins ?? [],
@@ -648,7 +653,7 @@ export class ServerContext {
         islands: this.#islands,
         plugins: this.#plugins,
         app: this.#app,
-        layout: this.#layout,
+        layouts: this.#layouts,
         imports,
         dependenciesFn,
         renderFn: this.#renderFn,
@@ -701,7 +706,7 @@ export class ServerContext {
             islands: this.#islands,
             plugins: this.#plugins,
             app: this.#app,
-            layout: this.#layout,
+            layouts: this.#layouts,
             imports,
             dependenciesFn,
             renderFn: this.#renderFn,
@@ -912,10 +917,6 @@ const DEFAULT_APP: AppModule = {
   default: ({ Component }) => h(Component, {}),
 };
 
-const DEFAULT_LAYOUT: LayoutModule = {
-  default: ({ Component }) => h(Component, {}),
-};
-
 const DEFAULT_NOT_FOUND: UnknownPage = {
   pattern: "",
   url: "",
@@ -950,6 +951,35 @@ export function selectMiddlewares(url: string, middlewares: MiddlewareRoute[]) {
   }
 
   return selectedMws;
+}
+
+export function sortLayouts<T extends { pattern: string }>(
+  layouts: LayoutRoute[],
+) {
+  layouts.sort((a, b) => {
+    const partsA = a.pattern.split("/");
+    const partsB = b.pattern.split("/");
+
+    for (let i = 0; i < Math.max(partsA.length, partsB.length); i++) {
+      const partA = partsA[i];
+      const partB = partsB[i];
+
+      if (partA === undefined && partB === undefined) return 0;
+      if (partA === undefined) return 1;
+      if (partB === undefined) return -1;
+
+      if (partA === partB) continue;
+
+      const priorityA = getPriority(partA);
+      const priorityB = getPriority(partB);
+
+      if (priorityA !== priorityB) {
+        return priorityB - priorityA; // Sort in ascending order of priority
+      }
+    }
+
+    return 0;
+  });
 }
 
 /**
@@ -1073,6 +1103,16 @@ function serializeCSPDirectives(csp: ContentSecurityPolicyDirectives): string {
       return `${key} ${value}`;
     })
     .join("; ");
+}
+
+export function layoutPathToPattern(baseRoute: string) {
+  baseRoute = baseRoute.slice(0, -"_layout".length);
+  let pattern = pathToPattern(baseRoute);
+  if (pattern.endsWith("/")) {
+    pattern = pattern.slice(0, -1) + "{/*}?";
+  }
+  const compiledPattern = new URLPattern({ pathname: pattern });
+  return { pattern, compiledPattern };
 }
 
 export function middlewarePathToPattern(baseRoute: string) {

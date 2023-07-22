@@ -45,12 +45,17 @@ import * as $39 from "./routes/params.tsx";
 import * as $40 from "./routes/props/[id].tsx";
 import * as $41 from "./routes/route-layout/_layout.tsx";
 import * as $42 from "./routes/route-layout/index.tsx";
-import * as $43 from "./routes/state-in-props/_middleware.ts";
-import * as $44 from "./routes/state-in-props/index.tsx";
-import * as $45 from "./routes/static.tsx";
-import * as $46 from "./routes/status_overwrite.tsx";
-import * as $47 from "./routes/umlaut-äöüß.tsx";
-import * as $48 from "./routes/wildcard.tsx";
+import * as $43 from "./routes/route-layout/skip/index.tsx";
+import * as $44 from "./routes/route-layout/skip/sub/_layout.tsx";
+import * as $45 from "./routes/route-layout/skip/sub/index.tsx";
+import * as $46 from "./routes/route-layout/sub/_layout.tsx";
+import * as $47 from "./routes/route-layout/sub/index.tsx";
+import * as $48 from "./routes/state-in-props/_middleware.ts";
+import * as $49 from "./routes/state-in-props/index.tsx";
+import * as $50 from "./routes/static.tsx";
+import * as $51 from "./routes/status_overwrite.tsx";
+import * as $52 from "./routes/umlaut-äöüß.tsx";
+import * as $53 from "./routes/wildcard.tsx";
 import * as $$0 from "./islands/Counter.tsx";
 import * as $$1 from "./islands/MultipleCounters.tsx";
 import * as $$2 from "./islands/ReturningNull.tsx";
@@ -106,12 +111,17 @@ const manifest = {
     "./routes/props/[id].tsx": $40,
     "./routes/route-layout/_layout.tsx": $41,
     "./routes/route-layout/index.tsx": $42,
-    "./routes/state-in-props/_middleware.ts": $43,
-    "./routes/state-in-props/index.tsx": $44,
-    "./routes/static.tsx": $45,
-    "./routes/status_overwrite.tsx": $46,
-    "./routes/umlaut-äöüß.tsx": $47,
-    "./routes/wildcard.tsx": $48,
+    "./routes/route-layout/skip/index.tsx": $43,
+    "./routes/route-layout/skip/sub/_layout.tsx": $44,
+    "./routes/route-layout/skip/sub/index.tsx": $45,
+    "./routes/route-layout/sub/_layout.tsx": $46,
+    "./routes/route-layout/sub/index.tsx": $47,
+    "./routes/state-in-props/_middleware.ts": $48,
+    "./routes/state-in-props/index.tsx": $49,
+    "./routes/static.tsx": $50,
+    "./routes/status_overwrite.tsx": $51,
+    "./routes/umlaut-äöüß.tsx": $52,
+    "./routes/wildcard.tsx": $53,
   },
   islands: {
     "./islands/Counter.tsx": $$0,

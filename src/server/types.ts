@@ -177,6 +177,17 @@ export interface LayoutModule {
   default: ComponentType<LayoutProps>;
 }
 
+export interface LayoutRoute extends LayoutModule {
+  /**
+   * path-to-regexp style url path
+   */
+  pattern: string;
+  /**
+   * URLPattern of the route
+   */
+  compiledPattern: URLPattern;
+}
+
 // --- UNKNOWN PAGE ---
 
 // deno-lint-ignore no-explicit-any
