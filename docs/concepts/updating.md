@@ -28,7 +28,7 @@ below.
 
 To update your dependencies, you have two options:
 
-- Run the fresh updater to update your project dependencies.
+- Run the Fresh updater to update your project dependencies.
 - Manually update the dependency versions in your `deno.json` file.
 
 ### Auto updater

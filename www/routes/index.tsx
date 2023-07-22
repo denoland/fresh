@@ -33,7 +33,7 @@ export const handler: Handlers = {
   },
 };
 
-const TITLE = "fresh - The next-gen web framework.";
+const TITLE = "Fresh - The next-gen web framework.";
 const DESCRIPTION =
   "Just in time edge rendering, island based interactivity, and no configuration TypeScript support using Deno.";
 
@@ -182,7 +182,7 @@ function Intro(props: { origin: string }) {
               src="/illustration/lemon-squash.svg"
               width={800}
               height={678}
-              alt="deno is drinking fresh lemon squash"
+              alt="Deno is drinking Fresh lemon squash"
             />
           </picture>
         </div>
