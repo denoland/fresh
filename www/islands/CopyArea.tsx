@@ -38,8 +38,8 @@ export default function CopyArea(props: { code: string }) {
 
       <div class="relative my-2 mr-4">
         <div
-          class={`transition ease-in-out absolute pointer-events-none bg-gray-900 text-white absolute p-2 -top-1/3 left-1/2 transform -translate-x-1/2 -translate-y-full box-border rounded opacity-0 ${
-            copied.value && "opacity-100"
+          class={`hidden transition ease-in-out absolute pointer-events-none bg-gray-900 text-white absolute p-2 -top-1/3 left-1/2 transform -translate-x-1/2 -translate-y-full box-border rounded opacity-0 ${
+            copied.value && "block opacity-100"
           }`}
         >
           Copied!
