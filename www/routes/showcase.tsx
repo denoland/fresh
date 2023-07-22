@@ -5,7 +5,7 @@ import Header from "../components/Header.tsx";
 import Footer from "../components/Footer.tsx";
 import projects from "../data/showcase.json" assert { type: "json" };
 
-const TITLE = "Showcase | fresh";
+const TITLE = "Showcase | Fresh";
 const DESCRIPTION = "Selection of projects that have been built with Fresh.";
 
 export default function ShowcasePage(props: PageProps) {

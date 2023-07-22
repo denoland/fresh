@@ -251,7 +251,7 @@ function StartJourney() {
       </h2>
       <div class="flex flex-col md:flex-row justify-start items-center gap-4">
         <p class="text(xl gray-600)">
-          Jump right in and build your website with fresh. Learn everything you
+          Jump right in and build your website with Fresh. Learn everything you
           need to know in seconds.
         </p>
         <a
