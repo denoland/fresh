@@ -306,7 +306,7 @@ export interface Island {
 
 // --- PLUGINS ---
 
-export interface Plugin {
+export interface Plugin<T extends string[] = string[]> {
   /** The name of the plugin. Must be snake-case. */
   name: string;
 
@@ -314,7 +314,7 @@ export interface Plugin {
    * declared here can later be used in the "scripts" option of
    * `PluginRenderResult` to load the entrypoint's code on the client.
    */
-  entrypoints?: Record<string, string>;
+  entrypoints?: Record<T[number], string>;
 
   /** The render hook is called on the server every time some JSX needs to
    * be turned into HTML. The render hook needs to call the `ctx.render`
@@ -323,7 +323,7 @@ export interface Plugin {
    * The hook can return a `PluginRenderResult` object that can do things like
    * inject CSS into the page, or load additional JS files on the client.
    */
-  render?(ctx: PluginRenderContext): PluginRenderResult;
+  render?(ctx: PluginRenderContext): PluginRenderResult<T[number]>;
 
   /** The asynchronous render hook is called on the server every time some
    * JSX needs to be turned into HTML, wrapped around all synchronous render
@@ -336,7 +336,9 @@ export interface Plugin {
    * unlike the synchronous render hook, you can not use global variables to
    * propagate state between the render hook and the renderer.
    */
-  renderAsync?(ctx: PluginAsyncRenderContext): Promise<PluginRenderResult>;
+  renderAsync?(
+    ctx: PluginAsyncRenderContext,
+  ): Promise<PluginRenderResult<T[number]>>;
 
   routes?: PluginRoute[];
 
@@ -351,11 +353,11 @@ export interface PluginAsyncRenderContext {
   renderAsync: PluginAsyncRenderFunction;
 }
 
-export interface PluginRenderResult {
+export interface PluginRenderResult<T = string> {
   /** CSS styles to be injected into the page. */
   styles?: PluginRenderStyleTag[];
   /** JS scripts to ship to the client. */
-  scripts?: PluginRenderScripts[];
+  scripts?: PluginRenderScripts<T>[];
 }
 
 export interface PluginRenderStyleTag {
@@ -364,14 +366,14 @@ export interface PluginRenderStyleTag {
   id?: string;
 }
 
-export interface PluginRenderScripts {
+export interface PluginRenderScripts<T = string> {
   /** The "key" of the entrypoint (as specified in `Plugin.entrypoints`) for the
    * script that should be loaded. The script must be an ES module that exports
    * a default function.
    *
    * The default function is invoked with the `state` argument specified below.
    */
-  entrypoint: string;
+  entrypoint: T;
   /** The state argument that is passed to the default export invocation of the
    * entrypoint's default export. The state must be JSON-serializable.
    */
