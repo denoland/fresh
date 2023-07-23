@@ -300,8 +300,8 @@ export class ServerContext {
 
     for (const plugin of opts.plugins || []) {
       if (!plugin.islands) continue;
-      const base = dirname(plugin.islands.location);
-      for (const name of plugin.islands.names) {
+      const base = dirname(plugin.islands.baseLocation);
+      for (const name of plugin.islands.paths) {
         const full = join(base, name);
         const module = await import(full);
         const fileNameWithExt = basename(full);

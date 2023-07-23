@@ -412,6 +412,6 @@ export interface PluginRoute {
 }
 
 export interface PluginIslands {
-  location: string;
-  names: string[];
+  baseLocation: string;
+  paths: string[];
 }

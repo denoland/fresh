@@ -23,8 +23,8 @@ export default function routePlugin(options: Options): Plugin {
       component: Home,
     }],
     islands: {
-      location: import.meta.url,
-      names: ["./sample_islands/IslandFromPlugin.tsx"],
+      baseLocation: import.meta.url,
+      paths: ["./sample_islands/IslandFromPlugin.tsx"],
     },
   };
 }
