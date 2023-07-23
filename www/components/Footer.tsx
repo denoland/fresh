@@ -20,7 +20,7 @@ export default function Footer() {
     <footer class="border-t-2 border-gray-200 bg-gray-100 md:h-16 flex gap-4 justify-center">
       <div class="flex flex-col sm:flex-row gap-4 justify-between items-center max-w-screen-xl mx-auto w-full px(4 sm:6 md:8) p-4">
         <div class="text(gray-600 center)">
-          <span>© {new Date().getFullYear()} the fresh authors</span>
+          <span>© {new Date().getFullYear()} the Fresh authors</span>
         </div>
 
         <div class="flex items-center gap-8">

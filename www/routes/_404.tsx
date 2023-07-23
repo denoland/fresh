@@ -30,6 +30,6 @@ export function ServerCodePage(
 export default function PageNotFound() {
   return ServerCodePage({
     serverCode: 404,
-    codeDescription: "Couldn't find what you're looking for.",
+    codeDescription: "Couldn’t find what you’re looking for.",
   });
 }

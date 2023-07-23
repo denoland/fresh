@@ -1,10 +1,10 @@
 ---
 description: |
-  Create a new fresh project by running the fresh project creation tool. This
-  scaffolds out the various files and folders a fresh project needs.
+  Create a new Fresh project by running the Fresh project creation tool. This
+  scaffolds out the various files and folders a Fresh project needs.
 ---
 
-New Fresh projects can be created by using the fresh project creation tool. It
+New Fresh projects can be created by using the Fresh project creation tool. It
 will scaffold out a new project with some example files to get you started.
 
 To create a new project, run:
@@ -19,7 +19,7 @@ This will scaffold out the new project, then switch into the newly created
 directory, and then start the development server.
 
 This will create a directory containing some files and directories. There are 4
-files that are strictly necessary to run a fresh project:
+files that are strictly necessary to run a Fresh project:
 
 - **`dev.ts`**: This is the development entry point for your project. This is
   the file that you run to start your project. This file doesn't need to be

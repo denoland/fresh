@@ -1,6 +1,6 @@
 ---
 description: |
-  Create a new route to a fresh project by creating a new file in the `routes/`
+  Create a new route to a Fresh project by creating a new file in the `routes/`
   folder. 
 ---
 

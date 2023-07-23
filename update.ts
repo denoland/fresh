@@ -60,7 +60,7 @@ if (denoJson.importMap) {
   await Deno.remove(IMPORT_MAP_PATH);
 }
 
-// Add fresh lint preset
+// Add Fresh lint preset
 if (!denoJson.lint) {
   denoJson.lint = {};
 }

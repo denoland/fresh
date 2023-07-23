@@ -3,7 +3,7 @@
 
 # fresh
 
-<img align="right" src="https://fresh.deno.dev/logo.svg" height="150px" alt="the fresh logo: a sliced lemon dripping with juice">
+<img align="right" src="https://fresh.deno.dev/logo.svg" height="150px" alt="The Fresh logo: a sliced lemon dripping with juice">
 
 **Fresh** is a next generation web framework, built for speed, reliability, and
 simplicity.
@@ -70,7 +70,7 @@ We appreciate your help! To contribute, please read our
 
 ## Adding your project to the showcase
 
-If you feel that your project would be helpful to other fresh users, please
+If you feel that your project would be helpful to other Fresh users, please
 consider putting your project on the
 [showcase](https://fresh.deno.dev/showcase). However, websites that are just for
 promotional purposes may not be listed.

@@ -1,4 +1,4 @@
-# fresh project
+# Fresh project
 
 ### Usage
 
