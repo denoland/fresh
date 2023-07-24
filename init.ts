@@ -1,11 +1,7 @@
 import { basename, colors, join, parse, resolve } from "./src/dev/deps.ts";
 import { error } from "./src/dev/error.ts";
 import { collect, ensureMinDenoVersion, generate } from "./src/dev/mod.ts";
-import {
-  dotenvImports,
-  freshImports,
-  twindImports,
-} from "./src/dev/imports.ts";
+import { dotenvImports, freshImports } from "./src/dev/imports.ts";
 
 ensureMinDenoVersion();
 
@@ -524,7 +520,6 @@ const config = {
   },
 };
 freshImports(config.imports);
-if (useTwind) twindImports(config.imports);
 dotenvImports(config.imports);
 
 const DENO_CONFIG = JSON.stringify(config, null, 2) + "\n";

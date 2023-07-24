@@ -1,4 +1,4 @@
-import { Sheet } from "twind";
+import { Sheet } from "https://esm.sh/twind@0.16.19";
 import { Options, setup, STYLE_ELEMENT_ID } from "./shared.ts";
 
 type State = [string, string][];

@@ -9,7 +9,7 @@ import {
   walk,
 } from "./src/dev/deps.ts";
 import { error } from "./src/dev/error.ts";
-import { freshImports, twindImports } from "./src/dev/imports.ts";
+import { freshImports } from "./src/dev/imports.ts";
 import { collect, ensureMinDenoVersion, generate } from "./src/dev/mod.ts";
 
 ensureMinDenoVersion();
@@ -78,9 +78,6 @@ if (!denoJson.lint.rules.tags.includes("recommended")) {
 }
 
 freshImports(denoJson.imports);
-if (denoJson.imports["twind"]) {
-  twindImports(denoJson.imports);
-}
 denoJsonText = JSON.stringify(denoJson, null, 2);
 await Deno.writeTextFile(DENO_JSON_PATH, denoJsonText);
 

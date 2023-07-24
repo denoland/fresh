@@ -1,5 +1,10 @@
 import { JSX, options as preactOptions, VNode } from "preact";
-import { Configuration, setup as twSetup, Sheet, tw } from "twind";
+import {
+  Configuration,
+  setup as twSetup,
+  Sheet,
+  tw,
+} from "https://esm.sh/twind@0.16.19";
 
 type PreactOptions = typeof preactOptions & { __b?: (vnode: VNode) => void };
 
