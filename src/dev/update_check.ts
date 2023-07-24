@@ -1,4 +1,4 @@
-import { colors, join } from "./deps.ts";
+import { colors, join, semver } from "./deps.ts";
 
 export interface CheckFile {
   last_checked: string;
@@ -34,20 +34,6 @@ function getFreshCacheDir(): string | null {
   const home = getHomeDir();
   if (home) return join(home, "fresh");
   return null;
-}
-
-const SEMVER_REG = /^(\d+)\.(\d+)\.(\d+)$/;
-function sortSemver(current: string, latest: string): number {
-  if (current === latest) return 0;
-
-  const currentParts = current.match(SEMVER_REG);
-  const latestParts = latest.match(SEMVER_REG);
-  if (!currentParts || !latestParts) return 0;
-
-  if (+currentParts[0] < +latestParts[0]) return -1;
-  if (+currentParts[1] < +latestParts[1]) return -1;
-  if (+currentParts[2] < +latestParts[2]) return -1;
-  return 1;
 }
 
 async function fetchLatestVersion() {
@@ -126,8 +112,10 @@ export async function updateCheck(
   }
 
   // Only show update message if current version is smaller than latest
+  const currentVersion = semver.parse(checkFile.current_version);
+  const latestVersion = semver.parse(checkFile.latest_version);
   if (
-    sortSemver(checkFile.current_version, checkFile.latest_version) === -1
+    semver.lt(currentVersion, latestVersion)
   ) {
     const current = colors.bold(colors.rgb8(checkFile.current_version, 208));
     const latest = colors.bold(colors.rgb8(checkFile.latest_version, 121));
