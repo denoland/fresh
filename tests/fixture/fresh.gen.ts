@@ -40,19 +40,21 @@ import * as $34 from "./routes/layeredMdw/nesting/_middleware.ts";
 import * as $35 from "./routes/middleware-error-handler/_middleware.ts";
 import * as $36 from "./routes/middleware-error-handler/index.tsx";
 import * as $37 from "./routes/middleware_root.ts";
-import * as $38 from "./routes/not_found.ts";
-import * as $39 from "./routes/params.tsx";
-import * as $40 from "./routes/props/[id].tsx";
-import * as $41 from "./routes/signal_shared.tsx";
-import * as $42 from "./routes/state-in-props/_middleware.ts";
-import * as $43 from "./routes/state-in-props/index.tsx";
-import * as $44 from "./routes/state-middleware/_middleware.ts";
-import * as $45 from "./routes/state-middleware/foo/_middleware.ts";
-import * as $46 from "./routes/state-middleware/foo/index.tsx";
-import * as $47 from "./routes/static.tsx";
-import * as $48 from "./routes/status_overwrite.tsx";
-import * as $49 from "./routes/umlaut-äöüß.tsx";
-import * as $50 from "./routes/wildcard.tsx";
+import * as $38 from "./routes/movies/[foo].json.ts";
+import * as $39 from "./routes/movies/[foo]@[bar].ts";
+import * as $40 from "./routes/not_found.ts";
+import * as $41 from "./routes/params.tsx";
+import * as $42 from "./routes/props/[id].tsx";
+import * as $43 from "./routes/signal_shared.tsx";
+import * as $44 from "./routes/state-in-props/_middleware.ts";
+import * as $45 from "./routes/state-in-props/index.tsx";
+import * as $46 from "./routes/state-middleware/_middleware.ts";
+import * as $47 from "./routes/state-middleware/foo/_middleware.ts";
+import * as $48 from "./routes/state-middleware/foo/index.tsx";
+import * as $49 from "./routes/static.tsx";
+import * as $50 from "./routes/status_overwrite.tsx";
+import * as $51 from "./routes/umlaut-äöüß.tsx";
+import * as $52 from "./routes/wildcard.tsx";
 import * as $$0 from "./islands/Counter.tsx";
 import * as $$1 from "./islands/MultipleCounters.tsx";
 import * as $$2 from "./islands/ReturningNull.tsx";
@@ -103,19 +105,21 @@ const manifest = {
     "./routes/middleware-error-handler/_middleware.ts": $35,
     "./routes/middleware-error-handler/index.tsx": $36,
     "./routes/middleware_root.ts": $37,
-    "./routes/not_found.ts": $38,
-    "./routes/params.tsx": $39,
-    "./routes/props/[id].tsx": $40,
-    "./routes/signal_shared.tsx": $41,
-    "./routes/state-in-props/_middleware.ts": $42,
-    "./routes/state-in-props/index.tsx": $43,
-    "./routes/state-middleware/_middleware.ts": $44,
-    "./routes/state-middleware/foo/_middleware.ts": $45,
-    "./routes/state-middleware/foo/index.tsx": $46,
-    "./routes/static.tsx": $47,
-    "./routes/status_overwrite.tsx": $48,
-    "./routes/umlaut-äöüß.tsx": $49,
-    "./routes/wildcard.tsx": $50,
+    "./routes/movies/[foo].json.ts": $38,
+    "./routes/movies/[foo]@[bar].ts": $39,
+    "./routes/not_found.ts": $40,
+    "./routes/params.tsx": $41,
+    "./routes/props/[id].tsx": $42,
+    "./routes/signal_shared.tsx": $43,
+    "./routes/state-in-props/_middleware.ts": $44,
+    "./routes/state-in-props/index.tsx": $45,
+    "./routes/state-middleware/_middleware.ts": $46,
+    "./routes/state-middleware/foo/_middleware.ts": $47,
+    "./routes/state-middleware/foo/index.tsx": $48,
+    "./routes/static.tsx": $49,
+    "./routes/status_overwrite.tsx": $50,
+    "./routes/umlaut-äöüß.tsx": $51,
+    "./routes/wildcard.tsx": $52,
   },
   islands: {
     "./islands/Counter.tsx": $$0,
