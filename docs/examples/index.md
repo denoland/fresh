@@ -20,3 +20,4 @@ like to see here, please open
 - [Rendering markdown](./examples/rendering-markdown)
 - [Sharing state between islands](./examples/sharing-state-between-islands)
 - [Using Deno KV Oauth](./examples/using-deno-kv-oauth)
+- [Using CSP](./examples/using-csp)

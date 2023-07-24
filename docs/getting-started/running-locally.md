@@ -1,6 +1,6 @@
 ---
 description: |
-  To start a fresh project, just run `deno task start`. This will start the
+  To start a Fresh project, just run `deno task start`. This will start the
   project with default permission flags, in watch mode.
 ---
 
@@ -27,7 +27,7 @@ the appropriate flags. You will need to provide permission flags for:
   using a WebAssembly binary.
 
 For development, you also want to run with the [`--watch` flag][--watch], so the
-fresh server will automatically reload whenever you make a change to your code.
+Fresh server will automatically reload whenever you make a change to your code.
 By default `--watch` only watches over files in your module graph. Some project
 files like static files are not part of the module graph, but you probably want
 to restart/reload whenever you make a change to them too. This can be done by
