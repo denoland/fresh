@@ -9,7 +9,7 @@ import {
 import manifest from "./fixture/fresh.gen.ts";
 import options from "./fixture/options.ts";
 import { BUILD_ID } from "../src/server/build_id.ts";
-import { startFreshServer, withPageName } from "./test_utils.ts";
+import { parseHtml, startFreshServer, withPageName } from "./test_utils.ts";
 import { assertMatch } from "https://deno.land/std@0.193.0/testing/asserts.ts";
 
 const ctx = await ServerContext.fromManifest(manifest, options);
@@ -566,14 +566,18 @@ Deno.test({
 Deno.test({
   name: "/middleware - should pass state through all middlewares",
   fn: async () => {
-    await withPageName("./tests/fixture/main.ts", async (page, address) => {
-      await page.goto(`${address}/state-middleware/foo`);
-      const text = await page.$eval("pre", (el) => el.textContent);
-      assertEquals(JSON.parse(text), {
-        handler1: "it works",
-        handler2: "it works",
-        handler3: "it works",
-      });
+    const resp = await handler(
+      new Request("https://fresh.deno.dev/state-middleware/foo"),
+    );
+    assert(resp);
+    assertEquals(resp.status, Status.OK);
+
+    const body = await resp.text();
+    const doc = parseHtml(body);
+    assertEquals(JSON.parse(doc.querySelector("pre").textContent), {
+      handler1: "it works",
+      handler2: "it works",
+      handler3: "it works",
     });
   },
 });
