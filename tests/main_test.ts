@@ -12,6 +12,7 @@ import { BUILD_ID } from "../src/server/build_id.ts";
 import {
   parseHtml,
   startFreshServer,
+  waitFor,
   waitForText,
   withPageName,
 } from "./test_utils.ts";
@@ -968,16 +969,30 @@ Deno.test({
 });
 
 Deno.test({
-  name: "DON'T support string based event handlers during SSR",
+  name: "Log error in browser console on string event handlers",
   async fn() {
     await withPageName("./tests/fixture/main.ts", async (page, address) => {
+      const logs: { type: string; message: string }[] = [];
+      page.on("console", (ev) => {
+        logs.push({ type: ev.type(), message: ev.text() });
+      });
+
+      page.on("pageerror", (ev) => {
+        logs.push({ type: "error", message: ev.toString() });
+      });
+
       await page.goto(`${address}/event_handler_string_island`);
-      console.log(await page.content());
       await page.waitForSelector("p");
       await page.click("button");
-
-      await delay(200);
       await waitForText(page, "p", "it works");
+
+      await waitFor(() => {
+        for (const item of logs) {
+          if (/property should be a function/.test(item.message)) {
+            return true;
+          }
+        }
+      });
     });
   },
 
