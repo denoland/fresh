@@ -9,7 +9,12 @@ import {
 import manifest from "./fixture/fresh.gen.ts";
 import options from "./fixture/options.ts";
 import { BUILD_ID } from "../src/server/build_id.ts";
-import { parseHtml, startFreshServer, withPageName } from "./test_utils.ts";
+import {
+  parseHtml,
+  startFreshServer,
+  waitForText,
+  withPageName,
+} from "./test_utils.ts";
 import { assertMatch } from "https://deno.land/std@0.193.0/testing/asserts.ts";
 
 const ctx = await ServerContext.fromManifest(manifest, options);
@@ -939,6 +944,40 @@ Deno.test({
         1,
         `Found more than 1 nonce value per render`,
       );
+    });
+  },
+
+  sanitizeOps: false,
+  sanitizeResources: false,
+});
+
+Deno.test({
+  name: "support string based event handlers during SSR",
+  async fn() {
+    await withPageName("./tests/fixture/main.ts", async (page, address) => {
+      await page.goto(`${address}/event_handler_string`);
+      await page.waitForSelector("p");
+      await page.click("button");
+
+      await waitForText(page, "p", "it works");
+    });
+  },
+
+  sanitizeOps: false,
+  sanitizeResources: false,
+});
+
+Deno.test({
+  name: "DON'T support string based event handlers during SSR",
+  async fn() {
+    await withPageName("./tests/fixture/main.ts", async (page, address) => {
+      await page.goto(`${address}/event_handler_string_island`);
+      console.log(await page.content());
+      await page.waitForSelector("p");
+      await page.click("button");
+
+      await delay(200);
+      await waitForText(page, "p", "it works");
     });
   },
 
