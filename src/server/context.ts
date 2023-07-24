@@ -477,6 +477,7 @@ export class ServerContext {
       const handlers: (() => Response | Promise<Response>)[] = [];
       const paramsAndRouteResult = paramsAndRoute(req.url);
 
+      let state: Record<string, unknown> = {};
       const middlewareCtx: MiddlewareHandlerContext = {
         next() {
           const handler = handlers.shift()!;
@@ -496,7 +497,12 @@ export class ServerContext {
           }
         },
         ...connInfo,
-        state: {},
+        get state() {
+          return state;
+        },
+        set state(v) {
+          state = v;
+        },
         destination: "route",
         params: paramsAndRouteResult.params,
       };
@@ -514,7 +520,12 @@ export class ServerContext {
 
       const ctx = {
         ...connInfo,
-        state: middlewareCtx.state,
+        get state() {
+          return state;
+        },
+        set state(v) {
+          state = v;
+        },
       };
       const { destination, handler } = inner(
         req,
