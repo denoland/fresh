@@ -1,6 +1,6 @@
 import type { Preset, UserConfig } from 'https://esm.sh/@unocss/core@0.53.1'
 import { UnoGenerator } from 'https://esm.sh/@unocss/core@0.53.1'
-import presetWind from 'https://esm.sh/@unocss/preset-wind@0.46.3?bundle&no-check'
+import presetUno from 'https://esm.sh/@unocss/preset-uno@0.46.3?bundle&no-check'
 import { Plugin } from '$fresh/server.ts'
 
 const unoResetCSS = `/* reset */
@@ -8,7 +8,7 @@ const unoResetCSS = `/* reset */
 `
 
 const defaultConfig: UserConfig = {
-  presets: [presetWind() as unknown as Preset],
+  presets: [presetUno() as unknown as Preset],
 }
 
 export default function unocss(config: UserConfig = defaultConfig): Plugin {
