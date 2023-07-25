@@ -27,7 +27,7 @@ OPTIONS:
     --force   Overwrite existing files
     --twind   Setup project to use 'twind' for styling
     --vscode  Setup project for VSCode
-    --docker  Setup Project for using Docker
+    --docker  Setup Project to use Docker
 `;
 
 const CONFIRM_EMPTY_MESSAGE =
@@ -37,9 +37,6 @@ const USE_TWIND_MESSAGE =
   "Fresh has built in support for styling using Tailwind CSS. Do you want to use this?";
 
 const USE_VSCODE_MESSAGE = "Do you use VS Code?";
-
-const USE_DOCKER_MESSAGE =
-  "Would you like to generate a simple Dockerfile to get started?";
 
 const flags = parse(Deno.args, {
   boolean: ["force", "twind", "vscode, docker"],
@@ -92,9 +89,7 @@ const useVSCode = flags.vscode === null
   ? confirm(USE_VSCODE_MESSAGE)
   : flags.vscode;
 
-const useDocker = flags.docker === null
-  ? confirm(USE_DOCKER_MESSAGE)
-  : flags.docker;
+const useDocker = flags.docker;
 
 await Deno.mkdir(join(resolvedDirectory, "routes", "api"), { recursive: true });
 await Deno.mkdir(join(resolvedDirectory, "islands"), { recursive: true });
