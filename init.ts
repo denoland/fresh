@@ -109,6 +109,28 @@ await Deno.writeTextFile(
   GITIGNORE,
 );
 
+const DOCKERFILE_TEXT = `
+FROM denoland/deno:1.35.0
+
+ARG GIT_REVISION
+ENV DENO_DEPLOYMENT_ID=\${GIT_REVISION}
+
+WORKDIR /app
+
+COPY . .
+RUN deno cache main.ts
+
+EXPOSE 8000
+
+CMD ["run", "-A", "main.ts"]
+
+`;
+
+await Deno.writeTextFile(
+  join(resolvedDirectory, "Dockerfile"),
+  DOCKERFILE_TEXT,
+);
+
 const ROUTES_INDEX_TSX = `import { Head } from "$fresh/runtime.ts";
 import { useSignal } from "@preact/signals";
 import Counter from "../islands/Counter.tsx";
