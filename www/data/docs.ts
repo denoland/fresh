@@ -44,7 +44,7 @@ for (const version in toc) {
     // all documentation content and backport changes.
     const fileVersion = rawEntry.link ?? version;
     const versionFilePath = fileVersion === LATEST_VERSION
-      ? ""
+      ? "/latest"
       : `/${fileVersion}`;
 
     const href = `/docs${versionSlug}/${parent}`;
