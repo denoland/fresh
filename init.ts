@@ -109,8 +109,9 @@ await Deno.writeTextFile(
   GITIGNORE,
 );
 
+const DENO_VERSION = Deno.version.deno;
 const DOCKERFILE_TEXT = `
-FROM denoland/deno:1.35.0
+FROM denoland/deno:${DENO_VERSION}
 
 ARG GIT_REVISION
 ENV DENO_DEPLOYMENT_ID=\${GIT_REVISION}
