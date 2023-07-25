@@ -27,6 +27,7 @@ OPTIONS:
     --force   Overwrite existing files
     --twind   Setup project to use 'twind' for styling
     --vscode  Setup project for VSCode
+    --docker  Setup Project for using Docker
 `;
 
 const CONFIRM_EMPTY_MESSAGE =
@@ -37,9 +38,12 @@ const USE_TWIND_MESSAGE =
 
 const USE_VSCODE_MESSAGE = "Do you use VS Code?";
 
+const USE_DOCKER_MESSAGE =
+  "Would you like to generate a simple Dockerfile to get started?";
+
 const flags = parse(Deno.args, {
-  boolean: ["force", "twind", "vscode"],
-  default: { "force": null, "twind": null, "vscode": null },
+  boolean: ["force", "twind", "vscode, docker"],
+  default: { "force": null, "twind": null, "vscode": null, "docker": null },
 });
 
 console.log();
@@ -88,6 +92,10 @@ const useVSCode = flags.vscode === null
   ? confirm(USE_VSCODE_MESSAGE)
   : flags.vscode;
 
+const useDocker = flags.docker === null
+  ? confirm(USE_DOCKER_MESSAGE)
+  : flags.docker;
+
 await Deno.mkdir(join(resolvedDirectory, "routes", "api"), { recursive: true });
 await Deno.mkdir(join(resolvedDirectory, "islands"), { recursive: true });
 await Deno.mkdir(join(resolvedDirectory, "static"), { recursive: true });
@@ -109,8 +117,9 @@ await Deno.writeTextFile(
   GITIGNORE,
 );
 
-const DENO_VERSION = Deno.version.deno;
-const DOCKERFILE_TEXT = `
+if (useDocker) {
+  const DENO_VERSION = Deno.version.deno;
+  const DOCKERFILE_TEXT = `
 FROM denoland/deno:${DENO_VERSION}
 
 ARG GIT_REVISION
@@ -127,10 +136,11 @@ CMD ["run", "-A", "main.ts"]
 
 `;
 
-await Deno.writeTextFile(
-  join(resolvedDirectory, "Dockerfile"),
-  DOCKERFILE_TEXT,
-);
+  await Deno.writeTextFile(
+    join(resolvedDirectory, "Dockerfile"),
+    DOCKERFILE_TEXT,
+  );
+}
 
 const ROUTES_INDEX_TSX = `import { Head } from "$fresh/runtime.ts";
 import { useSignal } from "@preact/signals";
