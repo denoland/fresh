@@ -137,24 +137,3 @@ async function spawnServer(
 
   return { serverProcess, lines, address };
 }
-
-/**
- * Wait until the passed function returns a truthy value or the time runs out
- */
-export async function waitFor(
-  fn: () => unknown | Promise<unknown>,
-  {
-    message = "waitFor failed",
-    timeout = 10000,
-    checkEvery = 200,
-  } = {},
-) {
-  for (let remaining = timeout; remaining > 0; remaining -= checkEvery) {
-    const res = await fn();
-    if (res) return res;
-
-    await delay(checkEvery);
-  }
-
-  throw new Error(`${message}, waited ${timeout}ms`);
-}

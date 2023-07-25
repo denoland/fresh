@@ -5,6 +5,7 @@ import {
   assertStringIncludes,
   delay,
   puppeteer,
+  retry,
 } from "./deps.ts";
 import manifest from "./fixture/fresh.gen.ts";
 import options from "./fixture/options.ts";
@@ -12,7 +13,6 @@ import { BUILD_ID } from "../src/server/build_id.ts";
 import {
   parseHtml,
   startFreshServer,
-  waitFor,
   waitForText,
   withPageName,
 } from "./test_utils.ts";
@@ -986,7 +986,7 @@ Deno.test({
       await page.click("button");
       await waitForText(page, "p", "it works");
 
-      await waitFor(() => {
+      await retry(() => {
         for (const item of logs) {
           if (/property should be a function/.test(item.message)) {
             return true;
