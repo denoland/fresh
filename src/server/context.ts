@@ -1013,6 +1013,14 @@ export function pathToPattern(path: string): string {
         return `:${part.slice(4, part.length - 1)}*`;
       }
 
+      // Disallow neighbouring params like `/[id][bar].tsx` because
+      // it's ambigious where the `id` param ends and `bar` begins.
+      if (part.includes("][")) {
+        throw new SyntaxError(
+          `Invalid route pattern: "${path}". A parameter cannot be followed by another parameter without any charactes in between.`,
+        );
+      }
+
       // Case: /[id].tsx
       // Case: /[id]@[bar].tsx
       // Case: /[id]-asdf.tsx
@@ -1023,13 +1031,6 @@ export function pathToPattern(path: string): string {
       for (let i = 0; i < part.length; i++) {
         const char = part[i];
         if (char === "[") {
-          // Disallow neighbouring params like `/[id][bar].tsx` because
-          // it's ambigious where the `id` param ends and `bar` begins.
-          if (i > 0 && part[i - 1] === "]") {
-            throw new SyntaxError(
-              `Invalid route pattern: "${path}". A parameter cannot be followed by another parameter without any charactes in between.`,
-            );
-          }
           pattern += ":";
           groupOpen++;
         } else if (char === "]") {
