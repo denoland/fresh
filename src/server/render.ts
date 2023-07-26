@@ -31,6 +31,7 @@ import { bundleAssetUrl } from "./constants.ts";
 import { assetHashingHook } from "../runtime/utils.ts";
 import { htmlEscapeJsonString } from "./htmlescape.ts";
 import { serialize } from "./serializer.ts";
+import { initViewTransitions } from "$fresh/src/runtime/entrypoints/view_transitions.ts";
 
 export const DEFAULT_RENDER_FN: RenderFunction = (_ctx, render) => {
   render();
@@ -394,6 +395,10 @@ export async function render<Data>(
 
   // The inline script that will hydrate the page.
   let script = "";
+
+  // View transitions
+  // TODO: Add conditionally
+  script += initViewTransitions.toString() + "\ninitViewTransitions();\n";
 
   // Serialize the state into the <script id=__FRSH_STATE> tag and generate the
   // inline script to deserialize it. This script starts by deserializing the
