@@ -22,6 +22,8 @@ import {
   FreshOptions,
   Handler,
   Island,
+  LayoutModule,
+  LayoutRoute,
   Middleware,
   MiddlewareHandlerContext,
   MiddlewareModule,
@@ -91,6 +93,7 @@ export class ServerContext {
   #renderFn: RenderFunction;
   #middlewares: MiddlewareRoute[];
   #app: AppModule;
+  #layouts: LayoutRoute[];
   #notFound: UnknownPage;
   #error: ErrorPage;
   #plugins: Plugin[];
@@ -104,6 +107,7 @@ export class ServerContext {
     renderfn: RenderFunction,
     middlewares: MiddlewareRoute[],
     app: AppModule,
+    layouts: LayoutRoute[],
     notFound: UnknownPage,
     error: ErrorPage,
     plugins: Plugin[],
@@ -118,6 +122,7 @@ export class ServerContext {
     this.#renderFn = renderfn;
     this.#middlewares = middlewares;
     this.#app = app;
+    this.#layouts = layouts;
     this.#notFound = notFound;
     this.#error = error;
     this.#plugins = plugins;
@@ -176,6 +181,7 @@ export class ServerContext {
     const islands: Island[] = [];
     const middlewares: MiddlewareRoute[] = [];
     let app: AppModule = DEFAULT_APP;
+    const layouts: LayoutRoute[] = [];
     let notFound: UnknownPage = DEFAULT_NOT_FOUND;
     let error: ErrorPage = DEFAULT_ERROR;
     const allRoutes = [
@@ -193,10 +199,15 @@ export class ServerContext {
       const path = url.substring(baseUrl.length).substring("routes".length);
       const baseRoute = path.substring(1, path.length - extname(path).length);
       const name = baseRoute.replace("/", "-");
+      const isLayout = path.endsWith("/_layout.tsx") ||
+        path.endsWith("/_layout.ts") || path.endsWith("/_layout.jsx") ||
+        path.endsWith("/_layout.js");
       const isMiddleware = path.endsWith("/_middleware.tsx") ||
         path.endsWith("/_middleware.ts") || path.endsWith("/_middleware.jsx") ||
         path.endsWith("/_middleware.js");
-      if (!path.startsWith("/_") && !isMiddleware) {
+      if (
+        !path.startsWith("/_") && !isLayout && !isMiddleware
+      ) {
         const { default: component, config } = module as RouteModule;
         let pattern = pathToPattern(baseRoute);
         if (config?.routeOverride) {
@@ -248,6 +259,11 @@ export class ServerContext {
         path === "/_app.jsx" || path === "/_app.js"
       ) {
         app = module as AppModule;
+      } else if (isLayout) {
+        layouts.push({
+          ...layoutPathToPattern(baseRoute),
+          ...module as LayoutModule,
+        });
       } else if (
         path === "/_404.tsx" || path === "/_404.ts" ||
         path === "/_404.jsx" || path === "/_404.js"
@@ -289,6 +305,7 @@ export class ServerContext {
     }
     sortRoutes(routes);
     sortMiddleware(middlewares);
+    sortLayouts(layouts);
 
     for (const [self, module] of Object.entries(manifest.islands)) {
       const url = new URL(self, baseUrl).href;
@@ -370,6 +387,7 @@ export class ServerContext {
       opts.render ?? DEFAULT_RENDER_FN,
       middlewares,
       app,
+      layouts,
       notFound,
       error,
       opts.plugins ?? [],
@@ -646,6 +664,7 @@ export class ServerContext {
         islands: this.#islands,
         plugins: this.#plugins,
         app: this.#app,
+        layouts: this.#layouts,
         imports,
         dependenciesFn,
         renderFn: this.#renderFn,
@@ -698,6 +717,7 @@ export class ServerContext {
             islands: this.#islands,
             plugins: this.#plugins,
             app: this.#app,
+            layouts: this.#layouts,
             imports,
             dependenciesFn,
             renderFn: this.#renderFn,
@@ -944,6 +964,35 @@ export function selectMiddlewares(url: string, middlewares: MiddlewareRoute[]) {
   return selectedMws;
 }
 
+export function sortLayouts<T extends { pattern: string }>(
+  layouts: LayoutRoute[],
+) {
+  layouts.sort((a, b) => {
+    const partsA = a.pattern.split("/");
+    const partsB = b.pattern.split("/");
+
+    for (let i = 0; i < Math.max(partsA.length, partsB.length); i++) {
+      const partA = partsA[i];
+      const partB = partsB[i];
+
+      if (partA === undefined && partB === undefined) return 0;
+      if (partA === undefined) return 1;
+      if (partB === undefined) return -1;
+
+      if (partA === partB) continue;
+
+      const priorityA = getPriority(partA);
+      const priorityB = getPriority(partB);
+
+      if (priorityA !== priorityB) {
+        return priorityB - priorityA; // Sort in ascending order of priority
+      }
+    }
+
+    return 0;
+  });
+}
+
 /**
  * Sort pages by their relative routing priority, based on the parts in the
  * route matcher
@@ -1093,6 +1142,16 @@ function serializeCSPDirectives(csp: ContentSecurityPolicyDirectives): string {
       return `${key} ${value}`;
     })
     .join("; ");
+}
+
+export function layoutPathToPattern(baseRoute: string) {
+  baseRoute = baseRoute.slice(0, -"_layout".length);
+  let pattern = pathToPattern(baseRoute);
+  if (pattern.endsWith("/")) {
+    pattern = pattern.slice(0, -1) + "{/*}?";
+  }
+  const compiledPattern = new URLPattern({ pathname: pattern });
+  return { pattern, compiledPattern };
 }
 
 export function middlewarePathToPattern(baseRoute: string) {

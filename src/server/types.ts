@@ -171,6 +171,25 @@ export interface AppModule {
   default: ComponentType<AppProps>;
 }
 
+export interface LayoutProps extends PageProps {
+  Component: ComponentType<Record<never, never>>;
+}
+
+export interface LayoutModule {
+  default: ComponentType<LayoutProps>;
+}
+
+export interface LayoutRoute extends LayoutModule {
+  /**
+   * path-to-regexp style url path
+   */
+  pattern: string;
+  /**
+   * URLPattern of the route
+   */
+  compiledPattern: URLPattern;
+}
+
 // --- UNKNOWN PAGE ---
 
 // deno-lint-ignore no-explicit-any
