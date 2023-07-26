@@ -34,6 +34,10 @@ jobs:
         if: startsWith(matrix.os, 'ubuntu') && matrix.deno == 'canary'
         run: deno lint
 
+      - name: Spell-check
+        if: startsWith(matrix.os, 'ubuntu') && matrix.deno == 'canary'
+        uses: crate-ci/typos@master
+
       - name: Cache dependencies
         if: startsWith(matrix.os, 'ubuntu') && matrix.deno == 'v1.x'
         run: deno cache --config=www/deno.json src/dev/deps.ts src/server/deps.ts www/main.ts
