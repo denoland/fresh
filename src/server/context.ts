@@ -1014,10 +1014,10 @@ export function pathToPattern(path: string): string {
       }
 
       // Disallow neighbouring params like `/[id][bar].tsx` because
-      // it's ambigious where the `id` param ends and `bar` begins.
+      // it's ambiguous where the `id` param ends and `bar` begins.
       if (part.includes("][")) {
         throw new SyntaxError(
-          `Invalid route pattern: "${path}". A parameter cannot be followed by another parameter without any charactes in between.`,
+          `Invalid route pattern: "${path}". A parameter cannot be followed by another parameter without any characters in between.`,
         );
       }
 

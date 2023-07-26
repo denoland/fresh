@@ -359,7 +359,7 @@ Deno.test("static file - by 'hashed' path", async () => {
   assert(imgFilePath);
   assert(imgFilePath.includes(`?__frsh_c=${BUILD_ID}`));
 
-  // check the static file is served corectly under its cacheable route
+  // check the static file is served correctly under its cacheable route
   const resp2 = await handler(
     new Request(`https://fresh.deno.dev${imgFilePath}`),
   );
@@ -564,7 +564,7 @@ Deno.test({
     assertEquals(resp.headers.get("layer3"), "fresh test server layer3");
     // the below ensure that the middlewware are applied in the correct order.
     // i.e response header set from layer3 middleware is overwritten
-    // by the reponse header in layer 0
+    // by the response header in layer 0
     assertEquals(resp.headers.get("server"), "fresh test server");
   },
 });
