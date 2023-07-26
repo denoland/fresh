@@ -97,7 +97,7 @@ export async function updateCheck(
   // Update current version
   checkFile.current_version = version;
 
-  // Only check in the specificed interval
+  // Only check in the specified interval
   if (Date.now() >= new Date(checkFile.last_checked).getTime() + interval) {
     try {
       checkFile.latest_version = await getLatestVersion();

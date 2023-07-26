@@ -206,7 +206,7 @@ export function LightWeight() {
   );
 }
 
-export function Gabage() {
+export function Garbage() {
   return (
     <svg
       class="bg-blue-200 md:bg-green-200 rounded-full w-20 h-20"

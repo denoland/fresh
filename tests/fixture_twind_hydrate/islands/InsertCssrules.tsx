@@ -50,7 +50,7 @@ export default function InsertCssrules() {
       {/* Status of insert css rules */}
       {(() => {
         if (insertedStyles.value === "") {
-          return <p id="waitClickButton">Plese click button</p>;
+          return <p id="waitClickButton">Please click button</p>;
         } else if (numDefCssRules.value === numCssRules.value) {
           return (
             <p id="errorInsertCssrules">

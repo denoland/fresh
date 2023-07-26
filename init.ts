@@ -491,7 +491,7 @@ try {
     new Uint8Array(faviconArrayBuffer),
   );
 } catch {
-  // Skip this and be silent if there is a nework issue.
+  // Skip this and be silent if there is a network issue.
 }
 
 let MAIN_TS = `/// <reference no-default-lib="true" />
