@@ -495,6 +495,7 @@ export class ServerContext {
       const handlers: (() => Response | Promise<Response>)[] = [];
       const paramsAndRouteResult = paramsAndRoute(req.url);
 
+      let state: Record<string, unknown> = {};
       const middlewareCtx: MiddlewareHandlerContext = {
         next() {
           const handler = handlers.shift()!;
@@ -514,7 +515,12 @@ export class ServerContext {
           }
         },
         ...connInfo,
-        state: {},
+        get state() {
+          return state;
+        },
+        set state(v) {
+          state = v;
+        },
         destination: "route",
         params: paramsAndRouteResult.params,
       };
@@ -532,7 +538,12 @@ export class ServerContext {
 
       const ctx = {
         ...connInfo,
-        state: middlewareCtx.state,
+        get state() {
+          return state;
+        },
+        set state(v) {
+          state = v;
+        },
       };
       const { destination, handler } = inner(
         req,
@@ -1039,20 +1050,48 @@ function getPriority(part: string) {
 }
 
 /** Transform a filesystem URL path to a `path-to-regex` style matcher. */
-function pathToPattern(path: string): string {
+export function pathToPattern(path: string): string {
   const parts = path.split("/");
   if (parts[parts.length - 1] === "index") {
     parts.pop();
   }
   const route = "/" + parts
     .map((part) => {
+      // Case: /[...foo].tsx
       if (part.startsWith("[...") && part.endsWith("]")) {
         return `:${part.slice(4, part.length - 1)}*`;
       }
-      if (part.startsWith("[") && part.endsWith("]")) {
-        return `:${part.slice(1, part.length - 1)}`;
+
+      // Disallow neighbouring params like `/[id][bar].tsx` because
+      // it's ambigious where the `id` param ends and `bar` begins.
+      if (part.includes("][")) {
+        throw new SyntaxError(
+          `Invalid route pattern: "${path}". A parameter cannot be followed by another parameter without any charactes in between.`,
+        );
       }
-      return part;
+
+      // Case: /[id].tsx
+      // Case: /[id]@[bar].tsx
+      // Case: /[id]-asdf.tsx
+      // Case: /[id]-asdf[bar].tsx
+      // Case: /asdf[bar].tsx
+      let pattern = "";
+      let groupOpen = 0;
+      for (let i = 0; i < part.length; i++) {
+        const char = part[i];
+        if (char === "[") {
+          pattern += ":";
+          groupOpen++;
+        } else if (char === "]") {
+          if (--groupOpen < 0) {
+            throw new SyntaxError(`Invalid route pattern: "${path}"`);
+          }
+        } else {
+          pattern += char;
+        }
+      }
+
+      return pattern;
     })
     .join("/");
   return route;

@@ -135,13 +135,15 @@ export interface RouteModule {
   config?: RouteConfig;
 }
 
-export type AsyncRoute<T> = (
+// deno-lint-ignore no-explicit-any
+export type AsyncRoute<T = any, S = Record<string, unknown>> = (
   req: Request,
-  ctx: RouteContext<T>,
+  ctx: RouteContext<T, S>,
 ) => Promise<ComponentChildren | Response>;
-export type PageComponent<T> =
-  | ComponentType<PageProps<T>>
-  | AsyncRoute<T>
+// deno-lint-ignore no-explicit-any
+export type PageComponent<T = any, S = Record<string, unknown>> =
+  | ComponentType<PageProps<T, S>>
+  | AsyncRoute<T, S>
   // deno-lint-ignore no-explicit-any
   | ((props: any) => VNode<any> | ComponentChildren);
 

@@ -627,7 +627,23 @@ options.vnode = (vnode) => {
         );
       };
     }
+  } else if (typeof vnode.type === "string" && vnode.props !== null) {
+    // Work around `preact/debug` string event handler error which
+    // errors when an event handler gets a string. This makes sense
+    // on the client where this is a common vector for XSS. On the
+    // server when the string was not created through concatenation
+    // it is fine. Internally, `preact/debug` only checks for the
+    // lowercase variant.
+    const props = vnode.props as Record<string, unknown>;
+    for (const key in props) {
+      const value = props[key];
+      if (key.startsWith("on") && typeof value === "string") {
+        delete props[key];
+        props["ON" + key.slice(2)] = value;
+      }
+    }
   }
+
   if (originalHook) originalHook(vnode);
 };
 
