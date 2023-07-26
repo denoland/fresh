@@ -39,7 +39,7 @@ const USE_TWIND_MESSAGE =
 const USE_VSCODE_MESSAGE = "Do you use VS Code?";
 
 const flags = parse(Deno.args, {
-  boolean: ["force", "twind", "vscode, docker"],
+  boolean: ["force", "twind", "vscode", "docker"],
   default: { "force": null, "twind": null, "vscode": null, "docker": null },
 });
 
