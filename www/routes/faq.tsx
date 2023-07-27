@@ -63,10 +63,9 @@ function FAQ(props: PageProps<Data>) {
 }
 
 function Content(props: { markdown: string }) {
-  
-    let html = gfm.render(props.markdown);
+  let html = gfm.render(props.markdown);
 
-    html += `
+  html += `
     
         <style>
 
@@ -75,7 +74,7 @@ function Content(props: { markdown: string }) {
             }
 
         </style>
-    `
+    `;
 
   return (
     <div class="flex justify-center">
@@ -85,7 +84,7 @@ function Content(props: { markdown: string }) {
         </h1>
         <div
           class="mt-6 markdown-body"
-          dangerouslySetInnerHTML={{ __html : html }}
+          dangerouslySetInnerHTML={{ __html: html }}
         />
       </main>
     </div>
