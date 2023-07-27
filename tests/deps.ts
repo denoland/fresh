@@ -23,3 +23,4 @@ export type {
   AssertTrue,
   IsExact,
 } from "https://deno.land/std@0.193.0/testing/types.ts";
+export { DOMParser } from "https://esm.sh/linkedom@0.15.1";

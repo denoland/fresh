@@ -1,4 +1,8 @@
-import { delay, Page, puppeteer, TextLineStream } from "./deps.ts";
+import { delay, DOMParser, Page, puppeteer, TextLineStream } from "./deps.ts";
+
+export function parseHtml(input: string) {
+  return new DOMParser().parseFromString(input, "text/html");
+}
 
 export async function startFreshServer(options: Deno.CommandOptions) {
   const { serverProcess, lines, address } = await spawnServer(options);

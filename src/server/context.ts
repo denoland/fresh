@@ -22,6 +22,8 @@ import {
   FreshOptions,
   Handler,
   Island,
+  LayoutModule,
+  LayoutRoute,
   Middleware,
   MiddlewareHandlerContext,
   MiddlewareModule,
@@ -91,6 +93,7 @@ export class ServerContext {
   #renderFn: RenderFunction;
   #middlewares: MiddlewareRoute[];
   #app: AppModule;
+  #layouts: LayoutRoute[];
   #notFound: UnknownPage;
   #error: ErrorPage;
   #plugins: Plugin[];
@@ -104,6 +107,7 @@ export class ServerContext {
     renderfn: RenderFunction,
     middlewares: MiddlewareRoute[],
     app: AppModule,
+    layouts: LayoutRoute[],
     notFound: UnknownPage,
     error: ErrorPage,
     plugins: Plugin[],
@@ -118,6 +122,7 @@ export class ServerContext {
     this.#renderFn = renderfn;
     this.#middlewares = middlewares;
     this.#app = app;
+    this.#layouts = layouts;
     this.#notFound = notFound;
     this.#error = error;
     this.#plugins = plugins;
@@ -176,6 +181,7 @@ export class ServerContext {
     const islands: Island[] = [];
     const middlewares: MiddlewareRoute[] = [];
     let app: AppModule = DEFAULT_APP;
+    const layouts: LayoutRoute[] = [];
     let notFound: UnknownPage = DEFAULT_NOT_FOUND;
     let error: ErrorPage = DEFAULT_ERROR;
     const allRoutes = [
@@ -193,10 +199,15 @@ export class ServerContext {
       const path = url.substring(baseUrl.length).substring("routes".length);
       const baseRoute = path.substring(1, path.length - extname(path).length);
       const name = baseRoute.replace("/", "-");
+      const isLayout = path.endsWith("/_layout.tsx") ||
+        path.endsWith("/_layout.ts") || path.endsWith("/_layout.jsx") ||
+        path.endsWith("/_layout.js");
       const isMiddleware = path.endsWith("/_middleware.tsx") ||
         path.endsWith("/_middleware.ts") || path.endsWith("/_middleware.jsx") ||
         path.endsWith("/_middleware.js");
-      if (!path.startsWith("/_") && !isMiddleware) {
+      if (
+        !path.startsWith("/_") && !isLayout && !isMiddleware
+      ) {
         const { default: component, config } = module as RouteModule;
         let pattern = pathToPattern(baseRoute);
         if (config?.routeOverride) {
@@ -248,6 +259,11 @@ export class ServerContext {
         path === "/_app.jsx" || path === "/_app.js"
       ) {
         app = module as AppModule;
+      } else if (isLayout) {
+        layouts.push({
+          ...layoutPathToPattern(baseRoute),
+          ...module as LayoutModule,
+        });
       } else if (
         path === "/_404.tsx" || path === "/_404.ts" ||
         path === "/_404.jsx" || path === "/_404.js"
@@ -289,6 +305,7 @@ export class ServerContext {
     }
     sortRoutes(routes);
     sortMiddleware(middlewares);
+    sortLayouts(layouts);
 
     for (const [self, module] of Object.entries(manifest.islands)) {
       const url = new URL(self, baseUrl).href;
@@ -370,6 +387,7 @@ export class ServerContext {
       opts.render ?? DEFAULT_RENDER_FN,
       middlewares,
       app,
+      layouts,
       notFound,
       error,
       opts.plugins ?? [],
@@ -382,7 +400,7 @@ export class ServerContext {
 
   /**
    * This functions returns a request handler that handles all routes required
-   * by fresh, including static files.
+   * by Fresh, including static files.
    */
   handler(): (req: Request, connInfo?: ServeHandlerInfo) => Promise<Response> {
     const handlers = this.#handlers();
@@ -477,6 +495,7 @@ export class ServerContext {
       const handlers: (() => Response | Promise<Response>)[] = [];
       const paramsAndRouteResult = paramsAndRoute(req.url);
 
+      let state: Record<string, unknown> = {};
       const middlewareCtx: MiddlewareHandlerContext = {
         next() {
           const handler = handlers.shift()!;
@@ -496,7 +515,12 @@ export class ServerContext {
           }
         },
         ...connInfo,
-        state: {},
+        get state() {
+          return state;
+        },
+        set state(v) {
+          state = v;
+        },
         destination: "route",
         params: paramsAndRouteResult.params,
       };
@@ -514,7 +538,12 @@ export class ServerContext {
 
       const ctx = {
         ...connInfo,
-        state: middlewareCtx.state,
+        get state() {
+          return state;
+        },
+        set state(v) {
+          state = v;
+        },
       };
       const { destination, handler } = inner(
         req,
@@ -529,7 +558,7 @@ export class ServerContext {
   }
 
   /**
-   * This function returns all routes required by fresh as an extended
+   * This function returns all routes required by Fresh as an extended
    * path-to-regex, to handler mapping.
    */
   #handlers(): {
@@ -635,6 +664,7 @@ export class ServerContext {
         islands: this.#islands,
         plugins: this.#plugins,
         app: this.#app,
+        layouts: this.#layouts,
         imports,
         dependenciesFn,
         renderFn: this.#renderFn,
@@ -687,6 +717,7 @@ export class ServerContext {
             islands: this.#islands,
             plugins: this.#plugins,
             app: this.#app,
+            layouts: this.#layouts,
             imports,
             dependenciesFn,
             renderFn: this.#renderFn,
@@ -865,7 +896,7 @@ export class ServerContext {
   }
 
   /**
-   * Returns a router that contains all fresh routes. Should be mounted at
+   * Returns a router that contains all Fresh routes. Should be mounted at
    * constants.INTERNAL_PREFIX
    */
   #bundleAssetRoute = (): router.MatchHandler => {
@@ -933,6 +964,35 @@ export function selectMiddlewares(url: string, middlewares: MiddlewareRoute[]) {
   return selectedMws;
 }
 
+export function sortLayouts<T extends { pattern: string }>(
+  layouts: LayoutRoute[],
+) {
+  layouts.sort((a, b) => {
+    const partsA = a.pattern.split("/");
+    const partsB = b.pattern.split("/");
+
+    for (let i = 0; i < Math.max(partsA.length, partsB.length); i++) {
+      const partA = partsA[i];
+      const partB = partsB[i];
+
+      if (partA === undefined && partB === undefined) return 0;
+      if (partA === undefined) return 1;
+      if (partB === undefined) return -1;
+
+      if (partA === partB) continue;
+
+      const priorityA = getPriority(partA);
+      const priorityB = getPriority(partB);
+
+      if (priorityA !== priorityB) {
+        return priorityB - priorityA; // Sort in ascending order of priority
+      }
+    }
+
+    return 0;
+  });
+}
+
 /**
  * Sort pages by their relative routing priority, based on the parts in the
  * route matcher
@@ -990,20 +1050,48 @@ function getPriority(part: string) {
 }
 
 /** Transform a filesystem URL path to a `path-to-regex` style matcher. */
-function pathToPattern(path: string): string {
+export function pathToPattern(path: string): string {
   const parts = path.split("/");
   if (parts[parts.length - 1] === "index") {
     parts.pop();
   }
   const route = "/" + parts
     .map((part) => {
+      // Case: /[...foo].tsx
       if (part.startsWith("[...") && part.endsWith("]")) {
         return `:${part.slice(4, part.length - 1)}*`;
       }
-      if (part.startsWith("[") && part.endsWith("]")) {
-        return `:${part.slice(1, part.length - 1)}`;
+
+      // Disallow neighbouring params like `/[id][bar].tsx` because
+      // it's ambiguous where the `id` param ends and `bar` begins.
+      if (part.includes("][")) {
+        throw new SyntaxError(
+          `Invalid route pattern: "${path}". A parameter cannot be followed by another parameter without any characters in between.`,
+        );
       }
-      return part;
+
+      // Case: /[id].tsx
+      // Case: /[id]@[bar].tsx
+      // Case: /[id]-asdf.tsx
+      // Case: /[id]-asdf[bar].tsx
+      // Case: /asdf[bar].tsx
+      let pattern = "";
+      let groupOpen = 0;
+      for (let i = 0; i < part.length; i++) {
+        const char = part[i];
+        if (char === "[") {
+          pattern += ":";
+          groupOpen++;
+        } else if (char === "]") {
+          if (--groupOpen < 0) {
+            throw new SyntaxError(`Invalid route pattern: "${path}"`);
+          }
+        } else {
+          pattern += char;
+        }
+      }
+
+      return pattern;
     })
     .join("/");
   return route;
@@ -1054,6 +1142,16 @@ function serializeCSPDirectives(csp: ContentSecurityPolicyDirectives): string {
       return `${key} ${value}`;
     })
     .join("; ");
+}
+
+export function layoutPathToPattern(baseRoute: string) {
+  baseRoute = baseRoute.slice(0, -"_layout".length);
+  let pattern = pathToPattern(baseRoute);
+  if (pattern.endsWith("/")) {
+    pattern = pattern.slice(0, -1) + "{/*}?";
+  }
+  const compiledPattern = new URLPattern({ pathname: pattern });
+  return { pattern, compiledPattern };
 }
 
 export function middlewarePathToPattern(baseRoute: string) {

@@ -33,7 +33,7 @@ export const handler: Handlers = {
   },
 };
 
-const TITLE = "fresh - The next-gen web framework.";
+const TITLE = "Fresh - The next-gen web framework.";
 const DESCRIPTION =
   "Just in time edge rendering, island based interactivity, and no configuration TypeScript support using Deno.";
 
@@ -89,11 +89,12 @@ function HelloBar() {
 
 function Hero() {
   return (
-    <>
-      <section class="w-full flex justify-center items-center flex-col bg-green-300">
-        <LemonDrop />
-      </section>
-    </>
+    <div
+      class="w-full flex justify-center items-center flex-col bg-green-300"
+      aria-hidden="true"
+    >
+      <LemonDrop />
+    </div>
   );
 }
 
@@ -133,7 +134,7 @@ function Features() {
       </div>
 
       <div class={item}>
-        <FeatureIcons.Gabage />
+        <FeatureIcons.Garbage />
         <div class={desc}>
           <b>No configuration</b> necessary.
         </div>
@@ -182,7 +183,7 @@ function Intro(props: { origin: string }) {
               src="/illustration/lemon-squash.svg"
               width={800}
               height={678}
-              alt="deno is drinking fresh lemon squash"
+              alt="Deno is drinking Fresh lemon squash"
             />
           </picture>
         </div>
@@ -251,7 +252,7 @@ function StartJourney() {
       </h2>
       <div class="flex flex-col md:flex-row justify-start items-center gap-4">
         <p class="text(xl gray-600)">
-          Jump right in and build your website with fresh. Learn everything you
+          Jump right in and build your website with Fresh. Learn everything you
           need to know in seconds.
         </p>
         <a

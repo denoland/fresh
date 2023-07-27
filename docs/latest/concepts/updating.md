@@ -3,7 +3,7 @@ description: |
   New versions of Fresh are regularly released. This page explains how to update your project.
 ---
 
-Fresh constists of multiple pieces which are independently versioned and
+Fresh consists of multiple pieces which are independently versioned and
 released.
 
 - Fresh (https://deno.land/x/fresh)
@@ -28,7 +28,7 @@ below.
 
 To update your dependencies, you have two options:
 
-- Run the fresh updater to update your project dependencies.
+- Run the Fresh updater to update your project dependencies.
 - Manually update the dependency versions in your `deno.json` file.
 
 ### Auto updater

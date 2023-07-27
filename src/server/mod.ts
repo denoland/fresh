@@ -5,6 +5,7 @@ import {
   AppModule,
   ErrorPageModule,
   IslandModule,
+  LayoutModule,
   MiddlewareModule,
   RouteModule,
   ServeHandler,
@@ -21,6 +22,7 @@ export type {
   Handler,
   HandlerContext,
   Handlers,
+  LayoutProps,
   MiddlewareHandler,
   MiddlewareHandlerContext,
   MultiHandler,
@@ -52,6 +54,7 @@ export interface Manifest {
     | RouteModule
     | MiddlewareModule
     | AppModule
+    | LayoutModule
     | ErrorPageModule
     | UnknownPageModule
   >;

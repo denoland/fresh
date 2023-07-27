@@ -38,7 +38,7 @@ export const handler: Handlers = {
 
     if (response.status === 404) {
       return new Response(
-        "404: Not Found. The requested fresh release or file do not exist.",
+        "404: Not Found. The requested Fresh release or file do not exist.",
         { status: 404 },
       );
     }

@@ -1,6 +1,6 @@
 ---
 description: |
-  Deploy a fresh application to Deno Deploy in seconds, making it available on
+  Deploy a Fresh application to Deno Deploy in seconds, making it available on
   the edge globally - resulting in fantastic user latency worldwide.
 ---
 

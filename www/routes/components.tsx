@@ -30,7 +30,7 @@ export const handler: Handlers<HomeProps> = {
   },
 };
 
-const TITLE = "Components | fresh";
+const TITLE = "Components | Fresh";
 const DESCRIPTION = "A collection of components made for Fresh.";
 
 interface HomeProps {

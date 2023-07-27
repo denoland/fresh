@@ -5,6 +5,8 @@ import {
   assertNotMatch,
 } from "$std/testing/asserts.ts";
 import versions from "../versions.json" assert { type: "json" };
+import { CheckFile } from "$fresh/src/dev/update_check.ts";
+import { WEEK } from "$fresh/src/dev/deps.ts";
 
 Deno.test({
   name: "stores update check file in $HOME/fresh",
@@ -78,20 +80,20 @@ Deno.test({
       env: {
         CI: "false",
         HOME: tmpDirName,
-        LATEST_VERSION: "1.30.0",
+        LATEST_VERSION: "999.999.0",
       },
     }).output();
 
     const decoder = new TextDecoder();
 
     const stdout = colors.stripColor(decoder.decode(out.stdout));
-    assertMatch(stdout, /Fresh 1\.30\.0 is available/);
+    assertMatch(stdout, /Fresh 999\.999\.0 is available/);
 
     // Updates check file
     const text = JSON.parse(await Deno.readTextFile(filePath));
     assertEquals(text, {
-      current_version: "1.1.0",
-      latest_version: "1.30.0",
+      current_version: versions[0],
+      latest_version: "999.999.0",
       last_checked: text.last_checked,
     });
 
@@ -150,6 +152,71 @@ Deno.test({
       const stdout = colors.stripColor(decoder.decode(out.stdout));
       assertMatch(stdout, /fetching latest version/);
     });
+
+    await Deno.remove(tmpDirName, { recursive: true });
+  },
+});
+
+Deno.test({
+  name: "updates current version in cache file",
+  async fn() {
+    const tmpDirName = await Deno.makeTempDir();
+
+    const checkFile: CheckFile = {
+      current_version: "1.2.0",
+      latest_version: "1.2.0",
+      last_checked: new Date(Date.now() - WEEK).toISOString(),
+    };
+
+    await Deno.writeTextFile(
+      join(tmpDirName, "latest.json"),
+      JSON.stringify(checkFile, null, 2),
+    );
+
+    const out = await new Deno.Command(Deno.execPath(), {
+      args: ["run", "-A", "./tests/fixture_update_check/mod.ts"],
+      env: {
+        HOME: tmpDirName,
+        LATEST_VERSION: versions[0],
+      },
+    }).output();
+
+    const decoder = new TextDecoder();
+    const stdout = colors.stripColor(decoder.decode(out.stdout));
+    assertNotMatch(stdout, /Fresh .* is available/);
+
+    await Deno.remove(tmpDirName, { recursive: true });
+  },
+});
+
+Deno.test({
+  name: "only shows update message when current < latest",
+  async fn() {
+    const tmpDirName = await Deno.makeTempDir();
+
+    const checkFile: CheckFile = {
+      current_version: "9999.999.0",
+      latest_version: "1.2.0",
+      last_checked: new Date().toISOString(),
+    };
+
+    await Deno.writeTextFile(
+      join(tmpDirName, "latest.json"),
+      JSON.stringify(checkFile, null, 2),
+    );
+
+    const out = await new Deno.Command(Deno.execPath(), {
+      args: ["run", "-A", "./tests/fixture_update_check/mod.ts"],
+      env: {
+        HOME: tmpDirName,
+        LATEST_VERSION: versions[0],
+        CURRENT_VERSION: "99999.9999.00",
+      },
+    }).output();
+
+    const decoder = new TextDecoder();
+    const stdout = colors.stripColor(decoder.decode(out.stdout));
+    assertNotMatch(stdout, /Fresh .* is available/);
 
     await Deno.remove(tmpDirName, { recursive: true });
   },

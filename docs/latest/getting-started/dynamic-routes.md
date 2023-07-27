@@ -1,6 +1,6 @@
 ---
 description: |
-  Create a dynamic route in fresh by adding a dynamic segment to the route name
+  Create a dynamic route in Fresh by adding a dynamic segment to the route name
   in the routes' file name on disk: `/greet/[name].tsx`.
 ---
 
