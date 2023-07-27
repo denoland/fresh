@@ -63,16 +63,29 @@ function FAQ(props: PageProps<Data>) {
 }
 
 function Content(props: { markdown: string }) {
-  const html = gfm.render(props.markdown);
+  
+    let html = gfm.render(props.markdown);
+
+    html += `
+    
+        <style>
+
+            .markdown-body h4 strong {
+                color : #c35b62 ;
+            }
+
+        </style>
+    `
+
   return (
     <div class="flex justify-center">
-      <main class="py-6 max-w-[700px]">
+      <main class="py-6 max-w-[700px] min-w-[min(60%,700px)]">
         <h1 class="text(4xl gray-900) tracking-tight font-extrabold mt-6 md:mt-0">
           FAQ
         </h1>
         <div
           class="mt-6 markdown-body"
-          dangerouslySetInnerHTML={{ __html: html }}
+          dangerouslySetInnerHTML={{ __html : html }}
         />
       </main>
     </div>
