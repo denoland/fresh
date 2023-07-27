@@ -11,7 +11,7 @@
     transform: translateX(0);
   }
   to {
-    transform: translateX(300px);
+    transform: translateX(-300px);
   }
 }
 
@@ -32,7 +32,7 @@
   }
 }
 
-.app {
+/* .app {
   view-transition-name: heading;
 }
 
@@ -68,4 +68,4 @@ body[data-frsh-transition="new"] .app {
   ::view-transition-new(*) {
     animation: none !important;
   }
-}
+} */

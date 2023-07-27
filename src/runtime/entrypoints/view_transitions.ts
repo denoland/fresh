@@ -9,12 +9,46 @@ declare global {
 
 // WARNING: Must be a self contained function
 export function initViewTransitions() {
+  // Keep track of history state to apply forward or backward animations
+  let historyIdx = 0;
   const supportsViewTransitions = document.startViewTransition;
   const parser = new DOMParser();
   document.body.setAttribute("data-frsh-transition", "new");
 
-  function swap(el: HTMLElement) {
-    document.documentElement.replaceWith(el);
+  function patchAttrs(oldEl: HTMLElement, newEl: HTMLElement) {
+    // Remove old attributes not present anymore
+    const oldAttrs = oldEl.getAttributeNames();
+    for (let i = 0; i < oldAttrs.length; i++) {
+      const name = oldAttrs[i];
+      if (!newEl.hasAttribute(name)) {
+        oldEl.removeAttribute(name);
+      }
+    }
+
+    // Add new attributes
+    const attrs = newEl.getAttributeNames();
+    for (let i = 0; i < attrs.length; i++) {
+      const name = attrs[i];
+      const value = newEl.getAttribute(name);
+      if (value === null) oldEl.removeAttribute(name);
+      else if (oldEl.getAttribute(name) !== value) {
+        oldEl.setAttribute(name, value);
+      }
+    }
+  }
+
+  function swap(doc: Document) {
+    // Replacing the full document breaks animations in Chrome, but
+    // replacing only the <body> works. So we do that and diff the
+    // <html> and <head> elements ourselves.
+
+    // Replacing <head>
+    document.title = doc.title;
+
+    // Patch <html> attributes if there are any
+    patchAttrs(document.documentElement, doc.documentElement);
+    // Replace <body>. That's the only way that keeps animations working
+    document.body.replaceWith(doc.body);
   }
 
   async function updatePage(html: string) {
@@ -52,7 +86,7 @@ export function initViewTransitions() {
 
     // Update the current document
     if (supportsViewTransitions) {
-      swap(doc.documentElement);
+      swap(doc);
     } else {
       let isAnimating = false;
       document.addEventListener("animationstart", () => {
@@ -61,7 +95,7 @@ export function initViewTransitions() {
       document.addEventListener("animationend", () => {
         isAnimating = false;
         doc.body.setAttribute("data-frsh-transition", "old");
-        swap(doc.documentElement);
+        swap(doc);
         document.body.setAttribute("data-frsh-transition", "new");
       }, { once: true });
       document.body.setAttribute("data-frsh-transition", "old");
@@ -69,14 +103,45 @@ export function initViewTransitions() {
       // Wait for class changes to take effect
       return new Promise<void>((resolve) => {
         setTimeout(() => {
-          !isAnimating && swap(doc.documentElement);
+          !isAnimating && swap(doc);
           resolve();
         }, 100);
       });
     }
   }
 
+  async function navigate(url: string, direction: "forward" | "backward") {
+    const res = await fetch(url);
+    // Abort transition and navigate directly to the target
+    // when request failed
+    if (!res.ok) {
+      location.href = url;
+      return;
+    }
+    const text = await res.text();
+
+    // TODO: Error handling?
+    try {
+      if (direction === "backward") {
+        document.documentElement.setAttribute(
+          "data-frsh-nav-transition",
+          direction,
+        );
+      }
+      await supportsViewTransitions
+        ? document.startViewTransition!(() => updatePage(text)).finished
+        : updatePage(text);
+    } catch (_err) {
+      // Fall back to a classic navigation if an error occurred
+      location.href = url;
+      return;
+    } finally {
+      document.documentElement.removeAttribute("data-frsh-nav-transition");
+    }
+  }
+
   // TODO: Prefetching
+  history.replaceState({ historyIdx }, "", location.href);
   document.addEventListener("click", async (e) => {
     let el = e.target;
     if (el && el instanceof HTMLElement) {
@@ -101,30 +166,18 @@ export function initViewTransitions() {
       ) {
         e.preventDefault();
 
-        console.log("click", el.href, "...fetching");
-        const res = await fetch(el.href);
-        // Abort transition and navigate directly to the target
-        // when request failed
-        if (!res.ok) {
-          location.href = el.href;
-          return;
-        }
-        const text = await res.text();
+        await navigate(el.href, "forward");
 
-        const promise = supportsViewTransitions
-          ? document.startViewTransition!(() => updatePage(text)).finished
-          : updatePage(text);
-
-        // TODO: Error handling
-        try {
-          await promise;
-        } catch (_err) {
-          console.log(_err);
-          // Fall back to a classic navigation if an error occurred
-          location.href = el.href;
-        }
-        console.log("...finished!");
+        historyIdx++;
+        history.pushState({ historyIdx }, "", el.href);
       }
     }
+  });
+
+  // deno-lint-ignore no-window-prefix
+  window.addEventListener("popstate", async (e) => {
+    const direction = e.state.historyIdx > historyIdx ? "forward" : "backward";
+    if (direction === "backward") historyIdx--;
+    await navigate(location.href, direction);
   });
 }
