@@ -159,6 +159,7 @@ const toc: RawTableOfContents = {
           ["rendering-markdown", "Rendering markdown"],
           ["sharing-state-between-islands", "Sharing state between islands"],
           ["using-csp", "Using CSP"],
+          ["pwa", "Progressive Web App", "link:latest"],
         ],
       },
     },
