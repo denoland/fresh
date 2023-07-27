@@ -9,7 +9,13 @@ declare global {
 
 // WARNING: Must be a self contained function
 export function initViewTransitions() {
+  const supportsViewTransitions = document.startViewTransition;
   const parser = new DOMParser();
+  document.body.setAttribute("data-frsh-transition", "new");
+
+  function swap(el: HTMLElement) {
+    document.documentElement.replaceWith(el);
+  }
 
   async function updatePage(html: string) {
     const doc = parser.parseFromString(html, "text/html");
@@ -23,7 +29,7 @@ export function initViewTransitions() {
     );
 
     // Grab all pending styles from the new document and wait
-    // until they are loaded before beginning the transition. This
+    // until they are loaded before   beginning the transition. This
     // avoids layout flickering
     const styles = (Array.from(
       doc.querySelectorAll('head link[rel="stylesheet"]'),
@@ -41,17 +47,33 @@ export function initViewTransitions() {
       );
 
     if (styles.length) {
-      try {
-        await Promise.all(styles);
-      } catch (_err) {
-        // TODO
-      }
+      await Promise.all(styles);
     }
 
     // Update the current document
-    // setTimeout(() => {
-    document.documentElement.replaceWith(doc.documentElement);
-    // }, 50);
+    if (supportsViewTransitions) {
+      swap(doc.documentElement);
+    } else {
+      let isAnimating = false;
+      document.addEventListener("animationstart", () => {
+        isAnimating = true;
+      }, { once: true });
+      document.addEventListener("animationend", () => {
+        isAnimating = false;
+        doc.body.setAttribute("data-frsh-transition", "old");
+        swap(doc.documentElement);
+        document.body.setAttribute("data-frsh-transition", "new");
+      }, { once: true });
+      document.body.setAttribute("data-frsh-transition", "old");
+
+      // Wait for class changes to take effect
+      return new Promise<void>((resolve) => {
+        setTimeout(() => {
+          !isAnimating && swap(doc.documentElement);
+          resolve();
+        }, 100);
+      });
+    }
   }
 
   // TODO: Prefetching
@@ -89,8 +111,8 @@ export function initViewTransitions() {
         }
         const text = await res.text();
 
-        const promise = document.startViewTransition
-          ? document.startViewTransition(() => updatePage(text)).finished
+        const promise = supportsViewTransitions
+          ? document.startViewTransition!(() => updatePage(text)).finished
           : updatePage(text);
 
         // TODO: Error handling
