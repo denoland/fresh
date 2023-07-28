@@ -38,6 +38,10 @@ jobs:
         if: startsWith(matrix.os, 'ubuntu') && matrix.deno == 'canary'
         uses: crate-ci/typos@master
 
+      - name: Type check project
+        if: startsWith(matrix.os, 'ubuntu') && matrix.deno == 'canary'
+        run: deno check **/*.ts
+
       - name: Cache dependencies
         if: startsWith(matrix.os, 'ubuntu') && matrix.deno == 'v1.x'
         run: deno cache --config=www/deno.json src/dev/deps.ts src/server/deps.ts www/main.ts
