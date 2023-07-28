@@ -59,11 +59,9 @@ export interface PageProps<T = any, S = Record<string, unknown>> {
 /**
  * Context passed to async route components.
  */
-export type RouteContext<T = unknown, S = Record<string, unknown>> =
-  & Omit<
-    HandlerContext<T, S>,
-    "render"
-  >
+// deno-lint-ignore no-explicit-any
+export type RouteContext<T = any, S = Record<string, unknown>> =
+  & Omit<HandlerContext<T, S>, "render">
   & Omit<PageProps<unknown, S>, "data">;
 
 export interface RouteConfig {
