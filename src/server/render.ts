@@ -408,9 +408,9 @@ export async function render<Data>(
       const anim = VIEW_TRANSITIONS[i];
 
       const oldForward = serializeViewAnimation(anim.forward.old);
-      const oldBackward = serializeViewAnimation(anim.forward.old);
+      const oldBackward = serializeViewAnimation(anim.backward.old);
       const newForward = serializeViewAnimation(anim.forward.new);
-      const newBackward = serializeViewAnimation(anim.forward.new);
+      const newBackward = serializeViewAnimation(anim.backward.new);
 
       // Selectors cannot be merged as unknown pseudo selectors
       // flag the whole selector group as invalid.
@@ -421,10 +421,10 @@ export async function render<Data>(
       cssText += `::view-transition-new(${anim.id}) {\n${newForward}\n}\n`;
 
       // Fallback
-      cssText +=
-        `[data-frsh-fallback="old"] [data-frsh-transition="${anim.id}"] {\n${oldForward}\n}\n`;
-      cssText +=
-        `[data-frsh-fallback="new"] [data-frsh-transition="${anim.id}"] {\n${newForward}\n}\n`;
+      // cssText +=
+      //   `[data-frsh-fallback="old"] [data-frsh-transition="${anim.id}"] {\n${oldForward}; animation-direction: reverse, reverse;\n}\n`;
+      // cssText +=
+      //   `[data-frsh-fallback="new"] [data-frsh-transition="${anim.id}"] {\n${newForward}; animation-direction: reverse, reverse;\n}\n`;
 
       // Backwards for browser navigation
       cssText +=
@@ -433,10 +433,10 @@ export async function render<Data>(
         `[data-frsh-nav-transition="back"]::view-transition-new(${anim.id}) {\n${newBackward}\n}\n`;
 
       // Fallback
-      cssText +=
-        `[data-frsh-nav-transition="back"][data-frsh-fallback="old"] [data-frsh-transition="${anim.id}"] {\n${oldBackward}\n}\n`;
-      cssText +=
-        `[data-frsh-nav-transition="back"][data-frsh-fallback="new"] [data-frsh-transition="${anim.id}"] {\n${newBackward}\n}\n`;
+      // cssText +=
+      //   `[data-frsh-nav-transition="back"][data-frsh-fallback="old"] [data-frsh-transition="${anim.id}"] {\n${oldBackward}\n}\n`;
+      // cssText +=
+      //   `[data-frsh-nav-transition="back"][data-frsh-fallback="new"] [data-frsh-transition="${anim.id}"] {\n${newBackward}\n}\n`;
     }
 
     // Disable view transitions if the user prefers reduced motion

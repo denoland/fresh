@@ -23,6 +23,28 @@ const anim = {
     },
   ],
 };
+const back = {
+  old: [
+    {
+      name: "fadeOut",
+      duration: "0.5s",
+    },
+    {
+      name: "slideToRight",
+      duration: "0.5s",
+    },
+  ],
+  new: [
+    {
+      name: "fadeIn",
+      duration: "0.5s",
+    },
+    {
+      name: "slideFromLeft",
+      duration: "0.5s",
+    },
+  ],
+};
 
 export default function App({ Component }: AppProps) {
   return (
@@ -30,7 +52,7 @@ export default function App({ Component }: AppProps) {
       class="app"
       transition={{
         id: "app",
-        backward: { new: anim.new, old: anim.old },
+        backward: { new: back.new, old: back.old },
         forward: anim,
       }}
     >

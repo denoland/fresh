@@ -20,7 +20,7 @@ export function initViewTransitions() {
     const oldAttrs = oldEl.getAttributeNames();
     for (let i = 0; i < oldAttrs.length; i++) {
       const name = oldAttrs[i];
-      if (!newEl.hasAttribute(name)) {
+      if (name !== "data-frsh-nav-transition" && !newEl.hasAttribute(name)) {
         oldEl.removeAttribute(name);
       }
     }
@@ -122,12 +122,10 @@ export function initViewTransitions() {
 
     // TODO: Error handling?
     try {
-      if (direction === "backward") {
-        document.documentElement.setAttribute(
-          "data-frsh-nav-transition",
-          direction,
-        );
-      }
+      document.documentElement.setAttribute(
+        "data-frsh-nav-transition",
+        direction === "backward" ? "back" : "forward",
+      );
       await supportsViewTransitions
         ? document.startViewTransition!(() => updatePage(text)).finished
         : updatePage(text);
@@ -135,8 +133,6 @@ export function initViewTransitions() {
       // Fall back to a classic navigation if an error occurred
       location.href = url;
       return;
-    } finally {
-      document.documentElement.removeAttribute("data-frsh-nav-transition");
     }
   }
 
