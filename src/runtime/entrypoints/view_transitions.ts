@@ -174,7 +174,7 @@ export function initViewTransitions() {
   });
 
   // deno-lint-ignore no-window-prefix
-  window.addEventListener("popstate", async (e) => {
+  window.addEventListener("popstate", async () => {
     const nextIdx = history.state?.index ?? index + 1;
     const direction = nextIdx > index ? "forward" : "back";
     index = nextIdx;
