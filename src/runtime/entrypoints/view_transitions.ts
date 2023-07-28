@@ -10,7 +10,11 @@ declare global {
 // WARNING: Must be a self contained function
 export function initViewTransitions() {
   // Keep track of history state to apply forward or backward animations
-  let historyIdx = 0;
+  let index = history.state?.index || 0;
+  if (!history.state) {
+    history.replaceState({ index }, document.title);
+  }
+
   const supportsViewTransitions = document.startViewTransition;
   const parser = new DOMParser();
   document.body.setAttribute("data-frsh-transition", "new");
@@ -110,7 +114,7 @@ export function initViewTransitions() {
     }
   }
 
-  async function navigate(url: string, direction: "forward" | "backward") {
+  async function navigate(url: string, direction: "forward" | "back") {
     const res = await fetch(url);
     // Abort transition and navigate directly to the target
     // when request failed
@@ -124,7 +128,7 @@ export function initViewTransitions() {
     try {
       document.documentElement.setAttribute(
         "data-frsh-nav-transition",
-        direction === "backward" ? "back" : "forward",
+        direction,
       );
       await supportsViewTransitions
         ? document.startViewTransition!(() => updatePage(text)).finished
@@ -137,7 +141,6 @@ export function initViewTransitions() {
   }
 
   // TODO: Prefetching
-  history.replaceState({ historyIdx }, "", location.href);
   document.addEventListener("click", async (e) => {
     let el = e.target;
     if (el && el instanceof HTMLElement) {
@@ -164,16 +167,17 @@ export function initViewTransitions() {
 
         await navigate(el.href, "forward");
 
-        historyIdx++;
-        history.pushState({ historyIdx }, "", el.href);
+        index++;
+        history.pushState({ index }, "", el.href);
       }
     }
   });
 
   // deno-lint-ignore no-window-prefix
   window.addEventListener("popstate", async (e) => {
-    const direction = e.state.historyIdx > historyIdx ? "forward" : "backward";
-    if (direction === "backward") historyIdx--;
+    const nextIdx = history.state?.index ?? index + 1;
+    const direction = nextIdx > index ? "forward" : "back";
+    index = nextIdx;
     await navigate(location.href, direction);
   });
 }
