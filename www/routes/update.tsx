@@ -1,7 +1,7 @@
-import { MultiHandler, PageProps } from "$fresh/server.ts";
+import { Handlers, PageProps } from "$fresh/server.ts";
 import VERSIONS from "../../versions.json" assert { type: "json" };
 
-export const handler: MultiHandler = {
+export const handler: Handlers = {
   GET(req) {
     const accept = req.headers.get("accept");
     let path = "/docs/concepts/updating";

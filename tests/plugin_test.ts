@@ -14,11 +14,6 @@ const ctx = await ServerContext.fromManifest(manifest, options);
 const handler = ctx.handler();
 const router = (req: Request) => {
   return handler(req, {
-    localAddr: {
-      transport: "tcp",
-      hostname: "127.0.0.1",
-      port: 80,
-    },
     remoteAddr: {
       transport: "tcp",
       hostname: "127.0.0.1",
@@ -55,6 +50,21 @@ Deno.test("/with-island prerender", async () => {
   assertStringIncludes(
     body,
     '<style id="def">h1 { text-decoration: underline; } h1 { font-style: italic; }</style>',
+  );
+});
+
+Deno.test("plugin routes and middleware", async () => {
+  const resp = await router(new Request("https://fresh.deno.dev/test"));
+  assert(resp);
+  assertEquals(resp.status, Status.OK);
+  const body = await resp.text();
+  assertStringIncludes(
+    body,
+    `<h1>look, i'm set from a plugin!</h1>`,
+  );
+  assertStringIncludes(
+    body,
+    `<title>Title Set From Plugin Config</title>`,
   );
 });
 

@@ -11,8 +11,11 @@ import {
 } from "preact";
 import {
   AppModule,
+  AsyncRoute,
   ErrorPage,
   Island,
+  LayoutModule,
+  LayoutRoute,
   Plugin,
   PluginRenderFunctionResult,
   PluginRenderResult,
@@ -29,6 +32,10 @@ import { assetHashingHook } from "../runtime/utils.ts";
 import { htmlEscapeJsonString } from "./htmlescape.ts";
 import { serialize } from "./serializer.ts";
 
+export const DEFAULT_RENDER_FN: RenderFunction = (_ctx, render) => {
+  render();
+};
+
 // These hooks are long stable, but when we originally added them we
 // weren't sure if they should be public.
 export interface AdvancedPreactOptions extends PreactOptions {
@@ -36,14 +43,22 @@ export interface AdvancedPreactOptions extends PreactOptions {
   __c?(vnode: VNode, commitQueue: Component[]): void;
   /** Attach a hook that is invoked before a vnode has rendered. */
   __r?(vnode: VNode): void;
+  errorBoundaries?: boolean;
 }
 const options = preactOptions as AdvancedPreactOptions;
 
+// Enable error boundaries in Preact.
+options.errorBoundaries = true;
+
 export interface RenderOptions<Data> {
+  request: Request;
+  // deno-lint-ignore no-explicit-any
+  context: any;
   route: Route<Data> | UnknownPage | ErrorPage;
   islands: Island[];
   plugins: Plugin[];
   app: AppModule;
+  layouts: LayoutRoute[];
   imports: string[];
   dependenciesFn: (path: string) => string[];
   url: URL;
@@ -124,12 +139,35 @@ function defaultCsp() {
 }
 
 /**
+ * Return a list of layouts that needs to be applied for request url
+ * @param url the request url
+ * @param layouts Array of layouts handlers and their routes as path-to-regexp style
+ */
+export function selectLayouts(url: string, layouts: LayoutRoute[]) {
+  const selectedLayouts: LayoutModule[] = [];
+  const reqURL = new URL(url);
+
+  for (const layout of layouts) {
+    const res = layout.compiledPattern.exec(reqURL);
+    if (res) {
+      selectedLayouts.push(layout);
+    }
+  }
+
+  return selectedLayouts;
+}
+
+/**
  * This function renders out a page. Rendering is synchronous and non streaming.
  * Suspense boundaries are not supported.
  */
 export async function render<Data>(
   opts: RenderOptions<Data>,
-): Promise<[string, ContentSecurityPolicy | undefined]> {
+): Promise<[string, ContentSecurityPolicy | undefined] | Response> {
+  const component = opts.route.component;
+  const isAsyncComponent = typeof component === "function" &&
+    component.constructor.name === "AsyncFunction";
+
   const props: Record<string, unknown> = {
     params: opts.params,
     url: opts.url,
@@ -145,31 +183,6 @@ export async function render<Data>(
     ? defaultCsp()
     : undefined;
   const headComponents: ComponentChildren[] = [];
-
-  const vnode = h(CSP_CONTEXT.Provider, {
-    value: csp,
-    children: h(HEAD_CONTEXT.Provider, {
-      value: headComponents,
-      children: h(opts.app.default, {
-        params: opts.params as Record<string, string>,
-        url: opts.url,
-        route: opts.route.pattern,
-        data: opts.data,
-        state: opts.state!,
-        Component() {
-          return h(opts.route.component! as ComponentType<unknown>, props);
-        },
-      }),
-    }),
-  });
-
-  const ctx = new RenderContext(
-    crypto.randomUUID(),
-    opts.url,
-    opts.route.pattern,
-    opts.lang ?? "en",
-  );
-
   if (csp) {
     // Clear the csp
     const newCsp = defaultCsp();
@@ -188,15 +201,65 @@ export async function render<Data>(
   // Clear the island props
   ISLAND_PROPS = [];
 
+  const ctx = new RenderContext(
+    crypto.randomUUID(),
+    opts.url,
+    opts.route.pattern,
+    opts.lang ?? "en",
+  );
+
   let bodyHtml: string | null = null;
 
-  function renderInner(): string {
-    bodyHtml = renderToString(vnode);
+  function renderInner(vnode: ComponentChildren): string {
+    // deno-lint-ignore no-explicit-any
+    let finalAppComp: VNode<any> = vnode as any;
+
+    const layouts = selectLayouts(opts.url.toString(), opts.layouts);
+
+    layouts.forEach((layout) => {
+      const curComp = { ...finalAppComp };
+
+      finalAppComp = h(layout.default, {
+        params: opts.params as Record<string, string>,
+        url: opts.url,
+        route: opts.route.pattern,
+        data: opts.data,
+        state: opts.state!,
+        Component() {
+          return curComp;
+        },
+      });
+    });
+
+    const root = h(CSP_CONTEXT.Provider, {
+      value: csp,
+      children: h(HEAD_CONTEXT.Provider, {
+        value: headComponents,
+        children: h(opts.app.default, {
+          params: opts.params as Record<string, string>,
+          url: opts.url,
+          route: opts.route.pattern,
+          data: opts.data,
+          state: opts.state!,
+          Component() {
+            return finalAppComp;
+          },
+        }),
+      }),
+    });
+    bodyHtml = renderToString(root);
     return bodyHtml;
   }
 
-  const syncPlugins = opts.plugins.filter((p) => p.render);
   const renderResults: [Plugin, PluginRenderResult][] = [];
+  const syncPlugins = opts.plugins.filter((p) => p.render);
+  if (isAsyncComponent && syncPlugins.length > 0) {
+    throw new Error(
+      `Async server components cannot be rendered synchronously. The following plugins use a synchronous render method: "${
+        syncPlugins.map((plugin) => plugin.name).join('", "')
+      }"`,
+    );
+  }
 
   function renderSync(): PluginRenderFunctionResult {
     const plugin = syncPlugins.shift();
@@ -209,7 +272,7 @@ export async function render<Data>(
       }
       renderResults.push([plugin, res]);
     } else {
-      renderInner();
+      renderInner(h(component as ComponentType, props));
     }
     if (bodyHtml === null) {
       throw new Error(
@@ -224,6 +287,7 @@ export async function render<Data>(
 
   const asyncPlugins = opts.plugins.filter((p) => p.renderAsync);
 
+  let asyncRenderResponse: Response | undefined;
   async function renderAsync(): Promise<PluginRenderFunctionResult> {
     const plugin = asyncPlugins.shift();
     if (plugin) {
@@ -240,7 +304,33 @@ export async function render<Data>(
         );
       }
     } else {
-      await opts.renderFn(ctx, () => renderSync().htmlText);
+      if (isAsyncComponent) {
+        if (opts.renderFn !== DEFAULT_RENDER_FN) {
+          throw new Error(
+            `Async server components are not supported with custom render functions.`,
+          );
+        }
+
+        // deno-lint-ignore no-explicit-any
+        const res = await (component as AsyncRoute<any>)(opts.request, {
+          localAddr: opts.context.localAddr,
+          remoteAddr: opts.context.remoteAddr,
+          renderNotFound: opts.context.renderNotFound,
+          url: opts.url,
+          route: opts.route.pattern,
+          params: opts.params as Record<string, string>,
+          state: opts.state ?? {},
+        });
+        if (res instanceof Response) {
+          asyncRenderResponse = res;
+          bodyHtml = "";
+        } else {
+          renderInner(res);
+        }
+      } else {
+        await opts.renderFn(ctx, () => renderSync().htmlText);
+      }
+
       if (bodyHtml === null) {
         throw new Error(
           `The 'render' function was not called by the legacy async render hook.`,
@@ -254,30 +344,33 @@ export async function render<Data>(
   }
 
   await renderAsync();
+  if (asyncRenderResponse !== undefined) {
+    return asyncRenderResponse;
+  }
+
   bodyHtml = bodyHtml as unknown as string;
 
-  const moduleScripts: [string, string][] = [];
-
-  for (const url of opts.imports) {
-    const randomNonce = crypto.randomUUID().replace(/-/g, "");
-    if (csp) {
-      csp.directives.scriptSrc = [
-        ...csp.directives.scriptSrc ?? [],
-        nonce(randomNonce),
-      ];
+  let randomNonce: undefined | string;
+  function getRandomNonce(): string {
+    if (randomNonce === undefined) {
+      randomNonce = crypto.randomUUID().replace(/-/g, "");
+      if (csp) {
+        csp.directives.scriptSrc = [
+          ...csp.directives.scriptSrc ?? [],
+          nonce(randomNonce),
+        ];
+      }
     }
-    moduleScripts.push([url, randomNonce]);
+    return randomNonce;
+  }
+
+  const moduleScripts: [string, string][] = [];
+  for (const url of opts.imports) {
+    moduleScripts.push([url, getRandomNonce()]);
   }
 
   const preloadSet = new Set<string>();
   function addImport(path: string): string {
-    const randomNonce = crypto.randomUUID().replace(/-/g, "");
-    if (csp) {
-      csp.directives.scriptSrc = [
-        ...csp.directives.scriptSrc ?? [],
-        nonce(randomNonce),
-      ];
-    }
     const url = bundleAssetUrl(`/${path}`);
     preloadSet.add(url);
     for (const depPath of opts.dependenciesFn(path)) {
@@ -350,23 +443,17 @@ export async function render<Data>(
     let islandRegistry = "";
     for (const island of ENCOUNTERED_ISLANDS) {
       const url = addImport(`island-${island.id}.js`);
-      script += `import ${island.name} from "${url}";`;
-      islandRegistry += `${island.id}:${island.name},`;
+      script +=
+        `import * as ${island.name}_${island.exportName} from "${url}";`;
+      islandRegistry += `${island.id}:${island.name}_${island.exportName},`;
     }
     script += `revive({${islandRegistry}}, STATE[0]);`;
   }
 
   // Append the inline script.
   if (script !== "") {
-    const randomNonce = crypto.randomUUID().replace(/-/g, "");
-    if (csp) {
-      csp.directives.scriptSrc = [
-        ...csp.directives.scriptSrc ?? [],
-        nonce(randomNonce),
-      ];
-    }
     bodyHtml +=
-      `<script type="module" nonce="${randomNonce}">${script}</script>`;
+      `<script type="module" nonce="${getRandomNonce()}">${script}</script>`;
   }
 
   if (ctx.styles.length > 0) {
@@ -536,11 +623,27 @@ options.vnode = (vnode) => {
 
         return wrapWithMarker(
           child,
-          `frsh-${island.id}:${ISLAND_PROPS.length - 1}`,
+          `frsh-${island.id}:${island.exportName}:${ISLAND_PROPS.length - 1}`,
         );
       };
     }
+  } else if (typeof vnode.type === "string" && vnode.props !== null) {
+    // Work around `preact/debug` string event handler error which
+    // errors when an event handler gets a string. This makes sense
+    // on the client where this is a common vector for XSS. On the
+    // server when the string was not created through concatenation
+    // it is fine. Internally, `preact/debug` only checks for the
+    // lowercase variant.
+    const props = vnode.props as Record<string, unknown>;
+    for (const key in props) {
+      const value = props[key];
+      if (key.startsWith("on") && typeof value === "string") {
+        delete props[key];
+        props["ON" + key.slice(2)] = value;
+      }
+    }
   }
+
   if (originalHook) originalHook(vnode);
 };
 

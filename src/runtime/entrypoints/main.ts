@@ -21,8 +21,8 @@ function createRootFragment(
     parentNode: parent,
     firstChild: replaceNode[0],
     childNodes: replaceNode,
-    insertBefore(node: Node, child: Node) {
-      parent.insertBefore(node, child);
+    insertBefore(node: Node, child: Node | null) {
+      parent.insertBefore(node, child ?? endMarker);
     },
     appendChild(child: Node) {
       // We cannot blindly call `.append()` as that would add
@@ -47,8 +47,11 @@ function isElementNode(node: Node): node is HTMLElement {
   return node.nodeType === Node.ELEMENT_NODE;
 }
 
-// deno-lint-ignore no-explicit-any
-export function revive(islands: Record<string, ComponentType>, props: any[]) {
+export function revive(
+  islands: Record<string, Record<string, ComponentType>>,
+  // deno-lint-ignore no-explicit-any
+  props: any[],
+) {
   _walkInner(
     islands,
     props,
@@ -127,7 +130,7 @@ interface Marker {
  * fashion over an HTMLElement's children list.
  */
 function _walkInner(
-  islands: Record<string, ComponentType>,
+  islands: Record<string, Record<string, ComponentType>>,
   // deno-lint-ignore no-explicit-any
   props: any[],
   markerStack: Marker[],
@@ -140,7 +143,7 @@ function _walkInner(
       ? markerStack[markerStack.length - 1]
       : null;
 
-    // We use comment nodes to mark fresh islands and slots
+    // We use comment nodes to mark Fresh islands and slots
     if (isCommentNode(sib)) {
       let comment = sib.data;
       if (comment.startsWith("!--")) {
@@ -253,7 +256,7 @@ function _walkInner(
         }
       } else if (comment.startsWith("frsh")) {
         // We're opening a new island
-        const [id, n] = comment.slice(5).split(":");
+        const [id, exportName, n] = comment.slice(5).split(":");
         const islandProps = props[Number(n)];
 
         markerStack.push({
@@ -262,7 +265,7 @@ function _walkInner(
           text: comment,
           kind: MarkerKind.Island,
         });
-        const vnode = h(islands[id], islandProps);
+        const vnode = h(islands[id][exportName], islandProps);
         vnodeStack.push(vnode);
       }
     } else if (isTextNode(sib)) {
@@ -302,7 +305,14 @@ function _walkInner(
         _walkInner(islands, props, markerStack, vnodeStack, sib.firstChild);
       }
 
-      if (marker !== null && marker.kind === MarkerKind.Slot) {
+      // Pop vnode if current marker is a slot or we are an island marker
+      // that was created inside another island
+      if (
+        marker !== null &&
+        (marker.kind === MarkerKind.Slot ||
+          markerStack.length > 1 &&
+            markerStack[markerStack.length - 2].kind === MarkerKind.Island)
+      ) {
         vnodeStack.pop();
       }
     }

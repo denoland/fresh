@@ -1,6 +1,6 @@
-import type { ConnInfo } from "./deps.ts";
+import { ServeHandlerInfo } from "./types.ts";
 
-type HandlerContext<T = unknown> = T & ConnInfo;
+type HandlerContext<T = unknown> = T & ServeHandlerInfo;
 
 export type Handler<T = unknown> = (
   req: Request,
@@ -10,6 +10,8 @@ export type Handler<T = unknown> = (
 export type FinalHandler<T = unknown> = (
   req: Request,
   ctx: HandlerContext<T>,
+  params: Record<string, string>,
+  route?: InternalRoute<T>,
 ) => {
   destination: DestinationKind;
   handler: () => Response | Promise<Response>;
@@ -125,25 +127,22 @@ function processRoutes<T>(
   }
 }
 
-export function router<T = unknown>(
+export function getParamsAndRoute<T>(
   {
     internalRoutes,
     staticRoutes,
     routes,
-    otherHandler,
-    unknownMethodHandler,
   }: RouterOptions<T>,
-): FinalHandler<T> {
-  unknownMethodHandler ??= defaultUnknownMethodHandler;
-
+): (
+  url: string,
+) => { route: InternalRoute<T> | undefined; params: Record<string, string> } {
   const processedRoutes: InternalRoute<T>[] = [];
   processRoutes(processedRoutes, internalRoutes, "internal");
   processRoutes(processedRoutes, staticRoutes, "static");
   processRoutes(processedRoutes, routes, "route");
-
-  return (req, ctx) => {
+  return (url: string) => {
     for (const route of processedRoutes) {
-      const res = route.pattern.exec(req.url);
+      const res = route.pattern.exec(url);
 
       if (res !== null) {
         const groups: Record<string, string> = {};
@@ -156,7 +155,29 @@ export function router<T = unknown>(
             groups[key] = decodeURIComponent(value);
           }
         }
+        return { route: route, params: groups };
+      }
+    }
+    return {
+      route: undefined,
+      params: {},
+    };
+  };
+}
 
+export function router<T = unknown>(
+  {
+    otherHandler,
+    unknownMethodHandler,
+  }: RouterOptions<T>,
+): FinalHandler<T> {
+  unknownMethodHandler ??= defaultUnknownMethodHandler;
+
+  return (req, ctx, groups, route) => {
+    if (route) {
+      const res = route.pattern.exec(req.url);
+
+      if (res !== null) {
         // If not overridden, HEAD requests should be handled as GET requests but without the body.
         if (req.method === "HEAD" && !route.methods["HEAD"]) {
           req = new Request(req.url, { method: "GET", headers: req.headers });

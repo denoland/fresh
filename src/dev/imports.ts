@@ -1,9 +1,9 @@
 export const RECOMMENDED_PREACT_VERSION = "10.15.1";
-export const RECOMMENDED_PREACT_RTS_VERSION = "6.1.0";
+export const RECOMMENDED_PREACT_RTS_VERSION = "6.2.0";
 export const RECOMMENDED_PREACT_SIGNALS_VERSION = "1.1.3";
 export const RECOMMENDED_PREACT_SIGNALS_CORE_VERSION = "1.2.3";
 export const RECOMMENDED_TWIND_VERSION = "0.16.19";
-export const RECOMMENDED_STD_VERSION = "0.190.0";
+export const RECOMMENDED_STD_VERSION = "0.193.0";
 
 export function freshImports(imports: Record<string, string>) {
   imports["$fresh/"] = new URL("../../", import.meta.url).href;

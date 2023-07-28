@@ -3,13 +3,13 @@ import Header from "../components/Header.tsx";
 import ComponentGallery from "../islands/ComponentGallery.tsx";
 
 import { asset, Head } from "$fresh/runtime.ts";
-import { MultiHandler, PageProps } from "$fresh/server.ts";
+import { Handlers, PageProps } from "$fresh/server.ts";
 
 function getSource(path: string) {
   return Deno.readTextFile(new URL(path, import.meta.url));
 }
 
-export const handler: MultiHandler<HomeProps> = {
+export const handler: Handlers<HomeProps> = {
   async GET(req, ctx) {
     const props: HomeProps = {
       sources: {
@@ -30,7 +30,7 @@ export const handler: MultiHandler<HomeProps> = {
   },
 };
 
-const TITLE = "Components | fresh";
+const TITLE = "Components | Fresh";
 const DESCRIPTION = "A collection of components made for Fresh.";
 
 interface HomeProps {
@@ -45,7 +45,7 @@ export default function Home(props: PageProps<HomeProps>) {
         <title>{TITLE}</title>
         <link
           rel="stylesheet"
-          href="https://esm.sh/prismjs@1.27.0/themes/prism-dark.min.css"
+          href="https://esm.sh/prismjs@1.29.0/themes/prism-dark.min.css"
         />
         <meta name="description" content={DESCRIPTION} />
         <meta property="og:title" content={TITLE} />
@@ -53,6 +53,7 @@ export default function Home(props: PageProps<HomeProps>) {
         <meta property="og:type" content="website" />
         <meta property="og:url" content={props.url.href} />
         <meta property="og:image" content={ogImageUrl} />
+        <meta name="view-transition" content="same-origin" />
       </Head>
       <Header title="components" active="/components" />
 

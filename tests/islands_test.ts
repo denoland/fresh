@@ -4,9 +4,12 @@ import {
   assertStringIncludes,
   delay,
   Page,
-  puppeteer,
 } from "./deps.ts";
-import { startFreshServer } from "./test_utils.ts";
+import {
+  clickWhenListenerReady,
+  waitForText,
+  withPageName,
+} from "./test_utils.ts";
 
 Deno.test({
   name: "island tests",
@@ -15,26 +18,22 @@ Deno.test({
       async function counterTest(counterId: string, originalValue: number) {
         const pElem = await page.waitForSelector(`#${counterId} > p`);
 
-        let value = await pElem?.evaluate((el) => el.textContent);
+        const value = await pElem?.evaluate((el) => el.textContent);
         assert(value === `${originalValue}`, `${counterId} first value`);
 
-        const buttonPlus = await page.$(`#b-${counterId}`);
-        await buttonPlus?.click();
-
-        await delay(100);
-
-        value = await pElem?.evaluate((el) => el.textContent);
-        assert(value === `${originalValue + 1}`, `${counterId} click`);
+        await clickWhenListenerReady(page, `#b-${counterId}`);
+        await waitForText(page, `#${counterId} > p`, String(originalValue + 1));
       }
 
       await page.goto(`${address}/islands`, {
         waitUntil: "networkidle2",
       });
 
-      await t.step("Ensure 4 islands on 1 page are revived", async () => {
+      await t.step("Ensure 5 islands on 1 page are revived", async () => {
         await counterTest("counter1", 3);
         await counterTest("counter2", 10);
         await counterTest("folder-counter", 3);
+        await counterTest("subfolder-counter", 3);
         await counterTest("kebab-case-file-counter", 5);
       });
 
@@ -59,36 +58,38 @@ Deno.test({
   sanitizeResources: false,
 });
 
+Deno.test({
+  name: "multiple islands exported from one file",
+  async fn(t) {
+    await withPage(async (page, address) => {
+      async function counterTest(counterId: string, originalValue: number) {
+        const pElem = await page.waitForSelector(`#${counterId} > p`);
+
+        const value = await pElem?.evaluate((el) => el.textContent);
+        assert(value === `${originalValue}`, `${counterId} first value`);
+
+        await clickWhenListenerReady(page, `#b-${counterId}`);
+        await waitForText(page, `#${counterId} > p`, String(originalValue + 1));
+      }
+
+      await page.goto(`${address}/islands/multiple_island_exports`, {
+        waitUntil: "networkidle2",
+      });
+
+      await t.step("Ensure 3 islands on 1 page are revived", async () => {
+        await counterTest("counter0", 4);
+        await counterTest("counter1", 3);
+        await counterTest("counter2", 10);
+      });
+    });
+  },
+
+  sanitizeOps: false,
+  sanitizeResources: false,
+});
+
 function withPage(fn: (page: Page, address: string) => Promise<void>) {
   return withPageName("./tests/fixture/main.ts", fn);
-}
-
-async function withPageName(
-  name: string,
-  fn: (page: Page, address: string) => Promise<void>,
-) {
-  const { lines, serverProcess, address } = await startFreshServer({
-    args: ["run", "-A", name],
-  });
-
-  try {
-    await delay(100);
-    const browser = await puppeteer.launch({ args: ["--no-sandbox"] });
-
-    try {
-      const page = await browser.newPage();
-      await fn(page, address);
-    } finally {
-      await browser.close();
-    }
-  } finally {
-    await lines.cancel();
-
-    serverProcess.kill("SIGTERM");
-
-    // Wait until the process exits
-    await serverProcess.status;
-  }
 }
 
 Deno.test({
@@ -134,21 +135,10 @@ Deno.test({
 
       await page.waitForSelector(clickableSelector);
 
-      const contentBeforeClick = await getIslandParentTextContent();
-      assert(contentBeforeClick === "HelloWorld");
+      await waitForText(page, `#island-parent`, "HelloWorld");
 
-      await page.click(clickableSelector);
-      await delay(100);
-
-      const contentAfterClick = await getIslandParentTextContent();
-      assert(contentAfterClick === "HelloWorldI'm rendered now");
-
-      async function getIslandParentTextContent() {
-        return await page.$eval(
-          "#island-parent",
-          (el: Element) => el.textContent,
-        );
-      }
+      await clickWhenListenerReady(page, clickableSelector);
+      await waitForText(page, `#island-parent`, "HelloWorldI'm rendered now");
     });
   },
 
@@ -171,24 +161,20 @@ Deno.test({
       const clickableSelector = "#root-fragment-conditional-first-click-me";
       await page.waitForSelector(clickableSelector);
 
-      const contentBeforeClick = await getIslandParentTextContent(page);
-      assert(contentBeforeClick === "HelloWorld");
+      await waitForText(page, "#island-parent", "HelloWorld");
 
-      await page.click(clickableSelector);
-      await delay(100);
-
-      const contentAfterClick = await getIslandParentTextContent(page);
-      assert(contentAfterClick === "I'm rendered on topHelloWorld");
+      await clickWhenListenerReady(page, clickableSelector);
+      await waitForText(
+        page,
+        "#island-parent",
+        "I'm rendered on topHelloWorld",
+      );
     });
   },
 
   sanitizeOps: false,
   sanitizeResources: false,
 });
-
-async function getIslandParentTextContent(page: Page) {
-  return await page.$eval("#island-parent", (el: Element) => el.textContent);
-}
 
 Deno.test({
   name: "island that returns `null`",
@@ -237,10 +223,7 @@ Deno.test({
           waitUntil: "networkidle2",
         });
         await page.waitForSelector("#foo");
-
-        await delay(100);
-        const text = await page.$eval("#foo", (el) => el.textContent);
-        assertEquals(text, "it works");
+        await waitForText(page, "#foo", "it works");
       },
     );
   },
@@ -260,10 +243,7 @@ Deno.test({
           waitUntil: "networkidle2",
         });
         await page.waitForSelector(".island");
-
-        await delay(100);
-        const text = await page.$eval(".island", (el) => el.textContent);
-        assertEquals(text, "it works");
+        await waitForText(page, ".island", "it works");
       },
     );
   },
@@ -329,13 +309,7 @@ Deno.test({
           waitUntil: "networkidle2",
         });
         await page.waitForSelector(".island");
-
-        await delay(100);
-        const text = await page.$eval(
-          ".island .island p",
-          (el) => el.textContent,
-        );
-        assertEquals(text, "it works");
+        await waitForText(page, ".island .island p", "it works");
       },
     );
   },
@@ -356,17 +330,11 @@ Deno.test({
         });
         await page.waitForSelector(".island");
 
-        await delay(100);
-        const text = await page.$eval(
-          ".island .island p",
-          (el) => el.textContent,
-        );
-        assertEquals(text, "it works");
+        await waitForText(page, ".island .island p", "it works");
 
         // Check that there is no duplicated content which could happen
         // when islands aren't initialized correctly
-        const pageText = await page.$eval("#page", (el) => el.textContent);
-        assertEquals(pageText, "it works");
+        await waitForText(page, "#page", "it works");
       },
     );
   },
@@ -388,12 +356,11 @@ Deno.test({
         });
         await page.waitForSelector(".island");
 
-        await delay(100);
-        const text = await page.$eval(
+        await waitForText(
+          page,
           ".island .server .island .server p",
-          (el) => el.textContent,
+          "it works",
         );
-        assertEquals(text, "it works");
       },
     );
   },
@@ -414,18 +381,8 @@ Deno.test({
         });
         await page.waitForSelector(".island");
 
-        await delay(100);
-        const text = await page.$eval(
-          ".island .a",
-          (el) => el.textContent,
-        );
-        assertEquals(text, "it works");
-
-        const text2 = await page.$eval(
-          ".island + .island .b",
-          (el) => el.textContent,
-        );
-        assertEquals(text2, "it works");
+        await waitForText(page, ".island .a", "it works");
+        await waitForText(page, ".island + .island .b", "it works");
       },
     );
   },
@@ -477,12 +434,43 @@ Deno.test({
         });
         await page.waitForSelector(".island");
 
-        await delay(100);
-        const text = await page.$eval(
-          ".island .island p",
-          (el) => el.textContent,
-        );
-        assertEquals(text, "it works");
+        await waitForText(page, ".island .island p", "it works");
+      },
+    );
+  },
+
+  sanitizeOps: false,
+  sanitizeResources: false,
+});
+
+Deno.test({
+  name: "render island inside island when passed as fn child",
+
+  async fn(_t) {
+    await withPageName(
+      "./tests/fixture_island_nesting/main.ts",
+      async (page, address) => {
+        await page.goto(`${address}/island_fn_child`);
+        await page.waitForSelector(".island");
+        await waitForText(page, "#page", "it works");
+      },
+    );
+  },
+
+  sanitizeOps: false,
+  sanitizeResources: false,
+});
+
+Deno.test({
+  name: "render nested islands in correct order",
+
+  async fn(_t) {
+    await withPageName(
+      "./tests/fixture_island_nesting/main.ts",
+      async (page, address) => {
+        await page.goto(`${address}/island_order`);
+        await page.waitForSelector(".island");
+        await waitForText(page, "#page", "leftcenterright");
       },
     );
   },

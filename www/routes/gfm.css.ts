@@ -1,4 +1,4 @@
-import { MultiHandler } from "$fresh/server.ts";
+import { Handlers } from "$fresh/server.ts";
 import { gfm } from "../utils/markdown.ts";
 
 // TODO(lucacasonato): hash the file and use the hash as the filename, and serve
@@ -31,12 +31,17 @@ ol.nested li:before {
   list-style: numeric;
 }
 
+.markdown-body .highlight {
+  border: 1px solid #eaeef1;
+  border-radius: .5rem;
+}
+
 .toggle:checked + .toggled {
 	display: block;
 }
 `;
 
-export const handler: MultiHandler = {
+export const handler: Handlers = {
   GET: () => {
     return new Response(CSS, {
       headers: {

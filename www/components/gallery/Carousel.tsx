@@ -142,20 +142,21 @@ const Carousel = (props: CarouselProps) => {
   };
 
   const DotsNavigation = () => (
-    <div
-      class={"slide_nav z-30 w-full absolute bottom-0 flex justify-center cursor-pointer"}
-    >
+    <div class={"slide_nav z-30 w-full absolute bottom-0 flex justify-center"}>
       {SLIDE_DATA.map((_item, idx) => {
         return (
-          <div
+          <button
             class={`px-1 ${NAVIGATION_COLOR}`}
             onClick={() => {
               goToSlide(idx);
             }}
             key={idx}
           >
-            {idx === currentSlide.value ? <>●</> : <>○</>}
-          </div>
+            <span class="sr-only">Go to slide {idx}</span>
+            {idx === currentSlide.value
+              ? <span class="not-sr-only">●</span>
+              : <span class="not-sr-only">○</span>}
+          </button>
         );
       })}
     </div>
@@ -169,16 +170,22 @@ const Carousel = (props: CarouselProps) => {
       }`}
       tabIndex={0}
     >
-      <IconCircleChevronsLeft
+      <button
         class={`left-0 ${CHEVRON_STYLE}`}
         style="top: calc(50% - 20px)"
         onClick={() => chevronClick(previousSlide)}
-      />
-      <IconCircleChevronsRight
+      >
+        <IconCircleChevronsLeft class="w-10 h-10" aria-hidden="true" />
+        <span class="sr-only">Previous slide</span>
+      </button>
+      <button
         class={`right-0 ${CHEVRON_STYLE}`}
         style="top: calc(50% - 20px)"
         onClick={() => chevronClick(nextSlide)}
-      />
+      >
+        <IconCircleChevronsRight class="w-10 h-10" aria-hidden="true" />
+        <span class="sr-only">Next slide</span>
+      </button>
       {SLIDE_DATA.map((item, idx) => (
         <Slide
           data={item}

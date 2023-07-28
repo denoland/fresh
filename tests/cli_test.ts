@@ -2,7 +2,7 @@ import * as path from "$std/path/mod.ts";
 import {
   assertMatch,
   assertNotMatch,
-} from "https://deno.land/std@0.190.0/testing/asserts.ts";
+} from "https://deno.land/std@0.193.0/testing/asserts.ts";
 import { Status } from "../src/server/deps.ts";
 import {
   assert,
@@ -12,7 +12,11 @@ import {
   puppeteer,
   retry,
 } from "./deps.ts";
-import { startFreshServer } from "./test_utils.ts";
+import {
+  clickWhenListenerReady,
+  startFreshServer,
+  waitForText,
+} from "./test_utils.ts";
 
 const assertFileExistence = async (files: string[], dirname: string) => {
   for (const filePath of files) {
@@ -53,6 +57,7 @@ Deno.test({
       `/main.ts`,
       `/routes/greet/[name].tsx`,
       `/routes/api/joke.ts`,
+      `/routes/_app.tsx`,
       `/routes/index.tsx`,
       `/static/logo.svg`,
     ];
@@ -84,12 +89,12 @@ Deno.test({
       let counterValue = await counter?.evaluate((el) => el.textContent);
       assert(counterValue === "3");
 
-      const buttonPlus = await page.$(
+      await clickWhenListenerReady(
+        page,
         "body > div > div > div > button:nth-child(3)",
       );
-      await buttonPlus?.click();
 
-      await delay(100);
+      await waitForText(page, "body > div > div > div > p", "4");
 
       counterValue = await counter?.evaluate((el) => el.textContent);
       assert(counterValue === "4");
@@ -98,7 +103,7 @@ Deno.test({
 
       await lines.cancel();
       serverProcess.kill("SIGTERM");
-      await delay(100);
+      await serverProcess.status;
     });
 
     await retry(() => Deno.remove(tmpDirName, { recursive: true }));
@@ -138,6 +143,7 @@ Deno.test({
       "/main.ts",
       "/routes/greet/[name].tsx",
       "/routes/api/joke.ts",
+      "/routes/_app.tsx",
       "/routes/index.tsx",
       "/static/logo.svg",
       "/.vscode/settings.json",
@@ -181,7 +187,7 @@ Deno.test({
       );
       await buttonPlus?.click();
 
-      await delay(100);
+      await waitForText(page, "body > div > div > div > p", "4");
 
       counterValue = await counter?.evaluate((el) => el.textContent);
       assert(counterValue === "4");
@@ -190,7 +196,7 @@ Deno.test({
 
       await lines.cancel();
       serverProcess.kill("SIGTERM");
-      await delay(100);
+      await serverProcess.status;
     });
 
     await retry(() => Deno.remove(tmpDirName, { recursive: true }));
@@ -320,7 +326,7 @@ Deno.test({
 
       await lines.cancel();
       serverProcess.kill("SIGTERM");
-      await delay(100);
+      await serverProcess.status;
     });
 
     await retry(() => Deno.remove(tmpDirName, { recursive: true }));

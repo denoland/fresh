@@ -183,7 +183,7 @@
     "image": "kadode_portal"
   },
   {
-    "title": "Craig's Deno Diary",
+    "title": "Craig’s Deno Diary",
     "link": "https://deno-blog.com",
     "github": "https://github.com/cdoremus/deno-blog",
     "image": "deno-diary"
@@ -342,15 +342,25 @@
     "image": "uspb"
   },
   {
-    "title": "Do not remove this, it's for prevent conflicting by trailing comma",
-    "link": "",
-    "github": "",
-    "image": ""
-  },
-  {
     "title": "Battleship",
     "link": "https://battleship.deno.dev",
     "github": "karelklima/battleship",
     "image": "battleship"
+  },
+  {
+    "title": "Kanji.Academy",
+    "link": "https://kanji.academy",
+    "image": "kanji-academy"
+  },
+  {
+    "title": "LiberChat",
+    "link": "https://liberchat.deno.dev",
+    "image": "liberchat"
+  },
+  {
+    "title": "Do not remove this, it’s for preventing conflicts by trailing comma",
+    "link": "",
+    "github": "",
+    "image": ""
   }
 ]
