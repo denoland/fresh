@@ -229,8 +229,7 @@ await Deno.writeTextFile(
 );
 
 // 404 page
-const ROUTES_404_PAGE = `
-import { Head } from "$fresh/runtime.ts";
+const ROUTES_404_PAGE = `import { Head } from "$fresh/runtime.ts";
 
 export default function Error404() {
   return (
