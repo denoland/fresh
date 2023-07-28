@@ -441,7 +441,7 @@ export async function render<Data>(
 
     styleTags.push({
       cssText,
-      id: "FRSH_TRANSITIONS",
+      id: "__FRSH_TRANSITIONS",
     });
   }
 

@@ -5,6 +5,15 @@ declare global {
       finished: Promise<boolean>;
     };
   }
+
+  interface Navigator {
+    connection?: NetworkInformation;
+  }
+
+  interface NetworkInformation {
+    effectiveType: string; // "slow-2g" | "2g" | "3g" | "4g";
+    saveData: boolean;
+  }
 }
 
 // WARNING: Must be a self contained function
@@ -16,8 +25,10 @@ export function initViewTransitions() {
   }
 
   const supportsViewTransitions = document.startViewTransition;
+  const hasViewTransitions = !!document.head.querySelector(
+    "#__FRSH_TRANSITIONS",
+  );
   const parser = new DOMParser();
-  document.body.setAttribute("data-frsh-transition", "new");
 
   function patchAttrs(oldEl: HTMLElement, newEl: HTMLElement) {
     // Remove old attributes not present anymore
@@ -113,7 +124,6 @@ export function initViewTransitions() {
     }
   }
 
-  // TODO: Prefetching
   document.addEventListener("click", async (e) => {
     let el = e.target;
     if (el && el instanceof HTMLElement) {
@@ -152,5 +162,40 @@ export function initViewTransitions() {
     const direction = nextIdx > index ? "forward" : "back";
     index = nextIdx;
     await navigate(location.href, direction);
+  });
+
+  // Prefetch sites when the user starts to click on them. A click
+  // takes on average 100ms, which means we can fetch the next page
+  // early.
+  ["mousedown", "touchstart"].forEach((evName) => {
+    document.addEventListener(evName, (ev) => {
+      if (ev.target instanceof HTMLAnchorElement) {
+        const el = ev.target;
+        if (
+          el.origin === location.origin && el.pathname !== location.pathname &&
+          hasViewTransitions
+        ) {
+          if (
+            document.querySelector(`link[rel=prefetch][href="${el.pathname}"]`)
+          ) {
+            return;
+          }
+          if (
+            navigator.connection &&
+            (navigator.connection.saveData ||
+              /(2|3)g/.test(navigator.connection.effectiveType || ""))
+          ) {
+            return;
+          }
+          const link = document.createElement("link");
+          link.setAttribute("rel", "prefetch");
+          link.setAttribute("href", el.pathname);
+          document.head.append(link);
+        }
+      }
+    }, {
+      passive: true,
+      capture: true,
+    });
   });
 }
