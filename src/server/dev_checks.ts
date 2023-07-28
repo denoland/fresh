@@ -146,10 +146,12 @@ export function assertPluginsCallRender(plugins: Plugin[]): CheckResult[] {
   return results;
 }
 
-export function assertPluginsCallRenderAsync(plugins: Plugin[]): CheckResult[] {
+export function assertPluginsCallRenderAsync(
+  plugins: Plugin[],
+): CheckResult[] {
   const results: CheckResult[] = [];
 
-  plugins.forEach((plugin) => {
+  for (const plugin of plugins) {
     if (typeof plugin.renderAsync === "function") {
       const renderAsyncSpy = spy(() =>
         Promise.resolve({
@@ -157,18 +159,21 @@ export function assertPluginsCallRenderAsync(plugins: Plugin[]): CheckResult[] {
           requiresHydration: false,
         })
       );
-      plugin.renderAsync({ renderAsync: renderAsyncSpy });
-      try {
-        assertSpyCalls(renderAsyncSpy, 1);
-      } catch {
-        results.push({
-          category: "Plugin RenderAsync",
-          message:
-            `Plugin '${plugin.name}' must call ctx.render() exactly once.`,
-        });
-      }
+      plugin.renderAsync({ renderAsync: renderAsyncSpy }).then(
+        () => {
+          try {
+            assertSpyCalls(renderAsyncSpy, 1);
+          } catch {
+            results.push({
+              category: "Plugin RenderAsync",
+              message:
+                `Plugin '${plugin.name}' must call ctx.render() exactly once.`,
+            });
+          }
+        },
+      );
     }
-  });
+  }
 
   return results;
 }
