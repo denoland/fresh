@@ -24,7 +24,7 @@ export function initViewTransitions() {
     const oldAttrs = oldEl.getAttributeNames();
     for (let i = 0; i < oldAttrs.length; i++) {
       const name = oldAttrs[i];
-      if (name !== "data-frsh-nav-transition" && !newEl.hasAttribute(name)) {
+      if (!name.startsWith("data-frsh") && !newEl.hasAttribute(name)) {
         oldEl.removeAttribute(name);
       }
     }
@@ -39,20 +39,6 @@ export function initViewTransitions() {
         oldEl.setAttribute(name, value);
       }
     }
-  }
-
-  function swap(doc: Document) {
-    // Replacing the full document breaks animations in Chrome, but
-    // replacing only the <body> works. So we do that and diff the
-    // <html> and <head> elements ourselves.
-
-    // Replacing <head>
-    document.title = doc.title;
-
-    // Patch <html> attributes if there are any
-    patchAttrs(document.documentElement, doc.documentElement);
-    // Replace <body>. That's the only way that keeps animations working
-    document.body.replaceWith(doc.body);
   }
 
   async function updatePage(html: string) {
@@ -88,30 +74,17 @@ export function initViewTransitions() {
       await Promise.all(styles);
     }
 
-    // Update the current document
-    if (supportsViewTransitions) {
-      swap(doc);
-    } else {
-      let isAnimating = false;
-      document.addEventListener("animationstart", () => {
-        isAnimating = true;
-      }, { once: true });
-      document.addEventListener("animationend", () => {
-        isAnimating = false;
-        doc.body.setAttribute("data-frsh-transition", "old");
-        swap(doc);
-        document.body.setAttribute("data-frsh-transition", "new");
-      }, { once: true });
-      document.body.setAttribute("data-frsh-transition", "old");
+    // Replacing the full document breaks animations in Chrome, but
+    // replacing only the <body> works. So we do that and diff the
+    // <html> and <head> elements ourselves.
 
-      // Wait for class changes to take effect
-      return new Promise<void>((resolve) => {
-        setTimeout(() => {
-          !isAnimating && swap(doc);
-          resolve();
-        }, 100);
-      });
-    }
+    // Replacing <head>
+    document.title = doc.title;
+
+    // Patch <html> attributes if there are any
+    patchAttrs(document.documentElement, doc.documentElement);
+    // Replace <body>. That's the only way that keeps animations working
+    document.body.replaceWith(doc.body);
   }
 
   async function navigate(url: string, direction: "forward" | "back") {
@@ -127,7 +100,7 @@ export function initViewTransitions() {
     // TODO: Error handling?
     try {
       document.documentElement.setAttribute(
-        "data-frsh-nav-transition",
+        "data-frsh-nav",
         direction,
       );
       await supportsViewTransitions

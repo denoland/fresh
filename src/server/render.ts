@@ -420,23 +420,11 @@ export async function render<Data>(
       cssText += `::view-transition-old(${anim.id}) {\n${oldForward}\n}\n`;
       cssText += `::view-transition-new(${anim.id}) {\n${newForward}\n}\n`;
 
-      // Fallback
-      // cssText +=
-      //   `[data-frsh-fallback="old"] [data-frsh-transition="${anim.id}"] {\n${oldForward}; animation-direction: reverse, reverse;\n}\n`;
-      // cssText +=
-      //   `[data-frsh-fallback="new"] [data-frsh-transition="${anim.id}"] {\n${newForward}; animation-direction: reverse, reverse;\n}\n`;
-
       // Backwards for browser navigation
       cssText +=
-        `[data-frsh-nav-transition="back"]::view-transition-old(${anim.id}) {\n${oldBackward}\n}\n`;
+        `[data-frsh-nav="back"]::view-transition-old(${anim.id}) {\n${oldBackward}\n}\n`;
       cssText +=
-        `[data-frsh-nav-transition="back"]::view-transition-new(${anim.id}) {\n${newBackward}\n}\n`;
-
-      // Fallback
-      // cssText +=
-      //   `[data-frsh-nav-transition="back"][data-frsh-fallback="old"] [data-frsh-transition="${anim.id}"] {\n${oldBackward}\n}\n`;
-      // cssText +=
-      //   `[data-frsh-nav-transition="back"][data-frsh-fallback="new"] [data-frsh-transition="${anim.id}"] {\n${newBackward}\n}\n`;
+        `[data-frsh-nav="back"]::view-transition-new(${anim.id}) {\n${newBackward}\n}\n`;
     }
 
     // Disable view transitions if the user prefers reduced motion
