@@ -64,6 +64,7 @@ import {
   assertPluginsInjectModules,
   assertRoutesHaveHandlerOrComponent,
   assertSingleModule,
+  assertSingleRoutePattern,
   assertStaticDirSafety,
   CheckFunction,
 } from "$fresh/src/server/dev_checks.ts";
@@ -384,6 +385,7 @@ export class ServerContext {
         () => assertSingleModule(routes, "_app"),
         () => assertModuleExportsDefault(unknownModule, "_404"),
         () => assertSingleModule(routes, "_404"),
+        () => assertSingleRoutePattern(routes),
         () => assertModuleExportsDefault(errorModule, "_500"),
         () => assertSingleModule(routes, "_500"),
         () => assertRoutesHaveHandlerOrComponent(routes),

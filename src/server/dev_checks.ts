@@ -49,6 +49,23 @@ export function assertSingleModule(
   return [];
 }
 
+export function assertSingleRoutePattern(routes: Route[]) {
+  const routeNames = new Set(routes.map((route) => route.pattern));
+
+  return routes.flatMap((route) => {
+    if (routeNames.has(route.pattern)) {
+      routeNames.delete(route.pattern);
+    } else {
+      return [{
+        category: "Duplicate Route Patterns",
+        message:
+          `Duplicate route pattern: ${route.pattern}. Please rename the route to resolve the route conflicts.`,
+      }];
+    }
+    return [];
+  });
+}
+
 export function assertRoutesHaveHandlerOrComponent(
   routes: Route[],
 ): CheckResult[] {
