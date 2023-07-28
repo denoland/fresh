@@ -13,7 +13,9 @@ used to trigger child handlers. The `ctx` also has a `state` property that can
 be used to pass arbitrary data to downstream (or upstream) handlers. This
 `state` is included in `PageProps` by default, which is available to both the
 special [\_app](/docs/concepts/app-wrapper.md) wrapper and normal
-[routes](/docs/concepts/routes.md).
+[routes](/docs/concepts/routes.md). `ctx.state` is normally set by modifying its
+properties, e.g. `ctx.state.loggedIn = true`, but you can also replace the
+entire object like `ctx.state = { loggedIn = true }`.
 
 ```ts
 // routes/_middleware.ts
@@ -120,11 +122,15 @@ the value of `acme` in your middleware.
 To set the stage for this section, `MiddlewareHandlerContext` looks like this:
 
 ```ts
-export interface MiddlewareHandlerContext<State = Record<string, unknown>>
-  extends ConnInfo {
+export interface MiddlewareHandlerContext<State = Record<string, unknown>> {
   next: () => Promise<Response>;
   state: State;
   destination: router.DestinationKind;
+  remoteAddr: {
+    transport: "tcp" | "udp";
+    hostname: string;
+    port: number;
+  };
 }
 ```
 

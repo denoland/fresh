@@ -19,7 +19,7 @@ const help = `fresh-update
 Update a Fresh project. This updates dependencies and optionally performs code
 mods to update a project's source code to the latest recommended patterns.
 
-To upgrade a projecct in the current directory, run:
+To upgrade a project in the current directory, run:
   fresh-update .
 
 USAGE:
@@ -58,6 +58,23 @@ if (denoJson.importMap) {
   denoJson.scopes = importMap.scopes;
   delete denoJson.importMap;
   await Deno.remove(IMPORT_MAP_PATH);
+}
+
+// Add Fresh lint preset
+if (!denoJson.lint) {
+  denoJson.lint = {};
+}
+if (!denoJson.lint.rules) {
+  denoJson.lint.rules = {};
+}
+if (!denoJson.lint.rules.tags) {
+  denoJson.lint.rules.tags = [];
+}
+if (!denoJson.lint.rules.tags.includes("fresh")) {
+  denoJson.lint.rules.tags.push("fresh");
+}
+if (!denoJson.lint.rules.tags.includes("recommended")) {
+  denoJson.lint.rules.tags.push("recommended");
 }
 
 freshImports(denoJson.imports);

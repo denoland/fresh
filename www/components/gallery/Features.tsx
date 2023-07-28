@@ -29,7 +29,7 @@ export default function Features() {
         return (
           <div class="flex-1 space-y-2">
             <div class="bg-blue-600 inline-block p-3 rounded-xl text-white">
-              <item.icon class="w-10 h-10" />
+              <item.icon class="w-10 h-10" aria-hidden="true" />
             </div>
             <p class="text-xl">
               {item.description}
@@ -38,9 +38,12 @@ export default function Features() {
             {item.link &&
               (
                 <a class="block" href={item.link}>
-                  <p class="text-blue-500 cursor-pointer hover:underline inline-flex items-center group">
+                  <p class="text-blue-600 cursor-pointer hover:underline inline-flex items-center group">
                     Read More{" "}
-                    <IconChevronRight class="inline-block w-5 h-5 transition group-hover:translate-x-0.5" />
+                    <IconChevronRight
+                      class="inline-block w-5 h-5 transition group-hover:translate-x-0.5"
+                      aria-hidden="true"
+                    />
                   </p>
                 </a>
               )}

@@ -33,7 +33,7 @@ export const handler: Handlers = {
   },
 };
 
-const TITLE = "fresh - The next-gen web framework.";
+const TITLE = "Fresh - The next-gen web framework.";
 const DESCRIPTION =
   "Just in time edge rendering, island based interactivity, and no configuration TypeScript support using Deno.";
 
@@ -77,10 +77,11 @@ function HelloBar() {
   return (
     <a
       class="bg-green-400 text-black border(b green-500) p-3 text-center group"
-      href="https://deno.com/blog/fresh-1.2"
+      href="https://deno.com/blog/fresh-1.3"
     >
-      <b>Fresh v1.2</b> has been released with <b>improved islands</b>,{" "}
-      <b>preview npm: support</b>, and more!{"  "}
+      <b>Fresh v1.3</b> has been released with <b>async route components</b>,
+      {" "}
+      <b>plugin enhancements</b>, and more!{"  "}
       <span class="group-hover:underline">→</span>
     </a>
   );
@@ -88,11 +89,12 @@ function HelloBar() {
 
 function Hero() {
   return (
-    <>
-      <section class="w-full flex justify-center items-center flex-col bg-green-300">
-        <LemonDrop />
-      </section>
-    </>
+    <div
+      class="w-full flex justify-center items-center flex-col bg-green-300"
+      aria-hidden="true"
+    >
+      <LemonDrop />
+    </div>
   );
 }
 
@@ -132,7 +134,7 @@ function Features() {
       </div>
 
       <div class={item}>
-        <FeatureIcons.Gabage />
+        <FeatureIcons.Garbage />
         <div class={desc}>
           <b>No configuration</b> necessary.
         </div>
@@ -181,7 +183,7 @@ function Intro(props: { origin: string }) {
               src="/illustration/lemon-squash.svg"
               width={800}
               height={678}
-              alt="deno is drinking fresh lemon squash"
+              alt="Deno is drinking Fresh lemon squash"
             />
           </picture>
         </div>
@@ -208,8 +210,8 @@ function Example() {
           <p class="text-gray-600 mb-4">
             Fresh optimizes the page by only shipping JavaScript for areas that
             need it. The rest is completely static HTML rendered by the server.
-            This means browser need to load less code and can display your page
-            quicker.
+            This means the browser needs to load less code and can display pages
+            more quickly.
           </p>
         </div>
         <div class="md:basis-1/2">
@@ -250,7 +252,7 @@ function StartJourney() {
       </h2>
       <div class="flex flex-col md:flex-row justify-start items-center gap-4">
         <p class="text(xl gray-600)">
-          Jump right in and build your website with fresh. Lean everything you
+          Jump right in and build your website with Fresh. Learn everything you
           need to know in seconds.
         </p>
         <a

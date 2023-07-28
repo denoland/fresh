@@ -1,4 +1,4 @@
-import { basename, join, parse, resolve } from "./src/dev/deps.ts";
+import { basename, colors, join, parse, resolve } from "./src/dev/deps.ts";
 import { error } from "./src/dev/error.ts";
 import { collect, ensureMinDenoVersion, generate } from "./src/dev/mod.ts";
 import {
@@ -27,6 +27,7 @@ OPTIONS:
     --force   Overwrite existing files
     --twind   Setup project to use 'twind' for styling
     --vscode  Setup project for VSCode
+    --docker  Setup Project to use Docker
 `;
 
 const CONFIRM_EMPTY_MESSAGE =
@@ -38,15 +39,18 @@ const USE_TWIND_MESSAGE =
 const USE_VSCODE_MESSAGE = "Do you use VS Code?";
 
 const flags = parse(Deno.args, {
-  boolean: ["force", "twind", "vscode"],
-  default: { "force": null, "twind": null, "vscode": null },
+  boolean: ["force", "twind", "vscode", "docker"],
+  default: { "force": null, "twind": null, "vscode": null, "docker": null },
 });
 
+console.log();
 console.log(
-  `\n%c  🍋 Fresh: the next-gen web framework.  %c\n`,
-  "background-color: #86efac; color: black; font-weight: bold",
-  "",
+  colors.bgRgb8(
+    colors.black(colors.bold(" 🍋 Fresh: The next-gen web framework. ")),
+    121,
+  ),
 );
+console.log();
 
 let unresolvedDirectory = Deno.args[0];
 if (flags._.length !== 1) {
@@ -85,6 +89,8 @@ const useVSCode = flags.vscode === null
   ? confirm(USE_VSCODE_MESSAGE)
   : flags.vscode;
 
+const useDocker = flags.docker;
+
 await Deno.mkdir(join(resolvedDirectory, "routes", "api"), { recursive: true });
 await Deno.mkdir(join(resolvedDirectory, "islands"), { recursive: true });
 await Deno.mkdir(join(resolvedDirectory, "static"), { recursive: true });
@@ -106,6 +112,31 @@ await Deno.writeTextFile(
   GITIGNORE,
 );
 
+if (useDocker) {
+  const DENO_VERSION = Deno.version.deno;
+  const DOCKERFILE_TEXT = `
+FROM denoland/deno:${DENO_VERSION}
+
+ARG GIT_REVISION
+ENV DENO_DEPLOYMENT_ID=\${GIT_REVISION}
+
+WORKDIR /app
+
+COPY . .
+RUN deno cache main.ts
+
+EXPOSE 8000
+
+CMD ["run", "-A", "main.ts"]
+
+`;
+
+  await Deno.writeTextFile(
+    join(resolvedDirectory, "Dockerfile"),
+    DOCKERFILE_TEXT,
+  );
+}
+
 const ROUTES_INDEX_TSX = `import { Head } from "$fresh/runtime.ts";
 import { useSignal } from "@preact/signals";
 import Counter from "../islands/Counter.tsx";
@@ -124,9 +155,9 @@ export default function Home() {
             src="/logo.svg"
             width="128"
             height="128"
-            alt="the fresh logo: a sliced lemon dripping with juice"
+            alt="the Fresh logo: a sliced lemon dripping with juice"
           />
-          <h1 class="text-4xl font-bold">Welcome to fresh</h1>
+          <h1 class="text-4xl font-bold">Welcome to Fresh</h1>
           <p class="my-4">
             Try updating this message in the
             <code class="mx-2">./routes/index.tsx</code> file, and refresh.
@@ -214,7 +245,7 @@ export default function Error404() {
             src="/logo.svg"
             width="128"
             height="128"
-            alt="the fresh logo: a sliced lemon dripping with juice"
+            alt="the Fresh logo: a sliced lemon dripping with juice"
           />
           <h1 class="text-4xl font-bold">404 - Page not found</h1>
           <p class="my-4">
@@ -460,7 +491,7 @@ try {
     new Uint8Array(faviconArrayBuffer),
   );
 } catch {
-  // Skip this and be silent if there is a nework issue.
+  // Skip this and be silent if there is a network issue.
 }
 
 let MAIN_TS = `/// <reference no-default-lib="true" />
