@@ -68,7 +68,7 @@ Deno.test("plugin routes and middleware", async () => {
   );
 });
 
-Deno.test("plugin routes and middleware", async () => {
+Deno.test("plugin middleware multiple handlers", async () => {
   const resp = await router(
     new Request("https://fresh.deno.dev/lots-of-middleware"),
   );
