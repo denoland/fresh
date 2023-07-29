@@ -2,6 +2,7 @@ import {
   dirname,
   extname,
   fromFileUrl,
+  groupBy,
   join,
   JSONC,
   Status,
@@ -1240,24 +1241,49 @@ async function readDenoConfig(
   }
 }
 
+function formatMiddlewarePath(path: string): string {
+  let formattedPath = path;
+  if (!path.startsWith("/")) {
+    formattedPath = `/${formattedPath}`;
+  }
+  if (!formattedPath.endsWith("/")) {
+    formattedPath = `${formattedPath}/`;
+  }
+  return formattedPath;
+}
+
 function getMiddlewareRoutesFromPlugins(
   plugins: Plugin[],
 ): Record<string, MiddlewareModule> {
-  return (Object.assign(
-    {},
-    ...[
-      ...new Set(
-        ([] as PluginMiddleware[]).concat(
-          ...plugins.map((p) => p.middlewares || []),
-        ),
-      ),
-    ]
-      .map((middleware: PluginMiddleware) => ({
-        [`./routes${middleware.path}_middleware.ts`]: {
-          handler: middleware.middleware.handler,
-        },
-      })) || [],
-  ));
+  // 1. Collect all middlewares from all plugins
+  const allPluginMiddlewares = plugins.flatMap((plugin) =>
+    plugin.middlewares || []
+  );
+
+  // 2. Group PluginMiddleware by their path
+  const groupedPluginMiddlewares: Record<string, PluginMiddleware[]> = {
+    ...(groupBy(
+      allPluginMiddlewares,
+      (middleware) =>
+        `./routes${formatMiddlewarePath(middleware.path)}_middleware.ts`,
+    ) as Record<string, PluginMiddleware[]>),
+  };
+
+  // 3. Convert the grouped PluginMiddleware to MiddlewareModule
+  // this involves merging the Handler or Handler[]
+  const middlewareRoutes: Record<string, MiddlewareModule> = Object.fromEntries(
+    Object.entries(groupedPluginMiddlewares).map(([key, pluginMiddlewares]) => {
+      const handler = pluginMiddlewares.flatMap((pluginMiddleware) => {
+        const middlewareHandler = pluginMiddleware.middleware.handler;
+        return Array.isArray(middlewareHandler)
+          ? middlewareHandler
+          : [middlewareHandler];
+      });
+      return [key, { handler }];
+    }),
+  );
+
+  return middlewareRoutes;
 }
 
 function getRoutesFromPlugins(plugins: Plugin[]): Record<string, RouteModule> {
