@@ -4,7 +4,8 @@
     "test": "deno test -A --parallel && deno check --config=www/deno.json www/main.ts www/dev.ts && deno check init.ts",
     "fixture": "deno run -A --watch=static/,routes/ tests/fixture/dev.ts",
     "www": "deno task --cwd=www start",
-    "screenshot": "deno run -A www/utils/screenshot.ts"
+    "screenshot": "deno run -A www/utils/screenshot.ts",
+    "check": "deno fmt --check && deno lint && deno check **/*.ts && deno check **/*.tsx"
   },
   "importMap": "./.vscode/import_map.json",
   "compilerOptions": {
