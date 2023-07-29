@@ -3,6 +3,7 @@ import { assert } from "../../tests/deps.ts";
 import {
   middlewarePathToPattern,
   pathToPattern,
+  patternToRegex,
   selectMiddlewares,
 } from "./context.ts";
 import { MiddlewareRoute } from "./types.ts";
@@ -57,5 +58,23 @@ Deno.test("pathToPattern", async (t) => {
     assertThrows(() => pathToPattern("foo/[foo][bar]"));
     assertThrows(() => pathToPattern("foo/foo]"));
     assertThrows(() => pathToPattern("foo/[foo]]"));
+  });
+});
+
+Deno.test("patternToRegex", async (t) => {
+  assertEquals(patternToRegex("foo/bar"), /^foo\/bar/u);
+  assertEquals(patternToRegex("foo/:id"), /^foo\/(?<id>)/u);
+  assertEquals(patternToRegex("foo/:id/bar"), /^foo\/(?<id>)\/bar/u);
+  assertEquals(patternToRegex("foo/*"), /^foo\/.*/u);
+  assertEquals(patternToRegex("foo{/bar}?"), /^foo(?:\/bar)?/u);
+  assertEquals(patternToRegex("foo/:foo-:bar"), /^foo\/(?<foo>)-(?<bar>)/u);
+  assertEquals(patternToRegex("foo/:foo*"), /^foo\/(?<foo>.*)/u);
+
+  await t.step("pattern groups", () => {
+    assertEquals(patternToRegex("/books/:id(\\d+)"), /^\/books\/(?<id>\d+)/u);
+    assertEquals(
+      patternToRegex("/books/:id(\\d+[A-Z](foo|bar))"),
+      /^\/books\/(?<id>\d+[A-Z](foo|bar))/u,
+    );
   });
 });

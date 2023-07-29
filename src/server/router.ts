@@ -1,3 +1,4 @@
+import { patternToRegex } from "$fresh/src/server/context.ts";
 import { ServeHandlerInfo } from "./types.ts";
 
 type HandlerContext<T = unknown> = T & ServeHandlerInfo;
@@ -44,7 +45,7 @@ export type DestinationKind = "internal" | "static" | "route" | "notFound";
 
 // deno-lint-ignore ban-types
 export type InternalRoute<T = {}> = {
-  pattern: URLPattern;
+  pattern: RegExp;
   methods: { [K in KnownMethod]?: MatchHandler<T> };
   default?: MatchHandler<T>;
   destination: DestinationKind;
@@ -109,7 +110,7 @@ function processRoutes<T>(
 ) {
   for (const [path, methods] of Object.entries(routes)) {
     const entry: InternalRoute<T> = {
-      pattern: new URLPattern({ pathname: path }),
+      pattern: patternToRegex(path),
       methods: {},
       default: undefined,
       destination,
@@ -146,7 +147,7 @@ export function getParamsAndRoute<T>(
 
       if (res !== null) {
         const groups: Record<string, string> = {};
-        const matched = res?.pathname.groups;
+        const matched = res?.groups;
 
         for (const key in matched) {
           const value = matched[key];

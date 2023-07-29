@@ -1097,6 +1097,101 @@ export function pathToPattern(path: string): string {
   return route;
 }
 
+function skipRegex(input: string, idx: number): number {
+  let open = 0;
+
+  for (let i = idx; i < input.length; i++) {
+    const char = input[i];
+    if (char === "(" || char === "[") {
+      open++;
+    } else if (char === ")" || char === "]") {
+      if (open-- === 0) {
+        return i;
+      }
+    } else if (char === "\\") {
+      i++;
+    }
+
+    idx = i;
+  }
+
+  return idx;
+}
+
+export function patternToRegex(input: string): RegExp {
+  let tmpPattern = "";
+  let pattern = "^";
+
+  let namedGroupIdx = -1;
+  let groupIdx = -1;
+
+  for (let i = 0; i < input.length; i++) {
+    const char = input[i];
+
+    namedGroup:
+    if (
+      namedGroupIdx !== -1
+    ) {
+      const last = i === input.length - 1;
+      const openCapture = char === "(";
+      const limitChar = char === "/" || char === "." || char === "-" ||
+        char === "*";
+
+      if (limitChar || openCapture || last) {
+        const name = input.slice(
+          namedGroupIdx + 1,
+          !limitChar && last ? i + 1 : i,
+        );
+
+        if (openCapture) {
+          const end = skipRegex(input, i);
+          pattern += `(?<${name}>${input.slice(i + 1, end)})`;
+          i = end;
+          continue;
+        } else if (char === "*") {
+          pattern += `(?<${name}>.*)`;
+        } else {
+          pattern += `(?<${name}>)`;
+        }
+
+        namedGroupIdx = -1;
+        if (!last) {
+          break namedGroup;
+        }
+      }
+
+      continue;
+    }
+
+    if (groupIdx !== -1) {
+      if (char === "{") {
+        throw new SyntaxError(`Unexpected token "{"`);
+      }
+      if (char === "}") {
+        pattern = tmpPattern + "(?:" + pattern + ")";
+        groupIdx = -1;
+        continue;
+      }
+    }
+
+    if (char === "/") {
+      pattern += "\\/";
+    } else if (char === ":") {
+      namedGroupIdx = i;
+    } else if (char === "*") {
+      pattern += ".*";
+    } else if (char === "{") {
+      tmpPattern = pattern;
+      pattern = "";
+      groupIdx = i;
+    } else {
+      pattern += char;
+    }
+  }
+
+  return new RegExp(pattern, "u");
+}
+
 // Normalize a path for use in a URL. Returns null if the path is unparsable.
 export function normalizeURLPath(path: string): string | null {
   try {

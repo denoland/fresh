@@ -88,9 +88,11 @@ export async function start(routes: Manifest, opts: StartOptions = {}) {
 
   if (!opts.onListen) {
     opts.onListen = (params) => {
+      const duration = performance.now().toFixed(2);
       console.log();
       console.log(
-        colors.bgRgb8(colors.black(colors.bold(" 🍋 Fresh ready ")), 121),
+        colors.bgRgb8(colors.black(colors.bold(" 🍋 Fresh ready ")), 121) +
+          colors.dim(` in ${duration}ms`),
       );
 
       const address = colors.cyan(`http://localhost:${params.port}/`);
