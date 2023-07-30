@@ -185,7 +185,7 @@ export interface LayoutRoute extends LayoutModule {
   /**
    * URLPattern of the route
    */
-  compiledPattern: URLPattern;
+  compiledPattern: RegExp;
 }
 
 // --- UNKNOWN PAGE ---
@@ -291,7 +291,7 @@ export interface MiddlewareRoute extends Middleware {
   /**
    * URLPattern of the route
    */
-  compiledPattern: URLPattern;
+  compiledPattern: RegExp;
 }
 
 export type MiddlewareHandler<State = Record<string, unknown>> = (

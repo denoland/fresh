@@ -250,8 +250,14 @@ export class ServerContext {
         };
         routes.push(route);
       } else if (isMiddleware) {
+        const routePath = baseRoute.slice(0, -"_middleware".length);
+        let pattern = pathToPattern(routePath);
+        if (pattern.endsWith("/")) {
+          pattern = pattern.slice(0, -1) + "{/*}?";
+        }
         middlewares.push({
-          ...middlewarePathToPattern(baseRoute),
+          pattern,
+          compiledPattern: patternToRegex(pattern),
           ...module as MiddlewareModule,
         });
       } else if (
@@ -260,8 +266,14 @@ export class ServerContext {
       ) {
         app = module as AppModule;
       } else if (isLayout) {
+        const routePath = baseRoute.slice(0, -"_layout".length);
+        let pattern = pathToPattern(routePath);
+        if (pattern.endsWith("/")) {
+          pattern = pattern.slice(0, -1) + "{/*}?";
+        }
         layouts.push({
-          ...layoutPathToPattern(baseRoute),
+          pattern,
+          compiledPattern: patternToRegex(pattern),
           ...module as LayoutModule,
         });
       } else if (
@@ -955,7 +967,7 @@ export function selectMiddlewares(url: string, middlewares: MiddlewareRoute[]) {
   const reqURL = new URL(url);
 
   for (const { compiledPattern, handler } of middlewares) {
-    const res = compiledPattern.exec(reqURL);
+    const res = compiledPattern.exec(reqURL.pathname);
     if (res) {
       selectedMws.push({ handler });
     }
@@ -1055,7 +1067,7 @@ export function pathToPattern(path: string): string {
   if (parts[parts.length - 1] === "index") {
     parts.pop();
   }
-  const route = "/" + parts
+  let route = "/" + parts
     .map((part) => {
       // Case: /[...foo].tsx
       if (part.startsWith("[...") && part.endsWith("]")) {
@@ -1149,9 +1161,10 @@ export function patternToRegex(input: string): RegExp {
           i = end;
           continue;
         } else if (char === "*") {
-          pattern += `(?<${name}>.*)`;
+          pattern = pattern.slice(0, -2);
+          pattern += `(?:\/(?<${name}>[^\/]*))?`;
         } else {
-          pattern += `(?<${name}>)`;
+          pattern += `(?<${name}>[^/]+)`;
         }
 
         namedGroupIdx = -1;
@@ -1175,7 +1188,11 @@ export function patternToRegex(input: string): RegExp {
     }
 
     if (char === "/") {
-      pattern += "\\/";
+      if (pattern === "^") {
+        pattern += "\\/?";
+      } else {
+        pattern += "\\/";
+      }
     } else if (char === ":") {
       namedGroupIdx = i;
     } else if (char === "*") {
@@ -1189,7 +1206,7 @@ export function patternToRegex(input: string): RegExp {
     }
   }
 
-  return new RegExp(pattern, "u");
+  return new RegExp(pattern + "$", "u");
 }
 
 // Normalize a path for use in a URL. Returns null if the path is unparsable.
@@ -1237,26 +1254,6 @@ function serializeCSPDirectives(csp: ContentSecurityPolicyDirectives): string {
       return `${key} ${value}`;
     })
     .join("; ");
-}
-
-export function layoutPathToPattern(baseRoute: string) {
-  baseRoute = baseRoute.slice(0, -"_layout".length);
-  let pattern = pathToPattern(baseRoute);
-  if (pattern.endsWith("/")) {
-    pattern = pattern.slice(0, -1) + "{/*}?";
-  }
-  const compiledPattern = new URLPattern({ pathname: pattern });
-  return { pattern, compiledPattern };
-}
-
-export function middlewarePathToPattern(baseRoute: string) {
-  baseRoute = baseRoute.slice(0, -"_middleware".length);
-  let pattern = pathToPattern(baseRoute);
-  if (pattern.endsWith("/")) {
-    pattern = pattern.slice(0, -1) + "{/*}?";
-  }
-  const compiledPattern = new URLPattern({ pathname: pattern });
-  return { pattern, compiledPattern };
 }
 
 function refreshJs(aliveUrl: string, buildId: string) {

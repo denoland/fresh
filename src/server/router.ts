@@ -141,9 +141,11 @@ export function getParamsAndRoute<T>(
   processRoutes(processedRoutes, internalRoutes, "internal");
   processRoutes(processedRoutes, staticRoutes, "static");
   processRoutes(processedRoutes, routes, "route");
+
   return (url: string) => {
+    const pathname = new URL(url).pathname;
     for (const route of processedRoutes) {
-      const res = route.pattern.exec(url);
+      const res = route.pattern.exec(pathname);
 
       if (res !== null) {
         const groups: Record<string, string> = {};
@@ -176,7 +178,7 @@ export function router<T = unknown>(
 
   return (req, ctx, groups, route) => {
     if (route) {
-      const res = route.pattern.exec(req.url);
+      const res = route.pattern.exec(new URL(req.url).pathname);
 
       if (res !== null) {
         // If not overridden, HEAD requests should be handled as GET requests but without the body.

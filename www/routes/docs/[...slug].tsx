@@ -14,6 +14,7 @@ import { frontMatter, gfm } from "../../utils/markdown.ts";
 import toc from "../../../docs/toc.ts";
 import { mangle } from "$marked-mangle";
 import { markedSmartypants } from "$marked-smartypants";
+import { patternToRegex } from "$fresh/src/server/context.ts";
 
 gfm.Marked.marked.use(mangle());
 gfm.Marked.marked.use(markedSmartypants());
@@ -43,7 +44,7 @@ interface Page extends TableOfContentsEntry {
   nextNav?: NavEntry;
 }
 
-const pattern = new URLPattern({ pathname: "/:version/:page*" });
+const reg = patternToRegex("/:version/:page*");
 
 export const handler: Handlers<Data> = {
   async GET(_req, ctx) {
@@ -58,12 +59,12 @@ export const handler: Handlers<Data> = {
       });
     }
 
-    const match = pattern.exec("https://localhost/" + slug);
+    const match = reg.exec(slug);
     if (!match) {
       return ctx.renderNotFound();
     }
 
-    let { version, page = "" } = match.pathname.groups;
+    let { version, page = "" } = match.groups ?? {};
     if (!version) {
       return ctx.renderNotFound();
     }

@@ -4,6 +4,8 @@ export const handler: MultiHandler<void> = {
   GET(_req, ctx) {
     const slug = ctx.params.slug;
 
+    console.log("DOCS index", ctx.params);
+
     if (slug === "concepts/architechture") {
       return new Response("", {
         status: 307,

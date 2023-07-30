@@ -84,15 +84,17 @@ export async function createHandler(
 }
 
 export async function start(routes: Manifest, opts: StartOptions = {}) {
+  const s = performance.now();
   const ctx = await ServerContext.fromManifest(routes, opts);
 
   if (!opts.onListen) {
     opts.onListen = (params) => {
       const duration = performance.now().toFixed(2);
+      const selfDuration = (performance.now() - s).toFixed(2);
       console.log();
       console.log(
         colors.bgRgb8(colors.black(colors.bold(" 🍋 Fresh ready ")), 121) +
-          colors.dim(` in ${duration}ms`),
+          colors.dim(` in ${duration}ms, self ${selfDuration}ms`),
       );
 
       const address = colors.cyan(`http://localhost:${params.port}/`);
