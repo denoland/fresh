@@ -12,6 +12,7 @@ import IconHappy from "https://deno.land/x/tabler_icons_tsx@0.0.3/tsx/mood-crazy
 import IconHeart from "https://deno.land/x/tabler_icons_tsx@0.0.3/tsx/heart.tsx";
 import Background from "../components/gallery/Background.tsx";
 import CodeBox from "../components/gallery/CodeBox.tsx";
+import Badge from "../components/gallery/Badge.tsx";
 
 interface SectionProps {
   title: string;
@@ -26,7 +27,7 @@ function Section(props: SectionProps) {
       <h2 class="text-2xl font-bold py-2" id={props.title}>
         {props.title}
         {props.island && (
-          <span class="text-sm font-normal inline-block bg-green-200 rounded px-2 mx-2">
+          <span class="text-sm font-normal inline-block text-green-800 bg-green-200 rounded px-2 mx-2">
             island
           </span>
         )}
@@ -100,7 +101,14 @@ export default function ComponentGallery(props: ComponentGalleryProps) {
         <Input placeholder="Placeholder" />
         <Input placeholder="Disabled" disabled />
       </Section>
-
+      <Section
+        title="Badge"
+        source={props.sources.Badge}
+      >
+        <Badge color="green">badge</Badge>
+        <Badge color="yellow">badge</Badge>
+        <Badge color="blue">badge</Badge>
+      </Section>
       <Section title="Header" source={props.sources.Header}>
         <Header active="/" />
       </Section>
