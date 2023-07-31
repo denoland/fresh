@@ -59,6 +59,7 @@ import {
 import { InternalRoute } from "./router.ts";
 import {
   assertModuleExportsDefault,
+  assertNoDynamicRouteConflicts,
   assertNoStaticRouteConflicts,
   assertPluginsCallRender,
   assertPluginsCallRenderAsync,
@@ -381,7 +382,6 @@ export class ServerContext {
 
     const dev = isDevMode();
     if (dev) {
-      routeWarnings(routes).forEach((conflict) => console.error(conflict));
       const checks: CheckFunction[] = [
         () => assertModuleExportsDefault(app, "_app"),
         () => assertSingleModule(routes, "_app"),
@@ -396,6 +396,7 @@ export class ServerContext {
         () => assertPluginsCallRender(opts.plugins ?? []),
         () => assertPluginsCallRenderAsync(opts.plugins ?? []),
         () => assertPluginsInjectModules(opts.plugins ?? []),
+        () => assertNoDynamicRouteConflicts(routes),
       ];
 
       const results = checks.flatMap((check) => check());
@@ -1366,36 +1367,4 @@ function sendResponse(
     statusText: options.statusText,
     headers: options.headers ? { ...headers, ...options.headers } : headers,
   });
-}
-
-export function routeWarnings(routes: Route[]) {
-  type RouteMap = Record<string, { dynamic: Route[] }>;
-  const isDynamicRoute = (route: Route) =>
-    /:\w+/.test(route.pattern) && !route.name.startsWith("islands");
-
-  const routesByDir = routes.reduce((routeMap: RouteMap, route) => {
-    const dir = route.pattern.split("/").slice(0, -1).join("/");
-    if (!routeMap[dir]) routeMap[dir] = { dynamic: [] };
-    if (isDynamicRoute(route)) {
-      routeMap[dir].dynamic.push(route);
-    }
-    return routeMap;
-  }, {});
-
-  const conflicts = Object.values(routesByDir).reduce(
-    (acc: string[], map) => {
-      if (map.dynamic.length > 1) {
-        const conflictingRoutes = map.dynamic.map((route) =>
-          `  ${route.pattern}`
-        ).join("\n");
-        const message =
-          `Potential route conflict. The following dynamic routes may conflict:\n${conflictingRoutes}\n`;
-        acc.push(message);
-      }
-      return acc;
-    },
-    [],
-  );
-
-  return conflicts;
 }

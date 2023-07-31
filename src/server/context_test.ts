@@ -3,9 +3,9 @@ import { assert } from "../../tests/deps.ts";
 import {
   middlewarePathToPattern,
   pathToPattern,
-  routeWarnings,
   selectMiddlewares,
 } from "./context.ts";
+import { assertNoDynamicRouteConflicts } from "$fresh/src/server/dev_checks.ts";
 import { MiddlewareRoute, Route } from "./types.ts";
 
 Deno.test("selectMiddlewares", () => {
@@ -84,7 +84,9 @@ Deno.test({
       `Potential route conflict. The following dynamic routes may conflict:\n  /override/:dynamic\n  /override/:path*\n`,
       `Potential route conflict. The following dynamic routes may conflict:\n  /nested/:tenant/level1\n  /nested/:tenant/foo\n`,
     ];
-    const output = routeWarnings(routes);
+    const output = assertNoDynamicRouteConflicts(routes).flatMap((x) =>
+      x.message
+    );
     assertEquals(output, expected);
   },
 });

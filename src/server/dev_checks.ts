@@ -212,3 +212,38 @@ export function assertPluginsInjectModules(plugins: Plugin[]): CheckResult[] {
 
   return results;
 }
+
+export function assertNoDynamicRouteConflicts(routes: Route[]) {
+  type RouteMap = Record<string, { dynamic: Route[] }>;
+  const isDynamicRoute = (route: Route) =>
+    /:\w+/.test(route.pattern) && !route.name.startsWith("islands");
+
+  const routesByDir = routes.reduce((routeMap: RouteMap, route) => {
+    const dir = route.pattern.split("/").slice(0, -1).join("/");
+    if (!routeMap[dir]) routeMap[dir] = { dynamic: [] };
+    if (isDynamicRoute(route)) {
+      routeMap[dir].dynamic.push(route);
+    }
+    return routeMap;
+  }, {});
+
+  const conflicts = Object.values(routesByDir).reduce(
+    (acc: string[], map) => {
+      if (map.dynamic.length > 1) {
+        const conflictingRoutes = map.dynamic.map((route) =>
+          `  ${route.pattern}`
+        ).join("\n");
+        const message =
+          `Potential route conflict. The following dynamic routes may conflict:\n${conflictingRoutes}\n`;
+        acc.push(message);
+      }
+      return acc;
+    },
+    [],
+  );
+
+  return conflicts.flatMap((x) => ({
+    category: "Dynamic Route Conflict",
+    message: x,
+  } as CheckResult));
+}
