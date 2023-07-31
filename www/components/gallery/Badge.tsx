@@ -14,8 +14,6 @@ export default function Badge(props: Props) {
           : "text-green-800 bg-green-200"
       }
       ${props.class ?? ""}`}
-    >
-      {props.children}
-    </span>
+    />
   );
 }
