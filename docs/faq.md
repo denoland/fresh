@@ -1,6 +1,6 @@
 ---
 description: |
-    We have colleted various questions you asked 
+    We have collected various questions you asked 
     and combined them with our answers this FAQ.
 ---
 
