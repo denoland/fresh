@@ -40,7 +40,7 @@ jobs:
 
       - name: Type check project
         if: startsWith(matrix.os, 'ubuntu') && matrix.deno == 'canary'
-        run: deno check **/*.ts
+        run: deno task check:types
 
       - name: Cache dependencies
         if: startsWith(matrix.os, 'ubuntu') && matrix.deno == 'v1.x'
