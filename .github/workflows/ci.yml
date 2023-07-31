@@ -39,7 +39,6 @@ jobs:
         uses: crate-ci/typos@master
 
       - name: Type check project
-        if: startsWith(matrix.os, 'ubuntu') && matrix.deno == 'canary'
         run: deno task check:types
 
       - name: Cache dependencies
@@ -84,10 +83,6 @@ jobs:
       - name: Type check init script
         run: deno check --remote init.ts
 
-      - name: Type check website
-        run: deno check main.ts dev.ts
-        working-directory: www/
-
       - name: Test website
         run: deno test -A
         working-directory: www/
@@ -95,11 +90,3 @@ jobs:
       - name: Type check demo
         run: deno check --remote main.ts dev.ts
         working-directory: demo
-
-      - name: Type check tests/fixture
-        run: deno check main.ts dev.ts
-        working-directory: tests/fixture/
-
-      - name: Type check tests/fixture_error
-        run: deno check main.ts dev.ts
-        working-directory: tests/fixture_error/
