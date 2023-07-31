@@ -24,7 +24,6 @@ import {
   Island,
   LayoutModule,
   LayoutRoute,
-  Middleware,
   MiddlewareHandler,
   MiddlewareHandlerContext,
   MiddlewareModule,
@@ -244,6 +243,7 @@ export class ServerContext {
           };
         }
         const route: Route = {
+          baseRoute,
           pattern,
           url,
           name,
@@ -254,8 +254,8 @@ export class ServerContext {
         routes.push(route);
       } else if (isMiddleware) {
         middlewares.push({
-          ...middlewarePathToPattern(baseRoute),
-          ...module as MiddlewareModule,
+          baseRoute: normalizeBaseRoute(baseRoute, "_middleware"),
+          module: module as MiddlewareModule,
         });
       } else if (
         path === "/_app.tsx" || path === "/_app.ts" ||
@@ -264,8 +264,8 @@ export class ServerContext {
         app = module as AppModule;
       } else if (isLayout) {
         layouts.push({
-          ...layoutPathToPattern(baseRoute),
-          ...module as LayoutModule,
+          baseRoute: normalizeBaseRoute(baseRoute, "_layout"),
+          module: module as LayoutModule,
         });
       } else if (
         path === "/_404.tsx" || path === "/_404.ts" ||
@@ -278,6 +278,7 @@ export class ServerContext {
         }
 
         notFound = {
+          baseRoute: "",
           pattern: pathToPattern(baseRoute),
           url,
           name,
@@ -296,6 +297,7 @@ export class ServerContext {
         }
 
         error = {
+          baseRoute: "",
           pattern: pathToPattern(baseRoute),
           url,
           name,
@@ -488,12 +490,15 @@ export class ServerContext {
       connInfo: ServeHandlerInfo,
       inner: router.FinalHandler<RouterState>,
     ) => {
-      // identify middlewares to apply, if any.
-      // middlewares should be already sorted from deepest to shallow layer
-      const mws = selectMiddlewares(req.url, middlewares);
-
       const handlers: (() => Response | Promise<Response>)[] = [];
       const paramsAndRouteResult = paramsAndRoute(req.url);
+
+      // identify middlewares to apply, if any.
+      // middlewares should be already sorted from deepest to shallow layer
+      const mws = selectSharedRoutes(
+        paramsAndRouteResult.route?.baseRoute || "",
+        middlewares,
+      );
 
       let state: Record<string, unknown> = {};
       const middlewareCtx: MiddlewareHandlerContext = {
@@ -574,39 +579,48 @@ export class ServerContext {
     const routes: router.Routes<RouterState> = {};
 
     internalRoutes[`${INTERNAL_PREFIX}${JS_PREFIX}/${BUILD_ID}/:path*`] = {
-      default: this.#bundleAssetRoute(),
+      baseRoute: `${INTERNAL_PREFIX}${JS_PREFIX}/${BUILD_ID}/:path*`,
+      methods: {
+        default: this.#bundleAssetRoute(),
+      },
     };
     if (this.#dev) {
       internalRoutes[REFRESH_JS_URL] = {
-        default: () => {
-          return new Response(refreshJs(ALIVE_URL, BUILD_ID), {
-            headers: {
-              "content-type": "application/javascript; charset=utf-8",
-            },
-          });
+        baseRoute: REFRESH_JS_URL,
+        methods: {
+          default: () => {
+            return new Response(refreshJs(ALIVE_URL, BUILD_ID), {
+              headers: {
+                "content-type": "application/javascript; charset=utf-8",
+              },
+            });
+          },
         },
       };
       internalRoutes[ALIVE_URL] = {
-        default: () => {
-          let timerId: number | undefined = undefined;
-          const body = new ReadableStream({
-            start(controller) {
-              controller.enqueue(`data: ${BUILD_ID}\nretry: 100\n\n`);
-              timerId = setInterval(() => {
-                controller.enqueue(`data: ${BUILD_ID}\n\n`);
-              }, 1000);
-            },
-            cancel() {
-              if (timerId !== undefined) {
-                clearInterval(timerId);
-              }
-            },
-          });
-          return new Response(body.pipeThrough(new TextEncoderStream()), {
-            headers: {
-              "content-type": "text/event-stream",
-            },
-          });
+        baseRoute: ALIVE_URL,
+        methods: {
+          default: () => {
+            let timerId: number | undefined = undefined;
+            const body = new ReadableStream({
+              start(controller) {
+                controller.enqueue(`data: ${BUILD_ID}\nretry: 100\n\n`);
+                timerId = setInterval(() => {
+                  controller.enqueue(`data: ${BUILD_ID}\n\n`);
+                }, 1000);
+              },
+              cancel() {
+                if (timerId !== undefined) {
+                  clearInterval(timerId);
+                }
+              },
+            });
+            return new Response(body.pipeThrough(new TextEncoderStream()), {
+              headers: {
+                "content-type": "text/event-stream",
+              },
+            });
+          },
         },
       };
     }
@@ -620,17 +634,20 @@ export class ServerContext {
     ) {
       const route = sanitizePathToRegex(path);
       staticRoutes[route] = {
-        "HEAD": this.#staticFileHeadHandler(
-          size,
-          contentType,
-          etag,
-        ),
-        "GET": this.#staticFileGetHandler(
-          localUrl,
-          size,
-          contentType,
-          etag,
-        ),
+        baseRoute: route,
+        methods: {
+          "HEAD": this.#staticFileHeadHandler(
+            size,
+            contentType,
+            etag,
+          ),
+          "GET": this.#staticFileGetHandler(
+            localUrl,
+            size,
+            contentType,
+            etag,
+          ),
+        },
       };
     }
 
@@ -656,6 +673,9 @@ export class ServerContext {
           headers: undefined,
         });
       }
+
+      const layouts = selectSharedRoutes("", this.#layouts);
+
       const imports: string[] = [];
       const resp = await internalRender({
         request: req,
@@ -664,7 +684,7 @@ export class ServerContext {
         islands: this.#islands,
         plugins: this.#plugins,
         app: this.#app,
-        layouts: this.#layouts,
+        layouts,
         imports,
         dependenciesFn,
         renderFn: this.#renderFn,
@@ -705,6 +725,8 @@ export class ServerContext {
             throw new Error("This page does not have a component to render.");
           }
 
+          const layouts = selectSharedRoutes(route.baseRoute, this.#layouts);
+
           const resp = await internalRender({
             request: req,
             context: {
@@ -717,7 +739,7 @@ export class ServerContext {
             islands: this.#islands,
             plugins: this.#plugins,
             app: this.#app,
-            layouts: this.#layouts,
+            layouts,
             imports,
             dependenciesFn,
             renderFn: this.#renderFn,
@@ -749,20 +771,26 @@ export class ServerContext {
       const createRender = genRender(route, Status.OK);
       if (typeof route.handler === "function") {
         routes[route.pattern] = {
-          default: (req, ctx, params) =>
-            (route.handler as Handler)(req, {
-              ...ctx,
-              params,
-              render: createRender(req, params, ctx),
-              async renderNotFound<Data = undefined>(data: Data) {
-                return await renderNotFound(req, params, ctx, data);
-              },
-            }),
+          baseRoute: route.baseRoute,
+          methods: {
+            default: (req, ctx, params) =>
+              (route.handler as Handler)(req, {
+                ...ctx,
+                params,
+                render: createRender(req, params, ctx),
+                async renderNotFound<Data = undefined>(data: Data) {
+                  return await renderNotFound(req, params, ctx, data);
+                },
+              }),
+          },
         };
       } else {
-        routes[route.pattern] = {};
+        routes[route.pattern] = {
+          baseRoute: route.baseRoute,
+          methods: {},
+        };
         for (const [method, handler] of Object.entries(route.handler)) {
-          routes[route.pattern][method as router.KnownMethod] = (
+          routes[route.pattern].methods[method as router.KnownMethod] = (
             req,
             ctx,
             params,
@@ -929,6 +957,7 @@ const DEFAULT_APP: AppModule = {
 };
 
 const DEFAULT_NOT_FOUND: UnknownPage = {
+  baseRoute: "",
   pattern: "",
   url: "",
   name: "_404",
@@ -937,6 +966,7 @@ const DEFAULT_NOT_FOUND: UnknownPage = {
 };
 
 const DEFAULT_ERROR: ErrorPage = {
+  baseRoute: "",
   pattern: "",
   url: "",
   name: "_500",
@@ -945,23 +975,20 @@ const DEFAULT_ERROR: ErrorPage = {
   csp: false,
 };
 
-/**
- * Return a list of middlewares that needs to be applied for request url
- * @param url the request url
- * @param middlewares Array of middlewares handlers and their routes as path-to-regexp style
- */
-export function selectMiddlewares(url: string, middlewares: MiddlewareRoute[]) {
-  const selectedMws: Middleware[] = [];
-  const reqURL = new URL(url);
+export function selectSharedRoutes<T>(
+  routeBasePath: string,
+  items: { baseRoute: string; module: T }[],
+): T[] {
+  const selected: T[] = [];
 
-  for (const { compiledPattern, handler } of middlewares) {
-    const res = compiledPattern.exec(reqURL);
+  for (const { baseRoute, module } of items) {
+    const res = routeBasePath.startsWith(baseRoute + "/");
     if (res) {
-      selectedMws.push({ handler });
+      selected.push(module);
     }
   }
 
-  return selectedMws;
+  return selected;
 }
 
 const APP_REG = /_app\.[tj]sx?$/;
@@ -1027,47 +1054,64 @@ function getRoutePathScore(char: string, nextChar: string): number {
 export function pathToPattern(path: string): string {
   const parts = path.split("/");
   if (parts[parts.length - 1] === "index") {
+    if (parts.length === 1) {
+      return "/";
+    }
     parts.pop();
   }
-  const route = "/" + parts
-    .map((part) => {
-      // Case: /[...foo].tsx
-      if (part.startsWith("[...") && part.endsWith("]")) {
-        return `:${part.slice(4, part.length - 1)}*`;
-      }
 
-      // Disallow neighbouring params like `/[id][bar].tsx` because
-      // it's ambiguous where the `id` param ends and `bar` begins.
-      if (part.includes("][")) {
-        throw new SyntaxError(
-          `Invalid route pattern: "${path}". A parameter cannot be followed by another parameter without any characters in between.`,
-        );
-      }
+  let route = "";
 
-      // Case: /[id].tsx
-      // Case: /[id]@[bar].tsx
-      // Case: /[id]-asdf.tsx
-      // Case: /[id]-asdf[bar].tsx
-      // Case: /asdf[bar].tsx
-      let pattern = "";
-      let groupOpen = 0;
-      for (let i = 0; i < part.length; i++) {
-        const char = part[i];
-        if (char === "[") {
-          pattern += ":";
-          groupOpen++;
-        } else if (char === "]") {
-          if (--groupOpen < 0) {
-            throw new SyntaxError(`Invalid route pattern: "${path}"`);
-          }
-        } else {
-          pattern += char;
+  for (let i = 0; i < parts.length; i++) {
+    const part = parts[i];
+
+    // Case: /[...foo].tsx
+    if (part.startsWith("[...") && part.endsWith("]")) {
+      route += `/:${part.slice(4, part.length - 1)}*`;
+      continue;
+    }
+
+    // Route groups like /foo/(bar) should not be included in URL
+    // matching. They are transparent and need to be removed here.
+    // Case: /foo/(bar) -> /foo
+    // Case: /foo/(bar)/bob -> /foo/bob
+    // Case: /(foo)/bar -> /bar
+    if (part.startsWith("(") && part.endsWith(")")) {
+      continue;
+    }
+
+    // Disallow neighbouring params like `/[id][bar].tsx` because
+    // it's ambiguous where the `id` param ends and `bar` begins.
+    if (part.includes("][")) {
+      throw new SyntaxError(
+        `Invalid route pattern: "${path}". A parameter cannot be followed by another parameter without any characters in between.`,
+      );
+    }
+
+    // Case: /[id].tsx
+    // Case: /[id]@[bar].tsx
+    // Case: /[id]-asdf.tsx
+    // Case: /[id]-asdf[bar].tsx
+    // Case: /asdf[bar].tsx
+    let pattern = "";
+    let groupOpen = 0;
+    for (let j = 0; j < part.length; j++) {
+      const char = part[j];
+      if (char === "[") {
+        pattern += ":";
+        groupOpen++;
+      } else if (char === "]") {
+        if (--groupOpen < 0) {
+          throw new SyntaxError(`Invalid route pattern: "${path}"`);
         }
+      } else {
+        pattern += char;
       }
+    }
 
-      return pattern;
-    })
-    .join("/");
+    route += "/" + pattern;
+  }
+
   return route;
 }
 
@@ -1118,24 +1162,12 @@ function serializeCSPDirectives(csp: ContentSecurityPolicyDirectives): string {
     .join("; ");
 }
 
-export function layoutPathToPattern(baseRoute: string) {
-  baseRoute = baseRoute.slice(0, -"_layout".length);
-  let pattern = pathToPattern(baseRoute);
-  if (pattern.endsWith("/")) {
-    pattern = pattern.slice(0, -1) + "{/*}?";
+export function normalizeBaseRoute(baseRoute: string, suffix: string) {
+  baseRoute = baseRoute.slice(0, -suffix.length);
+  if (baseRoute.endsWith("/")) {
+    baseRoute = baseRoute.slice(0, -1);
   }
-  const compiledPattern = new URLPattern({ pathname: pattern });
-  return { pattern, compiledPattern };
-}
-
-export function middlewarePathToPattern(baseRoute: string) {
-  baseRoute = baseRoute.slice(0, -"_middleware".length);
-  let pattern = pathToPattern(baseRoute);
-  if (pattern.endsWith("/")) {
-    pattern = pattern.slice(0, -1) + "{/*}?";
-  }
-  const compiledPattern = new URLPattern({ pathname: pattern });
-  return { pattern, compiledPattern };
+  return baseRoute;
 }
 
 function refreshJs(aliveUrl: string, buildId: string) {

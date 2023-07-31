@@ -147,6 +147,7 @@ export type PageComponent<T = any, S = Record<string, unknown>> =
 
 // deno-lint-ignore no-explicit-any
 export interface Route<Data = any> {
+  baseRoute: string;
   pattern: string;
   url: string;
   name: string;
@@ -177,15 +178,9 @@ export interface LayoutModule {
   default: ComponentType<LayoutProps>;
 }
 
-export interface LayoutRoute extends LayoutModule {
-  /**
-   * path-to-regexp style url path
-   */
-  pattern: string;
-  /**
-   * URLPattern of the route
-   */
-  compiledPattern: URLPattern;
+export interface LayoutRoute {
+  baseRoute: string;
+  module: LayoutModule;
 }
 
 // --- UNKNOWN PAGE ---
@@ -224,6 +219,7 @@ export interface UnknownPageModule {
 }
 
 export interface UnknownPage {
+  baseRoute: string;
   pattern: string;
   url: string;
   name: string;
@@ -265,6 +261,7 @@ export interface ErrorPageModule {
 }
 
 export interface ErrorPage {
+  baseRoute: string;
   pattern: string;
   url: string;
   name: string;
@@ -283,15 +280,9 @@ export interface MiddlewareHandlerContext<State = Record<string, unknown>>
   params: Record<string, string>;
 }
 
-export interface MiddlewareRoute extends Middleware {
-  /**
-   * path-to-regexp style url path
-   */
-  pattern: string;
-  /**
-   * URLPattern of the route
-   */
-  compiledPattern: URLPattern;
+export interface MiddlewareRoute {
+  baseRoute: string;
+  module: Middleware;
 }
 
 export type MiddlewareHandler<State = Record<string, unknown>> = (

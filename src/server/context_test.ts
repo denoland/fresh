@@ -1,11 +1,6 @@
 import { assertEquals, assertThrows } from "$std/testing/asserts.ts";
 import { assert } from "../../tests/deps.ts";
-import {
-  middlewarePathToPattern,
-  pathToPattern,
-  selectMiddlewares,
-} from "./context.ts";
-import { MiddlewareRoute } from "./types.ts";
+import { pathToPattern, selectSharedRoutes } from "./context.ts";
 
 Deno.test("selectMiddlewares", () => {
   const url = "https://fresh.deno.dev/api/abc/def";
@@ -21,10 +16,11 @@ Deno.test("selectMiddlewares", () => {
     "api/[id]/xyz/_middleware",
     "api/[id]/[path]/foo/_middleware",
   ];
-  const mwRoutes = middlewaresPath.map((path) =>
-    middlewarePathToPattern(path)
-  ) as MiddlewareRoute[];
-  const mws = selectMiddlewares(url, mwRoutes);
+  const mwRoutes = middlewaresPath.map((baseRoute) => ({
+    baseRoute,
+    module: null,
+  }));
+  const mws = selectSharedRoutes(url, mwRoutes);
   assert(mws.length === 4);
 });
 
