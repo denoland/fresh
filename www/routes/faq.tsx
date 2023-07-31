@@ -1,6 +1,3 @@
-export default FAQ;
-export { handler };
-
 import { Handlers, PageProps } from "$fresh/server.ts";
 import { frontMatter, gfm } from "../utils/markdown.ts";
 import { asset, Head } from "$fresh/runtime.ts";
@@ -15,7 +12,7 @@ interface Data {
   };
 }
 
-const handler = {
+export const handler: Handlers<Data> = {
   async GET(_req, ctx) {
     const url = new URL(`../../docs/faq.md`, import.meta.url);
     const fileContent = await Deno.readTextFile(url);
@@ -30,9 +27,9 @@ const handler = {
 
     return ctx.render(data);
   },
-} satisfies Handlers;
+};
 
-function FAQ(props: PageProps<Data>) {
+export default function FAQ(props: PageProps<Data>) {
   const ogImageUrl = new URL(asset("/home-og.png"), props.url).href;
   let description = "Fresh Document";
 
@@ -40,13 +37,19 @@ function FAQ(props: PageProps<Data>) {
     description = String(props.data.page.data.description);
   }
 
+  let title = "FAQ";
+
+  if (props.data.page.data.title) {
+    title = String(props.data.page.data.title);
+  }
+
   return (
     <>
       <Head>
-        <title>FAQ</title>
+        <title>{title}</title>
         <link rel="stylesheet" href={asset("/gfm.css")} />
         <meta name="description" content={description} />
-        <meta property="og:title" content="FAQ" />
+        <meta property="og:title" content={title} />
         <meta property="og:description" content={description} />
         <meta property="og:type" content="website" />
         <meta property="og:url" content={props.url.href} />
@@ -55,14 +58,14 @@ function FAQ(props: PageProps<Data>) {
       </Head>
       <div class="flex flex-col min-h-screen">
         <Header title="docs" active="/faq" />
-        <Content markdown={props.data.page.markdown} />
+        <Content markdown={props.data.page.markdown} title={title} />
         <Footer />
       </div>
     </>
   );
 }
 
-function Content(props: { markdown: string }) {
+function Content(props: { markdown: string; title: string }) {
   let html = gfm.render(props.markdown);
 
   html += `
@@ -80,7 +83,7 @@ function Content(props: { markdown: string }) {
     <div class="flex justify-center">
       <main class="py-6 max-w-[700px] min-w-[min(60%,700px)]">
         <h1 class="text(4xl gray-900) tracking-tight font-extrabold mt-6 md:mt-0">
-          FAQ
+          {props.title}
         </h1>
         <div
           class="mt-6 markdown-body"

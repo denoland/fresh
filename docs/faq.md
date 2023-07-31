@@ -2,6 +2,8 @@
 description: |
     We have collected various questions you asked 
     and combined them with our answers this FAQ.
+title : |
+    FAQ
 ---
 
 [Contributing]: https://deno.land/manual@v1.35.1/references/contributing#submitting-a-pr-to-fresh
