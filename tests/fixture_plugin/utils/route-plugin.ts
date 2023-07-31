@@ -7,7 +7,9 @@ interface Options {
   title: string;
 }
 
-export default function routePlugin(options: Options): Plugin {
+export default function routePlugin(
+  options: Options,
+): Plugin<{ test: string }> {
   return {
     name: "routePlugin",
     middlewares: [{
