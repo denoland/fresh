@@ -20,3 +20,4 @@ export {
   default as puppeteer,
   Page,
 } from "https://deno.land/x/puppeteer@16.2.0/mod.ts";
+export { DOMParser } from "https://esm.sh/linkedom@0.15.1";

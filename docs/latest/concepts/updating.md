@@ -3,7 +3,7 @@ description: |
   New versions of Fresh are regularly released. This page explains how to update your project.
 ---
 
-Fresh constists of multiple pieces which are independently versioned and
+Fresh consists of multiple pieces which are independently versioned and
 released.
 
 - Fresh (https://deno.land/x/fresh)

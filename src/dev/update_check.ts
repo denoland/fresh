@@ -1,4 +1,4 @@
-import { colors, join } from "./deps.ts";
+import { colors, join, semver } from "./deps.ts";
 
 export interface CheckFile {
   last_checked: string;
@@ -45,10 +45,18 @@ async function fetchLatestVersion() {
   throw new Error(`Could not fetch latest version.`);
 }
 
+async function readCurrentVersion() {
+  const versions = (await import("../../versions.json", {
+    "assert": { type: "json" },
+  })).default as string[];
+  return versions[0];
+}
+
 export async function updateCheck(
   interval: number,
   getCacheDir = getFreshCacheDir,
   getLatestVersion = fetchLatestVersion,
+  getCurrentVersion = readCurrentVersion,
 ) {
   // Skip update checks on CI or Deno Deploy
   if (
@@ -70,13 +78,11 @@ export async function updateCheck(
     }
   }
 
-  const versions = (await import("../../versions.json", {
-    "assert": { type: "json" },
-  })).default as string[];
+  const version = await getCurrentVersion();
 
   let checkFile: CheckFile = {
-    current_version: versions[0],
-    latest_version: versions[0],
+    current_version: version,
+    latest_version: version,
     last_checked: new Date(0).toISOString(),
   };
   try {
@@ -89,9 +95,9 @@ export async function updateCheck(
   }
 
   // Update current version
-  checkFile.current_version = versions[0];
+  checkFile.current_version = version;
 
-  // Only check in the specificed interval
+  // Only check in the specified interval
   if (Date.now() >= new Date(checkFile.last_checked).getTime() + interval) {
     try {
       checkFile.latest_version = await getLatestVersion();
@@ -105,7 +111,12 @@ export async function updateCheck(
     }
   }
 
-  if (checkFile.current_version !== checkFile.latest_version) {
+  // Only show update message if current version is smaller than latest
+  const currentVersion = semver.parse(checkFile.current_version);
+  const latestVersion = semver.parse(checkFile.latest_version);
+  if (
+    semver.lt(currentVersion, latestVersion)
+  ) {
     const current = colors.bold(colors.rgb8(checkFile.current_version, 208));
     const latest = colors.bold(colors.rgb8(checkFile.latest_version, 121));
     console.log(
