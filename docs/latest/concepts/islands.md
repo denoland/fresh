@@ -8,8 +8,7 @@ components that are rendered on the client. This is different from all other
 components in Fresh, as they are usually just rendered on the server.
 
 Islands are defined by creating a file in the `islands/` folder in a Fresh
-project. The name of this file must be a PascalCase or kebab-case name of the
-island.
+project.
 
 ```tsx
 // islands/MyIsland.tsx
