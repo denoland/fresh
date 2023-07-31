@@ -59,11 +59,9 @@ export interface PageProps<T = any, S = Record<string, unknown>> {
 /**
  * Context passed to async route components.
  */
-export type RouteContext<T = unknown, S = Record<string, unknown>> =
-  & Omit<
-    HandlerContext<T, S>,
-    "render"
-  >
+// deno-lint-ignore no-explicit-any
+export type RouteContext<T = any, S = Record<string, unknown>> =
+  & Omit<HandlerContext<T, S>, "render">
   & Omit<PageProps<unknown, S>, "data">;
 
 export interface RouteConfig {
@@ -329,7 +327,7 @@ export interface Island {
 
 // --- PLUGINS ---
 
-export interface Plugin {
+export interface Plugin<State = Record<string, unknown>> {
   /** The name of the plugin. Must be snake-case. */
   name: string;
 
@@ -363,7 +361,7 @@ export interface Plugin {
 
   routes?: PluginRoute[];
 
-  middlewares?: PluginMiddleware[];
+  middlewares?: PluginMiddleware<State>[];
 }
 
 export interface PluginRenderContext {
@@ -415,11 +413,11 @@ export interface PluginRenderFunctionResult {
   requiresHydration: boolean;
 }
 
-export interface PluginMiddleware {
+export interface PluginMiddleware<State = Record<string, unknown>> {
   /** A path in the format of a filename path without filetype */
   path: string;
 
-  middleware: Middleware;
+  middleware: Middleware<State>;
 }
 
 export interface PluginRoute {
@@ -430,4 +428,17 @@ export interface PluginRoute {
 
   // deno-lint-ignore no-explicit-any
   handler?: Handler<any, any> | Handlers<any, any>;
+}
+
+export interface StaticFile {
+  /** The URL to the static file on disk. */
+  localUrl: URL;
+  /** The path to the file as it would be in the incoming request. */
+  path: string;
+  /** The size of the file. */
+  size: number;
+  /** The content-type of the file. */
+  contentType: string;
+  /** Hash of the file contents. */
+  etag: string;
 }

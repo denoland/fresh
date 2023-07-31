@@ -2,6 +2,7 @@ import {
   dirname,
   extname,
   fromFileUrl,
+  groupBy,
   join,
   JSONC,
   Status,
@@ -38,6 +39,7 @@ import {
   RouterOptions,
   RouterState,
   ServeHandlerInfo,
+  StaticFile,
   UnknownPage,
   UnknownPageModule,
 } from "./types.ts";
@@ -55,6 +57,18 @@ import {
   JSXConfig,
 } from "../build/mod.ts";
 import { InternalRoute } from "./router.ts";
+import {
+  assertModuleExportsDefault,
+  assertNoStaticRouteConflicts,
+  assertPluginsCallRender,
+  assertPluginsCallRenderAsync,
+  assertPluginsInjectModules,
+  assertRoutesHaveHandlerOrComponent,
+  assertSingleModule,
+  assertSingleRoutePattern,
+  assertStaticDirSafety,
+  CheckFunction,
+} from "$fresh/src/server/dev_checks.ts";
 
 const DEFAULT_CONN_INFO: ServeHandlerInfo = {
   localAddr: { transport: "tcp", hostname: "localhost", port: 8080 },
@@ -71,20 +85,6 @@ function isDevMode() {
   // Env var is only set in prod (on Deploy).
   return Deno.env.get("DENO_DEPLOYMENT_ID") === undefined;
 }
-
-interface StaticFile {
-  /** The URL to the static file on disk. */
-  localUrl: URL;
-  /** The path to the file as it would be in the incoming request. */
-  path: string;
-  /** The size of the file. */
-  size: number;
-  /** The content-type of the file. */
-  contentType: string;
-  /** Hash of the file contents. */
-  etag: string;
-}
-
 export class ServerContext {
   #dev: boolean;
   #routes: Route[];
@@ -146,6 +146,7 @@ export class ServerContext {
   ): Promise<ServerContext> {
     // Get the manifest' base URL.
     const baseUrl = new URL("./", manifest.baseUrl).href;
+    const defaultStaticDir = "./static";
 
     const { config, path: configPath } = await readDenoConfig(
       fromFileUrl(baseUrl),
@@ -183,7 +184,9 @@ export class ServerContext {
     let app: AppModule = DEFAULT_APP;
     const layouts: LayoutRoute[] = [];
     let notFound: UnknownPage = DEFAULT_NOT_FOUND;
+    let unknownModule: UnknownPageModule | null = null;
     let error: ErrorPage = DEFAULT_ERROR;
+    let errorModule: ErrorPageModule | null = null;
     const allRoutes = [
       ...Object.entries(manifest.routes),
       ...Object.entries(getMiddlewareRoutesFromPlugins(opts.plugins || [])),
@@ -268,6 +271,7 @@ export class ServerContext {
         path === "/_404.tsx" || path === "/_404.ts" ||
         path === "/_404.jsx" || path === "/_404.js"
       ) {
+        unknownModule = module as UnknownPageModule;
         const { default: component, config } = module as UnknownPageModule;
         let { handler } = module as UnknownPageModule;
         if (component && handler === undefined) {
@@ -286,6 +290,7 @@ export class ServerContext {
         path === "/_500.tsx" || path === "/_500.ts" ||
         path === "/_500.jsx" || path === "/_500.js"
       ) {
+        errorModule = module as ErrorPageModule;
         const { default: component, config } = module as ErrorPageModule;
         let { handler } = module as ErrorPageModule;
         if (component && handler === undefined) {
@@ -334,7 +339,7 @@ export class ServerContext {
     const staticFiles: StaticFile[] = [];
     try {
       const staticFolder = new URL(
-        opts.staticDir ?? "./static",
+        opts.staticDir ?? defaultStaticDir,
         manifest.baseUrl,
       );
       const entries = walk(fromFileUrl(staticFolder), {
@@ -376,6 +381,31 @@ export class ServerContext {
 
     const dev = isDevMode();
     if (dev) {
+      const checks: CheckFunction[] = [
+        () => assertModuleExportsDefault(app, "_app"),
+        () => assertSingleModule(routes, "_app"),
+        () => assertModuleExportsDefault(unknownModule, "_404"),
+        () => assertSingleModule(routes, "_404"),
+        () => assertSingleRoutePattern(routes),
+        () => assertModuleExportsDefault(errorModule, "_500"),
+        () => assertSingleModule(routes, "_500"),
+        () => assertRoutesHaveHandlerOrComponent(routes),
+        () => assertStaticDirSafety(opts.staticDir ?? "", defaultStaticDir),
+        () => assertNoStaticRouteConflicts(routes, staticFiles),
+        () => assertPluginsCallRender(opts.plugins ?? []),
+        () => assertPluginsCallRenderAsync(opts.plugins ?? []),
+        () => assertPluginsInjectModules(opts.plugins ?? []),
+      ];
+
+      const results = checks.flatMap((check) => check());
+
+      results.forEach((result) => {
+        console.log(`[${result.category}] ${result.message}`);
+        if (result.fileLink) {
+          console.log(`See: ${result.fileLink}`);
+        }
+      });
+
       // Ensure that debugging hooks are set up for SSR rendering
       await import("preact/debug");
     }
@@ -1240,24 +1270,49 @@ async function readDenoConfig(
   }
 }
 
+function formatMiddlewarePath(path: string): string {
+  let formattedPath = path;
+  if (!path.startsWith("/")) {
+    formattedPath = `/${formattedPath}`;
+  }
+  if (!formattedPath.endsWith("/")) {
+    formattedPath = `${formattedPath}/`;
+  }
+  return formattedPath;
+}
+
 function getMiddlewareRoutesFromPlugins(
   plugins: Plugin[],
 ): Record<string, MiddlewareModule> {
-  return (Object.assign(
-    {},
-    ...[
-      ...new Set(
-        ([] as PluginMiddleware[]).concat(
-          ...plugins.map((p) => p.middlewares || []),
-        ),
-      ),
-    ]
-      .map((middleware: PluginMiddleware) => ({
-        [`./routes${middleware.path}_middleware.ts`]: {
-          handler: middleware.middleware.handler,
-        },
-      })) || [],
-  ));
+  // 1. Collect all middlewares from all plugins
+  const allPluginMiddlewares = plugins.flatMap((plugin) =>
+    plugin.middlewares || []
+  );
+
+  // 2. Group PluginMiddleware by their path
+  const groupedPluginMiddlewares: Record<string, PluginMiddleware[]> = {
+    ...(groupBy(
+      allPluginMiddlewares,
+      (middleware) =>
+        `./routes${formatMiddlewarePath(middleware.path)}_middleware.ts`,
+    ) as Record<string, PluginMiddleware[]>),
+  };
+
+  // 3. Convert the grouped PluginMiddleware to MiddlewareModule
+  // this involves merging the Handler or Handler[]
+  const middlewareRoutes: Record<string, MiddlewareModule> = Object.fromEntries(
+    Object.entries(groupedPluginMiddlewares).map(([key, pluginMiddlewares]) => {
+      const handler = pluginMiddlewares.flatMap((pluginMiddleware) => {
+        const middlewareHandler = pluginMiddleware.middleware.handler;
+        return Array.isArray(middlewareHandler)
+          ? middlewareHandler
+          : [middlewareHandler];
+      });
+      return [key, { handler }];
+    }),
+  );
+
+  return middlewareRoutes;
 }
 
 function getRoutesFromPlugins(plugins: Plugin[]): Record<string, RouteModule> {
