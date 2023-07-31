@@ -1,7 +1,9 @@
 import { MiddlewareHandlerContext, Plugin } from "$fresh/server.ts";
 import { PluginMiddlewareState } from "./route-plugin.ts";
 
-export default function secondMiddlewarePlugin(): Plugin {
+export default function secondMiddlewarePlugin(): Plugin<
+  PluginMiddlewareState
+> {
   return {
     name: "secondMiddlewarePlugin",
     middlewares: [{

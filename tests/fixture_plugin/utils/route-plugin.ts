@@ -6,9 +6,9 @@ export type { Options };
 interface Options {
   title: string;
 }
-
 export type PluginMiddlewareState = {
   num: number;
+  test: string;
 };
 
 const twoPointlessMiddlewares = [
@@ -28,7 +28,9 @@ const twoPointlessMiddlewares = [
   },
 ];
 
-export default function routePlugin(options: Options): Plugin {
+export default function routePlugin(
+  options: Options,
+): Plugin<PluginMiddlewareState> {
   return {
     name: "routePlugin",
     middlewares: [{
