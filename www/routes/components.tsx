@@ -30,7 +30,7 @@ export const handler: Handlers<HomeProps> = {
   },
 };
 
-const TITLE = "Components | fresh";
+const TITLE = "Components | Fresh";
 const DESCRIPTION = "A collection of components made for Fresh.";
 
 interface HomeProps {
@@ -45,7 +45,7 @@ export default function Home(props: PageProps<HomeProps>) {
         <title>{TITLE}</title>
         <link
           rel="stylesheet"
-          href="https://esm.sh/prismjs@1.27.0/themes/prism-dark.min.css"
+          href="https://esm.sh/prismjs@1.29.0/themes/prism-dark.min.css"
         />
         <meta name="description" content={DESCRIPTION} />
         <meta property="og:title" content={TITLE} />
@@ -53,6 +53,7 @@ export default function Home(props: PageProps<HomeProps>) {
         <meta property="og:type" content="website" />
         <meta property="og:url" content={props.url.href} />
         <meta property="og:image" content={ogImageUrl} />
+        <meta name="view-transition" content="same-origin" />
       </Head>
       <Header title="components" active="/components" />
 

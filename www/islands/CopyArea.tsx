@@ -4,15 +4,15 @@ import { IS_BROWSER } from "$fresh/runtime.ts";
 import * as Icons from "../components/Icons.tsx";
 import { useSignal } from "@preact/signals";
 
-export default function CopyArea(props: { children: ComponentChildren }) {
+export default function CopyArea(props: { code: string }) {
   const copied = useSignal(false);
 
   async function handleClick() {
-    if (props.children === undefined || props.children === null) {
+    if (props.code === undefined || props.code === null) {
       return;
     }
     try {
-      await navigator.clipboard.writeText(props.children.toString());
+      await navigator.clipboard.writeText(props.code.toString());
       copied.value = true;
     } catch (error) {
       copied.value = false;
@@ -31,15 +31,15 @@ export default function CopyArea(props: { children: ComponentChildren }) {
   }, [copied.value]);
 
   return (
-    <div class="bg(gray-800) rounded text-white flex items-center">
+    <div class="bg(gray-800) rounded text-white flex items-center min-w-0">
       <pre class="overflow-x-auto flex-1 py-2 px-4">
-        {props.children}
+        {props.code}
       </pre>
 
       <div class="relative my-2 mr-4">
         <div
-          class={`transition ease-in-out absolute pointer-events-none bg-gray-900 text-white absolute p-2 -top-1/3 left-1/2 transform -translate-x-1/2 -translate-y-full box-border rounded opacity-0 ${
-            copied.value && "opacity-100"
+          class={`hidden transition ease-in-out absolute pointer-events-none bg-gray-900 text-white absolute p-2 -top-1/3 left-1/2 transform -translate-x-1/2 -translate-y-full box-border rounded opacity-0 ${
+            copied.value && "block opacity-100"
           }`}
         >
           Copied!

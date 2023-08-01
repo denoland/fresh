@@ -5,38 +5,31 @@ import {
   assertStringIncludes,
   delay,
   puppeteer,
-  TextLineStream,
+  retry,
 } from "./deps.ts";
 import manifest from "./fixture/fresh.gen.ts";
 import options from "./fixture/options.ts";
 import { BUILD_ID } from "../src/server/build_id.ts";
+import {
+  parseHtml,
+  startFreshServer,
+  waitForText,
+  withPageName,
+} from "./test_utils.ts";
+import { assertMatch } from "https://deno.land/std@0.193.0/testing/asserts.ts";
 
 const ctx = await ServerContext.fromManifest(manifest, options);
 const handler = ctx.handler();
-const router = (req: Request) => {
-  return handler(req, {
-    localAddr: {
-      transport: "tcp",
-      hostname: "127.0.0.1",
-      port: 80,
-    },
-    remoteAddr: {
-      transport: "tcp",
-      hostname: "127.0.0.1",
-      port: 80,
-    },
-  });
-};
 
 Deno.test("/ page prerender", async () => {
-  const resp = await router(new Request("https://fresh.deno.dev/"));
+  const resp = await handler(new Request("https://fresh.deno.dev/"));
   assert(resp);
   assertEquals(resp.status, Status.OK);
   assertEquals(resp.headers.get("content-type"), "text/html; charset=utf-8");
   assertEquals(resp.headers.get("server"), "fresh test server");
   const body = await resp.text();
   assertStringIncludes(body, `<html lang="en">`);
-  assertStringIncludes(body, "test.js");
+  assertStringIncludes(body, "test_default.js");
   assertStringIncludes(body, "<p>Hello!</p>");
   assertStringIncludes(body, "<p>Viewing JIT render.</p>");
   assertStringIncludes(body, `>{"v":[[{"message":"Hello!"}],[]]}</script>`);
@@ -44,23 +37,31 @@ Deno.test("/ page prerender", async () => {
     body,
     '<meta name="description" content="Hello world!"/>',
   );
+  assertStringIncludes(
+    body,
+    '<meta name="generator" content="The freshest framework!"/>',
+  );
+  assert(
+    !body.includes("specialTag"),
+    `Expected actual: "${body}" to not contain: "specialTag"`,
+  );
   assertStringIncludes(body, `<link rel="modulepreload"`);
 });
 
 Deno.test("/props/123 page prerender", async () => {
-  const resp = await router(new Request("https://fresh.deno.dev/props/123"));
+  const resp = await handler(new Request("https://fresh.deno.dev/props/123"));
   assert(resp);
   assertEquals(resp.status, Status.OK);
   assertEquals(resp.headers.get("content-type"), "text/html; charset=utf-8");
   const body = await resp.text();
   assertStringIncludes(
     body,
-    `{&quot;params&quot;:{&quot;id&quot;:&quot;123&quot;},&quot;url&quot;:&quot;https://fresh.deno.dev/props/123&quot;,&quot;route&quot;:&quot;/props/:id&quot;}`,
+    `{&quot;params&quot;:{&quot;id&quot;:&quot;123&quot;},&quot;url&quot;:&quot;https://fresh.deno.dev/props/123&quot;,&quot;route&quot;:&quot;/props/:id&quot;,&quot;state&quot;:{&quot;root&quot;:&quot;root_mw&quot;}}`,
   );
 });
 
-Deno.test("/[name] page prerender", async () => {
-  const resp = await router(new Request("https://fresh.deno.dev/bar"));
+Deno.test("/greet/[name] page prerender", async () => {
+  const resp = await handler(new Request("https://fresh.deno.dev/bar"));
   assert(resp);
   assertEquals(resp.status, Status.OK);
   assertEquals(resp.headers.get("content-type"), "text/html; charset=utf-8");
@@ -72,7 +73,7 @@ Deno.test("/api/head_override - HEAD", async () => {
   const req = new Request("https://fresh.deno.dev/api/head_override", {
     method: "HEAD",
   });
-  const resp = await router(req);
+  const resp = await handler(req);
   assert(resp);
   assertEquals(resp.status, Status.NoContent);
   assertEquals(resp.body, null);
@@ -86,7 +87,7 @@ Deno.test("/api/get_only - HEAD fallback", async () => {
   const req = new Request("https://fresh.deno.dev/api/get_only", {
     method: "HEAD",
   });
-  const resp = await router(req);
+  const resp = await handler(req);
   assert(resp);
   assertEquals(resp.status, Status.OK);
   assertEquals(resp.body, null);
@@ -100,7 +101,7 @@ Deno.test("/intercept - GET html", async () => {
   const req = new Request("https://fresh.deno.dev/intercept", {
     headers: { "accept": "text/html" },
   });
-  const resp = await router(req);
+  const resp = await handler(req);
   assert(resp);
   assertEquals(resp.status, Status.OK);
   const body = await resp.text();
@@ -111,7 +112,7 @@ Deno.test("/intercept - GET text", async () => {
   const req = new Request("https://fresh.deno.dev/intercept", {
     headers: { "accept": "text/plain" },
   });
-  const resp = await router(req);
+  const resp = await handler(req);
   assert(resp);
   assertEquals(resp.status, Status.OK);
   const body = await resp.text();
@@ -122,7 +123,7 @@ Deno.test("/intercept - POST", async () => {
   const req = new Request("https://fresh.deno.dev/intercept", {
     method: "POST",
   });
-  const resp = await router(req);
+  const resp = await handler(req);
   assert(resp);
   assertEquals(resp.status, Status.OK);
   const body = await resp.text();
@@ -133,7 +134,7 @@ Deno.test("/intercept - DELETE", async () => {
   const req = new Request("https://fresh.deno.dev/intercept", {
     method: "DELETE",
   });
-  const resp = await router(req);
+  const resp = await handler(req);
   assert(resp);
   assertEquals(resp.status, Status.MethodNotAllowed);
 });
@@ -142,7 +143,7 @@ Deno.test("/intercept_args - GET html", async () => {
   const req = new Request("https://fresh.deno.dev/intercept_args", {
     headers: { "accept": "text/html" },
   });
-  const resp = await router(req);
+  const resp = await handler(req);
   assert(resp);
   assertEquals(resp.status, Status.OK);
   const body = await resp.text();
@@ -153,7 +154,7 @@ Deno.test("/status_overwrite", async () => {
   const req = new Request("https://fresh.deno.dev/status_overwrite", {
     headers: { "accept": "text/html" },
   });
-  const resp = await router(req);
+  const resp = await handler(req);
   assert(resp);
   assertEquals(resp.status, Status.Unauthorized);
   assertEquals(resp.headers.get("x-some-header"), "foo");
@@ -162,7 +163,7 @@ Deno.test("/status_overwrite", async () => {
 });
 
 Deno.test("/api/get_only - NOTAMETHOD", async () => {
-  const resp = await router(
+  const resp = await handler(
     new Request("https://fresh.deno.dev/api/get_only", {
       method: "NOTAMETHOD",
     }),
@@ -172,7 +173,7 @@ Deno.test("/api/get_only - NOTAMETHOD", async () => {
 });
 
 Deno.test("/api/xyz not found", async () => {
-  const resp = await router(new Request("https://fresh.deno.dev/api/xyz"));
+  const resp = await handler(new Request("https://fresh.deno.dev/api/xyz"));
   assert(resp);
   assertEquals(resp.status, Status.NotFound);
   const body = await resp.text();
@@ -180,7 +181,7 @@ Deno.test("/api/xyz not found", async () => {
 });
 
 Deno.test("/static page prerender", async () => {
-  const resp = await router(new Request("https://fresh.deno.dev/static"));
+  const resp = await handler(new Request("https://fresh.deno.dev/static"));
   assert(resp);
   assertEquals(resp.status, Status.OK);
   assertEquals(resp.headers.get("content-type"), "text/html; charset=utf-8");
@@ -193,7 +194,7 @@ Deno.test("/static page prerender", async () => {
 });
 
 Deno.test("/books/:id page - /books/123", async () => {
-  const resp = await router(new Request("https://fresh.deno.dev/books/123"));
+  const resp = await handler(new Request("https://fresh.deno.dev/books/123"));
   assert(resp);
   assertEquals(resp.status, Status.OK);
   assertEquals(resp.headers.get("content-type"), "text/html; charset=utf-8");
@@ -202,13 +203,15 @@ Deno.test("/books/:id page - /books/123", async () => {
 });
 
 Deno.test("/books/:id page - /books/abc", async () => {
-  const resp = await router(new Request("https://fresh.deno.dev/books/abc"));
+  const resp = await handler(new Request("https://fresh.deno.dev/books/abc"));
   assert(resp);
   assertEquals(resp.status, Status.NotFound);
 });
 
 Deno.test("redirect /pages/fresh/ to /pages/fresh", async () => {
-  const resp = await router(new Request("https://fresh.deno.dev/pages/fresh/"));
+  const resp = await handler(
+    new Request("https://fresh.deno.dev/pages/fresh/"),
+  );
   assert(resp);
   assertEquals(resp.status, Status.TemporaryRedirect);
   assertEquals(
@@ -218,7 +221,7 @@ Deno.test("redirect /pages/fresh/ to /pages/fresh", async () => {
 });
 
 Deno.test("redirect /pages/////fresh///// to /pages/////fresh", async () => {
-  const resp = await router(
+  const resp = await handler(
     new Request("https://fresh.deno.dev/pages/////fresh/////"),
   );
   assert(resp);
@@ -230,7 +233,7 @@ Deno.test("redirect /pages/////fresh///// to /pages/////fresh", async () => {
 });
 
 Deno.test("redirect /pages/////fresh/ to /pages/////fresh", async () => {
-  const resp = await router(
+  const resp = await handler(
     new Request("https://fresh.deno.dev/pages/////fresh/"),
   );
   assert(resp);
@@ -242,7 +245,7 @@ Deno.test("redirect /pages/////fresh/ to /pages/////fresh", async () => {
 });
 
 Deno.test("no redirect for /pages/////fresh", async () => {
-  const resp = await router(
+  const resp = await handler(
     new Request("https://fresh.deno.dev/pages/////fresh"),
   );
   assert(resp);
@@ -250,7 +253,7 @@ Deno.test("no redirect for /pages/////fresh", async () => {
 });
 
 Deno.test("/failure", async () => {
-  const resp = await router(new Request("https://fresh.deno.dev/failure"));
+  const resp = await handler(new Request("https://fresh.deno.dev/failure"));
   assert(resp);
   assertEquals(resp.status, Status.InternalServerError);
   const body = await resp.text();
@@ -258,7 +261,7 @@ Deno.test("/failure", async () => {
 });
 
 Deno.test("/foo/:path*", async () => {
-  const resp = await router(new Request("https://fresh.deno.dev/foo/bar/baz"));
+  const resp = await handler(new Request("https://fresh.deno.dev/foo/bar/baz"));
   assert(resp);
   assertEquals(resp.status, Status.OK);
   const body = await resp.text();
@@ -272,11 +275,6 @@ Deno.test("static files in custom directory", async () => {
   });
   const newRouter = (req: Request) => {
     return newCtx.handler()(req, {
-      localAddr: {
-        transport: "tcp",
-        hostname: "127.0.0.1",
-        port: 80,
-      },
       remoteAddr: {
         transport: "tcp",
         hostname: "127.0.0.1",
@@ -294,7 +292,7 @@ Deno.test("static files in custom directory", async () => {
 });
 
 Deno.test("static file - by file path", async () => {
-  const resp = await router(new Request("https://fresh.deno.dev/foo.txt"));
+  const resp = await handler(new Request("https://fresh.deno.dev/foo.txt"));
   assertEquals(resp.status, Status.OK);
   const body = await resp.text();
   assert(body.startsWith("bar"));
@@ -305,7 +303,7 @@ Deno.test("static file - by file path", async () => {
   assert(!etag.startsWith("W/"), "etag should be weak");
   assertEquals(resp.headers.get("content-type"), "text/plain");
 
-  const resp2 = await router(
+  const resp2 = await handler(
     new Request("https://fresh.deno.dev/foo.txt", {
       headers: {
         "if-none-match": etag,
@@ -316,7 +314,7 @@ Deno.test("static file - by file path", async () => {
   assertEquals(resp2.headers.get("etag"), etag);
   assertEquals(resp2.headers.get("content-type"), "text/plain");
 
-  const resp3 = await router(
+  const resp3 = await handler(
     new Request("https://fresh.deno.dev/foo.txt", {
       headers: {
         "if-none-match": `W/${etag}`,
@@ -330,7 +328,7 @@ Deno.test("static file - by file path", async () => {
 
 Deno.test("HEAD request", async () => {
   // Static file
-  const resp = await router(
+  const resp = await handler(
     new Request("https://fresh.deno.dev/foo.txt", {
       method: "HEAD",
     }),
@@ -340,7 +338,7 @@ Deno.test("HEAD request", async () => {
   assertEquals(body, "");
 
   // route
-  const resp2 = await router(
+  const resp2 = await handler(
     new Request("https://fresh.deno.dev/books/123", {
       method: "HEAD",
     }),
@@ -353,7 +351,7 @@ Deno.test("HEAD request", async () => {
 
 Deno.test("static file - by 'hashed' path", async () => {
   // Check that the file path have the BUILD_ID
-  const resp = await router(
+  const resp = await handler(
     new Request("https://fresh.deno.dev/assetsCaching"),
   );
   const body = await resp.text();
@@ -361,8 +359,8 @@ Deno.test("static file - by 'hashed' path", async () => {
   assert(imgFilePath);
   assert(imgFilePath.includes(`?__frsh_c=${BUILD_ID}`));
 
-  // check the static file is served corectly under its cacheable route
-  const resp2 = await router(
+  // check the static file is served correctly under its cacheable route
+  const resp2 = await handler(
     new Request(`https://fresh.deno.dev${imgFilePath}`),
   );
   const _ = await resp2.text();
@@ -372,7 +370,7 @@ Deno.test("static file - by 'hashed' path", async () => {
     "public, max-age=31536000, immutable",
   );
 
-  const resp3 = await router(
+  const resp3 = await handler(
     new Request(`https://fresh.deno.dev${imgFilePath}`, {
       headers: {
         "if-none-match": resp2.headers.get("etag")!,
@@ -414,7 +412,7 @@ Deno.test("static file - by 'hashed' path", async () => {
 });
 
 Deno.test("/params/:path*", async () => {
-  const resp = await router(
+  const resp = await handler(
     new Request("https://fresh.deno.dev/params/bar/baz"),
   );
   assert(resp);
@@ -424,17 +422,33 @@ Deno.test("/params/:path*", async () => {
 });
 
 Deno.test("/connInfo", async () => {
-  const resp = await router(new Request("https://fresh.deno.dev/connInfo"));
+  const resp = await handler(new Request("https://fresh.deno.dev/connInfo"));
   assert(resp);
   assertEquals(resp.status, Status.OK);
   const body = await resp.text();
-  assertEquals(body, "127.0.0.1");
+  assertEquals(body, "localhost");
+});
+
+Deno.test("state in page props", async () => {
+  const resp = await handler(
+    new Request("https://fresh.deno.dev/state-in-props"),
+  );
+  assert(resp);
+  assertEquals(resp.status, Status.OK);
+  assertEquals(resp.headers.get("content-type"), "text/html; charset=utf-8");
+  const body = await resp.text();
+  assertStringIncludes(
+    body,
+    '<meta name="generator" content="The freshest framework!"/>',
+  );
+  assertStringIncludes(body, "specialTag");
+  assertStringIncludes(body, "LOOK, I AM SET FROM MIDDLEWARE");
 });
 
 Deno.test({
   name: "/middleware - root",
   fn: async () => {
-    const resp = await router(
+    const resp = await handler(
       new Request("https://fresh.deno.dev/middleware_root"),
     );
     assert(resp);
@@ -448,7 +462,7 @@ Deno.test({
 Deno.test({
   name: "/middleware - mixedHandler(cors)",
   fn: async () => {
-    const resp = await router(
+    const resp = await handler(
       new Request("https://fresh.deno.dev/middleware_root", {
         method: "OPTIONS",
       }),
@@ -463,7 +477,7 @@ Deno.test({
 Deno.test({
   name: "/middleware - mixedHandler(log)",
   fn: async () => {
-    const resp = await router(
+    const resp = await handler(
       new Request("https://fresh.deno.dev/middleware_root"),
     );
     assert(resp);
@@ -479,20 +493,19 @@ Deno.test({
 Deno.test({
   name: "/middleware - layer 2 middleware",
   fn: async () => {
-    const resp = await router(
+    const resp = await handler(
       new Request("https://fresh.deno.dev/layeredMdw/layer2/abc"),
     );
     assert(resp);
     assertEquals(resp.status, Status.OK);
     const body = await resp.text();
-    console.log(body);
     assertStringIncludes(body, "root_mw");
     assertStringIncludes(body, "layer1_mw");
     assertStringIncludes(body, "layer2_mw");
     // layered 2 should not run layer 3 middleware
     assert(!body.includes("layer3_mw"));
 
-    const resp1 = await router(
+    const resp1 = await handler(
       new Request("https://fresh.deno.dev/layeredMdw/layer2-no-mw/without_mw"),
     );
     assert(resp1);
@@ -509,20 +522,19 @@ Deno.test({
 Deno.test({
   name: "/middleware - layer 2 middleware at index",
   fn: async () => {
-    const resp = await router(
+    const resp = await handler(
       new Request("https://fresh.deno.dev/layeredMdw/layer2"),
     );
     assert(resp);
     assertEquals(resp.status, Status.OK);
     const body = await resp.text();
-    console.log(body);
     assertStringIncludes(body, "root_mw");
     assertStringIncludes(body, "layer1_mw");
     assertStringIncludes(body, "layer2_mw");
     // layered 2 should not run layer 3 middleware
     assert(!body.includes("layer3_mw"));
 
-    const resp1 = await router(
+    const resp1 = await handler(
       new Request("https://fresh.deno.dev/layeredMdw/layer2-no-mw/without_mw"),
     );
     assert(resp1);
@@ -540,7 +552,7 @@ Deno.test({
   name: "/middleware - layer 3 middleware",
   fn: async () => {
     // layered 3 should contain layer 3 middleware data
-    const resp = await router(
+    const resp = await handler(
       new Request("https://fresh.deno.dev/layeredMdw/layer2/layer3/abc"),
     );
     assert(resp);
@@ -552,25 +564,85 @@ Deno.test({
     assertEquals(resp.headers.get("layer3"), "fresh test server layer3");
     // the below ensure that the middlewware are applied in the correct order.
     // i.e response header set from layer3 middleware is overwritten
-    // by the reponse header in layer 0
+    // by the response header in layer 0
     assertEquals(resp.headers.get("server"), "fresh test server");
+  },
+});
+
+Deno.test({
+  name: "/middleware - should pass state through all middlewares",
+  fn: async () => {
+    const resp = await handler(
+      new Request("https://fresh.deno.dev/state-middleware/foo"),
+    );
+    assert(resp);
+    assertEquals(resp.status, Status.OK);
+
+    const body = await resp.text();
+    const doc = parseHtml(body);
+    assertEquals(JSON.parse(doc.querySelector("pre").textContent), {
+      handler1: "it works",
+      handler2: "it works",
+      handler3: "it works",
+    });
+  },
+});
+
+Deno.test({
+  name: "/middleware - middlewareParams",
+  fn: async () => {
+    const resp = await handler(
+      new Request(
+        "https://fresh.deno.dev/layeredMdw/layer2-with-params/tenant1/resource1",
+      ),
+    );
+    assert(resp);
+    assertEquals(resp.status, Status.OK);
+    const _body = await resp.text();
+    // assert that outer has access to all params
+    assertEquals(
+      resp.headers.get("middlewareParams_outer"),
+      JSON.stringify({ tenantId: "tenant1", id: "resource1" }),
+    );
+    // assert that inner also has access to all params
+    assertEquals(
+      resp.headers.get("middlewareParams_inner"),
+      JSON.stringify({ tenantId: "tenant1", id: "resource1" }),
+    );
+    assertEquals(resp.headers.get("server"), "fresh test server");
+  },
+});
+
+Deno.test({
+  name: "middleware nesting order",
+  fn: async () => {
+    const resp = await handler(
+      new Request(
+        "https://fresh.deno.dev/layeredMdw/nesting/acme/production/abc",
+      ),
+    );
+    assert(resp);
+    assertEquals(resp.status, Status.OK);
+    const body = await resp.text();
+    assertStringIncludes(body, "<div>1234</div>");
   },
 });
 
 Deno.test({
   name: "/not_found",
   fn: async () => {
-    const resp = await router(new Request("https://fresh.deno.dev/not_found"));
+    const resp = await handler(new Request("https://fresh.deno.dev/not_found"));
     assert(resp);
     assertEquals(resp.status, 404);
     const body = await resp.text();
     assertStringIncludes(body, "404 not found: /not_found");
+    assertStringIncludes(body, "Hello Dino");
   },
 });
 
 Deno.test("middleware destination", async (t) => {
   await t.step("internal", async () => {
-    const resp = await router(
+    const resp = await handler(
       new Request("https://fresh.deno.dev/_frsh/refresh.js"),
     );
     assert(resp);
@@ -579,96 +651,43 @@ Deno.test("middleware destination", async (t) => {
   });
 
   await t.step("static", async () => {
-    const resp = await router(new Request("https://fresh.deno.dev/foo.txt"));
+    const resp = await handler(new Request("https://fresh.deno.dev/foo.txt"));
     assert(resp);
     assertEquals(resp.headers.get("destination"), "static");
     await resp.body?.cancel();
   });
 
   await t.step("route", async () => {
-    const resp = await router(new Request("https://fresh.deno.dev/"));
+    const resp = await handler(new Request("https://fresh.deno.dev/"));
     assert(resp);
     assertEquals(resp.headers.get("destination"), "route");
     await resp.body?.cancel();
   });
 
   await t.step("notFound", async () => {
-    const resp = await router(new Request("https://fresh.deno.dev/bar/bar"));
+    const resp = await handler(new Request("https://fresh.deno.dev/bar/bar"));
     assert(resp);
     assertEquals(resp.headers.get("destination"), "notFound");
     await resp.body?.cancel();
   });
 });
 
-Deno.test("experimental Deno.serve", {
-  sanitizeOps: false,
-  sanitizeResources: false,
-  ignore: Deno.build.os === "windows", // TODO: Deno.serve hang on Windows?
-}, async (t) => {
-  // Preparation
-  const serverProcess = new Deno.Command(Deno.execPath(), {
-    args: [
-      "run",
-      "-A",
-      "--unstable",
-      "./tests/fixture/main.ts",
-      "--experimental-deno-serve",
-    ],
-    stdout: "piped",
-    stderr: "inherit",
-  }).spawn();
-
-  const decoder = new TextDecoderStream();
-  const lines = serverProcess.stdout
-    .pipeThrough(decoder)
-    .pipeThrough(new TextLineStream());
-
-  let started = false;
-  for await (const line of lines) {
-    if (line.includes("Listening on http://")) {
-      started = true;
-      break;
-    }
-  }
-  if (!started) {
-    throw new Error("Server didn't start up");
-  }
-
-  await delay(100);
-
-  await t.step("ssr", async () => {
-    const resp = await fetch("http://localhost:8000");
+Deno.test({
+  name: "middleware catch error",
+  fn: async () => {
+    const resp = await handler(
+      new Request(
+        "https://fresh.deno.dev/middleware-error-handler",
+      ),
+    );
     assert(resp);
-    assertEquals(resp.status, Status.OK);
-    assertEquals(resp.headers.get("content-type"), "text/html; charset=utf-8");
-    assertEquals(resp.headers.get("server"), "fresh test server");
+    assertEquals(resp.status, Status.InternalServerError);
     const body = await resp.text();
-    assertStringIncludes(body, `<html lang="en">`);
-    assertStringIncludes(body, "test.js");
-    assertStringIncludes(body, "<p>Hello!</p>");
-    assertStringIncludes(body, "<p>Viewing JIT render.</p>");
-    assertStringIncludes(body, `>{"v":[[{"message":"Hello!"}],[]]}</script>`);
     assertStringIncludes(
       body,
-      '<meta name="description" content="Hello world!"/>',
+      "500 internal error: don't show the full error for security purposes",
     );
-  });
-
-  await t.step("static file", async () => {
-    const resp = await fetch("http://localhost:8000/foo.txt");
-    assertEquals(resp.status, Status.OK);
-    const body = await resp.text();
-    assert(body.startsWith("bar"));
-    const etag = resp.headers.get("etag");
-    assert(etag);
-    // TODO(kt3k): Enable this assertion when new Deno.serve is released.
-    // https://github.com/denoland/deno/pull/18568
-    // assert(etag.startsWith("W/"), "etag should be weak");
-    assertEquals(resp.headers.get("content-type"), "text/plain");
-  });
-
-  await lines.cancel();
-  serverProcess.kill("SIGTERM");
+  },
 });
 
 Deno.test("jsx pragma works", {
@@ -676,32 +695,14 @@ Deno.test("jsx pragma works", {
   sanitizeResources: false,
 }, async (t) => {
   // Preparation
-  const serverProcess = new Deno.Command(Deno.execPath(), {
+  const { serverProcess, lines, address } = await startFreshServer({
     args: ["run", "-A", "./tests/fixture_jsx_pragma/main.ts"],
-    stdout: "piped",
-    stderr: "inherit",
-  }).spawn();
-
-  const decoder = new TextDecoderStream();
-  const lines = serverProcess.stdout
-    .pipeThrough(decoder)
-    .pipeThrough(new TextLineStream());
-
-  let started = false;
-  for await (const line of lines) {
-    if (line.includes("Listening on http://")) {
-      started = true;
-      break;
-    }
-  }
-  if (!started) {
-    throw new Error("Server didn't start up");
-  }
+  });
 
   await delay(100);
 
   await t.step("ssr", async () => {
-    const resp = await fetch("http://localhost:8000");
+    const resp = await fetch(address);
     assertEquals(resp.status, Status.OK);
     const text = await resp.text();
     assertStringIncludes(text, "Hello World");
@@ -711,7 +712,7 @@ Deno.test("jsx pragma works", {
   const browser = await puppeteer.launch({ args: ["--no-sandbox"] });
   const page = await browser.newPage();
 
-  await page.goto("http://localhost:8000", {
+  await page.goto(address, {
     waitUntil: "networkidle2",
   });
 
@@ -725,45 +726,64 @@ Deno.test("jsx pragma works", {
   serverProcess.kill("SIGTERM");
 });
 
+Deno.test("preact/debug is active in dev mode", {
+  sanitizeOps: false,
+  sanitizeResources: false,
+}, async (t) => {
+  // Preparation
+  const { serverProcess, lines, address } = await startFreshServer({
+    args: ["run", "-A", "./tests/fixture_render_error/main.ts"],
+  });
+
+  await delay(100);
+
+  await t.step("SSR error is shown", async () => {
+    const resp = await fetch(address);
+    assertEquals(resp.status, Status.InternalServerError);
+    const text = await resp.text();
+    assertStringIncludes(text, "Objects are not valid as a child");
+  });
+
+  const browser = await puppeteer.launch({ args: ["--no-sandbox"] });
+  const page = await browser.newPage();
+
+  await page.goto(address, {
+    waitUntil: "networkidle2",
+  });
+
+  await t.step("error page is shown with error message", async () => {
+    const el = await page.waitForSelector(".frsh-error-page");
+    const text = await page.evaluate((el) => el.textContent, el);
+    assertStringIncludes(text, "Objects are not valid as a child");
+  });
+
+  await browser.close();
+
+  await lines.cancel();
+  serverProcess.kill("SIGTERM");
+});
+
 Deno.test("preloading javascript files", {
   sanitizeOps: false,
   sanitizeResources: false,
 }, async () => {
   // Preparation
-  const serverProcess = new Deno.Command(Deno.execPath(), {
+  const { serverProcess, lines, address } = await startFreshServer({
     args: ["run", "-A", "./tests/fixture/main.ts"],
-    stdout: "piped",
-    stderr: "inherit",
-  }).spawn();
-
-  const decoder = new TextDecoderStream();
-  const lines = serverProcess.stdout
-    .pipeThrough(decoder)
-    .pipeThrough(new TextLineStream());
-
-  let started = false;
-  for await (const line of lines) {
-    if (line.includes("Listening on http://")) {
-      started = true;
-      break;
-    }
-  }
-  if (!started) {
-    throw new Error("Server didn't start up");
-  }
+  });
 
   const browser = await puppeteer.launch({ args: ["--no-sandbox"] });
   const page = await browser.newPage();
 
   try {
     // request js file to start esbuild execution
-    await page.goto("http://localhost:8000", {
+    await page.goto(address, {
       waitUntil: "networkidle2",
     });
 
     await delay(5000); // wait running esbuild
 
-    await page.goto("http://localhost:8000", {
+    await page.goto(address, {
       waitUntil: "networkidle2",
     });
 
@@ -790,4 +810,192 @@ Deno.test("preloading javascript files", {
     await lines.cancel();
     serverProcess.kill("SIGTERM");
   }
+});
+
+Deno.test("PORT environment variable", {
+  sanitizeOps: false,
+  sanitizeResources: false,
+}, async () => {
+  const PORT = "8765";
+  // Preparation
+  const { serverProcess, lines } = await startFreshServer({
+    args: ["run", "-A", "./tests/fixture/main.ts"],
+    env: { PORT },
+  });
+
+  await delay(100);
+
+  const resp = await fetch("http://localhost:" + PORT);
+  assert(resp);
+  assertEquals(resp.status, Status.OK);
+
+  await lines.cancel();
+  serverProcess.kill("SIGTERM");
+});
+
+Deno.test("throw on route export 'handlers' instead of 'handler'", {
+  sanitizeOps: false,
+  sanitizeResources: false,
+}, async () => {
+  const result = await new Deno.Command(Deno.execPath(), {
+    args: ["run", "-A", "./tests/fixture_invalid_handlers/main.ts"],
+    stderr: "piped",
+    stdout: "piped",
+  }).output();
+
+  assertEquals(result.code, 1);
+
+  const text = new TextDecoder().decode(result.stderr);
+  assertMatch(text, /Did you mean "handler"\?/);
+});
+
+Deno.test("rendering custom _500.tsx page for default handlers", {
+  sanitizeOps: false,
+  sanitizeResources: false,
+}, async (t) => {
+  // Preparation
+  const { serverProcess, lines, address } = await startFreshServer({
+    args: ["run", "-A", "./tests/fixture_custom_500/main.ts"],
+  });
+
+  await delay(100);
+
+  await t.step("SSR error is shown", async () => {
+    const resp = await fetch(address);
+    assertEquals(resp.status, Status.InternalServerError);
+    const text = await resp.text();
+    assertStringIncludes(text, "Custom 500: Pickle Rick!");
+  });
+
+  const browser = await puppeteer.launch({ args: ["--no-sandbox"] });
+  const page = await browser.newPage();
+
+  await page.goto(address, {
+    waitUntil: "networkidle2",
+  });
+
+  await t.step("error page is shown with error message", async () => {
+    const el = await page.waitForSelector(".custom-500");
+    const text = await page.evaluate((el) => el.textContent, el);
+    assertStringIncludes(text, "Custom 500: Pickle Rick!");
+  });
+
+  await browser.close();
+
+  await lines.cancel();
+  serverProcess.kill("SIGTERM");
+});
+
+Deno.test("renders error boundary", {
+  sanitizeOps: false,
+  sanitizeResources: false,
+}, async () => {
+  await withPageName("./tests/fixture/main.ts", async (page, address) => {
+    await page.goto(`${address}/error_boundary`);
+    const text = await page.$eval("body", (el) => el.textContent);
+    assertEquals(text, "it works");
+  });
+});
+
+Deno.test({
+  name: "Resolves routes with non-latin characters",
+
+  async fn() {
+    await withPageName("./tests/fixture/main.ts", async (page, address) => {
+      // Check that we can navigate to the page
+      await page.goto(`${address}/umlaut-äöüß`);
+      await page.waitForSelector("h1");
+      const text = await page.$eval("h1", (el) => el.textContent);
+      assertEquals(text, "it works");
+
+      // Check the manifest
+      const mod = (await import("./fixture/fresh.gen.ts")).default;
+
+      assert(
+        "./routes/umlaut-äöüß.tsx" in mod.routes,
+        "Umlaut route not found",
+      );
+    });
+  },
+
+  sanitizeOps: false,
+  sanitizeResources: false,
+});
+
+Deno.test({
+  name: "Generate a single nonce value per page",
+
+  async fn() {
+    await withPageName("./tests/fixture/main.ts", async (page, address) => {
+      await page.goto(address);
+      await page.waitForSelector("p");
+
+      const nonceValues = await page.evaluate(() =>
+        Array.from(
+          new Set(
+            Array.from(document.querySelectorAll("[nonce]")).map((el) =>
+              el.getAttribute("nonce")
+            ),
+          ),
+        )
+      );
+
+      assertEquals(
+        nonceValues.length,
+        1,
+        `Found more than 1 nonce value per render`,
+      );
+    });
+  },
+
+  sanitizeOps: false,
+  sanitizeResources: false,
+});
+
+Deno.test({
+  name: "support string based event handlers during SSR",
+  async fn() {
+    await withPageName("./tests/fixture/main.ts", async (page, address) => {
+      await page.goto(`${address}/event_handler_string`);
+      await page.waitForSelector("p");
+      await page.click("button");
+
+      await waitForText(page, "p", "it works");
+    });
+  },
+
+  sanitizeOps: false,
+  sanitizeResources: false,
+});
+
+Deno.test({
+  name: "Log error in browser console on string event handlers",
+  async fn() {
+    await withPageName("./tests/fixture/main.ts", async (page, address) => {
+      const logs: { type: string; message: string }[] = [];
+      page.on("console", (ev) => {
+        logs.push({ type: ev.type(), message: ev.text() });
+      });
+
+      page.on("pageerror", (ev) => {
+        logs.push({ type: "error", message: ev.toString() });
+      });
+
+      await page.goto(`${address}/event_handler_string_island`);
+      await page.waitForSelector("p");
+      await page.click("button");
+      await waitForText(page, "p", "it works");
+
+      await retry(() => {
+        for (const item of logs) {
+          if (/property should be a function/.test(item.message)) {
+            return true;
+          }
+        }
+      });
+    });
+  },
+
+  sanitizeOps: false,
+  sanitizeResources: false,
 });

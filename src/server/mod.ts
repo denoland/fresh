@@ -1,12 +1,15 @@
 import { ServerContext } from "./context.ts";
-import { serve } from "./deps.ts";
 export { Status } from "./deps.ts";
+import { colors, serve } from "./deps.ts";
 import {
   AppModule,
   ErrorPageModule,
   IslandModule,
+  LayoutModule,
   MiddlewareModule,
   RouteModule,
+  ServeHandler,
+  ServeHandlerInfo,
   StartOptions,
   UnknownPageModule,
 } from "./types.ts";
@@ -19,15 +22,24 @@ export type {
   Handler,
   HandlerContext,
   Handlers,
+  LayoutProps,
   MiddlewareHandler,
   MiddlewareHandlerContext,
+  MultiHandler,
   PageProps,
   Plugin,
+  PluginAsyncRenderContext,
+  PluginAsyncRenderFunction,
+  PluginRenderContext,
+  PluginRenderFunction,
+  PluginRenderFunctionResult,
   PluginRenderResult,
   PluginRenderScripts,
   PluginRenderStyleTag,
   RenderFunction,
   RouteConfig,
+  RouteContext,
+  ServeHandlerInfo,
   StartOptions,
   UnknownHandler,
   UnknownHandlerContext,
@@ -42,6 +54,7 @@ export interface Manifest {
     | RouteModule
     | MiddlewareModule
     | AppModule
+    | LayoutModule
     | ErrorPageModule
     | UnknownPageModule
   >;
@@ -63,17 +76,76 @@ export { ServerContext };
 export async function createHandler(
   routes: Manifest,
   opts: StartOptions = {},
-) {
+): Promise<
+  (req: Request, connInfo?: ServeHandlerInfo) => Promise<Response>
+> {
   const ctx = await ServerContext.fromManifest(routes, opts);
   return ctx.handler();
 }
+
 export async function start(routes: Manifest, opts: StartOptions = {}) {
   const ctx = await ServerContext.fromManifest(routes, opts);
-  opts.port ??= 8000;
-  if (opts.experimentalDenoServe === true) {
-    // @ts-ignore as `Deno.serve` is still unstable.
-    await Deno.serve(ctx.handler() as Deno.ServeHandler, opts);
+
+  if (!opts.onListen) {
+    opts.onListen = (params) => {
+      console.log();
+      console.log(
+        colors.bgRgb8(colors.black(colors.bold(" 🍋 Fresh ready ")), 121),
+      );
+
+      const address = colors.cyan(`http://localhost:${params.port}/`);
+      const localLabel = colors.bold("Local:");
+      console.log(`    ${localLabel} ${address}\n`);
+    };
+  }
+
+  const portEnv = Deno.env.get("PORT");
+  if (portEnv !== undefined) {
+    opts.port ??= parseInt(portEnv, 10);
+  }
+
+  const handler = ctx.handler();
+
+  if (opts.port) {
+    await bootServer(handler, opts);
   } else {
-    await serve(ctx.handler(), opts);
+    // No port specified, check for a free port. Instead of picking just
+    // any port we'll check if the next one is free for UX reasons.
+    // That way the user only needs to increment a number when running
+    // multiple apps vs having to remember completely different ports.
+    let firstError;
+    for (let port = 8000; port < 8020; port++) {
+      try {
+        await bootServer(handler, { ...opts, port });
+        firstError = undefined;
+        break;
+      } catch (err) {
+        if (err instanceof Deno.errors.AddrInUse) {
+          // Throw first EADDRINUSE error
+          // if no port is free
+          if (!firstError) {
+            firstError = err;
+          }
+          continue;
+        }
+
+        throw err;
+      }
+    }
+
+    if (firstError) {
+      throw firstError;
+    }
+  }
+}
+
+async function bootServer(handler: ServeHandler, opts: StartOptions) {
+  // @ts-ignore Ignore type error when type checking with Deno versions
+  if (typeof Deno.serve === "function") {
+    // @ts-ignore Ignore type error when type checking with Deno versions
+    await Deno.serve(opts, handler).finished;
+  } else {
+    // @ts-ignore Deprecated std serve way
+    await serve(handler, opts);
   }
 }

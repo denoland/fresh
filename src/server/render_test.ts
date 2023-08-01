@@ -6,7 +6,7 @@ Deno.test("check lang", () => {
   const body = template({
     bodyHtml: "",
     headComponents: [],
-    imports: [],
+    moduleScripts: [],
     preloads: [],
     lang,
   });

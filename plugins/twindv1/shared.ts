@@ -6,6 +6,8 @@ import {
   TwindConfig,
 } from "https://esm.sh/@twind/core@1.1.3";
 
+type PreactOptions = typeof preactOptions & { __b?: (vnode: VNode) => void };
+
 export const STYLE_ELEMENT_ID = "__FRSH_TWIND";
 
 export interface Options extends TwindConfig {
@@ -25,9 +27,13 @@ declare module "preact" {
 export function setup({ selfURL: _selfURL, ...config }: Options, sheet: Sheet) {
   twSetup(config, sheet);
 
-  const originalHook = preactOptions.vnode;
-  // deno-lint-ignore no-explicit-any
-  preactOptions.vnode = (vnode: VNode<JSX.DOMAttributes<any>>) => {
+  // Hook into options._diff which is called whenever a new comparison
+  // starts in Preact.
+  const originalHook = (preactOptions as PreactOptions).__b;
+  (preactOptions as PreactOptions).__b = (
+    // deno-lint-ignore no-explicit-any
+    vnode: VNode<JSX.DOMAttributes<any>>,
+  ) => {
     if (typeof vnode.type === "string" && typeof vnode.props === "object") {
       const { props } = vnode;
       const classes: string[] = [];

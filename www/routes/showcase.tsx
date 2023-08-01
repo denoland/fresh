@@ -5,7 +5,7 @@ import Header from "../components/Header.tsx";
 import Footer from "../components/Footer.tsx";
 import projects from "../data/showcase.json" assert { type: "json" };
 
-const TITLE = "Showcase | fresh";
+const TITLE = "Showcase | Fresh";
 const DESCRIPTION = "Selection of projects that have been built with Fresh.";
 
 export default function ShowcasePage(props: PageProps) {
@@ -20,6 +20,7 @@ export default function ShowcasePage(props: PageProps) {
         <meta property="og:type" content="website" />
         <meta property="og:url" content={props.url.href} />
         <meta property="og:image" content={ogImageUrl} />
+        <meta name="view-transition" content="same-origin" />
       </Head>
       <Header title="showcase" active="/showcase" />
 
@@ -33,7 +34,7 @@ export default function ShowcasePage(props: PageProps) {
             </h2>
 
             <p class="text-gray-600">
-              You can add these stylish badges to your project's README to show
+              You can add these stylish badges to your project’s README to show
               that it was built with Fresh.
             </p>
 

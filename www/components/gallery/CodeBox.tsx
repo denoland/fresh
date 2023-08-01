@@ -1,7 +1,7 @@
 import { useSignal } from "@preact/signals";
 
-import Prism from "https://esm.sh/prismjs@1.27.0";
-import "https://esm.sh/prismjs@1.27.0/components/prism-typescript?no-check";
+import Prism from "https://esm.sh/prismjs@1.29.0";
+import "https://esm.sh/prismjs@1.29.0/components/prism-typescript?no-check";
 
 interface CodeBoxProps {
   code: string;

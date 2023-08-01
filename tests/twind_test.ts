@@ -1,6 +1,8 @@
-import { assert, delay, puppeteer, TextLineStream } from "./deps.ts";
+import { assertEquals } from "https://deno.land/std@0.190.0/testing/asserts.ts";
+import { assert, delay, puppeteer } from "./deps.ts";
 
 import { cmpStringArray } from "./fixture_twind_hydrate/utils/utils.ts";
+import { startFreshServer, withPageName } from "./test_utils.ts";
 
 /**
  * Start the server with the main file.
@@ -8,33 +10,9 @@ import { cmpStringArray } from "./fixture_twind_hydrate/utils/utils.ts";
  * Returns a page instance and a method to terminate the server.
  */
 async function setUpServer(path: string) {
-  const serverProcessCmd = new Deno.Command("deno", {
-    args: [
-      "run",
-      "-A",
-      path,
-    ],
-    stdout: "piped",
-    stderr: "inherit",
+  const { lines, serverProcess, address } = await startFreshServer({
+    args: ["run", "-A", path],
   });
-
-  const serverProcess = serverProcessCmd.spawn();
-
-  const lines = serverProcess.stdout
-    .pipeThrough(new TextDecoderStream())
-    .pipeThrough(new TextLineStream());
-
-  let started = false;
-
-  for await (const line of lines) {
-    if (line.includes("Listening on http://")) {
-      started = true;
-      break;
-    }
-  }
-  if (!started) {
-    throw new Error("Server didn't start up");
-  }
 
   await delay(100);
 
@@ -45,6 +23,7 @@ async function setUpServer(path: string) {
    * terminate server
    */
   const terminate = async () => {
+    await lines.cancel();
     await browser.close();
 
     serverProcess.kill("SIGKILL");
@@ -62,7 +41,7 @@ async function setUpServer(path: string) {
     }
   };
 
-  return { page: page, terminate: terminate };
+  return { page: page, terminate: terminate, address };
 }
 
 /**
@@ -79,7 +58,7 @@ Deno.test({
 
     /**
      * Compare the class of element of any id with the selectorText of cssrules in stylesheet.
-     * Ensure that twind compliles the class of element.
+     * Ensure that twind compiles the class of element.
      */
     async function compiledCssRulesTest(id: string, styleId: string) {
       const elemClassList = await page.evaluate((selector) => {
@@ -118,7 +97,7 @@ Deno.test({
       }
     }
 
-    await page.goto("http://localhost:8000/static", {
+    await page.goto(`${server.address}/static`, {
       waitUntil: "networkidle2",
     });
 
@@ -189,7 +168,7 @@ Deno.test({
       assert(false, `${numDuplicates} cssrules are duplicated`);
     }
 
-    await page.goto("http://localhost:8000/check-duplication", {
+    await page.goto(`${server.address}/check-duplication`, {
       waitUntil: "networkidle2",
     });
 
@@ -297,7 +276,7 @@ Deno.test({
       );
     }
 
-    await page.goto("http://localhost:8000/insert-cssrules", {
+    await page.goto(`${server.address}/insert-cssrules`, {
       waitUntil: "networkidle2",
     });
 
@@ -313,4 +292,62 @@ Deno.test({
 
     await server.terminate();
   },
+});
+
+Deno.test({
+  name: "Excludes classes from unused vnodes",
+  async fn() {
+    await withPageName(
+      "./tests/fixture_twind_hydrate/main.ts",
+      async (page, address) => {
+        await page.goto(`${address}/unused`);
+        await page.waitForSelector("#__FRSH_TWIND");
+
+        const hasUnusedRules = await page.$eval("#__FRSH_TWIND", (el) => {
+          return el.textContent.includes(".text-red-600");
+        });
+        assert(
+          !hasUnusedRules,
+          "Unused CSS class '.text-red-600' found.",
+        );
+      },
+    );
+  },
+  sanitizeOps: false,
+  sanitizeResources: false,
+});
+
+Deno.test({
+  name: "Always includes classes from tw-helper",
+  async fn() {
+    await withPageName(
+      "./tests/fixture_twind_hydrate/main.ts",
+      async (page, address) => {
+        await page.goto(`${address}/unused_tw`);
+        await page.waitForSelector("#__FRSH_TWIND");
+
+        const styles = await page.$eval(
+          "#__FRSH_TWIND",
+          (el: HTMLStyleElement) => {
+            const text = el.textContent!;
+            return {
+              "text-red-600": text.includes(".text-red-600"),
+              "text-green-500": text.includes("text-green-500"),
+              "text-blue-500": text.includes("text-blue-500"),
+            };
+          },
+        );
+        assertEquals(
+          styles,
+          {
+            "text-red-600": false,
+            "text-green-500": true,
+            "text-blue-500": true,
+          },
+        );
+      },
+    );
+  },
+  sanitizeOps: false,
+  sanitizeResources: false,
 });

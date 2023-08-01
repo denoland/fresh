@@ -1,4 +1,13 @@
-import { join, Node, parse, Project, resolve } from "./src/dev/deps.ts";
+import {
+  dirname,
+  existsSync,
+  join,
+  Node,
+  parse,
+  Project,
+  resolve,
+  walk,
+} from "./src/dev/deps.ts";
 import { error } from "./src/dev/error.ts";
 import { freshImports, twindImports } from "./src/dev/imports.ts";
 import { collect, ensureMinDenoVersion, generate } from "./src/dev/mod.ts";
@@ -10,7 +19,7 @@ const help = `fresh-update
 Update a Fresh project. This updates dependencies and optionally performs code
 mods to update a project's source code to the latest recommended patterns.
 
-To upgrade a projecct in the current directory, run:
+To upgrade a project in the current directory, run:
   fresh-update .
 
 USAGE:
@@ -25,11 +34,49 @@ if (flags._.length !== 1) {
 
 const unresolvedDirectory = Deno.args[0];
 const resolvedDirectory = resolve(unresolvedDirectory);
+const srcDirectory = await findSrcDirectory("main.ts", resolvedDirectory);
 
-// Update dependencies in the import map.
-const DENO_JSON_PATH = join(resolvedDirectory, "deno.json");
+// Update dependencies in the import map. The import map can either be embedded
+// in a deno.json (or .jsonc) file or be in a separate JSON file referenced with the
+// `importMap` key in deno.json.
+const fileNames = ["deno.json", "deno.jsonc"];
+const DENO_JSON_PATH = fileNames
+  .map((fileName) => join(resolvedDirectory, fileName))
+  .find((path) => existsSync(path));
+if (!DENO_JSON_PATH) {
+  throw new Error(
+    `Neither deno.json nor deno.jsonc could be found in ${resolvedDirectory}`,
+  );
+}
 let denoJsonText = await Deno.readTextFile(DENO_JSON_PATH);
 let denoJson = JSON.parse(denoJsonText);
+if (denoJson.importMap) {
+  const IMPORT_MAP_PATH = join(resolvedDirectory, denoJson.importMap);
+  const importMapText = await Deno.readTextFile(IMPORT_MAP_PATH);
+  const importMap = JSON.parse(importMapText);
+  denoJson.imports = importMap.imports;
+  denoJson.scopes = importMap.scopes;
+  delete denoJson.importMap;
+  await Deno.remove(IMPORT_MAP_PATH);
+}
+
+// Add Fresh lint preset
+if (!denoJson.lint) {
+  denoJson.lint = {};
+}
+if (!denoJson.lint.rules) {
+  denoJson.lint.rules = {};
+}
+if (!denoJson.lint.rules.tags) {
+  denoJson.lint.rules.tags = [];
+}
+if (!denoJson.lint.rules.tags.includes("fresh")) {
+  denoJson.lint.rules.tags.push("fresh");
+}
+if (!denoJson.lint.rules.tags.includes("recommended")) {
+  denoJson.lint.rules.tags.push("recommended");
+}
+
 freshImports(denoJson.imports);
 if (denoJson.imports["twind"]) {
   twindImports(denoJson.imports);
@@ -173,5 +220,17 @@ await start(manifest, { plugins: [twindPlugin(twindConfig)] });\n`;
   }
 }
 
-const manifest = await collect(resolvedDirectory);
-await generate(resolvedDirectory, manifest);
+const manifest = await collect(srcDirectory);
+await generate(srcDirectory, manifest);
+
+async function findSrcDirectory(
+  fileName: string,
+  directory: string,
+): Promise<string> {
+  for await (const entry of walk(directory)) {
+    if (entry.isFile && entry.name === fileName) {
+      return dirname(entry.path);
+    }
+  }
+  return resolvedDirectory;
+}

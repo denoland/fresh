@@ -1,39 +1,39 @@
 import {
   assert,
+  assertEquals,
   assertStringIncludes,
   delay,
   Page,
-  puppeteer,
-  TextLineStream,
 } from "./deps.ts";
+import {
+  clickWhenListenerReady,
+  waitForText,
+  withPageName,
+} from "./test_utils.ts";
 
 Deno.test({
   name: "island tests",
   async fn(t) {
-    await withPage(async (page) => {
+    await withPage(async (page, address) => {
       async function counterTest(counterId: string, originalValue: number) {
         const pElem = await page.waitForSelector(`#${counterId} > p`);
 
-        let value = await pElem?.evaluate((el) => el.textContent);
+        const value = await pElem?.evaluate((el) => el.textContent);
         assert(value === `${originalValue}`, `${counterId} first value`);
 
-        const buttonPlus = await page.$(`#b-${counterId}`);
-        await buttonPlus?.click();
-
-        await delay(100);
-
-        value = await pElem?.evaluate((el) => el.textContent);
-        assert(value === `${originalValue + 1}`, `${counterId} click`);
+        await clickWhenListenerReady(page, `#b-${counterId}`);
+        await waitForText(page, `#${counterId} > p`, String(originalValue + 1));
       }
 
-      await page.goto("http://localhost:8000/islands", {
+      await page.goto(`${address}/islands`, {
         waitUntil: "networkidle2",
       });
 
-      await t.step("Ensure 4 islands on 1 page are revived", async () => {
+      await t.step("Ensure 5 islands on 1 page are revived", async () => {
         await counterTest("counter1", 3);
         await counterTest("counter2", 10);
         await counterTest("folder-counter", 3);
+        await counterTest("subfolder-counter", 3);
         await counterTest("kebab-case-file-counter", 5);
       });
 
@@ -44,7 +44,7 @@ Deno.test({
         assertStringIncludes(srcString, "image.png?__frsh_c=");
 
         // Ensure src path is the same as server rendered
-        const resp = await fetch(new Request("http://localhost:8000/islands"));
+        const resp = await fetch(new Request(`${address}/islands`));
         const body = await resp.text();
 
         const imgFilePath = body.match(/img id="img-in-island" src="(.*?)"/)
@@ -58,65 +58,50 @@ Deno.test({
   sanitizeResources: false,
 });
 
-async function withPage(fn: (page: Page) => Promise<void>) {
-  const serverProcess = new Deno.Command(Deno.execPath(), {
-    args: ["run", "-A", "./tests/fixture/main.ts"],
-    stdout: "piped",
-    stderr: "inherit",
-  }).spawn();
+Deno.test({
+  name: "multiple islands exported from one file",
+  async fn(t) {
+    await withPage(async (page, address) => {
+      async function counterTest(counterId: string, originalValue: number) {
+        const pElem = await page.waitForSelector(`#${counterId} > p`);
 
-  const textDecoderStream = new TextDecoderStream();
-  const textLineStream = new TextLineStream();
+        const value = await pElem?.evaluate((el) => el.textContent);
+        assert(value === `${originalValue}`, `${counterId} first value`);
 
-  const lines = serverProcess.stdout
-    .pipeThrough(textDecoderStream)
-    .pipeThrough(textLineStream);
+        await clickWhenListenerReady(page, `#b-${counterId}`);
+        await waitForText(page, `#${counterId} > p`, String(originalValue + 1));
+      }
 
-  try {
-    if (!await didServerStart(lines)) {
-      throw new Error("Server didn't start up");
-    }
+      await page.goto(`${address}/islands/multiple_island_exports`, {
+        waitUntil: "networkidle2",
+      });
 
-    await delay(100);
-    const browser = await puppeteer.launch({ args: ["--no-sandbox"] });
+      await t.step("Ensure 3 islands on 1 page are revived", async () => {
+        await counterTest("counter0", 4);
+        await counterTest("counter1", 3);
+        await counterTest("counter2", 10);
+      });
+    });
+  },
 
-    try {
-      const page = await browser.newPage();
-      await fn(page);
-    } finally {
-      await browser.close();
-    }
-  } finally {
-    await lines.cancel();
+  sanitizeOps: false,
+  sanitizeResources: false,
+});
 
-    serverProcess.kill("SIGTERM");
-
-    // Wait until the process exits
-    await serverProcess.status;
-  }
-}
-
-async function didServerStart(
-  stdoutLines: ReadableStream<string>,
-): Promise<boolean> {
-  for await (const line of stdoutLines) {
-    if (line.includes("Listening on http://")) {
-      return true;
-    }
-  }
-  return false;
+function withPage(fn: (page: Page, address: string) => Promise<void>) {
+  return withPageName("./tests/fixture/main.ts", fn);
 }
 
 Deno.test({
   name: "island tests with </script>",
 
   async fn(t) {
-    await withPage(async (page) => {
+    await withPage(async (page, address) => {
       page.on("dialog", () => {
         assert(false, "There is XSS");
       });
 
-      await page.goto("http://localhost:8000/evil", {
+      await page.goto(`${address}/evil`, {
         waitUntil: "networkidle2",
       });
 
@@ -141,8 +126,8 @@ Deno.test({
   name: "island with fragment as root",
 
   async fn(_t) {
-    await withPage(async (page) => {
-      await page.goto("http://localhost:8000/islands/root_fragment", {
+    await withPage(async (page, address) => {
+      await page.goto(`${address}/islands/root_fragment`, {
         waitUntil: "networkidle2",
       });
 
@@ -150,21 +135,10 @@ Deno.test({
 
       await page.waitForSelector(clickableSelector);
 
-      const contentBeforeClick = await getIslandParentTextContent();
-      assert(contentBeforeClick === "HelloWorld");
+      await waitForText(page, `#island-parent`, "HelloWorld");
 
-      await page.click(clickableSelector);
-      await delay(100);
-
-      const contentAfterClick = await getIslandParentTextContent();
-      assert(contentAfterClick === "HelloWorldI'm rendered now");
-
-      async function getIslandParentTextContent() {
-        return await page.$eval(
-          "#island-parent",
-          (el: Element) => el.textContent,
-        );
-      }
+      await clickWhenListenerReady(page, clickableSelector);
+      await waitForText(page, `#island-parent`, "HelloWorldI'm rendered now");
     });
   },
 
@@ -176,9 +150,9 @@ Deno.test({
   name: "island with fragment as root and conditional child first",
 
   async fn(_t) {
-    await withPage(async (page) => {
+    await withPage(async (page, address) => {
       await page.goto(
-        "http://localhost:8000/islands/root_fragment_conditional_first",
+        `${address}/islands/root_fragment_conditional_first`,
         {
           waitUntil: "networkidle2",
         },
@@ -187,14 +161,14 @@ Deno.test({
       const clickableSelector = "#root-fragment-conditional-first-click-me";
       await page.waitForSelector(clickableSelector);
 
-      const contentBeforeClick = await getIslandParentTextContent(page);
-      assert(contentBeforeClick === "HelloWorld");
+      await waitForText(page, "#island-parent", "HelloWorld");
 
-      await page.click(clickableSelector);
-      await delay(100);
-
-      const contentAfterClick = await getIslandParentTextContent(page);
-      assert(contentAfterClick === "I'm rendered on topHelloWorld");
+      await clickWhenListenerReady(page, clickableSelector);
+      await waitForText(
+        page,
+        "#island-parent",
+        "I'm rendered on topHelloWorld",
+      );
     });
   },
 
@@ -202,21 +176,303 @@ Deno.test({
   sanitizeResources: false,
 });
 
-async function getIslandParentTextContent(page: Page) {
-  return await page.$eval("#island-parent", (el: Element) => el.textContent);
-}
-
 Deno.test({
   name: "island that returns `null`",
 
   async fn(_t) {
-    await withPage(async (page) => {
-      await page.goto("http://localhost:8000/islands/returning_null", {
+    await withPage(async (page, address) => {
+      await page.goto(`${address}/islands/returning_null`, {
         waitUntil: "networkidle2",
       });
 
       await page.waitForSelector(".added-by-use-effect");
     });
+  },
+
+  sanitizeOps: false,
+  sanitizeResources: false,
+});
+
+Deno.test({
+  name: "island using `npm:` specifiers",
+
+  async fn(_t) {
+    await withPageName("./tests/fixture_npm/main.ts", async (page, address) => {
+      await page.setJavaScriptEnabled(false);
+      await page.goto(address, { waitUntil: "networkidle2" });
+      assert(await page.waitForSelector("#server-true"));
+
+      await page.setJavaScriptEnabled(true);
+      await page.reload({ waitUntil: "networkidle2" });
+      assert(await page.waitForSelector("#browser-true"));
+    });
+  },
+
+  sanitizeOps: false,
+  sanitizeResources: false,
+});
+
+Deno.test({
+  name: "works with older preact-render-to-string v5",
+
+  async fn(_t) {
+    await withPageName(
+      "./tests/fixture_preact_rts_v5/main.ts",
+      async (page, address) => {
+        await page.goto(address, {
+          waitUntil: "networkidle2",
+        });
+        await page.waitForSelector("#foo");
+        await waitForText(page, "#foo", "it works");
+      },
+    );
+  },
+
+  sanitizeOps: false,
+  sanitizeResources: false,
+});
+
+Deno.test({
+  name: "pass single JSX child to island",
+
+  async fn(_t) {
+    await withPageName(
+      "./tests/fixture_island_nesting/main.ts",
+      async (page, address) => {
+        await page.goto(`${address}/island_jsx_child`, {
+          waitUntil: "networkidle2",
+        });
+        await page.waitForSelector(".island");
+        await waitForText(page, ".island", "it works");
+      },
+    );
+  },
+
+  sanitizeOps: false,
+  sanitizeResources: false,
+});
+
+Deno.test({
+  name: "pass multiple JSX children to island",
+
+  async fn(_t) {
+    await withPageName(
+      "./tests/fixture_island_nesting/main.ts",
+      async (page, address) => {
+        await page.goto(`${address}/island_jsx_children`, {
+          waitUntil: "networkidle2",
+        });
+        await page.waitForSelector(".island");
+
+        await delay(100);
+        const text = await page.$eval(".island", (el) => el.textContent);
+        assertEquals(text, "it works");
+      },
+    );
+  },
+
+  sanitizeOps: false,
+  sanitizeResources: false,
+});
+
+Deno.test({
+  name: "pass multiple text JSX children to island",
+
+  async fn(_t) {
+    await withPageName(
+      "./tests/fixture_island_nesting/main.ts",
+      async (page, address) => {
+        await page.goto(`${address}/island_jsx_text`, {
+          waitUntil: "networkidle2",
+        });
+        await page.waitForSelector(".island");
+
+        await delay(100);
+        const text = await page.$eval(".island", (el) => el.textContent);
+        assertEquals(text, "it works");
+      },
+    );
+  },
+
+  sanitizeOps: false,
+  sanitizeResources: false,
+});
+
+Deno.test({
+  name: "render island in island",
+
+  async fn(_t) {
+    await withPageName(
+      "./tests/fixture_island_nesting/main.ts",
+      async (page, address) => {
+        await page.goto(`${address}/island_in_island`, {
+          waitUntil: "networkidle2",
+        });
+        await page.waitForSelector(".island");
+        await waitForText(page, ".island .island p", "it works");
+      },
+    );
+  },
+
+  sanitizeOps: false,
+  sanitizeResources: false,
+});
+
+Deno.test({
+  name: "render island inside island definition",
+
+  async fn(_t) {
+    await withPageName(
+      "./tests/fixture_island_nesting/main.ts",
+      async (page, address) => {
+        await page.goto(`${address}/island_in_island_definition`, {
+          waitUntil: "networkidle2",
+        });
+        await page.waitForSelector(".island");
+
+        await waitForText(page, ".island .island p", "it works");
+
+        // Check that there is no duplicated content which could happen
+        // when islands aren't initialized correctly
+        await waitForText(page, "#page", "it works");
+      },
+    );
+  },
+
+  sanitizeOps: false,
+  sanitizeResources: false,
+});
+
+Deno.test({
+  name:
+    "render island with JSX children that render another island with JSX children",
+
+  async fn(_t) {
+    await withPageName(
+      "./tests/fixture_island_nesting/main.ts",
+      async (page, address) => {
+        await page.goto(`${address}/island_jsx_island_jsx`, {
+          waitUntil: "networkidle2",
+        });
+        await page.waitForSelector(".island");
+
+        await waitForText(
+          page,
+          ".island .server .island .server p",
+          "it works",
+        );
+      },
+    );
+  },
+
+  sanitizeOps: false,
+  sanitizeResources: false,
+});
+
+Deno.test({
+  name: "render sibling islands",
+
+  async fn(_t) {
+    await withPageName(
+      "./tests/fixture_island_nesting/main.ts",
+      async (page, address) => {
+        await page.goto(`${address}/island_siblings`, {
+          waitUntil: "networkidle2",
+        });
+        await page.waitForSelector(".island");
+
+        await waitForText(page, ".island .a", "it works");
+        await waitForText(page, ".island + .island .b", "it works");
+      },
+    );
+  },
+
+  sanitizeOps: false,
+  sanitizeResources: false,
+});
+
+Deno.test({
+  name: "render sibling islands that render nothing initially",
+
+  async fn(_t) {
+    await withPageName(
+      "./tests/fixture_island_nesting/main.ts",
+      async (page, address) => {
+        await page.goto(`${address}/island_conditional`, {
+          waitUntil: "networkidle2",
+        });
+        await page.waitForSelector("button");
+
+        await delay(100);
+        await page.click("button");
+
+        const text = await page.$eval(
+          "#page",
+          (el) => el.textContent,
+        );
+        // Button text is matched too, but this allows us
+        // to assert correct ordering. The "it works" should
+        // be left of "Toggle"
+        assertEquals(text, "it worksToggle");
+      },
+    );
+  },
+
+  sanitizeOps: false,
+  sanitizeResources: false,
+});
+
+Deno.test({
+  name: "serialize inner island props",
+
+  async fn(_t) {
+    await withPageName(
+      "./tests/fixture_island_nesting/main.ts",
+      async (page, address) => {
+        await page.goto(`${address}/island_nested_props`, {
+          waitUntil: "networkidle2",
+        });
+        await page.waitForSelector(".island");
+
+        await waitForText(page, ".island .island p", "it works");
+      },
+    );
+  },
+
+  sanitizeOps: false,
+  sanitizeResources: false,
+});
+
+Deno.test({
+  name: "render island inside island when passed as fn child",
+
+  async fn(_t) {
+    await withPageName(
+      "./tests/fixture_island_nesting/main.ts",
+      async (page, address) => {
+        await page.goto(`${address}/island_fn_child`);
+        await page.waitForSelector(".island");
+        await waitForText(page, "#page", "it works");
+      },
+    );
+  },
+
+  sanitizeOps: false,
+  sanitizeResources: false,
+});
+
+Deno.test({
+  name: "render nested islands in correct order",
+
+  async fn(_t) {
+    await withPageName(
+      "./tests/fixture_island_nesting/main.ts",
+      async (page, address) => {
+        await page.goto(`${address}/island_order`);
+        await page.waitForSelector(".island");
+        await waitForText(page, "#page", "leftcenterright");
+      },
+    );
   },
 
   sanitizeOps: false,
