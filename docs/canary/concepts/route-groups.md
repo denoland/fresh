@@ -41,8 +41,8 @@ a folder and use a different `_layout` file for each group.
     /about.tsx
     /career.tsx
   /(info)
-    /_layout.tsx   <-- only applies to index.tsx and contact.tsx
-    /index.tsx
+    /_layout.tsx   <-- only applies to archive.tsx and contact.tsx
+    /archive.tsx
     /contact.tsx
 ```
 
