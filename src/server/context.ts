@@ -2,7 +2,6 @@ import {
   dirname,
   extname,
   fromFileUrl,
-  groupBy,
   join,
   JSONC,
   Status,
@@ -26,12 +25,11 @@ import {
   LayoutModule,
   LayoutRoute,
   Middleware,
+  MiddlewareHandler,
   MiddlewareHandlerContext,
   MiddlewareModule,
   MiddlewareRoute,
   Plugin,
-  PluginMiddleware,
-  PluginRoute,
   RenderFunction,
   RenderOptions,
   Route,
@@ -39,7 +37,6 @@ import {
   RouterOptions,
   RouterState,
   ServeHandlerInfo,
-  StaticFile,
   UnknownPage,
   UnknownPageModule,
 } from "./types.ts";
@@ -57,18 +54,6 @@ import {
   JSXConfig,
 } from "../build/mod.ts";
 import { InternalRoute } from "./router.ts";
-import {
-  assertModuleExportsDefault,
-  assertNoStaticRouteConflicts,
-  assertPluginsCallRender,
-  assertPluginsCallRenderAsync,
-  assertPluginsInjectModules,
-  assertRoutesHaveHandlerOrComponent,
-  assertSingleModule,
-  assertSingleRoutePattern,
-  assertStaticDirSafety,
-  CheckFunction,
-} from "$fresh/src/server/dev_checks.ts";
 
 const DEFAULT_CONN_INFO: ServeHandlerInfo = {
   localAddr: { transport: "tcp", hostname: "localhost", port: 8080 },
@@ -85,6 +70,20 @@ function isDevMode() {
   // Env var is only set in prod (on Deploy).
   return Deno.env.get("DENO_DEPLOYMENT_ID") === undefined;
 }
+
+interface StaticFile {
+  /** The URL to the static file on disk. */
+  localUrl: URL;
+  /** The path to the file as it would be in the incoming request. */
+  path: string;
+  /** The size of the file. */
+  size: number;
+  /** The content-type of the file. */
+  contentType: string;
+  /** Hash of the file contents. */
+  etag: string;
+}
+
 export class ServerContext {
   #dev: boolean;
   #routes: Route[];
@@ -146,7 +145,6 @@ export class ServerContext {
   ): Promise<ServerContext> {
     // Get the manifest' base URL.
     const baseUrl = new URL("./", manifest.baseUrl).href;
-    const defaultStaticDir = "./static";
 
     const { config, path: configPath } = await readDenoConfig(
       fromFileUrl(baseUrl),
@@ -184,14 +182,16 @@ export class ServerContext {
     let app: AppModule = DEFAULT_APP;
     const layouts: LayoutRoute[] = [];
     let notFound: UnknownPage = DEFAULT_NOT_FOUND;
-    let unknownModule: UnknownPageModule | null = null;
     let error: ErrorPage = DEFAULT_ERROR;
-    let errorModule: ErrorPageModule | null = null;
     const allRoutes = [
       ...Object.entries(manifest.routes),
-      ...Object.entries(getMiddlewareRoutesFromPlugins(opts.plugins || [])),
-      ...Object.entries(getRoutesFromPlugins(opts.plugins || [])),
+      ...(opts.plugins ? getMiddlewareRoutesFromPlugins(opts.plugins) : []),
+      ...(opts.plugins ? getRoutesFromPlugins(opts.plugins) : []),
     ];
+
+    // Presort all routes so that we only need to sort once
+    allRoutes.sort((a, b) => sortRoutePaths(a[0], b[0]));
+
     for (
       const [self, module] of allRoutes
     ) {
@@ -271,7 +271,6 @@ export class ServerContext {
         path === "/_404.tsx" || path === "/_404.ts" ||
         path === "/_404.jsx" || path === "/_404.js"
       ) {
-        unknownModule = module as UnknownPageModule;
         const { default: component, config } = module as UnknownPageModule;
         let { handler } = module as UnknownPageModule;
         if (component && handler === undefined) {
@@ -290,7 +289,6 @@ export class ServerContext {
         path === "/_500.tsx" || path === "/_500.ts" ||
         path === "/_500.jsx" || path === "/_500.js"
       ) {
-        errorModule = module as ErrorPageModule;
         const { default: component, config } = module as ErrorPageModule;
         let { handler } = module as ErrorPageModule;
         if (component && handler === undefined) {
@@ -308,9 +306,6 @@ export class ServerContext {
         };
       }
     }
-    sortRoutes(routes);
-    sortMiddleware(middlewares);
-    sortLayouts(layouts);
 
     for (const [self, module] of Object.entries(manifest.islands)) {
       const url = new URL(self, baseUrl).href;
@@ -339,7 +334,7 @@ export class ServerContext {
     const staticFiles: StaticFile[] = [];
     try {
       const staticFolder = new URL(
-        opts.staticDir ?? defaultStaticDir,
+        opts.staticDir ?? "./static",
         manifest.baseUrl,
       );
       const entries = walk(fromFileUrl(staticFolder), {
@@ -381,31 +376,6 @@ export class ServerContext {
 
     const dev = isDevMode();
     if (dev) {
-      const checks: CheckFunction[] = [
-        () => assertModuleExportsDefault(app, "_app"),
-        () => assertSingleModule(routes, "_app"),
-        () => assertModuleExportsDefault(unknownModule, "_404"),
-        () => assertSingleModule(routes, "_404"),
-        () => assertSingleRoutePattern(routes),
-        () => assertModuleExportsDefault(errorModule, "_500"),
-        () => assertSingleModule(routes, "_500"),
-        () => assertRoutesHaveHandlerOrComponent(routes),
-        () => assertStaticDirSafety(opts.staticDir ?? "", defaultStaticDir),
-        () => assertNoStaticRouteConflicts(routes, staticFiles),
-        () => assertPluginsCallRender(opts.plugins ?? []),
-        () => assertPluginsCallRenderAsync(opts.plugins ?? []),
-        () => assertPluginsInjectModules(opts.plugins ?? []),
-      ];
-
-      const results = checks.flatMap((check) => check());
-
-      results.forEach((result) => {
-        console.log(`[${result.category}] ${result.message}`);
-        if (result.fileLink) {
-          console.log(`See: ${result.fileLink}`);
-        }
-      });
-
       // Ensure that debugging hooks are set up for SSR rendering
       await import("preact/debug");
     }
@@ -994,89 +964,63 @@ export function selectMiddlewares(url: string, middlewares: MiddlewareRoute[]) {
   return selectedMws;
 }
 
-export function sortLayouts<T extends { pattern: string }>(
-  layouts: LayoutRoute[],
-) {
-  layouts.sort((a, b) => {
-    const partsA = a.pattern.split("/");
-    const partsB = b.pattern.split("/");
+const APP_REG = /_app\.[tj]sx?$/;
 
-    for (let i = 0; i < Math.max(partsA.length, partsB.length); i++) {
-      const partA = partsA[i];
-      const partB = partsB[i];
+/**
+ * Sort route paths where special Fresh files like `_app`,
+ * `_layout` and `_middleware` are sorted in front.
+ */
+export function sortRoutePaths(a: string, b: string) {
+  // The `_app` route should always be the first
+  if (APP_REG.test(a)) return -1;
+  else if (APP_REG.test(b)) return 1;
 
-      if (partA === undefined && partB === undefined) return 0;
-      if (partA === undefined) return 1;
-      if (partB === undefined) return -1;
+  let segmentIdx = 0;
+  const aLen = a.length;
+  const bLen = b.length;
+  const maxLen = aLen > bLen ? aLen : bLen;
+  for (let i = 0; i < maxLen; i++) {
+    const charA = a.charAt(i);
+    const charB = b.charAt(i);
+    const nextA = i + 1 < aLen ? a.charAt(i + 1) : "";
+    const nextB = i + 1 < bLen ? b.charAt(i + 1) : "";
 
-      if (partA === partB) continue;
-
-      const priorityA = getPriority(partA);
-      const priorityB = getPriority(partB);
-
-      if (priorityA !== priorityB) {
-        return priorityB - priorityA; // Sort in ascending order of priority
-      }
+    if (charA === "/" || charB === "/") {
+      segmentIdx = i;
+      // If the other path doesn't close the segment
+      // then we don't need to continue
+      if (charA !== "/") return -1;
+      if (charB !== "/") return 1;
+      continue;
     }
 
-    return 0;
-  });
+    if (i === segmentIdx + 1) {
+      const scoreA = getRoutePathScore(charA, nextA);
+      const scoreB = getRoutePathScore(charB, nextB);
+      if (scoreA === scoreB) continue;
+      return scoreA > scoreB ? -1 : 1;
+    }
+  }
+
+  return 0;
 }
 
 /**
- * Sort pages by their relative routing priority, based on the parts in the
- * route matcher
+ * Assign a score based on the first two characters of a path segment.
+ * The goal is to sort `_middleware` and `_layout` in front of everything
+ * and `[` or `[...` last respectively.
  */
-export function sortRoutes<T extends { pattern: string }>(routes: T[]) {
-  routes.sort((a, b) => {
-    const partsA = a.pattern.split("/");
-    const partsB = b.pattern.split("/");
-    for (let i = 0; i < Math.max(partsA.length, partsB.length); i++) {
-      const partA = partsA[i];
-      const partB = partsB[i];
-      if (partA === undefined) return -1;
-      if (partB === undefined) return 1;
-      if (partA === partB) continue;
-      const priorityA = partA.startsWith(":") ? partA.endsWith("*") ? 0 : 1 : 2;
-      const priorityB = partB.startsWith(":") ? partB.endsWith("*") ? 0 : 1 : 2;
-      return Math.max(Math.min(priorityB - priorityA, 1), -1);
+function getRoutePathScore(char: string, nextChar: string): number {
+  if (char === "_") {
+    if (nextChar === "m") return 4;
+    return 3;
+  } else if (char === "[") {
+    if (nextChar === ".") {
+      return 0;
     }
-    return 0;
-  });
-}
-
-export function sortMiddleware<T extends { pattern: string }>(routes: T[]) {
-  routes.sort((a, b) => {
-    const partsA = a.pattern.split("/");
-    const partsB = b.pattern.split("/");
-
-    for (let i = 0; i < Math.max(partsA.length, partsB.length); i++) {
-      const partA = partsA[i];
-      const partB = partsB[i];
-
-      if (partA === undefined && partB === undefined) return 0;
-      if (partA === undefined) return -1;
-      if (partB === undefined) return 1;
-
-      if (partA === partB) continue;
-
-      const priorityA = getPriority(partA);
-      const priorityB = getPriority(partB);
-
-      if (priorityA !== priorityB) {
-        return priorityA - priorityB; // Sort in ascending order of priority
-      }
-    }
-
-    return 0;
-  });
-}
-
-function getPriority(part: string) {
-  if (part.startsWith(":")) {
-    return part.endsWith("*") ? 2 : 1;
+    return 1;
   }
-  return 0;
+  return 2;
 }
 
 /** Transform a filesystem URL path to a `path-to-regex` style matcher. */
@@ -1271,65 +1215,40 @@ async function readDenoConfig(
 }
 
 function formatMiddlewarePath(path: string): string {
-  let formattedPath = path;
-  if (!path.startsWith("/")) {
-    formattedPath = `/${formattedPath}`;
-  }
-  if (!formattedPath.endsWith("/")) {
-    formattedPath = `${formattedPath}/`;
-  }
-  return formattedPath;
+  const prefix = !path.startsWith("/") ? "/" : "";
+  const suffix = !path.endsWith("/") ? "/" : "";
+  return prefix + path + suffix;
 }
 
 function getMiddlewareRoutesFromPlugins(
   plugins: Plugin[],
-): Record<string, MiddlewareModule> {
-  // 1. Collect all middlewares from all plugins
-  const allPluginMiddlewares = plugins.flatMap((plugin) =>
-    plugin.middlewares || []
-  );
+): [string, MiddlewareModule][] {
+  const middlewares = plugins.flatMap((plugin) => plugin.middlewares ?? []);
 
-  // 2. Group PluginMiddleware by their path
-  const groupedPluginMiddlewares: Record<string, PluginMiddleware[]> = {
-    ...(groupBy(
-      allPluginMiddlewares,
-      (middleware) =>
-        `./routes${formatMiddlewarePath(middleware.path)}_middleware.ts`,
-    ) as Record<string, PluginMiddleware[]>),
-  };
+  const mws: Record<
+    string,
+    [string, { handler: MiddlewareHandler[] }]
+  > = {};
+  for (let i = 0; i < middlewares.length; i++) {
+    const mw = middlewares[i];
+    const handler = mw.middleware.handler;
+    const key = `./routes${formatMiddlewarePath(mw.path)}_middleware.ts`;
+    if (!mws[key]) mws[key] = [key, { handler: [] }];
+    mws[key][1].handler.push(...Array.isArray(handler) ? handler : [handler]);
+  }
 
-  // 3. Convert the grouped PluginMiddleware to MiddlewareModule
-  // this involves merging the Handler or Handler[]
-  const middlewareRoutes: Record<string, MiddlewareModule> = Object.fromEntries(
-    Object.entries(groupedPluginMiddlewares).map(([key, pluginMiddlewares]) => {
-      const handler = pluginMiddlewares.flatMap((pluginMiddleware) => {
-        const middlewareHandler = pluginMiddleware.middleware.handler;
-        return Array.isArray(middlewareHandler)
-          ? middlewareHandler
-          : [middlewareHandler];
-      });
-      return [key, { handler }];
-    }),
-  );
-
-  return middlewareRoutes;
+  return Object.values(mws);
 }
 
-function getRoutesFromPlugins(plugins: Plugin[]): Record<string, RouteModule> {
-  return (Object.assign(
-    {},
-    ...[
-      ...new Set(
-        ([] as PluginRoute[]).concat(...plugins.map((p) => p.routes || [])),
-      ),
-    ]
-      .map((route: PluginRoute) => ({
-        [`./routes${route.path}.ts`]: {
-          default: route.component,
-          handler: route.handler,
-        } as RouteModule,
-      })) || [],
-  ));
+function getRoutesFromPlugins(plugins: Plugin[]): [string, RouteModule][] {
+  return plugins.flatMap((plugin) => plugin.routes ?? [])
+    .map((route) => {
+      return [`./routes${route.path}.ts`, {
+        // deno-lint-ignore no-explicit-any
+        default: route.component as any,
+        handler: route.handler,
+      }];
+    });
 }
 
 function sendResponse(
