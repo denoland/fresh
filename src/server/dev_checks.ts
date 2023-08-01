@@ -71,8 +71,12 @@ export function assertRoutesHaveHandlerOrComponent(
 ): CheckResult[] {
   return routes.flatMap((route) => {
     const hasComponent = !!route.component;
-
     let hasHandlerMethod = false;
+
+    if (typeof route.handler === "function") {
+      hasHandlerMethod = true;
+    }
+
     if (typeof route.handler === "object") {
       for (const method of knownMethods) {
         if (method in route.handler) {
