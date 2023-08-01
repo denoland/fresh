@@ -69,13 +69,10 @@ jobs:
           key: chrome-1022525-${{ runner.os }}-${{ hashFiles('tests/deps.ts') }}
           restore-keys: chrome-1022525-${{ runner.os }}-
 
-      - name: Install Chromium (Unix)
-        if: startsWith(matrix.os, 'ubuntu') || startsWith(matrix.os, 'mac')
-        run: PUPPETEER_PRODUCT=chrome deno run -A --unstable https://deno.land/x/puppeteer@16.2.0/install.ts
-
-      - name: Install Chromium (Windows)
-        if: startsWith(matrix.os, 'windows')
-        run: set "PUPPETEER_PRODUCT=chrome" && deno run -A --unstable https://deno.land/x/puppeteer@16.2.0/install.ts
+      - name: Install Chromium
+        run: deno run -A --unstable https://deno.land/x/puppeteer@16.2.0/install.ts
+        env:
+          PUPPETEER_PRODUCT: chrome
 
       - name: Run tests
         run: deno test -A
