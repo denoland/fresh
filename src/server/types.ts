@@ -147,6 +147,7 @@ export type PageComponent<T = any, S = Record<string, unknown>> =
 
 // deno-lint-ignore no-explicit-any
 export interface Route<Data = any> {
+  filePath: string;
   pattern: string;
   url: string;
   name: string;

@@ -66,6 +66,7 @@ import {
   assertSingleRoutePattern,
   assertStaticDirSafety,
   CheckFunction,
+  runChecks,
 } from "$fresh/src/server/dev_checks.ts";
 
 const DEFAULT_CONN_INFO: ServeHandlerInfo = {
@@ -246,6 +247,7 @@ export class ServerContext {
           };
         }
         const route: Route = {
+          filePath: self,
           pattern,
           url,
           name,
@@ -380,30 +382,21 @@ export class ServerContext {
 
     const dev = isDevMode();
     if (dev) {
-      const checks: CheckFunction[] = [
-        () => assertModuleExportsDefault(app, "_app"),
-        () => assertSingleModule(routes, "_app"),
-        () => assertModuleExportsDefault(unknownModule, "_404"),
-        () => assertSingleModule(routes, "_404"),
-        () => assertSingleRoutePattern(routes),
-        () => assertModuleExportsDefault(errorModule, "_500"),
-        () => assertSingleModule(routes, "_500"),
-        () => assertRoutesHaveHandlerOrComponent(routes),
-        () => assertStaticDirSafety(opts.staticDir ?? "", defaultStaticDir),
-        () => assertNoStaticRouteConflicts(routes, staticFiles),
-        () => assertPluginsCallRender(opts.plugins ?? []),
-        () => assertPluginsCallRenderAsync(opts.plugins ?? []),
-        () => assertPluginsInjectModules(opts.plugins ?? []),
-      ];
-
-      const results = checks.flatMap((check) => check());
-
-      results.forEach((result) => {
-        console.log(`[${result.category}] ${result.message}`);
-        if (result.fileLink) {
-          console.log(`See: ${result.fileLink}`);
-        }
-      });
+      runChecks(
+        assertModuleExportsDefault(app, "_app"),
+        assertSingleModule(routes, "_app"),
+        assertModuleExportsDefault(unknownModule, "_404"),
+        assertSingleModule(routes, "_404"),
+        assertSingleRoutePattern(routes),
+        assertModuleExportsDefault(errorModule, "_500"),
+        assertSingleModule(routes, "_500"),
+        assertRoutesHaveHandlerOrComponent(routes),
+        assertStaticDirSafety(opts.staticDir ?? "", defaultStaticDir),
+        assertNoStaticRouteConflicts(routes, staticFiles),
+        assertPluginsCallRender(opts.plugins ?? []),
+        assertPluginsCallRenderAsync(opts.plugins ?? []),
+        assertPluginsInjectModules(opts.plugins ?? []),
+      );
 
       // Ensure that debugging hooks are set up for SSR rendering
       await import("preact/debug");

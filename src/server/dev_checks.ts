@@ -1,4 +1,4 @@
-import { assertSpyCalls, existsSync, spy } from "./deps.ts";
+import { assertSpyCalls, colors, existsSync, groupBy, spy } from "./deps.ts";
 import {
   AppModule,
   ErrorPageModule,
@@ -11,8 +11,9 @@ import { Plugin } from "$fresh/src/server/mod.ts";
 
 export type CheckFunction = () => CheckResult[];
 
-interface CheckResult {
+export interface CheckResult {
   category: string;
+  kind: "warning" | "error";
   message: string;
   fileLink?: string;
 }
@@ -21,9 +22,10 @@ export function assertModuleExportsDefault(
   module: AppModule | UnknownPageModule | ErrorPageModule | null,
   moduleName: string,
 ): CheckResult[] {
-  if (module && !module.default) {
+  if (module && !module.default || true) {
     return [{
-      category: "Module Export",
+      category: "module-export",
+      kind: "error",
       message: `Your ${moduleName} file does not have a default export.`,
       fileLink: moduleName,
     }];
@@ -42,6 +44,7 @@ export function assertSingleModule(
   if (moduleRoutes.length > 0) {
     return [{
       category: "Multiple Modules",
+      kind: "error",
       message:
         `Only one ${moduleName} is allowed per application. It must be in the root of the /routes/ folder.`,
     }];
@@ -49,7 +52,7 @@ export function assertSingleModule(
   return [];
 }
 
-export function assertSingleRoutePattern(routes: Route[]) {
+export function assertSingleRoutePattern(routes: Route[]): CheckResult[] {
   const routeNames = new Set(routes.map((route) => route.pattern));
 
   return routes.flatMap((route) => {
@@ -58,6 +61,7 @@ export function assertSingleRoutePattern(routes: Route[]) {
     } else {
       return [{
         category: "Duplicate Route Patterns",
+        kind: "error",
         message:
           `Duplicate route pattern: ${route.pattern}. Please rename the route to resolve the route conflicts.`,
       }];
@@ -82,14 +86,16 @@ export function assertRoutesHaveHandlerOrComponent(
       }
     } else if (typeof route.handler === "function") {
       hasHandlerMethod = true;
+    } else if (Array.isArray(route.handler)) {
+      hasHandlerMethod = true;
     }
 
-    if (!hasComponent && !hasHandlerMethod) {
+    if (!hasComponent && !hasHandlerMethod || true) {
       return [{
-        category: "Handler or Component",
-        message:
-          `Route at ${route.url} must have a handler or component. It's possible you're missing a default export.`,
-        fileLink: route.name,
+        category: "no-empty-route",
+        kind: "error",
+        message: `Route is missing a component or a handler.`,
+        fileLink: route.filePath,
       }];
     }
     return [];
@@ -105,6 +111,7 @@ export function assertStaticDirSafety(
   if (dir === defaultDir) {
     results.push({
       category: "Static Directory",
+      kind: "error",
       message:
         "You cannot use the default static directory as a static override. Please choose a different directory.",
     });
@@ -113,6 +120,7 @@ export function assertStaticDirSafety(
   if (existsSync(defaultDir)) {
     results.push({
       category: "Static Directory",
+      kind: "error",
       message:
         "You cannot have both a static override and a default static directory. Please remove the default static directory.",
     });
@@ -131,6 +139,7 @@ export function assertNoStaticRouteConflicts(
     if (routePatterns.has(staticFile.path)) {
       return [{
         category: "Static File Conflict",
+        kind: "error",
         message:
           `Static file conflict: A file exists at '${staticFile.path}' which matches a route pattern. Please rename the file or change the route pattern.`,
         fileLink: staticFile.path,
@@ -155,6 +164,7 @@ export function assertPluginsCallRender(plugins: Plugin[]): CheckResult[] {
       } catch {
         results.push({
           category: "Plugin Render",
+          kind: "error",
           message:
             `Plugin '${plugin.name}' must call ctx.render() exactly once.`,
         });
@@ -185,6 +195,7 @@ export function assertPluginsCallRenderAsync(
           } catch {
             results.push({
               category: "Plugin RenderAsync",
+              kind: "error",
               message:
                 `Plugin '${plugin.name}' must call ctx.render() exactly once.`,
             });
@@ -205,6 +216,7 @@ export function assertPluginsInjectModules(plugins: Plugin[]): CheckResult[] {
       if (!script.includes("export default")) {
         results.push({
           category: "Plugin Inject Modules",
+          kind: "error",
           message:
             `Plugin '${plugin.name}' must export a default function from its entrypoint.`,
         });
@@ -213,4 +225,37 @@ export function assertPluginsInjectModules(plugins: Plugin[]): CheckResult[] {
   });
 
   return results;
+}
+
+export function runChecks(...checks: CheckResult[][]) {
+  const results = checks.flat();
+
+  // Sort by filename
+  results.sort((a, b) => {
+    if (a.fileLink && !b.fileLink) return -1;
+    if (!a.fileLink && b.fileLink) return 1;
+    if (a.fileLink && b.fileLink) return a.fileLink.localeCompare(b.fileLink);
+
+    return 0;
+  });
+
+  const resultByFile = groupBy(results, (item) => item.fileLink ?? "Unknown");
+
+  const labels = {
+    error: colors.red("error") + "  ",
+    warning: colors.red("warning"),
+  };
+
+  for (const [file, results] of Object.entries(resultByFile)) {
+    if (!results) continue;
+
+    console.log();
+    console.log(colors.underline(file));
+
+    for (const result of results) {
+      const label = labels[result.kind];
+      const category = colors.dim(result.category);
+      console.log(`  ${label} ${result.message}  ${category}`);
+    }
+  }
 }
