@@ -243,7 +243,7 @@ export class ServerContext {
           };
         }
         const route: Route = {
-          baseRoute,
+          baseRoute: "/" + baseRoute,
           pattern,
           url,
           name,
@@ -957,7 +957,7 @@ const DEFAULT_APP: AppModule = {
 };
 
 const DEFAULT_NOT_FOUND: UnknownPage = {
-  baseRoute: "",
+  baseRoute: "/",
   pattern: "",
   url: "",
   name: "_404",
@@ -966,7 +966,7 @@ const DEFAULT_NOT_FOUND: UnknownPage = {
 };
 
 const DEFAULT_ERROR: ErrorPage = {
-  baseRoute: "",
+  baseRoute: "/",
   pattern: "",
   url: "",
   name: "_500",
@@ -976,13 +976,19 @@ const DEFAULT_ERROR: ErrorPage = {
 };
 
 export function selectSharedRoutes<T>(
-  routeBasePath: string,
+  curBaseRoute: string,
   items: { baseRoute: string; module: T }[],
 ): T[] {
+  if (curBaseRoute.endsWith("/index")) {
+    curBaseRoute = curBaseRoute.slice(0, -"index".length);
+  }
   const selected: T[] = [];
 
   for (const { baseRoute, module } of items) {
-    const res = routeBasePath.startsWith(baseRoute + "/");
+    const res = curBaseRoute === baseRoute ||
+      curBaseRoute.startsWith(
+        baseRoute.length > 1 ? baseRoute + "/" : baseRoute,
+      );
     if (res) {
       selected.push(module);
     }
@@ -1166,6 +1172,10 @@ export function normalizeBaseRoute(baseRoute: string, suffix: string) {
   baseRoute = baseRoute.slice(0, -suffix.length);
   if (baseRoute.endsWith("/")) {
     baseRoute = baseRoute.slice(0, -1);
+  }
+
+  if (!baseRoute.startsWith("/")) {
+    baseRoute = "/" + baseRoute;
   }
   return baseRoute;
 }
