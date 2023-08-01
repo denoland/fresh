@@ -192,6 +192,10 @@ export class ServerContext {
       ...Object.entries(getMiddlewareRoutesFromPlugins(opts.plugins || [])),
       ...Object.entries(getRoutesFromPlugins(opts.plugins || [])),
     ];
+
+    // Presort all routes so that we only need to sort once
+    allRoutes.sort((a, b) => sortRoutePaths(a[0], b[0]));
+
     for (
       const [self, module] of allRoutes
     ) {
@@ -308,9 +312,6 @@ export class ServerContext {
         };
       }
     }
-    sortRoutes(routes);
-    sortMiddleware(middlewares);
-    sortLayouts(layouts);
 
     for (const [self, module] of Object.entries(manifest.islands)) {
       const url = new URL(self, baseUrl).href;
@@ -994,89 +995,63 @@ export function selectMiddlewares(url: string, middlewares: MiddlewareRoute[]) {
   return selectedMws;
 }
 
-export function sortLayouts<T extends { pattern: string }>(
-  layouts: LayoutRoute[],
-) {
-  layouts.sort((a, b) => {
-    const partsA = a.pattern.split("/");
-    const partsB = b.pattern.split("/");
+const APP_REG = /_app\.[tj]sx?$/;
 
-    for (let i = 0; i < Math.max(partsA.length, partsB.length); i++) {
-      const partA = partsA[i];
-      const partB = partsB[i];
+/**
+ * Sort route paths where special Fresh files like `_app`,
+ * `_layout` and `_middleware` are sorted in front.
+ */
+export function sortRoutePaths(a: string, b: string) {
+  // The `_app` route should always be the first
+  if (APP_REG.test(a)) return -1;
+  else if (APP_REG.test(b)) return 1;
 
-      if (partA === undefined && partB === undefined) return 0;
-      if (partA === undefined) return 1;
-      if (partB === undefined) return -1;
+  let segmentIdx = 0;
+  const aLen = a.length;
+  const bLen = b.length;
+  const maxLen = aLen > bLen ? aLen : bLen;
+  for (let i = 0; i < maxLen; i++) {
+    const charA = a.charAt(i);
+    const charB = b.charAt(i);
+    const nextA = i + 1 < aLen ? a.charAt(i + 1) : "";
+    const nextB = i + 1 < bLen ? b.charAt(i + 1) : "";
 
-      if (partA === partB) continue;
-
-      const priorityA = getPriority(partA);
-      const priorityB = getPriority(partB);
-
-      if (priorityA !== priorityB) {
-        return priorityB - priorityA; // Sort in ascending order of priority
-      }
+    if (charA === "/" || charB === "/") {
+      segmentIdx = i;
+      // If the other path doesn't close the segment
+      // then we don't need to continue
+      if (charA !== "/") return -1;
+      if (charB !== "/") return 1;
+      continue;
     }
 
-    return 0;
-  });
+    if (i === segmentIdx + 1) {
+      const scoreA = getRoutePathScore(charA, nextA);
+      const scoreB = getRoutePathScore(charB, nextB);
+      if (scoreA === scoreB) continue;
+      return scoreA > scoreB ? -1 : 1;
+    }
+  }
+
+  return 0;
 }
 
 /**
- * Sort pages by their relative routing priority, based on the parts in the
- * route matcher
+ * Assign a score based on the first two characters of a path segment.
+ * The goal is to sort `_middleware` and `_layout` in front of everything
+ * and `[` or `[...` last respectively.
  */
-export function sortRoutes<T extends { pattern: string }>(routes: T[]) {
-  routes.sort((a, b) => {
-    const partsA = a.pattern.split("/");
-    const partsB = b.pattern.split("/");
-    for (let i = 0; i < Math.max(partsA.length, partsB.length); i++) {
-      const partA = partsA[i];
-      const partB = partsB[i];
-      if (partA === undefined) return -1;
-      if (partB === undefined) return 1;
-      if (partA === partB) continue;
-      const priorityA = partA.startsWith(":") ? partA.endsWith("*") ? 0 : 1 : 2;
-      const priorityB = partB.startsWith(":") ? partB.endsWith("*") ? 0 : 1 : 2;
-      return Math.max(Math.min(priorityB - priorityA, 1), -1);
+function getRoutePathScore(char: string, nextChar: string): number {
+  if (char === "_") {
+    if (nextChar === "m") return 4;
+    return 3;
+  } else if (char === "[") {
+    if (nextChar === ".") {
+      return 0;
     }
-    return 0;
-  });
-}
-
-export function sortMiddleware<T extends { pattern: string }>(routes: T[]) {
-  routes.sort((a, b) => {
-    const partsA = a.pattern.split("/");
-    const partsB = b.pattern.split("/");
-
-    for (let i = 0; i < Math.max(partsA.length, partsB.length); i++) {
-      const partA = partsA[i];
-      const partB = partsB[i];
-
-      if (partA === undefined && partB === undefined) return 0;
-      if (partA === undefined) return -1;
-      if (partB === undefined) return 1;
-
-      if (partA === partB) continue;
-
-      const priorityA = getPriority(partA);
-      const priorityB = getPriority(partB);
-
-      if (priorityA !== priorityB) {
-        return priorityA - priorityB; // Sort in ascending order of priority
-      }
-    }
-
-    return 0;
-  });
-}
-
-function getPriority(part: string) {
-  if (part.startsWith(":")) {
-    return part.endsWith("*") ? 2 : 1;
+    return 1;
   }
-  return 0;
+  return 2;
 }
 
 /** Transform a filesystem URL path to a `path-to-regex` style matcher. */
