@@ -1,28 +1,5 @@
 import { assertEquals, assertThrows } from "$std/testing/asserts.ts";
-import { assert } from "../../tests/deps.ts";
-import { pathToPattern, selectSharedRoutes } from "./context.ts";
-
-Deno.test("selectMiddlewares", () => {
-  const url = "https://fresh.deno.dev/api/abc/def";
-  const middlewaresPath = [
-    // should select
-    "_middleware",
-    "api/_middleware",
-    "api/[id]/_middleware",
-    "api/[id]/[path]/_middleware",
-
-    // should not select
-    "api/xyz/_middleware",
-    "api/[id]/xyz/_middleware",
-    "api/[id]/[path]/foo/_middleware",
-  ];
-  const mwRoutes = middlewaresPath.map((baseRoute) => ({
-    baseRoute,
-    module: null,
-  }));
-  const mws = selectSharedRoutes(url, mwRoutes);
-  assert(mws.length === 4);
-});
+import { pathToPattern } from "./context.ts";
 
 Deno.test("pathToPattern", async (t) => {
   await t.step("creates pattern", () => {

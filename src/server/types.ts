@@ -147,7 +147,7 @@ export type PageComponent<T = any, S = Record<string, unknown>> =
 
 // deno-lint-ignore no-explicit-any
 export interface Route<Data = any> {
-  baseRoute: string;
+  baseRoute: BaseRoute;
   pattern: string;
   url: string;
   name: string;
@@ -179,7 +179,7 @@ export interface LayoutModule {
 }
 
 export interface LayoutRoute {
-  baseRoute: string;
+  baseRoute: BaseRoute;
   module: LayoutModule;
 }
 
@@ -219,7 +219,7 @@ export interface UnknownPageModule {
 }
 
 export interface UnknownPage {
-  baseRoute: string;
+  baseRoute: BaseRoute;
   pattern: string;
   url: string;
   name: string;
@@ -249,6 +249,9 @@ export interface ErrorHandlerContext<State = Record<string, unknown>>
   state: State;
 }
 
+// Nominal/Branded type. Ensures that the string has the expected format
+export type BaseRoute = string & { readonly __brand: unique symbol };
+
 export type ErrorHandler = (
   req: Request,
   ctx: ErrorHandlerContext,
@@ -261,7 +264,7 @@ export interface ErrorPageModule {
 }
 
 export interface ErrorPage {
-  baseRoute: string;
+  baseRoute: BaseRoute;
   pattern: string;
   url: string;
   name: string;
@@ -281,7 +284,7 @@ export interface MiddlewareHandlerContext<State = Record<string, unknown>>
 }
 
 export interface MiddlewareRoute {
-  baseRoute: string;
+  baseRoute: BaseRoute;
   module: Middleware;
 }
 

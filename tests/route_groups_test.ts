@@ -1,53 +1,32 @@
-import { assertEquals } from "$std/testing/asserts.ts";
-import { withPageName } from "./test_utils.ts";
+import { assertTextMany, fetchHtml, withFresh } from "./test_utils.ts";
 
 Deno.test("applies only _layout file of one group", async () => {
-  await withPageName(
+  await withFresh(
     "./tests/fixture/main.ts",
-    async (page, address) => {
-      await page.goto(`${address}/route-groups`);
-      await page.waitForSelector("p");
+    async (address) => {
+      const doc = await fetchHtml(`${address}/route-groups`);
 
-      const texts = await page.$$eval(
-        "p",
-        (els) => Array.from(els).map((el) => el.textContent),
-      );
-
-      assertEquals(texts, ["Foo layout", "Foo page"]);
+      assertTextMany(doc, "p", ["Foo layout", "Foo page"]);
     },
   );
 });
 
 Deno.test("applies only _layout files in parent groups", async () => {
-  await withPageName(
+  await withFresh(
     "./tests/fixture/main.ts",
-    async (page, address) => {
-      await page.goto(`${address}/route-groups/baz`);
-      await page.waitForSelector("p");
-
-      const texts = await page.$$eval(
-        "p",
-        (els) => Array.from(els).map((el) => el.textContent),
-      );
-
-      assertEquals(texts, ["Bar layout", "Baz layout", "Baz page"]);
+    async (address) => {
+      const doc = await fetchHtml(`${address}/route-groups/baz`);
+      assertTextMany(doc, "p", ["Bar layout", "Baz layout", "Baz page"]);
     },
   );
 });
 
 Deno.test("applies only _layout files in parent groups #2", async () => {
-  await withPageName(
+  await withFresh(
     "./tests/fixture/main.ts",
-    async (page, address) => {
-      await page.goto(`${address}/route-groups/boof`);
-      await page.waitForSelector("p");
-
-      const texts = await page.$$eval(
-        "p",
-        (els) => Array.from(els).map((el) => el.textContent),
-      );
-
-      assertEquals(texts, ["Bar layout", "Boof Page"]);
+    async (address) => {
+      const doc = await fetchHtml(`${address}/route-groups/boof`);
+      assertTextMany(doc, "p", ["Bar layout", "Boof Page"]);
     },
   );
 });

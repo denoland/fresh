@@ -1,4 +1,4 @@
-import { ErrorHandlerContext, ServeHandlerInfo } from "./types.ts";
+import { BaseRoute, ErrorHandlerContext, ServeHandlerInfo } from "./types.ts";
 
 type HandlerContext<T = unknown> = T & ServeHandlerInfo;
 
@@ -38,7 +38,7 @@ export type MatchHandler<T = unknown> = (
 // deno-lint-ignore ban-types
 export interface Routes<T = {}> {
   [key: string]: {
-    baseRoute: string;
+    baseRoute: BaseRoute;
     methods: {
       [K in KnownMethod | "default"]?: MatchHandler<T>;
     };
@@ -49,7 +49,7 @@ export type DestinationKind = "internal" | "static" | "route" | "notFound";
 
 // deno-lint-ignore ban-types
 export type InternalRoute<T = {}> = {
-  baseRoute: string;
+  baseRoute: BaseRoute;
   pattern: URLPattern;
   methods: { [K in KnownMethod]?: MatchHandler<T> };
   default?: MatchHandler<T>;

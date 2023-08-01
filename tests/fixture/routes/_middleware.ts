@@ -55,7 +55,6 @@ async function kindHandler(
   ctx: MiddlewareHandlerContext,
 ) {
   const resp = await ctx.next();
-  console.log("KIND", ctx.destination);
   resp.headers.set("destination", ctx.destination);
   return resp;
 }

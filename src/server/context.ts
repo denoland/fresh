@@ -17,6 +17,7 @@ import { BUILD_ID } from "./build_id.ts";
 import DefaultErrorHandler from "./default_error_page.ts";
 import {
   AppModule,
+  BaseRoute,
   ErrorPage,
   ErrorPageModule,
   FreshOptions,
@@ -58,6 +59,8 @@ const DEFAULT_CONN_INFO: ServeHandlerInfo = {
   localAddr: { transport: "tcp", hostname: "localhost", port: 8080 },
   remoteAddr: { transport: "tcp", hostname: "localhost", port: 1234 },
 };
+
+const ROOT_BASE_ROUTE = toBaseRoute("/");
 
 function isObject(value: unknown) {
   return typeof value === "object" &&
@@ -243,7 +246,7 @@ export class ServerContext {
           };
         }
         const route: Route = {
-          baseRoute: "/" + baseRoute,
+          baseRoute: toBaseRoute(baseRoute),
           pattern,
           url,
           name,
@@ -254,7 +257,7 @@ export class ServerContext {
         routes.push(route);
       } else if (isMiddleware) {
         middlewares.push({
-          baseRoute: normalizeBaseRoute(baseRoute, "_middleware"),
+          baseRoute: toBaseRoute(baseRoute),
           module: module as MiddlewareModule,
         });
       } else if (
@@ -264,7 +267,7 @@ export class ServerContext {
         app = module as AppModule;
       } else if (isLayout) {
         layouts.push({
-          baseRoute: normalizeBaseRoute(baseRoute, "_layout"),
+          baseRoute: toBaseRoute(baseRoute),
           module: module as LayoutModule,
         });
       } else if (
@@ -278,7 +281,7 @@ export class ServerContext {
         }
 
         notFound = {
-          baseRoute: "",
+          baseRoute: ROOT_BASE_ROUTE,
           pattern: pathToPattern(baseRoute),
           url,
           name,
@@ -297,7 +300,7 @@ export class ServerContext {
         }
 
         error = {
-          baseRoute: "",
+          baseRoute: toBaseRoute("/"),
           pattern: pathToPattern(baseRoute),
           url,
           name,
@@ -496,7 +499,7 @@ export class ServerContext {
       // identify middlewares to apply, if any.
       // middlewares should be already sorted from deepest to shallow layer
       const mws = selectSharedRoutes(
-        paramsAndRouteResult.route?.baseRoute || "",
+        paramsAndRouteResult.route?.baseRoute ?? ROOT_BASE_ROUTE,
         middlewares,
       );
 
@@ -579,14 +582,16 @@ export class ServerContext {
     const routes: router.Routes<RouterState> = {};
 
     internalRoutes[`${INTERNAL_PREFIX}${JS_PREFIX}/${BUILD_ID}/:path*`] = {
-      baseRoute: `${INTERNAL_PREFIX}${JS_PREFIX}/${BUILD_ID}/:path*`,
+      baseRoute: toBaseRoute(
+        `${INTERNAL_PREFIX}${JS_PREFIX}/${BUILD_ID}/:path*`,
+      ),
       methods: {
         default: this.#bundleAssetRoute(),
       },
     };
     if (this.#dev) {
       internalRoutes[REFRESH_JS_URL] = {
-        baseRoute: REFRESH_JS_URL,
+        baseRoute: toBaseRoute(REFRESH_JS_URL),
         methods: {
           default: () => {
             return new Response(refreshJs(ALIVE_URL, BUILD_ID), {
@@ -598,7 +603,7 @@ export class ServerContext {
         },
       };
       internalRoutes[ALIVE_URL] = {
-        baseRoute: ALIVE_URL,
+        baseRoute: toBaseRoute(ALIVE_URL),
         methods: {
           default: () => {
             let timerId: number | undefined = undefined;
@@ -634,7 +639,7 @@ export class ServerContext {
     ) {
       const route = sanitizePathToRegex(path);
       staticRoutes[route] = {
-        baseRoute: route,
+        baseRoute: toBaseRoute(route),
         methods: {
           "HEAD": this.#staticFileHeadHandler(
             size,
@@ -674,7 +679,7 @@ export class ServerContext {
         });
       }
 
-      const layouts = selectSharedRoutes("", this.#layouts);
+      const layouts = selectSharedRoutes(ROOT_BASE_ROUTE, this.#layouts);
 
       const imports: string[] = [];
       const resp = await internalRender({
@@ -957,7 +962,7 @@ const DEFAULT_APP: AppModule = {
 };
 
 const DEFAULT_NOT_FOUND: UnknownPage = {
-  baseRoute: "/",
+  baseRoute: toBaseRoute("/"),
   pattern: "",
   url: "",
   name: "_404",
@@ -966,7 +971,7 @@ const DEFAULT_NOT_FOUND: UnknownPage = {
 };
 
 const DEFAULT_ERROR: ErrorPage = {
-  baseRoute: "/",
+  baseRoute: toBaseRoute("/"),
   pattern: "",
   url: "",
   name: "_500",
@@ -976,12 +981,9 @@ const DEFAULT_ERROR: ErrorPage = {
 };
 
 export function selectSharedRoutes<T>(
-  curBaseRoute: string,
-  items: { baseRoute: string; module: T }[],
+  curBaseRoute: BaseRoute,
+  items: { baseRoute: BaseRoute; module: T }[],
 ): T[] {
-  if (curBaseRoute.endsWith("/index")) {
-    curBaseRoute = curBaseRoute.slice(0, -"index".length);
-  }
   const selected: T[] = [];
 
   for (const { baseRoute, module } of items) {
@@ -1168,16 +1170,21 @@ function serializeCSPDirectives(csp: ContentSecurityPolicyDirectives): string {
     .join("; ");
 }
 
-export function normalizeBaseRoute(baseRoute: string, suffix: string) {
-  baseRoute = baseRoute.slice(0, -suffix.length);
-  if (baseRoute.endsWith("/")) {
-    baseRoute = baseRoute.slice(0, -1);
+export function toBaseRoute(input: string): BaseRoute {
+  if (input.endsWith("_layout")) {
+    input = input.slice(0, -"_layout".length);
+  } else if (input.endsWith("_middleware")) {
+    input = input.slice(0, -"_middleware".length);
+  } else if (input.endsWith("index")) {
+    input = input.slice(0, -"index".length);
   }
 
-  if (!baseRoute.startsWith("/")) {
-    baseRoute = "/" + baseRoute;
+  if (input.endsWith("/")) {
+    input = input.slice(0, -1);
   }
-  return baseRoute;
+
+  const suffix = !input.startsWith("/") ? "/" : "";
+  return (suffix + input) as BaseRoute;
 }
 
 function refreshJs(aliveUrl: string, buildId: string) {

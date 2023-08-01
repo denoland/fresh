@@ -1,5 +1,6 @@
 import { colors } from "$fresh/src/server/deps.ts";
 import {
+  assertEquals,
   delay,
   DOMParser,
   HTMLElement,
@@ -36,6 +37,23 @@ export function assertSelector(doc: Document, selector: string) {
     throw new Error(
       `Selector "${selector}" not found in document.\n\n${html}`,
     );
+  }
+}
+
+export function assertTextMany(
+  doc: Document,
+  selector: string,
+  expected: string[],
+) {
+  const texts = Array.from(doc.querySelectorAll(selector)).map((el) =>
+    el.textContent
+  );
+
+  try {
+    assertEquals(texts, expected);
+  } catch (err) {
+    const html = "\n\n" + prettyDom(doc);
+    throw new err.constructor(err.message += html, { cause: err });
   }
 }
 
