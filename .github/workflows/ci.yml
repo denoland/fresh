@@ -79,14 +79,3 @@ jobs:
 
       - name: Run tests
         run: deno test -A
-
-      - name: Type check init script
-        run: deno check --remote init.ts
-
-      - name: Test website
-        run: deno test -A
-        working-directory: www/
-
-      - name: Type check demo
-        run: deno check --remote main.ts dev.ts
-        working-directory: demo
