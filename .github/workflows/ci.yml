@@ -39,7 +39,7 @@ jobs:
         uses: crate-ci/typos@master
 
       - name: Cache dependencies
-        run: deno cache --config=www/deno.json src/dev/deps.ts src/server/deps.ts www/main.ts
+        run: deno cache --config=www/deno.json src/dev/deps.ts src/server/deps.ts www/main.ts tests/deps.ts
 
       - name: Type check project
         run: deno task check:types
