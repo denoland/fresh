@@ -1,4 +1,13 @@
-import { delay, DOMParser, Page, puppeteer, TextLineStream } from "./deps.ts";
+import { colors } from "$fresh/src/server/deps.ts";
+import {
+  delay,
+  DOMParser,
+  HTMLElement,
+  HTMLMetaElement,
+  Page,
+  puppeteer,
+  TextLineStream,
+} from "./deps.ts";
 
 export function parseHtml(input: string) {
   return new DOMParser().parseFromString(input, "text/html");
@@ -12,6 +21,103 @@ export async function startFreshServer(options: Deno.CommandOptions) {
   }
 
   return { serverProcess, lines, address };
+}
+
+export async function fetchHtml(url: string) {
+  const res = await fetch(url);
+  const html = await res.text();
+  // deno-lint-ignore no-explicit-any
+  return new DOMParser().parseFromString(html, "text/html") as any as Document;
+}
+
+export function assertSelector(doc: Document, selector: string) {
+  if (doc.querySelector(selector) === null) {
+    const html = prettyDom(doc);
+    throw new Error(
+      `Selector "${selector}" not found in document.\n\n${html}`,
+    );
+  }
+}
+
+export const VOID_ELEMENTS =
+  /^(?:area|base|br|col|embed|hr|img|input|link|meta|param|source|track|wbr)$/;
+function prettyDom(doc: Document) {
+  let out = colors.dim(`<!DOCTYPE ${doc.doctype?.name ?? ""}>\n`);
+  console.log(out);
+
+  const node = doc.documentElement;
+  out += _printDomNode(node, 0);
+
+  return out;
+}
+
+function _printDomNode(
+  node: HTMLElement | Text | Node,
+  indent: number,
+) {
+  const space = "  ".repeat(indent);
+
+  if (node.nodeType === 3) {
+    return space + colors.dim(node.textContent ?? "") + "\n";
+  }
+
+  let out = space;
+  if (node instanceof HTMLElement || node instanceof HTMLMetaElement) {
+    out += colors.dim(colors.cyan("<"));
+    out += colors.cyan(node.localName);
+
+    for (let i = 0; i < node.attributes.length; i++) {
+      const attr = node.attributes.item(i);
+      if (attr === null) continue;
+      out += " " + colors.yellow(attr.name);
+      out += colors.dim("=");
+      out += colors.green(`"${attr.value}"`);
+    }
+
+    if (VOID_ELEMENTS.test(node.localName)) {
+      out += colors.dim(colors.cyan(">")) + "\n";
+      return out;
+    }
+
+    out += colors.dim(colors.cyan(">"));
+    if (node.childNodes.length) {
+      out += "\n";
+
+      for (let i = 0; i < node.childNodes.length; i++) {
+        const child = node.childNodes[i];
+        out += _printDomNode(child, indent + 1);
+      }
+
+      out += space;
+    }
+
+    out += colors.dim(colors.cyan("</"));
+    out += colors.cyan(node.localName);
+    out += colors.dim(colors.cyan(">"));
+    out += "\n";
+  }
+
+  return out;
+}
+
+export async function withFresh(
+  name: string,
+  fn: (address: string) => Promise<void>,
+) {
+  const { lines, serverProcess, address } = await startFreshServer({
+    args: ["run", "-A", name],
+  });
+
+  try {
+    await fn(address);
+  } finally {
+    await lines.cancel();
+
+    serverProcess.kill("SIGTERM");
+
+    // Wait until the process exits
+    await serverProcess.status;
+  }
 }
 
 export async function withPageName(

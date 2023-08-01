@@ -216,8 +216,10 @@ export async function render<Data>(
 
     const layouts = selectLayouts(opts.url.toString(), opts.layouts);
 
-    layouts.forEach((layout) => {
-      const curComp = { ...finalAppComp };
+    let i = layouts.length;
+    while (i--) {
+      const layout = layouts[i];
+      const curComp = finalAppComp;
 
       finalAppComp = h(layout.default, {
         params: opts.params as Record<string, string>,
@@ -229,7 +231,7 @@ export async function render<Data>(
           return curComp;
         },
       });
-    });
+    }
 
     const root = h(CSP_CONTEXT.Provider, {
       value: csp,

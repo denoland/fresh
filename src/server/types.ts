@@ -325,7 +325,7 @@ export interface Island {
 
 // --- PLUGINS ---
 
-export interface Plugin {
+export interface Plugin<State = Record<string, unknown>> {
   /** The name of the plugin. Must be snake-case. */
   name: string;
 
@@ -359,7 +359,7 @@ export interface Plugin {
 
   routes?: PluginRoute[];
 
-  middlewares?: PluginMiddleware[];
+  middlewares?: PluginMiddleware<State>[];
 }
 
 export interface PluginRenderContext {
@@ -411,11 +411,11 @@ export interface PluginRenderFunctionResult {
   requiresHydration: boolean;
 }
 
-export interface PluginMiddleware {
+export interface PluginMiddleware<State = Record<string, unknown>> {
   /** A path in the format of a filename path without filetype */
   path: string;
 
-  middleware: Middleware;
+  middleware: Middleware<State>;
 }
 
 export interface PluginRoute {
