@@ -25,4 +25,3 @@ export {
   assertSpyCalls,
   spy,
 } from "https://deno.land/std@0.193.0/testing/mock.ts";
-export { groupBy } from "https://deno.land/std@0.193.0/collections/group_by.ts";
