@@ -2,7 +2,6 @@ import {
   dirname,
   extname,
   fromFileUrl,
-  groupBy,
   join,
   JSONC,
   Status,
@@ -26,12 +25,11 @@ import {
   LayoutModule,
   LayoutRoute,
   Middleware,
+  MiddlewareHandler,
   MiddlewareHandlerContext,
   MiddlewareModule,
   MiddlewareRoute,
   Plugin,
-  PluginMiddleware,
-  PluginRoute,
   RenderFunction,
   RenderOptions,
   Route,
@@ -189,8 +187,8 @@ export class ServerContext {
     let errorModule: ErrorPageModule | null = null;
     const allRoutes = [
       ...Object.entries(manifest.routes),
-      ...Object.entries(getMiddlewareRoutesFromPlugins(opts.plugins || [])),
-      ...Object.entries(getRoutesFromPlugins(opts.plugins || [])),
+      ...(opts.plugins ? getMiddlewareRoutesFromPlugins(opts.plugins) : []),
+      ...(opts.plugins ? getRoutesFromPlugins(opts.plugins) : []),
     ];
     for (
       const [self, module] of allRoutes
@@ -1271,65 +1269,40 @@ async function readDenoConfig(
 }
 
 function formatMiddlewarePath(path: string): string {
-  let formattedPath = path;
-  if (!path.startsWith("/")) {
-    formattedPath = `/${formattedPath}`;
-  }
-  if (!formattedPath.endsWith("/")) {
-    formattedPath = `${formattedPath}/`;
-  }
-  return formattedPath;
+  const prefix = !path.startsWith("/") ? "/" : "";
+  const suffix = !path.endsWith("/") ? "/" : "";
+  return prefix + path + suffix;
 }
 
 function getMiddlewareRoutesFromPlugins(
   plugins: Plugin[],
-): Record<string, MiddlewareModule> {
-  // 1. Collect all middlewares from all plugins
-  const allPluginMiddlewares = plugins.flatMap((plugin) =>
-    plugin.middlewares || []
-  );
+): [string, MiddlewareModule][] {
+  const middlewares = plugins.flatMap((plugin) => plugin.middlewares ?? []);
 
-  // 2. Group PluginMiddleware by their path
-  const groupedPluginMiddlewares: Record<string, PluginMiddleware[]> = {
-    ...(groupBy(
-      allPluginMiddlewares,
-      (middleware) =>
-        `./routes${formatMiddlewarePath(middleware.path)}_middleware.ts`,
-    ) as Record<string, PluginMiddleware[]>),
-  };
+  const mws: Record<
+    string,
+    [string, { handler: MiddlewareHandler[] }]
+  > = {};
+  for (let i = 0; i < middlewares.length; i++) {
+    const mw = middlewares[i];
+    const handler = mw.middleware.handler;
+    const key = `./routes${formatMiddlewarePath(mw.path)}_middleware.ts`;
+    if (!mws[key]) mws[key] = [key, { handler: [] }];
+    mws[key][1].handler.push(...Array.isArray(handler) ? handler : [handler]);
+  }
 
-  // 3. Convert the grouped PluginMiddleware to MiddlewareModule
-  // this involves merging the Handler or Handler[]
-  const middlewareRoutes: Record<string, MiddlewareModule> = Object.fromEntries(
-    Object.entries(groupedPluginMiddlewares).map(([key, pluginMiddlewares]) => {
-      const handler = pluginMiddlewares.flatMap((pluginMiddleware) => {
-        const middlewareHandler = pluginMiddleware.middleware.handler;
-        return Array.isArray(middlewareHandler)
-          ? middlewareHandler
-          : [middlewareHandler];
-      });
-      return [key, { handler }];
-    }),
-  );
-
-  return middlewareRoutes;
+  return Object.values(mws);
 }
 
-function getRoutesFromPlugins(plugins: Plugin[]): Record<string, RouteModule> {
-  return (Object.assign(
-    {},
-    ...[
-      ...new Set(
-        ([] as PluginRoute[]).concat(...plugins.map((p) => p.routes || [])),
-      ),
-    ]
-      .map((route: PluginRoute) => ({
-        [`./routes${route.path}.ts`]: {
-          default: route.component,
-          handler: route.handler,
-        } as RouteModule,
-      })) || [],
-  ));
+function getRoutesFromPlugins(plugins: Plugin[]): [string, RouteModule][] {
+  return plugins.flatMap((plugin) => plugin.routes ?? [])
+    .map((route) => {
+      return [`./routes${route.path}.ts`, {
+        // deno-lint-ignore no-explicit-any
+        default: route.component as any,
+        handler: route.handler,
+      }];
+    });
 }
 
 function sendResponse(
