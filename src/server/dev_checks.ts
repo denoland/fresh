@@ -80,6 +80,8 @@ export function assertRoutesHaveHandlerOrComponent(
           break;
         }
       }
+    } else if (typeof route.handler === "function") {
+      hasHandlerMethod = true;
     }
 
     if (!hasComponent && !hasHandlerMethod) {
