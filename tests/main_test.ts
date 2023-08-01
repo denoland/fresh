@@ -5,11 +5,17 @@ import {
   assertStringIncludes,
   delay,
   puppeteer,
+  retry,
 } from "./deps.ts";
 import manifest from "./fixture/fresh.gen.ts";
 import options from "./fixture/options.ts";
 import { BUILD_ID } from "../src/server/build_id.ts";
-import { parseHtml, startFreshServer, withPageName } from "./test_utils.ts";
+import {
+  parseHtml,
+  startFreshServer,
+  waitForText,
+  withPageName,
+} from "./test_utils.ts";
 import { assertMatch } from "https://deno.land/std@0.193.0/testing/asserts.ts";
 
 const ctx = await ServerContext.fromManifest(manifest, options);
@@ -353,7 +359,7 @@ Deno.test("static file - by 'hashed' path", async () => {
   assert(imgFilePath);
   assert(imgFilePath.includes(`?__frsh_c=${BUILD_ID}`));
 
-  // check the static file is served corectly under its cacheable route
+  // check the static file is served correctly under its cacheable route
   const resp2 = await handler(
     new Request(`https://fresh.deno.dev${imgFilePath}`),
   );
@@ -558,7 +564,7 @@ Deno.test({
     assertEquals(resp.headers.get("layer3"), "fresh test server layer3");
     // the below ensure that the middlewware are applied in the correct order.
     // i.e response header set from layer3 middleware is overwritten
-    // by the reponse header in layer 0
+    // by the response header in layer 0
     assertEquals(resp.headers.get("server"), "fresh test server");
   },
 });
@@ -939,6 +945,54 @@ Deno.test({
         1,
         `Found more than 1 nonce value per render`,
       );
+    });
+  },
+
+  sanitizeOps: false,
+  sanitizeResources: false,
+});
+
+Deno.test({
+  name: "support string based event handlers during SSR",
+  async fn() {
+    await withPageName("./tests/fixture/main.ts", async (page, address) => {
+      await page.goto(`${address}/event_handler_string`);
+      await page.waitForSelector("p");
+      await page.click("button");
+
+      await waitForText(page, "p", "it works");
+    });
+  },
+
+  sanitizeOps: false,
+  sanitizeResources: false,
+});
+
+Deno.test({
+  name: "Log error in browser console on string event handlers",
+  async fn() {
+    await withPageName("./tests/fixture/main.ts", async (page, address) => {
+      const logs: { type: string; message: string }[] = [];
+      page.on("console", (ev) => {
+        logs.push({ type: ev.type(), message: ev.text() });
+      });
+
+      page.on("pageerror", (ev) => {
+        logs.push({ type: "error", message: ev.toString() });
+      });
+
+      await page.goto(`${address}/event_handler_string_island`);
+      await page.waitForSelector("p");
+      await page.click("button");
+      await waitForText(page, "p", "it works");
+
+      await retry(() => {
+        for (const item of logs) {
+          if (/property should be a function/.test(item.message)) {
+            return true;
+          }
+        }
+      });
     });
   },
 
