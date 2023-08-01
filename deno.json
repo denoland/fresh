@@ -14,5 +14,8 @@
   },
   "test": {
     "exclude": ["www/"]
+  },
+  "fmt": {
+    "exclude": ["docs/faq.md"]
   }
 }
