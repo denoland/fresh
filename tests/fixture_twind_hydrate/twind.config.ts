@@ -1,4 +1,5 @@
-import { defineConfig, type Preset, presetTailwind } from "../deps.ts";
+import { defineConfig, Preset } from "https://esm.sh/@twind/core@1.1.3";
+import presetTailwind from "https://esm.sh/@twind/preset-tailwind@1.1.4";
 
 export default {
   ...defineConfig({
