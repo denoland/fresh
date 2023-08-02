@@ -637,6 +637,7 @@ Deno.test({
     const body = await resp.text();
     assertStringIncludes(body, "404 not found: /not_found");
     assertStringIncludes(body, "Hello Dino");
+    assertStringIncludes(body, "State root: root_mw");
   },
 });
 
