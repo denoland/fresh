@@ -18,11 +18,11 @@ jobs:
         os: [macOS-latest, windows-latest, ubuntu-latest]
         include:
         - os: ubuntu-latest
-          path: ~/.cache/deno/
+          cache_path: ~/.cache/deno/
         - os: macos-latest
-          path: ~/Library/Caches/deno/
+          cache_path: ~/Library/Caches/deno/
         - os: windows-latest
-          path: ~\AppData\Local\deno\
+          cache_path: ~\AppData\Local\deno\
 
     steps:
       - name: Checkout repo
@@ -49,9 +49,9 @@ jobs:
         uses: actions/cache@v3
         with:
           path: |
-            ${{ matrix.path }}deps
-            ${{ matrix.path }}deno_puppeteer
-          key: ${{ runner.os }}-${{ hashFiles('**/*deps.ts', 'twind.config.ts') }}
+            ${{ matrix.cache_path }}deps
+            ${{ matrix.cache_path }}deno_puppeteer
+          key: ${{ runner.os }}-${{ hashFiles('**/*deps.ts', 'tests/fixture_twind_hydrate/twind.config.ts') }}
 
       - name: Install Chromium (Unix)
         if: startsWith(matrix.os, 'ubuntu') || startsWith(matrix.os, 'mac')
