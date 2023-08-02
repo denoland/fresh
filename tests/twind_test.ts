@@ -1,4 +1,4 @@
-import { assert, delay, puppeteer, assertEquals } from "./deps.ts";
+import { assert, assertEquals, delay, puppeteer } from "./deps.ts";
 
 import { cmpStringArray } from "./fixture_twind_hydrate/utils/utils.ts";
 import { startFreshServer, withPageName } from "./test_utils.ts";

@@ -1,10 +1,5 @@
 import { JSX, options as preactOptions, VNode } from "preact";
-import {
-  setup as twSetup,
-  Sheet,
-  tw,
-  TwindConfig,
-} from "../twindv1_deps.ts";
+import { setup as twSetup, Sheet, tw, TwindConfig } from "../twindv1_deps.ts";
 
 type PreactOptions = typeof preactOptions & { __b?: (vnode: VNode) => void };
 

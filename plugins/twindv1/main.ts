@@ -1,9 +1,4 @@
-import {
-  cssom,
-  getSheet,
-  setup,
-  TwindConfig,
-} from "../twindv1_deps.ts";
+import { cssom, getSheet, setup, TwindConfig } from "../twindv1_deps.ts";
 import { STYLE_ELEMENT_ID } from "./shared.ts";
 
 export default function hydrate(options: TwindConfig) {

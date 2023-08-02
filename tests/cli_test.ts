@@ -3,12 +3,12 @@ import { Status } from "../src/server/deps.ts";
 import {
   assert,
   assertEquals,
+  assertMatch,
+  assertNotMatch,
   assertStringIncludes,
   delay,
   puppeteer,
   retry,
-  assertMatch,
-  assertNotMatch,
 } from "./deps.ts";
 import {
   clickWhenListenerReady,
