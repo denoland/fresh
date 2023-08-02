@@ -16,6 +16,13 @@ jobs:
       matrix:
         deno: ["v1.x", "canary"]
         os: [macOS-latest, windows-latest, ubuntu-latest]
+        include:
+        - os: ubuntu-latest
+          path: ~/.cache/deno\
+        - os: macos-latest
+          path: ~/Library/Caches/deno\
+        - os: windows-latest
+          path: ~\AppData\Local\deno\Cache\
 
     steps:
       - name: Checkout repo
@@ -43,27 +50,12 @@ jobs:
 
       - name: Cache dependencies
         if: startsWith(matrix.os, 'ubuntu') && matrix.deno == 'v1.x'
-        run: deno cache --config=www/deno.json src/dev/deps.ts src/server/deps.ts www/main.ts        
+        run: deno cache --config=www/deno.json src/dev/deps.ts src/server/deps.ts www/main.ts  
 
-      - name: Cache Chrome (Linux)
-        if: startsWith(matrix.os, 'ubuntu')
+      - name: Cache Chrome
         uses: actions/cache@v3
         with:
-          path: ~/.cache/deno/deno_puppeteer
-          key: chrome-1022525-${{ hashFiles('tests/deps.ts') }}
-
-      - name: Cache Chrome (macOS)
-        if: startsWith(matrix.os, 'mac')
-        uses: actions/cache@v3
-        with:
-          path: ~/Library/Caches/deno/deno_puppeteer
-          key: chrome-1022525-${{ hashFiles('tests/deps.ts') }}
-
-      - name: Cache Chrome (Windows)
-        if: startsWith(matrix.os, 'win')
-        uses: actions/cache@v3
-        with:
-          path: "C:\\Users\\RUNNER~1\\AppData\\Local\\deno\\deno_puppeteer"
+          path: ${{ matrix.path }}deno_puppeteer
           key: chrome-1022525-${{ hashFiles('tests/deps.ts') }}
 
       - name: Install Chromium (Unix)
