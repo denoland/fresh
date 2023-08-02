@@ -56,7 +56,7 @@ jobs:
         uses: actions/cache@v3
         with:
           path: ${{ matrix.path }}deno_puppeteer
-          key: chrome-1022525-${{ hashFiles('tests/deps.ts') }}
+          key: chrome-1022525-${{ runner.os }}-${{ hashFiles('tests/deps.ts') }}
 
       - name: Install Chromium (Unix)
         if: startsWith(matrix.os, 'ubuntu') || startsWith(matrix.os, 'mac')

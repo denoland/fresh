@@ -3,7 +3,7 @@ import {
   getSheet,
   setup,
   TwindConfig,
-} from "https://esm.sh/@twind/core@1.1.3";
+} from "../twindv1_deps.ts";
 import { STYLE_ELEMENT_ID } from "./shared.ts";
 
 export default function hydrate(options: TwindConfig) {

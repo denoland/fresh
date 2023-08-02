@@ -4,7 +4,7 @@ import {
   Sheet,
   tw,
   TwindConfig,
-} from "https://esm.sh/@twind/core@1.1.3";
+} from "../twindv1_deps.ts";
 
 type PreactOptions = typeof preactOptions & { __b?: (vnode: VNode) => void };
 
