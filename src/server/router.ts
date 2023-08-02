@@ -1,4 +1,4 @@
-import { ServeHandlerInfo } from "./types.ts";
+import { BaseRoute, ErrorHandlerContext, ServeHandlerInfo } from "./types.ts";
 
 type HandlerContext<T = unknown> = T & ServeHandlerInfo;
 
@@ -37,13 +37,19 @@ export type MatchHandler<T = unknown> = (
 
 // deno-lint-ignore ban-types
 export interface Routes<T = {}> {
-  [key: string]: { [K in KnownMethod | "default"]?: MatchHandler<T> };
+  [key: string]: {
+    baseRoute: BaseRoute;
+    methods: {
+      [K in KnownMethod | "default"]?: MatchHandler<T>;
+    };
+  };
 }
 
 export type DestinationKind = "internal" | "static" | "route" | "notFound";
 
 // deno-lint-ignore ban-types
 export type InternalRoute<T = {}> = {
+  baseRoute: BaseRoute;
   pattern: URLPattern;
   methods: { [K in KnownMethod]?: MatchHandler<T> };
   default?: MatchHandler<T>;
@@ -79,7 +85,7 @@ export function defaultOtherHandler(_req: Request): Response {
 
 export function defaultErrorHandler(
   _req: Request,
-  _ctx: HandlerContext,
+  _ctx: ErrorHandlerContext,
   err: unknown,
 ): Response {
   console.error(err);
@@ -107,15 +113,16 @@ function processRoutes<T>(
   routes: Routes<T>,
   destination: DestinationKind,
 ) {
-  for (const [path, methods] of Object.entries(routes)) {
+  for (const [path, def] of Object.entries(routes)) {
     const entry: InternalRoute<T> = {
+      baseRoute: def.baseRoute,
       pattern: new URLPattern({ pathname: path }),
       methods: {},
       default: undefined,
       destination,
     };
 
-    for (const [method, handler] of Object.entries(methods)) {
+    for (const [method, handler] of Object.entries(def.methods)) {
       if (method === "default") {
         entry.default = handler;
       } else if (knownMethods.includes(method as KnownMethod)) {
