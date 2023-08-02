@@ -45,18 +45,13 @@ jobs:
         if: startsWith(matrix.os, 'ubuntu') && matrix.deno == 'canary'
         uses: crate-ci/typos@master
 
-      - name: Type check project
-        run: deno task check:types
-
-      - name: Cache dependencies
-        if: startsWith(matrix.os, 'ubuntu') && matrix.deno == 'v1.x'
-        run: deno cache --config=www/deno.json src/dev/deps.ts src/server/deps.ts www/main.ts  
-
-      - name: Cache Chrome
+      - name: Cache dependencies and Chrome
         uses: actions/cache@v3
         with:
-          path: ${{ matrix.path }}deno_puppeteer
-          key: chrome-1022525-${{ runner.os }}-${{ hashFiles('tests/deps.ts') }}
+          path: |
+            ${{ matrix.path }}deps
+            ${{ matrix.path }}deno_puppeteer
+          key: ${{ runner.os }}-${{ hashFiles('**/*deps.ts', 'twind.config.ts') }}
 
       - name: Install Chromium (Unix)
         if: startsWith(matrix.os, 'ubuntu') || startsWith(matrix.os, 'mac')
@@ -65,6 +60,9 @@ jobs:
       - name: Install Chromium (Windows)
         if: startsWith(matrix.os, 'windows')
         run: set "PUPPETEER_PRODUCT=chrome" && deno run -A --unstable https://deno.land/x/puppeteer@16.2.0/install.ts
+
+      - name: Type check project
+        run: deno task check:types
 
       - name: Run tests
         run: deno test -A
