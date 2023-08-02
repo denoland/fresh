@@ -428,15 +428,3 @@ export interface PluginIslands {
   baseLocation: string;
   paths: string[];
 }
-export interface StaticFile {
-  /** The URL to the static file on disk. */
-  localUrl: URL;
-  /** The path to the file as it would be in the incoming request. */
-  path: string;
-  /** The size of the file. */
-  size: number;
-  /** The content-type of the file. */
-  contentType: string;
-  /** Hash of the file contents. */
-  etag: string;
-}
