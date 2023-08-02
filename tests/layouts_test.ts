@@ -1,63 +1,63 @@
-import { withPageName } from "./test_utils.ts";
+import { assertSelector, fetchHtml, withFresh } from "./test_utils.ts";
 
 Deno.test("apply root _layout and _app", async () => {
-  await withPageName(
+  await withFresh(
     "./tests/fixture_layouts/main.ts",
-    async (page, address) => {
-      await page.goto(address);
-      await page.waitForSelector(".app .root-layout .home-page");
+    async (address) => {
+      const doc = await fetchHtml(address);
+      assertSelector(doc, ".app .root-layout .home-page");
 
-      await page.goto(`${address}/other`);
-      await page.waitForSelector(".app .root-layout .other-page");
+      const doc2 = await fetchHtml(`${address}/other`);
+      assertSelector(doc2, ".app .root-layout .other-page");
     },
   );
 });
 
 Deno.test("apply sub layouts", async () => {
-  await withPageName(
+  await withFresh(
     "./tests/fixture_layouts/main.ts",
-    async (page, address) => {
-      await page.goto(`${address}/foo`);
-      await page.waitForSelector(".app .root-layout .foo-layout .foo-page");
+    async (address) => {
+      const doc = await fetchHtml(`${address}/foo`);
+      assertSelector(doc, ".app .root-layout .foo-layout .foo-page");
 
-      await page.goto(`${address}/foo/bar`);
-      await page.waitForSelector(".app .root-layout .foo-layout .bar-page");
+      const doc2 = await fetchHtml(`${address}/foo/bar`);
+      assertSelector(doc2, ".app .root-layout .foo-layout .bar-page");
     },
   );
 });
 
 Deno.test("skip layouts if not present", async () => {
-  await withPageName(
+  await withFresh(
     "./tests/fixture_layouts/main.ts",
-    async (page, address) => {
-      await page.goto(`${address}/skip/sub`);
-      await page.waitForSelector(".app .root-layout .sub-layout .sub-page");
+    async (address) => {
+      const doc = await fetchHtml(`${address}/skip/sub`);
+      assertSelector(doc, ".app .root-layout .sub-layout .sub-page");
     },
   );
 });
 
 Deno.test("check file types", async (t) => {
-  await withPageName(
+  await withFresh(
     "./tests/fixture_layouts/main.ts",
-    async (page, address) => {
+    async (address) => {
       await t.step(".js", async () => {
-        await page.goto(`${address}/files/js`);
-        await page.waitForSelector(".app .root-layout .js-layout .js-page");
+        const doc = await fetchHtml(`${address}/files/js`);
+        assertSelector(doc, ".app .root-layout .js-layout .js-page");
       });
 
       await t.step(".jsx", async () => {
-        await page.goto(`${address}/files/jsx`);
-        await page.waitForSelector(".app .root-layout .jsx-layout .jsx-page");
+        const doc = await fetchHtml(`${address}/files/jsx`);
+        assertSelector(doc, ".app .root-layout .jsx-layout .jsx-page");
       });
 
       await t.step(".ts", async () => {
-        await page.goto(`${address}/files/ts`);
-        await page.waitForSelector(".app .root-layout .ts-layout .ts-page");
+        const doc = await fetchHtml(`${address}/files/ts`);
+        assertSelector(doc, ".app .root-layout .ts-layout .ts-page");
       });
 
       await t.step(".tsx", async () => {
-        await page.goto(`${address}/files/tsx`);
-        await page.waitForSelector(".app .root-layout .tsx-layout .tsx-page");
+        const doc = await fetchHtml(`${address}/files/tsx`);
+        assertSelector(doc, ".app .root-layout .tsx-layout .tsx-page");
       });
     },
   );
