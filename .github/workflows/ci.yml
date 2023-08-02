@@ -18,11 +18,11 @@ jobs:
         os: [macOS-latest, windows-latest, ubuntu-latest]
         include:
         - os: ubuntu-latest
-          path: ~/.cache/deno\
+          path: ~/.cache/deno/
         - os: macos-latest
-          path: ~/Library/Caches/deno\
+          path: ~/Library/Caches/deno/
         - os: windows-latest
-          path: ~\AppData\Local\deno\Cache\
+          path: ~\AppData\Local\deno\
 
     steps:
       - name: Checkout repo
