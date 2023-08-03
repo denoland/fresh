@@ -55,6 +55,7 @@ import {
   JSXConfig,
 } from "../build/mod.ts";
 import { InternalRoute } from "./router.ts";
+import { OUT_DIR } from "../build/esbuild.ts";
 
 const DEFAULT_CONN_INFO: ServeHandlerInfo = {
   localAddr: { transport: "tcp", hostname: "localhost", port: 8080 },
@@ -67,7 +68,7 @@ function isObject(value: unknown) {
     value !== null;
 }
 
-function isDevMode() {
+export function isDevMode() {
   // Env var is only set in prod (on Deploy).
   return Deno.env.get("DENO_DEPLOYMENT_ID") === undefined;
 }
@@ -99,6 +100,7 @@ export class ServerContext {
   #plugins: Plugin[];
   #builder: Builder | Promise<BuildSnapshot> | BuildSnapshot;
   #routerOptions: RouterOptions;
+  #outDir: string;
 
   constructor(
     routes: Route[],
@@ -115,6 +117,7 @@ export class ServerContext {
     jsxConfig: JSXConfig,
     dev: boolean = isDevMode(),
     routerOptions: RouterOptions,
+    outDir: string = ".",
   ) {
     this.#routes = routes;
     this.#islands = islands;
@@ -133,8 +136,10 @@ export class ServerContext {
       configPath,
       dev: this.#dev,
       jsxConfig,
+      outDir,
     });
     this.#routerOptions = routerOptions;
+    this.#outDir = outDir;
   }
 
   /**
@@ -156,29 +161,10 @@ export class ServerContext {
       );
     }
 
-    config.compilerOptions ??= {};
-
-    let jsx: "react" | "react-jsx";
-    switch (config.compilerOptions.jsx) {
-      case "react":
-      case undefined:
-        jsx = "react";
-        break;
-      case "react-jsx":
-        jsx = "react-jsx";
-        break;
-      default:
-        throw new Error("Unknown jsx option: " + config.compilerOptions.jsx);
-    }
-
-    const jsxConfig: JSXConfig = {
-      jsx,
-      jsxImportSource: config.compilerOptions.jsxImportSource,
-    };
+    const jsxConfig = getJsxSettings(config);
 
     // Extract all routes, and prepare them into the `Page` structure.
     const routes: Route[] = [];
-    const islands: Island[] = [];
     const middlewares: MiddlewareRoute[] = [];
     let app: AppModule = DEFAULT_APP;
     const layouts: LayoutRoute[] = [];
@@ -307,30 +293,7 @@ export class ServerContext {
     sortMiddleware(middlewares);
     sortLayouts(layouts);
 
-    for (const [self, module] of Object.entries(manifest.islands)) {
-      const url = new URL(self, baseUrl).href;
-      if (!url.startsWith(baseUrl)) {
-        throw new TypeError("Island is not a child of the basepath.");
-      }
-      const path = url.substring(baseUrl.length).substring("islands".length);
-      const baseRoute = path.substring(1, path.length - extname(path).length);
-
-      for (const [exportName, exportedFunction] of Object.entries(module)) {
-        if (typeof exportedFunction !== "function") {
-          continue;
-        }
-        const name = sanitizeIslandName(baseRoute);
-        const id = `${name}_${exportName}`.toLowerCase();
-        islands.push({
-          id,
-          name,
-          url,
-          component: exportedFunction,
-          exportName,
-        });
-      }
-    }
-
+    const islands = prepareIslands(baseUrl, baseUrl, manifest);
     const staticFiles: StaticFile[] = [];
     try {
       const staticFolder = new URL(
@@ -395,6 +358,7 @@ export class ServerContext {
       jsxConfig,
       dev,
       opts.router ?? DEFAULT_ROUTER_OPTIONS,
+      opts.outDir,
     );
   }
 
@@ -454,12 +418,13 @@ export class ServerContext {
     return this.#builder;
   }
 
-  async #buildSnapshot() {
+  async buildSnapshot() {
     if ("build" in this.#builder) {
       const builder = this.#builder;
       this.#builder = builder.build();
       try {
         const snapshot = await this.#builder;
+        // console.log(snapshot?.debug());
         this.#builder = snapshot;
       } catch (err) {
         this.#builder = builder;
@@ -666,7 +631,7 @@ export class ServerContext {
         app: this.#app,
         layouts: this.#layouts,
         imports,
-        dependenciesFn,
+        dependenciesFn, // FIXME
         renderFn: this.#renderFn,
         url: new URL(req.url),
         params,
@@ -719,7 +684,7 @@ export class ServerContext {
             app: this.#app,
             layouts: this.#layouts,
             imports,
-            dependenciesFn,
+            dependenciesFn, // FIXME
             renderFn: this.#renderFn,
             url: new URL(req.url),
             params,
@@ -900,10 +865,35 @@ export class ServerContext {
    * constants.INTERNAL_PREFIX
    */
   #bundleAssetRoute = (): router.MatchHandler => {
+    let checked = false;
+    let hasPrecompiled = false;
+
     return async (_req, _ctx, params) => {
-      const snapshot = await this.#buildSnapshot();
-      const contents = snapshot.read(params.path);
-      if (!contents) return new Response(null, { status: 404 });
+      if (!checked) {
+        checked = true;
+        console.log("check", OUT_DIR);
+        hasPrecompiled = (await Deno.stat(OUT_DIR)).isDirectory;
+        if (hasPrecompiled) {
+          console.log(`Using precompiled assets in ${OUT_DIR}`);
+        }
+        hasPrecompiled = false;
+      }
+
+      let contents: Uint8Array | ReadableStream<Uint8Array> | null = null;
+
+      if (hasPrecompiled) {
+        const filePath = join(OUT_DIR, params.path);
+        try {
+          const file = await Deno.open(filePath, { read: true });
+          contents = file.readable;
+        } catch {
+          return new Response(null, { status: 404 });
+        }
+      } else {
+        const snapshot = await this.buildSnapshot();
+        const contents = snapshot.read(params.path);
+        if (!contents) return new Response(null, { status: 404 });
+      }
 
       const headers: Record<string, string> = {
         "Cache-Control": "public, max-age=604800, immutable",
@@ -917,6 +907,63 @@ export class ServerContext {
         headers,
       });
     };
+  };
+}
+
+export function prepareIslands(
+  outDir: string,
+  basePath: string,
+  manifest: Manifest,
+) {
+  const islands: Island[] = [];
+  console.log(manifest);
+  for (const [self, module] of Object.entries(manifest.islands)) {
+    const filePath = join(outDir, self);
+    console.log({ self, outDir, filePath, basePath });
+    if (!filePath.startsWith(basePath)) {
+      // throw new TypeError("Island is not a child of the basepath.");
+    }
+    const path = filePath.substring(outDir.length).substring("islands".length);
+    const baseRoute = path.substring(1, path.length - extname(path).length);
+
+    for (const [exportName, exportedFunction] of Object.entries(module)) {
+      if (typeof exportedFunction !== "function") {
+        continue;
+      }
+      const name = sanitizeIslandName(baseRoute);
+      const id = `${name}_${exportName}`.toLowerCase();
+      islands.push({
+        id,
+        name,
+        url: join(filePath, basePath).toString(),
+        component: exportedFunction,
+        exportName,
+      });
+    }
+  }
+
+  return islands;
+}
+
+export function getJsxSettings(config: DenoConfig): JSXConfig {
+  config.compilerOptions ??= {};
+
+  let jsx: "react" | "react-jsx";
+  switch (config.compilerOptions.jsx) {
+    case "react":
+    case undefined:
+      jsx = "react";
+      break;
+    case "react-jsx":
+      jsx = "react-jsx";
+      break;
+    default:
+      throw new Error("Unknown jsx option: " + config.compilerOptions.jsx);
+  }
+
+  return {
+    jsx,
+    jsxImportSource: config.compilerOptions.jsxImportSource,
   };
 }
 
@@ -1210,7 +1257,7 @@ function collectEntrypoints(
   return entryPoints;
 }
 
-async function readDenoConfig(
+export async function readDenoConfig(
   directory: string,
 ): Promise<{ config: DenoConfig; path: string }> {
   let dir = directory;

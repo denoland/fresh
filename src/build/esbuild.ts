@@ -1,3 +1,4 @@
+import { join } from "$fresh/src/server/deps.ts";
 import {
   denoPlugins,
   esbuild,
@@ -20,12 +21,16 @@ export interface EsbuildBuilderOptions {
   configPath: string;
   /** The JSX configuration. */
   jsxConfig: JSXConfig;
+  /** Output directory */
+  outDir?: string;
 }
 
 export interface JSXConfig {
   jsx: "react" | "react-jsx";
   jsxImportSource?: string;
 }
+
+export const OUT_DIR = join(Deno.cwd(), "dist");
 
 export class EsbuildBuilder implements Builder {
   #options: EsbuildBuilderOptions;
@@ -36,6 +41,7 @@ export class EsbuildBuilder implements Builder {
 
   async build(): Promise<EsbuildSnapshot> {
     const opts = this.#options;
+    const start = performance.now();
     try {
       await initEsbuild();
 
@@ -83,10 +89,18 @@ export class EsbuildBuilder implements Builder {
 
       const absWorkingDirLen = toFileUrl(absWorkingDir).href.length + 1;
 
+      // console.log(bundle.metafile);
+      await Deno.mkdir(OUT_DIR, { recursive: true });
+
       for (const file of bundle.outputFiles) {
         const path = toFileUrl(file.path).href.slice(absWorkingDirLen);
+        // console.log(path);
         files.set(path, file.contents);
+        // console.log({ path });
       }
+
+      const precompile = true;
+      // if ()
 
       const metaOutputs = new Map(Object.entries(bundle.metafile.outputs));
 
@@ -100,6 +114,8 @@ export class EsbuildBuilder implements Builder {
       return new EsbuildSnapshot(files, dependencies);
     } finally {
       stopEsbuild();
+      const duration = performance.now() - start;
+      console.log(`Building assets (${duration.toFixed(2)}ms)`);
     }
   }
 }

@@ -83,14 +83,24 @@ export async function createHandler(
   return ctx.handler();
 }
 
+export function defineConfig(options: StartOptions): StartOptions {
+  return options;
+}
+
 export async function start(routes: Manifest, opts: StartOptions = {}) {
+  console.log(Deno.args);
+
+  const s = performance.now();
   const ctx = await ServerContext.fromManifest(routes, opts);
 
   if (!opts.onListen) {
     opts.onListen = (params) => {
+      const duration = performance.now().toFixed(2);
+      const selfDuration = (performance.now() - s).toFixed(2);
       console.log();
       console.log(
-        colors.bgRgb8(colors.black(colors.bold(" 🍋 Fresh ready ")), 121),
+        colors.bgRgb8(colors.black(colors.bold(" 🍋 Fresh ready ")), 121) +
+          colors.dim(` in ${duration}ms, self ${selfDuration}ms`),
       );
 
       const address = colors.cyan(`http://localhost:${params.port}/`);

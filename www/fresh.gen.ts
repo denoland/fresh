@@ -43,6 +43,7 @@ const manifest = {
     "./islands/VersionSelect.tsx": $$5,
   },
   baseUrl: import.meta.url,
+  precompiled: undefined,
 };
 
 export default manifest;
