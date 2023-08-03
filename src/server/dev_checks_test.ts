@@ -1,5 +1,6 @@
 import { assertEquals } from "$std/testing/asserts.ts";
 import { Fragment, h } from "preact";
+import { toBaseRoute } from "./context.ts";
 import {
   assertModuleExportsDefault,
   assertNoStaticRouteConflicts,
@@ -16,6 +17,7 @@ import type { AppModule, Plugin, Route, StaticFile } from "./types.ts";
 
 function createRoute(route: Partial<Route>): Route {
   return {
+    baseRoute: toBaseRoute("/"),
     name: "/",
     url: "/",
     pattern: "/",
