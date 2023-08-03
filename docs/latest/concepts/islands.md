@@ -12,17 +12,23 @@ project. The name of this file must be a PascalCase or kebab-case name of the
 island.
 
 ```tsx
-// islands/MyIsland.tsx
+// islands/my-island.tsx
 
 import { useSignal } from "@preact/signals";
+import { VNode } from "preact";
 
-export default function MyIsland() {
+interface Data {
+  children: VNode<Element>;
+}
+
+export default function MyIsland({ children }: Data) {
   const count = useSignal(0);
 
   return (
     <div>
       Counter is at {count}.{" "}
       <button onClick={() => (count.value += 1)}>+</button>
+      {children}
     </div>
   );
 }
