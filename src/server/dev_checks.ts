@@ -11,11 +11,11 @@ import { Plugin } from "$fresh/src/server/mod.ts";
 
 export type CheckFunction = () => CheckResult[];
 
-interface CheckResult {
+export type CheckResult = {
   category: string;
   message: string;
   fileLink?: string;
-}
+};
 
 export function assertModuleExportsDefault(
   module: AppModule | UnknownPageModule | ErrorPageModule | null,
@@ -39,7 +39,7 @@ export function assertSingleModule(
     route.name.includes(moduleName)
   );
 
-  if (moduleRoutes.length > 0) {
+  if (moduleRoutes.length > 1) {
     return [{
       category: "Multiple Modules",
       message:
@@ -174,25 +174,23 @@ export function assertPluginsCallRenderAsync(
 
   for (const plugin of plugins) {
     if (typeof plugin.renderAsync === "function") {
-      const renderAsyncSpy = spy(() =>
-        Promise.resolve({
-          htmlText: "",
-          requiresHydration: false,
-        })
-      );
-      plugin.renderAsync({ renderAsync: renderAsyncSpy }).then(
-        () => {
-          try {
-            assertSpyCalls(renderAsyncSpy, 1);
-          } catch {
-            results.push({
-              category: "Plugin RenderAsync",
-              message:
-                `Plugin '${plugin.name}' must call ctx.render() exactly once.`,
-            });
-          }
-        },
-      );
+      try {
+        const renderAsyncSpy = spy(() => {
+          return Promise.resolve({
+            htmlText: "",
+            requiresHydration: false,
+          });
+        });
+
+        plugin.renderAsync({ renderAsync: renderAsyncSpy }).then(() => {});
+        assertSpyCalls(renderAsyncSpy, 1);
+      } catch {
+        results.push({
+          category: "Plugin RenderAsync",
+          message:
+            `Plugin '${plugin.name}' must call ctx.renderAsync() exactly once.`,
+        });
+      }
     }
   }
 

@@ -12,4 +12,4 @@ export default {
     }
     return {};
   },
-} as Plugin;
+} satisfies Plugin;
