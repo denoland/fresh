@@ -246,8 +246,8 @@ export async function dev(
 
   const dependencies = Object.fromEntries(snapshot.dependencies.entries());
   await Deno.writeTextFile(
-    join(outDir, "fresh.dependencies.js"),
-    `export default ${JSON.stringify(dependencies)}`,
+    join(outDir, "fresh.dependencies.json"),
+    JSON.stringify(dependencies, null, 2),
   );
 
   await import(entrypoint);

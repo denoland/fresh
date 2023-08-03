@@ -88,8 +88,6 @@ export function defineConfig(options: StartOptions): StartOptions {
 }
 
 export async function start(routes: Manifest, opts: StartOptions = {}) {
-  console.log(Deno.args, "start", opts);
-
   const s = performance.now();
   const ctx = await ServerContext.fromManifest(routes, opts);
 

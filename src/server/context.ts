@@ -52,6 +52,7 @@ import { ASSET_CACHE_BUST_KEY, INTERNAL_PREFIX } from "../runtime/utils.ts";
 import { JSXConfig } from "../build/mod.ts";
 import { InternalRoute } from "./router.ts";
 import { toPathString } from "$std/fs/_util.ts";
+import { BuildResult } from "$fresh/src/build/esbuild.ts";
 
 const DEFAULT_CONN_INFO: ServeHandlerInfo = {
   localAddr: { transport: "tcp", hostname: "localhost", port: 8080 },
@@ -96,6 +97,7 @@ export class ServerContext {
   #plugins: Plugin[];
   #routerOptions: RouterOptions;
   #outDir: string;
+  #buildResult: BuildResult;
 
   constructor(
     routes: Route[],
@@ -111,6 +113,7 @@ export class ServerContext {
     dev: boolean = isDevMode(),
     routerOptions: RouterOptions,
     outDir: string = ".",
+    buildResult: BuildResult,
   ) {
     this.#routes = routes;
     this.#islands = islands;
@@ -125,6 +128,7 @@ export class ServerContext {
     this.#dev = dev;
     this.#routerOptions = routerOptions;
     this.#outDir = outDir;
+    this.#buildResult = buildResult;
   }
 
   /**
@@ -331,6 +335,15 @@ export class ServerContext {
       manifest.baseUrl,
     );
 
+    const raw = JSON.parse(
+      await Deno.readTextFile(
+        new URL("fresh.dependencies.json", outDir),
+      ),
+    );
+    const buildResult = {
+      dependencies: new Map<string, string[]>(Object.entries(raw)),
+    };
+
     return new ServerContext(
       routes,
       islands,
@@ -345,6 +358,7 @@ export class ServerContext {
       dev,
       opts.router ?? DEFAULT_ROUTER_OPTIONS,
       outDir.href,
+      buildResult,
     );
   }
 
@@ -562,8 +576,6 @@ export class ServerContext {
       };
     }
 
-    const buildResult = { dependencies: new Map() }; // FIXME
-
     const renderNotFound = async <Data = undefined>(
       req: Request,
       params: Record<string, string>,
@@ -591,7 +603,7 @@ export class ServerContext {
         app: this.#app,
         layouts: this.#layouts,
         imports,
-        buildResult,
+        buildResult: this.#buildResult,
         renderFn: this.#renderFn,
         url: new URL(req.url),
         params,
@@ -644,7 +656,7 @@ export class ServerContext {
             app: this.#app,
             layouts: this.#layouts,
             imports,
-            buildResult,
+            buildResult: this.#buildResult,
             renderFn: this.#renderFn,
             url: new URL(req.url),
             params,
