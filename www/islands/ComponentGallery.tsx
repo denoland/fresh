@@ -105,9 +105,9 @@ export default function ComponentGallery(props: ComponentGalleryProps) {
         title="Badge"
         source={props.sources.Badge}
       >
-        <Badge color="green">badge</Badge>
-        <Badge color="yellow">badge</Badge>
-        <Badge color="blue">badge</Badge>
+        <Badge data-color="green">badge</Badge>
+        <Badge data-color="yellow">badge</Badge>
+        <Badge data-color="blue">badge</Badge>
       </Section>
       <Section title="Header" source={props.sources.Header}>
         <Header active="/" />
