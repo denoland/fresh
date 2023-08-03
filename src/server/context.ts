@@ -1,4 +1,5 @@
 import {
+  basename,
   dirname,
   extname,
   fromFileUrl,
@@ -48,14 +49,9 @@ import {
   SELF,
 } from "../runtime/csp.ts";
 import { ASSET_CACHE_BUST_KEY, INTERNAL_PREFIX } from "../runtime/utils.ts";
-import {
-  Builder,
-  BuildSnapshot,
-  EsbuildBuilder,
-  JSXConfig,
-} from "../build/mod.ts";
+import { JSXConfig } from "../build/mod.ts";
 import { InternalRoute } from "./router.ts";
-import { OUT_DIR } from "../build/esbuild.ts";
+import { toPathString } from "$std/fs/_util.ts";
 
 const DEFAULT_CONN_INFO: ServeHandlerInfo = {
   localAddr: { transport: "tcp", hostname: "localhost", port: 8080 },
@@ -98,7 +94,6 @@ export class ServerContext {
   #notFound: UnknownPage;
   #error: ErrorPage;
   #plugins: Plugin[];
-  #builder: Builder | Promise<BuildSnapshot> | BuildSnapshot;
   #routerOptions: RouterOptions;
   #outDir: string;
 
@@ -113,8 +108,6 @@ export class ServerContext {
     notFound: UnknownPage,
     error: ErrorPage,
     plugins: Plugin[],
-    configPath: string,
-    jsxConfig: JSXConfig,
     dev: boolean = isDevMode(),
     routerOptions: RouterOptions,
     outDir: string = ".",
@@ -130,14 +123,6 @@ export class ServerContext {
     this.#error = error;
     this.#plugins = plugins;
     this.#dev = dev;
-    this.#builder = new EsbuildBuilder({
-      buildID: BUILD_ID,
-      entrypoints: collectEntrypoints(this.#dev, this.#islands, this.#plugins),
-      configPath,
-      dev: this.#dev,
-      jsxConfig,
-      outDir,
-    });
     this.#routerOptions = routerOptions;
     this.#outDir = outDir;
   }
@@ -152,7 +137,7 @@ export class ServerContext {
     // Get the manifest' base URL.
     const baseUrl = new URL("./", manifest.baseUrl).href;
 
-    const { config, path: configPath } = await readDenoConfig(
+    const { config } = await readDenoConfig(
       fromFileUrl(baseUrl),
     );
     if (typeof config.importMap !== "string" && !isObject(config.imports)) {
@@ -160,8 +145,6 @@ export class ServerContext {
         "deno.json must contain an 'importMap' or 'imports' property.",
       );
     }
-
-    const jsxConfig = getJsxSettings(config);
 
     // Extract all routes, and prepare them into the `Page` structure.
     const routes: Route[] = [];
@@ -293,11 +276,11 @@ export class ServerContext {
     sortMiddleware(middlewares);
     sortLayouts(layouts);
 
-    const islands = prepareIslands(baseUrl, baseUrl, manifest);
+    const islands = prepareIslands(baseUrl, manifest);
     const staticFiles: StaticFile[] = [];
     try {
       const staticFolder = new URL(
-        opts.staticDir ?? "./static",
+        opts.staticDir ?? "../static",
         manifest.baseUrl,
       );
       const entries = walk(fromFileUrl(staticFolder), {
@@ -343,6 +326,11 @@ export class ServerContext {
       await import("preact/debug");
     }
 
+    const outDir = new URL(
+      join(opts.outDir ?? ".", "files"),
+      manifest.baseUrl,
+    );
+
     return new ServerContext(
       routes,
       islands,
@@ -354,11 +342,9 @@ export class ServerContext {
       notFound,
       error,
       opts.plugins ?? [],
-      configPath,
-      jsxConfig,
       dev,
       opts.router ?? DEFAULT_ROUTER_OPTIONS,
-      opts.outDir,
+      outDir.href,
     );
   }
 
@@ -409,29 +395,6 @@ export class ServerContext {
 
       return await withMiddlewares(req, connInfo, inner);
     };
-  }
-
-  #maybeBuildSnapshot(): BuildSnapshot | null {
-    if ("build" in this.#builder || this.#builder instanceof Promise) {
-      return null;
-    }
-    return this.#builder;
-  }
-
-  async buildSnapshot() {
-    if ("build" in this.#builder) {
-      const builder = this.#builder;
-      this.#builder = builder.build();
-      try {
-        const snapshot = await this.#builder;
-        // console.log(snapshot?.debug());
-        this.#builder = snapshot;
-      } catch (err) {
-        this.#builder = builder;
-        throw err;
-      }
-    }
-    return this.#builder;
   }
 
   /**
@@ -599,10 +562,7 @@ export class ServerContext {
       };
     }
 
-    const dependenciesFn = (path: string) => {
-      const snapshot = this.#maybeBuildSnapshot();
-      return snapshot?.dependencies(path) ?? [];
-    };
+    const buildResult = { dependencies: new Map() }; // FIXME
 
     const renderNotFound = async <Data = undefined>(
       req: Request,
@@ -631,7 +591,7 @@ export class ServerContext {
         app: this.#app,
         layouts: this.#layouts,
         imports,
-        dependenciesFn, // FIXME
+        buildResult,
         renderFn: this.#renderFn,
         url: new URL(req.url),
         params,
@@ -684,7 +644,7 @@ export class ServerContext {
             app: this.#app,
             layouts: this.#layouts,
             imports,
-            dependenciesFn, // FIXME
+            buildResult,
             renderFn: this.#renderFn,
             url: new URL(req.url),
             params,
@@ -865,34 +825,17 @@ export class ServerContext {
    * constants.INTERNAL_PREFIX
    */
   #bundleAssetRoute = (): router.MatchHandler => {
-    let checked = false;
-    let hasPrecompiled = false;
-
     return async (_req, _ctx, params) => {
-      if (!checked) {
-        checked = true;
-        console.log("check", OUT_DIR);
-        hasPrecompiled = (await Deno.stat(OUT_DIR)).isDirectory;
-        if (hasPrecompiled) {
-          console.log(`Using precompiled assets in ${OUT_DIR}`);
-        }
-        hasPrecompiled = false;
-      }
-
       let contents: Uint8Array | ReadableStream<Uint8Array> | null = null;
 
-      if (hasPrecompiled) {
-        const filePath = join(OUT_DIR, params.path);
-        try {
-          const file = await Deno.open(filePath, { read: true });
-          contents = file.readable;
-        } catch {
-          return new Response(null, { status: 404 });
-        }
-      } else {
-        const snapshot = await this.buildSnapshot();
-        const contents = snapshot.read(params.path);
-        if (!contents) return new Response(null, { status: 404 });
+      const outDir = toPathString(new URL(this.#outDir));
+      const filePath = join(outDir, params.path);
+
+      try {
+        const file = await Deno.open(filePath, { read: true });
+        contents = file.readable;
+      } catch {
+        return new Response(null, { status: 404 });
       }
 
       const headers: Record<string, string> = {
@@ -911,31 +854,26 @@ export class ServerContext {
 }
 
 export function prepareIslands(
-  outDir: string,
-  basePath: string,
+  baseUrl: string,
   manifest: Manifest,
 ) {
   const islands: Island[] = [];
-  console.log(manifest);
   for (const [self, module] of Object.entries(manifest.islands)) {
-    const filePath = join(outDir, self);
-    console.log({ self, outDir, filePath, basePath });
-    if (!filePath.startsWith(basePath)) {
-      // throw new TypeError("Island is not a child of the basepath.");
+    const url = new URL(self, baseUrl).href;
+    if (!url.startsWith(baseUrl)) {
+      throw new TypeError("Island is not a child of the basepath.");
     }
-    const path = filePath.substring(outDir.length).substring("islands".length);
-    const baseRoute = path.substring(1, path.length - extname(path).length);
-
+    const rawName = basename(self, extname(self));
     for (const [exportName, exportedFunction] of Object.entries(module)) {
       if (typeof exportedFunction !== "function") {
         continue;
       }
-      const name = sanitizeIslandName(baseRoute);
+      const name = sanitizeIslandName(rawName);
       const id = `${name}_${exportName}`.toLowerCase();
       islands.push({
         id,
         name,
-        url: join(filePath, basePath).toString(),
+        url,
         component: exportedFunction,
         exportName,
       });
@@ -1222,39 +1160,6 @@ es.addEventListener("message", function listener(e) {
     location.reload();
   }
 });`;
-}
-
-function collectEntrypoints(
-  dev: boolean,
-  islands: Island[],
-  plugins: Plugin[],
-): Record<string, string> {
-  const entrypointBase = "../runtime/entrypoints";
-  const entryPoints: Record<string, string> = {
-    main: dev
-      ? import.meta.resolve(`${entrypointBase}/main_dev.ts`)
-      : import.meta.resolve(`${entrypointBase}/main.ts`),
-    deserializer: import.meta.resolve(`${entrypointBase}/deserializer.ts`),
-  };
-
-  try {
-    import.meta.resolve("@preact/signals");
-    entryPoints.signals = import.meta.resolve(`${entrypointBase}/signals.ts`);
-  } catch {
-    // @preact/signals is not in the import map
-  }
-
-  for (const island of islands) {
-    entryPoints[`island-${island.id}`] = island.url;
-  }
-
-  for (const plugin of plugins) {
-    for (const [name, url] of Object.entries(plugin.entrypoints ?? {})) {
-      entryPoints[`plugin-${plugin.name}-${name}`] = url;
-    }
-  }
-
-  return entryPoints;
 }
 
 export async function readDenoConfig(

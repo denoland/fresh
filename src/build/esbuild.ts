@@ -6,9 +6,7 @@ import {
   esbuildWasmURL,
   fromFileUrl,
   regexpEscape,
-  toFileUrl,
 } from "./deps.ts";
-import { Builder, BuildSnapshot } from "./mod.ts";
 
 export interface EsbuildBuilderOptions {
   /** The build ID. */
@@ -32,91 +30,74 @@ export interface JSXConfig {
 
 export const OUT_DIR = join(Deno.cwd(), "dist");
 
-export class EsbuildBuilder implements Builder {
-  #options: EsbuildBuilderOptions;
+export interface BuildResult {
+  dependencies: Map<string, string[]>;
+}
 
-  constructor(options: EsbuildBuilderOptions) {
-    this.#options = options;
-  }
+export async function build(
+  opts: EsbuildBuilderOptions,
+): Promise<BuildResult> {
+  const start = performance.now();
+  try {
+    await initEsbuild();
 
-  async build(): Promise<EsbuildSnapshot> {
-    const opts = this.#options;
-    const start = performance.now();
-    try {
-      await initEsbuild();
+    // console.log("BUILD", opts);
 
-      const absWorkingDir = Deno.cwd();
-
-      // In dev-mode we skip identifier minification to be able to show proper
-      // component names in Preact DevTools instead of single characters.
-      const minifyOptions: Partial<esbuildTypes.BuildOptions> = opts.dev
-        ? {
-          minifyIdentifiers: false,
-          minifySyntax: true,
-          minifyWhitespace: true,
-        }
-        : { minify: true };
-
-      const bundle = await esbuild.build({
-        entryPoints: opts.entrypoints,
-
-        platform: "browser",
-        target: ["chrome99", "firefox99", "safari15"],
-
-        format: "esm",
-        bundle: true,
-        splitting: true,
-        treeShaking: true,
-        sourcemap: opts.dev ? "linked" : false,
-        ...minifyOptions,
-
-        jsx: JSX_RUNTIME_MODE[opts.jsxConfig.jsx],
-        jsxImportSource: opts.jsxConfig.jsxImportSource,
-
-        absWorkingDir,
-        outdir: ".",
-        write: false,
-        metafile: true,
-
-        plugins: [
-          buildIdPlugin(opts.buildID),
-          ...denoPlugins({ configPath: opts.configPath }),
-        ],
-      });
-
-      const files = new Map<string, Uint8Array>();
-      const dependencies = new Map<string, string[]>();
-
-      const absWorkingDirLen = toFileUrl(absWorkingDir).href.length + 1;
-
-      // console.log(bundle.metafile);
-      await Deno.mkdir(OUT_DIR, { recursive: true });
-
-      for (const file of bundle.outputFiles) {
-        const path = toFileUrl(file.path).href.slice(absWorkingDirLen);
-        // console.log(path);
-        files.set(path, file.contents);
-        // console.log({ path });
+    // In dev-mode we skip identifier minification to be able to show proper
+    // component names in Preact DevTools instead of single characters.
+    const minifyOptions: Partial<esbuildTypes.BuildOptions> = opts.dev
+      ? {
+        minifyIdentifiers: false,
+        minifySyntax: true,
+        minifyWhitespace: true,
       }
+      : { minify: true };
 
-      const precompile = true;
-      // if ()
+    const bundle = await esbuild.build({
+      entryPoints: opts.entrypoints,
 
-      const metaOutputs = new Map(Object.entries(bundle.metafile.outputs));
+      platform: "browser",
+      target: ["chrome99", "firefox99", "safari15"],
 
-      for (const [path, entry] of metaOutputs.entries()) {
-        const imports = entry.imports
-          .filter(({ kind }) => kind === "import-statement")
-          .map(({ path }) => path);
-        dependencies.set(path, imports);
-      }
+      format: "esm",
+      bundle: true,
+      splitting: true,
+      treeShaking: true,
+      sourcemap: opts.dev ? "linked" : false,
+      ...minifyOptions,
 
-      return new EsbuildSnapshot(files, dependencies);
-    } finally {
-      stopEsbuild();
-      const duration = performance.now() - start;
-      console.log(`Building assets (${duration.toFixed(2)}ms)`);
+      jsx: JSX_RUNTIME_MODE[opts.jsxConfig.jsx],
+      jsxImportSource: opts.jsxConfig.jsxImportSource,
+
+      absWorkingDir: Deno.cwd(),
+      outdir: opts.outDir ?? ".",
+      write: true,
+      metafile: true,
+      publicPath: ".",
+
+      plugins: [
+        buildIdPlugin(opts.buildID),
+        ...denoPlugins({ configPath: opts.configPath }),
+      ],
+    });
+
+    const dependencies = new Map<string, string[]>();
+
+    // console.log(bundle.metafile);
+    const metaOutputs = new Map(Object.entries(bundle.metafile.outputs));
+
+    for (const [path, entry] of metaOutputs.entries()) {
+      const imports = entry.imports
+        .filter(({ kind }) => kind === "import-statement")
+        .map(({ path }) => path);
+      dependencies.set(path, imports);
     }
+
+    return { dependencies };
+  } finally {
+    stopEsbuild();
+    const duration = performance.now() - start;
+    console.log(`Building assets (${duration.toFixed(2)}ms)`);
   }
 }
 
@@ -164,29 +145,4 @@ function buildIdPlugin(buildId: string): esbuildTypes.Plugin {
       );
     },
   };
-}
-
-export class EsbuildSnapshot implements BuildSnapshot {
-  #files: Map<string, Uint8Array>;
-  #dependencies: Map<string, string[]>;
-
-  constructor(
-    files: Map<string, Uint8Array>,
-    dependencies: Map<string, string[]>,
-  ) {
-    this.#files = files;
-    this.#dependencies = dependencies;
-  }
-
-  get paths(): string[] {
-    return Object.keys(this.#files);
-  }
-
-  read(path: string): Uint8Array | null {
-    return this.#files.get(path) ?? null;
-  }
-
-  dependencies(path: string): string[] {
-    return this.#dependencies.get(path) ?? [];
-  }
 }

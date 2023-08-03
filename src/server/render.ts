@@ -31,6 +31,7 @@ import { bundleAssetUrl } from "./constants.ts";
 import { assetHashingHook } from "../runtime/utils.ts";
 import { htmlEscapeJsonString } from "./htmlescape.ts";
 import { serialize } from "./serializer.ts";
+import { BuildResult } from "$fresh/src/build/esbuild.ts";
 
 export const DEFAULT_RENDER_FN: RenderFunction = (_ctx, render) => {
   render();
@@ -60,7 +61,7 @@ export interface RenderOptions<Data> {
   app: AppModule;
   layouts: LayoutRoute[];
   imports: string[];
-  dependenciesFn: (path: string) => string[];
+  buildResult: BuildResult;
   url: URL;
   params: Record<string, string | string[]>;
   renderFn: RenderFunction;
@@ -373,7 +374,9 @@ export async function render<Data>(
   function addImport(path: string): string {
     const url = bundleAssetUrl(`/${path}`);
     preloadSet.add(url);
-    for (const depPath of opts.dependenciesFn(path)) {
+    const dependencies = opts.buildResult.dependencies.get(path) ?? [];
+
+    for (const depPath of dependencies) {
       const url = bundleAssetUrl(`/${depPath}`);
       preloadSet.add(url);
     }

@@ -1,6 +1,6 @@
 import { basename, colors, join, parse, resolve } from "./src/dev/deps.ts";
 import { error } from "./src/dev/error.ts";
-import { collect, ensureMinDenoVersion, generate } from "./src/dev/mod.ts";
+import { ensureMinDenoVersion } from "./src/dev/mod.ts";
 import {
   dotenvImports,
   freshImports,
@@ -623,9 +623,6 @@ if (useVSCode) {
     VSCODE_EXTENSIONS,
   );
 }
-
-const manifest = await collect(resolvedDirectory);
-await generate(resolvedDirectory, manifest);
 
 // Specifically print unresolvedDirectory, rather than resolvedDirectory in order to
 // not leak personal info (e.g. `/Users/MyName`)
