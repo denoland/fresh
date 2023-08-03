@@ -13,15 +13,15 @@ jobs:
       URL: ${{ github.event.deployment_status.environment_url }}
 
     steps:
-      - uses: actions/checkout@v3
+      - name: Setup repo
+        uses: actions/checkout@v3
 
-      - name: Install Node.js
-        uses: actions/setup-node@v3
-
-      - name: Install Lighthouse CI
-        run: npm install -g @lhci/cli@0.9.x
-
-      - name: Run Lighthouse
-        run: lhci autorun --collect.url="$URL" --collect.url="$URL/docs/introduction" --upload.target="temporary-public-storage"
+      - name: Audit URLs using Lighthouse
+        uses: treosh/lighthouse-ci-action@v10
         env:
           LHCI_GITHUB_APP_TOKEN: ${{ secrets.LHCI_GITHUB_APP_TOKEN }}
+        with:
+          temporaryPublicStorage: true
+          urls: |
+            $URL
+            $URL/docs/introduction

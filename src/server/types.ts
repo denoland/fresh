@@ -147,6 +147,7 @@ export type PageComponent<T = any, S = Record<string, unknown>> =
 
 // deno-lint-ignore no-explicit-any
 export interface Route<Data = any> {
+  baseRoute: BaseRoute;
   pattern: string;
   url: string;
   name: string;
@@ -177,15 +178,9 @@ export interface LayoutModule {
   default: ComponentType<LayoutProps>;
 }
 
-export interface LayoutRoute extends LayoutModule {
-  /**
-   * path-to-regexp style url path
-   */
-  pattern: string;
-  /**
-   * URLPattern of the route
-   */
-  compiledPattern: URLPattern;
+export interface LayoutRoute {
+  baseRoute: BaseRoute;
+  module: LayoutModule;
 }
 
 // --- UNKNOWN PAGE ---
@@ -224,6 +219,7 @@ export interface UnknownPageModule {
 }
 
 export interface UnknownPage {
+  baseRoute: BaseRoute;
   pattern: string;
   url: string;
   name: string;
@@ -253,6 +249,9 @@ export interface ErrorHandlerContext<State = Record<string, unknown>>
   state: State;
 }
 
+// Nominal/Branded type. Ensures that the string has the expected format
+export type BaseRoute = string & { readonly __brand: unique symbol };
+
 export type ErrorHandler = (
   req: Request,
   ctx: ErrorHandlerContext,
@@ -265,6 +264,7 @@ export interface ErrorPageModule {
 }
 
 export interface ErrorPage {
+  baseRoute: BaseRoute;
   pattern: string;
   url: string;
   name: string;
@@ -283,15 +283,9 @@ export interface MiddlewareHandlerContext<State = Record<string, unknown>>
   params: Record<string, string>;
 }
 
-export interface MiddlewareRoute extends Middleware {
-  /**
-   * path-to-regexp style url path
-   */
-  pattern: string;
-  /**
-   * URLPattern of the route
-   */
-  compiledPattern: URLPattern;
+export interface MiddlewareRoute {
+  baseRoute: BaseRoute;
+  module: Middleware;
 }
 
 export type MiddlewareHandler<State = Record<string, unknown>> = (
@@ -325,7 +319,7 @@ export interface Island {
 
 // --- PLUGINS ---
 
-export interface Plugin {
+export interface Plugin<State = Record<string, unknown>> {
   /** The name of the plugin. Must be snake-case. */
   name: string;
 
@@ -359,7 +353,7 @@ export interface Plugin {
 
   routes?: PluginRoute[];
 
-  middlewares?: PluginMiddleware[];
+  middlewares?: PluginMiddleware<State>[];
 }
 
 export interface PluginRenderContext {
@@ -411,11 +405,11 @@ export interface PluginRenderFunctionResult {
   requiresHydration: boolean;
 }
 
-export interface PluginMiddleware {
+export interface PluginMiddleware<State = Record<string, unknown>> {
   /** A path in the format of a filename path without filetype */
   path: string;
 
-  middleware: Middleware;
+  middleware: Middleware<State>;
 }
 
 export interface PluginRoute {

@@ -1,12 +1,10 @@
 import * as path from "$std/path/mod.ts";
-import {
-  assertMatch,
-  assertNotMatch,
-} from "https://deno.land/std@0.193.0/testing/asserts.ts";
 import { Status } from "../src/server/deps.ts";
 import {
   assert,
   assertEquals,
+  assertMatch,
+  assertNotMatch,
   assertStringIncludes,
   delay,
   puppeteer,
