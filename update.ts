@@ -88,6 +88,16 @@ if (!denoJson.lint.rules.tags.includes("recommended")) {
   denoJson.lint.rules.tags.push("recommended");
 }
 
+if (!denoJson.tasks) {
+  denoJson.tasks = {};
+}
+if (!denoJson.tasks.build) {
+  denoJson.tasks.build = "deno run -A dev.ts build";
+}
+if (!denoJson.tasks.preview) {
+  denoJson.tasks.preview = "deno run -A main.ts";
+}
+
 freshImports(denoJson.imports);
 if (denoJson.imports["twind"]) {
   twindImports(denoJson.imports);

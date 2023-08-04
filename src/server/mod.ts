@@ -78,6 +78,7 @@ export interface Manifest {
 export interface DenoConfig {
   imports?: Record<string, string>;
   importMap?: string;
+  tasks?: Record<string, string>;
   compilerOptions?: {
     jsx?: string;
     jsxImportSource?: string;

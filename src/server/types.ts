@@ -11,6 +11,7 @@ export interface FreshOptions {
   plugins?: Plugin[];
   staticDir?: string;
   router?: RouterOptions;
+  loadSnapshot?: boolean;
 }
 
 export interface RouterOptions {

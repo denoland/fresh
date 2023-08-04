@@ -163,7 +163,7 @@ export class EsbuildSnapshot implements BuildSnapshot {
   }
 
   get paths(): string[] {
-    return Object.keys(this.#files);
+    return Array.from(this.#files.keys());
   }
 
   read(path: string): Uint8Array | null {
