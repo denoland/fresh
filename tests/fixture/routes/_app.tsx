@@ -1,11 +1,16 @@
 import { Head } from "$fresh/runtime.ts";
 import { AppProps } from "$fresh/server.ts";
 
-export default function App(props: AppProps) {
+export type TestState = {
+  root: string;
+  stateInProps: string;
+};
+
+export default function App(props: AppProps<unknown, TestState>) {
   const statefulValue = props.state?.root === "root_mw"
     ? "The freshest framework!"
     : "";
-  const specialCase = props.state?.stateInProps as string;
+  const specialCase = props.state?.stateInProps;
   return (
     <>
       <Head>
