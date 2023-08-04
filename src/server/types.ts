@@ -147,6 +147,7 @@ export type PageComponent<T = any, S = Record<string, unknown>> =
 
 // deno-lint-ignore no-explicit-any
 export interface Route<Data = any> {
+  baseRoute: BaseRoute;
   pattern: string;
   url: string;
   name: string;
@@ -161,7 +162,9 @@ export interface RouterState {
 
 // --- APP ---
 
-export interface AppProps extends PageProps {
+// deno-lint-ignore no-explicit-any
+export interface AppProps<T = any, S = Record<string, unknown>>
+  extends PageProps<T, S> {
   Component: ComponentType<Record<never, never>>;
 }
 
@@ -177,15 +180,9 @@ export interface LayoutModule {
   default: ComponentType<LayoutProps>;
 }
 
-export interface LayoutRoute extends LayoutModule {
-  /**
-   * path-to-regexp style url path
-   */
-  pattern: string;
-  /**
-   * URLPattern of the route
-   */
-  compiledPattern: URLPattern;
+export interface LayoutRoute {
+  baseRoute: BaseRoute;
+  module: LayoutModule;
 }
 
 // --- UNKNOWN PAGE ---
@@ -224,6 +221,7 @@ export interface UnknownPageModule {
 }
 
 export interface UnknownPage {
+  baseRoute: BaseRoute;
   pattern: string;
   url: string;
   name: string;
@@ -253,6 +251,9 @@ export interface ErrorHandlerContext<State = Record<string, unknown>>
   state: State;
 }
 
+// Nominal/Branded type. Ensures that the string has the expected format
+export type BaseRoute = string & { readonly __brand: unique symbol };
+
 export type ErrorHandler = (
   req: Request,
   ctx: ErrorHandlerContext,
@@ -265,6 +266,7 @@ export interface ErrorPageModule {
 }
 
 export interface ErrorPage {
+  baseRoute: BaseRoute;
   pattern: string;
   url: string;
   name: string;
@@ -283,15 +285,9 @@ export interface MiddlewareHandlerContext<State = Record<string, unknown>>
   params: Record<string, string>;
 }
 
-export interface MiddlewareRoute extends Middleware {
-  /**
-   * path-to-regexp style url path
-   */
-  pattern: string;
-  /**
-   * URLPattern of the route
-   */
-  compiledPattern: URLPattern;
+export interface MiddlewareRoute {
+  baseRoute: BaseRoute;
+  module: Middleware;
 }
 
 export type MiddlewareHandler<State = Record<string, unknown>> = (
@@ -426,17 +422,4 @@ export interface PluginRoute {
 
   // deno-lint-ignore no-explicit-any
   handler?: Handler<any, any> | Handlers<any, any>;
-}
-
-export interface StaticFile {
-  /** The URL to the static file on disk. */
-  localUrl: URL;
-  /** The path to the file as it would be in the incoming request. */
-  path: string;
-  /** The size of the file. */
-  size: number;
-  /** The content-type of the file. */
-  contentType: string;
-  /** Hash of the file contents. */
-  etag: string;
 }

@@ -15,7 +15,6 @@ import {
   ErrorPage,
   Island,
   LayoutModule,
-  LayoutRoute,
   Plugin,
   PluginRenderFunctionResult,
   PluginRenderResult,
@@ -58,7 +57,7 @@ export interface RenderOptions<Data> {
   islands: Island[];
   plugins: Plugin[];
   app: AppModule;
-  layouts: LayoutRoute[];
+  layouts: LayoutModule[];
   imports: string[];
   dependenciesFn: (path: string) => string[];
   url: URL;
@@ -139,25 +138,6 @@ function defaultCsp() {
 }
 
 /**
- * Return a list of layouts that needs to be applied for request url
- * @param url the request url
- * @param layouts Array of layouts handlers and their routes as path-to-regexp style
- */
-export function selectLayouts(url: string, layouts: LayoutRoute[]) {
-  const selectedLayouts: LayoutModule[] = [];
-  const reqURL = new URL(url);
-
-  for (const layout of layouts) {
-    const res = layout.compiledPattern.exec(reqURL);
-    if (res) {
-      selectedLayouts.push(layout);
-    }
-  }
-
-  return selectedLayouts;
-}
-
-/**
  * This function renders out a page. Rendering is synchronous and non streaming.
  * Suspense boundaries are not supported.
  */
@@ -214,11 +194,11 @@ export async function render<Data>(
     // deno-lint-ignore no-explicit-any
     let finalAppComp: VNode<any> = vnode as any;
 
-    const layouts = selectLayouts(opts.url.toString(), opts.layouts);
+    let i = opts.layouts.length;
+    while (i--) {
+      const layout = opts.layouts[i];
 
-    layouts.forEach((layout) => {
-      const curComp = { ...finalAppComp };
-
+      const curComp = finalAppComp;
       finalAppComp = h(layout.default, {
         params: opts.params as Record<string, string>,
         url: opts.url,
@@ -229,7 +209,7 @@ export async function render<Data>(
           return curComp;
         },
       });
-    });
+    }
 
     const root = h(CSP_CONTEXT.Provider, {
       value: csp,

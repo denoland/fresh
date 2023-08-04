@@ -307,7 +307,7 @@ const NO_TWIND_STYLES = `
 *,
 *::before,
 *::after {
-  box-sizing: boder-box;
+  box-sizing: border-box;
 }
 * {
   margin: 0;
