@@ -1,3 +1,4 @@
+import { assert } from "./deps.ts";
 import { assertSelector, fetchHtml, withFresh } from "./test_utils.ts";
 
 Deno.test("apply root _layout and _app", async () => {
@@ -5,6 +6,7 @@ Deno.test("apply root _layout and _app", async () => {
     "./tests/fixture_layouts/main.ts",
     async (address) => {
       const doc = await fetchHtml(address);
+      assert(doc.body.textContent?.includes("it works"));
       assertSelector(doc, ".app .root-layout .home-page");
 
       const doc2 = await fetchHtml(`${address}/other`);
