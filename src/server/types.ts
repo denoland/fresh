@@ -20,6 +20,11 @@ export interface RouterOptions {
    *  @default {false}
    */
   trailingSlash?: boolean;
+  /**
+   * Enable client side navigation similar to a Single Page App (SPA)
+   * @default {false}
+   */
+  clientNavigation?: boolean;
 }
 
 export type RenderFunction = (
@@ -283,6 +288,10 @@ export interface MiddlewareHandlerContext<State = Record<string, unknown>>
   state: State;
   destination: router.DestinationKind;
   params: Record<string, string>;
+  readonly clientNavigation: {
+    enabled: boolean;
+    requested: boolean;
+  };
 }
 
 export interface MiddlewareRoute {

@@ -375,6 +375,15 @@ export async function render<Data>(
   // The inline script that will hydrate the page.
   let script = "";
 
+  // Add support for clientside navigation
+  ISLAND_PLACEHOLDERS = false;
+  if (opts.context.clientNavigation?.enabled) {
+    ISLAND_PLACEHOLDERS = true;
+    const url = addImport("navigation.js");
+    script += `import "${url}";`;
+  }
+  console.log("render", opts.context.clientNavigation);
+
   // Serialize the state into the <script id=__FRSH_STATE> tag and generate the
   // inline script to deserialize it. This script starts by deserializing the
   // state in the tag. This potentially requires importing @preact/signals.
@@ -540,6 +549,9 @@ const ISLANDS: Island[] = [];
 const ENCOUNTERED_ISLANDS: Set<Island> = new Set([]);
 let ISLAND_PROPS: unknown[] = [];
 
+// Track the current render mode
+let ISLAND_PLACEHOLDERS = false;
+
 // Keep track of which component rendered which vnode. This allows us
 // to detect when an island is rendered within another instead of being
 // passed as children.
@@ -598,7 +610,9 @@ options.vnode = (vnode) => {
           );
         }
 
-        const child = h(originalType, props);
+        const child = ISLAND_PLACEHOLDERS
+          ? h(Fragment, null, props.children)
+          : h(originalType, props);
         ISLAND_PROPS.push(props);
 
         return wrapWithMarker(

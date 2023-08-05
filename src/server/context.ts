@@ -503,6 +503,11 @@ export class ServerContext {
         middlewares,
       );
 
+      const clientNavigation = {
+        enabled: !!this.#routerOptions?.clientNavigation,
+        requested: req.headers.has("x-fresh-client-nav"),
+      };
+
       let state: Record<string, unknown> = {};
       const middlewareCtx: MiddlewareHandlerContext = {
         next() {
@@ -531,6 +536,11 @@ export class ServerContext {
         },
         destination: "route",
         params: paramsAndRouteResult.params,
+
+        // Don't allow changing this.
+        get clientNavigation() {
+          return clientNavigation;
+        },
       };
 
       for (const mw of mws) {
@@ -551,6 +561,10 @@ export class ServerContext {
         },
         set state(v) {
           state = v;
+        },
+        // Don't allow changing this.
+        get clientNavigation() {
+          return clientNavigation;
         },
       };
       const { destination, handler } = inner(
@@ -682,6 +696,7 @@ export class ServerContext {
       const layouts = selectSharedRoutes(ROOT_BASE_ROUTE, this.#layouts);
 
       const imports: string[] = [];
+      console.log({ ctx });
       const resp = await internalRender({
         request: req,
         context: ctx,
@@ -955,6 +970,7 @@ export class ServerContext {
 
 const DEFAULT_ROUTER_OPTIONS: RouterOptions = {
   trailingSlash: false,
+  clientNavigation: false,
 };
 
 const DEFAULT_APP: AppModule = {
@@ -1211,6 +1227,7 @@ function collectEntrypoints(
       ? import.meta.resolve(`${entrypointBase}/main_dev.ts`)
       : import.meta.resolve(`${entrypointBase}/main.ts`),
     deserializer: import.meta.resolve(`${entrypointBase}/deserializer.ts`),
+    navigation: import.meta.resolve(`${entrypointBase}/navigation.ts`),
   };
 
   try {
