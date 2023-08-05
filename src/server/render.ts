@@ -409,7 +409,6 @@ export async function render<Data>(
   }
 
   await renderAsync();
-  console.log({ asyncRenderResponse });
   if (asyncRenderResponse !== undefined) {
     return asyncRenderResponse;
   }
