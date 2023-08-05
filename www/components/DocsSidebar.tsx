@@ -52,7 +52,7 @@ export default function DocsSidebar(
             </span>
           </button>
         )
-        : <SearchButton class="lg:hidden" />}
+        : <SearchButton />}
 
       <div class="mb-4">
         <VersionSelect
