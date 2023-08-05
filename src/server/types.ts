@@ -172,7 +172,9 @@ export interface AppModule {
   default: ComponentType<AppProps>;
 }
 
-export interface LayoutProps extends PageProps {
+// deno-lint-ignore no-explicit-any
+export interface LayoutProps<T = any, S = Record<string, unknown>>
+  extends PageProps<T, S> {
   Component: ComponentType<Record<never, never>>;
 }
 
