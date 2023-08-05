@@ -64,3 +64,44 @@ Deno.test("check file types", async (t) => {
     },
   );
 });
+
+Deno.test("render async layout", async () => {
+  await withFresh(
+    "./tests/fixture_layouts/main.ts",
+    async (address) => {
+      const doc = await fetchHtml(`${address}/async`);
+      assertSelector(doc, ".app .root-layout .async-layout .async-page");
+    },
+  );
+});
+
+Deno.test("render nested async layout", async () => {
+  await withFresh(
+    "./tests/fixture_layouts/main.ts",
+    async (address) => {
+      const doc = await fetchHtml(`${address}/async/sub`);
+      assertSelector(
+        doc,
+        ".app .root-layout .async-layout .async-sub-layout .async-sub-page",
+      );
+    },
+  );
+});
+
+Deno.test({
+  name: "can return Response from async layout",
+  fn: async () => {
+    await withFresh(
+      "./tests/fixture_layouts/main.ts",
+      async (address) => {
+        const doc = await fetchHtml(`${address}/async/redirect`);
+        assertSelector(
+          doc,
+          ".app .root-layout .async-layout .async-sub-layout .async-sub-page",
+        );
+      },
+    );
+  },
+  sanitizeOps: false,
+  sanitizeResources: false,
+});
