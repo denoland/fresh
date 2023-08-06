@@ -363,6 +363,11 @@
     "image": "over-ip"
   },
   {
+    "title": "GitHub Land",
+    "link": "https://github.land",
+    "image": "githubland"
+  },
+  {
     "title": "Do not remove this, it’s for preventing conflicts by trailing comma",
     "link": "",
     "github": "",
