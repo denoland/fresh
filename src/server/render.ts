@@ -14,6 +14,7 @@ import {
   AsyncRoute,
   ErrorPage,
   Island,
+  LayoutModule,
   Plugin,
   PluginRenderFunctionResult,
   PluginRenderResult,
@@ -56,6 +57,7 @@ export interface RenderOptions<Data> {
   islands: Island[];
   plugins: Plugin[];
   app: AppModule;
+  layouts: LayoutModule[];
   imports: string[];
   dependenciesFn: (path: string) => string[];
   url: URL;
@@ -189,6 +191,26 @@ export async function render<Data>(
   let bodyHtml: string | null = null;
 
   function renderInner(vnode: ComponentChildren): string {
+    // deno-lint-ignore no-explicit-any
+    let finalAppComp: VNode<any> = vnode as any;
+
+    let i = opts.layouts.length;
+    while (i--) {
+      const layout = opts.layouts[i];
+
+      const curComp = finalAppComp;
+      finalAppComp = h(layout.default, {
+        params: opts.params as Record<string, string>,
+        url: opts.url,
+        route: opts.route.pattern,
+        data: opts.data,
+        state: opts.state!,
+        Component() {
+          return curComp;
+        },
+      });
+    }
+
     const root = h(CSP_CONTEXT.Provider, {
       value: csp,
       children: h(HEAD_CONTEXT.Provider, {
@@ -200,8 +222,7 @@ export async function render<Data>(
           data: opts.data,
           state: opts.state!,
           Component() {
-            // deno-lint-ignore no-explicit-any
-            return vnode as any;
+            return finalAppComp;
           },
         }),
       }),
@@ -586,7 +607,23 @@ options.vnode = (vnode) => {
         );
       };
     }
+  } else if (typeof vnode.type === "string" && vnode.props !== null) {
+    // Work around `preact/debug` string event handler error which
+    // errors when an event handler gets a string. This makes sense
+    // on the client where this is a common vector for XSS. On the
+    // server when the string was not created through concatenation
+    // it is fine. Internally, `preact/debug` only checks for the
+    // lowercase variant.
+    const props = vnode.props as Record<string, unknown>;
+    for (const key in props) {
+      const value = props[key];
+      if (key.startsWith("on") && typeof value === "string") {
+        delete props[key];
+        props["ON" + key.slice(2)] = value;
+      }
+    }
   }
+
   if (originalHook) originalHook(vnode);
 };
 

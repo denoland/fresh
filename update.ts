@@ -1,7 +1,9 @@
 import {
   dirname,
   existsSync,
+  extname,
   join,
+  JSONC,
   Node,
   parse,
   Project,
@@ -49,7 +51,15 @@ if (!DENO_JSON_PATH) {
   );
 }
 let denoJsonText = await Deno.readTextFile(DENO_JSON_PATH);
-let denoJson = JSON.parse(denoJsonText);
+const ext = extname(DENO_JSON_PATH);
+let denoJson;
+if (ext === ".json") {
+  denoJson = JSON.parse(denoJsonText);
+} else if (ext === ".jsonc") {
+  denoJson = JSONC.parse(denoJsonText);
+} else {
+  throw new Error(`Unsupported file extension: ${ext}`);
+}
 if (denoJson.importMap) {
   const IMPORT_MAP_PATH = join(resolvedDirectory, denoJson.importMap);
   const importMapText = await Deno.readTextFile(IMPORT_MAP_PATH);

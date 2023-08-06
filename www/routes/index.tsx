@@ -134,7 +134,7 @@ function Features() {
       </div>
 
       <div class={item}>
-        <FeatureIcons.Gabage />
+        <FeatureIcons.Garbage />
         <div class={desc}>
           <b>No configuration</b> necessary.
         </div>

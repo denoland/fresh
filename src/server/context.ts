@@ -17,18 +17,19 @@ import { BUILD_ID } from "./build_id.ts";
 import DefaultErrorHandler from "./default_error_page.ts";
 import {
   AppModule,
+  BaseRoute,
   ErrorPage,
   ErrorPageModule,
   FreshOptions,
   Handler,
   Island,
-  Middleware,
+  LayoutModule,
+  LayoutRoute,
+  MiddlewareHandler,
   MiddlewareHandlerContext,
   MiddlewareModule,
   MiddlewareRoute,
   Plugin,
-  PluginMiddleware,
-  PluginRoute,
   RenderFunction,
   RenderOptions,
   Route,
@@ -58,6 +59,8 @@ const DEFAULT_CONN_INFO: ServeHandlerInfo = {
   localAddr: { transport: "tcp", hostname: "localhost", port: 8080 },
   remoteAddr: { transport: "tcp", hostname: "localhost", port: 1234 },
 };
+
+const ROOT_BASE_ROUTE = toBaseRoute("/");
 
 function isObject(value: unknown) {
   return typeof value === "object" &&
@@ -91,6 +94,7 @@ export class ServerContext {
   #renderFn: RenderFunction;
   #middlewares: MiddlewareRoute[];
   #app: AppModule;
+  #layouts: LayoutRoute[];
   #notFound: UnknownPage;
   #error: ErrorPage;
   #plugins: Plugin[];
@@ -104,6 +108,7 @@ export class ServerContext {
     renderfn: RenderFunction,
     middlewares: MiddlewareRoute[],
     app: AppModule,
+    layouts: LayoutRoute[],
     notFound: UnknownPage,
     error: ErrorPage,
     plugins: Plugin[],
@@ -118,6 +123,7 @@ export class ServerContext {
     this.#renderFn = renderfn;
     this.#middlewares = middlewares;
     this.#app = app;
+    this.#layouts = layouts;
     this.#notFound = notFound;
     this.#error = error;
     this.#plugins = plugins;
@@ -176,13 +182,18 @@ export class ServerContext {
     const islands: Island[] = [];
     const middlewares: MiddlewareRoute[] = [];
     let app: AppModule = DEFAULT_APP;
+    const layouts: LayoutRoute[] = [];
     let notFound: UnknownPage = DEFAULT_NOT_FOUND;
     let error: ErrorPage = DEFAULT_ERROR;
     const allRoutes = [
       ...Object.entries(manifest.routes),
-      ...Object.entries(getMiddlewareRoutesFromPlugins(opts.plugins || [])),
-      ...Object.entries(getRoutesFromPlugins(opts.plugins || [])),
+      ...(opts.plugins ? getMiddlewareRoutesFromPlugins(opts.plugins) : []),
+      ...(opts.plugins ? getRoutesFromPlugins(opts.plugins) : []),
     ];
+
+    // Presort all routes so that we only need to sort once
+    allRoutes.sort((a, b) => sortRoutePaths(a[0], b[0]));
+
     for (
       const [self, module] of allRoutes
     ) {
@@ -193,10 +204,15 @@ export class ServerContext {
       const path = url.substring(baseUrl.length).substring("routes".length);
       const baseRoute = path.substring(1, path.length - extname(path).length);
       const name = baseRoute.replace("/", "-");
+      const isLayout = path.endsWith("/_layout.tsx") ||
+        path.endsWith("/_layout.ts") || path.endsWith("/_layout.jsx") ||
+        path.endsWith("/_layout.js");
       const isMiddleware = path.endsWith("/_middleware.tsx") ||
         path.endsWith("/_middleware.ts") || path.endsWith("/_middleware.jsx") ||
         path.endsWith("/_middleware.js");
-      if (!path.startsWith("/_") && !isMiddleware) {
+      if (
+        !path.startsWith("/_") && !isLayout && !isMiddleware
+      ) {
         const { default: component, config } = module as RouteModule;
         let pattern = pathToPattern(baseRoute);
         if (config?.routeOverride) {
@@ -230,6 +246,7 @@ export class ServerContext {
           };
         }
         const route: Route = {
+          baseRoute: toBaseRoute(baseRoute),
           pattern,
           url,
           name,
@@ -240,14 +257,19 @@ export class ServerContext {
         routes.push(route);
       } else if (isMiddleware) {
         middlewares.push({
-          ...middlewarePathToPattern(baseRoute),
-          ...module as MiddlewareModule,
+          baseRoute: toBaseRoute(baseRoute),
+          module: module as MiddlewareModule,
         });
       } else if (
         path === "/_app.tsx" || path === "/_app.ts" ||
         path === "/_app.jsx" || path === "/_app.js"
       ) {
         app = module as AppModule;
+      } else if (isLayout) {
+        layouts.push({
+          baseRoute: toBaseRoute(baseRoute),
+          module: module as LayoutModule,
+        });
       } else if (
         path === "/_404.tsx" || path === "/_404.ts" ||
         path === "/_404.jsx" || path === "/_404.js"
@@ -259,6 +281,7 @@ export class ServerContext {
         }
 
         notFound = {
+          baseRoute: ROOT_BASE_ROUTE,
           pattern: pathToPattern(baseRoute),
           url,
           name,
@@ -277,6 +300,7 @@ export class ServerContext {
         }
 
         error = {
+          baseRoute: toBaseRoute("/"),
           pattern: pathToPattern(baseRoute),
           url,
           name,
@@ -287,8 +311,6 @@ export class ServerContext {
         };
       }
     }
-    sortRoutes(routes);
-    sortMiddleware(middlewares);
 
     for (const [self, module] of Object.entries(manifest.islands)) {
       const url = new URL(self, baseUrl).href;
@@ -370,6 +392,7 @@ export class ServerContext {
       opts.render ?? DEFAULT_RENDER_FN,
       middlewares,
       app,
+      layouts,
       notFound,
       error,
       opts.plugins ?? [],
@@ -470,13 +493,17 @@ export class ServerContext {
       connInfo: ServeHandlerInfo,
       inner: router.FinalHandler<RouterState>,
     ) => {
-      // identify middlewares to apply, if any.
-      // middlewares should be already sorted from deepest to shallow layer
-      const mws = selectMiddlewares(req.url, middlewares);
-
       const handlers: (() => Response | Promise<Response>)[] = [];
       const paramsAndRouteResult = paramsAndRoute(req.url);
 
+      // identify middlewares to apply, if any.
+      // middlewares should be already sorted from deepest to shallow layer
+      const mws = selectSharedRoutes(
+        paramsAndRouteResult.route?.baseRoute ?? ROOT_BASE_ROUTE,
+        middlewares,
+      );
+
+      let state: Record<string, unknown> = {};
       const middlewareCtx: MiddlewareHandlerContext = {
         next() {
           const handler = handlers.shift()!;
@@ -496,7 +523,12 @@ export class ServerContext {
           }
         },
         ...connInfo,
-        state: {},
+        get state() {
+          return state;
+        },
+        set state(v) {
+          state = v;
+        },
         destination: "route",
         params: paramsAndRouteResult.params,
       };
@@ -514,7 +546,12 @@ export class ServerContext {
 
       const ctx = {
         ...connInfo,
-        state: middlewareCtx.state,
+        get state() {
+          return state;
+        },
+        set state(v) {
+          state = v;
+        },
       };
       const { destination, handler } = inner(
         req,
@@ -545,39 +582,50 @@ export class ServerContext {
     const routes: router.Routes<RouterState> = {};
 
     internalRoutes[`${INTERNAL_PREFIX}${JS_PREFIX}/${BUILD_ID}/:path*`] = {
-      default: this.#bundleAssetRoute(),
+      baseRoute: toBaseRoute(
+        `${INTERNAL_PREFIX}${JS_PREFIX}/${BUILD_ID}/:path*`,
+      ),
+      methods: {
+        default: this.#bundleAssetRoute(),
+      },
     };
     if (this.#dev) {
       internalRoutes[REFRESH_JS_URL] = {
-        default: () => {
-          return new Response(refreshJs(ALIVE_URL, BUILD_ID), {
-            headers: {
-              "content-type": "application/javascript; charset=utf-8",
-            },
-          });
+        baseRoute: toBaseRoute(REFRESH_JS_URL),
+        methods: {
+          default: () => {
+            return new Response(refreshJs(ALIVE_URL, BUILD_ID), {
+              headers: {
+                "content-type": "application/javascript; charset=utf-8",
+              },
+            });
+          },
         },
       };
       internalRoutes[ALIVE_URL] = {
-        default: () => {
-          let timerId: number | undefined = undefined;
-          const body = new ReadableStream({
-            start(controller) {
-              controller.enqueue(`data: ${BUILD_ID}\nretry: 100\n\n`);
-              timerId = setInterval(() => {
-                controller.enqueue(`data: ${BUILD_ID}\n\n`);
-              }, 1000);
-            },
-            cancel() {
-              if (timerId !== undefined) {
-                clearInterval(timerId);
-              }
-            },
-          });
-          return new Response(body.pipeThrough(new TextEncoderStream()), {
-            headers: {
-              "content-type": "text/event-stream",
-            },
-          });
+        baseRoute: toBaseRoute(ALIVE_URL),
+        methods: {
+          default: () => {
+            let timerId: number | undefined = undefined;
+            const body = new ReadableStream({
+              start(controller) {
+                controller.enqueue(`data: ${BUILD_ID}\nretry: 100\n\n`);
+                timerId = setInterval(() => {
+                  controller.enqueue(`data: ${BUILD_ID}\n\n`);
+                }, 1000);
+              },
+              cancel() {
+                if (timerId !== undefined) {
+                  clearInterval(timerId);
+                }
+              },
+            });
+            return new Response(body.pipeThrough(new TextEncoderStream()), {
+              headers: {
+                "content-type": "text/event-stream",
+              },
+            });
+          },
         },
       };
     }
@@ -591,17 +639,20 @@ export class ServerContext {
     ) {
       const route = sanitizePathToRegex(path);
       staticRoutes[route] = {
-        "HEAD": this.#staticFileHeadHandler(
-          size,
-          contentType,
-          etag,
-        ),
-        "GET": this.#staticFileGetHandler(
-          localUrl,
-          size,
-          contentType,
-          etag,
-        ),
+        baseRoute: toBaseRoute(route),
+        methods: {
+          "HEAD": this.#staticFileHeadHandler(
+            size,
+            contentType,
+            etag,
+          ),
+          "GET": this.#staticFileGetHandler(
+            localUrl,
+            size,
+            contentType,
+            etag,
+          ),
+        },
       };
     }
 
@@ -627,6 +678,9 @@ export class ServerContext {
           headers: undefined,
         });
       }
+
+      const layouts = selectSharedRoutes(ROOT_BASE_ROUTE, this.#layouts);
+
       const imports: string[] = [];
       const resp = await internalRender({
         request: req,
@@ -635,6 +689,7 @@ export class ServerContext {
         islands: this.#islands,
         plugins: this.#plugins,
         app: this.#app,
+        layouts,
         imports,
         dependenciesFn,
         renderFn: this.#renderFn,
@@ -675,6 +730,8 @@ export class ServerContext {
             throw new Error("This page does not have a component to render.");
           }
 
+          const layouts = selectSharedRoutes(route.baseRoute, this.#layouts);
+
           const resp = await internalRender({
             request: req,
             context: {
@@ -687,6 +744,7 @@ export class ServerContext {
             islands: this.#islands,
             plugins: this.#plugins,
             app: this.#app,
+            layouts,
             imports,
             dependenciesFn,
             renderFn: this.#renderFn,
@@ -718,20 +776,26 @@ export class ServerContext {
       const createRender = genRender(route, Status.OK);
       if (typeof route.handler === "function") {
         routes[route.pattern] = {
-          default: (req, ctx, params) =>
-            (route.handler as Handler)(req, {
-              ...ctx,
-              params,
-              render: createRender(req, params, ctx),
-              async renderNotFound<Data = undefined>(data: Data) {
-                return await renderNotFound(req, params, ctx, data);
-              },
-            }),
+          baseRoute: route.baseRoute,
+          methods: {
+            default: (req, ctx, params) =>
+              (route.handler as Handler)(req, {
+                ...ctx,
+                params,
+                render: createRender(req, params, ctx),
+                async renderNotFound<Data = undefined>(data: Data) {
+                  return await renderNotFound(req, params, ctx, data);
+                },
+              }),
+          },
         };
       } else {
-        routes[route.pattern] = {};
+        routes[route.pattern] = {
+          baseRoute: route.baseRoute,
+          methods: {},
+        };
         for (const [method, handler] of Object.entries(route.handler)) {
-          routes[route.pattern][method as router.KnownMethod] = (
+          routes[route.pattern].methods[method as router.KnownMethod] = (
             req,
             ctx,
             params,
@@ -898,6 +962,7 @@ const DEFAULT_APP: AppModule = {
 };
 
 const DEFAULT_NOT_FOUND: UnknownPage = {
+  baseRoute: toBaseRoute("/"),
   pattern: "",
   url: "",
   name: "_404",
@@ -906,6 +971,7 @@ const DEFAULT_NOT_FOUND: UnknownPage = {
 };
 
 const DEFAULT_ERROR: ErrorPage = {
+  baseRoute: toBaseRoute("/"),
   pattern: "",
   url: "",
   name: "_500",
@@ -914,98 +980,146 @@ const DEFAULT_ERROR: ErrorPage = {
   csp: false,
 };
 
-/**
- * Return a list of middlewares that needs to be applied for request url
- * @param url the request url
- * @param middlewares Array of middlewares handlers and their routes as path-to-regexp style
- */
-export function selectMiddlewares(url: string, middlewares: MiddlewareRoute[]) {
-  const selectedMws: Middleware[] = [];
-  const reqURL = new URL(url);
+export function selectSharedRoutes<T>(
+  curBaseRoute: BaseRoute,
+  items: { baseRoute: BaseRoute; module: T }[],
+): T[] {
+  const selected: T[] = [];
 
-  for (const { compiledPattern, handler } of middlewares) {
-    const res = compiledPattern.exec(reqURL);
+  for (const { baseRoute, module } of items) {
+    const res = curBaseRoute === baseRoute ||
+      curBaseRoute.startsWith(
+        baseRoute.length > 1 ? baseRoute + "/" : baseRoute,
+      );
     if (res) {
-      selectedMws.push({ handler });
+      selected.push(module);
     }
   }
 
-  return selectedMws;
+  return selected;
 }
+
+const APP_REG = /_app\.[tj]sx?$/;
 
 /**
- * Sort pages by their relative routing priority, based on the parts in the
- * route matcher
+ * Sort route paths where special Fresh files like `_app`,
+ * `_layout` and `_middleware` are sorted in front.
  */
-export function sortRoutes<T extends { pattern: string }>(routes: T[]) {
-  routes.sort((a, b) => {
-    const partsA = a.pattern.split("/");
-    const partsB = b.pattern.split("/");
-    for (let i = 0; i < Math.max(partsA.length, partsB.length); i++) {
-      const partA = partsA[i];
-      const partB = partsB[i];
-      if (partA === undefined) return -1;
-      if (partB === undefined) return 1;
-      if (partA === partB) continue;
-      const priorityA = partA.startsWith(":") ? partA.endsWith("*") ? 0 : 1 : 2;
-      const priorityB = partB.startsWith(":") ? partB.endsWith("*") ? 0 : 1 : 2;
-      return Math.max(Math.min(priorityB - priorityA, 1), -1);
-    }
-    return 0;
-  });
-}
+export function sortRoutePaths(a: string, b: string) {
+  // The `_app` route should always be the first
+  if (APP_REG.test(a)) return -1;
+  else if (APP_REG.test(b)) return 1;
 
-export function sortMiddleware<T extends { pattern: string }>(routes: T[]) {
-  routes.sort((a, b) => {
-    const partsA = a.pattern.split("/");
-    const partsB = b.pattern.split("/");
+  let segmentIdx = 0;
+  const aLen = a.length;
+  const bLen = b.length;
+  const maxLen = aLen > bLen ? aLen : bLen;
+  for (let i = 0; i < maxLen; i++) {
+    const charA = a.charAt(i);
+    const charB = b.charAt(i);
+    const nextA = i + 1 < aLen ? a.charAt(i + 1) : "";
+    const nextB = i + 1 < bLen ? b.charAt(i + 1) : "";
 
-    for (let i = 0; i < Math.max(partsA.length, partsB.length); i++) {
-      const partA = partsA[i];
-      const partB = partsB[i];
-
-      if (partA === undefined && partB === undefined) return 0;
-      if (partA === undefined) return -1;
-      if (partB === undefined) return 1;
-
-      if (partA === partB) continue;
-
-      const priorityA = getPriority(partA);
-      const priorityB = getPriority(partB);
-
-      if (priorityA !== priorityB) {
-        return priorityA - priorityB; // Sort in ascending order of priority
-      }
+    if (charA === "/" || charB === "/") {
+      segmentIdx = i;
+      // If the other path doesn't close the segment
+      // then we don't need to continue
+      if (charA !== "/") return -1;
+      if (charB !== "/") return 1;
+      continue;
     }
 
-    return 0;
-  });
-}
-
-function getPriority(part: string) {
-  if (part.startsWith(":")) {
-    return part.endsWith("*") ? 2 : 1;
+    if (i === segmentIdx + 1) {
+      const scoreA = getRoutePathScore(charA, nextA);
+      const scoreB = getRoutePathScore(charB, nextB);
+      if (scoreA === scoreB) continue;
+      return scoreA > scoreB ? -1 : 1;
+    }
   }
+
   return 0;
 }
 
+/**
+ * Assign a score based on the first two characters of a path segment.
+ * The goal is to sort `_middleware` and `_layout` in front of everything
+ * and `[` or `[...` last respectively.
+ */
+function getRoutePathScore(char: string, nextChar: string): number {
+  if (char === "_") {
+    if (nextChar === "m") return 4;
+    return 3;
+  } else if (char === "[") {
+    if (nextChar === ".") {
+      return 0;
+    }
+    return 1;
+  }
+  return 2;
+}
+
 /** Transform a filesystem URL path to a `path-to-regex` style matcher. */
-function pathToPattern(path: string): string {
+export function pathToPattern(path: string): string {
   const parts = path.split("/");
   if (parts[parts.length - 1] === "index") {
+    if (parts.length === 1) {
+      return "/";
+    }
     parts.pop();
   }
-  const route = "/" + parts
-    .map((part) => {
-      if (part.startsWith("[...") && part.endsWith("]")) {
-        return `:${part.slice(4, part.length - 1)}*`;
+
+  let route = "";
+
+  for (let i = 0; i < parts.length; i++) {
+    const part = parts[i];
+
+    // Case: /[...foo].tsx
+    if (part.startsWith("[...") && part.endsWith("]")) {
+      route += `/:${part.slice(4, part.length - 1)}*`;
+      continue;
+    }
+
+    // Route groups like /foo/(bar) should not be included in URL
+    // matching. They are transparent and need to be removed here.
+    // Case: /foo/(bar) -> /foo
+    // Case: /foo/(bar)/bob -> /foo/bob
+    // Case: /(foo)/bar -> /bar
+    if (part.startsWith("(") && part.endsWith(")")) {
+      continue;
+    }
+
+    // Disallow neighbouring params like `/[id][bar].tsx` because
+    // it's ambiguous where the `id` param ends and `bar` begins.
+    if (part.includes("][")) {
+      throw new SyntaxError(
+        `Invalid route pattern: "${path}". A parameter cannot be followed by another parameter without any characters in between.`,
+      );
+    }
+
+    // Case: /[id].tsx
+    // Case: /[id]@[bar].tsx
+    // Case: /[id]-asdf.tsx
+    // Case: /[id]-asdf[bar].tsx
+    // Case: /asdf[bar].tsx
+    let pattern = "";
+    let groupOpen = 0;
+    for (let j = 0; j < part.length; j++) {
+      const char = part[j];
+      if (char === "[") {
+        pattern += ":";
+        groupOpen++;
+      } else if (char === "]") {
+        if (--groupOpen < 0) {
+          throw new SyntaxError(`Invalid route pattern: "${path}"`);
+        }
+      } else {
+        pattern += char;
       }
-      if (part.startsWith("[") && part.endsWith("]")) {
-        return `:${part.slice(1, part.length - 1)}`;
-      }
-      return part;
-    })
-    .join("/");
+    }
+
+    route += "/" + pattern;
+  }
+
   return route;
 }
 
@@ -1056,14 +1170,21 @@ function serializeCSPDirectives(csp: ContentSecurityPolicyDirectives): string {
     .join("; ");
 }
 
-export function middlewarePathToPattern(baseRoute: string) {
-  baseRoute = baseRoute.slice(0, -"_middleware".length);
-  let pattern = pathToPattern(baseRoute);
-  if (pattern.endsWith("/")) {
-    pattern = pattern.slice(0, -1) + "{/*}?";
+export function toBaseRoute(input: string): BaseRoute {
+  if (input.endsWith("_layout")) {
+    input = input.slice(0, -"_layout".length);
+  } else if (input.endsWith("_middleware")) {
+    input = input.slice(0, -"_middleware".length);
+  } else if (input.endsWith("index")) {
+    input = input.slice(0, -"index".length);
   }
-  const compiledPattern = new URLPattern({ pathname: pattern });
-  return { pattern, compiledPattern };
+
+  if (input.endsWith("/")) {
+    input = input.slice(0, -1);
+  }
+
+  const suffix = !input.startsWith("/") ? "/" : "";
+  return (suffix + input) as BaseRoute;
 }
 
 function refreshJs(aliveUrl: string, buildId: string) {
@@ -1142,41 +1263,45 @@ async function readDenoConfig(
   }
 }
 
-function getMiddlewareRoutesFromPlugins(
-  plugins: Plugin[],
-): Record<string, MiddlewareModule> {
-  return (Object.assign(
-    {},
-    ...[
-      ...new Set(
-        ([] as PluginMiddleware[]).concat(
-          ...plugins.map((p) => p.middlewares || []),
-        ),
-      ),
-    ]
-      .map((middleware: PluginMiddleware) => ({
-        [`./routes${middleware.path}_middleware.ts`]: {
-          handler: middleware.middleware.handler,
-        },
-      })) || [],
-  ));
+function formatMiddlewarePath(path: string): string {
+  const prefix = !path.startsWith("/") ? "/" : "";
+  const suffix = !path.endsWith("/") ? "/" : "";
+  return prefix + path + suffix;
 }
 
-function getRoutesFromPlugins(plugins: Plugin[]): Record<string, RouteModule> {
-  return (Object.assign(
-    {},
-    ...[
-      ...new Set(
-        ([] as PluginRoute[]).concat(...plugins.map((p) => p.routes || [])),
-      ),
-    ]
-      .map((route: PluginRoute) => ({
-        [`./routes${route.path}.ts`]: {
-          default: route.component,
-          handler: route.handler,
-        } as RouteModule,
-      })) || [],
-  ));
+function getMiddlewareRoutesFromPlugins(
+  plugins: Plugin[],
+): [string, MiddlewareModule][] {
+  const middlewares = plugins.flatMap((plugin) => plugin.middlewares ?? []);
+
+  const mws: Record<
+    string,
+    [string, { handler: MiddlewareHandler[] }]
+  > = {};
+  for (let i = 0; i < middlewares.length; i++) {
+    const mw = middlewares[i];
+    const handler = mw.middleware.handler;
+    const key = `./routes${formatMiddlewarePath(mw.path)}_middleware.ts`;
+    if (!mws[key]) mws[key] = [key, { handler: [] }];
+    mws[key][1].handler.push(...Array.isArray(handler) ? handler : [handler]);
+  }
+
+  return Object.values(mws);
+}
+
+function formatRoutePath(path: string) {
+  return path.startsWith("/") ? path : "/" + path;
+}
+
+function getRoutesFromPlugins(plugins: Plugin[]): [string, RouteModule][] {
+  return plugins.flatMap((plugin) => plugin.routes ?? [])
+    .map((route) => {
+      return [`./routes${formatRoutePath(route.path)}.ts`, {
+        // deno-lint-ignore no-explicit-any
+        default: route.component as any,
+        handler: route.handler,
+      }];
+    });
 }
 
 function sendResponse(

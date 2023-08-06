@@ -1,11 +1,10 @@
 import { ComponentChildren, ComponentType, VNode } from "preact";
-import { ServeInit } from "./deps.ts";
 import * as router from "./router.ts";
 import { InnerRenderFunction, RenderContext } from "./render.ts";
 
 // --- APPLICATION CONFIGURATION ---
 
-export type StartOptions = ServeInit & FreshOptions;
+export type StartOptions = Partial<Deno.ServeTlsOptions> & FreshOptions;
 
 export interface FreshOptions {
   render?: RenderFunction;
@@ -59,11 +58,9 @@ export interface PageProps<T = any, S = Record<string, unknown>> {
 /**
  * Context passed to async route components.
  */
-export type RouteContext<T = unknown, S = Record<string, unknown>> =
-  & Omit<
-    HandlerContext<T, S>,
-    "render"
-  >
+// deno-lint-ignore no-explicit-any
+export type RouteContext<T = any, S = Record<string, unknown>> =
+  & Omit<HandlerContext<T, S>, "render">
   & Omit<PageProps<unknown, S>, "data">;
 
 export interface RouteConfig {
@@ -135,18 +132,21 @@ export interface RouteModule {
   config?: RouteConfig;
 }
 
-export type AsyncRoute<T> = (
+// deno-lint-ignore no-explicit-any
+export type AsyncRoute<T = any, S = Record<string, unknown>> = (
   req: Request,
-  ctx: RouteContext<T>,
+  ctx: RouteContext<T, S>,
 ) => Promise<ComponentChildren | Response>;
-export type PageComponent<T> =
-  | ComponentType<PageProps<T>>
-  | AsyncRoute<T>
+// deno-lint-ignore no-explicit-any
+export type PageComponent<T = any, S = Record<string, unknown>> =
+  | ComponentType<PageProps<T, S>>
+  | AsyncRoute<T, S>
   // deno-lint-ignore no-explicit-any
   | ((props: any) => VNode<any> | ComponentChildren);
 
 // deno-lint-ignore no-explicit-any
 export interface Route<Data = any> {
+  baseRoute: BaseRoute;
   pattern: string;
   url: string;
   name: string;
@@ -161,12 +161,29 @@ export interface RouterState {
 
 // --- APP ---
 
-export interface AppProps extends PageProps {
+// deno-lint-ignore no-explicit-any
+export interface AppProps<T = any, S = Record<string, unknown>>
+  extends PageProps<T, S> {
   Component: ComponentType<Record<never, never>>;
 }
 
 export interface AppModule {
   default: ComponentType<AppProps>;
+}
+
+// deno-lint-ignore no-explicit-any
+export interface LayoutProps<T = any, S = Record<string, unknown>>
+  extends PageProps<T, S> {
+  Component: ComponentType<Record<never, never>>;
+}
+
+export interface LayoutModule {
+  default: ComponentType<LayoutProps>;
+}
+
+export interface LayoutRoute {
+  baseRoute: BaseRoute;
+  module: LayoutModule;
 }
 
 // --- UNKNOWN PAGE ---
@@ -205,6 +222,7 @@ export interface UnknownPageModule {
 }
 
 export interface UnknownPage {
+  baseRoute: BaseRoute;
   pattern: string;
   url: string;
   name: string;
@@ -234,6 +252,9 @@ export interface ErrorHandlerContext<State = Record<string, unknown>>
   state: State;
 }
 
+// Nominal/Branded type. Ensures that the string has the expected format
+export type BaseRoute = string & { readonly __brand: unique symbol };
+
 export type ErrorHandler = (
   req: Request,
   ctx: ErrorHandlerContext,
@@ -246,6 +267,7 @@ export interface ErrorPageModule {
 }
 
 export interface ErrorPage {
+  baseRoute: BaseRoute;
   pattern: string;
   url: string;
   name: string;
@@ -264,15 +286,9 @@ export interface MiddlewareHandlerContext<State = Record<string, unknown>>
   params: Record<string, string>;
 }
 
-export interface MiddlewareRoute extends Middleware {
-  /**
-   * path-to-regexp style url path
-   */
-  pattern: string;
-  /**
-   * URLPattern of the route
-   */
-  compiledPattern: URLPattern;
+export interface MiddlewareRoute {
+  baseRoute: BaseRoute;
+  module: Middleware;
 }
 
 export type MiddlewareHandler<State = Record<string, unknown>> = (
@@ -306,7 +322,7 @@ export interface Island {
 
 // --- PLUGINS ---
 
-export interface Plugin {
+export interface Plugin<State = Record<string, unknown>> {
   /** The name of the plugin. Must be snake-case. */
   name: string;
 
@@ -340,7 +356,7 @@ export interface Plugin {
 
   routes?: PluginRoute[];
 
-  middlewares?: PluginMiddleware[];
+  middlewares?: PluginMiddleware<State>[];
 }
 
 export interface PluginRenderContext {
@@ -392,11 +408,11 @@ export interface PluginRenderFunctionResult {
   requiresHydration: boolean;
 }
 
-export interface PluginMiddleware {
+export interface PluginMiddleware<State = Record<string, unknown>> {
   /** A path in the format of a filename path without filetype */
   path: string;
 
-  middleware: Middleware;
+  middleware: Middleware<State>;
 }
 
 export interface PluginRoute {

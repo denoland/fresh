@@ -2,6 +2,7 @@ import { assertArrayIncludes, assertEquals } from "$std/testing/asserts.ts";
 import { delay } from "$std/async/delay.ts";
 import { startFreshServer, withPageName } from "../tests/test_utils.ts";
 import { dirname, join } from "$std/path/mod.ts";
+import VERSIONS from "../versions.json" assert { type: "json" };
 
 const dir = dirname(import.meta.url);
 
@@ -50,8 +51,8 @@ Deno.test("shows version selector", {
         label: "canary",
       },
       {
-        value: "1.2",
-        label: "1.2.x",
+        value: "latest",
+        label: VERSIONS[0],
       },
     ]);
 
@@ -59,7 +60,7 @@ Deno.test("shows version selector", {
       "#version",
       (el: HTMLSelectElement) => el.value,
     );
-    assertEquals(selectValue, "1.2");
+    assertEquals(selectValue, "latest");
 
     // Go to canary page
     await Promise.all([

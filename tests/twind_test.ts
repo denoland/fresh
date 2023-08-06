@@ -1,5 +1,4 @@
-import { assertEquals } from "https://deno.land/std@0.190.0/testing/asserts.ts";
-import { assert, delay, puppeteer } from "./deps.ts";
+import { assert, assertEquals, delay, puppeteer } from "./deps.ts";
 
 import { cmpStringArray } from "./fixture_twind_hydrate/utils/utils.ts";
 import { startFreshServer, withPageName } from "./test_utils.ts";
@@ -58,7 +57,7 @@ Deno.test({
 
     /**
      * Compare the class of element of any id with the selectorText of cssrules in stylesheet.
-     * Ensure that twind compliles the class of element.
+     * Ensure that twind compiles the class of element.
      */
     async function compiledCssRulesTest(id: string, styleId: string) {
       const elemClassList = await page.evaluate((selector) => {

@@ -1,12 +1,10 @@
 import * as path from "$std/path/mod.ts";
-import {
-  assertMatch,
-  assertNotMatch,
-} from "https://deno.land/std@0.193.0/testing/asserts.ts";
 import { Status } from "../src/server/deps.ts";
 import {
   assert,
   assertEquals,
+  assertMatch,
+  assertNotMatch,
   assertStringIncludes,
   delay,
   puppeteer,
@@ -358,14 +356,24 @@ Deno.test("fresh-update", async function fn(t) {
     );
   });
 
+  const comment = "// This is a test comment";
+  const regex = /("preact": "https:\/\/esm.sh\/preact@[\d.]+",\n)/;
+  const originalName = `${tmpDirName}/deno.json`;
+  const updatedName = `${originalName}c`;
   await t.step("execute update command deno.jsonc support", async () => {
     try {
-      Deno.renameSync(`${tmpDirName}/deno.json`, `${tmpDirName}/deno.jsonc`);
+      Deno.renameSync(originalName, updatedName);
+      let denoJsonText = await Deno.readTextFile(updatedName);
+      denoJsonText = denoJsonText.replace(regex, `$1${comment}\n`);
+      await Deno.writeTextFile(updatedName, denoJsonText);
       await updateAndVerify(
         /The manifest has been generated for \d+ routes and \d+ islands./,
       );
     } finally {
-      Deno.renameSync(`${tmpDirName}/deno.jsonc`, `${tmpDirName}/deno.json`);
+      let denoJsonText = await Deno.readTextFile(updatedName);
+      denoJsonText = denoJsonText.replace(new RegExp(`\n${comment}\n`), "\n");
+      await Deno.writeTextFile(updatedName, denoJsonText);
+      Deno.renameSync(updatedName, originalName);
     }
   });
 
