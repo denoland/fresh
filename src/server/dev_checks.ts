@@ -17,6 +17,7 @@ export type CheckResult = {
   fileLink?: string;
 };
 
+/** Asserts that the module has a default export */
 export function assertModuleExportsDefault(
   module: AppModule | UnknownPageModule | ErrorPageModule | null,
   moduleName: string,
@@ -31,6 +32,7 @@ export function assertModuleExportsDefault(
   return [];
 }
 
+/** Asserts that only one module exists with the given name. */
 export function assertSingleModule(
   routes: Route[],
   moduleName: string,
@@ -49,6 +51,7 @@ export function assertSingleModule(
   return [];
 }
 
+/** Asserts that each route has a unique pattern. */
 export function assertSingleRoutePattern(routes: Route[]) {
   const routeNames = new Set(routes.map((route) => route.pattern));
 
@@ -66,6 +69,7 @@ export function assertSingleRoutePattern(routes: Route[]) {
   });
 }
 
+/** Asserts that each route has at least one handler or component. */
 export function assertRoutesHaveHandlerOrComponent(
   routes: Route[],
 ): CheckResult[] {
@@ -98,6 +102,7 @@ export function assertRoutesHaveHandlerOrComponent(
   });
 }
 
+/** Asserts that the usage of the `staticDir` option is safe. */
 export function assertStaticDirSafety(
   dir: string,
   defaultDir: string,
@@ -123,6 +128,7 @@ export function assertStaticDirSafety(
   return results;
 }
 
+/** Asserts that here are no route conflicts with static files. */
 export function assertNoStaticRouteConflicts(
   routes: Route[],
   staticFiles: StaticFile[],
@@ -142,6 +148,7 @@ export function assertNoStaticRouteConflicts(
   });
 }
 
+/** Asserts that each plugin, which uses `plugin.render`, calls `ctx.render()` once. */
 export function assertPluginsCallRender(plugins: Plugin[]): CheckResult[] {
   const results: CheckResult[] = [];
 
@@ -167,6 +174,7 @@ export function assertPluginsCallRender(plugins: Plugin[]): CheckResult[] {
   return results;
 }
 
+/** Asserts that each plugin, which uses `plugin.renderAsync`, calls `ctx.renderAsync()` once. */
 export function assertPluginsCallRenderAsync(
   plugins: Plugin[],
 ): CheckResult[] {
@@ -197,6 +205,7 @@ export function assertPluginsCallRenderAsync(
   return results;
 }
 
+/** Asserts that each plugin, which injects scripts, injects modules. */
 export function assertPluginsInjectModules(plugins: Plugin[]): CheckResult[] {
   const results: CheckResult[] = [];
 
