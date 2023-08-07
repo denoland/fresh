@@ -24,7 +24,7 @@ Here is an example of a route that fetches user data from the GitHub API and
 renders it in a page component.
 
 ```tsx
-// File: 'routes/github/[username].tsx'
+// routes/github/[username].tsx
 
 import { RouteContext } from "$fresh/server.ts";
 
