@@ -66,7 +66,7 @@ import {
   assertSingleRoutePattern,
   assertStaticDirSafety,
   CheckFunction,
-} from "$fresh/src/server/dev_checks.ts";
+} from "./dev_checks.ts";
 
 const DEFAULT_CONN_INFO: ServeHandlerInfo = {
   localAddr: { transport: "tcp", hostname: "localhost", port: 8080 },

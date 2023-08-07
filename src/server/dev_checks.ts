@@ -112,7 +112,7 @@ export function assertStaticDirSafety(
     });
   }
 
-  if (existsSync(defaultDir)) {
+  if (dir && existsSync(defaultDir)) {
     results.push({
       category: "Static Directory",
       message:
@@ -202,12 +202,25 @@ export function assertPluginsInjectModules(plugins: Plugin[]): CheckResult[] {
 
   plugins.forEach((plugin) => {
     Object.values(plugin.entrypoints ?? {}).forEach((script) => {
-      if (!script.includes("export default")) {
-        results.push({
-          category: "Plugin Inject Modules",
-          message:
-            `Plugin '${plugin.name}' must export a default function from its entrypoint.`,
-        });
+      try {
+        const url = new URL(script);
+        const file = Deno.readTextFileSync(url);
+
+        if (!file.includes("export default")) {
+          results.push({
+            category: "Plugin Inject Modules",
+            message:
+              `Plugin '${plugin.name}' must export a default function from its entrypoint.`,
+          });
+        }
+      } catch (_err) {
+        if (!script.includes("export default")) {
+          results.push({
+            category: "Plugin Inject Modules",
+            message:
+              `Plugin '${plugin.name}' must export a default function from its entrypoint.`,
+          });
+        }
       }
     });
   });

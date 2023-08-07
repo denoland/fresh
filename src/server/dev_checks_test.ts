@@ -199,6 +199,12 @@ Deno.test("assertStaticDirSafety", async (t) => {
     assertEquals(result, expected);
   });
 
+  await t.step("passes validation check w/ falsy values", () => {
+    const expected: CheckResult[] = [];
+    const result = assertStaticDirSafety("", "./static");
+    assertEquals(result, expected);
+  });
+
   await t.step("fails validation check", () => {
     const expected: CheckResult[] = [
       {
