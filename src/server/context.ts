@@ -163,7 +163,7 @@ export class ServerContext {
 
     // Restore snapshot if available
     let snapshot: BuildSnapshot | null = null;
-    // Load from snapshot if not explicitely requested not to
+    // Load from snapshot if not explicitly requested not to
     const loadFromSnapshot = opts.loadSnapshot ?? true;
     if (loadFromSnapshot) {
       const snapshotDirPath = join(dirname(configPath), "_fresh");
