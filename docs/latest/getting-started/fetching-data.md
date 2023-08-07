@@ -34,7 +34,7 @@ interface GitHubResponse {
   avatar_url: string;
 }
 
-export default async function Page(req: Request, ctx: RouteContext) {
+export default async function Page(_req: Request, ctx: RouteContext) {
   const resp = await fetch(
     `https://api.github.com/users/${ctx.params.username}`,
   );
