@@ -77,7 +77,6 @@ export async function collect(directory: string): Promise<Manifest> {
       const match = normalized.match(GROUP_REG);
       if (match && match[1].startsWith("_")) {
         if (match[1] === "_islands") {
-          console.log(rel);
           islands.push(rel);
         }
         return;
