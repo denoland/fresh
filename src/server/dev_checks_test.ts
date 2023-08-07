@@ -143,7 +143,7 @@ Deno.test("assertRoutesHaveHandlerOrComponent", async (t) => {
       }),
       createRoute({
         component: () => h(Fragment, null, []),
-        handler: { GET: () => new Response() },
+        handler: { GET: () => new Response(), POST: () => new Response() },
         name: "/qux",
         url: "/qux",
       }),
