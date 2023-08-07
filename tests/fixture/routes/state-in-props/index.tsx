@@ -1,4 +1,5 @@
 import { Handlers, PageProps } from "$fresh/server.ts";
+import { TestState } from "../_app.tsx";
 
 export const handler: Handlers<boolean> = {
   GET(_, ctx) {
@@ -7,8 +8,8 @@ export const handler: Handlers<boolean> = {
   },
 };
 
-export default function Page(props: PageProps<boolean>) {
-  let valueFromState = props.state.stateInProps as string;
+export default function Page(props: PageProps<boolean, TestState>) {
+  let valueFromState = props.state.stateInProps;
   if (props.data) {
     valueFromState = valueFromState.toUpperCase();
   }

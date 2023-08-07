@@ -1318,10 +1318,14 @@ function getMiddlewareRoutesFromPlugins(
   return Object.values(mws);
 }
 
+function formatRoutePath(path: string) {
+  return path.startsWith("/") ? path : "/" + path;
+}
+
 function getRoutesFromPlugins(plugins: Plugin[]): [string, RouteModule][] {
   return plugins.flatMap((plugin) => plugin.routes ?? [])
     .map((route) => {
-      return [`./routes${route.path}.ts`, {
+      return [`./routes${formatRoutePath(route.path)}.ts`, {
         // deno-lint-ignore no-explicit-any
         default: route.component as any,
         handler: route.handler,

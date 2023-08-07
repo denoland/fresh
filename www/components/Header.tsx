@@ -1,10 +1,8 @@
 import DocsTitle from "./DocsTitle.tsx";
 import NavigationBar from "./NavigationBar.tsx";
-import SearchButton from "../islands/SearchButton.tsx";
 
 export default function Header(props: { title: string; active: string }) {
   const isHome = props.active == "/";
-  const isDocs = props.active.startsWith("/docs");
   return (
     <div>
       <header
@@ -17,7 +15,6 @@ export default function Header(props: { title: string; active: string }) {
             <DocsTitle title={props.title} />
           </div>
         )}
-        {isDocs && <SearchButton class="grow mb-0 hidden lg:flex" />}
         <NavigationBar class="hidden md:flex" active={props.active} />
       </header>
       <NavigationBar class="md:hidden pb-3" active={props.active} />

@@ -1,11 +1,10 @@
 import { ComponentChildren, ComponentType, VNode } from "preact";
-import { ServeInit } from "./deps.ts";
 import * as router from "./router.ts";
 import { InnerRenderFunction, RenderContext } from "./render.ts";
 
 // --- APPLICATION CONFIGURATION ---
 
-export type StartOptions = ServeInit & FreshOptions;
+export type StartOptions = Partial<Deno.ServeTlsOptions> & FreshOptions;
 
 export interface FreshOptions {
   render?: RenderFunction;
@@ -162,7 +161,9 @@ export interface RouterState {
 
 // --- APP ---
 
-export interface AppProps extends PageProps {
+// deno-lint-ignore no-explicit-any
+export interface AppProps<T = any, S = Record<string, unknown>>
+  extends PageProps<T, S> {
   Component: ComponentType<Record<never, never>>;
 }
 
@@ -170,7 +171,9 @@ export interface AppModule {
   default: ComponentType<AppProps>;
 }
 
-export interface LayoutProps extends PageProps {
+// deno-lint-ignore no-explicit-any
+export interface LayoutProps<T = any, S = Record<string, unknown>>
+  extends PageProps<T, S> {
   Component: ComponentType<Record<never, never>>;
 }
 
