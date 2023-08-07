@@ -618,7 +618,6 @@ options.vnode = (vnode) => {
             children,
             markerText,
           );
-          console.log("MARKER", markerText);
           SLOTS_TRACKER.set(markerText, children);
           children = props.children;
           // deno-lint-ignore no-explicit-any

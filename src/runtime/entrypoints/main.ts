@@ -220,8 +220,6 @@ function _walkInner(
                 | HTMLTemplateElement
                 | null;
 
-              console.log(marker, sel, template);
-
               if (template !== null) {
                 markerStack.push({
                   kind: MarkerKind.Slot,

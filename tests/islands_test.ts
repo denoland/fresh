@@ -406,14 +406,10 @@ Deno.test({
         await delay(100);
         await page.click("button");
 
-        const text = await page.$eval(
-          "#page",
-          (el) => el.textContent,
-        );
         // Button text is matched too, but this allows us
-        // to assert correct ordering. The "it works" should
+        // to assert correct ordering. The "island content" should
         // be left of "Toggle"
-        assertEquals(text, "it worksToggle");
+        await waitForText(page, "#page", "island contentToggle");
       },
     );
   },
