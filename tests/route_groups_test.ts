@@ -1,4 +1,11 @@
-import { assertTextMany, fetchHtml, withFresh } from "./test_utils.ts";
+import { assertEquals } from "$std/testing/asserts.ts";
+import {
+  assertTextMany,
+  fetchHtml,
+  waitForText,
+  withFresh,
+  withPageName,
+} from "./test_utils.ts";
 
 Deno.test("applies only _layout file of one group", async () => {
   await withFresh(
@@ -27,6 +34,40 @@ Deno.test("applies only _layout files in parent groups #2", async () => {
     async (address) => {
       const doc = await fetchHtml(`${address}/route-groups/boof`);
       assertTextMany(doc, "p", ["Bar layout", "Boof Page"]);
+    },
+  );
+});
+
+Deno.test("can co-locate islands inside routes folder", async () => {
+  await withPageName(
+    "./tests/fixture/main.ts",
+    async (page, address) => {
+      await page.goto(`${address}/route-groups-islands/`);
+      await page.waitForSelector("button");
+      await page.click("button");
+      await waitForText(page, "p", "1");
+    },
+  );
+});
+
+Deno.test("does not treat files in (_islands) as routes", async () => {
+  await withFresh(
+    "./tests/fixture/main.ts",
+    async (address) => {
+      const res = await fetch(`${address}/route-groups-islands/invalid`);
+      assertEquals(res.status, 404);
+      res.body?.cancel();
+    },
+  );
+});
+
+Deno.test("does not treat files in (_...) as routes", async () => {
+  await withFresh(
+    "./tests/fixture/main.ts",
+    async (address) => {
+      const res = await fetch(`${address}/route-groups-islands/sub`);
+      assertEquals(res.status, 404);
+      res.body?.cancel();
     },
   );
 });
