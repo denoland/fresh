@@ -180,6 +180,8 @@ export async function render<Data>(
 
   // Clear the island props
   ISLAND_PROPS = [];
+  // Clear previous slots
+  SLOTS_TRACKER.clear();
 
   const ctx = new RenderContext(
     crypto.randomUUID(),
@@ -228,6 +230,13 @@ export async function render<Data>(
       }),
     });
     bodyHtml = renderToString(root);
+
+    for (const [id, children] of SLOTS_TRACKER.entries()) {
+      const slotHtml = renderToString(h(Fragment, null, children));
+      const templateId = id.replace(/:/g, "-");
+      bodyHtml += `<template id="${templateId}">${slotHtml}</template>`;
+    }
+
     return bodyHtml;
   }
 
@@ -539,6 +548,15 @@ function wrapWithMarker(vnode: ComponentChildren, markerText: string) {
 const ISLANDS: Island[] = [];
 const ENCOUNTERED_ISLANDS: Set<Island> = new Set([]);
 let ISLAND_PROPS: unknown[] = [];
+// Track unused slots
+const SLOTS_TRACKER = new Map<string, ComponentChildren>();
+function SlotTracker(
+  props: { id: string; children?: ComponentChildren },
+): VNode {
+  SLOTS_TRACKER.delete(props.id);
+  // deno-lint-ignore no-explicit-any
+  return props.children as any;
+}
 
 // Keep track of which component rendered which vnode. This allows us
 // to detect when an island is rendered within another instead of being
@@ -588,13 +606,26 @@ options.vnode = (vnode) => {
       vnode.type = (props) => {
         ignoreNext = true;
 
+        const id = ISLAND_PROPS.length;
+
         // Only passing children JSX to islands is supported for now
         if ("children" in props) {
-          const children = props.children;
+          let children = props.children;
+          const markerText =
+            `frsh-slot-${island.id}:${island.exportName}:${id}:children`;
           // @ts-ignore nonono
           props.children = wrapWithMarker(
             children,
-            `frsh-slot-${island.id}:children`,
+            markerText,
+          );
+          console.log("MARKER", markerText);
+          SLOTS_TRACKER.set(markerText, children);
+          children = props.children;
+          // deno-lint-ignore no-explicit-any
+          (props as any).children = h(
+            SlotTracker,
+            { id: markerText },
+            children,
           );
         }
 

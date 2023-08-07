@@ -478,3 +478,46 @@ Deno.test({
   sanitizeOps: false,
   sanitizeResources: false,
 });
+
+Deno.test({
+  name: "render nested islands with server children conditionally",
+
+  async fn(_t) {
+    await withPageName(
+      "./tests/fixture_island_nesting/main.ts",
+      async (page, address) => {
+        await page.goto(`${address}/island_conditional_lazy`);
+        await waitForText(page, ".island p", "island content");
+
+        await page.click("button");
+        await waitForText(page, ".island p", "server rendered");
+      },
+    );
+  },
+
+  sanitizeOps: false,
+  sanitizeResources: false,
+});
+
+Deno.test({
+  name: "revive island in lazy server rendered children conditionally",
+
+  async fn(_t) {
+    await withPageName(
+      "./tests/fixture_island_nesting/main.ts",
+      async (page, address) => {
+        await page.goto(`${address}/island_conditional_lazy_island`);
+        await waitForText(page, ".island p", "island content");
+
+        await page.click("button");
+        await waitForText(page, ".island .server", "server rendered");
+
+        await page.click("button.counter");
+        await waitForText(page, ".island .count", "1");
+      },
+    );
+  },
+
+  sanitizeOps: false,
+  sanitizeResources: false,
+});
