@@ -9,16 +9,9 @@ during rendering. In real projects, this is often different. In many cases you
 may need to read a file from disk (e.g. markdown for a blog post), or fetch some
 user data from an API or database.
 
-These operations are all asynchronous. However, rendering is always synchronous.
-So, to fetch data dynamically, we can use our brand new `async-route`
-components, which abstract the old way of fetching data by writing the
-`Handlers`.
-
-To fetch our data, we must first make our route component asynchronous and then
-create a way to fetch the data, for example with the `fetch` API. The `req`
-parameter is mandatory, and it indicates that we will fetch some data. Then we
-need the `ctx` prop to get our route parameters (in this case, it's the
-username).
+In order to fetch data, the route component must be asynchronous. The `_req`
+parameter is mandatory, and it indicates that certain data will be fetched. The
+second `ctx` parameter is used to get the route parameters.
 
 Here is an example of a route that fetches user data from the GitHub API and
 renders it in a page component.
