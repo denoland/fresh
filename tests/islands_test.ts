@@ -478,7 +478,7 @@ Deno.test({
 Deno.test({
   name: "render nested islands with server children conditionally",
 
-  async fn(_t) {
+  async fn() {
     await withPageName(
       "./tests/fixture_island_nesting/main.ts",
       async (page, address) => {
@@ -490,15 +490,12 @@ Deno.test({
       },
     );
   },
-
-  sanitizeOps: false,
-  sanitizeResources: false,
 });
 
 Deno.test({
   name: "revive island in lazy server rendered children conditionally",
 
-  async fn(_t) {
+  async fn() {
     await withPageName(
       "./tests/fixture_island_nesting/main.ts",
       async (page, address) => {
@@ -513,7 +510,4 @@ Deno.test({
       },
     );
   },
-
-  sanitizeOps: false,
-  sanitizeResources: false,
 });
