@@ -27,7 +27,7 @@ const assertFileExistence = async (files: string[], dirname: string) => {
 };
 
 Deno.test({
-  name: "fresh-init",
+  name: "fresh-init asdf",
   async fn(t) {
     // Preparation
     const tmpDirName = await Deno.makeTempDir();
@@ -62,6 +62,21 @@ Deno.test({
 
     await t.step("check generated files", async () => {
       await assertFileExistence(files, tmpDirName);
+    });
+
+    await t.step("check project", async () => {
+      const cliProcess = new Deno.Command(Deno.execPath(), {
+        args: [
+          "task",
+          "check",
+        ],
+        cwd: tmpDirName,
+        stdin: "null",
+        stdout: "piped",
+        stderr: "piped",
+      });
+      const { code } = await cliProcess.output();
+      assertEquals(code, 0);
     });
 
     await t.step("start up the server and access the root page", async () => {
