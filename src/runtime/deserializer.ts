@@ -29,6 +29,9 @@ export function deserialize(
       if (v[KEY] === "s") {
         return signal!(v.v);
       }
+      if (v[KEY] === "b") {
+        return BigInt(v.d);
+      }
       if (v[KEY] === "u8a") {
         return b64decode(v.d);
       }
@@ -53,7 +56,7 @@ export function deserialize(
         (o, k) => k === null ? o : o[k],
         v,
       );
-      parent[refPath.at(-1)!] = target;
+      parent[refPath[refPath.length - 1]!] = target;
     }
   }
   return v;

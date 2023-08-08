@@ -1,13 +1,15 @@
 import { ServerContext } from "./context.ts";
-import * as colors from "https://deno.land/std@0.190.0/fmt/colors.ts";
-import { serve, ServeHandler } from "./deps.ts";
 export { Status } from "./deps.ts";
+import { colors, serve } from "./deps.ts";
 import {
   AppModule,
   ErrorPageModule,
   IslandModule,
+  LayoutModule,
   MiddlewareModule,
   RouteModule,
+  ServeHandler,
+  ServeHandlerInfo,
   StartOptions,
   UnknownPageModule,
 } from "./types.ts";
@@ -20,15 +22,24 @@ export type {
   Handler,
   HandlerContext,
   Handlers,
+  LayoutProps,
   MiddlewareHandler,
   MiddlewareHandlerContext,
+  MultiHandler,
   PageProps,
   Plugin,
+  PluginAsyncRenderContext,
+  PluginAsyncRenderFunction,
+  PluginRenderContext,
+  PluginRenderFunction,
+  PluginRenderFunctionResult,
   PluginRenderResult,
   PluginRenderScripts,
   PluginRenderStyleTag,
   RenderFunction,
   RouteConfig,
+  RouteContext,
+  ServeHandlerInfo,
   StartOptions,
   UnknownHandler,
   UnknownHandlerContext,
@@ -43,6 +54,7 @@ export interface Manifest {
     | RouteModule
     | MiddlewareModule
     | AppModule
+    | LayoutModule
     | ErrorPageModule
     | UnknownPageModule
   >;
@@ -64,7 +76,9 @@ export { ServerContext };
 export async function createHandler(
   routes: Manifest,
   opts: StartOptions = {},
-) {
+): Promise<
+  (req: Request, connInfo?: ServeHandlerInfo) => Promise<Response>
+> {
   const ctx = await ServerContext.fromManifest(routes, opts);
   return ctx.handler();
 }
@@ -74,11 +88,11 @@ export async function start(routes: Manifest, opts: StartOptions = {}) {
 
   if (!opts.onListen) {
     opts.onListen = (params) => {
+      console.log();
       console.log(
-        `\n%c 🍋 Fresh ready %c`,
-        "background-color: #86efac; color: black; font-weight: bold",
-        "",
+        colors.bgRgb8(colors.black(colors.bold(" 🍋 Fresh ready ")), 121),
       );
+
       const address = colors.cyan(`http://localhost:${params.port}/`);
       const localLabel = colors.bold("Local:");
       console.log(`    ${localLabel} ${address}\n`);
@@ -126,10 +140,12 @@ export async function start(routes: Manifest, opts: StartOptions = {}) {
 }
 
 async function bootServer(handler: ServeHandler, opts: StartOptions) {
-  if (opts.experimentalDenoServe === true) {
-    // @ts-ignore as `Deno.serve` is still unstable.
-    await Deno.serve({ ...opts, handler }).finished;
+  // @ts-ignore Ignore type error when type checking with Deno versions
+  if (typeof Deno.serve === "function") {
+    // @ts-ignore Ignore type error when type checking with Deno versions
+    await Deno.serve(opts, handler).finished;
   } else {
+    // @ts-ignore Deprecated std serve way
     await serve(handler, opts);
   }
 }

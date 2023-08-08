@@ -1,4 +1,4 @@
-import { join, parse, resolve } from "./src/dev/deps.ts";
+import { basename, colors, join, parse, resolve } from "./src/dev/deps.ts";
 import { error } from "./src/dev/error.ts";
 import { collect, ensureMinDenoVersion, generate } from "./src/dev/mod.ts";
 import {
@@ -27,6 +27,7 @@ OPTIONS:
     --force   Overwrite existing files
     --twind   Setup project to use 'twind' for styling
     --vscode  Setup project for VSCode
+    --docker  Setup Project to use Docker
 `;
 
 const CONFIRM_EMPTY_MESSAGE =
@@ -38,15 +39,18 @@ const USE_TWIND_MESSAGE =
 const USE_VSCODE_MESSAGE = "Do you use VS Code?";
 
 const flags = parse(Deno.args, {
-  boolean: ["force", "twind", "vscode"],
-  default: { "force": null, "twind": null, "vscode": null },
+  boolean: ["force", "twind", "vscode", "docker"],
+  default: { "force": null, "twind": null, "vscode": null, "docker": null },
 });
 
+console.log();
 console.log(
-  `\n%c  🍋 Fresh: the next-gen web framework.  %c\n`,
-  "background-color: #86efac; color: black; font-weight: bold",
-  "",
+  colors.bgRgb8(
+    colors.black(colors.bold(" 🍋 Fresh: The next-gen web framework. ")),
+    121,
+  ),
 );
+console.log();
 
 let unresolvedDirectory = Deno.args[0];
 if (flags._.length !== 1) {
@@ -85,6 +89,8 @@ const useVSCode = flags.vscode === null
   ? confirm(USE_VSCODE_MESSAGE)
   : flags.vscode;
 
+const useDocker = flags.docker;
+
 await Deno.mkdir(join(resolvedDirectory, "routes", "api"), { recursive: true });
 await Deno.mkdir(join(resolvedDirectory, "islands"), { recursive: true });
 await Deno.mkdir(join(resolvedDirectory, "static"), { recursive: true });
@@ -106,6 +112,31 @@ await Deno.writeTextFile(
   GITIGNORE,
 );
 
+if (useDocker) {
+  const DENO_VERSION = Deno.version.deno;
+  const DOCKERFILE_TEXT = `
+FROM denoland/deno:${DENO_VERSION}
+
+ARG GIT_REVISION
+ENV DENO_DEPLOYMENT_ID=\${GIT_REVISION}
+
+WORKDIR /app
+
+COPY . .
+RUN deno cache main.ts
+
+EXPOSE 8000
+
+CMD ["run", "-A", "main.ts"]
+
+`;
+
+  await Deno.writeTextFile(
+    join(resolvedDirectory, "Dockerfile"),
+    DOCKERFILE_TEXT,
+  );
+}
+
 const ROUTES_INDEX_TSX = `import { Head } from "$fresh/runtime.ts";
 import { useSignal } from "@preact/signals";
 import Counter from "../islands/Counter.tsx";
@@ -115,21 +146,24 @@ export default function Home() {
   return (
     <>
       <Head>
-        <title>Fresh App</title>
+        <title>${basename(resolvedDirectory)}</title>
       </Head>
-      <div${useTwind ? ` class="p-4 mx-auto max-w-screen-md"` : ""}>
-        <img
-          src="/logo.svg"
-          ${
-  useTwind ? `class="w-32 h-32"` : `width="128"\n          height="128"`
-}
-          alt="the fresh logo: a sliced lemon dripping with juice"
-        />
-        <p${useTwind ? ` class="my-6"` : ""}>
-          Welcome to \`fresh\`. Try updating this message in the
-          ./routes/index.tsx file, and refresh.
-        </p>
-        <Counter count={count} />
+      <div class="px-4 py-8 mx-auto bg-[#86efac]">
+        <div class="max-w-screen-md mx-auto flex flex-col items-center justify-center">
+          <img
+            class="my-6"
+            src="/logo.svg"
+            width="128"
+            height="128"
+            alt="the Fresh logo: a sliced lemon dripping with juice"
+          />
+          <h1 class="text-4xl font-bold">Welcome to Fresh</h1>
+          <p class="my-4">
+            Try updating this message in the
+            <code class="mx-2">./routes/index.tsx</code> file, and refresh.
+          </p>
+          <Counter count={count} />
+        </div>
       </div>
     </>
   );
@@ -148,11 +182,8 @@ export function Button(props: JSX.HTMLAttributes<HTMLButtonElement>) {
     <button
       {...props}
       disabled={!IS_BROWSER || props.disabled}
-${
-  useTwind
-    ? '      class="px-2 py-1 border(gray-100 2) hover:bg-gray-200"\n'
-    : ""
-}    />
+      class="px-2 py-1 border-gray-500 border-2 rounded bg-white hover:bg-gray-200 transition-colors"
+    />
   );
 }
 `;
@@ -170,11 +201,9 @@ interface CounterProps {
 
 export default function Counter(props: CounterProps) {
   return (
-    <div${useTwind ? ' class="flex gap-2 w-full"' : ""}>
-      <p${
-  useTwind ? ' class="flex-grow-1 font-bold text-xl"' : ""
-}>{props.count}</p>
+    <div class="flex gap-8 py-6">
       <Button onClick={() => props.count.value -= 1}>-1</Button>
+      <p class="text-3xl">{props.count}</p>
       <Button onClick={() => props.count.value += 1}>+1</Button>
     </div>
   );
@@ -191,9 +220,47 @@ export default function Greet(props: PageProps) {
   return <div>Hello {props.params.name}</div>;
 }
 `;
+await Deno.mkdir(join(resolvedDirectory, "routes", "greet"), {
+  recursive: true,
+});
 await Deno.writeTextFile(
-  join(resolvedDirectory, "routes", "[name].tsx"),
+  join(resolvedDirectory, "routes", "greet", "[name].tsx"),
   ROUTES_GREET_TSX,
+);
+
+// 404 page
+const ROUTES_404_PAGE = `import { Head } from "$fresh/runtime.ts";
+
+export default function Error404() {
+  return (
+    <>
+      <Head>
+        <title>404 - Page not found</title>
+      </Head>
+      <div class="px-4 py-8 mx-auto bg-[#86efac]">
+        <div class="max-w-screen-md mx-auto flex flex-col items-center justify-center">
+          <img
+            class="my-6"
+            src="/logo.svg"
+            width="128"
+            height="128"
+            alt="the Fresh logo: a sliced lemon dripping with juice"
+          />
+          <h1 class="text-4xl font-bold">404 - Page not found</h1>
+          <p class="my-4">
+            The page you were looking for doesn't exist.
+          </p>
+          <a href="/" class="underline">Go back home</a>
+        </div>
+      </div>
+    </>
+  );
+}
+`;
+
+await Deno.writeTextFile(
+  join(resolvedDirectory, "routes", "_404.tsx"),
+  ROUTES_404_PAGE,
 );
 
 const ROUTES_API_JOKE_TS = `import { HandlerContext } from "$fresh/server.ts";
@@ -236,6 +303,172 @@ if (useTwind) {
   );
 }
 
+const NO_TWIND_STYLES = `
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+* {
+  margin: 0;
+}
+button {
+  color: inherit;
+}
+button, [role="button"] {
+  cursor: pointer;
+}
+code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
+    "Liberation Mono", "Courier New", monospace;
+  font-size: 1em;
+}
+img,
+svg {
+  display: block;
+}
+img,
+video {
+  max-width: 100%;
+  height: auto;
+}
+
+html {
+  line-height: 1.5;
+  -webkit-text-size-adjust: 100%;
+  font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+    "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif,
+    "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+}
+.transition-colors {
+  transition-property: background-color, border-color, color, fill, stroke;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-duration: 150ms;
+}
+.my-6 {
+  margin-bottom: 1.5rem;
+  margin-top: 1.5rem;
+}
+.text-4xl {
+  font-size: 2.25rem;
+  line-height: 2.5rem;
+}
+.mx-2 {
+  margin-left: 0.5rem;
+  margin-right: 0.5rem;
+}
+.my-4 {
+  margin-bottom: 1rem;
+  margin-top: 1rem;
+}
+.mx-auto {
+  margin-left: auto;
+  margin-right: auto;
+}
+.px-4 {
+  padding-left: 1rem;
+  padding-right: 1rem;
+}
+.py-8 {
+  padding-bottom: 2rem;
+  padding-top: 2rem;
+}
+.bg-\\[\\#86efac\\] {
+  background-color: #86efac;
+}
+.text-3xl {
+  font-size: 1.875rem;
+  line-height: 2.25rem;
+}
+.py-6 {
+  padding-bottom: 1.5rem;
+  padding-top: 1.5rem;
+}
+.px-2 {
+  padding-left: 0.5rem;
+  padding-right: 0.5rem;
+}
+.py-1 {
+  padding-bottom: 0.25rem;
+  padding-top: 0.25rem;
+}
+.border-gray-500 {
+  border-color: #6b7280;
+}
+.bg-white {
+  background-color: #fff;
+}
+.flex {
+  display: flex;
+}
+.gap-8 {
+  grid-gap: 2rem;
+  gap: 2rem;
+}
+.font-bold {
+  font-weight: 700;
+}
+.max-w-screen-md {
+  max-width: 768px;
+}
+.flex-col {
+  flex-direction: column;
+}
+.items-center {
+  align-items: center;
+}
+.justify-center {
+  justify-content: center;
+}
+.border-2 {
+  border-width: 2px;
+}
+.rounded {
+  border-radius: 0.25rem;
+}
+.hover\:bg-gray-200:hover {
+  background-color: #e5e7eb;
+}
+`;
+
+const APP_WRAPPER = useTwind
+  ? `import { AppProps } from "$fresh/server.ts";
+
+export default function App({ Component }: AppProps) {
+  return (
+    <>
+      <Component />
+    </>
+  );
+}
+`
+  : `import { AppProps } from "$fresh/server.ts";
+import { Head } from "$fresh/runtime.ts";
+
+export default function App({ Component }: AppProps) {
+  return (
+    <>
+      <Head>
+        <link rel="stylesheet" href="/styles.css" />
+      </Head>
+      <Component />
+    </>
+  );
+}
+`;
+
+if (!useTwind) {
+  await Deno.writeTextFile(
+    join(resolvedDirectory, "static", "styles.css"),
+    NO_TWIND_STYLES,
+  );
+}
+
+await Deno.writeTextFile(
+  join(resolvedDirectory, "routes", "_app.tsx"),
+  APP_WRAPPER,
+);
+
 const STATIC_LOGO =
   `<svg width="40" height="40" fill="none" xmlns="http://www.w3.org/2000/svg">
   <path d="M34.092 8.845C38.929 20.652 34.092 27 30 30.5c1 3.5-2.986 4.222-4.5 2.5-4.457 1.537-13.512 1.487-20-5C2 24.5 4.73 16.714 14 11.5c8-4.5 16-7 20.092-2.655Z" fill="#FFDB1E"/>
@@ -257,7 +490,7 @@ try {
     new Uint8Array(faviconArrayBuffer),
   );
 } catch {
-  // Skip this and be silent if there is a nework issue.
+  // Skip this and be silent if there is a network issue.
 }
 
 let MAIN_TS = `/// <reference no-default-lib="true" />
@@ -303,8 +536,15 @@ try {
 const config = {
   lock: false,
   tasks: {
+    check:
+      "deno fmt --check && deno lint && deno check **/*.ts && deno check **/*.tsx",
     start: "deno run -A --watch=static/,routes/ dev.ts",
     update: "deno run -A -r https://fresh.deno.dev/update .",
+  },
+  lint: {
+    rules: {
+      tags: ["fresh", "recommended"],
+    },
   },
   imports: {} as Record<string, string>,
   compilerOptions: {
@@ -346,6 +586,18 @@ const vscodeSettings = {
   "deno.enable": true,
   "deno.lint": true,
   "editor.defaultFormatter": "denoland.vscode-deno",
+  "[typescriptreact]": {
+    "editor.defaultFormatter": "denoland.vscode-deno",
+  },
+  "[typescript]": {
+    "editor.defaultFormatter": "denoland.vscode-deno",
+  },
+  "[javascriptreact]": {
+    "editor.defaultFormatter": "denoland.vscode-deno",
+  },
+  "[javascript]": {
+    "editor.defaultFormatter": "denoland.vscode-deno",
+  },
 };
 
 const VSCODE_SETTINGS = JSON.stringify(vscodeSettings, null, 2) + "\n";

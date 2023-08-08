@@ -1,4 +1,4 @@
-import { stringify, virtual } from "https://esm.sh/@twind/core@1.1.3";
+import { stringify, virtual } from "./twindv1_deps.ts";
 import { Plugin } from "../server.ts";
 
 import { Options, setup, STYLE_ELEMENT_ID } from "./twindv1/shared.ts";
@@ -15,8 +15,8 @@ export default function(state) { hydrate(options, state); }`;
   return {
     name: "twind",
     entrypoints: { "main": main },
-    render(ctx) {
-      const res = ctx.render();
+    async renderAsync(ctx) {
+      const res = await ctx.renderAsync();
       const cssText = stringify(sheet.target);
       const scripts = [];
       if (res.requiresHydration) {

@@ -3,7 +3,7 @@
 
 # fresh
 
-<img align="right" src="https://fresh.deno.dev/logo.svg" height="150px" alt="the fresh logo: a sliced lemon dripping with juice">
+<img align="right" src="https://fresh.deno.dev/logo.svg" height="150px" alt="The Fresh logo: a sliced lemon dripping with juice">
 
 **Fresh** is a next generation web framework, built for speed, reliability, and
 simplicity.
@@ -25,7 +25,7 @@ The [documentation](https://fresh.deno.dev/docs/) is available on
 
 ## 🚀 Getting started
 
-Install [Deno CLI](https://deno.land/) version 1.25.0 or higher.
+Install [Deno CLI](https://deno.land/) version 1.35.0 or higher.
 
 You can scaffold a new project by running the Fresh init script. To scaffold a
 project run the following:
@@ -63,9 +63,14 @@ For a more in-depth getting started guide, visit the
 [Getting Started](https://fresh.deno.dev/docs/getting-started) page in the Fresh
 docs.
 
+## Contributing
+
+We appreciate your help! To contribute, please read our
+[contributing instructions](https://deno.com/manual/references/contributing#submitting-a-pr-to-fresh).
+
 ## Adding your project to the showcase
 
-If you feel that your project would be helpful to other fresh users, please
+If you feel that your project would be helpful to other Fresh users, please
 consider putting your project on the
 [showcase](https://fresh.deno.dev/showcase). However, websites that are just for
 promotional purposes may not be listed.

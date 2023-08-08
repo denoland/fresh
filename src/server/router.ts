@@ -1,6 +1,6 @@
-import type { ConnInfo } from "./deps.ts";
+import { BaseRoute, ErrorHandlerContext, ServeHandlerInfo } from "./types.ts";
 
-type HandlerContext<T = unknown> = T & ConnInfo;
+type HandlerContext<T = unknown> = T & ServeHandlerInfo;
 
 export type Handler<T = unknown> = (
   req: Request,
@@ -10,6 +10,8 @@ export type Handler<T = unknown> = (
 export type FinalHandler<T = unknown> = (
   req: Request,
   ctx: HandlerContext<T>,
+  params: Record<string, string>,
+  route?: InternalRoute<T>,
 ) => {
   destination: DestinationKind;
   handler: () => Response | Promise<Response>;
@@ -35,13 +37,19 @@ export type MatchHandler<T = unknown> = (
 
 // deno-lint-ignore ban-types
 export interface Routes<T = {}> {
-  [key: string]: { [K in KnownMethod | "default"]?: MatchHandler<T> };
+  [key: string]: {
+    baseRoute: BaseRoute;
+    methods: {
+      [K in KnownMethod | "default"]?: MatchHandler<T>;
+    };
+  };
 }
 
 export type DestinationKind = "internal" | "static" | "route" | "notFound";
 
 // deno-lint-ignore ban-types
 export type InternalRoute<T = {}> = {
+  baseRoute: BaseRoute;
   pattern: URLPattern;
   methods: { [K in KnownMethod]?: MatchHandler<T> };
   default?: MatchHandler<T>;
@@ -77,7 +85,7 @@ export function defaultOtherHandler(_req: Request): Response {
 
 export function defaultErrorHandler(
   _req: Request,
-  _ctx: HandlerContext,
+  _ctx: ErrorHandlerContext,
   err: unknown,
 ): Response {
   console.error(err);
@@ -105,15 +113,16 @@ function processRoutes<T>(
   routes: Routes<T>,
   destination: DestinationKind,
 ) {
-  for (const [path, methods] of Object.entries(routes)) {
+  for (const [path, def] of Object.entries(routes)) {
     const entry: InternalRoute<T> = {
+      baseRoute: def.baseRoute,
       pattern: new URLPattern({ pathname: path }),
       methods: {},
       default: undefined,
       destination,
     };
 
-    for (const [method, handler] of Object.entries(methods)) {
+    for (const [method, handler] of Object.entries(def.methods)) {
       if (method === "default") {
         entry.default = handler;
       } else if (knownMethods.includes(method as KnownMethod)) {
@@ -125,25 +134,22 @@ function processRoutes<T>(
   }
 }
 
-export function router<T = unknown>(
+export function getParamsAndRoute<T>(
   {
     internalRoutes,
     staticRoutes,
     routes,
-    otherHandler,
-    unknownMethodHandler,
   }: RouterOptions<T>,
-): FinalHandler<T> {
-  unknownMethodHandler ??= defaultUnknownMethodHandler;
-
+): (
+  url: string,
+) => { route: InternalRoute<T> | undefined; params: Record<string, string> } {
   const processedRoutes: InternalRoute<T>[] = [];
   processRoutes(processedRoutes, internalRoutes, "internal");
   processRoutes(processedRoutes, staticRoutes, "static");
   processRoutes(processedRoutes, routes, "route");
-
-  return (req, ctx) => {
+  return (url: string) => {
     for (const route of processedRoutes) {
-      const res = route.pattern.exec(req.url);
+      const res = route.pattern.exec(url);
 
       if (res !== null) {
         const groups: Record<string, string> = {};
@@ -156,7 +162,29 @@ export function router<T = unknown>(
             groups[key] = decodeURIComponent(value);
           }
         }
+        return { route: route, params: groups };
+      }
+    }
+    return {
+      route: undefined,
+      params: {},
+    };
+  };
+}
 
+export function router<T = unknown>(
+  {
+    otherHandler,
+    unknownMethodHandler,
+  }: RouterOptions<T>,
+): FinalHandler<T> {
+  unknownMethodHandler ??= defaultUnknownMethodHandler;
+
+  return (req, ctx, groups, route) => {
+    if (route) {
+      const res = route.pattern.exec(req.url);
+
+      if (res !== null) {
         // If not overridden, HEAD requests should be handled as GET requests but without the body.
         if (req.method === "HEAD" && !route.methods["HEAD"]) {
           req = new Request(req.url, { method: "GET", headers: req.headers });

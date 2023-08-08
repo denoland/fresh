@@ -5,6 +5,7 @@
  * - `null`
  * - `boolean`
  * - `number`
+ * - `bigint`
  * - `string`
  * - `array`
  * - `object` (no prototypes)
@@ -87,6 +88,16 @@ export function serialize(data: unknown): SerializeResult {
       return value;
     }
 
+    // Bypass signal's `.toJSON` method because we want to serialize
+    // the signal itself including the signal's value and not just
+    // the value. This is needed because `JSON.stringify` always
+    // calls `.toJSON` automatically if available.
+    // deno-lint-ignore no-explicit-any
+    if (key !== null && isSignal((this as any)[key])) {
+      // deno-lint-ignore no-explicit-any
+      value = (this as any)[key];
+    }
+
     // For some object types, the path in the object graph from root is not the
     // same between the serialized representation, and deserialized objects. For
     // these cases, we have to change the contents of the key stack to match the
@@ -132,6 +143,11 @@ export function serialize(data: unknown): SerializeResult {
       requiresDeserializer = true;
       hasSignals = true;
       const res = { [KEY]: "s", v: value.peek() };
+      parentStack.push(res);
+      return res;
+    } else if (typeof value === "bigint") {
+      requiresDeserializer = true;
+      const res = { [KEY]: "b", d: value.toString() };
       parentStack.push(res);
       return res;
     } else if (value instanceof Uint8Array) {
