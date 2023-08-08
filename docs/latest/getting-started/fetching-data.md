@@ -9,9 +9,10 @@ during rendering. In real projects, this is often different. In many cases you
 may need to read a file from disk (e.g. markdown for a blog post), or fetch some
 user data from an API or database.
 
-In order to fetch data, the route component must be asynchronous. The `_req`
-parameter is mandatory, and it indicates that certain data will be fetched. The
-second `ctx` parameter is used to get the route parameters.
+In order to fetch data, the route component must be asynchronous. The first
+parameter contains the client's
+[`Request`](https://developer.mozilla.org/en-US/docs/Web/API/Request) object.
+The second `ctx` parameter is used to get the route parameters.
 
 Here is an example of a route that fetches user data from the GitHub API and
 renders it in a page component.
@@ -48,7 +49,9 @@ export default async function Page(_req: Request, ctx: RouteContext) {
 }
 ```
 
-The data is first fetched inside our page component, and we simply check the
-`ok` property of our request's response. If the API call was successful, we
-should be able to see our div with the user's GitHub image, name, and username.
-Otherwise, we should see a heading saying: "An Error occurred."
+The data is first fetched inside our page component. We check that the response
+is returned successfully, by checking whether the
+[`ok`](https://developer.mozilla.org/en-US/docs/Web/API/Response/ok) property is
+true. If the API call was successful, we will see our div with the user's GitHub
+image, name, and username. Otherwise, we should see a heading saying: "An Error
+occurred."
