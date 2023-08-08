@@ -176,9 +176,15 @@ export interface LayoutProps<T = any, S = Record<string, unknown>>
   extends PageProps<T, S> {
   Component: ComponentType<Record<never, never>>;
 }
+// deno-lint-ignore no-explicit-any
+export type AsyncLayout<T = any, S = Record<string, unknown>> = (
+  req: Request,
+  ctx: RouteContext<T, S>,
+  props: LayoutProps,
+) => Promise<ComponentChildren | Response>;
 
 export interface LayoutModule {
-  default: ComponentType<LayoutProps>;
+  default: ComponentType<LayoutProps> | AsyncLayout;
 }
 
 export interface LayoutRoute {
