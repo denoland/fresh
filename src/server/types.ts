@@ -195,7 +195,7 @@ export interface LayoutRoute {
 // --- UNKNOWN PAGE ---
 
 // deno-lint-ignore no-explicit-any
-export interface UnknownPageProps<T = any> {
+export interface UnknownPageProps<T = any, S = Record<string, unknown>> {
   /** The URL of the request that resulted in this page being rendered. */
   url: URL;
 
@@ -208,6 +208,7 @@ export interface UnknownPageProps<T = any> {
    * `undefined`.
    */
   data: T;
+  state: S;
 }
 
 export interface UnknownHandlerContext<State = Record<string, unknown>>
