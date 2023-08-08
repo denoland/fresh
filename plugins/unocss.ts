@@ -1,6 +1,6 @@
 import type { UserConfig } from "https://esm.sh/@unocss/core@0.53.1";
 import { UnoGenerator } from "https://esm.sh/@unocss/core@0.53.1";
-import presetUno from "https://esm.sh/@unocss/preset-uno@0.46.3?bundle&no-check";
+import presetUno from "https://esm.sh/@unocss/preset-uno@0.46.3";
 import { Plugin } from "$fresh/server.ts";
 
 // inline reset from https://esm.sh/@unocss/reset@0.51.2/tailwind.css
