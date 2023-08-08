@@ -97,7 +97,7 @@ interface Marker {
   // string representing the actual intended comment value which makes
   // a bunch of stuff easier.
   text: string;
-  startNode: Comment;
+  startNode: Comment | null;
   endNode: Comment | null;
 }
 
@@ -190,7 +190,7 @@ function _walkInner(
           }
 
           // Remove markers
-          marker.startNode.remove();
+          marker.startNode?.remove();
           sib = sib.nextSibling;
           marker.endNode.remove();
           continue;
@@ -203,12 +203,44 @@ function _walkInner(
 
             let child: Node | null = marker.startNode;
             while (
-              (child = child.nextSibling) !== null && child !== marker.endNode
+              (child = child!.nextSibling) !== null && child !== marker.endNode
             ) {
               children.push(child);
             }
 
-            const vnode = vnodeStack.pop();
+            const vnode = vnodeStack[vnodeStack.length - 1];
+
+            if (vnode.props.children == null) {
+              const [id, exportName, n] = comment.slice("/frsh-".length).split(
+                ":",
+              );
+
+              const sel = `#frsh-slot-${id}-${exportName}-${n}-children`;
+              const template = document.querySelector(sel) as
+                | HTMLTemplateElement
+                | null;
+
+              if (template !== null) {
+                markerStack.push({
+                  kind: MarkerKind.Slot,
+                  endNode: null,
+                  startNode: null,
+                  text: "foo",
+                });
+
+                const node = template.content.cloneNode(true);
+                _walkInner(
+                  islands,
+                  props,
+                  markerStack,
+                  vnodeStack,
+                  node,
+                );
+
+                markerStack.pop();
+              }
+            }
+            vnodeStack.pop();
 
             const parentNode = sib.parentNode! as HTMLElement;
 
@@ -242,7 +274,7 @@ function _walkInner(
               : setTimeout(_render, 0);
 
             // Remove markers
-            marker.startNode.remove();
+            marker.startNode?.remove();
             sib = sib.nextSibling;
             marker.endNode.remove();
             continue;
