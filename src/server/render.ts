@@ -139,12 +139,6 @@ function defaultCsp() {
   };
 }
 
-function getSyncPluginsMessage(plugins: Plugin[]) {
-  return `Async server components cannot be rendered synchronously. The following plugins use a synchronous render method: "${
-    plugins.map((plugin) => plugin.name).join('", "')
-  }"`;
-}
-
 function checkAsyncComponent(
   component: unknown,
 ): component is AsyncRoute | AsyncLayout {
@@ -230,10 +224,6 @@ export async function render<Data>(
     // deno-lint-ignore no-explicit-any
     let finalAppComp: VNode<any> = vnode as any;
 
-    if (layouts.some((layout) => checkAsyncComponent(layout.default))) {
-      throw new Error(getSyncPluginsMessage(syncPlugins));
-    }
-
     let i = opts.layouts.length;
     while (i--) {
       const layout = layouts[i];
@@ -258,7 +248,11 @@ export async function render<Data>(
 
   const renderResults: [Plugin, PluginRenderResult][] = [];
   if (isAsyncComponent && syncPlugins.length > 0) {
-    throw new Error(getSyncPluginsMessage(syncPlugins));
+    throw new Error(
+      `Async server components cannot be rendered synchronously. The following plugins use a synchronous render method: "${
+        syncPlugins.map((plugin) => plugin.name).join('", "')
+      }"`,
+    );
   }
 
   function renderSync(): PluginRenderFunctionResult {
