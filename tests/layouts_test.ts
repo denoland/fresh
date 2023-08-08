@@ -102,6 +102,4 @@ Deno.test({
       },
     );
   },
-  sanitizeOps: false,
-  sanitizeResources: false,
 });
