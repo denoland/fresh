@@ -329,9 +329,8 @@ export async function render<Data>(
           component,
         ];
 
-        const componentStack: Array<VNode | null> = new Array(
-          renderStack.length,
-        ).map(() => null);
+        const componentStack: (VNode | null)[] = new Array(renderStack.length)
+          .fill(null);
 
         // deno-lint-ignore no-explicit-any
         const preparedLayouts: ComponentType<any>[] = [];
