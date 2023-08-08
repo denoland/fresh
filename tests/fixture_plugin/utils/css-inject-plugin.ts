@@ -15,4 +15,4 @@ export default {
     }
     return { styles: [{ cssText: CSS_TO_INJECT, id: "abc" }] };
   },
-} satisfies Plugin;
+} as Plugin;

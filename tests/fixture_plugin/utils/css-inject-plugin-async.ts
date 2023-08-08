@@ -11,4 +11,4 @@ export default {
     }
     return { styles: [{ cssText: CSS_TO_INJECT, id: "def" }] };
   },
-} satisfies Plugin;
+} as Plugin;
