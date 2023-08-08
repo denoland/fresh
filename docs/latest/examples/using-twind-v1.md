@@ -58,7 +58,7 @@ export default {
 };
 ```
 
-(Note: the `as Preset` cast is required to fix a typing issue with twind.)
+Note: the `as Preset` cast is required to fix a typing issue with twind.
 
 To see what other presets exist, you can go to the
 [twind docs](https://twind.style/presets).

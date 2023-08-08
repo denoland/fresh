@@ -36,5 +36,7 @@ export default {
 } satisfies UserConfig;
 ```
 
+Note: you could also inline the config object in `main.ts` instead of using a separate `uno.config.ts` file.
+
 To see what other presets exist, you can go to the
 [unocss docs](https://unocss.dev/presets/).
