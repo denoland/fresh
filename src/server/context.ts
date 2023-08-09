@@ -325,8 +325,11 @@ export class ServerContext {
       if (!url.startsWith(baseUrl)) {
         throw new TypeError("Island is not a child of the basepath.");
       }
-      const path = url.substring(baseUrl.length).substring("islands".length);
-      const baseRoute = path.substring(1, path.length - extname(path).length);
+      let path = url.substring(baseUrl.length);
+      if (path.startsWith("islands")) {
+        path = path.slice("islands".length + 1);
+      }
+      const baseRoute = path.substring(0, path.length - extname(path).length);
 
       for (const [exportName, exportedFunction] of Object.entries(module)) {
         if (typeof exportedFunction !== "function") {
@@ -1198,7 +1201,7 @@ function toPascalCase(text: string): string {
 }
 
 function sanitizeIslandName(name: string): string {
-  const fileName = name.replaceAll("/", "_");
+  const fileName = name.replaceAll(/[/\\\\\(\)]/g, "_");
   return toPascalCase(fileName);
 }
 

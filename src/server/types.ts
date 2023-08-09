@@ -176,9 +176,15 @@ export interface LayoutProps<T = any, S = Record<string, unknown>>
   extends PageProps<T, S> {
   Component: ComponentType<Record<never, never>>;
 }
+// deno-lint-ignore no-explicit-any
+export type AsyncLayout<T = any, S = Record<string, unknown>> = (
+  req: Request,
+  ctx: RouteContext<T, S>,
+  props: LayoutProps,
+) => Promise<ComponentChildren | Response>;
 
 export interface LayoutModule {
-  default: ComponentType<LayoutProps>;
+  default: ComponentType<LayoutProps> | AsyncLayout;
 }
 
 export interface LayoutRoute {
@@ -189,7 +195,7 @@ export interface LayoutRoute {
 // --- UNKNOWN PAGE ---
 
 // deno-lint-ignore no-explicit-any
-export interface UnknownPageProps<T = any> {
+export interface UnknownPageProps<T = any, S = Record<string, unknown>> {
   /** The URL of the request that resulted in this page being rendered. */
   url: URL;
 
@@ -202,6 +208,7 @@ export interface UnknownPageProps<T = any> {
    * `undefined`.
    */
   data: T;
+  state: S;
 }
 
 export interface UnknownHandlerContext<State = Record<string, unknown>>
