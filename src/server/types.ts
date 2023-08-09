@@ -199,7 +199,7 @@ export type AsyncLayout<T = any, S = Record<string, unknown>> = (
 
 export interface LayoutModule {
   default: ComponentType<LayoutProps> | AsyncLayout;
-  config?: Pick<RouteConfig, "appLayout" | "rootLayout">;
+  config?: Pick<RouteConfig, "appTemplate" | "rootLayout">;
 }
 
 export interface LayoutRoute {
