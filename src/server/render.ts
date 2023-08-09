@@ -154,7 +154,22 @@ export async function render<Data>(
   opts: RenderOptions<Data>,
 ): Promise<[string, ContentSecurityPolicy | undefined] | Response> {
   const component = opts.route.component;
-  const layouts = opts.layouts;
+
+  // Only inherit layouts up to the nearest root layout.
+  // Note that the route itself can act as the root layout.
+  let layouts = opts.layouts;
+  if (!opts.route.rootLayout) {
+    let layoutIdx = opts.layouts.length;
+    while (layoutIdx--) {
+      if (opts.layouts[layoutIdx].config?.rootLayout) {
+        break;
+      }
+    }
+    layouts = opts.layouts.slice(layoutIdx);
+  } else {
+    layouts = [];
+  }
+
   const isAsyncComponent = checkAsyncComponent(component);
 
   const props: Record<string, unknown> = {
@@ -204,20 +219,25 @@ export async function render<Data>(
   const syncPlugins = opts.plugins.filter((p) => p.render);
 
   function buildRoot(appComponent: VNode) {
+    // Only use the _app layout if not explicitly disabled
+    const child = opts.route.appLayout
+      ? h(opts.app.default, {
+        params: opts.params as Record<string, string>,
+        url: opts.url,
+        route: opts.route.pattern,
+        data: opts.data,
+        state: opts.state!,
+        Component() {
+          return appComponent;
+        },
+      })
+      : appComponent;
+
     return h(CSP_CONTEXT.Provider, {
       value: csp,
       children: h(HEAD_CONTEXT.Provider, {
         value: headComponents,
-        children: h(opts.app.default, {
-          params: opts.params as Record<string, string>,
-          url: opts.url,
-          route: opts.route.pattern,
-          data: opts.data,
-          state: opts.state!,
-          Component() {
-            return appComponent;
-          },
-        }),
+        children: child,
       }),
     });
   }
@@ -226,7 +246,7 @@ export async function render<Data>(
     // deno-lint-ignore no-explicit-any
     let finalAppComp: VNode<any> = vnode as any;
 
-    let i = opts.layouts.length;
+    let i = layouts.length;
     while (i--) {
       const layout = layouts[i];
       const curComp = finalAppComp;
@@ -309,7 +329,7 @@ export async function render<Data>(
     } else {
       if (
         isAsyncComponent ||
-        opts.layouts.some((layout) => checkAsyncComponent(layout.default))
+        layouts.some((layout) => checkAsyncComponent(layout.default))
       ) {
         if (opts.renderFn !== DEFAULT_RENDER_FN) {
           throw new Error(
