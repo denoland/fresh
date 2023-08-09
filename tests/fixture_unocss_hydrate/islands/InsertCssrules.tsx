@@ -3,10 +3,10 @@ import { useEffect } from "preact/hooks";
 import { useSignal } from "@preact/signals";
 
 /**
- * Returns a number of cssrules set by twind.
+ * Returns a number of cssrules set by unocss.
  */
 function getNumCssrules(): number | undefined {
-  const elem = document.getElementById("__FRSH_TWIND") as HTMLStyleElement;
+  const elem = document.querySelector("style") as HTMLStyleElement;
   return elem.sheet?.cssRules.length;
 }
 
@@ -30,7 +30,7 @@ export default function InsertCssrules() {
       <h2>Insert cssrule in islands</h2>
 
       <div>
-        <p>Default Number of __FRSH_TWIND CssRules :</p>
+        <p>Default Number of __FRSH_UNOCSS CssRules :</p>
         <p id="defaultNumCssRules" class={`text-xl`}>
           {numDefCssRules.value
             ? numDefCssRules.value
@@ -39,7 +39,7 @@ export default function InsertCssrules() {
       </div>
 
       <div>
-        <p>Current Number of __FRSH_TWIND CssRules :</p>
+        <p>Current Number of __FRSH_UNOCSS CssRules :</p>
         <p id="currentNumCssRules" class={`text-xl ${insertedStyles.value}`}>
           {numCssRules.value
             ? numCssRules.value
@@ -54,7 +54,7 @@ export default function InsertCssrules() {
         } else if (numDefCssRules.value === numCssRules.value) {
           return (
             <p id="errorInsertCssrules">
-              {'Error: A cssrule has been inserted into a style sheet other than <style id="__FRSH_TWIND">'}
+              {"Error: A cssrule has been inserted into a style sheet other than the first <style> tag (that of UnoCSS)."}
             </p>
           );
         } else {
