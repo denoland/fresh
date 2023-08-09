@@ -1,6 +1,7 @@
 {
   "recommendations": [
     "denoland.vscode-deno",
-    "sastan.twind-intellisense"
+    "sastan.twind-intellisense",
+    "antfu.unocss"
   ]
 }
