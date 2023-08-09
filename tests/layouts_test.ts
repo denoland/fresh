@@ -1,5 +1,10 @@
 import { assert } from "./deps.ts";
-import { assertSelector, fetchHtml, withFresh } from "./test_utils.ts";
+import {
+  assertNotSelector,
+  assertSelector,
+  fetchHtml,
+  withFresh,
+} from "./test_utils.ts";
 
 Deno.test("apply root _layout and _app", async () => {
   await withFresh(
@@ -102,4 +107,45 @@ Deno.test({
       },
     );
   },
+});
+
+Deno.test("disable _app layout", async () => {
+  await withFresh(
+    "./tests/fixture_layouts/main.ts",
+    async (address) => {
+      const doc = await fetchHtml(`${address}/override/no_app`);
+      assertNotSelector(doc, "body body");
+      assertSelector(doc, "body > .override-layout >.no-app");
+    },
+  );
+});
+
+Deno.test("override layouts", async () => {
+  await withFresh(
+    "./tests/fixture_layouts/main.ts",
+    async (address) => {
+      const doc = await fetchHtml(`${address}/override`);
+      assertSelector(doc, "body > .app > .override-layout > .override-page");
+    },
+  );
+});
+
+Deno.test("route overrides layout", async () => {
+  await withFresh(
+    "./tests/fixture_layouts/main.ts",
+    async (address) => {
+      const doc = await fetchHtml(`${address}/override/no_layout`);
+      assertSelector(doc, "body > .app > .no-layouts");
+    },
+  );
+});
+
+Deno.test("route overrides layout", async () => {
+  await withFresh(
+    "./tests/fixture_layouts/main.ts",
+    async (address) => {
+      const doc = await fetchHtml(`${address}/override/no_layout_no_app`);
+      assertSelector(doc, "body > .no-app-no-layouts");
+    },
+  );
 });
