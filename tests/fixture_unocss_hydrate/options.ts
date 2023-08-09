@@ -1,4 +1,4 @@
-import type { UserConfig } from "https://esm.sh/@unocss/core@0.53.1";
+import type { UserConfig } from "@unocss/core";
 import { FreshOptions } from "$fresh/server.ts";
 import unocssPlugin from "$fresh/plugins/unocss.ts";
 import unocssConfig from "./uno.config.ts";
