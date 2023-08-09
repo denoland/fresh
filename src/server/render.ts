@@ -159,13 +159,15 @@ export async function render<Data>(
   // Note that the route itself can act as the root layout.
   let layouts = opts.layouts;
   if (!opts.route.rootLayout) {
+    let rootIdx = 0;
     let layoutIdx = opts.layouts.length;
     while (layoutIdx--) {
       if (opts.layouts[layoutIdx].config?.rootLayout) {
+        rootIdx = layoutIdx;
         break;
       }
     }
-    layouts = opts.layouts.slice(layoutIdx);
+    layouts = opts.layouts.slice(rootIdx);
   } else {
     layouts = [];
   }
