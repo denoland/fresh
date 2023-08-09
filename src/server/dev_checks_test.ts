@@ -75,6 +75,13 @@ Deno.test("assertSingleModule", async (t) => {
     assertEquals(result, expected);
   });
 
+  await t.step("passes validation check w/ given module in route name", () => {
+    const routes: Route[] = [createRoute({ name: "/foo/_app/bar" })];
+    const expected: CheckResult[] = [];
+    const result = assertSingleModule(routes, "_app");
+    assertEquals(result, expected);
+  });
+
   await t.step("fails validation check", () => {
     const routes: Route[] = [
       createRoute({ name: "_app" }),

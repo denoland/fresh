@@ -37,14 +37,17 @@ export function assertModuleExportsDefault(
   } | null,
   moduleName: string,
 ): CheckResult[] {
+  const results: CheckResult[] = [];
+
   if (module && !module.module.default) {
-    return [{
+    results.push({
       category: CheckCategory.ModuleExport,
       message: `Your ${moduleName} file does not have a default export.`,
       link: module.url,
-    }];
+    });
   }
-  return [];
+
+  return results;
 }
 
 /** Asserts that only one module exists with the given name. */
@@ -52,51 +55,52 @@ export function assertSingleModule(
   routes: Route[],
   moduleName: string,
 ): CheckResult[] {
+  const results: CheckResult[] = [];
   const moduleRoutes = routes.filter((route) =>
-    route.name.includes(moduleName)
+    route.name.endsWith(moduleName)
   );
 
   if (moduleRoutes.length > 0) {
-    return [{
+    results.push({
       category: CheckCategory.MultipleModules,
       message:
         `Only one ${moduleName} is allowed per application. It must be in the root of the /routes/ folder.`,
       link: moduleRoutes[0].url,
-    }];
+    });
   }
-  return [];
+  return results;
 }
 
 /** Asserts that each route has a unique pattern. */
 export function assertSingleRoutePattern(routes: Route[]) {
+  const results: CheckResult[] = [];
   const routeNames = new Set(routes.map((route) => route.pattern));
 
-  return routes.flatMap((route) => {
+  routes.forEach((route) => {
     if (routeNames.has(route.pattern)) {
       routeNames.delete(route.pattern);
     } else {
-      return [{
+      results.push({
         category: CheckCategory.DuplicateRoutePatterns,
         message:
           `Duplicate route pattern: ${route.pattern}. Please rename the route to resolve the route conflicts.`,
         link: route.url,
-      }];
+      });
     }
-    return [];
   });
+
+  return results;
 }
 
 /** Asserts that each route has at least one handler or component. */
 export function assertRoutesHaveHandlerOrComponent(
   routes: Route[],
 ): CheckResult[] {
-  return routes.flatMap((route) => {
-    const hasComponent = !!route.component;
-    let hasHandlerMethod = false;
+  const results: CheckResult[] = [];
 
-    if (typeof route.handler === "function") {
-      hasHandlerMethod = true;
-    }
+  routes.forEach((route) => {
+    const hasComponent = !!route.component;
+    let hasHandlerMethod = typeof route.handler === "function";
 
     if (typeof route.handler === "object") {
       for (const method of knownMethods) {
@@ -108,15 +112,16 @@ export function assertRoutesHaveHandlerOrComponent(
     }
 
     if (!hasComponent && !hasHandlerMethod) {
-      return [{
+      results.push({
         category: CheckCategory.HandlerOrComponent,
         message:
           `Route at ${route.name} must have a handler or component. It's possible you're missing a default export.`,
         link: route.url,
-      }];
+      });
     }
-    return [];
   });
+
+  return results;
 }
 
 /** Asserts that the usage of the `staticDir` option is safe. */
@@ -151,19 +156,21 @@ export function assertNoStaticRouteConflicts(
   routes: Route[],
   staticFiles: StaticFile[],
 ): CheckResult[] {
+  const results: CheckResult[] = [];
   const routePatterns = new Set(routes.map((route) => route.pattern));
 
-  return staticFiles.flatMap((staticFile) => {
+  staticFiles.forEach((staticFile) => {
     if (routePatterns.has(staticFile.path)) {
-      return [{
+      results.push({
         category: CheckCategory.StaticFileConflict,
         message:
           `Static file conflict: A file exists at ${staticFile.path} which matches a route pattern. Please rename the file or change the route pattern.`,
         link: staticFile.localUrl.pathname,
-      }];
+      });
     }
-    return [];
   });
+
+  return results;
 }
 
 /** Asserts that each plugin, which uses `plugin.render`, calls `ctx.render()` once. */
@@ -207,7 +214,8 @@ export function assertPluginsCallRenderAsync(
           });
         });
 
-        plugin.renderAsync({ renderAsync: renderAsyncSpy }).then(() => {});
+        // Call empty `.then()` to wait for `ctx.renderAsync()` to resolve
+        plugin.renderAsync({ renderAsync: renderAsyncSpy }).then();
         assertSpyCalls(renderAsyncSpy, 1);
       } catch {
         results.push({
