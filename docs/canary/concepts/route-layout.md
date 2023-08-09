@@ -15,8 +15,8 @@ routes/
     index.tsx
     page.tsx
   /other
-    _layout.tsx
-    page.tsx # will be applied on top of `routes/_layout.tsx`
+    _layout.tsx # will be applied on top of `routes/_layout.tsx`
+    page.tsx
 ```
 
 The component to be wrapped is received via props, in addition to a few other
