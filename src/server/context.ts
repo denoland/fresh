@@ -65,7 +65,9 @@ import {
   assertSingleModule,
   assertSingleRoutePattern,
   assertStaticDirSafety,
+  CheckCategory,
   CheckFunction,
+  CheckResult,
 } from "./dev_checks.ts";
 
 const DEFAULT_CONN_INFO: ServeHandlerInfo = {
@@ -182,11 +184,12 @@ export class ServerContext {
     const islands: Island[] = [];
     const middlewares: MiddlewareRoute[] = [];
     let app: AppModule = DEFAULT_APP;
+    let appModule: { url: string; module: AppModule } | null = null;
     const layouts: LayoutRoute[] = [];
     let notFound: UnknownPage = DEFAULT_NOT_FOUND;
-    let unknownModule: UnknownPageModule | null = null;
+    let unknownModule: { url: string; module: UnknownPageModule } | null = null;
     let error: ErrorPage = DEFAULT_ERROR;
-    let errorModule: ErrorPageModule | null = null;
+    let errorModule: { url: string; module: ErrorPageModule } | null = null;
     const allRoutes = [
       ...Object.entries(manifest.routes),
       ...(opts.plugins ? getMiddlewareRoutesFromPlugins(opts.plugins) : []),
@@ -267,6 +270,7 @@ export class ServerContext {
         path === "/_app.jsx" || path === "/_app.js"
       ) {
         app = module as AppModule;
+        appModule = { url, module: module as AppModule };
       } else if (isLayout) {
         layouts.push({
           baseRoute: toBaseRoute(baseRoute),
@@ -276,7 +280,7 @@ export class ServerContext {
         path === "/_404.tsx" || path === "/_404.ts" ||
         path === "/_404.jsx" || path === "/_404.js"
       ) {
-        unknownModule = module as UnknownPageModule;
+        unknownModule = { url, module: module as UnknownPageModule };
         const { default: component, config } = module as UnknownPageModule;
         let { handler } = module as UnknownPageModule;
         if (component && handler === undefined) {
@@ -296,7 +300,7 @@ export class ServerContext {
         path === "/_500.tsx" || path === "/_500.ts" ||
         path === "/_500.jsx" || path === "/_500.js"
       ) {
-        errorModule = module as ErrorPageModule;
+        errorModule = { url, module: module as ErrorPageModule };
         const { default: component, config } = module as ErrorPageModule;
         let { handler } = module as ErrorPageModule;
         if (component && handler === undefined) {
@@ -386,7 +390,7 @@ export class ServerContext {
     const dev = isDevMode();
     if (dev) {
       const checks: CheckFunction[] = [
-        () => assertModuleExportsDefault(app, "_app"),
+        () => assertModuleExportsDefault(appModule, "_app"),
         () => assertSingleModule(routes, "_app"),
         () => assertModuleExportsDefault(unknownModule, "_404"),
         () => assertSingleModule(routes, "_404"),
@@ -402,13 +406,24 @@ export class ServerContext {
       ];
 
       const results = checks.flatMap((check) => check());
+      const resultsByCategory = new Map<CheckCategory, CheckResult[]>(
+        Object.values(CheckCategory).map((category) => [category, []]),
+      );
 
-      results.forEach((result) => {
-        console.log(`[${result.category}] ${result.message}`);
-        if (result.fileLink) {
-          console.log(`See: ${result.fileLink}`);
+      for (const result of results) {
+        resultsByCategory.get(result.category)?.push(result);
+      }
+
+      for (const [category, results] of resultsByCategory) {
+        for (const result of results) {
+          console.log(`%c${category}`, "font-weight:bold");
+          console.log(`  ${result.message}`);
+          if (result.link) {
+            const link = result.link.substring(baseUrl.length);
+            console.log(`  See: ${link ? `./${link}` : result.link}`);
+          }
         }
-      });
+      }
 
       // Ensure that debugging hooks are set up for SSR rendering
       await import("preact/debug");

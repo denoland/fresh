@@ -11,6 +11,7 @@ import {
   assertSingleModule,
   assertSingleRoutePattern,
   assertStaticDirSafety,
+  CheckCategory,
   type CheckResult,
 } from "./dev_checks.ts";
 import type { AppModule, Plugin, Route, StaticFile } from "./types.ts";
@@ -42,7 +43,10 @@ function createStaticFile(file: Partial<StaticFile>): StaticFile {
 Deno.test("assertModuleExportsDefault", async (t) => {
   await t.step("passes validation check", () => {
     const app: AppModule = { default: () => h(Fragment, null, []) };
-    const result = assertModuleExportsDefault(app, "_app");
+    const result = assertModuleExportsDefault(
+      { url: "_app.tsx", module: app },
+      "_app",
+    );
     assertEquals(result, []);
   });
 
@@ -50,19 +54,22 @@ Deno.test("assertModuleExportsDefault", async (t) => {
     const app: AppModule = { default: undefined } as unknown as AppModule;
     const expected: CheckResult[] = [
       {
-        category: "Module Export",
-        message: "Your _app file does not have a default export.",
-        fileLink: "_app",
+        category: CheckCategory.ModuleExport,
+        message: `Your _app file does not have a default export.`,
+        link: "_app.tsx",
       },
     ];
-    const result = assertModuleExportsDefault(app, "_app");
+    const result = assertModuleExportsDefault(
+      { url: "_app.tsx", module: app },
+      "_app",
+    );
     assertEquals(result, expected);
   });
 });
 
 Deno.test("assertSingleModule", async (t) => {
   await t.step("passes validation check", () => {
-    const routes: Route[] = [createRoute({ name: "_app" })];
+    const routes: Route[] = [];
     const expected: CheckResult[] = [];
     const result = assertSingleModule(routes, "_app");
     assertEquals(result, expected);
@@ -71,13 +78,13 @@ Deno.test("assertSingleModule", async (t) => {
   await t.step("fails validation check", () => {
     const routes: Route[] = [
       createRoute({ name: "_app" }),
-      createRoute({ name: "_app" }),
     ];
     const expected: CheckResult[] = [
       {
-        category: "Multiple Modules",
+        category: CheckCategory.MutipleModules,
         message:
           "Only one _app is allowed per application. It must be in the root of the /routes/ folder.",
+        link: "/",
       },
     ];
     const result = assertSingleModule(routes, "_app");
@@ -98,19 +105,21 @@ Deno.test("assertSingleRoutePattern", async (t) => {
 
   await t.step("fails validation check", () => {
     const routes: Route[] = [
-      createRoute({ pattern: "/foo" }),
-      createRoute({ pattern: "/foo" }),
-      createRoute({ pattern: "/:bar" }),
-      createRoute({ pattern: "/:bar" }),
+      createRoute({ pattern: "/foo", url: "/foo" }),
+      createRoute({ pattern: "/foo", url: "/foo" }),
+      createRoute({ pattern: "/:bar", url: "/:bar" }),
+      createRoute({ pattern: "/:bar", url: "/:bar" }),
     ];
     const expected: CheckResult[] = [
       {
-        category: "Duplicate Route Patterns",
+        category: CheckCategory.DuplicateRoutePatterns,
+        link: "/foo",
         message:
           "Duplicate route pattern: /foo. Please rename the route to resolve the route conflicts.",
       },
       {
-        category: "Duplicate Route Patterns",
+        category: CheckCategory.DuplicateRoutePatterns,
+        link: "/:bar",
         message:
           "Duplicate route pattern: /:bar. Please rename the route to resolve the route conflicts.",
       },
@@ -176,14 +185,14 @@ Deno.test("assertRoutesHaveHandlerOrComponent", async (t) => {
     );
     const expected: CheckResult[] = [
       {
-        category: "Handler or Component",
-        fileLink: "/foo",
+        category: CheckCategory.HandlerOrComponent,
+        link: "/foo",
         message:
           `Route at /foo must have a handler or component. It's possible you're missing a default export.`,
       },
       {
-        category: "Handler or Component",
-        fileLink: "/bar",
+        category: CheckCategory.HandlerOrComponent,
+        link: "/bar",
         message:
           `Route at /bar must have a handler or component. It's possible you're missing a default export.`,
       },
@@ -208,7 +217,7 @@ Deno.test("assertStaticDirSafety", async (t) => {
   await t.step("fails validation check", () => {
     const expected: CheckResult[] = [
       {
-        category: "Static Directory",
+        category: CheckCategory.StaticDirectory,
         message:
           "You cannot use the default static directory as a static override. Please choose a different directory.",
       },
@@ -240,10 +249,10 @@ Deno.test("assertNoStaticRouteConflict", async (t) => {
     ];
     const expected: CheckResult[] = [
       {
-        category: "Static File Conflict",
-        fileLink: "/foo.bar",
+        category: CheckCategory.StaticFileConflict,
+        link: "/foo.bar",
         message:
-          "Static file conflict: A file exists at '/foo.bar' which matches a route pattern. Please rename the file or change the route pattern.",
+          "Static file conflict: A file exists at /foo.bar which matches a route pattern. Please rename the file or change the route pattern.",
       },
     ];
     const result = assertNoStaticRouteConflicts(routes, files);
@@ -276,8 +285,8 @@ Deno.test("assertPluginsCallRender", async (t) => {
     ];
     const expected: CheckResult[] = [
       {
-        category: "Plugin Render",
-        message: "Plugin 'foo' must call ctx.render() exactly once.",
+        category: CheckCategory.PluginRender,
+        message: "Plugin foo must call ctx.render() exactly once.",
       },
     ];
     const result = assertPluginsCallRender(plugins);
@@ -313,8 +322,8 @@ Deno.test("assertPluginsCallRenderAsync", async (t) => {
     ];
     const expected: CheckResult[] = [
       {
-        category: "Plugin RenderAsync",
-        message: "Plugin 'foo' must call ctx.renderAsync() exactly once.",
+        category: CheckCategory.PluginRenderAsync,
+        message: "Plugin foo must call ctx.renderAsync() exactly once.",
       },
     ];
     const result = assertPluginsCallRenderAsync(plugins);
@@ -348,9 +357,9 @@ Deno.test("assertPluginsInjectModules", async (t) => {
     ];
     const expected: CheckResult[] = [
       {
-        category: "Plugin Inject Modules",
+        category: CheckCategory.PluginInjectModules,
         message:
-          "Plugin 'foo' must export a default function from its entrypoint.",
+          "Plugin foo must export a default function from its entrypoint.",
       },
     ];
     const result = assertPluginsInjectModules(plugins);

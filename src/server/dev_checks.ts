@@ -11,22 +11,37 @@ import { Plugin } from "$fresh/src/server/mod.ts";
 
 export type CheckFunction = () => CheckResult[];
 
+export enum CheckCategory {
+  ModuleExport = "Module Export",
+  MutipleModules = "Multiple Modules",
+  DuplicateRoutePatterns = "Duplicate Route Patterns",
+  HandlerOrComponent = "Handler or Component",
+  StaticDirectory = "Static Directory",
+  StaticFileConflict = "Static File Conflict",
+  PluginRender = "Plugin Render",
+  PluginRenderAsync = "Plugin RenderAsync",
+  PluginInjectModules = "Plugin Inject Modules",
+}
+
 export type CheckResult = {
-  category: string;
+  category: CheckCategory;
   message: string;
-  fileLink?: string;
+  link?: string;
 };
 
 /** Asserts that the module has a default export */
 export function assertModuleExportsDefault(
-  module: AppModule | UnknownPageModule | ErrorPageModule | null,
+  module: {
+    url: string;
+    module: AppModule | UnknownPageModule | ErrorPageModule;
+  } | null,
   moduleName: string,
 ): CheckResult[] {
-  if (module && !module.default) {
+  if (module && !module.module.default) {
     return [{
-      category: "Module Export",
+      category: CheckCategory.ModuleExport,
       message: `Your ${moduleName} file does not have a default export.`,
-      fileLink: moduleName,
+      link: module.url,
     }];
   }
   return [];
@@ -41,11 +56,12 @@ export function assertSingleModule(
     route.name.includes(moduleName)
   );
 
-  if (moduleRoutes.length > 1) {
+  if (moduleRoutes.length > 0) {
     return [{
-      category: "Multiple Modules",
+      category: CheckCategory.MutipleModules,
       message:
         `Only one ${moduleName} is allowed per application. It must be in the root of the /routes/ folder.`,
+      link: moduleRoutes[0].url,
     }];
   }
   return [];
@@ -60,9 +76,10 @@ export function assertSingleRoutePattern(routes: Route[]) {
       routeNames.delete(route.pattern);
     } else {
       return [{
-        category: "Duplicate Route Patterns",
+        category: CheckCategory.DuplicateRoutePatterns,
         message:
           `Duplicate route pattern: ${route.pattern}. Please rename the route to resolve the route conflicts.`,
+        link: route.url,
       }];
     }
     return [];
@@ -92,10 +109,10 @@ export function assertRoutesHaveHandlerOrComponent(
 
     if (!hasComponent && !hasHandlerMethod) {
       return [{
-        category: "Handler or Component",
+        category: CheckCategory.HandlerOrComponent,
         message:
-          `Route at ${route.url} must have a handler or component. It's possible you're missing a default export.`,
-        fileLink: route.name,
+          `Route at ${route.name} must have a handler or component. It's possible you're missing a default export.`,
+        link: route.url,
       }];
     }
     return [];
@@ -111,17 +128,18 @@ export function assertStaticDirSafety(
 
   if (dir === defaultDir) {
     results.push({
-      category: "Static Directory",
+      category: CheckCategory.StaticDirectory,
       message:
-        "You cannot use the default static directory as a static override. Please choose a different directory.",
+        `You cannot use the default static directory as a static override. Please choose a different directory.`,
     });
   }
 
   if (dir && existsSync(defaultDir)) {
     results.push({
-      category: "Static Directory",
+      category: CheckCategory.StaticDirectory,
       message:
-        "You cannot have both a static override and a default static directory. Please remove the default static directory.",
+        `You cannot have both a static override and a default static directory. Please remove the default static directory.`,
+      link: defaultDir,
     });
   }
 
@@ -138,10 +156,10 @@ export function assertNoStaticRouteConflicts(
   return staticFiles.flatMap((staticFile) => {
     if (routePatterns.has(staticFile.path)) {
       return [{
-        category: "Static File Conflict",
+        category: CheckCategory.StaticFileConflict,
         message:
-          `Static file conflict: A file exists at '${staticFile.path}' which matches a route pattern. Please rename the file or change the route pattern.`,
-        fileLink: staticFile.path,
+          `Static file conflict: A file exists at ${staticFile.path} which matches a route pattern. Please rename the file or change the route pattern.`,
+        link: staticFile.localUrl.pathname,
       }];
     }
     return [];
@@ -163,9 +181,8 @@ export function assertPluginsCallRender(plugins: Plugin[]): CheckResult[] {
         assertSpyCalls(renderSpy, 1);
       } catch {
         results.push({
-          category: "Plugin Render",
-          message:
-            `Plugin '${plugin.name}' must call ctx.render() exactly once.`,
+          category: CheckCategory.PluginRender,
+          message: `Plugin ${plugin.name} must call ctx.render() exactly once.`,
         });
       }
     }
@@ -194,9 +211,9 @@ export function assertPluginsCallRenderAsync(
         assertSpyCalls(renderAsyncSpy, 1);
       } catch {
         results.push({
-          category: "Plugin RenderAsync",
+          category: CheckCategory.PluginRenderAsync,
           message:
-            `Plugin '${plugin.name}' must call ctx.renderAsync() exactly once.`,
+            `Plugin ${plugin.name} must call ctx.renderAsync() exactly once.`,
         });
       }
     }
@@ -217,17 +234,17 @@ export function assertPluginsInjectModules(plugins: Plugin[]): CheckResult[] {
 
         if (!file.includes("export default")) {
           results.push({
-            category: "Plugin Inject Modules",
+            category: CheckCategory.PluginInjectModules,
             message:
-              `Plugin '${plugin.name}' must export a default function from its entrypoint.`,
+              `Plugin ${plugin.name} must export a default function from its entrypoint.`,
           });
         }
       } catch (_err) {
         if (!script.includes("export default")) {
           results.push({
-            category: "Plugin Inject Modules",
+            category: CheckCategory.PluginInjectModules,
             message:
-              `Plugin '${plugin.name}' must export a default function from its entrypoint.`,
+              `Plugin ${plugin.name} must export a default function from its entrypoint.`,
           });
         }
       }
