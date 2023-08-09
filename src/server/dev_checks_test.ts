@@ -81,7 +81,7 @@ Deno.test("assertSingleModule", async (t) => {
     ];
     const expected: CheckResult[] = [
       {
-        category: CheckCategory.MutipleModules,
+        category: CheckCategory.MultipleModules,
         message:
           "Only one _app is allowed per application. It must be in the root of the /routes/ folder.",
         link: "/",

@@ -13,7 +13,7 @@ export type CheckFunction = () => CheckResult[];
 
 export enum CheckCategory {
   ModuleExport = "Module Export",
-  MutipleModules = "Multiple Modules",
+  MultipleModules = "Multiple Modules",
   DuplicateRoutePatterns = "Duplicate Route Patterns",
   HandlerOrComponent = "Handler or Component",
   StaticDirectory = "Static Directory",
@@ -58,7 +58,7 @@ export function assertSingleModule(
 
   if (moduleRoutes.length > 0) {
     return [{
-      category: CheckCategory.MutipleModules,
+      category: CheckCategory.MultipleModules,
       message:
         `Only one ${moduleName} is allowed per application. It must be in the root of the /routes/ folder.`,
       link: moduleRoutes[0].url,
