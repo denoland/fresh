@@ -16,7 +16,7 @@ export const getFile = async (file: string) => {
   if (!isSupported()) return null;
 
   const filepath = [...NAMESPACE, file];
-  const metadata = await kv!.get(filepath);
+  const metadata = await kv!.get(filepath).catch(() => null);
 
   if (metadata?.versionstamp == null) {
     return null;
