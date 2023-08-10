@@ -56,3 +56,13 @@ Deno.test("user _app works with <Head>", async () => {
     },
   );
 });
+
+Deno.test("don't duplicate <title>", async () => {
+  await withFresh(
+    "./tests/fixture_explicit_app/main.ts",
+    async (address) => {
+      const doc = await fetchHtml(`${address}/title`);
+      assertTextMany(doc, "title", ["foo bar"]);
+    },
+  );
+});

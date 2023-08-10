@@ -60,12 +60,15 @@ options.errorBoundaries = true;
 // rendering the page.
 let RENDERING_USER_TEMPLATE = false;
 interface OuterDocument {
+  // deno-lint-ignore no-explicit-any
+  title: VNode<any> | null;
   html: Record<string, unknown> | null;
   head: Record<string, unknown> | null;
   body: Record<string, unknown> | null;
   headNodes: { type: string; props: Record<string, unknown> }[];
 }
 let OUTER_DOCUMENT: OuterDocument = {
+  title: null,
   html: null,
   head: null,
   body: null,
@@ -234,6 +237,7 @@ export async function render<Data>(
   RENDERING_USER_TEMPLATE = false;
   headChildren = false;
   OUTER_DOCUMENT = {
+    title: null,
     body: null,
     head: null,
     html: null,
@@ -467,6 +471,15 @@ export async function render<Data>(
   await renderAsync();
   RENDERING_USER_TEMPLATE = false;
 
+  const idx = headComponents.findIndex((vnode) =>
+    vnode !== null && typeof vnode === "object" && "type" in vnode &&
+    props !== null && vnode.type === "title"
+  );
+  if (idx !== -1) {
+    OUTER_DOCUMENT.title = headComponents[idx] as VNode<{ children: string }>;
+    headComponents.splice(idx, 1);
+  }
+
   if (asyncRenderResponse !== undefined) {
     return asyncRenderResponse;
   }
@@ -604,7 +617,6 @@ export async function render<Data>(
     h(
       "head",
       OUTER_DOCUMENT.head,
-      OUTER_DOCUMENT.headNodes.map((node) => h(node.type, node.props)),
       // Add some tags ourselves if the user uses the legacy
       // _app template rendering style where we provided the outer
       // HTML document.
@@ -615,6 +627,8 @@ export async function render<Data>(
           content: "width=device-width, initial-scale=1.0",
         })
         : null,
+      OUTER_DOCUMENT.title,
+      OUTER_DOCUMENT.headNodes.map((node) => h(node.type, node.props)),
       // Fresh scripts
       preloads.map((src) => h("link", { rel: "modulepreload", href: src })),
       moduleScripts.map(([src, nonce]) =>
@@ -812,9 +826,11 @@ options.__b = (vnode: VNode<Record<string, unknown>>) => {
       OUTER_DOCUMENT.body = excludeChildren(vnode.props);
       vnode.type = Fragment;
     } else if (headChildren) {
-      OUTER_DOCUMENT.headNodes.push({ type: vnode.type, props: vnode.props });
       if (vnode.type === "title") {
+        OUTER_DOCUMENT.title = h("title", vnode.props);
         vnode.props = { children: null };
+      } else {
+        OUTER_DOCUMENT.headNodes.push({ type: vnode.type, props: vnode.props });
       }
       vnode.type = Fragment;
     }
