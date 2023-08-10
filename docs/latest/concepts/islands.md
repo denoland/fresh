@@ -15,20 +15,14 @@ island.
 // islands/my-island.tsx
 
 import { useSignal } from "@preact/signals";
-import { VNode } from "preact";
 
-interface Data {
-  children: VNode<Element>;
-}
-
-export default function MyIsland({ children }: Data) {
+export default function MyIsland() {
   const count = useSignal(0);
 
   return (
     <div>
       Counter is at {count}.{" "}
       <button onClick={() => (count.value += 1)}>+</button>
-      {children}
     </div>
   );
 }
@@ -36,6 +30,15 @@ export default function MyIsland({ children }: Data) {
 
 An island can be used in a page like a regular Preact component. Fresh will take
 care of automatically re-hydrating the island on the client.
+
+```tsx
+// route/index.tsx
+import MyIsland from "../islands/my-island.tsx";
+
+export default function Home() {
+  return <MyIsland />;
+}
+```
 
 Passing props to islands is supported, but only if the props are serializable.
 Fresh can serialize the following types of values:
@@ -59,8 +62,31 @@ functions is not supported.
 Islands support passing JSX elements via the `children` property. This allows
 you to pass static content rendered by the server to an island in the browser.
 
-```jsx
-// route/index.tsx
+```tsx
+// islands/my-island.tsx
+
+import { useSignal } from "@preact/signals";
+import { VNode } from "preact";
+
+interface Data {
+  children: VNode<Element>;
+}
+
+export default function MyIsland({ children }: Data) {
+  const count = useSignal(0);
+
+  return (
+    <div>
+      Counter is at {count}.{" "}
+      <button onClick={() => (count.value += 1)}>+</button>
+      {children}
+    </div>
+  );
+}
+```
+
+```tsx
+// routes/index.tsx
 import MyIsland from "../islands/my-island.tsx";
 
 export default function Home() {
@@ -83,7 +109,7 @@ Islands can be nested within other islands as well. In that scenario they act
 like a normal Preact component, but still receive the serialized props if any
 were present.
 
-```jsx
+```tsx
 // route/index.tsx
 import MyIsland from "../islands/my-island.tsx";
 import OtherIsland from "../islands/other-island.tsx";
