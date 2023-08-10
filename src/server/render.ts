@@ -11,11 +11,12 @@ import {
 } from "preact";
 import {
   AppModule,
+  AsyncLayout,
   AsyncRoute,
   ErrorPage,
   Island,
   LayoutModule,
-  LayoutRoute,
+  LayoutProps,
   Plugin,
   PluginRenderFunctionResult,
   PluginRenderResult,
@@ -58,7 +59,7 @@ export interface RenderOptions<Data> {
   islands: Island[];
   plugins: Plugin[];
   app: AppModule;
-  layouts: LayoutRoute[];
+  layouts: LayoutModule[];
   imports: string[];
   dependenciesFn: (path: string) => string[];
   url: URL;
@@ -138,23 +139,11 @@ function defaultCsp() {
   };
 }
 
-/**
- * Return a list of layouts that needs to be applied for request url
- * @param url the request url
- * @param layouts Array of layouts handlers and their routes as path-to-regexp style
- */
-export function selectLayouts(url: string, layouts: LayoutRoute[]) {
-  const selectedLayouts: LayoutModule[] = [];
-  const reqURL = new URL(url);
-
-  for (const layout of layouts) {
-    const res = layout.compiledPattern.exec(reqURL);
-    if (res) {
-      selectedLayouts.push(layout);
-    }
-  }
-
-  return selectedLayouts;
+function checkAsyncComponent(
+  component: unknown,
+): component is AsyncRoute | AsyncLayout {
+  return typeof component === "function" &&
+    component.constructor.name === "AsyncFunction";
 }
 
 /**
@@ -165,8 +154,25 @@ export async function render<Data>(
   opts: RenderOptions<Data>,
 ): Promise<[string, ContentSecurityPolicy | undefined] | Response> {
   const component = opts.route.component;
-  const isAsyncComponent = typeof component === "function" &&
-    component.constructor.name === "AsyncFunction";
+
+  // Only inherit layouts up to the nearest root layout.
+  // Note that the route itself can act as the root layout.
+  let layouts = opts.layouts;
+  if (!opts.route.rootLayout) {
+    let rootIdx = 0;
+    let layoutIdx = opts.layouts.length;
+    while (layoutIdx--) {
+      if (opts.layouts[layoutIdx].config?.rootLayout) {
+        rootIdx = layoutIdx;
+        break;
+      }
+    }
+    layouts = opts.layouts.slice(rootIdx);
+  } else {
+    layouts = [];
+  }
+
+  const isAsyncComponent = checkAsyncComponent(component);
 
   const props: Record<string, unknown> = {
     params: opts.params,
@@ -200,6 +206,8 @@ export async function render<Data>(
 
   // Clear the island props
   ISLAND_PROPS = [];
+  // Clear previous slots
+  SLOTS_TRACKER.clear();
 
   const ctx = new RenderContext(
     crypto.randomUUID(),
@@ -210,16 +218,42 @@ export async function render<Data>(
 
   let bodyHtml: string | null = null;
 
-  function renderInner(vnode: ComponentChildren): string {
+  const syncPlugins = opts.plugins.filter((p) => p.render);
+
+  function buildRoot(appComponent: VNode) {
+    // Only use the _app layout if not explicitly disabled
+    const child = opts.route.appLayout
+      ? h(opts.app.default, {
+        params: opts.params as Record<string, string>,
+        url: opts.url,
+        route: opts.route.pattern,
+        data: opts.data,
+        state: opts.state!,
+        Component() {
+          return appComponent;
+        },
+      })
+      : appComponent;
+
+    return h(CSP_CONTEXT.Provider, {
+      value: csp,
+      children: h(HEAD_CONTEXT.Provider, {
+        value: headComponents,
+        children: child,
+      }),
+    });
+  }
+
+  function renderInnerSync(vnode: ComponentChildren): string {
     // deno-lint-ignore no-explicit-any
     let finalAppComp: VNode<any> = vnode as any;
 
-    const layouts = selectLayouts(opts.url.toString(), opts.layouts);
+    let i = layouts.length;
+    while (i--) {
+      const layout = layouts[i];
+      const curComp = finalAppComp;
 
-    layouts.forEach((layout) => {
-      const curComp = { ...finalAppComp };
-
-      finalAppComp = h(layout.default, {
+      finalAppComp = h(layout.default as ComponentType<LayoutProps>, {
         params: opts.params as Record<string, string>,
         url: opts.url,
         route: opts.route.pattern,
@@ -229,30 +263,21 @@ export async function render<Data>(
           return curComp;
         },
       });
-    });
+    }
 
-    const root = h(CSP_CONTEXT.Provider, {
-      value: csp,
-      children: h(HEAD_CONTEXT.Provider, {
-        value: headComponents,
-        children: h(opts.app.default, {
-          params: opts.params as Record<string, string>,
-          url: opts.url,
-          route: opts.route.pattern,
-          data: opts.data,
-          state: opts.state!,
-          Component() {
-            return finalAppComp;
-          },
-        }),
-      }),
-    });
+    const root = buildRoot(finalAppComp);
     bodyHtml = renderToString(root);
+
+    for (const [id, children] of SLOTS_TRACKER.entries()) {
+      const slotHtml = renderToString(h(Fragment, null, children));
+      const templateId = id.replace(/:/g, "-");
+      bodyHtml += `<template id="${templateId}">${slotHtml}</template>`;
+    }
+
     return bodyHtml;
   }
 
   const renderResults: [Plugin, PluginRenderResult][] = [];
-  const syncPlugins = opts.plugins.filter((p) => p.render);
   if (isAsyncComponent && syncPlugins.length > 0) {
     throw new Error(
       `Async server components cannot be rendered synchronously. The following plugins use a synchronous render method: "${
@@ -272,7 +297,7 @@ export async function render<Data>(
       }
       renderResults.push([plugin, res]);
     } else {
-      renderInner(h(component as ComponentType, props));
+      renderInnerSync(h(component as ComponentType, props));
     }
     if (bodyHtml === null) {
       throw new Error(
@@ -304,15 +329,17 @@ export async function render<Data>(
         );
       }
     } else {
-      if (isAsyncComponent) {
+      if (
+        isAsyncComponent ||
+        layouts.some((layout) => checkAsyncComponent(layout.default))
+      ) {
         if (opts.renderFn !== DEFAULT_RENDER_FN) {
           throw new Error(
             `Async server components are not supported with custom render functions.`,
           );
         }
 
-        // deno-lint-ignore no-explicit-any
-        const res = await (component as AsyncRoute<any>)(opts.request, {
+        const context = {
           localAddr: opts.context.localAddr,
           remoteAddr: opts.context.remoteAddr,
           renderNotFound: opts.context.renderNotFound,
@@ -320,12 +347,74 @@ export async function render<Data>(
           route: opts.route.pattern,
           params: opts.params as Record<string, string>,
           state: opts.state ?? {},
-        });
-        if (res instanceof Response) {
-          asyncRenderResponse = res;
-          bodyHtml = "";
-        } else {
-          renderInner(res);
+        };
+
+        const renderStack = [
+          ...layouts.map((layout) => layout.default),
+          component,
+        ];
+
+        const componentStack: (VNode | null)[] = new Array(renderStack.length)
+          .fill(null);
+
+        // deno-lint-ignore no-explicit-any
+        const preparedLayouts: ComponentType<any>[] = [];
+        for (let i = 0; i < renderStack.length; i++) {
+          const layout = renderStack[i];
+          if (!layout) continue;
+
+          if (checkAsyncComponent(layout)) {
+            const res = await layout(opts.request, context, {
+              params: opts.params as Record<string, string>,
+              url: opts.url,
+              route: opts.route.pattern,
+              data: opts.data,
+              state: opts.state!,
+              Component() {
+                return componentStack[i + 1];
+              },
+            });
+            if (res instanceof Response) {
+              asyncRenderResponse = res;
+              bodyHtml = "";
+              break;
+            }
+            // deno-lint-ignore no-explicit-any
+            preparedLayouts.push(() => res as any);
+          } else {
+            // deno-lint-ignore no-explicit-any
+            preparedLayouts.push(layout as any);
+          }
+        }
+
+        // Only continue rendering layouts if we didn't abort
+        // earlier by returning a response object.
+        if (!asyncRenderResponse) {
+          const routeComponent = preparedLayouts[preparedLayouts.length - 1];
+          let finalAppComp = h(routeComponent, props);
+          componentStack.push(finalAppComp);
+
+          // Skip page component
+          let i = preparedLayouts.length - 1;
+          while (i--) {
+            const layout = preparedLayouts[i];
+            const curComp = finalAppComp;
+            componentStack[i + 1] = curComp;
+
+            finalAppComp = h(layout, {
+              params: opts.params as Record<string, string>,
+              url: opts.url,
+              route: opts.route.pattern,
+              data: opts.data,
+              state: opts.state!,
+              Component() {
+                return curComp;
+              },
+            });
+          }
+
+          const root = buildRoot(finalAppComp);
+          bodyHtml = renderToString(root);
         }
       } else {
         await opts.renderFn(ctx, () => renderSync().htmlText);
@@ -559,6 +648,15 @@ function wrapWithMarker(vnode: ComponentChildren, markerText: string) {
 const ISLANDS: Island[] = [];
 const ENCOUNTERED_ISLANDS: Set<Island> = new Set([]);
 let ISLAND_PROPS: unknown[] = [];
+// Track unused slots
+const SLOTS_TRACKER = new Map<string, ComponentChildren>();
+function SlotTracker(
+  props: { id: string; children?: ComponentChildren },
+): VNode {
+  SLOTS_TRACKER.delete(props.id);
+  // deno-lint-ignore no-explicit-any
+  return props.children as any;
+}
 
 // Keep track of which component rendered which vnode. This allows us
 // to detect when an island is rendered within another instead of being
@@ -608,13 +706,25 @@ options.vnode = (vnode) => {
       vnode.type = (props) => {
         ignoreNext = true;
 
+        const id = ISLAND_PROPS.length;
+
         // Only passing children JSX to islands is supported for now
         if ("children" in props) {
-          const children = props.children;
+          let children = props.children;
+          const markerText =
+            `frsh-slot-${island.id}:${island.exportName}:${id}:children`;
           // @ts-ignore nonono
           props.children = wrapWithMarker(
             children,
-            `frsh-slot-${island.id}:children`,
+            markerText,
+          );
+          SLOTS_TRACKER.set(markerText, children);
+          children = props.children;
+          // deno-lint-ignore no-explicit-any
+          (props as any).children = h(
+            SlotTracker,
+            { id: markerText },
+            children,
           );
         }
 

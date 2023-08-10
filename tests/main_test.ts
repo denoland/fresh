@@ -2,6 +2,7 @@ import { ServerContext, Status } from "../server.ts";
 import {
   assert,
   assertEquals,
+  assertMatch,
   assertStringIncludes,
   delay,
   puppeteer,
@@ -16,7 +17,6 @@ import {
   waitForText,
   withPageName,
 } from "./test_utils.ts";
-import { assertMatch } from "https://deno.land/std@0.193.0/testing/asserts.ts";
 
 const ctx = await ServerContext.fromManifest(manifest, options);
 const handler = ctx.handler();
@@ -637,6 +637,7 @@ Deno.test({
     const body = await resp.text();
     assertStringIncludes(body, "404 not found: /not_found");
     assertStringIncludes(body, "Hello Dino");
+    assertStringIncludes(body, "State root: root_mw");
   },
 });
 

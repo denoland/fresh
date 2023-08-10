@@ -1,11 +1,10 @@
 import { ComponentChildren, ComponentType, VNode } from "preact";
-import { ServeInit } from "./deps.ts";
 import * as router from "./router.ts";
 import { InnerRenderFunction, RenderContext } from "./render.ts";
 
 // --- APPLICATION CONFIGURATION ---
 
-export type StartOptions = ServeInit & FreshOptions;
+export type StartOptions = Partial<Deno.ServeTlsOptions> & FreshOptions;
 
 export interface FreshOptions {
   render?: RenderFunction;
@@ -59,11 +58,9 @@ export interface PageProps<T = any, S = Record<string, unknown>> {
 /**
  * Context passed to async route components.
  */
-export type RouteContext<T = unknown, S = Record<string, unknown>> =
-  & Omit<
-    HandlerContext<T, S>,
-    "render"
-  >
+// deno-lint-ignore no-explicit-any
+export type RouteContext<T = any, S = Record<string, unknown>> =
+  & Omit<HandlerContext<T, S>, "render">
   & Omit<PageProps<unknown, S>, "data">;
 
 export interface RouteConfig {
@@ -82,6 +79,18 @@ export interface RouteConfig {
    * using the `useCSP` hook.
    */
   csp?: boolean;
+
+  /**
+   * Mark this route as the root layout and ignore previously
+   * inherited layouts. Default: `false`
+   */
+  rootLayout?: boolean;
+
+  /**
+   * Whether to use the `routes/_app` template if available or not.
+   * Default: `true`
+   */
+  appTemplate?: boolean;
 }
 
 // deno-lint-ignore no-empty-interface
@@ -149,12 +158,15 @@ export type PageComponent<T = any, S = Record<string, unknown>> =
 
 // deno-lint-ignore no-explicit-any
 export interface Route<Data = any> {
+  baseRoute: BaseRoute;
   pattern: string;
   url: string;
   name: string;
   component?: PageComponent<Data>;
   handler: Handler<Data> | Handlers<Data>;
   csp: boolean;
+  appLayout: boolean;
+  rootLayout: boolean;
 }
 
 export interface RouterState {
@@ -163,7 +175,9 @@ export interface RouterState {
 
 // --- APP ---
 
-export interface AppProps extends PageProps {
+// deno-lint-ignore no-explicit-any
+export interface AppProps<T = any, S = Record<string, unknown>>
+  extends PageProps<T, S> {
   Component: ComponentType<Record<never, never>>;
 }
 
@@ -171,29 +185,32 @@ export interface AppModule {
   default: ComponentType<AppProps>;
 }
 
-export interface LayoutProps extends PageProps {
+// deno-lint-ignore no-explicit-any
+export interface LayoutProps<T = any, S = Record<string, unknown>>
+  extends PageProps<T, S> {
   Component: ComponentType<Record<never, never>>;
 }
+// deno-lint-ignore no-explicit-any
+export type AsyncLayout<T = any, S = Record<string, unknown>> = (
+  req: Request,
+  ctx: RouteContext<T, S>,
+  props: LayoutProps,
+) => Promise<ComponentChildren | Response>;
 
 export interface LayoutModule {
-  default: ComponentType<LayoutProps>;
+  default: ComponentType<LayoutProps> | AsyncLayout;
+  config?: Pick<RouteConfig, "appTemplate" | "rootLayout">;
 }
 
-export interface LayoutRoute extends LayoutModule {
-  /**
-   * path-to-regexp style url path
-   */
-  pattern: string;
-  /**
-   * URLPattern of the route
-   */
-  compiledPattern: URLPattern;
+export interface LayoutRoute {
+  baseRoute: BaseRoute;
+  module: LayoutModule;
 }
 
 // --- UNKNOWN PAGE ---
 
 // deno-lint-ignore no-explicit-any
-export interface UnknownPageProps<T = any> {
+export interface UnknownPageProps<T = any, S = Record<string, unknown>> {
   /** The URL of the request that resulted in this page being rendered. */
   url: URL;
 
@@ -206,6 +223,7 @@ export interface UnknownPageProps<T = any> {
    * `undefined`.
    */
   data: T;
+  state: S;
 }
 
 export interface UnknownHandlerContext<State = Record<string, unknown>>
@@ -226,12 +244,15 @@ export interface UnknownPageModule {
 }
 
 export interface UnknownPage {
+  baseRoute: BaseRoute;
   pattern: string;
   url: string;
   name: string;
   component?: PageComponent<UnknownPageProps>;
   handler: UnknownHandler;
   csp: boolean;
+  appLayout: boolean;
+  rootLayout: boolean;
 }
 
 // --- ERROR PAGE ---
@@ -255,6 +276,9 @@ export interface ErrorHandlerContext<State = Record<string, unknown>>
   state: State;
 }
 
+// Nominal/Branded type. Ensures that the string has the expected format
+export type BaseRoute = string & { readonly __brand: unique symbol };
+
 export type ErrorHandler = (
   req: Request,
   ctx: ErrorHandlerContext,
@@ -267,12 +291,15 @@ export interface ErrorPageModule {
 }
 
 export interface ErrorPage {
+  baseRoute: BaseRoute;
   pattern: string;
   url: string;
   name: string;
   component?: PageComponent<ErrorPageProps>;
   handler: ErrorHandler;
   csp: boolean;
+  appLayout: boolean;
+  rootLayout: boolean;
 }
 
 // --- MIDDLEWARES ---
@@ -285,15 +312,9 @@ export interface MiddlewareHandlerContext<State = Record<string, unknown>>
   params: Record<string, string>;
 }
 
-export interface MiddlewareRoute extends Middleware {
-  /**
-   * path-to-regexp style url path
-   */
-  pattern: string;
-  /**
-   * URLPattern of the route
-   */
-  compiledPattern: URLPattern;
+export interface MiddlewareRoute {
+  baseRoute: BaseRoute;
+  module: Middleware;
 }
 
 export type MiddlewareHandler<State = Record<string, unknown>> = (
@@ -327,7 +348,7 @@ export interface Island {
 
 // --- PLUGINS ---
 
-export interface Plugin {
+export interface Plugin<State = Record<string, unknown>> {
   /** The name of the plugin. Must be snake-case. */
   name: string;
 
@@ -361,7 +382,7 @@ export interface Plugin {
 
   routes?: PluginRoute[];
 
-  middlewares?: PluginMiddleware[];
+  middlewares?: PluginMiddleware<State>[];
 }
 
 export interface PluginRenderContext {
@@ -413,11 +434,11 @@ export interface PluginRenderFunctionResult {
   requiresHydration: boolean;
 }
 
-export interface PluginMiddleware {
+export interface PluginMiddleware<State = Record<string, unknown>> {
   /** A path in the format of a filename path without filetype */
   path: string;
 
-  middleware: Middleware;
+  middleware: Middleware<State>;
 }
 
 export interface PluginRoute {

@@ -229,8 +229,7 @@ await Deno.writeTextFile(
 );
 
 // 404 page
-const ROUTES_404_PAGE = `
-import { Head } from "$fresh/runtime.ts";
+const ROUTES_404_PAGE = `import { Head } from "$fresh/runtime.ts";
 
 export default function Error404() {
   return (
@@ -308,7 +307,7 @@ const NO_TWIND_STYLES = `
 *,
 *::before,
 *::after {
-  box-sizing: boder-box;
+  box-sizing: border-box;
 }
 * {
   margin: 0;
@@ -537,6 +536,8 @@ try {
 const config = {
   lock: false,
   tasks: {
+    check:
+      "deno fmt --check && deno lint && deno check **/*.ts && deno check **/*.tsx",
     start: "deno run -A --watch=static/,routes/ dev.ts",
     update: "deno run -A -r https://fresh.deno.dev/update .",
   },

@@ -68,6 +68,32 @@ Deno.test("plugin routes and middleware", async () => {
   );
 });
 
+Deno.test("plugin middleware multiple handlers", async () => {
+  const resp = await router(
+    new Request("https://fresh.deno.dev/lots-of-middleware"),
+  );
+  assert(resp);
+  assertEquals(resp.status, Status.OK);
+  const body = await resp.text();
+  assertStringIncludes(
+    body,
+    `<h1>3</h1>`,
+  );
+});
+
+Deno.test("plugin route no leading slash", async () => {
+  const resp = await router(
+    new Request("https://fresh.deno.dev/no-leading-slash-here"),
+  );
+  assert(resp);
+  assertEquals(resp.status, Status.OK);
+  const body = await resp.text();
+  assertStringIncludes(
+    body,
+    `<div>Hello</div>`,
+  );
+});
+
 Deno.test({
   name: "/with-island hydration",
   async fn(t) {

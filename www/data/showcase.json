@@ -31,9 +31,9 @@
   },
   {
     "title": "Paquet",
-    "link": "https://paquet.shop",
-    "github": "fructoland/paquet",
-    "image": "paquet"
+    "link": "https://paquet.app",
+    "github": "notangelmario/paquet",
+    "image": "Paquet"
   },
   {
     "title": "Video Poker Academy",
@@ -356,6 +356,11 @@
     "title": "LiberChat",
     "link": "https://liberchat.deno.dev",
     "image": "liberchat"
+  },
+  {
+    "title": "over-ip",
+    "link": "https://over-ip.dragon-vi.be",
+    "image": "over-ip"
   },
   {
     "title": "Do not remove this, it’s for preventing conflicts by trailing comma",

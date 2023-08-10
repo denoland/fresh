@@ -1,12 +1,10 @@
 import * as path from "$std/path/mod.ts";
-import {
-  assertMatch,
-  assertNotMatch,
-} from "https://deno.land/std@0.193.0/testing/asserts.ts";
 import { Status } from "../src/server/deps.ts";
 import {
   assert,
   assertEquals,
+  assertMatch,
+  assertNotMatch,
   assertStringIncludes,
   delay,
   puppeteer,
@@ -29,7 +27,7 @@ const assertFileExistence = async (files: string[], dirname: string) => {
 };
 
 Deno.test({
-  name: "fresh-init",
+  name: "fresh-init asdf",
   async fn(t) {
     // Preparation
     const tmpDirName = await Deno.makeTempDir();
@@ -64,6 +62,21 @@ Deno.test({
 
     await t.step("check generated files", async () => {
       await assertFileExistence(files, tmpDirName);
+    });
+
+    await t.step("check project", async () => {
+      const cliProcess = new Deno.Command(Deno.execPath(), {
+        args: [
+          "task",
+          "check",
+        ],
+        cwd: tmpDirName,
+        stdin: "null",
+        stdout: "piped",
+        stderr: "piped",
+      });
+      const { code } = await cliProcess.output();
+      assertEquals(code, 0);
     });
 
     await t.step("start up the server and access the root page", async () => {
@@ -358,14 +371,24 @@ Deno.test("fresh-update", async function fn(t) {
     );
   });
 
+  const comment = "// This is a test comment";
+  const regex = /("preact": "https:\/\/esm.sh\/preact@[\d.]+",\n)/;
+  const originalName = `${tmpDirName}/deno.json`;
+  const updatedName = `${originalName}c`;
   await t.step("execute update command deno.jsonc support", async () => {
     try {
-      Deno.renameSync(`${tmpDirName}/deno.json`, `${tmpDirName}/deno.jsonc`);
+      Deno.renameSync(originalName, updatedName);
+      let denoJsonText = await Deno.readTextFile(updatedName);
+      denoJsonText = denoJsonText.replace(regex, `$1${comment}\n`);
+      await Deno.writeTextFile(updatedName, denoJsonText);
       await updateAndVerify(
         /The manifest has been generated for \d+ routes and \d+ islands./,
       );
     } finally {
-      Deno.renameSync(`${tmpDirName}/deno.jsonc`, `${tmpDirName}/deno.json`);
+      let denoJsonText = await Deno.readTextFile(updatedName);
+      denoJsonText = denoJsonText.replace(new RegExp(`\n${comment}\n`), "\n");
+      await Deno.writeTextFile(updatedName, denoJsonText);
+      Deno.renameSync(updatedName, originalName);
     }
   });
 
