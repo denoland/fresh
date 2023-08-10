@@ -258,6 +258,8 @@ export class ServerContext {
           component,
           handler,
           csp: Boolean(config?.csp ?? false),
+          appLayout: Boolean(config?.appTemplate ?? true),
+          rootLayout: Boolean(config?.rootLayout ?? false),
         };
         routes.push(route);
       } else if (isMiddleware) {
@@ -295,6 +297,8 @@ export class ServerContext {
           component,
           handler: handler ?? ((req) => router.defaultOtherHandler(req)),
           csp: Boolean(config?.csp ?? false),
+          appLayout: Boolean(config?.appTemplate ?? true),
+          rootLayout: Boolean(config?.rootLayout ?? false),
         };
       } else if (
         path === "/_500.tsx" || path === "/_500.ts" ||
@@ -316,6 +320,8 @@ export class ServerContext {
           handler: handler ??
             ((req, ctx) => router.defaultErrorHandler(req, ctx, ctx.error)),
           csp: Boolean(config?.csp ?? false),
+          appLayout: Boolean(config?.appTemplate ?? true),
+          rootLayout: Boolean(config?.rootLayout ?? false),
         };
       }
     }
@@ -1015,6 +1021,8 @@ const DEFAULT_NOT_FOUND: UnknownPage = {
   name: "_404",
   handler: (req) => router.defaultOtherHandler(req),
   csp: false,
+  appLayout: true,
+  rootLayout: false,
 };
 
 const DEFAULT_ERROR: ErrorPage = {
@@ -1025,6 +1033,8 @@ const DEFAULT_ERROR: ErrorPage = {
   component: DefaultErrorHandler,
   handler: (_req, ctx) => ctx.render(),
   csp: false,
+  appLayout: true,
+  rootLayout: false,
 };
 
 export function selectSharedRoutes<T>(

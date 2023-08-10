@@ -40,6 +40,15 @@ export function assertSelector(doc: Document, selector: string) {
   }
 }
 
+export function assertNotSelector(doc: Document, selector: string) {
+  if (doc.querySelector(selector) !== null) {
+    const html = prettyDom(doc);
+    throw new Error(
+      `Selector "${selector}" found in document.\n\n${html}`,
+    );
+  }
+}
+
 export function assertTextMany(
   doc: Document,
   selector: string,
