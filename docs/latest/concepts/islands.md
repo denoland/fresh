@@ -40,27 +40,9 @@ export default function Home() {
 }
 ```
 
-Passing props to islands is supported, but only if the props are serializable.
-Fresh can serialize the following types of values:
-
-- Primitive types `string`, `boolean`, `bigint`, and `null`
-- Most `number`s (`Infinity`, `-Infinity`, and `NaN` are silently converted to
-  `null`)
-- Plain objects with string keys and serializable values
-- Arrays containing serializable values
-- Uint8Array
-- JSX Elements (restricted to `props.children`)
-- Preact Signals (if the inner value is serializable)
-
-Circular references are supported. If an object or signal is referenced multiple
-times, it is only serialized once and the references are restored upon
-deserialization. Passing complex objects like `Date`, custom classes, or
-functions is not supported.
-
 ## Passing JSX to islands
 
-Islands support passing JSX elements via the `children` property. This allows
-you to pass static content rendered by the server to an island in the browser.
+Islands support passing JSX elements via the `children` property.
 
 ```tsx
 // islands/my-island.tsx
@@ -85,6 +67,9 @@ export default function MyIsland({ children }: Data) {
 }
 ```
 
+This allows you to pass static content rendered by the server to an island in
+the browser.
+
 ```tsx
 // routes/index.tsx
 import MyIsland from "../islands/my-island.tsx";
@@ -98,6 +83,25 @@ export default function Home() {
 }
 ```
 
+## Passing other props to islands
+
+Passing props to islands is supported, but only if the props are serializable.
+Fresh can serialize the following types of values:
+
+- Primitive types `string`, `boolean`, `bigint`, and `null`
+- Most `number`s (`Infinity`, `-Infinity`, and `NaN` are silently converted to
+  `null`)
+- Plain objects with string keys and serializable values
+- Arrays containing serializable values
+- Uint8Array
+- JSX Elements (restricted to `props.children`)
+- Preact Signals (if the inner value is serializable)
+
+Circular references are supported. If an object or signal is referenced multiple
+times, it is only serialized once and the references are restored upon
+deserialization. Passing complex objects like `Date`, custom classes, or
+functions is not supported.
+
 We can deduce which parts were rendered by the server and which parts where
 rendered by an island from the HTML alone. It contains all the information we
 need, which allows us to skip the work of having to send a serialized version of
@@ -110,17 +114,31 @@ like a normal Preact component, but still receive the serialized props if any
 were present.
 
 ```tsx
-// route/index.tsx
-import MyIsland from "../islands/my-island.tsx";
-import OtherIsland from "../islands/other-island.tsx";
+// islands/other-island.tsx
+import { useSignal } from "@preact/signals";
+import { VNode } from "preact";
 
-export default function Home() {
+interface Data {
+  children: VNode<Element>;
+  foo: string;
+}
+
+function randomNumber() {
+  return Math.floor(Math.random() * 100);
+}
+
+export default function MyIsland({ children, foo }: Data) {
+  const number = useSignal(randomNumber());
+
   return (
-    <MyIsland>
-      <OtherIsland foo="this prop will be serialized">
-        <p>This text is rendered on the server</p>
-      </OtherIsland>
-    </MyIsland>
+    <div>
+      <p>String from props: {foo}</p>
+      <p>
+        <button onClick={() => number.value = randomNumber()}>Random</button>
+        {" "}
+        number is: {number}.
+      </p>
+    </div>
   );
 }
 ```
@@ -129,21 +147,19 @@ In essence, Fresh allows you to mix static and interactive parts in your app in
 a way that's most optimal for your use app. We'll keep sending only the
 JavaScript that is needed for the islands to the browser.
 
-```jsx
+```tsx
 // route/index.tsx
 import MyIsland from "../islands/my-island.tsx";
 import OtherIsland from "../islands/other-island.tsx";
 
 export default function Home() {
   return (
-    <MyIsland>
-      <div>
-        <h1>Rendered by server</h1>
-        <OtherIsland>
-          <p>also rendered by server</p>
-        </OtherIsland>
-      </div>
-    </MyIsland>
+    <div>
+      <MyIsland>
+        <OtherIsland foo="this prop will be serialized" />
+      </MyIsland>
+      <p>Some more server rendered text</p>
+    </div>
   );
 }
 ```
