@@ -11,11 +11,13 @@ With progressive web app you can make your app:
 - etc..
 
 ## Make it installable
-to make your app installable you need called `webmanifest` is json file contains all about your app
+
+to make your app installable you need called `webmanifest` is json file contains
+all about your app
 
 ### Create Webmanifest
 
-- Add `manifest.webmanifest` or `manifest.json` in `static/` directory 
+- Add `manifest.webmanifest` or `manifest.json` in `static/` directory
 
 now your workspace project like this:
 
@@ -40,7 +42,6 @@ now your workspace project like this:
     ├── favicon.ico
     └── logo.svg
 ```
-
 
 - insert this in `manifest`
 
@@ -115,6 +116,7 @@ Add link to `manifest` in `<Head></Head>`
 + <meta name="theme-color" content="#3b82f6" />
 </Head>
 ```
+
 > the `apple-touch-icon` need for apple device
 
 > `theme-color` for your theme bar in your app
@@ -124,8 +126,10 @@ Now your app installable 🚀
 But your app is not ready to offline
 
 ## Service Worker
-Service worker is `javascript` file to make your app work like native app.
-With service worker your app can:
+
+Service worker is `javascript` file to make your app work like native app. With
+service worker your app can:
+
 - Access notification
 - Access in offline mode
 - Control cache
@@ -133,7 +137,9 @@ With service worker your app can:
 Let's add simple offline fallback in your app
 
 ### Create Service Worker
+
 - Create `app.js` and `sw.js` in `static/` directory
+
 ```diff
 .
 ├── README.md
@@ -159,6 +165,7 @@ Let's add simple offline fallback in your app
 ```
 
 - Update your `<Head></Head>`
+
 ```diff
 <Head>
   ...
@@ -174,49 +181,50 @@ add this code in `app.js` to register your service worker
 ```js
 if ("serviceWorker" in navigator) {
   const registration = await navigator.serviceWorker.register(
-    "/service-worker.js"
-  )
+    "/service-worker.js",
+  );
   console.info(
-    `Service worker registered with scope: ${registration.scope}`
-  )
+    `Service worker registered with scope: ${registration.scope}`,
+  );
 }
 ```
 
 add this code to `sw.js` to add offline fallback in your app
 
-> This is simple service worker to add offline fallback page, you can use more complex logic
+> This is simple service worker to add offline fallback page, you can use more
+> complex logic
+
 ```js
-addEventListener('install', (event) => event.waitUntil(registerCache()))
-addEventListener('fetch', (event) => event.respondWith(handleCache(event)))
+addEventListener("install", (event) => event.waitUntil(registerCache()));
+addEventListener("fetch", (event) => event.respondWith(handleCache(event)));
 
 // open cache storage
 async function openCache() {
-  return caches.open('foo-bar')
+  return caches.open("foo-bar");
 }
 
 //register cache
 async function registerCache() {
-  const cache = await openCache()
+  const cache = await openCache();
   // static file to cache
-  const urlsToCache = ['/', '/favicon.ico', 'logo.svg']
-  console.info('Service worker caching all')
+  const urlsToCache = ["/", "/favicon.ico", "logo.svg"];
+  console.info("Service worker caching all");
 
-  await cache.addAll(urlsToCache)
+  await cache.addAll(urlsToCache);
 }
 
 // handle offline fallback
 async function handleCache(networkEvent) {
   try {
-    console.info('Service Worker Trying Fetch from Network')
+    console.info("Service Worker Trying Fetch from Network");
 
-    return await fetch(networkEvent.request)
+    return await fetch(networkEvent.request);
   } catch (error) {
-    console.info(`${error} | Service Worker using cache`)
-    const cache = await openCache()
-      // cache.match for fallback page is "/"
-      // your can change page like /offline.html
-    return cache.match(networkEvent.request)
+    console.info(`${error} | Service Worker using cache`);
+    const cache = await openCache();
+    // cache.match for fallback page is "/"
+    // your can change page like /offline.html
+    return cache.match(networkEvent.request);
   }
 }
-
 ```
