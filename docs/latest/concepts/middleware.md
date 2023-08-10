@@ -197,3 +197,25 @@ That first `route` request is for when `Fresh` responds with the root level
 `index.tsx` route. The rest, as you can see, are either `internal` or `static`
 requests. You can use `ctx.destination` to filter these out if your middleware
 is only supposed to deal with routes.
+
+## Middleware Redirects
+
+If you want to redirect a request from a middleware, you can do so by returning:
+
+```ts
+export function handler(req: Request): Response {
+  return Response.redirect("https://example.com", 307);
+}
+```
+
+`307` stands for temporary redirect. You can also use `301` for permanent
+redirect. You can also redirect to a relative path by doing:
+
+```ts
+export function handler(req: Request): Response {
+  return new Response("", {
+    status: 307,
+    headers: { Location: "/my/new/relative/path" },
+  });
+}
+```
