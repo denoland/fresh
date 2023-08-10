@@ -198,7 +198,7 @@ That first `route` request is for when `Fresh` responds with the root level
 requests. You can use `ctx.destination` to filter these out if your middleware
 is only supposed to deal with routes.
 
-## Middlware Redirects
+## Middleware Redirects
 
 If you want to redirect a request from a middleware, you can do so by returning:
 
