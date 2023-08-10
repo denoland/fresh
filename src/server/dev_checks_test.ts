@@ -18,6 +18,8 @@ import type { AppModule, Plugin, Route, StaticFile } from "./types.ts";
 
 function createRoute(route: Partial<Route>): Route {
   return {
+    appLayout: false,
+    rootLayout: false,
     baseRoute: toBaseRoute("/"),
     name: "/",
     url: "/",
