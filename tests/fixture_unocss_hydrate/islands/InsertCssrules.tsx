@@ -69,7 +69,7 @@ export default function InsertCssrules() {
         }}
         disabled={insertedStyles.value === "" ? false : true}
       >
-        Add `text-green-600` to Current Number Class
+        Add class to Current Number Class
       </button>
     </div>
   );
