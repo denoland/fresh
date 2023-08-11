@@ -87,6 +87,11 @@ export interface DenoConfig {
 
 export { ServerContext };
 
+// Helper to get autocompletion
+export function defineConfig(config: StartOptions): StartOptions {
+  return config;
+}
+
 export async function createHandler(
   routes: Manifest,
   opts: StartOptions = {},
