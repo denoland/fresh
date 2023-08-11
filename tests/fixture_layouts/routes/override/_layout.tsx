@@ -1,7 +1,7 @@
-import { LayoutProps, RouteConfig } from "$fresh/server.ts";
+import { LayoutConfig, LayoutProps } from "$fresh/server.ts";
 
-export const config: RouteConfig = {
-  rootLayout: true,
+export const config: LayoutConfig = {
+  inheritLayouts: false,
 };
 
 export default function OverrideLayout({ Component }: LayoutProps) {

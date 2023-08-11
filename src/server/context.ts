@@ -253,8 +253,8 @@ export class ServerContext {
           component,
           handler,
           csp: Boolean(config?.csp ?? false),
-          appLayout: Boolean(config?.appTemplate ?? true),
-          rootLayout: Boolean(config?.rootLayout ?? false),
+          appTemplate: Boolean(config?.appTemplate ?? true),
+          inheritLayouts: Boolean(config?.inheritLayouts ?? true),
         };
         routes.push(route);
       } else if (isMiddleware) {
@@ -268,9 +268,14 @@ export class ServerContext {
       ) {
         app = module as AppModule;
       } else if (isLayout) {
+        const mod = module as LayoutModule;
+        const config = mod.config;
         layouts.push({
           baseRoute: toBaseRoute(baseRoute),
-          module: module as LayoutModule,
+          handler: mod.handler,
+          component: mod.default,
+          appTemplate: Boolean(config?.appTemplate ?? true),
+          inheritLayouts: Boolean(config?.inheritLayouts ?? true),
         });
       } else if (
         path === "/_404.tsx" || path === "/_404.ts" ||
@@ -290,8 +295,8 @@ export class ServerContext {
           component,
           handler: handler ?? ((req) => router.defaultOtherHandler(req)),
           csp: Boolean(config?.csp ?? false),
-          appLayout: Boolean(config?.appTemplate ?? true),
-          rootLayout: Boolean(config?.rootLayout ?? false),
+          appTemplate: Boolean(config?.appTemplate ?? true),
+          inheritLayouts: Boolean(config?.inheritLayouts ?? false),
         };
       } else if (
         path === "/_500.tsx" || path === "/_500.ts" ||
@@ -312,8 +317,8 @@ export class ServerContext {
           handler: handler ??
             ((req, ctx) => router.defaultErrorHandler(req, ctx, ctx.error)),
           csp: Boolean(config?.csp ?? false),
-          appLayout: Boolean(config?.appTemplate ?? true),
-          rootLayout: Boolean(config?.rootLayout ?? false),
+          appTemplate: Boolean(config?.appTemplate ?? true),
+          inheritLayouts: Boolean(config?.inheritLayouts ?? false),
         };
       }
     }
@@ -542,13 +547,13 @@ export class ServerContext {
         params: paramsAndRouteResult.params,
       };
 
-      for (const mw of mws) {
-        if (mw.handler instanceof Array) {
-          for (const handler of mw.handler) {
+      for (const { module } of mws) {
+        if (module.handler instanceof Array) {
+          for (const handler of module.handler) {
             handlers.push(() => handler(req, middlewareCtx));
           }
         } else {
-          const handler = mw.handler;
+          const handler = module.handler;
           handlers.push(() => handler(req, middlewareCtx));
         }
       }
@@ -977,8 +982,8 @@ const DEFAULT_NOT_FOUND: UnknownPage = {
   name: "_404",
   handler: (req) => router.defaultOtherHandler(req),
   csp: false,
-  appLayout: true,
-  rootLayout: false,
+  appTemplate: true,
+  inheritLayouts: false,
 };
 
 const DEFAULT_ERROR: ErrorPage = {
@@ -989,23 +994,24 @@ const DEFAULT_ERROR: ErrorPage = {
   component: DefaultErrorHandler,
   handler: (_req, ctx) => ctx.render(),
   csp: false,
-  appLayout: true,
-  rootLayout: false,
+  appTemplate: true,
+  inheritLayouts: false,
 };
 
-export function selectSharedRoutes<T>(
+export function selectSharedRoutes<T extends { baseRoute: BaseRoute }>(
   curBaseRoute: BaseRoute,
-  items: { baseRoute: BaseRoute; module: T }[],
+  items: T[],
 ): T[] {
   const selected: T[] = [];
 
-  for (const { baseRoute, module } of items) {
+  for (const item of items) {
+    const { baseRoute } = item;
     const res = curBaseRoute === baseRoute ||
       curBaseRoute.startsWith(
         baseRoute.length > 1 ? baseRoute + "/" : baseRoute,
       );
     if (res) {
-      selected.push(module);
+      selected.push(item);
     }
   }
 

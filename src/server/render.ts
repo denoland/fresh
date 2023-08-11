@@ -15,7 +15,7 @@ import {
   AsyncRoute,
   ErrorPage,
   Island,
-  LayoutModule,
+  LayoutRoute,
   Plugin,
   PluginRenderFunctionResult,
   PluginRenderResult,
@@ -83,7 +83,7 @@ export interface RenderOptions<Data> {
   islands: Island[];
   plugins: Plugin[];
   app: AppModule;
-  layouts: LayoutModule[];
+  layouts: LayoutRoute[];
   imports: string[];
   dependenciesFn: (path: string) => string[];
   url: URL;
@@ -182,11 +182,11 @@ export async function render<Data>(
   // Only inherit layouts up to the nearest root layout.
   // Note that the route itself can act as the root layout.
   let layouts = opts.layouts;
-  if (!opts.route.rootLayout) {
+  if (opts.route.inheritLayouts) {
     let rootIdx = 0;
     let layoutIdx = opts.layouts.length;
     while (layoutIdx--) {
-      if (opts.layouts[layoutIdx].config?.rootLayout) {
+      if (!opts.layouts[layoutIdx].inheritLayouts) {
         rootIdx = layoutIdx;
         break;
       }
