@@ -458,3 +458,59 @@ Deno.test("fresh-update", async function fn(t) {
     assertEquals(code, 0);
   }
 });
+
+Deno.test("fresh-update add _app.tsx if not present", async function fn(t) {
+  // Preparation
+  const tmpDirName = await Deno.makeTempDir();
+
+  const cliProcess = new Deno.Command(Deno.execPath(), {
+    args: [
+      "run",
+      "-A",
+      path.join(Deno.cwd(), "init.ts"),
+      ".",
+    ],
+    cwd: tmpDirName,
+    stdin: "null",
+    stdout: "null",
+  });
+
+  await cliProcess.output();
+
+  const appTsx = path.join(tmpDirName, "routes", "_app.tsx");
+  await Deno.remove(appTsx);
+
+  await t.step("execute update command", async () => {
+    await updateAndVerify(
+      /The manifest has been generated for \d+ routes and \d+ islands./,
+    );
+  });
+
+  await t.step("add _app.tsx", async () => {
+    const raw = await Deno.readTextFile(appTsx);
+    assert(raw.includes("<html>"), `<html>-tag not found in _app.tsx`);
+  });
+
+  async function updateAndVerify(expected: RegExp) {
+    const cliProcess = new Deno.Command(Deno.execPath(), {
+      args: [
+        "run",
+        "-A",
+        path.join(Deno.cwd(), "update.ts"),
+        ".",
+      ],
+      cwd: tmpDirName,
+      stdin: "null",
+      stdout: "piped",
+    });
+
+    const { code, stdout } = await cliProcess.output();
+    const output = new TextDecoder().decode(stdout);
+
+    assertMatch(
+      output,
+      expected,
+    );
+    assertEquals(code, 0);
+  }
+});

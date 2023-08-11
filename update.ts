@@ -1,4 +1,5 @@
 import {
+  basename,
   dirname,
   existsSync,
   extname,
@@ -229,6 +230,34 @@ await start(manifest, { plugins: [twindPlugin(twindConfig)] });\n`;
     await sf.save();
   }
 }
+
+// Add default _app.tsx if not present
+const routes = Array.from(Deno.readDirSync(join(srcDirectory, "routes")));
+if (!routes.find((entry) => entry.isFile && entry.name.startsWith("_app."))) {
+  const APP_TSX = `import { AppProps } from "$fresh/server.ts";
+
+export default function App({ Component }: AppProps) {
+  return (
+    <html>
+      <head>
+        <meta charSet="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>${basename(resolvedDirectory)}</title>
+      </head>
+      <body>
+        <Component />
+      </body>
+    </html>
+  );
+}`;
+  await Deno.writeTextFile(
+    join(srcDirectory, "routes", "_app.tsx"),
+    APP_TSX,
+  );
+}
+
+console.log(routes);
+// await Deno.writeTextFile(MAIN_TS_PATH, MAIN_TS);
 
 const manifest = await collect(srcDirectory);
 await generate(srcDirectory, manifest);

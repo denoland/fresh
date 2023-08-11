@@ -45,11 +45,35 @@ export interface AdvancedPreactOptions extends PreactOptions {
   /** Attach a hook that is invoked before a vnode has rendered. */
   __r?(vnode: VNode): void;
   errorBoundaries?: boolean;
+  /** before diff hook */
+  __b?(vnode: VNode): void;
 }
 const options = preactOptions as AdvancedPreactOptions;
 
 // Enable error boundaries in Preact.
 options.errorBoundaries = true;
+
+// These values keep track of whether the user rendered the <html>,
+// <head> and <body> element. Basically, the outer document. We
+// keep track of this, because we only know the full sets of
+// elements we should put in `<head>` after having completed
+// rendering the page.
+let RENDERING_USER_TEMPLATE = false;
+interface OuterDocument {
+  // deno-lint-ignore no-explicit-any
+  title: VNode<any> | null;
+  html: Record<string, unknown> | null;
+  head: Record<string, unknown> | null;
+  body: Record<string, unknown> | null;
+  headNodes: { type: string; props: Record<string, unknown> }[];
+}
+let OUTER_DOCUMENT: OuterDocument = {
+  title: null,
+  html: null,
+  head: null,
+  body: null,
+  headNodes: [],
+};
 
 export interface RenderOptions<Data> {
   request: Request;
@@ -208,6 +232,17 @@ export async function render<Data>(
   ISLAND_PROPS = [];
   // Clear previous slots
   SLOTS_TRACKER.clear();
+
+  // Clear rendering state
+  RENDERING_USER_TEMPLATE = false;
+  headChildren = false;
+  OUTER_DOCUMENT = {
+    title: null,
+    body: null,
+    head: null,
+    html: null,
+    headNodes: [],
+  };
 
   const ctx = new RenderContext(
     crypto.randomUUID(),
@@ -432,7 +467,19 @@ export async function render<Data>(
     };
   }
 
+  RENDERING_USER_TEMPLATE = true;
   await renderAsync();
+  RENDERING_USER_TEMPLATE = false;
+
+  const idx = headComponents.findIndex((vnode) =>
+    vnode !== null && typeof vnode === "object" && "type" in vnode &&
+    props !== null && vnode.type === "title"
+  );
+  if (idx !== -1) {
+    OUTER_DOCUMENT.title = headComponents[idx] as VNode<{ children: string }>;
+    headComponents.splice(idx, 1);
+  }
+
   if (asyncRenderResponse !== undefined) {
     return asyncRenderResponse;
   }
@@ -563,48 +610,37 @@ export async function render<Data>(
   }
 
   const preloads = [...preloadSet];
-  const html = template({
-    bodyHtml,
-    headComponents,
-    moduleScripts,
-    preloads,
-    lang: ctx.lang,
-  });
 
-  return [html, csp];
-}
-
-export interface TemplateOptions {
-  bodyHtml: string;
-  headComponents: ComponentChildren[];
-  moduleScripts: (readonly [string, string])[];
-  preloads: string[];
-  lang: string;
-}
-
-export function template(opts: TemplateOptions): string {
   const page = h(
     "html",
-    { lang: opts.lang },
+    OUTER_DOCUMENT.html ?? { lang: ctx.lang },
     h(
       "head",
-      null,
-      h("meta", { charSet: "UTF-8" }),
-      h("meta", {
-        name: "viewport",
-        content: "width=device-width, initial-scale=1.0",
-      }),
-      opts.preloads.map((src) =>
-        h("link", { rel: "modulepreload", href: src })
-      ),
-      opts.moduleScripts.map(([src, nonce]) =>
+      OUTER_DOCUMENT.head,
+      // Add some tags ourselves if the user uses the legacy
+      // _app template rendering style where we provided the outer
+      // HTML document.
+      !renderedHtmlTag ? h("meta", { charSet: "UTF-8" }) : null,
+      !renderedHtmlTag
+        ? h("meta", {
+          name: "viewport",
+          content: "width=device-width, initial-scale=1.0",
+        })
+        : null,
+      OUTER_DOCUMENT.title,
+      OUTER_DOCUMENT.headNodes.map((node) => h(node.type, node.props)),
+      // Fresh scripts
+      preloads.map((src) => h("link", { rel: "modulepreload", href: src })),
+      moduleScripts.map(([src, nonce]) =>
         h("script", { src: src, nonce: nonce, type: "module" })
       ),
-      opts.headComponents,
+      headComponents,
     ),
-    h("body", { dangerouslySetInnerHTML: { __html: opts.bodyHtml } }),
+    h("body", { dangerouslySetInnerHTML: { __html: bodyHtml } }),
   );
-  return "<!DOCTYPE html>" + renderToString(page);
+  const html = "<!DOCTYPE html>" + renderToString(page);
+
+  return [html, csp];
 }
 
 const supportsUnstableComments = renderToString(h(Fragment, {
@@ -666,6 +702,8 @@ const islandOwners = new Map<VNode, VNode>();
 
 const originalHook = options.vnode;
 let ignoreNext = false;
+let headChildren = false;
+let renderedHtmlTag = false;
 options.vnode = (vnode) => {
   assetHashingHook(vnode);
   const originalType = vnode.type as ComponentType<unknown>;
@@ -737,7 +775,7 @@ options.vnode = (vnode) => {
         );
       };
     }
-  } else if (typeof vnode.type === "string" && vnode.props !== null) {
+  } else {
     // Work around `preact/debug` string event handler error which
     // errors when an event handler gets a string. This makes sense
     // on the client where this is a common vector for XSS. On the
@@ -757,10 +795,48 @@ options.vnode = (vnode) => {
   if (originalHook) originalHook(vnode);
 };
 
+function excludeChildren(props: Record<string, unknown>) {
+  const out: Record<string, unknown> = {};
+  for (const k in props) {
+    if (k !== "children") out[k] = props[k];
+  }
+  return out;
+}
+
 // Keep track of owners
+const oldDiff = options.__b;
 const oldDiffed = options.diffed;
 const oldRender = options.__r;
 const oldCommit = options.__c;
+options.__b = (vnode: VNode<Record<string, unknown>>) => {
+  if (RENDERING_USER_TEMPLATE && typeof vnode.type === "string") {
+    if (vnode.type === "html") {
+      renderedHtmlTag = true;
+      OUTER_DOCUMENT.html = excludeChildren(vnode.props);
+      vnode.type = Fragment;
+    } else if (vnode.type === "head") {
+      OUTER_DOCUMENT.head = excludeChildren(vnode.props);
+      headChildren = true;
+      vnode.type = Fragment;
+      vnode.props = {
+        __freshHead: true,
+        children: vnode.props.children,
+      };
+    } else if (vnode.type === "body") {
+      OUTER_DOCUMENT.body = excludeChildren(vnode.props);
+      vnode.type = Fragment;
+    } else if (headChildren) {
+      if (vnode.type === "title") {
+        OUTER_DOCUMENT.title = h("title", vnode.props);
+        vnode.props = { children: null };
+      } else {
+        OUTER_DOCUMENT.headNodes.push({ type: vnode.type, props: vnode.props });
+      }
+      vnode.type = Fragment;
+    }
+  }
+  oldDiff?.(vnode);
+};
 options.__r = (vnode) => {
   if (
     typeof vnode.type === "function" &&
@@ -770,10 +846,12 @@ options.__r = (vnode) => {
   }
   oldRender?.(vnode);
 };
-options.diffed = (vnode) => {
+options.diffed = (vnode: VNode<Record<string, unknown>>) => {
   if (typeof vnode.type === "function") {
     if (vnode.type !== Fragment) {
       ownerStack.pop();
+    } else if (vnode.props.__freshHead) {
+      headChildren = false;
     }
   }
   oldDiffed?.(vnode);
