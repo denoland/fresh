@@ -188,7 +188,7 @@ export default manifest;
 export async function dev(
   base: string,
   entrypoint: string,
-  options: Omit<FreshOptions, "loadSnapshot"> = {},
+  options: FreshOptions = {},
 ) {
   ensureMinDenoVersion();
 
