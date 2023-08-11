@@ -32,6 +32,11 @@ import { bundleAssetUrl } from "./constants.ts";
 import { assetHashingHook } from "../runtime/utils.ts";
 import { htmlEscapeJsonString } from "./htmlescape.ts";
 import { serialize } from "./serializer.ts";
+import { initViewTransitions } from "$fresh/src/runtime/entrypoints/view_transitions.ts";
+import {
+  ViewAnimation,
+  ViewTransitionOpts,
+} from "$fresh/src/server/view_transitions.ts";
 
 export const DEFAULT_RENDER_FN: RenderFunction = (_ctx, render) => {
   render();
@@ -208,6 +213,9 @@ export async function render<Data>(
   ISLAND_PROPS = [];
   // Clear previous slots
   SLOTS_TRACKER.clear();
+
+  // Clear encountered view transitions
+  VIEW_TRANSITIONS = [];
 
   const ctx = new RenderContext(
     crypto.randomUUID(),
@@ -481,8 +489,57 @@ export async function render<Data>(
     styleTags.splice(styleTags.length, 0, ...res.styles ?? []);
   }
 
+  // Add view transition CSS
+  if (VIEW_TRANSITIONS.length > 0) {
+    let cssText = "";
+
+    for (let i = 0; i < VIEW_TRANSITIONS.length; i++) {
+      const anim = VIEW_TRANSITIONS[i];
+
+      const oldForward = serializeViewAnimation(anim.forward.old);
+      const oldBackward = serializeViewAnimation(anim.backward.old);
+      const newForward = serializeViewAnimation(anim.forward.new);
+      const newBackward = serializeViewAnimation(anim.backward.new);
+
+      // Selectors cannot be merged as unknown pseudo selectors
+      // flag the whole selector group as invalid.
+      cssText += `[data-frsh-transition="${anim.id}"] {\n`;
+      cssText += `  view-transition-name: ${anim.id};\n`;
+      cssText += `}\n`;
+      cssText += `::view-transition-old(${anim.id}) {\n${oldForward}\n}\n`;
+      cssText += `::view-transition-new(${anim.id}) {\n${newForward}\n}\n`;
+
+      // Backwards for browser navigation
+      cssText +=
+        `[data-frsh-nav="back"]::view-transition-old(${anim.id}) {\n${oldBackward}\n}\n`;
+      cssText +=
+        `[data-frsh-nav="back"]::view-transition-new(${anim.id}) {\n${newBackward}\n}\n`;
+    }
+
+    // Disable view transitions if the user prefers reduced motion
+    cssText += `@media (prefers-reduced-motion) {\n`;
+    cssText += `  ::view-transition-group(*),\n`;
+    cssText += `  ::view-transition-old(*),\n`;
+    cssText += `  ::view-transition-new(*) {\n`;
+    cssText += `    animation: none !important;\n`;
+    cssText += `  }\n`;
+    cssText += `  [data-frsh-transition] {\n`;
+    cssText += `    animation: none !important;\n`;
+    cssText += `  }\n`;
+    cssText += `}\n`;
+
+    styleTags.push({
+      cssText,
+      id: "__FRSH_TRANSITIONS",
+    });
+  }
+
   // The inline script that will hydrate the page.
   let script = "";
+
+  // View transitions
+  // TODO: Add conditionally
+  script += initViewTransitions.toString() + "\ninitViewTransitions();\n";
 
   // Serialize the state into the <script id=__FRSH_STATE> tag and generate the
   // inline script to deserialize it. This script starts by deserializing the
@@ -574,6 +631,32 @@ export async function render<Data>(
   return [html, csp];
 }
 
+function serializeViewAnimation(anims: ViewAnimation | ViewAnimation[]) {
+  if (!Array.isArray(anims)) {
+    anims = [anims];
+  }
+
+  let durations = "  animation-duration: ";
+  let timingFn = "  animation-timing-function: ";
+  let fillMode = "  animation-fill-mode: ";
+  let delay = "  animation-delay: ";
+  let direction = "  animation-direction: ";
+  let name = "  animation-name: ";
+
+  for (let i = 0; i < anims.length; i++) {
+    const anim = anims[i];
+    const comma = i > 0 ? ", " : "";
+    durations += comma + (anim.duration ?? "auto");
+    timingFn += comma + (anim.easing ?? "ease");
+    fillMode += comma + (anim.fillMode ?? "none");
+    delay += comma + (anim.delay ?? "0s");
+    direction += comma + (anim.direction ?? "normal");
+    name += comma + anim.name;
+  }
+  return [durations, timingFn, fillMode, delay, direction, name].join(";\n") +
+    "\n";
+}
+
 export interface TemplateOptions {
   bodyHtml: string;
   headComponents: ComponentChildren[];
@@ -657,6 +740,9 @@ function SlotTracker(
   // deno-lint-ignore no-explicit-any
   return props.children as any;
 }
+
+// Keep track of view transitions
+let VIEW_TRANSITIONS: ViewTransitionOpts[] = [];
 
 // Keep track of which component rendered which vnode. This allows us
 // to detect when an island is rendered within another instead of being
@@ -751,6 +837,15 @@ options.vnode = (vnode) => {
         delete props[key];
         props["ON" + key.slice(2)] = value;
       }
+    }
+
+    // View transitions
+    if ("transition" in props) {
+      const anim = props.transition as ViewTransitionOpts;
+      VIEW_TRANSITIONS.push(anim);
+      delete props.transition;
+      // deno-lint-ignore no-explicit-any
+      (vnode.props as any)["data-frsh-transition"] = anim.id;
     }
   }
 

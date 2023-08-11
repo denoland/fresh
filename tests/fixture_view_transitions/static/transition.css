@@ -1,0 +1,87 @@
+@keyframes slideFromRight {
+  from {
+    transform: translateX(300px);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+@keyframes slideFromLeft {
+  from {
+    transform: translateX(-300px);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+@keyframes slideToLeft {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-300px);
+  }
+}
+@keyframes slideToRight {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(300px);
+  }
+}
+
+@keyframes fadeOut {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* .app {
+  view-transition-name: heading;
+}
+
+body[data-frsh-transition="old"] .app {
+  animation-duration: 0.5s, 0.5s;
+  animation-timing-function: ease-in, ease-in-out;
+  animation-fill-mode: both, both;
+  animation-name: fadeOut, slideToLeft;
+}
+::view-transition-old(heading) {
+  animation-duration: 0.5s, 0.5s;
+  animation-timing-function: ease-in, ease-in-out;
+  animation-fill-mode: both, both;
+  animation-name: fadeOut, slideToLeft;
+}
+
+body[data-frsh-transition="new"] .app {
+  animation-duration: 0.5s, 0.5s;
+  animation-timing-function: ease-in, ease-in-out;
+  animation-fill-mode: both, both;
+  animation-name: fadeIn, slideFromRight;
+}
+::view-transition-new(heading) {
+  animation-duration: 0.5s, 0.5s;
+  animation-timing-function: ease-in, ease-in-out;
+  animation-fill-mode: both, both;
+  animation-name: fadeIn, slideFromRight;
+}
+
+@media (prefers-reduced-motion) {
+  ::view-transition-group(*),
+  ::view-transition-old(*),
+  ::view-transition-new(*) {
+    animation: none !important;
+  }
+} */
