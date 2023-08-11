@@ -59,5 +59,10 @@ jobs:
       - name: Type check project
         run: deno task check:types
 
-      - name: Run tests
+      - name: Run tests Windows
+        if: matrix.os == 'windows-latest'
+        run: deno test -A
+
+      - name: Run tests macOS + Linux
+        if: matrix.os != 'windows-latest'
         run: deno test -A --parallel
