@@ -4,49 +4,55 @@
 
 import * as $0 from "./routes/index.tsx";
 import * as $1 from "./routes/island_conditional.tsx";
-import * as $2 from "./routes/island_fn_child.tsx";
-import * as $3 from "./routes/island_in_island.tsx";
-import * as $4 from "./routes/island_in_island_definition.tsx";
-import * as $5 from "./routes/island_jsx_child.tsx";
-import * as $6 from "./routes/island_jsx_children.tsx";
-import * as $7 from "./routes/island_jsx_island_jsx.tsx";
-import * as $8 from "./routes/island_jsx_text.tsx";
-import * as $9 from "./routes/island_nested_props.tsx";
-import * as $10 from "./routes/island_order.tsx";
-import * as $11 from "./routes/island_siblings.tsx";
+import * as $2 from "./routes/island_conditional_lazy.tsx";
+import * as $3 from "./routes/island_conditional_lazy_island.tsx";
+import * as $4 from "./routes/island_fn_child.tsx";
+import * as $5 from "./routes/island_in_island.tsx";
+import * as $6 from "./routes/island_in_island_definition.tsx";
+import * as $7 from "./routes/island_jsx_child.tsx";
+import * as $8 from "./routes/island_jsx_children.tsx";
+import * as $9 from "./routes/island_jsx_island_jsx.tsx";
+import * as $10 from "./routes/island_jsx_text.tsx";
+import * as $11 from "./routes/island_nested_props.tsx";
+import * as $12 from "./routes/island_order.tsx";
+import * as $13 from "./routes/island_siblings.tsx";
 import * as $$0 from "./islands/BooleanButton.tsx";
-import * as $$1 from "./islands/FragmentIsland.tsx";
-import * as $$2 from "./islands/Island.tsx";
-import * as $$3 from "./islands/IslandCenter.tsx";
-import * as $$4 from "./islands/IslandConditional.tsx";
-import * as $$5 from "./islands/IslandFn.tsx";
-import * as $$6 from "./islands/IslandInsideIsland.tsx";
-import * as $$7 from "./islands/IslandWithProps.tsx";
+import * as $$1 from "./islands/Counter.tsx";
+import * as $$2 from "./islands/FragmentIsland.tsx";
+import * as $$3 from "./islands/Island.tsx";
+import * as $$4 from "./islands/IslandCenter.tsx";
+import * as $$5 from "./islands/IslandConditional.tsx";
+import * as $$6 from "./islands/IslandFn.tsx";
+import * as $$7 from "./islands/IslandInsideIsland.tsx";
+import * as $$8 from "./islands/IslandWithProps.tsx";
 
 const manifest = {
   routes: {
     "./routes/index.tsx": $0,
     "./routes/island_conditional.tsx": $1,
-    "./routes/island_fn_child.tsx": $2,
-    "./routes/island_in_island.tsx": $3,
-    "./routes/island_in_island_definition.tsx": $4,
-    "./routes/island_jsx_child.tsx": $5,
-    "./routes/island_jsx_children.tsx": $6,
-    "./routes/island_jsx_island_jsx.tsx": $7,
-    "./routes/island_jsx_text.tsx": $8,
-    "./routes/island_nested_props.tsx": $9,
-    "./routes/island_order.tsx": $10,
-    "./routes/island_siblings.tsx": $11,
+    "./routes/island_conditional_lazy.tsx": $2,
+    "./routes/island_conditional_lazy_island.tsx": $3,
+    "./routes/island_fn_child.tsx": $4,
+    "./routes/island_in_island.tsx": $5,
+    "./routes/island_in_island_definition.tsx": $6,
+    "./routes/island_jsx_child.tsx": $7,
+    "./routes/island_jsx_children.tsx": $8,
+    "./routes/island_jsx_island_jsx.tsx": $9,
+    "./routes/island_jsx_text.tsx": $10,
+    "./routes/island_nested_props.tsx": $11,
+    "./routes/island_order.tsx": $12,
+    "./routes/island_siblings.tsx": $13,
   },
   islands: {
     "./islands/BooleanButton.tsx": $$0,
-    "./islands/FragmentIsland.tsx": $$1,
-    "./islands/Island.tsx": $$2,
-    "./islands/IslandCenter.tsx": $$3,
-    "./islands/IslandConditional.tsx": $$4,
-    "./islands/IslandFn.tsx": $$5,
-    "./islands/IslandInsideIsland.tsx": $$6,
-    "./islands/IslandWithProps.tsx": $$7,
+    "./islands/Counter.tsx": $$1,
+    "./islands/FragmentIsland.tsx": $$2,
+    "./islands/Island.tsx": $$3,
+    "./islands/IslandCenter.tsx": $$4,
+    "./islands/IslandConditional.tsx": $$5,
+    "./islands/IslandFn.tsx": $$6,
+    "./islands/IslandInsideIsland.tsx": $$7,
+    "./islands/IslandWithProps.tsx": $$8,
   },
   baseUrl: import.meta.url,
 };

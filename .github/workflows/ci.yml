@@ -51,16 +51,13 @@ jobs:
             ${{ matrix.cache_path }}deno_puppeteer
           key: ${{ runner.os }}-${{ hashFiles('**/*deps.ts', 'tests/fixture_twind_hydrate/twind.config.ts') }}
 
-      - name: Install Chromium (Unix)
-        if: startsWith(matrix.os, 'ubuntu') || startsWith(matrix.os, 'mac')
-        run: PUPPETEER_PRODUCT=chrome deno run -A --unstable https://deno.land/x/puppeteer@16.2.0/install.ts
-
-      - name: Install Chromium (Windows)
-        if: startsWith(matrix.os, 'windows')
-        run: set "PUPPETEER_PRODUCT=chrome" && deno run -A --unstable https://deno.land/x/puppeteer@16.2.0/install.ts
+      - name: Install Chromium
+        run: deno run -A --unstable https://deno.land/x/puppeteer@16.2.0/install.ts
+        env:
+          PUPPETEER_PRODUCT: chrome
 
       - name: Type check project
         run: deno task check:types
 
       - name: Run tests
-        run: deno test -A
+        run: deno test -A --parallel

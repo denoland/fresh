@@ -255,6 +255,8 @@ export class ServerContext {
           component,
           handler,
           csp: Boolean(config?.csp ?? false),
+          appLayout: Boolean(config?.appTemplate ?? true),
+          rootLayout: Boolean(config?.rootLayout ?? false),
         };
         routes.push(route);
       } else if (isMiddleware) {
@@ -290,6 +292,8 @@ export class ServerContext {
           component,
           handler: handler ?? ((req) => router.defaultOtherHandler(req)),
           csp: Boolean(config?.csp ?? false),
+          appLayout: Boolean(config?.appTemplate ?? true),
+          rootLayout: Boolean(config?.rootLayout ?? false),
         };
       } else if (
         path === "/_500.tsx" || path === "/_500.ts" ||
@@ -310,6 +314,8 @@ export class ServerContext {
           handler: handler ??
             ((req, ctx) => router.defaultErrorHandler(req, ctx, ctx.error)),
           csp: Boolean(config?.csp ?? false),
+          appLayout: Boolean(config?.appTemplate ?? true),
+          rootLayout: Boolean(config?.rootLayout ?? false),
         };
       }
     }
@@ -341,14 +347,11 @@ export class ServerContext {
       if (!url.startsWith(baseUrl)) {
         throw new TypeError("Island is not a child of the basepath.");
       }
-      /**
-      leave any child folders within islands/ here so that we can disambiguate the following cases:
-      islands/Counter.tsx
-      islands/folder/Counter.tsx
-      islands/folder/subfolder/Counter.tsx
-       */
-      const path = url.substring(baseUrl.length).substring("islands/".length);
-      const baseRoute = path.replace(extname(path), "");
+      let path = url.substring(baseUrl.length);
+      if (path.startsWith("islands")) {
+        path = path.slice("islands".length + 1);
+      }
+      const baseRoute = path.substring(0, path.length - extname(path).length);
 
       processedIslands.push({
         name: sanitizeIslandName(baseRoute),
@@ -1009,6 +1012,8 @@ const DEFAULT_NOT_FOUND: UnknownPage = {
   name: "_404",
   handler: (req) => router.defaultOtherHandler(req),
   csp: false,
+  appLayout: true,
+  rootLayout: false,
 };
 
 const DEFAULT_ERROR: ErrorPage = {
@@ -1019,6 +1024,8 @@ const DEFAULT_ERROR: ErrorPage = {
   component: DefaultErrorHandler,
   handler: (_req, ctx) => ctx.render(),
   csp: false,
+  appLayout: true,
+  rootLayout: false,
 };
 
 export function selectSharedRoutes<T>(
@@ -1195,7 +1202,7 @@ function toPascalCase(text: string): string {
 }
 
 function sanitizeIslandName(name: string): string {
-  const fileName = name.replaceAll("/", "_");
+  const fileName = name.replaceAll(/[/\\\\\(\)]/g, "_");
   return toPascalCase(fileName);
 }
 
@@ -1330,10 +1337,14 @@ function getMiddlewareRoutesFromPlugins(
   return Object.values(mws);
 }
 
+function formatRoutePath(path: string) {
+  return path.startsWith("/") ? path : "/" + path;
+}
+
 function getRoutesFromPlugins(plugins: Plugin[]): [string, RouteModule][] {
   return plugins.flatMap((plugin) => plugin.routes ?? [])
     .map((route) => {
-      return [`./routes${route.path}.ts`, {
+      return [`./routes${formatRoutePath(route.path)}.ts`, {
         // deno-lint-ignore no-explicit-any
         default: route.component as any,
         handler: route.handler,

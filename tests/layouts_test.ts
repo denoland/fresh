@@ -1,10 +1,17 @@
-import { assertSelector, fetchHtml, withFresh } from "./test_utils.ts";
+import { assert } from "./deps.ts";
+import {
+  assertNotSelector,
+  assertSelector,
+  fetchHtml,
+  withFresh,
+} from "./test_utils.ts";
 
 Deno.test("apply root _layout and _app", async () => {
   await withFresh(
     "./tests/fixture_layouts/main.ts",
     async (address) => {
       const doc = await fetchHtml(address);
+      assert(doc.body.textContent?.includes("it works"));
       assertSelector(doc, ".app .root-layout .home-page");
 
       const doc2 = await fetchHtml(`${address}/other`);
@@ -59,6 +66,86 @@ Deno.test("check file types", async (t) => {
         const doc = await fetchHtml(`${address}/files/tsx`);
         assertSelector(doc, ".app .root-layout .tsx-layout .tsx-page");
       });
+    },
+  );
+});
+
+Deno.test("render async layout", async () => {
+  await withFresh(
+    "./tests/fixture_layouts/main.ts",
+    async (address) => {
+      const doc = await fetchHtml(`${address}/async`);
+      assertSelector(doc, ".app .root-layout .async-layout .async-page");
+    },
+  );
+});
+
+Deno.test("render nested async layout", async () => {
+  await withFresh(
+    "./tests/fixture_layouts/main.ts",
+    async (address) => {
+      const doc = await fetchHtml(`${address}/async/sub`);
+      assertSelector(
+        doc,
+        ".app .root-layout .async-layout .async-sub-layout .async-sub-page",
+      );
+    },
+  );
+});
+
+Deno.test({
+  name: "can return Response from async layout",
+  fn: async () => {
+    await withFresh(
+      "./tests/fixture_layouts/main.ts",
+      async (address) => {
+        const doc = await fetchHtml(`${address}/async/redirect`);
+        assertSelector(
+          doc,
+          ".app .root-layout .async-layout .async-sub-layout .async-sub-page",
+        );
+      },
+    );
+  },
+});
+
+Deno.test("disable _app layout", async () => {
+  await withFresh(
+    "./tests/fixture_layouts/main.ts",
+    async (address) => {
+      const doc = await fetchHtml(`${address}/override/no_app`);
+      assertNotSelector(doc, "body body");
+      assertSelector(doc, "body > .override-layout >.no-app");
+    },
+  );
+});
+
+Deno.test("override layouts", async () => {
+  await withFresh(
+    "./tests/fixture_layouts/main.ts",
+    async (address) => {
+      const doc = await fetchHtml(`${address}/override`);
+      assertSelector(doc, "body > .app > .override-layout > .override-page");
+    },
+  );
+});
+
+Deno.test("route overrides layout", async () => {
+  await withFresh(
+    "./tests/fixture_layouts/main.ts",
+    async (address) => {
+      const doc = await fetchHtml(`${address}/override/no_layout`);
+      assertSelector(doc, "body > .app > .no-layouts");
+    },
+  );
+});
+
+Deno.test("route overrides layout", async () => {
+  await withFresh(
+    "./tests/fixture_layouts/main.ts",
+    async (address) => {
+      const doc = await fetchHtml(`${address}/override/no_layout_no_app`);
+      assertSelector(doc, "body > .no-app-no-layouts");
     },
   );
 });

@@ -159,6 +159,7 @@ const toc: RawTableOfContents = {
           ["handling-complex-routes", "Handling complex routes"],
           ["rendering-markdown", "Rendering markdown"],
           ["sharing-state-between-islands", "Sharing state between islands"],
+          ["using-deno-kv-oauth", "Using Deno KV OAuth"],
           ["using-csp", "Using CSP"],
         ],
       },
