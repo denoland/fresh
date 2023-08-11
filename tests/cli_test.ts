@@ -52,7 +52,6 @@ Deno.test({
       `/README.md`,
       `/deno.json`,
       `/fresh.gen.ts`,
-      `/fresh.config.ts`,
       `/components/Button.tsx`,
       `/islands/Counter.tsx`,
       `/main.ts`,
