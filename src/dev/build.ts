@@ -5,7 +5,7 @@ import { fs } from "./deps.ts";
 
 export async function build(
   manifestPath: string,
-  opts: Omit<FreshOptions, "loadSnapshot">,
+  opts: FreshOptions,
 ) {
   const manifest = (await import("file://" + manifestPath)).default as Manifest;
 
