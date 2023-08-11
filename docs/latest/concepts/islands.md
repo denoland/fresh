@@ -116,10 +116,10 @@ were present.
 ```tsx
 // islands/other-island.tsx
 import { useSignal } from "@preact/signals";
-import { VNode } from "preact";
+import { ComponentChildren } from "preact";
 
-interface Data {
-  children: VNode<Element>;
+interface Props {
+  children: ComponentChildren;
   foo: string;
 }
 
@@ -127,7 +127,7 @@ function randomNumber() {
   return Math.floor(Math.random() * 100);
 }
 
-export default function MyIsland({ children, foo }: Data) {
+export default function MyIsland({ children, foo }: Props) {
   const number = useSignal(randomNumber());
 
   return (
