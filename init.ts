@@ -105,6 +105,9 @@ const GITIGNORE = `# dotenv environment variable files
 .env.test.local
 .env.production.local
 .env.local
+
+# Fresh build directory
+fresh/
 `;
 
 await Deno.writeTextFile(

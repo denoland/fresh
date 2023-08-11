@@ -50,6 +50,7 @@ Deno.test({
 
     const files = [
       `/README.md`,
+      `/.gitignore`,
       `/deno.json`,
       `/fresh.gen.ts`,
       `/components/Button.tsx`,
