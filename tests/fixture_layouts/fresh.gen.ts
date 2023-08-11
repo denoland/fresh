@@ -27,11 +27,13 @@ import * as $21 from "./routes/no_app.tsx";
 import * as $22 from "./routes/other.tsx";
 import * as $23 from "./routes/override/_layout.tsx";
 import * as $24 from "./routes/override/index.tsx";
-import * as $25 from "./routes/override/no_app.tsx";
-import * as $26 from "./routes/override/no_layout.tsx";
-import * as $27 from "./routes/override/no_layout_no_app.tsx";
-import * as $28 from "./routes/skip/sub/_layout.tsx";
-import * as $29 from "./routes/skip/sub/index.tsx";
+import * as $25 from "./routes/override/layout_no_app/_layout.tsx";
+import * as $26 from "./routes/override/layout_no_app/index.tsx";
+import * as $27 from "./routes/override/no_app.tsx";
+import * as $28 from "./routes/override/no_layout.tsx";
+import * as $29 from "./routes/override/no_layout_no_app.tsx";
+import * as $30 from "./routes/skip/sub/_layout.tsx";
+import * as $31 from "./routes/skip/sub/index.tsx";
 
 const manifest = {
   routes: {
@@ -60,11 +62,13 @@ const manifest = {
     "./routes/other.tsx": $22,
     "./routes/override/_layout.tsx": $23,
     "./routes/override/index.tsx": $24,
-    "./routes/override/no_app.tsx": $25,
-    "./routes/override/no_layout.tsx": $26,
-    "./routes/override/no_layout_no_app.tsx": $27,
-    "./routes/skip/sub/_layout.tsx": $28,
-    "./routes/skip/sub/index.tsx": $29,
+    "./routes/override/layout_no_app/_layout.tsx": $25,
+    "./routes/override/layout_no_app/index.tsx": $26,
+    "./routes/override/no_app.tsx": $27,
+    "./routes/override/no_layout.tsx": $28,
+    "./routes/override/no_layout_no_app.tsx": $29,
+    "./routes/skip/sub/_layout.tsx": $30,
+    "./routes/skip/sub/index.tsx": $31,
   },
   islands: {},
   baseUrl: import.meta.url,

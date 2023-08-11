@@ -266,7 +266,7 @@ export async function render<Data>(
   // Check if appLayout is enabled
   if (
     opts.route.appLayout &&
-    layouts.every((layout) => layout.config?.appTemplate !== false)
+    layouts.every((layout) => layout.config?.appTemplate)
   ) {
     renderStack.push(opts.app.default);
   }
