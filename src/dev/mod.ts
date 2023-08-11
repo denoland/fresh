@@ -8,6 +8,7 @@ import {
   posix,
   relative,
   walk,
+  WalkEntry,
 } from "./deps.ts";
 import { error } from "./error.ts";
 
@@ -30,18 +31,19 @@ export function ensureMinDenoVersion() {
   }
 }
 
-async function collectDir(dir: string): Promise<string[]> {
+async function collectDir(
+  dir: string,
+  callback: (entry: WalkEntry, dir: string) => void,
+): Promise<void> {
   // Check if provided path is a directory
   try {
     const stat = await Deno.stat(dir);
-    if (!stat.isDirectory) return [];
+    if (!stat.isDirectory) return;
   } catch (err) {
-    if (err instanceof Deno.errors.NotFound) return [];
+    if (err instanceof Deno.errors.NotFound) return;
     throw err;
   }
 
-  const paths = [];
-  const fileNames = new Set<string>();
   const routesFolder = walk(dir, {
     includeDirs: false,
     includeFiles: true,
@@ -49,21 +51,8 @@ async function collectDir(dir: string): Promise<string[]> {
   });
 
   for await (const entry of routesFolder) {
-    const fileNameWithoutExt = relative(dir, entry.path).split(".").slice(0, -1)
-      .join(".");
-
-    if (fileNames.has(fileNameWithoutExt)) {
-      throw new Error(
-        `Route conflict detected. Multiple files have the same name: ${dir}${fileNameWithoutExt}`,
-      );
-    }
-
-    fileNames.add(fileNameWithoutExt);
-    paths.push(relative(dir, entry.path));
+    callback(entry, dir);
   }
-
-  paths.sort();
-  return paths;
 }
 
 interface Manifest {
@@ -71,11 +60,44 @@ interface Manifest {
   islands: string[];
 }
 
+const GROUP_REG = /[/\\\\]\((_[^/\\\\]+)\)[/\\\\]/;
 export async function collect(directory: string): Promise<Manifest> {
-  const [routes, islands] = await Promise.all([
-    collectDir(join(directory, "./routes")),
-    collectDir(join(directory, "./islands")),
+  const filePaths = new Set<string>();
+
+  const routes: string[] = [];
+  const islands: string[] = [];
+  await Promise.all([
+    collectDir(join(directory, "./routes"), (entry, dir) => {
+      const rel = join("routes", relative(dir, entry.path));
+      const normalized = rel.slice(0, rel.lastIndexOf("."));
+
+      // A `(_islands)` path segment is a local island folder.
+      // Any route path segment wrapped in `(_...)` is ignored
+      // during route collection.
+      const match = normalized.match(GROUP_REG);
+      if (match && match[1].startsWith("_")) {
+        if (match[1] === "_islands") {
+          islands.push(rel);
+        }
+        return;
+      }
+
+      if (filePaths.has(normalized)) {
+        throw new Error(
+          `Route conflict detected. Multiple files have the same name: ${dir}${normalized}`,
+        );
+      }
+      filePaths.add(normalized);
+      routes.push(rel);
+    }),
+    collectDir(join(directory, "./islands"), (entry, dir) => {
+      const rel = join("islands", relative(dir, entry.path));
+      islands.push(rel);
+    }),
   ]);
+
+  routes.sort();
+  islands.sort();
 
   return { routes, islands };
 }
@@ -100,14 +122,14 @@ export async function generate(directory: string, manifest: Manifest) {
 
 ${
     routes.map((file, i) =>
-      `import * as $${i} from "${toImportSpecifier(join("routes", file))}";`
+      `import * as $${i} from "${toImportSpecifier(file)}";`
     ).join(
       "\n",
     )
   }
 ${
     islands.map((file, i) =>
-      `import * as $$${i} from "${toImportSpecifier(join("islands", file))}";`
+      `import * as $$${i} from "${toImportSpecifier(file)}";`
     )
       .join("\n")
   }
@@ -116,7 +138,7 @@ const manifest = {
   routes: {
     ${
     routes.map((file, i) =>
-      `${JSON.stringify(`${toImportSpecifier(join("routes", file))}`)}: $${i},`
+      `${JSON.stringify(`${toImportSpecifier(file)}`)}: $${i},`
     )
       .join("\n    ")
   }
@@ -124,9 +146,7 @@ const manifest = {
   islands: {
     ${
     islands.map((file, i) =>
-      `${
-        JSON.stringify(`${toImportSpecifier(join("islands", file))}`)
-      }: $$${i},`
+      `${JSON.stringify(`${toImportSpecifier(file)}`)}: $$${i},`
     )
       .join("\n    ")
   }

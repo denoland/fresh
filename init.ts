@@ -532,6 +532,8 @@ try {
 const config = {
   lock: false,
   tasks: {
+    check:
+      "deno fmt --check && deno lint && deno check **/*.ts && deno check **/*.tsx",
     start: "deno run -A --watch=static/,routes/ dev.ts",
     update: "deno run -A -r https://fresh.deno.dev/update .",
   },

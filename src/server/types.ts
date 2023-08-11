@@ -79,6 +79,18 @@ export interface RouteConfig {
    * using the `useCSP` hook.
    */
   csp?: boolean;
+
+  /**
+   * Mark this route as the root layout and ignore previously
+   * inherited layouts. Default: `false`
+   */
+  rootLayout?: boolean;
+
+  /**
+   * Whether to use the `routes/_app` template if available or not.
+   * Default: `true`
+   */
+  appTemplate?: boolean;
 }
 
 // deno-lint-ignore no-empty-interface
@@ -153,6 +165,8 @@ export interface Route<Data = any> {
   component?: PageComponent<Data>;
   handler: Handler<Data> | Handlers<Data>;
   csp: boolean;
+  appLayout: boolean;
+  rootLayout: boolean;
 }
 
 export interface RouterState {
@@ -176,9 +190,16 @@ export interface LayoutProps<T = any, S = Record<string, unknown>>
   extends PageProps<T, S> {
   Component: ComponentType<Record<never, never>>;
 }
+// deno-lint-ignore no-explicit-any
+export type AsyncLayout<T = any, S = Record<string, unknown>> = (
+  req: Request,
+  ctx: RouteContext<T, S>,
+  props: LayoutProps,
+) => Promise<ComponentChildren | Response>;
 
 export interface LayoutModule {
-  default: ComponentType<LayoutProps>;
+  default: ComponentType<LayoutProps> | AsyncLayout;
+  config?: Pick<RouteConfig, "appTemplate" | "rootLayout">;
 }
 
 export interface LayoutRoute {
@@ -189,7 +210,7 @@ export interface LayoutRoute {
 // --- UNKNOWN PAGE ---
 
 // deno-lint-ignore no-explicit-any
-export interface UnknownPageProps<T = any> {
+export interface UnknownPageProps<T = any, S = Record<string, unknown>> {
   /** The URL of the request that resulted in this page being rendered. */
   url: URL;
 
@@ -202,6 +223,7 @@ export interface UnknownPageProps<T = any> {
    * `undefined`.
    */
   data: T;
+  state: S;
 }
 
 export interface UnknownHandlerContext<State = Record<string, unknown>>
@@ -229,6 +251,8 @@ export interface UnknownPage {
   component?: PageComponent<UnknownPageProps>;
   handler: UnknownHandler;
   csp: boolean;
+  appLayout: boolean;
+  rootLayout: boolean;
 }
 
 // --- ERROR PAGE ---
@@ -274,6 +298,8 @@ export interface ErrorPage {
   component?: PageComponent<ErrorPageProps>;
   handler: ErrorHandler;
   csp: boolean;
+  appLayout: boolean;
+  rootLayout: boolean;
 }
 
 // --- MIDDLEWARES ---
