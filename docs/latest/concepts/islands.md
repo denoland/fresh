@@ -48,13 +48,13 @@ Islands support passing JSX elements via the `children` property.
 // islands/my-island.tsx
 
 import { useSignal } from "@preact/signals";
-import { VNode } from "preact";
+import { ComponentChildren } from "preact";
 
-interface Data {
-  children: VNode<Element>;
+interface Props {
+  children: ComponentChildren;
 }
 
-export default function MyIsland({ children }: Data) {
+export default function MyIsland({ children }: Props) {
   const count = useSignal(0);
 
   return (
