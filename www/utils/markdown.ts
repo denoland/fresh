@@ -130,7 +130,10 @@ class DefaultRenderer extends Marked.Renderer {
             .replace(/\s+,/gm, ",")
             // Update import specifiers
             .replace(/["']([\w/_.-]+)\.tsx["'];$/gm, '"$1.jsx";')
-            .replace(/["']([\w/_.-]+)\.ts["'];$/gm, '"$1.js";')
+            .replace(
+              /["'](!<=\$fresh)([\w/_.-]+)(!<=fresh\.gen)\.ts["'];$/gm,
+              '"$1.js";',
+            )
             // Trim multiline whitespace
             .replace(/^(\s*\n){2,}/gm, "\n");
         }
