@@ -59,9 +59,17 @@ export interface PageProps<T = any, S = Record<string, unknown>> {
  * Context passed to async route components.
  */
 // deno-lint-ignore no-explicit-any
-export type RouteContext<T = any, S = Record<string, unknown>> =
-  & Omit<HandlerContext<T, S>, "render">
-  & Omit<PageProps<unknown, S>, "data">;
+export type RouteContext<T = any, S = Record<string, unknown>> = {
+  /** @types deprecated */
+  localAddr?: Deno.NetAddr;
+  remoteAddr: Deno.NetAddr;
+  renderNotFound: (data?: T) => Response | Promise<Response>;
+  url: URL;
+  route: string;
+  params: Record<string, string>;
+  state: S;
+  data: T;
+};
 
 export interface RouteConfig {
   /**
@@ -162,7 +170,7 @@ export interface Route<Data = any> {
   pattern: string;
   url: string;
   name: string;
-  component?: PageComponent<Data>;
+  component?: PageComponent<Data> | AsyncLayout | AsyncRoute;
   handler: Handler<Data> | Handlers<Data>;
   csp: boolean;
   appLayout: boolean;
@@ -176,14 +184,23 @@ export interface RouterState {
 // --- APP ---
 
 // deno-lint-ignore no-explicit-any
-export interface AppProps<T = any, S = Record<string, unknown>>
-  extends PageProps<T, S> {
-  Component: ComponentType<Record<never, never>>;
-}
+export type AppProps<T = any, S = Record<string, unknown>> = LayoutProps<T, S>;
 
 export interface AppModule {
-  default: ComponentType<AppProps>;
+  default: ComponentType<AppProps> | AsyncLayout;
 }
+
+// deno-lint-ignore no-explicit-any
+export type AppContext<T = any, S = Record<string, unknown>> =
+  & RouteContext<T, S>
+  & {
+    Component: () => VNode;
+  };
+// deno-lint-ignore no-explicit-any
+export type LayoutContext<T = any, S = Record<string, unknown>> = AppContext<
+  T,
+  S
+>;
 
 // deno-lint-ignore no-explicit-any
 export interface LayoutProps<T = any, S = Record<string, unknown>>
@@ -193,8 +210,7 @@ export interface LayoutProps<T = any, S = Record<string, unknown>>
 // deno-lint-ignore no-explicit-any
 export type AsyncLayout<T = any, S = Record<string, unknown>> = (
   req: Request,
-  ctx: RouteContext<T, S>,
-  props: LayoutProps,
+  ctx: LayoutContext<T, S>,
 ) => Promise<ComponentChildren | Response>;
 
 export interface LayoutModule {

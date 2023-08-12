@@ -22,6 +22,7 @@ import {
   PluginRenderStyleTag,
   RenderFunction,
   Route,
+  RouteContext,
   UnknownPage,
 } from "./types.ts";
 import { HEAD_CONTEXT } from "../runtime/head.ts";
@@ -250,7 +251,7 @@ export async function render<Data>(
     opts.lang ?? "en",
   );
 
-  const context = {
+  const context: RouteContext = {
     localAddr: opts.context.localAddr,
     remoteAddr: opts.context.remoteAddr,
     renderNotFound: opts.context.renderNotFound,
@@ -283,16 +284,16 @@ export async function render<Data>(
     if (!fn) continue;
 
     if (checkAsyncComponent(fn)) {
-      const res = await fn(opts.request, context, {
-        params: opts.params as Record<string, string>,
-        url: opts.url,
-        route: opts.route.pattern,
-        data: opts.data,
-        state: opts.state!,
+      // Don't pass <Component /> when it's the route component
+      const isRouteComponent = fn === component;
+      const componentCtx = isRouteComponent ? context : {
+        ...context,
         Component() {
           return h(componentStack[i + 1], props);
         },
-      });
+      };
+      // deno-lint-ignore no-explicit-any
+      const res = await fn(opts.request, componentCtx as any);
 
       // Bail out of rendering if we returned a response
       if (res instanceof Response) {
