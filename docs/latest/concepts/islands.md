@@ -108,6 +108,18 @@ enough information to put the islands where they are supposed to go without
 requiring hydration for the static children of interactive islands. No
 Javascript is sent to the client when no interactivity is needed.
 
+```HTML
+<!--frsh-myisland_default:default:0-->
+<div>
+  Counter is at 0. 
+  <button>+</button>
+  <!--frsh-slot-myisland_default:children-->
+  <p>This text is rendered on the server</p>
+  <!--/frsh-slot-myisland_default:children-->
+</div>
+<!--/frsh-myisland_default:default:0-->
+```
+
 ### Nesting islands
 
 Islands can be nested within other islands as well. In that scenario they act
