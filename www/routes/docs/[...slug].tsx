@@ -69,8 +69,23 @@ export const handler: Handlers<Data> = {
       version = LATEST_VERSION;
     }
 
+    const redirects: Record<string, string> = {
+      "examples/setting-the-language": "concepts/internationalization",
+      // shorter to type
+      "i18n": "concepts/internationalization",
+    };
+
+    // Redirect old page names
+    if (redirects[page]) {
+      return new Response("", {
+        status: 307,
+        headers: { location: `/docs/${version}/${redirects[page]}` },
+      });
+    }
+
     // Check if the page exists
     const currentToc = TABLE_OF_CONTENTS[version];
+
     const entry = currentToc[page];
     if (!entry) {
       return ctx.renderNotFound();

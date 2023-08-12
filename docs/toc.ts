@@ -61,6 +61,7 @@ const toc: RawTableOfContents = {
           ["route-layout", "Route layouts", "link:canary"],
           ["route-groups", "Route groups", "link:canary"],
           ["server-configuration", "Server configuration", "link:latest"],
+          ["internationalization", "Internationalization", "link:canary"],
         ],
       },
       integrations: {
@@ -72,7 +73,6 @@ const toc: RawTableOfContents = {
         link: "latest",
         pages: [
           ["modifying-the-head", "Modifying the <head>", "link:latest"],
-          ["setting-the-language", "Setting the language", "link:latest"],
           ["writing-tests", "Writing tests", "link:latest"],
           [
             "changing-the-src-dir",
@@ -139,6 +139,7 @@ const toc: RawTableOfContents = {
           ["updating", "Updating Fresh"],
           ["app-wrapper", "Application wrapper"],
           ["server-configuration", "Server configuration"],
+          ["internationalization", "Internationalization"],
         ],
       },
       integrations: {
@@ -148,7 +149,6 @@ const toc: RawTableOfContents = {
         title: "Examples",
         pages: [
           ["modifying-the-head", "Modifying the <head>"],
-          ["setting-the-language", "Setting the language"],
           ["writing-tests", "Writing tests"],
           ["changing-the-src-dir", "Changing the source directory"],
           ["using-twind-v1", "Using Twind v1"],
