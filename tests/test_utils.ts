@@ -1,4 +1,5 @@
-import { colors } from "$fresh/src/server/deps.ts";
+import { colors, dirname, join } from "$fresh/src/server/deps.ts";
+import { ServerContext } from "$fresh/server.ts";
 import {
   assertEquals,
   delay,
@@ -9,6 +10,7 @@ import {
   puppeteer,
   TextLineStream,
 } from "./deps.ts";
+import { deferred } from "$std/async/deferred.ts";
 
 export function parseHtml(input: string): Document {
   // deno-lint-ignore no-explicit-any
@@ -144,7 +146,7 @@ function _printDomNode(
   return out;
 }
 
-export async function withFresh(
+export async function withChildProcessFresh(
   name: string | { name: string; options: Omit<Deno.CommandOptions, "args"> },
   fn: (address: string) => Promise<void>,
 ) {
@@ -173,6 +175,33 @@ export async function withFresh(
 
     // Drain the lines stream
     for await (const _ of lines) { /* noop */ }
+  }
+}
+
+export async function withFresh(
+  name: string,
+  fn: (address: string) => Promise<void>,
+) {
+  const manifestPath = join(Deno.cwd(), dirname(name), "fresh.gen.ts");
+  const manifest = (await import(`file://${manifestPath}`)).default;
+  const ctx = await ServerContext.fromManifest(manifest, {});
+  const abort = new AbortController();
+
+  const def = deferred<string>();
+
+  Deno.serve({
+    port: 0,
+    signal: abort.signal,
+    onListen: (info) => {
+      def.resolve(`http://${info.hostname}:${info.port}`);
+    },
+  }, ctx.handler());
+
+  const address = await def;
+  try {
+    await fn(address);
+  } finally {
+    abort.abort();
   }
 }
 
