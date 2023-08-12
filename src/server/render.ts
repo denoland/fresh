@@ -16,7 +16,6 @@ import {
   ErrorPage,
   Island,
   LayoutModule,
-  LayoutProps,
   Plugin,
   PluginRenderFunctionResult,
   PluginRenderResult,
@@ -251,44 +250,77 @@ export async function render<Data>(
     opts.lang ?? "en",
   );
 
-  let bodyHtml: string | null = null;
+  const context = {
+    localAddr: opts.context.localAddr,
+    remoteAddr: opts.context.remoteAddr,
+    renderNotFound: opts.context.renderNotFound,
+    url: opts.url,
+    route: opts.route.pattern,
+    params: opts.params as Record<string, string>,
+    state: opts.state ?? {},
+    data: opts.data,
+  };
 
-  const syncPlugins = opts.plugins.filter((p) => p.render);
+  // Prepare render order
+  // deno-lint-ignore no-explicit-any
+  const renderStack: any[] = [];
+  // Check if appLayout is enabled
+  if (
+    opts.route.appLayout &&
+    layouts.every((layout) => layout.config?.appTemplate !== false)
+  ) {
+    renderStack.push(opts.app.default);
+  }
+  for (let i = 0; i < layouts.length; i++) {
+    renderStack.push(layouts[i].default);
+  }
+  renderStack.push(component);
 
-  function buildRoot(appComponent: VNode) {
-    // Only use the _app layout if not explicitly disabled
-    const child = opts.route.appLayout
-      ? h(opts.app.default, {
+  // Build the final stack of component functions
+  const componentStack = new Array(renderStack.length).fill(null);
+  for (let i = 0; i < renderStack.length; i++) {
+    const fn = renderStack[i];
+    if (!fn) continue;
+
+    if (checkAsyncComponent(fn)) {
+      const res = await fn(opts.request, context, {
         params: opts.params as Record<string, string>,
         url: opts.url,
         route: opts.route.pattern,
         data: opts.data,
         state: opts.state!,
         Component() {
-          return appComponent;
+          return h(componentStack[i + 1], props);
         },
-      })
-      : appComponent;
+      });
 
-    return h(CSP_CONTEXT.Provider, {
-      value: csp,
-      children: h(HEAD_CONTEXT.Provider, {
-        value: headComponents,
-        children: child,
-      }),
-    });
+      // Bail out of rendering if we returned a response
+      if (res instanceof Response) {
+        return res;
+      }
+
+      const componentFn = () => res;
+      // Set displayName to make debugging easier
+      // deno-lint-ignore no-explicit-any
+      componentFn.displayName = (fn as any).displayName || fn.name;
+      componentStack[i] = componentFn;
+    } else {
+      componentStack[i] = fn;
+    }
   }
 
-  function renderInnerSync(vnode: ComponentChildren): string {
-    // deno-lint-ignore no-explicit-any
-    let finalAppComp: VNode<any> = vnode as any;
+  function render() {
+    const routeComponent = componentStack[componentStack.length - 1];
+    let finalComp = h(routeComponent, props);
 
-    let i = layouts.length;
+    // Skip page component
+    let i = componentStack.length - 1;
     while (i--) {
-      const layout = layouts[i];
-      const curComp = finalAppComp;
+      const component = componentStack[i];
+      const curComp = finalComp;
 
-      finalAppComp = h(layout.default as ComponentType<LayoutProps>, {
+      finalComp = h(component, {
+        // @ts-ignore weird jsx types
         params: opts.params as Record<string, string>,
         url: opts.url,
         route: opts.route.pattern,
@@ -300,17 +332,28 @@ export async function render<Data>(
       });
     }
 
-    const root = buildRoot(finalAppComp);
-    bodyHtml = renderToString(root);
+    const app = h(CSP_CONTEXT.Provider, {
+      value: csp,
+      children: h(HEAD_CONTEXT.Provider, {
+        value: headComponents,
+        children: finalComp,
+      }),
+    });
+
+    let html = renderToString(app);
 
     for (const [id, children] of SLOTS_TRACKER.entries()) {
       const slotHtml = renderToString(h(Fragment, null, children));
       const templateId = id.replace(/:/g, "-");
-      bodyHtml += `<template id="${templateId}">${slotHtml}</template>`;
+      html += `<template id="${templateId}">${slotHtml}</template>`;
     }
 
-    return bodyHtml;
+    return html;
   }
+
+  let bodyHtml: string | null = null;
+
+  const syncPlugins = opts.plugins.filter((p) => p.render);
 
   const renderResults: [Plugin, PluginRenderResult][] = [];
   if (isAsyncComponent && syncPlugins.length > 0) {
@@ -332,7 +375,7 @@ export async function render<Data>(
       }
       renderResults.push([plugin, res]);
     } else {
-      renderInnerSync(h(component as ComponentType, props));
+      bodyHtml = render();
     }
     if (bodyHtml === null) {
       throw new Error(
@@ -364,96 +407,7 @@ export async function render<Data>(
         );
       }
     } else {
-      if (
-        isAsyncComponent ||
-        layouts.some((layout) => checkAsyncComponent(layout.default))
-      ) {
-        if (opts.renderFn !== DEFAULT_RENDER_FN) {
-          throw new Error(
-            `Async server components are not supported with custom render functions.`,
-          );
-        }
-
-        const context = {
-          localAddr: opts.context.localAddr,
-          remoteAddr: opts.context.remoteAddr,
-          renderNotFound: opts.context.renderNotFound,
-          url: opts.url,
-          route: opts.route.pattern,
-          params: opts.params as Record<string, string>,
-          state: opts.state ?? {},
-        };
-
-        const renderStack = [
-          ...layouts.map((layout) => layout.default),
-          component,
-        ];
-
-        const componentStack: (VNode | null)[] = new Array(renderStack.length)
-          .fill(null);
-
-        // deno-lint-ignore no-explicit-any
-        const preparedLayouts: ComponentType<any>[] = [];
-        for (let i = 0; i < renderStack.length; i++) {
-          const layout = renderStack[i];
-          if (!layout) continue;
-
-          if (checkAsyncComponent(layout)) {
-            const res = await layout(opts.request, context, {
-              params: opts.params as Record<string, string>,
-              url: opts.url,
-              route: opts.route.pattern,
-              data: opts.data,
-              state: opts.state!,
-              Component() {
-                return componentStack[i + 1];
-              },
-            });
-            if (res instanceof Response) {
-              asyncRenderResponse = res;
-              bodyHtml = "";
-              break;
-            }
-            // deno-lint-ignore no-explicit-any
-            preparedLayouts.push(() => res as any);
-          } else {
-            // deno-lint-ignore no-explicit-any
-            preparedLayouts.push(layout as any);
-          }
-        }
-
-        // Only continue rendering layouts if we didn't abort
-        // earlier by returning a response object.
-        if (!asyncRenderResponse) {
-          const routeComponent = preparedLayouts[preparedLayouts.length - 1];
-          let finalAppComp = h(routeComponent, props);
-          componentStack.push(finalAppComp);
-
-          // Skip page component
-          let i = preparedLayouts.length - 1;
-          while (i--) {
-            const layout = preparedLayouts[i];
-            const curComp = finalAppComp;
-            componentStack[i + 1] = curComp;
-
-            finalAppComp = h(layout, {
-              params: opts.params as Record<string, string>,
-              url: opts.url,
-              route: opts.route.pattern,
-              data: opts.data,
-              state: opts.state!,
-              Component() {
-                return curComp;
-              },
-            });
-          }
-
-          const root = buildRoot(finalAppComp);
-          bodyHtml = renderToString(root);
-        }
-      } else {
-        await opts.renderFn(ctx, () => renderSync().htmlText);
-      }
+      await opts.renderFn(ctx, () => renderSync().htmlText);
 
       if (bodyHtml === null) {
         throw new Error(
