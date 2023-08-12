@@ -54,7 +54,7 @@ file in the root of your projects directory. Dependency versions are encoded
 into the URLs in this file. For example, here is how to update a project from
 Fresh 1.0.2 to 1.1.3, and update Preact to the latest version:
 
-```diff
+```diff { "title": "deno.json" }
   {
     "imports": {
 -     "$fresh/": "https://deno.land/x/fresh@1.0.2/",
@@ -97,7 +97,7 @@ the recommended way to use JSX in Fresh projects. Instead, starting with version
 1.1.0, Fresh projects should use the automatic JSX transform that requires no
 JSX pragma or preact import.
 
-```diff
+```diff { "title": "routes/index.jsx" }
 - /** @jsx h */
 - import { h } from "preact";
 

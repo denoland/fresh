@@ -19,7 +19,7 @@ In this example we'll be creating a small API that uses
 Our project structure will look like this (in addition to the rest of the Fresh
 code from a new project):
 
-```
+```txt { "title": "Project structure" }
 ├── routes
 │   └── api
 │       └── users
@@ -34,15 +34,12 @@ full files are available at the bottom for reference.
 
 `POST` (create) is used to create a resource.
 
-```tsx
-// routes/api/users/index.ts
+```tsx { "title": "routes/api/users/index.ts" }
 export const handler: Handlers<User | null> = {
   async POST(req, _ctx) {
-    const user = await req.json() as User;
+    const user = (await req.json()) as User;
     const userKey = ["user", user.id];
-    const ok = await kv.atomic()
-      .set(userKey, user)
-      .commit();
+    const ok = await kv.atomic().set(userKey, user).commit();
     if (!ok) throw new Error("Something went wrong.");
     return new Response(JSON.stringify(user));
   },
@@ -53,7 +50,7 @@ Test this with Postman (or your favorite client) with a URL like
 `http://localhost:8000/api/users` and a method of `POST`. Make sure to have a
 payload like:
 
-```json
+```json { "title": "Server Response" }
 {
   "id": "2",
   "name": "TestUserName"
@@ -62,7 +59,7 @@ payload like:
 
 You should receive the same thing back:
 
-```json
+```json { "title": "Server Response" }
 { "id": "2", "name": "TestUserName" }
 ```
 
@@ -71,8 +68,7 @@ You should receive the same thing back:
 `GET` (read) is used to retrieve a resource and is by far the most common HTTP
 method. You can use `GET` to fetch database content, markdown, or static files.
 
-```tsx
-// routes/api/users/[id].ts
+```tsx { "title": "routes/api/users/[id].ts" }
 export const handler: Handlers<User | null> = {
   async GET(_req, ctx) {
     const id = ctx.params.id;
@@ -86,7 +82,7 @@ export const handler: Handlers<User | null> = {
 Let's practice retrieving our user! A `GET` request to
 `http://localhost:8000/api/users/2` should return:
 
-```json
+```json { "title": "Server Response" }
 { "id": "2", "name": "TestUserName" }
 ```
 
@@ -102,19 +98,15 @@ The short version of it: `PUT` requires the entire object to be submitted, while
 
 An example of an update endpoint using `PUT`:
 
-```tsx
-// routes/api/users/[id].ts
+```tsx { "title": "routes/api/users/[id].ts" }
 export const handler: Handlers<User | null> = {
   async PUT(req, ctx) {
     const id = ctx.params.id;
-    const user = await req.json() as User;
+    const user = (await req.json()) as User;
     const userKey = ["user", id];
     const userRes = await kv.get(userKey);
     if (!userRes.value) return new Response(`no user with id ${id} found`);
-    const ok = await kv.atomic()
-      .check(userRes)
-      .set(userKey, user)
-      .commit();
+    const ok = await kv.atomic().check(userRes).set(userKey, user).commit();
     if (!ok) throw new Error("Something went wrong.");
     return new Response(JSON.stringify(user));
   },
@@ -124,7 +116,7 @@ export const handler: Handlers<User | null> = {
 Time to change their name. We'll now `PUT` a request to
 `http://localhost:8000/api/users/2` like:
 
-```json
+```json { "title": "Server Request" }
 {
   "id": "2",
   "name": "New Name"
@@ -133,14 +125,14 @@ Time to change their name. We'll now `PUT` a request to
 
 We should receive:
 
-```json
+```json { "title": "Server Response" }
 { "id": "2", "name": "New Name" }
 ```
 
 If, on the other hand, we chose to implement this as a `PATCH` operation, the
 request would just involve the changed property like this:
 
-```json
+```json { "title": "Server Request" }
 {
   "name": "New Name"
 }
@@ -152,18 +144,14 @@ No need to send in the id in this case.
 
 `DELETE` (delete) is used to delete a resource.
 
-```tsx
-// routes/api/users/[id].ts
+```tsx { "title": "routes/api/users/[id].ts" }
 export const handler: Handlers<User | null> = {
   async DELETE(_req, ctx) {
     const id = ctx.params.id;
     const userKey = ["user", id];
     const userRes = await kv.get(userKey);
     if (!userRes.value) return new Response(`no user with id ${id} found`);
-    const ok = await kv.atomic()
-      .check(userRes)
-      .delete(userKey)
-      .commit();
+    const ok = await kv.atomic().check(userRes).delete(userKey).commit();
     if (!ok) throw new Error("Something went wrong.");
     return new Response(`user ${id} deleted`);
   },
@@ -173,7 +161,7 @@ export const handler: Handlers<User | null> = {
 Try sending `DELETE` to `http://localhost:8000/api/users/2` without a body.
 We'll get back:
 
-```
+```txt { "title": "Server response" }
 user 2 deleted
 ```
 
@@ -188,8 +176,8 @@ request checks for complex CORS use cases. See more on the
 <details>
 <summary>[id].ts</summary>
 
-```ts
-import { Handlers } from "$fresh/server.ts";
+```ts { "title": "routes/api/users/[id].ts" }
+import type { Handlers } from "$fresh/server.ts";
 
 type User = {
   id: string;
@@ -210,23 +198,17 @@ export const handler: Handlers<User | null> = {
     const userKey = ["user", id];
     const userRes = await kv.get(userKey);
     if (!userRes.value) return new Response(`no user with id ${id} found`);
-    const ok = await kv.atomic()
-      .check(userRes)
-      .delete(userKey)
-      .commit();
+    const ok = await kv.atomic().check(userRes).delete(userKey).commit();
     if (!ok) throw new Error("Something went wrong.");
     return new Response(`user ${id} deleted`);
   },
   async PUT(req, ctx) {
     const id = ctx.params.id;
-    const user = await req.json() as User;
+    const user = (await req.json()) as User;
     const userKey = ["user", id];
     const userRes = await kv.get(userKey);
     if (!userRes.value) return new Response(`no user with id ${id} found`);
-    const ok = await kv.atomic()
-      .check(userRes)
-      .set(userKey, user)
-      .commit();
+    const ok = await kv.atomic().check(userRes).set(userKey, user).commit();
     if (!ok) throw new Error("Something went wrong.");
     return new Response(JSON.stringify(user));
   },
@@ -238,8 +220,8 @@ export const handler: Handlers<User | null> = {
 <details>
 <summary>index.ts</summary>
 
-```ts
-import { Handlers } from "$fresh/server.ts";
+```ts { "title": "routes/api/users/index.ts" }
+import type { Handlers } from "$fresh/server.ts";
 
 type User = {
   id: string;
@@ -257,11 +239,9 @@ export const handler: Handlers<User | null> = {
     return new Response(JSON.stringify(users));
   },
   async POST(req, _ctx) {
-    const user = await req.json() as User;
+    const user = (await req.json()) as User;
     const userKey = ["user", user.id];
-    const ok = await kv.atomic()
-      .set(userKey, user)
-      .commit();
+    const ok = await kv.atomic().set(userKey, user).commit();
     if (!ok) throw new Error("Something went wrong.");
     return new Response(JSON.stringify(user));
   },

@@ -12,10 +12,8 @@ things. This allows for the introduction of a global container functioning as a
 template which can be conditioned based on state and params. Note that any state
 set by middleware is available via `props.state`.
 
-```tsx
-// routes/_app.tsx
-
-import { AppProps } from "$fresh/server.ts";
+```tsx { "title": "routes/_app.tsx" }
+import type { AppProps } from "$fresh/server.ts";
 
 export default function App({ Component, state }: AppProps) {
   //do something with state here

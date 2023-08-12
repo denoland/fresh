@@ -17,9 +17,7 @@ The second `ctx` parameter is used to get the route parameters.
 Here is an example of a route that fetches user data from the GitHub API and
 renders it in a page component.
 
-```tsx
-// routes/github/[username].tsx
-
+```tsx { "title": "routes/github/[username].tsx" }
 import { RouteContext } from "$fresh/server.ts";
 
 interface GitHubResponse {
@@ -30,14 +28,14 @@ interface GitHubResponse {
 
 export default async function Page(_req: Request, ctx: RouteContext) {
   const resp = await fetch(
-    `https://api.github.com/users/${ctx.params.username}`,
+    `https://api.github.com/users/${ctx.params.username}`
   );
 
   if (!resp.ok) {
     return <h1>An Error occurred</h1>;
   }
 
-  const { login, name, avatar_url } = await resp.json() as GitHubResponse;
+  const { login, name, avatar_url } = (await resp.json()) as GitHubResponse;
 
   return (
     <div>
