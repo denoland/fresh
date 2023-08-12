@@ -35,7 +35,7 @@ available.
    URL in the configured OAuth application.
 
    ```ts { "title": "routes/signin.ts" }
-   import { Handlers } from "$fresh/server.ts";
+   import type { Handlers } from "$fresh/server.ts";
    import { signIn } from "https://deno.land/x/deno_kv_oauth@v0.2.4/mod.ts";
    import { oauth2Client } from "../utils/oauth2_client.ts";
 
@@ -48,7 +48,7 @@ available.
 
    ```ts { "title": "routes/signout.ts" }
    // routes/signout.ts
-   import { Handlers } from "$fresh/server.ts";
+   import type { Handlers } from "$fresh/server.ts";
    import { signOut } from "https://deno.land/x/deno_kv_oauth@v0.2.4/mod.ts";
 
    export const handler: Handlers = {
@@ -59,7 +59,7 @@ available.
    ```
 
    ```ts { "title": "routes/callback.ts" }
-   import { Handlers } from "$fresh/server.ts";
+   import type { Handlers } from "$fresh/server.ts";
    import { handleCallback } from "https://deno.land/x/deno_kv_oauth@v0.2.4/mod.ts";
    import { oauth2Client } from "../utils/oauth2_client.ts";
 
@@ -75,7 +75,7 @@ available.
 4. Use Deno KV OAuth's helper functions where needed.
 
    ```tsx { "title": "routes/index.tsx" }
-   import { Handlers, PageProps } from "$fresh/server.ts";
+   import type { Handlers, PageProps } from "$fresh/server.ts";
    import {
      getSessionAccessToken,
      getSessionId,

@@ -16,7 +16,7 @@ special [\_app](/docs/concepts/app-wrapper.md) wrapper and normal
 [routes](/docs/concepts/routes.md).
 
 ```ts { "title": "routes/_middleware.ts" }
-import { MiddlewareHandlerContext } from "$fresh/server.ts";
+import type { MiddlewareHandlerContext } from "$fresh/server.ts";
 
 interface State {
   data: string;

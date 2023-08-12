@@ -26,7 +26,7 @@ the handler's `render` function.
 Let's look at a basic route that returns a plain text string:
 
 ```tsx { "title": "routes/plain.tsx" }
-import { HandlerContext, Handlers } from "$fresh/server.ts";
+import type { HandlerContext, Handlers } from "$fresh/server.ts";
 
 export const handler: Handlers = {
   GET(_req: Request, _ctx: HandlerContext) {

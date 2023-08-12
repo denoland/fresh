@@ -28,7 +28,7 @@ Here is an example of a custom `GET` handler that renders the page component and
 then adds a custom header to the response before returning it:
 
 ```tsx { "title": "routes/about.tsx"}
-import { Handlers } from "$fresh/server.ts";
+import type { Handlers } from "$fresh/server.ts";
 
 export const handler: Handlers = {
   async GET(_req, ctx) {
@@ -53,7 +53,7 @@ to create API routes. Here is an API route that returns a random UUID as a JSON
 response:
 
 ```ts { "title": "routes/api/random-uuid.ts" }
-import { Handlers } from "$fresh/server.ts";
+import type { Handlers } from "$fresh/server.ts";
 
 export const handler: Handlers = {
   GET(_req) {

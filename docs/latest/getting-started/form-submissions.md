@@ -30,7 +30,7 @@ Here is an example implementing a search form that filters an array of names
 server side:
 
 ```tsx { "title": "routes/search.tsx" }
-import { Handlers, PageProps } from "$fresh/server.ts";
+import type { Handlers, PageProps } from "$fresh/server.ts";
 
 const NAMES = ["Alice", "Bob", "Charlie", "Dave", "Eve", "Frank"];
 

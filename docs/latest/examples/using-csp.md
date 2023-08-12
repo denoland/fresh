@@ -187,7 +187,7 @@ stylesheet, due to the header that Fresh produces. We get a `(blocked:csp)`
 status when the browser tries to request this resource.
 
 ```tsx { "title": "routes/incorrectCSP.tsx" }
-import { RouteConfig, RouteContext } from "$fresh/server.ts";
+import type { RouteConfig, RouteContext } from "$fresh/server.ts";
 import { useCSP } from "$fresh/runtime.ts";
 
 export default function Home(req: Request, ctx: RouteContext) {
@@ -256,7 +256,7 @@ This page adheres to our configured CSP. Styles will be applied.
 What happens if we forget to use a `RouteConfig` in our route?
 
 ```tsx { "title": "routes/cspNoRouteConfig.tsx" }
-import { RouteContext } from "$fresh/server.ts";
+import type { RouteContext } from "$fresh/server.ts";
 import { useCSP } from "$fresh/runtime.ts";
 
 export default function Home(req: Request, ctx: RouteContext) {
@@ -295,7 +295,7 @@ then the browser will ignore the CSP headers and log any issues to the
 `reportUri` destination.
 
 ```tsx { "title": "routes/incorrectCSPwithReport.tsx" }
-import { RouteConfig, RouteContext } from "$fresh/server.ts";
+import type { RouteConfig, RouteContext } from "$fresh/server.ts";
 import { useCSP } from "$fresh/runtime.ts";
 
 export default function Home(req: Request, ctx: RouteContext) {
@@ -324,7 +324,7 @@ export const config: RouteConfig = {
 ```
 
 ```ts { "title": "routes/reportHandler.ts" }
-import { HandlerContext } from "$fresh/server.ts";
+import type { HandlerContext } from "$fresh/server.ts";
 
 export const handler = {
   async POST(req: Request, _ctx: HandlerContext) {
