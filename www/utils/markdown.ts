@@ -188,15 +188,18 @@ class DefaultRenderer extends Marked.Renderer {
 export interface MarkdownOptions {
   inline?: boolean;
 }
-export function renderMarkdown(input: string, opts: MarkdownOptions = {}) {
+export function renderMarkdown(
+  input: string,
+  opts: MarkdownOptions = {},
+): string {
   const markedOpts: Marked.MarkedOptions = {
     gfm: true,
     renderer: new DefaultRenderer(),
   };
 
   const html = opts.inline
-    ? Marked.parseInline(input, markedOpts)
-    : Marked.parse(input, markedOpts);
+    ? Marked.parseInline(input, markedOpts) as string
+    : Marked.parse(input, markedOpts) as string;
 
   return html;
 }
