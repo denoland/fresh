@@ -20,7 +20,7 @@ Let's illustrate that with an example:
 Without any way to group routes this is a problem because every route segment
 can only have one `_layout` file.
 
-```txt { "title": "Project struture "}
+```txt { "title": "Project structure "}
 routes/
   _layout.tsx   <-- applies to all routes here :(
   about.tsx
