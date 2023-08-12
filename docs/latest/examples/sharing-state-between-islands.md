@@ -11,8 +11,7 @@ All of this content is lifted from this great
 
 Imagine we have `Counter.tsx` like this:
 
-```ts
-// islands/Counter.tsx
+```tsx { "title": "islands/Counter.tsx" }
 import { useSignal } from "@preact/signals";
 import { Button } from "../components/Button.tsx";
 
@@ -37,7 +36,7 @@ export default function Counter(props: CounterProps) {
 Note how `useSignal` is within the `Counter` component. Then if we instantiate
 some counters like this...
 
-```ts
+```jsx { "title": "Usage", "transform": false }
 <Counter start={3} />
 <Counter start={4} />
 ```
@@ -49,9 +48,8 @@ here, yet.
 
 But we can switch things up by looking at a `SynchronizedSlider.tsx` like this:
 
-```ts
-// islands/SynchronizedSlider.tsx
-import { Signal } from "@preact/signals";
+```tsx { "title": "islands/SynchronizedSlider.tsx" }
+import type { Signal } from "@preact/signals";
 
 interface SliderProps {
   slider: Signal<number>;
@@ -67,7 +65,7 @@ export default function SynchronizedSlider(props: SliderProps) {
       min={1}
       max={100}
       value={props.slider.value}
-      onInput={(e) => props.slider.value = Number(e.currentTarget.value)}
+      onInput={(e) => (props.slider.value = Number(e.currentTarget.value))}
     />
   );
 }
@@ -75,8 +73,7 @@ export default function SynchronizedSlider(props: SliderProps) {
 
 Now if we were to do the following...
 
-```ts
-// routes/index.tsx
+```tsx { "title": "routes/index.tsx" }
 export default function Home() {
   const sliderSignal = useSignal(50);
   return (
@@ -96,15 +93,13 @@ they would all use the same value.
 We can also create a `signal` in a utility file and export it for consumption
 across multiple places.
 
-```ts
-// utils/cart.ts
+```ts { "title": "utils/cart.ts" }
 import { signal } from "@preact/signals";
 
 export const cart = signal<string[]>([]);
 ```
 
-```ts
-// islands/AddToCart.tsx
+```tsx { "title": "islands/AddToCart.tsx" }
 import { Button } from "../components/Button.tsx";
 import { cart } from "../utils/cart.ts";
 
@@ -116,18 +111,17 @@ interface AddToCartProps {
 export default function AddToCart(props: AddToCartProps) {
   return (
     <Button
-      onClick={() => cart.value = [...cart.value, props.product]}
+      onClick={() => (cart.value = [...cart.value, props.product])}
       class="w-full"
     >
-      Add{cart.value.includes(props.product) ? " another" : ""}{" "}
-      "{props.product}" to cart
+      Add{cart.value.includes(props.product) ? " another" : ""} "{props.product}"
+      to cart
     </Button>
   );
 }
 ```
 
-```ts
-// islands/Cart.tsx
+```tsx { "title": "islands/Cart.tsx" }
 import { Button } from "../components/Button.tsx";
 import { cart } from "../utils/cart.ts";
 import * as icons from "../components/Icons.tsx";
@@ -135,25 +129,23 @@ import * as icons from "../components/Icons.tsx";
 // This island is used to display the cart contents and remove items from it.
 export default function Cart() {
   return (
-    <h1 class="text-xl flex items-center justify-center">
-      Cart
-    </h1>
+    <>
+      <h1 class="text-xl flex items-center justify-center">Cart</h1>
 
-    <ul class="w-full bg-gray-50 mt-2 p-2 rounded min-h-[6.5rem]">
-      {cart.value.length === 0 && (
-        <li class="text-center my-4">
-          <div class="text-gray-400">
-            <icons.Cart class="w-8 h-8 inline-block" />
-            <div>
-              Your cart is empty.
+      <ul class="w-full bg-gray-50 mt-2 p-2 rounded min-h-[6.5rem]">
+        {cart.value.length === 0 && (
+          <li class="text-center my-4">
+            <div class="text-gray-400">
+              <icons.Cart class="w-8 h-8 inline-block" />
+              <div>Your cart is empty.</div>
             </div>
-          </div>
-        </li>
-      )}
-      {cart.value.map((product, index) => (
-        <CartItem product={product} index={index} />
-      ))}
-    </ul>
+          </li>
+        )}
+        {cart.value.map((product, index) => (
+          <CartItem product={product} index={index} />
+        ))}
+      </ul>
+    </>
   );
 }
 
@@ -172,9 +164,7 @@ function CartItem(props: CartItemProps) {
   return (
     <li class="flex items-center justify-between gap-1">
       <icons.Lemon class="text-gray-500" />
-      <div class="flex-1">
-        {props.product}
-      </div>
+      <div class="flex-1">{props.product}</div>
       <Button onClick={remove} aria-label="Remove" class="border-none">
         <icons.X class="inline-block w-4 h-4" />
       </Button>
@@ -185,7 +175,7 @@ function CartItem(props: CartItemProps) {
 
 Now we can add the islands to our site by doing the following:
 
-```ts
+```jsx { "title": "Usage", "transform": false }
 <AddToCart product="Lemon" />
 <AddToCart product="Lime" />
 <Cart />

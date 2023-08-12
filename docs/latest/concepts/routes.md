@@ -25,10 +25,8 @@ the handler's `render` function.
 
 Let's look at a basic route that returns a plain text string:
 
-```tsx
-// routes/plain.tsx
-
-import { HandlerContext, Handlers } from "$fresh/server.ts";
+```tsx { "title": "routes/plain.tsx" }
+import type { HandlerContext, Handlers } from "$fresh/server.ts";
 
 export const handler: Handlers = {
   GET(_req: Request, _ctx: HandlerContext) {
@@ -48,10 +46,8 @@ have a corresponding handler, a 405 HTTP error is returned.
 
 Now, let's render some HTML using the route component:
 
-```tsx
-// routes/html.tsx
-
-import { PageProps } from "$fresh/server.ts";
+```tsx { "title": "routes/html.tsx" }
+import { type PageProps } from "$fresh/server.ts";
 
 export default function Page(props: PageProps) {
   return <div>You are on the page '{props.url.href}'.</div>;
@@ -71,10 +67,8 @@ should work.
 In the below example, a custom handler is used to add a custom header to the
 response after rendering the page component.
 
-```tsx
-// routes/html.tsx
-
-import { HandlerContext, Handlers, PageProps } from "$fresh/server.ts";
+```tsx { "title": "routes/html.tsx" }
+import type { HandlerContext, Handlers, PageProps } from "$fresh/server.ts";
 
 export const handler: Handlers = {
   async GET(_req: Request, ctx: HandlerContext) {
@@ -96,7 +90,7 @@ test these in isolation, but can become a bit cumbersome to maintain. They
 require some additional indirection of declaring an interface for the component
 `Data` when you're passing it around through `ctx.render()`.
 
-```tsx
+```tsx { "title": "routes/my-page.tsx" }
 interface Data {
   foo: number;
 }
@@ -117,7 +111,7 @@ When a route has both a component and a `GET` handler, they are typically very
 closely coupled. With async route components you can merge the two together and
 avoid having to create the `Data` interface boilerplate.
 
-```tsx
+```tsx { "title": "routes/my-page.tsx" }
 // Async route component
 export default async function MyPage(req: Request, ctx: RouteContext) {
   const value = await loadFooValue();
@@ -130,7 +124,7 @@ can think of async route components inlining the `GET` handler into the
 component function. Note, that you can still add additional HTTP handlers in the
 same file like before.
 
-```tsx
+```tsx { "title": "routes/my-page.tsx" }
 export const handler: Handlers = {
   async POST(req) {
     // ... do something here
@@ -148,7 +142,7 @@ export default async function MyPage(req: Request, ctx: RouteContext) {
 Quite often a route handler needs to render a 404 page or bail out of rendering
 in another manner. This can be done by returning a `Response` object.
 
-```tsx
+```tsx { "title": "routes/my-page.tsx" }
 // Async route component
 export default async function MyPage(req: Request, ctx: RouteContext) {
   const value = await loadFooValue();

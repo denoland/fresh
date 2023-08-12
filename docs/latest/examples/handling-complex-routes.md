@@ -16,8 +16,8 @@ Here you can define named groups, wildcards, regex groups, and other bits.
 Let's look at the example from the routing page more closely. We'll flesh out
 the handler so that we end up with something like the following:
 
-```ts
-import { HandlerContext, RouteConfig } from "$fresh/server.ts";
+```ts { "title": "routes/my-page.tsx" }
+import type { HandlerContext, RouteConfig } from "$fresh/server.ts";
 
 export const handler = {
   GET(_req: Request, { params }: HandlerContext) {
@@ -35,7 +35,7 @@ Now if we hit the server with a request like
 `http://localhost:8000/x/bestModule@1.33.7/asdf`, then logging the params will
 show the following:
 
-```
+```sh { "title": "Terminal output" }
 {
   module: "bestModule",
   version: "1.33.7",
@@ -47,8 +47,8 @@ show the following:
 
 Let's look at something a bit more complex:
 
-```ts
-import { HandlerContext, RouteConfig } from "$fresh/server.ts";
+```ts { "title": "routes/my-page.ts" }
+import type { HandlerContext, RouteConfig } from "$fresh/server.ts";
 
 export const handler = {
   GET(_req: Request, { params }: HandlerContext) {

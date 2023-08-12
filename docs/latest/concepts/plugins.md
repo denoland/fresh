@@ -6,9 +6,7 @@ Plugins can dynamically add new functionality to Fresh without exposing
 significant complexity to the user. Users can add plugins by importing and
 initializing them in their `main.ts` file:
 
-```ts
-// main.ts
-
+```ts { "title": "main.ts" }
 import { start } from "$fresh/server.ts";
 import manifest from "./fresh.gen.ts";
 
@@ -43,8 +41,8 @@ A Fresh plugin is just a JavaScript object that conforms to the
 required property of a plugin is its name. Names must only contain the
 characters `a`-`z`, and `_`.
 
-```ts
-import { Plugin } from "$fresh/server.ts";
+```ts { "title": "my-plugin.ts" }
+import type { Plugin } from "$fresh/server.ts";
 
 const plugin: Plugin = {
   name: "my_plugin",

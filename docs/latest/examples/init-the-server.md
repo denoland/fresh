@@ -7,7 +7,7 @@ Let's pretend you've just initialized a new Fresh project. You want to do some
 complicated setup that runs once, before the server is started. This is,
 fortunately, quite easy. Here's how:
 
-```diff
+```diff { "title": "main.ts" }
  import { start } from "$fresh/server.ts";
  import manifest from "./fresh.gen.ts";
 +import { Context } from "./routes/_middleware.ts";
@@ -18,7 +18,7 @@ fortunately, quite easy. Here's how:
 
 So your full `main.ts` should look like this:
 
-```ts
+```ts { "title": "main.ts" }
 /// <reference no-default-lib="true" />
 /// <reference lib="dom" />
 /// <reference lib="dom.iterable" />
@@ -37,8 +37,8 @@ await start(manifest);
 
 But what's going on in this new `_middleware.ts` we've created?
 
-```ts
-import { MiddlewareHandlerContext } from "$fresh/server.ts";
+```ts { "title": "main.ts"}
+import type { MiddlewareHandlerContext } from "$fresh/server.ts";
 
 export interface State {
   context: Context;
@@ -66,7 +66,7 @@ export class Context {
 
 export async function handler(
   req: Request,
-  ctx: MiddlewareHandlerContext<State>,
+  ctx: MiddlewareHandlerContext<State>
 ) {
   ctx.state.context = Context.instance();
   const resp = await ctx.next();

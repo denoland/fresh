@@ -11,9 +11,7 @@ Islands are defined by creating a file in the `islands/` folder in a Fresh
 project. The name of this file must be a PascalCase or kebab-case name of the
 island.
 
-```tsx
-// islands/MyIsland.tsx
-
+```tsx { "title": "islands/MyIsland.tsx" }
 import { useSignal } from "@preact/signals";
 
 export default function MyIsland() {
@@ -53,8 +51,7 @@ functions is not supported.
 Islands support passing JSX elements via the `children` property. This allows
 you to pass static content rendered by the server to an island in the browser.
 
-```jsx
-// route/index.tsx
+```tsx { "title": "route/index.tsx" }
 import MyIsland from "../islands/my-island.tsx";
 
 export default function Home() {
@@ -77,8 +74,7 @@ Islands can be nested within other islands as well. In that scenario they act
 like a normal Preact component, but still receive the serialized props if any
 were present.
 
-```jsx
-// route/index.tsx
+```tsx { "title": "route/index.tsx" }
 import MyIsland from "../islands/my-island.tsx";
 import OtherIsland from "../islands/other-island.tsx";
 
@@ -97,8 +93,7 @@ In essence, Fresh allows you to mix static and interactive parts in your app in
 a way that's most optimal for your use app. We'll keep sending only the
 JavaScript that is needed for the islands to the browser.
 
-```jsx
-// route/index.tsx
+```tsx { "title": "route/index.tsx"}
 import MyIsland from "../islands/my-island.tsx";
 import OtherIsland from "../islands/other-island.tsx";
 

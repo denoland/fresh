@@ -14,9 +14,8 @@ The following file uses
 [dynamic routing](https://fresh.deno.dev/docs/getting-started/dynamic-routes) to
 handle the three cases. It's assumed this file is called `[slug].tsx`:
 
-```ts
-// routes/[slug].tsx
-import { Handlers, PageProps } from "$fresh/server.ts";
+```tsx { "title": "routes/[slug].tsx" }
+import type { Handlers, PageProps } from "$fresh/server.ts";
 import { extract } from "$std/front_matter/yaml.ts";
 import { CSS, render } from "$gfm";
 import { Head } from "$fresh/runtime.ts";
@@ -31,7 +30,7 @@ export const handler: Handlers<Page> = {
     let rawMarkdown = "";
     if (ctx.params.slug === "remote") {
       const resp = await fetch(
-        `https://raw.githubusercontent.com/denoland/fresh/main/docs/introduction/index.md`,
+        `https://raw.githubusercontent.com/denoland/fresh/main/docs/introduction/index.md`
       );
       if (resp.status !== 200) {
         return ctx.render(undefined);
@@ -81,7 +80,7 @@ export default function MarkdownPage({ data }: PageProps<Page | null>) {
 
 The contents of the `text.md` file are the following:
 
-```md
+```md { "title": "text.md" }
 ---
 description: testFromText
 ---
@@ -93,8 +92,12 @@ description: testFromText
 
 You'll also need to import the `Github Flavored Markdown` module:
 
-```json
-"$gfm": "https://deno.land/x/gfm@0.2.3/mod.ts",
+```diff { "title": "deno.json" }
+  {
+    "imports": {
++     "$gfm": "https://deno.land/x/gfm@0.2.3/mod.ts"
+    }
+  }
 ```
 
 Andy has a helpful [post](https://deno.com/blog/build-a-blog-with-fresh) on the
