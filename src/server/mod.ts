@@ -1,17 +1,16 @@
+import { ComponentChildren } from "preact";
 import { ServerContext } from "./context.ts";
 export { Status } from "./deps.ts";
 import { colors, serve } from "./deps.ts";
 import {
-  AppModule,
-  ErrorPageModule,
+  Handler,
+  Handlers,
   IslandModule,
-  LayoutModule,
-  MiddlewareModule,
-  RouteModule,
+  MiddlewareHandler,
+  RouteConfig,
   ServeHandler,
   ServeHandlerInfo,
   StartOptions,
-  UnknownPageModule,
 } from "./types.ts";
 export type {
   AppProps,
@@ -51,12 +50,21 @@ export type { InnerRenderFunction } from "./render.ts";
 export interface Manifest {
   routes: Record<
     string,
-    | RouteModule
-    | MiddlewareModule
-    | AppModule
-    | LayoutModule
-    | ErrorPageModule
-    | UnknownPageModule
+    {
+      // We intentionally loosen this type here because TS has trouble
+      // matching functions with different number of arguments and
+      // return types. Also to note is that we generate the manifest
+      // ourselves.
+      default?: (
+        // deno-lint-ignore no-explicit-any
+        reqOrProps: any,
+        // deno-lint-ignore no-explicit-any
+        context: any,
+      ) => ComponentChildren | Promise<Response | ComponentChildren>;
+      // deno-lint-ignore no-explicit-any
+      handler?: Handler<any, any> | Handlers<any, any> | MiddlewareHandler<any>;
+      config?: RouteConfig;
+    }
   >;
   islands: Record<string, IslandModule>;
   baseUrl: string;
