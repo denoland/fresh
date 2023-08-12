@@ -196,8 +196,6 @@ export async function render<Data>(
     layouts = [];
   }
 
-  const isAsyncComponent = checkAsyncComponent(component);
-
   const props: Record<string, unknown> = {
     params: opts.params,
     url: opts.url,
@@ -357,13 +355,6 @@ export async function render<Data>(
   const syncPlugins = opts.plugins.filter((p) => p.render);
 
   const renderResults: [Plugin, PluginRenderResult][] = [];
-  if (isAsyncComponent && syncPlugins.length > 0) {
-    throw new Error(
-      `Async server components cannot be rendered synchronously. The following plugins use a synchronous render method: "${
-        syncPlugins.map((plugin) => plugin.name).join('", "')
-      }"`,
-    );
-  }
 
   function renderSync(): PluginRenderFunctionResult {
     const plugin = syncPlugins.shift();
