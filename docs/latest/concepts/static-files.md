@@ -47,5 +47,5 @@ deems it safe to do so. You can always opt out of this behaviour per tag, by
 adding the `data-fresh-disable-lock` attribute.
 
 ```jsx
-<img src="/user.png" />
+<img src="/user.png" />;
 ```
