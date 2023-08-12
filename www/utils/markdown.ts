@@ -11,10 +11,8 @@ import * as Marked from "https://esm.sh/marked@7.0.2";
 import { escape as escapeHtml } from "$std/html/entities.ts";
 import * as sucrase from "https://esm.sh/sucrase@3.34.0";
 import { mangle } from "$marked-mangle";
-import { markedSmartypants } from "$marked-smartypants";
 
 Marked.marked.use(mangle());
-Marked.marked.use(markedSmartypants());
 
 function replaceExtName(file: string, newExt: string) {
   const idx = file.lastIndexOf(".");
@@ -25,6 +23,20 @@ function replaceExtName(file: string, newExt: string) {
 }
 
 class DefaultRenderer extends Marked.Renderer {
+  text(text: string): string {
+    // Smartypants typography enhancement
+    return text
+      .replaceAll("...", "&#8230;")
+      .replaceAll("--", "&#8212;")
+      .replaceAll("---", "&#8211;")
+      .replaceAll(/(\w)'(\w)/g, "$1&#8217;$2")
+      .replaceAll(/s'/g, "s&#8217;")
+      .replaceAll("&#39;", "&#8217;")
+      .replaceAll(/["](.*?)["]/g, "&#8220;$1&#8221")
+      .replaceAll(/&quot;(.*?)&quot;/g, "&#8220;$1&#8221")
+      .replaceAll(/['](.*?)[']/g, "&#8216;$1&#8217;");
+  }
+
   heading(
     text: string,
     level: 1 | 2 | 3 | 4 | 5 | 6,
