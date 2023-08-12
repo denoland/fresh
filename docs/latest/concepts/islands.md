@@ -48,7 +48,7 @@ Islands support passing JSX elements via the `children` property.
 // islands/my-island.tsx
 
 import { useSignal } from "@preact/signals";
-import { ComponentChildren } from "preact";
+import { ComponentChildren } from "preact";
 
 interface Props {
   children: ComponentChildren;
