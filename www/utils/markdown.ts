@@ -16,16 +16,6 @@ import { markedSmartypants } from "$marked-smartypants";
 Marked.marked.use(mangle());
 Marked.marked.use(markedSmartypants());
 
-const LOGOS: Record<string, string> = {
-  js: "/js-logo.svg",
-  jsx: "/js-logo.svg",
-  ts: "/ts-logo.svg",
-  tsx: "/ts-logo.svg",
-};
-function getLogo(lang: string) {
-  return LOGOS[lang] ?? "";
-}
-
 function replaceExtName(file: string, newExt: string) {
   const idx = file.lastIndexOf(".");
   if (idx > -1) {
@@ -86,13 +76,11 @@ class DefaultRenderer extends Marked.Renderer {
     const snippets: {
       lang: string;
       code: string;
-      logo: string;
       title: string;
     }[] = [{
       title,
       lang,
       code,
-      logo: getLogo(lang),
     }];
 
     if (!("lang_switcher" in meta) && (lang === "ts" || lang === "tsx")) {
@@ -140,7 +128,6 @@ class DefaultRenderer extends Marked.Renderer {
 
         snippets.push({
           title: actualTitle,
-          logo: getLogo(actualLang),
           lang: actualLang,
           code: transformedCode,
         });
