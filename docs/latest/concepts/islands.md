@@ -102,10 +102,11 @@ times, it is only serialized once and the references are restored upon
 deserialization. Passing complex objects like `Date`, custom classes, or
 functions is not supported.
 
-We can deduce which parts were rendered by the server and which parts where
-rendered by an island from the HTML alone. It contains all the information we
-need, which allows us to skip the work of having to send a serialized version of
-`props.children` to the browser.
+During server side rendering, Fresh annotates the HTML with special comments
+that indicate where each island will go. This gives the code sent to the client
+enough information to put the islands where they are supposed to go without
+requiring hydration for the static children of interactive islands. No
+Javascript is sent to the client when no interactivity is needed.
 
 ### Nesting islands
 
