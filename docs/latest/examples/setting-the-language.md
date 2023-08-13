@@ -6,7 +6,7 @@ description: |
 When you initialize a project with `deno run -A -r https://fresh.deno.dev`,
 you'll end up with a `main.ts` like the following:
 
-```ts
+```ts main.ts
 /// <reference no-default-lib="true" />
 /// <reference lib="dom" />
 /// <reference lib="dom.iterable" />
@@ -26,7 +26,7 @@ This is a great start if your site is in English, but let's say you want to
 change the language, as per the `<html lang=asdf>` tag. Then you'll need to do
 something like this:
 
-```ts
+```ts main.ts
 /// <reference no-default-lib="true" />
 /// <reference lib="dom" />
 /// <reference lib="dom.iterable" />

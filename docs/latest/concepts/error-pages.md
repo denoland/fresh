@@ -14,7 +14,7 @@ The 404 page can be customized by creating a `_404.tsx` file in the `routes/`
 folder. The file must have a default export that is a regular Preact component.
 A props object of type `UnknownPageProps` is passed in as an argument.
 
-```tsx
+```tsx routes/_404.tsx
 import { UnknownPageProps } from "$fresh/server.ts";
 
 export default function NotFoundPage({ url }: UnknownPageProps) {
@@ -29,7 +29,7 @@ In some cases, one needs to manually trigger the rendering of the 404 page, for
 example when the route did match, but the requested resource does not exist.
 This can be achieved with `ctx.renderNotFound`.
 
-```tsx
+```tsx routes/blog/[slug].tsx
 import { Handlers, PageProps } from "$fresh/server.ts";
 
 export const handler: Handlers = {
@@ -60,7 +60,7 @@ The 500 page can be customized by creating a `_500.tsx` file in the `routes/`
 folder. The file must have a default export that is a regular Preact component.
 A props object of type `ErrorPageProps` is passed in as an argument.
 
-```tsx
+```tsx routes/_500.tsx
 import { ErrorPageProps } from "$fresh/server.ts";
 
 export default function Error500Page({ error }: ErrorPageProps) {

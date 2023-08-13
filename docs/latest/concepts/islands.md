@@ -11,9 +11,7 @@ Islands are defined by creating a file in the `islands/` folder in a Fresh
 project. The name of this file must be a PascalCase or kebab-case name of the
 island.
 
-```tsx
-// islands/my-island.tsx
-
+```tsx islands/my-island.tsx
 import { useSignal } from "@preact/signals";
 
 export default function MyIsland() {
@@ -31,8 +29,7 @@ export default function MyIsland() {
 An island can be used in a page like a regular Preact component. Fresh will take
 care of automatically re-hydrating the island on the client.
 
-```tsx
-// route/index.tsx
+```tsx route/index.tsx
 import MyIsland from "../islands/my-island.tsx";
 
 export default function Home() {
@@ -44,9 +41,7 @@ export default function Home() {
 
 Islands support passing JSX elements via the `children` property.
 
-```tsx
-// islands/my-island.tsx
-
+```tsx islands/my-island.tsx
 import { useSignal } from "@preact/signals";
 import { ComponentChildren } from "preact";
 
@@ -70,8 +65,7 @@ export default function MyIsland({ children }: Props) {
 This allows you to pass static content rendered by the server to an island in
 the browser.
 
-```tsx
-// routes/index.tsx
+```tsx routes/index.tsx
 import MyIsland from "../islands/my-island.tsx";
 
 export default function Home() {
@@ -108,10 +102,10 @@ enough information to put the islands where they are supposed to go without
 requiring hydration for the static children of interactive islands. No
 Javascript is sent to the client when no interactivity is needed.
 
-```HTML
+```html
 <!--frsh-myisland_default:default:0-->
 <div>
-  Counter is at 0. 
+  Counter is at 0.
   <button>+</button>
   <!--frsh-slot-myisland_default:children-->
   <p>This text is rendered on the server</p>
@@ -126,8 +120,7 @@ Islands can be nested within other islands as well. In that scenario they act
 like a normal Preact component, but still receive the serialized props if any
 were present.
 
-```tsx
-// islands/other-island.tsx
+```tsx islands/other-island.tsx
 import { useSignal } from "@preact/signals";
 import { ComponentChildren } from "preact";
 
@@ -147,8 +140,7 @@ export default function MyIsland({ children, foo }: Props) {
     <div>
       <p>String from props: {foo}</p>
       <p>
-        <button onClick={() => number.value = randomNumber()}>Random</button>
-        {" "}
+        <button onClick={() => (number.value = randomNumber())}>Random</button>{" "}
         number is: {number}.
       </p>
     </div>
@@ -160,8 +152,7 @@ In essence, Fresh allows you to mix static and interactive parts in your app in
 a way that's most optimal for your use app. We'll keep sending only the
 JavaScript that is needed for the islands to the browser.
 
-```tsx
-// route/index.tsx
+```tsx route/index.tsx
 import MyIsland from "../islands/my-island.tsx";
 import OtherIsland from "../islands/other-island.tsx";
 

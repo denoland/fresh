@@ -9,7 +9,7 @@ will scaffold out a new project with some example files to get you started.
 
 To create a new project, run:
 
-```
+```sh Terminal
 deno run -A -r https://fresh.deno.dev
 cd fresh-project
 deno task start

@@ -19,12 +19,12 @@ In this example we'll be creating a small API that uses
 Our project structure will look like this (in addition to the rest of the Fresh
 code from a new project):
 
-```
-├── routes
-│   └── api
-│       └── users
-│           ├── [id].ts
-│           └── index.ts
+```txt Project Structure
+routes
+└── api
+    └── users
+        ├── [id].ts
+        └── index.ts
 ```
 
 In each section about a method, only the relevant handler will be shown. The
@@ -34,15 +34,12 @@ full files are available at the bottom for reference.
 
 `POST` (create) is used to create a resource.
 
-```tsx
-// routes/api/users/index.ts
+```tsx routes/api/users/index.ts
 export const handler: Handlers<User | null> = {
   async POST(req, _ctx) {
-    const user = await req.json() as User;
+    const user = (await req.json()) as User;
     const userKey = ["user", user.id];
-    const ok = await kv.atomic()
-      .set(userKey, user)
-      .commit();
+    const ok = await kv.atomic().set(userKey, user).commit();
     if (!ok) throw new Error("Something went wrong.");
     return new Response(JSON.stringify(user));
   },
@@ -71,8 +68,7 @@ You should receive the same thing back:
 `GET` (read) is used to retrieve a resource and is by far the most common HTTP
 method. You can use `GET` to fetch database content, markdown, or static files.
 
-```tsx
-// routes/api/users/[id].ts
+```tsx routes/api/users/[id].ts
 export const handler: Handlers<User | null> = {
   async GET(_req, ctx) {
     const id = ctx.params.id;
@@ -102,19 +98,15 @@ The short version of it: `PUT` requires the entire object to be submitted, while
 
 An example of an update endpoint using `PUT`:
 
-```tsx
-// routes/api/users/[id].ts
+```tsx routes/api/users/[id].ts
 export const handler: Handlers<User | null> = {
   async PUT(req, ctx) {
     const id = ctx.params.id;
-    const user = await req.json() as User;
+    const user = (await req.json()) as User;
     const userKey = ["user", id];
     const userRes = await kv.get(userKey);
     if (!userRes.value) return new Response(`no user with id ${id} found`);
-    const ok = await kv.atomic()
-      .check(userRes)
-      .set(userKey, user)
-      .commit();
+    const ok = await kv.atomic().check(userRes).set(userKey, user).commit();
     if (!ok) throw new Error("Something went wrong.");
     return new Response(JSON.stringify(user));
   },
@@ -152,18 +144,14 @@ No need to send in the id in this case.
 
 `DELETE` (delete) is used to delete a resource.
 
-```tsx
-// routes/api/users/[id].ts
+```tsx routes/api/users/[id].ts
 export const handler: Handlers<User | null> = {
   async DELETE(_req, ctx) {
     const id = ctx.params.id;
     const userKey = ["user", id];
     const userRes = await kv.get(userKey);
     if (!userRes.value) return new Response(`no user with id ${id} found`);
-    const ok = await kv.atomic()
-      .check(userRes)
-      .delete(userKey)
-      .commit();
+    const ok = await kv.atomic().check(userRes).delete(userKey).commit();
     if (!ok) throw new Error("Something went wrong.");
     return new Response(`user ${id} deleted`);
   },
@@ -173,7 +161,7 @@ export const handler: Handlers<User | null> = {
 Try sending `DELETE` to `http://localhost:8000/api/users/2` without a body.
 We'll get back:
 
-```
+```txt
 user 2 deleted
 ```
 
@@ -210,23 +198,17 @@ export const handler: Handlers<User | null> = {
     const userKey = ["user", id];
     const userRes = await kv.get(userKey);
     if (!userRes.value) return new Response(`no user with id ${id} found`);
-    const ok = await kv.atomic()
-      .check(userRes)
-      .delete(userKey)
-      .commit();
+    const ok = await kv.atomic().check(userRes).delete(userKey).commit();
     if (!ok) throw new Error("Something went wrong.");
     return new Response(`user ${id} deleted`);
   },
   async PUT(req, ctx) {
     const id = ctx.params.id;
-    const user = await req.json() as User;
+    const user = (await req.json()) as User;
     const userKey = ["user", id];
     const userRes = await kv.get(userKey);
     if (!userRes.value) return new Response(`no user with id ${id} found`);
-    const ok = await kv.atomic()
-      .check(userRes)
-      .set(userKey, user)
-      .commit();
+    const ok = await kv.atomic().check(userRes).set(userKey, user).commit();
     if (!ok) throw new Error("Something went wrong.");
     return new Response(JSON.stringify(user));
   },
@@ -257,11 +239,9 @@ export const handler: Handlers<User | null> = {
     return new Response(JSON.stringify(users));
   },
   async POST(req, _ctx) {
-    const user = await req.json() as User;
+    const user = (await req.json()) as User;
     const userKey = ["user", user.id];
-    const ok = await kv.atomic()
-      .set(userKey, user)
-      .commit();
+    const ok = await kv.atomic().set(userKey, user).commit();
     if (!ok) throw new Error("Something went wrong.");
     return new Response(JSON.stringify(user));
   },

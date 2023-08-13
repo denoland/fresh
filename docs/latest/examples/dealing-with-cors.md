@@ -15,13 +15,10 @@ As per the above link, "simple" requests involve `GET`, `HEAD`, or `POST`
 requests. You can CORS enable all the routes affected by some `middleware` by
 doing the following:
 
-```ts
+```ts routes/_middleware.ts
 import { MiddlewareHandlerContext } from "$fresh/server.ts";
 
-export async function handler(
-  req: Request,
-  ctx: MiddlewareHandlerContext,
-) {
+export async function handler(req: Request, ctx: MiddlewareHandlerContext) {
   const origin = req.headers.get("Origin") || "*";
   const resp = await ctx.next();
   const headers = resp.headers;
@@ -30,11 +27,11 @@ export async function handler(
   headers.set("Access-Control-Allow-Credentials", "true");
   headers.set(
     "Access-Control-Allow-Headers",
-    "Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization, accept, origin, Cache-Control, X-Requested-With",
+    "Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization, accept, origin, Cache-Control, X-Requested-With"
   );
   headers.set(
     "Access-Control-Allow-Methods",
-    "POST, OPTIONS, GET, PUT, DELETE",
+    "POST, OPTIONS, GET, PUT, DELETE"
   );
 
   return resp;
@@ -47,13 +44,10 @@ What about for one of the other HTTP methods? Then you'll need to be able to
 deal with "preflight requests". Let's imagine you're trying to support a
 `DELETE` route. Then you'd need to do something like this:
 
-```ts
+```ts routes/_middleware.ts
 import { MiddlewareHandlerContext } from "$fresh/server.ts";
 
-export async function handler(
-  _req: Request,
-  ctx: MiddlewareHandlerContext,
-) {
+export async function handler(_req: Request, ctx: MiddlewareHandlerContext) {
   if (_req.method == "OPTIONS") {
     const resp = new Response(null, {
       status: 204,
@@ -61,10 +55,7 @@ export async function handler(
     const origin = _req.headers.get("Origin") || "*";
     const headers = resp.headers;
     headers.set("Access-Control-Allow-Origin", origin);
-    headers.set(
-      "Access-Control-Allow-Methods",
-      "DELETE",
-    );
+    headers.set("Access-Control-Allow-Methods", "DELETE");
     return resp;
   }
   const origin = _req.headers.get("Origin") || "*";
@@ -75,11 +66,11 @@ export async function handler(
   headers.set("Access-Control-Allow-Credentials", "true");
   headers.set(
     "Access-Control-Allow-Headers",
-    "Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization, accept, origin, Cache-Control, X-Requested-With",
+    "Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization, accept, origin, Cache-Control, X-Requested-With"
   );
   headers.set(
     "Access-Control-Allow-Methods",
-    "POST, OPTIONS, GET, PUT, DELETE",
+    "POST, OPTIONS, GET, PUT, DELETE"
   );
 
   return resp;

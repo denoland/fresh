@@ -11,8 +11,7 @@ All of this content is lifted from this great
 
 Imagine we have `Counter.tsx` like this:
 
-```ts
-// islands/Counter.tsx
+```tsx islands/Counter.tsx
 import { useSignal } from "@preact/signals";
 import { Button } from "../components/Button.tsx";
 
@@ -37,7 +36,7 @@ export default function Counter(props: CounterProps) {
 Note how `useSignal` is within the `Counter` component. Then if we instantiate
 some counters like this...
 
-```ts
+```tsx
 <Counter start={3} />
 <Counter start={4} />
 ```
@@ -49,8 +48,7 @@ here, yet.
 
 But we can switch things up by looking at a `SynchronizedSlider.tsx` like this:
 
-```ts
-// islands/SynchronizedSlider.tsx
+```tsx islands/SynchronizedSlider.tsx
 import { Signal } from "@preact/signals";
 
 interface SliderProps {
@@ -67,7 +65,7 @@ export default function SynchronizedSlider(props: SliderProps) {
       min={1}
       max={100}
       value={props.slider.value}
-      onInput={(e) => props.slider.value = Number(e.currentTarget.value)}
+      onInput={(e) => (props.slider.value = Number(e.currentTarget.value))}
     />
   );
 }
@@ -75,8 +73,7 @@ export default function SynchronizedSlider(props: SliderProps) {
 
 Now if we were to do the following...
 
-```ts
-// routes/index.tsx
+```tsx routes/index.tsx
 export default function Home() {
   const sliderSignal = useSignal(50);
   return (
@@ -96,15 +93,13 @@ they would all use the same value.
 We can also create a `signal` in a utility file and export it for consumption
 across multiple places.
 
-```ts
-// utils/cart.ts
+```ts utils/cart.ts
 import { signal } from "@preact/signals";
 
 export const cart = signal<string[]>([]);
 ```
 
-```ts
-// islands/AddToCart.tsx
+```tsx islands/AddToCart.tsx
 import { Button } from "../components/Button.tsx";
 import { cart } from "../utils/cart.ts";
 
@@ -116,18 +111,17 @@ interface AddToCartProps {
 export default function AddToCart(props: AddToCartProps) {
   return (
     <Button
-      onClick={() => cart.value = [...cart.value, props.product]}
+      onClick={() => (cart.value = [...cart.value, props.product])}
       class="w-full"
     >
-      Add{cart.value.includes(props.product) ? " another" : ""}{" "}
-      "{props.product}" to cart
+      Add{cart.value.includes(props.product) ? " another" : ""} "{props.product}
+      " to cart
     </Button>
   );
 }
 ```
 
-```ts
-// islands/Cart.tsx
+```tsx islands/Cart.tsx
 import { Button } from "../components/Button.tsx";
 import { cart } from "../utils/cart.ts";
 import * as icons from "../components/Icons.tsx";
@@ -185,7 +179,7 @@ function CartItem(props: CartItemProps) {
 
 Now we can add the islands to our site by doing the following:
 
-```ts
+```tsx
 <AddToCart product="Lemon" />
 <AddToCart product="Lime" />
 <Cart />

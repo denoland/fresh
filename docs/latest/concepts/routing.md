@@ -41,9 +41,7 @@ Advanced use-cases can require that a more complex pattern be used for matching.
 A custom [URL pattern][urlpattern] can be specified in the route configuration.
 This pattern will be used instead of the file path based pattern:
 
-```ts
-// routes/x.ts
-
+```ts routes/x.ts
 import { RouteConfig } from "$fresh/server.ts";
 
 export const config: RouteConfig = {
