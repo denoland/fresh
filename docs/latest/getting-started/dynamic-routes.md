@@ -24,9 +24,7 @@ render a page. The module must once again expose a component as a default
 export. This time the component will receive the matched path segment properties
 as arguments in its `props` object though.
 
-```tsx
-// routes/greet/[name].tsx
-
+```tsx routes/greet/[name].tsx
 import { PageProps } from "$fresh/server.ts";
 
 export default function GreetPage(props: PageProps) {

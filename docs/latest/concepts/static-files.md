@@ -29,7 +29,7 @@ version of this path that contains a build ID for cache busting. When the asset
 is requested at this "locked" path, it will be served with a cache lifetime of
 one year.
 
-```jsx
+```jsx routes/page.tsx
 import { asset } from "$fresh/runtime.ts";
 
 export default function Page() {
@@ -47,5 +47,5 @@ deems it safe to do so. You can always opt out of this behaviour per tag, by
 adding the `data-fresh-disable-lock` attribute.
 
 ```jsx
-<img src="/user.png" />;
+<img src="/user.png" />
 ```

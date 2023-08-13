@@ -16,7 +16,7 @@ Here you can define named groups, wildcards, regex groups, and other bits.
 Let's look at the example from the routing page more closely. We'll flesh out
 the handler so that we end up with something like the following:
 
-```ts
+```ts routes/x.tsx
 import { HandlerContext, RouteConfig } from "$fresh/server.ts";
 
 export const handler = {
@@ -47,7 +47,7 @@ show the following:
 
 Let's look at something a bit more complex:
 
-```ts
+```ts routes/api.tsx
 import { HandlerContext, RouteConfig } from "$fresh/server.ts";
 
 export const handler = {
