@@ -12,9 +12,13 @@ import manifest from "./fixture/fresh.gen.ts";
 import options from "./fixture/options.ts";
 import { BUILD_ID } from "../src/server/build_id.ts";
 import {
+  assertSelector,
+  assertTextMany,
+  fetchHtml,
   parseHtml,
   startFreshServer,
   waitForText,
+  withFresh,
   withPageName,
 } from "./test_utils.ts";
 
@@ -850,41 +854,21 @@ Deno.test("throw on route export 'handlers' instead of 'handler'", {
   assertMatch(text, /Did you mean "handler"\?/);
 });
 
-Deno.test("rendering custom _500.tsx page for default handlers", {
-  sanitizeOps: false,
-  sanitizeResources: false,
-}, async (t) => {
-  // Preparation
-  const { serverProcess, lines, address } = await startFreshServer({
-    args: ["run", "-A", "./tests/fixture_custom_500/main.ts"],
+Deno.test("rendering custom _500.tsx page for default handlers", async (t) => {
+  await withFresh("./tests/fixture_custom_500/main.ts", async (address) => {
+    await t.step("SSR error is shown", async () => {
+      const resp = await fetch(address);
+      assertEquals(resp.status, Status.InternalServerError);
+      const text = await resp.text();
+      assertStringIncludes(text, "Custom 500: Pickle Rick!");
+    });
+
+    await t.step("error page is shown with error message", async () => {
+      const doc = await fetchHtml(address);
+      const text = doc.querySelector(".custom-500")?.textContent!;
+      assertStringIncludes(text, "Custom 500: Pickle Rick!");
+    });
   });
-
-  await delay(100);
-
-  await t.step("SSR error is shown", async () => {
-    const resp = await fetch(address);
-    assertEquals(resp.status, Status.InternalServerError);
-    const text = await resp.text();
-    assertStringIncludes(text, "Custom 500: Pickle Rick!");
-  });
-
-  const browser = await puppeteer.launch({ args: ["--no-sandbox"] });
-  const page = await browser.newPage();
-
-  await page.goto(address, {
-    waitUntil: "networkidle2",
-  });
-
-  await t.step("error page is shown with error message", async () => {
-    const el = await page.waitForSelector(".custom-500");
-    const text = await page.evaluate((el) => el.textContent, el);
-    assertStringIncludes(text, "Custom 500: Pickle Rick!");
-  });
-
-  await browser.close();
-
-  await lines.cancel();
-  serverProcess.kill("SIGTERM");
 });
 
 Deno.test("renders error boundary", {
@@ -898,59 +882,41 @@ Deno.test("renders error boundary", {
   });
 });
 
-Deno.test({
-  name: "Resolves routes with non-latin characters",
+Deno.test("Resolves routes with non-latin characters", async () => {
+  await withFresh("./tests/fixture/main.ts", async (address) => {
+    // Check that we can navigate to the page
+    const doc = await fetchHtml(`${address}/umlaut-äöüß`);
+    assertSelector(doc, "h1");
+    assertTextMany(doc, "h1", ["it works"]);
 
-  async fn() {
-    await withPageName("./tests/fixture/main.ts", async (page, address) => {
-      // Check that we can navigate to the page
-      await page.goto(`${address}/umlaut-äöüß`);
-      await page.waitForSelector("h1");
-      const text = await page.$eval("h1", (el) => el.textContent);
-      assertEquals(text, "it works");
+    // Check the manifest
+    const mod = (await import("./fixture/fresh.gen.ts")).default;
 
-      // Check the manifest
-      const mod = (await import("./fixture/fresh.gen.ts")).default;
-
-      assert(
-        "./routes/umlaut-äöüß.tsx" in mod.routes,
-        "Umlaut route not found",
-      );
-    });
-  },
-
-  sanitizeOps: false,
-  sanitizeResources: false,
+    assert(
+      "./routes/umlaut-äöüß.tsx" in mod.routes,
+      "Umlaut route not found",
+    );
+  });
 });
 
-Deno.test({
-  name: "Generate a single nonce value per page",
+Deno.test("Generate a single nonce value per page", async () => {
+  await withFresh("./tests/fixture/main.ts", async (address) => {
+    const doc = await fetchHtml(address);
 
-  async fn() {
-    await withPageName("./tests/fixture/main.ts", async (page, address) => {
-      await page.goto(address);
-      await page.waitForSelector("p");
+    const nonceValues = Array.from(
+      new Set(
+        Array.from(doc.querySelectorAll("[nonce]")).map((el) =>
+          el.getAttribute("nonce")
+        ),
+      ),
+    );
 
-      const nonceValues = await page.evaluate(() =>
-        Array.from(
-          new Set(
-            Array.from(document.querySelectorAll("[nonce]")).map((el) =>
-              el.getAttribute("nonce")
-            ),
-          ),
-        )
-      );
-
-      assertEquals(
-        nonceValues.length,
-        1,
-        `Found more than 1 nonce value per render`,
-      );
-    });
-  },
-
-  sanitizeOps: false,
-  sanitizeResources: false,
+    assertEquals(
+      nonceValues.length,
+      1,
+      `Found more than 1 nonce value per render`,
+    );
+  });
 });
 
 Deno.test({
