@@ -36,7 +36,7 @@ And for brevity here are the remaining two types:
 ```ts
 export type RenderFunction = (
   ctx: RenderContext,
-  render: InnerRenderFunction
+  render: InnerRenderFunction,
 ) => void | Promise<void>;
 
 export interface RouterOptions {
