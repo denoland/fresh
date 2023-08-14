@@ -14,6 +14,7 @@ import {
   UnknownPageModule,
 } from "./types.ts";
 export type {
+  AppContext,
   AppProps,
   ErrorHandler,
   ErrorHandlerContext,
@@ -22,6 +23,7 @@ export type {
   Handler,
   HandlerContext,
   Handlers,
+  LayoutContext,
   LayoutProps,
   MiddlewareHandler,
   MiddlewareHandlerContext,

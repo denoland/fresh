@@ -9,7 +9,7 @@ import {
   typeByExtension,
   walk,
 } from "./deps.ts";
-import { h } from "preact";
+import { ComponentType, h } from "preact";
 import * as router from "./router.ts";
 import { DenoConfig, Manifest } from "./mod.ts";
 import { ALIVE_URL, JS_PREFIX, REFRESH_JS_URL } from "./constants.ts";
@@ -967,7 +967,7 @@ const DEFAULT_ROUTER_OPTIONS: RouterOptions = {
 };
 
 const DEFAULT_APP: AppModule = {
-  default: ({ Component }) => h(Component, {}),
+  default: ({ Component }: { Component: ComponentType }) => h(Component, {}),
 };
 
 const DEFAULT_NOT_FOUND: UnknownPage = {
