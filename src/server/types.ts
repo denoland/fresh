@@ -89,14 +89,14 @@ export interface RouteConfig {
   csp?: boolean;
 
   /**
-   * Apply inherited layouts.
-   * Default: `true`
+   * Skip already inherited layouts
+   * Default: `false`
    */
   skipInheritedLayouts?: boolean;
 
   /**
-   * Whether to use the `routes/_app` template if available or not.
-   * Default: `true`
+   * Skip rendering the `routes/_app` template
+   * Default: `false`
    */
   skipAppTemplate?: boolean;
 }
@@ -215,13 +215,13 @@ export type AsyncLayout<T = any, S = Record<string, unknown>> = (
 
 export interface LayoutConfig {
   /**
-   * Apply inherited layouts.
-   * Default: `true`
+   * Skip already inherited layouts
+   * Default: `false`
    */
   skipAppTemplate?: boolean;
   /**
-   * Whether to use the `routes/_app` template if available or not.
-   * Default: `true`
+   * Skip rendering the `routes/_app`.
+   * Default: `false`
    */
   skipInheritedLayouts?: boolean;
 }
