@@ -23,6 +23,7 @@ export type {
   Handler,
   HandlerContext,
   Handlers,
+  LayoutConfig,
   LayoutContext,
   LayoutProps,
   MiddlewareHandler,
