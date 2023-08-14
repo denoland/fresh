@@ -238,7 +238,7 @@ export interface LayoutRoute {
   // deno-lint-ignore no-explicit-any
   handler?: Handler<any, any> | Handlers<any, any>;
   component: LayoutModule["default"];
-  appTemplate: boolean; // TODO: Test this
+  appTemplate: boolean;
   inheritLayouts: boolean;
 }
 

@@ -265,13 +265,13 @@ export async function render<Data>(
   const renderStack: any[] = [];
   // Check if appLayout is enabled
   if (
-    opts.route.appLayout &&
-    layouts.every((layout) => layout.config?.appTemplate)
+    opts.route.appTemplate &&
+    layouts.every((layout) => layout.appTemplate)
   ) {
     renderStack.push(opts.app.default);
   }
   for (let i = 0; i < layouts.length; i++) {
-    renderStack.push(layouts[i].default);
+    renderStack.push(layouts[i].component);
   }
   renderStack.push(component);
 
