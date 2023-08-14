@@ -89,16 +89,16 @@ export interface RouteConfig {
   csp?: boolean;
 
   /**
-   * Mark this route as the root layout and ignore previously
-   * inherited layouts. Default: `false`
+   * Skip already inherited layouts
+   * Default: `false`
    */
-  rootLayout?: boolean;
+  skipInheritedLayouts?: boolean;
 
   /**
-   * Whether to use the `routes/_app` template if available or not.
-   * Default: `true`
+   * Skip rendering the `routes/_app` template
+   * Default: `false`
    */
-  appTemplate?: boolean;
+  skipAppTemplate?: boolean;
 }
 
 // deno-lint-ignore no-empty-interface
@@ -173,8 +173,8 @@ export interface Route<Data = any> {
   component?: PageComponent<Data> | AsyncLayout<Data> | AsyncRoute<Data>;
   handler: Handler<Data> | Handlers<Data>;
   csp: boolean;
-  appLayout: boolean;
-  rootLayout: boolean;
+  appTemplate: boolean;
+  inheritLayouts: boolean;
 }
 
 export interface RouterState {
@@ -213,14 +213,33 @@ export type AsyncLayout<T = any, S = Record<string, unknown>> = (
   ctx: LayoutContext<T, S>,
 ) => Promise<ComponentChildren | Response>;
 
+export interface LayoutConfig {
+  /**
+   * Skip already inherited layouts
+   * Default: `false`
+   */
+  skipAppTemplate?: boolean;
+  /**
+   * Skip rendering the `routes/_app`.
+   * Default: `false`
+   */
+  skipInheritedLayouts?: boolean;
+}
+
 export interface LayoutModule {
+  // deno-lint-ignore no-explicit-any
+  handler?: Handler<any, any> | Handlers<any, any>;
   default: ComponentType<LayoutProps> | AsyncLayout;
-  config?: Pick<RouteConfig, "appTemplate" | "rootLayout">;
+  config?: LayoutConfig;
 }
 
 export interface LayoutRoute {
   baseRoute: BaseRoute;
-  module: LayoutModule;
+  // deno-lint-ignore no-explicit-any
+  handler?: Handler<any, any> | Handlers<any, any>;
+  component: LayoutModule["default"];
+  appTemplate: boolean;
+  inheritLayouts: boolean;
 }
 
 // --- UNKNOWN PAGE ---
@@ -267,8 +286,8 @@ export interface UnknownPage {
   component?: PageComponent<UnknownPageProps>;
   handler: UnknownHandler;
   csp: boolean;
-  appLayout: boolean;
-  rootLayout: boolean;
+  appTemplate: boolean;
+  inheritLayouts: boolean;
 }
 
 // --- ERROR PAGE ---
@@ -314,8 +333,8 @@ export interface ErrorPage {
   component?: PageComponent<ErrorPageProps>;
   handler: ErrorHandler;
   csp: boolean;
-  appLayout: boolean;
-  rootLayout: boolean;
+  appTemplate: boolean;
+  inheritLayouts: boolean;
 }
 
 // --- MIDDLEWARES ---
