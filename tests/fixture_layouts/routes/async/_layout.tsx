@@ -1,4 +1,5 @@
 import { LayoutContext } from "$fresh/server.ts";
+import { delay } from "$fresh/tests/deps.ts";
 
 export default async function AsyncLayout(
   req: Request,
