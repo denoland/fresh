@@ -1,8 +1,8 @@
 import { LayoutConfig } from "$fresh/server.ts";
 
 export const config: LayoutConfig = {
-  appTemplate: false,
-  inheritLayouts: false,
+  skipAppTemplate: false,
+  skipInheritedLayouts: false,
 };
 
 export default function OverridePage() {

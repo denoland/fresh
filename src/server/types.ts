@@ -92,13 +92,13 @@ export interface RouteConfig {
    * Apply inherited layouts.
    * Default: `true`
    */
-  inheritLayouts?: boolean;
+  skipInheritedLayouts?: boolean;
 
   /**
    * Whether to use the `routes/_app` template if available or not.
    * Default: `true`
    */
-  appTemplate?: boolean;
+  skipAppTemplate?: boolean;
 }
 
 // deno-lint-ignore no-empty-interface
@@ -218,12 +218,12 @@ export interface LayoutConfig {
    * Apply inherited layouts.
    * Default: `true`
    */
-  appTemplate?: boolean;
+  skipAppTemplate?: boolean;
   /**
    * Whether to use the `routes/_app` template if available or not.
    * Default: `true`
    */
-  inheritLayouts?: boolean;
+  skipInheritedLayouts?: boolean;
 }
 
 export interface LayoutModule {

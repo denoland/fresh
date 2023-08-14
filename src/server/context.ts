@@ -253,8 +253,8 @@ export class ServerContext {
           component,
           handler,
           csp: Boolean(config?.csp ?? false),
-          appTemplate: Boolean(config?.appTemplate ?? true),
-          inheritLayouts: Boolean(config?.inheritLayouts ?? true),
+          appTemplate: Boolean(config?.skipAppTemplate),
+          inheritLayouts: Boolean(config?.skipInheritedLayouts),
         };
         routes.push(route);
       } else if (isMiddleware) {
@@ -274,8 +274,8 @@ export class ServerContext {
           baseRoute: toBaseRoute(baseRoute),
           handler: mod.handler,
           component: mod.default,
-          appTemplate: Boolean(config?.appTemplate ?? true),
-          inheritLayouts: Boolean(config?.inheritLayouts ?? true),
+          appTemplate: Boolean(config?.skipAppTemplate),
+          inheritLayouts: Boolean(config?.skipInheritedLayouts),
         });
       } else if (
         path === "/_404.tsx" || path === "/_404.ts" ||
@@ -295,8 +295,8 @@ export class ServerContext {
           component,
           handler: handler ?? ((req) => router.defaultOtherHandler(req)),
           csp: Boolean(config?.csp ?? false),
-          appTemplate: Boolean(config?.appTemplate ?? true),
-          inheritLayouts: Boolean(config?.inheritLayouts ?? false),
+          appTemplate: Boolean(config?.skipAppTemplate),
+          inheritLayouts: Boolean(config?.skipInheritedLayouts),
         };
       } else if (
         path === "/_500.tsx" || path === "/_500.ts" ||
@@ -317,8 +317,8 @@ export class ServerContext {
           handler: handler ??
             ((req, ctx) => router.defaultErrorHandler(req, ctx, ctx.error)),
           csp: Boolean(config?.csp ?? false),
-          appTemplate: Boolean(config?.appTemplate ?? true),
-          inheritLayouts: Boolean(config?.inheritLayouts ?? false),
+          appTemplate: Boolean(config?.skipAppTemplate ?? true),
+          inheritLayouts: Boolean(config?.skipInheritedLayouts ?? false),
         };
       }
     }
@@ -983,7 +983,7 @@ const DEFAULT_NOT_FOUND: UnknownPage = {
   handler: (req) => router.defaultOtherHandler(req),
   csp: false,
   appTemplate: true,
-  inheritLayouts: false,
+  inheritLayouts: true,
 };
 
 const DEFAULT_ERROR: ErrorPage = {
@@ -995,7 +995,7 @@ const DEFAULT_ERROR: ErrorPage = {
   handler: (_req, ctx) => ctx.render(),
   csp: false,
   appTemplate: true,
-  inheritLayouts: false,
+  inheritLayouts: true,
 };
 
 export function selectSharedRoutes<T extends { baseRoute: BaseRoute }>(

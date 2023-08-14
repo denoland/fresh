@@ -1,7 +1,7 @@
 import { LayoutConfig, LayoutProps } from "$fresh/server.ts";
 
 export const config: LayoutConfig = {
-  appTemplate: false,
+  skipAppTemplate: false,
 };
 
 export default function OverrideLayout({ Component }: LayoutProps) {
