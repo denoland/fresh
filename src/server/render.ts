@@ -163,9 +163,9 @@ function defaultCsp() {
   };
 }
 
-function checkAsyncComponent(
+export function checkAsyncComponent<T>(
   component: unknown,
-): component is AsyncRoute | AsyncLayout {
+): component is AsyncRoute<T> | AsyncLayout<T> {
   return typeof component === "function" &&
     component.constructor.name === "AsyncFunction";
 }

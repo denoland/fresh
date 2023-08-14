@@ -171,3 +171,14 @@ Deno.test({
     );
   },
 });
+
+Deno.test("define helpers", async () => {
+  await withFresh(
+    "./tests/fixture_define_helpers/main.ts",
+    async (address) => {
+      const doc = await fetchHtml(`${address}`);
+      assertSelector(doc, "html > body > .app > .layout > .page");
+      assertTextMany(doc, "p", ["Layout: it works", "Page: it works"]);
+    },
+  );
+});
