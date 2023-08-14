@@ -170,7 +170,7 @@ export interface Route<Data = any> {
   pattern: string;
   url: string;
   name: string;
-  component?: PageComponent<Data> | AsyncLayout | AsyncRoute;
+  component?: PageComponent<Data> | AsyncLayout<Data> | AsyncRoute<Data>;
   handler: Handler<Data> | Handlers<Data>;
   csp: boolean;
   appLayout: boolean;
