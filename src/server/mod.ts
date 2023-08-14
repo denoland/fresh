@@ -13,6 +13,7 @@ import {
   StartOptions,
   UnknownPageModule,
 } from "./types.ts";
+export { defineApp, defineLayout, defineRoute } from "./defines.ts";
 export type {
   AppContext,
   AppProps,
