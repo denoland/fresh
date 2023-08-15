@@ -61,7 +61,7 @@ export default async function App(req: Request, ctx: AppContext) {
 }
 ```
 
-## Define helper
+### Define helper
 
 To make it quicker to type the async app wrapper, Fresh includes a `defineApp`
 helper which already infers the correct types for you.
