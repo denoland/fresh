@@ -98,8 +98,37 @@ On the Deno Deploy side change the GitHub integration mode to GitHub Actions.
 You need to unlink first, if you have an existing project that's linked with the
 "Automatic" mode.
 
-![Cl](/docs/deno-deploy-gh-action.jpg)
+![Deno Deploy UI screenshot that shows the project dropdown and highlights the GitHub Action option](/docs/deno-deploy-gh-action.jpg)
 
 Once this is set up you're ready for your next deployment. Whenever a new PR is
 merged into the `main` branch on GitHub the deploy action will be executed and
 deploy the optimized assets to Deno Deploy.
+
+## Migrating existing projects with Plugins
+
+If you're using Fresh plugins, extract them into a `fresh.config.ts` file, so that both the `dev.ts` and `main.ts` script have access to them.
+
+```ts fresh.config.ts
+import { defineConfig } from "$fresh/server.ts";
+import twindPlugin from "$fresh/plugins/twind.ts";
+import twindConfig from "./twind.config.ts";
+
+export default defineConfig({
+  plugins: [twindPlugin(twindConfig)],
+});
+```
+
+```ts main.ts
+import { start } from "$fresh/server.ts";
+import manifest from "./fresh.gen.ts";
+import config from "./fresh.config.ts";
+
+await start(manifest, config);
+```
+
+```ts dev.ts
+import dev from "$fresh/dev.ts";
+import config from "./fresh.config.ts";
+
+await dev(import.meta.url, "./main.ts", config);
+```
