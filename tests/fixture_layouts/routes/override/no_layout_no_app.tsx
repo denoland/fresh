@@ -1,7 +1,7 @@
 import { LayoutConfig } from "$fresh/server.ts";
 
 export const config: LayoutConfig = {
-  skipAppTemplate: true,
+  skipAppWrapper: true,
   skipInheritedLayouts: true,
 };
 
