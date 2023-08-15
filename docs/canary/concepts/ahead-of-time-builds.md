@@ -106,7 +106,8 @@ deploy the optimized assets to Deno Deploy.
 
 ## Migrating existing projects with Plugins
 
-If you're using Fresh plugins, extract them into a `fresh.config.ts` file, so that both the `dev.ts` and `main.ts` script have access to them.
+If you're using Fresh plugins, extract them into a `fresh.config.ts` file, so
+that both the `dev.ts` and `main.ts` script have access to them.
 
 ```ts fresh.config.ts
 import { defineConfig } from "$fresh/server.ts";
