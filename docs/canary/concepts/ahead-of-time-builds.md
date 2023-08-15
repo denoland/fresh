@@ -26,11 +26,11 @@ deno task build
 deno run -A dev.ts build
 ```
 
-This will create a `_fresh/` folder in the project directory. That folder
+This will create a `_fresh` folder in the project directory. That folder
 contains the optimized assets and a `snapshot.json` file which includes some
 metadata for Fresh.
 
-> ℹ️ The `_fresh/` folder should not be committed to the repository. Add an entry
+> ℹ️ The `_fresh` folder should not be committed to the repository. Add an entry
 > in the `.gitignore` file to ensure that it is not committed. Create that file
 > at the root of your git repository if not present.
 >
@@ -42,7 +42,7 @@ metadata for Fresh.
 ## Running Fresh with optimized assets
 
 When Fresh is started in non-development mode (usually via `main.ts`), Fresh
-will automatically pick up optimized assets when a `_fresh/` folder exists. If
+will automatically pick up optimized assets when a `_fresh` folder exists. If
 found, Fresh will print the following message to the terminal:
 
 ```sh Terminal output
