@@ -3,9 +3,17 @@ description: |
   Fresh optimize assets ahead of time, which makes pages load way quicker.
 ---
 
-Fresh enables you to pre-optimize frontend assets before the code is deployed. During that process the code for Islands will be compressed and optimized, so that Fresh can send as little code as possible to the browser. Depending on the amount of code an island needs, this process can take several seconds if done on the fly serverside.
+Fresh enables you to pre-optimize frontend assets before the code is deployed.
+During that process the code for Islands will be compressed and optimized, so
+that Fresh can send as little code as possible to the browser. Depending on the
+amount of code an island needs, this process can take several seconds if done on
+the fly serverside.
 
-Doing those optimizations ahead-of-time and deploying the already optimized assets alongside with your code, allows Fresh to treat them as like any other static file and can serve it immediately without any further processing. On pages with islands, having to do no processing greatly speeds up page load times.
+Doing those optimizations ahead-of-time and deploying the already optimized
+assets alongside with your code, allows Fresh to treat them as like any other
+static file and can serve it immediately without any further processing. On
+pages with islands, having to do no processing greatly speeds up page load
+times.
 
 ## Creating an optimized build
 
@@ -18,9 +26,13 @@ deno task build
 deno run -A dev.ts build
 ```
 
-This will create a `_fresh/` folder in the project directory. That folder contains the optimized assets and a `snapshot.json` file which includes some metadata for Fresh.
+This will create a `_fresh/` folder in the project directory. That folder
+contains the optimized assets and a `snapshot.json` file which includes some
+metadata for Fresh.
 
-> ℹ️ The `_fresh/` folder should not be committed to the repository. Add an entry in the `.gitignore` file to ensure that it is not committed. Create that file at the root of your git repository if not present.
+> ℹ️ The `_fresh/` folder should not be committed to the repository. Add an entry
+> in the `.gitignore` file to ensure that it is not committed. Create that file
+> at the root of your git repository if not present.
 >
 > ```gitignore .gitignore
 > # Ignore fresh build directory
@@ -29,7 +41,9 @@ This will create a `_fresh/` folder in the project directory. That folder contai
 
 ## Running Fresh with optimized assets
 
-When Fresh is started in non-development mode (usually via `main.ts`), Fresh will automatically pick up optimized assets when a `_fresh/` folder exists. If found, Fresh will print the following message to the terminal:
+When Fresh is started in non-development mode (usually via `main.ts`), Fresh
+will automatically pick up optimized assets when a `_fresh/` folder exists. If
+found, Fresh will print the following message to the terminal:
 
 ```sh Terminal output
 Using snapshot found at /path/to/project/_fresh
@@ -37,7 +51,9 @@ Using snapshot found at /path/to/project/_fresh
 
 ## Deploying an optimized Fresh project
 
-To generate optimized assets whenever you push changes to the `main` branch of your project, copy the following GitHub action and add it under `.github/workflows/deploy.yml` in your project.
+To generate optimized assets whenever you push changes to the `main` branch of
+your project, copy the following GitHub action and add it under
+`.github/workflows/deploy.yml` in your project.
 
 ```yml .github/workflows/deploy.yml
 name: Deploy
@@ -75,10 +91,15 @@ jobs:
           entrypoint: "./main.ts" # 📝 Update the entrypoint if necessary
 ```
 
-> ℹ️ **Important:** The project name here must match the project name you've picked in Deno Deploy.
+> ℹ️ **Important:** The project name here must match the project name you've
+> picked in Deno Deploy.
 
-On the Deno Deploy side change the GitHub integration mode to GitHub Actions. You need to unlink first, if you have an existing project that's linked with the "Automatic" mode.
+On the Deno Deploy side change the GitHub integration mode to GitHub Actions.
+You need to unlink first, if you have an existing project that's linked with the
+"Automatic" mode.
 
 ![Cl](/docs/deno-deploy-gh-action.jpg)
 
-Once this is set up you're ready for your next deployment. Whenever a new PR is merged into the `main` branch on GitHub the deploy action will be executed and deploy the optimized assets to Deno Deploy.
+Once this is set up you're ready for your next deployment. Whenever a new PR is
+merged into the `main` branch on GitHub the deploy action will be executed and
+deploy the optimized assets to Deno Deploy.
