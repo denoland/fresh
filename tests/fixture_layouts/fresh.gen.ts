@@ -23,17 +23,16 @@ import * as $17 from "./routes/foo/_layout.tsx";
 import * as $18 from "./routes/foo/bar.tsx";
 import * as $19 from "./routes/foo/index.tsx";
 import * as $20 from "./routes/index.tsx";
-import * as $21 from "./routes/no_app.tsx";
-import * as $22 from "./routes/other.tsx";
-import * as $23 from "./routes/override/_layout.tsx";
-import * as $24 from "./routes/override/index.tsx";
-import * as $25 from "./routes/override/layout_no_app/_layout.tsx";
-import * as $26 from "./routes/override/layout_no_app/index.tsx";
-import * as $27 from "./routes/override/no_app.tsx";
-import * as $28 from "./routes/override/no_layout.tsx";
-import * as $29 from "./routes/override/no_layout_no_app.tsx";
-import * as $30 from "./routes/skip/sub/_layout.tsx";
-import * as $31 from "./routes/skip/sub/index.tsx";
+import * as $21 from "./routes/other.tsx";
+import * as $22 from "./routes/override/_layout.tsx";
+import * as $23 from "./routes/override/index.tsx";
+import * as $24 from "./routes/override/layout_no_app/_layout.tsx";
+import * as $25 from "./routes/override/layout_no_app/index.tsx";
+import * as $26 from "./routes/override/no_app.tsx";
+import * as $27 from "./routes/override/no_layout.tsx";
+import * as $28 from "./routes/override/no_layout_no_app.tsx";
+import * as $29 from "./routes/skip/sub/_layout.tsx";
+import * as $30 from "./routes/skip/sub/index.tsx";
 
 const manifest = {
   routes: {
@@ -58,17 +57,16 @@ const manifest = {
     "./routes/foo/bar.tsx": $18,
     "./routes/foo/index.tsx": $19,
     "./routes/index.tsx": $20,
-    "./routes/no_app.tsx": $21,
-    "./routes/other.tsx": $22,
-    "./routes/override/_layout.tsx": $23,
-    "./routes/override/index.tsx": $24,
-    "./routes/override/layout_no_app/_layout.tsx": $25,
-    "./routes/override/layout_no_app/index.tsx": $26,
-    "./routes/override/no_app.tsx": $27,
-    "./routes/override/no_layout.tsx": $28,
-    "./routes/override/no_layout_no_app.tsx": $29,
-    "./routes/skip/sub/_layout.tsx": $30,
-    "./routes/skip/sub/index.tsx": $31,
+    "./routes/other.tsx": $21,
+    "./routes/override/_layout.tsx": $22,
+    "./routes/override/index.tsx": $23,
+    "./routes/override/layout_no_app/_layout.tsx": $24,
+    "./routes/override/layout_no_app/index.tsx": $25,
+    "./routes/override/no_app.tsx": $26,
+    "./routes/override/no_layout.tsx": $27,
+    "./routes/override/no_layout_no_app.tsx": $28,
+    "./routes/skip/sub/_layout.tsx": $29,
+    "./routes/skip/sub/index.tsx": $30,
   },
   islands: {},
   baseUrl: import.meta.url,
