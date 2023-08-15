@@ -16,7 +16,7 @@ export async function build(
 
   const ctx = await ServerContext.fromManifest(manifest, {
     ...opts,
-    loadSnapshot: false,
+    skipSnapshot: false,
   });
 
   // Bundle assets

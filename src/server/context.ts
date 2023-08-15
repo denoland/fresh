@@ -147,7 +147,7 @@ export class ServerContext {
    */
   static async fromManifest(
     manifest: Manifest,
-    opts: FreshOptions & { loadSnapshot?: boolean },
+    opts: FreshOptions & { skipSnapshot?: boolean },
   ): Promise<ServerContext> {
     // Get the manifest' base URL.
     const baseUrl = new URL("./", manifest.baseUrl).href;
@@ -164,7 +164,7 @@ export class ServerContext {
     // Restore snapshot if available
     let snapshot: BuildSnapshot | null = null;
     // Load from snapshot if not explicitly requested not to
-    const loadFromSnapshot = opts.loadSnapshot ?? true;
+    const loadFromSnapshot = !opts.skipSnapshot;
     if (loadFromSnapshot) {
       const snapshotDirPath = join(dirname(configPath), "_fresh");
       try {
