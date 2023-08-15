@@ -325,7 +325,8 @@ function _walkInner(
           const attr = sib.attributes[i];
           props[attr.nodeName] = attr.nodeValue;
         }
-        const vnode = h(sib.localName, props);
+        // deno-lint-ignore no-explicit-any
+        const vnode = h(sib.localName as any, props);
         addPropsChild(parentVNode, vnode);
         vnodeStack.push(vnode);
       }

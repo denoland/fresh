@@ -485,3 +485,13 @@ export interface PluginRoute {
   // deno-lint-ignore no-explicit-any
   handler?: Handler<any, any> | Handlers<any, any>;
 }
+
+// --- Preact extensiosn ---
+
+declare global {
+  namespace preact.createElement.JSX {
+    interface HTMLAttributes {
+      [K: `class:${string}`]: boolean | undefined;
+    }
+  }
+}

@@ -558,10 +558,12 @@ export async function render<Data>(
   const preloads = [...preloadSet];
 
   const page = h(
-    "html",
+    // deno-lint-ignore no-explicit-any
+    "html" as any,
     OUTER_DOCUMENT.html ?? { lang: ctx.lang },
     h(
-      "head",
+      // deno-lint-ignore no-explicit-any
+      "head" as any,
       OUTER_DOCUMENT.head,
       // Add some tags ourselves if the user uses the legacy
       // _app template rendering style where we provided the outer
@@ -574,7 +576,8 @@ export async function render<Data>(
         })
         : null,
       OUTER_DOCUMENT.title,
-      OUTER_DOCUMENT.headNodes.map((node) => h(node.type, node.props)),
+      // deno-lint-ignore no-explicit-any
+      OUTER_DOCUMENT.headNodes.map((node) => h(node.type as any, node.props)),
       // Fresh scripts
       preloads.map((src) => h("link", { rel: "modulepreload", href: src })),
       moduleScripts.map(([src, nonce]) =>
@@ -755,30 +758,44 @@ const oldDiffed = options.diffed;
 const oldRender = options.__r;
 const oldCommit = options.__c;
 options.__b = (vnode: VNode<Record<string, unknown>>) => {
-  if (RENDERING_USER_TEMPLATE && typeof vnode.type === "string") {
-    if (vnode.type === "html") {
-      renderedHtmlTag = true;
-      OUTER_DOCUMENT.html = excludeChildren(vnode.props);
-      vnode.type = Fragment;
-    } else if (vnode.type === "head") {
-      OUTER_DOCUMENT.head = excludeChildren(vnode.props);
-      headChildren = true;
-      vnode.type = Fragment;
-      vnode.props = {
-        __freshHead: true,
-        children: vnode.props.children,
-      };
-    } else if (vnode.type === "body") {
-      OUTER_DOCUMENT.body = excludeChildren(vnode.props);
-      vnode.type = Fragment;
-    } else if (headChildren) {
-      if (vnode.type === "title") {
-        OUTER_DOCUMENT.title = h("title", vnode.props);
-        vnode.props = { children: null };
-      } else {
-        OUTER_DOCUMENT.headNodes.push({ type: vnode.type, props: vnode.props });
+  if (typeof vnode.type === "string") {
+    for (const k in vnode.props) {
+      let str = "";
+      if (k.startsWith("class:") && vnode.props[k]) {
+        str += " " + k.slice("class:".length);
       }
-      vnode.type = Fragment;
+      vnode.props.class = (vnode.props.class ?? "") + str;
+    }
+
+    if (RENDERING_USER_TEMPLATE) {
+      if (vnode.type === "html") {
+        renderedHtmlTag = true;
+        OUTER_DOCUMENT.html = excludeChildren(vnode.props);
+        vnode.type = Fragment;
+      } else if (vnode.type === "head") {
+        OUTER_DOCUMENT.head = excludeChildren(vnode.props);
+        headChildren = true;
+        vnode.type = Fragment;
+        vnode.props = {
+          __freshHead: true,
+          children: vnode.props.children,
+        };
+      } else if (vnode.type === "body") {
+        OUTER_DOCUMENT.body = excludeChildren(vnode.props);
+        vnode.type = Fragment;
+      } else if (headChildren) {
+        if (vnode.type === "title") {
+          // deno-lint-ignore no-explicit-any
+          OUTER_DOCUMENT.title = h("title" as any, vnode.props);
+          vnode.props = { children: null };
+        } else {
+          OUTER_DOCUMENT.headNodes.push({
+            type: vnode.type,
+            props: vnode.props,
+          });
+        }
+        vnode.type = Fragment;
+      }
     }
   }
   oldDiff?.(vnode);
