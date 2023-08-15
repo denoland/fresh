@@ -58,22 +58,6 @@ options.errorBoundaries = true;
 // keep track of this, because we only know the full sets of
 // elements we should put in `<head>` after having completed
 // rendering the page.
-let RENDERING_USER_TEMPLATE = false;
-interface OuterDocument {
-  // deno-lint-ignore no-explicit-any
-  title: VNode<any> | null;
-  html: Record<string, unknown> | null;
-  head: Record<string, unknown> | null;
-  body: Record<string, unknown> | null;
-  headNodes: { type: string; props: Record<string, unknown> }[];
-}
-let OUTER_DOCUMENT: OuterDocument = {
-  title: null,
-  html: null,
-  head: null,
-  body: null,
-  headNodes: [],
-};
 
 export interface RenderOptions<Data> {
   request: Request;
@@ -170,6 +154,23 @@ export function checkAsyncComponent<T>(
     component.constructor.name === "AsyncFunction";
 }
 
+class RenderState {
+  renderingUserTemplate = false;
+  islands: Island[] = [];
+  encounteredIslands = new Set<Island>();
+  islandProps: unknown[] = [];
+  slots = new Map<string, ComponentChildren>();
+  headChildren = false;
+  renderedHtmlTag = false;
+  // deno-lint-ignore no-explicit-any
+  docTitle: VNode<any> | null = null;
+  docHtml: Record<string, unknown> | null = null;
+  docHead: Record<string, unknown> | null = null;
+  docBody: Record<string, unknown> | null = null;
+  docHeadNodes: { type: string; props: Record<string, unknown> }[] = [];
+  headVNodes: ComponentChildren[] = [];
+}
+
 /**
  * This function renders out a page. Rendering is synchronous and non streaming.
  * Suspense boundaries are not supported.
@@ -210,37 +211,12 @@ export async function render<Data>(
   const csp: ContentSecurityPolicy | undefined = opts.route.csp
     ? defaultCsp()
     : undefined;
-  const headComponents: ComponentChildren[] = [];
   if (csp) {
     // Clear the csp
     const newCsp = defaultCsp();
     csp.directives = newCsp.directives;
     csp.reportOnly = newCsp.reportOnly;
   }
-  // Clear the head components
-  headComponents.splice(0, headComponents.length);
-
-  // Setup the interesting VNode types
-  ISLANDS.splice(0, ISLANDS.length, ...opts.islands);
-
-  // Clear the encountered vnodes
-  ENCOUNTERED_ISLANDS.clear();
-
-  // Clear the island props
-  ISLAND_PROPS = [];
-  // Clear previous slots
-  SLOTS_TRACKER.clear();
-
-  // Clear rendering state
-  RENDERING_USER_TEMPLATE = false;
-  headChildren = false;
-  OUTER_DOCUMENT = {
-    title: null,
-    body: null,
-    head: null,
-    html: null,
-    headNodes: [],
-  };
 
   const ctx = new RenderContext(
     crypto.randomUUID(),
@@ -308,46 +284,64 @@ export async function render<Data>(
     }
   }
 
+  // CAREFUL: Rendering is synchronous internally and all state
+  // should be managed through the `RenderState` instance. That
+  // ensures that each render request is associated with the same
+  // data.
+  const renderState = new RenderState();
   function render() {
-    const routeComponent = componentStack[componentStack.length - 1];
-    let finalComp = h(routeComponent, props);
+    renderState.renderingUserTemplate = true;
+    current = renderState;
 
-    // Skip page component
-    let i = componentStack.length - 1;
-    while (i--) {
-      const component = componentStack[i];
-      const curComp = finalComp;
+    // Setup the interesting VNode types
+    renderState.islands.splice(0, renderState.islands.length, ...opts.islands);
 
-      finalComp = h(component, {
-        // @ts-ignore weird jsx types
-        params: opts.params as Record<string, string>,
-        url: opts.url,
-        route: opts.route.pattern,
-        data: opts.data,
-        state: opts.state!,
-        Component() {
-          return curComp;
-        },
+    renderState.headChildren = false;
+
+    try {
+      const routeComponent = componentStack[componentStack.length - 1];
+      let finalComp = h(routeComponent, props);
+
+      // Skip page component
+      let i = componentStack.length - 1;
+      while (i--) {
+        const component = componentStack[i];
+        const curComp = finalComp;
+
+        finalComp = h(component, {
+          // @ts-ignore weird jsx types
+          params: opts.params as Record<string, string>,
+          url: opts.url,
+          route: opts.route.pattern,
+          data: opts.data,
+          state: opts.state!,
+          Component() {
+            return curComp;
+          },
+        });
+      }
+
+      const app = h(CSP_CONTEXT.Provider, {
+        value: csp,
+        children: h(HEAD_CONTEXT.Provider, {
+          value: renderState.headVNodes,
+          children: finalComp,
+        }),
       });
+
+      let html = renderToString(app);
+
+      for (const [id, children] of renderState.slots.entries()) {
+        const slotHtml = renderToString(h(Fragment, null, children));
+        const templateId = id.replace(/:/g, "-");
+        html += `<template id="${templateId}">${slotHtml}</template>`;
+      }
+
+      return html;
+    } finally {
+      renderState.renderingUserTemplate = false;
+      current = null;
     }
-
-    const app = h(CSP_CONTEXT.Provider, {
-      value: csp,
-      children: h(HEAD_CONTEXT.Provider, {
-        value: headComponents,
-        children: finalComp,
-      }),
-    });
-
-    let html = renderToString(app);
-
-    for (const [id, children] of SLOTS_TRACKER.entries()) {
-      const slotHtml = renderToString(h(Fragment, null, children));
-      const templateId = id.replace(/:/g, "-");
-      html += `<template id="${templateId}">${slotHtml}</template>`;
-    }
-
-    return html;
   }
 
   let bodyHtml: string | null = null;
@@ -376,7 +370,7 @@ export async function render<Data>(
     }
     return {
       htmlText: bodyHtml,
-      requiresHydration: ENCOUNTERED_ISLANDS.size > 0,
+      requiresHydration: renderState.encounteredIslands.size > 0,
     };
   }
 
@@ -409,21 +403,21 @@ export async function render<Data>(
     }
     return {
       htmlText: bodyHtml,
-      requiresHydration: ENCOUNTERED_ISLANDS.size > 0,
+      requiresHydration: renderState.encounteredIslands.size > 0,
     };
   }
 
-  RENDERING_USER_TEMPLATE = true;
   await renderAsync();
-  RENDERING_USER_TEMPLATE = false;
 
-  const idx = headComponents.findIndex((vnode) =>
+  const idx = renderState.headVNodes.findIndex((vnode) =>
     vnode !== null && typeof vnode === "object" && "type" in vnode &&
     props !== null && vnode.type === "title"
   );
   if (idx !== -1) {
-    OUTER_DOCUMENT.title = headComponents[idx] as VNode<{ children: string }>;
-    headComponents.splice(idx, 1);
+    renderState.docTitle = renderState.headVNodes[idx] as VNode<
+      { children: string }
+    >;
+    renderState.headVNodes.splice(idx, 1);
   }
 
   if (asyncRenderResponse !== undefined) {
@@ -462,7 +456,10 @@ export async function render<Data>(
     return url;
   }
 
-  const state: [islands: unknown[], plugins: unknown[]] = [ISLAND_PROPS, []];
+  const state: [islands: unknown[], plugins: unknown[]] = [
+    renderState.islandProps,
+    [],
+  ];
   const styleTags: PluginRenderStyleTag[] = [];
   const pluginScripts: [string, string, number][] = [];
 
@@ -516,14 +513,14 @@ export async function render<Data>(
 
   // Finally, it loads all island scripts and hydrates the islands using the
   // reviver from the "main" script.
-  if (ENCOUNTERED_ISLANDS.size > 0) {
+  if (renderState.encounteredIslands.size > 0) {
     // Load the main.js script
     const url = addImport("main.js");
     script += `import { revive } from "${url}";`;
 
     // Prepare the inline script that loads and revives the islands
     let islandRegistry = "";
-    for (const island of ENCOUNTERED_ISLANDS) {
+    for (const island of renderState.encounteredIslands) {
       const url = addImport(`island-${island.id}.js`);
       script +=
         `import * as ${island.name}_${island.exportName} from "${url}";`;
@@ -543,7 +540,7 @@ export async function render<Data>(
       id: "__FRSH_STYLE",
       dangerouslySetInnerHTML: { __html: ctx.styles.join("\n") },
     });
-    headComponents.splice(0, 0, node);
+    renderState.headVNodes.splice(0, 0, node);
   }
 
   for (const style of styleTags) {
@@ -552,35 +549,35 @@ export async function render<Data>(
       dangerouslySetInnerHTML: { __html: style.cssText },
       media: style.media,
     });
-    headComponents.splice(0, 0, node);
+    renderState.headVNodes.splice(0, 0, node);
   }
 
   const preloads = [...preloadSet];
 
   const page = h(
     "html",
-    OUTER_DOCUMENT.html ?? { lang: ctx.lang },
+    renderState.docHtml ?? { lang: ctx.lang },
     h(
       "head",
-      OUTER_DOCUMENT.head,
+      renderState.docHead,
       // Add some tags ourselves if the user uses the legacy
       // _app template rendering style where we provided the outer
       // HTML document.
-      !renderedHtmlTag ? h("meta", { charSet: "UTF-8" }) : null,
-      !renderedHtmlTag
+      !renderState.renderedHtmlTag ? h("meta", { charSet: "UTF-8" }) : null,
+      !renderState.renderedHtmlTag
         ? h("meta", {
           name: "viewport",
           content: "width=device-width, initial-scale=1.0",
         })
         : null,
-      OUTER_DOCUMENT.title,
-      OUTER_DOCUMENT.headNodes.map((node) => h(node.type, node.props)),
+      renderState.docTitle,
+      renderState.docHeadNodes.map((node) => h(node.type, node.props)),
       // Fresh scripts
       preloads.map((src) => h("link", { rel: "modulepreload", href: src })),
       moduleScripts.map(([src, nonce]) =>
         h("script", { src: src, nonce: nonce, type: "module" })
       ),
-      headComponents,
+      renderState.headVNodes,
     ),
     h("body", { dangerouslySetInnerHTML: { __html: bodyHtml } }),
   );
@@ -627,15 +624,12 @@ function wrapWithMarker(vnode: ComponentChildren, markerText: string) {
 
 // Set up a preact option hook to track when vnode with custom functions are
 // created.
-const ISLANDS: Island[] = [];
-const ENCOUNTERED_ISLANDS: Set<Island> = new Set([]);
-let ISLAND_PROPS: unknown[] = [];
 // Track unused slots
-const SLOTS_TRACKER = new Map<string, ComponentChildren>();
+let current: RenderState | null = null;
 function SlotTracker(
   props: { id: string; children?: ComponentChildren },
 ): VNode {
-  SLOTS_TRACKER.delete(props.id);
+  current?.slots.delete(props.id);
   // deno-lint-ignore no-explicit-any
   return props.children as any;
 }
@@ -648,8 +642,6 @@ const islandOwners = new Map<VNode, VNode>();
 
 const originalHook = options.vnode;
 let ignoreNext = false;
-let headChildren = false;
-let renderedHtmlTag = false;
 options.vnode = (vnode) => {
   assetHashingHook(vnode);
   const originalType = vnode.type as ComponentType<unknown>;
@@ -659,8 +651,10 @@ options.vnode = (vnode) => {
   // `options.vnode` hooks if there were any, otherwise we'd break
   // the change for other plugins hooking into Preact.
   patchIslands:
-  if (typeof vnode.type === "function") {
-    const island = ISLANDS.find((island) => island.component === originalType);
+  if (typeof vnode.type === "function" && current) {
+    const island = current?.islands.find((island) =>
+      island.component === originalType
+    );
     if (island) {
       const hasOwners = ownerStack.length > 0;
       if (hasOwners) {
@@ -686,11 +680,12 @@ options.vnode = (vnode) => {
         }
       }
 
-      ENCOUNTERED_ISLANDS.add(island);
+      const { islandProps, slots } = current;
+      current.encounteredIslands.add(island);
       vnode.type = (props) => {
         ignoreNext = true;
 
-        const id = ISLAND_PROPS.length;
+        const id = islandProps.length;
 
         // Only passing children JSX to islands is supported for now
         if ("children" in props) {
@@ -702,7 +697,7 @@ options.vnode = (vnode) => {
             children,
             markerText,
           );
-          SLOTS_TRACKER.set(markerText, children);
+          slots.set(markerText, children);
           children = props.children;
           // deno-lint-ignore no-explicit-any
           (props as any).children = h(
@@ -713,11 +708,11 @@ options.vnode = (vnode) => {
         }
 
         const child = h(originalType, props);
-        ISLAND_PROPS.push(props);
+        islandProps.push(props);
 
         return wrapWithMarker(
           child,
-          `frsh-${island.id}:${island.exportName}:${ISLAND_PROPS.length - 1}`,
+          `frsh-${island.id}:${island.exportName}:${islandProps.length - 1}`,
         );
       };
     }
@@ -755,28 +750,34 @@ const oldDiffed = options.diffed;
 const oldRender = options.__r;
 const oldCommit = options.__c;
 options.__b = (vnode: VNode<Record<string, unknown>>) => {
-  if (RENDERING_USER_TEMPLATE && typeof vnode.type === "string") {
+  if (
+    current && current.renderingUserTemplate &&
+    typeof vnode.type === "string"
+  ) {
     if (vnode.type === "html") {
-      renderedHtmlTag = true;
-      OUTER_DOCUMENT.html = excludeChildren(vnode.props);
+      current.renderedHtmlTag = true;
+      current.docHtml = excludeChildren(vnode.props);
       vnode.type = Fragment;
     } else if (vnode.type === "head") {
-      OUTER_DOCUMENT.head = excludeChildren(vnode.props);
-      headChildren = true;
+      current.docHead = excludeChildren(vnode.props);
+      current.headChildren = true;
       vnode.type = Fragment;
       vnode.props = {
         __freshHead: true,
         children: vnode.props.children,
       };
     } else if (vnode.type === "body") {
-      OUTER_DOCUMENT.body = excludeChildren(vnode.props);
+      current.docBody = excludeChildren(vnode.props);
       vnode.type = Fragment;
-    } else if (headChildren) {
+    } else if (current.headChildren) {
       if (vnode.type === "title") {
-        OUTER_DOCUMENT.title = h("title", vnode.props);
+        current.docTitle = h("title", vnode.props);
         vnode.props = { children: null };
       } else {
-        OUTER_DOCUMENT.headNodes.push({ type: vnode.type, props: vnode.props });
+        current.docHeadNodes.push({
+          type: vnode.type,
+          props: vnode.props,
+        });
       }
       vnode.type = Fragment;
     }
@@ -797,7 +798,9 @@ options.diffed = (vnode: VNode<Record<string, unknown>>) => {
     if (vnode.type !== Fragment) {
       ownerStack.pop();
     } else if (vnode.props.__freshHead) {
-      headChildren = false;
+      if (current) {
+        current.headChildren = false;
+      }
     }
   }
   oldDiffed?.(vnode);
