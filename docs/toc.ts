@@ -53,7 +53,7 @@ const toc: RawTableOfContents = {
           ["forms", "Forms", "link:latest"],
           ["islands", "Interactive islands", "link:latest"],
           ["static-files", "Static files", "link:latest"],
-          ["middleware", "Route middleware", "link:canary"],
+          ["middleware", "Middlewares", "link:canary"],
           ["error-pages", "Error pages", "link:latest"],
           ["data-fetching", "Data fetching", "link:latest"],
           ["deployment", "Deployment", "link:latest"],
