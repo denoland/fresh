@@ -510,7 +510,7 @@ import twindConfig from "./twind.config.ts";`;
 FRESH_CONFIG_TS += `
 export default defineConfig({${
   useTwind ? `\n  plugins: [twindPlugin(twindConfig)]\n` : ""
-}})
+}});
 `;
 const CONFIG_TS_PATH = join(resolvedDirectory, "fresh.config.ts");
 await Deno.writeTextFile(CONFIG_TS_PATH, FRESH_CONFIG_TS);
