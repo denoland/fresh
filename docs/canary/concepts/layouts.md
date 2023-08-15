@@ -39,7 +39,8 @@ export default function Layout({ Component, state }: LayoutProps) {
 
 ## Async layouts
 
-In case you need to fetch data asynchronously before rendering the layout, you can use an async layout to do so.
+In case you need to fetch data asynchronously before rendering the layout, you
+can use an async layout to do so.
 
 ```tsx routes/sub/_layout.tsx
 import { LayoutProps } from "$fresh/server.ts";
@@ -59,7 +60,9 @@ export default async function Layout(req: Request, ctx: LayoutContext) {
 
 ### Define helper
 
-To make it a little quicker to write async layouts, Fresh ships with a `defineLayout` helper which automatically infers the correct types for the function arguments.
+To make it a little quicker to write async layouts, Fresh ships with a
+`defineLayout` helper which automatically infers the correct types for the
+function arguments.
 
 ```tsx
 import { defineLayout } from "$fresh/server.ts";
