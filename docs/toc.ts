@@ -72,7 +72,6 @@ const toc: RawTableOfContents = {
         link: "latest",
         pages: [
           ["modifying-the-head", "Modifying the <head>", "link:latest"],
-          ["setting-the-language", "Setting the language", "link:latest"],
           ["writing-tests", "Writing tests", "link:latest"],
           [
             "changing-the-src-dir",
