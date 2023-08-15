@@ -501,6 +501,18 @@ try {
   // Skip this and be silent if there is a network issue.
 }
 
+let FRESH_CONFIG_TS = `import { defineConfig } from "$fresh/server.ts";\n`;
+if (useTwind) {
+  FRESH_CONFIG_TS += `import twindPlugin from "$fresh/plugins/twind.ts"
+import twindConfig from "./twind.config.ts";`;
+}
+
+FRESH_CONFIG_TS += `
+export default defineConfig({${
+  useTwind ? `\n  plugins: [twindPlugin(twindConfig)]\n` : ""
+}})
+`;
+
 let MAIN_TS = `/// <reference no-default-lib="true" />
 /// <reference lib="dom" />
 /// <reference lib="dom.iterable" />
@@ -511,27 +523,20 @@ import "$std/dotenv/load.ts";
 
 import { start } from "$fresh/server.ts";
 import manifest from "./fresh.gen.ts";
+import config from "./fresh.config.ts";
 `;
-
-if (useTwind) {
-  MAIN_TS += `
-import twindPlugin from "$fresh/plugins/twind.ts";
-import twindConfig from "./twind.config.ts";
-`;
-}
 
 MAIN_TS += `
-await start(manifest${
-  useTwind ? ", { plugins: [twindPlugin(twindConfig)] }" : ""
-});\n`;
+await start(manifest, config);\n`;
 const MAIN_TS_PATH = join(resolvedDirectory, "main.ts");
 await Deno.writeTextFile(MAIN_TS_PATH, MAIN_TS);
 
 const DEV_TS = `#!/usr/bin/env -S deno run -A --watch=static/,routes/
 
 import dev from "$fresh/dev.ts";
+import config from "./fresh.config.ts";
 
-await dev(import.meta.url, "./main.ts");
+await dev(import.meta.url, "./main.ts", config);
 `;
 const DEV_TS_PATH = join(resolvedDirectory, "dev.ts");
 await Deno.writeTextFile(DEV_TS_PATH, DEV_TS);

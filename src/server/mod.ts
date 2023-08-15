@@ -15,7 +15,12 @@ import {
   StartOptions,
   UnknownHandler,
 } from "./types.ts";
-export { defineApp, defineLayout, defineRoute } from "./defines.ts";
+export {
+  defineApp,
+  defineConfig,
+  defineLayout,
+  defineRoute,
+} from "./defines.ts";
 export type {
   AppContext,
   AppProps,
