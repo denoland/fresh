@@ -46,8 +46,8 @@ const toc: RawTableOfContents = {
         pages: [
           ["architecture", "Architecture", "link:latest"],
           ["server-components", "Server Components", "link:latest"],
+          ["routing", "Routing", "link:latest"],
           ["routes", "Routes", "link:latest"],
-          ["route-groups", "Route groups", "link:canary"],
           ["app-wrapper", "App wrapper", "link:canary"],
           ["layouts", "Layouts", "link:canary"],
           ["forms", "Forms", "link:latest"],
@@ -55,7 +55,6 @@ const toc: RawTableOfContents = {
           ["static-files", "Static files", "link:latest"],
           ["middleware", "Route middleware", "link:canary"],
           ["error-pages", "Error pages", "link:latest"],
-          ["routing", "Routing", "link:latest"],
           ["data-fetching", "Data fetching", "link:latest"],
           ["deployment", "Deployment", "link:latest"],
           ["plugins", "Plugins", "link:latest"],
