@@ -50,9 +50,7 @@ Deno.test("build snapshot and restore from it", async (t) => {
       const { lines, serverProcess, address, output } = await startFreshServer({
         args: [
           "run",
-          "--allow-env",
-          "--allow-read",
-          "--allow-net=0.0.0.0",
+          "-A",
           path.join(fixture, "./main.ts"),
         ],
       });
