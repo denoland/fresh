@@ -117,6 +117,8 @@ function excludeChildren(props: Record<string, unknown>) {
   return out;
 }
 
+const patched = new WeakSet<VNode>();
+
 const oldVNodeHook = options.vnode;
 const oldDiff = options.__b;
 const oldDiffed = options.diffed;
@@ -140,121 +142,126 @@ options.vnode = (vnode) => {
         props["ON" + key.slice(2)] = value;
       }
     }
-  } else if (
-    typeof vnode.type === "function" && vnode.type !== Fragment &&
-    !(vnode.type as InternalType).__frsh_patched
-  ) {
-    const island = islandByComponent.get(vnode.type);
-    patchIsland:
-    if (island) {
-      // Check if an island is rendered inside another island, not just
-      // passed as a child.In that case we treat it like a normal
-      // Component. Example:
-      //   function Island() {}
-      //     return <OtherIsland />
-      //   }
-      if (ownerStack.length > 0) {
-        let i = ownerStack.length;
-        while (i--) {
-          const owner = ownerStack[i];
-          if (
-            typeof owner.type === "function" &&
-            islandByComponent.has(owner.type)
-          ) {
-            break patchIsland;
-          }
-        }
-      }
-
-      // At this point we know that we need to patch the island. Mark the
-      // island in that we have already patched it.
-      const originalType = vnode.type as InternalType;
-      originalType.__frsh_patched = true;
-
-      vnode.type = (props) => {
-        if (!current) return null;
-
-        const { encounteredIslands, islandProps, slots } = current;
-        encounteredIslands.add(island);
-
-        // Only passing children JSX to islands is supported for now
-        const id = islandProps.length;
-        if ("children" in props) {
-          let children = props.children;
-          const markerText =
-            `frsh-slot-${island.id}:${island.exportName}:${id}:children`;
-          // @ts-ignore nonono
-          props.children = wrapWithMarker(
-            children,
-            markerText,
-          );
-          slots.set(markerText, children);
-          children = props.children;
-          // deno-lint-ignore no-explicit-any
-          (props as any).children = h(
-            SlotTracker,
-            { id: markerText },
-            children,
-          );
-        }
-
-        const child = h(originalType, props);
-        islandProps.push(props);
-
-        return wrapWithMarker(
-          child,
-          `frsh-${island.id}:${island.exportName}:${islandProps.length - 1}`,
-        );
-      };
-    }
   }
 
   if (oldVNodeHook) oldVNodeHook(vnode);
 };
 
 options.__b = (vnode: VNode<Record<string, unknown>>) => {
-  // Internally rendering happens in two phases. This is done so
-  // that the `<Head>` component works. When we do the first render
-  // we cache all attributes on `<html>`, `<head>` + its children, and
-  // `<body>`. When doing so, we'll replace the tags with a Fragment node
-  // so that they don't end up in the rendered HTML. Effectively this
-  // means we'll only serialize the contents of `<body>`.
-  //
-  // After that render is finished we know all additional
-  // meta tags that were inserted via `<Head>` and all islands that
-  // we can add as preloads. Then we do a second render of the outer
-  // HTML tags with the updated value and merge in the HTML generate by
-  // the first render into `<body>` directly.
   if (
-    current && current.renderingUserTemplate &&
-    typeof vnode.type === "string"
+    current && current.renderingUserTemplate
   ) {
-    if (vnode.type === "html") {
-      current.renderedHtmlTag = true;
-      current.docHtml = excludeChildren(vnode.props);
-      vnode.type = Fragment;
-    } else if (vnode.type === "head") {
-      current.docHead = excludeChildren(vnode.props);
-      current.headChildren = true;
-      vnode.type = Fragment;
-      vnode.props = {
-        __freshHead: true,
-        children: vnode.props.children,
-      };
-    } else if (vnode.type === "body") {
-      current.docBody = excludeChildren(vnode.props);
-      vnode.type = Fragment;
-    } else if (current.headChildren) {
-      if (vnode.type === "title") {
-        current.docTitle = h("title", vnode.props);
-        vnode.props = { children: null };
-      } else {
-        current.docHeadNodes.push({
-          type: vnode.type,
-          props: vnode.props,
-        });
+    // Internally rendering happens in two phases. This is done so
+    // that the `<Head>` component works. When we do the first render
+    // we cache all attributes on `<html>`, `<head>` + its children, and
+    // `<body>`. When doing so, we'll replace the tags with a Fragment node
+    // so that they don't end up in the rendered HTML. Effectively this
+    // means we'll only serialize the contents of `<body>`.
+    //
+    // After that render is finished we know all additional
+    // meta tags that were inserted via `<Head>` and all islands that
+    // we can add as preloads. Then we do a second render of the outer
+    // HTML tags with the updated value and merge in the HTML generate by
+    // the first render into `<body>` directly.
+    if (
+      typeof vnode.type === "string"
+    ) {
+      if (vnode.type === "html") {
+        current.renderedHtmlTag = true;
+        current.docHtml = excludeChildren(vnode.props);
+        vnode.type = Fragment;
+      } else if (vnode.type === "head") {
+        current.docHead = excludeChildren(vnode.props);
+        current.headChildren = true;
+        vnode.type = Fragment;
+        vnode.props = {
+          __freshHead: true,
+          children: vnode.props.children,
+        };
+      } else if (vnode.type === "body") {
+        current.docBody = excludeChildren(vnode.props);
+        vnode.type = Fragment;
+      } else if (current.headChildren) {
+        if (vnode.type === "title") {
+          current.docTitle = h("title", vnode.props);
+          vnode.props = { children: null };
+        } else {
+          current.docHeadNodes.push({
+            type: vnode.type,
+            props: vnode.props,
+          });
+        }
+        vnode.type = Fragment;
       }
-      vnode.type = Fragment;
+    } else if (typeof vnode.type === "function") {
+      //
+      const island = islandByComponent.get(vnode.type);
+      patchIsland:
+      if (
+        island &&
+        !patched.has(vnode)
+      ) {
+        // Check if an island is rendered inside another island, not just
+        // passed as a child.In that case we treat it like a normal
+        // Component. Example:
+        //   function Island() {}
+        //     return <OtherIsland />
+        //   }
+        if (ownerStack.length > 0) {
+          let i = ownerStack.length;
+          while (i--) {
+            const owner = ownerStack[i];
+            if (
+              typeof owner.type === "function" &&
+              islandByComponent.has(owner.type)
+            ) {
+              break patchIsland;
+            }
+          }
+        }
+
+        // At this point we know that we need to patch the island. Mark the
+        // island in that we have already patched it.
+        const originalType = vnode.type;
+        patched.add(vnode);
+
+        vnode.type = (props) => {
+          if (!current) return null;
+
+          const { encounteredIslands, islandProps, slots } = current;
+          encounteredIslands.add(island);
+
+          // Only passing children JSX to islands is supported for now
+          const id = islandProps.length;
+          if ("children" in props) {
+            let children = props.children;
+            const markerText =
+              `frsh-slot-${island.id}:${island.exportName}:${id}:children`;
+            // @ts-ignore nonono
+            props.children = wrapWithMarker(
+              children,
+              markerText,
+            );
+            slots.set(markerText, children);
+            children = props.children;
+            // deno-lint-ignore no-explicit-any
+            (props as any).children = h(
+              SlotTracker,
+              { id: markerText },
+              children,
+            );
+          }
+
+          const child = h(originalType, props);
+          patched.add(child);
+          islandProps.push(props);
+
+          return wrapWithMarker(
+            child,
+            `frsh-${island.id}:${island.exportName}:${islandProps.length - 1}`,
+          );
+        };
+      }
     }
   }
   oldDiff?.(vnode);
