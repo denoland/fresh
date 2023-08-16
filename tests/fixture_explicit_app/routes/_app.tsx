@@ -9,13 +9,13 @@ export default function App(
   { Component, state }: AppProps<unknown, { lang: string }>,
 ) {
   return (
-    <html lang={state.lang}>
-      <head>
+    <html lang={state.lang} class="html">
+      <head class="head">
         <meta charSet="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <title>fresh title</title>
       </head>
-      <body>
+      <body class="body">
         <div class="inner-body">
           <Component />
         </div>

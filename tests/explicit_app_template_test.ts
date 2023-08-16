@@ -66,3 +66,15 @@ Deno.test("don't duplicate <title>", async () => {
     },
   );
 });
+
+Deno.test("sets <html> + <head> + <body> classes", async () => {
+  await withFresh(
+    "./tests/fixture_explicit_app/main.ts",
+    async (address) => {
+      const doc = await fetchHtml(`${address}`);
+      assertSelector(doc, "html.html");
+      assertSelector(doc, "head.head");
+      assertSelector(doc, "body.body");
+    },
+  );
+});

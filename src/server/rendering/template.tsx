@@ -67,6 +67,7 @@ export function renderOuterDocument(
     docHead,
     renderedHtmlTag,
     docTitle,
+    docBody,
     docHeadNodes,
     headVNodes,
   } = state;
@@ -90,7 +91,10 @@ export function renderOuterDocument(
         h("link", { rel: "modulepreload", href: src })
       ),
       headVNodes,
-      h("body", { dangerouslySetInnerHTML: { __html: opts.bodyHtml } }),
+      h("body", {
+        ...docBody,
+        dangerouslySetInnerHTML: { __html: opts.bodyHtml },
+      }),
     ),
   );
 
