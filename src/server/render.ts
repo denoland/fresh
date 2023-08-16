@@ -18,7 +18,7 @@ import { NONE, UNSAFE_INLINE } from "../runtime/csp.ts";
 import { ContentSecurityPolicy } from "../runtime/csp.ts";
 import { RenderState } from "./rendering/state.ts";
 import { renderHtml, renderOuterDocument } from "./rendering/template.tsx";
-import { renderFreshTags } from "$fresh/src/server/rendering/bridge.tsx";
+import { renderFreshTags } from "./rendering/fresh_tags.tsx";
 
 export const DEFAULT_RENDER_FN: RenderFunction = (_ctx, render) => {
   render();
