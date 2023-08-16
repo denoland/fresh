@@ -13,7 +13,9 @@ used to trigger child handlers. The `ctx` also has a `state` property that can
 be used to pass arbitrary data to downstream (or upstream) handlers. This
 `state` is included in `PageProps` by default, which is available to both the
 special [\_app](/docs/concepts/app-wrapper.md) wrapper and normal
-[routes](/docs/concepts/routes.md).
+[routes](/docs/concepts/routes.md). `ctx.state` is normally set by modifying its
+properties, e.g. `ctx.state.loggedIn = true`, but you can also replace the
+entire object like `ctx.state = { loggedIn = true }`.
 
 ```ts routes/_middleware.ts
 import { MiddlewareHandlerContext } from "$fresh/server.ts";
@@ -207,11 +209,12 @@ export function handler(req: Request): Response {
 `307` stands for temporary redirect. You can also use `301` for permanent
 redirect. You can also redirect to a relative path by doing:
 
-```ts
+````ts
 export function handler(req: Request): Response {
   return new Response("", {
     status: 307,
     headers: { Location: "/my/new/relative/path" },
   });
 }
-```
+```****
+````
