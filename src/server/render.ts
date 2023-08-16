@@ -245,6 +245,7 @@ export async function render<Data>(
       params: opts.params,
     },
     componentStack,
+    opts.islands,
     csp,
     opts.error,
   );
