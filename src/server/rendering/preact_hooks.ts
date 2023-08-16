@@ -193,8 +193,8 @@ options.__b = (vnode: VNode<Record<string, unknown>>) => {
         }
         vnode.type = Fragment;
       }
-    } else if (typeof vnode.type === "function") {
-      //
+    } else if (typeof vnode.type === "function" && vnode.type !== Fragment) {
+      // Detect island vnodes and wrap them with a marker
       const island = islandByComponent.get(vnode.type);
       patchIsland:
       if (
