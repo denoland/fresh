@@ -242,7 +242,6 @@ export async function render<Data>(
       route: opts.route,
       data: opts.data,
       state: opts.state,
-      error: opts.error,
       params: opts.params,
     },
     componentStack,

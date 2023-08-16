@@ -34,7 +34,6 @@ export class RenderState {
   // Route options
   routeOptions: RenderStateRouteOptions;
   csp: ContentSecurityPolicy | undefined;
-  error: unknown;
 
   constructor(
     routeOptions: RenderStateRouteOptions,
@@ -46,6 +45,7 @@ export class RenderState {
     this.routeOptions = routeOptions;
     this.csp = csp;
     this.componentStack = componentStack;
-    this.error = error;
+
+    if (error) this.routeOptions.error = error;
   }
 }
