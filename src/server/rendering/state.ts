@@ -1,11 +1,10 @@
 import { type ComponentChildren, type VNode } from "preact";
-import { ErrorPage, Island, Route, UnknownPage } from "../types.ts";
+import { Island } from "../types.ts";
 import { ContentSecurityPolicy } from "../../runtime/csp.ts";
 
 export interface RenderStateRouteOptions {
   url: URL;
-  // deno-lint-ignore no-explicit-any
-  route: UnknownPage | ErrorPage | Route<any>;
+  route: string;
   // deno-lint-ignore no-explicit-any
   data?: any;
   // deno-lint-ignore no-explicit-any

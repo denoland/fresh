@@ -58,10 +58,15 @@ Deno.test("/props/123 page prerender", async () => {
   assertEquals(resp.status, Status.OK);
   assertEquals(resp.headers.get("content-type"), "text/html; charset=utf-8");
   const body = await resp.text();
-  assertStringIncludes(
-    body,
-    `{&quot;params&quot;:{&quot;id&quot;:&quot;123&quot;},&quot;url&quot;:&quot;https://fresh.deno.dev/props/123&quot;,&quot;route&quot;:&quot;/props/:id&quot;,&quot;state&quot;:{&quot;root&quot;:&quot;root_mw&quot;}}`,
-  );
+  const doc = parseHtml(body);
+  const data = JSON.parse(doc.querySelector("body > div").textContent);
+
+  assertEquals(data, {
+    "params": { "id": "123" },
+    "url": "https://fresh.deno.dev/props/123",
+    "route": "/props/:id",
+    "state": { "root": "root_mw" },
+  });
 });
 
 Deno.test("/greet/[name] page prerender", async () => {

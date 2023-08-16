@@ -237,7 +237,7 @@ export async function render<Data>(
   const renderState = new RenderState(
     {
       url: opts.url,
-      route: opts.route,
+      route: opts.route.pattern,
       data: opts.data,
       state: opts.state,
       params: opts.params,
