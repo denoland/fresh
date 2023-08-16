@@ -72,9 +72,9 @@ Deno.test("sets <html> + <head> + <body> classes", async () => {
     "./tests/fixture_explicit_app/main.ts",
     async (address) => {
       const doc = await fetchHtml(`${address}`);
-      assertSelector(doc, "html.html")
-      assertSelector(doc, "head.head")
-      assertSelector(doc, "body.body")
+      assertSelector(doc, "html.html");
+      assertSelector(doc, "head.head");
+      assertSelector(doc, "body.body");
     },
   );
 });
