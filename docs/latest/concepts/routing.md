@@ -55,8 +55,8 @@ export const config: RouteConfig = {
 
 When working with [route layouts](/docs/canary/concepts/route-layout) or
 [route middlewares](/docs/canary/concepts/middleware), you'll sometimes come
-across a situation where you want your routes to inherit from a layout
-other than what's suggested by the URL segment.
+across a situation where you want your routes to inherit from a layout other
+than what's suggested by the URL segment.
 
 Let's illustrate that with an example:
 
