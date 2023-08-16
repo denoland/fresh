@@ -4,6 +4,7 @@ import { htmlEscapeJsonString } from "../htmlescape.ts";
 import { serialize } from "../serializer.ts";
 import { Plugin, PluginRenderResult, PluginRenderStyleTag } from "../types.ts";
 import { ContentSecurityPolicy, nonce } from "../../runtime/csp.ts";
+import { h } from "preact";
 
 function getRandomNonce(
   opts: { randomNonce?: string; csp?: ContentSecurityPolicy },
@@ -129,24 +130,20 @@ export function renderFreshTags(
   }
 
   if (opts.styles.length > 0) {
-    const node = (
-      <style
-        id="__FRSH_STYLE"
-        dangerouslySetInnerHTML={{ __html: opts.styles.join("\n") }}
-      />
-    );
+    const node = h("style", {
+      id: "__FRSH_STYLE",
+      dangerouslySetInnerHTML: { __html: opts.styles.join("\n") },
+    });
 
     renderState.headVNodes.splice(0, 0, node);
   }
 
   for (const style of styleTags) {
-    const node = (
-      <style
-        id={style.id}
-        dangerouslySetInnerHTML={{ __html: style.cssText }}
-        media={style.media}
-      />
-    );
+    const node = h("style", {
+      id: style.id,
+      media: style.media,
+      dangerouslySetInnerHTML: { __html: style.cssText },
+    });
     renderState.headVNodes.splice(0, 0, node);
   }
 
