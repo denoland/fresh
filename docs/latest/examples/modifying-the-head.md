@@ -13,8 +13,7 @@ the web page. Some uses include:
 - Linking to resources like stylesheets using `<link>`
 - Including third-party JavaScript code using `<script>`
 
-```tsx
-// routes/index.tsx
+```tsx routes/index.tsx
 import { Head } from "$fresh/runtime.ts";
 import Counter from "../islands/Counter.tsx";
 

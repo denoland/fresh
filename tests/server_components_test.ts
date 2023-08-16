@@ -1,5 +1,6 @@
 import { assertEquals } from "./deps.ts";
 import {
+  assertSelector,
   assertTextMany,
   fetchHtml,
   withFresh,
@@ -155,4 +156,29 @@ Deno.test({
 
   sanitizeOps: false,
   sanitizeResources: false,
+});
+
+Deno.test({
+  name: "renders async app template",
+
+  async fn() {
+    await withFresh(
+      "./tests/fixture_async_app/main.ts",
+      async (address) => {
+        const doc = await fetchHtml(`${address}`);
+        assertSelector(doc, "html > body > .app > .layout > .page");
+      },
+    );
+  },
+});
+
+Deno.test("define helpers", async () => {
+  await withFresh(
+    "./tests/fixture_define_helpers/main.ts",
+    async (address) => {
+      const doc = await fetchHtml(`${address}`);
+      assertSelector(doc, "html > body > .app > .layout > .page");
+      assertTextMany(doc, "p", ["Layout: it works", "Page: it works"]);
+    },
+  );
 });

@@ -1,10 +1,9 @@
-import { LayoutProps, RouteContext } from "$fresh/server.ts";
+import { LayoutContext } from "$fresh/server.ts";
 import { delay } from "$std/async/mod.ts";
 
 export default async function AsyncSubLayout(
   req: Request,
-  ctx: RouteContext,
-  { Component }: LayoutProps,
+  ctx: LayoutContext,
 ) {
   await delay(10);
   return new Response(null, {

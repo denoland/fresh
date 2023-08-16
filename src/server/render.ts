@@ -15,14 +15,14 @@ import {
   AsyncRoute,
   ErrorPage,
   Island,
-  LayoutModule,
-  LayoutProps,
+  LayoutRoute,
   Plugin,
   PluginRenderFunctionResult,
   PluginRenderResult,
   PluginRenderStyleTag,
   RenderFunction,
   Route,
+  RouteContext,
   UnknownPage,
 } from "./types.ts";
 import { HEAD_CONTEXT } from "../runtime/head.ts";
@@ -45,11 +45,35 @@ export interface AdvancedPreactOptions extends PreactOptions {
   /** Attach a hook that is invoked before a vnode has rendered. */
   __r?(vnode: VNode): void;
   errorBoundaries?: boolean;
+  /** before diff hook */
+  __b?(vnode: VNode): void;
 }
 const options = preactOptions as AdvancedPreactOptions;
 
 // Enable error boundaries in Preact.
 options.errorBoundaries = true;
+
+// These values keep track of whether the user rendered the <html>,
+// <head> and <body> element. Basically, the outer document. We
+// keep track of this, because we only know the full sets of
+// elements we should put in `<head>` after having completed
+// rendering the page.
+let RENDERING_USER_TEMPLATE = false;
+interface OuterDocument {
+  // deno-lint-ignore no-explicit-any
+  title: VNode<any> | null;
+  html: Record<string, unknown> | null;
+  head: Record<string, unknown> | null;
+  body: Record<string, unknown> | null;
+  headNodes: { type: string; props: Record<string, unknown> }[];
+}
+let OUTER_DOCUMENT: OuterDocument = {
+  title: null,
+  html: null,
+  head: null,
+  body: null,
+  headNodes: [],
+};
 
 export interface RenderOptions<Data> {
   request: Request;
@@ -59,7 +83,7 @@ export interface RenderOptions<Data> {
   islands: Island[];
   plugins: Plugin[];
   app: AppModule;
-  layouts: LayoutModule[];
+  layouts: LayoutRoute[];
   imports: string[];
   dependenciesFn: (path: string) => string[];
   url: URL;
@@ -139,9 +163,9 @@ function defaultCsp() {
   };
 }
 
-function checkAsyncComponent(
+export function checkAsyncComponent<T>(
   component: unknown,
-): component is AsyncRoute | AsyncLayout {
+): component is AsyncRoute<T> | AsyncLayout<T> {
   return typeof component === "function" &&
     component.constructor.name === "AsyncFunction";
 }
@@ -158,11 +182,11 @@ export async function render<Data>(
   // Only inherit layouts up to the nearest root layout.
   // Note that the route itself can act as the root layout.
   let layouts = opts.layouts;
-  if (!opts.route.rootLayout) {
+  if (opts.route.inheritLayouts) {
     let rootIdx = 0;
     let layoutIdx = opts.layouts.length;
     while (layoutIdx--) {
-      if (opts.layouts[layoutIdx].config?.rootLayout) {
+      if (!opts.layouts[layoutIdx].inheritLayouts) {
         rootIdx = layoutIdx;
         break;
       }
@@ -171,8 +195,6 @@ export async function render<Data>(
   } else {
     layouts = [];
   }
-
-  const isAsyncComponent = checkAsyncComponent(component);
 
   const props: Record<string, unknown> = {
     params: opts.params,
@@ -209,6 +231,17 @@ export async function render<Data>(
   // Clear previous slots
   SLOTS_TRACKER.clear();
 
+  // Clear rendering state
+  RENDERING_USER_TEMPLATE = false;
+  headChildren = false;
+  OUTER_DOCUMENT = {
+    title: null,
+    body: null,
+    head: null,
+    html: null,
+    headNodes: [],
+  };
+
   const ctx = new RenderContext(
     crypto.randomUUID(),
     opts.url,
@@ -216,44 +249,77 @@ export async function render<Data>(
     opts.lang ?? "en",
   );
 
-  let bodyHtml: string | null = null;
+  const context: RouteContext = {
+    localAddr: opts.context.localAddr,
+    remoteAddr: opts.context.remoteAddr,
+    renderNotFound: opts.context.renderNotFound,
+    url: opts.url,
+    route: opts.route.pattern,
+    params: opts.params as Record<string, string>,
+    state: opts.state ?? {},
+    data: opts.data,
+  };
 
-  const syncPlugins = opts.plugins.filter((p) => p.render);
+  // Prepare render order
+  // deno-lint-ignore no-explicit-any
+  const renderStack: any[] = [];
+  // Check if appLayout is enabled
+  if (
+    opts.route.appTemplate &&
+    layouts.every((layout) => layout.appTemplate)
+  ) {
+    renderStack.push(opts.app.default);
+  }
+  for (let i = 0; i < layouts.length; i++) {
+    renderStack.push(layouts[i].component);
+  }
+  renderStack.push(component);
 
-  function buildRoot(appComponent: VNode) {
-    // Only use the _app layout if not explicitly disabled
-    const child = opts.route.appLayout
-      ? h(opts.app.default, {
-        params: opts.params as Record<string, string>,
-        url: opts.url,
-        route: opts.route.pattern,
-        data: opts.data,
-        state: opts.state!,
+  // Build the final stack of component functions
+  const componentStack = new Array(renderStack.length).fill(null);
+  for (let i = 0; i < renderStack.length; i++) {
+    const fn = renderStack[i];
+    if (!fn) continue;
+
+    if (checkAsyncComponent(fn)) {
+      // Don't pass <Component /> when it's the route component
+      const isRouteComponent = fn === component;
+      const componentCtx = isRouteComponent ? context : {
+        ...context,
         Component() {
-          return appComponent;
+          return h(componentStack[i + 1], props);
         },
-      })
-      : appComponent;
+      };
+      // deno-lint-ignore no-explicit-any
+      const res = await fn(opts.request, componentCtx as any);
 
-    return h(CSP_CONTEXT.Provider, {
-      value: csp,
-      children: h(HEAD_CONTEXT.Provider, {
-        value: headComponents,
-        children: child,
-      }),
-    });
+      // Bail out of rendering if we returned a response
+      if (res instanceof Response) {
+        return res;
+      }
+
+      const componentFn = () => res;
+      // Set displayName to make debugging easier
+      // deno-lint-ignore no-explicit-any
+      componentFn.displayName = (fn as any).displayName || fn.name;
+      componentStack[i] = componentFn;
+    } else {
+      componentStack[i] = fn;
+    }
   }
 
-  function renderInnerSync(vnode: ComponentChildren): string {
-    // deno-lint-ignore no-explicit-any
-    let finalAppComp: VNode<any> = vnode as any;
+  function render() {
+    const routeComponent = componentStack[componentStack.length - 1];
+    let finalComp = h(routeComponent, props);
 
-    let i = layouts.length;
+    // Skip page component
+    let i = componentStack.length - 1;
     while (i--) {
-      const layout = layouts[i];
-      const curComp = finalAppComp;
+      const component = componentStack[i];
+      const curComp = finalComp;
 
-      finalAppComp = h(layout.default as ComponentType<LayoutProps>, {
+      finalComp = h(component, {
+        // @ts-ignore weird jsx types
         params: opts.params as Record<string, string>,
         url: opts.url,
         route: opts.route.pattern,
@@ -265,26 +331,30 @@ export async function render<Data>(
       });
     }
 
-    const root = buildRoot(finalAppComp);
-    bodyHtml = renderToString(root);
+    const app = h(CSP_CONTEXT.Provider, {
+      value: csp,
+      children: h(HEAD_CONTEXT.Provider, {
+        value: headComponents,
+        children: finalComp,
+      }),
+    });
+
+    let html = renderToString(app);
 
     for (const [id, children] of SLOTS_TRACKER.entries()) {
       const slotHtml = renderToString(h(Fragment, null, children));
       const templateId = id.replace(/:/g, "-");
-      bodyHtml += `<template id="${templateId}">${slotHtml}</template>`;
+      html += `<template id="${templateId}">${slotHtml}</template>`;
     }
 
-    return bodyHtml;
+    return html;
   }
 
+  let bodyHtml: string | null = null;
+
+  const syncPlugins = opts.plugins.filter((p) => p.render);
+
   const renderResults: [Plugin, PluginRenderResult][] = [];
-  if (isAsyncComponent && syncPlugins.length > 0) {
-    throw new Error(
-      `Async server components cannot be rendered synchronously. The following plugins use a synchronous render method: "${
-        syncPlugins.map((plugin) => plugin.name).join('", "')
-      }"`,
-    );
-  }
 
   function renderSync(): PluginRenderFunctionResult {
     const plugin = syncPlugins.shift();
@@ -297,7 +367,7 @@ export async function render<Data>(
       }
       renderResults.push([plugin, res]);
     } else {
-      renderInnerSync(h(component as ComponentType, props));
+      bodyHtml = render();
     }
     if (bodyHtml === null) {
       throw new Error(
@@ -329,96 +399,7 @@ export async function render<Data>(
         );
       }
     } else {
-      if (
-        isAsyncComponent ||
-        layouts.some((layout) => checkAsyncComponent(layout.default))
-      ) {
-        if (opts.renderFn !== DEFAULT_RENDER_FN) {
-          throw new Error(
-            `Async server components are not supported with custom render functions.`,
-          );
-        }
-
-        const context = {
-          localAddr: opts.context.localAddr,
-          remoteAddr: opts.context.remoteAddr,
-          renderNotFound: opts.context.renderNotFound,
-          url: opts.url,
-          route: opts.route.pattern,
-          params: opts.params as Record<string, string>,
-          state: opts.state ?? {},
-        };
-
-        const renderStack = [
-          ...layouts.map((layout) => layout.default),
-          component,
-        ];
-
-        const componentStack: (VNode | null)[] = new Array(renderStack.length)
-          .fill(null);
-
-        // deno-lint-ignore no-explicit-any
-        const preparedLayouts: ComponentType<any>[] = [];
-        for (let i = 0; i < renderStack.length; i++) {
-          const layout = renderStack[i];
-          if (!layout) continue;
-
-          if (checkAsyncComponent(layout)) {
-            const res = await layout(opts.request, context, {
-              params: opts.params as Record<string, string>,
-              url: opts.url,
-              route: opts.route.pattern,
-              data: opts.data,
-              state: opts.state!,
-              Component() {
-                return componentStack[i + 1];
-              },
-            });
-            if (res instanceof Response) {
-              asyncRenderResponse = res;
-              bodyHtml = "";
-              break;
-            }
-            // deno-lint-ignore no-explicit-any
-            preparedLayouts.push(() => res as any);
-          } else {
-            // deno-lint-ignore no-explicit-any
-            preparedLayouts.push(layout as any);
-          }
-        }
-
-        // Only continue rendering layouts if we didn't abort
-        // earlier by returning a response object.
-        if (!asyncRenderResponse) {
-          const routeComponent = preparedLayouts[preparedLayouts.length - 1];
-          let finalAppComp = h(routeComponent, props);
-          componentStack.push(finalAppComp);
-
-          // Skip page component
-          let i = preparedLayouts.length - 1;
-          while (i--) {
-            const layout = preparedLayouts[i];
-            const curComp = finalAppComp;
-            componentStack[i + 1] = curComp;
-
-            finalAppComp = h(layout, {
-              params: opts.params as Record<string, string>,
-              url: opts.url,
-              route: opts.route.pattern,
-              data: opts.data,
-              state: opts.state!,
-              Component() {
-                return curComp;
-              },
-            });
-          }
-
-          const root = buildRoot(finalAppComp);
-          bodyHtml = renderToString(root);
-        }
-      } else {
-        await opts.renderFn(ctx, () => renderSync().htmlText);
-      }
+      await opts.renderFn(ctx, () => renderSync().htmlText);
 
       if (bodyHtml === null) {
         throw new Error(
@@ -432,7 +413,19 @@ export async function render<Data>(
     };
   }
 
+  RENDERING_USER_TEMPLATE = true;
   await renderAsync();
+  RENDERING_USER_TEMPLATE = false;
+
+  const idx = headComponents.findIndex((vnode) =>
+    vnode !== null && typeof vnode === "object" && "type" in vnode &&
+    props !== null && vnode.type === "title"
+  );
+  if (idx !== -1) {
+    OUTER_DOCUMENT.title = headComponents[idx] as VNode<{ children: string }>;
+    headComponents.splice(idx, 1);
+  }
+
   if (asyncRenderResponse !== undefined) {
     return asyncRenderResponse;
   }
@@ -563,48 +556,37 @@ export async function render<Data>(
   }
 
   const preloads = [...preloadSet];
-  const html = template({
-    bodyHtml,
-    headComponents,
-    moduleScripts,
-    preloads,
-    lang: ctx.lang,
-  });
 
-  return [html, csp];
-}
-
-export interface TemplateOptions {
-  bodyHtml: string;
-  headComponents: ComponentChildren[];
-  moduleScripts: (readonly [string, string])[];
-  preloads: string[];
-  lang: string;
-}
-
-export function template(opts: TemplateOptions): string {
   const page = h(
     "html",
-    { lang: opts.lang },
+    OUTER_DOCUMENT.html ?? { lang: ctx.lang },
     h(
       "head",
-      null,
-      h("meta", { charSet: "UTF-8" }),
-      h("meta", {
-        name: "viewport",
-        content: "width=device-width, initial-scale=1.0",
-      }),
-      opts.preloads.map((src) =>
-        h("link", { rel: "modulepreload", href: src })
-      ),
-      opts.moduleScripts.map(([src, nonce]) =>
+      OUTER_DOCUMENT.head,
+      // Add some tags ourselves if the user uses the legacy
+      // _app template rendering style where we provided the outer
+      // HTML document.
+      !renderedHtmlTag ? h("meta", { charSet: "UTF-8" }) : null,
+      !renderedHtmlTag
+        ? h("meta", {
+          name: "viewport",
+          content: "width=device-width, initial-scale=1.0",
+        })
+        : null,
+      OUTER_DOCUMENT.title,
+      OUTER_DOCUMENT.headNodes.map((node) => h(node.type, node.props)),
+      // Fresh scripts
+      preloads.map((src) => h("link", { rel: "modulepreload", href: src })),
+      moduleScripts.map(([src, nonce]) =>
         h("script", { src: src, nonce: nonce, type: "module" })
       ),
-      opts.headComponents,
+      headComponents,
     ),
-    h("body", { dangerouslySetInnerHTML: { __html: opts.bodyHtml } }),
+    h("body", { dangerouslySetInnerHTML: { __html: bodyHtml } }),
   );
-  return "<!DOCTYPE html>" + renderToString(page);
+  const html = "<!DOCTYPE html>" + renderToString(page);
+
+  return [html, csp];
 }
 
 const supportsUnstableComments = renderToString(h(Fragment, {
@@ -666,6 +648,8 @@ const islandOwners = new Map<VNode, VNode>();
 
 const originalHook = options.vnode;
 let ignoreNext = false;
+let headChildren = false;
+let renderedHtmlTag = false;
 options.vnode = (vnode) => {
   assetHashingHook(vnode);
   const originalType = vnode.type as ComponentType<unknown>;
@@ -737,7 +721,7 @@ options.vnode = (vnode) => {
         );
       };
     }
-  } else if (typeof vnode.type === "string" && vnode.props !== null) {
+  } else {
     // Work around `preact/debug` string event handler error which
     // errors when an event handler gets a string. This makes sense
     // on the client where this is a common vector for XSS. On the
@@ -757,10 +741,48 @@ options.vnode = (vnode) => {
   if (originalHook) originalHook(vnode);
 };
 
+function excludeChildren(props: Record<string, unknown>) {
+  const out: Record<string, unknown> = {};
+  for (const k in props) {
+    if (k !== "children") out[k] = props[k];
+  }
+  return out;
+}
+
 // Keep track of owners
+const oldDiff = options.__b;
 const oldDiffed = options.diffed;
 const oldRender = options.__r;
 const oldCommit = options.__c;
+options.__b = (vnode: VNode<Record<string, unknown>>) => {
+  if (RENDERING_USER_TEMPLATE && typeof vnode.type === "string") {
+    if (vnode.type === "html") {
+      renderedHtmlTag = true;
+      OUTER_DOCUMENT.html = excludeChildren(vnode.props);
+      vnode.type = Fragment;
+    } else if (vnode.type === "head") {
+      OUTER_DOCUMENT.head = excludeChildren(vnode.props);
+      headChildren = true;
+      vnode.type = Fragment;
+      vnode.props = {
+        __freshHead: true,
+        children: vnode.props.children,
+      };
+    } else if (vnode.type === "body") {
+      OUTER_DOCUMENT.body = excludeChildren(vnode.props);
+      vnode.type = Fragment;
+    } else if (headChildren) {
+      if (vnode.type === "title") {
+        OUTER_DOCUMENT.title = h("title", vnode.props);
+        vnode.props = { children: null };
+      } else {
+        OUTER_DOCUMENT.headNodes.push({ type: vnode.type, props: vnode.props });
+      }
+      vnode.type = Fragment;
+    }
+  }
+  oldDiff?.(vnode);
+};
 options.__r = (vnode) => {
   if (
     typeof vnode.type === "function" &&
@@ -770,10 +792,12 @@ options.__r = (vnode) => {
   }
   oldRender?.(vnode);
 };
-options.diffed = (vnode) => {
+options.diffed = (vnode: VNode<Record<string, unknown>>) => {
   if (typeof vnode.type === "function") {
     if (vnode.type !== Fragment) {
       ownerStack.pop();
+    } else if (vnode.props.__freshHead) {
+      headChildren = false;
     }
   }
   oldDiffed?.(vnode);

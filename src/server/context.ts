@@ -10,7 +10,7 @@ import {
   typeByExtension,
   walk,
 } from "./deps.ts";
-import { h } from "preact";
+import { ComponentType, h } from "preact";
 import * as router from "./router.ts";
 import { DenoConfig, Manifest } from "./mod.ts";
 import { ALIVE_URL, JS_PREFIX, REFRESH_JS_URL } from "./constants.ts";
@@ -255,8 +255,8 @@ export class ServerContext {
           component,
           handler,
           csp: Boolean(config?.csp ?? false),
-          appLayout: Boolean(config?.appTemplate ?? true),
-          rootLayout: Boolean(config?.rootLayout ?? false),
+          appTemplate: !config?.skipAppTemplate,
+          inheritLayouts: !config?.skipInheritedLayouts,
         };
         routes.push(route);
       } else if (isMiddleware) {
@@ -270,9 +270,14 @@ export class ServerContext {
       ) {
         app = module as AppModule;
       } else if (isLayout) {
+        const mod = module as LayoutModule;
+        const config = mod.config;
         layouts.push({
           baseRoute: toBaseRoute(baseRoute),
-          module: module as LayoutModule,
+          handler: mod.handler,
+          component: mod.default,
+          appTemplate: !config?.skipAppTemplate,
+          inheritLayouts: !config?.skipInheritedLayouts,
         });
       } else if (
         path === "/_404.tsx" || path === "/_404.ts" ||
@@ -292,8 +297,8 @@ export class ServerContext {
           component,
           handler: handler ?? ((req) => router.defaultOtherHandler(req)),
           csp: Boolean(config?.csp ?? false),
-          appLayout: Boolean(config?.appTemplate ?? true),
-          rootLayout: Boolean(config?.rootLayout ?? false),
+          appTemplate: !config?.skipAppTemplate,
+          inheritLayouts: !config?.skipInheritedLayouts,
         };
       } else if (
         path === "/_500.tsx" || path === "/_500.ts" ||
@@ -314,8 +319,8 @@ export class ServerContext {
           handler: handler ??
             ((req, ctx) => router.defaultErrorHandler(req, ctx, ctx.error)),
           csp: Boolean(config?.csp ?? false),
-          appLayout: Boolean(config?.appTemplate ?? true),
-          rootLayout: Boolean(config?.rootLayout ?? false),
+          appTemplate: !config?.skipAppTemplate,
+          inheritLayouts: !config?.skipInheritedLayouts,
         };
       }
     }
@@ -577,13 +582,13 @@ export class ServerContext {
         params: paramsAndRouteResult.params,
       };
 
-      for (const mw of mws) {
-        if (mw.handler instanceof Array) {
-          for (const handler of mw.handler) {
+      for (const { module } of mws) {
+        if (module.handler instanceof Array) {
+          for (const handler of module.handler) {
             handlers.push(() => handler(req, middlewareCtx));
           }
         } else {
-          const handler = mw.handler;
+          const handler = module.handler;
           handlers.push(() => handler(req, middlewareCtx));
         }
       }
@@ -1002,7 +1007,7 @@ const DEFAULT_ROUTER_OPTIONS: RouterOptions = {
 };
 
 const DEFAULT_APP: AppModule = {
-  default: ({ Component }) => h(Component, {}),
+  default: ({ Component }: { Component: ComponentType }) => h(Component, {}),
 };
 
 const DEFAULT_NOT_FOUND: UnknownPage = {
@@ -1012,8 +1017,8 @@ const DEFAULT_NOT_FOUND: UnknownPage = {
   name: "_404",
   handler: (req) => router.defaultOtherHandler(req),
   csp: false,
-  appLayout: true,
-  rootLayout: false,
+  appTemplate: true,
+  inheritLayouts: true,
 };
 
 const DEFAULT_ERROR: ErrorPage = {
@@ -1024,23 +1029,24 @@ const DEFAULT_ERROR: ErrorPage = {
   component: DefaultErrorHandler,
   handler: (_req, ctx) => ctx.render(),
   csp: false,
-  appLayout: true,
-  rootLayout: false,
+  appTemplate: true,
+  inheritLayouts: true,
 };
 
-export function selectSharedRoutes<T>(
+export function selectSharedRoutes<T extends { baseRoute: BaseRoute }>(
   curBaseRoute: BaseRoute,
-  items: { baseRoute: BaseRoute; module: T }[],
+  items: T[],
 ): T[] {
   const selected: T[] = [];
 
-  for (const { baseRoute, module } of items) {
+  for (const item of items) {
+    const { baseRoute } = item;
     const res = curBaseRoute === baseRoute ||
       curBaseRoute.startsWith(
         baseRoute.length > 1 ? baseRoute + "/" : baseRoute,
       );
     if (res) {
-      selected.push(module);
+      selected.push(item);
     }
   }
 

@@ -145,8 +145,7 @@ applied to any of the directives.
 
 We'll start off by having an example stylesheet defined like this:
 
-```css
-/* static/example.css */
+```css static/example.css
 h1 {
   font-size: 25px;
   font-weight: normal;
@@ -161,8 +160,7 @@ To kick things off, we'll create the following control route which doesn't do
 anything with CSP. We include a stylesheet to confirm that our sheet correctly
 styles the response.
 
-```tsx
-// routes/noCSP.tsx
+```tsx routes/noCSP.tsx
 import { RouteContext } from "$fresh/server.ts";
 
 export default function Home(req: Request, ctx: RouteContext) {
@@ -177,7 +175,7 @@ export default function Home(req: Request, ctx: RouteContext) {
 
 We can hit `http://localhost:8000/noCSP` and we should see the following:
 
-```
+```txt
 This page doesn't use CSP at all. Styles will be applied.
 ```
 
@@ -188,8 +186,7 @@ closely, we're using the wrong URL! This will cause the browser to reject the
 stylesheet, due to the header that Fresh produces. We get a `(blocked:csp)`
 status when the browser tries to request this resource.
 
-```tsx
-// routes/incorrectCSP.tsx
+```tsx routes/incorrectCSP.tsx
 import { RouteConfig, RouteContext } from "$fresh/server.ts";
 import { useCSP } from "$fresh/runtime.ts";
 
@@ -198,9 +195,7 @@ export default function Home(req: Request, ctx: RouteContext) {
     if (!csp.directives.styleSrc) {
       csp.directives.styleSrc = [];
     }
-    csp.directives.styleSrc.push(
-      "http://www.example.com",
-    );
+    csp.directives.styleSrc.push("http://www.example.com");
   });
   return (
     <>
@@ -217,7 +212,7 @@ export const config: RouteConfig = {
 
 We can hit `http://localhost:8000/incorrectCSP` and we should see the following:
 
-```
+```txt
 This page violates our configured CSP. Styles won't be applied.
 ```
 
@@ -226,8 +221,7 @@ This page violates our configured CSP. Styles won't be applied.
 Let's fix our simple mistake and use the correct URL. Everything is working
 correctly here.
 
-```tsx
-// routes/correctCSP.tsx
+```tsx routes/correctCSP.tsx
 import { RouteConfig, RouteContext } from "$fresh/server.ts";
 import { useCSP } from "$fresh/runtime.ts";
 
@@ -236,9 +230,7 @@ export default function Home(req: Request, ctx: RouteContext) {
     if (!csp.directives.styleSrc) {
       csp.directives.styleSrc = [];
     }
-    csp.directives.styleSrc.push(
-      "http://localhost:8000/example.css",
-    );
+    csp.directives.styleSrc.push("http://localhost:8000/example.css");
   });
   return (
     <>
@@ -255,7 +247,7 @@ export const config: RouteConfig = {
 
 We can hit `http://localhost:8000/correctCSP` and we should see the following:
 
-```
+```txt
 This page adheres to our configured CSP. Styles will be applied.
 ```
 
@@ -263,8 +255,7 @@ This page adheres to our configured CSP. Styles will be applied.
 
 What happens if we forget to use a `RouteConfig` in our route?
 
-```tsx
-// routes/cspNoRouteConfig.tsx
+```tsx routes/cspNoRouteConfig.tsx
 import { RouteContext } from "$fresh/server.ts";
 import { useCSP } from "$fresh/runtime.ts";
 
@@ -273,16 +264,14 @@ export default function Home(req: Request, ctx: RouteContext) {
     if (!csp.directives.styleSrc) {
       csp.directives.styleSrc = [];
     }
-    csp.directives.styleSrc.push(
-      "http://www.example.com",
-    );
+    csp.directives.styleSrc.push("http://www.example.com");
   });
   return (
     <>
       <h1>
         This page violates our configured CSP. But we don't have a{" "}
-        <code>RouteConfig</code>{" "}
-        enabled, so Fresh doesn't know to use the CSP. Styles will be applied.
+        <code>RouteConfig</code> enabled, so Fresh doesn't know to use the CSP.
+        Styles will be applied.
       </h1>
       <link rel="stylesheet" type="text/css" href="example.css" />
     </>
@@ -293,7 +282,7 @@ export default function Home(req: Request, ctx: RouteContext) {
 We can hit `http://localhost:8000/cspNoRouteConfig` and we should see the
 following:
 
-```
+```txt
 This page violates our configured CSP. But we don't have a RouteConfig enabled, so Fresh doesn't know to use the CSP. Styles will be applied.
 ```
 
@@ -305,8 +294,7 @@ should be able to receive `POST` requests. If the `reportOnly` flag is enabled,
 then the browser will ignore the CSP headers and log any issues to the
 `reportUri` destination.
 
-```tsx
-// routes/incorrectCSPwithReport.tsx
+```tsx routes/incorrectCSPwithReport.tsx
 import { RouteConfig, RouteContext } from "$fresh/server.ts";
 import { useCSP } from "$fresh/runtime.ts";
 
@@ -317,9 +305,7 @@ export default function Home(req: Request, ctx: RouteContext) {
       csp.directives.styleSrc = [];
     }
     csp.directives.reportUri = "http://localhost:8000/reportHandler";
-    csp.directives.styleSrc.push(
-      "http://www.example.com",
-    );
+    csp.directives.styleSrc.push("http://www.example.com");
   });
   return (
     <>
@@ -337,8 +323,7 @@ export const config: RouteConfig = {
 };
 ```
 
-```ts
-// routes/reportHandler.ts
+```ts routes/reportHandler.ts
 import { HandlerContext } from "$fresh/server.ts";
 
 export const handler = {
@@ -357,14 +342,14 @@ export const handler = {
 We can hit `http://localhost:8000/incorrectCSPwithReport` and we should see the
 following:
 
-```
+```txt
 This page violates our configured CSP. But we're using "reportOnly". Styles will be applied.
 ```
 
 We can then check our server and we'll see that `csp-reports.txt` has an entry
 like this:
 
-```json
+```json csp-reports.txt
 {
   "csp-report": {
     "document-uri": "http://localhost:8000/incorrectCSPwithReport",
