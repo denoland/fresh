@@ -105,6 +105,9 @@ const GITIGNORE = `# dotenv environment variable files
 .env.test.local
 .env.production.local
 .env.local
+
+# Fresh build directory
+_fresh/
 `;
 
 await Deno.writeTextFile(
@@ -498,6 +501,20 @@ try {
   // Skip this and be silent if there is a network issue.
 }
 
+let FRESH_CONFIG_TS = `import { defineConfig } from "$fresh/server.ts";\n`;
+if (useTwind) {
+  FRESH_CONFIG_TS += `import twindPlugin from "$fresh/plugins/twind.ts"
+import twindConfig from "./twind.config.ts";`;
+}
+
+FRESH_CONFIG_TS += `
+export default defineConfig({${
+  useTwind ? `\n  plugins: [twindPlugin(twindConfig)]\n` : ""
+}});
+`;
+const CONFIG_TS_PATH = join(resolvedDirectory, "fresh.config.ts");
+await Deno.writeTextFile(CONFIG_TS_PATH, FRESH_CONFIG_TS);
+
 let MAIN_TS = `/// <reference no-default-lib="true" />
 /// <reference lib="dom" />
 /// <reference lib="dom.iterable" />
@@ -508,27 +525,20 @@ import "$std/dotenv/load.ts";
 
 import { start } from "$fresh/server.ts";
 import manifest from "./fresh.gen.ts";
+import config from "./fresh.config.ts";
 `;
-
-if (useTwind) {
-  MAIN_TS += `
-import twindPlugin from "$fresh/plugins/twind.ts";
-import twindConfig from "./twind.config.ts";
-`;
-}
 
 MAIN_TS += `
-await start(manifest${
-  useTwind ? ", { plugins: [twindPlugin(twindConfig)] }" : ""
-});\n`;
+await start(manifest, config);\n`;
 const MAIN_TS_PATH = join(resolvedDirectory, "main.ts");
 await Deno.writeTextFile(MAIN_TS_PATH, MAIN_TS);
 
 const DEV_TS = `#!/usr/bin/env -S deno run -A --watch=static/,routes/
 
 import dev from "$fresh/dev.ts";
+import config from "./fresh.config.ts";
 
-await dev(import.meta.url, "./main.ts");
+await dev(import.meta.url, "./main.ts", config);
 `;
 const DEV_TS_PATH = join(resolvedDirectory, "dev.ts");
 await Deno.writeTextFile(DEV_TS_PATH, DEV_TS);
@@ -544,6 +554,8 @@ const config = {
     check:
       "deno fmt --check && deno lint && deno check **/*.ts && deno check **/*.tsx",
     start: "deno run -A --watch=static/,routes/ dev.ts",
+    build: "deno run -A dev.ts build",
+    preview: "deno run -A main.ts",
     update: "deno run -A -r https://fresh.deno.dev/update .",
   },
   lint: {
