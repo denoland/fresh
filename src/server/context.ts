@@ -253,7 +253,7 @@ export class ServerContext {
           component,
           handler,
           csp: Boolean(config?.csp ?? false),
-          appTemplate: !config?.skipAppTemplate,
+          appWrapper: !config?.skipAppWrapper,
           inheritLayouts: !config?.skipInheritedLayouts,
         };
         routes.push(route);
@@ -274,7 +274,7 @@ export class ServerContext {
           baseRoute: toBaseRoute(baseRoute),
           handler: mod.handler,
           component: mod.default,
-          appTemplate: !config?.skipAppTemplate,
+          appWrapper: !config?.skipAppWrapper,
           inheritLayouts: !config?.skipInheritedLayouts,
         });
       } else if (
@@ -295,7 +295,7 @@ export class ServerContext {
           component,
           handler: handler ?? ((req) => router.defaultOtherHandler(req)),
           csp: Boolean(config?.csp ?? false),
-          appTemplate: !config?.skipAppTemplate,
+          appWrapper: !config?.skipAppWrapper,
           inheritLayouts: !config?.skipInheritedLayouts,
         };
       } else if (
@@ -317,7 +317,7 @@ export class ServerContext {
           handler: handler ??
             ((req, ctx) => router.defaultErrorHandler(req, ctx, ctx.error)),
           csp: Boolean(config?.csp ?? false),
-          appTemplate: !config?.skipAppTemplate,
+          appWrapper: !config?.skipAppWrapper,
           inheritLayouts: !config?.skipInheritedLayouts,
         };
       }
@@ -982,7 +982,7 @@ const DEFAULT_NOT_FOUND: UnknownPage = {
   name: "_404",
   handler: (req) => router.defaultOtherHandler(req),
   csp: false,
-  appTemplate: true,
+  appWrapper: true,
   inheritLayouts: true,
 };
 
@@ -994,7 +994,7 @@ const DEFAULT_ERROR: ErrorPage = {
   component: DefaultErrorHandler,
   handler: (_req, ctx) => ctx.render(),
   csp: false,
-  appTemplate: true,
+  appWrapper: true,
   inheritLayouts: true,
 };
 

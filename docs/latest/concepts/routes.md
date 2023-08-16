@@ -165,3 +165,23 @@ export default async function MyPage(req: Request, ctx: RouteContext) {
   return <p>foo is: {value}</p>;
 }
 ```
+
+### Define helper
+
+To make it a little quicker to write async routes, Fresh ships with a
+`defineRoute` helper which automatically infers the correct types for the
+function arguments.
+
+```tsx
+import { defineRoute } from "$fresh/server.ts";
+
+export default defineRoute(async (req, ctx) => {
+  const data = await loadData();
+
+  return (
+    <div class="page">
+      <h1>Hello {data.name}</h1>
+    </div>
+  );
+});
+```
