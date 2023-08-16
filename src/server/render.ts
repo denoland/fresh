@@ -327,6 +327,7 @@ export async function render<Data>(
     return asyncRenderResponse;
   }
 
+  // Includes everything inside `<body>`
   bodyHtml = bodyHtml as unknown as string;
 
   // Create Fresh script + style tags
@@ -339,7 +340,9 @@ export async function render<Data>(
     pluginRenderResults: renderResults,
   });
 
-  const html = renderOuterDocument(renderState, result.bodyHtml, {
+  // Render outer document up to `<body>`
+  const html = renderOuterDocument(renderState, {
+    bodyHtml: result.bodyHtml,
     preloads: [...result.preloadSet],
     moduleScripts: result.moduleScripts,
     lang: ctx.lang,

@@ -55,8 +55,8 @@ export function renderHtml(state: RenderState) {
 
 export function renderOuterDocument(
   state: RenderState,
-  bodyHtml: string,
   opts: {
+    bodyHtml: string;
     lang?: string;
     preloads: string[];
     moduleScripts: [src: string, nonce: string][];
@@ -90,7 +90,7 @@ export function renderOuterDocument(
         h("link", { rel: "modulepreload", href: src })
       ),
       headVNodes,
-      h("body", { dangerouslySetInnerHTML: { __html: bodyHtml } }),
+      h("body", { dangerouslySetInnerHTML: { __html: opts.bodyHtml } }),
     ),
   );
 
