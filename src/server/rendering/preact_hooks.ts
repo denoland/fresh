@@ -1,7 +1,6 @@
 import {
   Component,
   type ComponentChildren,
-  ComponentType,
   Fragment,
   h,
   type Options as PreactOptions,
@@ -28,8 +27,6 @@ const options = preactOptions as AdvancedPreactOptions;
 
 // Enable error boundaries in Preact.
 options.errorBoundaries = true;
-
-type InternalType = ComponentType & { __frsh_patched?: boolean };
 
 // Set up a preact option hook to track when vnode with custom functions are
 // created.
@@ -142,6 +139,11 @@ options.vnode = (vnode) => {
         props["ON" + key.slice(2)] = value;
       }
     }
+  } else if (
+    current && typeof vnode.type === "function" && vnode.type !== Fragment &&
+    ownerStack.length > 0
+  ) {
+    current.owners.set(vnode, ownerStack[ownerStack.length - 1]);
   }
 
   if (oldVNodeHook) oldVNodeHook(vnode);
@@ -207,17 +209,13 @@ options.__b = (vnode: VNode<Record<string, unknown>>) => {
         //   function Island() {}
         //     return <OtherIsland />
         //   }
-        if (ownerStack.length > 0) {
-          let i = ownerStack.length;
-          while (i--) {
-            const owner = ownerStack[i];
-            if (
-              typeof owner.type === "function" &&
-              islandByComponent.has(owner.type)
-            ) {
-              break patchIsland;
-            }
+        let tmpVNode = vnode;
+        let owner;
+        while ((owner = current.owners.get(tmpVNode)) !== undefined) {
+          if (islandByComponent.has(owner.type)) {
+            break patchIsland;
           }
+          tmpVNode = owner;
         }
 
         // At this point we know that we need to patch the island. Mark the

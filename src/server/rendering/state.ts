@@ -34,6 +34,7 @@ export class RenderState {
   csp: ContentSecurityPolicy | undefined;
   // Preact state
   ownerStack: VNode[] = [];
+  owners = new Map<VNode, VNode>();
 
   constructor(
     routeOptions: RenderStateRouteOptions,
@@ -52,5 +53,6 @@ export class RenderState {
   clearTmpState() {
     this.renderingUserTemplate = false;
     this.ownerStack = [];
+    this.owners.clear();
   }
 }
