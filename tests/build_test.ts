@@ -9,7 +9,7 @@ Deno.test("build snapshot and restore from it", async (t) => {
 
   try {
     await t.step("build snapshot", async () => {
-      await new Deno.Command(Deno.execPath(), {
+      const res = await new Deno.Command(Deno.execPath(), {
         args: [
           "run",
           "-A",
@@ -17,9 +17,16 @@ Deno.test("build snapshot and restore from it", async (t) => {
           "build",
         ],
         stdin: "null",
-        stdout: "inherit",
+        stdout: "piped",
         stderr: "inherit",
       }).output();
+
+      const decoder = new TextDecoder();
+      const stdout = decoder.decode(res.stdout);
+      assert(
+        !/Using snapshot found at/.test(stdout),
+        "Using snapshot message was shown during build",
+      );
 
       assert((await Deno.stat(outDir)).isDirectory, "Missing output directory");
     });
