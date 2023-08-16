@@ -1,25 +1,10 @@
 import { ServerContext } from "../server/context.ts";
-import { FreshOptions, Manifest } from "../server/mod.ts";
-import { dirname, fromFileUrl, join, toFileUrl } from "../server/deps.ts";
-import { fs } from "./deps.ts";
+import { join } from "../server/deps.ts";
 
 export async function build(
-  manifestPath: string,
-  opts: FreshOptions,
+  ctx: ServerContext,
+  outDir: string,
 ) {
-  const manifest = (await import(toFileUrl(manifestPath).href))
-    .default as Manifest;
-
-  const outDir = join(dirname(fromFileUrl(manifest.baseUrl)), "_fresh");
-
-  // Ensure that build dir is empty
-  await fs.emptyDir(outDir);
-
-  const ctx = await ServerContext.fromManifest(manifest, {
-    ...opts,
-    skipSnapshot: true,
-  });
-
   // Bundle assets
   const snapshot = await ctx.buildSnapshot();
 

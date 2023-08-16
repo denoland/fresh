@@ -1,8 +1,10 @@
 import { updateCheck } from "./update_check.ts";
-import { DAY, dirname, fromFileUrl, join } from "./deps.ts";
-import { FreshOptions } from "../server/mod.ts";
+import { DAY, dirname, fromFileUrl, fs, join, toFileUrl } from "./deps.ts";
+import { FreshOptions, Manifest as ServerManifest } from "../server/mod.ts";
 import { build } from "./build.ts";
 import { collect, ensureMinDenoVersion, generate, Manifest } from "./mod.ts";
+import { ServerContext } from "$fresh/server.ts";
+import { startFromContext } from "$fresh/src/server/server.ts";
 
 export async function dev(
   base: string,
@@ -34,10 +36,22 @@ export async function dev(
 
   if (manifestChanged) await generate(dir, newManifest);
 
+  const manifest = (await import(toFileUrl(join(dir, "fresh.gen.ts")).href))
+    .default as ServerManifest;
+
+  const outDir = join(dirname(fromFileUrl(manifest.baseUrl)), "_fresh");
+
+  const ctx = await ServerContext.fromManifest(manifest, {
+    ...options,
+    skipSnapshot: true,
+  });
+
   if (Deno.args.includes("build")) {
-    await build(join(dir, "fresh.gen.ts"), options);
+    // Ensure that build dir is empty
+    await fs.emptyDir(outDir);
+    await build(ctx, outDir);
   } else {
-    await import(entrypoint);
+    await startFromContext(ctx, options);
   }
 }
 
