@@ -49,7 +49,6 @@ export function renderHtml(state: RenderState) {
 
     return html;
   } finally {
-    state.renderingUserTemplate = false;
     setRenderState(null);
   }
 }
@@ -95,5 +94,10 @@ export function renderOuterDocument(
     ),
   );
 
-  return "<!DOCTYPE html>" + renderToString(page);
+  try {
+    setRenderState(state);
+    return "<!DOCTYPE html>" + renderToString(page);
+  } finally {
+    setRenderState(null);
+  }
 }

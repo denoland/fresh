@@ -18,7 +18,6 @@ export class RenderState {
   // deno-lint-ignore no-explicit-any
   componentStack: any[];
   renderingUserTemplate = false;
-  islands: Island[];
   encounteredIslands = new Set<Island>();
   islandProps: unknown[] = [];
   slots = new Map<string, ComponentChildren>();
@@ -34,20 +33,25 @@ export class RenderState {
   // Route options
   routeOptions: RenderStateRouteOptions;
   csp: ContentSecurityPolicy | undefined;
+  // Preact state
+  ownerStack: VNode[] = [];
 
   constructor(
     routeOptions: RenderStateRouteOptions,
     // deno-lint-ignore no-explicit-any
     componentStack: any[],
-    islands: Island[],
     csp?: ContentSecurityPolicy,
     error?: unknown,
   ) {
     this.routeOptions = routeOptions;
     this.csp = csp;
-    this.islands = islands;
     this.componentStack = componentStack;
 
     if (error) this.routeOptions.error = error;
+  }
+
+  clearTmpState() {
+    this.renderingUserTemplate = false;
+    this.ownerStack = [];
   }
 }

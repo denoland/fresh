@@ -1,7 +1,7 @@
 import {
   Component,
   type ComponentChildren,
-  type ComponentType,
+  ComponentType,
   Fragment,
   h,
   type Options as PreactOptions,
@@ -11,10 +11,11 @@ import {
 import { assetHashingHook } from "../../runtime/utils.ts";
 import { renderToString } from "preact-render-to-string";
 import { RenderState } from "./state.ts";
+import { Island } from "../types.ts";
 
 // These hooks are long stable, but when we originally added them we
 // weren't sure if they should be public.
-export interface AdvancedPreactOptions extends PreactOptions {
+interface AdvancedPreactOptions extends PreactOptions {
   /** Attach a hook that is invoked after a tree was mounted or was updated. */
   __c?(vnode: VNode, commitQueue: Component[]): void;
   /** Attach a hook that is invoked before a vnode has rendered. */
@@ -28,12 +29,28 @@ const options = preactOptions as AdvancedPreactOptions;
 // Enable error boundaries in Preact.
 options.errorBoundaries = true;
 
+type InternalType = ComponentType & { __frsh_patched?: boolean };
+
 // Set up a preact option hook to track when vnode with custom functions are
 // created.
 let current: RenderState | null = null;
+// Keep track of which component rendered which vnode. This allows us
+// to detect when an island is rendered within another instead of being
+// passed as children.
+let ownerStack: VNode[] = [];
+// Keep track of all available islands
+const islandByComponent = new Map();
+export function setAllIslands(islands: Island[]) {
+  for (let i = 0; i < islands.length; i++) {
+    const island = islands[i];
+    islandByComponent.set(island.component, island);
+  }
+}
 
 export function setRenderState(state: RenderState | null): void {
+  if (current) current.clearTmpState();
   current = state;
+  ownerStack = state?.ownerStack ?? [];
 }
 
 // Check if an older version of `preact-render-to-string` is used
@@ -89,60 +106,79 @@ function SlotTracker(
   return props.children as any;
 }
 
-// Keep track of which component rendered which vnode. This allows us
-// to detect when an island is rendered within another instead of being
-// passed as children.
-let ownerStack: VNode[] = [];
-const islandOwners = new Map<VNode, VNode>();
+/**
+ * Copy props but exclude children
+ */
+function excludeChildren(props: Record<string, unknown>) {
+  const out: Record<string, unknown> = {};
+  for (const k in props) {
+    if (k !== "children") out[k] = props[k];
+  }
+  return out;
+}
 
-let ignoreNext = false;
-const originalHook = options.vnode;
+const oldVNodeHook = options.vnode;
+const oldDiff = options.__b;
+const oldDiffed = options.diffed;
+const oldRender = options.__r;
+
 options.vnode = (vnode) => {
   assetHashingHook(vnode);
-  const originalType = vnode.type as ComponentType<unknown>;
 
-  // Use a labelled statement that allows ous to break out of it
-  // whilst still continuing execution. We still want to call previous
-  // `options.vnode` hooks if there were any, otherwise we'd break
-  // the change for other plugins hooking into Preact.
-  patchIslands:
-  if (typeof vnode.type === "function" && current) {
-    const island = current?.islands.find((island) =>
-      island.component === originalType
-    );
+  // Work around `preact/debug` string event handler error which
+  // errors when an event handler gets a string. This makes sense
+  // on the client where this is a common vector for XSS. On the
+  // server when the string was not created through concatenation
+  // it is fine. Internally, `preact/debug` only checks for the
+  // lowercase variant.
+  if (typeof vnode.type === "string") {
+    const props = vnode.props as Record<string, unknown>;
+    for (const key in props) {
+      const value = props[key];
+      if (key.startsWith("on") && typeof value === "string") {
+        delete props[key];
+        props["ON" + key.slice(2)] = value;
+      }
+    }
+  } else if (
+    typeof vnode.type === "function" && vnode.type !== Fragment &&
+    !(vnode.type as InternalType).__frsh_patched
+  ) {
+    const island = islandByComponent.get(vnode.type);
+    patchIsland:
     if (island) {
-      const hasOwners = ownerStack.length > 0;
-      if (hasOwners) {
-        const prevOwner = ownerStack[ownerStack.length - 1];
-        islandOwners.set(vnode, prevOwner);
-      }
-
-      // Check if we already patched this component
-      if (ignoreNext) {
-        ignoreNext = false;
-        break patchIslands;
-      }
-
       // Check if an island is rendered inside another island, not just
-      // passed as a child. Example:
+      // passed as a child.In that case we treat it like a normal
+      // Component. Example:
       //   function Island() {}
       //     return <OtherIsland />
       //   }
-      if (hasOwners) {
-        const prevOwner = ownerStack[ownerStack.length - 1];
-        if (islandOwners.has(prevOwner)) {
-          break patchIslands;
+      if (ownerStack.length > 0) {
+        let i = ownerStack.length;
+        while (i--) {
+          const owner = ownerStack[i];
+          if (
+            typeof owner.type === "function" &&
+            islandByComponent.has(owner.type)
+          ) {
+            break patchIsland;
+          }
         }
       }
 
-      const { islandProps, slots } = current;
-      current.encounteredIslands.add(island);
-      vnode.type = (props) => {
-        ignoreNext = true;
+      // At this point we know that we need to patch the island. Mark the
+      // island in that we have already patched it.
+      const originalType = vnode.type as InternalType;
+      originalType.__frsh_patched = true;
 
-        const id = islandProps.length;
+      vnode.type = (props) => {
+        if (!current) return null;
+
+        const { encounteredIslands, islandProps, slots } = current;
+        encounteredIslands.add(island);
 
         // Only passing children JSX to islands is supported for now
+        const id = islandProps.length;
         if ("children" in props) {
           let children = props.children;
           const markerText =
@@ -171,38 +207,11 @@ options.vnode = (vnode) => {
         );
       };
     }
-  } else {
-    // Work around `preact/debug` string event handler error which
-    // errors when an event handler gets a string. This makes sense
-    // on the client where this is a common vector for XSS. On the
-    // server when the string was not created through concatenation
-    // it is fine. Internally, `preact/debug` only checks for the
-    // lowercase variant.
-    const props = vnode.props as Record<string, unknown>;
-    for (const key in props) {
-      const value = props[key];
-      if (key.startsWith("on") && typeof value === "string") {
-        delete props[key];
-        props["ON" + key.slice(2)] = value;
-      }
-    }
   }
 
-  if (originalHook) originalHook(vnode);
+  if (oldVNodeHook) oldVNodeHook(vnode);
 };
 
-function excludeChildren(props: Record<string, unknown>) {
-  const out: Record<string, unknown> = {};
-  for (const k in props) {
-    if (k !== "children") out[k] = props[k];
-  }
-  return out;
-}
-
-const oldDiff = options.__b;
-const oldDiffed = options.diffed;
-const oldRender = options.__r;
-const oldCommit = options.__c;
 options.__b = (vnode: VNode<Record<string, unknown>>) => {
   // Internally rendering happens in two phases. This is done so
   // that the `<Head>` component works. When we do the first render
@@ -270,9 +279,4 @@ options.diffed = (vnode: VNode<Record<string, unknown>>) => {
     }
   }
   oldDiffed?.(vnode);
-};
-options.__c = (vnode, queue) => {
-  oldCommit?.(vnode, queue);
-  ownerStack = [];
-  islandOwners.clear();
 };

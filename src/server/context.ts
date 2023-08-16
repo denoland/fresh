@@ -54,6 +54,7 @@ import {
   JSXConfig,
 } from "../build/mod.ts";
 import { InternalRoute } from "./router.ts";
+import { setAllIslands } from "./rendering/preact_hooks.ts";
 
 const DEFAULT_CONN_INFO: ServeHandlerInfo = {
   localAddr: { transport: "tcp", hostname: "localhost", port: 8080 },
@@ -670,6 +671,9 @@ export class ServerContext {
       };
     }
 
+    // Tell renderer about all globally available islands
+    setAllIslands(this.#islands);
+
     const dependenciesFn = (path: string) => {
       const snapshot = this.#maybeBuildSnapshot();
       return snapshot?.dependencies(path) ?? [];
@@ -700,7 +704,6 @@ export class ServerContext {
         request: req,
         context: ctx,
         route: notFound,
-        islands: this.#islands,
         plugins: this.#plugins,
         app: this.#app,
         layouts,
@@ -755,7 +758,6 @@ export class ServerContext {
               },
             },
             route,
-            islands: this.#islands,
             plugins: this.#plugins,
             app: this.#app,
             layouts,

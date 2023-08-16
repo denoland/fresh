@@ -4,7 +4,6 @@ import {
   AsyncLayout,
   AsyncRoute,
   ErrorPage,
-  Island,
   LayoutRoute,
   Plugin,
   PluginRenderFunctionResult,
@@ -29,7 +28,6 @@ export interface RenderOptions<Data> {
   // deno-lint-ignore no-explicit-any
   context: any;
   route: Route<Data> | UnknownPage | ErrorPage;
-  islands: Island[];
   plugins: Plugin[];
   app: AppModule;
   layouts: LayoutRoute[];
@@ -245,7 +243,6 @@ export async function render<Data>(
       params: opts.params,
     },
     componentStack,
-    opts.islands,
     csp,
     opts.error,
   );
