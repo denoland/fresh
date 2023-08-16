@@ -1,13 +1,14 @@
 import { ServerContext } from "../server/context.ts";
 import { FreshOptions, Manifest } from "../server/mod.ts";
-import { dirname, fromFileUrl, join } from "../server/deps.ts";
+import { dirname, fromFileUrl, join, toFileUrl } from "../server/deps.ts";
 import { fs } from "./deps.ts";
 
 export async function build(
   manifestPath: string,
   opts: FreshOptions,
 ) {
-  const manifest = (await import("file://" + manifestPath)).default as Manifest;
+  const manifest = (await import(toFileUrl(manifestPath).href))
+    .default as Manifest;
 
   const outDir = join(dirname(fromFileUrl(manifest.baseUrl)), "_fresh");
 
