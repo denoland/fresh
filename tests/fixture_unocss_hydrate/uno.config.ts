@@ -1,4 +1,4 @@
-import type { UserConfig } from "@unocss/core";
+import type { UserConfig } from "$fresh/plugins/unocss.ts";
 import presetUno from "@unocss/preset-uno";
 
 export default {
