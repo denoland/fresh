@@ -5,7 +5,7 @@
 
 import { start } from "$fresh/server.ts";
 import twind from "$fresh/plugins/twind.ts";
-import twindV1 from "$fresh/plugins/twindV1.ts";
+import twindV1 from "$fresh/plugins/twindv1.ts";
 import manifest from "./fresh.gen.ts";
 
 const twindPlugin = Deno.env.has("TWIND_V1")
