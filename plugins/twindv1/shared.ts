@@ -38,7 +38,7 @@ export function setup({ selfURL: _selfURL, ...config }: Options, sheet: Sheet) {
       }
       if (props.className) {
         classes.push(tw(props.className));
-        delete props.className;
+        props.className = undefined;
       }
       if (classes.length) {
         props.class = classes.join(" ");
