@@ -86,9 +86,17 @@ Deno.test({
       const configPath = path.join(tmpDirName, "deno.json");
       const json = JSON.parse(await Deno.readTextFile(configPath));
 
+      // Check tasks
       assert(json.tasks.start, "Missing 'start' task");
       assert(json.tasks.build, "Missing 'build' task");
       assert(json.tasks.preview, "Missing 'preview' task");
+
+      // Check lint settings
+      assertEquals(json.lint.exclude, ["_fresh"]);
+      assertEquals(json.lint.rules.tags, ["fresh", "recommended"]);
+
+      // Check fmt settings
+      assertEquals(json.fmt.exclude, ["_fresh"]);
     });
 
     await t.step("start up the server and access the root page", async () => {
@@ -390,6 +398,10 @@ Deno.test("fresh-update", async function fn(t) {
     assert(json.tasks?.start, "Missing 'start' task");
     assert(json.tasks?.build, "Missing 'build' task");
     assert(json.tasks?.preview, "Missing 'preview' task");
+
+    assertEquals(json.lint?.rules?.tags, ["fresh", "recommended"]);
+    assertEquals(json.lint?.exclude, ["_fresh"]);
+    assertEquals(json.fmt?.exclude, ["_fresh"]);
   });
 
   const comment = "// This is a test comment";

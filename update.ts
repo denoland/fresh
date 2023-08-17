@@ -87,6 +87,23 @@ if (!denoJson.lint.rules.tags.includes("fresh")) {
 if (!denoJson.lint.rules.tags.includes("recommended")) {
   denoJson.lint.rules.tags.push("recommended");
 }
+if (!denoJson.lint.exclude) {
+  denoJson.lint.exclude = [];
+}
+if (!denoJson.lint.exclude.includes("_fresh")) {
+  denoJson.lint.exclude.push("_fresh");
+}
+
+// Exclude _fresh dir from linting
+if (!denoJson.fmt) {
+  denoJson.fmt = {};
+}
+if (!denoJson.fmt.exclude) {
+  denoJson.fmt.exclude = [];
+}
+if (!denoJson.fmt.exclude.includes("_fresh")) {
+  denoJson.fmt.exclude.push("_fresh");
+}
 
 if (!denoJson.tasks) {
   denoJson.tasks = {};
