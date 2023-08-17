@@ -53,8 +53,8 @@ export const config: RouteConfig = {
 
 ## Route Groups
 
-When working with [route layouts](/docs/canary/concepts/route-layout) or
-[route middlewares](/docs/canary/concepts/middleware), you'll sometimes come
+When working with [layouts](/docs/concepts/layouts) or
+[middlewares](/docs/concepts/middleware), you'll sometimes come
 across a situation where you want your routes to inherit from a layout other
 than what's suggested by the URL segment.
 
