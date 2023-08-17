@@ -652,6 +652,12 @@ Deno.test({
 
 Deno.test("middleware destination", async (t) => {
   await t.step("internal", async () => {
+    const ctx = await ServerContext.fromManifest(manifest, {
+      ...options,
+      dev: true,
+    });
+    const handler = ctx.handler();
+
     const resp = await handler(
       new Request("https://fresh.deno.dev/_frsh/refresh.js"),
     );
@@ -742,7 +748,7 @@ Deno.test("preact/debug is active in dev mode", {
 }, async (t) => {
   // Preparation
   const { serverProcess, lines, address } = await startFreshServer({
-    args: ["run", "-A", "./tests/fixture_render_error/main.ts"],
+    args: ["run", "-A", "./tests/fixture_render_error/dev.ts"],
   });
 
   await delay(100);
