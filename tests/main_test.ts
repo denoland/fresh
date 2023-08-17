@@ -971,3 +971,10 @@ Deno.test({
   sanitizeOps: false,
   sanitizeResources: false,
 });
+
+Deno.test("adds refresh script to html", async () => {
+  await withFresh("./tests/fixture/main.ts", async (address) => {
+    const doc = await fetchHtml(address);
+    assertSelector(doc, `script[src="/_frsh/refresh.js"]`);
+  });
+});
