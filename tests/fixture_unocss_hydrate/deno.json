@@ -10,7 +10,6 @@
     "preact-render-to-string": "https://esm.sh/*preact-render-to-string@6.2.0",
     "@preact/signals": "https://esm.sh/*@preact/signals@1.0.3",
     "@preact/signals-core": "https://esm.sh/*@preact/signals-core@1.0.1",
-    "@unocss/core": "https://esm.sh/@unocss/core@0.53.1",
     "@unocss/preset-uno": "https://esm.sh/@unocss/preset-uno@0.46.3"
   },
   "compilerOptions": {
