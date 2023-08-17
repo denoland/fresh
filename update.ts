@@ -87,6 +87,33 @@ if (!denoJson.lint.rules.tags.includes("fresh")) {
 if (!denoJson.lint.rules.tags.includes("recommended")) {
   denoJson.lint.rules.tags.push("recommended");
 }
+if (!denoJson.lint.exclude) {
+  denoJson.lint.exclude = [];
+}
+if (!denoJson.lint.exclude.includes("_fresh")) {
+  denoJson.lint.exclude.push("_fresh");
+}
+
+// Exclude _fresh dir from linting
+if (!denoJson.fmt) {
+  denoJson.fmt = {};
+}
+if (!denoJson.fmt.exclude) {
+  denoJson.fmt.exclude = [];
+}
+if (!denoJson.fmt.exclude.includes("_fresh")) {
+  denoJson.fmt.exclude.push("_fresh");
+}
+
+if (!denoJson.tasks) {
+  denoJson.tasks = {};
+}
+if (!denoJson.tasks.build) {
+  denoJson.tasks.build = "deno run -A dev.ts build";
+}
+if (!denoJson.tasks.preview) {
+  denoJson.tasks.preview = "deno run -A main.ts";
+}
 
 freshImports(denoJson.imports);
 if (denoJson.imports["twind"]) {
@@ -255,9 +282,6 @@ export default function App({ Component }: AppProps) {
     APP_TSX,
   );
 }
-
-console.log(routes);
-// await Deno.writeTextFile(MAIN_TS_PATH, MAIN_TS);
 
 const manifest = await collect(srcDirectory);
 await generate(srcDirectory, manifest);

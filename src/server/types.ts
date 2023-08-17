@@ -98,7 +98,7 @@ export interface RouteConfig {
    * Skip rendering the `routes/_app` template
    * Default: `false`
    */
-  skipAppTemplate?: boolean;
+  skipAppWrapper?: boolean;
 }
 
 // deno-lint-ignore no-empty-interface
@@ -173,7 +173,7 @@ export interface Route<Data = any> {
   component?: PageComponent<Data> | AsyncLayout<Data> | AsyncRoute<Data>;
   handler: Handler<Data> | Handlers<Data>;
   csp: boolean;
-  appTemplate: boolean;
+  appWrapper: boolean;
   inheritLayouts: boolean;
 }
 
@@ -218,7 +218,7 @@ export interface LayoutConfig {
    * Skip already inherited layouts
    * Default: `false`
    */
-  skipAppTemplate?: boolean;
+  skipAppWrapper?: boolean;
   /**
    * Skip rendering the `routes/_app`.
    * Default: `false`
@@ -238,7 +238,7 @@ export interface LayoutRoute {
   // deno-lint-ignore no-explicit-any
   handler?: Handler<any, any> | Handlers<any, any>;
   component: LayoutModule["default"];
-  appTemplate: boolean;
+  appWrapper: boolean;
   inheritLayouts: boolean;
 }
 
@@ -286,7 +286,7 @@ export interface UnknownPage {
   component?: PageComponent<UnknownPageProps>;
   handler: UnknownHandler;
   csp: boolean;
-  appTemplate: boolean;
+  appWrapper: boolean;
   inheritLayouts: boolean;
 }
 
@@ -333,7 +333,7 @@ export interface ErrorPage {
   component?: PageComponent<ErrorPageProps>;
   handler: ErrorHandler;
   csp: boolean;
-  appTemplate: boolean;
+  appWrapper: boolean;
   inheritLayouts: boolean;
 }
 

@@ -77,6 +77,13 @@ ol.nested li:before {
   font-size: .8125rem;
   line-height: 1;
 }
+
+.highlight-source-yml .atrule {
+  color: var(--color-prettylights-syntax-entity);
+}
+.highlight-source-yml .string {
+  color: var(--color-prettylights-syntax-string);
+}
 `;
 
 export const handler: Handlers = {

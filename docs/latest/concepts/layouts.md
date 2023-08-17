@@ -1,11 +1,11 @@
 ---
 description: |
-  Add a route layout to provide common meta tags, context for application sub routes, and common layout.
+  Add a layout to provide common meta tags, context for application sub routes, and common layout.
 ---
 
-An route layout is defined in a `_layout.tsx` file in any sub directory (at any
-level) under the `routes/` folder. It must contain a default export that is a
-regular Preact component. Only one such layout is allowed per sub directory.
+An layout is defined in a `_layout.tsx` file in any sub directory (at any level)
+under the `routes/` folder. It must contain a default export that is a regular
+Preact component. Only one such layout is allowed per sub directory.
 
 ```txt Project structure
 └── routes
@@ -28,13 +28,55 @@ set by middleware is available via `props.state`.
 import { LayoutProps } from "$fresh/server.ts";
 
 export default function Layout({ Component, state }: LayoutProps) {
-  //do something with state here
+  // do something with state here
   return (
     <div class="layout">
       <Component />
     </div>
   );
 }
+```
+
+## Async layouts
+
+In case you need to fetch data asynchronously before rendering the layout, you
+can use an async layout to do so.
+
+```tsx routes/sub/_layout.tsx
+import { LayoutProps } from "$fresh/server.ts";
+
+export default async function Layout(req: Request, ctx: LayoutContext) {
+  // do something with state here
+  const data = await loadData();
+
+  return (
+    <div class="layout">
+      <p>{data.greeting}</p>
+      <ctx.Component />
+    </div>
+  );
+}
+```
+
+### Define helper
+
+To make it a little quicker to write async layouts, Fresh ships with a
+`defineLayout` helper which automatically infers the correct types for the
+function arguments.
+
+```tsx
+import { defineLayout } from "$fresh/server.ts";
+
+export default defineLayout(async (req, ctx) => {
+  const data = await loadData();
+
+  return (
+    <div class="layout">
+      <p>{data.greeting}</p>
+      <ctx.Component />
+    </div>
+  );
+});
 ```
 
 ## Opting out of layout inheritance
@@ -53,13 +95,13 @@ structure like this:
 ```
 
 To make `routes/sub/special.tsx` opt out of rendering layouts we can set
-`rootLayout: true`.
+`skipInheritedLayouts: true`.
 
 ```tsx routes/sub/special.tsx
 import { RouteConfig } from "$fresh/server.ts";
 
 export const config: RouteConfig = {
-  rootLayout: true, // Mark this route as the root layout
+  skipInheritedLayouts: true, // Skip already inherited layouts
 };
 
 export default function MyPage() {
@@ -67,18 +109,13 @@ export default function MyPage() {
 }
 ```
 
-Note that you can also mark layouts as root layouts.
+You can skip already inherited layouts inside a layout file:
 
-## Disabling the root `_app` template
+```tsx routes/special/_layout.sx
+import { LayoutConfig } from "$fresh/server.ts";
 
-In very rare cases you might want to disable the root `_app` template for a
-particular route. This can be done by setting `appTemplate: false`.
-
-```tsx
-import { RouteConfig } from "$fresh/server.ts";
-
-export const config: RouteConfig = {
-  appTemplate: false, // Disable the `_app` template
+export const config: LayoutConfig = {
+  skipInheritedLayouts: true, // Skip already inherited layouts
 };
 
 export default function MyPage() {

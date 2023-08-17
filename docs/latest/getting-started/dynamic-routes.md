@@ -12,7 +12,7 @@ that contains the name passed in the path.
 Before diving in, a quick refresher on "dynamic" routes. Dynamic routes don't
 just match a single static path, but rather a whole bunch of different paths
 based on a pattern. For example, the `/greet/:name` route will match the paths
-`/greet/Luca` and `/John`, but not `/greet/Luca/John`.
+`/greet/Luca` and `/greet/John`, but not `/greet/Luca/John`.
 
 Fresh supports dynamic routes out of the box through file system routing. To
 make any path segment dynamic, just put square brackets around that segment in

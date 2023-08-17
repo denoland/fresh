@@ -1,5 +1,6 @@
 import {
   basename,
+  colors,
   dirname,
   extname,
   fromFileUrl,
@@ -53,9 +54,11 @@ import {
   Builder,
   BuildSnapshot,
   EsbuildBuilder,
+  EsbuildSnapshot,
   JSXConfig,
 } from "../build/mod.ts";
 import { InternalRoute } from "./router.ts";
+import { setAllIslands } from "./rendering/preact_hooks.ts";
 
 const DEFAULT_CONN_INFO: ServeHandlerInfo = {
   localAddr: { transport: "tcp", hostname: "localhost", port: 8080 },
@@ -118,6 +121,7 @@ export class ServerContext {
     jsxConfig: JSXConfig,
     dev: boolean = isDevMode(),
     routerOptions: RouterOptions,
+    snapshot: BuildSnapshot | null = null,
   ) {
     this.#routes = routes;
     this.#islands = islands;
@@ -130,7 +134,7 @@ export class ServerContext {
     this.#error = error;
     this.#plugins = plugins;
     this.#dev = dev;
-    this.#builder = new EsbuildBuilder({
+    this.#builder = snapshot ?? new EsbuildBuilder({
       buildID: BUILD_ID,
       entrypoints: collectEntrypoints(this.#dev, this.#islands, this.#plugins),
       configPath,
@@ -145,7 +149,7 @@ export class ServerContext {
    */
   static async fromManifest(
     manifest: Manifest,
-    opts: FreshOptions,
+    opts: FreshOptions & { skipSnapshot?: boolean },
   ): Promise<ServerContext> {
     // Get the manifest' base URL.
     const baseUrl = new URL("./", manifest.baseUrl).href;
@@ -157,6 +161,40 @@ export class ServerContext {
       throw new Error(
         "deno.json must contain an 'importMap' or 'imports' property.",
       );
+    }
+
+    // Restore snapshot if available
+    let snapshot: BuildSnapshot | null = null;
+    // Load from snapshot if not explicitly requested not to
+    const loadFromSnapshot = !opts.skipSnapshot;
+    if (loadFromSnapshot) {
+      const snapshotDirPath = join(dirname(configPath), "_fresh");
+      try {
+        if ((await Deno.stat(snapshotDirPath)).isDirectory) {
+          console.log(
+            `Using snapshot found at ${colors.cyan(snapshotDirPath)}`,
+          );
+
+          const snapshotPath = join(snapshotDirPath, "snapshot.json");
+          const json = JSON.parse(await Deno.readTextFile(snapshotPath));
+          const dependencies = new Map<string, string[]>(
+            Object.entries(json),
+          );
+
+          const files = new Map();
+          const names = Object.keys(json);
+          await Promise.all(names.map(async (name) => {
+            const filePath = join(snapshotDirPath, name);
+            files.set(name, await Deno.readFile(filePath));
+          }));
+
+          snapshot = new EsbuildSnapshot(files, dependencies);
+        }
+      } catch (err) {
+        if (!(err instanceof Deno.errors.NotFound)) {
+          throw err;
+        }
+      }
     }
 
     config.compilerOptions ??= {};
@@ -255,7 +293,7 @@ export class ServerContext {
           component,
           handler,
           csp: Boolean(config?.csp ?? false),
-          appTemplate: !config?.skipAppTemplate,
+          appWrapper: !config?.skipAppWrapper,
           inheritLayouts: !config?.skipInheritedLayouts,
         };
         routes.push(route);
@@ -276,7 +314,7 @@ export class ServerContext {
           baseRoute: toBaseRoute(baseRoute),
           handler: mod.handler,
           component: mod.default,
-          appTemplate: !config?.skipAppTemplate,
+          appWrapper: !config?.skipAppWrapper,
           inheritLayouts: !config?.skipInheritedLayouts,
         });
       } else if (
@@ -297,7 +335,7 @@ export class ServerContext {
           component,
           handler: handler ?? ((req) => router.defaultOtherHandler(req)),
           csp: Boolean(config?.csp ?? false),
-          appTemplate: !config?.skipAppTemplate,
+          appWrapper: !config?.skipAppWrapper,
           inheritLayouts: !config?.skipInheritedLayouts,
         };
       } else if (
@@ -319,7 +357,7 @@ export class ServerContext {
           handler: handler ??
             ((req, ctx) => router.defaultErrorHandler(req, ctx, ctx.error)),
           csp: Boolean(config?.csp ?? false),
-          appTemplate: !config?.skipAppTemplate,
+          appWrapper: !config?.skipAppWrapper,
           inheritLayouts: !config?.skipInheritedLayouts,
         };
       }
@@ -449,6 +487,7 @@ export class ServerContext {
       jsxConfig,
       dev,
       opts.router ?? DEFAULT_ROUTER_OPTIONS,
+      snapshot,
     );
   }
 
@@ -508,7 +547,7 @@ export class ServerContext {
     return this.#builder;
   }
 
-  async #buildSnapshot() {
+  async buildSnapshot() {
     if ("build" in this.#builder) {
       const builder = this.#builder;
       this.#builder = builder.build();
@@ -705,6 +744,9 @@ export class ServerContext {
       };
     }
 
+    // Tell renderer about all globally available islands
+    setAllIslands(this.#islands);
+
     const dependenciesFn = (path: string) => {
       const snapshot = this.#maybeBuildSnapshot();
       return snapshot?.dependencies(path) ?? [];
@@ -735,7 +777,6 @@ export class ServerContext {
         request: req,
         context: ctx,
         route: notFound,
-        islands: this.#islands,
         plugins: this.#plugins,
         app: this.#app,
         layouts,
@@ -790,7 +831,6 @@ export class ServerContext {
               },
             },
             route,
-            islands: this.#islands,
             plugins: this.#plugins,
             app: this.#app,
             layouts,
@@ -983,7 +1023,7 @@ export class ServerContext {
    */
   #bundleAssetRoute = (): router.MatchHandler => {
     return async (_req, _ctx, params) => {
-      const snapshot = await this.#buildSnapshot();
+      const snapshot = await this.buildSnapshot();
       const contents = snapshot.read(params.path);
       if (!contents) return new Response(null, { status: 404 });
 
@@ -1017,7 +1057,7 @@ const DEFAULT_NOT_FOUND: UnknownPage = {
   name: "_404",
   handler: (req) => router.defaultOtherHandler(req),
   csp: false,
-  appTemplate: true,
+  appWrapper: true,
   inheritLayouts: true,
 };
 
@@ -1029,7 +1069,7 @@ const DEFAULT_ERROR: ErrorPage = {
   component: DefaultErrorHandler,
   handler: (_req, ctx) => ctx.render(),
   csp: false,
-  appTemplate: true,
+  appWrapper: true,
   inheritLayouts: true,
 };
 

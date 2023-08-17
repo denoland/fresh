@@ -4,9 +4,14 @@ import {
   AsyncRoute,
   LayoutContext,
   RouteContext,
+  StartOptions,
 } from "./types.ts";
 import { checkAsyncComponent } from "./render.ts";
 import { AppContext } from "$fresh/server.ts";
+
+export function defineConfig(config: StartOptions): StartOptions {
+  return config;
+}
 
 // Route creation helpers
 export function defineRoute<
