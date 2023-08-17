@@ -5,7 +5,7 @@ import {
   fetchHtml,
   withFresh,
 } from "$fresh/tests/test_utils.ts";
-import { assertMatch, assertNotMatch } from "$std/testing/asserts.ts";
+import { assertNotMatch } from "$std/testing/asserts.ts";
 
 Deno.test("doesn't apply internal app template", async () => {
   await withFresh(
