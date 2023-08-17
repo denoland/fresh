@@ -54,9 +54,9 @@ export const config: RouteConfig = {
 ## Route Groups
 
 When working with [layouts](/docs/concepts/layouts) or
-[middlewares](/docs/concepts/middleware), you'll sometimes come
-across a situation where you want your routes to inherit from a layout other
-than what's suggested by the URL segment.
+[middlewares](/docs/concepts/middleware), you'll sometimes come across a
+situation where you want your routes to inherit from a layout other than what's
+suggested by the URL segment.
 
 Let's illustrate that with an example:
 
