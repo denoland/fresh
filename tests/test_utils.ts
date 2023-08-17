@@ -131,12 +131,14 @@ export async function withFresh(
   name: string | { name: string; options: Omit<Deno.CommandOptions, "args"> },
   fn: (address: string) => Promise<void>,
 ) {
-  let file = "";
+  let file: string;
   let options = {};
 
   if (typeof name === "object") {
     file = name.name;
     options = name.options ?? {};
+  } else {
+    file = name;
   }
 
   const { lines, serverProcess, address } = await startFreshServer({
