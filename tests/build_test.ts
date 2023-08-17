@@ -93,6 +93,28 @@ Deno.test("build snapshot and restore from it", async (t) => {
         await serverProcess.status;
       }
     });
+
+    await t.step("should not restore from snapshot in dev mode", async () => {
+      const { lines, serverProcess, output } = await startFreshServer({
+        args: [
+          "run",
+          "-A",
+          path.join(fixture, "./dev.ts"),
+        ],
+      });
+
+      try {
+        // Check that restore snapshot message was NOT printed
+        assert(
+          !output.find((line) => line.includes("Using snapshot found at")),
+          "Restoring from snapshot message should not appear in dev mode",
+        );
+      } finally {
+        await lines.cancel();
+        serverProcess.kill("SIGTERM");
+        await serverProcess.status;
+      }
+    });
   } finally {
     await Deno.remove(path.join(fixture, "_fresh"), { recursive: true });
   }
