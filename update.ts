@@ -283,9 +283,6 @@ export default function App({ Component }: AppProps) {
   );
 }
 
-console.log(routes);
-// await Deno.writeTextFile(MAIN_TS_PATH, MAIN_TS);
-
 const manifest = await collect(srcDirectory);
 await generate(srcDirectory, manifest);
 
