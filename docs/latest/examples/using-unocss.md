@@ -28,8 +28,8 @@ information. If no config is provided, the default config is used, which
 defaults to the following:
 
 ```ts
-import type { UserConfig } from "https://esm.sh/@unocss/core@0.54.2";
-import presetUno from "https://esm.sh/@unocss/preset-uno@0.54.2";
+import type { UserConfig } from "https://esm.sh/@unocss/core@0.55.1";
+import presetUno from "https://esm.sh/@unocss/preset-uno@0.55.1";
 
 export default {
   presets: [presetUno()],
