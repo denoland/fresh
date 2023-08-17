@@ -2,6 +2,7 @@ import * as path from "$std/path/mod.ts";
 import { puppeteer } from "./deps.ts";
 import { assert } from "$std/_util/asserts.ts";
 import { startFreshServer, waitForText } from "$fresh/tests/test_utils.ts";
+import { assertNotMatch } from "$std/testing/asserts.ts";
 
 Deno.test("build snapshot and restore from it", async (t) => {
   const fixture = path.join(Deno.cwd(), "tests", "fixture_build");
@@ -51,6 +52,10 @@ Deno.test("build snapshot and restore from it", async (t) => {
         Array.isArray(snapshot["deserializer.js"]),
         "deserializer.js output file not found in snapshot",
       );
+
+      // Should not include `preact/debug`
+      const mainJs = await Deno.readTextFile(path.join(outDir, "main.js"));
+      assertNotMatch(mainJs, /Undefined parent passed to render()/);
     });
 
     await t.step("restore from snapshot", async () => {

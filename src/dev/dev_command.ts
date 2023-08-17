@@ -41,12 +41,14 @@ export async function dev(
 
   const outDir = join(dirname(fromFileUrl(manifest.baseUrl)), "_fresh");
 
+  const isBuild = Deno.args.includes("build");
   const ctx = await ServerContext.fromManifest(manifest, {
     ...options,
     skipSnapshot: true,
+    dev: !isBuild,
   });
 
-  if (Deno.args.includes("build")) {
+  if (isBuild) {
     // Ensure that build dir is empty
     await fs.emptyDir(outDir);
     await build(ctx, outDir);

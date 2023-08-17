@@ -71,11 +71,6 @@ function isObject(value: unknown) {
     value !== null;
 }
 
-function isDevMode() {
-  // Env var is only set in prod (on Deploy).
-  return Deno.env.get("DENO_DEPLOYMENT_ID") === undefined;
-}
-
 interface StaticFile {
   /** The URL to the static file on disk. */
   localUrl: URL;
@@ -117,7 +112,7 @@ export class ServerContext {
     plugins: Plugin[],
     configPath: string,
     jsxConfig: JSXConfig,
-    dev: boolean = isDevMode(),
+    dev = false,
     routerOptions: RouterOptions,
     snapshot: BuildSnapshot | null = null,
   ) {
@@ -147,7 +142,7 @@ export class ServerContext {
    */
   static async fromManifest(
     manifest: Manifest,
-    opts: FreshOptions & { skipSnapshot?: boolean },
+    opts: FreshOptions & { skipSnapshot?: boolean; dev?: boolean },
   ): Promise<ServerContext> {
     // Get the manifest' base URL.
     const baseUrl = new URL("./", manifest.baseUrl).href;
@@ -431,7 +426,7 @@ export class ServerContext {
       }
     }
 
-    const dev = isDevMode();
+    const dev = !!opts.dev;
     if (dev) {
       // Ensure that debugging hooks are set up for SSR rendering
       await import("preact/debug");
