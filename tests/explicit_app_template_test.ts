@@ -5,6 +5,7 @@ import {
   fetchHtml,
   withFresh,
 } from "$fresh/tests/test_utils.ts";
+import { assertNotMatch } from "$std/testing/asserts.ts";
 
 Deno.test("doesn't apply internal app template", async () => {
   await withFresh(
@@ -75,6 +76,19 @@ Deno.test("sets <html> + <head> + <body> classes", async () => {
       assertSelector(doc, "html.html");
       assertSelector(doc, "head.head");
       assertSelector(doc, "body.body");
+    },
+  );
+});
+
+// Issue: https://github.com/denoland/fresh/issues/1666
+Deno.test("renders valid html document", async () => {
+  await withFresh(
+    "./tests/fixture_explicit_app/main.ts",
+    async (address) => {
+      const res = await fetch(address);
+      const text = await res.text();
+
+      assertNotMatch(text, /<\/body><\/head>/);
     },
   );
 });

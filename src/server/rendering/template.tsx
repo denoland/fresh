@@ -94,11 +94,11 @@ export function renderOuterDocument(
         h("script", { src: src, nonce, type: "module" })
       ),
       headVNodes,
-      h("body", {
-        ...docBody,
-        dangerouslySetInnerHTML: { __html: opts.bodyHtml },
-      }),
     ),
+    h("body", {
+      ...docBody,
+      dangerouslySetInnerHTML: { __html: opts.bodyHtml },
+    }),
   );
 
   try {
