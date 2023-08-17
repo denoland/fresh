@@ -90,6 +90,9 @@ export function renderOuterDocument(
       opts.preloads.map((src) =>
         h("link", { rel: "modulepreload", href: src })
       ),
+      opts.moduleScripts.map(([src, nonce]) =>
+        h("script", { src: src, nonce, type: "module" })
+      ),
       headVNodes,
       h("body", {
         ...docBody,
