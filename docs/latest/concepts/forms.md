@@ -18,8 +18,7 @@ or as a `POST` request with `multipart/form-data`.
 This example demonstrates how to handle `multipart/form-data` `<form>`
 submissions:
 
-```tsx
-// routes/subscribe.tsx
+```tsx routes/subscribe.tsx
 import { Handlers } from "$fresh/server.ts";
 
 export const handler: Handlers = {

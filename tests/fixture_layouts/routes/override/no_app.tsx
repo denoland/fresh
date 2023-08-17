@@ -1,7 +1,7 @@
 import { RouteConfig } from "$fresh/server.ts";
 
 export const config: RouteConfig = {
-  appTemplate: false,
+  skipAppWrapper: true,
 };
 
 export default function OverridePage() {

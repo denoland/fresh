@@ -27,9 +27,7 @@ the HTTP method it handles.
 Here is an example of a custom `GET` handler that renders the page component and
 then adds a custom header to the response before returning it:
 
-```tsx
-// routes/about.tsx
-
+```tsx routes/about.tsx
 import { Handlers } from "$fresh/server.ts";
 
 export const handler: Handlers = {
@@ -54,9 +52,7 @@ Note that handlers do not need to call `ctx.render()`. This feature can be used
 to create API routes. Here is an API route that returns a random UUID as a JSON
 response:
 
-```ts
-// routes/api/random-uuid.ts
-
+```ts routes/api/random-uuid.ts
 import { Handlers } from "$fresh/server.ts";
 
 export const handler: Handlers = {
