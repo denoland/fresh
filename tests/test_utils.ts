@@ -128,11 +128,20 @@ function _printDomNode(
 }
 
 export async function withFresh(
-  name: string,
+  name: string | { name: string; options: Omit<Deno.CommandOptions, "args"> },
   fn: (address: string) => Promise<void>,
 ) {
+  let file = "";
+  let options = {};
+
+  if (typeof name === "object") {
+    file = name.name;
+    options = name.options ?? {};
+  }
+
   const { lines, serverProcess, address } = await startFreshServer({
-    args: ["run", "-A", name],
+    ...options,
+    args: ["run", "-A", file],
   });
 
   try {

@@ -368,3 +368,27 @@ Deno.test("don't duplicate css class", async () => {
     },
   );
 });
+// Test for: https://github.com/denoland/fresh/issues/1655
+Deno.test("don't duplicate css class with twindV1", async () => {
+  await withFresh(
+    {
+      name: "./tests/fixture_twind_app/main.ts",
+      options: {
+        env: {
+          TWIND_V1: "true",
+        },
+      },
+    },
+    async (address) => {
+      const res = await fetch(`${address}/app_class`);
+      assertEquals(res.status, 200);
+
+      // Don't use an HTML parser here which would de-duplicate the
+      // class names automatically
+      const html = await res.text();
+      assertMatch(html, /html class="bg-slate-800">/);
+      assertMatch(html, /head class="bg-slate-800">/);
+      assertMatch(html, /body class="bg-slate-800">/);
+    },
+  );
+});
