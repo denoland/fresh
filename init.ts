@@ -562,6 +562,10 @@ const config = {
     rules: {
       tags: ["fresh", "recommended"],
     },
+    exclude: ["_fresh"],
+  },
+  fmt: {
+    exclude: ["_fresh"],
   },
   imports: {} as Record<string, string>,
   compilerOptions: {
