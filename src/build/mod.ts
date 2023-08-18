@@ -21,3 +21,8 @@ export interface BuildSnapshot {
    * Returns an empty array if the entrypoint does not exist. */
   dependencies(path: string): string[];
 }
+
+export interface BuildSnapshotJson {
+  build_id: string;
+  files: Record<string, string[]>;
+}
