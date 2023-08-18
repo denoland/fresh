@@ -6,7 +6,7 @@ description: |
 When you initialize a project with `deno run -A -r https://fresh.deno.dev`,
 you'll end up with a project like the following:
 
-```
+```txt Project Structure
 .
 ├── README.md
 ├── components
@@ -40,7 +40,7 @@ your choosing), then you'll need to do the following things:
 
 Here's what the diff of `deno.json` looks like:
 
-```diff
+```diff deno.json
  {
    "lock": false,
    "tasks": {
@@ -53,7 +53,7 @@ Here's what the diff of `deno.json` looks like:
 
 The resulting file structure looks like this:
 
-```
+```txt Project Structure
 .
 ├── README.md
 ├── deno.json

@@ -22,8 +22,7 @@ available.
 2. Create your pre-configured OAuth client instance. For reusability the
    instance is stored in `utils/oauth2_client.ts`.
 
-   ```ts
-   // utils/oauth2_client.ts
+   ```ts utils/oauth2_client.ts
    import { createGitHubOAuth2Client } from "https://deno.land/x/deno_kv_oauth@v0.2.4/mod.ts";
 
    export const oauth2Client = createGitHubOAuth2Client();
@@ -35,8 +34,7 @@ available.
    Please ensure that the `callback` handler matches the authorization callback
    URL in the configured OAuth application.
 
-   ```ts
-   // routes/signin.ts
+   ```ts routes/signin.ts
    import { Handlers } from "$fresh/server.ts";
    import { signIn } from "https://deno.land/x/deno_kv_oauth@v0.2.4/mod.ts";
    import { oauth2Client } from "../utils/oauth2_client.ts";
@@ -48,8 +46,7 @@ available.
    };
    ```
 
-   ```ts
-   // routes/signout.ts
+   ```ts routes/signout.ts
    import { Handlers } from "$fresh/server.ts";
    import { signOut } from "https://deno.land/x/deno_kv_oauth@v0.2.4/mod.ts";
 
@@ -60,8 +57,7 @@ available.
    };
    ```
 
-   ```ts
-   // routes/callback.ts
+   ```ts routes/callback.ts
    import { Handlers } from "$fresh/server.ts";
    import { handleCallback } from "https://deno.land/x/deno_kv_oauth@v0.2.4/mod.ts";
    import { oauth2Client } from "../utils/oauth2_client.ts";
@@ -77,8 +73,7 @@ available.
 
 4. Use Deno KV OAuth's helper functions where needed.
 
-   ```tsx
-   // routes/index.tsx
+   ```tsx routes/index.tsx
    import { Handlers, PageProps } from "$fresh/server.ts";
    import {
      getSessionAccessToken,

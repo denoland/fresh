@@ -1,15 +1,4 @@
-import { updateCheck } from "./update_check.ts";
-import {
-  DAY,
-  dirname,
-  fromFileUrl,
-  gte,
-  join,
-  posix,
-  relative,
-  walk,
-  WalkEntry,
-} from "./deps.ts";
+import { gte, join, posix, relative, walk, WalkEntry } from "./deps.ts";
 import { error } from "./error.ts";
 
 const MIN_DENO_VERSION = "1.31.0";
@@ -55,7 +44,7 @@ async function collectDir(
   }
 }
 
-interface Manifest {
+export interface Manifest {
   routes: string[];
   islands: string[];
 }
@@ -181,41 +170,4 @@ export default manifest;
     `%cThe manifest has been generated for ${routes.length} routes and ${islands.length} islands.`,
     "color: blue; font-weight: bold",
   );
-}
-
-export async function dev(base: string, entrypoint: string) {
-  ensureMinDenoVersion();
-
-  // Run update check in background
-  updateCheck(DAY).catch(() => {});
-
-  entrypoint = new URL(entrypoint, base).href;
-
-  const dir = dirname(fromFileUrl(base));
-
-  let currentManifest: Manifest;
-  const prevManifest = Deno.env.get("FRSH_DEV_PREVIOUS_MANIFEST");
-  if (prevManifest) {
-    currentManifest = JSON.parse(prevManifest);
-  } else {
-    currentManifest = { islands: [], routes: [] };
-  }
-  const newManifest = await collect(dir);
-  Deno.env.set("FRSH_DEV_PREVIOUS_MANIFEST", JSON.stringify(newManifest));
-
-  const manifestChanged =
-    !arraysEqual(newManifest.routes, currentManifest.routes) ||
-    !arraysEqual(newManifest.islands, currentManifest.islands);
-
-  if (manifestChanged) await generate(dir, newManifest);
-
-  await import(entrypoint);
-}
-
-function arraysEqual<T>(a: T[], b: T[]): boolean {
-  if (a.length !== b.length) return false;
-  for (let i = 0; i < a.length; ++i) {
-    if (a[i] !== b[i]) return false;
-  }
-  return true;
 }
