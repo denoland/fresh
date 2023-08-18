@@ -74,7 +74,7 @@ export class EsbuildBuilder implements Builder {
 
         plugins: [
           buildIdPlugin(opts.buildID),
-          ...denoPlugins({ configPath: opts.configPath }),
+          ...denoPlugins({ configPath: opts.configPath, nodeModulesDir: true }),
         ],
       });
 
