@@ -213,26 +213,6 @@ Deno.test({
 });
 
 Deno.test({
-  name: "works with older preact-render-to-string v5",
-
-  async fn(_t) {
-    await withPageName(
-      "./tests/fixture_preact_rts_v5/main.ts",
-      async (page, address) => {
-        await page.goto(address, {
-          waitUntil: "networkidle2",
-        });
-        await page.waitForSelector("#foo");
-        await waitForText(page, "#foo", "it works");
-      },
-    );
-  },
-
-  sanitizeOps: false,
-  sanitizeResources: false,
-});
-
-Deno.test({
   name: "pass single JSX child to island",
 
   async fn(_t) {

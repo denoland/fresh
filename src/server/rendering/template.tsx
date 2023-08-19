@@ -1,6 +1,6 @@
 import { RenderState } from "./state.ts";
 import { setRenderState } from "./preact_hooks.ts";
-import { renderToString } from "preact-render-to-string";
+import { renderToString } from "../deps.ts";
 import { Fragment, h } from "preact";
 import { HEAD_CONTEXT } from "../../runtime/head.ts";
 import { CSP_CONTEXT } from "../../runtime/csp.ts";

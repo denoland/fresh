@@ -8,7 +8,7 @@ import {
   type VNode,
 } from "preact";
 import { assetHashingHook } from "../../runtime/utils.ts";
-import { renderToString } from "preact-render-to-string";
+import { renderToString } from "../deps.ts";
 import { RenderState } from "./state.ts";
 import { Island } from "../types.ts";
 
