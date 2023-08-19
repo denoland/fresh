@@ -1,8 +1,7 @@
-import { assertEquals } from "https://deno.land/std@0.190.0/testing/asserts.ts";
-import { assert, delay, puppeteer } from "./deps.ts";
+import { assert, assertEquals, assertMatch, delay, puppeteer } from "./deps.ts";
 
 import { cmpStringArray } from "./fixture_twind_hydrate/utils/utils.ts";
-import { startFreshServer, withPageName } from "./test_utils.ts";
+import { startFreshServer, withFresh, withPageName } from "./test_utils.ts";
 
 /**
  * Start the server with the main file.
@@ -350,4 +349,51 @@ Deno.test({
   },
   sanitizeOps: false,
   sanitizeResources: false,
+});
+
+// Test for: https://github.com/denoland/fresh/issues/1655
+Deno.test({
+  name: "don't duplicate css class",
+  async fn() {
+    await withFresh(
+      "./tests/fixture_twind_app/main.ts",
+      async (address) => {
+        const res = await fetch(`${address}/app_class`);
+        assertEquals(res.status, 200);
+
+        // Don't use an HTML parser here which would de-duplicate the
+        // class names automatically
+        const html = await res.text();
+        assertMatch(html, /html class="bg-slate-800">/);
+        assertMatch(html, /head class="bg-slate-800">/);
+        assertMatch(html, /body class="bg-slate-800">/);
+      },
+    );
+  },
+  sanitizeOps: false,
+  sanitizeResources: false,
+});
+// Test for: https://github.com/denoland/fresh/issues/1655
+Deno.test("don't duplicate css class with twindV1", async () => {
+  await withFresh(
+    {
+      name: "./tests/fixture_twind_app/main.ts",
+      options: {
+        env: {
+          TWIND_V1: "true",
+        },
+      },
+    },
+    async (address) => {
+      const res = await fetch(`${address}/app_class`);
+      assertEquals(res.status, 200);
+
+      // Don't use an HTML parser here which would de-duplicate the
+      // class names automatically
+      const html = await res.text();
+      assertMatch(html, /html class="bg-slate-800">/);
+      assertMatch(html, /head class="bg-slate-800">/);
+      assertMatch(html, /body class="bg-slate-800">/);
+    },
+  );
 });

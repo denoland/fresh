@@ -1,10 +1,5 @@
 import { JSX, options as preactOptions, VNode } from "preact";
-import {
-  setup as twSetup,
-  Sheet,
-  tw,
-  TwindConfig,
-} from "https://esm.sh/@twind/core@1.1.3";
+import { setup as twSetup, Sheet, tw, TwindConfig } from "../twindv1_deps.ts";
 
 type PreactOptions = typeof preactOptions & { __b?: (vnode: VNode) => void };
 
@@ -43,6 +38,7 @@ export function setup({ selfURL: _selfURL, ...config }: Options, sheet: Sheet) {
       }
       if (props.className) {
         classes.push(tw(props.className));
+        props.className = undefined;
       }
       if (classes.length) {
         props.class = classes.join(" ");

@@ -52,7 +52,7 @@ export default function DocsSidebar(
             </span>
           </button>
         )
-        : <SearchButton class="lg:hidden" />}
+        : <SearchButton />}
 
       <div class="mb-4">
         <VersionSelect
@@ -61,11 +61,11 @@ export default function DocsSidebar(
         />
       </div>
 
-      <ol class="list-decimal list-inside font-semibold nested ml-2.5">
+      <ul class="list-inside font-semibold nested ml-2.5">
         {CATEGORIES[props.selectedVersion].map((category) => (
           <SidebarCategory path={props.path} category={category} />
         ))}
-      </ol>
+      </ul>
     </>
   );
 }
@@ -87,11 +87,11 @@ export function SidebarCategory(props: {
         {title}
       </a>
       {entries.length > 0 && (
-        <ol class="pb-2 pl-4 list-decimal nested list-outside">
+        <ul class="py-2 pl-4 nested list-outside">
           {entries.map((entry) => (
             <SidebarEntry path={props.path} entry={entry} />
           ))}
-        </ol>
+        </ul>
       )}
     </li>
   );

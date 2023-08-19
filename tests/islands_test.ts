@@ -406,14 +406,10 @@ Deno.test({
         await delay(100);
         await page.click("button");
 
-        const text = await page.$eval(
-          "#page",
-          (el) => el.textContent,
-        );
         // Button text is matched too, but this allows us
-        // to assert correct ordering. The "it works" should
+        // to assert correct ordering. The "island content" should
         // be left of "Toggle"
-        assertEquals(text, "it worksToggle");
+        await waitForText(page, "#page", "island contentToggle");
       },
     );
   },
@@ -477,4 +473,44 @@ Deno.test({
 
   sanitizeOps: false,
   sanitizeResources: false,
+});
+
+Deno.test({
+  name: "render nested islands with server children conditionally",
+
+  async fn() {
+    await withPageName(
+      "./tests/fixture_island_nesting/main.ts",
+      async (page, address) => {
+        await page.goto(`${address}/island_conditional_lazy`);
+        await waitForText(page, ".island p", "island content");
+
+        await page.click("button");
+        await waitForText(page, ".island p", "server rendered");
+      },
+    );
+  },
+
+  sanitizeOps: false,
+  sanitizeResources: false,
+});
+
+Deno.test({
+  name: "revive island in lazy server rendered children conditionally",
+
+  async fn() {
+    await withPageName(
+      "./tests/fixture_island_nesting/main.ts",
+      async (page, address) => {
+        await page.goto(`${address}/island_conditional_lazy_island`);
+        await waitForText(page, ".island p", "island content");
+
+        await page.click("button");
+        await waitForText(page, ".island .server", "server rendered");
+
+        await page.click("button.counter");
+        await waitForText(page, ".island .count", "1");
+      },
+    );
+  },
 });

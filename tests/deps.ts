@@ -7,6 +7,8 @@
 export {
   assert,
   assertEquals,
+  assertMatch,
+  assertNotMatch,
   assertStringIncludes,
 } from "https://deno.land/std@0.193.0/testing/asserts.ts";
 export { assertSnapshot } from "https://deno.land/std@0.193.0/testing/snapshot.ts";
@@ -19,4 +21,12 @@ export {
   default as puppeteer,
   Page,
 } from "https://deno.land/x/puppeteer@16.2.0/mod.ts";
-export { DOMParser } from "https://esm.sh/linkedom@0.15.1";
+export {
+  Document,
+  DOMParser,
+  HTMLElement,
+  HTMLMetaElement,
+} from "https://esm.sh/linkedom@0.15.1";
+export { defineConfig, type Preset } from "https://esm.sh/@twind/core@1.1.3";
+export { default as presetTailwind } from "https://esm.sh/@twind/preset-tailwind@1.1.4";
+export * as fs from "https://deno.land/std@0.195.0/fs/mod.ts";

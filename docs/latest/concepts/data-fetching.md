@@ -10,7 +10,7 @@ component through the `data` property on the `props`.
 
 Here is an example:
 
-```tsx
+```tsx routes/projects/[id].tsx
 interface Project {
   name: string;
   stars: number;

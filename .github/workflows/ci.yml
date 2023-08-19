@@ -16,6 +16,13 @@ jobs:
       matrix:
         deno: ["v1.x", "canary"]
         os: [macOS-latest, windows-latest, ubuntu-latest]
+        include:
+        - os: ubuntu-latest
+          cache_path: ~/.cache/deno/
+        - os: macos-latest
+          cache_path: ~/Library/Caches/deno/
+        - os: windows-latest
+          cache_path: ~\AppData\Local\deno\
 
     steps:
       - name: Checkout repo
@@ -27,75 +34,35 @@ jobs:
           deno-version: ${{ matrix.deno }}
 
       - name: Verify formatting
-        if: startsWith(matrix.os, 'ubuntu') && matrix.deno == 'v1.x'
         run: deno fmt --check
 
       - name: Run linter
-        if: startsWith(matrix.os, 'ubuntu') && matrix.deno == 'canary'
         run: deno lint
 
       - name: Spell-check
         if: startsWith(matrix.os, 'ubuntu') && matrix.deno == 'canary'
         uses: crate-ci/typos@master
 
-      - name: Cache dependencies
-        if: startsWith(matrix.os, 'ubuntu') && matrix.deno == 'v1.x'
-        run: deno cache --config=www/deno.json src/dev/deps.ts src/server/deps.ts www/main.ts
-
-      - name: Cache Chrome (Linux)
-        if: startsWith(matrix.os, 'ubuntu')
+      - name: Cache dependencies and Chrome
         uses: actions/cache@v3
         with:
-          path: ~/.cache/deno/deno_puppeteer
-          key: chrome-1022525-${{ runner.os }}-${{ hashFiles('tests/deps.ts') }}
-          restore-keys: chrome-1022525-${{ runner.os }}-
+          path: |
+            ${{ matrix.cache_path }}deps
+            ${{ matrix.cache_path }}deno_puppeteer
+          key: ${{ runner.os }}-${{ hashFiles('**/*deps.ts', 'tests/fixture_twind_hydrate/twind.config.ts') }}
 
-      - name: Cache Chrome (macOS)
-        if: startsWith(matrix.os, 'mac')
-        uses: actions/cache@v3
-        with:
-          path: ~/Library/Caches/deno/deno_puppeteer
-          key: chrome-1022525-${{ runner.os }}-${{ hashFiles('tests/deps.ts') }}
-          restore-keys: chrome-1022525-${{ runner.os }}-
+      - name: Install Chromium
+        run: deno run -A --unstable https://deno.land/x/puppeteer@16.2.0/install.ts
+        env:
+          PUPPETEER_PRODUCT: chrome
 
-      - name: Cache Chrome (Windows)
-        if: startsWith(matrix.os, 'win')
-        uses: actions/cache@v3
-        with:
-          path: "C:\\Users\\RUNNER~1\\AppData\\Local\\deno\\deno_puppeteer"
-          key: chrome-1022525-${{ runner.os }}-${{ hashFiles('tests/deps.ts') }}
-          restore-keys: chrome-1022525-${{ runner.os }}-
+      - name: Type check project
+        run: deno task check:types
 
-      - name: Install Chromium (Unix)
-        if: startsWith(matrix.os, 'ubuntu') || startsWith(matrix.os, 'mac')
-        run: PUPPETEER_PRODUCT=chrome deno run -A --unstable https://deno.land/x/puppeteer@16.2.0/install.ts
-
-      - name: Install Chromium (Windows)
-        if: startsWith(matrix.os, 'windows')
-        run: set "PUPPETEER_PRODUCT=chrome" && deno run -A --unstable https://deno.land/x/puppeteer@16.2.0/install.ts
-
-      - name: Run tests
+      - name: Run tests Windows
+        if: matrix.os == 'windows-latest'
         run: deno test -A
 
-      - name: Type check init script
-        run: deno check --remote init.ts
-
-      - name: Type check website
-        run: deno check main.ts dev.ts
-        working-directory: www/
-
-      - name: Test website
-        run: deno test -A
-        working-directory: www/
-
-      - name: Type check demo
-        run: deno check --remote main.ts dev.ts
-        working-directory: demo
-
-      - name: Type check tests/fixture
-        run: deno check main.ts dev.ts
-        working-directory: tests/fixture/
-
-      - name: Type check tests/fixture_error
-        run: deno check main.ts dev.ts
-        working-directory: tests/fixture_error/
+      - name: Run tests macOS + Linux
+        if: matrix.os != 'windows-latest'
+        run: deno test -A --parallel

@@ -1,19 +1,22 @@
 import { assertEquals } from "./deps.ts";
-import { startFreshServer, withPageName } from "./test_utils.ts";
+import {
+  assertSelector,
+  assertTextMany,
+  fetchHtml,
+  withFresh,
+  withPageName,
+} from "./test_utils.ts";
 import { Status } from "../server.ts";
 
 Deno.test({
   name: "render async server component",
 
   async fn() {
-    await withPageName(
+    await withFresh(
       "./tests/fixture_server_components/main.ts",
-      async (page, address) => {
-        await page.goto(`${address}/basic`);
-
-        await page.waitForSelector("h1");
-        const text = await page.$eval("h1", (el) => el.textContent);
-        assertEquals(text, "it works");
+      async (address) => {
+        const doc = await fetchHtml(`${address}/basic`);
+        assertTextMany(doc, "h1", ["it works"]);
       },
     );
   },
@@ -26,12 +29,11 @@ Deno.test({
   name: "uses returned response",
 
   async fn() {
-    await withPageName(
+    await withFresh(
       "./tests/fixture_server_components/main.ts",
-      async (page, address) => {
-        await page.goto(`${address}/response`);
-
-        const text = await page.$eval("body", (el) => el.textContent);
+      async (address) => {
+        const res = await fetch(`${address}/response`);
+        const text = await res.text();
         assertEquals(text, "it works");
       },
     );
@@ -69,43 +71,41 @@ Deno.test({
   name: "passes context to server component",
 
   async fn() {
-    const { lines, serverProcess, address } = await startFreshServer({
-      args: ["run", "-A", "./tests/fixture_server_components/main.ts"],
-    });
+    await withFresh(
+      "./tests/fixture_server_components/main.ts",
+      async (address) => {
+        const res = await fetch(`${address}/context/foo`);
+        const json = await res.json();
 
-    const res = await fetch(`${address}/context/foo`);
-    const json = await res.json();
+        assertEquals(typeof json.localAddr, "object");
+        assertEquals(typeof json.remoteAddr, "object");
+        json.localAddr.port = 8000;
+        json.remoteAddr.port = 8000;
 
-    assertEquals(typeof json.localAddr, "object");
-    assertEquals(typeof json.remoteAddr, "object");
-    json.localAddr.port = 8000;
-    json.remoteAddr.port = 8000;
-
-    assertEquals(
-      json,
-      {
-        localAddr: {
-          hostname: "localhost",
-          port: 8000,
-          transport: "tcp",
-        },
-        remoteAddr: {
-          hostname: "localhost",
-          port: 8000,
-          transport: "tcp",
-        },
-        renderNotFound: "AsyncFunction",
-        url: `${address}/context/foo`,
-        route: "/context/:id",
-        params: {
-          id: "foo",
-        },
-        state: {},
+        assertEquals(
+          json,
+          {
+            localAddr: {
+              hostname: "localhost",
+              port: 8000,
+              transport: "tcp",
+            },
+            remoteAddr: {
+              hostname: "localhost",
+              port: 8000,
+              transport: "tcp",
+            },
+            renderNotFound: "AsyncFunction",
+            url: `${address}/context/foo`,
+            route: "/context/:id",
+            params: {
+              id: "foo",
+            },
+            state: {},
+          },
+        );
       },
     );
-    await lines.cancel();
-    serverProcess.kill("SIGTERM");
-    await serverProcess.status;
   },
 
   sanitizeOps: false,
@@ -116,19 +116,16 @@ Deno.test({
   name: "can call context.renderNotFound()",
 
   async fn() {
-    const { lines, serverProcess, address } = await startFreshServer({
-      args: ["run", "-A", "./tests/fixture_server_components/main.ts"],
-    });
+    await withFresh(
+      "./tests/fixture_server_components/main.ts",
+      async (address) => {
+        const res = await fetch(`${address}/fail`);
 
-    const res = await fetch(`${address}/fail`);
-
-    assertEquals(res.status, Status.NotFound);
-    const html = await res.text();
-    assertEquals(html, "Not found.");
-
-    await lines.cancel();
-    serverProcess.kill("SIGTERM");
-    await serverProcess.status;
+        assertEquals(res.status, Status.NotFound);
+        const html = await res.text();
+        assertEquals(html, "Not found.");
+      },
+    );
   },
 
   sanitizeOps: false,
@@ -159,4 +156,29 @@ Deno.test({
 
   sanitizeOps: false,
   sanitizeResources: false,
+});
+
+Deno.test({
+  name: "renders async app template",
+
+  async fn() {
+    await withFresh(
+      "./tests/fixture_async_app/main.ts",
+      async (address) => {
+        const doc = await fetchHtml(`${address}`);
+        assertSelector(doc, "html > body > .app > .layout > .page");
+      },
+    );
+  },
+});
+
+Deno.test("define helpers", async () => {
+  await withFresh(
+    "./tests/fixture_define_helpers/main.ts",
+    async (address) => {
+      const doc = await fetchHtml(`${address}`);
+      assertSelector(doc, "html > body > .app > .layout > .page");
+      assertTextMany(doc, "p", ["Layout: it works", "Page: it works"]);
+    },
+  );
 });
