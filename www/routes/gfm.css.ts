@@ -3,8 +3,20 @@ import { gfm } from "../utils/markdown.ts";
 
 // TODO(lucacasonato): hash the file and use the hash as the filename, and serve
 // with high-cacheability headers.
+function css(template: TemplateStringsArray, ...params: string[]) {
+  let out = "";
 
-const CSS = `${gfm.CSS}
+  for (let i = 0; i < template.length; i++) {
+    out += template[i];
+    if (i < params.length) {
+      out += String(params[i]);
+    }
+  }
+
+  return out;
+}
+
+const CSS = css`${gfm.CSS}
 
 ol.nested {
 	counter-reset: item;
@@ -38,6 +50,39 @@ ol.nested li:before {
 
 .toggle:checked + .toggled {
 	display: block;
+}
+
+.fenced-code {
+  margin-bottom: 1rem;
+}
+.fenced-code pre {
+  margin-bottom: 0;
+}
+.fenced-code-header {
+  border-top-left-radius: .5rem;
+  border-top-right-radius: .5rem;
+  padding: 0.5rem;
+  background: #eaeef1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.fenced-code-header + pre {
+  border-top-left-radius: 0 !important;
+  border-top-right-radius: 0 !important;
+}
+.fenced-code-title {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
+    "Liberation Mono", "Courier New", monospace;
+  font-size: .8125rem;
+  line-height: 1;
+}
+
+.highlight-source-yml .atrule {
+  color: var(--color-prettylights-syntax-entity);
+}
+.highlight-source-yml .string {
+  color: var(--color-prettylights-syntax-string);
 }
 `;
 

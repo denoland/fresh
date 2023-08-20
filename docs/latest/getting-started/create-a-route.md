@@ -1,7 +1,7 @@
 ---
 description: |
   Create a new route to a Fresh project by creating a new file in the `routes/`
-  folder. 
+  folder.
 ---
 
 After getting the project running locally, the next step is to add a new route
@@ -34,9 +34,7 @@ This is done with JSX.
 > [Preact][preact], a lighter weight virtual dom library that works similar to
 > React.
 
-```tsx
-// routes/about.tsx
-
+```tsx routes/about.tsx
 export default function AboutPage() {
   return (
     <main>

@@ -43,6 +43,7 @@ export function setup(options: Options, sheet: Sheet) {
       }
       if (props.className) {
         classes.push(tw(props.className));
+        props.className = undefined;
       }
       if (classes.length) {
         props.class = classes.join(" ");

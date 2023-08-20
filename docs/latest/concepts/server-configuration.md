@@ -7,7 +7,7 @@ In this page we discuss how the server can be configured during startup.
 
 The signature of the primary method looks like this:
 
-```ts
+```ts main.ts
 export async function start(routes: Manifest, opts: StartOptions = {});
 ```
 
@@ -52,7 +52,7 @@ export interface RouterOptions {
 See the [docs](/docs/concepts/plugins) on this topic for more detail. But for
 completion, you can do something like this to load plugins:
 
-```ts
+```ts main.ts
 await start(manifest, { plugins: [twindPlugin(twindConfig)] });
 ```
 
@@ -61,7 +61,7 @@ await start(manifest, { plugins: [twindPlugin(twindConfig)] });
 This allows you to specify the location where your site's static assets are
 stored. Here's an example:
 
-```ts
+```ts main.ts
 await start(manifest, { staticDir: "./custom_static" });
 ```
 
@@ -81,6 +81,6 @@ By default Fresh uses URLs like `https://www.example.com/about`. If you'd like,
 you can configure this to `https://www.example.com/about/` by using the
 `trailingSlash` setting.
 
-```ts
+```ts main.ts
 await start(manifest, { router: { trailingSlash: true } });
 ```

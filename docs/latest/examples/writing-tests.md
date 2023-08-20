@@ -9,9 +9,7 @@ through
 
 ## 1. Create your routes
 
-```tsx
-// routes/index.tsx
-
+```tsx routes/index.tsx
 import { Handlers } from "$fresh/server.ts";
 
 export const handler: Handlers = {
@@ -28,31 +26,19 @@ export const handler: Handlers = {
 };
 
 export default function HomePage() {
-  return (
-    <div>
-      Hello Deno!
-    </div>
-  );
+  return <div>Hello Deno!</div>;
 }
 ```
 
-```tsx
-// routes/foo.tsx
-
+```tsx routes/foo.tsx
 export default function FooPage() {
-  return (
-    <div>
-      Hello Foo!
-    </div>
-  );
+  return <div>Hello Foo!</div>;
 }
 ```
 
 ## 2. Write your tests
 
-```ts
-// tests/main_test.ts
-
+```ts tests/main_test.ts
 import { createHandler, ServeHandlerInfo } from "$fresh/server.ts";
 import manifest from "../fresh.gen.ts";
 import { assert, assertEquals } from "$std/testing/asserts.ts";
@@ -81,10 +67,7 @@ Deno.test("HTTP assert test.", async (t) => {
   });
 
   await t.step("#3 GET /foo", async () => {
-    const resp = await handler(
-      new Request("http://127.0.0.1/foo"),
-      CONN_INFO,
-    );
+    const resp = await handler(new Request("http://127.0.0.1/foo"), CONN_INFO);
     const text = await resp.text();
     assert(text.includes("<div>Hello Foo!</div>"));
   });
@@ -93,7 +76,7 @@ Deno.test("HTTP assert test.", async (t) => {
 
 ## 3. Run the tests
 
-```sh
+```sh Terminal
 $ deno test --allow-read --allow-env --allow-net
 running 1 test from ./tests/main_test.ts
 HTTP assert test. ...

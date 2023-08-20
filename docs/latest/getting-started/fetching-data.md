@@ -9,56 +9,47 @@ during rendering. In real projects, this is often different. In many cases you
 may need to read a file from disk (e.g. markdown for a blog post), or fetch some
 user data from an API or database.
 
-These operations are all asynchronous. Rendering however, is always synchronous.
-Instead of fetching data directly during rendering, it should be loaded in a
-route's `handler` function and then passed to the page component via first
-argument to `ctx.render()`.
-
-The data that is passed to `ctx.render()` can then be accessed via the
-`props.data` field on the page component.
+In order to fetch data, the route component must be asynchronous. The first
+parameter contains the client's
+[`Request`](https://developer.mozilla.org/en-US/docs/Web/API/Request) object.
+The second `ctx` parameter is used to get the route parameters.
 
 Here is an example of a route that fetches user data from the GitHub API and
 renders it in a page component.
 
-```tsx
-// routes/github/[username].tsx
+```tsx routes/github/[username].tsx
+import { RouteContext } from "$fresh/server.ts";
 
-import { Handlers, PageProps } from "$fresh/server.ts";
-
-interface User {
+interface GitHubResponse {
   login: string;
   name: string;
   avatar_url: string;
 }
 
-export const handler: Handlers<User | null> = {
-  async GET(_, ctx) {
-    const { username } = ctx.params;
-    const resp = await fetch(`https://api.github.com/users/${username}`);
-    if (resp.status === 404) {
-      return ctx.render(null);
-    }
-    const user: User = await resp.json();
-    return ctx.render(user);
-  },
-};
+export default async function Page(_req: Request, ctx: RouteContext) {
+  const resp = await fetch(
+    `https://api.github.com/users/${ctx.params.username}`
+  );
 
-export default function Page({ data }: PageProps<User | null>) {
-  if (!data) {
-    return <h1>User not found</h1>;
+  if (!resp.ok) {
+    return <h1>An Error occurred</h1>;
   }
+
+  const { login, name, avatar_url } = (await resp.json()) as GitHubResponse;
 
   return (
     <div>
-      <img src={data.avatar_url} width={64} height={64} />
-      <h1>{data.name}</h1>
-      <p>{data.login}</p>
+      <img src={avatar_url} width={64} height={64} />
+      <h1>{name}</h1>
+      <p>{login}</p>
     </div>
   );
 }
 ```
 
-The data is first fetched inside of the handler by making an API call to GitHub.
-If the API call succeeds, the data is passed to the page component. If the API
-call fails, the page component is rendered with `null` as the data. The page
-component grabs the data from the props and renders it.
+The data is first fetched inside our page component. We check that the response
+is returned successfully, by checking whether the
+[`ok`](https://developer.mozilla.org/en-US/docs/Web/API/Response/ok) property is
+true. If the API call was successful, we will see our div with the user's GitHub
+image, name, and username. Otherwise, we should see a heading saying: "An Error
+occurred."
