@@ -57,7 +57,7 @@ export function assertSingleModule(
 ): CheckResult[] {
   const results: CheckResult[] = [];
   const moduleRoutes = routes.filter((route) =>
-    route.name.endsWith(moduleName)
+    route.name.split("/").pop() === moduleName
   );
 
   if (moduleRoutes.length > 0) {
