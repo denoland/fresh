@@ -120,6 +120,17 @@ Deno.test("disable _app layout", async () => {
   );
 });
 
+Deno.test("disable _app in _layout", async () => {
+  await withFresh(
+    "./tests/fixture_layouts/main.ts",
+    async (address) => {
+      const doc = await fetchHtml(`${address}/override/layout_no_app`);
+      assertNotSelector(doc, "body body");
+      assertSelector(doc, "body > .override-layout > .no-app-layout > .page");
+    },
+  );
+});
+
 Deno.test("override layouts", async () => {
   await withFresh(
     "./tests/fixture_layouts/main.ts",
@@ -140,7 +151,7 @@ Deno.test("route overrides layout", async () => {
   );
 });
 
-Deno.test("route overrides layout", async () => {
+Deno.test("route overrides layout and app", async () => {
   await withFresh(
     "./tests/fixture_layouts/main.ts",
     async (address) => {

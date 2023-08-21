@@ -29,9 +29,7 @@ any necessary processing on the form data, and then pass data to the
 Here is an example implementing a search form that filters an array of names
 server side:
 
-```tsx
-// routes/search.tsx
-
+```tsx routes/search.tsx
 import { Handlers, PageProps } from "$fresh/server.ts";
 
 const NAMES = ["Alice", "Bob", "Charlie", "Dave", "Eve", "Frank"];
@@ -59,7 +57,9 @@ export default function Page({ data }: PageProps<Data>) {
         <button type="submit">Search</button>
       </form>
       <ul>
-        {results.map((name) => <li key={name}>{name}</li>)}
+        {results.map((name) => (
+          <li key={name}>{name}</li>
+        ))}
       </ul>
     </div>
   );

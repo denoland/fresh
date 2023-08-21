@@ -18,15 +18,15 @@ import type { AppModule, Plugin, Route, StaticFile } from "./types.ts";
 
 function createRoute(route: Partial<Route>): Route {
   return {
-    appLayout: false,
-    rootLayout: false,
+    appWrapper: false,
     baseRoute: toBaseRoute("/"),
-    name: "/",
-    url: "/",
-    pattern: "/",
     component: () => h(Fragment, null, []),
-    handler: () => new Response(),
     csp: false,
+    handler: () => new Response(),
+    inheritLayouts: false,
+    name: "/",
+    pattern: "/",
+    url: "/",
     ...route,
   };
 }

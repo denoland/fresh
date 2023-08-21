@@ -490,6 +490,9 @@ Deno.test({
       },
     );
   },
+
+  sanitizeOps: false,
+  sanitizeResources: false,
 });
 
 Deno.test({

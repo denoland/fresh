@@ -15,13 +15,13 @@ export function parseHtml(input: string) {
 }
 
 export async function startFreshServer(options: Deno.CommandOptions) {
-  const { serverProcess, lines, address } = await spawnServer(options);
+  const { serverProcess, lines, address, output } = await spawnServer(options);
 
   if (!address) {
     throw new Error("Server didn't start up");
   }
 
-  return { serverProcess, lines, address };
+  return { serverProcess, lines, address, output };
 }
 
 export async function fetchHtml(url: string) {
@@ -128,11 +128,22 @@ function _printDomNode(
 }
 
 export async function withFresh(
-  name: string,
+  name: string | { name: string; options: Omit<Deno.CommandOptions, "args"> },
   fn: (address: string) => Promise<void>,
 ) {
+  let file: string;
+  let options = {};
+
+  if (typeof name === "object") {
+    file = name.name;
+    options = name.options ?? {};
+  } else {
+    file = name;
+  }
+
   const { lines, serverProcess, address } = await startFreshServer({
-    args: ["run", "-A", name],
+    ...options,
+    args: ["run", "-A", file],
   });
 
   try {
@@ -259,8 +270,10 @@ async function spawnServer(
       preventCancel: true,
     });
 
+  const output: string[] = [];
   let address = "";
   for await (const line of lines) {
+    output.push(line);
     const match = line.match(/https?:\/\/localhost:\d+/g);
     if (match) {
       address = match[0];
@@ -268,5 +281,5 @@ async function spawnServer(
     }
   }
 
-  return { serverProcess, lines, address };
+  return { serverProcess, lines, address, output };
 }
