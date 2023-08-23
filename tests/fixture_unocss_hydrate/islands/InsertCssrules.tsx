@@ -6,7 +6,9 @@ import { useSignal } from "@preact/signals";
  * Returns a number of cssrules set by unocss.
  */
 function getNumCssrules(): number | undefined {
-  const elem = document.querySelector("style") as HTMLStyleElement;
+  const elem = document.querySelector(
+    'style[data-unocss-runtime-layer="default"]',
+  ) as HTMLStyleElement;
   return elem.sheet?.cssRules.length;
 }
 
