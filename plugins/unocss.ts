@@ -26,11 +26,10 @@ export default function unocss(config: Config, runtime = true): Plugin {
       "main": `
         data:application/javascript,
         import config from "${config.selfURL}";
+        import init from "https://esm.sh/@unocss/runtime@0.55.1";
         export default function() {
           window.__unocss = config;
-          const script = document.createElement("script");
-          script.src = "https://cdn.jsdelivr.net/npm/@unocss/runtime";
-          document.head.appendChild(script);
+          init();
         }`,
     },
     async renderAsync(ctx) {
