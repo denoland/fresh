@@ -28,12 +28,13 @@ information. If no config is provided, the default config is used, which
 defaults to the following:
 
 ```ts
-import type { UserConfig } from "https://esm.sh/@unocss/core@0.55.1";
+import { defineConfig } from "$fresh/plugins/unocss.ts";
 import presetUno from "https://esm.sh/@unocss/preset-uno@0.55.1";
 
-export default {
+export default defineConfig({
   presets: [presetUno()],
-} satisfies UserConfig;
+  selfURL: import.meta.url,
+});
 ```
 
 Note: you could also inline the config object in `main.ts` instead of using a
