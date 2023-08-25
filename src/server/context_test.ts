@@ -21,9 +21,12 @@ Deno.test("pathToPattern", async (t) => {
 
   await t.step("parses multiple params in same part", () => {
     assertEquals(pathToPattern("foo/[mod]@[version]"), "/foo/:mod@:version");
-
     assertEquals(pathToPattern("foo/[bar].json"), "/foo/:bar.json");
     assertEquals(pathToPattern("foo/foo[bar]"), "/foo/foo:bar");
+  });
+
+  await t.step("parses optional params", () => {
+    assertEquals(pathToPattern("foo/[[name]]"), "/foo{/:name}?");
   });
 
   await t.step("throws on invalid patterns", () => {

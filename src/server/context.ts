@@ -1168,6 +1168,7 @@ export function pathToPattern(path: string): string {
       const char = part[j];
       if (char === "[") {
         if (part[j + 1] === "[") {
+          groupOpen++;
           optional = true;
           pattern += "{/";
           j++;
@@ -1176,6 +1177,7 @@ export function pathToPattern(path: string): string {
         groupOpen++;
       } else if (char === "]") {
         if (part[j + 1] === "]") {
+          groupOpen--;
           pattern += "}?";
           j++;
         }
