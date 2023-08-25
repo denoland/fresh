@@ -1,4 +1,4 @@
-import { assertSpyCalls, existsSync, spy } from "./deps.ts";
+import { existsSync, spy } from "./deps.ts";
 import {
   AppModule,
   ErrorPageModule,
@@ -15,6 +15,7 @@ export enum CheckCategory {
   ModuleExport = "Module Export",
   MultipleModules = "Multiple Modules",
   DuplicateRoutePatterns = "Duplicate Route Patterns",
+  DynamicRouteConflict = "Dynamic Route Conflict",
   HandlerOrComponent = "Handler or Component",
   StaticDirectory = "Static Directory",
   StaticFileConflict = "Static File Conflict",
@@ -183,10 +184,10 @@ export function assertPluginsCallRender(plugins: Plugin[]): CheckResult[] {
         htmlText: "",
         requiresHydration: false,
       }));
+
       plugin.render({ render: renderSpy });
-      try {
-        assertSpyCalls(renderSpy, 1);
-      } catch {
+
+      if (renderSpy.calls.length !== 1) {
         results.push({
           category: CheckCategory.PluginRender,
           message: `Plugin ${plugin.name} must call ctx.render() exactly once.`,
@@ -206,18 +207,15 @@ export function assertPluginsCallRenderAsync(
 
   for (const plugin of plugins) {
     if (typeof plugin.renderAsync === "function") {
-      try {
-        const renderAsyncSpy = spy(() => {
-          return Promise.resolve({
-            htmlText: "",
-            requiresHydration: false,
-          });
-        });
+      const renderAsyncSpy = spy(() => ({
+        htmlText: "",
+        requiresHydration: false,
+      }));
 
-        // Call empty `.then()` to wait for `ctx.renderAsync()` to resolve
-        plugin.renderAsync({ renderAsync: renderAsyncSpy }).then();
-        assertSpyCalls(renderAsyncSpy, 1);
-      } catch {
+      // Call empty `.then()` to wait for `ctx.renderAsync()` to resolve
+      plugin.renderAsync({ renderAsync: renderAsyncSpy }).then();
+
+      if (renderAsyncSpy.calls.length !== 1) {
         results.push({
           category: CheckCategory.PluginRenderAsync,
           message:
@@ -258,6 +256,40 @@ export function assertPluginsInjectModules(plugins: Plugin[]): CheckResult[] {
       }
     });
   });
+
+  return results;
+}
+
+/** Asserts that routes with dynamic params don't have any conflicts. */
+export function assertNoDynamicRouteConflicts(routes: Route[]): CheckResult[] {
+  const results: CheckResult[] = [];
+  const patterns = routes
+    .filter((route) => route.pattern.includes(":"))
+    .map((route) => route.pattern);
+
+  for (let i = 0; i < patterns.length; i++) {
+    for (let j = i + 1; j < patterns.length; j++) {
+      const pattern1 = patterns[i].split("/");
+      const pattern2 = patterns[j].split("/");
+
+      if (pattern1.length !== pattern2.length) continue;
+
+      const conflicts = pattern1.every((segment, index) => {
+        return segment === pattern2[index] || segment.startsWith(":") ||
+          pattern2[index].startsWith(":");
+      });
+
+      if (conflicts) {
+        results.push({
+          category: CheckCategory.DynamicRouteConflict,
+          message: `Dynamic route conflict: ${patterns[i]} and ${
+            patterns[j]
+          } have conflicting dynamic parameters.`,
+          link: routes.find((route) => route.pattern === patterns[i])?.url,
+        });
+      }
+    }
+  }
 
   return results;
 }

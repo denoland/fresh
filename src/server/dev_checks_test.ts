@@ -3,6 +3,7 @@ import { Fragment, h } from "preact";
 import { toBaseRoute } from "./context.ts";
 import {
   assertModuleExportsDefault,
+  assertNoDynamicRouteConflicts,
   assertNoStaticRouteConflicts,
   assertPluginsCallRender,
   assertPluginsCallRenderAsync,
@@ -213,28 +214,31 @@ Deno.test("assertRoutesHaveHandlerOrComponent", async (t) => {
   });
 });
 
-Deno.test("assertStaticDirSafety", async (t) => {
+Deno.test("assertNoDynamicRouteConflicts", async (t) => {
   await t.step("passes validation check", () => {
+    const routes: Route[] = [
+      createRoute({ pattern: "/foo/:baz", url: "/foo/:baz" }),
+      createRoute({ pattern: "/bar/:baz", url: "/bar/:baz" }),
+    ];
     const expected: CheckResult[] = [];
-    const result = assertStaticDirSafety("./foo", "./static");
-    assertEquals(result, expected);
-  });
-
-  await t.step("passes validation check w/ falsy values", () => {
-    const expected: CheckResult[] = [];
-    const result = assertStaticDirSafety("", "./static");
+    const result = assertNoDynamicRouteConflicts(routes);
     assertEquals(result, expected);
   });
 
   await t.step("fails validation check", () => {
+    const routes: Route[] = [
+      createRoute({ pattern: "/foo/:bar", url: "/foo/:bar" }),
+      createRoute({ pattern: "/foo/:baz", url: "/foo/:baz" }),
+    ];
     const expected: CheckResult[] = [
       {
-        category: CheckCategory.StaticDirectory,
+        category: CheckCategory.DynamicRouteConflict,
         message:
-          "You cannot use the default static directory as a static override. Please choose a different directory.",
+          "Dynamic route conflict: /foo/:bar and /foo/:baz have conflicting dynamic parameters.",
+        link: "/foo/:bar",
       },
     ];
-    const result = assertStaticDirSafety("./static", "./static");
+    const result = assertNoDynamicRouteConflicts(routes);
     assertEquals(result, expected);
   });
 });
@@ -268,6 +272,32 @@ Deno.test("assertNoStaticRouteConflict", async (t) => {
       },
     ];
     const result = assertNoStaticRouteConflicts(routes, files);
+    assertEquals(result, expected);
+  });
+});
+
+Deno.test("assertStaticDirSafety", async (t) => {
+  await t.step("passes validation check", () => {
+    const expected: CheckResult[] = [];
+    const result = assertStaticDirSafety("./foo", "./static");
+    assertEquals(result, expected);
+  });
+
+  await t.step("passes validation check w/ falsy values", () => {
+    const expected: CheckResult[] = [];
+    const result = assertStaticDirSafety("", "./static");
+    assertEquals(result, expected);
+  });
+
+  await t.step("fails validation check", () => {
+    const expected: CheckResult[] = [
+      {
+        category: CheckCategory.StaticDirectory,
+        message:
+          "You cannot use the default static directory as a static override. Please choose a different directory.",
+      },
+    ];
+    const result = assertStaticDirSafety("./static", "./static");
     assertEquals(result, expected);
   });
 });
@@ -313,7 +343,7 @@ Deno.test("assertPluginsCallRenderAsync", async (t) => {
         name: "foo",
         renderAsync: async (ctx) => {
           await ctx.renderAsync();
-          return Promise.resolve({});
+          return await Promise.resolve({});
         },
       },
     ];
@@ -327,8 +357,7 @@ Deno.test("assertPluginsCallRenderAsync", async (t) => {
       {
         name: "foo",
         renderAsync: async (_ctx) => {
-          await Promise.resolve();
-          return {};
+          return await Promise.resolve({});
         },
       },
     ];

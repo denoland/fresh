@@ -59,6 +59,7 @@ import {
 import { InternalRoute } from "./router.ts";
 import {
   assertModuleExportsDefault,
+  assertNoDynamicRouteConflicts,
   assertNoStaticRouteConflicts,
   assertPluginsCallRender,
   assertPluginsCallRenderAsync,
@@ -450,8 +451,9 @@ export class ServerContext {
         () => assertModuleExportsDefault(errorModule, "_500"),
         () => assertSingleModule(routes, "_500"),
         () => assertRoutesHaveHandlerOrComponent(routes),
-        () => assertStaticDirSafety(opts.staticDir ?? "", defaultStaticDir),
+        () => assertNoDynamicRouteConflicts(routes),
         () => assertNoStaticRouteConflicts(routes, staticFiles),
+        () => assertStaticDirSafety(opts.staticDir ?? "", defaultStaticDir),
         () => assertPluginsCallRender(opts.plugins ?? []),
         () => assertPluginsCallRenderAsync(opts.plugins ?? []),
         () => assertPluginsInjectModules(opts.plugins ?? []),
