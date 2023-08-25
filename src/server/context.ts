@@ -1155,6 +1155,7 @@ export function pathToPattern(path: string): string {
       );
     }
 
+    // Case: /[[id]].tsx
     // Case: /[id].tsx
     // Case: /[id]@[bar].tsx
     // Case: /[id]-asdf.tsx
@@ -1162,12 +1163,22 @@ export function pathToPattern(path: string): string {
     // Case: /asdf[bar].tsx
     let pattern = "";
     let groupOpen = 0;
+    let optional = false;
     for (let j = 0; j < part.length; j++) {
       const char = part[j];
       if (char === "[") {
+        if (part[j + 1] === "[") {
+          optional = true;
+          pattern += "{/";
+          j++;
+        }
         pattern += ":";
         groupOpen++;
       } else if (char === "]") {
+        if (part[j + 1] === "]") {
+          pattern += "}?";
+          j++;
+        }
         if (--groupOpen < 0) {
           throw new SyntaxError(`Invalid route pattern: "${path}"`);
         }
@@ -1176,7 +1187,7 @@ export function pathToPattern(path: string): string {
       }
     }
 
-    route += "/" + pattern;
+    route += (optional ? "" : "/") + pattern;
   }
 
   return route;
