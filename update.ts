@@ -1,4 +1,5 @@
 import {
+  basename,
   dirname,
   existsSync,
   extname,
@@ -85,6 +86,33 @@ if (!denoJson.lint.rules.tags.includes("fresh")) {
 }
 if (!denoJson.lint.rules.tags.includes("recommended")) {
   denoJson.lint.rules.tags.push("recommended");
+}
+if (!denoJson.lint.exclude) {
+  denoJson.lint.exclude = [];
+}
+if (!denoJson.lint.exclude.includes("_fresh")) {
+  denoJson.lint.exclude.push("_fresh");
+}
+
+// Exclude _fresh dir from linting
+if (!denoJson.fmt) {
+  denoJson.fmt = {};
+}
+if (!denoJson.fmt.exclude) {
+  denoJson.fmt.exclude = [];
+}
+if (!denoJson.fmt.exclude.includes("_fresh")) {
+  denoJson.fmt.exclude.push("_fresh");
+}
+
+if (!denoJson.tasks) {
+  denoJson.tasks = {};
+}
+if (!denoJson.tasks.build) {
+  denoJson.tasks.build = "deno run -A dev.ts build";
+}
+if (!denoJson.tasks.preview) {
+  denoJson.tasks.preview = "deno run -A main.ts";
 }
 
 freshImports(denoJson.imports);
@@ -228,6 +256,31 @@ await start(manifest, { plugins: [twindPlugin(twindConfig)] });\n`;
 
     await sf.save();
   }
+}
+
+// Add default _app.tsx if not present
+const routes = Array.from(Deno.readDirSync(join(srcDirectory, "routes")));
+if (!routes.find((entry) => entry.isFile && entry.name.startsWith("_app."))) {
+  const APP_TSX = `import { AppProps } from "$fresh/server.ts";
+
+export default function App({ Component }: AppProps) {
+  return (
+    <html>
+      <head>
+        <meta charSet="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>${basename(resolvedDirectory)}</title>
+      </head>
+      <body>
+        <Component />
+      </body>
+    </html>
+  );
+}`;
+  await Deno.writeTextFile(
+    join(srcDirectory, "routes", "_app.tsx"),
+    APP_TSX,
+  );
 }
 
 const manifest = await collect(srcDirectory);

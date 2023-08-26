@@ -1,8 +1,8 @@
-import { RouteConfig } from "$fresh/server.ts";
+import { LayoutConfig } from "$fresh/server.ts";
 
-export const config: RouteConfig = {
-  appTemplate: false,
-  rootLayout: true,
+export const config: LayoutConfig = {
+  skipAppWrapper: true,
+  skipInheritedLayouts: true,
 };
 
 export default function OverridePage() {

@@ -10,13 +10,8 @@ import {
   TABLE_OF_CONTENTS,
   TableOfContentsEntry,
 } from "../../data/docs.ts";
-import { frontMatter, gfm } from "../../utils/markdown.ts";
+import { frontMatter, renderMarkdown } from "../../utils/markdown.ts";
 import toc from "../../../docs/toc.ts";
-import { mangle } from "$marked-mangle";
-import { markedSmartypants } from "$marked-smartypants";
-
-gfm.Marked.marked.use(mangle());
-gfm.Marked.marked.use(markedSmartypants());
 
 interface Data {
   page: Page;
@@ -249,7 +244,7 @@ function DesktopSidebar(props: { path: string; page: Page }) {
 }
 
 function Content(props: { page: Page }) {
-  const html = gfm.render(props.page.markdown);
+  const html = renderMarkdown(props.page.markdown);
   return (
     <main class="py-6 overflow-hidden md:mr-4 lg:mr-32">
       <h1 class="text(4xl gray-900) tracking-tight font-extrabold mt-6 md:mt-0">

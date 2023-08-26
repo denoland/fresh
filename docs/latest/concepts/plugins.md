@@ -6,9 +6,7 @@ Plugins can dynamically add new functionality to Fresh without exposing
 significant complexity to the user. Users can add plugins by importing and
 initializing them in their `main.ts` file:
 
-```ts
-// main.ts
-
+```ts main.ts
 import { start } from "$fresh/server.ts";
 import manifest from "./fresh.gen.ts";
 

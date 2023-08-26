@@ -13,10 +13,11 @@ used to trigger child handlers. The `ctx` also has a `state` property that can
 be used to pass arbitrary data to downstream (or upstream) handlers. This
 `state` is included in `PageProps` by default, which is available to both the
 special [\_app](/docs/concepts/app-wrapper.md) wrapper and normal
-[routes](/docs/concepts/routes.md).
+[routes](/docs/concepts/routes.md). `ctx.state` is normally set by modifying its
+properties, e.g. `ctx.state.loggedIn = true`, but you can also replace the
+entire object like `ctx.state = { loggedIn = true }`.
 
-```ts
-// routes/_middleware.ts
+```ts routes/_middleware.ts
 import { MiddlewareHandlerContext } from "$fresh/server.ts";
 
 interface State {
@@ -25,7 +26,7 @@ interface State {
 
 export async function handler(
   req: Request,
-  ctx: MiddlewareHandlerContext<State>,
+  ctx: MiddlewareHandlerContext<State>
 ) {
   ctx.state.data = "myData";
   const resp = await ctx.next();
@@ -34,8 +35,7 @@ export async function handler(
 }
 ```
 
-```ts
-// routes/myHandler.ts
+```ts routes/myHandler.ts
 export const handler: Handlers<any, { data: string }> = {
   GET(_req, ctx) {
     return new Response(`middleware data is ${ctx.state.data}`);
@@ -50,7 +50,7 @@ specific first).
 
 For example, take a project with the following routes:
 
-```
+```txt Project Structure
 └── routes
     ├── _middleware.ts
     ├── index.ts
@@ -83,9 +83,7 @@ A single middleware file can also define multiple middlewares (all for the same
 route) by exporting an array of handlers instead of a single handler. For
 example:
 
-```ts
-// routes/_middleware.ts
-
+```ts routes/_middleware.ts
 export const handler = [
   async function middleware1(req, ctx) {
     // do something
@@ -101,7 +99,7 @@ export const handler = [
 It should be noted that `middleware` has access to route parameters. If you're
 running a fictitious `routes/[tenant]/admin/_middleware.ts` like this:
 
-```ts
+```ts routes/[tenant]/admin/_middleware.ts
 import { MiddlewareHandlerContext } from "$fresh/server.ts";
 
 export async function handler(_req: Request, ctx: MiddlewareHandlerContext) {
@@ -146,7 +144,7 @@ for a `route`, as opposed to something like `http://localhost:8001/favicon.ico`.
 Initiate a new Fresh project (`deno run -A -r https://fresh.deno.dev/`) and then
 create a `_middleware.ts` file in the `routes` folder like this:
 
-```ts
+```ts routes/_middleware.ts
 import { MiddlewareHandlerContext } from "$fresh/server.ts";
 
 export async function handler(req: Request, ctx: MiddlewareHandlerContext) {
@@ -159,7 +157,7 @@ export async function handler(req: Request, ctx: MiddlewareHandlerContext) {
 
 If you start up your server (`deno task start`) you'll see the following:
 
-```
+```sh Terminal
 Task start deno run -A --watch=static/,routes/ dev.ts
 Watcher Process started.
 The manifest has been generated for 4 routes and 1 islands.
@@ -197,3 +195,26 @@ That first `route` request is for when `Fresh` responds with the root level
 `index.tsx` route. The rest, as you can see, are either `internal` or `static`
 requests. You can use `ctx.destination` to filter these out if your middleware
 is only supposed to deal with routes.
+
+## Middleware Redirects
+
+If you want to redirect a request from a middleware, you can do so by returning:
+
+```ts
+export function handler(req: Request): Response {
+  return Response.redirect("https://example.com", 307);
+}
+```
+
+`307` stands for temporary redirect. You can also use `301` for permanent
+redirect. You can also redirect to a relative path by doing:
+
+````ts
+export function handler(req: Request): Response {
+  return new Response("", {
+    status: 307,
+    headers: { Location: "/my/new/relative/path" },
+  });
+}
+```****
+````
