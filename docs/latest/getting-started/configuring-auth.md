@@ -36,55 +36,12 @@ BASIC_AUTH_PASSWORD=password
 
 ## Deno KV Auth
 
-Deno KV OAuth is a high-level OAuth 2.0 library powered by Deno KV. It can be
-used for persistent session storage, integrating authentication workflows with
-popular providers through OAuth 2.0.
+For a look at how you can manually bring Deno KV Auth into your project, see
+[this example](](/docs/examples/using-deno-kv-oauth.md).
 
-The advantages of using Deno KV Auth are:
-
-- Automatically handles the authorization code flow with Proof Key for Code
-  Exchange (PKCE), access token refresh, and client redirection.
-- Comes with pre-configured OAuth 2.0 clients for popular providers.
-- Can work locally and in the cloud, including Deno Deploy.
-- Based on the Request and Response interfaces from the Web API.
-- Works with std/http’s serve(), Deno.serve(), and web frameworks such as Fresh
-  and Oak. Here’s an example of using Deno KV OAuth with GitHub:
-
-```ts
-import { createGitHubOAuth2Client } from "https://deno.land/x/deno_kv_oauth/mod.ts";
-
-const oauth2Client = createGitHubOAuth2Client();
-
-// Sign-in, callback and sign-out handlers
-async function handleSignIn(request: Request) {
-  return await signIn(request, oauth2Client);
-}
-
-async function handleOAuth2Callback(request: Request) {
-  return await handleCallback(request, oauth2Client);
-}
-
-async function handleSignOut(request: Request) {
-  return await signOut(request);
-}
-
-// Protected route
-// TODO: Make this a Fresh rout
-async function getGitHubUser(accessToken: string): Promise<any> {
-  const response = await fetch("https://api.github.com/user", {
-    headers: {
-      authorization: `Bearer ${accessToken}`,
-    },
-  });
-
-  if (!response.ok) {
-    const { message } = await response.json();
-    throw new Error(message);
-  }
-
-  return await response.json();
-}
-```
+To quickly configure your application using a Deno Fresh plugin, you can see the
+documentation for the
+[Deno Fresh KV Auth plugin](https://deno.land/x/deno_fresh_kv_oauth).
 
 You can find the full documentation and API reference for Deno KV Auth
 [here](https://github.com/denoland/deno_kv_oauth).
