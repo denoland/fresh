@@ -4,8 +4,9 @@ description: |
 ---
 
 Islands enable client side interactivity in Fresh. Islands are isolated Preact
-components that are rendered on the server and then hydrated on the client. This is different from all other
-components in Fresh, as they are usually rendered on the server only.
+components that are rendered on the server and then hydrated on the client. This
+is different from all other components in Fresh, as they are usually rendered on
+the server only.
 
 Islands are defined by creating a file in the `islands/` folder in a Fresh
 project. The name of this file must be a PascalCase or kebab-case name of the
@@ -170,8 +171,8 @@ export default function Home() {
 
 ## Rendering islands on client only
 
-When using client-only apis, like `EventSource` or `navigator.getUserMedia`, this component will not run on the server
-as it will produce an error like:
+When using client-only apis, like `EventSource` or `navigator.getUserMedia`,
+this component will not run on the server as it will produce an error like:
 
 ```
 An error occurred during route handling or page rendering. ReferenceError: EventSource is not defined
