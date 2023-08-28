@@ -1184,6 +1184,11 @@ export function pathToPattern(path: string): string {
     route += "/" + pattern;
   }
 
+  // Case: /(group)/index.tsx
+  if (route === "") {
+    route = "/";
+  }
+
   return route;
 }
 
