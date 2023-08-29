@@ -184,7 +184,7 @@ An error occurred during route handling or page rendering. ReferenceError: Event
 
 Use the `IS_BROWSER` flag as a guard to fix the issue:
 
-```ts islands/my-island.tsx
+```tsx islands/my-island.tsx
 import { IS_BROWSER } from "$fresh/runtime.ts";
 
 export function MyIsland() {
@@ -193,7 +193,6 @@ export function MyIsland() {
 
   // All the code which must run in the browser comes here!
   // Like: EventSource, navigator.getUserMedia, etc.
-
   return <div></div>;
 }
 ```
