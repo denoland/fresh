@@ -171,7 +171,7 @@ export default function Home() {
 
 ## Rendering islands on client only
 
-When using client-only apis, like `EventSource` or `navigator.getUserMedia`,
+When using client-only APIs, like `EventSource` or `navigator.getUserMedia`,
 this component will not run on the server as it will produce an error like:
 
 ```
