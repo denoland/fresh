@@ -2,8 +2,11 @@ import { assert } from "./deps.ts";
 import {
   assertNotSelector,
   assertSelector,
+  clickWhenListenerReady,
   fetchHtml,
+  waitForText,
   withFresh,
+  withPageName,
 } from "./test_utils.ts";
 
 Deno.test("apply root _layout and _app", async () => {
@@ -159,4 +162,39 @@ Deno.test("route overrides layout and app", async () => {
       assertSelector(doc, "body > .no-app-no-layouts");
     },
   );
+});
+
+Deno.test({
+  name: "island in dynamic route test",
+  async fn(t) {
+    await withPageName(
+      "./tests/fixture_layouts/main.ts",
+      async (page, address) => {
+        async function counterTest(counterId: string, originalValue: number) {
+          const pElem = await page.waitForSelector(`#${counterId} > p`);
+
+          const value = await pElem?.evaluate((el) => el.textContent);
+          assert(value === `${originalValue}`, `${counterId} first value`);
+
+          await clickWhenListenerReady(page, `#b-${counterId}`);
+          await waitForText(
+            page,
+            `#${counterId} > p`,
+            String(originalValue + 1),
+          );
+        }
+
+        await page.goto(`${address}/dynamic/acme-corp`, {
+          waitUntil: "networkidle2",
+        });
+
+        await t.step("Ensure 1 island on 1 page are revived", async () => {
+          await counterTest("counter", 3);
+        });
+      },
+    );
+  },
+
+  sanitizeOps: false,
+  sanitizeResources: false,
 });
