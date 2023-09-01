@@ -904,7 +904,7 @@ export class ServerContext {
         {
           ...ctx,
           error,
-          render: errorHandlerRender(req, {}, undefined, error),
+          render: errorHandlerRender(req, {}, ctx, error),
         },
       );
     };
