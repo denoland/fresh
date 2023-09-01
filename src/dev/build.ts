@@ -2,6 +2,8 @@ import { ServerContext } from "../server/context.ts";
 import { FreshOptions, Manifest } from "../server/mod.ts";
 import { dirname, fromFileUrl, join, toFileUrl } from "../server/deps.ts";
 import { fs } from "./deps.ts";
+import { BuildSnapshotJson } from "../build/mod.ts";
+import { BUILD_ID } from "$fresh/src/server/build_id.ts";
 
 export async function build(
   manifestPath: string,
@@ -32,12 +34,15 @@ export async function build(
   }));
 
   // Write dependency snapshot file to disk
-  const deps: Record<string, string[]> = {};
+  const jsonSnapshot: BuildSnapshotJson = {
+    build_id: BUILD_ID,
+    files: {},
+  };
   for (const filePath of snapshot.paths) {
     const dependencies = snapshot.dependencies(filePath);
-    deps[filePath] = dependencies;
+    jsonSnapshot.files[filePath] = dependencies;
   }
 
   const snapshotPath = join(outDir, "snapshot.json");
-  await Deno.writeTextFile(snapshotPath, JSON.stringify(deps, null, 2));
+  await Deno.writeTextFile(snapshotPath, JSON.stringify(jsonSnapshot, null, 2));
 }
