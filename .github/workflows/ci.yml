@@ -40,7 +40,7 @@ jobs:
         run: deno lint
 
       - name: Spell-check
-        if: startsWith(matrix.os, 'ubuntu') && matrix.deno == 'canary'
+        if: startsWith(matrix.os, 'ubuntu') && matrix.deno == 'v1.x'
         uses: crate-ci/typos@master
 
       - name: Cache dependencies and Chrome
