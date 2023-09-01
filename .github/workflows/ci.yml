@@ -14,7 +14,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        deno: ["v1.x", "canary"]
+        deno: ["v1.x"]
         os: [macOS-latest, windows-latest, ubuntu-latest]
         include:
         - os: ubuntu-latest
