@@ -287,11 +287,20 @@ await Deno.writeTextFile(
   ROUTES_API_JOKE_TS,
 );
 
-const TWIND_CONFIG_TS = `import { Options } from "$fresh/plugins/twind.ts";
+const TWIND_CONFIG_TS = `import { Options } from "$fresh/plugins/twindv1.ts";
+
+import { Preset } from "https://esm.sh/v131/@twind/core@1.1.3/core.d.ts";
+
+import presetTailwind from "https://esm.sh/@twind/preset-tailwind@1.1.4";
+
+interface OptionsWithPresets extends Options {
+  presets: Preset[];
+}
 
 export default {
+  presets: [presetTailwind()],
   selfURL: import.meta.url,
-} as Options;
+} as OptionsWithPresets;
 `;
 if (useTwind) {
   await Deno.writeTextFile(
@@ -503,7 +512,7 @@ try {
 
 let FRESH_CONFIG_TS = `import { defineConfig } from "$fresh/server.ts";\n`;
 if (useTwind) {
-  FRESH_CONFIG_TS += `import twindPlugin from "$fresh/plugins/twind.ts"
+  FRESH_CONFIG_TS += `import twindPlugin from "$fresh/plugins/twindv1.ts"
 import twindConfig from "./twind.config.ts";`;
 }
 
