@@ -26,7 +26,7 @@ interface State {
 
 export async function handler(
   req: Request,
-  ctx: MiddlewareHandlerContext<State>
+  ctx: MiddlewareHandlerContext<State>,
 ) {
   ctx.state.data = "myData";
   const resp = await ctx.next();

@@ -27,11 +27,11 @@ export async function handler(req: Request, ctx: MiddlewareHandlerContext) {
   headers.set("Access-Control-Allow-Credentials", "true");
   headers.set(
     "Access-Control-Allow-Headers",
-    "Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization, accept, origin, Cache-Control, X-Requested-With"
+    "Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization, accept, origin, Cache-Control, X-Requested-With",
   );
   headers.set(
     "Access-Control-Allow-Methods",
-    "POST, OPTIONS, GET, PUT, DELETE"
+    "POST, OPTIONS, GET, PUT, DELETE",
   );
 
   return resp;
@@ -66,11 +66,11 @@ export async function handler(_req: Request, ctx: MiddlewareHandlerContext) {
   headers.set("Access-Control-Allow-Credentials", "true");
   headers.set(
     "Access-Control-Allow-Headers",
-    "Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization, accept, origin, Cache-Control, X-Requested-With"
+    "Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization, accept, origin, Cache-Control, X-Requested-With",
   );
   headers.set(
     "Access-Control-Allow-Methods",
-    "POST, OPTIONS, GET, PUT, DELETE"
+    "POST, OPTIONS, GET, PUT, DELETE",
   );
 
   return resp;

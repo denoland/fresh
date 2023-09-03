@@ -122,8 +122,8 @@ available.
    }
    ```
 
-5. ⚠️ While Deno KV is still **experimental** you need to add the `--unstable` option to
-   the `start` task in the `deno.json` file.
+5. ⚠️ While Deno KV is still **experimental** you need to add the `--unstable`
+   option to the `start` task in the `deno.json` file.
 
    ```json
    "start": "deno run -A --watch=static/,routes/ --unstable dev.ts",

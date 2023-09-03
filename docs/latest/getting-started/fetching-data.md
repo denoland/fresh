@@ -28,7 +28,7 @@ interface GitHubResponse {
 
 export default async function Page(_req: Request, ctx: RouteContext) {
   const resp = await fetch(
-    `https://api.github.com/users/${ctx.params.username}`
+    `https://api.github.com/users/${ctx.params.username}`,
   );
 
   if (!resp.ok) {
