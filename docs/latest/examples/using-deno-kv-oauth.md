@@ -122,7 +122,14 @@ available.
    }
    ```
 
-5. Start your project with the necessary environment variables.
+5. ⚠️ While Deno KV is still **experimental** you need to add the `--unstable`
+   option to the `start` task in the `deno.json` file.
+
+   ```json
+   "start": "deno run -A --watch=static/,routes/ --unstable dev.ts",
+   ```
+
+6. Start your project with the necessary environment variables.
 
    ```sh
    GITHUB_CLIENT_ID=xxx GITHUB_CLIENT_SECRET=xxx deno task start

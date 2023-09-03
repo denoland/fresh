@@ -140,7 +140,8 @@ export default function MyIsland({ children, foo }: Props) {
     <div>
       <p>String from props: {foo}</p>
       <p>
-        <button onClick={() => (number.value = randomNumber())}>Random</button>{" "}
+        <button onClick={() => (number.value = randomNumber())}>Random</button>
+        {" "}
         number is: {number}.
       </p>
     </div>
