@@ -30,6 +30,12 @@
     "image": "fresh"
   },
   {
+    "title": "Multipurpose Personal Website",
+    "link": "https://andrew1412.deno.dev/",
+    "github": "andrew1412/website",
+    "image": "andrew1412"
+  },
+  {
     "title": "Paquet",
     "link": "https://paquet.app",
     "github": "notangelmario/paquet",
