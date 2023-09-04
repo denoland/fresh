@@ -269,22 +269,22 @@ export function assertNoDynamicRouteConflicts(routes: Route[]): CheckResult[] {
 
   for (let i = 0; i < patterns.length; i++) {
     for (let j = i + 1; j < patterns.length; j++) {
-      const pattern1 = patterns[i].split("/");
-      const pattern2 = patterns[j].split("/");
+      const pattern1 = patterns[i].split("/").filter(Boolean);
+      const pattern2 = patterns[j].split("/").filter(Boolean);
 
       if (pattern1.length !== pattern2.length) continue;
 
       const conflicts = pattern1.every((segment, index) => {
-        return segment === pattern2[index] || segment.startsWith(":") ||
-          pattern2[index].startsWith(":");
+        return segment === pattern2[index] || (segment.startsWith(":") &&
+          pattern2[index].startsWith(":"));
       });
 
       if (conflicts) {
         results.push({
           category: CheckCategory.DynamicRouteConflict,
-          message: `Dynamic route conflict: ${patterns[i]} and ${
+          message: `Potential route conflict: ${patterns[i]} and ${
             patterns[j]
-          } have conflicting dynamic parameters.`,
+          } may conflict.`,
           link: routes.find((route) => route.pattern === patterns[i])?.url,
         });
       }

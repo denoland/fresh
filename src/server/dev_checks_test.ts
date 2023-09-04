@@ -219,6 +219,11 @@ Deno.test("assertNoDynamicRouteConflicts", async (t) => {
     const routes: Route[] = [
       createRoute({ pattern: "/foo/:baz", url: "/foo/:baz" }),
       createRoute({ pattern: "/bar/:baz", url: "/bar/:baz" }),
+      createRoute({ pattern: "/foo/:bar/baz", url: "/foo/:bar/baz" }),
+      createRoute({ pattern: "/foo/bar/:baz", url: "/foo/bar/:baz" }),
+      createRoute({ pattern: "/bar/:baz/qux", url: "/bar/:baz/qux" }),
+      createRoute({ pattern: "/baz/:qux*", url: "/baz/:qux*" }),
+      createRoute({ pattern: "/baz", url: "/baz" }),
     ];
     const expected: CheckResult[] = [];
     const result = assertNoDynamicRouteConflicts(routes);
@@ -228,14 +233,22 @@ Deno.test("assertNoDynamicRouteConflicts", async (t) => {
   await t.step("fails validation check", () => {
     const routes: Route[] = [
       createRoute({ pattern: "/foo/:bar", url: "/foo/:bar" }),
+      createRoute({ pattern: "/baz/:qux*", url: "/baz/:qux*" }),
+      createRoute({ pattern: "/baz/:qux", url: "/baz/:qux" }),
       createRoute({ pattern: "/foo/:baz", url: "/foo/:baz" }),
     ];
     const expected: CheckResult[] = [
       {
         category: CheckCategory.DynamicRouteConflict,
         message:
-          "Dynamic route conflict: /foo/:bar and /foo/:baz have conflicting dynamic parameters.",
+          "Potential route conflict: /foo/:bar and /foo/:baz may conflict.",
         link: "/foo/:bar",
+      },
+      {
+        category: CheckCategory.DynamicRouteConflict,
+        message:
+          "Potential route conflict: /baz/:qux* and /baz/:qux may conflict.",
+        link: "/baz/:qux*",
       },
     ];
     const result = assertNoDynamicRouteConflicts(routes);
