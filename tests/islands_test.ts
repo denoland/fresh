@@ -514,3 +514,48 @@ Deno.test({
     );
   },
 });
+
+Deno.test({
+  name: "revive boolean attributes",
+
+  async fn() {
+    await withPageName(
+      "./tests/fixture/main.ts",
+      async (page, address) => {
+        await page.goto(`${address}/preact/boolean_attrs`);
+        await waitForText(page, ".form-revived", "Revived: true");
+
+        const checked = await page.$eval(
+          "input[type=checkbox]",
+          (el) => el.checked,
+        );
+        assertEquals(checked, true, "Checkbox is not checked");
+
+        const required = await page.$eval(
+          "input[type=text]",
+          (el) => el.required,
+        );
+        assertEquals(required, true, "Text input is not marked as required");
+
+        const radioChecked = await page.$eval(
+          "input[type=radio][value='2']",
+          (el) => el.checked,
+        );
+        assertEquals(
+          radioChecked,
+          true,
+          "Text input is not marked as required",
+        );
+
+        const selected = await page.$eval(
+          "select",
+          (el) => el.options[el.selectedIndex].text,
+        );
+        assertEquals(selected, "bar", "'bar' value is not selected");
+      },
+    );
+  },
+
+  sanitizeOps: false,
+  sanitizeResources: false,
+});
