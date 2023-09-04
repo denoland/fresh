@@ -323,7 +323,14 @@ function _walkInner(
         };
         for (let i = 0; i < sib.attributes.length; i++) {
           const attr = sib.attributes[i];
-          props[attr.nodeName] = attr.nodeValue;
+
+          // Boolean attributes are always `true` when present.
+          // See: https://developer.mozilla.org/en-US/docs/Glossary/Boolean/HTML
+          props[attr.nodeName] =
+            // deno-lint-ignore no-explicit-any
+            typeof (sib as any)[attr.nodeName] === "boolean"
+              ? true
+              : attr.nodeValue;
         }
         const vnode = h(sib.localName, props);
         addPropsChild(parentVNode, vnode);
