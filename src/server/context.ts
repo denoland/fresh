@@ -64,6 +64,7 @@ import {
   assertNoStaticRouteConflicts,
   assertPluginsCallRender,
   assertPluginsCallRenderAsync,
+  assertPluginsDuringAOTBuild,
   assertPluginsInjectModules,
   assertRoutesHaveHandlerOrComponent,
   assertSingleModule,
@@ -167,6 +168,7 @@ export class ServerContext {
 
     // Restore snapshot if available
     let snapshot: BuildSnapshot | null = null;
+    let json: BuildSnapshotJson | null = null;
     // Load from snapshot if not explicitly requested not to
     const loadFromSnapshot = !opts.skipSnapshot;
     if (loadFromSnapshot) {
@@ -178,9 +180,11 @@ export class ServerContext {
           );
 
           const snapshotPath = join(snapshotDirPath, "snapshot.json");
-          const json = JSON.parse(
+
+          json = JSON.parse(
             await Deno.readTextFile(snapshotPath),
           ) as BuildSnapshotJson;
+
           setBuildId(json.build_id);
 
           const dependencies = new Map<string, string[]>(
@@ -462,6 +466,7 @@ export class ServerContext {
         () => assertPluginsCallRender(opts.plugins ?? []),
         () => assertPluginsCallRenderAsync(opts.plugins ?? []),
         () => assertPluginsInjectModules(opts.plugins ?? []),
+        () => assertPluginsDuringAOTBuild(opts.plugins ?? [], json),
       ];
 
       const results = checks.flatMap((check) => check());

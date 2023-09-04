@@ -1,4 +1,5 @@
 import { existsSync, spy } from "./deps.ts";
+import type { BuildSnapshotJson } from "$fresh/src/build/mod.ts";
 import {
   AppModule,
   ErrorPageModule,
@@ -7,7 +8,7 @@ import {
   UnknownPageModule,
 } from "$fresh/src/server/types.ts";
 import { knownMethods } from "$fresh/src/server/router.ts";
-import { Plugin } from "$fresh/src/server/mod.ts";
+import type { Plugin } from "$fresh/src/server/mod.ts";
 
 export type CheckFunction = () => CheckResult[];
 
@@ -19,6 +20,7 @@ export enum CheckCategory {
   HandlerOrComponent = "Handler or Component",
   StaticDirectory = "Static Directory",
   StaticFileConflict = "Static File Conflict",
+  PluginAOTBuild = "Plugin AOT Build",
   PluginRender = "Plugin Render",
   PluginRenderAsync = "Plugin RenderAsync",
   PluginInjectModules = "Plugin Inject Modules",
@@ -256,6 +258,33 @@ export function assertPluginsInjectModules(plugins: Plugin[]): CheckResult[] {
       }
     });
   });
+
+  return results;
+}
+
+/** Asserts that plugin are present during AOT builds. */
+export function assertPluginsDuringAOTBuild(
+  plugins: Plugin[],
+  json: BuildSnapshotJson | null,
+): CheckResult[] {
+  const results: CheckResult[] = [];
+
+  if (json?.files && plugins.length) {
+    const keys = Object.keys(json.files);
+
+    if (
+      !keys.length ||
+      !plugins.every((plugin) =>
+        keys.find((key) => key.startsWith(`plugin-${plugin.name}`))
+      )
+    ) {
+      results.push({
+        category: CheckCategory.PluginAOTBuild,
+        message:
+          `Not all of the plugins you're using are present in the AOT build. Please ensure that all of your plugins are being added.`,
+      });
+    }
+  }
 
   return results;
 }

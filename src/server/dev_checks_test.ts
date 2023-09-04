@@ -7,6 +7,7 @@ import {
   assertNoStaticRouteConflicts,
   assertPluginsCallRender,
   assertPluginsCallRenderAsync,
+  assertPluginsDuringAOTBuild,
   assertPluginsInjectModules,
   assertRoutesHaveHandlerOrComponent,
   assertSingleModule,
@@ -16,6 +17,7 @@ import {
   type CheckResult,
 } from "./dev_checks.ts";
 import type { AppModule, Plugin, Route, StaticFile } from "./types.ts";
+import { BuildSnapshotJson } from "$fresh/src/build/mod.ts";
 
 function createRoute(route: Partial<Route>): Route {
   return {
@@ -40,6 +42,24 @@ function createStaticFile(file: Partial<StaticFile>): StaticFile {
     contentType: "text/plain",
     etag: "foo",
     ...file,
+  };
+}
+
+function createPlugin(plugin: Partial<Plugin>): Plugin {
+  return {
+    entrypoints: {},
+    name: "foo",
+    ...plugin,
+  };
+}
+
+function createBuildSnapshotJson(
+  json: Partial<BuildSnapshotJson>,
+): BuildSnapshotJson {
+  return {
+    build_id: "build_id",
+    files: {},
+    ...json,
   };
 }
 
@@ -118,12 +138,20 @@ Deno.test("assertSingleRoutePattern", async (t) => {
 
   await t.step("fails validation check", () => {
     const routes: Route[] = [
+      createRoute({ pattern: "/", url: "/" }),
+      createRoute({ pattern: "/", url: "/" }),
       createRoute({ pattern: "/foo", url: "/foo" }),
       createRoute({ pattern: "/foo", url: "/foo" }),
       createRoute({ pattern: "/:bar", url: "/:bar" }),
       createRoute({ pattern: "/:bar", url: "/:bar" }),
     ];
     const expected: CheckResult[] = [
+      {
+        category: CheckCategory.DuplicateRoutePatterns,
+        link: "/",
+        message:
+          "Duplicate route pattern: /. Please rename the route to resolve the route conflicts.",
+      },
       {
         category: CheckCategory.DuplicateRoutePatterns,
         link: "/foo",
@@ -318,13 +346,13 @@ Deno.test("assertStaticDirSafety", async (t) => {
 Deno.test("assertPluginsCallRender", async (t) => {
   await t.step("passes validation check", () => {
     const plugins: Plugin[] = [
-      {
+      createPlugin({
         name: "foo",
         render: (ctx) => {
           ctx.render();
           return {};
         },
-      },
+      }),
     ];
     const expected: CheckResult[] = [];
     const result = assertPluginsCallRender(plugins);
@@ -333,10 +361,10 @@ Deno.test("assertPluginsCallRender", async (t) => {
 
   await t.step("fails validation check", () => {
     const plugins: Plugin[] = [
-      {
+      createPlugin({
         name: "foo",
         render: (_ctx) => ({}),
-      },
+      }),
     ];
     const expected: CheckResult[] = [
       {
@@ -352,13 +380,13 @@ Deno.test("assertPluginsCallRender", async (t) => {
 Deno.test("assertPluginsCallRenderAsync", async (t) => {
   await t.step("passes validation check", () => {
     const plugins: Plugin[] = [
-      {
+      createPlugin({
         name: "foo",
         renderAsync: async (ctx) => {
           await ctx.renderAsync();
           return await Promise.resolve({});
         },
-      },
+      }),
     ];
     const expected: CheckResult[] = [];
     const result = assertPluginsCallRenderAsync(plugins);
@@ -367,12 +395,12 @@ Deno.test("assertPluginsCallRenderAsync", async (t) => {
 
   await t.step("fails validation check", () => {
     const plugins: Plugin[] = [
-      {
+      createPlugin({
         name: "foo",
         renderAsync: async (_ctx) => {
           return await Promise.resolve({});
         },
-      },
+      }),
     ];
     const expected: CheckResult[] = [
       {
@@ -388,12 +416,12 @@ Deno.test("assertPluginsCallRenderAsync", async (t) => {
 Deno.test("assertPluginsInjectModules", async (t) => {
   await t.step("passes validation check", () => {
     const plugins: Plugin[] = [
-      {
+      createPlugin({
         name: "foo",
         entrypoints: {
           main: "export default function() {}",
         },
-      },
+      }),
     ];
     const expected: CheckResult[] = [];
     const result = assertPluginsInjectModules(plugins);
@@ -402,12 +430,12 @@ Deno.test("assertPluginsInjectModules", async (t) => {
 
   await t.step("fails validation check", () => {
     const plugins: Plugin[] = [
-      {
+      createPlugin({
         name: "foo",
         entrypoints: {
           main: "function() {}",
         },
-      },
+      }),
     ];
     const expected: CheckResult[] = [
       {
@@ -417,6 +445,90 @@ Deno.test("assertPluginsInjectModules", async (t) => {
       },
     ];
     const result = assertPluginsInjectModules(plugins);
+    assertEquals(result, expected);
+  });
+});
+
+Deno.test("assertPluginsDuringAOTBuild", async (t) => {
+  await t.step("passes validation check", () => {
+    const plugins: Plugin[] = [
+      createPlugin({
+        name: "foo",
+        entrypoints: {
+          main: "export default function() {}",
+        },
+      }),
+    ];
+    const json: BuildSnapshotJson = createBuildSnapshotJson({
+      files: { "plugin-foo.js": [] },
+    });
+    const expected: CheckResult[] = [];
+    const result = assertPluginsDuringAOTBuild(plugins, json);
+    assertEquals(result, expected);
+  });
+
+  await t.step("passes validation check w/ no plugins", () => {
+    const plugins: Plugin[] = [];
+    const json: BuildSnapshotJson = createBuildSnapshotJson({
+      files: {},
+    });
+    const expected: CheckResult[] = [];
+    const result = assertPluginsDuringAOTBuild(plugins, json);
+    assertEquals(result, expected);
+  });
+
+  await t.step("passes validation check w/ no json", () => {
+    const plugins: Plugin[] = [
+      createPlugin({}),
+    ];
+    const json: BuildSnapshotJson | null = null;
+    const expected: CheckResult[] = [];
+    const result = assertPluginsDuringAOTBuild(plugins, json);
+    assertEquals(result, expected);
+  });
+
+  await t.step("fails validation check", () => {
+    const plugins: Plugin[] = [
+      createPlugin({
+        name: "foo",
+      }),
+    ];
+    const json: BuildSnapshotJson = createBuildSnapshotJson({
+      files: {},
+    });
+    const expected: CheckResult[] = [
+      {
+        category: CheckCategory.PluginAOTBuild,
+        message:
+          `Not all of the plugins you're using are present in the AOT build. Please ensure that all of your plugins are being added.`,
+      },
+    ];
+    const result = assertPluginsDuringAOTBuild(plugins, json);
+    assertEquals(result, expected);
+  });
+
+  await t.step("fails validation check w/ multiple plugins", () => {
+    const plugins: Plugin[] = [
+      createPlugin({
+        name: "foo",
+      }),
+      createPlugin({
+        name: "bar",
+      }),
+    ];
+    const json: BuildSnapshotJson = createBuildSnapshotJson({
+      files: {
+        "plugin-foo.js": [],
+      },
+    });
+    const expected: CheckResult[] = [
+      {
+        category: CheckCategory.PluginAOTBuild,
+        message:
+          `Not all of the plugins you're using are present in the AOT build. Please ensure that all of your plugins are being added.`,
+      },
+    ];
+    const result = assertPluginsDuringAOTBuild(plugins, json);
     assertEquals(result, expected);
   });
 });
