@@ -279,7 +279,7 @@ Deno.test("assertNoStaticRouteConflict", async (t) => {
     const expected: CheckResult[] = [
       {
         category: CheckCategory.StaticFileConflict,
-        link: "/foo.bar",
+        link: "http://localhost:3000/foo.bar",
         message:
           "Static file conflict: A file exists at /foo.bar which matches a route pattern. Please rename the file or change the route pattern.",
       },
