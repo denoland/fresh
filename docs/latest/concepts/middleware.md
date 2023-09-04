@@ -15,7 +15,7 @@ be used to pass arbitrary data to downstream (or upstream) handlers. This
 special [\_app](/docs/concepts/app-wrapper.md) wrapper and normal
 [routes](/docs/concepts/routes.md). `ctx.state` is normally set by modifying its
 properties, e.g. `ctx.state.loggedIn = true`, but you can also replace the
-entire object like `ctx.state = { loggedIn = true }`.
+entire object like `ctx.state = { loggedIn: true }`.
 
 ```ts routes/_middleware.ts
 import { MiddlewareHandlerContext } from "$fresh/server.ts";
@@ -26,7 +26,7 @@ interface State {
 
 export async function handler(
   req: Request,
-  ctx: MiddlewareHandlerContext<State>
+  ctx: MiddlewareHandlerContext<State>,
 ) {
   ctx.state.data = "myData";
   const resp = await ctx.next();

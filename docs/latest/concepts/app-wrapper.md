@@ -94,9 +94,11 @@ Rendering the app wrapper can be skipped on a route or layout basis. To do that,
 set `skipAppWrapper: true` to the layout or route config.
 
 ```tsx routes/my-special-route.tsx
-export const config: RouteConfig {
-  skipAppWrapper: true; // Skip the app wrapper during rendering
-}
+import { RouteConfig } from "$fresh/server.ts";
+
+export const config: RouteConfig = {
+  skipAppWrapper: true, // Skip the app wrapper during rendering
+};
 
 export default function Page() {
   // ...
