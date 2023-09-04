@@ -84,9 +84,6 @@ function addPropsChild(parent: VNode, vnode: ComponentChildren) {
   }
 }
 
-const BOOLEAN_ATTR =
-  /(async|autofocus|autoplay|checked|controls|default|defer|disabled|formnovalidate|inert|ismap|itemscope|loop|multiple|muted|nomodule|novalidate|open|playsinline|readonly|required|reversed|selected)/;
-
 const enum MarkerKind {
   Island,
   Slot,
@@ -329,9 +326,11 @@ function _walkInner(
 
           // Boolean attributes are always `true` when present.
           // See: https://developer.mozilla.org/en-US/docs/Glossary/Boolean/HTML
-          props[attr.nodeName] = BOOLEAN_ATTR.test(attr.nodeName)
-            ? true
-            : attr.nodeValue;
+          props[attr.nodeName] =
+            // deno-lint-ignore no-explicit-any
+            typeof (sib as any)[attr.nodeName] === "boolean"
+              ? true
+              : attr.nodeValue;
         }
         const vnode = h(sib.localName, props);
         addPropsChild(parentVNode, vnode);
