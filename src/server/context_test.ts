@@ -27,6 +27,12 @@ Deno.test("pathToPattern", async (t) => {
 
   await t.step("parses optional params", () => {
     assertEquals(pathToPattern("foo/[[name]]"), "/foo{/:name}?");
+    assertEquals(pathToPattern("foo/[name]/[[bob]]"), "/foo/:name{/:bob}?");
+    assertEquals(pathToPattern("foo/[[name]]/bar"), "/foo{/:name}?/bar");
+    assertEquals(
+      pathToPattern("foo/[[name]]/bar/[[bob]]"),
+      "/foo{/:name}?/bar{/:bob}?",
+    );
   });
 
   await t.step("throws on invalid patterns", () => {
