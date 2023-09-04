@@ -166,7 +166,7 @@ export function assertNoStaticRouteConflicts(
         category: CheckCategory.StaticFileConflict,
         message:
           `Static file conflict: A file exists at ${staticFile.path} which matches a route pattern. Please rename the file or change the route pattern.`,
-        link: staticFile.localUrl.pathname,
+        link: staticFile.localUrl.toString(),
       });
     }
   });

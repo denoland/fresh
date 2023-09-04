@@ -236,8 +236,8 @@ export class ServerContext {
     let errorModule: { url: string; module: ErrorPageModule } | null = null;
     const allRoutes = [
       ...Object.entries(manifest.routes),
-      ...(opts.plugins ? getMiddlewareRoutesFromPlugins(opts.plugins) : []),
-      ...(opts.plugins ? getRoutesFromPlugins(opts.plugins) : []),
+      ...getMiddlewareRoutesFromPlugins(opts.plugins ?? []),
+      ...getRoutesFromPlugins(opts.plugins ?? []),
     ];
 
     // Presort all routes so that we only need to sort once
