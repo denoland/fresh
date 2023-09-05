@@ -49,11 +49,11 @@ import {
 } from "../runtime/csp.ts";
 import { ASSET_CACHE_BUST_KEY, INTERNAL_PREFIX } from "../runtime/utils.ts";
 import {
+  AotSnapshot,
   Builder,
   BuildSnapshot,
   BuildSnapshotJson,
   EsbuildBuilder,
-  EsbuildSnapshot,
   JSXConfig,
 } from "../build/mod.ts";
 import { InternalRoute } from "./router.ts";
@@ -184,14 +184,13 @@ export class ServerContext {
             Object.entries(json.files),
           );
 
-          const files = new Map();
-          const names = Object.keys(json);
-          await Promise.all(names.map(async (name) => {
+          const files = new Map<string, string>();
+          Object.keys(json.files).forEach((name) => {
             const filePath = join(snapshotDirPath, name);
-            files.set(name, await Deno.readFile(filePath));
-          }));
+            files.set(name, filePath);
+          });
 
-          snapshot = new EsbuildSnapshot(files, dependencies);
+          snapshot = new AotSnapshot(files, dependencies);
         }
       } catch (err) {
         if (!(err instanceof Deno.errors.NotFound)) {
@@ -994,7 +993,7 @@ export class ServerContext {
   #bundleAssetRoute = (): router.MatchHandler => {
     return async (_req, _ctx, params) => {
       const snapshot = await this.buildSnapshot();
-      const contents = snapshot.read(params.path);
+      const contents = await snapshot.read(params.path);
       if (!contents) return new Response(null, { status: 404 });
 
       const headers: Record<string, string> = {
