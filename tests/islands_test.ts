@@ -6,8 +6,12 @@ import {
   Page,
 } from "./deps.ts";
 import {
+  assertSelector,
+  assertTextMatch,
   clickWhenListenerReady,
+  fetchHtml,
   waitForText,
+  withFresh,
   withPageName,
 } from "./test_utils.ts";
 
@@ -558,4 +562,21 @@ Deno.test({
 
   sanitizeOps: false,
   sanitizeResources: false,
+});
+
+Deno.test("throws when passing non-jsx children to an island", async () => {
+  await withFresh(
+    "./tests/fixture_island_nesting/dev.ts",
+    async (address) => {
+      const doc = await fetchHtml(`${address}/island_invalid_children`);
+
+      assertSelector(doc, ".frsh-error-page");
+      assertTextMatch(doc, "pre", /Invalid JSX child passed to island/);
+
+      const doc2 = await fetchHtml(`${address}/island_invalid_children_fn`);
+
+      assertSelector(doc2, ".frsh-error-page");
+      assertTextMatch(doc2, "pre", /Invalid JSX child passed to island/);
+    },
+  );
 });
