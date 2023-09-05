@@ -297,7 +297,7 @@ export async function waitForText(
       (sel, value) => {
         return document.querySelector(sel)!.textContent === value;
       },
-      { timeout: isCI ? 10000 : 2000 },
+      { timeout: isCI ? 30000 : 2000 },
       selector,
       String(text),
     );
