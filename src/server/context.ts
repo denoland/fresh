@@ -1173,6 +1173,12 @@ export function pathToPattern(path: string): string {
       const char = part[j];
       if (char === "[") {
         if (part[j + 1] === "[") {
+          // Disallow optional dynamic params like `foo-[[bar]]`
+          if (part[j - 1] !== "/" && !!part[j - 1]) {
+            throw new SyntaxError(
+              `Invalid route pattern: "${path}". An optional parameter needs to be a full segment.`,
+            );
+          }
           groupOpen++;
           optional = true;
           pattern += "{/";
@@ -1182,6 +1188,12 @@ export function pathToPattern(path: string): string {
         groupOpen++;
       } else if (char === "]") {
         if (part[j + 1] === "]") {
+          // Disallow optional dynamic params like `[[foo]]-bar`
+          if (part[j + 2] !== "/" && !!part[j + 2]) {
+            throw new SyntaxError(
+              `Invalid route pattern: "${path}". An optional parameter needs to be a full segment.`,
+            );
+          }
           groupOpen--;
           pattern += "}?";
           j++;

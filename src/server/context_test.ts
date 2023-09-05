@@ -39,5 +39,10 @@ Deno.test("pathToPattern", async (t) => {
     assertThrows(() => pathToPattern("foo/[foo][bar]"));
     assertThrows(() => pathToPattern("foo/foo]"));
     assertThrows(() => pathToPattern("foo/[foo]]"));
+    assertThrows(() => pathToPattern("foo/foo-[[name]]-bar/baz"));
+    assertThrows(() => pathToPattern("foo/[[name]]-bar/baz"));
+    assertThrows(() => pathToPattern("foo/foo-[[name]]/baz"));
+    assertThrows(() => pathToPattern("foo/foo-[[name]]"));
+    assertThrows(() => pathToPattern("foo/[[name]]-bar"));
   });
 });
