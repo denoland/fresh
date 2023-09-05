@@ -183,14 +183,14 @@ globalThis.addEventListener("beforeunload", async () => {
 
 export async function withPageName(
   name: string,
-  fn: (page: Page, address: string) => Promise<void>,
+  fn: (page: Page, address: string, output: string[]) => Promise<void>,
 ) {
-  const { lines, serverProcess, address } = await startFreshServer({
+  const { lines, serverProcess, address, output } = await startFreshServer({
     args: ["run", "-A", name],
   });
 
   try {
-    await fn(PAGE, address);
+    await fn(PAGE, address, output);
   } finally {
     await lines.cancel();
 
