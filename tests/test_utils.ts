@@ -175,6 +175,13 @@ export async function withFresh(
   }
 }
 
+const BROWSER = await puppeteer.launch({ args: ["--no-sandbox"] });
+const PAGE = await BROWSER.newPage();
+globalThis.addEventListener("beforeunload", async () => {
+  await PAGE.close();
+  await BROWSER.close();
+});
+
 export async function withPageName(
   name: string,
   fn: (page: Page, address: string) => Promise<void>,
@@ -184,15 +191,7 @@ export async function withPageName(
   });
 
   try {
-    await delay(100);
-    const browser = await puppeteer.launch({ args: ["--no-sandbox"] });
-
-    try {
-      const page = await browser.newPage();
-      await fn(page, address);
-    } finally {
-      await browser.close();
-    }
+    await fn(PAGE, address);
   } finally {
     await lines.cancel();
 

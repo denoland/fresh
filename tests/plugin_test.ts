@@ -107,9 +107,7 @@ Deno.test({
     const browser = await puppeteer.launch({ args: ["--no-sandbox"] });
     const page = await browser.newPage();
 
-    await page.goto(`${address}/with-island`, {
-      waitUntil: "networkidle2",
-    });
+    await page.goto(`${address}/with-island`);
 
     await t.step("island is revived", async () => {
       await page.waitForSelector("#csr");

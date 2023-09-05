@@ -184,9 +184,7 @@ Deno.test({
           );
         }
 
-        await page.goto(`${address}/dynamic/acme-corp`, {
-          waitUntil: "networkidle2",
-        });
+        await page.goto(`${address}/dynamic/acme-corp`);
 
         await t.step("Ensure 1 island on 1 page are revived", async () => {
           await counterTest("counter", 3);

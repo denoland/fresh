@@ -29,9 +29,7 @@ Deno.test({
         await waitForText(page, `#${counterId} > p`, String(originalValue + 1));
       }
 
-      await page.goto(`${address}/islands`, {
-        waitUntil: "networkidle2",
-      });
+      await page.goto(`${address}/islands`);
 
       await t.step("Ensure 5 islands on 1 page are revived", async () => {
         await counterTest("counter1", 3);
@@ -76,9 +74,7 @@ Deno.test({
         await waitForText(page, `#${counterId} > p`, String(originalValue + 1));
       }
 
-      await page.goto(`${address}/islands/multiple_island_exports`, {
-        waitUntil: "networkidle2",
-      });
+      await page.goto(`${address}/islands/multiple_island_exports`);
 
       await t.step("Ensure 3 islands on 1 page are revived", async () => {
         await counterTest("counter0", 4);
@@ -105,9 +101,7 @@ Deno.test({
         assert(false, "There is XSS");
       });
 
-      await page.goto(`${address}/evil`, {
-        waitUntil: "networkidle2",
-      });
+      await page.goto(`${address}/evil`);
 
       await t.step("prevent XSS on Island", async () => {
         const bodyElem = await page.waitForSelector(`body`);
@@ -131,9 +125,7 @@ Deno.test({
 
   async fn(_t) {
     await withPage(async (page, address) => {
-      await page.goto(`${address}/islands/root_fragment`, {
-        waitUntil: "networkidle2",
-      });
+      await page.goto(`${address}/islands/root_fragment`);
 
       const clickableSelector = "#root-fragment-click-me";
 
@@ -157,9 +149,6 @@ Deno.test({
     await withPage(async (page, address) => {
       await page.goto(
         `${address}/islands/root_fragment_conditional_first`,
-        {
-          waitUntil: "networkidle2",
-        },
       );
 
       const clickableSelector = "#root-fragment-conditional-first-click-me";
@@ -185,9 +174,7 @@ Deno.test({
 
   async fn(_t) {
     await withPage(async (page, address) => {
-      await page.goto(`${address}/islands/returning_null`, {
-        waitUntil: "networkidle2",
-      });
+      await page.goto(`${address}/islands/returning_null`);
 
       await page.waitForSelector(".added-by-use-effect");
     });
@@ -203,11 +190,11 @@ Deno.test({
   async fn(_t) {
     await withPageName("./tests/fixture_npm/main.ts", async (page, address) => {
       await page.setJavaScriptEnabled(false);
-      await page.goto(address, { waitUntil: "networkidle2" });
+      await page.goto(address);
       assert(await page.waitForSelector("#server-true"));
 
       await page.setJavaScriptEnabled(true);
-      await page.reload({ waitUntil: "networkidle2" });
+      await page.reload();
       assert(await page.waitForSelector("#browser-true"));
     });
   },
@@ -223,9 +210,7 @@ Deno.test({
     await withPageName(
       "./tests/fixture_preact_rts_v5/main.ts",
       async (page, address) => {
-        await page.goto(address, {
-          waitUntil: "networkidle2",
-        });
+        await page.goto(address);
         await page.waitForSelector("#foo");
         await waitForText(page, "#foo", "it works");
       },
@@ -243,9 +228,7 @@ Deno.test({
     await withPageName(
       "./tests/fixture_island_nesting/main.ts",
       async (page, address) => {
-        await page.goto(`${address}/island_jsx_child`, {
-          waitUntil: "networkidle2",
-        });
+        await page.goto(`${address}/island_jsx_child`);
         await page.waitForSelector(".island");
         await waitForText(page, ".island", "it works");
       },
@@ -263,9 +246,7 @@ Deno.test({
     await withPageName(
       "./tests/fixture_island_nesting/main.ts",
       async (page, address) => {
-        await page.goto(`${address}/island_jsx_children`, {
-          waitUntil: "networkidle2",
-        });
+        await page.goto(`${address}/island_jsx_children`);
         await page.waitForSelector(".island");
 
         await delay(100);
@@ -286,9 +267,7 @@ Deno.test({
     await withPageName(
       "./tests/fixture_island_nesting/main.ts",
       async (page, address) => {
-        await page.goto(`${address}/island_jsx_text`, {
-          waitUntil: "networkidle2",
-        });
+        await page.goto(`${address}/island_jsx_text`);
         await page.waitForSelector(".island");
 
         await delay(100);
@@ -309,9 +288,7 @@ Deno.test({
     await withPageName(
       "./tests/fixture_island_nesting/main.ts",
       async (page, address) => {
-        await page.goto(`${address}/island_in_island`, {
-          waitUntil: "networkidle2",
-        });
+        await page.goto(`${address}/island_in_island`);
         await page.waitForSelector(".island");
         await waitForText(page, ".island .island p", "it works");
       },
@@ -329,9 +306,7 @@ Deno.test({
     await withPageName(
       "./tests/fixture_island_nesting/main.ts",
       async (page, address) => {
-        await page.goto(`${address}/island_in_island_definition`, {
-          waitUntil: "networkidle2",
-        });
+        await page.goto(`${address}/island_in_island_definition`);
         await page.waitForSelector(".island");
 
         await waitForText(page, ".island .island p", "it works");
@@ -355,9 +330,7 @@ Deno.test({
     await withPageName(
       "./tests/fixture_island_nesting/main.ts",
       async (page, address) => {
-        await page.goto(`${address}/island_jsx_island_jsx`, {
-          waitUntil: "networkidle2",
-        });
+        await page.goto(`${address}/island_jsx_island_jsx`);
         await page.waitForSelector(".island");
 
         await waitForText(
@@ -380,9 +353,7 @@ Deno.test({
     await withPageName(
       "./tests/fixture_island_nesting/main.ts",
       async (page, address) => {
-        await page.goto(`${address}/island_siblings`, {
-          waitUntil: "networkidle2",
-        });
+        await page.goto(`${address}/island_siblings`);
         await page.waitForSelector(".island");
 
         await waitForText(page, ".island .a", "it works");
@@ -402,9 +373,7 @@ Deno.test({
     await withPageName(
       "./tests/fixture_island_nesting/main.ts",
       async (page, address) => {
-        await page.goto(`${address}/island_conditional`, {
-          waitUntil: "networkidle2",
-        });
+        await page.goto(`${address}/island_conditional`);
         await page.waitForSelector("button");
 
         await delay(100);
@@ -429,9 +398,7 @@ Deno.test({
     await withPageName(
       "./tests/fixture_island_nesting/main.ts",
       async (page, address) => {
-        await page.goto(`${address}/island_nested_props`, {
-          waitUntil: "networkidle2",
-        });
+        await page.goto(`${address}/island_nested_props`);
         await page.waitForSelector(".island");
 
         await waitForText(page, ".island .island p", "it works");

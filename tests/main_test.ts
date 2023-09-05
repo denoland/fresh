@@ -726,9 +726,7 @@ Deno.test("jsx pragma works", {
   const browser = await puppeteer.launch({ args: ["--no-sandbox"] });
   const page = await browser.newPage();
 
-  await page.goto(address, {
-    waitUntil: "networkidle2",
-  });
+  await page.goto(address);
 
   await t.step("island is revived", async () => {
     await page.waitForSelector("#csr");
@@ -761,9 +759,7 @@ Deno.test("preact/debug is active in dev mode", {
   const browser = await puppeteer.launch({ args: ["--no-sandbox"] });
   const page = await browser.newPage();
 
-  await page.goto(address, {
-    waitUntil: "networkidle2",
-  });
+  await page.goto(address);
 
   await t.step("error page is shown with error message", async () => {
     const el = await page.waitForSelector(".frsh-error-page");
