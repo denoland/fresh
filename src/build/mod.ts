@@ -4,6 +4,7 @@ export {
   EsbuildSnapshot,
   type JSXConfig,
 } from "./esbuild.ts";
+export { AotSnapshot } from "./aot_snapshot.ts";
 export interface Builder {
   build(): Promise<BuildSnapshot>;
 }
@@ -14,7 +15,13 @@ export interface BuildSnapshot {
 
   /** For a given file, return it's contents.
    * @throws If the file is not contained in this snapshot. */
-  read(path: string): ReadableStream<Uint8Array> | Uint8Array | null;
+  read(
+    path: string,
+  ):
+    | ReadableStream<Uint8Array>
+    | Uint8Array
+    | null
+    | Promise<ReadableStream<Uint8Array> | Uint8Array | null>;
 
   /** For a given entrypoint, return it's list of dependencies.
    *
