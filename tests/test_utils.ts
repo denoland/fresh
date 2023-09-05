@@ -251,20 +251,40 @@ export async function clickWhenListenerReady(page: Page, selector: string) {
   await page.click(selector);
 }
 
+async function printPage(page: Page) {
+  let html;
+  try {
+    html = await page.content();
+    const doc = parseHtml(html);
+    // deno-lint-ignore no-explicit-any
+    console.log(prettyDom(doc as any));
+  } catch {
+    // Check if we at least can show the page content as texrt
+    if (typeof html === "string") {
+      console.log(html);
+    }
+  }
+}
+
 export async function waitForText(
   page: Page,
   selector: string,
   text: string,
 ) {
-  await page.waitForSelector(selector);
-  await page.waitForFunction(
-    (sel, value) => {
-      return document.querySelector(sel)!.textContent === value;
-    },
-    { timeout: 2000 },
-    selector,
-    String(text),
-  );
+  try {
+    await page.waitForSelector(selector);
+    await page.waitForFunction(
+      (sel, value) => {
+        return document.querySelector(sel)!.textContent === value;
+      },
+      { timeout: 2000 },
+      selector,
+      String(text),
+    );
+  } catch (err) {
+    await printPage(page);
+    throw err;
+  }
 }
 
 async function spawnServer(
