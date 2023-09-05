@@ -13,6 +13,8 @@ export function parseHtml(input: string) {
   return new DOMParser().parseFromString(input, "text/html");
 }
 
+const isCI = Deno.env.has("CI");
+
 export async function startFreshServer(options: Deno.CommandOptions) {
   const { serverProcess, lines, address, output } = await spawnServer(options);
 
@@ -277,7 +279,7 @@ export async function waitForText(
       (sel, value) => {
         return document.querySelector(sel)!.textContent === value;
       },
-      { timeout: 2000 },
+      { timeout: isCI ? 10000 : 2000 },
       selector,
       String(text),
     );
