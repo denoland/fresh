@@ -48,38 +48,40 @@ import * as $42 from "./routes/movies/[foo].json.ts";
 import * as $43 from "./routes/movies/[foo]@[bar].ts";
 import * as $44 from "./routes/not_found.ts";
 import * as $45 from "./routes/params.tsx";
-import * as $46 from "./routes/props/[id].tsx";
-import * as $47 from "./routes/route-groups-islands/index.tsx";
-import * as $48 from "./routes/route-groups/(bar)/(baz)/_layout.tsx";
-import * as $49 from "./routes/route-groups/(bar)/(baz)/baz.tsx";
-import * as $50 from "./routes/route-groups/(bar)/_layout.tsx";
-import * as $51 from "./routes/route-groups/(bar)/bar.tsx";
-import * as $52 from "./routes/route-groups/(bar)/boof/index.tsx";
-import * as $53 from "./routes/route-groups/(foo)/_layout.tsx";
-import * as $54 from "./routes/route-groups/(foo)/index.tsx";
-import * as $55 from "./routes/signal_shared.tsx";
-import * as $56 from "./routes/state-in-props/_middleware.ts";
-import * as $57 from "./routes/state-in-props/index.tsx";
-import * as $58 from "./routes/state-middleware/_middleware.ts";
-import * as $59 from "./routes/state-middleware/foo/_middleware.ts";
-import * as $60 from "./routes/state-middleware/foo/index.tsx";
-import * as $61 from "./routes/static.tsx";
-import * as $62 from "./routes/status_overwrite.tsx";
-import * as $63 from "./routes/umlaut-äöüß.tsx";
-import * as $64 from "./routes/wildcard.tsx";
+import * as $46 from "./routes/preact/boolean_attrs.tsx";
+import * as $47 from "./routes/props/[id].tsx";
+import * as $48 from "./routes/route-groups-islands/index.tsx";
+import * as $49 from "./routes/route-groups/(bar)/(baz)/_layout.tsx";
+import * as $50 from "./routes/route-groups/(bar)/(baz)/baz.tsx";
+import * as $51 from "./routes/route-groups/(bar)/_layout.tsx";
+import * as $52 from "./routes/route-groups/(bar)/bar.tsx";
+import * as $53 from "./routes/route-groups/(bar)/boof/index.tsx";
+import * as $54 from "./routes/route-groups/(foo)/_layout.tsx";
+import * as $55 from "./routes/route-groups/(foo)/index.tsx";
+import * as $56 from "./routes/signal_shared.tsx";
+import * as $57 from "./routes/state-in-props/_middleware.ts";
+import * as $58 from "./routes/state-in-props/index.tsx";
+import * as $59 from "./routes/state-middleware/_middleware.ts";
+import * as $60 from "./routes/state-middleware/foo/_middleware.ts";
+import * as $61 from "./routes/state-middleware/foo/index.tsx";
+import * as $62 from "./routes/static.tsx";
+import * as $63 from "./routes/status_overwrite.tsx";
+import * as $64 from "./routes/umlaut-äöüß.tsx";
+import * as $65 from "./routes/wildcard.tsx";
 import * as $$0 from "./islands/Counter.tsx";
-import * as $$1 from "./islands/Greeter.tsx";
-import * as $$2 from "./islands/MultipleCounters.tsx";
-import * as $$3 from "./islands/ReturningNull.tsx";
-import * as $$4 from "./islands/RootFragment.tsx";
-import * as $$5 from "./islands/RootFragmentWithConditionalFirst.tsx";
-import * as $$6 from "./islands/StringEventIsland.tsx";
-import * as $$7 from "./islands/Test.tsx";
-import * as $$8 from "./islands/folder/Counter.tsx";
-import * as $$9 from "./islands/folder/subfolder/Counter.tsx";
-import * as $$10 from "./islands/kebab-case-counter-test.tsx";
-import * as $$11 from "./routes/route-groups-islands/(_islands)/Counter.tsx";
-import * as $$12 from "./routes/route-groups-islands/(_islands)/invalid.tsx";
+import * as $$1 from "./islands/FormIsland.tsx";
+import * as $$2 from "./islands/Greeter.tsx";
+import * as $$3 from "./islands/MultipleCounters.tsx";
+import * as $$4 from "./islands/ReturningNull.tsx";
+import * as $$5 from "./islands/RootFragment.tsx";
+import * as $$6 from "./islands/RootFragmentWithConditionalFirst.tsx";
+import * as $$7 from "./islands/StringEventIsland.tsx";
+import * as $$8 from "./islands/Test.tsx";
+import * as $$9 from "./islands/folder/Counter.tsx";
+import * as $$10 from "./islands/folder/subfolder/Counter.tsx";
+import * as $$11 from "./islands/kebab-case-counter-test.tsx";
+import * as $$12 from "./routes/route-groups-islands/(_islands)/Counter.tsx";
+import * as $$13 from "./routes/route-groups-islands/(_islands)/invalid.tsx";
 
 const manifest = {
   routes: {
@@ -129,40 +131,42 @@ const manifest = {
     "./routes/movies/[foo]@[bar].ts": $43,
     "./routes/not_found.ts": $44,
     "./routes/params.tsx": $45,
-    "./routes/props/[id].tsx": $46,
-    "./routes/route-groups-islands/index.tsx": $47,
-    "./routes/route-groups/(bar)/(baz)/_layout.tsx": $48,
-    "./routes/route-groups/(bar)/(baz)/baz.tsx": $49,
-    "./routes/route-groups/(bar)/_layout.tsx": $50,
-    "./routes/route-groups/(bar)/bar.tsx": $51,
-    "./routes/route-groups/(bar)/boof/index.tsx": $52,
-    "./routes/route-groups/(foo)/_layout.tsx": $53,
-    "./routes/route-groups/(foo)/index.tsx": $54,
-    "./routes/signal_shared.tsx": $55,
-    "./routes/state-in-props/_middleware.ts": $56,
-    "./routes/state-in-props/index.tsx": $57,
-    "./routes/state-middleware/_middleware.ts": $58,
-    "./routes/state-middleware/foo/_middleware.ts": $59,
-    "./routes/state-middleware/foo/index.tsx": $60,
-    "./routes/static.tsx": $61,
-    "./routes/status_overwrite.tsx": $62,
-    "./routes/umlaut-äöüß.tsx": $63,
-    "./routes/wildcard.tsx": $64,
+    "./routes/preact/boolean_attrs.tsx": $46,
+    "./routes/props/[id].tsx": $47,
+    "./routes/route-groups-islands/index.tsx": $48,
+    "./routes/route-groups/(bar)/(baz)/_layout.tsx": $49,
+    "./routes/route-groups/(bar)/(baz)/baz.tsx": $50,
+    "./routes/route-groups/(bar)/_layout.tsx": $51,
+    "./routes/route-groups/(bar)/bar.tsx": $52,
+    "./routes/route-groups/(bar)/boof/index.tsx": $53,
+    "./routes/route-groups/(foo)/_layout.tsx": $54,
+    "./routes/route-groups/(foo)/index.tsx": $55,
+    "./routes/signal_shared.tsx": $56,
+    "./routes/state-in-props/_middleware.ts": $57,
+    "./routes/state-in-props/index.tsx": $58,
+    "./routes/state-middleware/_middleware.ts": $59,
+    "./routes/state-middleware/foo/_middleware.ts": $60,
+    "./routes/state-middleware/foo/index.tsx": $61,
+    "./routes/static.tsx": $62,
+    "./routes/status_overwrite.tsx": $63,
+    "./routes/umlaut-äöüß.tsx": $64,
+    "./routes/wildcard.tsx": $65,
   },
   islands: {
     "./islands/Counter.tsx": $$0,
-    "./islands/Greeter.tsx": $$1,
-    "./islands/MultipleCounters.tsx": $$2,
-    "./islands/ReturningNull.tsx": $$3,
-    "./islands/RootFragment.tsx": $$4,
-    "./islands/RootFragmentWithConditionalFirst.tsx": $$5,
-    "./islands/StringEventIsland.tsx": $$6,
-    "./islands/Test.tsx": $$7,
-    "./islands/folder/Counter.tsx": $$8,
-    "./islands/folder/subfolder/Counter.tsx": $$9,
-    "./islands/kebab-case-counter-test.tsx": $$10,
-    "./routes/route-groups-islands/(_islands)/Counter.tsx": $$11,
-    "./routes/route-groups-islands/(_islands)/invalid.tsx": $$12,
+    "./islands/FormIsland.tsx": $$1,
+    "./islands/Greeter.tsx": $$2,
+    "./islands/MultipleCounters.tsx": $$3,
+    "./islands/ReturningNull.tsx": $$4,
+    "./islands/RootFragment.tsx": $$5,
+    "./islands/RootFragmentWithConditionalFirst.tsx": $$6,
+    "./islands/StringEventIsland.tsx": $$7,
+    "./islands/Test.tsx": $$8,
+    "./islands/folder/Counter.tsx": $$9,
+    "./islands/folder/subfolder/Counter.tsx": $$10,
+    "./islands/kebab-case-counter-test.tsx": $$11,
+    "./routes/route-groups-islands/(_islands)/Counter.tsx": $$12,
+    "./routes/route-groups-islands/(_islands)/invalid.tsx": $$13,
   },
   baseUrl: import.meta.url,
 };

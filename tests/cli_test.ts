@@ -548,3 +548,189 @@ Deno.test("fresh-update add _app.tsx if not present", async function fn(t) {
     assertEquals(code, 0);
   }
 });
+
+Deno.test(
+  "fresh-update add _fresh to .gitignore if not present",
+  async function fn(t) {
+    // Preparation
+    const tmpDirName = await Deno.makeTempDir();
+
+    const cliProcess = new Deno.Command(Deno.execPath(), {
+      args: [
+        "run",
+        "-A",
+        path.join(Deno.cwd(), "init.ts"),
+        ".",
+      ],
+      cwd: tmpDirName,
+      stdin: "null",
+      stdout: "null",
+    });
+
+    await cliProcess.output();
+
+    const gitignore = path.join(tmpDirName, ".gitignore");
+    await Deno.writeTextFile(gitignore, ""); // clear .gitignore
+
+    await t.step("execute update command", async () => {
+      await updateAndVerify(
+        /The manifest has been generated for \d+ routes and \d+ islands./,
+      );
+    });
+
+    await t.step("append _fresh to .gitignore", async () => {
+      const raw = await Deno.readTextFile(gitignore);
+      assertStringIncludes(raw, "_fresh", "_fresh not found in .gitignore");
+    });
+
+    async function updateAndVerify(expected: RegExp) {
+      const cliProcess = new Deno.Command(Deno.execPath(), {
+        args: [
+          "run",
+          "-A",
+          path.join(Deno.cwd(), "update.ts"),
+          ".",
+        ],
+        cwd: tmpDirName,
+        stdin: "null",
+        stdout: "piped",
+      });
+
+      const { code, stdout } = await cliProcess.output();
+      const output = new TextDecoder().decode(stdout);
+
+      assertMatch(
+        output,
+        expected,
+      );
+      assertEquals(code, 0);
+    }
+  },
+);
+
+Deno.test(
+  "fresh-update do not add _fresh to .gitignore if already present",
+  async function fn(t) {
+    // Preparation
+    const tmpDirName = await Deno.makeTempDir();
+
+    const cliProcess = new Deno.Command(Deno.execPath(), {
+      args: [
+        "run",
+        "-A",
+        path.join(Deno.cwd(), "init.ts"),
+        ".",
+      ],
+      cwd: tmpDirName,
+      stdin: "null",
+      stdout: "null",
+    });
+
+    await cliProcess.output();
+
+    const gitignore = path.join(tmpDirName, ".gitignore");
+    await Deno.writeTextFile(gitignore, "_fresh");
+
+    await t.step("execute update command", async () => {
+      await updateAndVerify(
+        /The manifest has been generated for \d+ routes and \d+ islands./,
+      );
+    });
+
+    await t.step("do not append _fresh to .gitignore", async () => {
+      const raw = await Deno.readTextFile(gitignore);
+      // Count the number of times "_fresh" appears in .gitignore
+      const count = (raw.match(/_fresh/g) ?? []).length;
+      assertEquals(count, 1, "_fresh found in .gitignore");
+    });
+
+    async function updateAndVerify(expected: RegExp) {
+      const cliProcess = new Deno.Command(Deno.execPath(), {
+        args: [
+          "run",
+          "-A",
+          path.join(Deno.cwd(), "update.ts"),
+          ".",
+        ],
+        cwd: tmpDirName,
+        stdin: "null",
+        stdout: "piped",
+      });
+
+      const { code, stdout } = await cliProcess.output();
+      const output = new TextDecoder().decode(stdout);
+
+      assertMatch(
+        output,
+        expected,
+      );
+      assertEquals(code, 0);
+    }
+  },
+);
+
+Deno.test(
+  "fresh-update do not create a .gitignore if none exist",
+  async function fn(t) {
+    // Preparation
+    const tmpDirName = await Deno.makeTempDir();
+
+    const cliProcess = new Deno.Command(Deno.execPath(), {
+      args: [
+        "run",
+        "-A",
+        path.join(Deno.cwd(), "init.ts"),
+        ".",
+      ],
+      cwd: tmpDirName,
+      stdin: "null",
+      stdout: "null",
+    });
+
+    await cliProcess.output();
+
+    const gitignore = path.join(tmpDirName, ".gitignore");
+    await Deno.remove(gitignore);
+
+    await t.step("execute update command", async () => {
+      await updateAndVerify(
+        /The manifest has been generated for \d+ routes and \d+ islands./,
+      );
+    });
+
+    await t.step("do not create a .gitignore", async () => {
+      let exists = true;
+      try {
+        await Deno.open(gitignore);
+      } catch (error) {
+        if (error instanceof Deno.errors.NotFound) {
+          exists = false;
+        }
+      }
+      assert(!exists, "found .gitignore");
+    });
+
+    async function updateAndVerify(expected: RegExp) {
+      const cliProcess = new Deno.Command(Deno.execPath(), {
+        args: [
+          "run",
+          "-A",
+          path.join(Deno.cwd(), "update.ts"),
+          ".",
+        ],
+        cwd: tmpDirName,
+        stdin: "null",
+        stdout: "piped",
+      });
+
+      const { code, stdout } = await cliProcess.output();
+      const output = new TextDecoder().decode(stdout);
+
+      assertMatch(
+        output,
+        expected,
+      );
+      assertEquals(code, 0);
+    }
+  },
+);

@@ -14,7 +14,7 @@ async function getCurrentVersion() {
 const interval = +(Deno.env.get("UPDATE_INTERVAL") ?? 1000);
 await updateCheck(
   interval,
-  () => Deno.env.get("HOME")!,
+  () => Deno.env.get("TEST_HOME")!,
   getLatestVersion,
   Deno.env.has("CURRENT_VERSION") ? getCurrentVersion : undefined,
 );
