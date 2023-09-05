@@ -1,14 +1,23 @@
 import type { BuildSnapshot } from "./mod.ts";
 
 export class AotSnapshot implements BuildSnapshot {
-  readonly paths: string[] = [];
+  #files: Map<string, string>;
+  #dependencies: Map<string, string[]>;
+
   constructor(
-    private files: Map<string, string>,
-    private _dependencies: Map<string, string[]>,
-  ) {}
+    files: Map<string, string>,
+    dependencies: Map<string, string[]>,
+  ) {
+    this.#files = files;
+    this.#dependencies = dependencies;
+  }
+
+  get paths(): string[] {
+    return Array.from(this.#files.keys());
+  }
 
   async read(path: string): Promise<ReadableStream<Uint8Array> | null> {
-    const filePath = this.files.get(path);
+    const filePath = this.#files.get(path);
     if (filePath !== undefined) {
       try {
         const file = await Deno.open(filePath, { read: true });
@@ -23,6 +32,6 @@ export class AotSnapshot implements BuildSnapshot {
   }
 
   dependencies(path: string): string[] {
-    return this._dependencies.get(path) ?? [];
+    return this.#dependencies.get(path) ?? [];
   }
 }
