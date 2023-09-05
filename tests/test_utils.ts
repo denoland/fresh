@@ -190,8 +190,32 @@ export async function withPageName(
   });
 
   const page = await BROWSER.newPage();
+  const logs: string[] = [];
+
+  page
+    .on(
+      "console",
+      (message) =>
+        logs.push(
+          `${message.type()} ${message.text()}`,
+        ),
+    )
+    .on("pageerror", ({ message }) => logs.push(message))
+    .on(
+      "response",
+      (response) => logs.push(`${response.status()} ${response.url()}`),
+    )
+    .on(
+      "requestfailed",
+      (request) => logs.push(`${request.failure().errorText} ${request.url()}`),
+    );
   try {
     await fn(page, address, output);
+  } catch (err) {
+    console.log(
+      `The page printed the following console messages: \n\n${logs.join("\n")}`,
+    );
+    throw err;
   } finally {
     await page.close();
     await lines.cancel();
@@ -273,24 +297,6 @@ export async function waitForText(
   selector: string,
   text: string,
 ) {
-  const logs: string[] = [];
-  page
-    .on(
-      "console",
-      (message) =>
-        logs.push(
-          `${message.type().substr(0, 3).toUpperCase()} ${message.text()}`,
-        ),
-    )
-    .on("pageerror", ({ message }) => logs.push(message))
-    .on(
-      "response",
-      (response) => logs.push(`${response.status()} ${response.url()}`),
-    )
-    .on(
-      "requestfailed",
-      (request) => logs.push(`${request.failure().errorText} ${request.url()}`),
-    );
   try {
     await page.waitForSelector(selector);
     await page.waitForFunction(
@@ -302,14 +308,7 @@ export async function waitForText(
       String(text),
     );
   } catch (err) {
-    console.log(
-      `Could not find text "${text}" on selector "${selector}" in document.`,
-    );
     await printPage(page);
-
-    console.log(
-      `The page printed the following messages: \n\n${logs.join("\n")}`,
-    );
     throw err;
   }
 }
