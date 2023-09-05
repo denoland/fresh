@@ -282,6 +282,9 @@ export async function waitForText(
       String(text),
     );
   } catch (err) {
+    console.log(
+      `Could not find text "${text}" on selector "${selector}" in document.`,
+    );
     await printPage(page);
     throw err;
   }
