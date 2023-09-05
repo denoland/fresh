@@ -175,9 +175,7 @@ export async function withFresh(
 }
 
 const BROWSER = await puppeteer.launch({ args: ["--no-sandbox"] });
-const PAGE = await BROWSER.newPage();
 globalThis.addEventListener("beforeunload", async () => {
-  await PAGE.close();
   await BROWSER.close();
 });
 
@@ -189,9 +187,11 @@ export async function withPageName(
     args: ["run", "-A", name],
   });
 
+  const page = await BROWSER.newPage();
   try {
-    await fn(PAGE, address, output);
+    await fn(page, address, output);
   } finally {
+    await page.close();
     await lines.cancel();
 
     serverProcess.kill("SIGTERM");
