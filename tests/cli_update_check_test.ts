@@ -18,7 +18,7 @@ Deno.test({
       args: ["run", "-A", "./tests/fixture_update_check/mod.ts"],
       env: {
         CI: "false",
-        HOME: tmpDirName,
+        TEST_HOME: tmpDirName,
       },
     }).output();
 
@@ -45,7 +45,7 @@ Deno.test({
           args: ["run", "-A", "./tests/fixture_update_check/mod.ts"],
           env: {
             [env]: "true",
-            HOME: tmpDirName,
+            TEST_HOME: tmpDirName,
             LATEST_VERSION: "1.30.0",
           },
         }).output();
@@ -79,7 +79,7 @@ Deno.test({
       args: ["run", "-A", "./tests/fixture_update_check/mod.ts"],
       env: {
         CI: "false",
-        HOME: tmpDirName,
+        TEST_HOME: tmpDirName,
         LATEST_VERSION: "999.999.0",
       },
     }).output();
@@ -114,7 +114,7 @@ Deno.test({
         env: {
           CI: "false",
           UPDATE_INTERVAL: "100000",
-          HOME: tmpDirName,
+          TEST_HOME: tmpDirName,
           LATEST_VERSION: "1.30.0",
         },
       }).output();
@@ -129,7 +129,7 @@ Deno.test({
         env: {
           CI: "false",
           UPDATE_INTERVAL: "100000",
-          HOME: tmpDirName,
+          TEST_HOME: tmpDirName,
           LATEST_VERSION: "1.30.0",
         },
       }).output();
@@ -144,7 +144,7 @@ Deno.test({
         env: {
           CI: "false",
           UPDATE_INTERVAL: "1 ",
-          HOME: tmpDirName,
+          TEST_HOME: tmpDirName,
           LATEST_VERSION: "1.30.0",
         },
       }).output();
@@ -176,7 +176,7 @@ Deno.test({
     const out = await new Deno.Command(Deno.execPath(), {
       args: ["run", "-A", "./tests/fixture_update_check/mod.ts"],
       env: {
-        HOME: tmpDirName,
+        TEST_HOME: tmpDirName,
         LATEST_VERSION: versions[0],
       },
     }).output();
@@ -208,7 +208,7 @@ Deno.test({
     const out = await new Deno.Command(Deno.execPath(), {
       args: ["run", "-A", "./tests/fixture_update_check/mod.ts"],
       env: {
-        HOME: tmpDirName,
+        TEST_HOME: tmpDirName,
         LATEST_VERSION: versions[0],
         CURRENT_VERSION: "99999.9999.00",
       },
