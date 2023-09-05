@@ -1,7 +1,6 @@
 import { colors } from "$fresh/src/server/deps.ts";
 import {
   assertEquals,
-  delay,
   DOMParser,
   HTMLElement,
   HTMLMetaElement,
