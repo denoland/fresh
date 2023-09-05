@@ -708,94 +708,62 @@ Deno.test("jsx pragma works", {
   sanitizeOps: false,
   sanitizeResources: false,
 }, async (t) => {
-  // Preparation
-  const { serverProcess, lines, address } = await startFreshServer({
-    args: ["run", "-A", "./tests/fixture_jsx_pragma/main.ts"],
-  });
+  await withPageName(
+    "./tests/fixture_jsx_pragma/main.ts",
+    async (page, address) => {
+      await t.step("ssr", async () => {
+        const resp = await fetch(address);
+        assertEquals(resp.status, Status.OK);
+        const text = await resp.text();
+        assertStringIncludes(text, "Hello World");
+        assertStringIncludes(text, "ssr");
+      });
 
-  await delay(100);
+      await page.goto(address);
 
-  await t.step("ssr", async () => {
-    const resp = await fetch(address);
-    assertEquals(resp.status, Status.OK);
-    const text = await resp.text();
-    assertStringIncludes(text, "Hello World");
-    assertStringIncludes(text, "ssr");
-  });
-
-  const browser = await puppeteer.launch({ args: ["--no-sandbox"] });
-  const page = await browser.newPage();
-
-  await page.goto(address);
-
-  await t.step("island is revived", async () => {
-    await page.waitForSelector("#csr");
-  });
-
-  await browser.close();
-
-  await lines.cancel();
-  serverProcess.kill("SIGTERM");
+      await t.step("island is revived", async () => {
+        await page.waitForSelector("#csr");
+      });
+    },
+  );
 });
 
 Deno.test("preact/debug is active in dev mode", {
   sanitizeOps: false,
   sanitizeResources: false,
 }, async (t) => {
-  // Preparation
-  const { serverProcess, lines, address } = await startFreshServer({
-    args: ["run", "-A", "./tests/fixture_render_error/main.ts"],
-  });
+  await withPageName(
+    "./tests/fixture_render_error/main.ts",
+    async (page, address) => {
+      await t.step("SSR error is shown", async () => {
+        const resp = await fetch(address);
+        assertEquals(resp.status, Status.InternalServerError);
+        const text = await resp.text();
+        assertStringIncludes(text, "Objects are not valid as a child");
+      });
 
-  await delay(100);
+      await page.goto(address);
 
-  await t.step("SSR error is shown", async () => {
-    const resp = await fetch(address);
-    assertEquals(resp.status, Status.InternalServerError);
-    const text = await resp.text();
-    assertStringIncludes(text, "Objects are not valid as a child");
-  });
-
-  const browser = await puppeteer.launch({ args: ["--no-sandbox"] });
-  const page = await browser.newPage();
-
-  await page.goto(address);
-
-  await t.step("error page is shown with error message", async () => {
-    const el = await page.waitForSelector(".frsh-error-page");
-    const text = await page.evaluate((el) => el.textContent, el);
-    assertStringIncludes(text, "Objects are not valid as a child");
-  });
-
-  await browser.close();
-
-  await lines.cancel();
-  serverProcess.kill("SIGTERM");
+      await t.step("error page is shown with error message", async () => {
+        const el = await page.waitForSelector(".frsh-error-page");
+        const text = await page.evaluate((el) => el.textContent, el);
+        assertStringIncludes(text, "Objects are not valid as a child");
+      });
+    },
+  );
 });
 
 Deno.test("preloading javascript files", {
   sanitizeOps: false,
   sanitizeResources: false,
 }, async () => {
-  // Preparation
-  const { serverProcess, lines, address } = await startFreshServer({
-    args: ["run", "-A", "./tests/fixture/main.ts"],
-  });
-
-  const browser = await puppeteer.launch({ args: ["--no-sandbox"] });
-  const page = await browser.newPage();
-
-  try {
+  await withPageName("./tests/fixture/main.ts", async (page, address) => {
     // request js file to start esbuild execution
-    await page.goto(address, {
-      waitUntil: "networkidle2",
-    });
+    await page.goto(address);
 
     await delay(5000); // wait running esbuild
 
-    await page.goto(address, {
-      waitUntil: "networkidle2",
-    });
+    await page.goto(address);
 
     const preloads: string[] = await page.$$eval(
       'link[rel="modulepreload"]',
@@ -814,12 +782,7 @@ Deno.test("preloading javascript files", {
       preloads.some((url) => url.match(/\/_frsh\/js\/.*\/chunk-.*\.js/)),
       "preloads does not include chunk-*.js",
     );
-  } finally {
-    await browser.close();
-
-    await lines.cancel();
-    serverProcess.kill("SIGTERM");
-  }
+  });
 });
 
 Deno.test("PORT environment variable", {
