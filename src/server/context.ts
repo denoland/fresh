@@ -148,7 +148,7 @@ export class ServerContext {
    */
   static async fromManifest(
     manifest: Manifest,
-    opts: FreshOptions & { skipSnapshot?: boolean },
+    opts: FreshOptions & { skipSnapshot?: boolean; dev?: boolean },
   ): Promise<ServerContext> {
     // Get the manifest' base URL.
     const baseUrl = new URL("./", manifest.baseUrl).href;
@@ -436,7 +436,7 @@ export class ServerContext {
       }
     }
 
-    const dev = isDevMode();
+    const dev = opts.dev ?? isDevMode();
     if (dev) {
       // Ensure that debugging hooks are set up for SSR rendering
       await import("preact/debug");
