@@ -16,18 +16,21 @@ import * as $10 from "./routes/island_jsx_children.tsx";
 import * as $11 from "./routes/island_jsx_island_jsx.tsx";
 import * as $12 from "./routes/island_jsx_text.tsx";
 import * as $13 from "./routes/island_nested_props.tsx";
-import * as $14 from "./routes/island_order.tsx";
-import * as $15 from "./routes/island_siblings.tsx";
+import * as $14 from "./routes/island_onclick.tsx";
+import * as $15 from "./routes/island_order.tsx";
+import * as $16 from "./routes/island_siblings.tsx";
+import * as $17 from "./routes/island_valid_children.tsx";
 import * as $$0 from "./islands/BooleanButton.tsx";
-import * as $$1 from "./islands/Counter.tsx";
-import * as $$2 from "./islands/FragmentIsland.tsx";
-import * as $$3 from "./islands/Island.tsx";
-import * as $$4 from "./islands/IslandCenter.tsx";
-import * as $$5 from "./islands/IslandConditional.tsx";
-import * as $$6 from "./islands/IslandFn.tsx";
-import * as $$7 from "./islands/IslandInsideIsland.tsx";
-import * as $$8 from "./islands/IslandWithProps.tsx";
-import * as $$9 from "./islands/PassThrough.tsx";
+import * as $$1 from "./islands/ClickButton.tsx";
+import * as $$2 from "./islands/Counter.tsx";
+import * as $$3 from "./islands/FragmentIsland.tsx";
+import * as $$4 from "./islands/Island.tsx";
+import * as $$5 from "./islands/IslandCenter.tsx";
+import * as $$6 from "./islands/IslandConditional.tsx";
+import * as $$7 from "./islands/IslandFn.tsx";
+import * as $$8 from "./islands/IslandInsideIsland.tsx";
+import * as $$9 from "./islands/IslandWithProps.tsx";
+import * as $$10 from "./islands/PassThrough.tsx";
 
 const manifest = {
   routes: {
@@ -45,20 +48,23 @@ const manifest = {
     "./routes/island_jsx_island_jsx.tsx": $11,
     "./routes/island_jsx_text.tsx": $12,
     "./routes/island_nested_props.tsx": $13,
-    "./routes/island_order.tsx": $14,
-    "./routes/island_siblings.tsx": $15,
+    "./routes/island_onclick.tsx": $14,
+    "./routes/island_order.tsx": $15,
+    "./routes/island_siblings.tsx": $16,
+    "./routes/island_valid_children.tsx": $17,
   },
   islands: {
     "./islands/BooleanButton.tsx": $$0,
-    "./islands/Counter.tsx": $$1,
-    "./islands/FragmentIsland.tsx": $$2,
-    "./islands/Island.tsx": $$3,
-    "./islands/IslandCenter.tsx": $$4,
-    "./islands/IslandConditional.tsx": $$5,
-    "./islands/IslandFn.tsx": $$6,
-    "./islands/IslandInsideIsland.tsx": $$7,
-    "./islands/IslandWithProps.tsx": $$8,
-    "./islands/PassThrough.tsx": $$9,
+    "./islands/ClickButton.tsx": $$1,
+    "./islands/Counter.tsx": $$2,
+    "./islands/FragmentIsland.tsx": $$3,
+    "./islands/Island.tsx": $$4,
+    "./islands/IslandCenter.tsx": $$5,
+    "./islands/IslandConditional.tsx": $$6,
+    "./islands/IslandFn.tsx": $$7,
+    "./islands/IslandInsideIsland.tsx": $$8,
+    "./islands/IslandWithProps.tsx": $$9,
+    "./islands/PassThrough.tsx": $$10,
   },
   baseUrl: import.meta.url,
 };
