@@ -247,7 +247,7 @@ options.__b = (vnode: VNode<Record<string, unknown>>) => {
                 "Anonymous";
 
               throw new Error(
-                `Invalid JSX child passed to island <${name} />. Only JSX elements can be passed as children to an island. To resolve this error, pass the data as a standard prop instead.`,
+                `Invalid JSX child passed to island <${name} />. To resolve this error, pass the data as a standard prop instead.`,
               );
             }
 
