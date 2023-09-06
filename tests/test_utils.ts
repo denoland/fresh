@@ -1,4 +1,5 @@
 import { colors } from "$fresh/src/server/deps.ts";
+import { HTTPRequest } from "https://deno.land/x/puppeteer@16.2.0/mod.ts";
 import {
   assertEquals,
   DOMParser,
@@ -207,8 +208,16 @@ export async function withPageName(
     )
     .on(
       "requestfailed",
-      (request) => logs.push(`${request.failure().errorText} ${request.url()}`),
+      (request: HTTPRequest) => {
+        console.log(
+          request.method(),
+          request.url(),
+          request.response()?.status,
+        );
+        logs.push(`${request.failure()?.errorText} ${request.url()}`);
+      },
     );
+
   try {
     await fn(page, address, output);
   } catch (err) {
