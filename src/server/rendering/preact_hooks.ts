@@ -237,11 +237,11 @@ options.__b = (vnode: VNode<Record<string, unknown>>) => {
 
             // Guard against passing objects as children to JSX
             if (
-              children !== null && children !== undefined &&
-              typeof children !== "string" && typeof children !== "number" &&
-              typeof children !== "boolean" &&
-              !Array.isArray(children) &&
-              !isValidElement(children)
+              typeof children === "function" || (
+                children !== null && typeof children === "object" &&
+                !Array.isArray(children) &&
+                !isValidElement(children)
+              )
             ) {
               const name = originalType.displayName || originalType.name ||
                 "Anonymous";
