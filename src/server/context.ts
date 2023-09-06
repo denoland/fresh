@@ -153,9 +153,11 @@ export class ServerContext {
     // Get the manifest' base URL.
     const baseUrl = new URL("./", manifest.baseUrl).href;
 
+    console.time("read deno config");
     const { config, path: configPath } = await readDenoConfig(
       fromFileUrl(baseUrl),
     );
+    console.timeEnd("read deno config");
     if (typeof config.importMap !== "string" && !isObject(config.imports)) {
       throw new Error(
         "deno.json must contain an 'importMap' or 'imports' property.",
@@ -167,6 +169,7 @@ export class ServerContext {
     // Load from snapshot if not explicitly requested not to
     const loadFromSnapshot = !opts.skipSnapshot;
     if (loadFromSnapshot) {
+      console.time("snapshot");
       const snapshotDirPath = join(dirname(configPath), "_fresh");
       try {
         if ((await Deno.stat(snapshotDirPath)).isDirectory) {
@@ -197,6 +200,7 @@ export class ServerContext {
           throw err;
         }
       }
+      console.timeEnd("snapshot");
     }
 
     config.compilerOptions ??= {};
@@ -218,6 +222,8 @@ export class ServerContext {
       jsx,
       jsxImportSource: config.compilerOptions.jsxImportSource,
     };
+
+    console.time("routes");
 
     // Extract all routes, and prepare them into the `Page` structure.
     const routes: Route[] = [];
@@ -440,6 +446,8 @@ export class ServerContext {
       // Ensure that debugging hooks are set up for SSR rendering
       await import("preact/debug");
     }
+
+    console.timeEnd("routes");
 
     return new ServerContext(
       routes,

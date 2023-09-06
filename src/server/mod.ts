@@ -110,6 +110,9 @@ export async function createHandler(
 }
 
 export async function start(routes: Manifest, opts: StartOptions = {}) {
+  console.time("start");
+  console.time("fromManifest");
   const ctx = await ServerContext.fromManifest(routes, opts);
+  console.timeEnd("fromManifest");
   await startFromContext(ctx, opts);
 }

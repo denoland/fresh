@@ -14,6 +14,8 @@ export async function dev(
   entrypoint: string,
   options: FreshOptions = {},
 ) {
+  console.time("start");
+  console.time("dev");
   ensureMinDenoVersion();
 
   // Run update check in background
@@ -51,6 +53,7 @@ export async function dev(
     dev: !isBuild,
   });
 
+  console.timeEnd("dev");
   if (isBuild) {
     // Ensure that build dir is empty
     await fs.emptyDir(outDir);

@@ -13,6 +13,7 @@ export async function startFromContext(ctx: ServerContext, opts: StartOptions) {
       const address = colors.cyan(`http://localhost:${params.port}/`);
       const localLabel = colors.bold("Local:");
       console.log(`    ${localLabel} ${address}\n`);
+      console.timeEnd("start");
     };
   }
 
