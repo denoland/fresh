@@ -10,8 +10,30 @@ import {
   retry,
 } from "./deps.ts";
 
-Deno.test("fresh-update", async function fn(t) {
-  // Preparation
+async function updateAndVerify(cwd: string | URL, expected: RegExp) {
+  const cliProcess = new Deno.Command(Deno.execPath(), {
+    args: [
+      "run",
+      "-A",
+      path.join(Deno.cwd(), "update.ts"),
+      ".",
+    ],
+    cwd,
+    stdin: "null",
+    stdout: "piped",
+  });
+
+  const { code, stdout } = await cliProcess.output();
+  const output = new TextDecoder().decode(stdout);
+
+  assertMatch(
+    output,
+    expected,
+  );
+  assertEquals(code, 0);
+}
+
+async function initProject() {
   const tmpDirName = await Deno.makeTempDir();
 
   const cliProcess = new Deno.Command(Deno.execPath(), {
@@ -28,11 +50,22 @@ Deno.test("fresh-update", async function fn(t) {
 
   await cliProcess.output();
 
+  return tmpDirName;
+}
+
+async function executeUpdateCommand(t: Deno.TestContext, tmpDirName: string) {
   await t.step("execute update command", async () => {
     await updateAndVerify(
+      tmpDirName,
       /The manifest has been generated for \d+ routes and \d+ islands./,
     );
   });
+}
+
+Deno.test("fresh-update", async function fn(t) {
+  // Preparation
+  const tmpDirName = await initProject();
+  await executeUpdateCommand(t, tmpDirName);
 
   await t.step("check deno.json", async () => {
     const configPath = path.join(tmpDirName, "deno.json");
@@ -59,6 +92,7 @@ Deno.test("fresh-update", async function fn(t) {
       denoJsonText = denoJsonText.replace(regex, `$1${comment}\n`);
       await Deno.writeTextFile(updatedName, denoJsonText);
       await updateAndVerify(
+        tmpDirName,
         /The manifest has been generated for \d+ routes and \d+ islands./,
       );
     } finally {
@@ -88,6 +122,7 @@ Deno.test("fresh-update", async function fn(t) {
         );
       });
       await updateAndVerify(
+        tmpDirName,
         /The manifest has been generated for (?!0 routes and 0 islands)\d+ routes and \d+ islands./,
       );
     } finally {
@@ -106,148 +141,44 @@ Deno.test("fresh-update", async function fn(t) {
       Deno.remove(path.join(tmpDirName, "islands"), { recursive: true })
     );
     await updateAndVerify(
+      tmpDirName,
       /The manifest has been generated for \d+ routes and 0 islands./,
     );
   });
 
   await retry(() => Deno.remove(tmpDirName, { recursive: true }));
-
-  async function updateAndVerify(expected: RegExp) {
-    const cliProcess = new Deno.Command(Deno.execPath(), {
-      args: [
-        "run",
-        "-A",
-        path.join(Deno.cwd(), "update.ts"),
-        ".",
-      ],
-      cwd: tmpDirName,
-      stdin: "null",
-      stdout: "piped",
-    });
-
-    const { code, stdout } = await cliProcess.output();
-    const output = new TextDecoder().decode(stdout);
-
-    assertMatch(
-      output,
-      expected,
-    );
-    assertEquals(code, 0);
-  }
 });
 
 Deno.test("fresh-update add _app.tsx if not present", async function fn(t) {
   // Preparation
-  const tmpDirName = await Deno.makeTempDir();
-
-  const cliProcess = new Deno.Command(Deno.execPath(), {
-    args: [
-      "run",
-      "-A",
-      path.join(Deno.cwd(), "init.ts"),
-      ".",
-    ],
-    cwd: tmpDirName,
-    stdin: "null",
-    stdout: "null",
-  });
-
-  await cliProcess.output();
+  const tmpDirName = await initProject();
 
   const appTsx = path.join(tmpDirName, "routes", "_app.tsx");
   await Deno.remove(appTsx);
 
-  await t.step("execute update command", async () => {
-    await updateAndVerify(
-      /The manifest has been generated for \d+ routes and \d+ islands./,
-    );
-  });
+  await executeUpdateCommand(t, tmpDirName);
 
   await t.step("add _app.tsx", async () => {
     const raw = await Deno.readTextFile(appTsx);
     assertStringIncludes(raw, "<html>", `<html>-tag not found in _app.tsx`);
   });
-
-  async function updateAndVerify(expected: RegExp) {
-    const cliProcess = new Deno.Command(Deno.execPath(), {
-      args: [
-        "run",
-        "-A",
-        path.join(Deno.cwd(), "update.ts"),
-        ".",
-      ],
-      cwd: tmpDirName,
-      stdin: "null",
-      stdout: "piped",
-    });
-
-    const { code, stdout } = await cliProcess.output();
-    const output = new TextDecoder().decode(stdout);
-
-    assertMatch(
-      output,
-      expected,
-    );
-    assertEquals(code, 0);
-  }
 });
 
 Deno.test(
   "fresh-update add _fresh to .gitignore if not present",
   async function fn(t) {
     // Preparation
-    const tmpDirName = await Deno.makeTempDir();
-
-    const cliProcess = new Deno.Command(Deno.execPath(), {
-      args: [
-        "run",
-        "-A",
-        path.join(Deno.cwd(), "init.ts"),
-        ".",
-      ],
-      cwd: tmpDirName,
-      stdin: "null",
-      stdout: "null",
-    });
-
-    await cliProcess.output();
+    const tmpDirName = await initProject();
 
     const gitignore = path.join(tmpDirName, ".gitignore");
     await Deno.writeTextFile(gitignore, ""); // clear .gitignore
 
-    await t.step("execute update command", async () => {
-      await updateAndVerify(
-        /The manifest has been generated for \d+ routes and \d+ islands./,
-      );
-    });
+    await executeUpdateCommand(t, tmpDirName);
 
     await t.step("append _fresh to .gitignore", async () => {
       const raw = await Deno.readTextFile(gitignore);
       assertStringIncludes(raw, "_fresh", "_fresh not found in .gitignore");
     });
-
-    async function updateAndVerify(expected: RegExp) {
-      const cliProcess = new Deno.Command(Deno.execPath(), {
-        args: [
-          "run",
-          "-A",
-          path.join(Deno.cwd(), "update.ts"),
-          ".",
-        ],
-        cwd: tmpDirName,
-        stdin: "null",
-        stdout: "piped",
-      });
-
-      const { code, stdout } = await cliProcess.output();
-      const output = new TextDecoder().decode(stdout);
-
-      assertMatch(
-        output,
-        expected,
-      );
-      assertEquals(code, 0);
-    }
   },
 );
 
@@ -255,30 +186,12 @@ Deno.test(
   "fresh-update do not add _fresh to .gitignore if already present",
   async function fn(t) {
     // Preparation
-    const tmpDirName = await Deno.makeTempDir();
-
-    const cliProcess = new Deno.Command(Deno.execPath(), {
-      args: [
-        "run",
-        "-A",
-        path.join(Deno.cwd(), "init.ts"),
-        ".",
-      ],
-      cwd: tmpDirName,
-      stdin: "null",
-      stdout: "null",
-    });
-
-    await cliProcess.output();
+    const tmpDirName = await initProject();
 
     const gitignore = path.join(tmpDirName, ".gitignore");
     await Deno.writeTextFile(gitignore, "_fresh");
 
-    await t.step("execute update command", async () => {
-      await updateAndVerify(
-        /The manifest has been generated for \d+ routes and \d+ islands./,
-      );
-    });
+    await executeUpdateCommand(t, tmpDirName);
 
     await t.step("do not append _fresh to .gitignore", async () => {
       const raw = await Deno.readTextFile(gitignore);
@@ -286,29 +199,6 @@ Deno.test(
       const count = (raw.match(/_fresh/g) ?? []).length;
       assertEquals(count, 1, "_fresh found in .gitignore");
     });
-
-    async function updateAndVerify(expected: RegExp) {
-      const cliProcess = new Deno.Command(Deno.execPath(), {
-        args: [
-          "run",
-          "-A",
-          path.join(Deno.cwd(), "update.ts"),
-          ".",
-        ],
-        cwd: tmpDirName,
-        stdin: "null",
-        stdout: "piped",
-      });
-
-      const { code, stdout } = await cliProcess.output();
-      const output = new TextDecoder().decode(stdout);
-
-      assertMatch(
-        output,
-        expected,
-      );
-      assertEquals(code, 0);
-    }
   },
 );
 
@@ -316,30 +206,12 @@ Deno.test(
   "fresh-update do not create a .gitignore if none exist",
   async function fn(t) {
     // Preparation
-    const tmpDirName = await Deno.makeTempDir();
-
-    const cliProcess = new Deno.Command(Deno.execPath(), {
-      args: [
-        "run",
-        "-A",
-        path.join(Deno.cwd(), "init.ts"),
-        ".",
-      ],
-      cwd: tmpDirName,
-      stdin: "null",
-      stdout: "null",
-    });
-
-    await cliProcess.output();
+    const tmpDirName = await initProject();
 
     const gitignore = path.join(tmpDirName, ".gitignore");
     await Deno.remove(gitignore);
 
-    await t.step("execute update command", async () => {
-      await updateAndVerify(
-        /The manifest has been generated for \d+ routes and \d+ islands./,
-      );
-    });
+    await executeUpdateCommand(t, tmpDirName);
 
     await t.step("do not create a .gitignore", async () => {
       await assertRejects(
@@ -349,28 +221,5 @@ Deno.test(
         "found .gitignore",
       );
     });
-
-    async function updateAndVerify(expected: RegExp) {
-      const cliProcess = new Deno.Command(Deno.execPath(), {
-        args: [
-          "run",
-          "-A",
-          path.join(Deno.cwd(), "update.ts"),
-          ".",
-        ],
-        cwd: tmpDirName,
-        stdin: "null",
-        stdout: "piped",
-      });
-
-      const { code, stdout } = await cliProcess.output();
-      const output = new TextDecoder().decode(stdout);
-
-      assertMatch(
-        output,
-        expected,
-      );
-      assertEquals(code, 0);
-    }
   },
 );
