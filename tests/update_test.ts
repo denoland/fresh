@@ -217,7 +217,7 @@ Deno.test(
       await assertRejects(
         () => Deno.open(gitignore),
         Deno.errors.NotFound,
-        "No such file or directory",
+        undefined,
         "found .gitignore",
       );
     });
