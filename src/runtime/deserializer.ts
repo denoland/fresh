@@ -40,6 +40,11 @@ export function deserialize(
         val[KEY] = v.k;
         return val;
       }
+      if (v[KEY] === "fn") {
+        console.log(v);
+
+        return v.v;
+      }
       throw new Error(`Unknown key: ${v[KEY]}`);
     }
     return value;

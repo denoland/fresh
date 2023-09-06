@@ -17,9 +17,10 @@ import * as $11 from "./routes/island_jsx_island_jsx.tsx";
 import * as $12 from "./routes/island_jsx_text.tsx";
 import * as $13 from "./routes/island_nested_props.tsx";
 import * as $14 from "./routes/island_onclick.tsx";
-import * as $15 from "./routes/island_order.tsx";
-import * as $16 from "./routes/island_siblings.tsx";
-import * as $17 from "./routes/island_valid_children.tsx";
+import * as $15 from "./routes/island_onclick_args.tsx";
+import * as $16 from "./routes/island_order.tsx";
+import * as $17 from "./routes/island_siblings.tsx";
+import * as $18 from "./routes/island_valid_children.tsx";
 import * as $$0 from "./islands/BooleanButton.tsx";
 import * as $$1 from "./islands/ClickButton.tsx";
 import * as $$2 from "./islands/Counter.tsx";
@@ -49,9 +50,10 @@ const manifest = {
     "./routes/island_jsx_text.tsx": $12,
     "./routes/island_nested_props.tsx": $13,
     "./routes/island_onclick.tsx": $14,
-    "./routes/island_order.tsx": $15,
-    "./routes/island_siblings.tsx": $16,
-    "./routes/island_valid_children.tsx": $17,
+    "./routes/island_onclick_args.tsx": $15,
+    "./routes/island_order.tsx": $16,
+    "./routes/island_siblings.tsx": $17,
+    "./routes/island_valid_children.tsx": $18,
   },
   islands: {
     "./islands/BooleanButton.tsx": $$0,

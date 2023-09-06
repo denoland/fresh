@@ -164,13 +164,21 @@ export function serialize(data: unknown): SerializeResult {
       const res = { [KEY]: "l", k, v };
       parentStack.push(res);
       return res;
+    } else if (typeof value === "function") {
+      requiresDeserializer = true;
+      const res = { [KEY]: "fn", d: 1 };
+      parentStack.push(res);
+      return res;
     } else {
       parentStack.push(value);
       return value;
     }
   }
 
+  console.log(references);
+
   const serialized = JSON.stringify(toSerialize, replacer);
+  console.log({ serialized });
   return { serialized, requiresDeserializer, hasSignals };
 }
 

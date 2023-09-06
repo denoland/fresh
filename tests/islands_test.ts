@@ -587,3 +587,23 @@ Deno.test("throws when passing non-jsx children to an island", async (t) => {
     },
   );
 });
+
+Deno.test({
+  name: "pass self contained function",
+
+  async fn() {
+    await withPageName(
+      "./tests/fixture_island_nesting/main.ts",
+      async (page, address) => {
+        await page.goto(`${address}/island_conditional_lazy`);
+        await waitForText(page, ".island p", "island content");
+
+        await page.click("button");
+        await waitForText(page, ".island p", "server rendered");
+      },
+    );
+  },
+
+  sanitizeOps: false,
+  sanitizeResources: false,
+});

@@ -270,6 +270,7 @@ options.__b = (vnode: VNode<Record<string, unknown>>) => {
 
           const child = h(originalType, props);
           patched.add(child);
+          console.log({ ...props, children: "REDACTED" });
           islandProps.push(props);
 
           return wrapWithMarker(

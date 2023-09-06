@@ -66,6 +66,15 @@ export function renderFreshTags(
 
   // The inline script that will hydrate the page.
   let script = "";
+  // deno-lint-ignore ban-types
+  const fnArr: Array<{ fn: Function[]; args: number }> = [];
+  script += "const fns = [";
+  for (const def of fnArr) {
+    //
+    script += `"foo"`;
+    console.log({ def });
+  }
+  script += "];";
 
   // Serialize the state into the <script id=__FRSH_STATE> tag and generate the
   // inline script to deserialize it. This script starts by deserializing the
@@ -88,9 +97,9 @@ export function renderFreshTags(
     script += `const STATE = `;
     if (res.requiresDeserializer) {
       if (res.hasSignals) {
-        script += `deserialize(ST, signal);`;
+        script += `deserialize(ST, fnArr, signal);`;
       } else {
-        script += `deserialize(ST);`;
+        script += `deserialize(ST, fnArr);`;
       }
     } else {
       script += `JSON.parse(ST).v;`;
@@ -119,6 +128,7 @@ export function renderFreshTags(
         `import * as ${island.name}_${island.exportName} from "${url}";`;
       islandRegistry += `${island.id}:${island.name}_${island.exportName},`;
     }
+
     script += `revive({${islandRegistry}}, STATE[0]);`;
   }
 
