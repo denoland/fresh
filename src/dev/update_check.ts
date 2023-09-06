@@ -98,8 +98,6 @@ export async function updateCheck(
   // Update current version
   checkFile.current_version = version;
 
-  console.log(checkFile);
-
   // Only check in the specified interval
   if (Date.now() >= new Date(checkFile.last_checked).getTime() + interval) {
     try {

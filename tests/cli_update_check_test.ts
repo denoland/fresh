@@ -196,6 +196,7 @@ Deno.test({
     const out = await new Deno.Command(Deno.execPath(), {
       args: ["run", "-A", "./tests/fixture_update_check/mod.ts"],
       env: {
+        CI: "false",
         TEST_HOME: tmpDirName,
         LATEST_VERSION: versions[0],
       },
@@ -229,6 +230,7 @@ Deno.test({
     const out = await new Deno.Command(Deno.execPath(), {
       args: ["run", "-A", "./tests/fixture_update_check/mod.ts"],
       env: {
+        CI: "false",
         TEST_HOME: tmpDirName,
         LATEST_VERSION: versions[0],
         CURRENT_VERSION: "99999.9999.0",
@@ -261,6 +263,7 @@ Deno.test("migrates to last_shown property", async () => {
   const out = await new Deno.Command(Deno.execPath(), {
     args: ["run", "-A", "./tests/fixture_update_check/mod.ts"],
     env: {
+      CI: "false",
       TEST_HOME: tmpDirName,
       CURRENT_VERSION: "1.2.0",
       LATEST_VERSION: "99999.9999.0",
@@ -269,9 +272,7 @@ Deno.test("migrates to last_shown property", async () => {
     stdout: "piped",
   }).output();
 
-  const { stdout, stderr } = getStdOutput(out);
-  console.log(stdout);
-  console.log(stderr);
+  const { stdout } = getStdOutput(out);
   assertMatch(stdout, /Fresh .* is available/);
 
   const checkFileAfter = JSON.parse(
@@ -309,6 +310,7 @@ Deno.test("doesn't show update if last_shown + interval >= today", async () => {
   const out = await new Deno.Command(Deno.execPath(), {
     args: ["run", "-A", "./tests/fixture_update_check/mod.ts"],
     env: {
+      CI: "false",
       TEST_HOME: tmpDirName,
       CURRENT_VERSION: "1.2.0",
       LATEST_VERSION: "99999.9999.0",
@@ -317,9 +319,7 @@ Deno.test("doesn't show update if last_shown + interval >= today", async () => {
     stdout: "piped",
   }).output();
 
-  const { stdout, stderr } = getStdOutput(out);
-  console.log(stdout);
-  console.log(stderr);
+  const { stdout } = getStdOutput(out);
   assertNotMatch(stdout, /Fresh .* is available/);
 
   await Deno.remove(tmpDirName, { recursive: true });
@@ -348,6 +348,7 @@ Deno.test(
     const out = await new Deno.Command(Deno.execPath(), {
       args: ["run", "-A", "./tests/fixture_update_check/mod.ts"],
       env: {
+        CI: "false",
         TEST_HOME: tmpDirName,
         CURRENT_VERSION: versions[0],
         LATEST_VERSION: "99999.9999.0",
@@ -356,10 +357,7 @@ Deno.test(
       stdout: "piped",
     }).output();
 
-    const { stdout, stderr } = getStdOutput(out);
-    console.log(stdout);
-    console.log(stderr);
-
+    const { stdout } = getStdOutput(out);
     assertMatch(stdout, /Fresh .* is available/);
 
     const checkFileAfter = JSON.parse(
