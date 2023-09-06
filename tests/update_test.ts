@@ -2,9 +2,10 @@ import * as path from "$std/path/mod.ts";
 import { DenoConfig } from "$fresh/server.ts";
 import { JSONC } from "../src/server/deps.ts";
 import {
-  assert,
   assertEquals,
+  assertExists,
   assertMatch,
+  assertRejects,
   assertStringIncludes,
   retry,
 } from "./deps.ts";
@@ -37,9 +38,9 @@ Deno.test("fresh-update", async function fn(t) {
     const configPath = path.join(tmpDirName, "deno.json");
     const json = JSONC.parse(await Deno.readTextFile(configPath)) as DenoConfig;
 
-    assert(json.tasks?.start, "Missing 'start' task");
-    assert(json.tasks?.build, "Missing 'build' task");
-    assert(json.tasks?.preview, "Missing 'preview' task");
+    assertExists(json.tasks?.start, "Missing 'start' task");
+    assertExists(json.tasks?.build, "Missing 'build' task");
+    assertExists(json.tasks?.preview, "Missing 'preview' task");
 
     assertEquals(json.lint?.rules?.tags, ["fresh", "recommended"]);
     assertEquals(json.lint?.exclude, ["_fresh"]);
@@ -164,7 +165,7 @@ Deno.test("fresh-update add _app.tsx if not present", async function fn(t) {
 
   await t.step("add _app.tsx", async () => {
     const raw = await Deno.readTextFile(appTsx);
-    assert(raw.includes("<html>"), `<html>-tag not found in _app.tsx`);
+    assertStringIncludes(raw, "<html>", `<html>-tag not found in _app.tsx`);
   });
 
   async function updateAndVerify(expected: RegExp) {
@@ -341,15 +342,12 @@ Deno.test(
     });
 
     await t.step("do not create a .gitignore", async () => {
-      let exists = true;
-      try {
-        await Deno.open(gitignore);
-      } catch (error) {
-        if (error instanceof Deno.errors.NotFound) {
-          exists = false;
-        }
-      }
-      assert(!exists, "found .gitignore");
+      await assertRejects(
+        () => Deno.open(gitignore),
+        Deno.errors.NotFound,
+        "No such file or directory",
+        "found .gitignore",
+      );
     });
 
     async function updateAndVerify(expected: RegExp) {

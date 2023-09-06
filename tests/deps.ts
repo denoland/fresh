@@ -7,8 +7,10 @@
 export {
   assert,
   assertEquals,
+  assertExists,
   assertMatch,
   assertNotMatch,
+  assertRejects,
   assertStringIncludes,
 } from "https://deno.land/std@0.193.0/testing/asserts.ts";
 export { assertSnapshot } from "https://deno.land/std@0.193.0/testing/snapshot.ts";
