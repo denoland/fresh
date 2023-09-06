@@ -269,7 +269,9 @@ Deno.test("migrates to last_shown property", async () => {
     stdout: "piped",
   }).output();
 
-  const { stdout } = getStdOutput(out);
+  const { stdout, stderr } = getStdOutput(out);
+  console.log(stdout);
+  console.log(stderr);
   assertMatch(stdout, /Fresh .* is available/);
 
   const checkFileAfter = JSON.parse(
