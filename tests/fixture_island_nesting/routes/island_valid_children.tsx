@@ -12,6 +12,7 @@ export default function Page() {
       <PassThrough>{null}</PassThrough>
       <PassThrough>{true}</PassThrough>
       <PassThrough>{false}</PassThrough>
+      <PassThrough>{undefined}</PassThrough>
       <PassThrough>
         <h1>hello</h1>
       </PassThrough>
