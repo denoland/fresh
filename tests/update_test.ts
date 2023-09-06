@@ -197,7 +197,7 @@ Deno.test(
       const raw = await Deno.readTextFile(gitignore);
       // Count the number of times "_fresh" appears in .gitignore
       const count = (raw.match(/_fresh/g) ?? []).length;
-      assertEquals(count, 1, "_fresh found in .gitignore");
+      assertEquals(count, 1, "extra _fresh found in .gitignore");
     });
   },
 );
