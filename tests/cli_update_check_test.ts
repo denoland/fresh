@@ -63,10 +63,11 @@ Deno.test({
             TEST_HOME: tmpDirName,
             LATEST_VERSION: "1.30.0",
           },
+          stderr: "piped",
+          stdout: "piped",
         }).output();
 
-        const decoder = new TextDecoder();
-        const stdout = colors.stripColor(decoder.decode(out.stdout));
+        const { stdout } = getStdOutput(out);
         assertNotMatch(stdout, /Fresh 1\.30\.0 is available/);
 
         await Deno.remove(tmpDirName, { recursive: true });
@@ -97,11 +98,11 @@ Deno.test({
         TEST_HOME: tmpDirName,
         LATEST_VERSION: "999.999.0",
       },
+      stderr: "piped",
+      stdout: "piped",
     }).output();
 
-    const decoder = new TextDecoder();
-
-    const stdout = colors.stripColor(decoder.decode(out.stdout));
+    const { stdout } = getStdOutput(out);
     assertMatch(stdout, /Fresh 999\.999\.0 is available/);
 
     // Updates check file
@@ -133,9 +134,11 @@ Deno.test({
           TEST_HOME: tmpDirName,
           LATEST_VERSION: "1.30.0",
         },
+        stderr: "piped",
+        stdout: "piped",
       }).output();
 
-      const stdout = colors.stripColor(decoder.decode(out.stdout));
+      const { stdout } = getStdOutput(out);
       assertMatch(stdout, /fetching latest version/);
     });
 
@@ -148,9 +151,11 @@ Deno.test({
           TEST_HOME: tmpDirName,
           LATEST_VERSION: "1.30.0",
         },
+        stderr: "piped",
+        stdout: "piped",
       }).output();
 
-      const stdout = colors.stripColor(decoder.decode(out.stdout));
+      const { stdout } = getStdOutput(out);
       assertNotMatch(stdout, /fetching latest version/);
     });
 
@@ -165,7 +170,7 @@ Deno.test({
         },
       }).output();
 
-      const stdout = colors.stripColor(decoder.decode(out.stdout));
+      const { stdout } = getStdOutput(out);
       assertMatch(stdout, /fetching latest version/);
     });
 
@@ -195,10 +200,11 @@ Deno.test({
         TEST_HOME: tmpDirName,
         LATEST_VERSION: versions[0],
       },
+      stderr: "piped",
+      stdout: "piped",
     }).output();
 
-    const decoder = new TextDecoder();
-    const stdout = colors.stripColor(decoder.decode(out.stdout));
+    const { stdout } = getStdOutput(out);
     assertNotMatch(stdout, /Fresh .* is available/);
 
     await Deno.remove(tmpDirName, { recursive: true });
@@ -228,10 +234,11 @@ Deno.test({
         LATEST_VERSION: versions[0],
         CURRENT_VERSION: "99999.9999.0",
       },
+      stderr: "piped",
+      stdout: "piped",
     }).output();
 
-    const decoder = new TextDecoder();
-    const stdout = colors.stripColor(decoder.decode(out.stdout));
+    const { stdout } = getStdOutput(out);
     assertNotMatch(stdout, /Fresh .* is available/);
 
     await Deno.remove(tmpDirName, { recursive: true });
@@ -259,10 +266,11 @@ Deno.test("migrates to last_shown property", async () => {
       CURRENT_VERSION: "1.2.0",
       LATEST_VERSION: "99999.9999.0",
     },
+    stderr: "piped",
+    stdout: "piped",
   }).output();
 
   const { stdout } = getStdOutput(out);
-
   assertMatch(stdout, /Fresh .* is available/);
 
   const checkFileAfter = JSON.parse(
@@ -304,6 +312,8 @@ Deno.test("doesn't show update if last_shown + interval >= today", async () => {
       CURRENT_VERSION: "1.2.0",
       LATEST_VERSION: "99999.9999.0",
     },
+    stderr: "piped",
+    stdout: "piped",
   }).output();
 
   const { stdout, stderr } = getStdOutput(out);
@@ -341,6 +351,8 @@ Deno.test(
         CURRENT_VERSION: versions[0],
         LATEST_VERSION: "99999.9999.0",
       },
+      stderr: "piped",
+      stdout: "piped",
     }).output();
 
     const { stdout, stderr } = getStdOutput(out);
