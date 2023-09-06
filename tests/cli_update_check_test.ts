@@ -123,7 +123,6 @@ Deno.test({
   name: "only fetch new version defined by interval",
   async fn(t) {
     const tmpDirName = await Deno.makeTempDir();
-    const decoder = new TextDecoder();
 
     await t.step("fetches latest version initially", async () => {
       const out = await new Deno.Command(Deno.execPath(), {
