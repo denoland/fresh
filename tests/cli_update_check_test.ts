@@ -306,8 +306,9 @@ Deno.test("doesn't show update if last_shown + interval >= today", async () => {
     },
   }).output();
 
-  const { stdout } = getStdOutput(out);
-
+  const { stdout, stderr } = getStdOutput(out);
+  console.log(stdout);
+  console.log(stderr);
   assertNotMatch(stdout, /Fresh .* is available/);
 
   await Deno.remove(tmpDirName, { recursive: true });
@@ -342,7 +343,9 @@ Deno.test(
       },
     }).output();
 
-    const { stdout } = getStdOutput(out);
+    const { stdout, stderr } = getStdOutput(out);
+    console.log(stdout);
+    console.log(stderr);
 
     assertMatch(stdout, /Fresh .* is available/);
 
