@@ -237,14 +237,17 @@ options.__b = (vnode: VNode<Record<string, unknown>>) => {
 
             // Guard against passing objects as children to JSX
             if (
-              children !== null && !Array.isArray(children) &&
-              !isValidElement(children)
+              typeof children === "function" || (
+                children !== null && typeof children === "object" &&
+                !Array.isArray(children) &&
+                !isValidElement(children)
+              )
             ) {
               const name = originalType.displayName || originalType.name ||
                 "Anonymous";
 
               throw new Error(
-                `Invalid JSX child passed to island <${name} />. Only JSX elements can be passed as children to an island. To resolve this error, pass the data as a standard prop instead.`,
+                `Invalid JSX child passed to island <${name} />. To resolve this error, pass the data as a standard prop instead.`,
               );
             }
 

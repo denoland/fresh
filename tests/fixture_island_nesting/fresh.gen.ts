@@ -18,6 +18,7 @@ import * as $12 from "./routes/island_jsx_text.tsx";
 import * as $13 from "./routes/island_nested_props.tsx";
 import * as $14 from "./routes/island_order.tsx";
 import * as $15 from "./routes/island_siblings.tsx";
+import * as $16 from "./routes/island_valid_children.tsx";
 import * as $$0 from "./islands/BooleanButton.tsx";
 import * as $$1 from "./islands/Counter.tsx";
 import * as $$2 from "./islands/FragmentIsland.tsx";
@@ -47,6 +48,7 @@ const manifest = {
     "./routes/island_nested_props.tsx": $13,
     "./routes/island_order.tsx": $14,
     "./routes/island_siblings.tsx": $15,
+    "./routes/island_valid_children.tsx": $16,
   },
   islands: {
     "./islands/BooleanButton.tsx": $$0,
