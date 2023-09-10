@@ -9,9 +9,18 @@ Deno.test({
       {},
     );
 
-    assert(!routes.includes("/not_found.test.ts"));
-    assert(!routes.includes("/_404_test.tsx"));
-    assert(!routes.includes("/islands/test_test.tsx"));
+    assert(
+      !routes.includes("routes/not_found.test.ts") &&
+        !routes.includes("routes\\not_found.test.ts"),
+    );
+    assert(
+      !routes.includes("routes/_404_test.tsx") &&
+        !routes.includes("routes\\_404_test.tsx"),
+    );
+    assert(
+      !routes.includes("routes/islands/test_test.tsx") &&
+        !routes.includes("routes\\islands\\test_test.tsx"),
+    );
   },
 });
 
@@ -30,7 +39,13 @@ Deno.test({
       },
     );
 
-    assert(!routes.includes("routes/index.cy.ts"));
-    assert(routes.includes("routes/index.tsx"));
+    assert(
+      !routes.includes("routes/index.cy.ts") &&
+        !routes.includes("routes\\index.cy.ts"),
+    );
+    assert(
+      routes.includes("routes/index.tsx") ||
+        routes.includes("routes\\index.tsx"),
+    );
   },
 });
