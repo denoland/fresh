@@ -19,6 +19,15 @@ export interface RouterOptions {
    *  @default {false}
    */
   trailingSlash?: boolean;
+  /**
+   *  Configures the pattern of files to ignore in islands and routes.
+   *
+   *  By default Fresh will ignore test files,
+   *  for example files with a `.test.ts` or a `_test.ts` suffix.
+   *
+   *  @default {/[\.|_]test\.[t|j]s(x)?$/}
+   */
+  ignoreFilePattern?: RegExp;
 }
 
 export type RenderFunction = (

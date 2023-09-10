@@ -30,7 +30,7 @@ export async function dev(
   } else {
     currentManifest = { islands: [], routes: [] };
   }
-  const newManifest = await collect(dir);
+  const newManifest = await collect(dir, options);
   Deno.env.set("FRSH_DEV_PREVIOUS_MANIFEST", JSON.stringify(newManifest));
 
   const manifestChanged =
