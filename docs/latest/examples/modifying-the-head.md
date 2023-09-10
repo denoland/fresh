@@ -15,7 +15,6 @@ the web page. Some uses include:
 
 ```tsx routes/index.tsx
 import { Head } from "$fresh/runtime.ts";
-import Counter from "../islands/Counter.tsx";
 
 export default function Home() {
   return (

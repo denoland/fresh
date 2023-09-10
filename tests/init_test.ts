@@ -10,7 +10,9 @@ import {
   retry,
 } from "./deps.ts";
 import {
+  assertTextMany,
   clickWhenListenerReady,
+  fetchHtml,
   startFreshServer,
   waitForText,
 } from "./test_utils.ts";
@@ -354,6 +356,84 @@ Deno.test({
       });
 
       await delay(100);
+
+      await lines.cancel();
+      serverProcess.kill("SIGTERM");
+      await serverProcess.status;
+    });
+
+    await retry(() => Deno.remove(tmpDirName, { recursive: true }));
+  },
+  sanitizeResources: false,
+});
+
+Deno.test({
+  name: "fresh-init loads env variables",
+  async fn(t) {
+    // Preparation
+    const tmpDirName = await Deno.makeTempDir();
+
+    const cliProcess = new Deno.Command(Deno.execPath(), {
+      args: [
+        "run",
+        "-A",
+        "init.ts",
+        tmpDirName,
+        "--twind",
+        "--vscode",
+      ],
+      stdin: "null",
+      stdout: "piped",
+      stderr: "inherit",
+    });
+
+    await cliProcess.output();
+
+    // Add .env file
+    await Deno.writeTextFile(path.join(tmpDirName, ".env"), "FOO=true\n");
+    await Deno.writeTextFile(
+      path.join(tmpDirName, "routes", "env.tsx"),
+      `export default function Page() { return <h1>{Deno.env.get("FOO")}</h1> }`,
+    );
+
+    await t.step("start up the server", async () => {
+      const { serverProcess, lines, address } = await startFreshServer({
+        args: ["run", "-A", "--no-check", "dev.ts"],
+        cwd: tmpDirName,
+      });
+
+      const doc = await fetchHtml(`${address}/env`);
+      assertTextMany(doc, "h1", ["true"]);
+
+      await lines.cancel();
+      serverProcess.kill("SIGTERM");
+      await serverProcess.status;
+    });
+
+    await t.step("build code and start server again", async () => {
+      await new Deno.Command(Deno.execPath(), {
+        args: [
+          "task",
+          "build",
+        ],
+        cwd: tmpDirName,
+        stdin: "null",
+        stdout: "piped",
+        stderr: "inherit",
+      }).output();
+
+      const { serverProcess, lines, address, output } = await startFreshServer({
+        args: ["run", "-A", "--no-check", "main.ts"],
+        cwd: tmpDirName,
+      });
+
+      assert(
+        output.find((line) => /Using snapshot found a/.test(line)),
+        "Snapshot message not printed",
+      );
+
+      const doc = await fetchHtml(`${address}/env`);
+      assertTextMany(doc, "h1", ["true"]);
 
       await lines.cancel();
       serverProcess.kill("SIGTERM");
