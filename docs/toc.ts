@@ -161,6 +161,7 @@ const toc: RawTableOfContents = {
           ["sharing-state-between-islands", "Sharing state between islands"],
           ["using-deno-kv-oauth", "Using Deno KV OAuth"],
           ["using-csp", "Using CSP"],
+          ["pwa", "Progressive Web App", "link:latest"],
         ],
       },
     },
