@@ -16,7 +16,7 @@
     "$std/": "https://deno.land/std@0.193.0/",
     "$ga4": "https://raw.githubusercontent.com/denoland/ga4/main/mod.ts",
     "$marked-mangle": "https://esm.sh/marked-mangle@1.0.1",
-    "$fresh-testing-library": "https://deno.land/x/fresh_testing_library@0.4.0/mod.ts",
-    "$fresh-testing-library/": "https://deno.land/x/fresh_testing_library@0.4.0/"
+    "$fresh-testing-library": "https://deno.land/x/fresh_testing_library@0.5.0/mod.ts",
+    "$fresh-testing-library/": "https://deno.land/x/fresh_testing_library@0.5.0/"
   }
 }

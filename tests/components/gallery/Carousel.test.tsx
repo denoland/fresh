@@ -18,6 +18,6 @@ describe("Carousel.tsx", () => {
       <Carousel showNavigation={true} automatic={true} interval={1000} />,
     );
     const buttons = screen.getAllByRole("button");
-    assertEquals(3, buttons.length);
+    assertEquals(buttons.length, 6);
   });
 });
