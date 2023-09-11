@@ -55,7 +55,7 @@ export async function dev(
     // Ensure that build dir is empty
     await fs.emptyDir(outDir);
     await build(join(dir, "fresh.gen.ts"), options);
-  } else if (options) {
+  } else if (Object.keys(options).length) {
     await startFromContext(ctx, options);
   } else {
     // Legacy entry point: Back then `dev.ts` would call `main.ts` but
