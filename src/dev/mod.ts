@@ -2,7 +2,8 @@ import { gte, join, posix, relative, walk, WalkEntry } from "./deps.ts";
 import { error } from "./error.ts";
 import { FreshOptions } from "../server/mod.ts";
 const MIN_DENO_VERSION = "1.31.0";
-const TEST_FILE_PATTERN = /[\.|_]test\.[t|j]s(x)?$/;
+const TEST_FILE_PATTERN =
+  /(?:[^/]*_|[^/]*\.|)test\.(?:ts|tsx|mts|js|mjs|jsx|)\/*$/;
 
 export function ensureMinDenoVersion() {
   // Check that the minimum supported Deno version is being used.

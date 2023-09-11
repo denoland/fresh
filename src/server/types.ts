@@ -25,7 +25,7 @@ export interface RouterOptions {
    *  By default Fresh will ignore test files,
    *  for example files with a `.test.ts` or a `_test.ts` suffix.
    *
-   *  @default {/[\.|_]test\.[t|j]s(x)?$/}
+   *  @default {/(?:[^/]*_|[^/]*\.|)test\.(?:ts|tsx|mts|js|mjs|jsx|)\/*$/}
    */
   ignoreFilePattern?: RegExp;
 }
