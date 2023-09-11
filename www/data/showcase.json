@@ -30,6 +30,12 @@
     "image": "fresh"
   },
   {
+    "title": "Is it cached?",
+    "link": "https://isitcached.com/",
+    "github": "benmneb/is-it-cached",
+    "image": "is-it-cached"
+  },
+  {
     "title": "Paquet",
     "link": "https://paquet.app",
     "github": "notangelmario/paquet",
