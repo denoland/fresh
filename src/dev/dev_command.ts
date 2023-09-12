@@ -12,7 +12,7 @@ import { startFromContext } from "../server/boot.ts";
 export async function dev(
   base: string,
   entrypoint: string,
-  options: FreshOptions = {},
+  options?: FreshOptions,
 ) {
   ensureMinDenoVersion();
 
@@ -54,8 +54,8 @@ export async function dev(
   if (isBuild) {
     // Ensure that build dir is empty
     await fs.emptyDir(outDir);
-    await build(join(dir, "fresh.gen.ts"), options);
-  } else if (Object.keys(options).length) {
+    await build(join(dir, "fresh.gen.ts"), options ?? {});
+  } else if (options) {
     await startFromContext(ctx, options);
   } else {
     // Legacy entry point: Back then `dev.ts` would call `main.ts` but
