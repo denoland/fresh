@@ -3,8 +3,8 @@ description: |
   Sometimes URL based routing isn't enough.
 ---
 
-The page on [routing](/concepts/routing) hints at complex routing based on URL
-patterns using a `RouteConfig` object. Let's dive into this in a bit more
+The page on [routing](/docs/concepts/routing) hints at complex routing based on
+URL patterns using a `RouteConfig` object. Let's dive into this in a bit more
 detail.
 
 A `RouteConfig` has a `routeOverride` string property, which makes use of the

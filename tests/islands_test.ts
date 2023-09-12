@@ -6,8 +6,13 @@ import {
   Page,
 } from "./deps.ts";
 import {
+  assertNotSelector,
+  assertSelector,
+  assertTextMatch,
   clickWhenListenerReady,
+  fetchHtml,
   waitForText,
+  withFresh,
   withPageName,
 } from "./test_utils.ts";
 
@@ -513,4 +518,72 @@ Deno.test({
       },
     );
   },
+});
+
+Deno.test({
+  name: "revive boolean attributes",
+
+  async fn() {
+    await withPageName(
+      "./tests/fixture/main.ts",
+      async (page, address) => {
+        await page.goto(`${address}/preact/boolean_attrs`);
+        await waitForText(page, ".form-revived", "Revived: true");
+
+        const checked = await page.$eval(
+          "input[type=checkbox]",
+          (el) => el.checked,
+        );
+        assertEquals(checked, true, "Checkbox is not checked");
+
+        const required = await page.$eval(
+          "input[type=text]",
+          (el) => el.required,
+        );
+        assertEquals(required, true, "Text input is not marked as required");
+
+        const radioChecked = await page.$eval(
+          "input[type=radio][value='2']",
+          (el) => el.checked,
+        );
+        assertEquals(
+          radioChecked,
+          true,
+          "Text input is not marked as required",
+        );
+
+        const selected = await page.$eval(
+          "select",
+          (el) => el.options[el.selectedIndex].text,
+        );
+        assertEquals(selected, "bar", "'bar' value is not selected");
+      },
+    );
+  },
+
+  sanitizeOps: false,
+  sanitizeResources: false,
+});
+
+Deno.test("throws when passing non-jsx children to an island", async (t) => {
+  await withFresh(
+    "./tests/fixture_island_nesting/dev.ts",
+    async (address) => {
+      const doc = await fetchHtml(`${address}/island_invalid_children`);
+
+      assertSelector(doc, ".frsh-error-page");
+      assertTextMatch(doc, "pre", /Invalid JSX child passed to island/);
+
+      const doc2 = await fetchHtml(`${address}/island_invalid_children_fn`);
+
+      assertSelector(doc2, ".frsh-error-page");
+      assertTextMatch(doc2, "pre", /Invalid JSX child passed to island/);
+
+      await t.step("should not throw on valid children", async () => {
+        const doc2 = await fetchHtml(`${address}/island_valid_children`);
+
+        assertNotSelector(doc2, ".frsh-error-page");
+      });
+    },
+  );
 });
