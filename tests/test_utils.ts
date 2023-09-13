@@ -1,4 +1,6 @@
 import { colors } from "$fresh/src/server/deps.ts";
+import { assert } from "$std/_util/asserts.ts";
+import * as path from "$std/path/mod.ts";
 import {
   assertEquals,
   delay,
@@ -344,4 +346,48 @@ async function spawnServer(
   }
 
   return { serverProcess, lines, address, output };
+}
+
+export async function runBuild(fixture: string) {
+  const outDir = path.join(path.dirname(fixture), "_fresh");
+  await Deno.remove(outDir, { recursive: true });
+
+  assert(
+    fixture.endsWith("dev.ts"),
+    `Build command only works with "dev.ts", but got "${fixture}" instead`,
+  );
+  const res = await new Deno.Command(Deno.execPath(), {
+    args: [
+      "run",
+      "-A",
+      fixture,
+      "build",
+    ],
+    env: {
+      GITHUB_SHA: "__BUILD_ID__",
+      DENO_DEPLOYMENT_ID: "__BUILD_ID__",
+    },
+    stdin: "null",
+    stdout: "piped",
+    stderr: "piped",
+  }).output();
+
+  const output = getStdOutput(res);
+  return {
+    code: res.code,
+    stderr: output.stderr,
+    stdout: output.stdout,
+  };
+}
+
+export function getStdOutput(
+  out: Deno.CommandOutput,
+): { stdout: string; stderr: string } {
+  const decoder = new TextDecoder();
+  const stdout = colors.stripColor(decoder.decode(out.stdout));
+
+  const decoderErr = new TextDecoder();
+  const stderr = colors.stripColor(decoderErr.decode(out.stderr));
+
+  return { stdout, stderr };
 }

@@ -1,4 +1,4 @@
-import { colors, join } from "../src/server/deps.ts";
+import { join } from "../src/server/deps.ts";
 import {
   assert,
   assertEquals,
@@ -9,18 +9,7 @@ import {
 import versions from "../versions.json" assert { type: "json" };
 import { CheckFile } from "$fresh/src/dev/update_check.ts";
 import { WEEK } from "$fresh/src/dev/deps.ts";
-
-function getStdOutput(
-  out: Deno.CommandOutput,
-): { stdout: string; stderr: string } {
-  const decoder = new TextDecoder();
-  const stdout = colors.stripColor(decoder.decode(out.stdout));
-
-  const decoderErr = new TextDecoder();
-  const stderr = colors.stripColor(decoderErr.decode(out.stderr));
-
-  return { stdout, stderr };
-}
+import { getStdOutput } from "$fresh/tests/test_utils.ts";
 
 Deno.test({
   name: "stores update check file in $HOME/fresh",
