@@ -363,6 +363,12 @@
     "image": "over-ip"
   },
   {
+    "title": "Miguel Rangel Site",
+    "link": "https://crawford.ml",
+    "github": "denyncrawford/new-portfolio",
+    "image": "miguel-rangel-site"
+  },
+  {
     "title": "Do not remove this, it’s for preventing conflicts by trailing comma",
     "link": "",
     "github": "",
