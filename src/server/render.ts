@@ -262,6 +262,9 @@ export async function render<Data>(
           `${plugin?.name}'s render hook did not return a PluginRenderResult object.`,
         );
       }
+      if (res.htmlText !== undefined) {
+        bodyHtml = res.htmlText;
+      }
       renderResults.push([plugin, res]);
     } else {
       bodyHtml = renderHtml(renderState);
@@ -288,6 +291,9 @@ export async function render<Data>(
         throw new Error(
           `${plugin?.name}'s async render hook did not return a PluginRenderResult object.`,
         );
+      }
+      if (res.htmlText !== undefined) {
+        bodyHtml = res.htmlText;
       }
       renderResults.push([plugin, res]);
       if (bodyHtml === null) {
