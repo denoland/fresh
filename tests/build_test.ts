@@ -4,6 +4,7 @@ import { assert } from "$std/_util/asserts.ts";
 import { startFreshServer, waitForText } from "$fresh/tests/test_utils.ts";
 import { BuildSnapshotJson } from "$fresh/src/build/mod.ts";
 import { assertStringIncludes } from "$std/testing/asserts.ts";
+import { assertNotMatch } from "$std/testing/asserts.ts";
 
 Deno.test("build snapshot and restore from it", async (t) => {
   const fixture = path.join(Deno.cwd(), "tests", "fixture_build");
@@ -41,7 +42,7 @@ Deno.test("build snapshot and restore from it", async (t) => {
       await Deno.readTextFile(path.join(outDir, "snapshot.json")),
     ) as BuildSnapshotJson;
 
-    await t.step("check snapshot file", () => {
+    await t.step("check snapshot file", async () => {
       assert(
         Array.isArray(snapshot.files["island-counter_default.js"]),
         "Island output file not found in snapshot",
@@ -58,6 +59,10 @@ Deno.test("build snapshot and restore from it", async (t) => {
         Array.isArray(snapshot.files["deserializer.js"]),
         "deserializer.js output file not found in snapshot",
       );
+
+      // Should not include `preact/debug`
+      const mainJs = await Deno.readTextFile(path.join(outDir, "main.js"));
+      assertNotMatch(mainJs, /Undefined parent passed to render()/);
     });
 
     await t.step("restore from snapshot", async () => {
@@ -106,6 +111,28 @@ Deno.test("build snapshot and restore from it", async (t) => {
         } finally {
           await browser.close();
         }
+      } finally {
+        await lines.cancel();
+        serverProcess.kill("SIGTERM");
+        await serverProcess.status;
+      }
+    });
+
+    await t.step("should not restore from snapshot in dev mode", async () => {
+      const { lines, serverProcess, output } = await startFreshServer({
+        args: [
+          "run",
+          "-A",
+          path.join(fixture, "./dev.ts"),
+        ],
+      });
+
+      try {
+        // Check that restore snapshot message was NOT printed
+        assert(
+          !output.find((line) => line.includes("Using snapshot found at")),
+          "Restoring from snapshot message should not appear in dev mode",
+        );
       } finally {
         await lines.cancel();
         serverProcess.kill("SIGTERM");

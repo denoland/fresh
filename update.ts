@@ -283,6 +283,19 @@ export default function App({ Component }: AppProps) {
   );
 }
 
+// Add _fresh/ to .gitignore if not already there
+const gitignorePath = join(resolvedDirectory, ".gitignore");
+if (existsSync(gitignorePath, { isFile: true })) {
+  const gitignoreText = Deno.readTextFileSync(gitignorePath);
+  if (!gitignoreText.includes("_fresh")) {
+    Deno.writeTextFileSync(
+      gitignorePath,
+      "\n# Fresh build directory\n_fresh/\n",
+      { append: true },
+    );
+  }
+}
+
 const manifest = await collect(srcDirectory);
 await generate(srcDirectory, manifest);
 

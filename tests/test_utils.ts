@@ -66,6 +66,23 @@ export function assertTextMany(
   }
 }
 
+export function assertTextMatch(
+  doc: Document,
+  selector: string,
+  regex: RegExp,
+) {
+  const texts = Array.from(doc.querySelectorAll(selector)).map((el) =>
+    el.textContent
+  ).filter(Boolean) as string[];
+
+  if (!texts.some((text) => regex.test(text))) {
+    const html = "\n\n" + prettyDom(doc);
+    throw new Error(
+      `Regex ${regex} did not match any text elements in HTML.\n\n${html}`,
+    );
+  }
+}
+
 export const VOID_ELEMENTS =
   /^(?:area|base|br|col|embed|hr|img|input|link|meta|param|source|track|wbr)$/;
 function prettyDom(doc: Document) {

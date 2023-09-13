@@ -49,11 +49,11 @@ import {
 } from "../runtime/csp.ts";
 import { ASSET_CACHE_BUST_KEY, INTERNAL_PREFIX } from "../runtime/utils.ts";
 import {
+  AotSnapshot,
   Builder,
   BuildSnapshot,
   BuildSnapshotJson,
   EsbuildBuilder,
-  EsbuildSnapshot,
   JSXConfig,
 } from "../build/mod.ts";
 import { InternalRoute } from "./router.ts";
@@ -148,7 +148,7 @@ export class ServerContext {
    */
   static async fromManifest(
     manifest: Manifest,
-    opts: FreshOptions & { skipSnapshot?: boolean },
+    opts: FreshOptions & { skipSnapshot?: boolean; dev?: boolean },
   ): Promise<ServerContext> {
     // Get the manifest' base URL.
     const baseUrl = new URL("./", manifest.baseUrl).href;
@@ -184,14 +184,13 @@ export class ServerContext {
             Object.entries(json.files),
           );
 
-          const files = new Map();
-          const names = Object.keys(json);
-          await Promise.all(names.map(async (name) => {
+          const files = new Map<string, string>();
+          Object.keys(json.files).forEach((name) => {
             const filePath = join(snapshotDirPath, name);
-            files.set(name, await Deno.readFile(filePath));
-          }));
+            files.set(name, filePath);
+          });
 
-          snapshot = new EsbuildSnapshot(files, dependencies);
+          snapshot = new AotSnapshot(files, dependencies);
         }
       } catch (err) {
         if (!(err instanceof Deno.errors.NotFound)) {
@@ -436,7 +435,7 @@ export class ServerContext {
       }
     }
 
-    const dev = isDevMode();
+    const dev = opts.dev ?? isDevMode();
     if (dev) {
       // Ensure that debugging hooks are set up for SSR rendering
       await import("preact/debug");
@@ -904,7 +903,7 @@ export class ServerContext {
         {
           ...ctx,
           error,
-          render: errorHandlerRender(req, {}, undefined, error),
+          render: errorHandlerRender(req, {}, ctx, error),
         },
       );
     };
@@ -994,7 +993,7 @@ export class ServerContext {
   #bundleAssetRoute = (): router.MatchHandler => {
     return async (_req, _ctx, params) => {
       const snapshot = await this.buildSnapshot();
-      const contents = snapshot.read(params.path);
+      const contents = await snapshot.read(params.path);
       if (!contents) return new Response(null, { status: 404 });
 
       const headers: Record<string, string> = {
@@ -1160,6 +1159,7 @@ export function pathToPattern(path: string): string {
       );
     }
 
+    // Case: /[[id]].tsx
     // Case: /[id].tsx
     // Case: /[id]@[bar].tsx
     // Case: /[id]-asdf.tsx
@@ -1167,12 +1167,36 @@ export function pathToPattern(path: string): string {
     // Case: /asdf[bar].tsx
     let pattern = "";
     let groupOpen = 0;
+    let optional = false;
     for (let j = 0; j < part.length; j++) {
       const char = part[j];
       if (char === "[") {
+        if (part[j + 1] === "[") {
+          // Disallow optional dynamic params like `foo-[[bar]]`
+          if (part[j - 1] !== "/" && !!part[j - 1]) {
+            throw new SyntaxError(
+              `Invalid route pattern: "${path}". An optional parameter needs to be a full segment.`,
+            );
+          }
+          groupOpen++;
+          optional = true;
+          pattern += "{/";
+          j++;
+        }
         pattern += ":";
         groupOpen++;
       } else if (char === "]") {
+        if (part[j + 1] === "]") {
+          // Disallow optional dynamic params like `[[foo]]-bar`
+          if (part[j + 2] !== "/" && !!part[j + 2]) {
+            throw new SyntaxError(
+              `Invalid route pattern: "${path}". An optional parameter needs to be a full segment.`,
+            );
+          }
+          groupOpen--;
+          pattern += "}?";
+          j++;
+        }
         if (--groupOpen < 0) {
           throw new SyntaxError(`Invalid route pattern: "${path}"`);
         }
@@ -1181,7 +1205,12 @@ export function pathToPattern(path: string): string {
       }
     }
 
-    route += "/" + pattern;
+    route += (optional ? "" : "/") + pattern;
+  }
+
+  // Case: /(group)/index.tsx
+  if (route === "") {
+    route = "/";
   }
 
   return route;
@@ -1218,7 +1247,7 @@ function toPascalCase(text: string): string {
 }
 
 function sanitizeIslandName(name: string): string {
-  const fileName = name.replaceAll(/[/\\\\\(\)]/g, "_");
+  const fileName = name.replaceAll(/[/\\\\\(\)\[\]]/g, "_");
   return toPascalCase(fileName);
 }
 

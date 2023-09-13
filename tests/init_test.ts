@@ -1,10 +1,8 @@
 import * as path from "$std/path/mod.ts";
-import { DenoConfig } from "$fresh/server.ts";
-import { JSONC, Status } from "../src/server/deps.ts";
+import { Status } from "../src/server/deps.ts";
 import {
   assert,
   assertEquals,
-  assertMatch,
   assertNotMatch,
   assertStringIncludes,
   delay,
@@ -12,7 +10,9 @@ import {
   retry,
 } from "./deps.ts";
 import {
+  assertTextMany,
   clickWhenListenerReady,
+  fetchHtml,
   startFreshServer,
   waitForText,
 } from "./test_utils.ts";
@@ -367,184 +367,80 @@ Deno.test({
   sanitizeResources: false,
 });
 
-Deno.test("fresh-update", async function fn(t) {
-  // Preparation
-  const tmpDirName = await Deno.makeTempDir();
+Deno.test({
+  name: "fresh-init loads env variables",
+  async fn(t) {
+    // Preparation
+    const tmpDirName = await Deno.makeTempDir();
 
-  const cliProcess = new Deno.Command(Deno.execPath(), {
-    args: [
-      "run",
-      "-A",
-      path.join(Deno.cwd(), "init.ts"),
-      ".",
-    ],
-    cwd: tmpDirName,
-    stdin: "null",
-    stdout: "null",
-  });
-
-  await cliProcess.output();
-
-  await t.step("execute update command", async () => {
-    await updateAndVerify(
-      /The manifest has been generated for \d+ routes and \d+ islands./,
-    );
-  });
-
-  await t.step("check deno.json", async () => {
-    const configPath = path.join(tmpDirName, "deno.json");
-    const json = JSONC.parse(await Deno.readTextFile(configPath)) as DenoConfig;
-
-    assert(json.tasks?.start, "Missing 'start' task");
-    assert(json.tasks?.build, "Missing 'build' task");
-    assert(json.tasks?.preview, "Missing 'preview' task");
-
-    assertEquals(json.lint?.rules?.tags, ["fresh", "recommended"]);
-    assertEquals(json.lint?.exclude, ["_fresh"]);
-    assertEquals(json.fmt?.exclude, ["_fresh"]);
-  });
-
-  const comment = "// This is a test comment";
-  const regex = /("preact": "https:\/\/esm.sh\/preact@[\d.]+",\n)/;
-  const originalName = `${tmpDirName}/deno.json`;
-  const updatedName = `${originalName}c`;
-
-  await t.step("execute update command deno.jsonc support", async () => {
-    try {
-      Deno.renameSync(originalName, updatedName);
-      let denoJsonText = await Deno.readTextFile(updatedName);
-      denoJsonText = denoJsonText.replace(regex, `$1${comment}\n`);
-      await Deno.writeTextFile(updatedName, denoJsonText);
-      await updateAndVerify(
-        /The manifest has been generated for \d+ routes and \d+ islands./,
-      );
-    } finally {
-      let denoJsonText = await Deno.readTextFile(updatedName);
-      denoJsonText = denoJsonText.replace(new RegExp(`\n${comment}\n`), "\n");
-      await Deno.writeTextFile(updatedName, denoJsonText);
-      Deno.renameSync(updatedName, originalName);
-    }
-  });
-
-  await t.step("execute update command src dir", async () => {
-    const names = [
-      "components",
-      "islands",
-      "routes",
-      "static",
-      "dev.ts",
-      "main.ts",
-      "fresh.gen.ts",
-    ];
-    try {
-      Deno.mkdirSync(tmpDirName + "/src");
-      names.forEach((x) => {
-        Deno.renameSync(
-          path.join(tmpDirName, x),
-          path.join(tmpDirName, "src", x),
-        );
-      });
-      await updateAndVerify(
-        /The manifest has been generated for (?!0 routes and 0 islands)\d+ routes and \d+ islands./,
-      );
-    } finally {
-      names.forEach((x) => {
-        Deno.renameSync(
-          path.join(tmpDirName, "src", x),
-          path.join(tmpDirName, x),
-        );
-      });
-      Deno.removeSync(tmpDirName + "/src", { recursive: true });
-    }
-  });
-
-  await t.step("execute update command (no islands directory)", async () => {
-    await retry(() =>
-      Deno.remove(path.join(tmpDirName, "islands"), { recursive: true })
-    );
-    await updateAndVerify(
-      /The manifest has been generated for \d+ routes and 0 islands./,
-    );
-  });
-
-  await retry(() => Deno.remove(tmpDirName, { recursive: true }));
-
-  async function updateAndVerify(expected: RegExp) {
     const cliProcess = new Deno.Command(Deno.execPath(), {
       args: [
         "run",
         "-A",
-        path.join(Deno.cwd(), "update.ts"),
-        ".",
+        "init.ts",
+        tmpDirName,
+        "--twind",
+        "--vscode",
       ],
-      cwd: tmpDirName,
       stdin: "null",
       stdout: "piped",
+      stderr: "inherit",
     });
 
-    const { code, stdout } = await cliProcess.output();
-    const output = new TextDecoder().decode(stdout);
+    await cliProcess.output();
 
-    assertMatch(
-      output,
-      expected,
+    // Add .env file
+    await Deno.writeTextFile(path.join(tmpDirName, ".env"), "FOO=true\n");
+    await Deno.writeTextFile(
+      path.join(tmpDirName, "routes", "env.tsx"),
+      `export default function Page() { return <h1>{Deno.env.get("FOO")}</h1> }`,
     );
-    assertEquals(code, 0);
-  }
-});
 
-Deno.test("fresh-update add _app.tsx if not present", async function fn(t) {
-  // Preparation
-  const tmpDirName = await Deno.makeTempDir();
+    await t.step("start up the server", async () => {
+      const { serverProcess, lines, address } = await startFreshServer({
+        args: ["run", "-A", "--no-check", "dev.ts"],
+        cwd: tmpDirName,
+      });
 
-  const cliProcess = new Deno.Command(Deno.execPath(), {
-    args: [
-      "run",
-      "-A",
-      path.join(Deno.cwd(), "init.ts"),
-      ".",
-    ],
-    cwd: tmpDirName,
-    stdin: "null",
-    stdout: "null",
-  });
+      const doc = await fetchHtml(`${address}/env`);
+      assertTextMany(doc, "h1", ["true"]);
 
-  await cliProcess.output();
-
-  const appTsx = path.join(tmpDirName, "routes", "_app.tsx");
-  await Deno.remove(appTsx);
-
-  await t.step("execute update command", async () => {
-    await updateAndVerify(
-      /The manifest has been generated for \d+ routes and \d+ islands./,
-    );
-  });
-
-  await t.step("add _app.tsx", async () => {
-    const raw = await Deno.readTextFile(appTsx);
-    assert(raw.includes("<html>"), `<html>-tag not found in _app.tsx`);
-  });
-
-  async function updateAndVerify(expected: RegExp) {
-    const cliProcess = new Deno.Command(Deno.execPath(), {
-      args: [
-        "run",
-        "-A",
-        path.join(Deno.cwd(), "update.ts"),
-        ".",
-      ],
-      cwd: tmpDirName,
-      stdin: "null",
-      stdout: "piped",
+      await lines.cancel();
+      serverProcess.kill("SIGTERM");
+      await serverProcess.status;
     });
 
-    const { code, stdout } = await cliProcess.output();
-    const output = new TextDecoder().decode(stdout);
+    await t.step("build code and start server again", async () => {
+      await new Deno.Command(Deno.execPath(), {
+        args: [
+          "task",
+          "build",
+        ],
+        cwd: tmpDirName,
+        stdin: "null",
+        stdout: "piped",
+        stderr: "inherit",
+      }).output();
 
-    assertMatch(
-      output,
-      expected,
-    );
-    assertEquals(code, 0);
-  }
+      const { serverProcess, lines, address, output } = await startFreshServer({
+        args: ["run", "-A", "--no-check", "main.ts"],
+        cwd: tmpDirName,
+      });
+
+      assert(
+        output.find((line) => /Using snapshot found a/.test(line)),
+        "Snapshot message not printed",
+      );
+
+      const doc = await fetchHtml(`${address}/env`);
+      assertTextMany(doc, "h1", ["true"]);
+
+      await lines.cancel();
+      serverProcess.kill("SIGTERM");
+      await serverProcess.status;
+    });
+
+    await retry(() => Deno.remove(tmpDirName, { recursive: true }));
+  },
+  sanitizeResources: false,
 });
