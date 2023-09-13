@@ -948,7 +948,7 @@ Deno.test("Generate a single nonce value per page", async () => {
   });
 });
 
-Deno.test("Addes nonce to inline scripts", async () => {
+Deno.test("Adds nonce to inline scripts", async () => {
   await withFresh("./tests/fixture/main.ts", async (address) => {
     const doc = await fetchHtml(`${address}/nonce_inline`);
 
