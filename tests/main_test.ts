@@ -59,7 +59,7 @@ Deno.test("/props/123 page prerender", async () => {
   assertEquals(resp.headers.get("content-type"), "text/html; charset=utf-8");
   const body = await resp.text();
   const doc = parseHtml(body);
-  const data = JSON.parse(doc.querySelector("body > div").textContent);
+  const data = JSON.parse(doc.querySelector("body > div")!.textContent!);
 
   assertEquals(data, {
     "params": { "id": "123" },
@@ -217,6 +217,26 @@ Deno.test("/books/:id page - /books/abc", async () => {
   assertEquals(resp.status, Status.NotFound);
 });
 
+Deno.test("/i18n{/:lang}?/lang page - /i18n/lang", async () => {
+  const resp = await handler(new Request("https://fresh.deno.dev/i18n/lang"));
+  assert(resp);
+  assertEquals(resp.status, Status.OK);
+  assertEquals(resp.headers.get("content-type"), "text/html; charset=utf-8");
+  const body = await resp.text();
+  assertStringIncludes(body, "<div>Hello</div>");
+});
+
+Deno.test("/i18n{/:lang}?/lang page - /i18n/en/lang", async () => {
+  const resp = await handler(
+    new Request("https://fresh.deno.dev/i18n/en/lang"),
+  );
+  assert(resp);
+  assertEquals(resp.status, Status.OK);
+  assertEquals(resp.headers.get("content-type"), "text/html; charset=utf-8");
+  const body = await resp.text();
+  assertStringIncludes(body, "<div>Hello en</div>");
+});
+
 Deno.test("redirect /pages/fresh/ to /pages/fresh", async () => {
   const resp = await handler(
     new Request("https://fresh.deno.dev/pages/fresh/"),
@@ -267,6 +287,10 @@ Deno.test("/failure", async () => {
   assertEquals(resp.status, Status.InternalServerError);
   const body = await resp.text();
   assert(body.includes("500 internal error: it errored!"));
+  assertStringIncludes(
+    body,
+    `<meta name="generator" content="The freshest framework!"/>`,
+  );
 });
 
 Deno.test("/foo/:path*", async () => {
@@ -589,7 +613,7 @@ Deno.test({
 
     const body = await resp.text();
     const doc = parseHtml(body);
-    assertEquals(JSON.parse(doc.querySelector("pre").textContent), {
+    assertEquals(JSON.parse(doc.querySelector("pre")!.textContent!), {
       handler1: "it works",
       handler2: "it works",
       handler3: "it works",

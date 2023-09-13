@@ -19,6 +19,15 @@ export interface RouterOptions {
    *  @default {false}
    */
   trailingSlash?: boolean;
+  /**
+   *  Configures the pattern of files to ignore in islands and routes.
+   *
+   *  By default Fresh will ignore test files,
+   *  for example files with a `.test.ts` or a `_test.ts` suffix.
+   *
+   *  @default {/(?:[^/]*_|[^/]*\.|)test\.(?:ts|tsx|mts|js|mjs|jsx|)\/*$/}
+   */
+  ignoreFilePattern?: RegExp;
 }
 
 export type RenderFunction = (
@@ -118,14 +127,17 @@ export type ServeHandler = (
   info: ServeHandlerInfo,
 ) => Response | Promise<Response>;
 
-export interface HandlerContext<Data = unknown, State = Record<string, unknown>>
-  extends ServeHandlerInfo {
+export interface HandlerContext<
+  Data = unknown,
+  State = Record<string, unknown>,
+  NotFoundData = Data,
+> extends ServeHandlerInfo {
   params: Record<string, string>;
   render: (
     data?: Data,
     options?: RenderOptions,
   ) => Response | Promise<Response>;
-  renderNotFound: (data?: Data) => Response | Promise<Response>;
+  renderNotFound: (data?: NotFoundData) => Response | Promise<Response>;
   state: State;
 }
 

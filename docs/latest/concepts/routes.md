@@ -98,7 +98,7 @@ interface Data {
 export const handler: Handlers<Data> = {
   async GET(req, ctx) {
     const value = await loadFooValue();
-    ctx.render({ foo: value });
+    return ctx.render({ foo: value });
   },
 };
 

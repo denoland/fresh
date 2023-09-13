@@ -3,6 +3,7 @@ import {
   type ComponentChildren,
   Fragment,
   h,
+  isValidElement,
   type Options as PreactOptions,
   options as preactOptions,
   type VNode,
@@ -233,6 +234,23 @@ options.__b = (vnode: VNode<Record<string, unknown>>) => {
           const id = islandProps.length;
           if ("children" in props) {
             let children = props.children;
+
+            // Guard against passing objects as children to JSX
+            if (
+              typeof children === "function" || (
+                children !== null && typeof children === "object" &&
+                !Array.isArray(children) &&
+                !isValidElement(children)
+              )
+            ) {
+              const name = originalType.displayName || originalType.name ||
+                "Anonymous";
+
+              throw new Error(
+                `Invalid JSX child passed to island <${name} />. To resolve this error, pass the data as a standard prop instead.`,
+              );
+            }
+
             const markerText =
               `frsh-slot-${island.id}:${island.exportName}:${id}:children`;
             // @ts-ignore nonono

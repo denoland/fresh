@@ -1,20 +1,23 @@
 import { updateCheck } from "./update_check.ts";
-import { DAY, dirname, fromFileUrl, join } from "./deps.ts";
-import { FreshOptions } from "../server/mod.ts";
+import { DAY, dirname, fromFileUrl, fs, join, toFileUrl } from "./deps.ts";
+import {
+  FreshOptions,
+  Manifest as ServerManifest,
+  ServerContext,
+} from "../server/mod.ts";
 import { build } from "./build.ts";
 import { collect, ensureMinDenoVersion, generate, Manifest } from "./mod.ts";
+import { startFromContext } from "../server/boot.ts";
 
 export async function dev(
   base: string,
   entrypoint: string,
-  options: FreshOptions = {},
+  options?: FreshOptions,
 ) {
   ensureMinDenoVersion();
 
   // Run update check in background
   updateCheck(DAY).catch(() => {});
-
-  entrypoint = new URL(entrypoint, base).href;
 
   const dir = dirname(fromFileUrl(base));
 
@@ -25,7 +28,7 @@ export async function dev(
   } else {
     currentManifest = { islands: [], routes: [] };
   }
-  const newManifest = await collect(dir);
+  const newManifest = await collect(dir, options);
   Deno.env.set("FRSH_DEV_PREVIOUS_MANIFEST", JSON.stringify(newManifest));
 
   const manifestChanged =
@@ -34,9 +37,30 @@ export async function dev(
 
   if (manifestChanged) await generate(dir, newManifest);
 
-  if (Deno.args.includes("build")) {
-    await build(join(dir, "fresh.gen.ts"), options);
+  const manifest = (await import(toFileUrl(join(dir, "fresh.gen.ts")).href))
+    .default as ServerManifest;
+
+  const outDir = join(dir, "_fresh");
+
+  const isBuild = Deno.args.includes("build");
+  const ctx = await ServerContext.fromManifest(manifest, {
+    ...options,
+    skipSnapshot: true,
+    dev: !isBuild,
+  });
+
+  if (isBuild) {
+    // Ensure that build dir is empty
+    await fs.emptyDir(outDir);
+    await build(join(dir, "fresh.gen.ts"), options ?? {});
+  } else if (options) {
+    await startFromContext(ctx, options);
   } else {
+    // Legacy entry point: Back then `dev.ts` would call `main.ts` but
+    // this causes duplicate plugin instantiation if both `dev.ts` and
+    // `main.ts` instantiate plugins.
+    Deno.env.set("__FRSH_LEGACY_DEV", "true");
+    entrypoint = new URL(entrypoint, base).href;
     await import(entrypoint);
   }
 }

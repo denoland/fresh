@@ -2,6 +2,7 @@ import { assertEquals } from "$std/testing/asserts.ts";
 import {
   assertTextMany,
   fetchHtml,
+  parseHtml,
   waitForText,
   withFresh,
   withPageName,
@@ -68,6 +69,18 @@ Deno.test("does not treat files in (_...) as routes", async () => {
       const res = await fetch(`${address}/route-groups-islands/sub`);
       assertEquals(res.status, 404);
       res.body?.cancel();
+    },
+  );
+});
+
+Deno.test("resolve index route in group /(group)/index.tsx", async () => {
+  await withFresh(
+    "./tests/fixture_group_index/main.ts",
+    async (address) => {
+      const res = await fetch(`${address}`);
+      assertEquals(res.status, 200);
+      const doc = parseHtml(await res.text());
+      assertEquals(doc.querySelector("h1")?.textContent, "it works");
     },
   );
 });
