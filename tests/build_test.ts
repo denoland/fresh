@@ -6,9 +6,12 @@ import { BuildSnapshotJson } from "$fresh/src/build/mod.ts";
 import { assertStringIncludes } from "$std/testing/asserts.ts";
 import { assertNotMatch } from "$std/testing/asserts.ts";
 
-Deno.test("build snapshot and restore from it", async (t) => {
-  const fixture = path.join(Deno.cwd(), "tests", "fixture_build");
-  const outDir = path.join(fixture, "_fresh");
+async function testBuild(
+  t: Deno.TestContext,
+  fixture: string,
+  subDirPath = "",
+) {
+  const outDir = path.join(fixture, subDirPath, "_fresh");
 
   try {
     await t.step("build snapshot", async () => {
@@ -16,7 +19,7 @@ Deno.test("build snapshot and restore from it", async (t) => {
         args: [
           "run",
           "-A",
-          path.join(fixture, "dev.ts"),
+          path.join(fixture, subDirPath, "dev.ts"),
           "build",
         ],
         env: {
@@ -70,7 +73,7 @@ Deno.test("build snapshot and restore from it", async (t) => {
         args: [
           "run",
           "-A",
-          path.join(fixture, "./main.ts"),
+          path.join(fixture, subDirPath, "main.ts"),
         ],
       });
 
@@ -123,7 +126,7 @@ Deno.test("build snapshot and restore from it", async (t) => {
         args: [
           "run",
           "-A",
-          path.join(fixture, "./dev.ts"),
+          path.join(fixture, subDirPath, "dev.ts"),
         ],
       });
 
@@ -140,6 +143,19 @@ Deno.test("build snapshot and restore from it", async (t) => {
       }
     });
   } finally {
-    await Deno.remove(path.join(fixture, "_fresh"), { recursive: true });
+    await Deno.remove(path.join(fixture, subDirPath, "_fresh"), {
+      recursive: true,
+    });
   }
+}
+
+Deno.test("build snapshot and restore from it", async (t) => {
+  // Note: If you change the fixture_build directory, you must also update fixture_build_sub_dir
+  const fixture = path.join(Deno.cwd(), "tests", "fixture_build");
+  await testBuild(t, fixture);
+});
+
+Deno.test("build snapshot and restore from it when has sub dirs", async (t) => {
+  const fixture = path.join(Deno.cwd(), "tests", "fixture_build_sub_dir");
+  await testBuild(t, fixture, "src");
 });
