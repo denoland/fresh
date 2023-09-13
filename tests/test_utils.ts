@@ -10,8 +10,9 @@ import {
   TextLineStream,
 } from "./deps.ts";
 
-export function parseHtml(input: string) {
-  return new DOMParser().parseFromString(input, "text/html");
+export function parseHtml(input: string): Document {
+  // deno-lint-ignore no-explicit-any
+  return new DOMParser().parseFromString(input, "text/html") as any;
 }
 
 export async function startFreshServer(options: Deno.CommandOptions) {
@@ -87,7 +88,6 @@ export const VOID_ELEMENTS =
   /^(?:area|base|br|col|embed|hr|img|input|link|meta|param|source|track|wbr)$/;
 function prettyDom(doc: Document) {
   let out = colors.dim(`<!DOCTYPE ${doc.doctype?.name ?? ""}>\n`);
-  console.log(out);
 
   const node = doc.documentElement;
   out += _printDomNode(node, 0);
@@ -267,6 +267,41 @@ export async function waitForText(
     selector,
     String(text),
   );
+}
+
+export async function waitForStyle(
+  page: Page,
+  selector: string,
+  name: keyof CSSStyleDeclaration,
+  value: string,
+) {
+  await page.waitForSelector(selector);
+
+  const start = Date.now();
+  let now = start;
+  let found = false;
+  while (now < start + 2000) {
+    found = await page.evaluate(
+      (s, n, v) => {
+        const el = document.querySelector(s);
+        if (!el) return false;
+        return window.getComputedStyle(el)[n] === v;
+      },
+      selector,
+      name,
+      value,
+    );
+
+    if (found) break;
+
+    await delay(200);
+    now = Date.now();
+  }
+
+  if (!found) {
+    console.log(prettyDom(parseHtml(await page.content())));
+    throw new Error(`Could not find style ${String(name)}: ${value}`);
+  }
 }
 
 async function spawnServer(
