@@ -25,8 +25,6 @@ export function renderFreshTags(
     ];
   }
 
-  console.log(opts.csp, renderState.getNonce());
-
   const moduleScripts: [string, string][] = [];
   for (const url of opts.imports) {
     moduleScripts.push([url, renderState.getNonce()]);
