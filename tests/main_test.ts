@@ -59,7 +59,7 @@ Deno.test("/props/123 page prerender", async () => {
   assertEquals(resp.headers.get("content-type"), "text/html; charset=utf-8");
   const body = await resp.text();
   const doc = parseHtml(body);
-  const data = JSON.parse(doc.querySelector("body > div").textContent);
+  const data = JSON.parse(doc.querySelector("body > div")!.textContent!);
 
   assertEquals(data, {
     "params": { "id": "123" },
@@ -613,7 +613,7 @@ Deno.test({
 
     const body = await resp.text();
     const doc = parseHtml(body);
-    assertEquals(JSON.parse(doc.querySelector("pre").textContent), {
+    assertEquals(JSON.parse(doc.querySelector("pre")!.textContent!), {
       handler1: "it works",
       handler2: "it works",
       handler3: "it works",

@@ -165,7 +165,11 @@ export class ServerContext {
     // Restore snapshot if available
     let snapshot: BuildSnapshot | null = null;
     // Load from snapshot if not explicitly requested not to
-    const loadFromSnapshot = !opts.skipSnapshot;
+    let loadFromSnapshot = !opts.skipSnapshot;
+    // We still need to check for a legacy entry point :S
+    if (Deno.env.has("__FRSH_LEGACY_DEV")) {
+      loadFromSnapshot = false;
+    }
     if (loadFromSnapshot) {
       const snapshotDirPath = join(
         dirname(fromFileUrl(manifest.baseUrl)),

@@ -12,14 +12,12 @@ import { startFromContext } from "../server/boot.ts";
 export async function dev(
   base: string,
   entrypoint: string,
-  options: FreshOptions = {},
+  options?: FreshOptions,
 ) {
   ensureMinDenoVersion();
 
   // Run update check in background
   updateCheck(DAY).catch(() => {});
-
-  entrypoint = new URL(entrypoint, base).href;
 
   const dir = dirname(fromFileUrl(base));
 
@@ -54,13 +52,15 @@ export async function dev(
   if (isBuild) {
     // Ensure that build dir is empty
     await fs.emptyDir(outDir);
-    await build(join(dir, "fresh.gen.ts"), options);
+    await build(join(dir, "fresh.gen.ts"), options ?? {});
   } else if (options) {
     await startFromContext(ctx, options);
   } else {
     // Legacy entry point: Back then `dev.ts` would call `main.ts` but
     // this causes duplicate plugin instantiation if both `dev.ts` and
     // `main.ts` instantiate plugins.
+    Deno.env.set("__FRSH_LEGACY_DEV", "true");
+    entrypoint = new URL(entrypoint, base).href;
     await import(entrypoint);
   }
 }
