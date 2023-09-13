@@ -127,14 +127,17 @@ export type ServeHandler = (
   info: ServeHandlerInfo,
 ) => Response | Promise<Response>;
 
-export interface HandlerContext<Data = unknown, State = Record<string, unknown>>
-  extends ServeHandlerInfo {
+export interface HandlerContext<
+  Data = unknown,
+  State = Record<string, unknown>,
+  NotFoundData = Data,
+> extends ServeHandlerInfo {
   params: Record<string, string>;
   render: (
     data?: Data,
     options?: RenderOptions,
   ) => Response | Promise<Response>;
-  renderNotFound: (data?: Data) => Response | Promise<Response>;
+  renderNotFound: (data?: NotFoundData) => Response | Promise<Response>;
   state: State;
 }
 
