@@ -30,27 +30,32 @@ export function defineConfig<T extends object = Theme>(config: UserConfig<T>) {
  * @param [opts.runtime] By default the UnoCSS runtime will run in the browser. Set to `false` to disable this.
  * @param [opts.config] Explicit UnoCSS config object. By default `uno.config.ts` file. Not supported with the browser runtime.
  */
-export default async function unocss(
+export default function unocss(
   opts: UnoCssPluginOptions = {},
-): Promise<Plugin> {
+): Plugin {
   // Include the browser runtime by default
   const runtime = opts.runtime ?? true;
 
-  // If a config object is not provided, a uno.config.ts file is required in the project directory
+  // A uno.config.ts file is required in the project directory if a config object is not provided,
+  // or to use the browser runtime
   const configURL = new URL("./uno.config.ts", Deno.mainModule);
-  if (
-    opts.config === undefined &&
-    !await exists(configURL, { isFile: true, isReadable: true })
-  ) {
-    throw new Error(
-      "uno.config.ts not found in the project directory! Please create it or pass a config object to the UnoCSS plugin",
-    );
+
+  let uno: UnoGenerator;
+  if (opts.config !== undefined) {
+    uno = new UnoGenerator(opts.config);
+  } else {
+    import(configURL.toString()).then((mod) => {
+      uno = new UnoGenerator(mod.default);
+    }).catch((error) => {
+      exists(configURL, { isFile: true, isReadable: true }).then(
+        (configFileExists) => {
+          throw configFileExists ? error : new Error(
+            "uno.config.ts not found in the project directory! Please create it or pass a config object to the UnoCSS plugin",
+          );
+        },
+      );
+    });
   }
-
-  const config: UserConfig = opts.config ??
-    (await import(configURL.toString())).default;
-
-  const uno = new UnoGenerator(config);
 
   return {
     name: "unocss",
