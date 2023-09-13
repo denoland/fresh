@@ -6,6 +6,6 @@
 
 import { start } from "$fresh/server.ts";
 import manifest from "./fresh.gen.ts";
+import twind from "$fresh/plugins/twind.ts";
 
-Deno.env.set("FRESH_DEV_COMMAND_MODE", "legacy");
-await start(manifest);
+await start(manifest, { plugins: [twind({ selfURL: import.meta.url })] });
