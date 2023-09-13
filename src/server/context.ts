@@ -167,7 +167,10 @@ export class ServerContext {
     // Load from snapshot if not explicitly requested not to
     const loadFromSnapshot = !opts.skipSnapshot;
     if (loadFromSnapshot) {
-      const snapshotDirPath = join(dirname(configPath), "_fresh");
+      const snapshotDirPath = join(
+        dirname(fromFileUrl(manifest.baseUrl)),
+        "_fresh",
+      );
       try {
         if ((await Deno.stat(snapshotDirPath)).isDirectory) {
           console.log(
