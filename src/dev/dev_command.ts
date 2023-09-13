@@ -59,6 +59,7 @@ export async function dev(
     // Legacy entry point: Back then `dev.ts` would call `main.ts` but
     // this causes duplicate plugin instantiation if both `dev.ts` and
     // `main.ts` instantiate plugins.
+    Deno.env.set("__FRSH_LEGACY_DEV", "true");
     entrypoint = new URL(entrypoint, base).href;
     await import(entrypoint);
   }
