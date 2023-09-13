@@ -2,6 +2,7 @@ import {
   UnoGenerator,
   type UserConfig,
 } from "https://esm.sh/@unocss/core@0.55.1";
+import type { Theme } from "https://esm.sh/@unocss/preset-uno@0.55.1";
 import { Plugin } from "$fresh/server.ts";
 import { exists } from "$fresh/src/server/deps.ts";
 
@@ -14,6 +15,13 @@ type UnoCssPluginOptions = {
   runtime?: boolean;
   config?: UserConfig;
 };
+
+/**
+ * Helper function for typing of config objects
+ */
+export function defineConfig<T extends object = Theme>(config: UserConfig<T>) {
+  return config;
+}
 
 /**
  * UnoCSS plugin - automatically generates CSS utility classes
