@@ -6,21 +6,6 @@ import { Plugin, PluginRenderResult, PluginRenderStyleTag } from "../types.ts";
 import { ContentSecurityPolicy, nonce } from "../../runtime/csp.ts";
 import { h } from "preact";
 
-function getRandomNonce(
-  opts: { randomNonce?: string; csp?: ContentSecurityPolicy },
-): string {
-  if (opts.randomNonce === undefined) {
-    opts.randomNonce = crypto.randomUUID().replace(/-/g, "");
-    if (opts.csp) {
-      opts.csp.directives.scriptSrc = [
-        ...opts.csp.directives.scriptSrc ?? [],
-        nonce(opts.randomNonce),
-      ];
-    }
-  }
-  return opts.randomNonce;
-}
-
 export function renderFreshTags(
   renderState: RenderState,
   opts: {
@@ -33,9 +18,18 @@ export function renderFreshTags(
     pluginRenderResults: [Plugin, PluginRenderResult][];
   },
 ) {
+  if (opts.csp) {
+    opts.csp.directives.scriptSrc = [
+      ...opts.csp.directives.scriptSrc ?? [],
+      nonce(renderState.getNonce()),
+    ];
+  }
+
+  console.log(opts.csp, renderState.getNonce());
+
   const moduleScripts: [string, string][] = [];
   for (const url of opts.imports) {
-    moduleScripts.push([url, getRandomNonce(opts)]);
+    moduleScripts.push([url, renderState.getNonce()]);
   }
 
   const preloadSet = new Set<string>();
@@ -74,7 +68,7 @@ export function renderFreshTags(
     const res = serialize(state);
     const escapedState = htmlEscapeJsonString(res.serialized);
     opts.bodyHtml +=
-      `<script id="__FRSH_STATE" type="application/json">${escapedState}</script>`;
+      `<script id="__FRSH_STATE" type="application/json" nonce="${renderState.getNonce()}">${escapedState}</script>`;
 
     if (res.requiresDeserializer) {
       const url = addImport("deserializer.js");
@@ -124,9 +118,8 @@ export function renderFreshTags(
 
   // Append the inline script.
   if (script !== "") {
-    opts.bodyHtml += `<script type="module" nonce="${
-      getRandomNonce(opts)
-    }">${script}</script>`;
+    opts.bodyHtml +=
+      `<script type="module" nonce="${renderState.getNonce()}">${script}</script>`;
   }
 
   if (opts.styles.length > 0) {

@@ -35,6 +35,7 @@ export class RenderState {
   // Preact state
   ownerStack: VNode[] = [];
   owners = new Map<VNode, VNode>();
+  #nonce = "";
 
   constructor(
     routeOptions: RenderStateRouteOptions,
@@ -48,6 +49,13 @@ export class RenderState {
     this.componentStack = componentStack;
 
     if (error) this.routeOptions.error = error;
+  }
+
+  getNonce(): string {
+    if (this.#nonce === "") {
+      this.#nonce = crypto.randomUUID().replace(/-/g, "");
+    }
+    return this.#nonce;
   }
 
   clearTmpState() {
