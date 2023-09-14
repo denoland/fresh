@@ -948,6 +948,20 @@ Deno.test("Generate a single nonce value per page", async () => {
   });
 });
 
+Deno.test("Adds nonce to inline scripts", async () => {
+  await withFresh("./tests/fixture/main.ts", async (address) => {
+    const doc = await fetchHtml(`${address}/nonce_inline`);
+
+    const stateScript = doc.querySelector("#__FRSH_STATE")!;
+    const nonce = stateScript.getAttribute("nonce")!;
+
+    const el = doc.querySelector("#inline-script")!;
+    const inlineNonce = el.getAttribute("nonce")!;
+
+    assertEquals(inlineNonce, nonce);
+  });
+});
+
 Deno.test({
   name: "support string based event handlers during SSR",
   async fn() {
