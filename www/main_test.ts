@@ -1,5 +1,4 @@
 import { assertArrayIncludes, assertEquals } from "$std/testing/asserts.ts";
-import { delay } from "$std/async/delay.ts";
 import { startFreshServer, withPageName } from "../tests/test_utils.ts";
 import { dirname, join } from "$std/path/mod.ts";
 import VERSIONS from "../versions.json" assert { type: "json" };
