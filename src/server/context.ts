@@ -366,7 +366,15 @@ export class ServerContext {
           pattern: pathToPattern(baseRoute),
           url,
           name,
-          component,
+          // deno-lint-ignore no-explicit-any
+          component: (props: any) => {
+            // Show our nice error page during dev mode.
+            if (dev && props.error) {
+              return h(DefaultErrorHandler, props);
+            }
+            // deno-lint-ignore no-explicit-any
+            return h((component ?? DefaultErrorHandler) as any, props);
+          },
           handler: handler ??
             ((req, ctx) => router.defaultErrorHandler(req, ctx, ctx.error)),
           csp: Boolean(config?.csp ?? false),

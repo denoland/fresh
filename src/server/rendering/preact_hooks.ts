@@ -12,6 +12,23 @@ import { assetHashingHook } from "../../runtime/utils.ts";
 import { renderToString } from "preact-render-to-string";
 import { RenderState } from "./state.ts";
 import { Island } from "../types.ts";
+import { RenderError } from "$fresh/src/server/constants.ts";
+
+// See: https://github.com/preactjs/preact/blob/7748dcb83cedd02e37b3713634e35b97b26028fd/src/internal.d.ts#L3C1-L16
+enum HookType {
+  useState = 1,
+  useReducer = 2,
+  useEffect = 3,
+  useLayoutEffect = 4,
+  useRef = 5,
+  useImperativeHandle = 6,
+  useMemo = 7,
+  useCallback = 8,
+  useContext = 9,
+  useErrorBoundary = 10,
+  // Not a real hook, but the devtools treat is as such
+  useDebugvalue = 11,
+}
 
 // These hooks are long stable, but when we originally added them we
 // weren't sure if they should be public.
@@ -23,6 +40,8 @@ interface AdvancedPreactOptions extends PreactOptions {
   errorBoundaries?: boolean;
   /** before diff hook */
   __b?(vnode: VNode): void;
+  /** Attach a hook that is invoked before a hook's state is queried. */
+  __h?(component: Component, index: number, type: HookType): void;
 }
 const options = preactOptions as AdvancedPreactOptions;
 
@@ -121,6 +140,7 @@ const oldVNodeHook = options.vnode;
 const oldDiff = options.__b;
 const oldDiffed = options.diffed;
 const oldRender = options.__r;
+const oldHook = options.__h;
 
 options.vnode = (vnode) => {
   assetHashingHook(vnode);
@@ -211,6 +231,10 @@ options.__b = (vnode: VNode<Record<string, unknown>>) => {
         island &&
         !patched.has(vnode)
       ) {
+        // Keep track of whether we are inside an island to warn about
+        // hooks usage
+        current.islandCounter++;
+
         // Check if an island is rendered inside another island, not just
         // passed as a child.In that case we treat it like a normal
         // Component. Example:
@@ -301,6 +325,9 @@ options.__r = (vnode) => {
 options.diffed = (vnode: VNode<Record<string, unknown>>) => {
   if (typeof vnode.type === "function") {
     if (vnode.type !== Fragment) {
+      if (patched.has(vnode) && current) {
+        current.islandCounter--;
+      }
       ownerStack.pop();
     } else if (vnode.props.__freshHead) {
       if (current) {
@@ -309,4 +336,20 @@ options.diffed = (vnode: VNode<Record<string, unknown>>) => {
     }
   }
   oldDiffed?.(vnode);
+};
+
+options.__h = (component, idx, type) => {
+  // Warn when using stateful hooks outside of islands
+  if (
+    // Only error for stateful hooks for now.
+    (type === HookType.useState || type === HookType.useReducer) && current &&
+    current.islandCounter === 0 &&
+    !current.error
+  ) {
+    // Don't throw here because that messes up internal Preact state
+    current.error = new RenderError(
+      `Hook "${HookType[type]}" cannot be used outside of an island component.`,
+    );
+  }
+  oldHook?.(component, idx, type);
 };
