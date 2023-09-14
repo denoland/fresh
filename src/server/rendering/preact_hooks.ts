@@ -151,6 +151,13 @@ options.vnode = (vnode) => {
 };
 
 options.__b = (vnode: VNode<Record<string, unknown>>) => {
+  // Add CSP nonce to inline script tags
+  if (typeof vnode.type === "string" && vnode.type === "script") {
+    if (!vnode.props.nonce) {
+      vnode.props.nonce = current!.getNonce();
+    }
+  }
+
   if (
     current && current.renderingUserTemplate
   ) {
