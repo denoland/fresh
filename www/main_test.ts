@@ -20,8 +20,7 @@ Deno.test("CORS should not set on GET /fresh-badge.svg", {
 
   await lines.cancel();
   serverProcess.kill("SIGTERM");
-  // await for the server to close
-  await delay(100);
+  await serverProcess.status;
 });
 
 Deno.test("shows version selector", {

@@ -758,6 +758,7 @@ Deno.test("jsx pragma works", {
 
   await lines.cancel();
   serverProcess.kill("SIGTERM");
+  await serverProcess.status;
 });
 
 Deno.test("preact/debug is active in dev mode", {
@@ -795,6 +796,7 @@ Deno.test("preact/debug is active in dev mode", {
 
   await lines.cancel();
   serverProcess.kill("SIGTERM");
+  await serverProcess.status;
 });
 
 Deno.test("preloading javascript files", {
@@ -843,6 +845,7 @@ Deno.test("preloading javascript files", {
 
     await lines.cancel();
     serverProcess.kill("SIGTERM");
+    await serverProcess.status;
   }
 });
 
@@ -865,6 +868,7 @@ Deno.test("PORT environment variable", {
 
   await lines.cancel();
   serverProcess.kill("SIGTERM");
+  await serverProcess.status;
 });
 
 Deno.test("throw on route export 'handlers' instead of 'handler'", {
