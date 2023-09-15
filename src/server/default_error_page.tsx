@@ -116,7 +116,7 @@ function CodeFrame(props: { codeFrame: string }) {
     (line, i, arr) => {
       const vnode = (
         <span
-          class={"line" + (line.startsWith("▶") ? " active-line" : "")}
+          class={"line" + (line.startsWith(">") ? " active-line" : "")}
         >
           {line}
         </span>
@@ -128,7 +128,7 @@ function CodeFrame(props: { codeFrame: string }) {
   );
   return (
     <pre class="code-frame">
-  <code>{lines}</code>
+      <code>{lines}</code>
     </pre>
   );
 }

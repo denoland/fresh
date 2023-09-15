@@ -19,6 +19,7 @@ export interface Options {
 /**
  * Generate an excerpt of the location in the source around the
  * specified position.
+ * Taken from: https://github.com/marvinhagemeister/simple-code-frame/blob/e56f10acf2de6ece968b0de67d2d34e445dc8a66/src/index.ts
  */
 export function createCodeFrame(
   text: string,
@@ -28,9 +29,9 @@ export function createCodeFrame(
     before = 2,
     after = 3,
     maxWidth = 0,
-    lineMarkerChar = "▶",
-    seperatorChar = "│",
-    columnMarkerChar = "▲",
+    lineMarkerChar = ">",
+    seperatorChar = "|",
+    columnMarkerChar = "^",
   }: Options = {},
 ) {
   const lines = text.split("\n");
@@ -157,8 +158,8 @@ export async function getCodeFrame(error: Error) {
       const text = await Deno.readTextFile(filePath);
       return createCodeFrame(
         text,
-        file.line,
-        file.column,
+        file.line - 1,
+        file.column - 1,
       );
     } catch {
       // Ignore
