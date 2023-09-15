@@ -20,7 +20,7 @@ import {
   setDevMode,
 } from "./constants.ts";
 import { BUILD_ID, setBuildId } from "./build_id.ts";
-import DefaultErrorHandler from "./default_error_page.ts";
+import DefaultErrorHandler from "./default_error_page.tsx";
 import {
   AppModule,
   BaseRoute,
@@ -63,6 +63,7 @@ import {
 } from "../build/mod.ts";
 import { InternalRoute } from "./router.ts";
 import { setAllIslands } from "./rendering/preact_hooks.ts";
+import { getCodeFrame } from "./code_frame.ts";
 
 const DEFAULT_CONN_INFO: ServeHandlerInfo = {
   localAddr: { transport: "tcp", hostname: "localhost", port: 8080 },
@@ -798,7 +799,6 @@ export class ServerContext {
           if (route.component === undefined) {
             throw new Error("This page does not have a component to render.");
           }
-
           const layouts = selectSharedRoutes(route.baseRoute, this.#layouts);
 
           const resp = await internalRender({
@@ -898,16 +898,27 @@ export class ServerContext {
       this.#error,
       Status.InternalServerError,
     );
-    const errorHandler: router.ErrorHandler<RouterState> = (
+    const errorHandler: router.ErrorHandler<RouterState> = async (
       req,
       ctx,
       error,
     ) => {
+      let codeFrame = undefined;
+      if (this.#dev && error instanceof Error) {
+        codeFrame = await getCodeFrame(error);
+        // deno-lint-ignore no-explicit-any
+        (error as any).codeFrame = codeFrame;
+      }
+
       console.error(
         "%cAn error occurred during route handling or page rendering.",
         "color:red",
-        error,
       );
+      if (codeFrame) {
+        console.error(codeFrame);
+      }
+      console.error(error);
+
       return this.#error.handler(
         req,
         {
