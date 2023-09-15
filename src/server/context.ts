@@ -903,13 +903,6 @@ export class ServerContext {
       ctx,
       error,
     ) => {
-      let codeFrame = undefined;
-      if (this.#dev && error instanceof Error) {
-        codeFrame = await getCodeFrame(error);
-        // deno-lint-ignore no-explicit-any
-        (error as any).codeFrame = codeFrame;
-      }
-
       console.error(
         "%cAn error occurred during route handling or page rendering.",
         "color:red",

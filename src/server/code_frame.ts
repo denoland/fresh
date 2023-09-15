@@ -7,6 +7,7 @@ function tabs2Spaces(str: string) {
 /**
  * Generate an excerpt of the location in the source around the
  * specified position.
+ * Taken from: https://github.com/marvinhagemeister/simple-code-frame/blob/e56f10acf2de6ece968b0de67d2d34e445dc8a66/src/index.ts
  */
 export function createCodeFrame(
   text: string,
