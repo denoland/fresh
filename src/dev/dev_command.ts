@@ -51,7 +51,7 @@ export async function dev(
     const ctx = await ServerContext.fromManifest(manifest, {
       ...options,
       skipSnapshot: true,
-      dev: !isBuild,
+      dev: true,
     });
     await startFromContext(ctx, options);
   } else {
