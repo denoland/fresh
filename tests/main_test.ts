@@ -863,6 +863,7 @@ Deno.test("PORT environment variable", {
   await delay(100);
 
   const resp = await fetch("http://localhost:" + PORT);
+  await resp.body?.cancel();
   assert(resp);
   assertEquals(resp.status, Status.OK);
 
