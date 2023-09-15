@@ -1,5 +1,4 @@
 import { assertArrayIncludes, assertEquals } from "$std/testing/asserts.ts";
-import { delay } from "$std/async/delay.ts";
 import { startFreshServer, withPageName } from "../tests/test_utils.ts";
 import { dirname, join } from "$std/path/mod.ts";
 import VERSIONS from "../versions.json" assert { type: "json" };
@@ -20,8 +19,7 @@ Deno.test("CORS should not set on GET /fresh-badge.svg", {
 
   await lines.cancel();
   serverProcess.kill("SIGTERM");
-  // await for the server to close
-  await delay(100);
+  await serverProcess.status;
 });
 
 Deno.test("shows version selector", {

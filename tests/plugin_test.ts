@@ -124,6 +124,7 @@ Deno.test({
 
     await lines.cancel();
     serverProcess.kill("SIGTERM");
+    await serverProcess.status;
   },
   sanitizeOps: false,
   sanitizeResources: false,
