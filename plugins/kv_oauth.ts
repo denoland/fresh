@@ -2,6 +2,27 @@ import { handleCallback, signIn, signOut } from "./kv_oauth/plugin_deps.ts";
 import type { OAuth2Client } from "./kv_oauth/plugin_deps.ts";
 import type { Plugin } from "../server.ts";
 
+export interface KvOAuthPluginOptions {
+  /**
+   * Sign-in page path
+   *
+   * @default {"/oauth/signin"}
+   */
+  signInPath?: string;
+  /**
+   * Callback page path
+   *
+   * @default {"/oauth/callback"}
+   */
+  callbackPath?: string;
+  /**
+   * Sign-out page path
+   *
+   * @default {"/oauth/signout"}
+   */
+  signOutPath?: string;
+}
+
 /**
  * This creates handlers for the following routes:
  * - `GET /oauth/signin` for the sign-in page
@@ -24,26 +45,7 @@ import type { Plugin } from "../server.ts";
  */
 export default function kvOAuthPlugin(
   oauth2Client: OAuth2Client,
-  options?: {
-    /**
-     * Sign-in page path
-     *
-     * @default {"/oauth/signin"}
-     */
-    signInPath?: string;
-    /**
-     * Callback page path
-     *
-     * @default {"/oauth/callback"}
-     */
-    callbackPath?: string;
-    /**
-     * Sign-out page path
-     *
-     * @default {"/oauth/signout"}
-     */
-    signOutPath?: string;
-  },
+  options?: KvOAuthPluginOptions,
 ): Plugin {
   return {
     name: "kv-oauth",
