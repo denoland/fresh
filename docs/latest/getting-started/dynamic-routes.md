@@ -24,6 +24,13 @@ render a page. The module must once again expose a component as a default
 export. This time the component will receive the matched path segment properties
 as arguments in its `props` object though.
 
+> :warning: Warning: it is possible to create both static and dynamic routes in
+> the same directory, possibly leading to confusion. Fresh will always choose
+> the static route first. E.g. `/nested/index.ts` and `/nested/static.ts` will
+> always route ahead of `/nested/[id].ts`. Fresh will warn you of multiple
+> conflicting dynamic routes in development mode, e.g. `/nested/[dynamic1].ts`
+> and `/nested/[dynamic2].ts`.
+
 ```tsx routes/greet/[name].tsx
 import { PageProps } from "$fresh/server.ts";
 

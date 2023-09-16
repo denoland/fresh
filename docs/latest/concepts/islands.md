@@ -9,8 +9,7 @@ is different from all other components in Fresh, as they are usually rendered on
 the server only.
 
 Islands are defined by creating a file in the `islands/` folder in a Fresh
-project. The name of this file must be a PascalCase or kebab-case name of the
-island.
+project.
 
 ```tsx islands/my-island.tsx
 import { useSignal } from "@preact/signals";

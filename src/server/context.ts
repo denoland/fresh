@@ -38,6 +38,7 @@ import {
   RouterOptions,
   RouterState,
   ServeHandlerInfo,
+  StaticFile,
   UnknownPage,
   UnknownPageModule,
 } from "./types.ts";
@@ -57,6 +58,22 @@ import {
   JSXConfig,
 } from "../build/mod.ts";
 import { InternalRoute } from "./router.ts";
+import {
+  assertModuleExportsDefault,
+  assertNoDynamicRouteConflicts,
+  assertNoStaticRouteConflicts,
+  assertPluginsCallRender,
+  assertPluginsCallRenderAsync,
+  assertPluginsDuringAOTBuild,
+  assertPluginsInjectModules,
+  assertRoutesHaveHandlerOrComponent,
+  assertSingleModule,
+  assertSingleRoutePattern,
+  assertStaticDirSafety,
+  CheckCategory,
+  CheckFunction,
+  CheckResult,
+} from "./dev_checks.ts";
 import { setAllIslands } from "./rendering/preact_hooks.ts";
 
 const DEFAULT_CONN_INFO: ServeHandlerInfo = {
@@ -76,20 +93,6 @@ function isDevMode() {
   // Env var is only set in prod (on Deploy).
   return Deno.env.get("DENO_DEPLOYMENT_ID") === undefined;
 }
-
-interface StaticFile {
-  /** The URL to the static file on disk. */
-  localUrl: URL;
-  /** The path to the file as it would be in the incoming request. */
-  path: string;
-  /** The size of the file. */
-  size: number;
-  /** The content-type of the file. */
-  contentType: string;
-  /** Hash of the file contents. */
-  etag: string;
-}
-
 export class ServerContext {
   #dev: boolean;
   #routes: Route[];
@@ -152,6 +155,7 @@ export class ServerContext {
   ): Promise<ServerContext> {
     // Get the manifest' base URL.
     const baseUrl = new URL("./", manifest.baseUrl).href;
+    const defaultStaticDir = "./static";
 
     const { config, path: configPath } = await readDenoConfig(
       fromFileUrl(baseUrl),
@@ -164,6 +168,7 @@ export class ServerContext {
 
     // Restore snapshot if available
     let snapshot: BuildSnapshot | null = null;
+    let json: BuildSnapshotJson | null = null;
     // Load from snapshot if not explicitly requested not to
     let loadFromSnapshot = !opts.skipSnapshot;
     // We still need to check for a legacy entry point :S
@@ -182,9 +187,11 @@ export class ServerContext {
           );
 
           const snapshotPath = join(snapshotDirPath, "snapshot.json");
-          const json = JSON.parse(
+
+          json = JSON.parse(
             await Deno.readTextFile(snapshotPath),
           ) as BuildSnapshotJson;
+
           setBuildId(json.build_id);
 
           const dependencies = new Map<string, string[]>(
@@ -231,13 +238,16 @@ export class ServerContext {
     const islands: Island[] = [];
     const middlewares: MiddlewareRoute[] = [];
     let app: AppModule = DEFAULT_APP;
+    let appModule: { url: string; module: AppModule } | null = null;
     const layouts: LayoutRoute[] = [];
     let notFound: UnknownPage = DEFAULT_NOT_FOUND;
+    let unknownModule: { url: string; module: UnknownPageModule } | null = null;
     let error: ErrorPage = DEFAULT_ERROR;
+    let errorModule: { url: string; module: ErrorPageModule } | null = null;
     const allRoutes = [
       ...Object.entries(manifest.routes),
-      ...(opts.plugins ? getMiddlewareRoutesFromPlugins(opts.plugins) : []),
-      ...(opts.plugins ? getRoutesFromPlugins(opts.plugins) : []),
+      ...getMiddlewareRoutesFromPlugins(opts.plugins ?? []),
+      ...getRoutesFromPlugins(opts.plugins ?? []),
     ];
 
     // Presort all routes so that we only need to sort once
@@ -316,6 +326,7 @@ export class ServerContext {
         path === "/_app.jsx" || path === "/_app.js"
       ) {
         app = module as AppModule;
+        appModule = { url, module: module as AppModule };
       } else if (isLayout) {
         const mod = module as LayoutModule;
         const config = mod.config;
@@ -330,6 +341,7 @@ export class ServerContext {
         path === "/_404.tsx" || path === "/_404.ts" ||
         path === "/_404.jsx" || path === "/_404.js"
       ) {
+        unknownModule = { url, module: module as UnknownPageModule };
         const { default: component, config } = module as UnknownPageModule;
         let { handler } = module as UnknownPageModule;
         if (component && handler === undefined) {
@@ -351,6 +363,7 @@ export class ServerContext {
         path === "/_500.tsx" || path === "/_500.ts" ||
         path === "/_500.jsx" || path === "/_500.js"
       ) {
+        errorModule = { url, module: module as ErrorPageModule };
         const { default: component, config } = module as ErrorPageModule;
         let { handler } = module as ErrorPageModule;
         if (component && handler === undefined) {
@@ -402,7 +415,7 @@ export class ServerContext {
     const staticFiles: StaticFile[] = [];
     try {
       const staticFolder = new URL(
-        opts.staticDir ?? "./static",
+        opts.staticDir ?? defaultStaticDir,
         manifest.baseUrl,
       );
       const entries = walk(fromFileUrl(staticFolder), {
@@ -444,6 +457,44 @@ export class ServerContext {
 
     const dev = opts.dev ?? isDevMode();
     if (dev) {
+      const checks: CheckFunction[] = [
+        () => assertModuleExportsDefault(appModule, "_app"),
+        () => assertSingleModule(routes, "_app"),
+        () => assertModuleExportsDefault(unknownModule, "_404"),
+        () => assertSingleModule(routes, "_404"),
+        () => assertSingleRoutePattern(routes),
+        () => assertModuleExportsDefault(errorModule, "_500"),
+        () => assertSingleModule(routes, "_500"),
+        () => assertRoutesHaveHandlerOrComponent(routes),
+        () => assertNoDynamicRouteConflicts(routes),
+        () => assertNoStaticRouteConflicts(routes, staticFiles),
+        () => assertStaticDirSafety(opts.staticDir ?? "", defaultStaticDir),
+        () => assertPluginsCallRender(opts.plugins ?? []),
+        () => assertPluginsCallRenderAsync(opts.plugins ?? []),
+        () => assertPluginsInjectModules(opts.plugins ?? []),
+        () => assertPluginsDuringAOTBuild(opts.plugins ?? [], json),
+      ];
+
+      const results = checks.flatMap((check) => check());
+      const resultsByCategory = new Map<CheckCategory, CheckResult[]>(
+        Object.values(CheckCategory).map((category) => [category, []]),
+      );
+
+      for (const result of results) {
+        resultsByCategory.get(result.category)?.push(result);
+      }
+
+      for (const [category, results] of resultsByCategory) {
+        for (const result of results) {
+          console.log(`%c${category}`, "font-weight:bold");
+          console.log(`  ${result.message}`);
+          if (result.link) {
+            const link = result.link.substring(baseUrl.length);
+            console.log(`  See: ${link ? `./${link}` : result.link}`);
+          }
+        }
+      }
+
       // Ensure that debugging hooks are set up for SSR rendering
       await import("preact/debug");
     }
