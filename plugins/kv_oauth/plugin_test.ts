@@ -36,4 +36,18 @@ Deno.test("kvOAuthPlugin() works correctly", async (test) => {
       signOutPath,
     ]);
   });
+
+  await test.step("with mapped providers", () => {
+    const providerKey = "customProvider";
+    const plugin = kvOAuthPlugin({
+      [providerKey]: oauth2Client,
+    });
+    assertNotEquals(plugin.routes, undefined);
+    assert(plugin.routes!.every((route) => route.handler !== undefined));
+    assertArrayIncludes(plugin.routes!.map((route) => route.path), [
+      `/oauth/${providerKey}/signin`,
+      `/oauth/${providerKey}/callback`,
+      `/oauth/${providerKey}/signout`,
+    ]);
+  });
 });
