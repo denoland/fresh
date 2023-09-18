@@ -115,9 +115,11 @@ async function testBuild(
           await browser.close();
         }
       } finally {
-        await lines.cancel();
         serverProcess.kill("SIGTERM");
         await serverProcess.status;
+
+        // Drain the lines stream
+        for await (const _ of lines) { /* noop */ }
       }
     });
 
@@ -137,9 +139,11 @@ async function testBuild(
           "Restoring from snapshot message should not appear in dev mode",
         );
       } finally {
-        await lines.cancel();
         serverProcess.kill("SIGTERM");
         await serverProcess.status;
+
+        // Drain the lines stream
+        for await (const _ of lines) { /* noop */ }
       }
     });
   } finally {

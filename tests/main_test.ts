@@ -724,10 +724,7 @@ Deno.test({
   },
 });
 
-Deno.test("jsx pragma works", {
-  sanitizeOps: false,
-  sanitizeResources: false,
-}, async (t) => {
+Deno.test("jsx pragma works", async (t) => {
   // Preparation
   const { serverProcess, lines, address } = await startFreshServer({
     args: ["run", "-A", "./tests/fixture_jsx_pragma/main.ts"],
@@ -756,15 +753,14 @@ Deno.test("jsx pragma works", {
 
   await browser.close();
 
-  await lines.cancel();
   serverProcess.kill("SIGTERM");
   await serverProcess.status;
+
+  // Drain the lines stream
+  for await (const _ of lines) { /* noop */ }
 });
 
-Deno.test("preact/debug is active in dev mode", {
-  sanitizeOps: false,
-  sanitizeResources: false,
-}, async (t) => {
+Deno.test("preact/debug is active in dev mode", async (t) => {
   // Preparation
   const { serverProcess, lines, address } = await startFreshServer({
     args: ["run", "-A", "./tests/fixture_render_error/main.ts"],
@@ -794,15 +790,14 @@ Deno.test("preact/debug is active in dev mode", {
 
   await browser.close();
 
-  await lines.cancel();
   serverProcess.kill("SIGTERM");
   await serverProcess.status;
+
+  // Drain the lines stream
+  for await (const _ of lines) { /* noop */ }
 });
 
-Deno.test("preloading javascript files", {
-  sanitizeOps: false,
-  sanitizeResources: false,
-}, async () => {
+Deno.test("preloading javascript files", async () => {
   // Preparation
   const { serverProcess, lines, address } = await startFreshServer({
     args: ["run", "-A", "./tests/fixture/main.ts"],
@@ -843,16 +838,15 @@ Deno.test("preloading javascript files", {
   } finally {
     await browser.close();
 
-    await lines.cancel();
     serverProcess.kill("SIGTERM");
     await serverProcess.status;
+
+    // Drain the lines stream
+    for await (const _ of lines) { /* noop */ }
   }
 });
 
-Deno.test("PORT environment variable", {
-  sanitizeOps: false,
-  sanitizeResources: false,
-}, async () => {
+Deno.test("PORT environment variable", async () => {
   const PORT = "8765";
   // Preparation
   const { serverProcess, lines } = await startFreshServer({
@@ -866,27 +860,30 @@ Deno.test("PORT environment variable", {
   await resp.body?.cancel();
   assert(resp);
   assertEquals(resp.status, Status.OK);
+  await resp.body!.cancel();
 
-  await lines.cancel();
   serverProcess.kill("SIGTERM");
   await serverProcess.status;
+
+  // Drain the lines stream
+  for await (const _ of lines) { /* noop */ }
 });
 
-Deno.test("throw on route export 'handlers' instead of 'handler'", {
-  sanitizeOps: false,
-  sanitizeResources: false,
-}, async () => {
-  const result = await new Deno.Command(Deno.execPath(), {
-    args: ["run", "-A", "./tests/fixture_invalid_handlers/main.ts"],
-    stderr: "piped",
-    stdout: "piped",
-  }).output();
+Deno.test(
+  "throw on route export 'handlers' instead of 'handler'",
+  async () => {
+    const result = await new Deno.Command(Deno.execPath(), {
+      args: ["run", "-A", "./tests/fixture_invalid_handlers/main.ts"],
+      stderr: "piped",
+      stdout: "piped",
+    }).output();
 
-  assertEquals(result.code, 1);
+    assertEquals(result.code, 1);
 
-  const text = new TextDecoder().decode(result.stderr);
-  assertMatch(text, /Did you mean "handler"\?/);
-});
+    const text = new TextDecoder().decode(result.stderr);
+    assertMatch(text, /Did you mean "handler"\?/);
+  },
+);
 
 Deno.test("rendering custom _500.tsx page for default handlers", async (t) => {
   await withFresh("./tests/fixture_custom_500/main.ts", async (address) => {
@@ -905,10 +902,7 @@ Deno.test("rendering custom _500.tsx page for default handlers", async (t) => {
   });
 });
 
-Deno.test("renders error boundary", {
-  sanitizeOps: false,
-  sanitizeResources: false,
-}, async () => {
+Deno.test("renders error boundary", async () => {
   await withPageName("./tests/fixture/main.ts", async (page, address) => {
     await page.goto(`${address}/error_boundary`);
     const text = await page.$eval("body", (el) => el.textContent);
@@ -978,9 +972,6 @@ Deno.test({
       await waitForText(page, "p", "it works");
     });
   },
-
-  sanitizeOps: false,
-  sanitizeResources: false,
 });
 
 Deno.test({
@@ -1010,9 +1001,6 @@ Deno.test({
       });
     });
   },
-
-  sanitizeOps: false,
-  sanitizeResources: false,
 });
 
 Deno.test("adds refresh script to html", async () => {

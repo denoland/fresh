@@ -58,9 +58,6 @@ Deno.test({
       });
     });
   },
-
-  sanitizeOps: false,
-  sanitizeResources: false,
 });
 
 Deno.test({
@@ -88,9 +85,6 @@ Deno.test({
       });
     });
   },
-
-  sanitizeOps: false,
-  sanitizeResources: false,
 });
 
 function withPage(fn: (page: Page, address: string) => Promise<void>) {
@@ -122,9 +116,6 @@ Deno.test({
       });
     });
   },
-
-  sanitizeOps: false,
-  sanitizeResources: false,
 });
 
 Deno.test({
@@ -146,9 +137,6 @@ Deno.test({
       await waitForText(page, `#island-parent`, "HelloWorldI'm rendered now");
     });
   },
-
-  sanitizeOps: false,
-  sanitizeResources: false,
 });
 
 Deno.test({
@@ -176,9 +164,6 @@ Deno.test({
       );
     });
   },
-
-  sanitizeOps: false,
-  sanitizeResources: false,
 });
 
 Deno.test({
@@ -193,9 +178,6 @@ Deno.test({
       await page.waitForSelector(".added-by-use-effect");
     });
   },
-
-  sanitizeOps: false,
-  sanitizeResources: false,
 });
 
 Deno.test({
@@ -212,9 +194,6 @@ Deno.test({
       assert(await page.waitForSelector("#browser-true"));
     });
   },
-
-  sanitizeOps: false,
-  sanitizeResources: false,
 });
 
 Deno.test({
@@ -232,9 +211,6 @@ Deno.test({
       },
     );
   },
-
-  sanitizeOps: false,
-  sanitizeResources: false,
 });
 
 Deno.test({
@@ -252,9 +228,6 @@ Deno.test({
       },
     );
   },
-
-  sanitizeOps: false,
-  sanitizeResources: false,
 });
 
 Deno.test({
@@ -275,9 +248,6 @@ Deno.test({
       },
     );
   },
-
-  sanitizeOps: false,
-  sanitizeResources: false,
 });
 
 Deno.test({
@@ -298,9 +268,6 @@ Deno.test({
       },
     );
   },
-
-  sanitizeOps: false,
-  sanitizeResources: false,
 });
 
 Deno.test({
@@ -318,9 +285,6 @@ Deno.test({
       },
     );
   },
-
-  sanitizeOps: false,
-  sanitizeResources: false,
 });
 
 Deno.test({
@@ -343,9 +307,6 @@ Deno.test({
       },
     );
   },
-
-  sanitizeOps: false,
-  sanitizeResources: false,
 });
 
 Deno.test({
@@ -369,9 +330,6 @@ Deno.test({
       },
     );
   },
-
-  sanitizeOps: false,
-  sanitizeResources: false,
 });
 
 Deno.test({
@@ -391,9 +349,6 @@ Deno.test({
       },
     );
   },
-
-  sanitizeOps: false,
-  sanitizeResources: false,
 });
 
 Deno.test({
@@ -418,9 +373,6 @@ Deno.test({
       },
     );
   },
-
-  sanitizeOps: false,
-  sanitizeResources: false,
 });
 
 Deno.test({
@@ -439,9 +391,6 @@ Deno.test({
       },
     );
   },
-
-  sanitizeOps: false,
-  sanitizeResources: false,
 });
 
 Deno.test({
@@ -457,9 +406,6 @@ Deno.test({
       },
     );
   },
-
-  sanitizeOps: false,
-  sanitizeResources: false,
 });
 
 Deno.test({
@@ -475,9 +421,6 @@ Deno.test({
       },
     );
   },
-
-  sanitizeOps: false,
-  sanitizeResources: false,
 });
 
 Deno.test({
@@ -495,9 +438,6 @@ Deno.test({
       },
     );
   },
-
-  sanitizeOps: false,
-  sanitizeResources: false,
 });
 
 Deno.test({
@@ -560,9 +500,6 @@ Deno.test({
       },
     );
   },
-
-  sanitizeOps: false,
-  sanitizeResources: false,
 });
 
 Deno.test("throws when passing non-jsx children to an island", async (t) => {

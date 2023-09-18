@@ -22,25 +22,16 @@ async function setUpServer(path: string) {
    * terminate server
    */
   const terminate = async () => {
-    await lines.cancel();
     await browser.close();
 
     serverProcess.kill("SIGKILL");
     await serverProcess.status;
 
-    // TextDecoder leaks, so close it manually.
-    const denoResourcesMap = new Map(
-      Object.entries(Deno.resources()).map(([rid, representation]) => {
-        return [representation, parseInt(rid)];
-      }),
-    );
-    const textDecoderRid = denoResourcesMap.get("textDecoder");
-    if (textDecoderRid != null) {
-      Deno.close(textDecoderRid);
-    }
+    // Drain the lines stream
+    for await (const _ of lines) { /* noop */ }
   };
 
-  return { page: page, terminate: terminate, address };
+  return { page: page, terminate, address };
 }
 
 /**
@@ -312,8 +303,6 @@ Deno.test({
       },
     );
   },
-  sanitizeOps: false,
-  sanitizeResources: false,
 });
 
 Deno.test({
@@ -347,8 +336,6 @@ Deno.test({
       },
     );
   },
-  sanitizeOps: false,
-  sanitizeResources: false,
 });
 
 // Test for: https://github.com/denoland/fresh/issues/1655
@@ -370,9 +357,8 @@ Deno.test({
       },
     );
   },
-  sanitizeOps: false,
-  sanitizeResources: false,
 });
+
 // Test for: https://github.com/denoland/fresh/issues/1655
 Deno.test("don't duplicate css class with twindV1", async () => {
   await withFresh(

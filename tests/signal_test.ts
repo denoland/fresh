@@ -16,7 +16,4 @@ Deno.test({
       await waitForText(page, "#counter-2 p", "3");
     });
   },
-
-  sanitizeOps: false,
-  sanitizeResources: false,
 });
