@@ -73,6 +73,6 @@ rendered.
   </Head>
 ```
 
-The page will now reder `"Other title"`.
+The rendered page will only include the `<meta>`-tag with `"Other title"`.
 
 > ℹ️ The `<title>`-tag is automatically deduplicated, even without a `key` prop.
