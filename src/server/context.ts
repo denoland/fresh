@@ -910,11 +910,13 @@ export class ServerContext {
       let codeFrame: string | undefined = undefined;
       if (this.#dev && error instanceof Error) {
         codeFrame = await getCodeFrame(error);
-        console.error();
-        console.error(codeFrame);
 
-        // deno-lint-ignore no-explicit-any
-        (error as any).codeFrame = codeFrame;
+        if (codeFrame) {
+          console.error();
+          console.error(codeFrame);
+          // deno-lint-ignore no-explicit-any
+          (error as any).codeFrame = codeFrame;
+        }
       }
       console.error(error);
 
