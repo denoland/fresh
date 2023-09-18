@@ -1,7 +1,12 @@
 import { assert, assertEquals, assertMatch, delay, puppeteer } from "./deps.ts";
 
 import { cmpStringArray } from "./fixture_twind_hydrate/utils/utils.ts";
-import { startFreshServer, withFresh, withPageName } from "./test_utils.ts";
+import {
+  startFreshServer,
+  withChildProcessFresh,
+  withFresh,
+  withPageName,
+} from "./test_utils.ts";
 
 /**
  * Start the server with the main file.
@@ -361,7 +366,7 @@ Deno.test({
 
 // Test for: https://github.com/denoland/fresh/issues/1655
 Deno.test("don't duplicate css class with twindV1", async () => {
-  await withFresh(
+  await withChildProcessFresh(
     {
       name: "./tests/fixture_twind_app/main.ts",
       options: {
