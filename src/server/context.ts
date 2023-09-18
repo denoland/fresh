@@ -150,8 +150,8 @@ export class ServerContext {
     manifest: Manifest,
     opts: FreshOptions & { skipSnapshot?: boolean; dev?: boolean },
   ): Promise<ServerContext> {
-    const dev = Deno.env.get("__FRSH_LEGACY_DEV") === "true" ?? opts.dev ??
-      false;
+    const dev = Deno.env.get("__FRSH_LEGACY_DEV") === "true" ||
+      Boolean(opts.dev);
     setDevMode(dev);
 
     // Get the manifest' base URL.
