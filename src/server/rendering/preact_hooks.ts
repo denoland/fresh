@@ -12,7 +12,6 @@ import { assetHashingHook } from "../../runtime/utils.ts";
 import { renderToString } from "preact-render-to-string";
 import { RenderState } from "./state.ts";
 import { Island } from "../types.ts";
-import { RenderError } from "$fresh/src/server/constants.ts";
 
 // See: https://github.com/preactjs/preact/blob/7748dcb83cedd02e37b3713634e35b97b26028fd/src/internal.d.ts#L3C1-L16
 enum HookType {
@@ -346,10 +345,15 @@ options.__h = (component, idx, type) => {
     current.islandCounter === 0 &&
     !current.error
   ) {
+    const name = HookType[type];
+    const message =
+      `Hook "${name}" cannot be used outside of an island component.`;
+    const hint = type === HookType.useState
+      ? `\n\nUse the "useSignal" hook instead to share state across islands.`
+      : "";
+
     // Don't throw here because that messes up internal Preact state
-    current.error = new RenderError(
-      `Hook "${HookType[type]}" cannot be used outside of an island component.`,
-    );
+    current.error = new Error(message + hint);
   }
   oldHook?.(component, idx, type);
 };
