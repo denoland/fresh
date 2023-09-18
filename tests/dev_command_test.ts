@@ -83,12 +83,12 @@ Deno.test("warns when using hooks in server components", async (t) => {
   await withFresh("./tests/fixture/main.ts", async (address) => {
     await t.step("useState", async () => {
       const doc = await fetchHtml(`${address}/hooks-server/useState`);
-      assertTextMatch(doc, "pre", /Hook "useState" cannot be used/);
+      assertTextMatch(doc, "p", /Hook "useState" cannot be used/);
     });
 
     await t.step("useReducer", async () => {
       const doc = await fetchHtml(`${address}/hooks-server/useReducer`);
-      assertTextMatch(doc, "pre", /Hook "useReducer" cannot be used/);
+      assertTextMatch(doc, "p", /Hook "useReducer" cannot be used/);
     });
 
     // Valid
