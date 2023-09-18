@@ -7,6 +7,7 @@ import {
   assertTextMatch,
   fetchHtml,
   waitForStyle,
+  withFakeServe,
   withFresh,
   withPageName,
 } from "./test_utils.ts";
@@ -38,11 +39,11 @@ Deno.test({
 });
 
 Deno.test("adds refresh script to html", async () => {
-  await withFresh("./tests/fixture/dev.ts", async (address) => {
-    const doc = await fetchHtml(address);
+  await withFakeServe("./tests/fixture/dev.ts", async (server) => {
+    const doc = await server.getHtml("/");
     assertSelector(doc, `script[src="/_frsh/refresh.js"]`);
 
-    const res = await fetch(`${address}/_frsh/refresh.js`);
+    const res = await server.get(`/_frsh/refresh.js`);
     assertEquals(
       res.headers.get("content-type"),
       "application/javascript; charset=utf-8",
@@ -72,30 +73,30 @@ Deno.test("preact/debug is active in dev mode", async () => {
 });
 
 Deno.test("middleware destination internal", async () => {
-  await withFresh("./tests/fixture/dev.ts", async (address) => {
-    const resp = await fetch(`${address}/_frsh/refresh.js`);
+  await withFakeServe("./tests/fixture/dev.ts", async (server) => {
+    const resp = await server.get(`/_frsh/refresh.js`);
     assertEquals(resp.headers.get("destination"), "internal");
     await resp.body?.cancel();
   });
 });
 
 Deno.test("warns when using hooks in server components", async (t) => {
-  await withFresh("./tests/fixture/main.ts", async (address) => {
+  await withFakeServe("./tests/fixture/main.ts", async (server) => {
     await t.step("useState", async () => {
-      const doc = await fetchHtml(`${address}/hooks-server/useState`);
+      const doc = await server.getHtml(`/hooks-server/useState`);
       assertTextMatch(doc, "p", /Hook "useState" cannot be used/);
       // Check for hint
       assertTextMatch(doc, "p", /Instead, use the "useSignal" hook/);
     });
 
     await t.step("useReducer", async () => {
-      const doc = await fetchHtml(`${address}/hooks-server/useReducer`);
+      const doc = await server.getHtml(`/hooks-server/useReducer`);
       assertTextMatch(doc, "p", /Hook "useReducer" cannot be used/);
     });
 
     // Valid
     await t.step("does not warn in island", async () => {
-      const doc = await fetchHtml(`${address}/hooks-server/island`);
+      const doc = await server.getHtml(`/hooks-server/island`);
       assertTextMany(doc, "p", ["0"]);
     });
   });

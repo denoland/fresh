@@ -91,6 +91,11 @@ interface StaticFile {
   etag: string;
 }
 
+export type FromManifestOptions = FreshOptions & {
+  skipSnapshot?: boolean;
+  dev?: boolean;
+};
+
 export class ServerContext {
   #dev: boolean;
   #routes: Route[];
@@ -149,7 +154,7 @@ export class ServerContext {
    */
   static async fromManifest(
     manifest: Manifest,
-    opts: FreshOptions & { skipSnapshot?: boolean; dev?: boolean },
+    opts: FromManifestOptions,
   ): Promise<ServerContext> {
     const dev = Deno.env.get("__FRSH_LEGACY_DEV") === "true" ||
       Boolean(opts.dev);
