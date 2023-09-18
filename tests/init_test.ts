@@ -134,14 +134,15 @@ Deno.test({
       await page.close();
       await browser.close();
 
-      await lines.cancel();
       serverProcess.kill("SIGTERM");
       await serverProcess.status;
+
+      // Drain the lines stream
+      for await (const _ of lines) { /* noop */ }
     });
 
     await retry(() => Deno.remove(tmpDirName, { recursive: true }));
   },
-  sanitizeResources: false,
 });
 
 Deno.test({
@@ -227,14 +228,15 @@ Deno.test({
       await page.close();
       await browser.close();
 
-      await lines.cancel();
       serverProcess.kill("SIGTERM");
       await serverProcess.status;
+
+      // Drain the lines stream
+      for await (const _ of lines) { /* noop */ }
     });
 
     await retry(() => Deno.remove(tmpDirName, { recursive: true }));
   },
-  sanitizeResources: false,
 });
 
 Deno.test("fresh-init error(help)", async function (t) {
@@ -357,14 +359,15 @@ Deno.test({
 
       await delay(100);
 
-      await lines.cancel();
       serverProcess.kill("SIGTERM");
       await serverProcess.status;
+
+      // Drain the lines stream
+      for await (const _ of lines) { /* noop */ }
     });
 
     await retry(() => Deno.remove(tmpDirName, { recursive: true }));
   },
-  sanitizeResources: false,
 });
 
 Deno.test({
@@ -405,9 +408,11 @@ Deno.test({
       const doc = await fetchHtml(`${address}/env`);
       assertTextMany(doc, "h1", ["true"]);
 
-      await lines.cancel();
       serverProcess.kill("SIGTERM");
       await serverProcess.status;
+
+      // Drain the lines stream
+      for await (const _ of lines) { /* noop */ }
     });
 
     await t.step("build code and start server again", async () => {
@@ -435,12 +440,13 @@ Deno.test({
       const doc = await fetchHtml(`${address}/env`);
       assertTextMany(doc, "h1", ["true"]);
 
-      await lines.cancel();
       serverProcess.kill("SIGTERM");
       await serverProcess.status;
+
+      // Drain the lines stream
+      for await (const _ of lines) { /* noop */ }
     });
 
     await retry(() => Deno.remove(tmpDirName, { recursive: true }));
   },
-  sanitizeResources: false,
 });

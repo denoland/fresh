@@ -116,7 +116,6 @@ Deno.test({
 
     await Deno.remove(tmpDirName, { recursive: true });
   },
-  sanitizeResources: false,
 });
 
 Deno.test({
