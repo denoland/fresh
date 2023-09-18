@@ -349,7 +349,7 @@ options.__h = (component, idx, type) => {
     const message =
       `Hook "${name}" cannot be used outside of an island component.`;
     const hint = type === HookType.useState
-      ? `\n\nUse the "useSignal" hook instead to share state across islands.`
+      ? `\n\nInstead, use the "useSignal" hook to share state across islands.`
       : "";
 
     // Don't throw here because that messes up internal Preact state
