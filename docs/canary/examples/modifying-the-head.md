@@ -55,7 +55,7 @@ and another `<Head />` in another component.
 </Head>
 ```
 
-To esnure that the tag is not duplicated, Fresh supports setting the `key` prop.
+To ensure that the tag is not duplicated, Fresh supports setting the `key` prop.
 By giving matching elements the same `key` prop, only the last one will be
 rendered.
 
