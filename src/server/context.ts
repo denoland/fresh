@@ -907,7 +907,7 @@ export class ServerContext {
         "%cAn error occurred during route handling or page rendering.",
         "color:red",
       );
-      let codeFrame = undefined;
+      let codeFrame: string | undefined = undefined;
       if (this.#dev && error instanceof Error) {
         codeFrame = await getCodeFrame(error);
         console.error();

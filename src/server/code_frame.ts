@@ -1,40 +1,28 @@
 import { colors, fromFileUrl } from "./deps.ts";
 
-/**
- * Convert tabs indentation to two spaces.
- */
 function tabs2Spaces(str: string) {
   return str.replace(/^\t+/, (tabs) => "  ".repeat(tabs.length));
-}
-
-export interface Options {
-  before?: number;
-  after?: number;
-  maxWidth?: number;
-  lineMarkerChar?: string;
-  seperatorChar?: string;
-  columnMarkerChar?: string;
 }
 
 /**
  * Generate an excerpt of the location in the source around the
  * specified position.
- * Taken from: https://github.com/marvinhagemeister/simple-code-frame/blob/e56f10acf2de6ece968b0de67d2d34e445dc8a66/src/index.ts
  */
 export function createCodeFrame(
   text: string,
   lineNum: number,
   columnNum: number,
-  {
-    before = 2,
-    after = 3,
-    maxWidth = 0,
-    lineMarkerChar = ">",
-    seperatorChar = "|",
-    columnMarkerChar = "^",
-  }: Options = {},
-) {
+): string | undefined {
+  // Default settings
+  const before = 2;
+  const after = 3;
+
   const lines = text.split("\n");
+
+  // Check if specified range is valid
+  if (lines.length <= lineNum || lines[lineNum].length < columnNum) {
+    return;
+  }
 
   const start = Math.max(0, lineNum - before);
   const end = Math.min(lines.length, lineNum + after + 1);
@@ -66,27 +54,7 @@ export function createCodeFrame(
     activeLine.length - lines[lineNum].length + columnNum,
   );
 
-  const maxLensWidth = maxWidth - "> ".length - padding.length - " | ".length;
-
-  let left = 0;
-  let right = maxLensWidth;
-  if (maxWidth > 0) {
-    const half = Math.floor(maxLensWidth / 2);
-    const winLeft = count - half;
-    if (winLeft > 0) {
-      const winRight = count + half - 1;
-      left = winLeft;
-      right = winRight;
-
-      if (winRight > maxLensWidth) {
-        const offset = Math.min(0, winRight - maxLensWidth);
-        left -= offset;
-        right -= offset;
-      }
-    }
-  }
-
-  const sep = colors.dim(seperatorChar);
+  const sep = colors.dim("|");
   let out = "";
 
   for (let i = 0; i < spaceLines.length; i++) {
@@ -94,39 +62,23 @@ export function createCodeFrame(
     const currentLine = colors.dim(
       (padding + (i + start + 1)).slice(-maxLineNum),
     );
-    let formatted = line;
-
-    if (maxWidth > 0) {
-      formatted = formatted.slice(left, Math.min(right, line.length));
-
-      if (left > 0) {
-        formatted = "…" + formatted;
-      }
-
-      if (line.length > right) {
-        formatted += "…";
-      }
-    }
 
     // Line where the error occured
     if (i === lineNum - start) {
-      out += colors.red(lineMarkerChar) +
-        ` ${currentLine} ${sep} ${formatted}\n`;
+      out += colors.red(">") +
+        ` ${currentLine} ${sep} ${line}\n`;
 
-      out += `  ${padding} ${sep} ${" ".repeat(count - left)}${
-        colors.bold(
-          colors.red(columnMarkerChar),
-        )
-      }\n`;
+      const columnMarker = colors.bold(colors.red("^"));
+      out += `  ${padding} ${sep} ${" ".repeat(count)}${columnMarker}\n`;
     } else {
-      out += `  ${currentLine} ${sep} ${formatted}\n`;
+      out += `  ${currentLine} ${sep} ${line}\n`;
     }
   }
 
   return out;
 }
 
-const STACK_FRAME = /^\s*at\s+(?:(.*)\s+)\((.*):(\d+):(\d+)\)$/;
+const STACK_FRAME = /^\s*at\s+(?:(.*)\s+)?\((.*):(\d+):(\d+)\)$/;
 export interface StackFrame {
   fnName: string;
   file: string;
@@ -137,13 +89,20 @@ export function getFirstUserFile(stack: string): StackFrame | undefined {
   const lines = stack.split("\n");
   for (let i = 0; i < lines.length; i++) {
     const match = lines[i].match(STACK_FRAME);
-    if (match) {
-      return {
-        fnName: match[1],
-        file: match[2],
-        line: +match[3],
-        column: +match[4],
-      };
+    if (match && match) {
+      const fnName = match[1] ?? "";
+      const file = match[2];
+      const line = +match[3];
+      const column = +match[4];
+
+      if (file.startsWith("file://")) {
+        return {
+          fnName,
+          file,
+          line,
+          column,
+        };
+      }
     }
   }
 }
