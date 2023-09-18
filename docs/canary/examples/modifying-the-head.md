@@ -39,9 +39,9 @@ export default function Home() {
 
 ## Avoiding duplicate tags
 
-You might end up with duplicate tags, When multiple `<Head />` components are
+You might end up with duplicate tags, when multiple `<Head />` components are
 rendered on the same page. This can happen when you render `<Head />` in a route
-and another `<Head />` in another component.
+and another `<Head />` in another component for example.
 
 ```tsx
 // routes/page-a.tsx
