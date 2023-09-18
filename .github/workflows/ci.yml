@@ -61,8 +61,8 @@ jobs:
 
       - name: Run tests Windows
         if: matrix.os == 'windows-latest'
-        run: deno test -A --trace-ops
+        run: deno test -A --trace-ops --unstable
 
       - name: Run tests macOS + Linux
         if: matrix.os != 'windows-latest'
-        run: deno test -A --parallel --trace-ops
+        run: deno test -A --parallel --trace-ops --unstable
