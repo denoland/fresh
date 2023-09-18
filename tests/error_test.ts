@@ -28,14 +28,3 @@ Deno.test("error page rendered", async () => {
   assertStringIncludes(body, `Error: boom!`);
   assertStringIncludes(body, `at render`);
 });
-Deno.test("refresh.js rendered", async () => {
-  const resp = await router(
-    new Request("https://fresh.deno.dev" + REFRESH_JS_URL),
-  );
-  assert(resp);
-  assertEquals(resp.status, Status.OK);
-  assertEquals(
-    resp.headers.get("content-type"),
-    "application/javascript; charset=utf-8",
-  );
-});

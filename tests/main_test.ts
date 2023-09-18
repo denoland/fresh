@@ -675,15 +675,6 @@ Deno.test({
 });
 
 Deno.test("middleware destination", async (t) => {
-  await t.step("internal", async () => {
-    const resp = await handler(
-      new Request("https://fresh.deno.dev/_frsh/refresh.js"),
-    );
-    assert(resp);
-    assertEquals(resp.headers.get("destination"), "internal");
-    await resp.body?.cancel();
-  });
-
   await t.step("static", async () => {
     const resp = await handler(new Request("https://fresh.deno.dev/foo.txt"));
     assert(resp);
@@ -749,43 +740,6 @@ Deno.test("jsx pragma works", async (t) => {
 
   await t.step("island is revived", async () => {
     await page.waitForSelector("#csr");
-  });
-
-  await browser.close();
-
-  serverProcess.kill("SIGTERM");
-  await serverProcess.status;
-
-  // Drain the lines stream
-  for await (const _ of lines) { /* noop */ }
-});
-
-Deno.test("preact/debug is active in dev mode", async (t) => {
-  // Preparation
-  const { serverProcess, lines, address } = await startFreshServer({
-    args: ["run", "-A", "./tests/fixture_render_error/main.ts"],
-  });
-
-  await delay(100);
-
-  await t.step("SSR error is shown", async () => {
-    const resp = await fetch(address);
-    assertEquals(resp.status, Status.InternalServerError);
-    const text = await resp.text();
-    assertStringIncludes(text, "Objects are not valid as a child");
-  });
-
-  const browser = await puppeteer.launch({ args: ["--no-sandbox"] });
-  const page = await browser.newPage();
-
-  await page.goto(address, {
-    waitUntil: "networkidle2",
-  });
-
-  await t.step("error page is shown with error message", async () => {
-    const el = await page.waitForSelector(".frsh-error-page");
-    const text = await page.evaluate((el) => el.textContent, el);
-    assertStringIncludes(text, "Objects are not valid as a child");
   });
 
   await browser.close();
@@ -1001,11 +955,4 @@ Deno.test({
       });
     });
   },
-});
-
-Deno.test("adds refresh script to html", async () => {
-  await withFresh("./tests/fixture/main.ts", async (address) => {
-    const doc = await fetchHtml(address);
-    assertSelector(doc, `script[src="/_frsh/refresh.js"]`);
-  });
 });

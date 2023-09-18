@@ -13,7 +13,12 @@ import {
 import { ComponentType, h } from "preact";
 import * as router from "./router.ts";
 import { DenoConfig, Manifest } from "./mod.ts";
-import { ALIVE_URL, JS_PREFIX, REFRESH_JS_URL } from "./constants.ts";
+import {
+  ALIVE_URL,
+  JS_PREFIX,
+  REFRESH_JS_URL,
+  setDevMode,
+} from "./constants.ts";
 import { BUILD_ID, setBuildId } from "./build_id.ts";
 import DefaultErrorHandler from "./default_error_page.ts";
 import {
@@ -72,11 +77,6 @@ function isObject(value: unknown) {
     value !== null;
 }
 
-function isDevMode() {
-  // Env var is only set in prod (on Deploy).
-  return Deno.env.get("DENO_DEPLOYMENT_ID") === undefined;
-}
-
 interface StaticFile {
   /** The URL to the static file on disk. */
   localUrl: URL;
@@ -118,7 +118,7 @@ export class ServerContext {
     plugins: Plugin[],
     configPath: string,
     jsxConfig: JSXConfig,
-    dev: boolean = isDevMode(),
+    dev: boolean,
     routerOptions: RouterOptions,
     snapshot: BuildSnapshot | null = null,
   ) {
@@ -150,6 +150,10 @@ export class ServerContext {
     manifest: Manifest,
     opts: FreshOptions & { skipSnapshot?: boolean; dev?: boolean },
   ): Promise<ServerContext> {
+    const dev = Deno.env.get("__FRSH_LEGACY_DEV") === "true" ?? opts.dev ??
+      false;
+    setDevMode(dev);
+
     // Get the manifest' base URL.
     const baseUrl = new URL("./", manifest.baseUrl).href;
 
@@ -442,7 +446,6 @@ export class ServerContext {
       }
     }
 
-    const dev = opts.dev ?? isDevMode();
     if (dev) {
       // Ensure that debugging hooks are set up for SSR rendering
       await import("preact/debug");
