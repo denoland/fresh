@@ -84,6 +84,8 @@ Deno.test("warns when using hooks in server components", async (t) => {
     await t.step("useState", async () => {
       const doc = await fetchHtml(`${address}/hooks-server/useState`);
       assertTextMatch(doc, "p", /Hook "useState" cannot be used/);
+      // Check for hint
+      assertTextMatch(doc, "p", /Instead, use the "useSignal" hook/);
     });
 
     await t.step("useReducer", async () => {
