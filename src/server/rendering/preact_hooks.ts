@@ -151,11 +151,14 @@ options.vnode = (vnode) => {
 };
 
 options.__b = (vnode: VNode<Record<string, unknown>>) => {
-  // Add CSP nonce to inline script tags
-  if (typeof vnode.type === "string" && vnode.type === "script") {
-    if (!vnode.props.nonce) {
-      vnode.props.nonce = current!.getNonce();
-    }
+  // Add CSP nonce to inline script and style tags
+  if (
+    current &&
+    current.csp &&
+    typeof vnode.type === "string" &&
+    (vnode.type === "script" || vnode.type === "style" && !vnode.props.nonce)
+  ) {
+    vnode.props.nonce = current.getNonce();
   }
 
   if (

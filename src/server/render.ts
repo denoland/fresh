@@ -13,7 +13,7 @@ import {
   RouteContext,
   UnknownPage,
 } from "./types.ts";
-import { NONE, UNSAFE_INLINE } from "../runtime/csp.ts";
+import { NONE, SELF } from "../runtime/csp.ts";
 import { ContentSecurityPolicy } from "../runtime/csp.ts";
 import { RenderState } from "./rendering/state.ts";
 import { renderHtml, renderOuterDocument } from "./rendering/template.tsx";
@@ -103,9 +103,9 @@ export class RenderContext {
   }
 }
 
-function defaultCsp() {
+function defaultCsp(): ContentSecurityPolicy {
   return {
-    directives: { defaultSrc: [NONE], styleSrc: [UNSAFE_INLINE] },
+    directives: { defaultSrc: [NONE], styleSrc: [], imgSrc: [SELF] },
     reportOnly: false,
   };
 }

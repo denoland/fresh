@@ -23,6 +23,10 @@ export function renderFreshTags(
       ...opts.csp.directives.scriptSrc ?? [],
       nonce(renderState.getNonce()),
     ];
+    opts.csp.directives.styleSrc = [
+      ...opts.csp.directives.styleSrc ?? [],
+      nonce(renderState.getNonce()),
+    ];
   }
 
   const moduleScripts: [string, string][] = [];
@@ -116,14 +120,15 @@ export function renderFreshTags(
 
   // Append the inline script.
   if (script !== "") {
-    opts.bodyHtml +=
-      `<script type="module" nonce="${renderState.getNonce()}">${script}</script>`;
+    const nonce = renderState.csp ? `nonce="${renderState.getNonce()}"` : "";
+    opts.bodyHtml += `<script type="module" ${nonce}>${script}</script>`;
   }
 
   if (opts.styles.length > 0) {
     const node = h("style", {
       id: "__FRSH_STYLE",
       dangerouslySetInnerHTML: { __html: opts.styles.join("\n") },
+      nonce: renderState.csp ? renderState.getNonce() : undefined,
     });
 
     renderState.headVNodes.splice(0, 0, node);
@@ -134,6 +139,7 @@ export function renderFreshTags(
       id: style.id,
       media: style.media,
       dangerouslySetInnerHTML: { __html: style.cssText },
+      nonce: renderState.csp ? renderState.getNonce() : undefined,
     });
     renderState.headVNodes.splice(0, 0, node);
   }
