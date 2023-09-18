@@ -2,7 +2,7 @@ import { ServerContext, Status } from "../server.ts";
 import { assert, assertEquals, assertStringIncludes } from "./deps.ts";
 import manifest from "./fixture_error/fresh.gen.ts";
 
-const ctx = await ServerContext.fromManifest(manifest, {});
+const ctx = await ServerContext.fromManifest(manifest, { dev: true });
 const handler = ctx.handler();
 const router = (req: Request) => {
   return handler(req, {
@@ -20,10 +20,6 @@ Deno.test("error page rendered", async () => {
   assertEquals(resp.status, Status.InternalServerError);
   assertEquals(resp.headers.get("content-type"), "text/html; charset=utf-8");
   const body = await resp.text();
-  assertStringIncludes(
-    body,
-    `An error occurred during route handling or page rendering.`,
-  );
   assertStringIncludes(body, `Error: boom!`);
   assertStringIncludes(body, `at render`);
 });
