@@ -166,12 +166,13 @@ export async function withFresh(
   try {
     await fn(address);
   } finally {
-    await lines.cancel();
-
     serverProcess.kill("SIGTERM");
 
     // Wait until the process exits
     await serverProcess.status;
+
+    // Drain the lines stream
+    for await (const _ of lines) { /* noop */ }
   }
 }
 
@@ -194,19 +195,20 @@ export async function withPageName(
       await browser.close();
     }
   } finally {
-    await lines.cancel();
-
     serverProcess.kill("SIGTERM");
 
     // Wait until the process exits
     await serverProcess.status;
+
+    // Drain the lines stream
+    for await (const _ of lines) { /* noop */ }
   }
 }
 
 export async function startFreshServerExpectErrors(
   options: Deno.CommandOptions,
 ) {
-  const { serverProcess, address } = await spawnServer(options, true);
+  const { serverProcess, lines, address } = await spawnServer(options, true);
 
   if (address) {
     throw Error("Server started correctly");
@@ -222,6 +224,16 @@ export async function startFreshServerExpectErrors(
   for await (const line of errorLines) {
     output += line + "\n";
   }
+
+  try {
+    serverProcess.kill("SIGTERM");
+  } catch {
+    // ignore the error, this may throw on windows if the process has already
+    // exited
+  }
+  await serverProcess.status;
+  for await (const _ of lines) { /* noop */ }
+
   return output;
 }
 
@@ -315,16 +327,14 @@ async function spawnServer(
     stderr: expectErrors ? "piped" : "inherit",
   }).spawn();
 
-  const decoder = new TextDecoderStream();
   const lines: ReadableStream<string> = serverProcess.stdout
-    .pipeThrough(decoder)
-    .pipeThrough(new TextLineStream(), {
-      preventCancel: true,
-    });
+    .pipeThrough(new TextDecoderStream())
+    .pipeThrough(new TextLineStream());
 
   const output: string[] = [];
   let address = "";
-  for await (const line of lines) {
+  // @ts-ignore yes it does
+  for await (const line of lines.values({ preventCancel: true })) {
     output.push(line);
     const match = line.match(/https?:\/\/localhost:\d+/g);
     if (match) {

@@ -122,9 +122,10 @@ Deno.test({
 
     await browser.close();
 
-    await lines.cancel();
     serverProcess.kill("SIGTERM");
+    await serverProcess.status;
+
+    // Drain the lines stream
+    for await (const _ of lines) { /* noop */ }
   },
-  sanitizeOps: false,
-  sanitizeResources: false,
 });

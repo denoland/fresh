@@ -57,7 +57,7 @@ Deno.test("does not treat files in (_islands) as routes", async () => {
     async (address) => {
       const res = await fetch(`${address}/route-groups-islands/invalid`);
       assertEquals(res.status, 404);
-      res.body?.cancel();
+      await res.body?.cancel();
     },
   );
 });
@@ -68,7 +68,7 @@ Deno.test("does not treat files in (_...) as routes", async () => {
     async (address) => {
       const res = await fetch(`${address}/route-groups-islands/sub`);
       assertEquals(res.status, 404);
-      res.body?.cancel();
+      await res.body?.cancel();
     },
   );
 });

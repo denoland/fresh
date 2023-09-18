@@ -43,17 +43,16 @@ export async function dev(
   const outDir = join(dir, "_fresh");
 
   const isBuild = Deno.args.includes("build");
-  const ctx = await ServerContext.fromManifest(manifest, {
-    ...options,
-    skipSnapshot: true,
-    dev: !isBuild,
-  });
-
   if (isBuild) {
     // Ensure that build dir is empty
     await fs.emptyDir(outDir);
     await build(join(dir, "fresh.gen.ts"), options ?? {});
   } else if (options) {
+    const ctx = await ServerContext.fromManifest(manifest, {
+      ...options,
+      skipSnapshot: true,
+      dev: true,
+    });
     await startFromContext(ctx, options);
   } else {
     // Legacy entry point: Back then `dev.ts` would call `main.ts` but

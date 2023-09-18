@@ -1,14 +1,11 @@
 import { assertArrayIncludes, assertEquals } from "$std/testing/asserts.ts";
-import { delay } from "$std/async/delay.ts";
 import { startFreshServer, withPageName } from "../tests/test_utils.ts";
 import { dirname, join } from "$std/path/mod.ts";
 import VERSIONS from "../versions.json" assert { type: "json" };
 
 const dir = dirname(import.meta.url);
 
-Deno.test("CORS should not set on GET /fresh-badge.svg", {
-  sanitizeResources: false,
-}, async () => {
+Deno.test("CORS should not set on GET /fresh-badge.svg", async () => {
   const { serverProcess, lines, address } = await startFreshServer({
     args: ["run", "-A", join(dir, "./main.ts")],
   });
@@ -18,15 +15,14 @@ Deno.test("CORS should not set on GET /fresh-badge.svg", {
 
   assertEquals(res.headers.get("cross-origin-resource-policy"), null);
 
-  await lines.cancel();
   serverProcess.kill("SIGTERM");
-  // await for the server to close
-  await delay(100);
+  await serverProcess.status;
+
+  // Drain the lines stream
+  for await (const _ of lines) { /* noop */ }
 });
 
-Deno.test("shows version selector", {
-  sanitizeResources: false,
-}, async () => {
+Deno.test("shows version selector", async () => {
   await withPageName(join(dir, "./main.ts"), async (page, address) => {
     await page.goto(`${address}/docs`);
     await page.waitForSelector("#version");
