@@ -91,6 +91,7 @@ export interface DenoConfig {
   fmt?: {
     exclude?: string[];
   };
+  exclude?: string[];
   compilerOptions?: {
     jsx?: string;
     jsxImportSource?: string;

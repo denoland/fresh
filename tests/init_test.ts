@@ -92,11 +92,10 @@ Deno.test({
       assert(json.tasks.preview, "Missing 'preview' task");
 
       // Check lint settings
-      assertEquals(json.lint.exclude, ["_fresh"]);
       assertEquals(json.lint.rules.tags, ["fresh", "recommended"]);
 
-      // Check fmt settings
-      assertEquals(json.fmt.exclude, ["_fresh"]);
+      // Check exclude settings
+      assertEquals(json.exclude, ["**/_fresh/*"]);
     });
 
     await t.step("start up the server and access the root page", async () => {

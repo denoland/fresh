@@ -564,11 +564,8 @@ const config = {
     rules: {
       tags: ["fresh", "recommended"],
     },
-    exclude: ["_fresh"],
   },
-  fmt: {
-    exclude: ["_fresh"],
-  },
+  exclude: ["**/_fresh/*"],
   imports: {} as Record<string, string>,
   compilerOptions: {
     jsx: "react-jsx",

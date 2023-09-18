@@ -76,8 +76,7 @@ Deno.test("fresh-update", async function fn(t) {
     assertExists(json.tasks?.preview, "Missing 'preview' task");
 
     assertEquals(json.lint?.rules?.tags, ["fresh", "recommended"]);
-    assertEquals(json.lint?.exclude, ["_fresh"]);
-    assertEquals(json.fmt?.exclude, ["_fresh"]);
+    assertEquals(json.exclude, ["**/_fresh/*"]);
   });
 
   const comment = "// This is a test comment";
@@ -221,5 +220,30 @@ Deno.test(
         "found .gitignore",
       );
     });
+  },
+);
+
+Deno.test(
+  "fresh-update migrates old exclude to top level exclude",
+  async (t) => {
+    // Preparation
+    const tmpDirName = await initProject();
+    const denoJsonFile = path.join(tmpDirName, "deno.json");
+    const denoJson = JSON.parse(await Deno.readTextFile(denoJsonFile));
+    delete denoJson.exclude;
+    if (!denoJson.fmt) denoJson.fmt = {};
+    if (!denoJson.lint) denoJson.lint = {};
+    denoJson.fmt.exclude = ["_fresh"];
+    denoJson.lint.exclude = ["_fresh"];
+    await Deno.writeTextFile(denoJsonFile, JSON.stringify(denoJson, null, 2));
+
+    await executeUpdateCommand(t, tmpDirName);
+
+    const denoJsonAfter = JSON.parse(Deno.readTextFileSync(denoJsonFile));
+    assertEquals(denoJsonAfter.exclude, ["**/_fresh/*"]);
+    assertEquals(denoJsonAfter.lint, {
+      rules: { tags: ["fresh", "recommended"] },
+    });
+    assertEquals(denoJsonAfter.fmt, undefined);
   },
 );
