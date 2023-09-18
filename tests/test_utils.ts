@@ -9,6 +9,8 @@ import {
   puppeteer,
   TextLineStream,
 } from "./deps.ts";
+import install from "npm:puppeteer/install.js";
+console.log(install);
 
 export function parseHtml(input: string): Document {
   // deno-lint-ignore no-explicit-any
@@ -184,8 +186,10 @@ export async function withPageName(
   });
 
   try {
-    await delay(100);
-    const browser = await puppeteer.launch({ args: ["--no-sandbox"] });
+    const browser = await puppeteer.launch({
+      args: ["--no-sandbox"],
+      headless: "new",
+    });
 
     try {
       const page = await browser.newPage();
