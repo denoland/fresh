@@ -8,7 +8,7 @@ import {
 } from "./deps.ts";
 import manifest from "./fixture_plugin/fresh.gen.ts";
 import options from "./fixture_plugin/options.ts";
-import { startFreshServer } from "./test_utils.ts";
+import { runBuild, startFreshServer } from "./test_utils.ts";
 
 const ctx = await ServerContext.fromManifest(manifest, options);
 const handler = ctx.handler();
@@ -128,4 +128,20 @@ Deno.test({
     // Drain the lines stream
     for await (const _ of lines) { /* noop */ }
   },
+});
+
+Deno.test("calls buildStart() and buildEnd()", async () => {
+  const result = await runBuild("./tests/fixture_plugin_lifecycle/dev.ts");
+
+  let out = result.stdout.split("\n");
+  const idx = out.findIndex((line) => line.startsWith("Plugin"));
+  const idxEnd = out.findLastIndex((line) => line.startsWith("Plugin"));
+  out = out.slice(idx, idxEnd + 1);
+
+  assertEquals(out, [
+    "Plugin a: buildStart",
+    "Plugin b: buildStart",
+    "Plugin a: buildEnd",
+    "Plugin b: buildEnd",
+  ]);
 });

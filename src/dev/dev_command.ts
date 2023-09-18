@@ -46,7 +46,13 @@ export async function dev(
   if (isBuild) {
     // Ensure that build dir is empty
     await fs.emptyDir(outDir);
-    await build(join(dir, "fresh.gen.ts"), options ?? {});
+
+    options = options ?? {};
+    const plugins = options.plugins ?? [];
+
+    await Promise.all(plugins.map((plugin) => plugin.buildStart?.()));
+    await build(join(dir, "fresh.gen.ts"), options);
+    await Promise.all(plugins.map((plugin) => plugin.buildEnd?.()));
   } else if (options) {
     const ctx = await ServerContext.fromManifest(manifest, {
       ...options,

@@ -427,6 +427,15 @@ export interface Plugin<State = Record<string, unknown>> {
    */
   renderAsync?(ctx: PluginAsyncRenderContext): Promise<PluginRenderResult>;
 
+  /**
+   * Called before running the Fresh build task
+   */
+  buildStart?(): Promise<void> | void;
+  /**
+   * Called after completing the Fresh build task
+   */
+  buildEnd?(): Promise<void> | void;
+
   routes?: PluginRoute[];
 
   middlewares?: PluginMiddleware<State>[];
