@@ -36,6 +36,8 @@ export class RenderState {
   ownerStack: VNode[] = [];
   owners = new Map<VNode, VNode>();
   #nonce = "";
+  islandCounter = 0;
+  error: Error | null = null;
 
   constructor(
     routeOptions: RenderStateRouteOptions,
