@@ -87,22 +87,37 @@ if (!denoJson.lint.rules.tags.includes("fresh")) {
 if (!denoJson.lint.rules.tags.includes("recommended")) {
   denoJson.lint.rules.tags.push("recommended");
 }
-if (!denoJson.lint.exclude) {
-  denoJson.lint.exclude = [];
-}
-if (!denoJson.lint.exclude.includes("_fresh")) {
-  denoJson.lint.exclude.push("_fresh");
+
+// Remove old _fresh exclude where we added it separately to
+// "lint" and "fmt"
+const fmtExcludeIdx = denoJson?.fmt?.exclude?.indexOf("_fresh");
+if (fmtExcludeIdx > -1) {
+  denoJson.fmt.exclude.splice(fmtExcludeIdx, 1);
+  if (denoJson.fmt.exclude.length === 0) {
+    delete denoJson.fmt.exclude;
+  }
+  if (Object.keys(denoJson.fmt).length === 0) {
+    delete denoJson.fmt;
+  }
 }
 
-// Exclude _fresh dir from linting
-if (!denoJson.fmt) {
-  denoJson.fmt = {};
+const lintExcludeIdx = denoJson?.lint?.exclude?.indexOf("_fresh");
+if (lintExcludeIdx > -1) {
+  denoJson.lint.exclude.splice(lintExcludeIdx, 1);
+  if (denoJson.lint.exclude.length === 0) {
+    delete denoJson.lint.exclude;
+  }
+  if (Object.keys(denoJson.lint).length === 0) {
+    delete denoJson.lint;
+  }
 }
-if (!denoJson.fmt.exclude) {
-  denoJson.fmt.exclude = [];
+
+// Exclude _fresh dir from everything
+if (!denoJson.exclude) {
+  denoJson.exclude = [];
 }
-if (!denoJson.fmt.exclude.includes("_fresh")) {
-  denoJson.fmt.exclude.push("_fresh");
+if (!denoJson.exclude.includes("**/_fresh/*")) {
+  denoJson.exclude.push("**/_fresh/*");
 }
 
 if (!denoJson.tasks) {
