@@ -2,25 +2,25 @@
 // This file SHOULD be checked into source version control.
 // This file is automatically updated during development when running `dev.ts`.
 
-import * as $0 from "./routes/check-duplication.tsx";
-import * as $1 from "./routes/insert-cssrules.tsx";
-import * as $2 from "./routes/static.tsx";
-import * as $3 from "./routes/unused.tsx";
-import * as $4 from "./routes/unused_tw.tsx";
-import * as $$0 from "./islands/CheckDuplication.tsx";
-import * as $$1 from "./islands/InsertCssrules.tsx";
+import * as $check_duplication from "./routes/check-duplication.tsx";
+import * as $insert_cssrules from "./routes/insert-cssrules.tsx";
+import * as $static from "./routes/static.tsx";
+import * as $unused from "./routes/unused.tsx";
+import * as $unused_tw from "./routes/unused_tw.tsx";
+import * as $$CheckDuplication from "./islands/CheckDuplication.tsx";
+import * as $$InsertCssrules from "./islands/InsertCssrules.tsx";
 
 const manifest = {
   routes: {
-    "./routes/check-duplication.tsx": $0,
-    "./routes/insert-cssrules.tsx": $1,
-    "./routes/static.tsx": $2,
-    "./routes/unused.tsx": $3,
-    "./routes/unused_tw.tsx": $4,
+    "./routes/check-duplication.tsx": $check_duplication,
+    "./routes/insert-cssrules.tsx": $insert_cssrules,
+    "./routes/static.tsx": $static,
+    "./routes/unused.tsx": $unused,
+    "./routes/unused_tw.tsx": $unused_tw,
   },
   islands: {
-    "./islands/CheckDuplication.tsx": $$0,
-    "./islands/InsertCssrules.tsx": $$1,
+    "./islands/CheckDuplication.tsx": $$CheckDuplication,
+    "./islands/InsertCssrules.tsx": $$InsertCssrules,
   },
   baseUrl: import.meta.url,
 };
