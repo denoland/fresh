@@ -1,4 +1,12 @@
-import { waitForStyle, withPageName } from "$fresh/tests/test_utils.ts";
+import { assertEquals, assertStringIncludes } from "./deps.ts";
+import { Status } from "../server.ts";
+import {
+  assertSelector,
+  fetchHtml,
+  waitForStyle,
+  withFresh,
+  withPageName,
+} from "./test_utils.ts";
 
 Deno.test({
   name: "dev_command config",
@@ -24,4 +32,46 @@ Deno.test({
       },
     );
   },
+});
+
+Deno.test("adds refresh script to html", async () => {
+  await withFresh("./tests/fixture/dev.ts", async (address) => {
+    const doc = await fetchHtml(address);
+    assertSelector(doc, `script[src="/_frsh/refresh.js"]`);
+
+    const res = await fetch(`${address}/_frsh/refresh.js`);
+    assertEquals(
+      res.headers.get("content-type"),
+      "application/javascript; charset=utf-8",
+    );
+    await res.body?.cancel();
+  });
+});
+
+Deno.test("preact/debug is active in dev mode", async () => {
+  await withPageName(
+    "./tests/fixture_render_error/dev.ts",
+    async (page, address) => {
+      // SSR error is shown
+      const resp = await fetch(address);
+      const text = await resp.text();
+      assertEquals(resp.status, Status.InternalServerError);
+      assertStringIncludes(text, "Objects are not valid as a child");
+
+      await page.goto(address);
+
+      // Error page is shown with error message
+      const el = await page.waitForSelector(".frsh-error-page");
+      const text2 = await page.evaluate((el) => el.textContent, el);
+      assertStringIncludes(text2, "Objects are not valid as a child");
+    },
+  );
+});
+
+Deno.test("middleware destination internal", async () => {
+  await withFresh("./tests/fixture/dev.ts", async (address) => {
+    const resp = await fetch(`${address}/_frsh/refresh.js`);
+    assertEquals(resp.headers.get("destination"), "internal");
+    await resp.body?.cancel();
+  });
 });
