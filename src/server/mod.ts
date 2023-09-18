@@ -1,6 +1,7 @@
 import { LayoutConfig } from "$fresh/server.ts";
 import { ComponentChildren } from "preact";
 import { ServerContext } from "./context.ts";
+export type { FromManifestOptions } from "./context.ts";
 export { Status } from "./deps.ts";
 import {
   ErrorHandler,

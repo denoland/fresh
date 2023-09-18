@@ -10,9 +10,8 @@ import {
   assertSelector,
   assertTextMatch,
   clickWhenListenerReady,
-  fetchHtml,
   waitForText,
-  withFresh,
+  withFakeServe,
   withPageName,
 } from "./test_utils.ts";
 
@@ -503,21 +502,21 @@ Deno.test({
 });
 
 Deno.test("throws when passing non-jsx children to an island", async (t) => {
-  await withFresh(
+  await withFakeServe(
     "./tests/fixture_island_nesting/dev.ts",
-    async (address) => {
-      const doc = await fetchHtml(`${address}/island_invalid_children`);
+    async (server) => {
+      const doc = await server.getHtml(`/island_invalid_children`);
 
       assertSelector(doc, ".frsh-error-page");
       assertTextMatch(doc, "pre", /Invalid JSX child passed to island/);
 
-      const doc2 = await fetchHtml(`${address}/island_invalid_children_fn`);
+      const doc2 = await server.getHtml(`/island_invalid_children_fn`);
 
       assertSelector(doc2, ".frsh-error-page");
       assertTextMatch(doc2, "pre", /Invalid JSX child passed to island/);
 
       await t.step("should not throw on valid children", async () => {
-        const doc2 = await fetchHtml(`${address}/island_valid_children`);
+        const doc2 = await server.getHtml(`/island_valid_children`);
 
         assertNotSelector(doc2, ".frsh-error-page");
       });

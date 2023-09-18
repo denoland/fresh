@@ -33,6 +33,7 @@ export { defineConfig, type Preset } from "https://esm.sh/@twind/core@1.1.3";
 export { default as presetTailwind } from "https://esm.sh/@twind/preset-tailwind@1.1.4";
 export * as fs from "https://deno.land/std@0.195.0/fs/mod.ts";
 export {
+  basename,
   dirname,
   fromFileUrl,
   join,

@@ -1,20 +1,38 @@
-import { colors } from "$fresh/src/server/deps.ts";
+import { colors, toFileUrl } from "$fresh/src/server/deps.ts";
 import { assert } from "$std/_util/asserts.ts";
 import * as path from "$std/path/mod.ts";
 import {
+  FromManifestOptions,
+  Manifest,
+  ServeHandlerInfo,
+  ServerContext,
+} from "$fresh/server.ts";
+import {
   assertEquals,
+  basename,
   delay,
+  dirname,
   DOMParser,
   HTMLElement,
   HTMLMetaElement,
+  join,
   Page,
   puppeteer,
   TextLineStream,
 } from "./deps.ts";
 
-export function parseHtml(input: string): Document {
+export interface TestDocument extends Document {
+  debug(): void;
+}
+
+export function parseHtml(input: string): TestDocument {
   // deno-lint-ignore no-explicit-any
-  return new DOMParser().parseFromString(input, "text/html") as any;
+  const doc = new DOMParser().parseFromString(input, "text/html") as any;
+  Object.defineProperty(doc, "debug", {
+    value: () => console.log(prettyDom(doc)),
+    enumerable: false,
+  });
+  return doc;
 }
 
 export async function startFreshServer(options: Deno.CommandOptions) {
@@ -205,6 +223,76 @@ export async function withPageName(
     // Drain the lines stream
     for await (const _ of lines) { /* noop */ }
   }
+}
+
+export interface FakeServer {
+  request(req: Request): Promise<Response>;
+  getHtml(pathname: string): Promise<TestDocument>;
+  get(pathname: string): Promise<Response>;
+}
+
+async function handleRequest(
+  handler: ReturnType<ServerContext["handler"]>,
+  conn: ServeHandlerInfo,
+  req: Request,
+) {
+  let res = await handler(req, conn);
+
+  // Follow redirects
+  while (res.headers.has("location")) {
+    const loc = res.headers.get("location");
+    const hostname = conn.remoteAddr.hostname;
+    res = await handler(new Request(`https://${hostname}${loc}`), conn);
+  }
+
+  return res;
+}
+
+export async function fakeServe(
+  manifest: Manifest,
+  options: FromManifestOptions,
+): Promise<FakeServer> {
+  const ctx = await ServerContext.fromManifest(manifest, options);
+  const handler = ctx.handler();
+
+  const conn: ServeHandlerInfo = {
+    remoteAddr: {
+      transport: "tcp",
+      hostname: "127.0.0.1",
+      port: 80,
+    },
+  };
+
+  const origin = `https://127.0.0.1`;
+
+  return {
+    request(req) {
+      return handler(req, conn);
+    },
+    async getHtml(pathname) {
+      const req = new Request(`${origin}${pathname}`);
+      const res = await handleRequest(handler, conn, req);
+      return parseHtml(await res.text());
+    },
+    get(pathname: string) {
+      const req = new Request(`${origin}${pathname}`);
+      return handleRequest(handler, conn, req);
+    },
+  };
+}
+
+export async function withFakeServe(
+  name: string,
+  cb: (server: FakeServer) => Promise<void> | void,
+) {
+  const fixture = join(Deno.cwd(), name);
+  const dev = basename(name) === "dev.ts";
+
+  const manifestPath = toFileUrl(join(dirname(fixture), "fresh.gen.ts")).href;
+  const manifestMod = await import(manifestPath);
+
+  const server = await fakeServe(manifestMod.default, { dev });
+  await cb(server);
 }
 
 export async function startFreshServerExpectErrors(

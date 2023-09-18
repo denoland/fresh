@@ -14,11 +14,10 @@ import { BUILD_ID } from "../src/server/build_id.ts";
 import {
   assertSelector,
   assertTextMany,
-  fetchHtml,
   parseHtml,
   startFreshServer,
   waitForText,
-  withFresh,
+  withFakeServe,
   withPageName,
 } from "./test_utils.ts";
 
@@ -840,16 +839,16 @@ Deno.test(
 );
 
 Deno.test("rendering custom _500.tsx page for default handlers", async (t) => {
-  await withFresh("./tests/fixture_custom_500/main.ts", async (address) => {
+  await withFakeServe("./tests/fixture_custom_500/main.ts", async (server) => {
     await t.step("SSR error is shown", async () => {
-      const resp = await fetch(address);
+      const resp = await server.get("/");
       assertEquals(resp.status, Status.InternalServerError);
       const text = await resp.text();
       assertStringIncludes(text, "Custom 500: Pickle Rick!");
     });
 
     await t.step("error page is shown with error message", async () => {
-      const doc = await fetchHtml(address);
+      const doc = await server.getHtml("/");
       const text = doc.querySelector(".custom-500")?.textContent!;
       assertStringIncludes(text, "Custom 500: Pickle Rick!");
     });
@@ -865,9 +864,9 @@ Deno.test("renders error boundary", async () => {
 });
 
 Deno.test("Resolves routes with non-latin characters", async () => {
-  await withFresh("./tests/fixture/main.ts", async (address) => {
+  await withFakeServe("./tests/fixture/main.ts", async (server) => {
     // Check that we can navigate to the page
-    const doc = await fetchHtml(`${address}/umlaut-äöüß`);
+    const doc = await server.getHtml(`/umlaut-äöüß`);
     assertSelector(doc, "h1");
     assertTextMany(doc, "h1", ["it works"]);
 
@@ -882,8 +881,8 @@ Deno.test("Resolves routes with non-latin characters", async () => {
 });
 
 Deno.test("Generate a single nonce value per page", async () => {
-  await withFresh("./tests/fixture/main.ts", async (address) => {
-    const doc = await fetchHtml(address);
+  await withFakeServe("./tests/fixture/main.ts", async (server) => {
+    const doc = await server.getHtml("/");
 
     const nonceValues = Array.from(
       new Set(
@@ -902,8 +901,8 @@ Deno.test("Generate a single nonce value per page", async () => {
 });
 
 Deno.test("Adds nonce to inline scripts", async () => {
-  await withFresh("./tests/fixture/main.ts", async (address) => {
-    const doc = await fetchHtml(`${address}/nonce_inline`);
+  await withFakeServe("./tests/fixture/main.ts", async (server) => {
+    const doc = await server.getHtml(`/nonce_inline`);
 
     const stateScript = doc.querySelector("#__FRSH_STATE")!;
     const nonce = stateScript.getAttribute("nonce")!;
