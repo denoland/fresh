@@ -225,7 +225,12 @@ export async function startFreshServerExpectErrors(
     output += line + "\n";
   }
 
-  serverProcess.kill("SIGTERM");
+  try {
+    serverProcess.kill("SIGTERM");
+  } catch {
+    // ignore the error, this may throw on windows if the process has already
+    // exited
+  }
   await serverProcess.status;
   for await (const _ of lines) { /* noop */ }
 
