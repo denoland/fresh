@@ -1,4 +1,4 @@
-import { colors } from "$fresh/src/server/deps.ts";
+import { colors, toFileUrl } from "$fresh/src/server/deps.ts";
 import { assert } from "$std/_util/asserts.ts";
 import * as path from "$std/path/mod.ts";
 import {
@@ -288,7 +288,7 @@ export async function withFakeServe(
   const fixture = join(Deno.cwd(), name);
   const dev = basename(name) === "dev.ts";
 
-  const manifestPath = join(dirname(fixture), "fresh.gen.ts");
+  const manifestPath = toFileUrl(join(dirname(fixture), "fresh.gen.ts")).href;
   const manifestMod = await import(manifestPath);
 
   const server = await fakeServe(manifestMod.default, { dev });
