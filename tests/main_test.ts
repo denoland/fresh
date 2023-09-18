@@ -955,3 +955,19 @@ Deno.test({
     });
   },
 });
+
+Deno.test("De-duplicates <Head /> nodes by key", async () => {
+  await withFakeServe("./tests/fixture/main.ts", async (server) => {
+    const res = await server.get(`/head_deduplicate`);
+    const html = await res.text();
+
+    assertEquals(Array.from(html.matchAll(/<title>/g)).length, 1);
+    assert(/<title>bar<\/title>/.test(html));
+
+    assertEquals(
+      Array.from(html.matchAll(/<meta property="og:title"/g)).length,
+      1,
+    );
+    assert(/<meta property="og:title" content="Other title"\/>/.test(html));
+  });
+});
