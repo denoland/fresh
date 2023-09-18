@@ -1,10 +1,5 @@
 import { useSignal } from "@preact/signals";
 import Counter from "../islands/Counter.tsx";
-import { RouteConfig } from "$fresh/server.ts";
-
-export const config: RouteConfig = {
-  csp: true,
-};
 
 export default function Page() {
   const sig = useSignal(0);

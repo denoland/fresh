@@ -25,11 +25,18 @@ export async function startFreshServer(options: Deno.CommandOptions) {
   return { serverProcess, lines, address, output };
 }
 
-export async function fetchHtml(url: string) {
+export async function fetchHtml(
+  url: string,
+): Promise<Document & { debug(): void }> {
   const res = await fetch(url);
   const html = await res.text();
   // deno-lint-ignore no-explicit-any
-  return new DOMParser().parseFromString(html, "text/html") as any as Document;
+  const doc = new DOMParser().parseFromString(html, "text/html") as any;
+  Object.defineProperty(doc, "debug", {
+    value: () => console.log(prettyDom(doc)),
+    enumerable: false,
+  });
+  return doc;
 }
 
 export function assertSelector(doc: Document, selector: string) {

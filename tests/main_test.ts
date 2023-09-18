@@ -915,6 +915,48 @@ Deno.test("Adds nonce to inline scripts", async () => {
   });
 });
 
+Deno.test("Adds no nonce to inline scripts", async () => {
+  await withFresh("./tests/fixture/main.ts", async (address) => {
+    const doc = await fetchHtml(`${address}/no_nonce_inline`);
+
+    const inlineNonce = doc.querySelector("#inline-script")!.getAttribute(
+      "nonce",
+    )!;
+
+    assertEquals(inlineNonce, null);
+  });
+});
+
+Deno.test("Adds nonce to inline styles", async () => {
+  await withFresh("./tests/fixture_twind_app/main.ts", async (address) => {
+    const doc = await fetchHtml(`${address}/nonce_inline_style`);
+
+    const nonce = doc.querySelector("#__FRSH_TWIND")!.getAttribute("nonce")!;
+    assert(nonce);
+
+    const inlineNonce = doc.querySelector("#inline-style")!.getAttribute(
+      "nonce",
+    )!;
+
+    assertEquals(inlineNonce, nonce);
+  });
+});
+
+Deno.test("Doesn't add nonce to inline styles if csp != true", async () => {
+  await withFresh("./tests/fixture_twind_app/main.ts", async (address) => {
+    const doc = await fetchHtml(`${address}/no_nonce_inline_style`);
+
+    const nonce = doc.querySelector("#__FRSH_TWIND")!.getAttribute("nonce")!;
+    assertEquals(nonce, null);
+
+    const inlineNonce = doc.querySelector("#inline-style")!.getAttribute(
+      "nonce",
+    )!;
+
+    assertEquals(inlineNonce, null);
+  });
+});
+
 Deno.test({
   name: "support string based event handlers during SSR",
   async fn() {

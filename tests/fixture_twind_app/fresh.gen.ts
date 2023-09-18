@@ -5,12 +5,16 @@
 import * as $0 from "./routes/_app.tsx";
 import * as $1 from "./routes/app_class.tsx";
 import * as $2 from "./routes/index.tsx";
+import * as $3 from "./routes/no_nonce_inline_style.tsx";
+import * as $4 from "./routes/nonce_inline_style.tsx";
 
 const manifest = {
   routes: {
     "./routes/_app.tsx": $0,
     "./routes/app_class.tsx": $1,
     "./routes/index.tsx": $2,
+    "./routes/no_nonce_inline_style.tsx": $3,
+    "./routes/nonce_inline_style.tsx": $4,
   },
   islands: {},
   baseUrl: import.meta.url,
