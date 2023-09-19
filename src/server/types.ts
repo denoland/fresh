@@ -32,6 +32,13 @@ export interface FreshOptions {
      * This can be an absolute path, a file URL or a relative path.
      */
     outDir?: string;
+    /**
+     * This sets the target environment for the generated code. Newer
+     * language constructs will be transformed to match the specified
+     * support range. See https://esbuild.github.io/api/#target
+     * @default {"es2022"}
+     */
+    target?: string | string[];
   };
   render?: RenderFunction;
   plugins?: Plugin[];
@@ -47,6 +54,7 @@ export interface InternalFreshOptions {
   manifest: Manifest;
   build: {
     outDir: string;
+    target: string | string[];
   };
   render?: RenderFunction;
   plugins: Plugin[];

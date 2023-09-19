@@ -382,6 +382,7 @@ export async function getServerContext(opts: InternalFreshOptions) {
     jsxConfig,
     opts.dev,
     opts.router ?? DEFAULT_ROUTER_OPTIONS,
+    opts.build.target,
     snapshot,
   );
 }
@@ -416,6 +417,7 @@ export class ServerContext {
     jsxConfig: JSXConfig,
     dev: boolean,
     routerOptions: RouterOptions,
+    target: string | string[],
     snapshot: BuildSnapshot | null = null,
   ) {
     this.#routes = routes;
@@ -435,6 +437,7 @@ export class ServerContext {
       configPath,
       dev: this.#dev,
       jsxConfig,
+      target,
     });
     this.#routerOptions = routerOptions;
   }
