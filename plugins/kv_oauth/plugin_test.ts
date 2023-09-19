@@ -6,6 +6,7 @@ import {
 } from "$std/testing/asserts.ts";
 import { colors } from "$fresh/src/server/deps.ts";
 
+// @ts-ignore openKv is only available with --unstable
 const hasKVEnabled = typeof Deno.openKv === "function";
 if (!hasKVEnabled) {
   console.log(
