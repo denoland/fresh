@@ -1,6 +1,6 @@
 import { getServerContext } from "../server/context.ts";
 import { join } from "../server/deps.ts";
-import { fs } from "./deps.ts";
+import { colors, fs } from "./deps.ts";
 import { BuildSnapshotJson } from "../build/mod.ts";
 import { BUILD_ID } from "../server/build_id.ts";
 import { InternalFreshOptions } from "../server/types.ts";
@@ -37,6 +37,10 @@ export async function build(
 
   const snapshotPath = join(config.build.outDir, "snapshot.json");
   await Deno.writeTextFile(snapshotPath, JSON.stringify(jsonSnapshot, null, 2));
+
+  console.log(
+    `Assets written to: ${colors.green(config.build.outDir)}`,
+  );
 
   await Promise.all(config.plugins.map((plugin) => plugin.buildEnd?.()));
 }
