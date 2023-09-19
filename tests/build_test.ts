@@ -177,13 +177,17 @@ Deno.test("build snapshot and restore from it when has sub dirs", async (t) => {
 
 Deno.test(
   "build snapshot with custom build.outDir",
+  { only: true },
   async (t) => {
     const fixture = path.join(Deno.cwd(), "tests", "fixture_build_out_dir");
 
     await t.step("uses on relative outDir", async () => {
       await runBuild(fixture, "", "./tmp/asdf");
       const outDir = path.join(fixture, "tmp", "asdf");
-      assert((await Deno.stat(outDir)).isDirectory, "Missing output directory");
+      assert(
+        (await Deno.stat(outDir)).isDirectory,
+        `Missing output directory: ${outDir}`,
+      );
     });
 
     await t.step("uses absolute outDir", async () => {
@@ -195,7 +199,10 @@ Deno.test(
 
       const outDir = path.join(fixture, "tmp");
       await runBuild(fixture, "src", outDir);
-      assert((await Deno.stat(outDir)).isDirectory, "Missing output directory");
+      assert(
+        (await Deno.stat(outDir)).isDirectory,
+        `Missing output directory: ${outDir}`,
+      );
     });
 
     await t.step("uses file:// outDir", async () => {
@@ -207,7 +214,10 @@ Deno.test(
 
       const outDir = path.toFileUrl(path.join(fixture, "tmp")).href;
       await runBuild(fixture, "src", outDir);
-      assert((await Deno.stat(outDir)).isDirectory, "Missing output directory");
+      assert(
+        (await Deno.stat(outDir)).isDirectory,
+        `Missing output directory: ${outDir}`,
+      );
     });
   },
 );
