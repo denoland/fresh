@@ -1,38 +1,49 @@
 import * as path from "$std/path/mod.ts";
 import { puppeteer } from "./deps.ts";
 import { assert } from "$std/_util/asserts.ts";
-import { startFreshServer, waitForText } from "$fresh/tests/test_utils.ts";
+import {
+  getStdOutput,
+  startFreshServer,
+  waitForText,
+} from "$fresh/tests/test_utils.ts";
 import { BuildSnapshotJson } from "$fresh/src/build/mod.ts";
 import { assertStringIncludes } from "$std/testing/asserts.ts";
 import { assertNotMatch } from "$std/testing/asserts.ts";
 
+function runBuild(fixture: string, subDirPath: string, outDir: string) {
+  return new Deno.Command(Deno.execPath(), {
+    args: [
+      "run",
+      "-A",
+      path.join(fixture, subDirPath, "dev.ts"),
+      "build",
+    ],
+    env: {
+      GITHUB_SHA: "__BUILD_ID__",
+      DENO_DEPLOYMENT_ID: "__BUILD_ID__",
+      FRESH_TEST_OUTDIR: outDir,
+    },
+    stdin: "null",
+    stdout: "piped",
+    stderr: "piped",
+  }).output();
+}
+
 async function testBuild(
   t: Deno.TestContext,
   fixture: string,
-  subDirPath = "",
+  options: {
+    subDirPath?: string;
+    outDir?: string;
+  } = {},
 ) {
-  const outDir = path.join(fixture, subDirPath, "_fresh");
+  const subDirPath = options.subDirPath ?? "";
+  const outDir = options.outDir ?? path.join(fixture, subDirPath, "_fresh");
 
   try {
     await t.step("build snapshot", async () => {
-      const res = await new Deno.Command(Deno.execPath(), {
-        args: [
-          "run",
-          "-A",
-          path.join(fixture, subDirPath, "dev.ts"),
-          "build",
-        ],
-        env: {
-          GITHUB_SHA: "__BUILD_ID__",
-          DENO_DEPLOYMENT_ID: "__BUILD_ID__",
-        },
-        stdin: "null",
-        stdout: "piped",
-        stderr: "inherit",
-      }).output();
-
-      const decoder = new TextDecoder();
-      const stdout = decoder.decode(res.stdout);
+      const res = await runBuild(fixture, subDirPath, outDir);
+      const { stdout } = getStdOutput(res);
       assert(
         !/Using snapshot found at/.test(stdout),
         "Using snapshot message was shown during build",
@@ -161,5 +172,42 @@ Deno.test("build snapshot and restore from it", async (t) => {
 
 Deno.test("build snapshot and restore from it when has sub dirs", async (t) => {
   const fixture = path.join(Deno.cwd(), "tests", "fixture_build_sub_dir");
-  await testBuild(t, fixture, "src");
+  await testBuild(t, fixture, { subDirPath: "src" });
 });
+
+Deno.test(
+  "build snapshot with custom build.outDir",
+  async (t) => {
+    const fixture = path.join(Deno.cwd(), "tests", "fixture_build_out_dir");
+
+    await t.step("uses on relative outDir", async () => {
+      await runBuild(fixture, "", "./tmp/asdf");
+      const outDir = path.join(fixture, "tmp", "asdf");
+      assert((await Deno.stat(outDir)).isDirectory, "Missing output directory");
+    });
+
+    await t.step("uses absolute outDir", async () => {
+      const fixture = path.join(
+        Deno.cwd(),
+        "tests",
+        "fixture_build_out_dir_sub",
+      );
+
+      const outDir = path.join(fixture, "tmp");
+      await runBuild(fixture, "src", outDir);
+      assert((await Deno.stat(outDir)).isDirectory, "Missing output directory");
+    });
+
+    await t.step("uses file:// outDir", async () => {
+      const fixture = path.join(
+        Deno.cwd(),
+        "tests",
+        "fixture_build_out_dir_sub",
+      );
+
+      const outDir = path.toFileUrl(path.join(fixture, "tmp")).href;
+      await runBuild(fixture, "src", outDir);
+      assert((await Deno.stat(outDir)).isDirectory, "Missing output directory");
+    });
+  },
+);

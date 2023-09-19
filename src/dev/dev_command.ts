@@ -1,13 +1,11 @@
 import { updateCheck } from "./update_check.ts";
-import { DAY, dirname, fromFileUrl, fs, join, toFileUrl } from "./deps.ts";
-import {
-  FreshOptions,
-  Manifest as ServerManifest,
-  ServerContext,
-} from "../server/mod.ts";
+import { DAY, dirname, fromFileUrl, join, toFileUrl } from "./deps.ts";
+import { FreshOptions, Manifest as ServerManifest } from "../server/mod.ts";
 import { build } from "./build.ts";
 import { collect, ensureMinDenoVersion, generate, Manifest } from "./mod.ts";
 import { startFromContext } from "../server/boot.ts";
+import { getFreshConfigWithDefaults } from "../server/config.ts";
+import { getServerContext } from "$fresh/src/server/context.ts";
 
 export async function dev(
   base: string,
@@ -40,25 +38,22 @@ export async function dev(
   const manifest = (await import(toFileUrl(join(dir, "fresh.gen.ts")).href))
     .default as ServerManifest;
 
-  const outDir = join(dir, "_fresh");
-
-  const isBuild = Deno.args.includes("build");
-  if (isBuild) {
-    // Ensure that build dir is empty
-    await fs.emptyDir(outDir);
-
-    options = options ?? {};
-    const plugins = options.plugins ?? [];
-
-    await Promise.all(plugins.map((plugin) => plugin.buildStart?.()));
-    await build(join(dir, "fresh.gen.ts"), options);
-    await Promise.all(plugins.map((plugin) => plugin.buildEnd?.()));
+  if (Deno.args.includes("build")) {
+    const config = await getFreshConfigWithDefaults(
+      manifest,
+      options ?? {},
+    );
+    config.dev = false;
+    config.loadSnapshot = false;
+    await build(config);
   } else if (options) {
-    const ctx = await ServerContext.fromManifest(manifest, {
-      ...options,
-      skipSnapshot: true,
-      dev: true,
-    });
+    const config = await getFreshConfigWithDefaults(
+      manifest,
+      options,
+    );
+    config.dev = true;
+    config.loadSnapshot = false;
+    const ctx = await getServerContext(config);
     await startFromContext(ctx, options);
   } else {
     // Legacy entry point: Back then `dev.ts` would call `main.ts` but

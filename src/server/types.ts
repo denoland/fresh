@@ -1,15 +1,52 @@
 import { ComponentChildren, ComponentType, VNode } from "preact";
 import * as router from "./router.ts";
 import { InnerRenderFunction, RenderContext } from "./render.ts";
+import { Manifest } from "./mod.ts";
+
+export interface DenoConfig {
+  imports?: Record<string, string>;
+  importMap?: string;
+  tasks?: Record<string, string>;
+  lint?: {
+    rules: { tags?: string[] };
+    exclude?: string[];
+  };
+  fmt?: {
+    exclude?: string[];
+  };
+  exclude?: string[];
+  compilerOptions?: {
+    jsx?: string;
+    jsxImportSource?: string;
+  };
+}
 
 // --- APPLICATION CONFIGURATION ---
 
 export type StartOptions = Partial<Deno.ServeTlsOptions> & FreshOptions;
 
 export interface FreshOptions {
+  build?: {
+    outDir?: string;
+  };
   render?: RenderFunction;
   plugins?: Plugin[];
   staticDir?: string;
+  router?: RouterOptions;
+}
+
+export interface InternalFreshOptions {
+  dev: boolean;
+  loadSnapshot: boolean;
+  denoJsonPath: string;
+  denoJson: DenoConfig;
+  manifest: Manifest;
+  build: {
+    outDir: string;
+  };
+  render?: RenderFunction;
+  plugins: Plugin[];
+  staticDir: string;
   router?: RouterOptions;
 }
 
