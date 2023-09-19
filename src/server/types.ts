@@ -27,6 +27,10 @@ export type StartOptions = Partial<Deno.ServeTlsOptions> & FreshOptions;
 
 export interface FreshOptions {
   build?: {
+    /**
+     * The directory to write generated files to when `dev.ts build` is run.
+     * This can be an absolute path, a file URL or a relative path.
+     */
     outDir?: string;
   };
   render?: RenderFunction;
