@@ -15,53 +15,57 @@ if (!hasKVEnabled) {
 }
 
 Deno.test(
-  "kvOAuthPlugin() works correctly",
-  { ignore: !hasKVEnabled },
-  async (test) => {
-    const { oauth2Client } = await import("./plugin_test_utils.ts");
-    const kvOAuthPlugin = (await import("$fresh/plugins/kv_oauth.ts")).default;
+  {
+    name: "kvOAuthPlugin() works correctly",
+    ignore: !hasKVEnabled,
+    sanitizeResources: false,
+    fn: async (test) => {
+      const { oauth2Client } = await import("./plugin_test_utils.ts");
+      const kvOAuthPlugin =
+        (await import("$fresh/plugins/kv_oauth.ts")).default;
 
-    await test.step("with default values", () => {
-      const plugin = kvOAuthPlugin(oauth2Client);
-      assertNotEquals(plugin.routes, undefined);
-      assert(plugin.routes!.every((route) => route.handler !== undefined));
-      assertArrayIncludes(plugin.routes!.map((route) => route.path), [
-        "/oauth/signin",
-        "/oauth/callback",
-        "/oauth/signout",
-      ]);
-    });
-
-    await test.step("with defined values", () => {
-      const signInPath = "/signin";
-      const callbackPath = "/callback";
-      const signOutPath = "/signout";
-      const plugin = kvOAuthPlugin(oauth2Client, {
-        signInPath,
-        callbackPath,
-        signOutPath,
+      await test.step("with default values", () => {
+        const plugin = kvOAuthPlugin(oauth2Client);
+        assertNotEquals(plugin.routes, undefined);
+        assert(plugin.routes!.every((route) => route.handler !== undefined));
+        assertArrayIncludes(plugin.routes!.map((route) => route.path), [
+          "/oauth/signin",
+          "/oauth/callback",
+          "/oauth/signout",
+        ]);
       });
-      assertNotEquals(plugin.routes, undefined);
-      assert(plugin.routes!.every((route) => route.handler !== undefined));
-      assertArrayIncludes(plugin.routes!.map((route) => route.path), [
-        signInPath,
-        callbackPath,
-        signOutPath,
-      ]);
-    });
 
-    await test.step("with mapped providers", () => {
-      const providerKey = "customProvider";
-      const plugin = kvOAuthPlugin({
-        [providerKey]: oauth2Client,
+      await test.step("with defined values", () => {
+        const signInPath = "/signin";
+        const callbackPath = "/callback";
+        const signOutPath = "/signout";
+        const plugin = kvOAuthPlugin(oauth2Client, {
+          signInPath,
+          callbackPath,
+          signOutPath,
+        });
+        assertNotEquals(plugin.routes, undefined);
+        assert(plugin.routes!.every((route) => route.handler !== undefined));
+        assertArrayIncludes(plugin.routes!.map((route) => route.path), [
+          signInPath,
+          callbackPath,
+          signOutPath,
+        ]);
       });
-      assertNotEquals(plugin.routes, undefined);
-      assert(plugin.routes!.every((route) => route.handler !== undefined));
-      assertArrayIncludes(plugin.routes!.map((route) => route.path), [
-        `/oauth/${providerKey}/signin`,
-        `/oauth/${providerKey}/callback`,
-        `/oauth/${providerKey}/signout`,
-      ]);
-    });
+
+      await test.step("with mapped providers", () => {
+        const providerKey = "customProvider";
+        const plugin = kvOAuthPlugin({
+          [providerKey]: oauth2Client,
+        });
+        assertNotEquals(plugin.routes, undefined);
+        assert(plugin.routes!.every((route) => route.handler !== undefined));
+        assertArrayIncludes(plugin.routes!.map((route) => route.path), [
+          `/oauth/${providerKey}/signin`,
+          `/oauth/${providerKey}/callback`,
+          `/oauth/${providerKey}/signout`,
+        ]);
+      });
+    },
   },
 );
