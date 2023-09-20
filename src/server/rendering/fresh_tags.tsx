@@ -91,9 +91,15 @@ export function renderFreshTags(
 
   // Then it imports all plugin scripts and executes them (with their respective
   // state).
+  if (pluginScripts.length > 0) {
+    // Use `reportError` if available, otherwise throw in a different event
+    // loop tick to avoid halting the current script.
+    script +=
+      `function runPlugin(fn,args){try{fn(args)}catch(err){setTimeout(() => {throw err})}}`;
+  }
   for (const [pluginName, entrypoint, i] of pluginScripts) {
     const url = addImport(`plugin-${pluginName}-${entrypoint}.js`);
-    script += `import p${i} from "${url}";p${i}(STATE[1][${i}]);`;
+    script += `import p${i} from "${url}";runPlugin(p${i},STATE[1][${i}]);`;
   }
 
   // Finally, it loads all island scripts and hydrates the islands using the
