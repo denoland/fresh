@@ -181,11 +181,13 @@ Deno.test(
     const fixture = path.join(Deno.cwd(), "tests", "fixture_build_out_dir");
 
     await t.step("uses on relative outDir", async () => {
-      await runBuild(fixture, "", "./tmp/asdf");
+      const out = await runBuild(fixture, "", "./tmp/asdf");
       const outDir = path.join(fixture, "tmp", "asdf");
+
+      const { stdout } = getStdOutput(out);
       assert(
         (await Deno.stat(outDir)).isDirectory,
-        `Missing output directory: ${outDir}`,
+        `Missing output directory: ${outDir}\n\nCLI output:\n\n${stdout}`,
       );
     });
 
@@ -197,10 +199,11 @@ Deno.test(
       );
 
       const outDir = path.join(fixture, "tmp");
-      await runBuild(fixture, "src", outDir);
+      const out = await runBuild(fixture, "src", outDir);
+      const { stdout } = getStdOutput(out);
       assert(
         (await Deno.stat(outDir)).isDirectory,
-        `Missing output directory: ${outDir}`,
+        `Missing output directory: ${outDir}\n\nCLI output:\n\n${stdout}`,
       );
     });
 
@@ -213,12 +216,13 @@ Deno.test(
 
       const outDirPath = path.join(fixture, "tmp");
       const outDir = path.toFileUrl(outDirPath).href;
-      await runBuild(fixture, "src", outDir);
+      const out = await runBuild(fixture, "src", outDir);
+      const { stdout } = getStdOutput(out);
 
       // We need to pass paths instead of file:// here, otherwise the CI fails
       assert(
         (await Deno.stat(outDirPath)).isDirectory,
-        `Missing output directory: ${outDirPath}`,
+        `Missing output directory: ${outDirPath}\n\nCLI output:\n\n${stdout}`,
       );
     });
   },
