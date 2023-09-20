@@ -2,6 +2,40 @@ import { handleCallback, signIn, signOut } from "./kv_oauth/plugin_deps.ts";
 import { OAuth2Client } from "./kv_oauth/plugin_deps.ts";
 import type { Plugin } from "../server.ts";
 
+/**
+ * This is a helper type to infer the routes created by the `kvOAuthPlugin` function.
+ *
+ * Use a KV OAuth plugin instance to infer the routes paths.
+ *
+ * @example
+ * ```ts
+ * // main.ts
+ * import { start } from "$fresh/server.ts";
+ * import { createGitHubOAuth2Client } from "https://deno.land/x/deno_kv_oauth@$VERSION/mod.ts";
+ * import { kvOAuthPlugin } from "https://deno.land/x/deno_kv_oauth@$VERSION/fresh.ts";
+ * import manifest from "./fresh.gen.ts";
+ *
+ * const kvOAuth = kvOAuthPlugin({
+ *   github: createGitHubOAuth2Client(),
+ * });
+ *
+ * export type KVOAuthRoutes = InferOAuthProviders<typeof kvOAuth>;
+ * //            ^? type Foo = "/oauth/github/signin" | "/oauth/github/callback" | "/oauth/github/signout"
+ *
+ * await start(manifest, {
+ *   plugins: [kvOAuth],
+ * });
+ * ```
+ */
+export type InferOAuthProviders<T, U = T extends Plugin<infer U> ? U : never> =
+  {
+    [K in keyof U]: K extends string ?
+        | `/oauth/${K}/signin`
+        | `/oauth/${K}/callback`
+        | `/oauth/${K}/signout`
+      : never;
+  }[keyof U];
+
 export interface KvOAuthPluginOptions {
   /**
    * Sign-in page path
@@ -70,7 +104,9 @@ export function kvOAuthPlugin(
  * });
  * ```
  */
-export function kvOAuthPlugin(providers: Record<string, OAuth2Client>): Plugin;
+export function kvOAuthPlugin<
+  const TProviders extends Record<string, OAuth2Client>,
+>(providers: TProviders): Plugin<TProviders>;
 
 /**
  * This creates handlers for the following routes:
@@ -92,14 +128,16 @@ export function kvOAuthPlugin(providers: Record<string, OAuth2Client>): Plugin;
  * });
  * ```
  */
-export default function kvOAuthPlugin(
+export default function kvOAuthPlugin<
+  const TProviders extends Record<string, OAuth2Client>,
+>(
   ...args: [
     oauth2Client: OAuth2Client,
     options?: KvOAuthPluginOptions,
   ] | [
-    providers: Record<string, OAuth2Client>,
+    providers: TProviders,
   ]
-): Plugin {
+): Plugin<Record<keyof TProviders, unknown>> {
   const routes: Plugin["routes"] = [];
 
   if (args.length >= 3 || args.length <= 0) {
