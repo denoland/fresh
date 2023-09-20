@@ -80,7 +80,7 @@ export async function getFreshConfigWithDefaults(
 }
 
 function parseFileOrUrl(input: string, base: string) {
-  if (URL.canParse(input)) {
+  if (input.startsWith("file://")) {
     return fromFileUrl(input);
   } else if (!isAbsolute(input)) {
     return join(base, input);

@@ -179,19 +179,18 @@ Deno.test(
   "build snapshot with custom build.outDir",
   async (t) => {
     async function assertOutputDir(outDir: string, out: Deno.CommandOutput) {
-      const { stdout } = getStdOutput(out);
+      const { stdout, stderr } = getStdOutput(out);
 
       const msg =
-        `Missing output directory: ${outDir}\n\nCLI output:\n\n${stdout}`;
+        `Missing output directory: ${outDir}\n\nCLI output:\n${stdout}\n${stderr}`;
 
+      const dir: string | URL = outDir.startsWith("file://")
+        ? new URL(outDir)
+        : outDir;
       try {
-        assert((await Deno.stat(outDir)).isDirectory, msg);
+        assert((await Deno.stat(dir)).isDirectory, msg);
       } catch (err) {
-        if (err instanceof Deno.errors.NotFound) {
-          throw new Error(msg, { cause: err });
-        }
-
-        throw err;
+        throw new Error(msg, { cause: err });
       }
     }
 
@@ -226,9 +225,7 @@ Deno.test(
       const outDirPath = path.join(fixture, "tmp");
       const outDir = path.toFileUrl(outDirPath).href;
       const out = await runBuild(fixture, "src", outDir);
-
-      // We need to pass paths instead of file:// here, otherwise the CI fails
-      await assertOutputDir(outDirPath, out);
+      await assertOutputDir(outDir, out);
     });
   },
 );
