@@ -423,7 +423,7 @@ html {
 .rounded {
   border-radius: 0.25rem;
 }
-.hover\:bg-gray-200:hover {
+.hover\\:bg-gray-200:hover {
   background-color: #e5e7eb;
 }
 `;
