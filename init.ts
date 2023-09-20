@@ -504,7 +504,8 @@ try {
 let FRESH_CONFIG_TS = `import { defineConfig } from "$fresh/server.ts";\n`;
 if (useTwind) {
   FRESH_CONFIG_TS += `import twindPlugin from "$fresh/plugins/twind.ts";
-import twindConfig from "./twind.config.ts";`;
+import twindConfig from "./twind.config.ts";
+`;
 }
 
 FRESH_CONFIG_TS += `
