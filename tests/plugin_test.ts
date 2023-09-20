@@ -133,10 +133,9 @@ Deno.test({
 Deno.test("calls buildStart() and buildEnd()", async () => {
   const result = await runBuild("./tests/fixture_plugin_lifecycle/dev.ts");
 
-  let out = result.stdout.split("\n");
-  const idx = out.findIndex((line) => line.startsWith("Plugin"));
-  const idxEnd = out.findLastIndex((line) => line.startsWith("Plugin"));
-  out = out.slice(idx, idxEnd + 1);
+  const out = result.stdout.split("\n").filter((line) =>
+    line.startsWith("Plugin")
+  );
 
   assertEquals(out, [
     "Plugin a: buildStart",

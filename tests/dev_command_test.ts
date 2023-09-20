@@ -53,20 +53,19 @@ Deno.test("adds refresh script to html", async () => {
 });
 
 Deno.test("preact/debug is active in dev mode", async () => {
-  await withPageName(
+  await withFakeServe(
     "./tests/fixture_render_error/dev.ts",
-    async (page, address) => {
+    async (server) => {
       // SSR error is shown
-      const resp = await fetch(address);
+      const resp = await server.get("/");
       const text = await resp.text();
       assertEquals(resp.status, Status.InternalServerError);
       assertStringIncludes(text, "Objects are not valid as a child");
 
-      await page.goto(address);
+      const html = await server.getHtml("/");
 
       // Error page is shown with error message
-      const el = await page.waitForSelector(".frsh-error-page");
-      const text2 = await page.evaluate((el) => el.textContent, el);
+      const text2 = html.querySelector(".frsh-error-page")!.textContent!;
       assertStringIncludes(text2, "Objects are not valid as a child");
     },
   );

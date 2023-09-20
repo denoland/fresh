@@ -9,7 +9,8 @@
     "ok": "deno fmt --check && deno lint && deno task check:types && deno task test"
   },
   "exclude": [
-    "**/_fresh/*"
+    "**/_fresh/*",
+    "**/tmp/*"
   ],
   "importMap": "./.vscode/import_map.json",
   "compilerOptions": {

@@ -24,6 +24,7 @@ export {
 export type {
   AppContext,
   AppProps,
+  DenoConfig,
   ErrorHandler,
   ErrorHandlerContext,
   ErrorPageProps,
@@ -81,24 +82,6 @@ export interface Manifest {
   baseUrl: string;
 }
 
-export interface DenoConfig {
-  imports?: Record<string, string>;
-  importMap?: string;
-  tasks?: Record<string, string>;
-  lint?: {
-    rules: { tags?: string[] };
-    exclude?: string[];
-  };
-  fmt?: {
-    exclude?: string[];
-  };
-  exclude?: string[];
-  compilerOptions?: {
-    jsx?: string;
-    jsxImportSource?: string;
-  };
-}
-
 export { ServerContext };
 
 export async function createHandler(
@@ -112,6 +95,10 @@ export async function createHandler(
 }
 
 export async function start(routes: Manifest, opts: StartOptions = {}) {
-  const ctx = await ServerContext.fromManifest(routes, opts);
+  const ctx = await ServerContext.fromManifest(routes, {
+    ...opts,
+    skipSnapshot: false,
+    dev: false,
+  });
   await startFromContext(ctx, opts);
 }
