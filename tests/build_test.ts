@@ -229,3 +229,34 @@ Deno.test(
     });
   },
 );
+
+Deno.test("pass target options", async () => {
+  const fixture = path.join(Deno.cwd(), "tests", "fixture_build_target");
+  const out = await new Deno.Command(Deno.execPath(), {
+    args: [
+      "run",
+      "-A",
+      path.join(fixture, "dev.ts"),
+      "build",
+    ],
+    env: {
+      GITHUB_SHA: "__BUILD_ID__",
+      DENO_DEPLOYMENT_ID: "__BUILD_ID__",
+      FRESH_TEST_TARGET: "es2015",
+    },
+    stdin: "null",
+    stdout: "piped",
+    stderr: "piped",
+  }).output();
+
+  const { stdout, stderr } = getStdOutput(out);
+  const txt = await Deno.readTextFile(
+    path.join(fixture, "_fresh", "island-counter_default.js"),
+  );
+
+  assertNotMatch(
+    txt,
+    /\?\?/,
+    `Asset contained ?? despite target es2015\n\n${stdout}\n${stderr}`,
+  );
+});
