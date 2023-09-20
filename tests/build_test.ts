@@ -208,7 +208,7 @@ Deno.test(
       const fixture = path.join(
         Deno.cwd(),
         "tests",
-        "fixture_build_out_dir_sub",
+        "fixture_build_out_dir_sub2",
       );
 
       const outDirPath = path.join(fixture, "tmp");
