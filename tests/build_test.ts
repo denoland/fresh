@@ -213,7 +213,9 @@ Deno.test(
       );
 
       const outDir = path.toFileUrl(path.join(fixture, "tmp")).href;
-      await runBuild(fixture, "src", outDir);
+      const out = await runBuild(fixture, "src", outDir);
+      const { stdout, stderr } = getStdOutput(out);
+      console.log({ stdout, stderr });
       assert(
         (await Deno.stat(outDir)).isDirectory,
         `Missing output directory: ${outDir}`,
