@@ -178,17 +178,29 @@ Deno.test("build snapshot and restore from it when has sub dirs", async (t) => {
 Deno.test(
   "build snapshot with custom build.outDir",
   async (t) => {
-    const fixture = path.join(Deno.cwd(), "tests", "fixture_build_out_dir");
+    async function assertOutputDir(outDir: string, out: Deno.CommandOutput) {
+      const { stdout } = getStdOutput(out);
+
+      const msg =
+        `Missing output directory: ${outDir}\n\nCLI output:\n\n${stdout}`;
+
+      try {
+        assert((await Deno.stat(outDir)).isDirectory, msg);
+      } catch (err) {
+        if (err instanceof Deno.errors.NotFound) {
+          throw new Error(msg, { cause: err });
+        }
+
+        throw err;
+      }
+    }
 
     await t.step("uses on relative outDir", async () => {
+      const fixture = path.join(Deno.cwd(), "tests", "fixture_build_out_dir");
       const out = await runBuild(fixture, "", "./tmp/asdf");
       const outDir = path.join(fixture, "tmp", "asdf");
 
-      const { stdout } = getStdOutput(out);
-      assert(
-        (await Deno.stat(outDir)).isDirectory,
-        `Missing output directory: ${outDir}\n\nCLI output:\n\n${stdout}`,
-      );
+      await assertOutputDir(outDir, out);
     });
 
     await t.step("uses absolute outDir", async () => {
@@ -200,11 +212,8 @@ Deno.test(
 
       const outDir = path.join(fixture, "tmp");
       const out = await runBuild(fixture, "src", outDir);
-      const { stdout } = getStdOutput(out);
-      assert(
-        (await Deno.stat(outDir)).isDirectory,
-        `Missing output directory: ${outDir}\n\nCLI output:\n\n${stdout}`,
-      );
+
+      await assertOutputDir(outDir, out);
     });
 
     await t.step("uses file:// outDir", async () => {
@@ -217,13 +226,9 @@ Deno.test(
       const outDirPath = path.join(fixture, "tmp");
       const outDir = path.toFileUrl(outDirPath).href;
       const out = await runBuild(fixture, "src", outDir);
-      const { stdout } = getStdOutput(out);
 
       // We need to pass paths instead of file:// here, otherwise the CI fails
-      assert(
-        (await Deno.stat(outDirPath)).isDirectory,
-        `Missing output directory: ${outDirPath}\n\nCLI output:\n\n${stdout}`,
-      );
+      await assertOutputDir(outDirPath, out);
     });
   },
 );
