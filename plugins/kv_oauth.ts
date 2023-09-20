@@ -2,6 +2,40 @@ import { handleCallback, signIn, signOut } from "./kv_oauth/plugin_deps.ts";
 import { OAuth2Client } from "./kv_oauth/plugin_deps.ts";
 import type { Plugin } from "../server.ts";
 
+/**
+ * This is a helper type to infer the routes created by the `kvOAuthPlugin` function.
+ *
+ * Use a KV OAuth plugin instance to infer the routes paths.
+ *
+ * @example
+ * ```ts
+ * // main.ts
+ * import { start } from "$fresh/server.ts";
+ * import { createGitHubOAuth2Client } from "https://deno.land/x/deno_kv_oauth@$VERSION/mod.ts";
+ * import { kvOAuthPlugin } from "https://deno.land/x/deno_kv_oauth@$VERSION/fresh.ts";
+ * import manifest from "./fresh.gen.ts";
+ *
+ * const kvOAuth = kvOAuthPlugin({
+ *   github: createGitHubOAuth2Client(),
+ * });
+ *
+ * export type KVOAuthRoutes = InferOAuthProviders<typeof kvOAuth>;
+ * //            ^? type Foo = "/oauth/github/signin" | "/oauth/github/callback" | "/oauth/github/signout"
+ *
+ * await start(manifest, {
+ *   plugins: [kvOAuth],
+ * });
+ * ```
+ */
+export type InferOAuthProviders<T, U = T extends Plugin<infer U> ? U : never> =
+  {
+    [K in keyof U]: K extends string ?
+        | `/oauth/${K}/signin`
+        | `/oauth/${K}/callback`
+        | `/oauth/${K}/signout`
+      : never;
+  }[keyof U];
+
 export interface KvOAuthPluginOptions {
   /**
    * Sign-in page path
