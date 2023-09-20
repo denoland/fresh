@@ -213,9 +213,9 @@ Deno.test(
 
       const outDirPath = path.join(fixture, "tmp");
       const outDir = path.toFileUrl(outDirPath).href;
-      const out = await runBuild(fixture, "src", outDir);
-      const { stdout } = getStdOutput(out);
-      console.log(stdout);
+      await runBuild(fixture, "src", outDir);
+
+      // We need to pass paths instead of file:// here, otherwise the CI fails
       assert(
         (await Deno.stat(outDirPath)).isDirectory,
         `Missing output directory: ${outDirPath}`,
