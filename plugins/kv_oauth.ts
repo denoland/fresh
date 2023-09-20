@@ -70,7 +70,9 @@ export function kvOAuthPlugin(
  * });
  * ```
  */
-export function kvOAuthPlugin(providers: Record<string, OAuth2Client>): Plugin;
+export function kvOAuthPlugin<
+  const TProviders extends Record<string, OAuth2Client>,
+>(providers: TProviders): Plugin<TProviders>;
 
 /**
  * This creates handlers for the following routes:
@@ -92,14 +94,16 @@ export function kvOAuthPlugin(providers: Record<string, OAuth2Client>): Plugin;
  * });
  * ```
  */
-export default function kvOAuthPlugin(
+export default function kvOAuthPlugin<
+  const TProviders extends Record<string, OAuth2Client>,
+>(
   ...args: [
     oauth2Client: OAuth2Client,
     options?: KvOAuthPluginOptions,
   ] | [
-    providers: Record<string, OAuth2Client>,
+    providers: TProviders,
   ]
-): Plugin {
+): Plugin<Record<keyof TProviders, unknown>> {
   const routes: Plugin["routes"] = [];
 
   if (args.length >= 3 || args.length <= 0) {
