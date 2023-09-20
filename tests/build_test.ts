@@ -177,7 +177,6 @@ Deno.test("build snapshot and restore from it when has sub dirs", async (t) => {
 
 Deno.test(
   "build snapshot with custom build.outDir",
-  { only: true },
   async (t) => {
     const fixture = path.join(Deno.cwd(), "tests", "fixture_build_out_dir");
 
@@ -212,13 +211,14 @@ Deno.test(
         "fixture_build_out_dir_sub",
       );
 
-      const outDir = path.toFileUrl(path.join(fixture, "tmp")).href;
+      const outDirPath = path.join(fixture, "tmp");
+      const outDir = path.toFileUrl(outDirPath).href;
       const out = await runBuild(fixture, "src", outDir);
       const { stdout } = getStdOutput(out);
       console.log(stdout);
       assert(
-        (await Deno.stat(outDir)).isDirectory,
-        `Missing output directory: ${outDir}`,
+        (await Deno.stat(outDirPath)).isDirectory,
+        `Missing output directory: ${outDirPath}`,
       );
     });
   },
