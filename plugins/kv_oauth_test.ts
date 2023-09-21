@@ -1,10 +1,7 @@
 // Copyright 2023 the Deno authors. All rights reserved. MIT license.
-import {
-  assert,
-  assertArrayIncludes,
-  assertNotEquals,
-} from "$std/testing/asserts.ts";
+import { assert, assertArrayIncludes } from "$std/testing/asserts.ts";
 import { colors } from "$fresh/src/server/deps.ts";
+import { createRoutes } from "$fresh/plugins/kv_oauth.ts";
 
 function randomOAuthConfig() {
   return {
@@ -16,64 +13,38 @@ function randomOAuthConfig() {
 }
 
 // @ts-ignore openKv is only available with --unstable
-const hasKVEnabled = typeof Deno.openKv === "function";
-if (!hasKVEnabled) {
+const isKvEnabled = typeof Deno.openKv === "function";
+if (!isKvEnabled) {
   console.log(
     colors.yellow(`Skipping Deno KV tests. Pass "--unstable" to run them.`),
   );
 }
 
-Deno.test(
-  {
-    name: "kvOAuthPlugin() works correctly",
-    ignore: !hasKVEnabled,
-    sanitizeResources: false,
-    fn: async (test) => {
-      const kvOAuthPlugin =
-        (await import("$fresh/plugins/kv_oauth.ts")).default;
-
-      await test.step("with default values", () => {
-        const plugin = kvOAuthPlugin(randomOAuthConfig());
-        assertNotEquals(plugin.routes, undefined);
-        assert(plugin.routes!.every((route) => route.handler !== undefined));
-        assertArrayIncludes(plugin.routes!.map((route) => route.path), [
-          "/oauth/signin",
-          "/oauth/callback",
-          "/oauth/signout",
-        ]);
-      });
-
-      await test.step("with defined values", () => {
-        const signInPath = "/signin";
-        const callbackPath = "/callback";
-        const signOutPath = "/signout";
-        const plugin = kvOAuthPlugin(randomOAuthConfig(), {
-          signInPath,
-          callbackPath,
-          signOutPath,
-        });
-        assertNotEquals(plugin.routes, undefined);
-        assert(plugin.routes!.every((route) => route.handler !== undefined));
-        assertArrayIncludes(plugin.routes!.map((route) => route.path), [
-          signInPath,
-          callbackPath,
-          signOutPath,
-        ]);
-      });
-
-      await test.step("with mapped providers", () => {
-        const providerKey = "customProvider";
-        const plugin = kvOAuthPlugin({
-          [providerKey]: randomOAuthConfig(),
-        });
-        assertNotEquals(plugin.routes, undefined);
-        assert(plugin.routes!.every((route) => route.handler !== undefined));
-        assertArrayIncludes(plugin.routes!.map((route) => route.path), [
-          `/oauth/${providerKey}/signin`,
-          `/oauth/${providerKey}/callback`,
-          `/oauth/${providerKey}/signout`,
-        ]);
-      });
-    },
+Deno.test({
+  name: "createRoutes() has all handlers defined with default OAuth path",
+  ignore: !isKvEnabled,
+  fn: () => {
+    const routes = createRoutes(randomOAuthConfig());
+    assert(routes.every((route) => route.handler !== undefined));
+    assertArrayIncludes(routes.map((route) => route.path), [
+      "/oauth/signin",
+      "/oauth/callback",
+      "/oauth/signout",
+    ]);
   },
-);
+});
+
+Deno.test({
+  name: "createRoutes() has all handlers defined with set OAuth path",
+  ignore: !isKvEnabled,
+  fn: () => {
+    const oauthPath = "/" + crypto.randomUUID();
+    const routes = createRoutes(randomOAuthConfig(), oauthPath);
+    assert(routes.every((route) => route.handler !== undefined));
+    assertArrayIncludes(routes.map((route) => route.path), [
+      oauthPath + "/signin",
+      oauthPath + "/callback",
+      oauthPath + "/signout",
+    ]);
+  },
+});
