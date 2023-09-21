@@ -234,10 +234,8 @@ function _walkInner(
             islandParent.props.children = vnode;
           }
 
-          // Remove markers
-          marker.startNode?.remove();
+          hideMarker(marker);
           sib = sib.nextSibling;
-          marker.endNode.remove();
           continue;
         } else if (marker.kind === MarkerKind.Island) {
           // We're ready to revive this island if it has
