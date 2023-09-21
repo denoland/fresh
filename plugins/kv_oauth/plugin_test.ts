@@ -5,6 +5,16 @@ import {
   assertNotEquals,
 } from "$std/testing/asserts.ts";
 import { colors } from "$fresh/src/server/deps.ts";
+import type { OAuth2ClientConfig } from "./plugin_deps.ts";
+
+function randomOAuthConfig(): OAuth2ClientConfig {
+  return {
+    clientId: crypto.randomUUID(),
+    clientSecret: crypto.randomUUID(),
+    authorizationEndpointUri: `https://${crypto.randomUUID()}.com/authorize`,
+    tokenUri: `https://${crypto.randomUUID()}.com/token`,
+  };
+}
 
 // @ts-ignore openKv is only available with --unstable
 const hasKVEnabled = typeof Deno.openKv === "function";
@@ -20,12 +30,11 @@ Deno.test(
     ignore: !hasKVEnabled,
     sanitizeResources: false,
     fn: async (test) => {
-      const { oauth2Client } = await import("./plugin_test_utils.ts");
       const kvOAuthPlugin =
         (await import("$fresh/plugins/kv_oauth.ts")).default;
 
       await test.step("with default values", () => {
-        const plugin = kvOAuthPlugin(oauth2Client);
+        const plugin = kvOAuthPlugin(randomOAuthConfig());
         assertNotEquals(plugin.routes, undefined);
         assert(plugin.routes!.every((route) => route.handler !== undefined));
         assertArrayIncludes(plugin.routes!.map((route) => route.path), [
@@ -39,7 +48,7 @@ Deno.test(
         const signInPath = "/signin";
         const callbackPath = "/callback";
         const signOutPath = "/signout";
-        const plugin = kvOAuthPlugin(oauth2Client, {
+        const plugin = kvOAuthPlugin(randomOAuthConfig(), {
           signInPath,
           callbackPath,
           signOutPath,
@@ -56,7 +65,7 @@ Deno.test(
       await test.step("with mapped providers", () => {
         const providerKey = "customProvider";
         const plugin = kvOAuthPlugin({
-          [providerKey]: oauth2Client,
+          [providerKey]: randomOAuthConfig(),
         });
         assertNotEquals(plugin.routes, undefined);
         assert(plugin.routes!.every((route) => route.handler !== undefined));

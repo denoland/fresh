@@ -1,5 +1,5 @@
 import { handleCallback, signIn, signOut } from "./kv_oauth/plugin_deps.ts";
-import { OAuth2Client } from "./kv_oauth/plugin_deps.ts";
+import { OAuth2ClientConfig } from "./kv_oauth/plugin_deps.ts";
 import type { Plugin } from "../server.ts";
 
 /**
@@ -11,12 +11,12 @@ import type { Plugin } from "../server.ts";
  * ```ts
  * // main.ts
  * import { start } from "$fresh/server.ts";
- * import { createGitHubOAuth2Client } from "https://deno.land/x/deno_kv_oauth@$VERSION/mod.ts";
+ * import { createGitHubOAuthConfig } from "https://deno.land/x/deno_kv_oauth@$VERSION/mod.ts";
  * import { kvOAuthPlugin } from "https://deno.land/x/deno_kv_oauth@$VERSION/fresh.ts";
  * import manifest from "./fresh.gen.ts";
  *
  * const kvOAuth = kvOAuthPlugin({
- *   github: createGitHubOAuth2Client(),
+ *   github: createGitHubOAuthConfig(),
  * });
  *
  * export type KVOAuthRoutes = InferOAuthProviders<typeof kvOAuth>;
@@ -67,18 +67,18 @@ export interface KvOAuthPluginOptions {
  * // main.ts
  * import { start } from "$fresh/server.ts";
  * import kvOAuthPlugin from "$fresh/plugins/kv_oauth.ts";
- * import { createGitHubOAuth2Client } from "https://deno.land/x/deno_kv_oauth@$VERSION/mod.ts";
+ * import { createGitHubOAuthConfig } from "https://deno.land/x/deno_kv_oauth@$VERSION/mod.ts";
  * import manifest from "./fresh.gen.ts";
  *
  * await start(manifest, {
  *   plugins: [
- *     kvOAuthPlugin(createGitHubOAuth2Client())
+ *     kvOAuthPlugin(createGitHubOAuthConfig())
  *   ]
  * });
  * ```
  */
 export function kvOAuthPlugin(
-  oauth2Client: OAuth2Client,
+  oauthConfig: OAuth2ClientConfig,
   options?: KvOAuthPluginOptions,
 ): Plugin;
 
@@ -91,21 +91,21 @@ export function kvOAuthPlugin(
  * ```ts
  * // main.ts
  * import { start } from "$fresh/server.ts";
- * import { createGitHubOAuth2Client } from "https://deno.land/x/deno_kv_oauth@$VERSION/mod.ts";
+ * import { createGitHubOAuthConfig } from "https://deno.land/x/deno_kv_oauth@$VERSION/mod.ts";
  * import { kvOAuthPlugin } from "https://deno.land/x/deno_kv_oauth@$VERSION/fresh.ts";
  * import manifest from "./fresh.gen.ts";
  *
  * await start(manifest, {
  *   plugins: [
- *      kvOAuthPlugin({
- *          github: createGitHubOAuth2Client(),
- *      })
+ *     kvOAuthPlugin({
+ *       github: createGitHubOAuthConfig(),
+ *     }),
  *   ]
  * });
  * ```
  */
 export function kvOAuthPlugin<
-  const TProviders extends Record<string, OAuth2Client>,
+  const TProviders extends Record<string, OAuth2ClientConfig>,
 >(providers: TProviders): Plugin<TProviders>;
 
 /**
@@ -118,21 +118,21 @@ export function kvOAuthPlugin<
  * // main.ts
  * import { start } from "$fresh/server.ts";
  * import kvOAuthPlugin from "$fresh/plugins/kv_oauth.ts";
- * import { createGitHubOAuth2Client } from "https://deno.land/x/deno_kv_oauth@$VERSION/mod.ts";
+ * import { createGitHubOAuthConfig } from "https://deno.land/x/deno_kv_oauth@$VERSION/mod.ts";
  * import manifest from "./fresh.gen.ts";
  *
  * await start(manifest, {
  *   plugins: [
- *     kvOAuthPlugin(createGitHubOAuth2Client())
+ *     kvOAuthPlugin(createGitHubOAuthConfig())
  *   ]
  * });
  * ```
  */
 export default function kvOAuthPlugin<
-  const TProviders extends Record<string, OAuth2Client>,
+  const TProviders extends Record<string, OAuth2ClientConfig>,
 >(
   ...args: [
-    oauth2Client: OAuth2Client,
+    oauthConfig: OAuth2ClientConfig,
     options?: KvOAuthPluginOptions,
   ] | [
     providers: TProviders,
@@ -140,20 +140,15 @@ export default function kvOAuthPlugin<
 ): Plugin<Record<keyof TProviders, unknown>> {
   const routes: Plugin["routes"] = [];
 
-  if (args.length >= 3 || args.length <= 0) {
-    throw new Error(
-      `Unable to initialise kv-oauth plugin with. Expected 1-2 arguments, got ${args.length}.`,
-    );
-  }
+  const [providersOrOAuthConfig] = args;
 
-  const [providersOrOAuth2Client] = args;
-
-  if (providersOrOAuth2Client instanceof OAuth2Client) {
+  if (providersOrOAuthConfig.clientId) {
     const [_, options] = args;
     routes.push(
       {
         path: options?.signInPath ?? "/oauth/signin",
-        handler: async (req) => await signIn(req, providersOrOAuth2Client),
+        handler: async (req) =>
+          await signIn(req, providersOrOAuthConfig as OAuth2ClientConfig),
       },
       {
         path: options?.callbackPath ?? "/oauth/callback",
@@ -161,7 +156,7 @@ export default function kvOAuthPlugin<
           // Return object also includes `accessToken` and `sessionId` properties.
           const { response } = await handleCallback(
             req,
-            providersOrOAuth2Client,
+            providersOrOAuthConfig as OAuth2ClientConfig,
           );
           return response;
         },
@@ -172,31 +167,30 @@ export default function kvOAuthPlugin<
       },
     );
   } else {
-    Object.entries(providersOrOAuth2Client).forEach((
-      [providerName, oauth2Client],
-    ) =>
-      routes.push(
-        {
-          path: `/oauth/${providerName}/signin`,
-          handler: async (req) => await signIn(req, oauth2Client),
-        },
-        {
-          path: `/oauth/${providerName}/callback`,
-          handler: async (req) => {
-            // Return object also includes `accessToken` and `sessionId` properties.
-            const { response } = await handleCallback(
-              req,
-              oauth2Client,
-            );
-            return response;
+    Object.entries(providersOrOAuthConfig)
+      .forEach(([providerName, oauthConfig]) =>
+        routes.push(
+          {
+            path: `/oauth/${providerName}/signin`,
+            handler: async (req) => await signIn(req, oauthConfig),
           },
-        },
-        {
-          path: `/oauth/${providerName}/signout`,
-          handler: signOut,
-        },
-      )
-    );
+          {
+            path: `/oauth/${providerName}/callback`,
+            handler: async (req) => {
+              // Return object also includes `accessToken` and `sessionId` properties.
+              const { response } = await handleCallback(
+                req,
+                oauthConfig,
+              );
+              return response;
+            },
+          },
+          {
+            path: `/oauth/${providerName}/signout`,
+            handler: signOut,
+          },
+        )
+      );
   }
 
   return {
