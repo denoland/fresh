@@ -135,6 +135,7 @@ function hideMarker(marker: Marker) {
     const text = new Text("");
     marker.startNode = text;
     parent.insertBefore(text, startNode);
+    startNode.remove();
   }
 
   if (
@@ -143,6 +144,7 @@ function hideMarker(marker: Marker) {
     const text = new Text("");
     marker.endNode = text;
     parent.insertBefore(text, endNode);
+    endNode.remove();
   }
 }
 
@@ -235,7 +237,7 @@ function _walkInner(
           }
 
           hideMarker(marker);
-          sib = sib.nextSibling;
+          sib = marker.endNode.nextSibling;
           continue;
         } else if (marker.kind === MarkerKind.Island) {
           // We're ready to revive this island if it has
@@ -299,7 +301,7 @@ function _walkInner(
               ? scheduler!.postTask(_render)
               : setTimeout(_render, 0);
 
-            sib = sib.nextSibling;
+            sib = marker.endNode.nextSibling;
             continue;
           } else if (parent?.kind === MarkerKind.Slot) {
             // Treat the island as a standard component when it
