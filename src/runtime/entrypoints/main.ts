@@ -244,15 +244,6 @@ function _walkInner(
           // no roots of its own. Otherwise we'll treat it
           // as a standard component
           if (markerStack.length === 0) {
-            const children: Node[] = [];
-
-            let child: Node | null = marker.startNode;
-            while (
-              (child = child!.nextSibling) !== null && child !== marker.endNode
-            ) {
-              children.push(child);
-            }
-
             const vnode = vnodeStack[vnodeStack.length - 1];
 
             if (vnode.props.children == null) {
