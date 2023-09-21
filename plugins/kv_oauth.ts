@@ -45,8 +45,7 @@ export {
  * ```ts
  * // main.ts
  * import { start } from "$fresh/server.ts";
- * import { createRoutes } from "$fresh/plugins/kv_oauth.ts";
- * import { createGitHubOAuthConfig } from "https://deno.land/x/deno_kv_oauth@$VERSION/mod.ts";
+ * import { createRoutes, createGitHubOAuthConfig } from "$fresh/plugins/kv_oauth.ts";
  * import manifest from "./fresh.gen.ts";
  *
  * await start(manifest, {
@@ -61,11 +60,11 @@ export {
  * ```ts
  * // main.ts
  * import { start } from "$fresh/server.ts";
- * import { createRoutes } from "$fresh/plugins/kv_oauth.ts";
  * import {
+ *   createRoutes,
  *   createGitHubOAuthConfig,
  *   createGoogleOAuthConfig,
- * } from "https://deno.land/x/deno_kv_oauth@v0.7.0/mod.ts";
+ * } from "$fresh/plugins/kv_oauth.ts";
  * import manifest from "./fresh.gen.ts";
  *
  * await start(manifest, {
