@@ -1,6 +1,11 @@
-import { handleCallback, signIn, signOut } from "./kv_oauth/plugin_deps.ts";
-import { OAuth2ClientConfig } from "./kv_oauth/plugin_deps.ts";
+import {
+  handleCallback,
+  signIn,
+  signOut,
+} from "https://deno.land/x/deno_kv_oauth@v0.7.0/mod.ts";
+import type { OAuth2ClientConfig } from "https://deno.land/x/oauth2_client@v1.0.2/mod.ts";
 import type { Plugin } from "../server.ts";
+import { PluginRoute } from "$fresh/src/server/types.ts";
 
 /**
  * This is a helper type to infer the routes created by the `kvOAuthPlugin` function.
@@ -55,6 +60,33 @@ export interface KvOAuthPluginOptions {
    * @default {"/oauth/signout"}
    */
   signOutPath?: string;
+}
+
+function providerRoutes(
+  oauthConfig: OAuth2ClientConfig,
+  options?: KvOAuthPluginOptions,
+): PluginRoute[] {
+  return [
+    {
+      path: options?.signInPath ?? "/oauth/signin",
+      handler: async (req) => await signIn(req, oauthConfig),
+    },
+    {
+      path: options?.callbackPath ?? "/oauth/callback",
+      handler: async (req) => {
+        // Return object also includes `accessToken` and `sessionId` properties.
+        const { response } = await handleCallback(
+          req,
+          oauthConfig,
+        );
+        return response;
+      },
+    },
+    {
+      path: options?.signOutPath ?? "/oauth/signout",
+      handler: signOut,
+    },
+  ];
 }
 
 /**
@@ -138,60 +170,17 @@ export default function kvOAuthPlugin<
     providers: TProviders,
   ]
 ): Plugin<Record<keyof TProviders, unknown>> {
-  const routes: Plugin["routes"] = [];
-
-  const [providersOrOAuthConfig] = args;
-
-  if (providersOrOAuthConfig.clientId) {
-    const [_, options] = args;
-    routes.push(
-      {
-        path: options?.signInPath ?? "/oauth/signin",
-        handler: async (req) =>
-          await signIn(req, providersOrOAuthConfig as OAuth2ClientConfig),
-      },
-      {
-        path: options?.callbackPath ?? "/oauth/callback",
-        handler: async (req) => {
-          // Return object also includes `accessToken` and `sessionId` properties.
-          const { response } = await handleCallback(
-            req,
-            providersOrOAuthConfig as OAuth2ClientConfig,
-          );
-          return response;
-        },
-      },
-      {
-        path: options?.signOutPath ?? "/oauth/signout",
-        handler: signOut,
-      },
-    );
-  } else {
-    Object.entries(providersOrOAuthConfig)
-      .forEach(([providerName, oauthConfig]) =>
-        routes.push(
-          {
-            path: `/oauth/${providerName}/signin`,
-            handler: async (req) => await signIn(req, oauthConfig),
-          },
-          {
-            path: `/oauth/${providerName}/callback`,
-            handler: async (req) => {
-              // Return object also includes `accessToken` and `sessionId` properties.
-              const { response } = await handleCallback(
-                req,
-                oauthConfig,
-              );
-              return response;
-            },
-          },
-          {
-            path: `/oauth/${providerName}/signout`,
-            handler: signOut,
-          },
-        )
+  const routes = args[0].clientId
+    ? providerRoutes(args[0] as OAuth2ClientConfig, args[1])
+    : Object
+      .entries(args[0] as TProviders)
+      .flatMap(([providerName, oauthConfig]) =>
+        providerRoutes(oauthConfig, {
+          signInPath: `/oauth/${providerName}/signin`,
+          callbackPath: `/oauth/${providerName}/callback`,
+          signOutPath: `/oauth/${providerName}/signout`,
+        })
       );
-  }
 
   return {
     name: "kv-oauth",

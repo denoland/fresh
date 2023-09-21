@@ -5,9 +5,8 @@ import {
   assertNotEquals,
 } from "$std/testing/asserts.ts";
 import { colors } from "$fresh/src/server/deps.ts";
-import type { OAuth2ClientConfig } from "./plugin_deps.ts";
 
-function randomOAuthConfig(): OAuth2ClientConfig {
+function randomOAuthConfig() {
   return {
     clientId: crypto.randomUUID(),
     clientSecret: crypto.randomUUID(),
