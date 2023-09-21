@@ -11,16 +11,33 @@ import { assetHashingHook } from "../utils.ts";
 
 function createRootFragment(
   parent: Element,
-  replaceNode: Node | Node[],
-  endMarker: Text,
+  startMarker: Text | Comment,
+  // We need an end marker for islands because multiple
+  // islands can share the same parent node. Since
+  // islands are root-level render calls any calls to
+  // `.appendChild` would lead to a wrong result.
+  endMarker: Text | Comment,
 ) {
-  replaceNode = ([] as Node[]).concat(replaceNode);
   // @ts-ignore this is fine
   return parent.__k = {
     nodeType: 1,
     parentNode: parent,
-    firstChild: replaceNode[0],
-    childNodes: replaceNode,
+    get firstChild() {
+      const child = startMarker.nextSibling;
+      if (child === endMarker) return null;
+      return child;
+    },
+    get childNodes() {
+      const children: ChildNode[] = [];
+
+      let child = startMarker.nextSibling;
+      while (child !== null && child !== endMarker) {
+        children.push(child);
+        child = child.nextSibling;
+      }
+
+      return children;
+    },
     insertBefore(node: Node, child: Node | null) {
       parent.insertBefore(node, child ?? endMarker);
     },
@@ -97,8 +114,36 @@ interface Marker {
   // string representing the actual intended comment value which makes
   // a bunch of stuff easier.
   text: string;
-  startNode: Comment | null;
-  endNode: Comment | null;
+  startNode: Text | Comment | null;
+  endNode: Text | Comment | null;
+}
+
+const HIDE_MARKERS = true;
+
+/**
+ * Replace comment markers with empty text nodes to hide them
+ * in DevTools. This is done to avoid user confusion.
+ */
+function hideMarker(marker: Marker) {
+  const { startNode, endNode } = marker;
+  const parent = endNode!.parentNode!;
+
+  if (
+    !HIDE_MARKERS && startNode !== null &&
+    startNode.nodeType === Node.COMMENT_NODE
+  ) {
+    const text = new Text("");
+    marker.startNode = text;
+    parent.insertBefore(text, startNode);
+  }
+
+  if (
+    !HIDE_MARKERS && endNode !== null && endNode.nodeType === Node.COMMENT_NODE
+  ) {
+    const text = new Text("");
+    marker.endNode = text;
+    parent.insertBefore(text, endNode);
+  }
 }
 
 /**
@@ -244,23 +289,15 @@ function _walkInner(
 
             const parentNode = sib.parentNode! as HTMLElement;
 
-            // We need an end marker for islands because multiple
-            // islands can share the same parent node. Since
-            // islands are root-level render calls any calls to
-            // `.appendChild` would lead to a wrong result.
-            const endMarker = new Text("");
-            parentNode.insertBefore(
-              endMarker,
-              marker.endNode,
-            );
+            hideMarker(marker);
 
             const _render = () =>
               render(
                 vnode,
                 createRootFragment(
                   parentNode,
-                  children,
-                  endMarker,
+                  marker.startNode!,
+                  marker.endNode!,
                   // deno-lint-ignore no-explicit-any
                 ) as any as HTMLElement,
               );
@@ -273,10 +310,7 @@ function _walkInner(
               ? scheduler!.postTask(_render)
               : setTimeout(_render, 0);
 
-            // Remove markers
-            marker.startNode?.remove();
             sib = sib.nextSibling;
-            marker.endNode.remove();
             continue;
           } else if (parent?.kind === MarkerKind.Slot) {
             // Treat the island as a standard component when it
