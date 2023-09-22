@@ -17,7 +17,7 @@ import {
   signOut,
 } from "https://deno.land/x/deno_kv_oauth@v0.7.0/mod.ts";
 import type { OAuth2ClientConfig } from "https://deno.land/x/oauth2_client@v1.0.2/mod.ts";
-import { PluginRoute } from "$fresh/src/server/types.ts";
+import { Handler } from "$fresh/server.ts";
 
 export {
   createAuth0OAuthConfig,
@@ -78,18 +78,22 @@ export {
  * });
  * ```
  */
-export function createRoutes(
+export function createRoutes<T extends string = "/oauth">(
   oauthConfig: OAuth2ClientConfig,
   /** Parent path for sign-in, callback and sign-out pages. */
-  oauthPath = "/oauth",
-): PluginRoute[] {
+  oauthPath = "/oauth" as T,
+): [
+  { path: `${T}/signin`; handler: Handler },
+  { path: `${T}/callback`; handler: Handler },
+  { path: `${T}/signout`; handler: Handler },
+] {
   return [
     {
-      path: oauthPath + "/signin",
+      path: `${oauthPath}/signin`,
       handler: async (req) => await signIn(req, oauthConfig),
     },
     {
-      path: oauthPath + "/callback",
+      path: `${oauthPath}/callback`,
       handler: async (req) => {
         // Return object also includes `accessToken` and `sessionId` properties.
         const { response } = await handleCallback(
@@ -100,7 +104,7 @@ export function createRoutes(
       },
     },
     {
-      path: oauthPath + "/signout",
+      path: `${oauthPath}/signout`,
       handler: signOut,
     },
   ];

@@ -1,5 +1,5 @@
 // Copyright 2023 the Deno authors. All rights reserved. MIT license.
-import { assert, assertArrayIncludes } from "$std/testing/asserts.ts";
+import { assertArrayIncludes } from "$std/testing/asserts.ts";
 import { colors } from "$fresh/src/server/deps.ts";
 import { createRoutes } from "$fresh/plugins/kv_oauth.ts";
 
@@ -7,8 +7,8 @@ function randomOAuthConfig() {
   return {
     clientId: crypto.randomUUID(),
     clientSecret: crypto.randomUUID(),
-    authorizationEndpointUri: `https://${crypto.randomUUID()}.com/authorize`,
-    tokenUri: `https://${crypto.randomUUID()}.com/token`,
+    authorizationEndpointUri: `http://${crypto.randomUUID()}.com/authorize`,
+    tokenUri: `http://${crypto.randomUUID()}.com/token`,
   };
 }
 
@@ -25,7 +25,6 @@ Deno.test({
   ignore: !isKvEnabled,
   fn: () => {
     const routes = createRoutes(randomOAuthConfig());
-    assert(routes.every((route) => route.handler !== undefined));
     assertArrayIncludes(routes.map((route) => route.path), [
       "/oauth/signin",
       "/oauth/callback",
@@ -40,7 +39,6 @@ Deno.test({
   fn: () => {
     const oauthPath = "/" + crypto.randomUUID();
     const routes = createRoutes(randomOAuthConfig(), oauthPath);
-    assert(routes.every((route) => route.handler !== undefined));
     assertArrayIncludes(routes.map((route) => route.path), [
       oauthPath + "/signin",
       oauthPath + "/callback",
