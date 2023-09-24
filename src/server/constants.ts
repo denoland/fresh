@@ -9,8 +9,3 @@ export const DEBUG = !Deno.env.get("DENO_DEPLOYMENT_ID");
 export function bundleAssetUrl(path: string) {
   return `${INTERNAL_PREFIX}${JS_PREFIX}/${BUILD_ID}${path}`;
 }
-
-export let DEV_MODE = false;
-export function setDevMode(value: boolean) {
-  DEV_MODE = value;
-}
