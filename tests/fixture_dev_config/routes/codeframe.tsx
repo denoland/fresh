@@ -1,3 +1,3 @@
 export default function Page() {
-  throw new Error("fail")
+  throw new Error("fail");
 }
