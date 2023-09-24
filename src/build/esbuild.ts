@@ -1,3 +1,4 @@
+import { denoResolve } from "./deno_resolve.ts";
 import {
   denoPlugins,
   esbuild,
@@ -27,6 +28,8 @@ export interface JSXConfig {
   jsx: "react" | "react-jsx";
   jsxImportSource?: string;
 }
+
+export class EsbuildError extends Error {}
 
 export class EsbuildBuilder implements Builder {
   #options: EsbuildBuilderOptions;
@@ -75,6 +78,7 @@ export class EsbuildBuilder implements Builder {
 
         plugins: [
           buildIdPlugin(opts.buildID),
+          denoResolve(),
           ...denoPlugins({ configPath: opts.configPath }),
         ],
       });
@@ -99,6 +103,8 @@ export class EsbuildBuilder implements Builder {
       }
 
       return new EsbuildSnapshot(files, dependencies);
+    } catch (err) {
+      throw new EsbuildError(`Esbuild bundling failed`, { cause: err });
     } finally {
       stopEsbuild();
     }

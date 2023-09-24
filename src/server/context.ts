@@ -58,6 +58,7 @@ import { InternalRoute } from "./router.ts";
 import { setAllIslands } from "./rendering/preact_hooks.ts";
 import { getCodeFrame } from "./code_frame.ts";
 import { getFreshConfigWithDefaults } from "./config.ts";
+import { EsbuildError } from "../build/esbuild.ts";
 
 const DEFAULT_CONN_INFO: ServeHandlerInfo = {
   localAddr: { transport: "tcp", hostname: "localhost", port: 8080 },
@@ -888,21 +889,26 @@ export class ServerContext {
       ctx,
       error,
     ) => {
-      console.error(
-        "%cAn error occurred during route handling or page rendering.",
-        "color:red",
-      );
-      if (this.#dev && error instanceof Error) {
-        const codeFrame = await getCodeFrame(error);
+      if (error instanceof EsbuildError) {
+        // Do nothing, esbuild already prints a the error itself
+      } else {
+        console.error(
+          "%cAn error occurred during route handling or page rendering.",
+          "color:red",
+        );
+        if (this.#dev && error instanceof Error) {
+          const codeFrame = await getCodeFrame(error);
 
-        if (codeFrame) {
-          console.error();
-          console.error(codeFrame);
-          // deno-lint-ignore no-explicit-any
-          (error as any).codeFrame = codeFrame;
+          if (codeFrame) {
+            console.error();
+            console.error(codeFrame);
+            // deno-lint-ignore no-explicit-any
+            (error as any).codeFrame = codeFrame;
+          }
         }
+
+        console.error(error);
       }
-      console.error(error);
 
       return this.#error.handler(
         req,
