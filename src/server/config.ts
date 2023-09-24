@@ -1,4 +1,3 @@
-import { DEV_MODE } from "./constants.ts";
 import { dirname, fromFileUrl, isAbsolute, join, JSONC } from "./deps.ts";
 import { FromManifestOptions, Manifest } from "./mod.ts";
 import { DenoConfig, InternalFreshOptions } from "./types.ts";
@@ -55,7 +54,7 @@ export async function getFreshConfigWithDefaults(
     loadSnapshot: typeof opts.skipSnapshot === "boolean"
       ? !opts.skipSnapshot
       : false,
-    dev: opts.dev ?? DEV_MODE,
+    dev: opts.dev ?? false,
     denoJsonPath,
     denoJson,
     manifest,
