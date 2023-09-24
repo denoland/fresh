@@ -26,6 +26,20 @@ Deno.test({
 });
 
 Deno.test({
+  name: "dev_command config: shows codeframe",
+  async fn() {
+    await withFakeServe(
+      "./tests/fixture_dev_config/dev.ts",
+      async (server) => {
+        const doc = await server.getHtml("/codeframe");
+        assertSelector(doc, ".frsh-error-page");
+        assertSelector(doc, ".code-frame");
+      },
+    );
+  },
+});
+
+Deno.test({
   name: "dev_command legacy",
   async fn() {
     await withPageName(
@@ -33,6 +47,20 @@ Deno.test({
       async (page, address) => {
         await page.goto(`${address}`);
         await waitForStyle(page, "h1", "color", "rgb(220, 38, 38)");
+      },
+    );
+  },
+});
+
+Deno.test({
+  name: "dev_command legacy: shows codeframe",
+  async fn() {
+    await withFakeServe(
+      "./tests/fixture_dev_legacy/dev.ts",
+      async (server) => {
+        const doc = await server.getHtml("/codeframe");
+        assertSelector(doc, ".frsh-error-page");
+        assertSelector(doc, ".code-frame");
       },
     );
   },

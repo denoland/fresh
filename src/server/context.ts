@@ -10,12 +10,7 @@ import {
 import { ComponentType, h } from "preact";
 import * as router from "./router.ts";
 import { Manifest } from "./mod.ts";
-import {
-  ALIVE_URL,
-  JS_PREFIX,
-  REFRESH_JS_URL,
-  setDevMode,
-} from "./constants.ts";
+import { ALIVE_URL, JS_PREFIX, REFRESH_JS_URL } from "./constants.ts";
 import { BUILD_ID, setBuildId } from "./build_id.ts";
 import DefaultErrorHandler from "./default_error_page.tsx";
 import {
@@ -450,9 +445,8 @@ export class ServerContext {
     opts: FromManifestOptions,
   ): Promise<ServerContext> {
     const isLegacyDev = Deno.env.get("__FRSH_LEGACY_DEV") === "true";
-    const dev = isLegacyDev ||
+    opts.dev = isLegacyDev ||
       Boolean(opts.dev);
-    setDevMode(dev);
 
     if (isLegacyDev) {
       opts.skipSnapshot = true;
