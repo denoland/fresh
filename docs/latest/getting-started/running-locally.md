@@ -39,13 +39,20 @@ If you want to change the port or host, modify the config bag of the `start()`
 call in `main.ts` to include an explicit port number:
 
 ```js main.ts
-await start(manifest, { port: 3000 });
+await start(manifest, { port: 3000, hostname: "0.0.0.0" });
 ```
 
-You can also change the port by setting the `PORT` environment variable:
+You can also change the port and hostname by setting the `PORT` and `HOST`
+environment variables:
 
 ```sh Terminal
-$ PORT=3000 deno task start
+$ HOST=0.0.0.0 PORT=3000 deno task start
+```
+
+There is also a `--port` and a `--host` flag that can be passed to set them.
+
+```sh Terminal
+$ deno task start --port 3000 --host 0.0.0.0
 ```
 
 Combining all of this we get the following `deno run` command:

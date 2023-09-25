@@ -887,6 +887,27 @@ Deno.test("PORT environment variable", async () => {
   for await (const _ of lines) { /* noop */ }
 });
 
+Deno.test("HOST environment variable", async () => {
+  const HOST = "127.0.0.1";
+  const { serverProcess, lines } = await startFreshServer({
+    args: ["run", "-A", "./tests/fixture/main.ts"],
+    env: { HOST },
+  });
+
+  await delay(100);
+
+  const resp = await fetch(`http://${HOST}:8000`);
+  await resp.body?.cancel();
+  assert(resp);
+  assertEquals(resp.status, Status.OK);
+  await resp.body!.cancel();
+
+  serverProcess.kill("SIGTERM");
+  await serverProcess.status;
+
+  for await (const _ of lines) { /* noop */ }
+});
+
 Deno.test(
   "throw on route export 'handlers' instead of 'handler'",
   async () => {
