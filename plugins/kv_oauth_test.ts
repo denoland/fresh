@@ -1,7 +1,6 @@
 // Copyright 2023 the Deno authors. All rights reserved. MIT license.
 import { assertArrayIncludes } from "$std/testing/asserts.ts";
 import { colors } from "$fresh/src/server/deps.ts";
-import { createRoutes } from "$fresh/plugins/kv_oauth.ts";
 
 function randomOAuthConfig() {
   return {
@@ -23,7 +22,8 @@ if (!isKvEnabled) {
 Deno.test({
   name: "createRoutes() has all handlers defined with default OAuth path",
   ignore: !isKvEnabled,
-  fn: () => {
+  fn: async () => {
+    const { createRoutes } = await import("$fresh/plugins/kv_oauth.ts");
     const routes = createRoutes(randomOAuthConfig());
     assertArrayIncludes(routes.map((route) => route.path), [
       "/oauth/signin",
@@ -36,7 +36,9 @@ Deno.test({
 Deno.test({
   name: "createRoutes() has all handlers defined with set OAuth path",
   ignore: !isKvEnabled,
-  fn: () => {
+  fn: async () => {
+    const { createRoutes } = await import("$fresh/plugins/kv_oauth.ts");
+
     const oauthPath = "/" + crypto.randomUUID();
     const routes = createRoutes(randomOAuthConfig(), oauthPath);
     assertArrayIncludes(routes.map((route) => route.path), [
