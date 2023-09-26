@@ -7,7 +7,7 @@ import {
 } from "$std/testing/asserts.ts";
 import { cleanup, fireEvent, render, setup } from "$fresh-testing-library";
 import { afterEach, beforeAll, describe, it } from "$std/testing/bdd.ts";
-import Footer from "../../../www/components/gallery/Footer.tsx";
+import Footer from "../../../../www/components/gallery/Footer.tsx";
 
 describe("Footer.tsx", () => {
   beforeAll(setup);

@@ -7,7 +7,7 @@ import {
 } from "$std/testing/asserts.ts";
 import { cleanup, fireEvent, render, setup } from "$fresh-testing-library";
 import { afterEach, beforeAll, describe, it } from "$std/testing/bdd.ts";
-import Carousel from "../../../www/components/gallery/Carousel.tsx";
+import Carousel from "../../../../www/components/gallery/Carousel.tsx";
 
 describe("Carousel.tsx", () => {
   beforeAll(setup);
