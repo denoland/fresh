@@ -20,4 +20,11 @@ describe("components/gallery/LinkButton.tsx", () => {
     const copied = await screen.findByText("Copied!");
     assert(copied);
   });
+
+  it("should show source code", () => {
+    const code = "console.log('Hello World')";
+    const screen = render(<CodeBox code={code} />);
+    // find code
+    assert(screen.getByText(code));
+  });
 });
