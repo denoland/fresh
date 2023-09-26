@@ -36,8 +36,8 @@ export class RenderState {
   ownerStack: VNode[] = [];
   owners = new Map<VNode, VNode>();
   #nonce = "";
-  islandCounter = 0;
   error: Error | null = null;
+  isPartial: boolean;
 
   constructor(
     routeOptions: RenderStateRouteOptions,
@@ -49,6 +49,7 @@ export class RenderState {
     this.routeOptions = routeOptions;
     this.csp = csp;
     this.componentStack = componentStack;
+    this.isPartial = routeOptions.url.searchParams.has("fresh-partial");
 
     if (error) this.routeOptions.error = error;
   }

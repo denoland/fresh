@@ -363,14 +363,25 @@ export async function waitForText(
   text: string,
 ) {
   await page.waitForSelector(selector);
-  await page.waitForFunction(
-    (sel, value) => {
-      return document.querySelector(sel)!.textContent === value;
-    },
-    { timeout: 2000 },
-    selector,
-    String(text),
-  );
+  try {
+    await page.waitForFunction(
+      (sel, value) => {
+        return document.querySelector(sel)!.textContent === value;
+      },
+      { timeout: 2000 },
+      selector,
+      String(text),
+    );
+  } catch (err) {
+    const body = await page.content();
+    // deno-lint-ignore no-explicit-any
+    const pretty = prettyDom(parseHtml(body) as any);
+
+    console.log(
+      `Text "${text}" not found on selector "${selector}" in html:\n\n${pretty}`,
+    );
+    throw err;
+  }
 }
 
 export async function waitForStyle(

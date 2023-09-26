@@ -902,6 +902,7 @@ export class ServerContext {
           (error as any).codeFrame = codeFrame;
         }
       }
+      // TODO: Esbuild error spam
       console.error(error);
 
       return this.#error.handler(
@@ -1309,7 +1310,6 @@ function collectEntrypoints(
     main: dev
       ? import.meta.resolve(`${entrypointBase}/main_dev.ts`)
       : import.meta.resolve(`${entrypointBase}/main.ts`),
-    deserializer: import.meta.resolve(`${entrypointBase}/deserializer.ts`),
   };
 
   try {
