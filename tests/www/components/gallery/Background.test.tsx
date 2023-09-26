@@ -1,12 +1,5 @@
-import {
-  assert,
-  assertEquals,
-  assertExists,
-  assertFalse,
-  assertStringIncludes,
-  fail,
-} from "$std/testing/asserts.ts";
-import { cleanup, fireEvent, render, setup } from "$fresh-testing-library";
+import { assertEquals } from "$std/testing/asserts.ts";
+import { cleanup, render, setup } from "$fresh-testing-library";
 import { afterEach, beforeAll, describe, it } from "$std/testing/bdd.ts";
 import Background from "$fresh/www/components/gallery/Background.tsx";
 

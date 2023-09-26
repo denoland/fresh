@@ -1,11 +1,5 @@
-import {
-  assert,
-  assertEquals,
-  assertExists,
-  assertFalse,
-  assertStringIncludes,
-} from "$std/testing/asserts.ts";
-import { cleanup, fireEvent, render, setup } from "$fresh-testing-library";
+import { assertEquals } from "$std/testing/asserts.ts";
+import { cleanup, render, setup } from "$fresh-testing-library";
 import { afterEach, beforeAll, describe, it } from "$std/testing/bdd.ts";
 import Hero from "$fresh/www/components/gallery/Hero.tsx";
 

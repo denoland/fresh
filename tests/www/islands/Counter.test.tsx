@@ -1,10 +1,4 @@
-import { Signal, signal } from "@preact/signals";
-import {
-  assert,
-  assertEquals,
-  assertExists,
-  assertFalse,
-} from "$std/testing/asserts.ts";
+import { assertExists, assertFalse } from "$std/testing/asserts.ts";
 import { cleanup, fireEvent, render, setup } from "$fresh-testing-library";
 import { afterEach, beforeAll, describe, it } from "$std/testing/bdd.ts";
 import Counter from "../../../www/islands/Counter.tsx";
