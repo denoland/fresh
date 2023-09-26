@@ -90,7 +90,7 @@ ServerComponent.displayName = "PreactServerComponent";
 
 function addPropsChild(parent: VNode, vnode: ComponentChildren) {
   const props = parent.props;
-  if (props.children === null) {
+  if (props.children == null) {
     props.children = vnode;
   } else {
     if (!Array.isArray(props.children)) {
@@ -118,7 +118,7 @@ interface Marker {
   endNode: Text | Comment | null;
 }
 
-const HIDE_MARKERS = true;
+const SHOW_MARKERS = false;
 
 /**
  * Replace comment markers with empty text nodes to hide them
@@ -129,7 +129,7 @@ function hideMarker(marker: Marker) {
   const parent = endNode!.parentNode!;
 
   if (
-    !HIDE_MARKERS && startNode !== null &&
+    SHOW_MARKERS && startNode !== null &&
     startNode.nodeType === Node.COMMENT_NODE
   ) {
     const text = new Text("");
@@ -139,12 +139,56 @@ function hideMarker(marker: Marker) {
   }
 
   if (
-    !HIDE_MARKERS && endNode !== null && endNode.nodeType === Node.COMMENT_NODE
+    SHOW_MARKERS && endNode !== null && endNode.nodeType === Node.COMMENT_NODE
   ) {
     const text = new Text("");
     marker.endNode = text;
     parent.insertBefore(text, endNode);
     endNode.remove();
+  }
+}
+
+/**
+ * If an islands children are `null` then it might be a conditionally
+ * rendered one which was initially not visible. In these cases we
+ * send a `<template>` tag with the "would be rendered" children to
+ * the client. This function checks for that
+ */
+function addChildrenFromTemplate(
+  islands: Record<string, Record<string, ComponentType>>,
+  // deno-lint-ignore no-explicit-any
+  props: any[],
+  markerStack: Marker[],
+  vnodeStack: VNode[],
+  comment: string,
+) {
+  const [id, exportName, n] = comment.slice("/frsh-".length).split(
+    ":",
+  );
+
+  const sel = `#frsh-slot-${id}-${exportName}-${n}-children`;
+  const template = document.querySelector(sel) as
+    | HTMLTemplateElement
+    | null;
+
+  if (template !== null) {
+    markerStack.push({
+      kind: MarkerKind.Slot,
+      endNode: null,
+      startNode: null,
+      text: comment.slice(1),
+    });
+
+    const node = template.content.cloneNode(true);
+    _walkInner(
+      islands,
+      props,
+      markerStack,
+      vnodeStack,
+      node,
+    );
+
+    markerStack.pop();
   }
 }
 
@@ -247,34 +291,13 @@ function _walkInner(
             const vnode = vnodeStack[vnodeStack.length - 1];
 
             if (vnode.props.children == null) {
-              const [id, exportName, n] = comment.slice("/frsh-".length).split(
-                ":",
+              addChildrenFromTemplate(
+                islands,
+                props,
+                markerStack,
+                vnodeStack,
+                comment,
               );
-
-              const sel = `#frsh-slot-${id}-${exportName}-${n}-children`;
-              const template = document.querySelector(sel) as
-                | HTMLTemplateElement
-                | null;
-
-              if (template !== null) {
-                markerStack.push({
-                  kind: MarkerKind.Slot,
-                  endNode: null,
-                  startNode: null,
-                  text: "foo",
-                });
-
-                const node = template.content.cloneNode(true);
-                _walkInner(
-                  islands,
-                  props,
-                  markerStack,
-                  vnodeStack,
-                  node,
-                );
-
-                markerStack.pop();
-              }
             }
             vnodeStack.pop();
 
@@ -306,9 +329,31 @@ function _walkInner(
           } else if (parent?.kind === MarkerKind.Slot) {
             // Treat the island as a standard component when it
             // has an island parent or a slot parent
-            const vnode = vnodeStack.pop();
+            const vnode = vnodeStack[vnodeStack.length - 1];
+            if (vnode && vnode.props.children == null) {
+              addChildrenFromTemplate(
+                islands,
+                props,
+                markerStack,
+                vnodeStack,
+                comment,
+              );
+
+              // Didn't find any template tag, proceed as usual
+              if (vnode.props.children == null) {
+                vnodeStack.pop();
+              }
+            } else {
+              vnodeStack.pop();
+            }
+
+            marker.endNode = sib;
+            hideMarker(marker);
+
             const parent = vnodeStack[vnodeStack.length - 1]!;
             addPropsChild(parent, vnode);
+            sib = marker.endNode.nextSibling;
+            continue;
           }
         }
       } else if (comment.startsWith("frsh")) {
