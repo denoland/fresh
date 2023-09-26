@@ -90,7 +90,7 @@ ServerComponent.displayName = "PreactServerComponent";
 
 function addPropsChild(parent: VNode, vnode: ComponentChildren) {
   const props = parent.props;
-  if (!("children" in props) || props.children === null) {
+  if (props.children == null) {
     props.children = vnode;
   } else {
     if (!Array.isArray(props.children)) {
