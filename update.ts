@@ -26,16 +26,21 @@ To upgrade a project in the current directory, run:
   fresh-update .
 
 USAGE:
-    fresh-update <DIRECTORY>
+    fresh-update [DIRECTORY]
 `;
 
 const flags = parse(Deno.args, {});
 
+let unresolvedDirectory = Deno.args[0];
 if (flags._.length !== 1) {
-  error(help);
+  const userInput = prompt("Project Directory", ".");
+  if (!userInput) {
+    error(help);
+  }
+
+  unresolvedDirectory = userInput;
 }
 
-const unresolvedDirectory = Deno.args[0];
 const resolvedDirectory = resolve(unresolvedDirectory);
 const srcDirectory = await findSrcDirectory("main.ts", resolvedDirectory);
 
