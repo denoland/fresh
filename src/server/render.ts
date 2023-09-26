@@ -311,6 +311,9 @@ export async function render<Data>(
   }
 
   await renderAsync();
+  if (renderState.error !== null) {
+    throw renderState.error;
+  }
 
   const idx = renderState.headVNodes.findIndex((vnode) =>
     vnode !== null && typeof vnode === "object" && "type" in vnode &&

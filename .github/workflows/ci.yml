@@ -14,7 +14,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        deno: ["v1.x"]
+        deno: ["canary"]
         os: [macOS-latest, windows-latest, ubuntu-latest]
         include:
         - os: ubuntu-latest
@@ -59,10 +59,5 @@ jobs:
       - name: Type check project
         run: deno task check:types
 
-      - name: Run tests Windows
-        if: matrix.os == 'windows-latest'
-        run: deno test -A --trace-ops
-
-      - name: Run tests macOS + Linux
-        if: matrix.os != 'windows-latest'
-        run: deno test -A --parallel --trace-ops
+      - name: Run tests
+        run: deno test -A --parallel --trace-ops --unstable

@@ -20,6 +20,7 @@ export interface EsbuildBuilderOptions {
   configPath: string;
   /** The JSX configuration. */
   jsxConfig: JSXConfig;
+  target: string | string[];
 }
 
 export interface JSXConfig {
@@ -55,7 +56,7 @@ export class EsbuildBuilder implements Builder {
         entryPoints: opts.entrypoints,
 
         platform: "browser",
-        target: ["chrome99", "firefox99", "safari15"],
+        target: this.#options.target,
 
         format: "esm",
         bundle: true,

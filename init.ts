@@ -423,7 +423,7 @@ html {
 .rounded {
   border-radius: 0.25rem;
 }
-.hover\:bg-gray-200:hover {
+.hover\\:bg-gray-200:hover {
   background-color: #e5e7eb;
 }
 `;
@@ -503,13 +503,14 @@ try {
 
 let FRESH_CONFIG_TS = `import { defineConfig } from "$fresh/server.ts";\n`;
 if (useTwind) {
-  FRESH_CONFIG_TS += `import twindPlugin from "$fresh/plugins/twind.ts"
-import twindConfig from "./twind.config.ts";`;
+  FRESH_CONFIG_TS += `import twindPlugin from "$fresh/plugins/twind.ts";
+import twindConfig from "./twind.config.ts";
+`;
 }
 
 FRESH_CONFIG_TS += `
 export default defineConfig({${
-  useTwind ? `\n  plugins: [twindPlugin(twindConfig)]\n` : ""
+  useTwind ? `\n  plugins: [twindPlugin(twindConfig)],\n` : ""
 }});
 `;
 const CONFIG_TS_PATH = join(resolvedDirectory, "fresh.config.ts");
@@ -564,11 +565,8 @@ const config = {
     rules: {
       tags: ["fresh", "recommended"],
     },
-    exclude: ["_fresh"],
   },
-  fmt: {
-    exclude: ["_fresh"],
-  },
+  exclude: ["**/_fresh/*"],
   imports: {} as Record<string, string>,
   compilerOptions: {
     jsx: "react-jsx",

@@ -11,16 +11,33 @@ import { assetHashingHook } from "../utils.ts";
 
 function createRootFragment(
   parent: Element,
-  replaceNode: Node | Node[],
-  endMarker: Text,
+  startMarker: Text | Comment,
+  // We need an end marker for islands because multiple
+  // islands can share the same parent node. Since
+  // islands are root-level render calls any calls to
+  // `.appendChild` would lead to a wrong result.
+  endMarker: Text | Comment,
 ) {
-  replaceNode = ([] as Node[]).concat(replaceNode);
   // @ts-ignore this is fine
   return parent.__k = {
     nodeType: 1,
     parentNode: parent,
-    firstChild: replaceNode[0],
-    childNodes: replaceNode,
+    get firstChild() {
+      const child = startMarker.nextSibling;
+      if (child === endMarker) return null;
+      return child;
+    },
+    get childNodes() {
+      const children: ChildNode[] = [];
+
+      let child = startMarker.nextSibling;
+      while (child !== null && child !== endMarker) {
+        children.push(child);
+        child = child.nextSibling;
+      }
+
+      return children;
+    },
     insertBefore(node: Node, child: Node | null) {
       parent.insertBefore(node, child ?? endMarker);
     },
@@ -73,7 +90,7 @@ ServerComponent.displayName = "PreactServerComponent";
 
 function addPropsChild(parent: VNode, vnode: ComponentChildren) {
   const props = parent.props;
-  if (props.children === null) {
+  if (props.children == null) {
     props.children = vnode;
   } else {
     if (!Array.isArray(props.children)) {
@@ -97,8 +114,82 @@ interface Marker {
   // string representing the actual intended comment value which makes
   // a bunch of stuff easier.
   text: string;
-  startNode: Comment | null;
-  endNode: Comment | null;
+  startNode: Text | Comment | null;
+  endNode: Text | Comment | null;
+}
+
+const SHOW_MARKERS = false;
+
+/**
+ * Replace comment markers with empty text nodes to hide them
+ * in DevTools. This is done to avoid user confusion.
+ */
+function hideMarker(marker: Marker) {
+  const { startNode, endNode } = marker;
+  const parent = endNode!.parentNode!;
+
+  if (
+    !SHOW_MARKERS && startNode !== null &&
+    startNode.nodeType === Node.COMMENT_NODE
+  ) {
+    const text = new Text("");
+    marker.startNode = text;
+    parent.insertBefore(text, startNode);
+    startNode.remove();
+  }
+
+  if (
+    !SHOW_MARKERS && endNode !== null && endNode.nodeType === Node.COMMENT_NODE
+  ) {
+    const text = new Text("");
+    marker.endNode = text;
+    parent.insertBefore(text, endNode);
+    endNode.remove();
+  }
+}
+
+/**
+ * If an islands children are `null` then it might be a conditionally
+ * rendered one which was initially not visible. In these cases we
+ * send a `<template>` tag with the "would be rendered" children to
+ * the client. This function checks for that
+ */
+function addChildrenFromTemplate(
+  islands: Record<string, Record<string, ComponentType>>,
+  // deno-lint-ignore no-explicit-any
+  props: any[],
+  markerStack: Marker[],
+  vnodeStack: VNode[],
+  comment: string,
+) {
+  const [id, exportName, n] = comment.slice("/frsh-".length).split(
+    ":",
+  );
+
+  const sel = `#frsh-slot-${id}-${exportName}-${n}-children`;
+  const template = document.querySelector(sel) as
+    | HTMLTemplateElement
+    | null;
+
+  if (template !== null) {
+    markerStack.push({
+      kind: MarkerKind.Slot,
+      endNode: null,
+      startNode: null,
+      text: comment.slice(1),
+    });
+
+    const node = template.content.cloneNode(true);
+    _walkInner(
+      islands,
+      props,
+      markerStack,
+      vnodeStack,
+      node,
+    );
+
+    markerStack.pop();
+  }
 }
 
 /**
@@ -189,78 +280,38 @@ function _walkInner(
             islandParent.props.children = vnode;
           }
 
-          // Remove markers
-          marker.startNode?.remove();
-          sib = sib.nextSibling;
-          marker.endNode.remove();
+          hideMarker(marker);
+          sib = marker.endNode.nextSibling;
           continue;
         } else if (marker.kind === MarkerKind.Island) {
           // We're ready to revive this island if it has
           // no roots of its own. Otherwise we'll treat it
           // as a standard component
           if (markerStack.length === 0) {
-            const children: Node[] = [];
-
-            let child: Node | null = marker.startNode;
-            while (
-              (child = child!.nextSibling) !== null && child !== marker.endNode
-            ) {
-              children.push(child);
-            }
-
             const vnode = vnodeStack[vnodeStack.length - 1];
 
             if (vnode.props.children == null) {
-              const [id, exportName, n] = comment.slice("/frsh-".length).split(
-                ":",
+              addChildrenFromTemplate(
+                islands,
+                props,
+                markerStack,
+                vnodeStack,
+                comment,
               );
-
-              const sel = `#frsh-slot-${id}-${exportName}-${n}-children`;
-              const template = document.querySelector(sel) as
-                | HTMLTemplateElement
-                | null;
-
-              if (template !== null) {
-                markerStack.push({
-                  kind: MarkerKind.Slot,
-                  endNode: null,
-                  startNode: null,
-                  text: "foo",
-                });
-
-                const node = template.content.cloneNode(true);
-                _walkInner(
-                  islands,
-                  props,
-                  markerStack,
-                  vnodeStack,
-                  node,
-                );
-
-                markerStack.pop();
-              }
             }
             vnodeStack.pop();
 
             const parentNode = sib.parentNode! as HTMLElement;
 
-            // We need an end marker for islands because multiple
-            // islands can share the same parent node. Since
-            // islands are root-level render calls any calls to
-            // `.appendChild` would lead to a wrong result.
-            const endMarker = new Text("");
-            parentNode.insertBefore(
-              endMarker,
-              marker.endNode,
-            );
+            hideMarker(marker);
 
             const _render = () =>
               render(
                 vnode,
                 createRootFragment(
                   parentNode,
-                  children,
-                  endMarker,
+                  marker.startNode!,
+                  marker.endNode!,
                   // deno-lint-ignore no-explicit-any
                 ) as any as HTMLElement,
               );
@@ -273,17 +324,36 @@ function _walkInner(
               ? scheduler!.postTask(_render)
               : setTimeout(_render, 0);
 
-            // Remove markers
-            marker.startNode?.remove();
-            sib = sib.nextSibling;
-            marker.endNode.remove();
+            sib = marker.endNode.nextSibling;
             continue;
           } else if (parent?.kind === MarkerKind.Slot) {
             // Treat the island as a standard component when it
             // has an island parent or a slot parent
-            const vnode = vnodeStack.pop();
+            const vnode = vnodeStack[vnodeStack.length - 1];
+            if (vnode && vnode.props.children == null) {
+              addChildrenFromTemplate(
+                islands,
+                props,
+                markerStack,
+                vnodeStack,
+                comment,
+              );
+
+              // Didn't find any template tag, proceed as usual
+              if (vnode.props.children == null) {
+                vnodeStack.pop();
+              }
+            } else {
+              vnodeStack.pop();
+            }
+
+            marker.endNode = sib;
+            hideMarker(marker);
+
             const parent = vnodeStack[vnodeStack.length - 1]!;
             addPropsChild(parent, vnode);
+            sib = marker.endNode.nextSibling;
+            continue;
           }
         }
       } else if (comment.startsWith("frsh")) {

@@ -1,6 +1,7 @@
 import { LayoutConfig } from "$fresh/server.ts";
 import { ComponentChildren } from "preact";
 import { ServerContext } from "./context.ts";
+export type { FromManifestOptions } from "./context.ts";
 export { Status } from "./deps.ts";
 import {
   ErrorHandler,
@@ -23,6 +24,7 @@ export {
 export type {
   AppContext,
   AppProps,
+  DenoConfig,
   ErrorHandler,
   ErrorHandlerContext,
   ErrorPageProps,
@@ -80,23 +82,6 @@ export interface Manifest {
   baseUrl: string;
 }
 
-export interface DenoConfig {
-  imports?: Record<string, string>;
-  importMap?: string;
-  tasks?: Record<string, string>;
-  lint?: {
-    rules: { tags?: string[] };
-    exclude?: string[];
-  };
-  fmt?: {
-    exclude?: string[];
-  };
-  compilerOptions?: {
-    jsx?: string;
-    jsxImportSource?: string;
-  };
-}
-
 export { ServerContext };
 
 export async function createHandler(
@@ -110,6 +95,10 @@ export async function createHandler(
 }
 
 export async function start(routes: Manifest, opts: StartOptions = {}) {
-  const ctx = await ServerContext.fromManifest(routes, opts);
+  const ctx = await ServerContext.fromManifest(routes, {
+    ...opts,
+    skipSnapshot: false,
+    dev: false,
+  });
   await startFromContext(ctx, opts);
 }

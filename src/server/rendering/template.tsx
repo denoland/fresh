@@ -1,7 +1,7 @@
 import { RenderState } from "./state.ts";
 import { setRenderState } from "./preact_hooks.ts";
 import { renderToString } from "preact-render-to-string";
-import { Fragment, h } from "preact";
+import { Fragment, h, isValidElement, toChildArray, VNode } from "preact";
 import { HEAD_CONTEXT } from "../../runtime/head.ts";
 import { CSP_CONTEXT } from "../../runtime/csp.ts";
 
@@ -66,11 +66,36 @@ export function renderOuterDocument(
     docHtml,
     docHead,
     renderedHtmlTag,
-    docTitle,
     docBody,
     docHeadNodes,
     headVNodes,
   } = state;
+  let docTitle = state.docTitle;
+
+  // Filter out duplicate head vnodes by "key" if set
+  const filteredHeadNodes: VNode[] = [];
+
+  if (headVNodes.length > 0) {
+    const seen = new Map<string, VNode>();
+    const userChildren = toChildArray(headVNodes);
+    for (let i = 0; i < userChildren.length; i++) {
+      const child = userChildren[i];
+
+      if (isValidElement(child)) {
+        if (child.type === "title") {
+          docTitle = child;
+        } else if (child.key !== undefined) {
+          seen.set(child.key, child);
+        } else {
+          filteredHeadNodes.push(child);
+        }
+      }
+    }
+
+    if (seen.size > 0) {
+      filteredHeadNodes.push(...seen.values());
+    }
+  }
 
   const page = h(
     "html",
@@ -93,7 +118,7 @@ export function renderOuterDocument(
       opts.moduleScripts.map(([src, nonce]) =>
         h("script", { src: src, nonce, type: "module" })
       ),
-      headVNodes,
+      filteredHeadNodes,
     ),
     h("body", {
       ...docBody,

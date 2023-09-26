@@ -1,15 +1,64 @@
 import { ComponentChildren, ComponentType, VNode } from "preact";
 import * as router from "./router.ts";
 import { InnerRenderFunction, RenderContext } from "./render.ts";
+import { Manifest } from "./mod.ts";
+
+export interface DenoConfig {
+  imports?: Record<string, string>;
+  importMap?: string;
+  tasks?: Record<string, string>;
+  lint?: {
+    rules: { tags?: string[] };
+    exclude?: string[];
+  };
+  fmt?: {
+    exclude?: string[];
+  };
+  exclude?: string[];
+  compilerOptions?: {
+    jsx?: string;
+    jsxImportSource?: string;
+  };
+}
 
 // --- APPLICATION CONFIGURATION ---
 
 export type StartOptions = Partial<Deno.ServeTlsOptions> & FreshOptions;
 
 export interface FreshOptions {
+  build?: {
+    /**
+     * The directory to write generated files to when `dev.ts build` is run.
+     * This can be an absolute path, a file URL or a relative path.
+     */
+    outDir?: string;
+    /**
+     * This sets the target environment for the generated code. Newer
+     * language constructs will be transformed to match the specified
+     * support range. See https://esbuild.github.io/api/#target
+     * @default {"es2022"}
+     */
+    target?: string | string[];
+  };
   render?: RenderFunction;
   plugins?: Plugin[];
   staticDir?: string;
+  router?: RouterOptions;
+}
+
+export interface InternalFreshOptions {
+  dev: boolean;
+  loadSnapshot: boolean;
+  denoJsonPath: string;
+  denoJson: DenoConfig;
+  manifest: Manifest;
+  build: {
+    outDir: string;
+    target: string | string[];
+  };
+  render?: RenderFunction;
+  plugins: Plugin[];
+  staticDir: string;
   router?: RouterOptions;
 }
 
@@ -127,14 +176,17 @@ export type ServeHandler = (
   info: ServeHandlerInfo,
 ) => Response | Promise<Response>;
 
-export interface HandlerContext<Data = unknown, State = Record<string, unknown>>
-  extends ServeHandlerInfo {
+export interface HandlerContext<
+  Data = unknown,
+  State = Record<string, unknown>,
+  NotFoundData = Data,
+> extends ServeHandlerInfo {
   params: Record<string, string>;
   render: (
     data?: Data,
     options?: RenderOptions,
   ) => Response | Promise<Response>;
-  renderNotFound: (data?: Data) => Response | Promise<Response>;
+  renderNotFound: (data?: NotFoundData) => Response | Promise<Response>;
   state: State;
 }
 
@@ -423,6 +475,15 @@ export interface Plugin<State = Record<string, unknown>> {
    * propagate state between the render hook and the renderer.
    */
   renderAsync?(ctx: PluginAsyncRenderContext): Promise<PluginRenderResult>;
+
+  /**
+   * Called before running the Fresh build task
+   */
+  buildStart?(): Promise<void> | void;
+  /**
+   * Called after completing the Fresh build task
+   */
+  buildEnd?(): Promise<void> | void;
 
   routes?: PluginRoute[];
 

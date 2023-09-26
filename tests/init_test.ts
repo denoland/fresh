@@ -92,11 +92,10 @@ Deno.test({
       assert(json.tasks.preview, "Missing 'preview' task");
 
       // Check lint settings
-      assertEquals(json.lint.exclude, ["_fresh"]);
       assertEquals(json.lint.rules.tags, ["fresh", "recommended"]);
 
-      // Check fmt settings
-      assertEquals(json.fmt.exclude, ["_fresh"]);
+      // Check exclude settings
+      assertEquals(json.exclude, ["**/_fresh/*"]);
     });
 
     await t.step("start up the server and access the root page", async () => {
@@ -134,14 +133,15 @@ Deno.test({
       await page.close();
       await browser.close();
 
-      await lines.cancel();
       serverProcess.kill("SIGTERM");
       await serverProcess.status;
+
+      // Drain the lines stream
+      for await (const _ of lines) { /* noop */ }
     });
 
     await retry(() => Deno.remove(tmpDirName, { recursive: true }));
   },
-  sanitizeResources: false,
 });
 
 Deno.test({
@@ -227,14 +227,15 @@ Deno.test({
       await page.close();
       await browser.close();
 
-      await lines.cancel();
       serverProcess.kill("SIGTERM");
       await serverProcess.status;
+
+      // Drain the lines stream
+      for await (const _ of lines) { /* noop */ }
     });
 
     await retry(() => Deno.remove(tmpDirName, { recursive: true }));
   },
-  sanitizeResources: false,
 });
 
 Deno.test("fresh-init error(help)", async function (t) {
@@ -357,14 +358,15 @@ Deno.test({
 
       await delay(100);
 
-      await lines.cancel();
       serverProcess.kill("SIGTERM");
       await serverProcess.status;
+
+      // Drain the lines stream
+      for await (const _ of lines) { /* noop */ }
     });
 
     await retry(() => Deno.remove(tmpDirName, { recursive: true }));
   },
-  sanitizeResources: false,
 });
 
 Deno.test({
@@ -405,9 +407,11 @@ Deno.test({
       const doc = await fetchHtml(`${address}/env`);
       assertTextMany(doc, "h1", ["true"]);
 
-      await lines.cancel();
       serverProcess.kill("SIGTERM");
       await serverProcess.status;
+
+      // Drain the lines stream
+      for await (const _ of lines) { /* noop */ }
     });
 
     await t.step("build code and start server again", async () => {
@@ -435,12 +439,13 @@ Deno.test({
       const doc = await fetchHtml(`${address}/env`);
       assertTextMany(doc, "h1", ["true"]);
 
-      await lines.cancel();
       serverProcess.kill("SIGTERM");
       await serverProcess.status;
+
+      // Drain the lines stream
+      for await (const _ of lines) { /* noop */ }
     });
 
     await retry(() => Deno.remove(tmpDirName, { recursive: true }));
   },
-  sanitizeResources: false,
 });

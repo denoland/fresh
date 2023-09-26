@@ -71,7 +71,7 @@ const toc: RawTableOfContents = {
         title: "Examples",
         link: "latest",
         pages: [
-          ["modifying-the-head", "Modifying the <head>", "link:latest"],
+          ["modifying-the-head", "Modifying the <head>", "link:canary"],
           ["writing-tests", "Writing tests", "link:latest"],
           [
             "changing-the-src-dir",
