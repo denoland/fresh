@@ -113,9 +113,11 @@ export function renderFreshTags(
     script += `import p${i} from "${url}";runPlugin(p${i},STATE[1][${i}]);`;
   }
 
-  // Load the main.js script. We always need this for partials
-  const url = addImport("main.js");
-  script += `import { revive } from "${url}";`;
+  if (renderState.encounteredIslands.size > 0 || renderState.partialCount > 0) {
+    // Load the main.js script
+    const url = addImport("main.js");
+    script += `import { revive } from "${url}";`;
+  }
 
   // Finally, it loads all island scripts and hydrates the islands using the
   // reviver from the "main" script.

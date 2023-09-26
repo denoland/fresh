@@ -339,6 +339,7 @@ options.__b = (vnode: VNode<Record<string, unknown>>) => {
         };
         // deno-lint-ignore no-explicit-any
       } else if (vnode.type === (Partial as any)) {
+        current.partialCount++;
         if (hasIslandOwner(current, vnode)) {
           throw new Error(
             `<Partial> components cannot be used inside islands.`,

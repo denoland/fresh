@@ -38,6 +38,7 @@ export class RenderState {
   #nonce = "";
   error: Error | null = null;
   isPartial: boolean;
+  partialCount = 0;
 
   constructor(
     routeOptions: RenderStateRouteOptions,
