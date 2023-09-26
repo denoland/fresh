@@ -27,6 +27,15 @@ describe("components/gallery/LinkButton.tsx", () => {
     // find code
     const codeElement = screen.getByRole("code");
     const content = codeElement.textContent;
-    assert(screen.getByText((content) => content.includes("Hello World")));
+    // Prism library breaks up code for styling purposes
+    assert(
+      screen.getByText((content) => content.includes("console")),
+    );
+    assert(
+      screen.getByText((content) => content.includes("log")),
+    );
+    assert(
+      screen.getByText((content) => content.includes("Hello World")),
+    );
   });
 });
