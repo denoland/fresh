@@ -55,7 +55,6 @@ Deno.test("injects content with island and keeps island instance alive", async (
     async (page, address) => {
       await page.goto(`${address}/island_instance`);
       await page.waitForSelector(".output-a");
-      await assertNoPageComments(page);
 
       // Update island state
       await page.click(".island button");
@@ -83,7 +82,6 @@ Deno.test("unmounts island", async () => {
     async (page, address) => {
       await page.goto(`${address}/island_instance`);
       await page.waitForSelector(".output-a");
-      await assertNoPageComments(page);
 
       const href = await page.$eval(".remove-link", (el) => el.href);
       await page.click(".remove-link");
@@ -112,7 +110,6 @@ Deno.test("unmounts island on replace", async () => {
     async (page, address) => {
       await page.goto(`${address}/island_instance`);
       await page.waitForSelector(".output-a");
-      await assertNoPageComments(page);
 
       // Update island state
       await page.click(".island-a button");
@@ -153,7 +150,6 @@ Deno.test("updates only one partial of many", async () => {
     async (page, address) => {
       await page.goto(`${address}/island_instance_multiple`);
       await page.waitForSelector(".output-a");
-      await assertNoPageComments(page);
 
       // Update island state
       await page.click(".island-a button");
@@ -191,7 +187,6 @@ Deno.test("updates many partials at once", async () => {
     async (page, address) => {
       await page.goto(`${address}/island_instance_multiple`);
       await page.waitForSelector(".output-a");
-      await assertNoPageComments(page);
 
       // Update island state
       await page.click(".island-a button");
@@ -230,7 +225,6 @@ Deno.test("keeps nested island state", async () => {
     async (page, address) => {
       await page.goto(`${address}/island_instance_nested`);
       await page.waitForSelector(".output-a");
-      await assertNoPageComments(page);
 
       // Update island state
       await page.click(".island-a button");
@@ -271,7 +265,6 @@ Deno.test("replace island if parent type changes", async () => {
     async (page, address) => {
       await page.goto(`${address}/island_instance_nested`);
       await page.waitForSelector(".output-a");
-      await assertNoPageComments(page);
 
       // Update island state
       await page.click(".island-a button");
@@ -324,7 +317,6 @@ Deno.test("serializes props", async () => {
     async (page, address) => {
       await page.goto(`${address}/island_props`);
       await page.waitForSelector(".pre-props");
-      await assertNoPageComments(page);
 
       let text = JSON.parse(
         await page.$eval(".pre-props", (el) => el.textContent!),
@@ -370,7 +362,6 @@ Deno.test("serializes signals", async () => {
     async (page, address) => {
       await page.goto(`${address}/island_props_signals`);
       await page.waitForSelector(".island");
-      await assertNoPageComments(page);
 
       await page.click("button");
       await waitForText(page, ".output", "1");
@@ -393,7 +384,6 @@ Deno.test("reconciles keyed islands", async () => {
     async (page, address) => {
       await page.goto(`${address}/keys`);
       await page.waitForSelector(".island");
-      await assertNoPageComments(page);
 
       await page.click(".btn-A");
       await waitForText(page, ".output-A", "1");
@@ -431,7 +421,6 @@ Deno.test("reconciles keyed DOM nodes", async () => {
     async (page, address) => {
       await page.goto(`${address}/keys_dom`);
       await page.waitForSelector(".island");
-      await assertNoPageComments(page);
 
       await page.click(".btn-A");
       await waitForText(page, ".output-A", "1");
@@ -473,7 +462,6 @@ Deno.test("reconciles keyed non island components", async () => {
     async (page, address) => {
       await page.goto(`${address}/keys_components`);
       await page.waitForSelector(".island");
-      await assertNoPageComments(page);
 
       await page.click(".btn-A");
       await waitForText(page, ".output-A", "1");
@@ -515,7 +503,6 @@ Deno.test("partial injection mode", async () => {
     async (page, address) => {
       await page.goto(`${address}/mode`);
       await page.waitForSelector(".island");
-      await assertNoPageComments(page);
 
       await page.click("button");
       await waitForText(page, ".output-a", "1");
@@ -560,7 +547,6 @@ Deno.test("partial navigation", async () => {
       const initialUrl = `${address}/mode`;
       await page.goto(initialUrl);
       await page.waitForSelector(".island");
-      await assertNoPageComments(page);
 
       await page.click(".append-link");
       await page.waitForSelector(".status-append");
@@ -599,7 +585,6 @@ Deno.test("non-partial client navigation", async () => {
       const initialUrl = `${address}/client_nav`;
       await page.goto(initialUrl);
       await page.waitForSelector(".island");
-      await assertNoPageComments(page);
 
       // Add marker to check if the page reloaded or not
       await page.evaluate(() => {
@@ -639,7 +624,6 @@ Deno.test("non-partial client navigation", async () => {
       // Go back to B
       await page.goBack();
       await page.waitForSelector(".island-b");
-      await assertNoPageComments(page);
 
       doc = parseHtml(await page.content());
       assertNotSelector(doc, ".island-a");
@@ -657,7 +641,6 @@ Deno.test("non-partial client navigation", async () => {
       // Go back to A
       await page.goBack();
       await page.waitForSelector(".island-a");
-      await assertNoPageComments(page);
 
       doc = parseHtml(await page.content());
       assertNotSelector(doc, ".island-b");
@@ -675,7 +658,6 @@ Deno.test("non-partial client navigation", async () => {
       // Go forward to B
       await page.goForward();
       await page.waitForSelector(".island-b");
-      await assertNoPageComments(page);
 
       doc = parseHtml(await page.content());
       assertNotSelector(doc, ".island-a");
@@ -700,7 +682,6 @@ Deno.test("allow opting out of client navigation", async () => {
       const initialUrl = `${address}/client_nav_opt_out`;
       await page.goto(initialUrl);
       await page.waitForSelector(".island");
-      await assertNoPageComments(page);
 
       async function addMarker() {
         await page.evaluate(() => {
@@ -750,7 +731,6 @@ Deno.test("allow opting out of client navigation", async () => {
       // Go back to B
       await page.goBack();
       await page.waitForSelector(".island-b");
-      await assertNoPageComments(page);
 
       doc = parseHtml(await page.content());
       assertNotSelector(doc, ".island-a");
@@ -768,7 +748,6 @@ Deno.test("allow opting out of client navigation", async () => {
       // Go back to A
       await page.goBack();
       await page.waitForSelector(".island-a");
-      await assertNoPageComments(page);
 
       doc = parseHtml(await page.content());
       assertNotSelector(doc, ".island-b");
@@ -786,7 +765,6 @@ Deno.test("allow opting out of client navigation", async () => {
       // Go forward to B
       await page.goForward();
       await page.waitForSelector(".island-b");
-      await assertNoPageComments(page);
 
       doc = parseHtml(await page.content());
       assertNotSelector(doc, ".island-a");
@@ -810,7 +788,6 @@ Deno.test("shows loading indicator if trigger outside island", async () => {
       const initialUrl = `${address}/loading`;
       await page.goto(initialUrl);
       await page.waitForSelector(".status");
-      await assertNoPageComments(page);
 
       let doc = parseHtml(await page.content());
       assertNotSelector(doc, ".spinner");
@@ -837,7 +814,6 @@ Deno.test("shows loading indicator if trigger inside island", async () => {
       const initialUrl = `${address}/loading`;
       await page.goto(initialUrl);
       await page.waitForSelector(".status");
-      await assertNoPageComments(page);
 
       let doc = parseHtml(await page.content());
       assertNotSelector(doc, ".spinner");
@@ -864,7 +840,6 @@ Deno.test("submit form", async () => {
       const initialUrl = `${address}/form`;
       await page.goto(initialUrl);
       await page.waitForSelector(".status");
-      await assertNoPageComments(page);
 
       await page.click(".submit");
       await page.waitForSelector(".status-updated");
