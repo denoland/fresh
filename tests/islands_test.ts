@@ -10,6 +10,7 @@ import {
   assertSelector,
   assertTextMatch,
   clickWhenListenerReady,
+  parseHtml,
   waitForText,
   withFakeServe,
   withPageName,
@@ -308,6 +309,22 @@ Deno.test({
   },
 });
 
+Deno.test("render island inside island with conditional children", async () => {
+  await withPageName(
+    "./tests/fixture_island_nesting/main.ts",
+    async (page, address) => {
+      await page.goto(`${address}/dropdown`);
+      await page.waitForSelector("button");
+
+      const doc = parseHtml(await page.content());
+      assertNotSelector(doc, ".result");
+
+      await page.click("button");
+      await page.waitForSelector(".result");
+    },
+  );
+});
+
 Deno.test({
   name:
     "render island with JSX children that render another island with JSX children",
@@ -357,12 +374,9 @@ Deno.test({
     await withPageName(
       "./tests/fixture_island_nesting/main.ts",
       async (page, address) => {
-        await page.goto(`${address}/island_conditional`, {
-          waitUntil: "networkidle2",
-        });
-        await page.waitForSelector("button");
+        await page.goto(`${address}/island_conditional`);
+        await page.waitForSelector(".island");
 
-        await delay(100);
         await page.click("button");
 
         // Button text is matched too, but this allows us
@@ -376,14 +390,11 @@ Deno.test({
 
 Deno.test({
   name: "serialize inner island props",
-
   async fn(_t) {
     await withPageName(
       "./tests/fixture_island_nesting/main.ts",
       async (page, address) => {
-        await page.goto(`${address}/island_nested_props`, {
-          waitUntil: "networkidle2",
-        });
+        await page.goto(`${address}/island_nested_props`);
         await page.waitForSelector(".island");
 
         await waitForText(page, ".island .island p", "it works");
