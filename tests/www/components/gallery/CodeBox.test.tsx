@@ -25,6 +25,8 @@ describe("components/gallery/LinkButton.tsx", () => {
     const code = "console.log('Hello World')";
     const screen = render(<CodeBox code={code} />);
     // find code
-    assert(screen.getByText(code));
+    const codeElement = screen.getByRole("code");
+    const content = codeElement.textContent;
+    assert(screen.getByText((content) => content.includes("Hello World")));
   });
 });
