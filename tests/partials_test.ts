@@ -586,6 +586,7 @@ Deno.test("partial navigation", async () => {
         document.querySelectorAll(".island").length === 1
       );
       assertEquals(page.url(), initialUrl);
+      await waitForText(page, "pre", "mount Counter A\n");
       await assertNoPageComments(page);
     },
   );
