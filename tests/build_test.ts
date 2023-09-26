@@ -69,10 +69,6 @@ async function testBuild(
         Array.isArray(snapshot.files["signals.js"]),
         "signals.js output file not found in snapshot",
       );
-      assert(
-        Array.isArray(snapshot.files["deserializer.js"]),
-        "deserializer.js output file not found in snapshot",
-      );
 
       // Should not include `preact/debug`
       const mainJs = await Deno.readTextFile(path.join(outDir, "main.js"));

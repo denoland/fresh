@@ -69,6 +69,7 @@ export function renderFreshTags(
   // inline script to deserialize it. This script starts by deserializing the
   // state in the tag. This potentially requires importing @preact/signals.
   let hasSignals = false;
+  let requiresDeserializer = false;
   if (state[0].length > 0 || state[1].length > 0) {
     const res = serialize(state);
     const escapedState = htmlEscapeJsonString(res.serialized);
@@ -76,6 +77,12 @@ export function renderFreshTags(
       `<script id="__FRSH_STATE" type="application/json" nonce="${renderState.getNonce()}">${escapedState}</script>`;
 
     hasSignals = res.hasSignals;
+    requiresDeserializer = res.requiresDeserializer;
+
+    if (res.requiresDeserializer) {
+      const url = addImport("deserializer.js");
+      script += `import { deserialize } from "${url}";`;
+    }
     if (res.hasSignals) {
       const url = addImport("signals.js");
       script += `import { signal } from "${url}";`;
@@ -108,7 +115,7 @@ export function renderFreshTags(
 
   // Load the main.js script. We always need this for partials
   const url = addImport("main.js");
-  script += `import { revive, deserialize } from "${url}";`;
+  script += `import { revive } from "${url}";`;
 
   // Finally, it loads all island scripts and hydrates the islands using the
   // reviver from the "main" script.
@@ -135,6 +142,9 @@ export function renderFreshTags(
       JSON.stringify({
         islands: islandMapping,
         signals: hasSignals ? addImport("signals.js") : null,
+        deserializer: requiresDeserializer
+          ? addImport("deserializer.js")
+          : null,
       }),
     );
     const nonce = renderState.csp ? ` nonce="${renderState.getNonce()}` : "";

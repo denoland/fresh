@@ -9,12 +9,9 @@ import {
   VNode,
 } from "preact";
 import { assetHashingHook } from "../utils.ts";
-import { deserialize } from "../deserializer.ts";
 import { type SerializedState } from "../../server/rendering/fresh_tags.tsx";
 import type { Signal } from "@preact/signals";
 import { PartialMode, type PartialProps } from "../Partial.tsx";
-
-export { deserialize };
 
 function createRootFragment(
   parent: Element,
@@ -578,8 +575,11 @@ export async function applyPartials(res: Response): Promise<void> {
   // for rendering later
   const islands: IslandRegistry = {};
   const dataRaw = doc.getElementById("__FRSH_PARTIAL_DATA")!;
-  let data: { islands: Record<string, string>; signals: string | null } | null =
-    null;
+  let data: {
+    islands: Record<string, string>;
+    signals: string | null;
+    deserializer: string | null;
+  } | null = null;
   if (dataRaw !== null) {
     data = JSON.parse(dataRaw.textContent!);
 
@@ -605,7 +605,8 @@ export async function applyPartials(res: Response): Promise<void> {
 
   await Promise.all(promises);
 
-  if (stateDom) {
+  if (stateDom && data && data.deserializer !== null) {
+    const { deserialize } = await import(data.deserializer);
     state = deserialize(stateDom, signal) as SerializedState;
   }
 
