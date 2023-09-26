@@ -129,7 +129,7 @@ function hideMarker(marker: Marker) {
   const parent = endNode!.parentNode!;
 
   if (
-    SHOW_MARKERS && startNode !== null &&
+    !SHOW_MARKERS && startNode !== null &&
     startNode.nodeType === Node.COMMENT_NODE
   ) {
     const text = new Text("");
@@ -139,7 +139,7 @@ function hideMarker(marker: Marker) {
   }
 
   if (
-    SHOW_MARKERS && endNode !== null && endNode.nodeType === Node.COMMENT_NODE
+    !SHOW_MARKERS && endNode !== null && endNode.nodeType === Node.COMMENT_NODE
   ) {
     const text = new Text("");
     marker.endNode = text;

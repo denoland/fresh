@@ -123,6 +123,8 @@ function _printDomNode(
 
   if (node.nodeType === 3) {
     return space + colors.dim(node.textContent ?? "") + "\n";
+  } else if (node.nodeType === 8) {
+    return space + colors.dim(`<--${(node as Text).data}-->`) + "\n";
   }
 
   let out = space;
@@ -482,4 +484,48 @@ export function getStdOutput(
   const stderr = colors.stripColor(decoderErr.decode(out.stderr));
 
   return { stdout, stderr };
+}
+
+function walk(doc: Document, node: HTMLElement): string | null {
+  for (let i = 0; i < node.childNodes.length; i++) {
+    const child = node.childNodes[i];
+
+    if (child.nodeType === doc.COMMENT_NODE) {
+      return child.data;
+    } else if (child.nodeType === doc.TEXT_NODE) {
+      continue;
+    } else if (
+      child.nodeType === doc.ELEMENT_NODE && node.localName !== "template"
+    ) {
+      const res = walk(doc, child);
+      if (res !== null) return res;
+    }
+  }
+  return null;
+}
+
+export async function assertNoPageComments(page: Page) {
+  const doc = parseHtml(await page.content());
+
+  // deno-lint-ignore no-explicit-any
+  const result = walk(doc, doc.body as any);
+
+  if (result !== null) {
+    console.log(prettyDom(doc));
+    throw new Error(
+      `Expected no HTML comments to be present, but found comment "${result}"`,
+    );
+  }
+}
+
+export function assertNoComments(doc: Document) {
+  // deno-lint-ignore no-explicit-any
+  const result = walk(doc, doc.body as any);
+
+  if (result !== null) {
+    console.log(prettyDom(doc));
+    throw new Error(
+      `Expected no HTML comments to be present, but found comment "${result}"`,
+    );
+  }
 }
