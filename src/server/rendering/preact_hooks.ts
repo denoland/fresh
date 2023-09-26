@@ -184,7 +184,11 @@ options.vnode = (vnode) => {
         props["ON" + key.slice(2)] = value;
       }
     }
-    if (vnode.key) {
+    // Don't do key preservation for nodes in <head>.
+    if (
+      vnode.key && vnode.type !== "meta" && vnode.type !== "title" &&
+      vnode.type !== "style" && vnode.type !== "script" && vnode.type !== "link"
+    ) {
       props["data-fresh-key"] = vnode.key;
     } else if (props["fh-loading"]) {
       // Avoid automatic signals unwrapping
