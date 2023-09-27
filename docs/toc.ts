@@ -59,7 +59,7 @@ const toc: RawTableOfContents = {
           ["ahead-of-time-builds", "Ahead-of-time Builds", "link:latest"],
           ["deployment", "Deployment", "link:latest"],
           ["plugins", "Plugins", "link:latest"],
-          ["updating", "Updating Fresh", "link:latest"],
+          ["updating", "Updating Fresh", "link:canary"],
           ["server-configuration", "Server configuration", "link:latest"],
         ],
       },

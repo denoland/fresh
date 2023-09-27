@@ -2,6 +2,7 @@ import IslandConditional from "../islands/IslandConditional.tsx";
 import BooleanButton from "../islands/BooleanButton.tsx";
 import { useSignal } from "@preact/signals";
 import Counter from "../islands/Counter.tsx";
+import { ReadyMarker } from "../islands/ReadyMarker.tsx";
 
 export default function Page() {
   const show = useSignal(true);
@@ -16,6 +17,7 @@ export default function Page() {
         </div>
       </IslandConditional>
       <BooleanButton signal={show} />
+      <ReadyMarker />
     </div>
   );
 }

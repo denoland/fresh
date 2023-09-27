@@ -2,65 +2,71 @@
 // This file SHOULD be checked into source version control.
 // This file is automatically updated during development when running `dev.ts`.
 
-import * as $0 from "./routes/index.tsx";
-import * as $1 from "./routes/island_conditional.tsx";
-import * as $2 from "./routes/island_conditional_lazy.tsx";
-import * as $3 from "./routes/island_conditional_lazy_island.tsx";
-import * as $4 from "./routes/island_fn_child.tsx";
-import * as $5 from "./routes/island_in_island.tsx";
-import * as $6 from "./routes/island_in_island_definition.tsx";
-import * as $7 from "./routes/island_invalid_children.tsx";
-import * as $8 from "./routes/island_invalid_children_fn.tsx";
-import * as $9 from "./routes/island_jsx_child.tsx";
-import * as $10 from "./routes/island_jsx_children.tsx";
-import * as $11 from "./routes/island_jsx_island_jsx.tsx";
-import * as $12 from "./routes/island_jsx_text.tsx";
-import * as $13 from "./routes/island_nested_props.tsx";
-import * as $14 from "./routes/island_order.tsx";
-import * as $15 from "./routes/island_siblings.tsx";
-import * as $16 from "./routes/island_valid_children.tsx";
+import * as $0 from "./routes/dropdown.tsx";
+import * as $1 from "./routes/index.tsx";
+import * as $2 from "./routes/island_conditional.tsx";
+import * as $3 from "./routes/island_conditional_lazy.tsx";
+import * as $4 from "./routes/island_conditional_lazy_island.tsx";
+import * as $5 from "./routes/island_fn_child.tsx";
+import * as $6 from "./routes/island_in_island.tsx";
+import * as $7 from "./routes/island_in_island_definition.tsx";
+import * as $8 from "./routes/island_invalid_children.tsx";
+import * as $9 from "./routes/island_invalid_children_fn.tsx";
+import * as $10 from "./routes/island_jsx_child.tsx";
+import * as $11 from "./routes/island_jsx_children.tsx";
+import * as $12 from "./routes/island_jsx_island_jsx.tsx";
+import * as $13 from "./routes/island_jsx_text.tsx";
+import * as $14 from "./routes/island_nested_props.tsx";
+import * as $15 from "./routes/island_order.tsx";
+import * as $16 from "./routes/island_siblings.tsx";
+import * as $17 from "./routes/island_valid_children.tsx";
 import * as $$0 from "./islands/BooleanButton.tsx";
 import * as $$1 from "./islands/Counter.tsx";
-import * as $$2 from "./islands/FragmentIsland.tsx";
-import * as $$3 from "./islands/Island.tsx";
-import * as $$4 from "./islands/IslandCenter.tsx";
-import * as $$5 from "./islands/IslandConditional.tsx";
-import * as $$6 from "./islands/IslandFn.tsx";
-import * as $$7 from "./islands/IslandInsideIsland.tsx";
-import * as $$8 from "./islands/IslandWithProps.tsx";
-import * as $$9 from "./islands/PassThrough.tsx";
+import * as $$2 from "./islands/Dropdown.tsx";
+import * as $$3 from "./islands/FragmentIsland.tsx";
+import * as $$4 from "./islands/Island.tsx";
+import * as $$5 from "./islands/IslandCenter.tsx";
+import * as $$6 from "./islands/IslandConditional.tsx";
+import * as $$7 from "./islands/IslandFn.tsx";
+import * as $$8 from "./islands/IslandInsideIsland.tsx";
+import * as $$9 from "./islands/IslandWithProps.tsx";
+import * as $$10 from "./islands/PassThrough.tsx";
+import * as $$11 from "./islands/ReadyMarker.tsx";
 
 const manifest = {
   routes: {
-    "./routes/index.tsx": $0,
-    "./routes/island_conditional.tsx": $1,
-    "./routes/island_conditional_lazy.tsx": $2,
-    "./routes/island_conditional_lazy_island.tsx": $3,
-    "./routes/island_fn_child.tsx": $4,
-    "./routes/island_in_island.tsx": $5,
-    "./routes/island_in_island_definition.tsx": $6,
-    "./routes/island_invalid_children.tsx": $7,
-    "./routes/island_invalid_children_fn.tsx": $8,
-    "./routes/island_jsx_child.tsx": $9,
-    "./routes/island_jsx_children.tsx": $10,
-    "./routes/island_jsx_island_jsx.tsx": $11,
-    "./routes/island_jsx_text.tsx": $12,
-    "./routes/island_nested_props.tsx": $13,
-    "./routes/island_order.tsx": $14,
-    "./routes/island_siblings.tsx": $15,
-    "./routes/island_valid_children.tsx": $16,
+    "./routes/dropdown.tsx": $0,
+    "./routes/index.tsx": $1,
+    "./routes/island_conditional.tsx": $2,
+    "./routes/island_conditional_lazy.tsx": $3,
+    "./routes/island_conditional_lazy_island.tsx": $4,
+    "./routes/island_fn_child.tsx": $5,
+    "./routes/island_in_island.tsx": $6,
+    "./routes/island_in_island_definition.tsx": $7,
+    "./routes/island_invalid_children.tsx": $8,
+    "./routes/island_invalid_children_fn.tsx": $9,
+    "./routes/island_jsx_child.tsx": $10,
+    "./routes/island_jsx_children.tsx": $11,
+    "./routes/island_jsx_island_jsx.tsx": $12,
+    "./routes/island_jsx_text.tsx": $13,
+    "./routes/island_nested_props.tsx": $14,
+    "./routes/island_order.tsx": $15,
+    "./routes/island_siblings.tsx": $16,
+    "./routes/island_valid_children.tsx": $17,
   },
   islands: {
     "./islands/BooleanButton.tsx": $$0,
     "./islands/Counter.tsx": $$1,
-    "./islands/FragmentIsland.tsx": $$2,
-    "./islands/Island.tsx": $$3,
-    "./islands/IslandCenter.tsx": $$4,
-    "./islands/IslandConditional.tsx": $$5,
-    "./islands/IslandFn.tsx": $$6,
-    "./islands/IslandInsideIsland.tsx": $$7,
-    "./islands/IslandWithProps.tsx": $$8,
-    "./islands/PassThrough.tsx": $$9,
+    "./islands/Dropdown.tsx": $$2,
+    "./islands/FragmentIsland.tsx": $$3,
+    "./islands/Island.tsx": $$4,
+    "./islands/IslandCenter.tsx": $$5,
+    "./islands/IslandConditional.tsx": $$6,
+    "./islands/IslandFn.tsx": $$7,
+    "./islands/IslandInsideIsland.tsx": $$8,
+    "./islands/IslandWithProps.tsx": $$9,
+    "./islands/PassThrough.tsx": $$10,
+    "./islands/ReadyMarker.tsx": $$11,
   },
   baseUrl: import.meta.url,
 };
