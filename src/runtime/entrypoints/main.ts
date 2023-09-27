@@ -11,7 +11,7 @@ import {
 import { assetHashingHook } from "../utils.ts";
 import { type SerializedState } from "../../server/rendering/fresh_tags.tsx";
 import type { Signal } from "@preact/signals";
-import { PartialMode, type PartialProps } from "../Partial.tsx";
+import { PartialMode } from "../Partial.tsx";
 
 function createRootFragment(
   parent: Element,
@@ -134,17 +134,9 @@ function addPropsChild(parent: VNode, vnode: ComponentChildren) {
   }
 }
 
-class Partial extends Component<PartialProps> {
-  componentDidMount() {
-    // TODO
-    // console.log("mounting partial", this.props.name, this.props);
-  }
-
-  componentWillUnmount() {
-    // TODO
-    // console.log("unmounting partial", this.props.name);
-  }
-
+class PartialComp extends Component<
+  { children?: ComponentChildren; mode: number; name: string }
+> {
   render() {
     return this.props.children;
   }
@@ -172,7 +164,7 @@ export interface RenderRequest {
 // Useful for debugging
 const SHOW_MARKERS = false;
 
-const partials = new Map<string, Partial>();
+const partials = new Map<string, PartialComp>();
 
 /**
  * Replace comment markers with empty text nodes to hide them
@@ -320,8 +312,7 @@ function _walkInner(
         });
 
         vnodeStack.push(
-          // deno-lint-ignore no-explicit-any
-          h(Partial, { name, key, mode: +mode } as any),
+          h(PartialComp, { name, key, mode: +mode }),
         );
       } else if (comment.startsWith("frsh-key")) {
         const key = comment.slice("frsh-key:".length);
@@ -603,11 +594,19 @@ export async function applyPartials(res: Response): Promise<void> {
     );
   }
 
+  let deserialize:
+    | ((str: string, signal?: <T>(value: T) => Signal<T>) => unknown)
+    | undefined;
+  if (stateDom && data && data.deserializer !== null) {
+    promises.push(
+      import(data.deserializer).then((mod) => deserialize = mod.deserialize),
+    );
+  }
+
   await Promise.all(promises);
 
-  if (stateDom && data && data.deserializer !== null) {
-    const { deserialize } = await import(data.deserializer);
-    state = deserialize(stateDom, signal) as SerializedState;
+  if (deserialize) {
+    state = deserialize(stateDom!, signal) as SerializedState;
   }
 
   // Collect all partials and build up the vnode tree
