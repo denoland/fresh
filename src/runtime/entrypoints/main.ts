@@ -724,7 +724,10 @@ document.addEventListener("click", async (e) => {
     ) {
       const partial = el.getAttribute("fh-partial");
 
-      // Check if the user opted out of client side navigation
+      // Check if the user opted out of client side navigation.
+      // There are two cases to account for:
+      //  1. Partial request
+      //  2. Normal request (turbolink-style)
       const settingEl = el.closest("[fresh-client-nav]");
       if (
         partial === null && (
