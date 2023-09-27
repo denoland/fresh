@@ -658,7 +658,10 @@ export async function applyPartials(res: Response): Promise<void> {
   for (let i = 0; i < encounteredPartials.length; i++) {
     const { vnode, marker } = encounteredPartials[i];
     const instance = partials.get(marker.text);
-    if (instance) {
+
+    if (!instance) {
+      console.warn(`Partial "${marker.text}" not found. Skipping...`);
+    } else {
       // deno-lint-ignore no-explicit-any
       const mode = (vnode.props as any).mode;
       const children = vnode.props.children;

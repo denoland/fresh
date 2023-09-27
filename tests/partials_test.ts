@@ -6,6 +6,7 @@ import {
   assertSelector,
   assertTextMany,
   parseHtml,
+  waitFor,
   waitForText,
   withFakeServe,
   withPageName,
@@ -48,6 +49,26 @@ Deno.test(
     );
   },
 );
+
+Deno.test("warns on missing partial", async () => {
+  await withPageName(
+    "./tests/fixture_partials/main.ts",
+    async (page, address) => {
+      const logs: string[] = [];
+      page.on("console", (msg) => logs.push(msg.text()));
+
+      const initialUrl = `${address}/missing_partial`;
+      await page.goto(initialUrl);
+      await page.waitForSelector(".status-initial");
+
+      await page.click(".update-link");
+
+      await waitFor(() =>
+        logs.find((line) => /^Partial.*not found/.test(line))
+      );
+    },
+  );
+});
 
 Deno.test("injects content with island and keeps island instance alive", async () => {
   await withPageName(

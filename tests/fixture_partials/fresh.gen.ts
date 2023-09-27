@@ -50,15 +50,18 @@ import * as $44 from "./routes/keys_dom/swap.tsx";
 import * as $45 from "./routes/loading/index.tsx";
 import * as $46 from "./routes/loading/injected.tsx";
 import * as $47 from "./routes/loading/update.tsx";
-import * as $48 from "./routes/mode/append.tsx";
-import * as $49 from "./routes/mode/index.tsx";
-import * as $50 from "./routes/mode/injected.tsx";
-import * as $51 from "./routes/mode/prepend.tsx";
-import * as $52 from "./routes/mode/replace.tsx";
-import * as $53 from "./routes/no_islands/index.tsx";
-import * as $54 from "./routes/no_islands/injected.tsx";
-import * as $55 from "./routes/no_islands/update.tsx";
-import * as $56 from "./routes/partial_slot_inside_island.tsx";
+import * as $48 from "./routes/missing_partial/index.tsx";
+import * as $49 from "./routes/missing_partial/injected.tsx";
+import * as $50 from "./routes/missing_partial/update.tsx";
+import * as $51 from "./routes/mode/append.tsx";
+import * as $52 from "./routes/mode/index.tsx";
+import * as $53 from "./routes/mode/injected.tsx";
+import * as $54 from "./routes/mode/prepend.tsx";
+import * as $55 from "./routes/mode/replace.tsx";
+import * as $56 from "./routes/no_islands/index.tsx";
+import * as $57 from "./routes/no_islands/injected.tsx";
+import * as $58 from "./routes/no_islands/update.tsx";
+import * as $59 from "./routes/partial_slot_inside_island.tsx";
 import * as $$0 from "./islands/Counter.tsx";
 import * as $$1 from "./islands/CounterA.tsx";
 import * as $$2 from "./islands/CounterB.tsx";
@@ -123,15 +126,18 @@ const manifest = {
     "./routes/loading/index.tsx": $45,
     "./routes/loading/injected.tsx": $46,
     "./routes/loading/update.tsx": $47,
-    "./routes/mode/append.tsx": $48,
-    "./routes/mode/index.tsx": $49,
-    "./routes/mode/injected.tsx": $50,
-    "./routes/mode/prepend.tsx": $51,
-    "./routes/mode/replace.tsx": $52,
-    "./routes/no_islands/index.tsx": $53,
-    "./routes/no_islands/injected.tsx": $54,
-    "./routes/no_islands/update.tsx": $55,
-    "./routes/partial_slot_inside_island.tsx": $56,
+    "./routes/missing_partial/index.tsx": $48,
+    "./routes/missing_partial/injected.tsx": $49,
+    "./routes/missing_partial/update.tsx": $50,
+    "./routes/mode/append.tsx": $51,
+    "./routes/mode/index.tsx": $52,
+    "./routes/mode/injected.tsx": $53,
+    "./routes/mode/prepend.tsx": $54,
+    "./routes/mode/replace.tsx": $55,
+    "./routes/no_islands/index.tsx": $56,
+    "./routes/no_islands/injected.tsx": $57,
+    "./routes/no_islands/update.tsx": $58,
+    "./routes/partial_slot_inside_island.tsx": $59,
   },
   islands: {
     "./islands/Counter.tsx": $$0,

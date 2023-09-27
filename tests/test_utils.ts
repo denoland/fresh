@@ -497,6 +497,28 @@ export function getStdOutput(
   return { stdout, stderr };
 }
 
+export async function waitFor(
+  fn: () => Promise<unknown> | unknown,
+): Promise<void> {
+  let now = Date.now();
+  const limit = now + 2000;
+
+  while (now < limit) {
+    try {
+      if (await fn()) return;
+    } catch (err) {
+      if (now > limit) {
+        throw err;
+      }
+    } finally {
+      await delay(100);
+      now = Date.now();
+    }
+  }
+
+  throw new Error(`Timed out`);
+}
+
 function walk(doc: Document, node: HTMLElement): string | null {
   for (let i = 0; i < node.childNodes.length; i++) {
     const child = node.childNodes[i];
