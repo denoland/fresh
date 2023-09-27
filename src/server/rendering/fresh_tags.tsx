@@ -113,7 +113,9 @@ export function renderFreshTags(
     script += `import p${i} from "${url}";runPlugin(p${i},STATE[1][${i}]);`;
   }
 
-  if (renderState.encounteredIslands.size > 0 || renderState.partialCount > 0) {
+  const needsMainScript = renderState.encounteredIslands.size > 0 ||
+    renderState.partialCount > 0;
+  if (needsMainScript) {
     // Load the main.js script
     const url = addImport("main.js");
     script += `import { revive } from "${url}";`;
@@ -135,8 +137,10 @@ export function renderFreshTags(
   }
 
   // Always revive to detect partials
-  script += `const propsArr = typeof STATE !== "undefined" ? STATE[0] : [];`;
-  script += `revive({${islandRegistry}}, propsArr);`;
+  if (needsMainScript) {
+    script += `const propsArr = typeof STATE !== "undefined" ? STATE[0] : [];`;
+    script += `revive({${islandRegistry}}, propsArr);`;
+  }
 
   // Append the inline script.
   if (isPartial && Object.keys(islandMapping).length > 0) {

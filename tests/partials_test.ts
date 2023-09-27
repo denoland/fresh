@@ -70,6 +70,24 @@ Deno.test("warns on missing partial", async () => {
   );
 });
 
+Deno.test("does not include revive() when no island present", async () => {
+  await withPageName(
+    "./tests/fixture_partials/main.ts",
+    async (page, address) => {
+      const logs: string[] = [];
+      page.on("pageerror", (msg) => logs.push(msg.message));
+
+      const initialUrl = `${address}`;
+      await page.goto(initialUrl, {
+        waitUntil: "networkidle2",
+      });
+
+      // Should not error
+      assertEquals(logs, []);
+    },
+  );
+});
+
 Deno.test("injects content with island and keeps island instance alive", async () => {
   await withPageName(
     "./tests/fixture_partials/main.ts",
