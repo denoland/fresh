@@ -3,7 +3,7 @@ import { ComponentChildren, VNode } from "preact";
 export interface PartialProps {
   children?: ComponentChildren;
   /**
-   * The name of the partial. This value must be unqiue.
+   * The name of the partial. This value must be unique across partials.
    */
   name: string;
   /**

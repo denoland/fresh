@@ -633,7 +633,7 @@ export async function applyPartials(res: Response): Promise<void> {
       if (comment.startsWith("frsh-partial")) {
         startNode = sib;
       } else if (comment.startsWith("/frsh-partial")) {
-        // Create a fake DOM node that spans the parital we discovered.
+        // Create a fake DOM node that spans the partial we discovered.
         // We need to include the partial markers itself for _walkInner
         // to register them.
         const rootFrag = {
@@ -668,7 +668,7 @@ export async function applyPartials(res: Response): Promise<void> {
     sib = sib.nextSibling;
   }
 
-  // Update all encountered paritals
+  // Update all encountered partials
   for (let i = 0; i < encounteredPartials.length; i++) {
     const { vnode, marker } = encounteredPartials[i];
     const instance = partials.get(marker.text);
