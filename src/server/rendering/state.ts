@@ -1,6 +1,7 @@
 import { type ComponentChildren, type VNode } from "preact";
 import { Island } from "../types.ts";
 import { ContentSecurityPolicy } from "../../runtime/csp.ts";
+import { PARTIAL_SEARCH_PARAM } from "../../constants.ts";
 
 export interface RenderStateRouteOptions {
   url: URL;
@@ -36,8 +37,9 @@ export class RenderState {
   ownerStack: VNode[] = [];
   owners = new Map<VNode, VNode>();
   #nonce = "";
-  islandCounter = 0;
   error: Error | null = null;
+  isPartial: boolean;
+  partialCount = 0;
 
   constructor(
     routeOptions: RenderStateRouteOptions,
@@ -49,6 +51,7 @@ export class RenderState {
     this.routeOptions = routeOptions;
     this.csp = csp;
     this.componentStack = componentStack;
+    this.isPartial = routeOptions.url.searchParams.has(PARTIAL_SEARCH_PARAM);
 
     if (error) this.routeOptions.error = error;
   }

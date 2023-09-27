@@ -127,7 +127,7 @@ Deno.test({
         await page.goto(`${address}/twind`);
         await page.waitForSelector("h1");
 
-        const text = await page.$eval("body", (el) => el.textContent);
+        const text = await page.$eval("h1", (el) => el.textContent);
         assertEquals(text, "it works");
 
         // Check that CSS was applied accordingly

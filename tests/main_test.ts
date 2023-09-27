@@ -858,7 +858,7 @@ Deno.test("rendering custom _500.tsx page for default handlers", async (t) => {
 Deno.test("renders error boundary", async () => {
   await withPageName("./tests/fixture/main.ts", async (page, address) => {
     await page.goto(`${address}/error_boundary`);
-    const text = await page.$eval("body", (el) => el.textContent);
+    const text = await page.$eval("p", (el) => el.textContent);
     assertEquals(text, "it works");
   });
 });
