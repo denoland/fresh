@@ -18,9 +18,3 @@ export function Partial(props: PartialProps): VNode {
   return props.children as any;
 }
 Partial.displayName = "Partial";
-
-export const enum PartialMode {
-  REPLACE,
-  APPEND,
-  PREPEND,
-}

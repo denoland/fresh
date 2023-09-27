@@ -11,7 +11,13 @@ import {
 import { assetHashingHook } from "../utils.ts";
 import { type SerializedState } from "../../server/rendering/fresh_tags.tsx";
 import type { Signal } from "@preact/signals";
-import { PartialMode } from "../Partial.tsx";
+import {
+  DATA_KEY_ATTR,
+  LOADING_ATTR,
+  PARTIAL_ATTR,
+  PARTIAL_SEARCH_PARAM,
+  PartialMode,
+} from "../../constants.ts";
 
 function createRootFragment(
   parent: Element,
@@ -475,13 +481,14 @@ function _walkInner(
           for (let i = 0; i < sib.attributes.length; i++) {
             const attr = sib.attributes[i];
 
-            if (attr.nodeName === "data-fresh-key") {
+            if (attr.nodeName === DATA_KEY_ATTR) {
               hasKey = true;
               newProps.key = attr.nodeValue;
               continue;
-            } else if (attr.nodeName === "fh-loading") {
+            } else if (attr.nodeName === LOADING_ATTR) {
+              console.log(attr.nodeName, attr.nodeValue);
               const idx = attr.nodeValue;
-              const sig = props[Number(idx)]["fh-loading"].value;
+              const sig = props[Number(idx)][LOADING_ATTR].value;
               // deno-lint-ignore no-explicit-any
               (sib as any)._freshIndicator = sig;
             }
@@ -496,16 +503,17 @@ function _walkInner(
           }
 
           // Remove internal fresh key
-          if (hasKey) sib.removeAttribute("data-fresh-key");
+          if (hasKey) sib.removeAttribute(DATA_KEY_ATTR);
 
           const vnode = h(sib.localName, newProps);
           addPropsChild(parentVNode, vnode);
           vnodeStack.push(vnode);
         } else {
           // Outside of any partial or island
-          const idx = sib.getAttribute("fh-loading");
+          const idx = sib.getAttribute(LOADING_ATTR);
           if (idx !== null) {
-            const sig = props[Number(idx)]["fh-loading"].value;
+            console.log(props);
+            const sig = props[Number(idx)][LOADING_ATTR].value;
             // deno-lint-ignore no-explicit-any
             (sib as any)._freshIndicator = sig;
           }
@@ -543,6 +551,12 @@ function _walkInner(
 }
 
 const partialErrorMessage = `Unable to process partial response.`;
+
+async function fetchPartials(url: URL, init?: RequestInit) {
+  url.searchParams.set(PARTIAL_SEARCH_PARAM, "true");
+  const res = await fetch(url, init);
+  await applyPartials(res);
+}
 
 /**
  * Apply partials from a HTML response
@@ -722,7 +736,7 @@ document.addEventListener("click", async (e) => {
       // Check that the event isn't aborted already
       !e.defaultPrevented
     ) {
-      const partial = el.getAttribute("fh-partial");
+      const partial = el.getAttribute(PARTIAL_ATTR);
 
       // Check if the user opted out of client side navigation.
       // There are two cases to account for:
@@ -747,12 +761,6 @@ document.addEventListener("click", async (e) => {
       e.preventDefault();
 
       try {
-        const partialUrl = new URL(
-          partial ? partial : el.href,
-          location.origin,
-        );
-        partialUrl.searchParams.set("fresh-partial", "true");
-
         // Only add history entry when URL is new. Still apply
         // the partials because sometimes users click a link to
         // "refresh" the current page.
@@ -761,8 +769,11 @@ document.addEventListener("click", async (e) => {
           history.pushState({ index }, "", el.href);
         }
 
-        const res = await fetch(partialUrl);
-        await applyPartials(res);
+        const partialUrl = new URL(
+          partial ? partial : el.href,
+          location.origin,
+        );
+        await fetchPartials(partialUrl);
       } finally {
         if (indicator !== undefined) {
           indicator.value = false;
@@ -782,9 +793,7 @@ window.addEventListener("popstate", async () => {
   // page navigation.
   if (partials.has("body")) {
     const url = new URL(location.href, location.origin);
-    url.searchParams.set("fresh-partial", "true");
-    const res = await fetch(url);
-    await applyPartials(res);
+    await fetchPartials(url);
   } else {
     window.location.href = location.href;
   }
@@ -794,14 +803,12 @@ window.addEventListener("popstate", async () => {
 document.addEventListener("submit", async (e) => {
   const el = e.target;
   if (el !== null && el instanceof HTMLFormElement && !e.defaultPrevented) {
-    const partial = el.getAttribute("fh-partial");
+    const partial = el.getAttribute(PARTIAL_ATTR);
     if (partial !== null) {
       e.preventDefault();
 
       const url = new URL(partial, location.origin);
-      url.searchParams.set("fresh-partial", "true");
-      const res = await fetch(url);
-      await applyPartials(res);
+      await fetchPartials(url);
     }
   }
 });

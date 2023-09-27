@@ -10,10 +10,11 @@ import {
   type VNode,
 } from "preact";
 import { assetHashingHook } from "../../runtime/utils.ts";
-import { Partial, PartialMode, PartialProps } from "../../runtime/Partial.tsx";
+import { Partial, PartialProps } from "../../runtime/Partial.tsx";
 import { renderToString } from "preact-render-to-string";
 import { RenderState } from "./state.ts";
 import { Island } from "../types.ts";
+import { DATA_KEY_ATTR, LOADING_ATTR, PartialMode } from "../../constants.ts";
 
 // See: https://github.com/preactjs/preact/blob/7748dcb83cedd02e37b3713634e35b97b26028fd/src/internal.d.ts#L3C1-L16
 enum HookType {
@@ -189,10 +190,10 @@ options.vnode = (vnode) => {
       vnode.key && vnode.type !== "meta" && vnode.type !== "title" &&
       vnode.type !== "style" && vnode.type !== "script" && vnode.type !== "link"
     ) {
-      props["data-fresh-key"] = vnode.key;
-    } else if (props["fh-loading"]) {
+      props[DATA_KEY_ATTR] = vnode.key;
+    } else if (props[LOADING_ATTR]) {
       // Avoid automatic signals unwrapping
-      props["fh-loading"] = { value: props["fh-loading"] };
+      props[LOADING_ATTR] = { value: props[LOADING_ATTR] };
     }
   } else if (
     current && typeof vnode.type === "function" && vnode.type !== Fragment &&
@@ -256,11 +257,11 @@ options.__b = (vnode: VNode<Record<string, unknown>>) => {
           });
         }
         vnode.type = Fragment;
-      } else if ("fh-loading" in vnode.props) {
+      } else if (LOADING_ATTR in vnode.props) {
         current.islandProps.push({
-          "fh-loading": vnode.props["fh-loading"],
+          [LOADING_ATTR]: vnode.props[LOADING_ATTR],
         });
-        vnode.props["fh-loading"] = current.islandProps.length - 1;
+        vnode.props[LOADING_ATTR] = current.islandProps.length - 1;
       }
     } else if (typeof vnode.type === "function") {
       // Detect island vnodes and wrap them with a marker
