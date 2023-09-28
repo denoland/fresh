@@ -11,11 +11,12 @@ description: Easily integrate OAuth 2.0 into your Fresh project with the officia
 > change**. See [the documentation](https://deno.land/x/deno_kv_oauth) for
 > further details.
 
-> ⚠️ Please note that the minimum required version for plugins in Fresh is 1.3.0
+> ⚠️ Please note that the **minimum required version** for plugins in Fresh is
+> **1.3.0**.
 
 Fresh comes with an official Deno KV OAuth plugin based on the first-party
 [Deno KV OAuth](https://deno.land/x/deno_kv_oauth) module. This plugin creates
-and configured your OAuth routes for your project.
+and configures your OAuth routes for your Fresh project.
 
 ## Basic Setup
 
@@ -30,10 +31,12 @@ This is implemented as follows:
 
 1. Create your OAuth 2.0 application for your given provider.
 
-2. Create your
-   [pre-defined](https://deno.land/x/deno_kv_oauth#pre-defined-oauth-configurations)
-   or [custom](https://deno.land/x/deno_kv_oauth#custom-oauth-20-client) OAuth
-   configuration and configure Fresh to use the plugin.
+   > This example uses GitHub. However, you can choose from a list of providers
+   > that have pre-defined configurations
+   > [here](https://deno.land/x/deno_kv_oauth#providers).
+
+1. Create your pre-defined OAuth configuration and configure Fresh to use the
+   plugin.
 
    ```ts main.ts
    import { start } from "$fresh/server.ts";
@@ -53,6 +56,9 @@ This is implemented as follows:
    });
    ```
 
+1. Create and configure your protected route(s) using
+   [`getSessionId()`](https://deno.land/x/deno_kv_oauth/mod.ts?s=getSessionId).
+
    ```ts routes/protected.ts
    import type { Handlers } from "$fresh/server.ts";
    import { getSessionId } from "$fresh/plugins/kv_oauth.ts";
@@ -66,14 +72,14 @@ This is implemented as follows:
    };
    ```
 
-3. ⚠️ While Deno KV is still **experimental** you need to add the `--unstable`
+1. ⚠️ While Deno KV is still **experimental** you need to add the `--unstable`
    option to the `start` task in the `deno.json` file.
 
    ```json
    "start": "deno run -A --watch=static/,routes/ --unstable dev.ts",
    ```
 
-4. Start your project with the necessary environment variables.
+1. Start your project with the necessary environment variables.
 
    ```sh
    GITHUB_CLIENT_ID=xxx GITHUB_CLIENT_SECRET=xxx deno task start
@@ -85,12 +91,9 @@ The plugin is capable of having multiple providers, custom OAuth configurations
 and custom parent OAuth routes. These are implemented similar to the above
 example, as follows:
 
-1. Create your OAuth 2.0 application for your given provider.
+1. Create your OAuth 2.0 applications for your given providers.
 
-2. Create your
-   [pre-defined](https://deno.land/x/deno_kv_oauth#pre-defined-oauth-configurations)
-   or [custom](https://deno.land/x/deno_kv_oauth#custom-oauth-20-client) OAuth
-   configuration and configure Fresh to use the plugin.
+1. Create your configurations and configure Fresh to use the plugin.
 
    ```ts main.ts
    import { start } from "$fresh/server.ts";
@@ -119,6 +122,12 @@ example, as follows:
    });
    ```
 
+   > Here, the 2nd parameter of `createRoutes()` is used to set the parent path
+   > for OAuth routes.
+
+1. Create and configure your protected route(s) using
+   [`getSessionId()`](https://deno.land/x/deno_kv_oauth/mod.ts?s=getSessionId).
+
    ```ts routes/protected.ts
    import type { Handlers } from "$fresh/server.ts";
    import { getSessionId } from "$fresh/plugins/kv_oauth.ts";
@@ -132,14 +141,14 @@ example, as follows:
    };
    ```
 
-3. ⚠️ While Deno KV is still **experimental** you need to add the `--unstable`
+1. ⚠️ While Deno KV is still **experimental** you need to add the `--unstable`
    option to the `start` task in the `deno.json` file.
 
    ```json
    "start": "deno run -A --watch=static/,routes/ --unstable dev.ts",
    ```
 
-4. Start your project with the necessary environment variables.
+1. Start your project with the necessary environment variables.
 
    ```sh
    NOTION_CLIENT_ID=xxx NOTION_CLIENT_SECRET=xxx CUSTOM_CLIENT_ID=yyy CUSTOM_CLIENT_SECRET=yyy deno task start
