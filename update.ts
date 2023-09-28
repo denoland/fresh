@@ -139,7 +139,7 @@ freshImports(denoJson.imports);
 if (denoJson.imports["twind"]) {
   twindImports(denoJson.imports);
 }
-denoJsonText = JSON.stringify(denoJson, null, 2);
+denoJsonText = stringifyFormattedJson(denoJson);
 await Deno.writeTextFile(DENO_JSON_PATH, denoJsonText);
 
 // Code mod for classic JSX -> automatic JSX.
@@ -152,7 +152,7 @@ if (denoJson.compilerOptions?.jsx !== "react-jsx" && confirm(JSX_CODEMOD)) {
   denoJson.compilerOptions = denoJson.compilerOptions || {};
   denoJson.compilerOptions.jsx = "react-jsx";
   denoJson.compilerOptions.jsxImportSource = "preact";
-  denoJsonText = JSON.stringify(denoJson, null, 2);
+  denoJsonText = stringifyFormattedJson(denoJson);
   await Deno.writeTextFile(DENO_JSON_PATH, denoJsonText);
 
   const project = new Project();
@@ -194,7 +194,7 @@ if (denoJson.imports["@twind"] && confirm(TWIND_CODEMOD)) {
   await Deno.remove(join(resolvedDirectory, denoJson.imports["@twind"]));
 
   delete denoJson.imports["@twind"];
-  denoJson = JSON.stringify(denoJson, null, 2);
+  denoJson = stringifyFormattedJson(denoJson);
   await Deno.writeTextFile(DENO_JSON_PATH, denoJson);
 
   const MAIN_TS = `/// <reference no-default-lib="true" />
@@ -329,4 +329,9 @@ async function findSrcDirectory(
     }
   }
   return resolvedDirectory;
+}
+
+export function stringifyFormattedJson(data: unknown): string {
+  // Append newline to ensure formatting rules are met
+  return JSON.stringify(data, null, 2) + "\n";
 }
