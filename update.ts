@@ -331,8 +331,7 @@ async function findSrcDirectory(
   return resolvedDirectory;
 }
 
-// deno-lint-ignore no-explicit-any
-export function stringifyFormattedJson(jsonStr: any): string {
-  // Ensure formatting rules are met
-  return JSON.stringify(jsonStr, null, 2) + "\n";
+export function stringifyFormattedJson(data: unknown): string {
+  // Append newline to ensure formatting rules are met
+  return JSON.stringify(data, null, 2) + "\n";
 }
