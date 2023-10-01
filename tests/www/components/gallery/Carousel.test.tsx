@@ -8,10 +8,10 @@ describe("Carousel.tsx", () => {
   afterEach(cleanup);
 
   it("should display navigation buttons", () => {
-    const screen = render(
+    const { getAllByRole } = render(
       <Carousel showNavigation={true} automatic={true} interval={1000} />,
     );
-    const buttons = screen.getAllByRole("button");
+    const buttons = getAllByRole("button");
     assertEquals(buttons.length, 6);
   });
 });

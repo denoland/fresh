@@ -8,8 +8,8 @@ describe("components/gallery/Background.tsx", () => {
   afterEach(cleanup);
 
   it("should display background image", () => {
-    const screen = render(<Background title="background" />);
-    const bg = screen.getByTitle("background");
+    const { getByTitle } = render(<Background title="background" />);
+    const bg = getByTitle("background");
     const style = bg.getAttribute("style");
     assertEquals(style, "background-image: url(/gallery/grid.svg);");
   });

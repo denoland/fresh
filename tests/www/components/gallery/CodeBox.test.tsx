@@ -9,33 +9,35 @@ describe("components/gallery/LinkButton.tsx", () => {
 
   it("should show Copy button", async () => {
     const code = "console.log('Hello World')";
-    const screen = render(<CodeBox code={code} />);
+    const { getByText, getByRole, findByText } = render(
+      <CodeBox code={code} />,
+    );
     // summary
-    assert(screen.getByText("Code"));
+    assert(getByText("Code"));
     // button text
-    assert(screen.getByText("Copy"));
-    const button = screen.getByRole("button");
+    assert(getByText("Copy"));
+    const button = getByRole("button");
     // click button, button text should change to "Copied!"
     fireEvent.click(button);
-    const copied = await screen.findByText("Copied!");
+    const copied = await findByText("Copied!");
     assert(copied);
   });
 
   it("should show source code", () => {
     const code = "console.log('Hello World')";
-    const screen = render(<CodeBox code={code} />);
+    const { getByText, getByRole } = render(<CodeBox code={code} />);
     // find code
-    const codeElement = screen.getByRole("code");
+    const codeElement = getByRole("code");
     const content = codeElement.textContent;
     // Prism library breaks up code for styling purposes
     assert(
-      screen.getByText((content) => content.includes("console")),
+      getByText((content) => content.includes("console")),
     );
     assert(
-      screen.getByText((content) => content.includes("log")),
+      getByText((content) => content.includes("log")),
     );
     assert(
-      screen.getByText((content) => content.includes("Hello World")),
+      getByText((content) => content.includes("Hello World")),
     );
   });
 });

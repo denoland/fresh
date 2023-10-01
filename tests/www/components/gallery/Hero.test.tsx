@@ -8,8 +8,9 @@ describe("components/gallery/Hero.tsx", () => {
   afterEach(cleanup);
 
   it("should show 2 links", () => {
-    const screen = render(<Hero />);
-    const links = screen.getAllByRole("link");
+    const { getAllByRole } = render(<Hero />);
+    // Two anchor links in component
+    const links = getAllByRole("link");
     assertEquals(links.length, 2);
   });
 });

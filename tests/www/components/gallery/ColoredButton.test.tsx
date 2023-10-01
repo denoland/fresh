@@ -8,8 +8,8 @@ describe("components/gallery/ColoredButton.tsx", () => {
   afterEach(cleanup);
 
   it("should have disabled set to false", () => {
-    const screen = render(<ColoredButton title="colored button" />);
-    const bg = screen.getByTitle("colored button");
+    const { getByTitle } = render(<ColoredButton title="colored button" />);
+    const bg = getByTitle("colored button");
     const disabled = bg.getAttribute("disabled");
     assert(!disabled);
   });

@@ -8,31 +8,22 @@ describe("Footer.tsx", () => {
   afterEach(cleanup);
 
   it("should display text", () => {
-    //@ts-ignore asdfase
-    const screen = render(<Footer></Footer>);
-    const fresh = screen.getByText("Fresh");
+    //@ts-ignore Ignore missing 'children' prop
+    const { getByText, getAllByText } = render(<Footer></Footer>);
+    const fresh = getByText("Fresh");
     assertEquals(fresh.textContent, "Fresh");
-    const frameworkText = screen.getAllByText("Full Stack Framework");
+    const frameworkText = getAllByText("Full Stack Framework");
     assertExists(frameworkText);
   });
 
   it("should display menu", () => {
-    //@ts-ignore asdfase
-    const screen = render(<Footer></Footer>);
-    const menu1 = screen.getByText("Getting Started");
+    //@ts-ignore Ignore missing 'children' prop
+    const { getByText } = render(<Footer></Footer>);
+    const menu1 = getByText("Getting Started");
     assertExists(menu1);
-    const menu2 = screen.getByText("Community");
+    const menu2 = getByText("Community");
     assertExists(menu2);
-    const menu3 = screen.getByText("Discord");
+    const menu3 = getByText("Discord");
     assertExists(menu3);
   });
-
-  // it("should display child elements", () => {
-  //   function GetChild() {
-  //     return (<div>child element</div>)
-  //   }
-  //   const screen = render(<Footer><GetChild/></Footer>);
-  //   const child = screen.getByText("child element");
-  //   assertExists(child);
-  // });
 });

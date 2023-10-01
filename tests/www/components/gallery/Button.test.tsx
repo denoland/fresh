@@ -8,10 +8,10 @@ describe("components/gallery/LinkButton.tsx", () => {
   afterEach(cleanup);
 
   it("should show button", () => {
-    const screen = render(
+    const { getByRole } = render(
       <Button value="Click Me!" />,
     );
-    const button = screen.getByRole("button");
+    const button = getByRole("button");
     assertExists(button);
     assertEquals((button as HTMLButtonElement).value, "Click Me!");
   });
