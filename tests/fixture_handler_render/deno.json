@@ -1,0 +1,25 @@
+{
+  "lock": false,
+  "tasks": {
+    "start": "deno run -A --watch=static/,routes/ dev.ts"
+  },
+  "imports": {
+    "$fresh/": "../../",
+    "twind": "https://esm.sh/twind@0.16.19",
+    "twind/": "https://esm.sh/twind@0.16.19/",
+    "preact": "../../../../oss/preact/dist/preact.module.js",
+    "preact/devtools": "../../../../oss/preact/devtools/dist/devtools.module.js",
+    "preact/debug": "../../../../oss/preact/debug/dist/debug.module.js",
+    "preact/hooks": "../../../../oss/preact/hooks/dist/hooks.module.js",
+    "preact/jsx-runtime": "../../../../oss/preact/jsx-runtime/dist/jsxRuntime.module.js",
+    "preact/compat": "../../../../oss/preact/compat/dist/compat.module.js",
+
+    "preact-render-to-string": "https://esm.sh/*preact-render-to-string@6.1.0",
+    "@preact/signals": "https://esm.sh/*@preact/signals@1.2.1",
+    "@preact/signals-core": "https://esm.sh/@preact/signals-core@1.5.0"
+  },
+  "compilerOptions": {
+    "jsx": "react-jsx",
+    "jsxImportSource": "preact"
+  }
+}

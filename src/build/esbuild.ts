@@ -63,7 +63,7 @@ export class EsbuildBuilder implements Builder {
         splitting: true,
         treeShaking: true,
         sourcemap: opts.dev ? "linked" : false,
-        ...minifyOptions,
+        // ...minifyOptions,
 
         jsx: JSX_RUNTIME_MODE[opts.jsxConfig.jsx],
         jsxImportSource: opts.jsxConfig.jsxImportSource,

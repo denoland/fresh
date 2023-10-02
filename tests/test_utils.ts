@@ -230,6 +230,10 @@ export async function withPageName(
 export interface FakeServer {
   request(req: Request): Promise<Response>;
   getHtml(pathname: string): Promise<TestDocument>;
+  postHtml(pathname: string): Promise<TestDocument>;
+  patchHtml(pathname: string): Promise<TestDocument>;
+  putHtml(pathname: string): Promise<TestDocument>;
+  deleteHtml(pathname: string): Promise<TestDocument>;
   get(pathname: string): Promise<Response>;
 }
 
@@ -267,14 +271,30 @@ export async function fakeServe(
 
   const origin = `https://127.0.0.1`;
 
+  async function fetchHtml(pathname: string, init?: RequestInit) {
+    const req = new Request(`${origin}${pathname}`, init);
+    const res = await handleRequest(handler, conn, req);
+    return parseHtml(await res.text());
+  }
+
   return {
     request(req) {
       return handler(req, conn);
     },
-    async getHtml(pathname) {
-      const req = new Request(`${origin}${pathname}`);
-      const res = await handleRequest(handler, conn, req);
-      return parseHtml(await res.text());
+    getHtml(pathname) {
+      return fetchHtml(pathname);
+    },
+    patchHtml(pathname, init: RequestInit = {}) {
+      return fetchHtml(pathname, { method: "PATCH", ...init });
+    },
+    postHtml(pathname, init: RequestInit = {}) {
+      return fetchHtml(pathname, { method: "POST", ...init });
+    },
+    putHtml(pathname, init: RequestInit = {}) {
+      return fetchHtml(pathname, { method: "PUT", ...init });
+    },
+    deleteHtml(pathname, init: RequestInit = {}) {
+      return fetchHtml(pathname, { method: "DELETE", ...init });
     },
     get(pathname: string) {
       const req = new Request(`${origin}${pathname}`);

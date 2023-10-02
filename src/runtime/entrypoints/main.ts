@@ -1,3 +1,4 @@
+import "../polyfills.ts";
 import {
   Component,
   ComponentChildren,
@@ -84,6 +85,7 @@ export function revive(
   props: any[],
 ) {
   const result: RenderRequest[] = [];
+  console.log("REVIVE ========");
   _walkInner(
     islands,
     props,
@@ -94,6 +96,7 @@ export function revive(
     [h(Fragment, null)],
     document.body,
     result,
+    false,
   );
 
   for (let i = 0; i < result.length; i++) {
@@ -118,6 +121,8 @@ export function revive(
       ? scheduler!.postTask(_render)
       : setTimeout(_render, 0);
   }
+
+  console.log("REVIVE END ========");
 }
 
 function ServerComponent(
@@ -214,6 +219,7 @@ function addChildrenFromTemplate(
   vnodeStack: VNode[],
   comment: string,
   result: RenderRequest[],
+  isApplyPartial: boolean,
 ) {
   const [id, exportName, n] = comment.slice("/frsh-".length).split(
     ":",
@@ -240,6 +246,7 @@ function addChildrenFromTemplate(
       vnodeStack,
       node,
       result,
+      isApplyPartial,
     );
 
     markerStack.pop();
@@ -282,6 +289,7 @@ function _walkInner(
   vnodeStack: VNode[],
   node: Node | Comment,
   result: RenderRequest[],
+  isApplyPartial: boolean,
 ) {
   let sib: Node | null = node;
   while (sib !== null) {
@@ -353,7 +361,7 @@ function _walkInner(
           // actual vnode child.
           islandParent.props.children = vnode;
 
-          hideMarker(marker);
+          if (!isApplyPartial) hideMarker(marker);
           sib = marker.endNode.nextSibling;
           continue;
         } else if (
@@ -376,13 +384,14 @@ function _walkInner(
                 vnodeStack,
                 comment,
                 result,
+                isApplyPartial,
               );
             }
             vnodeStack.pop();
 
             const parentNode = sib.parentNode! as HTMLElement;
 
-            hideMarker(marker);
+            if (!isApplyPartial) hideMarker(marker);
 
             const rootFragment = createRootFragment(
               parentNode,
@@ -410,6 +419,7 @@ function _walkInner(
                 vnodeStack,
                 comment,
                 result,
+                isApplyPartial,
               );
 
               // Didn't find any template tag, proceed as usual
@@ -421,7 +431,7 @@ function _walkInner(
             }
 
             marker.endNode = sib;
-            hideMarker(marker);
+            if (!isApplyPartial) hideMarker(marker);
 
             const parent = vnodeStack[vnodeStack.length - 1]!;
             addPropsChild(parent, vnode);
@@ -486,11 +496,15 @@ function _walkInner(
               newProps.key = attr.nodeValue;
               continue;
             } else if (attr.nodeName === LOADING_ATTR) {
-              console.log(attr.nodeName, attr.nodeValue);
               const idx = attr.nodeValue;
               const sig = props[Number(idx)][LOADING_ATTR].value;
+
               // deno-lint-ignore no-explicit-any
-              (sib as any)._freshIndicator = sig;
+              if (!(sib as any)._freshIndicator) {
+                console.log("add indicator", sib);
+                // deno-lint-ignore no-explicit-any
+                (sib as any)._freshIndicator = sig;
+              }
             }
 
             // Boolean attributes are always `true` when present.
@@ -531,6 +545,7 @@ function _walkInner(
           vnodeStack,
           sib.firstChild,
           result,
+          isApplyPartial,
         );
       }
 
@@ -623,6 +638,8 @@ export async function applyPartials(res: Response): Promise<void> {
     state = deserialize(stateDom!, signal) as SerializedState;
   }
 
+  console.log("PARTIAL ========");
+
   // Collect all partials and build up the vnode tree
   const encounteredPartials: RenderRequest[] = [];
   let startNode = null;
@@ -661,6 +678,7 @@ export async function applyPartials(res: Response): Promise<void> {
           [h(Fragment, null)],
           rootFrag,
           encounteredPartials,
+          true,
         );
       }
     }
@@ -700,12 +718,21 @@ export async function applyPartials(res: Response): Promise<void> {
       instance.setState({});
     }
   }
+
+  console.log("PARTIAL END ========");
 }
 
 const originalHook = options.vnode;
 options.vnode = (vnode) => {
   assetHashingHook(vnode);
   if (originalHook) originalHook(vnode);
+};
+const oldDiff = options.__b;
+options.__b = (vnode) => {
+  if (vnode.type === "form") {
+    console.log("diff", vnode, vnode.__e);
+  }
+  if (oldDiff) oldDiff(vnode);
 };
 
 // Keep track of history state to apply forward or backward animations
@@ -799,6 +826,7 @@ window.addEventListener("popstate", async () => {
   }
 });
 
+let oldIndicator: any = null;
 // Form submit
 document.addEventListener("submit", async (e) => {
   const el = e.target;
@@ -807,8 +835,36 @@ document.addEventListener("submit", async (e) => {
     if (partial !== null) {
       e.preventDefault();
 
-      const url = new URL(partial, location.origin);
-      await fetchPartials(url);
+      // deno-lint-ignore no-explicit-any
+      const indicator = (el as any)._freshIndicator;
+      if (indicator !== undefined) {
+        indicator.value = true;
+      }
+
+      let init: RequestInit | undefined;
+      if (el.method && el.method.toUpperCase() !== "GET") {
+        const data = new FormData(el);
+        init = {
+          method: el.method,
+          body: data,
+        };
+      }
+
+      try {
+        const url = new URL(partial, location.origin);
+        await fetchPartials(url, init);
+      } finally {
+        console.log(
+          "pp",
+          el._freshIndicator,
+          oldIndicator,
+          el._freshIndicator === oldIndicator,
+        );
+        oldIndicator = indicator;
+        if (indicator !== undefined) {
+          indicator.value = false;
+        }
+      }
     }
   }
 });

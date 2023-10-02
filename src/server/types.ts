@@ -197,8 +197,16 @@ export type Handler<T = any, State = Record<string, unknown>> = (
 ) => Response | Promise<Response>;
 
 // deno-lint-ignore no-explicit-any
+export type RenderHandler<T = any, State = Record<string, unknown>> = (
+  req: Request,
+  ctx: HandlerContext<T, State>,
+) => Response | ComponentChildren | Promise<Response | ComponentChildren>;
+
+// deno-lint-ignore no-explicit-any
 export type Handlers<T = any, State = Record<string, unknown>> = {
-  [K in router.KnownMethod]?: Handler<T, State>;
+  [K in router.KnownMethod]?: K extends "HEAD" | "OPTIONS" | "GET"
+    ? Handler<T, State>
+    : RenderHandler<T, State>;
 };
 
 /**

@@ -22,13 +22,13 @@ export const handler: Handlers = {
   GET(req, ctx) {
     const accept = req.headers.get("accept");
     const userAgent = req.headers.get("user-agent");
-    if (!accept?.includes("text/html") && !isOpenGraphUA(userAgent)) {
-      const path = `https://deno.land/x/fresh@${VERSIONS[0]}/init.ts`;
-      return new Response(`Redirecting to ${path}`, {
-        headers: { "Location": path },
-        status: 307,
-      });
-    }
+    // if (!accept?.includes("text/html") && !isOpenGraphUA(userAgent)) {
+    //   const path = `https://deno.land/x/fresh@${VERSIONS[0]}/init.ts`;
+    //   return new Response(`Redirecting to ${path}`, {
+    //     headers: { "Location": path },
+    //     status: 307,
+    //   });
+    // }
     return ctx.render();
   },
 };

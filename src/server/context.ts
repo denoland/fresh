@@ -359,7 +359,7 @@ export async function getServerContext(opts: InternalFreshOptions) {
 
   if (opts.dev) {
     // Ensure that debugging hooks are set up for SSR rendering
-    await import("preact/debug");
+    // await import("preact/debug");
   }
 
   return new ServerContext(
@@ -848,12 +848,12 @@ export class ServerContext {
           methods: {},
         };
         for (const [method, handler] of Object.entries(route.handler)) {
-          routes[route.pattern].methods[method as router.KnownMethod] = (
+          routes[route.pattern].methods[method as router.KnownMethod] = async (
             req,
             ctx,
             params,
-          ) =>
-            handler(req, {
+          ) => {
+            const res = await handler(req, {
               ...ctx,
               params,
               render: createRender(req, params, ctx),
@@ -861,6 +861,42 @@ export class ServerContext {
                 return await renderNotFound(req, params, ctx, data);
               },
             });
+
+            if (res instanceof Response) {
+              return res;
+            }
+
+            const output = await internalRender({
+              route: {
+                ...route,
+                appWrapper: false,
+                inheritLayouts: false,
+                component: () => res,
+              },
+              request: req,
+              context: ctx,
+              layouts: [],
+              params: params,
+              url: new URL(req.url),
+              app: this.#app,
+              dependenciesFn,
+              imports: [],
+              renderFn: this.#renderFn,
+              plugins: this.#plugins,
+              state: ctx.state,
+            });
+
+            if (output instanceof Response) {
+              return output;
+            }
+
+            return sendResponse(output, {
+              status: Status.OK,
+              isDev: this.#dev,
+              statusText: undefined,
+              headers: undefined,
+            });
+          };
         }
       }
     }
