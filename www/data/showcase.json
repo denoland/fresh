@@ -369,6 +369,12 @@
     "image": "miguel-rangel-site"
   },
   {
+    "title": "Deno Artwork",
+    "link": "https://artwork.deno.dev/",
+    "github": "jasonjgardner/deno-artwork",
+    "image": "deno-artwork"
+  },
+  {
     "title": "Do not remove this, it’s for preventing conflicts by trailing comma",
     "link": "",
     "github": "",
