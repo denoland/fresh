@@ -487,7 +487,6 @@ function _walkInner(
               newProps.key = attr.nodeValue;
               continue;
             } else if (attr.nodeName === LOADING_ATTR) {
-              console.log(attr.nodeName, attr.nodeValue);
               const idx = attr.nodeValue;
               const sig = props[Number(idx)][LOADING_ATTR].value;
               // deno-lint-ignore no-explicit-any
@@ -513,7 +512,6 @@ function _walkInner(
           // Outside of any partial or island
           const idx = sib.getAttribute(LOADING_ATTR);
           if (idx !== null) {
-            console.log(props);
             const sig = props[Number(idx)][LOADING_ATTR].value;
             // deno-lint-ignore no-explicit-any
             (sib as any)._freshIndicator = sig;
