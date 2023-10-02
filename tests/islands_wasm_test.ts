@@ -1,4 +1,4 @@
-import { assert, delay, puppeteer } from "./deps.ts";
+import { assert, delay } from "./deps.ts";
 import { withPageName } from "./test_utils.ts";
 
 Deno.test({
