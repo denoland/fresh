@@ -19,6 +19,7 @@ import {
   PARTIAL_SEARCH_PARAM,
   PartialMode,
 } from "../../constants.ts";
+import { setActiveUrl } from "../active_url.ts";
 
 function createRootFragment(
   parent: Element,
@@ -704,6 +705,12 @@ export async function applyPartials(res: Response): Promise<void> {
 const originalHook = options.vnode;
 options.vnode = (vnode) => {
   assetHashingHook(vnode);
+
+  // Mark active or ancestor links
+  if (vnode.type === "a") {
+    setActiveUrl(vnode, location);
+  }
+
   if (originalHook) originalHook(vnode);
 };
 

@@ -40,6 +40,7 @@ export class RenderState {
   error: Error | null = null;
   isPartial: boolean;
   partialCount = 0;
+  url: URL;
 
   constructor(
     routeOptions: RenderStateRouteOptions,
@@ -51,6 +52,7 @@ export class RenderState {
     this.routeOptions = routeOptions;
     this.csp = csp;
     this.componentStack = componentStack;
+    this.url = routeOptions.url;
     this.isPartial = routeOptions.url.searchParams.has(PARTIAL_SEARCH_PARAM);
 
     if (error) this.routeOptions.error = error;

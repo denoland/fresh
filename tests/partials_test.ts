@@ -891,7 +891,6 @@ Deno.test("fragment navigation should not cause loop", async () => {
   await withPageName(
     "./tests/fixture_partials/main.ts",
     async (page, address) => {
-      page.setDefaultTimeout(2000);
       const logs: string[] = [];
       page.on("console", (msg) => logs.push(msg.text()));
 
@@ -907,6 +906,28 @@ Deno.test("fragment navigation should not cause loop", async () => {
   );
 });
 
+Deno.test("active links without client nav", async () => {
+  await withFakeServe(
+    "./tests/fixture_partials/main.ts",
+    async (server) => {
+      let doc = await server.getHtml(`/active_nav`);
+      assertSelector(doc, "a[href='/'][data-ancestor]");
+
+      // Current
+      assertNotSelector(doc, "a[href='/active_nav'][data-ancestor]");
+      assertSelector(doc, "a[href='/active_nav'][data-current]");
+
+      // Unrelated links
+      assertNotSelector(doc, "a[href='/active_nav/foo'][data-ancestor]");
+      assertNotSelector(doc, "a[href='/active_nav/foo/bar'][data-ancestor]");
+
+      doc = await server.getHtml(`/active_nav/foo`);
+      assertSelector(doc, "a[href='/active_nav/foo'][data-current]");
+      assertSelector(doc, "a[href='/active_nav'][data-ancestor]");
+      assertSelector(doc, "a[href='/'][data-ancestor]");
+    },
+  );
+});
+
 // TODO Head merging
-// TODO Active links
 // TODO Children Keys

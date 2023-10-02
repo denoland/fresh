@@ -15,6 +15,7 @@ import { renderToString } from "preact-render-to-string";
 import { RenderState } from "./state.ts";
 import { Island } from "../types.ts";
 import { DATA_KEY_ATTR, LOADING_ATTR, PartialMode } from "../../constants.ts";
+import { setActiveUrl } from "../../runtime/active_url.ts";
 
 // See: https://github.com/preactjs/preact/blob/7748dcb83cedd02e37b3713634e35b97b26028fd/src/internal.d.ts#L3C1-L16
 enum HookType {
@@ -262,6 +263,8 @@ options.__b = (vnode: VNode<Record<string, unknown>>) => {
           [LOADING_ATTR]: vnode.props[LOADING_ATTR],
         });
         vnode.props[LOADING_ATTR] = current.islandProps.length - 1;
+      } else if (vnode.type === "a") {
+        setActiveUrl(vnode, current.url);
       }
     } else if (typeof vnode.type === "function") {
       // Detect island vnodes and wrap them with a marker
