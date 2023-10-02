@@ -757,7 +757,6 @@ document.addEventListener("click", async (e) => {
         indicator.value = true;
       }
 
-      console.log("prevent", el.href)
       e.preventDefault();
 
       try {
