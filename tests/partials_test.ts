@@ -887,6 +887,26 @@ Deno.test("submit form", async () => {
   );
 });
 
+Deno.test("fragment navigation should not cause loop", async () => {
+  await withPageName(
+    "./tests/fixture_partials/main.ts",
+    async (page, address) => {
+      page.setDefaultTimeout(2000)
+      const logs: string[] = [];
+      page.on("console", (msg) => logs.push(msg.text()));
+      
+      const initialUrl = `${address}/fragment_nav`;
+      await page.goto(initialUrl);
+      await page.waitForSelector(".partial-text");
+
+      await page.click("a")
+
+      await page.waitForFunction(() => location.hash === "#foo");
+      assertEquals(logs, [])
+    },
+  );
+});
+
 // TODO Head merging
 // TODO Active links
 // TODO Children Keys

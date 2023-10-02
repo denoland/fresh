@@ -757,6 +757,7 @@ document.addEventListener("click", async (e) => {
         indicator.value = true;
       }
 
+      console.log("prevent", el.href)
       e.preventDefault();
 
       try {
@@ -782,8 +783,12 @@ document.addEventListener("click", async (e) => {
   }
 });
 
-// deno-lint-ignore no-window-prefix
-window.addEventListener("popstate", async () => {
+addEventListener("popstate", async (e) => {
+  // When state is `null` then the browser navigated to a document
+  // fragment. In this case we do nothing.
+  if (e.state === null) {
+    return;
+  }
   const nextIdx = history.state?.index ?? index + 1;
   index = nextIdx;
 
@@ -794,7 +799,7 @@ window.addEventListener("popstate", async () => {
     const url = new URL(location.href, location.origin);
     await fetchPartials(url);
   } else {
-    window.location.href = location.href;
+    location.reload()
   }
 });
 
