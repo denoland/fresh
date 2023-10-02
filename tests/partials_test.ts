@@ -910,5 +910,3 @@ Deno.test("fragment navigation should not cause loop", async () => {
 // TODO Head merging
 // TODO Active links
 // TODO Children Keys
-// TODO Leftover comments
-// TODO HTML validation
