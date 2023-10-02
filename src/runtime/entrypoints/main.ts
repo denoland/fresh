@@ -798,7 +798,7 @@ addEventListener("popstate", async (e) => {
     const url = new URL(location.href, location.origin);
     await fetchPartials(url);
   } else {
-    location.reload()
+    location.reload();
   }
 });
 
