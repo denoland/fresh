@@ -708,7 +708,7 @@ options.vnode = (vnode) => {
 
   // Mark active or ancestor links
   if (vnode.type === "a") {
-    setActiveUrl(vnode, location);
+    setActiveUrl(vnode, location.pathname);
   }
 
   if (originalHook) originalHook(vnode);

@@ -264,7 +264,7 @@ options.__b = (vnode: VNode<Record<string, unknown>>) => {
         });
         vnode.props[LOADING_ATTR] = current.islandProps.length - 1;
       } else if (vnode.type === "a") {
-        setActiveUrl(vnode, current.url);
+        setActiveUrl(vnode, current.url.pathname);
       }
     } else if (typeof vnode.type === "function") {
       // Detect island vnodes and wrap them with a marker
