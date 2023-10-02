@@ -1,3 +1,5 @@
+import { VNode } from "preact";
+
 /**
  * Mark active or ancestor link
  * Note: This function is used both on the server and the client
