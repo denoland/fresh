@@ -487,7 +487,6 @@ function _walkInner(
               newProps.key = attr.nodeValue;
               continue;
             } else if (attr.nodeName === LOADING_ATTR) {
-              console.log(attr.nodeName, attr.nodeValue);
               const idx = attr.nodeValue;
               const sig = props[Number(idx)][LOADING_ATTR].value;
               // deno-lint-ignore no-explicit-any
@@ -513,7 +512,6 @@ function _walkInner(
           // Outside of any partial or island
           const idx = sib.getAttribute(LOADING_ATTR);
           if (idx !== null) {
-            console.log(props);
             const sig = props[Number(idx)][LOADING_ATTR].value;
             // deno-lint-ignore no-explicit-any
             (sib as any)._freshIndicator = sig;
@@ -784,8 +782,12 @@ document.addEventListener("click", async (e) => {
   }
 });
 
-// deno-lint-ignore no-window-prefix
-window.addEventListener("popstate", async () => {
+addEventListener("popstate", async (e) => {
+  // When state is `null` then the browser navigated to a document
+  // fragment. In this case we do nothing.
+  if (e.state === null) {
+    return;
+  }
   const nextIdx = history.state?.index ?? index + 1;
   index = nextIdx;
 
@@ -796,7 +798,7 @@ window.addEventListener("popstate", async () => {
     const url = new URL(location.href, location.origin);
     await fetchPartials(url);
   } else {
-    window.location.href = location.href;
+    location.reload();
   }
 });
 
