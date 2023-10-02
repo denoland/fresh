@@ -6,9 +6,9 @@ export {
 export { escape as regexpEscape } from "https://deno.land/std@0.193.0/regexp/escape.ts";
 
 // -- esbuild --
-// @deno-types="https://deno.land/x/esbuild@v0.18.11/mod.d.ts"
-import * as esbuildWasm from "https://deno.land/x/esbuild@v0.18.11/wasm.js";
-import * as esbuildNative from "https://deno.land/x/esbuild@v0.18.11/mod.js";
+// @deno-types="https://deno.land/x/esbuild@v0.19.4/mod.d.ts"
+import * as esbuildWasm from "https://deno.land/x/esbuild@v0.19.4/wasm.js";
+import * as esbuildNative from "https://deno.land/x/esbuild@v0.19.4/mod.js";
 // @ts-ignore trust me
 // deno-lint-ignore no-deprecated-deno-api
 const esbuild: typeof esbuildWasm = Deno.run === undefined
