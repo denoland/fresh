@@ -67,7 +67,7 @@ async function bootServer(handler: ServeHandler, opts: StartOptions) {
           remoteAddr,
           localAddr: {
             transport: "tcp",
-            hostname: opts.hostname,
+            hostname: opts.hostname ?? "localhost",
             port: opts.port,
           } as Deno.NetAddr,
         }),
