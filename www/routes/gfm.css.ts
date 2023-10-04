@@ -43,6 +43,22 @@ ol.nested li:before {
   list-style: numeric;
 }
 
+.markdown-body .md-anchor {
+  color: inherit;
+  text-decoration: none !important;
+}
+.markdown-body .md-anchor span {
+  color: var(--color-accent-fg);
+  display: inline-block;
+  margin-left: .25rem;
+  opacity: 0;
+  visibility: hidden;
+}
+.markdown-body .md-anchor:hover span {
+  opacity: 1;
+  visibility: visible;
+}
+
 .markdown-body .highlight {
   border: 1px solid #eaeef1;
   border-radius: .5rem;
