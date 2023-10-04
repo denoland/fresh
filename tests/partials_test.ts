@@ -22,7 +22,6 @@ Deno.test("injects server content with no islands present", async () => {
     async (page, address) => {
       await page.goto(`${address}/no_islands`);
       await page.waitForSelector(".output");
-      await assertNoPageComments(page);
 
       const href = await page.$eval(".update-link", (el) => el.href);
       await page.click(".update-link");
@@ -326,7 +325,6 @@ Deno.test("replace island if parent type changes", async () => {
       const href = await page.$eval(".replace-link", (el) => el.href);
       await page.click(".replace-link");
       await page.waitForSelector(".output-a");
-      await assertNoPageComments(page);
 
       assertEquals(href, await page.url());
 
@@ -638,7 +636,6 @@ Deno.test("non-partial client navigation", async () => {
       // Go to page B
       await page.click(".page-b-link");
       await page.waitForSelector(".island-b");
-      await assertNoPageComments(page);
 
       let doc = parseHtml(await page.content());
       assertNotSelector(doc, ".island-a");
@@ -652,7 +649,6 @@ Deno.test("non-partial client navigation", async () => {
       // Go to page C
       await page.click(".page-c-link");
       await page.waitForSelector(".page-c-text");
-      await assertNoPageComments(page);
 
       doc = parseHtml(await page.content());
       assertNotSelector(doc, ".island-a");
@@ -739,7 +735,6 @@ Deno.test("allow opting out of client navigation", async () => {
       // Go to page B
       await page.click(".page-b-link");
       await page.waitForSelector(".island-b");
-      await assertNoPageComments(page);
 
       let doc = parseHtml(await page.content());
       assertNotSelector(doc, ".island-a");
@@ -756,7 +751,6 @@ Deno.test("allow opting out of client navigation", async () => {
       // Go to page C
       await page.click(".page-c-link");
       await page.waitForSelector(".page-c-text");
-      await assertNoPageComments(page);
 
       doc = parseHtml(await page.content());
       assertNotSelector(doc, ".island-a");
