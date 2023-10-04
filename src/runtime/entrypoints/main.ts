@@ -14,13 +14,15 @@ import { type SerializedState } from "../../server/rendering/fresh_tags.tsx";
 import type { Signal } from "@preact/signals";
 import {
   CLIENT_NAV_ATTR,
+  DATA_ANCESTOR,
+  DATA_CURRENT,
   DATA_KEY_ATTR,
   LOADING_ATTR,
   PARTIAL_ATTR,
   PARTIAL_SEARCH_PARAM,
   PartialMode,
 } from "../../constants.ts";
-import { setActiveUrl } from "../active_url.ts";
+import { matchesUrl, setActiveUrl, UrlMatchKind } from "../active_url.ts";
 
 function createRootFragment(
   parent: Element,
@@ -553,10 +555,26 @@ function _walkInner(
 
 const partialErrorMessage = `Unable to process partial response.`;
 
-async function fetchPartials(url: URL, init?: RequestInit) {
+async function fetchPartials(url: URL, realUrl: URL, init?: RequestInit) {
   url.searchParams.set(PARTIAL_SEARCH_PARAM, "true");
   const res = await fetch(url, init);
   await applyPartials(res);
+
+  // Update links
+  document.querySelectorAll("a").forEach((link) => {
+    const match = matchesUrl(realUrl.pathname, link.href);
+
+    if (match === UrlMatchKind.Current) {
+      link.setAttribute(DATA_CURRENT, "true");
+      link.removeAttribute(DATA_ANCESTOR);
+    } else if (match === UrlMatchKind.Ancestor) {
+      link.setAttribute(DATA_ANCESTOR, "true");
+      link.removeAttribute(DATA_CURRENT);
+    } else {
+      link.removeAttribute(DATA_CURRENT);
+      link.removeAttribute(DATA_ANCESTOR);
+    }
+  });
 }
 
 /**
@@ -767,20 +785,21 @@ document.addEventListener("click", async (e) => {
 
       e.preventDefault();
 
+      const nextUrl = new URL(el.href);
       try {
         // Only add history entry when URL is new. Still apply
         // the partials because sometimes users click a link to
         // "refresh" the current page.
         if (el.href !== window.location.href) {
           index++;
-          history.pushState({ index }, "", el.href);
+          history.pushState({ index }, "", nextUrl.href);
         }
 
         const partialUrl = new URL(
-          partial ? partial : el.href,
+          partial ? partial : nextUrl.href,
           location.origin,
         );
-        await fetchPartials(partialUrl);
+        await fetchPartials(partialUrl, nextUrl);
       } finally {
         if (indicator !== undefined) {
           indicator.value = false;
@@ -804,7 +823,7 @@ addEventListener("popstate", async (e) => {
   // page navigation.
   if (partials.has("body")) {
     const url = new URL(location.href, location.origin);
-    await fetchPartials(url);
+    await fetchPartials(url, url);
   } else {
     location.reload();
   }
@@ -819,7 +838,7 @@ document.addEventListener("submit", async (e) => {
       e.preventDefault();
 
       const url = new URL(partial, location.origin);
-      await fetchPartials(url);
+      await fetchPartials(url, new URL(location.href));
     }
   }
 });

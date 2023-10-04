@@ -14,7 +14,12 @@ import { Partial, PartialProps } from "../../runtime/Partial.tsx";
 import { renderToString } from "preact-render-to-string";
 import { RenderState } from "./state.ts";
 import { Island } from "../types.ts";
-import { DATA_KEY_ATTR, LOADING_ATTR, PartialMode } from "../../constants.ts";
+import {
+  CLIENT_NAV_ATTR,
+  DATA_KEY_ATTR,
+  LOADING_ATTR,
+  PartialMode,
+} from "../../constants.ts";
 import { setActiveUrl } from "../../runtime/active_url.ts";
 
 // See: https://github.com/preactjs/preact/blob/7748dcb83cedd02e37b3713634e35b97b26028fd/src/internal.d.ts#L3C1-L16
@@ -192,9 +197,15 @@ options.vnode = (vnode) => {
       vnode.type !== "style" && vnode.type !== "script" && vnode.type !== "link"
     ) {
       props[DATA_KEY_ATTR] = vnode.key;
-    } else if (props[LOADING_ATTR]) {
+    }
+
+    if (props[LOADING_ATTR]) {
       // Avoid automatic signals unwrapping
       props[LOADING_ATTR] = { value: props[LOADING_ATTR] };
+    }
+
+    if (props[CLIENT_NAV_ATTR]) {
+      props[CLIENT_NAV_ATTR] = props[CLIENT_NAV_ATTR] ? "true" : null;
     }
   } else if (
     current && typeof vnode.type === "function" && vnode.type !== Fragment &&
