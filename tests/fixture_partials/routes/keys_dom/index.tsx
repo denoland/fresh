@@ -27,7 +27,7 @@ export default function SlotDemo() {
         <a
           class="swap-link"
           href="/keys_dom/injected"
-          fh-partial="/keys_dom/swap"
+          f-partial="/keys_dom/swap"
         >
           swap
         </a>

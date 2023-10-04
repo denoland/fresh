@@ -3,7 +3,7 @@ import { Partial } from "$fresh/runtime.ts";
 export default function SlotDemo() {
   return (
     <div>
-      <form fh-partial="/form/update">
+      <form f-partial="/form/update">
         <Partial name="slot-1">
           <p class="status">Default content</p>
           <p>

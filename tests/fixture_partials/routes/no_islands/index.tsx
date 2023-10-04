@@ -11,7 +11,7 @@ export default function SlotDemo() {
       <a
         class="update-link"
         href="/no_islands/injected"
-        fh-partial="/no_islands/update"
+        f-partial="/no_islands/update"
       >
         update
       </a>

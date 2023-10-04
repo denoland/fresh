@@ -21,7 +21,7 @@ export default function PropsDemo() {
         <a
           class="update-link"
           href="/island_props/injected"
-          fh-partial="/island_props/partial"
+          f-partial="/island_props/partial"
         >
           Update
         </a>

@@ -15,7 +15,7 @@ export default function WarnDemo() {
         <a
           class="update-link"
           href="/missing_partial/injected"
-          fh-partial="/missing_partial/update"
+          f-partial="/missing_partial/update"
         >
           update
         </a>
