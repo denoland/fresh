@@ -687,6 +687,12 @@ export async function applyPartials(res: Response): Promise<void> {
     sib = sib.nextSibling;
   }
 
+  if (encounteredPartials.length === 0) {
+    throw new Error(
+      `Found no partials in HTML response. Please make sure to render at least one partial. Requested url: ${res.url}`,
+    );
+  }
+
   // Update all encountered partials
   for (let i = 0; i < encounteredPartials.length; i++) {
     const { vnode, marker } = encounteredPartials[i];
