@@ -204,7 +204,7 @@ options.vnode = (vnode) => {
       props[LOADING_ATTR] = { value: props[LOADING_ATTR] };
     }
 
-    if (props[CLIENT_NAV_ATTR]) {
+    if (typeof props[CLIENT_NAV_ATTR] === "boolean") {
       props[CLIENT_NAV_ATTR] = props[CLIENT_NAV_ATTR] ? "true" : null;
     }
   } else if (
