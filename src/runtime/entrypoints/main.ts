@@ -585,12 +585,15 @@ function collectPartials(
 ) {
   let startNode = null;
   let sib: ChildNode | null = node.firstChild;
+  let partialCount = 0;
   while (sib !== null) {
     if (isCommentNode(sib)) {
       const comment = sib.data;
       if (comment.startsWith("frsh-partial")) {
         startNode = sib;
+        partialCount++;
       } else if (comment.startsWith("/frsh-partial")) {
+        partialCount--;
         // Create a fake DOM node that spans the partial we discovered.
         // We need to include the partial markers itself for _walkInner
         // to register them.
@@ -621,7 +624,8 @@ function collectPartials(
           encounteredPartials,
         );
       }
-    } else if (isElementNode(sib)) {
+    } else if (partialCount === 0 && isElementNode(sib)) {
+      // Do not recurse if we know that we are inisde a partial
       collectPartials(encounteredPartials, islands, state, sib);
     }
 
