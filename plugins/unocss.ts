@@ -1,10 +1,15 @@
+import { JSX, options as preactOptions, VNode } from "preact";
+
 import {
   UnoGenerator,
   type UserConfig,
 } from "https://esm.sh/@unocss/core@0.55.1";
 import type { Theme } from "https://esm.sh/@unocss/preset-uno@0.55.1";
+
 import { Plugin } from "$fresh/server.ts";
 import { exists } from "$fresh/src/server/deps.ts";
+
+type PreactOptions = typeof preactOptions & { __b?: (vnode: VNode) => void };
 
 // inline reset from https://esm.sh/@unocss/reset@0.54.2/tailwind.css
 const unoResetCSS = `/* reset */
@@ -24,6 +29,32 @@ export function defineConfig<T extends object = Theme>(config: UserConfig<T>) {
 }
 
 /**
+ * Installs a hook in Preact to extract classes during server-side renders
+ * @param classes - Set of class strings, which will be mutated by this function.
+ */
+export function installPreactHook(classes: Set<string>) {
+  // Hook into options._b which is called whenever a new comparison
+  // starts in Preact.
+  const originalHook = (preactOptions as PreactOptions).__b;
+  (preactOptions as PreactOptions).__b = (
+    // deno-lint-ignore no-explicit-any
+    vnode: VNode<JSX.DOMAttributes<any>>,
+  ) => {
+    if (typeof vnode.type === "string" && typeof vnode.props === "object") {
+      const { props } = vnode;
+      if (props.class) {
+        props.class.split(" ").forEach((cls) => classes.add(cls));
+      }
+      if (props.className) {
+        props.className.split(" ").forEach((cls) => classes.add(cls));
+      }
+    }
+
+    originalHook?.(vnode);
+  };
+}
+
+/**
  * UnoCSS plugin - automatically generates CSS utility classes
  *
  * @param [opts] Plugin options
@@ -39,6 +70,12 @@ export default function unocss(
   // A uno.config.ts file is required in the project directory if a config object is not provided,
   // or to use the browser runtime
   const configURL = new URL("./uno.config.ts", Deno.mainModule);
+
+  // Create a set that will be used to hold class names encountered during SSR
+  const classes = new Set<string>();
+
+  // Hook into Preact to add to the set of classes on each server-side render
+  installPreactHook(classes);
 
   let uno: UnoGenerator;
   if (opts.config !== undefined) {
@@ -72,8 +109,10 @@ export default function unocss(
       }
       : {},
     async renderAsync(ctx) {
-      const { htmlText } = await ctx.renderAsync();
-      const { css } = await uno.generate(htmlText);
+      classes.clear();
+      await ctx.renderAsync();
+      const { css } = await uno.generate(classes);
+
       return {
         scripts: runtime ? [{ entrypoint: "main", state: {} }] : [],
         styles: [{ cssText: `${unoResetCSS}\n${css}` }],
