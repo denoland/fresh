@@ -91,7 +91,7 @@ class DefaultRenderer extends Marked.Renderer {
     } else {
       const html = Prism.highlight(code, grammar, lang);
       out +=
-        `<pre class="highlight highlight-source-${lang} notranslate lang-${lang}">${html}</pre>`;
+        `<pre class="highlight highlight-source-${lang} notranslate lang-${lang}"><code>${html}</code></pre>`;
     }
 
     out += `</div>`;
