@@ -191,3 +191,13 @@ Deno.test({
     );
   },
 });
+
+Deno.test("mix async app and layouts", async () => {
+  await withFakeServe(
+    "./tests/fixture_layouts_2/main.ts",
+    async (server) => {
+      const doc = await server.getHtml(`/`);
+      assertSelector(doc, ".app > .root-layout > .home-page");
+    },
+  );
+});
