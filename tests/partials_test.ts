@@ -923,5 +923,37 @@ Deno.test("active links without client nav", async () => {
   );
 });
 
+Deno.test("Updates active links outside of vdom", async () => {
+  await withPageName(
+    "./tests/fixture_partials/main.ts",
+    async (page, address) => {
+      await page.goto(`${address}/active_nav_partial`);
+
+      let doc = parseHtml(await page.content());
+      assertSelector(doc, "a[href='/'][data-ancestor]");
+
+      // Current
+      assertNotSelector(doc, "a[href='/active_nav_partial'][data-ancestor]");
+      assertSelector(doc, "a[href='/active_nav_partial'][data-current]");
+
+      // Unrelated links
+      assertNotSelector(
+        doc,
+        "a[href='/active_nav_partial/foo'][data-ancestor]",
+      );
+      assertNotSelector(
+        doc,
+        "a[href='/active_nav_partial/foo/bar'][data-ancestor]",
+      );
+
+      await page.goto(`${address}/active_nav_partial/foo`);
+      doc = parseHtml(await page.content());
+      assertSelector(doc, "a[href='/active_nav_partial/foo'][data-current]");
+      assertSelector(doc, "a[href='/active_nav_partial'][data-ancestor]");
+      assertSelector(doc, "a[href='/'][data-ancestor]");
+    },
+  );
+});
+
 // TODO Head merging
 // TODO Children Keys
