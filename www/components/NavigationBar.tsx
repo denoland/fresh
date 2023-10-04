@@ -31,9 +31,7 @@ export default function NavigationBar(
               href={item.href}
               class={`p-2 ${
                 isHome ? "text-green-900" : "text-gray-600"
-              } hover:underline ${
-                props.active == item.href ? "font-bold" : ""
-              }`}
+              } hover:underline [data-current]:font-bold [data-ancestor]:font-bold`}
             >
               {item.name}
             </a>

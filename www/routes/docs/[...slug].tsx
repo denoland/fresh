@@ -157,17 +157,17 @@ export default function DocsPage(props: PageProps<Data>) {
       </Head>
       <div class="flex flex-col min-h-screen">
         <Header title="docs" active="/docs" />
-        <Main path={props.url.pathname} page={props.data.page} />
+        <Main page={props.data.page} />
         <Footer />
       </div>
     </>
   );
 }
 
-function Main(props: { path: string; page: Page }) {
+function Main(props: { page: Page }) {
   return (
     <div class="flex-1">
-      <MobileSidebar path={props.path} page={props.page} />
+      <MobileSidebar page={props.page} />
       <div class="flex mx-auto max-w-screen-xl px-4 md:px-0 py-5 md:py-0 justify-end">
         <label
           for="docs_sidebar"
@@ -191,14 +191,14 @@ function Main(props: { path: string; page: Page }) {
         </label>
       </div>
       <div class="mx-auto max-w-screen-xl flex gap-6 md:gap-8">
-        <DesktopSidebar path={props.path} page={props.page} />
+        <DesktopSidebar page={props.page} />
         <Content page={props.page} />
       </div>
     </div>
   );
 }
 
-function MobileSidebar(props: { path: string; page: Page }) {
+function MobileSidebar(props: { page: Page }) {
   return (
     <>
       <input
@@ -220,7 +220,6 @@ function MobileSidebar(props: { path: string; page: Page }) {
           <nav class="pt-6 pb-16 px-4 overflow-x-auto">
             <DocsSidebar
               mobile
-              path={props.path}
               versionLinks={props.page.versionLinks}
               selectedVersion={props.page.version}
             />
@@ -231,11 +230,10 @@ function MobileSidebar(props: { path: string; page: Page }) {
   );
 }
 
-function DesktopSidebar(props: { path: string; page: Page }) {
+function DesktopSidebar(props: { page: Page }) {
   return (
     <nav class="w-[18rem] flex-shrink-0 hidden md:block py-7 px-4">
       <DocsSidebar
-        path={props.path}
         versionLinks={props.page.versionLinks}
         selectedVersion={props.page.version}
       />
