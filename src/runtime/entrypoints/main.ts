@@ -577,6 +577,62 @@ async function fetchPartials(url: URL, realUrl: URL, init?: RequestInit) {
   });
 }
 
+function collectPartials(
+  encounteredPartials: RenderRequest[],
+  islands: IslandRegistry,
+  state: SerializedState,
+  node: Node,
+) {
+  let startNode = null;
+  let sib: ChildNode | null = node.firstChild;
+  let partialCount = 0;
+  while (sib !== null) {
+    if (isCommentNode(sib)) {
+      const comment = sib.data;
+      if (comment.startsWith("frsh-partial")) {
+        startNode = sib;
+        partialCount++;
+      } else if (comment.startsWith("/frsh-partial")) {
+        partialCount--;
+        // Create a fake DOM node that spans the partial we discovered.
+        // We need to include the partial markers itself for _walkInner
+        // to register them.
+        const rootFrag = {
+          _frshRootFrag: true,
+          nodeType: 1,
+          nextSibling: null,
+          firstChild: startNode,
+          parentNode: node,
+          get childNodes() {
+            const children: ChildNode[] = [startNode!];
+            let node = startNode!;
+            while ((node = node.nextSibling) !== null) {
+              children.push(node);
+            }
+
+            return children;
+          },
+          // deno-lint-ignore no-explicit-any
+        } as any as HTMLElement;
+
+        _walkInner(
+          islands,
+          state[0] ?? [],
+          [],
+          [h(Fragment, null)],
+          rootFrag,
+          encounteredPartials,
+        );
+      }
+    } else if (partialCount === 0 && isElementNode(sib)) {
+      // Do not recurse if we know that we are inisde a partial
+      collectPartials(encounteredPartials, islands, state, sib);
+    }
+
+    sib = sib.nextSibling;
+  }
+}
+
 /**
  * Apply partials from a HTML response
  */
@@ -644,48 +700,7 @@ export async function applyPartials(res: Response): Promise<void> {
 
   // Collect all partials and build up the vnode tree
   const encounteredPartials: RenderRequest[] = [];
-  let startNode = null;
-  let sib: ChildNode | null = doc.body.firstChild;
-  while (sib !== null) {
-    if (isCommentNode(sib)) {
-      const comment = sib.data;
-      if (comment.startsWith("frsh-partial")) {
-        startNode = sib;
-      } else if (comment.startsWith("/frsh-partial")) {
-        // Create a fake DOM node that spans the partial we discovered.
-        // We need to include the partial markers itself for _walkInner
-        // to register them.
-        const rootFrag = {
-          _frshRootFrag: true,
-          nodeType: 1,
-          nextSibling: null,
-          firstChild: startNode,
-          parentNode: doc.body,
-          get childNodes() {
-            const children: ChildNode[] = [startNode!];
-            let node = startNode!;
-            while ((node = node.nextSibling) !== null) {
-              children.push(node);
-            }
-
-            return children;
-          },
-          // deno-lint-ignore no-explicit-any
-        } as any as HTMLElement;
-
-        _walkInner(
-          islands,
-          state[0] ?? [],
-          [],
-          [h(Fragment, null)],
-          rootFrag,
-          encounteredPartials,
-        );
-      }
-    }
-
-    sib = sib.nextSibling;
-  }
+  collectPartials(encounteredPartials, islands, state, doc.body);
 
   if (encounteredPartials.length === 0) {
     throw new Error(

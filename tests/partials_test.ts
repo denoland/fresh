@@ -115,6 +115,19 @@ Deno.test("injects content with island and keeps island instance alive", async (
   );
 });
 
+Deno.test("finds partial nested in response", async () => {
+  await withPageName(
+    "./tests/fixture_partials/main.ts",
+    async (page, address) => {
+      await page.goto(`${address}/deep_partial`);
+      await page.waitForSelector(".status");
+
+      await page.click(".update-link");
+      await waitForText(page, ".status-updated", "updated");
+    },
+  );
+});
+
 Deno.test("unmounts island", async () => {
   await withPageName(
     "./tests/fixture_partials/main.ts",
