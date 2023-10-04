@@ -24,7 +24,7 @@ export default function SlotDemo() {
         <a
           class="update-link"
           href="/island_instance_nested/injected"
-          fh-partial="/island_instance_nested/partial"
+          f-partial="/island_instance_nested/partial"
         >
           update
         </a>
@@ -33,7 +33,7 @@ export default function SlotDemo() {
         <a
           class="replace-link"
           href="/island_instance_nested/injected"
-          fh-partial="/island_instance_nested/replace"
+          f-partial="/island_instance_nested/replace"
         >
           replace
         </a>

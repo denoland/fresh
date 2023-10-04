@@ -13,6 +13,7 @@ import { assetHashingHook } from "../utils.ts";
 import { type SerializedState } from "../../server/rendering/fresh_tags.tsx";
 import type { Signal } from "@preact/signals";
 import {
+  CLIENT_NAV_ATTR,
   DATA_KEY_ATTR,
   LOADING_ATTR,
   PARTIAL_ATTR,
@@ -748,11 +749,11 @@ document.addEventListener("click", async (e) => {
       // There are two cases to account for:
       //  1. Partial request
       //  2. Normal request (turbolink-style)
-      const settingEl = el.closest("[fresh-client-nav]");
+      const settingEl = el.closest(`[${CLIENT_NAV_ATTR}]`);
       if (
         partial === null && (
           settingEl === null ||
-          settingEl.getAttribute("fresh-client-nav") !== "true"
+          settingEl.getAttribute(CLIENT_NAV_ATTR) !== "true"
         )
       ) {
         return;

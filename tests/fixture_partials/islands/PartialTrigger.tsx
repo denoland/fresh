@@ -14,8 +14,8 @@ export default function PartialTrigger(
     <a
       class={props.class}
       href={props.href}
-      fh-partial={props.partial}
-      fh-loading={props.loading}
+      f-partial={props.partial}
+      f-loading={props.loading}
     >
       {props.children}
     </a>

@@ -10,7 +10,7 @@ export default function AppLayout({ Component }: AppProps) {
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <title>fresh title</title>
       </head>
-      <body fresh-client-nav="false">
+      <body f-client-nav="false">
         <Partial name="body">
           <Fader>
             <Component />

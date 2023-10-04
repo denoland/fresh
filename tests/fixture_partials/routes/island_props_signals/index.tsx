@@ -20,7 +20,7 @@ export default function PropsDemo() {
         <a
           class="update-link"
           href="/island_props_signals/injected"
-          fh-partial="/island_props_signals/partial"
+          f-partial="/island_props_signals/partial"
         >
           Update
         </a>

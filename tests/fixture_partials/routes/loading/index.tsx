@@ -17,8 +17,8 @@ export default function SlotDemo() {
       <a
         class="update-link"
         href="/loading/injected"
-        fh-partial="/loading/update"
-        fh-loading={sig}
+        f-partial="/loading/update"
+        f-loading={sig}
       >
         update
       </a>
