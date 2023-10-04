@@ -18,6 +18,38 @@ function css(template: TemplateStringsArray, ...params: string[]) {
 
 const CSS = css`${gfm.CSS}
 
+.markdown-body h1,
+.markdown-body h2,
+.markdown-body h3,
+.markdown-body h4,
+.markdown-body h5,
+.markdown-body h6,
+.markdown-body ul,
+.markdown-body ol,
+.markdown-body p,
+.markdown-body details,
+.markdown-body blockquote {
+  margin-left: 1rem;
+  margin-right: 1rem;
+}
+
+.markdown-body blockquote p {
+  margin-left: 0
+}
+
+@media screen and (min-width: 768px) {
+  .markdown-body .fenced-code,
+  .markdown-body table {
+    margin-left: 1rem;
+    margin-right: 1rem;
+  }
+
+  .markdown-body details .fenced-code {
+    margin-left: 0;
+    margin-right: 0;
+  }
+}
+
 ol.nested {
 	counter-reset: item;
 }
@@ -43,6 +75,22 @@ ol.nested li:before {
   list-style: numeric;
 }
 
+.markdown-body .md-anchor {
+  color: inherit;
+  text-decoration: none !important;
+}
+.markdown-body .md-anchor span {
+  color: var(--color-accent-fg);
+  display: inline-block;
+  margin-left: .25rem;
+  opacity: 0;
+  visibility: hidden;
+}
+.markdown-body .md-anchor:hover span {
+  opacity: 1;
+  visibility: visible;
+}
+
 .markdown-body .highlight {
   border: 1px solid #eaeef1;
   border-radius: .5rem;
@@ -53,7 +101,7 @@ ol.nested li:before {
 }
 
 .fenced-code {
-  margin-bottom: 1rem;
+  margin-bottom: 1rem; 
 }
 .fenced-code pre {
   margin-bottom: 0;

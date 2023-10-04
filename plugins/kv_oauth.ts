@@ -12,12 +12,13 @@ import {
   createSlackOAuthConfig,
   createSpotifyOAuthConfig,
   createTwitterOAuthConfig,
+  getRequiredEnv,
   handleCallback,
+  type OAuth2ClientConfig,
   signIn,
   signOut,
-} from "https://deno.land/x/deno_kv_oauth@v0.7.0/mod.ts";
-import type { OAuth2ClientConfig } from "https://deno.land/x/oauth2_client@v1.0.2/mod.ts";
-import { Handler } from "$fresh/server.ts";
+} from "https://deno.land/x/deno_kv_oauth@v0.9.1/mod.ts";
+import type { Handler } from "$fresh/server.ts";
 
 export {
   createAuth0OAuthConfig,
@@ -33,51 +34,11 @@ export {
   createSlackOAuthConfig,
   createSpotifyOAuthConfig,
   createTwitterOAuthConfig,
+  getRequiredEnv,
+  type OAuth2ClientConfig,
 };
 
-/**
- * Creates the following routes, based on Deno KV OAuth's request handlers:
- * - `GET <oauthPath>/signin` for the sign-in page
- * - `GET <oauthPath>/callback` for the callback page
- * - `GET <oauthPath>/signout` for the sign-out page
- *
- * @example Single provider
- * ```ts
- * // main.ts
- * import { start } from "$fresh/server.ts";
- * import { createRoutes, createGitHubOAuthConfig } from "$fresh/plugins/kv_oauth.ts";
- * import manifest from "./fresh.gen.ts";
- *
- * await start(manifest, {
- *   plugins: [{
- *     name: "kv-oauth",
- *     routes: createRoutes(createGitHubOAuthConfig())
- *   }]
- * });
- * ```
- *
- * @example Multiple providers
- * ```ts
- * // main.ts
- * import { start } from "$fresh/server.ts";
- * import {
- *   createRoutes,
- *   createGitHubOAuthConfig,
- *   createGoogleOAuthConfig,
- * } from "$fresh/plugins/kv_oauth.ts";
- * import manifest from "./fresh.gen.ts";
- *
- * await start(manifest, {
- *   plugins: [{
- *     name: "kv-oauth-github",
- *     routes: createRoutes(createGitHubOAuthConfig(), "/oauth/github"),
- *   }, {
- *     name: "kv-oauth-google",
- *     routes: createRoutes(createGoogleOAuthConfig(), "/oauth/google"),
- *   }]
- * });
- * ```
- */
+/** @see {@link https://fresh.deno.dev/docs/examples/using-deno-kv-oauth} */
 export function createRoutes<T extends string = "/oauth">(
   oauthConfig: OAuth2ClientConfig,
   /** Parent path for sign-in, callback and sign-out pages. */

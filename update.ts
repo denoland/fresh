@@ -56,7 +56,7 @@ if (!DENO_JSON_PATH) {
     `Neither deno.json nor deno.jsonc could be found in ${resolvedDirectory}`,
   );
 }
-let denoJsonText = await Deno.readTextFile(DENO_JSON_PATH);
+const denoJsonText = await Deno.readTextFile(DENO_JSON_PATH);
 const ext = extname(DENO_JSON_PATH);
 let denoJson;
 if (ext === ".json") {
@@ -139,8 +139,7 @@ freshImports(denoJson.imports);
 if (denoJson.imports["twind"]) {
   twindImports(denoJson.imports);
 }
-denoJsonText = JSON.stringify(denoJson, null, 2);
-await Deno.writeTextFile(DENO_JSON_PATH, denoJsonText);
+await writeFormattedJson(DENO_JSON_PATH, denoJson);
 
 // Code mod for classic JSX -> automatic JSX.
 const JSX_CODEMOD =
@@ -152,8 +151,7 @@ if (denoJson.compilerOptions?.jsx !== "react-jsx" && confirm(JSX_CODEMOD)) {
   denoJson.compilerOptions = denoJson.compilerOptions || {};
   denoJson.compilerOptions.jsx = "react-jsx";
   denoJson.compilerOptions.jsxImportSource = "preact";
-  denoJsonText = JSON.stringify(denoJson, null, 2);
-  await Deno.writeTextFile(DENO_JSON_PATH, denoJsonText);
+  await writeFormattedJson(DENO_JSON_PATH, denoJson);
 
   const project = new Project();
   const sfs = project.addSourceFilesAtPaths(
@@ -194,8 +192,7 @@ if (denoJson.imports["@twind"] && confirm(TWIND_CODEMOD)) {
   await Deno.remove(join(resolvedDirectory, denoJson.imports["@twind"]));
 
   delete denoJson.imports["@twind"];
-  denoJson = JSON.stringify(denoJson, null, 2);
-  await Deno.writeTextFile(DENO_JSON_PATH, denoJson);
+  await writeFormattedJson(DENO_JSON_PATH, denoJson);
 
   const MAIN_TS = `/// <reference no-default-lib="true" />
 /// <reference lib="dom" />
@@ -329,4 +326,20 @@ async function findSrcDirectory(
     }
   }
   return resolvedDirectory;
+}
+
+async function writeFormattedJson(
+  denoJsonPath: string,
+  // deno-lint-ignore no-explicit-any
+  denoJson: any,
+): Promise<void> {
+  const denoJsonText = JSON.stringify(denoJson);
+  await Deno.writeTextFile(denoJsonPath, denoJsonText);
+  const command = new Deno.Command(Deno.execPath(), {
+    args: [
+      "fmt",
+      denoJsonPath,
+    ],
+  });
+  await command.output();
 }

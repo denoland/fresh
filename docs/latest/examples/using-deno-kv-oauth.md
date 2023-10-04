@@ -1,5 +1,5 @@
 ---
-description: Easily integrate OAuth 2.0 to your Fresh project with Deno KV OAuth.
+description: Easily integrate OAuth 2.0 into your Fresh project with the official Deno KV OAuth plugin.
 ---
 
 > ⚠️ Please note that this functionality relies on
@@ -11,194 +11,160 @@ description: Easily integrate OAuth 2.0 to your Fresh project with Deno KV OAuth
 > change**. See [the documentation](https://deno.land/x/deno_kv_oauth) for
 > further details.
 
-## Getting Started with the Official Fresh Plugin
+> ⚠️ Please note that the **minimum required version** for plugins in Fresh is
+> **1.3.0**.
 
-> Note: The minimum required version for plugins in Fresh is 1.3.0
+Fresh comes with an official Deno KV OAuth plugin based on the first-party
+[Deno KV OAuth](https://deno.land/x/deno_kv_oauth) module. This plugin creates
+and configures your OAuth routes for your Fresh project.
 
-If you're not performing anything special in the sign-in, sign-out and callback
-handlers, you can add the Fresh plugin to your project. This automatically
-handles `GET /oauth/signin`, `GET /oauth/callback` and `GET /oauth/signout`
-routes.
+## Basic Setup
+
+The most basic setup is that using a single provider with a pre-defined OAuth
+configuration. This automatically creates the following routes:
+
+- `GET /oauth/signin`
+- `GET /oauth/callback`
+- `GET /oauth/signout`
+
+This is implemented as follows:
 
 1. Create your OAuth 2.0 application for your given provider.
 
-2. Create your
-   [pre-configured](https://deno.land/x/deno_kv_oauth#pre-configured-oauth-20-clients)
-   or
-   [custom OAuth 2.0 client instance](https://deno.land/x/deno_kv_oauth#custom-oauth-20-client)
-   and configure Fresh to use the plugin.
+   > This example uses GitHub. However, you can choose from a list of providers
+   > that have pre-defined configurations
+   > [here](https://deno.land/x/deno_kv_oauth#providers).
 
-   ```ts
-   // main.ts
+1. Create your pre-defined OAuth configuration and configure Fresh to use the
+   plugin.
+
+   ```ts main.ts
    import { start } from "$fresh/server.ts";
-   import kvOAuthPlugin from "$fresh/plugins/kv_oauth.ts";
-   import { createGitHubOAuth2Client } from "https://deno.land/x/deno_kv_oauth@$VERSION/mod.ts";
+   import {
+     createGitHubOAuth2Client,
+     createRoutes,
+   } from "$fresh/plugins/kv_oauth.ts";
    import manifest from "./fresh.gen.ts";
 
    await start(manifest, {
      plugins: [
-       kvOAuthPlugin(createGitHubOAuth2Client()),
+       {
+         name: "kv-oauth",
+         routes: createRoutes(createGitHubOAuth2Client()),
+       },
      ],
    });
    ```
 
-3. ⚠️ While Deno KV is still **experimental** you need to add the `--unstable`
+1. Create and configure your protected route(s) using
+   [`getSessionId()`](https://deno.land/x/deno_kv_oauth/mod.ts?s=getSessionId).
+
+   ```ts routes/protected.ts
+   import type { Handlers } from "$fresh/server.ts";
+   import { getSessionId } from "$fresh/plugins/kv_oauth.ts";
+
+   export const handler: Handlers = {
+     async GET(req) {
+       return getSessionId(request) === undefined
+         ? new Response("Unauthorized", { status: 401 })
+         : new Response("You are allowed");
+     },
+   };
+   ```
+
+1. ⚠️ While Deno KV is still **experimental** you need to add the `--unstable`
    option to the `start` task in the `deno.json` file.
 
    ```json
    "start": "deno run -A --watch=static/,routes/ --unstable dev.ts",
    ```
 
-4. Start your project with the necessary environment variables.
+1. Start your project with the necessary environment variables.
 
    ```sh
    GITHUB_CLIENT_ID=xxx GITHUB_CLIENT_SECRET=xxx deno task start
    ```
 
-If you require more advanced setups, you can create your own plugin. For more
-information, see:
+## Further Setup
 
-- The [source code](src/fresh_plugin.ts) for `kvOAuthPlugin()`
-- The [Plugin documentation](https://fresh.deno.dev/docs/concepts/plugins) for
-  Fresh
+The plugin is capable of having multiple providers, custom OAuth configurations
+and custom parent OAuth routes. These are implemented similar to the above
+example, as follows:
+
+1. Create your OAuth 2.0 applications for your given providers.
+
+1. Create your configurations and configure Fresh to use the plugin.
+
+   ```ts main.ts
+   import { start } from "$fresh/server.ts";
+   import {
+     createNotionOAuthConfig,
+     createRoutes,
+   } from "$fresh/plugins/kv_oauth.ts";
+   import manifest from "./fresh.gen.ts";
+
+   await start(manifest, {
+     plugins: [
+       {
+         name: "kv-oauth",
+         routes: [
+           ...createRoutes(createNotionOAuthConfig(), "/oauth/notion"),
+           ...createRoutes({
+             clientId: getRequiredEnv("CUSTOM_CLIENT_ID"),
+             clientSecret: getRequiredEnv("CUSTOM_CLIENT_SECRET"),
+             authorizationEndpointUri: "https://custom.com/oauth/authorize",
+             tokenUri: "https://custom.com/oauth/token",
+             redirectUri: "https://my-site.com/oauth/custom/callback",
+           }, "/oauth/custom"),
+         ],
+       },
+     ],
+   });
+   ```
+
+   > Here, the 2nd parameter of `createRoutes()` is used to set the parent path
+   > for OAuth routes.
+
+1. Create and configure your protected route(s) using
+   [`getSessionId()`](https://deno.land/x/deno_kv_oauth/mod.ts?s=getSessionId).
+
+   ```ts routes/protected.ts
+   import type { Handlers } from "$fresh/server.ts";
+   import { getSessionId } from "$fresh/plugins/kv_oauth.ts";
+
+   export const handler: Handlers = {
+     async GET(req) {
+       return getSessionId(request) === undefined
+         ? new Response("Unauthorized", { status: 401 })
+         : new Response("You are allowed");
+     },
+   };
+   ```
+
+1. ⚠️ While Deno KV is still **experimental** you need to add the `--unstable`
+   option to the `start` task in the `deno.json` file.
+
+   ```json
+   "start": "deno run -A --watch=static/,routes/ --unstable dev.ts",
+   ```
+
+1. Start your project with the necessary environment variables.
+
+   ```sh
+   NOTION_CLIENT_ID=xxx NOTION_CLIENT_SECRET=xxx CUSTOM_CLIENT_ID=yyy CUSTOM_CLIENT_SECRET=yyy deno task start
+   ```
+
+### Advanced Setups
+
+If you require more advanced setups, you can create your own custom plugin that
+defines the routes and their behaviors. To do this, check out the following
+resources:
+
+- The [source code](plugins/kv_oauth.ts) for the Deno KV OAuth plugin
+- The [documentation](https://fresh.deno.dev/docs/concepts/plugins) for plugins
 - The
   [Fresh + Deno KV OAuth demo](https://github.com/denoland/fresh-deno-kv-oauth-demo)
   which uses the Fresh plugin
 - [Deno SaaSKit](https://saaskit.deno.dev/)'s custom
   [plugin implementation](https://github.com/denoland/saaskit/blob/3accffdc44c2d2eb6dba28126f8d4cb525eba340/plugins/kv_oauth.ts)
-
-## Getting Started
-
-This example uses GitHub as the OAuth 2.0 provider. However there is a suite of
-[pre-configured providers](https://deno.land/x/deno_kv_oauth#pre-configured-oauth-20-clients)
-available.
-
-1. Register a [new GitHub OAuth](https://github.com/settings/applications/new)
-   application, if you haven't already.
-2. Create your pre-configured OAuth client instance. For reusability the
-   instance is stored in `utils/oauth2_client.ts`.
-
-   ```ts utils/oauth2_client.ts
-   import { createGitHubOAuth2Client } from "https://deno.land/x/deno_kv_oauth@v0.2.4/mod.ts";
-
-   export const oauth2Client = createGitHubOAuth2Client();
-   ```
-
-3. Using the OAuth 2.0 client instance, insert the authentication flow functions
-   into your authentication routes. In this example, there are dedicated handler
-   routes at `routes/signin.ts`, `routes/signout.ts` and `routes/callback.ts`.
-   Please ensure that the `callback` handler matches the authorization callback
-   URL in the configured OAuth application.
-
-   ```ts routes/signin.ts
-   import { Handlers } from "$fresh/server.ts";
-   import { signIn } from "https://deno.land/x/deno_kv_oauth@v0.2.4/mod.ts";
-   import { oauth2Client } from "../utils/oauth2_client.ts";
-
-   export const handler: Handlers = {
-     async GET(req) {
-       return await signIn(req, oauth2Client);
-     },
-   };
-   ```
-
-   ```ts routes/signout.ts
-   import { Handlers } from "$fresh/server.ts";
-   import { signOut } from "https://deno.land/x/deno_kv_oauth@v0.2.4/mod.ts";
-
-   export const handler: Handlers = {
-     async GET(req) {
-       return await signOut(req);
-     },
-   };
-   ```
-
-   ```ts routes/callback.ts
-   import { Handlers } from "$fresh/server.ts";
-   import { handleCallback } from "https://deno.land/x/deno_kv_oauth@v0.2.4/mod.ts";
-   import { oauth2Client } from "../utils/oauth2_client.ts";
-
-   export const handler: Handlers = {
-     async GET(req) {
-       // Return object also includes `accessToken` and `sessionId` properties.
-       const { response } = await handleCallback(req, oauth2Client);
-       return response;
-     },
-   };
-   ```
-
-4. Use Deno KV OAuth's helper functions where needed.
-
-   ```tsx routes/index.tsx
-   import { Handlers, PageProps } from "$fresh/server.ts";
-   import {
-     getSessionAccessToken,
-     getSessionId,
-   } from "https://deno.land/x/deno_kv_oauth@v0.2.4/mod.ts";
-   import { oauth2Client } from "../utils/oauth2_client.ts";
-
-   interface User {
-     login: string;
-     name: string;
-     avatar_url: string;
-   }
-
-   export const handler: Handlers<User | null> = {
-     async GET(req, ctx) {
-       const sessionId = await getSessionId(req);
-
-       if (!sessionId) {
-         return ctx.render(null);
-       }
-
-       const accessToken = await getSessionAccessToken(oauth2Client, sessionId);
-       const response = await fetch("https://api.github.com/user", {
-         headers: {
-           authorization: `bearer ${accessToken}`,
-         },
-       });
-       const user: User = await response.json();
-       return ctx.render(user);
-     },
-   };
-
-   export default function Page({ data }: PageProps<User | null>) {
-     if (!data) {
-       return <a href="/signin">Sign In</a>;
-     }
-
-     return (
-       <div>
-         <img src={data.avatar_url} width={64} height={64} />
-         <h1>{data.name}</h1>
-         <p>{data.login}</p>
-         <a href="/signout">Sign Out</a>
-       </div>
-     );
-   }
-   ```
-
-5. ⚠️ While Deno KV is still **experimental** you need to add the `--unstable`
-   option to the `start` task in the `deno.json` file.
-
-   ```json
-   "start": "deno run -A --watch=static/,routes/ --unstable dev.ts",
-   ```
-
-6. Start your project with the necessary environment variables.
-
-   ```sh
-   GITHUB_CLIENT_ID=xxx GITHUB_CLIENT_SECRET=xxx deno task start
-   ```
-
-## More on Deno KV OAuth
-
-Follow the links to read more about:
-
-- Using a provider from the list of
-  [pre-configured providers](https://deno.land/x/deno_kv_oauth#pre-configured-oauth-20-clients)
-- Configuring a
-  [custom OAuth 2.0 client](https://deno.land/x/deno_kv_oauth#custom-oauth-20-client)
-- Setting the mandatory
-  [environment variables](https://deno.land/x/deno_kv_oauth#environment-variables)
-- Exploring a [live demo](https://fresh-deno-kv-oauth-demo.deno.dev/)
+  as an example

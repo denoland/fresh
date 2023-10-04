@@ -38,7 +38,7 @@ class DefaultRenderer extends Marked.Renderer {
     slugger: Marked.Slugger,
   ): string {
     const slug = slugger.slug(raw);
-    return `<h${level} id="${slug}"><a class="anchor" aria-hidden="true" tabindex="-1" href="#${slug}">#</a>${text}</h${level}>`;
+    return `<h${level} id="${slug}"><a class="md-anchor" tabindex="-1" href="#${slug}">${text}<span aria-hidden="true">#</span></a></h${level}>`;
   }
 
   link(href: string, title: string | null, text: string) {
@@ -91,7 +91,7 @@ class DefaultRenderer extends Marked.Renderer {
     } else {
       const html = Prism.highlight(code, grammar, lang);
       out +=
-        `<pre class="highlight highlight-source-${lang} notranslate lang-${lang}">${html}</pre>`;
+        `<pre class="highlight highlight-source-${lang} notranslate lang-${lang}"><code>${html}</code></pre>`;
     }
 
     out += `</div>`;
