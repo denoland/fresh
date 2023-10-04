@@ -59,6 +59,7 @@ const errorCss = css`
 		.code-frame {
 			overflow: auto;
 			padding: 0.5rem;
+      margin-bottom: 0.5rem;
 			background: var(--bg-code-frame);
 			color: var(--code);
 		}
