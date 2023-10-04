@@ -226,7 +226,15 @@ export async function render<Data>(
       componentFn.displayName = (fn as any).displayName || fn.name;
       componentStack[i] = componentFn;
     } else {
-      componentStack[i] = fn;
+      componentStack[i] = () => {
+        return h(fn, {
+          ...props,
+          Component() {
+            return h(componentStack[i + 1], null);
+          },
+          // deno-lint-ignore no-explicit-any
+        } as any);
+      };
     }
   }
 
