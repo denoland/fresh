@@ -1,6 +1,7 @@
 import { assertEquals, assertMatch } from "$std/testing/asserts.ts";
 import { Page } from "./deps.ts";
 import {
+  assertNoComments,
   assertNoPageComments,
   assertNotSelector,
   assertSelector,
@@ -532,6 +533,13 @@ Deno.test("reconciles keyed non island components", async () => {
       assertNotSelector(doc, "[data-fresh-key]");
     },
   );
+});
+
+Deno.test("don't serialize keys for nodes outside islands or partials", async () => {
+  await withFakeServe("./tests/fixture_partials/main.ts", async (server) => {
+    const doc = await server.getHtml("/keys_outside");
+    assertNoComments(doc);
+  });
 });
 
 Deno.test("partial injection mode", async () => {

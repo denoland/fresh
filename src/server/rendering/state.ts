@@ -40,6 +40,8 @@ export class RenderState {
   error: Error | null = null;
   isPartial: boolean;
   partialCount = 0;
+  partialDepth = 0;
+  islandDepth = 0;
   url: URL;
 
   constructor(
