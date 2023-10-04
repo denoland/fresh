@@ -190,7 +190,7 @@ function Main(props: { path: string; page: Page }) {
           <div>Menu</div>
         </label>
       </div>
-      <div class="mx-auto max-w-screen-xl px-4 flex gap-6 md:gap-8">
+      <div class="mx-auto max-w-screen-xl flex gap-6 md:gap-8">
         <DesktopSidebar path={props.path} page={props.page} />
         <Content page={props.page} />
       </div>
@@ -233,7 +233,7 @@ function MobileSidebar(props: { path: string; page: Page }) {
 
 function DesktopSidebar(props: { path: string; page: Page }) {
   return (
-    <nav class="w-[18rem] flex-shrink-0 hidden md:block py-7 pr-8">
+    <nav class="w-[18rem] flex-shrink-0 hidden md:block py-7 px-4">
       <DocsSidebar
         path={props.path}
         versionLinks={props.page.versionLinks}
@@ -246,8 +246,8 @@ function DesktopSidebar(props: { path: string; page: Page }) {
 function Content(props: { page: Page }) {
   const html = renderMarkdown(props.page.markdown);
   return (
-    <main class="py-6 overflow-hidden md:mr-4 lg:mr-32">
-      <h1 class="text(4xl gray-900) tracking-tight font-extrabold mt-6 md:mt-0">
+    <main class="py-6 md:mr-4 lg:mr-32 min-w-0">
+      <h1 class="text(4xl gray-900) tracking-tight font-extrabold mt-6 md:mt-0 px-4">
         {props.page.title}
       </h1>
       <div
@@ -278,7 +278,7 @@ function ForwardBackButtons(props: {
   const lower = "text-gray-900 font-medium";
 
   return (
-    <div class="mt-8 flex flex(col md:row) gap-4">
+    <div class="px-4 mt-8 flex flex(col md:row) gap-4">
       {prev && (
         <a href={prev.href} class={`${button} text-left`}>
           <span class={upper}>{"←"} Previous</span>

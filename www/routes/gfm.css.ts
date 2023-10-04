@@ -18,6 +18,38 @@ function css(template: TemplateStringsArray, ...params: string[]) {
 
 const CSS = css`${gfm.CSS}
 
+.markdown-body h1,
+.markdown-body h2,
+.markdown-body h3,
+.markdown-body h4,
+.markdown-body h5,
+.markdown-body h6,
+.markdown-body ul,
+.markdown-body ol,
+.markdown-body p,
+.markdown-body details,
+.markdown-body blockquote {
+  margin-left: 1rem;
+  margin-right: 1rem;
+}
+
+.markdown-body blockquote p {
+  margin-left: 0
+}
+
+@media screen and (min-width: 768px) {
+  .markdown-body .fenced-code,
+  .markdown-body table {
+    margin-left: 1rem;
+    margin-right: 1rem;
+  }
+
+  .markdown-body details .fenced-code {
+    margin-left: 0;
+    margin-right: 0;
+  }
+}
+
 ol.nested {
 	counter-reset: item;
 }
@@ -69,7 +101,7 @@ ol.nested li:before {
 }
 
 .fenced-code {
-  margin-bottom: 1rem;
+  margin-bottom: 1rem; 
 }
 .fenced-code pre {
   margin-bottom: 0;
