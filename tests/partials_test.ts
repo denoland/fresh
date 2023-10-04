@@ -955,5 +955,26 @@ Deno.test("Updates active links outside of vdom", async () => {
   );
 });
 
+Deno.test("throws an error when response contains no partials", async () => {
+  await withPageName(
+    "./tests/fixture_partials/main.ts",
+    async (page, address) => {
+      const logs: string[] = [];
+      page.on("pageerror", (msg) => logs.push(msg.message));
+
+      await page.goto(`${address}/no_partial_response`);
+      await waitFor(async () => {
+        const logEl = await page.$eval("#logs", (el) => el.textContent);
+        return /mount Counter/.test(logEl);
+      });
+
+      await page.click(".update-link");
+
+      await waitFor(() => logs.length > 0);
+      assertMatch(logs[0], /Found no partials/);
+    },
+  );
+});
+
 // TODO Head merging
 // TODO Children Keys

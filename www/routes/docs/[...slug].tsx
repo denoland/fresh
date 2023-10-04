@@ -155,7 +155,7 @@ export default function DocsPage(props: PageProps<Data>) {
         <meta property="og:image" content={ogImageUrl} />
         <meta name="view-transition" content="same-origin" />
       </Head>
-      <div class="flex flex-col min-h-screen">
+      <div class="flex flex-col min-h-screen" f-client-nav>
         <Header title="docs" active="/docs" />
         <Main page={props.data.page} />
         <Footer />
