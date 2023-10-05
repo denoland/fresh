@@ -772,9 +772,6 @@ if (!history.state) {
   };
   history.replaceState(state, document.title);
 }
-// We need to keep track of that ourselves since we do client side
-// navigation.
-history.scrollRestoration = "manual";
 
 document.addEventListener("click", async (e) => {
   let el = e.target;
@@ -863,6 +860,10 @@ addEventListener("popstate", async (e) => {
   // When state is `null` then the browser navigated to a document
   // fragment. In this case we do nothing.
   if (e.state === null) {
+    // Reset to browser default
+    if (history.scrollRestoration) {
+      history.scrollRestoration = "auto";
+    }
     return;
   }
 
@@ -874,6 +875,12 @@ addEventListener("popstate", async (e) => {
   // do a full client-side navigation. Otherwise do a full
   // page navigation.
   if (partials.has("body")) {
+    // We need to keep track of that ourselves since we do client side
+    // navigation.
+    if (history.scrollRestoration) {
+      history.scrollRestoration = "manual";
+    }
+
     const url = new URL(location.href, location.origin);
     try {
       await fetchPartials(url, url);
