@@ -1088,3 +1088,16 @@ Deno.test("does not merge duplicate <head> content", async () => {
     },
   );
 });
+
+Deno.test("applies f-partial on <button>", async () => {
+  await withPageName(
+    "./tests/fixture_partials/main.ts",
+    async (page, address) => {
+      await page.goto(`${address}/button`);
+      await page.waitForSelector(".status-initial");
+
+      await page.click("button");
+      await page.waitForSelector(".status-updated");
+    },
+  );
+});
