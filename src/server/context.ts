@@ -281,8 +281,21 @@ export async function getServerContext(opts: InternalFreshOptions) {
         url,
         name,
         component,
-        handler: handler ??
-          ((req, ctx) => router.defaultErrorHandler(req, ctx, ctx.error)),
+        handler: (req, ctx) => {
+          if (opts.dev) {
+            const prevComp = error.component;
+            error.component = DefaultErrorHandler;
+            try {
+              return ctx.render();
+            } finally {
+              error.component = prevComp;
+            }
+          }
+
+          return handler
+            ? handler(req, ctx)
+            : router.defaultErrorHandler(req, ctx, ctx.error);
+        },
         csp: Boolean(config?.csp ?? false),
         appWrapper: !config?.skipAppWrapper,
         inheritLayouts: !config?.skipInheritedLayouts,
