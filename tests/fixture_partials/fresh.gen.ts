@@ -79,6 +79,9 @@ import * as $73 from "./routes/no_partial_response/index.tsx";
 import * as $74 from "./routes/no_partial_response/injected.tsx";
 import * as $75 from "./routes/no_partial_response/update.tsx";
 import * as $76 from "./routes/partial_slot_inside_island.tsx";
+import * as $77 from "./routes/scroll_restoration/index.tsx";
+import * as $78 from "./routes/scroll_restoration/injected.tsx";
+import * as $79 from "./routes/scroll_restoration/update.tsx";
 import * as $$0 from "./islands/Counter.tsx";
 import * as $$1 from "./islands/CounterA.tsx";
 import * as $$2 from "./islands/CounterB.tsx";
@@ -173,6 +176,9 @@ const manifest = {
     "./routes/no_partial_response/injected.tsx": $74,
     "./routes/no_partial_response/update.tsx": $75,
     "./routes/partial_slot_inside_island.tsx": $76,
+    "./routes/scroll_restoration/index.tsx": $77,
+    "./routes/scroll_restoration/injected.tsx": $78,
+    "./routes/scroll_restoration/update.tsx": $79,
   },
   islands: {
     "./islands/Counter.tsx": $$0,

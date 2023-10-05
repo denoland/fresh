@@ -1,4 +1,4 @@
-import { assertEquals, assertMatch } from "$std/testing/asserts.ts";
+import { assert, assertEquals, assertMatch } from "$std/testing/asserts.ts";
 import { Page } from "./deps.ts";
 import {
   assertNoComments,
@@ -831,6 +831,32 @@ Deno.test("allow opting out of client navigation", async () => {
       // Check that island is interactive
       await page.click(".island-b button");
       await waitForText(page, ".output-b", "1");
+    },
+  );
+});
+
+Deno.test("restore scroll position", async () => {
+  await withPageName(
+    "./tests/fixture_partials/main.ts",
+    async (page, address) => {
+      const initialUrl = `${address}/scroll_restoration`;
+      await page.goto(initialUrl);
+      await page.waitForSelector(".status-initial");
+
+      await page.evaluate(() => {
+        document.querySelector(".update-link")?.scrollIntoView({
+          behavior: "instant",
+        });
+      });
+
+      await page.click(".update-link");
+      await page.waitForSelector(".status-updated");
+
+      await page.goBack();
+      await page.waitForSelector(".status-initial");
+      const scroll = await page.evaluate(() => ({ scrollX, scrollY }));
+
+      assert(scroll.scrollY > 100, `Page did not scroll ${scroll.scrollY}`);
     },
   );
 });
