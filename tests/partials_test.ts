@@ -630,7 +630,10 @@ Deno.test("partial navigation", async () => {
         document.querySelectorAll(".island").length === 1
       );
       assertEquals(page.url(), initialUrl);
-      await waitForText(page, "pre", "mount Counter A\n");
+      await waitFor(async () => {
+        const doc = parseHtml(await page.content());
+        return /mount Counter A/.test(doc.querySelector("pre")!.textContent!);
+      });
       await assertNoPageComments(page);
     },
   );
@@ -1024,4 +1027,3 @@ Deno.test("throws an error when response contains no partials", async () => {
 });
 
 // TODO Head merging
-// TODO Children Keys
