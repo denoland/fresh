@@ -1,4 +1,3 @@
-import { LayoutConfig } from "$fresh/server.ts";
 import { ServerContext } from "./context.ts";
 export type { FromManifestOptions } from "./context.ts";
 export { Status } from "./deps.ts";
@@ -7,6 +6,7 @@ import {
   Handler,
   Handlers,
   IslandModule,
+  LayoutConfig,
   MiddlewareModule,
   RouteConfig,
   ServeHandlerInfo,
