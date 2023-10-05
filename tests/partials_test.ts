@@ -1,6 +1,7 @@
 import { assert, assertEquals, assertMatch } from "$std/testing/asserts.ts";
 import { Page } from "./deps.ts";
 import {
+  assertMetaContent,
   assertNoComments,
   assertNoPageComments,
   assertNotSelector,
@@ -1026,4 +1027,36 @@ Deno.test("throws an error when response contains no partials", async () => {
   );
 });
 
-// TODO Head merging
+Deno.test("merges <head> content", async () => {
+  await withPageName(
+    "./tests/fixture_partials/main.ts",
+    async (page, address) => {
+      await page.goto(`${address}/head_merge`);
+      await page.waitForSelector(".status-initial");
+
+      await page.click(".update-link");
+      await page.waitForSelector(".status-updated");
+
+      await waitFor(async () => {
+        return (await page.title()) === "Head merge updated";
+      });
+
+      const doc = parseHtml(await page.content());
+      assertEquals(doc.title, "Head merge updated");
+
+      assertMetaContent(doc, "foo", "bar baz");
+      assertMetaContent(doc, "og:foo", "og value foo");
+      assertMetaContent(doc, "og:bar", "og value bar");
+
+      const color = await page.$eval("h1", (el) => {
+        return window.getComputedStyle(el).color;
+      });
+      assertEquals(color, "rgb(255, 0, 0)");
+
+      const textColor = await page.$eval("p", (el) => {
+        return window.getComputedStyle(el).color;
+      });
+      assertEquals(textColor, "rgb(0, 128, 0)");
+    },
+  );
+});
