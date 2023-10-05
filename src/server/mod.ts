@@ -1,5 +1,4 @@
 import { LayoutConfig } from "$fresh/server.ts";
-import { ComponentChildren } from "preact";
 import { ServerContext } from "./context.ts";
 export type { FromManifestOptions } from "./context.ts";
 export { Status } from "./deps.ts";
@@ -72,7 +71,8 @@ export interface Manifest {
         propsOrRequest: any,
         // deno-lint-ignore no-explicit-any
         ctx: any,
-      ) => Promise<ComponentChildren | Response> | ComponentChildren;
+        // deno-lint-ignore no-explicit-any
+      ) => Promise<any | Response> | any;
       // deno-lint-ignore no-explicit-any
       handler?: Handler<any, any> | Handlers<any, any> | UnknownHandler;
       config?: RouteConfig | LayoutConfig | ErrorHandler;
