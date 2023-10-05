@@ -698,8 +698,10 @@ export async function applyPartials(res: Response): Promise<void> {
 
   await Promise.all(promises);
 
-  if (deserialize) {
-    state = deserialize(stateDom!, signal) as SerializedState;
+  if (stateDom) {
+    state = deserialize
+      ? deserialize(stateDom, signal) as SerializedState
+      : JSON.parse(stateDom)?.v;
   }
 
   // Collect all partials and build up the vnode tree
