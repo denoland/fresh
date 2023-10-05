@@ -16,10 +16,6 @@ declare global {
        * particular node and its children.
        */
       "f-client-nav"?: boolean | SignalLike<boolean>;
-      /**
-       * Pass a signal to track loading state of a partial navigation
-       */
-      "f-loading"?: SignalLike<boolean>;
     }
   }
 }
