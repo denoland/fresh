@@ -1,5 +1,5 @@
 import { Handlers, PageProps } from "$fresh/server.ts";
-import { asset, Head } from "$fresh/runtime.ts";
+import { asset, Head, Partial } from "$fresh/runtime.ts";
 import DocsSidebar from "../../components/DocsSidebar.tsx";
 import DocsTitle from "../../components/DocsTitle.tsx";
 import Footer from "../../components/Footer.tsx";
@@ -155,7 +155,7 @@ export default function DocsPage(props: PageProps<Data>) {
         <meta property="og:image" content={ogImageUrl} />
         <meta name="view-transition" content="same-origin" />
       </Head>
-      <div class="flex flex-col min-h-screen">
+      <div class="flex flex-col min-h-screen" f-client-nav>
         <Header title="docs" active="/docs" />
         <Main page={props.data.page} />
         <Footer />
@@ -192,7 +192,9 @@ function Main(props: { page: Page }) {
       </div>
       <div class="mx-auto max-w-screen-xl flex gap-6 md:gap-8">
         <DesktopSidebar page={props.page} />
-        <Content page={props.page} />
+        <Partial name="docs-main">
+          <Content page={props.page} />
+        </Partial>
       </div>
     </div>
   );
