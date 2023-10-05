@@ -8,7 +8,7 @@ export default defineApp((res, ctx) => {
         <title>test</title>
         <link rel="stylesheet" href="/style.css" />
       </head>
-      <body>
+      <body f-client-nav>
         <ctx.Component />
       </body>
     </html>

@@ -5,6 +5,7 @@ import {
   ComponentType,
   Fragment,
   h,
+  isValidElement,
   options,
   render,
   VNode,
@@ -720,7 +721,7 @@ export async function applyPartials(res: Response): Promise<void> {
     } else {
       // deno-lint-ignore no-explicit-any
       const mode = (vnode.props as any).mode;
-      const children = vnode.props.children;
+      let children = vnode.props.children;
 
       // Modify children depending on the replace mode
       if (mode === PartialMode.REPLACE) {
@@ -734,8 +735,45 @@ export async function applyPartials(res: Response): Promise<void> {
         if (mode === PartialMode.APPEND) {
           newChildren.push(children);
         } else {
+          // Workaround for missing keys
+          if (!isValidElement(children)) {
+            children = h(Fragment, null, children);
+          }
+
+          if ((children as VNode).key == null) {
+            (children as VNode).key = newChildren.length;
+          }
+
+          // Update rendered children keys if necessary
+          // deno-lint-ignore no-explicit-any
+          const renderedChildren = (instance as any).__v.__k as VNode[] | null;
+          if (Array.isArray(renderedChildren)) {
+            for (let i = 0; i < renderedChildren.length; i++) {
+              const child = renderedChildren[i];
+              if (child.key == null) {
+                child.key = i;
+              } else {
+                // Assume list is keyed. We don't support mixed
+                // keyed an unkeyed
+                break;
+              }
+            }
+          }
+
+          for (let i = 0; i < newChildren.length; i++) {
+            const child = newChildren[i];
+            if (child.key == null) {
+              child.key = i;
+            } else {
+              // Assume list is keyed. We don't support mixed
+              // keyed an unkeyed
+              break;
+            }
+          }
+
           newChildren.unshift(children);
         }
+
         instance.props.children = newChildren;
       }
 
@@ -760,6 +798,10 @@ export interface FreshHistoryState {
   index: number;
   scrollX: number;
   scrollY: number;
+}
+
+function checkClientNavEnabled() {
+  return document.querySelector(`[${CLIENT_NAV_ATTR}]`) !== null;
 }
 
 // Keep track of history state to apply forward or backward animations
@@ -798,15 +840,9 @@ document.addEventListener("click", async (e) => {
       const partial = el.getAttribute(PARTIAL_ATTR);
 
       // Check if the user opted out of client side navigation.
-      // There are two cases to account for:
-      //  1. Partial request
-      //  2. Normal request (turbolink-style)
-      const settingEl = el.closest(`[${CLIENT_NAV_ATTR}]`);
       if (
-        partial === null && (
-          settingEl === null ||
-          settingEl.getAttribute(CLIENT_NAV_ATTR) !== "true"
-        )
+        !checkClientNavEnabled() ||
+        el.closest(`[${CLIENT_NAV_ATTR}="true"]`) === null
       ) {
         return;
       }
@@ -871,36 +907,34 @@ addEventListener("popstate", async (e) => {
   const nextIdx = state.index ?? index + 1;
   index = nextIdx;
 
-  // If we have the body partial, then we assume that we can
-  // do a full client-side navigation. Otherwise do a full
-  // page navigation.
-  if (partials.has("body")) {
-    // We need to keep track of that ourselves since we do client side
-    // navigation.
-    if (history.scrollRestoration) {
-      history.scrollRestoration = "manual";
-    }
-
-    const url = new URL(location.href, location.origin);
-    try {
-      await fetchPartials(url, url);
-      scrollTo({
-        left: state.scrollX ?? 0,
-        top: state.scrollY ?? 0,
-        behavior: "instant",
-      });
-    } catch (err) {
-      // If the response didn't contain a partial, then we can only
-      // do a reload.
-      if (err instanceof NoPartialsError) {
-        location.reload();
-        return;
-      }
-
-      throw err;
-    }
-  } else {
+  if (!checkClientNavEnabled()) {
     location.reload();
+    return;
+  }
+
+  // We need to keep track of that ourselves since we do client side
+  // navigation.
+  if (history.scrollRestoration) {
+    history.scrollRestoration = "manual";
+  }
+
+  const url = new URL(location.href, location.origin);
+  try {
+    await fetchPartials(url, url);
+    scrollTo({
+      left: state.scrollX ?? 0,
+      top: state.scrollY ?? 0,
+      behavior: "instant",
+    });
+  } catch (err) {
+    // If the response didn't contain a partial, then we can only
+    // do a reload.
+    if (err instanceof NoPartialsError) {
+      location.reload();
+      return;
+    }
+
+    throw err;
   }
 });
 
