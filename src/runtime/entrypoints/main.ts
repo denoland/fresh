@@ -556,14 +556,15 @@ function _walkInner(
 
 const partialErrorMessage = `Unable to process partial response.`;
 
-async function fetchPartials(url: URL, realUrl: URL, init?: RequestInit) {
+async function fetchPartials(url: URL, init?: RequestInit) {
   url.searchParams.set(PARTIAL_SEARCH_PARAM, "true");
   const res = await fetch(url, init);
   await applyPartials(res);
+}
 
-  // Update links
+function updateLinks(url: URL) {
   document.querySelectorAll("a").forEach((link) => {
-    const match = matchesUrl(realUrl.pathname, link.href);
+    const match = matchesUrl(url.pathname, link.href);
 
     if (match === UrlMatchKind.Current) {
       link.setAttribute(DATA_CURRENT, "true");
@@ -884,6 +885,8 @@ if (!history.state) {
 document.addEventListener("click", async (e) => {
   let el = e.target;
   if (el && el instanceof HTMLElement) {
+    const originalEl = el;
+
     // Check if we clicked inside an anchor link
     if (el.nodeName !== "A") {
       el = el.closest("a");
@@ -947,12 +950,38 @@ document.addEventListener("click", async (e) => {
           partial ? partial : nextUrl.href,
           location.origin,
         );
-        await fetchPartials(partialUrl, nextUrl);
+        await fetchPartials(partialUrl);
+        updateLinks(nextUrl);
         scrollTo({ left: 0, top: 0, behavior: "instant" });
       } finally {
         if (indicator !== undefined) {
           indicator.value = false;
         }
+      }
+    } else {
+      let button: HTMLButtonElement | HTMLElement | null = originalEl;
+      // Check if we clicked on a button
+      if (button.nodeName !== "A") {
+        button = button.closest("button");
+      }
+
+      if (button !== null && button instanceof HTMLButtonElement) {
+        const partial = button.getAttribute(PARTIAL_ATTR);
+
+        // Check if the user opted out of client side navigation.
+        if (
+          partial === null ||
+          !checkClientNavEnabled() ||
+          button.closest(`[${CLIENT_NAV_ATTR}="true"]`) === null
+        ) {
+          return;
+        }
+
+        const partialUrl = new URL(
+          partial,
+          location.origin,
+        );
+        await fetchPartials(partialUrl);
       }
     }
   }
@@ -986,7 +1015,8 @@ addEventListener("popstate", async (e) => {
 
   const url = new URL(location.href, location.origin);
   try {
-    await fetchPartials(url, url);
+    await fetchPartials(url);
+    updateLinks(url);
     scrollTo({
       left: state.scrollX ?? 0,
       top: state.scrollY ?? 0,
@@ -1013,7 +1043,7 @@ document.addEventListener("submit", async (e) => {
       e.preventDefault();
 
       const url = new URL(partial, location.origin);
-      await fetchPartials(url, new URL(location.href));
+      await fetchPartials(url);
     }
   }
 });
