@@ -755,7 +755,11 @@ export async function applyPartials(res: Response): Promise<void> {
       const link = child as HTMLLinkElement;
       if (link.rel === "modulepreload") return;
       if (link.rel === "stylesheet") {
-        if (document.head.querySelector(`link[href="${link.href}"]`) === null) {
+        // The `href` attribute may be root relative. This ensures
+        // that they both have the same format
+        const existing = Array.from(document.head.querySelectorAll("link"))
+          .find((existingLink) => existingLink.href === link.href);
+        if (existing === undefined) {
           document.head.appendChild(link);
         }
       }
@@ -766,7 +770,10 @@ export async function applyPartials(res: Response): Promise<void> {
     } else if (child.nodeName === "STYLE") {
       const style = child as HTMLStyleElement;
       // TODO: Do we need a smarter merging strategy?
-      document.head.appendChild(style);
+      // Don't overwrie existing style sheets that are flagged as unique
+      if (style.id === "") {
+        document.head.appendChild(style);
+      }
     }
   });
 

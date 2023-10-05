@@ -8,6 +8,7 @@ export default function SlotDemo() {
         <title>Head merge</title>
         <meta name="foo" content="bar" />
         <meta property="og:foo" content="og value foo" />
+        <style id="style-foo"></style>
       </Head>
       <Partial name="slot-1">
         <Fader>
@@ -21,6 +22,15 @@ export default function SlotDemo() {
           f-partial="/head_merge/update"
         >
           update
+        </a>
+      </p>
+      <p>
+        <a
+          class="duplicate-link"
+          href="/head_merge/injected"
+          f-partial="/head_merge/duplicate"
+        >
+          duplicate
         </a>
       </p>
     </div>
