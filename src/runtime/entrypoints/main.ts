@@ -10,7 +10,7 @@ import {
   render,
   VNode,
 } from "preact";
-import { assetHashingHook } from "../utils.ts";
+import { assetHashingHook, INTERNAL_PREFIX } from "../utils.ts";
 import { type SerializedState } from "../../server/rendering/fresh_tags.tsx";
 import type { Signal } from "@preact/signals";
 import {
@@ -710,6 +710,65 @@ export async function applyPartials(res: Response): Promise<void> {
       `Found no partials in HTML response. Please make sure to render at least one partial. Requested url: ${res.url}`,
     );
   }
+
+  // Update <head>
+  document.title = doc.title;
+
+  // Needs to be converted to an array otherwise somehow <link>-tags
+  // are missing.
+  Array.from(doc.head.childNodes).forEach((childNode) => {
+    const child = childNode as HTMLElement;
+
+    if (child.nodeName === "TITLE") return;
+    if (child.nodeName === "META") {
+      const meta = child as HTMLMetaElement;
+
+      // Ignore charset which is usually set site wide anyway
+      if (meta.hasAttribute("charset")) return;
+
+      const name = meta.name;
+      if (name !== "") {
+        const existing = document.head.querySelector(`meta[name="${name}"]`) as
+          | HTMLMetaElement
+          | null;
+        if (existing !== null) {
+          if (existing.content !== meta.content) {
+            existing.content = meta.content;
+          }
+        } else {
+          document.head.appendChild(meta);
+        }
+      } else {
+        const property = child.getAttribute("property");
+        const existing = document.head.querySelector(
+          `meta[property="${property}"]`,
+        ) as HTMLMetaElement | null;
+        if (existing !== null) {
+          if (existing.content !== meta.content) {
+            existing.content = meta.content;
+          }
+        } else {
+          document.head.appendChild(meta);
+        }
+      }
+    } else if (child.nodeName === "LINK") {
+      const link = child as HTMLLinkElement;
+      if (link.rel === "modulepreload") return;
+      if (link.rel === "stylesheet") {
+        if (document.head.querySelector(`link[href="${link.href}"]`) === null) {
+          document.head.appendChild(link);
+        }
+      }
+    } else if (child.nodeName === "SCRIPT") {
+      const script = child as HTMLScriptElement;
+      if (script.src === `${INTERNAL_PREFIX}/refresh.js`) return;
+      // TODO: What to do with script tags?
+    } else if (child.nodeName === "STYLE") {
+      const style = child as HTMLStyleElement;
+      // TODO: Do we need a smarter merging strategy?
+      document.head.appendChild(style);
+    }
+  });
 
   // Update all encountered partials
   for (let i = 0; i < encounteredPartials.length; i++) {
