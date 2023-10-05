@@ -1,6 +1,5 @@
 import { gte, join, posix, relative, walk, WalkEntry } from "./deps.ts";
 import { error } from "./error.ts";
-import { FreshOptions } from "../server/mod.ts";
 const MIN_DENO_VERSION = "1.31.0";
 const TEST_FILE_PATTERN = /[._]test\.(?:[tj]sx?|[mc][tj]s)$/;
 
@@ -24,7 +23,7 @@ export function ensureMinDenoVersion() {
 async function collectDir(
   dir: string,
   callback: (entry: WalkEntry, dir: string) => void,
-  options: FreshOptions,
+  ignoreFilePattern = TEST_FILE_PATTERN,
 ): Promise<void> {
   // Check if provided path is a directory
   try {
@@ -39,7 +38,7 @@ async function collectDir(
     includeDirs: false,
     includeFiles: true,
     exts: ["tsx", "jsx", "ts", "js"],
-    skip: [options?.router?.ignoreFilePattern || TEST_FILE_PATTERN],
+    skip: [ignoreFilePattern],
   });
 
   for await (const entry of routesFolder) {
@@ -55,7 +54,7 @@ export interface Manifest {
 const GROUP_REG = /[/\\\\]\((_[^/\\\\]+)\)[/\\\\]/;
 export async function collect(
   directory: string,
-  options: FreshOptions = {},
+  ignoreFilePattern?: RegExp,
 ): Promise<Manifest> {
   const filePaths = new Set<string>();
 
@@ -84,11 +83,11 @@ export async function collect(
       }
       filePaths.add(normalized);
       routes.push(rel);
-    }, options),
+    }, ignoreFilePattern),
     collectDir(join(directory, "./islands"), (entry, dir) => {
       const rel = join("islands", relative(dir, entry.path));
       islands.push(rel);
-    }, options),
+    }, ignoreFilePattern),
   ]);
 
   routes.sort();
