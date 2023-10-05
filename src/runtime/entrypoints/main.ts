@@ -756,10 +756,6 @@ options.vnode = (vnode) => {
   if (originalHook) originalHook(vnode);
 };
 
-function checkClientNavEnabled() {
-  return document.querySelector(`[${CLIENT_NAV_ATTR}="true"]`) !== null;
-}
-
 export interface FreshHistoryState {
   index: number;
   scrollX: number;
