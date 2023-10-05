@@ -633,6 +633,8 @@ function collectPartials(
   }
 }
 
+class NoPartialsError extends Error {}
+
 /**
  * Apply partials from a HTML response
  */
@@ -703,7 +705,7 @@ export async function applyPartials(res: Response): Promise<void> {
   collectPartials(encounteredPartials, islands, state, doc.body);
 
   if (encounteredPartials.length === 0) {
-    throw new Error(
+    throw new NoPartialsError(
       `Found no partials in HTML response. Please make sure to render at least one partial. Requested url: ${res.url}`,
     );
   }
@@ -754,10 +756,21 @@ options.vnode = (vnode) => {
   if (originalHook) originalHook(vnode);
 };
 
+export interface FreshHistoryState {
+  index: number;
+  scrollX: number;
+  scrollY: number;
+}
+
 // Keep track of history state to apply forward or backward animations
 let index = history.state?.index || 0;
 if (!history.state) {
-  history.replaceState({ index }, document.title);
+  const state: FreshHistoryState = {
+    index,
+    scrollX,
+    scrollY,
+  };
+  history.replaceState(state, document.title);
 }
 
 document.addEventListener("click", async (e) => {
@@ -812,8 +825,20 @@ document.addEventListener("click", async (e) => {
         // the partials because sometimes users click a link to
         // "refresh" the current page.
         if (el.href !== window.location.href) {
+          const state: FreshHistoryState = {
+            index,
+            scrollX: window.scrollX,
+            scrollY: window.scrollY,
+          };
+
+          // Store current scroll position
+          history.replaceState({ ...state }, "", location.href);
+
+          // Now store the new position
           index++;
-          history.pushState({ index }, "", nextUrl.href);
+          state.scrollX = 0;
+          state.scrollY = 0;
+          history.pushState(state, "", nextUrl.href);
         }
 
         const partialUrl = new URL(
@@ -821,6 +846,7 @@ document.addEventListener("click", async (e) => {
           location.origin,
         );
         await fetchPartials(partialUrl, nextUrl);
+        scrollTo({ left: 0, top: 0, behavior: "instant" });
       } finally {
         if (indicator !== undefined) {
           indicator.value = false;
@@ -834,17 +860,45 @@ addEventListener("popstate", async (e) => {
   // When state is `null` then the browser navigated to a document
   // fragment. In this case we do nothing.
   if (e.state === null) {
+    // Reset to browser default
+    if (history.scrollRestoration) {
+      history.scrollRestoration = "auto";
+    }
     return;
   }
-  const nextIdx = history.state?.index ?? index + 1;
+
+  const state: FreshHistoryState = history.state;
+  const nextIdx = state.index ?? index + 1;
   index = nextIdx;
 
   // If we have the body partial, then we assume that we can
   // do a full client-side navigation. Otherwise do a full
   // page navigation.
   if (partials.has("body")) {
+    // We need to keep track of that ourselves since we do client side
+    // navigation.
+    if (history.scrollRestoration) {
+      history.scrollRestoration = "manual";
+    }
+
     const url = new URL(location.href, location.origin);
-    await fetchPartials(url, url);
+    try {
+      await fetchPartials(url, url);
+      scrollTo({
+        left: state.scrollX ?? 0,
+        top: state.scrollY ?? 0,
+        behavior: "instant",
+      });
+    } catch (err) {
+      // If the response didn't contain a partial, then we can only
+      // do a reload.
+      if (err instanceof NoPartialsError) {
+        location.reload();
+        return;
+      }
+
+      throw err;
+    }
   } else {
     location.reload();
   }
