@@ -1060,3 +1060,31 @@ Deno.test("merges <head> content", async () => {
     },
   );
 });
+
+Deno.test("does not merge duplicate <head> content", async () => {
+  await withPageName(
+    "./tests/fixture_partials/main.ts",
+    async (page, address) => {
+      await page.goto(`${address}/head_merge`);
+      await page.waitForSelector(".status-initial");
+
+      await page.click(".duplicate-link");
+      await page.waitForSelector(".status-duplicated");
+
+      await waitFor(async () => {
+        return (await page.title()) === "Head merge duplicated";
+      });
+
+      const html = await page.content();
+      assert(
+        Array.from(html.matchAll(/id="style-foo"/g)).length === 1,
+        `Duplicate style tag found`,
+      );
+
+      assert(
+        Array.from(html.matchAll(/style\.css/g)).length === 1,
+        `Duplicate link stylesheet found`,
+      );
+    },
+  );
+});
