@@ -150,7 +150,7 @@ Deno.test("shows custom 500 page for rendering errors when not in dev", async (t
   });
 });
 
-Deno.test("show codeframe in dev mode even with custom 500", async (t) => {
+Deno.test("show codeframe in dev mode even with custom 500", async () => {
   await withFakeServe(
     "./tests/fixture_dev_codeframe/dev.ts",
     async (server) => {
