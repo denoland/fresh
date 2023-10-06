@@ -29,7 +29,7 @@ const toc: RawTableOfContents = {
         title: "Getting Started",
         link: "latest",
         pages: [
-          ["create-a-project", "Create a project", "link:latest"],
+          ["create-a-project", "Create a project", "link:canary"],
           ["running-locally", "Running locally", "link:latest"],
           ["create-a-route", "Create a route", "link:latest"],
           ["dynamic-routes", "Dynamic routes", "link:latest"],

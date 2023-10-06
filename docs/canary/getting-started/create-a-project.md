@@ -4,6 +4,13 @@ description: |
   scaffolds out the various files and folders a Fresh project needs.
 ---
 
+> [info]: The documentation assumes you have Deno 1.35.0 or later installed.
+
+To install Deno, follow the installation instructions in the Deno manual.
+
+For the best user experience, you should also set up your editor or IDE to play
+nice with Deno. Documentation for this can also be found in the manual.
+
 To create a new project, run:
 
 ```sh Terminal
