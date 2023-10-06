@@ -1,4 +1,9 @@
-import { assert, assertEquals, assertMatch } from "$std/testing/asserts.ts";
+import {
+  assert,
+  assertEquals,
+  assertExists,
+  assertMatch,
+} from "$std/testing/asserts.ts";
 import { Page } from "./deps.ts";
 import {
   assertMetaContent,
@@ -1098,6 +1103,19 @@ Deno.test("applies f-partial on <button>", async () => {
 
       await page.click("button");
       await page.waitForSelector(".status-updated");
+    },
+  );
+});
+
+Deno.test("supports relative links", async () => {
+  await withPageName(
+    "./tests/fixture_partials/main.ts",
+    async (page, address) => {
+      await page.goto(`${address}/refresh`);
+      await page.waitForSelector(".status-initial");
+
+      await page.click("button");
+      await page.waitForSelector(".status-refreshed");
     },
   );
 });
