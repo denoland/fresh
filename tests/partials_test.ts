@@ -1111,7 +1111,7 @@ Deno.test("supports relative links", async () => {
   await withPageName(
     "./tests/fixture_partials/main.ts",
     async (page, address) => {
-      await page.goto(`${address}/refresh`);
+      await page.goto(`${address}/relative_link`);
       await page.waitForSelector(".status-initial");
 
       await page.click("button");
