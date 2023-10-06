@@ -75,4 +75,5 @@ rendered.
 
 The rendered page will only include the `<meta>`-tag with `"Other title"`.
 
-> ℹ️ The `<title>`-tag is automatically deduplicated, even without a `key` prop.
+> [info]: The `<title>`-tag is automatically deduplicated, even without a `key`
+> prop.
