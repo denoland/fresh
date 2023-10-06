@@ -375,6 +375,12 @@
     "image": "deno-artwork"
   },
   {
+    "title": "Text2Audio",
+    "link": "https://text2audio.cc/",
+    "github": "dunkbing/text2audio",
+    "image": "text2audio"
+  },
+  {
     "title": "Do not remove this, it’s for preventing conflicts by trailing comma",
     "link": "",
     "github": "",
