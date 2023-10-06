@@ -102,7 +102,6 @@ class DefaultRenderer extends Marked.Renderer {
 
   blockquote(quote: string): string {
     const match = quote.match(ADMISSION_REG);
-    console.log(match, quote);
     if (match) {
       const label: Record<string, string> = {
         tip: "Tip",
