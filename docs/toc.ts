@@ -48,7 +48,7 @@ const toc: RawTableOfContents = {
           ["server-components", "Server Components", "link:latest"],
           ["routing", "Routing", "link:latest"],
           ["routes", "Routes", "link:latest"],
-          ["app-wrapper", "App wrapper", "link:latest"],
+          ["app-wrapper", "App wrapper", "link:canary"],
           ["layouts", "Layouts", "link:latest"],
           ["forms", "Forms", "link:latest"],
           ["islands", "Interactive islands", "link:latest"],

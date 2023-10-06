@@ -97,7 +97,7 @@ export function revive(
     [],
     // Keep a root node in the vnode stack to save a couple of checks
     // later during iteration
-    [h(Fragment, null)],
+    [h(Fragment, null) as VNode],
     document.body,
     result,
   );
@@ -324,11 +324,11 @@ function _walkInner(
         });
 
         vnodeStack.push(
-          h(PartialComp, { name, key, mode: +mode }),
+          h(PartialComp, { name, key, mode: +mode }) as VNode,
         );
       } else if (comment.startsWith("frsh-key")) {
         const key = comment.slice("frsh-key:".length);
-        vnodeStack.push(h(Fragment, { key }));
+        vnodeStack.push(h(Fragment, { key }) as VNode);
       } else if (comment.startsWith("/frsh-key")) {
         const vnode = vnodeStack.pop();
         const parent = vnodeStack[vnodeStack.length - 1]!;
@@ -453,7 +453,7 @@ function _walkInner(
           kind: MarkerKind.Island,
         });
 
-        const vnode = h(islands[id][exportName], islandProps);
+        const vnode = h(islands[id][exportName], islandProps) as VNode;
         if (key) vnode.key = key;
         vnodeStack.push(vnode);
       }
@@ -510,7 +510,7 @@ function _walkInner(
           // Remove internal fresh key
           if (hasKey) sib.removeAttribute(DATA_KEY_ATTR);
 
-          const vnode = h(sib.localName, newProps);
+          const vnode = h(sib.localName, newProps) as VNode;
           addPropsChild(parentVNode, vnode);
           vnodeStack.push(vnode);
         } else {
@@ -621,7 +621,7 @@ function collectPartials(
           islands,
           state[0] ?? [],
           [],
-          [h(Fragment, null)],
+          [h(Fragment, null) as VNode],
           rootFrag,
           encounteredPartials,
         );
