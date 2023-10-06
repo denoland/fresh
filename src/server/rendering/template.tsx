@@ -1,7 +1,14 @@
 import { RenderState } from "./state.ts";
 import { setRenderState } from "./preact_hooks.ts";
 import { renderToString } from "preact-render-to-string";
-import { Fragment, h, isValidElement, toChildArray, VNode } from "preact";
+import {
+  ComponentType,
+  Fragment,
+  h,
+  isValidElement,
+  toChildArray,
+  VNode,
+} from "preact";
 import { HEAD_CONTEXT } from "../../runtime/head.ts";
 import { CSP_CONTEXT } from "../../runtime/csp.ts";
 
@@ -13,12 +20,12 @@ export function renderHtml(state: RenderState) {
   const componentStack = state.componentStack;
   try {
     const routeComponent = componentStack[componentStack.length - 1];
-    let finalComp = h(routeComponent, state.routeOptions);
+    let finalComp = h(routeComponent, state.routeOptions) as VNode;
 
     // Skip page component
     let i = componentStack.length - 1;
     while (i--) {
-      const component = componentStack[i];
+      const component = componentStack[i] as ComponentType;
       const curComp = finalComp;
 
       finalComp = h(component, {
@@ -26,7 +33,8 @@ export function renderHtml(state: RenderState) {
         Component() {
           return curComp;
         },
-      });
+        // deno-lint-ignore no-explicit-any
+      } as any) as VNode;
     }
 
     const app = h(
@@ -37,12 +45,12 @@ export function renderHtml(state: RenderState) {
         value: state.headVNodes,
         children: finalComp,
       }),
-    );
+    ) as VNode;
 
     let html = renderToString(app);
 
     for (const [id, children] of state.slots.entries()) {
-      const slotHtml = renderToString(h(Fragment, null, children));
+      const slotHtml = renderToString(h(Fragment, null, children) as VNode);
       const templateId = id.replace(/:/g, "-");
       html += `<template id="${templateId}">${slotHtml}</template>`;
     }
@@ -103,7 +111,7 @@ export function renderOuterDocument(
     h(
       "head",
       docHead,
-      !renderedHtmlTag ? h("meta", { charSet: "utf-8" }) : null,
+      !renderedHtmlTag ? h("meta", { charset: "utf-8" }) : null,
       !renderedHtmlTag
         ? (h("meta", {
           name: "viewport",
@@ -124,7 +132,7 @@ export function renderOuterDocument(
       ...docBody,
       dangerouslySetInnerHTML: { __html: opts.bodyHtml },
     }),
-  );
+  ) as VNode;
 
   try {
     setRenderState(state);

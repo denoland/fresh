@@ -82,7 +82,7 @@ export function setRenderState(state: RenderState | null): void {
 const supportsUnstableComments = renderToString(h(Fragment, {
   // @ts-ignore unstable features not supported in types
   UNSTABLE_comment: "foo",
-})) !== "";
+}) as VNode) !== "";
 
 if (!supportsUnstableComments) {
   console.warn(
@@ -347,7 +347,7 @@ options.__b = (vnode: VNode<Record<string, unknown>>) => {
             );
           }
 
-          const child = h(originalType, props);
+          const child = h(originalType, props) as VNode;
           patched.add(child);
           islandProps.push(props);
 
