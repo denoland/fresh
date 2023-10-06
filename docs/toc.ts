@@ -96,6 +96,7 @@ const toc: RawTableOfContents = {
           ],
           ["using-deno-kv-oauth", "Using Deno KV OAuth", "link:latest"],
           ["using-csp", "Using CSP", "link:latest"],
+          ["active-links", "Styling active links", "link:canary"],
         ],
       },
     },
