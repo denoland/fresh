@@ -22,7 +22,7 @@ export default defineRoute((req) => {
       </Partial>
       <p>
         <button f-partial="?refresh">
-          update
+          refresh
         </button>
       </p>
     </div>
