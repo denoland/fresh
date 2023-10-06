@@ -4,12 +4,12 @@ description: |
   scaffolds out the various files and folders a Fresh project needs.
 ---
 
-> [info]: The documentation assumes you have Deno 1.35.0 or later installed.
-
-To install Deno, follow the installation instructions in the Deno manual.
-
-For the best user experience, you should also set up your editor or IDE to play
-nice with Deno. Documentation for this can also be found in the manual.
+> [info]: The documentation assumes you have Deno `1.35.0` or later installed.
+> To install Deno, follow the
+> [installation instructions](https://deno.land/manual/getting_started/installation)
+> in the Deno manual. For the best user experience, you should also
+> [set up your editor or IDE](https://deno.land/manual/getting_started/setup_your_environment)
+> to play nice with Deno.
 
 To create a new project, run:
 
@@ -45,59 +45,10 @@ Go to the URL printed in the terminal to see your running project. Try change
 some of the text in `routes/index.tsx` and see how the page updates
 automatically when you save the file.
 
-> [info]: Fresh needs a couple of permissions to run
+> [info]: Fresh needs a couple of permissions to run. If you're using the
+> `deno task start` task then these will be set automatically.
 >
 > - `--allow-net`: Required to start the HTTP server
 > - `--allow-read`: Required to read (static) files from disk
 > - `--allow-env`: Required to read environment variables that can be used to
   > configure your project
-
-### Configuring Deno
-
-A `deno.json` file is also created in the project directory that is used to
-configure Deno. It contains an `"imports"` field which is an
-[import map][import-map] that is used to manage the dependencies of your
-project. The other field to note is `"tasks"` which can be used as shortcuts for
-longer commands or common tasks for your project.
-
-```json Example deno.json
-{
-  "lock": false,
-  "tasks": {
-    "start": "deno run -A --watch=static/,routes/ dev.ts",
-    "build": "deno run -A dev.ts build",
-    "preview": "deno run -A main.ts"
-  },
-  "imports": {
-    "$fresh/": "../",
-    "preact": "https://esm.sh/preact@10.15.1",
-    "preact/": "https://esm.sh/preact@10.15.1/",
-    "preact-render-to-string": "https://esm.sh/*preact-render-to-string@6.2.1",
-    "@preact/signals": "https://esm.sh/*@preact/signals@1.1.3",
-    "@preact/signals-core": "https://esm.sh/@preact/signals-core@1.2.3"
-  },
-  "compilerOptions": {
-    "jsx": "react-jsx",
-    "jsxImportSource": "preact"
-  }
-}
-```
-
-Two important folders are also created that contain your routes and islands
-respectively:
-
-- **`routes/`**: This folder contains all of the routes in your project. The
-  names of each file in this folder correspond to the path where that page will
-  be accessed. Code inside of this folder is never directly shipped to the
-  client. You'll learn more about how routes work in the next section.
-- **`islands/`**: This folder contains all of the interactive islands in your
-  project. The name of each file corresponds to the name of the island defined
-  in that file. Code inside of this folder can be run from both client and
-  server. You'll learn more about islands later in this chapter.
-
-Finally a **`static/`** folder is created that contains static files that are
-automatically served "as is". [Learn more about static files][static-files].
-
-[import-map]: https://deno.land/manual/linking_to_external_code/import_maps
-[task-runner]: https://deno.land/manual/tools/task_runner
-[static-files]: ../concepts/static-files

@@ -53,16 +53,16 @@ const CSS = css`${gfm.CSS}
   width: 1.2em;
   height: 1.2em;
 }
-.markdown-body blockquote.warn {
-  border-color: #ff9100;
-  background: #F0900525;
-}
 
 .markdown-body .admonition .fenced-code {
   margin-left: 0;
   margin-right: 0;
   border: 1px solid #d9d2d2;
   border-radius: .5rem .5rem .25rem .25rem;
+}
+.markdown-body .admonition ul {
+  margin-left: 0;
+  padding-left: 1rem;
 }
 
 .markdown-body .admonition .highlight {
