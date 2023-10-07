@@ -1,9 +1,11 @@
 import FRESH_VERSIONS from "../versions.json" assert { type: "json" };
 
+export type SidebarStyle = "flat" | "default";
 type RawTableOfContents = Record<
   string,
   {
     label: string;
+    sidebar?: SidebarStyle;
     content: Record<string, RawTableOfContentsEntry>;
   }
 >;
@@ -17,21 +19,22 @@ interface RawTableOfContentsEntry {
 const toc: RawTableOfContents = {
   canary: {
     label: "canary",
+    sidebar: "flat",
     content: {
-      "the-canary-version": {
-        title: "The canary version",
-      },
-      introduction: {
-        title: "Introduction",
-        link: "latest",
-      },
       "getting-started": {
         title: "Getting Started",
         link: "latest",
         pages: [
-          ["create-a-project", "Create a project", "link:canary"],
-          ["create-a-route", "Create a route", "link:latest"],
-          ["dynamic-routes", "Dynamic routes", "link:latest"],
+          ["introduction", "Introduction", "link:canary"],
+          ["installation", "Installation", "link:canary"],
+        ],
+      },
+      building: {
+        title: "Concepts",
+        link: "latest",
+        pages: [
+          ["routing", "Routing", "link:canary"],
+          ["routes", "Defining routes", "link:canary"],
           ["custom-handlers", "Custom handlers", "link:latest"],
           ["fetching-data", "Fetching data", "link:latest"],
           ["form-submissions", "Form submissions", "link:latest"],
@@ -45,8 +48,8 @@ const toc: RawTableOfContents = {
         pages: [
           ["architecture", "Architecture", "link:latest"],
           ["server-components", "Server Components", "link:latest"],
-          ["routing", "Routing", "link:latest"],
-          ["routes", "Routes", "link:latest"],
+          ["routing2", "Routing", "link:latest"],
+          ["routes2", "Routes", "link:latest"],
           ["app-wrapper", "App wrapper", "link:canary"],
           ["layouts", "Layouts", "link:latest"],
           ["forms", "Forms", "link:latest"],

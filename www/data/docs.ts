@@ -1,4 +1,4 @@
-import toc from "../../docs/toc.ts";
+import toc, { SidebarStyle } from "../../docs/toc.ts";
 
 export interface TableOfContentsEntry {
   slug: string;
@@ -26,6 +26,10 @@ export const TABLE_OF_CONTENTS: Record<
 export const CATEGORIES: Record<string, TableOfContentsCategory[]> = {};
 
 export const VERSIONS = Object.keys(toc);
+export const STYLE = VERSIONS.reduce((acc, version) => {
+  acc[version] = toc[version].sidebar ?? "default";
+  return acc;
+}, {} as Record<string, SidebarStyle>);
 export const CANARY_VERSION = toc.canary ? "canary" : "";
 export const LATEST_VERSION =
   VERSIONS.find((version) => version !== "canary") ?? "";
@@ -35,6 +39,8 @@ for (const version in toc) {
   const versionSlug = version === LATEST_VERSION ? "" : `/${version}`;
   TABLE_OF_CONTENTS[version] = {};
   CATEGORIES[version] = [];
+
+  const isFlat = RAW_VERSION.sidebar === "flat";
 
   for (const parent in RAW_VERSION.content) {
     const rawEntry = RAW_VERSION.content[parent];
@@ -47,7 +53,9 @@ for (const version in toc) {
       ? "/latest"
       : `/${fileVersion}`;
 
-    const href = `/docs${versionSlug}/${parent}`;
+    const href = isFlat
+      ? `/docs${versionSlug}`
+      : `/docs${versionSlug}/${parent}`;
     const file = `docs${versionFilePath}/${parent}/index.md`;
 
     const entry = {
@@ -65,7 +73,7 @@ for (const version in toc) {
     CATEGORIES[version].push(category);
     if (rawEntry.pages) {
       for (const [id, title, linkedVersion] of rawEntry.pages) {
-        const slug = `${parent}/${id}`;
+        const slug = isFlat ? id : `${parent}/${id}`;
 
         // Allow stacked documentation
         const pageVersion = linkedVersion
@@ -77,7 +85,7 @@ for (const version in toc) {
 
         const href = `/docs${versionSlug}/${slug}`;
 
-        const file = `docs${versionFilePath}/${slug}.md`;
+        const file = `docs${versionFilePath}/${parent}/${id}.md`;
         const entry = { slug, title, category: parent, href, file };
         TABLE_OF_CONTENTS[version][slug] = entry;
         category.entries.push({

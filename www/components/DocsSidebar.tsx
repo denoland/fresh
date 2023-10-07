@@ -1,5 +1,6 @@
 import {
   CATEGORIES,
+  STYLE,
   TableOfContentsCategory,
   TableOfContentsCategoryEntry,
 } from "../data/docs.ts";
@@ -61,10 +62,57 @@ export default function DocsSidebar(
       </div>
 
       <ul class="list-inside font-semibold nested ml-2.5">
-        {CATEGORIES[props.selectedVersion].map((category) => (
-          <SidebarCategory key={category.href} category={category} />
-        ))}
+        {STYLE[props.selectedVersion] === "flat"
+          ? <FlatSidebar categories={CATEGORIES[props.selectedVersion]} />
+          : <NestedSidebar categories={CATEGORIES[props.selectedVersion]} />}
       </ul>
+    </>
+  );
+}
+
+function NestedSidebar(props: { categories: TableOfContentsCategory[] }) {
+  return (
+    <>
+      {props.categories.map((category) => (
+        <li key={category.href} class="my-2 block">
+          <a
+            href={category.href}
+            class="text(gray-900 hover:gray-600) [data-current]:text-green-700 [data-current]:hover:underline font-bold"
+          >
+            {category.title}
+          </a>
+          {category.entries.length > 0 && (
+            <ul class="py-2 nested list-outside">
+              {category.entries.map((entry) => (
+                <SidebarEntry key={entry.href} entry={entry} />
+              ))}
+            </ul>
+          )}
+        </li>
+      ))}
+    </>
+  );
+}
+
+function FlatSidebar(props: { categories: TableOfContentsCategory[] }) {
+  return (
+    <>
+      {props.categories.map((category) => {
+        return (
+          <div key={category.title}>
+            <h3>{category.title}</h3>
+            <ul>
+              {category.entries.length > 0 && (
+                <ul class="py-2 nested list-outside">
+                  {category.entries.map((entry) => (
+                    <SidebarEntry key={entry.href} entry={entry} />
+                  ))}
+                </ul>
+              )}
+            </ul>
+          </div>
+        );
+      })}
     </>
   );
 }
