@@ -948,7 +948,7 @@ document.addEventListener("click", async (e) => {
 
         const partialUrl = new URL(
           partial ? partial : nextUrl.href,
-          location.origin,
+          location.href,
         );
         await fetchPartials(partialUrl);
         updateLinks(nextUrl);
@@ -979,7 +979,7 @@ document.addEventListener("click", async (e) => {
 
         const partialUrl = new URL(
           partial,
-          location.origin,
+          location.href,
         );
         await fetchPartials(partialUrl);
       }
@@ -1042,7 +1042,7 @@ document.addEventListener("submit", async (e) => {
     if (partial !== null) {
       e.preventDefault();
 
-      const url = new URL(partial, location.origin);
+      const url = new URL(partial, location.href);
       await fetchPartials(url);
     }
   }
