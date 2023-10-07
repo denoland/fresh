@@ -83,7 +83,7 @@ export function SidebarCategory(props: {
         {title}
       </a>
       {entries.length > 0 && (
-        <ul class="py-2 pl-4 nested list-outside">
+        <ul class="py-2 nested list-outside">
           {entries.map((entry) => (
             <SidebarEntry key={entry.href} entry={entry} />
           ))}
@@ -99,10 +99,10 @@ export function SidebarEntry(props: {
   const { title, href } = props.entry;
 
   return (
-    <li class="py-0.5">
+    <li class="py-[1px]">
       <a
         href={href}
-        class="[data-current]:text-green-700 transition-colors hover:text-green-500 font-normal"
+        class="[data-current]:text-green-700 [data-current]:border-green-600 [data-current]:bg-green-50 border-l-4 border-transparent px-4 py-0.5 transition-colors hover:text-green-500 font-normal block"
       >
         {title}
       </a>
