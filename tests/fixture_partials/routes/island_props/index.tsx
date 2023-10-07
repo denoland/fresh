@@ -1,5 +1,4 @@
 import { Partial } from "$fresh/runtime.ts";
-// import { Fader } from "../../islands/Fader.tsx";
 import PropIsland from "../../islands/PropIsland.tsx";
 
 export default function PropsDemo() {
