@@ -168,10 +168,10 @@ function Main(props: { page: Page }) {
   return (
     <div class="flex-1">
       <MobileSidebar page={props.page} />
-      <div class="flex mx-auto max-w-screen-xl px-4 md:px-0 py-5 md:py-0 justify-end">
+      <div class="flex mx-auto max-w-screen-xl px-4 md:px-0 md:py-0 justify-end bg-gray-100">
         <label
           for="docs_sidebar"
-          class="px-4 py-3 md:hidden flex items-center hover:bg-gray-100 rounded gap-2"
+          class="px-4 py-3 md:hidden flex items-center hover:bg-gray-100 rounded gap-2 cursor-pointer"
         >
           <svg
             class="h-6 w-6"
@@ -187,7 +187,7 @@ function Main(props: { page: Page }) {
             >
             </path>
           </svg>
-          <div>Menu</div>
+          <div>Table of Contents</div>
         </label>
       </div>
       <div class="mx-auto max-w-screen-xl flex gap-6 md:gap-8">
@@ -247,7 +247,7 @@ function Content(props: { page: Page }) {
   const html = renderMarkdown(props.page.markdown);
   return (
     <main class="py-6 md:mr-4 lg:mr-32 min-w-0">
-      <h1 class="text(4xl gray-900) tracking-tight font-extrabold mt-6 md:mt-0 px-4">
+      <h1 class="text(4xl gray-900) tracking-tight font-extrabold md:mt-0 px-4">
         {props.page.title}
       </h1>
       <div
