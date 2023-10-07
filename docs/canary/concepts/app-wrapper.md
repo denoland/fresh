@@ -40,33 +40,6 @@ changes the function signature so that the first argument is the `Request`
 instance and the second one is the `AppContext`.
 
 ```tsx routes/_app.tsx
-import { AppContext } from "$fresh/server.ts";
-
-export default async function App(req: Request, ctx: AppContext) {
-  const data = await loadData();
-
-  return (
-    <html>
-      <head>
-        <meta charset="utf-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>My Fresh app</title>
-      </head>
-      <body>
-        <h1>Hello {data.name}</h1>
-        <ctx.Component />
-      </body>
-    </html>
-  );
-}
-```
-
-### Define helper
-
-To make it quicker to type the async app wrapper, Fresh includes a `defineApp`
-helper which already infers the correct types for you.
-
-```tsx routes/_app.tsx
 import { defineApp } from "$fresh/server.ts";
 
 export default defineApp(async (req, ctx) => {
@@ -87,6 +60,15 @@ export default defineApp(async (req, ctx) => {
   );
 });
 ```
+
+> [info]: The `defineRoute` handler is a shortcut that already infers the type
+> for you. It expands to the following code:
+>
+> ```tsx routes/_app.tsx
+> export default async function AppWrapper(req: Request, ctx: AppContext) {
+>   // ...
+> }
+> ```
 
 ## Disabling the app wrapper
 
