@@ -66,7 +66,33 @@ export async function getFreshConfigWithDefaults(
     staticDir: "",
     render: opts.render,
     router: opts.router,
+    server: opts.server ?? {},
   };
+
+  if (opts.cert) {
+    config.server.cert = opts.cert;
+  }
+  if (opts.hostname) {
+    config.server.hostname = opts.hostname;
+  }
+  if (opts.key) {
+    config.server.key = opts.key;
+  }
+  if (opts.onError) {
+    config.server.onError = opts.onError;
+  }
+  if (opts.onListen) {
+    config.server.onListen = opts.onListen;
+  }
+  if (opts.port) {
+    config.server.port = opts.port;
+  }
+  if (opts.reusePort) {
+    config.server.reusePort = opts.reusePort;
+  }
+  if (opts.signal) {
+    config.server.signal = opts.signal;
+  }
 
   config.build.outDir = opts.build?.outDir
     ? parseFileOrUrl(opts.build.outDir, base)
