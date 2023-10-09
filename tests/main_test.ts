@@ -974,32 +974,6 @@ Deno.test("De-duplicates <Head /> nodes by key", async () => {
   });
 });
 
-async function spawnTestProcess(options: Deno.CommandOptions, lineReg: RegExp) {
-  const serverProcess = new Deno.Command(Deno.execPath(), {
-    ...options,
-    stdin: "null",
-    stdout: "piped",
-    stderr: "piped",
-  }).spawn();
-
-  const lines: ReadableStream<string> = serverProcess.stdout
-    .pipeThrough(new TextDecoderStream())
-    .pipeThrough(new TextLineStream());
-
-  const output: string[] = [];
-  console.log("hey");
-  // @ts-ignore yes it does
-  for await (const line of lines.values({ preventCancel: true })) {
-    output.push(line);
-    const match = line.match(lineReg);
-    if (match) {
-      break;
-    }
-  }
-
-  return { output };
-}
-
 Deno.test("pass options in config", async (t) => {
   const fixture = join(Deno.cwd(), "tests", "fixture_config");
 
