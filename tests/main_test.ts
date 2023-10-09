@@ -8,7 +8,6 @@ import {
   join,
   puppeteer,
   retry,
-  TextLineStream,
 } from "./deps.ts";
 import manifest from "./fixture/fresh.gen.ts";
 import options from "./fixture/options.ts";
