@@ -9,5 +9,5 @@ export const DEBUG = !Deno.env.get("DENO_DEPLOYMENT_ID");
 export function bundleAssetUrl(path: string) {
   const CDN_URL = Deno.env.get("CDN_URL");
   const assetPath = `${INTERNAL_PREFIX}${JS_PREFIX}/${BUILD_ID}${path}`;
-  return CDN_URL ? `${CDN_URL}${assetPath}` : assetPath;
+  return CDN_URL ? `${CDN_URL}/${BUILD_ID}/_fresh${path}` : assetPath;
 }
