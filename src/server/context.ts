@@ -647,7 +647,7 @@ export class ServerContext {
     const staticRoutes: router.Routes<RouterState> = {};
     const routes: router.Routes<RouterState> = {};
 
-    if (Deno.env.get("CDN_URL")) {
+    if (!Deno.env.get("CDN_URL")) {
       internalRoutes[`${INTERNAL_PREFIX}${JS_PREFIX}/${BUILD_ID}/:path*`] = {
         baseRoute: toBaseRoute(
           `${INTERNAL_PREFIX}${JS_PREFIX}/${BUILD_ID}/:path*`,
