@@ -1,5 +1,7 @@
 import { h } from "preact";
 import { ContentSecurityPolicy, nonce } from "../../runtime/csp.ts";
+import { setInternalAssetPathPrefix } from "../asset_path.ts";
+import { BUILD_ID } from "../build_id.ts";
 import { bundleAssetUrl } from "../constants.ts";
 import { htmlEscapeJsonString } from "../htmlescape.ts";
 import { serialize } from "../serializer.ts";
@@ -35,13 +37,17 @@ export function renderFreshTags(
     moduleScripts.push([url, renderState.getNonce()]);
   }
 
+  if (opts.cdnUrl) {
+    setInternalAssetPathPrefix(`${opts.cdnUrl}/${BUILD_ID}/_fresh`);
+  }
+
   const preloadSet = new Set<string>();
   function addImport(path: string): string {
-    const url = bundleAssetUrl(`/${path}`, opts.cdnUrl);
+    const url = bundleAssetUrl(`/${path}`);
     if (!isPartial) {
       preloadSet.add(url);
       for (const depPath of opts.dependenciesFn(path)) {
-        const url = bundleAssetUrl(`/${depPath}`, opts.cdnUrl);
+        const url = bundleAssetUrl(`/${depPath}`);
         preloadSet.add(url);
       }
     }

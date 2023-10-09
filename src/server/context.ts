@@ -13,6 +13,7 @@ import {
   SELF,
 } from "../runtime/csp.ts";
 import { ASSET_CACHE_BUST_KEY, INTERNAL_PREFIX } from "../runtime/utils.ts";
+import { setStaticAssetPathPrefix } from "./asset_path.ts";
 import { BUILD_ID, setBuildId } from "./build_id.ts";
 import { getCodeFrame } from "./code_frame.ts";
 import { getFreshConfigWithDefaults } from "./config.ts";
@@ -331,43 +332,50 @@ export async function getServerContext(opts: InternalFreshOptions) {
   }
 
   const staticFiles: StaticFile[] = [];
-  try {
-    const staticDirUrl = toFileUrl(opts.staticDir);
-    const entries = walk(opts.staticDir, {
-      includeFiles: true,
-      includeDirs: false,
-      followSymlinks: false,
-    });
-    const encoder = new TextEncoder();
-    for await (const entry of entries) {
-      const localUrl = toFileUrl(entry.path);
-      const path = localUrl.href.substring(staticDirUrl.href.length);
-      const stat = await Deno.stat(localUrl);
-      const contentType = typeByExtension(extname(path)) ??
-        "application/octet-stream";
-      const etag = await crypto.subtle.digest(
-        "SHA-1",
-        encoder.encode(BUILD_ID + path),
-      ).then((hash) =>
-        Array.from(new Uint8Array(hash))
-          .map((byte) => byte.toString(16).padStart(2, "0"))
-          .join("")
-      );
-      const staticFile: StaticFile = {
-        localUrl,
-        path,
-        size: stat.size,
-        contentType,
-        etag,
-      };
-      staticFiles.push(staticFile);
+  if (!opts.cdnUrl) {
+    try {
+      const staticDirUrl = toFileUrl(opts.staticDir);
+      const entries = walk(opts.staticDir, {
+        includeFiles: true,
+        includeDirs: false,
+        followSymlinks: false,
+      });
+      const encoder = new TextEncoder();
+      for await (const entry of entries) {
+        const localUrl = toFileUrl(entry.path);
+        const path = localUrl.href.substring(staticDirUrl.href.length);
+        const stat = await Deno.stat(localUrl);
+        const contentType = typeByExtension(extname(path)) ??
+          "application/octet-stream";
+        const etag = await crypto.subtle.digest(
+          "SHA-1",
+          encoder.encode(BUILD_ID + path),
+        ).then((hash) =>
+          Array.from(new Uint8Array(hash))
+            .map((byte) => byte.toString(16).padStart(2, "0"))
+            .join("")
+        );
+        const staticFile: StaticFile = {
+          localUrl,
+          path,
+          size: stat.size,
+          contentType,
+          etag,
+        };
+        staticFiles.push(staticFile);
+      }
+    } catch (err) {
+      if (err.cause instanceof Deno.errors.NotFound) {
+        // Do nothing.
+      } else {
+        throw err;
+      }
     }
-  } catch (err) {
-    if (err.cause instanceof Deno.errors.NotFound) {
-      // Do nothing.
-    } else {
-      throw err;
-    }
+  } else {
+    setStaticAssetPathPrefix(`${opts.cdnUrl}/${BUILD_ID}`);
+    console.log(
+      `Using CDN URL ${colors.cyan(opts.cdnUrl)} for static files`,
+    );
   }
 
   if (opts.dev) {
