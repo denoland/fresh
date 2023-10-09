@@ -392,6 +392,7 @@ export async function getServerContext(opts: InternalFreshOptions) {
     opts.router ?? DEFAULT_ROUTER_OPTIONS,
     opts.build.target,
     snapshot,
+    opts.cdnUrl,
   );
 }
 
@@ -409,6 +410,7 @@ export class ServerContext {
   #plugins: Plugin[];
   #builder: Builder | Promise<BuildSnapshot> | BuildSnapshot;
   #routerOptions: RouterOptions;
+  #cdnUrl?: string;
 
   constructor(
     routes: Route[],
@@ -427,6 +429,7 @@ export class ServerContext {
     routerOptions: RouterOptions,
     target: string | string[],
     snapshot: BuildSnapshot | null = null,
+    cdnUrl?: string,
   ) {
     this.#routes = routes;
     this.#islands = islands;
@@ -447,6 +450,7 @@ export class ServerContext {
       jsxConfig,
       target,
     });
+    this.#cdnUrl = cdnUrl;
     this.#routerOptions = routerOptions;
   }
 
@@ -466,6 +470,7 @@ export class ServerContext {
     }
 
     const config = await getFreshConfigWithDefaults(manifest, opts);
+
     return getServerContext(config);
   }
 
@@ -647,7 +652,7 @@ export class ServerContext {
     const staticRoutes: router.Routes<RouterState> = {};
     const routes: router.Routes<RouterState> = {};
 
-    if (!Deno.env.get("CDN_URL")) {
+    if (!this.#cdnUrl) {
       internalRoutes[`${INTERNAL_PREFIX}${JS_PREFIX}/${BUILD_ID}/:path*`] = {
         baseRoute: toBaseRoute(
           `${INTERNAL_PREFIX}${JS_PREFIX}/${BUILD_ID}/:path*`,
@@ -675,7 +680,7 @@ export class ServerContext {
         baseRoute: toBaseRoute(ALIVE_URL),
         methods: {
           default: () => {
-            let timerId: number | undefined = undefined;
+            let timerId: Timer | undefined = undefined;
             const body = new ReadableStream({
               start(controller) {
                 controller.enqueue(`data: ${BUILD_ID}\nretry: 100\n\n`);
@@ -769,6 +774,7 @@ export class ServerContext {
         data,
         state: ctx?.state,
         error,
+        cdnUrl: this.#cdnUrl,
       });
 
       if (resp instanceof Response) {
@@ -822,6 +828,7 @@ export class ServerContext {
             data,
             state: ctx?.state,
             error,
+            cdnUrl: this.#cdnUrl,
           });
 
           if (resp instanceof Response) {

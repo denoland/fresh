@@ -1,10 +1,10 @@
+import { h } from "preact";
+import { ContentSecurityPolicy, nonce } from "../../runtime/csp.ts";
 import { bundleAssetUrl } from "../constants.ts";
-import { RenderState } from "./state.ts";
 import { htmlEscapeJsonString } from "../htmlescape.ts";
 import { serialize } from "../serializer.ts";
 import { Plugin, PluginRenderResult, PluginRenderStyleTag } from "../types.ts";
-import { ContentSecurityPolicy, nonce } from "../../runtime/csp.ts";
-import { h } from "preact";
+import { RenderState } from "./state.ts";
 
 export type SerializedState = [islands: unknown[], plugins: unknown[]];
 
@@ -18,6 +18,7 @@ export function renderFreshTags(
     dependenciesFn: (path: string) => string[];
     styles: string[];
     pluginRenderResults: [Plugin, PluginRenderResult][];
+    cdnUrl?: string;
   },
 ) {
   const { isPartial } = renderState;
@@ -36,11 +37,11 @@ export function renderFreshTags(
 
   const preloadSet = new Set<string>();
   function addImport(path: string): string {
-    const url = bundleAssetUrl(`/${path}`);
+    const url = bundleAssetUrl(`/${path}`, opts.cdnUrl);
     if (!isPartial) {
       preloadSet.add(url);
       for (const depPath of opts.dependenciesFn(path)) {
-        const url = bundleAssetUrl(`/${depPath}`);
+        const url = bundleAssetUrl(`/${depPath}`, opts.cdnUrl);
         preloadSet.add(url);
       }
     }

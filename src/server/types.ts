@@ -1,7 +1,7 @@
 import { ComponentChildren, ComponentType, VNode } from "preact";
-import * as router from "./router.ts";
-import { InnerRenderFunction, RenderContext } from "./render.ts";
 import { Manifest } from "./mod.ts";
+import { InnerRenderFunction, RenderContext } from "./render.ts";
+import * as router from "./router.ts";
 
 export interface DenoConfig {
   imports?: Record<string, string>;
@@ -44,6 +44,7 @@ export interface FreshOptions {
   plugins?: Plugin[];
   staticDir?: string;
   router?: RouterOptions;
+  cdnUrl?: string;
 }
 
 export interface InternalFreshOptions {
@@ -60,6 +61,7 @@ export interface InternalFreshOptions {
   plugins: Plugin[];
   staticDir: string;
   router?: RouterOptions;
+  cdnUrl?: string;
 }
 
 export interface RouterOptions {

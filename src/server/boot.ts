@@ -10,7 +10,8 @@ export async function startFromContext(ctx: ServerContext, opts: StartOptions) {
         colors.bgRgb8(colors.black(colors.bold(" 🍋 Fresh ready ")), 121),
       );
 
-      const address = colors.cyan(`http://localhost:${params.port}/`);
+      const host = opts.hostname ?? "localhost";
+      const address = colors.cyan(`http://${host}:${params.port}/`);
       const localLabel = colors.bold("Local:");
       console.log(`    ${localLabel} ${address}\n`);
     };

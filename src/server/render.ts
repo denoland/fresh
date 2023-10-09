@@ -1,4 +1,8 @@
 import { h, VNode } from "preact";
+import { ContentSecurityPolicy, NONE, UNSAFE_INLINE } from "../runtime/csp.ts";
+import { renderFreshTags } from "./rendering/fresh_tags.tsx";
+import { RenderState } from "./rendering/state.ts";
+import { renderHtml, renderOuterDocument } from "./rendering/template.tsx";
 import {
   AppModule,
   AsyncLayout,
@@ -13,11 +17,6 @@ import {
   RouteContext,
   UnknownPage,
 } from "./types.ts";
-import { NONE, UNSAFE_INLINE } from "../runtime/csp.ts";
-import { ContentSecurityPolicy } from "../runtime/csp.ts";
-import { RenderState } from "./rendering/state.ts";
-import { renderHtml, renderOuterDocument } from "./rendering/template.tsx";
-import { renderFreshTags } from "./rendering/fresh_tags.tsx";
 
 export const DEFAULT_RENDER_FN: RenderFunction = (_ctx, render) => {
   render();
@@ -40,6 +39,7 @@ export interface RenderOptions<Data> {
   state?: Record<string, unknown>;
   error?: unknown;
   lang?: string;
+  cdnUrl?: string;
 }
 
 export type InnerRenderFunction = () => string;
@@ -349,6 +349,7 @@ export async function render<Data>(
     dependenciesFn: opts.dependenciesFn,
     styles: ctx.styles,
     pluginRenderResults: renderResults,
+    cdnUrl: opts.cdnUrl,
   });
 
   // Render outer document up to `<body>`

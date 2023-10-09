@@ -66,6 +66,7 @@ export async function getFreshConfigWithDefaults(
     staticDir: "",
     render: opts.render,
     router: opts.router,
+    cdnUrl: opts.cdnUrl,
   };
 
   config.build.outDir = opts.build?.outDir
