@@ -5,8 +5,10 @@ import {
   assertMatch,
   assertStringIncludes,
   delay,
+  join,
   puppeteer,
   retry,
+  TextLineStream,
 } from "./deps.ts";
 import manifest from "./fixture/fresh.gen.ts";
 import options from "./fixture/options.ts";
@@ -969,5 +971,125 @@ Deno.test("De-duplicates <Head /> nodes by key", async () => {
       1,
     );
     assert(/<meta property="og:title" content="Other title"\/>/.test(html));
+  });
+});
+
+async function spawnTestProcess(options: Deno.CommandOptions, lineReg: RegExp) {
+  const serverProcess = new Deno.Command(Deno.execPath(), {
+    ...options,
+    stdin: "null",
+    stdout: "piped",
+    stderr: "piped",
+  }).spawn();
+
+  const lines: ReadableStream<string> = serverProcess.stdout
+    .pipeThrough(new TextDecoderStream())
+    .pipeThrough(new TextLineStream());
+
+  const output: string[] = [];
+  console.log("hey");
+  // @ts-ignore yes it does
+  for await (const line of lines.values({ preventCancel: true })) {
+    output.push(line);
+    const match = line.match(lineReg);
+    if (match) {
+      break;
+    }
+  }
+
+  return { output };
+}
+
+Deno.test("pass options in config", async (t) => {
+  const fixture = join(Deno.cwd(), "tests", "fixture_config");
+
+  await t.step("config.onListen", async () => {
+    const { lines, serverProcess, output } = await startFreshServer({
+      args: [
+        "run",
+        "-A",
+        join(fixture, "main.ts"),
+      ],
+    });
+
+    try {
+      assert(output.find((line) => line === "it works"));
+    } finally {
+      serverProcess.kill("SIGTERM");
+      await serverProcess.status;
+
+      // Drain the lines stream
+      for await (const _ of lines) { /* noop */ }
+    }
+  });
+
+  await t.step("config.server.onListen", async () => {
+    const { lines, serverProcess, output } = await startFreshServer({
+      args: [
+        "run",
+        "-A",
+        join(fixture, "main.ts"),
+      ],
+      env: {
+        TEST_CONFIG_SERVER: "true",
+      },
+    });
+
+    try {
+      assert(output.find((line) => line === "it works #2"));
+    } finally {
+      serverProcess.kill("SIGTERM");
+      await serverProcess.status;
+
+      // Drain the lines stream
+      for await (const _ of lines) { /* noop */ }
+    }
+  });
+});
+
+Deno.test("pass options in config dev.ts", async (t) => {
+  const fixture = join(Deno.cwd(), "tests", "fixture_config");
+
+  await t.step("config.onListen", async () => {
+    const { lines, serverProcess, output } = await startFreshServer({
+      args: [
+        "run",
+        "-A",
+        join(fixture, "dev.ts"),
+      ],
+    });
+
+    try {
+      assert(output.find((line) => line === "it works"));
+    } finally {
+      serverProcess.kill("SIGTERM");
+      await serverProcess.status;
+
+      // Drain the lines stream
+      for await (const _ of lines) { /* noop */ }
+    }
+  });
+
+  await t.step("config.server.onListen", async () => {
+    const { lines, serverProcess, output } = await startFreshServer({
+      args: [
+        "run",
+        "-A",
+        join(fixture, "dev.ts"),
+      ],
+      env: {
+        TEST_CONFIG_SERVER: "true",
+      },
+    });
+
+    try {
+      assert(output.find((line) => line === "it works #2"));
+    } finally {
+      serverProcess.kill("SIGTERM");
+      await serverProcess.status;
+
+      // Drain the lines stream
+      for await (const _ of lines) { /* noop */ }
+    }
   });
 });
