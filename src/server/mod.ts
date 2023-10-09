@@ -100,5 +100,5 @@ export async function start(routes: Manifest, opts: StartOptions = {}) {
     skipSnapshot: false,
     dev: false,
   });
-  await startFromContext(ctx, opts);
+  await startFromContext(ctx, opts.server ?? opts);
 }
