@@ -23,7 +23,7 @@ export interface DenoConfig {
 
 // --- APPLICATION CONFIGURATION ---
 
-export type StartOptions = Partial<Deno.ServeTlsOptions> & FreshOptions;
+export type StartOptions = FreshOptions;
 
 export interface FreshOptions {
   build?: {
@@ -45,6 +45,60 @@ export interface FreshOptions {
   staticDir?: string;
   router?: RouterOptions;
   cdnUrl?: string;
+  server?: Partial<Deno.ServeTlsOptions>;
+
+  // Older versions of Fresh merged the `Deno.ServeTlsOptions` directly.
+  // We've moved this to `server`.
+
+  /**
+   * Server private key in PEM format
+   * @deprecated Use `server.cert` instead
+   */
+  cert?: string;
+  /**
+   * Cert chain in PEM format
+   * @deprecated Use `server.key` instead
+   */
+  key?: string;
+  /**
+   * The port to listen on.
+   * @default {8000}
+   * @deprecated Use `server.port` instead
+   */
+  port?: number;
+  /**
+   * A literal IP address or host name that can be resolved to an IP address.
+   *
+   * __Note about `0.0.0.0`__ While listening `0.0.0.0` works on all platforms,
+   * the browsers on Windows don't work with the address `0.0.0.0`.
+   * You should show the message like `server running on localhost:8080` instead of
+   * `server running on 0.0.0.0:8080` if your program supports Windows.
+   *
+   * @default {"0.0.0.0"}
+   * @deprecated Use `server.hostname` instead
+   */
+  hostname?: string;
+  /**
+   * An {@linkcode AbortSignal} to close the server and all connections.
+   * @deprecated Use `server.signal` instead
+   */
+  signal?: AbortSignal;
+  /**
+   * Sets `SO_REUSEPORT` on POSIX systems.
+   * @deprecated Use `server.reusePort` instead
+   */
+  reusePort?: boolean;
+  /**
+   * The handler to invoke when route handlers throw an error.
+   * @deprecated Use `server.onError` instead
+   */
+  onError?: (error: unknown) => Response | Promise<Response>;
+
+  /**
+   * The callback which is called when the server starts listening.
+   * @deprecated Use `server.onListen` instead
+   */
+  onListen?: (params: { hostname: string; port: number }) => void;
 }
 
 export interface InternalFreshOptions {
@@ -62,6 +116,7 @@ export interface InternalFreshOptions {
   staticDir: string;
   router?: RouterOptions;
   cdnUrl?: string;
+  server: Partial<Deno.ServeTlsOptions>;
 }
 
 export interface RouterOptions {

@@ -5,6 +5,7 @@ import {
   assertMatch,
   assertStringIncludes,
   delay,
+  join,
   puppeteer,
   retry,
 } from "./deps.ts";
@@ -969,5 +970,99 @@ Deno.test("De-duplicates <Head /> nodes by key", async () => {
       1,
     );
     assert(/<meta property="og:title" content="Other title"\/>/.test(html));
+  });
+});
+
+Deno.test("pass options in config", async (t) => {
+  const fixture = join(Deno.cwd(), "tests", "fixture_config");
+
+  await t.step("config.onListen", async () => {
+    const { lines, serverProcess, output } = await startFreshServer({
+      args: [
+        "run",
+        "-A",
+        join(fixture, "main.ts"),
+      ],
+    });
+
+    try {
+      assert(output.find((line) => line === "it works"));
+    } finally {
+      serverProcess.kill("SIGTERM");
+      await serverProcess.status;
+
+      // Drain the lines stream
+      for await (const _ of lines) { /* noop */ }
+    }
+  });
+
+  await t.step("config.server.onListen", async () => {
+    const { lines, serverProcess, output } = await startFreshServer({
+      args: [
+        "run",
+        "-A",
+        join(fixture, "main.ts"),
+      ],
+      env: {
+        TEST_CONFIG_SERVER: "true",
+      },
+    });
+
+    try {
+      assert(output.find((line) => line === "it works #2"));
+    } finally {
+      serverProcess.kill("SIGTERM");
+      await serverProcess.status;
+
+      // Drain the lines stream
+      for await (const _ of lines) { /* noop */ }
+    }
+  });
+});
+
+Deno.test("pass options in config dev.ts", async (t) => {
+  const fixture = join(Deno.cwd(), "tests", "fixture_config");
+
+  await t.step("config.onListen", async () => {
+    const { lines, serverProcess, output } = await startFreshServer({
+      args: [
+        "run",
+        "-A",
+        join(fixture, "dev.ts"),
+      ],
+    });
+
+    try {
+      assert(output.find((line) => line === "it works"));
+    } finally {
+      serverProcess.kill("SIGTERM");
+      await serverProcess.status;
+
+      // Drain the lines stream
+      for await (const _ of lines) { /* noop */ }
+    }
+  });
+
+  await t.step("config.server.onListen", async () => {
+    const { lines, serverProcess, output } = await startFreshServer({
+      args: [
+        "run",
+        "-A",
+        join(fixture, "dev.ts"),
+      ],
+      env: {
+        TEST_CONFIG_SERVER: "true",
+      },
+    });
+
+    try {
+      assert(output.find((line) => line === "it works #2"));
+    } finally {
+      serverProcess.kill("SIGTERM");
+      await serverProcess.status;
+
+      // Drain the lines stream
+      for await (const _ of lines) { /* noop */ }
+    }
   });
 });
