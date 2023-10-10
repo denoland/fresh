@@ -418,6 +418,9 @@ export interface ErrorPageProps {
 
   /** The error that caused the error page to be loaded. */
   error: unknown;
+
+  /** Sringified code frame (only in development mode) */
+  codeFrame?: string;
 }
 
 export interface ErrorHandlerContext<State = Record<string, unknown>>

@@ -90,8 +90,7 @@ export default function DefaultErrorPage(
   if (DEBUG) {
     if (error instanceof Error) {
       title = error.message;
-      // deno-lint-ignore no-explicit-any
-      codeFrame = (error as any).codeFrame;
+      codeFrame = props.codeFrame;
       stack = error.stack ?? "";
     } else {
       title = String(error);
