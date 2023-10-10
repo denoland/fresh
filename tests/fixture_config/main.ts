@@ -5,7 +5,7 @@
 /// <reference lib="deno.ns" />
 
 import { start } from "$fresh/server.ts";
-import routes from "./fresh.gen.ts";
+import manifest from "./fresh.gen.ts";
 
 const TEST_CONFIG_SERVER = Deno.env.get("TEST_CONFIG_SERVER") === "true";
 const onListen = (params: { hostname: string; port: number }) => {
@@ -17,7 +17,7 @@ const onListen2 = (params: { hostname: string; port: number }) => {
   console.log(`http://localhost:${params.port}`);
 };
 
-await start(routes, {
+await start(manifest, {
   server: {
     onListen: TEST_CONFIG_SERVER ? onListen2 : undefined,
   },
