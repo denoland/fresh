@@ -1,24 +1,3 @@
-import { ComponentType, h } from "preact";
-import {
-  AotSnapshot,
-  Builder,
-  BuildSnapshot,
-  BuildSnapshotJson,
-  EsbuildBuilder,
-  JSXConfig,
-} from "../build/mod.ts";
-import {
-  ContentSecurityPolicy,
-  ContentSecurityPolicyDirectives,
-  SELF,
-} from "../runtime/csp.ts";
-import { ASSET_CACHE_BUST_KEY, INTERNAL_PREFIX } from "../runtime/utils.ts";
-import { setAssetPathPrefix } from "./asset_path.ts";
-import { BUILD_ID, setBuildId } from "./build_id.ts";
-import { getCodeFrame } from "./code_frame.ts";
-import { getFreshConfigWithDefaults } from "./config.ts";
-import { ALIVE_URL, JS_PREFIX, REFRESH_JS_URL } from "./constants.ts";
-import DefaultErrorHandler from "./default_error_page.tsx";
 import {
   colors,
   extname,
@@ -28,11 +7,13 @@ import {
   typeByExtension,
   walk,
 } from "./deps.ts";
-import { Manifest } from "./mod.ts";
-import { DEFAULT_RENDER_FN, render as internalRender } from "./render.ts";
-import { setAllIslands } from "./rendering/preact_hooks.ts";
+import { ComponentType, h } from "preact";
 import * as router from "./router.ts";
-import { InternalRoute } from "./router.ts";
+import { Manifest } from "./mod.ts";
+import { ALIVE_URL, JS_PREFIX, REFRESH_JS_URL } from "./constants.ts";
+import { setAssetPathPrefix } from "./asset_path.ts";
+import { BUILD_ID, setBuildId } from "./build_id.ts";
+import DefaultErrorHandler from "./default_error_page.tsx";
 import {
   AppModule,
   BaseRoute,
@@ -59,6 +40,25 @@ import {
   UnknownPage,
   UnknownPageModule,
 } from "./types.ts";
+import { DEFAULT_RENDER_FN, render as internalRender } from "./render.ts";
+import {
+  ContentSecurityPolicy,
+  ContentSecurityPolicyDirectives,
+  SELF,
+} from "../runtime/csp.ts";
+import { ASSET_CACHE_BUST_KEY, INTERNAL_PREFIX } from "../runtime/utils.ts";
+import {
+  AotSnapshot,
+  Builder,
+  BuildSnapshot,
+  BuildSnapshotJson,
+  EsbuildBuilder,
+  JSXConfig,
+} from "../build/mod.ts";
+import { InternalRoute } from "./router.ts";
+import { setAllIslands } from "./rendering/preact_hooks.ts";
+import { getCodeFrame } from "./code_frame.ts";
+import { getFreshConfigWithDefaults } from "./config.ts";
 
 const DEFAULT_CONN_INFO: ServeHandlerInfo = {
   localAddr: { transport: "tcp", hostname: "localhost", port: 8080 },

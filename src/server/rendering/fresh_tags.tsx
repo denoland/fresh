@@ -1,10 +1,10 @@
-import { h } from "preact";
-import { ContentSecurityPolicy, nonce } from "../../runtime/csp.ts";
 import { bundleAssetUrl } from "../constants.ts";
+import { RenderState } from "./state.ts";
 import { htmlEscapeJsonString } from "../htmlescape.ts";
 import { serialize } from "../serializer.ts";
 import { Plugin, PluginRenderResult, PluginRenderStyleTag } from "../types.ts";
-import { RenderState } from "./state.ts";
+import { ContentSecurityPolicy, nonce } from "../../runtime/csp.ts";
+import { h } from "preact";
 
 export type SerializedState = [islands: unknown[], plugins: unknown[]];
 

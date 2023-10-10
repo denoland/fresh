@@ -1,7 +1,7 @@
 import { ComponentChildren, ComponentType, VNode } from "preact";
-import { Manifest } from "./mod.ts";
-import { InnerRenderFunction, RenderContext } from "./render.ts";
 import * as router from "./router.ts";
+import { InnerRenderFunction, RenderContext } from "./render.ts";
+import { Manifest } from "./mod.ts";
 
 export interface DenoConfig {
   imports?: Record<string, string>;
