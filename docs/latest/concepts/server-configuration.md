@@ -8,7 +8,7 @@ In this page we discuss how the server can be configured during startup.
 The signature of the primary method looks like this:
 
 ```ts main.ts
-export async function start(routes: Manifest, opts: StartOptions = {});
+export async function start(manifest: Manifest, opts: StartOptions = {});
 ```
 
 ## Options
