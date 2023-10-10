@@ -72,5 +72,5 @@ export function assetHashingHook(
 }
 
 export function staticFile(path: string): string {
-  return `${STATIC_ASSET_PATH_PREFIX}/static${path}`;
+  return `${STATIC_ASSET_PATH_PREFIX}${path}`;
 }

@@ -1,6 +1,10 @@
 import { h } from "preact";
 import { ContentSecurityPolicy, nonce } from "../../runtime/csp.ts";
-import { setInternalAssetPathPrefix } from "../asset_path.ts";
+import {
+  INTERNAL_PREFIX,
+  JS_PREFIX,
+  setInternalAssetPathPrefix,
+} from "../asset_path.ts";
 import { BUILD_ID } from "../build_id.ts";
 import { bundleAssetUrl } from "../constants.ts";
 import { htmlEscapeJsonString } from "../htmlescape.ts";
@@ -38,7 +42,9 @@ export function renderFreshTags(
   }
 
   if (opts.cdnUrl) {
-    setInternalAssetPathPrefix(`${opts.cdnUrl}/${BUILD_ID}/_fresh`);
+    setInternalAssetPathPrefix(
+      `${opts.cdnUrl}/${BUILD_ID}${INTERNAL_PREFIX}${JS_PREFIX}`,
+    );
   }
 
   const preloadSet = new Set<string>();
