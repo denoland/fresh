@@ -1,5 +1,5 @@
 import { assertMatch } from "$std/testing/asserts.ts";
-import { ServerContext, Status } from "../server.ts";
+import { createHandler, Status } from "../server.ts";
 import {
   assert,
   assertEquals,
@@ -16,20 +16,10 @@ import {
   withPageName,
 } from "./test_utils.ts";
 
-const ctx = await ServerContext.fromManifest(manifest, options);
-const handler = ctx.handler();
-const router = (req: Request) => {
-  return handler(req, {
-    remoteAddr: {
-      transport: "tcp",
-      hostname: "127.0.0.1",
-      port: 80,
-    },
-  });
-};
+const handler = await createHandler(manifest, options);
 
 Deno.test("/static page prerender", async () => {
-  const resp = await router(new Request("https://fresh.deno.dev/static"));
+  const resp = await handler(new Request("https://fresh.deno.dev/static"));
   assert(resp);
   assertEquals(resp.status, Status.OK);
   const body = await resp.text();
@@ -43,7 +33,7 @@ Deno.test("/static page prerender", async () => {
 });
 
 Deno.test("/with-island prerender", async () => {
-  const resp = await router(new Request("https://fresh.deno.dev/with-island"));
+  const resp = await handler(new Request("https://fresh.deno.dev/with-island"));
   assert(resp);
   assertEquals(resp.status, Status.OK);
   const body = await resp.text();
@@ -60,7 +50,7 @@ Deno.test("/with-island prerender", async () => {
 });
 
 Deno.test("plugin routes and middleware", async () => {
-  const resp = await router(new Request("https://fresh.deno.dev/test"));
+  const resp = await handler(new Request("https://fresh.deno.dev/test"));
   assert(resp);
   assertEquals(resp.status, Status.OK);
   const body = await resp.text();
@@ -75,7 +65,7 @@ Deno.test("plugin routes and middleware", async () => {
 });
 
 Deno.test("plugin middleware multiple handlers", async () => {
-  const resp = await router(
+  const resp = await handler(
     new Request("https://fresh.deno.dev/lots-of-middleware"),
   );
   assert(resp);
@@ -88,7 +78,7 @@ Deno.test("plugin middleware multiple handlers", async () => {
 });
 
 Deno.test("plugin route no leading slash", async () => {
-  const resp = await router(
+  const resp = await handler(
     new Request("https://fresh.deno.dev/no-leading-slash-here"),
   );
   assert(resp);
