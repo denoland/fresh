@@ -691,7 +691,7 @@ export class ServerContext {
         baseRoute: toBaseRoute(ALIVE_URL),
         methods: {
           default: () => {
-            let timerId: Timer | undefined = undefined;
+            let timerId: number | undefined = undefined;
             const body = new ReadableStream({
               start(controller) {
                 controller.enqueue(`data: ${BUILD_ID}\nretry: 100\n\n`);
