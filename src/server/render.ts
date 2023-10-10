@@ -39,6 +39,7 @@ export interface RenderOptions<Data> {
   data?: Data;
   state?: Record<string, unknown>;
   error?: unknown;
+  codeFrame?: string;
   lang?: string;
   cdnUrl?: string;
 }
@@ -153,6 +154,9 @@ export async function render<Data>(
   };
   if (opts.error) {
     props.error = opts.error;
+  }
+  if (opts.codeFrame) {
+    props.codeFrame = opts.codeFrame;
   }
 
   const csp: ContentSecurityPolicy | undefined = opts.route.csp

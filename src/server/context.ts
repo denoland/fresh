@@ -812,6 +812,7 @@ export class ServerContext {
         // deno-lint-ignore no-explicit-any
         ctx?: any,
         error?: unknown,
+        codeFrame?: string,
       ) => {
         return async (data?: Data, options?: RenderOptions) => {
           if (route.component === undefined) {
@@ -840,6 +841,7 @@ export class ServerContext {
             state: ctx?.state,
             error,
             cdnUrl: this.#cdnUrl,
+            codeFrame,
           });
 
           if (resp instanceof Response) {
@@ -926,14 +928,13 @@ export class ServerContext {
         "%cAn error occurred during route handling or page rendering.",
         "color:red",
       );
+      let codeFrame: string | undefined;
       if (this.#dev && error instanceof Error) {
-        const codeFrame = await getCodeFrame(error);
+        codeFrame = await getCodeFrame(error);
 
         if (codeFrame) {
           console.error();
           console.error(codeFrame);
-          // deno-lint-ignore no-explicit-any
-          (error as any).codeFrame = codeFrame;
         }
       }
       console.error(error);
@@ -943,7 +944,7 @@ export class ServerContext {
         {
           ...ctx,
           error,
-          render: errorHandlerRender(req, {}, ctx, error),
+          render: errorHandlerRender(req, {}, ctx, error, codeFrame),
         },
       );
     };
