@@ -1,6 +1,10 @@
 import { assertEquals } from "../../tests/deps.ts";
-import { asset, assetSrcSet } from "./utils.ts";
+import { asset, assetSrcSet, staticFile } from "./utils.ts";
 import { BUILD_ID } from "./build_id.ts";
+import {
+  ASSET_PATH_PREFIX,
+  setAssetPathPrefix,
+} from "$fresh/src/server/asset_path.ts";
 
 Deno.test("asset", () => {
   assertEquals(asset("/test.png"), `/test.png?__frsh_c=${BUILD_ID}`);
@@ -56,4 +60,14 @@ Deno.test("assetSrcSet", () => {
     assetSrcSet("/img.png,, /img-s.png 300w"),
     "/img.png,, /img-s.png 300w",
   );
+});
+
+Deno.test("staticFile", () => {
+  // without prefix should be the same
+  assertEquals(staticFile("/test.png"), "/test.png");
+
+  // with prefix should be prefixed
+  const prefix = "https://example.com";
+  setAssetPathPrefix(prefix);
+  assertEquals(staticFile("/test.png"), `${prefix}/test.png`);
 });
