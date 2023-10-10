@@ -107,6 +107,11 @@ function toImportSpecifier(file: string) {
   return specifier;
 }
 
+/** @todo(iuioiua) Try without `JSON.stringify()` */
+function toPath(file: string) {
+  return JSON.stringify(`${toImportSpecifier(file)}`);
+}
+
 export async function generate(directory: string, manifest: Manifest) {
   const { routes, islands } = manifest;
 
@@ -114,34 +119,16 @@ export async function generate(directory: string, manifest: Manifest) {
 // This file SHOULD be checked into source version control.
 // This file is automatically updated during development when running \`dev.ts\`.
 
-${
-    routes.map((file, i) =>
-      `import * as $${i} from "${toImportSpecifier(file)}";`
-    ).join(
-      "\n",
-    )
-  }
-${
-    islands.map((file, i) =>
-      `import * as $$${i} from "${toImportSpecifier(file)}";`
-    )
-      .join("\n")
-  }
-
 const manifest = {
   routes: {
     ${
-    routes.map((file, i) =>
-      `${JSON.stringify(`${toImportSpecifier(file)}`)}: $${i},`
-    )
+    routes.map((file) => `${toPath(file)}: await import(${toPath(file)}),`)
       .join("\n    ")
   }
   },
   islands: {
     ${
-    islands.map((file, i) =>
-      `${JSON.stringify(`${toImportSpecifier(file)}`)}: $$${i},`
-    )
+    islands.map((file) => `${toPath(file)}: await import(${toPath(file)}),`)
       .join("\n    ")
   }
   },

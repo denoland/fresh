@@ -2,45 +2,29 @@
 // This file SHOULD be checked into source version control.
 // This file is automatically updated during development when running `dev.ts`.
 
-import * as $0 from "./routes/_404.tsx";
-import * as $1 from "./routes/_500.tsx";
-import * as $2 from "./routes/_middleware.ts";
-import * as $3 from "./routes/components.tsx";
-import * as $4 from "./routes/docs/[...slug].tsx";
-import * as $5 from "./routes/docs/index.tsx";
-import * as $6 from "./routes/gfm.css.ts";
-import * as $7 from "./routes/index.tsx";
-import * as $8 from "./routes/raw.ts";
-import * as $9 from "./routes/showcase.tsx";
-import * as $10 from "./routes/update.tsx";
-import * as $$0 from "./islands/ComponentGallery.tsx";
-import * as $$1 from "./islands/CopyArea.tsx";
-import * as $$2 from "./islands/Counter.tsx";
-import * as $$3 from "./islands/LemonDrop.tsx";
-import * as $$4 from "./islands/SearchButton.tsx";
-import * as $$5 from "./islands/VersionSelect.tsx";
-
 const manifest = {
   routes: {
-    "./routes/_404.tsx": $0,
-    "./routes/_500.tsx": $1,
-    "./routes/_middleware.ts": $2,
-    "./routes/components.tsx": $3,
-    "./routes/docs/[...slug].tsx": $4,
-    "./routes/docs/index.tsx": $5,
-    "./routes/gfm.css.ts": $6,
-    "./routes/index.tsx": $7,
-    "./routes/raw.ts": $8,
-    "./routes/showcase.tsx": $9,
-    "./routes/update.tsx": $10,
+    "./routes/_404.tsx": await import("./routes/_404.tsx"),
+    "./routes/_500.tsx": await import("./routes/_500.tsx"),
+    "./routes/_middleware.ts": await import("./routes/_middleware.ts"),
+    "./routes/components.tsx": await import("./routes/components.tsx"),
+    "./routes/docs/[...slug].tsx": await import("./routes/docs/[...slug].tsx"),
+    "./routes/docs/index.tsx": await import("./routes/docs/index.tsx"),
+    "./routes/gfm.css.ts": await import("./routes/gfm.css.ts"),
+    "./routes/index.tsx": await import("./routes/index.tsx"),
+    "./routes/raw.ts": await import("./routes/raw.ts"),
+    "./routes/showcase.tsx": await import("./routes/showcase.tsx"),
+    "./routes/update.tsx": await import("./routes/update.tsx"),
   },
   islands: {
-    "./islands/ComponentGallery.tsx": $$0,
-    "./islands/CopyArea.tsx": $$1,
-    "./islands/Counter.tsx": $$2,
-    "./islands/LemonDrop.tsx": $$3,
-    "./islands/SearchButton.tsx": $$4,
-    "./islands/VersionSelect.tsx": $$5,
+    "./islands/ComponentGallery.tsx": await import(
+      "./islands/ComponentGallery.tsx"
+    ),
+    "./islands/CopyArea.tsx": await import("./islands/CopyArea.tsx"),
+    "./islands/Counter.tsx": await import("./islands/Counter.tsx"),
+    "./islands/LemonDrop.tsx": await import("./islands/LemonDrop.tsx"),
+    "./islands/SearchButton.tsx": await import("./islands/SearchButton.tsx"),
+    "./islands/VersionSelect.tsx": await import("./islands/VersionSelect.tsx"),
   },
   baseUrl: import.meta.url,
 };
