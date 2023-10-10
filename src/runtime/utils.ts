@@ -1,5 +1,5 @@
 import { VNode } from "preact";
-import { STATIC_ASSET_PATH_PREFIX } from "./asset_path.ts";
+import { ASSET_PATH_PREFIX } from "./asset_path.ts";
 import { BUILD_ID } from "./build_id.ts";
 
 export const INTERNAL_PREFIX = "/_frsh";
@@ -72,5 +72,5 @@ export function assetHashingHook(
 }
 
 export function staticFile(path: string): string {
-  return `${STATIC_ASSET_PATH_PREFIX}${path}`;
+  return `${ASSET_PATH_PREFIX}${path}`;
 }

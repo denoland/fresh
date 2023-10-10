@@ -13,7 +13,7 @@ import {
   SELF,
 } from "../runtime/csp.ts";
 import { ASSET_CACHE_BUST_KEY, INTERNAL_PREFIX } from "../runtime/utils.ts";
-import { setStaticAssetPathPrefix } from "./asset_path.ts";
+import { setAssetPathPrefix } from "./asset_path.ts";
 import { BUILD_ID, setBuildId } from "./build_id.ts";
 import { getCodeFrame } from "./code_frame.ts";
 import { getFreshConfigWithDefaults } from "./config.ts";
@@ -332,7 +332,15 @@ export async function getServerContext(opts: InternalFreshOptions) {
   }
 
   const staticFiles: StaticFile[] = [];
-  if (!opts.cdnUrl) {
+
+  if (opts.cdnUrl) {
+    setAssetPathPrefix(`${opts.cdnUrl}/${BUILD_ID}`);
+    console.log(
+      `Found cdnUrl in config, using ${
+        colors.cyan(opts.cdnUrl)
+      } to prefix asset paths.`,
+    );
+  } else {
     try {
       const staticDirUrl = toFileUrl(opts.staticDir);
       const entries = walk(opts.staticDir, {
@@ -371,11 +379,6 @@ export async function getServerContext(opts: InternalFreshOptions) {
         throw err;
       }
     }
-  } else {
-    setStaticAssetPathPrefix(`${opts.cdnUrl}/${BUILD_ID}`);
-    console.log(
-      `Using CDN URL ${colors.cyan(opts.cdnUrl)} for static files`,
-    );
   }
 
   if (opts.dev) {
