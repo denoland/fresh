@@ -375,6 +375,12 @@
     "image": "deno-artwork"
   },
   {
+    "title": "Inner Circle",
+    "link": "https://innercircleprm.com",
+    "github": "mchantosa/smooth-kitty",
+    "image": "inner-circle"
+  },  
+  {
     "title": "FilterHN",
     "link": "https://filterhn.com/",
     "image": "filter-hn"
