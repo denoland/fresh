@@ -10,7 +10,7 @@ import {
   retry,
 } from "./deps.ts";
 import manifest from "./fixture/fresh.gen.ts";
-import options from "./fixture/options.ts";
+import config from "./fixture/fresh.config.ts";
 import { BUILD_ID } from "../src/server/build_id.ts";
 import {
   assertSelector,
@@ -22,7 +22,7 @@ import {
   withPageName,
 } from "./test_utils.ts";
 
-const ctx = await ServerContext.fromManifest(manifest, options);
+const ctx = await ServerContext.fromManifest(manifest, config);
 const handler = ctx.handler();
 
 Deno.test("/ page prerender", async () => {
@@ -303,7 +303,7 @@ Deno.test("/foo/:path*", async () => {
 
 Deno.test("static files in custom directory", async () => {
   const newCtx = await ServerContext.fromManifest(manifest, {
-    ...options,
+    ...config,
     staticDir: "./custom_static",
   });
   const newRouter = (req: Request) => {

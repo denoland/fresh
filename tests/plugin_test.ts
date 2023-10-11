@@ -8,7 +8,7 @@ import {
   puppeteer,
 } from "./deps.ts";
 import manifest from "./fixture_plugin/fresh.gen.ts";
-import options from "./fixture_plugin/options.ts";
+import config from "./fixture_plugin/fresh.config.ts";
 import {
   clickWhenListenerReady,
   runBuild,
@@ -16,7 +16,7 @@ import {
   withPageName,
 } from "./test_utils.ts";
 
-const ctx = await ServerContext.fromManifest(manifest, options);
+const ctx = await ServerContext.fromManifest(manifest, config);
 const handler = ctx.handler();
 const router = (req: Request) => {
   return handler(req, {
