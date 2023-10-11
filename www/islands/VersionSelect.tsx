@@ -14,7 +14,7 @@ export default function VersionSelect(
 
   return (
     <>
-      <div class="relative">
+      <div class="relative w-[14rem]">
         <label htmlFor="version" class="sr-only">
           Version
         </label>
