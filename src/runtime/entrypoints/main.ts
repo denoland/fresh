@@ -910,8 +910,10 @@ document.addEventListener("click", async (e) => {
     ) {
       const partial = el.getAttribute(PARTIAL_ATTR);
 
-      // Check if the user opted out of client side navigation.
+      // Check if the user opted out of client side navigation or if
+      // we're doing a fragment navigation.
       if (
+        el.getAttribute("href")?.startsWith("#") ||
         !checkClientNavEnabled() ||
         el.closest(`[${CLIENT_NAV_ATTR}="true"]`) === null
       ) {

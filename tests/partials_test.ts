@@ -939,14 +939,29 @@ Deno.test("fragment navigation should not cause loop", async () => {
       const logs: string[] = [];
       page.on("console", (msg) => logs.push(msg.text()));
 
-      const initialUrl = `${address}/fragment_nav`;
-      await page.goto(initialUrl);
+      await page.goto(`${address}/fragment_nav`);
       await page.waitForSelector(".partial-text");
 
       await page.click("a");
 
       await page.waitForFunction(() => location.hash === "#foo");
       assertEquals(logs, []);
+    },
+  );
+});
+
+Deno.test("fragment navigation should not scroll to top", async () => {
+  await withPageName(
+    "./tests/fixture_partials/main.ts",
+    async (page, address) => {
+      await page.goto(`${address}/fragment_nav_scroll`);
+      await page.waitForSelector(".partial-text");
+
+      await page.click("a");
+      await page.waitForFunction(() => location.hash === "#foo");
+
+      const scroll = await page.evaluate(() => window.scrollY);
+      assert(scroll > 0, `Did not scroll to fragment`);
     },
   );
 });
