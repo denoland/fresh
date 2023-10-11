@@ -155,7 +155,7 @@ export default function DocsPage(props: PageProps<Data>) {
         <meta property="og:image" content={ogImageUrl} />
         <meta name="view-transition" content="same-origin" />
       </Head>
-      <div class="flex flex-col min-h-screen" f-client-nav>
+      <div class="flex flex-col min-h-screen">
         <Header title="docs" active="/docs" />
         <Main page={props.data.page} />
         <Footer />
@@ -166,7 +166,7 @@ export default function DocsPage(props: PageProps<Data>) {
 
 function Main(props: { page: Page }) {
   return (
-    <div class="flex-1">
+    <div class="flex-1" f-client-nav>
       <MobileSidebar page={props.page} />
       <div class="flex mx-auto max-w-screen-xl px-4 md:px-0 md:py-0 justify-end bg-gray-100">
         <label
