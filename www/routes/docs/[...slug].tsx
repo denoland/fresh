@@ -1,5 +1,5 @@
 import { Handlers, PageProps } from "$fresh/server.ts";
-import { asset, Head } from "$fresh/runtime.ts";
+import { asset, Head, Partial } from "$fresh/runtime.ts";
 import DocsSidebar from "../../components/DocsSidebar.tsx";
 import DocsTitle from "../../components/DocsTitle.tsx";
 import Footer from "../../components/Footer.tsx";
@@ -155,23 +155,23 @@ export default function DocsPage(props: PageProps<Data>) {
         <meta property="og:image" content={ogImageUrl} />
         <meta name="view-transition" content="same-origin" />
       </Head>
-      <div class="flex flex-col min-h-screen">
+      <div class="flex flex-col min-h-screen" f-client-nav>
         <Header title="docs" active="/docs" />
-        <Main path={props.url.pathname} page={props.data.page} />
+        <Main page={props.data.page} />
         <Footer />
       </div>
     </>
   );
 }
 
-function Main(props: { path: string; page: Page }) {
+function Main(props: { page: Page }) {
   return (
     <div class="flex-1">
-      <MobileSidebar path={props.path} page={props.page} />
-      <div class="flex mx-auto max-w-screen-xl px-4 md:px-0 py-5 md:py-0 justify-end">
+      <MobileSidebar page={props.page} />
+      <div class="flex mx-auto max-w-screen-xl px-4 md:px-0 md:py-0 justify-end bg-gray-100">
         <label
           for="docs_sidebar"
-          class="px-4 py-3 md:hidden flex items-center hover:bg-gray-100 rounded gap-2"
+          class="px-4 py-3 md:hidden flex items-center hover:bg-gray-100 rounded gap-2 cursor-pointer"
         >
           <svg
             class="h-6 w-6"
@@ -187,18 +187,20 @@ function Main(props: { path: string; page: Page }) {
             >
             </path>
           </svg>
-          <div>Menu</div>
+          <div>Table of Contents</div>
         </label>
       </div>
-      <div class="mx-auto max-w-screen-xl px-4 flex gap-6 md:gap-8">
-        <DesktopSidebar path={props.path} page={props.page} />
-        <Content page={props.page} />
+      <div class="mx-auto max-w-screen-xl flex gap-6 md:gap-8">
+        <DesktopSidebar page={props.page} />
+        <Partial name="docs-main">
+          <Content page={props.page} />
+        </Partial>
       </div>
     </div>
   );
 }
 
-function MobileSidebar(props: { path: string; page: Page }) {
+function MobileSidebar(props: { page: Page }) {
   return (
     <>
       <input
@@ -220,7 +222,6 @@ function MobileSidebar(props: { path: string; page: Page }) {
           <nav class="pt-6 pb-16 px-4 overflow-x-auto">
             <DocsSidebar
               mobile
-              path={props.path}
               versionLinks={props.page.versionLinks}
               selectedVersion={props.page.version}
             />
@@ -231,11 +232,10 @@ function MobileSidebar(props: { path: string; page: Page }) {
   );
 }
 
-function DesktopSidebar(props: { path: string; page: Page }) {
+function DesktopSidebar(props: { page: Page }) {
   return (
-    <nav class="w-[18rem] flex-shrink-0 hidden md:block py-7 pr-8">
+    <nav class="w-[18rem] flex-shrink-0 hidden md:block py-7 px-4">
       <DocsSidebar
-        path={props.path}
         versionLinks={props.page.versionLinks}
         selectedVersion={props.page.version}
       />
@@ -246,8 +246,8 @@ function DesktopSidebar(props: { path: string; page: Page }) {
 function Content(props: { page: Page }) {
   const html = renderMarkdown(props.page.markdown);
   return (
-    <main class="py-6 overflow-hidden md:mr-4 lg:mr-32">
-      <h1 class="text(4xl gray-900) tracking-tight font-extrabold mt-6 md:mt-0">
+    <main class="py-6 md:mr-4 lg:mr-32 min-w-0">
+      <h1 class="text(4xl gray-900) tracking-tight font-extrabold md:mt-0 px-4">
         {props.page.title}
       </h1>
       <div
@@ -278,7 +278,7 @@ function ForwardBackButtons(props: {
   const lower = "text-gray-900 font-medium";
 
   return (
-    <div class="mt-8 flex flex(col md:row) gap-4">
+    <div class="px-4 mt-8 flex flex(col md:row) gap-4">
       {prev && (
         <a href={prev.href} class={`${button} text-left`}>
           <span class={upper}>{"←"} Previous</span>

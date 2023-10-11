@@ -4,11 +4,11 @@ export default defineApp((res, ctx) => {
   return (
     <html>
       <head>
-        <meta charSet="utf-8" />
+        <meta charset="utf-8" />
         <title>test</title>
         <link rel="stylesheet" href="/style.css" />
       </head>
-      <body>
+      <body f-client-nav>
         <ctx.Component />
       </body>
     </html>

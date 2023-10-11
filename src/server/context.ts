@@ -281,8 +281,21 @@ export async function getServerContext(opts: InternalFreshOptions) {
         url,
         name,
         component,
-        handler: handler ??
-          ((req, ctx) => router.defaultErrorHandler(req, ctx, ctx.error)),
+        handler: (req, ctx) => {
+          if (opts.dev) {
+            const prevComp = error.component;
+            error.component = DefaultErrorHandler;
+            try {
+              return ctx.render();
+            } finally {
+              error.component = prevComp;
+            }
+          }
+
+          return handler
+            ? handler(req, ctx)
+            : router.defaultErrorHandler(req, ctx, ctx.error);
+        },
         csp: Boolean(config?.csp ?? false),
         appWrapper: !config?.skipAppWrapper,
         inheritLayouts: !config?.skipInheritedLayouts,
@@ -779,6 +792,7 @@ export class ServerContext {
         // deno-lint-ignore no-explicit-any
         ctx?: any,
         error?: unknown,
+        codeFrame?: string,
       ) => {
         return async (data?: Data, options?: RenderOptions) => {
           if (route.component === undefined) {
@@ -806,6 +820,7 @@ export class ServerContext {
             data,
             state: ctx?.state,
             error,
+            codeFrame,
           });
 
           if (resp instanceof Response) {
@@ -892,14 +907,13 @@ export class ServerContext {
         "%cAn error occurred during route handling or page rendering.",
         "color:red",
       );
+      let codeFrame: string | undefined;
       if (this.#dev && error instanceof Error) {
-        const codeFrame = await getCodeFrame(error);
+        codeFrame = await getCodeFrame(error);
 
         if (codeFrame) {
           console.error();
           console.error(codeFrame);
-          // deno-lint-ignore no-explicit-any
-          (error as any).codeFrame = codeFrame;
         }
       }
       console.error(error);
@@ -909,7 +923,7 @@ export class ServerContext {
         {
           ...ctx,
           error,
-          render: errorHandlerRender(req, {}, ctx, error),
+          render: errorHandlerRender(req, {}, ctx, error, codeFrame),
         },
       );
     };

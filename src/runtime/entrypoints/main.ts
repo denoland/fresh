@@ -5,21 +5,25 @@ import {
   ComponentType,
   Fragment,
   h,
+  isValidElement,
   options,
   render,
   VNode,
 } from "preact";
-import { assetHashingHook } from "../utils.ts";
+import { assetHashingHook, INTERNAL_PREFIX } from "../utils.ts";
 import { type SerializedState } from "../../server/rendering/fresh_tags.tsx";
 import type { Signal } from "@preact/signals";
 import {
+  CLIENT_NAV_ATTR,
+  DATA_ANCESTOR,
+  DATA_CURRENT,
   DATA_KEY_ATTR,
   LOADING_ATTR,
   PARTIAL_ATTR,
   PARTIAL_SEARCH_PARAM,
   PartialMode,
 } from "../../constants.ts";
-import { setActiveUrl } from "../active_url.ts";
+import { matchesUrl, setActiveUrl, UrlMatchKind } from "../active_url.ts";
 
 function createRootFragment(
   parent: Element,
@@ -93,7 +97,7 @@ export function revive(
     [],
     // Keep a root node in the vnode stack to save a couple of checks
     // later during iteration
-    [h(Fragment, null)],
+    [h(Fragment, null) as VNode],
     document.body,
     result,
   );
@@ -320,11 +324,11 @@ function _walkInner(
         });
 
         vnodeStack.push(
-          h(PartialComp, { name, key, mode: +mode }),
+          h(PartialComp, { name, key, mode: +mode }) as VNode,
         );
       } else if (comment.startsWith("frsh-key")) {
         const key = comment.slice("frsh-key:".length);
-        vnodeStack.push(h(Fragment, { key }));
+        vnodeStack.push(h(Fragment, { key }) as VNode);
       } else if (comment.startsWith("/frsh-key")) {
         const vnode = vnodeStack.pop();
         const parent = vnodeStack[vnodeStack.length - 1]!;
@@ -449,7 +453,7 @@ function _walkInner(
           kind: MarkerKind.Island,
         });
 
-        const vnode = h(islands[id][exportName], islandProps);
+        const vnode = h(islands[id][exportName], islandProps) as VNode;
         if (key) vnode.key = key;
         vnodeStack.push(vnode);
       }
@@ -506,7 +510,7 @@ function _walkInner(
           // Remove internal fresh key
           if (hasKey) sib.removeAttribute(DATA_KEY_ATTR);
 
-          const vnode = h(sib.localName, newProps);
+          const vnode = h(sib.localName, newProps) as VNode;
           addPropsChild(parentVNode, vnode);
           vnodeStack.push(vnode);
         } else {
@@ -557,6 +561,81 @@ async function fetchPartials(url: URL, init?: RequestInit) {
   const res = await fetch(url, init);
   await applyPartials(res);
 }
+
+function updateLinks(url: URL) {
+  document.querySelectorAll("a").forEach((link) => {
+    const match = matchesUrl(url.pathname, link.href);
+
+    if (match === UrlMatchKind.Current) {
+      link.setAttribute(DATA_CURRENT, "true");
+      link.removeAttribute(DATA_ANCESTOR);
+    } else if (match === UrlMatchKind.Ancestor) {
+      link.setAttribute(DATA_ANCESTOR, "true");
+      link.removeAttribute(DATA_CURRENT);
+    } else {
+      link.removeAttribute(DATA_CURRENT);
+      link.removeAttribute(DATA_ANCESTOR);
+    }
+  });
+}
+
+function collectPartials(
+  encounteredPartials: RenderRequest[],
+  islands: IslandRegistry,
+  state: SerializedState,
+  node: Node,
+) {
+  let startNode = null;
+  let sib: ChildNode | null = node.firstChild;
+  let partialCount = 0;
+  while (sib !== null) {
+    if (isCommentNode(sib)) {
+      const comment = sib.data;
+      if (comment.startsWith("frsh-partial")) {
+        startNode = sib;
+        partialCount++;
+      } else if (comment.startsWith("/frsh-partial")) {
+        partialCount--;
+        // Create a fake DOM node that spans the partial we discovered.
+        // We need to include the partial markers itself for _walkInner
+        // to register them.
+        const rootFrag = {
+          _frshRootFrag: true,
+          nodeType: 1,
+          nextSibling: null,
+          firstChild: startNode,
+          parentNode: node,
+          get childNodes() {
+            const children: ChildNode[] = [startNode!];
+            let node = startNode!;
+            while ((node = node.nextSibling) !== null) {
+              children.push(node);
+            }
+
+            return children;
+          },
+          // deno-lint-ignore no-explicit-any
+        } as any as HTMLElement;
+
+        _walkInner(
+          islands,
+          state[0] ?? [],
+          [],
+          [h(Fragment, null) as VNode],
+          rootFrag,
+          encounteredPartials,
+        );
+      }
+    } else if (partialCount === 0 && isElementNode(sib)) {
+      // Do not recurse if we know that we are inisde a partial
+      collectPartials(encounteredPartials, islands, state, sib);
+    }
+
+    sib = sib.nextSibling;
+  }
+}
+
+class NoPartialsError extends Error {}
 
 /**
  * Apply partials from a HTML response
@@ -619,54 +698,87 @@ export async function applyPartials(res: Response): Promise<void> {
 
   await Promise.all(promises);
 
-  if (deserialize) {
-    state = deserialize(stateDom!, signal) as SerializedState;
+  if (stateDom) {
+    state = deserialize
+      ? deserialize(stateDom, signal) as SerializedState
+      : JSON.parse(stateDom)?.v;
   }
 
   // Collect all partials and build up the vnode tree
   const encounteredPartials: RenderRequest[] = [];
-  let startNode = null;
-  let sib: ChildNode | null = doc.body.firstChild;
-  while (sib !== null) {
-    if (isCommentNode(sib)) {
-      const comment = sib.data;
-      if (comment.startsWith("frsh-partial")) {
-        startNode = sib;
-      } else if (comment.startsWith("/frsh-partial")) {
-        // Create a fake DOM node that spans the partial we discovered.
-        // We need to include the partial markers itself for _walkInner
-        // to register them.
-        const rootFrag = {
-          _frshRootFrag: true,
-          nodeType: 1,
-          nextSibling: null,
-          firstChild: startNode,
-          parentNode: doc.body,
-          get childNodes() {
-            const children: ChildNode[] = [startNode!];
-            let node = startNode!;
-            while ((node = node.nextSibling) !== null) {
-              children.push(node);
-            }
+  collectPartials(encounteredPartials, islands, state, doc.body);
 
-            return children;
-          },
-          // deno-lint-ignore no-explicit-any
-        } as any as HTMLElement;
+  if (encounteredPartials.length === 0) {
+    throw new NoPartialsError(
+      `Found no partials in HTML response. Please make sure to render at least one partial. Requested url: ${res.url}`,
+    );
+  }
 
-        _walkInner(
-          islands,
-          state[0] ?? [],
-          [],
-          [h(Fragment, null)],
-          rootFrag,
-          encounteredPartials,
-        );
+  // Update <head>
+  document.title = doc.title;
+
+  // Needs to be converted to an array otherwise somehow <link>-tags
+  // are missing.
+  Array.from(doc.head.childNodes).forEach((childNode) => {
+    const child = childNode as HTMLElement;
+
+    if (child.nodeName === "TITLE") return;
+    if (child.nodeName === "META") {
+      const meta = child as HTMLMetaElement;
+
+      // Ignore charset which is usually set site wide anyway
+      if (meta.hasAttribute("charset")) return;
+
+      const name = meta.name;
+      if (name !== "") {
+        const existing = document.head.querySelector(`meta[name="${name}"]`) as
+          | HTMLMetaElement
+          | null;
+        if (existing !== null) {
+          if (existing.content !== meta.content) {
+            existing.content = meta.content;
+          }
+        } else {
+          document.head.appendChild(meta);
+        }
+      } else {
+        const property = child.getAttribute("property");
+        const existing = document.head.querySelector(
+          `meta[property="${property}"]`,
+        ) as HTMLMetaElement | null;
+        if (existing !== null) {
+          if (existing.content !== meta.content) {
+            existing.content = meta.content;
+          }
+        } else {
+          document.head.appendChild(meta);
+        }
+      }
+    } else if (child.nodeName === "LINK") {
+      const link = child as HTMLLinkElement;
+      if (link.rel === "modulepreload") return;
+      if (link.rel === "stylesheet") {
+        // The `href` attribute may be root relative. This ensures
+        // that they both have the same format
+        const existing = Array.from(document.head.querySelectorAll("link"))
+          .find((existingLink) => existingLink.href === link.href);
+        if (existing === undefined) {
+          document.head.appendChild(link);
+        }
+      }
+    } else if (child.nodeName === "SCRIPT") {
+      const script = child as HTMLScriptElement;
+      if (script.src === `${INTERNAL_PREFIX}/refresh.js`) return;
+      // TODO: What to do with script tags?
+    } else if (child.nodeName === "STYLE") {
+      const style = child as HTMLStyleElement;
+      // TODO: Do we need a smarter merging strategy?
+      // Don't overwrie existing style sheets that are flagged as unique
+      if (style.id === "") {
+        document.head.appendChild(style);
       }
     }
-
-    sib = sib.nextSibling;
-  }
+  });
 
   // Update all encountered partials
   for (let i = 0; i < encounteredPartials.length; i++) {
@@ -678,7 +790,7 @@ export async function applyPartials(res: Response): Promise<void> {
     } else {
       // deno-lint-ignore no-explicit-any
       const mode = (vnode.props as any).mode;
-      const children = vnode.props.children;
+      let children = vnode.props.children;
 
       // Modify children depending on the replace mode
       if (mode === PartialMode.REPLACE) {
@@ -692,8 +804,45 @@ export async function applyPartials(res: Response): Promise<void> {
         if (mode === PartialMode.APPEND) {
           newChildren.push(children);
         } else {
+          // Workaround for missing keys
+          if (!isValidElement(children)) {
+            children = h(Fragment, null, children);
+          }
+
+          if ((children as VNode).key == null) {
+            (children as VNode).key = newChildren.length;
+          }
+
+          // Update rendered children keys if necessary
+          // deno-lint-ignore no-explicit-any
+          const renderedChildren = (instance as any).__v.__k as VNode[] | null;
+          if (Array.isArray(renderedChildren)) {
+            for (let i = 0; i < renderedChildren.length; i++) {
+              const child = renderedChildren[i];
+              if (child.key == null) {
+                child.key = i;
+              } else {
+                // Assume list is keyed. We don't support mixed
+                // keyed an unkeyed
+                break;
+              }
+            }
+          }
+
+          for (let i = 0; i < newChildren.length; i++) {
+            const child = newChildren[i];
+            if (child.key == null) {
+              child.key = i;
+            } else {
+              // Assume list is keyed. We don't support mixed
+              // keyed an unkeyed
+              break;
+            }
+          }
+
           newChildren.unshift(children);
         }
+
         instance.props.children = newChildren;
       }
 
@@ -714,15 +863,32 @@ options.vnode = (vnode) => {
   if (originalHook) originalHook(vnode);
 };
 
+export interface FreshHistoryState {
+  index: number;
+  scrollX: number;
+  scrollY: number;
+}
+
+function checkClientNavEnabled() {
+  return document.querySelector(`[${CLIENT_NAV_ATTR}]`) !== null;
+}
+
 // Keep track of history state to apply forward or backward animations
 let index = history.state?.index || 0;
 if (!history.state) {
-  history.replaceState({ index }, document.title);
+  const state: FreshHistoryState = {
+    index,
+    scrollX,
+    scrollY,
+  };
+  history.replaceState(state, document.title);
 }
 
 document.addEventListener("click", async (e) => {
   let el = e.target;
   if (el && el instanceof HTMLElement) {
+    const originalEl = el;
+
     // Check if we clicked inside an anchor link
     if (el.nodeName !== "A") {
       el = el.closest("a");
@@ -745,15 +911,9 @@ document.addEventListener("click", async (e) => {
       const partial = el.getAttribute(PARTIAL_ATTR);
 
       // Check if the user opted out of client side navigation.
-      // There are two cases to account for:
-      //  1. Partial request
-      //  2. Normal request (turbolink-style)
-      const settingEl = el.closest("[fresh-client-nav]");
       if (
-        partial === null && (
-          settingEl === null ||
-          settingEl.getAttribute("fresh-client-nav") !== "true"
-        )
+        !checkClientNavEnabled() ||
+        el.closest(`[${CLIENT_NAV_ATTR}="true"]`) === null
       ) {
         return;
       }
@@ -766,24 +926,64 @@ document.addEventListener("click", async (e) => {
 
       e.preventDefault();
 
+      const nextUrl = new URL(el.href);
       try {
         // Only add history entry when URL is new. Still apply
         // the partials because sometimes users click a link to
         // "refresh" the current page.
         if (el.href !== window.location.href) {
+          const state: FreshHistoryState = {
+            index,
+            scrollX: window.scrollX,
+            scrollY: window.scrollY,
+          };
+
+          // Store current scroll position
+          history.replaceState({ ...state }, "", location.href);
+
+          // Now store the new position
           index++;
-          history.pushState({ index }, "", el.href);
+          state.scrollX = 0;
+          state.scrollY = 0;
+          history.pushState(state, "", nextUrl.href);
         }
 
         const partialUrl = new URL(
-          partial ? partial : el.href,
-          location.origin,
+          partial ? partial : nextUrl.href,
+          location.href,
         );
         await fetchPartials(partialUrl);
+        updateLinks(nextUrl);
+        scrollTo({ left: 0, top: 0, behavior: "instant" });
       } finally {
         if (indicator !== undefined) {
           indicator.value = false;
         }
+      }
+    } else {
+      let button: HTMLButtonElement | HTMLElement | null = originalEl;
+      // Check if we clicked on a button
+      if (button.nodeName !== "A") {
+        button = button.closest("button");
+      }
+
+      if (button !== null && button instanceof HTMLButtonElement) {
+        const partial = button.getAttribute(PARTIAL_ATTR);
+
+        // Check if the user opted out of client side navigation.
+        if (
+          partial === null ||
+          !checkClientNavEnabled() ||
+          button.closest(`[${CLIENT_NAV_ATTR}="true"]`) === null
+        ) {
+          return;
+        }
+
+        const partialUrl = new URL(
+          partial,
+          location.href,
+        );
+        await fetchPartials(partialUrl);
       }
     }
   }
@@ -793,19 +993,46 @@ addEventListener("popstate", async (e) => {
   // When state is `null` then the browser navigated to a document
   // fragment. In this case we do nothing.
   if (e.state === null) {
+    // Reset to browser default
+    if (history.scrollRestoration) {
+      history.scrollRestoration = "auto";
+    }
     return;
   }
-  const nextIdx = history.state?.index ?? index + 1;
+
+  const state: FreshHistoryState = history.state;
+  const nextIdx = state.index ?? index + 1;
   index = nextIdx;
 
-  // If we have the body partial, then we assume that we can
-  // do a full client-side navigation. Otherwise do a full
-  // page navigation.
-  if (partials.has("body")) {
-    const url = new URL(location.href, location.origin);
-    await fetchPartials(url);
-  } else {
+  if (!checkClientNavEnabled()) {
     location.reload();
+    return;
+  }
+
+  // We need to keep track of that ourselves since we do client side
+  // navigation.
+  if (history.scrollRestoration) {
+    history.scrollRestoration = "manual";
+  }
+
+  const url = new URL(location.href, location.origin);
+  try {
+    await fetchPartials(url);
+    updateLinks(url);
+    scrollTo({
+      left: state.scrollX ?? 0,
+      top: state.scrollY ?? 0,
+      behavior: "instant",
+    });
+  } catch (err) {
+    // If the response didn't contain a partial, then we can only
+    // do a reload.
+    if (err instanceof NoPartialsError) {
+      location.reload();
+      return;
+    }
+
+    throw err;
   }
 });
 
@@ -817,7 +1044,7 @@ document.addEventListener("submit", async (e) => {
     if (partial !== null) {
       e.preventDefault();
 
-      const url = new URL(partial, location.origin);
+      const url = new URL(partial, location.href);
       await fetchPartials(url);
     }
   }

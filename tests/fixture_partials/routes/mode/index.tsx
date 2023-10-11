@@ -15,7 +15,7 @@ export default function ModeDemo() {
         <a
           class="replace-link"
           href="/mode/injected"
-          fh-partial="/mode/replace"
+          f-partial="/mode/replace"
         >
           replace
         </a>
@@ -24,7 +24,7 @@ export default function ModeDemo() {
         <a
           class="append-link"
           href="/mode/injected"
-          fh-partial="/mode/append"
+          f-partial="/mode/append"
         >
           append
         </a>
@@ -33,7 +33,7 @@ export default function ModeDemo() {
         <a
           class="prepend-link"
           href="/mode/injected"
-          fh-partial="/mode/prepend"
+          f-partial="/mode/prepend"
         >
           prepend
         </a>

@@ -379,6 +379,17 @@
     "link": "https://innercircleprm.com",
     "github": "mchantosa/smooth-kitty",
     "image": "inner-circle"
+  },  
+  {
+    "title": "FilterHN",
+    "link": "https://filterhn.com/",
+    "image": "filter-hn"
+  },
+  {
+    "title": "AquaVibes",
+    "link": "https://aquavibes.earth/",
+    "github": "arturolume/aquavibes",
+    "image": "aquavibes"
   },
   {
     "title": "Do not remove this, it’s for preventing conflicts by trailing comma",

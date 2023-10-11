@@ -26,7 +26,7 @@ export async function dev(
   } else {
     currentManifest = { islands: [], routes: [] };
   }
-  const newManifest = await collect(dir, options);
+  const newManifest = await collect(dir, options?.router?.ignoreFilePattern);
   Deno.env.set("FRSH_DEV_PREVIOUS_MANIFEST", JSON.stringify(newManifest));
 
   const manifestChanged =
@@ -54,7 +54,7 @@ export async function dev(
     config.dev = true;
     config.loadSnapshot = false;
     const ctx = await getServerContext(config);
-    await startFromContext(ctx, options);
+    await startFromContext(ctx, config.server);
   } else {
     // Legacy entry point: Back then `dev.ts` would call `main.ts` but
     // this causes duplicate plugin instantiation if both `dev.ts` and

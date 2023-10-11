@@ -1,5 +1,3 @@
-import { LayoutConfig } from "$fresh/server.ts";
-import { ComponentChildren } from "preact";
 import { ServerContext } from "./context.ts";
 export type { FromManifestOptions } from "./context.ts";
 export { Status } from "./deps.ts";
@@ -8,6 +6,7 @@ import {
   Handler,
   Handlers,
   IslandModule,
+  LayoutConfig,
   MiddlewareModule,
   RouteConfig,
   ServeHandlerInfo,
@@ -72,7 +71,8 @@ export interface Manifest {
         propsOrRequest: any,
         // deno-lint-ignore no-explicit-any
         ctx: any,
-      ) => Promise<ComponentChildren | Response> | ComponentChildren;
+        // deno-lint-ignore no-explicit-any
+      ) => Promise<any | Response> | any;
       // deno-lint-ignore no-explicit-any
       handler?: Handler<any, any> | Handlers<any, any> | UnknownHandler;
       config?: RouteConfig | LayoutConfig | ErrorHandler;
@@ -85,20 +85,20 @@ export interface Manifest {
 export { ServerContext };
 
 export async function createHandler(
-  routes: Manifest,
+  manifest: Manifest,
   opts: StartOptions = {},
 ): Promise<
   (req: Request, connInfo?: ServeHandlerInfo) => Promise<Response>
 > {
-  const ctx = await ServerContext.fromManifest(routes, opts);
+  const ctx = await ServerContext.fromManifest(manifest, opts);
   return ctx.handler();
 }
 
-export async function start(routes: Manifest, opts: StartOptions = {}) {
-  const ctx = await ServerContext.fromManifest(routes, {
+export async function start(manifest: Manifest, opts: StartOptions = {}) {
+  const ctx = await ServerContext.fromManifest(manifest, {
     ...opts,
     skipSnapshot: false,
     dev: false,
   });
-  await startFromContext(ctx, opts);
+  await startFromContext(ctx, opts.server ?? opts);
 }

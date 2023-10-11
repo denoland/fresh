@@ -9,7 +9,6 @@ import { type VersionLink } from "../routes/docs/[...slug].tsx";
 
 export default function DocsSidebar(
   props: {
-    path: string;
     mobile?: boolean;
     versionLinks: VersionLink[];
     selectedVersion: string;
@@ -63,33 +62,30 @@ export default function DocsSidebar(
 
       <ul class="list-inside font-semibold nested ml-2.5">
         {CATEGORIES[props.selectedVersion].map((category) => (
-          <SidebarCategory path={props.path} category={category} />
+          <SidebarCategory key={category.href} category={category} />
         ))}
       </ul>
     </>
   );
 }
 
-const link = "text(gray-900 hover:gray-600)";
-const linkActive = "text-green-700 hover:underline font-bold";
-
 export function SidebarCategory(props: {
-  path: string;
   category: TableOfContentsCategory;
 }) {
   const { title, href, entries } = props.category;
 
-  const outerLink = `${href == props.path ? linkActive : link} font-bold`;
-
   return (
     <li class="my-2 block">
-      <a href={href} class={outerLink}>
+      <a
+        href={href}
+        class="text(gray-900 hover:gray-600) [data-current]:text-green-700 [data-current]:hover:underline font-bold"
+      >
         {title}
       </a>
       {entries.length > 0 && (
-        <ul class="py-2 pl-4 nested list-outside">
+        <ul class="py-2 nested list-outside">
           {entries.map((entry) => (
-            <SidebarEntry path={props.path} entry={entry} />
+            <SidebarEntry key={entry.href} entry={entry} />
           ))}
         </ul>
       )}
@@ -98,18 +94,18 @@ export function SidebarCategory(props: {
 }
 
 export function SidebarEntry(props: {
-  path: string;
   entry: TableOfContentsCategoryEntry;
 }) {
   const { title, href } = props.entry;
 
-  const innerLink = `${
-    href == props.path ? linkActive : link
-  } transition-colors hover:text-green-500 font-normal`;
-
   return (
-    <li class="py-0.5">
-      <a href={href} class={innerLink}>{title}</a>
+    <li class="py-[1px]">
+      <a
+        href={href}
+        class="[data-current]:text-green-700 [data-current]:border-green-600 [data-current]:bg-green-50 border-l-4 border-transparent px-4 py-0.5 transition-colors hover:text-green-500 font-normal block"
+      >
+        {title}
+      </a>
     </li>
   );
 }

@@ -562,3 +562,27 @@ export function assertNoComments(doc: Document) {
     );
   }
 }
+
+export function assertMetaContent(
+  doc: Document,
+  nameOrProperty: string,
+  expected: string,
+) {
+  let el = doc.querySelector(`meta[name="${nameOrProperty}"]`) as
+    | HTMLMetaElement
+    | null;
+
+  if (el === null) {
+    el = doc.querySelector(`meta[property="${nameOrProperty}"]`) as
+      | HTMLMetaElement
+      | null;
+  }
+
+  if (el === null) {
+    console.log(prettyDom(doc));
+    throw new Error(
+      `No <meta>-tag found with content "${expected}"`,
+    );
+  }
+  assertEquals(el.content, expected);
+}

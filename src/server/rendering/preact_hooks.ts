@@ -14,7 +14,12 @@ import { Partial, PartialProps } from "../../runtime/Partial.tsx";
 import { renderToString } from "preact-render-to-string";
 import { RenderState } from "./state.ts";
 import { Island } from "../types.ts";
-import { DATA_KEY_ATTR, LOADING_ATTR, PartialMode } from "../../constants.ts";
+import {
+  CLIENT_NAV_ATTR,
+  DATA_KEY_ATTR,
+  LOADING_ATTR,
+  PartialMode,
+} from "../../constants.ts";
 import { setActiveUrl } from "../../runtime/active_url.ts";
 
 // See: https://github.com/preactjs/preact/blob/7748dcb83cedd02e37b3713634e35b97b26028fd/src/internal.d.ts#L3C1-L16
@@ -77,7 +82,7 @@ export function setRenderState(state: RenderState | null): void {
 const supportsUnstableComments = renderToString(h(Fragment, {
   // @ts-ignore unstable features not supported in types
   UNSTABLE_comment: "foo",
-})) !== "";
+}) as VNode) !== "";
 
 if (!supportsUnstableComments) {
   console.warn(
@@ -192,9 +197,15 @@ options.vnode = (vnode) => {
       vnode.type !== "style" && vnode.type !== "script" && vnode.type !== "link"
     ) {
       props[DATA_KEY_ATTR] = vnode.key;
-    } else if (props[LOADING_ATTR]) {
+    }
+
+    if (props[LOADING_ATTR]) {
       // Avoid automatic signals unwrapping
       props[LOADING_ATTR] = { value: props[LOADING_ATTR] };
+    }
+
+    if (typeof props[CLIENT_NAV_ATTR] === "boolean") {
+      props[CLIENT_NAV_ATTR] = props[CLIENT_NAV_ATTR] ? "true" : null;
     }
   } else if (
     current && typeof vnode.type === "function" && vnode.type !== Fragment &&
@@ -275,6 +286,8 @@ options.__b = (vnode: VNode<Record<string, unknown>>) => {
         island &&
         !patched.has(vnode)
       ) {
+        current.islandDepth++;
+
         // Check if an island is rendered inside another island, not just
         // passed as a child.In that case we treat it like a normal
         // Component. Example:
@@ -334,7 +347,7 @@ options.__b = (vnode: VNode<Record<string, unknown>>) => {
             );
           }
 
-          const child = h(originalType, props);
+          const child = h(originalType, props) as VNode;
           patched.add(child);
           islandProps.push(props);
 
@@ -348,6 +361,7 @@ options.__b = (vnode: VNode<Record<string, unknown>>) => {
         // deno-lint-ignore no-explicit-any
       } else if (vnode.type === (Partial as any)) {
         current.partialCount++;
+        current.partialDepth++;
         if (hasIslandOwner(current, vnode)) {
           throw new Error(
             `<Partial> components cannot be used inside islands.`,
@@ -362,7 +376,9 @@ options.__b = (vnode: VNode<Record<string, unknown>>) => {
           vnode.props.children,
           `frsh-partial:${vnode.props.name}:${mode}:${vnode.key ?? ""}`,
         );
-      } else if (vnode.key) {
+      } else if (
+        vnode.key && (current.islandDepth > 0 || current.partialDepth > 0)
+      ) {
         const child = h(vnode.type, vnode.props);
         vnode.type = Fragment;
         vnode.props = {
@@ -385,6 +401,14 @@ options.__r = (vnode) => {
 options.diffed = (vnode: VNode<Record<string, unknown>>) => {
   if (typeof vnode.type === "function") {
     if (vnode.type !== Fragment) {
+      if (current) {
+        if (islandByComponent.has(vnode.type)) {
+          current.islandDepth--;
+        } else if (vnode.type === Partial as ComponentType) {
+          current.partialDepth--;
+        }
+      }
+
       ownerStack.pop();
     } else if (vnode.props.__freshHead) {
       if (current) {

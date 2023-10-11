@@ -12,16 +12,14 @@ export const config: RouteConfig = {
 export default defineRoute((req, ctx) => {
   return (
     <Partial name="slot-1">
-      <Fader>
-        <p class="status-updated">updated</p>
-        <PropIsland
-          boolean={false}
-          number={42}
-          obj={{ foo: 123456 }}
-          strArr={["foo", "bar"]}
-          string="foobar"
-        />
-      </Fader>
+      <p class="status-updated">updated</p>
+      <PropIsland
+        boolean={false}
+        number={42}
+        obj={{ foo: 123456 }}
+        strArr={["foo", "bar"]}
+        string="foobar"
+      />
     </Partial>
   );
 });

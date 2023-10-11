@@ -6,7 +6,6 @@ Deno.test({
   fn: async () => {
     const { routes } = await collect(
       join(dirname(fromFileUrl(import.meta.url)), "fixture"),
-      {},
     );
 
     assert(
@@ -32,11 +31,7 @@ Deno.test({
         dirname(fromFileUrl(import.meta.url)),
         "fixture_router_ignore_files",
       ),
-      {
-        router: {
-          ignoreFilePattern: /[\.|_]cy\.[t|j]s(x)?$/,
-        },
-      },
+      /[\.|_]cy\.[t|j]s(x)?$/,
     );
 
     assert(

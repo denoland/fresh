@@ -26,7 +26,7 @@ export default function SlotDemo() {
         <a
           class="update-second-link"
           href="/island_instance_multiple/injected"
-          fh-partial="/island_instance_multiple/partial"
+          f-partial="/island_instance_multiple/partial"
         >
           update second
         </a>
@@ -35,7 +35,7 @@ export default function SlotDemo() {
         <a
           class="update-both-link"
           href="/island_instance_multiple/injected"
-          fh-partial="/island_instance_multiple/partial_both"
+          f-partial="/island_instance_multiple/partial_both"
         >
           update both
         </a>

@@ -1,6 +1,8 @@
-import { assertEquals, assertMatch } from "$std/testing/asserts.ts";
+import { assert, assertEquals, assertMatch } from "$std/testing/asserts.ts";
 import { Page } from "./deps.ts";
 import {
+  assertMetaContent,
+  assertNoComments,
   assertNoPageComments,
   assertNotSelector,
   assertSelector,
@@ -22,7 +24,6 @@ Deno.test("injects server content with no islands present", async () => {
     async (page, address) => {
       await page.goto(`${address}/no_islands`);
       await page.waitForSelector(".output");
-      await assertNoPageComments(page);
 
       const href = await page.$eval(".update-link", (el) => el.href);
       await page.click(".update-link");
@@ -111,6 +112,19 @@ Deno.test("injects content with island and keeps island instance alive", async (
       // Check that island value didn't change
       await waitForText(page, ".output-a", "1");
       await assertNoPageComments(page);
+    },
+  );
+});
+
+Deno.test("finds partial nested in response", async () => {
+  await withPageName(
+    "./tests/fixture_partials/main.ts",
+    async (page, address) => {
+      await page.goto(`${address}/deep_partial`);
+      await page.waitForSelector(".status");
+
+      await page.click(".update-link");
+      await waitForText(page, ".status-updated", "updated");
     },
   );
 });
@@ -326,7 +340,6 @@ Deno.test("replace island if parent type changes", async () => {
       const href = await page.$eval(".replace-link", (el) => el.href);
       await page.click(".replace-link");
       await page.waitForSelector(".output-a");
-      await assertNoPageComments(page);
 
       assertEquals(href, await page.url());
 
@@ -536,6 +549,13 @@ Deno.test("reconciles keyed non island components", async () => {
   );
 });
 
+Deno.test("don't serialize keys for nodes outside islands or partials", async () => {
+  await withFakeServe("./tests/fixture_partials/main.ts", async (server) => {
+    const doc = await server.getHtml("/keys_outside");
+    assertNoComments(doc);
+  });
+});
+
 Deno.test("partial injection mode", async () => {
   await withPageName(
     "./tests/fixture_partials/main.ts",
@@ -611,7 +631,10 @@ Deno.test("partial navigation", async () => {
         document.querySelectorAll(".island").length === 1
       );
       assertEquals(page.url(), initialUrl);
-      await waitForText(page, "pre", "mount Counter A\n");
+      await waitFor(async () => {
+        const doc = parseHtml(await page.content());
+        return /mount Counter A/.test(doc.querySelector("pre")!.textContent!);
+      });
       await assertNoPageComments(page);
     },
   );
@@ -638,7 +661,6 @@ Deno.test("non-partial client navigation", async () => {
       // Go to page B
       await page.click(".page-b-link");
       await page.waitForSelector(".island-b");
-      await assertNoPageComments(page);
 
       let doc = parseHtml(await page.content());
       assertNotSelector(doc, ".island-a");
@@ -652,7 +674,6 @@ Deno.test("non-partial client navigation", async () => {
       // Go to page C
       await page.click(".page-c-link");
       await page.waitForSelector(".page-c-text");
-      await assertNoPageComments(page);
 
       doc = parseHtml(await page.content());
       assertNotSelector(doc, ".island-a");
@@ -739,7 +760,6 @@ Deno.test("allow opting out of client navigation", async () => {
       // Go to page B
       await page.click(".page-b-link");
       await page.waitForSelector(".island-b");
-      await assertNoPageComments(page);
 
       let doc = parseHtml(await page.content());
       assertNotSelector(doc, ".island-a");
@@ -756,7 +776,6 @@ Deno.test("allow opting out of client navigation", async () => {
       // Go to page C
       await page.click(".page-c-link");
       await page.waitForSelector(".page-c-text");
-      await assertNoPageComments(page);
 
       doc = parseHtml(await page.content());
       assertNotSelector(doc, ".island-a");
@@ -816,6 +835,32 @@ Deno.test("allow opting out of client navigation", async () => {
       // Check that island is interactive
       await page.click(".island-b button");
       await waitForText(page, ".output-b", "1");
+    },
+  );
+});
+
+Deno.test("restore scroll position", async () => {
+  await withPageName(
+    "./tests/fixture_partials/main.ts",
+    async (page, address) => {
+      const initialUrl = `${address}/scroll_restoration`;
+      await page.goto(initialUrl);
+      await page.waitForSelector(".status-initial");
+
+      await page.evaluate(() => {
+        document.querySelector(".update-link")?.scrollIntoView({
+          behavior: "instant",
+        });
+      });
+
+      await page.click(".update-link");
+      await page.waitForSelector(".status-updated");
+
+      await page.goBack();
+      await page.waitForSelector(".status-initial");
+      const scroll = await page.evaluate(() => ({ scrollX, scrollY }));
+
+      assert(scroll.scrollY > 100, `Page did not scroll ${scroll.scrollY}`);
     },
   );
 });
@@ -929,5 +974,143 @@ Deno.test("active links without client nav", async () => {
   );
 });
 
-// TODO Head merging
-// TODO Children Keys
+Deno.test("Updates active links outside of vdom", async () => {
+  await withPageName(
+    "./tests/fixture_partials/main.ts",
+    async (page, address) => {
+      await page.goto(`${address}/active_nav_partial`);
+
+      let doc = parseHtml(await page.content());
+      assertSelector(doc, "a[href='/'][data-ancestor]");
+
+      // Current
+      assertNotSelector(doc, "a[href='/active_nav_partial'][data-ancestor]");
+      assertSelector(doc, "a[href='/active_nav_partial'][data-current]");
+
+      // Unrelated links
+      assertNotSelector(
+        doc,
+        "a[href='/active_nav_partial/foo'][data-ancestor]",
+      );
+      assertNotSelector(
+        doc,
+        "a[href='/active_nav_partial/foo/bar'][data-ancestor]",
+      );
+
+      await page.goto(`${address}/active_nav_partial/foo`);
+      doc = parseHtml(await page.content());
+      assertSelector(doc, "a[href='/active_nav_partial/foo'][data-current]");
+      assertSelector(doc, "a[href='/active_nav_partial'][data-ancestor]");
+      assertSelector(doc, "a[href='/'][data-ancestor]");
+    },
+  );
+});
+
+Deno.test("throws an error when response contains no partials", async () => {
+  await withPageName(
+    "./tests/fixture_partials/main.ts",
+    async (page, address) => {
+      const logs: string[] = [];
+      page.on("pageerror", (msg) => logs.push(msg.message));
+
+      await page.goto(`${address}/no_partial_response`);
+      await waitFor(async () => {
+        const logEl = await page.$eval("#logs", (el) => el.textContent);
+        return /mount Counter/.test(logEl);
+      });
+
+      await page.click(".update-link");
+
+      await waitFor(() => logs.length > 0);
+      assertMatch(logs[0], /Found no partials/);
+    },
+  );
+});
+
+Deno.test("merges <head> content", async () => {
+  await withPageName(
+    "./tests/fixture_partials/main.ts",
+    async (page, address) => {
+      await page.goto(`${address}/head_merge`);
+      await page.waitForSelector(".status-initial");
+
+      await page.click(".update-link");
+      await page.waitForSelector(".status-updated");
+
+      await waitFor(async () => {
+        return (await page.title()) === "Head merge updated";
+      });
+
+      const doc = parseHtml(await page.content());
+      assertEquals(doc.title, "Head merge updated");
+
+      assertMetaContent(doc, "foo", "bar baz");
+      assertMetaContent(doc, "og:foo", "og value foo");
+      assertMetaContent(doc, "og:bar", "og value bar");
+
+      const color = await page.$eval("h1", (el) => {
+        return window.getComputedStyle(el).color;
+      });
+      assertEquals(color, "rgb(255, 0, 0)");
+
+      const textColor = await page.$eval("p", (el) => {
+        return window.getComputedStyle(el).color;
+      });
+      assertEquals(textColor, "rgb(0, 128, 0)");
+    },
+  );
+});
+
+Deno.test("does not merge duplicate <head> content", async () => {
+  await withPageName(
+    "./tests/fixture_partials/main.ts",
+    async (page, address) => {
+      await page.goto(`${address}/head_merge`);
+      await page.waitForSelector(".status-initial");
+
+      await page.click(".duplicate-link");
+      await page.waitForSelector(".status-duplicated");
+
+      await waitFor(async () => {
+        return (await page.title()) === "Head merge duplicated";
+      });
+
+      const html = await page.content();
+      assert(
+        Array.from(html.matchAll(/id="style-foo"/g)).length === 1,
+        `Duplicate style tag found`,
+      );
+
+      assert(
+        Array.from(html.matchAll(/style\.css/g)).length === 1,
+        `Duplicate link stylesheet found`,
+      );
+    },
+  );
+});
+
+Deno.test("applies f-partial on <button>", async () => {
+  await withPageName(
+    "./tests/fixture_partials/main.ts",
+    async (page, address) => {
+      await page.goto(`${address}/button`);
+      await page.waitForSelector(".status-initial");
+
+      await page.click("button");
+      await page.waitForSelector(".status-updated");
+    },
+  );
+});
+
+Deno.test("supports relative links", async () => {
+  await withPageName(
+    "./tests/fixture_partials/main.ts",
+    async (page, address) => {
+      await page.goto(`${address}/relative_link`);
+      await page.waitForSelector(".status-initial");
+
+      await page.click("button");
+      await page.waitForSelector(".status-refreshed");
+    },
+  );
+});

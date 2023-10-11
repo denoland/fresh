@@ -1,27 +1,24 @@
 import { Partial } from "$fresh/runtime.ts";
-import { Fader } from "../../islands/Fader.tsx";
 import PropIsland from "../../islands/PropIsland.tsx";
 
 export default function PropsDemo() {
   return (
     <div>
       <Partial name="slot-1">
-        <Fader>
-          <p class="status-initial">initial</p>
-          <PropIsland
-            boolean={true}
-            number={1}
-            obj={{ foo: 123 }}
-            strArr={["foo"]}
-            string="foo"
-          />
-        </Fader>
+        <p class="status-initial">initial</p>
+        <PropIsland
+          boolean={true}
+          number={1}
+          obj={{ foo: 123 }}
+          strArr={["foo"]}
+          string="foo"
+        />
       </Partial>
       <p>
         <a
           class="update-link"
           href="/island_props/injected"
-          fh-partial="/island_props/partial"
+          f-partial="/island_props/partial"
         >
           Update
         </a>
