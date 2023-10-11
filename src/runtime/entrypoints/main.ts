@@ -568,13 +568,16 @@ function updateLinks(url: URL) {
 
     if (match === UrlMatchKind.Current) {
       link.setAttribute(DATA_CURRENT, "true");
+      link.setAttribute("aria-current", "page");
       link.removeAttribute(DATA_ANCESTOR);
     } else if (match === UrlMatchKind.Ancestor) {
       link.setAttribute(DATA_ANCESTOR, "true");
+      link.setAttribute("aria-current", "true");
       link.removeAttribute(DATA_CURRENT);
     } else {
       link.removeAttribute(DATA_CURRENT);
       link.removeAttribute(DATA_ANCESTOR);
+      link.removeAttribute("aria-current");
     }
   });
 }

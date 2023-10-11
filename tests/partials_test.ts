@@ -976,15 +976,21 @@ Deno.test("active links without client nav", async () => {
       // Current
       assertNotSelector(doc, "a[href='/active_nav'][data-ancestor]");
       assertSelector(doc, "a[href='/active_nav'][data-current]");
+      assertSelector(doc, `a[href='/active_nav'][aria-current="page"]`);
 
       // Unrelated links
       assertNotSelector(doc, "a[href='/active_nav/foo'][data-ancestor]");
+      assertNotSelector(doc, "a[href='/active_nav/foo'][aria-current]");
       assertNotSelector(doc, "a[href='/active_nav/foo/bar'][data-ancestor]");
+      assertNotSelector(doc, "a[href='/active_nav/foo/bar'][aria-current]");
 
       doc = await server.getHtml(`/active_nav/foo`);
       assertSelector(doc, "a[href='/active_nav/foo'][data-current]");
+      assertSelector(doc, `a[href='/active_nav/foo'][aria-current="page"]`);
       assertSelector(doc, "a[href='/active_nav'][data-ancestor]");
+      assertSelector(doc, `a[href='/active_nav'][aria-current="true"]`);
       assertSelector(doc, "a[href='/'][data-ancestor]");
+      assertSelector(doc, `a[href='/'][aria-current="true"]`);
     },
   );
 });
@@ -1001,6 +1007,7 @@ Deno.test("Updates active links outside of vdom", async () => {
       // Current
       assertNotSelector(doc, "a[href='/active_nav_partial'][data-ancestor]");
       assertSelector(doc, "a[href='/active_nav_partial'][data-current]");
+      assertSelector(doc, `a[href='/active_nav_partial'][aria-current="page"]`);
 
       // Unrelated links
       assertNotSelector(
@@ -1009,14 +1016,31 @@ Deno.test("Updates active links outside of vdom", async () => {
       );
       assertNotSelector(
         doc,
+        "a[href='/active_nav_partial/foo'][aria-current]",
+      );
+      assertNotSelector(
+        doc,
         "a[href='/active_nav_partial/foo/bar'][data-ancestor]",
+      );
+      assertNotSelector(
+        doc,
+        "a[href='/active_nav_partial/foo/bar'][aria-current]",
       );
 
       await page.goto(`${address}/active_nav_partial/foo`);
       doc = parseHtml(await page.content());
       assertSelector(doc, "a[href='/active_nav_partial/foo'][data-current]");
+      assertSelector(
+        doc,
+        `a[href='/active_nav_partial/foo'][aria-current="page"]`,
+      );
       assertSelector(doc, "a[href='/active_nav_partial'][data-ancestor]");
+      assertSelector(
+        doc,
+        `a[href='/active_nav_partial'][data-ancestor][aria-current="true"]`,
+      );
       assertSelector(doc, "a[href='/'][data-ancestor]");
+      assertSelector(doc, `a[href='/'][aria-current="true"]`);
     },
   );
 });
