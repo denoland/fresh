@@ -9,7 +9,7 @@ import {
 } from "./deps.ts";
 import { ComponentType, h } from "preact";
 import * as router from "./router.ts";
-import { Manifest } from "./mod.ts";
+import { FreshConfig, Manifest } from "./mod.ts";
 import { ALIVE_URL, JS_PREFIX, REFRESH_JS_URL } from "./constants.ts";
 import { BUILD_ID, setBuildId } from "./build_id.ts";
 import DefaultErrorHandler from "./default_error_page.tsx";
@@ -18,9 +18,8 @@ import {
   BaseRoute,
   ErrorPage,
   ErrorPageModule,
-  FreshOptions,
   Handler,
-  InternalFreshOptions,
+  InternalFreshConfig,
   Island,
   LayoutModule,
   LayoutRoute,
@@ -79,12 +78,17 @@ interface StaticFile {
   etag: string;
 }
 
-export type FromManifestOptions = FreshOptions & {
+/**
+ * @deprecated Use {@linkcode FromManifestConfig} instead
+ */
+export type FromManifestOptions = FromManifestConfig;
+
+export type FromManifestConfig = FreshConfig & {
   skipSnapshot?: boolean;
   dev?: boolean;
 };
 
-export async function getServerContext(opts: InternalFreshOptions) {
+export async function getServerContext(opts: InternalFreshConfig) {
   const { manifest, denoJson: config, denoJsonPath: configPath } = opts;
   // Get the manifest' base URL.
   const baseUrl = new URL("./", manifest.baseUrl).href;
@@ -455,18 +459,21 @@ export class ServerContext {
    */
   static async fromManifest(
     manifest: Manifest,
-    opts: FromManifestOptions,
+    config: FromManifestConfig,
   ): Promise<ServerContext> {
     const isLegacyDev = Deno.env.get("__FRSH_LEGACY_DEV") === "true";
-    opts.dev = isLegacyDev ||
-      Boolean(opts.dev);
+    config.dev = isLegacyDev ||
+      Boolean(config.dev);
 
     if (isLegacyDev) {
-      opts.skipSnapshot = true;
+      config.skipSnapshot = true;
     }
 
-    const config = await getFreshConfigWithDefaults(manifest, opts);
-    return getServerContext(config);
+    const configWithDefaults = await getFreshConfigWithDefaults(
+      manifest,
+      config,
+    );
+    return getServerContext(configWithDefaults);
   }
 
   /**

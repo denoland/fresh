@@ -6,7 +6,7 @@
 
 import { start } from "$fresh/server.ts";
 import routes from "./fresh.gen.ts";
-import options from "./options.ts";
+import config from "./fresh.config.ts";
 
 // this just exists to function as a type check to assert that we can actually pass a key and cert in
-await start(routes, { ...options, key: "test", cert: "test" });
+await start(routes, { ...config, key: "test", cert: "test" });

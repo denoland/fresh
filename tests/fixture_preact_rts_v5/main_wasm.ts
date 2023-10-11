@@ -9,6 +9,6 @@
 import "./polyfill_deno_deploy.ts";
 import { start } from "$fresh/server.ts";
 import routes from "./fresh.gen.ts";
-import options from "./options.ts";
+import config from "./fresh.config.ts";
 
-await start(routes, options);
+await start(routes, config);

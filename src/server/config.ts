@@ -1,6 +1,6 @@
 import { dirname, fromFileUrl, isAbsolute, join, JSONC } from "./deps.ts";
-import { FromManifestOptions, Manifest } from "./mod.ts";
-import { DenoConfig, InternalFreshOptions } from "./types.ts";
+import { FromManifestConfig, Manifest } from "./mod.ts";
+import { DenoConfig, InternalFreshConfig } from "./types.ts";
 
 export async function readDenoConfig(
   directory: string,
@@ -39,8 +39,8 @@ function isObject(value: unknown) {
 
 export async function getFreshConfigWithDefaults(
   manifest: Manifest,
-  opts: FromManifestOptions,
-): Promise<InternalFreshOptions> {
+  config: FromManifestConfig,
+): Promise<InternalFreshConfig> {
   const base = dirname(fromFileUrl(manifest.baseUrl));
   const { config: denoJson, path: denoJsonPath } = await readDenoConfig(base);
 
@@ -50,59 +50,59 @@ export async function getFreshConfigWithDefaults(
     );
   }
 
-  const config: InternalFreshOptions = {
-    loadSnapshot: typeof opts.skipSnapshot === "boolean"
-      ? !opts.skipSnapshot
+  const internalConfig: InternalFreshConfig = {
+    loadSnapshot: typeof config.skipSnapshot === "boolean"
+      ? !config.skipSnapshot
       : false,
-    dev: opts.dev ?? false,
+    dev: config.dev ?? false,
     denoJsonPath,
     denoJson,
     manifest,
     build: {
       outDir: "",
-      target: opts.build?.target ?? ["chrome99", "firefox99", "safari15"],
+      target: config.build?.target ?? ["chrome99", "firefox99", "safari15"],
     },
-    plugins: opts.plugins ?? [],
+    plugins: config.plugins ?? [],
     staticDir: "",
-    render: opts.render,
-    router: opts.router,
-    server: opts.server ?? {},
+    render: config.render,
+    router: config.router,
+    server: config.server ?? {},
   };
 
-  if (opts.cert) {
-    config.server.cert = opts.cert;
+  if (config.cert) {
+    internalConfig.server.cert = config.cert;
   }
-  if (opts.hostname) {
-    config.server.hostname = opts.hostname;
+  if (config.hostname) {
+    internalConfig.server.hostname = config.hostname;
   }
-  if (opts.key) {
-    config.server.key = opts.key;
+  if (config.key) {
+    internalConfig.server.key = config.key;
   }
-  if (opts.onError) {
-    config.server.onError = opts.onError;
+  if (config.onError) {
+    internalConfig.server.onError = config.onError;
   }
-  if (opts.onListen) {
-    config.server.onListen = opts.onListen;
+  if (config.onListen) {
+    internalConfig.server.onListen = config.onListen;
   }
-  if (opts.port) {
-    config.server.port = opts.port;
+  if (config.port) {
+    internalConfig.server.port = config.port;
   }
-  if (opts.reusePort) {
-    config.server.reusePort = opts.reusePort;
+  if (config.reusePort) {
+    internalConfig.server.reusePort = config.reusePort;
   }
-  if (opts.signal) {
-    config.server.signal = opts.signal;
+  if (config.signal) {
+    internalConfig.server.signal = config.signal;
   }
 
-  config.build.outDir = opts.build?.outDir
-    ? parseFileOrUrl(opts.build.outDir, base)
+  internalConfig.build.outDir = config.build?.outDir
+    ? parseFileOrUrl(config.build.outDir, base)
     : join(base, "_fresh");
 
-  config.staticDir = opts.staticDir
-    ? parseFileOrUrl(opts.staticDir, base)
+  internalConfig.staticDir = config.staticDir
+    ? parseFileOrUrl(config.staticDir, base)
     : join(base, "static");
 
-  return config;
+  return internalConfig;
 }
 
 function parseFileOrUrl(input: string, base: string) {
