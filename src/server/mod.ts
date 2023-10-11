@@ -86,17 +86,17 @@ export interface Manifest {
 export { ServerContext };
 
 export async function createHandler(
-  routes: Manifest,
+  manifest: Manifest,
   config: FreshConfig = {},
 ): Promise<
   (req: Request, connInfo?: ServeHandlerInfo) => Promise<Response>
 > {
-  const ctx = await ServerContext.fromManifest(routes, config);
+  const ctx = await ServerContext.fromManifest(manifest, config);
   return ctx.handler();
 }
 
-export async function start(routes: Manifest, config: FreshConfig = {}) {
-  const ctx = await ServerContext.fromManifest(routes, {
+export async function start(manifest: Manifest, config: FreshConfig = {}) {
+  const ctx = await ServerContext.fromManifest(manifest, {
     ...config,
     skipSnapshot: false,
     dev: false,
