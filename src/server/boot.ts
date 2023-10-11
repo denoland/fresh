@@ -1,8 +1,11 @@
 import { ServerContext } from "./context.ts";
 import { colors } from "./deps.ts";
-import { ServeHandler, StartOptions } from "./types.ts";
+import { ServeHandler } from "./types.ts";
 
-export async function startFromContext(ctx: ServerContext, opts: StartOptions) {
+export async function startFromContext(
+  ctx: ServerContext,
+  opts: Partial<Deno.ServeTlsOptions>,
+) {
   if (!opts.onListen) {
     opts.onListen = (params) => {
       console.log();
@@ -56,7 +59,10 @@ export async function startFromContext(ctx: ServerContext, opts: StartOptions) {
   }
 }
 
-async function bootServer(handler: ServeHandler, opts: StartOptions) {
+async function bootServer(
+  handler: ServeHandler,
+  opts: Partial<Deno.ServeTlsOptions>,
+) {
   // @ts-ignore Ignore type error when type checking with Deno versions
   if (typeof Deno.serve === "function") {
     // @ts-ignore Ignore type error when type checking with Deno versions

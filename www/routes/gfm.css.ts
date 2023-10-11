@@ -37,6 +37,60 @@ const CSS = css`${gfm.CSS}
   margin-left: 0
 }
 
+.markdown-body .admonition {
+  padding: 1rem;
+}
+.markdown-body .admonition-header {
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  font-size: 1rem;
+  padding-bottom: .5rem;
+}
+.markdown-body .admonition .icon {
+  display: inline-flex;
+  margin-right: .25rem;
+  width: 1.2em;
+  height: 1.2em;
+}
+.markdown-body blockquote.warn {
+  border-color: #ff9100;
+  background: #F0900525;
+}
+
+.markdown-body .admonition .fenced-code {
+  margin-left: 0;
+  margin-right: 0;
+  border: 1px solid #d9d2d2;
+  border-radius: .5rem .5rem .25rem .25rem;
+}
+
+.markdown-body .admonition .highlight {
+  margin-bottom: 0;
+}
+
+.markdown-body .admonition.tip .admonition-header {
+  color: rgb(0, 148, 0);
+}
+.markdown-body .admonition.tip {
+  background-color: rgb(230, 246, 230);
+  border-color: rgb(0, 148, 0);
+}
+.markdown-body .admonition.info .admonition-header {
+  color: rgb(25 146 184);
+}
+.markdown-body .admonition.info {
+  background-color: rgb(238, 249, 253);
+  border-color: rgb(25 146 184);
+}
+.markdown-body .admonition.warn .admonition-header {
+  color: #dd6f04;
+}
+.markdown-body .admonition.warn {
+  background-color: #F0900525;
+  border-color: #ff9100;
+}
+
 @media screen and (min-width: 768px) {
   .markdown-body .fenced-code,
   .markdown-body table {

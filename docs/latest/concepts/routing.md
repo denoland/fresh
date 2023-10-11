@@ -97,8 +97,9 @@ a folder and use a different `_layout` file for each group.
         └── contact.tsx
 ```
 
-> ℹ️ Be careful about routes in different groups which match to the same URL.
-> Such scenarios will lead to ambiguity as to which route file should be picked.
+> [warn]: Be careful about routes in different groups which match to the same
+> URL. Such scenarios will lead to ambiguity as to which route file should be
+> picked.
 >
 > ```txt Project structure
 > └── routes

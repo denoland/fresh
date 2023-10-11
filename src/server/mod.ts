@@ -85,20 +85,20 @@ export interface Manifest {
 export { ServerContext };
 
 export async function createHandler(
-  routes: Manifest,
+  manifest: Manifest,
   opts: StartOptions = {},
 ): Promise<
   (req: Request, connInfo?: ServeHandlerInfo) => Promise<Response>
 > {
-  const ctx = await ServerContext.fromManifest(routes, opts);
+  const ctx = await ServerContext.fromManifest(manifest, opts);
   return ctx.handler();
 }
 
-export async function start(routes: Manifest, opts: StartOptions = {}) {
-  const ctx = await ServerContext.fromManifest(routes, {
+export async function start(manifest: Manifest, opts: StartOptions = {}) {
+  const ctx = await ServerContext.fromManifest(manifest, {
     ...opts,
     skipSnapshot: false,
     dev: false,
   });
-  await startFromContext(ctx, opts);
+  await startFromContext(ctx, opts.server ?? opts);
 }

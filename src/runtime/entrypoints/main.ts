@@ -698,8 +698,10 @@ export async function applyPartials(res: Response): Promise<void> {
 
   await Promise.all(promises);
 
-  if (deserialize) {
-    state = deserialize(stateDom!, signal) as SerializedState;
+  if (stateDom) {
+    state = deserialize
+      ? deserialize(stateDom, signal) as SerializedState
+      : JSON.parse(stateDom)?.v;
   }
 
   // Collect all partials and build up the vnode tree
@@ -948,7 +950,7 @@ document.addEventListener("click", async (e) => {
 
         const partialUrl = new URL(
           partial ? partial : nextUrl.href,
-          location.origin,
+          location.href,
         );
         await fetchPartials(partialUrl);
         updateLinks(nextUrl);
@@ -979,7 +981,7 @@ document.addEventListener("click", async (e) => {
 
         const partialUrl = new URL(
           partial,
-          location.origin,
+          location.href,
         );
         await fetchPartials(partialUrl);
       }
@@ -1042,7 +1044,7 @@ document.addEventListener("submit", async (e) => {
     if (partial !== null) {
       e.preventDefault();
 
-      const url = new URL(partial, location.origin);
+      const url = new URL(partial, location.href);
       await fetchPartials(url);
     }
   }

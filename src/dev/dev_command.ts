@@ -54,7 +54,7 @@ export async function dev(
     config.dev = true;
     config.loadSnapshot = false;
     const ctx = await getServerContext(config);
-    await startFromContext(ctx, options);
+    await startFromContext(ctx, config.server);
   } else {
     // Legacy entry point: Back then `dev.ts` would call `main.ts` but
     // this causes duplicate plugin instantiation if both `dev.ts` and

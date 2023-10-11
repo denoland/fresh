@@ -381,6 +381,17 @@
     "image": "text2audio"
   },
   {
+    "title": "FilterHN",
+    "link": "https://filterhn.com/",
+    "image": "filter-hn"
+  },
+  {
+    "title": "AquaVibes",
+    "link": "https://aquavibes.earth/",
+    "github": "arturolume/aquavibes",
+    "image": "aquavibes"
+  },
+  {
     "title": "Do not remove this, it’s for preventing conflicts by trailing comma",
     "link": "",
     "github": "",
