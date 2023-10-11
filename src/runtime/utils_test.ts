@@ -1,10 +1,7 @@
 import { assertEquals } from "../../tests/deps.ts";
 import { asset, assetSrcSet, staticFile } from "./utils.ts";
 import { BUILD_ID } from "./build_id.ts";
-import {
-  ASSET_PATH_PREFIX,
-  setAssetPathPrefix,
-} from "$fresh/src/server/asset_path.ts";
+import { setAssetPathPrefix } from "$fresh/src/server/asset_path.ts";
 
 Deno.test("asset", () => {
   assertEquals(asset("/test.png"), `/test.png?__frsh_c=${BUILD_ID}`);
