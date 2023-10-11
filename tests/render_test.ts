@@ -2,9 +2,9 @@ import { assertSelector, parseHtml } from "$fresh/tests/test_utils.ts";
 import { assertEquals } from "$std/testing/asserts.ts";
 import { createHandler } from "$fresh/server.ts";
 import manifest from "./fixture/fresh.gen.ts";
-import options from "./fixture/options.ts";
+import config from "./fixture/fresh.config.ts";
 
-const handler = await createHandler(manifest, options);
+const handler = await createHandler(manifest, config);
 
 // Issue: https://github.com/denoland/fresh/issues/1636
 Deno.test("doesn't leak data across renderers", async () => {
