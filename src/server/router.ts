@@ -4,7 +4,6 @@ import {
   ServeHandlerInfo,
   StaticFileRouteState,
 } from "./types.ts";
-import { sendFile } from "./static_files.ts";
 
 export type HandlerContext<T = unknown> = T & ServeHandlerInfo;
 
@@ -158,92 +157,6 @@ function checkIfRouteMatches<T>(
     }
     return { route: route, params: groups };
   }
-}
-
-const stubPattern = new URLPattern("*", "https://localhost");
-
-export function getParamsAndRoute<T>(
-  {
-    internalRoutes,
-    staticRouteState,
-    routes,
-  }: RouterOptions<T>,
-): (
-  url: string,
-) => { route: InternalRoute<T> | undefined; params: Record<string, string> } {
-  const processedInternalRoutes: InternalRoute<T>[] = [];
-  processRoutes(processedInternalRoutes, internalRoutes, "internal");
-
-  const staticFilePaths = new Map(
-    staticRouteState.files.map((file) => [file.path, file]),
-  );
-  // processRoutes(processedInternalRoutes, staticRoutes, "static");
-
-  const processedRoutes: InternalRoute<T>[] = [];
-  processRoutes(processedRoutes, routes, "route");
-
-  return (url: string) => {
-    // Check internal routes
-    for (let i = 0; i < processedInternalRoutes.length; i++) {
-      const route = processedInternalRoutes[i];
-      const res = checkIfRouteMatches(route, url);
-      if (res) return res;
-    }
-
-    // Check static files
-    const parsedUrl = new URL(url);
-    const staticFile = staticFilePaths.get(parsedUrl.pathname);
-    if (staticFile !== undefined) {
-      console.log("static", parsedUrl.pathname);
-      return {
-        params: {},
-        route: {
-          baseRoute: staticFile.baseRoute,
-          destination: "static",
-          get pattern() {
-            console.trace("checking pattern");
-            return stubPattern;
-          },
-          methods: {
-            async HEAD(req) {
-              const r = await sendFile(
-                req,
-                parsedUrl,
-                staticRouteState,
-                staticFile,
-              );
-
-              console.log(r.status);
-
-              return r;
-            },
-            async GET(req) {
-              const r = await sendFile(
-                req,
-                parsedUrl,
-                staticRouteState,
-                staticFile,
-              );
-              console.log(r.status);
-              return r;
-            },
-          },
-        },
-      };
-    }
-
-    // Check project routes
-    for (let i = 0; i < processedRoutes.length; i++) {
-      const route = processedRoutes[i];
-      const res = checkIfRouteMatches(route, url);
-      if (res) return res;
-    }
-
-    return {
-      route: undefined,
-      params: {},
-    };
-  };
 }
 
 export function router<T = unknown>(

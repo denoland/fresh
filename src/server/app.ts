@@ -144,6 +144,14 @@ export async function createFreshApp(
     manifest === undefined ? Deno.cwd() : manifest.baseUrl,
     manifest,
   );
+
+  // Ensure that debugging hooks are set up for SSR rendering
+  if (internalConfig.dev) {
+    await import("preact/debug");
+  }
+
+  //
+
   const serverContext = await getServerContext(internalConfig);
 
   const router = new MethodRouter()

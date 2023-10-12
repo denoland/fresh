@@ -325,11 +325,6 @@ export async function getServerContext(opts: InternalFreshConfig) {
 
   const staticFiles: StaticFile[] = [];
 
-  if (opts.dev) {
-    // Ensure that debugging hooks are set up for SSR rendering
-    await import("preact/debug");
-  }
-
   return new ServerContext(
     routes,
     islands,
