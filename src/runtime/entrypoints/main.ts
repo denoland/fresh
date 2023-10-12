@@ -326,10 +326,10 @@ function _walkInner(
         vnodeStack.push(
           h(PartialComp, { name, key, mode: +mode }) as VNode,
         );
-      } else if (comment.startsWith("frsh-key")) {
+      } else if (comment.startsWith("frsh-key:")) {
         const key = comment.slice("frsh-key:".length);
         vnodeStack.push(h(Fragment, { key }) as VNode);
-      } else if (comment.startsWith("/frsh-key")) {
+      } else if (comment.startsWith("/frsh-key:")) {
         const vnode = vnodeStack.pop();
         const parent = vnodeStack[vnodeStack.length - 1]!;
         addPropsChild(parent, vnode);

@@ -64,46 +64,48 @@ import * as $58 from "./routes/keys/swap.tsx";
 import * as $59 from "./routes/keys_components/index.tsx";
 import * as $60 from "./routes/keys_components/injected.tsx";
 import * as $61 from "./routes/keys_components/swap.tsx";
-import * as $62 from "./routes/keys_dom/index.tsx";
-import * as $63 from "./routes/keys_dom/injected.tsx";
-import * as $64 from "./routes/keys_dom/swap.tsx";
-import * as $65 from "./routes/keys_outside/index.tsx";
-import * as $66 from "./routes/loading/index.tsx";
-import * as $67 from "./routes/loading/injected.tsx";
-import * as $68 from "./routes/loading/update.tsx";
-import * as $69 from "./routes/missing_partial/index.tsx";
-import * as $70 from "./routes/missing_partial/injected.tsx";
-import * as $71 from "./routes/missing_partial/update.tsx";
-import * as $72 from "./routes/mode/append.tsx";
-import * as $73 from "./routes/mode/index.tsx";
-import * as $74 from "./routes/mode/injected.tsx";
-import * as $75 from "./routes/mode/prepend.tsx";
-import * as $76 from "./routes/mode/replace.tsx";
-import * as $77 from "./routes/no_islands/index.tsx";
-import * as $78 from "./routes/no_islands/injected.tsx";
-import * as $79 from "./routes/no_islands/update.tsx";
-import * as $80 from "./routes/no_partial_response/index.tsx";
-import * as $81 from "./routes/no_partial_response/injected.tsx";
-import * as $82 from "./routes/no_partial_response/update.tsx";
-import * as $83 from "./routes/partial_slot_inside_island.tsx";
-import * as $84 from "./routes/relative_link/index.tsx";
-import * as $85 from "./routes/scroll_restoration/index.tsx";
-import * as $86 from "./routes/scroll_restoration/injected.tsx";
-import * as $87 from "./routes/scroll_restoration/update.tsx";
+import * as $62 from "./routes/keys_confusion/index.tsx";
+import * as $63 from "./routes/keys_dom/index.tsx";
+import * as $64 from "./routes/keys_dom/injected.tsx";
+import * as $65 from "./routes/keys_dom/swap.tsx";
+import * as $66 from "./routes/keys_outside/index.tsx";
+import * as $67 from "./routes/loading/index.tsx";
+import * as $68 from "./routes/loading/injected.tsx";
+import * as $69 from "./routes/loading/update.tsx";
+import * as $70 from "./routes/missing_partial/index.tsx";
+import * as $71 from "./routes/missing_partial/injected.tsx";
+import * as $72 from "./routes/missing_partial/update.tsx";
+import * as $73 from "./routes/mode/append.tsx";
+import * as $74 from "./routes/mode/index.tsx";
+import * as $75 from "./routes/mode/injected.tsx";
+import * as $76 from "./routes/mode/prepend.tsx";
+import * as $77 from "./routes/mode/replace.tsx";
+import * as $78 from "./routes/no_islands/index.tsx";
+import * as $79 from "./routes/no_islands/injected.tsx";
+import * as $80 from "./routes/no_islands/update.tsx";
+import * as $81 from "./routes/no_partial_response/index.tsx";
+import * as $82 from "./routes/no_partial_response/injected.tsx";
+import * as $83 from "./routes/no_partial_response/update.tsx";
+import * as $84 from "./routes/partial_slot_inside_island.tsx";
+import * as $85 from "./routes/relative_link/index.tsx";
+import * as $86 from "./routes/scroll_restoration/index.tsx";
+import * as $87 from "./routes/scroll_restoration/injected.tsx";
+import * as $88 from "./routes/scroll_restoration/update.tsx";
 import * as $$0 from "./islands/Counter.tsx";
 import * as $$1 from "./islands/CounterA.tsx";
 import * as $$2 from "./islands/CounterB.tsx";
 import * as $$3 from "./islands/Fader.tsx";
 import * as $$4 from "./islands/InvalidSlot.tsx";
-import * as $$5 from "./islands/LazyLink.tsx";
-import * as $$6 from "./islands/Logger.tsx";
-import * as $$7 from "./islands/Other.tsx";
-import * as $$8 from "./islands/PartialTrigger.tsx";
-import * as $$9 from "./islands/PassThrough.tsx";
-import * as $$10 from "./islands/PropIsland.tsx";
-import * as $$11 from "./islands/SignalProp.tsx";
-import * as $$12 from "./islands/Spinner.tsx";
-import * as $$13 from "./islands/Stateful.tsx";
+import * as $$5 from "./islands/KeyExplorer.tsx";
+import * as $$6 from "./islands/LazyLink.tsx";
+import * as $$7 from "./islands/Logger.tsx";
+import * as $$8 from "./islands/Other.tsx";
+import * as $$9 from "./islands/PartialTrigger.tsx";
+import * as $$10 from "./islands/PassThrough.tsx";
+import * as $$11 from "./islands/PropIsland.tsx";
+import * as $$12 from "./islands/SignalProp.tsx";
+import * as $$13 from "./islands/Spinner.tsx";
+import * as $$14 from "./islands/Stateful.tsx";
 
 const manifest = {
   routes: {
@@ -169,32 +171,33 @@ const manifest = {
     "./routes/keys_components/index.tsx": $59,
     "./routes/keys_components/injected.tsx": $60,
     "./routes/keys_components/swap.tsx": $61,
-    "./routes/keys_dom/index.tsx": $62,
-    "./routes/keys_dom/injected.tsx": $63,
-    "./routes/keys_dom/swap.tsx": $64,
-    "./routes/keys_outside/index.tsx": $65,
-    "./routes/loading/index.tsx": $66,
-    "./routes/loading/injected.tsx": $67,
-    "./routes/loading/update.tsx": $68,
-    "./routes/missing_partial/index.tsx": $69,
-    "./routes/missing_partial/injected.tsx": $70,
-    "./routes/missing_partial/update.tsx": $71,
-    "./routes/mode/append.tsx": $72,
-    "./routes/mode/index.tsx": $73,
-    "./routes/mode/injected.tsx": $74,
-    "./routes/mode/prepend.tsx": $75,
-    "./routes/mode/replace.tsx": $76,
-    "./routes/no_islands/index.tsx": $77,
-    "./routes/no_islands/injected.tsx": $78,
-    "./routes/no_islands/update.tsx": $79,
-    "./routes/no_partial_response/index.tsx": $80,
-    "./routes/no_partial_response/injected.tsx": $81,
-    "./routes/no_partial_response/update.tsx": $82,
-    "./routes/partial_slot_inside_island.tsx": $83,
-    "./routes/relative_link/index.tsx": $84,
-    "./routes/scroll_restoration/index.tsx": $85,
-    "./routes/scroll_restoration/injected.tsx": $86,
-    "./routes/scroll_restoration/update.tsx": $87,
+    "./routes/keys_confusion/index.tsx": $62,
+    "./routes/keys_dom/index.tsx": $63,
+    "./routes/keys_dom/injected.tsx": $64,
+    "./routes/keys_dom/swap.tsx": $65,
+    "./routes/keys_outside/index.tsx": $66,
+    "./routes/loading/index.tsx": $67,
+    "./routes/loading/injected.tsx": $68,
+    "./routes/loading/update.tsx": $69,
+    "./routes/missing_partial/index.tsx": $70,
+    "./routes/missing_partial/injected.tsx": $71,
+    "./routes/missing_partial/update.tsx": $72,
+    "./routes/mode/append.tsx": $73,
+    "./routes/mode/index.tsx": $74,
+    "./routes/mode/injected.tsx": $75,
+    "./routes/mode/prepend.tsx": $76,
+    "./routes/mode/replace.tsx": $77,
+    "./routes/no_islands/index.tsx": $78,
+    "./routes/no_islands/injected.tsx": $79,
+    "./routes/no_islands/update.tsx": $80,
+    "./routes/no_partial_response/index.tsx": $81,
+    "./routes/no_partial_response/injected.tsx": $82,
+    "./routes/no_partial_response/update.tsx": $83,
+    "./routes/partial_slot_inside_island.tsx": $84,
+    "./routes/relative_link/index.tsx": $85,
+    "./routes/scroll_restoration/index.tsx": $86,
+    "./routes/scroll_restoration/injected.tsx": $87,
+    "./routes/scroll_restoration/update.tsx": $88,
   },
   islands: {
     "./islands/Counter.tsx": $$0,
@@ -202,15 +205,16 @@ const manifest = {
     "./islands/CounterB.tsx": $$2,
     "./islands/Fader.tsx": $$3,
     "./islands/InvalidSlot.tsx": $$4,
-    "./islands/LazyLink.tsx": $$5,
-    "./islands/Logger.tsx": $$6,
-    "./islands/Other.tsx": $$7,
-    "./islands/PartialTrigger.tsx": $$8,
-    "./islands/PassThrough.tsx": $$9,
-    "./islands/PropIsland.tsx": $$10,
-    "./islands/SignalProp.tsx": $$11,
-    "./islands/Spinner.tsx": $$12,
-    "./islands/Stateful.tsx": $$13,
+    "./islands/KeyExplorer.tsx": $$5,
+    "./islands/LazyLink.tsx": $$6,
+    "./islands/Logger.tsx": $$7,
+    "./islands/Other.tsx": $$8,
+    "./islands/PartialTrigger.tsx": $$9,
+    "./islands/PassThrough.tsx": $$10,
+    "./islands/PropIsland.tsx": $$11,
+    "./islands/SignalProp.tsx": $$12,
+    "./islands/Spinner.tsx": $$13,
+    "./islands/Stateful.tsx": $$14,
   },
   baseUrl: import.meta.url,
 };
