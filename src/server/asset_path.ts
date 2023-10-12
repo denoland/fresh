@@ -18,7 +18,7 @@ export function hasAssetPrefix() {
 
 /**
  * Helper to use in templates. It returns the full path of an asset by concatenating the ASSET_PATH_PREFIX with the provided path.
- * This is useful to get the right path durning development and production.
+ * This is useful to get the right path during development and production.
  * i.e staticFile("/test.png")
  */
 export function staticFile(path: string): string {
