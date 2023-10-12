@@ -1422,9 +1422,25 @@ function sendResponse(
       headers["content-security-policy"] = directive;
     }
   }
+
+  if (options.headers) {
+    if (Array.isArray(options.headers)) {
+      for (let i = 0; i < options.headers.length; i++) {
+        const item = options.headers[i];
+        headers[item[0]] = item[1];
+      }
+    } else if (options.headers instanceof Headers) {
+      options.headers.forEach((value, key) => {
+        headers[key] = value;
+      });
+    } else {
+      Object.assign(headers, options.headers);
+    }
+  }
+
   return new Response(body, {
     status: options.status,
     statusText: options.statusText,
-    headers: options.headers ? { ...headers, ...options.headers } : headers,
+    headers,
   });
 }
