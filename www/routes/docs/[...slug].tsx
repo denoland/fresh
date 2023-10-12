@@ -190,7 +190,7 @@ function MobileSidebar(props: { page: Page }) {
           class="absolute inset-0 bg-gray-600 opacity-75"
           for="docs_sidebar"
         />
-        <div class="relative flex-1 flex flex-col w-[16rem] h-full bg-white border(r-2 gray-100)">
+        <div class="relative flex-1 flex flex-col w-[18rem] h-full bg-white border(r-2 gray-100)">
           <nav class="pt-0 pb-16 px-4 overflow-x-auto">
             <DocsSidebar
               mobile
