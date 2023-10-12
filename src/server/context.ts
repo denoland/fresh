@@ -35,6 +35,8 @@ import {
   RouterOptions,
   RouterState,
   ServeHandlerInfo,
+  StaticFile,
+  StaticFileRouteState,
   UnknownPage,
   UnknownPageModule,
 } from "./types.ts";
@@ -64,19 +66,6 @@ const DEFAULT_CONN_INFO: ServeHandlerInfo = {
 };
 
 const ROOT_BASE_ROUTE = toBaseRoute("/");
-
-interface StaticFile {
-  /** The URL to the static file on disk. */
-  localUrl: URL;
-  /** The path to the file as it would be in the incoming request. */
-  path: string;
-  /** The size of the file. */
-  size: number;
-  /** The content-type of the file. */
-  contentType: string;
-  /** Hash of the file contents. */
-  etag: string;
-}
 
 /**
  * @deprecated Use {@linkcode FromManifestConfig} instead
@@ -343,29 +332,32 @@ export async function getServerContext(opts: InternalFreshConfig) {
       followSymlinks: false,
     });
     const encoder = new TextEncoder();
+    console.time();
     for await (const entry of entries) {
       const localUrl = toFileUrl(entry.path);
-      const path = localUrl.href.substring(staticDirUrl.href.length);
-      const stat = await Deno.stat(localUrl);
+      let path = localUrl.href.substring(staticDirUrl.href.length);
+      path = sanitizePathToRegex(path);
+      // const stat = await Deno.stat(localUrl);
       const contentType = typeByExtension(extname(path)) ??
         "application/octet-stream";
-      const etag = await crypto.subtle.digest(
-        "SHA-1",
-        encoder.encode(BUILD_ID + path),
-      ).then((hash) =>
-        Array.from(new Uint8Array(hash))
-          .map((byte) => byte.toString(16).padStart(2, "0"))
-          .join("")
-      );
-      const staticFile: StaticFile = {
+      // console.log(contentType, typeByExtension(""));
+
+      // const etag = await crypto.subtle.digest(
+      //   "SHA-1",
+      //   encoder.encode(BUILD_ID + path),
+      // ).then((hash) =>
+      //   Array.from(new Uint8Array(hash))
+      //     .map((byte) => byte.toString(16).padStart(2, "0"))
+      //     .join("")
+      // );
+      staticFiles.push({
+        baseRoute: toBaseRoute(path),
         localUrl,
         path,
-        size: stat.size,
         contentType,
-        etag,
-      };
-      staticFiles.push(staticFile);
+      });
     }
+    console.timeEnd();
   } catch (err) {
     if (err.cause instanceof Deno.errors.NotFound) {
       // Do nothing.
@@ -470,8 +462,9 @@ export class ServerContext {
     }
 
     const configWithDefaults = await getFreshConfigWithDefaults(
-      manifest,
       config,
+      manifest.baseUrl,
+      manifest,
     );
     return getServerContext(configWithDefaults);
   }
@@ -644,90 +637,14 @@ export class ServerContext {
    */
   #handlers(): {
     internalRoutes: router.Routes<RouterState>;
-    staticRoutes: router.Routes<RouterState>;
+    staticRouteState: StaticFileRouteState;
     routes: router.Routes<RouterState>;
 
     otherHandler: router.Handler<RouterState>;
     errorHandler: router.ErrorHandler<RouterState>;
   } {
     const internalRoutes: router.Routes<RouterState> = {};
-    const staticRoutes: router.Routes<RouterState> = {};
     const routes: router.Routes<RouterState> = {};
-
-    internalRoutes[`${INTERNAL_PREFIX}${JS_PREFIX}/${BUILD_ID}/:path*`] = {
-      baseRoute: toBaseRoute(
-        `${INTERNAL_PREFIX}${JS_PREFIX}/${BUILD_ID}/:path*`,
-      ),
-      methods: {
-        default: this.#bundleAssetRoute(),
-      },
-    };
-    if (this.#dev) {
-      internalRoutes[REFRESH_JS_URL] = {
-        baseRoute: toBaseRoute(REFRESH_JS_URL),
-        methods: {
-          default: () => {
-            return new Response(refreshJs(ALIVE_URL, BUILD_ID), {
-              headers: {
-                "content-type": "application/javascript; charset=utf-8",
-              },
-            });
-          },
-        },
-      };
-      internalRoutes[ALIVE_URL] = {
-        baseRoute: toBaseRoute(ALIVE_URL),
-        methods: {
-          default: () => {
-            let timerId: number | undefined = undefined;
-            const body = new ReadableStream({
-              start(controller) {
-                controller.enqueue(`data: ${BUILD_ID}\nretry: 100\n\n`);
-                timerId = setInterval(() => {
-                  controller.enqueue(`data: ${BUILD_ID}\n\n`);
-                }, 1000);
-              },
-              cancel() {
-                if (timerId !== undefined) {
-                  clearInterval(timerId);
-                }
-              },
-            });
-            return new Response(body.pipeThrough(new TextEncoderStream()), {
-              headers: {
-                "content-type": "text/event-stream",
-              },
-            });
-          },
-        },
-      };
-    }
-
-    // Add the static file routes.
-    // each files has 2 static routes:
-    // - one serving the file at its location without a "cache bursting" mechanism
-    // - one containing the BUILD_ID in the path that can be cached
-    for (
-      const { localUrl, path, size, contentType, etag } of this.#staticFiles
-    ) {
-      const route = sanitizePathToRegex(path);
-      staticRoutes[route] = {
-        baseRoute: toBaseRoute(route),
-        methods: {
-          "HEAD": this.#staticFileHeadHandler(
-            size,
-            contentType,
-            etag,
-          ),
-          "GET": this.#staticFileGetHandler(
-            localUrl,
-            size,
-            contentType,
-            etag,
-          ),
-        },
-      };
-    }
 
     // Tell renderer about all globally available islands
     setAllIslands(this.#islands);
@@ -935,107 +852,18 @@ export class ServerContext {
       );
     };
 
-    return { internalRoutes, staticRoutes, routes, otherHandler, errorHandler };
-  }
-
-  #staticFileHeadHandler(
-    size: number,
-    contentType: string,
-    etag: string,
-  ): router.MatchHandler {
-    return (req: Request) => {
-      const url = new URL(req.url);
-      const key = url.searchParams.get(ASSET_CACHE_BUST_KEY);
-      if (key !== null && BUILD_ID !== key) {
-        url.searchParams.delete(ASSET_CACHE_BUST_KEY);
-        const location = url.pathname + url.search;
-        return new Response(null, {
-          status: 307,
-          headers: {
-            location,
-          },
-        });
-      }
-      const headers = new Headers({
-        "content-type": contentType,
-        etag,
-        vary: "If-None-Match",
-      });
-      if (key !== null) {
-        headers.set("Cache-Control", "public, max-age=31536000, immutable");
-      }
-      const ifNoneMatch = req.headers.get("if-none-match");
-      if (ifNoneMatch === etag || ifNoneMatch === "W/" + etag) {
-        return new Response(null, { status: 304, headers });
-      } else {
-        headers.set("content-length", String(size));
-        return new Response(null, { status: 200, headers });
-      }
+    return {
+      internalRoutes,
+      staticRouteState: {
+        files: this.#staticFiles,
+        etags: new Map(),
+        sizes: new Map(),
+      },
+      routes,
+      otherHandler,
+      errorHandler,
     };
   }
-
-  #staticFileGetHandler(
-    localUrl: URL,
-    size: number,
-    contentType: string,
-    etag: string,
-  ): router.MatchHandler {
-    return async (req: Request) => {
-      const url = new URL(req.url);
-      const key = url.searchParams.get(ASSET_CACHE_BUST_KEY);
-      if (key !== null && BUILD_ID !== key) {
-        url.searchParams.delete(ASSET_CACHE_BUST_KEY);
-        const location = url.pathname + url.search;
-        return new Response("", {
-          status: 307,
-          headers: {
-            "content-type": "text/plain",
-            location,
-          },
-        });
-      }
-      const headers = new Headers({
-        "content-type": contentType,
-        etag,
-        vary: "If-None-Match",
-      });
-      if (key !== null) {
-        headers.set("Cache-Control", "public, max-age=31536000, immutable");
-      }
-      const ifNoneMatch = req.headers.get("if-none-match");
-      if (ifNoneMatch === etag || ifNoneMatch === "W/" + etag) {
-        return new Response(null, { status: 304, headers });
-      } else {
-        const file = await Deno.open(localUrl);
-        headers.set("content-length", String(size));
-        return new Response(file.readable, { headers });
-      }
-    };
-  }
-
-  /**
-   * Returns a router that contains all Fresh routes. Should be mounted at
-   * constants.INTERNAL_PREFIX
-   */
-  #bundleAssetRoute = (): router.MatchHandler => {
-    return async (_req, _ctx, params) => {
-      const snapshot = await this.buildSnapshot();
-      const contents = await snapshot.read(params.path);
-      if (!contents) return new Response(null, { status: 404 });
-
-      const headers: Record<string, string> = {
-        "Cache-Control": "public, max-age=604800, immutable",
-      };
-
-      const contentType = typeByExtension(extname(params.path));
-      if (contentType) headers["Content-Type"] = contentType;
-
-      return new Response(contents, {
-        status: 200,
-        headers,
-      });
-    };
-  };
 }
 
 const DEFAULT_ROUTER_OPTIONS: RouterOptions = {

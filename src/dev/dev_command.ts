@@ -40,16 +40,18 @@ export async function dev(
 
   if (Deno.args.includes("build")) {
     const configWithDefaults = await getFreshConfigWithDefaults(
-      manifest,
       config ?? {},
+      manifest.baseUrl,
+      manifest,
     );
     configWithDefaults.dev = false;
     configWithDefaults.loadSnapshot = false;
     await build(configWithDefaults);
   } else if (config) {
     const configWithDefaults = await getFreshConfigWithDefaults(
-      manifest,
       config,
+      manifest.baseUrl,
+      manifest,
     );
     configWithDefaults.dev = true;
     configWithDefaults.loadSnapshot = false;

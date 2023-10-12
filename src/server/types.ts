@@ -121,7 +121,10 @@ export interface InternalFreshConfig {
   render?: RenderFunction;
   plugins: Plugin[];
   staticDir: string;
-  router?: RouterOptions;
+  router: {
+    trailingSlash: boolean;
+    ignoreFilePattern?: RegExp;
+  };
   server: Partial<Deno.ServeTlsOptions>;
 }
 
@@ -220,6 +223,22 @@ export interface RouteConfig {
    * Default: `false`
    */
   skipAppWrapper?: boolean;
+}
+
+export interface StaticFile {
+  /** The URL to the static file on disk. */
+  localUrl: URL;
+  /** The path to the file as it would be in the incoming request. */
+  path: string;
+  baseRoute: BaseRoute;
+  /** The content-type of the file. */
+  contentType: string;
+}
+
+export interface StaticFileRouteState {
+  sizes: Map<string, string>;
+  etags: Map<string, string>;
+  files: StaticFile[];
 }
 
 // deno-lint-ignore no-empty-interface

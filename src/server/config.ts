@@ -1,3 +1,4 @@
+import { options } from "preact";
 import { dirname, fromFileUrl, isAbsolute, join, JSONC } from "./deps.ts";
 import { FromManifestConfig, Manifest } from "./mod.ts";
 import { DenoConfig, InternalFreshConfig } from "./types.ts";
@@ -38,10 +39,28 @@ function isObject(value: unknown) {
 }
 
 export async function getFreshConfigWithDefaults(
-  manifest: Manifest,
   config: FromManifestConfig,
+  root: string,
+  manifest?: Manifest,
 ): Promise<InternalFreshConfig> {
-  const base = dirname(fromFileUrl(manifest.baseUrl));
+  const base = dirname(fromFileUrl(root));
+
+  const outDir = config.build?.outDir
+    ? parseFileOrUrl(config.build.outDir, base)
+    : join(base, "_fresh");
+
+  let configManifest: Manifest;
+  if (manifest === undefined) {
+    const mod = await import(join(outDir, "fresh.gen.ts"));
+    configManifest = mod.default;
+  } else {
+    configManifest = manifest;
+  }
+
+  const staticDir = config.staticDir
+    ? parseFileOrUrl(config.staticDir, base)
+    : join(base, "static");
+
   const { config: denoJson, path: denoJsonPath } = await readDenoConfig(base);
 
   if (typeof denoJson.importMap !== "string" && !isObject(denoJson.imports)) {
@@ -50,6 +69,11 @@ export async function getFreshConfigWithDefaults(
     );
   }
 
+  const router: InternalFreshConfig["router"] = {
+    ignoreFilePattern: undefined,
+    trailingSlash: Boolean(config.router?.trailingSlash),
+  };
+
   const internalConfig: InternalFreshConfig = {
     loadSnapshot: typeof config.skipSnapshot === "boolean"
       ? !config.skipSnapshot
@@ -57,15 +81,15 @@ export async function getFreshConfigWithDefaults(
     dev: config.dev ?? false,
     denoJsonPath,
     denoJson,
-    manifest,
+    manifest: configManifest,
     build: {
-      outDir: "",
+      outDir: outDir,
       target: config.build?.target ?? ["chrome99", "firefox99", "safari15"],
     },
     plugins: config.plugins ?? [],
-    staticDir: "",
+    staticDir,
     render: config.render,
-    router: config.router,
+    router,
     server: config.server ?? {},
   };
 
@@ -93,14 +117,6 @@ export async function getFreshConfigWithDefaults(
   if (config.signal) {
     internalConfig.server.signal = config.signal;
   }
-
-  internalConfig.build.outDir = config.build?.outDir
-    ? parseFileOrUrl(config.build.outDir, base)
-    : join(base, "_fresh");
-
-  internalConfig.staticDir = config.staticDir
-    ? parseFileOrUrl(config.staticDir, base)
-    : join(base, "static");
 
   return internalConfig;
 }
