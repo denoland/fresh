@@ -27,7 +27,7 @@ export default function DocsSidebar(
             </div>
             <hr />
           </div>
-          <SearchButton class="w-[14rem]" />
+          <SearchButton class="mr-4 sm:mr-0" />
           <div class="mb-4">
             <VersionSelect
               selectedVersion={props.selectedVersion}

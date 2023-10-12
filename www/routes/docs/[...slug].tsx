@@ -220,7 +220,7 @@ function Content(props: { page: Page }) {
   return (
     <div class="w-full min-w-0">
       <Header title="docs" active="/docs" />
-      <main class="max-w-3xl mt-3 min-w-0 mx-auto">
+      <main class="max-w-3xl mt-4 min-w-0 mx-auto">
         <MobileSidebar page={props.page} />
         <div class="flex mx-auto max-w-screen-xl px-4 md:px-0 md:py-0 justify-end bg-gray-100">
           <label
