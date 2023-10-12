@@ -23,9 +23,17 @@ export interface DenoConfig {
 
 // --- APPLICATION CONFIGURATION ---
 
-export type StartOptions = FreshOptions;
+/**
+ * @deprecated Use {@linkcode FreshConfig} instead
+ */
+export type StartOptions = FreshConfig;
 
-export interface FreshOptions {
+/**
+ * @deprecated Use {@linkcode FreshConfig} interface instead.
+ */
+export type FreshOptions = FreshConfig;
+
+export interface FreshConfig {
   build?: {
     /**
      * The directory to write generated files to when `dev.ts build` is run.
@@ -101,7 +109,7 @@ export interface FreshOptions {
   onListen?: (params: { hostname: string; port: number }) => void;
 }
 
-export interface InternalFreshOptions {
+export interface InternalFreshConfig {
   dev: boolean;
   loadSnapshot: boolean;
   denoJsonPath: string;

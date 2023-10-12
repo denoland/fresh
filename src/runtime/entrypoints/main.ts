@@ -569,13 +569,16 @@ function updateLinks(url: URL) {
 
     if (match === UrlMatchKind.Current) {
       link.setAttribute(DATA_CURRENT, "true");
+      link.setAttribute("aria-current", "page");
       link.removeAttribute(DATA_ANCESTOR);
     } else if (match === UrlMatchKind.Ancestor) {
       link.setAttribute(DATA_ANCESTOR, "true");
+      link.setAttribute("aria-current", "true");
       link.removeAttribute(DATA_CURRENT);
     } else {
       link.removeAttribute(DATA_CURRENT);
       link.removeAttribute(DATA_ANCESTOR);
+      link.removeAttribute("aria-current");
     }
   });
 }
@@ -913,8 +916,10 @@ document.addEventListener("click", async (e) => {
     ) {
       const partial = el.getAttribute(PARTIAL_ATTR);
 
-      // Check if the user opted out of client side navigation.
+      // Check if the user opted out of client side navigation or if
+      // we're doing a fragment navigation.
       if (
+        el.getAttribute("href")?.startsWith("#") ||
         !checkClientNavEnabled() ||
         el.closest(`[${CLIENT_NAV_ATTR}="true"]`) === null
       ) {
