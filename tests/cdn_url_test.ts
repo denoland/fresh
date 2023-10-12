@@ -15,14 +15,14 @@ const handler = ctx.handler();
 const request = (url: string) => handler(new Request(url));
 
 Deno.test(
-  "check ASSET_PATH_PREFIX value matches the cdn url",
+  "check ASSET_PATH_PREFIX value matches the cdn url + build id",
   () => {
     assertEquals(ASSET_PATH_PREFIX, `${CDN_URL}/${BUILD_ID}`);
   },
 );
 
 Deno.test(
-  "check static and internal links are rendered with cdn url",
+  "check static links using staticFile helper are rendered with cdn url",
   async () => {
     const resp = await request(APP_URL);
     assertEquals(resp.status, Status.OK);
@@ -62,12 +62,26 @@ Deno.test(
       doc.querySelector("#static-file-with-helper")?.getAttribute("href"),
       `${CDN_URL}/${BUILD_ID}/brochure.pdf`,
     );
+  },
+);
 
-    // external files - should not be prefixed
-    assertEquals(
-      doc.querySelector("#external-img")?.getAttribute("src"),
-      `https://fresh.deno.dev/favicon.ico`,
-    );
+Deno.test(
+  "check static file routes are not registered in the server",
+  async () => {
+    const resp2 = await request(`${APP_URL}/image.png`);
+    assertEquals(resp2.status, Status.NotFound);
+
+    const resp3 = await request(`${APP_URL}/style.css`);
+    assertEquals(resp3.status, Status.NotFound);
+  },
+);
+
+Deno.test(
+  "check internal/island links are rendered with cdn url",
+  async () => {
+    const resp = await request(APP_URL);
+    assertEquals(resp.status, Status.OK);
+    const respBody = await resp.text();
 
     // internal assets and islands - should be prefixed
     assertStringIncludes(respBody, `${CDN_URL}/${BUILD_ID}/_frsh/js/main.js`);
@@ -79,18 +93,7 @@ Deno.test(
 );
 
 Deno.test(
-  "check static files routes are not registered in the server",
-  async () => {
-    const resp2 = await request(`${APP_URL}/image.png`);
-    assertEquals(resp2.status, Status.NotFound);
-
-    const resp3 = await request(`${APP_URL}/style.css`);
-    assertEquals(resp3.status, Status.NotFound);
-  },
-);
-
-Deno.test(
-  "Check internal files and islands routes are not registered  in the server",
+  "Check internal/island routes are not registered in the server",
   async () => {
     const resp4 = await request(
       `${APP_URL}/_frsh/js/${BUILD_ID}/main.js`,

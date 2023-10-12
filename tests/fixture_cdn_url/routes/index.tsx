@@ -19,6 +19,8 @@ export default function Page() {
         id="external-img"
         src="https://fresh.deno.dev/favicon.ico"
       />
+      <br />
+      <img id="static-img" src="/image.png" />
     </div>
   );
 }
