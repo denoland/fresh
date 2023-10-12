@@ -12,10 +12,7 @@ export const IS_BROWSER = typeof document !== "undefined";
  * served with a very long cache lifetime (1 year).
  */
 export function asset(path: string): string {
-  if (!path.startsWith("/") || path.startsWith("//")) {
-    return path;
-  }
-
+  if (!path.startsWith("/") || path.startsWith("//")) return path;
   try {
     const url = new URL(path, "https://freshassetcache.local");
     if (

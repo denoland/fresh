@@ -2,7 +2,7 @@ import { assertEquals } from "../../tests/deps.ts";
 import { asset, assetSrcSet } from "./utils.ts";
 import { BUILD_ID } from "./build_id.ts";
 
-Deno.test("asset without prefix", () => {
+Deno.test("asset", () => {
   assertEquals(asset("/test.png"), `/test.png?__frsh_c=${BUILD_ID}`);
   assertEquals(asset("/test?f=1"), `/test?f=1&__frsh_c=${BUILD_ID}`);
   assertEquals(asset("/test#foo"), `/test?__frsh_c=${BUILD_ID}#foo`);
@@ -17,7 +17,7 @@ Deno.test("asset without prefix", () => {
   );
 });
 
-Deno.test("assetSrcSet without prefix", () => {
+Deno.test("assetSrcSet", () => {
   assertEquals(assetSrcSet("/img.png"), `/img.png?__frsh_c=${BUILD_ID}`);
   assertEquals(
     assetSrcSet("/img.png, /img.png 2x"),

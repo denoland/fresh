@@ -175,8 +175,8 @@ const oldRender = options.__r;
 const oldHook = options.__h;
 
 options.vnode = (vnode) => {
-  // avoid hashing assets when asset path prefixed,
-  // the CDN should handle caching
+  // avoid hashing prefixed assets  because
+  // cache busting is expected to ba handled externally
   if (!hasAssetPrefix()) assetHashingHook(vnode);
 
   // Work around `preact/debug` string event handler error which

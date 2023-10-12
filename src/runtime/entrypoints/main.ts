@@ -857,8 +857,8 @@ export async function applyPartials(res: Response): Promise<void> {
 
 const originalHook = options.vnode;
 options.vnode = (vnode) => {
-  // avoid hashing assets when asset path prefixed,
-  // the CDN should handle caching
+  // avoid hashing prefixed assets  because
+  // cache busting is expected to ba handled externally
   if (!hasAssetPrefix()) assetHashingHook(vnode);
 
   // Mark active or ancestor links
