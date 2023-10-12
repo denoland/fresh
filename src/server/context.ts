@@ -324,47 +324,6 @@ export async function getServerContext(opts: InternalFreshConfig) {
   }
 
   const staticFiles: StaticFile[] = [];
-  try {
-    const staticDirUrl = toFileUrl(opts.staticDir);
-    const entries = walk(opts.staticDir, {
-      includeFiles: true,
-      includeDirs: false,
-      followSymlinks: false,
-    });
-    const encoder = new TextEncoder();
-    console.time();
-    for await (const entry of entries) {
-      const localUrl = toFileUrl(entry.path);
-      let path = localUrl.href.substring(staticDirUrl.href.length);
-      path = sanitizePathToRegex(path);
-      // const stat = await Deno.stat(localUrl);
-      const contentType = typeByExtension(extname(path)) ??
-        "application/octet-stream";
-      // console.log(contentType, typeByExtension(""));
-
-      // const etag = await crypto.subtle.digest(
-      //   "SHA-1",
-      //   encoder.encode(BUILD_ID + path),
-      // ).then((hash) =>
-      //   Array.from(new Uint8Array(hash))
-      //     .map((byte) => byte.toString(16).padStart(2, "0"))
-      //     .join("")
-      // );
-      staticFiles.push({
-        baseRoute: toBaseRoute(path),
-        localUrl,
-        path,
-        contentType,
-      });
-    }
-    console.timeEnd();
-  } catch (err) {
-    if (err.cause instanceof Deno.errors.NotFound) {
-      // Do nothing.
-    } else {
-      throw err;
-    }
-  }
 
   if (opts.dev) {
     // Ensure that debugging hooks are set up for SSR rendering

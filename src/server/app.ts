@@ -149,7 +149,7 @@ export async function createFreshApp(
   const router = new MethodRouter()
     .use(trailingSlashMiddleware(internalConfig.router.trailingSlash))
     // Bundled assets
-    .all(
+    .get(
       `${INTERNAL_PREFIX}${JS_PREFIX}/${BUILD_ID}/:path*`,
       assetMiddleware(() => serverContext.buildSnapshot()),
     );
@@ -157,8 +157,8 @@ export async function createFreshApp(
   // Development specific routes
   if (internalConfig.dev) {
     router
-      .all(REFRESH_JS_URL, refreshJsMiddleware)
-      .all(ALIVE_URL, aliveMiddleware);
+      .get(REFRESH_JS_URL, refreshJsMiddleware)
+      .get(ALIVE_URL, aliveMiddleware);
   }
 
   const appRouter = new MethodRouter();
