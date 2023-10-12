@@ -21,6 +21,7 @@ import {
   PartialMode,
 } from "../../constants.ts";
 import { setActiveUrl } from "../../runtime/active_url.ts";
+import { hasAssetPrefix } from "../../runtime/asset_path.ts";
 
 // See: https://github.com/preactjs/preact/blob/7748dcb83cedd02e37b3713634e35b97b26028fd/src/internal.d.ts#L3C1-L16
 enum HookType {
@@ -174,7 +175,9 @@ const oldRender = options.__r;
 const oldHook = options.__h;
 
 options.vnode = (vnode) => {
-  assetHashingHook(vnode);
+  // avoid hashing assets when asset path prefixed,
+  // the CDN should handle caching
+  if (!hasAssetPrefix()) assetHashingHook(vnode);
 
   // Work around `preact/debug` string event handler error which
   // errors when an event handler gets a string. This makes sense

@@ -24,6 +24,7 @@ import {
   PartialMode,
 } from "../../constants.ts";
 import { matchesUrl, setActiveUrl, UrlMatchKind } from "../active_url.ts";
+import { hasAssetPrefix } from "$fresh/src/runtime/asset_path.ts";
 
 function createRootFragment(
   parent: Element,
@@ -853,7 +854,9 @@ export async function applyPartials(res: Response): Promise<void> {
 
 const originalHook = options.vnode;
 options.vnode = (vnode) => {
-  assetHashingHook(vnode);
+  // avoid hashing assets when asset path prefixed,
+  // the CDN should handle caching
+  if (!hasAssetPrefix()) assetHashingHook(vnode);
 
   // Mark active or ancestor links
   if (vnode.type === "a") {

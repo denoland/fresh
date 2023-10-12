@@ -1,9 +1,8 @@
 import { assertEquals } from "../../tests/deps.ts";
-import { asset, assetSrcSet, staticFile } from "./utils.ts";
+import { asset, assetSrcSet } from "./utils.ts";
 import { BUILD_ID } from "./build_id.ts";
-import { setAssetPathPrefix } from "$fresh/src/server/asset_path.ts";
 
-Deno.test("asset", () => {
+Deno.test("asset without prefix", () => {
   assertEquals(asset("/test.png"), `/test.png?__frsh_c=${BUILD_ID}`);
   assertEquals(asset("/test?f=1"), `/test?f=1&__frsh_c=${BUILD_ID}`);
   assertEquals(asset("/test#foo"), `/test?__frsh_c=${BUILD_ID}#foo`);
@@ -18,7 +17,7 @@ Deno.test("asset", () => {
   );
 });
 
-Deno.test("assetSrcSet", () => {
+Deno.test("assetSrcSet without prefix", () => {
   assertEquals(assetSrcSet("/img.png"), `/img.png?__frsh_c=${BUILD_ID}`);
   assertEquals(
     assetSrcSet("/img.png, /img.png 2x"),
@@ -57,14 +56,4 @@ Deno.test("assetSrcSet", () => {
     assetSrcSet("/img.png,, /img-s.png 300w"),
     "/img.png,, /img-s.png 300w",
   );
-});
-
-Deno.test("staticFile", () => {
-  // without prefix should be the same
-  assertEquals(staticFile("/test.png"), "/test.png");
-
-  // with prefix should be prefixed
-  const prefix = "https://example.com";
-  setAssetPathPrefix(prefix);
-  assertEquals(staticFile("/test.png"), `${prefix}/test.png`);
 });

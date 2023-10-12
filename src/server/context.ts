@@ -336,9 +336,9 @@ export async function getServerContext(opts: InternalFreshOptions) {
   if (opts.cdnUrl) {
     setAssetPathPrefix(`${opts.cdnUrl}/${BUILD_ID}`);
     console.log(
-      `Found cdnUrl in config, using ${
+      `Found cdnUrl in config, prefixing assets with ${
         colors.cyan(opts.cdnUrl)
-      } to prefix asset paths.`,
+      }`,
     );
   } else {
     try {
@@ -719,26 +719,29 @@ export class ServerContext {
     // each files has 2 static routes:
     // - one serving the file at its location without a "cache bursting" mechanism
     // - one containing the BUILD_ID in the path that can be cached
-    for (
-      const { localUrl, path, size, contentType, etag } of this.#staticFiles
-    ) {
-      const route = sanitizePathToRegex(path);
-      staticRoutes[route] = {
-        baseRoute: toBaseRoute(route),
-        methods: {
-          "HEAD": this.#staticFileHeadHandler(
-            size,
-            contentType,
-            etag,
-          ),
-          "GET": this.#staticFileGetHandler(
-            localUrl,
-            size,
-            contentType,
-            etag,
-          ),
-        },
-      };
+    // Note that in case a CDN url is set, we are skipping this step as it is expected for the CDN to serve those files
+    if (!this.#cdnUrl) {
+      for (
+        const { localUrl, path, size, contentType, etag } of this.#staticFiles
+      ) {
+        const route = sanitizePathToRegex(path);
+        staticRoutes[route] = {
+          baseRoute: toBaseRoute(route),
+          methods: {
+            "HEAD": this.#staticFileHeadHandler(
+              size,
+              contentType,
+              etag,
+            ),
+            "GET": this.#staticFileGetHandler(
+              localUrl,
+              size,
+              contentType,
+              etag,
+            ),
+          },
+        };
+      }
     }
 
     // Tell renderer about all globally available islands

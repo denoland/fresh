@@ -1,5 +1,4 @@
 import { VNode } from "preact";
-import { ASSET_PATH_PREFIX } from "./asset_path.ts";
 import { BUILD_ID } from "./build_id.ts";
 
 export const INTERNAL_PREFIX = "/_frsh";
@@ -13,7 +12,10 @@ export const IS_BROWSER = typeof document !== "undefined";
  * served with a very long cache lifetime (1 year).
  */
 export function asset(path: string): string {
-  if (!path.startsWith("/") || path.startsWith("//")) return path;
+  if (!path.startsWith("/") || path.startsWith("//")) {
+    return path;
+  }
+
   try {
     const url = new URL(path, "https://freshassetcache.local");
     if (
@@ -69,8 +71,4 @@ export function assetHashingHook(
       props.srcset = assetSrcSet(props.srcset);
     }
   }
-}
-
-export function staticFile(path: string): string {
-  return `${ASSET_PATH_PREFIX}${path}`;
 }
