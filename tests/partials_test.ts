@@ -556,6 +556,19 @@ Deno.test("don't serialize keys for nodes outside islands or partials", async ()
   });
 });
 
+Deno.test("doesn't confuse islands starting with 'key' with key marker", async () => {
+  await withPageName(
+    "./tests/fixture_partials/main.ts",
+    async (page, address) => {
+      await page.goto(`${address}/keys_confusion`);
+      await page.waitForSelector(".island");
+
+      await page.click("button");
+      await waitForText(page, ".output", "1");
+    },
+  );
+});
+
 Deno.test("partial injection mode", async () => {
   await withPageName(
     "./tests/fixture_partials/main.ts",
