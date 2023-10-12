@@ -23,7 +23,7 @@ export default function DocsSidebar(
           <div class="sticky mb-4 top-0 bg-white z-10">
             <div class=" py-4 flex items-center">
               <Logo />
-              <DocsTitle title={props.title} />
+              <DocsTitle />
             </div>
             <hr />
           </div>

@@ -15,7 +15,7 @@ export default function Header(props: { title: string; active: string }) {
           >
             <div class="p-4 flex items-center md:hidden">
               <Logo />
-              <DocsTitle title={props.title} />
+              <DocsTitle />
             </div>
 
             <NavigationBar class="hidden md:flex" active={props.active} />
@@ -29,7 +29,7 @@ export default function Header(props: { title: string; active: string }) {
             {!isHome && (
               <div class="p-4 flex items-center">
                 <Logo />
-                <DocsTitle title={props.title} />
+                <DocsTitle />
               </div>
             )}
             <NavigationBar class="hidden md:flex" active={props.active} />
