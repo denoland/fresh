@@ -1,4 +1,4 @@
-import { ComposeCtx, ComposeHandler } from "./compose.ts";
+import { ComposeCtx, ComposeHandler, createComposeCtx } from "./compose.ts";
 import { KnownMethod } from "$fresh/src/server/router.ts";
 
 export interface RouteItem<S> {
@@ -86,6 +86,14 @@ export class MethodRouter<S = any> {
       }
 
       return new Response(null);
+    };
+  }
+
+  denoServerHandler(): Deno.ServeHandler {
+    const handler = this.handler();
+    return (req, connInfo) => {
+      const ctx = createComposeCtx(req, connInfo);
+      return handler(req, ctx);
     };
   }
 }

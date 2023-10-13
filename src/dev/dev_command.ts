@@ -5,7 +5,8 @@ import { build } from "./build.ts";
 import { collect, ensureMinDenoVersion, generate, Manifest } from "./mod.ts";
 import { serveHandler } from "../server/boot.ts";
 import { getFreshConfigWithDefaults } from "../server/config.ts";
-import { getServerContext } from "$fresh/src/server/context.ts";
+import { createFreshApp } from "$fresh/src/server/app.ts";
+import { createComposeCtx } from "$fresh/src/server/compose.ts";
 
 export async function dev(
   base: string,
@@ -55,8 +56,9 @@ export async function dev(
     );
     configWithDefaults.dev = true;
     configWithDefaults.loadSnapshot = false;
-    const ctx = await getServerContext(configWithDefaults);
-    await serveHandler(ctx.handler(), configWithDefaults.server);
+
+    const router = await createFreshApp(configWithDefaults);
+    await serveHandler(router.denoServerHandler(), configWithDefaults.server);
   } else {
     // Legacy entry point: Back then `dev.ts` would call `main.ts` but
     // this causes duplicate plugin instantiation if both `dev.ts` and

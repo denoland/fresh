@@ -1,17 +1,8 @@
-import {
-  colors,
-  extname,
-  join,
-  Status,
-  toFileUrl,
-  typeByExtension,
-  walk,
-} from "./deps.ts";
+import { extname, Status } from "./deps.ts";
 import { ComponentType, h } from "preact";
 import * as router from "./router.ts";
 import { FreshConfig, Manifest } from "./mod.ts";
-import { ALIVE_URL, JS_PREFIX, REFRESH_JS_URL } from "./constants.ts";
-import { BUILD_ID, setBuildId } from "./build_id.ts";
+import { REFRESH_JS_URL } from "./constants.ts";
 import DefaultErrorHandler from "./default_error_page.tsx";
 import {
   AppModule,
@@ -29,33 +20,22 @@ import {
   MiddlewareModule,
   MiddlewareRoute,
   Plugin,
-  RenderFunction,
   RenderOptions,
   Route,
   RouteModule,
   RouterOptions,
   RouterState,
   ServeHandlerInfo,
-  StaticFile,
   StaticFileRouteState,
   UnknownPage,
   UnknownPageModule,
 } from "./types.ts";
-import { DEFAULT_RENDER_FN, render as internalRender } from "./render.ts";
+import { render as internalRender } from "./render.ts";
 import {
   ContentSecurityPolicy,
   ContentSecurityPolicyDirectives,
   SELF,
 } from "../runtime/csp.ts";
-import { ASSET_CACHE_BUST_KEY, INTERNAL_PREFIX } from "../runtime/utils.ts";
-import {
-  AotSnapshot,
-  Builder,
-  BuildSnapshot,
-  BuildSnapshotJson,
-  EsbuildBuilder,
-  JSXConfig,
-} from "../build/mod.ts";
 import { InternalRoute } from "./router.ts";
 import { setAllIslands } from "./rendering/preact_hooks.ts";
 import { getCodeFrame } from "./code_frame.ts";
@@ -63,7 +43,6 @@ import { getFreshConfigWithDefaults } from "./config.ts";
 import { createFreshApp } from "$fresh/src/server/app.ts";
 import { MethodRouter } from "$fresh/src/server/compose_router.ts";
 import { ComposeCtx, createComposeCtx } from "$fresh/src/server/compose.ts";
-import { Server } from "$std/http/server.ts";
 
 const ROOT_BASE_ROUTE = toBaseRoute("/");
 
