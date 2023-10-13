@@ -109,7 +109,7 @@ export function defaultUnknownMethodHandler(
 }
 
 function processRoutes<T>(
-  processedRoutes: InternalRoute<T>[],
+  processedRoutes: Array<InternalRoute<T> | null>,
   routes: Routes<T>,
   destination: DestinationKind,
 ) {
@@ -136,6 +136,11 @@ function processRoutes<T>(
   }
 }
 
+interface RouteResult<T> {
+  route: InternalRoute<T> | undefined;
+  params: Record<string, string>;
+}
+
 export function getParamsAndRoute<T>(
   {
     internalRoutes,
@@ -144,21 +149,34 @@ export function getParamsAndRoute<T>(
   }: RouterOptions<T>,
 ): (
   url: string,
-) => { route: InternalRoute<T> | undefined; params: Record<string, string> } {
-  const processedRoutes: InternalRoute<T>[] = [];
+) => RouteResult<T> {
+  const processedRoutes: Array<InternalRoute<T> | null> = [];
   processRoutes(processedRoutes, internalRoutes, "internal");
   processRoutes(processedRoutes, staticRoutes, "static");
   processRoutes(processedRoutes, routes, "route");
+
+  const statics = new Map<string, RouteResult<T>>();
+
   return (url: string) => {
     const pathname = new URL(url).pathname;
+    const cached = statics.get(pathname);
+    if (cached !== undefined) {
+      return cached;
+    }
 
-    for (const route of processedRoutes) {
+    for (let i = 0; i < processedRoutes.length; i++) {
+      const route = processedRoutes[i];
+      if (route === null) continue;
+
       // Static routes where the full pattern contains no dynamic
       // parts and must be an exact match. We use that for static
       // files.
       if (typeof route.pattern === "string") {
         if (route.pattern === pathname) {
-          return { route: route, params: {} };
+          processedRoutes[i] = null;
+          const res = { route: route, params: {} };
+          statics.set(route.pattern, res);
+          return res;
         }
 
         continue;
