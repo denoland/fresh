@@ -12,6 +12,33 @@ export interface ComposeCtx<S = any> extends ServeHandlerInfo {
   next(): Promise<Response>;
 }
 
+const DEFAULT_CONN_INFO: ServeHandlerInfo = {
+  localAddr: { transport: "tcp", hostname: "localhost", port: 8080 },
+  remoteAddr: { transport: "tcp", hostname: "localhost", port: 1234 },
+};
+
+export function createComposeCtx(
+  req: Request,
+  connInfo: ServeHandlerInfo = DEFAULT_CONN_INFO,
+): ComposeCtx {
+  return {
+    next() {
+      return Promise.resolve(
+        new Response("404 not found", { status: 404 }),
+      );
+    },
+    params: {},
+    state: {},
+    url: new URL(req.url),
+    remoteAddr: connInfo.remoteAddr,
+    localAddr: connInfo.localAddr,
+    route: {
+      matched: "",
+      remaining: req.url,
+    },
+  };
+}
+
 // deno-lint-ignore no-explicit-any
 export type ComposeHandler<S = any> = (
   req: Request,

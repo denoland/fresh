@@ -108,6 +108,11 @@ export interface FreshConfig {
   onListen?: (params: { hostname: string; port: number }) => void;
 }
 
+export interface JSXConfig {
+  jsx: "react-jsx" | "react-jsxdev";
+  jsxImportSource: string;
+}
+
 export interface InternalFreshConfig {
   dev: boolean;
   loadSnapshot: boolean;
@@ -126,6 +131,17 @@ export interface InternalFreshConfig {
     ignoreFilePattern?: RegExp;
   };
   server: Partial<Deno.ServeTlsOptions>;
+  jsx: JSXConfig;
+}
+
+export interface InternalFreshState {
+  routes: Route[];
+  islands: Island[];
+  middlewares: MiddlewareRoute[];
+  appWrapper: AppModule;
+  layouts: LayoutRoute[];
+  notFound: UnknownPage;
+  error: ErrorPage;
 }
 
 export interface RouterOptions {

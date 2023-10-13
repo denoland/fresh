@@ -1,3 +1,4 @@
+import { JSXConfig } from "$fresh/src/server/types.ts";
 import {
   denoPlugins,
   esbuild,
@@ -21,11 +22,6 @@ export interface EsbuildBuilderOptions {
   /** The JSX configuration. */
   jsxConfig: JSXConfig;
   target: string | string[];
-}
-
-export interface JSXConfig {
-  jsx: "react" | "react-jsx";
-  jsxImportSource?: string;
 }
 
 export class EsbuildBuilder implements Builder {

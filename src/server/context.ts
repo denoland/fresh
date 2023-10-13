@@ -20,6 +20,7 @@ import {
   ErrorPageModule,
   Handler,
   InternalFreshConfig,
+  InternalFreshState,
   Island,
   LayoutModule,
   LayoutRoute,
@@ -59,11 +60,10 @@ import { InternalRoute } from "./router.ts";
 import { setAllIslands } from "./rendering/preact_hooks.ts";
 import { getCodeFrame } from "./code_frame.ts";
 import { getFreshConfigWithDefaults } from "./config.ts";
-
-const DEFAULT_CONN_INFO: ServeHandlerInfo = {
-  localAddr: { transport: "tcp", hostname: "localhost", port: 8080 },
-  remoteAddr: { transport: "tcp", hostname: "localhost", port: 1234 },
-};
+import { createFreshApp } from "$fresh/src/server/app.ts";
+import { MethodRouter } from "$fresh/src/server/compose_router.ts";
+import { ComposeCtx, createComposeCtx } from "$fresh/src/server/compose.ts";
+import { Server } from "$std/http/server.ts";
 
 const ROOT_BASE_ROUTE = toBaseRoute("/");
 
@@ -77,65 +77,13 @@ export type FromManifestConfig = FreshConfig & {
   dev?: boolean;
 };
 
-export async function getServerContext(opts: InternalFreshConfig) {
-  const { manifest, denoJson: config, denoJsonPath: configPath } = opts;
+export function collectFreshFiles(
+  config: InternalFreshConfig,
+): InternalFreshState {
+  const manifest = config.manifest;
+
   // Get the manifest' base URL.
   const baseUrl = new URL("./", manifest.baseUrl).href;
-
-  // Restore snapshot if available
-  let snapshot: BuildSnapshot | null = null;
-  if (opts.loadSnapshot) {
-    const snapshotDirPath = opts.build.outDir;
-    try {
-      if ((await Deno.stat(snapshotDirPath)).isDirectory) {
-        console.log(
-          `Using snapshot found at ${colors.cyan(snapshotDirPath)}`,
-        );
-
-        const snapshotPath = join(snapshotDirPath, "snapshot.json");
-        const json = JSON.parse(
-          await Deno.readTextFile(snapshotPath),
-        ) as BuildSnapshotJson;
-        setBuildId(json.build_id);
-
-        const dependencies = new Map<string, string[]>(
-          Object.entries(json.files),
-        );
-
-        const files = new Map<string, string>();
-        Object.keys(json.files).forEach((name) => {
-          const filePath = join(snapshotDirPath, name);
-          files.set(name, filePath);
-        });
-
-        snapshot = new AotSnapshot(files, dependencies);
-      }
-    } catch (err) {
-      if (!(err instanceof Deno.errors.NotFound)) {
-        throw err;
-      }
-    }
-  }
-
-  config.compilerOptions ??= {};
-
-  let jsx: "react" | "react-jsx";
-  switch (config.compilerOptions.jsx) {
-    case "react":
-    case undefined:
-      jsx = "react";
-      break;
-    case "react-jsx":
-      jsx = "react-jsx";
-      break;
-    default:
-      throw new Error("Unknown jsx option: " + config.compilerOptions.jsx);
-  }
-
-  const jsxConfig: JSXConfig = {
-    jsx,
-    jsxImportSource: config.compilerOptions.jsxImportSource,
-  };
 
   // Extract all routes, and prepare them into the `Page` structure.
   const routes: Route[] = [];
@@ -147,8 +95,8 @@ export async function getServerContext(opts: InternalFreshConfig) {
   let error: ErrorPage = DEFAULT_ERROR;
   const allRoutes = [
     ...Object.entries(manifest.routes),
-    ...(opts.plugins ? getMiddlewareRoutesFromPlugins(opts.plugins) : []),
-    ...(opts.plugins ? getRoutesFromPlugins(opts.plugins) : []),
+    ...(config.plugins ? getMiddlewareRoutesFromPlugins(config.plugins) : []),
+    ...(config.plugins ? getRoutesFromPlugins(config.plugins) : []),
   ];
 
   // Presort all routes so that we only need to sort once
@@ -173,10 +121,10 @@ export async function getServerContext(opts: InternalFreshConfig) {
     if (
       !path.startsWith("/_") && !isLayout && !isMiddleware
     ) {
-      const { default: component, config } = module as RouteModule;
+      const { default: component, config: routeConfig } = module as RouteModule;
       let pattern = pathToPattern(baseRoute);
-      if (config?.routeOverride) {
-        pattern = String(config.routeOverride);
+      if (routeConfig?.routeOverride) {
+        pattern = String(routeConfig.routeOverride);
       }
       let { handler } = module as RouteModule;
       if (!handler && "handlers" in module) {
@@ -212,9 +160,9 @@ export async function getServerContext(opts: InternalFreshConfig) {
         name,
         component,
         handler,
-        csp: Boolean(config?.csp ?? false),
-        appWrapper: !config?.skipAppWrapper,
-        inheritLayouts: !config?.skipInheritedLayouts,
+        csp: Boolean(routeConfig?.csp ?? false),
+        appWrapper: !routeConfig?.skipAppWrapper,
+        inheritLayouts: !routeConfig?.skipInheritedLayouts,
       };
       routes.push(route);
     } else if (isMiddleware) {
@@ -229,19 +177,20 @@ export async function getServerContext(opts: InternalFreshConfig) {
       app = module as AppModule;
     } else if (isLayout) {
       const mod = module as LayoutModule;
-      const config = mod.config;
+      const routeConfig = mod.config;
       layouts.push({
         baseRoute: toBaseRoute(baseRoute),
         handler: mod.handler,
         component: mod.default,
-        appWrapper: !config?.skipAppWrapper,
-        inheritLayouts: !config?.skipInheritedLayouts,
+        appWrapper: !routeConfig?.skipAppWrapper,
+        inheritLayouts: !routeConfig?.skipInheritedLayouts,
       });
     } else if (
       path === "/_404.tsx" || path === "/_404.ts" ||
       path === "/_404.jsx" || path === "/_404.js"
     ) {
-      const { default: component, config } = module as UnknownPageModule;
+      const { default: component, config: routeConfig } =
+        module as UnknownPageModule;
       let { handler } = module as UnknownPageModule;
       if (component && handler === undefined) {
         handler = (_req, { render }) => render();
@@ -254,15 +203,16 @@ export async function getServerContext(opts: InternalFreshConfig) {
         name,
         component,
         handler: handler ?? ((req) => router.defaultOtherHandler(req)),
-        csp: Boolean(config?.csp ?? false),
-        appWrapper: !config?.skipAppWrapper,
-        inheritLayouts: !config?.skipInheritedLayouts,
+        csp: Boolean(routeConfig?.csp ?? false),
+        appWrapper: !routeConfig?.skipAppWrapper,
+        inheritLayouts: !routeConfig?.skipInheritedLayouts,
       };
     } else if (
       path === "/_500.tsx" || path === "/_500.ts" ||
       path === "/_500.jsx" || path === "/_500.js"
     ) {
-      const { default: component, config } = module as ErrorPageModule;
+      const { default: component, config: routeConfig } =
+        module as ErrorPageModule;
       let { handler } = module as ErrorPageModule;
       if (component && handler === undefined) {
         handler = (_req, { render }) => render();
@@ -275,7 +225,7 @@ export async function getServerContext(opts: InternalFreshConfig) {
         name,
         component,
         handler: (req, ctx) => {
-          if (opts.dev) {
+          if (config.dev) {
             const prevComp = error.component;
             error.component = DefaultErrorHandler;
             try {
@@ -289,9 +239,9 @@ export async function getServerContext(opts: InternalFreshConfig) {
             ? handler(req, ctx)
             : router.defaultErrorHandler(req, ctx, ctx.error);
         },
-        csp: Boolean(config?.csp ?? false),
-        appWrapper: !config?.skipAppWrapper,
-        inheritLayouts: !config?.skipInheritedLayouts,
+        csp: Boolean(routeConfig?.csp ?? false),
+        appWrapper: !routeConfig?.skipAppWrapper,
+        inheritLayouts: !routeConfig?.skipInheritedLayouts,
       };
     }
   }
@@ -323,81 +273,22 @@ export async function getServerContext(opts: InternalFreshConfig) {
     }
   }
 
-  const staticFiles: StaticFile[] = [];
-
-  return new ServerContext(
-    routes,
-    islands,
-    staticFiles,
-    opts.render ?? DEFAULT_RENDER_FN,
-    middlewares,
-    app,
-    layouts,
-    notFound,
+  return {
+    appWrapper: app,
     error,
-    opts.plugins ?? [],
-    configPath,
-    jsxConfig,
-    opts.dev,
-    opts.router ?? DEFAULT_ROUTER_OPTIONS,
-    opts.build.target,
-    snapshot,
-  );
+    islands,
+    layouts,
+    middlewares,
+    notFound,
+    routes,
+  };
 }
 
 export class ServerContext {
-  #dev: boolean;
-  #routes: Route[];
-  #islands: Island[];
-  #staticFiles: StaticFile[];
-  #renderFn: RenderFunction;
-  #middlewares: MiddlewareRoute[];
-  #app: AppModule;
-  #layouts: LayoutRoute[];
-  #notFound: UnknownPage;
-  #error: ErrorPage;
-  #plugins: Plugin[];
-  #builder: Builder | Promise<BuildSnapshot> | BuildSnapshot;
-  #routerOptions: RouterOptions;
+  #freshApp: MethodRouter;
 
-  constructor(
-    routes: Route[],
-    islands: Island[],
-    staticFiles: StaticFile[],
-    renderfn: RenderFunction,
-    middlewares: MiddlewareRoute[],
-    app: AppModule,
-    layouts: LayoutRoute[],
-    notFound: UnknownPage,
-    error: ErrorPage,
-    plugins: Plugin[],
-    configPath: string,
-    jsxConfig: JSXConfig,
-    dev: boolean,
-    routerOptions: RouterOptions,
-    target: string | string[],
-    snapshot: BuildSnapshot | null = null,
-  ) {
-    this.#routes = routes;
-    this.#islands = islands;
-    this.#staticFiles = staticFiles;
-    this.#renderFn = renderfn;
-    this.#middlewares = middlewares;
-    this.#app = app;
-    this.#layouts = layouts;
-    this.#notFound = notFound;
-    this.#error = error;
-    this.#plugins = plugins;
-    this.#dev = dev;
-    this.#builder = snapshot ?? new EsbuildBuilder({
-      buildID: BUILD_ID,
-      entrypoints: collectEntrypoints(this.#dev, this.#islands, this.#plugins),
-      configPath,
-      dev: this.#dev,
-      jsxConfig,
-      target,
-    });
-    this.#routerOptions = routerOptions;
+  constructor(freshApp: MethodRouter) {
+    this.#freshApp = freshApp;
   }
 
   /**
@@ -420,7 +311,8 @@ export class ServerContext {
       manifest.baseUrl,
       manifest,
     );
-    return getServerContext(configWithDefaults);
+    const app = await createFreshApp(configWithDefaults);
+    return new ServerContext(app);
   }
 
   /**
@@ -428,55 +320,16 @@ export class ServerContext {
    * by Fresh, including static files.
    */
   handler(): (req: Request, connInfo?: ServeHandlerInfo) => Promise<Response> {
-    const handlers = this.#handlers();
-    const inner = router.router<RouterState>(handlers);
-    const withMiddlewares = this.#composeMiddlewares(
-      this.#middlewares,
-      handlers.errorHandler,
-      router.getParamsAndRoute<RouterState>(handlers),
-    );
-    const trailingSlashEnabled = this.#routerOptions?.trailingSlash;
+    const freshHandler = this.#freshApp.handler();
+
+    // deno-lint-ignore require-await
     return async function handler(
       req: Request,
-      connInfo: ServeHandlerInfo = DEFAULT_CONN_INFO,
-    ) {
-      // Redirect requests that end with a trailing slash to their non-trailing
-      // slash counterpart.
-      // Ex: /about/ -> /about
-      const url = new URL(req.url);
-      if (
-        url.pathname.length > 1 && url.pathname.endsWith("/") &&
-        !trailingSlashEnabled
-      ) {
-        // Remove trailing slashes
-        const path = url.pathname.replace(/\/+$/, "");
-        const location = `${path}${url.search}`;
-        return new Response(null, {
-          status: Status.TemporaryRedirect,
-          headers: { location },
-        });
-      } else if (trailingSlashEnabled && !url.pathname.endsWith("/")) {
-        // If the last element of the path has a "." it's a file
-        const isFile = url.pathname.split("/").at(-1)?.includes(".");
-
-        // If the path uses the internal prefix, don't redirect it
-        const isInternal = url.pathname.startsWith(INTERNAL_PREFIX);
-
-        if (!isFile && !isInternal) {
-          url.pathname += "/";
-          return Response.redirect(url, Status.PermanentRedirect);
-        }
-      }
-
-      return await withMiddlewares(req, connInfo, inner);
+      connInfo?: ServeHandlerInfo,
+    ): Promise<Response> {
+      const ctx = createComposeCtx(req, connInfo);
+      return freshHandler(req, ctx);
     };
-  }
-
-  #maybeBuildSnapshot(): BuildSnapshot | null {
-    if ("build" in this.#builder || this.#builder instanceof Promise) {
-      return null;
-    }
-    return this.#builder;
   }
 
   async buildSnapshot() {
@@ -553,17 +406,6 @@ export class ServerContext {
         params: paramsAndRouteResult.params,
       };
 
-      for (const { module } of mws) {
-        if (module.handler instanceof Array) {
-          for (const handler of module.handler) {
-            handlers.push(() => handler(req, middlewareCtx));
-          }
-        } else {
-          const handler = module.handler;
-          handlers.push(() => handler(req, middlewareCtx));
-        }
-      }
-
       const ctx = {
         ...connInfo,
         get state() {
@@ -597,7 +439,6 @@ export class ServerContext {
     otherHandler: router.Handler<RouterState>;
     errorHandler: router.ErrorHandler<RouterState>;
   } {
-    const internalRoutes: router.Routes<RouterState> = {};
     const routes: router.Routes<RouterState> = {};
 
     // Tell renderer about all globally available islands
@@ -807,12 +648,6 @@ export class ServerContext {
     };
 
     return {
-      internalRoutes,
-      staticRouteState: {
-        files: this.#staticFiles,
-        etags: new Map(),
-        sizes: new Map(),
-      },
       routes,
       otherHandler,
       errorHandler,
@@ -1087,52 +922,6 @@ export function toBaseRoute(input: string): BaseRoute {
 
   const suffix = !input.startsWith("/") ? "/" : "";
   return (suffix + input) as BaseRoute;
-}
-
-function refreshJs(aliveUrl: string, buildId: string) {
-  return `let es = new EventSource("${aliveUrl}");
-window.addEventListener("beforeunload", (event) => {
-  es.close();
-});
-es.addEventListener("message", function listener(e) {
-  if (e.data !== "${buildId}") {
-    this.removeEventListener("message", listener);
-    location.reload();
-  }
-});`;
-}
-
-function collectEntrypoints(
-  dev: boolean,
-  islands: Island[],
-  plugins: Plugin[],
-): Record<string, string> {
-  const entrypointBase = "../runtime/entrypoints";
-  const entryPoints: Record<string, string> = {
-    main: dev
-      ? import.meta.resolve(`${entrypointBase}/main_dev.ts`)
-      : import.meta.resolve(`${entrypointBase}/main.ts`),
-    deserializer: import.meta.resolve(`${entrypointBase}/deserializer.ts`),
-  };
-
-  try {
-    import.meta.resolve("@preact/signals");
-    entryPoints.signals = import.meta.resolve(`${entrypointBase}/signals.ts`);
-  } catch {
-    // @preact/signals is not in the import map
-  }
-
-  for (const island of islands) {
-    entryPoints[`island-${island.id}`] = island.url;
-  }
-
-  for (const plugin of plugins) {
-    for (const [name, url] of Object.entries(plugin.entrypoints ?? {})) {
-      entryPoints[`plugin-${plugin.name}-${name}`] = url;
-    }
-  }
-
-  return entryPoints;
 }
 
 function formatMiddlewarePath(path: string): string {

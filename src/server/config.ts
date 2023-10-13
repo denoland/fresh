@@ -1,7 +1,7 @@
 import { options } from "preact";
 import { dirname, fromFileUrl, isAbsolute, join, JSONC } from "./deps.ts";
 import { FromManifestConfig, Manifest } from "./mod.ts";
-import { DenoConfig, InternalFreshConfig } from "./types.ts";
+import { DenoConfig, InternalFreshConfig, JSXConfig } from "./types.ts";
 
 export async function readDenoConfig(
   directory: string,
@@ -69,6 +69,15 @@ export async function getFreshConfigWithDefaults(
     );
   }
 
+  if (
+    typeof denoJson.compilerOptions?.jsx !== "string" ||
+    denoJson.compilerOptions?.jsxImportSource !== "string"
+  ) {
+    throw new Error(
+      `Missing jsx compiler options in "deno.json". It should look like this:\n\n{\n  "compilerOptions": {\n    "jsx": "react-jsx",\n    "jsxImportSource": "preact"\n  }\n}`,
+    );
+  }
+
   const router: InternalFreshConfig["router"] = {
     ignoreFilePattern: undefined,
     trailingSlash: Boolean(config.router?.trailingSlash),
@@ -91,6 +100,10 @@ export async function getFreshConfigWithDefaults(
     render: config.render,
     router,
     server: config.server ?? {},
+    jsx: {
+      jsx: denoJson.compilerOptions!.jsx! as JSXConfig["jsx"],
+      jsxImportSource: denoJson.compilerOptions!.jsxImportSource!,
+    },
   };
 
   if (config.cert) {
