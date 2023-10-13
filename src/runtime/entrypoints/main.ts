@@ -1049,12 +1049,37 @@ addEventListener("popstate", async (e) => {
 document.addEventListener("submit", async (e) => {
   const el = e.target;
   if (el !== null && el instanceof HTMLFormElement && !e.defaultPrevented) {
-    const partial = el.getAttribute(PARTIAL_ATTR);
-    if (partial !== null) {
+    if (!checkClientNavEnabled()) {
+      return;
+    }
+
+    const lowerMethod = el.method.toLowerCase();
+    if (
+      lowerMethod !== "get" && lowerMethod !== "post" &&
+      lowerMethod !== "dialog"
+    ) {
+      return;
+    }
+
+    const action = el.getAttribute(PARTIAL_ATTR) ?? el.action;
+    if (action !== "") {
       e.preventDefault();
 
-      const url = new URL(partial, location.href);
-      await fetchPartials(url);
+      const url = new URL(action, location.href);
+
+      let init: RequestInit | undefined;
+
+      // GET method appends form data via url search params
+      if (lowerMethod === "get") {
+        // TODO: Looks like constructor type for URLSearchParam is wrong
+        // deno-lint-ignore no-explicit-any
+        const qs = new URLSearchParams(new FormData(el) as any);
+        qs.forEach((value, key) => url.searchParams.set(key, value));
+      } else {
+        init = { body: new FormData(el), method: el.method };
+      }
+
+      await fetchPartials(url, init);
     }
   }
 });
