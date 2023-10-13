@@ -960,6 +960,11 @@ document.addEventListener("click", async (e) => {
         await fetchPartials(partialUrl);
         updateLinks(nextUrl);
         scrollTo({ left: 0, top: 0, behavior: "instant" });
+      } catch (err) {
+        if (err instanceof Error) {
+          location.reload();
+          return;
+        }
       } finally {
         if (indicator !== undefined) {
           indicator.value = false;
