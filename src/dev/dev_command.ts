@@ -6,7 +6,6 @@ import { collect, ensureMinDenoVersion, generate, Manifest } from "./mod.ts";
 import { serveHandler } from "../server/boot.ts";
 import { getFreshConfigWithDefaults } from "../server/config.ts";
 import { createFreshApp } from "$fresh/src/server/app.ts";
-import { createComposeCtx } from "$fresh/src/server/compose.ts";
 
 export async function dev(
   base: string,
