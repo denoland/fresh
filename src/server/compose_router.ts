@@ -1,99 +1,111 @@
 import { ComposeCtx, ComposeHandler, createComposeCtx } from "./compose.ts";
 import { KnownMethod } from "$fresh/src/server/router.ts";
 
-export interface RouteItem<S> {
+export interface RouteLayer<S> {
   path: string;
+  method: KnownMethod | "*";
   handler: ComposeHandler<S>;
+}
+function newLayer<S>(
+  path: string,
+  method: KnownMethod | "*",
+  handler: ComposeHandler<S>,
+): RouteLayer<S> {
+  return { path, method, handler };
 }
 
 export interface RouteMethodBranch<S> {
-  use: ComposeHandler<S>[];
-  GET: RouteItem<S>[];
-  POST: RouteItem<S>[];
-  PATCH: RouteItem<S>[];
-  PUT: RouteItem<S>[];
-  DELETE: RouteItem<S>[];
-  HEAD: RouteItem<S>[];
-  OPTIONS: RouteItem<S>[];
-  all: RouteItem<S>[];
+  stack: ComposeHandler<S>[];
+  GET: RouteLayer<S>[];
+  POST: RouteLayer<S>[];
+  PATCH: RouteLayer<S>[];
+  PUT: RouteLayer<S>[];
+  DELETE: RouteLayer<S>[];
+  HEAD: RouteLayer<S>[];
+  OPTIONS: RouteLayer<S>[];
+  all: RouteLayer<S>[];
 }
 
 export class MethodRouter<S = any> {
-  #routeItems: RouteMethodBranch<S> = {
-    use: [],
-    GET: [],
-    POST: [],
-    PATCH: [],
-    PUT: [],
-    DELETE: [],
-    HEAD: [],
-    OPTIONS: [],
-    all: [],
+  #routeItems: RouteLayer<S>[] = [];
+  #methods: Record<string, boolean> = {
+    GET: false,
+    POST: false,
+    PATCH: false,
+    PUT: false,
+    DELETE: false,
+    HEAD: false,
   };
 
   use(handler: ComposeHandler<S>) {
-    this.#routeItems.use.push(handler);
+    this.#routeItems.push(newLayer("*", "*", handler));
     return this;
   }
 
   get(path: string, handler: ComposeHandler<S>) {
-    this.#routeItems.GET.push({ path, handler });
+    this.#routeItems.push(newLayer(path, "GET", handler));
     return this;
   }
 
   post(path: string, handler: ComposeHandler<S>) {
-    this.#routeItems.POST.push({ path, handler });
+    this.#routeItems.push(newLayer(path, "POST", handler));
     return this;
   }
 
   patch(path: string, handler: ComposeHandler<S>) {
-    this.#routeItems.PATCH.push({ path, handler });
+    this.#routeItems.push(newLayer(path, "PATCH", handler));
     return this;
   }
 
   put(path: string, handler: ComposeHandler<S>) {
-    this.#routeItems.PUT.push({ path, handler });
+    this.#routeItems.push(newLayer(path, "PUT", handler));
     return this;
   }
 
   delete(path: string, handler: ComposeHandler<S>) {
-    this.#routeItems.DELETE.push({ path, handler });
+    this.#routeItems.push(newLayer(path, "DELETE", handler));
     return this;
   }
 
   head(path: string, handler: ComposeHandler<S>) {
-    this.#routeItems.HEAD.push({ path, handler });
+    this.#routeItems.push(newLayer(path, "HEAD", handler));
     return this;
   }
 
   options(path: string, handler: ComposeHandler<S>) {
-    this.#routeItems.OPTIONS.push({ path, handler });
+    this.#routeItems.push(newLayer(path, "OPTIONS", handler));
     return this;
   }
 
   all(path: string, handler: ComposeHandler<S>) {
-    this.#routeItems.all.push({ path, handler });
+    this.#routeItems.push(newLayer(path, "*", handler));
     return this;
   }
 
-  handler(): ComposeHandler<S> {
-    // TODO: Sort routes
+  async dispatch<S>(req: Request, ctx: ComposeCtx<S>): Promise<Response> {
+    let method = req.method;
+    if (method === "HEAD" && !this.#methods.HEAD) {
+      method = "GET";
+    }
 
-    return (req, ctx) => {
-      const method = req.method as KnownMethod;
-      if (!(method in this.#routeItems)) {
-        throw new Error(`Unknown HTTP method: ${method}`);
+    for (let i = 0; i < this.#routeItems.length; i++) {
+      const layer = this.#routeItems[i];
+      if (method !== layer.method && layer.method !== "*") {
+        continue;
       }
 
-      return new Response(null);
-    };
+      const r = await layer.handler(req, ctx);
+
+      console.log(method, req.url, layer);
+    }
+
+    return ctx.next();
   }
 
   denoServerHandler(): Deno.ServeHandler {
-    const handler = this.handler();
     return (req, connInfo) => {
       const ctx = createComposeCtx(req, connInfo);
-      return handler(req, ctx);
+      return this.dispatch(req, ctx);
     };
   }
 }
