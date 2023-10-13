@@ -50,7 +50,7 @@ export type DestinationKind = "internal" | "static" | "route" | "notFound";
 // deno-lint-ignore ban-types
 export type InternalRoute<T = {}> = {
   baseRoute: BaseRoute;
-  pattern: URLPattern;
+  pattern: URLPattern | string;
   methods: { [K in KnownMethod]?: MatchHandler<T> };
   default?: MatchHandler<T>;
   destination: DestinationKind;
@@ -116,7 +116,9 @@ function processRoutes<T>(
   for (const [path, def] of Object.entries(routes)) {
     const entry: InternalRoute<T> = {
       baseRoute: def.baseRoute,
-      pattern: new URLPattern({ pathname: path }),
+      pattern: destination === "static"
+        ? path
+        : new URLPattern({ pathname: path }),
       methods: {},
       default: undefined,
       destination,
@@ -148,7 +150,20 @@ export function getParamsAndRoute<T>(
   processRoutes(processedRoutes, staticRoutes, "static");
   processRoutes(processedRoutes, routes, "route");
   return (url: string) => {
+    const pathname = new URL(url).pathname;
+
     for (const route of processedRoutes) {
+      // Static routes where the full pattern contains no dynamic
+      // parts and must be an exact match. We use that for static
+      // files.
+      if (typeof route.pattern === "string") {
+        if (route.pattern === pathname) {
+          return { route: route, params: {} };
+        }
+
+        continue;
+      }
+
       const res = route.pattern.exec(url);
 
       if (res !== null) {
@@ -182,39 +197,35 @@ export function router<T = unknown>(
 
   return (req, ctx, groups, route) => {
     if (route) {
-      const res = route.pattern.exec(req.url);
+      // If not overridden, HEAD requests should be handled as GET requests but without the body.
+      if (req.method === "HEAD" && !route.methods["HEAD"]) {
+        req = new Request(req.url, { method: "GET", headers: req.headers });
+      }
 
-      if (res !== null) {
-        // If not overridden, HEAD requests should be handled as GET requests but without the body.
-        if (req.method === "HEAD" && !route.methods["HEAD"]) {
-          req = new Request(req.url, { method: "GET", headers: req.headers });
-        }
-
-        for (const [method, handler] of Object.entries(route.methods)) {
-          if (req.method === method) {
-            return {
-              destination: route.destination,
-              handler: () => handler(req, ctx, groups),
-            };
-          }
-        }
-
-        if (route.default) {
+      for (const [method, handler] of Object.entries(route.methods)) {
+        if (req.method === method) {
           return {
             destination: route.destination,
-            handler: () => route.default!(req, ctx, groups),
-          };
-        } else {
-          return {
-            destination: route.destination,
-            handler: () =>
-              unknownMethodHandler!(
-                req,
-                ctx,
-                Object.keys(route.methods) as KnownMethod[],
-              ),
+            handler: () => handler(req, ctx, groups),
           };
         }
+      }
+
+      if (route.default) {
+        return {
+          destination: route.destination,
+          handler: () => route.default!(req, ctx, groups),
+        };
+      } else {
+        return {
+          destination: route.destination,
+          handler: () =>
+            unknownMethodHandler!(
+              req,
+              ctx,
+              Object.keys(route.methods) as KnownMethod[],
+            ),
+        };
       }
     }
 
