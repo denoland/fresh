@@ -209,12 +209,11 @@ export function handler(req: Request): Response {
 `307` stands for temporary redirect. You can also use `301` for permanent
 redirect. You can also redirect to a relative path by doing:
 
-````ts
+```ts
 export function handler(req: Request): Response {
   return new Response("", {
     status: 307,
     headers: { Location: "/my/new/relative/path" },
   });
 }
-```****
-````
+```

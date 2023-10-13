@@ -128,9 +128,7 @@ export async function updateCheck(
       `    Fresh ${latest} is available. You're on ${current}`,
     );
     console.log(
-      colors.dim(
-        `    To upgrade, run: `,
-      ) + colors.dim(`deno run -A -r https://fresh.deno.dev/update .`),
+      `    To upgrade, run: deno run -A -r https://fresh.deno.dev/update`,
     );
     console.log();
   }

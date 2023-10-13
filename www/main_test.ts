@@ -1,25 +1,20 @@
 import { assertArrayIncludes, assertEquals } from "$std/testing/asserts.ts";
-import { startFreshServer, withPageName } from "../tests/test_utils.ts";
+import { withPageName } from "../tests/test_utils.ts";
 import { dirname, join } from "$std/path/mod.ts";
 import VERSIONS from "../versions.json" assert { type: "json" };
+import { createHandler } from "../server.ts";
+import manifest from "./fresh.gen.ts";
+import config from "./fresh.config.ts";
 
 const dir = dirname(import.meta.url);
+const handler = await createHandler(manifest, config);
 
 Deno.test("CORS should not set on GET /fresh-badge.svg", async () => {
-  const { serverProcess, lines, address } = await startFreshServer({
-    args: ["run", "-A", join(dir, "./main.ts")],
-  });
+  const req = new Request("http://localhost/fresh-badge.svg");
+  const resp = await handler(req);
+  await resp?.body?.cancel();
 
-  const res = await fetch(`${address}/fresh-badge.svg`);
-  await res.body?.cancel();
-
-  assertEquals(res.headers.get("cross-origin-resource-policy"), null);
-
-  serverProcess.kill("SIGTERM");
-  await serverProcess.status;
-
-  // Drain the lines stream
-  for await (const _ of lines) { /* noop */ }
+  assertEquals(resp.headers.get("cross-origin-resource-policy"), null);
 });
 
 Deno.test("shows version selector", async () => {

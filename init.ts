@@ -91,10 +91,12 @@ const useVSCode = flags.vscode === null
 
 const useDocker = flags.docker;
 
-await Deno.mkdir(join(resolvedDirectory, "routes", "api"), { recursive: true });
-await Deno.mkdir(join(resolvedDirectory, "islands"), { recursive: true });
-await Deno.mkdir(join(resolvedDirectory, "static"), { recursive: true });
-await Deno.mkdir(join(resolvedDirectory, "components"), { recursive: true });
+await Promise.all([
+  Deno.mkdir(join(resolvedDirectory, "routes", "api"), { recursive: true }),
+  Deno.mkdir(join(resolvedDirectory, "islands"), { recursive: true }),
+  Deno.mkdir(join(resolvedDirectory, "static"), { recursive: true }),
+  Deno.mkdir(join(resolvedDirectory, "components"), { recursive: true }),
+]);
 if (useVSCode) {
   await Deno.mkdir(join(resolvedDirectory, ".vscode"), { recursive: true });
 }
@@ -166,10 +168,6 @@ export default function Home() {
   );
 }
 `;
-await Deno.writeTextFile(
-  join(resolvedDirectory, "routes", "index.tsx"),
-  ROUTES_INDEX_TSX,
-);
 
 const COMPONENTS_BUTTON_TSX = `import { JSX } from "preact";
 import { IS_BROWSER } from "$fresh/runtime.ts";
@@ -184,10 +182,6 @@ export function Button(props: JSX.HTMLAttributes<HTMLButtonElement>) {
   );
 }
 `;
-await Deno.writeTextFile(
-  join(resolvedDirectory, "components", "Button.tsx"),
-  COMPONENTS_BUTTON_TSX,
-);
 
 const ISLANDS_COUNTER_TSX = `import type { Signal } from "@preact/signals";
 import { Button } from "../components/Button.tsx";
@@ -206,24 +200,6 @@ export default function Counter(props: CounterProps) {
   );
 }
 `;
-await Deno.writeTextFile(
-  join(resolvedDirectory, "islands", "Counter.tsx"),
-  ISLANDS_COUNTER_TSX,
-);
-
-const ROUTES_GREET_TSX = `import { PageProps } from "$fresh/server.ts";
-
-export default function Greet(props: PageProps) {
-  return <div>Hello {props.params.name}</div>;
-}
-`;
-await Deno.mkdir(join(resolvedDirectory, "routes", "greet"), {
-  recursive: true,
-});
-await Deno.writeTextFile(
-  join(resolvedDirectory, "routes", "greet", "[name].tsx"),
-  ROUTES_GREET_TSX,
-);
 
 // 404 page
 const ROUTES_404_PAGE = `import { Head } from "$fresh/runtime.ts";
@@ -254,10 +230,37 @@ export default function Error404() {
   );
 }
 `;
+await Promise.all([
+  Deno.writeTextFile(
+    join(resolvedDirectory, "routes", "index.tsx"),
+    ROUTES_INDEX_TSX,
+  ),
+  Deno.writeTextFile(
+    join(resolvedDirectory, "components", "Button.tsx"),
+    COMPONENTS_BUTTON_TSX,
+  ),
+  Deno.writeTextFile(
+    join(resolvedDirectory, "islands", "Counter.tsx"),
+    ISLANDS_COUNTER_TSX,
+  ),
+  Deno.writeTextFile(
+    join(resolvedDirectory, "routes", "_404.tsx"),
+    ROUTES_404_PAGE,
+  ),
+]);
 
+const ROUTES_GREET_TSX = `import { PageProps } from "$fresh/server.ts";
+
+export default function Greet(props: PageProps) {
+  return <div>Hello {props.params.name}</div>;
+}
+`;
+await Deno.mkdir(join(resolvedDirectory, "routes", "greet"), {
+  recursive: true,
+});
 await Deno.writeTextFile(
-  join(resolvedDirectory, "routes", "_404.tsx"),
-  ROUTES_404_PAGE,
+  join(resolvedDirectory, "routes", "greet", "[name].tsx"),
+  ROUTES_GREET_TSX,
 );
 
 const ROUTES_API_JOKE_TS = `import { HandlerContext } from "$fresh/server.ts";
@@ -435,7 +438,7 @@ export default function App({ Component }: AppProps) {
   return (
     <html>
       <head>
-        <meta charSet="utf-8" />
+        <meta charset="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <title>${basename(resolvedDirectory)}</title>
       </head>
@@ -452,7 +455,7 @@ export default function App({ Component }: AppProps) {
   return (
     <html>
       <head>
-        <meta charSet="utf-8" />
+        <meta charset="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <title>${basename(resolvedDirectory)}</title>
         <link rel="stylesheet" href="/styles.css" />

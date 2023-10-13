@@ -9,7 +9,7 @@ import {
 } from "./deps.ts";
 import { ComponentType, h } from "preact";
 import * as router from "./router.ts";
-import { Manifest } from "./mod.ts";
+import { FreshConfig, Manifest } from "./mod.ts";
 import { ALIVE_URL, JS_PREFIX, REFRESH_JS_URL } from "./constants.ts";
 import { BUILD_ID, setBuildId } from "./build_id.ts";
 import DefaultErrorHandler from "./default_error_page.tsx";
@@ -18,9 +18,8 @@ import {
   BaseRoute,
   ErrorPage,
   ErrorPageModule,
-  FreshOptions,
   Handler,
-  InternalFreshOptions,
+  InternalFreshConfig,
   Island,
   LayoutModule,
   LayoutRoute,
@@ -79,12 +78,17 @@ interface StaticFile {
   etag: string;
 }
 
-export type FromManifestOptions = FreshOptions & {
+/**
+ * @deprecated Use {@linkcode FromManifestConfig} instead
+ */
+export type FromManifestOptions = FromManifestConfig;
+
+export type FromManifestConfig = FreshConfig & {
   skipSnapshot?: boolean;
   dev?: boolean;
 };
 
-export async function getServerContext(opts: InternalFreshOptions) {
+export async function getServerContext(opts: InternalFreshConfig) {
   const { manifest, denoJson: config, denoJsonPath: configPath } = opts;
   // Get the manifest' base URL.
   const baseUrl = new URL("./", manifest.baseUrl).href;
@@ -281,8 +285,21 @@ export async function getServerContext(opts: InternalFreshOptions) {
         url,
         name,
         component,
-        handler: handler ??
-          ((req, ctx) => router.defaultErrorHandler(req, ctx, ctx.error)),
+        handler: (req, ctx) => {
+          if (opts.dev) {
+            const prevComp = error.component;
+            error.component = DefaultErrorHandler;
+            try {
+              return ctx.render();
+            } finally {
+              error.component = prevComp;
+            }
+          }
+
+          return handler
+            ? handler(req, ctx)
+            : router.defaultErrorHandler(req, ctx, ctx.error);
+        },
         csp: Boolean(config?.csp ?? false),
         appWrapper: !config?.skipAppWrapper,
         inheritLayouts: !config?.skipInheritedLayouts,
@@ -442,18 +459,21 @@ export class ServerContext {
    */
   static async fromManifest(
     manifest: Manifest,
-    opts: FromManifestOptions,
+    config: FromManifestConfig,
   ): Promise<ServerContext> {
     const isLegacyDev = Deno.env.get("__FRSH_LEGACY_DEV") === "true";
-    opts.dev = isLegacyDev ||
-      Boolean(opts.dev);
+    config.dev = isLegacyDev ||
+      Boolean(config.dev);
 
     if (isLegacyDev) {
-      opts.skipSnapshot = true;
+      config.skipSnapshot = true;
     }
 
-    const config = await getFreshConfigWithDefaults(manifest, opts);
-    return getServerContext(config);
+    const configWithDefaults = await getFreshConfigWithDefaults(
+      manifest,
+      config,
+    );
+    return getServerContext(configWithDefaults);
   }
 
   /**
@@ -779,6 +799,7 @@ export class ServerContext {
         // deno-lint-ignore no-explicit-any
         ctx?: any,
         error?: unknown,
+        codeFrame?: string,
       ) => {
         return async (data?: Data, options?: RenderOptions) => {
           if (route.component === undefined) {
@@ -806,6 +827,7 @@ export class ServerContext {
             data,
             state: ctx?.state,
             error,
+            codeFrame,
           });
 
           if (resp instanceof Response) {
@@ -892,14 +914,13 @@ export class ServerContext {
         "%cAn error occurred during route handling or page rendering.",
         "color:red",
       );
+      let codeFrame: string | undefined;
       if (this.#dev && error instanceof Error) {
-        const codeFrame = await getCodeFrame(error);
+        codeFrame = await getCodeFrame(error);
 
         if (codeFrame) {
           console.error();
           console.error(codeFrame);
-          // deno-lint-ignore no-explicit-any
-          (error as any).codeFrame = codeFrame;
         }
       }
       console.error(error);
@@ -909,7 +930,7 @@ export class ServerContext {
         {
           ...ctx,
           error,
-          render: errorHandlerRender(req, {}, ctx, error),
+          render: errorHandlerRender(req, {}, ctx, error, codeFrame),
         },
       );
     };
@@ -1401,9 +1422,25 @@ function sendResponse(
       headers["content-security-policy"] = directive;
     }
   }
+
+  if (options.headers) {
+    if (Array.isArray(options.headers)) {
+      for (let i = 0; i < options.headers.length; i++) {
+        const item = options.headers[i];
+        headers[item[0]] = item[1];
+      }
+    } else if (options.headers instanceof Headers) {
+      options.headers.forEach((value, key) => {
+        headers[key] = value;
+      });
+    } else {
+      Object.assign(headers, options.headers);
+    }
+  }
+
   return new Response(body, {
     status: options.status,
     statusText: options.statusText,
-    headers: options.headers ? { ...headers, ...options.headers } : headers,
+    headers,
   });
 }

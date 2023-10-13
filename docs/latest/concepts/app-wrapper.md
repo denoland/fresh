@@ -21,7 +21,7 @@ export default function App({ Component, state }: AppProps) {
   return (
     <html>
       <head>
-        <meta charSet="utf-8" />
+        <meta charset="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <title>My Fresh app</title>
       </head>
@@ -48,7 +48,7 @@ export default async function App(req: Request, ctx: AppContext) {
   return (
     <html>
       <head>
-        <meta charSet="utf-8" />
+        <meta charset="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <title>My Fresh app</title>
       </head>
@@ -75,7 +75,7 @@ export default defineApp(async (req, ctx) => {
   return (
     <html>
       <head>
-        <meta charSet="utf-8" />
+        <meta charset="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <title>My Fresh app</title>
       </head>

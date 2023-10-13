@@ -63,7 +63,7 @@ export function createCodeFrame(
       (padding + (i + start + 1)).slice(-maxLineNum),
     );
 
-    // Line where the error occured
+    // Line where the error occurred
     if (i === lineNum - start) {
       out += colors.red(">") +
         ` ${currentLine} ${sep} ${line}\n`;

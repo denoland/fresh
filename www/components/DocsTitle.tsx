@@ -1,4 +1,4 @@
-export default function DocsTitle(props: { title: string }) {
+export default function DocsTitle() {
   return (
     <>
       <a

@@ -2,7 +2,7 @@ import { colors, toFileUrl } from "$fresh/src/server/deps.ts";
 import { assert } from "$std/_util/asserts.ts";
 import * as path from "$std/path/mod.ts";
 import {
-  FromManifestOptions,
+  FromManifestConfig,
   Manifest,
   ServeHandlerInfo,
   ServerContext,
@@ -252,9 +252,9 @@ async function handleRequest(
 
 export async function fakeServe(
   manifest: Manifest,
-  options: FromManifestOptions,
+  config: FromManifestConfig,
 ): Promise<FakeServer> {
-  const ctx = await ServerContext.fromManifest(manifest, options);
+  const ctx = await ServerContext.fromManifest(manifest, config);
   const handler = ctx.handler();
 
   const conn: ServeHandlerInfo = {
@@ -363,14 +363,25 @@ export async function waitForText(
   text: string,
 ) {
   await page.waitForSelector(selector);
-  await page.waitForFunction(
-    (sel, value) => {
-      return document.querySelector(sel)!.textContent === value;
-    },
-    { timeout: 2000 },
-    selector,
-    String(text),
-  );
+  try {
+    await page.waitForFunction(
+      (sel, value) => {
+        return document.querySelector(sel)!.textContent === value;
+      },
+      { timeout: 2000 },
+      selector,
+      String(text),
+    );
+  } catch (err) {
+    const body = await page.content();
+    // deno-lint-ignore no-explicit-any
+    const pretty = prettyDom(parseHtml(body) as any);
+
+    console.log(
+      `Text "${text}" not found on selector "${selector}" in html:\n\n${pretty}`,
+    );
+    throw err;
+  }
 }
 
 export async function waitForStyle(
@@ -486,6 +497,28 @@ export function getStdOutput(
   return { stdout, stderr };
 }
 
+export async function waitFor(
+  fn: () => Promise<unknown> | unknown,
+): Promise<void> {
+  let now = Date.now();
+  const limit = now + 2000;
+
+  while (now < limit) {
+    try {
+      if (await fn()) return;
+    } catch (err) {
+      if (now > limit) {
+        throw err;
+      }
+    } finally {
+      await delay(100);
+      now = Date.now();
+    }
+  }
+
+  throw new Error(`Timed out`);
+}
+
 function walk(doc: Document, node: HTMLElement): string | null {
   for (let i = 0; i < node.childNodes.length; i++) {
     const child = node.childNodes[i];
@@ -528,4 +561,28 @@ export function assertNoComments(doc: Document) {
       `Expected no HTML comments to be present, but found comment "${result}"`,
     );
   }
+}
+
+export function assertMetaContent(
+  doc: Document,
+  nameOrProperty: string,
+  expected: string,
+) {
+  let el = doc.querySelector(`meta[name="${nameOrProperty}"]`) as
+    | HTMLMetaElement
+    | null;
+
+  if (el === null) {
+    el = doc.querySelector(`meta[property="${nameOrProperty}"]`) as
+      | HTMLMetaElement
+      | null;
+  }
+
+  if (el === null) {
+    console.log(prettyDom(doc));
+    throw new Error(
+      `No <meta>-tag found with content "${expected}"`,
+    );
+  }
+  assertEquals(el.content, expected);
 }

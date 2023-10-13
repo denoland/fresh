@@ -89,6 +89,11 @@ export class EsbuildBuilder implements Builder {
         files.set(path, file.contents);
       }
 
+      files.set(
+        "metafile.json",
+        new TextEncoder().encode(JSON.stringify(bundle.metafile)),
+      );
+
       const metaOutputs = new Map(Object.entries(bundle.metafile.outputs));
 
       for (const [path, entry] of metaOutputs.entries()) {

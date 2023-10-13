@@ -149,3 +149,22 @@ Deno.test("shows custom 500 page for rendering errors when not in dev", async (t
     });
   });
 });
+
+Deno.test("show codeframe in dev mode even with custom 500", async () => {
+  await withFakeServe(
+    "./tests/fixture_dev_codeframe/dev.ts",
+    async (server) => {
+      const doc = await server.getHtml(`/`);
+      assertSelector(doc, ".frsh-error-page");
+    },
+  );
+
+  await withFakeServe(
+    "./tests/fixture_dev_codeframe/main.ts",
+    async (server) => {
+      const doc = await server.getHtml(`/`);
+      assertNotSelector(doc, ".frsh-error-page");
+      assertSelector(doc, "h1");
+    },
+  );
+});
