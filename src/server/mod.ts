@@ -1,4 +1,4 @@
-import { ServerContext } from "./context.ts";
+import { FromManifestConfig, ServerContext } from "./context.ts";
 export type { FromManifestConfig, FromManifestOptions } from "./context.ts";
 export { Status } from "./deps.ts";
 import {
@@ -13,7 +13,9 @@ import {
   ServeHandlerInfo,
   UnknownHandler,
 } from "./types.ts";
-import { startFromContext } from "./boot.ts";
+import { serveHandler } from "./boot.ts";
+import { createFreshApp } from "$fresh/src/server/app.ts";
+import { getFreshConfigWithDefaults } from "$fresh/src/server/config.ts";
 export {
   defineApp,
   defineConfig,
@@ -96,10 +98,18 @@ export async function createHandler(
 }
 
 export async function start(manifest: Manifest, config: FreshConfig = {}) {
-  const ctx = await ServerContext.fromManifest(manifest, {
+  const freshConfig: FromManifestConfig = {
     ...config,
     skipSnapshot: false,
     dev: false,
-  });
-  await startFromContext(ctx, config.server ?? config);
+  };
+
+  const internalConfig = await getFreshConfigWithDefaults(
+    freshConfig,
+    manifest.baseUrl,
+    manifest,
+  );
+
+  const router = await createFreshApp(internalConfig);
+  await serveHandler(router.denoServerHandler(), config.server ?? config);
 }

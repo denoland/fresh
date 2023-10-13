@@ -1,6 +1,11 @@
-import { BaseRoute, ErrorHandlerContext, ServeHandlerInfo } from "./types.ts";
+import {
+  BaseRoute,
+  ErrorHandlerContext,
+  ServeHandlerInfo,
+  StaticFileRouteState,
+} from "./types.ts";
 
-type HandlerContext<T = unknown> = T & ServeHandlerInfo;
+export type HandlerContext<T = unknown> = T & ServeHandlerInfo;
 
 export type Handler<T = unknown> = (
   req: Request,
@@ -58,7 +63,7 @@ export type InternalRoute<T = {}> = {
 
 export interface RouterOptions<T> {
   internalRoutes: Routes<T>;
-  staticRoutes: Routes<T>;
+  staticRouteState: StaticFileRouteState;
   routes: Routes<T>;
   otherHandler: Handler<T>;
   errorHandler: ErrorHandler<T>;
@@ -134,42 +139,24 @@ function processRoutes<T>(
   }
 }
 
-export function getParamsAndRoute<T>(
-  {
-    internalRoutes,
-    staticRoutes,
-    routes,
-  }: RouterOptions<T>,
-): (
+function checkIfRouteMatches<T>(
+  route: InternalRoute<T>,
   url: string,
-) => { route: InternalRoute<T> | undefined; params: Record<string, string> } {
-  const processedRoutes: InternalRoute<T>[] = [];
-  processRoutes(processedRoutes, internalRoutes, "internal");
-  processRoutes(processedRoutes, staticRoutes, "static");
-  processRoutes(processedRoutes, routes, "route");
-  return (url: string) => {
-    for (const route of processedRoutes) {
-      const res = route.pattern.exec(url);
+): { route: InternalRoute<T>; params: Record<string, string> } | undefined {
+  const res = route.pattern.exec(url);
+  if (res !== null) {
+    const groups: Record<string, string> = {};
+    const matched = res?.pathname.groups;
 
-      if (res !== null) {
-        const groups: Record<string, string> = {};
-        const matched = res?.pathname.groups;
+    for (const key in matched) {
+      const value = matched[key];
 
-        for (const key in matched) {
-          const value = matched[key];
-
-          if (value !== undefined) {
-            groups[key] = decodeURIComponent(value);
-          }
-        }
-        return { route: route, params: groups };
+      if (value !== undefined) {
+        groups[key] = decodeURIComponent(value);
       }
     }
-    return {
-      route: undefined,
-      params: {},
-    };
-  };
+    return { route: route, params: groups };
+  }
 }
 
 export function router<T = unknown>(

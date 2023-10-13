@@ -3,9 +3,9 @@ import { DAY, dirname, fromFileUrl, join, toFileUrl } from "./deps.ts";
 import { FreshConfig, Manifest as ServerManifest } from "../server/mod.ts";
 import { build } from "./build.ts";
 import { collect, ensureMinDenoVersion, generate, Manifest } from "./mod.ts";
-import { startFromContext } from "../server/boot.ts";
+import { serveHandler } from "../server/boot.ts";
 import { getFreshConfigWithDefaults } from "../server/config.ts";
-import { getServerContext } from "$fresh/src/server/context.ts";
+import { createFreshApp } from "$fresh/src/server/app.ts";
 
 export async function dev(
   base: string,
@@ -40,21 +40,24 @@ export async function dev(
 
   if (Deno.args.includes("build")) {
     const configWithDefaults = await getFreshConfigWithDefaults(
-      manifest,
       config ?? {},
+      manifest.baseUrl,
+      manifest,
     );
     configWithDefaults.dev = false;
     configWithDefaults.loadSnapshot = false;
     await build(configWithDefaults);
   } else if (config) {
     const configWithDefaults = await getFreshConfigWithDefaults(
-      manifest,
       config,
+      manifest.baseUrl,
+      manifest,
     );
     configWithDefaults.dev = true;
     configWithDefaults.loadSnapshot = false;
-    const ctx = await getServerContext(configWithDefaults);
-    await startFromContext(ctx, configWithDefaults.server);
+
+    const router = await createFreshApp(configWithDefaults);
+    await serveHandler(router.denoServerHandler(), configWithDefaults.server);
   } else {
     // Legacy entry point: Back then `dev.ts` would call `main.ts` but
     // this causes duplicate plugin instantiation if both `dev.ts` and
