@@ -639,11 +639,16 @@ function collectPartials(
 }
 
 class NoPartialsError extends Error {}
+class NoIslandsError extends Error {}
 
 /**
  * Apply partials from a HTML response
  */
 export async function applyPartials(res: Response): Promise<void> {
+  if (res.status === 404) {
+    throw new NoIslandsError(partialErrorMessage);
+  }
+
   if (!res.ok) {
     throw new Error(partialErrorMessage);
   }
@@ -961,7 +966,7 @@ document.addEventListener("click", async (e) => {
         updateLinks(nextUrl);
         scrollTo({ left: 0, top: 0, behavior: "instant" });
       } catch (err) {
-        if (err instanceof Error) {
+        if (err instanceof NoIslandsError) {
           location.reload();
           return;
         }
