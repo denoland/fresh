@@ -524,6 +524,21 @@ Deno.test({
 });
 
 Deno.test({
+  name: "/middleware - mixedHandler(headers)",
+  fn: async () => {
+    const resp = await handler(
+      new Request("https://fresh.deno.dev/middleware_root"),
+    );
+    assert(resp);
+    assertEquals(resp.status, Status.OK);
+
+    // test log handler
+    const header = resp.headers.get("MParty") || "";
+    assertEquals(header, "with Middleware Files");
+  },
+});
+
+Deno.test({
   name: "/middleware - layer 2 middleware",
   fn: async () => {
     const resp = await handler(
@@ -658,6 +673,23 @@ Deno.test({
     assertEquals(resp.status, Status.OK);
     const body = await resp.text();
     assertStringIncludes(body, "<div>1234</div>");
+  },
+});
+
+Deno.test({
+  name: "/headers",
+  fn: async () => {
+    const resp = await handler(
+      new Request("https://fresh.deno.dev/headers"),
+    );
+    assert(resp);
+    assertEquals(resp.status, Status.OK);
+
+    // test log handler
+    const middlewareHeader = resp.headers.get("MParty") || "";
+    const headersFileHeader = resp.headers.get("HParty") || "";
+    assertEquals(middlewareHeader, "with Middleware Files");
+    assertEquals(headersFileHeader, "with Headers Files");
   },
 });
 

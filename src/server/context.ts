@@ -20,9 +20,11 @@ import {
   ErrorPageModule,
   Handler,
   InternalFreshConfig,
+  HeadersModule,
   Island,
   LayoutModule,
   LayoutRoute,
+  Middleware,
   MiddlewareHandler,
   MiddlewareHandlerContext,
   MiddlewareModule,
@@ -181,8 +183,10 @@ export async function getServerContext(opts: InternalFreshConfig) {
     const isMiddleware = path.endsWith("/_middleware.tsx") ||
       path.endsWith("/_middleware.ts") || path.endsWith("/_middleware.jsx") ||
       path.endsWith("/_middleware.js");
+    const isHeaders = path.endsWith("/_headers.ts") ||
+      path.endsWith("/_headers.js");
     if (
-      !path.startsWith("/_") && !isLayout && !isMiddleware
+      !path.startsWith("/_") && !isLayout && !isMiddleware && !isHeaders
     ) {
       const { default: component, config } = module as RouteModule;
       let pattern = pathToPattern(baseRoute);
@@ -304,6 +308,14 @@ export async function getServerContext(opts: InternalFreshConfig) {
         appWrapper: !config?.skipAppWrapper,
         inheritLayouts: !config?.skipInheritedLayouts,
       };
+    } else if (isHeaders) {
+      middlewares.push({
+        baseRoute: toBaseRoute(baseRoute),
+        module: {
+          handler: (_req: Request, ctx: MiddlewareHandlerContext) => ctx.next(),
+          headers: (module as HeadersModule).headers,
+        } as Middleware,
+      });
     }
   }
 
@@ -567,6 +579,7 @@ export class ServerContext {
       inner: router.FinalHandler<RouterState>,
     ) => {
       const handlers: (() => Response | Promise<Response>)[] = [];
+      const headers: HeadersInit = [];
       const paramsAndRouteResult = paramsAndRoute(req.url);
 
       // identify middlewares to apply, if any.
@@ -615,7 +628,23 @@ export class ServerContext {
           const handler = module.handler;
           handlers.push(() => handler(req, middlewareCtx));
         }
+        if (module.headers instanceof Headers) {
+          module.headers.forEach((value: string, key: string) =>
+            headers.push([key, value])
+          );
+        } else if (module.headers instanceof Array) {
+          headers.push(...module.headers);
+        } else {
+          headers.push(...Object.entries(module.headers || {}));
+        }
       }
+
+      const headerHandler = async (middlewareCtx: MiddlewareHandlerContext) => {
+        const res = await middlewareCtx.next();
+        headers.map((header) => res.headers.append(header[0], header[1]));
+        return res;
+      };
+      handlers.push(() => headerHandler(middlewareCtx));
 
       const ctx = {
         ...connInfo,
@@ -1297,6 +1326,8 @@ export function toBaseRoute(input: string): BaseRoute {
     input = input.slice(0, -"_middleware".length);
   } else if (input.endsWith("index")) {
     input = input.slice(0, -"index".length);
+  } else if (input.endsWith("_headers")) {
+    input = input.slice(0, -"_headers".length);
   }
 
   if (input.endsWith("/")) {

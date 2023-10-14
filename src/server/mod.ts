@@ -6,6 +6,7 @@ import {
   FreshConfig,
   Handler,
   Handlers,
+  HeadersModule,
   IslandModule,
   LayoutConfig,
   MiddlewareModule,
@@ -64,7 +65,7 @@ export type { DestinationKind } from "./router.ts";
 export interface Manifest {
   routes: Record<
     string,
-    {
+    | {
       // Use a more loose route definition type because
       // TS has trouble inferring normal vs aync functions. It cannot infer based on function arity
       default?: (
@@ -77,7 +78,9 @@ export interface Manifest {
       // deno-lint-ignore no-explicit-any
       handler?: Handler<any, any> | Handlers<any, any> | UnknownHandler;
       config?: RouteConfig | LayoutConfig | ErrorHandler;
-    } | MiddlewareModule
+    }
+    | MiddlewareModule
+    | HeadersModule
   >;
   islands: Record<string, IslandModule>;
   baseUrl: string;

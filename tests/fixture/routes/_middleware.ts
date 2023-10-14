@@ -65,3 +65,5 @@ export const handler: MiddlewareHandler | MiddlewareHandler[] = [
   kindHandler,
   corsHandler,
 ];
+
+export const headers = [["MParty", "with Middleware Files"]];

@@ -491,6 +491,13 @@ export interface MiddlewareModule<State = any> {
 
 export interface Middleware<State = Record<string, unknown>> {
   handler: MiddlewareHandler<State> | MiddlewareHandler<State>[];
+  headers?: HeadersInit;
+}
+
+// --- Headers ---
+
+export interface HeadersModule {
+  headers: HeadersInit;
 }
 
 // --- ISLANDS ---

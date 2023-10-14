@@ -217,3 +217,14 @@ export function handler(req: Request): Response {
   });
 }
 ```
+
+## Headers
+
+If you want to add Headers you can export a HeadersInit object from a
+_middleware.ts or an _headers.ts:
+
+```ts routes/_middleware.ts || routes/_middleware.ts
+export const headers: HeadersInit = {
+  "server": "fresh server",
+};
+```
