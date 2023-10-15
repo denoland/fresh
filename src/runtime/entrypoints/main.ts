@@ -872,8 +872,14 @@ export interface FreshHistoryState {
   scrollY: number;
 }
 
-function checkClientNavEnabled() {
-  return document.querySelector(`[${CLIENT_NAV_ATTR}]`) !== null;
+function checkClientNavEnabled(el: HTMLElement | null) {
+  if (el === null) {
+    return document.querySelector(`[${CLIENT_NAV_ATTR}="true"]`) !== null;
+  }
+
+  const setting = el.closest(`[${CLIENT_NAV_ATTR}]`);
+  if (setting === null) return false;
+  return setting.getAttribute(CLIENT_NAV_ATTR) === "true";
 }
 
 // Keep track of history state to apply forward or backward animations
@@ -917,8 +923,7 @@ document.addEventListener("click", async (e) => {
       // we're doing a fragment navigation.
       if (
         el.getAttribute("href")?.startsWith("#") ||
-        !checkClientNavEnabled() ||
-        el.closest(`[${CLIENT_NAV_ATTR}="true"]`) === null
+        !checkClientNavEnabled(el)
       ) {
         return;
       }
@@ -978,8 +983,7 @@ document.addEventListener("click", async (e) => {
         // Check if the user opted out of client side navigation.
         if (
           partial === null ||
-          !checkClientNavEnabled() ||
-          button.closest(`[${CLIENT_NAV_ATTR}="true"]`) === null
+          !checkClientNavEnabled(button)
         ) {
           return;
         }
@@ -1009,7 +1013,7 @@ addEventListener("popstate", async (e) => {
   const nextIdx = state.index ?? index + 1;
   index = nextIdx;
 
-  if (!checkClientNavEnabled()) {
+  if (!checkClientNavEnabled(null)) {
     location.reload();
     return;
   }
