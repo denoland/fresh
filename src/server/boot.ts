@@ -1,9 +1,8 @@
-import { ServerContext } from "./context.ts";
 import { colors } from "./deps.ts";
 import { ServeHandler } from "./types.ts";
 
-export async function startFromContext(
-  ctx: ServerContext,
+export async function startServer(
+  handler: Deno.ServeHandler,
   opts: Partial<Deno.ServeTlsOptions>,
 ) {
   if (!opts.onListen) {
@@ -23,8 +22,6 @@ export async function startFromContext(
   if (portEnv !== undefined) {
     opts.port ??= parseInt(portEnv, 10);
   }
-
-  const handler = ctx.handler();
 
   if (opts.port) {
     await bootServer(handler, opts);
