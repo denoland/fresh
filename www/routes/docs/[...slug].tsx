@@ -146,7 +146,7 @@ export default function DocsPage(props: PageProps<Data>) {
     <>
       <Head>
         <title>{title}</title>
-        <link rel="stylesheet" href={asset("/gfm.css")} />
+        <link rel="stylesheet" href={asset("/markdown.css")} />
         <meta name="description" content={description} />
         <meta property="og:title" content={title} />
         <meta property="og:description" content={description} />
