@@ -13,7 +13,7 @@ import {
   ServeHandlerInfo,
   UnknownHandler,
 } from "./types.ts";
-import { startFromContext } from "./boot.ts";
+import { startServer } from "./boot.ts";
 export {
   defineApp,
   defineConfig,
@@ -101,5 +101,5 @@ export async function start(manifest: Manifest, config: FreshConfig = {}) {
     skipSnapshot: false,
     dev: false,
   });
-  await startFromContext(ctx, config.server ?? config);
+  await startServer(ctx.handler(), config.server ?? config);
 }
