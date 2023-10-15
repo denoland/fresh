@@ -205,7 +205,7 @@ options.vnode = (vnode) => {
     }
 
     if (typeof props[CLIENT_NAV_ATTR] === "boolean") {
-      props[CLIENT_NAV_ATTR] = props[CLIENT_NAV_ATTR] ? "true" : null;
+      props[CLIENT_NAV_ATTR] = props[CLIENT_NAV_ATTR] ? "true" : "false";
     }
   } else if (
     current && typeof vnode.type === "function" && vnode.type !== Fragment &&

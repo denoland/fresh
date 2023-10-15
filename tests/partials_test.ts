@@ -15,7 +15,8 @@ import {
 } from "./test_utils.ts";
 
 async function assertLogs(page: Page, expected: string[]) {
-  await waitForText(page, "#logs", expected.join("\n") + "\n");
+  const text = expected.length > 0 ? expected.join("\n") + "\n" : "";
+  await waitForText(page, "#logs", text);
 }
 
 Deno.test("injects server content with no islands present", async () => {
@@ -844,6 +845,62 @@ Deno.test("allow opting out of client navigation", async () => {
 
       // Non-shared state is reset
       assertTextMany(doc, ".output-b", ["0"]);
+
+      // Check that island is interactive
+      await page.click(".island-b button");
+      await waitForText(page, ".output-b", "1");
+    },
+  );
+});
+
+Deno.test("allow opting out of client navigation if parent opted in", async () => {
+  await withPageName(
+    "./tests/fixture_partials/main.ts",
+    async (page, address) => {
+      const initialUrl = `${address}/client_nav_both`;
+      await page.goto(initialUrl);
+      await page.waitForSelector(".island");
+
+      await page.click(".island-a button");
+      await waitForText(page, ".output-a", "1");
+
+      // Go to page B
+      await page.click(".page-b-link");
+      await page.waitForSelector(".island-b");
+      await assertLogs(page, ["mount Counter B"]);
+
+      await page.click(".island-b button");
+      await waitForText(page, ".output-b", "1");
+      await assertLogs(page, ["mount Counter B", "update Counter B"]);
+
+      // Go to page C
+      await page.click(".page-c-link");
+      await page.waitForSelector(".page-c-text");
+      await assertLogs(page, []);
+
+      // Go back to B
+      await page.goBack();
+      await page.waitForSelector(".island-b");
+      await assertLogs(page, ["mount Counter B"]);
+
+      // Check that island is interactive
+      await page.click(".island-b button");
+      await waitForText(page, ".output-b", "1");
+
+      // Go back to A
+      await page.goBack();
+      await page.waitForSelector(".island-a");
+      await assertLogs(page, ["mount Counter A"]);
+
+      // Check that island is interactive
+      await page.click(".island-a button");
+      await waitForText(page, ".output-a", "1");
+      await assertNoPageComments(page);
+
+      // Go forward to B
+      await page.goForward();
+      await page.waitForSelector(".island-b");
+      await assertLogs(page, ["mount Counter B"]);
 
       // Check that island is interactive
       await page.click(".island-b button");
