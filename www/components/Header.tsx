@@ -12,6 +12,7 @@ export default function Header(props: { title: string; active: string }) {
           <header
             class={"  top-0 w-full bg-white mx-auto max-w-screen-xl flex gap-3 items-center " +
               "justify-between md:justify-end"}
+            f-client-nav={false}
           >
             <div class="p-4 flex items-center md:hidden">
               <Logo />
@@ -25,6 +26,7 @@ export default function Header(props: { title: string; active: string }) {
           <header
             class={"mx-auto max-w-screen-xl flex gap-3 items-center " +
               (isHome ? "justify-end" : "justify-between")}
+            f-client-nav={false}
           >
             {!isHome && (
               <div class="p-4 flex items-center">
