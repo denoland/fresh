@@ -1,7 +1,5 @@
 let ws: WebSocket;
 
-let connected = false;
-
 let reconnectTimer: number;
 const backoff = [
   0,
@@ -53,13 +51,14 @@ function connect(forceReload?: boolean) {
   );
 
   ws.addEventListener("open", () => {
-    console.log(
-      `%c Fresh %c Connected to development server.`,
-      "background-color: #86efac; color: black",
-      "color: inherit",
-    );
     if (forceReload) {
       location.reload();
+    } else {
+      console.log(
+        `%c Fresh %c Connected to development server.`,
+        "background-color: #86efac; color: black",
+        "color: inherit",
+      );
     }
   });
 
