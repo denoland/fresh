@@ -681,33 +681,6 @@ export class ServerContext {
         default: this.#bundleAssetRoute(),
       },
     };
-    if (this.#dev) {
-      internalRoutes[ALIVE_URL] = {
-        baseRoute: toBaseRoute(ALIVE_URL),
-        methods: {
-          default: (req) => {
-            console.trace(req.url);
-            if (req.headers.get("upgrade") !== "websocket") {
-              return new Response(null, { status: 501 });
-            }
-
-            const { socket, response } = Deno.upgradeWebSocket(req);
-
-            socket.addEventListener("open", () => {
-              console.log("a client connected!");
-            });
-
-            socket.addEventListener("message", (event) => {
-              if (event.data === "ping") {
-                socket.send("pong");
-              }
-            });
-
-            return response;
-          },
-        },
-      };
-    }
 
     // Add the static file routes.
     // each files has 2 static routes:
