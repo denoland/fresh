@@ -1,6 +1,11 @@
-import { BaseRoute, ErrorHandlerContext, ServeHandlerInfo } from "./types.ts";
+import {
+  BaseRoute,
+  ErrorHandlerContext,
+  FreshInfo,
+  ServeHandlerInfo,
+} from "./types.ts";
 
-type HandlerContext<T = unknown> = T & ServeHandlerInfo;
+type HandlerContext<T = unknown> = T & ServeHandlerInfo & { info: FreshInfo };
 
 export type Handler<T = unknown> = (
   req: Request,

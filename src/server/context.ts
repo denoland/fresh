@@ -18,6 +18,7 @@ import {
   BaseRoute,
   ErrorPage,
   ErrorPageModule,
+  FreshInfo,
   Handler,
   InternalFreshConfig,
   Island,
@@ -413,6 +414,7 @@ export class ServerContext {
   #plugins: Plugin[];
   #builder: Builder | Promise<BuildSnapshot> | BuildSnapshot;
   #routerOptions: RouterOptions;
+  #freshInfo: FreshInfo;
 
   constructor(
     routes: Route[],
@@ -452,6 +454,7 @@ export class ServerContext {
       target,
     });
     this.#routerOptions = routerOptions;
+    this.#freshInfo = { routes };
   }
 
   /**
@@ -623,6 +626,7 @@ export class ServerContext {
         },
         destination: "route",
         params: paramsAndRouteResult.params,
+        info: this.#freshInfo,
       };
 
       for (const { module } of mws) {
@@ -644,6 +648,7 @@ export class ServerContext {
         set state(v) {
           state = v;
         },
+        info: this.#freshInfo,
       };
       const { destination, handler } = inner(
         req,

@@ -1066,3 +1066,23 @@ Deno.test("pass options in config dev.ts", async (t) => {
     }
   });
 });
+
+Deno.test({
+  name: "Fresh info in ctx element",
+  fn: async () => {
+    const resp = await handler(new Request("https://fresh.deno.dev/info-ctx"));
+    assert(resp);
+    assertEquals(resp.status, 200);
+    const body = await resp.json();
+    assertEquals(body, [{
+      baseRoute: "/info-ctx",
+      pattern: "/info-ctx",
+      url: body.at(0).url,
+      name: "info-ctx-index",
+      handler: {},
+      csp: false,
+      appWrapper: true,
+      inheritLayouts: true,
+    }]);
+  },
+});

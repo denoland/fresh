@@ -251,6 +251,7 @@ export interface HandlerContext<
   ) => Response | Promise<Response>;
   renderNotFound: (data?: NotFoundData) => Response | Promise<Response>;
   state: State;
+  info: FreshInfo;
 }
 
 // deno-lint-ignore no-explicit-any
@@ -472,6 +473,7 @@ export interface MiddlewareHandlerContext<State = Record<string, unknown>>
   state: State;
   destination: router.DestinationKind;
   params: Record<string, string>;
+  info: FreshInfo;
 }
 
 export interface MiddlewareRoute {
@@ -621,3 +623,9 @@ export interface PluginRoute {
   // deno-lint-ignore no-explicit-any
   handler?: Handler<any, any> | Handlers<any, any>;
 }
+
+export type FreshInfo = {
+  /** All routes available in this fresh project and in all used plugins */
+  // deno-lint-ignore no-explicit-any
+  routes: Route<any>[];
+};

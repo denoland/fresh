@@ -24,55 +24,56 @@ import * as $18 from "./routes/hooks-server/useReducer.tsx";
 import * as $19 from "./routes/hooks-server/useState.tsx";
 import * as $20 from "./routes/i18n/[[lang]]/lang.tsx";
 import * as $21 from "./routes/index.tsx";
-import * as $22 from "./routes/intercept.tsx";
-import * as $23 from "./routes/intercept_args.tsx";
-import * as $24 from "./routes/islands/index.tsx";
-import * as $25 from "./routes/islands/multiple_island_exports.tsx";
-import * as $26 from "./routes/islands/returning_null.tsx";
-import * as $27 from "./routes/islands/root_fragment.tsx";
-import * as $28 from "./routes/islands/root_fragment_conditional_first.tsx";
-import * as $29 from "./routes/layeredMdw/_middleware.ts";
-import * as $30 from "./routes/layeredMdw/layer2-no-mw/without_mw.ts";
-import * as $31 from "./routes/layeredMdw/layer2-with-params/[tenantId]/[id].ts";
-import * as $32 from "./routes/layeredMdw/layer2-with-params/[tenantId]/_middleware.ts";
-import * as $33 from "./routes/layeredMdw/layer2-with-params/_middleware.ts";
-import * as $34 from "./routes/layeredMdw/layer2/_middleware.ts";
-import * as $35 from "./routes/layeredMdw/layer2/abc.ts";
-import * as $36 from "./routes/layeredMdw/layer2/index.ts";
-import * as $37 from "./routes/layeredMdw/layer2/layer3/[id].ts";
-import * as $38 from "./routes/layeredMdw/layer2/layer3/_middleware.ts";
-import * as $39 from "./routes/layeredMdw/nesting/[tenant]/[environment]/[id].tsx";
-import * as $40 from "./routes/layeredMdw/nesting/[tenant]/[environment]/_middleware.ts";
-import * as $41 from "./routes/layeredMdw/nesting/[tenant]/_middleware.ts";
-import * as $42 from "./routes/layeredMdw/nesting/_middleware.ts";
-import * as $43 from "./routes/middleware-error-handler/_middleware.ts";
-import * as $44 from "./routes/middleware-error-handler/index.tsx";
-import * as $45 from "./routes/middleware_root.ts";
-import * as $46 from "./routes/movies/[foo].json.ts";
-import * as $47 from "./routes/movies/[foo]@[bar].ts";
-import * as $48 from "./routes/nonce_inline.tsx";
-import * as $49 from "./routes/not_found.ts";
-import * as $50 from "./routes/params.tsx";
-import * as $51 from "./routes/preact/boolean_attrs.tsx";
-import * as $52 from "./routes/props/[id].tsx";
-import * as $53 from "./routes/route-groups-islands/index.tsx";
-import * as $54 from "./routes/route-groups/(bar)/(baz)/_layout.tsx";
-import * as $55 from "./routes/route-groups/(bar)/(baz)/baz.tsx";
-import * as $56 from "./routes/route-groups/(bar)/_layout.tsx";
-import * as $57 from "./routes/route-groups/(bar)/bar.tsx";
-import * as $58 from "./routes/route-groups/(bar)/boof/index.tsx";
-import * as $59 from "./routes/route-groups/(foo)/_layout.tsx";
-import * as $60 from "./routes/route-groups/(foo)/index.tsx";
-import * as $61 from "./routes/signal_shared.tsx";
-import * as $62 from "./routes/state-in-props/_middleware.ts";
-import * as $63 from "./routes/state-in-props/index.tsx";
-import * as $64 from "./routes/state-middleware/_middleware.ts";
-import * as $65 from "./routes/state-middleware/foo/_middleware.ts";
-import * as $66 from "./routes/state-middleware/foo/index.tsx";
-import * as $67 from "./routes/static.tsx";
-import * as $68 from "./routes/status_overwrite.tsx";
-import * as $69 from "./routes/umlaut-äöüß.tsx";
-import * as $70 from "./routes/wildcard.tsx";
+import * as $22 from "./routes/info-ctx/index.ts";
+import * as $23 from "./routes/intercept.tsx";
+import * as $24 from "./routes/intercept_args.tsx";
+import * as $25 from "./routes/islands/index.tsx";
+import * as $26 from "./routes/islands/multiple_island_exports.tsx";
+import * as $27 from "./routes/islands/returning_null.tsx";
+import * as $28 from "./routes/islands/root_fragment.tsx";
+import * as $29 from "./routes/islands/root_fragment_conditional_first.tsx";
+import * as $30 from "./routes/layeredMdw/_middleware.ts";
+import * as $31 from "./routes/layeredMdw/layer2-no-mw/without_mw.ts";
+import * as $32 from "./routes/layeredMdw/layer2-with-params/[tenantId]/[id].ts";
+import * as $33 from "./routes/layeredMdw/layer2-with-params/[tenantId]/_middleware.ts";
+import * as $34 from "./routes/layeredMdw/layer2-with-params/_middleware.ts";
+import * as $35 from "./routes/layeredMdw/layer2/_middleware.ts";
+import * as $36 from "./routes/layeredMdw/layer2/abc.ts";
+import * as $37 from "./routes/layeredMdw/layer2/index.ts";
+import * as $38 from "./routes/layeredMdw/layer2/layer3/[id].ts";
+import * as $39 from "./routes/layeredMdw/layer2/layer3/_middleware.ts";
+import * as $40 from "./routes/layeredMdw/nesting/[tenant]/[environment]/[id].tsx";
+import * as $41 from "./routes/layeredMdw/nesting/[tenant]/[environment]/_middleware.ts";
+import * as $42 from "./routes/layeredMdw/nesting/[tenant]/_middleware.ts";
+import * as $43 from "./routes/layeredMdw/nesting/_middleware.ts";
+import * as $44 from "./routes/middleware-error-handler/_middleware.ts";
+import * as $45 from "./routes/middleware-error-handler/index.tsx";
+import * as $46 from "./routes/middleware_root.ts";
+import * as $47 from "./routes/movies/[foo].json.ts";
+import * as $48 from "./routes/movies/[foo]@[bar].ts";
+import * as $49 from "./routes/nonce_inline.tsx";
+import * as $50 from "./routes/not_found.ts";
+import * as $51 from "./routes/params.tsx";
+import * as $52 from "./routes/preact/boolean_attrs.tsx";
+import * as $53 from "./routes/props/[id].tsx";
+import * as $54 from "./routes/route-groups-islands/index.tsx";
+import * as $55 from "./routes/route-groups/(bar)/(baz)/_layout.tsx";
+import * as $56 from "./routes/route-groups/(bar)/(baz)/baz.tsx";
+import * as $57 from "./routes/route-groups/(bar)/_layout.tsx";
+import * as $58 from "./routes/route-groups/(bar)/bar.tsx";
+import * as $59 from "./routes/route-groups/(bar)/boof/index.tsx";
+import * as $60 from "./routes/route-groups/(foo)/_layout.tsx";
+import * as $61 from "./routes/route-groups/(foo)/index.tsx";
+import * as $62 from "./routes/signal_shared.tsx";
+import * as $63 from "./routes/state-in-props/_middleware.ts";
+import * as $64 from "./routes/state-in-props/index.tsx";
+import * as $65 from "./routes/state-middleware/_middleware.ts";
+import * as $66 from "./routes/state-middleware/foo/_middleware.ts";
+import * as $67 from "./routes/state-middleware/foo/index.tsx";
+import * as $68 from "./routes/static.tsx";
+import * as $69 from "./routes/status_overwrite.tsx";
+import * as $70 from "./routes/umlaut-äöüß.tsx";
+import * as $71 from "./routes/wildcard.tsx";
 import * as $$0 from "./islands/Counter.tsx";
 import * as $$1 from "./islands/FormIsland.tsx";
 import * as $$2 from "./islands/Greeter.tsx";
@@ -113,55 +114,56 @@ const manifest = {
     "./routes/hooks-server/useState.tsx": $19,
     "./routes/i18n/[[lang]]/lang.tsx": $20,
     "./routes/index.tsx": $21,
-    "./routes/intercept.tsx": $22,
-    "./routes/intercept_args.tsx": $23,
-    "./routes/islands/index.tsx": $24,
-    "./routes/islands/multiple_island_exports.tsx": $25,
-    "./routes/islands/returning_null.tsx": $26,
-    "./routes/islands/root_fragment.tsx": $27,
-    "./routes/islands/root_fragment_conditional_first.tsx": $28,
-    "./routes/layeredMdw/_middleware.ts": $29,
-    "./routes/layeredMdw/layer2-no-mw/without_mw.ts": $30,
-    "./routes/layeredMdw/layer2-with-params/[tenantId]/[id].ts": $31,
-    "./routes/layeredMdw/layer2-with-params/[tenantId]/_middleware.ts": $32,
-    "./routes/layeredMdw/layer2-with-params/_middleware.ts": $33,
-    "./routes/layeredMdw/layer2/_middleware.ts": $34,
-    "./routes/layeredMdw/layer2/abc.ts": $35,
-    "./routes/layeredMdw/layer2/index.ts": $36,
-    "./routes/layeredMdw/layer2/layer3/[id].ts": $37,
-    "./routes/layeredMdw/layer2/layer3/_middleware.ts": $38,
-    "./routes/layeredMdw/nesting/[tenant]/[environment]/[id].tsx": $39,
-    "./routes/layeredMdw/nesting/[tenant]/[environment]/_middleware.ts": $40,
-    "./routes/layeredMdw/nesting/[tenant]/_middleware.ts": $41,
-    "./routes/layeredMdw/nesting/_middleware.ts": $42,
-    "./routes/middleware-error-handler/_middleware.ts": $43,
-    "./routes/middleware-error-handler/index.tsx": $44,
-    "./routes/middleware_root.ts": $45,
-    "./routes/movies/[foo].json.ts": $46,
-    "./routes/movies/[foo]@[bar].ts": $47,
-    "./routes/nonce_inline.tsx": $48,
-    "./routes/not_found.ts": $49,
-    "./routes/params.tsx": $50,
-    "./routes/preact/boolean_attrs.tsx": $51,
-    "./routes/props/[id].tsx": $52,
-    "./routes/route-groups-islands/index.tsx": $53,
-    "./routes/route-groups/(bar)/(baz)/_layout.tsx": $54,
-    "./routes/route-groups/(bar)/(baz)/baz.tsx": $55,
-    "./routes/route-groups/(bar)/_layout.tsx": $56,
-    "./routes/route-groups/(bar)/bar.tsx": $57,
-    "./routes/route-groups/(bar)/boof/index.tsx": $58,
-    "./routes/route-groups/(foo)/_layout.tsx": $59,
-    "./routes/route-groups/(foo)/index.tsx": $60,
-    "./routes/signal_shared.tsx": $61,
-    "./routes/state-in-props/_middleware.ts": $62,
-    "./routes/state-in-props/index.tsx": $63,
-    "./routes/state-middleware/_middleware.ts": $64,
-    "./routes/state-middleware/foo/_middleware.ts": $65,
-    "./routes/state-middleware/foo/index.tsx": $66,
-    "./routes/static.tsx": $67,
-    "./routes/status_overwrite.tsx": $68,
-    "./routes/umlaut-äöüß.tsx": $69,
-    "./routes/wildcard.tsx": $70,
+    "./routes/info-ctx/index.ts": $22,
+    "./routes/intercept.tsx": $23,
+    "./routes/intercept_args.tsx": $24,
+    "./routes/islands/index.tsx": $25,
+    "./routes/islands/multiple_island_exports.tsx": $26,
+    "./routes/islands/returning_null.tsx": $27,
+    "./routes/islands/root_fragment.tsx": $28,
+    "./routes/islands/root_fragment_conditional_first.tsx": $29,
+    "./routes/layeredMdw/_middleware.ts": $30,
+    "./routes/layeredMdw/layer2-no-mw/without_mw.ts": $31,
+    "./routes/layeredMdw/layer2-with-params/[tenantId]/[id].ts": $32,
+    "./routes/layeredMdw/layer2-with-params/[tenantId]/_middleware.ts": $33,
+    "./routes/layeredMdw/layer2-with-params/_middleware.ts": $34,
+    "./routes/layeredMdw/layer2/_middleware.ts": $35,
+    "./routes/layeredMdw/layer2/abc.ts": $36,
+    "./routes/layeredMdw/layer2/index.ts": $37,
+    "./routes/layeredMdw/layer2/layer3/[id].ts": $38,
+    "./routes/layeredMdw/layer2/layer3/_middleware.ts": $39,
+    "./routes/layeredMdw/nesting/[tenant]/[environment]/[id].tsx": $40,
+    "./routes/layeredMdw/nesting/[tenant]/[environment]/_middleware.ts": $41,
+    "./routes/layeredMdw/nesting/[tenant]/_middleware.ts": $42,
+    "./routes/layeredMdw/nesting/_middleware.ts": $43,
+    "./routes/middleware-error-handler/_middleware.ts": $44,
+    "./routes/middleware-error-handler/index.tsx": $45,
+    "./routes/middleware_root.ts": $46,
+    "./routes/movies/[foo].json.ts": $47,
+    "./routes/movies/[foo]@[bar].ts": $48,
+    "./routes/nonce_inline.tsx": $49,
+    "./routes/not_found.ts": $50,
+    "./routes/params.tsx": $51,
+    "./routes/preact/boolean_attrs.tsx": $52,
+    "./routes/props/[id].tsx": $53,
+    "./routes/route-groups-islands/index.tsx": $54,
+    "./routes/route-groups/(bar)/(baz)/_layout.tsx": $55,
+    "./routes/route-groups/(bar)/(baz)/baz.tsx": $56,
+    "./routes/route-groups/(bar)/_layout.tsx": $57,
+    "./routes/route-groups/(bar)/bar.tsx": $58,
+    "./routes/route-groups/(bar)/boof/index.tsx": $59,
+    "./routes/route-groups/(foo)/_layout.tsx": $60,
+    "./routes/route-groups/(foo)/index.tsx": $61,
+    "./routes/signal_shared.tsx": $62,
+    "./routes/state-in-props/_middleware.ts": $63,
+    "./routes/state-in-props/index.tsx": $64,
+    "./routes/state-middleware/_middleware.ts": $65,
+    "./routes/state-middleware/foo/_middleware.ts": $66,
+    "./routes/state-middleware/foo/index.tsx": $67,
+    "./routes/static.tsx": $68,
+    "./routes/status_overwrite.tsx": $69,
+    "./routes/umlaut-äöüß.tsx": $70,
+    "./routes/wildcard.tsx": $71,
   },
   islands: {
     "./islands/Counter.tsx": $$0,
