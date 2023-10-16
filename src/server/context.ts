@@ -10,7 +10,7 @@ import {
 import { ComponentType, h } from "preact";
 import * as router from "./router.ts";
 import { FreshConfig, Manifest } from "./mod.ts";
-import { ALIVE_URL, JS_PREFIX, REFRESH_JS_URL } from "./constants.ts";
+import { ALIVE_URL, JS_PREFIX } from "./constants.ts";
 import { BUILD_ID, setBuildId } from "./build_id.ts";
 import DefaultErrorHandler from "./default_error_page.tsx";
 import {
@@ -172,7 +172,7 @@ export async function getServerContext(opts: InternalFreshConfig) {
     if (!url.startsWith(baseUrl + "routes")) {
       throw new TypeError("Page is not a child of the basepath.");
     }
-    const path = url.substring(baseUrl.length).substring("routes".length);
+    const path = url.substring(baseUrl.length + "routes".length);
     const baseRoute = path.substring(1, path.length - extname(path).length);
     const name = baseRoute.replace("/", "-");
     const isLayout = path.endsWith("/_layout.tsx") ||
@@ -489,14 +489,33 @@ export class ServerContext {
       router.getParamsAndRoute<RouterState>(handlers),
     );
     const trailingSlashEnabled = this.#routerOptions?.trailingSlash;
+    const isDev = this.#dev;
+
     return async function handler(
       req: Request,
       connInfo: ServeHandlerInfo = DEFAULT_CONN_INFO,
     ) {
+      const url = new URL(req.url);
+
+      // Live reload: Send updates to browser
+      if (isDev && url.pathname === ALIVE_URL) {
+        if (req.headers.get("upgrade") !== "websocket") {
+          return new Response(null, { status: 501 });
+        }
+
+        // TODO: When a change is made the Deno server restarts,
+        // so for now the WebSocket connection is only used for
+        // the client to know when the server is back up. Once we
+        // have HMR we'll actively start sending messages back
+        // and forth.
+        const { response } = Deno.upgradeWebSocket(req);
+
+        return response;
+      }
+
       // Redirect requests that end with a trailing slash to their non-trailing
       // slash counterpart.
       // Ex: /about/ -> /about
-      const url = new URL(req.url);
       if (
         url.pathname.length > 1 && url.pathname.endsWith("/") &&
         !trailingSlashEnabled
@@ -662,46 +681,6 @@ export class ServerContext {
         default: this.#bundleAssetRoute(),
       },
     };
-    if (this.#dev) {
-      internalRoutes[REFRESH_JS_URL] = {
-        baseRoute: toBaseRoute(REFRESH_JS_URL),
-        methods: {
-          default: () => {
-            return new Response(refreshJs(ALIVE_URL, BUILD_ID), {
-              headers: {
-                "content-type": "application/javascript; charset=utf-8",
-              },
-            });
-          },
-        },
-      };
-      internalRoutes[ALIVE_URL] = {
-        baseRoute: toBaseRoute(ALIVE_URL),
-        methods: {
-          default: () => {
-            let timerId: number | undefined = undefined;
-            const body = new ReadableStream({
-              start(controller) {
-                controller.enqueue(`data: ${BUILD_ID}\nretry: 100\n\n`);
-                timerId = setInterval(() => {
-                  controller.enqueue(`data: ${BUILD_ID}\n\n`);
-                }, 1000);
-              },
-              cancel() {
-                if (timerId !== undefined) {
-                  clearInterval(timerId);
-                }
-              },
-            });
-            return new Response(body.pipeThrough(new TextEncoderStream()), {
-              headers: {
-                "content-type": "text/event-stream",
-              },
-            });
-          },
-        },
-      };
-    }
 
     // Add the static file routes.
     // each files has 2 static routes:
@@ -792,7 +771,6 @@ export class ServerContext {
       status: number,
     ) => {
       const imports: string[] = [];
-      if (this.#dev) imports.push(REFRESH_JS_URL);
       return (
         req: Request,
         params: Record<string, string>,
@@ -1305,19 +1283,6 @@ export function toBaseRoute(input: string): BaseRoute {
 
   const suffix = !input.startsWith("/") ? "/" : "";
   return (suffix + input) as BaseRoute;
-}
-
-function refreshJs(aliveUrl: string, buildId: string) {
-  return `let es = new EventSource("${aliveUrl}");
-window.addEventListener("beforeunload", (event) => {
-  es.close();
-});
-es.addEventListener("message", function listener(e) {
-  if (e.data !== "${buildId}") {
-    this.removeEventListener("message", listener);
-    location.reload();
-  }
-});`;
 }
 
 function collectEntrypoints(

@@ -74,9 +74,14 @@ export interface Manifest {
         ctx: any,
         // deno-lint-ignore no-explicit-any
       ) => Promise<any | Response> | any;
-      // deno-lint-ignore no-explicit-any
-      handler?: Handler<any, any> | Handlers<any, any> | UnknownHandler;
-      config?: RouteConfig | LayoutConfig | ErrorHandler;
+      handler?:
+        // deno-lint-ignore no-explicit-any
+        | Handler<any, any>
+        // deno-lint-ignore no-explicit-any
+        | Handlers<any, any>
+        | UnknownHandler
+        | ErrorHandler;
+      config?: RouteConfig | LayoutConfig;
     } | MiddlewareModule
   >;
   islands: Record<string, IslandModule>;
