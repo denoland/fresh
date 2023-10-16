@@ -1,3 +1,3 @@
 import "preact/debug";
-import "./client.ts";
+import "../client.ts";
 export * from "./main.ts";
