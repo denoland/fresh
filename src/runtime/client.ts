@@ -1,7 +1,5 @@
 let ws: WebSocket;
 
-let closed = false;
-
 let reconnectTimer: number;
 const backoff = [
   0,
@@ -25,7 +23,7 @@ const backoff = [
 ];
 let backoffIdx = 0;
 function reconnect() {
-  if (!closed) return;
+  if (ws.readyState !== ws.CLOSED) return;
 
   reconnectTimer = setTimeout(() => {
     if (backoffIdx === 0) {
@@ -39,7 +37,6 @@ function reconnect() {
 
     try {
       connect(true);
-      closed = false;
       clearTimeout(reconnectTimer);
     } catch (_err) {
       reconnect();
@@ -54,18 +51,19 @@ function connect(forceReload?: boolean) {
   );
 
   ws.addEventListener("open", () => {
-    console.log(
-      `%c Fresh %c Connected to development server.`,
-      "background-color: #86efac; color: black",
-      "color: inherit",
-    );
     if (forceReload) {
       location.reload();
+    } else {
+      backoffIdx = 0;
+      console.log(
+        `%c Fresh %c Connected to development server.`,
+        "background-color: #86efac; color: black",
+        "color: inherit",
+      );
     }
   });
 
   ws.addEventListener("close", () => {
-    closed = true;
     reconnect();
   });
 
