@@ -977,7 +977,10 @@ document.addEventListener("click", async (e) => {
         button = button.closest("button");
       }
 
-      if (button !== null && button instanceof HTMLButtonElement) {
+      if (
+        button !== null && button instanceof HTMLButtonElement &&
+        (button.type !== "submit" || button.form === null)
+      ) {
         const partial = button.getAttribute(PARTIAL_ATTR);
 
         // Check if the user opted out of client side navigation.
@@ -1049,12 +1052,47 @@ addEventListener("popstate", async (e) => {
 document.addEventListener("submit", async (e) => {
   const el = e.target;
   if (el !== null && el instanceof HTMLFormElement && !e.defaultPrevented) {
-    const partial = el.getAttribute(PARTIAL_ATTR);
-    if (partial !== null) {
+    if (
+      // Check if form has client nav enabled
+      !checkClientNavEnabled(el) ||
+      // Bail out if submitter is set and client nav is disabled
+      (e.submitter !== null && !checkClientNavEnabled(e.submitter))
+    ) {
+      return;
+    }
+
+    const lowerMethod =
+      e.submitter?.getAttribute("formmethod")?.toLowerCase() ??
+        el.method.toLowerCase();
+    if (
+      lowerMethod !== "get" && lowerMethod !== "post" &&
+      lowerMethod !== "dialog"
+    ) {
+      return;
+    }
+
+    const action = e.submitter?.getAttribute(PARTIAL_ATTR) ??
+      e.submitter?.getAttribute("formaction") ??
+      el.getAttribute(PARTIAL_ATTR) ?? el.action;
+
+    if (action !== "") {
       e.preventDefault();
 
-      const url = new URL(partial, location.href);
-      await fetchPartials(url);
+      const url = new URL(action, location.href);
+
+      let init: RequestInit | undefined;
+
+      // GET method appends form data via url search params
+      if (lowerMethod === "get") {
+        // TODO: Looks like constructor type for URLSearchParam is wrong
+        // deno-lint-ignore no-explicit-any
+        const qs = new URLSearchParams(new FormData(el) as any);
+        qs.forEach((value, key) => url.searchParams.set(key, value));
+      } else {
+        init = { body: new FormData(el), method: lowerMethod };
+      }
+
+      await fetchPartials(url, init);
     }
   }
 });

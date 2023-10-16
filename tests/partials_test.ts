@@ -1002,6 +1002,165 @@ Deno.test("submit form", async () => {
   );
 });
 
+Deno.test("submit form GET", async () => {
+  await withPageName(
+    "./tests/fixture_partials/main.ts",
+    async (page, address) => {
+      const initialUrl = `${address}/form_get`;
+      await page.goto(initialUrl);
+      await page.waitForSelector(".status");
+
+      await page.type("input", "foobar");
+
+      await page.click(".submit");
+      await waitFor(async () => {
+        const logEl = await page.$eval("#logs", (el) => el.textContent);
+        return /update Form/.test(logEl);
+      });
+
+      const url = await page.$eval(".url", (el) => el.textContent);
+      assertEquals(url, `${address}/form_get?name=foobar&fresh-partial=true`);
+
+      // Server can update form value
+      const value = await page.$eval("input", (el) => el.value);
+      assertEquals(value, "foobar_foo");
+
+      const logs = await page.$eval("#logs", (el) => el.textContent);
+      assertEquals(logs.split(/\n/).filter(Boolean), [
+        "mount Form",
+        "update Form",
+      ]);
+    },
+  );
+});
+
+Deno.test("submit form POST", async () => {
+  await withPageName(
+    "./tests/fixture_partials/main.ts",
+    async (page, address) => {
+      await page.goto(`${address}/form_post`);
+      await page.waitForSelector(".status");
+
+      await page.type("input", "foobar");
+
+      await page.click(".submit");
+      await waitFor(async () => {
+        const logEl = await page.$eval("#logs", (el) => el.textContent);
+        return /update Form/.test(logEl);
+      });
+
+      const url = await page.$eval(".url", (el) => el.textContent);
+      assertEquals(url, `${address}/form_post?fresh-partial=true`);
+
+      const logs = await page.$eval("#logs", (el) => el.textContent);
+      assertEquals(logs.split(/\n/).filter(Boolean), [
+        "mount Form",
+        "update Form",
+      ]);
+
+      // Server can update form value
+      const value = await page.$eval("input", (el) => el.value);
+      assertEquals(value, "foobar_foo");
+    },
+  );
+});
+
+Deno.test("pull values from event.submitter if set", async () => {
+  await withPageName(
+    "./tests/fixture_partials/main.ts",
+    async (page, address) => {
+      await page.goto(`${address}/form_submitter`);
+      await page.waitForSelector(".status");
+
+      await page.type("input", "foobar");
+
+      await page.click(".submit");
+      await waitFor(async () => {
+        const logEl = await page.$eval("#logs", (el) => el.textContent);
+        return /update Form/.test(logEl);
+      });
+
+      const url = await page.$eval(".url", (el) => el.textContent);
+      assertEquals(url, `${address}/form_submitter?fresh-partial=true`);
+
+      const logs = await page.$eval("#logs", (el) => el.textContent);
+      assertEquals(logs.split(/\n/).filter(Boolean), [
+        "mount Form",
+        "update Form",
+      ]);
+
+      // Server can update form value
+      const value = await page.$eval("input", (el) => el.value);
+      assertEquals(value, "foobar_foo");
+    },
+  );
+});
+
+Deno.test("pull values from event.submitter if set with f-partial", async () => {
+  await withPageName(
+    "./tests/fixture_partials/main.ts",
+    async (page, address) => {
+      await page.goto(`${address}/form_submitter_partial`);
+      await page.waitForSelector(".status");
+
+      await page.type("input", "foobar");
+
+      await page.click(".submit");
+      await waitFor(async () => {
+        const logEl = await page.$eval("#logs", (el) => el.textContent);
+        return /update Form/.test(logEl);
+      });
+
+      const url = await page.$eval(".url", (el) => el.textContent);
+      assertEquals(url, `${address}/form_submitter_partial?fresh-partial=true`);
+
+      const logs = await page.$eval("#logs", (el) => el.textContent);
+      assertEquals(logs.split(/\n/).filter(Boolean), [
+        "mount Form",
+        "update Form",
+      ]);
+
+      // Server can update form value
+      const value = await page.$eval("input", (el) => el.value);
+      assertEquals(value, "foobar_foo");
+    },
+  );
+});
+
+Deno.test("should apply partials if submitter parent has no client nav", async () => {
+  await withPageName(
+    "./tests/fixture_partials/main.ts",
+    async (page, address) => {
+      await page.goto(`${address}/form_submitter_partial_no_client_nav`);
+      await page.waitForSelector(".status");
+
+      await page.type("input", "foobar");
+
+      await Promise.all([
+        page.waitForNavigation(),
+        page.click(".submit"),
+      ]);
+
+      await page.waitForSelector(".url");
+
+      const url = await page.$eval(".url", (el) => el.textContent);
+      assertEquals(
+        url,
+        `${address}/form_submitter_partial_no_client_nav`,
+      );
+
+      await waitFor(async () => {
+        const logEl = await page.$eval("#logs", (el) => el.textContent);
+        return /mount Form/.test(logEl);
+      });
+
+      // Server can update form value
+      const value = await page.$eval("input", (el) => el.value);
+      assertEquals(value, "foobar_foo");
+    },
+  );
+});
+
 Deno.test("fragment navigation should not cause loop", async () => {
   await withPageName(
     "./tests/fixture_partials/main.ts",
