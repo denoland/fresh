@@ -15,7 +15,8 @@ import {
 } from "./test_utils.ts";
 
 async function assertLogs(page: Page, expected: string[]) {
-  await waitForText(page, "#logs", expected.join("\n") + "\n");
+  const text = expected.length > 0 ? expected.join("\n") + "\n" : "";
+  await waitForText(page, "#logs", text);
 }
 
 Deno.test("injects server content with no islands present", async () => {
@@ -556,6 +557,19 @@ Deno.test("don't serialize keys for nodes outside islands or partials", async ()
   });
 });
 
+Deno.test("doesn't confuse islands starting with 'key' with key marker", async () => {
+  await withPageName(
+    "./tests/fixture_partials/main.ts",
+    async (page, address) => {
+      await page.goto(`${address}/keys_confusion`);
+      await page.waitForSelector(".island");
+
+      await page.click("button");
+      await waitForText(page, ".output", "1");
+    },
+  );
+});
+
 Deno.test("partial injection mode", async () => {
   await withPageName(
     "./tests/fixture_partials/main.ts",
@@ -839,6 +853,62 @@ Deno.test("allow opting out of client navigation", async () => {
   );
 });
 
+Deno.test("allow opting out of client navigation if parent opted in", async () => {
+  await withPageName(
+    "./tests/fixture_partials/main.ts",
+    async (page, address) => {
+      const initialUrl = `${address}/client_nav_both`;
+      await page.goto(initialUrl);
+      await page.waitForSelector(".island");
+
+      await page.click(".island-a button");
+      await waitForText(page, ".output-a", "1");
+
+      // Go to page B
+      await page.click(".page-b-link");
+      await page.waitForSelector(".island-b");
+      await assertLogs(page, ["mount Counter B"]);
+
+      await page.click(".island-b button");
+      await waitForText(page, ".output-b", "1");
+      await assertLogs(page, ["mount Counter B", "update Counter B"]);
+
+      // Go to page C
+      await page.click(".page-c-link");
+      await page.waitForSelector(".page-c-text");
+      await assertLogs(page, []);
+
+      // Go back to B
+      await page.goBack();
+      await page.waitForSelector(".island-b");
+      await assertLogs(page, ["mount Counter B"]);
+
+      // Check that island is interactive
+      await page.click(".island-b button");
+      await waitForText(page, ".output-b", "1");
+
+      // Go back to A
+      await page.goBack();
+      await page.waitForSelector(".island-a");
+      await assertLogs(page, ["mount Counter A"]);
+
+      // Check that island is interactive
+      await page.click(".island-a button");
+      await waitForText(page, ".output-a", "1");
+      await assertNoPageComments(page);
+
+      // Go forward to B
+      await page.goForward();
+      await page.waitForSelector(".island-b");
+      await assertLogs(page, ["mount Counter B"]);
+
+      // Check that island is interactive
+      await page.click(".island-b button");
+      await waitForText(page, ".output-b", "1");
+    },
+  );
+});
+
 Deno.test("restore scroll position", async () => {
   await withPageName(
     "./tests/fixture_partials/main.ts",
@@ -939,14 +1009,29 @@ Deno.test("fragment navigation should not cause loop", async () => {
       const logs: string[] = [];
       page.on("console", (msg) => logs.push(msg.text()));
 
-      const initialUrl = `${address}/fragment_nav`;
-      await page.goto(initialUrl);
+      await page.goto(`${address}/fragment_nav`);
       await page.waitForSelector(".partial-text");
 
       await page.click("a");
 
       await page.waitForFunction(() => location.hash === "#foo");
       assertEquals(logs, []);
+    },
+  );
+});
+
+Deno.test("fragment navigation should not scroll to top", async () => {
+  await withPageName(
+    "./tests/fixture_partials/main.ts",
+    async (page, address) => {
+      await page.goto(`${address}/fragment_nav_scroll`);
+      await page.waitForSelector(".partial-text");
+
+      await page.click("a");
+      await page.waitForFunction(() => location.hash === "#foo");
+
+      const scroll = await page.evaluate(() => window.scrollY);
+      assert(scroll > 0, `Did not scroll to fragment`);
     },
   );
 });
@@ -961,15 +1046,21 @@ Deno.test("active links without client nav", async () => {
       // Current
       assertNotSelector(doc, "a[href='/active_nav'][data-ancestor]");
       assertSelector(doc, "a[href='/active_nav'][data-current]");
+      assertSelector(doc, `a[href='/active_nav'][aria-current="page"]`);
 
       // Unrelated links
       assertNotSelector(doc, "a[href='/active_nav/foo'][data-ancestor]");
+      assertNotSelector(doc, "a[href='/active_nav/foo'][aria-current]");
       assertNotSelector(doc, "a[href='/active_nav/foo/bar'][data-ancestor]");
+      assertNotSelector(doc, "a[href='/active_nav/foo/bar'][aria-current]");
 
       doc = await server.getHtml(`/active_nav/foo`);
       assertSelector(doc, "a[href='/active_nav/foo'][data-current]");
+      assertSelector(doc, `a[href='/active_nav/foo'][aria-current="page"]`);
       assertSelector(doc, "a[href='/active_nav'][data-ancestor]");
+      assertSelector(doc, `a[href='/active_nav'][aria-current="true"]`);
       assertSelector(doc, "a[href='/'][data-ancestor]");
+      assertSelector(doc, `a[href='/'][aria-current="true"]`);
     },
   );
 });
@@ -986,6 +1077,7 @@ Deno.test("Updates active links outside of vdom", async () => {
       // Current
       assertNotSelector(doc, "a[href='/active_nav_partial'][data-ancestor]");
       assertSelector(doc, "a[href='/active_nav_partial'][data-current]");
+      assertSelector(doc, `a[href='/active_nav_partial'][aria-current="page"]`);
 
       // Unrelated links
       assertNotSelector(
@@ -994,14 +1086,31 @@ Deno.test("Updates active links outside of vdom", async () => {
       );
       assertNotSelector(
         doc,
+        "a[href='/active_nav_partial/foo'][aria-current]",
+      );
+      assertNotSelector(
+        doc,
         "a[href='/active_nav_partial/foo/bar'][data-ancestor]",
+      );
+      assertNotSelector(
+        doc,
+        "a[href='/active_nav_partial/foo/bar'][aria-current]",
       );
 
       await page.goto(`${address}/active_nav_partial/foo`);
       doc = parseHtml(await page.content());
       assertSelector(doc, "a[href='/active_nav_partial/foo'][data-current]");
+      assertSelector(
+        doc,
+        `a[href='/active_nav_partial/foo'][aria-current="page"]`,
+      );
       assertSelector(doc, "a[href='/active_nav_partial'][data-ancestor]");
+      assertSelector(
+        doc,
+        `a[href='/active_nav_partial'][data-ancestor][aria-current="true"]`,
+      );
       assertSelector(doc, "a[href='/'][data-ancestor]");
+      assertSelector(doc, `a[href='/'][aria-current="true"]`);
     },
   );
 });

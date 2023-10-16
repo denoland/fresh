@@ -326,10 +326,10 @@ function _walkInner(
         vnodeStack.push(
           h(PartialComp, { name, key, mode: +mode }) as VNode,
         );
-      } else if (comment.startsWith("frsh-key")) {
+      } else if (comment.startsWith("frsh-key:")) {
         const key = comment.slice("frsh-key:".length);
         vnodeStack.push(h(Fragment, { key }) as VNode);
-      } else if (comment.startsWith("/frsh-key")) {
+      } else if (comment.startsWith("/frsh-key:")) {
         const vnode = vnodeStack.pop();
         const parent = vnodeStack[vnodeStack.length - 1]!;
         addPropsChild(parent, vnode);
@@ -568,13 +568,16 @@ function updateLinks(url: URL) {
 
     if (match === UrlMatchKind.Current) {
       link.setAttribute(DATA_CURRENT, "true");
+      link.setAttribute("aria-current", "page");
       link.removeAttribute(DATA_ANCESTOR);
     } else if (match === UrlMatchKind.Ancestor) {
       link.setAttribute(DATA_ANCESTOR, "true");
+      link.setAttribute("aria-current", "true");
       link.removeAttribute(DATA_CURRENT);
     } else {
       link.removeAttribute(DATA_CURRENT);
       link.removeAttribute(DATA_ANCESTOR);
+      link.removeAttribute("aria-current");
     }
   });
 }
@@ -869,8 +872,14 @@ export interface FreshHistoryState {
   scrollY: number;
 }
 
-function checkClientNavEnabled() {
-  return document.querySelector(`[${CLIENT_NAV_ATTR}]`) !== null;
+function checkClientNavEnabled(el: HTMLElement | null) {
+  if (el === null) {
+    return document.querySelector(`[${CLIENT_NAV_ATTR}="true"]`) !== null;
+  }
+
+  const setting = el.closest(`[${CLIENT_NAV_ATTR}]`);
+  if (setting === null) return false;
+  return setting.getAttribute(CLIENT_NAV_ATTR) === "true";
 }
 
 // Keep track of history state to apply forward or backward animations
@@ -910,10 +919,11 @@ document.addEventListener("click", async (e) => {
     ) {
       const partial = el.getAttribute(PARTIAL_ATTR);
 
-      // Check if the user opted out of client side navigation.
+      // Check if the user opted out of client side navigation or if
+      // we're doing a fragment navigation.
       if (
-        !checkClientNavEnabled() ||
-        el.closest(`[${CLIENT_NAV_ATTR}="true"]`) === null
+        el.getAttribute("href")?.startsWith("#") ||
+        !checkClientNavEnabled(el)
       ) {
         return;
       }
@@ -973,8 +983,7 @@ document.addEventListener("click", async (e) => {
         // Check if the user opted out of client side navigation.
         if (
           partial === null ||
-          !checkClientNavEnabled() ||
-          button.closest(`[${CLIENT_NAV_ATTR}="true"]`) === null
+          !checkClientNavEnabled(button)
         ) {
           return;
         }
@@ -1004,7 +1013,7 @@ addEventListener("popstate", async (e) => {
   const nextIdx = state.index ?? index + 1;
   index = nextIdx;
 
-  if (!checkClientNavEnabled()) {
+  if (!checkClientNavEnabled(null)) {
     location.reload();
     return;
   }

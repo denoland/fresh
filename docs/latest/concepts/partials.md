@@ -48,12 +48,12 @@ Behind the scenes, when the user clicks an `<a>`-tag, Fresh fetches the new page
 and only pulls out the relevant content out of the HTML response. When it finds
 a matching partial area it will update the content inside the partial.
 
-> ℹ️ The `name` prop of the `<Partial>` component is expected to be unique among
-> Partials. That's how Fresh knows which parts of the response need to go on the
-> current page.
+> [info]: The `name` prop of the `<Partial>` component is expected to be unique
+> among Partials. That's how Fresh knows which parts of the response need to go
+> on the current page.
 
-> ℹ️ Passing `f-client-nav={false}` disables client side navigation and partials
-> for the current elements and the elements below it.
+> [info]: Passing `f-client-nav={false}` disables client side navigation for all
+> elements below the current node.
 
 ### Optimizing partial requests
 
@@ -101,7 +101,7 @@ export default defineRoute(async (req, ctx) => {
 An optimal route that only renders the content instead of the outer layout with
 the sidebar might look like this respectively.
 
-```tsx partials/docs/[id].tsx
+```tsx routes/partials/docs/[id].tsx
 import { defineRoute, RouteConfig } from "$fresh/server.ts";
 import { Partial } from "$fresh/runtime.ts";
 
@@ -194,5 +194,5 @@ export default function LogView() {
 }
 ```
 
-> ℹ️ When picking the `prepend` or `append` mode, make sure to add keys to the
-> elements.
+> [info]: When picking the `prepend` or `append` mode, make sure to add keys to
+> the elements.

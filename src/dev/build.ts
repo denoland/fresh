@@ -3,10 +3,10 @@ import { join } from "../server/deps.ts";
 import { colors, fs } from "./deps.ts";
 import { BuildSnapshotJson } from "../build/mod.ts";
 import { BUILD_ID } from "../server/build_id.ts";
-import { InternalFreshOptions } from "../server/types.ts";
+import { InternalFreshConfig } from "../server/types.ts";
 
 export async function build(
-  config: InternalFreshOptions,
+  config: InternalFreshConfig,
 ) {
   // Ensure that build dir is empty
   await fs.emptyDir(config.build.outDir);

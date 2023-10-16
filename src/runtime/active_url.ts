@@ -37,8 +37,10 @@ export function setActiveUrl(vnode: VNode, pathname: string): void {
     const match = matchesUrl(pathname, hrefProp);
     if (match === UrlMatchKind.Current) {
       props[DATA_CURRENT] = "true";
+      props["aria-current"] = "page";
     } else if (match === UrlMatchKind.Ancestor) {
       props[DATA_ANCESTOR] = "true";
+      props["aria-current"] = "true";
     }
   }
 }

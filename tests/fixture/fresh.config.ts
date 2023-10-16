@@ -1,4 +1,4 @@
-import { FreshOptions } from "$fresh/server.ts";
+import { FreshConfig } from "$fresh/server.ts";
 
 export default {
   async render(_ctx, render) {
@@ -8,4 +8,4 @@ export default {
       throw new Error("body is missing");
     }
   },
-} as FreshOptions;
+} as FreshConfig;

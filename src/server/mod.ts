@@ -1,8 +1,9 @@
 import { ServerContext } from "./context.ts";
-export type { FromManifestOptions } from "./context.ts";
+export type { FromManifestConfig, FromManifestOptions } from "./context.ts";
 export { Status } from "./deps.ts";
 import {
   ErrorHandler,
+  FreshConfig,
   Handler,
   Handlers,
   IslandModule,
@@ -10,10 +11,9 @@ import {
   MiddlewareModule,
   RouteConfig,
   ServeHandlerInfo,
-  StartOptions,
   UnknownHandler,
 } from "./types.ts";
-import { startFromContext } from "./boot.ts";
+import { startServer } from "./boot.ts";
 export {
   defineApp,
   defineConfig,
@@ -27,6 +27,7 @@ export type {
   ErrorHandler,
   ErrorHandlerContext,
   ErrorPageProps,
+  FreshConfig,
   FreshOptions,
   Handler,
   HandlerContext,
@@ -85,20 +86,20 @@ export interface Manifest {
 export { ServerContext };
 
 export async function createHandler(
-  routes: Manifest,
-  opts: StartOptions = {},
+  manifest: Manifest,
+  config: FreshConfig = {},
 ): Promise<
   (req: Request, connInfo?: ServeHandlerInfo) => Promise<Response>
 > {
-  const ctx = await ServerContext.fromManifest(routes, opts);
+  const ctx = await ServerContext.fromManifest(manifest, config);
   return ctx.handler();
 }
 
-export async function start(routes: Manifest, opts: StartOptions = {}) {
-  const ctx = await ServerContext.fromManifest(routes, {
-    ...opts,
+export async function start(manifest: Manifest, config: FreshConfig = {}) {
+  const ctx = await ServerContext.fromManifest(manifest, {
+    ...config,
     skipSnapshot: false,
     dev: false,
   });
-  await startFromContext(ctx, opts.server ?? opts);
+  await startServer(ctx.handler(), config.server ?? config);
 }

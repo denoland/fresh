@@ -375,6 +375,12 @@
     "image": "deno-artwork"
   },
   {
+    "title": "Text2Audio",
+    "link": "https://text2audio.cc/",
+    "github": "dunkbing/text2audio",
+    "image": "text2audio"
+  },
+  {
     "title": "FilterHN",
     "link": "https://filterhn.com/",
     "image": "filter-hn"
