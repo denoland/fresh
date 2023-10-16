@@ -10,5 +10,5 @@ Deno.test("should return middleware status=200 & content-type", async () => {
   const resp = await handler(req, ctx);
   // console.log("Response", resp);
   expect(resp.status).toBe(200);
-  expect(resp.headers.get('content-type')).toBe("text/plain;charset=UTF-8");
+  expect(resp.headers.get("content-type")).toBe("text/plain;charset=UTF-8");
 });
