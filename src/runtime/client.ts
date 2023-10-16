@@ -1,6 +1,6 @@
 let ws: WebSocket;
 
-let closed = false;
+let connected = false;
 
 let reconnectTimer: number;
 const backoff = [
@@ -25,7 +25,7 @@ const backoff = [
 ];
 let backoffIdx = 0;
 function reconnect() {
-  if (!closed) return;
+  if (ws.readyState !== ws.CLOSED) return;
 
   reconnectTimer = setTimeout(() => {
     if (backoffIdx === 0) {
@@ -39,7 +39,6 @@ function reconnect() {
 
     try {
       connect(true);
-      closed = false;
       clearTimeout(reconnectTimer);
     } catch (_err) {
       reconnect();
@@ -65,7 +64,6 @@ function connect(forceReload?: boolean) {
   });
 
   ws.addEventListener("close", () => {
-    closed = true;
     reconnect();
   });
 
