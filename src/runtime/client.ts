@@ -54,6 +54,7 @@ function connect(forceReload?: boolean) {
     if (forceReload) {
       location.reload();
     } else {
+      backoffIdx = 0;
       console.log(
         `%c Fresh %c Connected to development server.`,
         "background-color: #86efac; color: black",
