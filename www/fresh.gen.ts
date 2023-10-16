@@ -10,7 +10,6 @@ const manifest = {
     "./routes/components.tsx": await import("./routes/components.tsx"),
     "./routes/docs/[...slug].tsx": await import("./routes/docs/[...slug].tsx"),
     "./routes/docs/index.tsx": await import("./routes/docs/index.tsx"),
-    "./routes/gfm.css.ts": await import("./routes/gfm.css.ts"),
     "./routes/index.tsx": await import("./routes/index.tsx"),
     "./routes/raw.ts": await import("./routes/raw.ts"),
     "./routes/showcase.tsx": await import("./routes/showcase.tsx"),
