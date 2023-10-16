@@ -977,7 +977,10 @@ document.addEventListener("click", async (e) => {
         button = button.closest("button");
       }
 
-      if (button !== null && button instanceof HTMLButtonElement) {
+      if (
+        button !== null && button instanceof HTMLButtonElement &&
+        (button.type !== "submit" || button.form === null)
+      ) {
         const partial = button.getAttribute(PARTIAL_ATTR);
 
         // Check if the user opted out of client side navigation.
@@ -1049,11 +1052,13 @@ addEventListener("popstate", async (e) => {
 document.addEventListener("submit", async (e) => {
   const el = e.target;
   if (el !== null && el instanceof HTMLFormElement && !e.defaultPrevented) {
-    if (!checkClientNavEnabled()) {
+    if (!checkClientNavEnabled(el)) {
       return;
     }
 
-    const lowerMethod = el.method.toLowerCase();
+    const lowerMethod =
+      e.submitter?.getAttribute("formmethod")?.toLowerCase() ??
+        el.method.toLowerCase();
     if (
       lowerMethod !== "get" && lowerMethod !== "post" &&
       lowerMethod !== "dialog"
@@ -1061,7 +1066,10 @@ document.addEventListener("submit", async (e) => {
       return;
     }
 
-    const action = el.getAttribute(PARTIAL_ATTR) ?? el.action;
+    const action = e.submitter?.getAttribute(PARTIAL_ATTR) ??
+      e.submitter?.getAttribute("formaction") ??
+      el.getAttribute(PARTIAL_ATTR) ?? el.action;
+
     if (action !== "") {
       e.preventDefault();
 
@@ -1076,7 +1084,7 @@ document.addEventListener("submit", async (e) => {
         const qs = new URLSearchParams(new FormData(el) as any);
         qs.forEach((value, key) => url.searchParams.set(key, value));
       } else {
-        init = { body: new FormData(el), method: el.method };
+        init = { body: new FormData(el), method: lowerMethod };
       }
 
       await fetchPartials(url, init);

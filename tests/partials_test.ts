@@ -1065,6 +1065,68 @@ Deno.test("submit form POST", async () => {
   );
 });
 
+Deno.test("pull values from event.submitter if set", async () => {
+  await withPageName(
+    "./tests/fixture_partials/main.ts",
+    async (page, address) => {
+      await page.goto(`${address}/form_submitter`);
+      await page.waitForSelector(".status");
+
+      await page.type("input", "foobar");
+
+      await page.click(".submit");
+      await waitFor(async () => {
+        const logEl = await page.$eval("#logs", (el) => el.textContent);
+        return /update Form/.test(logEl);
+      });
+
+      const url = await page.$eval(".url", (el) => el.textContent);
+      assertEquals(url, `${address}/form_submitter?fresh-partial=true`);
+
+      const logs = await page.$eval("#logs", (el) => el.textContent);
+      assertEquals(logs.split(/\n/).filter(Boolean), [
+        "mount Form",
+        "update Form",
+      ]);
+
+      // Server can update form value
+      const value = await page.$eval("input", (el) => el.value);
+      assertEquals(value, "foobar_foo");
+    },
+  );
+});
+
+Deno.test("pull values from event.submitter if set with f-partial", async () => {
+  await withPageName(
+    "./tests/fixture_partials/main.ts",
+    async (page, address) => {
+      await page.goto(`${address}/form_submitter_partial`);
+      await page.waitForSelector(".status");
+
+      await page.type("input", "foobar");
+
+      await page.click(".submit");
+      await waitFor(async () => {
+        const logEl = await page.$eval("#logs", (el) => el.textContent);
+        return /update Form/.test(logEl);
+      });
+
+      const url = await page.$eval(".url", (el) => el.textContent);
+      assertEquals(url, `${address}/form_submitter_partial?fresh-partial=true`);
+
+      const logs = await page.$eval("#logs", (el) => el.textContent);
+      assertEquals(logs.split(/\n/).filter(Boolean), [
+        "mount Form",
+        "update Form",
+      ]);
+
+      // Server can update form value
+      const value = await page.$eval("input", (el) => el.value);
+      assertEquals(value, "foobar_foo");
+    },
+  );
+});
+
 Deno.test("fragment navigation should not cause loop", async () => {
   await withPageName(
     "./tests/fixture_partials/main.ts",
