@@ -2,7 +2,8 @@ let ws: WebSocket;
 
 let reconnectTimer: number;
 const backoff = [
-  0,
+  // Wait 100ms initially, because we could also be
+  // disconnected because of a form submit.
   100,
   150,
   200,
@@ -49,6 +50,11 @@ function connect(forceReload?: boolean) {
   ws = new WebSocket(
     url,
   );
+
+  addEventListener("unload", () => {
+    // Prevent form submits from triggering a reconnect
+    clearTimeout(reconnectTimer);
+  });
 
   ws.addEventListener("open", () => {
     if (forceReload) {
