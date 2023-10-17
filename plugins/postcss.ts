@@ -3,17 +3,13 @@ import type {
 } from "https://deno.land/x/postcss@8.4.16/lib/postcss.js";
 import postcss from "https://deno.land/x/postcss@8.4.16/mod.js";
 import autoprefixer from "https://deno.land/x/postcss_autoprefixer@0.2.8/mod.js";
-import type {
-  Plugin,
-  PluginAsyncRenderContext,
-  PluginRenderStyleTag,
-} from "../server.ts";
+import type { Plugin, PluginRenderStyleTag } from "../server.ts";
 import { ensureDir } from "$std/fs/mod.ts";
 import { basename, extname, join } from "$std/path/mod.ts";
 import { encode } from "$std/encoding/base64.ts";
 
 export interface PostCssPluginOptions {
-  css: string | string[];
+  css: string | string[] | Record<string, string>;
   sourceMap?: boolean;
   dest?: string;
   mode?: "render" | "build";
@@ -41,7 +37,7 @@ export async function processPostCss(
       const fileName = isFile ? basename(src, extname(src)) : `style_${idx}`;
       const opts = isFile
         ? {
-          from: isFile ? src : undefined,
+          from: src,
           to: join(dest, `${fileName}.css`),
         }
         : undefined;
@@ -50,27 +46,16 @@ export async function processPostCss(
       const result = await postcss(postCssPlugins).process(srcContent, opts);
       const inlineMap = (options.sourceMap && result.map)
         ? `\n/*# sourceMappingURL=data:application/json;base64,${
-          encode(result.map.toString())
+          encode(JSON.stringify(result.map.toJSON()))
         }*/`
         : "";
 
       return {
         cssText: result.css + inlineMap,
-        id: `${STYLE_ELEMENT_ID}_${fileName.toLowerCase()}`,
+        id: `${STYLE_ELEMENT_ID}_${fileName}`,
       };
     }),
   );
-}
-
-async function getStyles(
-  ctx: PluginAsyncRenderContext,
-  options: PostCssPluginOptions,
-) {
-  const res = await ctx.renderAsync();
-  const styles = await processPostCss(options.css, options, res.htmlText);
-  return {
-    styles,
-  };
 }
 
 /**
@@ -101,9 +86,27 @@ export default function postcssPlugin(options: PostCssPluginOptions): Plugin {
 
   const mode = options.mode ?? "render";
 
+  const getStyles = async (content?: string) =>
+    (typeof options.css === "string" || Array.isArray(options.css))
+      ? await processPostCss(options.css, options, content)
+      : await Promise.all(
+        Object.entries(options.css).map(async ([id, value]) => {
+          return {
+            id,
+            cssText: (await processPostCss(value, options, content)).map((
+              style,
+            ) => style.cssText).join("\n"),
+          };
+        }),
+      );
+
   if (mode === "render") {
     plugin.renderAsync = async (ctx) => {
-      return await getStyles(ctx, options);
+      const res = await ctx.renderAsync();
+
+      return {
+        styles: await getStyles(res.htmlText),
+      };
     };
   }
 
@@ -113,12 +116,15 @@ export default function postcssPlugin(options: PostCssPluginOptions): Plugin {
         await ensureDir(options.dest);
       }
 
-      const styles = await processPostCss(options.css, options);
+      const styles = await getStyles();
+
       await Promise.all(styles.map(async (style, idx) => {
+        const fileName = style.id ?? `style_${idx}`;
         await Deno.writeTextFile(
           join(
             options.dest ?? "./static",
-            (style.id ?? `style_${idx}`) + ".css",
+            (fileName.replace(STYLE_ELEMENT_ID, "")) +
+              ".css",
           ),
           style.cssText,
         );

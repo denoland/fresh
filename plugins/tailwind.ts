@@ -2,7 +2,7 @@ import type { Plugin } from "../server.ts";
 import tailwind from "npm:tailwindcss";
 import postcssPlugin from "./postcss.ts";
 export default function tailwindPlugin(
-  css: string | string[],
+  css: string | string[] | Record<string, string>,
   config: any,
 ): Plugin {
   return postcssPlugin({
