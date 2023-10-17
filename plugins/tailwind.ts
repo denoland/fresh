@@ -2,7 +2,6 @@ import type { Plugin } from "../server.ts";
 import { type Config, tailwindcss as tailwind } from "./tailwind_deps.ts";
 import postcssPlugin, { type PostCssPluginOptions } from "./postcss.ts";
 
-
 /**
  * Fresh PostCSS Tailwind Plugin
  * @param options - {@link PostCssPluginOptions} PostCSS plugin options
@@ -33,10 +32,10 @@ export default function tailwindPlugin(
 
   return postcssPlugin({
     ...opts,
-    // @ts-ignore Tailwind isn't typed here
     setup: (content) => {
       return [
         ...opts.setup?.(content) ?? [],
+        // @ts-ignore Tailwind isn't typed here
         tailwind({
           ...config,
           content: [
