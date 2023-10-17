@@ -1,10 +1,18 @@
-import { stringify, virtual } from "./twindv1_deps.ts";
-import { Plugin } from "../server.ts";
+import { stringify, virtual } from "$fresh/plugins/twindv1_deps.ts";
+import { Plugin } from "$fresh/server.ts";
 
-import { Options, setup, STYLE_ELEMENT_ID } from "./twindv1/shared.ts";
+import {
+  Options,
+  setup,
+  STYLE_ELEMENT_ID,
+} from "$fresh/plugins/twindv1/shared.ts";
+
+import { BaseTheme } from "$fresh/plugins/twindv1_deps.ts";
 export type { Options };
 
-export default function twindv1(options: Options): Plugin {
+export default function twindv1<Theme extends BaseTheme = BaseTheme>(
+  options: Options<Theme>,
+): Plugin {
   const sheet = virtual(true);
   setup(options, sheet);
   const main = `data:application/javascript,import hydrate from "${
