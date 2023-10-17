@@ -1,12 +1,14 @@
-import type {
-  AcceptedPlugin,
-} from "https://deno.land/x/postcss@8.4.16/lib/postcss.js";
-import postcss from "https://deno.land/x/postcss@8.4.16/mod.js";
-import autoprefixer from "https://deno.land/x/postcss_autoprefixer@0.2.8/mod.js";
+import {
+  type AcceptedPlugin,
+  autoprefixer,
+  basename,
+  encode,
+  ensureDir,
+  extname,
+  join,
+  postcss,
+} from "./postcss_deps.ts";
 import type { Plugin, PluginRenderStyleTag } from "../server.ts";
-import { ensureDir } from "$std/fs/mod.ts";
-import { basename, extname, join } from "$std/path/mod.ts";
-import { encode } from "$std/encoding/base64.ts";
 
 export interface PostCssPluginOptions {
   css: string | string[] | Record<string, string>;
@@ -90,9 +92,9 @@ export default function postcssPlugin(options: PostCssPluginOptions): Plugin {
     (typeof options.css === "string" || Array.isArray(options.css))
       ? await processPostCss(options.css, options, content)
       : await Promise.all(
-        Object.entries(options.css).map(async ([id, value]) => {
+        Object.entries(options.css).map(async ([key, value]) => {
           return {
-            id,
+            id: `${STYLE_ELEMENT_ID}_${key}`,
             cssText: (await processPostCss(value, options, content)).map((
               style,
             ) => style.cssText).join("\n"),
@@ -123,7 +125,7 @@ export default function postcssPlugin(options: PostCssPluginOptions): Plugin {
         await Deno.writeTextFile(
           join(
             options.dest ?? "./static",
-            (fileName.replace(STYLE_ELEMENT_ID, "")) +
+            (fileName.replace(`${STYLE_ELEMENT_ID}_`, "")) +
               ".css",
           ),
           style.cssText,
