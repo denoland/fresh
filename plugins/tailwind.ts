@@ -8,10 +8,15 @@ export default function tailwindPlugin(
   return postcssPlugin({
     css,
     // @ts-ignore Tailwind isn't typed here
-    setup: (content) => [tailwind({
-      ...config,
-      content: content ?? config.content,
-    })],
+    setup: (content) => {
+      return [tailwind({
+        ...config,
+        content: [
+          { raw: content, extension: ".html" },
+          ...(config.content ?? []),
+        ],
+      })];
+    },
     mode: "render",
     dest: "./static/styles",
   });
