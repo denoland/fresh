@@ -39,6 +39,7 @@ export async function processPostCss(
       const fileName = isFile ? basename(src, extname(src)) : `style_${idx}`;
       const opts = isFile
         ? {
+          map: options.sourceMap,
           from: src,
           to: join(dest, `${fileName}.css`),
         }
