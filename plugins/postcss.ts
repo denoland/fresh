@@ -45,7 +45,9 @@ export async function processPostCss(
           to: join(dest, `${fileName}.css`),
         }
         : undefined;
-      const result = await postcss(postCssPlugins).process(src, opts);
+
+      const srcContent = isFile ? await Deno.readTextFile(src) : src;
+      const result = await postcss(postCssPlugins).process(srcContent, opts);
       const inlineMap = (options.sourceMap && result.map)
         ? `\n/*# sourceMappingURL=data:application/json;base64,${
           encode(result.map.toString())
@@ -54,7 +56,7 @@ export async function processPostCss(
 
       return {
         cssText: result.css + inlineMap,
-        id: `${STYLE_ELEMENT_ID}_${idx}`,
+        id: `${STYLE_ELEMENT_ID}_${fileName.toLowerCase()}`,
       };
     }),
   );
