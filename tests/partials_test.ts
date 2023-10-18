@@ -1382,3 +1382,26 @@ Deno.test("supports relative links", async () => {
     },
   );
 });
+
+Deno.test("nested partials are able to be updated", async () => {
+  await withPageName(
+    "./tests/fixture_partials/main.ts",
+    async (page, address) => {
+      await page.goto(`${address}/nested`);
+      await page.waitForSelector(".status-outer");
+      await page.waitForSelector(".status-inner");
+
+      await page.click(".update-outer");
+      await waitForText(page, ".status-outer", "updated outer");
+      await waitForText(page, ".status-inner", "inner");
+
+      await page.click(".update-inner");
+      await waitForText(page, ".status-outer", "updated outer");
+      await waitForText(page, ".status-inner", "updated inner");
+
+      await page.click(".update-outer");
+      await waitForText(page, ".status-outer", "updated outer");
+      await waitForText(page, ".status-inner", "inner");
+    },
+  );
+});

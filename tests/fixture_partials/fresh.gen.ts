@@ -90,17 +90,20 @@ import * as $84 from "./routes/mode/index.tsx";
 import * as $85 from "./routes/mode/injected.tsx";
 import * as $86 from "./routes/mode/prepend.tsx";
 import * as $87 from "./routes/mode/replace.tsx";
-import * as $88 from "./routes/no_islands/index.tsx";
-import * as $89 from "./routes/no_islands/injected.tsx";
-import * as $90 from "./routes/no_islands/update.tsx";
-import * as $91 from "./routes/no_partial_response/index.tsx";
-import * as $92 from "./routes/no_partial_response/injected.tsx";
-import * as $93 from "./routes/no_partial_response/update.tsx";
-import * as $94 from "./routes/partial_slot_inside_island.tsx";
-import * as $95 from "./routes/relative_link/index.tsx";
-import * as $96 from "./routes/scroll_restoration/index.tsx";
-import * as $97 from "./routes/scroll_restoration/injected.tsx";
-import * as $98 from "./routes/scroll_restoration/update.tsx";
+import * as $88 from "./routes/nested/index.tsx";
+import * as $89 from "./routes/nested/inner.tsx";
+import * as $90 from "./routes/nested/outer.tsx";
+import * as $91 from "./routes/no_islands/index.tsx";
+import * as $92 from "./routes/no_islands/injected.tsx";
+import * as $93 from "./routes/no_islands/update.tsx";
+import * as $94 from "./routes/no_partial_response/index.tsx";
+import * as $95 from "./routes/no_partial_response/injected.tsx";
+import * as $96 from "./routes/no_partial_response/update.tsx";
+import * as $97 from "./routes/partial_slot_inside_island.tsx";
+import * as $98 from "./routes/relative_link/index.tsx";
+import * as $99 from "./routes/scroll_restoration/index.tsx";
+import * as $100 from "./routes/scroll_restoration/injected.tsx";
+import * as $101 from "./routes/scroll_restoration/update.tsx";
 import * as $$0 from "./islands/Counter.tsx";
 import * as $$1 from "./islands/CounterA.tsx";
 import * as $$2 from "./islands/CounterB.tsx";
@@ -207,17 +210,20 @@ const manifest = {
     "./routes/mode/injected.tsx": $85,
     "./routes/mode/prepend.tsx": $86,
     "./routes/mode/replace.tsx": $87,
-    "./routes/no_islands/index.tsx": $88,
-    "./routes/no_islands/injected.tsx": $89,
-    "./routes/no_islands/update.tsx": $90,
-    "./routes/no_partial_response/index.tsx": $91,
-    "./routes/no_partial_response/injected.tsx": $92,
-    "./routes/no_partial_response/update.tsx": $93,
-    "./routes/partial_slot_inside_island.tsx": $94,
-    "./routes/relative_link/index.tsx": $95,
-    "./routes/scroll_restoration/index.tsx": $96,
-    "./routes/scroll_restoration/injected.tsx": $97,
-    "./routes/scroll_restoration/update.tsx": $98,
+    "./routes/nested/index.tsx": $88,
+    "./routes/nested/inner.tsx": $89,
+    "./routes/nested/outer.tsx": $90,
+    "./routes/no_islands/index.tsx": $91,
+    "./routes/no_islands/injected.tsx": $92,
+    "./routes/no_islands/update.tsx": $93,
+    "./routes/no_partial_response/index.tsx": $94,
+    "./routes/no_partial_response/injected.tsx": $95,
+    "./routes/no_partial_response/update.tsx": $96,
+    "./routes/partial_slot_inside_island.tsx": $97,
+    "./routes/relative_link/index.tsx": $98,
+    "./routes/scroll_restoration/index.tsx": $99,
+    "./routes/scroll_restoration/injected.tsx": $100,
+    "./routes/scroll_restoration/update.tsx": $101,
   },
   islands: {
     "./islands/Counter.tsx": $$0,

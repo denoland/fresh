@@ -111,8 +111,7 @@ export function revive(
       );
 
       if (marker.kind === MarkerKind.Partial) {
-        // deno-lint-ignore no-explicit-any
-        partials.set(marker.text, (vnode as any).__c);
+        partials.set(marker.text, vnode as VNode<PartialComp>);
       }
     };
 
@@ -176,7 +175,7 @@ export interface RenderRequest {
 // Useful for debugging
 const SHOW_MARKERS = false;
 
-const partials = new Map<string, PartialComp>();
+const partials = new Map<string, VNode<PartialComp>>();
 
 /**
  * Replace comment markers with empty text nodes to hide them
@@ -433,8 +432,7 @@ function _walkInner(
             addPropsChild(parent, vnode);
 
             if (marker.kind === MarkerKind.Partial) {
-              // deno-lint-ignore no-explicit-any
-              partials.set(marker.text, (vnode as any).__c);
+              partials.set(marker.text, vnode as VNode<PartialComp>);
             }
 
             sib = marker.endNode.nextSibling;
@@ -786,7 +784,8 @@ export async function applyPartials(res: Response): Promise<void> {
   // Update all encountered partials
   for (let i = 0; i < encounteredPartials.length; i++) {
     const { vnode, marker } = encounteredPartials[i];
-    const instance = partials.get(marker.text);
+    // deno-lint-ignore no-explicit-any
+    const instance = (partials.get(marker.text) as any)?.__c;
 
     if (!instance) {
       console.warn(`Partial "${marker.text}" not found. Skipping...`);
