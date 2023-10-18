@@ -1405,3 +1405,21 @@ Deno.test("nested partials are able to be updated", async () => {
     },
   );
 });
+
+Deno.test("errors on duplicate partial name", async () => {
+  await withPageName(
+    "./tests/fixture_partials/main.ts",
+    async (page, address) => {
+      await page.goto(`${address}/duplicate_name`);
+      await page.waitForSelector(".swap-link");
+
+      const logs: string[] = [];
+      page.on("console", (msg) => logs.push(msg.text()));
+
+      await Promise.all([
+        page.waitForResponse((res) => res.status() === 500),
+        page.click(".swap-link"),
+      ]);
+    },
+  );
+});
