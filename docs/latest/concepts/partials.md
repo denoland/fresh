@@ -101,7 +101,7 @@ export default defineRoute(async (req, ctx) => {
 An optimal route that only renders the content instead of the outer layout with
 the sidebar might look like this respectively.
 
-```tsx partials/docs/[id].tsx
+```tsx routes/partials/docs/[id].tsx
 import { defineRoute, RouteConfig } from "$fresh/server.ts";
 import { Partial } from "$fresh/runtime.ts";
 

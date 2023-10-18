@@ -3,7 +3,7 @@ import { DAY, dirname, fromFileUrl, join, toFileUrl } from "./deps.ts";
 import { FreshConfig, Manifest as ServerManifest } from "../server/mod.ts";
 import { build } from "./build.ts";
 import { collect, ensureMinDenoVersion, generate, Manifest } from "./mod.ts";
-import { startFromContext } from "../server/boot.ts";
+import { startServer } from "../server/boot.ts";
 import { getFreshConfigWithDefaults } from "../server/config.ts";
 import { getServerContext } from "$fresh/src/server/context.ts";
 
@@ -54,7 +54,7 @@ export async function dev(
     configWithDefaults.dev = true;
     configWithDefaults.loadSnapshot = false;
     const ctx = await getServerContext(configWithDefaults);
-    await startFromContext(ctx, configWithDefaults.server);
+    await startServer(ctx.handler(), configWithDefaults.server);
   } else {
     // Legacy entry point: Back then `dev.ts` would call `main.ts` but
     // this causes duplicate plugin instantiation if both `dev.ts` and

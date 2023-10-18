@@ -158,7 +158,7 @@ if (denoJson.compilerOptions?.jsx !== "react-jsx" && confirm(JSX_CODEMOD)) {
     join(resolvedDirectory, "**", "*.{js,jsx,ts,tsx}"),
   );
 
-  for (const sf of sfs) {
+  await Promise.all(sfs.map((sf) => {
     for (const d of sf.getImportDeclarations()) {
       if (d.getModuleSpecifierValue() !== "preact") continue;
       for (const n of d.getNamedImports()) {
@@ -179,8 +179,8 @@ if (denoJson.compilerOptions?.jsx !== "react-jsx" && confirm(JSX_CODEMOD)) {
     text = text.replaceAll("/** @jsxFrag Fragment */\n", "");
     sf.replaceWithText(text);
 
-    await sf.save();
-  }
+    return sf.save();
+  }));
 }
 
 // Code mod for class={tw`border`} to class="border".
@@ -226,7 +226,7 @@ await start(manifest, { plugins: [twindPlugin(twindConfig)] });\n`;
     join(resolvedDirectory, "**", "*.{js,jsx,ts,tsx}"),
   );
 
-  for (const sf of sfs) {
+  await Promise.all(sfs.map((sf) => {
     const nodes = sf.forEachDescendantAsArray();
     for (const n of nodes) {
       if (!n.wasForgotten() && Node.isJsxAttribute(n)) {
@@ -271,8 +271,8 @@ await start(manifest, { plugins: [twindPlugin(twindConfig)] });\n`;
       }
     }
 
-    await sf.save();
-  }
+    return sf.save();
+  }));
 }
 
 // Add default _app.tsx if not present
