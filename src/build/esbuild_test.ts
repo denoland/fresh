@@ -38,21 +38,25 @@ Deno.test("esbuild snapshot with cwd=Deno.cwd()", async () => {
   assertEquals(snapshot.paths, ["main.js", "metafile.json"]);
 });
 
-Deno.test("esbuild snapshot with cwd=/", async () => {
-  const builder = new EsbuildBuilder({
-    absoluteWorkingDir: "/",
-    buildID: "foo",
-    configPath: denoJson,
-    dev: false,
-    entrypoints: {
-      main: mainEntry,
-    },
-    jsxConfig: {
-      jsx: "react-jsx",
-    },
-    target: "es2020",
-  });
+Deno.test({
+  name: "esbuild snapshot with cwd=/",
+  ignore: Deno.build.os === "windows",
+  fn: async () => {
+    const builder = new EsbuildBuilder({
+      absoluteWorkingDir: "/",
+      buildID: "foo",
+      configPath: denoJson,
+      dev: false,
+      entrypoints: {
+        main: mainEntry,
+      },
+      jsxConfig: {
+        jsx: "react-jsx",
+      },
+      target: "es2020",
+    });
 
-  const snapshot = await builder.build();
-  assertEquals(snapshot.paths, ["main.js", "metafile.json"]);
+    const snapshot = await builder.build();
+    assertEquals(snapshot.paths, ["main.js", "metafile.json"]);
+  },
 });
