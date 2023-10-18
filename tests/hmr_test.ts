@@ -61,7 +61,7 @@ Deno.test({
   // Watcher tests are pretty flaky in CI and non-UNIX systems.
   // Until we know why, we'll gate these tests behind an
   // environment variable.
-  ignore: Deno.env.has("FRESH_WATCH_TESTS"),
+  ignore: !Deno.env.has("FRESH_WATCH_TESTS"),
   fn: async () => {
     await withTmpFixture(
       "./tests/fixture_hmr/dev.ts",
@@ -85,7 +85,7 @@ Deno.test({
   // Watcher tests are pretty flaky in CI and non-UNIX systems.
   // Until we know why, we'll gate these tests behind an
   // environment variable.
-  ignore: Deno.env.has("FRESH_WATCH_TESTS"),
+  ignore: !Deno.env.has("FRESH_WATCH_TESTS"),
   fn: async () => {
     await withTmpFixture(
       "./tests/fixture_hmr/dev.ts",
