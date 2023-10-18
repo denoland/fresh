@@ -58,10 +58,10 @@ async function withTmpFixture(
 
 Deno.test({
   name: "page reloads with no island present",
-  // Watcher tests are pretty flaky in CI, until we know what's going
-  // on we'll restrict these tests to run locally only. It's not ideal
-  // but better than having no tests at all.
-  ignore: Deno.env.has("CI"),
+  // Watcher tests are pretty flaky in CI and non-UNIX systems.
+  // Until we know why, we'll gate these tests behind an
+  // environment variable.
+  ignore: Deno.env.has("FRESH_WATCH_TESTS"),
   fn: async () => {
     await withTmpFixture(
       "./tests/fixture_hmr/dev.ts",
@@ -82,10 +82,10 @@ Deno.test({
 
 Deno.test({
   name: "page reloads with island",
-  // Watcher tests are pretty flaky in CI, until we know what's going
-  // on we'll restrict these tests to run locally only. It's not ideal
-  // but better than having no tests at all.
-  ignore: Deno.env.has("CI"),
+  // Watcher tests are pretty flaky in CI and non-UNIX systems.
+  // Until we know why, we'll gate these tests behind an
+  // environment variable.
+  ignore: Deno.env.has("FRESH_WATCH_TESTS"),
   fn: async () => {
     await withTmpFixture(
       "./tests/fixture_hmr/dev.ts",
