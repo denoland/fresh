@@ -1,5 +1,5 @@
 import type { Plugin } from "../server.ts";
-import { tailwindcss as tailwind } from "./tailwind_deps.ts";
+import { type Config, tailwindcss as tailwind } from "./tailwind_deps.ts";
 import postcssPlugin, { type PostCssPluginOptions } from "./postcss.ts";
 
 /**
@@ -23,7 +23,7 @@ import postcssPlugin, { type PostCssPluginOptions } from "./postcss.ts";
  */
 export default function tailwindPlugin(
   options: PostCssPluginOptions | PostCssPluginOptions["css"],
-  config: tailwind.Config,
+  config: Config,
 ): Plugin {
   const opts = (typeof options === "string" || Array.isArray(options) ||
       !("css" in options))
@@ -32,17 +32,20 @@ export default function tailwindPlugin(
 
   return postcssPlugin({
     ...opts,
-    setup: (content) => {
+    setup: (raw) => {
+      if (!config.content) {
+        config.content = [];
+      }
+
+      // Push rendered content into Tailwind content config
+      if (Array.isArray(config.content) && raw?.length) {
+        config.content.push({ raw, extension: ".html" });
+      }
+
       return [
-        ...opts.setup?.(content) ?? [],
+        ...opts.setup?.(raw) ?? [],
         // @ts-ignore Tailwind isn't typed here
-        tailwind({
-          ...config,
-          content: [
-            { raw: content, extension: ".html" },
-            ...config.content ?? [],
-          ],
-        }),
+        tailwind(config),
       ];
     },
   });
