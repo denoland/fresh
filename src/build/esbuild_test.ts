@@ -1,0 +1,58 @@
+import { assertEquals } from "$std/testing/asserts.ts";
+import { fromFileUrl, join } from "../server/deps.ts";
+import { EsbuildBuilder } from "./esbuild.ts";
+
+const denoJson = join(
+  fromFileUrl(import.meta.url),
+  "..",
+  "..",
+  "..",
+  "deno.json",
+);
+
+const mainEntry = join(
+  fromFileUrl(import.meta.url),
+  "..",
+  "..",
+  "runtime",
+  "entrypoints",
+  "client.ts",
+);
+
+Deno.test("esbuild snapshot with cwd=Deno.cwd()", async () => {
+  const builder = new EsbuildBuilder({
+    absoluteWorkingDir: Deno.cwd(),
+    buildID: "foo",
+    configPath: denoJson,
+    dev: false,
+    entrypoints: {
+      main: mainEntry,
+    },
+    jsxConfig: {
+      jsx: "react-jsx",
+    },
+    target: "es2020",
+  });
+
+  const snapshot = await builder.build();
+  assertEquals(snapshot.paths, ["main.js", "metafile.json"]);
+});
+
+Deno.test("esbuild snapshot with cwd=/", async () => {
+  const builder = new EsbuildBuilder({
+    absoluteWorkingDir: "/",
+    buildID: "foo",
+    configPath: denoJson,
+    dev: false,
+    entrypoints: {
+      main: mainEntry,
+    },
+    jsxConfig: {
+      jsx: "react-jsx",
+    },
+    target: "es2020",
+  });
+
+  const snapshot = await builder.build();
+  assertEquals(snapshot.paths, ["main.js", "metafile.json"]);
+});

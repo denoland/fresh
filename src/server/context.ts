@@ -450,6 +450,7 @@ export class ServerContext {
       dev: this.#dev,
       jsxConfig,
       target,
+      absoluteWorkingDir: Deno.cwd(),
     });
     this.#routerOptions = routerOptions;
   }

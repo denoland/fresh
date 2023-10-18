@@ -5,7 +5,7 @@ import {
   esbuildWasmURL,
   fromFileUrl,
   regexpEscape,
-  toFileUrl,
+  relative,
 } from "./deps.ts";
 import { Builder, BuildSnapshot } from "./mod.ts";
 
@@ -21,6 +21,7 @@ export interface EsbuildBuilderOptions {
   /** The JSX configuration. */
   jsxConfig: JSXConfig;
   target: string | string[];
+  absoluteWorkingDir: string;
 }
 
 export interface JSXConfig {
@@ -40,7 +41,7 @@ export class EsbuildBuilder implements Builder {
     try {
       await initEsbuild();
 
-      const absWorkingDir = Deno.cwd();
+      const absWorkingDir = opts.absoluteWorkingDir;
 
       // In dev-mode we skip identifier minification to be able to show proper
       // component names in Preact DevTools instead of single characters.
@@ -82,10 +83,8 @@ export class EsbuildBuilder implements Builder {
       const files = new Map<string, Uint8Array>();
       const dependencies = new Map<string, string[]>();
 
-      const absWorkingDirLen = toFileUrl(absWorkingDir).href.length + 1;
-
       for (const file of bundle.outputFiles) {
-        const path = toFileUrl(file.path).href.slice(absWorkingDirLen);
+        const path = relative(absWorkingDir, file.path);
         files.set(path, file.contents);
       }
 
