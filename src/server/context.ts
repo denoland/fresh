@@ -10,7 +10,7 @@ import {
 import { ComponentType, h } from "preact";
 import * as router from "./router.ts";
 import { FreshConfig, Manifest } from "./mod.ts";
-import { ALIVE_URL, JS_PREFIX } from "./constants.ts";
+import { ALIVE_URL, DEV_CLIENT_URL, JS_PREFIX } from "./constants.ts";
 import { BUILD_ID, setBuildId } from "./build_id.ts";
 import DefaultErrorHandler from "./default_error_page.tsx";
 import {
@@ -490,6 +490,7 @@ export class ServerContext {
     );
     const trailingSlashEnabled = this.#routerOptions?.trailingSlash;
     const isDev = this.#dev;
+    const bundleAssetRoute = this.#bundleAssetRoute();
 
     return async function handler(
       req: Request,
@@ -497,20 +498,24 @@ export class ServerContext {
     ) {
       const url = new URL(req.url);
 
-      // Live reload: Send updates to browser
-      if (isDev && url.pathname === ALIVE_URL) {
-        if (req.headers.get("upgrade") !== "websocket") {
-          return new Response(null, { status: 501 });
+      if (isDev) {
+        // Live reload: Send updates to browser
+        if (url.pathname === ALIVE_URL) {
+          if (req.headers.get("upgrade") !== "websocket") {
+            return new Response(null, { status: 501 });
+          }
+
+          // TODO: When a change is made the Deno server restarts,
+          // so for now the WebSocket connection is only used for
+          // the client to know when the server is back up. Once we
+          // have HMR we'll actively start sending messages back
+          // and forth.
+          const { response } = Deno.upgradeWebSocket(req);
+
+          return response;
+        } else if (url.pathname === DEV_CLIENT_URL) {
+          return bundleAssetRoute(req, connInfo, { path: "client.js" });
         }
-
-        // TODO: When a change is made the Deno server restarts,
-        // so for now the WebSocket connection is only used for
-        // the client to know when the server is back up. Once we
-        // have HMR we'll actively start sending messages back
-        // and forth.
-        const { response } = Deno.upgradeWebSocket(req);
-
-        return response;
       }
 
       // Redirect requests that end with a trailing slash to their non-trailing
@@ -771,6 +776,7 @@ export class ServerContext {
       status: number,
     ) => {
       const imports: string[] = [];
+      if (this.#dev) imports.push(DEV_CLIENT_URL);
       return (
         req: Request,
         params: Record<string, string>,
@@ -1296,6 +1302,7 @@ function collectEntrypoints(
       ? import.meta.resolve(`${entrypointBase}/main_dev.ts`)
       : import.meta.resolve(`${entrypointBase}/main.ts`),
     deserializer: import.meta.resolve(`${entrypointBase}/deserializer.ts`),
+    client: import.meta.resolve(`${entrypointBase}/client.ts`),
   };
 
   try {

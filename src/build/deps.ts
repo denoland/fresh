@@ -10,10 +10,11 @@ export { escape as regexpEscape } from "https://deno.land/std@0.193.0/regexp/esc
 import * as esbuildWasm from "https://deno.land/x/esbuild@v0.19.4/wasm.js";
 import * as esbuildNative from "https://deno.land/x/esbuild@v0.19.4/mod.js";
 // @ts-ignore trust me
-// deno-lint-ignore no-deprecated-deno-api
-const esbuild: typeof esbuildWasm = Deno.run === undefined
-  ? esbuildWasm
-  : esbuildNative;
+const esbuild: typeof esbuildWasm =
+  // deno-lint-ignore no-deprecated-deno-api
+  Deno.run === undefined || Deno.env.get("FRESH_ESBUILD_LOADER") === "portable"
+    ? esbuildWasm
+    : esbuildNative;
 const esbuildWasmURL = new URL("./esbuild_v0.19.4.wasm", import.meta.url).href;
 export { esbuild, esbuildWasm as esbuildTypes, esbuildWasmURL };
 
