@@ -103,16 +103,12 @@ export function revive(
   );
 
   for (let i = 0; i < result.length; i++) {
-    const { vnode, marker, rootFragment } = result[i];
+    const { vnode, rootFragment } = result[i];
     const _render = () => {
       render(
         vnode,
         rootFragment,
       );
-
-      if (marker.kind === MarkerKind.Partial) {
-        partials.set(marker.text, vnode as VNode<PartialComp>);
-      }
     };
 
     "scheduler" in window
@@ -148,6 +144,10 @@ function addPropsChild(parent: VNode, vnode: ComponentChildren) {
 class PartialComp extends Component<
   { children?: ComponentChildren; mode: number; name: string }
 > {
+  componentDidMount() {
+    partials.set(this.props.name, this);
+  }
+
   render() {
     return this.props.children;
   }
@@ -175,7 +175,7 @@ export interface RenderRequest {
 // Useful for debugging
 const SHOW_MARKERS = false;
 
-const partials = new Map<string, VNode<PartialComp>>();
+const partials = new Map<string, PartialComp>();
 
 /**
  * Replace comment markers with empty text nodes to hide them
@@ -430,10 +430,6 @@ function _walkInner(
 
             const parent = vnodeStack[vnodeStack.length - 1]!;
             addPropsChild(parent, vnode);
-
-            if (marker.kind === MarkerKind.Partial) {
-              partials.set(marker.text, vnode as VNode<PartialComp>);
-            }
 
             sib = marker.endNode.nextSibling;
             continue;
@@ -784,8 +780,7 @@ export async function applyPartials(res: Response): Promise<void> {
   // Update all encountered partials
   for (let i = 0; i < encounteredPartials.length; i++) {
     const { vnode, marker } = encounteredPartials[i];
-    // deno-lint-ignore no-explicit-any
-    const instance = (partials.get(marker.text) as any)?.__c;
+    const instance = partials.get(marker.text);
 
     if (!instance) {
       console.warn(`Partial "${marker.text}" not found. Skipping...`);
