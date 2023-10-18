@@ -103,17 +103,12 @@ export function revive(
   );
 
   for (let i = 0; i < result.length; i++) {
-    const { vnode, marker, rootFragment } = result[i];
+    const { vnode, rootFragment } = result[i];
     const _render = () => {
       render(
         vnode,
         rootFragment,
       );
-
-      if (marker.kind === MarkerKind.Partial) {
-        // deno-lint-ignore no-explicit-any
-        partials.set(marker.text, (vnode as any).__c);
-      }
     };
 
     "scheduler" in window
@@ -149,6 +144,10 @@ function addPropsChild(parent: VNode, vnode: ComponentChildren) {
 class PartialComp extends Component<
   { children?: ComponentChildren; mode: number; name: string }
 > {
+  componentDidMount() {
+    partials.set(this.props.name, this);
+  }
+
   render() {
     return this.props.children;
   }
@@ -431,11 +430,6 @@ function _walkInner(
 
             const parent = vnodeStack[vnodeStack.length - 1]!;
             addPropsChild(parent, vnode);
-
-            if (marker.kind === MarkerKind.Partial) {
-              // deno-lint-ignore no-explicit-any
-              partials.set(marker.text, (vnode as any).__c);
-            }
 
             sib = marker.endNode.nextSibling;
             continue;
