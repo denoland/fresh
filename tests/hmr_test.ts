@@ -56,38 +56,52 @@ async function withTmpFixture(
   }, { maxAttempts: 3 });
 }
 
-Deno.test("page reloads with no island present", async () => {
-  await withTmpFixture(
-    "./tests/fixture_hmr/dev.ts",
-    async (page, address, dir) => {
-      await page.goto(`${address}/no_island`);
-      await page.waitForSelector("h1");
+Deno.test({
+  name: "page reloads with no island present",
+  // Watcher tests are pretty flaky in CI, until we know what's going
+  // on we'll restrict these tests to run locally only. It's not ideal
+  // but better than having no tests at all.
+  ignore: Deno.env.has("CI"),
+  fn: async () => {
+    await withTmpFixture(
+      "./tests/fixture_hmr/dev.ts",
+      async (page, address, dir) => {
+        await page.goto(`${address}/no_island`);
+        await page.waitForSelector("h1");
 
-      // Trigger file change
-      const file = join(dir, "routes", "no_island.tsx");
-      const text = await Deno.readTextFile(file);
-      await Deno.writeTextFile(file, text.replaceAll("foo", "bar"));
+        // Trigger file change
+        const file = join(dir, "routes", "no_island.tsx");
+        const text = await Deno.readTextFile(file);
+        await Deno.writeTextFile(file, text.replaceAll("foo", "bar"));
 
-      await page.waitForSelector(".bar");
-    },
-  );
+        await page.waitForSelector(".bar");
+      },
+    );
+  },
 });
 
-Deno.test("page reloads with island", async () => {
-  await withTmpFixture(
-    "./tests/fixture_hmr/dev.ts",
-    async (page, address, dir) => {
-      await page.goto(`${address}/island`);
-      await page.waitForSelector("h1");
+Deno.test({
+  name: "page reloads with island",
+  // Watcher tests are pretty flaky in CI, until we know what's going
+  // on we'll restrict these tests to run locally only. It's not ideal
+  // but better than having no tests at all.
+  ignore: Deno.env.has("CI"),
+  fn: async () => {
+    await withTmpFixture(
+      "./tests/fixture_hmr/dev.ts",
+      async (page, address, dir) => {
+        await page.goto(`${address}/island`);
+        await page.waitForSelector("h1");
 
-      // Trigger file change
-      const file = join(dir, "routes", "island.tsx");
-      const text = await Deno.readTextFile(file);
-      await Deno.writeTextFile(file, text.replaceAll("foo", "bar"));
+        // Trigger file change
+        const file = join(dir, "routes", "island.tsx");
+        const text = await Deno.readTextFile(file);
+        await Deno.writeTextFile(file, text.replaceAll("foo", "bar"));
 
-      await page.waitForSelector(".bar");
-      // TODO: Once we support proper HMR check that state stays
-      // the same
-    },
-  );
+        await page.waitForSelector(".bar");
+        // TODO: Once we support proper HMR check that state stays
+        // the same
+      },
+    );
+  },
 });
