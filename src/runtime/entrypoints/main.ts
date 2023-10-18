@@ -1,6 +1,7 @@
 import "../polyfills.ts";
 import {
   Component,
+  ComponentChild,
   ComponentChildren,
   ComponentType,
   Fragment,
@@ -334,6 +335,22 @@ function _walkInner(
         addPropsChild(parent, vnode);
 
         sib = sib.nextSibling;
+        continue;
+      } else if (comment === "frsh:null") {
+        const parent = vnodeStack[vnodeStack.length - 1]!;
+        if (!Array.isArray(parent.props.children)) {
+          if (parent.props.children == null) {
+            parent.props.children = [];
+          } else {
+            parent.props.children = [parent.props.children];
+          }
+        }
+
+        (parent.props.children as ComponentChild[]).push(null);
+
+        const el = sib;
+        sib = sib.nextSibling;
+        el.remove();
         continue;
       } else if (
         marker !== null && (
@@ -791,6 +808,7 @@ export async function applyPartials(res: Response): Promise<void> {
 
       // Modify children depending on the replace mode
       if (mode === PartialMode.REPLACE) {
+        debugger;
         instance.props.children = children;
       } else {
         const oldChildren = instance.props.children;

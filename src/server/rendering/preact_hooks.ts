@@ -228,6 +228,20 @@ options.__b = (vnode: VNode<Record<string, unknown>>) => {
   if (
     current && current.renderingUserTemplate
   ) {
+    const children = vnode.props.children;
+    if (Array.isArray(children)) {
+      for (let i = 0; i < children.length; i++) {
+        const child = children[i];
+        // Mark placeholders
+        if (
+          child === null || child === undefined || typeof child === "boolean"
+        ) {
+          // @ts-ignore unstable property is not typed
+          children[i] = h(Fragment, { UNSTABLE_comment: "frsh:null" });
+        }
+      }
+    }
+
     // Internally rendering happens in two phases. This is done so
     // that the `<Head>` component works. When we do the first render
     // we cache all attributes on `<html>`, `<head>` + its children, and
