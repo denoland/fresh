@@ -1,6 +1,10 @@
 import { dirname, fromFileUrl, isAbsolute, join, JSONC } from "./deps.ts";
 import { FromManifestConfig, Manifest } from "./mod.ts";
-import { DenoConfig, InternalFreshConfig } from "./types.ts";
+import {
+  DenoConfig,
+  InternalFreshState,
+  ResolvedFreshConfig,
+} from "./types.ts";
 
 export async function readDenoConfig(
   directory: string,
@@ -37,10 +41,10 @@ function isObject(value: unknown) {
     !Array.isArray(value);
 }
 
-export async function getFreshConfigWithDefaults(
+export async function getInternalFreshState(
   manifest: Manifest,
   config: FromManifestConfig,
-): Promise<InternalFreshConfig> {
+): Promise<InternalFreshState> {
   const base = dirname(fromFileUrl(manifest.baseUrl));
   const { config: denoJson, path: denoJsonPath } = await readDenoConfig(base);
 
@@ -50,14 +54,10 @@ export async function getFreshConfigWithDefaults(
     );
   }
 
-  const internalConfig: InternalFreshConfig = {
-    loadSnapshot: typeof config.skipSnapshot === "boolean"
-      ? !config.skipSnapshot
-      : false,
+  const internalConfig: ResolvedFreshConfig = {
     dev: config.dev ?? false,
     denoJsonPath,
     denoJson,
-    manifest,
     build: {
       outDir: "",
       target: config.build?.target ?? ["chrome99", "firefox99", "safari15"],
@@ -102,7 +102,13 @@ export async function getFreshConfigWithDefaults(
     ? parseFileOrUrl(config.staticDir, base)
     : join(base, "static");
 
-  return internalConfig;
+  return {
+    config: internalConfig,
+    manifest,
+    loadSnapshot: typeof config.skipSnapshot === "boolean"
+      ? !config.skipSnapshot
+      : false,
+  };
 }
 
 function parseFileOrUrl(input: string, base: string) {
