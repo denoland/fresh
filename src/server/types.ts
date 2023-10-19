@@ -34,6 +34,7 @@ export type StartOptions = FreshConfig;
 export type FreshOptions = FreshConfig;
 
 export interface FreshConfig {
+  root?: string;
   build?: {
     /**
      * The directory to write generated files to when `dev.ts build` is run.
@@ -47,6 +48,11 @@ export interface FreshConfig {
      * @default {"es2022"}
      */
     target?: string | string[];
+    /**
+     * The
+     * - ahead-of-time: Assets need to be generated with `dev.ts build`
+     */
+    compilationMode?: "just-in-time" | "ahead-of-time";
   };
   render?: RenderFunction;
   plugins?: Plugin[];
@@ -109,6 +115,7 @@ export interface FreshConfig {
 }
 
 export interface InternalFreshConfig {
+  root: string;
   dev: boolean;
   loadSnapshot: boolean;
   denoJsonPath: string;

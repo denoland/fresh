@@ -38,10 +38,26 @@ function isObject(value: unknown) {
 }
 
 export async function getFreshConfigWithDefaults(
-  manifest: Manifest,
   config: FromManifestConfig,
+  manifest?: Manifest,
 ): Promise<InternalFreshConfig> {
-  const base = dirname(fromFileUrl(manifest.baseUrl));
+  let base: string;
+  if (manifest) {
+    base = dirname(fromFileUrl(manifest.baseUrl));
+  } else {
+    base = config.root ?? Deno.cwd();
+  }
+
+  const outDir = config.build?.outDir
+    ? parseFileOrUrl(config.build.outDir, base)
+    : join(base, "_fresh");
+
+  if (!manifest) {
+    const mod = await import(join(outDir, "fresh.gen.ts"));
+    console.log(mod);
+    manifest = mod.default as Manifest;
+  }
+
   const { config: denoJson, path: denoJsonPath } = await readDenoConfig(base);
 
   if (typeof denoJson.importMap !== "string" && !isObject(denoJson.imports)) {
@@ -51,6 +67,7 @@ export async function getFreshConfigWithDefaults(
   }
 
   const internalConfig: InternalFreshConfig = {
+    root: "",
     loadSnapshot: typeof config.skipSnapshot === "boolean"
       ? !config.skipSnapshot
       : false,
@@ -94,9 +111,7 @@ export async function getFreshConfigWithDefaults(
     internalConfig.server.signal = config.signal;
   }
 
-  internalConfig.build.outDir = config.build?.outDir
-    ? parseFileOrUrl(config.build.outDir, base)
-    : join(base, "_fresh");
+  internalConfig.build.outDir = outDir;
 
   internalConfig.staticDir = config.staticDir
     ? parseFileOrUrl(config.staticDir, base)

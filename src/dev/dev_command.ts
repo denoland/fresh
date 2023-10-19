@@ -17,7 +17,8 @@ export async function dev(
   // Run update check in background
   updateCheck(DAY).catch(() => {});
 
-  const dir = dirname(fromFileUrl(base));
+  let dir = dirname(fromFileUrl(base));
+  if ()
 
   let currentManifest: Manifest;
   const prevManifest = Deno.env.get("FRSH_DEV_PREVIOUS_MANIFEST");
@@ -33,6 +34,7 @@ export async function dev(
     !arraysEqual(newManifest.routes, currentManifest.routes) ||
     !arraysEqual(newManifest.islands, currentManifest.islands);
 
+  console.log(dir);
   if (manifestChanged) await generate(dir, newManifest);
 
   const manifest = (await import(toFileUrl(join(dir, "fresh.gen.ts")).href))
@@ -40,16 +42,16 @@ export async function dev(
 
   if (Deno.args.includes("build")) {
     const configWithDefaults = await getFreshConfigWithDefaults(
-      manifest,
       config ?? {},
+      manifest,
     );
     configWithDefaults.dev = false;
     configWithDefaults.loadSnapshot = false;
     await build(configWithDefaults);
   } else if (config) {
     const configWithDefaults = await getFreshConfigWithDefaults(
-      manifest,
       config,
+      manifest,
     );
     configWithDefaults.dev = true;
     configWithDefaults.loadSnapshot = false;

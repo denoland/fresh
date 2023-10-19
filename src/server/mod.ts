@@ -1,4 +1,4 @@
-import { ServerContext } from "./context.ts";
+import { getServerContext, ServerContext } from "./context.ts";
 export type { FromManifestConfig, FromManifestOptions } from "./context.ts";
 export { Status } from "./deps.ts";
 import {
@@ -14,6 +14,7 @@ import {
   UnknownHandler,
 } from "./types.ts";
 import { startServer } from "./boot.ts";
+import { getFreshConfigWithDefaults } from "$fresh/src/server/config.ts";
 export {
   defineApp,
   defineConfig,
@@ -100,11 +101,39 @@ export async function createHandler(
   return ctx.handler();
 }
 
-export async function start(manifest: Manifest, config: FreshConfig = {}) {
-  const ctx = await ServerContext.fromManifest(manifest, {
-    ...config,
-    skipSnapshot: false,
-    dev: false,
-  });
-  await startServer(ctx.handler(), config.server ?? config);
+// deno-lint-ignore no-explicit-any
+function isManifest(x: any): x is Manifest {
+  return x !== null && typeof x === "object" && typeof x.routes === "object" &&
+    typeof x.islands === "object" && typeof x.baseUrl === "string";
+}
+
+export async function start(
+  config: FreshConfig,
+): Promise<void>;
+export async function start(
+  manifest: Manifest,
+  config?: FreshConfig,
+): Promise<void>;
+export async function start(
+  manifestOrConfig: Manifest | FreshConfig,
+  optionalConfig?: FreshConfig,
+): Promise<void> {
+  let config: FreshConfig;
+  let manifest: Manifest | undefined;
+  if (isManifest(manifestOrConfig)) {
+    manifest = manifestOrConfig;
+    config = optionalConfig ?? {};
+  } else {
+    manifest = undefined;
+    config = manifestOrConfig;
+  }
+
+  const configWithDefaults = await getFreshConfigWithDefaults(
+    config,
+    manifest,
+  );
+  configWithDefaults.dev = false;
+
+  const ctx = await getServerContext(configWithDefaults);
+  await startServer(ctx.handler(), configWithDefaults.server);
 }

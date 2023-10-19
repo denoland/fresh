@@ -471,8 +471,8 @@ export class ServerContext {
     }
 
     const configWithDefaults = await getFreshConfigWithDefaults(
-      manifest,
       config,
+      manifest,
     );
     return getServerContext(configWithDefaults);
   }
