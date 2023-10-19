@@ -112,12 +112,12 @@ export interface InternalFreshState {
   config: ResolvedFreshConfig;
   manifest: Manifest;
   loadSnapshot: boolean;
+  denoJsonPath: string;
+  denoJson: DenoConfig;
 }
 
 export interface ResolvedFreshConfig {
   dev: boolean;
-  denoJsonPath: string;
-  denoJson: DenoConfig;
   build: {
     outDir: string;
     target: string | string[];

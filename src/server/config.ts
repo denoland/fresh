@@ -56,8 +56,6 @@ export async function getInternalFreshState(
 
   const internalConfig: ResolvedFreshConfig = {
     dev: config.dev ?? false,
-    denoJsonPath,
-    denoJson,
     build: {
       outDir: "",
       target: config.build?.target ?? ["chrome99", "firefox99", "safari15"],
@@ -108,6 +106,8 @@ export async function getInternalFreshState(
     loadSnapshot: typeof config.skipSnapshot === "boolean"
       ? !config.skipSnapshot
       : false,
+    denoJsonPath,
+    denoJson,
   };
 }
 

@@ -89,8 +89,7 @@ export type FromManifestConfig = FreshConfig & {
 };
 
 export async function getServerContext(state: InternalFreshState) {
-  const { manifest, config: config } = state;
-  const { denoJson, denoJsonPath: configPath } = config;
+  const { manifest, config, denoJson, denoJsonPath: configPath } = state;
   // Get the manifest' base URL.
   const baseUrl = new URL("./", manifest.baseUrl).href;
 
