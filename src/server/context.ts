@@ -19,7 +19,7 @@ import {
   ErrorPage,
   ErrorPageModule,
   Handler,
-  InternalFreshConfig,
+  InternalFreshState,
   Island,
   LayoutModule,
   LayoutRoute,
@@ -56,7 +56,7 @@ import {
 import { InternalRoute } from "./router.ts";
 import { setAllIslands } from "./rendering/preact_hooks.ts";
 import { getCodeFrame } from "./code_frame.ts";
-import { getFreshConfigWithDefaults } from "./config.ts";
+import { getInternalFreshState } from "./config.ts";
 
 const DEFAULT_CONN_INFO: ServeHandlerInfo = {
   localAddr: { transport: "tcp", hostname: "localhost", port: 8080 },
@@ -88,15 +88,15 @@ export type FromManifestConfig = FreshConfig & {
   dev?: boolean;
 };
 
-export async function getServerContext(opts: InternalFreshConfig) {
-  const { manifest, denoJson: config, denoJsonPath: configPath } = opts;
+export async function getServerContext(state: InternalFreshState) {
+  const { manifest, config, denoJson, denoJsonPath: configPath } = state;
   // Get the manifest' base URL.
   const baseUrl = new URL("./", manifest.baseUrl).href;
 
   // Restore snapshot if available
   let snapshot: BuildSnapshot | null = null;
-  if (opts.loadSnapshot) {
-    const snapshotDirPath = opts.build.outDir;
+  if (state.loadSnapshot) {
+    const snapshotDirPath = config.build.outDir;
     try {
       if ((await Deno.stat(snapshotDirPath)).isDirectory) {
         console.log(
@@ -128,10 +128,10 @@ export async function getServerContext(opts: InternalFreshConfig) {
     }
   }
 
-  config.compilerOptions ??= {};
+  denoJson.compilerOptions ??= {};
 
   let jsx: "react" | "react-jsx";
-  switch (config.compilerOptions.jsx) {
+  switch (denoJson.compilerOptions.jsx) {
     case "react":
     case undefined:
       jsx = "react";
@@ -140,12 +140,12 @@ export async function getServerContext(opts: InternalFreshConfig) {
       jsx = "react-jsx";
       break;
     default:
-      throw new Error("Unknown jsx option: " + config.compilerOptions.jsx);
+      throw new Error("Unknown jsx option: " + denoJson.compilerOptions.jsx);
   }
 
   const jsxConfig: JSXConfig = {
     jsx,
-    jsxImportSource: config.compilerOptions.jsxImportSource,
+    jsxImportSource: denoJson.compilerOptions.jsxImportSource,
   };
 
   // Extract all routes, and prepare them into the `Page` structure.
@@ -158,8 +158,8 @@ export async function getServerContext(opts: InternalFreshConfig) {
   let error: ErrorPage = DEFAULT_ERROR;
   const allRoutes = [
     ...Object.entries(manifest.routes),
-    ...(opts.plugins ? getMiddlewareRoutesFromPlugins(opts.plugins) : []),
-    ...(opts.plugins ? getRoutesFromPlugins(opts.plugins) : []),
+    ...(config.plugins ? getMiddlewareRoutesFromPlugins(config.plugins) : []),
+    ...(config.plugins ? getRoutesFromPlugins(config.plugins) : []),
   ];
 
   // Presort all routes so that we only need to sort once
@@ -273,7 +273,8 @@ export async function getServerContext(opts: InternalFreshConfig) {
       path === "/_500.tsx" || path === "/_500.ts" ||
       path === "/_500.jsx" || path === "/_500.js"
     ) {
-      const { default: component, config } = module as ErrorPageModule;
+      const { default: component, config: routeConfig } =
+        module as ErrorPageModule;
       let { handler } = module as ErrorPageModule;
       if (component && handler === undefined) {
         handler = (_req, { render }) => render();
@@ -286,7 +287,7 @@ export async function getServerContext(opts: InternalFreshConfig) {
         name,
         component,
         handler: (req, ctx) => {
-          if (opts.dev) {
+          if (config.dev) {
             const prevComp = error.component;
             error.component = DefaultErrorHandler;
             try {
@@ -300,9 +301,9 @@ export async function getServerContext(opts: InternalFreshConfig) {
             ? handler(req, ctx)
             : router.defaultErrorHandler(req, ctx, ctx.error);
         },
-        csp: Boolean(config?.csp ?? false),
-        appWrapper: !config?.skipAppWrapper,
-        inheritLayouts: !config?.skipInheritedLayouts,
+        csp: Boolean(routeConfig?.csp ?? false),
+        appWrapper: !routeConfig?.skipAppWrapper,
+        inheritLayouts: !routeConfig?.skipInheritedLayouts,
       };
     }
   }
@@ -336,8 +337,8 @@ export async function getServerContext(opts: InternalFreshConfig) {
 
   const staticFiles: StaticFile[] = [];
   try {
-    const staticDirUrl = toFileUrl(opts.staticDir);
-    const entries = walk(opts.staticDir, {
+    const staticDirUrl = toFileUrl(config.staticDir);
+    const entries = walk(config.staticDir, {
       includeFiles: true,
       includeDirs: false,
       followSymlinks: false,
@@ -374,7 +375,7 @@ export async function getServerContext(opts: InternalFreshConfig) {
     }
   }
 
-  if (opts.dev) {
+  if (config.dev) {
     // Ensure that debugging hooks are set up for SSR rendering
     await import("preact/debug");
   }
@@ -383,18 +384,18 @@ export async function getServerContext(opts: InternalFreshConfig) {
     routes,
     islands,
     staticFiles,
-    opts.render ?? DEFAULT_RENDER_FN,
+    config.render ?? DEFAULT_RENDER_FN,
     middlewares,
     app,
     layouts,
     notFound,
     error,
-    opts.plugins ?? [],
+    config.plugins ?? [],
     configPath,
     jsxConfig,
-    opts.dev,
-    opts.router ?? DEFAULT_ROUTER_OPTIONS,
-    opts.build.target,
+    config.dev,
+    config.router ?? DEFAULT_ROUTER_OPTIONS,
+    config.build.target,
     snapshot,
   );
 }
@@ -470,7 +471,7 @@ export class ServerContext {
       config.skipSnapshot = true;
     }
 
-    const configWithDefaults = await getFreshConfigWithDefaults(
+    const configWithDefaults = await getInternalFreshState(
       manifest,
       config,
     );

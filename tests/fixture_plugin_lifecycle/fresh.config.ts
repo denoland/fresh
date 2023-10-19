@@ -1,4 +1,5 @@
 import { defineConfig } from "$fresh/src/server/defines.ts";
+import * as path from "https://deno.land/std@0.193.0/path/mod.ts";
 
 export default defineConfig({
   plugins: [
@@ -18,6 +19,13 @@ export default defineConfig({
       },
       buildStart() {
         console.log("Plugin b: buildStart");
+      },
+    },
+    {
+      name: "c",
+      buildStart(config) {
+        const outDir = path.relative(Deno.cwd(), config.build.outDir);
+        console.log(`Plugin c: ${outDir}`);
       },
     },
   ],

@@ -4,7 +4,7 @@ import { FreshConfig, Manifest as ServerManifest } from "../server/mod.ts";
 import { build } from "./build.ts";
 import { collect, ensureMinDenoVersion, generate, Manifest } from "./mod.ts";
 import { startServer } from "../server/boot.ts";
-import { getFreshConfigWithDefaults } from "../server/config.ts";
+import { getInternalFreshState } from "../server/config.ts";
 import { getServerContext } from "$fresh/src/server/context.ts";
 
 export async function dev(
@@ -39,22 +39,22 @@ export async function dev(
     .default as ServerManifest;
 
   if (Deno.args.includes("build")) {
-    const configWithDefaults = await getFreshConfigWithDefaults(
+    const state = await getInternalFreshState(
       manifest,
       config ?? {},
     );
-    configWithDefaults.dev = false;
-    configWithDefaults.loadSnapshot = false;
-    await build(configWithDefaults);
+    state.config.dev = false;
+    state.loadSnapshot = false;
+    await build(state);
   } else if (config) {
-    const configWithDefaults = await getFreshConfigWithDefaults(
+    const state = await getInternalFreshState(
       manifest,
       config,
     );
-    configWithDefaults.dev = true;
-    configWithDefaults.loadSnapshot = false;
-    const ctx = await getServerContext(configWithDefaults);
-    await startServer(ctx.handler(), configWithDefaults.server);
+    state.config.dev = true;
+    state.loadSnapshot = false;
+    const ctx = await getServerContext(state);
+    await startServer(ctx.handler(), state.config.server);
   } else {
     // Legacy entry point: Back then `dev.ts` would call `main.ts` but
     // this causes duplicate plugin instantiation if both `dev.ts` and
