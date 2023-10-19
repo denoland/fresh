@@ -117,6 +117,7 @@ export interface InternalFreshState {
 }
 
 export interface ResolvedFreshConfig {
+  command: "build" | "dev" | "serve";
   dev: boolean;
   build: {
     outDir: string;

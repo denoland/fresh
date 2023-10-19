@@ -43,6 +43,7 @@ export async function dev(
       manifest,
       config ?? {},
     );
+    state.config.command = "build";
     state.config.dev = false;
     state.loadSnapshot = false;
     await build(state);

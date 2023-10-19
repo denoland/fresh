@@ -471,11 +471,11 @@ export class ServerContext {
       config.skipSnapshot = true;
     }
 
-    const configWithDefaults = await getInternalFreshState(
+    const state = await getInternalFreshState(
       manifest,
       config,
     );
-    return getServerContext(configWithDefaults);
+    return getServerContext(state);
   }
 
   /**

@@ -54,8 +54,10 @@ export async function getInternalFreshState(
     );
   }
 
+  const dev = config.dev ?? false;
   const internalConfig: ResolvedFreshConfig = {
-    dev: config.dev ?? false,
+    dev,
+    command: dev ? "dev" : "serve",
     build: {
       outDir: "",
       target: config.build?.target ?? ["chrome99", "firefox99", "safari15"],
