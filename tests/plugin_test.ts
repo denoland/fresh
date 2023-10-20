@@ -14,6 +14,8 @@ import {
   clickWhenListenerReady,
   runBuild,
   startFreshServer,
+  withFakeServe,
+  withFresh,
   withPageName,
 } from "./test_utils.ts";
 
@@ -151,6 +153,15 @@ Deno.test("calls buildStart() and buildEnd()", async () => {
     "Plugin a: buildEnd",
     "Plugin b: buildEnd",
   ]);
+});
+
+Deno.test("exposes command in options", async (t) => {
+  const result = await runBuild("./tests/fixture_plugin_command/dev.ts");
+
+  const out = result.stdout.split("\n").filter((line) =>
+    line.startsWith("Command")
+  );
+  assertEquals(out, ["Command: build"]);
 });
 
 Deno.test("plugin script doesn't halt island execution", async () => {
