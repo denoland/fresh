@@ -34,6 +34,12 @@ export type StartOptions = FreshConfig;
 export type FreshOptions = FreshConfig;
 
 export interface FreshConfig {
+  /**
+   * Specify the project root directory, where Fresh will look for
+   * the `routes/` and `islands/` folders.
+   * @default {Deno.cwd()}
+   */
+  root?: string;
   build?: {
     /**
      * The directory to write generated files to when `dev.ts build` is run.

@@ -84,7 +84,6 @@ interface StaticFile {
 export type FromManifestOptions = FromManifestConfig;
 
 export type FromManifestConfig = FreshConfig & {
-  skipSnapshot?: boolean;
   dev?: boolean;
 };
 
@@ -463,17 +462,9 @@ export class ServerContext {
     manifest: Manifest,
     config: FromManifestConfig,
   ): Promise<ServerContext> {
-    const isLegacyDev = Deno.env.get("__FRSH_LEGACY_DEV") === "true";
-    config.dev = isLegacyDev ||
-      Boolean(config.dev);
-
-    if (isLegacyDev) {
-      config.skipSnapshot = true;
-    }
-
     const configWithDefaults = await getInternalFreshState(
-      manifest,
       config,
+      manifest,
     );
     return getServerContext(configWithDefaults);
   }

@@ -14,6 +14,7 @@ import {
   UnknownHandler,
 } from "./types.ts";
 import { startServer } from "./boot.ts";
+import { getInternalFreshState } from "./config.ts";
 export {
   defineApp,
   defineConfig,
@@ -100,11 +101,32 @@ export async function createHandler(
   return ctx.handler();
 }
 
-export async function start(manifest: Manifest, config: FreshConfig = {}) {
-  const ctx = await ServerContext.fromManifest(manifest, {
+// deno-lint-ignore no-explicit-any
+function isManifest(obj: any): obj is Manifest {
+  return obj !== null && typeof obj === "object" &&
+    typeof obj.isands === "object" && typeof obj.routes === "object" &&
+    typeof obj.baseUrl === "string";
+}
+
+export async function start(
+  manifestOrConfig: Manifest | FreshConfig,
+  config?: FreshConfig,
+) {
+  let manifest: Manifest | undefined;
+  let realConfig: FreshConfig;
+  if (isManifest(manifestOrConfig)) {
+    manifest = manifestOrConfig;
+    realConfig = config ?? {};
+  } else {
+    realConfig = manifestOrConfig;
+  }
+
+  const state = await getInternalFreshState(realConfig, manifest);
+
+  const ctx = await ServerContext.fromManifest(state.manifest, {
     ...config,
     skipSnapshot: false,
     dev: false,
   });
-  await startServer(ctx.handler(), config.server ?? config);
+  await startServer(ctx.handler(), realConfig.server ?? realConfig);
 }

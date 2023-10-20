@@ -40,16 +40,16 @@ export async function dev(
 
   if (Deno.args.includes("build")) {
     const state = await getInternalFreshState(
-      manifest,
       config ?? {},
+      manifest,
     );
     state.config.dev = false;
     state.loadSnapshot = false;
     await build(state);
   } else if (config) {
     const state = await getInternalFreshState(
-      manifest,
       config,
+      manifest,
     );
     state.config.dev = true;
     state.loadSnapshot = false;
