@@ -4,42 +4,30 @@ description: |
 ---
 
 When you initialize a project with `deno run -A -r https://fresh.deno.dev`,
-you'll end up with a `main.ts` like the following:
+you'll end up with a `fresh.config.ts` like the following:
 
-```ts main.ts
-/// <reference no-default-lib="true" />
-/// <reference lib="dom" />
-/// <reference lib="dom.iterable" />
-/// <reference lib="dom.asynciterable" />
-/// <reference lib="deno.ns" />
-
-import { start } from "$fresh/server.ts";
-import manifest from "./fresh.gen.ts";
-
+```ts fresh.config.ts
+import { defineConfig } from "$fresh/server.ts";
 import twindPlugin from "$fresh/plugins/twind.ts";
 import twindConfig from "./twind.config.ts";
 
-await start(manifest, { plugins: [twindPlugin(twindConfig)] });
+export default defineConfig({
+  plugins: [twindPlugin(twindConfig)],
+});
 ```
 
 The template generates a Twind v0 project by default. If you want to use Twind
 v1 you can follow this guide. First of all, change the import path to use the
 `twindv1` plugin:
 
-```ts main.ts
-/// <reference no-default-lib="true" />
-/// <reference lib="dom" />
-/// <reference lib="dom.iterable" />
-/// <reference lib="dom.asynciterable" />
-/// <reference lib="deno.ns" />
-
-import { start } from "$fresh/server.ts";
-import manifest from "./fresh.gen.ts";
-
+```ts fresh.config.ts
+import { defineConfig } from "$fresh/server.ts";
 import twindPlugin from "$fresh/plugins/twindv1.ts";
 import twindConfig from "./twind.config.ts";
 
-await start(manifest, { plugins: [twindPlugin(twindConfig)] });
+export default defineConfig({
+  plugins: [twindPlugin(twindConfig)],
+});
 ```
 
 The twind config object has changed significantly in v1, so we must also go
