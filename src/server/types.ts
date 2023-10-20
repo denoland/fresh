@@ -599,12 +599,19 @@ export interface PluginRenderResult {
   styles?: PluginRenderStyleTag[];
   /** JS scripts to ship to the client. */
   scripts?: PluginRenderScripts[];
+  /** CSS URLS to link to in the page */
+  cssLinks?: PluginRenderCssLink[];
 }
 
 export interface PluginRenderStyleTag {
   cssText: string;
   media?: string;
   id?: string;
+}
+
+export interface PluginRenderCssLink {
+  url: string;
+  media?: string;
 }
 
 export interface PluginRenderScripts {
