@@ -42,11 +42,24 @@ function isObject(value: unknown) {
 }
 
 export async function getInternalFreshState(
-  manifest: Manifest,
   config: FromManifestConfig,
+  manifest?: Manifest,
 ): Promise<InternalFreshState> {
-  const base = dirname(fromFileUrl(manifest.baseUrl));
-  const { config: denoJson, path: denoJsonPath } = await readDenoConfig(base);
+  const isLegacyDev = Deno.env.get("__FRSH_LEGACY_DEV") === "true";
+  config.dev = isLegacyDev ||
+    Boolean(config.dev);
+
+  if (!config.root) {
+    config.root = manifest
+      ? dirname(fromFileUrl(manifest.baseUrl))
+      : Deno.cwd();
+  }
+
+  const root = config.root!;
+
+  const { config: denoJson, path: denoJsonPath } = await readDenoConfig(
+    root,
+  );
 
   if (typeof denoJson.importMap !== "string" && !isObject(denoJson.imports)) {
     throw new Error(
@@ -54,14 +67,32 @@ export async function getInternalFreshState(
     );
   }
 
+  const outDir = config.build?.outDir
+    ? parseFileOrUrl(config.build.outDir, root)
+    : join(root, "_fresh");
+
+  console.log("gogo", manifest);
+  let resolvedManifest: Manifest;
+  if (manifest) {
+    resolvedManifest = manifest;
+  } else {
+    const mod = await import(join(outDir, "fresh.gen.ts"));
+    //
+    console.log("mod");
+  }
+
+  const staticDir = config.staticDir
+    ? parseFileOrUrl(config.staticDir, root)
+    : join(root, "static");
+
   const internalConfig: ResolvedFreshConfig = {
     dev: config.dev ?? false,
     build: {
-      outDir: "",
+      outDir,
       target: config.build?.target ?? ["chrome99", "firefox99", "safari15"],
     },
     plugins: config.plugins ?? [],
-    staticDir: "",
+    staticDir,
     render: config.render,
     router: config.router,
     server: config.server ?? {},
@@ -92,20 +123,10 @@ export async function getInternalFreshState(
     internalConfig.server.signal = config.signal;
   }
 
-  internalConfig.build.outDir = config.build?.outDir
-    ? parseFileOrUrl(config.build.outDir, base)
-    : join(base, "_fresh");
-
-  internalConfig.staticDir = config.staticDir
-    ? parseFileOrUrl(config.staticDir, base)
-    : join(base, "static");
-
   return {
     config: internalConfig,
-    manifest,
-    loadSnapshot: typeof config.skipSnapshot === "boolean"
-      ? !config.skipSnapshot
-      : false,
+    manifest: resolvedManifest,
+    loadSnapshot: !config.dev,
     denoJsonPath,
     denoJson,
   };
