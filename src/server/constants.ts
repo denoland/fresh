@@ -5,7 +5,8 @@ export const DEV_CLIENT_URL = `${INTERNAL_PREFIX}/fresh_dev_client.js`;
 export const ALIVE_URL = `${INTERNAL_PREFIX}/alive`;
 export const JS_PREFIX = `/js`;
 export const DEBUG = !Deno.env.get("DENO_DEPLOYMENT_ID");
+export const BUNDLE_PUBLIC_PATH = `${INTERNAL_PREFIX}${JS_PREFIX}/${BUILD_ID}`;
 
 export function bundleAssetUrl(path: string) {
-  return `${INTERNAL_PREFIX}${JS_PREFIX}/${BUILD_ID}${path}`;
+  return `${BUNDLE_PUBLIC_PATH}${path}`;
 }

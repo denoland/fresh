@@ -11,6 +11,7 @@ import {
   withFresh,
   withPageName,
 } from "./test_utils.ts";
+import { assert } from "$std/_util/asserts.ts";
 
 Deno.test({
   name: "dev_command config",
@@ -47,6 +48,25 @@ Deno.test({
       async (page, address) => {
         await page.goto(`${address}`);
         await waitForStyle(page, "h1", "color", "rgb(220, 38, 38)");
+      },
+    );
+  },
+});
+
+Deno.test({
+  name: "dev_command bundle assets",
+  async fn() {
+    await withPageName(
+      "./tests/fixture_dev_config/dev.ts",
+      async (page, address) => {
+        const logs: string[] = [];
+        page.on("console", (msg) => logs.push(msg.text()));
+        await page.goto(`${address}`, { waitUntil: "networkidle2" });
+        await waitForStyle(page, "h1", "color", "rgb(220, 38, 38)");
+        assert(
+          !logs.some((msg) => /Failed to load resource/.test(msg)),
+          `Error loading bundle assets`,
+        );
       },
     );
   },

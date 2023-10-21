@@ -5,6 +5,7 @@ import {
 } from "https://deno.land/x/esbuild@v0.19.4/mod.js";
 import { denoPlugins, fromFileUrl, regexpEscape, relative } from "./deps.ts";
 import { Builder, BuildSnapshot } from "./mod.ts";
+import { BUNDLE_PUBLIC_PATH } from "../server/constants.ts";
 
 export interface EsbuildBuilderOptions {
   /** The build ID. */
@@ -88,6 +89,7 @@ export class EsbuildBuilder implements Builder {
 
         absWorkingDir,
         outdir: ".",
+        publicPath: BUNDLE_PUBLIC_PATH,
         write: false,
         metafile: true,
 
