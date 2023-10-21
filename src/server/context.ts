@@ -57,6 +57,7 @@ import { InternalRoute } from "./router.ts";
 import { setAllIslands } from "./rendering/preact_hooks.ts";
 import { getCodeFrame } from "./code_frame.ts";
 import { getInternalFreshState } from "./config.ts";
+import { WS_REVISION, WsServerState } from "../dev/ws_connection.ts";
 
 const DEFAULT_CONN_INFO: ServeHandlerInfo = {
   localAddr: { transport: "tcp", hostname: "localhost", port: 8080 },
@@ -494,6 +495,8 @@ export class ServerContext {
     const isDev = this.#dev;
     const bundleAssetRoute = this.#bundleAssetRoute();
 
+    const revision = isDev ? Date.now() : 1;
+
     return async function handler(
       req: Request,
       connInfo: ServeHandlerInfo = DEFAULT_CONN_INFO,
@@ -512,7 +515,20 @@ export class ServerContext {
           // the client to know when the server is back up. Once we
           // have HMR we'll actively start sending messages back
           // and forth.
-          const { response } = Deno.upgradeWebSocket(req);
+          const { socket, response } = Deno.upgradeWebSocket(req);
+
+          socket.addEventListener("open", () => {
+            // Broadcast current revision to clients
+            socket.send(
+              JSON.stringify(
+                {
+                  type: WS_REVISION,
+                  value: revision,
+                  hot: false,
+                } satisfies WsServerState,
+              ),
+            );
+          });
 
           return response;
         } else if (url.pathname === DEV_CLIENT_URL) {

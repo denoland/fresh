@@ -8,8 +8,9 @@ import {
   puppeteer,
   relative,
 } from "./deps.ts";
-import { startFreshServer } from "./test_utils.ts";
+import { startFreshServer, waitFor } from "./test_utils.ts";
 import { retry } from "$std/async/retry.ts";
+import { assert } from "$std/_util/asserts.ts";
 
 async function withTmpFixture(
   name: string,
@@ -101,6 +102,39 @@ Deno.test({
         await page.waitForSelector(".bar");
         // TODO: Once we support proper HMR check that state stays
         // the same
+      },
+    );
+  },
+});
+
+Deno.test({
+  name: "doesn't refresh on form submit",
+  // Watcher tests are pretty flaky in CI and non-UNIX systems.
+  // Until we know why, we'll gate these tests behind an
+  // environment variable.
+  // ignore: !Deno.env.has("FRESH_WATCH_TESTS"),
+  fn: async () => {
+    await withTmpFixture(
+      "./tests/fixture_hmr/dev.ts",
+      async (page, address) => {
+        const logs: string[] = [];
+        page.on("console", (msg) => logs.push(msg.text()));
+
+        await page.goto(`${address}/form_get`);
+        await page.waitForSelector("h1");
+
+        await page.type("input", "foo");
+        await page.click("button");
+        await waitFor(async () => {
+          const txt = await page.$eval("input", (el) => el.value);
+          return txt === "foo_foo";
+        });
+
+        assert(
+          logs.length === 2 &&
+            logs.every((msg) => /Connected to development/.test(msg)),
+          `Error loading bundle assets`,
+        );
       },
     );
   },
