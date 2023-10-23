@@ -55,14 +55,20 @@ export async function getInternalFreshState(
     );
   }
 
+  const isLegacyDev = Deno.env.get("__FRSH_LEGACY_DEV") === "true";
+
   const internalConfig: ResolvedFreshConfig = {
-    dev: config.dev ?? false,
+    dev: isLegacyDev || Boolean(config.dev),
     build: {
-      outDir: "",
+      outDir: config.build?.outDir
+        ? parseFileOrUrl(config.build.outDir, base)
+        : join(base, "_fresh"),
       target: config.build?.target ?? ["chrome99", "firefox99", "safari15"],
     },
     plugins: config.plugins ?? [],
-    staticDir: "",
+    staticDir: config.staticDir
+      ? parseFileOrUrl(config.staticDir, base)
+      : join(base, "static"),
     render: config.render ?? DEFAULT_RENDER_FN,
     router: config.router,
     server: config.server ?? {},
@@ -93,20 +99,10 @@ export async function getInternalFreshState(
     internalConfig.server.signal = config.signal;
   }
 
-  internalConfig.build.outDir = config.build?.outDir
-    ? parseFileOrUrl(config.build.outDir, base)
-    : join(base, "_fresh");
-
-  internalConfig.staticDir = config.staticDir
-    ? parseFileOrUrl(config.staticDir, base)
-    : join(base, "static");
-
   return {
     config: internalConfig,
     manifest,
-    loadSnapshot: typeof config.skipSnapshot === "boolean"
-      ? !config.skipSnapshot
-      : false,
+    loadSnapshot: !isLegacyDev,
     denoJsonPath,
     denoJson,
   };

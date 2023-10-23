@@ -103,7 +103,6 @@ export async function createHandler(
 export async function start(manifest: Manifest, config: FreshConfig = {}) {
   const ctx = await ServerContext.fromManifest(manifest, {
     ...config,
-    skipSnapshot: false,
     dev: false,
   });
   await startServer(ctx.handler(), config.server ?? config);
