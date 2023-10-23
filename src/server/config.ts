@@ -1,5 +1,6 @@
 import { dirname, fromFileUrl, isAbsolute, join, JSONC } from "./deps.ts";
 import { FromManifestConfig, Manifest } from "./mod.ts";
+import { DEFAULT_RENDER_FN } from "./render.ts";
 import {
   DenoConfig,
   InternalFreshState,
@@ -62,7 +63,7 @@ export async function getInternalFreshState(
     },
     plugins: config.plugins ?? [],
     staticDir: "",
-    render: config.render,
+    render: config.render ?? DEFAULT_RENDER_FN,
     router: config.router,
     server: config.server ?? {},
   };
