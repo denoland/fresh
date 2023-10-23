@@ -18,6 +18,7 @@ import { ContentSecurityPolicy } from "../runtime/csp.ts";
 import { RenderState } from "./rendering/state.ts";
 import { renderHtml, renderOuterDocument } from "./rendering/template.tsx";
 import { renderFreshTags } from "./rendering/fresh_tags.tsx";
+import { AssetSnapshot } from "../build/types.ts";
 
 export interface RenderOptions<Data> {
   request: Request;
@@ -28,7 +29,7 @@ export interface RenderOptions<Data> {
   app: AppModule;
   layouts: LayoutRoute[];
   imports: string[];
-  dependenciesFn: (path: string) => string[];
+  snapshot: AssetSnapshot;
   url: URL;
   params: Record<string, string | string[]>;
   renderFn: RenderFunction;
@@ -346,7 +347,7 @@ export async function render<Data>(
     bodyHtml,
     imports: opts.imports,
     csp,
-    dependenciesFn: opts.dependenciesFn,
+    snapshot: opts.snapshot,
     styles: ctx.styles,
     pluginRenderResults: renderResults,
   });

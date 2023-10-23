@@ -5,6 +5,7 @@ import { serialize } from "../serializer.ts";
 import { Plugin, PluginRenderResult, PluginRenderStyleTag } from "../types.ts";
 import { ContentSecurityPolicy, nonce } from "../../runtime/csp.ts";
 import { h } from "preact";
+import { AssetSnapshot } from "../../build/types.ts";
 
 export type SerializedState = [islands: unknown[], plugins: unknown[]];
 
@@ -15,7 +16,7 @@ export function renderFreshTags(
     csp?: ContentSecurityPolicy;
     imports: string[];
     randomNonce?: string;
-    dependenciesFn: (path: string) => string[];
+    snapshot: AssetSnapshot;
     styles: string[];
     pluginRenderResults: [Plugin, PluginRenderResult][];
   },
@@ -39,7 +40,7 @@ export function renderFreshTags(
     const url = bundleAssetUrl(`/${path}`);
     if (!isPartial) {
       preloadSet.add(url);
-      for (const depPath of opts.dependenciesFn(path)) {
+      for (const depPath of opts.snapshot.getDependencies(path)) {
         const url = bundleAssetUrl(`/${depPath}`);
         preloadSet.add(url);
       }

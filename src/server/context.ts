@@ -62,6 +62,7 @@ import {
 } from "../constants.ts";
 import { loadAotSnapshot } from "../build/aot_snapshot.ts";
 import { JitSnapshot } from "../build/jit_snapshot.ts";
+import { DevSnapshot } from "$fresh/src/build/dev_snapshot.ts";
 
 const DEFAULT_CONN_INFO: ServeHandlerInfo = {
   localAddr: { transport: "tcp", hostname: "localhost", port: 8080 },
@@ -94,21 +95,9 @@ export type FromManifestConfig = FreshConfig & {
 };
 
 export async function getServerContext(state: InternalFreshState) {
-  const { manifest, config, denoJson, denoJsonPath: configPath } = state;
+  const { manifest, config, denoJsonPath: configPath } = state;
   // Get the manifest' base URL.
   const baseUrl = new URL("./", manifest.baseUrl).href;
-
-  const compilerOptions = denoJson.compilerOptions;
-  if (
-    !compilerOptions || !compilerOptions.jsx || !compilerOptions.jsxImportSource
-  ) {
-    throw new Error(`Missing or incomplete JSX configuration in deno.json.`);
-  }
-
-  const jsxConfig = {
-    jsx: compilerOptions.jsx,
-    jsxImportSource: compilerOptions.jsxImportSource,
-  };
 
   // Extract all routes, and prepare them into the `Page` structure.
   const routes: Route[] = [];
@@ -297,6 +286,10 @@ export async function getServerContext(state: InternalFreshState) {
     }
   }
 
+  // Tell renderer about all globally available islands
+  // TODO: Find a better way to move that to render state?
+  setAllIslands(islands);
+
   const staticFiles: StaticFile[] = [];
 
   if (config.dev) {
@@ -311,20 +304,18 @@ export async function getServerContext(state: InternalFreshState) {
   } else if (config.dev) {
     // TODO
   } else {
-    // TOOD: Load JITSnapshot
-    // snapshot = new
     snapshot = new JitSnapshot({
       buildID: BUILD_ID,
-      entrypoints: collectEntrypoints(this.#dev, this.#islands, this.#plugins),
+      entrypoints: collectEntrypoints(config.dev, islands, config.plugins),
       configPath,
-      dev: this.#dev,
-      jsxConfig,
-      target,
+      dev: config.dev,
+      target: config.build.target,
       absoluteWorkingDir: Deno.cwd(),
     });
   }
 
   return new ServerContext(
+    state,
     routes,
     islands,
     staticFiles,
@@ -358,38 +349,12 @@ export class ServerContext {
   #plugins: Plugin[];
   #builder: Builder | Promise<BuildSnapshot> | BuildSnapshot;
   #routerOptions: RouterOptions;
+  #state: InternalFreshState;
 
   constructor(
-    routes: Route[],
-    islands: Island[],
-    staticFiles: StaticFile[],
-    renderfn: RenderFunction,
-    middlewares: MiddlewareRoute[],
-    app: AppModule,
-    layouts: LayoutRoute[],
-    notFound: UnknownPage,
-    error: ErrorPage,
-    plugins: Plugin[],
-    configPath: string,
-    jsxConfig: JSXConfig,
-    dev: boolean,
-    routerOptions: RouterOptions,
-    target: string | string[],
-    snapshot: BuildSnapshot | null = null,
+    state: InternalFreshState,
   ) {
-    this.#routes = routes;
-    this.#islands = islands;
-    this.#staticFiles = staticFiles;
-    this.#renderFn = renderfn;
-    this.#middlewares = middlewares;
-    this.#app = app;
-    this.#layouts = layouts;
-    this.#notFound = notFound;
-    this.#error = error;
-    this.#plugins = plugins;
-    this.#dev = dev;
-    this.#builder = snapshot;
-    this.#routerOptions = routerOptions;
+    this.#state = state;
   }
 
   /**
@@ -576,14 +541,6 @@ export class ServerContext {
       },
     };
 
-    // Tell renderer about all globally available islands
-    setAllIslands(this.#islands);
-
-    const dependenciesFn = (path: string) => {
-      const snapshot = this.#maybeBuildSnapshot();
-      return snapshot?.dependencies(path) ?? [];
-    };
-
     const renderNotFound = async <Data = undefined>(
       req: Request,
       params: Record<string, string>,
@@ -613,7 +570,7 @@ export class ServerContext {
         app: this.#app,
         layouts,
         imports,
-        dependenciesFn,
+        snapshot,
         renderFn: this.#renderFn,
         url: new URL(req.url),
         params,
@@ -786,10 +743,6 @@ export class ServerContext {
   }
 }
 
-const DEFAULT_APP: AppModule = {
-  default: ({ Component }: { Component: ComponentType }) => h(Component, {}),
-};
-
 const DEFAULT_NOT_FOUND: UnknownPage = {
   baseRoute: toBaseRoute("/"),
   pattern: "",
@@ -831,160 +784,6 @@ export function selectSharedRoutes<T extends { baseRoute: BaseRoute }>(
   }
 
   return selected;
-}
-
-const APP_REG = /_app\.[tj]sx?$/;
-
-/**
- * Sort route paths where special Fresh files like `_app`,
- * `_layout` and `_middleware` are sorted in front.
- */
-export function sortRoutePaths(a: string, b: string) {
-  // The `_app` route should always be the first
-  if (APP_REG.test(a)) return -1;
-  else if (APP_REG.test(b)) return 1;
-
-  let segmentIdx = 0;
-  const aLen = a.length;
-  const bLen = b.length;
-  const maxLen = aLen > bLen ? aLen : bLen;
-  for (let i = 0; i < maxLen; i++) {
-    const charA = a.charAt(i);
-    const charB = b.charAt(i);
-    const nextA = i + 1 < aLen ? a.charAt(i + 1) : "";
-    const nextB = i + 1 < bLen ? b.charAt(i + 1) : "";
-
-    if (charA === "/" || charB === "/") {
-      segmentIdx = i;
-      // If the other path doesn't close the segment
-      // then we don't need to continue
-      if (charA !== "/") return -1;
-      if (charB !== "/") return 1;
-      continue;
-    }
-
-    if (i === segmentIdx + 1) {
-      const scoreA = getRoutePathScore(charA, nextA);
-      const scoreB = getRoutePathScore(charB, nextB);
-      if (scoreA === scoreB) continue;
-      return scoreA > scoreB ? -1 : 1;
-    }
-  }
-
-  return 0;
-}
-
-/**
- * Assign a score based on the first two characters of a path segment.
- * The goal is to sort `_middleware` and `_layout` in front of everything
- * and `[` or `[...` last respectively.
- */
-function getRoutePathScore(char: string, nextChar: string): number {
-  if (char === "_") {
-    if (nextChar === "m") return 4;
-    return 3;
-  } else if (char === "[") {
-    if (nextChar === ".") {
-      return 0;
-    }
-    return 1;
-  }
-  return 2;
-}
-
-/** Transform a filesystem URL path to a `path-to-regex` style matcher. */
-export function pathToPattern(path: string): string {
-  const parts = path.split("/");
-  if (parts[parts.length - 1] === "index") {
-    if (parts.length === 1) {
-      return "/";
-    }
-    parts.pop();
-  }
-
-  let route = "";
-
-  for (let i = 0; i < parts.length; i++) {
-    const part = parts[i];
-
-    // Case: /[...foo].tsx
-    if (part.startsWith("[...") && part.endsWith("]")) {
-      route += `/:${part.slice(4, part.length - 1)}*`;
-      continue;
-    }
-
-    // Route groups like /foo/(bar) should not be included in URL
-    // matching. They are transparent and need to be removed here.
-    // Case: /foo/(bar) -> /foo
-    // Case: /foo/(bar)/bob -> /foo/bob
-    // Case: /(foo)/bar -> /bar
-    if (part.startsWith("(") && part.endsWith(")")) {
-      continue;
-    }
-
-    // Disallow neighbouring params like `/[id][bar].tsx` because
-    // it's ambiguous where the `id` param ends and `bar` begins.
-    if (part.includes("][")) {
-      throw new SyntaxError(
-        `Invalid route pattern: "${path}". A parameter cannot be followed by another parameter without any characters in between.`,
-      );
-    }
-
-    // Case: /[[id]].tsx
-    // Case: /[id].tsx
-    // Case: /[id]@[bar].tsx
-    // Case: /[id]-asdf.tsx
-    // Case: /[id]-asdf[bar].tsx
-    // Case: /asdf[bar].tsx
-    let pattern = "";
-    let groupOpen = 0;
-    let optional = false;
-    for (let j = 0; j < part.length; j++) {
-      const char = part[j];
-      if (char === "[") {
-        if (part[j + 1] === "[") {
-          // Disallow optional dynamic params like `foo-[[bar]]`
-          if (part[j - 1] !== "/" && !!part[j - 1]) {
-            throw new SyntaxError(
-              `Invalid route pattern: "${path}". An optional parameter needs to be a full segment.`,
-            );
-          }
-          groupOpen++;
-          optional = true;
-          pattern += "{/";
-          j++;
-        }
-        pattern += ":";
-        groupOpen++;
-      } else if (char === "]") {
-        if (part[j + 1] === "]") {
-          // Disallow optional dynamic params like `[[foo]]-bar`
-          if (part[j + 2] !== "/" && !!part[j + 2]) {
-            throw new SyntaxError(
-              `Invalid route pattern: "${path}". An optional parameter needs to be a full segment.`,
-            );
-          }
-          groupOpen--;
-          pattern += "}?";
-          j++;
-        }
-        if (--groupOpen < 0) {
-          throw new SyntaxError(`Invalid route pattern: "${path}"`);
-        }
-      } else {
-        pattern += char;
-      }
-    }
-
-    route += (optional ? "" : "/") + pattern;
-  }
-
-  // Case: /(group)/index.tsx
-  if (route === "") {
-    route = "/";
-  }
-
-  return route;
 }
 
 // Normalize a path for use in a URL. Returns null if the path is unparsable.
@@ -1049,81 +848,6 @@ export function toBaseRoute(input: string): BaseRoute {
 
   const suffix = !input.startsWith("/") ? "/" : "";
   return (suffix + input) as BaseRoute;
-}
-
-function collectEntrypoints(
-  dev: boolean,
-  islands: Island[],
-  plugins: Plugin[],
-): Record<string, string> {
-  const entrypointBase = "../runtime/entrypoints";
-  const entryPoints: Record<string, string> = {
-    main: dev
-      ? import.meta.resolve(`${entrypointBase}/main_dev.ts`)
-      : import.meta.resolve(`${entrypointBase}/main.ts`),
-    deserializer: import.meta.resolve(`${entrypointBase}/deserializer.ts`),
-    client: import.meta.resolve(`${entrypointBase}/client.ts`),
-  };
-
-  try {
-    import.meta.resolve("@preact/signals");
-    entryPoints.signals = import.meta.resolve(`${entrypointBase}/signals.ts`);
-  } catch {
-    // @preact/signals is not in the import map
-  }
-
-  for (const island of islands) {
-    entryPoints[`island-${island.id}`] = island.url;
-  }
-
-  for (const plugin of plugins) {
-    for (const [name, url] of Object.entries(plugin.entrypoints ?? {})) {
-      entryPoints[`plugin-${plugin.name}-${name}`] = url;
-    }
-  }
-
-  return entryPoints;
-}
-
-function formatMiddlewarePath(path: string): string {
-  const prefix = !path.startsWith("/") ? "/" : "";
-  const suffix = !path.endsWith("/") ? "/" : "";
-  return prefix + path + suffix;
-}
-
-function getMiddlewareRoutesFromPlugins(
-  plugins: Plugin[],
-): [string, MiddlewareModule][] {
-  const middlewares = plugins.flatMap((plugin) => plugin.middlewares ?? []);
-
-  const mws: Record<
-    string,
-    [string, { handler: MiddlewareHandler[] }]
-  > = {};
-  for (let i = 0; i < middlewares.length; i++) {
-    const mw = middlewares[i];
-    const handler = mw.middleware.handler;
-    const key = `./routes${formatMiddlewarePath(mw.path)}_middleware.ts`;
-    if (!mws[key]) mws[key] = [key, { handler: [] }];
-    mws[key][1].handler.push(...Array.isArray(handler) ? handler : [handler]);
-  }
-
-  return Object.values(mws);
-}
-
-function formatRoutePath(path: string) {
-  return path.startsWith("/") ? path : "/" + path;
-}
-
-function getRoutesFromPlugins(plugins: Plugin[]): [string, RouteModule][] {
-  return plugins.flatMap((plugin) => plugin.routes ?? [])
-    .map((route) => {
-      return [`./routes${formatRoutePath(route.path)}.ts`, {
-        // deno-lint-ignore no-explicit-any
-        default: route.component as any,
-        handler: route.handler,
-      }];
-    });
 }
 
 function sendResponse(

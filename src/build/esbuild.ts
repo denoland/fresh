@@ -16,15 +16,8 @@ export interface EsbuildOptions {
   dev: boolean;
   /** The path to the deno.json / deno.jsonc config file. */
   configPath: string;
-  /** The JSX configuration. */
-  jsxConfig: JSXConfig;
   target: string | string[];
   absoluteWorkingDir: string;
-}
-
-export interface JSXConfig {
-  jsx: "react" | "react-jsx";
-  jsxImportSource?: string;
 }
 
 export async function bundleEsbuild(
@@ -77,8 +70,8 @@ export async function bundleEsbuild(
       sourcemap: opts.dev ? "linked" : false,
       ...minifyOptions,
 
-      jsx: JSX_RUNTIME_MODE[opts.jsxConfig.jsx],
-      jsxImportSource: opts.jsxConfig.jsxImportSource,
+      jsx: "automatic",
+      jsxImportSource: "preact",
 
       absWorkingDir,
       outdir: ".",

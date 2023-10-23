@@ -1,49 +1,43 @@
-import { Deferred, deferred } from "./deps.ts";
+import { Deferred, deferred, relative } from "./deps.ts";
 import { getEtag } from "../build/snapshot_utils.ts";
 import { AssetSnapshot, SnapshotFileInfo } from "./types.ts";
 import { bundleEsbuild, EsbuildOptions } from "../build/esbuild.ts";
 
-export class JitSnapshot implements AssetSnapshot {
-  #files: Map<string, Uint8Array>;
-  #dependencies: Map<string, string[]>;
-  #etags = new Map<string, string>();
-  #def: Deferred<void> | null = null;
-  #bundleOptions: EsbuildOptions;
+interface BuildCache {
+  files: Map<string, Uint8Array>;
+  dependencies: Map<string, string[]>;
+}
 
-  constructor(
-    files: Map<string, Uint8Array>,
-    dependencies: Map<string, string[]>,
-    bundleOptions: EsbuildOptions,
-  ) {
-    this.#files = files;
-    this.#dependencies = dependencies;
-    this.#bundleOptions = bundleOptions;
-  }
+export class JitSnapshot implements AssetSnapshot {
+  #files = new Map<string, Uint8Array>();
+  #dependencies = new Map<string, string[]>();
+  #etags = new Map<string, string>();
+  #def: Deferred<BuildCache> | null = null;
+
+  constructor(private options: EsbuildOptions) {}
 
   async #bundle() {
     if (this.#def === null) {
-      const bundle = await bundleEsbuild(this.#bundleOptions);
+      this.#def = deferred();
+      const bundle = await bundleEsbuild(this.options);
 
-      const files = new Map<string, Uint8Array>();
-      const dependencies = new Map<string, string[]>();
-
-      for (const file of bundle.outputFiles) {
-        const path = relative(absWorkingDir, file.path);
-        files.set(path, file.contents);
+      for (const file of bundle.outputFiles!) {
+        const path = relative(this.options.absoluteWorkingDir, file.path);
+        this.#files.set(path, file.contents);
       }
 
-      files.set(
+      this.#files.set(
         "metafile.json",
         new TextEncoder().encode(JSON.stringify(bundle.metafile)),
       );
 
-      const metaOutputs = new Map(Object.entries(bundle.metafile.outputs));
+      const metaOutputs = new Map(Object.entries(bundle.metafile!.outputs));
 
       for (const [path, entry] of metaOutputs.entries()) {
         const imports = entry.imports
           .filter(({ kind }) => kind === "import-statement")
           .map(({ path }) => path);
-        dependencies.set(path, imports);
+        this.#dependencies.set(path, imports);
       }
 
       this.#def!.resolve();
