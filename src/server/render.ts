@@ -19,10 +19,6 @@ import { RenderState } from "./rendering/state.ts";
 import { renderHtml, renderOuterDocument } from "./rendering/template.tsx";
 import { renderFreshTags } from "./rendering/fresh_tags.tsx";
 
-export const DEFAULT_RENDER_FN: RenderFunction = (_ctx, render) => {
-  render();
-};
-
 export interface RenderOptions<Data> {
   request: Request;
   // deno-lint-ignore no-explicit-any

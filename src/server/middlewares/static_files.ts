@@ -1,4 +1,4 @@
-import { BuildSnapshot } from "../../build/mod.ts";
+import { AssetSnapshot } from "../../build/types.ts";
 import { ASSET_CACHE_BUST_KEY } from "../../constants.ts";
 import { extname, typeByExtension } from "../deps.ts";
 import { Ctx } from "./types.ts";
@@ -6,7 +6,7 @@ import { Ctx } from "./types.ts";
 /**
  * Server files from the `static/` folder.
  */
-export function serveStaticFile(snapshot: BuildSnapshot) {
+export function serveStaticFile(snapshot: AssetSnapshot) {
   return async (ctx: Ctx) => {
     const { url, req } = ctx;
 

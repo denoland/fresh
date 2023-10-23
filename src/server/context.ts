@@ -48,8 +48,6 @@ import {
   AotSnapshot,
   Builder,
   BuildSnapshot,
-  BuildSnapshotJson,
-  EsbuildBuilder,
   JSXConfig,
 } from "../build/mod.ts";
 import { InternalRoute } from "./router.ts";
@@ -63,6 +61,7 @@ import {
   INTERNAL_PREFIX,
 } from "../constants.ts";
 import { loadAotSnapshot } from "../build/aot_snapshot.ts";
+import { JitSnapshot } from "../build/jit_snapshot.ts";
 
 const DEFAULT_CONN_INFO: ServeHandlerInfo = {
   localAddr: { transport: "tcp", hostname: "localhost", port: 8080 },
@@ -299,44 +298,6 @@ export async function getServerContext(state: InternalFreshState) {
   }
 
   const staticFiles: StaticFile[] = [];
-  try {
-    const staticDirUrl = toFileUrl(config.staticDir);
-    const entries = walk(config.staticDir, {
-      includeFiles: true,
-      includeDirs: false,
-      followSymlinks: false,
-    });
-    const encoder = new TextEncoder();
-    for await (const entry of entries) {
-      const localUrl = toFileUrl(entry.path);
-      const path = localUrl.href.substring(staticDirUrl.href.length);
-      const stat = await Deno.stat(localUrl);
-      const contentType = typeByExtension(extname(path)) ??
-        "application/octet-stream";
-      const etag = await crypto.subtle.digest(
-        "SHA-1",
-        encoder.encode(BUILD_ID + path),
-      ).then((hash) =>
-        Array.from(new Uint8Array(hash))
-          .map((byte) => byte.toString(16).padStart(2, "0"))
-          .join("")
-      );
-      const staticFile: StaticFile = {
-        localUrl,
-        path,
-        size: stat.size,
-        contentType,
-        etag,
-      };
-      staticFiles.push(staticFile);
-    }
-  } catch (err) {
-    if (err.cause instanceof Deno.errors.NotFound) {
-      // Do nothing.
-    } else {
-      throw err;
-    }
-  }
 
   if (config.dev) {
     // Ensure that debugging hooks are set up for SSR rendering
@@ -347,16 +308,27 @@ export async function getServerContext(state: InternalFreshState) {
   let snapshot: BuildSnapshot | null = null;
   if (state.loadSnapshot) {
     snapshot = await loadAotSnapshot(config.build.outDir);
+  } else if (config.dev) {
+    // TODO
   } else {
-    // TOOD: Load DevSnapshot
+    // TOOD: Load JITSnapshot
     // snapshot = new
+    snapshot = new JitSnapshot({
+      buildID: BUILD_ID,
+      entrypoints: collectEntrypoints(this.#dev, this.#islands, this.#plugins),
+      configPath,
+      dev: this.#dev,
+      jsxConfig,
+      target,
+      absoluteWorkingDir: Deno.cwd(),
+    });
   }
 
   return new ServerContext(
     routes,
     islands,
     staticFiles,
-    config.render ?? DEFAULT_RENDER_FN,
+    config.render,
     middlewares,
     app,
     layouts,
@@ -366,7 +338,7 @@ export async function getServerContext(state: InternalFreshState) {
     configPath,
     jsxConfig,
     config.dev,
-    config.router ?? DEFAULT_ROUTER_OPTIONS,
+    config.router,
     config.build.target,
     snapshot,
   );
@@ -416,15 +388,7 @@ export class ServerContext {
     this.#error = error;
     this.#plugins = plugins;
     this.#dev = dev;
-    this.#builder = snapshot ?? new EsbuildBuilder({
-      buildID: BUILD_ID,
-      entrypoints: collectEntrypoints(this.#dev, this.#islands, this.#plugins),
-      configPath,
-      dev: this.#dev,
-      jsxConfig,
-      target,
-      absoluteWorkingDir: Deno.cwd(),
-    });
+    this.#builder = snapshot;
     this.#routerOptions = routerOptions;
   }
 
@@ -435,14 +399,6 @@ export class ServerContext {
     manifest: Manifest,
     config: FromManifestConfig,
   ): Promise<ServerContext> {
-    const isLegacyDev = Deno.env.get("__FRSH_LEGACY_DEV") === "true";
-    config.dev = isLegacyDev ||
-      Boolean(config.dev);
-
-    if (isLegacyDev) {
-      config.skipSnapshot = true;
-    }
-
     const configWithDefaults = await getInternalFreshState(
       manifest,
       config,
@@ -495,106 +451,13 @@ export class ServerContext {
 
       // Generated static files under /_frsh/ .
       if (url.pathname.startsWith(`${INTERNAL_PREFIX}/`)) {
-        const contents = await snapshot.read(url.pathname);
-
-        if (contents) {
-          const headers: Record<string, string> = {
-            "Cache-Control": isDev
-              // Prevent caching of static assets during dev.
-              ? "Cache-Control: no-cache, no-store, max-age=0, must-revalidate"
-              : "public, max-age=604800, immutable",
-          };
-
-          const contentType = typeByExtension(extname(url.pathname));
-          if (contentType) headers["Content-Type"] = contentType;
-
-          return new Response(contents, {
-            status: 200,
-            headers,
-          });
-        }
-      } else {
-        const fileInfo = await snapshot.getFileInfo(url.pathname);
-        if (fileInfo !== null) {
-          const { etag, size } = fileInfo;
-          const contentType = typeByExtension(extname(url.pathname)) ??
-            "application/octet-stream";
-
-          const headers = new Headers({
-            "content-type": contentType,
-            etag,
-            vary: "If-None-Match",
-          });
-
-          const cacheControl = url.searchParams.has(ASSET_CACHE_BUST_KEY)
-            ? "public, max-age=31536000, immutable"
-            // Cache-Control must be set to at least "no-cache" for
-            // the etag header to work
-            : "no-cache";
-          headers.set("Cache-Control", cacheControl);
-
-          const ifNoneMatch = req.headers.get("if-none-match");
-          if (ifNoneMatch === etag || ifNoneMatch === "W/" + etag) {
-            return new Response(null, { status: 304, headers });
-          } else {
-            const file = await snapshot.read(url.pathname);
-            headers.set("content-length", String(size));
-            return new Response(file.readable, { headers });
-          }
-        }
       }
-
-      // Redirect requests that end with a trailing slash to their non-trailing
-      // slash counterpart.
-      // Ex: /about/ -> /about
-      if (
-        url.pathname.length > 1 && url.pathname.endsWith("/") &&
-        !trailingSlashEnabled
-      ) {
-        // Remove trailing slashes
-        const path = url.pathname.replace(/\/+$/, "");
-        const location = `${path}${url.search}`;
-        return new Response(null, {
-          status: Status.TemporaryRedirect,
-          headers: { location },
-        });
-      } else if (trailingSlashEnabled && !url.pathname.endsWith("/")) {
-        // If the last element of the path has a "." it's a file
-        const isFile = url.pathname.split("/").at(-1)?.includes(".");
-
-        // If the path uses the internal prefix, don't redirect it
-        const isInternal = url.pathname.startsWith(INTERNAL_PREFIX);
-
-        if (!isFile && !isInternal) {
-          url.pathname += "/";
-          return Response.redirect(url, Status.PermanentRedirect);
-        }
-      }
-
       return await withMiddlewares(req, connInfo, inner);
     };
   }
 
-  #maybeBuildSnapshot(): BuildSnapshot | null {
-    if ("build" in this.#builder || this.#builder instanceof Promise) {
-      return null;
-    }
-    return this.#builder;
-  }
-
   async buildSnapshot() {
-    if ("build" in this.#builder) {
-      const builder = this.#builder;
-      this.#builder = builder.build();
-      try {
-        const snapshot = await this.#builder;
-        this.#builder = snapshot;
-      } catch (err) {
-        this.#builder = builder;
-        throw err;
-      }
-    }
-    return this.#builder;
+    // TODO: Backport
   }
 
   /**
@@ -712,32 +575,6 @@ export class ServerContext {
         default: this.#bundleAssetRoute(),
       },
     };
-
-    // Add the static file routes.
-    // each files has 2 static routes:
-    // - one serving the file at its location without a "cache bursting" mechanism
-    // - one containing the BUILD_ID in the path that can be cached
-    for (
-      const { localUrl, path, size, contentType, etag } of this.#staticFiles
-    ) {
-      const route = sanitizePathToRegex(path);
-      staticRoutes[route] = {
-        baseRoute: toBaseRoute(route),
-        methods: {
-          "HEAD": this.#staticFileHeadHandler(
-            size,
-            contentType,
-            etag,
-          ),
-          "GET": this.#staticFileGetHandler(
-            localUrl,
-            size,
-            contentType,
-            etag,
-          ),
-        },
-      };
-    }
 
     // Tell renderer about all globally available islands
     setAllIslands(this.#islands);
@@ -947,110 +784,7 @@ export class ServerContext {
 
     return { internalRoutes, staticRoutes, routes, otherHandler, errorHandler };
   }
-
-  #staticFileHeadHandler(
-    size: number,
-    contentType: string,
-    etag: string,
-  ): router.MatchHandler {
-    return (req: Request) => {
-      const url = new URL(req.url);
-      const key = url.searchParams.get(ASSET_CACHE_BUST_KEY);
-      if (key !== null && BUILD_ID !== key) {
-        url.searchParams.delete(ASSET_CACHE_BUST_KEY);
-        const location = url.pathname + url.search;
-        return new Response(null, {
-          status: 307,
-          headers: {
-            location,
-          },
-        });
-      }
-      const headers = new Headers({
-        "content-type": contentType,
-        etag,
-        vary: "If-None-Match",
-      });
-      if (key !== null) {
-        headers.set("Cache-Control", "public, max-age=31536000, immutable");
-      }
-      const ifNoneMatch = req.headers.get("if-none-match");
-      if (ifNoneMatch === etag || ifNoneMatch === "W/" + etag) {
-        return new Response(null, { status: 304, headers });
-      } else {
-        headers.set("content-length", String(size));
-        return new Response(null, { status: 200, headers });
-      }
-    };
-  }
-
-  #staticFileGetHandler(
-    localUrl: URL,
-    size: number,
-    contentType: string,
-    etag: string,
-  ): router.MatchHandler {
-    return async (req: Request) => {
-      const url = new URL(req.url);
-      const key = url.searchParams.get(ASSET_CACHE_BUST_KEY);
-      if (key !== null && BUILD_ID !== key) {
-        url.searchParams.delete(ASSET_CACHE_BUST_KEY);
-        const location = url.pathname + url.search;
-        return new Response("", {
-          status: 307,
-          headers: {
-            "content-type": "text/plain",
-            location,
-          },
-        });
-      }
-      const headers = new Headers({
-        "content-type": contentType,
-        etag,
-        vary: "If-None-Match",
-      });
-      if (key !== null) {
-        headers.set("Cache-Control", "public, max-age=31536000, immutable");
-      }
-      const ifNoneMatch = req.headers.get("if-none-match");
-      if (ifNoneMatch === etag || ifNoneMatch === "W/" + etag) {
-        return new Response(null, { status: 304, headers });
-      } else {
-        const file = await Deno.open(localUrl);
-        headers.set("content-length", String(size));
-        return new Response(file.readable, { headers });
-      }
-    };
-  }
-
-  /**
-   * Returns a router that contains all Fresh routes. Should be mounted at
-   * constants.INTERNAL_PREFIX
-   */
-  #bundleAssetRoute = (): router.MatchHandler => {
-    return async (_req, _ctx, params) => {
-      const snapshot = await this.buildSnapshot();
-      const contents = await snapshot.read(params.path);
-      if (!contents) return new Response(null, { status: 404 });
-
-      const headers: Record<string, string> = {
-        "Cache-Control": "public, max-age=604800, immutable",
-      };
-
-      const contentType = typeByExtension(extname(params.path));
-      if (contentType) headers["Content-Type"] = contentType;
-
-      return new Response(contents, {
-        status: 200,
-        headers,
-      });
-    };
-  };
 }
-
-const DEFAULT_ROUTER_OPTIONS: RouterOptions = {
-  trailingSlash: false,
-};
 
 const DEFAULT_APP: AppModule = {
   default: ({ Component }: { Component: ComponentType }) => h(Component, {}),

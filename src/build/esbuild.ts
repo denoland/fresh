@@ -1,5 +1,6 @@
 import {
   type BuildOptions,
+  type BuildResult,
   type OnLoadOptions,
   type Plugin,
 } from "https://deno.land/x/esbuild@v0.19.4/mod.js";
@@ -26,7 +27,9 @@ export interface JSXConfig {
   jsxImportSource?: string;
 }
 
-export async function build(opts: EsbuildOptions): Promise<DevSnapshot> {
+export async function bundleEsbuild(
+  opts: EsbuildOptions,
+): Promise<BuildResult> {
   // Lazily initialize esbuild
   // @deno-types="https://deno.land/x/esbuild@v0.19.4/mod.d.ts"
   const esbuild =
@@ -61,7 +64,7 @@ export async function build(opts: EsbuildOptions): Promise<DevSnapshot> {
       }
       : { minify: true };
 
-    const bundle = await esbuild.build({
+    return await esbuild.build({
       entryPoints: opts.entrypoints,
 
       platform: "browser",
@@ -88,29 +91,29 @@ export async function build(opts: EsbuildOptions): Promise<DevSnapshot> {
       ],
     });
 
-    const files = new Map<string, Uint8Array>();
-    const dependencies = new Map<string, string[]>();
+    // const files = new Map<string, Uint8Array>();
+    // const dependencies = new Map<string, string[]>();
 
-    for (const file of bundle.outputFiles) {
-      const path = relative(absWorkingDir, file.path);
-      files.set(path, file.contents);
-    }
+    // for (const file of bundle.outputFiles) {
+    //   const path = relative(absWorkingDir, file.path);
+    //   files.set(path, file.contents);
+    // }
 
-    files.set(
-      "metafile.json",
-      new TextEncoder().encode(JSON.stringify(bundle.metafile)),
-    );
+    // files.set(
+    //   "metafile.json",
+    //   new TextEncoder().encode(JSON.stringify(bundle.metafile)),
+    // );
 
-    const metaOutputs = new Map(Object.entries(bundle.metafile.outputs));
+    // const metaOutputs = new Map(Object.entries(bundle.metafile.outputs));
 
-    for (const [path, entry] of metaOutputs.entries()) {
-      const imports = entry.imports
-        .filter(({ kind }) => kind === "import-statement")
-        .map(({ path }) => path);
-      dependencies.set(path, imports);
-    }
+    // for (const [path, entry] of metaOutputs.entries()) {
+    //   const imports = entry.imports
+    //     .filter(({ kind }) => kind === "import-statement")
+    //     .map(({ path }) => path);
+    //   dependencies.set(path, imports);
+    // }
 
-    return new DevSnapshot(files, dependencies);
+    // return new DevSnapshot(files, dependencies);
   } finally {
     esbuild.stop();
   }

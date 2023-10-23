@@ -1,4 +1,4 @@
-import { BuildSnapshot } from "../../build/mod.ts";
+import { AssetSnapshot } from "../../build/types.ts";
 import { extname, typeByExtension } from "../deps.ts";
 import { Ctx } from "./types.ts";
 
@@ -7,7 +7,7 @@ import { Ctx } from "./types.ts";
  * to be long-lived for caching as they can only change with
  * a deployment and contain the deploy key in the URL pathname.
  */
-export function serveGeneratedFiles(snapshot: BuildSnapshot) {
+export function serveGeneratedFiles(snapshot: AssetSnapshot) {
   return async (ctx: Ctx) => {
     const { url, config } = ctx;
 

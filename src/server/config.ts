@@ -3,6 +3,7 @@ import { FromManifestConfig, Manifest } from "./mod.ts";
 import {
   DenoConfig,
   InternalFreshState,
+  RenderFunction,
   ResolvedFreshConfig,
 } from "./types.ts";
 
@@ -41,6 +42,10 @@ function isObject(value: unknown) {
     !Array.isArray(value);
 }
 
+export const DEFAULT_RENDER_FN: RenderFunction = (_ctx, render) => {
+  render();
+};
+
 export async function getInternalFreshState(
   manifest: Manifest,
   config: FromManifestConfig,
@@ -54,6 +59,14 @@ export async function getInternalFreshState(
     );
   }
 
+  const isLegacyDev = Deno.env.get("__FRSH_LEGACY_DEV") === "true";
+  config.dev = isLegacyDev ||
+    Boolean(config.dev);
+
+  if (isLegacyDev) {
+    config.skipSnapshot = true;
+  }
+
   const internalConfig: ResolvedFreshConfig = {
     dev: config.dev ?? false,
     build: {
@@ -62,7 +75,7 @@ export async function getInternalFreshState(
     },
     plugins: config.plugins ?? [],
     staticDir: "",
-    render: config.render,
+    render: config.render ?? DEFAULT_RENDER_FN,
     router: config.router,
     server: config.server ?? {},
   };

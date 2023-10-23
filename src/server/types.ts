@@ -122,7 +122,7 @@ export interface ResolvedFreshConfig {
     outDir: string;
     target: string | string[];
   };
-  render?: RenderFunction;
+  render: RenderFunction;
   plugins: Plugin[];
   staticDir: string;
   router?: RouterOptions;
