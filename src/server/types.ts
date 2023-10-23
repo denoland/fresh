@@ -108,12 +108,16 @@ export interface FreshConfig {
   onListen?: (params: { hostname: string; port: number }) => void;
 }
 
-export interface InternalFreshConfig {
-  dev: boolean;
+export interface InternalFreshState {
+  config: ResolvedFreshConfig;
+  manifest: Manifest;
   loadSnapshot: boolean;
   denoJsonPath: string;
   denoJson: DenoConfig;
-  manifest: Manifest;
+}
+
+export interface ResolvedFreshConfig {
+  dev: boolean;
   build: {
     outDir: string;
     target: string | string[];
@@ -545,7 +549,7 @@ export interface Plugin<State = Record<string, unknown>> {
   /**
    * Called before running the Fresh build task
    */
-  buildStart?(): Promise<void> | void;
+  buildStart?(config: ResolvedFreshConfig): Promise<void> | void;
   /**
    * Called after completing the Fresh build task
    */

@@ -1,12 +1,9 @@
 import {
-  denoPlugins,
-  esbuild,
-  esbuildTypes,
-  esbuildWasmURL,
-  fromFileUrl,
-  regexpEscape,
-  toFileUrl,
-} from "./deps.ts";
+  type BuildOptions,
+  type OnLoadOptions,
+  type Plugin,
+} from "https://deno.land/x/esbuild@v0.19.4/mod.js";
+import { denoPlugins, fromFileUrl, regexpEscape, relative } from "./deps.ts";
 import { Builder, BuildSnapshot } from "./mod.ts";
 
 export interface EsbuildBuilderOptions {
@@ -21,6 +18,7 @@ export interface EsbuildBuilderOptions {
   /** The JSX configuration. */
   jsxConfig: JSXConfig;
   target: string | string[];
+  absoluteWorkingDir: string;
 }
 
 export interface JSXConfig {
@@ -37,14 +35,34 @@ export class EsbuildBuilder implements Builder {
 
   async build(): Promise<EsbuildSnapshot> {
     const opts = this.#options;
-    try {
-      await initEsbuild();
 
-      const absWorkingDir = Deno.cwd();
+    // Lazily initialize esbuild
+    // @deno-types="https://deno.land/x/esbuild@v0.19.4/mod.d.ts"
+    const esbuild =
+      // deno-lint-ignore no-deprecated-deno-api
+      Deno.run === undefined ||
+        Deno.env.get("FRESH_ESBUILD_LOADER") === "portable"
+        ? await import("https://deno.land/x/esbuild@v0.19.4/wasm.js")
+        : await import("https://deno.land/x/esbuild@v0.19.4/mod.js");
+    const esbuildWasmURL =
+      new URL("./esbuild_v0.19.4.wasm", import.meta.url).href;
+
+    // deno-lint-ignore no-deprecated-deno-api
+    if (Deno.run === undefined) {
+      await esbuild.initialize({
+        wasmURL: esbuildWasmURL,
+        worker: false,
+      });
+    } else {
+      await esbuild.initialize({});
+    }
+
+    try {
+      const absWorkingDir = opts.absoluteWorkingDir;
 
       // In dev-mode we skip identifier minification to be able to show proper
       // component names in Preact DevTools instead of single characters.
-      const minifyOptions: Partial<esbuildTypes.BuildOptions> = opts.dev
+      const minifyOptions: Partial<BuildOptions> = opts.dev
         ? {
           minifyIdentifiers: false,
           minifySyntax: true,
@@ -82,10 +100,8 @@ export class EsbuildBuilder implements Builder {
       const files = new Map<string, Uint8Array>();
       const dependencies = new Map<string, string[]>();
 
-      const absWorkingDirLen = toFileUrl(absWorkingDir).href.length + 1;
-
       for (const file of bundle.outputFiles) {
-        const path = toFileUrl(file.path).href.slice(absWorkingDirLen);
+        const path = relative(absWorkingDir, file.path);
         files.set(path, file.contents);
       }
 
@@ -105,7 +121,7 @@ export class EsbuildBuilder implements Builder {
 
       return new EsbuildSnapshot(files, dependencies);
     } finally {
-      stopEsbuild();
+      esbuild.stop();
     }
   }
 }
@@ -115,26 +131,10 @@ const JSX_RUNTIME_MODE = {
   "react-jsx": "automatic",
 } as const;
 
-async function initEsbuild() {
-  // deno-lint-ignore no-deprecated-deno-api
-  if (Deno.run === undefined) {
-    await esbuild.initialize({
-      wasmURL: esbuildWasmURL,
-      worker: false,
-    });
-  } else {
-    await esbuild.initialize({});
-  }
-}
-
-function stopEsbuild() {
-  esbuild.stop();
-}
-
-function buildIdPlugin(buildId: string): esbuildTypes.Plugin {
+function buildIdPlugin(buildId: string): Plugin {
   const file = import.meta.resolve("../runtime/build_id.ts");
   const url = new URL(file);
-  let options: esbuildTypes.OnLoadOptions;
+  let options: OnLoadOptions;
   if (url.protocol === "file:") {
     const path = fromFileUrl(url);
     const filter = new RegExp(`^${regexpEscape(path)}$`);

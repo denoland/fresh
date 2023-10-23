@@ -150,7 +150,7 @@ partials as desired. That way you can update multiple unrelated areas on your
 page in one single HTTP response. A scenario where this is useful are online
 shops for example.
 
-```tsx routes/partials/cart
+```tsx routes/partials/cart.tsx
 export default function AddToCartPartial() {
   return (
     <>

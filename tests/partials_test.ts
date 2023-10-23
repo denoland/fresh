@@ -1382,3 +1382,44 @@ Deno.test("supports relative links", async () => {
     },
   );
 });
+
+Deno.test("nested partials are able to be updated", async () => {
+  await withPageName(
+    "./tests/fixture_partials/main.ts",
+    async (page, address) => {
+      await page.goto(`${address}/nested`);
+      await page.waitForSelector(".status-outer");
+      await page.waitForSelector(".status-inner");
+
+      await page.click(".update-outer");
+      await waitForText(page, ".status-outer", "updated outer");
+      await waitForText(page, ".status-inner", "inner");
+
+      await page.click(".update-inner");
+      await waitForText(page, ".status-outer", "updated outer");
+      await waitForText(page, ".status-inner", "updated inner");
+
+      await page.click(".update-outer");
+      await waitForText(page, ".status-outer", "updated outer");
+      await waitForText(page, ".status-inner", "inner");
+    },
+  );
+});
+
+Deno.test("errors on duplicate partial name", async () => {
+  await withPageName(
+    "./tests/fixture_partials/main.ts",
+    async (page, address) => {
+      await page.goto(`${address}/duplicate_name`);
+      await page.waitForSelector(".swap-link");
+
+      const logs: string[] = [];
+      page.on("console", (msg) => logs.push(msg.text()));
+
+      await Promise.all([
+        page.waitForResponse((res) => res.status() === 500),
+        page.click(".swap-link"),
+      ]);
+    },
+  );
+});
