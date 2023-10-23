@@ -16,14 +16,10 @@ export interface EsbuildBuilderOptions {
   /** The path to the deno.json / deno.jsonc config file. */
   configPath: string;
   /** The JSX configuration. */
-  jsxConfig: JSXConfig;
+  jsx?: string;
+  jsxImportSource?: string;
   target: string | string[];
   absoluteWorkingDir: string;
-}
-
-export interface JSXConfig {
-  jsx: "react" | "react-jsx";
-  jsxImportSource?: string;
 }
 
 export class EsbuildBuilder implements Builder {
@@ -83,8 +79,14 @@ export class EsbuildBuilder implements Builder {
         sourcemap: opts.dev ? "linked" : false,
         ...minifyOptions,
 
-        jsx: JSX_RUNTIME_MODE[opts.jsxConfig.jsx],
-        jsxImportSource: opts.jsxConfig.jsxImportSource,
+        jsx: opts.jsx === "react"
+          ? "transform"
+          : opts.jsx === "react-native" || opts.jsx === "preserve"
+          ? "preserve"
+          : !opts.jsxImportSource
+          ? "transform"
+          : "automatic",
+        jsxImportSource: opts.jsxImportSource ?? "preact",
 
         absWorkingDir,
         outdir: ".",
@@ -125,11 +127,6 @@ export class EsbuildBuilder implements Builder {
     }
   }
 }
-
-const JSX_RUNTIME_MODE = {
-  "react": "transform",
-  "react-jsx": "automatic",
-} as const;
 
 function buildIdPlugin(buildId: string): Plugin {
   const file = import.meta.resolve("../runtime/build_id.ts");
