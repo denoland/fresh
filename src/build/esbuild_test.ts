@@ -28,9 +28,7 @@ Deno.test("esbuild snapshot with cwd=Deno.cwd()", async () => {
     entrypoints: {
       main: mainEntry,
     },
-    jsxConfig: {
-      jsx: "react-jsx",
-    },
+    jsx: "react-jsx",
     target: "es2020",
   });
 
@@ -50,9 +48,7 @@ Deno.test({
       entrypoints: {
         main: mainEntry,
       },
-      jsxConfig: {
-        jsx: "react-jsx",
-      },
+      jsx: "react-jsx",
       target: "es2020",
     });
 

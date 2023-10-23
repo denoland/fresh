@@ -24,12 +24,7 @@ import {
   SELF,
 } from "../runtime/csp.ts";
 import { ASSET_CACHE_BUST_KEY, INTERNAL_PREFIX } from "../runtime/utils.ts";
-import {
-  Builder,
-  BuildSnapshot,
-  EsbuildBuilder,
-  JSXConfig,
-} from "../build/mod.ts";
+import { Builder, BuildSnapshot, EsbuildBuilder } from "../build/mod.ts";
 import { setAllIslands } from "./rendering/preact_hooks.ts";
 import { getCodeFrame } from "./code_frame.ts";
 import { getInternalFreshState } from "./config.ts";
@@ -59,45 +54,39 @@ export type FromManifestConfig = FreshConfig & {
 export async function getServerContext(state: InternalFreshState) {
   const { config, denoJson, denoJsonPath: configPath } = state;
 
-  // Restore snapshot if available
-  let snapshot: BuildSnapshot | null = null;
-  if (state.loadSnapshot) {
-    snapshot = await loadAotSnapshot(config);
-  }
-
-  denoJson.compilerOptions ??= {};
-
-  let jsx: "react" | "react-jsx";
-  switch (denoJson.compilerOptions.jsx) {
-    case "react":
-    case undefined:
-      jsx = "react";
-      break;
-    case "react-jsx":
-      jsx = "react-jsx";
-      break;
-    default:
-      throw new Error("Unknown jsx option: " + denoJson.compilerOptions.jsx);
-  }
-
-  const jsxConfig: JSXConfig = {
-    jsx,
-    jsxImportSource: denoJson.compilerOptions.jsxImportSource,
-  };
-
-  const extractResult = await extractRoutes(state);
-
   if (config.dev) {
     // Ensure that debugging hooks are set up for SSR rendering
     await import("preact/debug");
   }
 
+  const extractResult = await extractRoutes(state);
+
+  // Restore snapshot if available
+  let snapshot: Builder | BuildSnapshot | Promise<BuildSnapshot> | null = null;
+  if (state.loadSnapshot) {
+    const loadedSnapshot = await loadAotSnapshot(config);
+    if (loadedSnapshot !== null) snapshot = loadedSnapshot;
+  }
+
+  const finalSnapshot = snapshot ?? new EsbuildBuilder({
+    buildID: BUILD_ID,
+    entrypoints: collectEntrypoints(
+      config.dev,
+      extractResult.islands,
+      config.plugins,
+    ),
+    configPath,
+    dev: config.dev,
+    jsx: denoJson.compilerOptions?.jsx,
+    jsxImportSource: denoJson.compilerOptions?.jsxImportSource,
+    target: state.config.build.target,
+    absoluteWorkingDir: Deno.cwd(),
+  });
+
   return new ServerContext(
     state,
     extractResult,
-    configPath,
-    jsxConfig,
-    snapshot,
+    finalSnapshot,
   );
 }
 
@@ -112,31 +101,14 @@ export class ServerContext {
   constructor(
     state: InternalFreshState,
     extractResult: FsExtractResult,
-    configPath: string,
-    jsxConfig: JSXConfig,
-    snapshot: BuildSnapshot | null = null,
+    snapshot: Builder | BuildSnapshot | Promise<BuildSnapshot>,
   ) {
     this.#state = state;
     this.#extractResult = extractResult;
     this.#renderFn = state.config.render;
     this.#plugins = state.config.plugins;
-
-    const dev = state.config.dev;
-    this.#dev = dev;
-
-    this.#builder = snapshot ?? new EsbuildBuilder({
-      buildID: BUILD_ID,
-      entrypoints: collectEntrypoints(
-        dev,
-        extractResult.islands,
-        this.#plugins,
-      ),
-      configPath,
-      dev,
-      jsxConfig,
-      target: state.config.build.target,
-      absoluteWorkingDir: Deno.cwd(),
-    });
+    this.#dev = state.config.dev;
+    this.#builder = snapshot;
   }
 
   /**
