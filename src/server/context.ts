@@ -1,8 +1,8 @@
-import { colors, extname, join, Status, typeByExtension } from "./deps.ts";
+import { extname, Status, typeByExtension } from "./deps.ts";
 import * as router from "./router.ts";
 import { FreshConfig, Manifest } from "./mod.ts";
 import { ALIVE_URL, DEV_CLIENT_URL, JS_PREFIX } from "./constants.ts";
-import { BUILD_ID, setBuildId } from "./build_id.ts";
+import { BUILD_ID } from "./build_id.ts";
 
 import {
   ErrorPage,
@@ -25,10 +25,8 @@ import {
 } from "../runtime/csp.ts";
 import { ASSET_CACHE_BUST_KEY, INTERNAL_PREFIX } from "../runtime/utils.ts";
 import {
-  AotSnapshot,
   Builder,
   BuildSnapshot,
-  BuildSnapshotJson,
   EsbuildBuilder,
   JSXConfig,
 } from "../build/mod.ts";
@@ -42,6 +40,7 @@ import {
   toBaseRoute,
 } from "./compose.ts";
 import { extractRoutes, FsExtractResult } from "./fs_extract.ts";
+import { loadAotSnapshot } from "../build/aot_snapshot.ts";
 
 const DEFAULT_CONN_INFO: ServeHandlerInfo = {
   localAddr: { transport: "tcp", hostname: "localhost", port: 8080 },
@@ -64,36 +63,7 @@ export async function getServerContext(state: InternalFreshState) {
   // Restore snapshot if available
   let snapshot: BuildSnapshot | null = null;
   if (state.loadSnapshot) {
-    const snapshotDirPath = config.build.outDir;
-    try {
-      if ((await Deno.stat(snapshotDirPath)).isDirectory) {
-        console.log(
-          `Using snapshot found at ${colors.cyan(snapshotDirPath)}`,
-        );
-
-        const snapshotPath = join(snapshotDirPath, "snapshot.json");
-        const json = JSON.parse(
-          await Deno.readTextFile(snapshotPath),
-        ) as BuildSnapshotJson;
-        setBuildId(json.build_id);
-
-        const dependencies = new Map<string, string[]>(
-          Object.entries(json.files),
-        );
-
-        const files = new Map<string, string>();
-        Object.keys(json.files).forEach((name) => {
-          const filePath = join(snapshotDirPath, name);
-          files.set(name, filePath);
-        });
-
-        snapshot = new AotSnapshot(files, dependencies);
-      }
-    } catch (err) {
-      if (!(err instanceof Deno.errors.NotFound)) {
-        throw err;
-      }
-    }
+    snapshot = await loadAotSnapshot(config);
   }
 
   denoJson.compilerOptions ??= {};
