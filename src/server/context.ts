@@ -285,12 +285,13 @@ export class ServerContext {
       staticRoutes[route] = {
         baseRoute: toBaseRoute(route),
         methods: {
-          "HEAD": this.#staticFileHeadHandler(
+          "HEAD": this.#staticFileHandler(
+            localUrl,
             size,
             contentType,
             etag,
           ),
-          "GET": this.#staticFileGetHandler(
+          "GET": this.#staticFileHandler(
             localUrl,
             size,
             contentType,
@@ -517,12 +518,13 @@ export class ServerContext {
     return { internalRoutes, staticRoutes, routes, otherHandler, errorHandler };
   }
 
-  #staticFileHeadHandler(
+  #staticFileHandler(
+    localUrl: URL,
     size: number,
     contentType: string,
     etag: string,
   ): router.MatchHandler {
-    return (req: Request) => {
+    return async (req: Request) => {
       const url = new URL(req.url);
       const key = url.searchParams.get(ASSET_CACHE_BUST_KEY);
       if (key !== null && BUILD_ID !== key) {
@@ -546,44 +548,9 @@ export class ServerContext {
       const ifNoneMatch = req.headers.get("if-none-match");
       if (ifNoneMatch === etag || ifNoneMatch === "W/" + etag) {
         return new Response(null, { status: 304, headers });
-      } else {
+      } else if (req.method === "HEAD") {
         headers.set("content-length", String(size));
         return new Response(null, { status: 200, headers });
-      }
-    };
-  }
-
-  #staticFileGetHandler(
-    localUrl: URL,
-    size: number,
-    contentType: string,
-    etag: string,
-  ): router.MatchHandler {
-    return async (req: Request) => {
-      const url = new URL(req.url);
-      const key = url.searchParams.get(ASSET_CACHE_BUST_KEY);
-      if (key !== null && BUILD_ID !== key) {
-        url.searchParams.delete(ASSET_CACHE_BUST_KEY);
-        const location = url.pathname + url.search;
-        return new Response("", {
-          status: 307,
-          headers: {
-            "content-type": "text/plain",
-            location,
-          },
-        });
-      }
-      const headers = new Headers({
-        "content-type": contentType,
-        etag,
-        vary: "If-None-Match",
-      });
-      if (key !== null) {
-        headers.set("Cache-Control", "public, max-age=31536000, immutable");
-      }
-      const ifNoneMatch = req.headers.get("if-none-match");
-      if (ifNoneMatch === etag || ifNoneMatch === "W/" + etag) {
-        return new Response(null, { status: 304, headers });
       } else {
         const file = await Deno.open(localUrl);
         headers.set("content-length", String(size));
