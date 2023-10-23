@@ -15,7 +15,6 @@ import { BUILD_ID, setBuildId } from "./build_id.ts";
 import DefaultErrorHandler from "./default_error_page.tsx";
 import {
   AppModule,
-  BaseRoute,
   ErrorPage,
   ErrorPageModule,
   Handler,
@@ -24,7 +23,6 @@ import {
   LayoutModule,
   LayoutRoute,
   MiddlewareHandler,
-  MiddlewareHandlerContext,
   MiddlewareModule,
   MiddlewareRoute,
   Plugin,
@@ -53,10 +51,14 @@ import {
   EsbuildBuilder,
   JSXConfig,
 } from "../build/mod.ts";
-import { InternalRoute } from "./router.ts";
 import { setAllIslands } from "./rendering/preact_hooks.ts";
 import { getCodeFrame } from "./code_frame.ts";
 import { getInternalFreshState } from "./config.ts";
+import {
+  composeMiddlewares,
+  selectSharedRoutes,
+  toBaseRoute,
+} from "./compose.ts";
 
 const DEFAULT_CONN_INFO: ServeHandlerInfo = {
   localAddr: { transport: "tcp", hostname: "localhost", port: 8080 },
@@ -485,7 +487,7 @@ export class ServerContext {
   handler(): (req: Request, connInfo?: ServeHandlerInfo) => Promise<Response> {
     const handlers = this.#handlers();
     const inner = router.router<RouterState>(handlers);
-    const withMiddlewares = this.#composeMiddlewares(
+    const withMiddlewares = composeMiddlewares(
       this.#middlewares,
       handlers.errorHandler,
       router.getParamsAndRoute<RouterState>(handlers),
@@ -571,97 +573,6 @@ export class ServerContext {
       }
     }
     return this.#builder;
-  }
-
-  /**
-   * Identify which middlewares should be applied for a request,
-   * chain them and return a handler response
-   */
-  #composeMiddlewares(
-    middlewares: MiddlewareRoute[],
-    errorHandler: router.ErrorHandler<RouterState>,
-    paramsAndRoute: (
-      url: string,
-    ) => {
-      route: InternalRoute<RouterState> | undefined;
-      params: Record<string, string>;
-    },
-  ) {
-    return (
-      req: Request,
-      connInfo: ServeHandlerInfo,
-      inner: router.FinalHandler<RouterState>,
-    ) => {
-      const handlers: (() => Response | Promise<Response>)[] = [];
-      const paramsAndRouteResult = paramsAndRoute(req.url);
-
-      // identify middlewares to apply, if any.
-      // middlewares should be already sorted from deepest to shallow layer
-      const mws = selectSharedRoutes(
-        paramsAndRouteResult.route?.baseRoute ?? ROOT_BASE_ROUTE,
-        middlewares,
-      );
-
-      let state: Record<string, unknown> = {};
-      const middlewareCtx: MiddlewareHandlerContext = {
-        next() {
-          const handler = handlers.shift()!;
-          try {
-            // As the `handler` can be either sync or async, depending on the user's code,
-            // the current shape of our wrapper, that is `() => handler(req, middlewareCtx)`,
-            // doesn't guarantee that all possible errors will be captured.
-            // `Promise.resolve` accept the value that should be returned to the promise
-            // chain, however, if that value is produced by the external function call,
-            // the possible `Error`, will *not* be caught by any `.catch()` attached to that chain.
-            // Because of that, we need to make sure that the produced value is pushed
-            // through the pipeline only if function was called successfully, and handle
-            // the error case manually, by returning the `Error` as rejected promise.
-            return Promise.resolve(handler());
-          } catch (e) {
-            return Promise.reject(e);
-          }
-        },
-        ...connInfo,
-        get state() {
-          return state;
-        },
-        set state(v) {
-          state = v;
-        },
-        destination: "route",
-        params: paramsAndRouteResult.params,
-      };
-
-      for (const { module } of mws) {
-        if (module.handler instanceof Array) {
-          for (const handler of module.handler) {
-            handlers.push(() => handler(req, middlewareCtx));
-          }
-        } else {
-          const handler = module.handler;
-          handlers.push(() => handler(req, middlewareCtx));
-        }
-      }
-
-      const ctx = {
-        ...connInfo,
-        get state() {
-          return state;
-        },
-        set state(v) {
-          state = v;
-        },
-      };
-      const { destination, handler } = inner(
-        req,
-        ctx,
-        paramsAndRouteResult.params,
-        paramsAndRouteResult.route,
-      );
-      handlers.push(handler);
-      middlewareCtx.destination = destination;
-      return middlewareCtx.next().catch((e) => errorHandler(req, ctx, e));
-    };
   }
 
   /**
@@ -1055,26 +966,6 @@ const DEFAULT_ERROR: ErrorPage = {
   inheritLayouts: true,
 };
 
-export function selectSharedRoutes<T extends { baseRoute: BaseRoute }>(
-  curBaseRoute: BaseRoute,
-  items: T[],
-): T[] {
-  const selected: T[] = [];
-
-  for (const item of items) {
-    const { baseRoute } = item;
-    const res = curBaseRoute === baseRoute ||
-      curBaseRoute.startsWith(
-        baseRoute.length > 1 ? baseRoute + "/" : baseRoute,
-      );
-    if (res) {
-      selected.push(item);
-    }
-  }
-
-  return selected;
-}
-
 const APP_REG = /_app\.[tj]sx?$/;
 
 /**
@@ -1274,23 +1165,6 @@ function serializeCSPDirectives(csp: ContentSecurityPolicyDirectives): string {
       return `${key} ${value}`;
     })
     .join("; ");
-}
-
-export function toBaseRoute(input: string): BaseRoute {
-  if (input.endsWith("_layout")) {
-    input = input.slice(0, -"_layout".length);
-  } else if (input.endsWith("_middleware")) {
-    input = input.slice(0, -"_middleware".length);
-  } else if (input.endsWith("index")) {
-    input = input.slice(0, -"index".length);
-  }
-
-  if (input.endsWith("/")) {
-    input = input.slice(0, -1);
-  }
-
-  const suffix = !input.startsWith("/") ? "/" : "";
-  return (suffix + input) as BaseRoute;
 }
 
 function collectEntrypoints(
