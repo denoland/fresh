@@ -10,7 +10,7 @@ import {
 import { ComponentType, h } from "preact";
 import * as router from "./router.ts";
 import { FreshConfig, Manifest } from "./mod.ts";
-import { ALIVE_URL, DEV_CLIENT_URL, JS_PREFIX } from "./constants.ts";
+import { JS_PREFIX } from "./constants.ts";
 import { BUILD_ID, setBuildId } from "./build_id.ts";
 import DefaultErrorHandler from "./default_error_page.tsx";
 import {
@@ -44,7 +44,6 @@ import {
   ContentSecurityPolicyDirectives,
   SELF,
 } from "../runtime/csp.ts";
-import { ASSET_CACHE_BUST_KEY, INTERNAL_PREFIX } from "../runtime/utils.ts";
 import {
   AotSnapshot,
   Builder,
@@ -57,6 +56,13 @@ import { InternalRoute } from "./router.ts";
 import { setAllIslands } from "./rendering/preact_hooks.ts";
 import { getCodeFrame } from "./code_frame.ts";
 import { getInternalFreshState } from "./config.ts";
+import {
+  ALIVE_URL,
+  ASSET_CACHE_BUST_KEY,
+  DEV_CLIENT_URL,
+  INTERNAL_PREFIX,
+} from "../constants.ts";
+import { loadAotSnapshot } from "../build/aot_snapshot.ts";
 
 const DEFAULT_CONN_INFO: ServeHandlerInfo = {
   localAddr: { transport: "tcp", hostname: "localhost", port: 8080 },
@@ -93,59 +99,16 @@ export async function getServerContext(state: InternalFreshState) {
   // Get the manifest' base URL.
   const baseUrl = new URL("./", manifest.baseUrl).href;
 
-  // Restore snapshot if available
-  let snapshot: BuildSnapshot | null = null;
-  if (state.loadSnapshot) {
-    const snapshotDirPath = config.build.outDir;
-    try {
-      if ((await Deno.stat(snapshotDirPath)).isDirectory) {
-        console.log(
-          `Using snapshot found at ${colors.cyan(snapshotDirPath)}`,
-        );
-
-        const snapshotPath = join(snapshotDirPath, "snapshot.json");
-        const json = JSON.parse(
-          await Deno.readTextFile(snapshotPath),
-        ) as BuildSnapshotJson;
-        setBuildId(json.build_id);
-
-        const dependencies = new Map<string, string[]>(
-          Object.entries(json.files),
-        );
-
-        const files = new Map<string, string>();
-        Object.keys(json.files).forEach((name) => {
-          const filePath = join(snapshotDirPath, name);
-          files.set(name, filePath);
-        });
-
-        snapshot = new AotSnapshot(files, dependencies);
-      }
-    } catch (err) {
-      if (!(err instanceof Deno.errors.NotFound)) {
-        throw err;
-      }
-    }
+  const compilerOptions = denoJson.compilerOptions;
+  if (
+    !compilerOptions || !compilerOptions.jsx || !compilerOptions.jsxImportSource
+  ) {
+    throw new Error(`Missing or incomplete JSX configuration in deno.json.`);
   }
 
-  denoJson.compilerOptions ??= {};
-
-  let jsx: "react" | "react-jsx";
-  switch (denoJson.compilerOptions.jsx) {
-    case "react":
-    case undefined:
-      jsx = "react";
-      break;
-    case "react-jsx":
-      jsx = "react-jsx";
-      break;
-    default:
-      throw new Error("Unknown jsx option: " + denoJson.compilerOptions.jsx);
-  }
-
-  const jsxConfig: JSXConfig = {
-    jsx,
-    jsxImportSource: denoJson.compilerOptions.jsxImportSource,
+  const jsxConfig = {
+    jsx: compilerOptions.jsx,
+    jsxImportSource: compilerOptions.jsxImportSource,
   };
 
   // Extract all routes, and prepare them into the `Page` structure.
@@ -380,6 +343,15 @@ export async function getServerContext(state: InternalFreshState) {
     await import("preact/debug");
   }
 
+  // Restore snapshot if available
+  let snapshot: BuildSnapshot | null = null;
+  if (state.loadSnapshot) {
+    snapshot = await loadAotSnapshot(config.build.outDir);
+  } else {
+    // TOOD: Load DevSnapshot
+    // snapshot = new
+  }
+
   return new ServerContext(
     routes,
     islands,
@@ -494,6 +466,9 @@ export class ServerContext {
     const isDev = this.#dev;
     const bundleAssetRoute = this.#bundleAssetRoute();
 
+    const snapshot: any = null;
+    const staticFiles: any = null;
+
     return async function handler(
       req: Request,
       connInfo: ServeHandlerInfo = DEFAULT_CONN_INFO,
@@ -515,8 +490,57 @@ export class ServerContext {
           const { response } = Deno.upgradeWebSocket(req);
 
           return response;
-        } else if (url.pathname === DEV_CLIENT_URL) {
-          return bundleAssetRoute(req, connInfo, { path: "client.js" });
+        }
+      }
+
+      // Generated static files under /_frsh/ .
+      if (url.pathname.startsWith(`${INTERNAL_PREFIX}/`)) {
+        const contents = await snapshot.read(url.pathname);
+
+        if (contents) {
+          const headers: Record<string, string> = {
+            "Cache-Control": isDev
+              // Prevent caching of static assets during dev.
+              ? "Cache-Control: no-cache, no-store, max-age=0, must-revalidate"
+              : "public, max-age=604800, immutable",
+          };
+
+          const contentType = typeByExtension(extname(url.pathname));
+          if (contentType) headers["Content-Type"] = contentType;
+
+          return new Response(contents, {
+            status: 200,
+            headers,
+          });
+        }
+      } else {
+        const fileInfo = await snapshot.getFileInfo(url.pathname);
+        if (fileInfo !== null) {
+          const { etag, size } = fileInfo;
+          const contentType = typeByExtension(extname(url.pathname)) ??
+            "application/octet-stream";
+
+          const headers = new Headers({
+            "content-type": contentType,
+            etag,
+            vary: "If-None-Match",
+          });
+
+          const cacheControl = url.searchParams.has(ASSET_CACHE_BUST_KEY)
+            ? "public, max-age=31536000, immutable"
+            // Cache-Control must be set to at least "no-cache" for
+            // the etag header to work
+            : "no-cache";
+          headers.set("Cache-Control", cacheControl);
+
+          const ifNoneMatch = req.headers.get("if-none-match");
+          if (ifNoneMatch === etag || ifNoneMatch === "W/" + etag) {
+            return new Response(null, { status: 304, headers });
+          } else {
+            const file = await snapshot.read(url.pathname);
+            headers.set("content-length", String(size));
+            return new Response(file.readable, { headers });
+          }
         }
       }
 

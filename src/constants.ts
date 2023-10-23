@@ -11,3 +11,8 @@ export const enum PartialMode {
   APPEND,
   PREPEND,
 }
+
+export const INTERNAL_PREFIX = "/frsh";
+export const ALIVE_URL = `${INTERNAL_PREFIX}/alive`;
+export const DEV_CLIENT_URL = `${INTERNAL_PREFIX}/fresh_dev_client.js`;
+export const ASSET_CACHE_BUST_KEY = "__frsh_c";

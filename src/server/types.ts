@@ -554,6 +554,11 @@ export interface Plugin<State = Record<string, unknown>> {
    * Called after completing the Fresh build task
    */
   buildEnd?(): Promise<void> | void;
+  /**
+   * Called whenever a static asset is requested
+   */
+  load?(id: string): Promise<void | string> | void;
+  setup?(builder: PluginBuilder, options: ResolvedFreshConfig): void;
 
   routes?: PluginRoute[];
 
