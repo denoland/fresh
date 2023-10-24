@@ -1,7 +1,7 @@
 import { gte, join, posix, relative, walk, WalkEntry } from "./deps.ts";
 import { error } from "./error.ts";
-
 const MIN_DENO_VERSION = "1.31.0";
+const TEST_FILE_PATTERN = /[._]test\.(?:[tj]sx?|[mc][tj]s)$/;
 
 export function ensureMinDenoVersion() {
   // Check that the minimum supported Deno version is being used.
@@ -23,6 +23,7 @@ export function ensureMinDenoVersion() {
 async function collectDir(
   dir: string,
   callback: (entry: WalkEntry, dir: string) => void,
+  ignoreFilePattern = TEST_FILE_PATTERN,
 ): Promise<void> {
   // Check if provided path is a directory
   try {
@@ -37,6 +38,7 @@ async function collectDir(
     includeDirs: false,
     includeFiles: true,
     exts: ["tsx", "jsx", "ts", "js"],
+    skip: [ignoreFilePattern],
   });
 
   for await (const entry of routesFolder) {
@@ -50,7 +52,10 @@ export interface Manifest {
 }
 
 const GROUP_REG = /[/\\\\]\((_[^/\\\\]+)\)[/\\\\]/;
-export async function collect(directory: string): Promise<Manifest> {
+export async function collect(
+  directory: string,
+  ignoreFilePattern?: RegExp,
+): Promise<Manifest> {
   const filePaths = new Set<string>();
 
   const routes: string[] = [];
@@ -78,11 +83,11 @@ export async function collect(directory: string): Promise<Manifest> {
       }
       filePaths.add(normalized);
       routes.push(rel);
-    }),
+    }, ignoreFilePattern),
     collectDir(join(directory, "./islands"), (entry, dir) => {
       const rel = join("islands", relative(dir, entry.path));
       islands.push(rel);
-    }),
+    }, ignoreFilePattern),
   ]);
 
   routes.sort();

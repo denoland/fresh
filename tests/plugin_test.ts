@@ -1,16 +1,23 @@
+import { assertMatch } from "$std/testing/asserts.ts";
 import { ServerContext, Status } from "../server.ts";
 import {
   assert,
   assertEquals,
   assertStringIncludes,
   delay,
+  join,
   puppeteer,
 } from "./deps.ts";
 import manifest from "./fixture_plugin/fresh.gen.ts";
-import options from "./fixture_plugin/options.ts";
-import { startFreshServer } from "./test_utils.ts";
+import config from "./fixture_plugin/fresh.config.ts";
+import {
+  clickWhenListenerReady,
+  runBuild,
+  startFreshServer,
+  withPageName,
+} from "./test_utils.ts";
 
-const ctx = await ServerContext.fromManifest(manifest, options);
+const ctx = await ServerContext.fromManifest(manifest, config);
 const handler = ctx.handler();
 const router = (req: Request) => {
   return handler(req, {
@@ -122,9 +129,50 @@ Deno.test({
 
     await browser.close();
 
-    await lines.cancel();
     serverProcess.kill("SIGTERM");
+    await serverProcess.status;
+
+    // Drain the lines stream
+    for await (const _ of lines) { /* noop */ }
   },
-  sanitizeOps: false,
-  sanitizeResources: false,
+});
+
+Deno.test("calls buildStart() and buildEnd()", async () => {
+  const result = await runBuild("./tests/fixture_plugin_lifecycle/dev.ts");
+
+  const out = result.stdout.split("\n").filter((line) =>
+    line.startsWith("Plugin")
+  );
+
+  assertEquals(out, [
+    "Plugin a: buildStart",
+    "Plugin b: buildStart",
+    `Plugin c: ${join("tests", "fixture_plugin_lifecycle", "_fresh")}`,
+    "Plugin a: buildEnd",
+    "Plugin b: buildEnd",
+  ]);
+});
+
+Deno.test("plugin script doesn't halt island execution", async () => {
+  await withPageName(
+    "./tests/fixture_plugin_error/main.ts",
+    async (page, address) => {
+      let error;
+      page.on("pageerror", (err) => {
+        error = err;
+      });
+      await page.goto(address);
+      await page.waitForSelector("#ready");
+
+      let text = await page.$eval("p", (el) => el.textContent!);
+      assertEquals(text, "0");
+
+      await clickWhenListenerReady(page, "button");
+
+      text = await page.$eval("p", (el) => el.textContent!);
+      assertEquals(text, "1");
+
+      assertMatch(String(error), /Error thrown/);
+    },
+  );
 });

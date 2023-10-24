@@ -8,22 +8,16 @@ In this page we discuss how the server can be configured during startup.
 The signature of the primary method looks like this:
 
 ```ts main.ts
-export async function start(routes: Manifest, opts: StartOptions = {});
+export async function start(manifest: Manifest, config: FreshConfig = {});
 ```
 
-## Options
+## Configuration
 
-`Manifest` comes from `fresh.gen.ts`, so nothing to do there. `opts` is where
-things get interesting. `StartOptions` looks like this:
-
-```
-export type StartOptions = ServeInit & FreshOptions;
-```
-
-The good stuff is really in...
+`Manifest` comes from `fresh.gen.ts`, so nothing to do there. `config` is where
+things get interesting. `FreshConfig` looks like this:
 
 ```ts
-export interface FreshOptions {
+export interface FreshConfig {
   render?: RenderFunction;
   plugins?: Plugin[];
   staticDir?: string;

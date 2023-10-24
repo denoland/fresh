@@ -1,16 +1,132 @@
 import { ComponentChildren, ComponentType, VNode } from "preact";
 import * as router from "./router.ts";
 import { InnerRenderFunction, RenderContext } from "./render.ts";
+import { Manifest } from "./mod.ts";
+
+export interface DenoConfig {
+  imports?: Record<string, string>;
+  importMap?: string;
+  tasks?: Record<string, string>;
+  lint?: {
+    rules: { tags?: string[] };
+    exclude?: string[];
+  };
+  fmt?: {
+    exclude?: string[];
+  };
+  exclude?: string[];
+  compilerOptions?: {
+    jsx?: string;
+    jsxImportSource?: string;
+  };
+}
 
 // --- APPLICATION CONFIGURATION ---
 
-export type StartOptions = Partial<Deno.ServeTlsOptions> & FreshOptions;
+/**
+ * @deprecated Use {@linkcode FreshConfig} instead
+ */
+export type StartOptions = FreshConfig;
 
-export interface FreshOptions {
+/**
+ * @deprecated Use {@linkcode FreshConfig} interface instead.
+ */
+export type FreshOptions = FreshConfig;
+
+export interface FreshConfig {
+  build?: {
+    /**
+     * The directory to write generated files to when `dev.ts build` is run.
+     * This can be an absolute path, a file URL or a relative path.
+     */
+    outDir?: string;
+    /**
+     * This sets the target environment for the generated code. Newer
+     * language constructs will be transformed to match the specified
+     * support range. See https://esbuild.github.io/api/#target
+     * @default {"es2022"}
+     */
+    target?: string | string[];
+  };
   render?: RenderFunction;
   plugins?: Plugin[];
   staticDir?: string;
   router?: RouterOptions;
+  server?: Partial<Deno.ServeTlsOptions>;
+
+  // Older versions of Fresh merged the `Deno.ServeTlsOptions` directly.
+  // We've moved this to `server`.
+
+  /**
+   * Server private key in PEM format
+   * @deprecated Use `server.cert` instead
+   */
+  cert?: string;
+  /**
+   * Cert chain in PEM format
+   * @deprecated Use `server.key` instead
+   */
+  key?: string;
+  /**
+   * The port to listen on.
+   * @default {8000}
+   * @deprecated Use `server.port` instead
+   */
+  port?: number;
+  /**
+   * A literal IP address or host name that can be resolved to an IP address.
+   *
+   * __Note about `0.0.0.0`__ While listening `0.0.0.0` works on all platforms,
+   * the browsers on Windows don't work with the address `0.0.0.0`.
+   * You should show the message like `server running on localhost:8080` instead of
+   * `server running on 0.0.0.0:8080` if your program supports Windows.
+   *
+   * @default {"0.0.0.0"}
+   * @deprecated Use `server.hostname` instead
+   */
+  hostname?: string;
+  /**
+   * An {@linkcode AbortSignal} to close the server and all connections.
+   * @deprecated Use `server.signal` instead
+   */
+  signal?: AbortSignal;
+  /**
+   * Sets `SO_REUSEPORT` on POSIX systems.
+   * @deprecated Use `server.reusePort` instead
+   */
+  reusePort?: boolean;
+  /**
+   * The handler to invoke when route handlers throw an error.
+   * @deprecated Use `server.onError` instead
+   */
+  onError?: (error: unknown) => Response | Promise<Response>;
+
+  /**
+   * The callback which is called when the server starts listening.
+   * @deprecated Use `server.onListen` instead
+   */
+  onListen?: (params: { hostname: string; port: number }) => void;
+}
+
+export interface InternalFreshState {
+  config: ResolvedFreshConfig;
+  manifest: Manifest;
+  loadSnapshot: boolean;
+  denoJsonPath: string;
+  denoJson: DenoConfig;
+}
+
+export interface ResolvedFreshConfig {
+  dev: boolean;
+  build: {
+    outDir: string;
+    target: string | string[];
+  };
+  render: RenderFunction;
+  plugins: Plugin[];
+  staticDir: string;
+  router?: RouterOptions;
+  server: Partial<Deno.ServeTlsOptions>;
 }
 
 export interface RouterOptions {
@@ -19,6 +135,15 @@ export interface RouterOptions {
    *  @default {false}
    */
   trailingSlash?: boolean;
+  /**
+   *  Configures the pattern of files to ignore in islands and routes.
+   *
+   *  By default Fresh will ignore test files,
+   *  for example files with a `.test.ts` or a `_test.ts` suffix.
+   *
+   *  @default {/(?:[^/]*_|[^/]*\.|)test\.(?:ts|tsx|mts|js|mjs|jsx|)\/*$/}
+   */
+  ignoreFilePattern?: RegExp;
 }
 
 export type RenderFunction = (
@@ -53,6 +178,19 @@ export interface PageProps<T = any, S = Record<string, unknown>> {
    */
   data: T;
   state: S;
+}
+
+export interface StaticFile {
+  /** The URL to the static file on disk. */
+  localUrl: URL;
+  /** The path to the file as it would be in the incoming request. */
+  path: string;
+  /** The size of the file. */
+  size: number;
+  /** The content-type of the file. */
+  contentType: string;
+  /** Hash of the file contents. */
+  etag: string;
 }
 
 /**
@@ -118,14 +256,17 @@ export type ServeHandler = (
   info: ServeHandlerInfo,
 ) => Response | Promise<Response>;
 
-export interface HandlerContext<Data = unknown, State = Record<string, unknown>>
-  extends ServeHandlerInfo {
+export interface HandlerContext<
+  Data = unknown,
+  State = Record<string, unknown>,
+  NotFoundData = Data,
+> extends ServeHandlerInfo {
   params: Record<string, string>;
   render: (
     data?: Data,
     options?: RenderOptions,
   ) => Response | Promise<Response>;
-  renderNotFound: (data?: Data) => Response | Promise<Response>;
+  renderNotFound: (data?: NotFoundData) => Response | Promise<Response>;
   state: State;
 }
 
@@ -302,6 +443,9 @@ export interface ErrorPageProps {
 
   /** The error that caused the error page to be loaded. */
   error: unknown;
+
+  /** Sringified code frame (only in development mode) */
+  codeFrame?: string;
 }
 
 export interface ErrorHandlerContext<State = Record<string, unknown>>
@@ -414,6 +558,15 @@ export interface Plugin<State = Record<string, unknown>> {
    * propagate state between the render hook and the renderer.
    */
   renderAsync?(ctx: PluginAsyncRenderContext): Promise<PluginRenderResult>;
+
+  /**
+   * Called before running the Fresh build task
+   */
+  buildStart?(config: ResolvedFreshConfig): Promise<void> | void;
+  /**
+   * Called after completing the Fresh build task
+   */
+  buildEnd?(): Promise<void> | void;
 
   routes?: PluginRoute[];
 

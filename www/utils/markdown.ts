@@ -1,4 +1,3 @@
-export * as gfm from "https://deno.land/x/gfm@0.2.5/mod.ts";
 import "https://esm.sh/prismjs@1.29.0/components/prism-jsx.js?no-check";
 import "https://esm.sh/prismjs@1.29.0/components/prism-typescript.js?no-check";
 import "https://esm.sh/prismjs@1.29.0/components/prism-tsx.js?no-check";
@@ -15,6 +14,8 @@ import { escape as escapeHtml } from "$std/html/entities.ts";
 import { mangle } from "$marked-mangle";
 
 Marked.marked.use(mangle());
+
+const ADMISSION_REG = /^<p>\[(info|warn|tip)\]:\s/;
 
 class DefaultRenderer extends Marked.Renderer {
   text(text: string): string {
@@ -38,7 +39,7 @@ class DefaultRenderer extends Marked.Renderer {
     slugger: Marked.Slugger,
   ): string {
     const slug = slugger.slug(raw);
-    return `<h${level} id="${slug}"><a class="anchor" aria-hidden="true" tabindex="-1" href="#${slug}">#</a>${text}</h${level}>`;
+    return `<h${level} id="${slug}"><a class="md-anchor" tabindex="-1" href="#${slug}">${text}<span aria-hidden="true">#</span></a></h${level}>`;
   }
 
   link(href: string, title: string | null, text: string) {
@@ -91,11 +92,29 @@ class DefaultRenderer extends Marked.Renderer {
     } else {
       const html = Prism.highlight(code, grammar, lang);
       out +=
-        `<pre class="highlight highlight-source-${lang} notranslate lang-${lang}">${html}</pre>`;
+        `<pre class="highlight highlight-source-${lang} notranslate lang-${lang}"><code>${html}</code></pre>`;
     }
 
     out += `</div>`;
     return out;
+  }
+
+  blockquote(quote: string): string {
+    const match = quote.match(ADMISSION_REG);
+    if (match) {
+      const label: Record<string, string> = {
+        tip: "Tip",
+        warn: "Warning",
+        info: "Info",
+      };
+      const type = match[1];
+      quote = quote.slice(match[0].length);
+      const icon = `<svg class="icon"><use href="/icons.svg#${type}" /></svg>`;
+      return `<blockquote class="admonition ${type}">\n<span class="admonition-header">${icon}${
+        label[type]
+      }</span>${quote}</blockquote>\n`;
+    }
+    return `<blockquote>\n${quote}</blockquote>\n`;
   }
 }
 

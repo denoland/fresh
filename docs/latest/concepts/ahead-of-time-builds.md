@@ -30,9 +30,9 @@ This will create a `_fresh` folder in the project directory. That folder
 contains the optimized assets and a `snapshot.json` file which includes some
 metadata for Fresh.
 
-> ℹ️ The `_fresh` folder should not be committed to the repository. Add an entry
-> in the `.gitignore` file to ensure that it is not committed. Create that file
-> at the root of your git repository if not present.
+> [info]: The `_fresh` folder should not be committed to the repository. Add an
+> entry in the `.gitignore` file to ensure that it is not committed. Create that
+> file at the root of your git repository if not present.
 >
 > ```gitignore .gitignore
 > # Ignore fresh build directory

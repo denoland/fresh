@@ -1,13 +1,18 @@
 {
   "lock": false,
   "tasks": {
-    "test": "deno test -A --parallel",
+    "test": "deno test -A --parallel --trace-ops",
     "fixture": "deno run -A --watch=static/,routes/ tests/fixture/dev.ts",
     "www": "deno task --cwd=www start",
     "screenshot": "deno run -A www/utils/screenshot.ts",
     "check:types": "deno check **/*.ts && deno check **/*.tsx",
-    "ok": "deno fmt --check && deno lint && deno task check:types && deno task test"
+    "ok": "deno fmt --check && deno lint && deno task check:types && deno task test",
+    "install-puppeteer": "PUPPETEER_PRODUCT=chrome deno run -A --unstable https://deno.land/x/puppeteer@16.2.0/install.ts && PUPPETEER_PRODUCT=firefox deno run -A --unstable https://deno.land/x/puppeteer@16.2.0/install.ts"
   },
+  "exclude": [
+    "**/_fresh/*",
+    "**/tmp/*"
+  ],
   "importMap": "./.vscode/import_map.json",
   "compilerOptions": {
     "jsx": "react-jsx",

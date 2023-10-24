@@ -2,14 +2,14 @@ import { ComponentChildren } from "preact";
 import {
   AsyncLayout,
   AsyncRoute,
+  FreshConfig,
   LayoutContext,
   RouteContext,
-  StartOptions,
 } from "./types.ts";
 import { checkAsyncComponent } from "./render.ts";
 import { AppContext } from "$fresh/server.ts";
 
-export function defineConfig(config: StartOptions): StartOptions {
+export function defineConfig(config: FreshConfig): FreshConfig {
   return config;
 }
 
