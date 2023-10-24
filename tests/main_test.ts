@@ -5,24 +5,24 @@ import {
   assertMatch,
   assertStringIncludes,
   delay,
+  join,
   puppeteer,
   retry,
 } from "./deps.ts";
 import manifest from "./fixture/fresh.gen.ts";
-import options from "./fixture/options.ts";
+import config from "./fixture/fresh.config.ts";
 import { BUILD_ID } from "../src/server/build_id.ts";
 import {
   assertSelector,
   assertTextMany,
-  fetchHtml,
   parseHtml,
   startFreshServer,
   waitForText,
-  withFresh,
+  withFakeServe,
   withPageName,
 } from "./test_utils.ts";
 
-const ctx = await ServerContext.fromManifest(manifest, options);
+const ctx = await ServerContext.fromManifest(manifest, config);
 const handler = ctx.handler();
 
 Deno.test("/ page prerender", async () => {
@@ -59,7 +59,7 @@ Deno.test("/props/123 page prerender", async () => {
   assertEquals(resp.headers.get("content-type"), "text/html; charset=utf-8");
   const body = await resp.text();
   const doc = parseHtml(body);
-  const data = JSON.parse(doc.querySelector("body > div").textContent);
+  const data = JSON.parse(doc.querySelector("body > div")!.textContent!);
 
   assertEquals(data, {
     "params": { "id": "123" },
@@ -217,6 +217,26 @@ Deno.test("/books/:id page - /books/abc", async () => {
   assertEquals(resp.status, Status.NotFound);
 });
 
+Deno.test("/i18n{/:lang}?/lang page - /i18n/lang", async () => {
+  const resp = await handler(new Request("https://fresh.deno.dev/i18n/lang"));
+  assert(resp);
+  assertEquals(resp.status, Status.OK);
+  assertEquals(resp.headers.get("content-type"), "text/html; charset=utf-8");
+  const body = await resp.text();
+  assertStringIncludes(body, "<div>Hello</div>");
+});
+
+Deno.test("/i18n{/:lang}?/lang page - /i18n/en/lang", async () => {
+  const resp = await handler(
+    new Request("https://fresh.deno.dev/i18n/en/lang"),
+  );
+  assert(resp);
+  assertEquals(resp.status, Status.OK);
+  assertEquals(resp.headers.get("content-type"), "text/html; charset=utf-8");
+  const body = await resp.text();
+  assertStringIncludes(body, "<div>Hello en</div>");
+});
+
 Deno.test("redirect /pages/fresh/ to /pages/fresh", async () => {
   const resp = await handler(
     new Request("https://fresh.deno.dev/pages/fresh/"),
@@ -267,6 +287,10 @@ Deno.test("/failure", async () => {
   assertEquals(resp.status, Status.InternalServerError);
   const body = await resp.text();
   assert(body.includes("500 internal error: it errored!"));
+  assertStringIncludes(
+    body,
+    `<meta name="generator" content="The freshest framework!"/>`,
+  );
 });
 
 Deno.test("/foo/:path*", async () => {
@@ -279,7 +303,7 @@ Deno.test("/foo/:path*", async () => {
 
 Deno.test("static files in custom directory", async () => {
   const newCtx = await ServerContext.fromManifest(manifest, {
-    ...options,
+    ...config,
     staticDir: "./custom_static",
   });
   const newRouter = (req: Request) => {
@@ -589,7 +613,7 @@ Deno.test({
 
     const body = await resp.text();
     const doc = parseHtml(body);
-    assertEquals(JSON.parse(doc.querySelector("pre").textContent), {
+    assertEquals(JSON.parse(doc.querySelector("pre")!.textContent!), {
       handler1: "it works",
       handler2: "it works",
       handler3: "it works",
@@ -651,15 +675,6 @@ Deno.test({
 });
 
 Deno.test("middleware destination", async (t) => {
-  await t.step("internal", async () => {
-    const resp = await handler(
-      new Request("https://fresh.deno.dev/_frsh/refresh.js"),
-    );
-    assert(resp);
-    assertEquals(resp.headers.get("destination"), "internal");
-    await resp.body?.cancel();
-  });
-
   await t.step("static", async () => {
     const resp = await handler(new Request("https://fresh.deno.dev/foo.txt"));
     assert(resp);
@@ -700,10 +715,7 @@ Deno.test({
   },
 });
 
-Deno.test("jsx pragma works", {
-  sanitizeOps: false,
-  sanitizeResources: false,
-}, async (t) => {
+Deno.test("jsx pragma works", async (t) => {
   // Preparation
   const { serverProcess, lines, address } = await startFreshServer({
     args: ["run", "-A", "./tests/fixture_jsx_pragma/main.ts"],
@@ -732,51 +744,14 @@ Deno.test("jsx pragma works", {
 
   await browser.close();
 
-  await lines.cancel();
   serverProcess.kill("SIGTERM");
+  await serverProcess.status;
+
+  // Drain the lines stream
+  for await (const _ of lines) { /* noop */ }
 });
 
-Deno.test("preact/debug is active in dev mode", {
-  sanitizeOps: false,
-  sanitizeResources: false,
-}, async (t) => {
-  // Preparation
-  const { serverProcess, lines, address } = await startFreshServer({
-    args: ["run", "-A", "./tests/fixture_render_error/main.ts"],
-  });
-
-  await delay(100);
-
-  await t.step("SSR error is shown", async () => {
-    const resp = await fetch(address);
-    assertEquals(resp.status, Status.InternalServerError);
-    const text = await resp.text();
-    assertStringIncludes(text, "Objects are not valid as a child");
-  });
-
-  const browser = await puppeteer.launch({ args: ["--no-sandbox"] });
-  const page = await browser.newPage();
-
-  await page.goto(address, {
-    waitUntil: "networkidle2",
-  });
-
-  await t.step("error page is shown with error message", async () => {
-    const el = await page.waitForSelector(".frsh-error-page");
-    const text = await page.evaluate((el) => el.textContent, el);
-    assertStringIncludes(text, "Objects are not valid as a child");
-  });
-
-  await browser.close();
-
-  await lines.cancel();
-  serverProcess.kill("SIGTERM");
-});
-
-Deno.test("preloading javascript files", {
-  sanitizeOps: false,
-  sanitizeResources: false,
-}, async () => {
+Deno.test("preloading javascript files", async () => {
   // Preparation
   const { serverProcess, lines, address } = await startFreshServer({
     args: ["run", "-A", "./tests/fixture/main.ts"],
@@ -817,15 +792,15 @@ Deno.test("preloading javascript files", {
   } finally {
     await browser.close();
 
-    await lines.cancel();
     serverProcess.kill("SIGTERM");
+    await serverProcess.status;
+
+    // Drain the lines stream
+    for await (const _ of lines) { /* noop */ }
   }
 });
 
-Deno.test("PORT environment variable", {
-  sanitizeOps: false,
-  sanitizeResources: false,
-}, async () => {
+Deno.test("PORT environment variable", async () => {
   const PORT = "8765";
   // Preparation
   const { serverProcess, lines } = await startFreshServer({
@@ -836,61 +811,63 @@ Deno.test("PORT environment variable", {
   await delay(100);
 
   const resp = await fetch("http://localhost:" + PORT);
+  await resp.body?.cancel();
   assert(resp);
   assertEquals(resp.status, Status.OK);
+  await resp.body!.cancel();
 
-  await lines.cancel();
   serverProcess.kill("SIGTERM");
+  await serverProcess.status;
+
+  // Drain the lines stream
+  for await (const _ of lines) { /* noop */ }
 });
 
-Deno.test("throw on route export 'handlers' instead of 'handler'", {
-  sanitizeOps: false,
-  sanitizeResources: false,
-}, async () => {
-  const result = await new Deno.Command(Deno.execPath(), {
-    args: ["run", "-A", "./tests/fixture_invalid_handlers/main.ts"],
-    stderr: "piped",
-    stdout: "piped",
-  }).output();
+Deno.test(
+  "throw on route export 'handlers' instead of 'handler'",
+  async () => {
+    const result = await new Deno.Command(Deno.execPath(), {
+      args: ["run", "-A", "./tests/fixture_invalid_handlers/main.ts"],
+      stderr: "piped",
+      stdout: "piped",
+    }).output();
 
-  assertEquals(result.code, 1);
+    assertEquals(result.code, 1);
 
-  const text = new TextDecoder().decode(result.stderr);
-  assertMatch(text, /Did you mean "handler"\?/);
-});
+    const text = new TextDecoder().decode(result.stderr);
+    assertMatch(text, /Did you mean "handler"\?/);
+  },
+);
 
 Deno.test("rendering custom _500.tsx page for default handlers", async (t) => {
-  await withFresh("./tests/fixture_custom_500/main.ts", async (address) => {
+  await withFakeServe("./tests/fixture_custom_500/main.ts", async (server) => {
     await t.step("SSR error is shown", async () => {
-      const resp = await fetch(address);
+      const resp = await server.get("/");
       assertEquals(resp.status, Status.InternalServerError);
       const text = await resp.text();
       assertStringIncludes(text, "Custom 500: Pickle Rick!");
     });
 
     await t.step("error page is shown with error message", async () => {
-      const doc = await fetchHtml(address);
+      const doc = await server.getHtml("/");
       const text = doc.querySelector(".custom-500")?.textContent!;
       assertStringIncludes(text, "Custom 500: Pickle Rick!");
     });
   });
 });
 
-Deno.test("renders error boundary", {
-  sanitizeOps: false,
-  sanitizeResources: false,
-}, async () => {
+Deno.test("renders error boundary", async () => {
   await withPageName("./tests/fixture/main.ts", async (page, address) => {
     await page.goto(`${address}/error_boundary`);
-    const text = await page.$eval("body", (el) => el.textContent);
+    const text = await page.$eval("p", (el) => el.textContent);
     assertEquals(text, "it works");
   });
 });
 
 Deno.test("Resolves routes with non-latin characters", async () => {
-  await withFresh("./tests/fixture/main.ts", async (address) => {
+  await withFakeServe("./tests/fixture/main.ts", async (server) => {
     // Check that we can navigate to the page
-    const doc = await fetchHtml(`${address}/umlaut-äöüß`);
+    const doc = await server.getHtml(`/umlaut-äöüß`);
     assertSelector(doc, "h1");
     assertTextMany(doc, "h1", ["it works"]);
 
@@ -905,8 +882,8 @@ Deno.test("Resolves routes with non-latin characters", async () => {
 });
 
 Deno.test("Generate a single nonce value per page", async () => {
-  await withFresh("./tests/fixture/main.ts", async (address) => {
-    const doc = await fetchHtml(address);
+  await withFakeServe("./tests/fixture/main.ts", async (server) => {
+    const doc = await server.getHtml("/");
 
     const nonceValues = Array.from(
       new Set(
@@ -924,6 +901,20 @@ Deno.test("Generate a single nonce value per page", async () => {
   });
 });
 
+Deno.test("Adds nonce to inline scripts", async () => {
+  await withFakeServe("./tests/fixture/main.ts", async (server) => {
+    const doc = await server.getHtml(`/nonce_inline`);
+
+    const stateScript = doc.querySelector("#__FRSH_STATE")!;
+    const nonce = stateScript.getAttribute("nonce")!;
+
+    const el = doc.querySelector("#inline-script")!;
+    const inlineNonce = el.getAttribute("nonce")!;
+
+    assertEquals(inlineNonce, nonce);
+  });
+});
+
 Deno.test({
   name: "support string based event handlers during SSR",
   async fn() {
@@ -935,9 +926,6 @@ Deno.test({
       await waitForText(page, "p", "it works");
     });
   },
-
-  sanitizeOps: false,
-  sanitizeResources: false,
 });
 
 Deno.test({
@@ -967,14 +955,114 @@ Deno.test({
       });
     });
   },
-
-  sanitizeOps: false,
-  sanitizeResources: false,
 });
 
-Deno.test("adds refresh script to html", async () => {
-  await withFresh("./tests/fixture/main.ts", async (address) => {
-    const doc = await fetchHtml(address);
-    assertSelector(doc, `script[src="/_frsh/refresh.js"]`);
+Deno.test("De-duplicates <Head /> nodes by key", async () => {
+  await withFakeServe("./tests/fixture/main.ts", async (server) => {
+    const res = await server.get(`/head_deduplicate`);
+    const html = await res.text();
+
+    assertEquals(Array.from(html.matchAll(/<title>/g)).length, 1);
+    assert(/<title>bar<\/title>/.test(html));
+
+    assertEquals(
+      Array.from(html.matchAll(/<meta property="og:title"/g)).length,
+      1,
+    );
+    assert(/<meta property="og:title" content="Other title"\/>/.test(html));
+  });
+});
+
+Deno.test("pass options in config", async (t) => {
+  const fixture = join(Deno.cwd(), "tests", "fixture_config");
+
+  await t.step("config.onListen", async () => {
+    const { lines, serverProcess, output } = await startFreshServer({
+      args: [
+        "run",
+        "-A",
+        join(fixture, "main.ts"),
+      ],
+    });
+
+    try {
+      assert(output.find((line) => line === "it works"));
+    } finally {
+      serverProcess.kill("SIGTERM");
+      await serverProcess.status;
+
+      // Drain the lines stream
+      for await (const _ of lines) { /* noop */ }
+    }
+  });
+
+  await t.step("config.server.onListen", async () => {
+    const { lines, serverProcess, output } = await startFreshServer({
+      args: [
+        "run",
+        "-A",
+        join(fixture, "main.ts"),
+      ],
+      env: {
+        TEST_CONFIG_SERVER: "true",
+      },
+    });
+
+    try {
+      assert(output.find((line) => line === "it works #2"));
+    } finally {
+      serverProcess.kill("SIGTERM");
+      await serverProcess.status;
+
+      // Drain the lines stream
+      for await (const _ of lines) { /* noop */ }
+    }
+  });
+});
+
+Deno.test("pass options in config dev.ts", async (t) => {
+  const fixture = join(Deno.cwd(), "tests", "fixture_config");
+
+  await t.step("config.onListen", async () => {
+    const { lines, serverProcess, output } = await startFreshServer({
+      args: [
+        "run",
+        "-A",
+        join(fixture, "dev.ts"),
+      ],
+    });
+
+    try {
+      assert(output.find((line) => line === "it works"));
+    } finally {
+      serverProcess.kill("SIGTERM");
+      await serverProcess.status;
+
+      // Drain the lines stream
+      for await (const _ of lines) { /* noop */ }
+    }
+  });
+
+  await t.step("config.server.onListen", async () => {
+    const { lines, serverProcess, output } = await startFreshServer({
+      args: [
+        "run",
+        "-A",
+        join(fixture, "dev.ts"),
+      ],
+      env: {
+        TEST_CONFIG_SERVER: "true",
+      },
+    });
+
+    try {
+      assert(output.find((line) => line === "it works #2"));
+    } finally {
+      serverProcess.kill("SIGTERM");
+      await serverProcess.status;
+
+      // Drain the lines stream
+      for await (const _ of lines) { /* noop */ }
+    }
   });
 });

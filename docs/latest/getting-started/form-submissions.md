@@ -57,9 +57,7 @@ export default function Page({ data }: PageProps<Data>) {
         <button type="submit">Search</button>
       </form>
       <ul>
-        {results.map((name) => (
-          <li key={name}>{name}</li>
-        ))}
+        {results.map((name) => <li key={name}>{name}</li>)}
       </ul>
     </div>
   );

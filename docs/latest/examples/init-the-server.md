@@ -66,7 +66,7 @@ export class Context {
 
 export async function handler(
   req: Request,
-  ctx: MiddlewareHandlerContext<State>
+  ctx: MiddlewareHandlerContext<State>,
 ) {
   ctx.state.context = Context.instance();
   const resp = await ctx.next();

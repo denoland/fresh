@@ -1,17 +1,38 @@
-import { colors } from "$fresh/src/server/deps.ts";
+import { colors, toFileUrl } from "$fresh/src/server/deps.ts";
+import { assert } from "$std/_util/asserts.ts";
+import * as path from "$std/path/mod.ts";
+import {
+  FromManifestConfig,
+  Manifest,
+  ServeHandlerInfo,
+  ServerContext,
+} from "$fresh/server.ts";
 import {
   assertEquals,
+  basename,
   delay,
+  dirname,
   DOMParser,
   HTMLElement,
   HTMLMetaElement,
+  join,
   Page,
   puppeteer,
   TextLineStream,
 } from "./deps.ts";
 
-export function parseHtml(input: string) {
-  return new DOMParser().parseFromString(input, "text/html");
+export interface TestDocument extends Document {
+  debug(): void;
+}
+
+export function parseHtml(input: string): TestDocument {
+  // deno-lint-ignore no-explicit-any
+  const doc = new DOMParser().parseFromString(input, "text/html") as any;
+  Object.defineProperty(doc, "debug", {
+    value: () => console.log(prettyDom(doc)),
+    enumerable: false,
+  });
+  return doc;
 }
 
 export async function startFreshServer(options: Deno.CommandOptions) {
@@ -66,11 +87,27 @@ export function assertTextMany(
   }
 }
 
+export function assertTextMatch(
+  doc: Document,
+  selector: string,
+  regex: RegExp,
+) {
+  const texts = Array.from(doc.querySelectorAll(selector)).map((el) =>
+    el.textContent
+  ).filter(Boolean) as string[];
+
+  if (!texts.some((text) => regex.test(text))) {
+    const html = "\n\n" + prettyDom(doc);
+    throw new Error(
+      `Regex ${regex} did not match any text elements in HTML.\n\n${html}`,
+    );
+  }
+}
+
 export const VOID_ELEMENTS =
   /^(?:area|base|br|col|embed|hr|img|input|link|meta|param|source|track|wbr)$/;
 function prettyDom(doc: Document) {
   let out = colors.dim(`<!DOCTYPE ${doc.doctype?.name ?? ""}>\n`);
-  console.log(out);
 
   const node = doc.documentElement;
   out += _printDomNode(node, 0);
@@ -86,6 +123,8 @@ function _printDomNode(
 
   if (node.nodeType === 3) {
     return space + colors.dim(node.textContent ?? "") + "\n";
+  } else if (node.nodeType === 8) {
+    return space + colors.dim(`<--${(node as Text).data}-->`) + "\n";
   }
 
   let out = space;
@@ -149,12 +188,13 @@ export async function withFresh(
   try {
     await fn(address);
   } finally {
-    await lines.cancel();
-
     serverProcess.kill("SIGTERM");
 
     // Wait until the process exits
     await serverProcess.status;
+
+    // Drain the lines stream
+    for await (const _ of lines) { /* noop */ }
   }
 }
 
@@ -177,19 +217,90 @@ export async function withPageName(
       await browser.close();
     }
   } finally {
-    await lines.cancel();
-
     serverProcess.kill("SIGTERM");
 
     // Wait until the process exits
     await serverProcess.status;
+
+    // Drain the lines stream
+    for await (const _ of lines) { /* noop */ }
   }
+}
+
+export interface FakeServer {
+  request(req: Request): Promise<Response>;
+  getHtml(pathname: string): Promise<TestDocument>;
+  get(pathname: string): Promise<Response>;
+}
+
+async function handleRequest(
+  handler: ReturnType<ServerContext["handler"]>,
+  conn: ServeHandlerInfo,
+  req: Request,
+) {
+  let res = await handler(req, conn);
+
+  // Follow redirects
+  while (res.headers.has("location")) {
+    const loc = res.headers.get("location");
+    const hostname = conn.remoteAddr.hostname;
+    res = await handler(new Request(`https://${hostname}${loc}`), conn);
+  }
+
+  return res;
+}
+
+export async function fakeServe(
+  manifest: Manifest,
+  config: FromManifestConfig,
+): Promise<FakeServer> {
+  const ctx = await ServerContext.fromManifest(manifest, config);
+  const handler = ctx.handler();
+
+  const conn: ServeHandlerInfo = {
+    remoteAddr: {
+      transport: "tcp",
+      hostname: "127.0.0.1",
+      port: 80,
+    },
+  };
+
+  const origin = `https://127.0.0.1`;
+
+  return {
+    request(req) {
+      return handler(req, conn);
+    },
+    async getHtml(pathname) {
+      const req = new Request(`${origin}${pathname}`);
+      const res = await handleRequest(handler, conn, req);
+      return parseHtml(await res.text());
+    },
+    get(pathname: string) {
+      const req = new Request(`${origin}${pathname}`);
+      return handleRequest(handler, conn, req);
+    },
+  };
+}
+
+export async function withFakeServe(
+  name: string,
+  cb: (server: FakeServer) => Promise<void> | void,
+) {
+  const fixture = join(Deno.cwd(), name);
+  const dev = basename(name) === "dev.ts";
+
+  const manifestPath = toFileUrl(join(dirname(fixture), "fresh.gen.ts")).href;
+  const manifestMod = await import(manifestPath);
+
+  const server = await fakeServe(manifestMod.default, { dev });
+  await cb(server);
 }
 
 export async function startFreshServerExpectErrors(
   options: Deno.CommandOptions,
 ) {
-  const { serverProcess, address } = await spawnServer(options, true);
+  const { serverProcess, lines, address } = await spawnServer(options, true);
 
   if (address) {
     throw Error("Server started correctly");
@@ -205,6 +316,16 @@ export async function startFreshServerExpectErrors(
   for await (const line of errorLines) {
     output += line + "\n";
   }
+
+  try {
+    serverProcess.kill("SIGTERM");
+  } catch {
+    // ignore the error, this may throw on windows if the process has already
+    // exited
+  }
+  await serverProcess.status;
+  for await (const _ of lines) { /* noop */ }
+
   return output;
 }
 
@@ -242,14 +363,60 @@ export async function waitForText(
   text: string,
 ) {
   await page.waitForSelector(selector);
-  await page.waitForFunction(
-    (sel, value) => {
-      return document.querySelector(sel)!.textContent === value;
-    },
-    { timeout: 2000 },
-    selector,
-    String(text),
-  );
+  try {
+    await page.waitForFunction(
+      (sel, value) => {
+        return document.querySelector(sel)!.textContent === value;
+      },
+      { timeout: 2000 },
+      selector,
+      String(text),
+    );
+  } catch (err) {
+    const body = await page.content();
+    // deno-lint-ignore no-explicit-any
+    const pretty = prettyDom(parseHtml(body) as any);
+
+    console.log(
+      `Text "${text}" not found on selector "${selector}" in html:\n\n${pretty}`,
+    );
+    throw err;
+  }
+}
+
+export async function waitForStyle(
+  page: Page,
+  selector: string,
+  name: keyof CSSStyleDeclaration,
+  value: string,
+) {
+  await page.waitForSelector(selector);
+
+  const start = Date.now();
+  let now = start;
+  let found = false;
+  while (now < start + 2000) {
+    found = await page.evaluate(
+      (s, n, v) => {
+        const el = document.querySelector(s);
+        if (!el) return false;
+        return window.getComputedStyle(el)[n] === v;
+      },
+      selector,
+      name,
+      value,
+    );
+
+    if (found) break;
+
+    await delay(200);
+    now = Date.now();
+  }
+
+  if (!found) {
+    console.log(prettyDom(parseHtml(await page.content())));
+    throw new Error(`Could not find style ${String(name)}: ${value}`);
+  }
 }
 
 async function spawnServer(
@@ -263,16 +430,14 @@ async function spawnServer(
     stderr: expectErrors ? "piped" : "inherit",
   }).spawn();
 
-  const decoder = new TextDecoderStream();
   const lines: ReadableStream<string> = serverProcess.stdout
-    .pipeThrough(decoder)
-    .pipeThrough(new TextLineStream(), {
-      preventCancel: true,
-    });
+    .pipeThrough(new TextDecoderStream())
+    .pipeThrough(new TextLineStream());
 
   const output: string[] = [];
   let address = "";
-  for await (const line of lines) {
+  // @ts-ignore yes it does
+  for await (const line of lines.values({ preventCancel: true })) {
     output.push(line);
     const match = line.match(/https?:\/\/localhost:\d+/g);
     if (match) {
@@ -282,4 +447,142 @@ async function spawnServer(
   }
 
   return { serverProcess, lines, address, output };
+}
+
+export async function runBuild(fixture: string) {
+  const outDir = path.join(path.dirname(fixture), "_fresh");
+  try {
+    await Deno.remove(outDir, { recursive: true });
+  } catch {
+    // Ignore
+  }
+
+  assert(
+    fixture.endsWith("dev.ts"),
+    `Build command only works with "dev.ts", but got "${fixture}" instead`,
+  );
+  const res = await new Deno.Command(Deno.execPath(), {
+    args: [
+      "run",
+      "-A",
+      fixture,
+      "build",
+    ],
+    env: {
+      GITHUB_SHA: "__BUILD_ID__",
+      DENO_DEPLOYMENT_ID: "__BUILD_ID__",
+    },
+    stdin: "null",
+    stdout: "piped",
+    stderr: "piped",
+  }).output();
+
+  const output = getStdOutput(res);
+  return {
+    code: res.code,
+    stderr: output.stderr,
+    stdout: output.stdout,
+  };
+}
+
+export function getStdOutput(
+  out: Deno.CommandOutput,
+): { stdout: string; stderr: string } {
+  const decoder = new TextDecoder();
+  const stdout = colors.stripColor(decoder.decode(out.stdout));
+
+  const decoderErr = new TextDecoder();
+  const stderr = colors.stripColor(decoderErr.decode(out.stderr));
+
+  return { stdout, stderr };
+}
+
+export async function waitFor(
+  fn: () => Promise<unknown> | unknown,
+): Promise<void> {
+  let now = Date.now();
+  const limit = now + 2000;
+
+  while (now < limit) {
+    try {
+      if (await fn()) return;
+    } catch (err) {
+      if (now > limit) {
+        throw err;
+      }
+    } finally {
+      await delay(100);
+      now = Date.now();
+    }
+  }
+
+  throw new Error(`Timed out`);
+}
+
+function walk(doc: Document, node: HTMLElement): string | null {
+  for (let i = 0; i < node.childNodes.length; i++) {
+    const child = node.childNodes[i];
+
+    if (child.nodeType === doc.COMMENT_NODE) {
+      return child.data;
+    } else if (child.nodeType === doc.TEXT_NODE) {
+      continue;
+    } else if (
+      child.nodeType === doc.ELEMENT_NODE && node.localName !== "template"
+    ) {
+      const res = walk(doc, child);
+      if (res !== null) return res;
+    }
+  }
+  return null;
+}
+
+export async function assertNoPageComments(page: Page) {
+  const doc = parseHtml(await page.content());
+
+  // deno-lint-ignore no-explicit-any
+  const result = walk(doc, doc.body as any);
+
+  if (result !== null) {
+    console.log(prettyDom(doc));
+    throw new Error(
+      `Expected no HTML comments to be present, but found comment "${result}"`,
+    );
+  }
+}
+
+export function assertNoComments(doc: Document) {
+  // deno-lint-ignore no-explicit-any
+  const result = walk(doc, doc.body as any);
+
+  if (result !== null) {
+    console.log(prettyDom(doc));
+    throw new Error(
+      `Expected no HTML comments to be present, but found comment "${result}"`,
+    );
+  }
+}
+
+export function assertMetaContent(
+  doc: Document,
+  nameOrProperty: string,
+  expected: string,
+) {
+  let el = doc.querySelector(`meta[name="${nameOrProperty}"]`) as
+    | HTMLMetaElement
+    | null;
+
+  if (el === null) {
+    el = doc.querySelector(`meta[property="${nameOrProperty}"]`) as
+      | HTMLMetaElement
+      | null;
+  }
+
+  if (el === null) {
+    console.log(prettyDom(doc));
+    throw new Error(
+      `No <meta>-tag found with content "${expected}"`,
+    );
+  }
+  assertEquals(el.content, expected);
 }

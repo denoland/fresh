@@ -37,7 +37,7 @@
   },
   {
     "title": "Video Poker Academy",
-    "link": "https://videopoker.academy/",
+    "link": "https://videopoker-academy.deno.dev/",
     "github": "hyprtxt/videopoker.academy",
     "image": "videopoker-academy"
   },
@@ -361,6 +361,40 @@
     "title": "over-ip",
     "link": "https://over-ip.dragon-vi.be",
     "image": "over-ip"
+  },
+  {
+    "title": "Miguel Rangel Site",
+    "link": "https://crawford.ml",
+    "github": "denyncrawford/new-portfolio",
+    "image": "miguel-rangel-site"
+  },
+  {
+    "title": "Deno Artwork",
+    "link": "https://artwork.deno.dev/",
+    "github": "jasonjgardner/deno-artwork",
+    "image": "deno-artwork"
+  },
+  {
+    "title": "Text2Audio",
+    "link": "https://text2audio.cc/",
+    "github": "dunkbing/text2audio",
+    "image": "text2audio"
+  },
+  {
+    "title": "FilterHN",
+    "link": "https://filterhn.com/",
+    "image": "filter-hn"
+  },
+  {
+    "title": "AquaVibes",
+    "link": "https://aquavibes.earth/",
+    "github": "arturolume/aquavibes",
+    "image": "aquavibes"
+  },
+  {
+    "title": "CS2 Items",
+    "link": "https://cs2items.pro/",
+    "image": "cs2items"
   },
   {
     "title": "Do not remove this, it’s for preventing conflicts by trailing comma",

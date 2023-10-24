@@ -2,7 +2,7 @@ import { assertEquals } from "./deps.ts";
 import {
   assertSelector,
   assertTextMany,
-  fetchHtml,
+  withFakeServe,
   withFresh,
   withPageName,
 } from "./test_utils.ts";
@@ -12,35 +12,29 @@ Deno.test({
   name: "render async server component",
 
   async fn() {
-    await withFresh(
+    await withFakeServe(
       "./tests/fixture_server_components/main.ts",
-      async (address) => {
-        const doc = await fetchHtml(`${address}/basic`);
+      async (server) => {
+        const doc = await server.getHtml(`/basic`);
         assertTextMany(doc, "h1", ["it works"]);
       },
     );
   },
-
-  sanitizeOps: false,
-  sanitizeResources: false,
 });
 
 Deno.test({
   name: "uses returned response",
 
   async fn() {
-    await withFresh(
+    await withFakeServe(
       "./tests/fixture_server_components/main.ts",
-      async (address) => {
-        const res = await fetch(`${address}/response`);
+      async (server) => {
+        const res = await server.get(`/response`);
         const text = await res.text();
         assertEquals(text, "it works");
       },
     );
   },
-
-  sanitizeOps: false,
-  sanitizeResources: false,
 });
 
 Deno.test({
@@ -62,9 +56,6 @@ Deno.test({
       },
     );
   },
-
-  sanitizeOps: false,
-  sanitizeResources: false,
 });
 
 Deno.test({
@@ -91,7 +82,7 @@ Deno.test({
               transport: "tcp",
             },
             remoteAddr: {
-              hostname: "localhost",
+              hostname: "127.0.0.1",
               port: 8000,
               transport: "tcp",
             },
@@ -107,19 +98,16 @@ Deno.test({
       },
     );
   },
-
-  sanitizeOps: false,
-  sanitizeResources: false,
 });
 
 Deno.test({
   name: "can call context.renderNotFound()",
 
   async fn() {
-    await withFresh(
+    await withFakeServe(
       "./tests/fixture_server_components/main.ts",
-      async (address) => {
-        const res = await fetch(`${address}/fail`);
+      async (server) => {
+        const res = await server.get(`/fail`);
 
         assertEquals(res.status, Status.NotFound);
         const html = await res.text();
@@ -127,9 +115,6 @@ Deno.test({
       },
     );
   },
-
-  sanitizeOps: false,
-  sanitizeResources: false,
 });
 
 Deno.test({
@@ -142,7 +127,7 @@ Deno.test({
         await page.goto(`${address}/twind`);
         await page.waitForSelector("h1");
 
-        const text = await page.$eval("body", (el) => el.textContent);
+        const text = await page.$eval("h1", (el) => el.textContent);
         assertEquals(text, "it works");
 
         // Check that CSS was applied accordingly
@@ -153,19 +138,16 @@ Deno.test({
       },
     );
   },
-
-  sanitizeOps: false,
-  sanitizeResources: false,
 });
 
 Deno.test({
   name: "renders async app template",
 
   async fn() {
-    await withFresh(
+    await withFakeServe(
       "./tests/fixture_async_app/main.ts",
-      async (address) => {
-        const doc = await fetchHtml(`${address}`);
+      async (server) => {
+        const doc = await server.getHtml(``);
         assertSelector(doc, "html > body > .app > .layout > .page");
       },
     );
@@ -173,10 +155,10 @@ Deno.test({
 });
 
 Deno.test("define helpers", async () => {
-  await withFresh(
+  await withFakeServe(
     "./tests/fixture_define_helpers/main.ts",
-    async (address) => {
-      const doc = await fetchHtml(`${address}`);
+    async (server) => {
+      const doc = await server.getHtml(``);
       assertSelector(doc, "html > body > .app > .layout > .page");
       assertTextMany(doc, "p", ["Layout: it works", "Page: it works"]);
     },

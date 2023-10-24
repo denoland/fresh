@@ -111,7 +111,7 @@ export default function MyPage() {
 
 You can skip already inherited layouts inside a layout file:
 
-```tsx routes/special/_layout.sx
+```tsx routes/special/_layout.tsx
 import { LayoutConfig } from "$fresh/server.ts";
 
 export const config: LayoutConfig = {
