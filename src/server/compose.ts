@@ -5,6 +5,7 @@ import {
   MiddlewareRoute,
   RouterState,
   ServeHandlerInfo,
+  UnknownRenderFunction,
 } from "./types.ts";
 
 export const ROOT_BASE_ROUTE = toBaseRoute("/");
@@ -59,6 +60,7 @@ export function composeMiddlewares(
     route: InternalRoute<RouterState> | undefined;
     params: Record<string, string>;
   },
+  renderNotFound: UnknownRenderFunction,
 ) {
   return (
     req: Request,
@@ -103,6 +105,9 @@ export function composeMiddlewares(
       },
       destination: "route",
       params: paramsAndRouteResult.params,
+      renderNotFound: async () => {
+        return await renderNotFound(req, paramsAndRouteResult.params, ctx);
+      },
     };
 
     for (const { module } of mws) {

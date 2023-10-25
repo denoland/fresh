@@ -431,6 +431,15 @@ export interface UnknownPage {
   inheritLayouts: boolean;
 }
 
+export type UnknownRenderFunction = (
+  req: Request,
+  params: Record<string, string>,
+  // deno-lint-ignore no-explicit-any
+  ctx?: any,
+  data?: unknown,
+  error?: unknown,
+) => Promise<Response>;
+
 // --- ERROR PAGE ---
 
 export interface ErrorPageProps {
@@ -486,6 +495,7 @@ export interface ErrorPage {
 export interface MiddlewareHandlerContext<State = Record<string, unknown>>
   extends ServeHandlerInfo {
   next: () => Promise<Response>;
+  renderNotFound: (state?: State) => Response | Promise<Response>;
   state: State;
   destination: router.DestinationKind;
   params: Record<string, string>;
