@@ -1,6 +1,9 @@
+import { PARTIAL_SEARCH_PARAM } from "$fresh/src/constants.ts";
 import { BaseRoute, ErrorHandlerContext, ServeHandlerInfo } from "./types.ts";
 
-type HandlerContext<T = unknown> = T & ServeHandlerInfo;
+type HandlerContext<T = unknown> = T & ServeHandlerInfo & {
+  isPartial: boolean;
+};
 
 export type Handler<T = unknown> = (
   req: Request,
@@ -136,9 +139,10 @@ function processRoutes<T>(
   }
 }
 
-interface RouteResult<T> {
+export interface RouteResult<T> {
   route: InternalRoute<T> | undefined;
   params: Record<string, string>;
+  isPartial: boolean;
 }
 
 export function getParamsAndRoute<T>(
@@ -158,7 +162,8 @@ export function getParamsAndRoute<T>(
   const statics = new Map<string, RouteResult<T>>();
 
   return (url: string) => {
-    const pathname = new URL(url).pathname;
+    const urlObject = new URL(url);
+    const pathname = urlObject.pathname;
     const cached = statics.get(pathname);
     if (cached !== undefined) {
       return cached;
@@ -174,7 +179,7 @@ export function getParamsAndRoute<T>(
       if (typeof route.pattern === "string") {
         if (route.pattern === pathname) {
           processedRoutes[i] = null;
-          const res = { route: route, params: {} };
+          const res = { route: route, params: {}, isPartial: false };
           statics.set(route.pattern, res);
           return res;
         }
@@ -195,12 +200,17 @@ export function getParamsAndRoute<T>(
             groups[key] = decodeURIComponent(value);
           }
         }
-        return { route: route, params: groups };
+        return {
+          route: route,
+          params: groups,
+          isPartial: urlObject.searchParams.has(PARTIAL_SEARCH_PARAM),
+        };
       }
     }
     return {
       route: undefined,
       params: {},
+      isPartial: false,
     };
   };
 }
