@@ -1,5 +1,5 @@
 import { ComponentChildren } from "preact";
-import Passthrough from "../islands/Passthrough.tsx";
+import Passthrough from "@/islands/Passthrough.tsx";
 
 export interface FooProps {
   children?: ComponentChildren;

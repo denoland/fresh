@@ -4,6 +4,7 @@
     "start": "deno run -A --watch=static/,routes/ dev.ts"
   },
   "imports": {
+    "@/": "./",
     "$fresh/": "../",
     "preact": "https://esm.sh/preact@10.15.1",
     "preact/": "https://esm.sh/preact@10.15.1/",
