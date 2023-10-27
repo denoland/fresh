@@ -39,6 +39,13 @@ Deno.test("extract - css classes", () => {
       html: `<div class="foo bar"></div><span class="baz bar"></span>`,
     },
   );
+  testExtract(
+    `<div class="[&amp;&gt;.foo]:bold"></div>`,
+    {
+      classNames: "[&>.foo]:bold",
+      html: `<div class="[&amp;&gt;.foo]:bold"></div>`,
+    },
+  );
 });
 
 Deno.test("extract - normalize groups", () => {

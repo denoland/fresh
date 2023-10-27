@@ -72,6 +72,24 @@ export interface ExtractResult {
   html: string;
 }
 
+function decodeHtmlEntities(input: string): string {
+  return input
+    .replaceAll(/&amp;/g, "&")
+    .replaceAll(/&lt;/g, "<")
+    .replaceAll(/&gt;/g, ">")
+    .replaceAll(/&quot;/g, '"')
+    .replaceAll(/&#39;/g, "'");
+}
+
+function encodeHtmlEntities(input: string): string {
+  return input
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#39;");
+}
+
 export function extractCssClasses(html: string): ExtractResult {
   let classNames = "";
   let outHtml = "";
@@ -79,7 +97,8 @@ export function extractCssClasses(html: string): ExtractResult {
   let matchEnd = 0;
 
   for (const match of html.matchAll(HTML_CLASS_REG)) {
-    const value = match[2];
+    const value = decodeHtmlEntities(match[2] ?? "");
+
     const matchIndex = match.index ?? 0;
 
     if (matchIndex > 0 && matchEnd < matchIndex) {
@@ -93,7 +112,7 @@ export function extractCssClasses(html: string): ExtractResult {
     if (classNames !== "") classNames += " ";
     classNames += expanded;
 
-    outHtml += expanded;
+    outHtml += encodeHtmlEntities(expanded);
     outHtml += match[3];
   }
 
