@@ -595,6 +595,7 @@ export interface PluginAsyncRenderContext {
 }
 
 export interface PluginRenderResult {
+  bodyHtml?: string;
   /** CSS styles to be injected into the page. */
   styles?: PluginRenderStyleTag[];
   /** JS scripts to ship to the client. */
