@@ -3,7 +3,7 @@ import { setup, tw } from "twind";
 import { Plugin } from "../server.ts";
 
 import { Options, STYLE_ELEMENT_ID } from "./twind/shared.ts";
-import { extractCssClasses } from "./plugin_utils.ts";
+import { extractClassNames } from "./plugin_utils.ts";
 export type { Options };
 
 export default function twind(options: Options): Plugin {
@@ -25,7 +25,7 @@ export default function(state) { hydrate(options, state); }`;
     async renderAsync(ctx) {
       const res = await ctx.renderAsync();
       sheet.reset(undefined);
-      const { classNames, html } = extractCssClasses(res.htmlText, {
+      const { classNames, html } = extractClassNames(res.htmlText, {
         decodeHtml: true,
       });
       tw(classNames);

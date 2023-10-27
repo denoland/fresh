@@ -90,9 +90,13 @@ function encodeHtmlEntities(input: string): string {
     .replaceAll("'", "&#39;");
 }
 
-export function extractCssClasses(
+export interface ExtractClassNamesOptions {
+  decodeHtml?: boolean;
+}
+
+export function extractClassNames(
   html: string,
-  options: { decodeHtml?: boolean } = {},
+  options: ExtractClassNamesOptions = {},
 ): ExtractResult {
   let classNames = "";
   let outHtml = "";

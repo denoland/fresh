@@ -1,8 +1,16 @@
 import { assertEquals } from "$std/testing/asserts.ts";
-import { extractCssClasses, ExtractResult } from "./plugin_utils.ts";
+import {
+  extractClassNames,
+  ExtractClassNamesOptions,
+  ExtractResult,
+} from "./plugin_utils.ts";
 
-function testExtract(input: string, expected: ExtractResult) {
-  const res = extractCssClasses(input);
+function testExtract(
+  input: string,
+  expected: ExtractResult,
+  options: ExtractClassNamesOptions = {},
+) {
+  const res = extractClassNames(input, options);
   assertEquals(res, expected);
 }
 
@@ -39,12 +47,16 @@ Deno.test("extract - css classes", () => {
       html: `<div class="foo bar"></div><span class="baz bar"></span>`,
     },
   );
+});
+
+Deno.test("extract - encoding", () => {
   testExtract(
     `<div class="[&amp;&gt;.foo]:bold"></div>`,
     {
       classNames: "[&>.foo]:bold",
       html: `<div class="[&amp;&gt;.foo]:bold"></div>`,
     },
+    { decodeHtml: true },
   );
 });
 
