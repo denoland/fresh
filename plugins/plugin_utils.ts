@@ -90,14 +90,20 @@ function encodeHtmlEntities(input: string): string {
     .replaceAll("'", "&#39;");
 }
 
-export function extractCssClasses(html: string): ExtractResult {
+export function extractCssClasses(
+  html: string,
+  options: { decodeHtml?: boolean } = {},
+): ExtractResult {
   let classNames = "";
   let outHtml = "";
 
   let matchEnd = 0;
 
   for (const match of html.matchAll(HTML_CLASS_REG)) {
-    const value = decodeHtmlEntities(match[2] ?? "");
+    let value = match[2] ?? "";
+    if (options.decodeHtml) {
+      value = decodeHtmlEntities(value);
+    }
 
     const matchIndex = match.index ?? 0;
 
@@ -108,11 +114,14 @@ export function extractCssClasses(html: string): ExtractResult {
     matchEnd = matchIndex + match[0].length;
     outHtml += match[1];
 
-    const expanded = expandTailwindGroups(value);
+    let expanded = expandTailwindGroups(value);
     if (classNames !== "") classNames += " ";
     classNames += expanded;
 
-    outHtml += encodeHtmlEntities(expanded);
+    if (options.decodeHtml) {
+      expanded = encodeHtmlEntities(expanded);
+    }
+    outHtml += expanded;
     outHtml += match[3];
   }
 

@@ -25,7 +25,9 @@ export default function(state) { hydrate(options, state); }`;
     async renderAsync(ctx) {
       const res = await ctx.renderAsync();
       sheet.reset(undefined);
-      const { classNames, html } = extractCssClasses(res.htmlText);
+      const { classNames, html } = extractCssClasses(res.htmlText, {
+        decodeHtml: true,
+      });
       tw(classNames);
 
       const cssTexts = [...sheet.target];
