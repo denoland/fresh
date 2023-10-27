@@ -8,7 +8,10 @@ export default function secondMiddlewarePlugin(): Plugin<
     name: "secondMiddlewarePlugin",
     middlewares: [{
       middleware: {
-        handler: async (_req: Request, ctx: MiddlewareHandlerContext) => {
+        handler: async (
+          _req: Request,
+          ctx: MiddlewareHandlerContext<PluginMiddlewareState>,
+        ) => {
           return await ctx.next();
         },
       },
@@ -26,7 +29,10 @@ export default function secondMiddlewarePlugin(): Plugin<
       path: "lots-of-middleware/",
     }, {
       middleware: {
-        handler: async (_req: Request, ctx: MiddlewareHandlerContext) => {
+        handler: async (
+          _req: Request,
+          ctx: MiddlewareHandlerContext<PluginMiddlewareState>,
+        ) => {
           return await ctx.next();
         },
       },
