@@ -7,11 +7,13 @@
   },
   "imports": {
     "$fresh/": "../",
+    "fresh/jsx-runtime": "../jsx-runtime.ts",
     "twind": "https://esm.sh/twind@0.16.19",
     "twind/": "https://esm.sh/twind@0.16.19/",
     "preact": "https://esm.sh/preact@10.15.1",
     "preact/": "https://esm.sh/preact@10.15.1/",
-    "preact-render-to-string": "https://esm.sh/*preact-render-to-string@6.2.1",
+    "preact-render-to-string2": "https://esm.sh/*preact-render-to-string@6.2.1",
+    "preact-render-to-string": "../../../github/preact-render-to-string/dist/index.mjs",
     "@preact/signals": "https://esm.sh/*@preact/signals@1.1.3",
     "@preact/signals-core": "https://esm.sh/@preact/signals-core@1.2.3",
     "$std/": "https://deno.land/std@0.193.0/",
@@ -19,7 +21,7 @@
     "$marked-mangle": "https://esm.sh/marked-mangle@1.0.1"
   },
   "compilerOptions": {
-    "jsx": "react-jsx",
-    "jsxImportSource": "preact"
+    "jsx": "precompile",
+    "jsxImportSource": "fresh"
   }
 }
