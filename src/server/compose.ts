@@ -1,4 +1,4 @@
-import { ErrorHandler, FinalHandler, InternalRoute } from "./router.ts";
+import { ErrorHandler, FinalHandler, RouteResult } from "./router.ts";
 import {
   BaseRoute,
   MiddlewareHandlerContext,
@@ -56,10 +56,7 @@ export function composeMiddlewares(
   errorHandler: ErrorHandler<RouterState>,
   paramsAndRoute: (
     url: string,
-  ) => {
-    route: InternalRoute<RouterState> | undefined;
-    params: Record<string, string>;
-  },
+  ) => RouteResult<RouterState>,
   renderNotFound: UnknownRenderFunction,
 ) {
   return (
@@ -108,6 +105,7 @@ export function composeMiddlewares(
       renderNotFound: async () => {
         return await renderNotFound(req, paramsAndRouteResult.params, ctx);
       },
+      isPartial: paramsAndRouteResult.isPartial,
     };
 
     for (const { module } of mws) {
@@ -129,6 +127,7 @@ export function composeMiddlewares(
       set state(v) {
         state = v;
       },
+      isPartial: paramsAndRouteResult.isPartial,
     };
     const { destination, handler } = inner(
       req,

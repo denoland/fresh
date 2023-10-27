@@ -207,6 +207,7 @@ export type RouteContext<T = any, S = Record<string, unknown>> = {
   params: Record<string, string>;
   state: S;
   data: T;
+  isPartial: boolean;
 };
 
 export interface RouteConfig {
@@ -268,6 +269,7 @@ export interface HandlerContext<
   ) => Response | Promise<Response>;
   renderNotFound: (data?: NotFoundData) => Response | Promise<Response>;
   state: State;
+  isPartial: boolean;
 }
 
 // deno-lint-ignore no-explicit-any
@@ -499,6 +501,7 @@ export interface MiddlewareHandlerContext<State = Record<string, unknown>>
   state: State;
   destination: router.DestinationKind;
   params: Record<string, string>;
+  isPartial: boolean;
 }
 
 export interface MiddlewareRoute {

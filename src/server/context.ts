@@ -172,7 +172,9 @@ export class ServerContext {
 
           return response;
         } else if (url.pathname === DEV_CLIENT_URL) {
-          return bundleAssetRoute(req, connInfo, { path: "client.js" });
+          return bundleAssetRoute(req, { ...connInfo, isPartial: false }, {
+            path: "client.js",
+          });
         }
       }
 
