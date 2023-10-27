@@ -10,7 +10,6 @@ import * as Icons from "../components/Icons.tsx";
 import Projects from "../components/Projects.tsx";
 import projects from "../data/showcase.json" assert { type: "json" };
 import Header from "../components/Header.tsx";
-import { renderToString } from "preact-render-to-string";
 
 function isOpenGraphUA(header: string | null): boolean {
   if (!header) {
