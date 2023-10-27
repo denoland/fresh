@@ -1,4 +1,4 @@
-const HTML_CLASS_REG = /(<[A-Za-z][^>]*\s+class=")(.*?)("[>\s])/g;
+const HTML_CLASS_REG = /(<[A-Za-z][^>]*\s+class=")(.*?)("[>\s/])/g;
 
 const enum Char {
   SPACE = 32,

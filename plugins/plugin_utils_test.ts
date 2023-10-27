@@ -77,4 +77,11 @@ Deno.test("extract - normalize groups", () => {
       html: `<a class="border-b border-green-500 p-3"></a>`,
     },
   );
+  testExtract(
+    `<img class="border(b green-500) p-3"/>`,
+    {
+      classNames: "border-b border-green-500 p-3",
+      html: `<img class="border-b border-green-500 p-3"/>`,
+    },
+  );
 });
