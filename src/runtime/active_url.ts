@@ -7,19 +7,18 @@ export const enum UrlMatchKind {
   Current,
 }
 
-export function matchesUrl(current: string, needle: string): UrlMatchKind {
-  let href = new URL(needle, "http://localhost").pathname;
-  if (href !== "/" && href.endsWith("/")) {
-    href = href.slice(0, -1);
+export function matchesUrl(current: string, pathname: string): UrlMatchKind {
+  if (pathname !== "/" && pathname.endsWith("/")) {
+    pathname = pathname.slice(0, -1);
   }
 
   if (current !== "/" && current.endsWith("/")) {
     current = current.slice(0, -1);
   }
 
-  if (current === href) {
+  if (current === pathname) {
     return UrlMatchKind.Current;
-  } else if (current.startsWith(href + "/") || href === "/") {
+  } else if (current.startsWith(pathname + "/") || pathname === "/") {
     return UrlMatchKind.Ancestor;
   }
 
@@ -30,11 +29,17 @@ export function matchesUrl(current: string, needle: string): UrlMatchKind {
  * Mark active or ancestor link
  * Note: This function is used both on the server and the client
  */
-export function setActiveUrl(vnode: VNode, pathname: string): void {
+export function setActiveUrl(
+  vnode: VNode,
+  pathname: string,
+): void {
   const props = vnode.props as Record<string, unknown>;
   const hrefProp = props.href;
   if (typeof hrefProp === "string" && hrefProp.startsWith("/")) {
-    const match = matchesUrl(pathname, hrefProp);
+    const match = matchesUrl(
+      pathname,
+      new URL(hrefProp, "http://localhost/").pathname,
+    );
     if (match === UrlMatchKind.Current) {
       props[DATA_CURRENT] = "true";
       props["aria-current"] = "page";

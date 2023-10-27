@@ -9,6 +9,7 @@ import {
   options as preactOptions,
   type VNode,
 } from "preact";
+import { jsx } from "preact/jsx-runtime";
 import { assetHashingHook } from "../../runtime/utils.ts";
 import { Partial, PartialProps } from "../../runtime/Partial.tsx";
 import { renderToString } from "preact-render-to-string";
@@ -16,11 +17,14 @@ import { RenderState } from "./state.ts";
 import { Island } from "../types.ts";
 import {
   CLIENT_NAV_ATTR,
+  DATA_ANCESTOR,
+  DATA_CURRENT,
   DATA_KEY_ATTR,
   LOADING_ATTR,
   PartialMode,
 } from "../../constants.ts";
-import { setActiveUrl } from "../../runtime/active_url.ts";
+import { encodeEntities } from "./render_utils.ts";
+import { matchesUrl, UrlMatchKind } from "../../runtime/active_url.ts";
 
 // See: https://github.com/preactjs/preact/blob/7748dcb83cedd02e37b3713634e35b97b26028fd/src/internal.d.ts#L3C1-L16
 enum HookType {
@@ -274,8 +278,6 @@ options.__b = (vnode: VNode<Record<string, unknown>>) => {
           [LOADING_ATTR]: vnode.props[LOADING_ATTR],
         });
         vnode.props[LOADING_ATTR] = current.islandProps.length - 1;
-      } else if (vnode.type === "a") {
-        setActiveUrl(vnode, current.url.pathname);
       }
     } else if (typeof vnode.type === "function") {
       // Detect island vnodes and wrap them with a marker
@@ -448,3 +450,40 @@ options.__h = (component, idx, type) => {
   }
   oldHook?.(component, idx, type);
 };
+
+// deno-lint-ignore no-explicit-any
+export function jsxssr(tpl: string[], ...exprs: any[]) {
+  // deno-lint-ignore no-explicit-any
+  const vnode = jsx(Fragment as any, { tpl, exprs });
+  // Bypass Preact top level Fragment optimization
+  // deno-lint-ignore no-explicit-any
+  vnode.key = (vnode as any).__v;
+  return vnode;
+}
+
+// deno-lint-ignore no-explicit-any
+export function jsxattr(name: string, value: any) {
+  if (
+    value === null || value === undefined || typeof value === "function" ||
+    value === false
+  ) {
+    return "";
+  }
+  if (value === true) return name;
+  if (
+    current && name === "href" && typeof value === "string" &&
+    value.startsWith("/")
+  ) {
+    let suffix = "";
+    const match = matchesUrl(current.url.pathname, value);
+    if (match === UrlMatchKind.Current) {
+      suffix += ` ${DATA_CURRENT}="true" aria-current="page"`;
+    } else if (match === UrlMatchKind.Ancestor) {
+      suffix += ` ${DATA_ANCESTOR}="true" aria-current="true"`;
+    }
+
+    return `${name}="${encodeEntities(value)}"${suffix}`;
+  }
+
+  return `${name}="${encodeEntities(value)}"`;
+}
