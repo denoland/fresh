@@ -271,9 +271,12 @@ export function getParamsAndRoute<T>(
 
   return (url: string) => {
     const urlObject = new URL(url);
+    const isPartial = urlObject.searchParams.has("fresh-partial");
     const pathname = urlObject.pathname;
+
     const cached = statics.get(pathname);
     if (cached !== undefined) {
+      cached.isPartial = isPartial;
       return cached;
     }
 
@@ -287,7 +290,7 @@ export function getParamsAndRoute<T>(
       if (typeof route.pattern === "string") {
         if (route.pattern === pathname) {
           processedRoutes[i] = null;
-          const res = { route: route, params: {}, isPartial: false };
+          const res = { route: route, params: {}, isPartial };
           statics.set(route.pattern, res);
           return res;
         }
@@ -295,7 +298,7 @@ export function getParamsAndRoute<T>(
         continue;
       }
 
-      const res = route.pattern.exec(urlObject.pathname);
+      const res = route.pattern.exec(pathname);
 
       if (res !== null) {
         const groups: Record<string, string> = {};
@@ -311,14 +314,14 @@ export function getParamsAndRoute<T>(
         return {
           route: route,
           params: groups,
-          isPartial: urlObject.searchParams.has(PARTIAL_SEARCH_PARAM),
+          isPartial,
         };
       }
     }
     return {
       route: undefined,
       params: {},
-      isPartial: false,
+      isPartial,
     };
   };
 }
