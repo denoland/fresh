@@ -271,7 +271,7 @@ export function getParamsAndRoute<T>(
 
   return (url: string) => {
     const urlObject = new URL(url);
-    const isPartial = urlObject.searchParams.has("fresh-partial");
+    const isPartial = urlObject.searchParams.has(PARTIAL_SEARCH_PARAM);
     const pathname = urlObject.pathname;
 
     const cached = statics.get(pathname);
