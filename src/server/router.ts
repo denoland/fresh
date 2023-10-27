@@ -1,5 +1,9 @@
 import { PARTIAL_SEARCH_PARAM } from "$fresh/src/constants.ts";
 import { BaseRoute, ErrorHandlerContext, ServeHandlerInfo } from "./types.ts";
+import {
+  isIdentifierChar,
+  isIdentifierStart,
+} from "https://esm.sh/@babel/helper-validator-identifier@7.22.20";
 
 type HandlerContext<T = unknown> = T & ServeHandlerInfo & {
   isPartial: boolean;
@@ -53,7 +57,7 @@ export type DestinationKind = "internal" | "static" | "route" | "notFound";
 // deno-lint-ignore ban-types
 export type InternalRoute<T = {}> = {
   baseRoute: BaseRoute;
-  pattern: URLPattern | string;
+  pattern: RegExp | string;
   methods: { [K in KnownMethod]?: MatchHandler<T> };
   default?: MatchHandler<T>;
   destination: DestinationKind;
@@ -111,17 +115,121 @@ export function defaultUnknownMethodHandler(
   });
 }
 
+function skipRegex(input: string, idx: number): number {
+  let open = 0;
+
+  for (let i = idx; i < input.length; i++) {
+    const char = input[i];
+    if (char === "(" || char === "[") {
+      open++;
+    } else if (char === ")" || char === "]") {
+      if (open-- === 0) {
+        return i;
+      }
+    } else if (char === "\\") {
+      i++;
+    }
+
+    idx = i;
+  }
+
+  return idx;
+}
+
+const enum Char {
+  "(" = 40,
+  ")" = 41,
+  "*" = 42,
+  "/" = 47,
+  ":" = 58,
+  "\\" = 92,
+  "{" = 123,
+  "}" = 125,
+}
+
+// URLPattern is slow because it always parses the URL first and then matches
+// the pattern. Converting it to a regex is faster, see:
+// https://github.com/denoland/deno/issues/19861
+export function patternToRegExp(input: string): RegExp {
+  let tmpPattern = "";
+  let pattern = "^";
+
+  let groupIdx = -1;
+
+  for (let i = 0; i < input.length; i++) {
+    let ch = input.charCodeAt(i);
+
+    if (groupIdx !== -1) {
+      if (ch === Char["{"]) {
+        throw new SyntaxError(`Unexpected token "{"`);
+      }
+      if (ch === Char["}"]) {
+        pattern = tmpPattern + "(?:" + pattern + ")";
+        groupIdx = -1;
+        continue;
+      }
+    }
+
+    if (ch === Char["/"]) {
+      if (pattern === "^") {
+        pattern += "\\/?";
+      } else {
+        pattern += "\\/";
+      }
+    } else if (ch === Char[":"]) {
+      const start = i + 1;
+      ch = input.charCodeAt(++i);
+      if (!isIdentifierStart(ch)) {
+        throw new SyntaxError(`Invalid URL pattern: ${input}`);
+      }
+      ch = input.charCodeAt(++i);
+      while (isIdentifierChar(ch)) {
+        ch = input.charCodeAt(++i);
+      }
+
+      const name = input.slice(start, i);
+
+      if (ch === Char["("]) {
+        const end = skipRegex(input, i);
+        pattern += `(?<${name}>${input.slice(i + 1, end)})`;
+        i = end;
+        continue;
+      } else if (ch === Char["*"]) {
+        pattern += `(?<${name}>.*?)`;
+        continue;
+      } else {
+        pattern += `(?<${name}>[^/]+)`;
+        i--;
+      }
+    } else if (ch === Char["*"]) {
+      pattern += ".*?";
+    } else if (ch === Char["{"]) {
+      tmpPattern = pattern;
+      pattern = "";
+      groupIdx = i;
+    } else {
+      pattern += input[i];
+    }
+  }
+
+  return new RegExp(pattern + "$", "u");
+}
+
+export const IS_PATTERN = /[*:{}+?()]/;
+
 function processRoutes<T>(
   processedRoutes: Array<InternalRoute<T> | null>,
   routes: Routes<T>,
   destination: DestinationKind,
 ) {
   for (const [path, def] of Object.entries(routes)) {
+    const pattern = destination === "static" || !IS_PATTERN.test(path)
+      ? path
+      : patternToRegExp(path);
+
     const entry: InternalRoute<T> = {
       baseRoute: def.baseRoute,
-      pattern: destination === "static"
-        ? path
-        : new URLPattern({ pathname: path }),
+      pattern,
       methods: {},
       default: undefined,
       destination,
@@ -187,11 +295,11 @@ export function getParamsAndRoute<T>(
         continue;
       }
 
-      const res = route.pattern.exec(url);
+      const res = route.pattern.exec(urlObject.pathname);
 
       if (res !== null) {
         const groups: Record<string, string> = {};
-        const matched = res?.pathname.groups;
+        const matched = res?.groups;
 
         for (const key in matched) {
           const value = matched[key];
