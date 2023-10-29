@@ -207,6 +207,7 @@ export type RouteContext<T = any, S = Record<string, unknown>> = {
   params: Record<string, string>;
   state: S;
   data: T;
+  isPartial: boolean;
 };
 
 export interface RouteConfig {
@@ -268,6 +269,7 @@ export interface HandlerContext<
   ) => Response | Promise<Response>;
   renderNotFound: (data?: NotFoundData) => Response | Promise<Response>;
   state: State;
+  isPartial: boolean;
 }
 
 // deno-lint-ignore no-explicit-any
@@ -431,6 +433,15 @@ export interface UnknownPage {
   inheritLayouts: boolean;
 }
 
+export type UnknownRenderFunction = (
+  req: Request,
+  params: Record<string, string>,
+  // deno-lint-ignore no-explicit-any
+  ctx?: any,
+  data?: unknown,
+  error?: unknown,
+) => Promise<Response>;
+
 // --- ERROR PAGE ---
 
 export interface ErrorPageProps {
@@ -486,9 +497,11 @@ export interface ErrorPage {
 export interface MiddlewareHandlerContext<State = Record<string, unknown>>
   extends ServeHandlerInfo {
   next: () => Promise<Response>;
+  renderNotFound: (state?: State) => Response | Promise<Response>;
   state: State;
   destination: router.DestinationKind;
   params: Record<string, string>;
+  isPartial: boolean;
 }
 
 export interface MiddlewareRoute {

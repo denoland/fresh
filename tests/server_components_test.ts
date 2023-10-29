@@ -93,6 +93,7 @@ Deno.test({
               id: "foo",
             },
             state: {},
+            isPartial: false,
           },
         );
       },

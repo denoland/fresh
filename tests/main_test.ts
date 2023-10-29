@@ -715,6 +715,24 @@ Deno.test({
   },
 });
 
+Deno.test({
+  name: "404 from middleware",
+  fn: async () => {
+    const resp = await handler(
+      new Request(
+        "https://fresh.deno.dev/404-from-middleware",
+      ),
+    );
+    assert(resp);
+    assertEquals(resp.status, Status.NotFound);
+    const body = await resp.text();
+    assertStringIncludes(
+      body,
+      "404 not found: /404-from-middleware",
+    );
+  },
+});
+
 Deno.test("jsx pragma works", async (t) => {
   // Preparation
   const { serverProcess, lines, address } = await startFreshServer({
