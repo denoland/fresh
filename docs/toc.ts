@@ -154,6 +154,7 @@ const toc: RawTableOfContents = {
           ["writing-tests", "Writing tests"],
           ["changing-the-src-dir", "Changing the source directory"],
           ["using-twind-v1", "Using Twind v1"],
+          ["using-tailwindcss", "Using Tailwind CSS"],
           ["init-the-server", "Initializing the server"],
           ["using-fresh-canary-version", "Using Fresh canary version"],
           ["dealing-with-cors", "Dealing with CORS"],
