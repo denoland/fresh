@@ -7,7 +7,7 @@
     "screenshot": "deno run -A www/utils/screenshot.ts",
     "check:types": "deno check **/*.ts && deno check **/*.tsx",
     "ok": "deno fmt --check && deno lint && deno task check:types && deno task test",
-    "test:www": "deno test -A --no-check tests/www/"
+    "test:www": "deno test -A tests/www/"
   },
   "exclude": [
     "**/_fresh/*",
