@@ -8,12 +8,13 @@ Deno.test("index.tsx route handler test...", async (t) => {
     expect(handler.GET).toBeDefined();
     const req = new Request("http://localhost:8000/");
     req.headers.set("user-agent", "Chrome");
-    // @ts-ignore manifest typing
+    // @ts-ignore manifest typing doesn't matter
     const ctx = createHandlerContext(req, { manifest });
-    const resp = handler.GET(req, ctx);
+    // @ts-ignore handler is not null
+    const resp = handler.GET(req, ctx) as Response;
     console.log("resp", resp);
     expect(resp.status).toBe(307);
-    expect(resp.headers.get("Location").endsWith("init.ts"));
+    expect(resp.headers.get("Location")?.endsWith("init.ts"));
   });
 
   await t.step("should not redirect and return status=200", () => {
@@ -21,13 +22,15 @@ Deno.test("index.tsx route handler test...", async (t) => {
     const req = new Request("http://localhost:8000/");
     req.headers.set("user-agent", "Chrome");
     req.headers.set("accept", "text/html");
-    // @ts-ignore manifest typing
+    // @ts-ignore manifest typing doesn't matter
     const ctx = createHandlerContext(req, { manifest });
     // mock render to return Response-like object
+    // @ts-ignore mock object used
     ctx.render = () => {
       return ({ body: "Hello World!", status: 200 });
     };
-    const resp = handler.GET(req, ctx);
+    // @ts-ignore handler is not null
+    const resp = handler.GET(req, ctx) as Response;
     // console.log("resp", resp);
     expect(resp.status).toBe(200);
   });
