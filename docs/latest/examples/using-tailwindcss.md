@@ -164,21 +164,21 @@ Multiple instances can also be used to create theme variations. For example:
 
 ```ts fresh.config.ts
 // Using different source files:
-const plugins = ["cool", "warm"].map((theme) => {
-  return tailwindPlugin({
+const plugins = ["cool", "warm"].map((theme) =>
+  tailwindPlugin({
     css: `./src/${theme}.css`,
     dest: `./static/${theme}.css`,
-  });
-});
+  })
+);
 
 // OR - Using different configuration files:
-const plugins = ["dark", "light"].map((theme) => {
-  return tailwindPlugin({
+const plugins = ["dark", "light"].map((theme) =>
+  tailwindPlugin({
     css: "./src/common.css",
     dest: `./static/${theme}.css`,
     configFile: `./tailwind_${theme}.config.ts`,
-  });
-});
+  })
+);
 
 export default defineConfig({
   plugins,
