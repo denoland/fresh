@@ -66,20 +66,6 @@ Deno.test({
   },
 });
 
-Deno.test("adds refresh script to html", async () => {
-  await withFakeServe("./tests/fixture/dev.ts", async (server) => {
-    const doc = await server.getHtml("/");
-    assertSelector(doc, `script[src="/_frsh/refresh.js"]`);
-
-    const res = await server.get(`/_frsh/refresh.js`);
-    assertEquals(
-      res.headers.get("content-type"),
-      "application/javascript; charset=utf-8",
-    );
-    await res.body?.cancel();
-  });
-});
-
 Deno.test("preact/debug is active in dev mode", async () => {
   await withFakeServe(
     "./tests/fixture_render_error/dev.ts",
@@ -97,14 +83,6 @@ Deno.test("preact/debug is active in dev mode", async () => {
       assertStringIncludes(text2, "Objects are not valid as a child");
     },
   );
-});
-
-Deno.test("middleware destination internal", async () => {
-  await withFakeServe("./tests/fixture/dev.ts", async (server) => {
-    const resp = await server.get(`/_frsh/refresh.js`);
-    assertEquals(resp.headers.get("destination"), "internal");
-    await resp.body?.cancel();
-  });
 });
 
 Deno.test("warns when using hooks in server components", async (t) => {

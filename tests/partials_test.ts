@@ -15,7 +15,8 @@ import {
 } from "./test_utils.ts";
 
 async function assertLogs(page: Page, expected: string[]) {
-  await waitForText(page, "#logs", expected.join("\n") + "\n");
+  const text = expected.length > 0 ? expected.join("\n") + "\n" : "";
+  await waitForText(page, "#logs", text);
 }
 
 Deno.test("injects server content with no islands present", async () => {
@@ -852,6 +853,62 @@ Deno.test("allow opting out of client navigation", async () => {
   );
 });
 
+Deno.test("allow opting out of client navigation if parent opted in", async () => {
+  await withPageName(
+    "./tests/fixture_partials/main.ts",
+    async (page, address) => {
+      const initialUrl = `${address}/client_nav_both`;
+      await page.goto(initialUrl);
+      await page.waitForSelector(".island");
+
+      await page.click(".island-a button");
+      await waitForText(page, ".output-a", "1");
+
+      // Go to page B
+      await page.click(".page-b-link");
+      await page.waitForSelector(".island-b");
+      await assertLogs(page, ["mount Counter B"]);
+
+      await page.click(".island-b button");
+      await waitForText(page, ".output-b", "1");
+      await assertLogs(page, ["mount Counter B", "update Counter B"]);
+
+      // Go to page C
+      await page.click(".page-c-link");
+      await page.waitForSelector(".page-c-text");
+      await assertLogs(page, []);
+
+      // Go back to B
+      await page.goBack();
+      await page.waitForSelector(".island-b");
+      await assertLogs(page, ["mount Counter B"]);
+
+      // Check that island is interactive
+      await page.click(".island-b button");
+      await waitForText(page, ".output-b", "1");
+
+      // Go back to A
+      await page.goBack();
+      await page.waitForSelector(".island-a");
+      await assertLogs(page, ["mount Counter A"]);
+
+      // Check that island is interactive
+      await page.click(".island-a button");
+      await waitForText(page, ".output-a", "1");
+      await assertNoPageComments(page);
+
+      // Go forward to B
+      await page.goForward();
+      await page.waitForSelector(".island-b");
+      await assertLogs(page, ["mount Counter B"]);
+
+      // Check that island is interactive
+      await page.click(".island-b button");
+      await waitForText(page, ".output-b", "1");
+    },
+  );
+});
+
 Deno.test("restore scroll position", async () => {
   await withPageName(
     "./tests/fixture_partials/main.ts",
@@ -941,6 +998,165 @@ Deno.test("submit form", async () => {
       await page.click(".submit");
       await page.waitForSelector(".status-updated");
       await assertNoPageComments(page);
+    },
+  );
+});
+
+Deno.test("submit form GET", async () => {
+  await withPageName(
+    "./tests/fixture_partials/main.ts",
+    async (page, address) => {
+      const initialUrl = `${address}/form_get`;
+      await page.goto(initialUrl);
+      await page.waitForSelector(".status");
+
+      await page.type("input", "foobar");
+
+      await page.click(".submit");
+      await waitFor(async () => {
+        const logEl = await page.$eval("#logs", (el) => el.textContent);
+        return /update Form/.test(logEl);
+      });
+
+      const url = await page.$eval(".url", (el) => el.textContent);
+      assertEquals(url, `${address}/form_get?name=foobar&fresh-partial=true`);
+
+      // Server can update form value
+      const value = await page.$eval("input", (el) => el.value);
+      assertEquals(value, "foobar_foo");
+
+      const logs = await page.$eval("#logs", (el) => el.textContent);
+      assertEquals(logs.split(/\n/).filter(Boolean), [
+        "mount Form",
+        "update Form",
+      ]);
+    },
+  );
+});
+
+Deno.test("submit form POST", async () => {
+  await withPageName(
+    "./tests/fixture_partials/main.ts",
+    async (page, address) => {
+      await page.goto(`${address}/form_post`);
+      await page.waitForSelector(".status");
+
+      await page.type("input", "foobar");
+
+      await page.click(".submit");
+      await waitFor(async () => {
+        const logEl = await page.$eval("#logs", (el) => el.textContent);
+        return /update Form/.test(logEl);
+      });
+
+      const url = await page.$eval(".url", (el) => el.textContent);
+      assertEquals(url, `${address}/form_post?fresh-partial=true`);
+
+      const logs = await page.$eval("#logs", (el) => el.textContent);
+      assertEquals(logs.split(/\n/).filter(Boolean), [
+        "mount Form",
+        "update Form",
+      ]);
+
+      // Server can update form value
+      const value = await page.$eval("input", (el) => el.value);
+      assertEquals(value, "foobar_foo");
+    },
+  );
+});
+
+Deno.test("pull values from event.submitter if set", async () => {
+  await withPageName(
+    "./tests/fixture_partials/main.ts",
+    async (page, address) => {
+      await page.goto(`${address}/form_submitter`);
+      await page.waitForSelector(".status");
+
+      await page.type("input", "foobar");
+
+      await page.click(".submit");
+      await waitFor(async () => {
+        const logEl = await page.$eval("#logs", (el) => el.textContent);
+        return /update Form/.test(logEl);
+      });
+
+      const url = await page.$eval(".url", (el) => el.textContent);
+      assertEquals(url, `${address}/form_submitter?fresh-partial=true`);
+
+      const logs = await page.$eval("#logs", (el) => el.textContent);
+      assertEquals(logs.split(/\n/).filter(Boolean), [
+        "mount Form",
+        "update Form",
+      ]);
+
+      // Server can update form value
+      const value = await page.$eval("input", (el) => el.value);
+      assertEquals(value, "foobar_foo");
+    },
+  );
+});
+
+Deno.test("pull values from event.submitter if set with f-partial", async () => {
+  await withPageName(
+    "./tests/fixture_partials/main.ts",
+    async (page, address) => {
+      await page.goto(`${address}/form_submitter_partial`);
+      await page.waitForSelector(".status");
+
+      await page.type("input", "foobar");
+
+      await page.click(".submit");
+      await waitFor(async () => {
+        const logEl = await page.$eval("#logs", (el) => el.textContent);
+        return /update Form/.test(logEl);
+      });
+
+      const url = await page.$eval(".url", (el) => el.textContent);
+      assertEquals(url, `${address}/form_submitter_partial?fresh-partial=true`);
+
+      const logs = await page.$eval("#logs", (el) => el.textContent);
+      assertEquals(logs.split(/\n/).filter(Boolean), [
+        "mount Form",
+        "update Form",
+      ]);
+
+      // Server can update form value
+      const value = await page.$eval("input", (el) => el.value);
+      assertEquals(value, "foobar_foo");
+    },
+  );
+});
+
+Deno.test("should apply partials if submitter parent has no client nav", async () => {
+  await withPageName(
+    "./tests/fixture_partials/main.ts",
+    async (page, address) => {
+      await page.goto(`${address}/form_submitter_partial_no_client_nav`);
+      await page.waitForSelector(".status");
+
+      await page.type("input", "foobar");
+
+      await Promise.all([
+        page.waitForNavigation(),
+        page.click(".submit"),
+      ]);
+
+      await page.waitForSelector(".url");
+
+      const url = await page.$eval(".url", (el) => el.textContent);
+      assertEquals(
+        url,
+        `${address}/form_submitter_partial_no_client_nav`,
+      );
+
+      await waitFor(async () => {
+        const logEl = await page.$eval("#logs", (el) => el.textContent);
+        return /mount Form/.test(logEl);
+      });
+
+      // Server can update form value
+      const value = await page.$eval("input", (el) => el.value);
+      assertEquals(value, "foobar_foo");
     },
   );
 });
@@ -1163,6 +1379,121 @@ Deno.test("supports relative links", async () => {
 
       await page.click("button");
       await page.waitForSelector(".status-refreshed");
+    },
+  );
+});
+
+Deno.test("nested partials are able to be updated", async () => {
+  await withPageName(
+    "./tests/fixture_partials/main.ts",
+    async (page, address) => {
+      await page.goto(`${address}/nested`);
+      await page.waitForSelector(".status-outer");
+      await page.waitForSelector(".status-inner");
+
+      await page.click(".update-outer");
+      await waitForText(page, ".status-outer", "updated outer");
+      await waitForText(page, ".status-inner", "inner");
+
+      await page.click(".update-inner");
+      await waitForText(page, ".status-outer", "updated outer");
+      await waitForText(page, ".status-inner", "updated inner");
+
+      await page.click(".update-outer");
+      await waitForText(page, ".status-outer", "updated outer");
+      await waitForText(page, ".status-inner", "inner");
+    },
+  );
+});
+
+Deno.test("errors on duplicate partial name", async () => {
+  await withPageName(
+    "./tests/fixture_partials/main.ts",
+    async (page, address) => {
+      await page.goto(`${address}/duplicate_name`);
+      await page.waitForSelector(".swap-link");
+
+      const logs: string[] = [];
+      page.on("console", (msg) => logs.push(msg.text()));
+
+      await Promise.all([
+        page.waitForResponse((res) => res.status() === 500),
+        page.click(".swap-link"),
+      ]);
+    },
+  );
+});
+
+Deno.test("normal visit to handler page", async () => {
+  await withFakeServe(
+    "./tests/fixture_partials/main.ts",
+    async (server) => {
+      const html = await server.getHtml("/isPartial/handler");
+      assertEquals(JSON.parse(html.querySelector("pre")!.textContent!), {
+        isPartial: false,
+        notSetFromMiddleware: true,
+      });
+    },
+  );
+});
+
+Deno.test("normal visit to async page", async () => {
+  await withFakeServe(
+    "./tests/fixture_partials/main.ts",
+    async (server) => {
+      const html = await server.getHtml("/isPartial/async");
+      assertEquals(JSON.parse(html.querySelector("pre")!.textContent!), {
+        isPartial: false,
+        notSetFromMiddleware: true,
+      });
+    },
+  );
+});
+
+Deno.test("partials visit to handler page", async () => {
+  await withPageName(
+    "./tests/fixture_partials/main.ts",
+    async (page, address) => {
+      await page.goto(`${address}/isPartial`);
+      await page.waitForSelector(".output");
+
+      const href = await page.$eval(".handler-update-link", (el) => el.href);
+      await page.click(".handler-update-link");
+      await page.waitForSelector("pre");
+
+      assertEquals(href, await page.url());
+      await assertNoPageComments(page);
+      const result = await page.$eval("pre", (el) => {
+        return el.textContent;
+      });
+      assertEquals(JSON.parse(result), {
+        isPartial: true,
+        setFromMiddleware: true,
+      });
+    },
+  );
+});
+
+Deno.test("partials visit to async page", async () => {
+  await withPageName(
+    "./tests/fixture_partials/main.ts",
+    async (page, address) => {
+      await page.goto(`${address}/isPartial`);
+      await page.waitForSelector(".output");
+
+      const href = await page.$eval(".async-update-link", (el) => el.href);
+      await page.click(".async-update-link");
+      await page.waitForSelector("pre");
+
+      assertEquals(href, await page.url());
+      await assertNoPageComments(page);
+      const result = await page.$eval("pre", (el) => {
+        return el.textContent;
+      });
+      assertEquals(JSON.parse(result), {
+        isPartial: true,
+        setFromMiddleware: true,
+      });
     },
   );
 });

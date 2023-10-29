@@ -205,7 +205,7 @@ options.vnode = (vnode) => {
     }
 
     if (typeof props[CLIENT_NAV_ATTR] === "boolean") {
-      props[CLIENT_NAV_ATTR] = props[CLIENT_NAV_ATTR] ? "true" : null;
+      props[CLIENT_NAV_ATTR] = props[CLIENT_NAV_ATTR] ? "true" : "false";
     }
   } else if (
     current && typeof vnode.type === "function" && vnode.type !== Fragment &&
@@ -367,6 +367,13 @@ options.__b = (vnode: VNode<Record<string, unknown>>) => {
             `<Partial> components cannot be used inside islands.`,
           );
         }
+        const name = vnode.props.name as string;
+        if (current.encounteredPartials.has(name)) {
+          current.error = new Error(
+            `Duplicate partial name "${name}" found. The partial name prop is expected to be unique among partial components.`,
+          );
+        }
+        current.encounteredPartials.add(name);
 
         const mode = encodePartialMode(
           // deno-lint-ignore no-explicit-any
@@ -374,7 +381,7 @@ options.__b = (vnode: VNode<Record<string, unknown>>) => {
         );
         vnode.props.children = wrapWithMarker(
           vnode.props.children,
-          `frsh-partial:${vnode.props.name}:${mode}:${vnode.key ?? ""}`,
+          `frsh-partial:${name}:${mode}:${vnode.key ?? ""}`,
         );
       } else if (
         vnode.key && (current.islandDepth > 0 || current.partialDepth > 0)

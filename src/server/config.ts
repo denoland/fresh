@@ -1,6 +1,11 @@
 import { dirname, fromFileUrl, isAbsolute, join, JSONC } from "./deps.ts";
 import { FromManifestConfig, Manifest } from "./mod.ts";
-import { DenoConfig, InternalFreshConfig } from "./types.ts";
+import { DEFAULT_RENDER_FN } from "./render.ts";
+import {
+  DenoConfig,
+  InternalFreshState,
+  ResolvedFreshConfig,
+} from "./types.ts";
 
 export async function readDenoConfig(
   directory: string,
@@ -37,10 +42,10 @@ function isObject(value: unknown) {
     !Array.isArray(value);
 }
 
-export async function getFreshConfigWithDefaults(
+export async function getInternalFreshState(
   manifest: Manifest,
   config: FromManifestConfig,
-): Promise<InternalFreshConfig> {
+): Promise<InternalFreshState> {
   const base = dirname(fromFileUrl(manifest.baseUrl));
   const { config: denoJson, path: denoJsonPath } = await readDenoConfig(base);
 
@@ -50,21 +55,21 @@ export async function getFreshConfigWithDefaults(
     );
   }
 
-  const internalConfig: InternalFreshConfig = {
-    loadSnapshot: typeof config.skipSnapshot === "boolean"
-      ? !config.skipSnapshot
-      : false,
-    dev: config.dev ?? false,
-    denoJsonPath,
-    denoJson,
-    manifest,
+  const isLegacyDev = Deno.env.get("__FRSH_LEGACY_DEV") === "true";
+
+  const internalConfig: ResolvedFreshConfig = {
+    dev: isLegacyDev || Boolean(config.dev),
     build: {
-      outDir: "",
+      outDir: config.build?.outDir
+        ? parseFileOrUrl(config.build.outDir, base)
+        : join(base, "_fresh"),
       target: config.build?.target ?? ["chrome99", "firefox99", "safari15"],
     },
     plugins: config.plugins ?? [],
-    staticDir: "",
-    render: config.render,
+    staticDir: config.staticDir
+      ? parseFileOrUrl(config.staticDir, base)
+      : join(base, "static"),
+    render: config.render ?? DEFAULT_RENDER_FN,
     router: config.router,
     server: config.server ?? {},
   };
@@ -94,15 +99,13 @@ export async function getFreshConfigWithDefaults(
     internalConfig.server.signal = config.signal;
   }
 
-  internalConfig.build.outDir = config.build?.outDir
-    ? parseFileOrUrl(config.build.outDir, base)
-    : join(base, "_fresh");
-
-  internalConfig.staticDir = config.staticDir
-    ? parseFileOrUrl(config.staticDir, base)
-    : join(base, "static");
-
-  return internalConfig;
+  return {
+    config: internalConfig,
+    manifest,
+    loadSnapshot: !isLegacyDev,
+    denoJsonPath,
+    denoJson,
+  };
 }
 
 function parseFileOrUrl(input: string, base: string) {

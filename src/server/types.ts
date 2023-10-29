@@ -108,17 +108,21 @@ export interface FreshConfig {
   onListen?: (params: { hostname: string; port: number }) => void;
 }
 
-export interface InternalFreshConfig {
-  dev: boolean;
+export interface InternalFreshState {
+  config: ResolvedFreshConfig;
+  manifest: Manifest;
   loadSnapshot: boolean;
   denoJsonPath: string;
   denoJson: DenoConfig;
-  manifest: Manifest;
+}
+
+export interface ResolvedFreshConfig {
+  dev: boolean;
   build: {
     outDir: string;
     target: string | string[];
   };
-  render?: RenderFunction;
+  render: RenderFunction;
   plugins: Plugin[];
   staticDir: string;
   router?: RouterOptions;
@@ -176,6 +180,19 @@ export interface PageProps<T = any, S = Record<string, unknown>> {
   state: S;
 }
 
+export interface StaticFile {
+  /** The URL to the static file on disk. */
+  localUrl: URL;
+  /** The path to the file as it would be in the incoming request. */
+  path: string;
+  /** The size of the file. */
+  size: number;
+  /** The content-type of the file. */
+  contentType: string;
+  /** Hash of the file contents. */
+  etag: string;
+}
+
 /**
  * Context passed to async route components.
  */
@@ -190,6 +207,7 @@ export type RouteContext<T = any, S = Record<string, unknown>> = {
   params: Record<string, string>;
   state: S;
   data: T;
+  isPartial: boolean;
 };
 
 export interface RouteConfig {
@@ -251,6 +269,7 @@ export interface HandlerContext<
   ) => Response | Promise<Response>;
   renderNotFound: (data?: NotFoundData) => Response | Promise<Response>;
   state: State;
+  isPartial: boolean;
 }
 
 // deno-lint-ignore no-explicit-any
@@ -414,6 +433,15 @@ export interface UnknownPage {
   inheritLayouts: boolean;
 }
 
+export type UnknownRenderFunction = (
+  req: Request,
+  params: Record<string, string>,
+  // deno-lint-ignore no-explicit-any
+  ctx?: any,
+  data?: unknown,
+  error?: unknown,
+) => Promise<Response>;
+
 // --- ERROR PAGE ---
 
 export interface ErrorPageProps {
@@ -469,9 +497,11 @@ export interface ErrorPage {
 export interface MiddlewareHandlerContext<State = Record<string, unknown>>
   extends ServeHandlerInfo {
   next: () => Promise<Response>;
+  renderNotFound: (state?: State) => Response | Promise<Response>;
   state: State;
   destination: router.DestinationKind;
   params: Record<string, string>;
+  isPartial: boolean;
 }
 
 export interface MiddlewareRoute {
@@ -545,7 +575,7 @@ export interface Plugin<State = Record<string, unknown>> {
   /**
    * Called before running the Fresh build task
    */
-  buildStart?(): Promise<void> | void;
+  buildStart?(config: ResolvedFreshConfig): Promise<void> | void;
   /**
    * Called after completing the Fresh build task
    */
