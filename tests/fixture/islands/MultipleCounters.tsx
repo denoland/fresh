@@ -6,6 +6,8 @@ interface CounterProps {
   id: string;
 }
 
+export const thisShouldNotCauseProblems = 42;
+
 export default function CounterZero(props: CounterProps) {
   return (
     <div id={props.id}>

@@ -90,6 +90,7 @@ import * as $$11 from "./islands/folder/subfolder/Counter.tsx";
 import * as $$12 from "./islands/kebab-case-counter-test.tsx";
 import * as $$13 from "./routes/route-groups-islands/(_islands)/Counter.tsx";
 import * as $$14 from "./routes/route-groups-islands/(_islands)/invalid.tsx";
+import { Manifest } from "$fresh/server.ts";
 
 const manifest = {
   routes: {
@@ -172,7 +173,11 @@ const manifest = {
     "./islands/FormIsland.tsx": $$1,
     "./islands/Greeter.tsx": $$2,
     "./islands/HookIsland.tsx": $$3,
-    "./islands/MultipleCounters.tsx": $$4,
+    "./islands/MultipleCounters.tsx": {
+      CounterOne: $$4.CounterOne,
+      CounterTwo: $$4.CounterTwo,
+      default: $$4.default,
+    },
     "./islands/ReturningNull.tsx": $$5,
     "./islands/RootFragment.tsx": $$6,
     "./islands/RootFragmentWithConditionalFirst.tsx": $$7,
@@ -185,6 +190,6 @@ const manifest = {
     "./routes/route-groups-islands/(_islands)/invalid.tsx": $$14,
   },
   baseUrl: import.meta.url,
-};
+} satisfies Manifest;
 
 export default manifest;
