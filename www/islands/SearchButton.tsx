@@ -1,7 +1,9 @@
 import { Head } from "$fresh/runtime.ts";
 import { useEffect, useRef } from "preact/hooks";
 
-export default function SearchButton(props: { docsearch: Function, class?: string }) {
+export default function SearchButton(
+  props: { docsearch: Function; class?: string },
+) {
   const ref = useRef<HTMLDivElement>(null);
   useEffect(() => {
     if (ref.current) {
@@ -21,7 +23,12 @@ export default function SearchButton(props: { docsearch: Function, class?: strin
           href="/docsearch.css"
         />
       </Head>
-      <div title="Search Button" class={"h-9 mb-6 " + (props.class ?? "")} ref={ref}></div>
+      <div
+        title="Search Button"
+        class={"h-9 mb-6 " + (props.class ?? "")}
+        ref={ref}
+      >
+      </div>
     </>
   );
 }
