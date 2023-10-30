@@ -90,6 +90,9 @@ export function composeMiddlewares(
           // the error case manually, by returning the `Error` as rejected promise.
           return Promise.resolve(handler());
         } catch (e) {
+          if (e instanceof Deno.errors.NotFound) {
+            return renderNotFound(req, paramsAndRouteResult.params, ctx);
+          }
           return Promise.reject(e);
         }
       },
