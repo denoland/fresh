@@ -1,8 +1,16 @@
 import { Head } from "$fresh/runtime.ts";
 import { useEffect, useRef } from "preact/hooks";
 
+// Copied from algolia source code
+type DocSearchProps = {
+  appId: string;
+  apiKey: string;
+  indexName: string;
+  container: HTMLElement | string;
+};
+
 export default function SearchButton(
-  props: { docsearch: Function; class?: string },
+  props: { docsearch: (args: DocSearchProps) => void; class?: string },
 ) {
   const ref = useRef<HTMLDivElement>(null);
   useEffect(() => {

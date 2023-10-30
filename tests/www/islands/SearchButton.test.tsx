@@ -18,11 +18,11 @@ describe("islands/SearchButton.tsx", () => {
     // create mock implementation of docsearch
     // @ts-ignore mock impl
     const dsearch = fn(docsearch).mockImplementation((
-      applId,
-      apiKey,
-      indexName,
-      container,
-    ) => "foobar");
+      applId: string,
+      apiKey: string,
+      indexName: string,
+      container: HTMLElement | string,
+    ) => {});
     const { getByTitle } = render(
       <SearchButton class="font-bold" docsearch={dsearch} />,
     );
