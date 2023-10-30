@@ -1,6 +1,6 @@
 import { RenderState } from "./state.ts";
 import { setRenderState } from "./preact_hooks.ts";
-import { renderToString } from "preact-render-to-string";
+import { renderToString } from "../deps.ts";
 import {
   ComponentType,
   Fragment,

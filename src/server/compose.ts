@@ -5,6 +5,7 @@ import {
   MiddlewareRoute,
   RouterState,
   ServeHandlerInfo,
+  UnknownRenderFunction,
 } from "./types.ts";
 
 export const ROOT_BASE_ROUTE = toBaseRoute("/");
@@ -56,6 +57,7 @@ export function composeMiddlewares(
   paramsAndRoute: (
     url: string,
   ) => RouteResult<RouterState>,
+  renderNotFound: UnknownRenderFunction,
 ) {
   return (
     req: Request,
@@ -88,6 +90,9 @@ export function composeMiddlewares(
           // the error case manually, by returning the `Error` as rejected promise.
           return Promise.resolve(handler());
         } catch (e) {
+          if (e instanceof Deno.errors.NotFound) {
+            return renderNotFound(req, paramsAndRouteResult.params, ctx);
+          }
           return Promise.reject(e);
         }
       },
@@ -100,6 +105,9 @@ export function composeMiddlewares(
       },
       destination: "route",
       params: paramsAndRouteResult.params,
+      renderNotFound: async () => {
+        return await renderNotFound(req, paramsAndRouteResult.params, ctx);
+      },
       isPartial: paramsAndRouteResult.isPartial,
     };
 
