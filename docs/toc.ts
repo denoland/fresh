@@ -54,7 +54,7 @@ const toc: RawTableOfContents = {
           ["islands", "Interactive islands", "link:latest"],
           ["static-files", "Static files", "link:latest"],
           ["middleware", "Middlewares", "link:latest"],
-          ["error-pages", "Error pages", "link:latest"],
+          ["error-pages", "Error pages", "link:canary"],
           ["partials", "Partials", "link:latest"],
           ["data-fetching", "Data fetching", "link:latest"],
           ["ahead-of-time-builds", "Ahead-of-time Builds", "link:latest"],

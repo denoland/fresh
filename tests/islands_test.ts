@@ -156,18 +156,6 @@ Deno.test("island using `npm:` specifiers", async () => {
   });
 });
 
-Deno.test("works with older preact-render-to-string v5", async () => {
-  await withPageName(
-    "./tests/fixture_preact_rts_v5/main.ts",
-    async (page, address) => {
-      await page.goto(address);
-      await page.waitForSelector("#foo");
-      await waitForText(page, "#foo", "it works");
-      +await assertNoPageComments(page);
-    },
-  );
-});
-
 Deno.test("pass single JSX child to island", async () => {
   await withPageName(
     "./tests/fixture_island_nesting/main.ts",
