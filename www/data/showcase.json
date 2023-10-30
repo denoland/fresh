@@ -397,6 +397,12 @@
     "image": "cs2items"
   },
   {
+    "title": "Enric Perpinyà Site",
+    "link": "https://perpinya.eu/",
+    "github": "evilmonkey19/cv",
+    "image": "evilmonkey19-cv"
+  },
+  {
     "title": "Do not remove this, it’s for preventing conflicts by trailing comma",
     "link": "",
     "github": "",
