@@ -183,7 +183,7 @@ An error occurred during route handling or page rendering. ReferenceError: Event
     ....
 ```
 
-Use the `IS_BROWSER` flag as a guard to fix the issue:
+Use the [`IS_BROWSER`](https://deno.land/x/fresh/runtime.ts?doc=&s=IS_BROWSER) flag as a guard to fix the issue:
 
 ```tsx islands/my-island.tsx
 import { IS_BROWSER } from "$fresh/runtime.ts";
@@ -197,6 +197,3 @@ export function MyIsland() {
   return <div></div>;
 }
 ```
-
-You can learn more about this at the
-[API reference](https://deno.land/x/fresh/runtime.ts?doc=&s=IS_BROWSER).
