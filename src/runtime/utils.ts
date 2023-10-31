@@ -4,6 +4,20 @@ import { BUILD_ID } from "./build_id.ts";
 export const INTERNAL_PREFIX = "/_frsh";
 export const ASSET_CACHE_BUST_KEY = "__frsh_c";
 
+/**
+ * A helper variable used to guard code which should not run on the server, but rather only in the browser.
+ * Shorthand for the following:
+ * typeof document !== "undefined"
+ *
+ * An example might involve showing an alert to a user:
+ *  if (IS_BROWSER) {
+ *    alert('This is running in the browser!');
+ *  } else {
+ *    console.log('This code is running on the server, no access to window or alert');
+ *  }
+ *
+ * Without this guard, alert pauses the server until return is pressed in the console.
+ */
 export const IS_BROWSER = typeof document !== "undefined";
 
 /**

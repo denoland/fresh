@@ -197,3 +197,6 @@ export function MyIsland() {
   return <div></div>;
 }
 ```
+
+You can learn more about this at the
+[API reference](https://deno.land/x/fresh/runtime.ts?doc=&s=IS_BROWSER).
