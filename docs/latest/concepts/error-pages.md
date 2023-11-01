@@ -62,7 +62,8 @@ A props object of type `ErrorPageProps` is passed in as an argument.
 
 While running the app in dev mode, the custom _500.tsx page won't be displayed.
 Instead, the default Fresh error page, containing error details, will be shown.
-You can view the custom _500.tsx page in preview mode and when the app is deployed.
+You can view the custom _500.tsx page in preview mode and when the app is
+deployed.
 
 ```tsx routes/_500.tsx
 import { ErrorPageProps } from "$fresh/server.ts";
