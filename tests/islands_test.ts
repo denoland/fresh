@@ -438,7 +438,7 @@ Deno.test("throws when passing non-jsx children to an island", async (t) => {
 
 Deno.test("island imported from hint", async (t) => {
   await withPageName(
-    "./tests/fixture_island_url/main.ts",
+    "./tests/fixture_island_hints/main.ts",
     async (page, address) => {
       async function counterTest(counterId: string, originalValue: number) {
         const pElem = await page.waitForSelector(`#${counterId} > p`);

@@ -14,7 +14,7 @@ export default function Home() {
     <div>
       <Counter count={count} id="counter1" />
       <Counter2 count={count2} id="counter2" />
-      <Counter3 count={count3} id="counter2" />
+      <Counter3 count={count3} id="counter3" />
     </div>
   );
 }
