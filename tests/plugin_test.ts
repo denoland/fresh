@@ -41,6 +41,11 @@ Deno.test("/static page prerender", async () => {
     body,
     '<style id="def">h1 { text-decoration: underline; }</style>',
   );
+  assertStringIncludes(body, '<link rel="stylesheet" href="styles.css"/>');
+  assertStringIncludes(
+    body,
+    '<link rel="stylesheet" media="print" href="print.css"/>',
+  );
 });
 
 Deno.test("/with-island prerender", async () => {
