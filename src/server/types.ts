@@ -106,11 +106,6 @@ export interface FreshConfig {
    * @deprecated Use `server.onListen` instead
    */
   onListen?: (params: { hostname: string; port: number }) => void;
-
-  /**
-   * URLs of islands that are imported
-   */
-  islandUrls?: string[];
 }
 
 export interface InternalFreshState {

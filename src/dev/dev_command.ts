@@ -29,7 +29,6 @@ export async function dev(
   const newManifest = await collect(
     dir,
     config?.router?.ignoreFilePattern,
-    config?.islandUrls,
   );
   Deno.env.set("FRSH_DEV_PREVIOUS_MANIFEST", JSON.stringify(newManifest));
 

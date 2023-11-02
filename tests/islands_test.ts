@@ -436,7 +436,7 @@ Deno.test("throws when passing non-jsx children to an island", async (t) => {
   );
 });
 
-Deno.test("island imported from url", async (t) => {
+Deno.test("island imported from hint", async (t) => {
   await withPageName(
     "./tests/fixture_island_url/main.ts",
     async (page, address) => {
@@ -451,9 +451,18 @@ Deno.test("island imported from url", async (t) => {
       }
       await page.goto(address);
 
-      await t.step("Ensure 2 islands on 1 page are revived", async () => {
+      await t.step("Ensure 3 islands on 1 page are revived", async () => {
         await counterTest("counter1", 3);
         await counterTest("counter2", 10);
+        await counterTest("counter3", 10);
+      });
+
+      await page.goto(`${address}/sub-route`);
+
+      await t.step("Ensure 3 islands on a sub-route are revived", async () => {
+        await counterTest("counter1", 3);
+        await counterTest("counter2", 10);
+        await counterTest("counter3", 10);
       });
     },
   );

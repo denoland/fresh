@@ -38,24 +38,24 @@ export default function Home() {
 }
 ```
 
-Islands may also be imported by URL. This is useful for using islands from
-shared libraries. Island URLs must be listed in the FreshConfig.
-
-```ts dev.ts
-await dev(import.meta.url, "./main.ts", {
-  islandUrls: [
-    "https://deno.land/x/fresh@1.5.2/demo/islands/Counter.tsx",
-  ],
-});
-```
+To use islands outside of the islands directory, use the `@fresh-island` hint
+and the import will be treated as an island. This works for URL imports as well as relative imports.
 
 ```tsx route/index.tsx
 import { useSignal } from "@preact/signals";
+// @fresh-island
 import Counter from "https://deno.land/x/fresh@1.5.2/demo/islands/Counter.tsx";
+// @fresh-island
+import SharedIsland from "../../shared/islands/SharedIsland.tsx";
 
 export default function Home() {
   const count = useSignal(3);
-  return <Counter count={count} />;
+  return (
+    <div>
+      <Counter count={count} />
+      <SharedIsland />
+    </div>
+  );
 }
 ```
 

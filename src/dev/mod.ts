@@ -1,4 +1,5 @@
 import {
+  dirname,
   gte,
   isWindows,
   join,
@@ -11,6 +12,8 @@ import {
 import { error } from "./error.ts";
 const MIN_DENO_VERSION = "1.31.0";
 const TEST_FILE_PATTERN = /[._]test\.(?:[tj]sx?|[mc][tj]s)$/;
+const ISLAND_IMPORT_REGEX =
+  /import\s+(?:{[^}]+}\s+)?(?:[\w,]+\s+as\s+\w+\s+)?\w+\s+from\s+["']([^"']+)["']/;
 
 export function ensureMinDenoVersion() {
   // Check that the minimum supported Deno version is being used.
@@ -64,12 +67,11 @@ const GROUP_REG = /[/\\\\]\((_[^/\\\\]+)\)[/\\\\]/;
 export async function collect(
   directory: string,
   ignoreFilePattern?: RegExp,
-  islandUrls?: string[],
 ): Promise<Manifest> {
   const filePaths = new Set<string>();
 
   const routes: string[] = [];
-  const islands: string[] = [];
+  const islandsSet: Set<string> = new Set();
   await Promise.all([
     collectDir(join(directory, "./routes"), (entry, dir) => {
       const rel = join("routes", relative(dir, entry.path));
@@ -81,7 +83,7 @@ export async function collect(
       const match = normalized.match(GROUP_REG);
       if (match && match[1].startsWith("_")) {
         if (match[1] === "_islands") {
-          islands.push(rel);
+          islandsSet.add(rel);
         }
         return;
       }
@@ -95,14 +97,36 @@ export async function collect(
       routes.push(rel);
     }, ignoreFilePattern),
     collectDir(join(directory, "./islands"), (entry) => {
-      islands.push(getManifestItemFromPath(directory, entry.path));
+      islandsSet.add(getManifestItemFromPath(directory, entry.path));
     }, ignoreFilePattern),
+    collectDir(directory, (entry, _) => {
+      const file = Deno.readTextFileSync(entry.path);
+      const lines = file.split("\n");
+      for (let i = 0; i < lines.length; i++) {
+        const line = lines[i];
+        if (line.match(/\/\/+\s*@fresh-island\s*/)) {
+          const islandImportLine = lines[i + 1];
+          const matches = islandImportLine.match(ISLAND_IMPORT_REGEX);
+          if (matches) {
+            const match = matches[1];
+            if (isURL(match)) {
+              islandsSet.add(match);
+            } else {
+              const fileDir = dirname(entry.path);
+              const resolvedPath = join(fileDir, matches[1]);
+              const relativePath = relative(directory, resolvedPath);
+              islandsSet.add(getManifestItemFromPath(directory, relativePath));
+            }
+          }
+        }
+      }
+    }),
   ]);
-  if (islandUrls) {
-    islands.push(...islandUrls);
-  }
 
   routes.sort();
+  // Remove duplicate islands
+  const islands = [];
+  islands.push(...islandsSet);
   islands.sort();
 
   return { routes, islands };
@@ -211,6 +235,5 @@ function getManifestItemFromPath(directory: string, filePath: string) {
   if (isWindows) {
     relativePath = relativePath.replaceAll(SEP, posix.sep);
   }
-
   return relativePath;
 }
