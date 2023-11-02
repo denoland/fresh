@@ -26,10 +26,7 @@ export async function dev(
   } else {
     currentManifest = { islands: [], routes: [] };
   }
-  const newManifest = await collect(
-    dir,
-    config?.router?.ignoreFilePattern,
-  );
+  const newManifest = await collect(dir, config?.router?.ignoreFilePattern);
   Deno.env.set("FRSH_DEV_PREVIOUS_MANIFEST", JSON.stringify(newManifest));
 
   const manifestChanged =

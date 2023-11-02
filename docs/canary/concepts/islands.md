@@ -39,7 +39,8 @@ export default function Home() {
 ```
 
 To use islands outside of the islands directory, use the `@fresh-island` hint
-and the import will be treated as an island. This works for URL imports as well as relative imports.
+and the import will be treated as an island. This works for URL imports as well
+as relative imports.
 
 ```tsx route/index.tsx
 import { useSignal } from "@preact/signals";
