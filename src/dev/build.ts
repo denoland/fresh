@@ -14,6 +14,9 @@ export async function build(
   // Ensure that build dir is empty
   await emptyDir(outDir);
 
+  // Create a directory for static assets produced during the build
+  await Deno.mkdir(join(outDir, "static"));
+
   await Promise.all(plugins.map((plugin) => plugin.buildStart?.(state.config)));
 
   // Bundle assets

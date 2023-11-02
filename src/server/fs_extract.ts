@@ -19,7 +19,7 @@ import {
 } from "./types.ts";
 import * as router from "./router.ts";
 import DefaultErrorHandler from "./default_error_page.tsx";
-import { extname, toFileUrl, typeByExtension, walk } from "./deps.ts";
+import { extname, join, toFileUrl, typeByExtension, walk } from "./deps.ts";
 import { BUILD_ID } from "./build_id.ts";
 import { toBaseRoute } from "./compose.ts";
 
@@ -262,35 +262,38 @@ export async function extractRoutes(
 
   const staticFiles: StaticFile[] = [];
   try {
-    const staticDirUrl = toFileUrl(config.staticDir);
-    const entries = walk(config.staticDir, {
-      includeFiles: true,
-      includeDirs: false,
-      followSymlinks: false,
-    });
-    const encoder = new TextEncoder();
-    for await (const entry of entries) {
-      const localUrl = toFileUrl(entry.path);
-      const path = localUrl.href.substring(staticDirUrl.href.length);
-      const stat = await Deno.stat(localUrl);
-      const contentType = typeByExtension(extname(path)) ??
-        "application/octet-stream";
-      const etag = await crypto.subtle.digest(
-        "SHA-1",
-        encoder.encode(BUILD_ID + path),
-      ).then((hash) =>
-        Array.from(new Uint8Array(hash))
-          .map((byte) => byte.toString(16).padStart(2, "0"))
-          .join("")
-      );
-      const staticFile: StaticFile = {
-        localUrl,
-        path,
-        size: stat.size,
-        contentType,
-        etag,
-      };
-      staticFiles.push(staticFile);
+    const builtStaticDir = join(config.build.outDir, "static");
+    for (const staticDir of [config.staticDir, builtStaticDir]) {
+      const staticDirUrl = toFileUrl(staticDir);
+      const entries = walk(staticDir, {
+        includeFiles: true,
+        includeDirs: false,
+        followSymlinks: false,
+      });
+      const encoder = new TextEncoder();
+      for await (const entry of entries) {
+        const localUrl = toFileUrl(entry.path);
+        const path = localUrl.href.substring(staticDirUrl.href.length);
+        const stat = await Deno.stat(localUrl);
+        const contentType = typeByExtension(extname(path)) ??
+          "application/octet-stream";
+        const etag = await crypto.subtle.digest(
+          "SHA-1",
+          encoder.encode(BUILD_ID + path),
+        ).then((hash) =>
+          Array.from(new Uint8Array(hash))
+            .map((byte) => byte.toString(16).padStart(2, "0"))
+            .join("")
+        );
+        const staticFile: StaticFile = {
+          localUrl,
+          path,
+          size: stat.size,
+          contentType,
+          etag,
+        };
+        staticFiles.push(staticFile);
+      }
     }
   } catch (err) {
     if (err.cause instanceof Deno.errors.NotFound) {
