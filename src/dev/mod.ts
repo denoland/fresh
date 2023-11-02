@@ -1,4 +1,13 @@
-import { gte, join, posix, relative, walk, WalkEntry } from "./deps.ts";
+import {
+  gte,
+  isWindows,
+  join,
+  posix,
+  relative,
+  SEP,
+  walk,
+  WalkEntry,
+} from "./deps.ts";
 import { error } from "./error.ts";
 const MIN_DENO_VERSION = "1.31.0";
 const TEST_FILE_PATTERN = /[._]test\.(?:[tj]sx?|[mc][tj]s)$/;
@@ -55,6 +64,7 @@ const GROUP_REG = /[/\\\\]\((_[^/\\\\]+)\)[/\\\\]/;
 export async function collect(
   directory: string,
   ignoreFilePattern?: RegExp,
+  islandUrls?: string[],
 ): Promise<Manifest> {
   const filePaths = new Set<string>();
 
@@ -84,11 +94,13 @@ export async function collect(
       filePaths.add(normalized);
       routes.push(rel);
     }, ignoreFilePattern),
-    collectDir(join(directory, "./islands"), (entry, dir) => {
-      const rel = join("islands", relative(dir, entry.path));
-      islands.push(rel);
+    collectDir(join(directory, "./islands"), (entry) => {
+      islands.push(getManifestItemFromPath(directory, entry.path));
     }, ignoreFilePattern),
   ]);
+  if (islandUrls) {
+    islands.push(...islandUrls);
+  }
 
   routes.sort();
   islands.sort();
@@ -96,10 +108,22 @@ export async function collect(
   return { routes, islands };
 }
 
+function isURL(url: unknown): boolean {
+  try {
+    new URL(url as string);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 /**
  * Import specifiers must have forward slashes
  */
 function toImportSpecifier(file: string) {
+  if (isURL(file)) {
+    return file;
+  }
   let specifier = posix.normalize(file).replace(/\\/g, "/");
   if (!specifier.startsWith(".")) {
     specifier = "./" + specifier;
@@ -175,4 +199,18 @@ export default manifest;
     `%cThe manifest has been generated for ${routes.length} routes and ${islands.length} islands.`,
     "color: blue; font-weight: bold",
   );
+}
+
+function getManifestItemFromPath(directory: string, filePath: string) {
+  let relativePath = relative(directory, filePath);
+
+  if (!relativePath.startsWith(".") && !relativePath.startsWith(SEP)) {
+    relativePath = `.${SEP}${relativePath}`;
+  }
+
+  if (isWindows) {
+    relativePath = relativePath.replaceAll(SEP, posix.sep);
+  }
+
+  return relativePath;
 }

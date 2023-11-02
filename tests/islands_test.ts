@@ -435,3 +435,26 @@ Deno.test("throws when passing non-jsx children to an island", async (t) => {
     },
   );
 });
+
+Deno.test("island imported from url", async (t) => {
+  await withPageName(
+    "./tests/fixture_island_url/main.ts",
+    async (page, address) => {
+      async function counterTest(counterId: string, originalValue: number) {
+        const pElem = await page.waitForSelector(`#${counterId} > p`);
+
+        const value = await pElem?.evaluate((el) => el.textContent);
+        assert(value === `${originalValue}`, `${counterId} first value`);
+
+        await clickWhenListenerReady(page, `#b-${counterId}`);
+        await waitForText(page, `#${counterId} > p`, String(originalValue + 1));
+      }
+      await page.goto(address);
+
+      await t.step("Ensure 2 islands on 1 page are revived", async () => {
+        await counterTest("counter1", 3);
+        await counterTest("counter2", 10);
+      });
+    },
+  );
+});
