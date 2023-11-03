@@ -1,11 +1,19 @@
-import { gte, join, posix, relative, walk, WalkEntry } from "./deps.ts";
+import {
+  gte,
+  join,
+  normalize,
+  relative,
+  semverParse,
+  walk,
+  WalkEntry,
+} from "./deps.ts";
 import { error } from "./error.ts";
 const MIN_DENO_VERSION = "1.31.0";
 const TEST_FILE_PATTERN = /[._]test\.(?:[tj]sx?|[mc][tj]s)$/;
 
 export function ensureMinDenoVersion() {
   // Check that the minimum supported Deno version is being used.
-  if (!gte(Deno.version.deno, MIN_DENO_VERSION)) {
+  if (!gte(semverParse(Deno.version.deno), semverParse(MIN_DENO_VERSION))) {
     let message =
       `Deno version ${MIN_DENO_VERSION} or higher is required. Please update Deno.\n\n`;
 
@@ -100,7 +108,7 @@ export async function collect(
  * Import specifiers must have forward slashes
  */
 function toImportSpecifier(file: string) {
-  let specifier = posix.normalize(file).replace(/\\/g, "/");
+  let specifier = normalize(file).replace(/\\/g, "/");
   if (!specifier.startsWith(".")) {
     specifier = "./" + specifier;
   }

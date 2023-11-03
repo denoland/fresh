@@ -1,5 +1,4 @@
-import { assert, assertEquals, assertMatch } from "$std/testing/asserts.ts";
-import { Page } from "./deps.ts";
+import { assert, assertEquals, assertMatch, Page } from "./deps.ts";
 import {
   assertMetaContent,
   assertNoComments,

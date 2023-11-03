@@ -1,4 +1,4 @@
-import { assertEquals } from "$std/testing/asserts.ts";
+import { assertEquals } from "./deps.ts";
 import { IS_PATTERN, patternToRegExp } from "./router.ts";
 
 function testPattern(input: string, test: string) {

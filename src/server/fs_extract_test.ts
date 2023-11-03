@@ -1,4 +1,4 @@
-import { assertEquals, assertThrows } from "$std/testing/asserts.ts";
+import { assertEquals, assertThrows } from "./deps.ts";
 import { pathToPattern, sortRoutePaths } from "./fs_extract.ts";
 
 Deno.test("pathToPattern", async (t) => {

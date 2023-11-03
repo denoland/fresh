@@ -5,7 +5,7 @@ import {
   assertMatch,
   assertNotEquals,
   assertNotMatch,
-} from "$std/testing/asserts.ts";
+} from "./deps.ts";
 import versions from "../versions.json" assert { type: "json" };
 import { CheckFile } from "$fresh/src/dev/update_check.ts";
 import { WEEK } from "$fresh/src/dev/deps.ts";
