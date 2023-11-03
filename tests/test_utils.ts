@@ -449,6 +449,19 @@ async function spawnServer(
   return { serverProcess, lines, address, output };
 }
 
+export async function recreateFolder(folderPath: string) {
+  try {
+    await Deno.remove(folderPath);
+  } catch {
+    // ignore
+  }
+  try {
+    await Deno.mkdir(folderPath, { recursive: true });
+  } catch {
+    // ignore
+  }
+}
+
 export async function runBuild(fixture: string) {
   const outDir = path.join(path.dirname(fixture), "_fresh");
   try {
