@@ -4,7 +4,7 @@ import {
   assertTextMany,
   withFakeServe,
 } from "$fresh/tests/test_utils.ts";
-import { assertNotMatch } from "$std/testing/asserts.ts";
+import { assertNotMatch } from "./deps.ts";
 
 Deno.test("doesn't apply internal app template", async () => {
   await withFakeServe(

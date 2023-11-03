@@ -1,14 +1,16 @@
 import * as path from "$std/path/mod.ts";
-import { puppeteer } from "./deps.ts";
-import { assert } from "$std/_util/asserts.ts";
+import {
+  assert,
+  assertNotMatch,
+  assertStringIncludes,
+  puppeteer,
+} from "./deps.ts";
 import {
   getStdOutput,
   startFreshServer,
   waitForText,
 } from "$fresh/tests/test_utils.ts";
 import { BuildSnapshotJson } from "$fresh/src/build/mod.ts";
-import { assertStringIncludes } from "$std/testing/asserts.ts";
-import { assertNotMatch } from "$std/testing/asserts.ts";
 
 function runBuild(fixture: string, subDirPath: string, outDir: string) {
   return new Deno.Command(Deno.execPath(), {
