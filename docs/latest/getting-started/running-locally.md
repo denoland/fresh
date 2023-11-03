@@ -35,11 +35,16 @@ passing the extra folder as an argument: `--watch=static/`. You should also add
 `routes/` to the watch list, so that the server restarts automatically whenever
 you add a new route.
 
-If you want to change the port or host, modify the config bag of the `start()`
-call in `main.ts` to include an explicit port number:
+If you want to change the port or host, modify the config bag of the
+`defineConfig()` call in `fresh.config.ts` to include an explicit port number:
 
-```js main.ts
-await start(manifest, { port: 3000, hostname: "0.0.0.0" });
+```js fresh.config.ts
+export default defineConfig({
+  server: {
+    port: 3000,
+    hostname: "0.0.0.0",
+  },
+});
 ```
 
 You can also change the port and hostname by setting the `PORT` and `HOST`
