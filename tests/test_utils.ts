@@ -1,5 +1,4 @@
 import { colors, toFileUrl } from "$fresh/src/server/deps.ts";
-import { assert } from "$std/_util/asserts.ts";
 import * as path from "$std/path/mod.ts";
 import {
   FromManifestConfig,
@@ -8,6 +7,7 @@ import {
   ServerContext,
 } from "$fresh/server.ts";
 import {
+  assert,
   assertEquals,
   basename,
   delay,

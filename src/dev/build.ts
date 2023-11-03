@@ -1,6 +1,6 @@
 import { getServerContext } from "../server/context.ts";
 import { join } from "../server/deps.ts";
-import { colors, fs } from "./deps.ts";
+import { colors, emptyDir } from "./deps.ts";
 import { BuildSnapshotJson } from "../build/mod.ts";
 import { BUILD_ID } from "../server/build_id.ts";
 import { InternalFreshState } from "../server/types.ts";
@@ -12,7 +12,7 @@ export async function build(
   const plugins = state.config.plugins;
 
   // Ensure that build dir is empty
-  await fs.emptyDir(outDir);
+  await emptyDir(outDir);
 
   await Promise.all(plugins.map((plugin) => plugin.buildStart?.(state.config)));
 
