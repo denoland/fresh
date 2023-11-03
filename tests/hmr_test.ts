@@ -1,6 +1,6 @@
-import { copy } from "https://deno.land/std@0.204.0/fs/copy.ts";
 import {
   basename,
+  copy,
   delay,
   dirname,
   join,

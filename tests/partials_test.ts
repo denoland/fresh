@@ -1,5 +1,4 @@
-import { assert, assertEquals, assertMatch } from "$std/testing/asserts.ts";
-import { Page } from "./deps.ts";
+import { assert, assertEquals, assertMatch, Page } from "./deps.ts";
 import {
   assertMetaContent,
   assertNoComments,
@@ -1420,6 +1419,80 @@ Deno.test("errors on duplicate partial name", async () => {
         page.waitForResponse((res) => res.status() === 500),
         page.click(".swap-link"),
       ]);
+    },
+  );
+});
+
+Deno.test("normal visit to handler page", async () => {
+  await withFakeServe(
+    "./tests/fixture_partials/main.ts",
+    async (server) => {
+      const html = await server.getHtml("/isPartial/handler");
+      assertEquals(JSON.parse(html.querySelector("pre")!.textContent!), {
+        isPartial: false,
+        notSetFromMiddleware: true,
+      });
+    },
+  );
+});
+
+Deno.test("normal visit to async page", async () => {
+  await withFakeServe(
+    "./tests/fixture_partials/main.ts",
+    async (server) => {
+      const html = await server.getHtml("/isPartial/async");
+      assertEquals(JSON.parse(html.querySelector("pre")!.textContent!), {
+        isPartial: false,
+        notSetFromMiddleware: true,
+      });
+    },
+  );
+});
+
+Deno.test("partials visit to handler page", async () => {
+  await withPageName(
+    "./tests/fixture_partials/main.ts",
+    async (page, address) => {
+      await page.goto(`${address}/isPartial`);
+      await page.waitForSelector(".output");
+
+      const href = await page.$eval(".handler-update-link", (el) => el.href);
+      await page.click(".handler-update-link");
+      await page.waitForSelector("pre");
+
+      assertEquals(href, await page.url());
+      await assertNoPageComments(page);
+      const result = await page.$eval("pre", (el) => {
+        return el.textContent;
+      });
+      assertEquals(JSON.parse(result), {
+        isPartial: true,
+        setFromMiddleware: true,
+      });
+    },
+  );
+});
+
+Deno.test("partials visit to async page", async () => {
+  await withPageName(
+    "./tests/fixture_partials/main.ts",
+    async (page, address) => {
+      await page.goto(`${address}/isPartial`);
+      await page.waitForSelector(".output");
+
+      const href = await page.$eval(".async-update-link", (el) => el.href);
+      await page.click(".async-update-link");
+      await page.waitForSelector("pre");
+
+      assertEquals(href, await page.url());
+      await assertNoPageComments(page);
+      const result = await page.$eval("pre", (el) => {
+        return el.textContent;
+      });
+      assertEquals(JSON.parse(result), {
+        isPartial: true,
+        setFromMiddleware: true,
+      });
     },
   );
 });

@@ -1,4 +1,4 @@
-import { colors, join, semver } from "./deps.ts";
+import { colors, join, lt, semverParse } from "./deps.ts";
 
 export interface CheckFile {
   last_checked: string;
@@ -113,12 +113,12 @@ export async function updateCheck(
   }
 
   // Only show update message if current version is smaller than latest
-  const currentVersion = semver.parse(checkFile.current_version);
-  const latestVersion = semver.parse(checkFile.latest_version);
+  const currentVersion = semverParse(checkFile.current_version);
+  const latestVersion = semverParse(checkFile.latest_version);
   if (
     (!checkFile.last_shown ||
       Date.now() >= new Date(checkFile.last_shown).getTime() + interval) &&
-    semver.lt(currentVersion, latestVersion)
+    lt(currentVersion, latestVersion)
   ) {
     checkFile.last_shown = new Date().toISOString();
 

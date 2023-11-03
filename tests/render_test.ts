@@ -3,7 +3,7 @@ import {
   parseHtml,
   withFakeServe,
 } from "$fresh/tests/test_utils.ts";
-import { assertEquals } from "$std/testing/asserts.ts";
+import { assertEquals } from "./deps.ts";
 import { createHandler } from "$fresh/server.ts";
 import manifest from "./fixture/fresh.gen.ts";
 import config from "./fixture/fresh.config.ts";

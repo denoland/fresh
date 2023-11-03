@@ -228,7 +228,7 @@ await start(manifest, { plugins: [twindPlugin(twindConfig)] });\n`;
     for (const n of nodes) {
       if (!n.wasForgotten() && Node.isJsxAttribute(n)) {
         const init = n.getInitializer();
-        const name = n.getName();
+        const name = n.getStructure().name;
         if (
           Node.isJsxExpression(init) &&
           (name === "class" || name === "className")

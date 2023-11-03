@@ -1,10 +1,11 @@
-import { ErrorHandler, FinalHandler, InternalRoute } from "./router.ts";
+import { ErrorHandler, FinalHandler, RouteResult } from "./router.ts";
 import {
   BaseRoute,
   MiddlewareHandlerContext,
   MiddlewareRoute,
   RouterState,
   ServeHandlerInfo,
+  UnknownRenderFunction,
 } from "./types.ts";
 
 export const ROOT_BASE_ROUTE = toBaseRoute("/");
@@ -55,10 +56,8 @@ export function composeMiddlewares(
   errorHandler: ErrorHandler<RouterState>,
   paramsAndRoute: (
     url: string,
-  ) => {
-    route: InternalRoute<RouterState> | undefined;
-    params: Record<string, string>;
-  },
+  ) => RouteResult<RouterState>,
+  renderNotFound: UnknownRenderFunction,
 ) {
   return (
     req: Request,
@@ -91,6 +90,9 @@ export function composeMiddlewares(
           // the error case manually, by returning the `Error` as rejected promise.
           return Promise.resolve(handler());
         } catch (e) {
+          if (e instanceof Deno.errors.NotFound) {
+            return renderNotFound(req, paramsAndRouteResult.params, ctx);
+          }
           return Promise.reject(e);
         }
       },
@@ -103,6 +105,10 @@ export function composeMiddlewares(
       },
       destination: "route",
       params: paramsAndRouteResult.params,
+      renderNotFound: async () => {
+        return await renderNotFound(req, paramsAndRouteResult.params, ctx);
+      },
+      isPartial: paramsAndRouteResult.isPartial,
     };
 
     for (const { module } of mws) {
@@ -124,6 +130,7 @@ export function composeMiddlewares(
       set state(v) {
         state = v;
       },
+      isPartial: paramsAndRouteResult.isPartial,
     };
     const { destination, handler } = inner(
       req,

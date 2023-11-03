@@ -11,7 +11,7 @@ import {
 } from "preact";
 import { assetHashingHook } from "../../runtime/utils.ts";
 import { Partial, PartialProps } from "../../runtime/Partial.tsx";
-import { renderToString } from "preact-render-to-string";
+import { renderToString } from "../deps.ts";
 import { RenderState } from "./state.ts";
 import { Island } from "../types.ts";
 import {

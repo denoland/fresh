@@ -1,12 +1,12 @@
 import * as path from "$std/path/mod.ts";
 import { DenoConfig } from "$fresh/server.ts";
-import { JSONC } from "../src/server/deps.ts";
 import {
   assertEquals,
   assertExists,
   assertMatch,
   assertRejects,
   assertStringIncludes,
+  JSONC,
   retry,
 } from "./deps.ts";
 
