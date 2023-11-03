@@ -41,6 +41,7 @@ export default function FooPage() {
 ```ts tests/main_test.ts
 import { createHandler, ServeHandlerInfo } from "$fresh/server.ts";
 import manifest from "../fresh.gen.ts";
+import config from "../fresh.config.ts";
 import { assert, assertEquals } from "$std/testing/asserts.ts";
 
 const CONN_INFO: ServeHandlerInfo = {
@@ -48,7 +49,7 @@ const CONN_INFO: ServeHandlerInfo = {
 };
 
 Deno.test("HTTP assert test.", async (t) => {
-  const handler = await createHandler(manifest);
+  const handler = await createHandler(manifest, config);
 
   await t.step("#1 GET /", async () => {
     const resp = await handler(new Request("http://127.0.0.1/"), CONN_INFO);
@@ -87,3 +88,38 @@ HTTP assert test. ... ok (118ms)
 
 ok | 1 passed (3 steps) | 0 failed (236ms)
 ```
+
+## createHandler in detail
+
+This function is typed as follows:
+
+```ts
+export async function createHandler(
+  manifest: Manifest,
+  config: FreshConfig = {},
+): Promise<
+  (req: Request, connInfo?: ServeHandlerInfo) => Promise<Response>
+```
+
+When you're using it, you'll likely be importing the manifest from your project.
+You can of course import the config (`fresh.config.ts`) as well, but you're also
+free to provide your own bag of options.
+[`FreshConfig`](https://deno.land/x/fresh/server.ts?s=FreshConfig) is declared
+as follows:
+
+```ts
+export interface FreshConfig {
+  build?: {
+    outDir?: string;
+    target?: string | string[];
+  };
+  render?: RenderFunction;
+  plugins?: Plugin[];
+  staticDir?: string;
+  router?: RouterOptions;
+  server?: Partial<Deno.ServeTlsOptions>;
+}
+```
+
+For more on how these work, see the page about
+[server configuration](/docs/examples/server-configuration).
