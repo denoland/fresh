@@ -235,15 +235,13 @@ export async function extractRoutes(
 
   for (const [self, module] of Object.entries(manifest.islands)) {
     const url = new URL(self, baseUrl).href;
-    if (!url.startsWith(baseUrl)) {
-      throw new TypeError("Island is not a child of the basepath.");
+    let baseRoute = self.substring(0, self.length - extname(self).length);
+    if (self.startsWith("./islands/")) {
+      baseRoute = self.substring(
+        "./islands/".length,
+        self.length - extname(self).length,
+      );
     }
-    let path = url.substring(baseUrl.length);
-    if (path.startsWith("islands")) {
-      path = path.slice("islands".length + 1);
-    }
-    const baseRoute = path.substring(0, path.length - extname(path).length);
-
     for (const [exportName, exportedFunction] of Object.entries(module)) {
       if (typeof exportedFunction !== "function") {
         continue;
@@ -475,8 +473,11 @@ function toPascalCase(text: string): string {
 }
 
 function sanitizeIslandName(name: string): string {
-  const fileName = name.replaceAll(/[/\\\\\(\)\[\]]/g, "_");
-  return toPascalCase(fileName);
+  // Remove all non-alphanumeric characters to make a safe variable name
+  name = name.replaceAll(/[^a-zA-Z0-9_]/g, "_");
+  // Append $ if the variable name would start with a numeric
+  if (name.match(/^[0-9]/)) name = "$" + name;
+  return toPascalCase(name);
 }
 
 function formatMiddlewarePath(path: string): string {

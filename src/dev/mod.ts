@@ -1,7 +1,19 @@
-import { gte, join, posix, relative, walk, WalkEntry } from "./deps.ts";
+import {
+  dirname,
+  gte,
+  isWindows,
+  join,
+  posix,
+  relative,
+  SEP,
+  walk,
+  WalkEntry,
+} from "./deps.ts";
 import { error } from "./error.ts";
 const MIN_DENO_VERSION = "1.31.0";
 const TEST_FILE_PATTERN = /[._]test\.(?:[tj]sx?|[mc][tj]s)$/;
+const ISLAND_IMPORT_REGEX =
+  /import\s+(?:{[^}]+}\s+)?(?:[\w,]+\s+as\s+\w+\s+)?\w+\s+from\s+["']([^"']+)["']/;
 
 export function ensureMinDenoVersion() {
   // Check that the minimum supported Deno version is being used.
@@ -59,7 +71,7 @@ export async function collect(
   const filePaths = new Set<string>();
 
   const routes: string[] = [];
-  const islands: string[] = [];
+  const islandsSet: Set<string> = new Set();
   await Promise.all([
     collectDir(join(directory, "./routes"), (entry, dir) => {
       const rel = join("routes", relative(dir, entry.path));
@@ -71,7 +83,7 @@ export async function collect(
       const match = normalized.match(GROUP_REG);
       if (match && match[1].startsWith("_")) {
         if (match[1] === "_islands") {
-          islands.push(rel);
+          islandsSet.add(rel);
         }
         return;
       }
@@ -84,22 +96,58 @@ export async function collect(
       filePaths.add(normalized);
       routes.push(rel);
     }, ignoreFilePattern),
-    collectDir(join(directory, "./islands"), (entry, dir) => {
-      const rel = join("islands", relative(dir, entry.path));
-      islands.push(rel);
+    collectDir(join(directory, "./islands"), (entry) => {
+      islandsSet.add(getManifestItemFromPath(directory, entry.path));
     }, ignoreFilePattern),
+    collectDir(directory, (entry, _) => {
+      const file = Deno.readTextFileSync(entry.path);
+      const lines = file.split("\n");
+      for (let i = 0; i < lines.length; i++) {
+        const line = lines[i];
+        if (line.match(/\/\/+\s*@fresh-island\s*/)) {
+          const islandImportLine = lines[i + 1];
+          const matches = islandImportLine.match(ISLAND_IMPORT_REGEX);
+          if (matches) {
+            const match = matches[1];
+            if (isURL(match)) {
+              islandsSet.add(match);
+            } else {
+              const fileDir = dirname(entry.path);
+              const resolvedPath = join(fileDir, matches[1]);
+              const relativePath = relative(directory, resolvedPath);
+              islandsSet.add(getManifestItemFromPath(directory, relativePath));
+            }
+          }
+        }
+      }
+    }),
   ]);
 
   routes.sort();
+  // Remove duplicate islands
+  const islands = [];
+  islands.push(...islandsSet);
   islands.sort();
 
   return { routes, islands };
+}
+
+function isURL(url: unknown): boolean {
+  try {
+    new URL(url as string);
+    return true;
+  } catch {
+    return false;
+  }
 }
 
 /**
  * Import specifiers must have forward slashes
  */
 function toImportSpecifier(file: string) {
+  if (isURL(file)) {
+    return file;
+  }
   let specifier = posix.normalize(file).replace(/\\/g, "/");
   if (!specifier.startsWith(".")) {
     specifier = "./" + specifier;
@@ -175,4 +223,17 @@ export default manifest;
     `%cThe manifest has been generated for ${routes.length} routes and ${islands.length} islands.`,
     "color: blue; font-weight: bold",
   );
+}
+
+function getManifestItemFromPath(directory: string, filePath: string) {
+  let relativePath = relative(directory, filePath);
+
+  if (!relativePath.startsWith(".") && !relativePath.startsWith(SEP)) {
+    relativePath = `.${SEP}${relativePath}`;
+  }
+
+  if (isWindows) {
+    relativePath = relativePath.replaceAll(SEP, posix.sep);
+  }
+  return relativePath;
 }
