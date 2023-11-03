@@ -887,16 +887,17 @@ Deno.test("PORT environment variable", async () => {
   for await (const _ of lines) { /* noop */ }
 });
 
-Deno.test("HOST environment variable", async () => {
+Deno.test("HOST & PORT environment variable", async () => {
   const HOST = "127.0.0.1";
+  const PORT = "8888";
   const { serverProcess, lines } = await startFreshServer({
     args: ["run", "-A", "./tests/fixture/main.ts"],
-    env: { HOST },
+    env: { HOST, PORT },
   });
 
   await delay(100);
 
-  const resp = await fetch(`http://${HOST}:8000`);
+  const resp = await fetch(`http://${HOST}:${PORT}`);
   await resp.body?.cancel();
   assert(resp);
   assertEquals(resp.status, Status.OK);
