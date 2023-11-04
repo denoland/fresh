@@ -1,14 +1,17 @@
 import * as path from "$std/path/mod.ts";
 import {
   assert,
+  assertEquals,
   assertNotMatch,
   assertStringIncludes,
   puppeteer,
 } from "./deps.ts";
 import {
   getStdOutput,
+  recreateFolder,
   startFreshServer,
   waitForText,
+  withFakeServe,
 } from "$fresh/tests/test_utils.ts";
 import { BuildSnapshotJson } from "$fresh/src/build/mod.ts";
 
@@ -256,5 +259,49 @@ Deno.test("pass target options", async () => {
     txt,
     /\?\?/,
     `Asset contained ?? despite target es2015\n\n${stdout}\n${stderr}`,
+  );
+});
+
+Deno.test("serve static files from build dir", async () => {
+  const filePath = path.join(
+    path.dirname(path.fromFileUrl(import.meta.url)),
+    "fixture_build_static",
+    "_fresh",
+    "static",
+    "foo.txt",
+  );
+
+  await recreateFolder(path.dirname(filePath));
+  await Deno.writeTextFile(filePath, `it works`);
+
+  await withFakeServe(
+    "./tests/fixture_build_static/main.ts",
+    async (server) => {
+      const res = await server.get("/foo.txt");
+      const text = await res.text();
+      assertEquals(text, "it works");
+    },
+  );
+});
+
+Deno.test("prefer static files from build dir", async () => {
+  const filePath = path.join(
+    path.dirname(path.fromFileUrl(import.meta.url)),
+    "fixture_build_static",
+    "_fresh",
+    "static",
+    "duplicate.txt",
+  );
+
+  await recreateFolder(path.dirname(filePath));
+  await Deno.writeTextFile(filePath, "it works");
+
+  await withFakeServe(
+    "./tests/fixture_build_static/main.ts",
+    async (server) => {
+      const res = await server.get("/duplicate.txt");
+      const text = await res.text();
+      assertEquals(text, "it works");
+    },
   );
 });
