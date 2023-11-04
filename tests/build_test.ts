@@ -1,6 +1,7 @@
 import * as path from "$std/path/mod.ts";
 import {
   assert,
+  assertEquals,
   assertNotMatch,
   assertStringIncludes,
   puppeteer,
@@ -13,8 +14,6 @@ import {
   withFakeServe,
 } from "$fresh/tests/test_utils.ts";
 import { BuildSnapshotJson } from "$fresh/src/build/mod.ts";
-import { assertEquals, assertStringIncludes } from "$std/testing/asserts.ts";
-import { assertNotMatch } from "$std/testing/asserts.ts";
 
 function runBuild(fixture: string, subDirPath: string, outDir: string) {
   return new Deno.Command(Deno.execPath(), {
