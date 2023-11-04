@@ -3,6 +3,7 @@ import { DenoConfig } from "$fresh/server.ts";
 import {
   assertEquals,
   assertExists,
+  assertFalse,
   assertMatch,
   assertRejects,
   assertStringIncludes,
@@ -245,5 +246,34 @@ Deno.test(
       rules: { tags: ["fresh", "recommended"] },
     });
     assertEquals(denoJsonAfter.fmt, undefined);
+  },
+);
+
+Deno.test(
+  "fresh-update removes preact-render-to-string from import maps if exists",
+  async (t) => {
+    // https://github.com/denoland/fresh/pull/1684
+    const tmpDirName = await initProject();
+    try {
+      const denoJsonFile = path.join(tmpDirName, "deno.json");
+      const denoJson = JSON.parse(await Deno.readTextFile(denoJsonFile));
+      assertFalse(
+        denoJson.imports["preact-render-to-string"],
+        `imports["preact-render-to-string"] should not exist in deno.json`,
+      );
+      denoJson.imports["preact-render-to-string"] =
+        "https://esm.sh/*preact-render-to-string@6.2.2";
+      await Deno.writeTextFile(denoJsonFile, JSON.stringify(denoJson, null, 2));
+
+      await executeUpdateCommand(t, tmpDirName);
+
+      const denoJsonAfter = JSON.parse(await Deno.readTextFile(denoJsonFile));
+      assertFalse(
+        denoJsonAfter.imports["preact-render-to-string"],
+        `imports["preact-render-to-string"] should be removed from deno.json`,
+      );
+    } finally {
+      await retry(() => Deno.remove(tmpDirName, { recursive: true }));
+    }
   },
 );

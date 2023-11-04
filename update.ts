@@ -139,6 +139,10 @@ freshImports(denoJson.imports);
 if (denoJson.imports["twind"]) {
   twindImports(denoJson.imports);
 }
+if (denoJson.imports["preact-render-to-string"]) {
+  // https://github.com/denoland/fresh/pull/1684
+  delete denoJson.imports["preact-render-to-string"];
+}
 await writeFormattedJson(DENO_JSON_PATH, denoJson);
 
 // Code mod for classic JSX -> automatic JSX.
