@@ -1146,7 +1146,7 @@ Deno.test({
 
     await t.step("middleware and handler route", async () => {
       const resp = await fetch(
-        "http://localhost:8000/forwarded-for-extractor",
+        `${address}/forwarded-for-extractor`,
         {
           headers: {
             "X-Forwarded-For": "1.3.3.7",
