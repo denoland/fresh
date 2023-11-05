@@ -1124,7 +1124,7 @@ Deno.test("pass options in config dev.ts", async (t) => {
 Deno.test({
   name: "forwarded for",
   fn: async (t) => {
-    const { serverProcess } = await startFreshServer({
+    const { serverProcess, address } = await startFreshServer({
       args: ["run", "-A", "./tests/fixture/main.ts"],
     });
 
@@ -1132,7 +1132,7 @@ Deno.test({
 
     await t.step("async route", async () => {
       const resp = await fetch(
-        "http://localhost:8000/forwarded-for-extractor/async",
+        `${address}/forwarded-for-extractor/async`,
         {
           headers: {
             "X-Forwarded-For": "1.3.3.7",
