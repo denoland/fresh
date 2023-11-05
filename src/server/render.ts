@@ -178,6 +178,7 @@ export async function render<Data>(
   const context: RouteContext = {
     localAddr: opts.context.localAddr,
     remoteAddr: opts.context.remoteAddr,
+    forwardedForAddr: opts.context.forwardedForAddr,
     renderNotFound: opts.context.renderNotFound,
     url: opts.url,
     route: opts.route.pattern,

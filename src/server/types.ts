@@ -201,6 +201,7 @@ export type RouteContext<T = any, S = Record<string, unknown>> = {
   /** @types deprecated */
   localAddr?: Deno.NetAddr;
   remoteAddr: Deno.NetAddr;
+  forwardedForAddr: Deno.NetAddr;
   renderNotFound: (data?: T) => Response | Promise<Response>;
   url: URL;
   route: string;
@@ -250,6 +251,7 @@ export type ServeHandlerInfo = {
    */
   localAddr?: Deno.NetAddr;
   remoteAddr: Deno.NetAddr;
+  forwardedForAddr?: Deno.NetAddr;
 };
 
 export type ServeHandler = (

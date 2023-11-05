@@ -1120,3 +1120,48 @@ Deno.test("pass options in config dev.ts", async (t) => {
     }
   });
 });
+
+Deno.test({
+  name: "forwarded for",
+  fn: async (t) => {
+    const { serverProcess } = await startFreshServer({
+      args: ["run", "-A", "./tests/fixture/main.ts"],
+    });
+
+    await delay(100);
+
+    await t.step("async route", async () => {
+      const resp = await fetch(
+        "http://localhost:8000/forwarded-for-extractor/async",
+        {
+          headers: {
+            "X-Forwarded-For": "1.3.3.7",
+          },
+        },
+      );
+      assertEquals(resp.status, Status.OK);
+      const text = await resp.text();
+      assertStringIncludes(text, "<body>1.3.3.7</body>");
+    });
+
+    await t.step("middleware and handler route", async () => {
+      const resp = await fetch(
+        "http://localhost:8000/forwarded-for-extractor",
+        {
+          headers: {
+            "X-Forwarded-For": "1.3.3.7",
+          },
+        },
+      );
+      assertEquals(resp.status, Status.OK);
+      const text = await resp.text();
+      assertStringIncludes(
+        text,
+        "<div>middleware: 1.3.3.7handler: 1.3.3.7</div>",
+      );
+    });
+
+    serverProcess.kill("SIGTERM");
+    await serverProcess.status;
+  },
+});
