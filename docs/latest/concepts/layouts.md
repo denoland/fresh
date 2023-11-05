@@ -11,7 +11,7 @@ Preact component. Only one such layout is allowed per sub directory.
 └── routes
     ├── sub
     │   ├── page.tsx
-    │   └── index.tss
+    │   └── index.tsx
     ├── other
     │   ├── _layout.tsx  # will be applied on top of `routes/_layout.tsx`
     │   └── page.tsx
@@ -90,7 +90,7 @@ structure like this:
     ├── sub
     │   ├── _layout_.tsx
     │   ├── special.tsx  # should not inherit layouts
-    │   └── index.tss
+    │   └── index.tsx
     └── _layout.tsx
 ```
 
