@@ -9,7 +9,7 @@ export async function startServer(
     opts.onListen = (params) => {
       console.log();
       console.log(
-        colors.bgRgb8(colors.black(colors.bold(" 🍋 Fresh ready ")), 121),
+        colors.bgRgb8(colors.rgb8(" 🍋 Fresh ready ", 0), 121),
       );
 
       const address = colors.cyan(`http://localhost:${params.port}/`);
