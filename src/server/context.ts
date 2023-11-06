@@ -695,9 +695,8 @@ export class ServerContext {
     for (
       const { localUrl, path, size, contentType, etag } of this.#staticFiles
     ) {
-      const route = sanitizePathToRegex(path);
-      staticRoutes[route] = {
-        baseRoute: toBaseRoute(route),
+      staticRoutes[path] = {
+        baseRoute: toBaseRoute(path),
         methods: {
           "HEAD": this.#staticFileHeadHandler(
             size,
@@ -1237,18 +1236,6 @@ export function normalizeURLPath(path: string): string | null {
   } catch {
     return null;
   }
-}
-
-function sanitizePathToRegex(path: string): string {
-  return path
-    .replaceAll("\*", "\\*")
-    .replaceAll("\+", "\\+")
-    .replaceAll("\?", "\\?")
-    .replaceAll("\{", "\\{")
-    .replaceAll("\}", "\\}")
-    .replaceAll("\(", "\\(")
-    .replaceAll("\)", "\\)")
-    .replaceAll("\:", "\\:");
 }
 
 function toPascalCase(text: string): string {

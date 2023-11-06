@@ -359,6 +359,16 @@ Deno.test("static file - by file path", async () => {
   assertEquals(resp3.headers.get("content-type"), "text/plain");
 });
 
+Deno.test("static file - spaces or other characters in name", async () => {
+  const res = await handler(new Request("https://fresh.deno.dev/foo bar.txt"));
+  assertEquals(await res.text(), "it works");
+
+  const res2 = await handler(
+    new Request("https://fresh.deno.dev/foo (bar).txt"),
+  );
+  assertEquals(await res2.text(), "it works");
+});
+
 Deno.test("HEAD request", async () => {
   // Static file
   const resp = await handler(
