@@ -24,14 +24,10 @@ export default function(state) { hydrate(options, state); }`;
     name: "twind",
     entrypoints: { "main": main },
     async renderAsync(ctx) {
-      const res = await ctx.renderAsync();
+      await ctx.renderAsync();
       const cssText = stringify(sheet.target);
-      const scripts = [];
-      if (res.requiresHydration) {
-        scripts.push({ entrypoint: "main", state: [] });
-      }
       return {
-        scripts,
+        scripts: [{ entrypoint: "main", state: [] }],
         styles: [{ cssText, id: STYLE_ELEMENT_ID }],
       };
     },
