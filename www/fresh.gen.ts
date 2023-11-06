@@ -18,6 +18,7 @@ import * as $$2 from "./islands/Counter.tsx";
 import * as $$3 from "./islands/LemonDrop.tsx";
 import * as $$4 from "./islands/SearchButton.tsx";
 import * as $$5 from "./islands/VersionSelect.tsx";
+import { Manifest } from "$fresh/server.ts";
 
 const manifest = {
   routes: {
@@ -41,6 +42,6 @@ const manifest = {
     "./islands/VersionSelect.tsx": $$5,
   },
   baseUrl: import.meta.url,
-};
+} satisfies Manifest;
 
 export default manifest;
