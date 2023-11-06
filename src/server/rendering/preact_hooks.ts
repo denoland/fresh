@@ -269,6 +269,7 @@ options.__b = (vnode: VNode<Record<string, unknown>>) => {
           });
         }
         vnode.type = Fragment;
+        vnode.props = { children: null };
       } else if (LOADING_ATTR in vnode.props) {
         current.islandProps.push({
           [LOADING_ATTR]: vnode.props[LOADING_ATTR],
