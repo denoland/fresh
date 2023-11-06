@@ -46,7 +46,7 @@ const flags = parse(Deno.args, {
 console.log();
 console.log(
   colors.bgRgb8(
-    colors.black(colors.bold(" 🍋 Fresh: The next-gen web framework. ")),
+    colors.rgb8(" 🍋 Fresh: The next-gen web framework. ", 0),
     121,
   ),
 );
