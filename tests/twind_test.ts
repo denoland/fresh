@@ -3,6 +3,7 @@ import { assert, assertEquals, assertMatch, delay, puppeteer } from "./deps.ts";
 import { cmpStringArray } from "./fixture_twind_hydrate/utils/utils.ts";
 import {
   startFreshServer,
+  waitForStyle,
   withFakeServe,
   withFresh,
   withPageName,
@@ -382,6 +383,25 @@ Deno.test("don't duplicate css class with twindV1", async () => {
       assertMatch(html, /html class="bg-slate-800">/);
       assertMatch(html, /head class="bg-slate-800">/);
       assertMatch(html, /body class="bg-slate-800">/);
+    },
+  );
+});
+
+Deno.test("render styles from partial update", async () => {
+  await withPageName(
+    "./tests/fixture_twind_hydrate/main.ts",
+    async (page, address) => {
+      await page.goto(`${address}/island_twind`);
+      await page.click(`a[href="/island_twind/blue"]`);
+
+      await page.waitForSelector(".bg-blue-500");
+
+      await waitForStyle(
+        page,
+        ".bg-blue-500",
+        "backgroundColor",
+        "rgb(59, 130, 246)",
+      );
     },
   );
 });
