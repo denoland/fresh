@@ -266,9 +266,8 @@ export class ServerContext {
       const { localUrl, path, size, contentType, etag } of this.#extractResult
         .staticFiles
     ) {
-      const route = sanitizePathToRegex(path);
-      staticRoutes[route] = {
-        baseRoute: toBaseRoute(route),
+      staticRoutes[path] = {
+        baseRoute: toBaseRoute(path),
         methods: {
           "HEAD": this.#staticFileHandler(
             localUrl,
@@ -587,18 +586,6 @@ export function normalizeURLPath(path: string): string | null {
   } catch {
     return null;
   }
-}
-
-function sanitizePathToRegex(path: string): string {
-  return path
-    .replaceAll("\*", "\\*")
-    .replaceAll("\+", "\\+")
-    .replaceAll("\?", "\\?")
-    .replaceAll("\{", "\\{")
-    .replaceAll("\}", "\\}")
-    .replaceAll("\(", "\\(")
-    .replaceAll("\)", "\\)")
-    .replaceAll("\:", "\\:");
 }
 
 function serializeCSPDirectives(csp: ContentSecurityPolicyDirectives): string {
