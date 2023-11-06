@@ -1,4 +1,4 @@
-import { assertEquals } from "$std/testing/asserts.ts";
+import { assertEquals } from "./deps.ts";
 import { fromFileUrl, join, toFileUrl } from "../server/deps.ts";
 import { EsbuildBuilder } from "./esbuild.ts";
 

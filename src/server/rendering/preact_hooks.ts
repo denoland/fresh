@@ -11,7 +11,7 @@ import {
 } from "preact";
 import { assetHashingHook } from "../../runtime/utils.ts";
 import { Partial, PartialProps } from "../../runtime/Partial.tsx";
-import { renderToString } from "preact-render-to-string";
+import { renderToString } from "../deps.ts";
 import { RenderState } from "./state.ts";
 import { Island } from "../types.ts";
 import {
@@ -269,6 +269,7 @@ options.__b = (vnode: VNode<Record<string, unknown>>) => {
           });
         }
         vnode.type = Fragment;
+        vnode.props = { children: null };
       } else if (LOADING_ATTR in vnode.props) {
         current.islandProps.push({
           [LOADING_ATTR]: vnode.props[LOADING_ATTR],

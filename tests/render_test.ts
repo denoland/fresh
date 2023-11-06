@@ -1,9 +1,10 @@
 import {
   assertSelector,
+  assertTextMany,
   parseHtml,
   withFakeServe,
 } from "$fresh/tests/test_utils.ts";
-import { assertEquals } from "$std/testing/asserts.ts";
+import { assertEquals } from "./deps.ts";
 import { createHandler } from "$fresh/server.ts";
 import manifest from "./fixture/fresh.gen.ts";
 import config from "./fixture/fresh.config.ts";
@@ -44,5 +45,13 @@ Deno.test("render headers passed to ctx.render()", async () => {
     res = await server.get("/header_instance");
     assertEquals(res.headers.get("x-foo"), "Hello world!");
     await res.body?.cancel();
+  });
+});
+
+Deno.test("render head text nodes", async () => {
+  await withFakeServe("./tests/fixture_render/main.ts", async (server) => {
+    const doc = await server.getHtml("/head_style");
+    assertTextMany(doc, "style", ["body { color: red }"]);
+    assertEquals(doc.body.textContent, "hello");
   });
 });

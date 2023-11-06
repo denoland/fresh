@@ -1,5 +1,4 @@
 import { colors, toFileUrl } from "$fresh/src/server/deps.ts";
-import { assert } from "$std/_util/asserts.ts";
 import * as path from "$std/path/mod.ts";
 import {
   FromManifestConfig,
@@ -8,6 +7,7 @@ import {
   ServerContext,
 } from "$fresh/server.ts";
 import {
+  assert,
   assertEquals,
   basename,
   delay,
@@ -447,6 +447,19 @@ async function spawnServer(
   }
 
   return { serverProcess, lines, address, output };
+}
+
+export async function recreateFolder(folderPath: string) {
+  try {
+    await Deno.remove(folderPath);
+  } catch {
+    // ignore
+  }
+  try {
+    await Deno.mkdir(folderPath, { recursive: true });
+  } catch {
+    // ignore
+  }
 }
 
 export async function runBuild(fixture: string) {

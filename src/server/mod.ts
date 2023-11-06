@@ -54,6 +54,7 @@ export type {
   RenderFunction,
   RouteConfig,
   RouteContext,
+  RouterOptions,
   ServeHandlerInfo,
   StartOptions,
   UnknownHandler,

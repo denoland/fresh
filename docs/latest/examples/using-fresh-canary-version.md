@@ -24,7 +24,6 @@ instead this one particular commit? Just make the following changes to your
 +    "$fresh/": "https://raw.githubusercontent.com/denoland/fresh/the-particular-commit-hash-here/",
      "preact": "https://esm.sh/preact@10.15.1",
      "preact/": "https://esm.sh/preact@10.15.1/",
-     "preact-render-to-string": "https://esm.sh/*preact-render-to-string@6.1.0",
 ```
 
 ### Forked Fresh
@@ -42,7 +41,6 @@ been merged yet (at the time of writing this):
 +    "$fresh/": "https://raw.githubusercontent.com/deer/fresh/state_in_props/",
      "preact": "https://esm.sh/preact@10.15.1",
      "preact/": "https://esm.sh/preact@10.15.1/",
-     "preact-render-to-string": "https://esm.sh/*preact-render-to-string@6.1.0",
 ```
 
 ## Creating a new project

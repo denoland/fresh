@@ -1,8 +1,8 @@
-import { assertMatch } from "$std/testing/asserts.ts";
 import { ServerContext, Status } from "../server.ts";
 import {
   assert,
   assertEquals,
+  assertMatch,
   assertStringIncludes,
   delay,
   join,

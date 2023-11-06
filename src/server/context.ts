@@ -16,6 +16,7 @@ import {
   RouterState,
   ServeHandlerInfo,
   UnknownPage,
+  UnknownRenderFunction,
 } from "./types.ts";
 import { render as internalRender } from "./render.ts";
 import {
@@ -97,6 +98,7 @@ export class ServerContext {
   #state: InternalFreshState;
   #extractResult: FsExtractResult;
   #dev: boolean;
+  #revision = 0;
 
   constructor(
     state: InternalFreshState,
@@ -130,16 +132,31 @@ export class ServerContext {
    * by Fresh, including static files.
    */
   handler(): (req: Request, connInfo?: ServeHandlerInfo) => Promise<Response> {
-    const handlers = this.#handlers();
+    const renderNotFound = createRenderNotFound(
+      this.#extractResult,
+      this.#dev,
+      this.#plugins,
+      this.#renderFn,
+      this.#maybeBuildSnapshot(),
+    );
+    const handlers = this.#handlers(renderNotFound);
     const inner = router.router<RouterState>(handlers);
     const withMiddlewares = composeMiddlewares(
       this.#extractResult.middlewares,
       handlers.errorHandler,
       router.getParamsAndRoute<RouterState>(handlers),
+      renderNotFound,
     );
     const trailingSlashEnabled = this.#state.config.router?.trailingSlash;
     const isDev = this.#dev;
     const bundleAssetRoute = this.#bundleAssetRoute();
+
+    if (this.#dev) {
+      this.#revision = Date.now();
+    }
+
+    // deno-lint-ignore no-this-alias
+    const _self = this;
 
     return async function handler(
       req: Request,
@@ -159,11 +176,22 @@ export class ServerContext {
           // the client to know when the server is back up. Once we
           // have HMR we'll actively start sending messages back
           // and forth.
-          const { response } = Deno.upgradeWebSocket(req);
+          const { response, socket } = Deno.upgradeWebSocket(req);
+
+          socket.addEventListener("open", () => {
+            socket.send(
+              JSON.stringify({
+                type: "initial-state",
+                revision: _self.#revision,
+              }),
+            );
+          });
 
           return response;
         } else if (url.pathname === DEV_CLIENT_URL) {
-          return bundleAssetRoute(req, connInfo, { path: "client.js" });
+          return bundleAssetRoute(req, { ...connInfo, isPartial: false }, {
+            path: "client.js",
+          });
         }
       }
 
@@ -224,7 +252,9 @@ export class ServerContext {
    * This function returns all routes required by Fresh as an extended
    * path-to-regex, to handler mapping.
    */
-  #handlers(): {
+  #handlers(
+    renderNotFound: UnknownRenderFunction,
+  ): {
     internalRoutes: router.Routes<RouterState>;
     staticRoutes: router.Routes<RouterState>;
     routes: router.Routes<RouterState>;
@@ -253,9 +283,8 @@ export class ServerContext {
       const { localUrl, path, size, contentType, etag } of this.#extractResult
         .staticFiles
     ) {
-      const route = sanitizePathToRegex(path);
-      staticRoutes[route] = {
-        baseRoute: toBaseRoute(route),
+      staticRoutes[path] = {
+        baseRoute: toBaseRoute(path),
         methods: {
           "HEAD": this.#staticFileHandler(
             localUrl,
@@ -279,59 +308,6 @@ export class ServerContext {
     const dependenciesFn = (path: string) => {
       const snapshot = this.#maybeBuildSnapshot();
       return snapshot?.dependencies(path) ?? [];
-    };
-
-    const renderNotFound = async <Data = undefined>(
-      req: Request,
-      params: Record<string, string>,
-      // deno-lint-ignore no-explicit-any
-      ctx?: any,
-      data?: Data,
-      error?: unknown,
-    ) => {
-      const notFound = this.#extractResult.notFound;
-      if (!notFound.component) {
-        return sendResponse(["Not found.", undefined], {
-          status: Status.NotFound,
-          isDev: this.#dev,
-          statusText: undefined,
-          headers: undefined,
-        });
-      }
-
-      const layouts = selectSharedRoutes(
-        ROOT_BASE_ROUTE,
-        this.#extractResult.layouts,
-      );
-
-      const imports: string[] = [];
-      const resp = await internalRender({
-        request: req,
-        context: ctx,
-        route: notFound,
-        plugins: this.#plugins,
-        app: this.#extractResult.app,
-        layouts,
-        imports,
-        dependenciesFn,
-        renderFn: this.#renderFn,
-        url: new URL(req.url),
-        params,
-        data,
-        state: ctx?.state,
-        error,
-      });
-
-      if (resp instanceof Response) {
-        return resp;
-      }
-
-      return sendResponse(resp, {
-        status: Status.NotFound,
-        isDev: this.#dev,
-        statusText: undefined,
-        headers: undefined,
-      });
     };
 
     const genRender = <Data = undefined>(
@@ -556,6 +532,68 @@ export class ServerContext {
   };
 }
 
+const createRenderNotFound = (
+  extractResult: FsExtractResult,
+  dev: boolean,
+  plugins: Plugin<Record<string, unknown>>[],
+  renderFunction: RenderFunction,
+  buildSnapshot: BuildSnapshot | null,
+) => {
+  const dependenciesFn = (path: string) => {
+    const snapshot = buildSnapshot;
+    return snapshot?.dependencies(path) ?? [];
+  };
+
+  return async (
+    ...args: Parameters<UnknownRenderFunction>
+  ) => {
+    const [req, params, ctx, data, error] = args;
+    const notFound = extractResult.notFound;
+    if (!notFound.component) {
+      return sendResponse(["Not found.", undefined], {
+        status: Status.NotFound,
+        isDev: dev,
+        statusText: undefined,
+        headers: undefined,
+      });
+    }
+
+    const layouts = selectSharedRoutes(
+      ROOT_BASE_ROUTE,
+      extractResult.layouts,
+    );
+
+    const imports: string[] = [];
+    const resp = await internalRender({
+      request: req,
+      context: ctx,
+      route: notFound,
+      plugins: plugins,
+      app: extractResult.app,
+      layouts,
+      imports,
+      dependenciesFn,
+      renderFn: renderFunction,
+      url: new URL(req.url),
+      params,
+      data,
+      state: ctx?.state,
+      error,
+    });
+
+    if (resp instanceof Response) {
+      return resp;
+    }
+
+    return sendResponse(resp, {
+      status: Status.NotFound,
+      isDev: dev,
+      statusText: undefined,
+      headers: undefined,
+    });
+  };
+};
+
 // Normalize a path for use in a URL. Returns null if the path is unparsable.
 export function normalizeURLPath(path: string): string | null {
   try {
@@ -565,18 +603,6 @@ export function normalizeURLPath(path: string): string | null {
   } catch {
     return null;
   }
-}
-
-function sanitizePathToRegex(path: string): string {
-  return path
-    .replaceAll("\*", "\\*")
-    .replaceAll("\+", "\\+")
-    .replaceAll("\?", "\\?")
-    .replaceAll("\{", "\\{")
-    .replaceAll("\}", "\\}")
-    .replaceAll("\(", "\\(")
-    .replaceAll("\)", "\\)")
-    .replaceAll("\:", "\\:");
 }
 
 function serializeCSPDirectives(csp: ContentSecurityPolicyDirectives): string {

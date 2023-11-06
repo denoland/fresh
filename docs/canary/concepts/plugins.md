@@ -6,9 +6,7 @@ Plugins can dynamically add new functionality to Fresh without exposing
 significant complexity to the user. Users can add plugins by importing and
 initializing them in their `main.ts` file:
 
-```ts
-// main.ts
-
+```ts main.ts
 import { start } from "$fresh/server.ts";
 import manifest from "./fresh.gen.ts";
 
@@ -124,6 +122,26 @@ all rendering is complete -- they wrap around the underlying JSX->string
 rendering, plugin `render` hooks, and the
 [`RenderFunction`](https://deno.land/x/fresh/server.ts?s=RenderFunction) that
 may be provided to Fresh's `start` entrypoint in the `main.ts` file.
+
+### Hook: `buildStart`
+
+This hook is run at the start of the Fresh
+[ahead-of-time build task](/docs/concepts/ahead-of-time-builds). It may be
+synchronous or asynchronous.
+
+The build start hook is called with the
+[`ResolvedFreshConfig`](https://deno.land/x/fresh/src/server/types.ts?s=ResolvedFreshConfig)
+object, which contains the full Fresh configuration.
+
+This hook may be used to generate precompiled static assets. Any files saved to
+the `static` subfolder of `config.build.outDir` (typically `_fresh`) will be
+served the same as other [static files](/docs/concepts/static-files).
+
+### Hook: `buildEnd`
+
+This hook is run at the end of the Fresh
+[ahead-of-time build task](/docs/concepts/ahead-of-time-builds). It may be
+synchronous or asynchronous.
 
 ### Routes and Middlewares
 

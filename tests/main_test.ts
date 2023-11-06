@@ -359,6 +359,16 @@ Deno.test("static file - by file path", async () => {
   assertEquals(resp3.headers.get("content-type"), "text/plain");
 });
 
+Deno.test("static file - spaces or other characters in name", async () => {
+  const res = await handler(new Request("https://fresh.deno.dev/foo bar.txt"));
+  assertEquals(await res.text(), "it works");
+
+  const res2 = await handler(
+    new Request("https://fresh.deno.dev/foo (bar).txt"),
+  );
+  assertEquals(await res2.text(), "it works");
+});
+
 Deno.test("HEAD request", async () => {
   // Static file
   const resp = await handler(
@@ -711,6 +721,60 @@ Deno.test({
     assertStringIncludes(
       body,
       "500 internal error: don't show the full error for security purposes",
+    );
+  },
+});
+
+Deno.test({
+  name: "404 from middleware",
+  fn: async () => {
+    const resp = await handler(
+      new Request(
+        "https://fresh.deno.dev/404-from-middleware",
+      ),
+    );
+    assert(resp);
+    assertEquals(resp.status, Status.NotFound);
+    const body = await resp.text();
+    assertStringIncludes(
+      body,
+      "404 not found: /404-from-middleware",
+    );
+  },
+});
+
+Deno.test({
+  name: "404 from throw",
+  fn: async () => {
+    const resp = await handler(
+      new Request(
+        "https://fresh.deno.dev/404_from_throw",
+      ),
+    );
+    assert(resp);
+    assertEquals(resp.status, Status.NotFound);
+    const body = await resp.text();
+    assertStringIncludes(
+      body,
+      "404 not found: /404_from_throw",
+    );
+  },
+});
+
+Deno.test({
+  name: "404 from middleware throw",
+  fn: async () => {
+    const resp = await handler(
+      new Request(
+        "https://fresh.deno.dev/404-from-middleware-throw",
+      ),
+    );
+    assert(resp);
+    assertEquals(resp.status, Status.NotFound);
+    const body = await resp.text();
+    assertStringIncludes(
+      body,
+      "404 not found: /404-from-middleware-throw",
     );
   },
 });
