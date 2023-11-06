@@ -98,6 +98,7 @@ export class ServerContext {
   #state: InternalFreshState;
   #extractResult: FsExtractResult;
   #dev: boolean;
+  #revision = 0;
 
   constructor(
     state: InternalFreshState,
@@ -150,6 +151,13 @@ export class ServerContext {
     const isDev = this.#dev;
     const bundleAssetRoute = this.#bundleAssetRoute();
 
+    if (this.#dev) {
+      this.#revision = Date.now();
+    }
+
+    // deno-lint-ignore no-this-alias
+    const _self = this;
+
     return async function handler(
       req: Request,
       connInfo: ServeHandlerInfo = DEFAULT_CONN_INFO,
@@ -168,7 +176,16 @@ export class ServerContext {
           // the client to know when the server is back up. Once we
           // have HMR we'll actively start sending messages back
           // and forth.
-          const { response } = Deno.upgradeWebSocket(req);
+          const { response, socket } = Deno.upgradeWebSocket(req);
+
+          socket.addEventListener("open", () => {
+            socket.send(
+              JSON.stringify({
+                type: "initial-state",
+                revision: _self.#revision,
+              }),
+            );
+          });
 
           return response;
         } else if (url.pathname === DEV_CLIENT_URL) {
