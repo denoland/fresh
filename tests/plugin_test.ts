@@ -14,6 +14,7 @@ import {
   clickWhenListenerReady,
   runBuild,
   startFreshServer,
+  withFakeServe,
   withPageName,
 } from "./test_utils.ts";
 
@@ -179,5 +180,16 @@ Deno.test("plugin script doesn't halt island execution", async () => {
 
       assertMatch(String(error), /Error thrown/);
     },
+  );
+});
+
+Deno.test("supports returning htmlText", async () => {
+  await withFakeServe(
+    "./tests/fixture_plugin_html/main.ts",
+    async (server) => {
+      const doc = await server.getHtml("/");
+      assertEquals(doc.body.textContent, "it works");
+    },
+    { loadConfig: true },
   );
 });
