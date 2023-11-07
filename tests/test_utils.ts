@@ -304,7 +304,7 @@ export async function withFakeServe(
     try {
       const stats = await Deno.stat(configPath);
       if (stats.isFile) {
-        const m = await import(configPath);
+        const m = await import(toFileUrl(configPath).href);
         config = m.default;
         config.dev = dev;
       }
