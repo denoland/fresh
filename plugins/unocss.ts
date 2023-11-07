@@ -32,8 +32,8 @@ a,hr{color:inherit}progress,sub,sup{vertical-align:baseline}blockquote,body,dd,d
 
 type UnoCssPluginOptions = {
   /**
-   * Explicit UnoCSS config object. By default `uno.config.ts` file.
-   * Not supported for the client runtime in JIT mode.
+   * Explicit UnoCSS config object, alternative to `uno.config.ts` file.
+   * Not supported for the client runtime in CSR mode.
    */
   config?: UserConfig;
   /**
@@ -47,7 +47,7 @@ type UnoCssPluginOptions = {
    */
   ssr?: boolean;
   /**
-   * Enable CSR mode - Run the UnoCSS runtime on the client.
+   * Enable CSR mode - run the UnoCSS runtime on the client.
    * It will generate styles live in response to DOM events.
    * Disabled by default.
    */
