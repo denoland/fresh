@@ -12,6 +12,7 @@ import * as $unused from "./routes/unused.tsx";
 import * as $unused_tw from "./routes/unused_tw.tsx";
 import * as $$CheckDuplication from "./islands/CheckDuplication.tsx";
 import * as $$InsertCssrules from "./islands/InsertCssrules.tsx";
+import { Manifest } from "$fresh/server.ts";
 
 const manifest = {
   routes: {
@@ -29,6 +30,6 @@ const manifest = {
     "./islands/InsertCssrules.tsx": $$InsertCssrules,
   },
   baseUrl: import.meta.url,
-};
+} satisfies Manifest;
 
 export default manifest;

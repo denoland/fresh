@@ -6,6 +6,8 @@ import * as $_app from "./routes/_app.tsx";
 import * as $_layout from "./routes/_layout.tsx";
 import * as $index from "./routes/index.tsx";
 
+import { Manifest } from "$fresh/server.ts";
+
 const manifest = {
   routes: {
     "./routes/_app.tsx": $_app,
@@ -14,6 +16,6 @@ const manifest = {
   },
   islands: {},
   baseUrl: import.meta.url,
-};
+} satisfies Manifest;
 
 export default manifest;

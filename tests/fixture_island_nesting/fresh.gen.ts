@@ -32,6 +32,7 @@ import * as $$IslandInsideIsland from "./islands/IslandInsideIsland.tsx";
 import * as $$IslandWithProps from "./islands/IslandWithProps.tsx";
 import * as $$PassThrough from "./islands/PassThrough.tsx";
 import * as $$ReadyMarker from "./islands/ReadyMarker.tsx";
+import { Manifest } from "$fresh/server.ts";
 
 const manifest = {
   routes: {
@@ -70,6 +71,6 @@ const manifest = {
     "./islands/ReadyMarker.tsx": $$ReadyMarker,
   },
   baseUrl: import.meta.url,
-};
+} satisfies Manifest;
 
 export default manifest;

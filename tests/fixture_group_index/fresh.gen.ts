@@ -4,12 +4,14 @@
 
 import * as $_group_index from "./routes/(group)/index.tsx";
 
+import { Manifest } from "$fresh/server.ts";
+
 const manifest = {
   routes: {
     "./routes/(group)/index.tsx": $_group_index,
   },
   islands: {},
   baseUrl: import.meta.url,
-};
+} satisfies Manifest;
 
 export default manifest;

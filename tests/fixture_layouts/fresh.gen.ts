@@ -35,6 +35,7 @@ import * as $override_no_layout_no_app from "./routes/override/no_layout_no_app.
 import * as $skip_sub_layout from "./routes/skip/sub/_layout.tsx";
 import * as $skip_sub_index from "./routes/skip/sub/index.tsx";
 import * as $$dynamic_tenant_islands_Counter from "./routes/dynamic/[tenant]/(_islands)/Counter.tsx";
+import { Manifest } from "$fresh/server.ts";
 
 const manifest = {
   routes: {
@@ -77,6 +78,6 @@ const manifest = {
       $$dynamic_tenant_islands_Counter,
   },
   baseUrl: import.meta.url,
-};
+} satisfies Manifest;
 
 export default manifest;

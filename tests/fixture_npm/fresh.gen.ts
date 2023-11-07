@@ -4,6 +4,7 @@
 
 import * as $index from "./routes/index.tsx";
 import * as $$Test from "./islands/Test.tsx";
+import { Manifest } from "$fresh/server.ts";
 
 const manifest = {
   routes: {
@@ -13,6 +14,6 @@ const manifest = {
     "./islands/Test.tsx": $$Test,
   },
   baseUrl: import.meta.url,
-};
+} satisfies Manifest;
 
 export default manifest;

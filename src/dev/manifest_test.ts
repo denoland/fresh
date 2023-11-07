@@ -1,4 +1,4 @@
-import { assertEquals } from "$std/testing/asserts.ts";
+import { assertEquals } from "./deps.ts";
 import { specifierToIdentifier } from "./manifest.ts";
 
 const run = specifierToIdentifier;

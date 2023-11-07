@@ -17,7 +17,7 @@ function toImportSpecifier(file: string) {
 // create here will be prefixed with at least one "$". This greatly
 // simplifies the invalid characters we have to account for.
 export function specifierToIdentifier(specifier: string, used: Set<string>) {
-  specifier = specifier.replace(/^(?:routes|islands)\//, "");
+  specifier = specifier.replace(/^(?:\.\/routes|\.\/islands)\//, "");
   const ext = extname(specifier);
   if (ext) specifier = specifier.slice(0, -ext.length);
 
@@ -55,7 +55,7 @@ export async function generate(directory: string, manifest: Manifest) {
   for (let i = 0; i < routes.length; i++) {
     const file = routes[i];
     const specifier = toImportSpecifier(file);
-    const identifier = specifierToIdentifier(file, used);
+    const identifier = specifierToIdentifier(specifier, used);
     normalizedRoutes.set(specifier, identifier);
   }
 
@@ -68,7 +68,7 @@ export async function generate(directory: string, manifest: Manifest) {
   for (let i = 0; i < islands.length; i++) {
     const file = islands[i];
     const specifier = toImportSpecifier(file);
-    const identifier = specifierToIdentifier(file, used);
+    const identifier = specifierToIdentifier(specifier, used);
     const importLine = await islandImportLine(specifier, identifier, directory);
     normalizedIslands.push({ specifier, identifier, importLine });
   }
@@ -90,6 +90,7 @@ ${
     )
       .join("\n")
   }
+import { Manifest } from "$fresh/server.ts";
 
 const manifest = {
   routes: {
@@ -109,7 +110,7 @@ const manifest = {
   }
   },
   baseUrl: import.meta.url,
-};
+} satisfies Manifest;
 
 export default manifest;
 `;

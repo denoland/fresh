@@ -26,6 +26,7 @@ export {
 } from "https://deno.land/std@0.205.0/semver/mod.ts";
 export { emptyDir, existsSync } from "https://deno.land/std@0.205.0/fs/mod.ts";
 export * as JSONC from "https://deno.land/std@0.205.0/jsonc/mod.ts";
+export { assertEquals } from "https://deno.land/std@0.205.0/assert/mod.ts";
 
 // ts-morph
 export { Node, Project } from "https://deno.land/x/ts_morph@20.0.0/mod.ts";
