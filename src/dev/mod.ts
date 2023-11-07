@@ -1,12 +1,4 @@
-import {
-  gte,
-  join,
-  normalize,
-  relative,
-  semverParse,
-  walk,
-  WalkEntry,
-} from "./deps.ts";
+import { gte, join, relative, semverParse, walk, WalkEntry } from "./deps.ts";
 export { generate, type Manifest } from "./manifest.ts";
 import type { Manifest } from "./manifest.ts";
 import { error } from "./error.ts";
