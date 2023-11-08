@@ -99,6 +99,7 @@ export class ServerContext {
   #extractResult: FsExtractResult;
   #dev: boolean;
   #revision = 0;
+  #disabled404response?: () => Response;
 
   constructor(
     state: InternalFreshState,
@@ -111,6 +112,7 @@ export class ServerContext {
     this.#plugins = state.config.plugins;
     this.#dev = state.config.dev;
     this.#builder = snapshot;
+    this.#disabled404response = state.config.router?.disabled404response;
   }
 
   /**
@@ -138,6 +140,7 @@ export class ServerContext {
       this.#plugins,
       this.#renderFn,
       this.#maybeBuildSnapshot(),
+      this.#disabled404response,
     );
     const handlers = this.#handlers(renderNotFound);
     const inner = router.router<RouterState>(handlers);
@@ -538,6 +541,7 @@ const createRenderNotFound = (
   plugins: Plugin<Record<string, unknown>>[],
   renderFunction: RenderFunction,
   buildSnapshot: BuildSnapshot | null,
+  disabled404response?: () => Response,
 ) => {
   const dependenciesFn = (path: string) => {
     const snapshot = buildSnapshot;
@@ -547,6 +551,9 @@ const createRenderNotFound = (
   return async (
     ...args: Parameters<UnknownRenderFunction>
   ) => {
+    if (disabled404response) {
+      return disabled404response();
+    }
     const [req, params, ctx, data, error] = args;
     const notFound = extractResult.notFound;
     if (!notFound.component) {
