@@ -599,8 +599,8 @@ export interface PluginRenderResult {
   styles?: PluginRenderStyleTag[];
   /** JS scripts to ship to the client. */
   scripts?: PluginRenderScripts[];
-  /** CSS URLS to link to in the page */
-  cssLinks?: PluginRenderCssLink[];
+  /** Link tags for the page */
+  links?: PluginRenderLink[];
 }
 
 export interface PluginRenderStyleTag {
@@ -609,10 +609,16 @@ export interface PluginRenderStyleTag {
   id?: string;
 }
 
-export interface PluginRenderCssLink {
-  url: string;
+export type PluginRenderLink = {
+  crossOrigin?: string;
+  href?: string;
+  hreflang?: string;
   media?: string;
-}
+  referrerPolicy?: string;
+  rel?: string;
+  title?: string;
+  type?: string;
+};
 
 export interface PluginRenderScripts {
   /** The "key" of the entrypoint (as specified in `Plugin.entrypoints`) for the

@@ -4,7 +4,7 @@ import { htmlEscapeJsonString } from "../htmlescape.ts";
 import { serialize } from "../serializer.ts";
 import {
   Plugin,
-  PluginRenderCssLink,
+  PluginRenderLink,
   PluginRenderResult,
   PluginRenderStyleTag,
 } from "../types.ts";
@@ -57,7 +57,7 @@ export function renderFreshTags(
     [],
   ];
   const styleTags: PluginRenderStyleTag[] = [];
-  const cssLinks: PluginRenderCssLink[] = [];
+  const linkTags: PluginRenderLink[] = [];
   const pluginScripts: [string, string, number][] = [];
 
   for (const [plugin, res] of opts.pluginRenderResults) {
@@ -66,7 +66,7 @@ export function renderFreshTags(
       pluginScripts.push([plugin.name, hydrate.entrypoint, i]);
     }
     styleTags.splice(styleTags.length, 0, ...res.styles ?? []);
-    cssLinks.splice(cssLinks.length, 0, ...res.cssLinks ?? []);
+    linkTags.splice(linkTags.length, 0, ...res.links ?? []);
   }
 
   // The inline script that will hydrate the page.
@@ -187,12 +187,8 @@ export function renderFreshTags(
     renderState.headVNodes.splice(0, 0, node);
   }
 
-  for (const link of cssLinks) {
-    const node = h("link", {
-      rel: "stylesheet",
-      media: link.media,
-      href: link.url,
-    });
+  for (const link of linkTags) {
+    const node = h("link", link);
     renderState.headVNodes.splice(0, 0, node);
   }
 

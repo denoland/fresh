@@ -44,7 +44,7 @@ Deno.test("/static page prerender", async () => {
   assertStringIncludes(body, '<link rel="stylesheet" href="styles.css"/>');
   assertStringIncludes(
     body,
-    '<link rel="stylesheet" media="print" href="print.css"/>',
+    '<link rel="stylesheet" href="print.css" media="print"/>',
   );
 });
 

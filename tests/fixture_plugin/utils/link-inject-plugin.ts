@@ -5,7 +5,11 @@ export default {
   render(ctx) {
     ctx.render();
     return {
-      cssLinks: [{ url: "styles.css" }, { url: "print.css", media: "print" }],
+      links: [{ rel: "stylesheet", href: "styles.css" }, {
+        rel: "stylesheet",
+        href: "print.css",
+        media: "print",
+      }],
     };
   },
 } as Plugin;
