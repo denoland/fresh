@@ -2,21 +2,22 @@
 // This file SHOULD be checked into source version control.
 // This file is automatically updated during development when running `dev.ts`.
 
-import * as $0 from "./routes/index.tsx";
-import * as $1 from "./routes/island.tsx";
-import * as $2 from "./routes/no_island.tsx";
-import * as $$0 from "./islands/Counter.tsx";
+import * as $index from "./routes/index.tsx";
+import * as $island from "./routes/island.tsx";
+import * as $no_island from "./routes/no_island.tsx";
+import * as $$Counter from "./islands/Counter.tsx";
+import { Manifest } from "$fresh/server.ts";
 
 const manifest = {
   routes: {
-    "./routes/index.tsx": $0,
-    "./routes/island.tsx": $1,
-    "./routes/no_island.tsx": $2,
+    "./routes/index.tsx": $index,
+    "./routes/island.tsx": $island,
+    "./routes/no_island.tsx": $no_island,
   },
   islands: {
-    "./islands/Counter.tsx": $$0,
+    "./islands/Counter.tsx": $$Counter,
   },
   baseUrl: import.meta.url,
-};
+} satisfies Manifest;
 
 export default manifest;
