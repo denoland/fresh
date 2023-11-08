@@ -80,11 +80,14 @@ client.
 The `render` hook needs to synchronously return a
 [`PluginRenderResult`](https://deno.land/x/fresh/server.ts?s=PluginRenderResult)
 object. Additional CSS and JS modules can be added to be injected into the page
-by adding them to `styles` and `scripts` arrays in this object.
+by adding them to `styles`, `links` and `scripts` arrays in this object.
 
 `styles` are injected into the `<head>` of the page as inline CSS. Each entry
 can define the CSS text to inject, as well as an optional `id` for the style
 tag, and an optional `media` attribute for the style tag.
+
+`links` are injected into the `<head>` of the page as `<link>` tags. A link tag
+is created for each entry, with attributes from the entry's properties.
 
 `scripts` define JavaScript/TypeScript modules to be injected into the page. The
 possibly loaded modules need to be defined up front in the `Plugin#entrypoints`
