@@ -91,7 +91,7 @@
   },
   {
     "title": "Developer Portfolio",
-    "link": "https://hazn.me",
+    "link": "#",
     "github": "haznai/fresh-test",
     "image": "hazn"
   },
@@ -129,11 +129,6 @@
     "link": "https://fresh-todo-list.deno.dev/",
     "github": "MrSaeedNasiri/fresh-todo-list",
     "image": "fresh-todo"
-  },
-  {
-    "title": "Kita",
-    "link": "https://kita.ge",
-    "image": "kita"
   },
   {
     "title": "Optimem app",
@@ -178,14 +173,14 @@
   },
   {
     "title": "kadode portal",
-    "link": "https://portal.kado.day/",
+    "link": "#",
     "github": "KadodeProject/kadode_portal",
     "image": "kadode_portal"
   },
   {
     "title": "Craig’s Deno Diary",
     "link": "https://deno-blog.com",
-    "github": "https://github.com/cdoremus/deno-blog",
+    "github": "cdoremus/deno-blog",
     "image": "deno-diary"
   },
   {
@@ -208,7 +203,7 @@
   },
   {
     "title": "Moe Counter",
-    "link": "https://count.nekooftheabyss.moe/",
+    "link": "#",
     "github": "retraigo/moe-counter",
     "image": "moe-counter"
   },
