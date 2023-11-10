@@ -276,6 +276,10 @@ export async function render<Data>(
         );
       }
       renderResults.push([plugin, res]);
+
+      if (res.htmlText !== undefined) {
+        bodyHtml = res.htmlText;
+      }
     } else {
       bodyHtml = renderHtml(renderState);
     }
@@ -307,6 +311,10 @@ export async function render<Data>(
         throw new Error(
           `The 'renderAsync' function was not called by ${plugin?.name}'s async render hook.`,
         );
+      }
+
+      if (res.htmlText !== undefined) {
+        bodyHtml = res.htmlText;
       }
     } else {
       await opts.renderFn(ctx, () => renderSync().htmlText);

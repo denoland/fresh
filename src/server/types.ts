@@ -601,6 +601,8 @@ export interface PluginRenderResult {
   scripts?: PluginRenderScripts[];
   /** Link tags for the page */
   links?: PluginRenderLink[];
+  /** Body HTML transformed by the plugin */
+  htmlText?: string;
 }
 
 export interface PluginRenderStyleTag {
