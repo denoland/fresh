@@ -113,6 +113,7 @@ export function extractAndExpandClassNames(
 
   for (const match of html.matchAll(HTML_CLASS_REG)) {
     let value = match[2] ?? "";
+    const original = value;
     if (options.decodeHtml) {
       value = unescapeHtml(value);
     }
@@ -130,7 +131,7 @@ export function extractAndExpandClassNames(
     if (classNames !== "") classNames += " ";
     classNames += expanded;
 
-    if (options.decodeHtml) {
+    if (options.decodeHtml && value !== original) {
       expanded = escapeHtml(expanded);
     }
     outHtml += expanded;
