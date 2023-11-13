@@ -57,7 +57,7 @@ export async function getServerContext(state: InternalFreshState) {
 
   if (config.dev) {
     // Ensure that debugging hooks are set up for SSR rendering
-    await import("preact/debug");
+    // await import("preact/debug");
   }
 
   const extractResult = await extractRoutes(state);

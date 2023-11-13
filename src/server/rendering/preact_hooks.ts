@@ -11,16 +11,22 @@ import {
 } from "preact";
 import { assetHashingHook } from "../../runtime/utils.ts";
 import { Partial, PartialProps } from "../../runtime/Partial.tsx";
-import { renderToString } from "../deps.ts";
+import { escapeHtml, renderToString } from "../deps.ts";
 import { RenderState } from "./state.ts";
 import { Island } from "../types.ts";
 import {
   CLIENT_NAV_ATTR,
+  DATA_ANCESTOR,
+  DATA_CURRENT,
   DATA_KEY_ATTR,
   LOADING_ATTR,
   PartialMode,
 } from "../../constants.ts";
-import { setActiveUrl } from "../../runtime/active_url.ts";
+import {
+  matchesUrl,
+  setActiveUrl,
+  UrlMatchKind,
+} from "../../runtime/active_url.ts";
 
 // See: https://github.com/preactjs/preact/blob/7748dcb83cedd02e37b3713634e35b97b26028fd/src/internal.d.ts#L3C1-L16
 enum HookType {
@@ -448,4 +454,26 @@ options.__h = (component, idx, type) => {
     current.error = new Error(message + hint);
   }
   oldHook?.(component, idx, type);
+};
+
+// Only used in precompile JSX transform
+// TODO: LSP seems to cache types from old Preact version
+// deno-lint-ignore no-explicit-any
+const oldAttr = (options as any).attr;
+// deno-lint-ignore no-explicit-any
+(options as any).attr = (name: string, value: any) => {
+  if (name === "f-client-nav") {
+    return `f-client-nav="${String(value)}"`;
+  } else if (name === "href" && current !== null) {
+    if (typeof value === "string" && value.startsWith("/")) {
+      const match = matchesUrl(current.url.pathname, value);
+      const escaped = escapeHtml(value);
+      if (match === UrlMatchKind.Current) {
+        return `href="${escaped}" ${DATA_CURRENT}="true" aria-current="page"`;
+      } else if (match === UrlMatchKind.Ancestor) {
+        return `href="${escaped}" ${DATA_ANCESTOR}="true" aria-current="true"`;
+      }
+    }
+  }
+  return oldAttr?.(name, value);
 };
