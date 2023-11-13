@@ -119,4 +119,24 @@ Deno.test("extract - normalize groups", () => {
       html: `<img class="bg-gray-800 rounded"/>`,
     },
   );
+
+  testExtract(
+    `<img class="py-2 text(5xl sm:5xl lg:6xl gray-900) sm:tracking-tight"/>`,
+    {
+      classNames:
+        "py-2 text-5xl sm:text-5xl lg:text-6xl text-gray-900 sm:tracking-tight",
+      html:
+        `<img class="py-2 text-5xl sm:text-5xl lg:text-6xl text-gray-900 sm:tracking-tight"/>`,
+    },
+  );
+
+  testExtract(
+    `<img class="focus:(outline-none ring(2 offset-2 green-500))"/>`,
+    {
+      classNames:
+        "focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500",
+      html:
+        `<img class="focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"/>`,
+    },
+  );
 });
