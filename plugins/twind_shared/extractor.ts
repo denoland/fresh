@@ -3,7 +3,7 @@ import {
   unescape as unescapeHtml,
 } from "https://deno.land/std@0.205.0/html/entities.ts";
 
-const HTML_CLASS_REG = /(<[A-Za-z][^>]*\s+class=")(.*?)("[>\s/])/g;
+const HTML_CLASS_REG = /(<[a-z][a-z-]*\s[^>]*class=")(.*?)("[>\s/])/g;
 
 const enum Char {
   SPACE = 32,

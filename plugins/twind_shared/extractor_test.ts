@@ -47,6 +47,14 @@ Deno.test("extract - css classes", () => {
       html: `<div class="foo bar"></div><span class="baz bar"></span>`,
     },
   );
+
+  testExtract(
+    `<x-foo-bar class="foo bar"></x-foo-bar>`,
+    {
+      classNames: "foo bar",
+      html: `<x-foo-bar class="foo bar"></x-foo-bar>`,
+    },
+  );
 });
 
 Deno.test("extract - encoding", () => {
