@@ -4,6 +4,10 @@
 
 import * as $head from "./routes/head.tsx";
 import * as $index from "./routes/index.tsx";
+import * as $sub_dynamic_foo from "./routes/sub-dynamic/foo.tsx";
+import * as $sub_dynamic_index from "./routes/sub-dynamic/index.tsx";
+import * as $sub_foo from "./routes/sub/foo.tsx";
+import * as $sub_index from "./routes/sub/index.tsx";
 import * as $$Island from "./islands/Island.tsx";
 import { Manifest } from "$fresh/server.ts";
 
@@ -11,6 +15,10 @@ const manifest = {
   routes: {
     "./routes/head.tsx": $head,
     "./routes/index.tsx": $index,
+    "./routes/sub-dynamic/foo.tsx": $sub_dynamic_foo,
+    "./routes/sub-dynamic/index.tsx": $sub_dynamic_index,
+    "./routes/sub/foo.tsx": $sub_foo,
+    "./routes/sub/index.tsx": $sub_index,
   },
   islands: {
     "./islands/Island.tsx": $$Island,

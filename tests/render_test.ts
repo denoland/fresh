@@ -77,3 +77,37 @@ Deno.test("support <Head /> with jsx precompile", async () => {
     },
   );
 });
+
+Deno.test("support static active links with jsx precompile", async () => {
+  await withFakeServe(
+    "./tests/fixture_jsx_precompile/main.ts",
+    async (server) => {
+      const doc = await server.getHtml("/sub/foo");
+      assertSelector(
+        doc,
+        `a[href="/sub"][data-ancestor="true"][aria-current="true"]`,
+      );
+      assertSelector(
+        doc,
+        `a[href="/sub/foo"][data-current="true"][aria-current="page"]`,
+      );
+    },
+  );
+});
+
+Deno.test("support dynamic active links with jsx precompile", async () => {
+  await withFakeServe(
+    "./tests/fixture_jsx_precompile/main.ts",
+    async (server) => {
+      const doc = await server.getHtml("/sub-dynamic/foo");
+      assertSelector(
+        doc,
+        `a[href="/sub"][data-ancestor="true"][aria-current="true"]`,
+      );
+      assertSelector(
+        doc,
+        `a[href="/sub/foo"][data-current="true"][aria-current="page"]`,
+      );
+    },
+  );
+});
