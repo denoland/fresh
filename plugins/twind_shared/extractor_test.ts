@@ -139,4 +139,14 @@ Deno.test("extract - normalize groups", () => {
         `<img class="focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"/>`,
     },
   );
+
+  testExtract(
+    `<h2 class="focus:(outline-none ring(2 offset-2 green-500))"></h2>`,
+    {
+      classNames:
+        "focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500",
+      html:
+        `<h2 class="focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"></h2>`,
+    },
+  );
 });
