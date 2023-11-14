@@ -18,28 +18,36 @@ const enum Char {
  *
  * Case: text(3xl green-600) -> text-3xl text-green-600
  * Case: hover:(foo bar) -> hover:foo hover:bar
+ * Case: text(sm:foo bar) -> sm:text-foo text-bar
+ * Case: focus:(text(green-600 bar)) -> focus:text-green-600 foucs:text-bar
  */
-export function expandTailwindGroups(value: string): string {
+export function expandTailwindGroups(
+  value: string,
+): string {
+  const prefixes: string[] = [];
   let normalized = "";
-  let openGroup = 0;
   let start = 0;
-  let groupPrefixStart = 0;
-  let groupPrefixEnd = 0;
+  let closeIdx = 0;
   for (let i = 0; i < value.length; i++) {
     const ch = value.charCodeAt(i);
 
     if (ch === Char["("]) {
-      openGroup++;
-      groupPrefixStart = start;
-      groupPrefixEnd = i;
+      let raw = value.slice(start, i);
+      if (!raw.endsWith(":")) {
+        raw += "-";
+      }
+      prefixes.push(raw);
       start = i + 1;
     } else if (ch === Char[")"]) {
-      if (normalized !== "") normalized += " ";
-
-      let str = value.slice(groupPrefixStart, groupPrefixEnd);
-      if (value.charCodeAt(groupPrefixEnd - 1) !== Char[":"]) {
-        str += "-";
+      if (closeIdx === i - 1) {
+        prefixes.pop();
+        start = i + 1;
+        continue;
       }
+      closeIdx = i;
+      let str = prefixes.join("");
+      prefixes.pop();
+
       const valuePart = value.slice(start, i);
       const variantIdx = valuePart.lastIndexOf(":");
 
@@ -50,24 +58,14 @@ export function expandTailwindGroups(value: string): string {
         str += valuePart;
       }
 
-      normalized += str;
-
-      openGroup--;
-      start = i + 1;
-    } else if (ch === Char.SPACE) {
-      if ((openGroup > 0 || start < i) && normalized !== "") {
+      if (normalized !== "" && normalized[normalized.length - 1] !== " ") {
         normalized += " ";
       }
+      normalized += str;
 
-      let str = "";
-      if (openGroup > 0) {
-        str += value.slice(groupPrefixStart, groupPrefixEnd);
-
-        if (value.charCodeAt(groupPrefixEnd - 1) !== Char[":"]) {
-          str += "-";
-        }
-      }
-
+      start = i + 1;
+    } else if (ch === Char.SPACE) {
+      let str = prefixes.join("");
       if (start < i) {
         const valuePart = value.slice(start, i);
         const variantIdx = valuePart.lastIndexOf(":");
@@ -79,6 +77,9 @@ export function expandTailwindGroups(value: string): string {
           str += valuePart;
         }
 
+        if (normalized !== "" && normalized[normalized.length - 1] !== " ") {
+          normalized += " ";
+        }
         normalized += str;
       }
       start = i + 1;
@@ -86,7 +87,9 @@ export function expandTailwindGroups(value: string): string {
   }
 
   if (start < value.length) {
-    if (normalized !== "") normalized += " ";
+    if (normalized !== "" && normalized[normalized.length - 1] !== " ") {
+      normalized += " ";
+    }
     normalized += value.slice(start);
   }
 
@@ -100,6 +103,7 @@ export interface ExtractResult {
 
 export interface ExtractClassNamesOptions {
   decodeHtml?: boolean;
+  expandCache?: Map<string, string>;
 }
 
 export function extractAndExpandClassNames(
@@ -127,7 +131,11 @@ export function extractAndExpandClassNames(
     matchEnd = matchIndex + match[0].length;
     outHtml += match[1];
 
-    let expanded = expandTailwindGroups(value);
+    const cached = options.expandCache
+      ? options.expandCache.get(value)
+      : undefined;
+
+    let expanded = cached ?? expandTailwindGroups(value);
     if (classNames !== "") classNames += " ";
     classNames += expanded;
 
