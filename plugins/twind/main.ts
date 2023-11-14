@@ -1,45 +1,7 @@
-import { Configuration, setup as twSetup, Sheet, tw } from "twind";
-import { JSX, options as preactOptions, VNode } from "preact";
-import { Options, STYLE_ELEMENT_ID } from "./shared.ts";
+import { Sheet } from "twind";
+import { Options, setup, STYLE_ELEMENT_ID } from "./shared.ts";
 
 type State = [string, string][];
-
-type PreactOptions = typeof preactOptions & { __b?: (vnode: VNode) => void };
-
-export function setup(options: Options, sheet: Sheet) {
-  const config: Configuration = {
-    ...options,
-    mode: "silent",
-    sheet,
-  };
-  twSetup(config);
-
-  // Hook into options._diff which is called whenever a new comparison
-  // starts in Preact.
-  const originalHook = (preactOptions as PreactOptions).__b;
-  (preactOptions as PreactOptions).__b = (
-    // deno-lint-ignore no-explicit-any
-    vnode: VNode<JSX.DOMAttributes<any>>,
-  ) => {
-    if (typeof vnode.type === "string" && typeof vnode.props === "object") {
-      const { props } = vnode;
-      let classes = "";
-      if (props.class) {
-        classes += " " + tw(props.class);
-        props.class = undefined;
-      }
-      if (props.className) {
-        classes += " " + tw(props.className);
-        props.className = undefined;
-      }
-      if (classes.length) {
-        props.class = classes;
-      }
-    }
-
-    originalHook?.(vnode);
-  };
-}
 
 export default function hydrate(options: Options, state: State) {
   const el = document.getElementById(STYLE_ELEMENT_ID) as HTMLStyleElement;
