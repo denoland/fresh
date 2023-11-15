@@ -1,5 +1,4 @@
-import { DATA_ANCESTOR, DATA_CURRENT } from "$fresh/src/constants.ts";
-import { matchesUrl, UrlMatchKind } from "../../runtime/active_url.ts";
+import { h, options, VNode } from "preact";
 import { RenderState } from "./state.ts";
 
 interface TemplateMeta {
@@ -7,7 +6,7 @@ interface TemplateMeta {
   patchIdxs: number[];
 }
 
-const ANCHOR_REG = /[^\w]href="(\/.+?)"/g;
+const ATTR_REG = /[^\w](href|srcset|src|f-client-nav)(="(\/.+?)"|[^=])/g;
 const patchStatusCache = new Map<string[], boolean>();
 const tplMeta = new Map<string[], TemplateMeta>();
 export function patchJsxTemplate(state: RenderState, tpl: string[]): string[] {
@@ -22,7 +21,8 @@ export function patchJsxTemplate(state: RenderState, tpl: string[]): string[] {
       const str = tpl[i];
       if (str === "") continue;
 
-      if (ANCHOR_REG.test(str)) {
+      ATTR_REG.lastIndex = 0;
+      if (ATTR_REG.test(str)) {
         if (patch === null) {
           patch = {
             patchIdxs: [],
@@ -46,15 +46,15 @@ export function patchJsxTemplate(state: RenderState, tpl: string[]): string[] {
   for (let i = 0; i < patch.patchIdxs.length; i++) {
     const idx = patch.patchIdxs[i];
     const str = tpl[idx];
-    patch.tpl[idx] = str.replaceAll(ANCHOR_REG, (raw, value) => {
-      const match = matchesUrl(state.url.pathname, value);
-      if (match === UrlMatchKind.Current) {
-        raw += ` ${DATA_CURRENT}="true" aria-current="page"`;
-      } else if (match === UrlMatchKind.Ancestor) {
-        raw += ` ${DATA_ANCESTOR}="true" aria-current="true"`;
+    patch.tpl[idx] = str.replaceAll(ATTR_REG, (raw, name, _, value) => {
+      let suffix = "";
+      if (value === undefined) {
+        value = true;
+        suffix = raw[raw.length - 1];
       }
-
-      return raw;
+      // deno-lint-ignore no-explicit-any
+      const res = (options as any).attr?.(name, value);
+      return typeof res === "string" ? raw[0] + res + suffix : raw;
     });
   }
 

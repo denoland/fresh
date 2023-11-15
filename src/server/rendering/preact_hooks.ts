@@ -9,7 +9,7 @@ import {
   options as preactOptions,
   type VNode,
 } from "preact";
-import { assetHashingHook } from "../../runtime/utils.ts";
+import { asset, assetHashingHook, assetSrcSet } from "../../runtime/utils.ts";
 import { Partial, PartialProps } from "../../runtime/Partial.tsx";
 import { escapeHtml, renderToString } from "../deps.ts";
 import { RenderState } from "./state.ts";
@@ -473,7 +473,7 @@ const oldAttr = (options as any).attr;
 // deno-lint-ignore no-explicit-any
 (options as any).attr = (name: string, value: any) => {
   if (name === "f-client-nav") {
-    return `f-client-nav="${String(value)}"`;
+    return `f-client-nav="${String(Boolean(value))}"`;
   } else if (name === "href" && current !== null) {
     if (typeof value === "string" && value.startsWith("/")) {
       const match = matchesUrl(current.url.pathname, value);
@@ -484,6 +484,10 @@ const oldAttr = (options as any).attr;
         return `href="${escaped}" ${DATA_ANCESTOR}="true" aria-current="true"`;
       }
     }
+  } else if (name === "src") {
+    return `src="${escapeHtml(asset(value))}"`;
+  } else if (name === "srcset") {
+    return `srcset="${escapeHtml(assetSrcSet(value))}"`;
   }
   return oldAttr?.(name, value);
 };
