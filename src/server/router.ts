@@ -1,4 +1,4 @@
-import { PARTIAL_SEARCH_PARAM } from "$fresh/src/constants.ts";
+import { PARTIAL_SEARCH_PARAM } from "../constants.ts";
 import { BaseRoute, ErrorHandlerContext, ServeHandlerInfo } from "./types.ts";
 import {
   isIdentifierChar,

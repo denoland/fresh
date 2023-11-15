@@ -5,7 +5,7 @@ import {
   Sheet,
   tw,
   TwindConfig,
-} from "$fresh/plugins/twindv1_deps.ts";
+} from "../twindv1_deps.ts";
 
 type PreactOptions = typeof preactOptions & { __b?: (vnode: VNode) => void };
 
@@ -65,7 +65,6 @@ export function setup<Theme extends BaseTheme = BaseTheme>(
       // that we can skip this parse step and feed it into twind directly.
       // Case: <div class="foo(bar baz)"> -> <div class="foo-bar foo-baz">
       const tpl = vnode.props.tpl as string[];
-      console.log(tpl);
       const cached = tplCache.get(tpl);
       if (!cached) {
         let classNames = "";
