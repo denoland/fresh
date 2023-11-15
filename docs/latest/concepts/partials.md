@@ -82,7 +82,7 @@ The code for such a page (excluding styling) might look like this:
 
 ```tsx routes/docs/[id].tsx
 export default defineRoute(async (req, ctx) => {
-  const content = await loadContent(props.params.id);
+  const content = await loadContent(ctx.params.id);
 
   return (
     <div>
@@ -114,7 +114,7 @@ export const config: RouteConfig = {
 };
 
 export default defineRoute(async (req, ctx) => {
-  const content = await loadContent(props.params.id);
+  const content = await loadContent(ctx.params.id);
 
   // Only render the new content
   return (
