@@ -61,7 +61,7 @@ Deno.test("jsx precompile - dynamic active links", async () => {
   );
 });
 
-Deno.test("jsx precomple - twind", async () => {
+Deno.test("jsx precompile - twind", async () => {
   Deno.env.set("FRESH_FIXTURE_TWIND", "0.x");
   try {
     await withFakeServe(
@@ -78,7 +78,7 @@ Deno.test("jsx precomple - twind", async () => {
   }
 });
 
-Deno.test("jsx precomple - twind v1", async () => {
+Deno.test("jsx precompile - twind v1", async () => {
   Deno.env.set("FRESH_FIXTURE_TWIND", "1.x");
   try {
     await withFakeServe(
