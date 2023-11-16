@@ -8,7 +8,6 @@ import VersionSelect from "../islands/VersionSelect.tsx";
 import { type VersionLink } from "../routes/docs/[...slug].tsx";
 import { Logo } from "$fresh/www/components/Header.tsx";
 import DocsTitle from "$fresh/www/components/DocsTitle.tsx";
-import docsearch from "https://esm.sh/@docsearch/js@3?target=es2020";
 
 export default function DocsSidebar(
   props: {
@@ -28,7 +27,7 @@ export default function DocsSidebar(
             </div>
             <hr />
           </div>
-          <SearchButton class="mr-4 sm:mr-0" docsearch={docsearch} />
+          <SearchButton class="mr-4 sm:mr-0" />
           <div class="mb-4">
             <VersionSelect
               selectedVersion={props.selectedVersion}
