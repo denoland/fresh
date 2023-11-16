@@ -4,7 +4,7 @@ import { Configuration, setup as twSetup, Sheet, tw } from "twind";
 type PreactOptions = typeof preactOptions & {
   __b?: (vnode: VNode) => void;
   // deno-lint-ignore no-explicit-any
-  attr?: (name: string, value: any) => string | null;
+  attr?: (name: string, value: any) => string | void;
 };
 
 export const STYLE_ELEMENT_ID = "__FRSH_TWIND";
@@ -110,6 +110,6 @@ export function setup(options: Options, sheet: Sheet) {
     if (name === "class") {
       return `class="${tw(value)}"`;
     }
-    return oldAttrHook?.(name, value) ?? null;
+    return oldAttrHook?.(name, value);
   };
 }
