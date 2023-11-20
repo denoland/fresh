@@ -47,7 +47,6 @@ export function renderHtml(state: RenderState) {
       }),
     ) as VNode;
 
-    console.time("render");
     let html = renderToString(app);
 
     for (const [id, children] of state.slots.entries()) {
@@ -55,7 +54,6 @@ export function renderHtml(state: RenderState) {
       const templateId = id.replace(/:/g, "-");
       html += `<template id="${templateId}">${slotHtml}</template>`;
     }
-    console.timeEnd("render");
 
     return html;
   } finally {
