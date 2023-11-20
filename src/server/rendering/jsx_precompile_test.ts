@@ -141,6 +141,34 @@ Deno.test("parse jsx precompile template with placeholders", () => {
   ]);
 });
 
+Deno.test("parse jsx precompile template with void elements", () => {
+  const tpl = [
+    `<meta charset="foo"><meta `,
+    ` content="foo" value="bar"><p>foo</p>`,
+  ];
+  const res = parseJsxTemplateToBuf(tpl);
+
+  assertParseResult(tpl, res, [
+    { token: Token.ELEM_OPEN_START, value: "meta" },
+    { token: Token.ATTR_NAME, value: "charset" },
+    { token: Token.ATTR_VALUE, value: "foo" },
+    { token: Token.ELEM_OPEN_END, value: "" },
+    { token: Token.ELEM_CLOSE, value: "" },
+    { token: Token.ELEM_OPEN_START, value: "meta" },
+    { token: Token.PLACEHOLDER, value: "" },
+    { token: Token.ATTR_NAME, value: "content" },
+    { token: Token.ATTR_VALUE, value: "foo" },
+    { token: Token.ATTR_NAME, value: "value" },
+    { token: Token.ATTR_VALUE, value: "bar" },
+    { token: Token.ELEM_OPEN_END, value: "" },
+    { token: Token.ELEM_CLOSE, value: "" },
+    { token: Token.ELEM_OPEN_START, value: "p" },
+    { token: Token.ELEM_OPEN_END, value: "" },
+    { token: Token.TEXT, value: "foo" },
+    { token: Token.ELEM_CLOSE, value: "" },
+  ]);
+});
+
 Deno.test("jsx template to vnode", () => {
   const tpl = [
     `<div class="foo" `,
@@ -166,5 +194,21 @@ Deno.test("jsx template to vnode", () => {
   assertEquals(
     html,
     `<div class="foo" data-foo="foo" required>foobar<h1>hello world</h1></div>`,
+  );
+});
+
+Deno.test("jsx template to vnode - void elements", () => {
+  const tpl = [
+    `<meta "`,
+    ` name="foo" content="bar"><p>foo</p>`,
+  ];
+  const exprs: unknown[] = [""];
+  const buf = parseJsxTemplateToBuf(tpl);
+  const vnode = jsxTemplateBufToVNode(buf, tpl, exprs);
+
+  const html = renderToString(vnode);
+  assertEquals(
+    html,
+    `<meta  name="foo" content="bar"/><p>foo</p>`,
   );
 });

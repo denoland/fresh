@@ -55,14 +55,13 @@ export function parseJsxTemplateToBuf(tpl: string[]): number[] {
   let attrValueStart = -1;
   let attrValueEnd = -1;
   let textStart = -1;
+  let isVoidElem = false;
   for (let i = 0; i < tpl.length; i++) {
     const str = tpl[i];
 
     if (str !== "" && str !== " ") {
       for (let j = 0; j < str.length; j++) {
         const ch = str.charCodeAt(j);
-        // console.log(String.fromCharCode(ch), j, Token[token]);
-
         if (token === Token.TEXT && ch === Char["<"]) {
           if (textStart > -1 && textStart < j) {
             buf.push(Token.TEXT);
@@ -92,6 +91,7 @@ export function parseJsxTemplateToBuf(tpl: string[]): number[] {
             buf.push(Token.ELEM_OPEN_START);
             buf.push(tagStart);
             buf.push(tagEnd);
+            isVoidElem = VOID_ELEMENTS.has(str.slice(tagStart, tagEnd));
           } else if (ch === Char[">"]) {
             tagEnd = j;
             token = Token.TEXT;
@@ -101,18 +101,20 @@ export function parseJsxTemplateToBuf(tpl: string[]): number[] {
             buf.push(tagStart);
             buf.push(tagEnd);
 
+            isVoidElem = VOID_ELEMENTS.has(str.slice(tagStart, tagEnd));
+
             buf.push(Token.ELEM_OPEN_END);
             buf.push(0);
             buf.push(0);
 
             const name = str.slice(tagStart, tagEnd);
-            if (VOID_ELEMENTS.has(name)) {
+            if (isVoidElem) {
               buf.push(Token.ELEM_CLOSE);
               buf.push(0);
               buf.push(0);
             }
 
-            // console.log("elem name >>", str.slice(tagStart, tagEnd));
+            isVoidElem = false;
           }
         } else if (token === Token.ELEM_CLOSE) {
           if (ch === Char[">"]) {
@@ -120,7 +122,6 @@ export function parseJsxTemplateToBuf(tpl: string[]): number[] {
             textStart = j + 1;
           }
         } else if (token === Token.ATTR_NAME) {
-          // console.log("attr name >>", String.fromCharCode(ch), attrNameStart);
           if (ch === Char[">"]) {
             if (attrValueStart === -1 && attrNameStart !== -1) {
               buf.push(Token.ATTR_NAME);
@@ -132,11 +133,11 @@ export function parseJsxTemplateToBuf(tpl: string[]): number[] {
             buf.push(0);
             buf.push(0);
 
-            const name = str.slice(tagStart, tagEnd);
-            if (VOID_ELEMENTS.has(name)) {
+            if (isVoidElem) {
               buf.push(Token.ELEM_CLOSE);
               buf.push(0);
               buf.push(0);
+              isVoidElem = false;
             }
 
             attrNameStart = -1;
@@ -171,7 +172,6 @@ export function parseJsxTemplateToBuf(tpl: string[]): number[] {
             attrValueStart = j + 2;
           }
         } else if (token === Token.ATTR_VALUE) {
-          // console.log("attr value >>", String.fromCharCode(ch));
           if (j <= attrValueStart) {
             continue;
           }
@@ -202,7 +202,6 @@ export function parseJsxTemplateToBuf(tpl: string[]): number[] {
     }
 
     if (i < tpl.length - 1) {
-      // console.log("placeholder >>");
       buf.push(Token.PLACEHOLDER);
       buf.push(0);
       buf.push(0);
@@ -247,7 +246,6 @@ export function jsxTemplateBufToVNode(
           const name = tpl[tplIdx].slice(buf[i + 1], buf[i + 2]);
           const vnode = h(name, null);
 
-          console.log("vnode name >>", name);
           addChild(last, vnode);
           stack.push(vnode);
           inAttribute = true;
@@ -269,15 +267,12 @@ export function jsxTemplateBufToVNode(
           value = true;
         }
 
-        console.log("vnode attr >>", name, value);
-
         last.props[name] = value;
         break;
       }
       case Token.TEXT:
         {
           const text = tpl[tplIdx].slice(buf[i + 1], buf[i + 2]);
-          console.log("vnode text >>", text);
           addChild(last, text);
         }
         break;
@@ -291,12 +286,8 @@ export function jsxTemplateBufToVNode(
                 const name = expr.slice(0, idx);
                 const value = expr.slice(idx + 2, -1);
                 last.props[name] = value;
-                console.log("vnode attr placeholder >>", name, value);
               } else {
-                console.log(JSON.stringify(String(expr)));
-                console.log(tpl);
                 last.props[expr] = true;
-                console.log("vnode attr placeholder >>", expr, true);
               }
             }
           } else if (expr !== null) {
@@ -384,13 +375,7 @@ export function patchJsxTemplate(state: RenderState, vnode: VNode<any>) {
     if (patch === null) return tpl;
   }
 
-  // console.log({
-  //   ...patch,
-  //   headNodes: [...patch.headNodes.map((n) => ({ ...n, __: "no", __o: null }))],
-  // });
-
   if (patch.kind === PatchKind.Attr) {
-    console.log("attr patch", tpl);
     for (let i = 0; i < patch.attrPatchIdxs.length; i++) {
       const idx = patch.attrPatchIdxs[i];
       const str = tpl[idx];
@@ -408,49 +393,9 @@ export function patchJsxTemplate(state: RenderState, vnode: VNode<any>) {
 
     vnode.props.tpl = patch.tpl;
   } else {
-    console.log("vnode patch", tpl);
     const newVNode = jsxTemplateBufToVNode(patch.buf, tpl, exprs);
     delete vnode.props.tpl;
     delete vnode.props.exprs;
     vnode.props.children = newVNode.props.children;
-    console.log(Deno.inspect(serializeVnode(vnode), {
-      colors: true,
-      depth: Infinity,
-    }));
   }
-}
-
-function serializeVnode(vnode: VNode<any>) {
-  const out: any = {
-    type: vnode.type,
-    props: {},
-  };
-
-  for (const k in vnode.props) {
-    const value = vnode.props[k];
-    if (
-      value !== null && typeof value === "object" &&
-      value.constructor === undefined
-    ) {
-      out.props[k] = serializeVnode(value);
-    } else if (Array.isArray(value)) {
-      out.props[k] = [];
-
-      for (let i = 0; i < value.length; i++) {
-        const item = value[i];
-        if (
-          item !== null && typeof item === "object" &&
-          item.constructor === undefined
-        ) {
-          out.props[k][i] = serializeVnode(item);
-        } else {
-          out.props[k][i] = item;
-        }
-      }
-    } else {
-      out.props[k] = value;
-    }
-  }
-
-  return out;
 }

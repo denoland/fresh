@@ -1,5 +1,6 @@
 import { colors, toFileUrl } from "$fresh/src/server/deps.ts";
 import * as path from "$std/path/mod.ts";
+import { type VNode } from "preact";
 import {
   FromManifestConfig,
   Manifest,
@@ -626,4 +627,55 @@ export function assertMetaContent(
     );
   }
   assertEquals(el.content, expected);
+}
+
+// deno-lint-ignore no-explicit-any
+function serializeChildren(arr: any[], children: any) {
+  if (Array.isArray(children)) {
+    for (let i = 0; i < children.length; i++) {
+      serializeChildren(arr, children[i]);
+    }
+  } else if (
+    typeof children === "object" && children !== null &&
+    children.constructor === undefined
+  ) {
+    const child = serializeVnode(children);
+    arr.push(child);
+  } else {
+    arr.push(children);
+  }
+}
+
+export interface SerializedVNode {
+  // deno-lint-ignore ban-types
+  type: string | Function;
+  // deno-lint-ignore no-explicit-any
+  props: Record<string, any>;
+}
+
+// deno-lint-ignore no-explicit-any
+export function serializeVnode(vnode: VNode<any>): SerializedVNode {
+  const out: SerializedVNode = {
+    type: vnode.type,
+    props: {},
+  };
+
+  for (const k in vnode.props) {
+    const value = vnode.props[k];
+    if (
+      value !== null && typeof value === "object" &&
+      value.constructor === undefined
+    ) {
+      out.props[k] = serializeVnode(value);
+    } else if (Array.isArray(value)) {
+      // deno-lint-ignore no-explicit-any
+      const newChildren: any[] = [];
+      serializeChildren(newChildren, value);
+      out.props[k] = newChildren;
+    } else {
+      out.props[k] = value;
+    }
+  }
+
+  return out;
 }
