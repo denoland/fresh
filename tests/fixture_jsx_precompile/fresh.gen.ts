@@ -2,6 +2,7 @@
 // This file SHOULD be checked into source version control.
 // This file is automatically updated during development when running `dev.ts`.
 
+import * as $_app from "./routes/_app.tsx";
 import * as $asset from "./routes/asset.tsx";
 import * as $asset_srcset from "./routes/asset_srcset.tsx";
 import * as $fresh_attrs from "./routes/fresh_attrs.tsx";
@@ -17,6 +18,7 @@ import { Manifest } from "$fresh/server.ts";
 
 const manifest = {
   routes: {
+    "./routes/_app.tsx": $_app,
     "./routes/asset.tsx": $asset,
     "./routes/asset_srcset.tsx": $asset_srcset,
     "./routes/fresh_attrs.tsx": $fresh_attrs,
