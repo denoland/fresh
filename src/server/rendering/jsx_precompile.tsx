@@ -334,7 +334,6 @@ export function patchJsxTemplate(state: RenderState, vnode: VNode<any>) {
 
   // First time we're seeing this
   if (patch === undefined) {
-    console.time("patch");
     let convertToVNodes = false;
     for (let i = 0; i < tpl.length; i++) {
       if (CONVERT_REG.test(tpl[i])) {
@@ -371,7 +370,6 @@ export function patchJsxTemplate(state: RenderState, vnode: VNode<any>) {
 
     patch = patch ?? null;
     tplPatches.set(tpl, patch);
-    console.timeEnd("patch");
     if (patch === null) return tpl;
   }
 
