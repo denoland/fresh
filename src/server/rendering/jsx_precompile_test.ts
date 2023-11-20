@@ -71,10 +71,12 @@ Deno.test("parse jsx precompile template", () => {
     { token: Token.ATTR_NAME, value: "value" },
     { token: Token.ATTR_VALUE, value: "bar" },
     { token: Token.ELEM_OPEN_END, value: "" },
+    { token: Token.ELEM_CLOSE, value: "" },
     { token: Token.ELEM_OPEN_START, value: "meta" },
     { token: Token.ATTR_NAME, value: "charset" },
     { token: Token.ATTR_VALUE, value: "utf-8" },
     { token: Token.ELEM_OPEN_END, value: "" },
+    { token: Token.ELEM_CLOSE, value: "" },
     { token: Token.ELEM_OPEN_START, value: "style" },
     { token: Token.ELEM_OPEN_END, value: "" },
     { token: Token.TEXT, value: ".foo { color: red}" },
@@ -92,6 +94,26 @@ Deno.test("parse jsx precompile template", () => {
     { token: Token.ELEM_OPEN_END, value: "" },
     { token: Token.TEXT, value: "hello" },
     { token: Token.ELEM_CLOSE, value: "" },
+    { token: Token.ELEM_CLOSE, value: "" },
+    { token: Token.ELEM_CLOSE, value: "" },
+  ]);
+});
+
+Deno.test("parse jsx precompile template with boolean attrs", () => {
+  const tpl = [
+    `<div f-client-nav><span f-client-nav class="foo"></span></div>`,
+  ];
+  const res = parseJsxTemplateToBuf(tpl);
+
+  assertParseResult(tpl, res, [
+    { token: Token.ELEM_OPEN_START, value: "div" },
+    { token: Token.ATTR_NAME, value: "f-client-nav" },
+    { token: Token.ELEM_OPEN_END, value: "" },
+    { token: Token.ELEM_OPEN_START, value: "span" },
+    { token: Token.ATTR_NAME, value: "f-client-nav" },
+    { token: Token.ATTR_NAME, value: "class" },
+    { token: Token.ATTR_VALUE, value: "foo" },
+    { token: Token.ELEM_OPEN_END, value: "" },
     { token: Token.ELEM_CLOSE, value: "" },
     { token: Token.ELEM_CLOSE, value: "" },
   ]);

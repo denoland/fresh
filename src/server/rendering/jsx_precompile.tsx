@@ -1,6 +1,25 @@
 import { Fragment, h, options, VNode } from "preact";
 import { RenderState } from "./state.ts";
 
+const VOID_ELEMENTS = new Set<string>(
+  [
+    "area",
+    "base",
+    "br",
+    "col",
+    "embed",
+    "hr",
+    "img",
+    "input",
+    "link",
+    "meta",
+    "param",
+    "source",
+    "track",
+    "wbr",
+  ],
+);
+
 const enum Char {
   SPACE = 32,
   '"' = 34,
@@ -86,6 +105,13 @@ export function parseJsxTemplateToBuf(tpl: string[]): number[] {
             buf.push(0);
             buf.push(0);
 
+            const name = str.slice(tagStart, tagEnd);
+            if (VOID_ELEMENTS.has(name)) {
+              buf.push(Token.ELEM_CLOSE);
+              buf.push(0);
+              buf.push(0);
+            }
+
             // console.log("elem name >>", str.slice(tagStart, tagEnd));
           }
         } else if (token === Token.ELEM_CLOSE) {
@@ -96,9 +122,22 @@ export function parseJsxTemplateToBuf(tpl: string[]): number[] {
         } else if (token === Token.ATTR_NAME) {
           // console.log("attr name >>", String.fromCharCode(ch), attrNameStart);
           if (ch === Char[">"]) {
+            if (attrValueStart === -1 && attrNameStart !== -1) {
+              buf.push(Token.ATTR_NAME);
+              buf.push(attrNameStart);
+              buf.push(j);
+            }
+
             buf.push(Token.ELEM_OPEN_END);
             buf.push(0);
             buf.push(0);
+
+            const name = str.slice(tagStart, tagEnd);
+            if (VOID_ELEMENTS.has(name)) {
+              buf.push(Token.ELEM_CLOSE);
+              buf.push(0);
+              buf.push(0);
+            }
 
             attrNameStart = -1;
             attrNameEnd = -1;
@@ -114,7 +153,7 @@ export function parseJsxTemplateToBuf(tpl: string[]): number[] {
           } else if (ch === Char.SPACE) {
             buf.push(Token.ATTR_NAME);
             buf.push(attrNameStart);
-            buf.push(attrNameEnd);
+            buf.push(j);
 
             attrNameStart = -1;
             attrNameEnd = -1;
@@ -154,7 +193,7 @@ export function parseJsxTemplateToBuf(tpl: string[]): number[] {
         }
       }
 
-      if (textStart > -1 && textStart < str.length) {
+      if (token === Token.TEXT && textStart > -1 && textStart < str.length) {
         buf.push(Token.TEXT);
         buf.push(textStart);
         buf.push(str.length);
@@ -208,6 +247,7 @@ export function jsxTemplateBufToVNode(
           const name = tpl[tplIdx].slice(buf[i + 1], buf[i + 2]);
           const vnode = h(name, null);
 
+          console.log("vnode name >>", name);
           addChild(last, vnode);
           stack.push(vnode);
           inAttribute = true;
@@ -229,12 +269,15 @@ export function jsxTemplateBufToVNode(
           value = true;
         }
 
+        console.log("vnode attr >>", name, value);
+
         last.props[name] = value;
         break;
       }
       case Token.TEXT:
         {
           const text = tpl[tplIdx].slice(buf[i + 1], buf[i + 2]);
+          console.log("vnode text >>", text);
           addChild(last, text);
         }
         break;
@@ -242,14 +285,18 @@ export function jsxTemplateBufToVNode(
         {
           const expr = exprs[tplIdx];
           if (inAttribute) {
-            if (typeof expr === "string") {
+            if (typeof expr === "string" && expr !== "") {
               const idx = expr.indexOf("=");
               if (idx > -1) {
                 const name = expr.slice(0, idx);
                 const value = expr.slice(idx + 2, -1);
                 last.props[name] = value;
+                console.log("vnode attr placeholder >>", name, value);
               } else {
+                console.log(JSON.stringify(String(expr)));
+                console.log(tpl);
                 last.props[expr] = true;
+                console.log("vnode attr placeholder >>", expr, true);
               }
             }
           } else if (expr !== null) {
@@ -264,59 +311,75 @@ export function jsxTemplateBufToVNode(
   return root;
 }
 
-interface TemplatePatch {
+const enum PatchKind {
+  Attr,
+  VNode,
+}
+
+interface AttrPatch {
+  kind: PatchKind.Attr;
   tpl: string[];
   attrPatchIdxs: number[];
-  headTitleNode: VNode | null;
-  headNodes: VNode[];
+}
+
+interface VNodePatch {
+  kind: PatchKind.VNode;
+  buf: number[];
 }
 
 const ATTR_REG = /[^\w](href|srcset|src|f-client-nav)(="(\/.+?)"|[^=])/g;
-const tplMeta = new Map<string[], TemplatePatch | null>();
+const CONVERT_REG = /<(title|html|head|meta|link|body)[\s>]/g;
+const tplPatches = new Map<string[], AttrPatch | VNodePatch | null>();
 
-function addPatch(tpl: string[]): TemplatePatch {
-  let patch = tplMeta.get(tpl);
-  if (patch === undefined || patch === null) {
-    patch = {
-      attrPatchIdxs: [],
-      tpl: tpl.slice(),
-      headNodes: [],
-      headTitleNode: null,
-    };
-    tplMeta.set(tpl, patch);
-  }
+// deno-lint-ignore no-explicit-any
+export function patchJsxTemplate(state: RenderState, vnode: VNode<any>) {
+  const tpl = vnode.props.tpl as string[];
+  // deno-lint-ignore no-explicit-any
+  const exprs = vnode.props.exprs as any[];
 
-  return patch;
-}
-
-export function patchJsxTemplate(state: RenderState, tpl: string[]): string[] {
-  let patch = tplMeta.get(tpl);
+  let patch = tplPatches.get(tpl);
   // Nothing to patch, bail out
   if (patch === null) return tpl;
 
   // First time we're seeing this
   if (patch === undefined) {
     console.time("patch");
-    const buf = parseJsxTemplateToBuf(tpl);
-
-    let inHead = false;
-    if (inHead) {
-    } else {
+    let convertToVNodes = false;
+    for (let i = 0; i < tpl.length; i++) {
+      if (CONVERT_REG.test(tpl[i])) {
+        convertToVNodes = true;
+        break;
+      }
     }
 
-    for (let i = 0; i < tpl.length; i++) {
-      const str = tpl[i];
-      if (str === "" || str === " ") continue;
+    if (convertToVNodes) {
+      const buf = parseJsxTemplateToBuf(tpl);
+      patch = {
+        kind: PatchKind.VNode,
+        buf,
+      };
+    } else {
+      for (let i = 0; i < tpl.length; i++) {
+        const str = tpl[i];
+        if (str === "" || str === " ") continue;
 
-      ATTR_REG.lastIndex = 0;
-      if (ATTR_REG.test(str)) {
-        patch = addPatch(tpl);
-        patch.attrPatchIdxs.push(i);
+        ATTR_REG.lastIndex = 0;
+        if (ATTR_REG.test(str)) {
+          patch = tplPatches.get(tpl);
+          if (patch === undefined || patch === null) {
+            patch = {
+              kind: PatchKind.Attr,
+              attrPatchIdxs: [],
+              tpl: tpl.slice(),
+            };
+          }
+          (patch as AttrPatch).attrPatchIdxs.push(i);
+        }
       }
     }
 
     patch = patch ?? null;
-    tplMeta.set(tpl, patch);
+    tplPatches.set(tpl, patch);
     console.timeEnd("patch");
     if (patch === null) return tpl;
   }
@@ -326,20 +389,68 @@ export function patchJsxTemplate(state: RenderState, tpl: string[]): string[] {
   //   headNodes: [...patch.headNodes.map((n) => ({ ...n, __: "no", __o: null }))],
   // });
 
-  for (let i = 0; i < patch.attrPatchIdxs.length; i++) {
-    const idx = patch.attrPatchIdxs[i];
-    const str = tpl[idx];
-    patch.tpl[idx] = str.replaceAll(ATTR_REG, (raw, name, _, value) => {
-      let suffix = "";
-      if (value === undefined) {
-        value = true;
-        suffix = raw[raw.length - 1];
+  if (patch.kind === PatchKind.Attr) {
+    console.log("attr patch", tpl);
+    for (let i = 0; i < patch.attrPatchIdxs.length; i++) {
+      const idx = patch.attrPatchIdxs[i];
+      const str = tpl[idx];
+      patch.tpl[idx] = str.replaceAll(ATTR_REG, (raw, name, _, value) => {
+        let suffix = "";
+        if (value === undefined) {
+          value = true;
+          suffix = raw[raw.length - 1];
+        }
+        // deno-lint-ignore no-explicit-any
+        const res = (options as any).attr?.(name, value);
+        return typeof res === "string" ? raw[0] + res + suffix : raw;
+      });
+    }
+
+    vnode.props.tpl = patch.tpl;
+  } else {
+    console.log("vnode patch", tpl);
+    const newVNode = jsxTemplateBufToVNode(patch.buf, tpl, exprs);
+    delete vnode.props.tpl;
+    delete vnode.props.exprs;
+    vnode.props.children = newVNode.props.children;
+    console.log(Deno.inspect(serializeVnode(vnode), {
+      colors: true,
+      depth: Infinity,
+    }));
+  }
+}
+
+function serializeVnode(vnode: VNode<any>) {
+  const out: any = {
+    type: vnode.type,
+    props: {},
+  };
+
+  for (const k in vnode.props) {
+    const value = vnode.props[k];
+    if (
+      value !== null && typeof value === "object" &&
+      value.constructor === undefined
+    ) {
+      out.props[k] = serializeVnode(value);
+    } else if (Array.isArray(value)) {
+      out.props[k] = [];
+
+      for (let i = 0; i < value.length; i++) {
+        const item = value[i];
+        if (
+          item !== null && typeof item === "object" &&
+          item.constructor === undefined
+        ) {
+          out.props[k][i] = serializeVnode(item);
+        } else {
+          out.props[k][i] = item;
+        }
       }
-      // deno-lint-ignore no-explicit-any
-      const res = (options as any).attr?.(name, value);
-      return typeof res === "string" ? raw[0] + res + suffix : raw;
-    });
+    } else {
+      out.props[k] = value;
+    }
   }
 
-  return patch.tpl;
+  return out;
 }

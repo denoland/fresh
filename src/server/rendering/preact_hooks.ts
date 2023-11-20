@@ -289,10 +289,7 @@ options.__b = (vnode: VNode<Record<string, unknown>>) => {
       if (
         vnode.type === Fragment && vnode.props !== null && "tpl" in vnode.props
       ) {
-        vnode.props.tpl = patchJsxTemplate(
-          current,
-          vnode.props.tpl as string[],
-        );
+        patchJsxTemplate(current, vnode);
       } else {
         // Detect island vnodes and wrap them with a marker
         const island = islandByComponent.get(vnode.type);
