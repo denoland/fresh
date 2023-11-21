@@ -60,9 +60,12 @@ export async function getServerContext(state: InternalFreshState) {
     await import("preact/debug");
   }
 
-  await Promise.all(
-    config.plugins.map((plugin) => plugin.configResolved?.(state.config)),
-  );
+  // Plugins are already instantiated in build mode
+  if (!state.build) {
+    await Promise.all(
+      config.plugins.map((plugin) => plugin.configResolved?.(state.config)),
+    );
+  }
 
   const extractResult = await extractRoutes(state);
 

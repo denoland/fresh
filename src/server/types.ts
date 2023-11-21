@@ -114,6 +114,7 @@ export interface InternalFreshState {
   loadSnapshot: boolean;
   denoJsonPath: string;
   denoJson: DenoConfig;
+  build: boolean;
 }
 
 export interface ResolvedFreshConfig {
