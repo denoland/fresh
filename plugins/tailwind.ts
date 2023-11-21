@@ -9,11 +9,6 @@ async function initTailwind(
   config: ResolvedFreshConfig,
 ): Promise<postcss.Processor> {
   const root = path.dirname(config.staticDir);
-  let relativeRoot = "";
-  if (root !== Deno.cwd()) {
-    relativeRoot = path.relative(Deno.cwd(), root).split(path.sep).join("/") +
-      "/";
-  }
 
   let tailwindConfig: Config | null = null;
 
