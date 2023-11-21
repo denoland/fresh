@@ -31,7 +31,7 @@ export default function NavigationBar(
               href={item.href}
               class={`p-1 sm:p-2 ${
                 isHome ? "text-green-900" : "text-gray-600"
-              } hover:underline [data-current]:font-bold [data-ancestor]:font-bold`}
+              } hover:underline data-[current]:font-bold data-[ancestor]:font-bold`}
             >
               {item.name}
             </a>
