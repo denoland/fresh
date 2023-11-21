@@ -93,10 +93,14 @@ import * as $87 from "./routes/no_partial_response/index.tsx";
 import * as $88 from "./routes/no_partial_response/injected.tsx";
 import * as $89 from "./routes/no_partial_response/update.tsx";
 import * as $90 from "./routes/partial_slot_inside_island.tsx";
-import * as $91 from "./routes/relative_link/index.tsx";
-import * as $92 from "./routes/scroll_restoration/index.tsx";
-import * as $93 from "./routes/scroll_restoration/injected.tsx";
-import * as $94 from "./routes/scroll_restoration/update.tsx";
+import * as $91 from "./routes/redirected/handler.tsx";
+import * as $92 from "./routes/redirected/index.tsx";
+import * as $93 from "./routes/redirected/injected.tsx";
+import * as $94 from "./routes/redirected/redirect.tsx";
+import * as $95 from "./routes/relative_link/index.tsx";
+import * as $96 from "./routes/scroll_restoration/index.tsx";
+import * as $97 from "./routes/scroll_restoration/injected.tsx";
+import * as $98 from "./routes/scroll_restoration/update.tsx";
 import * as $$0 from "./islands/Counter.tsx";
 import * as $$1 from "./islands/CounterA.tsx";
 import * as $$2 from "./islands/CounterB.tsx";
@@ -206,10 +210,14 @@ const manifest = {
     "./routes/no_partial_response/injected.tsx": $88,
     "./routes/no_partial_response/update.tsx": $89,
     "./routes/partial_slot_inside_island.tsx": $90,
-    "./routes/relative_link/index.tsx": $91,
-    "./routes/scroll_restoration/index.tsx": $92,
-    "./routes/scroll_restoration/injected.tsx": $93,
-    "./routes/scroll_restoration/update.tsx": $94,
+    "./routes/redirected/handler.tsx": $91,
+    "./routes/redirected/index.tsx": $92,
+    "./routes/redirected/injected.tsx": $93,
+    "./routes/redirected/redirect.tsx": $94,
+    "./routes/relative_link/index.tsx": $95,
+    "./routes/scroll_restoration/index.tsx": $96,
+    "./routes/scroll_restoration/injected.tsx": $97,
+    "./routes/scroll_restoration/update.tsx": $98,
   },
   islands: {
     "./islands/Counter.tsx": $$0,

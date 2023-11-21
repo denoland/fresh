@@ -556,7 +556,8 @@ function _walkInner(
 
 const partialErrorMessage = `Unable to process partial response.`;
 
-async function fetchPartials(url: URL, init?: RequestInit) {
+async function fetchPartials(url: URL, init: RequestInit = {}) {
+  init.redirect = "follow";
   url.searchParams.set(PARTIAL_SEARCH_PARAM, "true");
   const res = await fetch(url, init);
   await applyPartials(res);
