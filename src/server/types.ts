@@ -114,6 +114,7 @@ export interface InternalFreshState {
   loadSnapshot: boolean;
   denoJsonPath: string;
   denoJson: DenoConfig;
+  build: boolean;
 }
 
 export interface ResolvedFreshConfig {
@@ -580,6 +581,11 @@ export interface Plugin<State = Record<string, unknown>> {
    * Called after completing the Fresh build task
    */
   buildEnd?(): Promise<void> | void;
+
+  /**
+   * Called after configuration has been loaded
+   */
+  configResolved?(config: ResolvedFreshConfig): Promise<void> | void;
 
   routes?: PluginRoute[];
 

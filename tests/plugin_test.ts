@@ -151,12 +151,27 @@ Deno.test("calls buildStart() and buildEnd()", async () => {
   );
 
   assertEquals(out, [
+    "Plugin a: configResolved",
+    "Plugin b: configResolved",
+    "Plugin c: configResolved",
     "Plugin a: buildStart",
     "Plugin b: buildStart",
     `Plugin c: ${join("tests", "fixture_plugin_lifecycle", "_fresh")}`,
     "Plugin a: buildEnd",
     "Plugin b: buildEnd",
   ]);
+});
+
+Deno.test("calls configResolved() in dev", async () => {
+  await withFakeServe(
+    "./tests/fixture_plugin_resolved_dev/dev.ts",
+    async (server) => {
+      const res = await server.get("/");
+      await res.text();
+      assertEquals(res.headers.get("X-Plugin-A"), "true");
+    },
+    { loadConfig: true },
+  );
 });
 
 Deno.test("plugin script doesn't halt island execution", async () => {
