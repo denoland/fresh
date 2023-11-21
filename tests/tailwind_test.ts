@@ -14,7 +14,7 @@ Deno.test("TailwindCSS - build mode", async () => {
   await withFakeServe("./tests/fixture_tailwind/main.ts", async (server) => {
     const res = await server.get("/styles.css");
     const content = await res.text();
-    assertStringIncludes(content, ".text-red-600");
+    assertStringIncludes(content, ".text-red-600{");
   }, { loadConfig: true });
 });
 
