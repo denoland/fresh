@@ -610,7 +610,16 @@ const vscodeSettings = {
   "deno.enable": true,
   "deno.lint": true,
   "editor.defaultFormatter": "denoland.vscode-deno",
-  "[typescript][typescriptreact][javascript][javascriptreact]": {
+  "[typescriptreact]": {
+    "editor.defaultFormatter": "denoland.vscode-deno",
+  },
+  "[typescript]": {
+    "editor.defaultFormatter": "denoland.vscode-deno",
+  },
+  "[javascriptreact]": {
+    "editor.defaultFormatter": "denoland.vscode-deno",
+  },
+  "[javascript]": {
     "editor.defaultFormatter": "denoland.vscode-deno",
   },
 };
