@@ -28,6 +28,7 @@ import {
   UrlMatchKind,
 } from "../../runtime/active_url.ts";
 import { patchJsxTemplate } from "./jsx_precompile.tsx";
+import { Head } from "../../runtime/head.ts";
 
 // See: https://github.com/preactjs/preact/blob/7748dcb83cedd02e37b3713634e35b97b26028fd/src/internal.d.ts#L3C1-L16
 enum HookType {
@@ -286,7 +287,20 @@ options.__b = (vnode: VNode<Record<string, unknown>>) => {
         setActiveUrl(vnode, current.url.pathname);
       }
     } else if (typeof vnode.type === "function") {
-      if (
+      if (vnode.type === Head) {
+        vnode.props.__freshHead = true;
+        current.headChildren = true;
+
+        const children = vnode.props.children;
+        if (
+          children !== null && typeof children === "object" &&
+          !Array.isArray(children) && (children as VNode).type === Fragment &&
+          "tpl" in (children as VNode).props
+        ) {
+          patchJsxTemplate(current, children as VNode);
+          vnode.props.children = (children as VNode).props.children;
+        }
+      } else if (
         vnode.type === Fragment && vnode.props !== null && "tpl" in vnode.props
       ) {
         patchJsxTemplate(current, vnode);
@@ -423,6 +437,9 @@ options.diffed = (vnode: VNode<Record<string, unknown>>) => {
   if (typeof vnode.type === "function") {
     if (vnode.type !== Fragment) {
       if (current) {
+        if (vnode.props.__freshHead) {
+          current.headChildren = false;
+        }
         if (islandByComponent.has(vnode.type)) {
           current.islandDepth--;
         } else if (vnode.type === Partial as ComponentType) {

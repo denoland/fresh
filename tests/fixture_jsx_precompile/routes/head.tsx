@@ -7,7 +7,7 @@ export default function Page() {
     <div>
       <Head>
         <title>foo</title>
-        <meta name="foo" content="bar" />
+        <meta key="foo" name="foo" content="bar" />
         <meta name="og:foo" content={bar} />
       </Head>
       <h1>Hello World</h1>
