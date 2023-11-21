@@ -16,8 +16,7 @@ async function initTailwind(
 
   let tailwindConfig: Config = {
     content: [
-      `${relativeRoot}routes/**/*.{ts,tsx,js,jsx,mjs,cjs}`,
-      `${relativeRoot}components/**/*.{ts,tsx,js,jsx,mjs,cjs}`,
+      `${relativeRoot}{routes,components,islands}/**/*.{ts,tsx,js,jsx,mjs,cjs}`,
     ],
   };
 
