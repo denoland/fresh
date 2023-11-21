@@ -4,7 +4,6 @@ Deno.test("www - docs navigation", async () => {
   await withPageName("./www/main.ts", async (page, address) => {
     const logs: string[] = [];
     page.on("console", (msg) => logs.push(msg.text()));
-    await page.setRequestInterception(true);
     page.on("requestfailed", (request) => {
       console.log("FAILED", request.url());
       request.continue();
