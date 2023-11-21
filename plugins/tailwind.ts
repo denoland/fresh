@@ -32,7 +32,8 @@ async function initTailwind(
   for (const configFile of configFilePaths) {
     let importedConfig: Config | null = null;
     try {
-      importedConfig = (await import(configFile)).default as Config;
+      const url = path.toFileUrl(configFile).href;
+      importedConfig = (await import(url)).default as Config;
     } catch (_err) {
       // ignore
     }
