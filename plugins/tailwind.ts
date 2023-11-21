@@ -39,6 +39,7 @@ async function initTailwind(
     }
 
     if (importedConfig === null) continue;
+    importedConfig.content = importedConfig.content ?? [];
 
     if (!Array.isArray(importedConfig.content)) {
       throw new Error(`Expected tailwind "content" option to be an array`);
