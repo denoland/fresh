@@ -1,19 +1,12 @@
 import { Config } from "tailwindcss";
+import plugin from "tailwindcss/plugin.js";
 
 export default {
-  content: [],
-  theme: {
-    extend: {
-      colors: {
-        green: {
-          100: "#dcfce7",
-          300: "#86efac",
-        },
-      },
-    },
-  },
+  content: [
+    "{routes,islands,components}/**/*.{ts,tsx}",
+  ],
   plugins: [
-    (api) => {
+    plugin((api) => {
       api.addUtilities({
         ".form-select-bg": {
           "background-image":
@@ -23,50 +16,6 @@ export default {
           "background-repeat": "no-repeat",
         },
       });
-    },
-    // plugin(({ addUtilities }) => {
-    //   addUtilities({
-    //     ".form-select-bg": {
-    //       "background-image":
-    //         `url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='none'%3e%3cpath d='M7 7l3-3 3 3m0 6l-3 3-3-3' stroke='%239fa6b2' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3e%3c/svg%3e")`,
-    //       "background-position": "right 0.5rem center",
-    //       "background-size": "1.5em 1.5em",
-    //       "background-repeat": "no-repeat",
-    //     },
-    //   });
-    // }),
-    // // Basic workaround for old twind version not supporting
-    // // the `basis-*` keyword
-    // basis: (parts) => {
-    //   let value;
-    //   const arr = parts[0].split("/");
-    //   if (arr.length === 2) {
-    //     value = `${(+arr[0] / +arr[1]) * 100}%`;
-    //   } else if (parts.length === 1) {
-    //     value = parts[0];
-    //   }
-    //   return {
-    //     "flex-basis": value,
-    //   };
-    // },
-    // "rounded-full": () => {
-    //   return {
-    //     "border-radius": "9999px",
-    //   };
-    // },
-    // "form-select-bg": () => {
-    //   return {
-    //     "background-image":
-    //       `url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='none'%3e%3cpath d='M7 7l3-3 3 3m0 6l-3 3-3-3' stroke='%239fa6b2' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3e%3c/svg%3e")`,
-    //     "background-position": "right 0.5rem center",
-    //     "background-size": "1.5em 1.5em",
-    //     "background-repeat": "no-repeat",
-    //   };
-    // },
-    // "grow": () => {
-    //   return {
-    //     "flex-grow": "1",
-    //   };
-    // },
+    }),
   ],
 } as Config;
