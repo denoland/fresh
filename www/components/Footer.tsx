@@ -18,8 +18,8 @@ const LINKS = [
 export default function Footer() {
   return (
     <footer class="border-t-2 border-gray-200 md:h-16 flex  my-8 justify-center">
-      <div class="flex flex-col sm:flex-row gap-4 justify-between items-center max-w-screen-xl mx-auto w-full px(4 sm:6 md:8) p-4">
-        <div class="text(gray-600 center)">
+      <div class="flex flex-col sm:flex-row gap-4 justify-between items-center max-w-screen-xl mx-auto w-full sm:px-6 md:px-8 p-4">
+        <div class="text-gray-600 text-center">
           <span>© {new Date().getFullYear()} the Fresh authors</span>
         </div>
 

@@ -17,7 +17,9 @@
     "$ga4": "https://raw.githubusercontent.com/denoland/ga4/main/mod.ts",
     "$marked-mangle": "https://esm.sh/marked-mangle@1.0.1",
     "$fresh-testing-library": "https://deno.land/x/fresh_testing_library@0.8.0/mod.ts",
-    "$fresh-testing-library/": "https://deno.land/x/fresh_testing_library@0.8.0/"
+    "$fresh-testing-library/": "https://deno.land/x/fresh_testing_library@0.8.0/",
+    "tailwindcss": "npm:tailwindcss@3.3.5",
+    "tailwindcss/": "npm:/tailwindcss@3.3.5/"
   },
   "compilerOptions": {
     "jsx": "react-jsx",

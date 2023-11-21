@@ -54,7 +54,7 @@ export function SidebarCategory(props: {
     <li class="my-2 block">
       <a
         href={href}
-        class="text(gray-900 hover:gray-600) [data-current]:text-green-700 [data-current]:hover:underline font-bold"
+        class="text-gray-900 hover:text-gray-600 [data-current]:text-green-700 [data-current]:hover:underline font-bold"
       >
         {title}
       </a>

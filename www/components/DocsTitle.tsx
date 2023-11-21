@@ -3,7 +3,7 @@ export default function DocsTitle() {
     <>
       <a
         href="/"
-        class="text(2xl gray-900) flex items-center"
+        class="text-2xl text-gray-900 flex items-center"
         aria-label="Top Page"
       >
         <svg

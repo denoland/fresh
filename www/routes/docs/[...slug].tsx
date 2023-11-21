@@ -190,7 +190,7 @@ function MobileSidebar(props: { page: Page }) {
           class="absolute inset-0 bg-gray-600 opacity-75"
           for="docs_sidebar"
         />
-        <div class="relative flex-1 flex flex-col w-[18rem] h-full bg-white border(r-2 gray-100)">
+        <div class="relative flex-1 flex flex-col w-[18rem] h-full bg-white border-r-2 border-gray-100">
           <nav class="pt-0 pb-16 px-4 overflow-x-auto">
             <DocsSidebar
               mobile
@@ -244,7 +244,7 @@ function Content(props: { page: Page }) {
             <div>Table of Contents</div>
           </label>
         </div>
-        <h1 class="text(4xl gray-900) tracking-tight font-extrabold md:mt-0 px-4">
+        <h1 class="text-4xl text-gray-900 tracking-tight font-extrabold md:mt-0 px-4">
           {props.page.title}
         </h1>
         <div
@@ -277,7 +277,7 @@ function ForwardBackButtons(props: {
   const lower = "text-gray-900 font-medium";
 
   return (
-    <div class="px-4 mt-8 flex flex(col md:row) gap-4">
+    <div class="px-4 mt-8 flex flex-col md:flex-row gap-4">
       {prev && (
         <a href={prev.href} class={`${button} text-left`}>
           <span class={upper}>{"←"} Previous</span>
