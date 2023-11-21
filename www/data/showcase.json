@@ -415,6 +415,11 @@
     "image": "streamdal"
   },
   {
+    "title": "MergePanic",
+    "link": "https://mergepanic.com",
+    "image": "MergePanic"
+  },
+  {
     "title": "Do not remove this, it’s for preventing conflicts by trailing comma",
     "link": "",
     "github": "",
