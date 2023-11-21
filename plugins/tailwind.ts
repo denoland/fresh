@@ -9,17 +9,8 @@ async function initTailwind(
   config: ResolvedFreshConfig,
 ): Promise<postcss.Processor> {
   const root = path.dirname(config.staticDir);
-  let relativeRoot = "";
-  if (root !== Deno.cwd()) {
-    relativeRoot = path.relative(Deno.cwd(), root).split(path.sep).join("/") +
-      "/";
-  }
 
-  let tailwindConfig: Config = {
-    content: [
-      `${relativeRoot}{routes,components,islands}/**/*.{ts,tsx,js,jsx,mjs,cjs}`,
-    ],
-  };
+  let tailwindConfig: Config | null = null;
 
   const configFilePaths = [
     path.join(Deno.cwd(), "tailwind.config.ts"),
@@ -38,31 +29,33 @@ async function initTailwind(
       // ignore
     }
 
-    if (importedConfig === null) continue;
-    importedConfig.content = importedConfig.content ?? [];
-
-    if (!Array.isArray(importedConfig.content)) {
-      throw new Error(`Expected tailwind "content" option to be an array`);
-    }
-
-    const configContent = importedConfig.content.map((pattern) => {
-      if (typeof pattern === "string") {
-        return path.join(
-          path.relative(Deno.cwd(), path.dirname(configFile)),
-          pattern,
-        );
+    if (importedConfig !== null) {
+      if (!Array.isArray(importedConfig.content)) {
+        throw new Error(`Expected tailwind "content" option to be an array`);
       }
-      return pattern;
-    });
 
-    tailwindConfig = {
-      ...importedConfig,
-      content: [
-        ...configContent,
-        ...tailwindConfig.content as string[],
-      ],
-    };
-    break;
+      importedConfig.content = importedConfig.content.map((pattern) => {
+        if (typeof pattern === "string") {
+          return path.join(
+            path.relative(Deno.cwd(), path.dirname(configFile)),
+            pattern,
+          );
+        }
+        return pattern;
+      });
+
+      tailwindConfig = importedConfig;
+
+      break;
+    }
+  }
+
+  if (tailwindConfig === null) {
+    throw new Error(
+      `Could not find tailwind config file. Searched the following locations:\n\n${
+        configFilePaths.map((p) => `- ${p}`).join("\n")
+      }`,
+    );
   }
 
   const plugins: postcss.AcceptedPlugin[] = [
