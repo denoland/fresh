@@ -7,8 +7,6 @@
   },
   "imports": {
     "$fresh/": "../",
-    "twind": "https://esm.sh/twind@0.16.19",
-    "twind/": "https://esm.sh/twind@0.16.19/",
     "preact": "https://esm.sh/preact@10.15.1",
     "preact/": "https://esm.sh/preact@10.15.1/",
     "@preact/signals": "https://esm.sh/*@preact/signals@1.1.3",
