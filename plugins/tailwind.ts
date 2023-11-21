@@ -1,6 +1,7 @@
 import { Plugin, PluginMiddleware, ResolvedFreshConfig } from "../server.ts";
 import tailwindCss, { Config } from "tailwindcss";
 import postcss from "npm:postcss@8.4.31";
+import cssnano from "npm:cssnano@6.0.1";
 import * as path from "https://deno.land/std@0.207.0/path/mod.ts";
 import { walk } from "https://deno.land/std@0.207.0/fs/walk.ts";
 
@@ -64,7 +65,15 @@ async function initTailwind(
     break;
   }
 
-  return postcss([tailwindCss(tailwindConfig)]);
+  const plugins: postcss.AcceptedPlugin[] = [
+    tailwindCss(tailwindConfig),
+  ];
+
+  if (!config.dev) {
+    plugins.push(cssnano());
+  }
+
+  return postcss(plugins);
 }
 
 export default function tailwind(): Plugin {
