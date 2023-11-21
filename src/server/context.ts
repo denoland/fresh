@@ -60,6 +60,10 @@ export async function getServerContext(state: InternalFreshState) {
     await import("preact/debug");
   }
 
+  await Promise.all(
+    config.plugins.map((plugin) => plugin.configResolved?.(state.config)),
+  );
+
   const extractResult = await extractRoutes(state);
 
   // Restore snapshot if available

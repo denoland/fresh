@@ -581,6 +581,11 @@ export interface Plugin<State = Record<string, unknown>> {
    */
   buildEnd?(): Promise<void> | void;
 
+  /**
+   * Called after configuration has been loaded
+   */
+  configResolved?(config: ResolvedFreshConfig): Promise<void> | void;
+
   routes?: PluginRoute[];
 
   middlewares?: PluginMiddleware<State>[];
