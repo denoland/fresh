@@ -29,7 +29,7 @@ a[data-ancestor] {
 
 ## Tailwind / Twind
 
-In tailwind or tailwind like styling solutions you can style `data-*`-attributes
+In tailwind or tailwind-like styling solutions you can style `data-*`-attributes
 by prepending the classes with `[data-current]:`
 
 ```tsx
@@ -40,4 +40,22 @@ function Menu() {
     </a>
   );
 }
+```
+
+### Twind Plugin
+
+The original twind plugin (`import twindPlugin from "$fresh/plugins/twind.ts";`)
+supports the above style:
+
+```tsx
+class="[data-current]:text-green-600"
+```
+
+### TwindV1 Plugin
+
+The new twind plugin (`import twindPlugin from "$fresh/plugins/twindv1.ts";`)
+requires a slightly different syntax (note the position of the left bracket):
+
+```tsx
+class="data-[current]:text-green-600"
 ```

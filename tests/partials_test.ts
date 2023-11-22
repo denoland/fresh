@@ -1496,3 +1496,16 @@ Deno.test("partials visit to async page", async () => {
     },
   );
 });
+
+Deno.test("partials with redirects", async () => {
+  await withPageName(
+    "./tests/fixture_partials/main.ts",
+    async (page, address) => {
+      await page.goto(`${address}/redirected`);
+      await page.waitForSelector(".output");
+
+      await page.click(".update-link");
+      await page.waitForSelector(".status-updated");
+    },
+  );
+});

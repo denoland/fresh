@@ -5,6 +5,9 @@ export default defineConfig({
   plugins: [
     {
       name: "a",
+      configResolved() {
+        console.log("Plugin a: configResolved");
+      },
       buildEnd() {
         console.log("Plugin a: buildEnd");
       },
@@ -14,6 +17,9 @@ export default defineConfig({
     },
     {
       name: "b",
+      configResolved() {
+        console.log("Plugin b: configResolved");
+      },
       buildEnd() {
         console.log("Plugin b: buildEnd");
       },
@@ -23,6 +29,9 @@ export default defineConfig({
     },
     {
       name: "c",
+      configResolved() {
+        console.log("Plugin c: configResolved");
+      },
       buildStart(config) {
         const outDir = relative(Deno.cwd(), config.build.outDir);
         console.log(`Plugin c: ${outDir}`);

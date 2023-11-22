@@ -2,14 +2,16 @@
 // This file SHOULD be checked into source version control.
 // This file is automatically updated during development when running `dev.ts`.
 
-import * as $0 from "./routes/(group)/index.tsx";
+import * as $_group_index from "./routes/(group)/index.tsx";
+
+import { Manifest } from "$fresh/server.ts";
 
 const manifest = {
   routes: {
-    "./routes/(group)/index.tsx": $0,
+    "./routes/(group)/index.tsx": $_group_index,
   },
   islands: {},
   baseUrl: import.meta.url,
-};
+} satisfies Manifest;
 
 export default manifest;

@@ -2,22 +2,24 @@
 // This file SHOULD be checked into source version control.
 // This file is automatically updated during development when running `dev.ts`.
 
-import * as $0 from "./routes/head_style.tsx";
-import * as $1 from "./routes/header_arr.tsx";
-import * as $2 from "./routes/header_instance.tsx";
-import * as $3 from "./routes/header_obj.tsx";
-import * as $4 from "./routes/index.tsx";
+import * as $head_style from "./routes/head_style.tsx";
+import * as $header_arr from "./routes/header_arr.tsx";
+import * as $header_instance from "./routes/header_instance.tsx";
+import * as $header_obj from "./routes/header_obj.tsx";
+import * as $index from "./routes/index.tsx";
+
+import { Manifest } from "$fresh/server.ts";
 
 const manifest = {
   routes: {
-    "./routes/head_style.tsx": $0,
-    "./routes/header_arr.tsx": $1,
-    "./routes/header_instance.tsx": $2,
-    "./routes/header_obj.tsx": $3,
-    "./routes/index.tsx": $4,
+    "./routes/head_style.tsx": $head_style,
+    "./routes/header_arr.tsx": $header_arr,
+    "./routes/header_instance.tsx": $header_instance,
+    "./routes/header_obj.tsx": $header_obj,
+    "./routes/index.tsx": $index,
   },
   islands: {},
   baseUrl: import.meta.url,
-};
+} satisfies Manifest;
 
 export default manifest;

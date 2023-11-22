@@ -52,6 +52,7 @@ export type {
   PluginRenderStyleTag,
   PluginRoute,
   RenderFunction,
+  ResolvedFreshConfig,
   RouteConfig,
   RouteContext,
   RouterOptions,
