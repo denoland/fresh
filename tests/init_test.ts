@@ -28,7 +28,7 @@ const assertFileExistence = async (files: string[], dirname: string) => {
 };
 
 Deno.test({
-  name: "fresh-init asdf",
+  name: "fresh-init",
   async fn(t) {
     // Preparation
     const tmpDirName = await Deno.makeTempDir();
@@ -145,7 +145,7 @@ Deno.test({
 });
 
 Deno.test({
-  name: "fresh-init --twind --vscode",
+  name: "fresh-init --tailwind --vscode",
   async fn(t) {
     // Preparation
     const tmpDirName = await Deno.makeTempDir();
@@ -157,7 +157,7 @@ Deno.test({
           "-A",
           "init.ts",
           tmpDirName,
-          "--twind",
+          "--tailwind",
           "--vscode",
         ],
         stdin: "null",
@@ -170,7 +170,7 @@ Deno.test({
     const files = [
       "/README.md",
       "/fresh.gen.ts",
-      "/twind.config.ts",
+      "/tailwind.config.ts",
       "/components/Button.tsx",
       "/islands/Counter.tsx",
       "/main.ts",
@@ -381,7 +381,7 @@ Deno.test({
         "-A",
         "init.ts",
         tmpDirName,
-        "--twind",
+        "--tailwind",
         "--vscode",
       ],
       stdin: "null",
