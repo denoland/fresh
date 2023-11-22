@@ -867,14 +867,23 @@ export interface FreshHistoryState {
   scrollY: number;
 }
 
-function checkClientNavEnabled(el: HTMLElement | null) {
+function checkClientNavEnabled(el: HTMLElement | null): boolean {
   if (el === null) {
-    return document.querySelector(`[${CLIENT_NAV_ATTR}="true"]`) !== null;
+    const found = document.querySelectorAll(`[${CLIENT_NAV_ATTR}]`);
+    for (let i = 0; i < found.length; i++) {
+      const value = found[i].getAttribute(CLIENT_NAV_ATTR);
+      if (value === "true" || value === "") {
+        return true;
+      }
+    }
+
+    return false;
   }
 
   const setting = el.closest(`[${CLIENT_NAV_ATTR}]`);
   if (setting === null) return false;
-  return setting.getAttribute(CLIENT_NAV_ATTR) === "true";
+  const value = setting.getAttribute(CLIENT_NAV_ATTR);
+  return value === "true" || value === "";
 }
 
 // Keep track of history state to apply forward or backward animations

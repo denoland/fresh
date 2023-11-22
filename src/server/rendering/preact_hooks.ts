@@ -9,18 +9,26 @@ import {
   options as preactOptions,
   type VNode,
 } from "preact";
-import { assetHashingHook } from "../../runtime/utils.ts";
+import { asset, assetHashingHook, assetSrcSet } from "../../runtime/utils.ts";
 import { Partial, PartialProps } from "../../runtime/Partial.tsx";
-import { renderToString } from "../deps.ts";
+import { escapeHtml, renderToString } from "../deps.ts";
 import { RenderState } from "./state.ts";
 import { Island } from "../types.ts";
 import {
   CLIENT_NAV_ATTR,
+  DATA_ANCESTOR,
+  DATA_CURRENT,
   DATA_KEY_ATTR,
   LOADING_ATTR,
   PartialMode,
 } from "../../constants.ts";
-import { setActiveUrl } from "../../runtime/active_url.ts";
+import {
+  matchesUrl,
+  setActiveUrl,
+  UrlMatchKind,
+} from "../../runtime/active_url.ts";
+import { patchJsxTemplate } from "./jsx_precompile.tsx";
+import { Head } from "../../runtime/head.ts";
 
 // See: https://github.com/preactjs/preact/blob/7748dcb83cedd02e37b3713634e35b97b26028fd/src/internal.d.ts#L3C1-L16
 enum HookType {
@@ -279,119 +287,138 @@ options.__b = (vnode: VNode<Record<string, unknown>>) => {
         setActiveUrl(vnode, current.url.pathname);
       }
     } else if (typeof vnode.type === "function") {
-      // Detect island vnodes and wrap them with a marker
-      const island = islandByComponent.get(vnode.type);
-      patchIsland:
-      if (
-        vnode.type !== Fragment &&
-        island &&
-        !patched.has(vnode)
-      ) {
-        current.islandDepth++;
+      if (vnode.type === Head) {
+        vnode.props.__freshHead = true;
+        current.headChildren = true;
 
-        // Check if an island is rendered inside another island, not just
-        // passed as a child.In that case we treat it like a normal
-        // Component. Example:
-        //   function Island() {
-        //     return <OtherIsland />
-        //   }
-        if (hasIslandOwner(current, vnode)) {
-          break patchIsland;
+        const children = vnode.props.children;
+        if (
+          children !== null && typeof children === "object" &&
+          !Array.isArray(children) && (children as VNode).type === Fragment &&
+          "tpl" in (children as VNode).props
+        ) {
+          patchJsxTemplate(current, children as VNode);
+          vnode.props.children = (children as VNode).props.children;
         }
+      } else if (
+        vnode.type === Fragment && vnode.props !== null && "tpl" in vnode.props
+      ) {
+        patchJsxTemplate(current, vnode);
+      } else {
+        // Detect island vnodes and wrap them with a marker
+        const island = islandByComponent.get(vnode.type);
+        patchIsland:
+        if (
+          vnode.type !== Fragment &&
+          island &&
+          !patched.has(vnode)
+        ) {
+          current.islandDepth++;
 
-        // At this point we know that we need to patch the island. Mark the
-        // island in that we have already patched it.
-        const originalType = vnode.type;
-        patched.add(vnode);
+          // Check if an island is rendered inside another island, not just
+          // passed as a child.In that case we treat it like a normal
+          // Component. Example:
+          //   function Island() {
+          //     return <OtherIsland />
+          //   }
+          if (hasIslandOwner(current, vnode)) {
+            break patchIsland;
+          }
 
-        vnode.type = (props) => {
-          if (!current) return null;
+          // At this point we know that we need to patch the island. Mark the
+          // island in that we have already patched it.
+          const originalType = vnode.type;
+          patched.add(vnode);
 
-          const { encounteredIslands, islandProps, slots } = current;
-          encounteredIslands.add(island);
+          vnode.type = (props) => {
+            if (!current) return null;
 
-          // Only passing children JSX to islands is supported for now
-          const id = islandProps.length;
-          if ("children" in props) {
-            let children = props.children;
+            const { encounteredIslands, islandProps, slots } = current;
+            encounteredIslands.add(island);
 
-            // Guard against passing objects as children to JSX
-            if (
-              typeof children === "function" || (
-                children !== null && typeof children === "object" &&
-                !Array.isArray(children) &&
-                !isValidElement(children)
-              )
-            ) {
-              const name = originalType.displayName || originalType.name ||
-                "Anonymous";
+            // Only passing children JSX to islands is supported for now
+            const id = islandProps.length;
+            if ("children" in props) {
+              let children = props.children;
 
-              throw new Error(
-                `Invalid JSX child passed to island <${name} />. To resolve this error, pass the data as a standard prop instead.`,
+              // Guard against passing objects as children to JSX
+              if (
+                typeof children === "function" || (
+                  children !== null && typeof children === "object" &&
+                  !Array.isArray(children) &&
+                  !isValidElement(children)
+                )
+              ) {
+                const name = originalType.displayName || originalType.name ||
+                  "Anonymous";
+
+                throw new Error(
+                  `Invalid JSX child passed to island <${name} />. To resolve this error, pass the data as a standard prop instead.`,
+                );
+              }
+
+              const markerText =
+                `frsh-slot-${island.id}:${island.exportName}:${id}:children`;
+              // @ts-ignore nonono
+              props.children = wrapWithMarker(
+                children,
+                markerText,
+              );
+              slots.set(markerText, children);
+              children = props.children;
+              // deno-lint-ignore no-explicit-any
+              (props as any).children = h(
+                SlotTracker,
+                { id: markerText },
+                children,
               );
             }
 
-            const markerText =
-              `frsh-slot-${island.id}:${island.exportName}:${id}:children`;
-            // @ts-ignore nonono
-            props.children = wrapWithMarker(
-              children,
-              markerText,
+            const child = h(originalType, props) as VNode;
+            patched.add(child);
+            islandProps.push(props);
+
+            return wrapWithMarker(
+              child,
+              `frsh-${island.id}:${island.exportName}:${
+                islandProps.length - 1
+              }:${vnode.key ?? ""}`,
             );
-            slots.set(markerText, children);
-            children = props.children;
-            // deno-lint-ignore no-explicit-any
-            (props as any).children = h(
-              SlotTracker,
-              { id: markerText },
-              children,
+          };
+          // deno-lint-ignore no-explicit-any
+        } else if (vnode.type === (Partial as any)) {
+          current.partialCount++;
+          current.partialDepth++;
+          if (hasIslandOwner(current, vnode)) {
+            throw new Error(
+              `<Partial> components cannot be used inside islands.`,
             );
           }
+          const name = vnode.props.name as string;
+          if (current.encounteredPartials.has(name)) {
+            current.error = new Error(
+              `Duplicate partial name "${name}" found. The partial name prop is expected to be unique among partial components.`,
+            );
+          }
+          current.encounteredPartials.add(name);
 
-          const child = h(originalType, props) as VNode;
-          patched.add(child);
-          islandProps.push(props);
-
-          return wrapWithMarker(
-            child,
-            `frsh-${island.id}:${island.exportName}:${islandProps.length - 1}:${
-              vnode.key ?? ""
-            }`,
+          const mode = encodePartialMode(
+            // deno-lint-ignore no-explicit-any
+            (vnode.props as any).mode ?? "replace",
           );
-        };
-        // deno-lint-ignore no-explicit-any
-      } else if (vnode.type === (Partial as any)) {
-        current.partialCount++;
-        current.partialDepth++;
-        if (hasIslandOwner(current, vnode)) {
-          throw new Error(
-            `<Partial> components cannot be used inside islands.`,
+          vnode.props.children = wrapWithMarker(
+            vnode.props.children,
+            `frsh-partial:${name}:${mode}:${vnode.key ?? ""}`,
           );
+        } else if (
+          vnode.key && (current.islandDepth > 0 || current.partialDepth > 0)
+        ) {
+          const child = h(vnode.type, vnode.props);
+          vnode.type = Fragment;
+          vnode.props = {
+            children: wrapWithMarker(child, `frsh-key:${vnode.key}`),
+          };
         }
-        const name = vnode.props.name as string;
-        if (current.encounteredPartials.has(name)) {
-          current.error = new Error(
-            `Duplicate partial name "${name}" found. The partial name prop is expected to be unique among partial components.`,
-          );
-        }
-        current.encounteredPartials.add(name);
-
-        const mode = encodePartialMode(
-          // deno-lint-ignore no-explicit-any
-          (vnode.props as any).mode ?? "replace",
-        );
-        vnode.props.children = wrapWithMarker(
-          vnode.props.children,
-          `frsh-partial:${name}:${mode}:${vnode.key ?? ""}`,
-        );
-      } else if (
-        vnode.key && (current.islandDepth > 0 || current.partialDepth > 0)
-      ) {
-        const child = h(vnode.type, vnode.props);
-        vnode.type = Fragment;
-        vnode.props = {
-          children: wrapWithMarker(child, `frsh-key:${vnode.key}`),
-        };
       }
     }
   }
@@ -410,6 +437,9 @@ options.diffed = (vnode: VNode<Record<string, unknown>>) => {
   if (typeof vnode.type === "function") {
     if (vnode.type !== Fragment) {
       if (current) {
+        if (vnode.props.__freshHead) {
+          current.headChildren = false;
+        }
         if (islandByComponent.has(vnode.type)) {
           current.islandDepth--;
         } else if (vnode.type === Partial as ComponentType) {
@@ -448,4 +478,30 @@ options.__h = (component, idx, type) => {
     current.error = new Error(message + hint);
   }
   oldHook?.(component, idx, type);
+};
+
+// Only used in precompile JSX transform
+// TODO: LSP seems to cache types from old Preact version
+// deno-lint-ignore no-explicit-any
+const oldAttr = (options as any).attr;
+// deno-lint-ignore no-explicit-any
+(options as any).attr = (name: string, value: any) => {
+  if (name === "f-client-nav") {
+    return `f-client-nav="${String(Boolean(value))}"`;
+  } else if (name === "href" && current !== null) {
+    if (typeof value === "string" && value.startsWith("/")) {
+      const match = matchesUrl(current.url.pathname, value);
+      const escaped = escapeHtml(value);
+      if (match === UrlMatchKind.Current) {
+        return `href="${escaped}" ${DATA_CURRENT}="true" aria-current="page"`;
+      } else if (match === UrlMatchKind.Ancestor) {
+        return `href="${escaped}" ${DATA_ANCESTOR}="true" aria-current="true"`;
+      }
+    }
+  } else if (name === "src") {
+    return `src="${escapeHtml(asset(value))}"`;
+  } else if (name === "srcset") {
+    return `srcset="${escapeHtml(assetSrcSet(value))}"`;
+  }
+  return oldAttr?.(name, value);
 };

@@ -1,5 +1,6 @@
 import { colors, toFileUrl } from "$fresh/src/server/deps.ts";
 import * as path from "$std/path/mod.ts";
+import { type VNode } from "preact";
 import {
   FromManifestConfig,
   Manifest,
@@ -45,11 +46,19 @@ export async function startFreshServer(options: Deno.CommandOptions) {
   return { serverProcess, lines, address, output };
 }
 
-export async function fetchHtml(url: string) {
+export async function fetchHtml(url: string): Promise<TestDocument> {
   const res = await fetch(url);
   const html = await res.text();
-  // deno-lint-ignore no-explicit-any
-  return new DOMParser().parseFromString(html, "text/html") as any as Document;
+  const doc = new DOMParser().parseFromString(
+    html,
+    "text/html",
+    // deno-lint-ignore no-explicit-any
+  ) as any as Document;
+  Object.defineProperty(doc, "debug", {
+    value: () => console.log(prettyDom(doc)),
+    enumerable: false,
+  });
+  return doc as TestDocument;
 }
 
 export function assertSelector(doc: Document, selector: string) {
@@ -625,4 +634,55 @@ export function assertMetaContent(
     );
   }
   assertEquals(el.content, expected);
+}
+
+// deno-lint-ignore no-explicit-any
+function serializeChildren(arr: any[], children: any) {
+  if (Array.isArray(children)) {
+    for (let i = 0; i < children.length; i++) {
+      serializeChildren(arr, children[i]);
+    }
+  } else if (
+    typeof children === "object" && children !== null &&
+    children.constructor === undefined
+  ) {
+    const child = serializeVnode(children);
+    arr.push(child);
+  } else {
+    arr.push(children);
+  }
+}
+
+export interface SerializedVNode {
+  // deno-lint-ignore ban-types
+  type: string | Function;
+  // deno-lint-ignore no-explicit-any
+  props: Record<string, any>;
+}
+
+// deno-lint-ignore no-explicit-any
+export function serializeVnode(vnode: VNode<any>): SerializedVNode {
+  const out: SerializedVNode = {
+    type: vnode.type,
+    props: {},
+  };
+
+  for (const k in vnode.props) {
+    const value = vnode.props[k];
+    if (
+      value !== null && typeof value === "object" &&
+      value.constructor === undefined
+    ) {
+      out.props[k] = serializeVnode(value);
+    } else if (Array.isArray(value)) {
+      // deno-lint-ignore no-explicit-any
+      const newChildren: any[] = [];
+      serializeChildren(newChildren, value);
+      out.props[k] = newChildren;
+    } else {
+      out.props[k] = value;
+    }
+  }
+
+  return out;
 }

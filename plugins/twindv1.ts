@@ -1,13 +1,6 @@
-import { stringify, virtual } from "$fresh/plugins/twindv1_deps.ts";
-import { Plugin } from "$fresh/server.ts";
-
-import {
-  Options,
-  setup,
-  STYLE_ELEMENT_ID,
-} from "$fresh/plugins/twindv1/shared.ts";
-
-import { BaseTheme } from "$fresh/plugins/twindv1_deps.ts";
+import { BaseTheme, stringify, virtual } from "./twindv1_deps.ts";
+import { Options, setup, STYLE_ELEMENT_ID } from "./twindv1/shared.ts";
+import { Plugin } from "../src/server/types.ts";
 export type { Options };
 
 export default function twindv1<Theme extends BaseTheme = BaseTheme>(

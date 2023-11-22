@@ -7,6 +7,10 @@ export {
   join,
   toFileUrl,
 } from "https://deno.land/std@0.205.0/path/mod.ts";
+export {
+  escape as escapeHtml,
+  unescape as unescapeHtml,
+} from "https://deno.land/std@0.205.0/html/entities.ts";
 export { walk } from "https://deno.land/std@0.205.0/fs/walk.ts";
 export * as colors from "https://deno.land/std@0.205.0/fmt/colors.ts";
 export {

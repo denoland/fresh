@@ -84,7 +84,18 @@ export function renderOuterDocument(
   const filteredHeadNodes: VNode[] = [];
 
   if (headVNodes.length > 0) {
-    const seen = new Map<string, VNode>();
+    // deno-lint-ignore no-explicit-any
+    const seen = new Map<string, VNode<any>>();
+    const ignore = new Set<string>();
+    for (let i = 0; i < docHeadNodes.length; i++) {
+      const node = docHeadNodes[i];
+      if (node.props.key) {
+        ignore.add(String(node.props.key));
+      } else if (node.type === "meta" && node.props.name) {
+        ignore.add(String(node.props.name));
+      }
+    }
+
     const userChildren = toChildArray(headVNodes);
     for (let i = 0; i < userChildren.length; i++) {
       const child = userChildren[i];
@@ -94,6 +105,13 @@ export function renderOuterDocument(
           docTitle = child;
         } else if (child.key !== undefined) {
           seen.set(child.key, child);
+        } else if (child.type === "meta") {
+          // deno-lint-ignore no-explicit-any
+          const props = child.props as any;
+          if (props.name && ignore.has(props.name)) {
+            continue;
+          }
+          filteredHeadNodes.push(child);
         } else {
           filteredHeadNodes.push(child);
         }
