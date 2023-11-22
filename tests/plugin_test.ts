@@ -14,6 +14,7 @@ import {
   clickWhenListenerReady,
   runBuild,
   startFreshServer,
+  withFakeServe,
   withPageName,
 } from "./test_utils.ts";
 
@@ -40,6 +41,11 @@ Deno.test("/static page prerender", async () => {
   assertStringIncludes(
     body,
     '<style id="def">h1 { text-decoration: underline; }</style>',
+  );
+  assertStringIncludes(body, '<link rel="stylesheet" href="styles.css"/>');
+  assertStringIncludes(
+    body,
+    '<link rel="stylesheet" href="print.css" media="print"/>',
   );
 });
 
@@ -102,6 +108,34 @@ Deno.test("plugin route no leading slash", async () => {
 });
 
 Deno.test({
+  name: "plugin supports islands",
+  async fn(t) {
+    await withPageName(
+      "./tests/fixture_plugin/main.ts",
+      async (page, address) => {
+        async function idTest(id: string) {
+          const elem = await page.waitForSelector(`#${id}`);
+
+          const value = await elem?.evaluate((el) => el.textContent);
+          assert(value === `${id}`, `value ${value} not equal to id ${id}`);
+        }
+
+        await page.goto(`${address}/pluginroutewithisland`, {
+          waitUntil: "networkidle2",
+        });
+
+        await t.step("verify tags", async () => {
+          await idTest("csr");
+          await idTest("csr_alt_folder");
+        });
+      },
+    );
+  },
+  sanitizeOps: false,
+  sanitizeResources: false,
+});
+
+Deno.test({
   name: "/with-island hydration",
   async fn(t) {
     // Preparation
@@ -145,12 +179,27 @@ Deno.test("calls buildStart() and buildEnd()", async () => {
   );
 
   assertEquals(out, [
+    "Plugin a: configResolved",
+    "Plugin b: configResolved",
+    "Plugin c: configResolved",
     "Plugin a: buildStart",
     "Plugin b: buildStart",
     `Plugin c: ${join("tests", "fixture_plugin_lifecycle", "_fresh")}`,
     "Plugin a: buildEnd",
     "Plugin b: buildEnd",
   ]);
+});
+
+Deno.test("calls configResolved() in dev", async () => {
+  await withFakeServe(
+    "./tests/fixture_plugin_resolved_dev/dev.ts",
+    async (server) => {
+      const res = await server.get("/");
+      await res.text();
+      assertEquals(res.headers.get("X-Plugin-A"), "true");
+    },
+    { loadConfig: true },
+  );
 });
 
 Deno.test("plugin script doesn't halt island execution", async () => {
@@ -174,5 +223,16 @@ Deno.test("plugin script doesn't halt island execution", async () => {
 
       assertMatch(String(error), /Error thrown/);
     },
+  );
+});
+
+Deno.test("supports returning htmlText", async () => {
+  await withFakeServe(
+    "./tests/fixture_plugin_html/main.ts",
+    async (server) => {
+      const doc = await server.getHtml("/");
+      assertEquals(doc.body.textContent, "it works");
+    },
+    { loadConfig: true },
   );
 });

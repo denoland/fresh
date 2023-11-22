@@ -207,7 +207,6 @@ export async function withPageName(
   });
 
   try {
-    await delay(100);
     const browser = await puppeteer.launch({ args: ["--no-sandbox"] });
 
     try {
@@ -286,14 +285,41 @@ export async function fakeServe(
 export async function withFakeServe(
   name: string,
   cb: (server: FakeServer) => Promise<void> | void,
+  options: { loadConfig?: boolean } = {},
 ) {
   const fixture = join(Deno.cwd(), name);
   const dev = basename(name) === "dev.ts";
+  if (dev) {
+    try {
+      await Deno.remove(join(fixture, "_fresh"));
+    } catch (_err) {
+      // ignore
+    }
+  }
 
   const manifestPath = toFileUrl(join(dirname(fixture), "fresh.gen.ts")).href;
   const manifestMod = await import(manifestPath);
 
-  const server = await fakeServe(manifestMod.default, { dev });
+  const configPath = join(dirname(fixture), "fresh.config.ts");
+
+  let config: FromManifestConfig = { dev };
+
+  // For now we load config on a case by case basis, because something in
+  // twind (unsure) doesn't work well if multiple instances are running
+  if (options.loadConfig) {
+    try {
+      const stats = await Deno.stat(configPath);
+      if (stats.isFile) {
+        const m = await import(toFileUrl(configPath).href);
+        config = m.default;
+        config.dev = dev;
+      }
+    } catch {
+      // ignore
+    }
+  }
+
+  const server = await fakeServe(manifestMod.default, config);
   await cb(server);
 }
 

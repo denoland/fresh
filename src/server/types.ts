@@ -114,6 +114,7 @@ export interface InternalFreshState {
   loadSnapshot: boolean;
   denoJsonPath: string;
   denoJson: DenoConfig;
+  build: boolean;
 }
 
 export interface ResolvedFreshConfig {
@@ -581,9 +582,16 @@ export interface Plugin<State = Record<string, unknown>> {
    */
   buildEnd?(): Promise<void> | void;
 
+  /**
+   * Called after configuration has been loaded
+   */
+  configResolved?(config: ResolvedFreshConfig): Promise<void> | void;
+
   routes?: PluginRoute[];
 
   middlewares?: PluginMiddleware<State>[];
+
+  islands?: PluginIslands;
 }
 
 export interface PluginRenderContext {
@@ -599,6 +607,10 @@ export interface PluginRenderResult {
   styles?: PluginRenderStyleTag[];
   /** JS scripts to ship to the client. */
   scripts?: PluginRenderScripts[];
+  /** Link tags for the page */
+  links?: PluginRenderLink[];
+  /** Body HTML transformed by the plugin */
+  htmlText?: string;
 }
 
 export interface PluginRenderStyleTag {
@@ -606,6 +618,17 @@ export interface PluginRenderStyleTag {
   media?: string;
   id?: string;
 }
+
+export type PluginRenderLink = {
+  crossOrigin?: string;
+  href?: string;
+  hreflang?: string;
+  media?: string;
+  referrerPolicy?: string;
+  rel?: string;
+  title?: string;
+  type?: string;
+};
 
 export interface PluginRenderScripts {
   /** The "key" of the entrypoint (as specified in `Plugin.entrypoints`) for the
@@ -650,4 +673,9 @@ export interface PluginRoute {
 
   // deno-lint-ignore no-explicit-any
   handler?: Handler<any, any> | Handlers<any, any>;
+}
+
+export interface PluginIslands {
+  baseLocation: string;
+  paths: string[];
 }

@@ -2,7 +2,12 @@ import { bundleAssetUrl } from "../constants.ts";
 import { RenderState } from "./state.ts";
 import { htmlEscapeJsonString } from "../htmlescape.ts";
 import { serialize } from "../serializer.ts";
-import { Plugin, PluginRenderResult, PluginRenderStyleTag } from "../types.ts";
+import {
+  Plugin,
+  PluginRenderLink,
+  PluginRenderResult,
+  PluginRenderStyleTag,
+} from "../types.ts";
 import { ContentSecurityPolicy, nonce } from "../../runtime/csp.ts";
 import { h } from "preact";
 
@@ -52,6 +57,7 @@ export function renderFreshTags(
     [],
   ];
   const styleTags: PluginRenderStyleTag[] = [];
+  const linkTags: PluginRenderLink[] = [];
   const pluginScripts: [string, string, number][] = [];
 
   for (const [plugin, res] of opts.pluginRenderResults) {
@@ -60,6 +66,7 @@ export function renderFreshTags(
       pluginScripts.push([plugin.name, hydrate.entrypoint, i]);
     }
     styleTags.splice(styleTags.length, 0, ...res.styles ?? []);
+    linkTags.splice(linkTags.length, 0, ...res.links ?? []);
   }
 
   // The inline script that will hydrate the page.
@@ -177,6 +184,11 @@ export function renderFreshTags(
       media: style.media,
       dangerouslySetInnerHTML: { __html: style.cssText },
     });
+    renderState.headVNodes.splice(0, 0, node);
+  }
+
+  for (const link of linkTags) {
+    const node = h("link", link);
     renderState.headVNodes.splice(0, 0, node);
   }
 

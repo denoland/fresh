@@ -105,6 +105,7 @@ export async function getInternalFreshState(
     loadSnapshot: !isLegacyDev,
     denoJsonPath,
     denoJson,
+    build: false,
   };
 }
 

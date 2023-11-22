@@ -2,16 +2,18 @@
 // This file SHOULD be checked into source version control.
 // This file is automatically updated during development when running `dev.ts`.
 
-import * as $0 from "./routes/codeframe.tsx";
-import * as $1 from "./routes/index.tsx";
+import * as $codeframe from "./routes/codeframe.tsx";
+import * as $index from "./routes/index.tsx";
+
+import { Manifest } from "$fresh/server.ts";
 
 const manifest = {
   routes: {
-    "./routes/codeframe.tsx": $0,
-    "./routes/index.tsx": $1,
+    "./routes/codeframe.tsx": $codeframe,
+    "./routes/index.tsx": $index,
   },
   islands: {},
   baseUrl: import.meta.url,
-};
+} satisfies Manifest;
 
 export default manifest;

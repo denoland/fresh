@@ -120,3 +120,15 @@ preferably with source code on GitHub, but not required.
   />
 </a>
 ```
+
+## Hashtags
+
+Use the following hashtags in your social media posts that reference Fresh and
+as Topics in the About section of your GitHub repos that contain Fresh code. It
+will assure maximum visibility for your posts and code, and promote Fresh
+development ecosystem visibility.
+
+- #denofresh
+- #deno
+
+Github repo Topics will not include the hash symbol.

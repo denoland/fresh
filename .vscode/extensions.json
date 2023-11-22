@@ -1,6 +1,5 @@
 {
   "recommendations": [
-    "denoland.vscode-deno",
-    "sastan.twind-intellisense"
+    "denoland.vscode-deno"
   ]
 }

@@ -5,6 +5,7 @@ import {
   ErrorPageModule,
   InternalFreshState,
   Island,
+  IslandModule,
   LayoutModule,
   LayoutRoute,
   MiddlewareHandler,
@@ -19,7 +20,15 @@ import {
 } from "./types.ts";
 import * as router from "./router.ts";
 import DefaultErrorHandler from "./default_error_page.tsx";
-import { extname, join, toFileUrl, typeByExtension, walk } from "./deps.ts";
+import {
+  basename,
+  dirname,
+  extname,
+  join,
+  toFileUrl,
+  typeByExtension,
+  walk,
+} from "./deps.ts";
 import { BUILD_ID } from "./build_id.ts";
 import { toBaseRoute } from "./compose.ts";
 
@@ -233,6 +242,28 @@ export async function extractRoutes(
     }
   }
 
+  const processedIslands: {
+    name: string;
+    path: string;
+    module: IslandModule;
+  }[] = [];
+
+  for (const plugin of config.plugins || []) {
+    if (!plugin.islands) continue;
+    const base = dirname(plugin.islands.baseLocation);
+    for (const name of plugin.islands.paths) {
+      const full = join(base, name);
+      const module = await import(full);
+      const fileNameWithExt = basename(full);
+      const fileName = fileNameWithExt.replace(extname(fileNameWithExt), "");
+      processedIslands.push({
+        name: sanitizeIslandName(fileName),
+        path: full,
+        module,
+      });
+    }
+  }
+
   for (const [self, module] of Object.entries(manifest.islands)) {
     const url = new URL(self, baseUrl).href;
     if (!url.startsWith(baseUrl)) {
@@ -244,16 +275,26 @@ export async function extractRoutes(
     }
     const baseRoute = path.substring(0, path.length - extname(path).length);
 
-    for (const [exportName, exportedFunction] of Object.entries(module)) {
-      if (typeof exportedFunction !== "function") {
-        continue;
-      }
-      const name = sanitizeIslandName(baseRoute);
+    processedIslands.push({
+      name: sanitizeIslandName(baseRoute),
+      path: url,
+      module,
+    });
+  }
+
+  for (const processedIsland of processedIslands) {
+    for (
+      const [exportName, exportedFunction] of Object.entries(
+        processedIsland.module,
+      )
+    ) {
+      if (typeof exportedFunction !== "function") continue;
+      const name = processedIsland.name;
       const id = `${name}_${exportName}`.toLowerCase();
       islands.push({
         id,
         name,
-        url,
+        url: processedIsland.path,
         component: exportedFunction,
         exportName,
       });

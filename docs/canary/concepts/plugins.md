@@ -80,11 +80,16 @@ client.
 The `render` hook needs to synchronously return a
 [`PluginRenderResult`](https://deno.land/x/fresh/server.ts?s=PluginRenderResult)
 object. Additional CSS and JS modules can be added to be injected into the page
-by adding them to `styles` and `scripts` arrays in this object.
+by adding them to `styles`, `links` and `scripts` arrays in this object. The
+plugin can also replace the the HTML in side the `<body>`-element of the page by
+including a `htmlText` string in this object.
 
 `styles` are injected into the `<head>` of the page as inline CSS. Each entry
 can define the CSS text to inject, as well as an optional `id` for the style
 tag, and an optional `media` attribute for the style tag.
+
+`links` are injected into the `<head>` of the page as `<link>` tags. A link tag
+is created for each entry, with attributes from the entry's properties.
 
 `scripts` define JavaScript/TypeScript modules to be injected into the page. The
 possibly loaded modules need to be defined up front in the `Plugin#entrypoints`
@@ -158,3 +163,17 @@ For more examples see the [Concepts: Routing](/docs/concepts/routing) page.
 To create a middleware you need to create a `MiddlewareHandler` function.
 
 And to create a route you can create both a Handler and/or component.
+
+A very basic example can be found
+[here](https://github.com/denoland/fresh/blob/main/tests/fixture_plugin/utils/route-plugin.ts).
+
+### Islands
+
+You can create islands that get loaded and rendered like normal
+[islands](/docs/concepts/islands).
+
+You need to provide the location of your plugin and an array of island
+filenames. The intent is to somewhat mimic the manifest file.
+
+A very basic example can be found
+[here](https://github.com/denoland/fresh/blob/main/tests/fixture_plugin/utils/route-plugin.ts).
