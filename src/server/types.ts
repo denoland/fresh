@@ -590,6 +590,8 @@ export interface Plugin<State = Record<string, unknown>> {
   routes?: PluginRoute[];
 
   middlewares?: PluginMiddleware<State>[];
+
+  islands?: PluginIslands;
 }
 
 export interface PluginRenderContext {
@@ -671,4 +673,9 @@ export interface PluginRoute {
 
   // deno-lint-ignore no-explicit-any
   handler?: Handler<any, any> | Handlers<any, any>;
+}
+
+export interface PluginIslands {
+  baseLocation: string;
+  paths: string[];
 }
