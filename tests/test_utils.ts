@@ -207,7 +207,6 @@ export async function withPageName(
   });
 
   try {
-    await delay(100);
     const browser = await puppeteer.launch({ args: ["--no-sandbox"] });
 
     try {

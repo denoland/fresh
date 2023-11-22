@@ -1,8 +1,10 @@
-import { waitForText, withPageName } from "$fresh/tests/test_utils.ts";
+import { runBuild, waitForText, withPageName } from "../test_utils.ts";
 
 Deno.test("www - docs navigation", async () => {
+  await runBuild("./www/dev.ts");
   await withPageName("./www/main.ts", async (page, address) => {
-    await page.goto(`${address}`, { waitUntil: "networkidle2" });
+    await page.goto(`${address}`);
+
     await page.click(`a[href="/docs"]`);
     await waitForText(page, "h1", "Introduction");
 
