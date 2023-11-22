@@ -1,5 +1,6 @@
 {
   "lock": false,
+  "nodeModulesDir": true,
   "tasks": {
     "start": "deno run -A --watch=static/,routes/,../src dev.ts",
     "build": "deno run -A dev.ts build",
@@ -17,7 +18,8 @@
     "$fresh-testing-library": "https://deno.land/x/fresh_testing_library@0.8.0/mod.ts",
     "$fresh-testing-library/": "https://deno.land/x/fresh_testing_library@0.8.0/",
     "tailwindcss": "npm:tailwindcss@3.3.5",
-    "tailwindcss/": "npm:/tailwindcss@3.3.5/"
+    "tailwindcss/": "npm:/tailwindcss@3.3.5/",
+    "tailwindcss/plugin": "npm:/tailwindcss@3.3.5/plugin.js"
   },
   "compilerOptions": {
     "jsx": "react-jsx",
