@@ -1,26 +1,40 @@
-import { colors } from "./deps.ts";
+import { colors, parse } from "./deps.ts";
 import { ServeHandler } from "./types.ts";
+
+const onListen =
+  (opts: Partial<Deno.ServeTlsOptions>) =>
+  (params: { hostname: string; port: number }) => {
+    const address = colors.cyan(
+      `http://${opts.hostname || params.hostname}:${opts.port || params.port}/`,
+    );
+    console.log(
+      "\n",
+      colors.bgRgb8(colors.rgb8(" 🍋 Fresh ready ", 0), 121),
+      `\n    ${colors.bold("Local:")} ${address}\n\n`,
+    );
+  };
 
 export async function startServer(
   handler: Deno.ServeHandler,
   opts: Partial<Deno.ServeTlsOptions>,
 ) {
-  if (!opts.onListen) {
-    opts.onListen = (params) => {
-      console.log();
-      console.log(
-        colors.bgRgb8(colors.rgb8(" 🍋 Fresh ready ", 0), 121),
-      );
+  const { host: hostFlag, port: portFlag } = parse(Deno.args, {
+    string: ["host", "port"],
+    alias: { h: "host", p: "port" },
+  });
+  const portEnv = Deno.env.get("PORT");
+  const hostEnv = Deno.env.get("HOST");
 
-      const address = colors.cyan(`http://localhost:${params.port}/`);
-      const localLabel = colors.bold("Local:");
-      console.log(`    ${localLabel} ${address}\n`);
-    };
+  if (portEnv !== undefined || portFlag !== undefined) {
+    opts.port = parseInt((portFlag || portEnv) as string, 10);
   }
 
-  const portEnv = Deno.env.get("PORT");
-  if (portEnv !== undefined) {
-    opts.port ??= parseInt(portEnv, 10);
+  if (hostEnv !== undefined || hostFlag !== undefined) {
+    opts.hostname = hostFlag || hostEnv;
+  }
+
+  if (!opts.onListen) {
+    opts.onListen = onListen(opts);
   }
 
   if (opts.port) {

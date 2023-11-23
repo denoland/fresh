@@ -26,3 +26,4 @@ export {
   assertEquals,
   assertThrows,
 } from "https://deno.land/std@0.205.0/assert/mod.ts";
+export { parse } from "https://deno.land/std@0.205.0/flags/mod.ts";
