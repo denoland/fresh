@@ -56,3 +56,54 @@ export default function Subscribe() {
 When the user submits the form, Deno will access a specific `email` value from a
 `formData()`, add the email to a list, and redirect the user to a thank you
 page.
+
+## Handling file uploads
+
+File uploads can be handled in a very similar manner to the example above. Note that this time, we have to explicitly declare the form's encoding.
+
+```tsx routes/subscribe.tsx
+import { Handlers } from "$fresh/server.ts";
+
+export const handler: Handlers = {
+  async GET(req, ctx) {
+    return await ctx.render();
+  },
+  async POST(req, ctx) {
+    const form = await req.formData();
+    const file = form.get("my-file") as File;
+
+    if (!file) {
+      return ctx.render({
+        message: `Please try again`
+      });
+    }
+
+    const name = file.name;
+    const contents = await file.text();
+
+    console.log(contents);
+
+    return ctx.render({
+      message: `${myFile.name} uploaded!`,
+    });
+  },
+};
+
+export default function Upload() {
+  return (
+    <>
+      <form method="post" encType="multipart/form-data">
+        <input type="file" name="my-file" />
+        <button type="submit">Upload</button>
+      </form>
+      {message ? (
+        <p>{message}</p>
+      ) : null}
+    </>
+  );
+}
+```
+
+## A note of caution
+
+These examples are simplified to demonstrate how Deno and Fresh handle HTTP requests. In the Real World™, you'll want to validate your data (*especially the file type*) and protect against cross-site request forgery. Consider yourself warned.
