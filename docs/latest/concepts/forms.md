@@ -59,7 +59,8 @@ page.
 
 ## Handling file uploads
 
-File uploads can be handled in a very similar manner to the example above. Note that this time, we have to explicitly declare the form's encoding.
+File uploads can be handled in a very similar manner to the example above. Note
+that this time, we have to explicitly declare the form's encoding.
 
 ```tsx routes/subscribe.tsx
 import { Handlers } from "$fresh/server.ts";
@@ -74,7 +75,7 @@ export const handler: Handlers = {
 
     if (!file) {
       return ctx.render({
-        message: `Please try again`
+        message: `Please try again`,
       });
     }
 
@@ -96,9 +97,7 @@ export default function Upload() {
         <input type="file" name="my-file" />
         <button type="submit">Upload</button>
       </form>
-      {message ? (
-        <p>{message}</p>
-      ) : null}
+      {message ? <p>{message}</p> : null}
     </>
   );
 }
@@ -106,4 +105,7 @@ export default function Upload() {
 
 ## A note of caution
 
-These examples are simplified to demonstrate how Deno and Fresh handle HTTP requests. In the Real World™, you'll want to validate your data (*especially the file type*) and protect against cross-site request forgery. Consider yourself warned.
+These examples are simplified to demonstrate how Deno and Fresh handle HTTP
+requests. In the Real World™, you'll want to validate your data (_especially the
+file type_) and protect against cross-site request forgery. Consider yourself
+warned.
