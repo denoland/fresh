@@ -90,12 +90,6 @@
     "image": "fresh-strapi"
   },
   {
-    "title": "Developer Portfolio",
-    "link": "#",
-    "github": "haznai/fresh-test",
-    "image": "hazn"
-  },
-  {
     "title": "Portfolio Page",
     "link": "http://adamsobotka.deno.dev/",
     "github": "vorcigernix/adamsobotka",
@@ -172,12 +166,6 @@
     "image": "imasparql-dd"
   },
   {
-    "title": "kadode portal",
-    "link": "#",
-    "github": "KadodeProject/kadode_portal",
-    "image": "kadode_portal"
-  },
-  {
     "title": "Craig’s Deno Diary",
     "link": "https://deno-blog.com",
     "github": "cdoremus/deno-blog",
@@ -200,12 +188,6 @@
     "link": "https://webhook-demo.deno.dev/",
     "github": "avnigenc/deno-fresh-webhook-demo",
     "image": "webhook-manager"
-  },
-  {
-    "title": "Moe Counter",
-    "link": "#",
-    "github": "retraigo/moe-counter",
-    "image": "moe-counter"
   },
   {
     "title": "Deno Jobs",
