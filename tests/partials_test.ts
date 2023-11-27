@@ -1509,3 +1509,16 @@ Deno.test("partials with redirects", async () => {
     },
   );
 });
+
+Deno.test("render 404 partial", async () => {
+  await withPageName(
+    "./tests/fixture_partials/main.ts",
+    async (page, address) => {
+      await page.goto(`${address}/error_404`);
+      await page.waitForSelector(".status");
+
+      await page.click(".update-link");
+      await page.waitForSelector(".status-404");
+    },
+  );
+});

@@ -2,6 +2,7 @@
 // This file SHOULD be checked into source version control.
 // This file is automatically updated during development when running `dev.ts`.
 
+import * as $_404 from "./routes/_404.tsx";
 import * as $_app from "./routes/_app.tsx";
 import * as $active_nav_foo_bar from "./routes/active_nav/foo/bar.tsx";
 import * as $active_nav_foo_index from "./routes/active_nav/foo/index.tsx";
@@ -35,6 +36,7 @@ import * as $deep_partial_index from "./routes/deep_partial/index.tsx";
 import * as $deep_partial_injected from "./routes/deep_partial/injected.tsx";
 import * as $deep_partial_update from "./routes/deep_partial/update.tsx";
 import * as $duplicate_name_index from "./routes/duplicate_name/index.tsx";
+import * as $error_404 from "./routes/error_404.tsx";
 import * as $form_index from "./routes/form/index.tsx";
 import * as $form_injected from "./routes/form/injected.tsx";
 import * as $form_update from "./routes/form/update.tsx";
@@ -133,6 +135,7 @@ import { Manifest } from "$fresh/server.ts";
 
 const manifest = {
   routes: {
+    "./routes/_404.tsx": $_404,
     "./routes/_app.tsx": $_app,
     "./routes/active_nav/foo/bar.tsx": $active_nav_foo_bar,
     "./routes/active_nav/foo/index.tsx": $active_nav_foo_index,
@@ -166,6 +169,7 @@ const manifest = {
     "./routes/deep_partial/injected.tsx": $deep_partial_injected,
     "./routes/deep_partial/update.tsx": $deep_partial_update,
     "./routes/duplicate_name/index.tsx": $duplicate_name_index,
+    "./routes/error_404.tsx": $error_404,
     "./routes/form/index.tsx": $form_index,
     "./routes/form/injected.tsx": $form_injected,
     "./routes/form/update.tsx": $form_update,
