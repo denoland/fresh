@@ -1,6 +1,6 @@
 import { extname, Status, typeByExtension } from "./deps.ts";
 import * as router from "./router.ts";
-import { FreshConfig, Manifest } from "./mod.ts";
+import { FreshConfig, Manifest, UnknownHandlerContext } from "./mod.ts";
 import { ALIVE_URL, DEV_CLIENT_URL, JS_PREFIX } from "./constants.ts";
 import { BUILD_ID } from "./build_id.ts";
 
@@ -37,6 +37,7 @@ import {
 } from "./compose.ts";
 import { extractRoutes, FsExtractResult } from "./fs_extract.ts";
 import { loadAotSnapshot } from "../build/aot_snapshot.ts";
+import { ErrorOverlay } from "./error_overlay.tsx";
 
 const DEFAULT_CONN_INFO: ServeHandlerInfo = {
   localAddr: { transport: "tcp", hostname: "localhost", port: 8080 },
@@ -475,6 +476,63 @@ export class ServerContext {
         },
       );
     };
+
+    if (this.#dev) {
+      const baseRoute = toBaseRoute("/_frsh/error_overlay");
+      internalRoutes["/_frsh/error_overlay"] = {
+        baseRoute,
+        methods: {
+          default: async (req, ctx) => {
+            if (
+              req.headers.get("referrer")?.includes("/_frsh/error_overlay")
+            ) {
+              throw new Error("fail");
+            }
+            const resp = await internalRender({
+              request: req,
+              context: ctx,
+              route: {
+                component: ErrorOverlay,
+                inheritLayouts: false,
+                appWrapper: false,
+                csp: false,
+                url: req.url,
+                name: "error overlay route",
+                handler: (_req: Request, ctx: UnknownHandlerContext) =>
+                  ctx.render(),
+                baseRoute,
+                pattern: baseRoute,
+              },
+              plugins: this.#plugins,
+              app: this.#extractResult.app,
+              layouts: [],
+              imports: [],
+              dependenciesFn: () => [],
+              renderFn: this.#renderFn,
+              url: new URL(req.url),
+              params: {},
+              data: undefined,
+              state: {
+                ...ctx?.state,
+                error: null,
+              },
+              error: null,
+              codeFrame: undefined,
+            });
+
+            if (resp instanceof Response) {
+              return resp;
+            }
+
+            return new Response(resp[0], {
+              headers: {
+                "Content-Type": "text/html",
+              },
+            });
+          },
+        },
+      };
+    }
 
     return { internalRoutes, staticRoutes, routes, otherHandler, errorHandler };
   }
