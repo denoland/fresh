@@ -1,4 +1,4 @@
-import { assertEquals, assertStringIncludes } from "./deps.ts";
+import { assert, assertEquals, assertStringIncludes } from "./deps.ts";
 import { Status } from "../server.ts";
 import {
   assertNotSelector,
@@ -143,6 +143,24 @@ Deno.test("show codeframe in dev mode even with custom 500", async () => {
       const doc = await server.getHtml(`/`);
       assertNotSelector(doc, ".frsh-error-page");
       assertSelector(doc, "h1");
+    },
+  );
+});
+
+Deno.test("serve client script source map", async () => {
+  await withFakeServe(
+    "./tests/fixture/dev.ts",
+    async (server) => {
+      const res = await server.get(`/_frsh/fresh_dev_client.js`);
+      await res.text(); // Consume body
+      assertEquals(res.status, 200);
+      assertEquals(res.headers.get("Content-Type"), "application/javascript");
+
+      const res2 = await server.get(`/_frsh/fresh_dev_client.js.map`);
+      const json = await res2.json();
+      assertEquals(res2.status, 200);
+      assertEquals(res2.headers.get("Content-Type"), "application/json");
+      assert(typeof json.mappings, "string");
     },
   );
 });

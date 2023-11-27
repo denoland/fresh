@@ -195,9 +195,15 @@ export class ServerContext {
           });
 
           return response;
-        } else if (url.pathname === DEV_CLIENT_URL) {
+        } else if (
+          url.pathname === DEV_CLIENT_URL ||
+          url.pathname === `${DEV_CLIENT_URL}.map`
+        ) {
+          const bundlePath = (url.pathname.endsWith(".map"))
+            ? "fresh_dev_client.js.map"
+            : "fresh_dev_client.js";
           return bundleAssetRoute(req, { ...connInfo, isPartial: false }, {
-            path: "client.js",
+            path: bundlePath,
           });
         }
       }
@@ -635,7 +641,7 @@ function collectEntrypoints(
       ? import.meta.resolve(`${entrypointBase}/main_dev.ts`)
       : import.meta.resolve(`${entrypointBase}/main.ts`),
     deserializer: import.meta.resolve(`${entrypointBase}/deserializer.ts`),
-    client: import.meta.resolve(`${entrypointBase}/client.ts`),
+    fresh_dev_client: import.meta.resolve(`${entrypointBase}/client.ts`),
   };
 
   try {
