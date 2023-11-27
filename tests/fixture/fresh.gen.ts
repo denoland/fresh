@@ -23,6 +23,7 @@ import * as $event_handler_string from "./routes/event_handler_string.tsx";
 import * as $event_handler_string_island from "./routes/event_handler_string_island.tsx";
 import * as $evil from "./routes/evil.tsx";
 import * as $failure from "./routes/failure.ts";
+import * as $foo_bar_baz from "./routes/foo.bar.baz.tsx";
 import * as $head_deduplicate from "./routes/head_deduplicate.tsx";
 import * as $hooks_server_island from "./routes/hooks-server/island.tsx";
 import * as $hooks_server_useReducer from "./routes/hooks-server/useReducer.tsx";
@@ -121,6 +122,7 @@ const manifest = {
     "./routes/event_handler_string_island.tsx": $event_handler_string_island,
     "./routes/evil.tsx": $evil,
     "./routes/failure.ts": $failure,
+    "./routes/foo.bar.baz.tsx": $foo_bar_baz,
     "./routes/head_deduplicate.tsx": $head_deduplicate,
     "./routes/hooks-server/island.tsx": $hooks_server_island,
     "./routes/hooks-server/useReducer.tsx": $hooks_server_useReducer,

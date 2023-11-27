@@ -42,7 +42,6 @@ async function initTailwind(
   const root = path.dirname(config.staticDir);
 
   const configPath = await findTailwindConfigFile(root);
-  console.log({ configPath, cwd: Deno.cwd() });
   const url = path.toFileUrl(configPath).href;
   const tailwindConfig = (await import(url)).default as Config;
 
