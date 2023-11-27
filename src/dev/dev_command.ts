@@ -45,6 +45,7 @@ export async function dev(
     );
     state.config.dev = false;
     state.loadSnapshot = false;
+    state.build = true;
     await build(state);
   } else if (config) {
     const state = await getInternalFreshState(

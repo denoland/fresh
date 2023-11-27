@@ -29,11 +29,11 @@ export default function Projects(props: ProjectProps) {
               width={600}
               height={337}
               style={{ aspectRatio: "16/9" }}
-              class="object-cover shadow-lg group-hover:(shadow-xl opacity-70) rounded-lg"
+              class="object-cover shadow-lg group-hover:shadow-xl group-hover:opacity-70 rounded-lg"
             />
           </a>
           <div class="mt-4 flex items-center">
-            <div class="text(lg gray-600) flex-1 group-hover:text-underline">
+            <div class="text-lg text-gray-600 flex-1 group-hover:text-underline">
               <a href={project.link}>{project.title}</a>
             </div>
             {project.github && (

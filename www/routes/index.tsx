@@ -76,7 +76,7 @@ export default function MainPage(props: PageProps) {
 function HelloBar() {
   return (
     <a
-      class="bg-green-400 text-black border(b green-500) p-3 text-center group"
+      class="bg-green-400 text-black border-b border-green-500 p-3 text-center group"
       href="https://deno.com/blog/fresh-1.5"
     >
       <b>Fresh v1.5</b> has been released with <b>Partials</b>,{" "}
@@ -151,11 +151,11 @@ function Features() {
 
 function Intro(props: { origin: string }) {
   return (
-    <section class="max-w-screen-xl mx-auto my-8 sm:my-16 px(4 sm:6 md:8) space-y-8 sm:space-y-16 lg:mb-32">
+    <section class="max-w-screen-xl mx-auto my-8 sm:my-16 px-4 sm:px-6 md:px-8 space-y-8 sm:space-y-16 lg:mb-32">
       <div class="max-w-screen-xl mx-auto sm:my-8 md:my-16 sm:space-y-12 w-full">
         <div class="md:flex items-center">
           <div class="flex-1 text-center md:text-left">
-            <h2 class="py-2 text(5xl sm:5xl lg:6xl gray-900) sm:tracking-tight sm:leading-[1.1]! font-extrabold lg:max-w-lg mx-auto sm:mx-0">
+            <h2 class="py-2 text-5xl sm:text-5xl lg:text-6xl text-gray-900 sm:tracking-tight sm:leading-[1.1]! font-extrabold lg:max-w-lg mx-auto sm:mx-0">
               The <span class="text-green-600">next-gen</span> web framework.
             </h2>
 
@@ -166,7 +166,7 @@ function Intro(props: { origin: string }) {
               <div>
                 <a
                   href="/docs/getting-started"
-                  class="inline-flex w-auto shrink-0 px-3 py-2 bg-white rounded border(gray-500 2) hover:bg-gray-200 active:bg-gray-300 disabled:(opacity-50 cursor-not-allowed) whitespace-nowrap"
+                  class="inline-flex w-auto shrink-0 px-3 py-2 bg-white rounded border-gray-500 border-2 hover:bg-gray-200 active:bg-gray-300 disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
                 >
                   Get started
                 </a>
@@ -198,10 +198,10 @@ function Intro(props: { origin: string }) {
 
 function Example() {
   return (
-    <section class="max-w-screen-xl mx-auto my-8 sm:my-16 md:my-24 px(4 sm:6 md:8) space-y-16">
+    <section class="max-w-screen-xl mx-auto my-8 sm:my-16 md:my-24 px-4 sm:px-6 md:px-8 space-y-16">
       <div class="flex gap-4 md:gap-16 flex-col md:flex-row justify-between items-center">
         <div class="md:basis-1/2">
-          <h2 id="example" class="text(4xl gray-600) font-bold mb-4">
+          <h2 id="example" class="text-4xl text-gray-600 font-bold mb-4">
             <a href="#example" class="hover:underline">
               Interactive islands
             </a>
@@ -223,8 +223,8 @@ function Example() {
 
 function Showcase() {
   return (
-    <section class="max-w-screen-xl mx-auto space-y-16 px(4 sm:6 md:8) space-y-4">
-      <h2 id="showcase" class="text(4xl gray-600) font-bold mb-4">
+    <section class="max-w-screen-xl mx-auto px-4 sm:px-6 md:px-8 space-y-4">
+      <h2 id="showcase" class="text-4xl text-gray-600 font-bold mb-4">
         <a href="#showcase" class="hover:underline">
           Showcase
         </a>
@@ -245,18 +245,18 @@ function Showcase() {
 
 function StartJourney() {
   return (
-    <section class="max-w-screen-xl mx-auto py-16 px(4 sm:6 md:8) space-y-4 md:mb-16">
-      <h2 class="text(4xl gray-600) md:text-5xl font mb-4 mt-0">
+    <section class="max-w-screen-xl mx-auto py-16 px-4 sm:px-6 md:px-8 space-y-4 md:mb-16">
+      <h2 class="text-4xl text-gray-600 md:text-5xl font mb-4 mt-0">
         Start your Fresh journey
       </h2>
       <div class="flex flex-col md:flex-row justify-start items-center gap-4">
-        <p class="text(xl gray-600)">
+        <p class="text-xl text-gray-600">
           Jump right in and build your website with Fresh. Learn everything you
           need to know in seconds.
         </p>
         <a
           href="/docs/getting-started"
-          class="inline-block px-3 py-2 bg-white rounded border(gray-500 2) hover:bg-gray-200 active:bg-gray-300 disabled:(opacity-50 cursor-not-allowed) whitespace-nowrap"
+          class="inline-block px-3 py-2 bg-white rounded border-gray-500 border-2 hover:bg-gray-200 active:bg-gray-300 disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
         >
           Get started
         </a>

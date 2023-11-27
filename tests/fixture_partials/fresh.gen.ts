@@ -106,6 +106,10 @@ import * as $no_partial_response_index from "./routes/no_partial_response/index.
 import * as $no_partial_response_injected from "./routes/no_partial_response/injected.tsx";
 import * as $no_partial_response_update from "./routes/no_partial_response/update.tsx";
 import * as $partial_slot_inside_island from "./routes/partial_slot_inside_island.tsx";
+import * as $redirected_handler from "./routes/redirected/handler.tsx";
+import * as $redirected_index from "./routes/redirected/index.tsx";
+import * as $redirected_injected from "./routes/redirected/injected.tsx";
+import * as $redirected_redirect from "./routes/redirected/redirect.tsx";
 import * as $relative_link_index from "./routes/relative_link/index.tsx";
 import * as $scroll_restoration_index from "./routes/scroll_restoration/index.tsx";
 import * as $scroll_restoration_injected from "./routes/scroll_restoration/injected.tsx";
@@ -244,6 +248,10 @@ const manifest = {
     "./routes/no_partial_response/injected.tsx": $no_partial_response_injected,
     "./routes/no_partial_response/update.tsx": $no_partial_response_update,
     "./routes/partial_slot_inside_island.tsx": $partial_slot_inside_island,
+    "./routes/redirected/handler.tsx": $redirected_handler,
+    "./routes/redirected/index.tsx": $redirected_index,
+    "./routes/redirected/injected.tsx": $redirected_injected,
+    "./routes/redirected/redirect.tsx": $redirected_redirect,
     "./routes/relative_link/index.tsx": $relative_link_index,
     "./routes/scroll_restoration/index.tsx": $scroll_restoration_index,
     "./routes/scroll_restoration/injected.tsx": $scroll_restoration_injected,

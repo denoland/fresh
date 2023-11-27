@@ -55,3 +55,35 @@ Deno.test("render head text nodes", async () => {
     assertEquals(doc.body.textContent, "hello");
   });
 });
+
+Deno.test("support jsx precompile", async () => {
+  await withFakeServe(
+    "./tests/fixture_jsx_precompile/main.ts",
+    async (server) => {
+      const doc = await server.getHtml("/");
+      assertTextMany(doc, "h1", ["Hello World"]);
+      assertTextMany(doc, ".island", ["it works"]);
+    },
+  );
+});
+
+Deno.test("support <Head /> with jsx precompile", async () => {
+  await withFakeServe(
+    "./tests/fixture_jsx_precompile/main.ts",
+    async (server) => {
+      const doc = await server.getHtml("/head");
+      assertTextMany(doc, "h1", ["Hello World"]);
+      assertTextMany(doc, "head title", ["foo"]);
+    },
+  );
+});
+
+Deno.test("Ensure manifest has valid specifiers", async () => {
+  await withFakeServe(
+    "./tests/fixture/main.ts",
+    async (server) => {
+      const doc = await server.getHtml("/foo.bar.baz");
+      assertTextMany(doc, "p", ["it works"]);
+    },
+  );
+});

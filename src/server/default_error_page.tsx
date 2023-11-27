@@ -1,7 +1,7 @@
 import { ComponentChildren, h } from "preact";
 import { DEBUG } from "./constants.ts";
 import type { ErrorPageProps, RouteConfig } from "./types.ts";
-import { colors } from "$fresh/src/server/deps.ts";
+import { colors } from "./deps.ts";
 
 export const config: RouteConfig = {
   skipAppWrapper: true,

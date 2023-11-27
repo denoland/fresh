@@ -163,3 +163,17 @@ For more examples see the [Concepts: Routing](/docs/concepts/routing) page.
 To create a middleware you need to create a `MiddlewareHandler` function.
 
 And to create a route you can create both a Handler and/or component.
+
+A very basic example can be found
+[here](https://github.com/denoland/fresh/blob/main/tests/fixture_plugin/utils/route-plugin.ts).
+
+### Islands
+
+You can create islands that get loaded and rendered like normal
+[islands](/docs/concepts/islands).
+
+You need to provide the location of your plugin and an array of island
+filenames. The intent is to somewhat mimic the manifest file.
+
+A very basic example can be found
+[here](https://github.com/denoland/fresh/blob/main/tests/fixture_plugin/utils/route-plugin.ts).

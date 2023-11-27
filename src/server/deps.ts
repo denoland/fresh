@@ -1,5 +1,6 @@
 // -- std --
 export {
+  basename,
   dirname,
   extname,
   fromFileUrl,
@@ -20,8 +21,12 @@ export {
 export { toHashString } from "https://deno.land/std@0.205.0/crypto/to_hash_string.ts";
 export { escape } from "https://deno.land/std@0.205.0/regexp/escape.ts";
 export * as JSONC from "https://deno.land/std@0.205.0/jsonc/mod.ts";
-export { renderToString } from "https://esm.sh/*preact-render-to-string@6.2.2";
+export { renderToString } from "https://esm.sh/*preact-render-to-string@6.3.1";
 export {
   assertEquals,
   assertThrows,
 } from "https://deno.land/std@0.205.0/assert/mod.ts";
+export {
+  isIdentifierChar,
+  isIdentifierStart,
+} from "https://esm.sh/@babel/helper-validator-identifier@7.22.20";
