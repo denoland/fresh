@@ -639,10 +639,6 @@ class NoPartialsError extends Error {}
  * Apply partials from a HTML response
  */
 export async function applyPartials(res: Response): Promise<void> {
-  if (!res.ok) {
-    throw new Error(partialErrorMessage);
-  }
-
   const contentType = res.headers.get("Content-Type");
   if (contentType !== "text/html; charset=utf-8") {
     throw new Error(partialErrorMessage);
