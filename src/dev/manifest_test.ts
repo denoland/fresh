@@ -12,6 +12,7 @@ Deno.test("specifierToIdentifier", () => {
   assertEquals(run("foo/[[optional]]/bar", used), "foo_optional_bar");
   assertEquals(run("foo/as-df/bar", used), "foo_as_df_bar");
   assertEquals(run("foo/as@df", used), "foo_as_df");
+  assertEquals(run("foo/foo.bar.baz.tsx", used), "foo_foo_bar_baz");
 });
 
 Deno.test("specifierToIdentifier deals with duplicates", () => {

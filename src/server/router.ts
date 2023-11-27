@@ -1,9 +1,6 @@
-import { PARTIAL_SEARCH_PARAM } from "$fresh/src/constants.ts";
+import { PARTIAL_SEARCH_PARAM } from "../constants.ts";
 import { BaseRoute, ErrorHandlerContext, ServeHandlerInfo } from "./types.ts";
-import {
-  isIdentifierChar,
-  isIdentifierStart,
-} from "https://esm.sh/@babel/helper-validator-identifier@7.22.20";
+import { isIdentifierChar, isIdentifierStart } from "./deps.ts";
 
 type HandlerContext<T = unknown> = T & ServeHandlerInfo & {
   isPartial: boolean;

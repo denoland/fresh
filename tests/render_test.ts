@@ -77,3 +77,13 @@ Deno.test("support <Head /> with jsx precompile", async () => {
     },
   );
 });
+
+Deno.test("Ensure manifest has valid specifiers", async () => {
+  await withFakeServe(
+    "./tests/fixture/main.ts",
+    async (server) => {
+      const doc = await server.getHtml("/foo.bar.baz");
+      assertTextMany(doc, "p", ["it works"]);
+    },
+  );
+});

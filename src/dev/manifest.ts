@@ -1,3 +1,4 @@
+import { isIdentifierChar, isIdentifierStart } from "$fresh/src/server/deps.ts";
 import { extname, join, normalize } from "./deps.ts";
 
 /**
@@ -21,11 +22,18 @@ export function specifierToIdentifier(specifier: string, used: Set<string>) {
   const ext = extname(specifier);
   if (ext) specifier = specifier.slice(0, -ext.length);
 
+  // Turn the specifier into a readable JS identifier
   let ident = "";
-  if (/^[\d]/.test(specifier)) {
-    ident += "_";
+  for (let i = 0; i < specifier.length; i++) {
+    const char = specifier.charCodeAt(i);
+    if (i === 0 ? !isIdentifierStart(char) : !isIdentifierChar(char)) {
+      if (ident[ident.length - 1] !== "_") {
+        ident += "_";
+      }
+    } else {
+      ident += specifier[i];
+    }
   }
-  ident += specifier.replace(/[\/.\(\)\[\]\s@-]/g, "_").replace(/_+/g, "_");
 
   if (used.has(ident)) {
     let check = ident;
