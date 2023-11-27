@@ -589,7 +589,9 @@ export class ServerContext {
       if (!contents) return new Response(null, { status: 404 });
 
       const headers: Record<string, string> = {
-        "Cache-Control": "public, max-age=604800, immutable",
+        "Cache-Control": this.#dev
+          ? "no-cache, no-store, max-age=0, must-revalidate"
+          : "public, max-age=604800, immutable",
       };
 
       const contentType = typeByExtension(extname(params.path));
