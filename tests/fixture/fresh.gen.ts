@@ -2,9 +2,9 @@
 // This file SHOULD be checked into source version control.
 // This file is automatically updated during development when running `dev.ts`.
 
-import * as $_404_from_middleware_throw__middleware from "./routes/404-from-middleware-throw/_middleware.ts";
+import * as $_404_from_middleware_throw_middleware from "./routes/404-from-middleware-throw/_middleware.ts";
 import * as $_404_from_middleware_throw_index from "./routes/404-from-middleware-throw/index.tsx";
-import * as $_404_from_middleware__middleware from "./routes/404-from-middleware/_middleware.ts";
+import * as $_404_from_middleware_middleware from "./routes/404-from-middleware/_middleware.ts";
 import * as $_404_from_middleware_index from "./routes/404-from-middleware/index.tsx";
 import * as $_404_from_throw from "./routes/404_from_throw.tsx";
 import * as $_name_ from "./routes/[name].tsx";
@@ -37,21 +37,21 @@ import * as $islands_multiple_island_exports from "./routes/islands/multiple_isl
 import * as $islands_returning_null from "./routes/islands/returning_null.tsx";
 import * as $islands_root_fragment from "./routes/islands/root_fragment.tsx";
 import * as $islands_root_fragment_conditional_first from "./routes/islands/root_fragment_conditional_first.tsx";
-import * as $layeredMdw__middleware from "./routes/layeredMdw/_middleware.ts";
+import * as $layeredMdw_middleware from "./routes/layeredMdw/_middleware.ts";
 import * as $layeredMdw_layer2_no_mw_without_mw from "./routes/layeredMdw/layer2-no-mw/without_mw.ts";
 import * as $layeredMdw_layer2_with_params_tenantId_id_ from "./routes/layeredMdw/layer2-with-params/[tenantId]/[id].ts";
-import * as $layeredMdw_layer2_with_params_tenantId__middleware from "./routes/layeredMdw/layer2-with-params/[tenantId]/_middleware.ts";
-import * as $layeredMdw_layer2_with_params__middleware from "./routes/layeredMdw/layer2-with-params/_middleware.ts";
-import * as $layeredMdw_layer2__middleware from "./routes/layeredMdw/layer2/_middleware.ts";
+import * as $layeredMdw_layer2_with_params_tenantId_middleware from "./routes/layeredMdw/layer2-with-params/[tenantId]/_middleware.ts";
+import * as $layeredMdw_layer2_with_params_middleware from "./routes/layeredMdw/layer2-with-params/_middleware.ts";
+import * as $layeredMdw_layer2_middleware from "./routes/layeredMdw/layer2/_middleware.ts";
 import * as $layeredMdw_layer2_abc from "./routes/layeredMdw/layer2/abc.ts";
 import * as $layeredMdw_layer2_index from "./routes/layeredMdw/layer2/index.ts";
 import * as $layeredMdw_layer2_layer3_id_ from "./routes/layeredMdw/layer2/layer3/[id].ts";
-import * as $layeredMdw_layer2_layer3__middleware from "./routes/layeredMdw/layer2/layer3/_middleware.ts";
+import * as $layeredMdw_layer2_layer3_middleware from "./routes/layeredMdw/layer2/layer3/_middleware.ts";
 import * as $layeredMdw_nesting_tenant_environment_id_ from "./routes/layeredMdw/nesting/[tenant]/[environment]/[id].tsx";
-import * as $layeredMdw_nesting_tenant_environment__middleware from "./routes/layeredMdw/nesting/[tenant]/[environment]/_middleware.ts";
-import * as $layeredMdw_nesting_tenant__middleware from "./routes/layeredMdw/nesting/[tenant]/_middleware.ts";
-import * as $layeredMdw_nesting__middleware from "./routes/layeredMdw/nesting/_middleware.ts";
-import * as $middleware_error_handler__middleware from "./routes/middleware-error-handler/_middleware.ts";
+import * as $layeredMdw_nesting_tenant_environment_middleware from "./routes/layeredMdw/nesting/[tenant]/[environment]/_middleware.ts";
+import * as $layeredMdw_nesting_tenant_middleware from "./routes/layeredMdw/nesting/[tenant]/_middleware.ts";
+import * as $layeredMdw_nesting_middleware from "./routes/layeredMdw/nesting/_middleware.ts";
+import * as $middleware_error_handler_middleware from "./routes/middleware-error-handler/_middleware.ts";
 import * as $middleware_error_handler_index from "./routes/middleware-error-handler/index.tsx";
 import * as $middleware_root from "./routes/middleware_root.ts";
 import * as $movies_foo_json from "./routes/movies/[foo].json.ts";
@@ -62,18 +62,18 @@ import * as $params from "./routes/params.tsx";
 import * as $preact_boolean_attrs from "./routes/preact/boolean_attrs.tsx";
 import * as $props_id_ from "./routes/props/[id].tsx";
 import * as $route_groups_islands_index from "./routes/route-groups-islands/index.tsx";
-import * as $route_groups_bar_baz__layout from "./routes/route-groups/(bar)/(baz)/_layout.tsx";
+import * as $route_groups_bar_baz_layout from "./routes/route-groups/(bar)/(baz)/_layout.tsx";
 import * as $route_groups_bar_baz_baz from "./routes/route-groups/(bar)/(baz)/baz.tsx";
-import * as $route_groups_bar__layout from "./routes/route-groups/(bar)/_layout.tsx";
+import * as $route_groups_bar_layout from "./routes/route-groups/(bar)/_layout.tsx";
 import * as $route_groups_bar_bar from "./routes/route-groups/(bar)/bar.tsx";
 import * as $route_groups_bar_boof_index from "./routes/route-groups/(bar)/boof/index.tsx";
-import * as $route_groups_foo__layout from "./routes/route-groups/(foo)/_layout.tsx";
+import * as $route_groups_foo_layout from "./routes/route-groups/(foo)/_layout.tsx";
 import * as $route_groups_foo_index from "./routes/route-groups/(foo)/index.tsx";
 import * as $signal_shared from "./routes/signal_shared.tsx";
-import * as $state_in_props__middleware from "./routes/state-in-props/_middleware.ts";
+import * as $state_in_props_middleware from "./routes/state-in-props/_middleware.ts";
 import * as $state_in_props_index from "./routes/state-in-props/index.tsx";
-import * as $state_middleware__middleware from "./routes/state-middleware/_middleware.ts";
-import * as $state_middleware_foo__middleware from "./routes/state-middleware/foo/_middleware.ts";
+import * as $state_middleware_middleware from "./routes/state-middleware/_middleware.ts";
+import * as $state_middleware_foo_middleware from "./routes/state-middleware/foo/_middleware.ts";
 import * as $state_middleware_foo_index from "./routes/state-middleware/foo/index.tsx";
 import * as $static from "./routes/static.tsx";
 import * as $status_overwrite from "./routes/status_overwrite.tsx";
@@ -92,18 +92,18 @@ import * as $$Test from "./islands/Test.tsx";
 import * as $$folder_Counter from "./islands/folder/Counter.tsx";
 import * as $$folder_subfolder_Counter from "./islands/folder/subfolder/Counter.tsx";
 import * as $$kebab_case_counter_test from "./islands/kebab-case-counter-test.tsx";
-import * as $$route_groups_islands__islands_Counter from "./routes/route-groups-islands/(_islands)/Counter.tsx";
-import * as $$route_groups_islands__islands_invalid from "./routes/route-groups-islands/(_islands)/invalid.tsx";
+import * as $$route_groups_islands_islands_Counter from "./routes/route-groups-islands/(_islands)/Counter.tsx";
+import * as $$route_groups_islands_islands_invalid from "./routes/route-groups-islands/(_islands)/invalid.tsx";
 import { Manifest } from "$fresh/server.ts";
 
 const manifest = {
   routes: {
     "./routes/404-from-middleware-throw/_middleware.ts":
-      $_404_from_middleware_throw__middleware,
+      $_404_from_middleware_throw_middleware,
     "./routes/404-from-middleware-throw/index.tsx":
       $_404_from_middleware_throw_index,
     "./routes/404-from-middleware/_middleware.ts":
-      $_404_from_middleware__middleware,
+      $_404_from_middleware_middleware,
     "./routes/404-from-middleware/index.tsx": $_404_from_middleware_index,
     "./routes/404_from_throw.tsx": $_404_from_throw,
     "./routes/[name].tsx": $_name_,
@@ -138,31 +138,31 @@ const manifest = {
     "./routes/islands/root_fragment.tsx": $islands_root_fragment,
     "./routes/islands/root_fragment_conditional_first.tsx":
       $islands_root_fragment_conditional_first,
-    "./routes/layeredMdw/_middleware.ts": $layeredMdw__middleware,
+    "./routes/layeredMdw/_middleware.ts": $layeredMdw_middleware,
     "./routes/layeredMdw/layer2-no-mw/without_mw.ts":
       $layeredMdw_layer2_no_mw_without_mw,
     "./routes/layeredMdw/layer2-with-params/[tenantId]/[id].ts":
       $layeredMdw_layer2_with_params_tenantId_id_,
     "./routes/layeredMdw/layer2-with-params/[tenantId]/_middleware.ts":
-      $layeredMdw_layer2_with_params_tenantId__middleware,
+      $layeredMdw_layer2_with_params_tenantId_middleware,
     "./routes/layeredMdw/layer2-with-params/_middleware.ts":
-      $layeredMdw_layer2_with_params__middleware,
-    "./routes/layeredMdw/layer2/_middleware.ts": $layeredMdw_layer2__middleware,
+      $layeredMdw_layer2_with_params_middleware,
+    "./routes/layeredMdw/layer2/_middleware.ts": $layeredMdw_layer2_middleware,
     "./routes/layeredMdw/layer2/abc.ts": $layeredMdw_layer2_abc,
     "./routes/layeredMdw/layer2/index.ts": $layeredMdw_layer2_index,
     "./routes/layeredMdw/layer2/layer3/[id].ts": $layeredMdw_layer2_layer3_id_,
     "./routes/layeredMdw/layer2/layer3/_middleware.ts":
-      $layeredMdw_layer2_layer3__middleware,
+      $layeredMdw_layer2_layer3_middleware,
     "./routes/layeredMdw/nesting/[tenant]/[environment]/[id].tsx":
       $layeredMdw_nesting_tenant_environment_id_,
     "./routes/layeredMdw/nesting/[tenant]/[environment]/_middleware.ts":
-      $layeredMdw_nesting_tenant_environment__middleware,
+      $layeredMdw_nesting_tenant_environment_middleware,
     "./routes/layeredMdw/nesting/[tenant]/_middleware.ts":
-      $layeredMdw_nesting_tenant__middleware,
+      $layeredMdw_nesting_tenant_middleware,
     "./routes/layeredMdw/nesting/_middleware.ts":
-      $layeredMdw_nesting__middleware,
+      $layeredMdw_nesting_middleware,
     "./routes/middleware-error-handler/_middleware.ts":
-      $middleware_error_handler__middleware,
+      $middleware_error_handler_middleware,
     "./routes/middleware-error-handler/index.tsx":
       $middleware_error_handler_index,
     "./routes/middleware_root.ts": $middleware_root,
@@ -175,19 +175,19 @@ const manifest = {
     "./routes/props/[id].tsx": $props_id_,
     "./routes/route-groups-islands/index.tsx": $route_groups_islands_index,
     "./routes/route-groups/(bar)/(baz)/_layout.tsx":
-      $route_groups_bar_baz__layout,
+      $route_groups_bar_baz_layout,
     "./routes/route-groups/(bar)/(baz)/baz.tsx": $route_groups_bar_baz_baz,
-    "./routes/route-groups/(bar)/_layout.tsx": $route_groups_bar__layout,
+    "./routes/route-groups/(bar)/_layout.tsx": $route_groups_bar_layout,
     "./routes/route-groups/(bar)/bar.tsx": $route_groups_bar_bar,
     "./routes/route-groups/(bar)/boof/index.tsx": $route_groups_bar_boof_index,
-    "./routes/route-groups/(foo)/_layout.tsx": $route_groups_foo__layout,
+    "./routes/route-groups/(foo)/_layout.tsx": $route_groups_foo_layout,
     "./routes/route-groups/(foo)/index.tsx": $route_groups_foo_index,
     "./routes/signal_shared.tsx": $signal_shared,
-    "./routes/state-in-props/_middleware.ts": $state_in_props__middleware,
+    "./routes/state-in-props/_middleware.ts": $state_in_props_middleware,
     "./routes/state-in-props/index.tsx": $state_in_props_index,
-    "./routes/state-middleware/_middleware.ts": $state_middleware__middleware,
+    "./routes/state-middleware/_middleware.ts": $state_middleware_middleware,
     "./routes/state-middleware/foo/_middleware.ts":
-      $state_middleware_foo__middleware,
+      $state_middleware_foo_middleware,
     "./routes/state-middleware/foo/index.tsx": $state_middleware_foo_index,
     "./routes/static.tsx": $static,
     "./routes/status_overwrite.tsx": $status_overwrite,
@@ -214,9 +214,9 @@ const manifest = {
     "./islands/folder/subfolder/Counter.tsx": $$folder_subfolder_Counter,
     "./islands/kebab-case-counter-test.tsx": $$kebab_case_counter_test,
     "./routes/route-groups-islands/(_islands)/Counter.tsx":
-      $$route_groups_islands__islands_Counter,
+      $$route_groups_islands_islands_Counter,
     "./routes/route-groups-islands/(_islands)/invalid.tsx":
-      $$route_groups_islands__islands_invalid,
+      $$route_groups_islands_islands_invalid,
   },
   baseUrl: import.meta.url,
 } satisfies Manifest;

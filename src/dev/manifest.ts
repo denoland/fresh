@@ -35,7 +35,7 @@ export function specifierToIdentifier(specifier: string, used: Set<string>) {
       if (ident[ident.length - 1] !== "_") {
         ident += "_";
       }
-    } else {
+    } else if (ident[ident.length - 1] !== "_" || specifier[i] !== "_") {
       ident += specifier[i];
     }
   }
