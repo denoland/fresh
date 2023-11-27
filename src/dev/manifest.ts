@@ -26,7 +26,12 @@ export function specifierToIdentifier(specifier: string, used: Set<string>) {
   let ident = "";
   for (let i = 0; i < specifier.length; i++) {
     const char = specifier.charCodeAt(i);
-    if (i === 0 ? !isIdentifierStart(char) : !isIdentifierChar(char)) {
+    if (i === 0 && !isIdentifierStart(char)) {
+      ident += "_";
+      if (isIdentifierChar(char)) {
+        ident += specifier[i];
+      }
+    } else if (!isIdentifierChar(char)) {
       if (ident[ident.length - 1] !== "_") {
         ident += "_";
       }
