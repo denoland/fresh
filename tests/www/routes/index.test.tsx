@@ -12,7 +12,6 @@ Deno.test("index.tsx route handler test...", async (t) => {
     const ctx = createHandlerContext(req, { manifest });
     // @ts-ignore handler is not null
     const resp = handler.GET(req, ctx) as Response;
-    console.log("resp", resp);
     expect(resp.status).toBe(307);
     expect(resp.headers.get("Location")?.endsWith("init.ts"));
   });
@@ -31,7 +30,6 @@ Deno.test("index.tsx route handler test...", async (t) => {
     };
     // @ts-ignore handler is not null
     const resp = handler.GET(req, ctx) as Response;
-    // console.log("resp", resp);
     expect(resp.status).toBe(200);
   });
 });
