@@ -387,25 +387,7 @@ export async function render<Data>(
     }
 
     result.bodyHtml +=
-      `<iframe id="fresh-error-overlay" src="${url.pathname}?${url.searchParams.toString()}" style="unset: all; position: fixed; top: 0; left: 0; z-index: 99999; width: 100%; height: 100%; border: none;"></iframe><script id="fresh-error-overlay-script">
-        function freshErrorOverlayCloseListener(e) {
-          if (e.origin !== location.origin) return;
-          if (e.data === "close-error-overlay") {
-            var freshErrorOverlay = document.getElementById("fresh-error-overlay")
-            if (freshErrorOverlay !== null) {
-              freshErrorOverlay.remove();
-              freshErrorOverlay = undefined;
-              window.removeEventListener("message", freshErrorOverlayCloseListener)
-
-              var freshErrorOverlayScript = document.getElementById("fresh-error-overlay-script")
-              if (freshErrorOverlayScript !== null) {
-                freshErrorOverlayScript.remove();
-              }
-            }
-          }
-        }
-        window.addEventListener("message", freshErrorOverlayCloseListener);
-      </script>`;
+      `<iframe id="fresh-error-overlay" src="${url.pathname}?${url.searchParams.toString()}" style="unset: all; position: fixed; top: 0; left: 0; z-index: 99999; width: 100%; height: 100%; border: none;"></iframe>`;
   }
 
   // Render outer document up to `<body>`
