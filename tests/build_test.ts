@@ -12,8 +12,8 @@ import {
   startFreshServer,
   waitForText,
   withFakeServe,
-} from "$fresh/tests/test_utils.ts";
-import { BuildSnapshotJson } from "$fresh/src/build/mod.ts";
+} from "./test_utils.ts";
+import { BuildSnapshotJson } from "../src/build/mod.ts";
 
 function runBuild(fixture: string, subDirPath: string, outDir: string) {
   return new Deno.Command(Deno.execPath(), {

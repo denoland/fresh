@@ -1,15 +1,14 @@
-import { colors, toFileUrl } from "$fresh/src/server/deps.ts";
-import * as path from "$std/path/mod.ts";
 import {
   FromManifestConfig,
   Manifest,
   ServeHandlerInfo,
   ServerContext,
-} from "$fresh/server.ts";
+} from "../server.ts";
 import {
   assert,
   assertEquals,
   basename,
+  colors,
   delay,
   dirname,
   DOMParser,
@@ -19,6 +18,7 @@ import {
   Page,
   puppeteer,
   TextLineStream,
+  toFileUrl,
 } from "./deps.ts";
 
 export interface TestDocument extends Document {
@@ -507,7 +507,7 @@ export async function recreateFolder(folderPath: string) {
 }
 
 export async function runBuild(fixture: string) {
-  const outDir = path.join(path.dirname(fixture), "_fresh");
+  const outDir = join(dirname(fixture), "_fresh");
   try {
     await Deno.remove(outDir, { recursive: true });
   } catch {

@@ -1,4 +1,4 @@
-import { isIdentifierChar, isIdentifierStart } from "$fresh/src/server/deps.ts";
+import { isIdentifierChar, isIdentifierStart } from "../server/deps.ts";
 import { extname, join, normalize } from "./deps.ts";
 
 /**

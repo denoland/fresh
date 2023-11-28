@@ -40,5 +40,7 @@ export {
   fromFileUrl,
   join,
   relative,
+  toFileUrl,
 } from "https://deno.land/std@0.205.0/path/mod.ts";
 export * as JSONC from "https://deno.land/std@0.205.0/jsonc/mod.ts";
+export * as colors from "https://deno.land/std@0.205.0/fmt/colors.ts";
