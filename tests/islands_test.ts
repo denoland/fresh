@@ -2,8 +2,6 @@ import { assert, assertEquals, assertStringIncludes, Page } from "./deps.ts";
 import {
   assertNoPageComments,
   assertNotSelector,
-  assertSelector,
-  assertTextMatch,
   clickWhenListenerReady,
   getErrorOverlay,
   parseHtml,
