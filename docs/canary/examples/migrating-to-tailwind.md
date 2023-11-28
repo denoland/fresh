@@ -100,7 +100,7 @@ export default {
 That's it! Now you can use Tailwind CSS in your project.
 
 > [info]: If you're a vscode user, be sure to install the
-> [offical Tailwind CSS extension](https://marketplace.visualstudio.com/items?itemName=bradlc.vscode-tailwindcss)
+> [official Tailwind CSS extension](https://marketplace.visualstudio.com/items?itemName=bradlc.vscode-tailwindcss)
 > to get full intellisense support. For it to work you also need to set
 > `"nodeModulesDir": true` in your `deno.json`.
 
