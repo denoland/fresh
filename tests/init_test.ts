@@ -1,5 +1,5 @@
 import * as path from "$std/path/mod.ts";
-import { Status } from "../src/server/deps.ts";
+import { STATUS_CODE } from "../src/server/deps.ts";
 import {
   assert,
   assertEquals,
@@ -110,7 +110,7 @@ Deno.test({
       // Access the root page
       const res = await fetch(address);
       await res.body?.cancel();
-      assertEquals(res.status, Status.OK);
+      assertEquals(res.status, STATUS_CODE.OK);
 
       // verify the island is revived.
       const browser = await puppeteer.launch({
@@ -201,7 +201,7 @@ Deno.test({
       // Access the root page
       const res = await fetch(address);
       await res.body?.cancel();
-      assertEquals(res.status, Status.OK);
+      assertEquals(res.status, STATUS_CODE.OK);
 
       // verify the island is revived.
       const browser = await puppeteer.launch({ args: ["--no-sandbox"] });

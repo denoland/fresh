@@ -1,5 +1,5 @@
 import { INTERNAL_PREFIX } from "../runtime.ts";
-import { ServerContext, Status } from "../server.ts";
+import { ServerContext, STATUS_CODE } from "../server.ts";
 import { assert, assertEquals } from "./deps.ts";
 import manifest from "./fixture_router/fresh.gen.ts";
 
@@ -22,7 +22,7 @@ Deno.test("forwards slash placed at the end of url", async () => {
   const targetUrl = "https://fresh.deno.dev/about";
   const resp = await router(new Request(targetUrl));
   assert(resp);
-  assertEquals(resp.status, Status.PermanentRedirect);
+  assertEquals(resp.status, STATUS_CODE.PermanentRedirect);
   // forwarded location should be with trailing slash
   assertEquals(resp.headers.get("location"), targetUrl + "/");
 });
@@ -32,7 +32,7 @@ Deno.test("forwards slash placed at the end of url with hash and query string", 
   const queryAndHash = "?demo=test#what";
   const resp = await router(new Request(targetUrl + queryAndHash));
   assert(resp);
-  assertEquals(resp.status, Status.PermanentRedirect);
+  assertEquals(resp.status, STATUS_CODE.PermanentRedirect);
   // forwarded location should be with trailing slash
   assertEquals(resp.headers.get("location"), targetUrl + "/" + queryAndHash);
 });
@@ -42,7 +42,7 @@ Deno.test("forwards slash not placed at the end of url with prefix", async () =>
   const resp = await router(new Request(targetUrl));
   assert(resp);
   // we should get a 404 and not a redirect
-  assertEquals(resp.status, Status.NotFound);
+  assertEquals(resp.status, STATUS_CODE.NotFound);
 });
 
 Deno.test("forwards slash not placed at the end of url for static file", async () => {
@@ -50,6 +50,6 @@ Deno.test("forwards slash not placed at the end of url for static file", async (
   const resp = await router(new Request(targetUrl));
   assert(resp);
   // we should not be getting a redirect
-  assertEquals(resp.status, Status.OK);
+  assertEquals(resp.status, STATUS_CODE.OK);
   assertEquals(await resp.text(), "bar");
 });
