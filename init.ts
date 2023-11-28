@@ -110,6 +110,8 @@ const GITIGNORE = `# dotenv environment variable files
 
 # Fresh build directory
 _fresh/
+# npm dependencies
+node_modules/
 `;
 
 await Deno.writeTextFile(
@@ -290,7 +292,7 @@ await Deno.writeTextFile(
   ROUTES_API_JOKE_TS,
 );
 
-const TAILWIND_CONFIG_TS = `import { Config } from "tailwindcss";
+const TAILWIND_CONFIG_TS = `import { type Config } from "tailwindcss";
 
 export default {
   content: [
@@ -433,26 +435,7 @@ html {
 }
 `;
 
-const APP_WRAPPER = useTailwind
-  ? `import { AppProps } from "$fresh/server.ts";
-
-export default function App({ Component }: AppProps) {
-  return (
-    <html>
-      <head>
-        <meta charset="utf-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>${basename(resolvedDirectory)}</title>
-      </head>
-      <body>
-        <Component />
-      </body>
-    </html>
-  );
-}
-`
-  : `import { AppProps } from "$fresh/server.ts";
-
+const APP_WRAPPER = `import { type AppProps } from "$fresh/server.ts";
 export default function App({ Component }: AppProps) {
   return (
     <html>
@@ -470,16 +453,19 @@ export default function App({ Component }: AppProps) {
 }
 `;
 
-if (!useTailwind) {
-  await Deno.writeTextFile(
-    join(resolvedDirectory, "static", "styles.css"),
-    NO_TAILWIND_STYLES,
-  );
-}
-
 await Deno.writeTextFile(
   join(resolvedDirectory, "routes", "_app.tsx"),
   APP_WRAPPER,
+);
+
+const TAILWIND_CSS = `@tailwind base;
+@tailwind components;
+@tailwind utilities;`;
+
+const cssStyles = useTailwind ? TAILWIND_CSS : NO_TAILWIND_STYLES;
+await Deno.writeTextFile(
+  join(resolvedDirectory, "static", "styles.css"),
+  cssStyles,
 );
 
 const STATIC_LOGO =
