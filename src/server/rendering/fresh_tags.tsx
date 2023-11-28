@@ -135,9 +135,10 @@ export function renderFreshTags(
   if (renderState.encounteredIslands.size > 0) {
     // Prepare the inline script that loads and revives the islands
     for (const island of renderState.encounteredIslands) {
-      const url = addImport(`island-${island.id}.js`);
-      script +=
-        `import * as ${island.name}_${island.exportName} from "${url}";`;
+      const url = addImport(`island-${island.name}.js`);
+      script += island.exportName === "default"
+        ? `import ${island.name}_${island.exportName} from "${url}";`
+        : `import { ${island.exportName} as ${island.name}_${island.exportName} } from "${url}";`;
       islandRegistry += `${island.id}:${island.name}_${island.exportName},`;
       islandMapping[island.id] = url;
     }

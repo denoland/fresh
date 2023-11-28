@@ -331,8 +331,7 @@ options.__b = (vnode: VNode<Record<string, unknown>>) => {
               );
             }
 
-            const markerText =
-              `frsh-slot-${island.id}:${island.exportName}:${id}:children`;
+            const markerText = `frsh-slot-${island.id}:${id}:children`;
             // @ts-ignore nonono
             props.children = wrapWithMarker(
               children,
@@ -354,9 +353,7 @@ options.__b = (vnode: VNode<Record<string, unknown>>) => {
 
           return wrapWithMarker(
             child,
-            `frsh-${island.id}:${island.exportName}:${islandProps.length - 1}:${
-              vnode.key ?? ""
-            }`,
+            `frsh-${island.id}:${islandProps.length - 1}:${vnode.key ?? ""}`,
           );
         };
         // deno-lint-ignore no-explicit-any

@@ -3,7 +3,9 @@
 // This file is automatically updated during development when running `dev.ts`.
 
 import * as $index from "./routes/index.tsx";
-import * as $Counter from "./islands/Counter.tsx";
+import * as $Multiple from "./islands/Multiple.tsx";
+import * as $MultipleDefault from "./islands/MultipleDefault.tsx";
+import * as $Single from "./islands/Single.tsx";
 import { type Manifest } from "$fresh/server.ts";
 
 const manifest = {
@@ -11,7 +13,9 @@ const manifest = {
     "./routes/index.tsx": $index,
   },
   islands: {
-    "./islands/Counter.tsx": $Counter,
+    "./islands/Multiple.tsx": $Multiple,
+    "./islands/MultipleDefault.tsx": $MultipleDefault,
+    "./islands/Single.tsx": $Single,
   },
   baseUrl: import.meta.url,
 } satisfies Manifest;

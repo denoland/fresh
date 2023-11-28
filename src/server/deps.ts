@@ -26,7 +26,3 @@ export {
   assertEquals,
   assertThrows,
 } from "https://deno.land/std@0.205.0/assert/mod.ts";
-export {
-  isIdentifierChar,
-  isIdentifierStart,
-} from "https://esm.sh/@babel/helper-validator-identifier@7.22.20";
