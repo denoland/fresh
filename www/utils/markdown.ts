@@ -67,7 +67,7 @@ class DefaultRenderer extends Marked.Renderer {
     // format: tsx "This is my title"
     let lang = "";
     let title = "";
-    const match = info?.match(/^(\w+)\s*(.*)?$/);
+    const match = info?.match(/^([\w_-]+)\s*(.*)?$/);
     if (match) {
       lang = match[1].toLocaleLowerCase();
       title = match[2] ?? "";

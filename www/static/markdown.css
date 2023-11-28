@@ -521,6 +521,9 @@
 .gfm-highlight .token.keyword {
   color: var(--color-prettylights-syntax-keyword);
 }
+.highlight .atrule .rule {
+  color: var(--color-prettylights-syntax-keyword);
+}
 .markdown-body .highlight .token.tag .token.class-name,
 .markdown-body .highlight .token.tag .token.script .token.punctuation,
 .gfm-highlight .token.tag .token.class-name,
