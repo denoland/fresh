@@ -64,10 +64,14 @@ export default {
   });
 ```
 
-5. Update your `deno.json` file and add the following `tailwindcss` imports:
+1. Update your `deno.json` file and add the following `tailwindcss` imports. To
+   make the vscode Tailwind CSS extension work, we also need to set
+   `"nodeModulesDir": true`. This will create a `node_modules` directory in your
+   project folder:
 
 ```diff deno.json
   {
++   "nodeModulesDir": true,
     "imports": {
       "$fresh/": "https://deno.land/x/fresh@1.5.2/",
       "preact": "https://esm.sh/preact@10.19.2",
@@ -79,7 +83,14 @@ export default {
   }
 ```
 
-6. Set up
+6. Add `node_modules` to your `.gitignore` or create one if the file is not
+   present in your project root directory.
+
+```diff .gitignore
++ node_modules/
+```
+
+7. Set up
    [Ahead of Time builds](http://localhost:8000/docs/canary/concepts/ahead-of-time-builds)
    if you haven't already.
 
