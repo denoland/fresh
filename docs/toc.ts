@@ -72,6 +72,7 @@ const toc: RawTableOfContents = {
         title: "Examples",
         link: "latest",
         pages: [
+          ["migrating-to-tailwind", "Migrating to Tailwind", "link:canary"],
           ["modifying-the-head", "Modifying the <head>", "link:latest"],
           ["writing-tests", "Writing tests", "link:latest"],
           [
