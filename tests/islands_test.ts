@@ -443,7 +443,7 @@ Deno.test("throws when passing non-jsx children to an island", async (t) => {
   );
 });
 
-Deno.test("serves multiple islands in one file", async (t) => {
+Deno.test("serves multiple islands in one file", async () => {
   await withPageName(
     "./tests/fixture_islands_multiple/dev.ts",
     async (page, address) => {
