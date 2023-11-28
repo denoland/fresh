@@ -578,7 +578,14 @@ const config = {
   },
 };
 freshImports(config.imports);
-if (useTailwind) tailwindImports(config.imports);
+if (useTailwind) {
+  tailwindImports(config.imports);
+  // Tailwind editor plugin expects the `node_modules` directory
+  // to be present, otherwise intellisense doesn't work.
+  // TODO: Have a better deno config type
+  // deno-lint-ignore no-explicit-any
+  (config as any).nodeModulesDir = true;
+}
 dotenvImports(config.imports);
 
 const DENO_CONFIG = JSON.stringify(config, null, 2) + "\n";
