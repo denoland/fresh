@@ -125,30 +125,32 @@ export function ErrorOverlay(props: PageProps) {
   const codeFrame = url.searchParams.get("code-frame");
 
   return (
-    <div class="frsh-error-page">
-      <style dangerouslySetInnerHTML={{ __html: errorCss }} />
-      <div class="inner">
-        <div class="header">
-          <button class="close-btn" aria-label="close" id="close-btn">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              fill="none"
-              viewBox="0 0 24 24"
-              strokeWidth={1.5}
-              stroke="currentColor"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M9.75 9.75l4.5 4.5m0-4.5l-4.5 4.5M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-              />
-            </svg>
-          </button>
-        </div>
-        <div>
-          <h1 class="title">{title}</h1>
-          {codeFrame ? <CodeFrame codeFrame={codeFrame} /> : null}
-          {stack ? <pre class="stack">{stack}</pre> : null}
+    <>
+      <div class="frsh-error-page">
+        <style dangerouslySetInnerHTML={{ __html: errorCss }} />
+        <div class="inner">
+          <div class="header">
+            <button class="close-btn" aria-label="close" id="close-btn">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                strokeWidth={1.5}
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M9.75 9.75l4.5 4.5m0-4.5l-4.5 4.5M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                />
+              </svg>
+            </button>
+          </div>
+          <div>
+            <h1 class="title">{title}</h1>
+            {codeFrame ? <CodeFrame codeFrame={codeFrame} /> : null}
+            {stack ? <pre class="stack">{stack}</pre> : null}
+          </div>
         </div>
       </div>
       <script
@@ -157,6 +159,6 @@ export function ErrorOverlay(props: PageProps) {
             `document.querySelector("#close-btn").addEventListener("click", () => parent.postMessage("close-error-overlay"));`,
         }}
       />
-    </div>
+    </>
   );
 }

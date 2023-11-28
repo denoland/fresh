@@ -524,10 +524,11 @@ export class ServerContext {
               return resp;
             }
 
-            return new Response(resp[0], {
-              headers: {
-                "Content-Type": "text/html",
-              },
+            return sendResponse(resp, {
+              status: 200,
+              isDev: this.#dev,
+              statusText: undefined,
+              headers: undefined,
             });
           },
         },
