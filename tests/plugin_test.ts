@@ -1,4 +1,4 @@
-import { ServerContext, Status } from "../server.ts";
+import { ServerContext, STATUS_CODE } from "../server.ts";
 import {
   assert,
   assertEquals,
@@ -33,7 +33,7 @@ const router = (req: Request) => {
 Deno.test("/static page prerender", async () => {
   const resp = await router(new Request("https://fresh.deno.dev/static"));
   assert(resp);
-  assertEquals(resp.status, Status.OK);
+  assertEquals(resp.status, STATUS_CODE.OK);
   const body = await resp.text();
   assertStringIncludes(body, '<style id="abc">body { color: red; }</style>');
   assert(!body.includes(`>{"v":[[],[]]}</script>`));
@@ -52,7 +52,7 @@ Deno.test("/static page prerender", async () => {
 Deno.test("/with-island prerender", async () => {
   const resp = await router(new Request("https://fresh.deno.dev/with-island"));
   assert(resp);
-  assertEquals(resp.status, Status.OK);
+  assertEquals(resp.status, STATUS_CODE.OK);
   const body = await resp.text();
   assertStringIncludes(
     body,
@@ -69,7 +69,7 @@ Deno.test("/with-island prerender", async () => {
 Deno.test("plugin routes and middleware", async () => {
   const resp = await router(new Request("https://fresh.deno.dev/test"));
   assert(resp);
-  assertEquals(resp.status, Status.OK);
+  assertEquals(resp.status, STATUS_CODE.OK);
   const body = await resp.text();
   assertStringIncludes(
     body,
@@ -86,7 +86,7 @@ Deno.test("plugin middleware multiple handlers", async () => {
     new Request("https://fresh.deno.dev/lots-of-middleware"),
   );
   assert(resp);
-  assertEquals(resp.status, Status.OK);
+  assertEquals(resp.status, STATUS_CODE.OK);
   const body = await resp.text();
   assertStringIncludes(
     body,
@@ -99,7 +99,7 @@ Deno.test("plugin route no leading slash", async () => {
     new Request("https://fresh.deno.dev/no-leading-slash-here"),
   );
   assert(resp);
-  assertEquals(resp.status, Status.OK);
+  assertEquals(resp.status, STATUS_CODE.OK);
   const body = await resp.text();
   assertStringIncludes(
     body,

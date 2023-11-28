@@ -1,6 +1,6 @@
 import { ServerContext } from "./context.ts";
 export type { FromManifestConfig, FromManifestOptions } from "./context.ts";
-export { Status } from "./deps.ts";
+export { STATUS_CODE } from "./deps.ts";
 import {
   ErrorHandler,
   FreshConfig,

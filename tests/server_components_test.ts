@@ -6,7 +6,7 @@ import {
   withFresh,
   withPageName,
 } from "./test_utils.ts";
-import { Status } from "../server.ts";
+import { STATUS_CODE } from "../server.ts";
 
 Deno.test({
   name: "render async server component",
@@ -110,7 +110,7 @@ Deno.test({
       async (server) => {
         const res = await server.get(`/fail`);
 
-        assertEquals(res.status, Status.NotFound);
+        assertEquals(res.status, STATUS_CODE.NotFound);
         const html = await res.text();
         assertEquals(html, "Not found.");
       },
