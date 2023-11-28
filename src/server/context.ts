@@ -483,11 +483,6 @@ export class ServerContext {
         baseRoute,
         methods: {
           default: async (req, ctx) => {
-            if (
-              req.headers.get("referer")?.includes("/_frsh/error_overlay")
-            ) {
-              throw new Error("fail");
-            }
             const resp = await internalRender({
               request: req,
               context: ctx,
