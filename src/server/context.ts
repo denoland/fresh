@@ -702,8 +702,13 @@ function collectEntrypoints(
       ? import.meta.resolve(`${entrypointBase}/main_dev.ts`)
       : import.meta.resolve(`${entrypointBase}/main.ts`),
     deserializer: import.meta.resolve(`${entrypointBase}/deserializer.ts`),
-    fresh_dev_client: import.meta.resolve(`${entrypointBase}/client.ts`),
   };
+
+  if (dev) {
+    entryPoints.fresh_dev_client = import.meta.resolve(
+      `${entrypointBase}/client.ts`,
+    );
+  }
 
   try {
     import.meta.resolve("@preact/signals");
@@ -713,7 +718,7 @@ function collectEntrypoints(
   }
 
   for (const island of islands) {
-    entryPoints[`island-${island.id}`] = island.url;
+    entryPoints[`island-${island.name}`] = island.url;
   }
 
   for (const plugin of plugins) {

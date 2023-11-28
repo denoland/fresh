@@ -289,8 +289,8 @@ export async function extractRoutes(
       )
     ) {
       if (typeof exportedFunction !== "function") continue;
-      const name = processedIsland.name;
-      const id = `${name}_${exportName}`.toLowerCase();
+      const name = processedIsland.name.toLowerCase();
+      const id = `${name}_${exportName.toLowerCase()}`;
       islands.push({
         id,
         name,

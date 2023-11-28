@@ -13,13 +13,13 @@ import * as $index from "./routes/index.tsx";
 import * as $raw from "./routes/raw.ts";
 import * as $showcase from "./routes/showcase.tsx";
 import * as $update from "./routes/update.tsx";
-import * as $$ComponentGallery from "./islands/ComponentGallery.tsx";
-import * as $$CopyArea from "./islands/CopyArea.tsx";
-import * as $$Counter from "./islands/Counter.tsx";
-import * as $$LemonDrop from "./islands/LemonDrop.tsx";
-import * as $$SearchButton from "./islands/SearchButton.tsx";
-import * as $$VersionSelect from "./islands/VersionSelect.tsx";
-import { Manifest } from "$fresh/server.ts";
+import * as $ComponentGallery from "./islands/ComponentGallery.tsx";
+import * as $CopyArea from "./islands/CopyArea.tsx";
+import * as $Counter from "./islands/Counter.tsx";
+import * as $LemonDrop from "./islands/LemonDrop.tsx";
+import * as $SearchButton from "./islands/SearchButton.tsx";
+import * as $VersionSelect from "./islands/VersionSelect.tsx";
+import { type Manifest } from "$fresh/server.ts";
 
 const manifest = {
   routes: {
@@ -36,12 +36,12 @@ const manifest = {
     "./routes/update.tsx": $update,
   },
   islands: {
-    "./islands/ComponentGallery.tsx": $$ComponentGallery,
-    "./islands/CopyArea.tsx": $$CopyArea,
-    "./islands/Counter.tsx": $$Counter,
-    "./islands/LemonDrop.tsx": $$LemonDrop,
-    "./islands/SearchButton.tsx": $$SearchButton,
-    "./islands/VersionSelect.tsx": $$VersionSelect,
+    "./islands/ComponentGallery.tsx": $ComponentGallery,
+    "./islands/CopyArea.tsx": $CopyArea,
+    "./islands/Counter.tsx": $Counter,
+    "./islands/LemonDrop.tsx": $LemonDrop,
+    "./islands/SearchButton.tsx": $SearchButton,
+    "./islands/VersionSelect.tsx": $VersionSelect,
   },
   baseUrl: import.meta.url,
 } satisfies Manifest;

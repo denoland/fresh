@@ -116,22 +116,22 @@ import * as $relative_link_index from "./routes/relative_link/index.tsx";
 import * as $scroll_restoration_index from "./routes/scroll_restoration/index.tsx";
 import * as $scroll_restoration_injected from "./routes/scroll_restoration/injected.tsx";
 import * as $scroll_restoration_update from "./routes/scroll_restoration/update.tsx";
-import * as $$Counter from "./islands/Counter.tsx";
-import * as $$CounterA from "./islands/CounterA.tsx";
-import * as $$CounterB from "./islands/CounterB.tsx";
-import * as $$Fader from "./islands/Fader.tsx";
-import * as $$InvalidSlot from "./islands/InvalidSlot.tsx";
-import * as $$KeyExplorer from "./islands/KeyExplorer.tsx";
-import * as $$LazyLink from "./islands/LazyLink.tsx";
-import * as $$Logger from "./islands/Logger.tsx";
-import * as $$Other from "./islands/Other.tsx";
-import * as $$PartialTrigger from "./islands/PartialTrigger.tsx";
-import * as $$PassThrough from "./islands/PassThrough.tsx";
-import * as $$PropIsland from "./islands/PropIsland.tsx";
-import * as $$SignalProp from "./islands/SignalProp.tsx";
-import * as $$Spinner from "./islands/Spinner.tsx";
-import * as $$Stateful from "./islands/Stateful.tsx";
-import { Manifest } from "$fresh/server.ts";
+import * as $Counter from "./islands/Counter.tsx";
+import * as $CounterA from "./islands/CounterA.tsx";
+import * as $CounterB from "./islands/CounterB.tsx";
+import * as $Fader from "./islands/Fader.tsx";
+import * as $InvalidSlot from "./islands/InvalidSlot.tsx";
+import * as $KeyExplorer from "./islands/KeyExplorer.tsx";
+import * as $LazyLink from "./islands/LazyLink.tsx";
+import * as $Logger from "./islands/Logger.tsx";
+import * as $Other from "./islands/Other.tsx";
+import * as $PartialTrigger from "./islands/PartialTrigger.tsx";
+import * as $PassThrough from "./islands/PassThrough.tsx";
+import * as $PropIsland from "./islands/PropIsland.tsx";
+import * as $SignalProp from "./islands/SignalProp.tsx";
+import * as $Spinner from "./islands/Spinner.tsx";
+import * as $Stateful from "./islands/Stateful.tsx";
+import { type Manifest } from "$fresh/server.ts";
 
 const manifest = {
   routes: {
@@ -262,21 +262,21 @@ const manifest = {
     "./routes/scroll_restoration/update.tsx": $scroll_restoration_update,
   },
   islands: {
-    "./islands/Counter.tsx": $$Counter,
-    "./islands/CounterA.tsx": $$CounterA,
-    "./islands/CounterB.tsx": $$CounterB,
-    "./islands/Fader.tsx": $$Fader,
-    "./islands/InvalidSlot.tsx": $$InvalidSlot,
-    "./islands/KeyExplorer.tsx": $$KeyExplorer,
-    "./islands/LazyLink.tsx": $$LazyLink,
-    "./islands/Logger.tsx": $$Logger,
-    "./islands/Other.tsx": $$Other,
-    "./islands/PartialTrigger.tsx": $$PartialTrigger,
-    "./islands/PassThrough.tsx": $$PassThrough,
-    "./islands/PropIsland.tsx": $$PropIsland,
-    "./islands/SignalProp.tsx": $$SignalProp,
-    "./islands/Spinner.tsx": $$Spinner,
-    "./islands/Stateful.tsx": $$Stateful,
+    "./islands/Counter.tsx": $Counter,
+    "./islands/CounterA.tsx": $CounterA,
+    "./islands/CounterB.tsx": $CounterB,
+    "./islands/Fader.tsx": $Fader,
+    "./islands/InvalidSlot.tsx": $InvalidSlot,
+    "./islands/KeyExplorer.tsx": $KeyExplorer,
+    "./islands/LazyLink.tsx": $LazyLink,
+    "./islands/Logger.tsx": $Logger,
+    "./islands/Other.tsx": $Other,
+    "./islands/PartialTrigger.tsx": $PartialTrigger,
+    "./islands/PassThrough.tsx": $PassThrough,
+    "./islands/PropIsland.tsx": $PropIsland,
+    "./islands/SignalProp.tsx": $SignalProp,
+    "./islands/Spinner.tsx": $Spinner,
+    "./islands/Stateful.tsx": $Stateful,
   },
   baseUrl: import.meta.url,
 } satisfies Manifest;

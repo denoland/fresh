@@ -15,6 +15,7 @@ async function updateAndVerify(cwd: string | URL, expected: RegExp) {
     args: [
       "run",
       "-A",
+      "--no-config",
       path.join(Deno.cwd(), "update.ts"),
       ".",
     ],
@@ -40,6 +41,7 @@ async function initProject() {
     args: [
       "run",
       "-A",
+      "--no-config",
       path.join(Deno.cwd(), "init.ts"),
       ".",
     ],
