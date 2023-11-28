@@ -484,7 +484,7 @@ export class ServerContext {
         methods: {
           default: async (req, ctx) => {
             if (
-              req.headers.get("referrer")?.includes("/_frsh/error_overlay")
+              req.headers.get("referer")?.includes("/_frsh/error_overlay")
             ) {
               throw new Error("fail");
             }
