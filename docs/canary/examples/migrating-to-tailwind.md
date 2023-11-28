@@ -9,7 +9,7 @@ will now install the Tailwind CSS plugin instead of twind like it did before.
 
 ## Migrating to Tailwind CSS
 
-1. Create a `tailwind.config.ts` file in your project folder:
+1. Create a `<project>/tailwind.config.ts` file in your project folder:
 
 ```ts tailwind.config.ts
 import { type Config } from "tailwindcss";
@@ -29,7 +29,7 @@ export default {
 @tailwind utilities;
 ```
 
-3. Add the created stylesheet in your HTML in `routes/_app.tsx`:
+3. Add the created stylesheet in your HTML in `<project>/routes/_app.tsx`:
 
 ```diff routes/_app.tsx
   import { AppProps } from "$fresh/server.ts";
