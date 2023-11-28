@@ -64,7 +64,22 @@ export default {
   });
 ```
 
-5. Set up
+5. Update your `deno.json` file and add the following `tailwindcss` imports:
+
+```diff deno.json
+  {
+    "imports": {
+      "$fresh/": "https://deno.land/x/fresh@1.5.2/",
+      "preact": "https://esm.sh/preact@10.19.2",
+      "preact/": "https://esm.sh/preact@10.19.2/",
++     "tailwindcss": "npm:tailwindcss@3.3.5",
++     "tailwindcss/": "npm:/tailwindcss@3.3.5/",
++     "tailwindcss/plugin": "npm:/tailwindcss@3.3.5/plugin.js"
+    }
+  }
+```
+
+6. Set up
    [Ahead of Time builds](http://localhost:8000/docs/canary/concepts/ahead-of-time-builds)
    if you haven't already.
 
