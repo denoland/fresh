@@ -64,10 +64,11 @@ export default {
   });
 ```
 
-1. Update your `deno.json` file and add the following `tailwindcss` imports. To
-   make the vscode Tailwind CSS extension work, we also need to set
-   `"nodeModulesDir": true`. This will create a `node_modules` directory in your
-   project folder:
+5. Update your `deno.json` file and add the following `tailwindcss` imports. To
+   make the
+   [vscode Tailwind CSS extension](https://marketplace.visualstudio.com/items?itemName=bradlc.vscode-tailwindcss)
+   work, we also need to set `"nodeModulesDir": true`. This will create a
+   `node_modules` directory in your project folder:
 
 ```diff deno.json
   {
@@ -76,6 +77,8 @@ export default {
       "$fresh/": "https://deno.land/x/fresh@1.5.2/",
       "preact": "https://esm.sh/preact@10.19.2",
       "preact/": "https://esm.sh/preact@10.19.2/",
+-     "twind": "https://esm.sh/twind@0.16.19",
+-     "twind/": "https://esm.sh/twind@0.16.19/",
 +     "tailwindcss": "npm:tailwindcss@3.3.5",
 +     "tailwindcss/": "npm:/tailwindcss@3.3.5/",
 +     "tailwindcss/plugin": "npm:/tailwindcss@3.3.5/plugin.js"
@@ -98,7 +101,8 @@ That's it! Now you can use Tailwind CSS in your project.
 
 > [info]: If you're a vscode user, be sure to install the
 > [offical Tailwind CSS extension](https://marketplace.visualstudio.com/items?itemName=bradlc.vscode-tailwindcss)
-> to get full intellisense support.
+> to get full intellisense support. For it to work you also need to set
+> `"nodeModulesDir": true` in your `deno.json`.
 
 > [warn]: Tailwind CSS doesn't support the grouping syntax from twind:
 > `text(lg uppercase gray-100)`. These need to be rewritten to their expanded
