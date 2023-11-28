@@ -166,6 +166,24 @@ function _printDomNode(
   return out;
 }
 
+export async function getErrorOverlay(
+  server: FakeServer,
+  url: string,
+): Promise<{ title: string; codeFrame: boolean; stack: string }> {
+  const doc = await server.getHtml(url);
+  const iframe = doc.querySelector(
+    "#fresh-error-overlay",
+  ) as HTMLIFrameElement;
+
+  const doc2 = await server.getHtml(iframe.src);
+
+  return {
+    title: doc2.querySelector(".title")!.textContent!,
+    codeFrame: doc2.querySelector(".code-frame") !== null,
+    stack: doc2.querySelector(".stack")!.textContent!,
+  };
+}
+
 export async function withFresh(
   name: string | { name: string; options: Omit<Deno.CommandOptions, "args"> },
   fn: (address: string) => Promise<void>,

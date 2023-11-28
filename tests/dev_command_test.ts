@@ -6,6 +6,7 @@ import {
   assertTextMany,
   assertTextMatch,
   fetchHtml,
+  getErrorOverlay,
   waitForStyle,
   withFakeServe,
   withFresh,
@@ -25,18 +26,14 @@ Deno.test({
   },
 });
 
-Deno.test({
-  name: "dev_command config: shows codeframe",
-  async fn() {
-    await withFakeServe(
-      "./tests/fixture_dev_config/dev.ts",
-      async (server) => {
-        const doc = await server.getHtml("/codeframe");
-        assertSelector(doc, ".frsh-error-page");
-        assertSelector(doc, ".code-frame");
-      },
-    );
-  },
+Deno.test("dev_command config: shows codeframe", async () => {
+  await withFakeServe(
+    "./tests/fixture_dev_config/dev.ts",
+    async (server) => {
+      const { codeFrame } = await getErrorOverlay(server, "/codeframe");
+      assert(codeFrame);
+    },
+  );
 });
 
 Deno.test({
@@ -52,18 +49,14 @@ Deno.test({
   },
 });
 
-Deno.test({
-  name: "dev_command legacy: shows codeframe",
-  async fn() {
-    await withFakeServe(
-      "./tests/fixture_dev_legacy/dev.ts",
-      async (server) => {
-        const doc = await server.getHtml("/codeframe");
-        assertSelector(doc, ".frsh-error-page");
-        assertSelector(doc, ".code-frame");
-      },
-    );
-  },
+Deno.test("dev_command legacy: shows codeframe", async () => {
+  await withFakeServe(
+    "./tests/fixture_dev_legacy/dev.ts",
+    async (server) => {
+      const { codeFrame } = await getErrorOverlay(server, "/codeframe");
+      assert(codeFrame);
+    },
+  );
 });
 
 Deno.test("preact/debug is active in dev mode", async () => {
@@ -72,15 +65,11 @@ Deno.test("preact/debug is active in dev mode", async () => {
     async (server) => {
       // SSR error is shown
       const resp = await server.get("/");
-      const text = await resp.text();
+      await resp.text(); // Consume
       assertEquals(resp.status, Status.InternalServerError);
-      assertStringIncludes(text, "Objects are not valid as a child");
 
-      const html = await server.getHtml("/");
-
-      // Error page is shown with error message
-      const text2 = html.querySelector(".frsh-error-page")!.textContent!;
-      assertStringIncludes(text2, "Objects are not valid as a child");
+      const { title } = await getErrorOverlay(server, "/");
+      assertStringIncludes(title, "Objects are not valid as a child");
     },
   );
 });

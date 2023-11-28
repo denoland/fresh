@@ -18,6 +18,8 @@ import { ContentSecurityPolicy } from "../runtime/csp.ts";
 import { RenderState } from "./rendering/state.ts";
 import { renderHtml, renderOuterDocument } from "./rendering/template.tsx";
 import { renderFreshTags } from "./rendering/fresh_tags.tsx";
+import { DEV_ERROR_OVERLAY_URL } from "./constants.ts";
+import { colors } from "./deps.ts";
 
 export const DEFAULT_RENDER_FN: RenderFunction = (_ctx, render) => {
   render();
@@ -363,6 +365,30 @@ export async function render<Data>(
     styles: ctx.styles,
     pluginRenderResults: renderResults,
   });
+
+  // Append error overlay
+  if (opts.error !== undefined && opts.url.pathname !== DEV_ERROR_OVERLAY_URL) {
+    const url = new URL(DEV_ERROR_OVERLAY_URL, "https://localhost/");
+    if (opts.error instanceof Error) {
+      let message = opts.error.message;
+      const idx = message.indexOf("\n");
+      if (idx > -1) message = message.slice(0, idx);
+      url.searchParams.append("message", message);
+      if (opts.error.stack) {
+        const stack = colors.stripAnsiCode(opts.error.stack);
+        url.searchParams.append("stack", stack);
+      }
+    } else {
+      url.searchParams.append("message", String(opts.error));
+    }
+    if (opts.codeFrame) {
+      const codeFrame = colors.stripAnsiCode(opts.codeFrame);
+      url.searchParams.append("code-frame", codeFrame);
+    }
+
+    result.bodyHtml +=
+      `<iframe id="fresh-error-overlay" src="${url.pathname}?${url.searchParams.toString()}" style="unset: all; position: fixed; top: 0; left: 0; z-index: 99999; width: 100%; height: 100%; border: none;"></iframe>`;
+  }
 
   // Render outer document up to `<body>`
   const html = renderOuterDocument(renderState, {
