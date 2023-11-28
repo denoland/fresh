@@ -442,3 +442,39 @@ Deno.test("throws when passing non-jsx children to an island", async (t) => {
     },
   );
 });
+
+Deno.test("serves multiple islands in one file", async () => {
+  await withPageName(
+    "./tests/fixture_islands_multiple/dev.ts",
+    async (page, address) => {
+      await page.goto(address, { waitUntil: "networkidle2" });
+
+      await page.click(".single button");
+      await waitForText(page, ".single p", "Single Island: 1");
+
+      await page.click(".multiple1 button");
+      await waitForText(page, ".multiple1 p", "Multiple1 Island: 1");
+      await page.click(".multiple2 button");
+      await waitForText(page, ".multiple2 p", "Multiple2 Island: 1");
+
+      await page.click(".multipledefault button");
+      await waitForText(
+        page,
+        ".multipledefault p",
+        "MultipleDefault Island: 1",
+      );
+      await page.click(".multipledefault1 button");
+      await waitForText(
+        page,
+        ".multipledefault1 p",
+        "MultipleDefault1 Island: 1",
+      );
+      await page.click(".multipledefault2 button");
+      await waitForText(
+        page,
+        ".multipledefault2 p",
+        "MultipleDefault2 Island: 1",
+      );
+    },
+  );
+});

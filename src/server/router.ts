@@ -1,6 +1,6 @@
 import { PARTIAL_SEARCH_PARAM } from "../constants.ts";
 import { BaseRoute, ErrorHandlerContext, ServeHandlerInfo } from "./types.ts";
-import { isIdentifierChar, isIdentifierStart } from "./deps.ts";
+import { isIdentifierChar, isIdentifierStart } from "./init_safe_deps.ts";
 
 type HandlerContext<T = unknown> = T & ServeHandlerInfo & {
   isPartial: boolean;
