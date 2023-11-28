@@ -12,7 +12,7 @@ will now install the Tailwind CSS plugin instead of twind like it did before.
 1. Create a `tailwind.config.ts` file in your project folder:
 
 ```ts tailwind.config.ts
-import { Config } from "tailwindcss";
+import { type Config } from "tailwindcss";
 
 export default {
   content: [
