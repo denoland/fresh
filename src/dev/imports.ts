@@ -22,6 +22,10 @@ export function twindImports(imports: Record<string, string>) {
 
 export function tailwindImports(imports: Record<string, string>) {
   imports["tailwindcss"] = `npm:tailwindcss@${RECOMMENDED_TAILIWIND_VERSION}`;
+  imports["tailwindcss/"] =
+    `npm:/tailwindcss@${RECOMMENDED_TAILIWIND_VERSION}/`;
+  imports["tailwindcss/plugin"] =
+    `npm:/tailwindcss@${RECOMMENDED_TAILIWIND_VERSION}/plugin.js`;
 }
 
 export function dotenvImports(imports: Record<string, string>) {
