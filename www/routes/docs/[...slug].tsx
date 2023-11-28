@@ -1,7 +1,6 @@
 import { Handlers, PageProps } from "$fresh/server.ts";
 import { asset, Head, Partial } from "$fresh/runtime.ts";
 import DocsSidebar from "../../components/DocsSidebar.tsx";
-import DocsTitle from "../../components/DocsTitle.tsx";
 import Footer from "../../components/Footer.tsx";
 import Header from "../../components/Header.tsx";
 import {
@@ -134,13 +133,16 @@ export const handler: Handlers<Data> = {
 };
 
 export default function DocsPage(props: PageProps<Data>) {
+  const { page } = props.data;
   const ogImageUrl = new URL(asset("/home-og.png"), props.url).href;
-  const title = `${props.data.page?.title ?? "Not Found"} | Fresh docs`;
+  const title = `${page?.title ?? "Not Found"} | Fresh docs`;
   let description = "Fresh Document";
 
-  if (props.data.page.data.description) {
-    description = String(props.data.page.data.description);
+  if (page.data.description) {
+    description = String(page.data.description);
   }
+
+  const html = renderMarkdown(page.markdown);
 
   return (
     <>
@@ -156,22 +158,62 @@ export default function DocsPage(props: PageProps<Data>) {
         <meta name="view-transition" content="same-origin" />
       </Head>
       <div class="flex flex-col min-h-screen mx-auto max-w-screen-xl">
-        <Main page={props.data.page} />
+        <div class="flex-1 " f-client-nav>
+          <div class=" md:flex">
+            <nav class="w-[18rem] flex-shrink-0 hidden md:block px-4">
+              <DocsSidebar
+                versionLinks={page.versionLinks}
+                selectedVersion={page.version}
+              />
+            </nav>
+            <Partial name="docs-main">
+              <div class="w-full min-w-0">
+                <Header title="docs" active="/docs" />
+                <main class="max-w-3xl mt-4 min-w-0 mx-auto">
+                  <MobileSidebar page={page} />
+                  <div class="flex mx-auto max-w-screen-xl px-4 md:px-0 md:py-0 justify-end bg-gray-100">
+                    <label
+                      for="docs_sidebar"
+                      class="px-4 py-3 md:hidden flex items-center hover:bg-gray-100 rounded gap-2 cursor-pointer"
+                    >
+                      <svg
+                        class="h-6 w-6"
+                        stroke="currentColor"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth="2"
+                          d="M4 6h16M4 12h16M4 18h7"
+                        >
+                        </path>
+                      </svg>
+                      <div>Table of Contents</div>
+                    </label>
+                  </div>
+                  <h1 class="text-4xl text-gray-900 tracking-tight font-extrabold md:mt-0 px-4">
+                    {page.title}
+                  </h1>
+                  <div
+                    class="mt-6 markdown-body"
+                    dangerouslySetInnerHTML={{ __html: html }}
+                  />
+                  <ForwardBackButtons
+                    slug={page.slug}
+                    version={page.version}
+                    prev={page.prevNav}
+                    next={page.nextNav}
+                  />
+                  <Footer />
+                </main>
+              </div>
+            </Partial>
+          </div>
+        </div>
       </div>
     </>
-  );
-}
-
-function Main(props: { page: Page }) {
-  return (
-    <div class="flex-1 " f-client-nav>
-      <div class=" md:flex">
-        <DesktopSidebar page={props.page} />
-        <Partial name="docs-main">
-          <Content page={props.page} />
-        </Partial>
-      </div>
-    </div>
   );
 }
 
@@ -204,65 +246,6 @@ function MobileSidebar(props: { page: Page }) {
   );
 }
 
-function DesktopSidebar(props: { page: Page }) {
-  return (
-    <nav class="w-[18rem] flex-shrink-0 hidden md:block px-4">
-      <DocsSidebar
-        versionLinks={props.page.versionLinks}
-        selectedVersion={props.page.version}
-      />
-    </nav>
-  );
-}
-
-function Content(props: { page: Page }) {
-  const html = renderMarkdown(props.page.markdown);
-  return (
-    <div class="w-full min-w-0">
-      <Header title="docs" active="/docs" />
-      <main class="max-w-3xl mt-4 min-w-0 mx-auto">
-        <MobileSidebar page={props.page} />
-        <div class="flex mx-auto max-w-screen-xl px-4 md:px-0 md:py-0 justify-end bg-gray-100">
-          <label
-            for="docs_sidebar"
-            class="px-4 py-3 md:hidden flex items-center hover:bg-gray-100 rounded gap-2 cursor-pointer"
-          >
-            <svg
-              class="h-6 w-6"
-              stroke="currentColor"
-              fill="none"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth="2"
-                d="M4 6h16M4 12h16M4 18h7"
-              >
-              </path>
-            </svg>
-            <div>Table of Contents</div>
-          </label>
-        </div>
-        <h1 class="text-4xl text-gray-900 tracking-tight font-extrabold md:mt-0 px-4">
-          {props.page.title}
-        </h1>
-        <div
-          class="mt-6 markdown-body"
-          dangerouslySetInnerHTML={{ __html: html }}
-        />
-        <ForwardBackButtons
-          slug={props.page.slug}
-          version={props.page.version}
-          prev={props.page.prevNav}
-          next={props.page.nextNav}
-        />
-        <Footer />
-      </main>
-    </div>
-  );
-}
-
 const button = "p-2 bg-gray-100 w-full border(1 gray-200) grid";
 
 function ForwardBackButtons(props: {
@@ -272,7 +255,7 @@ function ForwardBackButtons(props: {
   next?: NavEntry;
 }) {
   const { prev, next } = props;
-  const upper = "text(sm gray-600)";
+  const upper = "text-sm text-gray-600";
   const category = "font-normal";
   const lower = "text-gray-900 font-medium";
 

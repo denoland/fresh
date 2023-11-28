@@ -1,5 +1,5 @@
-import { runBuild, withFakeServe } from "$fresh/tests/test_utils.ts";
-import { assertStringIncludes } from "$std/assert/mod.ts";
+import { runBuild, withFakeServe } from "./test_utils.ts";
+import { assertStringIncludes } from "./deps.ts";
 
 Deno.test("TailwindCSS - dev mode", async () => {
   await withFakeServe("./tests/fixture_tailwind/dev.ts", async (server) => {

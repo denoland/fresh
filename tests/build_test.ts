@@ -12,8 +12,8 @@ import {
   startFreshServer,
   waitForText,
   withFakeServe,
-} from "$fresh/tests/test_utils.ts";
-import { BuildSnapshotJson } from "$fresh/src/build/mod.ts";
+} from "./test_utils.ts";
+import { BuildSnapshotJson } from "../src/build/mod.ts";
 
 function runBuild(fixture: string, subDirPath: string, outDir: string) {
   return new Deno.Command(Deno.execPath(), {
@@ -63,7 +63,7 @@ async function testBuild(
 
     await t.step("check snapshot file", async () => {
       assert(
-        Array.isArray(snapshot.files["island-counter_default.js"]),
+        Array.isArray(snapshot.files["island-counter.js"]),
         "Island output file not found in snapshot",
       );
       assert(
@@ -252,7 +252,7 @@ Deno.test("pass target options", async () => {
 
   const { stdout, stderr } = getStdOutput(out);
   const txt = await Deno.readTextFile(
-    path.join(fixture, "_fresh", "island-counter_default.js"),
+    path.join(fixture, "_fresh", "island-counter.js"),
   );
 
   assertNotMatch(

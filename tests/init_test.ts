@@ -1,5 +1,5 @@
 import * as path from "$std/path/mod.ts";
-import { Status } from "../src/server/deps.ts";
+import { STATUS_CODE } from "../src/server/deps.ts";
 import {
   assert,
   assertEquals,
@@ -38,6 +38,7 @@ Deno.test({
         args: [
           "run",
           "-A",
+          "--no-config",
           "init.ts",
           tmpDirName,
         ],
@@ -109,7 +110,7 @@ Deno.test({
       // Access the root page
       const res = await fetch(address);
       await res.body?.cancel();
-      assertEquals(res.status, Status.OK);
+      assertEquals(res.status, STATUS_CODE.OK);
 
       // verify the island is revived.
       const browser = await puppeteer.launch({
@@ -155,6 +156,7 @@ Deno.test({
         args: [
           "run",
           "-A",
+          "--no-config",
           "init.ts",
           tmpDirName,
           "--tailwind",
@@ -199,7 +201,7 @@ Deno.test({
       // Access the root page
       const res = await fetch(address);
       await res.body?.cancel();
-      assertEquals(res.status, Status.OK);
+      assertEquals(res.status, STATUS_CODE.OK);
 
       // verify the island is revived.
       const browser = await puppeteer.launch({ args: ["--no-sandbox"] });
@@ -245,7 +247,7 @@ Deno.test("fresh-init error(help)", async function (t) {
     "execute invalid init command (deno run -A init.ts)",
     async () => {
       const cliProcess = new Deno.Command(Deno.execPath(), {
-        args: ["run", "-A", "init.ts"],
+        args: ["run", "-A", "--no-config", "init.ts"],
         stdin: "null",
         stderr: "piped",
       });
@@ -261,7 +263,7 @@ Deno.test("fresh-init error(help)", async function (t) {
     "execute invalid init command (deno run -A init.ts -f)",
     async () => {
       const cliProcess = new Deno.Command(Deno.execPath(), {
-        args: ["run", "-A", "init.ts", "-f"],
+        args: ["run", "-A", "--no-config", "init.ts", "-f"],
       });
       const { code, stderr } = await cliProcess.output();
       assertEquals(code, 1);
@@ -275,7 +277,7 @@ Deno.test("fresh-init error(help)", async function (t) {
     "execute invalid init command (deno run -A init.ts --foo)",
     async () => {
       const cliProcess = new Deno.Command(Deno.execPath(), {
-        args: ["run", "-A", "init.ts", "--foo"],
+        args: ["run", "-A", "--no-config", "init.ts", "--foo"],
       });
       const { code, stderr } = await cliProcess.output();
       assertEquals(code, 1);
@@ -295,6 +297,7 @@ Deno.test("fresh-init .", async function (t) {
       args: [
         "run",
         "-A",
+        "--no-config",
         path.join(Deno.cwd(), "init.ts"),
         ".",
       ],
@@ -322,6 +325,7 @@ Deno.test({
       args: [
         "run",
         "-A",
+        "--no-config",
         path.join(Deno.cwd(), "init.ts"),
         "subdirectory/subsubdirectory",
       ],
@@ -379,6 +383,7 @@ Deno.test({
       args: [
         "run",
         "-A",
+        "--no-config",
         "init.ts",
         tmpDirName,
         "--tailwind",

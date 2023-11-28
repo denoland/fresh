@@ -1,6 +1,5 @@
-import { assertSnapshot } from "$std/testing/snapshot.ts";
 import { createCodeFrame, getFirstUserFile } from "./code_frame.ts";
-import { assertEquals, colors } from "./deps.ts";
+import { assertEquals, assertSnapshot, colors } from "./deps.ts";
 
 function testCodeFrame(text: string, line: number, column: number) {
   const codeFrame = createCodeFrame(text, line, column);

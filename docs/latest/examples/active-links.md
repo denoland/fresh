@@ -3,39 +3,43 @@ description: |
   Style active links with ease in Fresh
 ---
 
-When Fresh renders an `<a>`-element, it will automatically add a
-[data attribute](https://developer.mozilla.org/en-US/docs/Learn/HTML/Howto/Use_data_attributes)
-to the link which can be used for styling purposes. Fresh will add one of the
-two following attributes:
+Fresh automatically enhances the accessibility of <a> elements by adding the
+aria-current attribute when rendering links that match the current URL. This
+attribute is recognized by assistive technologies and clearly indicates the
+current page within a set of pages.
 
-- `data-current` - Added to links with an exact path match
-- `data-ancestor` - Added to links which partially match the current URL
+- aria-current="page" - Added to links with an exact path match, enhancing
+  accessibility by indicating the current page to assistive technologies.
+
+As we aim to improve accessibility, we encourage the use of aria-current for
+styling current links where applicable.
 
 ## Styling with CSS
 
-`data-*` attributes can be natively styled in CSS via attribute selectors.
+The aria-current attribute is easily styled with CSS using attribute selectors,
+providing a native way to visually differentiate the active link.
 
 ```css
 /* Give links pointing to the current page a green color */
-a[data-current] {
+a[aria-current='page'] {
   color: green;
 }
 
 /* Color all ancestor links of the current page */
-a[data-ancestor] {
+a[aria-current='true'] {
   color: peachpuff;
 }
 ```
 
 ## Tailwind / Twind
 
-In tailwind or tailwind-like styling solutions you can style `data-*`-attributes
-by prepending the classes with `[data-current]:`
+In Tailwind or similar CSS frameworks, you can apply styles to elements with the
+aria-current attribute by using bracket notation in your class definitions.
 
 ```tsx
 function Menu() {
   return (
-    <a href="/foo" class="[data-current]:text-green-600">
+    <a href="/foo" class="[aria-current]:text-green-600">
       link to some page
     </a>
   );
@@ -48,7 +52,7 @@ The original twind plugin (`import twindPlugin from "$fresh/plugins/twind.ts";`)
 supports the above style:
 
 ```tsx
-class="[data-current]:text-green-600"
+class="[aria-current='page']:text-green-600"
 ```
 
 ### TwindV1 Plugin
@@ -57,5 +61,5 @@ The new twind plugin (`import twindPlugin from "$fresh/plugins/twindv1.ts";`)
 requires a slightly different syntax (note the position of the left bracket):
 
 ```tsx
-class="data-[current]:text-green-600"
+class="aria-[current='page']:text-green-600"
 ```

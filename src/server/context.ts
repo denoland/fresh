@@ -1,4 +1,4 @@
-import { extname, Status, typeByExtension } from "./deps.ts";
+import { contentType, extname, STATUS_CODE } from "./deps.ts";
 import * as router from "./router.ts";
 import { FreshConfig, Manifest, UnknownHandlerContext } from "./mod.ts";
 import { ALIVE_URL, DEV_CLIENT_URL, JS_PREFIX } from "./constants.ts";
@@ -220,7 +220,7 @@ export class ServerContext {
         const path = url.pathname.replace(/\/+$/, "");
         const location = `${path}${url.search}`;
         return new Response(null, {
-          status: Status.TemporaryRedirect,
+          status: STATUS_CODE.TemporaryRedirect,
           headers: { location },
         });
       } else if (trailingSlashEnabled && !url.pathname.endsWith("/")) {
@@ -232,7 +232,7 @@ export class ServerContext {
 
         if (!isFile && !isInternal) {
           url.pathname += "/";
-          return Response.redirect(url, Status.PermanentRedirect);
+          return Response.redirect(url, STATUS_CODE.PermanentRedirect);
         }
       }
 
@@ -390,7 +390,7 @@ export class ServerContext {
       ) {
         route.pattern += "/";
       }
-      const createRender = genRender(route, Status.OK);
+      const createRender = genRender(route, STATUS_CODE.OK);
       if (typeof route.handler === "function") {
         routes[route.pattern] = {
           baseRoute: route.baseRoute,
@@ -445,7 +445,7 @@ export class ServerContext {
 
     const errorHandlerRender = genRender(
       this.#extractResult.error,
-      Status.InternalServerError,
+      STATUS_CODE.InternalServerError,
     );
     const errorHandler: router.ErrorHandler<RouterState> = async (
       req,
@@ -595,8 +595,8 @@ export class ServerContext {
           : "public, max-age=604800, immutable",
       };
 
-      const contentType = typeByExtension(extname(params.path));
-      if (contentType) headers["Content-Type"] = contentType;
+      const type = contentType(extname(params.path));
+      if (type) headers["Content-Type"] = type;
 
       return new Response(contents, {
         status: 200,
@@ -625,7 +625,7 @@ const createRenderNotFound = (
     const notFound = extractResult.notFound;
     if (!notFound.component) {
       return sendResponse(["Not found.", undefined], {
-        status: Status.NotFound,
+        status: STATUS_CODE.NotFound,
         isDev: dev,
         statusText: undefined,
         headers: undefined,
@@ -660,7 +660,7 @@ const createRenderNotFound = (
     }
 
     return sendResponse(resp, {
-      status: Status.NotFound,
+      status: STATUS_CODE.NotFound,
       isDev: dev,
       statusText: undefined,
       headers: undefined,
@@ -702,8 +702,13 @@ function collectEntrypoints(
       ? import.meta.resolve(`${entrypointBase}/main_dev.ts`)
       : import.meta.resolve(`${entrypointBase}/main.ts`),
     deserializer: import.meta.resolve(`${entrypointBase}/deserializer.ts`),
-    fresh_dev_client: import.meta.resolve(`${entrypointBase}/client.ts`),
   };
+
+  if (dev) {
+    entryPoints.fresh_dev_client = import.meta.resolve(
+      `${entrypointBase}/client.ts`,
+    );
+  }
 
   try {
     import.meta.resolve("@preact/signals");
@@ -713,7 +718,7 @@ function collectEntrypoints(
   }
 
   for (const island of islands) {
-    entryPoints[`island-${island.id}`] = island.url;
+    entryPoints[`island-${island.name}`] = island.url;
   }
 
   for (const plugin of plugins) {

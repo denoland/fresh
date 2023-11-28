@@ -22,11 +22,11 @@ import * as router from "./router.ts";
 import DefaultErrorHandler from "./default_error_page.tsx";
 import {
   basename,
+  contentType,
   dirname,
   extname,
   join,
   toFileUrl,
-  typeByExtension,
   walk,
 } from "./deps.ts";
 import { BUILD_ID } from "./build_id.ts";
@@ -289,8 +289,8 @@ export async function extractRoutes(
       )
     ) {
       if (typeof exportedFunction !== "function") continue;
-      const name = processedIsland.name;
-      const id = `${name}_${exportName}`.toLowerCase();
+      const name = processedIsland.name.toLowerCase();
+      const id = `${name}_${exportName.toLowerCase()}`;
       islands.push({
         id,
         name,
@@ -316,7 +316,7 @@ export async function extractRoutes(
         const localUrl = toFileUrl(entry.path);
         const path = localUrl.href.substring(staticDirUrl.href.length);
         const stat = await Deno.stat(localUrl);
-        const contentType = typeByExtension(extname(path)) ??
+        const type = contentType(extname(path)) ??
           "application/octet-stream";
         const etag = await crypto.subtle.digest(
           "SHA-1",
@@ -330,7 +330,7 @@ export async function extractRoutes(
           localUrl,
           path,
           size: stat.size,
-          contentType,
+          contentType: type,
           etag,
         };
         staticFiles.push(staticFile);

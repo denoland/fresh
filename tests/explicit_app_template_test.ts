@@ -3,7 +3,7 @@ import {
   assertSelector,
   assertTextMany,
   withFakeServe,
-} from "$fresh/tests/test_utils.ts";
+} from "./test_utils.ts";
 import { assertNotMatch } from "./deps.ts";
 
 Deno.test("doesn't apply internal app template", async () => {

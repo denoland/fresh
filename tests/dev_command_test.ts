@@ -1,5 +1,5 @@
 import { assert, assertEquals, assertStringIncludes } from "./deps.ts";
-import { Status } from "../server.ts";
+import { STATUS_CODE } from "../server.ts";
 import {
   assertNotSelector,
   assertSelector,
@@ -66,7 +66,7 @@ Deno.test("preact/debug is active in dev mode", async () => {
       // SSR error is shown
       const resp = await server.get("/");
       await resp.text(); // Consume
-      assertEquals(resp.status, Status.InternalServerError);
+      assertEquals(resp.status, STATUS_CODE.InternalServerError);
 
       const { title } = await getErrorOverlay(server, "/");
       assertStringIncludes(title, "Objects are not valid as a child");
@@ -143,12 +143,18 @@ Deno.test("serve client script source map", async () => {
       const res = await server.get(`/_frsh/fresh_dev_client.js`);
       await res.text(); // Consume body
       assertEquals(res.status, 200);
-      assertEquals(res.headers.get("Content-Type"), "application/javascript");
+      assertEquals(
+        res.headers.get("Content-Type"),
+        "application/javascript; charset=UTF-8",
+      );
 
       const res2 = await server.get(`/_frsh/fresh_dev_client.js.map`);
       const json = await res2.json();
       assertEquals(res2.status, 200);
-      assertEquals(res2.headers.get("Content-Type"), "application/json");
+      assertEquals(
+        res2.headers.get("Content-Type"),
+        "application/json; charset=UTF-8",
+      );
       assert(typeof json.mappings, "string");
     },
   );
