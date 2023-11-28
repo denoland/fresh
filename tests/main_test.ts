@@ -33,7 +33,7 @@ Deno.test("/ page prerender", async () => {
   assertEquals(resp.headers.get("server"), "fresh test server");
   const body = await resp.text();
   assertStringIncludes(body, `<html lang="en">`);
-  assertStringIncludes(body, "test_default.js");
+  assertStringIncludes(body, "test.js");
   assertStringIncludes(body, "<p>Hello!</p>");
   assertStringIncludes(body, "<p>Viewing JIT render.</p>");
   assertStringIncludes(body, `>{"v":[[{"message":"Hello!"}],[]]}</script>`);

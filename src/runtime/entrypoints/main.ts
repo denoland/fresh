@@ -654,7 +654,7 @@ export async function applyPartials(res: Response): Promise<void> {
   const islands: IslandRegistry = {};
   const dataRaw = doc.getElementById("__FRSH_PARTIAL_DATA")!;
   let data: {
-    islands: Record<string, string>;
+    islands: Record<string, { export: string; url: string }>;
     signals: string | null;
     deserializer: string | null;
   } | null = null;
@@ -663,7 +663,8 @@ export async function applyPartials(res: Response): Promise<void> {
 
     promises.push(
       ...Array.from(Object.entries(data!.islands)).map(async (entry) => {
-        islands[entry[0]] = await import(`${entry[1]}`);
+        const mod = await import(`${entry[1].url}`);
+        islands[entry[0]] = mod[entry[1].export];
       }),
     );
   }
