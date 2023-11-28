@@ -93,9 +93,8 @@ export default {
 + node_modules/
 ```
 
-7. Set up
-   [Ahead of Time builds](http://localhost:8000/docs/canary/concepts/ahead-of-time-builds)
-   if you haven't already.
+7. Set up [Ahead of Time builds](/docs/concepts/ahead-of-time-builds) if you
+   haven't already.
 
 That's it! Now you can use Tailwind CSS in your project.
 
