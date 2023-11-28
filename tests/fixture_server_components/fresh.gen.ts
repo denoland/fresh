@@ -9,8 +9,8 @@ import * as $index from "./routes/index.tsx";
 import * as $island from "./routes/island.tsx";
 import * as $response from "./routes/response.tsx";
 import * as $twind from "./routes/twind.tsx";
-import * as $$FooIsland from "./islands/FooIsland.tsx";
-import { Manifest } from "$fresh/server.ts";
+import * as $FooIsland from "./islands/FooIsland.tsx";
+import { type Manifest } from "$fresh/server.ts";
 
 const manifest = {
   routes: {
@@ -23,7 +23,7 @@ const manifest = {
     "./routes/twind.tsx": $twind,
   },
   islands: {
-    "./islands/FooIsland.tsx": $$FooIsland,
+    "./islands/FooIsland.tsx": $FooIsland,
   },
   baseUrl: import.meta.url,
 } satisfies Manifest;

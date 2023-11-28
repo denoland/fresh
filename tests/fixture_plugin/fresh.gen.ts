@@ -6,8 +6,8 @@ import * as $lots_of_middleware_index from "./routes/lots-of-middleware/index.ts
 import * as $static from "./routes/static.tsx";
 import * as $test from "./routes/test.tsx";
 import * as $with_island from "./routes/with-island.tsx";
-import * as $$Island from "./islands/Island.tsx";
-import { Manifest } from "$fresh/server.ts";
+import * as $Island from "./islands/Island.tsx";
+import { type Manifest } from "$fresh/server.ts";
 
 const manifest = {
   routes: {
@@ -17,7 +17,7 @@ const manifest = {
     "./routes/with-island.tsx": $with_island,
   },
   islands: {
-    "./islands/Island.tsx": $$Island,
+    "./islands/Island.tsx": $Island,
   },
   baseUrl: import.meta.url,
 } satisfies Manifest;

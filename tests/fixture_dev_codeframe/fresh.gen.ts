@@ -5,7 +5,7 @@
 import * as $_500 from "./routes/_500.tsx";
 import * as $index from "./routes/index.tsx";
 
-import { Manifest } from "$fresh/server.ts";
+import { type Manifest } from "$fresh/server.ts";
 
 const manifest = {
   routes: {
