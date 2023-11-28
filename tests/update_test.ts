@@ -1,11 +1,11 @@
-import * as path from "$std/path/mod.ts";
-import { DenoConfig } from "$fresh/server.ts";
+import { DenoConfig } from "../server.ts";
 import {
   assertEquals,
   assertExists,
   assertMatch,
   assertRejects,
   assertStringIncludes,
+  join,
   JSONC,
   retry,
 } from "./deps.ts";
@@ -16,7 +16,7 @@ async function updateAndVerify(cwd: string | URL, expected: RegExp) {
       "run",
       "-A",
       "--no-config",
-      path.join(Deno.cwd(), "update.ts"),
+      join(Deno.cwd(), "update.ts"),
       ".",
     ],
     cwd,
@@ -42,7 +42,7 @@ async function initProject() {
       "run",
       "-A",
       "--no-config",
-      path.join(Deno.cwd(), "init.ts"),
+      join(Deno.cwd(), "init.ts"),
       ".",
     ],
     cwd: tmpDirName,
@@ -70,7 +70,7 @@ Deno.test("fresh-update", async function fn(t) {
   await executeUpdateCommand(t, tmpDirName);
 
   await t.step("check deno.json", async () => {
-    const configPath = path.join(tmpDirName, "deno.json");
+    const configPath = join(tmpDirName, "deno.json");
     const json = JSONC.parse(await Deno.readTextFile(configPath)) as DenoConfig;
 
     assertExists(json.tasks?.start, "Missing 'start' task");
@@ -118,8 +118,8 @@ Deno.test("fresh-update", async function fn(t) {
       Deno.mkdirSync(tmpDirName + "/src");
       names.forEach((x) => {
         Deno.renameSync(
-          path.join(tmpDirName, x),
-          path.join(tmpDirName, "src", x),
+          join(tmpDirName, x),
+          join(tmpDirName, "src", x),
         );
       });
       await updateAndVerify(
@@ -129,8 +129,8 @@ Deno.test("fresh-update", async function fn(t) {
     } finally {
       names.forEach((x) => {
         Deno.renameSync(
-          path.join(tmpDirName, "src", x),
-          path.join(tmpDirName, x),
+          join(tmpDirName, "src", x),
+          join(tmpDirName, x),
         );
       });
       Deno.removeSync(tmpDirName + "/src", { recursive: true });
@@ -139,7 +139,7 @@ Deno.test("fresh-update", async function fn(t) {
 
   await t.step("execute update command (no islands directory)", async () => {
     await retry(() =>
-      Deno.remove(path.join(tmpDirName, "islands"), { recursive: true })
+      Deno.remove(join(tmpDirName, "islands"), { recursive: true })
     );
     await updateAndVerify(
       tmpDirName,
@@ -154,7 +154,7 @@ Deno.test("fresh-update add _app.tsx if not present", async function fn(t) {
   // Preparation
   const tmpDirName = await initProject();
 
-  const appTsx = path.join(tmpDirName, "routes", "_app.tsx");
+  const appTsx = join(tmpDirName, "routes", "_app.tsx");
   await Deno.remove(appTsx);
 
   await executeUpdateCommand(t, tmpDirName);
@@ -171,7 +171,7 @@ Deno.test(
     // Preparation
     const tmpDirName = await initProject();
 
-    const gitignore = path.join(tmpDirName, ".gitignore");
+    const gitignore = join(tmpDirName, ".gitignore");
     await Deno.writeTextFile(gitignore, ""); // clear .gitignore
 
     await executeUpdateCommand(t, tmpDirName);
@@ -189,7 +189,7 @@ Deno.test(
     // Preparation
     const tmpDirName = await initProject();
 
-    const gitignore = path.join(tmpDirName, ".gitignore");
+    const gitignore = join(tmpDirName, ".gitignore");
     await Deno.writeTextFile(gitignore, "_fresh");
 
     await executeUpdateCommand(t, tmpDirName);
@@ -209,7 +209,7 @@ Deno.test(
     // Preparation
     const tmpDirName = await initProject();
 
-    const gitignore = path.join(tmpDirName, ".gitignore");
+    const gitignore = join(tmpDirName, ".gitignore");
     await Deno.remove(gitignore);
 
     await executeUpdateCommand(t, tmpDirName);
@@ -230,7 +230,7 @@ Deno.test(
   async (t) => {
     // Preparation
     const tmpDirName = await initProject();
-    const denoJsonFile = path.join(tmpDirName, "deno.json");
+    const denoJsonFile = join(tmpDirName, "deno.json");
     const denoJson = JSON.parse(await Deno.readTextFile(denoJsonFile));
     delete denoJson.exclude;
     if (!denoJson.fmt) denoJson.fmt = {};

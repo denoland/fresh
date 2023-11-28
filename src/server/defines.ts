@@ -1,5 +1,6 @@
 import { ComponentChildren } from "preact";
 import {
+  AppContext,
   AsyncLayout,
   AsyncRoute,
   FreshConfig,
@@ -7,7 +8,6 @@ import {
   RouteContext,
 } from "./types.ts";
 import { checkAsyncComponent } from "./render.ts";
-import { AppContext } from "$fresh/server.ts";
 
 export function defineConfig(config: FreshConfig): FreshConfig {
   return config;

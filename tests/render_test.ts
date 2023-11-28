@@ -3,9 +3,9 @@ import {
   assertTextMany,
   parseHtml,
   withFakeServe,
-} from "$fresh/tests/test_utils.ts";
+} from "./test_utils.ts";
 import { assertEquals } from "./deps.ts";
-import { createHandler } from "$fresh/server.ts";
+import { createHandler } from "../server.ts";
 import manifest from "./fixture/fresh.gen.ts";
 import config from "./fixture/fresh.config.ts";
 

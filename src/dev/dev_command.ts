@@ -5,7 +5,7 @@ import { build } from "./build.ts";
 import { collect, ensureMinDenoVersion, generate, Manifest } from "./mod.ts";
 import { startServer } from "../server/boot.ts";
 import { getInternalFreshState } from "../server/config.ts";
-import { getServerContext } from "$fresh/src/server/context.ts";
+import { getServerContext } from "../server/context.ts";
 
 export async function dev(
   base: string,
