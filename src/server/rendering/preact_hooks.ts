@@ -11,7 +11,7 @@ import {
 } from "preact";
 import { assetHashingHook } from "../../runtime/utils.ts";
 import { Partial, PartialProps } from "../../runtime/Partial.tsx";
-import { renderToString } from "../deps.ts";
+import { join, renderToString, SEP } from "../deps.ts";
 import { RenderState } from "./state.ts";
 import { Island } from "../types.ts";
 import {
@@ -21,6 +21,7 @@ import {
   PartialMode,
 } from "../../constants.ts";
 import { setActiveUrl } from "../../runtime/active_url.ts";
+import { withBase } from "../router.ts";
 
 // See: https://github.com/preactjs/preact/blob/7748dcb83cedd02e37b3713634e35b97b26028fd/src/internal.d.ts#L3C1-L16
 enum HookType {
@@ -206,6 +207,46 @@ options.vnode = (vnode) => {
 
     if (typeof props[CLIENT_NAV_ATTR] === "boolean") {
       props[CLIENT_NAV_ATTR] = props[CLIENT_NAV_ATTR] ? "true" : "false";
+    }
+
+    if (typeof props.href === "string") {
+      props.href = withBase(props.href, current?.basePath);
+    }
+
+    if (typeof props.src === "string") {
+      props.src = withBase(props.src, current?.basePath);
+    }
+
+    srcsetRewrite:
+    if (typeof props.srcset === "string") {
+      // Bail out on complex syntax that's too complicated for now
+      if (props.srcset.includes("(")) break srcsetRewrite;
+
+      const parts = props.srcset.split(",");
+      const out: string[] = [];
+      for (const part of parts) {
+        const trimmed = part.trimStart();
+        if (trimmed === "") break srcsetRewrite;
+
+        let urlEnd = trimmed.indexOf(" ");
+        if (urlEnd === -1) urlEnd = trimmed.length;
+
+        const leadingWhitespace = part.length - trimmed.length;
+        const leading = part.substring(0, leadingWhitespace);
+        const url = trimmed.substring(0, urlEnd);
+        const trailing = trimmed.substring(urlEnd);
+
+        if (url.startsWith("/") && current?.basePath) {
+          const joinedPath = join("/", current.basePath, url).replaceAll(
+            SEP,
+            "/",
+          );
+          out.push(leading + joinedPath + trailing);
+        } else {
+          out.push(part);
+        }
+      }
+      props.srcset = out.join(",");
     }
   } else if (
     current && typeof vnode.type === "function" && vnode.type !== Fragment &&

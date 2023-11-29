@@ -55,7 +55,10 @@ export async function dev(
     state.config.dev = true;
     state.loadSnapshot = false;
     const ctx = await getServerContext(state);
-    await startServer(ctx.handler(), state.config.server);
+    await startServer(ctx.handler(), {
+      ...state.config.server,
+      basePath: state.config.basePath,
+    });
   } else {
     // Legacy entry point: Back then `dev.ts` would call `main.ts` but
     // this causes duplicate plugin instantiation if both `dev.ts` and

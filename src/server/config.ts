@@ -57,6 +57,27 @@ export async function getInternalFreshState(
 
   const isLegacyDev = Deno.env.get("__FRSH_LEGACY_DEV") === "true";
 
+  /**
+   * assume a basePath is declared like this:
+   * basePath: "/foo/bar"
+   * it must start with a slash, and not have a trailing slash
+   */
+
+  let basePath = "";
+  if (config.router?.basePath) {
+    basePath = config.router?.basePath;
+    if (!basePath.startsWith("/")) {
+      throw new TypeError(
+        `"basePath" option must start with "/". Received: "${basePath}"`,
+      );
+    }
+    if (basePath.endsWith("/")) {
+      throw new TypeError(
+        `"basePath" option must not end with "/". Received: "${basePath}"`,
+      );
+    }
+  }
+
   const internalConfig: ResolvedFreshConfig = {
     dev: isLegacyDev || Boolean(config.dev),
     build: {
@@ -72,6 +93,7 @@ export async function getInternalFreshState(
     render: config.render ?? DEFAULT_RENDER_FN,
     router: config.router,
     server: config.server ?? {},
+    basePath,
   };
 
   if (config.cert) {

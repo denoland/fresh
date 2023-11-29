@@ -44,3 +44,5 @@ export {
 } from "https://deno.land/std@0.208.0/path/mod.ts";
 export * as JSONC from "https://deno.land/std@0.208.0/jsonc/mod.ts";
 export * as colors from "https://deno.land/std@0.208.0/fmt/colors.ts";
+export { STATUS_CODE } from "https://deno.land/std@0.208.0/http/status.ts";
+export { stripAnsiCode } from "https://deno.land/std@0.208.0/fmt/colors.ts";

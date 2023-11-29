@@ -6,6 +6,7 @@ export {
   fromFileUrl,
   isAbsolute,
   join,
+  SEP,
   toFileUrl,
 } from "https://deno.land/std@0.208.0/path/mod.ts";
 export { walk } from "https://deno.land/std@0.208.0/fs/walk.ts";
@@ -26,4 +27,9 @@ export {
   assertEquals,
   assertThrows,
 } from "https://deno.land/std@0.208.0/assert/mod.ts";
+export {
+  isIdentifierChar,
+  isIdentifierStart,
+} from "https://esm.sh/@babel/helper-validator-identifier@7.22.20";
+export { normalize } from "https://deno.land/std@0.208.0/path/posix/mod.ts";
 export { assertSnapshot } from "https://deno.land/std@0.208.0/testing/snapshot.ts";
