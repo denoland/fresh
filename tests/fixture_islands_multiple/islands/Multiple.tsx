@@ -1,5 +1,7 @@
 import { useSignal } from "@preact/signals";
 
+export const thisShouldNotCauseProblems = 42;
+
 export function Multiple1() {
   const sig = useSignal(0);
   return (

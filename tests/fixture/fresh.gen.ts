@@ -199,7 +199,11 @@ const manifest = {
     "./islands/FormIsland.tsx": $FormIsland,
     "./islands/Greeter.tsx": $Greeter,
     "./islands/HookIsland.tsx": $HookIsland,
-    "./islands/MultipleCounters.tsx": $MultipleCounters,
+    "./islands/MultipleCounters.tsx": {
+      CounterOne: $MultipleCounters.CounterOne,
+      CounterTwo: $MultipleCounters.CounterTwo,
+      default: $MultipleCounters.default,
+    },
     "./islands/ReturningNull.tsx": $ReturningNull,
     "./islands/RootFragment.tsx": $RootFragment,
     "./islands/RootFragmentWithConditionalFirst.tsx":
