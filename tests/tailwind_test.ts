@@ -1,11 +1,15 @@
 import { runBuild, withFakeServe } from "./test_utils.ts";
-import { assertStringIncludes } from "./deps.ts";
+import { assert, assertStringIncludes } from "./deps.ts";
 
 Deno.test("TailwindCSS - dev mode", async () => {
   await withFakeServe("./tests/fixture_tailwind/dev.ts", async (server) => {
     const res = await server.get("/styles.css");
     const content = await res.text();
     assertStringIncludes(content, ".text-red-600");
+
+    const res2 = await server.get("/styles.css?foo=bar");
+    const content2 = await res2.text();
+    assert(!content2.includes("@tailwind"));
   }, { loadConfig: true });
 });
 
