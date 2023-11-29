@@ -39,9 +39,17 @@ const USE_TAILWIND_MESSAGE =
 const USE_VSCODE_MESSAGE = "Do you use VS Code?";
 
 const flags = parse(Deno.args, {
-  boolean: ["force", "tailwind", "vscode", "docker"],
+  boolean: ["force", "tailwind", "vscode", "docker", "help"],
   default: { "force": null, "tailwind": null, "vscode": null, "docker": null },
+  alias: {
+    help: "h",
+  },
 });
+
+if (flags.help) {
+  console.log(help);
+  Deno.exit(0);
+}
 
 console.log();
 console.log(

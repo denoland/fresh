@@ -13,6 +13,7 @@ import {
   assertTextMany,
   clickWhenListenerReady,
   fetchHtml,
+  getStdOutput,
   startFreshServer,
   waitForText,
 } from "./test_utils.ts";
@@ -453,4 +454,44 @@ Deno.test({
 
     await retry(() => Deno.remove(tmpDirName, { recursive: true }));
   },
+});
+
+Deno.test("init - show help screen", async (t) => {
+  await t.step("--help", async () => {
+    const output1 = await new Deno.Command(Deno.execPath(), {
+      args: [
+        "run",
+        "-A",
+        "--no-config",
+        "init.ts",
+        "--help",
+      ],
+      stdin: "null",
+      stdout: "piped",
+      stderr: "piped",
+    }).output();
+
+    assertEquals(output1.code, 0);
+    const { stdout } = getStdOutput(output1);
+    assertStringIncludes(stdout, "Initialize a new Fresh project");
+  });
+
+  await t.step("-h", async () => {
+    const output1 = await new Deno.Command(Deno.execPath(), {
+      args: [
+        "run",
+        "-A",
+        "--no-config",
+        "init.ts",
+        "-h",
+      ],
+      stdin: "null",
+      stdout: "piped",
+      stderr: "piped",
+    }).output();
+
+    assertEquals(output1.code, 0);
+    const { stdout } = getStdOutput(output1);
+    assertStringIncludes(stdout, "Initialize a new Fresh project");
+  });
 });
