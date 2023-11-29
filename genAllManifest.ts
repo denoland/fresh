@@ -1,6 +1,5 @@
 import { walk } from "./src/dev/deps.ts";
-import { generate } from "./src/dev/manifest.ts";
-import { collect } from "./src/dev/mod.ts";
+import { manifest } from "./src/dev/mod.ts";
 import type { FreshConfig } from "./src/server/mod.ts";
 import $ from "https://deno.land/x/dax@0.35.0/mod.ts";
 
@@ -31,13 +30,7 @@ async function runGenerateInFixtures() {
           config = {};
         }
 
-        // Collect new manifest
-        const newManifest = await collect(
-          entry.path,
-          config.router?.ignoreFilePattern,
-        );
-
-        await generate(entry.path, newManifest);
+        await manifest(entry.path, config.router?.ignoreFilePattern);
         console.log(`Manifest generated successfully in ${entry.path}\n`);
       } catch (error) {
         console.error(`Failed to process ${entry.path}:`, error);

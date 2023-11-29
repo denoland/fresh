@@ -200,9 +200,9 @@ const manifest = {
     "./islands/Greeter.tsx": $Greeter,
     "./islands/HookIsland.tsx": $HookIsland,
     "./islands/MultipleCounters.tsx": {
+      default: $MultipleCounters.default,
       CounterOne: $MultipleCounters.CounterOne,
       CounterTwo: $MultipleCounters.CounterTwo,
-      default: $MultipleCounters.default,
     },
     "./islands/ReturningNull.tsx": $ReturningNull,
     "./islands/RootFragment.tsx": $RootFragment,

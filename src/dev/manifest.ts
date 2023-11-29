@@ -2,7 +2,7 @@ import {
   isIdentifierChar,
   isIdentifierStart,
 } from "../server/init_safe_deps.ts";
-import { extname, join, normalize } from "./deps.ts";
+import { extname, join, normalize, Project, SyntaxKind } from "./deps.ts";
 
 /**
  * Import specifiers must have forward slashes
@@ -80,11 +80,17 @@ export async function generate(directory: string, manifest: Manifest) {
     identifier: string;
     importLine: string;
   }[] = [];
+  const project = new Project();
   for (let i = 0; i < islands.length; i++) {
     const file = islands[i];
     const specifier = toImportSpecifier(file);
     const identifier = specifierToIdentifier(specifier, used);
-    const importLine = await islandImportLine(specifier, identifier, directory);
+    const importLine = islandImportLine(
+      specifier,
+      identifier,
+      directory,
+      project,
+    );
     normalizedIslands.push({ specifier, identifier, importLine });
   }
 
@@ -156,27 +162,32 @@ export default manifest;
   );
 }
 
-async function islandImportLine(
+function islandImportLine(
   specifier: string,
   identifier: string,
   directory: string,
-): Promise<string> {
-  const moduleURL = new URL(`file://${directory}/${specifier}`);
-  const module = await import(moduleURL.href);
-  const entries = Object.entries(module);
+  project: Project,
+): string {
+  const filePath = join(directory, specifier);
+  const mainFile = project.addSourceFileAtPath(filePath);
 
-  const allExportsAreComponents = entries.every(
-    ([, exportedEntity]) => typeof exportedEntity === "function",
+  const exportDeclarations = Array.from(mainFile.getExportedDeclarations())
+    .filter(([_, decls]) =>
+      decls.some((d) => d.getKind() !== SyntaxKind.InterfaceDeclaration)
+    );
+
+  const allExportsAreComponents = exportDeclarations.every(([_, decls]) =>
+    decls.some((d) => d.getKindName() === "FunctionDeclaration")
   );
 
-  // if all exports are components, we can use the simple, existing form
   if (allExportsAreComponents) {
     return `$${identifier}`;
   }
 
-  // if not all exports are components, list the component exports explicitly
-  const componentExports = entries
-    .filter(([, exportedEntity]) => typeof exportedEntity === "function")
+  const componentExports = exportDeclarations
+    .filter(([_, decls]) =>
+      decls.some((d) => d.getKindName() === "FunctionDeclaration")
+    )
     .map(([exportName]) => exportName);
 
   const exportsString = componentExports
