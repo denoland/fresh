@@ -20,6 +20,7 @@ import { renderHtml, renderOuterDocument } from "./rendering/template.tsx";
 import { renderFreshTags } from "./rendering/fresh_tags.tsx";
 import { DEV_ERROR_OVERLAY_URL } from "./constants.ts";
 import { colors } from "./deps.ts";
+import { withBase } from "./router.ts";
 
 export const DEFAULT_RENDER_FN: RenderFunction = (_ctx, render) => {
   render();
@@ -43,6 +44,7 @@ export interface RenderOptions<Data> {
   error?: unknown;
   codeFrame?: string;
   lang?: string;
+  basePath: string;
 }
 
 export type InnerRenderFunction = () => string;
@@ -256,6 +258,7 @@ export async function render<Data>(
       data: opts.data,
       state: opts.state,
       params: opts.params,
+      basePath: opts.basePath,
     },
     componentStack,
     csp,
@@ -367,8 +370,9 @@ export async function render<Data>(
   });
 
   // Append error overlay
-  if (opts.error !== undefined && opts.url.pathname !== DEV_ERROR_OVERLAY_URL) {
-    const url = new URL(DEV_ERROR_OVERLAY_URL, "https://localhost/");
+  const devErrorUrl = withBase(DEV_ERROR_OVERLAY_URL, opts.basePath);
+  if (opts.error !== undefined && opts.url.pathname !== devErrorUrl) {
+    const url = new URL(devErrorUrl, "https://localhost/");
     if (opts.error instanceof Error) {
       let message = opts.error.message;
       const idx = message.indexOf("\n");
