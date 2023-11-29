@@ -85,12 +85,12 @@ export default function tailwind(): Plugin {
       handler: async (req, ctx) => {
         const pathname = new URL(req.url).pathname;
 
-        if (req.url.endsWith(".css.map")) {
+        if (pathname.endsWith(".css.map")) {
           const cached = cache.get(pathname);
           if (cached) return Response.json(cached.map);
         }
 
-        if (!req.url.endsWith(".css") || !processor) {
+        if (!pathname.endsWith(".css") || !processor) {
           return ctx.next();
         }
 
