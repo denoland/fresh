@@ -97,7 +97,7 @@ export function TableOfContents({ headings }: TableOfContentsProps) {
     >
       {headings.length > 0 && (
         <>
-          <div class="xl:hidden mx-4 md:mx-0 mt-4">
+          <div class="xl:hidden mx-4 md:mx-0 mt-4 md:mt-0">
             <button
               id="toc-outline-btn"
               onClick={() => setIsOpen((v) => !v)}
