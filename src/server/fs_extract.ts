@@ -25,7 +25,9 @@ import {
   contentType,
   dirname,
   extname,
+  fromFileUrl,
   join,
+  rsModuleLexer,
   toFileUrl,
   walk,
 } from "./deps.ts";
@@ -60,6 +62,8 @@ const DEFAULT_ERROR: ErrorPage = {
   appWrapper: true,
   inheritLayouts: true,
 };
+
+export type ModuleGraph = Map<string, { imports: any[]; exports: any[] }>;
 
 export interface FsExtractResult {
   app: AppModule;
@@ -301,6 +305,9 @@ export async function extractRoutes(
     }
   }
 
+  // Case: `import { MyIsland } from "https://example.com" with { fresh: "island" }
+  const moduleGraph = await buildModuleGraph(routes, islands);
+
   const staticFiles: StaticFile[] = [];
   try {
     const outDirStatic = join(config.build.outDir, "static");
@@ -354,6 +361,47 @@ export async function extractRoutes(
     routes,
     staticFiles,
   };
+}
+
+async function buildModuleGraph(
+  routes: Route[],
+  islands: Island[],
+): Promise<ModuleGraph> {
+  const moduleGraph: ModuleGraph = new Map();
+  const seen = new Set<string>();
+
+  const stack = routes.map((r) => r.url);
+  let item;
+  while ((item = stack.pop()) !== undefined) {
+    if (seen.has(item)) continue;
+    seen.add(item);
+
+    const text = await Deno.readTextFile(fromFileUrl(item));
+    const results = await rsModuleLexer.parseAsync({
+      input: [{
+        code: text,
+        filename: item,
+      }],
+    });
+
+    for (let j = 0; j < results.output.length; j++) {
+      const result = results.output[j];
+
+      for (let k = 0; k < result.imports.length; k++) {
+        const im = result.imports[k];
+
+        // Check if the import has an import attribute
+        if (im.a > -1) {
+          console.log(item, result);
+        }
+      }
+    }
+  }
+
+  // console.log(routes);
+  // console.log(rsModuleLexer);
+
+  return moduleGraph;
 }
 
 const APP_REG = /_app\.[tj]sx?$/;
