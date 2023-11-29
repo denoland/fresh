@@ -128,6 +128,7 @@ export interface ResolvedFreshConfig {
   staticDir: string;
   router?: RouterOptions;
   server: Partial<Deno.ServeTlsOptions>;
+  basePath: string;
 }
 
 export interface RouterOptions {

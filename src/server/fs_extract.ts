@@ -107,8 +107,10 @@ export async function extractRoutes(
       throw new TypeError("Page is not a child of the basepath.");
     }
     const path = url.substring(baseUrl.length + "routes".length);
-    const baseRoute = path.substring(1, path.length - extname(path).length);
-    const name = baseRoute.replace("/", "-");
+    let baseRoute = path.substring(1, path.length - extname(path).length);
+    baseRoute = join(state.config.basePath.slice(1), baseRoute);
+    // const name = baseRoute.replace("/", "-");
+    const name = baseRoute.replace(/\//g, "-");
     const isLayout = path.endsWith("/_layout.tsx") ||
       path.endsWith("/_layout.ts") || path.endsWith("/_layout.jsx") ||
       path.endsWith("/_layout.js");
@@ -328,7 +330,7 @@ export async function extractRoutes(
         );
         const staticFile: StaticFile = {
           localUrl,
-          path,
+          path: join(state.config.basePath, path),
           size: stat.size,
           contentType: type,
           etag,

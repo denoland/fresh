@@ -3,7 +3,7 @@ import { ServeHandler } from "./types.ts";
 
 export async function startServer(
   handler: Deno.ServeHandler,
-  opts: Partial<Deno.ServeTlsOptions>,
+  opts: Partial<Deno.ServeTlsOptions> & { basePath: string },
 ) {
   if (!opts.onListen) {
     opts.onListen = (params) => {
@@ -12,7 +12,7 @@ export async function startServer(
         colors.bgRgb8(colors.rgb8(" 🍋 Fresh ready ", 0), 121),
       );
 
-      // const pathname = ctx.basePath ?? "/";
+      const pathname = opts.basePath + "/";
       const address = colors.cyan(`http://localhost:${params.port}${pathname}`);
       const localLabel = colors.bold("Local:");
       console.log(`    ${localLabel} ${address}\n`);

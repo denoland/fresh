@@ -235,7 +235,6 @@ export async function withPageName(
     }
   } finally {
     serverProcess.kill("SIGTERM");
-
     // Wait until the process exits
     await serverProcess.status;
 
@@ -484,7 +483,7 @@ async function spawnServer(
   for await (const line of lines.values({ preventCancel: true })) {
     output.push(line);
     const match = line.match(
-      /https?:\/\/localhost:\d+[\/\w_-]*/g,
+      /https?:\/\/localhost:\d+(\/\w+[-\w]*)*/g,
     );
     if (match) {
       address = match[0];

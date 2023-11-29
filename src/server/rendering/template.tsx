@@ -11,6 +11,7 @@ import {
 } from "preact";
 import { HEAD_CONTEXT } from "../../runtime/head.ts";
 import { CSP_CONTEXT } from "../../runtime/csp.ts";
+import { withBase } from "$fresh/src/server/router.ts";
 
 export function renderHtml(state: RenderState) {
   setRenderState(state);
@@ -121,10 +122,14 @@ export function renderOuterDocument(
       docTitle,
       docHeadNodes.map((node) => h(node.type, node.props)),
       opts.preloads.map((src) =>
-        h("link", { rel: "modulepreload", href: src })
+        h("link", { rel: "modulepreload", href: withBase(src, state.basePath) })
       ),
       opts.moduleScripts.map(([src, nonce]) =>
-        h("script", { src: src, nonce, type: "module" })
+        h("script", {
+          src: withBase(src, state.basePath),
+          nonce,
+          type: "module",
+        })
       ),
       filteredHeadNodes,
     ),

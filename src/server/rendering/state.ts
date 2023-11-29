@@ -12,6 +12,7 @@ export interface RenderStateRouteOptions {
   state?: any;
   error?: unknown;
   params: Record<string, string | string[]>;
+  basePath: string;
 }
 
 export class RenderState {
@@ -44,6 +45,7 @@ export class RenderState {
   partialDepth = 0;
   islandDepth = 0;
   url: URL;
+  basePath: string;
 
   constructor(
     routeOptions: RenderStateRouteOptions,
@@ -57,6 +59,7 @@ export class RenderState {
     this.componentStack = componentStack;
     this.url = routeOptions.url;
     this.isPartial = routeOptions.url.searchParams.has(PARTIAL_SEARCH_PARAM);
+    this.basePath = routeOptions.basePath;
 
     if (error) this.routeOptions.error = error;
   }

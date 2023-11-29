@@ -20,6 +20,7 @@ export interface EsbuildBuilderOptions {
   jsxImportSource?: string;
   target: string | string[];
   absoluteWorkingDir: string;
+  basePath?: string;
 }
 
 export class EsbuildBuilder implements Builder {
@@ -94,6 +95,7 @@ export class EsbuildBuilder implements Builder {
         metafile: true,
 
         plugins: [
+          devClientUrlPlugin(opts.basePath),
           buildIdPlugin(opts.buildID),
           ...denoPlugins({ configPath: opts.configPath }),
         ],
@@ -126,6 +128,32 @@ export class EsbuildBuilder implements Builder {
       esbuild.stop();
     }
   }
+}
+
+function devClientUrlPlugin(basePath?: string): Plugin {
+  return {
+    name: "dev-client-url",
+    setup(build) {
+      build.onLoad(
+        { filter: /client\.ts$/, namespace: "file" },
+        async (args) => {
+          // Load the original script
+          const contents = await Deno.readTextFile(args.path);
+
+          // Replace the URL
+          const modifiedContents = contents.replace(
+            "/_frsh/alive",
+            `${basePath}/_frsh/alive`,
+          );
+
+          return {
+            contents: modifiedContents,
+            loader: "ts",
+          };
+        },
+      );
+    },
+  };
 }
 
 function buildIdPlugin(buildId: string): Plugin {

@@ -1,7 +1,12 @@
 import { contentType, extname, STATUS_CODE } from "./deps.ts";
 import * as router from "./router.ts";
 import { FreshConfig, Manifest, UnknownHandlerContext } from "./mod.ts";
-import { ALIVE_URL, DEV_CLIENT_URL, JS_PREFIX } from "./constants.ts";
+import {
+  ALIVE_URL,
+  DEV_CLIENT_URL,
+  DEV_ERROR_OVERLAY_URL,
+  JS_PREFIX,
+} from "./constants.ts";
 import { BUILD_ID } from "./build_id.ts";
 
 import {
@@ -38,6 +43,7 @@ import {
 import { extractRoutes, FsExtractResult } from "./fs_extract.ts";
 import { loadAotSnapshot } from "../build/aot_snapshot.ts";
 import { ErrorOverlay } from "./error_overlay.tsx";
+import { withBase } from "./router.ts";
 
 const DEFAULT_CONN_INFO: ServeHandlerInfo = {
   localAddr: { transport: "tcp", hostname: "localhost", port: 8080 },
@@ -90,6 +96,7 @@ export async function getServerContext(state: InternalFreshState) {
     jsxImportSource: denoJson.compilerOptions?.jsxImportSource,
     target: state.config.build.target,
     absoluteWorkingDir: Deno.cwd(),
+    basePath: state.config.basePath,
   });
 
   return new ServerContext(
@@ -140,12 +147,14 @@ export class ServerContext {
    * by Fresh, including static files.
    */
   handler(): (req: Request, connInfo?: ServeHandlerInfo) => Promise<Response> {
+    const basePath = this.#state.config.basePath;
     const renderNotFound = createRenderNotFound(
       this.#extractResult,
       this.#dev,
       this.#plugins,
       this.#renderFn,
       this.#maybeBuildSnapshot(),
+      basePath,
     );
     const handlers = this.#handlers(renderNotFound);
     const inner = router.router<RouterState>(handlers);
@@ -154,6 +163,7 @@ export class ServerContext {
       handlers.errorHandler,
       router.getParamsAndRoute<RouterState>(handlers),
       renderNotFound,
+      basePath,
     );
     const trailingSlashEnabled = this.#state.config.router?.trailingSlash;
     const isDev = this.#dev;
@@ -172,9 +182,11 @@ export class ServerContext {
     ) {
       const url = new URL(req.url);
 
+      const aliveUrl = basePath + ALIVE_URL;
+
       if (isDev) {
         // Live reload: Send updates to browser
-        if (url.pathname === ALIVE_URL) {
+        if (url.pathname === aliveUrl) {
           if (req.headers.get("upgrade") !== "websocket") {
             return new Response(null, { status: 501 });
           }
@@ -197,8 +209,8 @@ export class ServerContext {
 
           return response;
         } else if (
-          url.pathname === DEV_CLIENT_URL ||
-          url.pathname === `${DEV_CLIENT_URL}.map`
+          url.pathname === withBase(DEV_CLIENT_URL, basePath) ||
+          url.pathname === withBase(`${DEV_CLIENT_URL}.map`, basePath)
         ) {
           const bundlePath = (url.pathname.endsWith(".map"))
             ? "fresh_dev_client.js.map"
@@ -234,6 +246,12 @@ export class ServerContext {
           url.pathname += "/";
           return Response.redirect(url, STATUS_CODE.PermanentRedirect);
         }
+      }
+
+      // Redirect to base path if not present in url
+      if (basePath && !url.pathname.startsWith(basePath)) {
+        const to = new URL(basePath + url.pathname, url.origin);
+        return Response.redirect(to, 302);
       }
 
       return await withMiddlewares(req, connInfo, inner);
@@ -280,10 +298,12 @@ export class ServerContext {
     const staticRoutes: router.Routes<RouterState> = {};
     const routes: router.Routes<RouterState> = {};
 
-    internalRoutes[`${INTERNAL_PREFIX}${JS_PREFIX}/${BUILD_ID}/:path*`] = {
-      baseRoute: toBaseRoute(
-        `${INTERNAL_PREFIX}${JS_PREFIX}/${BUILD_ID}/:path*`,
-      ),
+    const assetRoute = withBase(
+      `${INTERNAL_PREFIX}${JS_PREFIX}/${BUILD_ID}/:path*`,
+      this.#state.config.basePath,
+    );
+    internalRoutes[assetRoute] = {
+      baseRoute: toBaseRoute(assetRoute),
       methods: {
         default: this.#bundleAssetRoute(),
       },
@@ -329,7 +349,7 @@ export class ServerContext {
       status: number,
     ) => {
       const imports: string[] = [];
-      if (this.#dev) imports.push(DEV_CLIENT_URL);
+      if (this.#dev) imports.push(this.#state.config.basePath + DEV_CLIENT_URL);
       return (
         req: Request,
         params: Record<string, string>,
@@ -368,6 +388,7 @@ export class ServerContext {
             state: ctx?.state,
             error,
             codeFrame,
+            basePath: this.#state.config.basePath,
           });
 
           if (resp instanceof Response) {
@@ -403,6 +424,7 @@ export class ServerContext {
                 async renderNotFound<Data = undefined>(data: Data) {
                   return await renderNotFound(req, params, ctx, data);
                 },
+                basePath: this.#state.config.basePath,
               }),
           },
         };
@@ -424,6 +446,7 @@ export class ServerContext {
               async renderNotFound<Data = undefined>(data: Data) {
                 return await renderNotFound(req, params, ctx, data);
               },
+              basePath: this.#state.config.basePath,
             });
         }
       }
@@ -478,8 +501,12 @@ export class ServerContext {
     };
 
     if (this.#dev) {
-      const baseRoute = toBaseRoute("/_frsh/error_overlay");
-      internalRoutes["/_frsh/error_overlay"] = {
+      const devErrorUrl = withBase(
+        DEV_ERROR_OVERLAY_URL,
+        this.#state.config.basePath,
+      );
+      const baseRoute = toBaseRoute(devErrorUrl);
+      internalRoutes[devErrorUrl] = {
         baseRoute,
         methods: {
           default: async (req, ctx) => {
@@ -513,6 +540,7 @@ export class ServerContext {
               },
               error: null,
               codeFrame: undefined,
+              basePath: this.#state.config.basePath,
             });
 
             if (resp instanceof Response) {
@@ -607,6 +635,7 @@ const createRenderNotFound = (
   plugins: Plugin<Record<string, unknown>>[],
   renderFunction: RenderFunction,
   buildSnapshot: BuildSnapshot | null,
+  basePath: string,
 ) => {
   const dependenciesFn = (path: string) => {
     const snapshot = buildSnapshot;
@@ -648,6 +677,7 @@ const createRenderNotFound = (
       data,
       state: ctx?.state,
       error,
+      basePath,
     });
 
     if (resp instanceof Response) {

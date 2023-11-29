@@ -58,6 +58,7 @@ export function composeMiddlewares(
     url: string,
   ) => RouteResult<RouterState>,
   renderNotFound: UnknownRenderFunction,
+  basePath: string,
 ) {
   return (
     req: Request,
@@ -109,6 +110,7 @@ export function composeMiddlewares(
         return await renderNotFound(req, paramsAndRouteResult.params, ctx);
       },
       isPartial: paramsAndRouteResult.isPartial,
+      basePath,
     };
 
     for (const { module } of mws) {
