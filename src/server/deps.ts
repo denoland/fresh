@@ -6,6 +6,7 @@ export {
   fromFileUrl,
   isAbsolute,
   join,
+  SEP,
   toFileUrl,
 } from "https://deno.land/std@0.208.0/path/mod.ts";
 export { walk } from "https://deno.land/std@0.208.0/fs/walk.ts";

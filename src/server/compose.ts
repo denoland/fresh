@@ -1,3 +1,4 @@
+import { SEP } from "./deps.ts";
 import { ErrorHandler, FinalHandler, RouteResult } from "./router.ts";
 import {
   BaseRoute,
@@ -11,6 +12,8 @@ import {
 export const ROOT_BASE_ROUTE = toBaseRoute("/");
 
 export function toBaseRoute(input: string): BaseRoute {
+  input = input.replaceAll(SEP, "/");
+
   if (input.endsWith("_layout")) {
     input = input.slice(0, -"_layout".length);
   } else if (input.endsWith("_middleware")) {

@@ -26,6 +26,7 @@ import {
   dirname,
   extname,
   join,
+  SEP,
   toFileUrl,
   walk,
 } from "./deps.ts";
@@ -108,8 +109,10 @@ export async function extractRoutes(
     }
     const path = url.substring(baseUrl.length + "routes".length);
     let baseRoute = path.substring(1, path.length - extname(path).length);
-    baseRoute = join(state.config.basePath.slice(1), baseRoute);
-    // const name = baseRoute.replace("/", "-");
+    baseRoute = join(state.config.basePath.slice(1), baseRoute).replaceAll(
+      SEP,
+      "/",
+    );
     const name = baseRoute.replace(/\//g, "-");
     const isLayout = path.endsWith("/_layout.tsx") ||
       path.endsWith("/_layout.ts") || path.endsWith("/_layout.jsx") ||

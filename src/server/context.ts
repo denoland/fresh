@@ -1,4 +1,4 @@
-import { contentType, extname, STATUS_CODE } from "./deps.ts";
+import { contentType, extname, SEP, STATUS_CODE } from "./deps.ts";
 import * as router from "./router.ts";
 import { FreshConfig, Manifest, UnknownHandlerContext } from "./mod.ts";
 import {
@@ -317,7 +317,7 @@ export class ServerContext {
       const { localUrl, path, size, contentType, etag } of this.#extractResult
         .staticFiles
     ) {
-      staticRoutes[path] = {
+      staticRoutes[path.replaceAll(SEP, "/")] = {
         baseRoute: toBaseRoute(path),
         methods: {
           "HEAD": this.#staticFileHandler(
