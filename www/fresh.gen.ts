@@ -18,6 +18,7 @@ import * as $CopyArea from "./islands/CopyArea.tsx";
 import * as $Counter from "./islands/Counter.tsx";
 import * as $LemonDrop from "./islands/LemonDrop.tsx";
 import * as $SearchButton from "./islands/SearchButton.tsx";
+import * as $TableOfContents from "./islands/TableOfContents.tsx";
 import * as $VersionSelect from "./islands/VersionSelect.tsx";
 import { type Manifest } from "$fresh/server.ts";
 
@@ -41,6 +42,7 @@ const manifest = {
     "./islands/Counter.tsx": $Counter,
     "./islands/LemonDrop.tsx": $LemonDrop,
     "./islands/SearchButton.tsx": $SearchButton,
+    "./islands/TableOfContents.tsx": $TableOfContents,
     "./islands/VersionSelect.tsx": $VersionSelect,
   },
   baseUrl: import.meta.url,
