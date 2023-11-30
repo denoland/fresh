@@ -55,6 +55,7 @@ export type DestinationKind = "internal" | "static" | "route" | "notFound";
 
 export type InternalRoute = {
   baseRoute: BaseRoute;
+  originalPattern: string;
   pattern: RegExp | string;
   methods: { [K in KnownMethod]?: MatchHandler };
   default?: MatchHandler;
@@ -228,6 +229,7 @@ function processRoutes(
     const entry: InternalRoute = {
       baseRoute: def.baseRoute,
       pattern,
+      originalPattern: path,
       methods: {},
       default: undefined,
       destination,

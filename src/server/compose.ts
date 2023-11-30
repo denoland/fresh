@@ -76,6 +76,10 @@ export function composeMiddlewares(
       middlewares,
     );
 
+    if (paramsAndRouteResult.route) {
+      ctx.route = paramsAndRouteResult.route.originalPattern;
+    }
+
     ctx.next = () => {
       const handler = handlers.shift()!;
       try {
