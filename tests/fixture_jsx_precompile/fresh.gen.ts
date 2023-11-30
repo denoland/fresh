@@ -4,8 +4,8 @@
 
 import * as $head from "./routes/head.tsx";
 import * as $index from "./routes/index.tsx";
-import * as $$Island from "./islands/Island.tsx";
-import { Manifest } from "$fresh/server.ts";
+import * as $Island from "./islands/Island.tsx";
+import { type Manifest } from "$fresh/server.ts";
 
 const manifest = {
   routes: {
@@ -13,7 +13,7 @@ const manifest = {
     "./routes/index.tsx": $index,
   },
   islands: {
-    "./islands/Island.tsx": $$Island,
+    "./islands/Island.tsx": $Island,
   },
   baseUrl: import.meta.url,
 } satisfies Manifest;

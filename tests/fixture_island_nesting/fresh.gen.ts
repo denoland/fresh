@@ -20,19 +20,19 @@ import * as $island_nested_props from "./routes/island_nested_props.tsx";
 import * as $island_order from "./routes/island_order.tsx";
 import * as $island_siblings from "./routes/island_siblings.tsx";
 import * as $island_valid_children from "./routes/island_valid_children.tsx";
-import * as $$BooleanButton from "./islands/BooleanButton.tsx";
-import * as $$Counter from "./islands/Counter.tsx";
-import * as $$Dropdown from "./islands/Dropdown.tsx";
-import * as $$FragmentIsland from "./islands/FragmentIsland.tsx";
-import * as $$Island from "./islands/Island.tsx";
-import * as $$IslandCenter from "./islands/IslandCenter.tsx";
-import * as $$IslandConditional from "./islands/IslandConditional.tsx";
-import * as $$IslandFn from "./islands/IslandFn.tsx";
-import * as $$IslandInsideIsland from "./islands/IslandInsideIsland.tsx";
-import * as $$IslandWithProps from "./islands/IslandWithProps.tsx";
-import * as $$PassThrough from "./islands/PassThrough.tsx";
-import * as $$ReadyMarker from "./islands/ReadyMarker.tsx";
-import { Manifest } from "$fresh/server.ts";
+import * as $BooleanButton from "./islands/BooleanButton.tsx";
+import * as $Counter from "./islands/Counter.tsx";
+import * as $Dropdown from "./islands/Dropdown.tsx";
+import * as $FragmentIsland from "./islands/FragmentIsland.tsx";
+import * as $Island from "./islands/Island.tsx";
+import * as $IslandCenter from "./islands/IslandCenter.tsx";
+import * as $IslandConditional from "./islands/IslandConditional.tsx";
+import * as $IslandFn from "./islands/IslandFn.tsx";
+import * as $IslandInsideIsland from "./islands/IslandInsideIsland.tsx";
+import * as $IslandWithProps from "./islands/IslandWithProps.tsx";
+import * as $PassThrough from "./islands/PassThrough.tsx";
+import * as $ReadyMarker from "./islands/ReadyMarker.tsx";
+import { type Manifest } from "$fresh/server.ts";
 
 const manifest = {
   routes: {
@@ -57,18 +57,18 @@ const manifest = {
     "./routes/island_valid_children.tsx": $island_valid_children,
   },
   islands: {
-    "./islands/BooleanButton.tsx": $$BooleanButton,
-    "./islands/Counter.tsx": $$Counter,
-    "./islands/Dropdown.tsx": $$Dropdown,
-    "./islands/FragmentIsland.tsx": $$FragmentIsland,
-    "./islands/Island.tsx": $$Island,
-    "./islands/IslandCenter.tsx": $$IslandCenter,
-    "./islands/IslandConditional.tsx": $$IslandConditional,
-    "./islands/IslandFn.tsx": $$IslandFn,
-    "./islands/IslandInsideIsland.tsx": $$IslandInsideIsland,
-    "./islands/IslandWithProps.tsx": $$IslandWithProps,
-    "./islands/PassThrough.tsx": $$PassThrough,
-    "./islands/ReadyMarker.tsx": $$ReadyMarker,
+    "./islands/BooleanButton.tsx": $BooleanButton,
+    "./islands/Counter.tsx": $Counter,
+    "./islands/Dropdown.tsx": $Dropdown,
+    "./islands/FragmentIsland.tsx": $FragmentIsland,
+    "./islands/Island.tsx": $Island,
+    "./islands/IslandCenter.tsx": $IslandCenter,
+    "./islands/IslandConditional.tsx": $IslandConditional,
+    "./islands/IslandFn.tsx": $IslandFn,
+    "./islands/IslandInsideIsland.tsx": $IslandInsideIsland,
+    "./islands/IslandWithProps.tsx": $IslandWithProps,
+    "./islands/PassThrough.tsx": $PassThrough,
+    "./islands/ReadyMarker.tsx": $ReadyMarker,
   },
   baseUrl: import.meta.url,
 } satisfies Manifest;

@@ -14,8 +14,8 @@ import * as $error_boundary from "./routes/error_boundary.tsx";
 import * as $html from "./routes/html.tsx";
 import * as $index from "./routes/index.tsx";
 import * as $islands from "./routes/islands.tsx";
-import * as $$Counter from "./islands/Counter.tsx";
-import { Manifest } from "$fresh/server.ts";
+import * as $Counter from "./islands/Counter.tsx";
+import { type Manifest } from "$fresh/server.ts";
 
 const manifest = {
   routes: {
@@ -33,7 +33,7 @@ const manifest = {
     "./routes/islands.tsx": $islands,
   },
   islands: {
-    "./islands/Counter.tsx": $$Counter,
+    "./islands/Counter.tsx": $Counter,
   },
   baseUrl: import.meta.url,
 } satisfies Manifest;
