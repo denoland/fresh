@@ -26,6 +26,7 @@ import * as $event_handler_string_island from "./routes/event_handler_string_isl
 import * as $evil from "./routes/evil.tsx";
 import * as $failure from "./routes/failure.ts";
 import * as $foo_bar_baz from "./routes/foo.bar.baz.tsx";
+import * as $foo_bar from "./routes/foo.bar.tsx";
 import * as $head_deduplicate from "./routes/head_deduplicate.tsx";
 import * as $hooks_server_island from "./routes/hooks-server/island.tsx";
 import * as $hooks_server_useReducer from "./routes/hooks-server/useReducer.tsx";
@@ -82,6 +83,7 @@ import * as $status_overwrite from "./routes/status_overwrite.tsx";
 import * as $umlaut_äöüß from "./routes/umlaut-äöüß.tsx";
 import * as $wildcard from "./routes/wildcard.tsx";
 import * as $Counter from "./islands/Counter.tsx";
+import * as $Foo_Bar from "./islands/Foo.Bar.tsx";
 import * as $FormIsland from "./islands/FormIsland.tsx";
 import * as $Greeter from "./islands/Greeter.tsx";
 import * as $HookIsland from "./islands/HookIsland.tsx";
@@ -127,6 +129,7 @@ const manifest = {
     "./routes/evil.tsx": $evil,
     "./routes/failure.ts": $failure,
     "./routes/foo.bar.baz.tsx": $foo_bar_baz,
+    "./routes/foo.bar.tsx": $foo_bar,
     "./routes/head_deduplicate.tsx": $head_deduplicate,
     "./routes/hooks-server/island.tsx": $hooks_server_island,
     "./routes/hooks-server/useReducer.tsx": $hooks_server_useReducer,
@@ -200,6 +203,7 @@ const manifest = {
   },
   islands: {
     "./islands/Counter.tsx": $Counter,
+    "./islands/Foo.Bar.tsx": $Foo_Bar,
     "./islands/FormIsland.tsx": $FormIsland,
     "./islands/Greeter.tsx": $Greeter,
     "./islands/HookIsland.tsx": $HookIsland,

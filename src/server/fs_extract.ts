@@ -32,6 +32,7 @@ import {
 } from "./deps.ts";
 import { BUILD_ID } from "./build_id.ts";
 import { toBaseRoute } from "./compose.ts";
+import { stringToIdentifier } from "./init_safe_deps.ts";
 
 export const ROOT_BASE_ROUTE = toBaseRoute("/");
 
@@ -525,7 +526,7 @@ function toPascalCase(text: string): string {
 }
 
 function sanitizeIslandName(name: string): string {
-  const fileName = name.replaceAll(/[/\\\\\(\)\[\]]/g, "_");
+  const fileName = stringToIdentifier(name);
   return toPascalCase(fileName);
 }
 
