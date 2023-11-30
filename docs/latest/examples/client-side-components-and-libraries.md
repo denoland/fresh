@@ -3,8 +3,6 @@ description: |
   Client side components and libraries
 ---
 
-## Introduction
-
 Some components depend on client environments, browser-specific features, or
 dynamic user interactions, making them incompatible or non-functional during
 server-side rendering.
