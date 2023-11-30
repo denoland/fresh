@@ -206,6 +206,7 @@ export interface FreshContext<
   params: Record<string, string>;
   isPartial: boolean;
   state: State;
+  config: ResolvedFreshConfig;
   /** @deprecated Pass values to state instead */
   data: Data;
   error?: unknown;

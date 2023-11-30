@@ -257,6 +257,7 @@ export class ServerContext {
       const ctx: FreshContext = {
         url,
         params: {},
+        config: _self.#state.config,
         basePath: _self.#state.config.basePath,
         localAddr: connInfo.localAddr,
         remoteAddr: connInfo.remoteAddr,

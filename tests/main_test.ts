@@ -1127,3 +1127,10 @@ Deno.test("pass options in config dev.ts", async (t) => {
     }
   });
 });
+
+Deno.test("Expose config in ctx", async () => {
+  await withFakeServe("./tests/fixture/main.ts", async (server) => {
+    const doc = await server.getHtml(`/ctx_config`);
+    assertEquals(doc.querySelector("h1")?.textContent, "it works");
+  });
+});
