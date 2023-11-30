@@ -122,9 +122,8 @@ export function TableOfContents({ headings }: TableOfContentsProps) {
                           <a
                             href={`#${heading.id}`}
                             class="block truncatetext-gray-600"
-                          >
-                            {heading.html}
-                          </a>
+                            dangerouslySetInnerHTML={{ __html: heading.html }}
+                          />
                         </li>
                       );
                     })}
@@ -161,9 +160,8 @@ export function TableOfContents({ headings }: TableOfContentsProps) {
                                 heading.id,
                               );
                             }}
-                          >
-                            {heading.html}
-                          </a>
+                            dangerouslySetInnerHTML={{ __html: heading.html }}
+                          />
                         </li>
                       );
                     })}
