@@ -1,4 +1,4 @@
-import { FreshContext, ServerContext, STATUS_CODE } from "../server.ts";
+import { ServerContext, STATUS_CODE } from "../server.ts";
 import {
   assert,
   assertEquals,
