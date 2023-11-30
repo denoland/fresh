@@ -19,6 +19,7 @@ import NavigationBar, {
   GITHUB_URL,
   navItems,
 } from "../../components/NavigationBar.tsx";
+import SearchButton from "$fresh/www/islands/SearchButton.tsx";
 
 interface Data {
   page: Page;
@@ -167,48 +168,53 @@ export default function DocsPage(props: PageProps<Data>) {
       </Head>
       <header class="top-0 l-0 r-0 w-full fixed bg-white z-10 h-16">
         <div class="mx-auto max-w-screen-2xl h-full">
-          <div class="h-full  flex items-center justify-between  px-4">
-            <a href="/" class="flex items-center">
-              <DocsTitle />
-            </a>
+          <div class="h-full flex px-4">
+            <div class="w-[19rem] h-full shrink-0">
+              <a href="/" class="flex h-full items-center">
+                <DocsTitle />
+              </a>
+            </div>
 
-            <nav class="h-full">
-              <ul class="flex items-center gap-8 h-full">
-                {navItems.map((item) => {
-                  return (
-                    <li key={item.name} class="h-full">
-                      <a
-                        href={item.href}
-                        class="data-[ancestor]:text-green-600 transition-colors hover:text-green-600 flex h-full items-center duration-[.25s]"
-                      >
-                        {item.name}
-                      </a>
-                    </li>
-                  );
-                })}
-                <li class="flex items-center">
-                  <a
-                    href={GITHUB_URL}
-                    class="hover:text-green-600 inline-block transition-colors p-2 -m-3 duration-[.25s]"
-                    aria-label="GitHub"
-                  >
-                    <Icons.GitHub />
-                  </a>
-                </li>
-                <li class="flex items-center">
-                  <a
-                    href={DISCORD_URL}
-                    class="hover:text-green-600 inline-block transition-colors p-2 -m-3"
-                    aria-label="Discord"
-                  >
-                    <Icons.Discord />
-                  </a>
-                </li>
-              </ul>
-            </nav>
+            <div class="h-full w-full justify-between flex items-center">
+              <SearchButton />
+              <nav class="h-full">
+                <ul class="flex items-center gap-8 h-full">
+                  {navItems.map((item) => {
+                    return (
+                      <li key={item.name} class="h-full">
+                        <a
+                          href={item.href}
+                          class="data-[ancestor]:text-green-600 transition-colors hover:text-green-600 flex h-full items-center duration-[.25s]"
+                        >
+                          {item.name}
+                        </a>
+                      </li>
+                    );
+                  })}
+                  <li class="flex items-center">
+                    <a
+                      href={GITHUB_URL}
+                      class="hover:text-green-600 inline-block transition-colors p-2 -m-3 duration-[.25s]"
+                      aria-label="GitHub"
+                    >
+                      <Icons.GitHub />
+                    </a>
+                  </li>
+                  <li class="flex items-center">
+                    <a
+                      href={DISCORD_URL}
+                      class="hover:text-green-600 inline-block transition-colors p-2 -m-3"
+                      aria-label="Discord"
+                    >
+                      <Icons.Discord />
+                    </a>
+                  </li>
+                </ul>
+              </nav>
+            </div>
           </div>
           <div class="ml-[19rem]">
-            <div class="h-8 bg-gradient-to-b from-white to-transparent" />
+            <div class="h-6 bg-gradient-to-b from-white to-transparent" />
           </div>
         </div>
       </header>
@@ -225,11 +231,10 @@ export default function DocsPage(props: PageProps<Data>) {
 
         <main class="pl-[19rem] mt-16 pt-6 min-w-0">
           <div class="flex gap-6 md:gap-8 xl:gap-[8%] flex-col xl:flex-row md:mx-8 lg:mx-16 2xl:mx-0 lg:justify-end">
+            <TableOfContents headings={headings} />
             <Partial name="docs-main">
-              <TableOfContents headings={headings} />
-
               <div class="lg:order-1 min-w-0 max-w-3xl">
-                <h1 class="text-[32px] text-gray-900 tracking-tight font-semibold md:mt-0 px-4 md:px-0 mb-3">
+                <h1 class="text-4xl text-gray-900 tracking-tight font-semibold md:mt-0 px-4 md:px-0 mb-3">
                   {page.title}
                 </h1>
                 <div

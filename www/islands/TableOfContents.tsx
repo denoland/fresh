@@ -101,7 +101,7 @@ export function TableOfContents({ headings }: TableOfContentsProps) {
             <button
               id="toc-outline-btn"
               onClick={() => setIsOpen((v) => !v)}
-              class="bg-gray-100 py-2 px-4 rounded border border-gray-300 flex items-center hover:border-green-600 transition-colors text-sm"
+              class="bg-gray-100 py-2 px-4 mt-1 rounded border border-gray-300 flex items-center hover:border-green-600 transition-colors text-sm"
             >
               On this page
               <svg
