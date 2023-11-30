@@ -34,7 +34,7 @@ export default function SearchButton(
       </Head>
       <div
         title="Search Button"
-        class={"h-9 mb-6 " + (props.class ?? "")}
+        class={"h-9 " + (props.class ?? "")}
         ref={ref}
       >
       </div>

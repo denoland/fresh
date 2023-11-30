@@ -3,11 +3,8 @@ import {
   TableOfContentsCategory,
   TableOfContentsCategoryEntry,
 } from "../data/docs.ts";
-import SearchButton from "../islands/SearchButton.tsx";
 import VersionSelect from "../islands/VersionSelect.tsx";
 import { type VersionLink } from "../routes/docs/[...slug].tsx";
-import { Logo } from "$fresh/www/components/Header.tsx";
-import DocsTitle from "$fresh/www/components/DocsTitle.tsx";
 
 export default function DocsSidebar(
   props: {
@@ -17,31 +14,27 @@ export default function DocsSidebar(
   },
 ) {
   return (
-    <>
-      <div class="fixed  w-[17rem] md:flex h-screen overflow-hidden ">
-        <div class="flex-1  h-screen overflow-y-auto">
-          <div class="sticky mb-4 top-0 bg-white z-10">
-            <div class=" py-4 flex items-center">
-              <Logo />
-              <DocsTitle />
-            </div>
-            <hr />
-          </div>
-          <SearchButton class="mr-4 sm:mr-0" />
-          <div class="mb-4">
+    <div class="fixed w-[18rem] flex h-[calc(100vh_-_4rem)] top-16">
+      <div class="h-full relative">
+        <div class="absolute left-0 top-0 right-0 h-[1px] mr-4 bg-gray-200" />
+        <div
+          class="h-full pr-4 overflow-y-auto"
+          style="scrollbar-width: thin;"
+        >
+          <div class="pt-7 pb-16">
             <VersionSelect
               selectedVersion={props.selectedVersion}
               versions={props.versionLinks}
             />
+            <ul class="list-inside font-semibold nested mt-4 ml-2.5">
+              {CATEGORIES[props.selectedVersion].map((category) => (
+                <SidebarCategory key={category.href} category={category} />
+              ))}
+            </ul>
           </div>
-          <ul class="list-inside font-semibold nested ml-2.5">
-            {CATEGORIES[props.selectedVersion].map((category) => (
-              <SidebarCategory key={category.href} category={category} />
-            ))}
-          </ul>
         </div>
       </div>
-    </>
+    </div>
   );
 }
 

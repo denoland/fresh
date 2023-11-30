@@ -132,7 +132,7 @@ export function TableOfContents({ headings }: TableOfContentsProps) {
               </div>
             )}
           </div>
-          <div class="hidden xl:block xl:sticky top-16">
+          <div class="hidden xl:block xl:sticky top-32">
             <div class="relative">
               <div
                 ref={refMarker}

@@ -2,7 +2,8 @@ import { Handlers, PageProps } from "$fresh/server.ts";
 import { asset, Head, Partial } from "$fresh/runtime.ts";
 import DocsSidebar from "../../components/DocsSidebar.tsx";
 import Footer from "../../components/Footer.tsx";
-import Header from "../../components/Header.tsx";
+import * as Icons from "../../components/Icons.tsx";
+import Header, { Logo } from "../../components/Header.tsx";
 import {
   getFirstPageUrl,
   LATEST_VERSION,
@@ -12,6 +13,12 @@ import {
 import { frontMatter, renderMarkdown } from "../../utils/markdown.ts";
 import toc from "../../../docs/toc.ts";
 import { TableOfContents } from "../../islands/TableOfContents.tsx";
+import DocsTitle from "../../components/DocsTitle.tsx";
+import NavigationBar, {
+  DISCORD_URL,
+  GITHUB_URL,
+  navItems,
+} from "../../components/NavigationBar.tsx";
 
 interface Data {
   page: Page;
@@ -158,84 +165,105 @@ export default function DocsPage(props: PageProps<Data>) {
         <meta property="og:image" content={ogImageUrl} />
         <meta name="view-transition" content="same-origin" />
       </Head>
-      <div class="flex flex-col min-h-screen mx-auto max-w-screen-2xl">
-        <div class="flex-1 " f-client-nav>
-          <div class=" md:flex">
-            <nav class="w-[18rem] flex-shrink-0 hidden md:block px-4">
-              <DocsSidebar
-                versionLinks={page.versionLinks}
-                selectedVersion={page.version}
-              />
-            </nav>
-            <Partial name="docs-main">
-              <div class="w-full min-w-0">
-                <Header title="docs" active="/docs" />
-                <main class="mt-4 min-w-0 mx-auto">
-                  <MobileSidebar page={page} />
-                  <div class="flex mx-auto max-w-screen-2xl px-4 md:px-0 md:py-0 justify-end bg-gray-100">
-                    <label
-                      for="docs_sidebar"
-                      class="px-4 py-3 md:hidden flex items-center hover:bg-gray-100 rounded gap-2 cursor-pointer"
-                    >
-                      <svg
-                        class="h-6 w-6"
-                        stroke="currentColor"
-                        fill="none"
-                        viewBox="0 0 24 24"
+      <header class="top-0 l-0 r-0 w-full fixed bg-white z-10 h-16">
+        <div class="mx-auto max-w-screen-2xl h-full">
+          <div class="h-full  flex items-center justify-between  px-4">
+            <a href="/" class="flex items-center">
+              <DocsTitle />
+            </a>
+
+            <nav class="h-full">
+              <ul class="flex items-center gap-8 h-full">
+                {navItems.map((item) => {
+                  return (
+                    <li key={item.name} class="h-full">
+                      <a
+                        href={item.href}
+                        class="data-[ancestor]:text-green-600 transition-colors hover:text-green-600 flex h-full items-center duration-[.25s]"
                       >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth="2"
-                          d="M4 6h16M4 12h16M4 18h7"
-                        >
-                        </path>
-                      </svg>
-                      <div>Table of Contents</div>
-                    </label>
-                  </div>
-                  <div class="flex gap-6 md:gap-8 xl:gap-[8%] flex-col xl:flex-row md:mx-8 lg:mx-16 2xl:mx-0 lg:justify-end">
-                    <TableOfContents headings={headings} />
+                        {item.name}
+                      </a>
+                    </li>
+                  );
+                })}
+                <li class="flex items-center">
+                  <a
+                    href={GITHUB_URL}
+                    class="hover:text-green-600 inline-block transition-colors p-2 -m-3 duration-[.25s]"
+                    aria-label="GitHub"
+                  >
+                    <Icons.GitHub />
+                  </a>
+                </li>
+                <li class="flex items-center">
+                  <a
+                    href={DISCORD_URL}
+                    class="hover:text-green-600 inline-block transition-colors p-2 -m-3"
+                    aria-label="Discord"
+                  >
+                    <Icons.Discord />
+                  </a>
+                </li>
+              </ul>
+            </nav>
+          </div>
+          <div class="ml-[19rem]">
+            <div class="h-8 bg-gradient-to-b from-white to-transparent" />
+          </div>
+        </div>
+      </header>
+      <div
+        class="flex flex-col min-h-screen mx-auto max-w-screen-2xl"
+        f-client-nav
+      >
+        <nav class="w-[18rem] flex-shrink-0 px-4 flex">
+          <DocsSidebar
+            versionLinks={page.versionLinks}
+            selectedVersion={page.version}
+          />
+        </nav>
 
-                    <div class="lg:order-1 min-w-0 max-w-3xl">
-                      <h1 class="text-4xl text-gray-900 tracking-tight font-bold md:mt-0 px-4 md:px-0 mb-4">
-                        {page.title}
-                      </h1>
-                      <div
-                        class="markdown-body mb-8"
-                        dangerouslySetInnerHTML={{ __html: html }}
-                      />
+        <main class="pl-[19rem] mt-16 pt-6 min-w-0">
+          <div class="flex gap-6 md:gap-8 xl:gap-[8%] flex-col xl:flex-row md:mx-8 lg:mx-16 2xl:mx-0 lg:justify-end">
+            <Partial name="docs-main">
+              <TableOfContents headings={headings} />
 
-                      <div class="mb-8">
-                        <ForwardBackButtons
-                          slug={page.slug}
-                          version={page.version}
-                          prev={page.prevNav}
-                          next={page.nextNav}
-                        />
-                      </div>
-                      <hr />
-                      <div class="px-4 md:px-0 flex justify-between my-6">
-                        <a
-                          href={`https://github.com/denoland/fresh/edit/main/${page.file}`}
-                          class="text-green-600 underline flex items-center"
-                          target="_blank"
-                          rel="noopener noreferrer"
-                        >
-                          <svg class="w-4 h-4 inline-block mr-1">
-                            <use href="/icons.svg#external" />
-                          </svg>
-                          Edit this page on GitHub
-                        </a>
-                      </div>
-                    </div>
-                  </div>
-                  <Footer />
-                </main>
+              <div class="lg:order-1 min-w-0 max-w-3xl">
+                <h1 class="text-[32px] text-gray-900 tracking-tight font-semibold md:mt-0 px-4 md:px-0 mb-3">
+                  {page.title}
+                </h1>
+                <div
+                  class="markdown-body mb-8"
+                  dangerouslySetInnerHTML={{ __html: html }}
+                />
+
+                <div class="mb-8">
+                  <ForwardBackButtons
+                    slug={page.slug}
+                    version={page.version}
+                    prev={page.prevNav}
+                    next={page.nextNav}
+                  />
+                </div>
+                <hr />
+                <div class="px-4 md:px-0 flex justify-between my-6">
+                  <a
+                    href={`https://github.com/denoland/fresh/edit/main/${page.file}`}
+                    class="text-green-600 underline flex items-center"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    <svg class="w-4 h-4 inline-block mr-1">
+                      <use href="/icons.svg#external" />
+                    </svg>
+                    Edit this page on GitHub
+                  </a>
+                </div>
               </div>
             </Partial>
           </div>
-        </div>
+          <Footer />
+        </main>
       </div>
     </>
   );

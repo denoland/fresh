@@ -1,31 +1,35 @@
 import * as Icons from "./Icons.tsx";
 
+export const navItems = [
+  {
+    name: "Docs",
+    href: "/docs",
+  },
+  {
+    name: "Showcase",
+    href: "/showcase",
+  },
+  {
+    name: "Components",
+    href: "/components",
+  },
+  {
+    name: "Blog",
+    href: "https://deno.com/blog?tag=fresh",
+  },
+];
+
+export const GITHUB_URL = "https://github.com/denoland/fresh";
+export const DISCORD_URL = "https://discord.com/invite/deno";
+
 export default function NavigationBar(
   props: { active: string; class?: string },
 ) {
-  const items = [
-    {
-      name: "Docs",
-      href: "/docs",
-    },
-    {
-      name: "Showcase",
-      href: "/showcase",
-    },
-    {
-      name: "Components",
-      href: "/components",
-    },
-    {
-      name: "Blog",
-      href: "https://deno.com/blog?tag=fresh",
-    },
-  ];
   const isHome = props.active == "/";
   return (
     <nav class={"flex " + props.class ?? ""}>
       <ul class="flex justify-center items-center gap-2 sm:gap-4 mx-4 my-2 sm:my-6 flex-wrap lg:mx-8 2xl:mr-0">
-        {items.map((item) => (
+        {navItems.map((item) => (
           <li>
             <a
               href={item.href}
@@ -40,7 +44,7 @@ export default function NavigationBar(
 
         <li class="flex items-center">
           <a
-            href="https://github.com/denoland/fresh"
+            href={GITHUB_URL}
             class="hover:text-green-600 inline-block transition"
             aria-label="GitHub"
           >
@@ -49,7 +53,7 @@ export default function NavigationBar(
         </li>
         <li class="flex items-center">
           <a
-            href="https://discord.com/invite/deno"
+            href={DISCORD_URL}
             class="hover:text-green-600 inline-block transition"
             aria-label="Discord"
           >
