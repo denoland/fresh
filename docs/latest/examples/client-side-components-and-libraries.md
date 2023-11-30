@@ -18,8 +18,6 @@ server side.
 
 The full code is available at the end of the page
 
----
-
 ## Explanation
 
 The first step is creating the context variable to enhance usability across
@@ -28,8 +26,8 @@ with a null value and integrating type references, developers can streamline the
 use of client side features while adapting to scenarios where server side
 rendering might not be feasible.
 
-:warning: Proper typing might not be easily available, so we might need to
-define our own types or not use types at all.
+> [warn]: Proper typing might not be easily available, so we might need to
+> define our own types or not use types at all.
 
 ```ts
 export const leafletContext = createContext<typeof Leaflet | null>(null);
@@ -44,9 +42,9 @@ place of our component tree. As for the context value, we are using html tags to
 inject the library on the window and a onLoad callback to set the value of our
 state, and this value will be handled/shared with our other components.
 
-:warning: Be careful with providers, the manner in which they load/inject both
-script and css may cause issues. Leaflet, for instance, will throw errors if we
-try to load it again.
+> [warn]: Be careful with providers, the manner in which they load/inject both
+> script and css may cause issues. Leaflet, for instance, will throw errors if
+> we try to load it again.
 
 ```tsx
 function LeafletProvider(props: { children: ComponentChildren }) {
@@ -116,8 +114,6 @@ export default function MapIsland() {
   );
 }
 ```
-
----
 
 ## Full code:
 
