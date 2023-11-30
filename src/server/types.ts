@@ -537,7 +537,7 @@ export interface Middleware<State = Record<string, unknown>> {
 
 export interface IslandModule {
   // deno-lint-ignore no-explicit-any
-  [key: string]: ComponentType<any>;
+  [key: string]: ComponentType<any> | unknown;
 }
 
 export interface Island {
