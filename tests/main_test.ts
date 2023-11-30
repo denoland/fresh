@@ -52,23 +52,6 @@ Deno.test("/ page prerender", async () => {
   assertStringIncludes(body, `<link rel="modulepreload"`);
 });
 
-Deno.test("/props/123 page prerender", async () => {
-  const resp = await handler(new Request("https://fresh.deno.dev/props/123"));
-  assert(resp);
-  assertEquals(resp.status, STATUS_CODE.OK);
-  assertEquals(resp.headers.get("content-type"), "text/html; charset=utf-8");
-  const body = await resp.text();
-  const doc = parseHtml(body);
-  const data = JSON.parse(doc.querySelector("body > div")!.textContent!);
-
-  assertEquals(data, {
-    "params": { "id": "123" },
-    "url": "https://fresh.deno.dev/props/123",
-    "route": "/props/:id",
-    "state": { "root": "root_mw" },
-  });
-});
-
 Deno.test("/greet/[name] page prerender", async () => {
   const resp = await handler(new Request("https://fresh.deno.dev/bar"));
   assert(resp);
@@ -671,17 +654,14 @@ Deno.test({
   },
 });
 
-Deno.test({
-  name: "/not_found",
-  fn: async () => {
-    const resp = await handler(new Request("https://fresh.deno.dev/not_found"));
-    assert(resp);
-    assertEquals(resp.status, 404);
-    const body = await resp.text();
-    assertStringIncludes(body, "404 not found: /not_found");
-    assertStringIncludes(body, "Hello Dino");
-    assertStringIncludes(body, "State root: root_mw");
-  },
+Deno.test("/not_found", async () => {
+  const resp = await handler(new Request("https://fresh.deno.dev/not_found"));
+  assert(resp);
+  assertEquals(resp.status, 404);
+  const body = await resp.text();
+  assertStringIncludes(body, "404 not found: /not_found");
+  assertStringIncludes(body, "Hello Dino");
+  assertStringIncludes(body, "State root: root_mw");
 });
 
 Deno.test("middleware destination", async (t) => {
@@ -1128,5 +1108,100 @@ Deno.test("pass options in config dev.ts", async (t) => {
       // Drain the lines stream
       for await (const _ of lines) { /* noop */ }
     }
+  });
+});
+
+Deno.test("Expose config in ctx", async () => {
+  await withFakeServe("./tests/fixture/main.ts", async (server) => {
+    const doc = await server.getHtml(`/ctx_config`);
+    const data = JSON.parse(doc.querySelector("pre")?.textContent!);
+    assertEquals(data, {
+      config: {
+        basePath: "",
+        build: {
+          outDir: "tests/fixture/_fresh",
+          target: [
+            "chrome99",
+            "firefox99",
+            "safari15",
+          ],
+        },
+        dev: false,
+        plugins: [],
+        render: "Function",
+        router: "<undefined>",
+        server: {},
+        staticDir: "tests/fixture/static",
+      },
+      Component: "Function",
+      params: {},
+      route: "/ctx_config",
+      state: {
+        root: "root_mw",
+      },
+      url: "https://127.0.0.1/ctx_config",
+      basePath: "",
+      codeFrame: "<undefined>",
+      destination: "route",
+      error: "<undefined>",
+      isPartial: false,
+      remoteAddr: {
+        hostname: "127.0.0.1",
+        port: 80,
+        transport: "tcp",
+      },
+      next: "Function",
+      render: "AsyncFunction",
+      renderNotFound: "AsyncFunction",
+      localAddr: "<undefined>",
+      pattern: "/ctx_config",
+      data: "<undefined>",
+    });
+  });
+});
+
+Deno.test("Expose config in ctx", async () => {
+  await withFakeServe("./tests/fixture/main.ts", async (server) => {
+    const doc = await server.getHtml(`/ctx_config_props`);
+    const data = JSON.parse(doc.querySelector("pre")?.textContent!);
+    assertEquals(data, {
+      config: {
+        basePath: "",
+        build: {
+          outDir: "tests/fixture/_fresh",
+          target: [
+            "chrome99",
+            "firefox99",
+            "safari15",
+          ],
+        },
+        dev: false,
+        plugins: [],
+        render: "Function",
+        router: "<undefined>",
+        server: {},
+        staticDir: "tests/fixture/static",
+      },
+      Component: "Function",
+      params: {},
+      route: "/ctx_config_props",
+      state: {
+        root: "root_mw",
+      },
+      url: "https://127.0.0.1/ctx_config_props",
+      basePath: "",
+      codeFrame: "<undefined>",
+      destination: "route",
+      error: "<undefined>",
+      isPartial: false,
+      remoteAddr: {
+        hostname: "127.0.0.1",
+        port: 80,
+        transport: "tcp",
+      },
+      localAddr: "<undefined>",
+      pattern: "/ctx_config_props",
+      data: "<undefined>",
+    });
   });
 });

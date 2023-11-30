@@ -164,6 +164,10 @@ const toc: RawTableOfContents = {
           ["sharing-state-between-islands", "Sharing state between islands"],
           ["using-csp", "Using CSP"],
           ["active-links", "Styling active links"],
+          [
+            "client-side-components-and-libraries",
+            "Client only side components",
+          ],
         ],
       },
     },

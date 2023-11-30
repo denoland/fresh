@@ -1,3 +1,4 @@
+import { DENO_DEPLOYMENT_ID } from "./build_id.ts";
 import { colors } from "./deps.ts";
 import { ServeHandler } from "./types.ts";
 
@@ -7,15 +8,25 @@ export async function startServer(
 ) {
   if (!opts.onListen) {
     opts.onListen = (params) => {
-      console.log();
-      console.log(
-        colors.bgRgb8(colors.rgb8(" 🍋 Fresh ready ", 0), 121),
-      );
-
       const pathname = opts.basePath + "/";
-      const address = colors.cyan(`http://localhost:${params.port}${pathname}`);
+      const address = colors.cyan(
+        `http://localhost:${params.port}${pathname}`,
+      );
       const localLabel = colors.bold("Local:");
-      console.log(`    ${localLabel} ${address}\n`);
+
+      // Print more concise output for deploy logs
+      if (DENO_DEPLOYMENT_ID) {
+        console.log(
+          colors.bgRgb8(colors.rgb8(" 🍋 Fresh ready ", 0), 121),
+          `${localLabel} ${address}`,
+        );
+      } else {
+        console.log();
+        console.log(
+          colors.bgRgb8(colors.rgb8(" 🍋 Fresh ready ", 0), 121),
+        );
+        console.log(`    ${localLabel} ${address}\n`);
+      }
     };
   }
 

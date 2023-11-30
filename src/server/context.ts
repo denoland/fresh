@@ -1,6 +1,6 @@
 import { contentType, extname, SEP, STATUS_CODE } from "./deps.ts";
 import * as router from "./router.ts";
-import { FreshConfig, Manifest, UnknownHandlerContext } from "./mod.ts";
+import { FreshConfig, FreshContext, Manifest } from "./mod.ts";
 import {
   ALIVE_URL,
   DEV_CLIENT_URL,
@@ -18,7 +18,6 @@ import {
   RenderFunction,
   RenderOptions,
   Route,
-  RouterState,
   ServeHandlerInfo,
   UnknownPage,
   UnknownRenderFunction,
@@ -44,11 +43,16 @@ import { extractRoutes, FsExtractResult } from "./fs_extract.ts";
 import { loadAotSnapshot } from "../build/aot_snapshot.ts";
 import { ErrorOverlay } from "./error_overlay.tsx";
 import { withBase } from "./router.ts";
+import { PARTIAL_SEARCH_PARAM } from "../constants.ts";
 
 const DEFAULT_CONN_INFO: ServeHandlerInfo = {
   localAddr: { transport: "tcp", hostname: "localhost", port: 8080 },
   remoteAddr: { transport: "tcp", hostname: "localhost", port: 1234 },
 };
+
+// deno-lint-ignore no-explicit-any
+const NOOP_COMPONENT = () => null as any;
+const NOOP_NEXT = () => Promise.resolve(new Response(null, { status: 500 }));
 
 /**
  * @deprecated Use {@linkcode FromManifestConfig} instead
@@ -154,20 +158,17 @@ export class ServerContext {
       this.#plugins,
       this.#renderFn,
       this.#maybeBuildSnapshot(),
-      basePath,
     );
     const handlers = this.#handlers(renderNotFound);
-    const inner = router.router<RouterState>(handlers);
+    const inner = router.router(handlers);
     const withMiddlewares = composeMiddlewares(
       this.#extractResult.middlewares,
       handlers.errorHandler,
-      router.getParamsAndRoute<RouterState>(handlers),
+      router.getParamsAndRoute(handlers),
       renderNotFound,
-      basePath,
     );
     const trailingSlashEnabled = this.#state.config.router?.trailingSlash;
     const isDev = this.#dev;
-    const bundleAssetRoute = this.#bundleAssetRoute();
 
     if (this.#dev) {
       this.#revision = Date.now();
@@ -215,9 +216,8 @@ export class ServerContext {
           const bundlePath = (url.pathname.endsWith(".map"))
             ? "fresh_dev_client.js.map"
             : "fresh_dev_client.js";
-          return bundleAssetRoute(req, { ...connInfo, isPartial: false }, {
-            path: bundlePath,
-          });
+
+          return _self.#bundleAssetRoute(bundlePath);
         }
       }
 
@@ -254,7 +254,33 @@ export class ServerContext {
         return Response.redirect(to, 302);
       }
 
-      return await withMiddlewares(req, connInfo, inner);
+      const ctx: FreshContext = {
+        url,
+        params: {},
+        config: _self.#state.config,
+        basePath: _self.#state.config.basePath,
+        localAddr: connInfo.localAddr,
+        remoteAddr: connInfo.remoteAddr,
+        state: {},
+        isPartial: url.searchParams.has(PARTIAL_SEARCH_PARAM),
+        destination: "route",
+        error: undefined,
+        codeFrame: undefined,
+        Component: NOOP_COMPONENT,
+        next: NOOP_NEXT,
+        render: NOOP_NEXT,
+        renderNotFound: async (data) => {
+          ctx.data = data;
+          return await renderNotFound(req, ctx);
+        },
+        route: "",
+        get pattern() {
+          return ctx.route;
+        },
+        data: undefined,
+      };
+
+      return await withMiddlewares(req, ctx, inner);
     };
   }
 
@@ -287,16 +313,16 @@ export class ServerContext {
   #handlers(
     renderNotFound: UnknownRenderFunction,
   ): {
-    internalRoutes: router.Routes<RouterState>;
-    staticRoutes: router.Routes<RouterState>;
-    routes: router.Routes<RouterState>;
+    internalRoutes: router.Routes;
+    staticRoutes: router.Routes;
+    routes: router.Routes;
 
-    otherHandler: router.Handler<RouterState>;
-    errorHandler: router.ErrorHandler<RouterState>;
+    otherHandler: router.Handler;
+    errorHandler: router.ErrorHandler;
   } {
-    const internalRoutes: router.Routes<RouterState> = {};
-    const staticRoutes: router.Routes<RouterState> = {};
-    const routes: router.Routes<RouterState> = {};
+    const internalRoutes: router.Routes = {};
+    const staticRoutes: router.Routes = {};
+    const routes: router.Routes = {};
 
     const assetRoute = withBase(
       `${INTERNAL_PREFIX}${JS_PREFIX}/${BUILD_ID}/:path*`,
@@ -305,7 +331,7 @@ export class ServerContext {
     internalRoutes[assetRoute] = {
       baseRoute: toBaseRoute(assetRoute),
       methods: {
-        default: this.#bundleAssetRoute(),
+        default: (_req, ctx) => this.#bundleAssetRoute(ctx.params.path),
       },
     };
 
@@ -352,9 +378,7 @@ export class ServerContext {
       if (this.#dev) imports.push(this.#state.config.basePath + DEV_CLIENT_URL);
       return (
         req: Request,
-        params: Record<string, string>,
-        // deno-lint-ignore no-explicit-any
-        ctx?: any,
+        ctx: FreshContext,
         error?: unknown,
         codeFrame?: string,
       ) => {
@@ -367,14 +391,11 @@ export class ServerContext {
             this.#extractResult.layouts,
           );
 
+          ctx.error = error;
+          ctx.data = data;
           const resp = await internalRender({
             request: req,
-            context: {
-              ...ctx,
-              async renderNotFound() {
-                return await renderNotFound(req, params, ctx, data, error);
-              },
-            },
+            context: ctx,
             route,
             plugins: this.#plugins,
             app: this.#extractResult.app,
@@ -382,13 +403,7 @@ export class ServerContext {
             imports,
             dependenciesFn,
             renderFn: this.#renderFn,
-            url: new URL(req.url),
-            params,
-            data,
-            state: ctx?.state,
-            error,
             codeFrame,
-            basePath: this.#state.config.basePath,
           });
 
           if (resp instanceof Response) {
@@ -416,16 +431,10 @@ export class ServerContext {
         routes[route.pattern] = {
           baseRoute: route.baseRoute,
           methods: {
-            default: (req, ctx, params) =>
-              (route.handler as Handler)(req, {
-                ...ctx,
-                params,
-                render: createRender(req, params, ctx),
-                async renderNotFound<Data = undefined>(data: Data) {
-                  return await renderNotFound(req, params, ctx, data);
-                },
-                basePath: this.#state.config.basePath,
-              }),
+            default: (req, ctx) => {
+              ctx.render = createRender(req, ctx);
+              return (route.handler as Handler)(req, ctx);
+            },
           },
         };
       } else {
@@ -437,40 +446,27 @@ export class ServerContext {
           routes[route.pattern].methods[method as router.KnownMethod] = (
             req,
             ctx,
-            params,
-          ) =>
-            handler(req, {
-              ...ctx,
-              params,
-              render: createRender(req, params, ctx),
-              async renderNotFound<Data = undefined>(data: Data) {
-                return await renderNotFound(req, params, ctx, data);
-              },
-              basePath: this.#state.config.basePath,
-            });
+          ) => {
+            ctx.render = createRender(req, ctx);
+            return handler(req, ctx);
+          };
         }
       }
     }
 
-    const otherHandler: router.Handler<RouterState> = (
-      req,
-      ctx,
-    ) =>
-      this.#extractResult.notFound.handler(
-        req,
-        {
-          ...ctx,
-          render() {
-            return renderNotFound(req, {}, ctx);
-          },
-        },
-      );
+    const otherHandler: router.Handler = (req, ctx) => {
+      ctx.render = (data) => {
+        ctx.data = data;
+        return renderNotFound(req, ctx);
+      };
+      return this.#extractResult.notFound.handler(req, ctx);
+    };
 
     const errorHandlerRender = genRender(
       this.#extractResult.error,
       STATUS_CODE.InternalServerError,
     );
-    const errorHandler: router.ErrorHandler<RouterState> = async (
+    const errorHandler: router.ErrorHandler = async (
       req,
       ctx,
       error,
@@ -490,14 +486,9 @@ export class ServerContext {
       }
       console.error(error);
 
-      return this.#extractResult.error.handler(
-        req,
-        {
-          ...ctx,
-          error,
-          render: errorHandlerRender(req, {}, ctx, error, codeFrame),
-        },
-      );
+      ctx.error = error;
+      ctx.render = errorHandlerRender(req, ctx, error, codeFrame);
+      return this.#extractResult.error.handler(req, ctx);
     };
 
     if (this.#dev) {
@@ -520,8 +511,7 @@ export class ServerContext {
                 csp: false,
                 url: req.url,
                 name: "error overlay route",
-                handler: (_req: Request, ctx: UnknownHandlerContext) =>
-                  ctx.render(),
+                handler: (_req: Request, ctx: FreshContext) => ctx.render(),
                 baseRoute,
                 pattern: baseRoute,
               },
@@ -531,16 +521,7 @@ export class ServerContext {
               imports: [],
               dependenciesFn: () => [],
               renderFn: this.#renderFn,
-              url: new URL(req.url),
-              params: {},
-              data: undefined,
-              state: {
-                ...ctx?.state,
-                error: null,
-              },
-              error: null,
               codeFrame: undefined,
-              basePath: this.#state.config.basePath,
             });
 
             if (resp instanceof Response) {
@@ -602,31 +583,25 @@ export class ServerContext {
     };
   }
 
-  /**
-   * Returns a router that contains all Fresh routes. Should be mounted at
-   * constants.INTERNAL_PREFIX
-   */
-  #bundleAssetRoute = (): router.MatchHandler => {
-    return async (_req, _ctx, params) => {
-      const snapshot = await this.buildSnapshot();
-      const contents = await snapshot.read(params.path);
-      if (!contents) return new Response(null, { status: 404 });
+  async #bundleAssetRoute(filePath: string) {
+    const snapshot = await this.buildSnapshot();
+    const contents = await snapshot.read(filePath);
+    if (!contents) return new Response(null, { status: 404 });
 
-      const headers: Record<string, string> = {
-        "Cache-Control": this.#dev
-          ? "no-cache, no-store, max-age=0, must-revalidate"
-          : "public, max-age=604800, immutable",
-      };
-
-      const type = contentType(extname(params.path));
-      if (type) headers["Content-Type"] = type;
-
-      return new Response(contents, {
-        status: 200,
-        headers,
-      });
+    const headers: Record<string, string> = {
+      "Cache-Control": this.#dev
+        ? "no-cache, no-store, max-age=0, must-revalidate"
+        : "public, max-age=604800, immutable",
     };
-  };
+
+    const type = contentType(extname(filePath));
+    if (type) headers["Content-Type"] = type;
+
+    return new Response(contents, {
+      status: 200,
+      headers,
+    });
+  }
 }
 
 const createRenderNotFound = (
@@ -635,17 +610,13 @@ const createRenderNotFound = (
   plugins: Plugin<Record<string, unknown>>[],
   renderFunction: RenderFunction,
   buildSnapshot: BuildSnapshot | null,
-  basePath: string,
-) => {
+): UnknownRenderFunction => {
   const dependenciesFn = (path: string) => {
     const snapshot = buildSnapshot;
     return snapshot?.dependencies(path) ?? [];
   };
 
-  return async (
-    ...args: Parameters<UnknownRenderFunction>
-  ) => {
-    const [req, params, ctx, data, error] = args;
+  return async (req, ctx) => {
     const notFound = extractResult.notFound;
     if (!notFound.component) {
       return sendResponse(["Not found.", undefined], {
@@ -672,12 +643,6 @@ const createRenderNotFound = (
       imports,
       dependenciesFn,
       renderFn: renderFunction,
-      url: new URL(req.url),
-      params,
-      data,
-      state: ctx?.state,
-      error,
-      basePath,
     });
 
     if (resp instanceof Response) {

@@ -36,17 +36,14 @@ Deno.test("dev_command config: shows codeframe", async () => {
   );
 });
 
-Deno.test({
-  name: "dev_command legacy",
-  async fn() {
-    await withPageName(
-      "./tests/fixture_dev_legacy/main.ts",
-      async (page, address) => {
-        await page.goto(`${address}`);
-        await waitForStyle(page, "h1", "color", "rgb(220, 38, 38)");
-      },
-    );
-  },
+Deno.test("dev_command legacy", async () => {
+  await withPageName(
+    "./tests/fixture_dev_legacy/main.ts",
+    async (page, address) => {
+      await page.goto(`${address}`);
+      await waitForStyle(page, "h1", "color", "rgb(220, 38, 38)");
+    },
+  );
 });
 
 Deno.test("dev_command legacy: shows codeframe", async () => {
