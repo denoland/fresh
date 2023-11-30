@@ -1001,6 +1001,13 @@ Deno.test({
   },
 });
 
+Deno.test("support dots in route + island name", async () => {
+  await withPageName("./tests/fixture/main.ts", async (page, address) => {
+    await page.goto(`${address}/foo.bar`);
+    await page.waitForSelector(".ready");
+  });
+});
+
 Deno.test("De-duplicates <Head /> nodes by key", async () => {
   await withFakeServe("./tests/fixture/main.ts", async (server) => {
     const res = await server.get(`/head_deduplicate`);
