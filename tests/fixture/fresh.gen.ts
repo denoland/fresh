@@ -19,6 +19,7 @@ import * as $assetsCaching_index from "./routes/assetsCaching/index.tsx";
 import * as $books_id_ from "./routes/books/[id].tsx";
 import * as $connInfo from "./routes/connInfo.ts";
 import * as $ctx_config from "./routes/ctx_config.tsx";
+import * as $ctx_config_props from "./routes/ctx_config_props.tsx";
 import * as $error_boundary from "./routes/error_boundary.tsx";
 import * as $event_handler_string from "./routes/event_handler_string.tsx";
 import * as $event_handler_string_island from "./routes/event_handler_string_island.tsx";
@@ -119,6 +120,7 @@ const manifest = {
     "./routes/books/[id].tsx": $books_id_,
     "./routes/connInfo.ts": $connInfo,
     "./routes/ctx_config.tsx": $ctx_config,
+    "./routes/ctx_config_props.tsx": $ctx_config_props,
     "./routes/error_boundary.tsx": $error_boundary,
     "./routes/event_handler_string.tsx": $event_handler_string,
     "./routes/event_handler_string_island.tsx": $event_handler_string_island,

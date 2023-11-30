@@ -6,6 +6,7 @@ import {
   ErrorPage,
   FreshContext,
   LayoutRoute,
+  PageProps,
   Plugin,
   PluginRenderFunctionResult,
   PluginRenderResult,
@@ -143,19 +144,23 @@ export async function render<Data>(
 
   const { params, data, state, error, url, basePath } = opts.context;
 
-  const props: Record<string, unknown> = {
+  const props: PageProps = {
+    basePath,
+    config: opts.context.config,
+    destination: opts.context.destination,
+    isPartial: opts.context.isPartial,
     params,
+    error,
+    codeFrame: opts.context.codeFrame,
+    remoteAddr: opts.context.remoteAddr,
+    localAddr: opts.context.localAddr,
+    Component: () => null,
+    pattern: opts.context.pattern,
     url,
-    route: opts.route.pattern,
+    route: opts.context.route,
     data,
     state,
   };
-  if (error) {
-    props.error = error;
-  }
-  if (opts.codeFrame) {
-    props.codeFrame = opts.codeFrame;
-  }
 
   const csp: ContentSecurityPolicy | undefined = opts.route.csp
     ? defaultCsp()

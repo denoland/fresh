@@ -151,31 +151,13 @@ export type RenderFunction = (
 /// --- ROUTES ---
 
 // deno-lint-ignore no-explicit-any
-export interface PageProps<T = any, S = Record<string, unknown>> {
-  /** The URL of the request that resulted in this page being rendered. */
-  url: URL;
-
-  /** The route matcher (e.g. /blog/:id) that the request matched for this page
-   * to be rendered. */
-  route: string;
-
-  /**
-   * The parameters that were matched from the route.
-   *
-   * For the `/foo/:bar` route with url `/foo/123`, `params` would be
-   * `{ bar: '123' }`. For a route with no matchers, `params` would be `{}`. For
-   * a wildcard route, like `/foo/:path*` with url `/foo/bar/baz`, `params` would
-   * be `{ path: 'bar/baz' }`.
-   */
-  params: Record<string, string>;
-
-  /**
-   * Additional data passed into `HandlerContext.render`. Defaults to
-   * `undefined`.
-   */
-  data: T;
-  state: S;
-}
+export type PageProps<T = any, S = Record<string, unknown>> = Omit<
+  FreshContext<
+    S,
+    T
+  >,
+  "render" | "next" | "renderNotFound"
+>;
 
 export interface StaticFile {
   /** The URL to the static file on disk. */
@@ -202,6 +184,8 @@ export interface FreshContext<
   url: URL;
   basePath: string;
   route: string;
+  /** @deprecated Use `.route` instead */
+  pattern: string;
   destination: router.DestinationKind;
   params: Record<string, string>;
   isPartial: boolean;
@@ -209,7 +193,10 @@ export interface FreshContext<
   config: ResolvedFreshConfig;
   /** @deprecated Pass values to state instead */
   data: Data;
+  /** The error that caused the error page to be loaded. */
   error?: unknown;
+  /** Sringified code frame of the error rendering failed (only in development mode) */
+  codeFrame?: unknown;
 
   // These properties may be different
   renderNotFound: (data?: NotFoundData) => Response | Promise<Response>;
@@ -217,7 +204,7 @@ export interface FreshContext<
     data?: Data,
     options?: RenderOptions,
   ) => Response | Promise<Response>;
-  Component: () => VNode;
+  Component: ComponentType<unknown>;
   next: () => Promise<Response>;
 }
 /**
@@ -323,19 +310,10 @@ export interface Route<Data = any> {
 }
 
 // --- APP ---
-
-// deno-lint-ignore no-explicit-any
-export type AppProps<T = any, S = Record<string, unknown>> = LayoutProps<T, S>;
-
 export interface AppModule {
-  default: ComponentType<AppProps> | AsyncLayout;
+  default: ComponentType<PageProps> | AsyncLayout;
 }
 
-// deno-lint-ignore no-explicit-any
-export interface LayoutProps<T = any, S = Record<string, unknown>>
-  extends PageProps<T, S> {
-  Component: ComponentType<Record<never, never>>;
-}
 // deno-lint-ignore no-explicit-any
 export type AsyncLayout<T = any, S = Record<string, unknown>> = (
   req: Request,
@@ -358,7 +336,7 @@ export interface LayoutConfig {
 export interface LayoutModule {
   // deno-lint-ignore no-explicit-any
   handler?: Handler<any, any> | Handlers<any, any>;
-  default: ComponentType<LayoutProps> | AsyncLayout;
+  default: ComponentType<PageProps> | AsyncLayout;
   config?: LayoutConfig;
 }
 
@@ -373,30 +351,13 @@ export interface LayoutRoute {
 
 // --- UNKNOWN PAGE ---
 
-// deno-lint-ignore no-explicit-any
-export interface UnknownPageProps<T = any, S = Record<string, unknown>> {
-  /** The URL of the request that resulted in this page being rendered. */
-  url: URL;
-
-  /** The route matcher (e.g. /blog/:id) that the request matched for this page
-   * to be rendered. */
-  route: string;
-
-  /**
-   * Additional data passed into `HandlerContext.renderNotFound`. Defaults to
-   * `undefined`.
-   */
-  data: T;
-  state: S;
-}
-
 export type UnknownHandler = (
   req: Request,
   ctx: FreshContext,
 ) => Response | Promise<Response>;
 
 export interface UnknownPageModule {
-  default?: PageComponent<UnknownPageProps>;
+  default?: PageComponent<PageProps>;
   handler?: UnknownHandler;
   config?: RouteConfig;
 }
@@ -406,7 +367,7 @@ export interface UnknownPage {
   pattern: string;
   url: string;
   name: string;
-  component?: PageComponent<UnknownPageProps>;
+  component?: PageComponent<PageProps>;
   handler: UnknownHandler;
   csp: boolean;
   appWrapper: boolean;
@@ -420,21 +381,6 @@ export type UnknownRenderFunction = (
 
 // --- ERROR PAGE ---
 
-export interface ErrorPageProps {
-  /** The URL of the request that resulted in this page being rendered. */
-  url: URL;
-
-  /** The route matcher (e.g. /blog/:id) that the request matched for this page
-   * to be rendered. */
-  pattern: string;
-
-  /** The error that caused the error page to be loaded. */
-  error: unknown;
-
-  /** Sringified code frame (only in development mode) */
-  codeFrame?: string;
-}
-
 // Nominal/Branded type. Ensures that the string has the expected format
 export type BaseRoute = string & { readonly __brand: unique symbol };
 
@@ -444,7 +390,7 @@ export type ErrorHandler = (
 ) => Response | Promise<Response>;
 
 export interface ErrorPageModule {
-  default?: PageComponent<ErrorPageProps>;
+  default?: PageComponent<PageProps>;
   handler?: ErrorHandler;
   config?: RouteConfig;
 }
@@ -454,7 +400,7 @@ export interface ErrorPage {
   pattern: string;
   url: string;
   name: string;
-  component?: PageComponent<ErrorPageProps>;
+  component?: PageComponent<PageProps>;
   handler: ErrorHandler;
   csp: boolean;
   appWrapper: boolean;
@@ -699,3 +645,29 @@ export type ErrorHandlerContext<State = Record<string, unknown>> = FreshContext<
  */
 export type MiddlewareHandlerContext<State = Record<string, unknown>> =
   FreshContext<State>;
+
+/**
+ * @deprecated Use {@linkcode PageProps} instead
+ */
+// deno-lint-ignore no-explicit-any
+export type LayoutProps<T = any, S = Record<string, unknown>> = PageProps<T, S>;
+
+/**
+ * @deprecated Use {@linkcode PageProps} instead
+ */
+// deno-lint-ignore no-explicit-any
+export type UnknownPageProps<T = any, S = Record<string, unknown>> = PageProps<
+  T,
+  S
+>;
+
+/**
+ * @deprecated Use {@linkcode PageProps} instead
+ */
+// deno-lint-ignore no-explicit-any
+export type AppProps<T = any, S = Record<string, unknown>> = PageProps<T, S>;
+
+/**
+ * @deprecated Use {@linkcode PageProps} instead
+ */
+export type ErrorPageProps = PageProps;

@@ -265,6 +265,7 @@ export class ServerContext {
         isPartial: url.searchParams.has(PARTIAL_SEARCH_PARAM),
         destination: "route",
         error: undefined,
+        codeFrame: undefined,
         Component: NOOP_COMPONENT,
         next: NOOP_NEXT,
         render: NOOP_NEXT,
@@ -273,6 +274,9 @@ export class ServerContext {
           return await renderNotFound(req, ctx);
         },
         route: "",
+        get pattern() {
+          return ctx.route;
+        },
         data: undefined,
       };
 
