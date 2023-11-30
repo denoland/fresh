@@ -79,22 +79,22 @@ import * as $static from "./routes/static.tsx";
 import * as $status_overwrite from "./routes/status_overwrite.tsx";
 import * as $umlaut_äöüß from "./routes/umlaut-äöüß.tsx";
 import * as $wildcard from "./routes/wildcard.tsx";
-import * as $$Counter from "./islands/Counter.tsx";
-import * as $$FormIsland from "./islands/FormIsland.tsx";
-import * as $$Greeter from "./islands/Greeter.tsx";
-import * as $$HookIsland from "./islands/HookIsland.tsx";
-import * as $$MultipleCounters from "./islands/MultipleCounters.tsx";
-import * as $$ReturningNull from "./islands/ReturningNull.tsx";
-import * as $$RootFragment from "./islands/RootFragment.tsx";
-import * as $$RootFragmentWithConditionalFirst from "./islands/RootFragmentWithConditionalFirst.tsx";
-import * as $$StringEventIsland from "./islands/StringEventIsland.tsx";
-import * as $$Test from "./islands/Test.tsx";
-import * as $$folder_Counter from "./islands/folder/Counter.tsx";
-import * as $$folder_subfolder_Counter from "./islands/folder/subfolder/Counter.tsx";
-import * as $$kebab_case_counter_test from "./islands/kebab-case-counter-test.tsx";
-import * as $$route_groups_islands_islands_Counter from "./routes/route-groups-islands/(_islands)/Counter.tsx";
-import * as $$route_groups_islands_islands_invalid from "./routes/route-groups-islands/(_islands)/invalid.tsx";
-import { Manifest } from "$fresh/server.ts";
+import * as $Counter from "./islands/Counter.tsx";
+import * as $FormIsland from "./islands/FormIsland.tsx";
+import * as $Greeter from "./islands/Greeter.tsx";
+import * as $HookIsland from "./islands/HookIsland.tsx";
+import * as $MultipleCounters from "./islands/MultipleCounters.tsx";
+import * as $ReturningNull from "./islands/ReturningNull.tsx";
+import * as $RootFragment from "./islands/RootFragment.tsx";
+import * as $RootFragmentWithConditionalFirst from "./islands/RootFragmentWithConditionalFirst.tsx";
+import * as $StringEventIsland from "./islands/StringEventIsland.tsx";
+import * as $Test from "./islands/Test.tsx";
+import * as $folder_Counter from "./islands/folder/Counter.tsx";
+import * as $folder_subfolder_Counter from "./islands/folder/subfolder/Counter.tsx";
+import * as $kebab_case_counter_test from "./islands/kebab-case-counter-test.tsx";
+import * as $route_groups_islands_islands_Counter from "./routes/route-groups-islands/(_islands)/Counter.tsx";
+import * as $route_groups_islands_islands_invalid from "./routes/route-groups-islands/(_islands)/invalid.tsx";
+import { type Manifest } from "$fresh/server.ts";
 
 const manifest = {
   routes: {
@@ -195,28 +195,24 @@ const manifest = {
     "./routes/wildcard.tsx": $wildcard,
   },
   islands: {
-    "./islands/Counter.tsx": $$Counter,
-    "./islands/FormIsland.tsx": $$FormIsland,
-    "./islands/Greeter.tsx": $$Greeter,
-    "./islands/HookIsland.tsx": $$HookIsland,
-    "./islands/MultipleCounters.tsx": {
-      CounterOne: $$MultipleCounters.CounterOne,
-      CounterTwo: $$MultipleCounters.CounterTwo,
-      default: $$MultipleCounters.default,
-    },
-    "./islands/ReturningNull.tsx": $$ReturningNull,
-    "./islands/RootFragment.tsx": $$RootFragment,
+    "./islands/Counter.tsx": $Counter,
+    "./islands/FormIsland.tsx": $FormIsland,
+    "./islands/Greeter.tsx": $Greeter,
+    "./islands/HookIsland.tsx": $HookIsland,
+    "./islands/MultipleCounters.tsx": $MultipleCounters,
+    "./islands/ReturningNull.tsx": $ReturningNull,
+    "./islands/RootFragment.tsx": $RootFragment,
     "./islands/RootFragmentWithConditionalFirst.tsx":
-      $$RootFragmentWithConditionalFirst,
-    "./islands/StringEventIsland.tsx": $$StringEventIsland,
-    "./islands/Test.tsx": $$Test,
-    "./islands/folder/Counter.tsx": $$folder_Counter,
-    "./islands/folder/subfolder/Counter.tsx": $$folder_subfolder_Counter,
-    "./islands/kebab-case-counter-test.tsx": $$kebab_case_counter_test,
+      $RootFragmentWithConditionalFirst,
+    "./islands/StringEventIsland.tsx": $StringEventIsland,
+    "./islands/Test.tsx": $Test,
+    "./islands/folder/Counter.tsx": $folder_Counter,
+    "./islands/folder/subfolder/Counter.tsx": $folder_subfolder_Counter,
+    "./islands/kebab-case-counter-test.tsx": $kebab_case_counter_test,
     "./routes/route-groups-islands/(_islands)/Counter.tsx":
-      $$route_groups_islands_islands_Counter,
+      $route_groups_islands_islands_Counter,
     "./routes/route-groups-islands/(_islands)/invalid.tsx":
-      $$route_groups_islands_islands_invalid,
+      $route_groups_islands_islands_invalid,
   },
   baseUrl: import.meta.url,
 } satisfies Manifest;

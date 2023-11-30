@@ -671,17 +671,14 @@ Deno.test({
   },
 });
 
-Deno.test({
-  name: "/not_found",
-  fn: async () => {
-    const resp = await handler(new Request("https://fresh.deno.dev/not_found"));
-    assert(resp);
-    assertEquals(resp.status, 404);
-    const body = await resp.text();
-    assertStringIncludes(body, "404 not found: /not_found");
-    assertStringIncludes(body, "Hello Dino");
-    assertStringIncludes(body, "State root: root_mw");
-  },
+Deno.test("/not_found", async () => {
+  const resp = await handler(new Request("https://fresh.deno.dev/not_found"));
+  assert(resp);
+  assertEquals(resp.status, 404);
+  const body = await resp.text();
+  assertStringIncludes(body, "404 not found: /not_found");
+  assertStringIncludes(body, "Hello Dino");
+  assertStringIncludes(body, "State root: root_mw");
 });
 
 Deno.test("middleware destination", async (t) => {

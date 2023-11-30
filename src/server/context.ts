@@ -267,7 +267,10 @@ export class ServerContext {
         Component: NOOP_COMPONENT,
         next: NOOP_NEXT,
         render: NOOP_NEXT,
-        renderNotFound: async () => await renderNotFound(req, ctx),
+        renderNotFound: async (data) => {
+          ctx.data = data;
+          return await renderNotFound(req, ctx);
+        },
         route: "",
         data: undefined,
       };
@@ -384,11 +387,7 @@ export class ServerContext {
           );
 
           ctx.error = error;
-          ctx.data = data;
-          ctx.renderNotFound = async (data: unknown) => {
-            ctx.data = data;
-            return await renderNotFound(req, ctx);
-          };
+          if (data) ctx.data = data;
           const resp = await internalRender({
             request: req,
             context: ctx,
