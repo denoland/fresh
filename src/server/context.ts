@@ -450,19 +450,10 @@ export class ServerContext {
       }
     }
 
-    const otherHandler: router.Handler = (
-      req,
-      ctx,
-    ) =>
-      this.#extractResult.notFound.handler(
-        req,
-        {
-          ...ctx,
-          render() {
-            return renderNotFound(req, ctx);
-          },
-        },
-      );
+    const otherHandler: router.Handler = (req, ctx) => {
+      ctx.render = () => renderNotFound(req, ctx);
+      return this.#extractResult.notFound.handler(req, ctx);
+    };
 
     const errorHandlerRender = genRender(
       this.#extractResult.error,
