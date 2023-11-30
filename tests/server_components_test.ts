@@ -58,47 +58,48 @@ Deno.test({
   },
 });
 
-Deno.test({
-  name: "passes context to server component",
+Deno.test("passes context to server component", async () => {
+  await withFresh(
+    "./tests/fixture_server_components/main.ts",
+    async (address) => {
+      const res = await fetch(`${address}/context/foo`);
+      const json = await res.json();
 
-  async fn() {
-    await withFresh(
-      "./tests/fixture_server_components/main.ts",
-      async (address) => {
-        const res = await fetch(`${address}/context/foo`);
-        const json = await res.json();
+      assertEquals(typeof json.localAddr, "object");
+      assertEquals(typeof json.remoteAddr, "object");
+      json.localAddr.port = 8000;
+      json.remoteAddr.port = 8000;
 
-        assertEquals(typeof json.localAddr, "object");
-        assertEquals(typeof json.remoteAddr, "object");
-        json.localAddr.port = 8000;
-        json.remoteAddr.port = 8000;
-
-        assertEquals(
-          json,
-          {
-            localAddr: {
-              hostname: "localhost",
-              port: 8000,
-              transport: "tcp",
-            },
-            remoteAddr: {
-              hostname: "127.0.0.1",
-              port: 8000,
-              transport: "tcp",
-            },
-            renderNotFound: "AsyncFunction",
-            url: `${address}/context/foo`,
-            route: "/context/:id",
-            params: {
-              id: "foo",
-            },
-            state: {},
-            isPartial: false,
+      assertEquals(
+        json,
+        {
+          localAddr: {
+            hostname: "localhost",
+            port: 8000,
+            transport: "tcp",
           },
-        );
-      },
-    );
-  },
+          remoteAddr: {
+            hostname: "127.0.0.1",
+            port: 8000,
+            transport: "tcp",
+          },
+          render: "AsyncFunction",
+          Component: "Function",
+          destination: "route",
+          next: "Function",
+          basePath: "",
+          renderNotFound: "AsyncFunction",
+          url: `${address}/context/foo`,
+          route: "/context/:id",
+          params: {
+            id: "foo",
+          },
+          state: {},
+          isPartial: false,
+        },
+      );
+    },
+  );
 });
 
 Deno.test({

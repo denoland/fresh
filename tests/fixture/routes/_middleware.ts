@@ -1,10 +1,7 @@
-import { MiddlewareHandler, MiddlewareHandlerContext } from "$fresh/server.ts";
+import { FreshContext, MiddlewareHandler } from "$fresh/server.ts";
 
 // cors middleware
-async function corsHandler(
-  _req: Request,
-  ctx: MiddlewareHandlerContext,
-) {
+async function corsHandler(_req: Request, ctx: FreshContext) {
   if (_req.method == "OPTIONS") {
     return new Response(null, {
       status: 204,
@@ -29,10 +26,7 @@ async function corsHandler(
 }
 
 // log middleware
-async function logHandler(
-  _req: Request,
-  ctx: MiddlewareHandlerContext,
-) {
+async function logHandler(_req: Request, ctx: FreshContext) {
   const since = new Date();
   const resp = await ctx.next();
   const latency = (+new Date()) - (+since);
@@ -40,20 +34,14 @@ async function logHandler(
   return resp;
 }
 
-async function rootHandler(
-  _req: Request,
-  ctx: MiddlewareHandlerContext,
-) {
+async function rootHandler(_req: Request, ctx: FreshContext) {
   ctx.state.root = "root_mw";
   const resp = await ctx.next();
   resp.headers.set("server", "fresh test server");
   return resp;
 }
 
-async function kindHandler(
-  _req: Request,
-  ctx: MiddlewareHandlerContext,
-) {
+async function kindHandler(_req: Request, ctx: FreshContext) {
   const resp = await ctx.next();
   resp.headers.set("destination", ctx.destination);
   return resp;
