@@ -300,7 +300,8 @@ export async function extractRoutes(
         id,
         name,
         url: processedIsland.path,
-        component: exportedFunction,
+        // deno-lint-ignore no-explicit-any
+        component: exportedFunction as ComponentType<any>,
         exportName,
       });
     }
