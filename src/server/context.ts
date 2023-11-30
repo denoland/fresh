@@ -387,7 +387,7 @@ export class ServerContext {
           );
 
           ctx.error = error;
-          if (data) ctx.data = data;
+          ctx.data = data;
           const resp = await internalRender({
             request: req,
             context: ctx,
@@ -450,7 +450,10 @@ export class ServerContext {
     }
 
     const otherHandler: router.Handler = (req, ctx) => {
-      ctx.render = () => renderNotFound(req, ctx);
+      ctx.render = (data) => {
+        ctx.data = data;
+        return renderNotFound(req, ctx);
+      };
       return this.#extractResult.notFound.handler(req, ctx);
     };
 
