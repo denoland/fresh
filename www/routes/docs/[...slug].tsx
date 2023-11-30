@@ -161,17 +161,20 @@ export default function DocsPage(props: PageProps<Data>) {
       <div class="flex flex-col min-h-screen mx-auto max-w-screen-2xl">
         <div class="flex-1 " f-client-nav>
           <div class=" md:flex">
-            <nav class="w-[18rem] flex-shrink-0 hidden md:block px-4">
-              <DocsSidebar
-                versionLinks={page.versionLinks}
-                selectedVersion={page.version}
-              />
-            </nav>
-            <Partial name="docs-main">
-              <div class="w-full min-w-0">
-                <Header title="docs" active="/docs" />
-                <main class="mt-4 min-w-0 mx-auto">
-                  <MobileSidebar page={page} />
+            {!props.isPartial && (
+              <nav class="w-[18rem] flex-shrink-0 hidden md:block px-4">
+                <DocsSidebar
+                  versionLinks={page.versionLinks}
+                  selectedVersion={page.version}
+                />
+              </nav>
+            )}
+            <div class="w-full min-w-0">
+              {!props.isPartial && <Header title="docs" active="/docs" />}
+
+              <main class="mt-4 min-w-0 mx-auto">
+                {!props.isPartial && <MobileSidebar page={page} />}
+                {!props.isPartial && (
                   <div class="flex mx-auto max-w-screen-2xl px-4 md:px-0 md:py-0 justify-end bg-gray-100">
                     <label
                       for="docs_sidebar"
@@ -194,9 +197,10 @@ export default function DocsPage(props: PageProps<Data>) {
                       <div>Table of Contents</div>
                     </label>
                   </div>
-                  <div class="flex gap-6 md:gap-8 xl:gap-[8%] flex-col xl:flex-row md:mx-8 lg:mx-16 2xl:mx-0 lg:justify-end">
-                    <TableOfContents headings={headings} />
-
+                )}
+                <div class="flex gap-6 md:gap-8 xl:gap-[8%] flex-col xl:flex-row md:mx-8 lg:mx-16 2xl:mx-0 lg:justify-end">
+                  {!props.isPartial && <TableOfContents headings={headings} />}
+                  <Partial name="docs-main">
                     <div class="lg:order-1 min-w-0 max-w-3xl">
                       <h1 class="text-4xl text-gray-900 tracking-tight font-bold md:mt-0 px-4 md:px-0 mb-4">
                         {page.title}
@@ -229,11 +233,11 @@ export default function DocsPage(props: PageProps<Data>) {
                         </a>
                       </div>
                     </div>
-                  </div>
-                  <Footer />
-                </main>
-              </div>
-            </Partial>
+                  </Partial>
+                </div>
+                <Footer />
+              </main>
+            </div>
           </div>
         </div>
       </div>
