@@ -1,6 +1,7 @@
 import { toHashString } from "./deps.ts";
 
-const deploymentId = Deno.env.get("DENO_DEPLOYMENT_ID") ||
+export const DENO_DEPLOYMENT_ID = Deno.env.get("DENO_DEPLOYMENT_ID");
+const deploymentId = DENO_DEPLOYMENT_ID ||
   // For CI
   Deno.env.get("GITHUB_SHA") ||
   crypto.randomUUID();
