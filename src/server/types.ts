@@ -22,17 +22,6 @@ export interface DenoConfig {
 }
 
 // --- APPLICATION CONFIGURATION ---
-
-/**
- * @deprecated Use {@linkcode FreshConfig} instead
- */
-export type StartOptions = FreshConfig;
-
-/**
- * @deprecated Use {@linkcode FreshConfig} interface instead.
- */
-export type FreshOptions = FreshConfig;
-
 export interface FreshConfig {
   build?: {
     /**
@@ -201,22 +190,46 @@ export interface StaticFile {
   etag: string;
 }
 
+export interface FreshContext<
+  State = Record<string, unknown>,
+  // deno-lint-ignore no-explicit-any
+  Data = any,
+  NotFoundData = Data,
+> {
+  /** @types deprecated */
+  localAddr?: Deno.NetAddr;
+  remoteAddr: Deno.NetAddr;
+  url: URL;
+  basePath: string;
+  route: string;
+  destination: router.DestinationKind;
+  params: Record<string, string>;
+  isPartial: boolean;
+  state: State;
+  /** @deprecated Pass values to state instead */
+  data: Data;
+  error?: unknown;
+
+  // These properties may be different
+  renderNotFound: (data?: NotFoundData) => Response | Promise<Response>;
+  render: (
+    data?: Data,
+    options?: RenderOptions,
+  ) => Response | Promise<Response>;
+  Component: () => VNode;
+  next: () => Promise<Response>;
+}
 /**
  * Context passed to async route components.
  */
 // deno-lint-ignore no-explicit-any
-export type RouteContext<T = any, S = Record<string, unknown>> = {
-  /** @types deprecated */
-  localAddr?: Deno.NetAddr;
-  remoteAddr: Deno.NetAddr;
-  renderNotFound: (data?: T) => Response | Promise<Response>;
-  url: URL;
-  route: string;
-  params: Record<string, string>;
-  state: S;
-  data: T;
-  isPartial: boolean;
-};
+export type RouteContext<T = any, S = Record<string, unknown>> = Omit<
+  FreshContext<
+    S,
+    T
+  >,
+  "next" | "render"
+>;
 
 export interface RouteConfig {
   /**
@@ -265,37 +278,16 @@ export type ServeHandler = (
   info: ServeHandlerInfo,
 ) => Response | Promise<Response>;
 
-export interface HandlerContext<
-  Data = unknown,
-  State = Record<string, unknown>,
-  NotFoundData = Data,
-> extends ServeHandlerInfo {
-  params: Record<string, string>;
-  basePath: string;
-  render: (
-    data?: Data,
-    options?: RenderOptions,
-  ) => Response | Promise<Response>;
-  renderNotFound: (data?: NotFoundData) => Response | Promise<Response>;
-  state: State;
-  isPartial: boolean;
-}
-
 // deno-lint-ignore no-explicit-any
 export type Handler<T = any, State = Record<string, unknown>> = (
   req: Request,
-  ctx: HandlerContext<T, State>,
+  ctx: FreshContext<State, T>,
 ) => Response | Promise<Response>;
 
 // deno-lint-ignore no-explicit-any
 export type Handlers<T = any, State = Record<string, unknown>> = {
   [K in router.KnownMethod]?: Handler<T, State>;
 };
-
-/**
- * @deprecated This type was a short-lived alternative to `Handlers`. Please use `Handlers` instead.
- */
-export type MultiHandler<T> = Handlers<T>;
 
 export interface RouteModule {
   default?: PageComponent<PageProps>;
@@ -307,7 +299,7 @@ export interface RouteModule {
 // deno-lint-ignore no-explicit-any
 export type AsyncRoute<T = any, S = Record<string, unknown>> = (
   req: Request,
-  ctx: RouteContext<T, S>,
+  ctx: FreshContext<S, T>,
 ) => Promise<ComponentChildren | Response>;
 // deno-lint-ignore no-explicit-any
 export type PageComponent<T = any, S = Record<string, unknown>> =
@@ -329,10 +321,6 @@ export interface Route<Data = any> {
   inheritLayouts: boolean;
 }
 
-export interface RouterState {
-  state: Record<string, unknown>;
-}
-
 // --- APP ---
 
 // deno-lint-ignore no-explicit-any
@@ -343,18 +331,6 @@ export interface AppModule {
 }
 
 // deno-lint-ignore no-explicit-any
-export type AppContext<T = any, S = Record<string, unknown>> =
-  & RouteContext<T, S>
-  & {
-    Component: () => VNode;
-  };
-// deno-lint-ignore no-explicit-any
-export type LayoutContext<T = any, S = Record<string, unknown>> = AppContext<
-  T,
-  S
->;
-
-// deno-lint-ignore no-explicit-any
 export interface LayoutProps<T = any, S = Record<string, unknown>>
   extends PageProps<T, S> {
   Component: ComponentType<Record<never, never>>;
@@ -362,7 +338,7 @@ export interface LayoutProps<T = any, S = Record<string, unknown>>
 // deno-lint-ignore no-explicit-any
 export type AsyncLayout<T = any, S = Record<string, unknown>> = (
   req: Request,
-  ctx: LayoutContext<T, S>,
+  ctx: FreshContext<S, T>,
 ) => Promise<ComponentChildren | Response>;
 
 export interface LayoutConfig {
@@ -413,15 +389,9 @@ export interface UnknownPageProps<T = any, S = Record<string, unknown>> {
   state: S;
 }
 
-export interface UnknownHandlerContext<State = Record<string, unknown>>
-  extends ServeHandlerInfo {
-  render: () => Response | Promise<Response>;
-  state: State;
-}
-
 export type UnknownHandler = (
   req: Request,
-  ctx: UnknownHandlerContext,
+  ctx: FreshContext,
 ) => Response | Promise<Response>;
 
 export interface UnknownPageModule {
@@ -444,11 +414,7 @@ export interface UnknownPage {
 
 export type UnknownRenderFunction = (
   req: Request,
-  params: Record<string, string>,
-  // deno-lint-ignore no-explicit-any
-  ctx?: any,
-  data?: unknown,
-  error?: unknown,
+  ctx: FreshContext,
 ) => Promise<Response>;
 
 // --- ERROR PAGE ---
@@ -468,19 +434,12 @@ export interface ErrorPageProps {
   codeFrame?: string;
 }
 
-export interface ErrorHandlerContext<State = Record<string, unknown>>
-  extends ServeHandlerInfo {
-  error: unknown;
-  render: () => Response | Promise<Response>;
-  state: State;
-}
-
 // Nominal/Branded type. Ensures that the string has the expected format
 export type BaseRoute = string & { readonly __brand: unique symbol };
 
 export type ErrorHandler = (
   req: Request,
-  ctx: ErrorHandlerContext,
+  ctx: FreshContext,
 ) => Response | Promise<Response>;
 
 export interface ErrorPageModule {
@@ -502,18 +461,6 @@ export interface ErrorPage {
 }
 
 // --- MIDDLEWARES ---
-
-export interface MiddlewareHandlerContext<State = Record<string, unknown>>
-  extends ServeHandlerInfo {
-  next: () => Promise<Response>;
-  renderNotFound: (state?: State) => Response | Promise<Response>;
-  state: State;
-  destination: router.DestinationKind;
-  params: Record<string, string>;
-  isPartial: boolean;
-  basePath: string;
-}
-
 export interface MiddlewareRoute {
   baseRoute: BaseRoute;
   module: Middleware;
@@ -521,7 +468,7 @@ export interface MiddlewareRoute {
 
 export type MiddlewareHandler<State = Record<string, unknown>> = (
   req: Request,
-  ctx: MiddlewareHandlerContext<State>,
+  ctx: FreshContext<State>,
 ) => Response | Promise<Response>;
 
 // deno-lint-ignore no-explicit-any
@@ -688,3 +635,66 @@ export interface PluginIslands {
   baseLocation: string;
   paths: string[];
 }
+
+// --- Deprecated types ---
+
+/**
+ * @deprecated This type was a short-lived alternative to `Handlers`. Please use `Handlers` instead.
+ */
+export type MultiHandler<T> = Handlers<T>;
+
+/**
+ * @deprecated Use {@linkcode FreshConfig} instead
+ */
+export type StartOptions = FreshConfig;
+
+/**
+ * @deprecated Use {@linkcode FreshConfig} interface instead.
+ */
+export type FreshOptions = FreshConfig;
+
+/**
+ * @deprecated Use {@linkcode FreshContext} interface instead
+ */
+export type HandlerContext<
+  Data = unknown,
+  State = Record<string, unknown>,
+  NotFoundData = Data,
+> = FreshContext<State, Data, NotFoundData>;
+
+/**
+ * @deprecated Use {@linkcode FreshContext} interface instead
+ */
+// deno-lint-ignore no-explicit-any
+export type AppContext<T = any, S = Record<string, unknown>> = FreshContext<
+  S,
+  T
+>;
+
+/**
+ * @deprecated Use {@linkcode FreshContext} interface instead
+ */
+// deno-lint-ignore no-explicit-any
+export type LayoutContext<T = any, S = Record<string, unknown>> = FreshContext<
+  S,
+  T
+>;
+
+/**
+ * @deprecated Use {@linkcode FreshContext} interface instead
+ */
+export type UnknownHandlerContext<State = Record<string, unknown>> =
+  FreshContext<State>;
+
+/**
+ * @deprecated Use {@linkcode FreshContext} interface instead
+ */
+export type ErrorHandlerContext<State = Record<string, unknown>> = FreshContext<
+  State
+>;
+
+/**
+ * @deprecated Use {@linkcode FreshContext} interface instead
+ */
+export type MiddlewareHandlerContext<State = Record<string, unknown>> =
+  FreshContext<State>;

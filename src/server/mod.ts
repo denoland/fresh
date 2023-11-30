@@ -28,6 +28,7 @@ export type {
   ErrorHandlerContext,
   ErrorPageProps,
   FreshConfig,
+  FreshContext,
   FreshOptions,
   Handler,
   HandlerContext,

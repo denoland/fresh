@@ -32,7 +32,7 @@ export function defineRoute<
 export function defineLayout<T>(
   fn: (
     req: Request,
-    ctx: LayoutContext<void, T>,
+    ctx: RouteContext<void, T>,
   ) => ComponentChildren | Response | Promise<ComponentChildren | Response>,
 ): AsyncLayout<void, T> {
   // deno-lint-ignore no-explicit-any
@@ -45,7 +45,7 @@ export function defineLayout<T>(
 export function defineApp<T>(
   fn: (
     req: Request,
-    ctx: AppContext<void, T>,
+    ctx: RouteContext<void, T>,
   ) => ComponentChildren | Response | Promise<ComponentChildren | Response>,
 ): AsyncLayout<void, T> {
   // deno-lint-ignore no-explicit-any
