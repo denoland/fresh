@@ -4,7 +4,6 @@ import {
   BaseRoute,
   FreshContext,
   MiddlewareRoute,
-  ServeHandlerInfo,
   UnknownRenderFunction,
 } from "./types.ts";
 
