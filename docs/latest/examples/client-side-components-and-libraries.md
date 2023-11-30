@@ -50,7 +50,7 @@ state, and this value will be handled/shared with our other components.
 function LeafletProvider(props: { children: ComponentChildren }) {
   if (!IS_BROWSER) {
     return (
-      <div>Leaflet must be loaded on the client. No children will render</div>
+      <p>Leaflet must be loaded on the client. No children will render</p>
     );
   }
   const [value, setValue] = useState<typeof Leaflet | null>(null);
@@ -88,7 +88,7 @@ and logic on our server-side code.
 ```tsx
 function MapComponent() {
   const leaf = useContext(leafletContext);
-  if (!leaf) return <div>Context not ready. Component placeholder</div>;
+  if (!leaf) return <p>Context not ready. Component placeholder</p>;
   useEffect(() => {
     const map = leaf.map("map").setView(leaf.latLng(0, 0), 2);
     leaf.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
@@ -96,7 +96,7 @@ function MapComponent() {
         '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
     }).addTo(map);
   });
-  return <div id="map" class={"relative w-[80vw] h-[50vh]"}></div>;
+  return <div id="map" class="relative w-[80vw] h-[50vh]" />;
 }
 ```
 
@@ -129,9 +129,7 @@ const LeafletContext = createContext<typeof Leaflet | null>(null);
 // LeafletProvider component manages Leaflet loading and context
 function LeafletProvider(props: { children: ComponentChildren }) {
   if (!IS_BROWSER) {
-    return (
-      <div>Leaflet must be loaded on the client. No children will render</div>
-    );
+    return <p>Leaflet must be loaded on the client. No children will render</p>;
   }
   const [value, setValue] = useState<typeof Leaflet | null>(null);
   return (
@@ -169,7 +167,7 @@ function MapComponent() {
         '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
     }).addTo(map);
   });
-  return <div id="map" class={"relative w-[80vw] h-[50vh]"}></div>;
+  return <div id="map" class="relative w-[80vw] h-[50vh]" />;
 }
 
 // MapIsland is the parent component integrating LeafletProvider and MapComponent
