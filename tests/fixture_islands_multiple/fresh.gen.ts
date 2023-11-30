@@ -13,10 +13,7 @@ const manifest = {
     "./routes/index.tsx": $index,
   },
   islands: {
-    "./islands/Multiple.tsx": {
-      Multiple1: $Multiple.Multiple1,
-      Multiple2: $Multiple.Multiple2,
-    },
+    "./islands/Multiple.tsx": $Multiple,
     "./islands/MultipleDefault.tsx": $MultipleDefault,
     "./islands/Single.tsx": $Single,
   },

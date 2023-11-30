@@ -29,8 +29,4 @@ export * as JSONC from "https://deno.land/std@0.208.0/jsonc/mod.ts";
 export { assertEquals } from "https://deno.land/std@0.208.0/assert/mod.ts";
 
 // ts-morph
-export {
-  Node,
-  Project,
-  SyntaxKind,
-} from "https://deno.land/x/ts_morph@20.0.0/mod.ts";
+export { Node, Project } from "https://deno.land/x/ts_morph@20.0.0/mod.ts";
