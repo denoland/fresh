@@ -18,8 +18,8 @@ export async function startServer(
       if (DENO_DEPLOYMENT_ID) {
         console.log(
           colors.bgRgb8(colors.rgb8(" 🍋 Fresh ready ", 0), 121),
+          `${localLabel} ${address}`,
         );
-        console.log(`    ${localLabel} ${address}`);
       } else {
         console.log();
         console.log(
