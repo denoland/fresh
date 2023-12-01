@@ -1,4 +1,4 @@
-import { join } from "./deps.ts";
+import { join, toFileUrl } from "./deps.ts";
 import { manifest } from "./mod.ts";
 import { type FreshConfig } from "../server/mod.ts";
 
@@ -8,8 +8,9 @@ switch (args[0]) {
   case "manifest": {
     if (args[1]) {
       const CONFIG_TS_PATH = join(args[1], "fresh.config.ts");
-      const test: FreshConfig = (await import(CONFIG_TS_PATH)).default;
-      await manifest(args[1], test?.router?.ignoreFilePattern);
+      const url = toFileUrl(CONFIG_TS_PATH).toString();
+      const config: FreshConfig = (await import(url)).default;
+      await manifest(args[1], config?.router?.ignoreFilePattern);
     } else {
       console.error("Missing input for manifest command");
       Deno.exit(1);
