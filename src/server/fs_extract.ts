@@ -257,13 +257,13 @@ export async function extractRoutes(
   for (const plugin of config.plugins || []) {
     if (!plugin.islands) continue;
     const base = dirname(plugin.islands.baseLocation);
-    for (const name of plugin.islands.paths) {
-      const full = join(base, name);
+
+    for (const specifier of plugin.islands.paths) {
+      const full = join(base, specifier);
       const module = await import(full);
-      const fileNameWithExt = basename(full);
-      const fileName = fileNameWithExt.replace(extname(fileNameWithExt), "");
+      const name = sanitizeIslandName(basename(full, extname(full)));
       processedIslands.push({
-        name: sanitizeIslandName(fileName),
+        name,
         path: full,
         module,
       });

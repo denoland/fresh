@@ -169,11 +169,24 @@ A very basic example can be found
 
 ### Islands
 
-You can create islands that get loaded and rendered like normal
-[islands](/docs/concepts/islands).
+Islands from plugins can be loaded by specifying a list of file paths in your
+plugin. Those files will be treated by Fresh as if they had been placed inside
+the `islands/` directory. They will be processed and bundled for the browser in
+the same way.
 
-You need to provide the location of your plugin and an array of island
-filenames. The intent is to somewhat mimic the manifest file.
+```tsx my-island-plugin.ts
+import { Plugin } from "$fresh/server.ts";
 
-A very basic example can be found
-[here](https://github.com/denoland/fresh/blob/main/tests/fixture_plugin/utils/route-plugin.ts).
+export default function myIslandPlugin(): Plugin {
+  return {
+    name: "my-island-plugin",
+    islands: {
+      baseLocation: import.meta.url,
+      paths: [
+        "./plugin/MyPluginIsland.tsx",
+        "./plugin/OtherPluginIsland.tsx",
+      ],
+    },
+  };
+}
+```
