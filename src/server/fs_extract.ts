@@ -17,6 +17,7 @@ import {
   StaticFile,
   UnknownPage,
   UnknownPageModule,
+  Worker,
 } from "./types.ts";
 import * as router from "./router.ts";
 import DefaultErrorHandler from "./default_error_page.tsx";
@@ -25,6 +26,7 @@ import {
   contentType,
   dirname,
   extname,
+  fromFileUrl,
   join,
   SEP,
   toFileUrl,
@@ -72,6 +74,7 @@ export interface FsExtractResult {
   islands: Island[];
   routes: Route[];
   staticFiles: StaticFile[];
+  workers: Worker[];
 }
 
 /**
@@ -351,6 +354,34 @@ export async function extractRoutes(
     }
   }
 
+  const workers: Worker[] = [];
+  try {
+    const workerFolder = new URL("./workers", manifest.baseUrl);
+    const entries = walk(fromFileUrl(workerFolder), {
+      includeFiles: true,
+      includeDirs: false,
+      followSymlinks: false,
+    });
+    for await (const entry of entries) {
+      const localUrl = toFileUrl(entry.path);
+      const path = localUrl.href.substring(workerFolder.href.length);
+      const workerId = path.split(".")[0];
+
+      const worker: Worker = {
+        id: workerId.slice(1),
+        url: localUrl.href,
+      };
+      workers.push(worker);
+    }
+  } catch (err) {
+    if (err.cause instanceof Deno.errors.NotFound) {
+      // noop
+    } else {
+      console.error("Error while processing workers directory:", err);
+      throw err;
+    }
+  }
+
   return {
     app,
     error,
@@ -360,6 +391,7 @@ export async function extractRoutes(
     notFound,
     routes,
     staticFiles,
+    workers,
   };
 }
 

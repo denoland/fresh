@@ -5,6 +5,7 @@ import {
 } from "https://deno.land/x/esbuild@v0.19.4/mod.js";
 import { denoPlugins, fromFileUrl, regexpEscape, relative } from "./deps.ts";
 import { Builder, BuildSnapshot } from "./mod.ts";
+import { bundleAssetUrl } from "../server/constants.ts";
 
 export interface EsbuildBuilderOptions {
   /** The build ID. */
@@ -95,6 +96,7 @@ export class EsbuildBuilder implements Builder {
         metafile: true,
 
         plugins: [
+          workerUrlReplacePlugin,
           devClientUrlPlugin(opts.basePath),
           buildIdPlugin(opts.buildID),
           ...denoPlugins({ configPath: opts.configPath }),
@@ -204,4 +206,42 @@ export class EsbuildSnapshot implements BuildSnapshot {
   dependencies(path: string): string[] {
     return this.#dependencies.get(path) ?? [];
   }
+}
+
+const workerUrlReplacePlugin: Plugin = {
+  name: "workerUrlReplace",
+  setup(build) {
+    build.onLoad({ filter: /\.tsx?$/ }, async (args) => {
+      if (!isPathValid(args.path)) return;
+
+      try {
+        const source = await Deno.readTextFile(args.path);
+        return { contents: updateWorkerPaths(source), loader: "default" };
+      } catch (err) {
+        console.error("Error processing file:", args.path, err);
+      }
+    });
+  },
+};
+
+function isPathValid(path: string): boolean {
+  return !path.startsWith("http") && /[\\/]islands[\\/]/.test(path);
+}
+
+function updateWorkerPaths(source: string): string {
+  return source
+    .replace(
+      /(\.\.\/)+workers\/[A-Za-z0-9_-]+\.ts/g,
+      (match) => replaceWorkerPath(match),
+    )
+    .replace(
+      /new URL\("([^"]+)", import\.meta\.url\)/g,
+      (_, path) => `new URL("${path}", location.href)`,
+    )
+    .replace(/useWorker\("([^"]+)"\)/g, (_, path) => `useWorker("${path}")`);
+}
+
+function replaceWorkerPath(fullPath: string): string {
+  const workerName = fullPath.split("/").pop()?.replace(/\.ts$/, ".js");
+  return bundleAssetUrl(`/worker-${workerName}`);
 }

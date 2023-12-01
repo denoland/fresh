@@ -21,6 +21,7 @@ import {
   ServeHandlerInfo,
   UnknownPage,
   UnknownRenderFunction,
+  Worker,
 } from "./types.ts";
 import { render as internalRender } from "./render.ts";
 import {
@@ -93,6 +94,7 @@ export async function getServerContext(state: InternalFreshState) {
       config.dev,
       extractResult.islands,
       config.plugins,
+      extractResult.workers,
     ),
     configPath,
     dev: config.dev,
@@ -685,6 +687,7 @@ function collectEntrypoints(
   dev: boolean,
   islands: Island[],
   plugins: Plugin[],
+  workers: Worker[],
 ): Record<string, string> {
   const entrypointBase = "../runtime/entrypoints";
   const entryPoints: Record<string, string> = {
@@ -715,6 +718,10 @@ function collectEntrypoints(
     for (const [name, url] of Object.entries(plugin.entrypoints ?? {})) {
       entryPoints[`plugin-${plugin.name}-${name}`] = url;
     }
+  }
+
+  for (const worker of workers) {
+    entryPoints[`worker-${worker.id}`] = worker.url;
   }
 
   return entryPoints;
