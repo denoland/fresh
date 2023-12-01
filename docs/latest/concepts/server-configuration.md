@@ -65,6 +65,12 @@ export interface RouterOptions {
    *  @default {/(?:[^/]*_|[^/]*\.|)test\.(?:ts|tsx|mts|js|mjs|jsx|)\/*$/}
    */
   ignoreFilePattern?: RegExp;
+  /**
+   * Serve fresh from a base path instead of from the root.
+   *   "/foo/bar" -> http://localhost:8000/foo/bar
+   * @default {undefined}
+   */
+  basePath?: string;
 }
 ```
 
@@ -134,6 +140,30 @@ await start(manifest, { router: { trailingSlash: true } });
 
 By default Fresh ignores test files which are co-located next routes and
 islands. If you want, you can change the pattern Fresh uses ignore these files
+
+### basePath
+
+This setting allows you to serve a Fresh app from sub-path of a domain. A value
+of `/foo/bar` would serve the app from `http://localhost:8000/foo/bar` instead
+of `http://localhost:8000/` for example.
+
+The `basePath` will be automatically applied to absolute links in your app. For
+example, when the `basePath` is `/foo/bar`, linking to `/about` will
+automatically become `/foo/bar/about`.
+
+```jsx
+<a href="/about">About</a>;
+```
+
+Rendered HTML:
+
+```html
+<a href="/foo/bar/about">About</a>
+```
+
+The `basePath` is also applied to the `src` and `srcset` attribute of
+`<img>`-tags, the `href` attribute of `<link>` and the `src` attribute of
+`<script>` tags.
 
 ## Server
 
