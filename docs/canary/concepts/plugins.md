@@ -169,7 +169,7 @@ A very basic example can be found
 
 ### Islands
 
-Islands from plugins can be loaded by specifiying a list of file paths in your
+Islands from plugins can be loaded by specifying a list of file paths in your
 plugin. Those files will be treated by Fresh as if they had been placed inside
 the `islands/` directory. They will be processed and bundled for the browser in
 the same way.
