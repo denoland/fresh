@@ -33,7 +33,7 @@ const flags = parse(Deno.args, {});
 
 let unresolvedDirectory = Deno.args[0];
 if (flags._.length !== 1) {
-  const userInput = prompt("Project Directory", ".");
+  const userInput = prompt("Where is the project directory?", ".");
   if (!userInput) {
     error(help);
   }
