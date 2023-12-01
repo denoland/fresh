@@ -77,7 +77,7 @@ function HelloBar() {
   return (
     <a
       class="bg-green-400 text-black border-b border-green-500 p-3 text-center group"
-      href="https://deno.com/blog/fresh-1.5"
+      href="https://deno.com/blog/fresh-1.6"
     >
       <b>Fresh v1.5</b> has been released with <b>Partials</b>,{" "}
       <b>client side navigation</b> and more{" "}
