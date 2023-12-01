@@ -54,6 +54,19 @@ export default function BlogpostPage({ data }) {
 }
 ```
 
+This can also be achieved by throwing an error, if you're uninterested in
+passing specific data to your 404 page:
+
+```tsx
+import { Handlers } from "$fresh/server.ts";
+
+export const handler: Handlers = {
+  GET(_req, _ctx) {
+    throw new Deno.errors.NotFound();
+  },
+};
+```
+
 ### 500: Internal Server Error
 
 The 500 page can be customized by creating a `_500.tsx` file in the `routes/`
