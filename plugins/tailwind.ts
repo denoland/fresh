@@ -82,8 +82,8 @@ export default function tailwind(): Plugin {
   const tailwindMiddleware: PluginMiddleware = {
     path: "/",
     middleware: {
-      handler: async (req, ctx) => {
-        const pathname = new URL(req.url).pathname;
+      handler: async (_req, ctx) => {
+        const pathname = ctx.url.pathname;
 
         if (pathname.endsWith(".css.map")) {
           const cached = cache.get(pathname);
@@ -110,6 +110,12 @@ export default function tailwind(): Plugin {
             };
             cache.set(pathname, cached);
           } catch (err) {
+            // If the file is not found than it's likely a virtual file
+            // by the user that they respond to via a middleware.
+            if (err instanceof Deno.errors.NotFound) {
+              return ctx.next();
+            }
+
             cached = {
               content: text,
               map: "",
