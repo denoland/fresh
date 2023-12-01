@@ -1,14 +1,37 @@
-import { assert, assertEquals, assertStringIncludes, Page } from "./deps.ts";
+import {
+  assert,
+  assertEquals,
+  assertStringIncludes,
+  delay,
+  Page,
+} from "./deps.ts";
 import {
   assertNoPageComments,
   assertNotSelector,
   clickWhenListenerReady,
+  closeBrowser,
   getErrorOverlay,
+  launchOrGetBrowser,
   parseHtml,
   waitForText,
   withFakeServe,
   withPageName,
 } from "./test_utils.ts";
+
+globalThis.addEventListener("load", async () => {
+  await launchOrGetBrowser();
+});
+
+globalThis.addEventListener("beforeunload", async () => {
+  await closeBrowser();
+});
+
+Deno.test("dummy test", {
+  sanitizeOps: false,
+  sanitizeResources: false,
+}, async () => {
+  await delay(1000);
+});
 
 Deno.test("island tests", async (t) => {
   await withPage(async (page, address) => {
