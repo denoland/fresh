@@ -1,7 +1,13 @@
-import { Plugin, PluginMiddleware } from "../server.ts";
+import { Plugin, PluginMiddleware, ResolvedFreshConfig } from "../server.ts";
 import type postcss from "npm:postcss@8.4.31";
 import * as path from "https://deno.land/std@0.207.0/path/mod.ts";
 import { walk } from "https://deno.land/std@0.207.0/fs/walk.ts";
+
+async function initTailwind(config: ResolvedFreshConfig) {
+  return await (await import("./tailwind/compiler.ts")).initTailwind(
+    config,
+  );
+}
 
 export default function tailwind(): Plugin {
   let staticDir = path.join(Deno.cwd(), "static");
@@ -72,9 +78,7 @@ export default function tailwind(): Plugin {
     async configResolved(config) {
       if (config.dev) {
         staticDir = config.staticDir;
-        processor = await (await import("./tailwind/compiler.ts")).initTailwind(
-          config,
-        );
+        processor = await initTailwind(config);
         middlewares.push(tailwindMiddleware);
       }
     },
@@ -83,11 +87,7 @@ export default function tailwind(): Plugin {
       staticDir = config.staticDir;
       const outDir = path.join(config.build.outDir, "static");
 
-      if (processor === null) {
-        throw new Error(
-          `Failed to initialize tailwindcss. This is a bug in the Fresh Tailwind plugin.`,
-        );
-      }
+      processor = await initTailwind(config);
 
       const files = walk(config.staticDir, {
         exts: ["css"],
