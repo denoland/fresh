@@ -17,10 +17,10 @@ Let's look at the example from the routing page more closely. We'll flesh out
 the handler so that we end up with something like the following:
 
 ```ts routes/x.tsx
-import { HandlerContext, RouteConfig } from "$fresh/server.ts";
+import { FreshContext, RouteConfig } from "$fresh/server.ts";
 
 export const handler = {
-  GET(_req: Request, { params }: HandlerContext) {
+  GET(_req: Request, { params }: FreshContext) {
     console.log(params);
     return new Response(params.path);
   },
@@ -48,10 +48,10 @@ show the following:
 Let's look at something a bit more complex:
 
 ```ts routes/api.tsx
-import { HandlerContext, RouteConfig } from "$fresh/server.ts";
+import { FreshContext, RouteConfig } from "$fresh/server.ts";
 
 export const handler = {
-  GET(_req: Request, { params }: HandlerContext) {
+  GET(_req: Request, { params }: FreshContext) {
     console.log(params);
     return new Response(params.path);
   },
