@@ -43,9 +43,9 @@ In case you need to fetch data asynchronously before rendering the layout, you
 can use an async layout to do so.
 
 ```tsx routes/sub/_layout.tsx
-import { PageProps } from "$fresh/server.ts";
+import { FreshContext } from "$fresh/server.ts";
 
-export default async function Layout(req: Request, ctx: LayoutContext) {
+export default async function Layout(req: Request, ctx: FreshContext) {
   // do something with state here
   const data = await loadData();
 
