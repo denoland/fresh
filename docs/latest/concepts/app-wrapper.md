@@ -14,9 +14,9 @@ template which can be conditioned based on state and params. Note that any state
 set by middleware is available via `props.state`.
 
 ```tsx routes/_app.tsx
-import { AppProps } from "$fresh/server.ts";
+import { PageProps } from "$fresh/server.ts";
 
-export default function App({ Component, state }: AppProps) {
+export default function App({ Component, state }: PageProps) {
   // do something with state here
   return (
     <html>
