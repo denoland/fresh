@@ -324,10 +324,10 @@ export const config: RouteConfig = {
 ```
 
 ```ts routes/reportHandler.ts
-import { HandlerContext } from "$fresh/server.ts";
+import { FreshContext } from "$fresh/server.ts";
 
 export const handler = {
-  async POST(req: Request, _ctx: HandlerContext) {
+  async POST(req: Request, _ctx: FreshContext) {
     const body = await req.json();
     const report = JSON.stringify(body, null, 2);
 
