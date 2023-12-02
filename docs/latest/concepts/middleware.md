@@ -18,7 +18,7 @@ properties, e.g. `ctx.state.loggedIn = true`, but you can also replace the
 entire object like `ctx.state = { loggedIn: true }`.
 
 ```ts routes/_middleware.ts
-import { MiddlewareHandlerContext } from "$fresh/server.ts";
+import { FreshContext } from "$fresh/server.ts";
 
 interface State {
   data: string;
@@ -26,7 +26,7 @@ interface State {
 
 export async function handler(
   req: Request,
-  ctx: MiddlewareHandlerContext<State>,
+  ctx: FreshContext<State>,
 ) {
   ctx.state.data = "myData";
   const resp = await ctx.next();
@@ -100,9 +100,9 @@ It should be noted that `middleware` has access to route parameters. If you're
 running a fictitious `routes/[tenant]/admin/_middleware.ts` like this:
 
 ```ts routes/[tenant]/admin/_middleware.ts
-import { MiddlewareHandlerContext } from "$fresh/server.ts";
+import { FreshContext } from "$fresh/server.ts";
 
-export async function handler(_req: Request, ctx: MiddlewareHandlerContext) {
+export async function handler(_req: Request, ctx: FreshContext) {
   const currentTenant = ctx.params.tenant;
   //do something with the tenant
   const resp = await ctx.next();
@@ -115,10 +115,12 @@ the value of `acme` in your middleware.
 
 ## Middleware Destination
 
-To set the stage for this section, `MiddlewareHandlerContext` looks like this:
+To set the stage for this section, let's focus on the part of `FreshContext`
+that looks like this:
 
 ```ts
-export interface MiddlewareHandlerContext<State = Record<string, unknown>> {
+export interface FreshContext<State = Record<string, unknown>> {
+  ...
   next: () => Promise<Response>;
   state: State;
   destination: router.DestinationKind;
@@ -127,6 +129,7 @@ export interface MiddlewareHandlerContext<State = Record<string, unknown>> {
     hostname: string;
     port: number;
   };
+  ...
 }
 ```
 
@@ -145,9 +148,9 @@ Initiate a new Fresh project (`deno run -A -r https://fresh.deno.dev/`) and then
 create a `_middleware.ts` file in the `routes` folder like this:
 
 ```ts routes/_middleware.ts
-import { MiddlewareHandlerContext } from "$fresh/server.ts";
+import { FreshContext } from "$fresh/server.ts";
 
-export async function handler(req: Request, ctx: MiddlewareHandlerContext) {
+export async function handler(req: Request, ctx: FreshContext) {
   console.log(ctx.destination);
   console.log(req.url);
   const resp = await ctx.next();
