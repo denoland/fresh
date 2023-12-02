@@ -71,12 +71,12 @@ export const handler: Handlers = {
 
 The 500 page can be customized by creating a `_500.tsx` file in the `routes/`
 folder. The file must have a default export that is a regular Preact component.
-A props object of type `ErrorPageProps` is passed in as an argument.
+A props object of type `PageProps` is passed in as an argument.
 
 ```tsx routes/_500.tsx
-import { ErrorPageProps } from "$fresh/server.ts";
+import { PageProps } from "$fresh/server.ts";
 
-export default function Error500Page({ error }: ErrorPageProps) {
+export default function Error500Page({ error }: PageProps) {
   return <p>500 internal error: {(error as Error).message}</p>;
 }
 ```
