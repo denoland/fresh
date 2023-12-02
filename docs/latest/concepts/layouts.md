@@ -25,9 +25,9 @@ template which can be conditioned based on state and params. Note that any state
 set by middleware is available via `props.state`.
 
 ```tsx routes/sub/_layout.tsx
-import { LayoutProps } from "$fresh/server.ts";
+import { PageProps } from "$fresh/server.ts";
 
-export default function Layout({ Component, state }: LayoutProps) {
+export default function Layout({ Component, state }: PageProps) {
   // do something with state here
   return (
     <div class="layout">
@@ -43,7 +43,7 @@ In case you need to fetch data asynchronously before rendering the layout, you
 can use an async layout to do so.
 
 ```tsx routes/sub/_layout.tsx
-import { LayoutProps } from "$fresh/server.ts";
+import { PageProps } from "$fresh/server.ts";
 
 export default async function Layout(req: Request, ctx: LayoutContext) {
   // do something with state here
