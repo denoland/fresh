@@ -1,7 +1,7 @@
 import { delay } from "$std/async/delay.ts";
-import { AppContext } from "$fresh/src/server/types.ts";
+import { FreshContext } from "$fresh/src/server/types.ts";
 
-export default async function App(req: Request, ctx: AppContext) {
+export default async function App(req: Request, ctx: FreshContext) {
   await delay(100);
 
   return (

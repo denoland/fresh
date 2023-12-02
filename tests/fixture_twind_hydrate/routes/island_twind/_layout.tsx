@@ -1,8 +1,8 @@
 import { Partial } from "$fresh/runtime.ts";
-import { LayoutProps } from "$fresh/server.ts";
+import { PageProps } from "$fresh/server.ts";
 
 export default function Layout(
-  { Component }: LayoutProps<unknown, unknown>,
+  { Component }: PageProps<unknown, unknown>,
 ) {
   return (
     <div f-client-nav>

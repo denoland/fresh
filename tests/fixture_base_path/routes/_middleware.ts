@@ -1,8 +1,8 @@
-import { MiddlewareHandlerContext } from "$fresh/server.ts";
+import { FreshContext } from "$fresh/server.ts";
 
 export async function handler(
   _req: Request,
-  ctx: MiddlewareHandlerContext<{ data: string }>,
+  ctx: FreshContext<{ data: string }>,
 ) {
   ctx.state.data = "it works";
   const resp = await ctx.next();
