@@ -1,6 +1,6 @@
-import { AppProps } from "$fresh/server.ts";
+import { PageProps } from "$fresh/server.ts";
 
-export default function App({ Component }: AppProps) {
+export default function App({ Component }: PageProps) {
   return (
     <html>
       <head>

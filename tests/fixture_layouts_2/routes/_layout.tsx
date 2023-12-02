@@ -1,7 +1,7 @@
-import { LayoutProps } from "$fresh/server.ts";
+import { PageProps } from "$fresh/server.ts";
 
 export default function RootLayout(
-  { Component }: LayoutProps<unknown>,
+  { Component }: PageProps<unknown>,
 ) {
   return (
     <div class="root-layout">

@@ -1,8 +1,8 @@
-import { LayoutProps } from "$fresh/server.ts";
+import { PageProps } from "$fresh/server.ts";
 import { LayoutState } from "./_middleware.ts";
 
 export default function RootLayout(
-  { Component, state }: LayoutProps<unknown, LayoutState>,
+  { Component, state }: PageProps<unknown, LayoutState>,
 ) {
   return (
     <div class="root-layout">

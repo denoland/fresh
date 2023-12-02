@@ -1,6 +1,6 @@
 import { h } from "preact";
-import { LayoutProps } from "$fresh/server.ts";
+import { PageProps } from "$fresh/server.ts";
 
-export default function TsLayout({ Component }: LayoutProps) {
+export default function TsLayout({ Component }: PageProps) {
   return h("div", { class: "ts-layout" }, h(Component, null));
 }

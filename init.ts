@@ -273,7 +273,7 @@ await Deno.writeTextFile(
   ROUTES_GREET_TSX,
 );
 
-const ROUTES_API_JOKE_TS = `import { HandlerContext } from "$fresh/server.ts";
+const ROUTES_API_JOKE_TS = `import { FreshContext } from "$fresh/server.ts";
 
 // Jokes courtesy of https://punsandoneliners.com/randomness/programmer-jokes/
 const JOKES = [
@@ -289,7 +289,7 @@ const JOKES = [
   "An SEO expert walked into a bar, pub, inn, tavern, hostelry, public house.",
 ];
 
-export const handler = (_req: Request, _ctx: HandlerContext): Response => {
+export const handler = (_req: Request, _ctx: FreshContext): Response => {
   const randomIndex = Math.floor(Math.random() * JOKES.length);
   const body = JOKES[randomIndex];
   return new Response(body);
@@ -443,8 +443,8 @@ html {
 }
 `;
 
-const APP_WRAPPER = `import { type AppProps } from "$fresh/server.ts";
-export default function App({ Component }: AppProps) {
+const APP_WRAPPER = `import { type PageProps } from "$fresh/server.ts";
+export default function App({ Component }: PageProps) {
   return (
     <html>
       <head>

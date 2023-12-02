@@ -1,10 +1,10 @@
-import { UnknownPageProps } from "$fresh/server.ts";
+import { PageProps } from "$fresh/server.ts";
 
 type Data = { hello: string };
 type State = { root: string };
 
 export default function NotFoundPage(
-  { data, state, url }: UnknownPageProps<Data | undefined, State>,
+  { data, state, url }: PageProps<Data | undefined, State>,
 ) {
   // Checks that we have the correct type for state
   state.root satisfies string;

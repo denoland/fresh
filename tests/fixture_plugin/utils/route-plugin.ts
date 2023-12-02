@@ -1,4 +1,4 @@
-import { MiddlewareHandlerContext, Plugin } from "$fresh/server.ts";
+import { FreshContext, Plugin } from "$fresh/server.ts";
 import { handler as testMiddleware } from "./sample_routes/_middleware.ts";
 import { AppBuilder } from "./sample_routes/AppBuilder.tsx";
 import IslandPluginComponent from "./sample_routes/PluginRouteWithIsland.tsx";
@@ -16,14 +16,14 @@ export type PluginMiddlewareState = {
 const twoPointlessMiddlewares = [
   async (
     _req: Request,
-    ctx: MiddlewareHandlerContext<PluginMiddlewareState>,
+    ctx: FreshContext<PluginMiddlewareState>,
   ) => {
     ctx.state.num = ctx.state.num === undefined ? 1 : ctx.state.num + 1;
     return await ctx.next();
   },
   async (
     _req: Request,
-    ctx: MiddlewareHandlerContext<PluginMiddlewareState>,
+    ctx: FreshContext<PluginMiddlewareState>,
   ) => {
     ctx.state.num = ctx.state.num === undefined ? 1 : ctx.state.num + 1;
     return await ctx.next();

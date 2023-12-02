@@ -278,9 +278,9 @@ await start(manifest, { plugins: [twindPlugin(twindConfig)] });\n`;
 // Add default _app.tsx if not present
 const routes = Array.from(Deno.readDirSync(join(srcDirectory, "routes")));
 if (!routes.find((entry) => entry.isFile && entry.name.startsWith("_app."))) {
-  const APP_TSX = `import { AppProps } from "$fresh/server.ts";
+  const APP_TSX = `import { PageProps } from "$fresh/server.ts";
 
-export default function App({ Component }: AppProps) {
+export default function App({ Component }: PageProps) {
   return (
     <html>
       <head>
