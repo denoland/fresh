@@ -37,12 +37,12 @@ export default function App({ Component, state }: PageProps) {
 
 Similar to routes and layouts, the app wrapper can be made asynchronous. This
 changes the function signature so that the first argument is the `Request`
-instance and the second one is the `AppContext`.
+instance and the second one is the `FreshContext`.
 
 ```tsx routes/_app.tsx
-import { AppContext } from "$fresh/server.ts";
+import { FreshContext } from "$fresh/server.ts";
 
-export default async function App(req: Request, ctx: AppContext) {
+export default async function App(req: Request, ctx: FreshContext) {
   const data = await loadData();
 
   return (
