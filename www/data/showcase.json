@@ -397,6 +397,12 @@
     "image": "MergePanic"
   },
   {
+    "title": "pyros.sh",
+    "link": "https://pyros.sh",
+    "github": "pyrossh/pyros.sh",
+    "image": "pyrossh"
+  },
+  {
     "title": "Do not remove this, it’s for preventing conflicts by trailing comma",
     "link": "",
     "github": "",
