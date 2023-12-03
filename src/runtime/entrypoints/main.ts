@@ -15,8 +15,11 @@ import { matchesUrl, setActiveUrl, UrlMatchKind } from "../active_url.ts";
 import {
   IslandRegistry,
   RenderRequest,
+  FreshHistoryState,
   _walkInner,
   NoPartialsError,
+  historyState,
+  navigate,
   fetchPartials,
 } from "./impl/global.ts";
 
@@ -96,12 +99,6 @@ options.vnode = (vnode) => {
   if (originalHook) originalHook(vnode);
 };
 
-export interface FreshHistoryState {
-  index: number;
-  scrollX: number;
-  scrollY: number;
-}
-
 function checkClientNavEnabled(el: HTMLElement | null) {
   if (el === null) {
     return document.querySelector(`[${CLIENT_NAV_ATTR}="true"]`) !== null;
@@ -110,17 +107,6 @@ function checkClientNavEnabled(el: HTMLElement | null) {
   const setting = el.closest(`[${CLIENT_NAV_ATTR}]`);
   if (setting === null) return false;
   return setting.getAttribute(CLIENT_NAV_ATTR) === "true";
-}
-
-// Keep track of history state to apply forward or backward animations
-let index = history.state?.index || 0;
-if (!history.state) {
-  const state: FreshHistoryState = {
-    index,
-    scrollX,
-    scrollY,
-  };
-  history.replaceState(state, document.title);
 }
 
 document.addEventListener("click", async (e) => {
@@ -168,33 +154,8 @@ document.addEventListener("click", async (e) => {
 
       const nextUrl = new URL(el.href);
       try {
-        // Only add history entry when URL is new. Still apply
-        // the partials because sometimes users click a link to
-        // "refresh" the current page.
-        if (el.href !== window.location.href) {
-          const state: FreshHistoryState = {
-            index,
-            scrollX: window.scrollX,
-            scrollY: window.scrollY,
-          };
-
-          // Store current scroll position
-          history.replaceState({ ...state }, "", location.href);
-
-          // Now store the new position
-          index++;
-          state.scrollX = 0;
-          state.scrollY = 0;
-          history.pushState(state, "", nextUrl.href);
-        }
-
-        const partialUrl = new URL(
-          partial ? partial : nextUrl.href,
-          location.href,
-        );
-        await fetchPartials(partialUrl);
+        await navigate(el.href, partial);
         updateLinks(nextUrl);
-        scrollTo({ left: 0, top: 0, behavior: "instant" });
       } finally {
         if (indicator !== undefined) {
           indicator.value = false;
@@ -243,8 +204,8 @@ addEventListener("popstate", async (e) => {
   }
 
   const state: FreshHistoryState = history.state;
-  const nextIdx = state.index ?? index + 1;
-  index = nextIdx;
+  const nextIdx = state.index ?? historyState.index + 1;
+  historyState.index = nextIdx;
 
   if (!checkClientNavEnabled(null)) {
     location.reload();

@@ -312,3 +312,58 @@ export async function applyPartials(res: Response): Promise<void> {
 }
 
 export class NoPartialsError extends Error {}
+
+export interface FreshHistoryState {
+  index: number;
+  scrollX: number;
+  scrollY: number;
+}
+
+// Keep track of history state to apply forward or backward animations
+export const historyState = {
+  index: history.state?.index || 0
+}
+
+// Keep track of history state to apply forward or backward animations
+if (!history.state) {
+  const state: FreshHistoryState = {
+    index: historyState.index,
+    scrollX,
+    scrollY,
+  };
+  history.replaceState(state, document.title);
+}
+
+export async function navigate(href: string, partial?: string | null) {
+  const nextUrl = new URL(href, location.href);
+  if (nextUrl.origin !== location.origin) return;
+  href = nextUrl.href;
+
+  // Only add history entry when URL is new. Still apply
+  // the partials because sometimes users click a link to
+  // "refresh" the current page.
+  if (href !== window.location.href) {
+    const state: FreshHistoryState = {
+      index: historyState.index,
+      scrollX: window.scrollX,
+      scrollY: window.scrollY,
+    };
+
+    // Store current scroll position
+    history.replaceState({ ...state }, "", location.href);
+
+    // Now store the new position
+    historyState.index++;
+    state.scrollX = 0;
+    state.scrollY = 0;
+    history.pushState(state, "", nextUrl.href);
+  }
+
+  const partialUrl = new URL(
+    partial ? partial : nextUrl.href,
+    location.href,
+  );
+  await fetchPartials(partialUrl);
+  // updateLinks(nextUrl);
+  scrollTo({ left: 0, top: 0, behavior: "instant" });
+}
