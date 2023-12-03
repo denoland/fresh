@@ -7,7 +7,8 @@ Deno.test("error page rendered", async () => {
     const resp = await server.get("/");
     assertEquals(resp.status, STATUS_CODE.InternalServerError);
     assertEquals(resp.headers.get("content-type"), "text/html; charset=utf-8");
-    await resp.text(); // Consume
+    const body = await resp.text();
+    assertStringIncludes(body, "<p>500 page</p>");
 
     const { title, stack } = await getErrorOverlay(server, "/");
     assertStringIncludes(title, `boom!`);
