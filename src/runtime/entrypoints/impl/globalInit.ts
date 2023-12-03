@@ -1,14 +1,9 @@
+import { GLOBAL_SYMBOL_PREFIX } from "$fresh/src/constants.ts"
 import { _walkInner, isCommentNode, isElementNode, isTextNode } from "./common.ts"
 import { NoPartialsError, PartialComp, applyPartials, fetchPartials } from "./partials.ts"
 
-const GLOBAL_NAME_PREFIX = '__frsh_'
-
 function assignGlobal(name: string, obj: any) {
-  (window as any)[GLOBAL_NAME_PREFIX + name] = obj
-}
-
-export function getGlobal(name: string) {
-  return (window as any)[name]
+  (window as any)[GLOBAL_SYMBOL_PREFIX + name] = obj
 }
 
 assignGlobal('_walkInner', _walkInner)

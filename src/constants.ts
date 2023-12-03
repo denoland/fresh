@@ -6,6 +6,8 @@ export const DATA_KEY_ATTR = "data-fresh-key";
 export const DATA_CURRENT = "data-current";
 export const DATA_ANCESTOR = "data-ancestor";
 
+export const GLOBAL_SYMBOL_PREFIX = "__frsh_";
+
 export const enum PartialMode {
   REPLACE,
   APPEND,
