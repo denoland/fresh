@@ -171,9 +171,10 @@ export async function getErrorOverlay(
   url: string,
 ): Promise<{ title: string; codeFrame: boolean; stack: string }> {
   const doc = await server.getHtml(url);
-  const iframe = doc.querySelector(
+  const iframe = doc.querySelector<HTMLIFrameElement>(
     "#fresh-error-overlay",
-  ) as HTMLIFrameElement;
+  );
+  assert(iframe, "Missing fresh error overlay");
 
   const doc2 = await server.getHtml(iframe.src);
 

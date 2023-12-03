@@ -359,29 +359,31 @@ export async function render<Data>(
     pluginRenderResults: renderResults,
   });
 
-  // Append error overlay
-  const devErrorUrl = withBase(DEV_ERROR_OVERLAY_URL, basePath);
-  if (error !== undefined && url.pathname !== devErrorUrl) {
-    const url = new URL(devErrorUrl, "https://localhost/");
-    if (error instanceof Error) {
-      let message = error.message;
-      const idx = message.indexOf("\n");
-      if (idx > -1) message = message.slice(0, idx);
-      url.searchParams.append("message", message);
-      if (error.stack) {
-        const stack = colors.stripAnsiCode(error.stack);
-        url.searchParams.append("stack", stack);
+  // Append error overlay in dev mode
+  if (opts.context.config.dev) {
+    const devErrorUrl = withBase(DEV_ERROR_OVERLAY_URL, basePath);
+    if (error !== undefined && url.pathname !== devErrorUrl) {
+      const url = new URL(devErrorUrl, "https://localhost/");
+      if (error instanceof Error) {
+        let message = error.message;
+        const idx = message.indexOf("\n");
+        if (idx > -1) message = message.slice(0, idx);
+        url.searchParams.append("message", message);
+        if (error.stack) {
+          const stack = colors.stripAnsiCode(error.stack);
+          url.searchParams.append("stack", stack);
+        }
+      } else {
+        url.searchParams.append("message", String(error));
       }
-    } else {
-      url.searchParams.append("message", String(error));
-    }
-    if (opts.codeFrame) {
-      const codeFrame = colors.stripAnsiCode(opts.codeFrame);
-      url.searchParams.append("code-frame", codeFrame);
-    }
+      if (opts.codeFrame) {
+        const codeFrame = colors.stripAnsiCode(opts.codeFrame);
+        url.searchParams.append("code-frame", codeFrame);
+      }
 
-    result.bodyHtml +=
-      `<iframe id="fresh-error-overlay" src="${url.pathname}?${url.searchParams.toString()}" style="unset: all; position: fixed; top: 0; left: 0; z-index: 99999; width: 100%; height: 100%; border: none;"></iframe>`;
+      result.bodyHtml +=
+        `<iframe id="fresh-error-overlay" src="${url.pathname}?${url.searchParams.toString()}" style="unset: all; position: fixed; top: 0; left: 0; z-index: 99999; width: 100%; height: 100%; border: none;"></iframe>`;
+    }
   }
 
   // Render outer document up to `<body>`
