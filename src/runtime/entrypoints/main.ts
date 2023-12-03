@@ -16,11 +16,9 @@ import {
   IslandRegistry,
   RenderRequest,
   _walkInner,
-} from "./_common.ts";
-import {
   NoPartialsError,
   fetchPartials,
-} from "./partials.ts";
+} from "./impl/global.ts";
 
 export function revive(
   islands: IslandRegistry,
