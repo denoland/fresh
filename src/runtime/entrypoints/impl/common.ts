@@ -1,4 +1,4 @@
-import "../polyfills.ts";
+import "../../polyfills.ts";
 import {
   ComponentChildren,
   ComponentType,
@@ -8,7 +8,7 @@ import {
 import {
   DATA_KEY_ATTR,
   LOADING_ATTR
-} from "../../constants.ts";
+} from "../../../constants.ts";
 import { PartialComp } from "./partials.ts";
 
 function createRootFragment(

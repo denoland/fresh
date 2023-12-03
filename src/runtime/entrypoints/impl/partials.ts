@@ -1,4 +1,4 @@
-import "../polyfills.ts";
+import "../../polyfills.ts";
 import {
   Component,
   ComponentChildren,
@@ -6,20 +6,20 @@ import {
   h,
   isValidElement, VNode
 } from "preact";
-import { INTERNAL_PREFIX } from "../utils.ts";
-import { type SerializedState } from "../../server/rendering/fresh_tags.tsx";
+import { INTERNAL_PREFIX } from "../../utils.ts";
+import { type SerializedState } from "../../../server/rendering/fresh_tags.tsx";
 import type { Signal } from "@preact/signals";
 import {
   PARTIAL_SEARCH_PARAM,
   PartialMode
-} from "../../constants.ts";
+} from "../../../constants.ts";
 import {
   RenderRequest,
   IslandRegistry,
   _walkInner,
   isCommentNode,
   isElementNode,
-} from "./_common.ts";
+} from "./common.ts";
 
 const partialErrorMessage = `Unable to process partial response.`;
 
