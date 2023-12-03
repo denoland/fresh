@@ -57,17 +57,17 @@ function createRootFragment(
     },
   };
 }
-function isCommentNode(node: Node): node is Comment {
+export function isCommentNode(node: Node): node is Comment {
   return node.nodeType === Node.COMMENT_NODE;
 }
-function isTextNode(node: Node): node is Text {
+export function isTextNode(node: Node): node is Text {
   return node.nodeType === Node.TEXT_NODE;
 }
-function isElementNode(node: Node): node is HTMLElement {
+export function isElementNode(node: Node): node is HTMLElement {
   return node.nodeType === Node.ELEMENT_NODE && !("_frshRootFrag" in node);
 }
 
-type IslandRegistry = Record<string, ComponentType>;
+export type IslandRegistry = Record<string, ComponentType>;
 
 function addPropsChild(parent: VNode, vnode: ComponentChildren) {
   const props = parent.props;
@@ -116,7 +116,7 @@ export interface RenderRequest {
 // Useful for debugging
 const SHOW_MARKERS = false;
 
-const partials = new Map<string, PartialComp>();
+export const partials = new Map<string, PartialComp>();
 
 /**
  * Replace comment markers with empty text nodes to hide them
@@ -220,7 +220,7 @@ function addChildrenFromTemplate(
  * in a stack-like manner, but do the actual iteration in a list-based
  * fashion over an HTMLElement's children list.
  */
-function _walkInner(
+export function _walkInner(
   islands: IslandRegistry,
   // deno-lint-ignore no-explicit-any
   props: any[],
@@ -489,4 +489,4 @@ function _walkInner(
   }
 }
 
-class NoPartialsError extends Error {}
+export class NoPartialsError extends Error {}
