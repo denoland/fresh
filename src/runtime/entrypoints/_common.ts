@@ -1,6 +1,5 @@
 import "../polyfills.ts";
 import {
-  Component,
   ComponentChildren,
   ComponentType,
   Fragment,
@@ -10,6 +9,7 @@ import {
   DATA_KEY_ATTR,
   LOADING_ATTR
 } from "../../constants.ts";
+import { PartialComp } from "./partials.ts";
 
 function createRootFragment(
   parent: Element,
@@ -82,18 +82,6 @@ function addPropsChild(parent: VNode, vnode: ComponentChildren) {
   }
 }
 
-class PartialComp extends Component<
-  { children?: ComponentChildren; mode: number; name: string }
-> {
-  componentDidMount() {
-    partials.set(this.props.name, this);
-  }
-
-  render() {
-    return this.props.children;
-  }
-}
-
 const enum MarkerKind {
   Island,
   Slot,
@@ -115,8 +103,6 @@ export interface RenderRequest {
 
 // Useful for debugging
 const SHOW_MARKERS = false;
-
-export const partials = new Map<string, PartialComp>();
 
 /**
  * Replace comment markers with empty text nodes to hide them
@@ -488,5 +474,3 @@ export function _walkInner(
     }
   }
 }
-
-export class NoPartialsError extends Error {}

@@ -1,5 +1,7 @@
 import "../polyfills.ts";
 import {
+  Component,
+  ComponentChildren,
   Fragment,
   h,
   isValidElement, VNode
@@ -14,14 +16,26 @@ import {
 import {
   RenderRequest,
   IslandRegistry,
-  NoPartialsError,
   _walkInner,
   isCommentNode,
   isElementNode,
-  partials,
 } from "./_common.ts";
 
 const partialErrorMessage = `Unable to process partial response.`;
+
+export class PartialComp extends Component<
+  { children?: ComponentChildren; mode: number; name: string }
+> {
+  componentDidMount() {
+    partials.set(this.props.name, this);
+  }
+
+  render() {
+    return this.props.children;
+  }
+}
+
+const partials = new Map<string, PartialComp>();
 
 export async function fetchPartials(url: URL, init: RequestInit = {}) {
   init.redirect = "follow";
@@ -296,3 +310,5 @@ export async function applyPartials(res: Response): Promise<void> {
     }
   }
 }
+
+export class NoPartialsError extends Error {}

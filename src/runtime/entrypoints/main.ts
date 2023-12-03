@@ -15,10 +15,12 @@ import { matchesUrl, setActiveUrl, UrlMatchKind } from "../active_url.ts";
 import {
   IslandRegistry,
   RenderRequest,
-  NoPartialsError,
   _walkInner,
 } from "./_common.ts";
-import { fetchPartials } from "./partials.ts";
+import {
+  NoPartialsError,
+  fetchPartials,
+} from "./partials.ts";
 
 export function revive(
   islands: IslandRegistry,
