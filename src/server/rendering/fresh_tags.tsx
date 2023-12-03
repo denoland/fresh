@@ -107,6 +107,12 @@ export function renderFreshTags(
     }
   }
 
+  {
+    // Init the global scope variables
+    const url = addImport("globalScope.js");
+    script += `import "${url}";`;
+  }
+
   // Then it imports all plugin scripts and executes them (with their respective
   // state).
   if (pluginScripts.length > 0) {
