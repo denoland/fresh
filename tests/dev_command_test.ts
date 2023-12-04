@@ -2,7 +2,6 @@ import { assert, assertEquals, assertStringIncludes } from "./deps.ts";
 import { STATUS_CODE } from "../server.ts";
 import {
   assertNotSelector,
-  assertSelector,
   assertTextMany,
   assertTextMatch,
   fetchHtml,
