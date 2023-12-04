@@ -359,9 +359,12 @@ export async function render<Data>(
     pluginRenderResults: renderResults,
   });
 
-  // Append error overlay
+  // Dev only: Append error overlay
   const devErrorUrl = withBase(DEV_ERROR_OVERLAY_URL, basePath);
-  if (error !== undefined && url.pathname !== devErrorUrl) {
+  if (
+    error !== undefined && url.pathname !== devErrorUrl &&
+    opts.context.config.dev
+  ) {
     const url = new URL(devErrorUrl, "https://localhost/");
     if (error instanceof Error) {
       let message = error.message;

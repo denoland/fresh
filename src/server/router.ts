@@ -82,10 +82,9 @@ export function defaultOtherHandler(_req: Request): Response {
 
 export function defaultErrorHandler(
   _req: Request,
-  _ctx: FreshContext,
-  err: unknown,
+  ctx: FreshContext,
 ): Response {
-  console.error(err);
+  console.error(ctx.error);
 
   return new Response(null, {
     status: 500,
