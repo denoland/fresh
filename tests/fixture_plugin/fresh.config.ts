@@ -12,7 +12,7 @@ export default {
     jsInjectPlugin,
     cssInjectPluginAsync,
     linkInjectPlugin,
-    routePlugin({ title: "Title Set From Plugin Config" }),
+    routePlugin({ title: "Title Set From Plugin Config", async: false }),
     secondMiddlewarePlugin(),
   ],
 } as FreshConfig;
