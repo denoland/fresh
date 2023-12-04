@@ -93,25 +93,49 @@ export function TableOfContents({ headings }: TableOfContentsProps) {
   return (
     <div
       ref={ref}
-      class="relative xl:order-2 w-56 xl:max-w-xs xl:top-14 shrink-0"
+      class="relative xl:order-2 xl:w-56 xl:max-w-xs xl:top-14 shrink-0"
     >
-      {headings.length > 0 && (
+      {headings.length > -1 && (
         <>
           <div class="xl:hidden mx-4 md:mx-0 mt-4 md:mt-0">
-            <button
-              id="toc-outline-btn"
-              onClick={() => setIsOpen((v) => !v)}
-              class="bg-gray-100 py-2 px-4 mt-1 rounded border border-gray-300 flex items-center hover:border-green-600 transition-colors text-sm"
-            >
-              On this page
-              <svg
-                class={`w-4 h-4 inline-block ml-2 -rotate-90 [&.active]:rotate-0 ${
-                  isOpen ? "active" : ""
-                }`}
+            <div class="flex justify-between">
+              <button
+                id="toc-outline-btn"
+                onClick={() => setIsOpen((v) => !v)}
+                class="bg-gray-100 py-2 px-4 rounded border border-gray-300 flex items-center hover:border-green-600 transition-colors text-sm"
               >
-                <use href="/icons.svg#arrow-down" />
-              </svg>
-            </button>
+                On this page
+                <svg
+                  class={`w-4 h-4 inline-block ml-2 -rotate-90 [&.active]:rotate-0 ${
+                    isOpen ? "active" : ""
+                  }`}
+                >
+                  <use href="/icons.svg#arrow-down" />
+                </svg>
+              </button>
+              <button
+                class="h-[2.375rem] bg-gray-100 py-2 px-4 rounded border border-gray-300 flex items-center hover:border-green-600 transition-colors text-sm"
+                ONClick="document.getElementById('docs-sidebar').classList.toggle('open')"
+              >
+                Documentation
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  aria-hidden="true"
+                  focusable="false"
+                  viewBox="0 0 24 24"
+                  class="w-6 ml-2"
+                >
+                  <path d="M17,11H3c-0.6,0-1-0.4-1-1s0.4-1,1-1h14c0.6,0,1,0.4,1,1S17.6,11,17,11z">
+                  </path>
+                  <path d="M21,7H3C2.4,7,2,6.6,2,6s0.4-1,1-1h18c0.6,0,1,0.4,1,1S21.6,7,21,7z">
+                  </path>
+                  <path d="M21,15H3c-0.6,0-1-0.4-1-1s0.4-1,1-1h18c0.6,0,1,0.4,1,1S21.6,15,21,15z">
+                  </path>
+                  <path d="M17,19H3c-0.6,0-1-0.4-1-1s0.4-1,1-1h14c0.6,0,1,0.4,1,1S17.6,19,17,19z">
+                  </path>
+                </svg>
+              </button>
+            </div>
             {isOpen && (
               <div class="mt-2 pl-4 border-l border-gray-250 text-[13px] leading-7">
                 <nav aria-labelledby="toc-outline-btn">

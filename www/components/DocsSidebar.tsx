@@ -14,7 +14,7 @@ export default function DocsSidebar(
   },
 ) {
   return (
-    <div class="fixed w-[18rem] flex h-[calc(100vh_-_4rem)] top-16">
+    <div class="absolute lg:fixed bg-white w-[18rem] flex h-[calc(100vh_-_4rem)] top-16 z-10">
       <div class="h-full relative">
         <div class="absolute left-0 top-0 right-0 h-[1px] mr-4 bg-gray-200" />
         <div

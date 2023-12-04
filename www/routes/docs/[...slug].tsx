@@ -166,10 +166,10 @@ export default function DocsPage(props: PageProps<Data>) {
         <meta property="og:image" content={ogImageUrl} />
         <meta name="view-transition" content="same-origin" />
       </Head>
-      <header class="top-0 l-0 r-0 w-full fixed bg-white z-10 h-16">
+      <header class="top-0 l-0 r-0 w-full relative lg:fixed bg-white z-10 h-16">
         <div class="mx-auto max-w-screen-2xl h-full">
           <div class="h-full flex px-4">
-            <div class="w-[19rem] h-full shrink-0">
+            <div class="lg:w-[19rem] mr-4 h-full shrink-0">
               <a href="/" class="flex h-full items-center">
                 <DocsTitle />
               </a>
@@ -178,7 +178,7 @@ export default function DocsPage(props: PageProps<Data>) {
             <div class="h-full w-full justify-between flex items-center">
               <SearchButton />
               <nav class="h-full">
-                <ul class="flex items-center gap-8 h-full">
+                <ul class="flex items-center gap-6 lg:gap-8 h-full">
                   {navItems.map((item) => {
                     return (
                       <li key={item.name} class="h-full">
@@ -214,7 +214,7 @@ export default function DocsPage(props: PageProps<Data>) {
             </div>
           </div>
           <div class="ml-[19rem]">
-            <div class="h-6 bg-gradient-to-b from-white to-transparent" />
+            <div class="hidden lg:block h-6 bg-gradient-to-b from-white to-transparent" />
           </div>
         </div>
       </header>
@@ -222,14 +222,17 @@ export default function DocsPage(props: PageProps<Data>) {
         class="flex flex-col min-h-screen mx-auto max-w-screen-2xl"
         f-client-nav
       >
-        <nav class="w-[18rem] flex-shrink-0 px-4 flex">
+        <nav
+          id="docs-sidebar"
+          class="w-[18rem] flex-shrink-0 px-4 flex opacity-0 [&.open]:opacity-1 lg:opacity-1"
+        >
           <DocsSidebar
             versionLinks={page.versionLinks}
             selectedVersion={page.version}
           />
         </nav>
 
-        <main class="pl-[19rem] mt-16 pt-6 min-w-0">
+        <main class="lg:pl-[19rem] lg:mt-16 lg:pt-6 min-w-0">
           <div class="flex gap-6 md:gap-8 xl:gap-[8%] flex-col xl:flex-row md:mx-8 lg:mx-16 2xl:mx-0 lg:justify-end">
             <TableOfContents headings={headings} />
             <Partial name="docs-main">
