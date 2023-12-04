@@ -572,7 +572,11 @@ export interface PluginRoute {
   /** A path in the format of a filename path without filetype */
   path: string;
 
-  component?: ComponentType<PageProps> | ComponentType<AppProps>;
+  component?:
+    | ComponentType<PageProps>
+    | ComponentType<AppProps>
+    | AsyncRoute
+    | AsyncLayout;
 
   // deno-lint-ignore no-explicit-any
   handler?: Handler<any, any> | Handlers<any, any>;

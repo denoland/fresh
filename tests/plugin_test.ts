@@ -1,4 +1,4 @@
-import { ServerContext, STATUS_CODE } from "../server.ts";
+import { type FreshConfig, ServerContext, STATUS_CODE } from "../server.ts";
 import {
   assert,
   assertEquals,
@@ -17,6 +17,8 @@ import {
   withFakeServe,
   withPageName,
 } from "./test_utils.ts";
+import routePlugin from "./fixture_plugin/utils/route-plugin.ts";
+import secondMiddlewarePlugin from "./fixture_plugin/utils/second-middleware-plugin.ts";
 
 const ctx = await ServerContext.fromManifest(manifest, config);
 const handler = ctx.handler();
@@ -81,6 +83,38 @@ Deno.test("plugin routes and middleware", async () => {
   );
 });
 
+Deno.test("plugin routes and middleware -- async _app", async () => {
+  const ctx = await ServerContext.fromManifest(manifest, {
+    plugins: [
+      routePlugin({ title: "Title Set From Plugin Config", async: true }),
+      secondMiddlewarePlugin(),
+    ],
+  } as FreshConfig);
+  const handler = ctx.handler();
+  const router = (req: Request) => {
+    return handler(req, {
+      remoteAddr: {
+        transport: "tcp",
+        hostname: "127.0.0.1",
+        port: 80,
+      },
+    });
+  };
+
+  const resp = await router(new Request("https://fresh.deno.dev/test"));
+  assert(resp);
+  assertEquals(resp.status, STATUS_CODE.OK);
+  const body = await resp.text();
+  assertStringIncludes(
+    body,
+    `<h1>look, i'm set from a plugin!</h1>`,
+  );
+  assertStringIncludes(
+    body,
+    `<title>Title Set From Plugin Config</title>`,
+  );
+});
+
 Deno.test("plugin middleware multiple handlers", async () => {
   const resp = await router(
     new Request("https://fresh.deno.dev/lots-of-middleware"),
@@ -104,6 +138,19 @@ Deno.test("plugin route no leading slash", async () => {
   assertStringIncludes(
     body,
     `<div>Hello</div>`,
+  );
+});
+
+Deno.test("plugin async route", async () => {
+  const resp = await router(
+    new Request("https://fresh.deno.dev/async-route"),
+  );
+  assert(resp);
+  assertEquals(resp.status, STATUS_CODE.OK);
+  const body = await resp.text();
+  assertStringIncludes(
+    body,
+    `<div>this is an async route!</div>`,
   );
 });
 
