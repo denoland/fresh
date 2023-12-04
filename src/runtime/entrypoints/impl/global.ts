@@ -1,6 +1,5 @@
-import type * as partialImpl from "./partials.ts"
-import type * as commonImpl from "./common.ts"
 import { GLOBAL_SYMBOL_PREFIX } from "$fresh/src/constants.ts"
+import type { GlobalScope } from "./globalInit.ts"
 
 export type {
   IslandRegistry,
@@ -8,12 +7,14 @@ export type {
 } from './common.ts';
 export type { FreshHistoryState } from './partials.ts'
 
-function getGlobal(name: string) {
-  return (window as any)[GLOBAL_SYMBOL_PREFIX + name]
-}
+const globals: GlobalScope = new Proxy({} as any, {
+  get(_, name: string) {
+    return (window as any)[GLOBAL_SYMBOL_PREFIX + name]
+  }
+})
 
-export const _walkInner = getGlobal('_walkInner') as typeof commonImpl._walkInner
-export const NoPartialsError = getGlobal('NoPartialsError') as typeof partialImpl.NoPartialsError
-export const historyState = getGlobal('historyState')
-export const navigate = getGlobal('navigate') as typeof partialImpl.navigate
-export const fetchPartials = getGlobal('fetchPartials') as typeof partialImpl.fetchPartials
+export const _walkInner = globals._walkInner
+export const NoPartialsError = globals.NoPartialsError
+export const fetchPartials = globals.fetchPartials
+export const historyState = globals.historyState
+export const navigate = globals.navigate
