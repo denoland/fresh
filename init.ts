@@ -306,7 +306,7 @@ export default {
   content: [
     "{routes,islands,components}/**/*.{ts,tsx}",
   ],
-} as Config;
+} satisfies Config;
 `;
 if (useTailwind) {
   await Deno.writeTextFile(

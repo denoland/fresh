@@ -18,7 +18,7 @@ export default {
   content: [
     "{routes,islands,components}/**/*.{ts,tsx}",
   ],
-} as Config;
+} satisfies Config;
 ```
 
 2. Create a css file in your static directory `<project>/static/styles.css`:
