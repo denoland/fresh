@@ -1,6 +1,6 @@
-import { LayoutProps } from "$fresh/server.ts";
+import { PageProps } from "$fresh/server.ts";
 
-export default function FooLayout({ Component }: LayoutProps) {
+export default function FooLayout({ Component }: PageProps) {
   return (
     <div>
       <p class="foo-layout">Foo layout</p>

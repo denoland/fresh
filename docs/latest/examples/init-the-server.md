@@ -35,7 +35,7 @@ export default defineConfig({
 But what's going on in this new `_middleware.ts` we've created?
 
 ```ts routes/_middleware.ts
-import { MiddlewareHandlerContext } from "$fresh/server.ts";
+import { FreshContext } from "$fresh/server.ts";
 
 export interface State {
   context: Context;
@@ -64,7 +64,7 @@ export class Context {
 
 export async function handler(
   _req: Request,
-  ctx: MiddlewareHandlerContext<State>,
+  ctx: FreshContext<State>,
 ) {
   ctx.state.context = Context.instance();
   if (ctx.destination === "route") {

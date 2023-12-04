@@ -1,9 +1,9 @@
-import { AppProps } from "$fresh/server.ts";
+import { PageProps } from "$fresh/server.ts";
 import { Head } from "../../../../runtime.ts";
 import { Options } from "../route-plugin.ts";
 
 export function AppBuilder(options: Options) {
-  return ({ Component }: AppProps) => {
+  return ({ Component }: PageProps) => {
     return (
       <>
         <Head>

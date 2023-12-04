@@ -1,15 +1,6 @@
 import { PARTIAL_SEARCH_PARAM } from "../constants.ts";
-import {
-  BaseRoute,
-  ErrorHandlerContext,
-  FreshContext,
-  ServeHandlerInfo,
-} from "./types.ts";
+import { BaseRoute, FreshContext } from "./types.ts";
 import { isIdentifierChar, isIdentifierStart } from "./init_safe_deps.ts";
-
-type HandlerContext<T = unknown> = T & ServeHandlerInfo & {
-  isPartial: boolean;
-};
 
 export type Handler<T = Record<string, unknown>> = (
   req: Request,
@@ -91,7 +82,7 @@ export function defaultOtherHandler(_req: Request): Response {
 
 export function defaultErrorHandler(
   _req: Request,
-  _ctx: ErrorHandlerContext,
+  _ctx: FreshContext,
   err: unknown,
 ): Response {
   console.error(err);
@@ -103,7 +94,7 @@ export function defaultErrorHandler(
 
 export function defaultUnknownMethodHandler(
   _req: Request,
-  _ctx: HandlerContext,
+  _ctx: FreshContext,
   knownMethods: KnownMethod[],
 ): Response {
   return new Response(null, {

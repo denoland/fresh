@@ -12,12 +12,12 @@ throws an error respectively.
 
 The 404 page can be customized by creating a `_404.tsx` file in the `routes/`
 folder. The file must have a default export that is a regular Preact component.
-A props object of type `UnknownPageProps` is passed in as an argument.
+A props object of type `PageProps` is passed in as an argument.
 
 ```tsx routes/_404.tsx
-import { UnknownPageProps } from "$fresh/server.ts";
+import { PageProps } from "$fresh/server.ts";
 
-export default function NotFoundPage({ url }: UnknownPageProps) {
+export default function NotFoundPage({ url }: PageProps) {
   return <p>404 not found: {url.pathname}</p>;
 }
 ```
@@ -54,16 +54,29 @@ export default function BlogpostPage({ data }) {
 }
 ```
 
+This can also be achieved by throwing an error, if you're uninterested in
+passing specific data to your 404 page:
+
+```tsx
+import { Handlers } from "$fresh/server.ts";
+
+export const handler: Handlers = {
+  GET(_req, _ctx) {
+    throw new Deno.errors.NotFound();
+  },
+};
+```
+
 ### 500: Internal Server Error
 
 The 500 page can be customized by creating a `_500.tsx` file in the `routes/`
 folder. The file must have a default export that is a regular Preact component.
-A props object of type `ErrorPageProps` is passed in as an argument.
+A props object of type `PageProps` is passed in as an argument.
 
 ```tsx routes/_500.tsx
-import { ErrorPageProps } from "$fresh/server.ts";
+import { PageProps } from "$fresh/server.ts";
 
-export default function Error500Page({ error }: ErrorPageProps) {
+export default function Error500Page({ error }: PageProps) {
   return <p>500 internal error: {(error as Error).message}</p>;
 }
 ```
