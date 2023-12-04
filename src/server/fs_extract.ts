@@ -226,11 +226,7 @@ export async function extractRoutes(
         url,
         name,
         component,
-        handler: (req, ctx) => {
-          return handler
-            ? handler(req, ctx)
-            : router.defaultErrorHandler(req, ctx, ctx.error);
-        },
+        handler: handler ?? router.defaultErrorHandler,
         csp: Boolean(routeConfig?.csp ?? false),
         appWrapper: !routeConfig?.skipAppWrapper,
         inheritLayouts: !routeConfig?.skipInheritedLayouts,
