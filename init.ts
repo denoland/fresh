@@ -554,6 +554,8 @@ const config = {
   tasks: {
     check:
       "deno fmt --check && deno lint && deno check **/*.ts && deno check **/*.tsx",
+    cli: "echo \"import '\\$fresh/src/dev/cli.ts'\" | deno run --unstable -A -",
+    manifest: "deno task cli manifest $(pwd)",
     start: "deno run -A --watch=static/,routes/ dev.ts",
     build: "deno run -A dev.ts build",
     preview: "deno run -A main.ts",
