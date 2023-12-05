@@ -112,7 +112,7 @@ export async function start(manifest: Manifest, config: FreshConfig = {}) {
     dev: false,
   });
   const realConfig = config.server ?? config;
-  await startServer(ctx.handler(), {
+  return await startServer(ctx.handler(), {
     ...realConfig,
     basePath: config?.router?.basePath ?? "",
   });

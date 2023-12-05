@@ -35,8 +35,9 @@ export async function startServer(
     opts.port ??= parseInt(portEnv, 10);
   }
 
+  let server: Deno.HttpServer | undefined;
   if (opts.port) {
-    await bootServer(handler, opts);
+    server = await bootServer(handler, opts);
   } else {
     // No port specified, check for a free port. Instead of picking just
     // any port we'll check if the next one is free for UX reasons.
@@ -45,7 +46,7 @@ export async function startServer(
     let firstError;
     for (let port = 8000; port < 8020; port++) {
       try {
-        await bootServer(handler, { ...opts, port });
+        server = await bootServer(handler, { ...opts, port });
         firstError = undefined;
         break;
       } catch (err) {
@@ -65,6 +66,7 @@ export async function startServer(
     if (firstError) {
       throw firstError;
     }
+    return server;
   }
 }
 
@@ -72,10 +74,8 @@ async function bootServer(
   handler: ServeHandler,
   opts: Partial<Deno.ServeTlsOptions>,
 ) {
-  // @ts-ignore Ignore type error when type checking with Deno versions
   if (typeof Deno.serve === "function") {
-    // @ts-ignore Ignore type error when type checking with Deno versions
-    await Deno.serve(
+    return await Deno.serve(
       opts,
       (r, { remoteAddr }) =>
         handler(r, {
@@ -86,7 +86,7 @@ async function bootServer(
             port: opts.port,
           } as Deno.NetAddr,
         }),
-    ).finished;
+    );
   } else {
     // @ts-ignore Deprecated std serve way
     await serve(handler, opts);
