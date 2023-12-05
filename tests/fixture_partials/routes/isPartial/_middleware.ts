@@ -1,4 +1,4 @@
-import { MiddlewareHandlerContext } from "$fresh/server.ts";
+import { FreshContext } from "$fresh/server.ts";
 
 export type IsPartialInContextState = {
   setFromMiddleware: boolean;
@@ -7,7 +7,7 @@ export type IsPartialInContextState = {
 
 export async function handler(
   _req: Request,
-  ctx: MiddlewareHandlerContext<IsPartialInContextState>,
+  ctx: FreshContext<IsPartialInContextState>,
 ) {
   if (ctx.isPartial) {
     ctx.state.setFromMiddleware = true;

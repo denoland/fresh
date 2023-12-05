@@ -37,3 +37,15 @@ Deno.test("TailwindCSS - config", async () => {
     { loadConfig: true },
   );
 });
+
+Deno.test("TailwindCSS - middleware only css", async () => {
+  await withFakeServe(
+    "./tests/fixture_tailwind/dev.ts",
+    async (server) => {
+      const res = await server.get("/middleware-only.css");
+      const content = await res.text();
+      assertStringIncludes(content, ".foo-bar");
+    },
+    { loadConfig: true },
+  );
+});

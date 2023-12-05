@@ -171,9 +171,10 @@ export async function getErrorOverlay(
   url: string,
 ): Promise<{ title: string; codeFrame: boolean; stack: string }> {
   const doc = await server.getHtml(url);
-  const iframe = doc.querySelector(
+  const iframe = doc.querySelector<HTMLIFrameElement>(
     "#fresh-error-overlay",
-  ) as HTMLIFrameElement;
+  );
+  assert(iframe, "Missing fresh error overlay");
 
   const doc2 = await server.getHtml(iframe.src);
 
@@ -258,9 +259,13 @@ async function handleRequest(
 
   // Follow redirects
   while (res.headers.has("location")) {
-    const loc = res.headers.get("location");
+    let loc = res.headers.get("location")!;
     const hostname = conn.remoteAddr.hostname;
-    res = await handler(new Request(`https://${hostname}${loc}`), conn);
+    if (!loc.startsWith("http://") && !loc.startsWith("https://")) {
+      loc = `https://${hostname}${loc}`;
+    }
+
+    res = await handler(new Request(loc), conn);
   }
 
   return res;

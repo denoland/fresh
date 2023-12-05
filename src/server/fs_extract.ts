@@ -226,21 +226,7 @@ export async function extractRoutes(
         url,
         name,
         component,
-        handler: (req, ctx) => {
-          if (config.dev) {
-            const prevComp = error.component;
-            error.component = DefaultErrorHandler;
-            try {
-              return ctx.render();
-            } finally {
-              error.component = prevComp;
-            }
-          }
-
-          return handler
-            ? handler(req, ctx)
-            : router.defaultErrorHandler(req, ctx, ctx.error);
-        },
+        handler: handler ?? router.defaultErrorHandler,
         csp: Boolean(routeConfig?.csp ?? false),
         appWrapper: !routeConfig?.skipAppWrapper,
         inheritLayouts: !routeConfig?.skipInheritedLayouts,
@@ -257,13 +243,13 @@ export async function extractRoutes(
   for (const plugin of config.plugins || []) {
     if (!plugin.islands) continue;
     const base = dirname(plugin.islands.baseLocation);
-    for (const name of plugin.islands.paths) {
-      const full = join(base, name);
+
+    for (const specifier of plugin.islands.paths) {
+      const full = join(base, specifier);
       const module = await import(full);
-      const fileNameWithExt = basename(full);
-      const fileName = fileNameWithExt.replace(extname(fileNameWithExt), "");
+      const name = sanitizeIslandName(basename(full, extname(full)));
       processedIslands.push({
-        name: sanitizeIslandName(fileName),
+        name,
         path: full,
         module,
       });

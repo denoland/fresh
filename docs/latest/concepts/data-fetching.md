@@ -36,7 +36,7 @@ export default function ProjectPage(props: PageProps<Project>) {
 }
 ```
 
-The type parameter on the `PageProps`, `Handlers`, `Handler`, and
-`HandlerContext` can be used to enforce a TypeScript type to use for the render
-data. Fresh enforces during type checking that the types in all of these fields
-are compatible within a single page.
+The type parameter on the `PageProps`, `Handlers`, `Handler`, and `FreshContext`
+can be used to enforce a TypeScript type to use for the render data. Fresh
+enforces during type checking that the types in all of these fields are
+compatible within a single page.

@@ -2,7 +2,6 @@ import { assert, assertEquals, assertStringIncludes } from "./deps.ts";
 import { STATUS_CODE } from "../server.ts";
 import {
   assertNotSelector,
-  assertSelector,
   assertTextMany,
   assertTextMatch,
   fetchHtml,
@@ -118,17 +117,16 @@ Deno.test("show codeframe in dev mode even with custom 500", async () => {
   await withFakeServe(
     "./tests/fixture_dev_codeframe/dev.ts",
     async (server) => {
-      const doc = await server.getHtml(`/`);
-      assertSelector(doc, ".frsh-error-page");
+      const { title } = await getErrorOverlay(server, "/");
+      assertEquals(title, "fail");
     },
   );
 
   await withFakeServe(
     "./tests/fixture_dev_codeframe/main.ts",
     async (server) => {
-      const doc = await server.getHtml(`/`);
-      assertNotSelector(doc, ".frsh-error-page");
-      assertSelector(doc, "h1");
+      const doc = await server.getHtml("/");
+      assertNotSelector(doc, "#fresh-error-overlay");
     },
   );
 });

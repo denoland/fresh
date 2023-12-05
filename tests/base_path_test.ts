@@ -2,6 +2,7 @@ import {
   assert,
   assertEquals,
   assertMatch,
+  assertStringIncludes,
   delay,
   puppeteer,
   STATUS_CODE,
@@ -9,6 +10,7 @@ import {
 import {
   clickWhenListenerReady,
   getErrorOverlay,
+  runBuild,
   waitForText,
   withFakeServe,
   withFresh,
@@ -42,7 +44,7 @@ Deno.test("rewrites middleware request", async () => {
   await withFresh("./tests/fixture_base_path/main.ts", async (address) => {
     const res = await fetch(`${address}/api`);
     const body = await res.text();
-    assertEquals(body, "it works");
+    assertEquals(body, "middleware is working");
   });
 });
 
@@ -166,5 +168,82 @@ Deno.test("dev_command config: shows codeframe", async () => {
       const { codeFrame } = await getErrorOverlay(server, "/codeframe");
       assert(codeFrame);
     },
+  );
+});
+
+Deno.test("TailwindCSS - dev mode", async () => {
+  await withFakeServe("./tests/fixture_base_path/dev.ts", async (server) => {
+    const res = await server.get("/styles.css");
+    const content = await res.text();
+    assertStringIncludes(content, ".text-red-600");
+
+    const res2 = await server.get("/styles.css?foo=bar");
+    const content2 = await res2.text();
+    assert(!content2.includes("@tailwind"));
+  }, { loadConfig: true });
+});
+
+Deno.test("middleware test", async (t) => {
+  await withFakeServe(
+    "./tests/fixture_base_path/dev.ts",
+    async (server) => {
+      await t.step("expected root", async () => {
+        const res = await server.get("/foo/bar");
+        const content = await res.text();
+        assertEquals(res.headers.get("server"), "fresh server");
+        assertStringIncludes(content, "middleware is working");
+      });
+
+      await t.step("redirect root", async () => {
+        const res = await server.get("");
+        const content = await res.text();
+        assertEquals(res.headers.get("server"), "fresh server");
+        assertStringIncludes(content, "middleware is working");
+      });
+
+      await t.step("miiddleware before an invalid route", async () => {
+        const res = await server.get("/asdfasdfasdfasdfasdfasdf");
+        assertEquals(res.headers.get("server"), "fresh server");
+        await res.body?.cancel();
+      });
+    },
+    { loadConfig: true },
+  );
+});
+
+Deno.test("TailwindCSS - build mode", async () => {
+  await runBuild("./tests/fixture_base_path_build/dev.ts");
+  await withFakeServe(
+    "./tests/fixture_base_path_build/main.ts",
+    async (server) => {
+      const res = await server.get("/styles.css");
+      const content = await res.text();
+      assertStringIncludes(content, ".text-red-600{");
+    },
+    { loadConfig: true },
+  );
+});
+
+Deno.test("TailwindCSS - config", async () => {
+  await withFakeServe(
+    "./tests/fixture_base_path_config/dev.ts",
+    async (server) => {
+      const res = await server.get("/styles.css");
+      const content = await res.text();
+      assertStringIncludes(content, ".text-pp");
+    },
+    { loadConfig: true },
+  );
+});
+
+Deno.test("TailwindCSS - middleware only css", async () => {
+  await withFakeServe(
+    "./tests/fixture_base_path/dev.ts",
+    async (server) => {
+      const res = await server.get("/middleware-only.css");
+      const content = await res.text();
+      assertStringIncludes(content, ".foo-bar");
+    },
+    { loadConfig: true },
   );
 });

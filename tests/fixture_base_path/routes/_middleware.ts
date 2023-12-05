@@ -1,10 +1,17 @@
-import { MiddlewareHandlerContext } from "$fresh/server.ts";
+import { FreshContext } from "$fresh/server.ts";
 
 export async function handler(
   _req: Request,
-  ctx: MiddlewareHandlerContext<{ data: string }>,
+  ctx: FreshContext<{ data: string }>,
 ) {
-  ctx.state.data = "it works";
+  if (ctx.url.pathname === "/foo/bar/middleware-only.css") {
+    return new Response(".foo-bar { color: red }", {
+      headers: {
+        "Content-Type": "text/css",
+      },
+    });
+  }
+  ctx.state.data = "middleware is working";
   const resp = await ctx.next();
   resp.headers.set("server", "fresh server");
   return resp;

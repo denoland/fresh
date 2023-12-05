@@ -1,15 +1,6 @@
 import { PARTIAL_SEARCH_PARAM } from "../constants.ts";
-import {
-  BaseRoute,
-  ErrorHandlerContext,
-  FreshContext,
-  ServeHandlerInfo,
-} from "./types.ts";
+import { BaseRoute, FreshContext } from "./types.ts";
 import { isIdentifierChar, isIdentifierStart } from "./init_safe_deps.ts";
-
-type HandlerContext<T = unknown> = T & ServeHandlerInfo & {
-  isPartial: boolean;
-};
 
 export type Handler<T = Record<string, unknown>> = (
   req: Request,
@@ -91,10 +82,9 @@ export function defaultOtherHandler(_req: Request): Response {
 
 export function defaultErrorHandler(
   _req: Request,
-  _ctx: ErrorHandlerContext,
-  err: unknown,
+  ctx: FreshContext,
 ): Response {
-  console.error(err);
+  console.error(ctx.error);
 
   return new Response(null, {
     status: 500,
@@ -103,7 +93,7 @@ export function defaultErrorHandler(
 
 export function defaultUnknownMethodHandler(
   _req: Request,
-  _ctx: HandlerContext,
+  _ctx: FreshContext,
   knownMethods: KnownMethod[],
 ): Response {
   return new Response(null, {
@@ -122,7 +112,7 @@ function skipRegex(input: string, idx: number): number {
     if (char === "(" || char === "[") {
       open++;
     } else if (char === ")" || char === "]") {
-      if (open-- === 0) {
+      if (--open === 0) {
         return i;
       }
     } else if (char === "\\") {
@@ -157,16 +147,8 @@ export function patternToRegExp(input: string): RegExp {
 
   for (let i = 0; i < input.length; i++) {
     let ch = input.charCodeAt(i);
-
-    if (groupIdx !== -1) {
-      if (ch === Char["{"]) {
-        throw new SyntaxError(`Unexpected token "{"`);
-      }
-      if (ch === Char["}"]) {
-        pattern = tmpPattern + "(?:" + pattern + ")";
-        groupIdx = -1;
-        continue;
-      }
+    if (groupIdx !== -1 && ch === Char["{"]) {
+      throw new SyntaxError(`Unexpected token "{"`);
     }
 
     if (ch === Char["/"]) {
@@ -206,6 +188,9 @@ export function patternToRegExp(input: string): RegExp {
       tmpPattern = pattern;
       pattern = "";
       groupIdx = i;
+    } else if (ch === Char["}"]) {
+      pattern = tmpPattern + "(?:" + pattern + ")";
+      groupIdx = -1;
     } else {
       pattern += input[i];
     }

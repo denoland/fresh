@@ -166,6 +166,7 @@ export class ServerContext {
       handlers.errorHandler,
       router.getParamsAndRoute(handlers),
       renderNotFound,
+      basePath,
     );
     const trailingSlashEnabled = this.#state.config.router?.trailingSlash;
     const isDev = this.#dev;
