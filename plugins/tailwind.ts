@@ -32,7 +32,10 @@ export default function tailwind(): Plugin {
 
         let cached = cache.get(pathname);
         if (!cached) {
-          const filePath = path.join(staticDir, pathname);
+          const filePath = path.join(
+            staticDir,
+            pathname.replace(ctx.config.basePath, ""),
+          );
           let text = "";
           try {
             text = await Deno.readTextFile(filePath);

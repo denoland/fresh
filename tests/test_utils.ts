@@ -259,9 +259,13 @@ async function handleRequest(
 
   // Follow redirects
   while (res.headers.has("location")) {
-    const loc = res.headers.get("location");
+    let loc = res.headers.get("location")!;
     const hostname = conn.remoteAddr.hostname;
-    res = await handler(new Request(`https://${hostname}${loc}`), conn);
+    if (!loc.startsWith("http://") && !loc.startsWith("https://")) {
+      loc = `https://${hostname}${loc}`;
+    }
+
+    res = await handler(new Request(loc), conn);
   }
 
   return res;
