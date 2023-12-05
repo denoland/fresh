@@ -112,7 +112,7 @@ function skipRegex(input: string, idx: number): number {
     if (char === "(" || char === "[") {
       open++;
     } else if (char === ")" || char === "]") {
-      if (open-- === 0) {
+      if (--open === 0) {
         return i;
       }
     } else if (char === "\\") {
@@ -147,16 +147,8 @@ export function patternToRegExp(input: string): RegExp {
 
   for (let i = 0; i < input.length; i++) {
     let ch = input.charCodeAt(i);
-
-    if (groupIdx !== -1) {
-      if (ch === Char["{"]) {
-        throw new SyntaxError(`Unexpected token "{"`);
-      }
-      if (ch === Char["}"]) {
-        pattern = tmpPattern + "(?:" + pattern + ")";
-        groupIdx = -1;
-        continue;
-      }
+    if (groupIdx !== -1 && ch === Char["{"]) {
+      throw new SyntaxError(`Unexpected token "{"`);
     }
 
     if (ch === Char["/"]) {
@@ -196,6 +188,9 @@ export function patternToRegExp(input: string): RegExp {
       tmpPattern = pattern;
       pattern = "";
       groupIdx = i;
+    } else if (ch === Char["}"]) {
+      pattern = tmpPattern + "(?:" + pattern + ")";
+      groupIdx = -1;
     } else {
       pattern += input[i];
     }
