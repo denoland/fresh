@@ -69,6 +69,13 @@ export function isElementNode(node: Node): node is HTMLElement {
 
 export type IslandRegistry = Record<string, ComponentType>;
 
+function ServerComponent(
+  props: { children: ComponentChildren; id: string },
+): ComponentChildren {
+  return props.children;
+}
+ServerComponent.displayName = "PreactServerComponent";
+
 function addPropsChild(parent: VNode, vnode: ComponentChildren) {
   const props = parent.props;
   if (props.children == null) {

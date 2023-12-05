@@ -60,13 +60,6 @@ export function revive(
   }
 }
 
-function ServerComponent(
-  props: { children: ComponentChildren; id: string },
-): ComponentChildren {
-  return props.children;
-}
-ServerComponent.displayName = "PreactServerComponent";
-
 function updateLinks(url: URL) {
   document.querySelectorAll("a").forEach((link) => {
     const match = matchesUrl(url.pathname, link.href);
