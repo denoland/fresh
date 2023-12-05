@@ -15,6 +15,7 @@ Deno.test("pathToRegexp", () => {
   assertEquals(testPattern("/foo/:path", "/foo"), null);
   assertEquals(testPattern("/foo/*", "/foo/asd/asdh/"), {});
   assertEquals(testPattern("/foo{/bar}?", "/foo"), {});
+  assertEquals(testPattern("/foo{/bar}?", "/foo/bar"), {});
   assertEquals(testPattern("/foo/(\\d+)", "/foo"), null);
   assertEquals(testPattern("/foo/(\\d+)", "/foo/1"), {});
   assertEquals(testPattern("/foo/(\\d+)", "/foo/11231"), {});
@@ -26,6 +27,15 @@ Deno.test("pathToRegexp", () => {
     foo: "asdf",
     bar: "hehe",
   });
+  assertEquals(
+    testPattern(
+      "{/:lang(fr|es|pt-BR)}?/cs2-server-status",
+      "/fr/cs2-server-status",
+    ),
+    {
+      lang: "fr",
+    },
+  );
 });
 
 Deno.test("IS_PATTERN", () => {
