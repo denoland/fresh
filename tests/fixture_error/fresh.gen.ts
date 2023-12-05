@@ -3,13 +3,15 @@
 // This file is automatically updated during development when running `dev.ts`.
 
 import * as $_all_ from "./routes/[...all].ts";
+import * as $_500 from "./routes/_500.tsx";
 import * as $index from "./routes/index.tsx";
 
-import { Manifest } from "$fresh/server.ts";
+import { type Manifest } from "$fresh/server.ts";
 
 const manifest = {
   routes: {
     "./routes/[...all].ts": $_all_,
+    "./routes/_500.tsx": $_500,
     "./routes/index.tsx": $index,
   },
   islands: {},

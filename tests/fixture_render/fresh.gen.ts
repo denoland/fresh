@@ -8,7 +8,7 @@ import * as $header_instance from "./routes/header_instance.tsx";
 import * as $header_obj from "./routes/header_obj.tsx";
 import * as $index from "./routes/index.tsx";
 
-import { Manifest } from "$fresh/server.ts";
+import { type Manifest } from "$fresh/server.ts";
 
 const manifest = {
   routes: {

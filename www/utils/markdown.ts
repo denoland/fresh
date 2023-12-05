@@ -17,7 +17,14 @@ Marked.marked.use(mangle());
 
 const ADMISSION_REG = /^<p>\[(info|warn|tip)\]:\s/;
 
+export interface MarkdownHeading {
+  id: string;
+  html: string;
+}
+
 class DefaultRenderer extends Marked.Renderer {
+  headings: MarkdownHeading[] = [];
+
   text(text: string): string {
     // Smartypants typography enhancement
     return text
@@ -39,6 +46,7 @@ class DefaultRenderer extends Marked.Renderer {
     slugger: Marked.Slugger,
   ): string {
     const slug = slugger.slug(raw);
+    this.headings.push({ id: slug, html: text });
     return `<h${level} id="${slug}"><a class="md-anchor" tabindex="-1" href="#${slug}">${text}<span aria-hidden="true">#</span></a></h${level}>`;
   }
 
@@ -67,7 +75,7 @@ class DefaultRenderer extends Marked.Renderer {
     // format: tsx "This is my title"
     let lang = "";
     let title = "";
-    const match = info?.match(/^(\w+)\s*(.*)?$/);
+    const match = info?.match(/^([\w_-]+)\s*(.*)?$/);
     if (match) {
       lang = match[1].toLocaleLowerCase();
       title = match[2] ?? "";
@@ -124,15 +132,16 @@ export interface MarkdownOptions {
 export function renderMarkdown(
   input: string,
   opts: MarkdownOptions = {},
-): string {
+): { headings: MarkdownHeading[]; html: string } {
+  const renderer = new DefaultRenderer();
   const markedOpts: Marked.MarkedOptions = {
     gfm: true,
-    renderer: new DefaultRenderer(),
+    renderer,
   };
 
   const html = opts.inline
     ? Marked.parseInline(input, markedOpts) as string
     : Marked.parse(input, markedOpts) as string;
 
-  return html;
+  return { headings: renderer.headings, html };
 }

@@ -92,3 +92,12 @@ function handleError(e: Event) {
     setTimeout(connect, 1000);
   }
 }
+
+addEventListener("message", (ev) => {
+  if (ev.origin !== location.origin) return;
+  if (typeof ev.data !== "string" || ev.data !== "close-error-overlay") {
+    return;
+  }
+
+  document.querySelector("#fresh-error-overlay")?.remove();
+});

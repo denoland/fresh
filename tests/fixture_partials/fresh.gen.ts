@@ -2,6 +2,7 @@
 // This file SHOULD be checked into source version control.
 // This file is automatically updated during development when running `dev.ts`.
 
+import * as $_404 from "./routes/_404.tsx";
 import * as $_app from "./routes/_app.tsx";
 import * as $active_nav_foo_bar from "./routes/active_nav/foo/bar.tsx";
 import * as $active_nav_foo_index from "./routes/active_nav/foo/index.tsx";
@@ -35,6 +36,7 @@ import * as $deep_partial_index from "./routes/deep_partial/index.tsx";
 import * as $deep_partial_injected from "./routes/deep_partial/injected.tsx";
 import * as $deep_partial_update from "./routes/deep_partial/update.tsx";
 import * as $duplicate_name_index from "./routes/duplicate_name/index.tsx";
+import * as $error_404 from "./routes/error_404.tsx";
 import * as $form_index from "./routes/form/index.tsx";
 import * as $form_injected from "./routes/form/injected.tsx";
 import * as $form_update from "./routes/form/update.tsx";
@@ -106,29 +108,34 @@ import * as $no_partial_response_index from "./routes/no_partial_response/index.
 import * as $no_partial_response_injected from "./routes/no_partial_response/injected.tsx";
 import * as $no_partial_response_update from "./routes/no_partial_response/update.tsx";
 import * as $partial_slot_inside_island from "./routes/partial_slot_inside_island.tsx";
+import * as $redirected_handler from "./routes/redirected/handler.tsx";
+import * as $redirected_index from "./routes/redirected/index.tsx";
+import * as $redirected_injected from "./routes/redirected/injected.tsx";
+import * as $redirected_redirect from "./routes/redirected/redirect.tsx";
 import * as $relative_link_index from "./routes/relative_link/index.tsx";
 import * as $scroll_restoration_index from "./routes/scroll_restoration/index.tsx";
 import * as $scroll_restoration_injected from "./routes/scroll_restoration/injected.tsx";
 import * as $scroll_restoration_update from "./routes/scroll_restoration/update.tsx";
-import * as $$Counter from "./islands/Counter.tsx";
-import * as $$CounterA from "./islands/CounterA.tsx";
-import * as $$CounterB from "./islands/CounterB.tsx";
-import * as $$Fader from "./islands/Fader.tsx";
-import * as $$InvalidSlot from "./islands/InvalidSlot.tsx";
-import * as $$KeyExplorer from "./islands/KeyExplorer.tsx";
-import * as $$LazyLink from "./islands/LazyLink.tsx";
-import * as $$Logger from "./islands/Logger.tsx";
-import * as $$Other from "./islands/Other.tsx";
-import * as $$PartialTrigger from "./islands/PartialTrigger.tsx";
-import * as $$PassThrough from "./islands/PassThrough.tsx";
-import * as $$PropIsland from "./islands/PropIsland.tsx";
-import * as $$SignalProp from "./islands/SignalProp.tsx";
-import * as $$Spinner from "./islands/Spinner.tsx";
-import * as $$Stateful from "./islands/Stateful.tsx";
-import { Manifest } from "$fresh/server.ts";
+import * as $Counter from "./islands/Counter.tsx";
+import * as $CounterA from "./islands/CounterA.tsx";
+import * as $CounterB from "./islands/CounterB.tsx";
+import * as $Fader from "./islands/Fader.tsx";
+import * as $InvalidSlot from "./islands/InvalidSlot.tsx";
+import * as $KeyExplorer from "./islands/KeyExplorer.tsx";
+import * as $LazyLink from "./islands/LazyLink.tsx";
+import * as $Logger from "./islands/Logger.tsx";
+import * as $Other from "./islands/Other.tsx";
+import * as $PartialTrigger from "./islands/PartialTrigger.tsx";
+import * as $PassThrough from "./islands/PassThrough.tsx";
+import * as $PropIsland from "./islands/PropIsland.tsx";
+import * as $SignalProp from "./islands/SignalProp.tsx";
+import * as $Spinner from "./islands/Spinner.tsx";
+import * as $Stateful from "./islands/Stateful.tsx";
+import { type Manifest } from "$fresh/server.ts";
 
 const manifest = {
   routes: {
+    "./routes/_404.tsx": $_404,
     "./routes/_app.tsx": $_app,
     "./routes/active_nav/foo/bar.tsx": $active_nav_foo_bar,
     "./routes/active_nav/foo/index.tsx": $active_nav_foo_index,
@@ -162,6 +169,7 @@ const manifest = {
     "./routes/deep_partial/injected.tsx": $deep_partial_injected,
     "./routes/deep_partial/update.tsx": $deep_partial_update,
     "./routes/duplicate_name/index.tsx": $duplicate_name_index,
+    "./routes/error_404.tsx": $error_404,
     "./routes/form/index.tsx": $form_index,
     "./routes/form/injected.tsx": $form_injected,
     "./routes/form/update.tsx": $form_update,
@@ -244,27 +252,31 @@ const manifest = {
     "./routes/no_partial_response/injected.tsx": $no_partial_response_injected,
     "./routes/no_partial_response/update.tsx": $no_partial_response_update,
     "./routes/partial_slot_inside_island.tsx": $partial_slot_inside_island,
+    "./routes/redirected/handler.tsx": $redirected_handler,
+    "./routes/redirected/index.tsx": $redirected_index,
+    "./routes/redirected/injected.tsx": $redirected_injected,
+    "./routes/redirected/redirect.tsx": $redirected_redirect,
     "./routes/relative_link/index.tsx": $relative_link_index,
     "./routes/scroll_restoration/index.tsx": $scroll_restoration_index,
     "./routes/scroll_restoration/injected.tsx": $scroll_restoration_injected,
     "./routes/scroll_restoration/update.tsx": $scroll_restoration_update,
   },
   islands: {
-    "./islands/Counter.tsx": $$Counter,
-    "./islands/CounterA.tsx": $$CounterA,
-    "./islands/CounterB.tsx": $$CounterB,
-    "./islands/Fader.tsx": $$Fader,
-    "./islands/InvalidSlot.tsx": $$InvalidSlot,
-    "./islands/KeyExplorer.tsx": $$KeyExplorer,
-    "./islands/LazyLink.tsx": $$LazyLink,
-    "./islands/Logger.tsx": $$Logger,
-    "./islands/Other.tsx": $$Other,
-    "./islands/PartialTrigger.tsx": $$PartialTrigger,
-    "./islands/PassThrough.tsx": $$PassThrough,
-    "./islands/PropIsland.tsx": $$PropIsland,
-    "./islands/SignalProp.tsx": $$SignalProp,
-    "./islands/Spinner.tsx": $$Spinner,
-    "./islands/Stateful.tsx": $$Stateful,
+    "./islands/Counter.tsx": $Counter,
+    "./islands/CounterA.tsx": $CounterA,
+    "./islands/CounterB.tsx": $CounterB,
+    "./islands/Fader.tsx": $Fader,
+    "./islands/InvalidSlot.tsx": $InvalidSlot,
+    "./islands/KeyExplorer.tsx": $KeyExplorer,
+    "./islands/LazyLink.tsx": $LazyLink,
+    "./islands/Logger.tsx": $Logger,
+    "./islands/Other.tsx": $Other,
+    "./islands/PartialTrigger.tsx": $PartialTrigger,
+    "./islands/PassThrough.tsx": $PassThrough,
+    "./islands/PropIsland.tsx": $PropIsland,
+    "./islands/SignalProp.tsx": $SignalProp,
+    "./islands/Spinner.tsx": $Spinner,
+    "./islands/Stateful.tsx": $Stateful,
   },
   baseUrl: import.meta.url,
 } satisfies Manifest;

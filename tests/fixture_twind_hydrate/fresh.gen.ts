@@ -10,9 +10,9 @@ import * as $island_twind_index from "./routes/island_twind/index.tsx";
 import * as $static from "./routes/static.tsx";
 import * as $unused from "./routes/unused.tsx";
 import * as $unused_tw from "./routes/unused_tw.tsx";
-import * as $$CheckDuplication from "./islands/CheckDuplication.tsx";
-import * as $$InsertCssrules from "./islands/InsertCssrules.tsx";
-import { Manifest } from "$fresh/server.ts";
+import * as $CheckDuplication from "./islands/CheckDuplication.tsx";
+import * as $InsertCssrules from "./islands/InsertCssrules.tsx";
+import { type Manifest } from "$fresh/server.ts";
 
 const manifest = {
   routes: {
@@ -26,8 +26,8 @@ const manifest = {
     "./routes/unused_tw.tsx": $unused_tw,
   },
   islands: {
-    "./islands/CheckDuplication.tsx": $$CheckDuplication,
-    "./islands/InsertCssrules.tsx": $$InsertCssrules,
+    "./islands/CheckDuplication.tsx": $CheckDuplication,
+    "./islands/InsertCssrules.tsx": $InsertCssrules,
   },
   baseUrl: import.meta.url,
 } satisfies Manifest;

@@ -1,16 +1,17 @@
-import { ErrorHandler, FinalHandler, RouteResult } from "./router.ts";
+import { SEP } from "./deps.ts";
+import { ErrorHandler, FinalHandler, RouteResult, withBase } from "./router.ts";
 import {
   BaseRoute,
-  MiddlewareHandlerContext,
+  FreshContext,
   MiddlewareRoute,
-  RouterState,
-  ServeHandlerInfo,
   UnknownRenderFunction,
 } from "./types.ts";
 
 export const ROOT_BASE_ROUTE = toBaseRoute("/");
 
 export function toBaseRoute(input: string): BaseRoute {
+  input = input.replaceAll(SEP, "/");
+
   if (input.endsWith("_layout")) {
     input = input.slice(0, -"_layout".length);
   } else if (input.endsWith("_middleware")) {
@@ -53,93 +54,73 @@ export function selectSharedRoutes<T extends { baseRoute: BaseRoute }>(
  */
 export function composeMiddlewares(
   middlewares: MiddlewareRoute[],
-  errorHandler: ErrorHandler<RouterState>,
+  errorHandler: ErrorHandler,
   paramsAndRoute: (
     url: string,
-  ) => RouteResult<RouterState>,
+  ) => RouteResult,
   renderNotFound: UnknownRenderFunction,
+  basePath: string,
 ) {
   return (
     req: Request,
-    connInfo: ServeHandlerInfo,
-    inner: FinalHandler<RouterState>,
+    ctx: FreshContext,
+    inner: FinalHandler,
   ) => {
     const handlers: (() => Response | Promise<Response>)[] = [];
     const paramsAndRouteResult = paramsAndRoute(req.url);
+    ctx.params = paramsAndRouteResult.params;
 
     // identify middlewares to apply, if any.
     // middlewares should be already sorted from deepest to shallow layer
     const mws = selectSharedRoutes(
-      paramsAndRouteResult.route?.baseRoute ?? ROOT_BASE_ROUTE,
+      paramsAndRouteResult.route?.baseRoute ??
+        toBaseRoute(withBase(ROOT_BASE_ROUTE, basePath)),
       middlewares,
     );
 
-    let state: Record<string, unknown> = {};
-    const middlewareCtx: MiddlewareHandlerContext = {
-      next() {
-        const handler = handlers.shift()!;
-        try {
-          // As the `handler` can be either sync or async, depending on the user's code,
-          // the current shape of our wrapper, that is `() => handler(req, middlewareCtx)`,
-          // doesn't guarantee that all possible errors will be captured.
-          // `Promise.resolve` accept the value that should be returned to the promise
-          // chain, however, if that value is produced by the external function call,
-          // the possible `Error`, will *not* be caught by any `.catch()` attached to that chain.
-          // Because of that, we need to make sure that the produced value is pushed
-          // through the pipeline only if function was called successfully, and handle
-          // the error case manually, by returning the `Error` as rejected promise.
-          return Promise.resolve(handler());
-        } catch (e) {
-          if (e instanceof Deno.errors.NotFound) {
-            return renderNotFound(req, paramsAndRouteResult.params, ctx);
-          }
-          return Promise.reject(e);
+    if (paramsAndRouteResult.route) {
+      ctx.route = paramsAndRouteResult.route.originalPattern;
+    }
+
+    ctx.next = () => {
+      const handler = handlers.shift()!;
+      try {
+        // As the `handler` can be either sync or async, depending on the user's code,
+        // the current shape of our wrapper, that is `() => handler(req, middlewareCtx)`,
+        // doesn't guarantee that all possible errors will be captured.
+        // `Promise.resolve` accept the value that should be returned to the promise
+        // chain, however, if that value is produced by the external function call,
+        // the possible `Error`, will *not* be caught by any `.catch()` attached to that chain.
+        // Because of that, we need to make sure that the produced value is pushed
+        // through the pipeline only if function was called successfully, and handle
+        // the error case manually, by returning the `Error` as rejected promise.
+        return Promise.resolve(handler());
+      } catch (e) {
+        if (e instanceof Deno.errors.NotFound) {
+          return renderNotFound(req, ctx);
         }
-      },
-      ...connInfo,
-      get state() {
-        return state;
-      },
-      set state(v) {
-        state = v;
-      },
-      destination: "route",
-      params: paramsAndRouteResult.params,
-      renderNotFound: async () => {
-        return await renderNotFound(req, paramsAndRouteResult.params, ctx);
-      },
-      isPartial: paramsAndRouteResult.isPartial,
+        return Promise.reject(e);
+      }
     };
 
     for (const { module } of mws) {
       if (module.handler instanceof Array) {
         for (const handler of module.handler) {
-          handlers.push(() => handler(req, middlewareCtx));
+          handlers.push(() => handler(req, ctx));
         }
       } else {
         const handler = module.handler;
-        handlers.push(() => handler(req, middlewareCtx));
+        handlers.push(() => handler(req, ctx));
       }
     }
 
-    const ctx = {
-      ...connInfo,
-      get state() {
-        return state;
-      },
-      set state(v) {
-        state = v;
-      },
-      isPartial: paramsAndRouteResult.isPartial,
-    };
     const { destination, handler } = inner(
       req,
       ctx,
-      paramsAndRouteResult.params,
       paramsAndRouteResult.route,
     );
     handlers.push(handler);
-    middlewareCtx.destination = destination;
-    return middlewareCtx.next().catch((e) => errorHandler(req, ctx, e));
+    ctx.destination = destination;
+    return ctx.next().catch((e) => errorHandler(req, ctx, e));
   };
 }

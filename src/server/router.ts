@@ -1,75 +1,65 @@
-import { PARTIAL_SEARCH_PARAM } from "$fresh/src/constants.ts";
-import { BaseRoute, ErrorHandlerContext, ServeHandlerInfo } from "./types.ts";
-import {
-  isIdentifierChar,
-  isIdentifierStart,
-} from "https://esm.sh/@babel/helper-validator-identifier@7.22.20";
+import { PARTIAL_SEARCH_PARAM } from "../constants.ts";
+import { BaseRoute, FreshContext } from "./types.ts";
+import { isIdentifierChar, isIdentifierStart } from "./init_safe_deps.ts";
 
-type HandlerContext<T = unknown> = T & ServeHandlerInfo & {
-  isPartial: boolean;
-};
-
-export type Handler<T = unknown> = (
+export type Handler<T = Record<string, unknown>> = (
   req: Request,
-  ctx: HandlerContext<T>,
+  ctx: FreshContext<T>,
 ) => Response | Promise<Response>;
 
-export type FinalHandler<T = unknown> = (
+export type FinalHandler = (
   req: Request,
-  ctx: HandlerContext<T>,
-  params: Record<string, string>,
-  route?: InternalRoute<T>,
+  ctx: FreshContext,
+  route?: InternalRoute,
 ) => {
   destination: DestinationKind;
   handler: () => Response | Promise<Response>;
 };
 
-export type ErrorHandler<T = unknown> = (
+export type ErrorHandler<T = Record<string, unknown>> = (
   req: Request,
-  ctx: HandlerContext<T>,
+  ctx: FreshContext<T>,
   err: unknown,
 ) => Response | Promise<Response>;
 
-type UnknownMethodHandler<T = unknown> = (
+type UnknownMethodHandler = (
   req: Request,
-  ctx: HandlerContext<T>,
+  ctx: FreshContext,
   knownMethods: KnownMethod[],
 ) => Response | Promise<Response>;
 
-export type MatchHandler<T = unknown> = (
+export type MatchHandler = (
   req: Request,
-  ctx: HandlerContext<T>,
-  match: Record<string, string>,
+  ctx: FreshContext,
 ) => Response | Promise<Response>;
 
-// deno-lint-ignore ban-types
-export interface Routes<T = {}> {
+export interface Routes {
   [key: string]: {
     baseRoute: BaseRoute;
     methods: {
-      [K in KnownMethod | "default"]?: MatchHandler<T>;
+      [K in KnownMethod | "default"]?: MatchHandler;
     };
   };
 }
 
 export type DestinationKind = "internal" | "static" | "route" | "notFound";
 
-// deno-lint-ignore ban-types
-export type InternalRoute<T = {}> = {
+export type InternalRoute = {
   baseRoute: BaseRoute;
+  originalPattern: string;
   pattern: RegExp | string;
-  methods: { [K in KnownMethod]?: MatchHandler<T> };
-  default?: MatchHandler<T>;
+  methods: { [K in KnownMethod]?: MatchHandler };
+  default?: MatchHandler;
   destination: DestinationKind;
 };
 
-export interface RouterOptions<T> {
-  internalRoutes: Routes<T>;
-  staticRoutes: Routes<T>;
-  routes: Routes<T>;
-  otherHandler: Handler<T>;
-  errorHandler: ErrorHandler<T>;
-  unknownMethodHandler?: UnknownMethodHandler<T>;
+export interface RouterOptions {
+  internalRoutes: Routes;
+  staticRoutes: Routes;
+  routes: Routes;
+  otherHandler: Handler;
+  errorHandler: ErrorHandler;
+  unknownMethodHandler?: UnknownMethodHandler;
 }
 
 export type KnownMethod = typeof knownMethods[number];
@@ -92,10 +82,9 @@ export function defaultOtherHandler(_req: Request): Response {
 
 export function defaultErrorHandler(
   _req: Request,
-  _ctx: ErrorHandlerContext,
-  err: unknown,
+  ctx: FreshContext,
 ): Response {
-  console.error(err);
+  console.error(ctx.error);
 
   return new Response(null, {
     status: 500,
@@ -104,7 +93,7 @@ export function defaultErrorHandler(
 
 export function defaultUnknownMethodHandler(
   _req: Request,
-  _ctx: HandlerContext,
+  _ctx: FreshContext,
   knownMethods: KnownMethod[],
 ): Response {
   return new Response(null, {
@@ -123,7 +112,7 @@ function skipRegex(input: string, idx: number): number {
     if (char === "(" || char === "[") {
       open++;
     } else if (char === ")" || char === "]") {
-      if (open-- === 0) {
+      if (--open === 0) {
         return i;
       }
     } else if (char === "\\") {
@@ -158,16 +147,8 @@ export function patternToRegExp(input: string): RegExp {
 
   for (let i = 0; i < input.length; i++) {
     let ch = input.charCodeAt(i);
-
-    if (groupIdx !== -1) {
-      if (ch === Char["{"]) {
-        throw new SyntaxError(`Unexpected token "{"`);
-      }
-      if (ch === Char["}"]) {
-        pattern = tmpPattern + "(?:" + pattern + ")";
-        groupIdx = -1;
-        continue;
-      }
+    if (groupIdx !== -1 && ch === Char["{"]) {
+      throw new SyntaxError(`Unexpected token "{"`);
     }
 
     if (ch === Char["/"]) {
@@ -207,6 +188,9 @@ export function patternToRegExp(input: string): RegExp {
       tmpPattern = pattern;
       pattern = "";
       groupIdx = i;
+    } else if (ch === Char["}"]) {
+      pattern = tmpPattern + "(?:" + pattern + ")";
+      groupIdx = -1;
     } else {
       pattern += input[i];
     }
@@ -217,9 +201,9 @@ export function patternToRegExp(input: string): RegExp {
 
 export const IS_PATTERN = /[*:{}+?()]/;
 
-function processRoutes<T>(
-  processedRoutes: Array<InternalRoute<T> | null>,
-  routes: Routes<T>,
+function processRoutes(
+  processedRoutes: Array<InternalRoute | null>,
+  routes: Routes,
   destination: DestinationKind,
 ) {
   for (const [path, def] of Object.entries(routes)) {
@@ -227,9 +211,10 @@ function processRoutes<T>(
       ? path
       : patternToRegExp(path);
 
-    const entry: InternalRoute<T> = {
+    const entry: InternalRoute = {
       baseRoute: def.baseRoute,
       pattern,
+      originalPattern: path,
       methods: {},
       default: undefined,
       destination,
@@ -247,27 +232,27 @@ function processRoutes<T>(
   }
 }
 
-export interface RouteResult<T> {
-  route: InternalRoute<T> | undefined;
+export interface RouteResult {
+  route: InternalRoute | undefined;
   params: Record<string, string>;
   isPartial: boolean;
 }
 
-export function getParamsAndRoute<T>(
+export function getParamsAndRoute(
   {
     internalRoutes,
     staticRoutes,
     routes,
-  }: RouterOptions<T>,
+  }: RouterOptions,
 ): (
   url: string,
-) => RouteResult<T> {
-  const processedRoutes: Array<InternalRoute<T> | null> = [];
+) => RouteResult {
+  const processedRoutes: Array<InternalRoute | null> = [];
   processRoutes(processedRoutes, internalRoutes, "internal");
   processRoutes(processedRoutes, staticRoutes, "static");
   processRoutes(processedRoutes, routes, "route");
 
-  const statics = new Map<string, RouteResult<T>>();
+  const statics = new Map<string, RouteResult>();
 
   return (url: string) => {
     const urlObject = new URL(url);
@@ -326,15 +311,15 @@ export function getParamsAndRoute<T>(
   };
 }
 
-export function router<T = unknown>(
+export function router(
   {
     otherHandler,
     unknownMethodHandler,
-  }: RouterOptions<T>,
-): FinalHandler<T> {
+  }: RouterOptions,
+): FinalHandler {
   unknownMethodHandler ??= defaultUnknownMethodHandler;
 
-  return (req, ctx, groups, route) => {
+  return (req, ctx, route) => {
     if (route) {
       // If not overridden, HEAD requests should be handled as GET requests but without the body.
       if (req.method === "HEAD" && !route.methods["HEAD"]) {
@@ -345,7 +330,7 @@ export function router<T = unknown>(
         if (req.method === method) {
           return {
             destination: route.destination,
-            handler: () => handler(req, ctx, groups),
+            handler: () => handler(req, ctx),
           };
         }
       }
@@ -353,7 +338,7 @@ export function router<T = unknown>(
       if (route.default) {
         return {
           destination: route.destination,
-          handler: () => route.default!(req, ctx, groups),
+          handler: () => route.default!(req, ctx),
         };
       } else {
         return {
@@ -373,4 +358,11 @@ export function router<T = unknown>(
       handler: () => otherHandler!(req, ctx),
     };
   };
+}
+
+export function withBase(src: string, base?: string) {
+  if (base !== undefined && src.startsWith("/") && !src.startsWith(base)) {
+    return base + src;
+  }
+  return src;
 }

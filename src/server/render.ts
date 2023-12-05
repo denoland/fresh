@@ -4,13 +4,14 @@ import {
   AsyncLayout,
   AsyncRoute,
   ErrorPage,
+  FreshContext,
   LayoutRoute,
+  PageProps,
   Plugin,
   PluginRenderFunctionResult,
   PluginRenderResult,
   RenderFunction,
   Route,
-  RouteContext,
   UnknownPage,
 } from "./types.ts";
 import { NONE, UNSAFE_INLINE } from "../runtime/csp.ts";
@@ -18,6 +19,9 @@ import { ContentSecurityPolicy } from "../runtime/csp.ts";
 import { RenderState } from "./rendering/state.ts";
 import { renderHtml, renderOuterDocument } from "./rendering/template.tsx";
 import { renderFreshTags } from "./rendering/fresh_tags.tsx";
+import { DEV_ERROR_OVERLAY_URL } from "./constants.ts";
+import { colors } from "./deps.ts";
+import { withBase } from "./router.ts";
 
 export const DEFAULT_RENDER_FN: RenderFunction = (_ctx, render) => {
   render();
@@ -25,20 +29,14 @@ export const DEFAULT_RENDER_FN: RenderFunction = (_ctx, render) => {
 
 export interface RenderOptions<Data> {
   request: Request;
-  // deno-lint-ignore no-explicit-any
-  context: any;
+  context: FreshContext;
   route: Route<Data> | UnknownPage | ErrorPage;
   plugins: Plugin[];
   app: AppModule;
   layouts: LayoutRoute[];
   imports: string[];
   dependenciesFn: (path: string) => string[];
-  url: URL;
-  params: Record<string, string | string[]>;
   renderFn: RenderFunction;
-  data?: Data;
-  state?: Record<string, unknown>;
-  error?: unknown;
   codeFrame?: string;
   lang?: string;
 }
@@ -144,19 +142,25 @@ export async function render<Data>(
     layouts = [];
   }
 
-  const props: Record<string, unknown> = {
-    params: opts.params,
-    url: opts.url,
-    route: opts.route.pattern,
-    data: opts.data,
-    state: opts.state,
+  const { params, data, state, error, url, basePath } = opts.context;
+
+  const props: PageProps = {
+    basePath,
+    config: opts.context.config,
+    destination: opts.context.destination,
+    isPartial: opts.context.isPartial,
+    params,
+    error,
+    codeFrame: opts.context.codeFrame,
+    remoteAddr: opts.context.remoteAddr,
+    localAddr: opts.context.localAddr,
+    Component: () => null,
+    pattern: opts.context.pattern,
+    url,
+    route: opts.context.route,
+    data,
+    state,
   };
-  if (opts.error) {
-    props.error = opts.error;
-  }
-  if (opts.codeFrame) {
-    props.codeFrame = opts.codeFrame;
-  }
 
   const csp: ContentSecurityPolicy | undefined = opts.route.csp
     ? defaultCsp()
@@ -170,22 +174,12 @@ export async function render<Data>(
 
   const ctx = new RenderContext(
     crypto.randomUUID(),
-    opts.url,
+    url,
     opts.route.pattern,
     opts.lang ?? "en",
   );
 
-  const context: RouteContext = {
-    localAddr: opts.context.localAddr,
-    remoteAddr: opts.context.remoteAddr,
-    renderNotFound: opts.context.renderNotFound,
-    url: opts.url,
-    route: opts.route.pattern,
-    params: opts.params as Record<string, string>,
-    state: opts.state ?? {},
-    data: opts.data,
-    isPartial: opts.context.isPartial,
-  };
+  const context = opts.context;
 
   // Prepare render order
   // deno-lint-ignore no-explicit-any
@@ -249,15 +243,16 @@ export async function render<Data>(
   // data.
   const renderState = new RenderState(
     {
-      url: opts.url,
+      url,
       route: opts.route.pattern,
-      data: opts.data,
-      state: opts.state,
-      params: opts.params,
+      data,
+      state,
+      params,
+      basePath,
     },
     componentStack,
     csp,
-    opts.error,
+    error,
   );
 
   let bodyHtml: string | null = null;
@@ -276,6 +271,10 @@ export async function render<Data>(
         );
       }
       renderResults.push([plugin, res]);
+
+      if (res.htmlText !== undefined) {
+        bodyHtml = res.htmlText;
+      }
     } else {
       bodyHtml = renderHtml(renderState);
     }
@@ -307,6 +306,10 @@ export async function render<Data>(
         throw new Error(
           `The 'renderAsync' function was not called by ${plugin?.name}'s async render hook.`,
         );
+      }
+
+      if (res.htmlText !== undefined) {
+        bodyHtml = res.htmlText;
       }
     } else {
       await opts.renderFn(ctx, () => renderSync().htmlText);
@@ -355,6 +358,33 @@ export async function render<Data>(
     styles: ctx.styles,
     pluginRenderResults: renderResults,
   });
+
+  // Append error overlay in dev mode
+  if (opts.context.config.dev) {
+    const devErrorUrl = withBase(DEV_ERROR_OVERLAY_URL, basePath);
+    if (error !== undefined && url.pathname !== devErrorUrl) {
+      const url = new URL(devErrorUrl, "https://localhost/");
+      if (error instanceof Error) {
+        let message = error.message;
+        const idx = message.indexOf("\n");
+        if (idx > -1) message = message.slice(0, idx);
+        url.searchParams.append("message", message);
+        if (error.stack) {
+          const stack = colors.stripAnsiCode(error.stack);
+          url.searchParams.append("stack", stack);
+        }
+      } else {
+        url.searchParams.append("message", String(error));
+      }
+      if (opts.codeFrame) {
+        const codeFrame = colors.stripAnsiCode(opts.codeFrame);
+        url.searchParams.append("code-frame", codeFrame);
+      }
+
+      result.bodyHtml +=
+        `<iframe id="fresh-error-overlay" src="${url.pathname}?${url.searchParams.toString()}" style="unset: all; position: fixed; top: 0; left: 0; z-index: 99999; width: 100%; height: 100%; border: none;"></iframe>`;
+    }
+  }
 
   // Render outer document up to `<body>`
   const html = renderOuterDocument(renderState, {

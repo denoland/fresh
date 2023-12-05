@@ -18,10 +18,10 @@ The quickest way to get started is to enable partials for every page in
 `routes/_app.tsx` by making the following changes.
 
 ```diff routes/_app.tsx
-  import { AppProps } from "$fresh/server.ts";
+  import { PageProps } from "$fresh/server.ts";
 + import { Partial } from "$fresh/runtime.ts";
 
-  export default function App({ Component }: AppProps) {
+  export default function App({ Component }: PageProps) {
     return (
       <html>
         <head>
@@ -82,7 +82,7 @@ The code for such a page (excluding styling) might look like this:
 
 ```tsx routes/docs/[id].tsx
 export default defineRoute(async (req, ctx) => {
-  const content = await loadContent(props.params.id);
+  const content = await loadContent(ctx.params.id);
 
   return (
     <div>
@@ -114,7 +114,7 @@ export const config: RouteConfig = {
 };
 
 export default defineRoute(async (req, ctx) => {
-  const content = await loadContent(props.params.id);
+  const content = await loadContent(ctx.params.id);
 
   // Only render the new content
   return (

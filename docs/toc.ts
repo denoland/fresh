@@ -54,12 +54,12 @@ const toc: RawTableOfContents = {
           ["islands", "Interactive islands", "link:latest"],
           ["static-files", "Static files", "link:latest"],
           ["middleware", "Middlewares", "link:latest"],
-          ["error-pages", "Error pages", "link:canary"],
+          ["error-pages", "Error pages", "link:latest"],
           ["partials", "Partials", "link:latest"],
           ["data-fetching", "Data fetching", "link:latest"],
-          ["ahead-of-time-builds", "Ahead-of-time Builds", "link:canary"],
+          ["ahead-of-time-builds", "Ahead-of-time Builds", "link:latest"],
           ["deployment", "Deployment", "link:latest"],
-          ["plugins", "Plugins", "link:canary"],
+          ["plugins", "Plugins", "link:latest"],
           ["updating", "Updating Fresh", "link:latest"],
           ["server-configuration", "Server configuration", "link:canary"],
         ],
@@ -72,6 +72,7 @@ const toc: RawTableOfContents = {
         title: "Examples",
         link: "latest",
         pages: [
+          ["migrating-to-tailwind", "Migrating to Tailwind", "link:canary"],
           ["modifying-the-head", "Modifying the <head>", "link:latest"],
           ["writing-tests", "Writing tests", "link:latest"],
           [
@@ -150,6 +151,7 @@ const toc: RawTableOfContents = {
       examples: {
         title: "Examples",
         pages: [
+          ["migrating-to-tailwind", "Migrating to Tailwind"],
           ["modifying-the-head", "Modifying the <head>"],
           ["writing-tests", "Writing tests"],
           ["changing-the-src-dir", "Changing the source directory"],
@@ -163,6 +165,10 @@ const toc: RawTableOfContents = {
           ["sharing-state-between-islands", "Sharing state between islands"],
           ["using-csp", "Using CSP"],
           ["active-links", "Styling active links"],
+          [
+            "client-side-components-and-libraries",
+            "Client only side components",
+          ],
         ],
       },
     },

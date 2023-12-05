@@ -6,7 +6,7 @@ import {
   withFresh,
   withPageName,
 } from "./test_utils.ts";
-import { Status } from "../server.ts";
+import { STATUS_CODE } from "../server.ts";
 
 Deno.test({
   name: "render async server component",
@@ -58,47 +58,71 @@ Deno.test({
   },
 });
 
-Deno.test({
-  name: "passes context to server component",
+Deno.test("passes context to server component", async () => {
+  await withFresh(
+    "./tests/fixture_server_components/main.ts",
+    async (address) => {
+      const res = await fetch(`${address}/context/foo`);
+      const json = await res.json();
 
-  async fn() {
-    await withFresh(
-      "./tests/fixture_server_components/main.ts",
-      async (address) => {
-        const res = await fetch(`${address}/context/foo`);
-        const json = await res.json();
+      assertEquals(typeof json.localAddr, "object");
+      assertEquals(typeof json.remoteAddr, "object");
+      json.localAddr.port = 8000;
+      json.remoteAddr.port = 8000;
 
-        assertEquals(typeof json.localAddr, "object");
-        assertEquals(typeof json.remoteAddr, "object");
-        json.localAddr.port = 8000;
-        json.remoteAddr.port = 8000;
-
-        assertEquals(
-          json,
-          {
-            localAddr: {
-              hostname: "localhost",
-              port: 8000,
-              transport: "tcp",
-            },
-            remoteAddr: {
-              hostname: "127.0.0.1",
-              port: 8000,
-              transport: "tcp",
-            },
-            renderNotFound: "AsyncFunction",
-            url: `${address}/context/foo`,
-            route: "/context/:id",
-            params: {
-              id: "foo",
-            },
-            state: {},
-            isPartial: false,
+      assertEquals(
+        json,
+        {
+          localAddr: {
+            hostname: "localhost",
+            port: 8000,
+            transport: "tcp",
           },
-        );
-      },
-    );
-  },
+          remoteAddr: {
+            hostname: "127.0.0.1",
+            port: 8000,
+            transport: "tcp",
+          },
+          config: {
+            basePath: "",
+            build: {
+              outDir: "tests/fixture_server_components/_fresh",
+              target: [
+                "chrome99",
+                "firefox99",
+                "safari15",
+              ],
+            },
+            dev: false,
+            plugins: [
+              { entrypoints: {}, name: "twind", renderAsync: "AsyncFunction" },
+            ],
+            render: "Function",
+            router: "<undefined>",
+            server: {},
+            staticDir: "tests/fixture_server_components/static",
+          },
+          data: "<undefined>",
+          error: "<undefined>",
+          codeFrame: "<undefined>",
+          pattern: "/context/:id",
+          render: "AsyncFunction",
+          Component: "Function",
+          destination: "route",
+          next: "Function",
+          basePath: "",
+          renderNotFound: "AsyncFunction",
+          url: `${address}/context/foo`,
+          route: "/context/:id",
+          params: {
+            id: "foo",
+          },
+          state: {},
+          isPartial: false,
+        },
+      );
+    },
+  );
 });
 
 Deno.test({
@@ -110,7 +134,7 @@ Deno.test({
       async (server) => {
         const res = await server.get(`/fail`);
 
-        assertEquals(res.status, Status.NotFound);
+        assertEquals(res.status, STATUS_CODE.NotFound);
         const html = await res.text();
         assertEquals(html, "Not found.");
       },

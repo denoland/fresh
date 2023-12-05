@@ -1,5 +1,10 @@
-import { ServerContext, Status } from "../server.ts";
-import { assert, assertEquals, assertStringIncludes } from "./deps.ts";
+import { ServerContext } from "../server.ts";
+import {
+  assert,
+  assertEquals,
+  assertStringIncludes,
+  STATUS_CODE,
+} from "./deps.ts";
 import manifest from "./fixture_disable_404/fresh.gen.ts";
 import config from "./fixture_disable_404/fresh.config.ts";
 
@@ -13,7 +18,7 @@ Deno.test({
       new Request("https://fresh.deno.dev/this-doesnt-exist"),
     );
     assert(resp);
-    assertEquals(resp.status, Status.OK);
+    assertEquals(resp.status, STATUS_CODE.OK);
 
     const body = await resp.text();
 
@@ -32,7 +37,7 @@ Deno.test({
       new Request("https://fresh.deno.dev/404-from-middleware"),
     );
     assert(resp);
-    assertEquals(resp.status, Status.OK);
+    assertEquals(resp.status, STATUS_CODE.OK);
 
     const body = await resp.text();
 

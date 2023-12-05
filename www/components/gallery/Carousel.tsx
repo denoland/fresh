@@ -1,4 +1,3 @@
-import { tw } from "twind";
 import { asset } from "$fresh/runtime.ts";
 import { useSignal } from "@preact/signals";
 import { useEffect, useRef } from "preact/hooks";
@@ -83,7 +82,7 @@ const Carousel = (props: CarouselProps) => {
       if (outgoingSlide === idx) return "-translate-x-full z-10";
       return "translate-x-full";
     };
-    return tw`slide absolute top-0 left-0 transition-all ease-in-out duration-700 transform ${TRANSITION_CLASS}`;
+    return `slide absolute top-0 left-0 transition-all ease-in-out duration-700 transform ${TRANSITION_CLASS}`;
   };
 
   const nextSlide = () => {

@@ -1,11 +1,11 @@
-import { assertEquals, assertStringIncludes } from "./deps.ts";
-import { Status } from "../server.ts";
+import { assert, assertEquals, assertStringIncludes } from "./deps.ts";
+import { STATUS_CODE } from "../server.ts";
 import {
   assertNotSelector,
-  assertSelector,
   assertTextMany,
   assertTextMatch,
   fetchHtml,
+  getErrorOverlay,
   waitForStyle,
   withFakeServe,
   withFresh,
@@ -25,45 +25,34 @@ Deno.test({
   },
 });
 
-Deno.test({
-  name: "dev_command config: shows codeframe",
-  async fn() {
-    await withFakeServe(
-      "./tests/fixture_dev_config/dev.ts",
-      async (server) => {
-        const doc = await server.getHtml("/codeframe");
-        assertSelector(doc, ".frsh-error-page");
-        assertSelector(doc, ".code-frame");
-      },
-    );
-  },
+Deno.test("dev_command config: shows codeframe", async () => {
+  await withFakeServe(
+    "./tests/fixture_dev_config/dev.ts",
+    async (server) => {
+      const { codeFrame } = await getErrorOverlay(server, "/codeframe");
+      assert(codeFrame);
+    },
+  );
 });
 
-Deno.test({
-  name: "dev_command legacy",
-  async fn() {
-    await withPageName(
-      "./tests/fixture_dev_legacy/main.ts",
-      async (page, address) => {
-        await page.goto(`${address}`);
-        await waitForStyle(page, "h1", "color", "rgb(220, 38, 38)");
-      },
-    );
-  },
+Deno.test("dev_command legacy", async () => {
+  await withPageName(
+    "./tests/fixture_dev_legacy/main.ts",
+    async (page, address) => {
+      await page.goto(`${address}`);
+      await waitForStyle(page, "h1", "color", "rgb(220, 38, 38)");
+    },
+  );
 });
 
-Deno.test({
-  name: "dev_command legacy: shows codeframe",
-  async fn() {
-    await withFakeServe(
-      "./tests/fixture_dev_legacy/dev.ts",
-      async (server) => {
-        const doc = await server.getHtml("/codeframe");
-        assertSelector(doc, ".frsh-error-page");
-        assertSelector(doc, ".code-frame");
-      },
-    );
-  },
+Deno.test("dev_command legacy: shows codeframe", async () => {
+  await withFakeServe(
+    "./tests/fixture_dev_legacy/dev.ts",
+    async (server) => {
+      const { codeFrame } = await getErrorOverlay(server, "/codeframe");
+      assert(codeFrame);
+    },
+  );
 });
 
 Deno.test("preact/debug is active in dev mode", async () => {
@@ -72,15 +61,11 @@ Deno.test("preact/debug is active in dev mode", async () => {
     async (server) => {
       // SSR error is shown
       const resp = await server.get("/");
-      const text = await resp.text();
-      assertEquals(resp.status, Status.InternalServerError);
-      assertStringIncludes(text, "Objects are not valid as a child");
+      await resp.text(); // Consume
+      assertEquals(resp.status, STATUS_CODE.InternalServerError);
 
-      const html = await server.getHtml("/");
-
-      // Error page is shown with error message
-      const text2 = html.querySelector(".frsh-error-page")!.textContent!;
-      assertStringIncludes(text2, "Objects are not valid as a child");
+      const { title } = await getErrorOverlay(server, "/");
+      assertStringIncludes(title, "Objects are not valid as a child");
     },
   );
 });
@@ -132,17 +117,40 @@ Deno.test("show codeframe in dev mode even with custom 500", async () => {
   await withFakeServe(
     "./tests/fixture_dev_codeframe/dev.ts",
     async (server) => {
-      const doc = await server.getHtml(`/`);
-      assertSelector(doc, ".frsh-error-page");
+      const { title } = await getErrorOverlay(server, "/");
+      assertEquals(title, "fail");
     },
   );
 
   await withFakeServe(
     "./tests/fixture_dev_codeframe/main.ts",
     async (server) => {
-      const doc = await server.getHtml(`/`);
-      assertNotSelector(doc, ".frsh-error-page");
-      assertSelector(doc, "h1");
+      const doc = await server.getHtml("/");
+      assertNotSelector(doc, "#fresh-error-overlay");
+    },
+  );
+});
+
+Deno.test("serve client script source map", async () => {
+  await withFakeServe(
+    "./tests/fixture/dev.ts",
+    async (server) => {
+      const res = await server.get(`/_frsh/fresh_dev_client.js`);
+      await res.text(); // Consume body
+      assertEquals(res.status, 200);
+      assertEquals(
+        res.headers.get("Content-Type"),
+        "application/javascript; charset=UTF-8",
+      );
+
+      const res2 = await server.get(`/_frsh/fresh_dev_client.js.map`);
+      const json = await res2.json();
+      assertEquals(res2.status, 200);
+      assertEquals(
+        res2.headers.get("Content-Type"),
+        "application/json; charset=UTF-8",
+      );
+      assert(typeof json.mappings, "string");
     },
   );
 });

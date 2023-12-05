@@ -1,7 +1,6 @@
 import { Handlers, PageProps } from "$fresh/server.ts";
 import { asset, Head, Partial } from "$fresh/runtime.ts";
 import DocsSidebar from "../../components/DocsSidebar.tsx";
-import DocsTitle from "../../components/DocsTitle.tsx";
 import Footer from "../../components/Footer.tsx";
 import Header from "../../components/Header.tsx";
 import {
@@ -12,6 +11,7 @@ import {
 } from "../../data/docs.ts";
 import { frontMatter, renderMarkdown } from "../../utils/markdown.ts";
 import toc from "../../../docs/toc.ts";
+import { TableOfContents } from "../../islands/TableOfContents.tsx";
 
 interface Data {
   page: Page;
@@ -134,13 +134,16 @@ export const handler: Handlers<Data> = {
 };
 
 export default function DocsPage(props: PageProps<Data>) {
+  const { page } = props.data;
   const ogImageUrl = new URL(asset("/home-og.png"), props.url).href;
-  const title = `${props.data.page?.title ?? "Not Found"} | Fresh docs`;
+  const title = `${page?.title ?? "Not Found"} | Fresh docs`;
   let description = "Fresh Document";
 
-  if (props.data.page.data.description) {
-    description = String(props.data.page.data.description);
+  if (page.data.description) {
+    description = String(page.data.description);
   }
+
+  const { html, headings } = renderMarkdown(page.markdown);
 
   return (
     <>
@@ -155,23 +158,86 @@ export default function DocsPage(props: PageProps<Data>) {
         <meta property="og:image" content={ogImageUrl} />
         <meta name="view-transition" content="same-origin" />
       </Head>
-      <div class="flex flex-col min-h-screen mx-auto max-w-screen-xl">
-        <Main page={props.data.page} />
+      <div class="flex flex-col min-h-screen mx-auto max-w-screen-2xl">
+        <div class="flex-1 " f-client-nav>
+          <div class=" md:flex">
+            <nav class="w-[18rem] flex-shrink-0 hidden md:block px-4">
+              <DocsSidebar
+                versionLinks={page.versionLinks}
+                selectedVersion={page.version}
+              />
+            </nav>
+            <Partial name="docs-main">
+              <div class="w-full min-w-0">
+                <Header title="docs" active="/docs" />
+                <main class="mt-4 min-w-0 mx-auto">
+                  <MobileSidebar page={page} />
+                  <div class="flex mx-auto max-w-screen-2xl px-4 md:px-0 md:py-0 justify-end bg-gray-100">
+                    <label
+                      for="docs_sidebar"
+                      class="px-4 py-3 md:hidden flex items-center hover:bg-gray-100 rounded gap-2 cursor-pointer"
+                    >
+                      <svg
+                        class="h-6 w-6"
+                        stroke="currentColor"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth="2"
+                          d="M4 6h16M4 12h16M4 18h7"
+                        >
+                        </path>
+                      </svg>
+                      <div>Table of Contents</div>
+                    </label>
+                  </div>
+                  <div class="flex gap-6 md:gap-8 xl:gap-[8%] flex-col xl:flex-row md:mx-8 lg:mx-16 2xl:mx-0 lg:justify-end">
+                    <TableOfContents headings={headings} />
+
+                    <div class="lg:order-1 min-w-0 max-w-3xl">
+                      <h1 class="text-4xl text-gray-900 tracking-tight font-bold md:mt-0 px-4 md:px-0 mb-4">
+                        {page.title}
+                      </h1>
+                      <div
+                        class="markdown-body mb-8"
+                        dangerouslySetInnerHTML={{ __html: html }}
+                      />
+
+                      <div class="mb-8">
+                        <ForwardBackButtons
+                          slug={page.slug}
+                          version={page.version}
+                          prev={page.prevNav}
+                          next={page.nextNav}
+                        />
+                      </div>
+                      <hr />
+                      <div class="px-4 md:px-0 flex justify-between my-6">
+                        <a
+                          href={`https://github.com/denoland/fresh/edit/main/${page.file}`}
+                          class="text-green-600 underline flex items-center"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                        >
+                          <svg class="w-4 h-4 inline-block mr-1">
+                            <use href="/icons.svg#external" />
+                          </svg>
+                          Edit this page on GitHub
+                        </a>
+                      </div>
+                    </div>
+                  </div>
+                  <Footer />
+                </main>
+              </div>
+            </Partial>
+          </div>
+        </div>
       </div>
     </>
-  );
-}
-
-function Main(props: { page: Page }) {
-  return (
-    <div class="flex-1 " f-client-nav>
-      <div class=" md:flex">
-        <DesktopSidebar page={props.page} />
-        <Partial name="docs-main">
-          <Content page={props.page} />
-        </Partial>
-      </div>
-    </div>
   );
 }
 
@@ -190,7 +256,7 @@ function MobileSidebar(props: { page: Page }) {
           class="absolute inset-0 bg-gray-600 opacity-75"
           for="docs_sidebar"
         />
-        <div class="relative flex-1 flex flex-col w-[18rem] h-full bg-white border(r-2 gray-100)">
+        <div class="relative flex-1 flex flex-col w-[18rem] h-full bg-white border-r-2 border-gray-100">
           <nav class="pt-0 pb-16 px-4 overflow-x-auto">
             <DocsSidebar
               mobile
@@ -204,67 +270,6 @@ function MobileSidebar(props: { page: Page }) {
   );
 }
 
-function DesktopSidebar(props: { page: Page }) {
-  return (
-    <nav class="w-[18rem] flex-shrink-0 hidden md:block px-4">
-      <DocsSidebar
-        versionLinks={props.page.versionLinks}
-        selectedVersion={props.page.version}
-      />
-    </nav>
-  );
-}
-
-function Content(props: { page: Page }) {
-  const html = renderMarkdown(props.page.markdown);
-  return (
-    <div class="w-full min-w-0">
-      <Header title="docs" active="/docs" />
-      <main class="max-w-3xl mt-4 min-w-0 mx-auto">
-        <MobileSidebar page={props.page} />
-        <div class="flex mx-auto max-w-screen-xl px-4 md:px-0 md:py-0 justify-end bg-gray-100">
-          <label
-            for="docs_sidebar"
-            class="px-4 py-3 md:hidden flex items-center hover:bg-gray-100 rounded gap-2 cursor-pointer"
-          >
-            <svg
-              class="h-6 w-6"
-              stroke="currentColor"
-              fill="none"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth="2"
-                d="M4 6h16M4 12h16M4 18h7"
-              >
-              </path>
-            </svg>
-            <div>Table of Contents</div>
-          </label>
-        </div>
-        <h1 class="text(4xl gray-900) tracking-tight font-extrabold md:mt-0 px-4">
-          {props.page.title}
-        </h1>
-        <div
-          class="mt-6 markdown-body"
-          dangerouslySetInnerHTML={{ __html: html }}
-        />
-        <ForwardBackButtons
-          slug={props.page.slug}
-          version={props.page.version}
-          prev={props.page.prevNav}
-          next={props.page.nextNav}
-        />
-        <Footer />
-      </main>
-    </div>
-  );
-}
-
-const button = "p-2 bg-gray-100 w-full border(1 gray-200) grid";
-
 function ForwardBackButtons(props: {
   slug: string;
   version: string;
@@ -272,34 +277,39 @@ function ForwardBackButtons(props: {
   next?: NavEntry;
 }) {
   const { prev, next } = props;
-  const upper = "text(sm gray-600)";
-  const category = "font-normal";
-  const lower = "text-gray-900 font-medium";
 
   return (
-    <div class="px-4 mt-8 flex flex(col md:row) gap-4">
-      {prev && (
-        <a href={prev.href} class={`${button} text-left`}>
-          <span class={upper}>{"←"} Previous</span>
-          <span class={lower}>
-            <span class={category}>
-              {prev.category ? `${prev.category}: ` : ""}
+    <div class="px-4 md:px-0 mt-8 flex flex-col sm:flex-row gap-4 justify-between">
+      {prev
+        ? (
+          <a
+            href={prev.href}
+            class="px-4 py-2 text-left rounded border border-gray-200 grid border-solid w-full hover:border-green-600 transition-colors"
+          >
+            <span class="text-sm text-gray-600">
+              Previous page
             </span>
-            {prev.title}
-          </span>
-        </a>
-      )}
-      {next && (
-        <a href={next.href} class={`${button} text-right`}>
-          <span class={upper}>Next {"→"}</span>
-          <span class={lower}>
-            <span class={category}>
-              {next.category ? `${next.category}: ` : ""}
+            <span class="text-green-600 font-medium">
+              {prev.title}
             </span>
-            {next.title}
-          </span>
-        </a>
-      )}
+          </a>
+        )
+        : <div class="w-full" />}
+      {next
+        ? (
+          <a
+            href={next.href}
+            class="px-4 py-2 text-right rounded border border-gray-200 border-solid grid w-full hover:border-green-600 transition-colors"
+          >
+            <span class="text-sm text-gray-600">
+              Next page
+            </span>
+            <span class="text-green-600 font-medium">
+              {next.title}
+            </span>
+          </a>
+        )
+        : <div class="w-full" />}
     </div>
   );
 }

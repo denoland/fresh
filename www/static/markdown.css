@@ -4,7 +4,7 @@
   --color-prettylights-syntax-constant: #0550ae;
   --color-prettylights-syntax-entity: #8250df;
   --color-prettylights-syntax-storage-modifier-import: #24292f;
-  --color-prettylights-syntax-entity-tag: #116329;
+  --color-prettylights-syntax-entity-tag: #22863a;
   --color-prettylights-syntax-keyword: #cf222e;
   --color-prettylights-syntax-string: #0a3069;
   --color-prettylights-syntax-variable: #953800;
@@ -31,7 +31,7 @@
   font-family: -apple-system, BlinkMacSystemFont, Segoe UI, Noto Sans, Helvetica,
     Arial, sans-serif, Apple Color Emoji, Segoe UI Emoji;
   font-size: 16px;
-  line-height: 1.5;
+  line-height: 1.75;
 }
 .markdown-body:before {
   content: "";
@@ -64,6 +64,9 @@
 .markdown-body .anchor:focus {
   outline: none;
 }
+.markdown-body p {
+  margin: 1rem;
+}
 .markdown-body p,
 .markdown-body blockquote,
 .markdown-body ul,
@@ -72,8 +75,7 @@
 .markdown-body table,
 .markdown-body pre,
 .markdown-body details {
-  margin-top: 0;
-  margin-bottom: 16px;
+  margin-bottom: 1rem;
 }
 .markdown-body hr {
   height: 0.25em;
@@ -145,14 +147,10 @@
   font-size: inherit;
   padding: 0 0.2em;
 }
-.markdown-body h1 {
-  border-bottom: 1px solid var(--color-border-muted);
-  padding-bottom: 0.3em;
-  font-size: 2em;
-}
 .markdown-body h2 {
-  border-bottom: 1px solid var(--color-border-muted);
-  padding-bottom: 0.3em;
+  border-top: 1px solid var(--color-border-muted);
+  padding-top: 1.25rem;
+  margin-top: 2rem;
   font-size: 1.5em;
 }
 .markdown-body h3 {
@@ -369,8 +367,8 @@
   background-color: var(--color-neutral-muted);
   border-radius: 6px;
   margin: 0;
-  padding: 0.2em 0.4em;
-  font-size: 85%;
+  padding: 0.1875rem 0.375rem;
+  font-size: 0.875rem;
 }
 .markdown-body code br,
 .markdown-body tt br {
@@ -409,7 +407,7 @@
 .markdown-body pre {
   background-color: var(--color-canvas-subtle);
   border-radius: 6px;
-  padding: 16px;
+  padding: 1.25rem 1.5rem;
   font-size: 85%;
   line-height: 1.45;
   overflow: auto;
@@ -521,6 +519,9 @@
 .gfm-highlight .token.keyword {
   color: var(--color-prettylights-syntax-keyword);
 }
+.highlight .atrule .rule {
+  color: var(--color-prettylights-syntax-keyword);
+}
 .markdown-body .highlight .token.tag .token.class-name,
 .markdown-body .highlight .token.tag .token.script .token.punctuation,
 .gfm-highlight .token.tag .token.class-name,
@@ -603,6 +604,7 @@
 
 .markdown-body .admonition {
   padding: 1rem;
+  margin: 1.5rem;
 }
 .markdown-body .admonition-header {
   font-weight: bold;
@@ -656,7 +658,6 @@
 }
 
 @media screen and (min-width: 768px) {
-  .markdown-body .fenced-code,
   .markdown-body table {
     margin-left: 1rem;
     margin-right: 1rem;
@@ -665,6 +666,25 @@
   .markdown-body details .fenced-code {
     margin-left: 0;
     margin-right: 0;
+  }
+
+  .markdown-body .admonition {
+    margin-left: 0;
+    margin-right: 0;
+  }
+
+  .markdown-body .fenced-code,
+  .markdown-body h1,
+  .markdown-body h2,
+  .markdown-body h4,
+  .markdown-body h5,
+  .markdown-body h6,
+  .markdown-body p {
+    margin-left: 0;
+    margin-right: 0;
+  }
+  .markdown-body h3 {
+    margin: 2rem 0 1rem 0;
   }
 }
 
@@ -710,7 +730,6 @@ ol.nested li:before {
 }
 
 .markdown-body .highlight {
-  border: 1px solid #eaeef1;
   border-radius: 0.5rem;
 }
 

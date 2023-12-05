@@ -2,9 +2,8 @@ import { assert, assertEquals, assertStringIncludes, Page } from "./deps.ts";
 import {
   assertNoPageComments,
   assertNotSelector,
-  assertSelector,
-  assertTextMatch,
   clickWhenListenerReady,
+  getErrorOverlay,
   parseHtml,
   waitForText,
   withFakeServe,
@@ -417,21 +416,65 @@ Deno.test("throws when passing non-jsx children to an island", async (t) => {
   await withFakeServe(
     "./tests/fixture_island_nesting/dev.ts",
     async (server) => {
-      const doc = await server.getHtml(`/island_invalid_children`);
+      const overlay1 = await getErrorOverlay(
+        server,
+        "/island_invalid_children",
+      );
+      assertStringIncludes(
+        overlay1.title,
+        "Invalid JSX child passed to island",
+      );
 
-      assertSelector(doc, ".frsh-error-page");
-      assertTextMatch(doc, "pre", /Invalid JSX child passed to island/);
-
-      const doc2 = await server.getHtml(`/island_invalid_children_fn`);
-
-      assertSelector(doc2, ".frsh-error-page");
-      assertTextMatch(doc2, "pre", /Invalid JSX child passed to island/);
+      const overlay2 = await getErrorOverlay(
+        server,
+        "/island_invalid_children_fn",
+      );
+      assertStringIncludes(
+        overlay2.title,
+        "Invalid JSX child passed to island",
+      );
 
       await t.step("should not throw on valid children", async () => {
         const doc2 = await server.getHtml(`/island_valid_children`);
 
-        assertNotSelector(doc2, ".frsh-error-page");
+        assertNotSelector(doc2, "#fresh-error-overlay");
       });
+    },
+  );
+});
+
+Deno.test("serves multiple islands in one file", async () => {
+  await withPageName(
+    "./tests/fixture_islands_multiple/dev.ts",
+    async (page, address) => {
+      await page.goto(address, { waitUntil: "networkidle2" });
+
+      await page.click(".single button");
+      await waitForText(page, ".single p", "Single Island: 1");
+
+      await page.click(".multiple1 button");
+      await waitForText(page, ".multiple1 p", "Multiple1 Island: 1");
+      await page.click(".multiple2 button");
+      await waitForText(page, ".multiple2 p", "Multiple2 Island: 1");
+
+      await page.click(".multipledefault button");
+      await waitForText(
+        page,
+        ".multipledefault p",
+        "MultipleDefault Island: 1",
+      );
+      await page.click(".multipledefault1 button");
+      await waitForText(
+        page,
+        ".multipledefault1 p",
+        "MultipleDefault1 Island: 1",
+      );
+      await page.click(".multipledefault2 button");
+      await waitForText(
+        page,
+        ".multipledefault2 p",
+        "MultipleDefault2 Island: 1",
+      );
     },
   );
 });

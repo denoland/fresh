@@ -6,6 +6,7 @@ import {
   assertNotSelector,
   assertSelector,
   assertTextMany,
+  getErrorOverlay,
   parseHtml,
   waitFor,
   waitForText,
@@ -41,9 +42,21 @@ Deno.test(
     await withFakeServe(
       "./tests/fixture_partials/main.ts",
       async (server) => {
-        const html = await server.getHtml("/partial_slot_inside_island");
+        const res = await server.get("/partial_slot_inside_island");
+        assertEquals(res.status, 500);
+        await res.text(); // Consume
+      },
+    );
+
+    await withFakeServe(
+      "./tests/fixture_partials/dev.ts",
+      async (server) => {
+        const { title } = await getErrorOverlay(
+          server,
+          "/partial_slot_inside_island",
+        );
         assertMatch(
-          html.querySelector("h1")!.textContent!,
+          title,
           /<Partial> components cannot be used inside islands/,
         );
       },
@@ -1493,6 +1506,32 @@ Deno.test("partials visit to async page", async () => {
         isPartial: true,
         setFromMiddleware: true,
       });
+    },
+  );
+});
+
+Deno.test("partials with redirects", async () => {
+  await withPageName(
+    "./tests/fixture_partials/main.ts",
+    async (page, address) => {
+      await page.goto(`${address}/redirected`);
+      await page.waitForSelector(".output");
+
+      await page.click(".update-link");
+      await page.waitForSelector(".status-updated");
+    },
+  );
+});
+
+Deno.test("render 404 partial", async () => {
+  await withPageName(
+    "./tests/fixture_partials/main.ts",
+    async (page, address) => {
+      await page.goto(`${address}/error_404`);
+      await page.waitForSelector(".status");
+
+      await page.click(".update-link");
+      await page.waitForSelector(".status-404");
     },
   );
 });

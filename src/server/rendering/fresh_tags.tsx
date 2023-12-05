@@ -2,7 +2,12 @@ import { bundleAssetUrl } from "../constants.ts";
 import { RenderState } from "./state.ts";
 import { htmlEscapeJsonString } from "../htmlescape.ts";
 import { serialize } from "../serializer.ts";
-import { Plugin, PluginRenderResult, PluginRenderStyleTag } from "../types.ts";
+import {
+  Plugin,
+  PluginRenderLink,
+  PluginRenderResult,
+  PluginRenderStyleTag,
+} from "../types.ts";
 import { ContentSecurityPolicy, nonce } from "../../runtime/csp.ts";
 import { h } from "preact";
 
@@ -52,6 +57,7 @@ export function renderFreshTags(
     [],
   ];
   const styleTags: PluginRenderStyleTag[] = [];
+  const linkTags: PluginRenderLink[] = [];
   const pluginScripts: [string, string, number][] = [];
 
   for (const [plugin, res] of opts.pluginRenderResults) {
@@ -60,6 +66,7 @@ export function renderFreshTags(
       pluginScripts.push([plugin.name, hydrate.entrypoint, i]);
     }
     styleTags.splice(styleTags.length, 0, ...res.styles ?? []);
+    linkTags.splice(linkTags.length, 0, ...res.links ?? []);
   }
 
   // The inline script that will hydrate the page.
@@ -124,15 +131,19 @@ export function renderFreshTags(
   // Finally, it loads all island scripts and hydrates the islands using the
   // reviver from the "main" script.
   let islandRegistry = "";
-  const islandMapping: Record<string, string> = {};
+  const islandMapping: Record<string, { url: string; export: string }> = {};
   if (renderState.encounteredIslands.size > 0) {
     // Prepare the inline script that loads and revives the islands
     for (const island of renderState.encounteredIslands) {
-      const url = addImport(`island-${island.id}.js`);
-      script +=
-        `import * as ${island.name}_${island.exportName} from "${url}";`;
+      const url = addImport(`island-${island.name}.js`);
+      script += island.exportName === "default"
+        ? `import ${island.name}_${island.exportName} from "${url}";`
+        : `import { ${island.exportName} as ${island.name}_${island.exportName} } from "${url}";`;
       islandRegistry += `${island.id}:${island.name}_${island.exportName},`;
-      islandMapping[island.id] = url;
+      islandMapping[island.id] = {
+        export: island.exportName,
+        url,
+      };
     }
   }
 
@@ -177,6 +188,11 @@ export function renderFreshTags(
       media: style.media,
       dangerouslySetInnerHTML: { __html: style.cssText },
     });
+    renderState.headVNodes.splice(0, 0, node);
+  }
+
+  for (const link of linkTags) {
+    const node = h("link", link);
     renderState.headVNodes.splice(0, 0, node);
   }
 

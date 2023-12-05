@@ -1,6 +1,6 @@
 import { gte, join, relative, semverParse, walk, WalkEntry } from "./deps.ts";
 export { generate, type Manifest } from "./manifest.ts";
-import type { Manifest } from "./manifest.ts";
+import { generate, type Manifest } from "./manifest.ts";
 import { error } from "./error.ts";
 const MIN_DENO_VERSION = "1.31.0";
 const TEST_FILE_PATTERN = /[._]test\.(?:[tj]sx?|[mc][tj]s)$/;
@@ -91,4 +91,9 @@ export async function collect(
   islands.sort();
 
   return { routes, islands };
+}
+
+export async function manifest(path: string, ignoreFilePattern?: RegExp) {
+  const manifest = await collect(path, ignoreFilePattern);
+  await generate(path, manifest);
 }

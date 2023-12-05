@@ -1,15 +1,14 @@
-import { colors, toFileUrl } from "$fresh/src/server/deps.ts";
-import * as path from "$std/path/mod.ts";
 import {
   FromManifestConfig,
   Manifest,
   ServeHandlerInfo,
   ServerContext,
-} from "$fresh/server.ts";
+} from "../server.ts";
 import {
   assert,
   assertEquals,
   basename,
+  colors,
   delay,
   dirname,
   DOMParser,
@@ -19,6 +18,7 @@ import {
   Page,
   puppeteer,
   TextLineStream,
+  toFileUrl,
 } from "./deps.ts";
 
 export interface TestDocument extends Document {
@@ -166,6 +166,25 @@ function _printDomNode(
   return out;
 }
 
+export async function getErrorOverlay(
+  server: FakeServer,
+  url: string,
+): Promise<{ title: string; codeFrame: boolean; stack: string }> {
+  const doc = await server.getHtml(url);
+  const iframe = doc.querySelector<HTMLIFrameElement>(
+    "#fresh-error-overlay",
+  );
+  assert(iframe, "Missing fresh error overlay");
+
+  const doc2 = await server.getHtml(iframe.src);
+
+  return {
+    title: doc2.querySelector(".title")!.textContent!,
+    codeFrame: doc2.querySelector(".code-frame") !== null,
+    stack: doc2.querySelector(".stack")!.textContent!,
+  };
+}
+
 export async function withFresh(
   name: string | { name: string; options: Omit<Deno.CommandOptions, "args"> },
   fn: (address: string) => Promise<void>,
@@ -207,7 +226,6 @@ export async function withPageName(
   });
 
   try {
-    await delay(100);
     const browser = await puppeteer.launch({ args: ["--no-sandbox"] });
 
     try {
@@ -218,7 +236,6 @@ export async function withPageName(
     }
   } finally {
     serverProcess.kill("SIGTERM");
-
     // Wait until the process exits
     await serverProcess.status;
 
@@ -242,9 +259,13 @@ async function handleRequest(
 
   // Follow redirects
   while (res.headers.has("location")) {
-    const loc = res.headers.get("location");
+    let loc = res.headers.get("location")!;
     const hostname = conn.remoteAddr.hostname;
-    res = await handler(new Request(`https://${hostname}${loc}`), conn);
+    if (!loc.startsWith("http://") && !loc.startsWith("https://")) {
+      loc = `https://${hostname}${loc}`;
+    }
+
+    res = await handler(new Request(loc), conn);
   }
 
   return res;
@@ -286,14 +307,41 @@ export async function fakeServe(
 export async function withFakeServe(
   name: string,
   cb: (server: FakeServer) => Promise<void> | void,
+  options: { loadConfig?: boolean } = {},
 ) {
   const fixture = join(Deno.cwd(), name);
   const dev = basename(name) === "dev.ts";
+  if (dev) {
+    try {
+      await Deno.remove(join(fixture, "_fresh"));
+    } catch (_err) {
+      // ignore
+    }
+  }
 
   const manifestPath = toFileUrl(join(dirname(fixture), "fresh.gen.ts")).href;
   const manifestMod = await import(manifestPath);
 
-  const server = await fakeServe(manifestMod.default, { dev });
+  const configPath = join(dirname(fixture), "fresh.config.ts");
+
+  let config: FromManifestConfig = { dev };
+
+  // For now we load config on a case by case basis, because something in
+  // twind (unsure) doesn't work well if multiple instances are running
+  if (options.loadConfig) {
+    try {
+      const stats = await Deno.stat(configPath);
+      if (stats.isFile) {
+        const m = await import(toFileUrl(configPath).href);
+        config = m.default;
+        config.dev = dev;
+      }
+    } catch {
+      // ignore
+    }
+  }
+
+  const server = await fakeServe(manifestMod.default, config);
   await cb(server);
 }
 
@@ -439,7 +487,9 @@ async function spawnServer(
   // @ts-ignore yes it does
   for await (const line of lines.values({ preventCancel: true })) {
     output.push(line);
-    const match = line.match(/https?:\/\/localhost:\d+/g);
+    const match = line.match(
+      /https?:\/\/localhost:\d+(\/\w+[-\w]*)*/g,
+    );
     if (match) {
       address = match[0];
       break;
@@ -463,7 +513,7 @@ export async function recreateFolder(folderPath: string) {
 }
 
 export async function runBuild(fixture: string) {
-  const outDir = path.join(path.dirname(fixture), "_fresh");
+  const outDir = join(dirname(fixture), "_fresh");
   try {
     await Deno.remove(outDir, { recursive: true });
   } catch {

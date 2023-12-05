@@ -1,5 +1,5 @@
 import * as path from "$std/path/mod.ts";
-import { Status } from "../src/server/deps.ts";
+import { STATUS_CODE } from "../src/server/deps.ts";
 import {
   assert,
   assertEquals,
@@ -13,6 +13,7 @@ import {
   assertTextMany,
   clickWhenListenerReady,
   fetchHtml,
+  getStdOutput,
   startFreshServer,
   waitForText,
 } from "./test_utils.ts";
@@ -28,7 +29,7 @@ const assertFileExistence = async (files: string[], dirname: string) => {
 };
 
 Deno.test({
-  name: "fresh-init asdf",
+  name: "fresh-init",
   async fn(t) {
     // Preparation
     const tmpDirName = await Deno.makeTempDir();
@@ -38,6 +39,7 @@ Deno.test({
         args: [
           "run",
           "-A",
+          "--no-config",
           "init.ts",
           tmpDirName,
         ],
@@ -109,7 +111,7 @@ Deno.test({
       // Access the root page
       const res = await fetch(address);
       await res.body?.cancel();
-      assertEquals(res.status, Status.OK);
+      assertEquals(res.status, STATUS_CODE.OK);
 
       // verify the island is revived.
       const browser = await puppeteer.launch({
@@ -145,7 +147,7 @@ Deno.test({
 });
 
 Deno.test({
-  name: "fresh-init --twind --vscode",
+  name: "fresh-init --tailwind --vscode",
   async fn(t) {
     // Preparation
     const tmpDirName = await Deno.makeTempDir();
@@ -155,9 +157,10 @@ Deno.test({
         args: [
           "run",
           "-A",
+          "--no-config",
           "init.ts",
           tmpDirName,
-          "--twind",
+          "--tailwind",
           "--vscode",
         ],
         stdin: "null",
@@ -170,7 +173,7 @@ Deno.test({
     const files = [
       "/README.md",
       "/fresh.gen.ts",
-      "/twind.config.ts",
+      "/tailwind.config.ts",
       "/components/Button.tsx",
       "/islands/Counter.tsx",
       "/main.ts",
@@ -199,7 +202,7 @@ Deno.test({
       // Access the root page
       const res = await fetch(address);
       await res.body?.cancel();
-      assertEquals(res.status, Status.OK);
+      assertEquals(res.status, STATUS_CODE.OK);
 
       // verify the island is revived.
       const browser = await puppeteer.launch({ args: ["--no-sandbox"] });
@@ -245,7 +248,7 @@ Deno.test("fresh-init error(help)", async function (t) {
     "execute invalid init command (deno run -A init.ts)",
     async () => {
       const cliProcess = new Deno.Command(Deno.execPath(), {
-        args: ["run", "-A", "init.ts"],
+        args: ["run", "-A", "--no-config", "init.ts"],
         stdin: "null",
         stderr: "piped",
       });
@@ -261,7 +264,7 @@ Deno.test("fresh-init error(help)", async function (t) {
     "execute invalid init command (deno run -A init.ts -f)",
     async () => {
       const cliProcess = new Deno.Command(Deno.execPath(), {
-        args: ["run", "-A", "init.ts", "-f"],
+        args: ["run", "-A", "--no-config", "init.ts", "-f"],
       });
       const { code, stderr } = await cliProcess.output();
       assertEquals(code, 1);
@@ -275,7 +278,7 @@ Deno.test("fresh-init error(help)", async function (t) {
     "execute invalid init command (deno run -A init.ts --foo)",
     async () => {
       const cliProcess = new Deno.Command(Deno.execPath(), {
-        args: ["run", "-A", "init.ts", "--foo"],
+        args: ["run", "-A", "--no-config", "init.ts", "--foo"],
       });
       const { code, stderr } = await cliProcess.output();
       assertEquals(code, 1);
@@ -295,6 +298,7 @@ Deno.test("fresh-init .", async function (t) {
       args: [
         "run",
         "-A",
+        "--no-config",
         path.join(Deno.cwd(), "init.ts"),
         ".",
       ],
@@ -322,6 +326,7 @@ Deno.test({
       args: [
         "run",
         "-A",
+        "--no-config",
         path.join(Deno.cwd(), "init.ts"),
         "subdirectory/subsubdirectory",
       ],
@@ -379,9 +384,10 @@ Deno.test({
       args: [
         "run",
         "-A",
+        "--no-config",
         "init.ts",
         tmpDirName,
-        "--twind",
+        "--tailwind",
         "--vscode",
       ],
       stdin: "null",
@@ -448,4 +454,102 @@ Deno.test({
 
     await retry(() => Deno.remove(tmpDirName, { recursive: true }));
   },
+});
+
+Deno.test("init - show help screen", async (t) => {
+  await t.step("--help", async () => {
+    const output1 = await new Deno.Command(Deno.execPath(), {
+      args: [
+        "run",
+        "-A",
+        "--no-config",
+        "init.ts",
+        "--help",
+      ],
+      stdin: "null",
+      stdout: "piped",
+      stderr: "piped",
+    }).output();
+
+    assertEquals(output1.code, 0);
+    const { stdout } = getStdOutput(output1);
+    assertStringIncludes(stdout, "Initialize a new Fresh project");
+  });
+
+  await t.step("-h", async () => {
+    const output1 = await new Deno.Command(Deno.execPath(), {
+      args: [
+        "run",
+        "-A",
+        "--no-config",
+        "init.ts",
+        "-h",
+      ],
+      stdin: "null",
+      stdout: "piped",
+      stderr: "piped",
+    }).output();
+
+    assertEquals(output1.code, 0);
+    const { stdout } = getStdOutput(output1);
+    assertStringIncludes(stdout, "Initialize a new Fresh project");
+  });
+});
+
+Deno.test({
+  name: "regenerate manifest",
+  async fn(t) {
+    const MANIFEST_FILENAME = "fresh.gen.ts";
+    const tmpDirName = await Deno.makeTempDir();
+    const manifestFilePath = path.join(tmpDirName, MANIFEST_FILENAME);
+
+    await t.step("execute init command", async () => {
+      const cliProcess = new Deno.Command(Deno.execPath(), {
+        args: [
+          "run",
+          "-A",
+          "init.ts",
+          tmpDirName,
+        ],
+        stdin: "null",
+        stdout: "null",
+      });
+      const { code } = await cliProcess.output();
+      assertEquals(code, 0);
+    });
+
+    let oldManifestContent: string;
+    await t.step("store the contents of the manifest", async () => {
+      oldManifestContent = await Deno.readTextFile(manifestFilePath);
+    });
+
+    await t.step("delete the manifest", async () => {
+      await Deno.remove(manifestFilePath);
+    });
+
+    await t.step("regenerate the manifest", async () => {
+      const cliProcess = new Deno.Command(Deno.execPath(), {
+        args: [
+          "task",
+          "manifest",
+        ],
+        cwd: tmpDirName,
+        stdin: "null",
+        stdout: "piped",
+        stderr: "piped",
+      });
+
+      const output = await cliProcess.output();
+
+      assertEquals(output.code, 0);
+    });
+
+    await t.step("assert the old and new contents are equal", async () => {
+      const newManifestContent = await Deno.readTextFile(manifestFilePath);
+      assertEquals(oldManifestContent, newManifestContent);
+    });
+
+    await retry(() => Deno.remove(tmpDirName, { recursive: true }));
+  },
+  sanitizeResources: false,
 });

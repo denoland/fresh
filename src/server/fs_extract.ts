@@ -5,6 +5,7 @@ import {
   ErrorPageModule,
   InternalFreshState,
   Island,
+  IslandModule,
   LayoutModule,
   LayoutRoute,
   MiddlewareHandler,
@@ -19,9 +20,19 @@ import {
 } from "./types.ts";
 import * as router from "./router.ts";
 import DefaultErrorHandler from "./default_error_page.tsx";
-import { extname, join, toFileUrl, typeByExtension, walk } from "./deps.ts";
+import {
+  basename,
+  contentType,
+  dirname,
+  extname,
+  join,
+  SEP,
+  toFileUrl,
+  walk,
+} from "./deps.ts";
 import { BUILD_ID } from "./build_id.ts";
 import { toBaseRoute } from "./compose.ts";
+import { stringToIdentifier } from "./init_safe_deps.ts";
 
 export const ROOT_BASE_ROUTE = toBaseRoute("/");
 
@@ -98,8 +109,12 @@ export async function extractRoutes(
       throw new TypeError("Page is not a child of the basepath.");
     }
     const path = url.substring(baseUrl.length + "routes".length);
-    const baseRoute = path.substring(1, path.length - extname(path).length);
-    const name = baseRoute.replace("/", "-");
+    let baseRoute = path.substring(1, path.length - extname(path).length);
+    baseRoute = join(state.config.basePath.slice(1), baseRoute).replaceAll(
+      SEP,
+      "/",
+    );
+    const name = baseRoute.replace(/\//g, "-");
     const isLayout = path.endsWith("/_layout.tsx") ||
       path.endsWith("/_layout.ts") || path.endsWith("/_layout.jsx") ||
       path.endsWith("/_layout.js");
@@ -211,25 +226,33 @@ export async function extractRoutes(
         url,
         name,
         component,
-        handler: (req, ctx) => {
-          if (config.dev) {
-            const prevComp = error.component;
-            error.component = DefaultErrorHandler;
-            try {
-              return ctx.render();
-            } finally {
-              error.component = prevComp;
-            }
-          }
-
-          return handler
-            ? handler(req, ctx)
-            : router.defaultErrorHandler(req, ctx, ctx.error);
-        },
+        handler: handler ?? router.defaultErrorHandler,
         csp: Boolean(routeConfig?.csp ?? false),
         appWrapper: !routeConfig?.skipAppWrapper,
         inheritLayouts: !routeConfig?.skipInheritedLayouts,
       };
+    }
+  }
+
+  const processedIslands: {
+    name: string;
+    path: string;
+    module: IslandModule;
+  }[] = [];
+
+  for (const plugin of config.plugins || []) {
+    if (!plugin.islands) continue;
+    const base = dirname(plugin.islands.baseLocation);
+
+    for (const specifier of plugin.islands.paths) {
+      const full = join(base, specifier);
+      const module = await import(full);
+      const name = sanitizeIslandName(basename(full, extname(full)));
+      processedIslands.push({
+        name,
+        path: full,
+        module,
+      });
     }
   }
 
@@ -244,17 +267,28 @@ export async function extractRoutes(
     }
     const baseRoute = path.substring(0, path.length - extname(path).length);
 
-    for (const [exportName, exportedFunction] of Object.entries(module)) {
-      if (typeof exportedFunction !== "function") {
-        continue;
-      }
-      const name = sanitizeIslandName(baseRoute);
-      const id = `${name}_${exportName}`.toLowerCase();
+    processedIslands.push({
+      name: sanitizeIslandName(baseRoute),
+      path: url,
+      module,
+    });
+  }
+
+  for (const processedIsland of processedIslands) {
+    for (
+      const [exportName, exportedFunction] of Object.entries(
+        processedIsland.module,
+      )
+    ) {
+      if (typeof exportedFunction !== "function") continue;
+      const name = processedIsland.name.toLowerCase();
+      const id = `${name}_${exportName.toLowerCase()}`;
       islands.push({
         id,
         name,
-        url,
-        component: exportedFunction,
+        url: processedIsland.path,
+        // deno-lint-ignore no-explicit-any
+        component: exportedFunction as ComponentType<any>,
         exportName,
       });
     }
@@ -275,7 +309,7 @@ export async function extractRoutes(
         const localUrl = toFileUrl(entry.path);
         const path = localUrl.href.substring(staticDirUrl.href.length);
         const stat = await Deno.stat(localUrl);
-        const contentType = typeByExtension(extname(path)) ??
+        const type = contentType(extname(path)) ??
           "application/octet-stream";
         const etag = await crypto.subtle.digest(
           "SHA-1",
@@ -287,9 +321,9 @@ export async function extractRoutes(
         );
         const staticFile: StaticFile = {
           localUrl,
-          path,
+          path: join(state.config.basePath, path),
           size: stat.size,
-          contentType,
+          contentType: type,
           etag,
         };
         staticFiles.push(staticFile);
@@ -478,7 +512,7 @@ function toPascalCase(text: string): string {
 }
 
 function sanitizeIslandName(name: string): string {
-  const fileName = name.replaceAll(/[/\\\\\(\)\[\]]/g, "_");
+  const fileName = stringToIdentifier(name);
   return toPascalCase(fileName);
 }
 

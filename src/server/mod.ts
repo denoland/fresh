@@ -1,6 +1,6 @@
 import { ServerContext } from "./context.ts";
 export type { FromManifestConfig, FromManifestOptions } from "./context.ts";
-export { Status } from "./deps.ts";
+export { STATUS_CODE } from "./deps.ts";
 import {
   ErrorHandler,
   FreshConfig,
@@ -28,6 +28,7 @@ export type {
   ErrorHandlerContext,
   ErrorPageProps,
   FreshConfig,
+  FreshContext,
   FreshOptions,
   Handler,
   HandlerContext,
@@ -42,13 +43,17 @@ export type {
   Plugin,
   PluginAsyncRenderContext,
   PluginAsyncRenderFunction,
+  PluginIslands,
+  PluginMiddleware,
   PluginRenderContext,
   PluginRenderFunction,
   PluginRenderFunctionResult,
   PluginRenderResult,
   PluginRenderScripts,
   PluginRenderStyleTag,
+  PluginRoute,
   RenderFunction,
+  ResolvedFreshConfig,
   RouteConfig,
   RouteContext,
   RouterOptions,
@@ -106,5 +111,9 @@ export async function start(manifest: Manifest, config: FreshConfig = {}) {
     ...config,
     dev: false,
   });
-  await startServer(ctx.handler(), config.server ?? config);
+  const realConfig = config.server ?? config;
+  await startServer(ctx.handler(), {
+    ...realConfig,
+    basePath: config?.router?.basePath ?? "",
+  });
 }

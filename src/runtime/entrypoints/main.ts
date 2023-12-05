@@ -82,7 +82,7 @@ function isElementNode(node: Node): node is HTMLElement {
   return node.nodeType === Node.ELEMENT_NODE && !("_frshRootFrag" in node);
 }
 
-type IslandRegistry = Record<string, Record<string, ComponentType>>;
+type IslandRegistry = Record<string, ComponentType>;
 
 export function revive(
   islands: IslandRegistry,
@@ -212,7 +212,7 @@ function hideMarker(marker: Marker) {
  * the client. This function checks for that
  */
 function addChildrenFromTemplate(
-  islands: Record<string, Record<string, ComponentType>>,
+  islands: IslandRegistry,
   // deno-lint-ignore no-explicit-any
   props: any[],
   markerStack: Marker[],
@@ -220,11 +220,11 @@ function addChildrenFromTemplate(
   comment: string,
   result: RenderRequest[],
 ) {
-  const [id, exportName, n] = comment.slice("/frsh-".length).split(
+  const [id, n] = comment.slice("/frsh-".length).split(
     ":",
   );
 
-  const sel = `#frsh-slot-${id}-${exportName}-${n}-children`;
+  const sel = `#frsh-slot-${id}-${n}-children`;
   const template = document.querySelector(sel) as
     | HTMLTemplateElement
     | null;
@@ -280,7 +280,7 @@ function addChildrenFromTemplate(
  * fashion over an HTMLElement's children list.
  */
 function _walkInner(
-  islands: Record<string, Record<string, ComponentType>>,
+  islands: IslandRegistry,
   // deno-lint-ignore no-explicit-any
   props: any[],
   markerStack: Marker[],
@@ -437,7 +437,7 @@ function _walkInner(
         }
       } else if (comment.startsWith("frsh")) {
         // We're opening a new island
-        const [id, exportName, n, key] = comment.slice(5).split(":");
+        const [id, n, key] = comment.slice(5).split(":");
         const islandProps = props[Number(n)];
 
         markerStack.push({
@@ -447,7 +447,7 @@ function _walkInner(
           kind: MarkerKind.Island,
         });
 
-        const vnode = h(islands[id][exportName], islandProps) as VNode;
+        const vnode = h(islands[id], islandProps) as VNode;
         if (key) vnode.key = key;
         vnodeStack.push(vnode);
       }
@@ -550,7 +550,8 @@ function _walkInner(
 
 const partialErrorMessage = `Unable to process partial response.`;
 
-async function fetchPartials(url: URL, init?: RequestInit) {
+async function fetchPartials(url: URL, init: RequestInit = {}) {
+  init.redirect = "follow";
   url.searchParams.set(PARTIAL_SEARCH_PARAM, "true");
   const res = await fetch(url, init);
   await applyPartials(res);
@@ -638,10 +639,6 @@ class NoPartialsError extends Error {}
  * Apply partials from a HTML response
  */
 export async function applyPartials(res: Response): Promise<void> {
-  if (!res.ok) {
-    throw new Error(partialErrorMessage);
-  }
-
   const contentType = res.headers.get("Content-Type");
   if (contentType !== "text/html; charset=utf-8") {
     throw new Error(partialErrorMessage);
@@ -657,7 +654,7 @@ export async function applyPartials(res: Response): Promise<void> {
   const islands: IslandRegistry = {};
   const dataRaw = doc.getElementById("__FRSH_PARTIAL_DATA")!;
   let data: {
-    islands: Record<string, string>;
+    islands: Record<string, { export: string; url: string }>;
     signals: string | null;
     deserializer: string | null;
   } | null = null;
@@ -666,7 +663,8 @@ export async function applyPartials(res: Response): Promise<void> {
 
     promises.push(
       ...Array.from(Object.entries(data!.islands)).map(async (entry) => {
-        islands[entry[0]] = await import(`${entry[1]}`);
+        const mod = await import(`${entry[1].url}`);
+        islands[entry[0]] = mod[entry[1].export];
       }),
     );
   }

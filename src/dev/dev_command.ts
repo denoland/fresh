@@ -5,7 +5,7 @@ import { build } from "./build.ts";
 import { collect, ensureMinDenoVersion, generate, Manifest } from "./mod.ts";
 import { startServer } from "../server/boot.ts";
 import { getInternalFreshState } from "../server/config.ts";
-import { getServerContext } from "$fresh/src/server/context.ts";
+import { getServerContext } from "../server/context.ts";
 
 export async function dev(
   base: string,
@@ -45,6 +45,7 @@ export async function dev(
     );
     state.config.dev = false;
     state.loadSnapshot = false;
+    state.build = true;
     await build(state);
   } else if (config) {
     const state = await getInternalFreshState(
@@ -54,7 +55,10 @@ export async function dev(
     state.config.dev = true;
     state.loadSnapshot = false;
     const ctx = await getServerContext(state);
-    await startServer(ctx.handler(), state.config.server);
+    await startServer(ctx.handler(), {
+      ...state.config.server,
+      basePath: state.config.basePath,
+    });
   } else {
     // Legacy entry point: Back then `dev.ts` would call `main.ts` but
     // this causes duplicate plugin instantiation if both `dev.ts` and

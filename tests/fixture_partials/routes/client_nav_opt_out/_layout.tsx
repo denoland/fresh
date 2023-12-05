@@ -1,8 +1,8 @@
-import { AppProps } from "$fresh/server.ts";
+import { PageProps } from "$fresh/server.ts";
 import { Partial } from "$fresh/runtime.ts";
 import { Fader } from "../../islands/Fader.tsx";
 
-export default function AppLayout({ Component }: AppProps) {
+export default function AppLayout({ Component }: PageProps) {
   return (
     <html>
       <head>

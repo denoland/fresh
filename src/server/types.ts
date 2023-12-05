@@ -22,17 +22,6 @@ export interface DenoConfig {
 }
 
 // --- APPLICATION CONFIGURATION ---
-
-/**
- * @deprecated Use {@linkcode FreshConfig} instead
- */
-export type StartOptions = FreshConfig;
-
-/**
- * @deprecated Use {@linkcode FreshConfig} interface instead.
- */
-export type FreshOptions = FreshConfig;
-
 export interface FreshConfig {
   build?: {
     /**
@@ -114,6 +103,7 @@ export interface InternalFreshState {
   loadSnapshot: boolean;
   denoJsonPath: string;
   denoJson: DenoConfig;
+  build: boolean;
 }
 
 export interface ResolvedFreshConfig {
@@ -127,6 +117,7 @@ export interface ResolvedFreshConfig {
   staticDir: string;
   router?: RouterOptions;
   server: Partial<Deno.ServeTlsOptions>;
+  basePath: string;
 }
 
 export interface RouterOptions {
@@ -144,6 +135,12 @@ export interface RouterOptions {
    *  @default {/(?:[^/]*_|[^/]*\.|)test\.(?:ts|tsx|mts|js|mjs|jsx|)\/*$/}
    */
   ignoreFilePattern?: RegExp;
+  /**
+   * Serve fresh from a base path instead of from the root.
+   *   "/foo/bar" -> http://localhost:8000/foo/bar
+   * @default {undefined}
+   */
+  basePath?: string;
   /**
    * If present, this handler will override all 404 handling built into Fresh or your application. It should be something simple:
    * @example
@@ -164,31 +161,13 @@ export type RenderFunction = (
 /// --- ROUTES ---
 
 // deno-lint-ignore no-explicit-any
-export interface PageProps<T = any, S = Record<string, unknown>> {
-  /** The URL of the request that resulted in this page being rendered. */
-  url: URL;
-
-  /** The route matcher (e.g. /blog/:id) that the request matched for this page
-   * to be rendered. */
-  route: string;
-
-  /**
-   * The parameters that were matched from the route.
-   *
-   * For the `/foo/:bar` route with url `/foo/123`, `params` would be
-   * `{ bar: '123' }`. For a route with no matchers, `params` would be `{}`. For
-   * a wildcard route, like `/foo/:path*` with url `/foo/bar/baz`, `params` would
-   * be `{ path: 'bar/baz' }`.
-   */
-  params: Record<string, string>;
-
-  /**
-   * Additional data passed into `HandlerContext.render`. Defaults to
-   * `undefined`.
-   */
-  data: T;
-  state: S;
-}
+export type PageProps<T = any, S = Record<string, unknown>> = Omit<
+  FreshContext<
+    S,
+    T
+  >,
+  "render" | "next" | "renderNotFound"
+>;
 
 export interface StaticFile {
   /** The URL to the static file on disk. */
@@ -203,22 +182,52 @@ export interface StaticFile {
   etag: string;
 }
 
+export interface FreshContext<
+  State = Record<string, unknown>,
+  // deno-lint-ignore no-explicit-any
+  Data = any,
+  NotFoundData = Data,
+> {
+  /** @types deprecated */
+  localAddr?: Deno.NetAddr;
+  remoteAddr: Deno.NetAddr;
+  url: URL;
+  basePath: string;
+  route: string;
+  /** @deprecated Use `.route` instead */
+  pattern: string;
+  destination: router.DestinationKind;
+  params: Record<string, string>;
+  isPartial: boolean;
+  state: State;
+  config: ResolvedFreshConfig;
+  /** @deprecated Pass values to state instead */
+  data: Data;
+  /** The error that caused the error page to be loaded. */
+  error?: unknown;
+  /** Sringified code frame of the error rendering failed (only in development mode) */
+  codeFrame?: unknown;
+
+  // These properties may be different
+  renderNotFound: (data?: NotFoundData) => Response | Promise<Response>;
+  render: (
+    data?: Data,
+    options?: RenderOptions,
+  ) => Response | Promise<Response>;
+  Component: ComponentType<unknown>;
+  next: () => Promise<Response>;
+}
 /**
  * Context passed to async route components.
  */
 // deno-lint-ignore no-explicit-any
-export type RouteContext<T = any, S = Record<string, unknown>> = {
-  /** @types deprecated */
-  localAddr?: Deno.NetAddr;
-  remoteAddr: Deno.NetAddr;
-  renderNotFound: (data?: T) => Response | Promise<Response>;
-  url: URL;
-  route: string;
-  params: Record<string, string>;
-  state: S;
-  data: T;
-  isPartial: boolean;
-};
+export type RouteContext<T = any, S = Record<string, unknown>> = Omit<
+  FreshContext<
+    S,
+    T
+  >,
+  "next" | "render"
+>;
 
 export interface RouteConfig {
   /**
@@ -267,36 +276,16 @@ export type ServeHandler = (
   info: ServeHandlerInfo,
 ) => Response | Promise<Response>;
 
-export interface HandlerContext<
-  Data = unknown,
-  State = Record<string, unknown>,
-  NotFoundData = Data,
-> extends ServeHandlerInfo {
-  params: Record<string, string>;
-  render: (
-    data?: Data,
-    options?: RenderOptions,
-  ) => Response | Promise<Response>;
-  renderNotFound: (data?: NotFoundData) => Response | Promise<Response>;
-  state: State;
-  isPartial: boolean;
-}
-
 // deno-lint-ignore no-explicit-any
 export type Handler<T = any, State = Record<string, unknown>> = (
   req: Request,
-  ctx: HandlerContext<T, State>,
+  ctx: FreshContext<State, T>,
 ) => Response | Promise<Response>;
 
 // deno-lint-ignore no-explicit-any
 export type Handlers<T = any, State = Record<string, unknown>> = {
   [K in router.KnownMethod]?: Handler<T, State>;
 };
-
-/**
- * @deprecated This type was a short-lived alternative to `Handlers`. Please use `Handlers` instead.
- */
-export type MultiHandler<T> = Handlers<T>;
 
 export interface RouteModule {
   default?: PageComponent<PageProps>;
@@ -308,7 +297,7 @@ export interface RouteModule {
 // deno-lint-ignore no-explicit-any
 export type AsyncRoute<T = any, S = Record<string, unknown>> = (
   req: Request,
-  ctx: RouteContext<T, S>,
+  ctx: FreshContext<S, T>,
 ) => Promise<ComponentChildren | Response>;
 // deno-lint-ignore no-explicit-any
 export type PageComponent<T = any, S = Record<string, unknown>> =
@@ -330,40 +319,15 @@ export interface Route<Data = any> {
   inheritLayouts: boolean;
 }
 
-export interface RouterState {
-  state: Record<string, unknown>;
-}
-
 // --- APP ---
-
-// deno-lint-ignore no-explicit-any
-export type AppProps<T = any, S = Record<string, unknown>> = LayoutProps<T, S>;
-
 export interface AppModule {
-  default: ComponentType<AppProps> | AsyncLayout;
+  default: ComponentType<PageProps> | AsyncLayout;
 }
 
-// deno-lint-ignore no-explicit-any
-export type AppContext<T = any, S = Record<string, unknown>> =
-  & RouteContext<T, S>
-  & {
-    Component: () => VNode;
-  };
-// deno-lint-ignore no-explicit-any
-export type LayoutContext<T = any, S = Record<string, unknown>> = AppContext<
-  T,
-  S
->;
-
-// deno-lint-ignore no-explicit-any
-export interface LayoutProps<T = any, S = Record<string, unknown>>
-  extends PageProps<T, S> {
-  Component: ComponentType<Record<never, never>>;
-}
 // deno-lint-ignore no-explicit-any
 export type AsyncLayout<T = any, S = Record<string, unknown>> = (
   req: Request,
-  ctx: LayoutContext<T, S>,
+  ctx: FreshContext<S, T>,
 ) => Promise<ComponentChildren | Response>;
 
 export interface LayoutConfig {
@@ -382,7 +346,7 @@ export interface LayoutConfig {
 export interface LayoutModule {
   // deno-lint-ignore no-explicit-any
   handler?: Handler<any, any> | Handlers<any, any>;
-  default: ComponentType<LayoutProps> | AsyncLayout;
+  default: ComponentType<PageProps> | AsyncLayout;
   config?: LayoutConfig;
 }
 
@@ -397,36 +361,13 @@ export interface LayoutRoute {
 
 // --- UNKNOWN PAGE ---
 
-// deno-lint-ignore no-explicit-any
-export interface UnknownPageProps<T = any, S = Record<string, unknown>> {
-  /** The URL of the request that resulted in this page being rendered. */
-  url: URL;
-
-  /** The route matcher (e.g. /blog/:id) that the request matched for this page
-   * to be rendered. */
-  route: string;
-
-  /**
-   * Additional data passed into `HandlerContext.renderNotFound`. Defaults to
-   * `undefined`.
-   */
-  data: T;
-  state: S;
-}
-
-export interface UnknownHandlerContext<State = Record<string, unknown>>
-  extends ServeHandlerInfo {
-  render: () => Response | Promise<Response>;
-  state: State;
-}
-
 export type UnknownHandler = (
   req: Request,
-  ctx: UnknownHandlerContext,
+  ctx: FreshContext,
 ) => Response | Promise<Response>;
 
 export interface UnknownPageModule {
-  default?: PageComponent<UnknownPageProps>;
+  default?: PageComponent<PageProps>;
   handler?: UnknownHandler;
   config?: RouteConfig;
 }
@@ -436,7 +377,7 @@ export interface UnknownPage {
   pattern: string;
   url: string;
   name: string;
-  component?: PageComponent<UnknownPageProps>;
+  component?: PageComponent<PageProps>;
   handler: UnknownHandler;
   csp: boolean;
   appWrapper: boolean;
@@ -445,47 +386,21 @@ export interface UnknownPage {
 
 export type UnknownRenderFunction = (
   req: Request,
-  params: Record<string, string>,
-  // deno-lint-ignore no-explicit-any
-  ctx?: any,
-  data?: unknown,
-  error?: unknown,
+  ctx: FreshContext,
 ) => Promise<Response>;
 
 // --- ERROR PAGE ---
-
-export interface ErrorPageProps {
-  /** The URL of the request that resulted in this page being rendered. */
-  url: URL;
-
-  /** The route matcher (e.g. /blog/:id) that the request matched for this page
-   * to be rendered. */
-  pattern: string;
-
-  /** The error that caused the error page to be loaded. */
-  error: unknown;
-
-  /** Sringified code frame (only in development mode) */
-  codeFrame?: string;
-}
-
-export interface ErrorHandlerContext<State = Record<string, unknown>>
-  extends ServeHandlerInfo {
-  error: unknown;
-  render: () => Response | Promise<Response>;
-  state: State;
-}
 
 // Nominal/Branded type. Ensures that the string has the expected format
 export type BaseRoute = string & { readonly __brand: unique symbol };
 
 export type ErrorHandler = (
   req: Request,
-  ctx: ErrorHandlerContext,
+  ctx: FreshContext,
 ) => Response | Promise<Response>;
 
 export interface ErrorPageModule {
-  default?: PageComponent<ErrorPageProps>;
+  default?: PageComponent<PageProps>;
   handler?: ErrorHandler;
   config?: RouteConfig;
 }
@@ -495,7 +410,7 @@ export interface ErrorPage {
   pattern: string;
   url: string;
   name: string;
-  component?: PageComponent<ErrorPageProps>;
+  component?: PageComponent<PageProps>;
   handler: ErrorHandler;
   csp: boolean;
   appWrapper: boolean;
@@ -503,17 +418,6 @@ export interface ErrorPage {
 }
 
 // --- MIDDLEWARES ---
-
-export interface MiddlewareHandlerContext<State = Record<string, unknown>>
-  extends ServeHandlerInfo {
-  next: () => Promise<Response>;
-  renderNotFound: (state?: State) => Response | Promise<Response>;
-  state: State;
-  destination: router.DestinationKind;
-  params: Record<string, string>;
-  isPartial: boolean;
-}
-
 export interface MiddlewareRoute {
   baseRoute: BaseRoute;
   module: Middleware;
@@ -521,7 +425,7 @@ export interface MiddlewareRoute {
 
 export type MiddlewareHandler<State = Record<string, unknown>> = (
   req: Request,
-  ctx: MiddlewareHandlerContext<State>,
+  ctx: FreshContext<State>,
 ) => Response | Promise<Response>;
 
 // deno-lint-ignore no-explicit-any
@@ -537,7 +441,7 @@ export interface Middleware<State = Record<string, unknown>> {
 
 export interface IslandModule {
   // deno-lint-ignore no-explicit-any
-  [key: string]: ComponentType<any>;
+  [key: string]: ComponentType<any> | unknown;
 }
 
 export interface Island {
@@ -591,9 +495,16 @@ export interface Plugin<State = Record<string, unknown>> {
    */
   buildEnd?(): Promise<void> | void;
 
+  /**
+   * Called after configuration has been loaded
+   */
+  configResolved?(config: ResolvedFreshConfig): Promise<void> | void;
+
   routes?: PluginRoute[];
 
   middlewares?: PluginMiddleware<State>[];
+
+  islands?: PluginIslands;
 }
 
 export interface PluginRenderContext {
@@ -609,6 +520,10 @@ export interface PluginRenderResult {
   styles?: PluginRenderStyleTag[];
   /** JS scripts to ship to the client. */
   scripts?: PluginRenderScripts[];
+  /** Link tags for the page */
+  links?: PluginRenderLink[];
+  /** Body HTML transformed by the plugin */
+  htmlText?: string;
 }
 
 export interface PluginRenderStyleTag {
@@ -616,6 +531,17 @@ export interface PluginRenderStyleTag {
   media?: string;
   id?: string;
 }
+
+export type PluginRenderLink = {
+  crossOrigin?: string;
+  href?: string;
+  hreflang?: string;
+  media?: string;
+  referrerPolicy?: string;
+  rel?: string;
+  title?: string;
+  type?: string;
+};
 
 export interface PluginRenderScripts {
   /** The "key" of the entrypoint (as specified in `Plugin.entrypoints`) for the
@@ -656,8 +582,106 @@ export interface PluginRoute {
   /** A path in the format of a filename path without filetype */
   path: string;
 
-  component?: ComponentType<PageProps> | ComponentType<AppProps>;
+  component?:
+    | ComponentType<PageProps>
+    | ComponentType<AppProps>
+    | AsyncRoute
+    | AsyncLayout;
 
   // deno-lint-ignore no-explicit-any
   handler?: Handler<any, any> | Handlers<any, any>;
 }
+
+export interface PluginIslands {
+  baseLocation: string;
+  paths: string[];
+}
+
+// --- Deprecated types ---
+
+/**
+ * @deprecated This type was a short-lived alternative to `Handlers`. Please use `Handlers` instead.
+ */
+export type MultiHandler<T> = Handlers<T>;
+
+/**
+ * @deprecated Use {@linkcode FreshConfig} instead
+ */
+export type StartOptions = FreshConfig;
+
+/**
+ * @deprecated Use {@linkcode FreshConfig} interface instead.
+ */
+export type FreshOptions = FreshConfig;
+
+/**
+ * @deprecated Use {@linkcode FreshContext} interface instead
+ */
+export type HandlerContext<
+  Data = unknown,
+  State = Record<string, unknown>,
+  NotFoundData = Data,
+> = FreshContext<State, Data, NotFoundData>;
+
+/**
+ * @deprecated Use {@linkcode FreshContext} interface instead
+ */
+// deno-lint-ignore no-explicit-any
+export type AppContext<T = any, S = Record<string, unknown>> = FreshContext<
+  S,
+  T
+>;
+
+/**
+ * @deprecated Use {@linkcode FreshContext} interface instead
+ */
+// deno-lint-ignore no-explicit-any
+export type LayoutContext<T = any, S = Record<string, unknown>> = FreshContext<
+  S,
+  T
+>;
+
+/**
+ * @deprecated Use {@linkcode FreshContext} interface instead
+ */
+export type UnknownHandlerContext<State = Record<string, unknown>> =
+  FreshContext<State>;
+
+/**
+ * @deprecated Use {@linkcode FreshContext} interface instead
+ */
+export type ErrorHandlerContext<State = Record<string, unknown>> = FreshContext<
+  State
+>;
+
+/**
+ * @deprecated Use {@linkcode FreshContext} interface instead
+ */
+export type MiddlewareHandlerContext<State = Record<string, unknown>> =
+  FreshContext<State>;
+
+/**
+ * @deprecated Use {@linkcode PageProps} instead
+ */
+// deno-lint-ignore no-explicit-any
+export type LayoutProps<T = any, S = Record<string, unknown>> = PageProps<T, S>;
+
+/**
+ * @deprecated Use {@linkcode PageProps} instead
+ */
+// deno-lint-ignore no-explicit-any
+export type UnknownPageProps<T = any, S = Record<string, unknown>> = PageProps<
+  T,
+  S
+>;
+
+/**
+ * @deprecated Use {@linkcode PageProps} instead
+ */
+// deno-lint-ignore no-explicit-any
+export type AppProps<T = any, S = Record<string, unknown>> = PageProps<T, S>;
+
+/**
+ * @deprecated Use {@linkcode PageProps} instead
+ */
+export type ErrorPageProps = PageProps;
