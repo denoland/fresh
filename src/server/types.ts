@@ -189,9 +189,30 @@ export interface FreshContext<
   destination: router.DestinationKind;
   params: Record<string, string>;
   isPartial: boolean;
+  /**
+   * An object where data can be assigned to and that is accessible
+   * across middlewares, handlers and routes.
+   * @example
+   * ```tsx
+   * // routes/_middleware.ts
+   * export type State = { data: string };
+   *
+   * export async function handler(_req: Request, ctx: FreshContext<State>) {
+   *   ctx.state.data = "myData";
+   *   return ctx.next();
+   * }
+   * // routes/data.tsx
+   * export const handler: Handler<void, State> = (_req, ctx) => {
+   *   return new Response(`middleware data: ${ctx.state.data}`);
+   * };
+   * ```
+   */
   state: State;
   config: ResolvedFreshConfig;
-  /** @deprecated Pass values to state instead */
+  /**
+   * @deprecated Assign values to the {@linkcode FreshContext.state} object instead or load data directly in
+   * async route components (see {@linkcode AsyncRoute}).
+   */
   data: Data;
   /** The error that caused the error page to be loaded. */
   error?: unknown;
