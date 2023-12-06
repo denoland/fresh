@@ -47,7 +47,7 @@ export type DestinationKind = "internal" | "static" | "route" | "notFound";
 export type InternalRoute = {
   baseRoute: BaseRoute;
   originalPattern: string;
-  pattern: URLPathnamePattern | string;
+  pattern: URLPattern | string;
   methods: { [K in KnownMethod]?: MatchHandler };
   default?: MatchHandler;
   destination: DestinationKind;
@@ -157,11 +157,11 @@ export class URLPathnamePattern {
       }
 
       if (ch === Char["/"]) {
-        if (pattern === "^") {
-          pattern += "\\/?";
-        } else {
-          pattern += "\\/";
-        }
+        // if (pattern === "^") {
+        //   pattern += "\\/?";
+        // } else {
+        pattern += "\\/";
+        // }
       } else if (ch === Char[":"]) {
         const start = i + 1;
         ch = input.charCodeAt(++i);
@@ -245,7 +245,7 @@ function processRoutes(
   for (const [path, def] of Object.entries(routes)) {
     const pattern = destination === "static" || !IS_PATTERN.test(path)
       ? path
-      : new URLPathnamePattern(path);
+      : new URLPattern({ pathname: path });
 
     const entry: InternalRoute = {
       baseRoute: def.baseRoute,

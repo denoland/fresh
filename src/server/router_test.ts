@@ -1,28 +1,47 @@
 import { assertEquals } from "./deps.ts";
 import { IS_PATTERN, URLPathnamePattern } from "./router.ts";
 
-function testPattern(pattern: string, value: string) {
+function testPattern(
+  pattern: string,
+  value: string,
+  expected: Record<string, string | undefined> | null,
+) {
+  const url = new URL(value, "http://localhost/");
+  const urlPattern = new URLPattern({ pathname: pattern });
+  console.log(pattern, url.href);
+  const result = urlPattern.exec(url.href);
+  assertEquals(
+    result?.pathname.groups ?? null,
+    expected,
+    `${pattern}, URLPattern: ${JSON.stringify(expected)}`,
+  );
+
   const regex = new URLPathnamePattern(pattern);
-  return regex.exec(value);
+  const result2 = regex.exec(value);
+  assertEquals(
+    result2,
+    expected,
+    `${pattern}, Regex: ${JSON.stringify(expected)}`,
+  );
 }
 
 Deno.test("pathToRegexp", () => {
   // URLPattern tests taken from https://github.com/web-platform-tests/wpt/tree/master/urlpattern/resources
-  assertEquals(testPattern("/foo/bar", "/foo/bar"), {});
-  assertEquals(testPattern("/foo/bar", "/foo/ba"), null);
-  assertEquals(testPattern("/foo/bar", "/foo/bar/"), null);
-  assertEquals(testPattern("/foo/bar", "/foo/bar/baz"), null);
-  assertEquals(testPattern("/foo/bar", "?query#hash"), null);
-  assertEquals(testPattern("/foo/:bar", "/foo/bar"), { bar: "bar" });
-  assertEquals(testPattern("/foo/([^\\/]+?)", "/foo/bar"), { 0: "bar" });
-  assertEquals(testPattern("/foo/:bar", "/foo/index.html"), {
+  testPattern("/foo/bar", "/foo/bar", {});
+  testPattern("/foo/bar", "/foo/ba", null);
+  testPattern("/foo/bar", "/foo/bar/", null);
+  testPattern("/foo/bar", "/foo/bar/baz", null);
+  testPattern("/foo/bar", "?query#hash", null);
+  testPattern("/foo/:bar", "/foo/bar", { bar: "bar" });
+  testPattern("/foo/([^\\/]+?)", "/foo/bar", { 0: "bar" });
+  testPattern("/foo/:bar", "/foo/index.html", {
     bar: "index.html",
   });
-  assertEquals(testPattern("/foo/:bar", "/foo/bar/"), null);
-  assertEquals(testPattern("/foo/:bar", "/foo/"), null);
-  assertEquals(testPattern("/foo/(.*)", "/foo/bar"), { 0: "bar" });
+  testPattern("/foo/:bar", "/foo/bar/", null);
+  testPattern("/foo/:bar", "/foo/", null);
+  testPattern("/foo/(.*)", "/foo/bar", { 0: "bar" });
   // FIXME
-  // assertEquals(testPattern("/foo/*", "/foo/bar"), { 0: "bar" });
+  testPattern("/foo/*", "/foo/bar", { 0: "bar" });
   // {
   //   "pattern": [{ "pathname": "/foo/*" }],
   //   "inputs": [{ "pathname": "/foo/bar" }],
@@ -30,7 +49,7 @@ Deno.test("pathToRegexp", () => {
   //     "pathname": { "input": "/foo/bar", "groups": { "0": "bar" } },
   //   },
   // },
-  assertEquals(testPattern("/foo/(.*)", "/foo/bar/baz"), { 0: "bar/baz" });
+  testPattern("/foo/(.*)", "/foo/bar/baz", { 0: "bar/baz" });
   // FIXME
   // assertEquals(testPattern("/foo/*", "/foo/bar/baz"), { 0: "bar/baz" });
   // {
@@ -41,9 +60,9 @@ Deno.test("pathToRegexp", () => {
   //   },
   // },
 
-  assertEquals(testPattern("/foo/(.*)", "/foo/"), { 0: "" });
+  testPattern("/foo/(.*)", "/foo/", { 0: "" });
   // FIXME
-  // assertEquals(testPattern("/foo/*", "/foo/"), { 0: "" });
+  // testPattern("/foo/*", "/foo/"), { 0: "" });
   // {
   //   "pattern": [{ "pathname": "/foo/*" }],
   //   "inputs": [{ "pathname": "/foo/" }],
@@ -51,17 +70,17 @@ Deno.test("pathToRegexp", () => {
   //     "pathname": { "input": "/foo/", "groups": { "0": "" } },
   //   },
   // },
-  assertEquals(testPattern("/foo/(.*)", "/foo"), null);
-  assertEquals(testPattern("/foo/*", "/foo"), null);
-  assertEquals(testPattern("/foo/:bar(.*)", "/foo/bar"), { bar: "bar" });
-  assertEquals(testPattern("/foo/:bar(.*)", "/foo/bar/baz"), {
+  testPattern("/foo/(.*)", "/foo", null);
+  testPattern("/foo/*", "/foo", null);
+  testPattern("/foo/:bar(.*)", "/foo/bar", { bar: "bar" });
+  testPattern("/foo/:bar(.*)", "/foo/bar/baz", {
     bar: "bar/baz",
   });
-  assertEquals(testPattern("/foo/:bar(.*)", "/foo/"), {
+  testPattern("/foo/:bar(.*)", "/foo/", {
     bar: "",
   });
-  assertEquals(testPattern("/foo/:bar(.*)", "/foo"), null);
-  assertEquals(testPattern("/foo/:bar?", "/foo/bar"), { bar: "bar" });
+  testPattern("/foo/:bar(.*)", "/foo", null);
+  testPattern("/foo/:bar?", "/foo/bar", { bar: "bar" });
   // FIXME
   // assertEquals(testPattern("/foo/:bar?", "/foo"), { bar: undefiend });
   // {
@@ -79,12 +98,12 @@ Deno.test("pathToRegexp", () => {
   //   "inputs": [{ "pathname": "/foo/" }],
   //   "expected_match": null,
   // },
-  assertEquals(testPattern("/foo/:bar?", "/foobar"), null);
-  assertEquals(testPattern("/foo/:bar?", "/foo/bar/baz"), null);
-  assertEquals(testPattern("/foo/:bar+", "/foo/bar"), { bar: "bar" });
-  assertEquals(testPattern("/foo/:bar+", "/foo/bar"), { bar: "bar" });
+  testPattern("/foo/:bar?", "/foobar", null);
+  testPattern("/foo/:bar?", "/foo/bar/baz", null);
+  testPattern("/foo/:bar+", "/foo/bar", { bar: "bar" });
+  testPattern("/foo/:bar+", "/foo/bar", { bar: "bar" });
   // FIXME
-  // assertEquals(testPattern("/foo/:bar+", "/foo/bar/baz"), { bar: "bar/baz" });
+  // testPattern("/foo/:bar+", "/foo/bar/baz"), { bar: "bar/baz" });
   // {
   //   "pattern": [{ "pathname": "/foo/:bar+" }],
   //   "inputs": [{ "pathname": "/foo/bar/baz" }],
@@ -92,11 +111,11 @@ Deno.test("pathToRegexp", () => {
   //     "pathname": { "input": "/foo/bar/baz", "groups": { "bar": "bar/baz" } },
   //   },
   // },
-  assertEquals(testPattern("/foo/:bar+", "/foo"), null);
-  assertEquals(testPattern("/foo/:bar+", "/foo/"), null);
-  assertEquals(testPattern("/foo/:bar+", "/foobar"), null);
-  assertEquals(testPattern("/foo/:bar*", "/foo/bar"), { bar: "bar" });
-  assertEquals(testPattern("/foo/:bar*", "/foo/bar/baz"), { bar: "bar/baz" });
+  testPattern("/foo/:bar+", "/foo", null);
+  testPattern("/foo/:bar+", "/foo/", null);
+  testPattern("/foo/:bar+", "/foobar", null);
+  testPattern("/foo/:bar*", "/foo/bar", { bar: "bar" });
+  testPattern("/foo/:bar*", "/foo/bar/baz", { bar: "bar/baz" });
   // FIXME
   // assertEquals(testPattern("/foo/:bar*", "/foo"), {});
   // {
@@ -114,10 +133,10 @@ Deno.test("pathToRegexp", () => {
   //   "inputs": [{ "pathname": "/foo/" }],
   //   "expected_match": null,
   // },
-  assertEquals(testPattern("/foo/:bar*", "/foobar"), null);
-  assertEquals(testPattern("/foo/(.*)?", "/foo/bar"), { 0: "bar" });
+  testPattern("/foo/:bar*", "/foobar", null);
+  testPattern("/foo/(.*)?", "/foo/bar", { 0: "bar" });
   // FIXME
-  // assertEquals(testPattern("/foo/*?", "/foo/bar"), { 0: "bar" });
+  // testPattern("/foo/*?", "/foo/bar", { 0: "bar" });
   // {
   //   "pattern": [{ "pathname": "/foo/*?" }],
   //   "inputs": [{ "pathname": "/foo/bar" }],
@@ -125,7 +144,7 @@ Deno.test("pathToRegexp", () => {
   //     "pathname": { "input": "/foo/bar", "groups": { "0": "bar" } },
   //   },
   // },
-  assertEquals(testPattern("/foo/(.*)?", "/foo/bar/baz"), { 0: "bar/baz" });
+  testPattern("/foo/(.*)?", "/foo/bar/baz", { 0: "bar/baz" });
   // FIXME
   // assertEquals(testPattern("/foo/*?", "/foo/bar/baz"), { 0: "bar/baz" });
   // {
@@ -147,14 +166,14 @@ Deno.test("pathToRegexp", () => {
   //     "pathname": { "input": "/foo", "groups": { "0": null } },
   //   },
   // },
-  // assertEquals(testPattern("/foo/*?", "/foo"), { 0: undefined });
-  // assertEquals(testPattern("/foo/(.*)?", "/foo/"), { 0: "" });
-  // assertEquals(testPattern("/foo/*?", "/foo/"), { 0: "" });
-  assertEquals(testPattern("/foo/(.*)?", "/foobar"), null);
-  // assertEquals(testPattern("/foo/*?", "/foobar"), null);
-  assertEquals(testPattern("/foo/(.*)?", "/fo"), null);
-  // assertEquals(testPattern("/foo/*?", "/fo"), null);
-  assertEquals(testPattern("/foo/(.*)+", "/foo/bar"), { 0: "bar" });
+  // testPattern("/foo/*?", "/foo", { 0: undefined });
+  // testPattern("/foo/(.*)?", "/foo/", { 0: "" });
+  // testPattern("/foo/*?", "/foo/", { 0: "" });
+  testPattern("/foo/(.*)?", "/foobar", null);
+  // testPattern("/foo/*?", "/foobar", null);
+  testPattern("/foo/(.*)?", "/fo", null);
+  // testPattern("/foo/*?", "/fo", null);
+  testPattern("/foo/(.*)+", "/foo/bar", { 0: "bar" });
   // {
   //   "pattern": [{ "pathname": "/foo/(.*)+" }],
   //   "inputs": [{ "pathname": "/foo/bar" }],
@@ -165,8 +184,8 @@ Deno.test("pathToRegexp", () => {
   //     "pathname": { "input": "/foo/bar", "groups": { "0": "bar" } },
   //   },
   // },
-  // assertEquals(testPattern("/foo/*+", "/foo/bar"), { 0: "bar" });
-  assertEquals(testPattern("/foo/(.*)+", "/foo/bar/baz"), { 0: "bar/baz" });
+  // testPattern("/foo/*+", "/foo/bar", { 0: "bar" });
+  testPattern("/foo/(.*)+", "/foo/bar/baz", { 0: "bar/baz" });
   // {
   //   "pattern": [{ "pathname": "/foo/(.*)+" }],
   //   "inputs": [{ "pathname": "/foo/bar/baz" }],
@@ -177,28 +196,28 @@ Deno.test("pathToRegexp", () => {
   //     "pathname": { "input": "/foo/bar/baz", "groups": { "0": "bar/baz" } },
   //   },
   // },
-  // assertEquals(testPattern("/foo/*+", "/foo/bar/baz"), { 0: "bar/baz" });
-  assertEquals(testPattern("/foo/(.*)+", "/foo"), null);
-  // assertEquals(testPattern("/foo/*+", "/foo"), null);
-  assertEquals(testPattern("/foo/(.*)+", "/foo/"), { 0: "" });
-  // assertEquals(testPattern("/foo/*+", "/foo/"), { 0: "" });
-  assertEquals(testPattern("/foo/(.*)+", "/foobar"), null);
-  // assertEquals(testPattern("/foo/*+", "/foobar"), null);
-  assertEquals(testPattern("/foo/(.*)+", "/fo"), null);
-  // assertEquals(testPattern("/foo/*+", "/fo"), null);
-  assertEquals(testPattern("/foo/(.*)*", "/foo/bar"), { 0: "bar" });
-  // assertEquals(testPattern("/foo/**", "/foo/bar"), { 0: "bar" });
-  assertEquals(testPattern("/foo/(.*)*", "/foo/bar/baz"), { 0: "bar/baz" });
-  // assertEquals(testPattern("/foo/**", "/foo/bar/baz"), { 0: "bar/baz" });
-  // assertEquals(testPattern("/foo/(.*)*", "/foo"), { 0: undefined });
-  // assertEquals(testPattern("/foo/**", "/foo"), { 0: undefined });
-  assertEquals(testPattern("/foo/(.*)*", "/foo/"), { 0: "" });
-  // assertEquals(testPattern("/foo/**", "/foo/"), { 0: "" });
-  assertEquals(testPattern("/foo/(.*)*", "/foobar"), null);
-  assertEquals(testPattern("/foo/**", "/foobar"), null);
-  assertEquals(testPattern("/foo/(.*)*", "/fo"), null);
-  assertEquals(testPattern("/foo/**", "/fo"), null);
-  assertEquals(testPattern("/foo{/bar}", "/foo/bar"), {});
+  // testPattern("/foo/*+", "/foo/bar/baz", { 0: "bar/baz" });
+  testPattern("/foo/(.*)+", "/foo", null);
+  // testPattern("/foo/*+", "/foo", null);
+  testPattern("/foo/(.*)+", "/foo/", { 0: "" });
+  // testPattern("/foo/*+", "/foo/", { 0: "" });
+  testPattern("/foo/(.*)+", "/foobar", null);
+  // testPattern("/foo/*+", "/foobar", null);
+  testPattern("/foo/(.*)+", "/fo", null);
+  // testPattern("/foo/*+", "/fo", null);
+  testPattern("/foo/(.*)*", "/foo/bar", { 0: "bar" });
+  // testPattern("/foo/**", "/foo/bar", { 0: "bar" });
+  testPattern("/foo/(.*)*", "/foo/bar/baz", { 0: "bar/baz" });
+  // testPattern("/foo/**", "/foo/bar/baz", { 0: "bar/baz" });
+  // testPattern("/foo/(.*)*", "/foo", { 0: undefined });
+  // testPattern("/foo/**", "/foo", { 0: undefined });
+  testPattern("/foo/(.*)*", "/foo/", { 0: "" });
+  // testPattern("/foo/**", "/foo/", { 0: "" });
+  testPattern("/foo/(.*)*", "/foobar", null);
+  testPattern("/foo/**", "/foobar", null);
+  testPattern("/foo/(.*)*", "/fo", null);
+  testPattern("/foo/**", "/fo", null);
+  testPattern("/foo{/bar}", "/foo/bar", {});
   // {
   //   "pattern": [{ "pathname": "/foo{/bar}" }],
   //   "inputs": [{ "pathname": "/foo/bar" }],
@@ -209,38 +228,38 @@ Deno.test("pathToRegexp", () => {
   //     "pathname": { "input": "/foo/bar", "groups": {} },
   //   },
   // },
-  assertEquals(testPattern("/foo{/bar}", "/foo/bar/baz"), null);
-  assertEquals(testPattern("/foo{/bar}", "/foo"), null);
-  assertEquals(testPattern("/foo{/bar}", "/foo/"), null);
-  assertEquals(testPattern("/foo{/bar}?", "/foo/bar"), {});
-  assertEquals(testPattern("/foo{/bar}?", "/foo/bar/baz"), null);
-  assertEquals(testPattern("/foo{/bar}?", "/foo"), {});
-  assertEquals(testPattern("/foo{/bar}?", "/foo/"), null);
-  assertEquals(testPattern("/foo{/bar}+", "/foo/bar"), {});
-  assertEquals(testPattern("/foo{/bar}+", "/foo/bar/bar"), {});
-  assertEquals(testPattern("/foo{/bar}+", "/foo/bar/baz"), null);
-  assertEquals(testPattern("/foo{/bar}+", "/foo"), null);
-  assertEquals(testPattern("/foo{/bar}+", "/foo/"), null);
-  assertEquals(testPattern("/foo{/bar}*", "/foo/bar"), {});
-  assertEquals(testPattern("/foo{/bar}*", "/foo/bar/bar"), {});
-  assertEquals(testPattern("/foo{/bar}*", "/foo/bar/baz"), {});
-  // assertEquals(testPattern("/foo{/bar}*", "/foo"), {});
-  assertEquals(testPattern("/foo{/bar}*", "/foo/"), null);
-  // assertEquals(testPattern("(café)", "/foo/"), null);
+  testPattern("/foo{/bar}", "/foo/bar/baz", null);
+  testPattern("/foo{/bar}", "/foo", null);
+  testPattern("/foo{/bar}", "/foo/", null);
+  testPattern("/foo{/bar}?", "/foo/bar", {});
+  testPattern("/foo{/bar}?", "/foo/bar/baz", null);
+  testPattern("/foo{/bar}?", "/foo", {});
+  testPattern("/foo{/bar}?", "/foo/", null);
+  testPattern("/foo{/bar}+", "/foo/bar", {});
+  testPattern("/foo{/bar}+", "/foo/bar/bar", {});
+  testPattern("/foo{/bar}+", "/foo/bar/baz", null);
+  testPattern("/foo{/bar}+", "/foo", null);
+  testPattern("/foo{/bar}+", "/foo/", null);
+  testPattern("/foo{/bar}*", "/foo/bar", {});
+  testPattern("/foo{/bar}*", "/foo/bar/bar", {});
+  testPattern("/foo{/bar}*", "/foo/bar/baz", {});
+  // testPattern("/foo{/bar}*", "/foo", {});
+  testPattern("/foo{/bar}*", "/foo/", null);
+  // testPattern("(café)", "/foo/", null);
   // {
   //   "pattern": [{ "pathname": "(café)" }],
   //   "expected_obj": "error",
   // },
-  assertEquals(testPattern("/:café", "/foo"), { "café": "foo" });
-  assertEquals(testPattern("/:\u2118", "/foo"), { "\u2118": "foo" });
-  assertEquals(testPattern("/:\u3400", "/foo"), { "\u3400": "foo" });
-  // assertEquals(testPattern("/foo/bar", "/foo/./bar"), {});
-  // assertEquals(testPattern("/foo/baz", "/foo/bar/../baz"), {});
-  // assertEquals(testPattern("/caf%C3%A9", "/café"), {});
-  assertEquals(testPattern("/café", "/café"), {});
-  assertEquals(testPattern("/caf%c3%a9", "/café"), null);
-  // assertEquals(testPattern("/foo/bar", "foo/bar"), null);
-  // assertEquals(testPattern("/foo/bar", "foo/bar"), {});
+  testPattern("/:café", "/foo", { "café": "foo" });
+  testPattern("/:\u2118", "/foo", { "\u2118": "foo" });
+  testPattern("/:\u3400", "/foo", { "\u3400": "foo" });
+  // testPattern("/foo/bar", "/foo/./bar", {});
+  // testPattern("/foo/baz", "/foo/bar/../baz", {});
+  // testPattern("/caf%C3%A9", "/café", {});
+  testPattern("/café", "/café", {});
+  testPattern("/caf%c3%a9", "/café", null);
+  // testPattern("/foo/bar", "foo/bar", null);
+  // testPattern("/foo/bar", "foo/bar", {});
   // {
   //   "pattern": [{ "pathname": "/foo/bar" }],
   //   "inputs": [{ "pathname": "foo/bar", "baseURL": "https://example.com" }],
@@ -253,12 +272,12 @@ Deno.test("pathToRegexp", () => {
   //     "pathname": { "input": "/foo/bar", "groups": {} },
   //   },
   // },
-  // assertEquals(testPattern("/foo/../bar", "/bar"), {});
-  // assertEquals(testPattern("./foo/bar", "/foo/bar"), {});
-  // assertEquals(testPattern("./foo/bar", "/foo/bar"), {});
-  // assertEquals(testPattern("", "/"), {});
-  assertEquals(testPattern("{/bar}", "./bar"), null);
-  assertEquals(testPattern("\\/bar", "./bar"), null);
+  // testPattern("/foo/../bar", "/bar", {});
+  // testPattern("./foo/bar", "/foo/bar", {});
+  // testPattern("./foo/bar", "/foo/bar", {});
+  // testPattern("", "/"), {});
+  testPattern("{/bar}", "./bar", null);
+  testPattern("\\/bar", "./bar", null);
   // {
   //   "pattern": [{ "pathname": "b", "baseURL": "https://example.com/foo/" }],
   //   "inputs": [{ "pathname": "./b", "baseURL": "https://example.com/foo/" }],
@@ -290,7 +309,7 @@ Deno.test("pathToRegexp", () => {
   //     "pathname": { "input": "/foo/bar", "groups": {} },
   //   },
   // },
-  assertEquals(testPattern("/:name.html", "foo.html"), { name: "foo" });
+  testPattern("/:name.html", "foo.html", { name: "foo" });
   // {
   //   "pattern": [{
   //     "pathname": ":name.html",
@@ -307,23 +326,23 @@ Deno.test("pathToRegexp", () => {
   //     "pathname": { "input": "/foo.html", "groups": { "name": "foo" } },
   //   },
   // },
-  assertEquals(testPattern("/(blank|sourcedoc)", "blank"), { 0: "blank" });
-  assertEquals(testPattern("/:number([0-9]+)", "8675309"), {
+  testPattern("/(blank|sourcedoc)", "blank", { 0: "blank" });
+  testPattern("/:number([0-9]+)", "8675309", {
     number: "8675309",
   });
-  // assertEquals(testPattern("/(\\m)", "8675309"), {
+  // testPattern("/(\\m)", "8675309", {
   //   number: "8675309",
   // });
   // {
   //   "pattern": [{ "pathname": "/(\\m)" }],
   //   "expected_obj": "error",
   // },
-  assertEquals(testPattern("/foo!", "/foo!"), {});
-  // assertEquals(testPattern("/foo\\:", "/foo:"), {});
-  assertEquals(testPattern("/foo\\{", "/foo{"), {});
-  assertEquals(testPattern("/foo\\{", "/foo%7B"), {});
-  // assertEquals(testPattern("/foo\\(", "/foo("), {});
-  // assertEquals(testPattern("/var x = 1;", "var%20x%20=%201;"), {});
+  testPattern("/foo!", "/foo!", {});
+  // testPattern("/foo\\:", "/foo:", {});
+  testPattern("/foo\\{", "/foo{", {});
+  testPattern("/foo\\{", "/foo%7B", {});
+  // testPattern("/foo\\(", "/foo("), {});
+  // testPattern("/var x = 1;", "var%20x%20=%201;"), {});
   // {
   //   "pattern": [{ "protocol": "javascript", "pathname": "var x = 1;" }],
   //   "inputs": [{ "protocol": "javascript", "pathname": "var x = 1;" }],
@@ -340,14 +359,14 @@ Deno.test("pathToRegexp", () => {
   //   },
   //   "expected_match": null,
   // },
-  assertEquals(testPattern("/:product/:endpoint", "/foo/bar"), {
+  testPattern("/:product/:endpoint", "/foo/bar", {
     product: "foo",
     endpoint: "bar",
   });
-  // assertEquals(testPattern("/*?foo", "/?foo"), null);
-  // assertEquals(testPattern("/*", "/"), { 0: "" });
-  // assertEquals(testPattern("/:name?foo", "/bar?foo"), null);
-  // assertEquals(testPattern("/:name\\?foo", "/bar"), null);
+  // testPattern("/*?foo", "/?foo", null);
+  // testPattern("/*", "/", { 0: "" });
+  // testPattern("/:name?foo", "/bar?foo", null);
+  // testPattern("/:name\\?foo", "/bar", null);
   // {
   //   "pattern": ["https://example.com/:name\\?foo"],
   //   "inputs": ["https://example.com/bar?foo"],
@@ -365,12 +384,12 @@ Deno.test("pathToRegexp", () => {
   //     "search": { "input": "foo", "groups": {} },
   //   },
   // },
-  assertEquals(testPattern("/(bar)?foo", "/bar?foo"), null);
-  assertEquals(testPattern("/(bar)", "/bar"), { 0: "bar" });
-  assertEquals(testPattern("/{bar}?foo", "/bar?foo"), null);
-  assertEquals(testPattern("/{bar}", "/bar"), {});
-  assertEquals(testPattern("/foobar", "/bar"), {});
-  // assertEquals(testPattern("/*", "/foo"), {});
+  testPattern("/(bar)?foo", "/bar?foo", null);
+  testPattern("/(bar)", "/bar", { 0: "bar" });
+  testPattern("/{bar}?foo", "/bar?foo", null);
+  testPattern("/{bar}", "/bar", {});
+  testPattern("/foobar", "/bar", {});
+  // testPattern("/*", "/foo", {});
   // {
   //   "pattern": ["https://(sub.)?example(.com/)foo"],
   //   "inputs": ["https://example.com/foo"],
@@ -382,13 +401,12 @@ Deno.test("pathToRegexp", () => {
   //   },
   //   "expected_match": null,
   // },
-  assertEquals(testPattern("/foobar", "/bar"), {});
-  // assertEquals(testPattern("/*", "/foo"), { 0: "/foo" });
-  // assertEquals(
-  //   testPattern("/foo\\:bar@example.com", "/foo:bar@example.com"),
+  testPattern("/foobar", "/bar", {});
+  // testPattern("/*", "/foo", { 0: "/foo" });
+  //   testPattern("/foo\\:bar@example.com", "/foo:bar@example.com",
   //   {},
   // );
-  // assertEquals(testPattern("/data\\:channel.html", "/data:channel.html"), {});
+  // testPattern("/data\\:channel.html", "/data:channel.html", {});
   [
     {
       "pattern": ["data{\\:}channel.html", "https://example.com"],
