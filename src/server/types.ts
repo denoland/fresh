@@ -191,7 +191,6 @@ export interface FreshContext<
   isPartial: boolean;
   state: State;
   config: ResolvedFreshConfig;
-  /** @deprecated Pass values to state instead */
   data: Data;
   /** The error that caused the error page to be loaded. */
   error?: unknown;
