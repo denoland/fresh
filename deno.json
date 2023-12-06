@@ -9,7 +9,8 @@
     "ok": "deno fmt --check && deno lint && deno task check:types && deno task test",
     "install-puppeteer": "PUPPETEER_PRODUCT=chrome deno run -A --unstable https://deno.land/x/puppeteer@16.2.0/install.ts && PUPPETEER_PRODUCT=firefox deno run -A --unstable https://deno.land/x/puppeteer@16.2.0/install.ts",
     "test:www": "deno test -A tests/www/",
-    "manifests": "deno run -A genAllManifest.ts"
+    "manifests": "deno run -A genAllManifest.ts",
+    "docs:release": "deno run -A tools/docs_release.ts"
   },
   "exclude": [
     "**/_fresh/*",
