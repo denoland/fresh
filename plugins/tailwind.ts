@@ -106,6 +106,15 @@ export default function tailwind(): Plugin {
 
         const relFilePath = path.relative(staticDir, file.path);
         const outPath = path.join(outDir, relFilePath);
+
+        try {
+          await Deno.mkdir(path.dirname(outPath), { recursive: true });
+        } catch (err) {
+          if (!(err instanceof Deno.errors.AlreadyExists)) {
+            throw err;
+          }
+        }
+
         await Deno.writeTextFile(outPath, result.content);
       }
     },
