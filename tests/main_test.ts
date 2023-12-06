@@ -1212,3 +1212,11 @@ Deno.test("Expose config in ctx", async () => {
     });
   });
 });
+
+Deno.test("empty string fallback for optional params", async () => {
+  await withFakeServe("./tests/fixture/main.ts", async (server) => {
+    const doc = await server.getHtml(`/std/foo`);
+    const data = JSON.parse(doc.querySelector("pre")?.textContent!);
+    assertEquals(data, { path: "foo", version: "" });
+  });
+});

@@ -292,9 +292,7 @@ export function getParamsAndRoute(
         for (const key in matched) {
           const value = matched[key];
 
-          if (value !== undefined) {
-            groups[key] = decodeURIComponent(value);
-          }
+          groups[key] = value !== undefined ? decodeURIComponent(value) : "";
         }
         return {
           route: route,

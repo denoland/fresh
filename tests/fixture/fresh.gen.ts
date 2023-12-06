@@ -80,6 +80,7 @@ import * as $state_middleware_foo_middleware from "./routes/state-middleware/foo
 import * as $state_middleware_foo_index from "./routes/state-middleware/foo/index.tsx";
 import * as $static from "./routes/static.tsx";
 import * as $status_overwrite from "./routes/status_overwrite.tsx";
+import * as $std from "./routes/std.tsx";
 import * as $umlaut_äöüß from "./routes/umlaut-äöüß.tsx";
 import * as $wildcard from "./routes/wildcard.tsx";
 import * as $Counter from "./islands/Counter.tsx";
@@ -198,6 +199,7 @@ const manifest = {
     "./routes/state-middleware/foo/index.tsx": $state_middleware_foo_index,
     "./routes/static.tsx": $static,
     "./routes/status_overwrite.tsx": $status_overwrite,
+    "./routes/std.tsx": $std,
     "./routes/umlaut-äöüß.tsx": $umlaut_äöüß,
     "./routes/wildcard.tsx": $wildcard,
   },
