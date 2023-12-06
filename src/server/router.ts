@@ -47,7 +47,7 @@ export type DestinationKind = "internal" | "static" | "route" | "notFound";
 export type InternalRoute = {
   baseRoute: BaseRoute;
   originalPattern: string;
-  pattern: RegExp | string;
+  pattern: URLPathnamePattern | string;
   methods: { [K in KnownMethod]?: MatchHandler };
   default?: MatchHandler;
   destination: DestinationKind;
@@ -139,64 +139,100 @@ const enum Char {
 // URLPattern is slow because it always parses the URL first and then matches
 // the pattern. Converting it to a regex is faster, see:
 // https://github.com/denoland/deno/issues/19861
-export function patternToRegExp(input: string): RegExp {
-  let tmpPattern = "";
-  let pattern = "^";
+export class URLPathnamePattern {
+  regex: RegExp;
+  unnamedGroups: number[] = [];
 
-  let groupIdx = -1;
+  constructor(public input: string) {
+    let tmpPattern = "";
+    let pattern = "^";
+    let unnamedGroupCount = 0;
 
-  for (let i = 0; i < input.length; i++) {
-    let ch = input.charCodeAt(i);
-    if (groupIdx !== -1 && ch === Char["{"]) {
-      throw new SyntaxError(`Unexpected token "{"`);
-    }
+    let groupIdx = -1;
 
-    if (ch === Char["/"]) {
-      if (pattern === "^") {
-        pattern += "\\/?";
-      } else {
-        pattern += "\\/";
+    for (let i = 0; i < input.length; i++) {
+      let ch = input.charCodeAt(i);
+      if (groupIdx !== -1 && ch === Char["{"]) {
+        throw new SyntaxError(`Unexpected token "{"`);
       }
-    } else if (ch === Char[":"]) {
-      const start = i + 1;
-      ch = input.charCodeAt(++i);
-      if (!isIdentifierStart(ch)) {
-        throw new SyntaxError(`Invalid URL pattern: ${input}`);
-      }
-      ch = input.charCodeAt(++i);
-      while (isIdentifierChar(ch)) {
+
+      if (ch === Char["/"]) {
+        if (pattern === "^") {
+          pattern += "\\/?";
+        } else {
+          pattern += "\\/";
+        }
+      } else if (ch === Char[":"]) {
+        const start = i + 1;
         ch = input.charCodeAt(++i);
-      }
+        if (!isIdentifierStart(ch)) {
+          throw new SyntaxError(`Invalid URL pattern: ${input}`);
+        }
+        ch = input.charCodeAt(++i);
+        while (isIdentifierChar(ch)) {
+          ch = input.charCodeAt(++i);
+        }
 
-      const name = input.slice(start, i);
+        const name = input.slice(start, i);
 
-      if (ch === Char["("]) {
-        const end = skipRegex(input, i);
-        pattern += `(?<${name}>${input.slice(i + 1, end)})`;
-        i = end;
-        continue;
+        if (ch === Char["("]) {
+          const end = skipRegex(input, i);
+          pattern += `(?<${name}>${input.slice(i + 1, end)})`;
+          i = end;
+          continue;
+        } else if (ch === Char["*"]) {
+          pattern += `(?<${name}>.*?)`;
+          continue;
+        } else {
+          pattern += `(?<${name}>[^/]+)`;
+          i--;
+        }
       } else if (ch === Char["*"]) {
-        pattern += `(?<${name}>.*?)`;
-        continue;
+        pattern += ".*?";
+      } else if (ch === Char["{"]) {
+        tmpPattern = pattern;
+        pattern = "";
+        groupIdx = i;
+      } else if (ch === Char["}"]) {
+        pattern = tmpPattern + "(?:" + pattern + ")";
+        groupIdx = -1;
+      } else if (ch === Char["("]) {
+        const end = skipRegex(input, i);
+        pattern += `(${input.slice(i + 1, end)})`;
+        this.unnamedGroups.push(unnamedGroupCount);
+        unnamedGroupCount++;
+        i = end;
       } else {
-        pattern += `(?<${name}>[^/]+)`;
-        i--;
+        pattern += input[i];
       }
-    } else if (ch === Char["*"]) {
-      pattern += ".*?";
-    } else if (ch === Char["{"]) {
-      tmpPattern = pattern;
-      pattern = "";
-      groupIdx = i;
-    } else if (ch === Char["}"]) {
-      pattern = tmpPattern + "(?:" + pattern + ")";
-      groupIdx = -1;
-    } else {
-      pattern += input[i];
     }
+
+    this.regex = new RegExp(pattern + "$", "u");
   }
 
-  return new RegExp(pattern + "$", "u");
+  exec(pathname: string): Record<string, string | undefined> | null {
+    const res = this.regex.exec(pathname);
+
+    if (res !== null) {
+      const groups: Record<string, string> = {};
+      const matched = res?.groups;
+
+      for (const key in matched) {
+        const value = matched[key];
+
+        groups[key] = value !== undefined ? decodeURIComponent(value) : "";
+      }
+
+      for (let i = 0; i < this.unnamedGroups.length; i++) {
+        const idx = this.unnamedGroups[i];
+        groups[idx] = res[idx + 1];
+      }
+
+      return groups;
+    }
+
+    return null;
+  }
 }
 
 export const IS_PATTERN = /[*:{}+?()]/;
@@ -209,7 +245,7 @@ function processRoutes(
   for (const [path, def] of Object.entries(routes)) {
     const pattern = destination === "static" || !IS_PATTERN.test(path)
       ? path
-      : patternToRegExp(path);
+      : new URLPathnamePattern(path);
 
     const entry: InternalRoute = {
       baseRoute: def.baseRoute,
@@ -286,17 +322,9 @@ export function getParamsAndRoute(
       const res = route.pattern.exec(pathname);
 
       if (res !== null) {
-        const groups: Record<string, string> = {};
-        const matched = res?.groups;
-
-        for (const key in matched) {
-          const value = matched[key];
-
-          groups[key] = value !== undefined ? decodeURIComponent(value) : "";
-        }
         return {
           route: route,
-          params: groups,
+          params: res,
           isPartial,
         };
       }
