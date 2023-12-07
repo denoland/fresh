@@ -204,7 +204,7 @@ export default function Counter(props: CounterProps) {
   return (
     <div class="flex gap-8 py-6">
       <Button onClick={() => props.count.value -= 1}>-1</Button>
-      <p class="text-3xl">{props.count}</p>
+      <p class="text-3xl tabular-nums">{props.count}</p>
       <Button onClick={() => props.count.value += 1}>+1</Button>
     </div>
   );
@@ -440,6 +440,9 @@ html {
 }
 .hover\\:bg-gray-200:hover {
   background-color: #e5e7eb;
+}
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
 }
 `;
 
