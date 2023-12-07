@@ -26,6 +26,7 @@ const backoff = [
 let backoffIdx = 0;
 function reconnect() {
   if (ws.readyState !== ws.CLOSED) return;
+  backoffIdx++;
 
   reconnectTimer = setTimeout(() => {
     if (backoffIdx === 0) {
@@ -35,7 +36,6 @@ function reconnect() {
         "color: inherit",
       );
     }
-    backoffIdx++;
 
     try {
       connect();
@@ -44,10 +44,6 @@ function reconnect() {
       reconnect();
     }
   }, backoff[Math.min(backoffIdx, backoff.length - 1)]);
-}
-
-function onOpenWs() {
-  backoffIdx = 0;
 }
 
 function onCloseWs() {
@@ -61,7 +57,6 @@ function connect() {
     url,
   );
 
-  ws.addEventListener("open", onOpenWs);
   ws.addEventListener("close", onCloseWs);
   ws.addEventListener("message", handleMessage);
   ws.addEventListener("error", handleError);
@@ -70,17 +65,19 @@ function connect() {
 connect();
 
 function disconnect() {
-  ws.removeEventListener("open", onOpenWs);
   ws.removeEventListener("close", onCloseWs);
   ws.removeEventListener("message", handleMessage);
   ws.removeEventListener("error", handleError);
-  ws.close();
+  if (ws.readyState !== ws.CLOSED) {
+    ws.close();
+  }
 }
 
 function handleMessage(e: MessageEvent) {
   const data = JSON.parse(e.data);
   switch (data.type) {
     case "initial-state": {
+      backoffIdx = 0;
       if (revision === 0) {
         console.log(
           `%c Fresh %c Connected to development server.`,
@@ -104,7 +101,10 @@ function handleError(e: Event) {
   // TODO
   // deno-lint-ignore no-explicit-any
   if (e && (e as any).code === "ECONNREFUSED") {
-    setTimeout(connect, 1000);
+    disconnect();
+    if (backoffIdx === 0) {
+      reconnect();
+    }
   }
 }
 
