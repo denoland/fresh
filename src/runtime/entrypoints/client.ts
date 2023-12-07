@@ -1,3 +1,5 @@
+let reloading = false;
+
 let ws: WebSocket;
 let revision = 0;
 
@@ -48,9 +50,7 @@ function reconnect() {
 
 function connect() {
   const url = new URL("/_frsh/alive", location.origin.replace("http", "ws"));
-  ws = new WebSocket(
-    url,
-  );
+  ws = new WebSocket(url);
 
   ws.addEventListener("open", () => {
     backoffIdx = 0;
@@ -79,7 +79,10 @@ function handleMessage(e: MessageEvent) {
         revision = data.revision;
       } else if (revision < data.revision) {
         // Needs reload
-        location.reload();
+        if (!reloading) {
+          reloading = true;
+          location.reload();
+        }
       }
     }
   }
