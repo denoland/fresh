@@ -296,8 +296,15 @@ export async function extractRoutes(
 
   const staticFiles: StaticFile[] = [];
   try {
-    const outDirStatic = join(config.build.outDir, "static");
-    for (const staticDir of [config.staticDir, outDirStatic]) {
+    const staticDirs = [config.staticDir];
+
+    // Only fall through to files in /_fresh/static when not in dev
+    if (state.loadSnapshot) {
+      const outDirStatic = join(config.build.outDir, "static");
+      staticDirs.push(outDirStatic);
+    }
+
+    for (const staticDir of staticDirs) {
       const staticDirUrl = toFileUrl(staticDir);
       const entries = walk(staticDir, {
         includeFiles: true,
