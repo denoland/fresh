@@ -56,7 +56,7 @@ export function composeMiddlewares(
   middlewares: MiddlewareRoute[],
   errorHandler: ErrorHandler,
   paramsAndRoute: (
-    url: string,
+    url: URL,
   ) => RouteResult,
   renderNotFound: UnknownRenderFunction,
   basePath: string,
@@ -67,7 +67,7 @@ export function composeMiddlewares(
     inner: FinalHandler,
   ) => {
     const handlers: (() => Response | Promise<Response>)[] = [];
-    const paramsAndRouteResult = paramsAndRoute(req.url);
+    const paramsAndRouteResult = paramsAndRoute(ctx.url);
     ctx.params = paramsAndRouteResult.params;
 
     // identify middlewares to apply, if any.
