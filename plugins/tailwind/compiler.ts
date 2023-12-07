@@ -63,10 +63,11 @@ export async function initTailwind(
   });
 
   // PostCSS types cause deep recursion
-  // deno-lint-ignore no-explicit-any
-  const plugins: any[] = [
-    tailwindCss(tailwindConfig),
-    autoprefixer(options.autoprefixer),
+  const plugins = [
+    // deno-lint-ignore no-explicit-any
+    tailwindCss(tailwindConfig) as any,
+    // deno-lint-ignore no-explicit-any
+    autoprefixer(options.autoprefixer) as any,
   ];
 
   if (!config.dev) {
