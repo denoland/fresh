@@ -1,6 +1,5 @@
 import { PARTIAL_SEARCH_PARAM } from "../constants.ts";
 import { BaseRoute, FreshContext } from "./types.ts";
-import { isIdentifierChar, isIdentifierStart } from "./init_safe_deps.ts";
 
 export type Handler<T = Record<string, unknown>> = (
   req: Request,
@@ -47,7 +46,7 @@ export type DestinationKind = "internal" | "static" | "route" | "notFound";
 export type InternalRoute = {
   baseRoute: BaseRoute;
   originalPattern: string;
-  pattern: RegExp | string;
+  pattern: URLPattern | string;
   methods: { [K in KnownMethod]?: MatchHandler };
   default?: MatchHandler;
   destination: DestinationKind;
@@ -104,101 +103,6 @@ export function defaultUnknownMethodHandler(
   });
 }
 
-function skipRegex(input: string, idx: number): number {
-  let open = 0;
-
-  for (let i = idx; i < input.length; i++) {
-    const char = input[i];
-    if (char === "(" || char === "[") {
-      open++;
-    } else if (char === ")" || char === "]") {
-      if (--open === 0) {
-        return i;
-      }
-    } else if (char === "\\") {
-      i++;
-    }
-
-    idx = i;
-  }
-
-  return idx;
-}
-
-const enum Char {
-  "(" = 40,
-  ")" = 41,
-  "*" = 42,
-  "/" = 47,
-  ":" = 58,
-  "\\" = 92,
-  "{" = 123,
-  "}" = 125,
-}
-
-// URLPattern is slow because it always parses the URL first and then matches
-// the pattern. Converting it to a regex is faster, see:
-// https://github.com/denoland/deno/issues/19861
-export function patternToRegExp(input: string): RegExp {
-  let tmpPattern = "";
-  let pattern = "^";
-
-  let groupIdx = -1;
-
-  for (let i = 0; i < input.length; i++) {
-    let ch = input.charCodeAt(i);
-    if (groupIdx !== -1 && ch === Char["{"]) {
-      throw new SyntaxError(`Unexpected token "{"`);
-    }
-
-    if (ch === Char["/"]) {
-      if (pattern === "^") {
-        pattern += "\\/?";
-      } else {
-        pattern += "\\/";
-      }
-    } else if (ch === Char[":"]) {
-      const start = i + 1;
-      ch = input.charCodeAt(++i);
-      if (!isIdentifierStart(ch)) {
-        throw new SyntaxError(`Invalid URL pattern: ${input}`);
-      }
-      ch = input.charCodeAt(++i);
-      while (isIdentifierChar(ch)) {
-        ch = input.charCodeAt(++i);
-      }
-
-      const name = input.slice(start, i);
-
-      if (ch === Char["("]) {
-        const end = skipRegex(input, i);
-        pattern += `(?<${name}>${input.slice(i + 1, end)})`;
-        i = end;
-        continue;
-      } else if (ch === Char["*"]) {
-        pattern += `(?<${name}>.*?)`;
-        continue;
-      } else {
-        pattern += `(?<${name}>[^/]+)`;
-        i--;
-      }
-    } else if (ch === Char["*"]) {
-      pattern += ".*?";
-    } else if (ch === Char["{"]) {
-      tmpPattern = pattern;
-      pattern = "";
-      groupIdx = i;
-    } else if (ch === Char["}"]) {
-      pattern = tmpPattern + "(?:" + pattern + ")";
-      groupIdx = -1;
-    } else {
-      pattern += input[i];
-    }
-  }
-
-  return new RegExp(pattern + "$", "u");
-}
-
 export const IS_PATTERN = /[*:{}+?()]/;
 
 function processRoutes(
@@ -209,7 +113,7 @@ function processRoutes(
   for (const [path, def] of Object.entries(routes)) {
     const pattern = destination === "static" || !IS_PATTERN.test(path)
       ? path
-      : patternToRegExp(path);
+      : new URLPattern({ pathname: path });
 
     const entry: InternalRoute = {
       baseRoute: def.baseRoute,
@@ -245,7 +149,7 @@ export function getParamsAndRoute(
     routes,
   }: RouterOptions,
 ): (
-  url: string,
+  url: URL,
 ) => RouteResult {
   const processedRoutes: Array<InternalRoute | null> = [];
   processRoutes(processedRoutes, internalRoutes, "internal");
@@ -254,10 +158,9 @@ export function getParamsAndRoute(
 
   const statics = new Map<string, RouteResult>();
 
-  return (url: string) => {
-    const urlObject = new URL(url);
-    const isPartial = urlObject.searchParams.has(PARTIAL_SEARCH_PARAM);
-    const pathname = urlObject.pathname;
+  return (url: URL) => {
+    const isPartial = url.searchParams.has(PARTIAL_SEARCH_PARAM);
+    const pathname = url.pathname;
 
     const cached = statics.get(pathname);
     if (cached !== undefined) {
@@ -283,20 +186,12 @@ export function getParamsAndRoute(
         continue;
       }
 
-      const res = route.pattern.exec(pathname);
+      const res = route.pattern.exec(url);
 
       if (res !== null) {
-        const groups: Record<string, string> = {};
-        const matched = res?.groups;
-
-        for (const key in matched) {
-          const value = matched[key];
-
-          groups[key] = value !== undefined ? decodeURIComponent(value) : "";
-        }
         return {
           route: route,
-          params: groups,
+          params: res.pathname.groups,
           isPartial,
         };
       }
