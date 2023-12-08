@@ -66,5 +66,5 @@ export const handler: Handlers = {
 ```
 
 Handlers can do much more, including fetching data from a database or external
-API and passing it to their route. See [Data fetching](/docs/concepts/) for more
+API and passing it to their route. See [Data fetching](/docs/concepts/data-fetching) for more
 details.
