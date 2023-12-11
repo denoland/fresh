@@ -26,6 +26,19 @@ Deno.test("TailwindCSS - build mode", async () => {
   );
 });
 
+Deno.test("TailwindCSS - build mode in sub directory", async () => {
+  await runBuild("./tests/fixture_tailwind_build_2/dev.ts");
+  await withFakeServe(
+    "./tests/fixture_tailwind_build_2/main.ts",
+    async (server) => {
+      const res = await server.get("/foo/styles.css");
+      const content = await res.text();
+      assertStringIncludes(content, ".text-red-600{");
+    },
+    { loadConfig: true },
+  );
+});
+
 Deno.test("TailwindCSS - config", async () => {
   await withFakeServe(
     "./tests/fixture_tailwind_config/dev.ts",

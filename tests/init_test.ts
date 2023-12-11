@@ -495,3 +495,61 @@ Deno.test("init - show help screen", async (t) => {
     assertStringIncludes(stdout, "Initialize a new Fresh project");
   });
 });
+
+Deno.test({
+  name: "regenerate manifest",
+  async fn(t) {
+    const MANIFEST_FILENAME = "fresh.gen.ts";
+    const tmpDirName = await Deno.makeTempDir();
+    const manifestFilePath = path.join(tmpDirName, MANIFEST_FILENAME);
+
+    await t.step("execute init command", async () => {
+      const cliProcess = new Deno.Command(Deno.execPath(), {
+        args: [
+          "run",
+          "-A",
+          "init.ts",
+          tmpDirName,
+        ],
+        stdin: "null",
+        stdout: "null",
+      });
+      const { code } = await cliProcess.output();
+      assertEquals(code, 0);
+    });
+
+    let oldManifestContent: string;
+    await t.step("store the contents of the manifest", async () => {
+      oldManifestContent = await Deno.readTextFile(manifestFilePath);
+    });
+
+    await t.step("delete the manifest", async () => {
+      await Deno.remove(manifestFilePath);
+    });
+
+    await t.step("regenerate the manifest", async () => {
+      const cliProcess = new Deno.Command(Deno.execPath(), {
+        args: [
+          "task",
+          "manifest",
+        ],
+        cwd: tmpDirName,
+        stdin: "null",
+        stdout: "piped",
+        stderr: "piped",
+      });
+
+      const output = await cliProcess.output();
+
+      assertEquals(output.code, 0);
+    });
+
+    await t.step("assert the old and new contents are equal", async () => {
+      const newManifestContent = await Deno.readTextFile(manifestFilePath);
+      assertEquals(oldManifestContent, newManifestContent);
+    });
+
+    await retry(() => Deno.remove(tmpDirName, { recursive: true }));
+  },
+  sanitizeResources: false,
+});

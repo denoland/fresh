@@ -2,14 +2,21 @@ import { Plugin, PluginMiddleware, ResolvedFreshConfig } from "../server.ts";
 import type postcss from "npm:postcss@8.4.31";
 import * as path from "https://deno.land/std@0.207.0/path/mod.ts";
 import { walk } from "https://deno.land/std@0.207.0/fs/walk.ts";
+import { TailwindPluginOptions } from "./tailwind/types.ts";
 
-async function initTailwind(config: ResolvedFreshConfig) {
+async function initTailwind(
+  config: ResolvedFreshConfig,
+  options: TailwindPluginOptions,
+) {
   return await (await import("./tailwind/compiler.ts")).initTailwind(
     config,
+    options,
   );
 }
 
-export default function tailwind(): Plugin {
+export default function tailwind(
+  options: TailwindPluginOptions = {},
+): Plugin {
   let staticDir = path.join(Deno.cwd(), "static");
   let processor: postcss.Processor | null = null;
 
@@ -32,7 +39,10 @@ export default function tailwind(): Plugin {
 
         let cached = cache.get(pathname);
         if (!cached) {
-          const filePath = path.join(staticDir, pathname);
+          const filePath = path.join(
+            staticDir,
+            pathname.replace(ctx.config.basePath, ""),
+          );
           let text = "";
           try {
             text = await Deno.readTextFile(filePath);
@@ -78,7 +88,7 @@ export default function tailwind(): Plugin {
     async configResolved(config) {
       if (config.dev) {
         staticDir = config.staticDir;
-        processor = await initTailwind(config);
+        processor = await initTailwind(config, options);
         middlewares.push(tailwindMiddleware);
       }
     },
@@ -87,7 +97,7 @@ export default function tailwind(): Plugin {
       staticDir = config.staticDir;
       const outDir = path.join(config.build.outDir, "static");
 
-      processor = await initTailwind(config);
+      processor = await initTailwind(config, options);
 
       const files = walk(config.staticDir, {
         exts: ["css"],
@@ -103,6 +113,15 @@ export default function tailwind(): Plugin {
 
         const relFilePath = path.relative(staticDir, file.path);
         const outPath = path.join(outDir, relFilePath);
+
+        try {
+          await Deno.mkdir(path.dirname(outPath), { recursive: true });
+        } catch (err) {
+          if (!(err instanceof Deno.errors.AlreadyExists)) {
+            throw err;
+          }
+        }
+
         await Deno.writeTextFile(outPath, result.content);
       }
     },

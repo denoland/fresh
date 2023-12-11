@@ -1,5 +1,5 @@
 import { SEP } from "./deps.ts";
-import { ErrorHandler, FinalHandler, RouteResult } from "./router.ts";
+import { ErrorHandler, FinalHandler, RouteResult, withBase } from "./router.ts";
 import {
   BaseRoute,
   FreshContext,
@@ -56,9 +56,10 @@ export function composeMiddlewares(
   middlewares: MiddlewareRoute[],
   errorHandler: ErrorHandler,
   paramsAndRoute: (
-    url: string,
+    url: URL,
   ) => RouteResult,
   renderNotFound: UnknownRenderFunction,
+  basePath: string,
 ) {
   return (
     req: Request,
@@ -66,13 +67,14 @@ export function composeMiddlewares(
     inner: FinalHandler,
   ) => {
     const handlers: (() => Response | Promise<Response>)[] = [];
-    const paramsAndRouteResult = paramsAndRoute(req.url);
+    const paramsAndRouteResult = paramsAndRoute(ctx.url);
     ctx.params = paramsAndRouteResult.params;
 
     // identify middlewares to apply, if any.
     // middlewares should be already sorted from deepest to shallow layer
     const mws = selectSharedRoutes(
-      paramsAndRouteResult.route?.baseRoute ?? ROOT_BASE_ROUTE,
+      paramsAndRouteResult.route?.baseRoute ??
+        toBaseRoute(withBase(ROOT_BASE_ROUTE, basePath)),
       middlewares,
     );
 

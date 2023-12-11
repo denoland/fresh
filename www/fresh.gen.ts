@@ -8,6 +8,7 @@ import * as $_app from "./routes/_app.tsx";
 import * as $_middleware from "./routes/_middleware.ts";
 import * as $components from "./routes/components.tsx";
 import * as $docs_slug_ from "./routes/docs/[...slug].tsx";
+import * as $docs_middleware from "./routes/docs/_middleware.ts";
 import * as $docs_index from "./routes/docs/index.tsx";
 import * as $index from "./routes/index.tsx";
 import * as $raw from "./routes/raw.ts";
@@ -30,6 +31,7 @@ const manifest = {
     "./routes/_middleware.ts": $_middleware,
     "./routes/components.tsx": $components,
     "./routes/docs/[...slug].tsx": $docs_slug_,
+    "./routes/docs/_middleware.ts": $docs_middleware,
     "./routes/docs/index.tsx": $docs_index,
     "./routes/index.tsx": $index,
     "./routes/raw.ts": $raw,

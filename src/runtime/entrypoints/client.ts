@@ -46,38 +46,53 @@ function reconnect() {
   }, backoff[Math.min(backoffIdx, backoff.length - 1)]);
 }
 
+function onOpenWs() {
+  backoffIdx = 0;
+}
+
+function onCloseWs() {
+  disconnect();
+  reconnect();
+}
+
 function connect() {
   const url = new URL("/_frsh/alive", location.origin.replace("http", "ws"));
   ws = new WebSocket(
     url,
   );
 
-  ws.addEventListener("open", () => {
-    backoffIdx = 0;
-    console.log(
-      `%c Fresh %c Connected to development server.`,
-      "background-color: #86efac; color: black",
-      "color: inherit",
-    );
-  });
-
-  ws.addEventListener("close", () => {
-    reconnect();
-  });
-
+  ws.addEventListener("open", onOpenWs);
+  ws.addEventListener("close", onCloseWs);
   ws.addEventListener("message", handleMessage);
   ws.addEventListener("error", handleError);
 }
 
 connect();
 
+function disconnect() {
+  ws.removeEventListener("open", onOpenWs);
+  ws.removeEventListener("close", onCloseWs);
+  ws.removeEventListener("message", handleMessage);
+  ws.removeEventListener("error", handleError);
+  ws.close();
+}
+
 function handleMessage(e: MessageEvent) {
   const data = JSON.parse(e.data);
   switch (data.type) {
     case "initial-state": {
       if (revision === 0) {
+        console.log(
+          `%c Fresh %c Connected to development server.`,
+          "background-color: #86efac; color: black",
+          "color: inherit",
+        );
+      }
+
+      if (revision === 0) {
         revision = data.revision;
       } else if (revision < data.revision) {
+        disconnect();
         // Needs reload
         location.reload();
       }
@@ -100,4 +115,14 @@ addEventListener("message", (ev) => {
   }
 
   document.querySelector("#fresh-error-overlay")?.remove();
+});
+
+// Disconnect when the tab becomes inactive and re-connect when it
+// becomes active again
+addEventListener("visibilitychange", () => {
+  if (document.hidden) {
+    disconnect();
+  } else {
+    connect();
+  }
 });

@@ -191,7 +191,6 @@ export interface FreshContext<
   isPartial: boolean;
   state: State;
   config: ResolvedFreshConfig;
-  /** @deprecated Pass values to state instead */
   data: Data;
   /** The error that caused the error page to be loaded. */
   error?: unknown;
@@ -572,7 +571,11 @@ export interface PluginRoute {
   /** A path in the format of a filename path without filetype */
   path: string;
 
-  component?: ComponentType<PageProps> | ComponentType<AppProps>;
+  component?:
+    | ComponentType<PageProps>
+    | ComponentType<AppProps>
+    | AsyncRoute
+    | AsyncLayout;
 
   // deno-lint-ignore no-explicit-any
   handler?: Handler<any, any> | Handlers<any, any>;

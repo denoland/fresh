@@ -18,7 +18,7 @@ export default {
   content: [
     "{routes,islands,components}/**/*.{ts,tsx}",
   ],
-} as Config;
+} satisfies Config;
 ```
 
 2. Create a css file in your static directory `<project>/static/styles.css`:
@@ -105,7 +105,13 @@ That's it! Now you can use Tailwind CSS in your project.
 
 > [warn]: Tailwind CSS doesn't support the grouping syntax from twind:
 > `text(lg uppercase gray-100)`. These need to be rewritten to their expanded
-> values like `text-lg uppercase text-gray-100`.
+> values like `text-lg uppercase text-gray-100`. Selecting `data-*` or `aria-*`
+> attributes works a little different with Tailwind CSS as well.
+>
+> | Twind                       | Tailwind CSS                |
+> | --------------------------- | --------------------------- |
+> | `[data-current]:bg-red-600` | `data-[current]:bg-red-300` |
+> | `[aria-current]:bg-red-600` | `aria-[current]:bg-red-300` |
 
 ## Frequently Asked Questions (FAQ)
 

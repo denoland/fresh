@@ -2,7 +2,9 @@ import { ResolvedFreshConfig } from "../../server.ts";
 import tailwindCss, { Config } from "tailwindcss";
 import postcss from "npm:postcss@8.4.31";
 import cssnano from "npm:cssnano@6.0.1";
+import autoprefixer from "npm:autoprefixer@10.4.16";
 import * as path from "https://deno.land/std@0.207.0/path/mod.ts";
+import { TailwindPluginOptions } from "./types.ts";
 
 const CONFIG_EXTENSIONS = ["ts", "js", "mjs"];
 
@@ -37,6 +39,7 @@ async function findTailwindConfigFile(directory: string): Promise<string> {
 
 export async function initTailwind(
   config: ResolvedFreshConfig,
+  options: TailwindPluginOptions,
 ): Promise<postcss.Processor> {
   const root = path.dirname(config.staticDir);
 
@@ -60,9 +63,11 @@ export async function initTailwind(
   });
 
   // PostCSS types cause deep recursion
-  // deno-lint-ignore no-explicit-any
-  const plugins: any[] = [
-    tailwindCss(tailwindConfig),
+  const plugins = [
+    // deno-lint-ignore no-explicit-any
+    tailwindCss(tailwindConfig) as any,
+    // deno-lint-ignore no-explicit-any
+    autoprefixer(options.autoprefixer) as any,
   ];
 
   if (!config.dev) {

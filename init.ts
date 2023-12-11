@@ -204,7 +204,7 @@ export default function Counter(props: CounterProps) {
   return (
     <div class="flex gap-8 py-6">
       <Button onClick={() => props.count.value -= 1}>-1</Button>
-      <p class="text-3xl">{props.count}</p>
+      <p class="text-3xl tabular-nums">{props.count}</p>
       <Button onClick={() => props.count.value += 1}>+1</Button>
     </div>
   );
@@ -306,7 +306,7 @@ export default {
   content: [
     "{routes,islands,components}/**/*.{ts,tsx}",
   ],
-} as Config;
+} satisfies Config;
 `;
 if (useTailwind) {
   await Deno.writeTextFile(
@@ -441,6 +441,9 @@ html {
 .hover\\:bg-gray-200:hover {
   background-color: #e5e7eb;
 }
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
+}
 `;
 
 const APP_WRAPPER = `import { type PageProps } from "$fresh/server.ts";
@@ -554,6 +557,8 @@ const config = {
   tasks: {
     check:
       "deno fmt --check && deno lint && deno check **/*.ts && deno check **/*.tsx",
+    cli: "echo \"import '\\$fresh/src/dev/cli.ts'\" | deno run --unstable -A -",
+    manifest: "deno task cli manifest $(pwd)",
     start: "deno run -A --watch=static/,routes/ dev.ts",
     build: "deno run -A dev.ts build",
     preview: "deno run -A main.ts",
@@ -624,6 +629,7 @@ const vscodeSettings = {
   "[javascript]": {
     "editor.defaultFormatter": "denoland.vscode-deno",
   },
+  "css.customData": useTailwind ? [".vscode/tailwind.json"] : undefined,
 };
 
 const VSCODE_SETTINGS = JSON.stringify(vscodeSettings, null, 2) + "\n";
@@ -649,6 +655,70 @@ if (useVSCode) {
   await Deno.writeTextFile(
     join(resolvedDirectory, ".vscode", "extensions.json"),
     VSCODE_EXTENSIONS,
+  );
+}
+
+const TAILWIND_CUSTOMDATA = `{
+  "version": 1.1,
+  "atDirectives": [
+    {
+      "name": "@tailwind",
+      "description": "Use the \`@tailwind\` directive to insert Tailwind's \`base\`, \`components\`, \`utilities\` and \`screens\` styles into your CSS.",
+      "references": [
+        {
+          "name": "Tailwind Documentation",
+          "url": "https://tailwindcss.com/docs/functions-and-directives#tailwind"
+        }
+      ]
+    },
+    {
+      "name": "@apply",
+      "description": "Use the \`@apply\` directive to inline any existing utility classes into your own custom CSS. This is useful when you find a common utility pattern in your HTML that you’d like to extract to a new component.",
+      "references": [
+        {
+          "name": "Tailwind Documentation",
+          "url": "https://tailwindcss.com/docs/functions-and-directives#apply"
+        }
+      ]
+    },
+    {
+      "name": "@responsive",
+      "description": "You can generate responsive variants of your own classes by wrapping their definitions in the \`@responsive\` directive:\\n\`\`\`css\n@responsive {\\n  .alert {\n    background-color: #E53E3E;\\n  }\\n}\\n\`\`\`\\n",
+      "references": [
+        {
+          "name": "Tailwind Documentation",
+          "url": "https://tailwindcss.com/docs/functions-and-directives#responsive"
+        }
+      ]
+    },
+    {
+      "name": "@screen",
+      "description": "The \`@screen\` directive allows you to create media queries that reference your breakpoints by **name** instead of duplicating their values in your own CSS:\\n\`\`\`css\n@screen sm {\\n  /* ... */\\n}\\n\`\`\`\\n…gets transformed into this:\\n\`\`\`css\n@media (min-width: 640px) {\\n  /* ... */\\n}\\n\`\`\`\\n",
+      "references": [
+        {
+          "name": "Tailwind Documentation",
+          "url": "https://tailwindcss.com/docs/functions-and-directives#screen"
+        }
+      ]
+    },
+    {
+      "name": "@variants",
+      "description": "Generate \`hover\`, \`focus\`, \`active\` and other **variants** of your own utilities by wrapping their definitions in the \`@variants\` directive:\\n\`\`\`css\n@variants hover, focus {\\n   .btn-brand {\\n    background-color: #3182CE;\\n  }\\n}\\n\`\`\`\\n",
+      "references": [
+        {
+          "name": "Tailwind Documentation",
+          "url": "https://tailwindcss.com/docs/functions-and-directives#variants"
+        }
+      ]
+    }
+  ]
+}
+`;
+
+if (useVSCode && useTailwind) {
+  await Deno.writeTextFile(
+    join(resolvedDirectory, ".vscode", "tailwind.json"),
+    TAILWIND_CUSTOMDATA,
   );
 }
 
