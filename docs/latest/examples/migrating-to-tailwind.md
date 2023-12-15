@@ -7,6 +7,14 @@ Starting with version 1.6 Fresh comes with a proper Tailwind CSS plugin out of
 the box. When you create a new Fresh project, checking the Tailwind CSS option
 will now install the Tailwind CSS plugin instead of twind like it did before.
 
+## Requirements before migrating
+
+The tailwind plugin requires Fresh's
+[ahead of time builds](/docs/concepts/ahead-of-time-builds) to be set up,
+otherwise it won't work. Make sure to switch your projects to ahead of time
+builds in your project before continuing this guide. If your project is already
+configured to use ahead of time builds, then you're good to go.
+
 ## Migrating to Tailwind CSS
 
 1. Create a `<project>/tailwind.config.ts` file in your project folder:
@@ -92,9 +100,6 @@ export default {
 ```diff .gitignore
 + node_modules/
 ```
-
-7. Set up [Ahead of Time builds](/docs/concepts/ahead-of-time-builds) if you
-   haven't already.
 
 That's it! Now you can use Tailwind CSS in your project.
 
