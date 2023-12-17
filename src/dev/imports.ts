@@ -14,7 +14,7 @@ export function freshImports(imports: Record<string, string>) {
   imports["@preact/signals-core"] =
     `https://esm.sh/*@preact/signals-core@${RECOMMENDED_PREACT_SIGNALS_CORE_VERSION}`;
 
-  imports["@/"] = "./"
+  imports["@/"] = "./";
 }
 
 export function twindImports(imports: Record<string, string>) {
