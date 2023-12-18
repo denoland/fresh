@@ -85,7 +85,7 @@ export const handler: Handlers = {
     console.log(contents);
 
     return ctx.render({
-      message: `${myFile.name} uploaded!`,
+      message: `${file.name} uploaded!`,
     });
   },
 };
