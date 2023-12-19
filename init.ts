@@ -683,7 +683,7 @@ const TAILWIND_CUSTOMDATA = `{
     },
     {
       "name": "@responsive",
-      "description": "You can generate responsive variants of your own classes by wrapping their definitions in the \`@responsive\` directive:\\n\`\`\`css\n@responsive {\\n  .alert {\n    background-color: #E53E3E;\\n  }\\n}\\n\`\`\`\\n",
+      "description": "You can generate responsive variants of your own classes by wrapping their definitions in the \`@responsive\` directive:\\n\`\`\`css\\n@responsive {\\n  .alert {\n    background-color: #E53E3E;\\n  }\\n}\\n\`\`\`\\n",
       "references": [
         {
           "name": "Tailwind Documentation",
