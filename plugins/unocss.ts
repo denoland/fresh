@@ -128,7 +128,7 @@ export default function unocss(
 
     async renderAsync(ctx) {
       // Link to CSS file, if AOT mode is enabled
-      const links = aot ? [{ rel: "styleshee", href: "/uno.css" }] : [];
+      const links = aot ? [{ rel: "stylesheet", href: "/uno.css" }] : [];
 
       // Add entrypoint, if CSR mode is enabled
       const scripts = csr ? [{ entrypoint: "main", state: {} }] : [];
