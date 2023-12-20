@@ -162,11 +162,15 @@ export default function unocss(
 
     async configResolved(freshConfig) {
       // Load config from file if required
+      const configFileExists = await exists(configURL, {
+        isFile: true,
+        isReadable: true,
+      });
       if (config === undefined) {
         try {
           config = (await import(configURL.toString())).default;
         } catch (error) {
-          if (await exists(configURL, { isFile: true, isReadable: true })) {
+          if (configFileExists) {
             throw error;
           } else {
             throw new Error(
@@ -174,6 +178,12 @@ export default function unocss(
             );
           }
         }
+      }
+
+      if (csr && !configFileExists) {
+        throw new Error(
+          "uno.config.ts not found in the project directory! Required for CSR mode.",
+        );
       }
 
       // Create the generator object
