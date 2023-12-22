@@ -3,7 +3,7 @@ description: |
   Style active links with ease in Fresh
 ---
 
-Fresh automatically enhances the accessibility of <a> elements by adding the
+Fresh automatically enhances the accessibility of `<a>` elements by adding the
 aria-current attribute when rendering links that match the current URL. This
 attribute is recognized by assistive technologies and clearly indicates the
 current page within a set of pages.
