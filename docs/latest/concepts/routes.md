@@ -26,10 +26,10 @@ the handler's `render` function.
 Let's look at a basic route that returns a plain text string:
 
 ```tsx routes/plain.tsx
-import { HandlerContext, Handlers } from "$fresh/server.ts";
+import { FreshContext, Handlers } from "$fresh/server.ts";
 
 export const handler: Handlers = {
-  GET(_req: Request, _ctx: HandlerContext) {
+  GET(_req: Request, _ctx: FreshContext) {
     return new Response("Hello World");
   },
 };
