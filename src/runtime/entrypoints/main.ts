@@ -122,9 +122,11 @@ export function revive(
 }
 
 function ServerComponent(
-  props: { children: ComponentChildren; id: string },
-): ComponentChildren {
-  return props.children;
+  props: { children: ComponentChildren; id: string; slotName: string },
+): VNode | null {
+  // Preact normalizes the return value
+  // deno-lint-ignore no-explicit-any
+  return props.children as any;
 }
 ServerComponent.displayName = "PreactServerComponent";
 
@@ -211,30 +213,30 @@ function hideMarker(marker: Marker) {
  * send a `<template>` tag with the "would be rendered" children to
  * the client. This function checks for that
  */
-function addChildrenFromTemplate(
+function addJSXFromTemplate(
   islands: IslandRegistry,
   // deno-lint-ignore no-explicit-any
   props: any[],
   markerStack: Marker[],
   vnodeStack: VNode[],
-  comment: string,
+  selector: string,
   result: RenderRequest[],
 ) {
-  const [id, n] = comment.slice("/frsh-".length).split(
-    ":",
-  );
-
-  const sel = `#frsh-slot-${id}-${n}-children`;
-  const template = document.querySelector(sel) as
+  const template = document.querySelector(selector) as
     | HTMLTemplateElement
     | null;
 
+  console.log({
+    template,
+    props: props,
+    vnodeStack: vnodeStack.slice(),
+  });
   if (template !== null) {
     markerStack.push({
       kind: MarkerKind.Slot,
       endNode: null,
       startNode: null,
-      text: comment.slice(1),
+      text: selector,
     });
 
     const node = template.content.cloneNode(true);
@@ -301,6 +303,8 @@ function _walkInner(
         comment = comment.slice(3, -2);
       }
 
+      console.log(comment);
+
       if (comment.startsWith("frsh-slot")) {
         // Note: Nested slots are not possible as they're flattened
         // already on the server.
@@ -310,8 +314,37 @@ function _walkInner(
           endNode: null,
           kind: MarkerKind.Slot,
         });
-        // @ts-ignore TS gets confused
-        vnodeStack.push(h(ServerComponent, { id: comment }));
+
+        const slotName = comment.slice(comment.lastIndexOf(":") + 1);
+
+        const slotProps = {
+          id: comment,
+          slotName,
+          children: null,
+        };
+        props.push(slotProps);
+
+        console.log("GOgo");
+        // const selector = `#frsh-slot-${id}-${n}-${slotName}`;
+
+        const slotChildren = addJSXFromTemplate(
+          islands,
+          props,
+          markerStack,
+          vnodeStack,
+          comment,
+          result,
+        );
+
+        console.log(slotChildren);
+
+        // deno-lint-ignore no-explicit-any
+        const slotVNode: VNode<any> = h(ServerComponent, slotProps);
+
+        const parentVNode = vnodeStack[vnodeStack.length - 1];
+        // @ts-ignore TS
+        parentVNode.props[slotName] = slotVNode;
+        vnodeStack.push(slotVNode);
       } else if (comment.startsWith("frsh-partial")) {
         // TODO: Partial key
         const [_, name, mode, key] = comment.split(":");
@@ -373,13 +406,18 @@ function _walkInner(
           if (markerStack.length === 0) {
             const vnode = vnodeStack[vnodeStack.length - 1];
 
+            console.log("revival", vnode, marker);
             if (vnode.props.children == null) {
-              addChildrenFromTemplate(
+              const [id, n] = marker.text.slice("frsh-".length).split(":");
+              // frsh-slot-islandslotconditional_default-0-slot
+              console.log(marker);
+              const selector = `#frsh-slot-${id}-${n}-${"slot"}`;
+              addJSXFromTemplate(
                 islands,
                 props,
                 markerStack,
                 vnodeStack,
-                comment,
+                selector,
                 result,
               );
             }
@@ -407,23 +445,7 @@ function _walkInner(
           } else {
             // Treat as a standard component
             const vnode = vnodeStack[vnodeStack.length - 1];
-            if (vnode && vnode.props.children == null) {
-              addChildrenFromTemplate(
-                islands,
-                props,
-                markerStack,
-                vnodeStack,
-                comment,
-                result,
-              );
-
-              // Didn't find any template tag, proceed as usual
-              if (vnode.props.children == null) {
-                vnodeStack.pop();
-              }
-            } else {
-              vnodeStack.pop();
-            }
+            vnodeStack.pop();
 
             marker.endNode = sib;
             hideMarker(marker);
@@ -438,7 +460,9 @@ function _walkInner(
       } else if (comment.startsWith("frsh")) {
         // We're opening a new island
         const [id, n, key] = comment.slice(5).split(":");
-        const islandProps = props[Number(n)];
+        const islandData = props[Number(n)];
+
+        console.log({ islandData });
 
         markerStack.push({
           startNode: sib,
@@ -447,9 +471,29 @@ function _walkInner(
           kind: MarkerKind.Island,
         });
 
-        const vnode = h(islands[id], islandProps) as VNode;
+        const vnode = h(islands[id], islandData.props) as VNode;
         if (key) vnode.key = key;
         vnodeStack.push(vnode);
+
+        // Restore serialized slots
+        if (
+          islandData.slots !== null && Array.isArray(islandData.slots) &&
+          islandData.slots.length > 0
+        ) {
+          for (let i = 0; i < islandData.slots.length; i++) {
+            const slot = islandData.slots[i];
+            const selector = `#frsh-slot-${id}-${n}-${slot}`;
+
+            addJSXFromTemplate(
+              islands,
+              islandData.props,
+              markerStack,
+              vnodeStack,
+              selector,
+              result,
+            );
+          }
+        }
       }
     } else if (isTextNode(sib)) {
       const parentVNode = vnodeStack[vnodeStack.length - 1]!;

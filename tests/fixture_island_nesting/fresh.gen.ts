@@ -15,6 +15,8 @@ import * as $island_invalid_children_fn from "./routes/island_invalid_children_f
 import * as $island_jsx_child from "./routes/island_jsx_child.tsx";
 import * as $island_jsx_children from "./routes/island_jsx_children.tsx";
 import * as $island_jsx_island_jsx from "./routes/island_jsx_island_jsx.tsx";
+import * as $island_jsx_slots from "./routes/island_jsx_slots.tsx";
+import * as $island_jsx_slots_lazy from "./routes/island_jsx_slots_lazy.tsx";
 import * as $island_jsx_text from "./routes/island_jsx_text.tsx";
 import * as $island_nested_props from "./routes/island_nested_props.tsx";
 import * as $island_order from "./routes/island_order.tsx";
@@ -29,6 +31,8 @@ import * as $IslandCenter from "./islands/IslandCenter.tsx";
 import * as $IslandConditional from "./islands/IslandConditional.tsx";
 import * as $IslandFn from "./islands/IslandFn.tsx";
 import * as $IslandInsideIsland from "./islands/IslandInsideIsland.tsx";
+import * as $IslandSlot from "./islands/IslandSlot.tsx";
+import * as $IslandSlotConditional from "./islands/IslandSlotConditional.tsx";
 import * as $IslandWithProps from "./islands/IslandWithProps.tsx";
 import * as $PassThrough from "./islands/PassThrough.tsx";
 import * as $ReadyMarker from "./islands/ReadyMarker.tsx";
@@ -50,6 +54,8 @@ const manifest = {
     "./routes/island_jsx_child.tsx": $island_jsx_child,
     "./routes/island_jsx_children.tsx": $island_jsx_children,
     "./routes/island_jsx_island_jsx.tsx": $island_jsx_island_jsx,
+    "./routes/island_jsx_slots.tsx": $island_jsx_slots,
+    "./routes/island_jsx_slots_lazy.tsx": $island_jsx_slots_lazy,
     "./routes/island_jsx_text.tsx": $island_jsx_text,
     "./routes/island_nested_props.tsx": $island_nested_props,
     "./routes/island_order.tsx": $island_order,
@@ -66,6 +72,8 @@ const manifest = {
     "./islands/IslandConditional.tsx": $IslandConditional,
     "./islands/IslandFn.tsx": $IslandFn,
     "./islands/IslandInsideIsland.tsx": $IslandInsideIsland,
+    "./islands/IslandSlot.tsx": $IslandSlot,
+    "./islands/IslandSlotConditional.tsx": $IslandSlotConditional,
     "./islands/IslandWithProps.tsx": $IslandWithProps,
     "./islands/PassThrough.tsx": $PassThrough,
     "./islands/ReadyMarker.tsx": $ReadyMarker,

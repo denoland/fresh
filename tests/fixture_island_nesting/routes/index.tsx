@@ -9,6 +9,8 @@ for (const file of Deno.readDirSync(__dirname)) {
   links.push(name);
 }
 
+links.sort((a, b) => a.localeCompare(b));
+
 export default function Home() {
   return (
     <div>

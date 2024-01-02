@@ -79,6 +79,11 @@ export function setRenderState(state: RenderState | null): void {
   ownerStack = state?.ownerStack ?? [];
 }
 
+function getComponentName(type: ComponentType) {
+  return type.displayName || type.name ||
+    "Anonymous";
+}
+
 // Check if an older version of `preact-render-to-string` is used
 const supportsUnstableComments = renderToString(h(Fragment, {
   // @ts-ignore unstable features not supported in types
@@ -352,45 +357,69 @@ options.__b = (vnode: VNode<Record<string, unknown>>) => {
           encounteredIslands.add(island);
 
           // Only passing children JSX to islands is supported for now
-          const id = islandProps.length;
-          if ("children" in props) {
-            let children = props.children;
+          const propNames = Object.keys(props);
+          let slotNames: string[] | null = null;
 
-            // Guard against passing objects as children to JSX
-            if (
-              typeof children === "function" || (
-                children !== null && typeof children === "object" &&
-                !Array.isArray(children) &&
-                !isValidElement(children)
-              )
-            ) {
-              const name = originalType.displayName || originalType.name ||
-                "Anonymous";
+          if (propNames.length > 0) {
+            for (let i = 0; i < propNames.length; i++) {
+              const propName = propNames[i];
+              const value = props[propName];
 
-              throw new Error(
-                `Invalid JSX child passed to island <${name} />. To resolve this error, pass the data as a standard prop instead.`,
-              );
+              if (typeof value === "function") {
+                const name = getComponentName(originalType);
+                throw new Error(
+                  `Invalid prop value for prop "${propName}" passed to island <${name}>. Functions cannot be sent to the browser.`,
+                );
+              }
+
+              // Check if this prop is a JSX Element
+              if (
+                value !== null && typeof value === "object"
+              ) {
+                const isJSXNode = Array.isArray(value)
+                  ? value.some((item) => isValidElement(item))
+                  : isValidElement(value);
+
+                if (isJSXNode) {
+                  if (slotNames === null) slotNames = [];
+                  slotNames.push(propName);
+                } else if (propName === "children") {
+                  const name = getComponentName(originalType);
+                  throw new Error(
+                    `Invalid JSX child passed to island <${name} />. To resolve this error, pass the data as a standard prop instead.`,
+                  );
+                }
+              }
             }
 
-            const markerText = `frsh-slot-${island.id}:${id}:children`;
-            // @ts-ignore nonono
-            props.children = wrapWithMarker(
-              children,
-              markerText,
-            );
-            slots.set(markerText, children);
-            children = props.children;
-            // deno-lint-ignore no-explicit-any
-            (props as any).children = h(
-              SlotTracker,
-              { id: markerText },
-              children,
-            );
+            if (slotNames !== null && slotNames.length > 0) {
+              const id = islandProps.length;
+
+              for (let i = 0; i < slotNames.length; i++) {
+                const name = slotNames[i];
+
+                let markerText = `frsh-slot-${island.id}:${id}:`;
+                markerText += i > 0 ? "," + name : name;
+
+                const value = props[name] as ComponentChildren;
+
+                props[name] = h(
+                  SlotTracker,
+                  { id: markerText },
+                  wrapWithMarker(
+                    value,
+                    markerText,
+                  ),
+                );
+
+                slots.set(markerText, value);
+              }
+            }
           }
 
           const child = h(originalType, props) as VNode;
           patched.add(child);
-          islandProps.push(props);
+          islandProps.push({ props, slots: slotNames });
 
           return wrapWithMarker(
             child,
