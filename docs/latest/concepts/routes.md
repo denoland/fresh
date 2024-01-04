@@ -58,9 +58,20 @@ The page component needs to be the default export of the route module. It is
 passed props that can be used to render the page.
 
 As you can see in the second example, if no handler is explicitly defined a
-default handler is used that just renders out the page component if present. You
-can also override the default handler though to modify how exactly rendering
+default handler is used that just renders out the page component if present:
+
+```tsx
+export const handler = {
+  get(req, ctx) => ctx.render()
+}
+```
+
+You can also override the default handler though to modify how exactly rendering
 should work.
+
+Fresh takes whatever you pass into `ctx.render(arg)` and sets it on
+`props.data`. If nothing is passed to `ctx.render()` then `props.data` will be
+undefined
 
 ## Mixed handler and component route
 
