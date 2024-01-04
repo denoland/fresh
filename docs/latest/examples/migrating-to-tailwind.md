@@ -59,6 +59,10 @@ export default {
   }
 ```
 
+**Note:** Be sure
+`<meta name="viewport" content="width=device-width, initial-scale=1.0" />` is
+set in your head. This was previously set by twind automatically.
+
 4. Replace the `twind` plugin with `tailwind`
 
 ```diff fresh.config.ts
