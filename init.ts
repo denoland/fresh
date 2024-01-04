@@ -523,6 +523,8 @@ let MAIN_TS = `/// <reference no-default-lib="true" />
 /// <reference lib="dom.asynciterable" />
 /// <reference lib="deno.ns" />
 
+import "$std/dotenv/load.ts";
+
 import { start } from "$fresh/server.ts";
 import manifest from "./fresh.gen.ts";
 import config from "./fresh.config.ts";
@@ -537,6 +539,8 @@ const DEV_TS = `#!/usr/bin/env -S deno run -A --watch=static/,routes/
 
 import dev from "$fresh/dev.ts";
 import config from "./fresh.config.ts";
+
+import "$std/dotenv/load.ts";
 
 await dev(import.meta.url, "./main.ts", config);
 `;
@@ -555,7 +559,7 @@ const config = {
       "deno fmt --check && deno lint && deno check **/*.ts && deno check **/*.tsx",
     cli: "echo \"import '\\$fresh/src/dev/cli.ts'\" | deno run --unstable -A -",
     manifest: "deno task cli manifest $(pwd)",
-    start: "deno run -A --watch=static/,routes/ --env dev.ts",
+    start: "deno run -A --watch=static/,routes/ dev.ts",
     build: "deno run -A dev.ts build",
     preview: "deno run -A main.ts",
     update: "deno run -A -r https://fresh.deno.dev/update .",
