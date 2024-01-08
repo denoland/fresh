@@ -44,8 +44,8 @@ Here's what the diff of `deno.json` looks like:
  {
    "lock": false,
    "tasks": {
--    "start": "deno run -A --watch=static/,routes/ --env dev.ts"
-+    "start": "deno run -A --watch=src/static/,src/routes/ --env src/dev.ts"
+-    "start": "deno run -A --watch=static/,routes/ dev.ts"
++    "start": "deno run -A --watch=src/static/,src/routes/ src/dev.ts"
    },
    "imports": {
      "$fresh/": "file:///Users/reed/code/fresh/",

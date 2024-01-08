@@ -13,6 +13,8 @@ you'll end up with a `main.ts` like the following:
 /// <reference lib="dom.asynciterable" />
 /// <reference lib="deno.ns" />
 
+import "$std/dotenv/load.ts";
+
 import { start } from "$fresh/server.ts";
 import manifest from "./fresh.gen.ts";
 import config from "./fresh.config.ts";
