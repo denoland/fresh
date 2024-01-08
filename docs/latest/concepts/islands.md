@@ -38,6 +38,17 @@ export default function Home() {
 }
 ```
 
+You may ask: if islands are components and you can embed JS scripts in the
+returned expressions of a component to have it run in the client, then how does
+Fresh execute them differently? The answer is that putting a random script tag
+with a script URL will likely not be bundled because esbuild doesn't understand
+that. The way islands works in Fresh is pretty simple. Basically Fresh passes
+the files in `islands/` to esbuild as an entry point. Esbuild then bundles each
+entry point into a JS bundle and in the browser, when it first makes islands
+interactive, it fetches the bundled script and run that. The way esbuild (and
+other bundlers work), is that they track dependencies based on `import`
+statements.
+
 ## Passing JSX to islands
 
 Islands support passing JSX elements via the `children` property.
