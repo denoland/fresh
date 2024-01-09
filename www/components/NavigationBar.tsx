@@ -23,7 +23,7 @@ export default function NavigationBar(
   ];
   const isHome = props.active == "/";
   return (
-    <nav class={"flex " + props.class ?? ""}>
+    <nav class={"flex " + props.class ?? ""} f-client-nav={false}>
       <ul class="flex justify-center items-center gap-2 sm:gap-4 mx-4 my-2 sm:my-6 flex-wrap lg:mx-8 2xl:mr-0">
         {items.map((item) => (
           <li>
