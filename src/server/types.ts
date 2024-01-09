@@ -496,11 +496,17 @@ export interface Plugin<State = Record<string, unknown>> {
   islands?: PluginIslands;
 }
 
-export interface PluginRenderContext {
+interface PluginRenderOptions {
+  request: Request;
+  lang?: string;
+  context: FreshContext;
+}
+
+export interface PluginRenderContext extends PluginRenderOptions {
   render: PluginRenderFunction;
 }
 
-export interface PluginAsyncRenderContext {
+export interface PluginAsyncRenderContext extends PluginRenderOptions {
   renderAsync: PluginAsyncRenderFunction;
 }
 

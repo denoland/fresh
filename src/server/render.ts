@@ -261,10 +261,19 @@ export async function render<Data>(
 
   const renderResults: [Plugin, PluginRenderResult][] = [];
 
+  const pluginRenderOptions = {
+    request: opts.request,
+    lang: opts.lang,
+    context: opts.context,
+  };
+
   function renderSync(): PluginRenderFunctionResult {
     const plugin = syncPlugins.shift();
     if (plugin) {
-      const res = plugin.render!({ render: renderSync });
+      const res = plugin.render!({
+        render: renderSync,
+        ...pluginRenderOptions,
+      });
       if (res === undefined) {
         throw new Error(
           `${plugin?.name}'s render hook did not return a PluginRenderResult object.`,
@@ -295,7 +304,10 @@ export async function render<Data>(
   async function renderAsync(): Promise<PluginRenderFunctionResult> {
     const plugin = asyncPlugins.shift();
     if (plugin) {
-      const res = await plugin.renderAsync!({ renderAsync });
+      const res = await plugin.renderAsync!({
+        renderAsync,
+        ...pluginRenderOptions,
+      });
       if (res === undefined) {
         throw new Error(
           `${plugin?.name}'s async render hook did not return a PluginRenderResult object.`,
