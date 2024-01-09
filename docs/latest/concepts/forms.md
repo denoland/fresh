@@ -63,7 +63,7 @@ File uploads can be handled in a very similar manner to the example above. Note
 that this time, we have to explicitly declare the form's encoding.
 
 ```tsx routes/subscribe.tsx
-import { Handlers } from "$fresh/server.ts";
+import { Handlers, type RouteContext } from "$fresh/server.ts";
 
 export const handler: Handlers = {
   async GET(req, ctx) {
@@ -85,12 +85,13 @@ export const handler: Handlers = {
     console.log(contents);
 
     return ctx.render({
-      message: `${myFile.name} uploaded!`,
+      message: `${file.name} uploaded!`,
     });
   },
 };
 
-export default function Upload() {
+export default function Upload(req: Request, ctx: RouteContext) {
+  const { message } = ctx.data;
   return (
     <>
       <form method="post" encType="multipart/form-data">
