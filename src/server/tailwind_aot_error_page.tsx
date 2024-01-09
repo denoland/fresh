@@ -10,10 +10,7 @@ export default function TailwindErrorPage() {
         <p style="line-height: 1.6;margin-bottom: 1rem;">
           The <b>tailwindcss</b>{" "}
           plugin requires ahead of time builds to be set up for production
-          usage. To resolve this error{" "}
-          <a href={LINK}>
-            set up ahead of time builds
-          </a>.
+          usage. To finish the setup, follow these steps:
         </p>
         <ol style="line-height: 1.6; margin-bottom: 1.5rem">
           <li>
