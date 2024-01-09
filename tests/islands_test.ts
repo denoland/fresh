@@ -98,7 +98,7 @@ Deno.test("island tests with </script>", async (t) => {
   });
 });
 
-Deno.test("island with json import", async (t) => {
+Deno.test("island with json import", async () => {
   await withPage(async (page, address) => {
     await page.goto(`${address}/island_json`, {
       waitUntil: "networkidle2",
