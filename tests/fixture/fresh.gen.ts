@@ -35,6 +35,7 @@ import * as $i18n_lang_lang from "./routes/i18n/[[lang]]/lang.tsx";
 import * as $index from "./routes/index.tsx";
 import * as $intercept from "./routes/intercept.tsx";
 import * as $intercept_args from "./routes/intercept_args.tsx";
+import * as $island_json from "./routes/island_json.tsx";
 import * as $islands_index from "./routes/islands/index.tsx";
 import * as $islands_multiple_island_exports from "./routes/islands/multiple_island_exports.tsx";
 import * as $islands_returning_null from "./routes/islands/returning_null.tsx";
@@ -88,6 +89,7 @@ import * as $Foo_Bar from "./islands/Foo.Bar.tsx";
 import * as $FormIsland from "./islands/FormIsland.tsx";
 import * as $Greeter from "./islands/Greeter.tsx";
 import * as $HookIsland from "./islands/HookIsland.tsx";
+import * as $JsonIsland from "./islands/JsonIsland.tsx";
 import * as $MultipleCounters from "./islands/MultipleCounters.tsx";
 import * as $ReturningNull from "./islands/ReturningNull.tsx";
 import * as $RootFragment from "./islands/RootFragment.tsx";
@@ -139,6 +141,7 @@ const manifest = {
     "./routes/index.tsx": $index,
     "./routes/intercept.tsx": $intercept,
     "./routes/intercept_args.tsx": $intercept_args,
+    "./routes/island_json.tsx": $island_json,
     "./routes/islands/index.tsx": $islands_index,
     "./routes/islands/multiple_island_exports.tsx":
       $islands_multiple_island_exports,
@@ -209,6 +212,7 @@ const manifest = {
     "./islands/FormIsland.tsx": $FormIsland,
     "./islands/Greeter.tsx": $Greeter,
     "./islands/HookIsland.tsx": $HookIsland,
+    "./islands/JsonIsland.tsx": $JsonIsland,
     "./islands/MultipleCounters.tsx": $MultipleCounters,
     "./islands/ReturningNull.tsx": $ReturningNull,
     "./islands/RootFragment.tsx": $RootFragment,
