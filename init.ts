@@ -308,10 +308,50 @@ export default {
   ],
 } satisfies Config;
 `;
+const AOT_GH_ACTION = `name: Deploy
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: main
+
+jobs:
+  deploy:
+    name: Deploy
+    runs-on: ubuntu-latest
+
+    permissions:
+      id-token: write # Needed for auth with Deno Deploy
+      contents: read # Needed to clone the repository
+
+    steps:
+      - name: Clone repository
+        uses: actions/checkout@v3
+
+      - name: Install Deno
+        uses: denoland/setup-deno@v1
+        with:
+          deno-version: v1.x
+
+      - name: Build step
+        run: "deno task build" # 📝 Update the build command(s) if necessary
+
+      - name: Upload to Deno Deploy
+        uses: denoland/deployctl@v1
+        with:
+          project: "example-project" # 📝 Update the deploy project name if necessary
+          entrypoint: "./main.ts" # 📝 Update the entrypoint if necessary
+`;
 if (useTailwind) {
   await Deno.writeTextFile(
     join(resolvedDirectory, "tailwind.config.ts"),
     TAILWIND_CONFIG_TS,
+  );
+  const ghWorkflowDir = join(resolvedDirectory, ".github", "workflows");
+  await Deno.mkdir(ghWorkflowDir, { recursive: true });
+  await Deno.writeTextFile(
+    join(ghWorkflowDir, "deploy.yml"),
+    AOT_GH_ACTION,
   );
 }
 
