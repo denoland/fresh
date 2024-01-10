@@ -125,6 +125,7 @@ export async function getInternalFreshState(
     config: internalConfig,
     manifest,
     loadSnapshot: !isLegacyDev && !config.dev,
+    didLoadSnapshot: false,
     denoJsonPath,
     denoJson,
     build: false,

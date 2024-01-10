@@ -218,11 +218,22 @@ export async function withFresh(
 }
 
 export async function withPageName(
-  name: string,
+  name: string | { name: string; options: Omit<Deno.CommandOptions, "args"> },
   fn: (page: Page, address: string) => Promise<void>,
 ) {
+  let file: string;
+  let options = {};
+
+  if (typeof name === "object") {
+    file = name.name;
+    options = name.options ?? {};
+  } else {
+    file = name;
+  }
+
   const { lines, serverProcess, address } = await startFreshServer({
-    args: ["run", "-A", name],
+    ...options,
+    args: ["run", "-A", file],
   });
 
   try {

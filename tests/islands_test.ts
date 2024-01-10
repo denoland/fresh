@@ -98,6 +98,17 @@ Deno.test("island tests with </script>", async (t) => {
   });
 });
 
+Deno.test("island with json import", async () => {
+  await withPage(async (page, address) => {
+    await page.goto(`${address}/island_json`, {
+      waitUntil: "networkidle2",
+    });
+
+    const json = await page.$eval("pre", (el) => el.textContent);
+    assertEquals(JSON.parse(json), { foo: "it works" });
+  });
+});
+
 Deno.test("island with fragment as root", async () => {
   await withPage(async (page, address) => {
     await page.goto(`${address}/islands/root_fragment`);

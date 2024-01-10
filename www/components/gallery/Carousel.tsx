@@ -75,14 +75,13 @@ const Carousel = (props: CarouselProps) => {
     let incomingSlide = currentSlide.value + 1;
     if (outgoingSlide === -1) outgoingSlide = SLIDE_DATA.length - 1;
     if (incomingSlide === SLIDE_DATA.length) incomingSlide = 0;
-    // console.log(outgoingSlide, currentSlide.value, incomingSlide)
     const TRANSITION_CLASS = () => {
       if (currentSlide.value === idx) return "translate-x-0 z-20";
       if (incomingSlide === idx) return "translate-x-full z-10";
       if (outgoingSlide === idx) return "-translate-x-full z-10";
       return "translate-x-full";
     };
-    return `slide absolute top-0 left-0 transition-all ease-in-out duration-700 transform ${TRANSITION_CLASS}`;
+    return `slide absolute top-0 left-0 transition-all ease-in-out duration-700 transform ${TRANSITION_CLASS()}`;
   };
 
   const nextSlide = () => {
