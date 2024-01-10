@@ -738,6 +738,7 @@ function collectEntrypoints(
 ): Record<string, string> {
   const entrypointBase = "../runtime/entrypoints";
   const entryPoints: Record<string, string> = {
+    globalScope: import.meta.resolve(`${entrypointBase}/impl/globalInit.ts`),
     main: dev
       ? import.meta.resolve(`${entrypointBase}/main_dev.ts`)
       : import.meta.resolve(`${entrypointBase}/main.ts`),
