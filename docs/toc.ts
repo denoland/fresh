@@ -80,6 +80,7 @@ const toc: RawTableOfContents = {
             "link:latest",
           ],
           ["using-twind-v1", "Using Twind v1", "link:latest"],
+          ["using-unocss", "Using UnoCSS", "link:canary"],
           ["init-the-server", "Initializing the server", "link:latest"],
           [
             "using-fresh-canary-version",
