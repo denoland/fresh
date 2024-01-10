@@ -496,15 +496,7 @@ export interface Plugin<State = Record<string, unknown>> {
   islands?: PluginIslands;
 }
 
-interface PluginRenderOptions<T = any, S = Record<string, unknown>>
-  extends
-    Omit<
-      FreshContext<
-        S,
-        T
-      >,
-      "render" | "next" | "renderNotFound" | "Component"
-    > {
+interface PluginRenderOptions extends PageProps {
   req: Request;
   lang?: string;
 }

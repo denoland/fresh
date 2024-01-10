@@ -264,20 +264,7 @@ export async function render<Data>(
   const pluginRenderOptions = {
     req: opts.request,
     lang: opts.lang,
-    basePath,
-    config: opts.context.config,
-    destination: opts.context.destination,
-    isPartial: opts.context.isPartial,
-    params,
-    error,
-    codeFrame: opts.context.codeFrame,
-    remoteAddr: opts.context.remoteAddr,
-    localAddr: opts.context.localAddr,
-    pattern: opts.context.pattern,
-    url,
-    route: opts.context.route,
-    data,
-    state,
+    ...props,
   };
 
   function renderSync(): PluginRenderFunctionResult {
