@@ -7,7 +7,7 @@ import {
   DEV_ERROR_OVERLAY_URL,
   JS_PREFIX,
 } from "./constants.ts";
-import { BUILD_ID } from "./build_id.ts";
+import { BUILD_ID, DENO_DEPLOYMENT_ID } from "./build_id.ts";
 
 import {
   ErrorPage,
@@ -44,6 +44,7 @@ import { loadAotSnapshot } from "../build/aot_snapshot.ts";
 import { ErrorOverlay } from "./error_overlay.tsx";
 import { withBase } from "./router.ts";
 import { PARTIAL_SEARCH_PARAM } from "../constants.ts";
+import TailwindErrorPage from "$fresh/src/server/tailwind_aot_error_page.tsx";
 
 const DEFAULT_CONN_INFO: ServeHandlerInfo = {
   localAddr: { transport: "tcp", hostname: "localhost", port: 8080 },
@@ -84,7 +85,10 @@ export async function getServerContext(state: InternalFreshState) {
   let snapshot: Builder | BuildSnapshot | Promise<BuildSnapshot> | null = null;
   if (state.loadSnapshot) {
     const loadedSnapshot = await loadAotSnapshot(config);
-    if (loadedSnapshot !== null) snapshot = loadedSnapshot;
+    if (loadedSnapshot !== null) {
+      snapshot = loadedSnapshot;
+      state.didLoadSnapshot = true;
+    }
   }
 
   const finalSnapshot = snapshot ?? new EsbuildBuilder({
@@ -323,7 +327,7 @@ export class ServerContext {
   } {
     const internalRoutes: router.Routes = {};
     const staticRoutes: router.Routes = {};
-    const routes: router.Routes = {};
+    let routes: router.Routes = {};
 
     const assetRoute = withBase(
       `${INTERNAL_PREFIX}${JS_PREFIX}/${BUILD_ID}/:path*`,
@@ -455,7 +459,7 @@ export class ServerContext {
       }
     }
 
-    const otherHandler: router.Handler = (req, ctx) => {
+    let otherHandler: router.Handler = (req, ctx) => {
       ctx.render = (data) => {
         ctx.data = data;
         return renderNotFound(req, ctx);
@@ -538,6 +542,51 @@ export class ServerContext {
           },
         },
       };
+    }
+
+    // This page is shown when the user uses the tailwindcss plugin and
+    // hasn't configured AOT builds.
+    if (
+      !this.#state.config.dev &&
+      this.#state.loadSnapshot && !this.#state.didLoadSnapshot &&
+      this.#state.config.plugins.some((plugin) => plugin.name === "tailwind")
+    ) {
+      if (DENO_DEPLOYMENT_ID !== undefined) {
+        // Don't fail hard here and instead rewrite all routes to a special
+        // error route. Otherwise the first user experience of deploying a
+        // Fresh project would be pretty disruptive
+        console.error(
+          "%cError: Ahead of time builds not configured but required by the tailwindcss plugin.\nTo resolve this error, set up ahead of time builds: https://fresh.deno.dev/docs/concepts/ahead-of-time-builds",
+          "color: red",
+        );
+        console.log();
+
+        // Clear all routes so that everything redirects to the tailwind
+        // error page.
+        routes = {};
+
+        const freshErrorPage = genRender({
+          appWrapper: false,
+          inheritLayouts: false,
+          component: TailwindErrorPage,
+          csp: false,
+          name: "tailwind_error_route",
+          pattern: "*",
+          url: "",
+          baseRoute: toBaseRoute("*"),
+          handler: (_req: Request, ctx: FreshContext) => ctx.render(),
+        }, STATUS_CODE.InternalServerError);
+        otherHandler = (req, ctx) => {
+          const render = freshErrorPage(req, ctx);
+          return render();
+        };
+      } else {
+        // Not on Deno Deploy. The user likely forgot to run `deno task build`
+        console.warn(
+          '%cNo pre-compiled tailwind styles found.\n\nDid you forget to run "deno task build" prior to starting the production server?',
+          "color: yellow",
+        );
+      }
     }
 
     return { internalRoutes, staticRoutes, routes, otherHandler, errorHandler };

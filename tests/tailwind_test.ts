@@ -1,5 +1,12 @@
-import { runBuild, withFakeServe } from "./test_utils.ts";
-import { assert, assertStringIncludes } from "./deps.ts";
+import { fetchHtml, runBuild, withFakeServe, withFresh } from "./test_utils.ts";
+import {
+  assert,
+  assertStringIncludes,
+  dirname,
+  join,
+  TextLineStream,
+} from "./deps.ts";
+import { assertEquals } from "$std/assert/assert_equals.ts";
 
 Deno.test("TailwindCSS - dev mode", async () => {
   await withFakeServe("./tests/fixture_tailwind/dev.ts", async (server) => {
@@ -60,5 +67,58 @@ Deno.test("TailwindCSS - middleware only css", async () => {
       assertStringIncludes(content, ".foo-bar");
     },
     { loadConfig: true },
+  );
+});
+
+Deno.test("TailwindCSS - missing snapshot warning", async () => {
+  const dir = dirname(import.meta.url);
+  const out = await new Deno.Command(Deno.execPath(), {
+    args: ["run", "-A", join(dir, "./fixture_tailwind/main.ts")],
+    stdout: "piped",
+    stderr: "piped",
+  }).spawn();
+
+  const lines: ReadableStream<string> = out.stderr
+    .pipeThrough(new TextDecoderStream())
+    .pipeThrough(new TextLineStream());
+
+  let found = false;
+  // @ts-ignore yes it does
+  for await (const line of lines.values({ preventCancel: true })) {
+    if (!found && line.includes("No pre-compiled tailwind styles found")) {
+      found = true;
+      break;
+    }
+  }
+
+  try {
+    assert(found, "Tailwind compile warning was not logged");
+  } finally {
+    await out.stdout.cancel();
+    out.kill("SIGTERM");
+    await out.status;
+
+    // Drain the lines stream
+    for await (const _ of lines) { /* noop */ }
+  }
+});
+
+Deno.test("TailwindCSS - missing snapshot on Deno Deploy", async () => {
+  await withFresh(
+    {
+      name: "./tests/fixture_tailwind/main.ts",
+      options: {
+        env: {
+          DENO_DEPLOYMENT_ID: "foo",
+        },
+      },
+    },
+    async (address) => {
+      const doc = await fetchHtml(address);
+      assertEquals(
+        doc.querySelector("h1")?.textContent,
+        "Finish setting up Fresh",
+      );
+    },
   );
 });
