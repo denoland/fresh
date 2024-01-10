@@ -98,8 +98,8 @@ jobs:
           entrypoint: "./main.ts" # 📝 Update the entrypoint if necessary
 ```
 
-> ℹ️ **Important:** The project name here must match the project name you've
-> picked in Deno Deploy.
+> [info]: The project name here must match the project name you've picked in
+> Deno Deploy under<br/> `Settings -> Project Name`.
 
 On the Deno Deploy side change the GitHub integration mode to GitHub Actions.
 You need to unlink first, if you have an existing project that's linked with the
@@ -110,6 +110,9 @@ You need to unlink first, if you have an existing project that's linked with the
 Once this is set up you're ready for your next deployment. Whenever a new PR is
 merged into the `main` branch on GitHub the deploy action will be executed and
 deploy the optimized assets to Deno Deploy.
+
+> [info]: If the project is already linked in "Automatic" mode, unlink the
+> repository first and re-link it again.
 
 ## Migrating existing projects with Plugins
 
