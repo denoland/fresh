@@ -885,6 +885,28 @@ if (!history.state) {
   history.replaceState(state, document.title);
 }
 
+function maybeUpdateHistory(nextUrl: URL) {
+  // Only add history entry when URL is new. Still apply
+  // the partials because sometimes users click a link to
+  // "refresh" the current page.
+  if (nextUrl.href !== window.location.href) {
+    const state: FreshHistoryState = {
+      index,
+      scrollX: window.scrollX,
+      scrollY: window.scrollY,
+    };
+
+    // Store current scroll position
+    history.replaceState({ ...state }, "", location.href);
+
+    // Now store the new position
+    index++;
+    state.scrollX = 0;
+    state.scrollY = 0;
+    history.pushState(state, "", nextUrl.href);
+  }
+}
+
 document.addEventListener("click", async (e) => {
   let el = e.target;
   if (el && el instanceof HTMLElement) {
@@ -930,25 +952,7 @@ document.addEventListener("click", async (e) => {
 
       const nextUrl = new URL(el.href);
       try {
-        // Only add history entry when URL is new. Still apply
-        // the partials because sometimes users click a link to
-        // "refresh" the current page.
-        if (el.href !== window.location.href) {
-          const state: FreshHistoryState = {
-            index,
-            scrollX: window.scrollX,
-            scrollY: window.scrollY,
-          };
-
-          // Store current scroll position
-          history.replaceState({ ...state }, "", location.href);
-
-          // Now store the new position
-          index++;
-          state.scrollX = 0;
-          state.scrollY = 0;
-          history.pushState(state, "", nextUrl.href);
-        }
+        maybeUpdateHistory(nextUrl);
 
         const partialUrl = new URL(
           partial ? partial : nextUrl.href,
@@ -1084,6 +1088,7 @@ document.addEventListener("submit", async (e) => {
         init = { body: new FormData(el), method: lowerMethod };
       }
 
+      maybeUpdateHistory(url);
       await fetchPartials(url, init);
     }
   }

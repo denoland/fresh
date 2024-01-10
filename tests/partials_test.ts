@@ -1033,6 +1033,9 @@ Deno.test("submit form GET", async () => {
       const url = await page.$eval(".url", (el) => el.textContent);
       assertEquals(url, `${address}/form_get?name=foobar&fresh-partial=true`);
 
+      const pageUrl = page.url();
+      assertEquals(pageUrl, `${address}/form_get?name=foobar`);
+
       // Server can update form value
       const value = await page.$eval("input", (el) => el.value);
       assertEquals(value, "foobar_foo");
