@@ -1,4 +1,4 @@
-import { toHashString } from "./deps.ts";
+import { encodeHex } from "./deps.ts";
 
 export const DENO_DEPLOYMENT_ID = Deno.env.get("DENO_DEPLOYMENT_ID");
 const deploymentId = DENO_DEPLOYMENT_ID ||
@@ -10,7 +10,7 @@ const buildIdHash = await crypto.subtle.digest(
   new TextEncoder().encode(deploymentId),
 );
 
-export let BUILD_ID = toHashString(buildIdHash, "hex");
+export let BUILD_ID = encodeHex(buildIdHash);
 
 export function setBuildId(buildId: string) {
   BUILD_ID = buildId;

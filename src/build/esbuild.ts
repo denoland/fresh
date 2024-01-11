@@ -97,7 +97,6 @@ export class EsbuildBuilder implements Builder {
         plugins: [
           devClientUrlPlugin(opts.basePath),
           buildIdPlugin(opts.buildID),
-          // @ts-ignore TODO: types in esbuild loader need to be updated
           ...denoPlugins({ configPath: opts.configPath }),
         ],
       });
