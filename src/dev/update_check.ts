@@ -48,7 +48,7 @@ async function fetchLatestVersion() {
 
 async function readCurrentVersion() {
   const versions = (await import("../../versions.json", {
-    "assert": { type: "json" },
+    with: { type: "json" },
   })).default as string[];
   return versions[0];
 }

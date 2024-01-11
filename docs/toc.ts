@@ -1,4 +1,4 @@
-import FRESH_VERSIONS from "../versions.json" assert { type: "json" };
+import FRESH_VERSIONS from "../versions.json" with { type: "json" };
 
 type RawTableOfContents = Record<
   string,

@@ -101,6 +101,7 @@ export interface InternalFreshState {
   config: ResolvedFreshConfig;
   manifest: Manifest;
   loadSnapshot: boolean;
+  didLoadSnapshot: boolean;
   denoJsonPath: string;
   denoJson: DenoConfig;
   build: boolean;

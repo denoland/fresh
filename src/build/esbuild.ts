@@ -2,7 +2,7 @@ import {
   type BuildOptions,
   type OnLoadOptions,
   type Plugin,
-} from "https://deno.land/x/esbuild@v0.19.4/mod.js";
+} from "https://deno.land/x/esbuild@v0.19.11/mod.js";
 import { denoPlugins, fromFileUrl, regexpEscape, relative } from "./deps.ts";
 import { Builder, BuildSnapshot } from "./mod.ts";
 
@@ -39,10 +39,10 @@ export class EsbuildBuilder implements Builder {
       // deno-lint-ignore no-deprecated-deno-api
       Deno.run === undefined ||
         Deno.env.get("FRESH_ESBUILD_LOADER") === "portable"
-        ? await import("https://deno.land/x/esbuild@v0.19.4/wasm.js")
-        : await import("https://deno.land/x/esbuild@v0.19.4/mod.js");
+        ? await import("https://deno.land/x/esbuild@v0.19.11/wasm.js")
+        : await import("https://deno.land/x/esbuild@v0.19.11/mod.js");
     const esbuildWasmURL =
-      new URL("./esbuild_v0.19.4.wasm", import.meta.url).href;
+      new URL("./esbuild_v0.19.11.wasm", import.meta.url).href;
 
     // deno-lint-ignore no-deprecated-deno-api
     if (Deno.run === undefined) {
@@ -104,9 +104,11 @@ export class EsbuildBuilder implements Builder {
       const files = new Map<string, Uint8Array>();
       const dependencies = new Map<string, string[]>();
 
-      for (const file of bundle.outputFiles) {
-        const path = relative(absWorkingDir, file.path);
-        files.set(path, file.contents);
+      if (bundle.outputFiles) {
+        for (const file of bundle.outputFiles) {
+          const path = relative(absWorkingDir, file.path);
+          files.set(path, file.contents);
+        }
       }
 
       files.set(
@@ -114,13 +116,15 @@ export class EsbuildBuilder implements Builder {
         new TextEncoder().encode(JSON.stringify(bundle.metafile)),
       );
 
-      const metaOutputs = new Map(Object.entries(bundle.metafile.outputs));
+      if (bundle.metafile) {
+        const metaOutputs = new Map(Object.entries(bundle.metafile.outputs));
 
-      for (const [path, entry] of metaOutputs.entries()) {
-        const imports = entry.imports
-          .filter(({ kind }) => kind === "import-statement")
-          .map(({ path }) => path);
-        dependencies.set(path, imports);
+        for (const [path, entry] of metaOutputs.entries()) {
+          const imports = entry.imports
+            .filter(({ kind }) => kind === "import-statement")
+            .map(({ path }) => path);
+          dependencies.set(path, imports);
+        }
       }
 
       return new EsbuildSnapshot(files, dependencies);

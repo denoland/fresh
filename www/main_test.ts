@@ -1,7 +1,7 @@
 import { assertArrayIncludes, assertEquals } from "$std/assert/mod.ts";
 import { withPageName } from "../tests/test_utils.ts";
 import { dirname, join } from "$std/path/mod.ts";
-import VERSIONS from "../versions.json" assert { type: "json" };
+import VERSIONS from "../versions.json" with { type: "json" };
 import { createHandler } from "../server.ts";
 import manifest from "./fresh.gen.ts";
 import config from "./fresh.config.ts";
