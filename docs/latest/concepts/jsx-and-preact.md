@@ -1,18 +1,18 @@
 ---
 description: |
-  JSX in Preact/React is merely a description of *what* to render
+  Deep dive into JSX and Preact
 ---
 
 ## JSX
 
-JSX in Preact/React is merely a description of _what_ to render. For example,
-this JSX syntax:
+JSX (JavaScript XML) is a syntax extension for JavaScript that allows developers
+to write HTML-like code inside a JavaScript file. For example:
 
 ```jsx
 const ui = <h1>hello world</h1>;
 ```
 
-will be turned into this set of objects (simplified)
+This syntax will be converted into this set of objects (simplified):
 
 ```js
 const ui = {
@@ -26,9 +26,9 @@ const ui = {
 };
 ```
 
-## Preact
+## How web frameworks work
 
-Those objects are then handed over to the Preact framework and then the
+These UI objects are then handed over to the web framework and then the
 framework figures out how to create HTML out of that. The real value comes when
 you do that in the browser and in Fresh with islands. When you update something
 in your app, let's say a simple counter app and you increment the counter, then
@@ -49,3 +49,27 @@ to call `document.createElement("h1")` ourselves, nor did we have to figure out
 what to do when the element already exists and only the text changes. That's all
 done by the framework. We just hand it over a set of objects what we want the UI
 to look like and it figures out how to do that
+
+## Why did Fresh pick Preact instead of any other frameworks?
+
+Lots of frameworks support TypeScript or could be used as underpinnings for the
+island architecture (see Astro). Fresh mainly picked Preact because it makes it
+easy to integrate with because it's pretty much the only framework that has a
+pluggable API to hook into the rendering mechanism at the time. For all other
+Frameworks you'd need to enhance the framework itself to support islands, but
+with Preact you can add it without having to change Preact itself. The fact that
+it's small and has a familiar API for many web developers helps too.
+
+What Fresh gives you compared to using Preact alone is:
+
+- routing automatic
+- bundling of islands and the machinery to make them interactive on page load
+  (remember Preact is just a JS lib not a build tool)
+- a serialization layer that supports preact signals to transfer island props to
+  the browser
+- an API layer
+- dev stuff like reloading the page when a component changes
+- a server in general
+
+All in all Fresh is a somewhat minimal wrapper around Preact. It's a similar
+relationship as Next.js has with React.
