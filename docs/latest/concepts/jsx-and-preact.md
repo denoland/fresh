@@ -73,3 +73,31 @@ What Fresh gives you compared to using Preact alone is:
 
 All in all Fresh is a somewhat minimal wrapper around Preact. It's a similar
 relationship as Next.js has with React.
+
+Preact is just a rendering library and only concerns itself with getting stuff
+on the screen as fast as possible. It doesn't do routing or any of those other
+concerns an app typically needs. That's where Fresh comes in. The export default
+from a route file tells Fresh's file based router that this is a route that you
+want to use. Then when you go to a route, Fresh basically calls Preact's
+render() function to render the HTML, so you don't need to do that yourself when
+working in Fresh
+
+For simple sites there isn't reall much Preact specific stuff to learn other
+than that you can compose parts of the HTML by creating functions that return
+JSX like
+
+```js
+function Foo() {
+  return <p>Hello world</p>;
+}
+
+export default function Page() {
+  return (
+    <div>
+      <Foo />
+    </div>
+  );
+}
+```
+
+This concept alone gets you pretty far.
