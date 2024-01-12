@@ -1538,3 +1538,34 @@ Deno.test("render 404 partial", async () => {
     },
   );
 });
+
+Deno.test("render partial with title", async () => {
+  await withPageName(
+    "./tests/fixture_partials/main.ts",
+    async (page, address) => {
+      await page.goto(`${address}/head_merge`);
+      await page.waitForSelector(".status-initial");
+
+      await page.click(".duplicate-link");
+      await page.waitForSelector(".status-duplicated");
+
+      const doc = parseHtml(await page.content());
+      assertEquals(doc.title, "Head merge duplicated");
+    },
+  );
+});
+
+Deno.test("render partial without title", async () => {
+  await withPageName(
+    "./tests/fixture_partials/main.ts",
+    async (page, address) => {
+      await page.goto(`${address}/head_merge`);
+      await page.click(".without-title");
+
+      await page.waitForSelector(".page-without-title");
+
+      const doc = parseHtml(await page.content());
+      assertEquals(doc.title, "Head merge");
+    },
+  );
+});
