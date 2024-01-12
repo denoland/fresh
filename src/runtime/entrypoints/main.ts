@@ -710,7 +710,9 @@ export async function applyPartials(res: Response): Promise<void> {
   }
 
   // Update <head>
-  document.title = doc.title;
+  if (doc.title) {
+    document.title = doc.title;
+  }
 
   // Needs to be converted to an array otherwise somehow <link>-tags
   // are missing.
