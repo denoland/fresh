@@ -1033,6 +1033,9 @@ Deno.test("submit form GET", async () => {
       const url = await page.$eval(".url", (el) => el.textContent);
       assertEquals(url, `${address}/form_get?name=foobar&fresh-partial=true`);
 
+      const pageUrl = page.url();
+      assertEquals(pageUrl, `${address}/form_get?name=foobar`);
+
       // Server can update form value
       const value = await page.$eval("input", (el) => el.value);
       assertEquals(value, "foobar_foo");
@@ -1532,6 +1535,37 @@ Deno.test("render 404 partial", async () => {
 
       await page.click(".update-link");
       await page.waitForSelector(".status-404");
+    },
+  );
+});
+
+Deno.test("render partial with title", async () => {
+  await withPageName(
+    "./tests/fixture_partials/main.ts",
+    async (page, address) => {
+      await page.goto(`${address}/head_merge`);
+      await page.waitForSelector(".status-initial");
+
+      await page.click(".duplicate-link");
+      await page.waitForSelector(".status-duplicated");
+
+      const doc = parseHtml(await page.content());
+      assertEquals(doc.title, "Head merge duplicated");
+    },
+  );
+});
+
+Deno.test("render partial without title", async () => {
+  await withPageName(
+    "./tests/fixture_partials/main.ts",
+    async (page, address) => {
+      await page.goto(`${address}/head_merge`);
+      await page.click(".without-title");
+
+      await page.waitForSelector(".page-without-title");
+
+      const doc = parseHtml(await page.content());
+      assertEquals(doc.title, "Head merge");
     },
   );
 });

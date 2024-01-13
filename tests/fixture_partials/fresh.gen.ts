@@ -51,6 +51,7 @@ import * as $head_merge_duplicate from "./routes/head_merge/duplicate.tsx";
 import * as $head_merge_index from "./routes/head_merge/index.tsx";
 import * as $head_merge_injected from "./routes/head_merge/injected.tsx";
 import * as $head_merge_update from "./routes/head_merge/update.tsx";
+import * as $head_merge_without_title from "./routes/head_merge/without_title.tsx";
 import * as $index from "./routes/index.tsx";
 import * as $isPartial_middleware from "./routes/isPartial/_middleware.ts";
 import * as $isPartial_async from "./routes/isPartial/async.tsx";
@@ -185,6 +186,7 @@ const manifest = {
     "./routes/head_merge/index.tsx": $head_merge_index,
     "./routes/head_merge/injected.tsx": $head_merge_injected,
     "./routes/head_merge/update.tsx": $head_merge_update,
+    "./routes/head_merge/without_title.tsx": $head_merge_without_title,
     "./routes/index.tsx": $index,
     "./routes/isPartial/_middleware.ts": $isPartial_middleware,
     "./routes/isPartial/async.tsx": $isPartial_async,

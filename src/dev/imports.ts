@@ -2,7 +2,7 @@ export const RECOMMENDED_PREACT_VERSION = "10.19.2";
 export const RECOMMENDED_PREACT_SIGNALS_VERSION = "1.2.1";
 export const RECOMMENDED_PREACT_SIGNALS_CORE_VERSION = "1.5.0";
 export const RECOMMENDED_TWIND_VERSION = "0.16.19";
-export const RECOMMENDED_STD_VERSION = "0.208.0";
+export const RECOMMENDED_STD_VERSION = "0.211.0";
 export const RECOMMENDED_TAILIWIND_VERSION = "3.3.5";
 
 export function freshImports(imports: Record<string, string>) {
