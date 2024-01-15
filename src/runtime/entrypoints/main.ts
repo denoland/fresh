@@ -550,11 +550,15 @@ function _walkInner(
 
 const partialErrorMessage = `Unable to process partial response.`;
 
-async function fetchPartials(url: URL, init: RequestInit = {}) {
+async function fetchPartials(
+  url: URL,
+  init: RequestInit = {},
+): Promise<Response> {
   init.redirect = "follow";
   url.searchParams.set(PARTIAL_SEARCH_PARAM, "true");
   const res = await fetch(url, init);
   await applyPartials(res);
+  return res;
 }
 
 function updateLinks(url: URL) {
@@ -960,6 +964,7 @@ document.addEventListener("click", async (e) => {
           partial ? partial : nextUrl.href,
           location.href,
         );
+        console.log({ nextUrl: nextUrl.href, partialUrl: partialUrl.href });
         await fetchPartials(partialUrl);
         updateLinks(nextUrl);
         scrollTo({ left: 0, top: 0, behavior: "instant" });
@@ -993,6 +998,7 @@ document.addEventListener("click", async (e) => {
           partial,
           location.href,
         );
+        console.log({ partialUrl: partialUrl.href });
         await fetchPartials(partialUrl);
       }
     }
@@ -1091,6 +1097,7 @@ document.addEventListener("submit", async (e) => {
       }
 
       maybeUpdateHistory(url);
+      console.log("PP", url.href);
       await fetchPartials(url, init);
     }
   }

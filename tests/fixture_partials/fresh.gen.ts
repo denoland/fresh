@@ -42,6 +42,8 @@ import * as $form_injected from "./routes/form/injected.tsx";
 import * as $form_update from "./routes/form/update.tsx";
 import * as $form_get_index from "./routes/form_get/index.tsx";
 import * as $form_post_index from "./routes/form_post/index.tsx";
+import * as $form_redirect_index from "./routes/form_redirect/index.tsx";
+import * as $form_redirect_response from "./routes/form_redirect/response.tsx";
 import * as $form_submitter_index from "./routes/form_submitter/index.tsx";
 import * as $form_submitter_partial_index from "./routes/form_submitter_partial/index.tsx";
 import * as $form_submitter_partial_no_client_nav_index from "./routes/form_submitter_partial_no_client_nav/index.tsx";
@@ -176,6 +178,8 @@ const manifest = {
     "./routes/form/update.tsx": $form_update,
     "./routes/form_get/index.tsx": $form_get_index,
     "./routes/form_post/index.tsx": $form_post_index,
+    "./routes/form_redirect/index.tsx": $form_redirect_index,
+    "./routes/form_redirect/response.tsx": $form_redirect_response,
     "./routes/form_submitter/index.tsx": $form_submitter_index,
     "./routes/form_submitter_partial/index.tsx": $form_submitter_partial_index,
     "./routes/form_submitter_partial_no_client_nav/index.tsx":
