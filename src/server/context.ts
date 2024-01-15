@@ -669,7 +669,7 @@ const createRenderNotFound = (
   return async (req, ctx) => {
     const notFound = extractResult.notFound;
     if (!notFound.component) {
-      return sendResponse(["Not found.", undefined], {
+      return sendResponse(["Not found.", "", undefined], {
         status: STATUS_CODE.NotFound,
         isDev: dev,
         statusText: undefined,
@@ -771,7 +771,7 @@ function collectEntrypoints(
 }
 
 function sendResponse(
-  resp: [string, ContentSecurityPolicy | undefined],
+  resp: [string, string, ContentSecurityPolicy | undefined],
   options: {
     status: number;
     statusText: string | undefined;
@@ -779,11 +779,12 @@ function sendResponse(
     isDev: boolean;
   },
 ) {
+  const [body, uuid, csp] = resp;
   const headers: Record<string, string> = {
     "content-type": "text/html; charset=utf-8",
+    "x-fresh-uuid": uuid,
   };
 
-  const [body, csp] = resp;
   if (csp) {
     if (options.isDev) {
       csp.directives.connectSrc = [
