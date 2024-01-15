@@ -16,6 +16,7 @@ export interface RenderStateRouteOptions {
 }
 
 export class RenderState {
+  readonly renderUuid: string;
   // deno-lint-ignore no-explicit-any
   componentStack: any[];
   renderingUserTemplate = false;
@@ -48,12 +49,14 @@ export class RenderState {
   basePath: string;
 
   constructor(
+    renderUuid: string,
     routeOptions: RenderStateRouteOptions,
     // deno-lint-ignore no-explicit-any
     componentStack: any[],
     csp?: ContentSecurityPolicy,
     error?: unknown,
   ) {
+    this.renderUuid = renderUuid;
     this.routeOptions = routeOptions;
     this.csp = csp;
     this.componentStack = componentStack;
