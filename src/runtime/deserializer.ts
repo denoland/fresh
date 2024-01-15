@@ -19,7 +19,6 @@ const INVALID_REFERENCE_ERROR = "Invalid reference";
 
 function getPropertyFromPath(o: object, path: string[]): object {
   for (const key of path) {
-    if (key === null) return o;
     if (!Object.hasOwn(o, key)) throw new Error(INVALID_REFERENCE_ERROR);
     // deno-lint-ignore no-explicit-any
     o = (o as any)[key];
