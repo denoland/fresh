@@ -1,7 +1,12 @@
 // deno-lint-ignore-file no-explicit-any
 
 import { serialize } from "./serializer.ts";
-import { assert, assertEquals, assertSnapshot } from "../../tests/deps.ts";
+import {
+  assert,
+  assertEquals,
+  assertSnapshot,
+  assertThrows,
+} from "../../tests/deps.ts";
 import { deserialize, KEY } from "../runtime/deserializer.ts";
 import { signal } from "@preact/signals-core";
 import { signal as signal130 } from "@preact/signals-core@1.3.0";
@@ -212,4 +217,17 @@ Deno.test("serializer - multiple reference in signal", async (t) => {
   assertEquals(deserialized.s.value, inner);
   assertEquals(deserialized.s.peek(), inner);
   assertEquals(deserialized.inner, inner);
+});
+
+Deno.test("deserializer - no prototype pollution with manual input", () => {
+  const serialized = String.raw`{
+    "v": {
+      "*": ["onerror"]
+    },
+    "r": [
+      [["*"], ["constructor", "prototype", "*"]]
+    ]
+  }`;
+  assertThrows(() => deserialize(serialized, signal));
+  assertEquals({}.constructor.prototype["*"], undefined);
 });

@@ -14,6 +14,7 @@ export {
   assertNotMatch,
   assertRejects,
   assertStringIncludes,
+  assertThrows,
 } from "https://deno.land/std@0.211.0/assert/mod.ts";
 export { assertSnapshot } from "https://deno.land/std@0.211.0/testing/snapshot.ts";
 export {
