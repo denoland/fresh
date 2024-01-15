@@ -1,7 +1,7 @@
 import { Plugin, PluginMiddleware, ResolvedFreshConfig } from "../server.ts";
 import type postcss from "npm:postcss@8.4.31";
-import * as path from "https://deno.land/std@0.207.0/path/mod.ts";
-import { walk } from "https://deno.land/std@0.207.0/fs/walk.ts";
+import * as path from "https://deno.land/std@0.211.0/path/mod.ts";
+import { walk } from "https://deno.land/std@0.211.0/fs/walk.ts";
 import { TailwindPluginOptions } from "./tailwind/types.ts";
 
 async function initTailwind(
@@ -49,10 +49,9 @@ export default function tailwind(
           } catch (_error) {
             // if it did, then the user doesn't have styles.css defined
             // it must then be provided by the plugin
-            filePath = path.join(
-              new URL(".", import.meta.url).pathname,
-              "./tailwind/styles.css",
-            );
+            const fileUrl = new URL(".", import.meta.url);
+            const directoryPath = path.fromFileUrl(fileUrl);
+            filePath = path.join(directoryPath, "tailwind", "styles.css");
           }
           let text = "";
           try {
