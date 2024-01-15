@@ -122,3 +122,36 @@ Deno.test("TailwindCSS - missing snapshot on Deno Deploy", async () => {
     },
   );
 });
+
+Deno.test("TailwindCSS - dev mode - styles.css from plugin", async () => {
+  await withFakeServe(
+    "./tests/fixture_plugin_staticfile/dev.ts",
+    async (server) => {
+      const res = await server.get("/styles.css");
+      const content = await res.text();
+      assertStringIncludes(content, ".text-red-600");
+
+      const res2 = await server.get("/styles.css?foo=bar");
+      const content2 = await res2.text();
+      assert(!content2.includes("@tailwind"));
+    },
+    { loadConfig: true },
+  );
+});
+
+Deno.test("TailwindCSS - dev mode - user overrides styles.css from plugin", async () => {
+  await withFakeServe(
+    "./tests/fixture_plugin_staticfile_override/dev.ts",
+    async (server) => {
+      const res = await server.get("/styles.css");
+      const content = await res.text();
+      assertStringIncludes(content, ".text-red-600");
+      assertStringIncludes(content, ".asdf");
+
+      const res2 = await server.get("/styles.css?foo=bar");
+      const content2 = await res2.text();
+      assert(!content2.includes("@tailwind"));
+    },
+    { loadConfig: true },
+  );
+});

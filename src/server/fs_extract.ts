@@ -303,7 +303,7 @@ export async function extractRoutes(
       const outDirStatic = join(config.build.outDir, "static");
       staticDirs.push(outDirStatic);
     }
-
+    const encoder = new TextEncoder();
     for (const staticDir of staticDirs) {
       const staticDirUrl = toFileUrl(staticDir);
       const entries = walk(staticDir, {
@@ -311,29 +311,36 @@ export async function extractRoutes(
         includeDirs: false,
         followSymlinks: false,
       });
-      const encoder = new TextEncoder();
       for await (const entry of entries) {
         const localUrl = toFileUrl(entry.path);
-        const path = localUrl.href.substring(staticDirUrl.href.length);
-        const stat = await Deno.stat(localUrl);
-        const type = contentType(extname(path)) ??
-          "application/octet-stream";
-        const etag = await crypto.subtle.digest(
-          "SHA-1",
-          encoder.encode(BUILD_ID + path),
-        ).then((hash) =>
-          Array.from(new Uint8Array(hash))
-            .map((byte) => byte.toString(16).padStart(2, "0"))
-            .join("")
-        );
-        const staticFile: StaticFile = {
+        const relativePath = localUrl.href.substring(staticDirUrl.href.length);
+        const staticFile = await processStaticFile(
           localUrl,
-          path: join(state.config.basePath, path),
-          size: stat.size,
-          contentType: type,
-          etag,
-        };
+          state.config.basePath,
+          encoder,
+          relativePath,
+        );
         staticFiles.push(staticFile);
+      }
+    }
+
+    for (const plugin of config.plugins || []) {
+      if (plugin.staticFiles) {
+        for (const file of plugin.staticFiles.files) {
+          const pluginFilePath = join(state.config.basePath, file.injectedPath);
+          if (!staticFiles.some((sf) => sf.path === pluginFilePath)) {
+            const localUrl = new URL(
+              file.path,
+              plugin.staticFiles.baseLocation,
+            );
+            const staticFile = await processStaticFile(
+              localUrl,
+              state.config.basePath,
+              encoder,
+            );
+            staticFiles.push(staticFile);
+          }
+        }
       }
     }
   } catch (err) {
@@ -562,4 +569,31 @@ function getRoutesFromPlugins(plugins: Plugin[]): [string, RouteModule][] {
         handler: route.handler,
       }];
     });
+}
+
+async function processStaticFile(
+  localUrl: URL,
+  basePath: string,
+  encoder: TextEncoder,
+  relativePath = "",
+) {
+  const path = relativePath ? join(basePath, relativePath) : localUrl.pathname;
+  const stat = await Deno.stat(localUrl);
+  const type = contentType(extname(path)) ?? "application/octet-stream";
+  const etag = await crypto.subtle.digest(
+    "SHA-1",
+    encoder.encode(BUILD_ID + path),
+  ).then((hash) =>
+    Array.from(new Uint8Array(hash))
+      .map((byte) => byte.toString(16).padStart(2, "0"))
+      .join("")
+  );
+
+  return {
+    localUrl,
+    path,
+    size: stat.size,
+    contentType: type,
+    etag,
+  };
 }

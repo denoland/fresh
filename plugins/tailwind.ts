@@ -39,10 +39,21 @@ export default function tailwind(
 
         let cached = cache.get(pathname);
         if (!cached) {
-          const filePath = path.join(
+          let filePath = path.join(
             staticDir,
             pathname.replace(ctx.config.basePath, ""),
           );
+          try {
+            // this will error if the file doesn't exist
+            await Deno.stat(filePath);
+          } catch (_error) {
+            // if it did, then the user doesn't have styles.css defined
+            // it must then be provided by the plugin
+            filePath = path.join(
+              new URL(".", import.meta.url).pathname,
+              "./tailwind/styles.css",
+            );
+          }
           let text = "";
           try {
             text = await Deno.readTextFile(filePath);
@@ -124,6 +135,15 @@ export default function tailwind(
 
         await Deno.writeTextFile(outPath, result.content);
       }
+    },
+    staticFiles: {
+      baseLocation: import.meta.url,
+      files: [
+        {
+          path: "./tailwind/styles.css",
+          injectedPath: "/styles.css",
+        },
+      ],
     },
   };
 }

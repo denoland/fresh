@@ -495,6 +495,8 @@ export interface Plugin<State = Record<string, unknown>> {
   middlewares?: PluginMiddleware<State>[];
 
   islands?: PluginIslands;
+
+  staticFiles?: PluginStaticFiles;
 }
 
 export interface PluginRenderContext {
@@ -585,6 +587,16 @@ export interface PluginRoute {
 export interface PluginIslands {
   baseLocation: string;
   paths: string[];
+}
+
+export interface PluginStaticFiles {
+  baseLocation: string;
+  files: PluginStaticFile[];
+}
+
+export interface PluginStaticFile {
+  path: string;
+  injectedPath: string;
 }
 
 // --- Deprecated types ---
