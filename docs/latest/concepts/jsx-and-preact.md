@@ -56,9 +56,25 @@ Lots of frameworks support TypeScript or could be used as underpinnings for the
 island architecture (see Astro). Fresh mainly picked Preact because it makes it
 easy to integrate with because it's pretty much the only framework that has a
 pluggable API to hook into the rendering mechanism at the time. For all other
-Frameworks you'd need to enhance the framework itself to support islands, but
+frameworks you'd need to enhance the framework itself to support islands, but
 with Preact you can add it without having to change Preact itself. The fact that
 it's small and has a familiar API for many web developers helps too.
+
+## What is the differences between Fresh and Preact
+One important thing to remember: **Preact is just a rendering library and only 
+concerns itself with getting stuff on the screen as fast as possible.**
+
+The consequences of this are:
+- Preact doesn't do routing or any of those other concerns an app typically needs
+- Preact has no idea of a server and has no concept of how to pass data from the 
+server to the client
+
+That's where Fresh comes in:
+- The export default from a route file tells Fresh's file based router that this
+is a route that you want to use. Then when you go to a route, Fresh basically 
+calls Preact's render() function to render the HTML, so you don't need to do that
+yourself when working in Fresh
+- Fresh introduces the notion of Server and a Client that Preact isn't aware of
 
 What Fresh gives you compared to using Preact alone is:
 
@@ -74,17 +90,10 @@ What Fresh gives you compared to using Preact alone is:
 All in all Fresh is a somewhat minimal wrapper around Preact. It's a similar
 relationship as Next.js has with React.
 
-Preact is just a rendering library and only concerns itself with getting stuff
-on the screen as fast as possible. It doesn't do routing or any of those other
-concerns an app typically needs. That's where Fresh comes in. The export default
-from a route file tells Fresh's file based router that this is a route that you
-want to use. Then when you go to a route, Fresh basically calls Preact's
-render() function to render the HTML, so you don't need to do that yourself when
-working in Fresh
-
-For simple sites there isn't reall much Preact specific stuff to learn other
+## What Preact knowledge do I need to get start
+For simple sites there isn't really much Preact specific stuff to learn other
 than that you can compose parts of the HTML by creating functions that return
-JSX like
+JSX like:
 
 ```js
 function Foo() {
@@ -101,3 +110,4 @@ export default function Page() {
 ```
 
 This concept alone gets you pretty far.
+
