@@ -19,7 +19,10 @@ const INVALID_REFERENCE_ERROR = "Invalid reference";
 
 function getPropertyFromPath(o: object, path: string[]): object {
   for (const key of path) {
-    if (!Object.hasOwn(o, key)) throw new Error(INVALID_REFERENCE_ERROR);
+    if (key === null) continue;
+    if (key !== "value" && !Object.hasOwn(o, key)) {
+      throw new Error(INVALID_REFERENCE_ERROR);
+    }
     // deno-lint-ignore no-explicit-any
     o = (o as any)[key];
   }
@@ -61,7 +64,9 @@ export function deserialize(
       // set the reference to the target object
       const parent = getPropertyFromPath(v, refPath.slice(0, -1));
       const key = refPath[refPath.length - 1]!;
-      if (!Object.hasOwn(parent, key)) throw new Error(INVALID_REFERENCE_ERROR);
+      if (key !== "value" && !Object.hasOwn(parent, key)) {
+        throw new Error(INVALID_REFERENCE_ERROR);
+      }
       // deno-lint-ignore no-explicit-any
       (parent as any)[key] = target;
     }
