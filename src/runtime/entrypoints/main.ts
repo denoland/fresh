@@ -315,7 +315,7 @@ function _walkInner(
           kind: MarkerKind.Slot,
         });
 
-        const slotName = comment.slice(comment.lastIndexOf(":") + 1);
+        const [_, name, id, slotName] = comment.split(":");
 
         const slotProps = {
           id: comment,
@@ -324,15 +324,15 @@ function _walkInner(
         };
         props.push(slotProps);
 
-        console.log("GOgo");
-        // const selector = `#frsh-slot-${id}-${n}-${slotName}`;
+        // console.log("GOgo", comment, slotName, { name, mode, key, _ });
+        const selector = `#frsh-slot-${name}-${id}-${slotName}`;
 
         const slotChildren = addJSXFromTemplate(
           islands,
           props,
           markerStack,
           vnodeStack,
-          comment,
+          selector,
           result,
         );
 

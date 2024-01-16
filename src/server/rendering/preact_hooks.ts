@@ -395,12 +395,10 @@ options.__b = (vnode: VNode<Record<string, unknown>>) => {
             if (slotNames !== null && slotNames.length > 0) {
               const id = islandProps.length;
 
+              console.log({ slotNames });
               for (let i = 0; i < slotNames.length; i++) {
                 const name = slotNames[i];
-
-                let markerText = `frsh-slot-${island.id}:${id}:`;
-                markerText += i > 0 ? "," + name : name;
-
+                const markerText = `frsh-slot-${island.id}:${id}:${name}`;
                 const value = props[name] as ComponentChildren;
 
                 props[name] = h(
