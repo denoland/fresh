@@ -142,6 +142,16 @@ export interface RouterOptions {
    * @default {undefined}
    */
   basePath?: string;
+  /**
+   * If present, this handler will override all 404 handling built into Fresh or your application. It should be something simple:
+   * @example
+   * ```
+   * disabled404response: () => {
+   *   throw new Deno.errors.NotFound();
+   * },
+   * ```
+   */
+  disabled404response?: () => Response;
 }
 
 export type RenderFunction = (
