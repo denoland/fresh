@@ -256,9 +256,9 @@ export async function render<Data>(
     error,
   );
 
-  let bodyHtml: string | null = null;
-
   const syncPlugins = opts.plugins.filter((p) => p.render);
+
+  let bodyHtml: string | null = null;
 
   const renderResults: [Plugin, PluginRenderResult][] = [];
 
@@ -270,6 +270,9 @@ export async function render<Data>(
         throw new Error(
           `${plugin?.name}'s render hook did not return a PluginRenderResult object.`,
         );
+      }
+      if (typeof res.bodyHtml === "string") {
+        bodyHtml = res.bodyHtml;
       }
       renderResults.push([plugin, res]);
 
@@ -301,6 +304,9 @@ export async function render<Data>(
         throw new Error(
           `${plugin?.name}'s async render hook did not return a PluginRenderResult object.`,
         );
+      }
+      if (typeof res.bodyHtml === "string") {
+        bodyHtml = res.bodyHtml;
       }
       renderResults.push([plugin, res]);
       if (bodyHtml === null) {
