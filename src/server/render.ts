@@ -122,7 +122,7 @@ export function checkAsyncComponent<T>(
  */
 export async function render<Data>(
   opts: RenderOptions<Data>,
-): Promise<[string, ContentSecurityPolicy | undefined] | Response> {
+): Promise<[string, string, ContentSecurityPolicy | undefined] | Response> {
   const component = opts.route.component;
 
   // Only inherit layouts up to the nearest root layout.
@@ -242,6 +242,7 @@ export async function render<Data>(
   // ensures that each render request is associated with the same
   // data.
   const renderState = new RenderState(
+    crypto.randomUUID(),
     {
       url,
       route: opts.route.pattern,
@@ -405,5 +406,5 @@ export async function render<Data>(
     moduleScripts: result.moduleScripts,
     lang: ctx.lang,
   });
-  return [html, csp];
+  return [html, renderState.renderUuid, csp];
 }

@@ -640,6 +640,7 @@ class NoPartialsError extends Error {}
  */
 export async function applyPartials(res: Response): Promise<void> {
   const contentType = res.headers.get("Content-Type");
+  const uuid = res.headers.get("X-Fresh-UUID");
   if (contentType !== "text/html; charset=utf-8") {
     throw new Error(partialErrorMessage);
   }
@@ -652,7 +653,7 @@ export async function applyPartials(res: Response): Promise<void> {
   // Preload all islands because they need to be available synchronously
   // for rendering later
   const islands: IslandRegistry = {};
-  const dataRaw = doc.getElementById("__FRSH_PARTIAL_DATA")!;
+  const dataRaw = doc.getElementById(`__FRSH_PARTIAL_DATA_${uuid}`)!;
   let data: {
     islands: Record<string, { export: string; url: string }>;
     signals: string | null;
@@ -669,7 +670,7 @@ export async function applyPartials(res: Response): Promise<void> {
     );
   }
 
-  const stateDom = doc.getElementById("__FRSH_STATE")?.textContent;
+  const stateDom = doc.getElementById(`__FRSH_STATE_${uuid}`)?.textContent;
   let state: SerializedState = [[], []];
 
   // Load all dependencies
@@ -710,7 +711,9 @@ export async function applyPartials(res: Response): Promise<void> {
   }
 
   // Update <head>
-  document.title = doc.title;
+  if (doc.title) {
+    document.title = doc.title;
+  }
 
   // Needs to be converted to an array otherwise somehow <link>-tags
   // are missing.

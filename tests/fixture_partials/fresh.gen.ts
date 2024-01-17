@@ -51,6 +51,7 @@ import * as $head_merge_duplicate from "./routes/head_merge/duplicate.tsx";
 import * as $head_merge_index from "./routes/head_merge/index.tsx";
 import * as $head_merge_injected from "./routes/head_merge/injected.tsx";
 import * as $head_merge_update from "./routes/head_merge/update.tsx";
+import * as $head_merge_without_title from "./routes/head_merge/without_title.tsx";
 import * as $index from "./routes/index.tsx";
 import * as $isPartial_middleware from "./routes/isPartial/_middleware.ts";
 import * as $isPartial_async from "./routes/isPartial/async.tsx";
@@ -116,9 +117,12 @@ import * as $relative_link_index from "./routes/relative_link/index.tsx";
 import * as $scroll_restoration_index from "./routes/scroll_restoration/index.tsx";
 import * as $scroll_restoration_injected from "./routes/scroll_restoration/injected.tsx";
 import * as $scroll_restoration_update from "./routes/scroll_restoration/update.tsx";
+import * as $spoof_state_index from "./routes/spoof_state/index.tsx";
+import * as $spoof_state_partial from "./routes/spoof_state/partial.tsx";
 import * as $Counter from "./islands/Counter.tsx";
 import * as $CounterA from "./islands/CounterA.tsx";
 import * as $CounterB from "./islands/CounterB.tsx";
+import * as $DangerousIsland from "./islands/DangerousIsland.tsx";
 import * as $Fader from "./islands/Fader.tsx";
 import * as $InvalidSlot from "./islands/InvalidSlot.tsx";
 import * as $KeyExplorer from "./islands/KeyExplorer.tsx";
@@ -185,6 +189,7 @@ const manifest = {
     "./routes/head_merge/index.tsx": $head_merge_index,
     "./routes/head_merge/injected.tsx": $head_merge_injected,
     "./routes/head_merge/update.tsx": $head_merge_update,
+    "./routes/head_merge/without_title.tsx": $head_merge_without_title,
     "./routes/index.tsx": $index,
     "./routes/isPartial/_middleware.ts": $isPartial_middleware,
     "./routes/isPartial/async.tsx": $isPartial_async,
@@ -260,11 +265,14 @@ const manifest = {
     "./routes/scroll_restoration/index.tsx": $scroll_restoration_index,
     "./routes/scroll_restoration/injected.tsx": $scroll_restoration_injected,
     "./routes/scroll_restoration/update.tsx": $scroll_restoration_update,
+    "./routes/spoof_state/index.tsx": $spoof_state_index,
+    "./routes/spoof_state/partial.tsx": $spoof_state_partial,
   },
   islands: {
     "./islands/Counter.tsx": $Counter,
     "./islands/CounterA.tsx": $CounterA,
     "./islands/CounterB.tsx": $CounterB,
+    "./islands/DangerousIsland.tsx": $DangerousIsland,
     "./islands/Fader.tsx": $Fader,
     "./islands/InvalidSlot.tsx": $InvalidSlot,
     "./islands/KeyExplorer.tsx": $KeyExplorer,

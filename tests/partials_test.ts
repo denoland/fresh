@@ -1538,3 +1538,54 @@ Deno.test("render 404 partial", async () => {
     },
   );
 });
+
+Deno.test("render partial with title", async () => {
+  await withPageName(
+    "./tests/fixture_partials/main.ts",
+    async (page, address) => {
+      await page.goto(`${address}/head_merge`);
+      await page.waitForSelector(".status-initial");
+
+      await page.click(".duplicate-link");
+      await page.waitForSelector(".status-duplicated");
+
+      const doc = parseHtml(await page.content());
+      assertEquals(doc.title, "Head merge duplicated");
+    },
+  );
+});
+
+Deno.test("render partial without title", async () => {
+  await withPageName(
+    "./tests/fixture_partials/main.ts",
+    async (page, address) => {
+      await page.goto(`${address}/head_merge`);
+      await page.click(".without-title");
+
+      await page.waitForSelector(".page-without-title");
+
+      const doc = parseHtml(await page.content());
+      assertEquals(doc.title, "Head merge");
+    },
+  );
+});
+
+// See https://github.com/denoland/fresh/issues/2254
+Deno.test("should not be able to override __FRSH_STATE", async () => {
+  await withPageName(
+    "./tests/fixture_partials/main.ts",
+    async (page, address) => {
+      let didError = false;
+      page.on("pageerror", (ev) => {
+        didError = true;
+        console.log(ev);
+      });
+      await page.goto(`${address}/spoof_state`);
+
+      await page.click("a");
+      await page.waitForSelector(".raw_ready");
+
+      assert(!didError);
+    },
+  );
+});

@@ -72,16 +72,20 @@ export function renderFreshTags(
   // The inline script that will hydrate the page.
   let script = "";
 
-  // Serialize the state into the <script id=__FRSH_STATE> tag and generate the
+  // Serialize the state into the <script id="__FRSH_STATE-<uuid>"> tag and generate the
   // inline script to deserialize it. This script starts by deserializing the
   // state in the tag. This potentially requires importing @preact/signals.
   let hasSignals = false;
   let requiresDeserializer = false;
   if (state[0].length > 0 || state[1].length > 0) {
+    // Careful: This must be unique per render to avoid injected content
+    // via `dangerouslySetInnerHTML` being able to overwrite our state.
+    const stateId = `__FRSH_STATE_${renderState.renderUuid}`;
+
     const res = serialize(state);
     const escapedState = htmlEscapeJsonString(res.serialized);
     opts.bodyHtml +=
-      `<script id="__FRSH_STATE" type="application/json" nonce="${renderState.getNonce()}">${escapedState}</script>`;
+      `<script id="${stateId}" type="application/json" nonce="${renderState.getNonce()}">${escapedState}</script>`;
 
     hasSignals = res.hasSignals;
     requiresDeserializer = res.requiresDeserializer;
@@ -94,7 +98,7 @@ export function renderFreshTags(
       const url = addImport("signals.js");
       script += `import { signal } from "${url}";`;
     }
-    script += `const ST = document.getElementById("__FRSH_STATE").textContent;`;
+    script += `const ST = document.getElementById("${stateId}").textContent;`;
     script += `const STATE = `;
     if (res.requiresDeserializer) {
       if (res.hasSignals) {
@@ -166,7 +170,7 @@ export function renderFreshTags(
     );
     const nonce = renderState.csp ? ` nonce="${renderState.getNonce()}` : "";
     opts.bodyHtml +=
-      `<script id="__FRSH_PARTIAL_DATA" type="application/json"${nonce}">${escapedData}</script>`;
+      `<script id="__FRSH_PARTIAL_DATA_${renderState.renderUuid}" type="application/json"${nonce}">${escapedData}</script>`;
   }
   if (script !== "") {
     opts.bodyHtml +=

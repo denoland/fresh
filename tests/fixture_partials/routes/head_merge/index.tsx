@@ -33,6 +33,15 @@ export default function SlotDemo() {
           duplicate
         </a>
       </p>
+      <p>
+        <a
+          class="without-title"
+          href="/head_merge/injected"
+          f-partial="/head_merge/without_title"
+        >
+          without title
+        </a>
+      </p>
     </div>
   );
 }
