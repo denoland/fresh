@@ -42,6 +42,7 @@ export interface FreshConfig {
   staticDir?: string;
   router?: RouterOptions;
   server?: Partial<Deno.ServeTlsOptions>;
+  prioritizePluginMiddleware?: boolean;
 
   // Older versions of Fresh merged the `Deno.ServeTlsOptions` directly.
   // We've moved this to `server`.
@@ -119,6 +120,7 @@ export interface ResolvedFreshConfig {
   router?: RouterOptions;
   server: Partial<Deno.ServeTlsOptions>;
   basePath: string;
+  prioritizePluginMiddleware: boolean;
 }
 
 export interface RouterOptions {
@@ -421,6 +423,7 @@ export type MiddlewareHandler<State = Record<string, unknown>> = (
 // deno-lint-ignore no-explicit-any
 export interface MiddlewareModule<State = any> {
   handler: MiddlewareHandler<State> | MiddlewareHandler<State>[];
+  fromPlugin?: boolean;
 }
 
 export interface Middleware<State = Record<string, unknown>> {

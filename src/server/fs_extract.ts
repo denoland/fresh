@@ -92,14 +92,18 @@ export async function extractRoutes(
   const layouts: LayoutRoute[] = [];
   let notFound: UnknownPage = DEFAULT_NOT_FOUND;
   let error: ErrorPage = DEFAULT_ERROR;
-  const allRoutes = [
+  let allRoutes = [
     ...Object.entries(manifest.routes),
     ...(config.plugins ? getMiddlewareRoutesFromPlugins(config.plugins) : []),
     ...(config.plugins ? getRoutesFromPlugins(config.plugins) : []),
-  ];
+  ] as [string, RouteModule | MiddlewareModule][];
 
   // Presort all routes so that we only need to sort once
   allRoutes.sort((a, b) => sortRoutePaths(a[0], b[0]));
+  if (config.prioritizePluginMiddleware) {
+    // if the user wants to prioritize plugin middleware, we need to sort again
+    allRoutes = secondaryMiddlewareSort(allRoutes);
+  }
 
   for (
     const [self, module] of allRoutes
@@ -118,9 +122,7 @@ export async function extractRoutes(
     const isLayout = path.endsWith("/_layout.tsx") ||
       path.endsWith("/_layout.ts") || path.endsWith("/_layout.jsx") ||
       path.endsWith("/_layout.js");
-    const isMiddleware = path.endsWith("/_middleware.tsx") ||
-      path.endsWith("/_middleware.ts") || path.endsWith("/_middleware.jsx") ||
-      path.endsWith("/_middleware.js");
+    const isMiddleware = pathIsMiddleware(path);
     if (
       !path.startsWith("/_") && !isLayout && !isMiddleware
     ) {
@@ -536,13 +538,13 @@ function getMiddlewareRoutesFromPlugins(
 
   const mws: Record<
     string,
-    [string, { handler: MiddlewareHandler[] }]
+    [string, { handler: MiddlewareHandler[]; fromPlugin: boolean }]
   > = {};
   for (let i = 0; i < middlewares.length; i++) {
     const mw = middlewares[i];
     const handler = mw.middleware.handler;
     const key = `./routes${formatMiddlewarePath(mw.path)}_middleware.ts`;
-    if (!mws[key]) mws[key] = [key, { handler: [] }];
+    if (!mws[key]) mws[key] = [key, { handler: [], fromPlugin: true }];
     mws[key][1].handler.push(...Array.isArray(handler) ? handler : [handler]);
   }
 
@@ -562,4 +564,31 @@ function getRoutesFromPlugins(plugins: Plugin[]): [string, RouteModule][] {
         handler: route.handler,
       }];
     });
+}
+
+function pathIsMiddleware(path: string) {
+  return path.endsWith("/_middleware.ts") ||
+    path.endsWith("/_middleware.tsx") || path.endsWith("/_middleware.jsx") ||
+    path.endsWith("/_middleware.js");
+}
+
+function secondaryMiddlewareSort(
+  routes: [string, RouteModule | MiddlewareModule][],
+) {
+  function isMiddlewareModule(
+    entry: [string, RouteModule | MiddlewareModule],
+  ): entry is [string, MiddlewareModule] {
+    return pathIsMiddleware(entry[0]);
+  }
+
+  const middlewareRoutes = routes.filter(isMiddlewareModule)
+    .sort((a, b) => {
+      return (b[1].fromPlugin ? 1 : 0) - (a[1].fromPlugin ? 1 : 0);
+    });
+
+  const nonMiddlewareRoutes = routes.filter((route) =>
+    !isMiddlewareModule(route)
+  );
+
+  return [...middlewareRoutes, ...nonMiddlewareRoutes];
 }

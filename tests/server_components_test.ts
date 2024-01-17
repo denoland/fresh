@@ -97,6 +97,7 @@ Deno.test("passes context to server component", async () => {
             plugins: [
               { entrypoints: {}, name: "twind", renderAsync: "AsyncFunction" },
             ],
+            prioritizePluginMiddleware: false,
             render: "Function",
             router: "<undefined>",
             server: {},

@@ -1,5 +1,10 @@
 {
   "lock": false,
+  "tasks": {
+    "start": "deno run -A --watch=static/,routes/ dev.ts",
+    "build": "deno run -A dev.ts build",
+    "preview": "deno run -A main.ts"
+  },
   "imports": {
     "$fresh/": "../../",
     "preact": "https://esm.sh/preact@10.15.1",

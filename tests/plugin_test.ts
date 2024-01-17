@@ -283,3 +283,14 @@ Deno.test("supports returning htmlText", async () => {
     { loadConfig: true },
   );
 });
+
+Deno.test("plugin middleware order", async () => {
+  await withFakeServe(
+    "./tests/fixture_plugin_middleware_order/dev.ts",
+    async (server) => {
+      const doc = await server.getHtml("/");
+      assertEquals(doc.body.textContent, "undefined213");
+    },
+    { loadConfig: true },
+  );
+});
