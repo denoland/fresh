@@ -30,3 +30,5 @@ export { assertEquals } from "https://deno.land/std@0.211.0/assert/mod.ts";
 
 // ts-morph
 export { Node, Project } from "https://deno.land/x/ts_morph@20.0.0/mod.ts";
+
+export * as babel from "https://esm.sh/@babel/core@7.22.20";

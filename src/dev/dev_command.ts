@@ -26,6 +26,7 @@ export async function dev(
   } else {
     currentManifest = { islands: [], routes: [] };
   }
+  console.log(prevManifest);
   const newManifest = await collect(dir, config?.router?.ignoreFilePattern);
   Deno.env.set("FRSH_DEV_PREVIOUS_MANIFEST", JSON.stringify(newManifest));
 
@@ -35,14 +36,27 @@ export async function dev(
 
   if (manifestChanged) await generate(dir, newManifest);
 
-  const manifest = (await import(toFileUrl(join(dir, "fresh.gen.ts")).href))
-    .default as ServerManifest;
+  console.log("LOAd");
+  const baseUrl = toFileUrl(join(dir, "fresh.gen.ts"));
+  // const manifest2 = (await import(toFileUrl(join(dir, "fresh.gen.ts")).href))
+  //   .default as ServerManifest;
+  const manifest: ServerManifest = {
+    baseUrl: baseUrl.href,
+    islands: {},
+    routes: {},
+  };
 
   if (Deno.args.includes("build")) {
     const state = await getInternalFreshState(
       manifest,
       config ?? {},
     );
+    Object.defineProperty(state, "manifest", {
+      get() {
+        console.trace("get");
+        return manifest;
+      },
+    });
     state.config.dev = false;
     state.loadSnapshot = false;
     state.build = true;

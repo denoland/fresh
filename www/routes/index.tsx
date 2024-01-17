@@ -18,6 +18,8 @@ function isOpenGraphUA(header: string | null): boolean {
   return header.startsWith("Twitterbot") || header.startsWith("Slackbot");
 }
 
+console.log("IMPORTED");
+
 export const handler: Handlers = {
   GET(req, ctx) {
     const accept = req.headers.get("accept");

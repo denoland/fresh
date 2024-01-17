@@ -8,6 +8,7 @@ import { InternalFreshState } from "../server/types.ts";
 export async function build(
   state: InternalFreshState,
 ) {
+  console.log("BUILD");
   const outDir = state.config.build.outDir;
   const plugins = state.config.plugins;
 
