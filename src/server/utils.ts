@@ -6,9 +6,9 @@
  * @example
  * ```
  *  if (IS_BUILD_MODE) {
- *    console.log('This is code run during bulid!');
+ *    console.log('This is code run during build!');
  *  } else {
- *    console.log('This is code run without bulid!');
+ *    console.log('This is code run without build!');
  *  }
  * ```
  *
