@@ -66,6 +66,7 @@ export type {
 export { RenderContext } from "./render.ts";
 export type { InnerRenderFunction } from "./render.ts";
 export type { DestinationKind } from "./router.ts";
+export { IS_BUILDING } from "./utils.ts";
 
 export interface Manifest {
   routes: Record<
