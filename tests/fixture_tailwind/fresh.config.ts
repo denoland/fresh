@@ -16,7 +16,7 @@ export default defineConfig({
           component: PluginComponent,
         },
       ],
-      location: import.meta.url
+      location: import.meta.url,
     },
   ],
 });
