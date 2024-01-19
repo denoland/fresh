@@ -5,7 +5,7 @@
  *
  * @example
  * ```
- *  if (IS_BUILDING) {
+ *  if (IS_BUILD_MODE) {
  *    console.log('This is code run during bulid!');
  *  } else {
  *    console.log('This is code run without bulid!');
@@ -14,4 +14,4 @@
  *
  * Use this to restrict aspects of code from running during ahead of time builds.
  */
-export const IS_BUILDING = Deno.args.includes("build");
+export const IS_BUILD_MODE = Deno.args.includes("build");
