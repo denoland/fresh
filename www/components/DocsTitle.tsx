@@ -1,9 +1,9 @@
-export default function DocsTitle(props: { title: string }) {
+export default function DocsTitle() {
   return (
     <>
       <a
         href="/"
-        class="text(2xl gray-900) flex items-center"
+        class="text-2xl text-gray-900 flex items-center"
         aria-label="Top Page"
       >
         <svg

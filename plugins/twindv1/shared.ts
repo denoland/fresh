@@ -1,11 +1,18 @@
 import { JSX, options as preactOptions, VNode } from "preact";
-import { setup as twSetup, Sheet, tw, TwindConfig } from "../twindv1_deps.ts";
+import {
+  BaseTheme,
+  setup as twSetup,
+  Sheet,
+  tw,
+  TwindConfig,
+} from "$fresh/plugins/twindv1_deps.ts";
 
 type PreactOptions = typeof preactOptions & { __b?: (vnode: VNode) => void };
 
 export const STYLE_ELEMENT_ID = "__FRSH_TWIND";
 
-export interface Options extends TwindConfig {
+export interface Options<Theme extends BaseTheme = BaseTheme>
+  extends TwindConfig<Theme> {
   /** The import.meta.url of the module defining these options. */
   selfURL: string;
 }
@@ -19,7 +26,10 @@ declare module "preact" {
   }
 }
 
-export function setup({ selfURL: _selfURL, ...config }: Options, sheet: Sheet) {
+export function setup<Theme extends BaseTheme = BaseTheme>(
+  { selfURL: _selfURL, ...config }: Options<Theme>,
+  sheet: Sheet,
+) {
   twSetup(config, sheet);
 
   // Hook into options._diff which is called whenever a new comparison
@@ -38,6 +48,7 @@ export function setup({ selfURL: _selfURL, ...config }: Options, sheet: Sheet) {
       }
       if (props.className) {
         classes.push(tw(props.className));
+        props.className = undefined;
       }
       if (classes.length) {
         props.class = classes.join(" ");

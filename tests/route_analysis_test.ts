@@ -1,9 +1,8 @@
 import { startFreshServerExpectErrors } from "./test_utils.ts";
 import { dirname, join } from "$std/path/mod.ts";
-import { assertStringIncludes } from "./deps.ts";
-import { ServerContext } from "$fresh/server.ts";
+import { assertEquals, assertStringIncludes } from "./deps.ts";
+import { ServerContext } from "../server.ts";
 import manifest from "./fixture/fresh.gen.ts";
-import { assertEquals } from "$std/testing/asserts.ts";
 
 const dir = dirname(import.meta.url);
 

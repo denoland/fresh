@@ -1,17 +1,17 @@
-import { assertEquals } from "$std/testing/asserts.ts";
+import { assertEquals } from "./deps.ts";
 import {
   assertTextMany,
-  fetchHtml,
+  parseHtml,
   waitForText,
-  withFresh,
+  withFakeServe,
   withPageName,
 } from "./test_utils.ts";
 
 Deno.test("applies only _layout file of one group", async () => {
-  await withFresh(
+  await withFakeServe(
     "./tests/fixture/main.ts",
-    async (address) => {
-      const doc = await fetchHtml(`${address}/route-groups`);
+    async (server) => {
+      const doc = await server.getHtml(`/route-groups`);
 
       assertTextMany(doc, "p", ["Foo layout", "Foo page"]);
     },
@@ -19,20 +19,20 @@ Deno.test("applies only _layout file of one group", async () => {
 });
 
 Deno.test("applies only _layout files in parent groups", async () => {
-  await withFresh(
+  await withFakeServe(
     "./tests/fixture/main.ts",
-    async (address) => {
-      const doc = await fetchHtml(`${address}/route-groups/baz`);
+    async (server) => {
+      const doc = await server.getHtml(`/route-groups/baz`);
       assertTextMany(doc, "p", ["Bar layout", "Baz layout", "Baz page"]);
     },
   );
 });
 
 Deno.test("applies only _layout files in parent groups #2", async () => {
-  await withFresh(
+  await withFakeServe(
     "./tests/fixture/main.ts",
-    async (address) => {
-      const doc = await fetchHtml(`${address}/route-groups/boof`);
+    async (server) => {
+      const doc = await server.getHtml(`/route-groups/boof`);
       assertTextMany(doc, "p", ["Bar layout", "Boof Page"]);
     },
   );
@@ -51,23 +51,35 @@ Deno.test("can co-locate islands inside routes folder", async () => {
 });
 
 Deno.test("does not treat files in (_islands) as routes", async () => {
-  await withFresh(
+  await withFakeServe(
     "./tests/fixture/main.ts",
-    async (address) => {
-      const res = await fetch(`${address}/route-groups-islands/invalid`);
+    async (server) => {
+      const res = await server.get(`/route-groups-islands/invalid`);
       assertEquals(res.status, 404);
-      res.body?.cancel();
+      await res.body?.cancel();
     },
   );
 });
 
 Deno.test("does not treat files in (_...) as routes", async () => {
-  await withFresh(
+  await withFakeServe(
     "./tests/fixture/main.ts",
-    async (address) => {
-      const res = await fetch(`${address}/route-groups-islands/sub`);
+    async (server) => {
+      const res = await server.get(`/route-groups-islands/sub`);
       assertEquals(res.status, 404);
-      res.body?.cancel();
+      await res.body?.cancel();
+    },
+  );
+});
+
+Deno.test("resolve index route in group /(group)/index.tsx", async () => {
+  await withFakeServe(
+    "./tests/fixture_group_index/main.ts",
+    async (server) => {
+      const res = await server.get(`/`);
+      assertEquals(res.status, 200);
+      const doc = parseHtml(await res.text());
+      assertEquals(doc.querySelector("h1")?.textContent, "it works");
     },
   );
 });

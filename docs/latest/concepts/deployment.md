@@ -35,8 +35,8 @@ caching **will** cause your project to not function correctly.
 
 Here is an example `Dockerfile` for a Fresh project:
 
-```dockerfile
-FROM denoland/deno:1.35.0
+```dockerfile Dockerfile
+FROM denoland/deno:1.38.3
 
 ARG GIT_REVISION
 ENV DENO_DEPLOYMENT_ID=${GIT_REVISION}
@@ -53,13 +53,13 @@ CMD ["run", "-A", "main.ts"]
 
 To build your Docker image inside of a Git repository:
 
-```sh
+```sh Terminal
 $ docker build --build-arg GIT_REVISION=$(git rev-parse HEAD) -t my-fresh-app .
 ```
 
 Then run your Docker container:
 
-```sh
+```sh Terminal
 $ docker run -t -i -p 80:8000 my-fresh-app
 ```
 

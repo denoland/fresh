@@ -16,7 +16,7 @@ How can you modify your project to no longer use the current release, but
 instead this one particular commit? Just make the following changes to your
 `deno.json`:
 
-```diff
+```diff deno.json
      "update": "deno run -A -r https://fresh.deno.dev/update ."
    },
    "imports": {
@@ -24,7 +24,6 @@ instead this one particular commit? Just make the following changes to your
 +    "$fresh/": "https://raw.githubusercontent.com/denoland/fresh/the-particular-commit-hash-here/",
      "preact": "https://esm.sh/preact@10.15.1",
      "preact/": "https://esm.sh/preact@10.15.1/",
-     "preact-render-to-string": "https://esm.sh/*preact-render-to-string@6.1.0",
 ```
 
 ### Forked Fresh
@@ -34,7 +33,7 @@ worry, you can use the same approach to reference any branch in a fork as well.
 Here's an example of referencing a feature in a forked repository that hasn't
 been merged yet (at the time of writing this):
 
-```diff
+```diff deno.json
      "update": "deno run -A -r https://fresh.deno.dev/update ."
    },
    "imports": {
@@ -42,7 +41,6 @@ been merged yet (at the time of writing this):
 +    "$fresh/": "https://raw.githubusercontent.com/deer/fresh/state_in_props/",
      "preact": "https://esm.sh/preact@10.15.1",
      "preact/": "https://esm.sh/preact@10.15.1/",
-     "preact-render-to-string": "https://esm.sh/*preact-render-to-string@6.1.0",
 ```
 
 ## Creating a new project
@@ -55,13 +53,13 @@ create a test project based on your local changes.
 
 Instead of doing it like this:
 
-```sh
+```sh Terminal
 deno run -A -r https://fresh.deno.dev/
 ```
 
 do it like this:
 
-```sh
+```sh Terminal
 deno run -A -r path/to/fresh/init.ts
 ```
 
@@ -73,6 +71,6 @@ Of course there's no reason why you have to check out the Fresh source. You can
 create a project from the latest commit by combining the techniques on this page
 like this:
 
-```sh
+```sh Terminal
 deno run -A -r https://raw.githubusercontent.com/denoland/fresh/main/init.ts
 ```

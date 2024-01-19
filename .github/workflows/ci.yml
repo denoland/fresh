@@ -14,7 +14,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        deno: ["v1.x", "canary"]
+        deno: ["canary", "v1.x"]
         os: [macOS-latest, windows-latest, ubuntu-latest]
         include:
         - os: ubuntu-latest
@@ -26,7 +26,7 @@ jobs:
 
     steps:
       - name: Checkout repo
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Setup Deno
         uses: denoland/setup-deno@v1
@@ -40,7 +40,7 @@ jobs:
         run: deno lint
 
       - name: Spell-check
-        if: startsWith(matrix.os, 'ubuntu') && matrix.deno == 'canary'
+        if: startsWith(matrix.os, 'ubuntu') && matrix.deno == 'v1.x'
         uses: crate-ci/typos@master
 
       - name: Cache dependencies and Chrome
@@ -60,4 +60,4 @@ jobs:
         run: deno task check:types
 
       - name: Run tests
-        run: deno test -A --parallel
+        run: deno task test

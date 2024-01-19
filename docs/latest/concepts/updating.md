@@ -41,8 +41,8 @@ recommended patterns for Fresh projects.
 To run the auto updater, run the following command from the root of your
 project:
 
-```bash
-$ deno run -A -r https://fresh.deno.dev/update .
+```sh Terminal
+$ deno run -A -r https://fresh.deno.dev/update
 ```
 
 You will be prompted to confirm the changes that will be made to your project.
@@ -54,7 +54,7 @@ file in the root of your projects directory. Dependency versions are encoded
 into the URLs in this file. For example, here is how to update a project from
 Fresh 1.0.2 to 1.1.3, and update Preact to the latest version:
 
-```diff
+```diff deno.json
   {
     "imports": {
 -     "$fresh/": "https://deno.land/x/fresh@1.0.2/",

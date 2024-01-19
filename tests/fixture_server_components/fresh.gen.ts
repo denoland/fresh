@@ -2,29 +2,30 @@
 // This file SHOULD be checked into source version control.
 // This file is automatically updated during development when running `dev.ts`.
 
-import * as $0 from "./routes/basic.tsx";
-import * as $1 from "./routes/context/[id].tsx";
-import * as $2 from "./routes/fail.tsx";
-import * as $3 from "./routes/index.tsx";
-import * as $4 from "./routes/island.tsx";
-import * as $5 from "./routes/response.tsx";
-import * as $6 from "./routes/twind.tsx";
-import * as $$0 from "./islands/FooIsland.tsx";
+import * as $basic from "./routes/basic.tsx";
+import * as $context_id_ from "./routes/context/[id].tsx";
+import * as $fail from "./routes/fail.tsx";
+import * as $index from "./routes/index.tsx";
+import * as $island from "./routes/island.tsx";
+import * as $response from "./routes/response.tsx";
+import * as $twind from "./routes/twind.tsx";
+import * as $FooIsland from "./islands/FooIsland.tsx";
+import { type Manifest } from "$fresh/server.ts";
 
 const manifest = {
   routes: {
-    "./routes/basic.tsx": $0,
-    "./routes/context/[id].tsx": $1,
-    "./routes/fail.tsx": $2,
-    "./routes/index.tsx": $3,
-    "./routes/island.tsx": $4,
-    "./routes/response.tsx": $5,
-    "./routes/twind.tsx": $6,
+    "./routes/basic.tsx": $basic,
+    "./routes/context/[id].tsx": $context_id_,
+    "./routes/fail.tsx": $fail,
+    "./routes/index.tsx": $index,
+    "./routes/island.tsx": $island,
+    "./routes/response.tsx": $response,
+    "./routes/twind.tsx": $twind,
   },
   islands: {
-    "./islands/FooIsland.tsx": $$0,
+    "./islands/FooIsland.tsx": $FooIsland,
   },
   baseUrl: import.meta.url,
-};
+} satisfies Manifest;
 
 export default manifest;

@@ -13,10 +13,8 @@ the web page. Some uses include:
 - Linking to resources like stylesheets using `<link>`
 - Including third-party JavaScript code using `<script>`
 
-```tsx
-// routes/index.tsx
+```tsx routes/index.tsx
 import { Head } from "$fresh/runtime.ts";
-import Counter from "../islands/Counter.tsx";
 
 export default function Home() {
   return (
@@ -38,3 +36,44 @@ export default function Home() {
   );
 }
 ```
+
+## Avoiding duplicate tags
+
+You might end up with duplicate tags, when multiple `<Head />` components are
+rendered on the same page. This can happen when you render `<Head />` in a route
+and another `<Head />` in another component for example.
+
+```tsx
+// routes/page-a.tsx
+<Head>
+  <meta name="og:title" content="This is a title" />
+</Head>
+
+// components/MyTitle.tsx
+<Head>
+  <meta name="og:title" content="Other title" />
+</Head>
+```
+
+To ensure that the tag is not duplicated, Fresh supports setting the `key` prop.
+By giving matching elements the same `key` prop, only the last one will be
+rendered.
+
+```diff
+  // routes/page-a.tsx
+  <Head>
+-   <meta name="og:title" content="This is a title" />
++   <meta name="og:title" content="This is a title" key="title" />
+  </Head>
+
+  // components/MyTitle.tsx
+  <Head>
+-   <meta name="og:title" content="Other title" />
++   <meta name="og:title" content="Other title" key="title" />
+  </Head>
+```
+
+The rendered page will only include the `<meta>`-tag with `"Other title"`.
+
+> [info]: The `<title>`-tag is automatically deduplicated, even without a `key`
+> prop.

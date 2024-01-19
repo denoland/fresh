@@ -8,7 +8,7 @@ The next step after scaffolding out a new project, is to actually start it. To
 do this you can just `deno task start`. Environment variables will be
 automatically read from `.env`.
 
-```
+```sh Terminal
 $ deno task start
 Watcher Process started.
  🍋 Fresh ready
@@ -35,22 +35,22 @@ passing the extra folder as an argument: `--watch=static/`. You should also add
 `routes/` to the watch list, so that the server restarts automatically whenever
 you add a new route.
 
-If you want to change the port or host, modify the options bag of the `start()`
+If you want to change the port or host, modify the config bag of the `start()`
 call in `main.ts` to include an explicit port number:
 
-```js
-await start(manifest, { port: 3000 });
+```js main.ts
+await start(manifest, { server: { port: 3000 } });
 ```
 
 You can also change the port by setting the `PORT` environment variable:
 
-```
+```sh Terminal
 $ PORT=3000 deno task start
 ```
 
 Combining all of this we get the following `deno run` command:
 
-```
+```sh Terminal
 $ deno run --allow-net --allow-read --allow-env --allow-run --watch=static/,routes/ main.ts
 Watcher Process started.
  🍋 Fresh ready

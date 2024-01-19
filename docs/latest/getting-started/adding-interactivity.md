@@ -1,7 +1,7 @@
 ---
 description: |
   Add JavaScript based interactivity to your project without sacrificing user
-  experience, by using Fresh's powerful islands system. 
+  experience, by using Fresh's powerful islands system.
 ---
 
 Up to now none of the pages in the demo project have contained any client side
@@ -28,9 +28,7 @@ component. For example a counter component would be defined in the file
 
 Here is an example of an island component that counts down to a specific time.
 
-```tsx
-// islands/Countdown.tsx
-
+```tsx islands/Countdown.tsx
 import { useSignal } from "@preact/signals";
 import { useEffect } from "preact/hooks";
 
@@ -73,9 +71,7 @@ To include this in a page component, one can just use the component normally.
 Fresh will take care of automatically mounting the island component on the
 client with the correct props:
 
-```tsx
-// routes/countdown.tsx
-
+```tsx routes/countdown.tsx
 import Countdown from "../islands/Countdown.tsx";
 
 export default function Page() {

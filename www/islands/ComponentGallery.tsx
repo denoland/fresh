@@ -106,8 +106,7 @@ export default function ComponentGallery(props: ComponentGalleryProps) {
       </Section>
 
       <Section title="Footer" source={props.sources.Footer}>
-        <Footer>
-        </Footer>
+        <Footer />
       </Section>
 
       <Section title="Hero" source={props.sources.Hero}>

@@ -14,8 +14,7 @@ The following file uses
 [dynamic routing](https://fresh.deno.dev/docs/getting-started/dynamic-routes) to
 handle the three cases. It's assumed this file is called `[slug].tsx`:
 
-```ts
-// routes/[slug].tsx
+```ts routes/[slug].tsx
 import { Handlers, PageProps } from "$fresh/server.ts";
 import { extract } from "$std/front_matter/yaml.ts";
 import { CSS, render } from "$gfm";
@@ -31,7 +30,7 @@ export const handler: Handlers<Page> = {
     let rawMarkdown = "";
     if (ctx.params.slug === "remote") {
       const resp = await fetch(
-        `https://raw.githubusercontent.com/denoland/fresh/main/docs/introduction/index.md`,
+        `https://raw.githubusercontent.com/denoland/fresh/main/docs/latest/introduction/index.md`,
       );
       if (resp.status !== 200) {
         return ctx.render(undefined);
@@ -81,7 +80,7 @@ export default function MarkdownPage({ data }: PageProps<Page | null>) {
 
 The contents of the `text.md` file are the following:
 
-```md
+```md text.md
 ---
 description: testFromText
 ---
