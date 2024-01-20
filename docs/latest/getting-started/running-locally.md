@@ -39,7 +39,7 @@ If you want to change the port or host, modify the config bag of the `start()`
 call in `main.ts` to include an explicit port number:
 
 ```js main.ts
-await start(manifest, { port: 3000 });
+await start(manifest, { server: { port: 3000 } });
 ```
 
 You can also change the port by setting the `PORT` environment variable:

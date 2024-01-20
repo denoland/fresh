@@ -18,8 +18,8 @@ Deno.test("doesn't leak data across renderers", async () => {
     const resp = await handler(req);
     const doc = parseHtml(await resp.text());
 
-    assertSelector(doc, "#__FRSH_STATE");
-    const text = doc.querySelector("#__FRSH_STATE")?.textContent!;
+    assertSelector(doc, "[id^=__FRSH_STATE]");
+    const text = doc.querySelector("[id^=__FRSH_STATE]")?.textContent!;
     const json = JSON.parse(text);
     assertEquals(json, { "v": [[{ "site": name }], []] });
   }
