@@ -119,6 +119,7 @@ export interface ResolvedFreshConfig {
   router?: RouterOptions;
   server: Partial<Deno.ServeTlsOptions>;
   basePath: string;
+  denoJsonPath: string;
 }
 
 export interface RouterOptions {

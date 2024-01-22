@@ -94,6 +94,7 @@ export async function getInternalFreshState(
     router: config.router,
     server: config.server ?? {},
     basePath,
+    denoJsonPath,
   };
 
   if (config.cert) {

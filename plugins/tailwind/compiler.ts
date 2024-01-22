@@ -66,7 +66,9 @@ export async function initTailwind(
     return pattern;
   });
 
-  const imports = (readDenoConfig()?.imports ?? []) as Record<string, string>;
+  const imports =
+    (await import(config.denoJsonPath, { with: { type: "json" } }))
+      .default.imports as Record<string, string>;
   for (const plugin of config.plugins ?? []) {
     if (!plugin.location) continue;
     // if the plugin is declared in a separate place than the project, the plugin developer should have specified a projectLocation
@@ -98,41 +100,21 @@ export async function initTailwind(
   return postcss(plugins);
 }
 
-const fileTypes = [".tsx"];
-
 function extractSpecifiers(graph: ModuleGraphJson, projectLocation: string) {
-  const specifiers: Set<string> = new Set();
-
-  for (const module of graph.modules) {
-    if (
-      fileTypes.some((type) =>
-        module.specifier.endsWith(type) &&
-        module.specifier.startsWith(path.dirname(projectLocation))
-      )
-    ) {
-      specifiers.add(module.specifier);
-    }
-  }
-  return Array.from(specifiers);
-}
-
-function readDenoConfig() {
-  try {
-    const configText = Deno.readTextFileSync("./deno.json");
-    const config = JSON.parse(configText);
-    return config;
-  } catch (err) {
-    console.error("Error reading deno.json:", err);
-    return null;
-  }
+  return graph.modules
+    .filter((module) =>
+      module.specifier.endsWith(".tsx") &&
+      module.specifier.startsWith(path.dirname(projectLocation))
+    )
+    .map((module) => module.specifier);
 }
 
 function createCustomResolver(imports: Record<string, string>) {
-  return function customResolve(specifier: string, referrer: string): string {
-    for (const [key, value] of Object.entries(imports)) {
+  return (specifier: string, referrer: string) => {
+    for (const key of Object.keys(imports)) {
       if (specifier.startsWith(key)) {
-        const mappedPath = specifier.replace(key, value);
-        return new URL(mappedPath, referrer).toString();
+        specifier = specifier.replace(key, imports[key]);
+        break;
       }
     }
     return new URL(specifier, referrer).toString();
