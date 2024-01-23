@@ -1,4 +1,4 @@
-import { assertEquals } from "./deps.ts";
+import { assertEquals, join } from "./deps.ts";
 import {
   assertSelector,
   assertTextMany,
@@ -93,8 +93,12 @@ Deno.test("passes context to server component", async () => {
                 "safari15",
               ],
             },
-            denoJsonPath:
-              `${Deno.cwd()}/tests/fixture_server_components/deno.json`,
+            denoJsonPath: join(
+              Deno.cwd(),
+              "tests",
+              "fixture_server_components",
+              "deno.json",
+            ),
             dev: false,
             plugins: [
               { entrypoints: {}, name: "twind", renderAsync: "AsyncFunction" },

@@ -8,7 +8,7 @@ import { TailwindPluginOptions } from "./types.ts";
 import {
   createGraph,
   type ModuleGraphJson,
-} from "https://deno.land/x/deno_graph@0.63.3/mod.ts";
+} from "https://deno.land/x/deno_graph@0.63.5/mod.ts";
 
 const CONFIG_EXTENSIONS = ["ts", "js", "mjs"];
 
@@ -66,9 +66,10 @@ export async function initTailwind(
     return pattern;
   });
 
-  const imports =
-    (await import(config.denoJsonPath, { with: { type: "json" } }))
-      .default.imports as Record<string, string>;
+  const imports = (await import(path.toFileUrl(config.denoJsonPath).href, {
+    with: { type: "json" },
+  }))
+    .default.imports as Record<string, string>;
   for (const plugin of config.plugins ?? []) {
     if (!plugin.location) continue;
     // if the plugin is declared in a separate place than the project, the plugin developer should have specified a projectLocation
