@@ -1,3 +1,4 @@
+// deno-lint-ignore-file ban-unknown-rule-code ban-unused-ignore
 import "../polyfills.ts";
 import {
   Component,
