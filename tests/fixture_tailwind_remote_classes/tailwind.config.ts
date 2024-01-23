@@ -2,6 +2,6 @@ import { Config } from "tailwindcss";
 
 export default {
   content: [
-    "{routes,islands,components}/**/*.{ts,tsx}",
+    "{routes,islands}/**/*.{ts,tsx}", // deliberately ignore components
   ],
 } satisfies Config;
