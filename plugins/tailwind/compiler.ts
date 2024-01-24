@@ -74,9 +74,10 @@ export async function initTailwind(
     if (!plugin.location) continue;
     // if the plugin is declared in a separate place than the project, the plugin developer should have specified a projectLocation
     // otherwise, we assume the plugin is in the same directory as the project
-    const projectLocation = plugin.projectLocation ?? plugin.location;
+    const projectLocation = plugin.projectLocation ??
+      path.dirname(plugin.location);
     const moduleGraph = await createGraph(plugin.location, {
-      resolve: createCustomResolver(imports),
+      resolve: createCustomResolver(imports, projectLocation),
     });
 
     for (const file of extractSpecifiers(moduleGraph, projectLocation)) {
@@ -110,11 +111,23 @@ function extractSpecifiers(graph: ModuleGraphJson, projectLocation: string) {
     .map((module) => module.specifier);
 }
 
-function createCustomResolver(imports: Record<string, string>) {
+function createCustomResolver(
+  imports: Record<string, string>,
+  projectLocation: string,
+) {
+  const projectPath = path.fromFileUrl(projectLocation);
   return (specifier: string, referrer: string) => {
     for (const key of Object.keys(imports)) {
       if (specifier.startsWith(key)) {
-        specifier = specifier.replace(key, imports[key]);
+        if (imports[key] === "./") {
+          const modifiedPath = path.join(
+            projectPath,
+            specifier.replace(key, ""),
+          );
+          return path.toFileUrl(modifiedPath).href;
+        } else {
+          specifier = specifier.replace(key, imports[key]);
+        }
         break;
       }
     }
