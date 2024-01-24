@@ -115,7 +115,10 @@ function createCustomResolver(
   imports: Record<string, string>,
   projectLocation: string,
 ) {
-  const projectPath = path.fromFileUrl(projectLocation);
+  const isLocal = projectLocation.startsWith("file://");
+  const projectPath = isLocal
+    ? path.fromFileUrl(projectLocation)
+    : projectLocation;
   return (specifier: string, referrer: string) => {
     for (const key of Object.keys(imports)) {
       if (specifier.startsWith(key)) {
