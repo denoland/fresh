@@ -1,3 +1,3 @@
-export default function PluginComponent() {
-  return <div class="text-slate-500">PluginComponent</div>;
+export default function AtPluginComponent() {
+  return <div class="text-slate-500">AtPluginComponent</div>;
 }

@@ -1,3 +1,3 @@
 export default function NestedPluginComponent() {
-  return <div class="text-amber-500">PluginComponent</div>;
+  return <div class="text-amber-500">NestedPluginComponent</div>;
 }

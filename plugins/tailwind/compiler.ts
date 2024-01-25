@@ -118,7 +118,8 @@ export async function initTailwind(
 function extractSpecifiers(graph: ModuleGraphJson, projectLocation: string) {
   return graph.modules
     .filter((module) =>
-      module.specifier.endsWith(".tsx") &&
+      (module.specifier.endsWith(".tsx") ||
+        module.specifier.endsWith(".jsx")) &&
       module.specifier.startsWith(path.dirname(projectLocation))
     )
     .map((module) => module.specifier);
@@ -129,10 +130,7 @@ function createCustomResolver(
   baseURL: URL,
 ) {
   return (specifier: string, referrer: string) => {
-    if (
-      specifier.startsWith("./") || specifier.startsWith("../") ||
-      specifier.startsWith("../../")
-    ) {
+    if (/^(?:\.\.\/)+|^\.\//.test(specifier)) {
       return path.join(path.dirname(referrer), specifier);
     }
     return resolveModuleSpecifier(specifier, imports, baseURL);
