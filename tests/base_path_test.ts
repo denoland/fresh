@@ -116,7 +116,7 @@ Deno.test("rewrites root relative URLs in HTML", async () => {
 
     const style = await page.$eval(
       ".foo",
-      (el) => window.getComputedStyle(el).color,
+      (el) => globalThis.getComputedStyle(el).color,
     );
     assertMatch(
       style,
