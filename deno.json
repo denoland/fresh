@@ -19,5 +19,8 @@
   "compilerOptions": {
     "jsx": "react-jsx",
     "jsxImportSource": "preact"
+  },
+  "lint": {
+    "rules": { "exclude": ["no-window"] }
   }
 }
