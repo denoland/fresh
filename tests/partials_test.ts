@@ -1204,7 +1204,7 @@ Deno.test("fragment navigation should not scroll to top", async () => {
       await page.click("a");
       await page.waitForFunction(() => location.hash === "#foo");
 
-      const scroll = await page.evaluate(() => window.scrollY);
+      const scroll = await page.evaluate(() => globalThis.scrollY);
       assert(scroll > 0, `Did not scroll to fragment`);
     },
   );
@@ -1332,12 +1332,12 @@ Deno.test("merges <head> content", async () => {
       assertMetaContent(doc, "og:bar", "og value bar");
 
       const color = await page.$eval("h1", (el) => {
-        return window.getComputedStyle(el).color;
+        return globalThis.getComputedStyle(el).color;
       });
       assertEquals(color, "rgb(255, 0, 0)");
 
       const textColor = await page.$eval("p", (el) => {
-        return window.getComputedStyle(el).color;
+        return globalThis.getComputedStyle(el).color;
       });
       assertEquals(textColor, "rgb(0, 128, 0)");
     },

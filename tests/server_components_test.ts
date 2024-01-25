@@ -157,7 +157,7 @@ Deno.test({
 
         // Check that CSS was applied accordingly
         const color = await page.$eval("h1", (el) => {
-          return window.getComputedStyle(el).color;
+          return globalThis.getComputedStyle(el).color;
         });
         assertEquals(color, "rgb(220, 38, 38)");
       },

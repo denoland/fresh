@@ -1,3 +1,4 @@
+// deno-lint-ignore-file ban-unknown-rule-code ban-unused-ignore
 import "../polyfills.ts";
 import {
   Component,
@@ -111,6 +112,7 @@ export function revive(
       );
     };
 
+    // deno-lint-ignore no-window
     "scheduler" in window
       // `scheduler.postTask` is async but that can easily
       // fire in the background. We don't want waiting for
@@ -892,11 +894,11 @@ function maybeUpdateHistory(nextUrl: URL) {
   // Only add history entry when URL is new. Still apply
   // the partials because sometimes users click a link to
   // "refresh" the current page.
-  if (nextUrl.href !== window.location.href) {
+  if (nextUrl.href !== globalThis.location.href) {
     const state: FreshHistoryState = {
       index,
-      scrollX: window.scrollX,
-      scrollY: window.scrollY,
+      scrollX: globalThis.scrollX,
+      scrollY: globalThis.scrollY,
     };
 
     // Store current scroll position

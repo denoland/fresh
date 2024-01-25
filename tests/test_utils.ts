@@ -459,7 +459,7 @@ export async function waitForStyle(
       (s, n, v) => {
         const el = document.querySelector(s);
         if (!el) return false;
-        return window.getComputedStyle(el)[n] === v;
+        return globalThis.getComputedStyle(el)[n] === v;
       },
       selector,
       name,
