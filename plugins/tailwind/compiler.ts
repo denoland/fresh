@@ -9,6 +9,11 @@ import {
   createGraph,
   type ModuleGraphJson,
 } from "https://deno.land/x/deno_graph@0.63.5/mod.ts";
+import {
+  type ImportMap,
+  resolveImportMap,
+  resolveModuleSpecifier,
+} from "https://deno.land/x/importmap@0.2.1/mod.ts";
 
 const CONFIG_EXTENSIONS = ["ts", "js", "mjs"];
 
@@ -76,8 +81,16 @@ export async function initTailwind(
     // otherwise, we assume the plugin is in the same directory as the project
     const projectLocation = plugin.projectLocation ??
       path.dirname(plugin.location);
+    const resolvedImports = resolveImportMap(
+      { imports },
+      path.toFileUrl(config.denoJsonPath),
+    );
+
     const moduleGraph = await createGraph(plugin.location, {
-      resolve: createCustomResolver(imports, projectLocation),
+      resolve: createCustomResolver(
+        resolvedImports,
+        new URL(plugin.location),
+      ),
     });
 
     for (const file of extractSpecifiers(moduleGraph, projectLocation)) {
@@ -112,28 +125,16 @@ function extractSpecifiers(graph: ModuleGraphJson, projectLocation: string) {
 }
 
 function createCustomResolver(
-  imports: Record<string, string>,
-  projectLocation: string,
+  imports: ImportMap,
+  baseURL: URL,
 ) {
-  const isLocal = projectLocation.startsWith("file://");
-  const projectPath = isLocal
-    ? path.fromFileUrl(projectLocation)
-    : projectLocation;
   return (specifier: string, referrer: string) => {
-    for (const key of Object.keys(imports)) {
-      if (specifier.startsWith(key)) {
-        if (imports[key] === "./") {
-          const modifiedPath = path.join(
-            projectPath,
-            specifier.replace(key, ""),
-          );
-          return path.toFileUrl(modifiedPath).href;
-        } else {
-          specifier = specifier.replace(key, imports[key]);
-        }
-        break;
-      }
+    if (
+      specifier.startsWith("./") || specifier.startsWith("../") ||
+      specifier.startsWith("../../")
+    ) {
+      return path.join(path.dirname(referrer), specifier);
     }
-    return new URL(specifier, referrer).toString();
+    return resolveModuleSpecifier(specifier, imports, baseURL);
   };
 }

@@ -132,6 +132,7 @@ Deno.test("TailwindCSS remote classes", async () => {
       assertStringIncludes(content, ".text-purple-500");
       assertStringIncludes(content, ".text-amber-500");
       assertStringIncludes(content, ".text-slate-500");
+      assertStringIncludes(content, ".text-lime-500");
     },
     { loadConfig: true },
   );

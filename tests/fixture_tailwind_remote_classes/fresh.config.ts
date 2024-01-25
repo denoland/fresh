@@ -1,24 +1,14 @@
-import { defineConfig } from "$fresh/server.ts";
+import { defineConfig, Plugin } from "$fresh/server.ts";
 import tailwind from "$fresh/plugins/tailwind.ts";
-import PluginComponent from "./components/PluginComponent.tsx";
+import { basicPlugin } from "./basicPlugin.ts";
 import { nestedPlugin } from "./plugins/nestedPlugin.ts";
+import { hackyRemotePlugin } from "https://raw.githubusercontent.com/denoland/fresh/727d0e729e154323b99b319c04f9805f382949f0/tests/fixture_tailwind_remote_classes/hackyRemotePlugin.tsx";
 
 export default defineConfig({
   plugins: [
     tailwind(),
-    {
-      name: "dummy plugin",
-      routes: [
-        {
-          path: "routeFromPlugin",
-          handler: (_req, ctx) => {
-            return ctx.render();
-          },
-          component: PluginComponent,
-        },
-      ],
-      location: import.meta.url,
-    },
+    basicPlugin,
     nestedPlugin,
+    hackyRemotePlugin as Plugin,
   ],
 });
