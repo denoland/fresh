@@ -190,3 +190,26 @@ export default function myIslandPlugin(): Plugin {
   };
 }
 ```
+
+In addition, you can also specify an array of islands in your plugin configuration, 
+enabling inclusion of islands from shared libraries.
+
+import { Plugin } from "$fresh/server.ts";
+import { loadSharedIslands } from "some-other-library";
+
+export default function myIslandPlugin(): Plugin {
+  return {
+    name: "my-island-plugin",
+    islands: [
+      ...loadSharedIslands(),
+      {
+        baseLocation: import.meta.url,
+        paths: [
+          "./plugin/MyPluginIsland.tsx",
+          "./plugin/OtherPluginIsland.tsx",
+        ],
+      }
+    ],
+  };
+}
+```
