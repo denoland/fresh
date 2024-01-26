@@ -10,10 +10,9 @@ import {
   type ModuleGraphJson,
 } from "https://deno.land/x/deno_graph@0.63.5/mod.ts";
 import {
-  type ImportMap,
-  resolveImportMap,
-  resolveModuleSpecifier,
-} from "https://deno.land/x/importmap@0.2.1/mod.ts";
+  ImportMap,
+  parseFromJson,
+} from "https://deno.land/x/import_map@v0.15.0/mod.ts";
 
 const CONFIG_EXTENSIONS = ["ts", "js", "mjs"];
 
@@ -73,24 +72,20 @@ export async function initTailwind(
 
   const imports = (await import(path.toFileUrl(config.denoJsonPath).href, {
     with: { type: "json" },
-  }))
-    .default.imports as Record<string, string>;
+  })).default;
   for (const plugin of config.plugins ?? []) {
     if (!plugin.location) continue;
     // if the plugin is declared in a separate place than the project, the plugin developer should have specified a projectLocation
     // otherwise, we assume the plugin is in the same directory as the project
     const projectLocation = plugin.projectLocation ??
       path.dirname(plugin.location);
-    const resolvedImports = resolveImportMap(
-      { imports },
+    const resolvedImports = await parseFromJson(
       path.toFileUrl(config.denoJsonPath),
+      imports,
     );
 
     const moduleGraph = await createGraph(plugin.location, {
-      resolve: createCustomResolver(
-        resolvedImports,
-        new URL(plugin.location),
-      ),
+      resolve: createCustomResolver(resolvedImports),
     });
 
     for (const file of extractSpecifiers(moduleGraph, projectLocation)) {
@@ -120,19 +115,13 @@ function extractSpecifiers(graph: ModuleGraphJson, projectLocation: string) {
     .filter((module) =>
       (module.specifier.endsWith(".tsx") ||
         module.specifier.endsWith(".jsx")) &&
-      module.specifier.startsWith(path.dirname(projectLocation))
+      module.specifier.startsWith(projectLocation)
     )
     .map((module) => module.specifier);
 }
 
-function createCustomResolver(
-  imports: ImportMap,
-  baseURL: URL,
-) {
+function createCustomResolver(imports: ImportMap) {
   return (specifier: string, referrer: string) => {
-    if (/^(?:\.\.\/)+|^\.\//.test(specifier)) {
-      return path.join(path.dirname(referrer), specifier);
-    }
-    return resolveModuleSpecifier(specifier, imports, baseURL);
+    return imports.resolve(specifier, referrer);
   };
 }
