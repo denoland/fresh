@@ -6,9 +6,6 @@ export const basicPlugin = {
   routes: [
     {
       path: "routeFromPlugin",
-      handler: (_req, ctx) => {
-        return ctx.render();
-      },
       component: PluginComponent,
     },
   ],

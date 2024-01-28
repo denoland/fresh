@@ -6,9 +6,6 @@ export const jsxPlugin = {
   routes: [
     {
       path: "routeFromJsxPlugin",
-      handler: (_req, ctx) => {
-        return ctx.render();
-      },
       component: JsxPluginComponent,
     },
   ],

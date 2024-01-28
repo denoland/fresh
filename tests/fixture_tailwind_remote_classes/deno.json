@@ -5,7 +5,6 @@
     "preact": "https://esm.sh/preact@10.15.1",
     "preact/": "https://esm.sh/preact@10.15.1/",
     "tailwindcss": "npm:tailwindcss@3.3.5",
-    "@/": "./",
     "@vscode_787_hack/": "./"
   },
   "compilerOptions": {

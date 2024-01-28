@@ -11,9 +11,6 @@ export const veryNestedPlugin = {
   projectLocation: currentUrl.href,
   routes: [{
     path: "routeFromVeryNestedPlugin",
-    handler: (_req, ctx) => {
-      return ctx.render();
-    },
     component: VeryNestedPluginComponent,
   }],
 } satisfies Plugin;

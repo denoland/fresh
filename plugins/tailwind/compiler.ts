@@ -74,7 +74,7 @@ export async function initTailwind(
     with: { type: "json" },
   })).default;
   for (const plugin of config.plugins ?? []) {
-    if (!plugin.location) continue;
+    if (plugin.location === undefined) continue;
     // if the plugin is declared in a separate place than the project, the plugin developer should have specified a projectLocation
     // otherwise, we assume the plugin is in the same directory as the project
     const projectLocation = plugin.projectLocation ??

@@ -12,15 +12,9 @@ export const nestedPlugin = {
   projectLocation: currentUrl.href,
   routes: [{
     path: "routeFromNestedPlugin",
-    handler: (_req, ctx) => {
-      return ctx.render();
-    },
     component: NestedPluginComponent,
   }, {
     path: "atRouteFromNestedPlugin",
-    handler: (_req, ctx) => {
-      return ctx.render();
-    },
     component: AtPluginComponent,
   }],
 } satisfies Plugin;
