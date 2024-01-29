@@ -9,7 +9,7 @@ import {
   createGraph,
   type ModuleGraphJson,
 } from "https://deno.land/x/deno_graph@0.63.5/mod.ts";
-import { parseFromJson } from "https://deno.land/x/import_map@v0.15.0/mod.ts";
+import { parseFromJson } from "https://deno.land/x/import_map@v0.18.3/mod.ts";
 
 const CONFIG_EXTENSIONS = ["ts", "js", "mjs"];
 
