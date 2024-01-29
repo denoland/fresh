@@ -9,10 +9,7 @@ import {
   createGraph,
   type ModuleGraphJson,
 } from "https://deno.land/x/deno_graph@0.63.5/mod.ts";
-import {
-  ImportMap,
-  parseFromJson,
-} from "https://deno.land/x/import_map@v0.15.0/mod.ts";
+import { parseFromJson } from "https://deno.land/x/import_map@v0.15.0/mod.ts";
 
 const CONFIG_EXTENSIONS = ["ts", "js", "mjs"];
 
@@ -85,7 +82,7 @@ export async function initTailwind(
     );
 
     const moduleGraph = await createGraph(plugin.location, {
-      resolve: createCustomResolver(resolvedImports),
+      resolve: resolvedImports.resolve.bind(resolvedImports),
     });
 
     for (const file of extractSpecifiers(moduleGraph, projectLocation)) {
@@ -118,10 +115,4 @@ function extractSpecifiers(graph: ModuleGraphJson, projectLocation: string) {
       module.specifier.startsWith(projectLocation)
     )
     .map((module) => module.specifier);
-}
-
-function createCustomResolver(imports: ImportMap) {
-  return (specifier: string, referrer: string) => {
-    return imports.resolve(specifier, referrer);
-  };
 }
