@@ -18,9 +18,12 @@ export function freshImports(imports: Record<string, string>) {
 }
 
 export function twindImports(imports: Record<string, string>) {
-  imports["@twind/core"] = `https://esm.sh/@twind/core@${RECOMMENDED_TWIND_CORE_VERSION}`;
-  imports["@twind/preset-tailwind"] = `https://esm.sh/@twind/preset-tailwind@${RECOMMENDED_TWIND_PRESET_TAILWIND_VERSION}/`;
-  imports["@twind/preset-autoprefix"] = `https://esm.sh/@twind/preset-autoprefix@${RECOMMENDED_TWIND_PRESET_AUTOPREFIX_VERSION}/`;
+  imports["@twind/core"] =
+    `https://esm.sh/@twind/core@${RECOMMENDED_TWIND_CORE_VERSION}`;
+  imports["@twind/preset-tailwind"] =
+    `https://esm.sh/@twind/preset-tailwind@${RECOMMENDED_TWIND_PRESET_TAILWIND_VERSION}/`;
+  imports["@twind/preset-autoprefix"] =
+    `https://esm.sh/@twind/preset-autoprefix@${RECOMMENDED_TWIND_PRESET_AUTOPREFIX_VERSION}/`;
 }
 
 export function tailwindImports(imports: Record<string, string>) {
