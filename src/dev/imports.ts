@@ -3,7 +3,7 @@ export const RECOMMENDED_PREACT_SIGNALS_VERSION = "1.2.1";
 export const RECOMMENDED_PREACT_SIGNALS_CORE_VERSION = "1.5.0";
 export const RECOMMENDED_TWIND_VERSION = "0.16.19";
 export const RECOMMENDED_STD_VERSION = "0.211.0";
-export const RECOMMENDED_TAILIWIND_VERSION = "3.3.5";
+export const RECOMMENDED_TAILIWIND_VERSION = "3.4.1";
 
 export function freshImports(imports: Record<string, string>) {
   imports["$fresh/"] = new URL("../../", import.meta.url).href;
