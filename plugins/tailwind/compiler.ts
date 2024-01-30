@@ -10,6 +10,7 @@ import {
   type ModuleGraphJson,
 } from "https://deno.land/x/deno_graph@0.63.5/mod.ts";
 import { parseFromJson } from "https://deno.land/x/import_map@v0.18.3/mod.ts";
+import { parse as jsoncParse } from "https://deno.land/std@0.213.0/jsonc/mod.ts";
 
 const CONFIG_EXTENSIONS = ["ts", "js", "mjs"];
 
@@ -67,9 +68,17 @@ export async function initTailwind(
     return pattern;
   });
 
-  const imports = (await import(path.toFileUrl(config.denoJsonPath).href, {
-    with: { type: "json" },
-  })).default;
+  let imports;
+  if (path.extname(config.denoJsonPath) === ".json") {
+    imports = (await import(path.toFileUrl(config.denoJsonPath).href, {
+      with: { type: "json" },
+    })).default;
+  } else if (path.extname(config.denoJsonPath) === ".jsonc") {
+    const fileContents = Deno.readTextFileSync(config.denoJsonPath);
+    imports = jsoncParse(fileContents);
+  } else {
+    throw Error("deno config must be either .json or .jsonc");
+  }
   for (const plugin of config.plugins ?? []) {
     if (plugin.location === undefined) continue;
     // if the plugin is declared in a separate place than the project, the plugin developer should have specified a projectLocation
