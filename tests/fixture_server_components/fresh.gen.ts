@@ -2,28 +2,20 @@
 // This file SHOULD be checked into source version control.
 // This file is automatically updated during development when running `dev.ts`.
 
-import * as $basic from "./routes/basic.tsx";
-import * as $context_id_ from "./routes/context/[id].tsx";
-import * as $fail from "./routes/fail.tsx";
-import * as $index from "./routes/index.tsx";
-import * as $island from "./routes/island.tsx";
-import * as $response from "./routes/response.tsx";
-import * as $twind from "./routes/twind.tsx";
-import * as $FooIsland from "./islands/FooIsland.tsx";
 import { type Manifest } from "$fresh/server.ts";
 
 const manifest = {
   routes: {
-    "./routes/basic.tsx": $basic,
-    "./routes/context/[id].tsx": $context_id_,
-    "./routes/fail.tsx": $fail,
-    "./routes/index.tsx": $index,
-    "./routes/island.tsx": $island,
-    "./routes/response.tsx": $response,
-    "./routes/twind.tsx": $twind,
+    "./routes/basic.tsx": await import("./routes/basic.tsx"),
+    "./routes/context/[id].tsx": await import("./routes/context/[id].tsx"),
+    "./routes/fail.tsx": await import("./routes/fail.tsx"),
+    "./routes/index.tsx": await import("./routes/index.tsx"),
+    "./routes/island.tsx": await import("./routes/island.tsx"),
+    "./routes/response.tsx": await import("./routes/response.tsx"),
+    "./routes/twind.tsx": await import("./routes/twind.tsx"),
   },
   islands: {
-    "./islands/FooIsland.tsx": $FooIsland,
+    "./islands/FooIsland.tsx": await import("./islands/FooIsland.tsx"),
   },
   baseUrl: import.meta.url,
 } satisfies Manifest;

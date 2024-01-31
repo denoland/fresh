@@ -2,17 +2,13 @@
 // This file SHOULD be checked into source version control.
 // This file is automatically updated during development when running `dev.ts`.
 
-import * as $_app from "./routes/_app.tsx";
-import * as $_layout from "./routes/_layout.tsx";
-import * as $index from "./routes/index.tsx";
-
 import { type Manifest } from "$fresh/server.ts";
 
 const manifest = {
   routes: {
-    "./routes/_app.tsx": $_app,
-    "./routes/_layout.tsx": $_layout,
-    "./routes/index.tsx": $index,
+    "./routes/_app.tsx": await import("./routes/_app.tsx"),
+    "./routes/_layout.tsx": await import("./routes/_layout.tsx"),
+    "./routes/index.tsx": await import("./routes/index.tsx"),
   },
   islands: {},
   baseUrl: import.meta.url,

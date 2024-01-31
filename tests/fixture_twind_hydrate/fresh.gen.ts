@@ -2,32 +2,36 @@
 // This file SHOULD be checked into source version control.
 // This file is automatically updated during development when running `dev.ts`.
 
-import * as $check_duplication from "./routes/check-duplication.tsx";
-import * as $insert_cssrules from "./routes/insert-cssrules.tsx";
-import * as $island_twind_layout from "./routes/island_twind/_layout.tsx";
-import * as $island_twind_blue from "./routes/island_twind/blue.tsx";
-import * as $island_twind_index from "./routes/island_twind/index.tsx";
-import * as $static from "./routes/static.tsx";
-import * as $unused from "./routes/unused.tsx";
-import * as $unused_tw from "./routes/unused_tw.tsx";
-import * as $CheckDuplication from "./islands/CheckDuplication.tsx";
-import * as $InsertCssrules from "./islands/InsertCssrules.tsx";
 import { type Manifest } from "$fresh/server.ts";
 
 const manifest = {
   routes: {
-    "./routes/check-duplication.tsx": $check_duplication,
-    "./routes/insert-cssrules.tsx": $insert_cssrules,
-    "./routes/island_twind/_layout.tsx": $island_twind_layout,
-    "./routes/island_twind/blue.tsx": $island_twind_blue,
-    "./routes/island_twind/index.tsx": $island_twind_index,
-    "./routes/static.tsx": $static,
-    "./routes/unused.tsx": $unused,
-    "./routes/unused_tw.tsx": $unused_tw,
+    "./routes/check-duplication.tsx": await import(
+      "./routes/check-duplication.tsx"
+    ),
+    "./routes/insert-cssrules.tsx": await import(
+      "./routes/insert-cssrules.tsx"
+    ),
+    "./routes/island_twind/_layout.tsx": await import(
+      "./routes/island_twind/_layout.tsx"
+    ),
+    "./routes/island_twind/blue.tsx": await import(
+      "./routes/island_twind/blue.tsx"
+    ),
+    "./routes/island_twind/index.tsx": await import(
+      "./routes/island_twind/index.tsx"
+    ),
+    "./routes/static.tsx": await import("./routes/static.tsx"),
+    "./routes/unused.tsx": await import("./routes/unused.tsx"),
+    "./routes/unused_tw.tsx": await import("./routes/unused_tw.tsx"),
   },
   islands: {
-    "./islands/CheckDuplication.tsx": $CheckDuplication,
-    "./islands/InsertCssrules.tsx": $InsertCssrules,
+    "./islands/CheckDuplication.tsx": await import(
+      "./islands/CheckDuplication.tsx"
+    ),
+    "./islands/InsertCssrules.tsx": await import(
+      "./islands/InsertCssrules.tsx"
+    ),
   },
   baseUrl: import.meta.url,
 } satisfies Manifest;

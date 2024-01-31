@@ -2,15 +2,12 @@
 // This file SHOULD be checked into source version control.
 // This file is automatically updated during development when running `dev.ts`.
 
-import * as $_middleware from "./routes/_middleware.ts";
-import * as $index from "./routes/index.tsx";
-
 import { type Manifest } from "$fresh/server.ts";
 
 const manifest = {
   routes: {
-    "./routes/_middleware.ts": $_middleware,
-    "./routes/index.tsx": $index,
+    "./routes/_middleware.ts": await import("./routes/_middleware.ts"),
+    "./routes/index.tsx": await import("./routes/index.tsx"),
   },
   islands: {},
   baseUrl: import.meta.url,

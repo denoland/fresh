@@ -2,38 +2,29 @@
 // This file SHOULD be checked into source version control.
 // This file is automatically updated during development when running `dev.ts`.
 
-import * as $_middleware from "./routes/_middleware.ts";
-import * as $a_b_b from "./routes/a/b/b.tsx";
-import * as $a_b_relative_index from "./routes/a/b/relative/index.tsx";
-import * as $api_base_handler from "./routes/api/base-handler.ts";
-import * as $api_index from "./routes/api/index.ts";
-import * as $api_rewrite from "./routes/api/rewrite.ts";
-import * as $baz_slug_ from "./routes/baz/[...slug].tsx";
-import * as $codeframe from "./routes/codeframe.tsx";
-import * as $error_boundary from "./routes/error_boundary.tsx";
-import * as $html from "./routes/html.tsx";
-import * as $index from "./routes/index.tsx";
-import * as $islands from "./routes/islands.tsx";
-import * as $Counter from "./islands/Counter.tsx";
 import { type Manifest } from "$fresh/server.ts";
 
 const manifest = {
   routes: {
-    "./routes/_middleware.ts": $_middleware,
-    "./routes/a/b/b.tsx": $a_b_b,
-    "./routes/a/b/relative/index.tsx": $a_b_relative_index,
-    "./routes/api/base-handler.ts": $api_base_handler,
-    "./routes/api/index.ts": $api_index,
-    "./routes/api/rewrite.ts": $api_rewrite,
-    "./routes/baz/[...slug].tsx": $baz_slug_,
-    "./routes/codeframe.tsx": $codeframe,
-    "./routes/error_boundary.tsx": $error_boundary,
-    "./routes/html.tsx": $html,
-    "./routes/index.tsx": $index,
-    "./routes/islands.tsx": $islands,
+    "./routes/_middleware.ts": await import("./routes/_middleware.ts"),
+    "./routes/a/b/b.tsx": await import("./routes/a/b/b.tsx"),
+    "./routes/a/b/relative/index.tsx": await import(
+      "./routes/a/b/relative/index.tsx"
+    ),
+    "./routes/api/base-handler.ts": await import(
+      "./routes/api/base-handler.ts"
+    ),
+    "./routes/api/index.ts": await import("./routes/api/index.ts"),
+    "./routes/api/rewrite.ts": await import("./routes/api/rewrite.ts"),
+    "./routes/baz/[...slug].tsx": await import("./routes/baz/[...slug].tsx"),
+    "./routes/codeframe.tsx": await import("./routes/codeframe.tsx"),
+    "./routes/error_boundary.tsx": await import("./routes/error_boundary.tsx"),
+    "./routes/html.tsx": await import("./routes/html.tsx"),
+    "./routes/index.tsx": await import("./routes/index.tsx"),
+    "./routes/islands.tsx": await import("./routes/islands.tsx"),
   },
   islands: {
-    "./islands/Counter.tsx": $Counter,
+    "./islands/Counter.tsx": await import("./islands/Counter.tsx"),
   },
   baseUrl: import.meta.url,
 } satisfies Manifest;

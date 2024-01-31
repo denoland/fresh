@@ -2,80 +2,83 @@
 // This file SHOULD be checked into source version control.
 // This file is automatically updated during development when running `dev.ts`.
 
-import * as $_app from "./routes/_app.tsx";
-import * as $_layout from "./routes/_layout.tsx";
-import * as $_middleware from "./routes/_middleware.ts";
-import * as $async_layout from "./routes/async/_layout.tsx";
-import * as $async_index from "./routes/async/index.tsx";
-import * as $async_redirect_layout from "./routes/async/redirect/_layout.tsx";
-import * as $async_redirect_index from "./routes/async/redirect/index.tsx";
-import * as $async_sub_layout from "./routes/async/sub/_layout.tsx";
-import * as $async_sub_index from "./routes/async/sub/index.tsx";
-import * as $dynamic_tenant_index from "./routes/dynamic/[tenant]/index.tsx";
-import * as $files_js_layout from "./routes/files/js/_layout.js";
-import * as $files_js_index from "./routes/files/js/index.js";
-import * as $files_jsx_layout from "./routes/files/jsx/_layout.jsx";
-import * as $files_jsx_index from "./routes/files/jsx/index.jsx";
-import * as $files_ts_layout from "./routes/files/ts/_layout.ts";
-import * as $files_ts_index from "./routes/files/ts/index.ts";
-import * as $files_tsx_layout from "./routes/files/tsx/_layout.tsx";
-import * as $files_tsx_index from "./routes/files/tsx/index.tsx";
-import * as $foo_layout from "./routes/foo/_layout.tsx";
-import * as $foo_bar from "./routes/foo/bar.tsx";
-import * as $foo_index from "./routes/foo/index.tsx";
-import * as $index from "./routes/index.tsx";
-import * as $other from "./routes/other.tsx";
-import * as $override_layout from "./routes/override/_layout.tsx";
-import * as $override_index from "./routes/override/index.tsx";
-import * as $override_layout_no_app_layout from "./routes/override/layout_no_app/_layout.tsx";
-import * as $override_layout_no_app_index from "./routes/override/layout_no_app/index.tsx";
-import * as $override_no_app from "./routes/override/no_app.tsx";
-import * as $override_no_layout from "./routes/override/no_layout.tsx";
-import * as $override_no_layout_no_app from "./routes/override/no_layout_no_app.tsx";
-import * as $skip_sub_layout from "./routes/skip/sub/_layout.tsx";
-import * as $skip_sub_index from "./routes/skip/sub/index.tsx";
-import * as $dynamic_tenant_islands_Counter from "./routes/dynamic/[tenant]/(_islands)/Counter.tsx";
 import { type Manifest } from "$fresh/server.ts";
 
 const manifest = {
   routes: {
-    "./routes/_app.tsx": $_app,
-    "./routes/_layout.tsx": $_layout,
-    "./routes/_middleware.ts": $_middleware,
-    "./routes/async/_layout.tsx": $async_layout,
-    "./routes/async/index.tsx": $async_index,
-    "./routes/async/redirect/_layout.tsx": $async_redirect_layout,
-    "./routes/async/redirect/index.tsx": $async_redirect_index,
-    "./routes/async/sub/_layout.tsx": $async_sub_layout,
-    "./routes/async/sub/index.tsx": $async_sub_index,
-    "./routes/dynamic/[tenant]/index.tsx": $dynamic_tenant_index,
-    "./routes/files/js/_layout.js": $files_js_layout,
-    "./routes/files/js/index.js": $files_js_index,
-    "./routes/files/jsx/_layout.jsx": $files_jsx_layout,
-    "./routes/files/jsx/index.jsx": $files_jsx_index,
-    "./routes/files/ts/_layout.ts": $files_ts_layout,
-    "./routes/files/ts/index.ts": $files_ts_index,
-    "./routes/files/tsx/_layout.tsx": $files_tsx_layout,
-    "./routes/files/tsx/index.tsx": $files_tsx_index,
-    "./routes/foo/_layout.tsx": $foo_layout,
-    "./routes/foo/bar.tsx": $foo_bar,
-    "./routes/foo/index.tsx": $foo_index,
-    "./routes/index.tsx": $index,
-    "./routes/other.tsx": $other,
-    "./routes/override/_layout.tsx": $override_layout,
-    "./routes/override/index.tsx": $override_index,
-    "./routes/override/layout_no_app/_layout.tsx":
-      $override_layout_no_app_layout,
-    "./routes/override/layout_no_app/index.tsx": $override_layout_no_app_index,
-    "./routes/override/no_app.tsx": $override_no_app,
-    "./routes/override/no_layout.tsx": $override_no_layout,
-    "./routes/override/no_layout_no_app.tsx": $override_no_layout_no_app,
-    "./routes/skip/sub/_layout.tsx": $skip_sub_layout,
-    "./routes/skip/sub/index.tsx": $skip_sub_index,
+    "./routes/_app.tsx": await import("./routes/_app.tsx"),
+    "./routes/_layout.tsx": await import("./routes/_layout.tsx"),
+    "./routes/_middleware.ts": await import("./routes/_middleware.ts"),
+    "./routes/async/_layout.tsx": await import("./routes/async/_layout.tsx"),
+    "./routes/async/index.tsx": await import("./routes/async/index.tsx"),
+    "./routes/async/redirect/_layout.tsx": await import(
+      "./routes/async/redirect/_layout.tsx"
+    ),
+    "./routes/async/redirect/index.tsx": await import(
+      "./routes/async/redirect/index.tsx"
+    ),
+    "./routes/async/sub/_layout.tsx": await import(
+      "./routes/async/sub/_layout.tsx"
+    ),
+    "./routes/async/sub/index.tsx": await import(
+      "./routes/async/sub/index.tsx"
+    ),
+    "./routes/dynamic/[tenant]/index.tsx": await import(
+      "./routes/dynamic/[tenant]/index.tsx"
+    ),
+    "./routes/files/js/_layout.js": await import(
+      "./routes/files/js/_layout.js"
+    ),
+    "./routes/files/js/index.js": await import("./routes/files/js/index.js"),
+    "./routes/files/jsx/_layout.jsx": await import(
+      "./routes/files/jsx/_layout.jsx"
+    ),
+    "./routes/files/jsx/index.jsx": await import(
+      "./routes/files/jsx/index.jsx"
+    ),
+    "./routes/files/ts/_layout.ts": await import(
+      "./routes/files/ts/_layout.ts"
+    ),
+    "./routes/files/ts/index.ts": await import("./routes/files/ts/index.ts"),
+    "./routes/files/tsx/_layout.tsx": await import(
+      "./routes/files/tsx/_layout.tsx"
+    ),
+    "./routes/files/tsx/index.tsx": await import(
+      "./routes/files/tsx/index.tsx"
+    ),
+    "./routes/foo/_layout.tsx": await import("./routes/foo/_layout.tsx"),
+    "./routes/foo/bar.tsx": await import("./routes/foo/bar.tsx"),
+    "./routes/foo/index.tsx": await import("./routes/foo/index.tsx"),
+    "./routes/index.tsx": await import("./routes/index.tsx"),
+    "./routes/other.tsx": await import("./routes/other.tsx"),
+    "./routes/override/_layout.tsx": await import(
+      "./routes/override/_layout.tsx"
+    ),
+    "./routes/override/index.tsx": await import("./routes/override/index.tsx"),
+    "./routes/override/layout_no_app/_layout.tsx": await import(
+      "./routes/override/layout_no_app/_layout.tsx"
+    ),
+    "./routes/override/layout_no_app/index.tsx": await import(
+      "./routes/override/layout_no_app/index.tsx"
+    ),
+    "./routes/override/no_app.tsx": await import(
+      "./routes/override/no_app.tsx"
+    ),
+    "./routes/override/no_layout.tsx": await import(
+      "./routes/override/no_layout.tsx"
+    ),
+    "./routes/override/no_layout_no_app.tsx": await import(
+      "./routes/override/no_layout_no_app.tsx"
+    ),
+    "./routes/skip/sub/_layout.tsx": await import(
+      "./routes/skip/sub/_layout.tsx"
+    ),
+    "./routes/skip/sub/index.tsx": await import("./routes/skip/sub/index.tsx"),
   },
   islands: {
-    "./routes/dynamic/[tenant]/(_islands)/Counter.tsx":
-      $dynamic_tenant_islands_Counter,
+    "./routes/dynamic/[tenant]/(_islands)/Counter.tsx": await import(
+      "./routes/dynamic/[tenant]/(_islands)/Counter.tsx"
+    ),
   },
   baseUrl: import.meta.url,
 } satisfies Manifest;

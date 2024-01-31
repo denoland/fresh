@@ -2,22 +2,19 @@
 // This file SHOULD be checked into source version control.
 // This file is automatically updated during development when running `dev.ts`.
 
-import * as $lots_of_middleware_index from "./routes/lots-of-middleware/index.tsx";
-import * as $static from "./routes/static.tsx";
-import * as $test from "./routes/test.tsx";
-import * as $with_island from "./routes/with-island.tsx";
-import * as $Island from "./islands/Island.tsx";
 import { type Manifest } from "$fresh/server.ts";
 
 const manifest = {
   routes: {
-    "./routes/lots-of-middleware/index.tsx": $lots_of_middleware_index,
-    "./routes/static.tsx": $static,
-    "./routes/test.tsx": $test,
-    "./routes/with-island.tsx": $with_island,
+    "./routes/lots-of-middleware/index.tsx": await import(
+      "./routes/lots-of-middleware/index.tsx"
+    ),
+    "./routes/static.tsx": await import("./routes/static.tsx"),
+    "./routes/test.tsx": await import("./routes/test.tsx"),
+    "./routes/with-island.tsx": await import("./routes/with-island.tsx"),
   },
   islands: {
-    "./islands/Island.tsx": $Island,
+    "./islands/Island.tsx": await import("./islands/Island.tsx"),
   },
   baseUrl: import.meta.url,
 } satisfies Manifest;
