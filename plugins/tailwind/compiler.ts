@@ -68,14 +68,14 @@ export async function initTailwind(
     return pattern;
   });
 
-  let imports;
+  let importMap;
   if (path.extname(config.denoJsonPath) === ".json") {
-    imports = (await import(path.toFileUrl(config.denoJsonPath).href, {
+    importMap = (await import(path.toFileUrl(config.denoJsonPath).href, {
       with: { type: "json" },
     })).default;
   } else if (path.extname(config.denoJsonPath) === ".jsonc") {
     const fileContents = Deno.readTextFileSync(config.denoJsonPath);
-    imports = jsoncParse(fileContents);
+    importMap = jsoncParse(fileContents);
   } else {
     throw Error("deno config must be either .json or .jsonc");
   }
@@ -85,13 +85,13 @@ export async function initTailwind(
     // otherwise, we assume the plugin is in the same directory as the project
     const projectLocation = plugin.projectLocation ??
       path.dirname(plugin.location);
-    const resolvedImports = await parseFromJson(
+    const resolvedImportMap = await parseFromJson(
       path.toFileUrl(config.denoJsonPath),
-      imports,
+      importMap,
     );
 
     const moduleGraph = await createGraph(plugin.location, {
-      resolve: resolvedImports.resolve.bind(resolvedImports),
+      resolve: resolvedImportMap.resolve.bind(resolvedImportMap),
     });
 
     for (const file of extractSpecifiers(moduleGraph, projectLocation)) {
