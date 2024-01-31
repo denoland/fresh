@@ -1,8 +1,8 @@
 import { ResolvedFreshConfig } from "../../server.ts";
 import tailwindCss, { Config } from "tailwindcss";
-import postcss from "npm:postcss@8.4.31";
-import cssnano from "npm:cssnano@6.0.1";
-import autoprefixer from "npm:autoprefixer@10.4.16";
+import postcss from "npm:postcss@8.4.33";
+import cssnano from "npm:cssnano@6.0.3";
+import autoprefixer from "npm:autoprefixer@10.4.17";
 import * as path from "https://deno.land/std@0.207.0/path/mod.ts";
 import { TailwindPluginOptions } from "./types.ts";
 

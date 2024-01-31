@@ -1,9 +1,11 @@
 export const RECOMMENDED_PREACT_VERSION = "10.19.2";
 export const RECOMMENDED_PREACT_SIGNALS_VERSION = "1.2.1";
 export const RECOMMENDED_PREACT_SIGNALS_CORE_VERSION = "1.5.0";
-export const RECOMMENDED_TWIND_VERSION = "0.16.19";
+export const RECOMMENDED_TWIND_CORE_VERSION = "1.1.3";
+export const RECOMMENDED_TWIND_PRESET_AUTOPREFIX_VERSION = "1.0.7";
+export const RECOMMENDED_TWIND_PRESET_TAILWIND_VERSION = "1.1.4";
 export const RECOMMENDED_STD_VERSION = "0.211.0";
-export const RECOMMENDED_TAILIWIND_VERSION = "3.3.5";
+export const RECOMMENDED_TAILIWIND_VERSION = "3.4.1";
 
 export function freshImports(imports: Record<string, string>) {
   imports["$fresh/"] = new URL("../../", import.meta.url).href;
@@ -16,8 +18,12 @@ export function freshImports(imports: Record<string, string>) {
 }
 
 export function twindImports(imports: Record<string, string>) {
-  imports["twind"] = `https://esm.sh/twind@${RECOMMENDED_TWIND_VERSION}`;
-  imports["twind/"] = `https://esm.sh/twind@${RECOMMENDED_TWIND_VERSION}/`;
+  imports["@twind/core"] =
+    `https://esm.sh/@twind/core@${RECOMMENDED_TWIND_CORE_VERSION}`;
+  imports["@twind/preset-tailwind"] =
+    `https://esm.sh/@twind/preset-tailwind@${RECOMMENDED_TWIND_PRESET_TAILWIND_VERSION}/`;
+  imports["@twind/preset-autoprefix"] =
+    `https://esm.sh/@twind/preset-autoprefix@${RECOMMENDED_TWIND_PRESET_AUTOPREFIX_VERSION}/`;
 }
 
 export function tailwindImports(imports: Record<string, string>) {
@@ -50,7 +56,7 @@ jobs:
 
     steps:
       - name: Clone repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Install Deno
         uses: denoland/setup-deno@v1
