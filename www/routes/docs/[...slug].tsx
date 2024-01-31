@@ -173,30 +173,32 @@ export default function DocsPage(props: PageProps<Data>) {
               {!props.isPartial && <Header title="docs" active="/docs" />}
 
               <main class="mt-4 min-w-0 mx-auto">
-                {!props.isPartial && <MobileSidebar page={page} />}
                 {!props.isPartial && (
-                  <div class="flex mx-auto max-w-screen-2xl px-4 md:px-0 md:py-0 justify-end bg-gray-100">
-                    <label
-                      for="docs_sidebar"
-                      class="px-4 py-3 md:hidden flex items-center hover:bg-gray-100 rounded gap-2 cursor-pointer"
-                    >
-                      <svg
-                        class="h-6 w-6"
-                        stroke="currentColor"
-                        fill="none"
-                        viewBox="0 0 24 24"
+                  <>
+                    <MobileSidebar page={page} />
+                    <div class="flex mx-auto max-w-screen-2xl px-4 md:px-0 md:py-0 justify-end bg-gray-100">
+                      <label
+                        for="docs_sidebar"
+                        class="px-4 py-3 md:hidden flex items-center hover:bg-gray-100 rounded gap-2 cursor-pointer"
                       >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth="2"
-                          d="M4 6h16M4 12h16M4 18h7"
+                        <svg
+                          class="h-6 w-6"
+                          stroke="currentColor"
+                          fill="none"
+                          viewBox="0 0 24 24"
                         >
-                        </path>
-                      </svg>
-                      <div>Table of Contents</div>
-                    </label>
-                  </div>
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth="2"
+                            d="M4 6h16M4 12h16M4 18h7"
+                          >
+                          </path>
+                        </svg>
+                        <div>Table of Contents</div>
+                      </label>
+                    </div>
+                  </>
                 )}
                 <div class="flex gap-6 md:gap-8 xl:gap-[8%] flex-col xl:flex-row md:mx-8 lg:mx-16 2xl:mx-0 lg:justify-end">
                   {!props.isPartial && <TableOfContents headings={headings} />}
