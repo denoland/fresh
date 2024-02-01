@@ -1,14 +1,11 @@
+import { upNLevels } from "$fresh/plugins/tailwind.ts";
 import type { Plugin } from "../../../../../../src/server/types.ts";
 import VeryNestedPluginComponent from "../../../../components/VeryNestedPluginComponent.tsx";
-
-const currentUrl = new URL(import.meta.url);
-currentUrl.pathname = currentUrl.pathname.split("/").slice(0, -5).join("/") +
-  "/";
 
 export const veryNestedPlugin = {
   name: "very nested plugin",
   location: import.meta.url,
-  projectLocation: currentUrl.href,
+  projectLocation: upNLevels(import.meta.url, 5),
   routes: [{
     path: "routeFromVeryNestedPlugin",
     component: VeryNestedPluginComponent,
