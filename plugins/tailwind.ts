@@ -131,7 +131,7 @@ export default function tailwind(
 export function upNLevels(url: string | URL, levels: number) {
   const inputUrl = (typeof url === "string") ? new URL(url) : url;
 
-  const segments = inputUrl.pathname.split(path.SEP);
+  const segments = inputUrl.pathname.split("/");
 
   if (levels >= segments.length) {
     throw new Error("Cannot go up more levels than the current depth");
