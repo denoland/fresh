@@ -1,10 +1,10 @@
-import { FreshContext, Plugin } from '$fresh/server.ts';
-import { handler as testMiddleware } from './sample_routes/_middleware.ts';
-import { AppBuilder } from './sample_routes/AppBuilder.tsx';
-import IslandsPluginComponent from './sample_routes/PluginRouteWithIslands.tsx';
-import { SimpleRoute } from './sample_routes/simple-route.tsx';
-import AsyncRoute from './sample_routes/async-route.tsx';
-import { PluginMiddlewareState } from '$fresh/tests/fixture_plugin/utils/route-plugin.ts';
+import { FreshContext, Plugin } from "$fresh/server.ts";
+import { handler as testMiddleware } from "./sample_routes/_middleware.ts";
+import { AppBuilder } from "./sample_routes/AppBuilder.tsx";
+import IslandsPluginComponent from "./sample_routes/PluginRouteWithIslands.tsx";
+import { SimpleRoute } from "./sample_routes/simple-route.tsx";
+import AsyncRoute from "./sample_routes/async-route.tsx";
+import { PluginMiddlewareState } from "$fresh/tests/fixture_plugin/utils/route-plugin.ts";
 export type { Options };
 
 interface Options {
@@ -24,42 +24,44 @@ const twoPointlessMiddlewares = [
 ];
 
 export default function routePluginMultipleIslands(
-  options: Options
+  options: Options,
 ): Plugin<PluginMiddlewareState> {
   return {
-    name: 'routePlugin',
+    name: "routePlugin",
     middlewares: [
       {
         middleware: { handler: testMiddleware },
-        path: '/',
+        path: "/",
       },
       {
         middleware: {
           handler: twoPointlessMiddlewares,
         },
-        path: 'lots-of-middleware',
+        path: "lots-of-middleware",
       },
     ],
     routes: [
-      { path: '/async-route', component: AsyncRoute },
+      { path: "/async-route", component: AsyncRoute },
       {
-        path: '/_app',
+        path: "/_app",
         component: AppBuilder(options),
       },
-      { path: 'no-leading-slash-here', component: SimpleRoute },
+      { path: "no-leading-slash-here", component: SimpleRoute },
       {
-        path: 'pluginroutewithislands',
+        path: "pluginroutewithislands",
         component: IslandsPluginComponent,
       },
     ],
     islands: [
       {
         baseLocation: import.meta.url,
-        paths: ['./sample_islands/IslandFromPlugin.tsx'],
+        paths: ["./sample_islands/IslandFromPlugin.tsx"],
       },
       {
-        baseLocation: import.meta.resolve('./sample_islands/sub/Island2FromPlugin.tsx'),
-        paths: ['./Island2FromPlugin.tsx'],
+        baseLocation: import.meta.resolve(
+          "./sample_islands/sub/Island2FromPlugin.tsx",
+        ),
+        paths: ["./Island2FromPlugin.tsx"],
       },
     ],
   };

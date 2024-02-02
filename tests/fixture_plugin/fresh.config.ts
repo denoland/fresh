@@ -14,7 +14,10 @@ export default {
     cssInjectPluginAsync,
     linkInjectPlugin,
     routePlugin({ title: "Title Set From Plugin Config", async: false }),
-    routePluginMultipleIslands({ title: "Title Set From Plugin Config", async: false }),
+    routePluginMultipleIslands({
+      title: "Title Set From Plugin Config",
+      async: false,
+    }),
     secondMiddlewarePlugin(),
   ],
 } as FreshConfig;
