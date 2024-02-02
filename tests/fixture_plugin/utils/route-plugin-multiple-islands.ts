@@ -27,26 +27,8 @@ export default function routePluginMultipleIslands(
   options: Options,
 ): Plugin<PluginMiddlewareState> {
   return {
-    name: "routePlugin",
-    middlewares: [
-      {
-        middleware: { handler: testMiddleware },
-        path: "/",
-      },
-      {
-        middleware: {
-          handler: twoPointlessMiddlewares,
-        },
-        path: "lots-of-middleware",
-      },
-    ],
+    name: "routePluginMultipleIslands",
     routes: [
-      { path: "/async-route", component: AsyncRoute },
-      {
-        path: "/_app",
-        component: AppBuilder(options),
-      },
-      { path: "no-leading-slash-here", component: SimpleRoute },
       {
         path: "pluginroutewithislands",
         component: IslandsPluginComponent,
