@@ -1,7 +1,6 @@
 import { FreshContext, Plugin } from "$fresh/server.ts";
 import IslandsPluginComponent from "./sample_routes/PluginRouteWithIslands.tsx";
 import { PluginMiddlewareState } from "$fresh/tests/fixture_plugin/utils/route-plugin.ts";
-export type { Options };
 
 interface Options {
   title: string;
@@ -19,9 +18,9 @@ const twoPointlessMiddlewares = [
   },
 ];
 
-export default function routePluginMultipleIslands(
-  options: Options,
-): Plugin<PluginMiddlewareState> {
+export default function routePluginMultipleIslands(): Plugin<
+  PluginMiddlewareState
+> {
   return {
     name: "routePluginMultipleIslands",
     routes: [
