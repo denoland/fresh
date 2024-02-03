@@ -1,4 +1,4 @@
-import { assert, assertEquals, assertMatch, Page } from "./deps.ts";
+import { assert, assertEquals, assertMatch, delay, Page } from "./deps.ts";
 import {
   assertMetaContent,
   assertNoComments,
@@ -6,7 +6,9 @@ import {
   assertNotSelector,
   assertSelector,
   assertTextMany,
+  closeBrowser,
   getErrorOverlay,
+  launchOrGetBrowser,
   parseHtml,
   waitFor,
   waitForText,
@@ -18,6 +20,21 @@ async function assertLogs(page: Page, expected: string[]) {
   const text = expected.length > 0 ? expected.join("\n") + "\n" : "";
   await waitForText(page, "#logs", text);
 }
+
+globalThis.addEventListener("load", async () => {
+  await launchOrGetBrowser();
+});
+
+globalThis.addEventListener("beforeunload", async () => {
+  await closeBrowser();
+});
+
+Deno.test("dummy test", {
+  sanitizeOps: false,
+  sanitizeResources: false,
+}, async () => {
+  await delay(1000);
+});
 
 Deno.test("injects server content with no islands present", async () => {
   await withPageName(
