@@ -183,7 +183,7 @@ Deno.test({
 });
 
 Deno.test({
-  name: "plugin supports multiple islands",
+  name: "plugins support multiple island configs",
   async fn(t) {
     await withPageName(
       "./tests/fixture_plugin/main.ts",
