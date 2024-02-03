@@ -283,3 +283,15 @@ Deno.test("supports returning htmlText", async () => {
     { loadConfig: true },
   );
 });
+
+Deno.test("plugin route supports config", async () => {
+  await withFakeServe(
+    "./tests/fixture_plugin/dev.ts",
+    async (server) => {
+      const res = await server.get("/routeWithConfig");
+      const body = await res.text();
+      assertStringIncludes(body, "<body>This is a basic route.</body>");
+    },
+    { loadConfig: true },
+  );
+});

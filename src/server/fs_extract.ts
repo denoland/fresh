@@ -560,6 +560,7 @@ function getRoutesFromPlugins(plugins: Plugin[]): [string, RouteModule][] {
         // deno-lint-ignore no-explicit-any
         default: route.component as any,
         handler: route.handler,
+        config: route.config,
       }];
     });
 }

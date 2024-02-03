@@ -4,6 +4,7 @@ import { AppBuilder } from "./sample_routes/AppBuilder.tsx";
 import IslandPluginComponent from "./sample_routes/PluginRouteWithIsland.tsx";
 import { SimpleRoute } from "./sample_routes/simple-route.tsx";
 import AsyncRoute from "./sample_routes/async-route.tsx";
+import RouteWithConfig from "./sample_routes/routeWithConfig.tsx";
 export type { Options };
 
 interface Options {
@@ -56,6 +57,14 @@ export default function routePlugin(
       {
         path: "pluginroutewithisland",
         component: IslandPluginComponent,
+      },
+      {
+        path: "routeWithConfig",
+        component: RouteWithConfig,
+        config: {
+          skipAppWrapper: true,
+          skipInheritedLayouts: true,
+        },
       },
     ],
     islands: {
