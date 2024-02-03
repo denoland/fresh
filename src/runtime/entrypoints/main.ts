@@ -1,3 +1,4 @@
+// deno-lint-ignore-file ban-unknown-rule-code ban-unused-ignore
 import "../polyfills.ts";
 import {
   Component,
@@ -111,6 +112,7 @@ export function revive(
       );
     };
 
+    // deno-lint-ignore no-window
     "scheduler" in window
       // `scheduler.postTask` is async but that can easily
       // fire in the background. We don't want waiting for
@@ -640,6 +642,7 @@ class NoPartialsError extends Error {}
  */
 export async function applyPartials(res: Response): Promise<void> {
   const contentType = res.headers.get("Content-Type");
+  const uuid = res.headers.get("X-Fresh-UUID");
   if (contentType !== "text/html; charset=utf-8") {
     throw new Error(partialErrorMessage);
   }
@@ -652,7 +655,7 @@ export async function applyPartials(res: Response): Promise<void> {
   // Preload all islands because they need to be available synchronously
   // for rendering later
   const islands: IslandRegistry = {};
-  const dataRaw = doc.getElementById("__FRSH_PARTIAL_DATA")!;
+  const dataRaw = doc.getElementById(`__FRSH_PARTIAL_DATA_${uuid}`)!;
   let data: {
     islands: Record<string, { export: string; url: string }>;
     signals: string | null;
@@ -669,7 +672,7 @@ export async function applyPartials(res: Response): Promise<void> {
     );
   }
 
-  const stateDom = doc.getElementById("__FRSH_STATE")?.textContent;
+  const stateDom = doc.getElementById(`__FRSH_STATE_${uuid}`)?.textContent;
   let state: SerializedState = [[], []];
 
   // Load all dependencies
@@ -891,11 +894,11 @@ function maybeUpdateHistory(nextUrl: URL) {
   // Only add history entry when URL is new. Still apply
   // the partials because sometimes users click a link to
   // "refresh" the current page.
-  if (nextUrl.href !== window.location.href) {
+  if (nextUrl.href !== globalThis.location.href) {
     const state: FreshHistoryState = {
       index,
-      scrollX: window.scrollX,
-      scrollY: window.scrollY,
+      scrollX: globalThis.scrollX,
+      scrollY: globalThis.scrollY,
     };
 
     // Store current scroll position

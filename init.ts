@@ -6,6 +6,7 @@ import {
   dotenvImports,
   freshImports,
   tailwindImports,
+  twindImports,
 } from "./src/dev/imports.ts";
 
 ensureMinDenoVersion();
@@ -26,22 +27,26 @@ USAGE:
 
 OPTIONS:
     --force   Overwrite existing files
-    --tailwind   Setup project to use 'tailwind' for styling
-    --vscode  Setup project for VSCode
+    --tailwind   Use Tailwind for styling
+    --twind   Use Twind for styling
+    --vscode  Setup project for VS Code
     --docker  Setup Project to use Docker
 `;
 
 const CONFIRM_EMPTY_MESSAGE =
   "The target directory is not empty (files could get overwritten). Do you want to continue anyway?";
 
-const USE_TAILWIND_MESSAGE =
-  "Fresh has built in support for styling using Tailwind CSS. Do you want to use this?";
-
 const USE_VSCODE_MESSAGE = "Do you use VS Code?";
 
 const flags = parse(Deno.args, {
-  boolean: ["force", "tailwind", "vscode", "docker", "help"],
-  default: { "force": null, "tailwind": null, "vscode": null, "docker": null },
+  boolean: ["force", "tailwind", "twind", "vscode", "docker", "help"],
+  default: {
+    force: null,
+    tailwind: null,
+    twind: null,
+    vscode: null,
+    docker: null,
+  },
   alias: {
     help: "h",
   },
@@ -50,6 +55,10 @@ const flags = parse(Deno.args, {
 if (flags.help) {
   console.log(help);
   Deno.exit(0);
+}
+
+if (flags.tailwind && flags.twind) {
+  error("Cannot use Tailwind and Twind at the same time.");
 }
 
 console.log();
@@ -90,9 +99,25 @@ try {
 }
 console.log("%cLet's set up your new Fresh project.\n", "font-weight: bold");
 
-const useTailwind = flags.tailwind === null
-  ? confirm(USE_TAILWIND_MESSAGE)
-  : flags.tailwind;
+let useTailwind = flags.tailwind || false;
+let useTwind = flags.twind || false;
+
+if (flags.tailwind == null && flags.twind == null) {
+  if (confirm("Do you want to use a styling library?")) {
+    console.log();
+    console.log("1. Tailwind");
+    console.log("2. Twind");
+    switch (
+      (prompt("Which styling library do you want to use? [1]") || "1").trim()
+    ) {
+      case "2":
+        useTwind = true;
+        break;
+      default:
+        useTailwind = true;
+    }
+  }
+}
 
 const useVSCode = flags.vscode === null
   ? confirm(USE_VSCODE_MESSAGE)
@@ -322,6 +347,24 @@ if (useTailwind) {
   );
 }
 
+const TWIND_CONFIG_TS = `import { defineConfig, Preset } from "@twind/core";
+import presetTailwind from "@twind/preset-tailwind";
+import presetAutoprefix from "@twind/preset-autoprefix";
+
+export default {
+  ...defineConfig({
+    presets: [presetTailwind() as Preset, presetAutoprefix() as Preset],
+  }),
+  selfURL: import.meta.url,
+};
+`;
+if (useTwind) {
+  await Deno.writeTextFile(
+    join(resolvedDirectory, "twind.config.ts"),
+    TWIND_CONFIG_TS,
+  );
+}
+
 const NO_TAILWIND_STYLES = `
 *,
 *::before,
@@ -461,7 +504,7 @@ export default function App({ Component }: PageProps) {
         <meta charset="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <title>${basename(resolvedDirectory)}</title>
-        <link rel="stylesheet" href="/styles.css" />
+        ${useTwind ? "" : `<link rel="stylesheet" href="/styles.css" />`}
       </head>
       <body>
         <Component />
@@ -481,10 +524,12 @@ const TAILWIND_CSS = `@tailwind base;
 @tailwind utilities;`;
 
 const cssStyles = useTailwind ? TAILWIND_CSS : NO_TAILWIND_STYLES;
-await Deno.writeTextFile(
-  join(resolvedDirectory, "static", "styles.css"),
-  cssStyles,
-);
+if (!useTwind) {
+  await Deno.writeTextFile(
+    join(resolvedDirectory, "static", "styles.css"),
+    cssStyles,
+  );
+}
 
 const STATIC_LOGO =
   `<svg width="40" height="40" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -515,10 +560,19 @@ if (useTailwind) {
   FRESH_CONFIG_TS += `import tailwind from "$fresh/plugins/tailwind.ts";
 `;
 }
+if (useTwind) {
+  FRESH_CONFIG_TS += `import twind from "$fresh/plugins/twindv1.ts";
+import twindConfig from "./twind.config.ts";
+`;
+}
 
 FRESH_CONFIG_TS += `
 export default defineConfig({${
-  useTailwind ? `\n  plugins: [tailwind()],\n` : ""
+  useTailwind
+    ? `\n  plugins: [tailwind()],\n`
+    : useTwind
+    ? `\n  plugins: [twind(twindConfig)],\n`
+    : ""
 }});
 `;
 const CONFIG_TS_PATH = join(resolvedDirectory, "fresh.config.ts");
@@ -591,6 +645,9 @@ if (useTailwind) {
   // TODO: Have a better deno config type
   // deno-lint-ignore no-explicit-any
   (config as any).nodeModulesDir = true;
+}
+if (useTwind) {
+  twindImports(config.imports);
 }
 dotenvImports(config.imports);
 

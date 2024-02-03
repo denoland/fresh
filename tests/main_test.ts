@@ -949,7 +949,7 @@ Deno.test("Adds nonce to inline scripts", async () => {
   await withFakeServe("./tests/fixture/main.ts", async (server) => {
     const doc = await server.getHtml(`/nonce_inline`);
 
-    const stateScript = doc.querySelector("#__FRSH_STATE")!;
+    const stateScript = doc.querySelector("[id^=__FRSH_STATE]")!;
     const nonce = stateScript.getAttribute("nonce")!;
 
     const el = doc.querySelector("#inline-script")!;
@@ -1218,5 +1218,20 @@ Deno.test("empty string fallback for optional params", async () => {
     const doc = await server.getHtml(`/std/foo`);
     const data = JSON.parse(doc.querySelector("pre")?.textContent!);
     assertEquals(data, { path: "foo", version: "" });
+  });
+});
+
+// See https://github.com/denoland/fresh/issues/2254
+Deno.test("should not be able to override __FRSH_STATE", async () => {
+  await withPageName("./tests/fixture/main.ts", async (page, address) => {
+    let didError = false;
+    page.on("pageerror", (ev) => {
+      didError = true;
+      console.log(ev);
+    });
+    await page.goto(`${address}/spoof_state`);
+    await page.waitForSelector(".raw_ready");
+
+    assert(!didError);
   });
 });

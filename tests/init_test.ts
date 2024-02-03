@@ -242,6 +242,100 @@ Deno.test({
   },
 });
 
+Deno.test({
+  name: "fresh-init --twind --vscode",
+  async fn(t) {
+    // Preparation
+    const tmpDirName = await Deno.makeTempDir();
+
+    await t.step("execute init command", async () => {
+      const cliProcess = new Deno.Command(Deno.execPath(), {
+        args: [
+          "run",
+          "-A",
+          "init.ts",
+          tmpDirName,
+          "--twind",
+          "--vscode",
+        ],
+        stdin: "null",
+        stdout: "null",
+      });
+      const { code } = await cliProcess.output();
+      assertEquals(code, 0);
+    });
+
+    const files = [
+      "/README.md",
+      "/fresh.gen.ts",
+      "/twind.config.ts",
+      "/components/Button.tsx",
+      "/islands/Counter.tsx",
+      "/main.ts",
+      "/routes/greet/[name].tsx",
+      "/routes/api/joke.ts",
+      "/routes/_app.tsx",
+      "/routes/index.tsx",
+      "/static/logo.svg",
+      "/.vscode/settings.json",
+      "/.vscode/extensions.json",
+      "/.gitignore",
+    ];
+
+    await t.step("check generated files", async () => {
+      await assertFileExistence(files, tmpDirName);
+    });
+
+    await t.step("start up the server and access the root page", async () => {
+      const { serverProcess, lines, address } = await startFreshServer({
+        args: ["run", "-A", "--check", "main.ts"],
+        cwd: tmpDirName,
+      });
+
+      await delay(100);
+
+      // Access the root page
+      const res = await fetch(address);
+      await res.body?.cancel();
+      assertEquals(res.status, STATUS_CODE.OK);
+
+      // verify the island is revived.
+      const browser = await puppeteer.launch({ args: ["--no-sandbox"] });
+      const page = await browser.newPage();
+      await page.goto(address, { waitUntil: "networkidle2" });
+
+      const counter = await page.$("body > div > div > div > p");
+      let counterValue = await counter?.evaluate((el) => el.textContent);
+      assertEquals(counterValue, "3");
+
+      const fontWeight = await counter?.evaluate((el) =>
+        getComputedStyle(el).fontWeight
+      );
+      assertEquals(fontWeight, "400");
+
+      const buttonPlus = await page.$(
+        "body > div > div > div > button:nth-child(3)",
+      );
+      await buttonPlus?.click();
+
+      await waitForText(page, "body > div > div > div > p", "4");
+
+      counterValue = await counter?.evaluate((el) => el.textContent);
+      assert(counterValue === "4");
+      await page.close();
+      await browser.close();
+
+      serverProcess.kill("SIGTERM");
+      await serverProcess.status;
+
+      // Drain the lines stream
+      for await (const _ of lines) { /* noop */ }
+    });
+
+    await retry(() => Deno.remove(tmpDirName, { recursive: true }));
+  },
+});
+
 Deno.test("fresh-init error(help)", async function (t) {
   const includeText = "fresh-init";
 
