@@ -413,6 +413,12 @@
     "image": "rfui"
   },
   {
+    "title": "NakhlahJS",
+    "link": "https://nakhlahjs.deno.dev/",
+    "github": "https://github.com/TeaByte/NakhlahJS",
+    "image": "nakhlahjs"
+  },
+  {
     "title": "Do not remove this, it’s for preventing conflicts by trailing comma",
     "link": "",
     "github": "",
