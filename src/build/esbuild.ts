@@ -34,7 +34,7 @@ export class EsbuildBuilder implements Builder {
     const opts = this.#options;
 
     // Lazily initialize esbuild
-    // @deno-types="https://deno.land/x/esbuild@v0.19.4/mod.d.ts"
+    // @deno-types="https://deno.land/x/esbuild@v0.20.0/mod.d.ts"
     const esbuild =
       // deno-lint-ignore no-deprecated-deno-api
       Deno.run === undefined ||
