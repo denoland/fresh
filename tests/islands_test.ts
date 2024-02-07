@@ -12,24 +12,14 @@ import {
 
 Deno.test("island tests", async (t) => {
   await withPage(async (page, address) => {
-    async function counterTest(counterId: string, originalValue: number) {
-      const pElem = await page.waitForSelector(`#${counterId} > p`);
-
-      const value = await pElem?.evaluate((el) => el.textContent);
-      assert(value === `${originalValue}`, `${counterId} first value`);
-
-      await clickWhenListenerReady(page, `#b-${counterId}`);
-      await waitForText(page, `#${counterId} > p`, String(originalValue + 1));
-    }
-
     await page.goto(`${address}/islands`);
 
     await t.step("Ensure 5 islands on 1 page are revived", async () => {
-      await counterTest("counter1", 3);
-      await counterTest("counter2", 10);
-      await counterTest("folder-counter", 3);
-      await counterTest("subfolder-counter", 3);
-      await counterTest("kebab-case-file-counter", 5);
+      await counterTest("counter1", 3, page);
+      await counterTest("counter2", 10, page);
+      await counterTest("folder-counter", 3, page);
+      await counterTest("subfolder-counter", 3, page);
+      await counterTest("kebab-case-file-counter", 5, page);
     });
 
     await t.step("Ensure an island revive an img 'hash' path", async () => {
@@ -51,22 +41,12 @@ Deno.test("island tests", async (t) => {
 
 Deno.test("multiple islands exported from one file", async (t) => {
   await withPage(async (page, address) => {
-    async function counterTest(counterId: string, originalValue: number) {
-      const pElem = await page.waitForSelector(`#${counterId} > p`);
-
-      const value = await pElem?.evaluate((el) => el.textContent);
-      assert(value === `${originalValue}`, `${counterId} first value`);
-
-      await clickWhenListenerReady(page, `#b-${counterId}`);
-      await waitForText(page, `#${counterId} > p`, String(originalValue + 1));
-    }
-
     await page.goto(`${address}/islands/multiple_island_exports`);
 
     await t.step("Ensure 3 islands on 1 page are revived", async () => {
-      await counterTest("counter0", 4);
-      await counterTest("counter1", 3);
-      await counterTest("counter2", 10);
+      await counterTest("counter0", 4, page);
+      await counterTest("counter1", 3, page);
+      await counterTest("counter2", 10, page);
     });
   });
 });
@@ -74,6 +54,18 @@ Deno.test("multiple islands exported from one file", async (t) => {
 function withPage(fn: (page: Page, address: string) => Promise<void>) {
   return withPageName("./tests/fixture/main.ts", fn);
 }
+
+Deno.test("remote islands", async (t) => {
+  await withPage(async (page, address) => {
+    await page.goto(`${address}/islands/remoteIslands`);
+
+    await t.step("Ensure 3 islands on 1 page are revived", async () => {
+      await counterTest("remoteCounter1", 13, page);
+      await counterTest("remoteCounter2", 37, page);
+      await counterTest("localCounter", 42, page);
+    });
+  });
+});
 
 Deno.test("island tests with </script>", async (t) => {
   await withPage(async (page, address) => {
@@ -489,3 +481,17 @@ Deno.test("serves multiple islands in one file", async () => {
     },
   );
 });
+
+async function counterTest(
+  counterId: string,
+  originalValue: number,
+  page: Page,
+) {
+  const pElem = await page.waitForSelector(`#${counterId} > p`);
+
+  const value = await pElem?.evaluate((el) => el.textContent);
+  assert(value === `${originalValue}`, `${counterId} first value`);
+
+  await clickWhenListenerReady(page, `#b-${counterId}`);
+  await waitForText(page, `#${counterId} > p`, String(originalValue + 1));
+}
