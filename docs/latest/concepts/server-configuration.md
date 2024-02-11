@@ -138,8 +138,8 @@ await start(manifest, { router: { trailingSlash: true } });
 
 ### ignoreFilePattern
 
-By default Fresh ignores test files which are co-located next routes and
-islands. If you want, you can change the pattern Fresh uses ignore these files
+By default Fresh ignores test files that are co-located next to routes and
+islands. If you want, you can change the pattern that Fresh uses to ignore these files.
 
 ### basePath
 
