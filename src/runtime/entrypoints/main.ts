@@ -1087,10 +1087,10 @@ document.addEventListener("submit", async (e) => {
       if (lowerMethod === "get") {
         // TODO: Looks like constructor type for URLSearchParam is wrong
         // deno-lint-ignore no-explicit-any
-        const qs = new URLSearchParams(new FormData(el) as any);
+        const qs = new URLSearchParams(new FormData(el, e.submitter) as any);
         qs.forEach((value, key) => url.searchParams.set(key, value));
       } else {
-        init = { body: new FormData(el), method: lowerMethod };
+        init = { body: new FormData(el, e.submitter), method: lowerMethod };
       }
 
       maybeUpdateHistory(url);
