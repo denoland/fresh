@@ -1107,6 +1107,10 @@ Deno.test("pull values from event.submitter if set", async () => {
       // Server can update form value
       const value = await page.$eval("input", (el) => el.value);
       assertEquals(value, "foobar_foo");
+
+      // Submitter name & value included in form data
+      const subValue = await page.$eval("#submitter", (el) => el.textContent);
+      assertEquals(subValue, "submitter_value");
     },
   );
 });
@@ -1138,6 +1142,10 @@ Deno.test("pull values from event.submitter if set with f-partial", async () => 
       // Server can update form value
       const value = await page.$eval("input", (el) => el.value);
       assertEquals(value, "foobar_foo");
+
+      // Submitter name & value included in form data
+      const subValue = await page.$eval("#submitter", (el) => el.textContent);
+      assertEquals(subValue, "submitter_value");
     },
   );
 });
