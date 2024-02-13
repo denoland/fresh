@@ -103,7 +103,8 @@ export function createSupabaseClient(
 ```
 
 Note: We are specifying the `flowType` to be `pkce` and that we're using
-`encodeURIComponent` to serialize and store the session object as a cookie.
+[`encodeURIComponent()`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/encodeURIComponent)
+to serialize and store the session object as a cookie.
 
 Crucially, _we need to create a new instance of this client for each request!_
 
@@ -217,9 +218,9 @@ export const handler: Handlers = {
 };
 ```
 
-Note that we're passing `headers` this time. The Supabase client will set the
-session as cookie for us which we will want to pick up in the middleware that we
-are writing next.
+Note: We're passing `headers` this time. The Supabase client will set the
+session as a cookie for us, which we will want to pick up in the middleware that
+we are writing next.
 
 ## Middleware
 
