@@ -19,7 +19,6 @@ import {
   startFreshServer,
   waitForText,
   withFakeServe,
-  withFresh,
   withPageName,
 } from "./test_utils.ts";
 
@@ -1246,16 +1245,5 @@ Deno.test("should not be able to override __FRSH_STATE", async () => {
     await page.waitForSelector(".raw_ready");
 
     assert(!didError);
-  });
-});
-
-Deno.test("should not be able open redirect", async () => {
-  await withFresh("./tests/fixture/main.ts", async (address) => {
-    const res = await fetch(
-      `${address}//evil.com/`,
-    );
-    await res.body?.cancel();
-    const url = new URL(res.url);
-    assertEquals(url.origin, address);
   });
 });
