@@ -1235,3 +1235,43 @@ Deno.test("should not be able to override __FRSH_STATE", async () => {
     assert(!didError);
   });
 });
+
+Deno.test("param with encoding -- control", async () => {
+  await withFakeServe("./tests/fixture/dev.ts", async (server) => {
+    const doc = await server.getHtml(`/decode-params/Hello%20World`);
+    assertEquals(
+      doc.querySelector("body")?.textContent,
+      "Hello%20World",
+    );
+  });
+});
+
+Deno.test("param with bad encoding -- control", async () => {
+  await withFakeServe("./tests/fixture_param_decode/dev.ts", async (server) => {
+    const doc = await server.getHtml(`/decode-params/%E0%A4%A`);
+    assertEquals(
+      doc.querySelector("body")?.textContent,
+      "%E0%A4%A",
+    );
+  });
+});
+
+Deno.test("param with encoding -- fix", async () => {
+  await withFakeServe("./tests/fixture_param_decode/dev.ts", async (server) => {
+    const doc = await server.getHtml(`/decode-params/Hello%20World`);
+    assertEquals(
+      doc.querySelector("body")?.textContent,
+      "Hello World",
+    );
+  }, { loadConfig: true });
+});
+
+Deno.test("param with bad encoding -- fix", async () => {
+  await withFakeServe("./tests/fixture_param_decode/dev.ts", async (server) => {
+    const doc = await server.getHtml(`/decode-params/%E0%A4%A`);
+    assertEquals(
+      doc.querySelector("body")?.textContent,
+      "%E0%A4%A",
+    );
+  }, { loadConfig: true });
+});

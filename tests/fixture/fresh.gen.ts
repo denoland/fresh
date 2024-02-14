@@ -20,6 +20,7 @@ import * as $books_id_ from "./routes/books/[id].tsx";
 import * as $connInfo from "./routes/connInfo.ts";
 import * as $ctx_config from "./routes/ctx_config.tsx";
 import * as $ctx_config_props from "./routes/ctx_config_props.tsx";
+import * as $decode_params_id_ from "./routes/decode-params/[id].tsx";
 import * as $error_boundary from "./routes/error_boundary.tsx";
 import * as $event_handler_string from "./routes/event_handler_string.tsx";
 import * as $event_handler_string_island from "./routes/event_handler_string_island.tsx";
@@ -128,6 +129,7 @@ const manifest = {
     "./routes/connInfo.ts": $connInfo,
     "./routes/ctx_config.tsx": $ctx_config,
     "./routes/ctx_config_props.tsx": $ctx_config_props,
+    "./routes/decode-params/[id].tsx": $decode_params_id_,
     "./routes/error_boundary.tsx": $error_boundary,
     "./routes/event_handler_string.tsx": $event_handler_string,
     "./routes/event_handler_string_island.tsx": $event_handler_string_island,

@@ -148,6 +148,7 @@ export function getParamsAndRoute(
     staticRoutes,
     routes,
   }: RouterOptions,
+  automaticallyDecodeUrlParams: boolean,
 ): (
   url: URL,
 ) => RouteResult {
@@ -189,9 +190,21 @@ export function getParamsAndRoute(
       const res = route.pattern.exec(url);
 
       if (res !== null) {
+        let decodedParams: Record<string, string | undefined> = {};
+        if (automaticallyDecodeUrlParams) {
+          for (const [key, value] of Object.entries(res.pathname.groups)) {
+            try {
+              decodedParams[key] = value ? decodeURIComponent(value) : value;
+            } catch {
+              decodedParams[key] = value;
+            }
+          }
+        } else {
+          decodedParams = res.pathname.groups;
+        }
         return {
           route: route,
-          params: res.pathname.groups,
+          params: decodedParams,
           isPartial,
         };
       }
