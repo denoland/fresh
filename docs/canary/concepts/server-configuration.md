@@ -181,8 +181,8 @@ export const handler: Handlers<ProductsPageProps> = {
     const productName = decodeURIComponent(ctx.params["product"]);
 ```
 
-Setting this flag will cause Fresh to try to decode the parameters for you.
-If it fails, you will receive the encoded value for that particular parameter.
+Setting this flag will cause Fresh to try to decode the parameters for you. If
+it fails, you will receive the encoded value for that particular parameter.
 
 ## Server
 
