@@ -264,7 +264,7 @@ Deno.test("no redirect for /pages/////fresh", async () => {
   assertEquals(resp.status, STATUS_CODE.NotFound);
 });
 
-Deno.test("no redirect for /pages/////fresh", async () => {
+Deno.test("no open redirect when passing double slashes", async () => {
   const resp = await handler(
     new Request("https://fresh.deno.dev//evil.com/"),
   );
