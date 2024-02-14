@@ -234,11 +234,10 @@ export class ServerContext {
         !trailingSlashEnabled
       ) {
         // Remove trailing slashes
-        const path = url.pathname.replace(/\/+$/, "");
-        const location = `${path}${url.search}`;
+        url.pathname = url.pathname.replace(/\/+$/, "");
         return new Response(null, {
           status: STATUS_CODE.TemporaryRedirect,
-          headers: { location },
+          headers: { location: url.toString() },
         });
       } else if (trailingSlashEnabled && !url.pathname.endsWith("/")) {
         // If the last element of the path has a "." it's a file
