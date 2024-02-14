@@ -229,23 +229,26 @@ Deno.test("redirect /pages/fresh/ to /pages/fresh", async () => {
   assertEquals(resp.status, STATUS_CODE.TemporaryRedirect);
   assertEquals(
     resp.headers.get("location"),
-    "https://fresh.deno.dev/pages/fresh",
+    "/pages/fresh",
   );
 });
 
-Deno.test("redirect /pages/////fresh///// to /pages/////fresh", async () => {
-  const resp = await handler(
-    new Request("https://fresh.deno.dev/pages/////fresh/////"),
-  );
-  assert(resp);
-  assertEquals(resp.status, STATUS_CODE.TemporaryRedirect);
-  assertEquals(
-    resp.headers.get("location"),
-    "https://fresh.deno.dev/pages/////fresh",
-  );
-});
+Deno.test(
+  "redirect /pages/////fresh///// to /pages/fresh",
+  async () => {
+    const resp = await handler(
+      new Request("https://fresh.deno.dev/pages/////fresh/////"),
+    );
+    assert(resp);
+    assertEquals(resp.status, STATUS_CODE.TemporaryRedirect);
+    assertEquals(
+      resp.headers.get("location"),
+      "/pages/fresh",
+    );
+  },
+);
 
-Deno.test("redirect /pages/////fresh/ to /pages/////fresh", async () => {
+Deno.test("redirect /pages/////fresh/ to /pages/fresh", async () => {
   const resp = await handler(
     new Request("https://fresh.deno.dev/pages/////fresh/"),
   );
@@ -253,7 +256,7 @@ Deno.test("redirect /pages/////fresh/ to /pages/////fresh", async () => {
   assertEquals(resp.status, STATUS_CODE.TemporaryRedirect);
   assertEquals(
     resp.headers.get("location"),
-    "https://fresh.deno.dev/pages/////fresh",
+    "/pages/fresh",
   );
 });
 
@@ -263,6 +266,15 @@ Deno.test("no redirect for /pages/////fresh", async () => {
   );
   assert(resp);
   assertEquals(resp.status, STATUS_CODE.NotFound);
+});
+
+Deno.test("no redirect for /pages/////fresh", async () => {
+  const resp = await handler(
+    new Request("https://fresh.deno.dev//evil.com/"),
+  );
+  assert(resp);
+  assertEquals(resp.status, STATUS_CODE.TemporaryRedirect);
+  assertEquals(resp.headers.get("location"), "/evil.com");
 });
 
 Deno.test("/failure", async () => {

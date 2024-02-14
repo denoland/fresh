@@ -187,6 +187,11 @@ export class ServerContext {
       connInfo: ServeHandlerInfo = DEFAULT_CONN_INFO,
     ) {
       const url = new URL(req.url);
+      // Syntactically having double slashes in the pathname is valid per
+      // spec, but there is no behavior defined for that. Practically all
+      // servers normalize the pathname of a URL to not include double
+      // forward slashes.
+      url.pathname = url.pathname.replaceAll(/\/+/g, "/");
 
       const aliveUrl = basePath + ALIVE_URL;
 
@@ -234,10 +239,11 @@ export class ServerContext {
         !trailingSlashEnabled
       ) {
         // Remove trailing slashes
-        url.pathname = url.pathname.replace(/\/+$/, "");
+        const path = url.pathname.replace(/\/+$/, "");
+        const location = `${path}${url.search}`;
         return new Response(null, {
           status: STATUS_CODE.TemporaryRedirect,
-          headers: { location: url.toString() },
+          headers: { location },
         });
       } else if (trailingSlashEnabled && !url.pathname.endsWith("/")) {
         // If the last element of the path has a "." it's a file
