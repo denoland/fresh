@@ -307,7 +307,7 @@ Deno.test("prefer static files from build dir", async () => {
   );
 });
 
-Deno.test("zombie build ends", async (t) => {
+Deno.test("zombie build ends", async () => {
   const fixture = path.join(Deno.cwd(), "tests", "fixture_zombie_build");
   const result = await $`deno run -A ${fixture}/dev.ts build`.captureCombined()
     .timeout("30s").text();
