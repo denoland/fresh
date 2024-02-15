@@ -52,4 +52,5 @@ export async function build(
   );
 
   await Promise.all(plugins.map((plugin) => plugin.buildEnd?.()));
+  return "Build complete.";
 }

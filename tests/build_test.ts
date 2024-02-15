@@ -1,5 +1,6 @@
 import * as path from "$std/path/mod.ts";
 import {
+  $,
   assert,
   assertEquals,
   assertNotMatch,
@@ -303,5 +304,15 @@ Deno.test("prefer static files from build dir", async () => {
       const text = await res.text();
       assertEquals(text, "it works");
     },
+  );
+});
+
+Deno.test("zombie build ends", async (t) => {
+  const fixture = path.join(Deno.cwd(), "tests", "fixture_zombie_build");
+  const result = await $`deno run -A ${fixture}/dev.ts build`.captureCombined()
+    .timeout("30s").text();
+  assertStringIncludes(
+    result,
+    "The manifest has been generated for 1 routes and 1 islands.",
   );
 });

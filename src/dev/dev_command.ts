@@ -46,7 +46,10 @@ export async function dev(
     state.config.dev = false;
     state.loadSnapshot = false;
     state.build = true;
-    await build(state);
+    const result = await build(state);
+    if (result === "Build complete.") {
+      Deno.exit();
+    }
   } else if (config) {
     const state = await getInternalFreshState(
       manifest,
