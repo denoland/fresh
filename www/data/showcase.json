@@ -413,6 +413,18 @@
     "image": "rfui"
   },
   {
+    "title": "Kitty Printer",
+    "link": "https://print.unseen-site.fun/",
+    "github": "NaitLee/kitty-printer",
+    "image": "kitty-printer"
+  },
+  {
+    "title": "Dear JavaScript!",
+    "link": "https://dear-js.deno.dev/",
+    "github": "NaitLee/dear-js",
+    "image": "dear-js"
+  },
+  {
     "title": "Do not remove this, it’s for preventing conflicts by trailing comma",
     "link": "",
     "github": "",
