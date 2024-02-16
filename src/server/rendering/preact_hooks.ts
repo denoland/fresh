@@ -11,7 +11,7 @@ import {
 } from "preact";
 import { assetHashingHook } from "../../runtime/utils.ts";
 import { Partial, PartialProps } from "../../runtime/Partial.tsx";
-import { join, renderToString, SEP } from "../deps.ts";
+import { join, renderToString, SEPARATOR } from "../deps.ts";
 import { RenderState } from "./state.ts";
 import { Island } from "../types.ts";
 import {
@@ -238,7 +238,7 @@ options.vnode = (vnode) => {
 
         if (url.startsWith("/") && current?.basePath) {
           const joinedPath = join("/", current.basePath, url).replaceAll(
-            SEP,
+            SEPARATOR,
             "/",
           );
           out.push(leading + joinedPath + trailing);

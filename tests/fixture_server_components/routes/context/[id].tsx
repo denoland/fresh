@@ -1,11 +1,11 @@
 import { RouteContext } from "../../../../server.ts";
-import { delay, relative, SEP } from "../../../deps.ts";
+import { delay, relative, SEPARATOR } from "../../../deps.ts";
 
 export default async function Foo(_req: Request, context: RouteContext) {
   await delay(1);
   const value = JSON.stringify(context, (key, value) => {
     if (key === "outDir" || key == "staticDir") {
-      return relative(Deno.cwd(), value).split(SEP).join("/");
+      return relative(Deno.cwd(), value).split(SEPARATOR).join("/");
     } else if (key === "entrypoints") {
       return {};
     }
