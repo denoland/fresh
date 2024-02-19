@@ -9,8 +9,10 @@ export async function startServer(
   if (!opts.onListen) {
     opts.onListen = (params) => {
       const pathname = opts.basePath + "/";
+      const https = !!(opts.key && opts.cert);
+      const protocol = https ? "https:" : "http:";
       const address = colors.cyan(
-        `http://localhost:${params.port}${pathname}`,
+        `${protocol}//localhost:${params.port}${pathname}`,
       );
       const localLabel = colors.bold("Local:");
 
