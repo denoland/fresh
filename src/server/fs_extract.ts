@@ -29,7 +29,7 @@ import {
   join,
   Project,
   ResolutionHosts,
-  SEP,
+  SEPARATOR,
   toFileUrl,
   walk,
 } from "./deps.ts";
@@ -114,7 +114,7 @@ export async function extractRoutes(
     const path = url.substring(baseUrl.length + "routes".length);
     let baseRoute = path.substring(1, path.length - extname(path).length);
     baseRoute = join(state.config.basePath.slice(1), baseRoute).replaceAll(
-      SEP,
+      SEPARATOR,
       "/",
     );
     const name = baseRoute.replace(/\//g, "-");

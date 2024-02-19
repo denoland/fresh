@@ -1,4 +1,4 @@
-import { contentType, extname, SEP, STATUS_CODE } from "./deps.ts";
+import { contentType, extname, SEPARATOR, STATUS_CODE } from "./deps.ts";
 import * as router from "./router.ts";
 import { FreshConfig, FreshContext, Manifest } from "./mod.ts";
 import {
@@ -187,6 +187,11 @@ export class ServerContext {
       connInfo: ServeHandlerInfo = DEFAULT_CONN_INFO,
     ) {
       const url = new URL(req.url);
+      // Syntactically having double slashes in the pathname is valid per
+      // spec, but there is no behavior defined for that. Practically all
+      // servers normalize the pathname of a URL to not include double
+      // forward slashes.
+      url.pathname = url.pathname.replaceAll(/\/+/g, "/");
 
       const aliveUrl = basePath + ALIVE_URL;
 
@@ -348,7 +353,7 @@ export class ServerContext {
       const { localUrl, path, size, contentType, etag } of this.#extractResult
         .staticFiles
     ) {
-      staticRoutes[path.replaceAll(SEP, "/")] = {
+      staticRoutes[path.replaceAll(SEPARATOR, "/")] = {
         baseRoute: toBaseRoute(path),
         methods: {
           "HEAD": this.#staticFileHandler(
