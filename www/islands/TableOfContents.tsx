@@ -1,6 +1,5 @@
 import { useEffect, useRef, useState } from "preact/hooks";
 import { MarkdownHeading } from "../utils/markdown.ts";
-import toc from "$fresh/docs/toc.ts";
 
 export interface TableOfContentsProps {
   headings: MarkdownHeading[];
