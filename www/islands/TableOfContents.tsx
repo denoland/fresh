@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "preact/hooks";
 import { MarkdownHeading } from "../utils/markdown.ts";
+import toc from "$fresh/docs/toc.ts";
 
 export interface TableOfContentsProps {
   headings: MarkdownHeading[];
@@ -16,6 +17,8 @@ function setActiveLink(
   const tocLink = container.querySelector(
     `a[href="#${id}"]`,
   ) as HTMLElement;
+
+  if (tocLink === null) return;
 
   tocLink.classList.add("active");
 
@@ -62,8 +65,10 @@ export function TableOfContents({ headings }: TableOfContentsProps) {
         const id = headings[i].id;
         const tocLink = container.querySelector(
           `a[href="#${id}"]`,
-        ) as HTMLElement;
-        tocLink.classList.remove("active");
+        );
+        if (tocLink !== null) {
+          tocLink.classList.remove("active");
+        }
       }
 
       let activeIdx = visibleList.indexOf(true);
