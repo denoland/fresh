@@ -197,7 +197,7 @@ export default function DocsPage(props: PageProps<Data>) {
                   <div class="flex gap-6 md:gap-8 xl:gap-[8%] flex-col xl:flex-row md:mx-8 lg:mx-16 2xl:mx-0 lg:justify-end">
                     <TableOfContents headings={headings} />
 
-                    <div class="lg:order-1 min-w-0 max-w-3xl">
+                    <div class="lg:order-1 min-w-0 max-w-3xl w-full">
                       <h1 class="text-4xl text-gray-900 tracking-tight font-bold md:mt-0 px-4 md:px-0 mb-4">
                         {page.title}
                       </h1>

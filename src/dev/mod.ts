@@ -1,4 +1,11 @@
-import { gte, join, relative, semverParse, walk, WalkEntry } from "./deps.ts";
+import {
+  greaterOrEqual,
+  join,
+  relative,
+  semverParse,
+  walk,
+  WalkEntry,
+} from "./deps.ts";
 export { generate, type Manifest } from "./manifest.ts";
 import { generate, type Manifest } from "./manifest.ts";
 import { error } from "./error.ts";
@@ -7,7 +14,12 @@ const TEST_FILE_PATTERN = /[._]test\.(?:[tj]sx?|[mc][tj]s)$/;
 
 export function ensureMinDenoVersion() {
   // Check that the minimum supported Deno version is being used.
-  if (!gte(semverParse(Deno.version.deno), semverParse(MIN_DENO_VERSION))) {
+  if (
+    !greaterOrEqual(
+      semverParse(Deno.version.deno),
+      semverParse(MIN_DENO_VERSION),
+    )
+  ) {
     let message =
       `Deno version ${MIN_DENO_VERSION} or higher is required. Please update Deno.\n\n`;
 
