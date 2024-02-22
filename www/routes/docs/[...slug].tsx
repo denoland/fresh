@@ -159,7 +159,8 @@ export default function DocsPage(props: PageProps<Data>) {
         <meta name="view-transition" content="same-origin" />
       </Head>
       <div class="flex flex-col min-h-screen mx-auto max-w-screen-2xl">
-        <div class="flex-1 " f-client-nav>
+        {/* Disable partial navigation until this bug in Preact is fixed https://github.com/preactjs/preact/pull/4287 */}
+        <div class="flex-1 " f-client-nav={false}>
           <div class=" md:flex">
             <nav class="w-[18rem] flex-shrink-0 hidden md:block px-4">
               <DocsSidebar
