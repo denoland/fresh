@@ -1,4 +1,4 @@
-import { SEP } from "./deps.ts";
+import { SEPARATOR } from "./deps.ts";
 import { ErrorHandler, FinalHandler, RouteResult, withBase } from "./router.ts";
 import {
   BaseRoute,
@@ -10,7 +10,7 @@ import {
 export const ROOT_BASE_ROUTE = toBaseRoute("/");
 
 export function toBaseRoute(input: string): BaseRoute {
-  input = input.replaceAll(SEP, "/");
+  input = input.replaceAll(SEPARATOR, "/");
 
   if (input.endsWith("_layout")) {
     input = input.slice(0, -"_layout".length);

@@ -72,7 +72,7 @@ console.log();
 
 let unresolvedDirectory = Deno.args[0];
 if (flags._.length !== 1) {
-  const userInput = prompt("Project Name", "fresh-project");
+  const userInput = prompt("Project Name:", "fresh-project");
   if (!userInput) {
     error(help);
   }
@@ -105,8 +105,9 @@ let useTwind = flags.twind || false;
 if (flags.tailwind == null && flags.twind == null) {
   if (confirm("Do you want to use a styling library?")) {
     console.log();
-    console.log("1. Tailwind");
-    console.log("2. Twind");
+    console.log(`1. ${colors.cyan("tailwindcss")} (recommended)`);
+    console.log(`2. ${colors.cyan("Twind")}`);
+    console.log();
     switch (
       (prompt("Which styling library do you want to use? [1]") || "1").trim()
     ) {

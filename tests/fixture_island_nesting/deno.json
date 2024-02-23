@@ -5,8 +5,8 @@
   },
   "imports": {
     "$fresh/": "../../",
-    "preact": "https://esm.sh/preact@10.16.0",
-    "preact/": "https://esm.sh/preact@10.16.0/",
+    "preact": "https://esm.sh/preact@10.19.6",
+    "preact/": "https://esm.sh/preact@10.19.6/",
     "@preact/signals": "https://esm.sh/*@preact/signals@1.1.3",
     "@preact/signals-core": "https://esm.sh/@preact/signals-core@1.2.3"
   },
