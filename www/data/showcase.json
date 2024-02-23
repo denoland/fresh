@@ -413,6 +413,12 @@
     "image": "rfui"
   },
   {
+    "title": "Just Tell Me!",
+    "link": "https://just-tell-me.deno.dev/",
+    "github": "franekmagiera/just-tell-me",
+    "image": "just-tell-me"
+  },
+  {
     "title": "Do not remove this, it’s for preventing conflicts by trailing comma",
     "link": "",
     "github": "",
