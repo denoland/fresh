@@ -17,6 +17,8 @@ function setActiveLink(
     `a[href="#${id}"]`,
   ) as HTMLElement;
 
+  if (tocLink === null) return;
+
   tocLink.classList.add("active");
 
   const rect = tocLink
@@ -62,8 +64,10 @@ export function TableOfContents({ headings }: TableOfContentsProps) {
         const id = headings[i].id;
         const tocLink = container.querySelector(
           `a[href="#${id}"]`,
-        ) as HTMLElement;
-        tocLink.classList.remove("active");
+        );
+        if (tocLink !== null) {
+          tocLink.classList.remove("active");
+        }
       }
 
       let activeIdx = visibleList.indexOf(true);
