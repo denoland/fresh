@@ -127,20 +127,3 @@ export default function tailwind(
     },
   };
 }
-
-export function upNLevels(url: string | URL, levels: number) {
-  const inputUrl = (typeof url === "string") ? new URL(url) : url;
-
-  const segments = inputUrl.pathname.split("/");
-
-  if (levels >= segments.length) {
-    throw new Error("Cannot go up more levels than the current depth");
-  }
-
-  const upperPathSegments = segments.slice(0, -levels);
-  const newPath = path.join(...upperPathSegments);
-
-  inputUrl.pathname = newPath;
-
-  return inputUrl.href;
-}
