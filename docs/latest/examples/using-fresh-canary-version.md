@@ -22,8 +22,8 @@ instead this one particular commit? Just make the following changes to your
    "imports": {
 -    "$fresh/": "https://deno.land/x/fresh@1.2.0/",
 +    "$fresh/": "https://raw.githubusercontent.com/denoland/fresh/the-particular-commit-hash-here/",
-     "preact": "https://esm.sh/preact@10.15.1",
-     "preact/": "https://esm.sh/preact@10.15.1/",
+     "preact": "https://esm.sh/preact@10.19.6",
+     "preact/": "https://esm.sh/preact@10.19.6/",
 ```
 
 ### Forked Fresh
@@ -39,8 +39,8 @@ been merged yet (at the time of writing this):
    "imports": {
 -    "$fresh/": "https://deno.land/x/fresh@1.2.0/",
 +    "$fresh/": "https://raw.githubusercontent.com/deer/fresh/state_in_props/",
-     "preact": "https://esm.sh/preact@10.15.1",
-     "preact/": "https://esm.sh/preact@10.15.1/",
+     "preact": "https://esm.sh/preact@10.19.6",
+     "preact/": "https://esm.sh/preact@10.19.6/",
 ```
 
 ## Creating a new project

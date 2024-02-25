@@ -8,7 +8,7 @@ import {
 import { cleanup, fireEvent, render, setup } from "$fresh-testing-library";
 import { afterEach, beforeAll, describe, it } from "$std/testing/bdd.ts";
 import LinkButton from "../../../../www/components/gallery/LinkButton.tsx";
-import IconHeart from "https://deno.land/x/tabler_icons_tsx@0.0.3/tsx/heart.tsx";
+import IconHeart from "https://deno.land/x/tabler_icons_tsx@0.0.6/tsx/heart.tsx";
 
 describe("components/gallery/LinkButton.tsx", () => {
   beforeAll(setup);

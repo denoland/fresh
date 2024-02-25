@@ -358,6 +358,7 @@ export async function render<Data>(
     dependenciesFn: opts.dependenciesFn,
     styles: ctx.styles,
     pluginRenderResults: renderResults,
+    basePath,
   });
 
   // Append error overlay in dev mode

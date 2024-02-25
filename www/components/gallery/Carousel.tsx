@@ -1,8 +1,8 @@
 import { asset } from "$fresh/runtime.ts";
 import { useSignal } from "@preact/signals";
 import { useEffect, useRef } from "preact/hooks";
-import IconCircleChevronsRight from "https://deno.land/x/tabler_icons_tsx@0.0.3/tsx/circle-chevrons-right.tsx";
-import IconCircleChevronsLeft from "https://deno.land/x/tabler_icons_tsx@0.0.3/tsx/circle-chevrons-left.tsx";
+import IconCircleChevronsRight from "https://deno.land/x/tabler_icons_tsx@0.0.6/tsx/circle-chevrons-right.tsx";
+import IconCircleChevronsLeft from "https://deno.land/x/tabler_icons_tsx@0.0.6/tsx/circle-chevrons-left.tsx";
 
 const SLIDE_DATA = [
   {
