@@ -4,6 +4,8 @@ import {
   assertMatch,
   assertStringIncludes,
   delay,
+  Page,
+  Project,
   puppeteer,
   STATUS_CODE,
 } from "./deps.ts";
@@ -150,6 +152,46 @@ Deno.test("island tests", async (t) => {
   );
 });
 
+Deno.test("assets prefixed dev", async (t) => {
+  await withPageName(
+    "./tests/fixture_base_path/dev.ts",
+    async (page, address) => {
+      await page.goto(`${address}/islands`);
+
+      await t.step("ensure every preload link is prefixed", async () => {
+        await checkPreloadLinks(page, "/foo/bar");
+      });
+
+      await t.step("ensure every script link is prefixed", async () => {
+        await checkScriptSrcs(page, "/foo/bar");
+      });
+
+      await t.step("ensure inline content is prefixed", async () => {
+        await checkInlineScripts(page, "/foo/bar");
+      });
+    },
+  );
+});
+
+Deno.test("assets prefixed main", async (t) => {
+  await withPageName(
+    "./tests/fixture_base_path/main.ts",
+    async (page, address) => {
+      await page.goto(`${address}/islands`);
+
+      await t.step("ensure every preload link is prefixed", async () => {
+        await checkPreloadLinks(page, "/foo/bar");
+      });
+
+      // no script sent out, because dev sends out dev_client.js
+
+      await t.step("ensure inline content is prefixed", async () => {
+        await checkInlineScripts(page, "/foo/bar");
+      });
+    },
+  );
+});
+
 Deno.test("renders error boundary", async () => {
   await withPageName(
     "./tests/fixture_base_path/main.ts",
@@ -247,3 +289,62 @@ Deno.test("TailwindCSS - middleware only css", async () => {
     { loadConfig: true },
   );
 });
+
+function extractImportUrls(scriptContent: string): string[] {
+  const project = new Project({
+    useInMemoryFileSystem: true,
+  });
+
+  const sourceFile = project.createSourceFile("script.js", scriptContent);
+
+  const importDeclarations = sourceFile.getImportDeclarations();
+
+  return importDeclarations.map((importDeclaration) =>
+    importDeclaration.getModuleSpecifierValue()
+  );
+}
+
+async function checkPreloadLinks(page: Page, basePath: string) {
+  const preloadLinks: string[] = await page.$$eval(
+    'link[rel="modulepreload"]',
+    (links) => links.map((link) => link.getAttribute("href")),
+  );
+  assert(preloadLinks.length > 0, "No preload links found");
+  preloadLinks.forEach((href) => {
+    assert(
+      href.startsWith(basePath),
+      `Preload link ${href} does not include the correct base path`,
+    );
+  });
+}
+
+async function checkScriptSrcs(page: Page, basePath: string) {
+  const scriptSrcs: string[] = await page.$$eval(
+    "script[src]",
+    (scripts) => scripts.map((script) => script.getAttribute("src")),
+  );
+  assert(scriptSrcs.length > 0, "No script srcs found");
+  scriptSrcs.forEach((src) => {
+    assert(
+      src.startsWith(basePath),
+      `Script src ${src} does not include the correct base path`,
+    );
+  });
+}
+
+async function checkInlineScripts(page: Page, basePath: string) {
+  const inlineScripts = await page.$$eval(
+    "script:not([src])",
+    (scripts) => scripts.map((script) => script.textContent),
+  );
+  assert(inlineScripts.length > 0, "No inline scripts found");
+  inlineScripts.forEach((scriptContent) => {
+    const importUrls = extractImportUrls(scriptContent);
+    importUrls.forEach((url) => {
+      assert(
+        url.startsWith(basePath),
+        `Import URL ${url} does not include the correct base path`,
+      );
+    });
+  });
+}
