@@ -23,6 +23,7 @@ export function renderFreshTags(
     dependenciesFn: (path: string) => string[];
     styles: string[];
     pluginRenderResults: [Plugin, PluginRenderResult][];
+    basePath: string;
   },
 ) {
   const { isPartial } = renderState;
@@ -41,7 +42,7 @@ export function renderFreshTags(
 
   const preloadSet = new Set<string>();
   function addImport(path: string): string {
-    const url = bundleAssetUrl(`/${path}`);
+    const url = opts.basePath + bundleAssetUrl(`/${path}`);
     if (!isPartial) {
       preloadSet.add(url);
       for (const depPath of opts.dependenciesFn(path)) {
@@ -170,7 +171,7 @@ export function renderFreshTags(
     );
     const nonce = renderState.csp ? ` nonce="${renderState.getNonce()}` : "";
     opts.bodyHtml +=
-      `<script id="__FRSH_PARTIAL_DATA_${renderState.renderUuid}" type="application/json"${nonce}">${escapedData}</script>`;
+      `<script id="__FRSH_PARTIAL_DATA_${renderState.renderUuid}" type="application/json"${nonce}>${escapedData}</script>`;
   }
   if (script !== "") {
     opts.bodyHtml +=
