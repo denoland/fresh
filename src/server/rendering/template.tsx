@@ -11,7 +11,7 @@ import {
 } from "preact";
 import { HEAD_CONTEXT } from "../../runtime/head.ts";
 import { CSP_CONTEXT } from "../../runtime/csp.ts";
-import { withBase } from "$fresh/src/server/router.ts";
+import { withBase } from "../router.ts";
 
 export function renderHtml(state: RenderState) {
   setRenderState(state);
