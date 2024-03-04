@@ -10,7 +10,8 @@ the server only.
 
 Islands are defined by creating a file in the `islands/` folder in a Fresh
 project. The name of this file must be a PascalCase or kebab-case name of the
-island.
+island. This means that moving the file out of the folder will quickly
+deactivate the interactivity of that component.
 
 ```tsx islands/my-island.tsx
 import { useSignal } from "@preact/signals";
@@ -37,6 +38,16 @@ export default function Home() {
   return <MyIsland />;
 }
 ```
+
+How does Fresh execute them differently, given that islands are components and
+you can embed JS scripts in the returned expressions of a component to have it
+run in the client? The answer is that putting a random script tag with a script
+URL will likely not be bundled because esbuild doesn't understand that. The way
+islands works in Fresh is pretty simple. Basically Fresh passes the files in
+`islands/` to esbuild as an entry point. Esbuild then bundles each entry point
+into a JS bundle and in the browser, when it first makes islands interactive, it
+fetches the bundled script and run that. The way esbuild (and other bundlers
+work), is that they track dependencies based on `import` statements.
 
 ## Passing JSX to islands
 

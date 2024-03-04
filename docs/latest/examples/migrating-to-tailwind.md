@@ -11,9 +11,11 @@ will now install the Tailwind CSS plugin instead of twind like it did before.
 
 The tailwind plugin requires Fresh's
 [ahead of time builds](/docs/concepts/ahead-of-time-builds) to be set up,
-otherwise it won't work. Make sure to switch your projects to ahead of time
-builds in your project before continuing this guide. If your project is already
-configured to use ahead of time builds, then you're good to go.
+otherwise it won't work on Deno Deploy or other serverless platform, since
+running tailwind every time an isolate spins up on deploy is super expensive.
+Make sure to switch your projects to ahead of time builds in your project before
+continuing this guide. If your project is already configured to use ahead of
+time builds, then you're good to go.
 
 ## Migrating to Tailwind CSS
 
