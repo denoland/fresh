@@ -1,13 +1,13 @@
 import { FreshContext, MiddlewareHandler } from "$fresh/server.ts";
 
 // cors middleware
-async function corsHandler(_req: Request, ctx: FreshContext) {
-  if (_req.method == "OPTIONS") {
+async function corsHandler(req: Request, ctx: FreshContext) {
+  if (req.method == "OPTIONS") {
     return new Response(null, {
       status: 204,
     });
   }
-  const origin = _req.headers.get("Origin") || "*";
+  const origin = req.headers.get("Origin") || "*";
   const resp = await ctx.next();
   const headers = resp.headers;
 
