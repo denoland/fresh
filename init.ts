@@ -629,7 +629,7 @@ const config = {
   lint: {
     rules: {
       tags: ["fresh", "recommended"],
-      exclude: ["no-window"]
+      exclude: ["no-window"],
     },
   },
   exclude: ["**/_fresh/*"],
