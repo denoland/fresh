@@ -283,3 +283,16 @@ Deno.test("supports returning htmlText", async () => {
     { loadConfig: true },
   );
 });
+
+Deno.test("sub plugins", async () => {
+  const resp = await router(
+    new Request("https://fresh.deno.dev/subPluginRoute"),
+  );
+  assert(resp);
+  assertEquals(resp.status, STATUS_CODE.OK);
+  const body = await resp.text();
+  assertStringIncludes(
+    body,
+    `<h1>subPluginRoute</h1>`,
+  );
+});

@@ -5,6 +5,7 @@ import cssInjectPluginAsync from "./utils/css-inject-plugin-async.ts";
 import linkInjectPlugin from "./utils/link-inject-plugin.ts";
 import routePlugin from "./utils/route-plugin.ts";
 import secondMiddlewarePlugin from "$fresh/tests/fixture_plugin/utils/second-middleware-plugin.ts";
+import pluginWithSubPlugin from "./utils/pluginWithSubPlugin.tsx";
 
 export default {
   plugins: [
@@ -14,5 +15,6 @@ export default {
     linkInjectPlugin,
     routePlugin({ title: "Title Set From Plugin Config", async: false }),
     secondMiddlewarePlugin(),
+    pluginWithSubPlugin,
   ],
 } as FreshConfig;
