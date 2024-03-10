@@ -173,6 +173,8 @@ export class ServerContext {
       basePath,
     );
     const trailingSlashEnabled = this.#state.config.router?.trailingSlash;
+    const disableTrailingSlashRedirect =
+      this.#state.config.router?.disableTrailingSlashRedirect ?? false;
     const isDev = this.#dev;
 
     if (this.#dev) {
@@ -235,6 +237,7 @@ export class ServerContext {
       // slash counterpart.
       // Ex: /about/ -> /about
       if (
+        !disableTrailingSlashRedirect &&
         url.pathname.length > 1 && url.pathname.endsWith("/") &&
         !trailingSlashEnabled
       ) {
@@ -245,7 +248,11 @@ export class ServerContext {
           status: STATUS_CODE.TemporaryRedirect,
           headers: { location },
         });
-      } else if (trailingSlashEnabled && !url.pathname.endsWith("/")) {
+      } else if (
+        !disableTrailingSlashRedirect &&
+        trailingSlashEnabled &&
+        !url.pathname.endsWith("/")
+      ) {
         // If the last element of the path has a "." it's a file
         const isFile = url.pathname.split("/").at(-1)?.includes(".");
 
