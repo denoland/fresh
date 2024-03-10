@@ -32,19 +32,25 @@ Deno.test("doesn't leak data across renderers", async () => {
   await Promise.all(promises);
 });
 
-Deno.test("render headers passed to ctx.render()", async () => {
+Deno.test("render headers passed to ctx.render()", async (t) => {
   await withFakeServe("./tests/fixture_render/main.ts", async (server) => {
-    let res = await server.get("/header_arr");
-    assertEquals(res.headers.get("x-foo"), "Hello world!");
-    await res.body?.cancel();
+    await t.step("header_arr", async () => {
+      const res = await server.get("/header_arr");
+      assertEquals(res.headers.get("x-foo"), "Hello world!");
+      await res.body?.cancel();
+    });
 
-    res = await server.get("/header_obj");
-    assertEquals(res.headers.get("x-foo"), "Hello world!");
-    await res.body?.cancel();
+    await t.step("header_obj", async () => {
+      const res = await server.get("/header_obj");
+      assertEquals(res.headers.get("x-foo"), "Hello world!");
+      await res.body?.cancel();
+    });
 
-    res = await server.get("/header_instance");
-    assertEquals(res.headers.get("x-foo"), "Hello world!");
-    await res.body?.cancel();
+    await t.step("header_instance", async () => {
+      const res = await server.get("/header_instance");
+      assertEquals(res.headers.get("x-foo"), "Hello world!");
+      await res.body?.cancel();
+    });
   });
 });
 
@@ -86,4 +92,13 @@ Deno.test("Ensure manifest has valid specifiers", async () => {
       assertTextMany(doc, "p", ["it works"]);
     },
   );
+});
+
+Deno.test("render multiple set-cookie headers passed to ctx.render()", async () => {
+  await withFakeServe("./tests/fixture_render/dev.ts", async (server) => {
+    const res = await server.get("/cookiePasser");
+    const cookies = res.headers.getSetCookie();
+    assertEquals(cookies, ["foo=bar", "baz=1234"]);
+    await res.body?.cancel();
+  });
 });
