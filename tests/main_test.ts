@@ -273,6 +273,30 @@ Deno.test("no open redirect when passing double slashes", async () => {
   assertEquals(resp.headers.get("location"), "/evil.com");
 });
 
+Deno.test("ctx.redirect() - relative urls", async () => {
+  let resp = await handler(
+    new Request("https://fresh.deno.dev/redirect?path=//evil.com/"),
+  );
+  assertEquals(resp.status, 302);
+  assertEquals(resp.headers.get("location"), "/evil.com/");
+
+  resp = await handler(
+    new Request(
+      "https://fresh.deno.dev/redirect?path=//evil.com//foo&status=307",
+    ),
+  );
+  assertEquals(resp.status, 307);
+  assertEquals(resp.headers.get("location"), "/evil.com/foo");
+});
+
+Deno.test("ctx.redirect() - absolute urls", async () => {
+  const resp = await handler(
+    new Request("https://fresh.deno.dev/redirect?path=https://example.com/"),
+  );
+  assertEquals(resp.status, 302);
+  assertEquals(resp.headers.get("location"), "https://example.com");
+});
+
 Deno.test("/failure", async () => {
   const resp = await handler(new Request("https://fresh.deno.dev/failure"));
   assert(resp);

@@ -114,6 +114,30 @@ export async function getServerContext(state: InternalFreshState) {
   );
 }
 
+function redirectTo(pathOrUrl: string = "/", status = 302): Response {
+  let location = pathOrUrl;
+
+  // Disallow protocol relative URLs
+  if (pathOrUrl !== "/" && pathOrUrl.startsWith("/")) {
+    let idx = pathOrUrl.indexOf("?");
+    if (idx === -1) {
+      idx = pathOrUrl.indexOf("#");
+    }
+
+    const pathname = idx > -1 ? pathOrUrl.slice(0, idx) : pathOrUrl;
+    const search = idx > -1 ? pathOrUrl.slice(idx) : "";
+
+    location = `${pathname.replaceAll(/\/+/g, "/")}${search}`;
+  }
+
+  return new Response(null, {
+    status,
+    headers: {
+      location,
+    },
+  });
+}
+
 export class ServerContext {
   #renderFn: RenderFunction;
   #plugins: Plugin[];
@@ -283,6 +307,7 @@ export class ServerContext {
           ctx.data = data;
           return await renderNotFound(req, ctx);
         },
+        redirect: redirectTo,
         route: "",
         get pattern() {
           return ctx.route;
@@ -609,12 +634,7 @@ export class ServerContext {
       if (key !== null && BUILD_ID !== key) {
         url.searchParams.delete(ASSET_CACHE_BUST_KEY);
         const location = url.pathname + url.search;
-        return new Response(null, {
-          status: 307,
-          headers: {
-            location,
-          },
-        });
+        return redirectTo(location, 307);
       }
       const headers = new Headers({
         "content-type": contentType,

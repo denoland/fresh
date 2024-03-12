@@ -65,6 +65,7 @@ import * as $not_found from "./routes/not_found.ts";
 import * as $params from "./routes/params.tsx";
 import * as $preact_boolean_attrs from "./routes/preact/boolean_attrs.tsx";
 import * as $props_id_ from "./routes/props/[id].tsx";
+import * as $redirect from "./routes/redirect.tsx";
 import * as $route_groups_islands_index from "./routes/route-groups-islands/index.tsx";
 import * as $route_groups_bar_baz_layout from "./routes/route-groups/(bar)/(baz)/_layout.tsx";
 import * as $route_groups_bar_baz_baz from "./routes/route-groups/(bar)/(baz)/baz.tsx";
@@ -186,6 +187,7 @@ const manifest = {
     "./routes/params.tsx": $params,
     "./routes/preact/boolean_attrs.tsx": $preact_boolean_attrs,
     "./routes/props/[id].tsx": $props_id_,
+    "./routes/redirect.tsx": $redirect,
     "./routes/route-groups-islands/index.tsx": $route_groups_islands_index,
     "./routes/route-groups/(bar)/(baz)/_layout.tsx":
       $route_groups_bar_baz_layout,

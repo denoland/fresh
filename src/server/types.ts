@@ -206,6 +206,7 @@ export interface FreshContext<
   ) => Response | Promise<Response>;
   Component: ComponentType<unknown>;
   next: () => Promise<Response>;
+  redirect: (path: string, statusCode?: number) => Response;
 }
 /**
  * Context passed to async route components.
