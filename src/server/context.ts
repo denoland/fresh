@@ -785,10 +785,10 @@ function sendResponse(
   },
 ) {
   const [body, uuid, csp] = resp;
-  const headers: Record<string, string> = {
+  const headers: Headers = new Headers({
     "content-type": "text/html; charset=utf-8",
     "x-fresh-uuid": uuid,
-  };
+  });
 
   if (csp) {
     if (options.isDev) {
@@ -799,24 +799,25 @@ function sendResponse(
     }
     const directive = serializeCSPDirectives(csp.directives);
     if (csp.reportOnly) {
-      headers["content-security-policy-report-only"] = directive;
+      headers.set("content-security-policy-report-only", directive);
     } else {
-      headers["content-security-policy"] = directive;
+      headers.set("content-security-policy", directive);
     }
   }
 
   if (options.headers) {
     if (Array.isArray(options.headers)) {
-      for (let i = 0; i < options.headers.length; i++) {
-        const item = options.headers[i];
-        headers[item[0]] = item[1];
+      for (const [key, value] of options.headers) {
+        headers.append(key, value);
       }
     } else if (options.headers instanceof Headers) {
       options.headers.forEach((value, key) => {
-        headers[key] = value;
+        headers.append(key, value);
       });
     } else {
-      Object.assign(headers, options.headers);
+      for (const [key, value] of Object.entries(options.headers)) {
+        headers.append(key, value);
+      }
     }
   }
 
