@@ -1,6 +1,6 @@
-import { assertEquals, fail } from "$std/testing/asserts.ts";
+import { assertEquals, fail } from "@std/assert";
 import { cleanup, render, setup } from "$fresh-testing-library";
-import { afterEach, beforeAll, describe, it } from "$std/testing/bdd.ts";
+import { afterEach, beforeAll, describe, it } from "@std/testing/bdd";
 import Header from "$fresh/www/components/gallery/Header.tsx";
 
 describe("components/gallery/Header.tsx", () => {

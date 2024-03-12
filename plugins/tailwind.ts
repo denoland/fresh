@@ -1,7 +1,7 @@
 import { Plugin, PluginMiddleware, ResolvedFreshConfig } from "../server.ts";
 import type postcss from "npm:postcss@8.4.35";
-import * as path from "https://deno.land/std@0.216.0/path/mod.ts";
-import { walk } from "https://deno.land/std@0.216.0/fs/walk.ts";
+import * as path from "@std/path";
+import { walk } from "@std/fs/walk";
 import { TailwindPluginOptions } from "./tailwind/types.ts";
 
 async function initTailwind(

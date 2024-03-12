@@ -22,7 +22,7 @@ export {
 export { encodeHex } from "https://deno.land/std@0.216.0/encoding/hex.ts";
 export { escape } from "https://deno.land/std@0.216.0/regexp/escape.ts";
 export * as JSONC from "https://deno.land/std@0.216.0/jsonc/mod.ts";
-export { renderToString } from "https://esm.sh/*preact-render-to-string@6.3.1";
+export { renderToString } from "preact-render-to-string";
 export {
   assertEquals,
   assertThrows,

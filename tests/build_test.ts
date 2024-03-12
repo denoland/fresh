@@ -1,4 +1,4 @@
-import * as path from "$std/path/mod.ts";
+import * as path from "@std/path";
 import {
   assert,
   assertEquals,

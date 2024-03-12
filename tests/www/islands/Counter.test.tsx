@@ -1,6 +1,6 @@
-import { assertExists, assertFalse } from "$std/testing/asserts.ts";
+import { assertExists, assertFalse } from "@std/assert";
 import { cleanup, fireEvent, render, setup } from "$fresh-testing-library";
-import { afterEach, beforeAll, describe, it } from "$std/testing/bdd.ts";
+import { afterEach, beforeAll, describe, it } from "@std/testing/bdd";
 import Counter from "../../../www/islands/Counter.tsx";
 
 describe("islands/Counter.tsx", () => {

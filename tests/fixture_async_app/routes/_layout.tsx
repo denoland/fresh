@@ -1,5 +1,5 @@
 import { FreshContext } from "$fresh/server.ts";
-import { delay } from "$std/async/delay.ts";
+import { delay } from "@std/async/delay";
 
 export default async function AsyncLayout(
   req: Request,

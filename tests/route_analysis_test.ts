@@ -1,5 +1,5 @@
 import { startFreshServerExpectErrors } from "./test_utils.ts";
-import { dirname, join } from "$std/path/mod.ts";
+import { dirname, join } from "@std/path";
 import { assertEquals, assertStringIncludes } from "./deps.ts";
 import { ServerContext } from "../server.ts";
 import manifest from "./fixture/fresh.gen.ts";

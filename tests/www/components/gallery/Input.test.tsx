@@ -1,6 +1,6 @@
-import { assert } from "$std/testing/asserts.ts";
+import { assert } from "@std/assert";
 import { cleanup, render, setup } from "$fresh-testing-library";
-import { afterEach, beforeAll, describe, it } from "$std/testing/bdd.ts";
+import { afterEach, beforeAll, describe, it } from "@std/testing/bdd";
 import Input from "../../../../www/components/gallery/Input.tsx";
 
 describe("Input.tsx", () => {

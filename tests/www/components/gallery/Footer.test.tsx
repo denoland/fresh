@@ -1,6 +1,6 @@
-import { assertEquals, assertExists } from "$std/testing/asserts.ts";
+import { assertEquals, assertExists } from "@std/assert";
 import { cleanup, render, setup } from "$fresh-testing-library";
-import { afterEach, beforeAll, describe, it } from "$std/testing/bdd.ts";
+import { afterEach, beforeAll, describe, it } from "@std/testing/bdd";
 import Footer from "../../../../www/components/gallery/Footer.tsx";
 
 describe("Footer.tsx", () => {

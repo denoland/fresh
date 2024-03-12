@@ -3,7 +3,7 @@ import tailwindCss, { Config } from "tailwindcss";
 import postcss from "npm:postcss@8.4.35";
 import cssnano from "npm:cssnano@6.0.3";
 import autoprefixer from "npm:autoprefixer@10.4.17";
-import * as path from "https://deno.land/std@0.216.0/path/mod.ts";
+import * as path from "@std/path";
 import { TailwindPluginOptions } from "./types.ts";
 
 const CONFIG_EXTENSIONS = ["ts", "js", "mjs"];
@@ -51,7 +51,8 @@ export async function initTailwind(
     throw new Error(`Expected tailwind "content" option to be an array`);
   }
 
-  tailwindConfig.content = tailwindConfig.content.map((pattern) => {
+  // deno-lint-ignore no-explicit-any
+  tailwindConfig.content = tailwindConfig.content.map((pattern: any) => {
     if (typeof pattern === "string") {
       const relative = path.relative(Deno.cwd(), path.dirname(configPath));
 

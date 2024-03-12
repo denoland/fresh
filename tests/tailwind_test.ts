@@ -6,7 +6,7 @@ import {
   join,
   TextLineStream,
 } from "./deps.ts";
-import { assertEquals } from "$std/assert/assert_equals.ts";
+import { assertEquals } from "@std/assert";
 
 Deno.test("TailwindCSS - dev mode", async () => {
   await withFakeServe("./tests/fixture_tailwind/dev.ts", async (server) => {

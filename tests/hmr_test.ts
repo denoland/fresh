@@ -9,7 +9,7 @@ import {
   relative,
 } from "./deps.ts";
 import { startFreshServer } from "./test_utils.ts";
-import { retry } from "$std/async/retry.ts";
+import { retry } from "@std/async/retry";
 
 async function withTmpFixture(
   name: string,
