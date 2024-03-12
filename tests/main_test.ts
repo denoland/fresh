@@ -294,7 +294,7 @@ Deno.test("ctx.redirect() - absolute urls", async () => {
     new Request("https://fresh.deno.dev/redirect?path=https://example.com/"),
   );
   assertEquals(resp.status, 302);
-  assertEquals(resp.headers.get("location"), "https://example.com");
+  assertEquals(resp.headers.get("location"), "https://example.com/");
 });
 
 Deno.test("ctx.redirect() - with search and hash", async () => {
