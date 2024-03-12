@@ -44,7 +44,7 @@ import { loadAotSnapshot } from "../build/aot_snapshot.ts";
 import { ErrorOverlay } from "./error_overlay.tsx";
 import { withBase } from "./router.ts";
 import { PARTIAL_SEARCH_PARAM } from "../constants.ts";
-import TailwindErrorPage from "$fresh/src/server/tailwind_aot_error_page.tsx";
+import TailwindErrorPage from "./tailwind_aot_error_page.tsx";
 
 const DEFAULT_CONN_INFO: ServeHandlerInfo = {
   localAddr: { transport: "tcp", hostname: "localhost", port: 8080 },
@@ -785,10 +785,10 @@ function sendResponse(
   },
 ) {
   const [body, uuid, csp] = resp;
-  const headers: Record<string, string> = {
+  const headers: Headers = new Headers({
     "content-type": "text/html; charset=utf-8",
     "x-fresh-uuid": uuid,
-  };
+  });
 
   if (csp) {
     if (options.isDev) {
@@ -799,24 +799,25 @@ function sendResponse(
     }
     const directive = serializeCSPDirectives(csp.directives);
     if (csp.reportOnly) {
-      headers["content-security-policy-report-only"] = directive;
+      headers.set("content-security-policy-report-only", directive);
     } else {
-      headers["content-security-policy"] = directive;
+      headers.set("content-security-policy", directive);
     }
   }
 
   if (options.headers) {
     if (Array.isArray(options.headers)) {
-      for (let i = 0; i < options.headers.length; i++) {
-        const item = options.headers[i];
-        headers[item[0]] = item[1];
+      for (const [key, value] of options.headers) {
+        headers.append(key, value);
       }
     } else if (options.headers instanceof Headers) {
       options.headers.forEach((value, key) => {
-        headers[key] = value;
+        headers.append(key, value);
       });
     } else {
-      Object.assign(headers, options.headers);
+      for (const [key, value] of Object.entries(options.headers)) {
+        headers.append(key, value);
+      }
     }
   }
 
