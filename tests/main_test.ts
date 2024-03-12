@@ -297,6 +297,18 @@ Deno.test("ctx.redirect() - absolute urls", async () => {
   assertEquals(resp.headers.get("location"), "https://example.com");
 });
 
+Deno.test("ctx.redirect() - with search and hash", async () => {
+  const resp = await handler(
+    new Request(
+      `https://fresh.deno.dev/redirect?path=${
+        encodeURIComponent("/foo/bar?baz=123#foo")
+      }`,
+    ),
+  );
+  assertEquals(resp.status, 302);
+  assertEquals(resp.headers.get("location"), "/foo/bar?baz=123#foo");
+});
+
 Deno.test("/failure", async () => {
   const resp = await handler(new Request("https://fresh.deno.dev/failure"));
   assert(resp);
