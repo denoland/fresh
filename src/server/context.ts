@@ -44,7 +44,7 @@ import { loadAotSnapshot } from "../build/aot_snapshot.ts";
 import { ErrorOverlay } from "./error_overlay.tsx";
 import { withBase } from "./router.ts";
 import { PARTIAL_SEARCH_PARAM } from "../constants.ts";
-import TailwindErrorPage from "$fresh/src/server/tailwind_aot_error_page.tsx";
+import TailwindErrorPage from "./tailwind_aot_error_page.tsx";
 
 const DEFAULT_CONN_INFO: ServeHandlerInfo = {
   localAddr: { transport: "tcp", hostname: "localhost", port: 8080 },
