@@ -157,7 +157,7 @@ export type PageProps<T = any, S = Record<string, unknown>> = Omit<
     S,
     T
   >,
-  "render" | "next" | "renderNotFound"
+  "render" | "next" | "renderNotFound" | "redirect"
 >;
 
 export interface StaticFile {
