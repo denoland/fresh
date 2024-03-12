@@ -1205,6 +1205,7 @@ Deno.test("Expose config in ctx", async () => {
       next: "Function",
       render: "AsyncFunction",
       renderNotFound: "AsyncFunction",
+      redirect: "Function",
       localAddr: "<undefined>",
       pattern: "/ctx_config",
       data: "<undefined>",
