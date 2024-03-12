@@ -12,11 +12,7 @@ export async function handler(
   // Redirect from old doc URLs to new ones
   const redirect = REDIRECTS[ctx.url.pathname];
   if (redirect) {
-    const url = new URL(redirect, ctx.url.origin);
-    return new Response("", {
-      status: 307,
-      headers: { location: url.href },
-    });
+    return ctx.redirect(redirect, 307);
   }
 
   return await ctx.next();

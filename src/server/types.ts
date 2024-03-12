@@ -157,7 +157,7 @@ export type PageProps<T = any, S = Record<string, unknown>> = Omit<
     S,
     T
   >,
-  "render" | "next" | "renderNotFound"
+  "render" | "next" | "renderNotFound" | "redirect"
 >;
 
 export interface StaticFile {
@@ -206,6 +206,7 @@ export interface FreshContext<
   ) => Response | Promise<Response>;
   Component: ComponentType<unknown>;
   next: () => Promise<Response>;
+  redirect: (path: string, statusCode?: number) => Response;
 }
 /**
  * Context passed to async route components.
