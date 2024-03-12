@@ -127,6 +127,7 @@ function redirectTo(pathOrUrl: string = "/", status = 302): Response {
     const pathname = idx > -1 ? pathOrUrl.slice(0, idx) : pathOrUrl;
     const search = idx > -1 ? pathOrUrl.slice(idx) : "";
 
+    // Remove double slashes to prevent open redirect vulnerability.
     location = `${pathname.replaceAll(/\/+/g, "/")}${search}`;
   }
 
