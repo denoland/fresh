@@ -17,10 +17,22 @@ export interface Router<T> {
   match(method: Method, url: URL): RouteResult<T>;
 }
 
+export const IS_PATTERN = /[*:{}+?()]/;
+
 export class UrlPatternRouter<T> implements Router<T> {
   #routes: Route<T>[] = [];
 
   add(route: Route<T>) {
+    if (
+      typeof route.path === "string" && route.path !== "*" &&
+      IS_PATTERN.test(route.path)
+    ) {
+      this.#routes.push({
+        path: new URLPattern({ pathname: route.path }),
+        handler: route.handler,
+        method: route.method,
+      });
+    }
     this.#routes.push(route);
   }
 
@@ -50,13 +62,9 @@ export class UrlPatternRouter<T> implements Router<T> {
         const match = route.path.exec(url);
         if (match !== null) {
           // Decode matched params
-          if (match.pathname && match.pathname.groups) {
-            for (
-              const [key, value] of Object.entries(match.pathname.groups)
-            ) {
-              if (value !== undefined) {
-                result.params[key] = decodeURI(value);
-              }
+          for (const [key, value] of Object.entries(match.pathname.groups)) {
+            if (value !== undefined) {
+              result.params[key] = decodeURI(value);
             }
           }
 

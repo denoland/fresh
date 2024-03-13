@@ -1,5 +1,15 @@
 import { expect } from "jsr:@std/expect";
-import { UrlPatternRouter } from "./router.ts";
+import { IS_PATTERN, UrlPatternRouter } from "./router.ts";
+
+Deno.test("IS_PATTERN", () => {
+  expect(IS_PATTERN.test("/foo")).toEqual(false);
+  expect(IS_PATTERN.test("/foo/bar/baz.jpg")).toEqual(false);
+  expect(IS_PATTERN.test("/foo/:path")).toEqual(true);
+  expect(IS_PATTERN.test("/foo/*")).toEqual(true);
+  expect(IS_PATTERN.test("/foo{/bar}?")).toEqual(true);
+  expect(IS_PATTERN.test("/foo/(\\d+)")).toEqual(true);
+  expect(IS_PATTERN.test("/foo/(a)")).toEqual(true);
+});
 
 Deno.test("UrlPatternRouter - GET chain routes", () => {
   const router = new UrlPatternRouter();
@@ -53,5 +63,24 @@ Deno.test("UrlPatternRouter - Wrong method match", () => {
     params: {},
     handlers: [],
     methodMatch: false,
+  });
+});
+
+Deno.test("UrlPatternRouter - convert patterns automatically", () => {
+  const router = new UrlPatternRouter();
+  const A = () => {};
+  router.add({
+    path: "/books/:id",
+    method: "GET",
+    handler: A,
+  });
+
+  const res = router.match("GET", new URL("/books/foo", "http://localhost"));
+  expect(res).toEqual({
+    params: {
+      id: "foo",
+    },
+    handlers: [A],
+    methodMatch: true,
   });
 });
