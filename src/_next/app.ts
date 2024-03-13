@@ -2,6 +2,7 @@ import { DENO_DEPLOYMENT_ID } from "./constants.ts";
 import { colors } from "../server/deps.ts";
 import { compose, Middleware } from "./middlewares.ts";
 import { createContext } from "./context.ts";
+import { Method, UrlPatternRouter } from "./router.ts";
 
 export interface RouteContext<State> {
   req: Request;
@@ -25,8 +26,6 @@ export interface RouteHandlerSimple<Data, State> {
     ctx: RouteContext<State>,
   ): Response | Render<Data> | Promise<Response | Render<Data>>;
 }
-
-export type Method = "HEAD" | "GET" | "POST" | "PATCH" | "PUT" | "DELETE";
 
 export type RouteHandlerByMethod<Data, State> =
   & {
@@ -60,8 +59,12 @@ export interface App<State> {
   >(render: (props: RouteProps<Data, State>) => string): typeof render;
 
   use(middleware: Middleware<State>): this;
-  route(path: string, app: App<State>): this;
-  toMiddleware(): Middleware<State>;
+  get(path: string, middleware: Middleware<State>): this;
+  post(path: string, middleware: Middleware<State>): this;
+  patch(path: string, middleware: Middleware<State>): this;
+  put(path: string, middleware: Middleware<State>): this;
+  delete(path: string, middleware: Middleware<State>): this;
+  all(path: string, middleware: Middleware<State>): this;
 
   listen(options?: ListenOptions): Promise<void>;
 }
@@ -71,10 +74,16 @@ export interface ListenOptions extends Partial<Deno.ServeTlsOptions> {
   remoteAddress?: string;
 }
 
-export class FreshApp<State> implements App<State> {
-  #middlewares: Middleware<State>[][] = [[]];
+export interface RouteCacheEntry<T> {
+  params: Record<string, string>;
+  handler: Middleware<T>;
+}
 
-  defineHandlers(_handlers) {
+export class FreshApp<State> implements App<State> {
+  router = new UrlPatternRouter<Middleware<State>>();
+  #routeCache = new Map<string, RouteCacheEntry<State>>();
+
+  defineHandlers(_handlers): any {
     return null as any;
   }
 
@@ -84,25 +93,39 @@ export class FreshApp<State> implements App<State> {
   }
 
   use(middleware: Middleware<State>): this {
-    this.#middlewares[this.#middlewares.length - 1].push(middleware);
+    this.router.add({ method: "ALL", path: "*", handler: middleware });
     return this;
   }
 
-  route(path: string, middleware: App<State> | Middleware<State>): this {
-    const mid = typeof middleware === "function"
-      ? middleware
-      : middleware.toMiddleware();
-    this.#middlewares[this.#middlewares.length - 1].push(mid);
+  get(path: string, handler: Middleware<State>): this {
+    this.router.add({ method: "GET", path, handler });
+    return this;
+  }
+  post(path: string, handler: Middleware<State>): this {
+    this.router.add({ method: "POST", path, handler });
+    return this;
+  }
+  patch(path: string, handler: Middleware<State>): this {
+    this.router.add({ method: "PATCH", path, handler });
+    return this;
+  }
+  put(path: string, handler: Middleware<State>): this {
+    this.router.add({ method: "PUT", path, handler });
+    return this;
+  }
+  delete(path: string, handler: Middleware<State>): this {
+    this.router.add({ method: "DELETE", path, handler });
     return this;
   }
 
-  toMiddleware(): Middleware<State> {
-    return compose<State>(this.#middlewares.flat());
+  all(path: string, handler: Middleware<State>): this {
+    this.router.add({ method: "ALL", path, handler });
+    return this;
   }
 
   handler(): (request: Request) => Promise<Response> {
-    const middleware = this.toMiddleware();
-    const next = async () => new Response("Not found", { status: 404 });
+    const next = () =>
+      Promise.resolve(new Response("Not found", { status: 404 }));
 
     return async (req: Request) => {
       const url = new URL(req.url);
@@ -111,7 +134,30 @@ export class FreshApp<State> implements App<State> {
 
       const ctx = createContext<State>(req, next);
 
-      return await middleware(ctx);
+      const cached = this.#routeCache.get(req.url);
+      if (cached !== undefined) {
+        ctx.params = cached.params;
+        return cached.handler(ctx);
+      }
+
+      const method = req.method.toUpperCase() as Method;
+      const matched = this.router.match(method, url);
+
+      if (matched.handlers.length === 0) {
+        return next();
+      }
+
+      const params = matched.params;
+      ctx.params = matched.params;
+
+      const handler = compose<State>(matched.handlers);
+
+      this.#routeCache.set(req.url, {
+        params,
+        handler,
+      });
+
+      return await handler(ctx);
     };
   }
 

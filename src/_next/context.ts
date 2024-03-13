@@ -4,6 +4,7 @@ export interface FreshContext<State> {
   state: State;
   req: Request;
   url: URL;
+  params: Record<string, string>;
   redirect(path: string, status?: number): Response;
   next(): Promise<Response>;
 }
@@ -16,12 +17,13 @@ export function createContext<T>(
     url: new URL(req.url),
     req,
     redirect: redirectTo,
+    params: {},
     next,
     state: {} as T,
   };
 }
 
-export function redirectTo(pathOrUrl: string = "/", status = 302): Response {
+export function redirectTo(pathOrUrl: string, status = 302): Response {
   let location = pathOrUrl;
 
   // Disallow protocol relative URLs
