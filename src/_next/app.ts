@@ -3,61 +3,9 @@ import { colors } from "../server/deps.ts";
 import { compose, Middleware } from "./middlewares.ts";
 import { createContext } from "./context.ts";
 import { Method, UrlPatternRouter } from "./router.ts";
+import { FreshHelpers } from "./defines.ts";
 
-export interface RouteContext<State> {
-  req: Request;
-  url: URL;
-  state: State;
-}
-
-export interface Render<T> {
-  data: T;
-  head?: string[];
-  headers?: string[];
-  status?: number;
-}
-
-export type RouteHandler<Data, State> =
-  | RouteHandlerSimple<Data, State>
-  | RouteHandlerByMethod<Data, State>;
-
-export interface RouteHandlerSimple<Data, State> {
-  (
-    ctx: RouteContext<State>,
-  ): Response | Render<Data> | Promise<Response | Render<Data>>;
-}
-
-export type RouteHandlerByMethod<Data, State> =
-  & {
-    [M in Method]?: RouteHandlerSimple<Data, State>;
-  }
-  & {
-    [method: string]: RouteHandlerSimple<Data, State>;
-  };
-
-export type RouteData<
-  Handler extends RouteHandler<unknown, unknown>,
-> = Handler extends (RouteHandler<infer Data, unknown>) ? Data
-  : never;
-
-export interface RouteProps<Data, State> {
-  data: Data;
-  state: State;
-}
-
-export interface App<State> {
-  defineHandlers<
-    Data,
-    Handlers extends RouteHandler<Data, State> = RouteHandler<Data, State>,
-  >(
-    handlers: Handlers,
-  ): typeof handlers;
-  definePage<
-    Handler extends RouteHandler<unknown, State> = never,
-    Data = Handler extends RouteHandlerByMethod<infer Data, State> ? Data
-      : never,
-  >(render: (props: RouteProps<Data, State>) => string): typeof render;
-
+export interface App<State> extends FreshHelpers<State> {
   use(middleware: Middleware<State>): this;
   get(path: string, middleware: Middleware<State>): this;
   post(path: string, middleware: Middleware<State>): this;
@@ -79,18 +27,16 @@ export interface RouteCacheEntry<T> {
   handler: Middleware<T>;
 }
 
+// deno-lint-ignore no-explicit-any
+const identityFn = (x: any) => x;
+
 export class FreshApp<State> implements App<State> {
   router = new UrlPatternRouter<Middleware<State>>();
   #routeCache = new Map<string, RouteCacheEntry<State>>();
 
-  defineHandlers(_handlers): any {
-    return null as any;
-  }
-
-  definePage(_render) {
-    //
-    return null as any;
-  }
+  defineMiddleware = identityFn;
+  defineHandlers = identityFn;
+  definePage = identityFn;
 
   use(middleware: Middleware<State>): this {
     this.router.add({ method: "ALL", path: "*", handler: middleware });
