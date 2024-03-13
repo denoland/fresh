@@ -462,21 +462,7 @@ export interface Plugin<State = Record<string, unknown>> {
    * The hook can return a `PluginRenderResult` object that can do things like
    * inject CSS into the page, or load additional JS files on the client.
    */
-  render?(ctx: PluginRenderContext): PluginRenderResult;
-
-  /** The asynchronous render hook is called on the server every time some
-   * JSX needs to be turned into HTML, wrapped around all synchronous render
-   * hooks. The render hook needs to call the `ctx.renderAsync` function
-   * exactly once, and await the result.
-   *
-   * This is useful for when plugins are generating styles and scripts with
-   * asynchronous dependencies. Unlike the synchronous render hook, async render
-   * hooks for multiple pages can be running at the same time. This means that
-   * unlike the synchronous render hook, you can not use global variables to
-   * propagate state between the render hook and the renderer.
-   */
-  renderAsync?(ctx: PluginAsyncRenderContext): Promise<PluginRenderResult>;
-
+  render?(ctx: PluginRenderContext): Promise<PluginRenderResult>;
   /**
    * Called before running the Fresh build task
    */
@@ -548,9 +534,7 @@ export interface PluginRenderScripts {
   state: unknown;
 }
 
-export type PluginRenderFunction = () => PluginRenderFunctionResult;
-
-export type PluginAsyncRenderFunction = () =>
+export type PluginRenderFunction = () =>
   | PluginRenderFunctionResult
   | Promise<PluginRenderFunctionResult>;
 

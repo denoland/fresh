@@ -22,6 +22,7 @@ import { renderFreshTags } from "./rendering/fresh_tags.tsx";
 import { DEV_ERROR_OVERLAY_URL } from "./constants.ts";
 import { colors } from "./deps.ts";
 import { withBase } from "./router.ts";
+import { options } from "preact";
 
 export const DEFAULT_RENDER_FN: RenderFunction = (_ctx, render) => {
   render();
@@ -256,78 +257,8 @@ export async function render<Data>(
     error,
   );
 
-  let bodyHtml: string | null = null;
+  const bodyHtml = await renderHtml(renderState);
 
-  const syncPlugins = opts.plugins.filter((p) => p.render);
-
-  const renderResults: [Plugin, PluginRenderResult][] = [];
-
-  function renderSync(): PluginRenderFunctionResult {
-    const plugin = syncPlugins.shift();
-    if (plugin) {
-      const res = plugin.render!({ render: renderSync });
-      if (res === undefined) {
-        throw new Error(
-          `${plugin?.name}'s render hook did not return a PluginRenderResult object.`,
-        );
-      }
-      renderResults.push([plugin, res]);
-
-      if (res.htmlText !== undefined) {
-        bodyHtml = res.htmlText;
-      }
-    } else {
-      bodyHtml = renderHtml(renderState);
-    }
-    if (bodyHtml === null) {
-      throw new Error(
-        `The 'render' function was not called by ${plugin?.name}'s render hook.`,
-      );
-    }
-    return {
-      htmlText: bodyHtml,
-      requiresHydration: renderState.encounteredIslands.size > 0,
-    };
-  }
-
-  const asyncPlugins = opts.plugins.filter((p) => p.renderAsync);
-
-  let asyncRenderResponse: Response | undefined;
-  async function renderAsync(): Promise<PluginRenderFunctionResult> {
-    const plugin = asyncPlugins.shift();
-    if (plugin) {
-      const res = await plugin.renderAsync!({ renderAsync });
-      if (res === undefined) {
-        throw new Error(
-          `${plugin?.name}'s async render hook did not return a PluginRenderResult object.`,
-        );
-      }
-      renderResults.push([plugin, res]);
-      if (bodyHtml === null) {
-        throw new Error(
-          `The 'renderAsync' function was not called by ${plugin?.name}'s async render hook.`,
-        );
-      }
-
-      if (res.htmlText !== undefined) {
-        bodyHtml = res.htmlText;
-      }
-    } else {
-      await opts.renderFn(ctx, () => renderSync().htmlText);
-
-      if (bodyHtml === null) {
-        throw new Error(
-          `The 'render' function was not called by the legacy async render hook.`,
-        );
-      }
-    }
-    return {
-      htmlText: bodyHtml,
-      requiresHydration: renderState.encounteredIslands.size > 0,
-    };
-  }
-
-  await renderAsync();
   if (renderState.error !== null) {
     throw renderState.error;
   }
@@ -342,13 +273,6 @@ export async function render<Data>(
     >;
     renderState.headVNodes.splice(idx, 1);
   }
-
-  if (asyncRenderResponse !== undefined) {
-    return asyncRenderResponse;
-  }
-
-  // Includes everything inside `<body>`
-  bodyHtml = bodyHtml as unknown as string;
 
   // Create Fresh script + style tags
   const result = renderFreshTags(renderState, {
