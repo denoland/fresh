@@ -1,6 +1,6 @@
 export type EmptyObj = Record<string | number | symbol, never>;
 
-export interface FreshContext<State> {
+export interface FreshContext<State = unknown> {
   state: State;
   req: Request;
   url: URL;

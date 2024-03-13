@@ -2,8 +2,13 @@ import { DENO_DEPLOYMENT_ID } from "./constants.ts";
 import { colors } from "../server/deps.ts";
 import { compose, Middleware } from "./middlewares/compose.ts";
 import { createContext } from "./context.ts";
-import { Method, UrlPatternRouter } from "./router.ts";
+import { mergePaths, Method, UrlPatternRouter } from "./router.ts";
 import { FreshHelpers } from "./defines.ts";
+import {
+  FreshOptions,
+  InternalFreshOptions,
+  normalizeOptions,
+} from "./options.ts";
 
 export interface App<State> extends FreshHelpers<State> {
   use(middleware: Middleware<State>): this;
@@ -18,7 +23,6 @@ export interface App<State> extends FreshHelpers<State> {
 }
 
 export interface ListenOptions extends Partial<Deno.ServeTlsOptions> {
-  basePath?: string;
   remoteAddress?: string;
 }
 
@@ -37,6 +41,11 @@ export class FreshApp<State> implements App<State> {
   defineMiddleware = identityFn;
   defineHandlers = identityFn;
   definePage = identityFn;
+  options: InternalFreshOptions;
+
+  constructor(options: FreshOptions = {}) {
+    this.options = normalizeOptions(options);
+  }
 
   use(middleware: Middleware<State>): this {
     this.router.add({ method: "ALL", path: "*", handler: middleware });
@@ -44,28 +53,34 @@ export class FreshApp<State> implements App<State> {
   }
 
   get(path: string, handler: Middleware<State>): this {
-    this.router.add({ method: "GET", path, handler });
+    const merged = mergePaths(this.options.basePath, path);
+    this.router.add({ method: "GET", path: merged, handler });
     return this;
   }
   post(path: string, handler: Middleware<State>): this {
-    this.router.add({ method: "POST", path, handler });
+    const merged = mergePaths(this.options.basePath, path);
+    this.router.add({ method: "POST", path: merged, handler });
     return this;
   }
   patch(path: string, handler: Middleware<State>): this {
-    this.router.add({ method: "PATCH", path, handler });
+    const merged = mergePaths(this.options.basePath, path);
+    this.router.add({ method: "PATCH", path: merged, handler });
     return this;
   }
   put(path: string, handler: Middleware<State>): this {
-    this.router.add({ method: "PUT", path, handler });
+    const merged = mergePaths(this.options.basePath, path);
+    this.router.add({ method: "PUT", path: merged, handler });
     return this;
   }
   delete(path: string, handler: Middleware<State>): this {
-    this.router.add({ method: "DELETE", path, handler });
+    const merged = mergePaths(this.options.basePath, path);
+    this.router.add({ method: "DELETE", path: merged, handler });
     return this;
   }
 
   all(path: string, handler: Middleware<State>): this {
-    this.router.add({ method: "ALL", path, handler });
+    const merged = mergePaths(this.options.basePath, path);
+    this.router.add({ method: "ALL", path: merged, handler });
     return this;
   }
 
@@ -110,7 +125,7 @@ export class FreshApp<State> implements App<State> {
   async listen(options: ListenOptions = {}): Promise<void> {
     if (!options.onListen) {
       options.onListen = (params) => {
-        const pathname = (options.basePath ?? "") + "/";
+        const pathname = (this.options.basePath) + "/";
         const protocol = options.key && options.cert ? "https:" : "http:";
         const address = colors.cyan(
           `${protocol}//${params.hostname}:${params.port}${pathname}`,
@@ -147,6 +162,6 @@ export class FreshApp<State> implements App<State> {
 export function createApp<
   // deno-lint-ignore no-explicit-any
   State extends Record<string, any> = never,
->(): App<State> {
-  return new FreshApp<State>();
+>(options: FreshOptions): App<State> {
+  return new FreshApp<State>(options);
 }

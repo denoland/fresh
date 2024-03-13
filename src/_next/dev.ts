@@ -1,10 +1,13 @@
 import { FreshApp, ListenOptions } from "./app.ts";
+import { setMode } from "./options.ts";
+
+setMode("dev");
 
 // Patch .listen() during dev
 const originalListen = FreshApp.prototype.listen;
-FreshApp.prototype.listen = async (
+FreshApp.prototype.listen = async function (
   options: ListenOptions = {},
-) => {
+) {
   if (options.hostname === undefined) {
     options.hostname = "localhost";
   }
@@ -12,7 +15,7 @@ FreshApp.prototype.listen = async (
     options.port = await getFreePort(8000, options.hostname);
   }
 
-  return originalListen(options);
+  return originalListen.call(this, options);
 };
 
 export function getFreePort(
