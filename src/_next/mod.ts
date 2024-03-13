@@ -1,2 +1,2 @@
 export * from "./app.ts";
-export { compose, trailingSlashes } from "./middlewares.ts";
+export { trailingSlashes } from "./middlewares/trailing_slashes.ts";

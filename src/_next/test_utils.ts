@@ -1,6 +1,6 @@
 // deno-lint-ignore-file require-await
 import { createContext } from "./context.ts";
-import { Middleware } from "./middlewares.ts";
+import { Middleware } from "./middlewares/compose.ts";
 
 export class FakeServer {
   constructor(public handler: (req: Request) => Response | Promise<Response>) {}

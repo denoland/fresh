@@ -1,6 +1,6 @@
 import { DENO_DEPLOYMENT_ID } from "./constants.ts";
 import { colors } from "../server/deps.ts";
-import { compose, Middleware } from "./middlewares.ts";
+import { compose, Middleware } from "./middlewares/compose.ts";
 import { createContext } from "./context.ts";
 import { Method, UrlPatternRouter } from "./router.ts";
 import { FreshHelpers } from "./defines.ts";

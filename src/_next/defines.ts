@@ -1,6 +1,6 @@
 import { FunctionComponent } from "preact";
 import { FreshContext } from "./context.ts";
-import { Middleware } from "./middlewares.ts";
+import { Middleware } from "./middlewares/compose.ts";
 import { Method } from "./router.ts";
 
 export interface Render<T> {
