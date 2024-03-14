@@ -4,14 +4,11 @@ import { compose, Middleware } from "./middlewares/compose.ts";
 import { createContext } from "./context.ts";
 import { mergePaths, Method, UrlPatternRouter } from "./router.ts";
 import { FreshHelpers } from "./defines.ts";
-import {
-  FreshOptions,
-  InternalFreshOptions,
-  normalizeOptions,
-} from "./options.ts";
+import { FreshConfig, normalizeConfig, ResolvedFreshConfig } from "./config.ts";
 import { fsRoutes } from "./plugins/fs_routes.ts";
 
 export interface App<State> extends FreshHelpers<State> {
+  config: ResolvedFreshConfig;
   use(middleware: Middleware<State>): this;
   get(path: string, middleware: Middleware<State>): this;
   post(path: string, middleware: Middleware<State>): this;
@@ -42,10 +39,10 @@ export class FreshApp<State> implements App<State> {
   defineMiddleware = identityFn;
   defineHandlers = identityFn;
   definePage = identityFn;
-  options: InternalFreshOptions;
+  config: ResolvedFreshConfig;
 
-  constructor(options: FreshOptions) {
-    this.options = normalizeOptions(options);
+  constructor(config: FreshConfig) {
+    this.config = normalizeConfig(config);
   }
 
   use(middleware: Middleware<State>): this {
@@ -54,33 +51,33 @@ export class FreshApp<State> implements App<State> {
   }
 
   get(path: string, handler: Middleware<State>): this {
-    const merged = mergePaths(this.options.basePath, path);
+    const merged = mergePaths(this.config.basePath, path);
     this.router.add({ method: "GET", path: merged, handler });
     return this;
   }
   post(path: string, handler: Middleware<State>): this {
-    const merged = mergePaths(this.options.basePath, path);
+    const merged = mergePaths(this.config.basePath, path);
     this.router.add({ method: "POST", path: merged, handler });
     return this;
   }
   patch(path: string, handler: Middleware<State>): this {
-    const merged = mergePaths(this.options.basePath, path);
+    const merged = mergePaths(this.config.basePath, path);
     this.router.add({ method: "PATCH", path: merged, handler });
     return this;
   }
   put(path: string, handler: Middleware<State>): this {
-    const merged = mergePaths(this.options.basePath, path);
+    const merged = mergePaths(this.config.basePath, path);
     this.router.add({ method: "PUT", path: merged, handler });
     return this;
   }
   delete(path: string, handler: Middleware<State>): this {
-    const merged = mergePaths(this.options.basePath, path);
+    const merged = mergePaths(this.config.basePath, path);
     this.router.add({ method: "DELETE", path: merged, handler });
     return this;
   }
 
   all(path: string, handler: Middleware<State>): this {
-    const merged = mergePaths(this.options.basePath, path);
+    const merged = mergePaths(this.config.basePath, path);
     this.router.add({ method: "ALL", path: merged, handler });
     return this;
   }
@@ -94,7 +91,7 @@ export class FreshApp<State> implements App<State> {
       // Prevent open redirect attacks
       url.pathname = url.pathname.replace(/\/+/g, "/");
 
-      const ctx = createContext<State>(req, next);
+      const ctx = createContext<State>(req, this.config, next);
 
       const cached = this.#routeCache.get(req.url);
       if (cached !== undefined) {
@@ -127,7 +124,7 @@ export class FreshApp<State> implements App<State> {
     console.log(options);
     if (!options.onListen) {
       options.onListen = (params) => {
-        const pathname = (this.options.basePath) + "/";
+        const pathname = (this.config.basePath) + "/";
         const protocol = options.key && options.cert ? "https:" : "http:";
         const address = colors.cyan(
           `${protocol}//${params.hostname}:${params.port}${pathname}`,
@@ -164,7 +161,7 @@ export class FreshApp<State> implements App<State> {
 export async function createApp<
   // deno-lint-ignore no-explicit-any
   State extends Record<string, any> = never,
->(options: FreshOptions): Promise<App<State>> {
+>(options: FreshConfig): Promise<App<State>> {
   const app = new FreshApp<State>(options);
   await fsRoutes(app, {
     dir: options.dir,

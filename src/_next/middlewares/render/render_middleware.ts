@@ -15,6 +15,7 @@ export const renderMiddleware =
       const Component = () => child;
       // deno-lint-ignore no-explicit-any
       vnode = h(components[i] as any, {
+        config: ctx.config,
         url: ctx.url,
         req: ctx.req,
         params: ctx.params,

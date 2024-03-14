@@ -48,7 +48,8 @@ export async function fsRoutes<T>(app: FreshApp<T>, options: FsRoutesOptions) {
   // Walk routes folder
   await Promise.all([
     walkDir(islandDir, (entry) => {
-      console.log("islands", entry);
+      // FIXME
+      // console.log("islands", entry);
     }, ignore),
     walkDir(routesDir, (entry) => {
       // FIXME: Route groups
@@ -92,8 +93,6 @@ export async function fsRoutes<T>(app: FreshApp<T>, options: FsRoutesOptions) {
     } else if (normalized === "_error") {
       // FIXME
     } else {
-      // FIXME: Methods
-
       // Prepare component tree if the current route has a component
       if (routeMod.component !== null) {
         const components: AnyComponent[] = [];
@@ -103,14 +102,12 @@ export async function fsRoutes<T>(app: FreshApp<T>, options: FsRoutesOptions) {
             components.push(comp);
           }
         }
-
         components.push(routeMod.component);
-        console.log("ROUTE", normalized, routeMod, stack);
 
-        let routePath = "/" +
+        const routePath = "/" +
           (normalized.endsWith("index") ? normalized.slice(0, -5) : normalized);
 
-        console.log({ routePath, components });
+        // FIXME: Methods
         app.get(routePath, renderMiddleware(components));
       }
     }

@@ -5,6 +5,7 @@
 /// <reference lib="deno.ns" />
 
 import { createApp } from "../src/_next/mod.ts";
+import tailwind from "$fresh/src/_next/plugins/tailwind/mod.ts";
 
 // import manifest from "./fresh.gen.ts";
 // import config from "./fresh.config.ts";
@@ -13,5 +14,7 @@ const app = await createApp({
   dir: Deno.cwd(),
   load: (path) => import("./routes/" + path),
 });
+
+await tailwind(app, {});
 
 await app.listen();

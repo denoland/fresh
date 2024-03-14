@@ -1,5 +1,5 @@
 import { FreshApp, ListenOptions } from "./app.ts";
-import { setMode } from "./options.ts";
+import { setMode } from "./config.ts";
 
 setMode("dev");
 

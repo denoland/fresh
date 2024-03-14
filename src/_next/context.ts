@@ -1,6 +1,9 @@
+import { ResolvedFreshConfig } from "./config.ts";
+
 export type EmptyObj = Record<string | number | symbol, never>;
 
 export interface FreshContext<State = unknown> {
+  readonly config: ResolvedFreshConfig;
   state: State;
   req: Request;
   url: URL;
@@ -11,9 +14,11 @@ export interface FreshContext<State = unknown> {
 
 export function createContext<T>(
   req: Request,
+  config: ResolvedFreshConfig,
   next: FreshContext<T>["next"],
 ): FreshContext<T> {
   return {
+    config,
     url: new URL(req.url),
     req,
     redirect: redirectTo,

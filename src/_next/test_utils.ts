@@ -40,6 +40,13 @@ export function serveMiddleware<T>(middleware: Middleware<T>): FakeServer {
   return new FakeServer(async (req) => {
     const ctx = createContext<T>(
       req,
+      {
+        basePath: "",
+        dir: "",
+        load: () => Promise.resolve(),
+        mode: "dev",
+        staticDir: "",
+      },
       async () => new Response("Not found", { status: 404 }),
     );
     return await middleware(ctx);
