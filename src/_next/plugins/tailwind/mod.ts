@@ -95,6 +95,6 @@ export default async function tailwind<T>(
       await Deno.writeTextFile(outPath, result.content);
     }
   } else if (app.config.mode === "prod") {
-    throw new Error(`Tailwind plugin should be used in production.`);
+    throw new Error(`Tailwind plugin should not be used in production.`);
   }
 }
