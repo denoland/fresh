@@ -1,4 +1,3 @@
-import type postcss from "npm:postcss@8.4.35";
 import * as path from "jsr:@std/path";
 import { walk } from "jsr:@std/fs/walk";
 import { TailwindPluginOptions } from "./types.ts";
@@ -9,8 +8,6 @@ export default async function tailwind<T>(
   app: App<T>,
   options: TailwindPluginOptions = {},
 ): Promise<void> {
-  let staticDir = path.join(Deno.cwd(), "static");
-
   const processor = await initTailwind(app.config, options);
 
   const cache = new Map<string, { content: string; map: string }>();
@@ -31,7 +28,7 @@ export default async function tailwind<T>(
       let cached = cache.get(pathname);
       if (!cached) {
         const filePath = path.join(
-          staticDir,
+          app.config.staticDir,
           pathname.replace(ctx.config.basePath, ""),
         );
         let text = "";
@@ -84,7 +81,7 @@ export default async function tailwind<T>(
         from: undefined,
       });
 
-      const relFilePath = path.relative(staticDir, file.path);
+      const relFilePath = path.relative(app.config.staticDir, file.path);
       const outPath = path.join(outDir, relFilePath);
 
       try {
