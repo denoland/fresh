@@ -1,5 +1,5 @@
-import { AnyComponent, h } from "preact";
-import { FreshApp } from "../app.ts";
+import { AnyComponent } from "preact";
+import { App } from "../app.ts";
 import { walk, WalkEntry } from "jsr:@std/fs/walk";
 import * as path from "jsr:@std/path";
 import { RouteConfig } from "$fresh/src/server/mod.ts";
@@ -36,7 +36,7 @@ export interface FsRoutesOptions {
   load: (path: string) => Promise<unknown>;
 }
 
-export async function fsRoutes<T>(app: FreshApp<T>, options: FsRoutesOptions) {
+export async function fsRoutes<T>(app: App<T>, options: FsRoutesOptions) {
   const ignore = options.ignoreFilePatter ?? [TEST_FILE_PATTERN];
 
   const islandDir = path.join(options.dir, "islands");

@@ -1,7 +1,7 @@
-import { createApp } from "./app.ts";
+import { FreshApp } from "./app.ts";
 
 Deno.test("defineMiddleware type", () => {
-  const app = createApp<{ text: string }>();
+  const app = new FreshApp<{ text: string }>();
 
   // This should not give type errors
   app.defineMiddleware((ctx) => {
@@ -10,7 +10,7 @@ Deno.test("defineMiddleware type", () => {
 });
 
 Deno.test("defineHandlers type", () => {
-  const app = createApp<{ text: string }>();
+  const app = new FreshApp<{ text: string }>();
 
   // These should not give type errors
   app.defineHandlers((ctx) => {
@@ -25,7 +25,7 @@ Deno.test("defineHandlers type", () => {
 });
 
 Deno.test("definePage type", () => {
-  const app = createApp<{ text: string }>();
+  const app = new FreshApp<{ text: string }>();
 
   // These should not give type errors
   const handlers = app.defineHandlers({

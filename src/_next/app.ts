@@ -5,7 +5,6 @@ import { createContext } from "./context.ts";
 import { mergePaths, Method, UrlPatternRouter } from "./router.ts";
 import { FreshHelpers } from "./defines.ts";
 import { FreshConfig, normalizeConfig, ResolvedFreshConfig } from "./config.ts";
-import { fsRoutes } from "./plugins/fs_routes.ts";
 
 export interface App<State> extends FreshHelpers<State> {
   config: ResolvedFreshConfig;
@@ -36,12 +35,12 @@ export class FreshApp<State> implements App<State> {
   router = new UrlPatternRouter<Middleware<State>>();
   #routeCache = new Map<string, RouteCacheEntry<State>>();
 
-  defineMiddleware = identityFn;
-  defineHandlers = identityFn;
-  definePage = identityFn;
+  defineMiddleware: App<State>["defineMiddleware"] = identityFn;
+  defineHandlers: App<State>["defineHandlers"] = identityFn;
+  definePage: App<State>["definePage"] = identityFn;
   config: ResolvedFreshConfig;
 
-  constructor(config: FreshConfig) {
+  constructor(config: FreshConfig = {}) {
     this.config = normalizeConfig(config);
   }
 
@@ -156,16 +155,4 @@ export class FreshApp<State> implements App<State> {
 
     await Deno.serve(options, this.handler());
   }
-}
-
-export async function createApp<
-  // deno-lint-ignore no-explicit-any
-  State extends Record<string, any> = never,
->(options: FreshConfig): Promise<App<State>> {
-  const app = new FreshApp<State>(options);
-  await fsRoutes(app, {
-    dir: options.dir,
-    load: options.load,
-  });
-  return app;
 }

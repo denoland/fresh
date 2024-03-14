@@ -13,35 +13,33 @@ export interface FreshPlugin {
 }
 
 export interface FreshConfig {
+  root?: string;
   build?: {
     outDir?: string;
   };
   basePath?: string;
   staticDir?: string;
-  dir: string;
-  load: (path: string) => Promise<unknown>;
 }
 
 export interface ResolvedFreshConfig {
+  root: string;
   build: {
     outDir: string;
   };
   basePath: string;
   staticDir: string;
   mode: Mode;
-  dir: string;
-  load: (path: string) => Promise<unknown>;
 }
 
 export function normalizeConfig(options: FreshConfig): ResolvedFreshConfig {
+  const root = options.root ?? Deno.cwd();
   return {
+    root,
     build: {
-      outDir: options.build?.outDir ?? path.join(options.dir, "_fresh"),
+      outDir: options.build?.outDir ?? path.join(root, "_fresh"),
     },
     basePath: options.basePath ?? "",
-    staticDir: options.staticDir ?? path.join(options.dir, "static"),
+    staticDir: options.staticDir ?? path.join(root, "static"),
     mode: MODE,
-    dir: options.dir,
-    load: options.load,
   };
 }

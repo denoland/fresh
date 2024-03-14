@@ -42,7 +42,7 @@ export function serveMiddleware<T>(middleware: Middleware<T>): FakeServer {
       req,
       {
         basePath: "",
-        dir: "",
+        root: "",
         load: () => Promise.resolve(),
         mode: "dev",
         staticDir: "",
