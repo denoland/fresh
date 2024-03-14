@@ -13,4 +13,4 @@ export const handler = defineHandlers({
       status: 307,
     });
   },
-};
+});
