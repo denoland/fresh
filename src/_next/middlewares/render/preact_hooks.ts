@@ -9,19 +9,26 @@ import {
   options as preactOptions,
   type VNode,
 } from "preact";
-import { assetHashingHook } from "../../runtime/utils.ts";
-import { Partial, PartialProps } from "../../runtime/Partial.tsx";
+import { assetHashingHook } from "../../../runtime/utils.ts";
+import { Partial, PartialProps } from "../../../runtime/Partial.tsx";
 import { join, SEPARATOR } from "jsr:@std/path";
-import { RenderState } from "./state.ts";
-import { Island } from "../types.ts";
+import { RenderState } from "./render_state.ts";
+// import { Island } from "../types.ts";
 import {
   CLIENT_NAV_ATTR,
   DATA_KEY_ATTR,
   LOADING_ATTR,
   PartialMode,
-} from "../../constants.ts";
-import { setActiveUrl } from "../../runtime/active_url.ts";
-import { withBase } from "../router.ts";
+} from "../../../constants.ts";
+import { setActiveUrl } from "../../../runtime/active_url.ts";
+// import { withBase } from "../router.ts";
+
+export type Island = any;
+
+function withBase(a: string, b: string | undefined) {
+  // FIXME
+  return a;
+}
 
 // See: https://github.com/preactjs/preact/blob/7748dcb83cedd02e37b3713634e35b97b26028fd/src/internal.d.ts#L3C1-L16
 enum HookType {
@@ -79,44 +86,23 @@ export function setRenderState(state: RenderState | null): void {
   ownerStack = state?.ownerStack ?? [];
 }
 
-// Check if an older version of `preact-render-to-string` is used
-const supportsUnstableComments = renderToString(h(Fragment, {
-  // @ts-ignore unstable features not supported in types
-  UNSTABLE_comment: "foo",
-}) as VNode) !== "";
-
-if (!supportsUnstableComments) {
-  console.warn(
-    "⚠️  Found old version of 'preact-render-to-string'. Please upgrade it to >=6.1.0",
-  );
-}
-
 /**
  *  Wrap a node with comment markers in the HTML
  */
 function wrapWithMarker(vnode: ComponentChildren, markerText: string) {
-  // Newer versions of preact-render-to-string allow you to render comments
-  if (supportsUnstableComments) {
-    return h(
-      Fragment,
-      null,
-      h(Fragment, {
-        // @ts-ignore unstable property is not typed
-        UNSTABLE_comment: markerText,
-      }),
-      vnode,
-      h(Fragment, {
-        // @ts-ignore unstable property is not typed
-        UNSTABLE_comment: "/" + markerText,
-      }),
-    );
-  } else {
-    return h(
-      `!--${markerText}--`,
-      null,
-      vnode,
-    );
-  }
+  return h(
+    Fragment,
+    null,
+    h(Fragment, {
+      // @ts-ignore unstable property is not typed
+      UNSTABLE_comment: markerText,
+    }),
+    vnode,
+    h(Fragment, {
+      // @ts-ignore unstable property is not typed
+      UNSTABLE_comment: "/" + markerText,
+    }),
+  );
 }
 
 /**
@@ -262,13 +248,11 @@ options.__b = (vnode: VNode<Record<string, unknown>>) => {
   // Add CSP nonce to inline script tags
   if (typeof vnode.type === "string" && vnode.type === "script") {
     if (!vnode.props.nonce) {
-      vnode.props.nonce = current!.getNonce();
+      vnode.props.nonce = current!.nonce;
     }
   }
 
-  if (
-    current && current.renderingUserTemplate
-  ) {
+  if (current) {
     // Internally rendering happens in two phases. This is done so
     // that the `<Head>` component works. When we do the first render
     // we cache all attributes on `<html>`, `<head>` + its children, and
@@ -284,40 +268,13 @@ options.__b = (vnode: VNode<Record<string, unknown>>) => {
     if (
       typeof vnode.type === "string"
     ) {
-      if (vnode.type === "html") {
-        current.renderedHtmlTag = true;
-        current.docHtml = excludeChildren(vnode.props);
-        vnode.type = Fragment;
-      } else if (vnode.type === "head") {
-        current.docHead = excludeChildren(vnode.props);
-        current.headChildren = true;
-        vnode.type = Fragment;
-        vnode.props = {
-          __freshHead: true,
-          children: vnode.props.children,
-        };
-      } else if (vnode.type === "body") {
-        current.docBody = excludeChildren(vnode.props);
-        vnode.type = Fragment;
-      } else if (current.headChildren) {
-        if (vnode.type === "title") {
-          current.docTitle = h("title", vnode.props);
-          vnode.props = { children: null };
-        } else {
-          current.docHeadNodes.push({
-            type: vnode.type,
-            props: vnode.props,
-          });
-        }
-        vnode.type = Fragment;
-        vnode.props = { children: null };
-      } else if (LOADING_ATTR in vnode.props) {
+      if (LOADING_ATTR in vnode.props) {
         current.islandProps.push({
           [LOADING_ATTR]: vnode.props[LOADING_ATTR],
         });
         vnode.props[LOADING_ATTR] = current.islandProps.length - 1;
       } else if (vnode.type === "a") {
-        setActiveUrl(vnode, current.url.pathname);
+        setActiveUrl(vnode, current.ctx.url.pathname);
       }
     } else if (typeof vnode.type === "function") {
       // Detect island vnodes and wrap them with a marker
@@ -456,10 +413,6 @@ options.diffed = (vnode: VNode<Record<string, unknown>>) => {
       }
 
       ownerStack.pop();
-    } else if (vnode.props.__freshHead) {
-      if (current) {
-        current.headChildren = false;
-      }
     }
   }
   oldDiffed?.(vnode);

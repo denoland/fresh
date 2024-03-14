@@ -9,6 +9,7 @@ import {
   InternalFreshOptions,
   normalizeOptions,
 } from "./options.ts";
+import { fsRoutes } from "./plugins/fs_routes.ts";
 
 export interface App<State> extends FreshHelpers<State> {
   use(middleware: Middleware<State>): this;
@@ -43,7 +44,7 @@ export class FreshApp<State> implements App<State> {
   definePage = identityFn;
   options: InternalFreshOptions;
 
-  constructor(options: FreshOptions = {}) {
+  constructor(options: FreshOptions) {
     this.options = normalizeOptions(options);
   }
 
@@ -123,6 +124,7 @@ export class FreshApp<State> implements App<State> {
   }
 
   async listen(options: ListenOptions = {}): Promise<void> {
+    console.log(options);
     if (!options.onListen) {
       options.onListen = (params) => {
         const pathname = (this.options.basePath) + "/";
@@ -159,9 +161,14 @@ export class FreshApp<State> implements App<State> {
   }
 }
 
-export function createApp<
+export async function createApp<
   // deno-lint-ignore no-explicit-any
   State extends Record<string, any> = never,
->(options: FreshOptions): App<State> {
-  return new FreshApp<State>(options);
+>(options: FreshOptions): Promise<App<State>> {
+  const app = new FreshApp<State>(options);
+  await fsRoutes(app, {
+    dir: options.dir,
+    load: options.load,
+  });
+  return app;
 }

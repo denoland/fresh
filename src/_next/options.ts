@@ -12,7 +12,9 @@ export interface FreshPlugin {
 
 export interface FreshOptions {
   basePath?: string;
-  plugins?: Array<FreshPlugin | FreshPlugin[]>;
+  dir: string;
+  load: (path: string) => Promise<unknown>;
+  plugins?: Array<FreshPlugin | FreshPlugin[]>; // FIXME: REMOVE
 }
 
 export interface InternalFreshOptions {

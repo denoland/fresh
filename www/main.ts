@@ -9,8 +9,9 @@ import { createApp } from "../src/_next/mod.ts";
 // import manifest from "./fresh.gen.ts";
 // import config from "./fresh.config.ts";
 
-const app = createApp({
-  plugins: [],
+const app = await createApp({
+  dir: Deno.cwd(),
+  load: (path) => import("./routes/" + path),
 });
 
 await app.listen();
