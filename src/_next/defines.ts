@@ -14,10 +14,20 @@ export type RouteHandler<Data, State> =
   | HandlerFn<Data, State>
   | HandlerMethod<Data, State>;
 
+export function isHandlerMethod<D, S>(
+  handler: RouteHandler<D, S> | undefined,
+): handler is HandlerMethod<D, S> {
+  return handler !== null && typeof handler === "object";
+}
+
 export interface HandlerFn<Data, State> {
   (
     ctx: FreshContext<State>,
-  ): Response | Render<Data> | Promise<Response | Render<Data>>;
+  ):
+    | Response
+    | Render<Data>
+    | undefined
+    | Promise<Response | Render<Data> | undefined>;
 }
 
 export type HandlerMethod<Data, State> = {
@@ -41,6 +51,24 @@ export type DefineHandlers<
 > = (
   handlers: Handlers,
 ) => typeof handlers;
+
+export function defineHandlers<
+  State,
+  Data,
+  Handlers extends RouteHandler<Data, State>,
+>(
+  handlers: Handlers,
+): typeof handlers {
+  return handlers;
+}
+
+export function definePage<
+  State,
+  Handler extends RouteHandler<unknown, State> = never,
+  Data = Handler extends HandlerMethod<infer Data, State> ? Data : never,
+>(render: FunctionComponent<RouteProps<Data, State>>): typeof render {
+  return render;
+}
 
 export interface FreshHelpers<State> {
   defineMiddleware(middleware: Middleware<State>): Middleware<State>;

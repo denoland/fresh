@@ -3,14 +3,15 @@ import Header from "../components/Header.tsx";
 import ComponentGallery from "../islands/ComponentGallery.tsx";
 
 import { asset, Head } from "$fresh/runtime.ts";
-import { Handlers, PageProps } from "$fresh/server.ts";
+import { PageProps } from "$fresh/server.ts";
+import { defineHandlers } from "$fresh/src/_next/defines.ts";
 
 function getSource(path: string) {
   return Deno.readTextFile(new URL(path, import.meta.url));
 }
 
-export const handler: Handlers<HomeProps> = {
-  async GET(req, ctx) {
+export const handler = defineHandlers({
+  async GET() {
     const props: HomeProps = {
       sources: {
         "Button": await getSource("../components/gallery/Button.tsx"),
@@ -26,9 +27,9 @@ export const handler: Handlers<HomeProps> = {
         "Carousel": await getSource("../components/gallery/Carousel.tsx"),
       },
     };
-    return ctx.render(props);
+    return { data: props };
   },
-};
+});
 
 const TITLE = "Components | Fresh";
 const DESCRIPTION = "A collection of components made for Fresh.";

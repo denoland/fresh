@@ -1,7 +1,7 @@
-import { MultiHandler } from "$fresh/server.ts";
+import { defineHandlers } from "$fresh/src/_next/defines.ts";
 
-export const handler: MultiHandler<void> = {
-  GET(_req, ctx) {
+export const handler = defineHandlers({
+  GET(ctx) {
     const slug = ctx.params.slug;
 
     if (slug === "concepts/architechture") {
@@ -16,4 +16,4 @@ export const handler: MultiHandler<void> = {
       headers: { location: "/docs/introduction" },
     });
   },
-};
+});

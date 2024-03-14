@@ -1,5 +1,5 @@
 import { RouteConfig } from "$fresh/server.ts";
-import { Handlers } from "$fresh/server.ts";
+import { defineHandlers } from "$fresh/server.ts";
 import { format, parse } from "$std/semver/mod.ts";
 import VERSIONS from "../../versions.json" with { type: "json" };
 import { extname } from "$std/path/mod.ts";
@@ -16,9 +16,9 @@ const contentTypes = new Map([
   [".wasm", "application/wasm"],
 ]);
 
-export const handler: Handlers = {
-  async GET(req, ctx) {
-    const accept = req.headers.get("Accept");
+export const handler = defineHandlers({
+  async GET(ctx) {
+    const accept = ctx.req.headers.get("Accept");
     const isHTML = accept?.includes("text/html");
     const { version, path } = ctx.params;
 
@@ -55,7 +55,7 @@ export const handler: Handlers = {
 
     return response;
   },
-};
+});
 
 export const config: RouteConfig = {
   routeOverride: "/@:version/:path*",

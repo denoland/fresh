@@ -1,5 +1,5 @@
 import { asset, Head } from "$fresh/runtime.ts";
-import { Handlers, PageProps } from "$fresh/server.ts";
+import { PageProps } from "$fresh/server.ts";
 import Counter from "../islands/Counter.tsx";
 import LemonDrop from "../islands/LemonDrop.tsx";
 import Footer from "../components/Footer.tsx";
@@ -10,6 +10,7 @@ import * as Icons from "../components/Icons.tsx";
 import Projects from "../components/Projects.tsx";
 import projects from "../data/showcase.json" with { type: "json" };
 import Header from "../components/Header.tsx";
+import { defineHandlers } from "$fresh/src/_next/defines.ts";
 
 function isOpenGraphUA(header: string | null): boolean {
   if (!header) {
@@ -18,8 +19,9 @@ function isOpenGraphUA(header: string | null): boolean {
   return header.startsWith("Twitterbot") || header.startsWith("Slackbot");
 }
 
-export const handler: Handlers = {
-  GET(req, ctx) {
+export const handle = defineHandlers({
+  GET(ctx) {
+    const { req } = ctx;
     const accept = req.headers.get("accept");
     const userAgent = req.headers.get("user-agent");
     if (!accept?.includes("text/html") && !isOpenGraphUA(userAgent)) {
@@ -29,9 +31,8 @@ export const handler: Handlers = {
         status: 307,
       });
     }
-    return ctx.render();
   },
-};
+});
 
 const TITLE = "Fresh - The next-gen web framework.";
 const DESCRIPTION =

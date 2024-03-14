@@ -2,32 +2,49 @@ import { h, VNode } from "preact";
 import { Middleware } from "../compose.ts";
 import { renderHtml } from "./render_html.ts";
 import { AnyComponent } from "preact";
+import { HandlerFn, Render } from "../../defines.ts";
 
-export const renderMiddleware =
-  <T>(components: AnyComponent[]): Middleware<T> => async (ctx) => {
-    if (components.length === 0) {
-      throw new Error(`Did not receive any components to render.`);
+export const renderMiddleware = <T>(
+  components: AnyComponent[],
+  handler: HandlerFn<unknown, T> | undefined,
+): Middleware<T> =>
+async (ctx) => {
+  let result: Render<T> | undefined;
+  if (handler !== undefined) {
+    const res = await handler(ctx);
+
+    if (res instanceof Response) {
+      return res;
     }
 
-    let vnode: VNode | null = null;
-    for (let i = components.length - 1; i >= 0; i--) {
-      const child = vnode;
-      const Component = () => child;
-      // deno-lint-ignore no-explicit-any
-      vnode = h(components[i] as any, {
-        config: ctx.config,
-        url: ctx.url,
-        req: ctx.req,
-        params: ctx.params,
-        state: ctx.state,
-        Component,
-      }) as VNode;
-    }
+    // deno-lint-ignore no-explicit-any
+    result = res as any;
+  }
 
-    const html = await renderHtml(ctx, vnode!);
-    return new Response(html, {
-      headers: {
-        "Content-Type": "text/html; charset=utf-8",
-      },
-    });
-  };
+  if (components.length === 0) {
+    throw new Error(`Did not receive any components to render.`);
+  }
+
+  let vnode: VNode | null = null;
+  for (let i = components.length - 1; i >= 0; i--) {
+    const child = vnode;
+    const Component = () => child;
+    // deno-lint-ignore no-explicit-any
+    vnode = h(components[i] as any, {
+      config: ctx.config,
+      url: ctx.url,
+      req: ctx.req,
+      params: ctx.params,
+      state: ctx.state,
+      Component,
+      data: result?.data,
+    }) as VNode;
+  }
+
+  const html = await renderHtml(ctx, vnode!);
+  return new Response(html, {
+    headers: {
+      "Content-Type": "text/html; charset=utf-8",
+    },
+  });
+};

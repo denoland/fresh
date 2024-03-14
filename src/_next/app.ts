@@ -14,6 +14,7 @@ export interface App<State> extends FreshHelpers<State> {
   patch(path: string, middleware: Middleware<State>): this;
   put(path: string, middleware: Middleware<State>): this;
   delete(path: string, middleware: Middleware<State>): this;
+  head(path: string, middleware: Middleware<State>): this;
   all(path: string, middleware: Middleware<State>): this;
 
   listen(options?: ListenOptions): Promise<void>;
@@ -74,7 +75,11 @@ export class FreshApp<State> implements App<State> {
     this.router.add({ method: "DELETE", path: merged, handler });
     return this;
   }
-
+  head(path: string, handler: Middleware<State>): this {
+    const merged = mergePaths(this.config.basePath, path);
+    this.router.add({ method: "HEAD", path: merged, handler });
+    return this;
+  }
   all(path: string, handler: Middleware<State>): this {
     const merged = mergePaths(this.config.basePath, path);
     this.router.add({ method: "ALL", path: merged, handler });

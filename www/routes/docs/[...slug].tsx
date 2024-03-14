@@ -1,4 +1,4 @@
-import { Handlers, PageProps } from "$fresh/server.ts";
+import { PageProps } from "$fresh/server.ts";
 import { asset, Head, Partial } from "$fresh/runtime.ts";
 import DocsSidebar from "../../components/DocsSidebar.tsx";
 import Footer from "../../components/Footer.tsx";
@@ -12,6 +12,7 @@ import {
 import { frontMatter, renderMarkdown } from "../../utils/markdown.ts";
 import toc from "../../../docs/toc.ts";
 import { TableOfContents } from "../../islands/TableOfContents.tsx";
+import { defineHandlers } from "$fresh/src/_next/defines.ts";
 
 interface Data {
   page: Page;
@@ -40,8 +41,8 @@ interface Page extends TableOfContentsEntry {
 
 const pattern = new URLPattern({ pathname: "/:version/:page*" });
 
-export const handler: Handlers<Data> = {
-  async GET(_req, ctx) {
+export const handler = defineHandlers({
+  async GET(ctx) {
     const slug = ctx.params.slug;
 
     // Check if the slug is the index page of a version tag
@@ -119,19 +120,21 @@ export const handler: Handlers<Data> = {
     const fileContent = await Deno.readTextFile(url);
     const { body, attrs } = frontMatter<Record<string, unknown>>(fileContent);
 
-    return ctx.render({
-      page: {
-        ...entry,
-        markdown: body,
-        data: attrs ?? {},
-        versionLinks,
-        version,
-        prevNav,
-        nextNav,
+    return {
+      data: {
+        page: {
+          ...entry,
+          markdown: body,
+          data: attrs ?? {},
+          versionLinks,
+          version,
+          prevNav,
+          nextNav,
+        },
       },
-    });
+    };
   },
-};
+});
 
 export default function DocsPage(props: PageProps<Data>) {
   const { page } = props.data;

@@ -3,21 +3,24 @@ import { App } from "../app.ts";
 import { walk, WalkEntry } from "jsr:@std/fs/walk";
 import * as path from "jsr:@std/path";
 import { RouteConfig } from "$fresh/src/server/mod.ts";
+import { RouteHandler } from "../defines.ts";
 import { renderMiddleware } from "../middlewares/render/render_middleware.ts";
+import { Method, pathToPattern, sortRoutePaths } from "../router.ts";
+import { isHandlerMethod } from "$fresh/src/_next/defines.ts";
 
 const TEST_FILE_PATTERN = /[._]test\.(?:[tj]sx?|[mc][tj]s)$/;
 
 interface InternalRoute {
   path: string;
   config: RouteConfig | null;
-  handlers: any;
+  handlers: RouteHandler<unknown, unknown> | null;
   component: AnyComponent | null;
 }
 
 export interface FreshFsItem {
   config?: RouteConfig;
-  handler?: any;
-  handlers?: any;
+  handler?: RouteHandler<unknown, unknown>;
+  handlers?: RouteHandler<unknown, unknown>;
   default?: AnyComponent;
 }
 
@@ -59,7 +62,6 @@ export async function fsRoutes<T>(app: App<T>, options: FsRoutesOptions) {
   ]);
 
   relIslandsPaths.sort();
-  relRoutePaths.sort();
 
   const routeModules: InternalRoute[] = await Promise.all(
     relRoutePaths.map(async (routePath) => {
@@ -79,6 +81,8 @@ export async function fsRoutes<T>(app: App<T>, options: FsRoutesOptions) {
     }),
   );
 
+  routeModules.sort((a, b) => sortRoutePaths(a.path, b.path));
+
   const stack: InternalRoute[] = [];
   for (let i = 0; i < routeModules.length; i++) {
     const routeMod = routeModules[i];
@@ -93,9 +97,9 @@ export async function fsRoutes<T>(app: App<T>, options: FsRoutesOptions) {
     } else if (normalized === "_error") {
       // FIXME
     } else {
+      const components: AnyComponent[] = [];
       // Prepare component tree if the current route has a component
       if (routeMod.component !== null) {
-        const components: AnyComponent[] = [];
         for (let i = 0; i < stack.length; i++) {
           const comp = stack[i].component;
           if (comp !== null) {
@@ -103,12 +107,27 @@ export async function fsRoutes<T>(app: App<T>, options: FsRoutesOptions) {
           }
         }
         components.push(routeMod.component);
+      }
 
-        const routePath = "/" +
-          (normalized.endsWith("index") ? normalized.slice(0, -5) : normalized);
+      const routePath = routeMod.config?.routeOverride ??
+        pathToPattern(normalized);
 
-        // FIXME: Methods
-        app.get(routePath, renderMiddleware(components));
+      const handlers = routeMod.handlers;
+      if (handlers === null) {
+        app.get(routePath, renderMiddleware(components, undefined));
+      } else if (isHandlerMethod(handlers)) {
+        for (const key of Object.keys(handlers) as Method[]) {
+          const fn = handlers[key];
+          if (fn !== undefined) {
+            const k = key.toLowerCase() as Lowercase<Method>;
+            app[k](
+              routePath,
+              renderMiddleware(components, fn),
+            );
+          }
+        }
+      } else if (typeof handlers === "function") {
+        app.all(routePath, renderMiddleware(components, handlers));
       }
     }
   }
