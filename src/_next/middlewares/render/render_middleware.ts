@@ -17,9 +17,7 @@ export const renderMiddleware =
       vnode = h(components[i] as any, {
         url: ctx.url,
         req: ctx.req,
-        redirect: ctx.redirect,
         params: ctx.params,
-        next: ctx.next,
         state: ctx.state,
         Component,
       }) as VNode;
