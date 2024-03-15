@@ -191,7 +191,7 @@ Deno.test("pathToPattern", async (t) => {
 });
 
 Deno.test("sortRoutePaths", () => {
-  const routes = [
+  let routes = [
     "/foo/[id]",
     "/foo/[...slug]",
     "/foo/bar",
@@ -204,19 +204,42 @@ Deno.test("sortRoutePaths", () => {
     "/foo/bar/baz",
     "/foo/bar/_layout",
   ];
-  const sorted = [
+  let sorted = [
     "/foo/_middleware",
     "/foo/_layout",
-    "/foo/bar",
     "/foo/index",
     "/foo/bar/_middleware",
     "/foo/bar/_layout",
     "/foo/bar/index",
     "/foo/bar/baz",
     "/foo/bar/[...foo]",
+    "/foo/bar",
     "/foo/[id]",
     "/foo/[...slug]",
   ];
   routes.sort(sortRoutePaths);
+  expect(routes).toEqual(sorted);
+
+  routes = [
+    "/js/index.js",
+    "/js/_layout.js",
+    "/jsx/index.jsx",
+    "/jsx/_layout.jsx",
+    "/ts/index.ts",
+    "/ts/_layout.tsx",
+    "/tsx/index.tsx",
+    "/tsx/_layout.tsx",
+  ];
+  routes.sort(sortRoutePaths);
+  sorted = [
+    "/js/_layout.js",
+    "/js/index.js",
+    "/jsx/_layout.jsx",
+    "/jsx/index.jsx",
+    "/ts/_layout.tsx",
+    "/ts/index.ts",
+    "/tsx/_layout.tsx",
+    "/tsx/index.tsx",
+  ];
   expect(routes).toEqual(sorted);
 });

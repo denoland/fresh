@@ -217,23 +217,35 @@ export function sortRoutePaths(a: string, b: string) {
   for (let i = 0; i < maxLen; i++) {
     const charA = a.charAt(i);
     const charB = b.charAt(i);
-    const nextA = i + 1 < aLen ? a.charAt(i + 1) : "";
-    const nextB = i + 1 < bLen ? b.charAt(i + 1) : "";
 
     if (charA === "/" || charB === "/") {
       segmentIdx = i;
+
       // If the other path doesn't close the segment
       // then we don't need to continue
-      if (charA !== "/") return -1;
-      if (charB !== "/") return 1;
+      if (charA !== "/") return 1;
+      if (charB !== "/") return -1;
+
       continue;
     }
 
     if (i === segmentIdx + 1) {
-      const scoreA = getRoutePathScore(charA, nextA);
-      const scoreB = getRoutePathScore(charB, nextB);
-      if (scoreA === scoreB) continue;
+      const scoreA = getRoutePathScore(charA, a, i);
+      const scoreB = getRoutePathScore(charB, b, i);
+      if (scoreA === scoreB) {
+        if (charA !== charB) {
+          // TODO: Do we need localeSort here or is this good enough?
+          return charA < charB ? 0 : 1;
+        }
+        continue;
+      }
+
       return scoreA > scoreB ? -1 : 1;
+    }
+
+    if (charA !== charB) {
+      // TODO: Do we need localeSort here or is this good enough?
+      return charA < charB ? 0 : 1;
     }
   }
 
@@ -245,15 +257,23 @@ export function sortRoutePaths(a: string, b: string) {
  * The goal is to sort `_middleware` and `_layout` in front of everything
  * and `[` or `[...` last respectively.
  */
-function getRoutePathScore(char: string, nextChar: string): number {
+function getRoutePathScore(char: string, s: string, i: number): number {
   if (char === "_") {
-    if (nextChar === "m") return 4;
-    return 3;
+    if (i + 1 < s.length && s[i + 1] === "m") return 5;
+    return 4;
   } else if (char === "[") {
-    if (nextChar === ".") {
+    if (i + 1 < s.length && s[i + 1] === ".") {
       return 0;
     }
     return 1;
   }
+
+  if (
+    i + 4 === s.length - 1 && char === "i" && s[i + 1] === "n" &&
+    s[i + 2] === "d" && s[i + 3] === "e" && s[i + 4] === "x"
+  ) {
+    return 3;
+  }
+
   return 2;
 }
