@@ -2,7 +2,7 @@ import {
   type BuildOptions,
   type OnLoadOptions,
   type Plugin,
-} from "https://deno.land/x/esbuild@v0.19.11/mod.js";
+} from "npm:esbuild@0.20.2";
 import { denoPlugins, fromFileUrl, regexpEscape, relative } from "./deps.ts";
 import { Builder, BuildSnapshot } from "./mod.ts";
 
@@ -34,15 +34,15 @@ export class EsbuildBuilder implements Builder {
     const opts = this.#options;
 
     // Lazily initialize esbuild
-    // @deno-types="https://deno.land/x/esbuild@v0.19.4/mod.d.ts"
+    // @deno-types="npm:esbuild@0.20.0"
     const esbuild =
       // deno-lint-ignore no-deprecated-deno-api
       Deno.run === undefined ||
         Deno.env.get("FRESH_ESBUILD_LOADER") === "portable"
-        ? await import("https://deno.land/x/esbuild@v0.19.11/wasm.js")
-        : await import("https://deno.land/x/esbuild@v0.19.11/mod.js");
+        ? await import("npm:esbuild-wasm@0.20.2")
+        : await import("npm:esbuild@0.20.2");
     const esbuildWasmURL =
-      new URL("./esbuild_v0.19.11.wasm", import.meta.url).href;
+      new URL("./esbuild_v0.20.2.wasm", import.meta.url).href;
 
     // deno-lint-ignore no-deprecated-deno-api
     if (Deno.run === undefined) {
