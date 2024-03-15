@@ -44,6 +44,7 @@ export async function initalizeEsbuild() {
   } else {
     await esbuild.initialize({});
   }
+  return esbuild;
 }
 
 export class EsbuildBuilder implements Builder {
