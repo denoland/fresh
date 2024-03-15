@@ -4,7 +4,7 @@ import { TailwindPluginOptions } from "./types.ts";
 import { App } from "../../app.ts";
 import { initTailwind } from "./compiler.ts";
 
-export default async function tailwind<T>(
+export async function tailwind<T>(
   app: App<T>,
   options: TailwindPluginOptions = {},
 ): Promise<void> {

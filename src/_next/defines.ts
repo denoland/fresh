@@ -27,7 +27,7 @@ export interface HandlerFn<Data, State> {
     | Response
     | Render<Data>
     | undefined
-    | Promise<Response | Render<Data> | undefined>;
+    | Promise<Response | Render<Data> | void>;
 }
 
 export type HandlerMethod<Data, State> = {

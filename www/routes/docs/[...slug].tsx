@@ -120,8 +120,15 @@ export const handler = defineHandlers({
     const fileContent = await Deno.readTextFile(url);
     const { body, attrs } = frontMatter<Record<string, unknown>>(fileContent);
 
+    const title = `${entry.title ?? "Not Found"} | Fresh docs`;
+    const description = "Fresh Document"; // FIXME get from markdown
     return {
       data: {
+        headViewTransition: true,
+        headTitle: title,
+        headDescription: description,
+        docStyleSheet: asset("/markdown.css"),
+        headOgImg: new URL(asset("/home-og.png"), ctx.url).href,
         page: {
           ...entry,
           markdown: body,
@@ -150,17 +157,6 @@ export default function DocsPage(props: PageProps<Data>) {
 
   return (
     <>
-      <Head>
-        <title>{title}</title>
-        <link rel="stylesheet" href={asset("/markdown.css")} />
-        <meta name="description" content={description} />
-        <meta property="og:title" content={title} />
-        <meta property="og:description" content={description} />
-        <meta property="og:type" content="website" />
-        <meta property="og:url" content={props.url.href} />
-        <meta property="og:image" content={ogImageUrl} />
-        <meta name="view-transition" content="same-origin" />
-      </Head>
       <div class="flex flex-col min-h-screen mx-auto max-w-screen-2xl">
         {/* Disable partial navigation until this bug in Preact is fixed https://github.com/preactjs/preact/pull/4287 */}
         <div class="flex-1 " f-client-nav={false}>

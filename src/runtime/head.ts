@@ -7,6 +7,9 @@ export interface HeadProps {
 
 export const HEAD_CONTEXT = createContext<ComponentChildren[]>([]);
 
+/**
+ * @deprecated Will be removed in Fresh 2.0
+ */
 export function Head(props: HeadProps) {
   let context: ComponentChildren[];
   try {

@@ -4,13 +4,12 @@
 /// <reference lib="dom.asynciterable" />
 /// <reference lib="deno.ns" />
 
-import { FreshApp } from "../src/_next/mod.ts";
-import tailwind from "$fresh/src/_next/plugins/tailwind/mod.ts";
-import { fsRoutes } from "$fresh/src/_next/plugins/fs_routes.ts";
-import { freshStaticFiles } from "$fresh/src/_next/middlewares/static_files.ts";
-
-// import manifest from "./fresh.gen.ts";
-// import config from "./fresh.config.ts";
+import {
+  FreshApp,
+  freshStaticFiles,
+  fsRoutes,
+  tailwind,
+} from "$fresh/server.ts";
 
 const app = new FreshApp({});
 
