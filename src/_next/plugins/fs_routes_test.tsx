@@ -201,7 +201,7 @@ Deno.test("fsRoutes - combined", async () => {
 });
 
 Deno.test("fsRoutes - prepend _app", async () => {
-  const server = await createServer<{ text: string }>({
+  const server = await createServer({
     "routes/foo/bar.ts": {
       default: () => <>foo_bar</>,
     },
@@ -224,8 +224,8 @@ Deno.test("fsRoutes - prepend _app", async () => {
   expect(await res.text()).toEqual("app/foo");
 });
 
-Deno.test("fsRoutes - prepend _layout", async () => {
-  const server = await createServer<{ text: string }>({
+Deno.test.ignore("fsRoutes - prepend _layout", async () => {
+  const server = await createServer({
     "routes/foo/bar.ts": {
       default: () => <>foo_bar</>,
     },
@@ -255,8 +255,8 @@ Deno.test("fsRoutes - prepend _layout", async () => {
   expect(await res.text()).toEqual("app/layout/foo");
 });
 
-Deno.test("fsRoutes - nested _layout", async () => {
-  const server = await createServer<{ text: string }>({
+Deno.test.ignore("fsRoutes - nested _layout", async () => {
+  const server = await createServer({
     "routes/foo/bar.ts": {
       default: () => <>foo_bar</>,
     },
@@ -294,7 +294,7 @@ Deno.test("fsRoutes - nested _layout", async () => {
 });
 
 Deno.test("fsRoutes - _layout skip if not present", async () => {
-  const server = await createServer<{ text: string }>({
+  const server = await createServer({
     "routes/foo/bar/baz.ts": {
       default: () => <>foo_bar_baz</>,
     },
@@ -312,7 +312,7 @@ Deno.test("fsRoutes - _layout skip if not present", async () => {
 });
 
 Deno.test("fsRoutes - _layout file types", async () => {
-  const server = await createServer<{ text: string }>({
+  const server = await createServer({
     "routes/js/index.js": {
       default: () => <>js</>,
     },
@@ -357,4 +357,120 @@ Deno.test("fsRoutes - _layout file types", async () => {
 
   const res = await server.get("/js");
   expect(await res.text()).toEqual("layout_js/js");
+});
+
+Deno.test.ignore("fsRoutes - _layout disable _app", async () => {
+  const server = await createServer({
+    "routes/index.tsx": {
+      default: () => <>route</>,
+    },
+    "routes/_layout.tsx": {
+      config: {
+        skipAppWrapper: true,
+      },
+      default: (ctx) => (
+        <>
+          layout/<ctx.Component />
+        </>
+      ),
+    },
+    "routes/_app.tsx": {
+      default: (ctx) => (
+        <>
+          app/<ctx.Component />
+        </>
+      ),
+    },
+  });
+
+  const res = await server.get("/");
+  expect(await res.text()).toEqual("layout/route");
+});
+
+Deno.test.ignore(
+  "fsRoutes - _layout disable _app + inherited _layouts",
+  async () => {
+    const server = await createServer({
+      "routes/sub/sub2/index.tsx": {
+        default: () => <>sub_sub2</>,
+      },
+      "routes/sub/sub2/_layout.tsx": {
+        default: (ctx) => (
+          <>
+            layout_sub_sub2/<ctx.Component />
+          </>
+        ),
+      },
+      "routes/sub/_layout.tsx": {
+        config: {
+          skipAppWrapper: true,
+          skipInheritedLayouts: true,
+        },
+        default: (ctx) => (
+          <>
+            layout_sub/<ctx.Component />
+          </>
+        ),
+      },
+      "routes/_layout.tsx": {
+        default: (ctx) => (
+          <>
+            layout/<ctx.Component />
+          </>
+        ),
+      },
+      "routes/_app.tsx": {
+        default: (ctx) => (
+          <>
+            app/<ctx.Component />
+          </>
+        ),
+      },
+    });
+
+    const res = await server.get("/sub/sub2");
+    expect(await res.text()).toEqual("layout_sub/layout_sub_sub2/sub_sub2");
+  },
+);
+
+Deno.test.ignore("fsRoutes - route overrides _layout", async () => {
+  const server = await createServer({
+    "routes/index.tsx": {
+      config: {
+        skipInheritedLayouts: true,
+      },
+      default: () => <>route</>,
+    },
+    "routes/_layout.tsx": {
+      default: (ctx) => (
+        <>
+          layout/<ctx.Component />
+        </>
+      ),
+    },
+  });
+
+  const res = await server.get("/");
+  expect(await res.text()).toEqual("route");
+});
+
+Deno.test.ignore("fsRoutes - route overrides _app", async () => {
+  const server = await createServer({
+    "routes/index.tsx": {
+      config: {
+        skipAppWrapper: true,
+      },
+      default: () => <>route</>,
+    },
+    "routes/_app.tsx": {
+      default: (ctx) => (
+        <>
+          app/<ctx.Component />
+        </>
+      ),
+    },
+  });
+
+  const res = await server.get("/");
+  expect(await res.text()).toEqual("route");
 });

@@ -15,6 +15,7 @@ const TEST_FILE_PATTERN = /[._]test\.(?:[tj]sx?|[mc][tj]s)$/;
 interface InternalRoute<T> {
   path: string;
   base: string;
+  filePath: string;
   config: RouteConfig | null;
   handlers: RouteHandler<unknown, T> | null;
   component: AnyComponent<FreshContext<T>> | null;
@@ -99,10 +100,13 @@ export async function fsRoutes<T>(app: App<T>, options: FsRoutesOptions) {
         );
       }
 
-      const normalizedPath = `/${routePath}`;
+      const normalizedPath = `/${
+        routePath.slice(0, routePath.lastIndexOf("."))
+      }`;
       const base = normalizedPath.slice(0, normalizedPath.lastIndexOf("/"));
       return {
         path: normalizedPath,
+        filePath: routePath,
         base,
         handlers: mod.handlers ?? mod.handler ?? null,
         config: mod.config ?? null,
@@ -116,13 +120,13 @@ export async function fsRoutes<T>(app: App<T>, options: FsRoutesOptions) {
   const stack: InternalRoute<T>[] = [];
   for (let i = 0; i < routeModules.length; i++) {
     const routeMod = routeModules[i];
-    const normalized = routeMod.path.slice(0, routeMod.path.lastIndexOf("."));
+    const normalized = routeMod.path;
 
-    if (stack.length > 0) {
-      let j = stack.length;
-      while (j-- && !routeMod.path.startsWith(stack[j].base + "/")) {
-        stack.pop();
-      }
+    // Remove any elements not matching our parent path anymore
+    let j = stack.length - 1;
+    while (j >= 0 && !routeMod.path.startsWith(stack[j].base + "/")) {
+      j--;
+      stack.pop();
     }
 
     if (normalized.endsWith("/_app")) {
@@ -134,12 +138,16 @@ export async function fsRoutes<T>(app: App<T>, options: FsRoutesOptions) {
     } else if (normalized.endsWith("/_error")) {
       // FIXME
     } else {
+      // const localStack = getRouteStack(stack, routeMod);
+      const localStack = stack;
+      // console.log(localStack);
+
       const middlewares: Middleware<T>[] = [];
       const components: AnyComponent<FreshContext<T>>[] = [];
 
       // Prepare component tree if the current route has a component
-      for (let i = 0; i < stack.length; i++) {
-        const m = stack[i];
+      for (let j = 0; j < localStack.length; j++) {
+        const m = localStack[j];
         if (routeMod.component !== null && m.component !== null) {
           // deno-lint-ignore no-explicit-any
           components.push(m.component as any);
@@ -148,8 +156,8 @@ export async function fsRoutes<T>(app: App<T>, options: FsRoutesOptions) {
         // FIXME: Make file extension agnostic
         if (
           m.handlers !== null && !isHandlerMethod(m.handlers) &&
-          (m.path.endsWith("/_middleware.ts") ||
-            m.path.endsWith("/_middleware.js"))
+          (m.path.endsWith("/_middleware") ||
+            m.path.endsWith("/_middleware"))
         ) {
           // FIXME: Decide what to do with Middleware vs Handler type
           middlewares.push(m.handlers as Middleware<T>);
@@ -186,6 +194,72 @@ export async function fsRoutes<T>(app: App<T>, options: FsRoutesOptions) {
       }
     }
   }
+}
+
+function getRouteStack<T>(
+  stack: InternalRoute<T>[],
+  current: InternalRoute<T>,
+): InternalRoute<T>[] {
+  let skipApp = !!current.config?.skipAppWrapper;
+  let skipLayoutIdx = current.config?.skipInheritedLayouts
+    ? stack.length - 1
+    : -1;
+
+  console.log("start", skipLayoutIdx, skipApp);
+
+  let i = stack.length - 1;
+  while (i--) {
+    if (!current.path.startsWith(stack[i].base + "/")) {
+      stack.pop();
+      continue;
+    }
+
+    const config = stack[i].config;
+    if (config) {
+      if (!skipApp && skipLayoutIdx > -1 && config.skipAppWrapper) {
+        skipApp = true;
+      }
+      if (i > skipLayoutIdx && config.skipInheritedLayouts) {
+        skipLayoutIdx = i;
+      }
+    }
+
+    if (skipApp && skipLayoutIdx >= 0) {
+      break;
+    }
+  }
+
+  let outStack = stack;
+  if (stack.length > 0) {
+    const first = stack[0].path;
+    const hasApp = first === "/_app.tsx" || first === "/_app.jsx" ||
+      first === "/_app.ts" || first === "/_app.js";
+    console.log("MUTATE", {
+      hasApp,
+      skipApp,
+      skipLayoutIdx,
+    });
+
+    if (skipLayoutIdx > -1) {
+      if (skipApp && hasApp) {
+        outStack = stack.slice(skipLayoutIdx - 1);
+      } else if (!skipApp && hasApp) {
+        console.log(stack.length, skipLayoutIdx, stack);
+        outStack = stack.slice(skipLayoutIdx);
+        outStack[0] = stack[0];
+        console.log("================================");
+        console.log(outStack);
+      } else if (skipLayoutIdx === 0) {
+        outStack = [];
+      } else {
+        outStack = stack.slice(skipLayoutIdx);
+      }
+    } else if (skipApp && hasApp) {
+      outStack = stack.slice(1);
+    }
+  }
+
+  return outStack;
 }
 
 function addRenderHandler<T>(
