@@ -145,13 +145,6 @@ export const handler = defineHandlers({
 
 export default function DocsPage(props: PageProps<Data>) {
   const { page } = props.data;
-  const ogImageUrl = new URL(asset("/home-og.png"), props.url).href;
-  const title = `${page?.title ?? "Not Found"} | Fresh docs`;
-  let description = "Fresh Document";
-
-  if (page.data.description) {
-    description = String(page.data.description);
-  }
 
   const { html, headings } = renderMarkdown(page.markdown);
 
