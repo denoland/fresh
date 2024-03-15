@@ -26,7 +26,12 @@ Deno.test("UrlPatternRouter - GET chain routes", () => {
   router.add({ path: "/", method: "GET", handler: C });
 
   const res = router.match("GET", new URL("/", "http://localhost"));
-  expect(res).toEqual({ params: {}, handlers: [A, B, C], methodMatch: true });
+  expect(res).toEqual({
+    params: {},
+    handlers: [A, B, C],
+    methodMatch: true,
+    patternMatch: true,
+  });
 });
 
 Deno.test("UrlPatternRouter - GET extract params", () => {
@@ -43,6 +48,7 @@ Deno.test("UrlPatternRouter - GET extract params", () => {
     params: { foo: "a", bar: "b" },
     handlers: [A],
     methodMatch: true,
+    patternMatch: true,
   });
 
   // Decode params
@@ -51,6 +57,7 @@ Deno.test("UrlPatternRouter - GET extract params", () => {
     params: { foo: "a a", bar: "b" },
     handlers: [A],
     methodMatch: true,
+    patternMatch: true,
   });
 });
 
@@ -68,6 +75,31 @@ Deno.test("UrlPatternRouter - Wrong method match", () => {
     params: {},
     handlers: [],
     methodMatch: false,
+    patternMatch: true,
+  });
+});
+
+Deno.test("UrlPatternRouter - wrong + correct method", () => {
+  const router = new UrlPatternRouter();
+  const A = () => {};
+  const B = () => {};
+  router.add({
+    path: "/foo",
+    method: "GET",
+    handler: A,
+  });
+  router.add({
+    path: "/foo",
+    method: "POST",
+    handler: B,
+  });
+
+  const res = router.match("POST", new URL("/foo", "http://localhost"));
+  expect(res).toEqual({
+    params: {},
+    handlers: [B],
+    methodMatch: true,
+    patternMatch: true,
   });
 });
 
@@ -87,6 +119,7 @@ Deno.test("UrlPatternRouter - convert patterns automatically", () => {
     },
     handlers: [A],
     methodMatch: true,
+    patternMatch: true,
   });
 });
 

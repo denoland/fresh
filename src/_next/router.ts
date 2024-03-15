@@ -10,6 +10,7 @@ export interface RouteResult<T> {
   params: Record<string, string>;
   handlers: T[];
   methodMatch: boolean;
+  patternMatch: boolean;
 }
 
 export interface Router<T> {
@@ -51,14 +52,11 @@ export class UrlPatternRouter<T> implements Router<T> {
       params: {},
       handlers: [],
       methodMatch: false,
+      patternMatch: true,
     };
 
     for (let i = 0; i < this.#routes.length; i++) {
       const route = this.#routes[i];
-
-      if (route.method !== "ALL" && route.method !== method) {
-        continue;
-      }
 
       // Fast path for string based routes which are expected
       // to be either wildcard `*` match or an exact pathname match.
@@ -66,20 +64,29 @@ export class UrlPatternRouter<T> implements Router<T> {
         typeof route.path === "string" &&
         (route.path === "*" || route.path === url.pathname)
       ) {
-        result.handlers.push(route.handler);
-        result.methodMatch = true;
+        result.patternMatch = true;
+
+        if (route.method === "ALL" || route.method === method) {
+          result.handlers.push(route.handler);
+          result.methodMatch = true;
+        }
       } else if (route.path instanceof URLPattern) {
         const match = route.path.exec(url);
         if (match !== null) {
-          // Decode matched params
-          for (const [key, value] of Object.entries(match.pathname.groups)) {
-            if (value !== undefined) {
-              result.params[key] = decodeURI(value);
-            }
-          }
+          result.patternMatch = true;
 
-          result.handlers.push(route.handler);
-          result.methodMatch = true;
+          if (route.method === "ALL" || route.method === method) {
+            result.handlers.push(route.handler);
+
+            // Decode matched params
+            for (const [key, value] of Object.entries(match.pathname.groups)) {
+              if (value !== undefined) {
+                result.params[key] = decodeURI(value);
+              }
+            }
+
+            result.methodMatch = true;
+          }
         }
       }
     }
