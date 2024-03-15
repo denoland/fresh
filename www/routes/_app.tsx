@@ -5,7 +5,6 @@ export default function App({ Component, ...rest }: PageProps) {
   const title = rest.data.headTitle;
   const description = rest.data.headDescription;
   const headOgImg = new URL(asset("/home-og.png"), rest.url).href;
-  console.log(rest);
   return (
     <html lang="en">
       <head>

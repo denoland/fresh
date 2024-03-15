@@ -118,7 +118,6 @@ export class FreshApp<State> implements App<State> {
   }
 
   async listen(options: ListenOptions = {}): Promise<void> {
-    console.log(options);
     if (!options.onListen) {
       options.onListen = (params) => {
         const pathname = (this.config.basePath) + "/";

@@ -37,7 +37,7 @@ async (ctx) => {
       params: ctx.params,
       state: ctx.state,
       Component,
-      data: result?.data,
+      data: result?.data ?? {},
     }) as VNode;
   }
 
