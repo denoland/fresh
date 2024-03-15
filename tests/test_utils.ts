@@ -1,10 +1,4 @@
 import {
-  FromManifestConfig,
-  Manifest,
-  ServeHandlerInfo,
-  ServerContext,
-} from "../server.ts";
-import {
   assert,
   assertEquals,
   basename,
@@ -20,6 +14,7 @@ import {
   TextLineStream,
   toFileUrl,
 } from "./deps.ts";
+import { App } from "$fresh/server.ts";
 
 export interface TestDocument extends Document {
   debug(): void;
@@ -263,7 +258,7 @@ export interface FakeServer {
 
 async function handleRequest(
   handler: ReturnType<ServerContext["handler"]>,
-  conn: ServeHandlerInfo,
+  conn: Deno.ServeHandlerInfo,
   req: Request,
 ) {
   let res = await handler(req, conn);
@@ -282,14 +277,12 @@ async function handleRequest(
   return res;
 }
 
-export async function fakeServe(
-  manifest: Manifest,
-  config: FromManifestConfig,
-): Promise<FakeServer> {
-  const ctx = await ServerContext.fromManifest(manifest, config);
-  const handler = ctx.handler();
+export function fakeServe<T>(
+  app: App<T>,
+): FakeServer {
+  const handler = app.handler();
 
-  const conn: ServeHandlerInfo = {
+  const conn: Deno.ServeHandlerInfo = {
     remoteAddr: {
       transport: "tcp",
       hostname: "127.0.0.1",

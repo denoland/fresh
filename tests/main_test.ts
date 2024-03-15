@@ -28,7 +28,7 @@ const handler = ctx.handler();
 Deno.test("/ page prerender", async () => {
   const resp = await handler(new Request("https://fresh.deno.dev/"));
   assert(resp);
-  assertEquals(resp.status, STATUS_CODE.OK);
+  assertEquals(resp.status, 200);
   assertEquals(resp.headers.get("content-type"), "text/html; charset=utf-8");
   assertEquals(resp.headers.get("server"), "fresh test server");
   const body = await resp.text();

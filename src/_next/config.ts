@@ -15,8 +15,24 @@ export interface FreshPlugin {
 export interface FreshConfig {
   root?: string;
   build?: {
+    /**
+     * The directory to write generated files to when `dev.ts build` is run.
+     * This can be an absolute path, a file URL or a relative path.
+     */
     outDir?: string;
+    /**
+     * This sets the target environment for the generated code. Newer
+     * language constructs will be transformed to match the specified
+     * support range. See https://esbuild.github.io/api/#target
+     * @default {"es2022"}
+     */
+    target?: string | string[];
   };
+  /**
+   * Serve fresh from a base path instead of from the root.
+   *   "/foo/bar" -> http://localhost:8000/foo/bar
+   * @default {undefined}
+   */
   basePath?: string;
   staticDir?: string;
 }

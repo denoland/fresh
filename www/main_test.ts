@@ -2,12 +2,10 @@ import { assertArrayIncludes, assertEquals } from "$std/assert/mod.ts";
 import { withPageName } from "../tests/test_utils.ts";
 import { dirname, join } from "$std/path/mod.ts";
 import VERSIONS from "../versions.json" with { type: "json" };
-import { createHandler } from "../server.ts";
-import manifest from "./fresh.gen.ts";
-import config from "./fresh.config.ts";
+import { createApp } from "./main.ts";
 
 const dir = dirname(import.meta.url);
-const handler = await createHandler(manifest, config);
+const handler = (await createApp()).handler();
 
 Deno.test("CORS should not set on GET /fresh-badge.svg", async () => {
   const req = new Request("http://localhost/fresh-badge.svg");

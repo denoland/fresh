@@ -16,6 +16,10 @@ export interface App<State> {
   head(path: string, middleware: Middleware<State>): this;
   all(path: string, middleware: Middleware<State>): this;
 
+  handler(): (
+    request: Request,
+    info: Deno.ServeHandlerInfo,
+  ) => Promise<Response>;
   listen(options?: ListenOptions): Promise<void>;
 }
 

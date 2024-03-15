@@ -11,15 +11,26 @@ import {
   tailwind,
 } from "$fresh/server.ts";
 
-const app = new FreshApp({});
+export async function createApp() {
+  const app = new FreshApp({
+    build: {
+      target: "safari12",
+    },
+  });
 
-await tailwind(app, {});
+  await tailwind(app, {});
 
-app.use(freshStaticFiles());
+  app.use(freshStaticFiles());
 
-await fsRoutes(app, {
-  dir: Deno.cwd(),
-  load: (path) => import("./routes/" + path),
-});
+  await fsRoutes(app, {
+    dir: Deno.cwd(),
+    load: (path) => import("./routes/" + path),
+  });
 
-await app.listen();
+  return app;
+}
+
+if (import.meta.main) {
+  const app = await createApp();
+  await app.listen();
+}
