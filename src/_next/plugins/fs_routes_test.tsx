@@ -174,3 +174,27 @@ Deno.test("fsRoutes - add middleware for function handler", async () => {
   res = await server.get("/foo");
   expect(await res.text()).toEqual("ok");
 });
+
+Deno.test("fsRoutes - combined", async () => {
+  const server = await createServer<{ text: string }>({
+    "routes/foo/bar.ts": {
+      handler: () => {},
+      default: (ctx) => <>{ctx.state.text}</>,
+    },
+    "routes/foo/_middleware.ts": {
+      handler: (ctx) => {
+        ctx.state.text = "ok";
+        return ctx.next();
+      },
+    },
+    "routes/_middleware.ts": {
+      handler: (ctx) => {
+        ctx.state.text = "ok";
+        return ctx.next();
+      },
+    },
+  });
+
+  const res = await server.get("/foo/bar");
+  expect(await res.text()).toEqual("ok");
+});

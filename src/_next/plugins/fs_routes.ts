@@ -7,7 +7,7 @@ import { RouteHandler } from "../defines.ts";
 import { compose, Middleware } from "../middlewares/compose.ts";
 import { renderMiddleware } from "../middlewares/render/render_middleware.ts";
 import { Method, pathToPattern, sortRoutePaths } from "../router.ts";
-import { isHandlerMethod } from "$fresh/src/_next/defines.ts";
+import { HandlerFn, isHandlerMethod } from "$fresh/src/_next/defines.ts";
 import { FsAdapter, fsAdapter } from "$fresh/src/_next/fs.ts";
 
 const TEST_FILE_PATTERN = /[._]test\.(?:[tj]sx?|[mc][tj]s)$/;
@@ -89,6 +89,15 @@ export async function fsRoutes<T>(app: App<T>, options: FsRoutesOptions) {
         );
       }
 
+      const handlers = mod.handlers ?? mod.handler ?? null;
+      if (typeof handlers === "function" && handlers.length > 1) {
+        throw new Error(
+          `Handlers must only have one argument but found more than one. Check the function signature in: ${
+            path.join(routesDir, routePath)
+          }`,
+        );
+      }
+
       return {
         path: `/${routePath}`,
         handlers: mod.handlers ?? mod.handler ?? null,
@@ -148,49 +157,39 @@ export async function fsRoutes<T>(app: App<T>, options: FsRoutesOptions) {
         handlers === null ||
         (isHandlerMethod(handlers) && Object.keys(handlers).length === 0)
       ) {
-        // deno-lint-ignore no-explicit-any
-        let handler: any = undefined;
-        if (middlewares.length > 0) {
-          const clone = middlewares.slice();
-          // deno-lint-ignore no-explicit-any
-          clone.push((() => {}) as any);
-          handler = compose(clone);
-        }
-
-        app.get(routePath, renderMiddleware(components, handler));
+        const mid = addRenderHandler(components, middlewares, undefined);
+        app.get(routePath, mid);
       } else if (isHandlerMethod(handlers)) {
         for (const method of Object.keys(handlers) as Method[]) {
           const fn = handlers[method];
-          if (fn !== undefined) {
-            // deno-lint-ignore no-explicit-any
-            let handler = fn as any;
-            if (middlewares.length > 0) {
-              const clone = middlewares.slice();
-              // deno-lint-ignore no-explicit-any
-              clone.push(fn as any);
-              handler = compose(clone);
-            }
 
+          if (fn !== undefined) {
+            const mid = addRenderHandler(components, middlewares, fn);
             const lower = method.toLowerCase() as Lowercase<Method>;
-            app[lower](
-              routePath,
-              renderMiddleware(components, handler),
-            );
+            app[lower](routePath, mid);
           }
         }
       } else if (typeof handlers === "function") {
-        // deno-lint-ignore no-explicit-any
-        let handler = handlers as any;
-        if (middlewares.length > 0) {
-          const clone = middlewares.slice();
-          // deno-lint-ignore no-explicit-any
-          clone.push(handlers as any);
-          handler = compose(clone);
-        }
-        app.all(routePath, renderMiddleware(components, handler));
+        const mid = addRenderHandler(components, middlewares, handlers);
+        app.all(routePath, renderMiddleware(components, mid));
       }
     }
   }
+}
+
+function addRenderHandler<T>(
+  components: AnyComponent[],
+  middlewares: Middleware<T>[],
+  handler: HandlerFn<unknown, T> | undefined,
+): Middleware<T> {
+  let mid = renderMiddleware<T>(components, handler);
+  if (middlewares.length > 0) {
+    const chain = middlewares.slice();
+    chain.push(mid);
+    mid = compose(chain);
+  }
+
+  return mid;
 }
 
 async function walkDir(

@@ -2,7 +2,6 @@ import { assertArrayIncludes, assertEquals } from "$std/assert/mod.ts";
 import { withPageName } from "../tests/test_utils.ts";
 import { dirname, join } from "$std/path/mod.ts";
 import VERSIONS from "../versions.json" with { type: "json" };
-import { createApp } from "./main.ts";
 
 const dir = dirname(import.meta.url);
 const handler = (await createApp()).handler();
