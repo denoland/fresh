@@ -7,6 +7,11 @@ export type Middleware<State = unknown> = (
 export function compose<T = unknown>(
   middlewares: Middleware<T>[],
 ): Middleware<T> {
+  // No need to wrap this
+  if (middlewares.length === 1) {
+    return middlewares[0];
+  }
+
   return (ctx) => {
     const originalNext = ctx.next;
 

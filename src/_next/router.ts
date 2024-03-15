@@ -69,6 +69,12 @@ export class UrlPatternRouter<T> implements Router<T> {
         if (route.method === "ALL" || route.method === method) {
           result.handlers.push(route.handler);
           result.methodMatch = true;
+
+          if (route.path === "*" && route.method === "ALL") {
+            continue;
+          }
+
+          return result;
         }
       } else if (route.path instanceof URLPattern) {
         const match = route.path.exec(url);
@@ -86,6 +92,7 @@ export class UrlPatternRouter<T> implements Router<T> {
             }
 
             result.methodMatch = true;
+            return result;
           }
         }
       }

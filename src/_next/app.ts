@@ -1,9 +1,10 @@
 import { DENO_DEPLOYMENT_ID } from "./constants.ts";
 import { colors } from "../server/deps.ts";
-import { compose, Middleware } from "./middlewares/compose.ts";
+import { Middleware } from "./middlewares/compose.ts";
 import { createContext } from "./context.ts";
 import { mergePaths, Method, UrlPatternRouter } from "./router.ts";
 import { FreshConfig, normalizeConfig, ResolvedFreshConfig } from "./config.ts";
+import { compose } from "$fresh/src/_next/middlewares/compose.ts";
 
 export interface App<State> {
   readonly config: ResolvedFreshConfig;
@@ -114,10 +115,10 @@ export class FreshApp<State> implements App<State> {
         );
       }
 
-      const params = matched.params;
-      ctx.params = matched.params;
+      const { params, handlers } = matched;
+      ctx.params = params;
 
-      const handler = compose<State>(matched.handlers);
+      const handler = handlers.length === 1 ? handlers[0] : compose(handlers);
 
       this.#routeCache.set(cacheKey, {
         params,

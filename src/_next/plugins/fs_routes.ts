@@ -4,6 +4,7 @@ import { WalkEntry } from "jsr:@std/fs/walk";
 import * as path from "jsr:@std/path";
 import { RouteConfig } from "$fresh/src/server/mod.ts";
 import { RouteHandler } from "../defines.ts";
+import { compose, Middleware } from "../middlewares/compose.ts";
 import { renderMiddleware } from "../middlewares/render/render_middleware.ts";
 import { Method, pathToPattern, sortRoutePaths } from "../router.ts";
 import { isHandlerMethod } from "$fresh/src/_next/defines.ts";
@@ -18,10 +19,10 @@ interface InternalRoute {
   component: AnyComponent | null;
 }
 
-export interface FreshFsItem {
+export interface FreshFsItem<T = unknown> {
   config?: RouteConfig;
-  handler?: RouteHandler<unknown, unknown>;
-  handlers?: RouteHandler<unknown, unknown>;
+  handler?: RouteHandler<unknown, T>;
+  handlers?: RouteHandler<unknown, T>;
   default?: AnyComponent;
 }
 
@@ -89,7 +90,7 @@ export async function fsRoutes<T>(app: App<T>, options: FsRoutesOptions) {
       }
 
       return {
-        path: routePath,
+        path: `/${routePath}`,
         handlers: mod.handlers ?? mod.handler ?? null,
         config: mod.config ?? null,
         component: mod.default ?? null,
@@ -102,7 +103,7 @@ export async function fsRoutes<T>(app: App<T>, options: FsRoutesOptions) {
   const stack: InternalRoute[] = [];
   for (let i = 0; i < routeModules.length; i++) {
     const routeMod = routeModules[i];
-    const normalized = routeMod.path.slice(0, routeMod.path.lastIndexOf("."));
+    const normalized = routeMod.path.slice(1, routeMod.path.lastIndexOf("."));
 
     if (normalized === "_app") {
       stack.push(routeMod);
@@ -113,15 +114,29 @@ export async function fsRoutes<T>(app: App<T>, options: FsRoutesOptions) {
     } else if (normalized === "_error") {
       // FIXME
     } else {
+      const middlewares: Middleware<T>[] = [];
       const components: AnyComponent[] = [];
+
       // Prepare component tree if the current route has a component
-      if (routeMod.component !== null) {
-        for (let i = 0; i < stack.length; i++) {
-          const comp = stack[i].component;
-          if (comp !== null) {
-            components.push(comp);
-          }
+      for (let i = 0; i < stack.length; i++) {
+        const m = stack[i];
+        if (routeMod.component !== null && m.component !== null) {
+          components.push(m.component);
         }
+
+        // FIXME: Make file extension agnostic
+        if (
+          m.handlers !== null && !isHandlerMethod(m.handlers) &&
+          (m.path.endsWith("/_middleware.ts") ||
+            m.path.endsWith("/_middleware.js"))
+        ) {
+          // FIXME: Decide what to do with Middleware vs Handler type
+          // deno-lint-ignore no-explicit-any
+          middlewares.push(m.handlers as any);
+        }
+      }
+
+      if (routeMod.component !== null) {
         components.push(routeMod.component);
       }
 
@@ -129,21 +144,50 @@ export async function fsRoutes<T>(app: App<T>, options: FsRoutesOptions) {
         pathToPattern(normalized);
 
       const handlers = routeMod.handlers;
-      if (handlers === null) {
-        app.get(routePath, renderMiddleware(components, undefined));
+      if (
+        handlers === null ||
+        (isHandlerMethod(handlers) && Object.keys(handlers).length === 0)
+      ) {
+        // deno-lint-ignore no-explicit-any
+        let handler: any = undefined;
+        if (middlewares.length > 0) {
+          const clone = middlewares.slice();
+          // deno-lint-ignore no-explicit-any
+          clone.push((() => {}) as any);
+          handler = compose(clone);
+        }
+
+        app.get(routePath, renderMiddleware(components, handler));
       } else if (isHandlerMethod(handlers)) {
         for (const method of Object.keys(handlers) as Method[]) {
           const fn = handlers[method];
           if (fn !== undefined) {
+            // deno-lint-ignore no-explicit-any
+            let handler = fn as any;
+            if (middlewares.length > 0) {
+              const clone = middlewares.slice();
+              // deno-lint-ignore no-explicit-any
+              clone.push(fn as any);
+              handler = compose(clone);
+            }
+
             const lower = method.toLowerCase() as Lowercase<Method>;
             app[lower](
               routePath,
-              renderMiddleware(components, fn),
+              renderMiddleware(components, handler),
             );
           }
         }
       } else if (typeof handlers === "function") {
-        app.all(routePath, renderMiddleware(components, handlers));
+        // deno-lint-ignore no-explicit-any
+        let handler = handlers as any;
+        if (middlewares.length > 0) {
+          const clone = middlewares.slice();
+          // deno-lint-ignore no-explicit-any
+          clone.push(handlers as any);
+          handler = compose(clone);
+        }
+        app.all(routePath, renderMiddleware(components, handler));
       }
     }
   }

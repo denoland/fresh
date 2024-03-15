@@ -1,5 +1,5 @@
 import { FreshApp } from "$fresh/server.ts";
-import { fsRoutes } from "./fs_routes.ts";
+import { FreshFsItem, fsRoutes } from "./fs_routes.ts";
 import { FakeServer } from "../test_utils.ts";
 import * as path from "jsr:@std/path";
 import { createFakeFs } from "$fresh/src/_next/test_utils.ts";
@@ -8,7 +8,7 @@ import { HandlerFn, HandlerMethod } from "../defines.ts";
 import { Method } from "../router.ts";
 
 async function createServer<T>(
-  files: Record<string, unknown>,
+  files: Record<string, string | Uint8Array | FreshFsItem<T>>,
 ): Promise<FakeServer> {
   const app = new FreshApp<T>();
 
@@ -112,13 +112,65 @@ Deno.test("fsRoutes - renders component without handler", async () => {
   expect(await res.text()).toEqual("<h1>foo</h1>");
 });
 
-Deno.test.ignore("fsRoutes - sorts routes", async () => {
+Deno.test("fsRoutes - sorts routes", async () => {
   const server = await createServer({
     "routes/[id].ts": { handler: () => new Response("fail") },
     "routes/all.ts": { handler: () => new Response("ok") },
   });
 
   const res = await server.get("/all");
-  expect(res.status).toEqual(200);
+  expect(await res.text()).toEqual("ok");
+});
+
+Deno.test("fsRoutes - serve index", async () => {
+  const server = await createServer({
+    "routes/[id].ts": { handler: () => new Response("fail") },
+    "routes/index.ts": { handler: () => new Response("ok") },
+  });
+
+  const res = await server.get("/");
+  expect(await res.text()).toEqual("ok");
+});
+
+Deno.test("fsRoutes - add middleware for function handler", async () => {
+  const server = await createServer<{ text: string }>({
+    "routes/[id].ts": { handler: (ctx) => new Response(ctx.state.text) },
+    "routes/index.ts": { handler: (ctx) => new Response(ctx.state.text) },
+    "routes/none.ts": { default: (ctx) => <>{ctx.state.text}</> },
+    "routes/_middleware.ts": {
+      handler(ctx) {
+        ctx.state.text = "ok";
+        return ctx.next();
+      },
+    },
+  });
+
+  let res = await server.get("/");
+  expect(await res.text()).toEqual("ok");
+
+  res = await server.get("/foo");
+  expect(await res.text()).toEqual("ok");
+
+  res = await server.get("/none");
+  expect(await res.text()).toEqual("ok");
+});
+
+Deno.test("fsRoutes - add middleware for function handler", async () => {
+  const server = await createServer<{ text: string }>({
+    "routes/[id].ts": { handler: (ctx) => new Response(ctx.state.text) },
+    "routes/index.ts": { handler: (ctx) => new Response(ctx.state.text) },
+    "routes/none.ts": { default: (ctx) => <p>{ctx.state.text}a</p> },
+    "routes/_middleware.ts": {
+      handler: (ctx) => {
+        ctx.state.text = "ok";
+        return ctx.next();
+      },
+    },
+  });
+
+  let res = await server.get("/");
+  expect(await res.text()).toEqual("ok");
+
+  res = await server.get("/foo");
   expect(await res.text()).toEqual("ok");
 });

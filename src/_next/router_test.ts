@@ -16,13 +16,31 @@ Deno.test("IS_PATTERN", () => {
   expect(IS_PATTERN.test("/foo/(a)")).toEqual(true);
 });
 
-Deno.test("UrlPatternRouter - GET chain routes", () => {
+Deno.test("UrlPatternRouter - GET get first match", () => {
   const router = new UrlPatternRouter();
   const A = () => {};
   const B = () => {};
   const C = () => {};
   router.add({ path: "/", method: "GET", handler: A });
   router.add({ path: "/", method: "GET", handler: B });
+  router.add({ path: "/", method: "GET", handler: C });
+
+  const res = router.match("GET", new URL("/", "http://localhost"));
+  expect(res).toEqual({
+    params: {},
+    handlers: [A],
+    methodMatch: true,
+    patternMatch: true,
+  });
+});
+
+Deno.test("UrlPatternRouter - GET get matches with middlewares", () => {
+  const router = new UrlPatternRouter();
+  const A = () => {};
+  const B = () => {};
+  const C = () => {};
+  router.add({ path: "*", method: "ALL", handler: A });
+  router.add({ path: "*", method: "ALL", handler: B });
   router.add({ path: "/", method: "GET", handler: C });
 
   const res = router.match("GET", new URL("/", "http://localhost"));
