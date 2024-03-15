@@ -2,7 +2,7 @@ import { AnyComponent } from "preact";
 import { App } from "../app.ts";
 import { WalkEntry } from "jsr:@std/fs/walk";
 import * as path from "jsr:@std/path";
-import { RouteConfig } from "$fresh/src/server/mod.ts";
+import { FreshContext, RouteConfig } from "$fresh/src/server/mod.ts";
 import { RouteHandler } from "../defines.ts";
 import { compose, Middleware } from "../middlewares/compose.ts";
 import { renderMiddleware } from "../middlewares/render/render_middleware.ts";
@@ -23,7 +23,7 @@ export interface FreshFsItem<T = unknown> {
   config?: RouteConfig;
   handler?: RouteHandler<unknown, T>;
   handlers?: RouteHandler<unknown, T>;
-  default?: AnyComponent;
+  default?: AnyComponent<FreshContext<T>>;
 }
 
 // deno-lint-ignore no-explicit-any
