@@ -23,6 +23,29 @@ export interface EsbuildBuilderOptions {
   basePath?: string;
 }
 
+let esbuild: typeof import("https://deno.land/x/esbuild@v0.20.2/mod.js");
+
+export async function initalizeEsbuild() {
+  esbuild =
+    // deno-lint-ignore no-deprecated-deno-api
+    Deno.run === undefined ||
+      Deno.env.get("FRESH_ESBUILD_LOADER") === "portable"
+      ? await import("https://deno.land/x/esbuild@v0.20.2/wasm.js")
+      : await import("https://deno.land/x/esbuild@v0.20.2/mod.js");
+  const esbuildWasmURL =
+    new URL("./esbuild_v0.20.2.wasm", import.meta.url).href;
+
+  // deno-lint-ignore no-deprecated-deno-api
+  if (Deno.run === undefined) {
+    await esbuild.initialize({
+      wasmURL: esbuildWasmURL,
+      worker: false,
+    });
+  } else {
+    await esbuild.initialize({});
+  }
+}
+
 export class EsbuildBuilder implements Builder {
   #options: EsbuildBuilderOptions;
 
@@ -34,24 +57,7 @@ export class EsbuildBuilder implements Builder {
     const opts = this.#options;
 
     // Lazily initialize esbuild
-    const esbuild =
-      // deno-lint-ignore no-deprecated-deno-api
-      Deno.run === undefined ||
-        Deno.env.get("FRESH_ESBUILD_LOADER") === "portable"
-        ? await import("https://deno.land/x/esbuild@v0.20.2/wasm.js")
-        : await import("https://deno.land/x/esbuild@v0.20.2/mod.js");
-    const esbuildWasmURL =
-      new URL("./esbuild_v0.20.2.wasm", import.meta.url).href;
-
-    // deno-lint-ignore no-deprecated-deno-api
-    if (Deno.run === undefined) {
-      await esbuild.initialize({
-        wasmURL: esbuildWasmURL,
-        worker: false,
-      });
-    } else {
-      await esbuild.initialize({});
-    }
+    const esbuild = await initalizeEsbuild();
 
     try {
       const absWorkingDir = opts.absoluteWorkingDir;

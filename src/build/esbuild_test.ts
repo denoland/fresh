@@ -1,6 +1,6 @@
 import { assertEquals } from "./deps.ts";
 import { fromFileUrl, join, toFileUrl } from "../server/deps.ts";
-import { EsbuildBuilder } from "./esbuild.ts";
+import { EsbuildBuilder, initalizeEsbuild } from "./esbuild.ts";
 
 const denoJson = join(
   fromFileUrl(import.meta.url),
@@ -18,6 +18,8 @@ const mainEntry = toFileUrl(join(
   "entrypoints",
   "client.ts",
 )).href;
+
+await initalizeEsbuild();
 
 Deno.test("esbuild", async (t) => {
   await t.step("esbuild snapshot with cwd=Deno.cwd()", async () => {
