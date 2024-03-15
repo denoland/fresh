@@ -12,11 +12,11 @@ import { FsAdapter, fsAdapter } from "$fresh/src/_next/fs.ts";
 
 const TEST_FILE_PATTERN = /[._]test\.(?:[tj]sx?|[mc][tj]s)$/;
 
-interface InternalRoute {
+interface InternalRoute<T> {
   path: string;
   config: RouteConfig | null;
-  handlers: RouteHandler<unknown, unknown> | null;
-  component: AnyComponent | null;
+  handlers: RouteHandler<unknown, T> | null;
+  component: AnyComponent<FreshContext<T>> | null;
 }
 
 export interface FreshFsItem<T = unknown> {
@@ -80,7 +80,7 @@ export async function fsRoutes<T>(app: App<T>, options: FsRoutesOptions) {
 
   relIslandsPaths.sort();
 
-  const routeModules: InternalRoute[] = await Promise.all(
+  const routeModules: InternalRoute<T>[] = await Promise.all(
     relRoutePaths.map(async (routePath) => {
       const mod = await options.load(routePath);
       if (!isFreshFile(mod)) {
@@ -103,13 +103,13 @@ export async function fsRoutes<T>(app: App<T>, options: FsRoutesOptions) {
         handlers: mod.handlers ?? mod.handler ?? null,
         config: mod.config ?? null,
         component: mod.default ?? null,
-      };
+      } as InternalRoute<T>;
     }),
   );
 
   routeModules.sort((a, b) => sortRoutePaths(a.path, b.path));
 
-  const stack: InternalRoute[] = [];
+  const stack: InternalRoute<T>[] = [];
   for (let i = 0; i < routeModules.length; i++) {
     const routeMod = routeModules[i];
     const normalized = routeMod.path.slice(1, routeMod.path.lastIndexOf("."));
@@ -124,13 +124,14 @@ export async function fsRoutes<T>(app: App<T>, options: FsRoutesOptions) {
       // FIXME
     } else {
       const middlewares: Middleware<T>[] = [];
-      const components: AnyComponent[] = [];
+      const components: AnyComponent<FreshContext<T>>[] = [];
 
       // Prepare component tree if the current route has a component
       for (let i = 0; i < stack.length; i++) {
         const m = stack[i];
         if (routeMod.component !== null && m.component !== null) {
-          components.push(m.component);
+          // deno-lint-ignore no-explicit-any
+          components.push(m.component as any);
         }
 
         // FIXME: Make file extension agnostic
@@ -140,8 +141,7 @@ export async function fsRoutes<T>(app: App<T>, options: FsRoutesOptions) {
             m.path.endsWith("/_middleware.js"))
         ) {
           // FIXME: Decide what to do with Middleware vs Handler type
-          // deno-lint-ignore no-explicit-any
-          middlewares.push(m.handlers as any);
+          middlewares.push(m.handlers as Middleware<T>);
         }
       }
 
@@ -178,7 +178,7 @@ export async function fsRoutes<T>(app: App<T>, options: FsRoutesOptions) {
 }
 
 function addRenderHandler<T>(
-  components: AnyComponent[],
+  components: AnyComponent<FreshContext<T>>[],
   middlewares: Middleware<T>[],
   handler: HandlerFn<unknown, T> | undefined,
 ): Middleware<T> {

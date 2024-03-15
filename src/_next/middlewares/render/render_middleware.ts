@@ -3,9 +3,10 @@ import { Middleware } from "../compose.ts";
 import { renderHtml } from "./render_html.ts";
 import { AnyComponent } from "preact";
 import { HandlerFn, Render } from "../../defines.ts";
+import { FreshContext } from "$fresh/src/server/mod.ts";
 
 export const renderMiddleware = <T>(
-  components: AnyComponent[],
+  components: AnyComponent<FreshContext<T>>[],
   handler: HandlerFn<unknown, T> | undefined,
 ): Middleware<T> =>
 async (ctx) => {
