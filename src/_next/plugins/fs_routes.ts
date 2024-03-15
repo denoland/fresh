@@ -14,6 +14,7 @@ const TEST_FILE_PATTERN = /[._]test\.(?:[tj]sx?|[mc][tj]s)$/;
 
 interface InternalRoute<T> {
   path: string;
+  base: string;
   config: RouteConfig | null;
   handlers: RouteHandler<unknown, T> | null;
   component: AnyComponent<FreshContext<T>> | null;
@@ -98,8 +99,11 @@ export async function fsRoutes<T>(app: App<T>, options: FsRoutesOptions) {
         );
       }
 
+      const normalizedPath = `/${routePath}`;
+      const base = normalizedPath.slice(0, normalizedPath.lastIndexOf("/"));
       return {
-        path: `/${routePath}`,
+        path: normalizedPath,
+        base,
         handlers: mod.handlers ?? mod.handler ?? null,
         config: mod.config ?? null,
         component: mod.default ?? null,
@@ -112,15 +116,22 @@ export async function fsRoutes<T>(app: App<T>, options: FsRoutesOptions) {
   const stack: InternalRoute<T>[] = [];
   for (let i = 0; i < routeModules.length; i++) {
     const routeMod = routeModules[i];
-    const normalized = routeMod.path.slice(1, routeMod.path.lastIndexOf("."));
+    const normalized = routeMod.path.slice(0, routeMod.path.lastIndexOf("."));
 
-    if (normalized === "_app") {
+    if (stack.length > 0) {
+      let j = stack.length;
+      while (j-- && !routeMod.path.startsWith(stack[j].base + "/")) {
+        stack.pop();
+      }
+    }
+
+    if (normalized.endsWith("/_app")) {
       stack.push(routeMod);
-    } else if (normalized === "_middleware") {
+    } else if (normalized.endsWith("/_middleware")) {
       stack.push(routeMod);
-    } else if (normalized === "_layout") {
+    } else if (normalized.endsWith("/_layout")) {
       stack.push(routeMod);
-    } else if (normalized === "_error") {
+    } else if (normalized.endsWith("/_error")) {
       // FIXME
     } else {
       const middlewares: Middleware<T>[] = [];
@@ -150,7 +161,7 @@ export async function fsRoutes<T>(app: App<T>, options: FsRoutesOptions) {
       }
 
       const routePath = routeMod.config?.routeOverride ??
-        pathToPattern(normalized);
+        pathToPattern(normalized.slice(1));
 
       const handlers = routeMod.handlers;
       if (

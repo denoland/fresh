@@ -155,24 +155,25 @@ Deno.test("fsRoutes - add middleware for function handler", async () => {
   expect(await res.text()).toEqual("ok");
 });
 
-Deno.test("fsRoutes - add middleware for function handler", async () => {
+Deno.test("fsRoutes - nested middlewares", async () => {
   const server = await createServer<{ text: string }>({
-    "routes/[id].ts": { handler: (ctx) => new Response(ctx.state.text) },
-    "routes/index.ts": { handler: (ctx) => new Response(ctx.state.text) },
-    "routes/none.ts": { default: (ctx) => <p>{ctx.state.text}a</p> },
     "routes/_middleware.ts": {
       handler: (ctx) => {
-        ctx.state.text = "ok";
+        ctx.state.text = "A";
         return ctx.next();
       },
     },
+    "routes/foo/_middleware.ts": {
+      handler: (ctx) => {
+        ctx.state.text += "B";
+        return ctx.next();
+      },
+    },
+    "routes/foo/index.ts": { default: (ctx) => <>{ctx.state.text}</> },
   });
 
-  let res = await server.get("/");
-  expect(await res.text()).toEqual("ok");
-
-  res = await server.get("/foo");
-  expect(await res.text()).toEqual("ok");
+  const res = await server.get("/foo");
+  expect(await res.text()).toEqual("AB");
 });
 
 Deno.test("fsRoutes - combined", async () => {
@@ -197,4 +198,163 @@ Deno.test("fsRoutes - combined", async () => {
 
   const res = await server.get("/foo/bar");
   expect(await res.text()).toEqual("ok");
+});
+
+Deno.test("fsRoutes - prepend _app", async () => {
+  const server = await createServer<{ text: string }>({
+    "routes/foo/bar.ts": {
+      default: () => <>foo_bar</>,
+    },
+    "routes/foo.ts": {
+      default: () => <>foo</>,
+    },
+    "routes/_app.tsx": {
+      default: (ctx) => (
+        <>
+          app/<ctx.Component />
+        </>
+      ),
+    },
+  });
+
+  let res = await server.get("/foo/bar");
+  expect(await res.text()).toEqual("app/foo_bar");
+
+  res = await server.get("/foo");
+  expect(await res.text()).toEqual("app/foo");
+});
+
+Deno.test("fsRoutes - prepend _layout", async () => {
+  const server = await createServer<{ text: string }>({
+    "routes/foo/bar.ts": {
+      default: () => <>foo_bar</>,
+    },
+    "routes/foo.ts": {
+      default: () => <>foo</>,
+    },
+    "routes/_layout.tsx": {
+      default: (ctx) => (
+        <>
+          layout/<ctx.Component />
+        </>
+      ),
+    },
+    "routes/_app.tsx": {
+      default: (ctx) => (
+        <>
+          app/<ctx.Component />
+        </>
+      ),
+    },
+  });
+
+  let res = await server.get("/foo/bar");
+  expect(await res.text()).toEqual("app/layout/foo_bar");
+
+  res = await server.get("/foo");
+  expect(await res.text()).toEqual("app/layout/foo");
+});
+
+Deno.test("fsRoutes - nested _layout", async () => {
+  const server = await createServer<{ text: string }>({
+    "routes/foo/bar.ts": {
+      default: () => <>foo_bar</>,
+    },
+    "routes/foo.ts": {
+      default: () => <>foo</>,
+    },
+    "routes/foo/_layout.tsx": {
+      default: (ctx) => (
+        <>
+          layout_foo_bar/<ctx.Component />
+        </>
+      ),
+    },
+    "routes/_layout.tsx": {
+      default: (ctx) => (
+        <>
+          layout/<ctx.Component />
+        </>
+      ),
+    },
+    "routes/_app.tsx": {
+      default: (ctx) => (
+        <>
+          app/<ctx.Component />
+        </>
+      ),
+    },
+  });
+
+  let res = await server.get("/foo/bar");
+  expect(await res.text()).toEqual("app/layout/layout_foo_bar/foo_bar");
+
+  res = await server.get("/foo");
+  expect(await res.text()).toEqual("app/layout/foo");
+});
+
+Deno.test("fsRoutes - _layout skip if not present", async () => {
+  const server = await createServer<{ text: string }>({
+    "routes/foo/bar/baz.ts": {
+      default: () => <>foo_bar_baz</>,
+    },
+    "routes/foo/_layout.tsx": {
+      default: (ctx) => (
+        <>
+          layout_foo/<ctx.Component />
+        </>
+      ),
+    },
+  });
+
+  const res = await server.get("/foo/bar/baz");
+  expect(await res.text()).toEqual("layout_foo/foo_bar_baz");
+});
+
+Deno.test("fsRoutes - _layout file types", async () => {
+  const server = await createServer<{ text: string }>({
+    "routes/js/index.js": {
+      default: () => <>js</>,
+    },
+    "routes/js/_layout.js": {
+      default: (ctx) => (
+        <>
+          layout_js/<ctx.Component />
+        </>
+      ),
+    },
+    "routes/jsx/index.jsx": {
+      default: () => <>jsx</>,
+    },
+    "routes/jsx/_layout.jsx": {
+      default: (ctx) => (
+        <>
+          layout_jsx/<ctx.Component />
+        </>
+      ),
+    },
+    "routes/ts/index.ts": {
+      default: () => <>ts</>,
+    },
+    "routes/ts/_layout.tsx": {
+      default: (ctx) => (
+        <>
+          layout_ts/<ctx.Component />
+        </>
+      ),
+    },
+    "routes/tsx/index.tsx": {
+      default: () => <>tsx</>,
+    },
+    "routes/tsx/_layout.tsx": {
+      default: (ctx) => (
+        <>
+          layout_tsx/<ctx.Component />
+        </>
+      ),
+    },
+  });
+
+  const res = await server.get("/js");
+  expect(await res.text()).toEqual("layout_js/js");
 });
