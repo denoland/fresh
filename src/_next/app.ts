@@ -3,11 +3,10 @@ import { colors } from "../server/deps.ts";
 import { compose, Middleware } from "./middlewares/compose.ts";
 import { createContext } from "./context.ts";
 import { mergePaths, Method, UrlPatternRouter } from "./router.ts";
-import { FreshHelpers } from "./defines.ts";
 import { FreshConfig, normalizeConfig, ResolvedFreshConfig } from "./config.ts";
 
-export interface App<State> extends FreshHelpers<State> {
-  config: ResolvedFreshConfig;
+export interface App<State> {
+  readonly config: ResolvedFreshConfig;
   use(middleware: Middleware<State>): this;
   get(path: string, middleware: Middleware<State>): this;
   post(path: string, middleware: Middleware<State>): this;
@@ -29,16 +28,10 @@ export interface RouteCacheEntry<T> {
   handler: Middleware<T>;
 }
 
-// deno-lint-ignore no-explicit-any
-const identityFn = (x: any) => x;
-
 export class FreshApp<State> implements App<State> {
   router = new UrlPatternRouter<Middleware<State>>();
   #routeCache = new Map<string, RouteCacheEntry<State>>();
 
-  defineMiddleware: App<State>["defineMiddleware"] = identityFn;
-  defineHandlers: App<State>["defineHandlers"] = identityFn;
-  definePage: App<State>["definePage"] = identityFn;
   config: ResolvedFreshConfig;
 
   constructor(config: FreshConfig = {}) {

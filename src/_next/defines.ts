@@ -69,14 +69,3 @@ export function definePage<
 >(render: FunctionComponent<RouteProps<Data, State>>): typeof render {
   return render;
 }
-
-export interface FreshHelpers<State> {
-  defineMiddleware(middleware: Middleware<State>): Middleware<State>;
-  defineHandlers<Data, Handlers extends RouteHandler<Data, State>>(
-    handlers: Handlers,
-  ): typeof handlers;
-  definePage<
-    Handler extends RouteHandler<unknown, State> = never,
-    Data = Handler extends HandlerMethod<infer Data, State> ? Data : never,
-  >(render: FunctionComponent<RouteProps<Data, State>>): typeof render;
-}
