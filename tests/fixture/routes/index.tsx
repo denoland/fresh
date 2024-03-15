@@ -5,7 +5,7 @@ export default function Home() {
   return (
     <div>
       <Test message="Hello!" />
-      <p>{IS_BROWSER ? "Viewing browser render." : "Viewing JIT render."}</p>
+      <p>Env: {IS_BROWSER ? "browser" : "server"}</p>
     </div>
   );
 }

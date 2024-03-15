@@ -52,7 +52,7 @@ export class UrlPatternRouter<T> implements Router<T> {
       params: {},
       handlers: [],
       methodMatch: false,
-      patternMatch: true,
+      patternMatch: false,
     };
 
     for (let i = 0; i < this.#routes.length; i++) {

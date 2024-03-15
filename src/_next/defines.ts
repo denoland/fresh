@@ -1,6 +1,5 @@
 import { FunctionComponent } from "preact";
 import { FreshContext } from "./context.ts";
-import { Middleware } from "./middlewares/compose.ts";
 import { Method } from "./router.ts";
 
 export interface Render<T> {
@@ -26,7 +25,7 @@ export interface HandlerFn<Data, State> {
   ):
     | Response
     | Render<Data>
-    | undefined
+    | void
     | Promise<Response | Render<Data> | void>;
 }
 

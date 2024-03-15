@@ -1,12 +1,13 @@
 import { AnyComponent } from "preact";
 import { App } from "../app.ts";
-import { walk, WalkEntry } from "jsr:@std/fs/walk";
+import { WalkEntry } from "jsr:@std/fs/walk";
 import * as path from "jsr:@std/path";
 import { RouteConfig } from "$fresh/src/server/mod.ts";
 import { RouteHandler } from "../defines.ts";
 import { renderMiddleware } from "../middlewares/render/render_middleware.ts";
 import { Method, pathToPattern, sortRoutePaths } from "../router.ts";
 import { isHandlerMethod } from "$fresh/src/_next/defines.ts";
+import { FsAdapter, fsAdapter } from "$fresh/src/_next/fs.ts";
 
 const TEST_FILE_PATTERN = /[._]test\.(?:[tj]sx?|[mc][tj]s)$/;
 
@@ -35,12 +36,17 @@ function isFreshFile(mod: any): mod is FreshFsItem {
 
 export interface FsRoutesOptions {
   dir: string;
-  ignoreFilePatter?: RegExp[];
+  ignoreFilePattern?: RegExp[];
   load: (path: string) => Promise<unknown>;
+  /**
+   * Only used for testing.
+   */
+  _fs?: FsAdapter;
 }
 
 export async function fsRoutes<T>(app: App<T>, options: FsRoutesOptions) {
-  const ignore = options.ignoreFilePatter ?? [TEST_FILE_PATTERN];
+  const ignore = options.ignoreFilePattern ?? [TEST_FILE_PATTERN];
+  const fs = options._fs ?? fsAdapter;
 
   const islandDir = path.join(options.dir, "islands");
   const routesDir = path.join(options.dir, "routes");
@@ -50,15 +56,25 @@ export async function fsRoutes<T>(app: App<T>, options: FsRoutesOptions) {
 
   // Walk routes folder
   await Promise.all([
-    walkDir(islandDir, (entry) => {
-      // FIXME
-      // console.log("islands", entry);
-    }, ignore),
-    walkDir(routesDir, (entry) => {
-      // FIXME: Route groups
-      const relative = path.relative(routesDir, entry.path);
-      relRoutePaths.push(relative);
-    }, ignore),
+    walkDir(
+      islandDir,
+      (entry) => {
+        // FIXME
+        // console.log("islands", entry);
+      },
+      ignore,
+      fs,
+    ),
+    walkDir(
+      routesDir,
+      (entry) => {
+        // FIXME: Route groups
+        const relative = path.relative(routesDir, entry.path);
+        relRoutePaths.push(relative);
+      },
+      ignore,
+      fs,
+    ),
   ]);
 
   relIslandsPaths.sort();
@@ -116,11 +132,11 @@ export async function fsRoutes<T>(app: App<T>, options: FsRoutesOptions) {
       if (handlers === null) {
         app.get(routePath, renderMiddleware(components, undefined));
       } else if (isHandlerMethod(handlers)) {
-        for (const key of Object.keys(handlers) as Method[]) {
-          const fn = handlers[key];
+        for (const method of Object.keys(handlers) as Method[]) {
+          const fn = handlers[method];
           if (fn !== undefined) {
-            const k = key.toLowerCase() as Lowercase<Method>;
-            app[k](
+            const lower = method.toLowerCase() as Lowercase<Method>;
+            app[lower](
               routePath,
               renderMiddleware(components, fn),
             );
@@ -137,16 +153,11 @@ async function walkDir(
   dir: string,
   callback: (entry: WalkEntry) => void,
   ignore: RegExp[],
+  fs: FsAdapter,
 ) {
-  try {
-    const stat = await Deno.stat(dir);
-    if (!stat.isDirectory) return;
-  } catch (err) {
-    if (err instanceof Deno.errors.NotFound) return;
-    throw err;
-  }
+  if (!fs.isDirectory(dir)) return;
 
-  const entries = walk(dir, {
+  const entries = fs.walk(dir, {
     includeDirs: false,
     includeFiles: true,
     exts: ["tsx", "jsx", "ts", "js"],

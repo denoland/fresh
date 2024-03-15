@@ -1,6 +1,7 @@
-// deno-lint-ignore-file require-await
 import { createContext } from "./context.ts";
 import { Middleware } from "./middlewares/compose.ts";
+import { FsAdapter } from "./fs.ts";
+import { WalkEntry } from "jsr:@std/fs/walk";
 
 export class FakeServer {
   constructor(public handler: (req: Request) => Response | Promise<Response>) {}
@@ -30,6 +31,11 @@ export class FakeServer {
     const req = new Request(url, { method: "delete" });
     return await this.handler(req);
   }
+  async head(path: string): Promise<Response> {
+    const url = this.toUrl(path);
+    const req = new Request(url, { method: "head" });
+    return await this.handler(req);
+  }
 
   private toUrl(path: string) {
     return new URL(path, "http://localhost/");
@@ -41,14 +47,38 @@ export function serveMiddleware<T>(middleware: Middleware<T>): FakeServer {
     const ctx = createContext<T>(
       req,
       {
+        build: {
+          outDir: "",
+        },
         basePath: "",
         root: "",
-        load: () => Promise.resolve(),
         mode: "dev",
         staticDir: "",
       },
-      async () => new Response("Not found", { status: 404 }),
+      async () => await new Response("Not found", { status: 404 }),
     );
     return await middleware(ctx);
   });
+}
+
+export function createFakeFs(files: Record<string, unknown>): FsAdapter {
+  return {
+    async *walk(_root) {
+      // FIXME: ignore
+      for (const file of Object.keys(files)) {
+        const entry: WalkEntry = {
+          isDirectory: false,
+          isFile: true,
+          isSymlink: false,
+          name: file, // FIXME?
+          path: file,
+        };
+        yield entry;
+      }
+    },
+    // deno-lint-ignore require-await
+    async isDirectory(dir) {
+      return Object.keys(files).some((file) => file.startsWith(dir + "/"));
+    },
+  };
 }

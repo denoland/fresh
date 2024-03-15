@@ -94,7 +94,8 @@ export class FreshApp<State> implements App<State> {
 
       const ctx = createContext<State>(req, this.config, next);
 
-      const cached = this.#routeCache.get(req.url);
+      const cacheKey = `${req.method} ${req.url}`;
+      const cached = this.#routeCache.get(cacheKey);
       if (cached !== undefined) {
         ctx.params = cached.params;
         return cached.handler(ctx);
@@ -103,8 +104,14 @@ export class FreshApp<State> implements App<State> {
       const method = req.method.toUpperCase() as Method;
       const matched = this.router.match(method, url);
 
-      if (matched.handlers.length === 0) {
+      if (matched.patternMatch && !matched.methodMatch) {
+        return new Response("Method not allowed", { status: 405 });
+      } else if (!matched.patternMatch && !matched.methodMatch) {
         return next();
+      } else if (matched.handlers.length === 0) {
+        throw new Error(
+          `No route handlers found. This might be a bug in Fresh.`,
+        );
       }
 
       const params = matched.params;
@@ -112,7 +119,7 @@ export class FreshApp<State> implements App<State> {
 
       const handler = compose<State>(matched.handlers);
 
-      this.#routeCache.set(req.url, {
+      this.#routeCache.set(cacheKey, {
         params,
         handler,
       });

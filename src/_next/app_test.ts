@@ -190,6 +190,22 @@ Deno.test("FreshApp - .delete() with basePath", async () => {
   expect(res.status).toEqual(200);
 });
 
+Deno.test("FreshApp - wrong method match", async () => {
+  const app = new FreshApp<{ text: string }>()
+    .get("/", () => new Response("ok"))
+    .post("/", () => new Response("ok"));
+
+  const server = new FakeServer(app.handler());
+
+  let res = await server.put("/");
+  expect(res.status).toEqual(405);
+  expect(await res.text()).toEqual("Method not allowed");
+
+  res = await server.post("/");
+  expect(res.status).toEqual(200);
+  expect(await res.text()).toEqual("ok");
+});
+
 Deno.test("FreshApp - methods with middleware", async () => {
   const app = new FreshApp<{ text: string }>()
     .use((ctx) => {
