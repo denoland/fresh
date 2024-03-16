@@ -224,7 +224,7 @@ Deno.test("fsRoutes - prepend _app", async () => {
   expect(await res.text()).toEqual("app/foo");
 });
 
-Deno.test.ignore("fsRoutes - prepend _layout", async () => {
+Deno.test("fsRoutes - prepend _layout", async () => {
   const server = await createServer({
     "routes/foo/bar.ts": {
       default: () => <>foo_bar</>,
@@ -255,7 +255,7 @@ Deno.test.ignore("fsRoutes - prepend _layout", async () => {
   expect(await res.text()).toEqual("app/layout/foo");
 });
 
-Deno.test.ignore("fsRoutes - nested _layout", async () => {
+Deno.test("fsRoutes - nested _layout", async () => {
   const server = await createServer({
     "routes/foo/bar.ts": {
       default: () => <>foo_bar</>,
@@ -359,7 +359,7 @@ Deno.test("fsRoutes - _layout file types", async () => {
   expect(await res.text()).toEqual("layout_js/js");
 });
 
-Deno.test.ignore("fsRoutes - _layout disable _app", async () => {
+Deno.test("fsRoutes - _layout disable _app", async () => {
   const server = await createServer({
     "routes/index.tsx": {
       default: () => <>route</>,
@@ -387,7 +387,7 @@ Deno.test.ignore("fsRoutes - _layout disable _app", async () => {
   expect(await res.text()).toEqual("layout/route");
 });
 
-Deno.test.ignore(
+Deno.test(
   "fsRoutes - _layout disable _app + inherited _layouts",
   async () => {
     const server = await createServer({
@@ -433,7 +433,7 @@ Deno.test.ignore(
   },
 );
 
-Deno.test.ignore("fsRoutes - route overrides _layout", async () => {
+Deno.test("fsRoutes - route overrides _layout", async () => {
   const server = await createServer({
     "routes/index.tsx": {
       config: {
@@ -454,7 +454,7 @@ Deno.test.ignore("fsRoutes - route overrides _layout", async () => {
   expect(await res.text()).toEqual("route");
 });
 
-Deno.test.ignore("fsRoutes - route overrides _app", async () => {
+Deno.test("fsRoutes - route overrides _app", async () => {
   const server = await createServer({
     "routes/index.tsx": {
       config: {
@@ -469,6 +469,10 @@ Deno.test.ignore("fsRoutes - route overrides _app", async () => {
         </>
       ),
     },
+    // Add some more routes on same level
+    "routes/a.tsx": { default: () => <>a</> },
+    "routes/b.tsx": { default: () => <>b</> },
+    "routes/c.tsx": { default: () => <>c</> },
   });
 
   const res = await server.get("/");

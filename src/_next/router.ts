@@ -199,7 +199,7 @@ export function pathToPattern(path: string): string {
   return route;
 }
 
-const APP_REG = /_app\.[tj]sx?$/;
+const APP_REG = /_app(?!\.[tj]sx?)?$/;
 
 /**
  * Sort route paths where special Fresh files like `_app`,
