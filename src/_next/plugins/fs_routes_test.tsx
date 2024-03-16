@@ -497,17 +497,84 @@ Deno.test("fsRoutes - _error", async () => {
   expect(await res.text()).toEqual("ok");
 });
 
-Deno.test("fsRoutes - _error with handlers", async () => {
+Deno.test("fsRoutes - _error nested", async () => {
+  const server = await createServer({
+    "routes/_error.tsx": {
+      handlers: () => {
+        throw new Error("fail");
+      },
+    },
+    "routes/foo/_error.tsx": {
+      handlers: (ctx) => {
+        return new Response((ctx.error as Error).message);
+      },
+    },
+    "routes/foo/index.tsx": {
+      handlers: () => {
+        throw new Error("ok");
+      },
+    },
+  });
+
+  const res = await server.get("/foo");
+  expect(await res.text()).toEqual("ok");
+});
+
+Deno.test("fsRoutes - _error nested throw", async () => {
   const server = await createServer({
     "routes/_error.tsx": {
       handlers: (ctx) => {
         return new Response((ctx.error as Error).message);
       },
     },
-    "routes/index.tsx": {
+    "routes/foo/_error.tsx": {
       handlers: () => {
         throw new Error("ok");
       },
+    },
+    "routes/foo/index.tsx": {
+      handlers: () => {
+        throw new Error("ok");
+      },
+    },
+  });
+
+  const res = await server.get("/foo");
+  expect(await res.text()).toEqual("ok");
+});
+
+Deno.test("fsRoutes - _error render component", async () => {
+  const server = await createServer({
+    "routes/_error.tsx": {
+      default: (ctx) => {
+        return <>{(ctx.error as Error).message}</>;
+      },
+    },
+    "routes/foo/_error.tsx": {
+      handlers: () => {
+        throw new Error("ok");
+      },
+    },
+    "routes/foo/index.tsx": {
+      handlers: () => {
+        throw new Error("ok");
+      },
+    },
+  });
+
+  const res = await server.get("/foo");
+  expect(await res.text()).toEqual("ok");
+});
+
+Deno.test("fsRoutes - skip _error component in non-error", async () => {
+  const server = await createServer({
+    "routes/_error.tsx": {
+      default: function errorComp() {
+        return <>fail</>;
+      },
+    },
+    "routes/index.tsx": {
+      default: () => <>ok</>,
     },
   });
 
@@ -524,15 +591,21 @@ Deno.test("fsRoutes - sortRoutePaths", () => {
     "/foo/index",
     "/foo/_middleware",
     "/foo/bar/_middleware",
+    "/foo/_error",
     "/foo/bar/index",
+    "/foo/bar/_error",
+    "/_error",
     "/foo/bar/[...foo]",
     "/foo/bar/baz",
     "/foo/bar/_layout",
   ];
   let sorted = [
+    "/_error",
+    "/foo/_error",
     "/foo/_middleware",
     "/foo/_layout",
     "/foo/index",
+    "/foo/bar/_error",
     "/foo/bar/_middleware",
     "/foo/bar/_layout",
     "/foo/bar/index",

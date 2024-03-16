@@ -190,10 +190,6 @@ export async function fsRoutes<T>(app: App<T>, options: FsRoutesOptions) {
         }
       }
 
-      if (mod.component !== null) {
-        components.push(mod.component);
-      }
-
       if (mod.path.endsWith("/_error")) {
         const handlers = mod.handlers;
         const handler = handlers === null ||
@@ -207,6 +203,11 @@ export async function fsRoutes<T>(app: App<T>, options: FsRoutesOptions) {
           errorComponents.push(mod.component);
         }
         middlewares.push(errorMiddleware(errorComponents, handler));
+        continue;
+      }
+
+      if (mod.component !== null) {
+        components.push(mod.component);
       }
     }
 
@@ -351,7 +352,10 @@ export function sortRoutePaths(a: string, b: string) {
  */
 function getRoutePathScore(char: string, s: string, i: number): number {
   if (char === "_") {
-    if (i + 1 < s.length && s[i + 1] === "m") return 5;
+    if (i + 1 < s.length) {
+      if (s[i + 1] === "e") return 6;
+      if (s[i + 1] === "m") return 5;
+    }
     return 4;
   } else if (char === "[") {
     if (i + 1 < s.length && s[i + 1] === ".") {
