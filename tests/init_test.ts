@@ -501,7 +501,7 @@ Deno.test({
 
     await t.step("start up the server", async () => {
       const { serverProcess, lines, address } = await startFreshServer({
-        args: ["run", "-A", "--no-check", "dev.ts"],
+        args: ["run", "-A", "--no-check", "--env", "dev.ts"],
         cwd: tmpDirName,
       });
 
@@ -528,7 +528,7 @@ Deno.test({
       }).output();
 
       const { serverProcess, lines, address, output } = await startFreshServer({
-        args: ["run", "-A", "--no-check", "main.ts"],
+        args: ["run", "-A", "--no-check", "--env", "main.ts"],
         cwd: tmpDirName,
       });
 
