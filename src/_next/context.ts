@@ -10,6 +10,7 @@ export interface FreshContext<State = unknown, Data = unknown> {
   req: Request;
   url: URL;
   params: Record<string, string>;
+  error: unknown;
   redirect(path: string, status?: number): Response;
   next(): Promise<Response>;
   throw(status: number, messageOrError?: string | Error): never;
@@ -50,6 +51,7 @@ export function createContext<T>(
     next,
     state: {} as T,
     data: {} as unknown,
+    error: null,
     throw: throwError,
     Component: NOOP,
     renderNotFound() {

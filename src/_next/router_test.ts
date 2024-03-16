@@ -1,10 +1,5 @@
 import { expect } from "jsr:@std/expect";
-import {
-  IS_PATTERN,
-  pathToPattern,
-  sortRoutePaths,
-  UrlPatternRouter,
-} from "./router.ts";
+import { IS_PATTERN, pathToPattern, UrlPatternRouter } from "./router.ts";
 
 Deno.test("IS_PATTERN", () => {
   expect(IS_PATTERN.test("/foo")).toEqual(false);
@@ -188,58 +183,4 @@ Deno.test("pathToPattern", async (t) => {
     expect(() => pathToPattern("foo/foo-[[name]]")).toThrow();
     expect(() => pathToPattern("foo/[[name]]-bar")).toThrow();
   });
-});
-
-Deno.test("sortRoutePaths", () => {
-  let routes = [
-    "/foo/[id]",
-    "/foo/[...slug]",
-    "/foo/bar",
-    "/foo/_layout",
-    "/foo/index",
-    "/foo/_middleware",
-    "/foo/bar/_middleware",
-    "/foo/bar/index",
-    "/foo/bar/[...foo]",
-    "/foo/bar/baz",
-    "/foo/bar/_layout",
-  ];
-  let sorted = [
-    "/foo/_middleware",
-    "/foo/_layout",
-    "/foo/index",
-    "/foo/bar/_middleware",
-    "/foo/bar/_layout",
-    "/foo/bar/index",
-    "/foo/bar/baz",
-    "/foo/bar/[...foo]",
-    "/foo/bar",
-    "/foo/[id]",
-    "/foo/[...slug]",
-  ];
-  routes.sort(sortRoutePaths);
-  expect(routes).toEqual(sorted);
-
-  routes = [
-    "/js/index.js",
-    "/js/_layout.js",
-    "/jsx/index.jsx",
-    "/jsx/_layout.jsx",
-    "/ts/index.ts",
-    "/ts/_layout.tsx",
-    "/tsx/index.tsx",
-    "/tsx/_layout.tsx",
-  ];
-  routes.sort(sortRoutePaths);
-  sorted = [
-    "/js/_layout.js",
-    "/js/index.js",
-    "/jsx/_layout.jsx",
-    "/jsx/index.jsx",
-    "/ts/_layout.tsx",
-    "/ts/index.ts",
-    "/tsx/_layout.tsx",
-    "/tsx/index.tsx",
-  ];
-  expect(routes).toEqual(sorted);
 });

@@ -2,11 +2,12 @@ import { AnyComponent } from "preact";
 import { App } from "../app.ts";
 import { WalkEntry } from "jsr:@std/fs/walk";
 import * as path from "jsr:@std/path";
-import { FreshContext, RouteConfig } from "$fresh/src/server/mod.ts";
+import { RouteConfig } from "$fresh/src/server/mod.ts";
 import { RouteHandler } from "../defines.ts";
+import { FreshContext } from "../context.ts";
 import { compose, Middleware } from "../middlewares/compose.ts";
 import { renderMiddleware } from "../middlewares/render/render_middleware.ts";
-import { Method, pathToPattern, sortRoutePaths } from "../router.ts";
+import { Method, pathToPattern } from "../router.ts";
 import { HandlerFn, isHandlerMethod } from "$fresh/src/_next/defines.ts";
 import { FsAdapter, fsAdapter } from "$fresh/src/_next/fs.ts";
 
@@ -143,6 +144,9 @@ export async function fsRoutes<T>(app: App<T>, options: FsRoutesOptions) {
     } else if (normalized.endsWith("/_layout")) {
       stack.push(routeMod);
       continue;
+    } else if (normalized.endsWith("/_error")) {
+      stack.push(routeMod);
+      continue;
     }
 
     // Remove any elements not matching our parent path anymore
@@ -154,13 +158,11 @@ export async function fsRoutes<T>(app: App<T>, options: FsRoutesOptions) {
 
     for (let k = 0; k < stack.length; k++) {
       const mod = stack[k];
-      if (
-        mod.handlers !== null && !isHandlerMethod(mod.handlers) &&
-        (mod.path.endsWith("/_middleware") ||
-          mod.path.endsWith("/_middleware"))
-      ) {
-        // FIXME: Decide what to do with Middleware vs Handler type
-        middlewares.push(mod.handlers as Middleware<T>);
+      if (mod.handlers !== null && !isHandlerMethod(mod.handlers)) {
+        if (mod.path.endsWith("/_middleware")) {
+          // FIXME: Decide what to do with Middleware vs Handler type
+          middlewares.push(mod.handlers as Middleware<T>);
+        }
       }
 
       // _app template
@@ -191,41 +193,67 @@ export async function fsRoutes<T>(app: App<T>, options: FsRoutesOptions) {
       if (mod.component !== null) {
         components.push(mod.component);
       }
+
+      if (mod.path.endsWith("/_error")) {
+        const handlers = mod.handlers;
+        const handler = handlers === null ||
+            (isHandlerMethod(handlers) && Object.keys(handlers).length === 0)
+          ? undefined
+          : typeof handlers === "function"
+          ? handlers
+          : undefined; // FIXME: Method handler
+        const errorComponents = components.slice();
+        if (mod.component !== null) {
+          errorComponents.push(mod.component);
+        }
+        middlewares.push(errorMiddleware(errorComponents, handler));
+      }
     }
 
     if (routeMod.component !== null) {
       components.push(routeMod.component);
     }
 
-    if (normalized.endsWith("/_error")) {
-      // FIXME
-    } else {
-      const routePath = routeMod.config?.routeOverride ??
-        pathToPattern(normalized.slice(1));
+    const handlers = routeMod.handlers;
+    const routePath = routeMod.config?.routeOverride ??
+      pathToPattern(normalized.slice(1));
 
-      const handlers = routeMod.handlers;
-      if (
-        handlers === null ||
-        (isHandlerMethod(handlers) && Object.keys(handlers).length === 0)
-      ) {
-        const mid = addRenderHandler(components, middlewares, undefined);
-        app.get(routePath, mid);
-      } else if (isHandlerMethod(handlers)) {
-        for (const method of Object.keys(handlers) as Method[]) {
-          const fn = handlers[method];
+    if (
+      handlers === null ||
+      (isHandlerMethod(handlers) && Object.keys(handlers).length === 0)
+    ) {
+      const mid = addRenderHandler(components, middlewares, undefined);
+      app.get(routePath, mid);
+    } else if (isHandlerMethod(handlers)) {
+      for (const method of Object.keys(handlers) as Method[]) {
+        const fn = handlers[method];
 
-          if (fn !== undefined) {
-            const mid = addRenderHandler(components, middlewares, fn);
-            const lower = method.toLowerCase() as Lowercase<Method>;
-            app[lower](routePath, mid);
-          }
+        if (fn !== undefined) {
+          const mid = addRenderHandler(components, middlewares, fn);
+          const lower = method.toLowerCase() as Lowercase<Method>;
+          app[lower](routePath, mid);
         }
-      } else if (typeof handlers === "function") {
-        const mid = addRenderHandler(components, middlewares, handlers);
-        app.all(routePath, renderMiddleware(components, mid));
       }
+    } else if (typeof handlers === "function") {
+      const mid = addRenderHandler(components, middlewares, handlers);
+      app.all(routePath, renderMiddleware(components, mid));
     }
   }
+}
+
+function errorMiddleware<T>(
+  components: AnyComponent<FreshContext<T>>[],
+  handler: HandlerFn<unknown, T> | undefined,
+): Middleware<T> {
+  const mid = renderMiddleware<T>(components, handler);
+  return async function errorMiddleware(ctx) {
+    try {
+      return await ctx.next();
+    } catch (err) {
+      ctx.error = err;
+      return mid(ctx);
+    }
+  };
 }
 
 function addRenderHandler<T>(
@@ -261,4 +289,83 @@ async function walkDir(
   for await (const entry of entries) {
     callback(entry);
   }
+}
+
+const APP_REG = /_app(?!\.[tj]sx?)?$/;
+
+/**
+ * Sort route paths where special Fresh files like `_app`,
+ * `_layout` and `_middleware` are sorted in front.
+ */
+export function sortRoutePaths(a: string, b: string) {
+  // The `_app` route should always be the first
+  if (APP_REG.test(a)) return -1;
+  else if (APP_REG.test(b)) return 1;
+
+  let segmentIdx = 0;
+  const aLen = a.length;
+  const bLen = b.length;
+  const maxLen = aLen > bLen ? aLen : bLen;
+  for (let i = 0; i < maxLen; i++) {
+    const charA = a.charAt(i);
+    const charB = b.charAt(i);
+
+    if (charA === "/" || charB === "/") {
+      segmentIdx = i;
+
+      // If the other path doesn't close the segment
+      // then we don't need to continue
+      if (charA !== "/") return 1;
+      if (charB !== "/") return -1;
+
+      continue;
+    }
+
+    if (i === segmentIdx + 1) {
+      const scoreA = getRoutePathScore(charA, a, i);
+      const scoreB = getRoutePathScore(charB, b, i);
+      if (scoreA === scoreB) {
+        if (charA !== charB) {
+          // TODO: Do we need localeSort here or is this good enough?
+          return charA < charB ? 0 : 1;
+        }
+        continue;
+      }
+
+      return scoreA > scoreB ? -1 : 1;
+    }
+
+    if (charA !== charB) {
+      // TODO: Do we need localeSort here or is this good enough?
+      return charA < charB ? 0 : 1;
+    }
+  }
+
+  return 0;
+}
+
+/**
+ * Assign a score based on the first two characters of a path segment.
+ * The goal is to sort `_middleware` and `_layout` in front of everything
+ * and `[` or `[...` last respectively.
+ */
+function getRoutePathScore(char: string, s: string, i: number): number {
+  if (char === "_") {
+    if (i + 1 < s.length && s[i + 1] === "m") return 5;
+    return 4;
+  } else if (char === "[") {
+    if (i + 1 < s.length && s[i + 1] === ".") {
+      return 0;
+    }
+    return 1;
+  }
+
+  if (
+    i + 4 === s.length - 1 && char === "i" && s[i + 1] === "n" &&
+    s[i + 2] === "d" && s[i + 3] === "e" && s[i + 4] === "x"
+  ) {
+    return 3;
+  }
+
+  return 2;
 }

@@ -1,5 +1,5 @@
 import { FreshApp } from "$fresh/server.ts";
-import { FreshFsItem, fsRoutes } from "./fs_routes.ts";
+import { FreshFsItem, fsRoutes, sortRoutePaths } from "./fs_routes.ts";
 import { FakeServer } from "../test_utils.ts";
 import * as path from "jsr:@std/path";
 import { createFakeFs } from "$fresh/src/_next/test_utils.ts";
@@ -477,4 +477,94 @@ Deno.test("fsRoutes - route overrides _app", async () => {
 
   const res = await server.get("/");
   expect(await res.text()).toEqual("route");
+});
+
+Deno.test("fsRoutes - _error", async () => {
+  const server = await createServer({
+    "routes/_error.tsx": {
+      default: (ctx) => {
+        return <>{(ctx.error as Error).message}</>;
+      },
+    },
+    "routes/index.tsx": {
+      handlers: () => {
+        throw new Error("ok");
+      },
+    },
+  });
+
+  const res = await server.get("/");
+  expect(await res.text()).toEqual("ok");
+});
+
+Deno.test("fsRoutes - _error with handlers", async () => {
+  const server = await createServer({
+    "routes/_error.tsx": {
+      handlers: (ctx) => {
+        return new Response((ctx.error as Error).message);
+      },
+    },
+    "routes/index.tsx": {
+      handlers: () => {
+        throw new Error("ok");
+      },
+    },
+  });
+
+  const res = await server.get("/");
+  expect(await res.text()).toEqual("ok");
+});
+
+Deno.test("fsRoutes - sortRoutePaths", () => {
+  let routes = [
+    "/foo/[id]",
+    "/foo/[...slug]",
+    "/foo/bar",
+    "/foo/_layout",
+    "/foo/index",
+    "/foo/_middleware",
+    "/foo/bar/_middleware",
+    "/foo/bar/index",
+    "/foo/bar/[...foo]",
+    "/foo/bar/baz",
+    "/foo/bar/_layout",
+  ];
+  let sorted = [
+    "/foo/_middleware",
+    "/foo/_layout",
+    "/foo/index",
+    "/foo/bar/_middleware",
+    "/foo/bar/_layout",
+    "/foo/bar/index",
+    "/foo/bar/baz",
+    "/foo/bar/[...foo]",
+    "/foo/bar",
+    "/foo/[id]",
+    "/foo/[...slug]",
+  ];
+  routes.sort(sortRoutePaths);
+  expect(routes).toEqual(sorted);
+
+  routes = [
+    "/js/index.js",
+    "/js/_layout.js",
+    "/jsx/index.jsx",
+    "/jsx/_layout.jsx",
+    "/ts/index.ts",
+    "/ts/_layout.tsx",
+    "/tsx/index.tsx",
+    "/tsx/_layout.tsx",
+  ];
+  routes.sort(sortRoutePaths);
+  sorted = [
+    "/js/_layout.js",
+    "/js/index.js",
+    "/jsx/_layout.jsx",
+    "/jsx/index.jsx",
+    "/ts/_layout.tsx",
+    "/ts/index.ts",
+    "/tsx/_layout.tsx",
+    "/tsx/index.tsx",
+  ];
+  expect(routes).toEqual(sorted);
 });

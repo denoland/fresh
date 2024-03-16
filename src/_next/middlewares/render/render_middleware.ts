@@ -3,7 +3,7 @@ import { Middleware } from "../compose.ts";
 import { renderHtml } from "./render_html.ts";
 import { AnyComponent } from "preact";
 import { HandlerFn, Render } from "../../defines.ts";
-import { FreshContext } from "$fresh/src/server/mod.ts";
+import { FreshContext } from "../../context.ts";
 
 export const renderMiddleware = <T>(
   components: AnyComponent<FreshContext<T>>[],
@@ -38,6 +38,7 @@ async (ctx) => {
       params: ctx.params,
       state: ctx.state,
       Component,
+      error: ctx.error,
       data: result?.data ?? {},
     }) as VNode;
   }
