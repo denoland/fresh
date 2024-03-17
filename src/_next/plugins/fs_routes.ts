@@ -73,7 +73,6 @@ export async function fsRoutes<T>(app: App<T>, options: FsRoutesOptions) {
     walkDir(
       routesDir,
       (entry) => {
-        // FIXME: Route groups
         const relative = path.relative(routesDir, entry.path);
 
         // A `(_islands)` path segment is a local island folder.
