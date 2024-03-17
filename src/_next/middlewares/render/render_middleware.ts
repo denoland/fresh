@@ -1,12 +1,21 @@
-import { h, VNode } from "preact";
+import { h, RenderableProps, VNode } from "preact";
 import { Middleware } from "../compose.ts";
 import { renderHtml } from "./render_html.ts";
 import { AnyComponent } from "preact";
 import { HandlerFn, Render } from "../../defines.ts";
 import { FreshContext } from "../../context.ts";
 
+export type AsyncAnyComponent<P> = {
+  // deno-lint-ignore no-explicit-any
+  (props: RenderableProps<P>, context?: any): Promise<VNode<any> | null>;
+  displayName?: string;
+  defaultProps?: Partial<P> | undefined;
+};
+
 export const renderMiddleware = <T>(
-  components: AnyComponent<FreshContext<T>>[],
+  components: Array<
+    AnyComponent<FreshContext<T>> | AsyncAnyComponent<FreshContext<T>>
+  >,
   handler: HandlerFn<unknown, T> | undefined,
 ): Middleware<T> =>
 async (ctx) => {
