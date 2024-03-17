@@ -12,6 +12,7 @@ import { HandlerFn, isHandlerMethod } from "$fresh/src/_next/defines.ts";
 import { FsAdapter, fsAdapter } from "$fresh/src/_next/fs.ts";
 
 const TEST_FILE_PATTERN = /[._]test\.(?:[tj]sx?|[mc][tj]s)$/;
+const GROUP_REG = /(^|[/\\\\])\((_[^/\\\\]+)\)[/\\\\]/;
 
 interface InternalRoute<T> {
   path: string;
@@ -74,6 +75,18 @@ export async function fsRoutes<T>(app: App<T>, options: FsRoutesOptions) {
       (entry) => {
         // FIXME: Route groups
         const relative = path.relative(routesDir, entry.path);
+
+        // A `(_islands)` path segment is a local island folder.
+        // Any route path segment wrapped in `(_...)` is ignored
+        // during route collection.
+        const match = relative.match(GROUP_REG);
+        if (match && match[2].startsWith("_")) {
+          if (match[1] === "_islands") {
+            // FIXME: islands
+          }
+          return;
+        }
+
         relRoutePaths.push(relative);
       },
       ignore,

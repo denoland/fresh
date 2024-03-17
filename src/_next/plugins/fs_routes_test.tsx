@@ -582,6 +582,102 @@ Deno.test("fsRoutes - skip _error component in non-error", async () => {
   expect(await res.text()).toEqual("ok");
 });
 
+Deno.test("fsRoutes - route group resolve index", async () => {
+  const server = await createServer<{ text: string }>({
+    "routes/(foo)/_layout.tsx": {
+      default: (ctx) => (
+        <>
+          layout/<ctx.Component />
+        </>
+      ),
+    },
+    "routes/(foo)/index.tsx": {
+      default: () => <>ok</>,
+    },
+  });
+
+  const res = await server.get("/");
+  expect(await res.text()).toEqual("layout/ok");
+});
+
+Deno.test("fsRoutes - route group ignores (_...) folders", async () => {
+  const server = await createServer<{ text: string }>({
+    "routes/(_foo)/index.tsx": {
+      default: () => <>fail</>,
+    },
+    "routes/(foo)/index.tsx": {
+      default: () => <>ok</>,
+    },
+  });
+
+  const res = await server.get("/");
+  expect(await res.text()).toEqual("ok");
+});
+
+Deno.test("fsRoutes - route group specific templates", async () => {
+  const server = await createServer<{ text: string }>({
+    "routes/(foo)/_error.tsx": {
+      default: () => <>fail foo</>,
+    },
+    "routes/(foo)/_layout.tsx": {
+      default: (ctx) => (
+        <>
+          {ctx.state.text}/(foo)_layout/<ctx.Component />
+        </>
+      ),
+    },
+    "routes/(foo)/_middleware.tsx": {
+      handlers: (ctx) => {
+        ctx.state.text = "(foo)_middleware";
+        return ctx.next();
+      },
+    },
+    "routes/(foo)/foo.tsx": {
+      default: () => <>foo</>,
+    },
+    "routes/(foo)/foo_error.tsx": {
+      default: () => {
+        throw new Error("fail");
+      },
+    },
+    "routes/(bar)/_error.tsx": {
+      default: () => <>fail bar</>,
+    },
+    "routes/(bar)/_layout.tsx": {
+      default: (ctx) => (
+        <>
+          {ctx.state.text}/(bar)_layout/<ctx.Component />
+        </>
+      ),
+    },
+    "routes/(bar)/_middleware.tsx": {
+      handlers: (ctx) => {
+        ctx.state.text = "(bar)_middleware";
+        return ctx.next();
+      },
+    },
+    "routes/(bar)/bar.tsx": {
+      default: () => <>bar</>,
+    },
+    "routes/(bar)/bar_error.tsx": {
+      default: () => {
+        throw new Error("fail");
+      },
+    },
+  });
+
+  let res = await server.get("/foo");
+  expect(await res.text()).toEqual("(foo)_middleware/(foo)_layout/foo");
+  res = await server.get("/foo_error");
+  expect(await res.text()).toEqual("fail foo");
+
+  res = await server.get("/bar");
+  expect(await res.text()).toEqual("(bar)_middleware/(bar)_layout/bar");
+
+  res = await server.get("/bar_error");
+  expect(await res.text()).toEqual("fail bar");
+});
+
 Deno.test("fsRoutes - sortRoutePaths", () => {
   let routes = [
     "/foo/[id]",
