@@ -1,4 +1,5 @@
 import * as path from "@std/path";
+import * as JSONC from "@std/jsonc";
 
 export type Mode = "dev" | "build" | "prod";
 
@@ -48,8 +49,11 @@ export interface ResolvedFreshConfig {
   mode: Mode;
 }
 
-export function normalizeConfig(options: FreshConfig): ResolvedFreshConfig {
+export function normalizeConfig(
+  options: FreshConfig,
+): ResolvedFreshConfig {
   const root = options.root ?? Deno.cwd();
+
   return {
     root,
     build: {
@@ -60,4 +64,52 @@ export function normalizeConfig(options: FreshConfig): ResolvedFreshConfig {
     staticDir: options.staticDir ?? path.join(root, "static"),
     mode: MODE,
   };
+}
+
+export interface DenoConfig {
+  imports?: Record<string, string>;
+  importMap?: string;
+  tasks?: Record<string, string>;
+  lint?: {
+    rules: { tags?: string[] };
+    exclude?: string[];
+  };
+  fmt?: {
+    exclude?: string[];
+  };
+  exclude?: string[];
+  compilerOptions?: {
+    jsx?: string;
+    jsxImportSource?: string;
+  };
+}
+
+export async function readDenoConfig(
+  directory: string,
+): Promise<{ config: DenoConfig; filePath: string }> {
+  let dir = directory;
+  while (true) {
+    for (const name of ["deno.json", "deno.jsonc"]) {
+      const filePath = path.join(dir, name);
+      try {
+        const file = await Deno.readTextFile(filePath);
+        if (name.endsWith(".jsonc")) {
+          return { config: JSONC.parse(file) as DenoConfig, filePath };
+        } else {
+          return { config: JSON.parse(file), filePath };
+        }
+      } catch (err) {
+        if (!(err instanceof Deno.errors.NotFound)) {
+          throw err;
+        }
+      }
+    }
+    const parent = path.dirname(dir);
+    if (parent === dir) {
+      throw new Error(
+        `Could not find a deno.json file in the current directory or any parent directory.`,
+      );
+    }
+    dir = parent;
+  }
 }
