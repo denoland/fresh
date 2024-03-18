@@ -1,4 +1,4 @@
-import { expect } from "jsr:@std/expect";
+import { expect } from "@std/expect";
 import { IS_PATTERN, pathToPattern, UrlPatternRouter } from "./router.ts";
 
 Deno.test("IS_PATTERN", () => {

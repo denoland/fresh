@@ -1,7 +1,7 @@
 import { createContext } from "./context.ts";
 import { Middleware } from "./middlewares/compose.ts";
 import { FsAdapter } from "./fs.ts";
-import { WalkEntry } from "jsr:@std/fs/walk";
+import { WalkEntry } from "@std/fs/walk";
 
 export class FakeServer {
   constructor(public handler: (req: Request) => Response | Promise<Response>) {}

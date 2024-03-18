@@ -1,4 +1,4 @@
-import { asset, Head } from "@fresh/runtime";
+import { asset, Head } from "$fresh/runtime.ts";
 import { PageProps } from "$fresh/server.ts";
 import Counter from "../islands/Counter.tsx";
 import LemonDrop from "../islands/LemonDrop.tsx";
@@ -10,7 +10,7 @@ import * as Icons from "../components/Icons.tsx";
 import Projects from "../components/Projects.tsx";
 import projects from "../data/showcase.json" with { type: "json" };
 import Header from "../components/Header.tsx";
-import { defineHandlers } from "$fresh/src/_next/defines.ts";
+import { defineHandlers } from "@fresh/server";
 
 function isOpenGraphUA(header: string | null): boolean {
   if (!header) {

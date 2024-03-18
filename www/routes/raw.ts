@@ -1,5 +1,5 @@
-import { RouteConfig } from "$fresh/server.ts";
-import { defineHandlers } from "$fresh/server.ts";
+import { RouteConfig } from "@fresh/server";
+import { defineHandlers } from "@fresh/server";
 import { format, parse } from "$std/semver/mod.ts";
 import VERSIONS from "../../versions.json" with { type: "json" };
 import { extname } from "$std/path/mod.ts";

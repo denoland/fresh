@@ -1,5 +1,5 @@
-import * as path from "jsr:@std/path";
-import { walk } from "jsr:@std/fs/walk";
+import * as path from "@std/path";
+import { walk } from "@std/fs/walk";
 import { TailwindPluginOptions } from "./types.ts";
 import { App } from "../../app.ts";
 import { initTailwind } from "./compiler.ts";

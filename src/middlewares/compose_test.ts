@@ -1,7 +1,7 @@
 import { compose } from "./compose.ts";
-import { expect } from "jsr:@std/expect";
+import { expect } from "@std/expect";
 import { serveMiddleware } from "../test_utils.ts";
-import { Middleware } from "$fresh/src/_next/middlewares/compose.ts";
+import { Middleware } from "@fresh/server";
 
 Deno.test("compose", async () => {
   const mid = compose<{ text: string }>([function A(ctx) {

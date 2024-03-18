@@ -1,4 +1,4 @@
-import { defineHandlers } from "$fresh/src/_next/defines.ts";
+import { defineHandlers } from "@fresh/server";
 
 export const handler = defineHandlers({
   GET(ctx) {

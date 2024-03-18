@@ -6,8 +6,8 @@ import {
 import SearchButton from "../islands/SearchButton.tsx";
 import VersionSelect from "../islands/VersionSelect.tsx";
 import { type VersionLink } from "../routes/docs/[...slug].tsx";
-import { Logo } from "$fresh/www/components/Header.tsx";
-import DocsTitle from "$fresh/www/components/DocsTitle.tsx";
+import { Logo } from "./Header.tsx";
+import DocsTitle from "./DocsTitle.tsx";
 
 export default function DocsSidebar(
   props: {

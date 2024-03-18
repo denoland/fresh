@@ -1,4 +1,5 @@
 import { type BuildOptions } from "npm:esbuild-wasm";
+import { denoPlugins } from "@luca/esbuild-deno-loader";
 
 export interface FreshBundleOptions {
   dev: boolean;
@@ -18,6 +19,14 @@ export async function bundleJs(options: FreshBundleOptions) {
       : await import("npm:esbuild");
 
     await esbuild.initialize({});
+  }
+
+  try {
+    await Deno.mkdir(options.cwd, { recursive: true });
+  } catch (err) {
+    if (!(err instanceof Deno.errors.AlreadyExists)) {
+      throw err;
+    }
   }
 
   // In dev-mode we skip identifier minification to be able to show proper
@@ -51,5 +60,9 @@ export async function bundleJs(options: FreshBundleOptions) {
     outdir: ".",
     write: false,
     metafile: true,
+
+    plugins: [
+      ...denoPlugins({}),
+    ],
   });
 }

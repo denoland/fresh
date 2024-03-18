@@ -1,9 +1,9 @@
-import { FreshApp } from "$fresh/server.ts";
+import { FreshApp } from "../app.ts";
 import { FreshFsItem, fsRoutes, sortRoutePaths } from "./fs_routes.ts";
 import { FakeServer } from "../test_utils.ts";
-import * as path from "jsr:@std/path";
-import { createFakeFs } from "$fresh/src/_next/test_utils.ts";
-import { expect } from "jsr:@std/expect";
+import * as path from "@std/path";
+import { createFakeFs } from "../test_utils.ts";
+import { expect } from "@std/expect";
 import { HandlerFn, HandlerMethod } from "../defines.ts";
 import { Method } from "../router.ts";
 

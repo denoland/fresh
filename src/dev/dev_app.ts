@@ -23,10 +23,15 @@ export class FreshDevApp<T> extends FreshApp<T> {
       options.port = await getFreePort(8000, options.hostname);
     }
 
-    return super.listen(options);
+    await Promise.all([
+      super.listen(options),
+      this.build({ dev: true }),
+    ]);
+    return;
   }
 
-  async build(): Promise<void> {
+  async build(options: { dev?: boolean } = {}): Promise<void> {
+    const start = Date.now();
     const { staticDir, build } = this.config;
 
     const snapshot: BuildCacheSnapshot = {
@@ -63,24 +68,23 @@ export class FreshDevApp<T> extends FreshApp<T> {
     ]);
 
     await bundleJs({
-      cwd: ".",
-      dev: false,
-      target: this.config.build.target,
+      cwd: build.outDir,
+      dev: options.dev ?? false,
+      target: build.target,
       entryPoints: Array.from(entryPoints),
       // FIXME: Pass jsxImportSource from config
     });
 
-    // FIXME:
-    const outDir = "<FIXME>";
-
     console.log(
-      `Assets written to: ${colors.green(outDir)}`,
+      `Assets written to: ${colors.green(build.outDir)}`,
     );
 
     await Deno.writeTextFile(
       getSnapshotPath(build.outDir),
       JSON.stringify(snapshot),
     );
+
+    console.log("BUILD", Date.now() - start);
   }
 }
 

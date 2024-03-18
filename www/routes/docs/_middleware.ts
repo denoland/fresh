@@ -1,4 +1,4 @@
-import { defineHandlers } from "$fresh/server.ts";
+import { defineHandlers } from "@fresh/server";
 
 const REDIRECTS: Record<string, string> = {
   "/docs/getting-started/fetching-data":

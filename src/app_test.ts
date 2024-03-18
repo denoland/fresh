@@ -1,4 +1,4 @@
-import { expect } from "jsr:@std/expect";
+import { expect } from "@std/expect";
 import { FreshApp } from "./app.ts";
 import { FakeServer } from "./test_utils.ts";
 

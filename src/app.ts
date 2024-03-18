@@ -9,7 +9,7 @@ import {
   BuildCacheSnapshot,
   FreshBuildCache,
 } from "./build_cache.ts";
-import * as path from "jsr:@std/path";
+import * as path from "@std/path";
 import { ComponentType } from "preact";
 
 export interface Island {

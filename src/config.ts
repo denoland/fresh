@@ -1,4 +1,4 @@
-import * as path from "jsr:@std/path";
+import * as path from "@std/path";
 
 export type Mode = "dev" | "build" | "prod";
 

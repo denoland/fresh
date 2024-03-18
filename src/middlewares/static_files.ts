@@ -1,6 +1,6 @@
 import { Middleware } from "./compose.ts";
-import * as path from "jsr:@std/path";
-import { contentType as getContentType } from "jsr:@std/media-types/content_type";
+import * as path from "@std/path";
+import { contentType as getContentType } from "@std/media-types/content_type";
 
 export const freshStaticFiles = (): Middleware => {
   return async function serveFreshStaticFiles(ctx) {

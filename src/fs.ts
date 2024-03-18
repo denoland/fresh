@@ -1,5 +1,5 @@
-import { walk, WalkEntry, WalkOptions } from "jsr:@std/fs/walk";
-import * as path from "jsr:@std/path";
+import { walk, WalkEntry, WalkOptions } from "@std/fs/walk";
+import * as path from "@std/path";
 
 export interface FsAdapter {
   walk(

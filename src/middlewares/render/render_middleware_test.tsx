@@ -1,4 +1,4 @@
-import { expect } from "jsr:@std/expect";
+import { expect } from "@std/expect";
 import { serveMiddleware } from "../../test_utils.ts";
 import { renderMiddleware } from "./render_middleware.ts";
 

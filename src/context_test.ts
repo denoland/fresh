@@ -1,4 +1,4 @@
-import { expect } from "jsr:@std/expect";
+import { expect } from "@std/expect";
 import { redirectTo } from "./context.ts";
 
 Deno.test("redirectTo", () => {
