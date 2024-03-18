@@ -2,6 +2,8 @@ import { Middleware } from "./compose.ts";
 import * as path from "@std/path";
 import { contentType as getContentType } from "@std/media-types/content_type";
 
+// FIXME: Test etag
+// FIXME: Test source map content type
 export const freshStaticFiles = (): Middleware => {
   return async function serveFreshStaticFiles(ctx) {
     const { req, url, config, buildCache } = ctx;
