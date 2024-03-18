@@ -4,7 +4,7 @@ import { denoPlugins } from "@luca/esbuild-deno-loader";
 export interface FreshBundleOptions {
   dev: boolean;
   cwd: string;
-
+  denoJsonPath: string;
   entryPoints: string[];
   target: string | string[];
   jsxImportSource?: string;
@@ -62,7 +62,7 @@ export async function bundleJs(options: FreshBundleOptions) {
     metafile: true,
 
     plugins: [
-      ...denoPlugins({}),
+      ...denoPlugins({ configPath: options.denoJsonPath }),
     ],
   });
 }

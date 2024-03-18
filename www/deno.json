@@ -7,7 +7,7 @@
     "preview": "deno run -A main.ts"
   },
   "imports": {
-    "$fresh/": "../src/1.x/",
+    "$fresh/": "../src/compat/",
     "@fresh/core": "../src/mod.ts",
     "@fresh/core/dev": "../src/dev/mod.ts",
     "@fresh/server": "../src/mod.ts",
@@ -19,6 +19,7 @@
     "@std/media-types": "jsr:@std/media-types@^0.220.1",
     "@std/fmt": "jsr:@std/fmt",
     "@std/fs": "jsr:@std/fs",
+    "@std/jsonc": "jsr:@std/jsonc@^0.220.1",
     "@luca/esbuild-deno-loader": "jsr:@luca/esbuild-deno-loader@^0.10.3",
     "preact": "https://esm.sh/preact@10.19.6",
     "preact/": "https://esm.sh/preact@10.19.6/",

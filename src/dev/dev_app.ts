@@ -8,6 +8,8 @@ import { crypto } from "@std/crypto";
 import * as colors from "@std/fmt/colors";
 import { encodeHex } from "@std/encoding/hex";
 import { bundleJs } from "./esbuild.ts";
+import * as JSONC from "@std/jsonc";
+import { prettyTime } from "../utils.ts";
 
 export class FreshDevApp<T> extends FreshApp<T> {
   constructor(config: FreshConfig = {}) {
@@ -23,10 +25,8 @@ export class FreshDevApp<T> extends FreshApp<T> {
       options.port = await getFreePort(8000, options.hostname);
     }
 
-    await Promise.all([
-      super.listen(options),
-      this.build({ dev: true }),
-    ]);
+    await this.build({ dev: true });
+    await super.listen(options);
     return;
   }
 
@@ -45,6 +45,8 @@ export class FreshDevApp<T> extends FreshApp<T> {
         includeDirs: false,
         includeFiles: true,
         followSymlinks: false,
+        // Skip any folder or file starting with a "."
+        skip: [/\/\.[^/]+(\/|$)/],
       });
 
       for await (const entry of entries) {
@@ -67,24 +69,39 @@ export class FreshDevApp<T> extends FreshApp<T> {
       }),
     ]);
 
-    await bundleJs({
+    const denoJson = await readDenoConfig(this.config.root);
+
+    const jsxImportSource = denoJson.config.compilerOptions?.jsxImportSource;
+    if (jsxImportSource === undefined) {
+      throw new Error(
+        `Option compilerOptions > jsxImportSource not set in: ${denoJson.filePath}`,
+      );
+    }
+
+    await await bundleJs({
       cwd: build.outDir,
       dev: options.dev ?? false,
       target: build.target,
       entryPoints: Array.from(entryPoints),
-      // FIXME: Pass jsxImportSource from config
+      jsxImportSource,
+      denoJsonPath: denoJson.filePath,
     });
-
-    console.log(
-      `Assets written to: ${colors.green(build.outDir)}`,
-    );
 
     await Deno.writeTextFile(
       getSnapshotPath(build.outDir),
-      JSON.stringify(snapshot),
+      JSON.stringify(snapshot, null, 2),
     );
 
-    console.log("BUILD", Date.now() - start);
+    const duration = Date.now() - start;
+    const buildKind = options.dev ? "development" : "production";
+    console.log(
+      `Bundling ${buildKind} assets finished in ${
+        colors.green(prettyTime(duration))
+      }`,
+    );
+    console.log(
+      `Assets written to: ${colors.cyan(build.outDir)}`,
+    );
   }
 }
 
@@ -117,4 +134,52 @@ export function getFreePort(
   }
 
   throw firstError;
+}
+
+export interface DenoConfig {
+  imports?: Record<string, string>;
+  importMap?: string;
+  tasks?: Record<string, string>;
+  lint?: {
+    rules: { tags?: string[] };
+    exclude?: string[];
+  };
+  fmt?: {
+    exclude?: string[];
+  };
+  exclude?: string[];
+  compilerOptions?: {
+    jsx?: string;
+    jsxImportSource?: string;
+  };
+}
+
+export async function readDenoConfig(
+  directory: string,
+): Promise<{ config: DenoConfig; filePath: string }> {
+  let dir = directory;
+  while (true) {
+    for (const name of ["deno.json", "deno.jsonc"]) {
+      const filePath = path.join(dir, name);
+      try {
+        const file = await Deno.readTextFile(filePath);
+        if (name.endsWith(".jsonc")) {
+          return { config: JSONC.parse(file) as DenoConfig, filePath };
+        } else {
+          return { config: JSON.parse(file), filePath };
+        }
+      } catch (err) {
+        if (!(err instanceof Deno.errors.NotFound)) {
+          throw err;
+        }
+      }
+    }
+    const parent = path.dirname(dir);
+    if (parent === dir) {
+      throw new Error(
+        `Could not find a deno.json file in the current directory or any parent directory.`,
+      );
+    }
+    dir = parent;
+  }
 }

@@ -6,7 +6,8 @@ export interface BuildCacheSnapshot {
 }
 
 export interface BuildCache {
-  getStaticFileInfo(pathname: string): string | null;
+  hasStaticFile(pathname: string): boolean;
+  getStaticFileHash(pathname: string): string | null;
 }
 
 export class FreshBuildCache implements BuildCache {
@@ -22,7 +23,11 @@ export class FreshBuildCache implements BuildCache {
     }
   }
 
-  getStaticFileInfo(pathname: string): string | null {
+  hasStaticFile(pathname: string): boolean {
+    return this.#hashes.has(pathname);
+  }
+
+  getStaticFileHash(pathname: string): string | null {
     const info = this.#hashes.get(pathname);
     return info === undefined ? null : info;
   }
