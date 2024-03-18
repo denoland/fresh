@@ -1,5 +1,5 @@
 import { useSignal } from "@preact/signals";
-import { IS_BROWSER } from "$fresh/runtime.ts";
+import { IS_BROWSER } from "@fresh/runtime";
 import { RoundedButton } from "../components/Button.tsx";
 import * as Icons from "../components/Icons.tsx";
 

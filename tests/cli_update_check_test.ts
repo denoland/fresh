@@ -1,4 +1,4 @@
-import { join } from "../src/server/deps.ts";
+import { join } from "../src/__OLD/server/deps.ts";
 import {
   assert,
   assertEquals,

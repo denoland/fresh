@@ -1,4 +1,4 @@
-import { defineRoute } from "$fresh/src/server/defines.ts";
+import { defineRoute } from "../../../../src/__OLD/server/defines.ts";
 import { RouteConfig } from "$fresh/server.ts";
 
 export const config: RouteConfig = {

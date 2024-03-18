@@ -1,4 +1,4 @@
-import { Partial } from "$fresh/runtime.ts";
+import { Partial } from "@fresh/runtime";
 import { Fader } from "../../islands/Fader.tsx";
 import Stateful from "../../islands/Stateful.tsx";
 import { Keyed } from "../../components/Keyed.tsx";

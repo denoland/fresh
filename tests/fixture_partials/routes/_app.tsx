@@ -1,4 +1,4 @@
-import { defineApp } from "$fresh/src/server/defines.ts";
+import { defineApp } from "../../../src/__OLD/server/defines.ts";
 
 export default defineApp((res, ctx) => {
   return (

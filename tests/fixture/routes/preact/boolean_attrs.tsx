@@ -1,4 +1,4 @@
-import { defineRoute } from "$fresh/src/server/defines.ts";
+import { defineRoute } from "../../../../src/__OLD/server/defines.ts";
 import { FormIsland } from "$fresh/tests/fixture/islands/FormIsland.tsx";
 
 export default defineRoute(() => {

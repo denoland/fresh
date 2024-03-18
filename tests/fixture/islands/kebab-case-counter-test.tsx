@@ -1,5 +1,5 @@
 import type { Signal } from "@preact/signals";
-import { IS_BROWSER } from "$fresh/runtime.ts";
+import { IS_BROWSER } from "@fresh/runtime";
 
 interface KebabCaseFileNameTestProps {
   count: Signal<number>;

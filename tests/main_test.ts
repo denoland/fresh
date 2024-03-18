@@ -9,7 +9,7 @@ import {
   retry,
 } from "./deps.ts";
 import config from "./fixture/fresh.config.ts";
-import { BUILD_ID } from "../src/server/build_id.ts";
+import { BUILD_ID } from "../src/__OLD/server/build_id.ts";
 import {
   assertSelector,
   assertTextMany,

@@ -1,4 +1,4 @@
-import "./src/types.ts";
+import "./src/__OLD/types.ts";
 export * from "./src/runtime/utils.ts";
 export * from "./src/runtime/head.ts";
 export * from "./src/runtime/csp.ts";

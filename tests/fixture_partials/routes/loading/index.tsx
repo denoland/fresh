@@ -1,4 +1,4 @@
-import { Partial } from "$fresh/runtime.ts";
+import { Partial } from "@fresh/runtime";
 import { useSignal } from "@preact/signals";
 import Spinner from "../../islands/Spinner.tsx";
 import PartialTrigger from "../../islands/PartialTrigger.tsx";

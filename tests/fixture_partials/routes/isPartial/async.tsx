@@ -1,6 +1,6 @@
 import { defineRoute, RouteConfig } from "$fresh/server.ts";
 import { IsPartialInContextState } from "./_middleware.ts";
-import { Partial } from "$fresh/runtime.ts";
+import { Partial } from "@fresh/runtime";
 
 export const config: RouteConfig = {
   skipAppWrapper: true,

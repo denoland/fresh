@@ -1,13 +1,23 @@
-import { basename, colors, join, parse, resolve } from "./src/dev/deps.ts";
-import { error } from "./src/dev/error.ts";
-import { collect, ensureMinDenoVersion, generate } from "./src/dev/mod.ts";
+import {
+  basename,
+  colors,
+  join,
+  parse,
+  resolve,
+} from "./src/__OLD/dev/deps.ts";
+import { error } from "./src/__OLD/dev/error.ts";
+import {
+  collect,
+  ensureMinDenoVersion,
+  generate,
+} from "./src/__OLD/dev/mod.ts";
 import {
   AOT_GH_ACTION,
   dotenvImports,
   freshImports,
   tailwindImports,
   twindImports,
-} from "./src/dev/imports.ts";
+} from "./src/__OLD/dev/imports.ts";
 
 ensureMinDenoVersion();
 
@@ -207,7 +217,7 @@ export default function Home() {
 `;
 
 const COMPONENTS_BUTTON_TSX = `import { JSX } from "preact";
-import { IS_BROWSER } from "$fresh/runtime.ts";
+import { IS_BROWSER } from "@fresh/runtime";
 
 export function Button(props: JSX.HTMLAttributes<HTMLButtonElement>) {
   return (
@@ -239,7 +249,7 @@ export default function Counter(props: CounterProps) {
 `;
 
 // 404 page
-const ROUTES_404_PAGE = `import { Head } from "$fresh/runtime.ts";
+const ROUTES_404_PAGE = `import { Head } from "@fresh/runtime";
 
 export default function Error404() {
   return (

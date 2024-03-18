@@ -1,8 +1,19 @@
 #!/usr/bin/env -S deno run -A --watch=static/,routes/
 
-import "../src/_next/dev.ts";
-import "./main.ts";
-// import dev from "$fresh/dev.ts";
-// import config from "./fresh.config.ts";
+import { tailwind } from "@fresh/plugin-tailwind";
+import { FreshDevApp } from "@fresh/core/dev";
+import { app } from "./main.ts";
 
-// await dev(import.meta.url, "./main.ts", config);
+const devApp = new FreshDevApp()
+  // TODO: Dev hmr middleware
+  .use((ctx) => ctx.next());
+
+await tailwind(devApp, {});
+
+devApp.route("/", app);
+
+if (Deno.args.includes("build")) {
+  await devApp.build();
+} else {
+  await devApp.listen();
+}

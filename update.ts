@@ -10,10 +10,14 @@ import {
   Project,
   resolve,
   walk,
-} from "./src/dev/deps.ts";
-import { error } from "./src/dev/error.ts";
-import { freshImports, twindImports } from "./src/dev/imports.ts";
-import { collect, ensureMinDenoVersion, generate } from "./src/dev/mod.ts";
+} from "./src/__OLD/dev/deps.ts";
+import { error } from "./src/__OLD/dev/error.ts";
+import { freshImports, twindImports } from "./src/__OLD/dev/imports.ts";
+import {
+  collect,
+  ensureMinDenoVersion,
+  generate,
+} from "./src/__OLD/dev/mod.ts";
 
 ensureMinDenoVersion();
 

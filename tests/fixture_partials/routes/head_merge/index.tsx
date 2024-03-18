@@ -1,4 +1,4 @@
-import { Head, Partial } from "$fresh/runtime.ts";
+import { Head, Partial } from "@fresh/runtime";
 import { Fader } from "../../islands/Fader.tsx";
 
 export default function SlotDemo() {

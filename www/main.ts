@@ -4,26 +4,22 @@
 /// <reference lib="dom.asynciterable" />
 /// <reference lib="deno.ns" />
 
-import {
-  FreshApp,
-  freshStaticFiles,
-  fsRoutes,
-  tailwind,
-} from "$fresh/server.ts";
+import { FreshApp, freshStaticFiles, fsRoutes } from "@fresh/server";
 
-const app = new FreshApp({
+export const app = new FreshApp({
   build: {
     target: "safari12",
   },
 });
 
-await tailwind(app, {});
-
 app.use(freshStaticFiles());
 
 await fsRoutes(app, {
   dir: Deno.cwd(),
-  load: (path) => import("./routes/" + path),
+  loadIsland: (path) => import("./islands/" + path),
+  loadRoute: (path) => import("./routes/" + path),
 });
 
-await app.listen();
+if (import.meta.main) {
+  await app.listen();
+}

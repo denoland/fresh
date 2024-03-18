@@ -1,4 +1,4 @@
-import { Partial } from "$fresh/runtime.ts";
+import { Partial } from "@fresh/runtime";
 import { defineRoute, Handlers } from "$fresh/server.ts";
 import { Logger } from "../../islands/Logger.tsx";
 

@@ -1,5 +1,5 @@
 import { PageProps } from "$fresh/server.ts";
-import { asset } from "$fresh/runtime.ts";
+import { asset } from "@fresh/runtime";
 
 export default function App({ Component, ...rest }: PageProps) {
   const title = rest.data.headTitle;

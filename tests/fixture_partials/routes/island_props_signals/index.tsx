@@ -1,4 +1,4 @@
-import { Partial } from "$fresh/runtime.ts";
+import { Partial } from "@fresh/runtime";
 import { useSignal } from "@preact/signals";
 import { Fader } from "../../islands/Fader.tsx";
 import SignalProp from "../../islands/SignalProp.tsx";

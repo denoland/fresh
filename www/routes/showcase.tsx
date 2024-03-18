@@ -1,4 +1,4 @@
-import { asset, Head } from "$fresh/runtime.ts";
+import { asset, Head } from "@fresh/runtime";
 import { PageProps } from "$fresh/server.ts";
 import Projects, { Project } from "../components/Projects.tsx";
 import Header from "../components/Header.tsx";

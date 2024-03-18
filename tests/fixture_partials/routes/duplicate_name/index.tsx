@@ -1,4 +1,4 @@
-import { Partial } from "$fresh/runtime.ts";
+import { Partial } from "@fresh/runtime";
 import { PageProps } from "$fresh/server.ts";
 
 export default function SlotDemo(props: PageProps) {

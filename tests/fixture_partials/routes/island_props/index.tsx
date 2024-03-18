@@ -1,4 +1,4 @@
-import { Partial } from "$fresh/runtime.ts";
+import { Partial } from "@fresh/runtime";
 import PropIsland from "../../islands/PropIsland.tsx";
 
 export default function PropsDemo() {

@@ -1,5 +1,5 @@
-import { Partial } from "$fresh/runtime.ts";
-import { defineRoute } from "$fresh/src/server/defines.ts";
+import { Partial } from "@fresh/runtime";
+import { defineRoute } from "../../../../src/__OLD/server/defines.ts";
 import { Fader } from "../../islands/Fader.tsx";
 
 export default defineRoute((req) => {

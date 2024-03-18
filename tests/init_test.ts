@@ -1,5 +1,5 @@
 import * as path from "$std/path/mod.ts";
-import { STATUS_CODE } from "../src/server/deps.ts";
+import { STATUS_CODE } from "../src/__OLD/server/deps.ts";
 import {
   assert,
   assertEquals,

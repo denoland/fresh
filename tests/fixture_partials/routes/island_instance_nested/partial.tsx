@@ -1,6 +1,6 @@
-import { defineRoute } from "$fresh/src/server/defines.ts";
+import { defineRoute } from "../../../../src/__OLD/server/defines.ts";
 import { RouteConfig } from "$fresh/server.ts";
-import { Partial } from "$fresh/runtime.ts";
+import { Partial } from "@fresh/runtime";
 import CounterA from "../../islands/CounterA.tsx";
 import CounterB from "../../islands/CounterB.tsx";
 import PassThrough from "../../islands/PassThrough.tsx";

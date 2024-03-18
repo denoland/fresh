@@ -1,4 +1,4 @@
-import { Partial } from "$fresh/runtime.ts";
+import { Partial } from "@fresh/runtime";
 import DangerousIsland from "../../islands/DangerousIsland.tsx";
 
 export default function Res() {

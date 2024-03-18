@@ -1,4 +1,4 @@
-import { Partial } from "$fresh/runtime.ts";
+import { Partial } from "@fresh/runtime";
 import CounterA from "../../islands/CounterA.tsx";
 import { Fader } from "../../islands/Fader.tsx";
 

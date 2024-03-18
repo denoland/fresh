@@ -1,4 +1,4 @@
-import { Head } from "$fresh/runtime.ts";
+import { Head } from "@fresh/runtime";
 import { PageProps } from "$fresh/server.ts";
 
 export type TestState = {

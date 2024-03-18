@@ -1,4 +1,4 @@
-import { defineConfig } from "$fresh/src/server/defines.ts";
+import { defineConfig } from "../../src/__OLD/server/defines.ts";
 import { relative } from "../deps.ts";
 
 export default defineConfig({

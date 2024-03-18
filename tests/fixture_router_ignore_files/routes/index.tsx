@@ -1,4 +1,4 @@
-import { IS_BROWSER } from "$fresh/runtime.ts";
+import { IS_BROWSER } from "@fresh/runtime";
 
 export default function Home() {
   return (

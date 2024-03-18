@@ -1,6 +1,6 @@
 import { walk } from "./src/dev/deps.ts";
 import { manifest } from "./src/dev/mod.ts";
-import type { FreshConfig } from "./src/server/mod.ts";
+import type { FreshConfig } from "./src/__OLD/server/mod.ts";
 
 const skippedFixtures: string[] = [
   "fixture_invalid_handlers",

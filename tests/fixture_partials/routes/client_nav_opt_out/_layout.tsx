@@ -1,5 +1,5 @@
 import { PageProps } from "$fresh/server.ts";
-import { Partial } from "$fresh/runtime.ts";
+import { Partial } from "@fresh/runtime";
 import { Fader } from "../../islands/Fader.tsx";
 
 export default function AppLayout({ Component }: PageProps) {

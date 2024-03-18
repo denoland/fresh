@@ -1,4 +1,4 @@
-import { IS_BROWSER } from "$fresh/runtime.ts";
+import { IS_BROWSER } from "@fresh/runtime";
 import Test from "../islands/Test.tsx";
 
 export default function Home() {
