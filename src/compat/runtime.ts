@@ -1,5 +1,5 @@
 import { ComponentChildren, Fragment, h } from "preact";
-export { asset } from "@fresh/runtime";
+export { asset } from "../runtime/client.tsx";
 
 /**
  * @deprecated FIXME explain why + link to docs

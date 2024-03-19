@@ -11,7 +11,7 @@
     "@fresh/core": "../src/mod.ts",
     "@fresh/core/dev": "../src/dev/mod.ts",
     "@fresh/server": "../src/mod.ts",
-    "@fresh/runtime": "../src/runtime/mod.ts",
+    "@fresh/runtime": "../src/runtime/client.tsx",
     "@fresh/plugin-tailwind": "../src/plugins/tailwind/mod.ts",
     "@std/crypto": "jsr:@std/crypto",
     "@std/path": "jsr:@std/path",

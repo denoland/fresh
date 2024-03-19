@@ -1,12 +1,5 @@
 import * as path from "@std/path";
-
-export type Mode = "dev" | "build" | "prod";
-
-export let MODE: Mode = "prod";
-
-export function setMode(mode: Mode) {
-  MODE = mode;
-}
+import { MODE, Mode } from "./runtime/server.tsx";
 
 export interface FreshPlugin {
   name: string;

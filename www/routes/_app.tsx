@@ -1,7 +1,17 @@
 import { PageProps } from "$fresh/server.ts";
-import { asset } from "@fresh/runtime";
+import { FreshScripts } from "@fresh/server";
+import { asset } from "../../src/runtime/client.tsx";
 
-export default function App({ Component, ...rest }: PageProps) {
+export default function App(
+  { Component, ...rest }: PageProps<
+    {
+      headTitle: string;
+      headDescription: string;
+      headViewTransition: boolean;
+      docStyleSheet: string;
+    }
+  >,
+) {
   const title = rest.data.headTitle;
   const description = rest.data.headDescription;
   const headOgImg = new URL(asset("/home-og.png"), rest.url).href;
@@ -27,6 +37,7 @@ export default function App({ Component, ...rest }: PageProps) {
       </head>
       <body>
         <Component />
+        <FreshScripts />
       </body>
     </html>
   );

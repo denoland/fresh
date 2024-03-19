@@ -1,6 +1,5 @@
-import { setMode } from "../config.ts";
+import { setMode } from "../runtime/server.tsx";
 
 export { FreshDevApp } from "./dev_app.ts";
-export { liveReload } from "./websocket_middleware.ts";
 
 setMode("dev");

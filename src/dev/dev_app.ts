@@ -10,10 +10,22 @@ import { encodeHex } from "@std/encoding/hex";
 import { bundleJs } from "./esbuild.ts";
 import * as JSONC from "@std/jsonc";
 import { prettyTime } from "../utils.ts";
+import { liveReload } from "./middlewares/live_reload.ts";
+import { sendFile } from "../middlewares/static_files.ts";
 
 export class FreshDevApp<T> extends FreshApp<T> {
   constructor(config: FreshConfig = {}) {
     super(config);
+
+    this.use(liveReload());
+
+    // Browser dev client
+    this.get("/_frsh/fresh-dev-client.js", async (ctx) => {
+      const outDir = this.config.build.outDir;
+      const filePath = path.join(outDir, "static", "fresh-dev-client.js");
+      const res = await sendFile(ctx.req, filePath, outDir, null);
+      return res !== null ? res : ctx.next();
+    });
   }
 
   async listen(options: ListenOptions = {}): Promise<void> {
@@ -59,7 +71,7 @@ export class FreshDevApp<T> extends FreshApp<T> {
 
         const relative = path.relative(staticDir, entry.path);
         const pathname = `/${relative}`;
-        snapshot.staticFiles[pathname] = hash;
+        snapshot.staticFiles[pathname] = { hash, generated: false };
       }
     }
 
@@ -68,6 +80,7 @@ export class FreshDevApp<T> extends FreshApp<T> {
         return entry.file instanceof URL ? entry.file.href : entry.file;
       }),
     ]);
+    entryPoints.add("fresh-runtime");
 
     const denoJson = await readDenoConfig(this.config.root);
 
@@ -78,14 +91,28 @@ export class FreshDevApp<T> extends FreshApp<T> {
       );
     }
 
-    await await bundleJs({
-      cwd: build.outDir,
+    console.log(entryPoints);
+
+    const staticOutDir = path.join(build.outDir, "static");
+    const output = await bundleJs({
+      cwd: Deno.cwd(),
+      outDir: staticOutDir,
       dev: options.dev ?? false,
       target: build.target,
       entryPoints: Array.from(entryPoints),
       jsxImportSource,
       denoJsonPath: denoJson.filePath,
     });
+
+    for (let i = 0; i < output.files.length; i++) {
+      const file = output.files[i];
+      await Deno.mkdir(path.dirname(file.path), { recursive: true });
+
+      const pathname = `/${path.relative(staticOutDir, file.path)}`;
+      snapshot.staticFiles[pathname] = { generated: true, hash: file.hash };
+
+      await Deno.writeFile(file.path, file.contents);
+    }
 
     await Deno.writeTextFile(
       getSnapshotPath(build.outDir),
