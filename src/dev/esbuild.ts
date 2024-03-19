@@ -10,13 +10,15 @@ export interface FreshBundleOptions {
   cwd: string;
   outDir: string;
   denoJsonPath: string;
-  entryPoints: string[];
+  entryPoints: Record<string, string>;
   target: string | string[];
   jsxImportSource?: string;
 }
 
 export interface BuildOutput {
-  files: Array<{ hash: string; contents: Uint8Array; path: string }>;
+  entryToChunk: Map<string, string>;
+  dependencies: Map<string, string[]>;
+  files: Array<{ hash: string | null; contents: Uint8Array; path: string }>;
 }
 
 let esbuild: null | typeof import("npm:esbuild-wasm") = null;
@@ -68,7 +70,7 @@ export async function bundleJs(
     jsxImportSource: options.jsxImportSource ?? "preact",
 
     absWorkingDir: options.cwd,
-    outdir: options.outDir,
+    outdir: ".",
     write: false,
     metafile: true,
 
@@ -81,11 +83,51 @@ export async function bundleJs(
   const files: BuildOutput["files"] = [];
   for (let i = 0; i < bundle.outputFiles.length; i++) {
     const outputFile = bundle.outputFiles[i];
-    files.push(outputFile);
+    const relative = path.relative(options.cwd, outputFile.path);
+    files.push({
+      path: relative,
+      contents: outputFile.contents,
+      hash: outputFile.hash,
+    });
+  }
+
+  files.push({
+    path: "metafile.json",
+    contents: new TextEncoder().encode(JSON.stringify(bundle.metafile)),
+    hash: null,
+  });
+
+  const entryToChunk = new Map<string, string>();
+  const dependencies = new Map<string, string[]>();
+
+  const entryToName = new Map(
+    Array.from(Object.entries(options.entryPoints)).map(
+      (entry) => [entry[1], entry[0]],
+    ),
+  );
+
+  if (bundle.metafile) {
+    const metaOutputs = new Map(Object.entries(bundle.metafile.outputs));
+
+    for (const [entryPath, entry] of metaOutputs.entries()) {
+      const imports = entry.imports
+        .filter(({ kind }) => kind === "import-statement")
+        .map(({ path }) => path);
+      dependencies.set(entryPath, imports);
+
+      if (entryPath !== "fresh-runtime.js" && entry.entryPoint !== undefined) {
+        const filePath = path.join(options.cwd, entry.entryPoint);
+
+        const name = entryToName.get(filePath)!;
+        entryToChunk.set(name, entryPath);
+      }
+    }
   }
 
   return {
     files,
+    entryToChunk,
+    dependencies,
   };
 }
 
@@ -93,7 +135,7 @@ function freshRuntime(): EsbuildPlugin {
   return {
     name: "fresh-runtime",
     setup(build) {
-      build.onResolve({ filter: /^fresh-runtime$/ }, (args) => {
+      build.onResolve({ filter: /^fresh-runtime$/ }, () => {
         const filePath = path.join(
           import.meta.dirname!,
           "..",
@@ -102,26 +144,8 @@ function freshRuntime(): EsbuildPlugin {
         );
         return {
           path: filePath,
-          // namespace: "fresh",
         };
       });
-      build.onLoad(
-        { filter: /^fresh-runtime$/, namespace: "fresh" },
-        async () => {
-          const filePath = path.join(
-            import.meta.dirname!,
-            "..",
-            "runtime",
-            "client.tsx",
-          );
-          const contents = await Deno.readFile(filePath);
-          return {
-            contents,
-            resolveDir: path.dirname(filePath),
-            loader: "tsx",
-          };
-        },
-      );
     },
   };
 }

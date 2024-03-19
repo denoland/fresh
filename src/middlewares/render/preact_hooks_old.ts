@@ -305,8 +305,8 @@ options.__b = (vnode: VNode<Record<string, unknown>>) => {
         vnode.type = (props) => {
           if (!current) return null;
 
-          const { encounteredIslands, islandProps, slots } = current;
-          encounteredIslands.add(island);
+          const { islands, islandProps, slots } = current;
+          islands.add(island);
 
           // Only passing children JSX to islands is supported for now
           const id = islandProps.length;

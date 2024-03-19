@@ -15,6 +15,7 @@ import { ComponentType } from "preact";
 export interface Island {
   file: string | URL;
   name: string;
+  exportName: string;
   fn: ComponentType;
 }
 export const GLOBAL_ISLANDS = new Map<ComponentType, Island>();
@@ -54,6 +55,7 @@ export class FreshApp<State> implements App<State> {
   router = new UrlPatternRouter<Middleware<State>>();
   buildCache: BuildCache | null = null;
   #routeCache = new Map<string, RouteCacheEntry<State>>();
+  #islandNames = new Set<string>();
 
   config: ResolvedFreshConfig;
 
@@ -61,8 +63,26 @@ export class FreshApp<State> implements App<State> {
     this.config = normalizeConfig(config);
   }
 
-  island(filePathOrUrl: string | URL, name: string, fn: ComponentType): void {
-    GLOBAL_ISLANDS.set(fn, { fn, name, file: filePathOrUrl });
+  island(
+    filePathOrUrl: string | URL,
+    exportName: string,
+    fn: ComponentType,
+  ): void {
+    const filePath = filePathOrUrl instanceof URL
+      ? filePathOrUrl.href
+      : filePathOrUrl;
+
+    // Create unique island name
+    let name = path.basename(filePath, path.extname(filePath));
+    if (this.#islandNames.has(name)) {
+      let i = 0;
+      while (this.#islandNames.has(`${name}_${i}`)) {
+        i++;
+      }
+      name = `${name}_${i}`;
+    }
+
+    GLOBAL_ISLANDS.set(fn, { fn, exportName, name, file: filePathOrUrl });
   }
 
   use(middleware: Middleware<State>): this {

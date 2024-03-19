@@ -10,20 +10,12 @@ export class RenderState {
   slots = new Map<string, any>(); // FIXME
   basePath = ""; // FIXME
   islandProps: any[] = [];
-  encounteredIslands = new Set<any>();
+  islands = new Set<any>();
   encounteredPartials = new Set<any>();
   owners = new Map<VNode, VNode>();
   ownerStack = [];
 
   constructor(public ctx: FreshContext<unknown>, public readonly id: string) {
     this.nonce = id.replace(/-/g, "");
-  }
-
-  clearTmpState() {
-    this.ownerStack = [];
-    this.islandProps = [];
-    this.encounteredIslands.clear();
-    this.encounteredPartials.clear();
-    this.owners.clear();
   }
 }

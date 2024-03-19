@@ -4,7 +4,8 @@ import {
   options as preactOptions,
   VNode,
 } from "preact";
-import { FreshScripts } from "../../runtime/server.tsx";
+import { GLOBAL_ISLANDS } from "../../app.ts";
+import { FreshRenderContext } from "../../runtime/server.tsx";
 
 interface InternalPreactOptions extends PreactOptions {
   /** options._hook */
@@ -17,19 +18,33 @@ interface InternalPreactOptions extends PreactOptions {
   __e(error: unknown, vnode: VNode, oldVNode: VNode): void;
 }
 
+interface InternalVNode extends VNode {
+  __c: Component | null;
+  __: InternalVNode | null;
+}
+
 // deno-lint-ignore no-explicit-any
 const options: InternalPreactOptions = preactOptions as any;
 
-// const oldDiff = options.__b;
-// options.__b = (vnode) => {
-//   if (typeof vnode.type === "function") {
-//     if (vnode.type === FreshScripts) {
-//       console.log(vnode.__c, vnode.type);
-//       console.log(vnode.__.__c, vnode.__.type);
-//       console.log(vnode.__.__.__c, vnode.__.__.type);
-//       console.log(vnode.__.__.__.__c, vnode.__.__.__.type);
-//     }
-//   }
+const oldDiff = options.__b;
+options.__b = (vnode) => {
+  if (typeof vnode.type === "function") {
+    const island = GLOBAL_ISLANDS.get(vnode.type);
+    if (island) {
+      const ctx = getFreshContext(vnode as InternalVNode);
+      if (ctx === null) return;
+      ctx.__fresh.islands.add(island);
+    }
+  }
 
-//   oldDiff?.(vnode);
-// };
+  oldDiff?.(vnode);
+};
+
+function getFreshContext(vnode: InternalVNode): FreshRenderContext | null {
+  if (vnode.__c === null) {
+    if (vnode.__ === null) return null;
+    return getFreshContext(vnode.__);
+  }
+
+  return vnode.__c.context;
+}

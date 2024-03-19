@@ -7,6 +7,7 @@ export interface FsAdapter {
     options?: WalkOptions,
   ): AsyncIterableIterator<WalkEntry>;
   isDirectory(path: string | URL): Promise<boolean>;
+  mkdirp(dir: string): Promise<void>;
 }
 
 export const fsAdapter: FsAdapter = {
@@ -18,6 +19,15 @@ export const fsAdapter: FsAdapter = {
     } catch (err) {
       if (err instanceof Deno.errors.NotFound) return false;
       throw err;
+    }
+  },
+  async mkdirp(dir: string) {
+    try {
+      await Deno.mkdir(dir, { recursive: true });
+    } catch (err) {
+      if (!(err instanceof Deno.errors.AlreadyExists)) {
+        throw err;
+      }
     }
   },
 };

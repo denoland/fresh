@@ -49,6 +49,7 @@ export class FreshDevApp<T> extends FreshApp<T> {
     const snapshot: BuildCacheSnapshot = {
       version: 1,
       staticFiles: {},
+      islands: {},
     };
 
     // Read static files
@@ -75,12 +76,16 @@ export class FreshDevApp<T> extends FreshApp<T> {
       }
     }
 
-    const entryPoints = new Set([
-      ...Array.from(GLOBAL_ISLANDS.values()).map((entry) => {
-        return entry.file instanceof URL ? entry.file.href : entry.file;
-      }),
-    ]);
-    entryPoints.add("fresh-runtime");
+    const entryPoints: Record<string, string> = {
+      "fresh-runtime": "fresh-runtime",
+    };
+    for (const island of GLOBAL_ISLANDS.values()) {
+      const filePath = island.file instanceof URL
+        ? island.file.href
+        : island.file;
+
+      entryPoints[island.name] = filePath;
+    }
 
     const denoJson = await readDenoConfig(this.config.root);
 
@@ -91,27 +96,31 @@ export class FreshDevApp<T> extends FreshApp<T> {
       );
     }
 
-    console.log(entryPoints);
-
     const staticOutDir = path.join(build.outDir, "static");
     const output = await bundleJs({
       cwd: Deno.cwd(),
       outDir: staticOutDir,
       dev: options.dev ?? false,
       target: build.target,
-      entryPoints: Array.from(entryPoints),
+      entryPoints,
       jsxImportSource,
       denoJsonPath: denoJson.filePath,
     });
 
+    await fsAdapter.mkdirp(staticOutDir);
+
     for (let i = 0; i < output.files.length; i++) {
       const file = output.files[i];
-      await Deno.mkdir(path.dirname(file.path), { recursive: true });
 
-      const pathname = `/${path.relative(staticOutDir, file.path)}`;
+      const pathname = `/${file.path}`;
       snapshot.staticFiles[pathname] = { generated: true, hash: file.hash };
 
-      await Deno.writeFile(file.path, file.contents);
+      const filePath = path.join(staticOutDir, file.path);
+      await Deno.writeFile(filePath, file.contents);
+    }
+
+    for (const [entry, chunkName] of output.entryToChunk.entries()) {
+      snapshot.islands[entry] = `/${chunkName}`;
     }
 
     await Deno.writeTextFile(
