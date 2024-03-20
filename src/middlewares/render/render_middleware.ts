@@ -53,7 +53,7 @@ async (ctx) => {
   }
 
   const html = await renderHtml(ctx, vnode!);
-  return new Response(html, {
+  return new Response("<!DOCTYPE html>" + html, {
     headers: {
       "Content-Type": "text/html; charset=utf-8",
     },
