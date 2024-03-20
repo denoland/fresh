@@ -15,7 +15,7 @@ export class RenderState {
   owners = new Map<VNode, VNode>();
   ownerStack = [];
 
-  constructor(public ctx: FreshContext<unknown>, public readonly id: string) {
-    this.nonce = id.replace(/-/g, "");
+  constructor(public ctx: FreshContext<unknown>) {
+    this.nonce = ctx.requestId;
   }
 }

@@ -5,6 +5,7 @@ import { BuildCache } from "./build_cache.ts";
 export type EmptyObj = Record<string | number | symbol, never>;
 
 export interface FreshContext<State = unknown, Data = unknown> {
+  readonly requestId: string;
   readonly config: ResolvedFreshConfig;
   buildCache: BuildCache | null;
   state: State;
@@ -44,7 +45,10 @@ export function createContext<T>(
   config: ResolvedFreshConfig,
   next: FreshContext<T>["next"],
 ): FreshContext<T> {
+  const requestId = crypto.randomUUID().replace(/-/g, "");
+
   return {
+    requestId,
     config,
     url: new URL(req.url),
     req,

@@ -9,8 +9,7 @@ export async function renderHtml(
   ctx: FreshContext,
   vnode: VNode,
 ): Promise<string> {
-  const id = crypto.randomUUID();
-  const state = new RenderState(ctx, id);
+  const state = new RenderState(ctx);
 
   return await renderToStringAsync(vnode, { __fresh: state });
 }
