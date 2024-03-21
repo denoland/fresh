@@ -135,7 +135,7 @@ export class EsbuildBuilder implements Builder {
 
       return new EsbuildSnapshot(files, dependencies);
     } finally {
-      esbuild.stop();
+      await esbuild.stop();
     }
   }
 }
