@@ -25,7 +25,7 @@ export interface EsbuildBuilderOptions {
 
 let esbuild: typeof import("https://deno.land/x/esbuild@v0.20.2/mod.js");
 
-export async function initalizeEsbuild() {
+export async function initializeEsbuild() {
   esbuild =
     // deno-lint-ignore no-deprecated-deno-api
     Deno.run === undefined ||
@@ -58,7 +58,7 @@ export class EsbuildBuilder implements Builder {
     const opts = this.#options;
 
     // Lazily initialize esbuild
-    const esbuild = await initalizeEsbuild();
+    const esbuild = await initializeEsbuild();
 
     try {
       const absWorkingDir = opts.absoluteWorkingDir;
