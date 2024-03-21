@@ -117,7 +117,6 @@ Deno.test("passes context to server component", async () => {
           params: {
             id: "foo",
           },
-          redirect: "Function",
           state: {},
           isPartial: false,
         },
