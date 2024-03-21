@@ -43,7 +43,7 @@ on:
   push:
     branches: [main]
   pull_request:
-    branches: main
+    branches: [main]
 
 jobs:
   deploy:
