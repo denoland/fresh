@@ -60,11 +60,11 @@ export function FreshScripts(_props: unknown, context: FreshRenderContext) {
       ? island.name
       : `{ ${island.exportName} }`;
     return `import ${named} from "${chunk}";`;
-  }).join("\n");
+  }).join("");
 
   const islandObj = "{" + islandArr.map((island) => {
-    return `${island.name}: ${island.name}`;
-  }).join(",\n") + "}";
+    return `${island.name}:${island.name}`;
+  }).join(",") + "}";
 
   const serializedProps = islandProps.map((props) => {
     return `'${stringify(props.props, stringifiers)}'`;
@@ -76,9 +76,8 @@ export function FreshScripts(_props: unknown, context: FreshRenderContext) {
       type="module"
       nonce={ctx.requestId}
       dangerouslySetInnerHTML={{
-        __html: `import { boot } from "${basePath}/fresh-runtime.js";
-${islandImports}
-  boot(${islandObj},[${serializedProps}])`,
+        __html:
+          `import { boot } from "${basePath}/fresh-runtime.js";${islandImports}boot(${islandObj},[${serializedProps}]);`,
       }}
     >
     </script>
