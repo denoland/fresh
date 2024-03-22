@@ -1,6 +1,7 @@
-import "./dev.ts";
+import "../dev.ts";
 import { type ComponentChildren, type VNode } from "preact";
-export { IS_BROWSER } from "./shared.ts";
+export { IS_BROWSER } from "../shared.ts";
+export { boot, revive } from "./reviver.ts";
 
 // FIXME: Export asset functions
 

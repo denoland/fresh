@@ -1,5 +1,8 @@
 import {
   Component,
+  ComponentChildren,
+  Fragment,
+  h,
   Options as PreactOptions,
   options as preactOptions,
   VNode,
@@ -7,15 +10,25 @@ import {
 import { GLOBAL_ISLANDS } from "../../app.ts";
 import { FreshRenderContext } from "../../runtime/server.tsx";
 
+const enum OptionsType {
+  VNODE = "vnode",
+  HOOK = "__h",
+  DIFF = "__b",
+  RENDER = "__r",
+  DIFFED = "diffed",
+  ERROR = "__e",
+}
+
 interface InternalPreactOptions extends PreactOptions {
-  /** options._hook */
-  __h(component: Component, index: number, type: number): void;
-  /** options._diff */
-  __b(vnode: VNode): void;
-  /** options._render */
-  __r(vnode: VNode): void;
-  /** options._render */
-  __e(error: unknown, vnode: VNode, oldVNode: VNode): void;
+  [OptionsType.VNODE](vnode: InternalVNode): void;
+  [OptionsType.HOOK](component: Component, index: number, type: number): void;
+  [OptionsType.DIFF](vnode: InternalVNode): void;
+  [OptionsType.RENDER](vnode: InternalVNode): void;
+  [OptionsType.ERROR](
+    error: unknown,
+    vnode: InternalVNode,
+    oldVNode: InternalVNode,
+  ): void;
 }
 
 interface InternalVNode extends VNode {
@@ -26,15 +39,45 @@ interface InternalVNode extends VNode {
 // deno-lint-ignore no-explicit-any
 const options: InternalPreactOptions = preactOptions as any;
 
-const oldDiff = options.__b;
-options.__b = (vnode) => {
-  if (typeof vnode.type === "function") {
+const PATCHED = new WeakSet<VNode>();
+
+const oldDiff = options[OptionsType.DIFF];
+options[OptionsType.DIFF] = (vnode) => {
+  patchIslands: if (
+    typeof vnode.type === "function" && vnode.type !== Fragment &&
+    !PATCHED.has(vnode)
+  ) {
     const island = GLOBAL_ISLANDS.get(vnode.type);
-    if (island) {
-      const ctx = getFreshContext(vnode as InternalVNode);
-      if (ctx === null) return;
-      ctx.__fresh.islands.add(island);
-    }
+    if (island === undefined) break patchIslands;
+
+    const ctx = getFreshContext(vnode as InternalVNode);
+    if (ctx === null) return;
+
+    const { islands, islandProps } = ctx.__fresh;
+    console.log(island);
+    islands.add(island);
+
+    // FIXME
+    const propsIdx = 0;
+
+    const originalType = vnode.type;
+    vnode.type = (props) => {
+      console.log("props", props);
+      for (const k in props) {
+        console.log(k, props[k]);
+      }
+
+      const propsIdx = islandProps.push({}) - 1;
+
+      const child = h(originalType, props);
+      PATCHED.add(child);
+
+      return wrapWithMarker(
+        child,
+        "island",
+        `${island!.name}:${propsIdx}:${vnode.key ?? ""}`,
+      );
+    };
   }
 
   oldDiff?.(vnode);
@@ -47,4 +90,24 @@ function getFreshContext(vnode: InternalVNode): FreshRenderContext | null {
   }
 
   return vnode.__c.context;
+}
+
+function wrapWithMarker(
+  vnode: ComponentChildren,
+  kind: string,
+  markerText: string,
+) {
+  return h(
+    Fragment,
+    null,
+    h(Fragment, {
+      // @ts-ignore unstable property is not typed
+      UNSTABLE_comment: `frsh:${kind}:${markerText}`,
+    }),
+    vnode,
+    h(Fragment, {
+      // @ts-ignore unstable property is not typed
+      UNSTABLE_comment: "/frsh:" + kind,
+    }),
+  );
 }

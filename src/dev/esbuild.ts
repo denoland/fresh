@@ -140,7 +140,8 @@ function freshRuntime(): EsbuildPlugin {
           import.meta.dirname!,
           "..",
           "runtime",
-          "client.tsx",
+          "client",
+          "mod.tsx",
         );
         return {
           path: filePath,

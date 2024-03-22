@@ -1,6 +1,6 @@
 import { PageProps } from "$fresh/server.ts";
 import { FreshScripts } from "@fresh/server";
-import { asset } from "../../src/runtime/client.tsx";
+import { asset } from "../../src/runtime/client/mod.tsx";
 
 export default function App(
   { Component, ...rest }: PageProps<
