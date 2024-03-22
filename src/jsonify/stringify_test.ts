@@ -1,6 +1,5 @@
 import { expect } from "@std/expect";
 import { stringify } from "./stringify.ts";
-import { signal } from "@preact/signals-core";
 
 Deno.test("stringify - json", () => {
   expect(stringify(2)).toEqual("[2]");
