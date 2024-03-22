@@ -31,6 +31,9 @@ function isVNode(x: any): x is VNode {
     isValidElement(x);
 }
 
+// deno-lint-ignore no-explicit-any
+export type Stringifiers = Record<string, (value: any) => any>;
+
 /**
  * Serializes the following:
  *
@@ -49,10 +52,10 @@ function isVNode(x: any): x is VNode {
  * Circular references are supported and objects with the same reference are
  * serialized only once.
  */
-export function stringify(data: unknown): string {
+export function stringify(data: unknown, custom?: Stringifiers): string {
   const out: string[] = [];
   const indexes = new Map<unknown, number>();
-  const res = serializeInner(out, indexes, data);
+  const res = serializeInner(out, indexes, data, custom);
   if (res < 0) {
     out.push(String(res));
   }
@@ -63,6 +66,7 @@ function serializeInner(
   out: string[],
   indexes: Map<unknown, number>,
   value: unknown,
+  custom?: Stringifiers,
 ): number {
   const seenIdx = indexes.get(value);
   if (seenIdx !== undefined) return seenIdx;
@@ -103,10 +107,23 @@ function serializeInner(
     }
     str += "]";
   } else if (typeof value === "object") {
+    if (custom !== undefined) {
+      for (const k in custom) {
+        const fn = custom[k];
+        if (fn === undefined) continue;
+
+        const res = fn(value);
+        if (res === undefined) continue;
+
+        serializeInner(out, indexes, res, custom);
+        str = `["${k}",${idx + 1}]`;
+        out[idx] = str;
+        return idx;
+      }
+    }
+
     if (value instanceof Date) {
       str += `["Date","${value.toISOString()}"]`;
-    } else if (isSignal(value)) {
-      str += `["Signal",${serializeInner(out, indexes, value.peek())}]`;
     } else if (value instanceof RegExp) {
       str += `["RegExp",${JSON.stringify(value.source)}, "${value.flags}"]`;
     } else if (value instanceof Uint8Array) {

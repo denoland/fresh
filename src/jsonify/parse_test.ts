@@ -1,6 +1,5 @@
 import { expect } from "@std/expect";
 import { parse } from "./parse.ts";
-import { Signal } from "@preact/signals-core";
 
 Deno.test("parse - json", () => {
   expect(parse("[2]")).toEqual(2);
@@ -70,12 +69,6 @@ Deno.test("parse - RegExp", () => {
 
   reg = /foo["]/g;
   expect(parse('[["RegExp","foo[\\"]", "g"]]')).toEqual(reg);
-});
-
-Deno.test("parse - Signals", () => {
-  const res = parse<Signal>('[["Signal",1],2]');
-  expect(res).toBeInstanceOf(Signal);
-  expect(res.peek()).toEqual(2);
 });
 
 Deno.test("parse - Uint8Array", () => {

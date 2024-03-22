@@ -1,20 +1,35 @@
 import { signal } from "@preact/signals-core";
-import { HOLE, INFINITY_POS } from "./constants.ts";
-import { ZERO_NEG } from "./constants.ts";
-import { INFINITY_NEG } from "./constants.ts";
-import { NAN } from "./constants.ts";
-import { NULL, UNDEFINED } from "./constants.ts";
+import {
+  HOLE,
+  INFINITY_NEG,
+  INFINITY_POS,
+  NAN,
+  NULL,
+  UNDEFINED,
+  ZERO_NEG,
+} from "./constants.ts";
 
-export function parse<T = unknown>(value: string): T {
+// deno-lint-ignore no-explicit-any
+export type CustomParser = Record<string, (value: any) => unknown>;
+
+export function parse<T = unknown>(
+  value: string,
+  custom?: CustomParser | undefined,
+): T {
   const data = JSON.parse(value);
 
   const hydrated = new Array(data.length);
   // deno-lint-ignore no-explicit-any
-  unpack(data, hydrated, 0) as any;
+  unpack(data, hydrated, 0, custom) as any;
   return hydrated[0];
 }
 
-function unpack(arr: unknown[], hydrated: unknown[], idx: number): void {
+function unpack(
+  arr: unknown[],
+  hydrated: unknown[],
+  idx: number,
+  custom: CustomParser | undefined,
+): void {
   if (idx in hydrated) return;
 
   const current = arr[idx];
@@ -50,7 +65,16 @@ function unpack(arr: unknown[], hydrated: unknown[], idx: number): void {
     return;
   } else if (Array.isArray(current)) {
     if (current.length > 0 && typeof current[0] === "string") {
-      switch (current[0]) {
+      const name = current[0];
+      if (custom !== undefined && name in custom) {
+        const fn = custom[name];
+        const ref = current[1];
+        unpack(arr, hydrated, ref, custom);
+        const value = hydrated[ref];
+        hydrated[idx] = fn(value);
+        return;
+      }
+      switch (name) {
         case "BigInt":
           hydrated[idx] = BigInt(current[1]);
           return;
@@ -64,7 +88,7 @@ function unpack(arr: unknown[], hydrated: unknown[], idx: number): void {
           const set = new Set();
           for (let i = 0; i < current[1].length; i++) {
             const ref = current[1][i];
-            unpack(arr, hydrated, ref);
+            unpack(arr, hydrated, ref, custom);
             set.add(hydrated[ref]);
           }
           hydrated[idx] = set;
@@ -74,9 +98,9 @@ function unpack(arr: unknown[], hydrated: unknown[], idx: number): void {
           const set = new Map();
           for (let i = 0; i < current[1].length; i++) {
             const refKey = current[1][i++];
-            unpack(arr, hydrated, refKey);
+            unpack(arr, hydrated, refKey, custom);
             const refValue = current[1][i];
-            unpack(arr, hydrated, refValue);
+            unpack(arr, hydrated, refValue, custom);
 
             set.set(hydrated[refKey], hydrated[refValue]);
           }
@@ -84,7 +108,7 @@ function unpack(arr: unknown[], hydrated: unknown[], idx: number): void {
           return;
         }
         case "Signal":
-          unpack(arr, hydrated, current[1]);
+          unpack(arr, hydrated, current[1], custom);
           hydrated[idx] = signal(hydrated[current[1]]);
           return;
         case "Uint8Array":
@@ -120,7 +144,7 @@ function unpack(arr: unknown[], hydrated: unknown[], idx: number): void {
               continue;
           }
         } else {
-          unpack(arr, hydrated, ref);
+          unpack(arr, hydrated, ref, custom);
           actual[i] = hydrated[ref];
         }
       }
@@ -156,7 +180,7 @@ function unpack(arr: unknown[], hydrated: unknown[], idx: number): void {
             break;
         }
       } else {
-        unpack(arr, hydrated, ref);
+        unpack(arr, hydrated, ref, custom);
         actual[key] = hydrated[ref];
       }
     }

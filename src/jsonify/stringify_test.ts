@@ -73,13 +73,6 @@ Deno.test("stringify - Map", () => {
     );
 });
 
-Deno.test("stringify - Signals", () => {
-  const s = signal(2);
-  expect(stringify(s)).toEqual(
-    '[["Signal",1],2]',
-  );
-});
-
 Deno.test("stringify - Uint8Array", () => {
   const value = new Uint8Array([1, 2, 3]);
   expect(stringify(value)).toEqual(
