@@ -24,6 +24,7 @@ interface InternalPreactOptions extends PreactOptions {
   [OptionsType.HOOK](component: Component, index: number, type: number): void;
   [OptionsType.DIFF](vnode: InternalVNode): void;
   [OptionsType.RENDER](vnode: InternalVNode): void;
+  [OptionsType.DIFFED](vnode: InternalVNode): void;
   [OptionsType.ERROR](
     error: unknown,
     vnode: InternalVNode,
@@ -57,17 +58,9 @@ options[OptionsType.DIFF] = (vnode) => {
     console.log(island);
     islands.add(island);
 
-    // FIXME
-    const propsIdx = 0;
-
     const originalType = vnode.type;
     vnode.type = (props) => {
-      console.log("props", props);
-      for (const k in props) {
-        console.log(k, props[k]);
-      }
-
-      const propsIdx = islandProps.push({}) - 1;
+      const propsIdx = islandProps.push({ slots: [], props }) - 1;
 
       const child = h(originalType, props);
       PATCHED.add(child);

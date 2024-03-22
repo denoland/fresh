@@ -1,6 +1,8 @@
-import { Island } from "../app.ts";
+import { type Signal } from "@preact/signals";
+import { type Island } from "../app.ts";
 import { FreshContext } from "../context.ts";
-import { stringify } from "../jsonify/stringify.ts";
+import { Stringifiers, stringify } from "../jsonify/stringify.ts";
+import { isValidElement, VNode } from "preact";
 
 export type Mode = "dev" | "build" | "prod";
 export let MODE: Mode = "prod";
@@ -13,10 +15,36 @@ export function setMode(mode: Mode) {
 export interface FreshRenderContext {
   __fresh: {
     islands: Set<Island>;
-    islandProps: any[];
+    islandProps: { slots: string[]; props: unknown }[];
     ctx: FreshContext<any>;
   };
 }
+
+// deno-lint-ignore no-explicit-any
+function isSignal(x: any): x is Signal {
+  return (
+    x !== null &&
+    typeof x === "object" &&
+    typeof x.peek === "function" &&
+    "value" in x
+  );
+}
+
+// deno-lint-ignore no-explicit-any
+function isVNode(x: any): x is VNode {
+  return x !== null && typeof x === "object" && "type" in x && "ref" in x &&
+    "__k" in x &&
+    isValidElement(x);
+}
+
+const stringifiers: Stringifiers = {
+  Signal: (value: unknown) => {
+    return isSignal(value) ? value.peek() : undefined;
+  },
+  VNode: (value: unknown) => {
+    return isVNode(value) ? "<VNODE>" : undefined;
+  },
+};
 
 export function FreshScripts(_props: unknown, context: FreshRenderContext) {
   const { islands, islandProps, ctx } = context.__fresh;
@@ -38,8 +66,9 @@ export function FreshScripts(_props: unknown, context: FreshRenderContext) {
     return `${island.name}: ${island.name}`;
   }).join(",\n") + "}";
 
-  const serializedProps = islandProps.map((props) => stringify(props));
-  console.log(islandProps, serializedProps);
+  const serializedProps = islandProps.map((props) => {
+    return `'${stringify(props.props, stringifiers)}'`;
+  }).join(",");
 
   // FIXME: integrity
   return (
@@ -49,7 +78,7 @@ export function FreshScripts(_props: unknown, context: FreshRenderContext) {
       dangerouslySetInnerHTML={{
         __html: `import { boot } from "${basePath}/fresh-runtime.js";
 ${islandImports}
-  boot(${islandObj}, [${serializedProps.join(", ")}])`,
+  boot(${islandObj},[${serializedProps}])`,
       }}
     >
     </script>

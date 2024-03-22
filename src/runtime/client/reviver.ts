@@ -1,6 +1,7 @@
 import { ComponentType, h, hydrate, render } from "preact";
-import { deserialize } from "../../jsonify/parse.ts";
+import { parse } from "../../jsonify/parse.ts";
 import { signal } from "@preact/signals";
+import { CustomParser } from "../../jsonify/parse.ts";
 
 interface IslandReq {
   name: string;
@@ -19,6 +20,7 @@ export function revive(island: IslandReq, props: Record<string, unknown>) {
   const component = ISLAND_REGISTRY.get(island.name)!;
 
   const container = createRootFragment(
+    // deno-lint-ignore no-explicit-any
     island.start.parentNode as any,
     island.start,
     island.end!,
@@ -44,6 +46,13 @@ export function revive(island: IslandReq, props: Record<string, unknown>) {
 
 const ISLAND_REGISTRY = new Map<string, ComponentType>();
 
+const customParser: CustomParser = {
+  Signal: (value: unknown) => signal(value),
+  // FIXME: VNode
+  // @ts-ignore asd
+  VNode: (value: unknown) => h("h1", null, value),
+};
+
 export function boot(
   initialIslands: Record<string, ComponentType>,
   islandProps: string[],
@@ -63,11 +72,10 @@ export function boot(
   for (let i = 0; i < ctx.islands.length; i++) {
     const island = ctx.islands[i];
 
-    // FIXME: Deserialize
-    const props = deserialize(islandProps[island.propsIdx], signal) as Record<
-      string,
-      unknown
-    >;
+    const props = parse<Record<string, unknown>>(
+      islandProps[island.propsIdx],
+      customParser,
+    );
     revive(island, props);
   }
 
