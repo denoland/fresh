@@ -62,9 +62,9 @@ export function FreshScripts(_props: unknown, context: FreshRenderContext) {
     return `import ${named} from "${chunk}";`;
   }).join("");
 
-  const islandObj = "{" + islandArr.map((island) => {
-    return `${island.name}:${island.name}`;
-  }).join(",") + "}";
+  const islandObj = "{" + islandArr.map((island) => island.name)
+    .join(",") +
+    "}";
 
   const serializedProps = islandProps.map((props) => {
     return `'${stringify(props.props, stringifiers)}'`;
