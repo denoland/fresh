@@ -1,4 +1,3 @@
-import { isValidElement, VNode } from "preact";
 import {
   INFINITY_NEG,
   INFINITY_POS,
@@ -8,28 +7,6 @@ import {
   ZERO_NEG,
 } from "./constants.ts";
 import { HOLE } from "./constants.ts";
-
-interface Signal {
-  peek(): unknown;
-  value: unknown;
-}
-
-// deno-lint-ignore no-explicit-any
-function isSignal(x: any): x is Signal {
-  return (
-    x !== null &&
-    typeof x === "object" &&
-    typeof x.peek === "function" &&
-    "value" in x
-  );
-}
-
-// deno-lint-ignore no-explicit-any
-function isVNode(x: any): x is VNode {
-  return x !== null && typeof x === "object" && "type" in x && "ref" in x &&
-    "__k" in x &&
-    isValidElement(x);
-}
 
 // deno-lint-ignore no-explicit-any
 export type Stringifiers = Record<string, (value: any) => any>;
@@ -47,7 +24,6 @@ export type Stringifiers = Record<string, (value: any) => any>;
  * - `object` (no prototypes)
  * - `Uint8Array`
  * - `Date`
- * - `Signal` from `@preact/signals`
  *
  * Circular references are supported and objects with the same reference are
  * serialized only once.

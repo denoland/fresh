@@ -1,4 +1,3 @@
-import { signal } from "@preact/signals-core";
 import {
   HOLE,
   INFINITY_NEG,
@@ -107,10 +106,6 @@ function unpack(
           hydrated[idx] = set;
           return;
         }
-        case "Signal":
-          unpack(arr, hydrated, current[1], custom);
-          hydrated[idx] = signal(hydrated[current[1]]);
-          return;
         case "Uint8Array":
           hydrated[idx] = b64decode(current[1]);
           return;
