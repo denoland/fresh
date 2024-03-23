@@ -24,6 +24,9 @@ export type Stringifiers = Record<string, (value: any) => any>;
  * - `object` (no prototypes)
  * - `Uint8Array`
  * - `Date`
+ * - `RegExp`
+ * - `Set`
+ * - `Map`
  *
  * Circular references are supported and objects with the same reference are
  * serialized only once.
