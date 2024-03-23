@@ -179,7 +179,7 @@ CMD ["run", "-A", "main.ts"]
 }
 
 const ROUTES_INDEX_TSX = `import { useSignal } from "@preact/signals";
-import Counter from "../islands/Counter.tsx";
+import Counter from "@/islands/Counter.tsx";
 
 export default function Home() {
   const count = useSignal(3);
@@ -220,7 +220,7 @@ export function Button(props: JSX.HTMLAttributes<HTMLButtonElement>) {
 `;
 
 const ISLANDS_COUNTER_TSX = `import type { Signal } from "@preact/signals";
-import { Button } from "../components/Button.tsx";
+import { Button } from "@/components/Button.tsx";
 
 interface CounterProps {
   count: Signal<number>;
