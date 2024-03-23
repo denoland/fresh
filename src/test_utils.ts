@@ -1,4 +1,4 @@
-import { createContext } from "./context.ts";
+import { FreshReqContext } from "./context.ts";
 import { Middleware } from "./middlewares/compose.ts";
 import { FsAdapter } from "./fs.ts";
 import { WalkEntry } from "@std/fs/walk";
@@ -44,7 +44,7 @@ export class FakeServer {
 
 export function serveMiddleware<T>(middleware: Middleware<T>): FakeServer {
   return new FakeServer(async (req) => {
-    const ctx = createContext<T>(
+    const ctx = new FreshReqContext<T>(
       req,
       {
         build: {
@@ -80,6 +80,8 @@ export function createFakeFs(files: Record<string, unknown>): FsAdapter {
     // deno-lint-ignore require-await
     async isDirectory(dir) {
       return Object.keys(files).some((file) => file.startsWith(dir + "/"));
+    },
+    async mkdirp(_dir: string) {
     },
   };
 }

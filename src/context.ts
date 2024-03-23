@@ -1,8 +1,10 @@
-import { FunctionComponent } from "preact";
+import { FunctionComponent, VNode } from "preact";
 import { ResolvedFreshConfig } from "./config.ts";
 import { BuildCache } from "./build_cache.ts";
+import { RenderState } from "./middlewares/render/render_state.ts";
+import { renderToStringAsync } from "https://esm.sh/*preact-render-to-string@6.4.0";
 
-export type EmptyObj = Record<string | number | symbol, never>;
+const NOOP = () => null;
 
 export interface FreshContext<State = unknown, Data = unknown> {
   readonly requestId: string;
@@ -14,10 +16,11 @@ export interface FreshContext<State = unknown, Data = unknown> {
   url: URL;
   params: Record<string, string>;
   error: unknown;
-  redirect(path: string, status?: number): Response;
-  next(): Promise<Response>;
-  throw(status: number, messageOrError?: string | Error): never;
   Component: FunctionComponent;
+  redirect(path: string, status?: number): Response;
+  throw(status: number, messageOrError?: string | Error): never;
+  next(): Promise<Response>;
+  render(vnode: VNode, init?: ResponseInit): Promise<Response>;
 
   /**
    * TODO: Remove this later
@@ -26,45 +29,62 @@ export interface FreshContext<State = unknown, Data = unknown> {
   renderNotFound(): Promise<void>;
 }
 
-// TODO: Support cause?
-// TODO: Should we always throw actual error objects? Stack traces are
-//  expensive :S
-function throwError(status: number, messageOrError?: string | Error): never {
-  if (messageOrError instanceof Error) {
-    // deno-lint-ignore no-explicit-any
-    (messageOrError as any).status = status;
-    throw messageOrError;
+export class FreshReqContext<T> implements FreshContext<T, unknown> {
+  url: URL;
+  Component = NOOP;
+  requestId: string;
+  redirect = redirectTo;
+  params = {} as Record<string, string>;
+  state = {} as T;
+  data = {} as unknown;
+  error: Error | null = null;
+  buildCache: BuildCache | null = null;
+
+  constructor(
+    public req: Request,
+    public config: ResolvedFreshConfig,
+    public next: FreshContext<T>["next"],
+  ) {
+    this.requestId = crypto.randomUUID().replace(/-/g, "");
+    this.url = new URL(req.url);
   }
-  throw { status, message: messageOrError };
-}
 
-const NOOP = () => null;
+  throw(
+    status: number,
+    messageOrError?: string | Error | undefined,
+  ): never {
+    if (messageOrError instanceof Error) {
+      // deno-lint-ignore no-explicit-any
+      (messageOrError as any).status = status;
+      throw messageOrError;
+    }
+    throw { status, message: messageOrError };
+  }
 
-export function createContext<T>(
-  req: Request,
-  config: ResolvedFreshConfig,
-  next: FreshContext<T>["next"],
-): FreshContext<T> {
-  const requestId = crypto.randomUUID().replace(/-/g, "");
+  async render(
+    // deno-lint-ignore no-explicit-any
+    vnode: VNode<any>,
+    init: ResponseInit | undefined = {},
+  ): Promise<Response> {
+    const state = new RenderState(this);
 
-  return {
-    requestId,
-    config,
-    url: new URL(req.url),
-    req,
-    buildCache: null,
-    redirect: redirectTo,
-    params: {},
-    next,
-    state: {} as T,
-    data: {} as unknown,
-    error: null,
-    throw: throwError,
-    Component: NOOP,
-    renderNotFound() {
-      return throwError(404);
-    },
-  };
+    // FIXME: Streaming
+    const html = await renderToStringAsync(vnode, { __fresh: state });
+
+    const headers = init.headers !== undefined
+      ? init.headers instanceof Headers
+        ? init.headers
+        : new Headers(init.headers)
+      : new Headers();
+
+    // TODO: Add json renderer
+    headers.set("Content-Type", "text/html; charset=utf-8");
+    return new Response(html, { status: init.status ?? 200, headers });
+  }
+
+  renderNotFound(): Promise<void> {
+    return this.throw(404);
+  }
 }
 
 export function redirectTo(pathOrUrl: string, status = 302): Response {

@@ -1,7 +1,7 @@
 import { DENO_DEPLOYMENT_ID } from "./constants.ts";
 import * as colors from "@std/fmt/colors";
 import { compose, Middleware } from "./middlewares/compose.ts";
-import { createContext } from "./context.ts";
+import { FreshReqContext } from "./context.ts";
 import { mergePaths, Method, Router, UrlPatternRouter } from "./router.ts";
 import { FreshConfig, normalizeConfig, ResolvedFreshConfig } from "./config.ts";
 import {
@@ -160,7 +160,7 @@ export class FreshApp<State> implements App<State> {
       // Prevent open redirect attacks
       url.pathname = url.pathname.replace(/\/+/g, "/");
 
-      const ctx = createContext<State>(req, this.config, next);
+      const ctx = new FreshReqContext<State>(req, this.config, next);
       ctx.buildCache = this.buildCache;
 
       const cacheKey = `${req.method} ${req.url}`;
