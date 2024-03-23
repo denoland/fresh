@@ -1,5 +1,4 @@
 import { useSignal } from "@preact/signals";
-import { IS_BROWSER } from "@fresh/runtime";
 import { RoundedButton } from "../components/Button.tsx";
 import * as Icons from "../components/Icons.tsx";
 
@@ -28,7 +27,7 @@ export default function Counter(props: CounterProps) {
         <RoundedButton
           title="Subtract 1"
           onClick={() => count.value -= 1}
-          disabled={!IS_BROWSER || count.value <= 0}
+          disabled={count.value <= 0}
         >
           <Icons.IconMinus />
         </RoundedButton>
@@ -39,7 +38,6 @@ export default function Counter(props: CounterProps) {
         <RoundedButton
           title="Add 1"
           onClick={() => count.value += 1}
-          disabled={!IS_BROWSER}
         >
           <Icons.IconPlus />
         </RoundedButton>
