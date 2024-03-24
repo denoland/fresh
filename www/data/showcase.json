@@ -322,7 +322,8 @@
     "link": "https://mandarin.deno.dev/",
     "github": "silvercrow/mandarin",
     "image": "learn-mandarin"
-  },{
+  },
+  {
     "title": "Echo-Echo",
     "link": "https://echo-echo.deno.dev/",
     "github": "https://github.com/Octo8080X/Echo-Echo",
