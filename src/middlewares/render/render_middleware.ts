@@ -1,6 +1,5 @@
 import { h, RenderableProps, VNode } from "preact";
 import { Middleware } from "../compose.ts";
-import { renderHtml } from "./render_html.ts";
 import { AnyComponent } from "preact";
 import { HandlerFn, Render } from "../../defines.ts";
 import { FreshContext } from "../../context.ts";
@@ -52,10 +51,5 @@ async (ctx) => {
     }) as VNode;
   }
 
-  const html = await renderHtml(ctx, vnode!);
-  return new Response("<!DOCTYPE html>" + html, {
-    headers: {
-      "Content-Type": "text/html; charset=utf-8",
-    },
-  });
+  return ctx.render(vnode!);
 };

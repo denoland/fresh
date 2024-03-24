@@ -2,7 +2,10 @@ import { FunctionComponent, VNode } from "preact";
 import { ResolvedFreshConfig } from "./config.ts";
 import { BuildCache } from "./build_cache.ts";
 import { RenderState } from "./middlewares/render/render_state.ts";
-import { renderToStringAsync } from "https://esm.sh/*preact-render-to-string@6.4.0";
+import {
+  renderToStream,
+  renderToStringAsync,
+} from "../../preact-render-to-string/src/index.js";
 
 const NOOP = () => null;
 
@@ -20,7 +23,7 @@ export interface FreshContext<State = unknown, Data = unknown> {
   redirect(path: string, status?: number): Response;
   throw(status: number, messageOrError?: string | Error): never;
   next(): Promise<Response>;
-  render(vnode: VNode, init?: ResponseInit): Promise<Response>;
+  render(vnode: VNode, init?: ResponseInit): Response | Promise<Response>;
 
   /**
    * TODO: Remove this later
@@ -28,6 +31,9 @@ export interface FreshContext<State = unknown, Data = unknown> {
    */
   renderNotFound(): Promise<void>;
 }
+
+const RENDER_PREACT_SLOT = (idx: number) =>
+  `<!--frsh:await:${idx}--><!--/frsh:await:${idx}-->`;
 
 export class FreshReqContext<T> implements FreshContext<T, unknown> {
   url: URL;
@@ -61,16 +67,12 @@ export class FreshReqContext<T> implements FreshContext<T, unknown> {
     throw { status, message: messageOrError };
   }
 
-  async render(
+  render(
     // deno-lint-ignore no-explicit-any
     vnode: VNode<any>,
     init: ResponseInit | undefined = {},
-  ): Promise<Response> {
-    const state = new RenderState(this);
-
-    // FIXME: Streaming
-    const html = await renderToStringAsync(vnode, { __fresh: state });
-
+    options?: { stream?: boolean },
+  ): Response | Promise<Response> {
     const headers = init.headers !== undefined
       ? init.headers instanceof Headers
         ? init.headers
@@ -79,12 +81,34 @@ export class FreshReqContext<T> implements FreshContext<T, unknown> {
 
     // TODO: Add json renderer
     headers.set("Content-Type", "text/html; charset=utf-8");
-    return new Response(html, { status: init.status ?? 200, headers });
+    const responseInit: ResponseInit = { status: init.status ?? 200, headers };
+
+    const state = new RenderState(this);
+    const stream = !!options?.stream;
+
+    const result = stream
+      ? renderToStream(vnode, { __fresh: state }, RENDER_PREACT_SLOT)
+      : renderToStringAsync(vnode, { __fresh: state });
+    if (typeof result === "string") {
+      return new Response("<!DOCTYPE html>" + result, responseInit);
+    } else if (isPromise(result)) {
+      return result.then((html) => {
+        const out = "<!DOCTYPE html>" + html;
+        return new Response(out, responseInit);
+      });
+    }
+
+    return new Response(result, responseInit);
   }
 
   renderNotFound(): Promise<void> {
     return this.throw(404);
   }
+}
+
+// deno-lint-ignore no-explicit-any
+function isPromise(x: any): x is Promise<unknown> {
+  return typeof x.then === "function";
 }
 
 export function redirectTo(pathOrUrl: string, status = 302): Response {
