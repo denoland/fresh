@@ -1,6 +1,17 @@
 import { Middleware } from "./compose.ts";
 
-export const trailingSlashes = (mode: "always" | "never"): Middleware => {
+/**
+ * Fresh middleware to force URLs to end with a slash or never end with one.
+ *
+ * Usage:
+ * ```ts
+ * // Always add trailing slash
+ * app.use(trailingSlashes("always"));
+ * // Never add trailing slashes to URLs and remove them if present
+ * app.use(trailingSlashes("never"));
+ * ```
+ */
+export function trailingSlashes(mode: "always" | "never"): Middleware {
   return function trailingSlashesMiddleware(ctx) {
     const url = ctx.url;
     if (url.pathname !== "/") {
@@ -14,4 +25,4 @@ export const trailingSlashes = (mode: "always" | "never"): Middleware => {
     }
     return ctx.next();
   };
-};
+}
