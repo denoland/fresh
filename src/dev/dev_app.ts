@@ -26,6 +26,17 @@ export interface DevApp<T> extends App<T> {
   ): void;
 }
 
+export interface BuildOptions {
+  dev?: boolean;
+  /**
+   * This sets the target environment for the generated code. Newer
+   * language constructs will be transformed to match the specified
+   * support range. See https://esbuild.github.io/api/#target
+   * @default {"es2022"}
+   */
+  target?: string | string[];
+}
+
 export class FreshDevApp<T> extends FreshApp<T> implements DevApp<T> {
   #transformer = new FreshFileTransformer();
 
@@ -64,7 +75,7 @@ export class FreshDevApp<T> extends FreshApp<T> implements DevApp<T> {
     return;
   }
 
-  async build(options: { dev?: boolean } = {}): Promise<void> {
+  async build(options: BuildOptions = {}): Promise<void> {
     const start = Date.now();
     const { staticDir, build } = this.config;
     const staticOutDir = path.join(build.outDir, "static");
@@ -74,6 +85,8 @@ export class FreshDevApp<T> extends FreshApp<T> implements DevApp<T> {
       staticFiles: {},
       islands: {},
     };
+
+    const target = options.target ?? ["chrome99", "firefox99", "safari15"];
 
     // Read static files
     if (await fsAdapter.isDirectory(staticDir)) {
@@ -89,6 +102,7 @@ export class FreshDevApp<T> extends FreshApp<T> implements DevApp<T> {
         const result = await this.#transformer.process(
           entry.path,
           options.dev ? "development" : "production",
+          target,
         );
 
         const relative = path.relative(staticDir, entry.path);
@@ -136,7 +150,7 @@ export class FreshDevApp<T> extends FreshApp<T> implements DevApp<T> {
       cwd: Deno.cwd(),
       outDir: staticOutDir,
       dev: options.dev ?? false,
-      target: build.target,
+      target,
       entryPoints,
       jsxImportSource,
       denoJsonPath: denoJson.filePath,

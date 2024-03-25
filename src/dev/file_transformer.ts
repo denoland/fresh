@@ -8,8 +8,9 @@ export interface OnTransformResult {
 }
 export interface OnTransformArgs {
   path: string;
-  content: Uint8Array;
+  target: string | string[];
   text: string;
+  content: Uint8Array;
   mode: TransformMode;
 }
 export type TransformFn = (
@@ -38,6 +39,7 @@ export class FreshFileTransformer implements FileTransformer {
   async process(
     filePath: string,
     mode: TransformMode,
+    target: string | string[],
   ): Promise<Uint8Array | null> {
     let content: Uint8Array | null = null;
 
@@ -49,6 +51,7 @@ export class FreshFileTransformer implements FileTransformer {
         const result = await fn({
           path: filePath,
           mode,
+          target,
           content,
           get text() {
             return new TextDecoder().decode(content!);
