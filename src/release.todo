@@ -10,6 +10,7 @@ Fresh 2.0:
 ☐ bring back active url handling
 ☐ preloading scripts
 ☐ `asset()` function
+☐ Remove components on website
 
 Fresh 2.0 compat:
 ☐ add plugin API backwards compat
