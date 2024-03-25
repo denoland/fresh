@@ -197,8 +197,8 @@
   },
   {
     "title": "Deno Paste",
-    "link": "https://deno-paste.deno.dev/",
-    "github": "stephenmelnicki/deno_paste",
+    "link": "https://denopaste.com/",
+    "github": "stephenmelnicki/denopaste",
     "image": "deno-paste"
   },
   {
@@ -363,7 +363,7 @@
   {
     "title": "Echo-Echo",
     "link": "https://echo-echo.deno.dev/",
-    "github": "/Octo8080X/Echo-Echo",
+    "github": "Octo8080X/Echo-Echo",
     "image": "echo-echo"
   },
   {
