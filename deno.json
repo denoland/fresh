@@ -2,7 +2,8 @@
   "name": "@marvinh-test/fresh",
   "version": "2.0.0-prealpha.2",
   "exports": {
-    ".": "./src/mod.ts"
+    ".": "./src/mod.ts",
+    "runtime": "./src/runtime/client/mod.tsx"
   },
   "lock": false,
   "tasks": {

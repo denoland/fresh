@@ -3,7 +3,6 @@ import { Middleware } from "./compose.ts";
 /**
  * Fresh middleware to force URLs to end with a slash or never end with one.
  *
- * Usage:
  * ```ts
  * // Always add trailing slash
  * app.use(trailingSlashes("always"));

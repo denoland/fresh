@@ -4,7 +4,14 @@ import { contentType as getContentType } from "@std/media-types/content_type";
 
 // FIXME: Test etag
 // FIXME: Test source map content type
-export const freshStaticFiles = (): Middleware => {
+/**
+ * Fresh plugin to enable file-system based routing.
+ * ```ts
+ * // Enable Fresh static file serving
+ * app.use(freshStaticFles());
+ * ```
+ */
+export function freshStaticFiles(): Middleware {
   return async function serveFreshStaticFiles(ctx) {
     const { req, url, config, buildCache } = ctx;
 
@@ -32,7 +39,7 @@ export const freshStaticFiles = (): Middleware => {
 
     return res === null ? ctx.next() : res;
   };
-};
+}
 
 export async function sendFile(
   req: Request,
