@@ -10,8 +10,6 @@ const NOOP = () => null;
  * The context passed to every middleware. It is unique for every request.
  */
 export interface FreshContext<State = unknown, Data = unknown> {
-  /** A unique request Id for this request. */
-  readonly requestId: string;
   /** Reference to the resolved Fresh configuration */
   readonly config: ResolvedFreshConfig;
   buildCache: BuildCache | null;
@@ -82,7 +80,6 @@ const RENDER_PREACT_SLOT = (idx: number) =>
 export class FreshReqContext<T> implements FreshContext<T, unknown> {
   url: URL;
   Component = NOOP;
-  requestId: string;
   redirect = redirectTo;
   params = {} as Record<string, string>;
   state = {} as T;
@@ -95,7 +92,6 @@ export class FreshReqContext<T> implements FreshContext<T, unknown> {
     public config: ResolvedFreshConfig,
     public next: FreshContext<T>["next"],
   ) {
-    this.requestId = crypto.randomUUID().replace(/-/g, "");
     this.url = new URL(req.url);
   }
 

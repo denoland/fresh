@@ -16,6 +16,6 @@ export class RenderState {
   ownerStack = [];
 
   constructor(public ctx: FreshContext<unknown>) {
-    this.nonce = ctx.requestId;
+    this.nonce = crypto.randomUUID().replace(/-/g, "");
   }
 }

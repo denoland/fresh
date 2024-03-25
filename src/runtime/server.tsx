@@ -86,10 +86,10 @@ export function FreshScripts(
   }).join(",");
 
   // FIXME: integrity
+  // FIXME: nonce
   return (
     <script
       type="module"
-      nonce={ctx.requestId}
       dangerouslySetInnerHTML={{
         __html:
           `import { boot } from "${basePath}/fresh-runtime.js";${islandImports}boot(${islandObj},[${serializedProps}]);`,
