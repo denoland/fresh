@@ -1,0 +1,33 @@
+Fresh 2.0:
+☐ rewrite router to accept an array of handlers
+☐ fix composing apps via `app.mount()`
+☐ add back async layouts to fs router
+☐ try publishing to JSR
+  ☐ what to do about global JSX type extensions?
+☐ bring back partials + nested islands + server components
+☐ bring back old-style `ctx.render()` API
+☐ bring back browser polyfills
+☐ bring back active url handling
+☐ preloading scripts
+☐ `asset()` function
+
+Fresh 2.0 compat:
+☐ add plugin API backwards compat
+☐ add `defineRoute`/`defineLayout`/`defineApp` helpers in compat
+
+Fresh 2.0 finishing:
+☐ delete old 1.x code
+☐ update docs
+☐ release blog post
+  ☐ removal of JIT
+  ☐ removal of HEAD
+  ☐ app-style API
+  ☐ new render API
+  ☐ simplified middleware signature
+  ☐ merged context objects
+  ☐ simplified error handling
+  ☐ `ctx.redirect()`
+  ☐ hashed assets in CSS files
+  ☐ etag caching based on file contents
+
+
