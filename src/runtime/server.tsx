@@ -49,6 +49,15 @@ const stringifiers: Stringifiers = {
   },
 };
 
+/**
+ * Insert scripts passed to Fresh as well as the fresh runtime code into
+ * the HTML. This is typically placed just before the closing body tag.
+ * ```tsx
+ * <body>
+ *   <FreshScripts />
+ * </body>
+ * ```
+ */
 export function FreshScripts(
   _props: unknown,
   context: FreshRenderContext,

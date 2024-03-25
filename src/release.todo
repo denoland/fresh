@@ -31,5 +31,6 @@ Fresh 2.0 finishing:
   ☐ `ctx.redirect()`
   ☐ hashed assets in CSS files
   ☐ etag caching based on file contents
+  ☐ clear split of dev + prod -> smaller deployments
 
 
