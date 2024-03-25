@@ -22,7 +22,10 @@
   ],
   "publish": {
     "include": [
-      "src/**"
+      "src/**",
+      "deno.json",
+      "README.md",
+      "LICENSE"
     ],
     "exclude": [
       "**/*_test.*",
