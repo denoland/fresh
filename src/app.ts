@@ -62,6 +62,9 @@ export class FreshApp<State> implements App<State> {
   #routeCache = new Map<string, RouteCacheEntry<State>>();
   #islandNames = new Set<string>();
 
+  /**
+   * The final resolved Fresh configuration.
+   */
   config: ResolvedFreshConfig;
 
   constructor(config: FreshConfig = {}) {

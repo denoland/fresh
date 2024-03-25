@@ -6,19 +6,66 @@ import { renderToStringAsync } from "preact-render-to-string";
 
 const NOOP = () => null;
 
+/**
+ * The context passed to every middleware. It is unique for every request.
+ */
 export interface FreshContext<State = unknown, Data = unknown> {
+  /** A unique request Id for this request. */
   readonly requestId: string;
+  /** Reference to the resolved Fresh configuration */
   readonly config: ResolvedFreshConfig;
   buildCache: BuildCache | null;
   state: State;
   data: Data;
+  /** The original incoming `Request` object` */
   req: Request;
+  /**
+   * The request url parsed into an `URL` instance. This is typically used
+   * to apply logic based on the pathname of the incoming url or when
+   * certain search parameters are set.
+   */
   url: URL;
   params: Record<string, string>;
   error: unknown;
   Component: FunctionComponent;
+  /**
+   * Return a redirect response to the specified path. This is the
+   * preferred way to do redirects in Fresh.
+   *
+   * ```ts
+   * ctx.redirect("/foo/bar") // redirect user to "<yoursite>/foo/bar"
+   *
+   * // Disallows protocol relative URLs for improved security. This
+   * // redirects the user to `<yoursite>/evil.com` which is safe,
+   * // instead of redirecting to `http://evil.com`.
+   * ctx.redirect("//evil.com/");
+   * ```
+   */
   redirect(path: string, status?: number): Response;
   throw(status: number, messageOrError?: string | Error): never;
+  /**
+   * Call the next middleware.
+   * ```ts
+   * const myMiddleware: Middleware = (ctx) => {
+   *   // do something
+   *
+   *   // Call the next middleware
+   *   return ctx.next();
+   * }
+   *
+   * const myMiddleware2: Middleware = async (ctx) => {
+   *   // do something before the next middleware
+   *   doSomething()
+   *
+   *   const res = await ctx.next();
+   *
+   *   // do something after the middleware
+   *   doSomethingAfter()
+   *
+   *   // Return the `Response`
+   *   return res
+   * }
+   */
   next(): Promise<Response>;
   render(vnode: VNode, init?: ResponseInit): Response | Promise<Response>;
 

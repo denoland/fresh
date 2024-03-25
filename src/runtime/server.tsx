@@ -4,8 +4,11 @@ import { FreshContext } from "../context.ts";
 import { Stringifiers, stringify } from "../jsonify/stringify.ts";
 import { isValidElement, VNode } from "preact";
 
-export type Mode = "dev" | "build" | "prod";
-export let MODE: Mode = "prod";
+/**
+ * The mode Fresh can run in.
+ */
+export type Mode = "development" | "build" | "production";
+export let MODE: Mode = "production";
 
 export function setMode(mode: Mode) {
   MODE = mode;

@@ -30,6 +30,9 @@ export interface FreshConfig {
   staticDir?: string;
 }
 
+/**
+ * The final resolved Fresh configuration where fields the user didn't specify are set to the default values.
+ */
 export interface ResolvedFreshConfig {
   root: string;
   build: {
@@ -38,12 +41,13 @@ export interface ResolvedFreshConfig {
   };
   basePath: string;
   staticDir: string;
+  /**
+   * Tells you in which mode Fresh is currently running in.
+   */
   mode: Mode;
 }
 
-export function normalizeConfig(
-  options: FreshConfig,
-): ResolvedFreshConfig {
+export function normalizeConfig(options: FreshConfig): ResolvedFreshConfig {
   const root = options.root ?? Deno.cwd();
 
   return {

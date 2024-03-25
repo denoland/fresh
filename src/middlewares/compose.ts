@@ -17,10 +17,7 @@ import { FreshContext } from "../context.ts";
  * // Redirect all users going to `/legacy/*` to `/modern/*`
  * const myRedirectMiddleware: Middleware = (ctx) => {
  *   const { url } = ctx;
- *   if (
- *     url.pathname === "/legacy" ||
- *       url.pathname.startsWith("/legacy/"
- *   ) {
+ *   if (url.pathname.startsWith("/legacy/")) {
  *     return ctx.redirect("/modern");
  *   }
  *
