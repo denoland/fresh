@@ -2,7 +2,7 @@ import PageFooter from "../components/Footer.tsx";
 import Header from "../components/Header.tsx";
 import ComponentGallery from "../islands/ComponentGallery.tsx";
 
-import { Head } from "$fresh/runtime.ts";
+import { asset, Head } from "$fresh/runtime.ts";
 import { Handlers, PageProps } from "$fresh/server.ts";
 
 function getSource(path: string) {
@@ -30,24 +30,35 @@ export const handler: Handlers<HomeProps> = {
   },
 };
 
+const TITLE = "Components | Fresh";
+const DESCRIPTION = "A collection of components made for Fresh.";
+
 interface HomeProps {
   sources: Record<string, string>;
 }
 
 export default function Home(props: PageProps<HomeProps>) {
+  const ogImageUrl = new URL(asset("/home-og.png"), props.url).href;
   return (
     <div class="bg-white h-full">
       <Head>
-        <title>Components | fresh</title>
+        <title>{TITLE}</title>
         <link
           rel="stylesheet"
-          href="https://esm.sh/prismjs@1.27.0/themes/prism-dark.min.css"
+          href="https://esm.sh/prismjs@1.29.0/themes/prism-dark.min.css"
         />
+        <meta name="description" content={DESCRIPTION} />
+        <meta property="og:title" content={TITLE} />
+        <meta property="og:description" content={DESCRIPTION} />
+        <meta property="og:type" content="website" />
+        <meta property="og:url" content={props.url.href} />
+        <meta property="og:image" content={ogImageUrl} />
+        <meta name="view-transition" content="same-origin" />
       </Head>
       <Header title="components" active="/components" />
 
-      <section class="my-16 px(4 sm:6 md:8) mx-auto max-w-screen-lg space-y-4">
-        <h2 class="text(3xl gray-600) font-bold">
+      <section class="my-16 px-4 sm:px-6 md:px-8 mx-auto max-w-screen-lg space-y-4">
+        <h2 class="text-3xl text-gray-600 font-bold">
           Fresh Components
         </h2>
         <p class="text-gray-600">
@@ -60,7 +71,7 @@ export default function Home(props: PageProps<HomeProps>) {
         <a class="block" href="https://tabler-icons-tsx.deno.dev/">
           <div
             style="background-image: url(/gallery/banner-tabler-icons.png)"
-            class="h-48 bg(cover no-repeat white) hover:opacity-50 hover:underline rounded"
+            class="h-48 bg-cover bg-no-repeat bg-white hover:opacity-50 hover:underline rounded"
           >
             <h2 class="text-4xl font-bold p-4">Icons</h2>
           </div>
@@ -69,7 +80,7 @@ export default function Home(props: PageProps<HomeProps>) {
         <a class="block" href="https://github.com/denoland/fresh_charts">
           <div
             style="background-image: url(/gallery/banner-chart.png)"
-            class="h-48 bg(cover no-repeat white) hover:opacity-50 hover:underline rounded"
+            class="h-48 bg-cover bg-no-repeat bg-white hover:opacity-50 hover:underline rounded"
           >
             <h2 class="text-4xl font-bold p-4">Charts</h2>
           </div>

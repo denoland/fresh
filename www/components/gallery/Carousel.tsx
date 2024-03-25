@@ -1,9 +1,8 @@
-import { tw } from "twind";
 import { asset } from "$fresh/runtime.ts";
 import { useSignal } from "@preact/signals";
 import { useEffect, useRef } from "preact/hooks";
-import IconCircleChevronsRight from "https://deno.land/x/tabler_icons_tsx@0.0.3/tsx/circle-chevrons-right.tsx";
-import IconCircleChevronsLeft from "https://deno.land/x/tabler_icons_tsx@0.0.3/tsx/circle-chevrons-left.tsx";
+import IconCircleChevronsRight from "https://deno.land/x/tabler_icons_tsx@0.0.6/tsx/circle-chevrons-right.tsx";
+import IconCircleChevronsLeft from "https://deno.land/x/tabler_icons_tsx@0.0.6/tsx/circle-chevrons-left.tsx";
 
 const SLIDE_DATA = [
   {
@@ -48,7 +47,7 @@ const Slide = (props: SlideProps) => {
       class={`${props.class} ${color} h-80 w-full text-center text-black p-5`}
     >
       {text}
-      <img src={url} />
+      <img src={url} alt={text} />
     </div>
   );
 };
@@ -76,14 +75,13 @@ const Carousel = (props: CarouselProps) => {
     let incomingSlide = currentSlide.value + 1;
     if (outgoingSlide === -1) outgoingSlide = SLIDE_DATA.length - 1;
     if (incomingSlide === SLIDE_DATA.length) incomingSlide = 0;
-    // console.log(outgoingSlide, currentSlide.value, incomingSlide)
     const TRANSITION_CLASS = () => {
       if (currentSlide.value === idx) return "translate-x-0 z-20";
       if (incomingSlide === idx) return "translate-x-full z-10";
       if (outgoingSlide === idx) return "-translate-x-full z-10";
       return "translate-x-full";
     };
-    return tw`slide absolute top-0 left-0 transition-all ease-in-out duration-700 transform ${TRANSITION_CLASS}`;
+    return `slide absolute top-0 left-0 transition-all ease-in-out duration-700 transform ${TRANSITION_CLASS()}`;
   };
 
   const nextSlide = () => {
@@ -142,20 +140,21 @@ const Carousel = (props: CarouselProps) => {
   };
 
   const DotsNavigation = () => (
-    <div
-      class={"slide_nav z-30 w-full absolute bottom-0 flex justify-center cursor-pointer"}
-    >
+    <div class={"slide_nav z-30 w-full absolute bottom-0 flex justify-center"}>
       {SLIDE_DATA.map((_item, idx) => {
         return (
-          <div
+          <button
             class={`px-1 ${NAVIGATION_COLOR}`}
             onClick={() => {
               goToSlide(idx);
             }}
             key={idx}
           >
-            {idx === currentSlide.value ? <>●</> : <>○</>}
-          </div>
+            <span class="sr-only">Go to slide {idx}</span>
+            {idx === currentSlide.value
+              ? <span class="not-sr-only">●</span>
+              : <span class="not-sr-only">○</span>}
+          </button>
         );
       })}
     </div>
@@ -169,16 +168,22 @@ const Carousel = (props: CarouselProps) => {
       }`}
       tabIndex={0}
     >
-      <IconCircleChevronsLeft
+      <button
         class={`left-0 ${CHEVRON_STYLE}`}
         style="top: calc(50% - 20px)"
         onClick={() => chevronClick(previousSlide)}
-      />
-      <IconCircleChevronsRight
+      >
+        <IconCircleChevronsLeft class="w-10 h-10" aria-hidden="true" />
+        <span class="sr-only">Previous slide</span>
+      </button>
+      <button
         class={`right-0 ${CHEVRON_STYLE}`}
         style="top: calc(50% - 20px)"
         onClick={() => chevronClick(nextSlide)}
-      />
+      >
+        <IconCircleChevronsRight class="w-10 h-10" aria-hidden="true" />
+        <span class="sr-only">Next slide</span>
+      </button>
       {SLIDE_DATA.map((item, idx) => (
         <Slide
           data={item}

@@ -15,34 +15,30 @@ export default function(state) { hydrate(options, state); }`;
   return {
     name: "twind",
     entrypoints: { "main": main },
-    render(ctx) {
+    async renderAsync(ctx) {
       sheet.reset(undefined);
-      const res = ctx.render();
+      await ctx.renderAsync();
       const cssTexts = [...sheet.target];
       const snapshot = sheet.reset();
-      const scripts = [];
-      let cssText: string;
-      if (res.requiresHydration) {
-        const precedences = snapshot[1] as number[];
-        cssText = cssTexts.map((cssText, i) =>
-          `${cssText}/*${precedences[i].toString(36)}*/`
-        ).join("\n");
-        const mappings: (string | [string, string])[] = [];
-        for (
-          const [key, value] of (snapshot[3] as Map<string, string>).entries()
-        ) {
-          if (key === value) {
-            mappings.push(key);
-          } else {
-            mappings.push([key, value]);
-          }
+      const precedences = snapshot[1] as number[];
+
+      const cssText = cssTexts.map((cssText, i) =>
+        `${cssText}/*${precedences[i].toString(36)}*/`
+      ).join("\n");
+
+      const mappings: (string | [string, string])[] = [];
+      for (
+        const [key, value] of (snapshot[3] as Map<string, string>).entries()
+      ) {
+        if (key === value) {
+          mappings.push(key);
+        } else {
+          mappings.push([key, value]);
         }
-        scripts.push({ entrypoint: "main", state: mappings });
-      } else {
-        cssText = cssTexts.join("\n");
       }
+
       return {
-        scripts,
+        scripts: [{ entrypoint: "main", state: mappings }],
         styles: [{ cssText, id: STYLE_ELEMENT_ID }],
       };
     },

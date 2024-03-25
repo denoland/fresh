@@ -1,33 +1,63 @@
 import { ServerContext } from "./context.ts";
-import { serve } from "./deps.ts";
-export { Status } from "./deps.ts";
+export type { FromManifestConfig, FromManifestOptions } from "./context.ts";
+export { STATUS_CODE } from "./deps.ts";
 import {
-  AppModule,
-  ErrorPageModule,
+  ErrorHandler,
+  FreshConfig,
+  Handler,
+  Handlers,
   IslandModule,
+  LayoutConfig,
   MiddlewareModule,
-  RouteModule,
-  StartOptions,
-  UnknownPageModule,
+  RouteConfig,
+  ServeHandlerInfo,
+  UnknownHandler,
 } from "./types.ts";
+import { startServer } from "./boot.ts";
+export {
+  defineApp,
+  defineConfig,
+  defineLayout,
+  defineRoute,
+} from "./defines.ts";
 export type {
+  AppContext,
   AppProps,
+  DenoConfig,
   ErrorHandler,
   ErrorHandlerContext,
   ErrorPageProps,
+  FreshConfig,
+  FreshContext,
   FreshOptions,
   Handler,
   HandlerContext,
   Handlers,
+  LayoutConfig,
+  LayoutContext,
+  LayoutProps,
   MiddlewareHandler,
   MiddlewareHandlerContext,
+  MultiHandler,
   PageProps,
   Plugin,
+  PluginAsyncRenderContext,
+  PluginAsyncRenderFunction,
+  PluginIslands,
+  PluginMiddleware,
+  PluginRenderContext,
+  PluginRenderFunction,
+  PluginRenderFunctionResult,
   PluginRenderResult,
   PluginRenderScripts,
   PluginRenderStyleTag,
+  PluginRoute,
   RenderFunction,
+  ResolvedFreshConfig,
   RouteConfig,
+  RouteContext,
+  RouterOptions,
+  ServeHandlerInfo,
   StartOptions,
   UnknownHandler,
   UnknownHandlerContext,
@@ -35,45 +65,55 @@ export type {
 } from "./types.ts";
 export { RenderContext } from "./render.ts";
 export type { InnerRenderFunction } from "./render.ts";
+export type { DestinationKind } from "./router.ts";
 
 export interface Manifest {
   routes: Record<
     string,
-    | RouteModule
-    | MiddlewareModule
-    | AppModule
-    | ErrorPageModule
-    | UnknownPageModule
+    {
+      // Use a more loose route definition type because
+      // TS has trouble inferring normal vs aync functions. It cannot infer based on function arity
+      default?: (
+        // deno-lint-ignore no-explicit-any
+        propsOrRequest: any,
+        // deno-lint-ignore no-explicit-any
+        ctx: any,
+        // deno-lint-ignore no-explicit-any
+      ) => Promise<any | Response> | any;
+      handler?:
+        // deno-lint-ignore no-explicit-any
+        | Handler<any, any>
+        // deno-lint-ignore no-explicit-any
+        | Handlers<any, any>
+        | UnknownHandler
+        | ErrorHandler;
+      config?: RouteConfig | LayoutConfig;
+    } | MiddlewareModule
   >;
   islands: Record<string, IslandModule>;
   baseUrl: string;
-  config?: DenoConfig;
-}
-
-export interface DenoConfig {
-  importMap: string;
-  compilerOptions?: {
-    jsx?: string;
-    jsxImportSource?: string;
-  };
 }
 
 export { ServerContext };
 
 export async function createHandler(
-  routes: Manifest,
-  opts: StartOptions = {},
-) {
-  const ctx = await ServerContext.fromManifest(routes, opts);
+  manifest: Manifest,
+  config: FreshConfig = {},
+): Promise<
+  (req: Request, connInfo?: ServeHandlerInfo) => Promise<Response>
+> {
+  const ctx = await ServerContext.fromManifest(manifest, config);
   return ctx.handler();
 }
-export async function start(routes: Manifest, opts: StartOptions = {}) {
-  const ctx = await ServerContext.fromManifest(routes, opts);
-  opts.port ??= 8000;
-  if (opts.experimentalDenoServe === true) {
-    // @ts-ignore as `Deno.serve` is still unstable.
-    await Deno.serve(ctx.handler() as Deno.ServeHandler, opts);
-  } else {
-    await serve(ctx.handler(), opts);
-  }
+
+export async function start(manifest: Manifest, config: FreshConfig = {}) {
+  const ctx = await ServerContext.fromManifest(manifest, {
+    ...config,
+    dev: false,
+  });
+  const realConfig = config.server ?? config;
+  await startServer(ctx.handler(), {
+    ...realConfig,
+    basePath: config?.router?.basePath ?? "",
+  });
 }

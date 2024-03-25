@@ -1,14 +1,26 @@
-import { Head } from "$fresh/runtime.ts";
+import { asset, Head } from "$fresh/runtime.ts";
+import { PageProps } from "$fresh/server.ts";
 import Projects, { Project } from "../components/Projects.tsx";
 import Header from "../components/Header.tsx";
 import Footer from "../components/Footer.tsx";
-import projects from "../data/showcase.json" assert { type: "json" };
+import projects from "../data/showcase.json" with { type: "json" };
 
-export default function ShowcasePage() {
+const TITLE = "Showcase | Fresh";
+const DESCRIPTION = "Selection of projects that have been built with Fresh.";
+
+export default function ShowcasePage(props: PageProps) {
+  const ogImageUrl = new URL(asset("/home-og.png"), props.url).href;
   return (
     <>
       <Head>
-        <title>Showcase | fresh</title>
+        <title>{TITLE}</title>
+        <meta name="description" content={DESCRIPTION} />
+        <meta property="og:title" content={TITLE} />
+        <meta property="og:description" content={DESCRIPTION} />
+        <meta property="og:type" content="website" />
+        <meta property="og:url" content={props.url.href} />
+        <meta property="og:image" content={ogImageUrl} />
+        <meta name="view-transition" content="same-origin" />
       </Head>
       <Header title="showcase" active="/showcase" />
 
@@ -16,13 +28,13 @@ export default function ShowcasePage() {
         <div class="flex-1">
           <Showcase items={projects} />
 
-          <section class="max-w-screen-lg mx-auto my-16 px(4 sm:6 md:8) space-y-4">
-            <h2 class="text(3xl gray-600) font-bold">
+          <section class="max-w-screen-lg mx-auto my-16 px-4 sm:px-6 md:px-8 space-y-4">
+            <h2 class="text-3xl text-gray-600 font-bold">
               Badge
             </h2>
 
             <p class="text-gray-600">
-              You can add these stylish badges to your project's README to show
+              You can add these stylish badges to your project’s README to show
               that it was built with Fresh.
             </p>
 
@@ -65,8 +77,8 @@ export default function ShowcasePage() {
 
 function Showcase({ items }: { items: Project[] }) {
   return (
-    <section class="max-w-screen-lg mx-auto my-16 px(4 sm:6 md:8) space-y-4">
-      <h2 class="text(3xl gray-600) font-bold">
+    <section class="max-w-screen-lg mx-auto my-16 px-4 sm:px-6 md:px-8 space-y-4">
+      <h2 class="text-3xl text-gray-600 font-bold">
         Showcase
       </h2>
       <p class="text-gray-600">

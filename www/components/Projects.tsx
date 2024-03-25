@@ -14,7 +14,7 @@ interface ProjectProps {
 export default function Projects(props: ProjectProps) {
   return (
     <div
-      class={`pt-8 grid grid-cols-1 md:grid-cols-3 items-center ${
+      class={`pt-8 grid grid-cols-1 sm:grid-cols-3 items-center ${
         props.class ?? ""
       }`}
     >
@@ -29,11 +29,11 @@ export default function Projects(props: ProjectProps) {
               width={600}
               height={337}
               style={{ aspectRatio: "16/9" }}
-              class="object-cover shadow-lg group-hover:(shadow-xl opacity-70) rounded-lg"
+              class="object-cover shadow-lg group-hover:shadow-xl group-hover:opacity-70 rounded-lg"
             />
           </a>
           <div class="mt-4 flex items-center">
-            <div class="text(lg gray-600) flex-1 group-hover:text-underline">
+            <div class="text-lg text-gray-600 flex-1 group-hover:text-underline">
               <a href={project.link}>{project.title}</a>
             </div>
             {project.github && (
@@ -42,7 +42,7 @@ export default function Projects(props: ProjectProps) {
                 class="ml-2 text-gray-500 hover:text-gray-700"
               >
                 <span class="sr-only">GitHub</span>
-                <Icons.GitHub class="inline float-right" />
+                <Icons.GitHub class="inline float-right h-6 w-6" />
               </a>
             )}
           </div>

@@ -8,8 +8,8 @@ import Hero from "../components/gallery/Hero.tsx";
 import Features from "../components/gallery/Features.tsx";
 import Carousel from "../components/gallery/Carousel.tsx";
 import { ComponentChildren } from "preact";
-import IconHappy from "https://deno.land/x/tabler_icons_tsx@0.0.3/tsx/mood-crazy-happy.tsx";
-import IconHeart from "https://deno.land/x/tabler_icons_tsx@0.0.3/tsx/heart.tsx";
+import IconHappy from "https://deno.land/x/tabler_icons_tsx@0.0.6/tsx/mood-crazy-happy.tsx";
+import IconHeart from "https://deno.land/x/tabler_icons_tsx@0.0.6/tsx/heart.tsx";
 import Background from "../components/gallery/Background.tsx";
 import CodeBox from "../components/gallery/CodeBox.tsx";
 
@@ -57,7 +57,10 @@ export default function ComponentGallery(props: ComponentGalleryProps) {
           Click me
         </Button>
         <Button class="flex gap-1">
-          <IconHappy class="w-6 h-6 inline-block text-gray-500" />
+          <IconHappy
+            class="w-6 h-6 inline-block text-gray-500"
+            aria-hidden="true"
+          />
           <div>
             With an Icon
           </div>
@@ -81,7 +84,10 @@ export default function ComponentGallery(props: ComponentGalleryProps) {
         source={props.sources.LinkButton}
       >
         <LinkButton>
-          <IconHeart class="w-5 h-5 mr-1 inline-block text-gray-400" />
+          <IconHeart
+            class="w-5 h-5 mr-1 inline-block text-gray-400"
+            aria-hidden="true"
+          />
           Like me
         </LinkButton>
       </Section>
@@ -100,8 +106,7 @@ export default function ComponentGallery(props: ComponentGalleryProps) {
       </Section>
 
       <Section title="Footer" source={props.sources.Footer}>
-        <Footer>
-        </Footer>
+        <Footer />
       </Section>
 
       <Section title="Hero" source={props.sources.Hero}>

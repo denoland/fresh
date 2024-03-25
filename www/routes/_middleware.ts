@@ -1,16 +1,27 @@
-import { MiddlewareHandlerContext } from "$fresh/server.ts";
+import { type FreshContext } from "$fresh/server.ts";
 import type { Event } from "$ga4";
 import { GA4Report, isDocument, isServerError } from "$ga4";
 
 const GA4_MEASUREMENT_ID = Deno.env.get("GA4_MEASUREMENT_ID");
 
+let showedMissingEnvWarning = false;
+
 function ga4(
   request: Request,
-  conn: MiddlewareHandlerContext,
+  conn: FreshContext,
   response: Response,
   _start: number,
   error?: unknown,
 ) {
+  if (GA4_MEASUREMENT_ID === undefined) {
+    if (!showedMissingEnvWarning) {
+      showedMissingEnvWarning = true;
+      console.warn(
+        "GA4_MEASUREMENT_ID environment variable not set. Google Analytics reporting disabled.",
+      );
+    }
+    return;
+  }
   Promise.resolve().then(async () => {
     // We're tracking page views and file downloads. These are the only two
     // HTTP methods that _might_ be used.
@@ -50,6 +61,7 @@ function ga4(
 
     // Create basic report.
     const measurementId = GA4_MEASUREMENT_ID;
+    // @ts-ignore GA4Report doesn't even use the localAddress parameter
     const report = new GA4Report({ measurementId, request, response, conn });
 
     // Override the default (page_view) event.
@@ -68,7 +80,7 @@ function ga4(
 
 export async function handler(
   req: Request,
-  ctx: MiddlewareHandlerContext,
+  ctx: FreshContext,
 ): Promise<Response> {
   let err;
   let res: Response;

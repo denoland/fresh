@@ -1,5 +1,11 @@
 [
   {
+    "title": "OpenAI Semantic Search",
+    "link": "https://supabase-openai-doc-search.deno.dev/",
+    "github": "supabase-community/deno-fresh-openai-doc-search",
+    "image": "openai-semantic-search"
+  },
+  {
     "title": "Deno SaaSKit",
     "link": "https://saaskit.deno.dev/",
     "github": "denoland/saaskit",
@@ -12,12 +18,6 @@
     "image": "merch"
   },
   {
-    "title": "Deno Chat",
-    "link": "https://showcase-chat.deno.dev/",
-    "github": "denoland/showcase_chat",
-    "image": "chat"
-  },
-  {
     "title": "Fresh Website",
     "link": "https://fresh.deno.dev/",
     "github": "denoland/fresh/tree/main/www",
@@ -25,13 +25,13 @@
   },
   {
     "title": "Paquet",
-    "link": "https://paquet.shop",
-    "github": "fructoland/paquet",
-    "image": "paquet"
+    "link": "https://paquet.app",
+    "github": "notangelmario/paquet",
+    "image": "Paquet"
   },
   {
     "title": "Video Poker Academy",
-    "link": "https://videopoker.academy/",
+    "link": "https://videopoker-academy.deno.dev/",
     "github": "hyprtxt/videopoker.academy",
     "image": "videopoker-academy"
   },
@@ -40,12 +40,6 @@
     "link": "https://d3nodata.deno.dev/",
     "github": "D3nosaurs/d3nodata-website",
     "image": "d3nodata"
-  },
-  {
-    "title": "Fresh Blog",
-    "link": "https://fresh-blog.littlesticks.dev/",
-    "github": "littlesticks/fresh-blog",
-    "image": "fresh-blog"
   },
   {
     "title": "Fresh Hacker News",
@@ -72,22 +66,10 @@
     "image": "diKnow"
   },
   {
-    "title": "Saleor + Deno Merch",
-    "link": "https://saleor-deno-merch.deno.dev/",
-    "github": "saleor/deno-merch",
-    "image": "saleor-deno"
-  },
-  {
     "title": "Fresh Strapi",
     "link": "https://fresh-strapi.deno.dev/",
     "github": "hyprtxt/fresh-strapi.deno.dev",
     "image": "fresh-strapi"
-  },
-  {
-    "title": "Developer Portfolio",
-    "link": "https://hazn.me",
-    "github": "haznai/fresh-test",
-    "image": "hazn"
   },
   {
     "title": "Portfolio Page",
@@ -108,11 +90,6 @@
     "image": "guigui64"
   },
   {
-    "title": "Joe Salinas Site",
-    "link": "https://joesalinas.dev",
-    "image": "joesalinasdev"
-  },
-  {
     "title": "Fresh Project Manager",
     "link": "https://xyntechx-project-manager.deno.dev/",
     "github": "xyntechx/NexLiber-Projects/tree/main/Fresh%20Project%20Manager",
@@ -123,11 +100,6 @@
     "link": "https://fresh-todo-list.deno.dev/",
     "github": "MrSaeedNasiri/fresh-todo-list",
     "image": "fresh-todo"
-  },
-  {
-    "title": "Kita",
-    "link": "https://kita.ge",
-    "image": "kita"
   },
   {
     "title": "Optimem app",
@@ -171,15 +143,9 @@
     "image": "imasparql-dd"
   },
   {
-    "title": "kadode portal",
-    "link": "https://portal.kado.day/",
-    "github": "KadodeProject/kadode_portal",
-    "image": "kadode_portal"
-  },
-  {
-    "title": "Craig's Deno Diary",
+    "title": "Craig’s Deno Diary",
     "link": "https://deno-blog.com",
-    "github": "https://github.com/cdoremus/deno-blog",
+    "github": "cdoremus/deno-blog",
     "image": "deno-diary"
   },
   {
@@ -189,22 +155,10 @@
     "image": "melon"
   },
   {
-    "title": "Game Orb",
-    "link": "https://fabimc-game-orb.deno.dev/",
-    "github": "fabimc/game-orb",
-    "image": "game-orb"
-  },
-  {
     "title": "Webhook Manager",
     "link": "https://webhook-demo.deno.dev/",
     "github": "avnigenc/deno-fresh-webhook-demo",
     "image": "webhook-manager"
-  },
-  {
-    "title": "Moe Counter",
-    "link": "https://count.nekooftheabyss.moe/",
-    "github": "retraigo/moe-counter",
-    "image": "moe-counter"
   },
   {
     "title": "Deno Jobs",
@@ -324,13 +278,96 @@
     "image": "learn-mandarin"
   },
   {
+    "title": "Url shorter and Pastebin",
+    "link": "https://uspb.deno.dev/",
+    "github": "jneeee/uspb",
+    "image": "uspb"
+  },
+  {
+    "title": "Battleship",
+    "link": "https://battleship.deno.dev",
+    "github": "karelklima/battleship",
+    "image": "battleship"
+  },
+  {
+    "title": "Kanji.Academy",
+    "link": "https://kanji.academy",
+    "image": "kanji-academy"
+  },
+  {
+    "title": "LiberChat",
+    "link": "https://liberchat.deno.dev",
+    "image": "liberchat"
+  },
+  {
+    "title": "Miguel Rangel Site",
+    "link": "https://crawford.ml",
+    "github": "denyncrawford/new-portfolio",
+    "image": "miguel-rangel-site"
+  },
+  {
+    "title": "Deno Artwork",
+    "link": "https://artwork.deno.dev/",
+    "github": "jasonjgardner/deno-artwork",
+    "image": "deno-artwork"
+  },
+  {
+    "title": "Text2Audio",
+    "link": "https://text2audio.cc/",
+    "github": "dunkbing/text2audio",
+    "image": "text2audio"
+  },
+  {
+    "title": "FilterHN",
+    "link": "https://filterhn.com/",
+    "image": "filter-hn"
+  },
+  {
+    "title": "AquaVibes",
+    "link": "https://aquavibes.earth/",
+    "github": "arturolume/aquavibes",
+    "image": "aquavibes"
+  },
+  {
+    "title": "CS2 Items",
+    "link": "https://cs2items.pro/",
+    "image": "cs2items"
+  },
+  {
+    "title": "Enric Perpinyà Site",
+    "link": "https://perpinya.eu/",
+    "github": "evilmonkey19/cv",
+    "image": "evilmonkey19-cv"
+  },
+  {
+    "title": "Paul Jacks Blog and Experiments",
+    "link": "https://jacks.se/",
+    "github": "rebstorm/jacks.se",
+    "image": "rebstorm"
+  },
+  {
+    "title": "MergePanic",
+    "link": "https://mergepanic.com",
+    "image": "MergePanic"
+  },
+  {
+    "title": "Living Pixel Solutions",
+    "link": "https://livingpixel.io",
+    "image": "living-pixel"
+  },
+  {
+    "title": "RFUI",
+    "link": "https://rfui.deno.dev/",
+    "image": "rfui"
+  },
+  {
     "title": "Echo-Echo",
     "link": "https://echo-echo.deno.dev/",
     "github": "https://github.com/Octo8080X/Echo-Echo",
     "image": "echo-echo"
   },
   {
-    "title": "Do not remove this, it's for prevent conflicting by trailing comma",
+    "title": "Do not remove this, it’s for preventing conflicts by trailing comma",
     "link": "",
     "github": "",
     "image": ""

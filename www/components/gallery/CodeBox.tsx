@@ -1,7 +1,7 @@
-import { useState } from "preact/hooks";
+import { useSignal } from "@preact/signals";
 
-import Prism from "https://esm.sh/prismjs@1.27.0";
-import "https://esm.sh/prismjs@1.27.0/components/prism-typescript?no-check";
+import Prism from "https://esm.sh/prismjs@1.29.0";
+import "https://esm.sh/prismjs@1.29.0/components/prism-typescript?no-check";
 
 interface CodeBoxProps {
   code: string;
@@ -15,10 +15,10 @@ export default function CodeBox(props: CodeBoxProps) {
   );
   const onCopy = () => {
     navigator.clipboard.writeText(props.code);
-    setCopied(true);
+    copied.value = true;
   };
 
-  const [copied, setCopied] = useState(false);
+  const copied = useSignal(false);
   return (
     <div class="">
       <details>
@@ -35,7 +35,7 @@ export default function CodeBox(props: CodeBoxProps) {
             onClick={onCopy}
             class="absolute top-2 right-2 px-3 py-2 border border-gray-400 rounded text-white bg-gray-800"
           >
-            {copied ? "Copied!" : "Copy"}
+            {copied.value ? "Copied!" : "Copy"}
           </button>
         </div>
       </details>

@@ -1,9 +1,10 @@
-import { join, parse, resolve } from "./src/dev/deps.ts";
+import { basename, colors, join, parse, resolve } from "./src/dev/deps.ts";
 import { error } from "./src/dev/error.ts";
 import { collect, ensureMinDenoVersion, generate } from "./src/dev/mod.ts";
 import {
   dotenvImports,
   freshImports,
+  tailwindImports,
   twindImports,
 } from "./src/dev/imports.ts";
 
@@ -21,38 +22,63 @@ To generate a project in the current directory:
   fresh-init .
 
 USAGE:
-    fresh-init <DIRECTORY>
+    fresh-init [DIRECTORY]
 
 OPTIONS:
     --force   Overwrite existing files
-    --twind   Setup project to use 'twind' for styling
-    --vscode  Setup project for VSCode
+    --tailwind   Use Tailwind for styling
+    --twind   Use Twind for styling
+    --vscode  Setup project for VS Code
+    --docker  Setup Project to use Docker
 `;
 
 const CONFIRM_EMPTY_MESSAGE =
   "The target directory is not empty (files could get overwritten). Do you want to continue anyway?";
 
-const USE_TWIND_MESSAGE =
-  "Fresh has built in support for styling using Tailwind CSS. Do you want to use this?";
-
 const USE_VSCODE_MESSAGE = "Do you use VS Code?";
 
 const flags = parse(Deno.args, {
-  boolean: ["force", "twind", "vscode"],
-  default: { "force": null, "twind": null, "vscode": null },
+  boolean: ["force", "tailwind", "twind", "vscode", "docker", "help"],
+  default: {
+    force: null,
+    tailwind: null,
+    twind: null,
+    vscode: null,
+    docker: null,
+  },
+  alias: {
+    help: "h",
+  },
 });
 
-if (flags._.length !== 1) {
-  error(help);
+if (flags.help) {
+  console.log(help);
+  Deno.exit(0);
 }
 
-console.log(
-  `\n%c  🍋 Fresh: the next-gen web framework.  %c\n`,
-  "background-color: #86efac; color: black; font-weight: bold",
-  "",
-);
+if (flags.tailwind && flags.twind) {
+  error("Cannot use Tailwind and Twind at the same time.");
+}
 
-const unresolvedDirectory = Deno.args[0];
+console.log();
+console.log(
+  colors.bgRgb8(
+    colors.rgb8(" 🍋 Fresh: The next-gen web framework. ", 0),
+    121,
+  ),
+);
+console.log();
+
+let unresolvedDirectory = Deno.args[0];
+if (flags._.length !== 1) {
+  const userInput = prompt("Project Name:", "fresh-project");
+  if (!userInput) {
+    error(help);
+  }
+
+  unresolvedDirectory = userInput;
+}
+
 const resolvedDirectory = resolve(unresolvedDirectory);
 
 try {
@@ -72,18 +98,39 @@ try {
 }
 console.log("%cLet's set up your new Fresh project.\n", "font-weight: bold");
 
-const useTwind = flags.twind === null
-  ? confirm(USE_TWIND_MESSAGE)
-  : flags.twind;
+let useTailwind = flags.tailwind || false;
+let useTwind = flags.twind || false;
+
+if (flags.tailwind == null && flags.twind == null) {
+  if (confirm("Do you want to use a styling library?")) {
+    console.log();
+    console.log(`1. ${colors.cyan("tailwindcss")} (recommended)`);
+    console.log(`2. ${colors.cyan("Twind")}`);
+    console.log();
+    switch (
+      (prompt("Which styling library do you want to use? [1]") || "1").trim()
+    ) {
+      case "2":
+        useTwind = true;
+        break;
+      default:
+        useTailwind = true;
+    }
+  }
+}
 
 const useVSCode = flags.vscode === null
   ? confirm(USE_VSCODE_MESSAGE)
   : flags.vscode;
 
-await Deno.mkdir(join(resolvedDirectory, "routes", "api"), { recursive: true });
-await Deno.mkdir(join(resolvedDirectory, "islands"), { recursive: true });
-await Deno.mkdir(join(resolvedDirectory, "static"), { recursive: true });
-await Deno.mkdir(join(resolvedDirectory, "components"), { recursive: true });
+const useDocker = flags.docker;
+
+await Promise.all([
+  Deno.mkdir(join(resolvedDirectory, "routes", "api"), { recursive: true }),
+  Deno.mkdir(join(resolvedDirectory, "islands"), { recursive: true }),
+  Deno.mkdir(join(resolvedDirectory, "static"), { recursive: true }),
+  Deno.mkdir(join(resolvedDirectory, "components"), { recursive: true }),
+]);
 if (useVSCode) {
   await Deno.mkdir(join(resolvedDirectory, ".vscode"), { recursive: true });
 }
@@ -94,6 +141,11 @@ const GITIGNORE = `# dotenv environment variable files
 .env.test.local
 .env.production.local
 .env.local
+
+# Fresh build directory
+_fresh/
+# npm dependencies
+node_modules/
 `;
 
 await Deno.writeTextFile(
@@ -101,47 +153,57 @@ await Deno.writeTextFile(
   GITIGNORE,
 );
 
-const importMap = { imports: {} as Record<string, string> };
-freshImports(importMap.imports);
-if (useTwind) twindImports(importMap.imports);
-dotenvImports(importMap.imports);
-const IMPORT_MAP_JSON = JSON.stringify(importMap, null, 2) + "\n";
-await Deno.writeTextFile(
-  join(resolvedDirectory, "import_map.json"),
-  IMPORT_MAP_JSON,
-);
+if (useDocker) {
+  const DENO_VERSION = Deno.version.deno;
+  const DOCKERFILE_TEXT = `
+FROM denoland/deno:${DENO_VERSION}
 
-const ROUTES_INDEX_TSX = `import { Head } from "$fresh/runtime.ts";
+ARG GIT_REVISION
+ENV DENO_DEPLOYMENT_ID=\${GIT_REVISION}
+
+WORKDIR /app
+
+COPY . .
+RUN deno cache main.ts
+
+EXPOSE 8000
+
+CMD ["run", "-A", "main.ts"]
+
+`;
+
+  await Deno.writeTextFile(
+    join(resolvedDirectory, "Dockerfile"),
+    DOCKERFILE_TEXT,
+  );
+}
+
+const ROUTES_INDEX_TSX = `import { useSignal } from "@preact/signals";
 import Counter from "../islands/Counter.tsx";
 
 export default function Home() {
+  const count = useSignal(3);
   return (
-    <>
-      <Head>
-        <title>Fresh App</title>
-      </Head>
-      <div${useTwind ? ` class="p-4 mx-auto max-w-screen-md"` : ""}>
+    <div class="px-4 py-8 mx-auto bg-[#86efac]">
+      <div class="max-w-screen-md mx-auto flex flex-col items-center justify-center">
         <img
+          class="my-6"
           src="/logo.svg"
-          ${
-  useTwind ? `class="w-32 h-32"` : `width="128"\n          height="128"`
-}
-          alt="the fresh logo: a sliced lemon dripping with juice"
+          width="128"
+          height="128"
+          alt="the Fresh logo: a sliced lemon dripping with juice"
         />
-        <p${useTwind ? ` class="my-6"` : ""}>
-          Welcome to \`fresh\`. Try updating this message in the
-          ./routes/index.tsx file, and refresh.
+        <h1 class="text-4xl font-bold">Welcome to Fresh</h1>
+        <p class="my-4">
+          Try updating this message in the
+          <code class="mx-2">./routes/index.tsx</code> file, and refresh.
         </p>
-        <Counter start={3} />
+        <Counter count={count} />
       </div>
-    </>
+    </div>
   );
 }
 `;
-await Deno.writeTextFile(
-  join(resolvedDirectory, "routes", "index.tsx"),
-  ROUTES_INDEX_TSX,
-);
 
 const COMPONENTS_BUTTON_TSX = `import { JSX } from "preact";
 import { IS_BROWSER } from "$fresh/runtime.ts";
@@ -151,41 +213,77 @@ export function Button(props: JSX.HTMLAttributes<HTMLButtonElement>) {
     <button
       {...props}
       disabled={!IS_BROWSER || props.disabled}
-${
-  useTwind
-    ? '      class="px-2 py-1 border(gray-100 2) hover:bg-gray-200"\n'
-    : ""
-}    />
+      class="px-2 py-1 border-gray-500 border-2 rounded bg-white hover:bg-gray-200 transition-colors"
+    />
   );
 }
 `;
-await Deno.writeTextFile(
-  join(resolvedDirectory, "components", "Button.tsx"),
-  COMPONENTS_BUTTON_TSX,
-);
 
-const ISLANDS_COUNTER_TSX = `import { useState } from "preact/hooks";
+const ISLANDS_COUNTER_TSX = `import type { Signal } from "@preact/signals";
 import { Button } from "../components/Button.tsx";
 
 interface CounterProps {
-  start: number;
+  count: Signal<number>;
 }
 
 export default function Counter(props: CounterProps) {
-  const [count, setCount] = useState(props.start);
   return (
-    <div${useTwind ? ' class="flex gap-2 w-full"' : ""}>
-      <p${useTwind ? ' class="flex-grow-1 font-bold text-xl"' : ""}>{count}</p>
-      <Button onClick={() => setCount(count - 1)}>-1</Button>
-      <Button onClick={() => setCount(count + 1)}>+1</Button>
+    <div class="flex gap-8 py-6">
+      <Button onClick={() => props.count.value -= 1}>-1</Button>
+      <p class="text-3xl tabular-nums">{props.count}</p>
+      <Button onClick={() => props.count.value += 1}>+1</Button>
     </div>
   );
 }
 `;
-await Deno.writeTextFile(
-  join(resolvedDirectory, "islands", "Counter.tsx"),
-  ISLANDS_COUNTER_TSX,
-);
+
+// 404 page
+const ROUTES_404_PAGE = `import { Head } from "$fresh/runtime.ts";
+
+export default function Error404() {
+  return (
+    <>
+      <Head>
+        <title>404 - Page not found</title>
+      </Head>
+      <div class="px-4 py-8 mx-auto bg-[#86efac]">
+        <div class="max-w-screen-md mx-auto flex flex-col items-center justify-center">
+          <img
+            class="my-6"
+            src="/logo.svg"
+            width="128"
+            height="128"
+            alt="the Fresh logo: a sliced lemon dripping with juice"
+          />
+          <h1 class="text-4xl font-bold">404 - Page not found</h1>
+          <p class="my-4">
+            The page you were looking for doesn't exist.
+          </p>
+          <a href="/" class="underline">Go back home</a>
+        </div>
+      </div>
+    </>
+  );
+}
+`;
+await Promise.all([
+  Deno.writeTextFile(
+    join(resolvedDirectory, "routes", "index.tsx"),
+    ROUTES_INDEX_TSX,
+  ),
+  Deno.writeTextFile(
+    join(resolvedDirectory, "components", "Button.tsx"),
+    COMPONENTS_BUTTON_TSX,
+  ),
+  Deno.writeTextFile(
+    join(resolvedDirectory, "islands", "Counter.tsx"),
+    ISLANDS_COUNTER_TSX,
+  ),
+  Deno.writeTextFile(
+    join(resolvedDirectory, "routes", "_404.tsx"),
+    ROUTES_404_PAGE,
+  ),
+]);
 
 const ROUTES_GREET_TSX = `import { PageProps } from "$fresh/server.ts";
 
@@ -193,12 +291,15 @@ export default function Greet(props: PageProps) {
   return <div>Hello {props.params.name}</div>;
 }
 `;
+await Deno.mkdir(join(resolvedDirectory, "routes", "greet"), {
+  recursive: true,
+});
 await Deno.writeTextFile(
-  join(resolvedDirectory, "routes", "[name].tsx"),
+  join(resolvedDirectory, "routes", "greet", "[name].tsx"),
   ROUTES_GREET_TSX,
 );
 
-const ROUTES_API_JOKE_TS = `import { HandlerContext } from "$fresh/server.ts";
+const ROUTES_API_JOKE_TS = `import { FreshContext } from "$fresh/server.ts";
 
 // Jokes courtesy of https://punsandoneliners.com/randomness/programmer-jokes/
 const JOKES = [
@@ -214,7 +315,7 @@ const JOKES = [
   "An SEO expert walked into a bar, pub, inn, tavern, hostelry, public house.",
 ];
 
-export const handler = (_req: Request, _ctx: HandlerContext): Response => {
+export const handler = (_req: Request, _ctx: FreshContext): Response => {
   const randomIndex = Math.floor(Math.random() * JOKES.length);
   const body = JOKES[randomIndex];
   return new Response(body);
@@ -225,16 +326,202 @@ await Deno.writeTextFile(
   ROUTES_API_JOKE_TS,
 );
 
-const TWIND_CONFIG_TS = `import { Options } from "$fresh/plugins/twind.ts";
+const TAILWIND_CONFIG_TS = `import { type Config } from "tailwindcss";
 
 export default {
+  content: [
+    "{routes,islands,components}/**/*.{ts,tsx}",
+  ],
+} satisfies Config;
+`;
+if (useTailwind) {
+  await Deno.writeTextFile(
+    join(resolvedDirectory, "tailwind.config.ts"),
+    TAILWIND_CONFIG_TS,
+  );
+}
+
+const TWIND_CONFIG_TS = `import { defineConfig, Preset } from "@twind/core";
+import presetTailwind from "@twind/preset-tailwind";
+import presetAutoprefix from "@twind/preset-autoprefix";
+
+export default {
+  ...defineConfig({
+    presets: [presetTailwind() as Preset, presetAutoprefix() as Preset],
+  }),
   selfURL: import.meta.url,
-} as Options;
+};
 `;
 if (useTwind) {
   await Deno.writeTextFile(
     join(resolvedDirectory, "twind.config.ts"),
     TWIND_CONFIG_TS,
+  );
+}
+
+const NO_TAILWIND_STYLES = `
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+* {
+  margin: 0;
+}
+button {
+  color: inherit;
+}
+button, [role="button"] {
+  cursor: pointer;
+}
+code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
+    "Liberation Mono", "Courier New", monospace;
+  font-size: 1em;
+}
+img,
+svg {
+  display: block;
+}
+img,
+video {
+  max-width: 100%;
+  height: auto;
+}
+
+html {
+  line-height: 1.5;
+  -webkit-text-size-adjust: 100%;
+  font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+    "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif,
+    "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+}
+.transition-colors {
+  transition-property: background-color, border-color, color, fill, stroke;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-duration: 150ms;
+}
+.my-6 {
+  margin-bottom: 1.5rem;
+  margin-top: 1.5rem;
+}
+.text-4xl {
+  font-size: 2.25rem;
+  line-height: 2.5rem;
+}
+.mx-2 {
+  margin-left: 0.5rem;
+  margin-right: 0.5rem;
+}
+.my-4 {
+  margin-bottom: 1rem;
+  margin-top: 1rem;
+}
+.mx-auto {
+  margin-left: auto;
+  margin-right: auto;
+}
+.px-4 {
+  padding-left: 1rem;
+  padding-right: 1rem;
+}
+.py-8 {
+  padding-bottom: 2rem;
+  padding-top: 2rem;
+}
+.bg-\\[\\#86efac\\] {
+  background-color: #86efac;
+}
+.text-3xl {
+  font-size: 1.875rem;
+  line-height: 2.25rem;
+}
+.py-6 {
+  padding-bottom: 1.5rem;
+  padding-top: 1.5rem;
+}
+.px-2 {
+  padding-left: 0.5rem;
+  padding-right: 0.5rem;
+}
+.py-1 {
+  padding-bottom: 0.25rem;
+  padding-top: 0.25rem;
+}
+.border-gray-500 {
+  border-color: #6b7280;
+}
+.bg-white {
+  background-color: #fff;
+}
+.flex {
+  display: flex;
+}
+.gap-8 {
+  grid-gap: 2rem;
+  gap: 2rem;
+}
+.font-bold {
+  font-weight: 700;
+}
+.max-w-screen-md {
+  max-width: 768px;
+}
+.flex-col {
+  flex-direction: column;
+}
+.items-center {
+  align-items: center;
+}
+.justify-center {
+  justify-content: center;
+}
+.border-2 {
+  border-width: 2px;
+}
+.rounded {
+  border-radius: 0.25rem;
+}
+.hover\\:bg-gray-200:hover {
+  background-color: #e5e7eb;
+}
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
+}
+`;
+
+const APP_WRAPPER = `import { type PageProps } from "$fresh/server.ts";
+export default function App({ Component }: PageProps) {
+  return (
+    <html>
+      <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>${basename(resolvedDirectory)}</title>
+        ${useTwind ? "" : `<link rel="stylesheet" href="/styles.css" />`}
+      </head>
+      <body>
+        <Component />
+      </body>
+    </html>
+  );
+}
+`;
+
+await Deno.writeTextFile(
+  join(resolvedDirectory, "routes", "_app.tsx"),
+  APP_WRAPPER,
+);
+
+const TAILWIND_CSS = `@tailwind base;
+@tailwind components;
+@tailwind utilities;`;
+
+const cssStyles = useTailwind ? TAILWIND_CSS : NO_TAILWIND_STYLES;
+if (!useTwind) {
+  await Deno.writeTextFile(
+    join(resolvedDirectory, "static", "styles.css"),
+    cssStyles,
   );
 }
 
@@ -259,8 +546,31 @@ try {
     new Uint8Array(faviconArrayBuffer),
   );
 } catch {
-  // Skip this and be silent if there is a nework issue.
+  // Skip this and be silent if there is a network issue.
 }
+
+let FRESH_CONFIG_TS = `import { defineConfig } from "$fresh/server.ts";\n`;
+if (useTailwind) {
+  FRESH_CONFIG_TS += `import tailwind from "$fresh/plugins/tailwind.ts";
+`;
+}
+if (useTwind) {
+  FRESH_CONFIG_TS += `import twind from "$fresh/plugins/twindv1.ts";
+import twindConfig from "./twind.config.ts";
+`;
+}
+
+FRESH_CONFIG_TS += `
+export default defineConfig({${
+  useTailwind
+    ? `\n  plugins: [tailwind()],\n`
+    : useTwind
+    ? `\n  plugins: [twind(twindConfig)],\n`
+    : ""
+}});
+`;
+const CONFIG_TS_PATH = join(resolvedDirectory, "fresh.config.ts");
+await Deno.writeTextFile(CONFIG_TS_PATH, FRESH_CONFIG_TS);
 
 let MAIN_TS = `/// <reference no-default-lib="true" />
 /// <reference lib="dom" />
@@ -272,27 +582,22 @@ import "$std/dotenv/load.ts";
 
 import { start } from "$fresh/server.ts";
 import manifest from "./fresh.gen.ts";
+import config from "./fresh.config.ts";
 `;
-
-if (useTwind) {
-  MAIN_TS += `
-import twindPlugin from "$fresh/plugins/twind.ts";
-import twindConfig from "./twind.config.ts";
-`;
-}
 
 MAIN_TS += `
-await start(manifest${
-  useTwind ? ", { plugins: [twindPlugin(twindConfig)] }" : ""
-});\n`;
+await start(manifest, config);\n`;
 const MAIN_TS_PATH = join(resolvedDirectory, "main.ts");
 await Deno.writeTextFile(MAIN_TS_PATH, MAIN_TS);
 
 const DEV_TS = `#!/usr/bin/env -S deno run -A --watch=static/,routes/
 
 import dev from "$fresh/dev.ts";
+import config from "./fresh.config.ts";
 
-await dev(import.meta.url, "./main.ts");
+import "$std/dotenv/load.ts";
+
+await dev(import.meta.url, "./main.ts", config);
 `;
 const DEV_TS_PATH = join(resolvedDirectory, "dev.ts");
 await Deno.writeTextFile(DEV_TS_PATH, DEV_TS);
@@ -305,23 +610,55 @@ try {
 const config = {
   lock: false,
   tasks: {
+    check:
+      "deno fmt --check && deno lint && deno check **/*.ts && deno check **/*.tsx",
+    cli: "echo \"import '\\$fresh/src/dev/cli.ts'\" | deno run --unstable -A -",
+    manifest: "deno task cli manifest $(pwd)",
     start: "deno run -A --watch=static/,routes/ dev.ts",
+    build: "deno run -A dev.ts build",
+    preview: "deno run -A main.ts",
+    update: "deno run -A -r https://fresh.deno.dev/update .",
   },
-  importMap: "./import_map.json",
+  lint: {
+    rules: {
+      tags: ["fresh", "recommended"],
+    },
+  },
+  exclude: ["**/_fresh/*"],
+  imports: {} as Record<string, string>,
   compilerOptions: {
     jsx: "react-jsx",
     jsxImportSource: "preact",
   },
 };
+freshImports(config.imports);
+if (useTailwind) {
+  tailwindImports(config.imports);
+  // Tailwind editor plugin expects the `node_modules` directory
+  // to be present, otherwise intellisense doesn't work.
+  // TODO: Have a better deno config type
+  // deno-lint-ignore no-explicit-any
+  (config as any).nodeModulesDir = true;
+}
+if (useTwind) {
+  twindImports(config.imports);
+}
+dotenvImports(config.imports);
+
 const DENO_CONFIG = JSON.stringify(config, null, 2) + "\n";
 
 await Deno.writeTextFile(join(resolvedDirectory, "deno.json"), DENO_CONFIG);
 
-const README_MD = `# fresh project
+const README_MD = `# Fresh project
+
+Your new Fresh project is ready to go. You can follow the Fresh "Getting
+Started" guide here: https://fresh.deno.dev/docs/getting-started
 
 ### Usage
 
-Start the project:
+Make sure to install Deno: https://deno.land/manual/getting_started/installation
+
+Then start the project:
 
 \`\`\`
 deno task start
@@ -338,6 +675,19 @@ const vscodeSettings = {
   "deno.enable": true,
   "deno.lint": true,
   "editor.defaultFormatter": "denoland.vscode-deno",
+  "[typescriptreact]": {
+    "editor.defaultFormatter": "denoland.vscode-deno",
+  },
+  "[typescript]": {
+    "editor.defaultFormatter": "denoland.vscode-deno",
+  },
+  "[javascriptreact]": {
+    "editor.defaultFormatter": "denoland.vscode-deno",
+  },
+  "[javascript]": {
+    "editor.defaultFormatter": "denoland.vscode-deno",
+  },
+  "css.customData": useTailwind ? [".vscode/tailwind.json"] : undefined,
 };
 
 const VSCODE_SETTINGS = JSON.stringify(vscodeSettings, null, 2) + "\n";
@@ -353,8 +703,8 @@ const vscodeExtensions = {
   recommendations: ["denoland.vscode-deno"],
 };
 
-if (useTwind) {
-  vscodeExtensions.recommendations.push("sastan.twind-intellisense");
+if (useTailwind) {
+  vscodeExtensions.recommendations.push("bradlc.vscode-tailwindcss");
 }
 
 const VSCODE_EXTENSIONS = JSON.stringify(vscodeExtensions, null, 2) + "\n";
@@ -363,6 +713,78 @@ if (useVSCode) {
   await Deno.writeTextFile(
     join(resolvedDirectory, ".vscode", "extensions.json"),
     VSCODE_EXTENSIONS,
+  );
+}
+
+const tailwindCustomData = {
+  "version": 1.1,
+  "atDirectives": [
+    {
+      "name": "@tailwind",
+      "description":
+        "Use the `@tailwind` directive to insert Tailwind's `base`, `components`, `utilities` and `screens` styles into your CSS.",
+      "references": [
+        {
+          "name": "Tailwind Documentation",
+          "url":
+            "https://tailwindcss.com/docs/functions-and-directives#tailwind",
+        },
+      ],
+    },
+    {
+      "name": "@apply",
+      "description":
+        "Use the `@apply` directive to inline any existing utility classes into your own custom CSS. This is useful when you find a common utility pattern in your HTML that you’d like to extract to a new component.",
+      "references": [
+        {
+          "name": "Tailwind Documentation",
+          "url": "https://tailwindcss.com/docs/functions-and-directives#apply",
+        },
+      ],
+    },
+    {
+      "name": "@responsive",
+      "description":
+        "You can generate responsive variants of your own classes by wrapping their definitions in the `@responsive` directive:\n```css\n@responsive {\n  .alert {\n    background-color: #E53E3E;\n  }\n}\n```\n",
+      "references": [
+        {
+          "name": "Tailwind Documentation",
+          "url":
+            "https://tailwindcss.com/docs/functions-and-directives#responsive",
+        },
+      ],
+    },
+    {
+      "name": "@screen",
+      "description":
+        "The `@screen` directive allows you to create media queries that reference your breakpoints by **name** instead of duplicating their values in your own CSS:\n```css\n@screen sm {\n  /* ... */\n}\n```\n…gets transformed into this:\n```css\n@media (min-width: 640px) {\n  /* ... */\n}\n```\n",
+      "references": [
+        {
+          "name": "Tailwind Documentation",
+          "url": "https://tailwindcss.com/docs/functions-and-directives#screen",
+        },
+      ],
+    },
+    {
+      "name": "@variants",
+      "description":
+        "Generate `hover`, `focus`, `active` and other **variants** of your own utilities by wrapping their definitions in the `@variants` directive:\n```css\n@variants hover, focus {\n   .btn-brand {\n    background-color: #3182CE;\n  }\n}\n```\n",
+      "references": [
+        {
+          "name": "Tailwind Documentation",
+          "url":
+            "https://tailwindcss.com/docs/functions-and-directives#variants",
+        },
+      ],
+    },
+  ],
+};
+const TAILWIND_CUSTOMDATA = JSON.stringify(tailwindCustomData, null, 2) + "\n";
+
+if (useVSCode && useTailwind) {
+  await Deno.writeTextFile(
+    join(resolvedDirectory, ".vscode", "tailwind.json"),
+    TAILWIND_CUSTOMDATA,
   );
 }
 

@@ -1,14 +1,18 @@
 import { JSX, options as preactOptions, VNode } from "preact";
 import {
+  BaseTheme,
   setup as twSetup,
   Sheet,
   tw,
   TwindConfig,
-} from "https://esm.sh/@twind/core@1.1.3";
+} from "$fresh/plugins/twindv1_deps.ts";
+
+type PreactOptions = typeof preactOptions & { __b?: (vnode: VNode) => void };
 
 export const STYLE_ELEMENT_ID = "__FRSH_TWIND";
 
-export interface Options extends TwindConfig {
+export interface Options<Theme extends BaseTheme = BaseTheme>
+  extends TwindConfig<Theme> {
   /** The import.meta.url of the module defining these options. */
   selfURL: string;
 }
@@ -22,12 +26,19 @@ declare module "preact" {
   }
 }
 
-export function setup({ selfURL: _selfURL, ...config }: Options, sheet: Sheet) {
+export function setup<Theme extends BaseTheme = BaseTheme>(
+  { selfURL: _selfURL, ...config }: Options<Theme>,
+  sheet: Sheet,
+) {
   twSetup(config, sheet);
 
-  const originalHook = preactOptions.vnode;
-  // deno-lint-ignore no-explicit-any
-  preactOptions.vnode = (vnode: VNode<JSX.DOMAttributes<any>>) => {
+  // Hook into options._diff which is called whenever a new comparison
+  // starts in Preact.
+  const originalHook = (preactOptions as PreactOptions).__b;
+  (preactOptions as PreactOptions).__b = (
+    // deno-lint-ignore no-explicit-any
+    vnode: VNode<JSX.DOMAttributes<any>>,
+  ) => {
     if (typeof vnode.type === "string" && typeof vnode.props === "object") {
       const { props } = vnode;
       const classes: string[] = [];
@@ -37,6 +48,7 @@ export function setup({ selfURL: _selfURL, ...config }: Options, sheet: Sheet) {
       }
       if (props.className) {
         classes.push(tw(props.className));
+        props.className = undefined;
       }
       if (classes.length) {
         props.class = classes.join(" ");

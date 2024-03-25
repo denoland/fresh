@@ -1,33 +1,35 @@
 // -- std --
 export {
+  basename,
+  dirname,
   extname,
   fromFileUrl,
+  isAbsolute,
+  join,
+  SEPARATOR,
   toFileUrl,
-} from "https://deno.land/std@0.189.0/path/mod.ts";
-export { walk } from "https://deno.land/std@0.189.0/fs/walk.ts";
-export { serve } from "https://deno.land/std@0.189.0/http/server.ts";
-export type {
-  ConnInfo,
-  Handler as RequestHandler,
-  ServeInit,
-} from "https://deno.land/std@0.189.0/http/server.ts";
-export { Status } from "https://deno.land/std@0.189.0/http/http_status.ts";
+} from "https://deno.land/std@0.216.0/path/mod.ts";
+export { walk } from "https://deno.land/std@0.216.0/fs/walk.ts";
+export * as colors from "https://deno.land/std@0.216.0/fmt/colors.ts";
 export {
-  typeByExtension,
-} from "https://deno.land/std@0.189.0/media_types/mod.ts";
-export { toHashString } from "https://deno.land/std@0.189.0/crypto/to_hash_string.ts";
-export { escape } from "https://deno.land/std@0.189.0/regexp/escape.ts";
-
-// -- esbuild --
-// @deno-types="https://deno.land/x/esbuild@v0.17.11/mod.d.ts"
-import * as esbuildWasm from "https://deno.land/x/esbuild@v0.17.11/wasm.js";
-import * as esbuildNative from "https://deno.land/x/esbuild@v0.17.11/mod.js";
-// @ts-ignore trust me
-// deno-lint-ignore no-deprecated-deno-api
-const esbuild: typeof esbuildWasm = Deno.run === undefined
-  ? esbuildWasm
-  : esbuildNative;
-export { esbuild, esbuildWasm as esbuildTypes };
-
-// TODO(lino-levan): Replace with versioned import
-export { denoPlugin } from "https://raw.githubusercontent.com/lucacasonato/esbuild_deno_loader/8031f71afa1bbcd3237a94b11f53a2e5c5c0e7bf/mod.ts";
+  type Handler as ServeHandler,
+  serve,
+} from "https://deno.land/std@0.216.0/http/server.ts";
+export { STATUS_CODE } from "https://deno.land/std@0.216.0/http/status.ts";
+export {
+  contentType,
+} from "https://deno.land/std@0.216.0/media_types/content_type.ts";
+export { encodeHex } from "https://deno.land/std@0.216.0/encoding/hex.ts";
+export { escape } from "https://deno.land/std@0.216.0/regexp/escape.ts";
+export * as JSONC from "https://deno.land/std@0.216.0/jsonc/mod.ts";
+export { renderToString } from "https://esm.sh/*preact-render-to-string@6.3.1";
+export {
+  assertEquals,
+  assertThrows,
+} from "https://deno.land/std@0.216.0/assert/mod.ts";
+export {
+  isIdentifierChar,
+  isIdentifierStart,
+} from "https://esm.sh/@babel/helper-validator-identifier@7.22.20";
+export { normalize } from "https://deno.land/std@0.216.0/path/posix/mod.ts";
+export { assertSnapshot } from "https://deno.land/std@0.216.0/testing/snapshot.ts";

@@ -1,6 +1,6 @@
-# fresh website
+# Fresh website
 
-This is the fresh website source. The fresh website contains:
+This is the Fresh website source. The Fresh website contains:
 
 - a homepage
 - a documentation page

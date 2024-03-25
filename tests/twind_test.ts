@@ -1,6 +1,13 @@
-import { assert, delay, puppeteer, TextLineStream } from "./deps.ts";
+import { assert, assertEquals, assertMatch, delay, puppeteer } from "./deps.ts";
 
 import { cmpStringArray } from "./fixture_twind_hydrate/utils/utils.ts";
+import {
+  startFreshServer,
+  waitForStyle,
+  withFakeServe,
+  withFresh,
+  withPageName,
+} from "./test_utils.ts";
 
 /**
  * Start the server with the main file.
@@ -8,33 +15,9 @@ import { cmpStringArray } from "./fixture_twind_hydrate/utils/utils.ts";
  * Returns a page instance and a method to terminate the server.
  */
 async function setUpServer(path: string) {
-  const serverProcessCmd = new Deno.Command("deno", {
-    args: [
-      "run",
-      "-A",
-      path,
-    ],
-    stdout: "piped",
-    stderr: "inherit",
+  const { lines, serverProcess, address } = await startFreshServer({
+    args: ["run", "-A", path],
   });
-
-  const serverProcess = serverProcessCmd.spawn();
-
-  const lines = serverProcess.stdout
-    .pipeThrough(new TextDecoderStream())
-    .pipeThrough(new TextLineStream());
-
-  let started = false;
-
-  for await (const line of lines) {
-    if (line.includes("Listening on http://")) {
-      started = true;
-      break;
-    }
-  }
-  if (!started) {
-    throw new Error("Server didn't start up");
-  }
 
   await delay(100);
 
@@ -50,19 +33,11 @@ async function setUpServer(path: string) {
     serverProcess.kill("SIGKILL");
     await serverProcess.status;
 
-    // TextDecoder leaks, so close it manually.
-    const denoResourcesMap = new Map(
-      Object.entries(Deno.resources()).map(([rid, representation]) => {
-        return [representation, parseInt(rid)];
-      }),
-    );
-    const textDecoderRid = denoResourcesMap.get("textDecoder");
-    if (textDecoderRid != null) {
-      Deno.close(textDecoderRid);
-    }
+    // Drain the lines stream
+    for await (const _ of lines) { /* noop */ }
   };
 
-  return { page: page, terminate: terminate };
+  return { page: page, terminate, address };
 }
 
 /**
@@ -79,7 +54,7 @@ Deno.test({
 
     /**
      * Compare the class of element of any id with the selectorText of cssrules in stylesheet.
-     * Ensure that twind compliles the class of element.
+     * Ensure that twind compiles the class of element.
      */
     async function compiledCssRulesTest(id: string, styleId: string) {
       const elemClassList = await page.evaluate((selector) => {
@@ -118,7 +93,7 @@ Deno.test({
       }
     }
 
-    await page.goto("http://localhost:8000/static", {
+    await page.goto(`${server.address}/static`, {
       waitUntil: "networkidle2",
     });
 
@@ -189,7 +164,7 @@ Deno.test({
       assert(false, `${numDuplicates} cssrules are duplicated`);
     }
 
-    await page.goto("http://localhost:8000/check-duplication", {
+    await page.goto(`${server.address}/check-duplication`, {
       waitUntil: "networkidle2",
     });
 
@@ -297,7 +272,7 @@ Deno.test({
       );
     }
 
-    await page.goto("http://localhost:8000/insert-cssrules", {
+    await page.goto(`${server.address}/insert-cssrules`, {
       waitUntil: "networkidle2",
     });
 
@@ -313,4 +288,120 @@ Deno.test({
 
     await server.terminate();
   },
+});
+
+Deno.test({
+  name: "Excludes classes from unused vnodes",
+  async fn() {
+    await withPageName(
+      "./tests/fixture_twind_hydrate/main.ts",
+      async (page, address) => {
+        await page.goto(`${address}/unused`);
+        await page.waitForSelector("#__FRSH_TWIND");
+
+        const hasUnusedRules = await page.$eval("#__FRSH_TWIND", (el) => {
+          return el.textContent.includes(".text-red-600");
+        });
+        assert(
+          !hasUnusedRules,
+          "Unused CSS class '.text-red-600' found.",
+        );
+      },
+    );
+  },
+});
+
+Deno.test({
+  name: "Always includes classes from tw-helper",
+  async fn() {
+    await withPageName(
+      "./tests/fixture_twind_hydrate/main.ts",
+      async (page, address) => {
+        await page.goto(`${address}/unused_tw`);
+        await page.waitForSelector("#__FRSH_TWIND");
+
+        const styles = await page.$eval(
+          "#__FRSH_TWIND",
+          (el: HTMLStyleElement) => {
+            const text = el.textContent!;
+            return {
+              "text-red-600": text.includes(".text-red-600"),
+              "text-green-500": text.includes("text-green-500"),
+              "text-blue-500": text.includes("text-blue-500"),
+            };
+          },
+        );
+        assertEquals(
+          styles,
+          {
+            "text-red-600": false,
+            "text-green-500": true,
+            "text-blue-500": true,
+          },
+        );
+      },
+    );
+  },
+});
+
+// Test for: https://github.com/denoland/fresh/issues/1655
+Deno.test("don't duplicate css class", async () => {
+  await withFakeServe(
+    "./tests/fixture_twind_app/main.ts",
+    async (server) => {
+      const res = await server.get(`/app_class`);
+      assertEquals(res.status, 200);
+
+      // Don't use an HTML parser here which would de-duplicate the
+      // class names automatically
+      const html = await res.text();
+      assertMatch(html, /html class="bg-slate-800">/);
+      assertMatch(html, /head class="bg-slate-800">/);
+      assertMatch(html, /body class="bg-slate-800">/);
+    },
+  );
+});
+
+// Test for: https://github.com/denoland/fresh/issues/1655
+Deno.test("don't duplicate css class with twindV1", async () => {
+  await withFresh(
+    {
+      name: "./tests/fixture_twind_app/main.ts",
+      options: {
+        env: {
+          TWIND_V1: "true",
+        },
+      },
+    },
+    async (address) => {
+      const res = await fetch(`${address}/app_class`);
+      assertEquals(res.status, 200);
+
+      // Don't use an HTML parser here which would de-duplicate the
+      // class names automatically
+      const html = await res.text();
+      assertMatch(html, /html class="bg-slate-800">/);
+      assertMatch(html, /head class="bg-slate-800">/);
+      assertMatch(html, /body class="bg-slate-800">/);
+    },
+  );
+});
+
+Deno.test("render styles from partial update", async () => {
+  await withPageName(
+    "./tests/fixture_twind_hydrate/main.ts",
+    async (page, address) => {
+      await page.goto(`${address}/island_twind`);
+      await page.click(`a[href="/island_twind/blue"]`);
+
+      await page.waitForSelector(".bg-blue-500");
+
+      await waitForStyle(
+        page,
+        ".bg-blue-500",
+        "backgroundColor",
+        "rgb(59, 130, 246)",
+      );
+    },
+  );
 });
