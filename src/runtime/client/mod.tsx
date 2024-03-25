@@ -1,3 +1,4 @@
+import "./polyfills.ts";
 import "../dev.ts";
 import { type ComponentChildren, type VNode } from "preact";
 export { IS_BROWSER } from "../shared.ts";
