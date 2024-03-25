@@ -2,16 +2,21 @@ Fresh 2.0:
 ☐ rewrite router to accept an array of handlers
 ☐ fix composing apps via `app.mount()`
 ☐ add back async layouts to fs router
-☐ try publishing to JSR
+✔ try publishing to JSR @done(24-03-25 12:31)
   ☐ what to do about global JSX type extensions?
 ☐ bring back partials + nested islands + server components
 ☐ bring back old-style `ctx.render()` API
-☐ bring back browser polyfills
+✔ bring back browser polyfills @done(24-03-25 12:32)
 ☐ bring back active url handling
 ☐ preloading scripts
 ☐ `asset()` function
 ☐ Remove components on website
 ☐ Update init + update script
+☐ Add tests for static file middleware
+☐ Investigate bundling esbuild js assets with rollup
+☐ Add back finish tailwind setup page
+☐ think about publishing Fresh 1.x to JSR first
+
 
 Fresh 2.0 compat:
 ☐ add plugin API backwards compat
@@ -22,7 +27,7 @@ Fresh 2.0 finishing:
 ☐ update docs
 ☐ release blog post
   ☐ removal of JIT
-  ☐ removal of HEAD
+  ☐ removal of <Head> component
   ☐ app-style API
   ☐ new render API
   ☐ simplified middleware signature
@@ -32,5 +37,6 @@ Fresh 2.0 finishing:
   ☐ hashed assets in CSS files
   ☐ etag caching based on file contents
   ☐ clear split of dev + prod -> smaller deployments
+  ☐ no more manifest
 
 
