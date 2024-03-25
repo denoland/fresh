@@ -11,6 +11,7 @@ Fresh 2.0:
 ☐ preloading scripts
 ☐ `asset()` function
 ☐ Remove components on website
+☐ Update init + update script
 
 Fresh 2.0 compat:
 ☐ add plugin API backwards compat
