@@ -1,6 +1,6 @@
 {
   "name": "@marvinh-test/fresh",
-  "version": "2.0-prealpha.0",
+  "version": "2.0.0-prealpha.0",
   "exports": {
     ".": "./src/mod.ts"
   },
