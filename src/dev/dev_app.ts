@@ -11,7 +11,6 @@ import { bundleJs } from "./esbuild.ts";
 import * as JSONC from "@std/jsonc";
 import { prettyTime } from "../utils.ts";
 import { liveReload } from "./middlewares/live_reload.ts";
-import { sendFile } from "../middlewares/static_files.ts";
 import {
   FreshFileTransformer,
   OnTransformArgs,
