@@ -1,10 +1,11 @@
 {
   "name": "@marvinh-test/fresh",
-  "version": "2.0.0-prealpha.6",
+  "version": "2.0.0-prealpha.7",
   "exports": {
     ".": "./src/mod.ts",
     "./runtime": "./src/runtime/client/mod.tsx",
-    "./compat": "./src/compat/server.ts"
+    "./compat": "./src/compat/server.ts",
+    "./dev": "./src/dev/mod.ts"
   },
   "lock": false,
   "tasks": {
