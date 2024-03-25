@@ -65,6 +65,8 @@
     "preact-render-to-string": "npm:preact-render-to-string@^6.4.0",
     "tailwindcss": "npm:tailwindcss@^3.4.1",
     "tailwindcss/plugin": "npm:/tailwindcss@^3.4.1/plugin.js",
+    "esbuild-wasm": "npm:esbuild-wasm@0.20.2",
+    "esbuild": "npm:esbuild@0.20.2",
     "twind": "https://esm.sh/twind@0.16.19",
     "twind/": "https://esm.sh/twind@0.16.19/"
   },

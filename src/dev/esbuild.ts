@@ -1,7 +1,4 @@
-import {
-  type BuildOptions,
-  type Plugin as EsbuildPlugin,
-} from "npm:esbuild-wasm";
+import { type BuildOptions, type Plugin as EsbuildPlugin } from "esbuild-wasm";
 import { denoPlugins } from "@luca/esbuild-deno-loader";
 import * as path from "@std/path";
 
@@ -21,15 +18,15 @@ export interface BuildOutput {
   files: Array<{ hash: string | null; contents: Uint8Array; path: string }>;
 }
 
-let esbuild: null | typeof import("npm:esbuild-wasm") = null;
+let esbuild: null | typeof import("esbuild-wasm") = null;
 
 export async function bundleJs(
   options: FreshBundleOptions,
 ): Promise<BuildOutput> {
   if (esbuild === null) {
     esbuild = Deno.env.get("FRESH_ESBUILD_LOADER") === "portable"
-      ? await import("npm:esbuild-wasm")
-      : await import("npm:esbuild");
+      ? await import("esbuild-wasm")
+      : await import("esbuild");
 
     await esbuild.initialize({});
   }
