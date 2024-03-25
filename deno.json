@@ -3,7 +3,7 @@
   "version": "2.0.0-prealpha.3",
   "exports": {
     ".": "./src/mod.ts",
-    "runtime": "./src/runtime/client/mod.tsx"
+    "./runtime": "./src/runtime/client/mod.tsx"
   },
   "lock": false,
   "tasks": {
