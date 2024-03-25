@@ -2,7 +2,7 @@ import { FunctionComponent, VNode } from "preact";
 import { ResolvedFreshConfig } from "./config.ts";
 import { BuildCache } from "./build_cache.ts";
 import { RenderState } from "./middlewares/render/render_state.ts";
-import { renderToStringAsync } from "https://esm.sh/*preact-render-to-string@6.4.0";
+import { renderToStringAsync } from "preact-render-to-string";
 
 const NOOP = () => null;
 
