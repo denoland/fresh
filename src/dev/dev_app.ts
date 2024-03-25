@@ -44,14 +44,6 @@ export class FreshDevApp<T> extends FreshApp<T> implements DevApp<T> {
     super(config);
 
     this.use(liveReload());
-
-    // Browser dev client
-    this.get("/_frsh/fresh-dev-client.js", async (ctx) => {
-      const outDir = this.config.build.outDir;
-      const filePath = path.join(outDir, "static", "fresh-dev-client.js");
-      const res = await sendFile(ctx.req, filePath, outDir, null);
-      return res !== null ? res : ctx.next();
-    });
   }
 
   onTransformStaticFile(
