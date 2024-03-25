@@ -1,6 +1,6 @@
 {
   "name": "@fresh/core",
-  "version": "2.0",
+  "version": "2.0-prealpha.0",
   "lock": false,
   "tasks": {
     "test": "deno test -A --parallel --trace-ops",
