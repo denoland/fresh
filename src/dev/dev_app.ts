@@ -1,4 +1,4 @@
-import { FreshApp, GLOBAL_ISLANDS, ListenOptions } from "../app.ts";
+import { App, FreshApp, GLOBAL_ISLANDS, ListenOptions } from "../app.ts";
 import { FreshConfig } from "../config.ts";
 import { fsAdapter } from "../fs.ts";
 import { BuildCacheSnapshot } from "../build_cache.ts";
@@ -12,8 +12,23 @@ import * as JSONC from "@std/jsonc";
 import { prettyTime } from "../utils.ts";
 import { liveReload } from "./middlewares/live_reload.ts";
 import { sendFile } from "../middlewares/static_files.ts";
+import {
+  FreshFileTransformer,
+  OnTransformArgs,
+  OnTransformOptions,
+} from "./file_transformer.ts";
+import { TransformFn } from "./file_transformer.ts";
+
+export interface DevApp<T> extends App<T> {
+  onTransformStaticFile(
+    options: OnTransformOptions,
+    callback: TransformFn,
+  ): void;
+}
 
 export class FreshDevApp<T> extends FreshApp<T> {
+  #transformer = new FreshFileTransformer();
+
   constructor(config: FreshConfig = {}) {
     super(config);
 
@@ -26,6 +41,13 @@ export class FreshDevApp<T> extends FreshApp<T> {
       const res = await sendFile(ctx.req, filePath, outDir, null);
       return res !== null ? res : ctx.next();
     });
+  }
+
+  onTransform(
+    options: OnTransformOptions,
+    callback: (args: OnTransformArgs) => void,
+  ): void {
+    this.#transformer.onTransform(options, callback);
   }
 
   async listen(options: ListenOptions = {}): Promise<void> {
@@ -63,7 +85,11 @@ export class FreshDevApp<T> extends FreshApp<T> {
       });
 
       for await (const entry of entries) {
+        const result = await this.#transformer.process(entry.path);
+        console.log({ result });
+
         const file = await Deno.open(entry.path, { read: true });
+
         const hashBuf = await crypto.subtle.digest(
           "SHA-256",
           file.readable,

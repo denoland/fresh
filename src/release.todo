@@ -17,7 +17,7 @@ Fresh 2.0:
 ☐ Add back finish tailwind setup page
 ☐ think about publishing Fresh 1.x to JSR first
 ☐ config inferrence from app to devapp is confusing
-☐ remove UUID from context object
+✔ remove UUID from context object @done(24-03-25 21:59)
 ☐ Add bundle like static file processor
 ☐ Think of custom Fresh JSX transform, for `asset()` + active link
 
