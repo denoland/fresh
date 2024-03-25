@@ -5,7 +5,7 @@ import { contentType as getContentType } from "@std/media-types/content_type";
 // FIXME: Test etag
 // FIXME: Test source map content type
 /**
- * Fresh plugin to enable file-system based routing.
+ * Fresh middleware to enable file-system based routing.
  * ```ts
  * // Enable Fresh static file serving
  * app.use(freshStaticFles());
