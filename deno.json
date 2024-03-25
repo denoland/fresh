@@ -19,10 +19,7 @@
     "test:www": "deno test -A tests/www/",
     "manifests": "deno run -A genAllManifest.ts"
   },
-  "exclude": [
-    "**/_fresh/*",
-    "**/tmp/*"
-  ],
+  "exclude": ["**/_fresh/*", "**/tmp/*"],
   "publish": {
     "include": [
       "src/**",
@@ -32,11 +29,7 @@
       "www/static/fresh-badge.svg",
       "www/static/fresh-badge-dark.svg"
     ],
-    "exclude": [
-      "**/*_test.*",
-      "src/__OLD/**",
-      "*.todo"
-    ]
+    "exclude": ["**/*_test.*", "src/__OLD/**", "*.todo"]
   },
   "imports": {
     "$fresh-testing-library": "https://deno.land/x/fresh_testing_library@0.11.1/mod.ts",
