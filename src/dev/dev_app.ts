@@ -26,7 +26,7 @@ export interface DevApp<T> extends App<T> {
   ): void;
 }
 
-export class FreshDevApp<T> extends FreshApp<T> {
+export class FreshDevApp<T> extends FreshApp<T> implements DevApp<T> {
   #transformer = new FreshFileTransformer();
 
   constructor(config: FreshConfig = {}) {
@@ -43,7 +43,7 @@ export class FreshDevApp<T> extends FreshApp<T> {
     });
   }
 
-  onTransform(
+  onTransformStaticFile(
     options: OnTransformOptions,
     callback: (args: OnTransformArgs) => void,
   ): void {
@@ -67,6 +67,7 @@ export class FreshDevApp<T> extends FreshApp<T> {
   async build(options: { dev?: boolean } = {}): Promise<void> {
     const start = Date.now();
     const { staticDir, build } = this.config;
+    const staticOutDir = path.join(build.outDir, "static");
 
     const snapshot: BuildCacheSnapshot = {
       version: 1,
@@ -85,18 +86,27 @@ export class FreshDevApp<T> extends FreshApp<T> {
       });
 
       for await (const entry of entries) {
-        const result = await this.#transformer.process(entry.path);
-        console.log({ result });
+        const result = await this.#transformer.process(
+          entry.path,
+          options.dev ? "development" : "production",
+        );
 
-        const file = await Deno.open(entry.path, { read: true });
+        const relative = path.relative(staticDir, entry.path);
+
+        let content: Uint8Array | ReadableStream<Uint8Array>;
+        if (result !== null) {
+          await Deno.writeFile(path.join(staticOutDir, relative), result);
+          content = result;
+        } else {
+          content = (await Deno.open(entry.path, { read: true })).readable;
+        }
 
         const hashBuf = await crypto.subtle.digest(
           "SHA-256",
-          file.readable,
+          content,
         );
         const hash = encodeHex(hashBuf);
 
-        const relative = path.relative(staticDir, entry.path);
         const pathname = `/${relative}`;
         snapshot.staticFiles[pathname] = { hash, generated: false };
       }
@@ -122,7 +132,6 @@ export class FreshDevApp<T> extends FreshApp<T> {
       );
     }
 
-    const staticOutDir = path.join(build.outDir, "static");
     const output = await bundleJs({
       cwd: Deno.cwd(),
       outDir: staticOutDir,

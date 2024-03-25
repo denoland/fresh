@@ -51,7 +51,8 @@ export async function initTailwind(
     throw new Error(`Expected tailwind "content" option to be an array`);
   }
 
-  tailwindConfig.content = tailwindConfig.content.map((pattern) => {
+  // deno-lint-ignore no-explicit-any
+  tailwindConfig.content = tailwindConfig.content.map((pattern: any) => {
     if (typeof pattern === "string") {
       const relative = path.relative(Deno.cwd(), path.dirname(configPath));
 

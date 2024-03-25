@@ -1,20 +1,22 @@
 import { TailwindPluginOptions } from "./types.ts";
 import { initTailwind } from "./compiler.ts";
 import { DevApp } from "../../dev/dev_app.ts";
+import { Processor } from "npm:postcss@8.4.35";
 
-export async function tailwind<T>(
+export function tailwind<T>(
   app: DevApp<T>,
   options: TailwindPluginOptions = {},
-): Promise<void> {
-  const processor = await initTailwind(app.config, options);
+): void {
+  let processor: Processor | null = null;
 
   app.onTransformStaticFile({ filter: /\.css$/ }, async (args) => {
-    const text = await Deno.readTextFile(args.path);
-    const res = await processor.process(text, {
+    if (processor === null) {
+      processor = await initTailwind(app.config, options);
+    }
+    const res = await processor.process(args.text, {
       from: args.path,
     });
 
-    console.log("tailwind", args.path);
     return {
       content: res.content,
       map: res.map?.toString(),

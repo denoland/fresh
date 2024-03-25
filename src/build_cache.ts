@@ -12,7 +12,6 @@ export interface BuildCacheSnapshot {
 }
 
 export interface BuildCache {
-  addFile(pathname: string, hash: string | null): void;
   getFileInfo(pathname: string): StaticFileInfo | null;
   islandToChunk(name: string): string;
 }
@@ -43,11 +42,6 @@ export class FreshBuildCache implements BuildCache {
       throw new Error(`Could not find chunk for island: ${name}`);
     }
     return chunk;
-  }
-
-  addFile(pathname: string, hash: string | null): void {
-    const info: StaticFileInfo = { generated: true, hash };
-    this.#files.set(pathname, info);
   }
 
   getFileInfo(pathname: string): StaticFileInfo | null {

@@ -6,7 +6,7 @@ import { app } from "./main.ts";
 
 const devApp = new FreshDevApp();
 
-await tailwind(devApp, {});
+tailwind(devApp, {});
 
 devApp.route("/", app);
 
