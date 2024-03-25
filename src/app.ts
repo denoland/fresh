@@ -18,8 +18,7 @@ export interface Island {
   exportName: string;
   fn: ComponentType;
 }
-// FIXME: Update type once https://github.com/denoland/deno_graph/pull/422
-// lands and is released in Deno
+
 export const GLOBAL_ISLANDS: Map<ComponentType, Island> = new Map<
   ComponentType,
   Island
