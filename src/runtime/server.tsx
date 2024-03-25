@@ -46,7 +46,10 @@ const stringifiers: Stringifiers = {
   },
 };
 
-export function FreshScripts(_props: unknown, context: FreshRenderContext) {
+export function FreshScripts(
+  _props: unknown,
+  context: FreshRenderContext,
+): VNode {
   const { islands, islandProps, ctx } = context.__fresh;
   const basePath = ctx.config.basePath;
   // FIXME: Don't make optional

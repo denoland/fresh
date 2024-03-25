@@ -18,7 +18,12 @@ export interface Island {
   exportName: string;
   fn: ComponentType;
 }
-export const GLOBAL_ISLANDS = new Map<ComponentType, Island>();
+// FIXME: Update type once https://github.com/denoland/deno_graph/pull/422
+// lands and is released in Deno
+export const GLOBAL_ISLANDS: Map<ComponentType, Island> = new Map<
+  ComponentType,
+  Island
+>();
 
 export interface App<State> {
   readonly router: Router<Middleware<State>>;
@@ -52,7 +57,7 @@ export interface RouteCacheEntry<T> {
 }
 
 export class FreshApp<State> implements App<State> {
-  router = new UrlPatternRouter<Middleware<State>>();
+  router: Router<Middleware<State>> = new UrlPatternRouter<Middleware<State>>();
   buildCache: BuildCache | null = null;
   #routeCache = new Map<string, RouteCacheEntry<State>>();
   #islandNames = new Set<string>();
