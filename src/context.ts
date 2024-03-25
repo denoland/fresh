@@ -2,10 +2,7 @@ import { FunctionComponent, VNode } from "preact";
 import { ResolvedFreshConfig } from "./config.ts";
 import { BuildCache } from "./build_cache.ts";
 import { RenderState } from "./middlewares/render/render_state.ts";
-import {
-  renderToStream,
-  renderToStringAsync,
-} from "../../preact-render-to-string/src/index.js";
+import { renderToStringAsync } from "https://esm.sh/*preact-render-to-string@6.4.0";
 
 const NOOP = () => null;
 
@@ -86,8 +83,9 @@ export class FreshReqContext<T> implements FreshContext<T, unknown> {
     const state = new RenderState(this);
     const stream = !!options?.stream;
 
+    // TODO: Streaming
     const result = stream
-      ? renderToStream(vnode, { __fresh: state }, RENDER_PREACT_SLOT)
+      ? renderToStringAsync(vnode, { __fresh: state })
       : renderToStringAsync(vnode, { __fresh: state });
     if (typeof result === "string") {
       return new Response("<!DOCTYPE html>" + result, responseInit);
