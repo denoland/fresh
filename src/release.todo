@@ -18,7 +18,7 @@ Fresh 2.0:
 ☐ think about publishing Fresh 1.x to JSR first
 ☐ config inferrence from app to devapp is confusing
 ✔ remove UUID from context object @done(24-03-25 21:59)
-☐ Add bundle like static file processor
+✔ Add bundle like static file processor @done(24-03-25 23:41)
 ☐ Think of custom Fresh JSX transform, for `asset()` + active link
 
 Fresh 2.0 compat:
