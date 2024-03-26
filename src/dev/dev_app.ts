@@ -79,6 +79,12 @@ export class FreshDevApp<T> extends FreshApp<T> implements DevApp<T> {
 
     const target = options.target ?? ["chrome99", "firefox99", "safari15"];
 
+    try {
+      await Deno.remove(staticOutDir);
+    } catch {
+      // Ignore
+    }
+
     // Read static files
     if (await fsAdapter.isDirectory(staticDir)) {
       const entries = fsAdapter.walk(staticDir, {
