@@ -60,7 +60,6 @@ export class FreshApp<State> implements App<State> {
     Middleware<State>
   >();
   buildCache: BuildCache | null = null;
-  #routeCache = new Map<string, RouteCacheEntry<State>>();
   #islandNames = new Set<string>();
   #middlewares: Middleware<State>[] = [];
 
