@@ -4,6 +4,7 @@ import jsInjectPlugin from "./utils/js-inject-plugin.ts";
 import cssInjectPluginAsync from "./utils/css-inject-plugin-async.ts";
 import linkInjectPlugin from "./utils/link-inject-plugin.ts";
 import routePlugin from "./utils/route-plugin.ts";
+import routePluginMultipleIslands from "./utils/route-plugin-multiple-islands.ts";
 import secondMiddlewarePlugin from "$fresh/tests/fixture_plugin/utils/second-middleware-plugin.ts";
 
 export default {
@@ -13,6 +14,7 @@ export default {
     cssInjectPluginAsync,
     linkInjectPlugin,
     routePlugin({ title: "Title Set From Plugin Config", async: false }),
+    routePluginMultipleIslands(),
     secondMiddlewarePlugin(),
   ],
 } as FreshConfig;
