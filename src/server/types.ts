@@ -119,6 +119,7 @@ export interface ResolvedFreshConfig {
   router?: RouterOptions;
   server: Partial<Deno.ServeTlsOptions>;
   basePath: string;
+  denoJsonPath: string;
 }
 
 export interface RouterOptions {
@@ -495,6 +496,19 @@ export interface Plugin<State = Record<string, unknown>> {
   middlewares?: PluginMiddleware<State>[];
 
   islands?: PluginIslands;
+
+  /**
+   * This should always be set to `import.meta.url`.
+   * Required if you want tailwind to scan your routes for classes.
+   */
+  location?: string;
+
+  /**
+   * If the plugin is declared in a separate place than the project root, specify the root here.
+   * This is necessary if your plugin is declared in a `src/` folder.
+   * Required if you want tailwind to scan your routes for classes, and your plugin is not in the root.
+   */
+  projectLocation?: string;
 }
 
 export interface PluginRenderContext {

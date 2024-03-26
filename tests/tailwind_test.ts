@@ -122,3 +122,64 @@ Deno.test("TailwindCSS - missing snapshot on Deno Deploy", async () => {
     },
   );
 });
+
+Deno.test("TailwindCSS remote classes - dev mode", async () => {
+  await withFakeServe(
+    "./tests/fixture_tailwind_remote_classes/dev.ts",
+    async (server) => {
+      const res = await server.get("/styles.css");
+      const content = await res.text();
+      assertStringIncludes(content, ".text-purple-500"); //PluginComponent
+      assertStringIncludes(content, ".text-amber-500"); //NestedPluginComponent
+      assertStringIncludes(content, ".text-slate-500"); //AtPluginComponent
+      assertStringIncludes(content, ".text-lime-500"); //HackyPluginComponent
+      assertStringIncludes(content, ".text-cyan-500"); //VeryNestedPluginComponent
+      assertStringIncludes(content, ".text-emerald-500"); //JsxComponent
+    },
+    { loadConfig: true },
+  );
+});
+
+Deno.test("TailwindCSS remote classes - dev mode jsonc", async () => {
+  const originalPath = "./tests/fixture_tailwind_remote_classes/deno.json";
+  const newPath = "./tests/fixture_tailwind_remote_classes/deno.jsonc";
+
+  await Deno.rename(originalPath, newPath);
+
+  try {
+    await withFakeServe(
+      "./tests/fixture_tailwind_remote_classes/dev.ts",
+      async (server) => {
+        const res = await server.get("/styles.css");
+        const content = await res.text();
+        assertStringIncludes(content, ".text-purple-500"); // PluginComponent
+        assertStringIncludes(content, ".text-amber-500"); // NestedPluginComponent
+        assertStringIncludes(content, ".text-slate-500"); // AtPluginComponent
+        assertStringIncludes(content, ".text-lime-500"); // HackyPluginComponent
+        assertStringIncludes(content, ".text-cyan-500"); // VeryNestedPluginComponent
+        assertStringIncludes(content, ".text-emerald-500"); // JsxComponent
+      },
+      { loadConfig: true },
+    );
+  } finally {
+    await Deno.rename(newPath, originalPath);
+  }
+});
+
+Deno.test("TailwindCSS remote classes - build mode", async () => {
+  await runBuild("./tests/fixture_tailwind_remote_classes/dev.ts");
+  await withFakeServe(
+    "./tests/fixture_tailwind_remote_classes/main.ts",
+    async (server) => {
+      const res = await server.get("/styles.css");
+      const content = await res.text();
+      assertStringIncludes(content, ".text-purple-500"); //PluginComponent
+      assertStringIncludes(content, ".text-amber-500"); //NestedPluginComponent
+      assertStringIncludes(content, ".text-slate-500"); //AtPluginComponent
+      assertStringIncludes(content, ".text-lime-500"); //HackyPluginComponent
+      assertStringIncludes(content, ".text-cyan-500"); //VeryNestedPluginComponent
+      assertStringIncludes(content, ".text-emerald-500"); //JsxComponent
+    },
+    { loadConfig: true },
+  );
+});

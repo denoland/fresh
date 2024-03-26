@@ -1,0 +1,18 @@
+{
+  "lock": false,
+  "tasks": {
+    "start": "deno run -A --watch=static/,routes/ dev.ts"
+  },
+  "imports": {
+    "$fresh/": "../../",
+    "preact": "https://esm.sh/preact@10.15.1",
+    "preact/": "https://esm.sh/preact@10.15.1/",
+    "tailwindcss": "npm:tailwindcss@3.3.5",
+    "$std/": "https://deno.land/std@0.216.0/",
+    "@vscode_787_hack/": "./"
+  },
+  "compilerOptions": {
+    "jsx": "react-jsx",
+    "jsxImportSource": "preact"
+  }
+}
