@@ -233,7 +233,7 @@ Deno.test.only("FreshApp - .route() compose apps", async () => {
     .get("/", (ctx) => new Response(ctx.state.text))
     .post("/", (ctx) => new Response(ctx.state.text));
 
-  const app = new FreshApp<{ text: string }>().route("/foo", innerApp);
+  const app = new FreshApp<{ text: string }>().mountApp("/foo", innerApp);
 
   const server = new FakeServer(app.handler());
 

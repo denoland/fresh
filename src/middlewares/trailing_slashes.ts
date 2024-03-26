@@ -1,4 +1,4 @@
-import { Middleware } from "./compose.ts";
+import { Middleware } from "./mod.ts";
 
 /**
  * Fresh middleware to force URLs to end with a slash or never end with one.

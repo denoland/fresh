@@ -1,5 +1,5 @@
 import { FreshReqContext } from "./context.ts";
-import { Middleware } from "./middlewares/compose.ts";
+import { Middleware } from "./middlewares/mod.ts";
 import { FsAdapter } from "./fs.ts";
 import { WalkEntry } from "@std/fs/walk";
 
@@ -49,11 +49,10 @@ export function serveMiddleware<T>(middleware: Middleware<T>): FakeServer {
       {
         build: {
           outDir: "",
-          target: "",
         },
+        mode: "development",
         basePath: "",
         root: "",
-        mode: "dev",
         staticDir: "",
       },
       async () => await new Response("Not found", { status: 404 }),

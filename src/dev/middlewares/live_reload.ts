@@ -1,4 +1,4 @@
-import { Middleware } from "../../middlewares/compose.ts";
+import { Middleware } from "../../middlewares/mod.ts";
 import { ALIVE_URL } from "../../constants.ts";
 
 // Live reload: Send updates to browser

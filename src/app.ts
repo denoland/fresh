@@ -1,6 +1,6 @@
 import { DENO_DEPLOYMENT_ID } from "./constants.ts";
 import * as colors from "@std/fmt/colors";
-import { compose, Middleware } from "./middlewares/compose.ts";
+import { Middleware, runMiddlewares } from "./middlewares/mod.ts";
 import { FreshReqContext } from "./context.ts";
 import { mergePaths, Method, Router, UrlPatternRouter } from "./router.ts";
 import { FreshConfig, normalizeConfig, ResolvedFreshConfig } from "./config.ts";
@@ -25,19 +25,19 @@ export const GLOBAL_ISLANDS: Map<ComponentType, Island> = new Map<
 >();
 
 export interface App<State> {
-  readonly router: Router<Middleware<State>>;
-  readonly config: ResolvedFreshConfig;
+  readonly _router: Router<Middleware<State>>;
+  readonly config: Readonly<ResolvedFreshConfig>;
 
   island(filePathOrUrl: string | URL, name: string, fn: ComponentType): void;
 
   use(middleware: Middleware<State>): this;
-  get(path: string, middleware: Middleware<State>): this;
-  post(path: string, middleware: Middleware<State>): this;
-  patch(path: string, middleware: Middleware<State>): this;
-  put(path: string, middleware: Middleware<State>): this;
-  delete(path: string, middleware: Middleware<State>): this;
-  head(path: string, middleware: Middleware<State>): this;
-  all(path: string, middleware: Middleware<State>): this;
+  get(path: string, ...middlewares: Middleware<State>[]): this;
+  post(path: string, ...middlewares: Middleware<State>[]): this;
+  patch(path: string, ...middlewares: Middleware<State>[]): this;
+  put(path: string, ...middlewares: Middleware<State>[]): this;
+  delete(path: string, ...middlewares: Middleware<State>[]): this;
+  head(path: string, ...middlewares: Middleware<State>[]): this;
+  all(path: string, ...middlewares: Middleware<State>[]): this;
 
   handler(): (
     request: Request,
@@ -56,10 +56,13 @@ export interface RouteCacheEntry<T> {
 }
 
 export class FreshApp<State> implements App<State> {
-  router: Router<Middleware<State>> = new UrlPatternRouter<Middleware<State>>();
+  _router: Router<Middleware<State>> = new UrlPatternRouter<
+    Middleware<State>
+  >();
   buildCache: BuildCache | null = null;
   #routeCache = new Map<string, RouteCacheEntry<State>>();
   #islandNames = new Set<string>();
+  #middlewares: Middleware<State>[] = [];
 
   /**
    * The final resolved Fresh configuration.
@@ -93,74 +96,69 @@ export class FreshApp<State> implements App<State> {
   }
 
   use(middleware: Middleware<State>): this {
-    this.router.add({ method: "ALL", path: "*", handler: middleware });
+    this.#middlewares.push(middleware);
     return this;
   }
 
-  get(path: string, handler: Middleware<State>): this {
-    const merged = mergePaths(this.config.basePath, path);
-    this.router.add({ method: "GET", path: merged, handler });
-    return this;
+  get(path: string, ...middlewares: Middleware<State>[]): this {
+    return this.#addRoutes("GET", path, middlewares);
   }
-  post(path: string, handler: Middleware<State>): this {
-    const merged = mergePaths(this.config.basePath, path);
-    this.router.add({ method: "POST", path: merged, handler });
-    return this;
+  post(path: string, ...middlewares: Middleware<State>[]): this {
+    return this.#addRoutes("POST", path, middlewares);
   }
-  patch(path: string, handler: Middleware<State>): this {
-    const merged = mergePaths(this.config.basePath, path);
-    this.router.add({ method: "PATCH", path: merged, handler });
-    return this;
+  patch(path: string, ...middlewares: Middleware<State>[]): this {
+    return this.#addRoutes("PATCH", path, middlewares);
   }
-  put(path: string, handler: Middleware<State>): this {
-    const merged = mergePaths(this.config.basePath, path);
-    this.router.add({ method: "PUT", path: merged, handler });
-    return this;
+  put(path: string, ...middlewares: Middleware<State>[]): this {
+    return this.#addRoutes("PUT", path, middlewares);
   }
-  delete(path: string, handler: Middleware<State>): this {
-    const merged = mergePaths(this.config.basePath, path);
-    this.router.add({ method: "DELETE", path: merged, handler });
-    return this;
+  delete(path: string, ...middlewares: Middleware<State>[]): this {
+    return this.#addRoutes("DELETE", path, middlewares);
   }
-  head(path: string, handler: Middleware<State>): this {
-    const merged = mergePaths(this.config.basePath, path);
-    this.router.add({ method: "HEAD", path: merged, handler });
-    return this;
+  head(path: string, ...middlewares: Middleware<State>[]): this {
+    return this.#addRoutes("HEAD", path, middlewares);
   }
-  all(path: string, handler: Middleware<State>): this {
-    const merged = mergePaths(this.config.basePath, path);
-    this.router.add({ method: "ALL", path: merged, handler });
-    return this;
+  all(path: string, ...middlewares: Middleware<State>[]): this {
+    return this.#addRoutes("ALL", path, middlewares);
   }
 
-  // TODO: Rename to mount()?
-  route(path: string, app: App<State>): this {
-    const routes = app.router._routes;
-    const base = mergePaths(this.config.basePath, path);
+  mountApp(path: string, app: App<State>): this {
+    const routes = app._router._routes;
 
     for (let i = 0; i < routes.length; i++) {
       const route = routes[i];
 
-      this.router.add(route);
-
-      // FIXME: Properly merge routers
-      // const mergedPath = route.path instanceof URLPattern
-      //   ? route.path
-      //   : mergePaths(base, route.path);
-      // console.log({ mergedPath, m: route.method });
-      // this.router.add({
-      //   handler: route.handler,
-      //   method: route.method,
-      //   path: mergedPath,
-      // });
+      const merged = typeof route.path === "string"
+        ? mergePaths(path, route.path)
+        : route.path;
+      const combined = this.#middlewares.concat(route.handlers);
+      this._router.add(route.method, merged, combined);
     }
 
+    return this;
+  }
+
+  #addRoutes(
+    method: Method | "ALL",
+    pathname: string | URLPattern,
+    middlewares: Middleware<State>[],
+  ): this {
+    const combined = this.#middlewares.concat(middlewares);
+    const merged = typeof pathname === "string"
+      ? mergePaths(this.config.basePath, pathname)
+      : pathname;
+    this._router.add(method, merged, combined);
     return this;
   }
 
   handler(): (request: Request) => Promise<Response> {
     const next = () =>
       Promise.resolve(new Response("Not found", { status: 404 }));
+
+    // Add default 404 if not present
+    if (this._router._routes.length === 0) {
+      this.#addRoutes("ALL", "*", [next]);
+    }
 
     return async (req: Request) => {
       const url = new URL(req.url);
@@ -170,15 +168,8 @@ export class FreshApp<State> implements App<State> {
       const ctx = new FreshReqContext<State>(req, this.config, next);
       ctx.buildCache = this.buildCache;
 
-      const cacheKey = `${req.method} ${req.url}`;
-      const cached = this.#routeCache.get(cacheKey);
-      if (cached !== undefined) {
-        ctx.params = cached.params;
-        return cached.handler(ctx);
-      }
-
       const method = req.method.toUpperCase() as Method;
-      const matched = this.router.match(method, url);
+      const matched = this._router.match(method, url);
 
       if (matched.patternMatch && !matched.methodMatch) {
         return new Response("Method not allowed", { status: 405 });
@@ -193,14 +184,19 @@ export class FreshApp<State> implements App<State> {
       const { params, handlers } = matched;
       ctx.params = params;
 
-      const handler = handlers.length === 1 ? handlers[0] : compose(handlers);
+      if (handlers.length === 1 && handlers[0].length === 1) {
+        return handlers[0][0](ctx);
+      }
 
-      this.#routeCache.set(cacheKey, {
-        params,
-        handler,
-      });
+      for (let i = 0; i < handlers.length; i++) {
+        const stack = handlers[i];
+        const res = await runMiddlewares(stack, ctx);
+        if (res instanceof Response) {
+          return res;
+        }
+      }
 
-      return await handler(ctx);
+      return next();
     };
   }
 

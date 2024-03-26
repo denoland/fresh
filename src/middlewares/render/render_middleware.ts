@@ -1,5 +1,5 @@
 import { h, RenderableProps, VNode } from "preact";
-import { Middleware } from "../compose.ts";
+import { Middleware } from "../mod.ts";
 import { AnyComponent } from "preact";
 import { HandlerFn, Render } from "../../defines.ts";
 import { FreshContext } from "../../context.ts";

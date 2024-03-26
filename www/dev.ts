@@ -8,7 +8,7 @@ const devApp = new FreshDevApp();
 
 tailwind(devApp, {});
 
-devApp.route("/", app);
+devApp.mountApp("/", app);
 
 if (Deno.args.includes("build")) {
   await devApp.build();

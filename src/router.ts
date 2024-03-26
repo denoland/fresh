@@ -3,19 +3,23 @@ export type Method = "HEAD" | "GET" | "POST" | "PATCH" | "PUT" | "DELETE";
 export interface Route<T> {
   path: string | URLPattern;
   method: Method | "ALL";
-  handler: T;
+  handlers: T[];
 }
 
 export interface RouteResult<T> {
   params: Record<string, string>;
-  handlers: T[];
+  handlers: T[][];
   methodMatch: boolean;
   patternMatch: boolean;
 }
 
 export interface Router<T> {
   _routes: Route<T>[];
-  add(route: Route<T>): void;
+  add(
+    method: Method | "ALL",
+    pathname: string | URLPattern,
+    handlers: T[],
+  ): void;
   match(method: Method, url: URL): RouteResult<T>;
 }
 
@@ -35,18 +39,18 @@ export function mergePaths(a: string, b: string) {
 export class UrlPatternRouter<T> implements Router<T> {
   readonly _routes: Route<T>[] = [];
 
-  add(route: Route<T>) {
+  add(method: Method | "ALL", pathname: string | URLPattern, handlers: T[]) {
     if (
-      typeof route.path === "string" && route.path !== "*" &&
-      IS_PATTERN.test(route.path)
+      typeof pathname === "string" && pathname !== "*" &&
+      IS_PATTERN.test(pathname)
     ) {
       this._routes.push({
-        path: new URLPattern({ pathname: route.path }),
-        handler: route.handler,
-        method: route.method,
+        path: new URLPattern({ pathname }),
+        handlers,
+        method,
       });
     } else {
-      this._routes.push(route);
+      this._routes.push({ handlers, method, path: pathname });
     }
   }
 
@@ -70,7 +74,7 @@ export class UrlPatternRouter<T> implements Router<T> {
         result.patternMatch = true;
 
         if (route.method === "ALL" || route.method === method) {
-          result.handlers.push(route.handler);
+          result.handlers.push(route.handlers);
           result.methodMatch = true;
 
           if (route.path === "*" && route.method === "ALL") {
@@ -85,7 +89,7 @@ export class UrlPatternRouter<T> implements Router<T> {
           result.patternMatch = true;
 
           if (route.method === "ALL" || route.method === method) {
-            result.handlers.push(route.handler);
+            result.handlers.push(route.handlers);
 
             // Decode matched params
             for (const [key, value] of Object.entries(match.pathname.groups)) {

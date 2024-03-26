@@ -5,7 +5,7 @@ import * as path from "@std/path";
 import { RouteConfig } from "../types.ts";
 import { RouteHandler } from "../defines.ts";
 import { FreshContext } from "../context.ts";
-import { compose, Middleware } from "../middlewares/compose.ts";
+import { Middleware } from "../middlewares/mod.ts";
 import { renderMiddleware } from "../middlewares/render/render_middleware.ts";
 import { Method, pathToPattern } from "../router.ts";
 import { HandlerFn, isHandlerMethod } from "../defines.ts";
@@ -245,21 +245,25 @@ export async function fsRoutes<T>(app: App<T>, options: FsRoutesOptions) {
       handlers === null ||
       (isHandlerMethod(handlers) && Object.keys(handlers).length === 0)
     ) {
-      const mid = addRenderHandler(components, middlewares, undefined);
-      app.get(routePath, mid);
+      const combined = middlewares.concat(
+        renderMiddleware(components, undefined),
+      );
+      app.get(routePath, ...combined);
     } else if (isHandlerMethod(handlers)) {
       for (const method of Object.keys(handlers) as Method[]) {
         const fn = handlers[method];
 
         if (fn !== undefined) {
-          const mid = addRenderHandler(components, middlewares, fn);
+          const combined = middlewares.concat(renderMiddleware(components, fn));
           const lower = method.toLowerCase() as Lowercase<Method>;
-          app[lower](routePath, mid);
+          app[lower](routePath, ...combined);
         }
       }
     } else if (typeof handlers === "function") {
-      const mid = addRenderHandler(components, middlewares, handlers);
-      app.all(routePath, renderMiddleware(components, mid));
+      const combined = middlewares.concat(
+        renderMiddleware(components, handlers),
+      );
+      app.all(routePath, ...combined);
     }
   }
 }
@@ -277,21 +281,6 @@ function errorMiddleware<T>(
       return mid(ctx);
     }
   };
-}
-
-function addRenderHandler<T>(
-  components: AnyComponent<FreshContext<T>>[],
-  middlewares: Middleware<T>[],
-  handler: HandlerFn<unknown, T> | undefined,
-): Middleware<T> {
-  let mid = renderMiddleware<T>(components, handler);
-  if (middlewares.length > 0) {
-    const chain = middlewares.slice();
-    chain.push(mid);
-    mid = compose(chain);
-  }
-
-  return mid;
 }
 
 async function walkDir(
