@@ -495,6 +495,8 @@ export interface Plugin<State = Record<string, unknown>> {
   middlewares?: PluginMiddleware<State>[];
 
   islands?: PluginIslands;
+
+  subPlugins?: Plugin[];
 }
 
 export interface PluginRenderContext {

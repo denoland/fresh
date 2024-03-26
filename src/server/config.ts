@@ -86,7 +86,9 @@ export async function getInternalFreshState(
         : join(base, "_fresh"),
       target: config.build?.target ?? ["chrome99", "firefox99", "safari15"],
     },
-    plugins: config.plugins ?? [],
+    plugins: config.plugins?.flatMap(
+      (plugin) => [plugin, ...(plugin.subPlugins ?? [])],
+    ) ?? [],
     staticDir: config.staticDir
       ? parseFileOrUrl(config.staticDir, base)
       : join(base, "static"),
