@@ -1,7 +1,7 @@
 import { expect } from "@std/expect";
 import { parse } from "./parse.ts";
 import { stringify } from "./stringify.ts";
-import { Signal, signal } from "@preact/signals-core";
+import { Signal, signal } from "@preact/signals";
 
 Deno.test("custom parse - Point", () => {
   class Point {
