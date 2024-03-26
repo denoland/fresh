@@ -25,7 +25,10 @@ import {
   contentType,
   dirname,
   extname,
+  fromFileUrl,
   join,
+  Project,
+  ResolutionHosts,
   SEPARATOR,
   toFileUrl,
   walk,
@@ -270,6 +273,16 @@ export async function extractRoutes(
     processedIslands.push({
       name: sanitizeIslandName(baseRoute),
       path: url,
+      module,
+    });
+  }
+
+  for (const islandPath of findRemoteIslands(baseUrl)) {
+    const module = await import(islandPath);
+    const name = sanitizeIslandName(new URL(islandPath).pathname);
+    processedIslands.push({
+      name,
+      path: islandPath,
       module,
     });
   }
@@ -562,4 +575,25 @@ function getRoutesFromPlugins(plugins: Plugin[]): [string, RouteModule][] {
         handler: route.handler,
       }];
     });
+}
+
+function findRemoteIslands(baseUrl: string) {
+  const project = new Project({
+    resolutionHost: ResolutionHosts.deno,
+  });
+
+  ["routes", "components", "islands"].forEach((directory) => {
+    const pathPattern = join(fromFileUrl(baseUrl), `${directory}/**/*.tsx`);
+    project.addSourceFilesAtPaths(pathPattern);
+  });
+
+  return project.getSourceFiles().flatMap((sourceFile) =>
+    sourceFile.getImportDeclarations().filter((importDeclaration) =>
+      importDeclaration.getTrailingCommentRanges().some((comment) =>
+        comment.getText().includes("FreshRemoteIsland")
+      )
+    ).map((importDeclaration) =>
+      importDeclaration.getModuleSpecifier().getLiteralValue()
+    )
+  );
 }

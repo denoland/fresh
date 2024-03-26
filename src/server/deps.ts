@@ -33,3 +33,7 @@ export {
 } from "https://esm.sh/@babel/helper-validator-identifier@7.22.20";
 export { normalize } from "https://deno.land/std@0.216.0/path/posix/mod.ts";
 export { assertSnapshot } from "https://deno.land/std@0.216.0/testing/snapshot.ts";
+export {
+  Project,
+  ResolutionHosts,
+} from "https://deno.land/x/ts_morph@21.0.1/mod.ts";

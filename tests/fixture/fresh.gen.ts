@@ -38,6 +38,7 @@ import * as $intercept_args from "./routes/intercept_args.tsx";
 import * as $island_json from "./routes/island_json.tsx";
 import * as $islands_index from "./routes/islands/index.tsx";
 import * as $islands_multiple_island_exports from "./routes/islands/multiple_island_exports.tsx";
+import * as $islands_remoteIslands from "./routes/islands/remoteIslands.tsx";
 import * as $islands_returning_null from "./routes/islands/returning_null.tsx";
 import * as $islands_root_fragment from "./routes/islands/root_fragment.tsx";
 import * as $islands_root_fragment_conditional_first from "./routes/islands/root_fragment_conditional_first.tsx";
@@ -147,6 +148,7 @@ const manifest = {
     "./routes/islands/index.tsx": $islands_index,
     "./routes/islands/multiple_island_exports.tsx":
       $islands_multiple_island_exports,
+    "./routes/islands/remoteIslands.tsx": $islands_remoteIslands,
     "./routes/islands/returning_null.tsx": $islands_returning_null,
     "./routes/islands/root_fragment.tsx": $islands_root_fragment,
     "./routes/islands/root_fragment_conditional_first.tsx":
