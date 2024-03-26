@@ -2,6 +2,7 @@ import { FunctionComponent, VNode } from "preact";
 import { ResolvedFreshConfig } from "./config.ts";
 import { RenderState } from "./middlewares/render/render_state.ts";
 import { renderToStringAsync } from "preact-render-to-string";
+import { BuildCache } from "./build_cache.ts";
 
 const NOOP = () => null;
 
@@ -24,6 +25,10 @@ export interface FreshContext<State = unknown, Data = unknown> {
   params: Record<string, string>;
   error: unknown;
   Component: FunctionComponent;
+  /**
+   * Unstable parts of fresh
+   */
+  buildCache: BuildCache;
   /**
    * Return a redirect response to the specified path. This is the
    * preferred way to do redirects in Fresh.
@@ -88,6 +93,7 @@ export class FreshReqContext<T> implements FreshContext<T, unknown> {
     public req: Request,
     public config: ResolvedFreshConfig,
     public next: FreshContext<T>["next"],
+    public buildCache: BuildCache,
   ) {
     this.url = new URL(req.url);
   }

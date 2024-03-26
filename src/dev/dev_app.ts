@@ -1,12 +1,9 @@
 import { App, FreshApp, GLOBAL_ISLANDS, ListenOptions } from "../app.ts";
 import { FreshConfig } from "../config.ts";
 import { fsAdapter } from "../fs.ts";
-import { BuildSnapshot, FreshBuildCache } from "../build_cache.ts";
+import { BuildSnapshot } from "../build_cache.ts";
 import * as path from "@std/path";
-import { getSnapshotPath } from "../fs.ts";
-import { crypto } from "@std/crypto";
 import * as colors from "@std/fmt/colors";
-import { encodeHex } from "@std/encoding/hex";
 import { bundleJs } from "./esbuild.ts";
 import * as JSONC from "@std/jsonc";
 import { prettyTime } from "../utils.ts";
@@ -17,6 +14,7 @@ import {
   OnTransformOptions,
 } from "./file_transformer.ts";
 import { TransformFn } from "./file_transformer.ts";
+import { DiskBuildCache, MemoryBuildCache } from "./dev_build_cache.ts";
 
 export interface DevApp<T> extends App<T> {
   onTransformStaticFile(
@@ -38,7 +36,6 @@ export interface BuildOptions {
 
 export class FreshDevApp<T> extends FreshApp<T> implements DevApp<T> {
   #transformer = new FreshFileTransformer();
-  protected loadSnapshot = false;
 
   constructor(config: FreshConfig = {}) {
     super(config);
@@ -74,12 +71,6 @@ export class FreshDevApp<T> extends FreshApp<T> implements DevApp<T> {
     const { staticDir, build } = this.config;
     const staticOutDir = path.join(build.outDir, "static");
 
-    const snapshot: BuildSnapshot = {
-      version: 1,
-      staticFiles: {},
-      islands: {},
-    };
-
     const target = options.target ?? ["chrome99", "firefox99", "safari15"];
 
     try {
@@ -87,6 +78,11 @@ export class FreshDevApp<T> extends FreshApp<T> implements DevApp<T> {
     } catch {
       // Ignore
     }
+
+    const buildCache = options.dev
+      ? new MemoryBuildCache(this.config)
+      : new DiskBuildCache(this.config);
+    this.buildCache = buildCache;
 
     // Read static files
     if (await fsAdapter.isDirectory(staticDir)) {
@@ -106,38 +102,12 @@ export class FreshDevApp<T> extends FreshApp<T> implements DevApp<T> {
         );
 
         const relative = path.relative(staticDir, entry.path);
-
-        let content: Uint8Array | ReadableStream<Uint8Array>;
-        let generated = false;
-        if (result !== null) {
-          generated = true;
-          await Deno.writeFile(path.join(staticOutDir, relative), result);
-          content = result;
-        } else {
-          content = (await Deno.open(entry.path, { read: true })).readable;
-        }
-
-        const hashBuf = await crypto.subtle.digest(
-          "SHA-256",
-          content,
-        );
-        const hash = encodeHex(hashBuf);
-
         const pathname = `/${relative}`;
-        snapshot.staticFiles[pathname] = { hash, generated };
-        this.buildCache = new FreshBuildCache(
-          snapshot,
-          build.outDir,
-          staticDir,
-          {
-            async open(pathname) {
-              return {
-                size: 0,
-                readable: new ReadableStream(),
-              };
-            },
-          },
-        );
+        if (result === null) {
+          buildCache.addUnprocessedFile(pathname);
+        } else {
+          await buildCache.addProcessedFile(pathname, result, null);
+        }
       }
     }
 
@@ -171,30 +141,17 @@ export class FreshDevApp<T> extends FreshApp<T> implements DevApp<T> {
       denoJsonPath: denoJson.filePath,
     });
 
-    await fsAdapter.mkdirp(staticOutDir);
-
     for (let i = 0; i < output.files.length; i++) {
       const file = output.files[i];
-
       const pathname = `/${file.path}`;
-      snapshot.staticFiles[pathname] = { generated: true, hash: file.hash };
-
-      const filePath = path.join(staticOutDir, file.path);
-      await Deno.writeFile(filePath, file.contents);
+      await buildCache.addProcessedFile(pathname, file.contents, file.hash);
     }
 
     for (const [entry, chunkName] of output.entryToChunk.entries()) {
-      snapshot.islands[entry] = `/${chunkName}`;
+      buildCache.islands.set(entry, `/${chunkName}`);
     }
 
-    if (!options.dev) {
-      await Deno.writeTextFile(
-        getSnapshotPath(build.outDir),
-        JSON.stringify(snapshot, null, 2),
-      );
-    }
-
-    console.log(snapshot);
+    await buildCache.flush();
 
     const duration = Date.now() - start;
     console.log(

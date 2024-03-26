@@ -4,16 +4,9 @@ import { Middleware, runMiddlewares } from "./middlewares/mod.ts";
 import { FreshReqContext } from "./context.ts";
 import { mergePaths, Method, Router, UrlPatternRouter } from "./router.ts";
 import { FreshConfig, normalizeConfig, ResolvedFreshConfig } from "./config.ts";
-import {
-  BuildCache,
-  BuildSnapshot,
-  FileSnapshot,
-  FreshBuildCache,
-} from "./build_cache.ts";
-import { fsAdapter } from "./fs.ts";
+import { BuildCache, ProdBuildCache } from "./build_cache.ts";
 import * as path from "@std/path";
 import { ComponentType } from "preact";
-import { freshStaticFiles } from "./middlewares/static_files.ts";
 
 export interface Island {
   file: string | URL;
@@ -42,10 +35,9 @@ export interface App<State> {
   head(path: string, ...middlewares: Middleware<State>[]): this;
   all(path: string, ...middlewares: Middleware<State>[]): this;
 
-  handler(): (
-    request: Request,
-    info: Deno.ServeHandlerInfo,
-  ) => Promise<Response>;
+  handler(): Promise<
+    (request: Request, info: Deno.ServeHandlerInfo) => Promise<Response>
+  >;
   listen(options?: ListenOptions): Promise<void>;
 }
 
@@ -62,9 +54,6 @@ export class FreshApp<State> implements App<State> {
   _router: Router<Middleware<State>> = new UrlPatternRouter<
     Middleware<State>
   >();
-  #snapshotFiles = new Map<string, FileSnapshot>();
-  #islandsToChunk = new Map<string, string>();
-  protected loadSnapshot = true;
   #islandNames = new Set<string>();
   #middlewares: Middleware<State>[] = [];
 
@@ -73,9 +62,10 @@ export class FreshApp<State> implements App<State> {
    */
   config: ResolvedFreshConfig;
 
+  protected buildCache: BuildCache | null = null;
+
   constructor(config: FreshConfig = {}) {
     this.config = normalizeConfig(config);
-    this.use(freshStaticFiles(this.#snapshotFiles));
   }
 
   island(
@@ -156,13 +146,17 @@ export class FreshApp<State> implements App<State> {
     return this;
   }
 
-  handler(): (request: Request) => Promise<Response> {
+  async handler(): Promise<(request: Request) => Promise<Response>> {
     const next = () =>
       Promise.resolve(new Response("Not found", { status: 404 }));
 
     // Add default 404 if not present
-    if (this._router._routes.length === 0) {
-      this.#addRoutes("ALL", "*", [next]);
+    if (this.#middlewares.length > 0) {
+      this.#addRoutes("ALL", "*", this.#middlewares.concat(next));
+    }
+
+    if (this.buildCache === null) {
+      this.buildCache = await ProdBuildCache.fromSnapshot(this.config);
     }
 
     return async (req: Request) => {
@@ -170,7 +164,12 @@ export class FreshApp<State> implements App<State> {
       // Prevent open redirect attacks
       url.pathname = url.pathname.replace(/\/+/g, "/");
 
-      const ctx = new FreshReqContext<State>(req, this.config, next);
+      const ctx = new FreshReqContext<State>(
+        req,
+        this.config,
+        next,
+        this.buildCache!,
+      );
 
       const method = req.method.toUpperCase() as Method;
       const matched = this._router.match(method, url);
@@ -205,35 +204,6 @@ export class FreshApp<State> implements App<State> {
   }
 
   async listen(options: ListenOptions = {}): Promise<void> {
-    if (this.loadSnapshot) {
-      const { outDir } = this.config.build;
-      const snapshotPath = path.join(outDir, "snapshot.json");
-
-      try {
-        const content = await Deno.readTextFile(snapshotPath);
-        const snapshot = JSON.parse(content) as BuildSnapshot;
-
-        const files = Object.keys(snapshot.staticFiles);
-        for (let i = 0; i < files.length; i++) {
-          const pathname = files[i];
-          const info = snapshot.staticFiles[pathname];
-          this.#snapshotFiles.set(pathname, info);
-        }
-
-        const islands = Object.keys(snapshot.islands);
-        for (let i = 0; i < islands.length; i++) {
-          const pathname = islands[i];
-          this.#islandsToChunk.set(pathname, snapshot.islands[pathname]);
-        }
-      } catch (err) {
-        if (!(err instanceof Deno.errors.NotFound)) {
-          throw err;
-        }
-      }
-      console.log("new build cache");
-      this.loadSnapshot = false;
-    }
-
     if (!options.onListen) {
       options.onListen = (params) => {
         const pathname = (this.config.basePath) + "/";
@@ -266,6 +236,6 @@ export class FreshApp<State> implements App<State> {
       };
     }
 
-    await Deno.serve(options, this.handler());
+    await Deno.serve(options, await this.handler());
   }
 }

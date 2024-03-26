@@ -1,24 +1,5 @@
-import { FreshFile, FsAdapter } from "./fs.ts";
 import * as path from "@std/path";
-
-export const BUILD_CACHE_VERSION_1 = 1;
-
-export class StaticFile {
-  #fs: Pick<FsAdapter, "open">;
-  #path: string;
-  constructor(
-    fs: Pick<FsAdapter, "open">,
-    public hash: string | null,
-    path: string,
-  ) {
-    this.#fs = fs;
-    this.#path = path;
-  }
-
-  open(): Promise<FreshFile> {
-    return this.#fs.open(this.#path);
-  }
-}
+import { ResolvedFreshConfig } from "./config.ts";
 
 export interface FileSnapshot {
   generated: boolean;
@@ -31,51 +12,92 @@ export interface BuildSnapshot {
   islands: Record<string, string>;
 }
 
-export interface BuildCache {
-  getFile(pathname: string): StaticFile | null;
-  islandToChunk(name: string): string;
+export interface StaticFile {
+  hash: string | null;
+  size: number;
+  readable: ReadableStream<Uint8Array> | Uint8Array;
 }
 
-export class FreshBuildCache implements BuildCache {
-  #files = new Map<string, StaticFile | null>();
-  #islands = new Map<string, string>();
+export interface BuildCache {
+  readFile(pathname: string): Promise<StaticFile | null>;
+  getIslandChunkName(islandName: string): string | null;
+}
 
-  constructor(
-    snapshot: BuildSnapshot | null,
-    outDir: string,
-    staticDir: string,
-    fs: Pick<FsAdapter, "open">,
-  ) {
-    if (snapshot !== null) {
+export class ProdBuildCache implements BuildCache {
+  static async fromSnapshot(config: ResolvedFreshConfig) {
+    const snapshotPath = path.join(config.build.outDir, "snapshot.json");
+
+    const staticFiles = new Map<string, FileSnapshot>();
+    const islandToChunk = new Map<string, string>();
+
+    try {
+      const content = await Deno.readTextFile(snapshotPath);
+      const snapshot = JSON.parse(content) as BuildSnapshot;
+
       const files = Object.keys(snapshot.staticFiles);
       for (let i = 0; i < files.length; i++) {
         const pathname = files[i];
         const info = snapshot.staticFiles[pathname];
-        const filePath = info.generated
-          ? path.join(outDir, "static", pathname)
-          : path.join(staticDir, pathname);
-        const file = new StaticFile(fs, info.hash, filePath);
-        this.#files.set(pathname, file);
+        staticFiles.set(pathname, info);
       }
 
       const islands = Object.keys(snapshot.islands);
       for (let i = 0; i < islands.length; i++) {
         const pathname = islands[i];
-        this.#islands.set(pathname, snapshot.islands[pathname]);
+        islandToChunk.set(pathname, snapshot.islands[pathname]);
+      }
+    } catch (err) {
+      if (!(err instanceof Deno.errors.NotFound)) {
+        throw err;
       }
     }
+
+    return new ProdBuildCache(config, islandToChunk, staticFiles);
   }
 
-  islandToChunk(name: string): string {
-    const chunk = this.#islands.get(name);
-    if (chunk === undefined) {
-      throw new Error(`Could not find chunk for island: ${name}`);
+  #islands: Map<string, string>;
+  #fileInfo: Map<string, FileSnapshot>;
+  #config: ResolvedFreshConfig;
+
+  constructor(
+    config: ResolvedFreshConfig,
+    islands: Map<string, string>,
+    files: Map<string, FileSnapshot>,
+  ) {
+    this.#islands = islands;
+    this.#fileInfo = files;
+    this.#config = config;
+  }
+
+  async readFile(pathname: string): Promise<StaticFile | null> {
+    const info = this.#fileInfo.get(pathname);
+    if (info === undefined) return null;
+
+    const base = info.generated
+      ? this.#config.build.outDir
+      : this.#config.staticDir;
+    const filePath = info.generated
+      ? path.join(base, "static", pathname)
+      : path.join(base, pathname);
+
+    // Check if path resolves outside of intended directory.
+    if (path.relative(base, filePath).startsWith(".")) {
+      return null;
     }
-    return chunk;
+
+    const [stat, file] = await Promise.all([
+      Deno.stat(filePath),
+      Deno.open(filePath),
+    ]);
+
+    return {
+      hash: info.hash,
+      size: stat.size,
+      readable: file.readable,
+    };
   }
 
-  getFile(pathname: string): StaticFile | null {
-    const info = this.#files.get(pathname);
-    return info === undefined ? null : info;
+  getIslandChunkName(islandName: string): string | null {
+    return this.#islands.get(islandName) ?? null;
   }
 }

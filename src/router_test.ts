@@ -16,14 +16,14 @@ Deno.test("UrlPatternRouter - GET get first match", () => {
   const A = () => {};
   const B = () => {};
   const C = () => {};
-  router.add({ path: "/", method: "GET", handler: A });
-  router.add({ path: "/", method: "GET", handler: B });
-  router.add({ path: "/", method: "GET", handler: C });
+  router.add("GET", "/", [A]);
+  router.add("GET", "/", [B]);
+  router.add("GET", "/", [C]);
 
   const res = router.match("GET", new URL("/", "http://localhost"));
   expect(res).toEqual({
     params: {},
-    handlers: [A],
+    handlers: [[A]],
     methodMatch: true,
     patternMatch: true,
   });
@@ -34,14 +34,14 @@ Deno.test("UrlPatternRouter - GET get matches with middlewares", () => {
   const A = () => {};
   const B = () => {};
   const C = () => {};
-  router.add({ path: "*", method: "ALL", handler: A });
-  router.add({ path: "*", method: "ALL", handler: B });
-  router.add({ path: "/", method: "GET", handler: C });
+  router.add("ALL", "*", [A]);
+  router.add("ALL", "*", [B]);
+  router.add("GET", "/", [C]);
 
   const res = router.match("GET", new URL("/", "http://localhost"));
   expect(res).toEqual({
     params: {},
-    handlers: [A, B, C],
+    handlers: [[A], [B], [C]],
     methodMatch: true,
     patternMatch: true,
   });
@@ -50,16 +50,12 @@ Deno.test("UrlPatternRouter - GET get matches with middlewares", () => {
 Deno.test("UrlPatternRouter - GET extract params", () => {
   const router = new UrlPatternRouter();
   const A = () => {};
-  router.add({
-    path: new URLPattern({ pathname: "/:foo/:bar/c" }),
-    method: "GET",
-    handler: A,
-  });
+  router.add("GET", new URLPattern({ pathname: "/:foo/:bar/c" }), [A]);
 
   let res = router.match("GET", new URL("/a/b/c", "http://localhost"));
   expect(res).toEqual({
     params: { foo: "a", bar: "b" },
-    handlers: [A],
+    handlers: [[A]],
     methodMatch: true,
     patternMatch: true,
   });
@@ -68,7 +64,7 @@ Deno.test("UrlPatternRouter - GET extract params", () => {
   res = router.match("GET", new URL("/a%20a/b/c", "http://localhost"));
   expect(res).toEqual({
     params: { foo: "a a", bar: "b" },
-    handlers: [A],
+    handlers: [[A]],
     methodMatch: true,
     patternMatch: true,
   });
@@ -77,11 +73,7 @@ Deno.test("UrlPatternRouter - GET extract params", () => {
 Deno.test("UrlPatternRouter - Wrong method match", () => {
   const router = new UrlPatternRouter();
   const A = () => {};
-  router.add({
-    path: "/foo",
-    method: "GET",
-    handler: A,
-  });
+  router.add("GET", "/foo", [A]);
 
   const res = router.match("POST", new URL("/foo", "http://localhost"));
   expect(res).toEqual({
@@ -96,21 +88,13 @@ Deno.test("UrlPatternRouter - wrong + correct method", () => {
   const router = new UrlPatternRouter();
   const A = () => {};
   const B = () => {};
-  router.add({
-    path: "/foo",
-    method: "GET",
-    handler: A,
-  });
-  router.add({
-    path: "/foo",
-    method: "POST",
-    handler: B,
-  });
+  router.add("GET", "/foo", [A]);
+  router.add("POST", "/foo", [B]);
 
   const res = router.match("POST", new URL("/foo", "http://localhost"));
   expect(res).toEqual({
     params: {},
-    handlers: [B],
+    handlers: [[B]],
     methodMatch: true,
     patternMatch: true,
   });
@@ -119,18 +103,14 @@ Deno.test("UrlPatternRouter - wrong + correct method", () => {
 Deno.test("UrlPatternRouter - convert patterns automatically", () => {
   const router = new UrlPatternRouter();
   const A = () => {};
-  router.add({
-    path: "/books/:id",
-    method: "GET",
-    handler: A,
-  });
+  router.add("GET", "/books/:id", [A]);
 
   const res = router.match("GET", new URL("/books/foo", "http://localhost"));
   expect(res).toEqual({
     params: {
       id: "foo",
     },
-    handlers: [A],
+    handlers: [[A]],
     methodMatch: true,
     patternMatch: true,
   });

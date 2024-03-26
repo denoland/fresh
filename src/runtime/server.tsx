@@ -64,13 +64,11 @@ export function FreshScripts(
 ): VNode {
   const { islands, islandProps, ctx } = context.__fresh;
   const basePath = ctx.config.basePath;
-  // FIXME: Don't make optional
-  const buildCache = ctx.buildCache!;
 
   const islandArr = Array.from(islands);
 
   const islandImports = islandArr.map((island) => {
-    const chunk = buildCache.islandToChunk(island.name);
+    const chunk = ctx.buildCache.getIslandChunkName(island.name);
     const named = island.exportName === "default"
       ? island.name
       : `{ ${island.exportName} }`;

@@ -11,7 +11,7 @@ Deno.test("renderMiddleware - responds with HTML", async () => {
   expect(res.headers.get("Content-Type")).toEqual("text/html; charset=utf-8");
 
   const body = await res.text();
-  expect(body).toEqual("<p>ok</p>");
+  expect(body).toEqual("<!DOCTYPE html><p>ok</p>");
 });
 
 Deno.test("renderMiddleware - bypass rendering when handler returns Response", async () => {
@@ -49,7 +49,7 @@ Deno.test("renderMiddleware - chain components", async () => {
 
   const res = await server.get("/");
   expect(res.status).toEqual(200);
-  expect(await res.text()).toEqual("c1c2c3");
+  expect(await res.text()).toEqual("<!DOCTYPE html>c1c2c3");
 });
 
 // FIXME

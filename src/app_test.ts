@@ -14,10 +14,21 @@ Deno.test("FreshApp - .use()", async () => {
     })
     .use((ctx) => new Response(ctx.state.text));
 
-  const server = new FakeServer(app.handler());
+  const server = new FakeServer(await app.handler());
 
   const res = await server.get("/");
   expect(await res.text()).toEqual("AB");
+});
+
+Deno.test("FreshApp - .use() #2", async () => {
+  const app = new FreshApp<{ text: string }>()
+    .use(() => new Response("ok #1"))
+    .get("/foo/bar", () => new Response("ok #2"));
+
+  const server = new FakeServer(await app.handler());
+
+  const res = await server.get("/");
+  expect(await res.text()).toEqual("ok #1");
 });
 
 Deno.test("FreshApp - .get()", async () => {
@@ -27,7 +38,7 @@ Deno.test("FreshApp - .get()", async () => {
     .get("/", () => new Response("ok"))
     .get("/foo", () => new Response("ok"));
 
-  const server = new FakeServer(app.handler());
+  const server = new FakeServer(await app.handler());
 
   let res = await server.get("/");
   expect(await res.text()).toEqual("ok");
@@ -41,7 +52,7 @@ Deno.test("FreshApp - .get() with basePath", async () => {
     .get("/", () => new Response("ok"))
     .get("/foo", () => new Response("ok"));
 
-  const server = new FakeServer(app.handler());
+  const server = new FakeServer(await app.handler());
 
   let res = await server.get("/");
   expect(res.status).toEqual(404);
@@ -61,7 +72,7 @@ Deno.test("FreshApp - .post()", async () => {
     .post("/", () => new Response("ok"))
     .post("/foo", () => new Response("ok"));
 
-  const server = new FakeServer(app.handler());
+  const server = new FakeServer(await app.handler());
 
   let res = await server.post("/");
   expect(await res.text()).toEqual("ok");
@@ -75,7 +86,7 @@ Deno.test("FreshApp - .post() with basePath", async () => {
     .post("/", () => new Response("ok"))
     .post("/foo", () => new Response("ok"));
 
-  const server = new FakeServer(app.handler());
+  const server = new FakeServer(await app.handler());
 
   let res = await server.post("/");
   expect(res.status).toEqual(404);
@@ -95,7 +106,7 @@ Deno.test("FreshApp - .patch()", async () => {
     .patch("/", () => new Response("ok"))
     .patch("/foo", () => new Response("ok"));
 
-  const server = new FakeServer(app.handler());
+  const server = new FakeServer(await app.handler());
 
   let res = await server.patch("/");
   expect(await res.text()).toEqual("ok");
@@ -109,7 +120,7 @@ Deno.test("FreshApp - .patch() with basePath", async () => {
     .patch("/", () => new Response("ok"))
     .patch("/foo", () => new Response("ok"));
 
-  const server = new FakeServer(app.handler());
+  const server = new FakeServer(await app.handler());
 
   let res = await server.patch("/");
   expect(res.status).toEqual(404);
@@ -129,7 +140,7 @@ Deno.test("FreshApp - .put()", async () => {
     .put("/", () => new Response("ok"))
     .put("/foo", () => new Response("ok"));
 
-  const server = new FakeServer(app.handler());
+  const server = new FakeServer(await app.handler());
 
   let res = await server.put("/");
   expect(await res.text()).toEqual("ok");
@@ -143,7 +154,7 @@ Deno.test("FreshApp - .put() with basePath", async () => {
     .put("/", () => new Response("ok"))
     .put("/foo", () => new Response("ok"));
 
-  const server = new FakeServer(app.handler());
+  const server = new FakeServer(await app.handler());
 
   let res = await server.put("/");
   expect(res.status).toEqual(404);
@@ -163,7 +174,7 @@ Deno.test("FreshApp - .delete()", async () => {
     .delete("/", () => new Response("ok"))
     .delete("/foo", () => new Response("ok"));
 
-  const server = new FakeServer(app.handler());
+  const server = new FakeServer(await app.handler());
 
   let res = await server.delete("/");
   expect(await res.text()).toEqual("ok");
@@ -177,7 +188,7 @@ Deno.test("FreshApp - .delete() with basePath", async () => {
     .delete("/", () => new Response("ok"))
     .delete("/foo", () => new Response("ok"));
 
-  const server = new FakeServer(app.handler());
+  const server = new FakeServer(await app.handler());
 
   let res = await server.delete("/");
   expect(res.status).toEqual(404);
@@ -195,7 +206,7 @@ Deno.test("FreshApp - wrong method match", async () => {
     .get("/", () => new Response("ok"))
     .post("/", () => new Response("ok"));
 
-  const server = new FakeServer(app.handler());
+  const server = new FakeServer(await app.handler());
 
   let res = await server.put("/");
   expect(res.status).toEqual(405);
@@ -215,7 +226,7 @@ Deno.test("FreshApp - methods with middleware", async () => {
     .get("/", (ctx) => new Response(ctx.state.text))
     .post("/", (ctx) => new Response(ctx.state.text));
 
-  const server = new FakeServer(app.handler());
+  const server = new FakeServer(await app.handler());
 
   let res = await server.get("/");
   expect(await res.text()).toEqual("A");
@@ -224,7 +235,7 @@ Deno.test("FreshApp - methods with middleware", async () => {
   expect(await res.text()).toEqual("A");
 });
 
-Deno.test.only("FreshApp - .route() compose apps", async () => {
+Deno.test("FreshApp - .route() compose apps", async () => {
   const innerApp = new FreshApp<{ text: string }>()
     .use((ctx) => {
       ctx.state.text = "A";
@@ -235,7 +246,7 @@ Deno.test.only("FreshApp - .route() compose apps", async () => {
 
   const app = new FreshApp<{ text: string }>().mountApp("/foo", innerApp);
 
-  const server = new FakeServer(app.handler());
+  const server = new FakeServer(await app.handler());
 
   let res = await server.get("/foo");
   expect(await res.text()).toEqual("A");

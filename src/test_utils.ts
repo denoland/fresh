@@ -1,6 +1,8 @@
 import { FreshReqContext } from "./context.ts";
 import { Middleware } from "./middlewares/mod.ts";
 import { FsAdapter } from "./fs.ts";
+import { ProdBuildCache } from "./build_cache.ts";
+import { ResolvedFreshConfig } from "./config.ts";
 import { WalkEntry } from "@std/fs/walk";
 
 export class FakeServer {
@@ -44,18 +46,20 @@ export class FakeServer {
 
 export function serveMiddleware<T>(middleware: Middleware<T>): FakeServer {
   return new FakeServer(async (req) => {
+    const config: ResolvedFreshConfig = {
+      build: {
+        outDir: "",
+      },
+      mode: "development",
+      basePath: "",
+      root: "",
+      staticDir: "",
+    };
     const ctx = new FreshReqContext<T>(
       req,
-      {
-        build: {
-          outDir: "",
-        },
-        mode: "development",
-        basePath: "",
-        root: "",
-        staticDir: "",
-      },
+      config,
       async () => await new Response("Not found", { status: 404 }),
+      new ProdBuildCache(config, new Map(), new Map()),
     );
     return await middleware(ctx);
   });

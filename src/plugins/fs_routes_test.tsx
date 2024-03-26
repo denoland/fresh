@@ -25,7 +25,7 @@ async function createServer<T>(
     },
     _fs: createFakeFs(files),
   });
-  return new FakeServer(app.handler());
+  return new FakeServer(await app.handler());
 }
 
 Deno.test("fsRoutes - throws error when file has no exports", async () => {
@@ -110,7 +110,7 @@ Deno.test("fsRoutes - renders component without handler", async () => {
   const res = await server.get("/all");
   expect(res.status).toEqual(200);
   expect(res.headers.get("Content-Type")).toEqual("text/html; charset=utf-8");
-  expect(await res.text()).toEqual("<h1>foo</h1>");
+  expect(await res.text()).toEqual("<!DOCTYPE html><h1>foo</h1>");
 });
 
 Deno.test("fsRoutes - sorts routes", async () => {
@@ -153,7 +153,7 @@ Deno.test("fsRoutes - add middleware for function handler", async () => {
   expect(await res.text()).toEqual("ok");
 
   res = await server.get("/none");
-  expect(await res.text()).toEqual("ok");
+  expect(await res.text()).toEqual("<!DOCTYPE html>ok");
 });
 
 Deno.test("fsRoutes - nested middlewares", async () => {
@@ -174,7 +174,7 @@ Deno.test("fsRoutes - nested middlewares", async () => {
   });
 
   const res = await server.get("/foo");
-  expect(await res.text()).toEqual("AB");
+  expect(await res.text()).toEqual("<!DOCTYPE html>AB");
 });
 
 Deno.test("fsRoutes - combined", async () => {
@@ -198,7 +198,7 @@ Deno.test("fsRoutes - combined", async () => {
   });
 
   const res = await server.get("/foo/bar");
-  expect(await res.text()).toEqual("ok");
+  expect(await res.text()).toEqual("<!DOCTYPE html>ok");
 });
 
 Deno.test("fsRoutes - prepend _app", async () => {
@@ -219,10 +219,10 @@ Deno.test("fsRoutes - prepend _app", async () => {
   });
 
   let res = await server.get("/foo/bar");
-  expect(await res.text()).toEqual("app/foo_bar");
+  expect(await res.text()).toEqual("<!DOCTYPE html>app/foo_bar");
 
   res = await server.get("/foo");
-  expect(await res.text()).toEqual("app/foo");
+  expect(await res.text()).toEqual("<!DOCTYPE html>app/foo");
 });
 
 Deno.test("fsRoutes - prepend _layout", async () => {
@@ -250,10 +250,10 @@ Deno.test("fsRoutes - prepend _layout", async () => {
   });
 
   let res = await server.get("/foo/bar");
-  expect(await res.text()).toEqual("app/layout/foo_bar");
+  expect(await res.text()).toEqual("<!DOCTYPE html>app/layout/foo_bar");
 
   res = await server.get("/foo");
-  expect(await res.text()).toEqual("app/layout/foo");
+  expect(await res.text()).toEqual("<!DOCTYPE html>app/layout/foo");
 });
 
 Deno.test("fsRoutes - nested _layout", async () => {
@@ -288,10 +288,12 @@ Deno.test("fsRoutes - nested _layout", async () => {
   });
 
   let res = await server.get("/foo/bar");
-  expect(await res.text()).toEqual("app/layout/layout_foo_bar/foo_bar");
+  expect(await res.text()).toEqual(
+    "<!DOCTYPE html>app/layout/layout_foo_bar/foo_bar",
+  );
 
   res = await server.get("/foo");
-  expect(await res.text()).toEqual("app/layout/foo");
+  expect(await res.text()).toEqual("<!DOCTYPE html>app/layout/foo");
 });
 
 Deno.test("fsRoutes - _layout skip if not present", async () => {
@@ -309,7 +311,7 @@ Deno.test("fsRoutes - _layout skip if not present", async () => {
   });
 
   const res = await server.get("/foo/bar/baz");
-  expect(await res.text()).toEqual("layout_foo/foo_bar_baz");
+  expect(await res.text()).toEqual("<!DOCTYPE html>layout_foo/foo_bar_baz");
 });
 
 Deno.test("fsRoutes - _layout file types", async () => {
@@ -357,7 +359,7 @@ Deno.test("fsRoutes - _layout file types", async () => {
   });
 
   const res = await server.get("/js");
-  expect(await res.text()).toEqual("layout_js/js");
+  expect(await res.text()).toEqual("<!DOCTYPE html>layout_js/js");
 });
 
 Deno.test("fsRoutes - _layout disable _app", async () => {
@@ -385,7 +387,7 @@ Deno.test("fsRoutes - _layout disable _app", async () => {
   });
 
   const res = await server.get("/");
-  expect(await res.text()).toEqual("layout/route");
+  expect(await res.text()).toEqual("<!DOCTYPE html>layout/route");
 });
 
 Deno.test(
@@ -430,7 +432,9 @@ Deno.test(
     });
 
     const res = await server.get("/sub/sub2");
-    expect(await res.text()).toEqual("layout_sub/layout_sub_sub2/sub_sub2");
+    expect(await res.text()).toEqual(
+      "<!DOCTYPE html>layout_sub/layout_sub_sub2/sub_sub2",
+    );
   },
 );
 
@@ -452,7 +456,7 @@ Deno.test("fsRoutes - route overrides _layout", async () => {
   });
 
   const res = await server.get("/");
-  expect(await res.text()).toEqual("route");
+  expect(await res.text()).toEqual("<!DOCTYPE html>route");
 });
 
 Deno.test("fsRoutes - route overrides _app", async () => {
@@ -477,7 +481,7 @@ Deno.test("fsRoutes - route overrides _app", async () => {
   });
 
   const res = await server.get("/");
-  expect(await res.text()).toEqual("route");
+  expect(await res.text()).toEqual("<!DOCTYPE html>route");
 });
 
 Deno.test("fsRoutes - _error", async () => {
@@ -495,7 +499,7 @@ Deno.test("fsRoutes - _error", async () => {
   });
 
   const res = await server.get("/");
-  expect(await res.text()).toEqual("ok");
+  expect(await res.text()).toEqual("<!DOCTYPE html>ok");
 });
 
 Deno.test("fsRoutes - _error nested", async () => {
@@ -564,7 +568,7 @@ Deno.test("fsRoutes - _error render component", async () => {
   });
 
   const res = await server.get("/foo");
-  expect(await res.text()).toEqual("ok");
+  expect(await res.text()).toEqual("<!DOCTYPE html>ok");
 });
 
 Deno.test("fsRoutes - skip _error component in non-error", async () => {
@@ -580,7 +584,7 @@ Deno.test("fsRoutes - skip _error component in non-error", async () => {
   });
 
   const res = await server.get("/");
-  expect(await res.text()).toEqual("ok");
+  expect(await res.text()).toEqual("<!DOCTYPE html>ok");
 });
 
 Deno.test("fsRoutes - route group resolve index", async () => {
@@ -598,7 +602,7 @@ Deno.test("fsRoutes - route group resolve index", async () => {
   });
 
   const res = await server.get("/");
-  expect(await res.text()).toEqual("layout/ok");
+  expect(await res.text()).toEqual("<!DOCTYPE html>layout/ok");
 });
 
 Deno.test("fsRoutes - route group ignores (_...) folders", async () => {
@@ -612,7 +616,7 @@ Deno.test("fsRoutes - route group ignores (_...) folders", async () => {
   });
 
   const res = await server.get("/");
-  expect(await res.text()).toEqual("ok");
+  expect(await res.text()).toEqual("<!DOCTYPE html>ok");
 });
 
 Deno.test("fsRoutes - route group specific templates", async () => {
@@ -668,15 +672,19 @@ Deno.test("fsRoutes - route group specific templates", async () => {
   });
 
   let res = await server.get("/foo");
-  expect(await res.text()).toEqual("(foo)_middleware/(foo)_layout/foo");
+  expect(await res.text()).toEqual(
+    "<!DOCTYPE html>(foo)_middleware/(foo)_layout/foo",
+  );
   res = await server.get("/foo_error");
-  expect(await res.text()).toEqual("fail foo");
+  expect(await res.text()).toEqual("<!DOCTYPE html>fail foo");
 
   res = await server.get("/bar");
-  expect(await res.text()).toEqual("(bar)_middleware/(bar)_layout/bar");
+  expect(await res.text()).toEqual(
+    "<!DOCTYPE html>(bar)_middleware/(bar)_layout/bar",
+  );
 
   res = await server.get("/bar_error");
-  expect(await res.text()).toEqual("fail bar");
+  expect(await res.text()).toEqual("<!DOCTYPE html>fail bar");
 });
 
 Deno.test("fsRoutes - sortRoutePaths", () => {
