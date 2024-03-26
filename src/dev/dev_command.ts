@@ -1,6 +1,10 @@
 import { updateCheck } from "./update_check.ts";
 import { DAY, dirname, fromFileUrl, join, toFileUrl } from "./deps.ts";
-import { FreshConfig, Manifest as ServerManifest } from "../server/mod.ts";
+import {
+  FreshConfig,
+  IS_BUILD_MODE,
+  Manifest as ServerManifest,
+} from "../server/mod.ts";
 import { build } from "./build.ts";
 import { collect, ensureMinDenoVersion, generate, Manifest } from "./mod.ts";
 import { startServer } from "../server/boot.ts";
@@ -38,7 +42,7 @@ export async function dev(
   const manifest = (await import(toFileUrl(join(dir, "fresh.gen.ts")).href))
     .default as ServerManifest;
 
-  if (Deno.args.includes("build")) {
+  if (IS_BUILD_MODE) {
     const state = await getInternalFreshState(
       manifest,
       config ?? {},
