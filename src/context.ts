@@ -1,6 +1,5 @@
 import { FunctionComponent, VNode } from "preact";
 import { ResolvedFreshConfig } from "./config.ts";
-import { BuildCache } from "./build_cache.ts";
 import { RenderState } from "./middlewares/render/render_state.ts";
 import { renderToStringAsync } from "preact-render-to-string";
 
@@ -12,7 +11,6 @@ const NOOP = () => null;
 export interface FreshContext<State = unknown, Data = unknown> {
   /** Reference to the resolved Fresh configuration */
   readonly config: ResolvedFreshConfig;
-  buildCache: BuildCache | null;
   state: State;
   data: Data;
   /** The original incoming `Request` object` */
@@ -85,7 +83,6 @@ export class FreshReqContext<T> implements FreshContext<T, unknown> {
   state = {} as T;
   data = {} as unknown;
   error: Error | null = null;
-  buildCache: BuildCache | null = null;
 
   constructor(
     public req: Request,

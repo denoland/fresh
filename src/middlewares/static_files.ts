@@ -1,5 +1,6 @@
 import { Middleware } from "./mod.ts";
 import * as path from "@std/path";
+import { FileSnapshot } from "../build_cache.ts";
 import { contentType as getContentType } from "@std/media-types/content_type";
 
 // FIXME: Test etag
@@ -10,14 +11,14 @@ import { contentType as getContentType } from "@std/media-types/content_type";
  * app.use(freshStaticFles());
  * ```
  */
-export function freshStaticFiles(): Middleware {
+export function freshStaticFiles(
+  snapshotFiles: Map<string, FileSnapshot> = new Map(),
+): Middleware {
   return async function serveFreshStaticFiles(ctx) {
-    const { req, url, config, buildCache } = ctx;
+    const { req, url, config } = ctx;
 
     // Fast path bail out
-    const info = buildCache !== null
-      ? buildCache.getFileInfo(url.pathname)
-      : null;
+    const info = snapshotFiles.get(url.pathname) ?? null;
     if (url.pathname === "/" || info === null) {
       // Optimization: Prevent long responses for favicon.ico requests
       if (url.pathname === "/favicon.ico") {

@@ -20,6 +20,7 @@ Fresh 2.0:
 ✔ remove UUID from context object @done(24-03-25 21:59)
 ✔ Add bundle like static file processor @done(24-03-25 23:41)
 ☐ Think of custom Fresh JSX transform, for `asset()` + active link
+☐ Use in-memory build cache for development
 
 Fresh 2.0 compat:
 ☐ add plugin API backwards compat

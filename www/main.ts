@@ -6,11 +6,7 @@
 
 import { FreshApp, freshStaticFiles, fsRoutes } from "@fresh/server";
 
-export const app = new FreshApp({
-  build: {
-    target: "safari12",
-  },
-});
+export const app = new FreshApp();
 
 app.use(freshStaticFiles());
 

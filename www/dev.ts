@@ -11,7 +11,9 @@ tailwind(devApp, {});
 devApp.mountApp("/", app);
 
 if (Deno.args.includes("build")) {
-  await devApp.build();
+  await devApp.build({
+    target: "safari12",
+  });
 } else {
   await devApp.listen();
 }

@@ -6,11 +6,14 @@ import { mergePaths, Method, Router, UrlPatternRouter } from "./router.ts";
 import { FreshConfig, normalizeConfig, ResolvedFreshConfig } from "./config.ts";
 import {
   BuildCache,
-  BuildCacheSnapshot,
+  BuildSnapshot,
+  FileSnapshot,
   FreshBuildCache,
 } from "./build_cache.ts";
+import { fsAdapter } from "./fs.ts";
 import * as path from "@std/path";
 import { ComponentType } from "preact";
+import { freshStaticFiles } from "./middlewares/static_files.ts";
 
 export interface Island {
   file: string | URL;
@@ -59,7 +62,9 @@ export class FreshApp<State> implements App<State> {
   _router: Router<Middleware<State>> = new UrlPatternRouter<
     Middleware<State>
   >();
-  buildCache: BuildCache | null = null;
+  #snapshotFiles = new Map<string, FileSnapshot>();
+  #islandsToChunk = new Map<string, string>();
+  protected loadSnapshot = true;
   #islandNames = new Set<string>();
   #middlewares: Middleware<State>[] = [];
 
@@ -70,6 +75,7 @@ export class FreshApp<State> implements App<State> {
 
   constructor(config: FreshConfig = {}) {
     this.config = normalizeConfig(config);
+    this.use(freshStaticFiles(this.#snapshotFiles));
   }
 
   island(
@@ -165,7 +171,6 @@ export class FreshApp<State> implements App<State> {
       url.pathname = url.pathname.replace(/\/+/g, "/");
 
       const ctx = new FreshReqContext<State>(req, this.config, next);
-      ctx.buildCache = this.buildCache;
 
       const method = req.method.toUpperCase() as Method;
       const matched = this._router.match(method, url);
@@ -200,19 +205,33 @@ export class FreshApp<State> implements App<State> {
   }
 
   async listen(options: ListenOptions = {}): Promise<void> {
-    if (this.buildCache === null) {
-      const snapshotPath = path.join(this.config.build.outDir, "snapshot.json");
+    if (this.loadSnapshot) {
+      const { outDir } = this.config.build;
+      const snapshotPath = path.join(outDir, "snapshot.json");
 
-      let snapshot: BuildCacheSnapshot | null = null;
       try {
         const content = await Deno.readTextFile(snapshotPath);
-        snapshot = JSON.parse(content) as BuildCacheSnapshot;
+        const snapshot = JSON.parse(content) as BuildSnapshot;
+
+        const files = Object.keys(snapshot.staticFiles);
+        for (let i = 0; i < files.length; i++) {
+          const pathname = files[i];
+          const info = snapshot.staticFiles[pathname];
+          this.#snapshotFiles.set(pathname, info);
+        }
+
+        const islands = Object.keys(snapshot.islands);
+        for (let i = 0; i < islands.length; i++) {
+          const pathname = islands[i];
+          this.#islandsToChunk.set(pathname, snapshot.islands[pathname]);
+        }
       } catch (err) {
         if (!(err instanceof Deno.errors.NotFound)) {
           throw err;
         }
       }
-      this.buildCache = new FreshBuildCache(snapshot);
+      console.log("new build cache");
+      this.loadSnapshot = false;
     }
 
     if (!options.onListen) {

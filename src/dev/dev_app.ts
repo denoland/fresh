@@ -1,7 +1,7 @@
 import { App, FreshApp, GLOBAL_ISLANDS, ListenOptions } from "../app.ts";
 import { FreshConfig } from "../config.ts";
 import { fsAdapter } from "../fs.ts";
-import { BuildCacheSnapshot } from "../build_cache.ts";
+import { BuildSnapshot, FreshBuildCache } from "../build_cache.ts";
 import * as path from "@std/path";
 import { getSnapshotPath } from "../fs.ts";
 import { crypto } from "@std/crypto";
@@ -38,6 +38,7 @@ export interface BuildOptions {
 
 export class FreshDevApp<T> extends FreshApp<T> implements DevApp<T> {
   #transformer = new FreshFileTransformer();
+  protected loadSnapshot = false;
 
   constructor(config: FreshConfig = {}) {
     super(config);
@@ -68,10 +69,12 @@ export class FreshDevApp<T> extends FreshApp<T> implements DevApp<T> {
 
   async build(options: BuildOptions = {}): Promise<void> {
     const start = Date.now();
+    const buildKind = options.dev ? "development" : "production";
+    console.log(`Processing ${colors.green(buildKind)} assets...`);
     const { staticDir, build } = this.config;
     const staticOutDir = path.join(build.outDir, "static");
 
-    const snapshot: BuildCacheSnapshot = {
+    const snapshot: BuildSnapshot = {
       version: 1,
       staticFiles: {},
       islands: {},
@@ -122,6 +125,19 @@ export class FreshDevApp<T> extends FreshApp<T> implements DevApp<T> {
 
         const pathname = `/${relative}`;
         snapshot.staticFiles[pathname] = { hash, generated };
+        this.buildCache = new FreshBuildCache(
+          snapshot,
+          build.outDir,
+          staticDir,
+          {
+            async open(pathname) {
+              return {
+                size: 0,
+                readable: new ReadableStream(),
+              };
+            },
+          },
+        );
       }
     }
 
@@ -171,21 +187,26 @@ export class FreshDevApp<T> extends FreshApp<T> implements DevApp<T> {
       snapshot.islands[entry] = `/${chunkName}`;
     }
 
-    await Deno.writeTextFile(
-      getSnapshotPath(build.outDir),
-      JSON.stringify(snapshot, null, 2),
-    );
+    if (!options.dev) {
+      await Deno.writeTextFile(
+        getSnapshotPath(build.outDir),
+        JSON.stringify(snapshot, null, 2),
+      );
+    }
+
+    console.log(snapshot);
 
     const duration = Date.now() - start;
-    const buildKind = options.dev ? "development" : "production";
     console.log(
-      `Bundling ${buildKind} assets finished in ${
+      `Processing ${colors.green(buildKind)} assets finished in ${
         colors.green(prettyTime(duration))
       }`,
     );
-    console.log(
-      `Assets written to: ${colors.cyan(build.outDir)}`,
-    );
+    if (!options.dev) {
+      console.log(
+        `Assets written to: ${colors.cyan(build.outDir)}`,
+      );
+    }
   }
 }
 
