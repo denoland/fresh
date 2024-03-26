@@ -1083,14 +1083,25 @@ document.addEventListener("submit", async (e) => {
 
       let init: RequestInit | undefined;
 
+      const formData = new FormData(el);
+
+      // Manually add submitter name & value to the FormData
+      // TODO: Could just pass el.submitter to the constructor,
+      // but this way supports older browsers & Puppeteer 16.2.0
+      const submitterName = e.submitter?.getAttribute("name");
+      const submitterValue = e.submitter?.getAttribute("value");
+      if (submitterName != null && submitterValue != null) {
+        formData.set(submitterName, submitterValue);
+      }
+
       // GET method appends form data via url search params
       if (lowerMethod === "get") {
         // TODO: Looks like constructor type for URLSearchParam is wrong
         // deno-lint-ignore no-explicit-any
-        const qs = new URLSearchParams(new FormData(el) as any);
+        const qs = new URLSearchParams(formData as any);
         qs.forEach((value, key) => url.searchParams.set(key, value));
       } else {
-        init = { body: new FormData(el), method: lowerMethod };
+        init = { body: formData, method: lowerMethod };
       }
 
       maybeUpdateHistory(url);
