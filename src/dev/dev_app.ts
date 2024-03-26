@@ -99,7 +99,9 @@ export class FreshDevApp<T> extends FreshApp<T> implements DevApp<T> {
         const relative = path.relative(staticDir, entry.path);
 
         let content: Uint8Array | ReadableStream<Uint8Array>;
+        let generated = false;
         if (result !== null) {
+          generated = true;
           await Deno.writeFile(path.join(staticOutDir, relative), result);
           content = result;
         } else {
@@ -113,7 +115,7 @@ export class FreshDevApp<T> extends FreshApp<T> implements DevApp<T> {
         const hash = encodeHex(hashBuf);
 
         const pathname = `/${relative}`;
-        snapshot.staticFiles[pathname] = { hash, generated: false };
+        snapshot.staticFiles[pathname] = { hash, generated };
       }
     }
 
