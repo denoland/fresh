@@ -44,7 +44,6 @@ const PATCHED = new WeakSet<VNode>();
 
 const oldDiff = options[OptionsType.DIFF];
 options[OptionsType.DIFF] = (vnode) => {
-  console.log("DIFF", vnode.type);
   patchIslands: if (
     typeof vnode.type === "function" && vnode.type !== Fragment &&
     !PATCHED.has(vnode)
@@ -56,7 +55,6 @@ options[OptionsType.DIFF] = (vnode) => {
     if (ctx === null) return;
 
     const { islands, islandProps } = ctx.__fresh;
-    console.log({ island });
     islands.add(island);
 
     const originalType = vnode.type;

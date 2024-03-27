@@ -88,7 +88,6 @@ export class FreshApp<State> implements App<State> {
       name = `${name}_${i}`;
     }
 
-    console.log("island ", name, filePath);
     GLOBAL_ISLANDS.set(fn, { fn, exportName, name, file: filePathOrUrl });
   }
 
