@@ -1,7 +1,6 @@
 import { App, FreshApp, GLOBAL_ISLANDS, ListenOptions } from "../app.ts";
 import { FreshConfig } from "../config.ts";
 import { fsAdapter } from "../fs.ts";
-import { BuildSnapshot } from "../build_cache.ts";
 import * as path from "@std/path";
 import * as colors from "@std/fmt/colors";
 import { bundleJs } from "./esbuild.ts";

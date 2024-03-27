@@ -56,6 +56,7 @@ export class FreshApp<State> implements App<State> {
   >();
   #islandNames = new Set<string>();
   #middlewares: Middleware<State>[] = [];
+  #addedMiddlewares = false;
 
   /**
    * The final resolved Fresh configuration.
@@ -138,11 +139,14 @@ export class FreshApp<State> implements App<State> {
     pathname: string | URLPattern,
     middlewares: Middleware<State>[],
   ): this {
-    const combined = this.#middlewares.concat(middlewares);
+    if (!this.#addedMiddlewares) {
+      // FIXME: Composing with basepath/apps
+      this._router.add("ALL", "*", this.#middlewares);
+    }
     const merged = typeof pathname === "string"
       ? mergePaths(this.config.basePath, pathname)
       : pathname;
-    this._router.add(method, merged, combined);
+    this._router.add(method, merged, middlewares);
     return this;
   }
 

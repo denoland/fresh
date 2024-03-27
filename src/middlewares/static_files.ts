@@ -16,7 +16,6 @@ export function freshStaticFiles(): Middleware {
 
     // Fast path bail out
     const file = await buildCache.readFile(url.pathname);
-    console.log("serve", url.pathname);
     if (url.pathname === "/" || file === null) {
       // Optimization: Prevent long responses for favicon.ico requests
       if (url.pathname === "/favicon.ico") {

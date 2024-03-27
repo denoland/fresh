@@ -32,11 +32,6 @@ export class MemoryBuildCache implements DevBuildCache {
   constructor(public config: ResolvedFreshConfig) {}
 
   async readFile(pathname: string): Promise<StaticFile | null> {
-    console.log(
-      pathname,
-      this.#processedFiles.has(pathname),
-      this.#unprocessedFiles.has(pathname),
-    );
     const processed = this.#processedFiles.get(pathname);
     if (processed !== undefined) {
       return {
