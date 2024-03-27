@@ -2,7 +2,6 @@ import { basename, colors, join, parse, resolve } from "./src/dev/deps.ts";
 import { error } from "./src/dev/error.ts";
 import { collect, ensureMinDenoVersion, generate } from "./src/dev/mod.ts";
 import {
-  AOT_GH_ACTION,
   dotenvImports,
   freshImports,
   tailwindImports,
@@ -339,12 +338,6 @@ if (useTailwind) {
   await Deno.writeTextFile(
     join(resolvedDirectory, "tailwind.config.ts"),
     TAILWIND_CONFIG_TS,
-  );
-  const ghWorkflowDir = join(resolvedDirectory, ".github", "workflows");
-  await Deno.mkdir(ghWorkflowDir, { recursive: true });
-  await Deno.writeTextFile(
-    join(ghWorkflowDir, "deploy.yml"),
-    AOT_GH_ACTION,
   );
 }
 

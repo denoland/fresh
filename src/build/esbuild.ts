@@ -2,7 +2,7 @@ import {
   type BuildOptions,
   type OnLoadOptions,
   type Plugin,
-} from "https://deno.land/x/esbuild@v0.19.11/mod.js";
+} from "https://deno.land/x/esbuild@v0.20.2/mod.js";
 import { denoPlugins, fromFileUrl, regexpEscape, relative } from "./deps.ts";
 import { Builder, BuildSnapshot } from "./mod.ts";
 
@@ -23,6 +23,30 @@ export interface EsbuildBuilderOptions {
   basePath?: string;
 }
 
+let esbuild: typeof import("https://deno.land/x/esbuild@v0.20.2/mod.js");
+
+export async function initializeEsbuild() {
+  esbuild =
+    // deno-lint-ignore no-deprecated-deno-api
+    Deno.run === undefined ||
+      Deno.env.get("FRESH_ESBUILD_LOADER") === "portable"
+      ? await import("https://deno.land/x/esbuild@v0.20.2/wasm.js")
+      : await import("https://deno.land/x/esbuild@v0.20.2/mod.js");
+  const esbuildWasmURL =
+    new URL("./esbuild_v0.20.2.wasm", import.meta.url).href;
+
+  // deno-lint-ignore no-deprecated-deno-api
+  if (Deno.run === undefined) {
+    await esbuild.initialize({
+      wasmURL: esbuildWasmURL,
+      worker: false,
+    });
+  } else {
+    await esbuild.initialize({});
+  }
+  return esbuild;
+}
+
 export class EsbuildBuilder implements Builder {
   #options: EsbuildBuilderOptions;
 
@@ -34,25 +58,7 @@ export class EsbuildBuilder implements Builder {
     const opts = this.#options;
 
     // Lazily initialize esbuild
-    // @deno-types="https://deno.land/x/esbuild@v0.19.4/mod.d.ts"
-    const esbuild =
-      // deno-lint-ignore no-deprecated-deno-api
-      Deno.run === undefined ||
-        Deno.env.get("FRESH_ESBUILD_LOADER") === "portable"
-        ? await import("https://deno.land/x/esbuild@v0.19.11/wasm.js")
-        : await import("https://deno.land/x/esbuild@v0.19.11/mod.js");
-    const esbuildWasmURL =
-      new URL("./esbuild_v0.19.11.wasm", import.meta.url).href;
-
-    // deno-lint-ignore no-deprecated-deno-api
-    if (Deno.run === undefined) {
-      await esbuild.initialize({
-        wasmURL: esbuildWasmURL,
-        worker: false,
-      });
-    } else {
-      await esbuild.initialize({});
-    }
+    const esbuild = await initializeEsbuild();
 
     try {
       const absWorkingDir = opts.absoluteWorkingDir;
@@ -129,7 +135,7 @@ export class EsbuildBuilder implements Builder {
 
       return new EsbuildSnapshot(files, dependencies);
     } finally {
-      esbuild.stop();
+      await esbuild.stop();
     }
   }
 }
