@@ -11,7 +11,7 @@ jobs:
     permissions:
       contents: read
       id-token: write
-      
+
     steps:
       - uses: actions/checkout@v4
 
@@ -20,4 +20,4 @@ jobs:
         with:
           deno-version: v1.x
       - run: deno run --allow-write --allow-read tools/pre_publish.ts
-      - run: npx jsr publish
+      - run: deno publish

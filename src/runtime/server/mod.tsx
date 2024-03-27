@@ -58,7 +58,7 @@ const stringifiers: Stringifiers = {
  * </body>
  * ```
  */
-export const FreshScripts = ((
+export const FreshScripts: () => VNode = ((
   _props: unknown,
   context: FreshRenderContext,
 ): VNode => {
