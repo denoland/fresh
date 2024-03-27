@@ -142,6 +142,11 @@ export interface RouterOptions {
    * @default {undefined}
    */
   basePath?: string;
+  /**
+   *  Disables the trailing slash redirect.
+   *  @default {false}
+   */
+  disableTrailingSlashRedirect?: boolean;
 }
 
 export type RenderFunction = (
