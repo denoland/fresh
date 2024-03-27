@@ -11,7 +11,8 @@ Fresh 2.0:
 ☐ preloading scripts
 ☐ `asset()` function
 ☐ Remove components on website
-☐ Update init + update script
+✔ Update init + update script @done(24-03-27 17:11)
+☐ Update update script
 ☐ Add tests for static file middleware
 ☐ Investigate bundling esbuild js assets with rollup
 ☐ Add back finish tailwind setup page
