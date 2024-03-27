@@ -1,7 +1,7 @@
 import { FunctionComponent, VNode } from "preact";
 import "./runtime/server/preact_hooks.ts";
 import { ResolvedFreshConfig } from "./config.ts";
-import { renderToStringAsync } from "preact-render-to-string";
+import { renderToString } from "preact-render-to-string";
 import { BuildCache } from "./build_cache.ts";
 
 const NOOP = () => null;
@@ -133,7 +133,6 @@ export class FreshReqContext<T> implements FreshContext<T, unknown> {
     // deno-lint-ignore no-explicit-any
     vnode: VNode<any>,
     init: ResponseInit | undefined = {},
-    options?: { stream?: boolean },
   ): Response | Promise<Response> {
     const headers = init.headers !== undefined
       ? init.headers instanceof Headers
@@ -146,22 +145,10 @@ export class FreshReqContext<T> implements FreshContext<T, unknown> {
     const responseInit: ResponseInit = { status: init.status ?? 200, headers };
 
     const state = new RenderState(this);
-    const stream = !!options?.stream;
 
     // TODO: Streaming
-    const result = stream
-      ? renderToStringAsync(vnode, { __fresh: state })
-      : renderToStringAsync(vnode, { __fresh: state });
-    if (typeof result === "string") {
-      return new Response("<!DOCTYPE html>" + result, responseInit);
-    } else if (isPromise(result)) {
-      return result.then((html) => {
-        const out = "<!DOCTYPE html>" + html;
-        return new Response(out, responseInit);
-      });
-    }
-
-    return new Response(result, responseInit);
+    const result = renderToString(vnode, { __fresh: state });
+    return new Response("<!DOCTYPE html>" + result, responseInit);
   }
 
   renderNotFound(): Promise<void> {
