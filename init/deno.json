@@ -1,6 +1,6 @@
 {
   "name": "@marvinh-test/fresh-init",
-  "version": "0.0.1-prealpha.0",
+  "version": "0.0.1-prealpha.1",
   "exports": {
     ".": "./mod.ts"
   },
