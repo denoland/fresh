@@ -20,4 +20,4 @@ jobs:
         with:
           deno-version: v1.x
       - run: deno run --allow-write --allow-read tools/pre_publish.ts
-      - run: deno publish
+      - run: deno publish --allow-dirty
