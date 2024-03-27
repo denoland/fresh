@@ -380,8 +380,7 @@ if (Deno.args.includes("build")) {
 `;
 await writeProjectFile("dev.ts", DEV_TS);
 
-const config = {
-  lock: false,
+const denoJson = {
   tasks: {
     check:
       "deno fmt --check && deno lint && deno check **/*.ts && deno check **/*.tsx",
@@ -396,14 +395,19 @@ const config = {
     },
   },
   exclude: ["**/_fresh/*"],
-  imports: {} as Record<string, string>,
+  imports: {
+    // FIXME: Update once relased
+    "@fresh/core": "jsr:@marvinh-test/fresh@^2.0.0-prealpha.8",
+    "preact": "npm:preact@^10.20.1",
+    "preact/signals": "npm:preact@^1.2.3",
+  },
   compilerOptions: {
     jsx: "react-jsx",
     jsxImportSource: "preact",
   },
 };
 
-await writeProjectFile("deno.json", config);
+await writeProjectFile("deno.json", denoJson);
 
 const README_MD = `# Fresh project
 
