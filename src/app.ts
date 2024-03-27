@@ -121,13 +121,22 @@ export class FreshApp<State> implements App<State> {
   mountApp(path: string, app: App<State>): this {
     const routes = app._router._routes;
 
-    for (let i = 0; i < routes.length; i++) {
+    let middlewares: Middleware<State>[] = [];
+    let start = 0;
+    if (
+      routes.length > 0 && routes[0].path === "*" && routes[0].method === "ALL"
+    ) {
+      start++;
+      middlewares = routes[0].handlers;
+    }
+
+    for (let i = start; i < routes.length; i++) {
       const route = routes[i];
 
       const merged = typeof route.path === "string"
         ? mergePaths(path, route.path)
         : route.path;
-      const combined = this.#middlewares.concat(route.handlers);
+      const combined = middlewares.concat(route.handlers);
       this._router.add(route.method, merged, combined);
     }
 
@@ -141,8 +150,9 @@ export class FreshApp<State> implements App<State> {
   ): this {
     if (!this.#addedMiddlewares) {
       this.#addedMiddlewares = true;
-      // FIXME: Composing with basepath/apps
-      this._router.add("ALL", "*", this.#middlewares);
+      if (this.#middlewares.length > 0) {
+        this._router.add("ALL", "*", this.#middlewares);
+      }
     }
     const merged = typeof pathname === "string"
       ? mergePaths(this.config.basePath, pathname)

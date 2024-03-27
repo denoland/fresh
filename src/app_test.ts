@@ -235,7 +235,7 @@ Deno.test("FreshApp - methods with middleware", async () => {
   expect(await res.text()).toEqual("A");
 });
 
-Deno.test("FreshApp - .route() compose apps", async () => {
+Deno.test("FreshApp - .mountApp() compose apps", async () => {
   const innerApp = new FreshApp<{ text: string }>()
     .use((ctx) => {
       ctx.state.text = "A";
@@ -244,11 +244,16 @@ Deno.test("FreshApp - .route() compose apps", async () => {
     .get("/", (ctx) => new Response(ctx.state.text))
     .post("/", (ctx) => new Response(ctx.state.text));
 
-  const app = new FreshApp<{ text: string }>().mountApp("/foo", innerApp);
+  const app = new FreshApp<{ text: string }>()
+    .get("/", () => new Response("ok"))
+    .mountApp("/foo", innerApp);
 
   const server = new FakeServer(await app.handler());
 
-  let res = await server.get("/foo");
+  let res = await server.get("/");
+  expect(await res.text()).toEqual("ok");
+
+  res = await server.get("/foo");
   expect(await res.text()).toEqual("A");
 
   res = await server.post("/foo");
