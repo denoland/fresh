@@ -259,3 +259,60 @@ Deno.test("FreshApp - .mountApp() compose apps", async () => {
   res = await server.post("/foo");
   expect(await res.text()).toEqual("A");
 });
+
+Deno.test("FreshApp - .mountApp() self mount, no middleware", async () => {
+  const innerApp = new FreshApp<{ text: string }>()
+    .use((ctx) => {
+      ctx.state.text = "A";
+      return ctx.next();
+    })
+    .get("/foo", (ctx) => new Response(ctx.state.text))
+    .post("/foo", (ctx) => new Response(ctx.state.text));
+
+  const app = new FreshApp<{ text: string }>()
+    .get("/", () => new Response("ok"))
+    .mountApp("/", innerApp);
+
+  const server = new FakeServer(await app.handler());
+
+  let res = await server.get("/");
+  expect(await res.text()).toEqual("ok");
+
+  res = await server.get("/foo");
+  expect(await res.text()).toEqual("A");
+
+  res = await server.post("/foo");
+  expect(await res.text()).toEqual("A");
+});
+
+Deno.test(
+  "FreshApp - .mountApp() self mount, with middleware",
+  async () => {
+    const innerApp = new FreshApp<{ text: string }>()
+      .use(function B(ctx) {
+        ctx.state.text += "B";
+        return ctx.next();
+      })
+      .get("/foo", (ctx) => new Response(ctx.state.text))
+      .post("/foo", (ctx) => new Response(ctx.state.text));
+
+    const app = new FreshApp<{ text: string }>()
+      .use(function A(ctx) {
+        ctx.state.text = "A";
+        return ctx.next();
+      })
+      .get("/", () => new Response("ok"))
+      .mountApp("/", innerApp);
+
+    const server = new FakeServer(await app.handler());
+
+    let res = await server.get("/");
+    expect(await res.text()).toEqual("ok");
+
+    res = await server.get("/foo");
+    expect(await res.text()).toEqual("AB");
+
+    res = await server.post("/foo");
+    expect(await res.text()).toEqual("AB");
+  },
+);

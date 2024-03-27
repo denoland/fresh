@@ -130,13 +130,32 @@ export class FreshApp<State> implements App<State> {
       middlewares = routes[0].handlers;
     }
 
+    // Special case when user calls one of these:
+    // - `app.mounApp("/", otherApp)`
+    // - `app.mounApp("*", otherApp)`
+    const isSelf = path === "*" || path === "/";
+    if (isSelf) {
+      const first = this._router._routes[0];
+      if (first.method === "ALL" && first.path === "*") {
+        first.handlers.push(...middlewares);
+      } else {
+        this._router._routes.unshift({
+          handlers: middlewares,
+          method: "ALL",
+          path: "*",
+        });
+      }
+    }
+
     for (let i = start; i < routes.length; i++) {
       const route = routes[i];
 
       const merged = typeof route.path === "string"
         ? mergePaths(path, route.path)
         : route.path;
-      const combined = middlewares.concat(route.handlers);
+      const combined = isSelf
+        ? route.handlers
+        : middlewares.concat(route.handlers);
       this._router.add(route.method, merged, combined);
     }
 
