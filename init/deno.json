@@ -1,0 +1,20 @@
+{
+  "name": "@marvinh-test/fresh-init",
+  "version": "0.0.1-prealpha.0",
+  "exports": {
+    ".": "./mod.ts"
+  },
+  "lock": false,
+  "exclude": ["**/tmp/*"],
+  "publish": {
+    "include": [
+      "mod.ts",
+      "deno.json",
+      "README.md"
+    ],
+    "exclude": ["**/*_test.*", "*.todo"]
+  },
+  "imports": {
+    "@marvinh-test/fresh": "jsr:@marvinh-test/fresh@^2.0.0-prealpha.0"
+  }
+}
