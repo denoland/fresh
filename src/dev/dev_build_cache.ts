@@ -82,12 +82,8 @@ export class MemoryBuildCache implements DevBuildCache {
     this.#processedFiles.set(pathname, { content, hash });
   }
 
-  // deno-lint-ignore require-await
   async flush(): Promise<void> {
     // Ignore
-    // console.log("dev flush", this);
-    // console.log("dev proc", this.#processedFiles);
-    // console.log("dev unproc", this.#unprocessedFiles);
   }
 }
 
