@@ -82,7 +82,7 @@ ${
     )
       .join("\n")
   }
-import { type Manifest } from "$fresh/server.ts";
+import type { Manifest } from "$fresh/server.ts";
 
 const manifest = {
   routes: {
