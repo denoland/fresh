@@ -1,10 +1,29 @@
 import { FunctionComponent, VNode } from "preact";
+import "./runtime/server/preact_hooks.ts";
 import { ResolvedFreshConfig } from "./config.ts";
-import { RenderState } from "./middlewares/render/render_state.ts";
 import { renderToStringAsync } from "preact-render-to-string";
 import { BuildCache } from "./build_cache.ts";
 
 const NOOP = () => null;
+
+export class RenderState {
+  nonce: string;
+  islandDepth = 0;
+  partialDepth = 0;
+  partialCount = 0;
+  error: Error | null = null;
+  slots = new Map<string, any>(); // FIXME
+  basePath = ""; // FIXME
+  islandProps: any[] = [];
+  islands = new Set<any>();
+  encounteredPartials = new Set<any>();
+  owners = new Map<VNode, VNode>();
+  ownerStack = [];
+
+  constructor(public ctx: FreshContext<unknown>) {
+    this.nonce = crypto.randomUUID().replace(/-/g, "");
+  }
+}
 
 /**
  * The context passed to every middleware. It is unique for every request.

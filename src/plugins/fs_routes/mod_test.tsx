@@ -1,11 +1,11 @@
-import { FreshApp } from "../app.ts";
-import { FreshFsItem, fsRoutes, sortRoutePaths } from "./fs_routes.ts";
-import { FakeServer } from "../test_utils.ts";
+import { FreshApp } from "../../app.ts";
+import { FreshFsItem, fsRoutes, sortRoutePaths } from "./mod.ts";
+import { FakeServer } from "../../test_utils.ts";
 import * as path from "@std/path";
-import { createFakeFs } from "../test_utils.ts";
+import { createFakeFs } from "../../test_utils.ts";
 import { expect } from "@std/expect";
-import { HandlerFn, HandlerMethod } from "../defines.ts";
-import { Method } from "../router.ts";
+import { HandlerFn, HandlerMethod } from "../../defines.ts";
+import { Method } from "../../router.ts";
 
 async function createServer<T>(
   files: Record<string, string | Uint8Array | FreshFsItem<T>>,

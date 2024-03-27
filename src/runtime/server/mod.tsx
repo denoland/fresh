@@ -1,7 +1,7 @@
 import { type Signal } from "@preact/signals";
-import { type Island } from "../app.ts";
-import { FreshContext } from "../context.ts";
-import { Stringifiers, stringify } from "../jsonify/stringify.ts";
+import { type Island } from "../../app.ts";
+import { FreshContext } from "../../context.ts";
+import { Stringifiers, stringify } from "../../jsonify/stringify.ts";
 import { isValidElement, VNode } from "preact";
 
 /**

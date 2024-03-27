@@ -1,4 +1,4 @@
-import { setMode } from "../runtime/server.tsx";
+import { setMode } from "../runtime/server/mod.tsx";
 
 export { type DevApp, FreshDevApp } from "./dev_app.ts";
 export {

@@ -8,7 +8,7 @@ import {
   VNode,
 } from "preact";
 import { GLOBAL_ISLANDS } from "../../app.ts";
-import { FreshRenderContext } from "../../runtime/server.tsx";
+import { FreshRenderContext } from "./mod.tsx";
 
 const enum OptionsType {
   VNODE = "vnode",
@@ -44,6 +44,7 @@ const PATCHED = new WeakSet<VNode>();
 
 const oldDiff = options[OptionsType.DIFF];
 options[OptionsType.DIFF] = (vnode) => {
+  console.log("DIFF", vnode.type);
   patchIslands: if (
     typeof vnode.type === "function" && vnode.type !== Fragment &&
     !PATCHED.has(vnode)
@@ -55,7 +56,7 @@ options[OptionsType.DIFF] = (vnode) => {
     if (ctx === null) return;
 
     const { islands, islandProps } = ctx.__fresh;
-    console.log(island);
+    console.log({ island });
     islands.add(island);
 
     const originalType = vnode.type;

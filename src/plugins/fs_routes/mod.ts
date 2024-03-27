@@ -1,15 +1,15 @@
 import { AnyComponent } from "preact";
-import { App } from "../app.ts";
+import { App } from "../../app.ts";
 import { WalkEntry } from "@std/fs/walk";
 import * as path from "@std/path";
-import { RouteConfig } from "../types.ts";
-import { RouteHandler } from "../defines.ts";
-import { FreshContext } from "../context.ts";
-import { Middleware } from "../middlewares/mod.ts";
-import { renderMiddleware } from "../middlewares/render/render_middleware.ts";
-import { Method, pathToPattern } from "../router.ts";
-import { HandlerFn, isHandlerMethod } from "../defines.ts";
-import { FsAdapter, fsAdapter } from "../fs.ts";
+import { RouteConfig } from "../../types.ts";
+import { RouteHandler } from "../../defines.ts";
+import { FreshContext } from "../../context.ts";
+import { Middleware } from "../../middlewares/mod.ts";
+import { renderMiddleware } from "./render_middleware.ts";
+import { Method, pathToPattern } from "../../router.ts";
+import { HandlerFn, isHandlerMethod } from "../../defines.ts";
+import { FsAdapter, fsAdapter } from "../../fs.ts";
 
 const TEST_FILE_PATTERN = /[._]test\.(?:[tj]sx?|[mc][tj]s)$/;
 const GROUP_REG = /(^|[/\\\\])\((_[^/\\\\]+)\)[/\\\\]/;
