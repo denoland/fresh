@@ -140,6 +140,7 @@ export class FreshApp<State> implements App<State> {
     middlewares: Middleware<State>[],
   ): this {
     if (!this.#addedMiddlewares) {
+      this.#addedMiddlewares = true;
       // FIXME: Composing with basepath/apps
       this._router.add("ALL", "*", this.#middlewares);
     }
