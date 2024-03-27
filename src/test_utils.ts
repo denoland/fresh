@@ -1,16 +1,16 @@
 import { FreshReqContext } from "./context.ts";
 import { Middleware } from "./middlewares/mod.ts";
 import { FsAdapter } from "./fs.ts";
-import { ProdBuildCache } from "./build_cache.ts";
+import { BuildCache, ProdBuildCache } from "./build_cache.ts";
 import { ResolvedFreshConfig } from "./config.ts";
 import { WalkEntry } from "@std/fs/walk";
 
 export class FakeServer {
   constructor(public handler: (req: Request) => Response | Promise<Response>) {}
 
-  async get(path: string): Promise<Response> {
+  async get(path: string, init?: RequestInit): Promise<Response> {
     const url = this.toUrl(path);
-    const req = new Request(url);
+    const req = new Request(url, init);
     return await this.handler(req);
   }
   async post(path: string, body?: BodyInit): Promise<Response> {
@@ -44,7 +44,13 @@ export class FakeServer {
   }
 }
 
-export function serveMiddleware<T>(middleware: Middleware<T>): FakeServer {
+export function serveMiddleware<T>(
+  middleware: Middleware<T>,
+  options: {
+    buildCache?: BuildCache;
+    next?: () => Response | Promise<Response>;
+  } = {},
+): FakeServer {
   return new FakeServer(async (req) => {
     const config: ResolvedFreshConfig = {
       build: {
@@ -55,11 +61,14 @@ export function serveMiddleware<T>(middleware: Middleware<T>): FakeServer {
       root: "",
       staticDir: "",
     };
+
+    const next = options.next ??
+      (() => new Response("not found", { status: 404 }));
     const ctx = new FreshReqContext<T>(
       req,
       config,
-      async () => await new Response("Not found", { status: 404 }),
-      new ProdBuildCache(config, new Map(), new Map()),
+      () => Promise.resolve(next()),
+      options.buildCache ?? new ProdBuildCache(config, new Map(), new Map()),
     );
     return await middleware(ctx);
   });
