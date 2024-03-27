@@ -142,6 +142,12 @@ export interface RouterOptions {
    * @default {undefined}
    */
   basePath?: string;
+  /**
+   * If true, Fresh will try to automatically decode URL parameters. Instead of receiving `Hello%20World`, your route would receive `Hello World`.
+   * If decoding a particular parameter fails, it will be left as is.
+   * @default {false}
+   */
+  automaticallyDecodeUrlParams?: boolean;
 }
 
 export type RenderFunction = (

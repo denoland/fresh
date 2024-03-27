@@ -168,7 +168,10 @@ export class ServerContext {
     const withMiddlewares = composeMiddlewares(
       this.#extractResult.middlewares,
       handlers.errorHandler,
-      router.getParamsAndRoute(handlers),
+      router.getParamsAndRoute(
+        handlers,
+        this.#state.config.router?.automaticallyDecodeUrlParams ?? false,
+      ),
       renderNotFound,
       basePath,
     );
