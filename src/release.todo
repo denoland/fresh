@@ -22,6 +22,7 @@ Fresh 2.0:
 ☐ Think of custom Fresh JSX transform, for `asset()` + active link
 ✔ Use in-memory build cache for development @done(24-03-27 07:22)
 ✔ investigate middleware signature where each middleware calls the next middleware directly @done(24-03-27 07:22)
+✔ Fix FreshScripts signature @done(24-03-27 09:09)
 
 Fresh 2.0 compat:
 ☐ add plugin API backwards compat

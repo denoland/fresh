@@ -58,10 +58,10 @@ const stringifiers: Stringifiers = {
  * </body>
  * ```
  */
-export function FreshScripts(
+export const FreshScripts = ((
   _props: unknown,
   context: FreshRenderContext,
-): VNode {
+): VNode => {
   const { islands, islandProps, ctx } = context.__fresh;
   const basePath = ctx.config.basePath;
 
@@ -95,4 +95,4 @@ export function FreshScripts(
     >
     </script>
   );
-}
+}) as () => VNode;
