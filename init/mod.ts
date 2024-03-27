@@ -364,7 +364,7 @@ if (import.meta.main) {
 await writeProjectFile("main.ts", MAIN_TS);
 
 const DEV_TS = `#!/usr/bin/env -S deno run -A --watch=static/,routes/
-import { tailwind } from "@fresh/plugin-tailwind";
+${useTailwind ? `import { tailwind } from "@fresh/plugin-tailwind";\n` : ""};
 import { FreshDevApp } from "@fresh/core/dev";
 import { app } from "./main.ts";
 
@@ -398,14 +398,20 @@ const denoJson = {
   imports: {
     // FIXME: Update once relased
     "@fresh/core": "jsr:@marvinh-test/fresh@^2.0.0-prealpha.8",
+    "@fresh/plugin-tailwind": "jsr:@marvinh-test/fresh@^2.0.0-prealpha.8",
     "preact": "npm:preact@^10.20.1",
     "preact/signals": "npm:preact@^1.2.3",
-  },
+  } as Record<string, string>,
   compilerOptions: {
     jsx: "react-jsx",
     jsxImportSource: "preact",
   },
 };
+
+if (useTailwind) {
+  denoJson.imports["tailwindcss"] = "npm:tailwindcss@3.4.1";
+  denoJson.imports["tailwindcss/plugin"] = "npm:tailwindcss@3.4.1/plugin.js";
+}
 
 await writeProjectFile("deno.json", denoJson);
 
