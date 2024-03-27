@@ -316,3 +316,20 @@ Deno.test(
     expect(await res.text()).toEqual("AB");
   },
 );
+
+Deno.test("FreshApp - .mountApp() self mount empty", async () => {
+  const innerApp = new FreshApp<{ text: string }>()
+    .use((ctx) => {
+      ctx.state.text = "A";
+      return ctx.next();
+    })
+    .get("/foo", (ctx) => new Response(ctx.state.text));
+
+  const app = new FreshApp<{ text: string }>()
+    .mountApp("/", innerApp);
+
+  const server = new FakeServer(await app.handler());
+
+  const res = await server.get("/foo");
+  expect(await res.text()).toEqual("A");
+});

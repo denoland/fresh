@@ -135,9 +135,12 @@ export class FreshApp<State> implements App<State> {
     // - `app.mounApp("*", otherApp)`
     const isSelf = path === "*" || path === "/";
     if (isSelf) {
-      const first = this._router._routes[0];
-      if (first.method === "ALL" && first.path === "*") {
-        first.handlers.push(...middlewares);
+      const selfRoutes = this._router._routes;
+      if (
+        selfRoutes.length > 0 && selfRoutes[0].method === "ALL" &&
+        selfRoutes[0].path === "*"
+      ) {
+        selfRoutes[0].handlers.push(...middlewares);
       } else {
         this._router._routes.unshift({
           handlers: middlewares,
