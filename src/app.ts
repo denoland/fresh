@@ -159,6 +159,7 @@ export class FreshApp<State> implements App<State> {
       this.buildCache = await ProdBuildCache.fromSnapshot(this.config);
     }
 
+    // deno-lint-ignore require-await
     return async (req: Request) => {
       const url = new URL(req.url);
       // Prevent open redirect attacks
@@ -191,15 +192,8 @@ export class FreshApp<State> implements App<State> {
         return handlers[0][0](ctx);
       }
 
-      for (let i = 0; i < handlers.length; i++) {
-        const stack = handlers[i];
-        const res = await runMiddlewares(stack, ctx);
-        if (res instanceof Response) {
-          return res;
-        }
-      }
-
-      return next();
+      ctx.next = next;
+      return runMiddlewares(handlers, ctx);
     };
   }
 

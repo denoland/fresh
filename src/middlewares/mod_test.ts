@@ -24,7 +24,7 @@ Deno.test("runMiddleware", async () => {
   ];
 
   const server = serveMiddleware<{ text: string }>((ctx) =>
-    runMiddlewares(middlewares, ctx)
+    runMiddlewares([middlewares], ctx)
   );
 
   const res = await server.get("/");
@@ -42,9 +42,46 @@ Deno.test("runMiddleware - middlewares should only be called once", async () => 
   };
 
   const server = serveMiddleware<{ count: number }>((ctx) =>
-    runMiddlewares([A, (ctx) => new Response(String(ctx.state.count))], ctx)
+    runMiddlewares(
+      [[A, (ctx) => new Response(String(ctx.state.count))]],
+      ctx,
+    )
   );
 
   const res = await server.get("/");
   expect(await res.text()).toEqual("0");
+});
+
+Deno.test("runMiddleware - runs multiple stacks", async () => {
+  type State = { text: string };
+  const A: Middleware<State> = (ctx) => {
+    ctx.state.text += "A";
+    return ctx.next();
+  };
+  const B: Middleware<State> = (ctx) => {
+    ctx.state.text += "B";
+    return ctx.next();
+  };
+  const C: Middleware<State> = (ctx) => {
+    ctx.state.text += "C";
+    return ctx.next();
+  };
+  const D: Middleware<State> = (ctx) => {
+    ctx.state.text += "D";
+    return ctx.next();
+  };
+
+  const server = serveMiddleware<State>((ctx) => {
+    ctx.state.text = "";
+    return runMiddlewares(
+      [
+        [A, B],
+        [C, D, (ctx) => new Response(String(ctx.state.text))],
+      ],
+      ctx,
+    );
+  });
+
+  const res = await server.get("/");
+  expect(await res.text()).toEqual("ABCD");
 });

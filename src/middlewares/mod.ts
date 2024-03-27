@@ -36,24 +36,24 @@ export type Middleware<State = unknown> = (
 ) => Response | Promise<Response>;
 
 export function runMiddlewares<T>(
-  middlewares: Middleware<T>[],
+  middlewares: Middleware<T>[][],
   ctx: FreshContext<T>,
-) {
-  const originalNext = ctx.next;
-
-  let idx = -1;
-  async function dispatch(i: number): Promise<Response> {
-    if (i <= idx) {
-      throw new Error("ctx.next() called multiple times");
+): Promise<Response> {
+  let fn = ctx.next;
+  let i = middlewares.length;
+  while (i--) {
+    const stack = middlewares[i];
+    let j = stack.length;
+    while (j--) {
+      const local = fn;
+      const next = stack[j];
+      // deno-lint-ignore require-await
+      fn = async () => {
+        ctx.next = local;
+        return next(ctx);
+      };
     }
-    idx = i;
-    if (i === middlewares.length) {
-      return originalNext();
-    }
-
-    ctx.next = () => dispatch(i + 1);
-    return await middlewares[i](ctx);
   }
 
-  return dispatch(0);
+  return fn();
 }
