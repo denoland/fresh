@@ -1,0 +1,23 @@
+name: Publish JSR
+
+on:
+  push:
+    branches:
+      - fresh-2.0
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+      
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Deno
+        uses: denoland/setup-deno@v1
+        with:
+          deno-version: v1.x
+      - run: deno run --allow-write --allow-read tools/pre_publish.ts
+      - run: npx jsr publish
