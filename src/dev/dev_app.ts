@@ -65,8 +65,7 @@ export class FreshDevApp<T> extends FreshApp<T> implements DevApp<T> {
 
   async build(options: BuildOptions = {}): Promise<void> {
     const start = Date.now();
-    const buildKind = options.dev ? "development" : "production";
-    console.log(`Processing ${colors.green(buildKind)} assets...`);
+    console.log(`Building...`);
     const { staticDir, build } = this.config;
     const staticOutDir = path.join(build.outDir, "static");
 
@@ -154,9 +153,7 @@ export class FreshDevApp<T> extends FreshApp<T> implements DevApp<T> {
 
     const duration = Date.now() - start;
     console.log(
-      `Processing ${colors.green(buildKind)} assets finished in ${
-        colors.green(prettyTime(duration))
-      }`,
+      `Build finished in ${colors.green(prettyTime(duration))}`,
     );
     if (!options.dev) {
       console.log(

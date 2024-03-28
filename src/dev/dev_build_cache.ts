@@ -113,7 +113,9 @@ export class DiskBuildCache implements DevBuildCache {
   ) {
     this.#processedFiles.set(pathname, hash);
 
-    const outDir = path.join(this.config.build.outDir, "static");
+    const outDir = pathname === "/metafile.json"
+      ? this.config.build.outDir
+      : path.join(this.config.build.outDir, "static");
     const filePath = path.join(outDir, pathname);
     if (path.relative(outDir, filePath).startsWith(".")) {
       throw new Error(`Path "${filePath}" resolved outside of "${outDir}"`);
@@ -150,8 +152,14 @@ export class DiskBuildCache implements DevBuildCache {
 
     for (const [name, maybeHash] of this.#processedFiles.entries()) {
       let hash = maybeHash;
+
+      // Ignore esbuild meta file. It's not intended for serving
+      if (name === "/metafile.json") {
+        continue;
+      }
+
       if (maybeHash === null) {
-        const filePath = path.join(this.config.staticDir, name);
+        const filePath = path.join(this.config.build.outDir, "static", name);
         const file = await Deno.open(filePath);
         hash = await hashContent(file.readable);
       }
