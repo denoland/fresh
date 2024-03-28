@@ -15,7 +15,7 @@
     "exclude": ["**/*_test.*", "*.todo"]
   },
   "imports": {
-    "@marvinh-test/fresh": "jsr:@marvinh-test/fresh@^2.0.0-prealpha.0",
+    "@marvinh-test/fresh": "jsr:@marvinh-test/fresh@^2.0.0-prealpha.11",
     "@std/cli": "jsr:@std/cli@^0.220.1",
     "@std/fmt": "jsr:@std/fmt@^0.220.1",
     "@std/path": "jsr:@std/path@^0.220.1"
