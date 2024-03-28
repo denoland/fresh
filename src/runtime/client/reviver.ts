@@ -78,8 +78,6 @@ export function boot(
     );
     revive(island, props);
   }
-
-  console.log("FOUND", ctx);
 }
 
 function _walkInner(ctx: ReviveContext, node: Node | Comment) {
