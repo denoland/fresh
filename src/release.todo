@@ -26,6 +26,7 @@ Fresh 2.0:
 ✔ Fix FreshScripts signature @done(24-03-27 09:09)
 ☐ Add Static file processor plugin name
 ☐ Fix client dev script loaded in prod
+☐ Add caching parameter to sources in css files
 
 Fresh 2.0 compat:
 ☐ add plugin API backwards compat
