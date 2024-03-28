@@ -6,7 +6,7 @@
   },
   "imports": {
     "@fresh/core": "jsr:@marvinh-test/fresh@^2.0.0-prealpha.11",
-    "@std/path": "jsr:@std/path@^0.220.1",
+    "@std/path": "jsr:@std/path@^0.221.0",
     "autoprefixer": "npm:autoprefixer@10.4.17",
     "cssnano": "npm:cssnano@6.0.3",
     "postcss": "npm:postcss@8.4.35",
