@@ -43,6 +43,7 @@ Deno.test("static files - 200", async () => {
   expect(res.status).toEqual(200);
   expect(res.headers.get("Content-Type")).toEqual("text/css; charset=UTF-8");
   expect(res.headers.get("Content-Length")).toEqual("7");
+  expect(res.headers.get("Cache-Control")).toEqual(null);
   expect(content).toEqual("body {}");
 });
 
@@ -107,4 +108,32 @@ Deno.test("static files - 405 on wrong HTTP method", async () => {
     await res.body?.cancel();
     expect(res.status).toEqual(405);
   }
+});
+
+Deno.test("static files - disables caching in development", async () => {
+  const buildCache = new MockBuildCache({
+    "foo.css": { content: "body {}", hash: null },
+  });
+  const server = serveMiddleware(
+    freshStaticFiles(),
+    {
+      buildCache,
+      config: {
+        basePath: "",
+        build: {
+          outDir: "",
+        },
+        mode: "development",
+        root: ".",
+        staticDir: "",
+      },
+    },
+  );
+
+  const res = await server.get("/foo.css");
+  await res.body?.cancel();
+  expect(res.status).toEqual(200);
+  expect(res.headers.get("Cache-Control")).toEqual(
+    "no-cache, no-store, max-age=0, must-revalidate",
+  );
 });

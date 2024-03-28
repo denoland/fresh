@@ -37,12 +37,19 @@ export function freshStaticFiles(): Middleware {
       vary: "If-None-Match",
     });
 
-    const ifNoneMatch = req.headers.get("If-None-Match");
-    if (
-      etag !== null &&
-      (ifNoneMatch === etag || ifNoneMatch === "W/" + etag)
-    ) {
-      return new Response(null, { status: 304, headers });
+    if (ctx.config.mode === "development") {
+      headers.append(
+        "Cache-Control",
+        "no-cache, no-store, max-age=0, must-revalidate",
+      );
+    } else {
+      const ifNoneMatch = req.headers.get("If-None-Match");
+      if (
+        etag !== null &&
+        (ifNoneMatch === etag || ifNoneMatch === "W/" + etag)
+      ) {
+        return new Response(null, { status: 304, headers });
+      }
     }
 
     headers.set("Content-Length", String(file.size));

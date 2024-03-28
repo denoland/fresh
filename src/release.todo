@@ -27,6 +27,7 @@ Fresh 2.0:
 ☐ Add Static file processor plugin name
 ✔ Fix client dev script loaded in prod @done(24-03-28 12:42)
 ☐ Add caching parameter to sources in css files
+✔ Static middleware should never cache files in dev @done(24-03-28 13:04)
 
 Fresh 2.0 compat:
 ☐ add plugin API backwards compat

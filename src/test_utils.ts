@@ -44,23 +44,26 @@ export class FakeServer {
   }
 }
 
+const DEFAULT_CONFIG: ResolvedFreshConfig = {
+  build: {
+    outDir: "",
+  },
+  mode: "production",
+  basePath: "",
+  root: "",
+  staticDir: "",
+};
+
 export function serveMiddleware<T>(
   middleware: Middleware<T>,
   options: {
     buildCache?: BuildCache;
     next?: () => Response | Promise<Response>;
+    config?: ResolvedFreshConfig;
   } = {},
 ): FakeServer {
   return new FakeServer(async (req) => {
-    const config: ResolvedFreshConfig = {
-      build: {
-        outDir: "",
-      },
-      mode: "development",
-      basePath: "",
-      root: "",
-      staticDir: "",
-    };
+    const config = options.config ?? DEFAULT_CONFIG;
 
     const next = options.next ??
       (() => new Response("not found", { status: 404 }));
