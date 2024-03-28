@@ -1,4 +1,4 @@
-import { FreshContext } from "$fresh/server.ts";
+import type { FreshContext } from "$fresh/server.ts";
 
 export default async function AsyncSubLayout(
   req: Request,

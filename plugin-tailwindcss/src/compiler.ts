@@ -1,10 +1,10 @@
-import tailwindCss, { Config } from "tailwindcss";
+import tailwindCss, { type Config } from "tailwindcss";
 import postcss from "postcss";
 import cssnano from "cssnano";
 import autoprefixer from "autoprefixer";
 import * as path from "@std/path";
-import { TailwindPluginOptions } from "./types.ts";
-import { ResolvedFreshConfig } from "@fresh/core";
+import type { TailwindPluginOptions } from "./types.ts";
+import type { ResolvedFreshConfig } from "@fresh/core";
 
 const CONFIG_EXTENSIONS = ["ts", "js", "mjs"];
 

@@ -1,4 +1,4 @@
-import { FreshContext } from "$fresh/server.ts";
+import type { FreshContext } from "$fresh/server.ts";
 
 export type IsPartialInContextState = {
   setFromMiddleware: boolean;

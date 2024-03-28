@@ -1,5 +1,5 @@
 import { expect } from "@std/expect";
-import { initProject, InitStep, MockTTY } from "./init.ts";
+import { initProject, InitStep, type MockTTY } from "./init.ts";
 import * as path from "@std/path";
 
 async function withTmpDir(fn: (dir: string) => void | Promise<void>) {

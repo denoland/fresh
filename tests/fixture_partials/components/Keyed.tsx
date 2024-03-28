@@ -1,4 +1,4 @@
-import { ComponentChildren } from "preact";
+import type { ComponentChildren } from "preact";
 
 export function Keyed(props: { children?: ComponentChildren }) {
   return <>{props.children}</>;

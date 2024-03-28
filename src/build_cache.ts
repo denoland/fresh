@@ -1,5 +1,5 @@
 import * as path from "@std/path";
-import { ResolvedFreshConfig } from "./config.ts";
+import type { ResolvedFreshConfig } from "./config.ts";
 
 export interface FileSnapshot {
   generated: boolean;

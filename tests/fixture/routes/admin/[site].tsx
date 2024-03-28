@@ -1,4 +1,4 @@
-import { Handler, PageProps } from "$fresh/server.ts";
+import type { Handler, PageProps } from "$fresh/server.ts";
 import Greeter from "../../islands/Greeter.tsx";
 
 export const handler: Handler = (_req, ctx) =>

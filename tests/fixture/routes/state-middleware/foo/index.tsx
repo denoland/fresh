@@ -1,4 +1,4 @@
-import { FreshContext, PageProps } from "$fresh/server.ts";
+import type { FreshContext, PageProps } from "$fresh/server.ts";
 
 export const handler = (_req: Request, ctx: FreshContext) => {
   ctx.state.handler3 = "it works";

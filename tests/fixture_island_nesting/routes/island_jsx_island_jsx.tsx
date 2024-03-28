@@ -1,4 +1,4 @@
-import { ComponentChildren } from "preact";
+import type { ComponentChildren } from "preact";
 import Island from "../islands/Island.tsx";
 
 function Foo(props: { children?: ComponentChildren }) {

@@ -1,5 +1,5 @@
-import { h } from "preact";
-import { PageProps } from "$fresh/server.ts";
+import type { h } from "preact";
+import type { PageProps } from "$fresh/server.ts";
 
 export default function TsxLayout({ Component }: PageProps) {
   return (

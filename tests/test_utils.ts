@@ -9,12 +9,12 @@ import {
   HTMLElement,
   HTMLMetaElement,
   join,
-  Page,
+  type Page,
   puppeteer,
   TextLineStream,
   toFileUrl,
 } from "./deps.ts";
-import { App } from "$fresh/server.ts";
+import type { App } from "$fresh/server.ts";
 
 export interface TestDocument extends Document {
   debug(): void;

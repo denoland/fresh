@@ -1,4 +1,4 @@
-import { JSX } from "preact";
+import type { JSX } from "preact";
 
 export default function Background(props: JSX.HTMLAttributes<HTMLDivElement>) {
   return (

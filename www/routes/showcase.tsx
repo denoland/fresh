@@ -1,6 +1,6 @@
 import { asset, Head } from "$fresh/runtime.ts";
-import { PageProps } from "$fresh/server.ts";
-import Projects, { Project } from "../components/Projects.tsx";
+import type { PageProps } from "$fresh/server.ts";
+import Projects, { type Project } from "../components/Projects.tsx";
 import Header from "../components/Header.tsx";
 import Footer from "../components/Footer.tsx";
 import projects from "../data/showcase.json" with { type: "json" };

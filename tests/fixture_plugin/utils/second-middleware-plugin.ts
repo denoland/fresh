@@ -1,5 +1,5 @@
-import { FreshContext, Plugin } from "$fresh/server.ts";
-import { PluginMiddlewareState } from "./route-plugin.ts";
+import type { FreshContext, Plugin } from "$fresh/server.ts";
+import type { PluginMiddlewareState } from "./route-plugin.ts";
 
 export default function secondMiddlewarePlugin(): Plugin<
   PluginMiddlewareState

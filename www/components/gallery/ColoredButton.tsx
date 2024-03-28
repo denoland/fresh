@@ -1,4 +1,4 @@
-import { JSX } from "preact";
+import type { JSX } from "preact";
 import { IS_BROWSER } from "@fresh/runtime";
 
 export default function ColoredButton(

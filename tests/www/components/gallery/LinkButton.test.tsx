@@ -2,10 +2,10 @@ import {
   assert,
   assertEquals,
   assertExists,
-  assertFalse,
-  assertStringIncludes,
+  type assertFalse,
+  type assertStringIncludes,
 } from "$std/testing/asserts.ts";
-import { cleanup, fireEvent, render, setup } from "$fresh-testing-library";
+import { cleanup, type fireEvent, render, setup } from "$fresh-testing-library";
 import { afterEach, beforeAll, describe, it } from "$std/testing/bdd.ts";
 import LinkButton from "../../../../www/components/gallery/LinkButton.tsx";
 import IconHeart from "https://deno.land/x/tabler_icons_tsx@0.0.6/tsx/heart.tsx";

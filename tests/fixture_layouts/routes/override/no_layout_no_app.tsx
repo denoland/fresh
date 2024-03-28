@@ -1,4 +1,4 @@
-import { LayoutConfig } from "$fresh/server.ts";
+import type { LayoutConfig } from "$fresh/server.ts";
 
 export const config: LayoutConfig = {
   skipAppWrapper: true,

@@ -1,4 +1,4 @@
-import { Handler, PageProps } from "$fresh/server.ts";
+import type { Handler, PageProps } from "$fresh/server.ts";
 
 export const handler: Handler = (_req, ctx) => {
   ctx.state.lang = "de";

@@ -1,4 +1,4 @@
-import { FreshContext } from "../context.ts";
+import type { FreshContext } from "../context.ts";
 
 /**
  * A middleware is the basic building block of Fresh. It allows you

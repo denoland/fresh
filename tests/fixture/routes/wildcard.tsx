@@ -1,4 +1,4 @@
-import { PageProps, RouteConfig } from "$fresh/server.ts";
+import type { PageProps, RouteConfig } from "$fresh/server.ts";
 
 export default function WildcardPage({ params }: PageProps) {
   if (typeof params.path === "string") {

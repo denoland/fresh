@@ -4,7 +4,7 @@ import {
   delay,
   dirname,
   join,
-  Page,
+  type Page,
   puppeteer,
   relative,
 } from "./deps.ts";

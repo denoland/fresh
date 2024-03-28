@@ -1,8 +1,8 @@
-import { FunctionComponent, VNode } from "preact";
+import type { FunctionComponent, VNode } from "preact";
 import "./runtime/server/preact_hooks.ts";
-import { ResolvedFreshConfig } from "./config.ts";
+import type { ResolvedFreshConfig } from "./config.ts";
 import { renderToString } from "preact-render-to-string";
-import { BuildCache } from "./build_cache.ts";
+import type { BuildCache } from "./build_cache.ts";
 
 const NOOP = () => null;
 
@@ -12,10 +12,14 @@ export class RenderState {
   partialDepth = 0;
   partialCount = 0;
   error: Error | null = null;
+  // deno-lint-ignore no-explicit-any
   slots = new Map<string, any>(); // FIXME
   basePath = ""; // FIXME
+  // deno-lint-ignore no-explicit-any
   islandProps: any[] = [];
+  // deno-lint-ignore no-explicit-any
   islands = new Set<any>();
+  // deno-lint-ignore no-explicit-any
   encounteredPartials = new Set<any>();
   owners = new Map<VNode, VNode>();
   ownerStack = [];
@@ -96,6 +100,7 @@ export interface FreshContext<State = unknown, Data = unknown> {
   renderNotFound(): Promise<void>;
 }
 
+// deno-lint-ignore no-unused-vars
 const RENDER_PREACT_SLOT = (idx: number) =>
   `<!--frsh:await:${idx}--><!--/frsh:await:${idx}-->`;
 
@@ -154,11 +159,6 @@ export class FreshReqContext<T> implements FreshContext<T, unknown> {
   renderNotFound(): Promise<void> {
     return this.throw(404);
   }
-}
-
-// deno-lint-ignore no-explicit-any
-function isPromise(x: any): x is Promise<unknown> {
-  return typeof x.then === "function";
 }
 
 export function redirectTo(pathOrUrl: string, status = 302): Response {

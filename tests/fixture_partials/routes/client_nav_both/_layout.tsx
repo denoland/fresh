@@ -1,4 +1,4 @@
-import { PageProps } from "$fresh/server.ts";
+import type { PageProps } from "$fresh/server.ts";
 import { Partial } from "@fresh/runtime";
 import { Fader } from "../../islands/Fader.tsx";
 

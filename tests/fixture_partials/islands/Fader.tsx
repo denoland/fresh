@@ -1,5 +1,5 @@
 import { useEffect, useRef } from "preact/hooks";
-import { ComponentChildren } from "preact";
+import type { ComponentChildren } from "preact";
 
 export function Fader(props: { children?: ComponentChildren }) {
   const ref = useRef<HTMLDivElement>(null);

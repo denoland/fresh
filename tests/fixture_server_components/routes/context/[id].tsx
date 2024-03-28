@@ -1,4 +1,4 @@
-import { RouteContext } from "../../../../server.ts";
+import type { RouteContext } from "../../../../server.ts";
 import { delay, relative, SEPARATOR } from "../../../deps.ts";
 
 export default async function Foo(_req: Request, context: RouteContext) {

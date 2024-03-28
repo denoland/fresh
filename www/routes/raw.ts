@@ -1,4 +1,4 @@
-import { RouteConfig } from "@fresh/server";
+import type { RouteConfig } from "@fresh/server";
 import { defineHandlers } from "@fresh/server";
 import { format, parse } from "$std/semver/mod.ts";
 import VERSIONS from "../../versions.json" with { type: "json" };

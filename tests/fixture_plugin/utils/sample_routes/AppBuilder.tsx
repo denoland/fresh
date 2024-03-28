@@ -1,6 +1,6 @@
-import { defineApp, PageProps } from "$fresh/server.ts";
+import { defineApp, type PageProps } from "$fresh/server.ts";
 import { Head } from "../../../../runtime.ts";
-import { Options } from "../route-plugin.ts";
+import type { Options } from "../route-plugin.ts";
 
 export function AppBuilder(options: Options) {
   return options.async

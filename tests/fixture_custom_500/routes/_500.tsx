@@ -1,4 +1,4 @@
-import { ErrorHandler, PageProps } from "../../../server.ts";
+import type { ErrorHandler, PageProps } from "../../../server.ts";
 
 export const handler: ErrorHandler = (_req, ctx) => {
   return ctx.render();

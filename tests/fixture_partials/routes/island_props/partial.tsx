@@ -1,7 +1,7 @@
 import { defineRoute } from "../../../../src/__OLD/server/defines.ts";
-import { RouteConfig } from "$fresh/server.ts";
+import type { RouteConfig } from "$fresh/server.ts";
 import { Partial } from "@fresh/runtime";
-import { Fader } from "../../islands/Fader.tsx";
+import type { Fader } from "../../islands/Fader.tsx";
 import PropIsland from "../../islands/PropIsland.tsx";
 
 export const config: RouteConfig = {

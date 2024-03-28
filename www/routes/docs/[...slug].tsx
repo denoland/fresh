@@ -1,4 +1,4 @@
-import { PageProps } from "$fresh/server.ts";
+import type { PageProps } from "$fresh/server.ts";
 import { asset, Partial } from "@fresh/runtime";
 import DocsSidebar from "../../components/DocsSidebar.tsx";
 import Footer from "../../components/Footer.tsx";
@@ -7,7 +7,7 @@ import {
   getFirstPageUrl,
   LATEST_VERSION,
   TABLE_OF_CONTENTS,
-  TableOfContentsEntry,
+  type TableOfContentsEntry,
 } from "../../data/docs.ts";
 import { frontMatter, renderMarkdown } from "../../utils/markdown.ts";
 import toc from "../../../docs/toc.ts";

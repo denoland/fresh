@@ -1,4 +1,4 @@
-import { type BuildOptions, type Plugin as EsbuildPlugin } from "esbuild-wasm";
+import type { BuildOptions, Plugin as EsbuildPlugin } from "esbuild-wasm";
 import { denoPlugins } from "@luca/esbuild-deno-loader";
 import * as path from "@std/path";
 

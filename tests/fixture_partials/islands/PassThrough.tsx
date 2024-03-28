@@ -1,6 +1,6 @@
 import { Fader } from "$fresh/tests/fixture_partials/islands/Fader.tsx";
 import { Logger } from "./Logger.tsx";
-import { ComponentChildren } from "preact";
+import type { ComponentChildren } from "preact";
 
 export default function PassThrough(props: { children?: ComponentChildren }) {
   return (

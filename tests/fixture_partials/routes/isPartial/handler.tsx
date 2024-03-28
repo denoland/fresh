@@ -1,5 +1,5 @@
-import { Handlers, PageProps, RouteConfig } from "$fresh/server.ts";
-import { IsPartialInContextState } from "./_middleware.ts";
+import type { Handlers, PageProps, RouteConfig } from "$fresh/server.ts";
+import type { IsPartialInContextState } from "./_middleware.ts";
 import { Partial } from "@fresh/runtime";
 
 export const config: RouteConfig = {

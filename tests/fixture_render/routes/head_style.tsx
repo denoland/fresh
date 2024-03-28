@@ -1,4 +1,4 @@
-import { RouteConfig } from "../../../src/__OLD/server/types.ts";
+import type { RouteConfig } from "../../../src/__OLD/server/types.ts";
 
 export const config: RouteConfig = {
   skipAppWrapper: true,

@@ -1,7 +1,7 @@
-import { ComponentType, h, hydrate, render } from "preact";
+import { type ComponentType, h, hydrate, render } from "preact";
 import { parse } from "../../jsonify/parse.ts";
 import { signal } from "@preact/signals";
-import { CustomParser } from "../../jsonify/parse.ts";
+import type { CustomParser } from "../../jsonify/parse.ts";
 
 interface IslandReq {
   name: string;
@@ -117,6 +117,7 @@ function _walkInner(ctx: ReviveContext, node: Node | Comment) {
 function isCommentNode(node: Node): node is Comment {
   return node.nodeType === Node.COMMENT_NODE;
 }
+// deno-lint-ignore no-unused-vars
 function isTextNode(node: Node): node is Text {
   return node.nodeType === Node.TEXT_NODE;
 }

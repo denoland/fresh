@@ -1,4 +1,4 @@
-import { FreshContext, Plugin } from "$fresh/server.ts";
+import type { FreshContext, Plugin } from "$fresh/server.ts";
 import { handler as testMiddleware } from "./sample_routes/_middleware.ts";
 import { AppBuilder } from "./sample_routes/AppBuilder.tsx";
 import IslandPluginComponent from "./sample_routes/PluginRouteWithIsland.tsx";

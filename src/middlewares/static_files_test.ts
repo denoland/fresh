@@ -1,6 +1,6 @@
 import { freshStaticFiles } from "@fresh/server";
 import { serveMiddleware } from "../test_utils.ts";
-import { BuildCache, StaticFile } from "../build_cache.ts";
+import type { BuildCache, StaticFile } from "../build_cache.ts";
 import { expect } from "@std/expect";
 
 class MockBuildCache implements BuildCache {

@@ -1,5 +1,5 @@
 import { Partial } from "@fresh/runtime";
-import { PageProps } from "$fresh/server.ts";
+import type { PageProps } from "$fresh/server.ts";
 import { Logger } from "../../islands/Logger.tsx";
 
 export default function SlotDemo(props: PageProps) {

@@ -1,4 +1,4 @@
-import { PageProps } from "$fresh/server.ts";
+import type { PageProps } from "$fresh/server.ts";
 
 export default function BarLayout({ Component }: PageProps) {
   return (

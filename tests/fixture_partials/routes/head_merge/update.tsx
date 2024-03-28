@@ -1,5 +1,5 @@
 import { defineRoute } from "../../../../src/__OLD/server/defines.ts";
-import { RouteConfig } from "$fresh/server.ts";
+import type { RouteConfig } from "$fresh/server.ts";
 import { Head, Partial } from "@fresh/runtime";
 import { Fader } from "../../islands/Fader.tsx";
 

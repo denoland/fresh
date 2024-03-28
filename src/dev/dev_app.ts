@@ -1,5 +1,5 @@
-import { App, FreshApp, GLOBAL_ISLANDS, ListenOptions } from "../app.ts";
-import { FreshConfig } from "../config.ts";
+import { type App, FreshApp, GLOBAL_ISLANDS, type ListenOptions } from "../app.ts";
+import type { FreshConfig } from "../config.ts";
 import { fsAdapter } from "../fs.ts";
 import * as path from "@std/path";
 import * as colors from "@std/fmt/colors";
@@ -9,10 +9,10 @@ import { prettyTime } from "../utils.ts";
 import { liveReload } from "./middlewares/live_reload.ts";
 import {
   FreshFileTransformer,
-  OnTransformArgs,
-  OnTransformOptions,
+  type OnTransformArgs,
+  type OnTransformOptions,
 } from "./file_transformer.ts";
-import { TransformFn } from "./file_transformer.ts";
+import type { TransformFn } from "./file_transformer.ts";
 import { DiskBuildCache, MemoryBuildCache } from "./dev_build_cache.ts";
 
 export interface DevApp<T> extends App<T> {

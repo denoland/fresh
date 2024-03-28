@@ -1,4 +1,4 @@
-import { RouteConfig } from "$fresh/server.ts";
+import type { RouteConfig } from "$fresh/server.ts";
 import CounterA from "../../islands/CounterA.tsx";
 import { Fader } from "../../islands/Fader.tsx";
 

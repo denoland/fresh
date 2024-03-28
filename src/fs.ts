@@ -1,4 +1,4 @@
-import { walk, WalkEntry, WalkOptions } from "@std/fs/walk";
+import { walk, type WalkEntry, type WalkOptions } from "@std/fs/walk";
 
 export interface FreshFile {
   size: number;

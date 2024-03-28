@@ -1,4 +1,4 @@
-import { RouteConfig } from "$fresh/server.ts";
+import type { RouteConfig } from "$fresh/server.ts";
 import { Fader } from "../../islands/Fader.tsx";
 
 export const config: RouteConfig = {

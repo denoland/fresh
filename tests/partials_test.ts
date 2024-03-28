@@ -1,4 +1,4 @@
-import { assert, assertEquals, assertMatch, Page } from "./deps.ts";
+import { assert, assertEquals, assertMatch, type Page } from "./deps.ts";
 import {
   assertMetaContent,
   assertNoComments,

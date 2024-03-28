@@ -1,5 +1,5 @@
 import { Partial } from "@fresh/runtime";
-import { defineRoute, Handlers } from "$fresh/server.ts";
+import { defineRoute, type Handlers } from "$fresh/server.ts";
 import { Logger } from "../../islands/Logger.tsx";
 
 export const handler: Handlers = {

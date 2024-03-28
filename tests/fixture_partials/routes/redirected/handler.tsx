@@ -1,4 +1,4 @@
-import { RouteConfig } from "$fresh/server.ts";
+import type { RouteConfig } from "$fresh/server.ts";
 import { Partial } from "@fresh/runtime";
 
 export const config: RouteConfig = {

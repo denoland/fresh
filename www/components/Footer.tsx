@@ -1,4 +1,4 @@
-import * as Icons from "./Icons.tsx";
+import type * as Icons from "./Icons.tsx";
 
 const LINKS = [
   {

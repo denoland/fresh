@@ -3,7 +3,7 @@ import Header from "../components/Header.tsx";
 import ComponentGallery from "../islands/ComponentGallery.tsx";
 
 import { asset, Head } from "$fresh/runtime.ts";
-import { PageProps } from "$fresh/server.ts";
+import type { PageProps } from "$fresh/server.ts";
 import { defineHandlers } from "@fresh/server";
 
 function getSource(path: string) {

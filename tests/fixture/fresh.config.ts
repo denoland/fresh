@@ -1,4 +1,4 @@
-import { FreshConfig } from "$fresh/server.ts";
+import type { FreshConfig } from "$fresh/server.ts";
 
 export default {
   async render(_ctx, render) {

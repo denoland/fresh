@@ -1,5 +1,5 @@
-import { Signal } from "@preact/signals";
-import { ComponentChildren } from "preact";
+import type { Signal } from "@preact/signals";
+import type { ComponentChildren } from "preact";
 
 export interface IslandConditionalProps {
   show: Signal<boolean>;

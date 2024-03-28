@@ -1,4 +1,4 @@
-import { DenoConfig } from "../server.ts";
+import type { DenoConfig } from "../server.ts";
 import {
   assertEquals,
   assertExists,

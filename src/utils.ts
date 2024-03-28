@@ -21,14 +21,3 @@ export function prettyTime(diff: number) {
 
   return diff + "ms";
 }
-
-export class TaskObserver<T> {
-  completed = false;
-  constructor(promise: Promise<T>) {
-
-  }
-
-  observe(resolve: (value: T) => void, reject: (err: Error) => void) {
-
-  }
-}

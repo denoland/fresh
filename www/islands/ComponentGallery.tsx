@@ -7,7 +7,7 @@ import Footer from "../components/gallery/Footer.tsx";
 import Hero from "../components/gallery/Hero.tsx";
 import Features from "../components/gallery/Features.tsx";
 import Carousel from "../components/gallery/Carousel.tsx";
-import { ComponentChildren } from "preact";
+import type { ComponentChildren } from "preact";
 import IconHappy from "https://deno.land/x/tabler_icons_tsx@0.0.6/tsx/mood-crazy-happy.tsx";
 import IconHeart from "https://deno.land/x/tabler_icons_tsx@0.0.6/tsx/heart.tsx";
 import Background from "../components/gallery/Background.tsx";

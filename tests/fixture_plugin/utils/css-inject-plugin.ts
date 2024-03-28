@@ -1,4 +1,4 @@
-import { Plugin } from "$fresh/server.ts";
+import type { Plugin } from "$fresh/server.ts";
 
 let CSS_TO_INJECT = "";
 export function inject(cssText: string) {

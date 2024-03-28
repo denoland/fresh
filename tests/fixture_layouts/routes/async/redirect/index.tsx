@@ -1,4 +1,4 @@
-import { RouteContext } from "$fresh/server.ts";
+import type { RouteContext } from "$fresh/server.ts";
 
 export default async function AsyncRedirectPage(
   req: Request,

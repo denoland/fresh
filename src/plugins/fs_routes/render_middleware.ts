@@ -1,7 +1,7 @@
-import { AnyComponent, h, RenderableProps, VNode } from "preact";
-import { Middleware } from "../../middlewares/mod.ts";
-import { HandlerFn, Render } from "../../defines.ts";
-import { FreshContext } from "../../context.ts";
+import { type AnyComponent, h, type RenderableProps, type VNode } from "preact";
+import type { Middleware } from "../../middlewares/mod.ts";
+import type { HandlerFn, Render } from "../../defines.ts";
+import type { FreshContext } from "../../context.ts";
 
 export type AsyncAnyComponent<P> = {
   // deno-lint-ignore no-explicit-any

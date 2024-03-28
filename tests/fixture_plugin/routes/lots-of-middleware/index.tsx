@@ -1,5 +1,5 @@
-import { Handlers, PageProps } from "$fresh/server.ts";
-import { PluginMiddlewareState } from "../../utils/route-plugin.ts";
+import type { Handlers, PageProps } from "$fresh/server.ts";
+import type { PluginMiddlewareState } from "../../utils/route-plugin.ts";
 
 export const handler: Handlers = {
   async GET(_req, ctx) {

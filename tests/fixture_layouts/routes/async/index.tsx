@@ -1,4 +1,4 @@
-import { RouteContext } from "$fresh/server.ts";
+import type { RouteContext } from "$fresh/server.ts";
 
 export default async function AsyncPage(req: Request, ctx: RouteContext) {
   await new Promise((r) => setTimeout(r, 10));

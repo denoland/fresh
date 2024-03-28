@@ -1,4 +1,4 @@
-import { FreshContext, RouteConfig } from "$fresh/server.ts";
+import type { FreshContext, RouteConfig } from "$fresh/server.ts";
 
 export const handler = {
   GET(_req: Request, { params }: FreshContext) {

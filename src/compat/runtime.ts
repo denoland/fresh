@@ -1,4 +1,4 @@
-import { ComponentChildren, Fragment, h } from "preact";
+import { type ComponentChildren, Fragment, h } from "preact";
 export { asset } from "../runtime/client/mod.tsx";
 
 /**

@@ -1,4 +1,4 @@
-import { FreshContext, Handlers, PageProps } from "../../../server.ts";
+import type { FreshContext, Handlers, PageProps } from "../../../server.ts";
 
 export const handler: Handlers<unknown, { test: string }> = {
   async GET(_req, ctx: FreshContext<{ test: string }, unknown>) {

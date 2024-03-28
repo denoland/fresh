@@ -19,10 +19,8 @@ import {
   withFakeServe,
   withPageName,
 } from "./test_utils.ts";
-import { FreshApp } from "$fresh/server.ts";
 
 Deno.test("/ page prerender", async () => {
-  const app = new FreshApp();
   const resp = await handler(new Request("https://fresh.deno.dev/"));
   assert(resp);
   assertEquals(resp.status, 200);

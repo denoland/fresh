@@ -1,11 +1,11 @@
 import {
   CATEGORIES,
-  TableOfContentsCategory,
-  TableOfContentsCategoryEntry,
+  type TableOfContentsCategory,
+  type TableOfContentsCategoryEntry,
 } from "../data/docs.ts";
 import SearchButton from "../islands/SearchButton.tsx";
 import VersionSelect from "../islands/VersionSelect.tsx";
-import { type VersionLink } from "../routes/docs/[...slug].tsx";
+import type { VersionLink } from "../routes/docs/[...slug].tsx";
 import { Logo } from "./Header.tsx";
 import DocsTitle from "./DocsTitle.tsx";
 

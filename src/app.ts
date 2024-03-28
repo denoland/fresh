@@ -1,12 +1,21 @@
 import { DENO_DEPLOYMENT_ID } from "./constants.ts";
 import * as colors from "@std/fmt/colors";
-import { Middleware, runMiddlewares } from "./middlewares/mod.ts";
+import { type Middleware, runMiddlewares } from "./middlewares/mod.ts";
 import { FreshReqContext } from "./context.ts";
-import { mergePaths, Method, Router, UrlPatternRouter } from "./router.ts";
-import { FreshConfig, normalizeConfig, ResolvedFreshConfig } from "./config.ts";
-import { BuildCache, ProdBuildCache } from "./build_cache.ts";
+import {
+  mergePaths,
+  type Method,
+  type Router,
+  UrlPatternRouter,
+} from "./router.ts";
+import {
+  type FreshConfig,
+  normalizeConfig,
+  type ResolvedFreshConfig,
+} from "./config.ts";
+import { type BuildCache, ProdBuildCache } from "./build_cache.ts";
 import * as path from "@std/path";
-import { ComponentType } from "preact";
+import type { ComponentType } from "preact";
 
 export interface Island {
   file: string | URL;

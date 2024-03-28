@@ -1,4 +1,4 @@
-import { Signal } from "@preact/signals";
+import type { Signal } from "@preact/signals";
 
 export default function SignalProp(props: { sig: Signal<number> }) {
   return (

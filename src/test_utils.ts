@@ -1,9 +1,9 @@
 import { FreshReqContext } from "./context.ts";
-import { Middleware } from "./middlewares/mod.ts";
-import { FsAdapter } from "./fs.ts";
-import { BuildCache, ProdBuildCache } from "./build_cache.ts";
-import { ResolvedFreshConfig } from "./config.ts";
-import { WalkEntry } from "@std/fs/walk";
+import type { Middleware } from "./middlewares/mod.ts";
+import type { FsAdapter } from "./fs.ts";
+import { type BuildCache, ProdBuildCache } from "./build_cache.ts";
+import type { ResolvedFreshConfig } from "./config.ts";
+import type { WalkEntry } from "@std/fs/walk";
 
 export class FakeServer {
   constructor(public handler: (req: Request) => Response | Promise<Response>) {}

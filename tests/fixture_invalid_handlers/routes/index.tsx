@@ -1,4 +1,4 @@
-import { Handlers } from "../../../server.ts";
+import type { Handlers } from "../../../server.ts";
 
 export const handlers: Handlers = {
   GET() {

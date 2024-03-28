@@ -1,6 +1,6 @@
-import { FunctionComponent } from "preact";
-import { FreshContext } from "./context.ts";
-import { Method } from "./router.ts";
+import type { FunctionComponent } from "preact";
+import type { FreshContext } from "./context.ts";
+import type { Method } from "./router.ts";
 
 export interface Render<T> {
   data: T;

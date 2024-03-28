@@ -1,5 +1,5 @@
 import * as path from "@std/path";
-import { MODE, Mode } from "./runtime/server/mod.tsx";
+import { MODE, type Mode } from "./runtime/server/mod.tsx";
 
 export interface FreshPlugin {
   name: string;

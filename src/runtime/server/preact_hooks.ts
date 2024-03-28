@@ -1,14 +1,14 @@
 import {
-  Component,
-  ComponentChildren,
+  type Component,
+  type ComponentChildren,
   Fragment,
   h,
-  Options as PreactOptions,
+  type Options as PreactOptions,
   options as preactOptions,
-  VNode,
+  type VNode,
 } from "preact";
 import { GLOBAL_ISLANDS } from "../../app.ts";
-import { FreshRenderContext } from "./mod.tsx";
+import type { FreshRenderContext } from "./mod.tsx";
 
 const enum OptionsType {
   VNODE = "vnode",

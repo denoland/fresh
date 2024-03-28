@@ -1,4 +1,4 @@
-import { PageProps } from "$fresh/server.ts";
+import type { PageProps } from "$fresh/server.ts";
 import { FreshScripts } from "@fresh/server";
 import { asset } from "../../src/runtime/client/mod.tsx";
 

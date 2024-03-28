@@ -1,4 +1,4 @@
-import { Handlers, PageProps } from "$fresh/server.ts";
+import type { Handlers, PageProps } from "$fresh/server.ts";
 
 export const handler: Handlers = {
   async GET(_req: Request, ctx) {

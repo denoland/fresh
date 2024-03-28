@@ -1,4 +1,4 @@
-import { Plugin } from "$fresh/server.ts";
+import type { Plugin } from "$fresh/server.ts";
 
 export default {
   name: "link-inject",

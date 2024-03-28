@@ -1,5 +1,5 @@
-import { PageProps } from "$fresh/server.ts";
-import { LayoutState } from "./_middleware.ts";
+import type { PageProps } from "$fresh/server.ts";
+import type { LayoutState } from "./_middleware.ts";
 
 export default function RootLayout(
   { Component, state }: PageProps<unknown, LayoutState>,

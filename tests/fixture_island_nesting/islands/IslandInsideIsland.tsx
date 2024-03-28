@@ -1,4 +1,4 @@
-import { ComponentChildren } from "preact";
+import type { ComponentChildren } from "preact";
 import Island from "./Island.tsx";
 
 export default function IslandInsideIsland(

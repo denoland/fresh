@@ -1,4 +1,4 @@
-import { Plugin } from "$fresh/server.ts";
+import type { Plugin } from "$fresh/server.ts";
 
 export function middlewarePlugin(): Plugin {
   return {

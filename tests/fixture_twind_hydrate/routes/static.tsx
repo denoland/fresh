@@ -1,4 +1,4 @@
-import { Head } from "@fresh/runtime";
+import type { Head } from "@fresh/runtime";
 
 export default function Home() {
   return (

@@ -1,4 +1,4 @@
-import { FreshContext, MiddlewareHandler } from "$fresh/server.ts";
+import type { FreshContext, MiddlewareHandler } from "$fresh/server.ts";
 
 // cors middleware
 async function corsHandler(_req: Request, ctx: FreshContext) {

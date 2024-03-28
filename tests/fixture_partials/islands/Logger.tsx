@@ -1,4 +1,4 @@
-import { ComponentChildren } from "preact";
+import type { ComponentChildren } from "preact";
 import { useEffect, useRef } from "preact/hooks";
 
 export function Logger(props: { children?: ComponentChildren; name?: string }) {

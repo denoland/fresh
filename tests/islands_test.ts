@@ -1,4 +1,4 @@
-import { assert, assertEquals, assertStringIncludes, Page } from "./deps.ts";
+import { assert, assertEquals, assertStringIncludes, type Page } from "./deps.ts";
 import {
   assertNoPageComments,
   assertNotSelector,

@@ -1,7 +1,7 @@
-import { BuildCache, StaticFile } from "../build_cache.ts";
+import type { BuildCache, StaticFile } from "../build_cache.ts";
 import * as path from "@std/path";
-import { ResolvedFreshConfig } from "../config.ts";
-import { BuildSnapshot } from "../build_cache.ts";
+import type { ResolvedFreshConfig } from "../config.ts";
+import type { BuildSnapshot } from "../build_cache.ts";
 import { encodeHex } from "@std/encoding/hex";
 import { crypto } from "@std/crypto";
 

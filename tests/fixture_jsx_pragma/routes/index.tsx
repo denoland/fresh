@@ -1,5 +1,5 @@
 /** @jsx h */
-import { h } from "preact";
+import type { h } from "preact";
 import Island from "../islands/Island.tsx";
 
 export default function Home() {

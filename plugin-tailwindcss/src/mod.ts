@@ -1,6 +1,6 @@
-import { TailwindPluginOptions } from "./types.ts";
+import type { TailwindPluginOptions } from "./types.ts";
 import { initTailwind } from "./compiler.ts";
-import { DevApp } from "@fresh/core/dev";
+import type { DevApp } from "@fresh/core/dev";
 
 export function tailwind<T>(
   app: DevApp<T>,

@@ -1,8 +1,8 @@
-import { type Signal } from "@preact/signals";
-import { type Island } from "../../app.ts";
-import { FreshContext } from "../../context.ts";
-import { Stringifiers, stringify } from "../../jsonify/stringify.ts";
-import { isValidElement, VNode } from "preact";
+import type { Signal } from "@preact/signals";
+import type { Island } from "../../app.ts";
+import type { FreshContext } from "../../context.ts";
+import { type Stringifiers, stringify } from "../../jsonify/stringify.ts";
+import { isValidElement, type VNode } from "preact";
 
 /**
  * The mode Fresh can run in.
@@ -19,6 +19,7 @@ export interface FreshRenderContext {
   __fresh: {
     islands: Set<Island>;
     islandProps: { slots: string[]; props: unknown }[];
+    // deno-lint-ignore no-explicit-any
     ctx: FreshContext<any>;
   };
 }

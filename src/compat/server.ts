@@ -1,4 +1,4 @@
-import { FreshContext } from "../context.ts";
+import type { FreshContext } from "../context.ts";
 
 /**
  * @deprecated Use {@link FreshContext} instead

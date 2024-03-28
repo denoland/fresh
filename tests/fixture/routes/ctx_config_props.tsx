@@ -1,4 +1,4 @@
-import { PageProps } from "$fresh/server.ts";
+import type { PageProps } from "$fresh/server.ts";
 import { relative, SEPARATOR } from "../../deps.ts";
 
 export default function Page(props: PageProps) {

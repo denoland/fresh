@@ -4,7 +4,7 @@ import {
   assertMatch,
   assertStringIncludes,
   delay,
-  Page,
+  type Page,
   Project,
   puppeteer,
   STATUS_CODE,

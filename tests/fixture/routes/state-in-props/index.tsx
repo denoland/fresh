@@ -1,5 +1,5 @@
-import { Handlers, PageProps } from "$fresh/server.ts";
-import { TestState } from "../_app.tsx";
+import type { Handlers, PageProps } from "$fresh/server.ts";
+import type { TestState } from "../_app.tsx";
 
 export const handler: Handlers<boolean> = {
   GET(_, ctx) {

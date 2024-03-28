@@ -1,7 +1,7 @@
-import { assert, assertExists, assertFalse } from "$std/testing/asserts.ts";
+import { assert, type assertExists, type assertFalse } from "$std/testing/asserts.ts";
 import {
   cleanup,
-  fireEvent,
+  type fireEvent,
   render,
   setup,
 } from "$fresh-testing-library/components.ts";
