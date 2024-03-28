@@ -408,7 +408,7 @@ if (Deno.args.includes("build")) {
       "@fresh/core": "jsr:@marvinh-test/fresh@^2.0.0-prealpha.8",
       "@fresh/plugin-tailwind": "jsr:@marvinh-test/fresh-tailwind@^0.0.1",
       "preact": "npm:preact@^10.20.1",
-      "preact/signals": "npm:preact@^1.2.3",
+      "preact/signals": "npm:@preact/signals@^1.2.3",
     } as Record<string, string>,
     compilerOptions: {
       jsx: "react-jsx",
