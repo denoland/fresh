@@ -1,4 +1,4 @@
-import { parseArgs } from "@std/cli/parse_args";
+import { parseArgs } from "@std/cli/parse-args";
 import { initProject } from "./init.ts";
 import { InitError } from "./init.ts";
 

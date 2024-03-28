@@ -350,14 +350,16 @@ html {
     // Skip this and be silent if there is a network issue.
   }
 
-  const MAIN_TS =
+  const MAIN_TSX =
     `import { FreshApp, freshStaticFiles, fsRoutes } from "@fresh/core";
 
 export const app = new FreshApp();
 
 app.use(freshStaticFiles())
   .get("/api/:joke", () => new Response("Hello World"))
-  .get("/", () => new Response("Hello World"));
+  .get("/greet/:name", (ctx) => {
+    return ctx.render(<h1>Hello {ctx.params.name}</h1>);
+  });
 
 await fsRoutes(app, {
   dir: Deno.cwd(),
@@ -369,12 +371,97 @@ if (import.meta.main) {
   await app.listen();
 }
 `;
-  await writeFile("main.ts", MAIN_TS);
+  await writeFile("main.tsx", MAIN_TSX);
+
+  const COMPONENTS_BUTTON_TSX = `import { ComponentChildren } from "preact";
+
+export interface ButtonProps {
+  onClick?: () => void;
+  children?: ComponentChildren;
+  disabled?: boolean
+}
+
+export function Button(props: ButtonProps) {
+  return (
+    <button
+      {...props}
+      class="px-2 py-1 border-gray-500 border-2 rounded bg-white hover:bg-gray-200 transition-colors"
+    />
+  );
+}
+`;
+  await writeFile("components/Button.tsx", COMPONENTS_BUTTON_TSX);
+
+  const ROUTES_HOME = `import { useSignal } from "@preact/signals";
+import Counter from "../islands/Counter.tsx";
+
+export default function Home() {
+  const count = useSignal(3);
+
+  return (
+    <div class="px-4 py-8 mx-auto bg-[#86efac]">
+      <div class="max-w-screen-md mx-auto flex flex-col items-center justify-center">
+        <img
+          class="my-6"
+          src="/logo.svg"
+          width="128"
+          height="128"
+          alt="the Fresh logo: a sliced lemon dripping with juice"
+        />
+        <h1 class="text-4xl font-bold">Welcome to Fresh</h1>
+        <p class="my-4">
+          Try updating this message in the
+          <code class="mx-2">./routes/index.tsx</code> file, and refresh.
+        </p>
+        <Counter count={count} />
+      </div>
+    </div>
+  );
+}`;
+  await writeFile("routes/index.tsx", ROUTES_HOME);
+
+  const APP_WRAPPER = `import { FreshContext } from "@fresh/core";
+
+export default function App({ Component }: FreshContext) {
+  return (
+    <html>
+      <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>${path.basename(projectDir)}</title>
+        <link rel="stylesheet" href="/styles.css" />
+      </head>
+      <body>
+        <Component />
+      </body>
+    </html>
+  );
+}`;
+  await writeFile("routes/_app.tsx", APP_WRAPPER);
+
+  const ISLANDS_COUNTER_TSX = `import type { Signal } from "@preact/signals";
+import { Button } from "../components/Button.tsx";
+
+interface CounterProps {
+  count: Signal<number>;
+}
+
+export default function Counter(props: CounterProps) {
+  return (
+    <div class="flex gap-8 py-6">
+      <Button onClick={() => props.count.value -= 1}>-1</Button>
+      <p class="text-3xl tabular-nums">{props.count}</p>
+      <Button onClick={() => props.count.value += 1}>+1</Button>
+    </div>
+  );
+}
+`;
+  await writeFile("islands/Counter.tsx", ISLANDS_COUNTER_TSX);
 
   const DEV_TS = `#!/usr/bin/env -S deno run -A --watch=static/,routes/
 ${useTailwind ? `import { tailwind } from "@fresh/plugin-tailwind";\n` : ""};
 import { FreshDevApp } from "@fresh/core/dev";
-import { app } from "./main.ts";
+import { app } from "./main.tsx";
 
 const devApp = new FreshDevApp();
 ${useTailwind ? "tailwind(devApp, {});\n" : "\n"}
@@ -405,10 +492,10 @@ if (Deno.args.includes("build")) {
     exclude: ["**/_fresh/*"],
     imports: {
       // FIXME: Update once relased
-      "@fresh/core": "jsr:@marvinh-test/fresh@^2.0.0-prealpha.8",
+      "@fresh/core": "jsr:@marvinh-test/fresh@^2.0.0-prealpha.",
       "@fresh/plugin-tailwind": "jsr:@marvinh-test/fresh-tailwind@^0.0.1",
       "preact": "npm:preact@^10.20.1",
-      "preact/signals": "npm:@preact/signals@^1.2.3",
+      "@preact/signals": "npm:@preact/signals@^1.2.3",
     } as Record<string, string>,
     compilerOptions: {
       jsx: "react-jsx",

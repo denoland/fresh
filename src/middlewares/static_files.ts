@@ -1,6 +1,6 @@
 import type { Middleware } from "./mod.ts";
 import * as path from "@std/path";
-import { contentType as getContentType } from "@std/media-types/content_type";
+import { contentType as getContentType } from "@std/media-types/content-type";
 
 // FIXME: Test etag
 /**
