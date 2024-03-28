@@ -25,6 +25,7 @@ Fresh 2.0:
 ✔ investigate middleware signature where each middleware calls the next middleware directly @done(24-03-27 07:22)
 ✔ Fix FreshScripts signature @done(24-03-27 09:09)
 ☐ Add Static file processor plugin name
+☐ Fix client dev script loaded in prod
 
 Fresh 2.0 compat:
 ☐ add plugin API backwards compat
