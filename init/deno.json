@@ -8,7 +8,7 @@
   "exclude": ["**/tmp/*"],
   "publish": {
     "include": [
-      "mod.ts",
+      "src/**/*.ts",
       "deno.json",
       "README.md"
     ],
