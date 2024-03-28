@@ -133,8 +133,10 @@ function freshRuntime({ dev }: { dev: boolean }): EsbuildPlugin {
     name: "fresh-runtime",
     setup(build) {
       build.onResolve({ filter: /^fresh-runtime$/ }, () => {
+        const self = import.meta.url;
+        const dirname = self.slice(0, self.lastIndexOf("/"));
         const filePath = path.join(
-          import.meta.dirname!,
+          dirname,
           "..",
           "runtime",
           "client",
