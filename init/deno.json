@@ -2,7 +2,7 @@
   "name": "@marvinh-test/fresh-init",
   "version": "0.0.4",
   "exports": {
-    ".": "./mod.ts"
+    ".": "./src/mod.ts"
   },
   "lock": false,
   "exclude": ["**/tmp/*"],
