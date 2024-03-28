@@ -1,4 +1,9 @@
-import { type App, FreshApp, GLOBAL_ISLANDS, type ListenOptions } from "../app.ts";
+import {
+  type App,
+  FreshApp,
+  GLOBAL_ISLANDS,
+  type ListenOptions,
+} from "../app.ts";
 import type { FreshConfig } from "../config.ts";
 import { fsAdapter } from "../fs.ts";
 import * as path from "@std/path";
@@ -110,7 +115,9 @@ export class FreshDevApp<T> extends FreshApp<T> implements DevApp<T> {
     }
 
     const entryPoints: Record<string, string> = {
-      "fresh-runtime": "fresh-runtime",
+      "fresh-runtime": options.dev
+        ? "@fresh/core/runtime-dev"
+        : "@fresh/core/runtime",
     };
     for (const island of GLOBAL_ISLANDS.values()) {
       const filePath = island.file instanceof URL

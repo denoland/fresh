@@ -1,4 +1,4 @@
-import type { BuildOptions, Plugin as EsbuildPlugin } from "esbuild-wasm";
+import type { BuildOptions } from "esbuild-wasm";
 import { denoPlugins } from "@luca/esbuild-deno-loader";
 import * as path from "@std/path";
 
@@ -72,7 +72,6 @@ export async function bundleJs(
     metafile: true,
 
     plugins: [
-      freshRuntime({ dev: options.dev }),
       ...denoPlugins({ configPath: options.denoJsonPath }),
     ],
   });
@@ -125,27 +124,5 @@ export async function bundleJs(
     files,
     entryToChunk,
     dependencies,
-  };
-}
-
-function freshRuntime({ dev }: { dev: boolean }): EsbuildPlugin {
-  return {
-    name: "fresh-runtime",
-    setup(build) {
-      build.onResolve({ filter: /^fresh-runtime$/ }, () => {
-        const self = import.meta.url;
-        const dirname = self.slice(0, self.lastIndexOf("/"));
-        const filePath = path.join(
-          dirname,
-          "..",
-          "runtime",
-          "client",
-          dev ? "dev.ts" : "mod.tsx",
-        );
-        return {
-          path: filePath,
-        };
-      });
-    },
   };
 }
