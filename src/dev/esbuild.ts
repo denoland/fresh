@@ -72,7 +72,7 @@ export async function bundleJs(
     metafile: true,
 
     plugins: [
-      freshRuntime(),
+      freshRuntime({ dev: options.dev }),
       ...denoPlugins({ configPath: options.denoJsonPath }),
     ],
   });
@@ -128,7 +128,7 @@ export async function bundleJs(
   };
 }
 
-function freshRuntime(): EsbuildPlugin {
+function freshRuntime({ dev }: { dev: boolean }): EsbuildPlugin {
   return {
     name: "fresh-runtime",
     setup(build) {
@@ -138,7 +138,7 @@ function freshRuntime(): EsbuildPlugin {
           "..",
           "runtime",
           "client",
-          "mod.tsx",
+          dev ? "dev.ts" : "mod.tsx",
         );
         return {
           path: filePath,

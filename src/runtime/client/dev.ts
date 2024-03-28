@@ -1,4 +1,5 @@
 import "preact/debug";
+export * from "./mod.tsx";
 import { IS_BROWSER } from "../shared.ts";
 
 let ws: WebSocket;

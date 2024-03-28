@@ -1,5 +1,4 @@
 import "./polyfills.ts";
-import "./dev.ts";
 import type { ComponentChildren, VNode } from "preact";
 export { IS_BROWSER } from "../shared.ts";
 export { boot, revive } from "./reviver.ts";
