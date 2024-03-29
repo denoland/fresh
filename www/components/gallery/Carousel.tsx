@@ -1,4 +1,4 @@
-import { asset } from "@fresh/runtime";
+import { asset } from "@fresh/core/runtime";
 import { useSignal } from "@preact/signals";
 import { useEffect, useRef } from "preact/hooks";
 import IconCircleChevronsRight from "https://deno.land/x/tabler_icons_tsx@0.0.6/tsx/circle-chevrons-right.tsx";

@@ -3,7 +3,7 @@ description: |
   Add components like <title> or <meta> to a <head> tag using Fresh's <Head> component.
 ---
 
-We can use the `<Head />` component in `@fresh/runtime` to add elements as
+We can use the `<Head />` component in `@fresh/core/runtime` to add elements as
 children of the `<head>` element. By adding elements as children of Fresh's
 `<Head />` tag, these automatically get injected into the `<head>` element of
 the web page. Some uses include:
@@ -14,7 +14,7 @@ the web page. Some uses include:
 - Including third-party JavaScript code using `<script>`
 
 ```tsx routes/index.tsx
-import { Head } from "@fresh/runtime";
+import { Head } from "@fresh/core/runtime";
 
 export default function Home() {
   return (

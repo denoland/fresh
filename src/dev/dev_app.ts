@@ -71,7 +71,6 @@ export class FreshDevApp<T> extends FreshApp<T> implements DevApp<T> {
 
   async build(options: BuildOptions = {}): Promise<void> {
     const start = Date.now();
-    console.log(`Building...`);
     const { staticDir, build } = this.config;
     const staticOutDir = path.join(build.outDir, "static");
 

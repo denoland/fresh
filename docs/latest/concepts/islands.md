@@ -187,7 +187,7 @@ Use the [`IS_BROWSER`](https://deno.land/x/fresh/runtime.ts?doc=&s=IS_BROWSER)
 flag as a guard to fix the issue:
 
 ```tsx islands/my-island.tsx
-import { IS_BROWSER } from "@fresh/runtime";
+import { IS_BROWSER } from "@fresh/core/runtime";
 
 export function MyIsland() {
   // Return any prerenderable JSX here which makes sense for your island

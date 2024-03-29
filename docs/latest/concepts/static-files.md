@@ -30,7 +30,7 @@ is requested at this "locked" path, it will be served with a cache lifetime of
 one year.
 
 ```jsx routes/page.tsx
-import { asset } from "@fresh/runtime";
+import { asset } from "@fresh/core/runtime";
 
 export default function Page() {
   return (

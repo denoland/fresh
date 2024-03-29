@@ -119,7 +119,7 @@ export default function MapIsland() {
 
 ```tsx MapIsland.tsx
 import * as Leaflet from "https://esm.sh/v135/@types/leaflet@1.9.4/index.d.ts";
-import { IS_BROWSER } from "@fresh/runtime";
+import { IS_BROWSER } from "@fresh/core/runtime";
 import { useContext, useEffect, useState } from "preact/hooks";
 import { ComponentChildren, createContext } from "preact";
 

@@ -19,7 +19,7 @@ The quickest way to get started is to enable partials for every page in
 
 ```diff routes/_app.tsx
   import { PageProps } from "$fresh/server.ts";
-+ import { Partial } from "@fresh/runtime";
++ import { Partial } from "@fresh/core/runtime";
 
   export default function App({ Component }: PageProps) {
     return (
@@ -103,7 +103,7 @@ the sidebar might look like this respectively.
 
 ```tsx routes/partials/docs/[id].tsx
 import { defineRoute, RouteConfig } from "$fresh/server.ts";
-import { Partial } from "@fresh/runtime";
+import { Partial } from "@fresh/core/runtime";
 
 // We only want to render the content, so disable
 // the `_app.tsx` template as well as any potentially

@@ -188,7 +188,7 @@ status when the browser tries to request this resource.
 
 ```tsx routes/incorrectCSP.tsx
 import { RouteConfig, RouteContext } from "$fresh/server.ts";
-import { useCSP } from "@fresh/runtime";
+import { useCSP } from "@fresh/core/runtime";
 
 export default function Home(req: Request, ctx: RouteContext) {
   useCSP((csp) => {
@@ -223,7 +223,7 @@ correctly here.
 
 ```tsx routes/correctCSP.tsx
 import { RouteConfig, RouteContext } from "$fresh/server.ts";
-import { useCSP } from "@fresh/runtime";
+import { useCSP } from "@fresh/core/runtime";
 
 export default function Home(req: Request, ctx: RouteContext) {
   useCSP((csp) => {
@@ -257,7 +257,7 @@ What happens if we forget to use a `RouteConfig` in our route?
 
 ```tsx routes/cspNoRouteConfig.tsx
 import { RouteContext } from "$fresh/server.ts";
-import { useCSP } from "@fresh/runtime";
+import { useCSP } from "@fresh/core/runtime";
 
 export default function Home(req: Request, ctx: RouteContext) {
   useCSP((csp) => {
@@ -296,7 +296,7 @@ then the browser will ignore the CSP headers and log any issues to the
 
 ```tsx routes/incorrectCSPwithReport.tsx
 import { RouteConfig, RouteContext } from "$fresh/server.ts";
-import { useCSP } from "@fresh/runtime";
+import { useCSP } from "@fresh/core/runtime";
 
 export default function Home(req: Request, ctx: RouteContext) {
   useCSP((csp) => {

@@ -18,7 +18,7 @@ handle the three cases. It's assumed this file is called `[slug].tsx`:
 import { Handlers, PageProps } from "$fresh/server.ts";
 import { extract } from "$std/front_matter/yaml.ts";
 import { CSS, render } from "$gfm";
-import { Head } from "@fresh/runtime";
+import { Head } from "@fresh/core/runtime";
 
 interface Page {
   markdown: string;
