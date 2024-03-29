@@ -10,7 +10,6 @@
     "$fresh/": "../src/compat/",
     "@fresh/core": "../src/mod.ts",
     "@fresh/core/dev": "../src/dev/mod.ts",
-    "@fresh/runtime": "../src/runtime/client/mod.tsx",
     "@fresh/core/runtime": "../src/runtime/client/mod.tsx",
     "@fresh/core/runtime-dev": "../src/runtime/client/dev.ts",
     "@fresh/plugin-tailwind": "../plugin-tailwindcss/src/mod.ts",

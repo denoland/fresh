@@ -1,5 +1,5 @@
 import type { PageProps } from "$fresh/server.ts";
-import { asset, Partial } from "@fresh/runtime";
+import { asset, Partial } from "@fresh/core/runtime";
 import DocsSidebar from "../../components/DocsSidebar.tsx";
 import Footer from "../../components/Footer.tsx";
 import Header from "../../components/Header.tsx";
@@ -12,7 +12,7 @@ import {
 import { frontMatter, renderMarkdown } from "../../utils/markdown.ts";
 import toc from "../../../docs/toc.ts";
 import { TableOfContents } from "../../islands/TableOfContents.tsx";
-import { defineHandlers } from "@fresh/server";
+import { defineHandlers } from "@fresh/core";
 
 interface Data {
   page: Page;
