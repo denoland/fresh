@@ -4,6 +4,7 @@ import type { ResolvedFreshConfig } from "../config.ts";
 import type { BuildSnapshot } from "../build_cache.ts";
 import { encodeHex } from "@std/encoding/hex";
 import { crypto } from "@std/crypto";
+import { fsAdapter } from "../fs.ts";
 
 export interface MemoryFile {
   hash: string | null;
@@ -121,6 +122,7 @@ export class DiskBuildCache implements DevBuildCache {
       throw new Error(`Path "${filePath}" resolved outside of "${outDir}"`);
     }
 
+    await fsAdapter.mkdirp(path.dirname(filePath));
     await Deno.writeFile(filePath, content);
   }
 

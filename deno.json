@@ -20,7 +20,7 @@
     "test:www": "deno test -A tests/www/",
     "manifests": "deno run -A genAllManifest.ts"
   },
-  "exclude": ["**/_fresh/*", "**/tmp/*"],
+  "exclude": ["**/_fresh/*", "**/tmp/*", "*/tests_OLD/**"],
   "publish": {
     "include": [
       "src/**",
@@ -44,7 +44,6 @@
     "@fresh/plugin-tailwind": "./plugin-tailwindcss/src/mod.ts",
     "@fresh/core/runtime": "./src/runtime/client/mod.tsx",
     "@fresh/core/runtime-dev": "./src/runtime/client/dev.ts",
-    "@fresh/server": "./src/mod.ts",
     "@luca/esbuild-deno-loader": "jsr:@luca/esbuild-deno-loader@^0.10.3",
     "@preact/signals": "https://esm.sh/@preact/signals@1.2.3?external=preact",
     "@std/cli": "jsr:@std/cli@^0.221.0",

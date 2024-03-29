@@ -120,6 +120,10 @@ export async function bundleJs(
     }
   }
 
+  if (!options.dev) {
+    await esbuild.stop();
+  }
+
   return {
     files,
     entryToChunk,

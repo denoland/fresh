@@ -70,6 +70,11 @@ export const FreshScripts: () => VNode = ((
 
   const islandImports = islandArr.map((island) => {
     const chunk = ctx.buildCache.getIslandChunkName(island.name);
+    if (chunk === null) {
+      throw new Error(
+        `Could not find chunk for ${island.name} ${island.exportName}#${island.file}`,
+      );
+    }
     const named = island.exportName === "default"
       ? island.name
       : `{ ${island.exportName} }`;
@@ -80,9 +85,10 @@ export const FreshScripts: () => VNode = ((
     .join(",") +
     "}";
 
-  const serializedProps = islandProps.map((props) => {
-    return `'${stringify(props.props, stringifiers)}'`;
-  }).join(",");
+  const serializedProps = stringify(islandProps, stringifiers);
+
+  const scriptContent =
+    `import { boot } from "${basePath}/fresh-runtime.js";${islandImports}boot(${islandObj},\`${serializedProps}\`);`;
 
   // FIXME: integrity
   // FIXME: nonce
@@ -90,8 +96,7 @@ export const FreshScripts: () => VNode = ((
     <script
       type="module"
       dangerouslySetInnerHTML={{
-        __html:
-          `import { boot } from "${basePath}/fresh-runtime.js";${islandImports}boot(${islandObj},[${serializedProps}]);`,
+        __html: scriptContent,
       }}
     >
     </script>

@@ -41,3 +41,14 @@ Deno.test("custom stringify - Signals", () => {
     '[["Signal",1],2]',
   );
 });
+
+Deno.test("custom stringify - referenced Signals", () => {
+  const s = signal(2);
+  expect(stringify([s, s], {
+    Signal: (s2: unknown) => {
+      return s2 instanceof Signal ? s2.peek() : undefined;
+    },
+  })).toEqual(
+    '[[1,1],["Signal",2],2]',
+  );
+});

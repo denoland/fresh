@@ -1,4 +1,4 @@
-import { defineHandlers } from "@fresh/server";
+import { defineHandlers } from "@fresh/core";
 
 export const handler = defineHandlers({
   GET(ctx) {

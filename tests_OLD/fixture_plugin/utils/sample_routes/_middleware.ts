@@ -1,5 +1,5 @@
 import type { FreshContext } from "$fresh/server.ts";
-import type { PluginMiddlewareState } from "../../utils/route-plugin.ts";
+import type { PluginMiddlewareState } from "../route-plugin.ts";
 
 export async function handler(
   _req: Request,

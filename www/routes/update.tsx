@@ -1,4 +1,4 @@
-import { defineHandlers } from "@fresh/server";
+import { defineHandlers } from "@fresh/core";
 import VERSIONS from "../../versions.json" with { type: "json" };
 
 export const handler = defineHandlers({

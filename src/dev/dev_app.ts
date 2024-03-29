@@ -2,6 +2,7 @@ import {
   type App,
   FreshApp,
   GLOBAL_ISLANDS,
+  type Island,
   type ListenOptions,
 } from "../app.ts";
 import type { FreshConfig } from "../config.ts";
@@ -119,12 +120,21 @@ export class FreshDevApp<T> extends FreshApp<T> implements DevApp<T> {
         ? "@fresh/core/runtime-dev"
         : "@fresh/core/runtime",
     };
+    const seenEntries = new Map<string, Island>();
+    const mapIslandToEntry = new Map<Island, string>();
     for (const island of GLOBAL_ISLANDS.values()) {
       const filePath = island.file instanceof URL
         ? island.file.href
         : island.file;
 
-      entryPoints[island.name] = filePath;
+      const seen = seenEntries.get(filePath);
+      if (seen !== undefined) {
+        mapIslandToEntry.set(island, seen.name);
+      } else {
+        entryPoints[island.name] = filePath;
+        seenEntries.set(filePath, island);
+        mapIslandToEntry.set(island, island.name);
+      }
     }
 
     const denoJson = await readDenoConfig(this.config.root);
@@ -152,10 +162,16 @@ export class FreshDevApp<T> extends FreshApp<T> implements DevApp<T> {
       await buildCache.addProcessedFile(pathname, file.contents, file.hash);
     }
 
-    for (const [entry, chunkName] of output.entryToChunk.entries()) {
-      buildCache.islands.set(entry, `/${chunkName}`);
+    // Go through same entry islands
+    for (const [island, entry] of mapIslandToEntry.entries()) {
+      const chunk = output.entryToChunk.get(entry);
+      if (chunk === undefined) {
+        throw new Error(
+          `Missing chunk for ${island.file}#${island.exportName}`,
+        );
+      }
+      buildCache.islands.set(island.name, `/${chunk}`);
     }
-
     await buildCache.flush();
 
     const duration = Date.now() - start;
@@ -173,13 +189,14 @@ export class FreshDevApp<T> extends FreshApp<T> implements DevApp<T> {
 export function getFreePort(
   startPort: number,
   hostname: string,
+  max: number = 20,
 ): number {
   // No port specified, check for a free port. Instead of picking just
   // any port we'll check if the next one is free for UX reasons.
   // That way the user only needs to increment a number when running
   // multiple apps vs having to remember completely different ports.
   let firstError;
-  for (let port = startPort; port < startPort + 20; port++) {
+  for (let port = startPort; port < startPort + max; port++) {
     try {
       const listener = Deno.listen({ port, hostname });
       listener.close();

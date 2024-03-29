@@ -45,7 +45,7 @@ function serializeInner(
   out: string[],
   indexes: Map<unknown, number>,
   value: unknown,
-  custom?: Stringifiers,
+  custom: Stringifiers | undefined,
 ): number {
   const seenIdx = indexes.get(value);
   if (seenIdx !== undefined) return seenIdx;
@@ -75,7 +75,7 @@ function serializeInner(
     str += "[";
     for (let i = 0; i < value.length; i++) {
       if (i in value) {
-        str += serializeInner(out, indexes, value[i]);
+        str += serializeInner(out, indexes, value[i], custom);
       } else {
         str += HOLE;
       }
@@ -111,15 +111,15 @@ function serializeInner(
       const items = new Array(value.size);
       let i = 0;
       value.forEach((v) => {
-        items[i++] = serializeInner(out, indexes, v);
+        items[i++] = serializeInner(out, indexes, v, custom);
       });
       str += `["Set",[${items.join(",")}]]`;
     } else if (value instanceof Map) {
       const items = new Array(value.size * 2);
       let i = 0;
       value.forEach((v, k) => {
-        items[i++] = serializeInner(out, indexes, k);
-        items[i++] = serializeInner(out, indexes, v);
+        items[i++] = serializeInner(out, indexes, k, custom);
+        items[i++] = serializeInner(out, indexes, v, custom);
       });
       str += `["Map",[${items.join(",")}]]`;
     } else {
@@ -129,7 +129,7 @@ function serializeInner(
         const key = keys[i];
         str += JSON.stringify(key) + ":";
         // deno-lint-ignore no-explicit-any
-        str += serializeInner(out, indexes, (value as any)[key]);
+        str += serializeInner(out, indexes, (value as any)[key], custom);
 
         if (i < keys.length - 1) {
           str += ",";

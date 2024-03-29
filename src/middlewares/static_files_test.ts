@@ -1,4 +1,4 @@
-import { freshStaticFiles } from "@fresh/server";
+import { freshStaticFiles } from "@fresh/core";
 import { serveMiddleware } from "../test_utils.ts";
 import type { BuildCache, StaticFile } from "../build_cache.ts";
 import { expect } from "@std/expect";

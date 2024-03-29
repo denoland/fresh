@@ -1,4 +1,4 @@
-import { defineHandlers } from "@fresh/server";
+import { defineHandlers } from "@fresh/core";
 
 const REDIRECTS: Record<string, string> = {
   "/docs/getting-started/fetching-data":

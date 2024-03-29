@@ -4,7 +4,7 @@
 /// <reference lib="dom.asynciterable" />
 /// <reference lib="deno.ns" />
 
-import { FreshApp, freshStaticFiles, fsRoutes } from "@fresh/server";
+import { FreshApp, freshStaticFiles, fsRoutes } from "@fresh/core";
 
 export const app = new FreshApp();
 

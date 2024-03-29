@@ -4,7 +4,7 @@ import ComponentGallery from "../islands/ComponentGallery.tsx";
 
 import { asset, Head } from "$fresh/runtime.ts";
 import type { PageProps } from "$fresh/server.ts";
-import { defineHandlers } from "@fresh/server";
+import { defineHandlers } from "@fresh/core";
 
 function getSource(path: string) {
   return Deno.readTextFile(new URL(path, import.meta.url));

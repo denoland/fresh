@@ -9,7 +9,7 @@ import {
 import versions from "../versions.json" with { type: "json" };
 import type { CheckFile } from "../src/dev/update_check.ts";
 import { WEEK } from "../src/dev/deps.ts";
-import { getStdOutput } from "../tests/test_utils.ts";
+import { getStdOutput } from "./test_utils.ts";
 
 Deno.test({
   name: "stores update check file in $HOME/fresh",

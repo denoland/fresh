@@ -55,7 +55,7 @@ const customParser: CustomParser = {
 
 export function boot(
   initialIslands: Record<string, ComponentType>,
-  islandProps: string[],
+  islandProps: string,
 ) {
   const ctx: ReviveContext = {
     islands: [],
@@ -69,14 +69,16 @@ export function boot(
     ISLAND_REGISTRY.set(name, initialIslands[name]);
   }
 
+  // deno-lint-ignore no-explicit-any
+  const allProps = parse<{ props: Record<string, unknown>; slots: any[] }[]>(
+    islandProps,
+    customParser,
+  );
   for (let i = 0; i < ctx.islands.length; i++) {
     const island = ctx.islands[i];
 
-    const props = parse<Record<string, unknown>>(
-      islandProps[island.propsIdx],
-      customParser,
-    );
-    revive(island, props);
+    const islandConfig = allProps[island.propsIdx];
+    revive(island, islandConfig.props);
   }
 }
 

@@ -1,7 +1,7 @@
 import { runMiddlewares } from "./mod.ts";
 import { expect } from "@std/expect";
 import { serveMiddleware } from "../test_utils.ts";
-import type { Middleware } from "@fresh/server";
+import type { Middleware } from "./mod.ts";
 
 Deno.test("runMiddleware", async () => {
   const middlewares: Middleware<{ text: string }>[] = [

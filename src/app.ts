@@ -81,14 +81,17 @@ export class FreshApp<State> implements App<State> {
   island(
     filePathOrUrl: string | URL,
     exportName: string,
-    fn: ComponentType,
-  ): void {
+    // deno-lint-ignore no-explicit-any
+    fn: ComponentType<any>,
+  ): this {
     const filePath = filePathOrUrl instanceof URL
       ? filePathOrUrl.href
       : filePathOrUrl;
 
     // Create unique island name
-    let name = path.basename(filePath, path.extname(filePath));
+    let name = exportName === "default"
+      ? path.basename(filePath, path.extname(filePath))
+      : exportName;
     if (this.#islandNames.has(name)) {
       let i = 0;
       while (this.#islandNames.has(`${name}_${i}`)) {
@@ -98,6 +101,7 @@ export class FreshApp<State> implements App<State> {
     }
 
     GLOBAL_ISLANDS.set(fn, { fn, exportName, name, file: filePathOrUrl });
+    return this;
   }
 
   use(middleware: Middleware<State>): this {

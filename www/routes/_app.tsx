@@ -1,5 +1,5 @@
 import type { PageProps } from "$fresh/server.ts";
-import { FreshScripts } from "@fresh/server";
+import { FreshScripts } from "@fresh/core";
 import { asset } from "../../src/runtime/client/mod.tsx";
 
 export default function App(

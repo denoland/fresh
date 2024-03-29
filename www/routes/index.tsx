@@ -10,7 +10,7 @@ import * as Icons from "../components/Icons.tsx";
 import Projects from "../components/Projects.tsx";
 import projects from "../data/showcase.json" with { type: "json" };
 import Header from "../components/Header.tsx";
-import { defineHandlers } from "@fresh/server";
+import { defineHandlers } from "@fresh/core";
 
 function isOpenGraphUA(header: string | null): boolean {
   if (!header) {
