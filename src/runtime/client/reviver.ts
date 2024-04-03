@@ -1,5 +1,5 @@
 import {
-  ComponentChildren,
+  type ComponentChildren,
   type ComponentType,
   Fragment,
   h,
@@ -67,7 +67,9 @@ export function revive(
           markers.end!,
         );
         domToVNode(
-          { allProps, vnodeStack: [root], markerStack: [Marker.Slot] },
+          allProps,
+          [root],
+          [Marker.Slot],
           // deno-lint-ignore no-explicit-any
           slotContainer as any,
         );
@@ -200,15 +202,11 @@ function ServerSlot(props: ServerSlotProps): any {
   return props.children;
 }
 
-interface DomParseContext {
-  allProps: DeserializedProps;
-  // deno-lint-ignore no-explicit-any
-  vnodeStack: VNode<any>[];
-  markerStack: Marker[];
-}
-
 function domToVNode(
-  ctx: DomParseContext,
+  allProps: DeserializedProps,
+  // deno-lint-ignore no-explicit-any
+  vnodeStack: VNode<any>[],
+  markerStack: Marker[],
   node: Node,
 ): void {
   let sib: Node | ChildNode | null = node;
@@ -217,23 +215,23 @@ function domToVNode(
     if ((sib as any)._frshRootFrag) {
       for (let i = 0; i < sib.childNodes.length; i++) {
         const child = sib.childNodes[i];
-        domToVNode(ctx, child);
+        domToVNode(allProps, vnodeStack, markerStack, child);
       }
     } else if (isElementNode(sib)) {
       const vnode = h(sib.localName, null);
-      const insideSlot = ctx.markerStack.at(-1) === Marker.Slot;
+      const insideSlot = markerStack.at(-1) === Marker.Slot;
       if (insideSlot) {
-        addVNodeChild(ctx.vnodeStack.at(-1)!, vnode);
-        ctx.vnodeStack.push(vnode);
+        addVNodeChild(vnodeStack.at(-1)!, vnode);
+        vnodeStack.push(vnode);
       }
 
       const firstChild = sib.firstChild;
       if (firstChild !== null) {
-        domToVNode(ctx, firstChild);
+        domToVNode(allProps, vnodeStack, markerStack, firstChild);
       }
 
       if (insideSlot) {
-        ctx.vnodeStack.pop();
+        vnodeStack.pop();
       }
     } else if (isCommentNode(sib)) {
       const comment = sib.data;
@@ -249,34 +247,34 @@ function domToVNode(
             throw new Error(`Encountered unknown island: ${name}`);
           }
 
-          ctx.markerStack.push(Marker.Island);
+          markerStack.push(Marker.Island);
 
-          const props = ctx.allProps[+propsIdx];
+          const props = allProps[+propsIdx];
           // deno-lint-ignore no-explicit-any
           const islandVNode = h<any>(island, props);
-          addVNodeChild(ctx.vnodeStack.at(-1)!, islandVNode);
-          ctx.vnodeStack.push(islandVNode);
+          addVNodeChild(vnodeStack.at(-1)!, islandVNode);
+          vnodeStack.push(islandVNode);
         } else if (kind === "slot") {
           const id = +parts[2];
           const slotName = parts[3];
-          ctx.markerStack.push(Marker.Slot);
+          markerStack.push(Marker.Slot);
           const vnode = h(ServerSlot, { id, name: slotName, children: [] });
 
-          const parentVNode = ctx.vnodeStack.at(-1)!;
+          const parentVNode = vnodeStack.at(-1)!;
           if (slotName === "children") {
             addVNodeChild(parentVNode, vnode);
           } else {
             parentVNode.props[slotName] = vnode;
           }
-          ctx.vnodeStack.push(vnode);
+          vnodeStack.push(vnode);
         }
       } else if (comment === "/frsh:island" || comment === "/frsh:slot") {
-        ctx.vnodeStack.pop();
-        ctx.markerStack.pop();
+        vnodeStack.pop();
+        markerStack.pop();
       }
     } else if (isTextNode(sib)) {
-      if (ctx.markerStack.at(-1) === Marker.Slot) {
-        addVNodeChild(ctx.vnodeStack.at(-1)!, sib.data);
+      if (markerStack.at(-1) === Marker.Slot) {
+        addVNodeChild(vnodeStack.at(-1)!, sib.data);
       }
     }
 
