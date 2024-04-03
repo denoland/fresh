@@ -4,6 +4,9 @@ import * as path from "@std/path";
 import { Counter } from "./fixtures_islands/Counter.tsx";
 import { IslandInIsland } from "./fixtures_islands/IslandInIsland.tsx";
 import { JsonIsland } from "./fixtures_islands/JsonIsland.tsx";
+import { SelfCounter } from "./fixtures_islands/SelfCounter.tsx";
+import { CounterWithSlots } from "./fixtures_islands/CounterWithSlots.tsx";
+import { PassThrough } from "./fixtures_islands/PassThrough.tsx";
 import { NullIsland } from "./fixtures_islands/NullIsland.tsx";
 import { Multiple1, Multiple2 } from "./fixtures_islands/Multiple.tsx";
 import { JsxIsland } from "./fixtures_islands/JsxIsland.tsx";
@@ -267,3 +270,75 @@ Deno.test("islands - never serialize children prop", async () => {
     expect(childText).toEqual("foobar");
   });
 });
+
+Deno.test("islands - instantiate islands in jsx children", async () => {
+  const passThrough = getIsland("PassThrough.tsx");
+  const selfCounter = getIsland("SelfCounter.tsx");
+
+  const app = new FreshApp()
+    .use(freshStaticFiles())
+    .island(passThrough, "PassThrough", PassThrough)
+    .island(selfCounter, "SelfCounter", SelfCounter)
+    .get("/", (ctx) => {
+      return ctx.render(
+        <Doc>
+          <PassThrough>
+            <div>
+              <SelfCounter />
+            </div>
+          </PassThrough>
+        </Doc>,
+      );
+    });
+
+  await withBrowserApp(app, async (page, address) => {
+    await page.goto(address);
+    await page.waitForSelector(".ready");
+
+    await page.click(".increment");
+    await waitForText(page, ".output", "1");
+  });
+});
+
+Deno.test(
+  "islands - instantiate islands in jsx children with slots",
+  async () => {
+    const counterWithSlots = getIsland("CounterWithSlots.tsx");
+    const selfCounter = getIsland("SelfCounter.tsx");
+
+    const app = new FreshApp()
+      .use(freshStaticFiles())
+      .island(counterWithSlots, "CounterWithSlots", CounterWithSlots)
+      .island(selfCounter, "SelfCounter", SelfCounter)
+      .get("/", (ctx) => {
+        return ctx.render(
+          <Doc>
+            <CounterWithSlots
+              jsx={
+                <div>
+                  <SelfCounter />
+                </div>
+              }
+            >
+              <div>
+                <SelfCounter />
+              </div>
+            </CounterWithSlots>
+          </Doc>,
+        );
+      });
+
+    await withBrowserApp(app, async (page, address) => {
+      await page.goto(address);
+      await page.waitForSelector(".ready");
+
+      await page.click(".jsx .increment");
+      await page.click(".children .increment");
+      await page.click(".counter-with-children button");
+
+      await waitForText(page, ".counter-with-children .output", "1");
+      await waitForText(page, ".jsx .output", "1");
+      await waitForText(page, ".children .output", "1");
+    });
+  },
+);

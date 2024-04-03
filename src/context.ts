@@ -142,6 +142,7 @@ function preactRender<T>(vnode: VNode, ctx: FreshContext<T>) {
     // TODO: Streaming
     return renderToString(vnode);
   } finally {
+    state.clear();
     setRenderState(null);
   }
 }

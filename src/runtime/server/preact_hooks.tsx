@@ -97,13 +97,11 @@ const oldDiff = options[OptionsType.DIFF];
 options[OptionsType.DIFF] = (vnode) => {
   patchIslands: if (
     typeof vnode.type === "function" && vnode.type !== Fragment &&
-    !PATCHED.has(vnode)
+    !PATCHED.has(vnode) && RENDER_STATE !== null &&
+    !hasIslandOwner(RENDER_STATE, vnode)
   ) {
     const island = GLOBAL_ISLANDS.get(vnode.type);
-    if (
-      island === undefined || RENDER_STATE === null ||
-      hasIslandOwner(RENDER_STATE, vnode)
-    ) {
+    if (island === undefined) {
       break patchIslands;
     }
 
@@ -111,6 +109,7 @@ options[OptionsType.DIFF] = (vnode) => {
     islands.add(island);
 
     const originalType = vnode.type;
+    const slotId = RENDER_STATE.slotCount++;
     vnode.type = (props) => {
       for (const name in props) {
         // deno-lint-ignore no-explicit-any
@@ -121,7 +120,7 @@ options[OptionsType.DIFF] = (vnode) => {
           // deno-lint-ignore no-explicit-any
           (props as any)[name] = h(Slot, {
             name,
-            id: RENDER_STATE!.slotCount++,
+            id: slotId,
           }, value);
         }
       }

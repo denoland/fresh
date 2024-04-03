@@ -1,4 +1,5 @@
 import {
+  ComponentChildren,
   type ComponentType,
   Fragment,
   h,
@@ -36,11 +37,14 @@ function isSlotRef(x: unknown): x is SlotRef {
     x.kind === SLOT_SYMBOL;
 }
 
+type DeserializedProps = { props: Record<string, unknown>; slots: SlotRef[] }[];
+
 export function revive(
   island: IslandReq,
-  props: Record<string, unknown>,
   slots: ReviveContext["slots"],
+  allProps: DeserializedProps,
 ) {
+  const props = allProps[island.propsIdx].props;
   const component = ISLAND_REGISTRY.get(island.name)!;
 
   const container = createRootFragment(
@@ -55,7 +59,19 @@ export function revive(
       const value = props[propName];
       if (isSlotRef(value)) {
         const markers = slots[value.id];
-        props[propName] = domToVNode(markers.start, markers.end!);
+        const root = h(Fragment, null);
+        const slotContainer = createRootFragment(
+          // deno-lint-ignore no-explicit-any
+          container as any,
+          markers.start,
+          markers.end!,
+        );
+        domToVNode(
+          { allProps, vnodeStack: [root], markerStack: [Marker.Slot] },
+          // deno-lint-ignore no-explicit-any
+          slotContainer as any,
+        );
+        props[propName] = root;
       }
     }
 
@@ -103,16 +119,13 @@ export function boot(
     ISLAND_REGISTRY.set(name, initialIslands[name]);
   }
 
-  // deno-lint-ignore no-explicit-any
-  const allProps = parse<{ props: Record<string, unknown>; slots: any[] }[]>(
+  const allProps = parse<DeserializedProps>(
     islandProps,
     CUSTOM_PARSER,
   );
   for (let i = 0; i < ctx.islands.length; i++) {
     const island = ctx.islands[i];
-
-    const islandConfig = allProps[island.propsIdx];
-    revive(island, islandConfig.props, ctx.slots);
+    revive(island, ctx.slots, allProps);
   }
 }
 
@@ -171,30 +184,101 @@ function _walkInner(ctx: ReviveContext, node: Node | Comment) {
   }
 }
 
-function domToVNode(start: Comment, end: Comment): VNode {
-  const root = h(Fragment, null);
-  let sib = start.nextSibling;
-  while (sib !== null && sib !== end) {
-    _innerDomToVNode(root, sib);
-    sib = sib.nextSibling;
-  }
-  return root;
+const enum Marker {
+  Island,
+  Slot,
+}
+
+interface ServerSlotProps {
+  name: string;
+  id: number;
+  children?: ComponentChildren;
 }
 
 // deno-lint-ignore no-explicit-any
-function _innerDomToVNode(parentVNode: VNode<any>, node: Node) {
-  if (isElementNode(node)) {
-    const vnode = h(node.localName, null);
-    addVNodeChild(parentVNode, vnode);
+function ServerSlot(props: ServerSlotProps): any {
+  return props.children;
+}
 
-    for (let i = 0; i < node.childNodes.length; i++) {
-      const child = node.childNodes[i];
-      _innerDomToVNode(vnode, child);
+interface DomParseContext {
+  allProps: DeserializedProps;
+  // deno-lint-ignore no-explicit-any
+  vnodeStack: VNode<any>[];
+  markerStack: Marker[];
+}
+
+function domToVNode(
+  ctx: DomParseContext,
+  node: Node,
+): void {
+  let sib: Node | ChildNode | null = node;
+  while (sib !== null) {
+    // deno-lint-ignore no-explicit-any
+    if ((sib as any)._frshRootFrag) {
+      for (let i = 0; i < sib.childNodes.length; i++) {
+        const child = sib.childNodes[i];
+        domToVNode(ctx, child);
+      }
+    } else if (isElementNode(sib)) {
+      const vnode = h(sib.localName, null);
+      const insideSlot = ctx.markerStack.at(-1) === Marker.Slot;
+      if (insideSlot) {
+        addVNodeChild(ctx.vnodeStack.at(-1)!, vnode);
+        ctx.vnodeStack.push(vnode);
+      }
+
+      const firstChild = sib.firstChild;
+      if (firstChild !== null) {
+        domToVNode(ctx, firstChild);
+      }
+
+      if (insideSlot) {
+        ctx.vnodeStack.pop();
+      }
+    } else if (isCommentNode(sib)) {
+      const comment = sib.data;
+      if (comment.startsWith("frsh:")) {
+        const [_, kind, name, propsIdx, key] = comment.split(":");
+
+        if (kind === "island") {
+          const island = ISLAND_REGISTRY.get(name);
+          if (island === undefined) {
+            throw new Error(`Encountered unknown island: ${name}`);
+          }
+
+          ctx.markerStack.push(Marker.Island);
+
+          const props = ctx.allProps[+propsIdx];
+          // deno-lint-ignore no-explicit-any
+          const islandVNode = h<any>(island, props);
+          addVNodeChild(ctx.vnodeStack.at(-1)!, islandVNode);
+          ctx.vnodeStack.push(islandVNode);
+        } else if (kind === "slot") {
+          // TODO: consistent naming
+          const id = +name;
+          const slotName = propsIdx;
+          ctx.markerStack.push(Marker.Slot);
+          const vnode = h(ServerSlot, { id, name: slotName, children: [] });
+
+          const parentVNode = ctx.vnodeStack.at(-1)!;
+          if (slotName === "children") {
+            addVNodeChild(parentVNode, vnode);
+          } else {
+            parentVNode.props[slotName] = vnode;
+          }
+          ctx.vnodeStack.push(vnode);
+        }
+      } else if (comment === "/frsh:island" || comment === "/frsh:slot") {
+        ctx.vnodeStack.pop();
+        ctx.markerStack.pop();
+      }
+    } else if (isTextNode(sib)) {
+      if (ctx.markerStack.at(-1) === Marker.Slot) {
+        addVNodeChild(ctx.vnodeStack.at(-1)!, sib.data);
+      }
     }
-  } else if (isCommentNode(node)) {
-    // TODO
-  } else if (isTextNode(node)) {
-    addVNodeChild(parentVNode, node.data);
+
+    sib = sib.nextSibling;
   }
 }
 
