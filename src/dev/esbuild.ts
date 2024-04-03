@@ -44,8 +44,8 @@ export async function bundleJs(
   const minifyOptions: Partial<BuildOptions> = options.dev
     ? {
       minifyIdentifiers: false,
-      minifySyntax: true,
-      minifyWhitespace: true,
+      minifySyntax: false,
+      minifyWhitespace: false,
     }
     : { minify: true };
 
