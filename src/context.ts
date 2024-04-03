@@ -1,33 +1,10 @@
 import type { FunctionComponent, VNode } from "preact";
-import "./runtime/server/preact_hooks.ts";
 import type { ResolvedFreshConfig } from "./config.ts";
 import { renderToString } from "preact-render-to-string";
 import type { BuildCache } from "./build_cache.ts";
+import { RenderState, setRenderState } from "./runtime/server/preact_hooks.tsx";
 
 const NOOP = () => null;
-
-export class RenderState {
-  nonce: string;
-  islandDepth = 0;
-  partialDepth = 0;
-  partialCount = 0;
-  error: Error | null = null;
-  // deno-lint-ignore no-explicit-any
-  slots = new Map<string, any>(); // FIXME
-  basePath = ""; // FIXME
-  // deno-lint-ignore no-explicit-any
-  islandProps: any[] = [];
-  // deno-lint-ignore no-explicit-any
-  islands = new Set<any>();
-  // deno-lint-ignore no-explicit-any
-  encounteredPartials = new Set<any>();
-  owners = new Map<VNode, VNode>();
-  ownerStack = [];
-
-  constructor(public ctx: FreshContext<unknown>) {
-    this.nonce = crypto.randomUUID().replace(/-/g, "");
-  }
-}
 
 /**
  * The context passed to every middleware. It is unique for every request.
@@ -149,15 +126,23 @@ export class FreshReqContext<T> implements FreshContext<T, unknown> {
     headers.set("Content-Type", "text/html; charset=utf-8");
     const responseInit: ResponseInit = { status: init.status ?? 200, headers };
 
-    const state = new RenderState(this);
-
-    // TODO: Streaming
-    const result = renderToString(vnode, { __fresh: state });
+    const result = preactRender(vnode, this);
     return new Response("<!DOCTYPE html>" + result, responseInit);
   }
 
   renderNotFound(): Promise<void> {
     return this.throw(404);
+  }
+}
+
+function preactRender<T>(vnode: VNode, ctx: FreshContext<T>) {
+  const state = new RenderState(ctx);
+  setRenderState(state);
+  try {
+    // TODO: Streaming
+    return renderToString(vnode);
+  } finally {
+    setRenderState(null);
   }
 }
 

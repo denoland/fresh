@@ -11,6 +11,7 @@ export { fsRoutes, type FsRoutesOptions } from "./plugins/fs_routes/mod.ts";
 export * from "./defines.ts";
 export { type RouteConfig } from "./types.ts";
 export { type Middleware } from "./middlewares/mod.ts";
-export { FreshScripts, type Mode } from "./runtime/server/mod.tsx";
+export { type Mode } from "./runtime/server/mod.tsx";
+export { FreshScripts } from "./runtime/server/preact_hooks.tsx";
 export { type FreshConfig, type ResolvedFreshConfig } from "./config.ts";
 export { type FreshContext } from "./context.ts";

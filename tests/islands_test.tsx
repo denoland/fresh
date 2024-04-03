@@ -1,16 +1,17 @@
 import { FreshApp } from "@fresh/core";
-import { ComponentChildren } from "preact";
+import type { ComponentChildren } from "preact";
 import * as path from "@std/path";
 import { Counter } from "./fixtures_islands/Counter.tsx";
+import { IslandInIsland } from "./fixtures_islands/IslandInIsland.tsx";
 import { JsonIsland } from "./fixtures_islands/JsonIsland.tsx";
 import { NullIsland } from "./fixtures_islands/NullIsland.tsx";
 import { Multiple1, Multiple2 } from "./fixtures_islands/Multiple.tsx";
 import { signal } from "@preact/signals";
 import { withBrowserApp } from "./test_utils.ts";
-import { FreshScripts } from "../src/runtime/server/mod.tsx";
+import { FreshScripts } from "../src/runtime/server/preact_hooks.tsx";
 import { waitForText } from "./test_utils.ts";
 import { freshStaticFiles } from "../src/middlewares/static_files.ts";
-import { expect } from "$fresh-testing-library/expect.ts";
+import { expect } from "@std/expect";
 
 function Doc(props: { children?: ComponentChildren }) {
   return (
@@ -157,5 +158,32 @@ Deno.test("islands - returns null", async () => {
   await withBrowserApp(app, async (page, address) => {
     await page.goto(address);
     await page.waitForSelector(".ready");
+  });
+});
+
+Deno.test("islands - only instantiate top level island", async () => {
+  const counter = getIsland("Counter.tsx");
+  const islandInIsland = getIsland("IslandInIsland.tsx");
+
+  const app = new FreshApp()
+    .use(freshStaticFiles())
+    .island(counter, "Counter", Counter)
+    .island(islandInIsland, "IslandInIsland", IslandInIsland)
+    .get("/", (ctx) => {
+      return ctx.render(
+        <Doc>
+          <IslandInIsland />
+        </Doc>,
+      );
+    });
+
+  await withBrowserApp(app, async (page, address) => {
+    await page.goto(address);
+    await page.waitForSelector(".ready");
+    await page.click(".trigger");
+    await waitForText(page, ".output", "1");
+
+    const html = await page.content();
+    expect(html).not.toContain("import { Counter }");
   });
 });
