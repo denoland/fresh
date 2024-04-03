@@ -1,7 +1,9 @@
-import { App } from "../src/app.ts";
-import puppeteer, { Page } from "https://deno.land/x/puppeteer@16.2.0/mod.ts";
+import type { App } from "../src/app.ts";
+import puppeteer, {
+  type Page,
+} from "https://deno.land/x/puppeteer@16.2.0/mod.ts";
 import * as colors from "@std/fmt/colors";
-import { Document, DOMParser, HTMLElement } from "npm:linkedom@0.16.8";
+import { type Document, DOMParser, HTMLElement } from "linkedom";
 import { FreshDevApp } from "../src/dev/dev_app.ts";
 
 export async function buildProd(app: App<unknown>) {

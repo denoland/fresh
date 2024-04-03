@@ -50,6 +50,7 @@ export class RenderState {
   islandDepth = 0;
   partialDepth = 0;
   partialCount = 0;
+  slotCount = 0;
   error: Error | null = null;
   // deno-lint-ignore no-explicit-any
   slots = new Map<string, any>(); // FIXME
@@ -111,6 +112,19 @@ options[OptionsType.DIFF] = (vnode) => {
 
     const originalType = vnode.type;
     vnode.type = (props) => {
+      for (const name in props) {
+        // deno-lint-ignore no-explicit-any
+        const value = (props as any)[name];
+        if (
+          name === "children" || (isValidElement(value) && !isSignal(value))
+        ) {
+          // deno-lint-ignore no-explicit-any
+          (props as any)[name] = h(Slot, {
+            name,
+            id: RENDER_STATE!.slotCount++,
+          }, value);
+        }
+      }
       const propsIdx = islandProps.push({ slots: [], props }) - 1;
 
       const child = h(originalType, props);
@@ -142,6 +156,15 @@ options[OptionsType.DIFFED] = (vnode) => {
   }
   oldDiffed?.(vnode);
 };
+
+interface SlotProps {
+  name: string;
+  id: number;
+  children?: ComponentChildren;
+}
+function Slot(props: SlotProps) {
+  return wrapWithMarker(props.children, "slot", `${props.id}:${props.name}`);
+}
 
 /**
  * Check if the current component was rendered in an island
@@ -200,8 +223,14 @@ const stringifiers: Stringifiers = {
   Signal: (value: unknown) => {
     return isSignal(value) ? value.peek() : undefined;
   },
-  VNode: (value: unknown) => {
-    return isVNode(value) ? "<VNODE>" : undefined;
+  Slot: (value: unknown) => {
+    if (isVNode(value) && value.type === Slot) {
+      const props = value.props as SlotProps;
+      return {
+        name: props.name,
+        id: props.id,
+      };
+    }
   },
 };
 

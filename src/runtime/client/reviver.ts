@@ -1,4 +1,11 @@
-import { type ComponentType, h, hydrate, render } from "preact";
+import {
+  type ComponentType,
+  Fragment,
+  h,
+  hydrate,
+  render,
+  type VNode,
+} from "preact";
 import { parse } from "../../jsonify/parse.ts";
 import { signal } from "@preact/signals";
 import type { CustomParser } from "../../jsonify/parse.ts";
@@ -14,9 +21,26 @@ interface IslandReq {
 interface ReviveContext {
   islands: IslandReq[];
   stack: IslandReq[];
+  slots: { name: string; start: Comment; end: Comment | null }[];
+  slotIdStack: number[];
 }
 
-export function revive(island: IslandReq, props: Record<string, unknown>) {
+interface SlotRef {
+  kind: typeof SLOT_SYMBOL;
+  name: string;
+  id: number;
+}
+const SLOT_SYMBOL = Symbol.for("_FRESH_SLOT");
+function isSlotRef(x: unknown): x is SlotRef {
+  return x !== null && typeof x === "object" && "kind" in x &&
+    x.kind === SLOT_SYMBOL;
+}
+
+export function revive(
+  island: IslandReq,
+  props: Record<string, unknown>,
+  slots: ReviveContext["slots"],
+) {
   const component = ISLAND_REGISTRY.get(island.name)!;
 
   const container = createRootFragment(
@@ -27,6 +51,14 @@ export function revive(island: IslandReq, props: Record<string, unknown>) {
   );
 
   const _render = () => {
+    for (const propName in props) {
+      const value = props[propName];
+      if (isSlotRef(value)) {
+        const markers = slots[value.id];
+        props[propName] = domToVNode(markers.start, markers.end!);
+      }
+    }
+
     if (props !== null && props["f-client-only"]) {
       render(h(component, props), container as unknown as HTMLElement);
     } else {
@@ -46,11 +78,11 @@ export function revive(island: IslandReq, props: Record<string, unknown>) {
 
 const ISLAND_REGISTRY = new Map<string, ComponentType>();
 
-const customParser: CustomParser = {
+const CUSTOM_PARSER: CustomParser = {
   Signal: (value: unknown) => signal(value),
-  // FIXME: VNode
-  // @ts-ignore asd
-  VNode: (value: unknown) => h("h1", null, value),
+  Slot: (value: { name: string; id: number }): SlotRef => {
+    return { kind: SLOT_SYMBOL, name: value.name, id: value.id };
+  },
 };
 
 export function boot(
@@ -60,6 +92,8 @@ export function boot(
   const ctx: ReviveContext = {
     islands: [],
     stack: [],
+    slots: [],
+    slotIdStack: [],
   };
   _walkInner(ctx, document.body);
 
@@ -72,19 +106,27 @@ export function boot(
   // deno-lint-ignore no-explicit-any
   const allProps = parse<{ props: Record<string, unknown>; slots: any[] }[]>(
     islandProps,
-    customParser,
+    CUSTOM_PARSER,
   );
   for (let i = 0; i < ctx.islands.length; i++) {
     const island = ctx.islands[i];
 
     const islandConfig = allProps[island.propsIdx];
-    revive(island, islandConfig.props);
+    revive(island, islandConfig.props, ctx.slots);
   }
 }
 
 function _walkInner(ctx: ReviveContext, node: Node | Comment) {
   if (isElementNode(node)) {
-    if (node.nodeName === "SCRIPT" || node.nodeName === "STYLE") return;
+    // No need to traverse into <script> or <style> tags.
+    // No need to traverse deeper if we found a slotStart marker.
+    // We'll parse slots later when the island is revived.
+    if (
+      node.nodeName === "SCRIPT" || node.nodeName === "STYLE" ||
+      ctx.slotIdStack.length > 0
+    ) {
+      return;
+    }
 
     for (let i = 0; i < node.childNodes.length; i++) {
       const child = node.childNodes[i];
@@ -104,20 +146,70 @@ function _walkInner(ctx: ReviveContext, node: Node | Comment) {
         };
         ctx.islands.push(found);
         ctx.stack.push(found);
+      } else if (kind === "slot") {
+        // TODO: use more consistent ordering
+        const id = +name;
+        const slotName = propsIdx;
+        ctx.slotIdStack.push(id);
+        ctx.slots.push({
+          name: slotName,
+          start: node,
+          end: null,
+        });
       }
     } else if (comment === "/frsh:island") {
       const item = ctx.stack.pop();
       if (item !== undefined) {
         item.end = node;
       }
+    } else if (comment === "/frsh:slot") {
+      const item = ctx.slotIdStack.pop();
+      if (item !== undefined) {
+        ctx.slots[item].end = node;
+      }
     }
   }
+}
+
+function domToVNode(start: Comment, end: Comment): VNode {
+  const root = h(Fragment, null);
+  let sib = start.nextSibling;
+  while (sib !== null && sib !== end) {
+    _innerDomToVNode(root, sib);
+    sib = sib.nextSibling;
+  }
+  return root;
+}
+
+// deno-lint-ignore no-explicit-any
+function _innerDomToVNode(parentVNode: VNode<any>, node: Node) {
+  if (isElementNode(node)) {
+    const vnode = h(node.localName, null);
+    addVNodeChild(parentVNode, vnode);
+
+    for (let i = 0; i < node.childNodes.length; i++) {
+      const child = node.childNodes[i];
+      _innerDomToVNode(vnode, child);
+    }
+  } else if (isCommentNode(node)) {
+    // TODO
+  } else if (isTextNode(node)) {
+    addVNodeChild(parentVNode, node.data);
+  }
+}
+
+// deno-lint-ignore no-explicit-any
+function addVNodeChild(parent: VNode, child: VNode<any> | string) {
+  if (!parent.props.children) {
+    parent.props.children = [];
+  }
+  // deno-lint-ignore no-explicit-any
+  (parent.props.children as Array<VNode<any> | string>).push(child);
 }
 
 function isCommentNode(node: Node): node is Comment {
   return node.nodeType === Node.COMMENT_NODE;
 }
-// deno-lint-ignore no-unused-vars
 function isTextNode(node: Node): node is Text {
   return node.nodeType === Node.TEXT_NODE;
 }

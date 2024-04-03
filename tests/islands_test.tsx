@@ -6,10 +6,12 @@ import { IslandInIsland } from "./fixtures_islands/IslandInIsland.tsx";
 import { JsonIsland } from "./fixtures_islands/JsonIsland.tsx";
 import { NullIsland } from "./fixtures_islands/NullIsland.tsx";
 import { Multiple1, Multiple2 } from "./fixtures_islands/Multiple.tsx";
+import { JsxIsland } from "./fixtures_islands/JsxIsland.tsx";
+import { JsxChildrenIsland } from "./fixtures_islands/JsxChildrenIsland.tsx";
 import { signal } from "@preact/signals";
 import { withBrowserApp } from "./test_utils.ts";
 import { FreshScripts } from "../src/runtime/server/preact_hooks.tsx";
-import { waitForText } from "./test_utils.ts";
+import { parseHtml, waitForText } from "./test_utils.ts";
 import { freshStaticFiles } from "../src/middlewares/static_files.ts";
 import { expect } from "@std/expect";
 
@@ -185,5 +187,83 @@ Deno.test("islands - only instantiate top level island", async () => {
 
     const html = await page.content();
     expect(html).not.toContain("import { Counter }");
+  });
+});
+
+Deno.test("islands - pass null JSX props to islands", async () => {
+  const jsxIsland = getIsland("JsxIsland.tsx");
+
+  const app = new FreshApp()
+    .use(freshStaticFiles())
+    .island(jsxIsland, "JsxIsland", JsxIsland)
+    .get("/", (ctx) => {
+      return ctx.render(
+        <Doc>
+          <JsxIsland jsx={null}>{null}</JsxIsland>
+        </Doc>,
+      );
+    });
+
+  await withBrowserApp(app, async (page, address) => {
+    await page.goto(address);
+    await page.waitForSelector(".ready");
+
+    const html = await page.content();
+    const doc = parseHtml(html);
+    expect(doc.querySelector(".jsx")!.childNodes.length).toEqual(0);
+    expect(doc.querySelector(".children")!.childNodes.length).toEqual(0);
+  });
+});
+
+Deno.test("islands - pass JSX props to islands", async () => {
+  const jsxIsland = getIsland("JsxIsland.tsx");
+
+  const app = new FreshApp()
+    .use(freshStaticFiles())
+    .island(jsxIsland, "JsxIsland", JsxIsland)
+    .get("/", (ctx) => {
+      return ctx.render(
+        <Doc>
+          <JsxIsland jsx={<p>foo</p>}>
+            <p>bar</p>
+          </JsxIsland>
+        </Doc>,
+      );
+    });
+
+  await withBrowserApp(app, async (page, address) => {
+    await page.goto(address);
+    await page.waitForSelector(".ready");
+
+    const text = await page.$eval("pre", (el) => el.textContent);
+    expect(JSON.parse(text)).toEqual({ jsx: true, children: true });
+  });
+});
+
+Deno.test("islands - never serialize children prop", async () => {
+  const jsxChildrenIsland = getIsland("JsxChildrenIsland.tsx");
+
+  const app = new FreshApp()
+    .use(freshStaticFiles())
+    .island(jsxChildrenIsland, "JsxChildrenIsland", JsxChildrenIsland)
+    .get("/", (ctx) => {
+      return ctx.render(
+        <Doc>
+          <JsxChildrenIsland>
+            foobar
+          </JsxChildrenIsland>
+        </Doc>,
+      );
+    });
+
+  await withBrowserApp(app, async (page, address) => {
+    await page.goto(address);
+    await page.waitForSelector(".ready");
+
+    const text = await page.$eval("script", (el) => el.textContent);
+    expect(text).not.toContain("foobar");
+
+    const childText = await page.$eval(".after", (el) => el.textContent);
+    expect(childText).toEqual("foobar");
   });
 });
