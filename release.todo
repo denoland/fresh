@@ -49,5 +49,6 @@ Fresh 2.0 finishing:
   ☐ etag caching based on file contents
   ☐ clear split of dev + prod -> smaller deployments
   ☐ no more manifest
+  ☐ any JSX child is serialized, not just the `children` prop
 
 
