@@ -18,6 +18,8 @@ import { parseHtml, waitForText } from "./test_utils.ts";
 import { freshStaticFiles } from "../src/middlewares/static_files.ts";
 import { expect } from "@std/expect";
 import { JsxConditional } from "./fixtures_islands/JsxConditional.tsx";
+import { FnIsland } from "./fixtures_islands/FnIsland.tsx";
+import { FragmentIsland } from "./fixtures_islands/FragmentIsland.tsx";
 
 function Doc(props: { children?: ComponentChildren }) {
   return (
@@ -458,5 +460,30 @@ Deno.test("islands - revive DOM attributes", async () => {
       (el) => el.checked,
     );
     expect(radio2).toEqual(true);
+  });
+});
+
+Deno.test("islands - revive island with fn inside", async () => {
+  const fragmentIsland = getIsland("FragmentIsland.tsx");
+  const fnIsland = getIsland("FnIsland.tsx");
+
+  const app = new FreshApp()
+    .use(freshStaticFiles())
+    .island(fragmentIsland, "FragmentIsland", FragmentIsland)
+    .island(fnIsland, "FnIsland", FnIsland)
+    .get("/", (ctx) => {
+      return ctx.render(
+        <Doc>
+          <FnIsland />
+        </Doc>,
+      );
+    });
+
+  await withBrowserApp(app, async (page, address) => {
+    await page.goto(address);
+    await page.waitForSelector(".ready");
+
+    const text = await page.$eval(".ready", (el) => el.textContent);
+    expect(text).toEqual("it works");
   });
 });
