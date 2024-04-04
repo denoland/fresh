@@ -10,6 +10,7 @@ import {
 import { parse } from "../../jsonify/parse.ts";
 import { signal } from "@preact/signals";
 import type { CustomParser } from "../../jsonify/parse.ts";
+import { Partial } from "../shared.ts";
 
 interface IslandReq {
   name: string;
@@ -18,10 +19,16 @@ interface IslandReq {
   start: Comment;
   end: Comment | null;
 }
+interface PartialReq {
+  name: string;
+  key: string | null;
+  start: Comment;
+  end: Comment | null;
+}
 
 interface ReviveContext {
   islands: IslandReq[];
-  stack: IslandReq[];
+  stack: Array<PartialReq | IslandReq>;
   slots: Map<number, { name: string; start: Comment; end: Comment | null }>;
   slotIdStack: number[];
 }
@@ -185,8 +192,17 @@ function _walkInner(ctx: ReviveContext, node: Node | Comment) {
           start: node,
           end: null,
         });
+      } else if (kind === "partial") {
+        const name = parts[2];
+        const key = parts[3];
+        ctx.stack.push({
+          name,
+          key,
+          start: node,
+          end: null,
+        });
       }
-    } else if (comment === "/frsh:island") {
+    } else if (comment === "/frsh:island" || comment === "/frsh:partial") {
       const item = ctx.stack.pop();
       if (item !== undefined) {
         item.end = node;
@@ -202,6 +218,7 @@ function _walkInner(ctx: ReviveContext, node: Node | Comment) {
 
 const enum Marker {
   Island,
+  Partial,
   Slot,
 }
 
@@ -246,8 +263,9 @@ function domToVNode(
       }
 
       const vnode = h(sib.localName, props);
-      const insideSlot = markerStack.at(-1) === Marker.Slot;
-      if (insideSlot) {
+      const marker = markerStack.at(-1);
+      const appendVNode = marker === Marker.Slot || marker === Marker.Partial;
+      if (appendVNode) {
         addVNodeChild(vnodeStack.at(-1)!, vnode);
         vnodeStack.push(vnode);
       }
@@ -257,7 +275,7 @@ function domToVNode(
         domToVNode(allProps, vnodeStack, markerStack, firstChild);
       }
 
-      if (insideSlot) {
+      if (appendVNode) {
         vnodeStack.pop();
       }
     } else if (isCommentNode(sib)) {
@@ -294,13 +312,28 @@ function domToVNode(
             parentVNode.props[slotName] = vnode;
           }
           vnodeStack.push(vnode);
+        } else if (kind === "partial") {
+          markerStack.push(Marker.Partial);
+
+          const name = parts[2];
+          const key = parts[3];
+          const vnode = h(Partial, { name, key });
+          const parentVNode = vnodeStack.at(-1);
+          if (parentVNode !== undefined) {
+            addVNodeChild(parentVNode, vnode);
+          }
+          vnodeStack.push(vnode);
         }
-      } else if (comment === "/frsh:island" || comment === "/frsh:slot") {
+      } else if (
+        comment === "/frsh:island" || comment === "/frsh:slot" ||
+        comment === "/frsh:partial"
+      ) {
         vnodeStack.pop();
         markerStack.pop();
       }
     } else if (isTextNode(sib)) {
-      if (markerStack.at(-1) === Marker.Slot) {
+      const marker = markerStack.at(-1);
+      if (marker === Marker.Slot || marker === Marker.Partial) {
         addVNodeChild(vnodeStack.at(-1)!, sib.data);
       }
     }

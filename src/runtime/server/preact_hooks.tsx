@@ -13,6 +13,7 @@ import { GLOBAL_ISLANDS } from "../../app.ts";
 import type { Signal } from "@preact/signals";
 import type { Stringifiers } from "../../jsonify/stringify.ts";
 import type { FreshContext } from "../../context.ts";
+import { Partial, type PartialProps } from "../shared.ts";
 import { stringify } from "../../jsonify/stringify.ts";
 
 const enum OptionsType {
@@ -87,6 +88,17 @@ options[OptionsType.VNODE] = (vnode) => {
   if (RENDER_STATE !== null) {
     RENDER_STATE.owners.set(vnode, RENDER_STATE!.ownerStack.at(-1)!);
   }
+
+  if (typeof vnode.type === "function" && vnode.type === Partial) {
+    const props = vnode.props as PartialProps;
+    console.log("Partial", vnode);
+    props.children = wrapWithMarker(
+      props.children,
+      "partial",
+      `${props.name}:${vnode.key ?? ""}`,
+    );
+  }
+
   oldVNodeHook?.(vnode);
 };
 
