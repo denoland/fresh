@@ -3,8 +3,9 @@
   "version": "2.0.0-prealpha.15",
   "exports": {
     ".": "./src/mod.ts",
-    "./runtime": "./src/runtime/client/mod.tsx",
-    "./runtime-dev": "./src/runtime/client/dev.ts",
+    "./runtime": "./src/runtime/client/shared.ts",
+    "./client": "./src/runtime/client/mod.tsx",
+    "./client-dev": "./src/runtime/client/dev.ts",
     "./compat": "./src/compat/server.ts",
     "./dev": "./src/dev/mod.ts"
   },
@@ -41,8 +42,9 @@
     "$std/": "https://deno.land/std@0.216.0/",
     "@fresh/core": "./src/mod.ts",
     "@fresh/core/dev": "./src/dev/mod.ts",
-    "@fresh/core/runtime": "./src/runtime/client/mod.tsx",
-    "@fresh/core/runtime-dev": "./src/runtime/client/dev.ts",
+    "@fresh/core/runtime": "./src/runtime/shared.ts",
+    "@fresh/core/client": "./src/runtime/client/mod.tsx",
+    "@fresh/core/client-dev": "./src/runtime/client/dev.ts",
     "@fresh/plugin-tailwind": "./plugin-tailwindcss/src/mod.ts",
     "@luca/esbuild-deno-loader": "jsr:@luca/esbuild-deno-loader@^0.10.3",
     "@preact/signals": "https://esm.sh/@preact/signals@1.2.3?external=preact",

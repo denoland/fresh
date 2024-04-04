@@ -116,8 +116,8 @@ export class FreshDevApp<T> extends FreshApp<T> implements DevApp<T> {
 
     const entryPoints: Record<string, string> = {
       "fresh-runtime": options.dev
-        ? "@fresh/core/runtime-dev"
-        : "@fresh/core/runtime",
+        ? "@fresh/core/client-dev"
+        : "@fresh/core/client",
     };
     const seenEntries = new Map<string, Island>();
     const mapIslandToEntry = new Map<Island, string>();
