@@ -29,6 +29,19 @@ Fresh 2.0:
 ✔ Fix client dev script loaded in prod @done(24-03-28 12:42)
 ☐ Add caching parameter to sources in css files
 ✔ Static middleware should never cache files in dev @done(24-03-28 13:04)
+☐ ctx.destination is missing
+☐ need to manually update all middlewares and handlers to use the new signature. absolutely need a codemod for this
+☐ needed to manually remove `<Head>` everywhere
+☐ dev loop gets muuuch slower. i am waiting on the order of 2-3 seconds every save (was much faster in fresh 1)
+☐ `_middleware` exporting an array of middleware is not working anymore
+☐ async `_app` components do not work (jsr uses this)
+☐ Pending build cache
+☐ Do static file processing lazily, only when requested
+☐ OnStaticTransform signature has wrong return
+  ☐ Allow returning multiple files
+  ☐ Make content a callback that returns a promise -> Lazy loading
+☐ Pass app to devApp constructor
+☐ ctx.destination breaking change
 
 Fresh 2.0 compat:
 ☐ add plugin API backwards compat
