@@ -4,7 +4,8 @@ Fresh 2.0:
 ☐ add back async layouts to fs router
 ✔ try publishing to JSR @done(24-03-25 12:31)
   ☐ what to do about global JSX type extensions?
-☐ bring back partials + nested islands + server components
+☐ bring back partials
+✔ nested islands + server components @done(24-04-04 10:27)
 ☐ bring back old-style `ctx.render()` API
 ✔ bring back browser polyfills @done(24-03-25 12:32)
 ☐ bring back active url handling
