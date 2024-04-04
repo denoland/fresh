@@ -232,7 +232,20 @@ function domToVNode(
         domToVNode(allProps, vnodeStack, markerStack, child);
       }
     } else if (isElementNode(sib)) {
-      const vnode = h(sib.localName, null);
+      const props: Record<string, unknown> = {};
+      for (let i = 0; i < sib.attributes.length; i++) {
+        const attr = sib.attributes[i];
+
+        // Boolean attributes are always `true` when present.
+        // See: https://developer.mozilla.org/en-US/docs/Glossary/Boolean/HTML
+        props[attr.nodeName] =
+          // deno-lint-ignore no-explicit-any
+          typeof (sib as any)[attr.nodeName] === "boolean"
+            ? true
+            : attr.nodeValue;
+      }
+
+      const vnode = h(sib.localName, props);
       const insideSlot = markerStack.at(-1) === Marker.Slot;
       if (insideSlot) {
         addVNodeChild(vnodeStack.at(-1)!, vnode);
