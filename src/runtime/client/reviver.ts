@@ -22,7 +22,7 @@ interface IslandReq {
 interface ReviveContext {
   islands: IslandReq[];
   stack: IslandReq[];
-  slots: { name: string; start: Comment; end: Comment | null }[];
+  slots: Map<number, { name: string; start: Comment; end: Comment | null }>;
   slotIdStack: number[];
 }
 
@@ -58,22 +58,33 @@ export function revive(
     for (const propName in props) {
       const value = props[propName];
       if (isSlotRef(value)) {
-        const markers = slots[value.id];
-        const root = h(Fragment, null);
-        const slotContainer = createRootFragment(
-          // deno-lint-ignore no-explicit-any
-          container as any,
-          markers.start,
-          markers.end!,
-        );
-        domToVNode(
-          allProps,
-          [root],
-          [Marker.Slot],
-          // deno-lint-ignore no-explicit-any
-          slotContainer as any,
-        );
-        props[propName] = root;
+        const markers = slots.get(value.id);
+        if (markers !== undefined) {
+          const root = h(Fragment, null);
+          const slotContainer = createRootFragment(
+            // deno-lint-ignore no-explicit-any
+            container as any,
+            markers.start,
+            markers.end!,
+          );
+          domToVNode(
+            allProps,
+            [root],
+            [Marker.Slot],
+            // deno-lint-ignore no-explicit-any
+            slotContainer as any,
+          );
+          props[propName] = root;
+        } else {
+          const template = document.querySelector(
+            `#frsh-${value.id}-${value.name}`,
+          ) as HTMLTemplateElement | null;
+          if (template !== null) {
+            const root = h(Fragment, null);
+            domToVNode(allProps, [root], [Marker.Slot], template.content);
+            props[propName] = root;
+          }
+        }
       }
     }
 
@@ -110,7 +121,7 @@ export function boot(
   const ctx: ReviveContext = {
     islands: [],
     stack: [],
-    slots: [],
+    slots: new Map(),
     slotIdStack: [],
   };
   _walkInner(ctx, document.body);
@@ -169,7 +180,7 @@ function _walkInner(ctx: ReviveContext, node: Node | Comment) {
         const id = +parts[2];
         const slotName = parts[3];
         ctx.slotIdStack.push(id);
-        ctx.slots.push({
+        ctx.slots.set(id, {
           name: slotName,
           start: node,
           end: null,
@@ -183,7 +194,7 @@ function _walkInner(ctx: ReviveContext, node: Node | Comment) {
     } else if (comment === "/frsh:slot") {
       const item = ctx.slotIdStack.pop();
       if (item !== undefined) {
-        ctx.slots[item].end = node;
+        ctx.slots.get(item)!.end = node;
       }
     }
   }
@@ -215,7 +226,7 @@ function domToVNode(
   let sib: Node | ChildNode | null = node;
   while (sib !== null) {
     // deno-lint-ignore no-explicit-any
-    if ((sib as any)._frshRootFrag) {
+    if ((sib as any)._frshRootFrag || sib instanceof DocumentFragment) {
       for (let i = 0; i < sib.childNodes.length; i++) {
         const child = sib.childNodes[i];
         domToVNode(allProps, vnodeStack, markerStack, child);

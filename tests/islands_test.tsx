@@ -17,6 +17,7 @@ import { FreshScripts } from "../src/runtime/server/preact_hooks.tsx";
 import { parseHtml, waitForText } from "./test_utils.ts";
 import { freshStaticFiles } from "../src/middlewares/static_files.ts";
 import { expect } from "@std/expect";
+import { JsxConditional } from "./fixtures_islands/JsxConditional.tsx";
 
 function Doc(props: { children?: ComponentChildren }) {
   return (
@@ -337,6 +338,49 @@ Deno.test(
       await page.click(".counter-with-children button");
 
       await waitForText(page, ".counter-with-children .output", "1");
+      await waitForText(page, ".jsx .output", "1");
+      await waitForText(page, ".children .output", "1");
+    });
+  },
+);
+
+Deno.test(
+  "islands - conditional jsx children",
+  async () => {
+    const jsxConditional = getIsland("JsxConditional.tsx");
+    const selfCounter = getIsland("SelfCounter.tsx");
+
+    const app = new FreshApp()
+      .use(freshStaticFiles())
+      .island(jsxConditional, "JsxConditional", JsxConditional)
+      .island(selfCounter, "SelfCounter", SelfCounter)
+      .get("/", (ctx) => {
+        return ctx.render(
+          <Doc>
+            <JsxConditional
+              jsx={
+                <div>
+                  <SelfCounter />
+                </div>
+              }
+            >
+              <div>
+                <SelfCounter />
+              </div>
+            </JsxConditional>
+          </Doc>,
+        );
+      });
+
+    await withBrowserApp(app, async (page, address) => {
+      await page.goto(address);
+      await page.waitForSelector(".ready");
+
+      await page.click(".jsx .increment");
+      await page.click(".children .increment");
+      await page.click(".cond-update");
+
+      await waitForText(page, ".cond-output", "1");
       await waitForText(page, ".jsx .output", "1");
       await waitForText(page, ".children .output", "1");
     });

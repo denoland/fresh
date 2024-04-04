@@ -50,10 +50,9 @@ export class RenderState {
   islandDepth = 0;
   partialDepth = 0;
   partialCount = 0;
-  slotCount = 0;
   error: Error | null = null;
   // deno-lint-ignore no-explicit-any
-  slots = new Map<string, any>(); // FIXME
+  slots: Array<{ id: number; name: string; vnode: VNode<any> } | null> = [];
   basePath = ""; // FIXME
   // deno-lint-ignore no-explicit-any
   islandProps: any[] = [];
@@ -69,10 +68,10 @@ export class RenderState {
   }
 
   clear() {
-    this.slots.clear();
     this.islands.clear();
     this.encounteredPartials.clear();
     this.owners.clear();
+    this.slots = [];
     this.islandProps = [];
     this.ownerStack = [];
   }
@@ -109,7 +108,6 @@ options[OptionsType.DIFF] = (vnode) => {
     islands.add(island);
 
     const originalType = vnode.type;
-    const slotId = RENDER_STATE.slotCount++;
     vnode.type = (props) => {
       for (const name in props) {
         // deno-lint-ignore no-explicit-any
@@ -117,6 +115,8 @@ options[OptionsType.DIFF] = (vnode) => {
         if (
           name === "children" || (isValidElement(value) && !isSignal(value))
         ) {
+          const slotId = RENDER_STATE!.slots.length;
+          RENDER_STATE!.slots.push({ id: slotId, name, vnode: value });
           // deno-lint-ignore no-explicit-any
           (props as any)[name] = h(Slot, {
             name,
@@ -162,6 +162,9 @@ interface SlotProps {
   children?: ComponentChildren;
 }
 function Slot(props: SlotProps) {
+  if (RENDER_STATE !== null) {
+    RENDER_STATE.slots[props.id] = null;
+  }
   return wrapWithMarker(props.children, "slot", `${props.id}:${props.name}`);
 }
 
@@ -245,6 +248,29 @@ const stringifiers: Stringifiers = {
 export const FreshScripts: () => VNode = ((
   _props: unknown,
 ): VNode => {
+  const { slots } = RENDER_STATE!;
+
+  // Remaining slots must be rendered before creating the Fresh runtime
+  // script, so that we have the full list of islands rendered
+  return (
+    <>
+      {slots.map((slot) => {
+        if (slot === null) return null;
+        // FIXME: Wait for https://github.com/preactjs/preact/pull/4334 to be
+        // released
+        return h(
+          "template",
+          { key: slot.id, id: `frsh-${slot.id}-${slot.name}` },
+          slot.vnode,
+          // deno-lint-ignore no-explicit-any
+        ) as VNode<any>;
+      })}
+      <FreshRuntimeScript />
+    </>
+  );
+}) as () => VNode;
+
+function FreshRuntimeScript() {
   const { islands, nonce, ctx, islandProps } = RENDER_STATE!;
   const basePath = ctx.config.basePath;
 
@@ -269,10 +295,10 @@ export const FreshScripts: () => VNode = ((
 
   const serializedProps = stringify(islandProps, stringifiers);
 
+  // TODO: integrity?
   const scriptContent =
     `import { boot } from "${basePath}/fresh-runtime.js";${islandImports}boot(${islandObj},\`${serializedProps}\`);`;
 
-  // TODO: integrity?
   return (
     <script
       type="module"
@@ -280,7 +306,6 @@ export const FreshScripts: () => VNode = ((
       dangerouslySetInnerHTML={{
         __html: scriptContent,
       }}
-    >
-    </script>
+    />
   );
-}) as () => VNode;
+}
