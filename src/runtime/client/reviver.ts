@@ -150,8 +150,12 @@ function _walkInner(ctx: ReviveContext, node: Node | Comment) {
   } else if (isCommentNode(node)) {
     const comment = node.data;
     if (comment.startsWith("frsh:")) {
-      const [_, kind, name, propsIdx, key] = comment.split(":");
+      const parts = comment.split(":");
+      const kind = parts[1];
       if (kind === "island") {
+        const name = parts[2];
+        const propsIdx = parts[3];
+        const key = parts[4];
         const found: IslandReq = {
           name,
           propsIdx: Number(propsIdx),
@@ -162,9 +166,8 @@ function _walkInner(ctx: ReviveContext, node: Node | Comment) {
         ctx.islands.push(found);
         ctx.stack.push(found);
       } else if (kind === "slot") {
-        // TODO: use more consistent ordering
-        const id = +name;
-        const slotName = propsIdx;
+        const id = +parts[2];
+        const slotName = parts[3];
         ctx.slotIdStack.push(id);
         ctx.slots.push({
           name: slotName,
