@@ -11,11 +11,9 @@ import * as path from "@std/path";
 import * as colors from "@std/fmt/colors";
 import { bundleJs } from "./esbuild.ts";
 import * as JSONC from "@std/jsonc";
-import { prettyTime } from "../utils.ts";
 import { liveReload } from "./middlewares/live_reload.ts";
 import {
   FreshFileTransformer,
-  type OnTransformArgs,
   type OnTransformOptions,
 } from "./file_transformer.ts";
 import type { TransformFn } from "./file_transformer.ts";
@@ -40,7 +38,7 @@ export interface BuildOptions {
 }
 
 export class FreshDevApp<T> extends FreshApp<T> implements DevApp<T> {
-  #transformer = new FreshFileTransformer();
+  #transformer = new FreshFileTransformer(fsAdapter);
 
   constructor(config: FreshConfig = {}) {
     super(config);
@@ -50,7 +48,7 @@ export class FreshDevApp<T> extends FreshApp<T> implements DevApp<T> {
 
   onTransformStaticFile(
     options: OnTransformOptions,
-    callback: (args: OnTransformArgs) => void,
+    callback: TransformFn,
   ): void {
     this.#transformer.onTransform(options, callback);
   }
@@ -64,13 +62,18 @@ export class FreshDevApp<T> extends FreshApp<T> implements DevApp<T> {
       options.port = await getFreePort(8000, options.hostname);
     }
 
-    await this.build({ dev: true });
-    await super.listen(options);
+    this.buildCache = new MemoryBuildCache(
+      this.config,
+    );
+
+    await Promise.all([
+      super.listen(options),
+      this.build({ dev: true }),
+    ]);
     return;
   }
 
   async build(options: BuildOptions = {}): Promise<void> {
-    const start = Date.now();
     const { staticDir, build } = this.config;
     const staticOutDir = path.join(build.outDir, "static");
 
@@ -82,37 +85,10 @@ export class FreshDevApp<T> extends FreshApp<T> implements DevApp<T> {
       // Ignore
     }
 
-    const buildCache = options.dev
+    const buildCache = this.buildCache ?? options.dev
       ? new MemoryBuildCache(this.config)
       : new DiskBuildCache(this.config);
     this.buildCache = buildCache;
-
-    // Read static files
-    if (await fsAdapter.isDirectory(staticDir)) {
-      const entries = fsAdapter.walk(staticDir, {
-        includeDirs: false,
-        includeFiles: true,
-        followSymlinks: false,
-        // Skip any folder or file starting with a "."
-        skip: [/\/\.[^/]+(\/|$)/],
-      });
-
-      for await (const entry of entries) {
-        const result = await this.#transformer.process(
-          entry.path,
-          options.dev ? "development" : "production",
-          target,
-        );
-
-        const relative = path.relative(staticDir, entry.path);
-        const pathname = `/${relative}`;
-        if (result === null) {
-          buildCache.addUnprocessedFile(pathname);
-        } else {
-          await buildCache.addProcessedFile(pathname, result, null);
-        }
-      }
-    }
 
     const entryPoints: Record<string, string> = {
       "fresh-runtime": options.dev
@@ -171,12 +147,51 @@ export class FreshDevApp<T> extends FreshApp<T> implements DevApp<T> {
       }
       buildCache.islands.set(island.name, `/${chunk}`);
     }
+
+    // Read static files
+    if (await fsAdapter.isDirectory(staticDir)) {
+      const entries = fsAdapter.walk(staticDir, {
+        includeDirs: false,
+        includeFiles: true,
+        followSymlinks: false,
+        // Skip any folder or file starting with a "."
+        skip: [/\/\.[^/]+(\/|$)/],
+      });
+
+      for await (const entry of entries) {
+        const result = await this.#transformer.process(
+          entry.path,
+          options.dev ? "development" : "production",
+          target,
+        );
+
+        if (result !== null) {
+          for (let i = 0; i < result.length; i++) {
+            const file = result[i];
+            const relative = path.relative(staticDir, file.path);
+            if (relative.startsWith(".")) {
+              throw new Error(
+                `Processed file resolved outside of static dir ${file.path}`,
+              );
+            }
+            const pathname = `/${relative}`;
+
+            if (typeof file.content === "function") {
+              await buildCache.addLazyProcessedFile(pathname, file.content);
+            } else {
+              await buildCache.addProcessedFile(pathname, file.content, null);
+            }
+          }
+        } else {
+          const relative = path.relative(staticDir, entry.path);
+          const pathname = `/${relative}`;
+          buildCache.addUnprocessedFile(pathname);
+        }
+      }
+    }
+
     await buildCache.flush();
 
-    const duration = Date.now() - start;
-    console.log(
-      `Build finished in ${colors.green(prettyTime(duration))}`,
-    );
     if (!options.dev) {
       console.log(
         `Assets written to: ${colors.cyan(build.outDir)}`,

@@ -12,6 +12,7 @@ export interface FsAdapter {
   ): AsyncIterableIterator<WalkEntry>;
   isDirectory(path: string | URL): Promise<boolean>;
   mkdirp(dir: string): Promise<void>;
+  readFile(path: string | URL): Promise<Uint8Array>;
 }
 
 export const fsAdapter: FsAdapter = {
@@ -34,4 +35,5 @@ export const fsAdapter: FsAdapter = {
       }
     }
   },
+  readFile: Deno.readFile,
 };

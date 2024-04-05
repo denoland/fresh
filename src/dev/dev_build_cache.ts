@@ -5,6 +5,7 @@ import type { BuildSnapshot } from "../build_cache.ts";
 import { encodeHex } from "@std/encoding/hex";
 import { crypto } from "@std/crypto";
 import { fsAdapter } from "../fs.ts";
+import type { LazyProcessor } from "./file_transformer.ts";
 
 export interface MemoryFile {
   hash: string | null;
@@ -22,6 +23,8 @@ export interface DevBuildCache extends BuildCache {
     hash: string | null,
   ): Promise<void>;
 
+  addLazyProcessedFile(pathname: string, lazy: LazyProcessor): Promise<void>;
+
   flush(): Promise<void>;
 }
 
@@ -29,10 +32,19 @@ export class MemoryBuildCache implements DevBuildCache {
   islands = new Map<string, string>();
   #processedFiles = new Map<string, MemoryFile>();
   #unprocessedFiles = new Map<string, string>();
+  #lazyPendingFiles = new Map<string, LazyProcessor>();
+  #lazyPending = new Map<
+    string,
+    Promise<{ content: string | Uint8Array; map?: string | Uint8Array }>
+  >();
+  #ready = Promise.withResolvers<void>();
 
-  constructor(public config: ResolvedFreshConfig) {}
+  constructor(
+    public config: ResolvedFreshConfig,
+  ) {}
 
   async readFile(pathname: string): Promise<StaticFile | null> {
+    await this.#ready.promise;
     const processed = this.#processedFiles.get(pathname);
     if (processed !== undefined) {
       return {
@@ -60,6 +72,51 @@ export class MemoryBuildCache implements DevBuildCache {
       }
     }
 
+    const p = this.#lazyPending.get(pathname);
+    if (p !== undefined) {
+      await p;
+
+      const file = this.#processedFiles.get(pathname)!;
+
+      return {
+        hash: null,
+        readable: file.content,
+        size: file.content.byteLength,
+      };
+    }
+
+    const lazy = this.#lazyPendingFiles.get(pathname);
+    if (lazy !== undefined) {
+      const p = lazy();
+      this.#lazyPending.set(pathname, p);
+      const res = await p;
+
+      const content = typeof res.content === "string"
+        ? new TextEncoder().encode(res.content)
+        : res.content;
+
+      this.#processedFiles.set(pathname, {
+        content,
+        hash: null,
+      });
+
+      if (res.map !== undefined) {
+        const map = typeof res.map === "string"
+          ? new TextEncoder().encode(res.map)
+          : res.map;
+        this.#processedFiles.set(pathname + ".map", {
+          content: map,
+          hash: null,
+        });
+      }
+
+      return {
+        hash: null,
+        readable: content,
+        size: content.byteLength,
+      };
+    }
+
     return null;
   }
 
@@ -83,8 +140,17 @@ export class MemoryBuildCache implements DevBuildCache {
     this.#processedFiles.set(pathname, { content, hash });
   }
 
+  // deno-lint-ignore require-await
+  async addLazyProcessedFile(
+    pathname: string,
+    lazy: LazyProcessor,
+  ): Promise<void> {
+    this.#lazyPendingFiles.set(pathname, lazy);
+  }
+
+  // deno-lint-ignore require-await
   async flush(): Promise<void> {
-    // Ignore
+    this.#ready.resolve();
   }
 }
 
@@ -124,6 +190,17 @@ export class DiskBuildCache implements DevBuildCache {
 
     await fsAdapter.mkdirp(path.dirname(filePath));
     await Deno.writeFile(filePath, content);
+  }
+
+  async addLazyProcessedFile(
+    pathname: string,
+    lazy: LazyProcessor,
+  ): Promise<void> {
+    const file = await lazy();
+    const buf = typeof file.content === "string"
+      ? new TextEncoder().encode(file.content)
+      : file.content;
+    this.addProcessedFile(pathname, buf, null);
   }
 
   // deno-lint-ignore require-await

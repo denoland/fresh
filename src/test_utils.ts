@@ -98,6 +98,7 @@ export function createFakeFs(files: Record<string, unknown>): FsAdapter {
     },
     async mkdirp(_dir: string) {
     },
+    readFile: Deno.readFile,
   };
 }
 

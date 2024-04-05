@@ -1,11 +1,28 @@
+import type { FsAdapter } from "../fs.ts";
+
 export type TransformMode = "development" | "production";
 
 export interface OnTransformOptions {
   filter: RegExp;
 }
-export interface OnTransformResult {
-  content?: string | Uint8Array;
+export type LazyProcessor = () => Promise<
+  { content: string | Uint8Array; map?: string | Uint8Array }
+>;
+export interface OnTransformResultFile {
+  content: string | Uint8Array;
+  path?: string;
+  map?: string | Uint8Array;
 }
+export interface OnTransformResultLazy {
+  path?: string;
+  content: LazyProcessor;
+}
+// deno-lint-ignore no-explicit-any
+export function isLazyResult(x: any): x is OnTransformResultLazy {
+  return x !== null && typeof x === "object" && "content" in x &&
+    typeof x.content === "function";
+}
+export type OnTransformResult = OnTransformResultFile | OnTransformResultLazy;
 export interface OnTransformArgs {
   path: string;
   target: string | string[];
@@ -15,22 +32,36 @@ export interface OnTransformArgs {
 }
 export type TransformFn = (
   args: OnTransformArgs,
-) => void | OnTransformResult | Promise<void | OnTransformResult>;
+) =>
+  | void
+  | OnTransformResult
+  | OnTransformResult[]
+  | Promise<void | OnTransformResult | OnTransformResult[]>;
 
 export interface Transformer {
   options: OnTransformOptions;
   fn: TransformFn;
 }
 
-export interface FileTransformer {
-  onTransform(
-    options: OnTransformOptions,
-    callback: TransformFn,
-  ): void;
+export interface ProcessedFile {
+  path: string;
+  content: Uint8Array;
+  map: Uint8Array | null;
+}
+export interface LazyProcessedFile {
+  path: string;
+  content: LazyProcessor;
 }
 
-export class FreshFileTransformer implements FileTransformer {
+export type ProcessFileResult = ProcessedFile | LazyProcessedFile;
+
+export class FreshFileTransformer {
   #transformers: Transformer[] = [];
+  #fs: FsAdapter;
+
+  constructor(fs: FsAdapter) {
+    this.#fs = fs;
+  }
 
   onTransform(options: OnTransformOptions, callback: TransformFn): void {
     this.#transformers.push({ options, fn: callback });
@@ -40,13 +71,13 @@ export class FreshFileTransformer implements FileTransformer {
     filePath: string,
     mode: TransformMode,
     target: string | string[],
-  ): Promise<Uint8Array | null> {
+  ): Promise<ProcessFileResult[] | null> {
     let content: Uint8Array | null = null;
 
     for (const { options, fn } of this.#transformers) {
       if (options.filter.test(filePath)) {
         if (content === null) {
-          content = await Deno.readFile(filePath);
+          content = await this.#fs.readFile(filePath);
         }
         const result = await fn({
           path: filePath,
@@ -58,17 +89,44 @@ export class FreshFileTransformer implements FileTransformer {
           },
         });
 
-        if (result !== undefined && result.content !== undefined) {
-          if (typeof result.content === "string") {
-            // TODO: Remove decoding overhead?
-            content = new TextEncoder().encode(result.content);
+        if (result !== undefined) {
+          if (Array.isArray(result)) {
+            const out: ProcessFileResult[] = [];
+            for (let i = 0; i < result.length; i++) {
+              const item = result[i];
+              if (typeof item.content === "function") {
+                out.push({
+                  content: item.content,
+                  path: item.path ?? filePath,
+                });
+              }
+            }
+            return out;
+          } else if (isLazyResult(result)) {
+            return [{
+              content: result.content,
+              path: result.path ?? filePath,
+            }];
           } else {
-            content = result.content;
+            const outContent = typeof result.content === "string"
+              ? new TextEncoder().encode(result.content)
+              : result.content;
+            const outMap = result.map !== undefined
+              ? typeof result.map === "string"
+                ? new TextEncoder().encode(result.map)
+                : result.map
+              : null;
+
+            return [{
+              content: outContent,
+              map: outMap,
+              path: filePath,
+            }];
           }
         }
       }
     }
 
-    return content;
+    return null;
   }
 }

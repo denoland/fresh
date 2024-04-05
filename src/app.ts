@@ -132,6 +132,7 @@ export class FreshApp<State> implements App<State> {
   }
 
   mountApp(path: string, app: App<State>): this {
+    // FIXME: Merge islands
     const routes = app._router._routes;
 
     let middlewares: Middleware<State>[] = [];

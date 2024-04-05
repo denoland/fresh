@@ -8,15 +8,19 @@ export function tailwind<T>(
 ): void {
   const processor = initTailwind(app.config, options);
 
-  app.onTransformStaticFile({ filter: /\.css$/ }, async (args) => {
-    const instance = await processor;
-    const res = await instance.process(args.text, {
-      from: args.path,
-    });
-
+  app.onTransformStaticFile({ filter: /\.css$/ }, (args) => {
     return {
-      content: res.content,
-      map: res.map?.toString(),
+      content: async () => {
+        const instance = await processor;
+        const res = await instance.process(args.text, {
+          from: args.path,
+        });
+
+        return {
+          content: res.content,
+          map: res.map?.toString(),
+        };
+      },
     };
   });
 }
