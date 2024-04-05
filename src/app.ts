@@ -16,21 +16,11 @@ import {
 import { type BuildCache, ProdBuildCache } from "./build_cache.ts";
 import * as path from "@std/path";
 import type { ComponentType } from "preact";
-
-export interface Island {
-  file: string | URL;
-  name: string;
-  exportName: string;
-  fn: ComponentType;
-}
-
-export const GLOBAL_ISLANDS: Map<ComponentType, Island> = new Map<
-  ComponentType,
-  Island
->();
+import type { ServerIslandRegistry } from "./context.ts";
 
 export interface App<State> {
   readonly _router: Router<Middleware<State>>;
+  readonly _islandRegistry: ServerIslandRegistry;
   readonly config: Readonly<ResolvedFreshConfig>;
 
   island(filePathOrUrl: string | URL, name: string, fn: ComponentType): void;
@@ -63,6 +53,7 @@ export class FreshApp<State> implements App<State> {
   _router: Router<Middleware<State>> = new UrlPatternRouter<
     Middleware<State>
   >();
+  _islandRegistry: ServerIslandRegistry = new Map();
   #islandNames = new Set<string>();
   #middlewares: Middleware<State>[] = [];
   #addedMiddlewares = false;
@@ -100,7 +91,7 @@ export class FreshApp<State> implements App<State> {
       name = `${name}_${i}`;
     }
 
-    GLOBAL_ISLANDS.set(fn, { fn, exportName, name, file: filePathOrUrl });
+    this._islandRegistry.set(fn, { fn, exportName, name, file: filePathOrUrl });
     return this;
   }
 
@@ -132,8 +123,10 @@ export class FreshApp<State> implements App<State> {
   }
 
   mountApp(path: string, app: App<State>): this {
-    // FIXME: Merge islands
     const routes = app._router._routes;
+    app._islandRegistry.forEach((value, key) => {
+      this._islandRegistry.set(key, value);
+    });
 
     let middlewares: Middleware<State>[] = [];
     let start = 0;
@@ -221,6 +214,7 @@ export class FreshApp<State> implements App<State> {
         this.config,
         next,
         this.buildCache!,
+        this._islandRegistry,
       );
 
       const method = req.method.toUpperCase() as Method;

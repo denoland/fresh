@@ -9,12 +9,12 @@ import {
   options as preactOptions,
   type VNode,
 } from "preact";
-import { GLOBAL_ISLANDS } from "../../app.ts";
 import type { Signal } from "@preact/signals";
 import type { Stringifiers } from "../../jsonify/stringify.ts";
 import type { FreshContext } from "../../context.ts";
 import { Partial, type PartialProps } from "../shared.ts";
 import { stringify } from "../../jsonify/stringify.ts";
+import type { ServerIslandRegistry } from "../../context.ts";
 
 const enum OptionsType {
   VNODE = "vnode",
@@ -64,7 +64,10 @@ export class RenderState {
   owners = new Map<VNode, VNode>();
   ownerStack: InternalVNode[] = [];
 
-  constructor(public ctx: FreshContext) {
+  constructor(
+    public ctx: FreshContext,
+    public islandRegistry: ServerIslandRegistry,
+  ) {
     this.nonce = crypto.randomUUID().replace(/-/g, "");
   }
 
@@ -111,7 +114,7 @@ options[OptionsType.DIFF] = (vnode) => {
     !PATCHED.has(vnode) && RENDER_STATE !== null &&
     !hasIslandOwner(RENDER_STATE, vnode)
   ) {
-    const island = GLOBAL_ISLANDS.get(vnode.type);
+    const island = RENDER_STATE.islandRegistry.get(vnode.type);
     if (island === undefined) {
       break patchIslands;
     }
@@ -187,7 +190,7 @@ function hasIslandOwner(current: RenderState, vnode: VNode): boolean {
   let tmpVNode = vnode;
   let owner;
   while ((owner = current.owners.get(tmpVNode)) !== undefined) {
-    if (GLOBAL_ISLANDS.has(owner.type as ComponentType)) {
+    if (current.islandRegistry.has(owner.type as ComponentType)) {
       return true;
     }
     tmpVNode = owner;

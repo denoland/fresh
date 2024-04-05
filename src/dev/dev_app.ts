@@ -1,10 +1,4 @@
-import {
-  type App,
-  FreshApp,
-  GLOBAL_ISLANDS,
-  type Island,
-  type ListenOptions,
-} from "../app.ts";
+import { type App, FreshApp, type ListenOptions } from "../app.ts";
 import type { FreshConfig } from "../config.ts";
 import { fsAdapter } from "../fs.ts";
 import * as path from "@std/path";
@@ -18,6 +12,7 @@ import {
 } from "./file_transformer.ts";
 import type { TransformFn } from "./file_transformer.ts";
 import { DiskBuildCache, MemoryBuildCache } from "./dev_build_cache.ts";
+import type { Island } from "../context.ts";
 
 export interface DevApp<T> extends App<T> {
   onTransformStaticFile(
@@ -97,7 +92,7 @@ export class FreshDevApp<T> extends FreshApp<T> implements DevApp<T> {
     };
     const seenEntries = new Map<string, Island>();
     const mapIslandToEntry = new Map<Island, string>();
-    for (const island of GLOBAL_ISLANDS.values()) {
+    for (const island of this._islandRegistry.values()) {
       const filePath = island.file instanceof URL
         ? island.file.href
         : island.file;

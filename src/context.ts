@@ -1,8 +1,17 @@
-import type { FunctionComponent, VNode } from "preact";
+import type { ComponentType, FunctionComponent, VNode } from "preact";
 import type { ResolvedFreshConfig } from "./config.ts";
 import { renderToString } from "preact-render-to-string";
 import type { BuildCache } from "./build_cache.ts";
 import { RenderState, setRenderState } from "./runtime/server/preact_hooks.tsx";
+
+export interface Island {
+  file: string | URL;
+  name: string;
+  exportName: string;
+  fn: ComponentType;
+}
+
+export type ServerIslandRegistry = Map<ComponentType, Island>;
 
 const NOOP = () => null;
 
@@ -89,13 +98,16 @@ export class FreshReqContext<T> implements FreshContext<T, unknown> {
   state = {} as T;
   data = {} as unknown;
   error: Error | null = null;
+  islandRegistry: ServerIslandRegistry;
 
   constructor(
     public req: Request,
     public config: ResolvedFreshConfig,
     public next: FreshContext<T>["next"],
     public buildCache: BuildCache,
+    islandRegistry: ServerIslandRegistry,
   ) {
+    this.islandRegistry = islandRegistry;
     this.url = new URL(req.url);
   }
 
@@ -126,7 +138,7 @@ export class FreshReqContext<T> implements FreshContext<T, unknown> {
     headers.set("Content-Type", "text/html; charset=utf-8");
     const responseInit: ResponseInit = { status: init.status ?? 200, headers };
 
-    const result = preactRender(vnode, this);
+    const result = preactRender(vnode, this, this.islandRegistry);
     return new Response("<!DOCTYPE html>" + result, responseInit);
   }
 
@@ -135,8 +147,12 @@ export class FreshReqContext<T> implements FreshContext<T, unknown> {
   }
 }
 
-function preactRender<T>(vnode: VNode, ctx: FreshContext<T>) {
-  const state = new RenderState(ctx);
+function preactRender<T>(
+  vnode: VNode,
+  ctx: FreshContext<T>,
+  islandRegistry: ServerIslandRegistry,
+) {
+  const state = new RenderState(ctx, islandRegistry);
   setRenderState(state);
   try {
     // TODO: Streaming
