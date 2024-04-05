@@ -1,5 +1,5 @@
 import { expect } from "@std/expect";
-import { serveMiddleware } from "../../test_utils.ts";
+import { delay, serveMiddleware } from "../../test_utils.ts";
 import { renderMiddleware } from "./render_middleware.ts";
 
 Deno.test("renderMiddleware - responds with HTML", async () => {
@@ -52,25 +52,30 @@ Deno.test("renderMiddleware - chain components", async () => {
   expect(await res.text()).toEqual("<!DOCTYPE html>c1c2c3");
 });
 
-// FIXME
-Deno.test.ignore("renderMiddleware - chain async components", async () => {
+Deno.test("renderMiddleware - chain async components", async () => {
   const server = await serveMiddleware(
     renderMiddleware(
       [
-        // deno-lint-ignore require-await
-        async (ctx) => (
-          <>
-            c1<ctx.Component />
-          </>
-        ),
-        // deno-lint-ignore require-await
-        async (ctx) => (
-          <>
-            c2<ctx.Component />
-          </>
-        ),
-        // deno-lint-ignore require-await
-        async () => <>c3</>,
+        async (ctx) => {
+          await delay(1);
+          return (
+            <>
+              c1<ctx.Component />
+            </>
+          );
+        },
+        async (ctx) => {
+          await delay(1);
+          return (
+            <>
+              c2<ctx.Component />
+            </>
+          );
+        },
+        async () => {
+          await delay(1);
+          return <>c3</>;
+        },
       ],
       undefined,
     ),
@@ -78,5 +83,5 @@ Deno.test.ignore("renderMiddleware - chain async components", async () => {
 
   const res = await server.get("/");
   expect(res.status).toEqual(200);
-  expect(await res.text()).toEqual("c1c2c3");
+  expect(await res.text()).toEqual("<!DOCTYPE html>c1c2c3");
 });
