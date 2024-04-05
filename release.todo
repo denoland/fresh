@@ -31,14 +31,14 @@ Fresh 2.0:
 ✔ Static middleware should never cache files in dev @done(24-03-28 13:04)
 ☐ need to manually update all middlewares and handlers to use the new signature. absolutely need a codemod for this
 ☐ needed to manually remove `<Head>` everywhere
-☐ dev loop gets muuuch slower. i am waiting on the order of 2-3 seconds every save (was much faster in fresh 1)
+✔ dev loop gets muuuch slower. i am waiting on the order of 2-3 seconds every save (was much faster in fresh 1) @done(24-04-05 13:31)
 ✔ `_middleware` exporting an array of middleware is not working anymore @done(24-04-05 03:26)
 ✔ async `_app` components do not work (jsr uses this) @done(24-04-05 03:19)
-☐ Pending build cache
-☐ Do static file processing lazily, only when requested
-☐ OnStaticTransform signature has wrong return
-  ☐ Allow returning multiple files
-  ☐ Make content a callback that returns a promise -> Lazy loading
+✔ Pending build cache @done(24-04-05 13:31)
+✔ Do static file processing lazily, only when requested @done(24-04-05 13:31)
+✔ OnStaticTransform signature has wrong return @done(24-04-05 13:31)
+  ✔ Allow returning multiple files @done(24-04-05 13:31)
+  ✔ Make content a callback that returns a promise -> Lazy loading @done(24-04-05 13:31)
 ☐ Pass app to devApp constructor
 ☐ ctx.destination breaking change
 
