@@ -1,5 +1,5 @@
 import { type ComponentChildren, Fragment, h } from "preact";
-export { asset } from "../runtime/client/mod.tsx";
+export { asset } from "../runtime/shared.ts";
 
 /**
  * @deprecated FIXME explain why + link to docs
