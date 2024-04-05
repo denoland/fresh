@@ -292,7 +292,7 @@ function FreshRuntimeScript() {
     const chunk = ctx.buildCache.getIslandChunkName(island.name);
     if (chunk === null) {
       throw new Error(
-        `Could not find chunk for ${island.name} ${island.exportName}#${island.file}`,
+        `Could not find chunk for ${island.name} ${island.file}#${island.exportName}`,
       );
     }
     const named = island.exportName === "default"
