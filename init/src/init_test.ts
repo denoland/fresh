@@ -1,6 +1,9 @@
 import { expect } from "@std/expect";
 import { initProject, InitStep, type MockTTY } from "./init.ts";
 import * as path from "@std/path";
+import { withBrowser } from "../../tests/test_utils.ts";
+import { waitForText } from "../../tests/test_utils.ts";
+import { withChildProcessServer } from "../../tests/test_utils.ts";
 
 async function withTmpDir(fn: (dir: string) => void | Promise<void>) {
   const dir = await Deno.makeTempDir();
@@ -63,7 +66,7 @@ Deno.test("init - create project dir", async () => {
 
     const root = path.join(dir, "fresh-init");
     await expectProjectFile(root, "deno.json");
-    await expectProjectFile(root, "main.ts");
+    await expectProjectFile(root, "main.tsx");
     await expectProjectFile(root, "dev.ts");
     await expectProjectFile(root, ".gitignore");
     await expectProjectFile(root, "static/styles.css");
@@ -81,7 +84,7 @@ Deno.test("init - with tailwind", async () => {
     const css = await readProjectFile(dir, "static/styles.css");
     expect(css).toMatch(/@tailwind/);
 
-    const main = await readProjectFile(dir, "main.ts");
+    const main = await readProjectFile(dir, "main.tsx");
     const dev = await readProjectFile(dir, "dev.ts");
     expect(main).not.toMatch(/tailwind/);
     expect(dev).toMatch(/tailwind/);
@@ -98,5 +101,62 @@ Deno.test("init - with vscode", async () => {
 
     await expectProjectFile(dir, ".vscode/settings.json");
     await expectProjectFile(dir, ".vscode/extensions.json");
+  });
+});
+
+Deno.test("init - can start dev server", async () => {
+  await withTmpDir(async (dir) => {
+    const mock = mockUserInput({
+      [InitStep.ProjectName]: ".",
+    });
+    await initProject(dir, [], {}, mock.tty);
+    await expectProjectFile(dir, "main.tsx");
+    await expectProjectFile(dir, "dev.ts");
+
+    await withChildProcessServer(
+      dir,
+      path.join(dir, "dev.ts"),
+      async (address) => {
+        await withBrowser(async (page) => {
+          await page.goto(address);
+          await page.waitForSelector("button");
+          await page.click("button");
+          await waitForText(page, "button + p", "2");
+        });
+      },
+    );
+  });
+});
+
+Deno.test("init - can start build project", async () => {
+  await withTmpDir(async (dir) => {
+    const mock = mockUserInput({
+      [InitStep.ProjectName]: ".",
+    });
+    await initProject(dir, [], {}, mock.tty);
+    await expectProjectFile(dir, "main.tsx");
+    await expectProjectFile(dir, "dev.ts");
+
+    // Build
+    await new Deno.Command(Deno.execPath(), {
+      args: ["run", "-A", path.join(dir, "dev.ts"), "build"],
+      stdin: "null",
+      stdout: "piped",
+      stderr: "piped",
+      cwd: dir,
+    }).output();
+
+    await withChildProcessServer(
+      dir,
+      path.join(dir, "main.tsx"),
+      async (address) => {
+        await withBrowser(async (page) => {
+          await page.goto(address);
+          await page.waitForSelector("button");
+          await page.click("button");
+          await waitForText(page, "button + p", "2");
+        });
+      },
+    );
   });
 });

@@ -173,11 +173,11 @@ ENV DENO_DEPLOYMENT_ID=\${GIT_REVISION}
 WORKDIR /app
 
 COPY . .
-RUN deno cache main.ts
+RUN deno cache main.tsx
 
 EXPOSE 8000
 
-CMD ["run", "-A", "main.ts"]
+CMD ["run", "-A", "main.tsx"]
 
 `;
     await writeFile("Dockerfile", DOCKERFILE_TEXT);
@@ -494,7 +494,7 @@ if (Deno.args.includes("build")) {
     exclude: ["**/_fresh/*"],
     imports: {
       // FIXME: Update once relased
-      "@fresh/core": "jsr:@marvinh-test/fresh@^2.0.0-prealpha.11",
+      "@fresh/core": "jsr:@marvinh-test/fresh@^2.0.0-prealpha.16",
       "@fresh/plugin-tailwind": "jsr:@marvinh-test/fresh-tailwind@^0.0.1",
       "preact": "npm:preact@^10.20.1",
       "@preact/signals": "npm:@preact/signals@^1.2.3",

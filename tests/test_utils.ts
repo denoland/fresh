@@ -5,6 +5,7 @@ import puppeteer, {
 import * as colors from "@std/fmt/colors";
 import { type Document, DOMParser, HTMLElement } from "linkedom";
 import { FreshDevApp } from "../src/dev/dev_app.ts";
+import { TextLineStream } from "@std/streams/text-line-stream";
 
 export async function buildProd(app: App<unknown>) {
   const outDir = await Deno.makeTempDir();
@@ -50,6 +51,70 @@ export async function withBrowserApp(
   } finally {
     aborter.abort();
     await server?.finished;
+  }
+}
+
+export async function withBrowser(fn: (page: Page) => void | Promise<void>) {
+  const aborter = new AbortController();
+  try {
+    const browser = await puppeteer.launch({
+      args: ["--no-sandbox"],
+      // headless: false,
+    });
+
+    const page = await browser.newPage();
+    // page.setDefaultTimeout(1000000);
+    try {
+      await fn(page);
+    } finally {
+      await page.close();
+      await browser.close();
+    }
+  } finally {
+    aborter.abort();
+  }
+}
+
+export async function withChildProcessServer(
+  dir: string,
+  entry: string,
+  fn: (address: string) => void | Promise<void>,
+) {
+  const aborter = new AbortController();
+  const cp = await new Deno.Command(Deno.execPath(), {
+    args: ["run", "-A", entry],
+    stdin: "null",
+    stdout: "piped",
+    stderr: "piped",
+    cwd: dir,
+    signal: aborter.signal,
+  }).spawn();
+
+  const lines: ReadableStream<string> = cp.stdout
+    .pipeThrough(new TextDecoderStream())
+    .pipeThrough(new TextLineStream());
+
+  const output: string[] = [];
+  let address = "";
+  // @ts-ignore yes it does
+  for await (const line of lines.values({ preventCancel: true })) {
+    output.push(line);
+    const match = line.match(
+      /https?:\/\/localhost:\d+(\/\w+[-\w]*)*/g,
+    );
+    if (match) {
+      address = match[0];
+      break;
+    }
+  }
+
+  try {
+    await fn(address);
+  } finally {
+    aborter.abort();
+    await cp.stderr.cancel();
+    await cp.status;
+    for await (const _ of lines) { /* noop */ }
   }
 }
 
