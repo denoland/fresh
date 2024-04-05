@@ -3,7 +3,7 @@
   "version": "2.0.0-prealpha.16",
   "exports": {
     ".": "./src/mod.ts",
-    "./runtime": "./src/runtime/client/shared.ts",
+    "./runtime": "./src/runtime/shared.ts",
     "./client": "./src/runtime/client/mod.tsx",
     "./client-dev": "./src/runtime/client/dev.ts",
     "./compat": "./src/compat/server.ts",
