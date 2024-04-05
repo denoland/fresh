@@ -6,7 +6,10 @@ import type { RouteConfig } from "../../types.ts";
 import type { RouteHandler } from "../../defines.ts";
 import type { FreshContext } from "../../context.ts";
 import type { Middleware } from "../../middlewares/mod.ts";
-import { renderMiddleware } from "./render_middleware.ts";
+import {
+  type AsyncAnyComponent,
+  renderMiddleware,
+} from "./render_middleware.ts";
 import { type Method, pathToPattern } from "../../router.ts";
 import { type HandlerFn, isHandlerMethod } from "../../defines.ts";
 import { type FsAdapter, fsAdapter } from "../../fs.ts";
@@ -27,7 +30,7 @@ export interface FreshFsItem<T = unknown> {
   config?: RouteConfig;
   handler?: RouteHandler<unknown, T>;
   handlers?: RouteHandler<unknown, T>;
-  default?: AnyComponent<FreshContext<T>>;
+  default?: AnyComponent<FreshContext<T>> | AsyncAnyComponent<FreshContext<T>>;
 }
 
 // deno-lint-ignore no-explicit-any

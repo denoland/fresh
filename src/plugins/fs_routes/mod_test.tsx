@@ -1,6 +1,6 @@
 import { FreshApp } from "../../app.ts";
 import { type FreshFsItem, fsRoutes, sortRoutePaths } from "./mod.ts";
-import { FakeServer } from "../../test_utils.ts";
+import { delay, FakeServer } from "../../test_utils.ts";
 import * as path from "@std/path";
 import { createFakeFs } from "../../test_utils.ts";
 import { expect } from "@std/expect";
@@ -685,6 +685,46 @@ Deno.test("fsRoutes - route group specific templates", async () => {
 
   res = await server.get("/bar_error");
   expect(await res.text()).toEqual("<!DOCTYPE html>fail bar");
+});
+
+Deno.test("fsRoutes - async route components", async () => {
+  const server = await createServer<{ text: string }>({
+    "routes/_error.tsx": {
+      default: async () => {
+        await delay(1);
+        return <>fail foo</>;
+      },
+    },
+    "routes/_layout.tsx": {
+      default: async (ctx) => {
+        await delay(1);
+        return (
+          <>
+            {ctx.state.text}/_layout/<ctx.Component />
+          </>
+        );
+      },
+    },
+    "routes/foo.tsx": {
+      default: async () => {
+        await delay(1);
+        return <>foo</>;
+      },
+    },
+    "routes/foo_error.tsx": {
+      default: async () => {
+        await delay(1);
+        throw new Error("fail");
+      },
+    },
+  });
+
+  let res = await server.get("/foo");
+  expect(await res.text()).toEqual(
+    "<!DOCTYPE html>/_layout/foo",
+  );
+  res = await server.get("/foo_error");
+  expect(await res.text()).toEqual("<!DOCTYPE html>fail foo");
 });
 
 Deno.test("fsRoutes - sortRoutePaths", () => {

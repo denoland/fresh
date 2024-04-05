@@ -37,17 +37,27 @@ async (ctx) => {
   for (let i = components.length - 1; i >= 0; i--) {
     const child = vnode;
     const Component = () => child;
-    // deno-lint-ignore no-explicit-any
-    vnode = h(components[i] as any, {
-      config: ctx.config,
-      url: ctx.url,
-      req: ctx.req,
-      params: ctx.params,
-      state: ctx.state,
-      Component,
-      error: ctx.error,
-      data: result?.data ?? {},
-    }) as VNode;
+
+    const fn = components[i];
+
+    if (
+      typeof fn === "function" &&
+      fn.constructor.name === "AsyncFunction"
+    ) {
+      vnode = await fn({ ...ctx, Component });
+    } else {
+      // deno-lint-ignore no-explicit-any
+      vnode = h(components[i] as any, {
+        config: ctx.config,
+        url: ctx.url,
+        req: ctx.req,
+        params: ctx.params,
+        state: ctx.state,
+        Component,
+        error: ctx.error,
+        data: result?.data ?? {},
+      }) as VNode;
+    }
   }
 
   return ctx.render(vnode!);
