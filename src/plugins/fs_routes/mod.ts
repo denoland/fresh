@@ -28,7 +28,7 @@ interface InternalRoute<T> {
 
 export interface FreshFsItem<T = unknown> {
   config?: RouteConfig;
-  handler?: RouteHandler<unknown, T>;
+  handler?: RouteHandler<unknown, T> | HandlerFn<unknown, T>[];
   handlers?: RouteHandler<unknown, T>;
   default?: AnyComponent<FreshContext<T>> | AsyncAnyComponent<FreshContext<T>>;
 }
@@ -183,10 +183,11 @@ export async function fsRoutes<T>(app: App<T>, options: FsRoutesOptions) {
 
     for (let k = 0; k < stack.length; k++) {
       const mod = stack[k];
-      if (mod.handlers !== null && !isHandlerMethod(mod.handlers)) {
-        if (mod.path.endsWith("/_middleware")) {
-          // FIXME: Decide what to do with Middleware vs Handler type
+      if (mod.path.endsWith("/_middleware")) {
+        if (mod.handlers !== null && !isHandlerMethod(mod.handlers)) {
           middlewares.push(mod.handlers as Middleware<T>);
+        } else if (Array.isArray(mod.handlers)) {
+          middlewares.push(...mod.handlers);
         }
       }
 

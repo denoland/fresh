@@ -177,6 +177,33 @@ Deno.test("fsRoutes - nested middlewares", async () => {
   expect(await res.text()).toEqual("<!DOCTYPE html>AB");
 });
 
+Deno.test("fsRoutes - middleware array", async () => {
+  const server = await createServer<{ text: string }>({
+    "routes/_middleware.ts": {
+      handler: [
+        (ctx) => {
+          ctx.state.text = "A";
+          return ctx.next();
+        },
+        (ctx) => {
+          ctx.state.text += "B";
+          return ctx.next();
+        },
+      ],
+    },
+    "routes/foo/_middleware.ts": {
+      handler: (ctx) => {
+        ctx.state.text += "C";
+        return ctx.next();
+      },
+    },
+    "routes/foo/index.ts": { default: (ctx) => <>{ctx.state.text}</> },
+  });
+
+  const res = await server.get("/foo");
+  expect(await res.text()).toEqual("<!DOCTYPE html>ABC");
+});
+
 Deno.test("fsRoutes - combined", async () => {
   const server = await createServer<{ text: string }>({
     "routes/foo/bar.ts": {
