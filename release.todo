@@ -42,8 +42,7 @@ Fresh 2.0:
 ☐ Pass app to devApp constructor
 ☐ next bug i ran into was that static file serving with the tailwind plugin does not seem to be working in dev mode
 ☐ new builder architecture
-☐ Remove `GLOBAL_ISLANDS` map in favor of being scoped to render state
-☐ ctx.destination breaking change
+✔ Remove `GLOBAL_ISLANDS` map in favor of being scoped to render state @done(24-04-05 22:28)
 
 Fresh 2.0 compat:
 ☐ add plugin API backwards compat
