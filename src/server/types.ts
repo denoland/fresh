@@ -249,7 +249,6 @@ export interface RouteConfig {
   skipAppWrapper?: boolean;
 }
 
-// deno-lint-ignore no-empty-interface
 export interface RenderOptions extends ResponseInit {}
 
 export type ServeHandlerInfo = {
