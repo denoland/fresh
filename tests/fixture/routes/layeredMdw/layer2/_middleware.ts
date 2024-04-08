@@ -1,4 +1,4 @@
-import { MiddlewareHandlerContext } from "$fresh/server.ts";
+import { FreshContext } from "$fresh/server.ts";
 
 interface State {
   root: string;
@@ -8,7 +8,7 @@ interface State {
 
 export async function handler(
   _req: Request,
-  ctx: MiddlewareHandlerContext<State>,
+  ctx: FreshContext<State>,
 ) {
   ctx.state.layer2 = "layer2_mw";
   const resp = await ctx.next();

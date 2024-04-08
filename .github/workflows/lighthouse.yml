@@ -14,7 +14,7 @@ jobs:
 
     steps:
       - name: Setup repo
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Audit URLs using Lighthouse
         uses: treosh/lighthouse-ci-action@v10

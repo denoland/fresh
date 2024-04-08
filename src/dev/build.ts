@@ -1,43 +1,55 @@
-import { ServerContext } from "../server/context.ts";
-import { FreshOptions, Manifest } from "../server/mod.ts";
-import { dirname, fromFileUrl, join, toFileUrl } from "../server/deps.ts";
-import { fs } from "./deps.ts";
+import { getServerContext } from "../server/context.ts";
+import { join } from "../server/deps.ts";
+import { colors, emptyDir } from "./deps.ts";
+import { BuildSnapshotJson } from "../build/mod.ts";
+import { BUILD_ID } from "../server/build_id.ts";
+import { InternalFreshState } from "../server/types.ts";
 
 export async function build(
-  manifestPath: string,
-  opts: FreshOptions,
+  state: InternalFreshState,
 ) {
-  const manifest = (await import(toFileUrl(manifestPath).href))
-    .default as Manifest;
-
-  const outDir = join(dirname(fromFileUrl(manifest.baseUrl)), "_fresh");
+  const outDir = state.config.build.outDir;
+  const plugins = state.config.plugins;
 
   // Ensure that build dir is empty
-  await fs.emptyDir(outDir);
+  await emptyDir(outDir);
 
-  const ctx = await ServerContext.fromManifest(manifest, {
-    ...opts,
-    skipSnapshot: true,
-  });
+  // Create a directory for static assets produced during the build
+  await Deno.mkdir(join(outDir, "static"));
+
+  await Promise.all(
+    plugins.map((plugin) => plugin.configResolved?.(state.config)),
+  );
+  await Promise.all(plugins.map((plugin) => plugin.buildStart?.(state.config)));
 
   // Bundle assets
+  const ctx = await getServerContext(state);
   const snapshot = await ctx.buildSnapshot();
 
   // Write output files to disk
-  await Promise.all(snapshot.paths.map((fileName) => {
-    const data = snapshot.read(fileName);
+  await Promise.all(snapshot.paths.map(async (fileName) => {
+    const data = await snapshot.read(fileName);
     if (data === null) return;
 
     return Deno.writeFile(join(outDir, fileName), data);
   }));
 
   // Write dependency snapshot file to disk
-  const deps: Record<string, string[]> = {};
+  const jsonSnapshot: BuildSnapshotJson = {
+    build_id: BUILD_ID,
+    files: {},
+  };
   for (const filePath of snapshot.paths) {
     const dependencies = snapshot.dependencies(filePath);
-    deps[filePath] = dependencies;
+    jsonSnapshot.files[filePath] = dependencies;
   }
 
   const snapshotPath = join(outDir, "snapshot.json");
-  await Deno.writeTextFile(snapshotPath, JSON.stringify(deps, null, 2));
+  await Deno.writeTextFile(snapshotPath, JSON.stringify(jsonSnapshot, null, 2));
+
+  console.log(
+    `Assets written to: ${colors.green(outDir)}`,
+  );
+
+  await Promise.all(plugins.map((plugin) => plugin.buildEnd?.()));
 }

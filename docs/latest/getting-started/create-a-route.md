@@ -29,7 +29,7 @@ this, one needs to create a new `routes/about.tsx` file. In this file, we can
 declare a component that should be rendered every time a user visits the page.
 This is done with JSX.
 
-> ℹ️ To learn more about JSX, you can read [this article][jsx] in the React
+> [info]: To learn more about JSX, you can read [this article][jsx] in the React
 > documentation. Beware that Fresh does not use React, but rather
 > [Preact][preact], a lighter weight virtual dom library that works similar to
 > React.

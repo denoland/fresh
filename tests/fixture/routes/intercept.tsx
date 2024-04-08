@@ -1,11 +1,11 @@
-import { HandlerContext } from "$fresh/server.ts";
+import { FreshContext } from "$fresh/server.ts";
 
 export default function Page() {
   return <div>This is HTML</div>;
 }
 
 export const handler = {
-  GET(req: Request, { render }: HandlerContext) {
+  GET(req: Request, { render }: FreshContext) {
     if (req.headers.get("accept")?.includes("text/html")) {
       return render();
     } else {

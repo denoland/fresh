@@ -11,10 +11,10 @@ jobs:
     if: github.repository == 'denoland/fresh'
     steps:
       - name: Checkout repo
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Authenticate with Google Cloud
-        uses: google-github-actions/auth@v1
+        uses: google-github-actions/auth@v2
         with:
           project_id: denoland
           credentials_json: ${{ secrets.GCP_SA_KEY }}
@@ -22,7 +22,7 @@ jobs:
           create_credentials_file: true
 
       - name: Setup gcloud
-        uses: google-github-actions/setup-gcloud@v1
+        uses: google-github-actions/setup-gcloud@v2
         with:
           project_id: denoland
 

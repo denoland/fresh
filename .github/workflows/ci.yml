@@ -14,7 +14,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        deno: ["v1.x", "canary"]
+        deno: ["canary", "v1.x"]
         os: [macOS-latest, windows-latest, ubuntu-latest]
         include:
         - os: ubuntu-latest
@@ -26,7 +26,7 @@ jobs:
 
     steps:
       - name: Checkout repo
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Setup Deno
         uses: denoland/setup-deno@v1
@@ -34,17 +34,19 @@ jobs:
           deno-version: ${{ matrix.deno }}
 
       - name: Verify formatting
+        if: startsWith(matrix.os, 'ubuntu') && matrix.deno == 'v1.x'
         run: deno fmt --check
 
       - name: Run linter
+        if: startsWith(matrix.os, 'ubuntu') && matrix.deno == 'v1.x'
         run: deno lint
 
       - name: Spell-check
-        if: startsWith(matrix.os, 'ubuntu') && matrix.deno == 'canary'
+        if: startsWith(matrix.os, 'ubuntu') && matrix.deno == 'v1.x'
         uses: crate-ci/typos@master
 
       - name: Cache dependencies and Chrome
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: |
             ${{ matrix.cache_path }}deps
@@ -59,10 +61,5 @@ jobs:
       - name: Type check project
         run: deno task check:types
 
-      - name: Run tests Windows
-        if: matrix.os == 'windows-latest'
-        run: deno test -A
-
-      - name: Run tests macOS + Linux
-        if: matrix.os != 'windows-latest'
-        run: deno test -A --parallel
+      - name: Run tests
+        run: deno task test

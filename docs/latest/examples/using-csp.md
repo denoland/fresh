@@ -270,8 +270,8 @@ export default function Home(req: Request, ctx: RouteContext) {
     <>
       <h1>
         This page violates our configured CSP. But we don't have a{" "}
-        <code>RouteConfig</code> enabled, so Fresh doesn't know to use the CSP.
-        Styles will be applied.
+        <code>RouteConfig</code>{" "}
+        enabled, so Fresh doesn't know to use the CSP. Styles will be applied.
       </h1>
       <link rel="stylesheet" type="text/css" href="example.css" />
     </>
@@ -324,10 +324,10 @@ export const config: RouteConfig = {
 ```
 
 ```ts routes/reportHandler.ts
-import { HandlerContext } from "$fresh/server.ts";
+import { FreshContext } from "$fresh/server.ts";
 
 export const handler = {
-  async POST(req: Request, _ctx: HandlerContext) {
+  async POST(req: Request, _ctx: FreshContext) {
     const body = await req.json();
     const report = JSON.stringify(body, null, 2);
 

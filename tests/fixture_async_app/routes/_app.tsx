@@ -1,13 +1,13 @@
 import { delay } from "$std/async/delay.ts";
-import { AppContext } from "$fresh/src/server/types.ts";
+import { FreshContext } from "$fresh/src/server/types.ts";
 
-export default async function App(req: Request, ctx: AppContext) {
+export default async function App(req: Request, ctx: FreshContext) {
   await delay(100);
 
   return (
     <html lang="fr">
       <head>
-        <meta charSet="utf-8" />
+        <meta charset="utf-8" />
         <meta
           name="viewport"
           content="width=device-width, initial-scale=1.0"

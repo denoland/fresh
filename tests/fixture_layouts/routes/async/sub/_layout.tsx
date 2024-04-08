@@ -1,8 +1,8 @@
-import { LayoutContext } from "$fresh/server.ts";
+import { FreshContext } from "$fresh/server.ts";
 
 export default async function AsyncSubLayout(
   req: Request,
-  ctx: LayoutContext,
+  ctx: FreshContext,
 ) {
   await new Promise((r) => setTimeout(r, 10));
   return (

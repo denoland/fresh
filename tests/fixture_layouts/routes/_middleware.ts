@@ -1,4 +1,4 @@
-import { MiddlewareHandlerContext } from "$fresh/server.ts";
+import { FreshContext } from "$fresh/server.ts";
 
 export type LayoutState = {
   something: string;
@@ -6,7 +6,7 @@ export type LayoutState = {
 
 export const handler = (
   _req: Request,
-  ctx: MiddlewareHandlerContext<LayoutState>,
+  ctx: FreshContext<LayoutState>,
 ) => {
   ctx.state.something = "it works";
   return ctx.next();

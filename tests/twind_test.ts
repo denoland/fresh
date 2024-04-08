@@ -1,7 +1,13 @@
 import { assert, assertEquals, assertMatch, delay, puppeteer } from "./deps.ts";
 
 import { cmpStringArray } from "./fixture_twind_hydrate/utils/utils.ts";
-import { startFreshServer, withFresh, withPageName } from "./test_utils.ts";
+import {
+  startFreshServer,
+  waitForStyle,
+  withFakeServe,
+  withFresh,
+  withPageName,
+} from "./test_utils.ts";
 
 /**
  * Start the server with the main file.
@@ -22,25 +28,16 @@ async function setUpServer(path: string) {
    * terminate server
    */
   const terminate = async () => {
-    await lines.cancel();
     await browser.close();
 
     serverProcess.kill("SIGKILL");
     await serverProcess.status;
 
-    // TextDecoder leaks, so close it manually.
-    const denoResourcesMap = new Map(
-      Object.entries(Deno.resources()).map(([rid, representation]) => {
-        return [representation, parseInt(rid)];
-      }),
-    );
-    const textDecoderRid = denoResourcesMap.get("textDecoder");
-    if (textDecoderRid != null) {
-      Deno.close(textDecoderRid);
-    }
+    // Drain the lines stream
+    for await (const _ of lines) { /* noop */ }
   };
 
-  return { page: page, terminate: terminate, address };
+  return { page: page, terminate, address };
 }
 
 /**
@@ -312,8 +309,6 @@ Deno.test({
       },
     );
   },
-  sanitizeOps: false,
-  sanitizeResources: false,
 });
 
 Deno.test({
@@ -347,32 +342,26 @@ Deno.test({
       },
     );
   },
-  sanitizeOps: false,
-  sanitizeResources: false,
 });
 
 // Test for: https://github.com/denoland/fresh/issues/1655
-Deno.test({
-  name: "don't duplicate css class",
-  async fn() {
-    await withFresh(
-      "./tests/fixture_twind_app/main.ts",
-      async (address) => {
-        const res = await fetch(`${address}/app_class`);
-        assertEquals(res.status, 200);
+Deno.test("don't duplicate css class", async () => {
+  await withFakeServe(
+    "./tests/fixture_twind_app/main.ts",
+    async (server) => {
+      const res = await server.get(`/app_class`);
+      assertEquals(res.status, 200);
 
-        // Don't use an HTML parser here which would de-duplicate the
-        // class names automatically
-        const html = await res.text();
-        assertMatch(html, /html class="bg-slate-800">/);
-        assertMatch(html, /head class="bg-slate-800">/);
-        assertMatch(html, /body class="bg-slate-800">/);
-      },
-    );
-  },
-  sanitizeOps: false,
-  sanitizeResources: false,
+      // Don't use an HTML parser here which would de-duplicate the
+      // class names automatically
+      const html = await res.text();
+      assertMatch(html, /html class="bg-slate-800">/);
+      assertMatch(html, /head class="bg-slate-800">/);
+      assertMatch(html, /body class="bg-slate-800">/);
+    },
+  );
 });
+
 // Test for: https://github.com/denoland/fresh/issues/1655
 Deno.test("don't duplicate css class with twindV1", async () => {
   await withFresh(
@@ -394,6 +383,25 @@ Deno.test("don't duplicate css class with twindV1", async () => {
       assertMatch(html, /html class="bg-slate-800">/);
       assertMatch(html, /head class="bg-slate-800">/);
       assertMatch(html, /body class="bg-slate-800">/);
+    },
+  );
+});
+
+Deno.test("render styles from partial update", async () => {
+  await withPageName(
+    "./tests/fixture_twind_hydrate/main.ts",
+    async (page, address) => {
+      await page.goto(`${address}/island_twind`);
+      await page.click(`a[href="/island_twind/blue"]`);
+
+      await page.waitForSelector(".bg-blue-500");
+
+      await waitForStyle(
+        page,
+        ".bg-blue-500",
+        "backgroundColor",
+        "rgb(59, 130, 246)",
+      );
     },
   );
 });

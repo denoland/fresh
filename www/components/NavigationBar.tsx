@@ -23,17 +23,15 @@ export default function NavigationBar(
   ];
   const isHome = props.active == "/";
   return (
-    <nav class={"flex " + props.class ?? ""}>
-      <ul class="flex justify-center items-center gap-4 mx-4 my-6 flex-wrap">
+    <nav class={"flex " + props.class ?? ""} f-client-nav={false}>
+      <ul class="flex justify-center items-center gap-2 sm:gap-4 mx-4 my-2 sm:my-6 flex-wrap lg:mx-8 2xl:mr-0">
         {items.map((item) => (
           <li>
             <a
               href={item.href}
-              class={`p-2 ${
+              class={`p-1 sm:p-2 ${
                 isHome ? "text-green-900" : "text-gray-600"
-              } hover:underline ${
-                props.active == item.href ? "font-bold" : ""
-              }`}
+              } hover:underline aria-[current]:font-bold`}
             >
               {item.name}
             </a>

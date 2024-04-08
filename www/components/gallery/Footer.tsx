@@ -1,11 +1,7 @@
-import { ComponentChildren } from "preact";
-import LemonIcon from "https://deno.land/x/tabler_icons_tsx@0.0.3/tsx/lemon-2.tsx";
-import BrandGithub from "https://deno.land/x/tabler_icons_tsx@0.0.3/tsx/brand-github.tsx";
-type Props = {
-  children: ComponentChildren;
-};
+import LemonIcon from "https://deno.land/x/tabler_icons_tsx@0.0.6/tsx/lemon-2.tsx";
+import BrandGithub from "https://deno.land/x/tabler_icons_tsx@0.0.6/tsx/brand-github.tsx";
 
-export default function Footer({ children }: Props) {
+export default function Footer() {
   const menus = [
     {
       title: "Documentation",

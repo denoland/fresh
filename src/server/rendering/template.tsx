@@ -1,9 +1,17 @@
 import { RenderState } from "./state.ts";
 import { setRenderState } from "./preact_hooks.ts";
-import { renderToString } from "preact-render-to-string";
-import { Fragment, h } from "preact";
+import { renderToString } from "../deps.ts";
+import {
+  ComponentType,
+  Fragment,
+  h,
+  isValidElement,
+  toChildArray,
+  VNode,
+} from "preact";
 import { HEAD_CONTEXT } from "../../runtime/head.ts";
 import { CSP_CONTEXT } from "../../runtime/csp.ts";
+import { withBase } from "../router.ts";
 
 export function renderHtml(state: RenderState) {
   setRenderState(state);
@@ -13,12 +21,12 @@ export function renderHtml(state: RenderState) {
   const componentStack = state.componentStack;
   try {
     const routeComponent = componentStack[componentStack.length - 1];
-    let finalComp = h(routeComponent, state.routeOptions);
+    let finalComp = h(routeComponent, state.routeOptions) as VNode;
 
     // Skip page component
     let i = componentStack.length - 1;
     while (i--) {
-      const component = componentStack[i];
+      const component = componentStack[i] as ComponentType;
       const curComp = finalComp;
 
       finalComp = h(component, {
@@ -26,7 +34,8 @@ export function renderHtml(state: RenderState) {
         Component() {
           return curComp;
         },
-      });
+        // deno-lint-ignore no-explicit-any
+      } as any) as VNode;
     }
 
     const app = h(
@@ -37,12 +46,12 @@ export function renderHtml(state: RenderState) {
         value: state.headVNodes,
         children: finalComp,
       }),
-    );
+    ) as VNode;
 
     let html = renderToString(app);
 
     for (const [id, children] of state.slots.entries()) {
-      const slotHtml = renderToString(h(Fragment, null, children));
+      const slotHtml = renderToString(h(Fragment, null, children) as VNode);
       const templateId = id.replace(/:/g, "-");
       html += `<template id="${templateId}">${slotHtml}</template>`;
     }
@@ -66,11 +75,36 @@ export function renderOuterDocument(
     docHtml,
     docHead,
     renderedHtmlTag,
-    docTitle,
     docBody,
     docHeadNodes,
     headVNodes,
   } = state;
+  let docTitle = state.docTitle;
+
+  // Filter out duplicate head vnodes by "key" if set
+  const filteredHeadNodes: VNode[] = [];
+
+  if (headVNodes.length > 0) {
+    const seen = new Map<string, VNode>();
+    const userChildren = toChildArray(headVNodes);
+    for (let i = 0; i < userChildren.length; i++) {
+      const child = userChildren[i];
+
+      if (isValidElement(child)) {
+        if (child.type === "title") {
+          docTitle = child;
+        } else if (child.key !== undefined) {
+          seen.set(child.key, child);
+        } else {
+          filteredHeadNodes.push(child);
+        }
+      }
+    }
+
+    if (seen.size > 0) {
+      filteredHeadNodes.push(...seen.values());
+    }
+  }
 
   const page = h(
     "html",
@@ -78,7 +112,7 @@ export function renderOuterDocument(
     h(
       "head",
       docHead,
-      !renderedHtmlTag ? h("meta", { charSet: "utf-8" }) : null,
+      !renderedHtmlTag ? h("meta", { charset: "utf-8" }) : null,
       !renderedHtmlTag
         ? (h("meta", {
           name: "viewport",
@@ -88,18 +122,22 @@ export function renderOuterDocument(
       docTitle,
       docHeadNodes.map((node) => h(node.type, node.props)),
       opts.preloads.map((src) =>
-        h("link", { rel: "modulepreload", href: src })
+        h("link", { rel: "modulepreload", href: withBase(src, state.basePath) })
       ),
       opts.moduleScripts.map(([src, nonce]) =>
-        h("script", { src: src, nonce, type: "module" })
+        h("script", {
+          src: withBase(src, state.basePath),
+          nonce,
+          type: "module",
+        })
       ),
-      headVNodes,
+      filteredHeadNodes,
     ),
     h("body", {
       ...docBody,
       dangerouslySetInnerHTML: { __html: opts.bodyHtml },
     }),
-  );
+  ) as VNode;
 
   try {
     setRenderState(state);

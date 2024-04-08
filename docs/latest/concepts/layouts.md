@@ -11,7 +11,7 @@ Preact component. Only one such layout is allowed per sub directory.
 └── routes
     ├── sub
     │   ├── page.tsx
-    │   └── index.tss
+    │   └── index.tsx
     ├── other
     │   ├── _layout.tsx  # will be applied on top of `routes/_layout.tsx`
     │   └── page.tsx
@@ -25,9 +25,9 @@ template which can be conditioned based on state and params. Note that any state
 set by middleware is available via `props.state`.
 
 ```tsx routes/sub/_layout.tsx
-import { LayoutProps } from "$fresh/server.ts";
+import { PageProps } from "$fresh/server.ts";
 
-export default function Layout({ Component, state }: LayoutProps) {
+export default function Layout({ Component, state }: PageProps) {
   // do something with state here
   return (
     <div class="layout">
@@ -43,9 +43,9 @@ In case you need to fetch data asynchronously before rendering the layout, you
 can use an async layout to do so.
 
 ```tsx routes/sub/_layout.tsx
-import { LayoutProps } from "$fresh/server.ts";
+import { FreshContext } from "$fresh/server.ts";
 
-export default async function Layout(req: Request, ctx: LayoutContext) {
+export default async function Layout(req: Request, ctx: FreshContext) {
   // do something with state here
   const data = await loadData();
 
@@ -90,7 +90,7 @@ structure like this:
     ├── sub
     │   ├── _layout_.tsx
     │   ├── special.tsx  # should not inherit layouts
-    │   └── index.tss
+    │   └── index.tsx
     └── _layout.tsx
 ```
 
@@ -111,7 +111,7 @@ export default function MyPage() {
 
 You can skip already inherited layouts inside a layout file:
 
-```tsx routes/special/_layout.sx
+```tsx routes/special/_layout.tsx
 import { LayoutConfig } from "$fresh/server.ts";
 
 export const config: LayoutConfig = {

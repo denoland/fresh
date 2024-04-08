@@ -1,4 +1,4 @@
-import { MiddlewareHandlerContext, Plugin } from "$fresh/server.ts";
+import { FreshContext, Plugin } from "$fresh/server.ts";
 import { PluginMiddlewareState } from "./route-plugin.ts";
 
 export default function secondMiddlewarePlugin(): Plugin<
@@ -8,7 +8,10 @@ export default function secondMiddlewarePlugin(): Plugin<
     name: "secondMiddlewarePlugin",
     middlewares: [{
       middleware: {
-        handler: async (_req: Request, ctx: MiddlewareHandlerContext) => {
+        handler: async (
+          _req: Request,
+          ctx: FreshContext<PluginMiddlewareState>,
+        ) => {
           return await ctx.next();
         },
       },
@@ -17,7 +20,7 @@ export default function secondMiddlewarePlugin(): Plugin<
       middleware: {
         handler: async (
           _req: Request,
-          ctx: MiddlewareHandlerContext<PluginMiddlewareState>,
+          ctx: FreshContext<PluginMiddlewareState>,
         ) => {
           ctx.state.num = ctx.state.num === undefined ? 1 : ctx.state.num + 1;
           return await ctx.next();
@@ -26,7 +29,10 @@ export default function secondMiddlewarePlugin(): Plugin<
       path: "lots-of-middleware/",
     }, {
       middleware: {
-        handler: async (_req: Request, ctx: MiddlewareHandlerContext) => {
+        handler: async (
+          _req: Request,
+          ctx: FreshContext<PluginMiddlewareState>,
+        ) => {
           return await ctx.next();
         },
       },

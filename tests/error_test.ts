@@ -1,41 +1,39 @@
-import { ServerContext, Status } from "../server.ts";
-import { REFRESH_JS_URL } from "../src/server/constants.ts";
-import { assert, assertEquals, assertStringIncludes } from "./deps.ts";
-import manifest from "./fixture_error/fresh.gen.ts";
-
-const ctx = await ServerContext.fromManifest(manifest, {});
-const handler = ctx.handler();
-const router = (req: Request) => {
-  return handler(req, {
-    remoteAddr: {
-      transport: "tcp",
-      hostname: "127.0.0.1",
-      port: 80,
-    },
-  });
-};
+import { STATUS_CODE } from "../server.ts";
+import {
+  assertEquals,
+  AssertionError,
+  assertRejects,
+  assertStringIncludes,
+} from "./deps.ts";
+import { getErrorOverlay, withFakeServe } from "./test_utils.ts";
 
 Deno.test("error page rendered", async () => {
-  const resp = await router(new Request("https://fresh.deno.dev/"));
-  assert(resp);
-  assertEquals(resp.status, Status.InternalServerError);
-  assertEquals(resp.headers.get("content-type"), "text/html; charset=utf-8");
-  const body = await resp.text();
-  assertStringIncludes(
-    body,
-    `An error occurred during route handling or page rendering.`,
-  );
-  assertStringIncludes(body, `Error: boom!`);
-  assertStringIncludes(body, `at render`);
+  await withFakeServe("./tests/fixture_error/dev.ts", async (server) => {
+    const resp = await server.get("/");
+    assertEquals(resp.status, STATUS_CODE.InternalServerError);
+    assertEquals(resp.headers.get("content-type"), "text/html; charset=utf-8");
+    const body = await resp.text();
+    assertStringIncludes(body, "<p>500 page</p>");
+
+    const { title, stack } = await getErrorOverlay(server, "/");
+    assertStringIncludes(title, `boom!`);
+    assertStringIncludes(stack, `at render`);
+  });
 });
-Deno.test("refresh.js rendered", async () => {
-  const resp = await router(
-    new Request("https://fresh.deno.dev" + REFRESH_JS_URL),
-  );
-  assert(resp);
-  assertEquals(resp.status, Status.OK);
-  assertEquals(
-    resp.headers.get("content-type"),
-    "application/javascript; charset=utf-8",
-  );
+
+Deno.test("error page rendered without error overlay", async () => {
+  await withFakeServe("./tests/fixture_error/main.ts", async (server) => {
+    const resp = await server.get("/");
+    assertEquals(resp.status, STATUS_CODE.InternalServerError);
+    assertEquals(resp.headers.get("content-type"), "text/html; charset=utf-8");
+    const body = await resp.text();
+    assertStringIncludes(body, "<p>500 page</p>");
+
+    await assertRejects(
+      () => getErrorOverlay(server, "/"),
+      AssertionError,
+      undefined,
+      "Missing fresh error overlay",
+    );
+  });
 });

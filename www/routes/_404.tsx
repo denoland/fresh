@@ -10,11 +10,11 @@ export function ServerCodePage(
           <LemonDrop />
         </div>
         <div class="text-center">
-          <h1 class="text(6xl) md:text(9xl) font-extrabold">
+          <h1 class="text-6xl md:text-9xl font-extrabold">
             {props.serverCode}
           </h1>
 
-          <p class="p-4 text(2xl) md:text(3xl)">
+          <p class="p-4 text-2xl md:text-3xl">
             {props.codeDescription}
           </p>
 

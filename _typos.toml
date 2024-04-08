@@ -1,0 +1,2 @@
+[files]
+extend-exclude = ["tests/fixture_partials/routes/scroll_restoration/index.tsx"]

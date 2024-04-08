@@ -1,8 +1,8 @@
-import { MiddlewareHandlerContext } from "$fresh/server.ts";
+import { FreshContext } from "$fresh/server.ts";
 
 export async function handler(
   _req: Request,
-  ctx: MiddlewareHandlerContext,
+  ctx: FreshContext,
 ) {
   try {
     ctx.state.flag = true;

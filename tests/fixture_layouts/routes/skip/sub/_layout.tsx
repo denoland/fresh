@@ -1,6 +1,6 @@
-import { LayoutProps } from "$fresh/server.ts";
+import { PageProps } from "$fresh/server.ts";
 
-export default function SubLayout({ Component }: LayoutProps) {
+export default function SubLayout({ Component }: PageProps) {
   return (
     <div class="sub-layout">
       <Component />

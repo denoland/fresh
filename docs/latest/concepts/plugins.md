@@ -33,8 +33,7 @@ this does not matter, but for some plugins it may.
 ## Creating a plugin
 
 Fresh plugins are in essence a collection of hooks that allow the plugin to hook
-into various systems inside of Fresh. Currently only a `render` hook is
-available (explained below).
+into various systems inside of Fresh.
 
 A Fresh plugin is just a JavaScript object that conforms to the
 [Plugin](https://deno.land/x/fresh/server.ts?s=Plugin) interface. The only
@@ -80,11 +79,16 @@ client.
 The `render` hook needs to synchronously return a
 [`PluginRenderResult`](https://deno.land/x/fresh/server.ts?s=PluginRenderResult)
 object. Additional CSS and JS modules can be added to be injected into the page
-by adding them to `styles` and `scripts` arrays in this object.
+by adding them to `styles`, `links` and `scripts` arrays in this object. The
+plugin can also replace the the HTML in side the `<body>`-element of the page by
+including a `htmlText` string in this object.
 
 `styles` are injected into the `<head>` of the page as inline CSS. Each entry
 can define the CSS text to inject, as well as an optional `id` for the style
 tag, and an optional `media` attribute for the style tag.
+
+`links` are injected into the `<head>` of the page as `<link>` tags. A link tag
+is created for each entry, with attributes from the entry's properties.
 
 `scripts` define JavaScript/TypeScript modules to be injected into the page. The
 possibly loaded modules need to be defined up front in the `Plugin#entrypoints`
@@ -123,6 +127,26 @@ rendering, plugin `render` hooks, and the
 [`RenderFunction`](https://deno.land/x/fresh/server.ts?s=RenderFunction) that
 may be provided to Fresh's `start` entrypoint in the `main.ts` file.
 
+### Hook: `buildStart`
+
+This hook is run at the start of the Fresh
+[ahead-of-time build task](/docs/concepts/ahead-of-time-builds). It may be
+synchronous or asynchronous.
+
+The build start hook is called with the
+[`ResolvedFreshConfig`](https://deno.land/x/fresh/src/server/types.ts?s=ResolvedFreshConfig)
+object, which contains the full Fresh configuration.
+
+This hook may be used to generate precompiled static assets. Any files saved to
+the `static` subfolder of `config.build.outDir` (typically `_fresh`) will be
+served the same as other [static files](/docs/concepts/static-files).
+
+### Hook: `buildEnd`
+
+This hook is run at the end of the Fresh
+[ahead-of-time build task](/docs/concepts/ahead-of-time-builds). It may be
+synchronous or asynchronous.
+
 ### Routes and Middlewares
 
 You can create routes and middlewares that get loaded and rendered like the
@@ -138,3 +162,30 @@ For more examples see the [Concepts: Routing](/docs/concepts/routing) page.
 To create a middleware you need to create a `MiddlewareHandler` function.
 
 And to create a route you can create both a Handler and/or component.
+
+A very basic example can be found
+[here](https://github.com/denoland/fresh/blob/main/tests/fixture_plugin/utils/route-plugin.ts).
+
+### Islands
+
+Islands from plugins can be loaded by specifying a list of file paths in your
+plugin. Those files will be treated by Fresh as if they had been placed inside
+the `islands/` directory. They will be processed and bundled for the browser in
+the same way.
+
+```tsx my-island-plugin.ts
+import { Plugin } from "$fresh/server.ts";
+
+export default function myIslandPlugin(): Plugin {
+  return {
+    name: "my-island-plugin",
+    islands: {
+      baseLocation: import.meta.url,
+      paths: [
+        "./plugin/MyPluginIsland.tsx",
+        "./plugin/OtherPluginIsland.tsx",
+      ],
+    },
+  };
+}
+```

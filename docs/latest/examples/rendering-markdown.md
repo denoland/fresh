@@ -30,7 +30,7 @@ export const handler: Handlers<Page> = {
     let rawMarkdown = "";
     if (ctx.params.slug === "remote") {
       const resp = await fetch(
-        `https://raw.githubusercontent.com/denoland/fresh/main/docs/latest/introduction/index.md`
+        `https://raw.githubusercontent.com/denoland/fresh/main/docs/latest/introduction/index.md`,
       );
       if (resp.status !== 200) {
         return ctx.render(undefined);

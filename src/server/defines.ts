@@ -1,15 +1,8 @@
 import { ComponentChildren } from "preact";
-import {
-  AsyncLayout,
-  AsyncRoute,
-  LayoutContext,
-  RouteContext,
-  StartOptions,
-} from "./types.ts";
+import { AsyncLayout, AsyncRoute, FreshConfig, RouteContext } from "./types.ts";
 import { checkAsyncComponent } from "./render.ts";
-import { AppContext } from "$fresh/server.ts";
 
-export function defineConfig(config: StartOptions): StartOptions {
+export function defineConfig(config: FreshConfig): FreshConfig {
   return config;
 }
 
@@ -32,7 +25,7 @@ export function defineRoute<
 export function defineLayout<T>(
   fn: (
     req: Request,
-    ctx: LayoutContext<void, T>,
+    ctx: RouteContext<void, T>,
   ) => ComponentChildren | Response | Promise<ComponentChildren | Response>,
 ): AsyncLayout<void, T> {
   // deno-lint-ignore no-explicit-any
@@ -45,7 +38,7 @@ export function defineLayout<T>(
 export function defineApp<T>(
   fn: (
     req: Request,
-    ctx: AppContext<void, T>,
+    ctx: RouteContext<void, T>,
   ) => ComponentChildren | Response | Promise<ComponentChildren | Response>,
 ): AsyncLayout<void, T> {
   // deno-lint-ignore no-explicit-any

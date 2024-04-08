@@ -5,6 +5,6 @@
 /// <reference lib="deno.ns" />
 
 import { start } from "$fresh/server.ts";
-import routes from "./fresh.gen.ts";
+import manifest from "./fresh.gen.ts";
 
-await start(routes);
+await start(manifest);

@@ -1,4 +1,4 @@
-import { MiddlewareHandlerContext } from "$fresh/server.ts";
+import { type FreshContext } from "$fresh/server.ts";
 import type { Event } from "$ga4";
 import { GA4Report, isDocument, isServerError } from "$ga4";
 
@@ -8,7 +8,7 @@ let showedMissingEnvWarning = false;
 
 function ga4(
   request: Request,
-  conn: MiddlewareHandlerContext,
+  conn: FreshContext,
   response: Response,
   _start: number,
   error?: unknown,
@@ -80,7 +80,7 @@ function ga4(
 
 export async function handler(
   req: Request,
-  ctx: MiddlewareHandlerContext,
+  ctx: FreshContext,
 ): Promise<Response> {
   let err;
   let res: Response;

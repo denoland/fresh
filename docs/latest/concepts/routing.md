@@ -28,14 +28,15 @@ File names are mapped to route patterns as follows:
 Here is a table of file names, which route patterns they map to, and which paths
 they might match:
 
-| File name                 | Route pattern          | Matching paths             |
-| ------------------------- | ---------------------- | -------------------------- |
-| `index.ts`                | `/`                    | `/`                        |
-| `about.ts`                | `/about`               | `/about`                   |
-| `blog/index.ts`           | `/blog`                | `/blog`                    |
-| `blog/[slug].ts`          | `/blog/:slug`          | `/blog/foo`, `/blog/bar`   |
-| `blog/[slug]/comments.ts` | `/blog/:slug/comments` | `/blog/foo/comments`       |
-| `old/[...path].ts`        | `/old/:path*`          | `/old/foo`, `/old/bar/baz` |
+| File name                   | Route pattern          | Matching paths                          |
+| --------------------------- | ---------------------- | --------------------------------------- |
+| `index.ts`                  | `/`                    | `/`                                     |
+| `about.ts`                  | `/about`               | `/about`                                |
+| `blog/index.ts`             | `/blog`                | `/blog`                                 |
+| `blog/[slug].ts`            | `/blog/:slug`          | `/blog/foo`, `/blog/bar`                |
+| `blog/[slug]/comments.ts`   | `/blog/:slug/comments` | `/blog/foo/comments`                    |
+| `old/[...path].ts`          | `/old/:path*`          | `/old/foo`, `/old/bar/baz`              |
+| `docs/[[version]]/index.ts` | `/docs{/:version}?`    | `/docs`, `/docs/latest`, `/docs/canary` |
 
 Advanced use-cases can require that a more complex pattern be used for matching.
 A custom [URL pattern][urlpattern] can be specified in the route configuration.
@@ -80,9 +81,9 @@ can only have one `_layout` file.
 ```
 
 We can solve this problem with route groups. A route group is a folder which has
-a name that is wrapped in braces. For example `(pages)` would be considered a
-route and so would be `(marketing)`. This enables us to group related routes in
-a folder and use a different `_layout` file for each group.
+a name that is wrapped in parentheses. For example `(pages)` would be considered
+a route group and so would `(marketing)`. This enables us to group related
+routes in a folder and use a different `_layout` file for each group.
 
 ```txt Project structure
 └── routes
@@ -96,8 +97,9 @@ a folder and use a different `_layout` file for each group.
         └── contact.tsx
 ```
 
-> ℹ️ Be careful about routes in different groups which match to the same URL.
-> Such scenarios will lead to ambiguity as to which route file should be picked.
+> [warn]: Be careful about routes in different groups which match to the same
+> URL. Such scenarios will lead to ambiguity as to which route file should be
+> picked.
 >
 > ```txt Project structure
 > └── routes

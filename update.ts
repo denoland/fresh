@@ -26,16 +26,21 @@ To upgrade a project in the current directory, run:
   fresh-update .
 
 USAGE:
-    fresh-update <DIRECTORY>
+    fresh-update [DIRECTORY]
 `;
 
 const flags = parse(Deno.args, {});
 
+let unresolvedDirectory = Deno.args[0];
 if (flags._.length !== 1) {
-  error(help);
+  const userInput = prompt("Where is the project directory?", ".");
+  if (!userInput) {
+    error(help);
+  }
+
+  unresolvedDirectory = userInput;
 }
 
-const unresolvedDirectory = Deno.args[0];
 const resolvedDirectory = resolve(unresolvedDirectory);
 const srcDirectory = await findSrcDirectory("main.ts", resolvedDirectory);
 
@@ -51,7 +56,7 @@ if (!DENO_JSON_PATH) {
     `Neither deno.json nor deno.jsonc could be found in ${resolvedDirectory}`,
   );
 }
-let denoJsonText = await Deno.readTextFile(DENO_JSON_PATH);
+const denoJsonText = await Deno.readTextFile(DENO_JSON_PATH);
 const ext = extname(DENO_JSON_PATH);
 let denoJson;
 if (ext === ".json") {
@@ -87,22 +92,37 @@ if (!denoJson.lint.rules.tags.includes("fresh")) {
 if (!denoJson.lint.rules.tags.includes("recommended")) {
   denoJson.lint.rules.tags.push("recommended");
 }
-if (!denoJson.lint.exclude) {
-  denoJson.lint.exclude = [];
-}
-if (!denoJson.lint.exclude.includes("_fresh")) {
-  denoJson.lint.exclude.push("_fresh");
+
+// Remove old _fresh exclude where we added it separately to
+// "lint" and "fmt"
+const fmtExcludeIdx = denoJson?.fmt?.exclude?.indexOf("_fresh");
+if (fmtExcludeIdx > -1) {
+  denoJson.fmt.exclude.splice(fmtExcludeIdx, 1);
+  if (denoJson.fmt.exclude.length === 0) {
+    delete denoJson.fmt.exclude;
+  }
+  if (Object.keys(denoJson.fmt).length === 0) {
+    delete denoJson.fmt;
+  }
 }
 
-// Exclude _fresh dir from linting
-if (!denoJson.fmt) {
-  denoJson.fmt = {};
+const lintExcludeIdx = denoJson?.lint?.exclude?.indexOf("_fresh");
+if (lintExcludeIdx > -1) {
+  denoJson.lint.exclude.splice(lintExcludeIdx, 1);
+  if (denoJson.lint.exclude.length === 0) {
+    delete denoJson.lint.exclude;
+  }
+  if (Object.keys(denoJson.lint).length === 0) {
+    delete denoJson.lint;
+  }
 }
-if (!denoJson.fmt.exclude) {
-  denoJson.fmt.exclude = [];
+
+// Exclude _fresh dir from everything
+if (!denoJson.exclude) {
+  denoJson.exclude = [];
 }
-if (!denoJson.fmt.exclude.includes("_fresh")) {
-  denoJson.fmt.exclude.push("_fresh");
+if (!denoJson.exclude.includes("**/_fresh/*")) {
+  denoJson.exclude.push("**/_fresh/*");
 }
 
 if (!denoJson.tasks) {
@@ -119,8 +139,7 @@ freshImports(denoJson.imports);
 if (denoJson.imports["twind"]) {
   twindImports(denoJson.imports);
 }
-denoJsonText = JSON.stringify(denoJson, null, 2);
-await Deno.writeTextFile(DENO_JSON_PATH, denoJsonText);
+await writeFormattedJson(DENO_JSON_PATH, denoJson);
 
 // Code mod for classic JSX -> automatic JSX.
 const JSX_CODEMOD =
@@ -132,15 +151,14 @@ if (denoJson.compilerOptions?.jsx !== "react-jsx" && confirm(JSX_CODEMOD)) {
   denoJson.compilerOptions = denoJson.compilerOptions || {};
   denoJson.compilerOptions.jsx = "react-jsx";
   denoJson.compilerOptions.jsxImportSource = "preact";
-  denoJsonText = JSON.stringify(denoJson, null, 2);
-  await Deno.writeTextFile(DENO_JSON_PATH, denoJsonText);
+  await writeFormattedJson(DENO_JSON_PATH, denoJson);
 
   const project = new Project();
   const sfs = project.addSourceFilesAtPaths(
     join(resolvedDirectory, "**", "*.{js,jsx,ts,tsx}"),
   );
 
-  for (const sf of sfs) {
+  await Promise.all(sfs.map((sf) => {
     for (const d of sf.getImportDeclarations()) {
       if (d.getModuleSpecifierValue() !== "preact") continue;
       for (const n of d.getNamedImports()) {
@@ -161,8 +179,8 @@ if (denoJson.compilerOptions?.jsx !== "react-jsx" && confirm(JSX_CODEMOD)) {
     text = text.replaceAll("/** @jsxFrag Fragment */\n", "");
     sf.replaceWithText(text);
 
-    await sf.save();
-  }
+    return sf.save();
+  }));
 }
 
 // Code mod for class={tw`border`} to class="border".
@@ -174,8 +192,7 @@ if (denoJson.imports["@twind"] && confirm(TWIND_CODEMOD)) {
   await Deno.remove(join(resolvedDirectory, denoJson.imports["@twind"]));
 
   delete denoJson.imports["@twind"];
-  denoJson = JSON.stringify(denoJson, null, 2);
-  await Deno.writeTextFile(DENO_JSON_PATH, denoJson);
+  await writeFormattedJson(DENO_JSON_PATH, denoJson);
 
   const MAIN_TS = `/// <reference no-default-lib="true" />
 /// <reference lib="dom" />
@@ -209,12 +226,12 @@ await start(manifest, { plugins: [twindPlugin(twindConfig)] });\n`;
     join(resolvedDirectory, "**", "*.{js,jsx,ts,tsx}"),
   );
 
-  for (const sf of sfs) {
+  await Promise.all(sfs.map((sf) => {
     const nodes = sf.forEachDescendantAsArray();
     for (const n of nodes) {
       if (!n.wasForgotten() && Node.isJsxAttribute(n)) {
         const init = n.getInitializer();
-        const name = n.getName();
+        const name = n.getStructure().name;
         if (
           Node.isJsxExpression(init) &&
           (name === "class" || name === "className")
@@ -254,20 +271,20 @@ await start(manifest, { plugins: [twindPlugin(twindConfig)] });\n`;
       }
     }
 
-    await sf.save();
-  }
+    return sf.save();
+  }));
 }
 
 // Add default _app.tsx if not present
 const routes = Array.from(Deno.readDirSync(join(srcDirectory, "routes")));
 if (!routes.find((entry) => entry.isFile && entry.name.startsWith("_app."))) {
-  const APP_TSX = `import { AppProps } from "$fresh/server.ts";
+  const APP_TSX = `import { PageProps } from "$fresh/server.ts";
 
-export default function App({ Component }: AppProps) {
+export default function App({ Component }: PageProps) {
   return (
     <html>
       <head>
-        <meta charSet="utf-8" />
+        <meta charset="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <title>${basename(resolvedDirectory)}</title>
       </head>
@@ -283,6 +300,19 @@ export default function App({ Component }: AppProps) {
   );
 }
 
+// Add _fresh/ to .gitignore if not already there
+const gitignorePath = join(resolvedDirectory, ".gitignore");
+if (existsSync(gitignorePath, { isFile: true })) {
+  const gitignoreText = Deno.readTextFileSync(gitignorePath);
+  if (!gitignoreText.includes("_fresh")) {
+    Deno.writeTextFileSync(
+      gitignorePath,
+      "\n# Fresh build directory\n_fresh/\n",
+      { append: true },
+    );
+  }
+}
+
 const manifest = await collect(srcDirectory);
 await generate(srcDirectory, manifest);
 
@@ -296,4 +326,20 @@ async function findSrcDirectory(
     }
   }
   return resolvedDirectory;
+}
+
+async function writeFormattedJson(
+  denoJsonPath: string,
+  // deno-lint-ignore no-explicit-any
+  denoJson: any,
+): Promise<void> {
+  const denoJsonText = JSON.stringify(denoJson);
+  await Deno.writeTextFile(denoJsonPath, denoJsonText);
+  const command = new Deno.Command(Deno.execPath(), {
+    args: [
+      "fmt",
+      denoJsonPath,
+    ],
+  });
+  await command.output();
 }

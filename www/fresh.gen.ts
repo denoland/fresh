@@ -2,47 +2,52 @@
 // This file SHOULD be checked into source version control.
 // This file is automatically updated during development when running `dev.ts`.
 
-import * as $0 from "./routes/_404.tsx";
-import * as $1 from "./routes/_500.tsx";
-import * as $2 from "./routes/_middleware.ts";
-import * as $3 from "./routes/components.tsx";
-import * as $4 from "./routes/docs/[...slug].tsx";
-import * as $5 from "./routes/docs/index.tsx";
-import * as $6 from "./routes/gfm.css.ts";
-import * as $7 from "./routes/index.tsx";
-import * as $8 from "./routes/raw.ts";
-import * as $9 from "./routes/showcase.tsx";
-import * as $10 from "./routes/update.tsx";
-import * as $$0 from "./islands/ComponentGallery.tsx";
-import * as $$1 from "./islands/CopyArea.tsx";
-import * as $$2 from "./islands/Counter.tsx";
-import * as $$3 from "./islands/LemonDrop.tsx";
-import * as $$4 from "./islands/SearchButton.tsx";
-import * as $$5 from "./islands/VersionSelect.tsx";
+import * as $_404 from "./routes/_404.tsx";
+import * as $_500 from "./routes/_500.tsx";
+import * as $_app from "./routes/_app.tsx";
+import * as $_middleware from "./routes/_middleware.ts";
+import * as $components from "./routes/components.tsx";
+import * as $docs_slug_ from "./routes/docs/[...slug].tsx";
+import * as $docs_middleware from "./routes/docs/_middleware.ts";
+import * as $docs_index from "./routes/docs/index.tsx";
+import * as $index from "./routes/index.tsx";
+import * as $raw from "./routes/raw.ts";
+import * as $showcase from "./routes/showcase.tsx";
+import * as $update from "./routes/update.tsx";
+import * as $ComponentGallery from "./islands/ComponentGallery.tsx";
+import * as $CopyArea from "./islands/CopyArea.tsx";
+import * as $Counter from "./islands/Counter.tsx";
+import * as $LemonDrop from "./islands/LemonDrop.tsx";
+import * as $SearchButton from "./islands/SearchButton.tsx";
+import * as $TableOfContents from "./islands/TableOfContents.tsx";
+import * as $VersionSelect from "./islands/VersionSelect.tsx";
+import type { Manifest } from "$fresh/server.ts";
 
 const manifest = {
   routes: {
-    "./routes/_404.tsx": $0,
-    "./routes/_500.tsx": $1,
-    "./routes/_middleware.ts": $2,
-    "./routes/components.tsx": $3,
-    "./routes/docs/[...slug].tsx": $4,
-    "./routes/docs/index.tsx": $5,
-    "./routes/gfm.css.ts": $6,
-    "./routes/index.tsx": $7,
-    "./routes/raw.ts": $8,
-    "./routes/showcase.tsx": $9,
-    "./routes/update.tsx": $10,
+    "./routes/_404.tsx": $_404,
+    "./routes/_500.tsx": $_500,
+    "./routes/_app.tsx": $_app,
+    "./routes/_middleware.ts": $_middleware,
+    "./routes/components.tsx": $components,
+    "./routes/docs/[...slug].tsx": $docs_slug_,
+    "./routes/docs/_middleware.ts": $docs_middleware,
+    "./routes/docs/index.tsx": $docs_index,
+    "./routes/index.tsx": $index,
+    "./routes/raw.ts": $raw,
+    "./routes/showcase.tsx": $showcase,
+    "./routes/update.tsx": $update,
   },
   islands: {
-    "./islands/ComponentGallery.tsx": $$0,
-    "./islands/CopyArea.tsx": $$1,
-    "./islands/Counter.tsx": $$2,
-    "./islands/LemonDrop.tsx": $$3,
-    "./islands/SearchButton.tsx": $$4,
-    "./islands/VersionSelect.tsx": $$5,
+    "./islands/ComponentGallery.tsx": $ComponentGallery,
+    "./islands/CopyArea.tsx": $CopyArea,
+    "./islands/Counter.tsx": $Counter,
+    "./islands/LemonDrop.tsx": $LemonDrop,
+    "./islands/SearchButton.tsx": $SearchButton,
+    "./islands/TableOfContents.tsx": $TableOfContents,
+    "./islands/VersionSelect.tsx": $VersionSelect,
   },
   baseUrl: import.meta.url,
-};
+} satisfies Manifest;
 
 export default manifest;

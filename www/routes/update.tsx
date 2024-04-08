@@ -1,5 +1,5 @@
 import { Handlers, PageProps } from "$fresh/server.ts";
-import VERSIONS from "../../versions.json" assert { type: "json" };
+import VERSIONS from "../../versions.json" with { type: "json" };
 
 export const handler: Handlers = {
   GET(req) {

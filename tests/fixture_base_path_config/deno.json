@@ -1,0 +1,13 @@
+{
+  "lock": false,
+  "imports": {
+    "$fresh/": "../../",
+    "preact": "https://esm.sh/preact@10.19.6",
+    "preact/": "https://esm.sh/preact@10.19.6/",
+    "tailwindcss": "npm:tailwindcss@3.4.1"
+  },
+  "compilerOptions": {
+    "jsx": "react-jsx",
+    "jsxImportSource": "preact"
+  }
+}

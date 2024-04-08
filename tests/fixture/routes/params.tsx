@@ -1,7 +1,7 @@
-import { HandlerContext, RouteConfig } from "$fresh/server.ts";
+import { FreshContext, RouteConfig } from "$fresh/server.ts";
 
 export const handler = {
-  GET(_req: Request, { params }: HandlerContext) {
+  GET(_req: Request, { params }: FreshContext) {
     return new Response(params.path);
   },
 };

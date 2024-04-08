@@ -13,37 +13,46 @@ you'll end up with a `main.ts` like the following:
 /// <reference lib="dom.asynciterable" />
 /// <reference lib="deno.ns" />
 
+import "$std/dotenv/load.ts";
+
 import { start } from "$fresh/server.ts";
 import manifest from "./fresh.gen.ts";
+import config from "./fresh.config.ts";
 
+await start(manifest, config);
+```
+
+And the Fresh config is like this:
+
+```ts fresh.config.ts
+import { defineConfig } from "$fresh/server.ts";
 import twindPlugin from "$fresh/plugins/twind.ts";
 import twindConfig from "./twind.config.ts";
 
-await start(manifest, { plugins: [twindPlugin(twindConfig)] });
+export default defineConfig({
+  plugins: [twindPlugin(twindConfig)],
+});
 ```
 
-The template generates a Twind v0 project by default. If you want to use Twind
-v1 you can follow this guide. First of all, change the import path to use the
-`twindv1` plugin:
+Let's bump that up to v1:
 
-```ts main.ts
-/// <reference no-default-lib="true" />
-/// <reference lib="dom" />
-/// <reference lib="dom.iterable" />
-/// <reference lib="dom.asynciterable" />
-/// <reference lib="deno.ns" />
+```diff
+diff --git a/fresh.config.ts b/fresh.config.ts
+index 548e16a..e00d557 100644
+--- a/fresh.config.ts
++++ b/fresh.config.ts
+@@ -1,5 +1,5 @@
+ import { defineConfig } from "$fresh/server.ts";
+-import twindPlugin from "$fresh/plugins/twind.ts";
++import twindPlugin from "$fresh/plugins/twindv1.ts";
+ import twindConfig from "./twind.config.ts";
 
-import { start } from "$fresh/server.ts";
-import manifest from "./fresh.gen.ts";
-
-import twindPlugin from "$fresh/plugins/twindv1.ts";
-import twindConfig from "./twind.config.ts";
-
-await start(manifest, { plugins: [twindPlugin(twindConfig)] });
+ export default defineConfig({
 ```
 
-The twind config object has changed significantly in v1, so we must also go
-change `twind.config.ts`. A good base looks like this:
+The twind config object has changed significantly in v1, so we must also change
+`twind.config.ts`. A good base looks like this (just replace whatever is there
+with this):
 
 ```ts twind.config.ts
 import { defineConfig, Preset } from "https://esm.sh/@twind/core@1.1.3";

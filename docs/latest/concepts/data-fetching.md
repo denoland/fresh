@@ -20,7 +20,9 @@ export const handler: Handlers<Project> = {
   async GET(_req, ctx) {
     const project = await db.projects.findOne({ id: ctx.params.id });
     if (!project) {
-      return new Response("Project not found", { status: 404 });
+      return ctx.renderNotFound({
+        message: "Project does not exist",
+      });
     }
     return ctx.render(project);
   },
@@ -36,7 +38,38 @@ export default function ProjectPage(props: PageProps<Project>) {
 }
 ```
 
-The type parameter on the `PageProps`, `Handlers`, `Handler`, and
-`HandlerContext` can be used to enforce a TypeScript type to use for the render
-data. Fresh enforces during type checking that the types in all of these fields
-are compatible within a single page.
+The type parameter on the `PageProps`, `Handlers`, `Handler`, and `FreshContext`
+can be used to enforce a TypeScript type to use for the render data. Fresh
+enforces during type checking that the types in all of these fields are
+compatible within a single page.
+
+## Asynchronous routes
+
+As a shortcut for combining a `GET` handler with a route, you can define your
+route as `async`. An `async` route (a route that returns a promise) will be
+called with the `Request` and a `RouteContext` (similar to a `HandlerContext`).
+Here is the above example rewritten using this shortcut:
+
+```tsx routes/projects/[id].tsx
+interface Project {
+  name: string;
+  stars: number;
+}
+
+export default async function ProjectPage(_req, ctx: FreshContext) {
+  const project: Project | null = await db.projects.findOne({
+    id: ctx.params.id,
+  });
+
+  if (!project) {
+    return <h1>Project not found</h1>;
+  }
+
+  return (
+    <div>
+      <h1>{project.name}</h1>
+      <p>{project.stars} stars</p>
+    </div>
+  );
+}
+```

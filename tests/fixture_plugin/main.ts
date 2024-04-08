@@ -6,5 +6,6 @@
 
 import { start } from "$fresh/server.ts";
 import manifest from "./fresh.gen.ts";
-import options from "./options.ts";
-await start(manifest, options);
+import config from "./fresh.config.ts";
+
+await start(manifest, config);

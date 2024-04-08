@@ -53,7 +53,7 @@ export default function Countdown(props: { target: string }) {
   }, [props.target]);
 
   const secondsLeft = Math.floor(
-    (target.getTime() - now.value.getTime()) / 1000
+    (target.getTime() - now.value.getTime()) / 1000,
   );
 
   // If the target date has passed, we stop counting down.

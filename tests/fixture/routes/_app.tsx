@@ -1,12 +1,12 @@
 import { Head } from "$fresh/runtime.ts";
-import { AppProps } from "$fresh/server.ts";
+import { PageProps } from "$fresh/server.ts";
 
 export type TestState = {
   root: string;
   stateInProps: string;
 };
 
-export default function App(props: AppProps<unknown, TestState>) {
+export default function App(props: PageProps<unknown, TestState>) {
   const statefulValue = props.state?.root === "root_mw"
     ? "The freshest framework!"
     : "";

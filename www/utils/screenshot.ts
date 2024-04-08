@@ -1,6 +1,6 @@
 import puppeteer from "https://deno.land/x/puppeteer@16.2.0/mod.ts";
-import { Image } from "https://deno.land/x/imagescript@1.2.15/mod.ts";
-import { join } from "https://deno.land/std@0.193.0/path/mod.ts";
+import { Image } from "https://deno.land/x/imagescript@1.2.17/mod.ts";
+import { join } from "https://deno.land/std@0.216.0/path/mod.ts";
 
 const url = Deno.args[0];
 const id = Deno.args[1];

@@ -57,8 +57,8 @@ export default function Home(props: PageProps<HomeProps>) {
       </Head>
       <Header title="components" active="/components" />
 
-      <section class="my-16 px(4 sm:6 md:8) mx-auto max-w-screen-lg space-y-4">
-        <h2 class="text(3xl gray-600) font-bold">
+      <section class="my-16 px-4 sm:px-6 md:px-8 mx-auto max-w-screen-lg space-y-4">
+        <h2 class="text-3xl text-gray-600 font-bold">
           Fresh Components
         </h2>
         <p class="text-gray-600">
@@ -71,7 +71,7 @@ export default function Home(props: PageProps<HomeProps>) {
         <a class="block" href="https://tabler-icons-tsx.deno.dev/">
           <div
             style="background-image: url(/gallery/banner-tabler-icons.png)"
-            class="h-48 bg(cover no-repeat white) hover:opacity-50 hover:underline rounded"
+            class="h-48 bg-cover bg-no-repeat bg-white hover:opacity-50 hover:underline rounded"
           >
             <h2 class="text-4xl font-bold p-4">Icons</h2>
           </div>
@@ -80,7 +80,7 @@ export default function Home(props: PageProps<HomeProps>) {
         <a class="block" href="https://github.com/denoland/fresh_charts">
           <div
             style="background-image: url(/gallery/banner-chart.png)"
-            class="h-48 bg(cover no-repeat white) hover:opacity-50 hover:underline rounded"
+            class="h-48 bg-cover bg-no-repeat bg-white hover:opacity-50 hover:underline rounded"
           >
             <h2 class="text-4xl font-bold p-4">Charts</h2>
           </div>

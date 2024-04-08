@@ -1,1 +1,4 @@
 _fresh/
+tmp/
+vendor/
+node_modules/

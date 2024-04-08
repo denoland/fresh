@@ -1,7 +1,8 @@
-import { colors, join, semver } from "./deps.ts";
+import { colors, join, lessThan, semverParse } from "./deps.ts";
 
 export interface CheckFile {
   last_checked: string;
+  last_shown?: string;
   latest_version: string;
   current_version: string;
 }
@@ -47,7 +48,7 @@ async function fetchLatestVersion() {
 
 async function readCurrentVersion() {
   const versions = (await import("../../versions.json", {
-    "assert": { type: "json" },
+    with: { type: "json" },
   })).default as string[];
   return versions[0];
 }
@@ -112,22 +113,29 @@ export async function updateCheck(
   }
 
   // Only show update message if current version is smaller than latest
-  const currentVersion = semver.parse(checkFile.current_version);
-  const latestVersion = semver.parse(checkFile.latest_version);
+  const currentVersion = semverParse(checkFile.current_version);
+  const latestVersion = semverParse(checkFile.latest_version);
   if (
-    semver.lt(currentVersion, latestVersion)
+    (!checkFile.last_shown ||
+      Date.now() >= new Date(checkFile.last_shown).getTime() + interval) &&
+    lessThan(currentVersion, latestVersion)
   ) {
+    checkFile.last_shown = new Date().toISOString();
+
     const current = colors.bold(colors.rgb8(checkFile.current_version, 208));
     const latest = colors.bold(colors.rgb8(checkFile.latest_version, 121));
     console.log(
       `    Fresh ${latest} is available. You're on ${current}`,
     );
     console.log(
-      colors.dim(
-        `    To upgrade, run: `,
-      ) + colors.dim(`deno run -A -r https://fresh.deno.dev/update .`),
+      `    To upgrade, run: deno run -A -r https://fresh.deno.dev/update`,
     );
     console.log();
+  }
+
+  // Migrate old format to current
+  if (!checkFile.last_shown) {
+    checkFile.last_shown = new Date().toISOString();
   }
 
   const raw = JSON.stringify(checkFile, null, 2);

@@ -1,4 +1,4 @@
-import FRESH_VERSIONS from "../versions.json" assert { type: "json" };
+import FRESH_VERSIONS from "../versions.json" with { type: "json" };
 
 type RawTableOfContents = Record<
   string,
@@ -34,7 +34,6 @@ const toc: RawTableOfContents = {
           ["create-a-route", "Create a route", "link:latest"],
           ["dynamic-routes", "Dynamic routes", "link:latest"],
           ["custom-handlers", "Custom handlers", "link:latest"],
-          ["fetching-data", "Fetching data", "link:latest"],
           ["form-submissions", "Form submissions", "link:latest"],
           ["adding-interactivity", "Adding interactivity", "link:latest"],
           ["configuring-auth", "Configuring Auth", "link:latest"],
@@ -56,6 +55,7 @@ const toc: RawTableOfContents = {
           ["static-files", "Static files", "link:latest"],
           ["middleware", "Middlewares", "link:latest"],
           ["error-pages", "Error pages", "link:latest"],
+          ["partials", "Partials", "link:latest"],
           ["data-fetching", "Data fetching", "link:latest"],
           ["ahead-of-time-builds", "Ahead-of-time Builds", "link:latest"],
           ["deployment", "Deployment", "link:latest"],
@@ -72,6 +72,7 @@ const toc: RawTableOfContents = {
         title: "Examples",
         link: "latest",
         pages: [
+          ["migrating-to-tailwind", "Migrating to Tailwind", "link:canary"],
           ["modifying-the-head", "Modifying the <head>", "link:latest"],
           ["writing-tests", "Writing tests", "link:latest"],
           [
@@ -90,13 +91,14 @@ const toc: RawTableOfContents = {
           ["creating-a-crud-api", "Creating a CRUD API", "link:latest"],
           ["handling-complex-routes", "Handling complex routes", "link:latest"],
           ["rendering-markdown", "Rendering markdown", "link:latest"],
+          ["rendering-raw-html", "Rendering raw HTML", "link:latest"],
           [
             "sharing-state-between-islands",
             "Sharing state between islands",
             "link:latest",
           ],
-          ["using-deno-kv-oauth", "Using Deno KV OAuth", "link:latest"],
           ["using-csp", "Using CSP", "link:latest"],
+          ["active-links", "Styling active links", "link:latest"],
         ],
       },
     },
@@ -115,7 +117,6 @@ const toc: RawTableOfContents = {
           ["create-a-route", "Create a route"],
           ["dynamic-routes", "Dynamic routes"],
           ["custom-handlers", "Custom handlers"],
-          ["fetching-data", "Fetching data"],
           ["form-submissions", "Form submissions"],
           ["adding-interactivity", "Adding interactivity"],
           ["deploy-to-production", "Deploy to production"],
@@ -135,6 +136,7 @@ const toc: RawTableOfContents = {
           ["static-files", "Static files"],
           ["middleware", "Middlewares"],
           ["error-pages", "Error pages"],
+          ["partials", "Partials"],
           ["data-fetching", "Data fetching"],
           ["ahead-of-time-builds", "Ahead-of-time Builds"],
           ["deployment", "Deployment"],
@@ -149,6 +151,7 @@ const toc: RawTableOfContents = {
       examples: {
         title: "Examples",
         pages: [
+          ["migrating-to-tailwind", "Migrating to Tailwind"],
           ["modifying-the-head", "Modifying the <head>"],
           ["writing-tests", "Writing tests"],
           ["changing-the-src-dir", "Changing the source directory"],
@@ -159,9 +162,14 @@ const toc: RawTableOfContents = {
           ["creating-a-crud-api", "Creating a CRUD API"],
           ["handling-complex-routes", "Handling complex routes"],
           ["rendering-markdown", "Rendering markdown"],
+          ["rendering-raw-html", "Rendering raw HTML"],
           ["sharing-state-between-islands", "Sharing state between islands"],
-          ["using-deno-kv-oauth", "Using Deno KV OAuth"],
           ["using-csp", "Using CSP"],
+          ["active-links", "Styling active links"],
+          [
+            "client-side-components-and-libraries",
+            "Client only side components",
+          ],
         ],
       },
     },
