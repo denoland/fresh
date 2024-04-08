@@ -15,7 +15,7 @@ import * as $html from "./routes/html.tsx";
 import * as $index from "./routes/index.tsx";
 import * as $islands from "./routes/islands.tsx";
 import * as $Counter from "./islands/Counter.tsx";
-import { type Manifest } from "$fresh/server.ts";
+import type { Manifest } from "$fresh/server.ts";
 
 const manifest = {
   routes: {

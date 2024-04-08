@@ -169,7 +169,7 @@ export function renderFreshTags(
           : null,
       }),
     );
-    const nonce = renderState.csp ? ` nonce="${renderState.getNonce()}` : "";
+    const nonce = renderState.csp ? ` nonce="${renderState.getNonce()}"` : "";
     opts.bodyHtml +=
       `<script id="__FRSH_PARTIAL_DATA_${renderState.renderUuid}" type="application/json"${nonce}>${escapedData}</script>`;
   }

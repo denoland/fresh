@@ -4,7 +4,7 @@
 
 import * as $index from "./routes/index.tsx";
 
-import { type Manifest } from "$fresh/server.ts";
+import type { Manifest } from "$fresh/server.ts";
 
 const manifest = {
   routes: {

@@ -34,9 +34,11 @@ jobs:
           deno-version: ${{ matrix.deno }}
 
       - name: Verify formatting
+        if: startsWith(matrix.os, 'ubuntu') && matrix.deno == 'v1.x'
         run: deno fmt --check
 
       - name: Run linter
+        if: startsWith(matrix.os, 'ubuntu') && matrix.deno == 'v1.x'
         run: deno lint
 
       - name: Spell-check
