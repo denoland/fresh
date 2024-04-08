@@ -21,7 +21,7 @@ import * as $LemonDrop from "./islands/LemonDrop.tsx";
 import * as $SearchButton from "./islands/SearchButton.tsx";
 import * as $TableOfContents from "./islands/TableOfContents.tsx";
 import * as $VersionSelect from "./islands/VersionSelect.tsx";
-import { type Manifest } from "$fresh/server.ts";
+import type { Manifest } from "$fresh/server.ts";
 
 const manifest = {
   routes: {
