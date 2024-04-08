@@ -90,6 +90,7 @@ const toc: RawTableOfContents = {
           ["creating-a-crud-api", "Creating a CRUD API", "link:latest"],
           ["handling-complex-routes", "Handling complex routes", "link:latest"],
           ["rendering-markdown", "Rendering markdown", "link:latest"],
+          ["rendering-raw-html", "Rendering raw HTML", "link:latest"],
           [
             "sharing-state-between-islands",
             "Sharing state between islands",
@@ -160,6 +161,7 @@ const toc: RawTableOfContents = {
           ["creating-a-crud-api", "Creating a CRUD API"],
           ["handling-complex-routes", "Handling complex routes"],
           ["rendering-markdown", "Rendering markdown"],
+          ["rendering-raw-html", "Rendering raw HTML"],
           ["sharing-state-between-islands", "Sharing state between islands"],
           ["using-csp", "Using CSP"],
           ["active-links", "Styling active links"],

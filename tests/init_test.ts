@@ -185,7 +185,6 @@ Deno.test({
       "/.vscode/settings.json",
       "/.vscode/extensions.json",
       "/.gitignore",
-      "/.github/workflows/deploy.yml",
     ];
 
     await t.step("check generated files", async () => {

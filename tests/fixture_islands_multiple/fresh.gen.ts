@@ -6,7 +6,7 @@ import * as $index from "./routes/index.tsx";
 import * as $Multiple from "./islands/Multiple.tsx";
 import * as $MultipleDefault from "./islands/MultipleDefault.tsx";
 import * as $Single from "./islands/Single.tsx";
-import { type Manifest } from "$fresh/server.ts";
+import type { Manifest } from "$fresh/server.ts";
 
 const manifest = {
   routes: {

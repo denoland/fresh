@@ -33,8 +33,7 @@ this does not matter, but for some plugins it may.
 ## Creating a plugin
 
 Fresh plugins are in essence a collection of hooks that allow the plugin to hook
-into various systems inside of Fresh. Currently only a `render` hook is
-available (explained below).
+into various systems inside of Fresh.
 
 A Fresh plugin is just a JavaScript object that conforms to the
 [Plugin](https://deno.land/x/fresh/server.ts?s=Plugin) interface. The only
