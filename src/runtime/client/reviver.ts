@@ -1,16 +1,15 @@
 import {
+  Component,
   type ComponentChildren,
   type ComponentType,
   Fragment,
   h,
-  hydrate,
   render,
   type VNode,
 } from "preact";
 import { parse } from "../../jsonify/parse.ts";
 import { signal } from "@preact/signals";
 import type { CustomParser } from "../../jsonify/parse.ts";
-import { Partial } from "../shared.ts";
 
 interface IslandReq {
   name: string;
@@ -28,6 +27,7 @@ interface PartialReq {
 
 interface ReviveContext {
   islands: IslandReq[];
+  partials: PartialReq[];
   stack: Array<PartialReq | IslandReq>;
   slots: Map<number, { name: string; start: Comment; end: Comment | null }>;
   slotIdStack: number[];
@@ -44,23 +44,33 @@ function isSlotRef(x: unknown): x is SlotRef {
     x.kind === SLOT_SYMBOL;
 }
 
-type DeserializedProps = { props: Record<string, unknown>; slots: SlotRef[] }[];
+export type DeserializedProps = {
+  props: Record<string, unknown>;
+  slots: SlotRef[];
+}[];
+
+export const ACTIVE_PARTIALS = new Map<string, PartialComp>();
+
+export class PartialComp extends Component<
+  { children?: ComponentChildren; mode: number; name: string }
+> {
+  componentDidMount() {
+    ACTIVE_PARTIALS.set(this.props.name, this);
+  }
+
+  render() {
+    return this.props.children;
+  }
+}
+PartialComp.displayName = "Partial";
 
 export function revive(
-  island: IslandReq,
+  props: Record<string, unknown>,
+  component: ComponentType,
+  container: HTMLElement,
   slots: ReviveContext["slots"],
   allProps: DeserializedProps,
 ) {
-  const props = allProps[island.propsIdx].props;
-  const component = ISLAND_REGISTRY.get(island.name)!;
-
-  const container = createRootFragment(
-    // deno-lint-ignore no-explicit-any
-    island.start.parentNode as any,
-    island.start,
-    island.end!,
-  );
-
   const _render = () => {
     for (const propName in props) {
       const value = props[propName];
@@ -69,8 +79,7 @@ export function revive(
         if (markers !== undefined) {
           const root = h(Fragment, null);
           const slotContainer = createRootFragment(
-            // deno-lint-ignore no-explicit-any
-            container as any,
+            container,
             markers.start,
             markers.end!,
           );
@@ -78,8 +87,7 @@ export function revive(
             allProps,
             [root],
             [Marker.Slot],
-            // deno-lint-ignore no-explicit-any
-            slotContainer as any,
+            slotContainer,
           );
           props[propName] = root;
         } else {
@@ -95,11 +103,8 @@ export function revive(
       }
     }
 
-    if (props !== null && props["f-client-only"]) {
-      render(h(component, props), container as unknown as HTMLElement);
-    } else {
-      hydrate(h(component, props), container as unknown as HTMLElement);
-    }
+    // TODO: explore hydrate?
+    render(h(component, props), container as unknown as HTMLElement);
   };
 
   // deno-lint-ignore no-window
@@ -121,16 +126,21 @@ const CUSTOM_PARSER: CustomParser = {
   },
 };
 
-export function boot(
-  initialIslands: Record<string, ComponentType>,
-  islandProps: string,
-) {
-  const ctx: ReviveContext = {
+export function createReviveCtx(): ReviveContext {
+  return {
     islands: [],
+    partials: [],
     stack: [],
     slots: new Map(),
     slotIdStack: [],
   };
+}
+
+export function boot(
+  initialIslands: Record<string, ComponentType>,
+  islandProps: string,
+) {
+  const ctx = createReviveCtx();
   _walkInner(ctx, document.body);
 
   const keys = Object.keys(initialIslands);
@@ -145,7 +155,37 @@ export function boot(
   );
   for (let i = 0; i < ctx.islands.length; i++) {
     const island = ctx.islands[i];
-    revive(island, ctx.slots, allProps);
+    const props = allProps[island.propsIdx].props;
+    const component = ISLAND_REGISTRY.get(island.name)!;
+
+    const container = createRootFragment(
+      // deno-lint-ignore no-explicit-any
+      island.start.parentNode as any,
+      island.start,
+      island.end!,
+    );
+    revive(props, component, container, ctx.slots, allProps);
+  }
+
+  for (let i = 0; i < ctx.partials.length; i++) {
+    const partial = ctx.partials[i];
+    const props: Record<string, unknown> = {
+      name: partial.name,
+      children: null,
+    };
+
+    const container = createRootFragment(
+      // deno-lint-ignore no-explicit-any
+      partial.start.parentNode as any,
+      partial.start,
+      partial.end!,
+    );
+    const root = h(Fragment, null);
+    domToVNode(allProps, [root], [Marker.Partial], container);
+    props.children = root.props.children;
+
+    // deno-lint-ignore no-explicit-any
+    revive(props, PartialComp as any, container, ctx.slots, allProps);
   }
 }
 
@@ -195,12 +235,14 @@ function _walkInner(ctx: ReviveContext, node: Node | Comment) {
       } else if (kind === "partial") {
         const name = parts[2];
         const key = parts[3];
-        ctx.stack.push({
+        const found: PartialReq = {
           name,
           key,
           start: node,
           end: null,
-        });
+        };
+        ctx.partials.push(found);
+        ctx.stack.push(found);
       }
     } else if (comment === "/frsh:island" || comment === "/frsh:partial") {
       const item = ctx.stack.pop();
@@ -216,7 +258,7 @@ function _walkInner(ctx: ReviveContext, node: Node | Comment) {
   }
 }
 
-const enum Marker {
+export const enum Marker {
   Island,
   Partial,
   Slot,
@@ -233,12 +275,12 @@ function ServerSlot(props: ServerSlotProps): any {
   return props.children;
 }
 
-function domToVNode(
+export function domToVNode(
   allProps: DeserializedProps,
   // deno-lint-ignore no-explicit-any
   vnodeStack: VNode<any>[],
   markerStack: Marker[],
-  node: Node,
+  node: Node | DocumentFragment,
 ): void {
   let sib: Node | ChildNode | null = node;
   while (sib !== null) {
@@ -317,7 +359,8 @@ function domToVNode(
 
           const name = parts[2];
           const key = parts[3];
-          const vnode = h(Partial, { name, key });
+          // FIXME: Mode
+          const vnode = h(PartialComp, { name, key, mode: 0 });
           const parentVNode = vnodeStack.at(-1);
           if (parentVNode !== undefined) {
             addVNodeChild(parentVNode, vnode);
@@ -351,17 +394,17 @@ function addVNodeChild(parent: VNode, child: VNode<any> | string) {
   (parent.props.children as Array<VNode<any> | string>).push(child);
 }
 
-function isCommentNode(node: Node): node is Comment {
+export function isCommentNode(node: Node): node is Comment {
   return node.nodeType === Node.COMMENT_NODE;
 }
-function isTextNode(node: Node): node is Text {
+export function isTextNode(node: Node): node is Text {
   return node.nodeType === Node.TEXT_NODE;
 }
-function isElementNode(node: Node): node is HTMLElement {
+export function isElementNode(node: Node): node is HTMLElement {
   return node.nodeType === Node.ELEMENT_NODE && !("_frshRootFrag" in node);
 }
 
-function createRootFragment(
+export function createRootFragment(
   parent: Element,
   startMarker: Text | Comment,
   // We need an end marker for islands because multiple
@@ -369,7 +412,7 @@ function createRootFragment(
   // islands are root-level render calls any calls to
   // `.appendChild` would lead to a wrong result.
   endMarker: Text | Comment,
-) {
+): HTMLElement & { _frshRootFrag: boolean } {
   // @ts-ignore this is fine
   return parent.__k = {
     _frshRootFrag: true,
@@ -405,5 +448,6 @@ function createRootFragment(
     removeChild(child: Node) {
       parent.removeChild(child);
     },
-  };
+    // deno-lint-ignore no-explicit-any
+  } as any;
 }

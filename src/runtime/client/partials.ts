@@ -1,9 +1,18 @@
+import { h } from "preact";
 import {
   DATA_ANCESTOR,
   DATA_CURRENT,
   matchesUrl,
   UrlMatchKind,
 } from "../shared_internal.tsx";
+import {
+  type DeserializedProps,
+  domToVNode,
+  Marker,
+  PartialComp,
+} from "./reviver.ts";
+import { createRootFragment, isCommentNode, isElementNode } from "./reviver.ts";
+import { ACTIVE_PARTIALS } from "./reviver.ts";
 
 export const CLIENT_NAV_ATTR = "f-client-nav";
 export const PARTIAL_ATTR = "f-partial";
@@ -271,6 +280,10 @@ async function fetchPartials(url: URL, init: RequestInit = {}) {
   await applyPartials(res);
 }
 
+interface PartialReviveCtx {
+  foundPartials: number;
+}
+
 /**
  * Apply partials from a HTML response
  */
@@ -283,7 +296,69 @@ export async function applyPartials(res: Response): Promise<void> {
   const resText = await res.text();
   const doc = new DOMParser().parseFromString(resText, "text/html") as Document;
 
+  // TODO: Load islands
   const promises: Promise<void>[] = [];
 
-  console.log("fetch partials", resText);
+  const ctx: PartialReviveCtx = {
+    foundPartials: 0,
+  };
+  console.log(doc);
+  // FIXME: Get serialized props
+  const allProps: DeserializedProps = [];
+
+  collectPartials(ctx, allProps, doc.body);
+
+  if (ctx.foundPartials === 0) {
+    throw new NoPartialsError(
+      `Found no partials in HTML response. Please make sure to render at least one partial. Requested url: ${res.url}`,
+    );
+  }
+}
+
+function collectPartials(
+  ctx: PartialReviveCtx,
+  allProps: DeserializedProps,
+  node: Element,
+) {
+  let startNode = null;
+  let sib: ChildNode | null = node.firstChild;
+  let partialCount = 0;
+  let partialName = "";
+  while (sib !== null) {
+    if (isCommentNode(sib)) {
+      const comment = sib.data;
+      const parts = comment.split(":");
+
+      if (parts[0] === "frsh" && parts[1] === "partial") {
+        startNode = sib;
+        partialName = parts[2];
+        partialCount++;
+      } else if (comment === "/frsh:partial") {
+        partialCount--;
+        ctx.foundPartials++;
+        // Create a fake DOM node that spans the partial we discovered.
+        // We need to include the partial markers itself for _walkInner
+        // to register them.
+        const container = createRootFragment(node, startNode!, sib);
+
+        // FIXME: Partial keys
+        const root = h(PartialComp, { name: "foo", mode: 0, children: null });
+        domToVNode(allProps, [root], [Marker.Partial], container);
+
+        const instance = ACTIVE_PARTIALS.get(partialName);
+        if (instance === undefined) {
+          // Partial doesn't exist on the current page
+          continue;
+        }
+
+        instance.props.children = root.props.children;
+        instance.setState({});
+      }
+    } else if (partialCount === 0 && isElementNode(sib)) {
+      // Do not recurse if we know that we are inisde a partial
+      collectPartials(ctx, allProps, sib);
+    }
+
+    sib = sib.nextSibling;
+  }
 }

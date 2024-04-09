@@ -19,7 +19,7 @@ function Doc(props: { children?: ComponentChildren }) {
 }
 
 // TODO
-Deno.test.ignore("partials - updates content", async () => {
+Deno.test("partials - updates content", async () => {
   const app = new FreshApp()
     .use(freshStaticFiles())
     .get("/partial", (ctx) => {
@@ -45,7 +45,6 @@ Deno.test.ignore("partials - updates content", async () => {
   await withBrowserApp(app, async (page, address) => {
     await page.goto(address);
     await page.click(".update");
-    await new Promise((r) => setTimeout(r, 10000000));
     await waitForText(page, ".output", "partial update");
   });
 });

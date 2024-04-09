@@ -138,8 +138,8 @@ export class FreshReqContext<T> implements FreshContext<T, unknown> {
     headers.set("Content-Type", "text/html; charset=utf-8");
     const responseInit: ResponseInit = { status: init.status ?? 200, headers };
 
-    const result = preactRender(vnode, this, this.islandRegistry);
-    return new Response("<!DOCTYPE html>" + result, responseInit);
+    const html = preactRender(vnode, this, this.islandRegistry);
+    return new Response(html, responseInit);
   }
 
   renderNotFound(): Promise<void> {
@@ -156,7 +156,20 @@ function preactRender<T>(
   setRenderState(state);
   try {
     // TODO: Streaming
-    return renderToString(vnode);
+    let res = renderToString(vnode);
+    // We require a the full outer DOM structure so that browser put
+    // comment markers in the right place in the DOM.
+    if (!state.renderedHtmlBody) {
+      res = `<body>${res}</body>`;
+    }
+    if (!state.renderedHtmlHead) {
+      res = `<head><meta charset="utf-8"></head>${res}`;
+    }
+    if (!state.renderedHtmlTag) {
+      res = `<html>${res}</html>`;
+    }
+
+    return `<!DOCTYPE html>${res}`;
   } finally {
     state.clear();
     setRenderState(null);

@@ -48,7 +48,6 @@ const options: InternalPreactOptions = preactOptions as any;
 
 export class RenderState {
   nonce: string;
-  islandDepth = 0;
   partialDepth = 0;
   partialCount = 0;
   error: Error | null = null;
@@ -63,6 +62,11 @@ export class RenderState {
   encounteredPartials = new Set<any>();
   owners = new Map<VNode, VNode>();
   ownerStack: InternalVNode[] = [];
+
+  // TODO: merge into bitmask field
+  renderedHtmlTag = false;
+  renderedHtmlBody = false;
+  renderedHtmlHead = false;
 
   constructor(
     public ctx: FreshContext,
@@ -94,7 +98,6 @@ options[OptionsType.VNODE] = (vnode) => {
 
   if (typeof vnode.type === "function" && vnode.type === Partial) {
     const props = vnode.props as PartialProps;
-    console.log("Partial", vnode);
     props.children = wrapWithMarker(
       props.children,
       "partial",
@@ -150,6 +153,18 @@ options[OptionsType.DIFF] = (vnode) => {
         `${island!.name}:${propsIdx}:${vnode.key ?? ""}`,
       );
     };
+  } else if (typeof vnode.type === "string") {
+    switch (vnode.type) {
+      case "html":
+        RENDER_STATE!.renderedHtmlTag = true;
+        break;
+      case "head":
+        RENDER_STATE!.renderedHtmlHead = true;
+        break;
+      case "body":
+        RENDER_STATE!.renderedHtmlBody = true;
+        break;
+    }
   }
 
   oldDiff?.(vnode);
