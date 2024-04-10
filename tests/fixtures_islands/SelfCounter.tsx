@@ -1,7 +1,11 @@
 import { useSignal } from "@preact/signals";
 import { useEffect } from "preact/hooks";
 
-export function SelfCounter() {
+export interface SelfCounterProps {
+  id?: string;
+}
+
+export function SelfCounter(props: SelfCounterProps) {
   const count = useSignal(0);
   const active = useSignal(false);
 
@@ -10,7 +14,7 @@ export function SelfCounter() {
   }, []);
 
   return (
-    <div class={active.value ? "ready self-counter" : ""}>
+    <div id={props.id} class={active.value ? "ready self-counter" : ""}>
       <button class="decrement" onClick={() => count.value -= 1}>
         -1
       </button>

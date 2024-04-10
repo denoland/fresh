@@ -7,9 +7,9 @@ import {
   render,
   type VNode,
 } from "preact";
-import { parse } from "../../jsonify/parse.ts";
+import { type CustomParser, parse } from "../../jsonify/parse.ts";
 import { signal } from "@preact/signals";
-import type { CustomParser } from "../../jsonify/parse.ts";
+import { DATA_FRESH_KEY } from "../shared_internal.tsx";
 
 const enum RootKind {
   Island,
@@ -306,6 +306,11 @@ export function domToVNode(
       for (let i = 0; i < sib.attributes.length; i++) {
         const attr = sib.attributes[i];
 
+        if (attr.nodeName === DATA_FRESH_KEY) {
+          props.key = attr.nodeValue;
+          continue;
+        }
+
         // Boolean attributes are always `true` when present.
         // See: https://developer.mozilla.org/en-US/docs/Glossary/Boolean/HTML
         props[attr.nodeName] =
@@ -342,12 +347,15 @@ export function domToVNode(
 
           const name = parts[2];
           const propsIdx = parts[3];
+          const key = parts[4];
           const island = ISLAND_REGISTRY.get(name);
           if (island === undefined) {
             throw new Error(`Encountered unknown island: ${name}`);
           }
 
-          const props = allProps[+propsIdx];
+          const props = allProps[+propsIdx].props;
+          props.key = key;
+
           // deno-lint-ignore no-explicit-any
           const islandVNode = h<any>(island, props);
           addVNodeChild(vnodeStack.at(-1)!, islandVNode);
@@ -357,7 +365,13 @@ export function domToVNode(
 
           const id = +parts[2];
           const slotName = parts[3];
-          const vnode = h(ServerSlot, { id, name: slotName, children: [] });
+          const key = parts[4];
+          const vnode = h(ServerSlot, {
+            key,
+            id,
+            name: slotName,
+            children: [],
+          });
 
           const parentVNode = vnodeStack.at(-1)!;
           if (slotName === "children") {
@@ -378,6 +392,10 @@ export function domToVNode(
             addVNodeChild(parentVNode, vnode);
           }
           vnodeStack.push(vnode);
+        } else if (kind === "key") {
+          const vnode = h(Fragment, { key: parts[2] });
+          addVNodeChild(vnodeStack.at(-1)!, vnode);
+          vnodeStack.push(vnode);
         }
       } else if (
         comment === "/frsh:island" || comment === "/frsh:slot" ||
@@ -385,6 +403,8 @@ export function domToVNode(
       ) {
         vnodeStack.pop();
         markerStack.pop();
+      } else if (comment === "/frsh:key") {
+        vnodeStack.pop();
       }
     } else if (isTextNode(sib)) {
       const marker = markerStack.at(-1);

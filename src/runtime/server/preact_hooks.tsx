@@ -16,6 +16,7 @@ import { Partial, type PartialProps } from "../shared.ts";
 import { stringify } from "../../jsonify/stringify.ts";
 import type { ServerIslandRegistry } from "../../context.ts";
 import type { Island } from "../../context.ts";
+import { DATA_FRESH_KEY } from "../shared_internal.tsx";
 
 const enum OptionsType {
   VNODE = "vnode",
@@ -97,19 +98,26 @@ options[OptionsType.VNODE] = (vnode) => {
     RENDER_STATE.owners.set(vnode, RENDER_STATE!.ownerStack.at(-1)!);
   }
 
-  if (typeof vnode.type === "function" && vnode.type === Partial) {
-    const props = vnode.props as PartialProps;
-    props.children = wrapWithMarker(
-      props.children,
-      "partial",
-      `${props.name}:${vnode.key ?? ""}`,
-    );
+  if (typeof vnode.type === "function") {
+    if (vnode.type === Partial) {
+      const props = vnode.props as PartialProps;
+      const key = normalizeKey(vnode.key ?? "");
+      props.children = wrapWithMarker(
+        props.children,
+        "partial",
+        `${props.name}:${key}`,
+      );
+    }
   }
 
   oldVNodeHook?.(vnode);
 };
 
 const PATCHED = new WeakSet<VNode>();
+
+function normalizeKey(str: string) {
+  return str.replaceAll(":", "_");
+}
 
 const oldDiff = options[OptionsType.DIFF];
 options[OptionsType.DIFF] = (vnode) => {
@@ -118,6 +126,8 @@ options[OptionsType.DIFF] = (vnode) => {
     typeof vnode.type === "function" && vnode.type !== Fragment
   ) {
     if (vnode.type === Partial) {
+      RENDER_STATE.partialDepth++;
+
       const name = (vnode.props as PartialProps).name;
       if (typeof name === "string") {
         if (RENDER_STATE.encounteredPartials.has(name)) {
@@ -137,6 +147,17 @@ options[OptionsType.DIFF] = (vnode) => {
     ) {
       const island = RENDER_STATE.islandRegistry.get(vnode.type);
       if (island === undefined) {
+        // Not an island, but we might need to preserve keys
+        if (vnode.key !== undefined) {
+          const key = normalizeKey(vnode.key ?? "");
+          const originalType = vnode.type;
+          vnode.type = (props) => {
+            const child = h(originalType, props);
+            PATCHED.add(child);
+            return wrapWithMarker(child, "key", key);
+          };
+        }
+
         break patcher;
       }
 
@@ -165,10 +186,11 @@ options[OptionsType.DIFF] = (vnode) => {
         const child = h(originalType, props);
         PATCHED.add(child);
 
+        const key = normalizeKey(vnode.key ?? "");
         return wrapWithMarker(
           child,
           "island",
-          `${island!.name}:${propsIdx}:${vnode.key ?? ""}`,
+          `${island!.name}:${propsIdx}:${key}`,
         );
       };
     }
@@ -183,6 +205,15 @@ options[OptionsType.DIFF] = (vnode) => {
       case "body":
         RENDER_STATE!.renderedHtmlBody = true;
         break;
+    }
+
+    if (
+      vnode.key !== undefined &&
+      (RENDER_STATE!.partialDepth > 0 || hasIslandOwner(RENDER_STATE!, vnode))
+    ) {
+      (vnode.props as Record<string, unknown>)[DATA_FRESH_KEY] = String(
+        vnode.key,
+      );
     }
   }
 
@@ -201,6 +232,10 @@ const oldDiffed = options[OptionsType.DIFFED];
 options[OptionsType.DIFFED] = (vnode) => {
   if (typeof vnode.type === "function" && vnode.type !== Fragment) {
     RENDER_STATE!.ownerStack.pop();
+
+    if (vnode.type === Partial) {
+      RENDER_STATE!.partialDepth--;
+    }
   }
   oldDiffed?.(vnode);
 };

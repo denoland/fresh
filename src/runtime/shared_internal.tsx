@@ -2,6 +2,7 @@ import type { VNode } from "preact";
 
 export const DATA_CURRENT = "data-current";
 export const DATA_ANCESTOR = "data-ancestor";
+export const DATA_FRESH_KEY = "data-frsh-key";
 
 export const enum UrlMatchKind {
   None,

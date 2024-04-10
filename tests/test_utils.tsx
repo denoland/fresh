@@ -63,11 +63,11 @@ export async function withBrowserApp(
 
     const browser = await puppeteer.launch({
       args: ["--no-sandbox"],
-      headless: false,
+      // headless: false,
     });
 
     const page = await browser.newPage();
-    page.setDefaultTimeout(1000000);
+    // page.setDefaultTimeout(1000000);
     try {
       await fn(page, `http://localhost:${port}`);
     } finally {

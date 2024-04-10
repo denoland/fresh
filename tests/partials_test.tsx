@@ -494,144 +494,302 @@ Deno.test("partials - updates sibling partials", async () => {
   });
 });
 
-// Deno.test("reconciles keyed islands", async () => {
-//   await withPageName(
-//     "./tests/fixture_partials/main.ts",
-//     async (page, address) => {
-//       await page.goto(`${address}/keys`);
-//       await page.waitForSelector(".island");
+Deno.test("partials - reconcile keyed islands in update", async () => {
+  const selfCounter = getIsland("SelfCounter.tsx");
+  const app = new FreshApp()
+    .island(selfCounter, "SelfCounter", SelfCounter)
+    .use(freshStaticFiles())
+    .get("/partial", (ctx) => {
+      return ctx.render(
+        <Doc>
+          <Partial name="foo">
+            <p key="p" class="done">done</p>
+            <SelfCounter key="b" id="b" />
+            <SelfCounter key="c" id="c" />
+            <SelfCounter key="a" id="a" />
+          </Partial>
+        </Doc>,
+      );
+    })
+    .get("/", (ctx) => {
+      return ctx.render(
+        <Doc>
+          <div f-client-nav>
+            <a href="/partial" class="update">update</a>
+            <Partial name="foo">
+              <p key="p" class="init">init</p>
+              <SelfCounter key="a" id="a" />
+              <SelfCounter key="b" id="b" />
+              <SelfCounter key="c" id="c" />
+            </Partial>
+          </div>
+        </Doc>,
+      );
+    });
 
-//       await page.click(".btn-A");
-//       await waitForText(page, ".output-A", "1");
-//       await assertNoPageComments(page);
+  await withBrowserApp(app, async (page, address) => {
+    await page.goto(address);
+    await page.waitForSelector(".ready");
 
-//       await page.click(".btn-B");
-//       await waitForText(page, ".output-B", "1");
-//       await page.click(".btn-B");
-//       await waitForText(page, ".output-B", "2");
-//       await assertNoPageComments(page);
+    await page.click("#a .increment");
 
-//       await page.click(".btn-C");
-//       await waitForText(page, ".output-C", "1");
-//       await page.click(".btn-C");
-//       await waitForText(page, ".output-C", "2");
-//       await page.click(".btn-C");
-//       await waitForText(page, ".output-C", "3");
-//       await assertNoPageComments(page);
+    await page.click("#b .increment");
+    await page.click("#b .increment");
 
-//       await page.click(".swap-link");
-//       await page.waitForSelector(".status-swap");
-//       await assertNoPageComments(page);
+    await page.click("#c .increment");
+    await page.click("#c .increment");
+    await page.click("#c .increment");
 
-//       // Check that result is stable
-//       await waitForText(page, ".output-A", "1");
-//       await waitForText(page, ".output-B", "2");
-//       await waitForText(page, ".output-C", "3");
-//     },
-//   );
-// });
+    await waitForText(page, "#a .output", "1");
+    await waitForText(page, "#b .output", "2");
+    await waitForText(page, "#c .output", "3");
 
-// Deno.test("reconciles keyed DOM nodes", async () => {
-//   await withPageName(
-//     "./tests/fixture_partials/main.ts",
-//     async (page, address) => {
-//       await page.goto(`${address}/keys_dom`);
-//       await page.waitForSelector(".island");
+    await page.click(".update");
+    await page.waitForSelector(".done");
 
-//       await page.click(".btn-A");
-//       await waitForText(page, ".output-A", "1");
-//       await assertNoPageComments(page);
+    await waitForText(page, "#a .output", "1");
+    await waitForText(page, "#b .output", "2");
+    await waitForText(page, "#c .output", "3");
+  });
+});
 
-//       await page.click(".btn-B");
-//       await waitForText(page, ".output-B", "1");
-//       await page.click(".btn-B");
-//       await waitForText(page, ".output-B", "2");
-//       await assertNoPageComments(page);
+Deno.test("partials - reconcile keyed partials", async () => {
+  const selfCounter = getIsland("SelfCounter.tsx");
+  const app = new FreshApp()
+    .island(selfCounter, "SelfCounter", SelfCounter)
+    .use(freshStaticFiles())
+    .get("/partial", (ctx) => {
+      return ctx.render(
+        <Doc>
+          <Partial name="outer">
+            <p key="p" class="done">done</p>
+            <Partial key="b" name="b">
+              <SelfCounter id="b" />
+            </Partial>
+            <Partial key="c" name="c">
+              <SelfCounter id="c" />
+            </Partial>
+            <Partial key="a" name="a">
+              <SelfCounter id="a" />
+            </Partial>
+          </Partial>
+        </Doc>,
+      );
+    })
+    .get("/", (ctx) => {
+      return ctx.render(
+        <Doc>
+          <div f-client-nav>
+            <a href="/partial" class="update">update</a>
+            <Partial name="outer">
+              <p key="p" class="init">init</p>
 
-//       await page.click(".btn-C");
-//       await waitForText(page, ".output-C", "1");
-//       await page.click(".btn-C");
-//       await waitForText(page, ".output-C", "2");
-//       await page.click(".btn-C");
-//       await waitForText(page, ".output-C", "3");
-//       await assertNoPageComments(page);
+              <Partial key="a" name="a">
+                <SelfCounter id="a" />
+              </Partial>
+              <Partial key="b" name="b">
+                <SelfCounter id="b" />
+              </Partial>
+              <Partial key="c" name="c">
+                <SelfCounter id="c" />
+              </Partial>
+            </Partial>
+          </div>
+        </Doc>,
+      );
+    });
 
-//       await page.click(".swap-link");
-//       await page.waitForSelector(".status-swap");
-//       await assertNoPageComments(page);
+  await withBrowserApp(app, async (page, address) => {
+    await page.goto(address);
+    await page.waitForSelector(".ready");
 
-//       // Check that result is stable
-//       await waitForText(page, ".output-A", "1");
-//       await waitForText(page, ".output-B", "2");
-//       await waitForText(page, ".output-C", "3");
+    await page.click("#a .increment");
 
-//       // Check that no element has `data-fresh-key` attribute
-//       const doc = parseHtml(await page.content());
-//       assertNotSelector(doc, "[data-fresh-key]");
-//     },
-//   );
-// });
+    await page.click("#b .increment");
+    await page.click("#b .increment");
 
-// Deno.test("reconciles keyed non island components", async () => {
-//   await withPageName(
-//     "./tests/fixture_partials/main.ts",
-//     async (page, address) => {
-//       await page.goto(`${address}/keys_components`);
-//       await page.waitForSelector(".island");
+    await page.click("#c .increment");
+    await page.click("#c .increment");
+    await page.click("#c .increment");
 
-//       await page.click(".btn-A");
-//       await waitForText(page, ".output-A", "1");
-//       await assertNoPageComments(page);
+    await waitForText(page, "#a .output", "1");
+    await waitForText(page, "#b .output", "2");
+    await waitForText(page, "#c .output", "3");
 
-//       await page.click(".btn-B");
-//       await waitForText(page, ".output-B", "1");
-//       await page.click(".btn-B");
-//       await waitForText(page, ".output-B", "2");
-//       await assertNoPageComments(page);
+    await page.click(".update");
+    await page.waitForSelector(".done");
 
-//       await page.click(".btn-C");
-//       await waitForText(page, ".output-C", "1");
-//       await page.click(".btn-C");
-//       await waitForText(page, ".output-C", "2");
-//       await page.click(".btn-C");
-//       await waitForText(page, ".output-C", "3");
-//       await assertNoPageComments(page);
+    await waitForText(page, "#a .output", "1");
+    await waitForText(page, "#b .output", "2");
+    await waitForText(page, "#c .output", "3");
+  });
+});
 
-//       await page.click(".swap-link");
-//       await page.waitForSelector(".status-swap");
-//       await assertNoPageComments(page);
+Deno.test("partials - reconcile keyed div inside partials", async () => {
+  const selfCounter = getIsland("SelfCounter.tsx");
+  const app = new FreshApp()
+    .island(selfCounter, "SelfCounter", SelfCounter)
+    .use(freshStaticFiles())
+    .get("/partial", (ctx) => {
+      return ctx.render(
+        <Doc>
+          <Partial name="outer">
+            <p key="p" class="done">done</p>
+            <div key="b">
+              <SelfCounter id="b" />
+            </div>
+            <div key="c">
+              <SelfCounter id="c" />
+            </div>
+            <div key="a">
+              <SelfCounter id="a" />
+            </div>
+          </Partial>
+        </Doc>,
+      );
+    })
+    .get("/", (ctx) => {
+      return ctx.render(
+        <Doc>
+          <div f-client-nav>
+            <a href="/partial" class="update">update</a>
+            <Partial name="outer">
+              <p key="p" class="init">init</p>
 
-//       // Check that result is stable
-//       await waitForText(page, ".output-A", "1");
-//       await waitForText(page, ".output-B", "2");
-//       await waitForText(page, ".output-C", "3");
+              <div key="a">
+                <SelfCounter id="a" />
+              </div>
+              <div key="b">
+                <SelfCounter id="b" />
+              </div>
+              <div key="c">
+                <SelfCounter id="c" />
+              </div>
+            </Partial>
+          </div>
+        </Doc>,
+      );
+    });
 
-//       // Check that no element has `data-fresh-key` attribute
-//       const doc = parseHtml(await page.content());
-//       assertNotSelector(doc, "[data-fresh-key]");
-//     },
-//   );
-// });
+  await withBrowserApp(app, async (page, address) => {
+    await page.goto(address);
+    await page.waitForSelector(".ready");
 
-// Deno.test("don't serialize keys for nodes outside islands or partials", async () => {
-//   await withFakeServe("./tests/fixture_partials/main.ts", async (server) => {
-//     const doc = await server.getHtml("/keys_outside");
-//     assertNoComments(doc);
-//   });
-// });
+    await page.click("#a .increment");
 
-// Deno.test("doesn't confuse islands starting with 'key' with key marker", async () => {
-//   await withPageName(
-//     "./tests/fixture_partials/main.ts",
-//     async (page, address) => {
-//       await page.goto(`${address}/keys_confusion`);
-//       await page.waitForSelector(".island");
+    await page.click("#b .increment");
+    await page.click("#b .increment");
 
-//       await page.click("button");
-//       await waitForText(page, ".output", "1");
-//     },
-//   );
-// });
+    await page.click("#c .increment");
+    await page.click("#c .increment");
+    await page.click("#c .increment");
+
+    await waitForText(page, "#a .output", "1");
+    await waitForText(page, "#b .output", "2");
+    await waitForText(page, "#c .output", "3");
+
+    await page.click(".update");
+    await page.waitForSelector(".done");
+
+    await waitForText(page, "#a .output", "1");
+    await waitForText(page, "#b .output", "2");
+    await waitForText(page, "#c .output", "3");
+  });
+});
+
+Deno.test(
+  "partials - reconcile keyed component inside partials",
+  async () => {
+    function Foo(props: { id: string }) {
+      return <SelfCounter id={props.id} />;
+    }
+
+    const selfCounter = getIsland("SelfCounter.tsx");
+    const app = new FreshApp()
+      .island(selfCounter, "SelfCounter", SelfCounter)
+      .use(freshStaticFiles())
+      .get("/partial", (ctx) => {
+        return ctx.render(
+          <Doc>
+            <Partial name="outer">
+              <p key="p" class="done">done</p>
+              <Foo key="b" id="b" />
+              <Foo key="c" id="c" />
+              <Foo key="a" id="a" />
+            </Partial>
+          </Doc>,
+        );
+      })
+      .get("/", (ctx) => {
+        return ctx.render(
+          <Doc>
+            <div f-client-nav>
+              <a href="/partial" class="update">update</a>
+              <Partial name="outer">
+                <p key="p" class="init">init</p>
+
+                <Foo key="a" id="a" />
+                <Foo key="b" id="b" />
+                <Foo key="c" id="c" />
+              </Partial>
+            </div>
+          </Doc>,
+        );
+      });
+
+    await withBrowserApp(app, async (page, address) => {
+      await page.goto(address);
+      await page.waitForSelector(".ready");
+
+      await page.click("#a .increment");
+
+      await page.click("#b .increment");
+      await page.click("#b .increment");
+
+      await page.click("#c .increment");
+      await page.click("#c .increment");
+      await page.click("#c .increment");
+
+      await waitForText(page, "#a .output", "1");
+      await waitForText(page, "#b .output", "2");
+      await waitForText(page, "#c .output", "3");
+
+      await page.click(".update");
+      await page.waitForSelector(".done");
+
+      await waitForText(page, "#a .output", "1");
+      await waitForText(page, "#b .output", "2");
+      await waitForText(page, "#c .output", "3");
+    });
+  },
+);
+
+Deno.test(
+  "partials - skip key serialization if outside root",
+  async () => {
+    const app = new FreshApp()
+      .use(freshStaticFiles())
+      .get("/", (ctx) => {
+        return ctx.render(
+          <Doc>
+            <div f-client-nav>
+              <a href="/partial" class="update">update</a>
+              <p key="outside" class="init">outside</p>
+              <Partial name="outer">
+                <p key="inside" class="init">inside</p>
+              </Partial>
+            </div>
+          </Doc>,
+        );
+      });
+
+    const server = new FakeServer(await app.handler());
+    const res = await server.get("/");
+    const html = await res.text();
+
+    expect(html).not.toMatch(/frsh:key:outside/);
+  },
+);
 
 // Deno.test("partial injection mode", async () => {
 //   await withPageName(

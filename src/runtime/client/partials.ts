@@ -326,7 +326,7 @@ export async function applyPartials(res: Response): Promise<void> {
     foundPartials: 0,
   };
 
-  collectPartials(ctx, allProps, doc.body);
+  revivePartials(ctx, allProps, doc.body);
 
   if (ctx.foundPartials === 0) {
     throw new NoPartialsError(
@@ -335,7 +335,7 @@ export async function applyPartials(res: Response): Promise<void> {
   }
 }
 
-function collectPartials(
+function revivePartials(
   ctx: PartialReviveCtx,
   allProps: DeserializedProps,
   node: Element,
@@ -344,25 +344,33 @@ function collectPartials(
   let sib: ChildNode | null = node.firstChild;
   let partialCount = 0;
   let partialName = "";
+  let partialKey = "";
   while (sib !== null) {
     if (isCommentNode(sib)) {
       const comment = sib.data;
       const parts = comment.split(":");
 
       if (parts[0] === "frsh" && parts[1] === "partial") {
-        startNode = sib;
-        partialName = parts[2];
-        partialCount++;
+        if (++partialCount === 1) {
+          startNode = sib;
+          partialName = parts[2];
+          partialKey = parts[3];
+        }
       } else if (comment === "/frsh:partial") {
-        partialCount--;
         ctx.foundPartials++;
+
+        // Skip hydrating nested partials, only hydrate the outer one
+        if (--partialCount > 0) {
+          continue;
+        }
+
         // Create a fake DOM node that spans the partial we discovered.
         // We need to include the partial markers itself for _walkInner
         // to register them.
         const container = createRootFragment(node, startNode!, sib);
 
-        // FIXME: Partial keys
         const root = h(PartialComp, {
+          key: partialKey !== "" ? partialKey : undefined,
           name: partialName,
           mode: 0,
           children: null,
@@ -380,7 +388,7 @@ function collectPartials(
       }
     } else if (partialCount === 0 && isElementNode(sib)) {
       // Do not recurse if we know that we are inisde a partial
-      collectPartials(ctx, allProps, sib);
+      revivePartials(ctx, allProps, sib);
     }
 
     sib = sib.nextSibling;
