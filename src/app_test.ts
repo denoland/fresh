@@ -333,3 +333,26 @@ Deno.test("FreshApp - .mountApp() self mount empty", async () => {
   const res = await server.get("/foo");
   expect(await res.text()).toEqual("A");
 });
+
+Deno.test("FreshApp - catches errors", async () => {
+  let thrownErr: unknown | null = null;
+  const app = new FreshApp<{ text: string }>()
+    .use(async (ctx) => {
+      ctx.state.text = "A";
+      try {
+        return await ctx.next();
+      } catch (err) {
+        thrownErr = err;
+        throw err;
+      }
+    })
+    .get("/", () => {
+      throw new Error("fail");
+    });
+
+  const server = new FakeServer(await app.handler());
+
+  const res = await server.get("/");
+  expect(res.status).toEqual(500);
+  expect(thrownErr).toBeInstanceOf(Error);
+});

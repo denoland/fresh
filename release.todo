@@ -67,5 +67,6 @@ Fresh 2.0 finishing:
   ☐ any JSX child is serialized, not just the `children` prop
   ☐ Removed ctx.destination
   ☐ Removed csp hooks
+  ☐ `ctx.error` is no more
 
 

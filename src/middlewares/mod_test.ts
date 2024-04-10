@@ -85,3 +85,52 @@ Deno.test("runMiddleware - runs multiple stacks", async () => {
   const res = await server.get("/");
   expect(await res.text()).toEqual("ABCD");
 });
+
+Deno.test("runMiddleware - throws errors", async () => {
+  let thrownA: unknown = null;
+  let thrownB: unknown = null;
+  let thrownC: unknown = null;
+
+  const middlewares: Middleware<{ text: string }>[] = [
+    async (ctx) => {
+      try {
+        return await ctx.next();
+      } catch (err) {
+        thrownA = err;
+        throw err;
+      }
+    },
+    async (ctx) => {
+      try {
+        return await ctx.next();
+      } catch (err) {
+        thrownB = err;
+        throw err;
+      }
+    },
+    async (ctx) => {
+      try {
+        return await ctx.next();
+      } catch (err) {
+        thrownC = err;
+        throw err;
+      }
+    },
+    () => {
+      throw new Error("fail");
+    },
+  ];
+
+  const server = serveMiddleware<{ text: string }>((ctx) =>
+    runMiddlewares([middlewares], ctx)
+  );
+
+  try {
+    await server.get("/");
+  } catch {
+    // ignore
+  }
+  expect(thrownA).toBeInstanceOf(Error);
+  expect(thrownB).toBeInstanceOf(Error);
+  expect(thrownC).toBeInstanceOf(Error);
+});

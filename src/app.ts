@@ -203,7 +203,6 @@ export class FreshApp<State> implements App<State> {
       this.buildCache = await ProdBuildCache.fromSnapshot(this.config);
     }
 
-    // deno-lint-ignore require-await
     return async (req: Request) => {
       const url = new URL(req.url);
       // Prevent open redirect attacks
@@ -238,7 +237,12 @@ export class FreshApp<State> implements App<State> {
       }
 
       ctx.next = next;
-      return runMiddlewares(handlers, ctx);
+      try {
+        return await runMiddlewares(handlers, ctx);
+      } catch (err) {
+        console.error(err);
+        return new Response("Internal server error", { status: 500 });
+      }
     };
   }
 
