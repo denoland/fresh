@@ -1,9 +1,9 @@
 import { expect } from "@std/expect";
 import { initProject, InitStep, type MockTTY } from "./init.ts";
 import * as path from "@std/path";
-import { withBrowser } from "../../tests/test_utils.ts";
-import { waitForText } from "../../tests/test_utils.ts";
-import { withChildProcessServer } from "../../tests/test_utils.ts";
+import { withBrowser } from "../../tests/test_utils.tsx";
+import { waitForText } from "../../tests/test_utils.tsx";
+import { withChildProcessServer } from "../../tests/test_utils.tsx";
 
 async function withTmpDir(fn: (dir: string) => void | Promise<void>) {
   const dir = await Deno.makeTempDir();

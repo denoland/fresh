@@ -1,6 +1,4 @@
 import { FreshApp } from "@fresh/core";
-import type { ComponentChildren } from "preact";
-import * as path from "@std/path";
 import { Counter } from "./fixtures_islands/Counter.tsx";
 import { IslandInIsland } from "./fixtures_islands/IslandInIsland.tsx";
 import { JsonIsland } from "./fixtures_islands/JsonIsland.tsx";
@@ -12,37 +10,13 @@ import { Multiple1, Multiple2 } from "./fixtures_islands/Multiple.tsx";
 import { JsxIsland } from "./fixtures_islands/JsxIsland.tsx";
 import { JsxChildrenIsland } from "./fixtures_islands/JsxChildrenIsland.tsx";
 import { signal } from "@preact/signals";
-import { withBrowserApp } from "./test_utils.ts";
-import { FreshScripts } from "../src/runtime/server/preact_hooks.tsx";
-import { parseHtml, waitForText } from "./test_utils.ts";
+import { Doc, getIsland, withBrowserApp } from "./test_utils.tsx";
+import { parseHtml, waitForText } from "./test_utils.tsx";
 import { freshStaticFiles } from "../src/middlewares/static_files.ts";
 import { expect } from "@std/expect";
 import { JsxConditional } from "./fixtures_islands/JsxConditional.tsx";
 import { FnIsland } from "./fixtures_islands/FnIsland.tsx";
 import { FragmentIsland } from "./fixtures_islands/FragmentIsland.tsx";
-
-function Doc(props: { children?: ComponentChildren }) {
-  return (
-    <html>
-      <head>
-        <meta charset="utf-8" />
-        <title>Test</title>
-      </head>
-      <body>
-        {props.children}
-        <FreshScripts />
-      </body>
-    </html>
-  );
-}
-
-function getIsland(pathname: string) {
-  return path.join(
-    import.meta.dirname!,
-    "fixtures_islands",
-    pathname,
-  );
-}
 
 Deno.test("islands - should make signals interactive", async () => {
   const counterIsland = getIsland("Counter.tsx");

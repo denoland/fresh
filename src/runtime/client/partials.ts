@@ -6,13 +6,17 @@ import {
   UrlMatchKind,
 } from "../shared_internal.tsx";
 import {
+  ACTIVE_PARTIALS,
+  CUSTOM_PARSER,
   type DeserializedProps,
   domToVNode,
+  ISLAND_REGISTRY,
   Marker,
   PartialComp,
 } from "./reviver.ts";
 import { createRootFragment, isCommentNode, isElementNode } from "./reviver.ts";
-import { ACTIVE_PARTIALS } from "./reviver.ts";
+import type { PartialStateJson } from "../server/preact_hooks.tsx";
+import { parse } from "../../jsonify/parse.ts";
 
 export const CLIENT_NAV_ATTR = "f-client-nav";
 export const PARTIAL_ATTR = "f-partial";
@@ -293,18 +297,35 @@ export async function applyPartials(res: Response): Promise<void> {
     throw new Error(`Unable to process partial response.`);
   }
 
+  const id = res.headers.get("X-Fresh-Id");
+
   const resText = await res.text();
   const doc = new DOMParser().parseFromString(resText, "text/html") as Document;
 
-  // TODO: Load islands
-  const promises: Promise<void>[] = [];
+  const state = doc.querySelector(`#__FRSH_STATE_${id}`);
+  let allProps: DeserializedProps = [];
+  if (state !== null) {
+    const json = JSON.parse(state.textContent!) as PartialStateJson;
+    console.log(json);
+    const promises: Promise<void>[] = [];
+
+    allProps = parse<DeserializedProps>(json.props, CUSTOM_PARSER);
+
+    for (let i = 0; i < json.islands.length; i++) {
+      const island = json.islands[i];
+      promises.push(
+        import(island.chunk).then((mod) => {
+          ISLAND_REGISTRY.set(island.name, mod[island.exportName]);
+        }),
+      );
+    }
+
+    await Promise.all(promises);
+  }
 
   const ctx: PartialReviveCtx = {
     foundPartials: 0,
   };
-  console.log(doc);
-  // FIXME: Get serialized props
-  const allProps: DeserializedProps = [];
 
   collectPartials(ctx, allProps, doc.body);
 

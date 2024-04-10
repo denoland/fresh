@@ -117,9 +117,9 @@ export function revive(
     : setTimeout(_render, 0);
 }
 
-const ISLAND_REGISTRY = new Map<string, ComponentType>();
+export const ISLAND_REGISTRY = new Map<string, ComponentType>();
 
-const CUSTOM_PARSER: CustomParser = {
+export const CUSTOM_PARSER: CustomParser = {
   Signal: (value: unknown) => signal(value),
   Slot: (value: { name: string; id: number }): SlotRef => {
     return { kind: SLOT_SYMBOL, name: value.name, id: value.id };

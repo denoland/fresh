@@ -15,6 +15,7 @@ import type { FreshContext } from "../../context.ts";
 import { Partial, type PartialProps } from "../shared.ts";
 import { stringify } from "../../jsonify/stringify.ts";
 import type { ServerIslandRegistry } from "../../context.ts";
+import type { Island } from "../../context.ts";
 
 const enum OptionsType {
   VNODE = "vnode",
@@ -56,8 +57,7 @@ export class RenderState {
   basePath = ""; // FIXME
   // deno-lint-ignore no-explicit-any
   islandProps: any[] = [];
-  // deno-lint-ignore no-explicit-any
-  islands = new Set<any>();
+  islands = new Set<Island>();
   // deno-lint-ignore no-explicit-any
   encounteredPartials = new Set<any>();
   owners = new Map<VNode, VNode>();
@@ -71,6 +71,7 @@ export class RenderState {
   constructor(
     public ctx: FreshContext,
     public islandRegistry: ServerIslandRegistry,
+    public partialId: string,
   ) {
     this.nonce = crypto.randomUUID().replace(/-/g, "");
   }
@@ -300,42 +301,81 @@ export const FreshScripts: () => VNode = ((
   );
 }) as () => VNode;
 
+export interface PartialStateJson {
+  islands: {
+    name: string;
+    chunk: string;
+    exportName: string;
+  }[];
+  props: string;
+}
+
 function FreshRuntimeScript() {
-  const { islands, nonce, ctx, islandProps } = RENDER_STATE!;
+  const { islands, nonce, ctx, islandProps, partialId } = RENDER_STATE!;
   const basePath = ctx.config.basePath;
 
   const islandArr = Array.from(islands);
 
-  const islandImports = islandArr.map((island) => {
-    const chunk = ctx.buildCache.getIslandChunkName(island.name);
-    if (chunk === null) {
-      throw new Error(
-        `Could not find chunk for ${island.name} ${island.file}#${island.exportName}`,
-      );
-    }
-    const named = island.exportName === "default"
-      ? island.name
-      : `{ ${island.exportName} }`;
-    return `import ${named} from "${chunk}";`;
-  }).join("");
+  if (ctx.url.searchParams.has("fresh-partial")) {
+    const islands = islandArr.map((island) => {
+      const chunk = ctx.buildCache.getIslandChunkName(island.name);
+      if (chunk === null) {
+        throw new Error(
+          `Could not find chunk for ${island.name} ${island.file}#${island.exportName}`,
+        );
+      }
+      return {
+        exportName: island.exportName,
+        chunk,
+        name: island.name,
+      };
+    });
 
-  const islandObj = "{" + islandArr.map((island) => island.name)
-    .join(",") +
-    "}";
+    const serializedProps = stringify(islandProps, stringifiers);
+    const json: PartialStateJson = {
+      islands,
+      props: serializedProps,
+    };
 
-  const serializedProps = stringify(islandProps, stringifiers);
+    return (
+      <script
+        id={`__FRSH_STATE_${partialId}`}
+        type="application/json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(json) }}
+      />
+    );
+  } else {
+    const islandImports = islandArr.map((island) => {
+      const chunk = ctx.buildCache.getIslandChunkName(island.name);
+      if (chunk === null) {
+        throw new Error(
+          `Could not find chunk for ${island.name} ${island.file}#${island.exportName}`,
+        );
+      }
+      const named = island.exportName === "default"
+        ? island.name
+        : `{ ${island.exportName} }`;
+      return `import ${named} from "${chunk}";`;
+    }).join("");
 
-  // TODO: integrity?
-  const scriptContent =
-    `import { boot } from "${basePath}/fresh-runtime.js";${islandImports}boot(${islandObj},\`${serializedProps}\`);`;
+    const islandObj = "{" + islandArr.map((island) => island.name)
+      .join(",") +
+      "}";
 
-  return (
-    <script
-      type="module"
-      nonce={nonce}
-      dangerouslySetInnerHTML={{
-        __html: scriptContent,
-      }}
-    />
-  );
+    const serializedProps = stringify(islandProps, stringifiers);
+
+    // TODO: integrity?
+    const scriptContent =
+      `import { boot } from "${basePath}/fresh-runtime.js";${islandImports}boot(${islandObj},\`${serializedProps}\`);`;
+
+    return (
+      <script
+        type="module"
+        nonce={nonce}
+        dangerouslySetInnerHTML={{
+          __html: scriptContent,
+        }}
+      />
+    );
+  }
 }

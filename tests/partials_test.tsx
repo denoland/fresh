@@ -1,24 +1,11 @@
 import type { ComponentChildren } from "preact";
-import { FreshApp, FreshScripts, freshStaticFiles } from "@fresh/core";
+import { FreshApp, freshStaticFiles } from "@fresh/core";
 import { Partial } from "@fresh/core/runtime";
-import { waitForText, withBrowserApp } from "./test_utils.ts";
+import { Doc, getIsland, waitForText, withBrowserApp } from "./test_utils.tsx";
+import { SelfCounter } from "./fixtures_islands/SelfCounter.tsx";
+import { parseHtml } from "./test_utils.tsx";
+import { assertNotSelector } from "./test_utils.tsx";
 
-function Doc(props: { children?: ComponentChildren }) {
-  return (
-    <html>
-      <head>
-        <meta charset="utf-8" />
-        <title>Test</title>
-      </head>
-      <body>
-        {props.children}
-        <FreshScripts />
-      </body>
-    </html>
-  );
-}
-
-// TODO
 Deno.test("partials - updates content", async () => {
   const app = new FreshApp()
     .use(freshStaticFiles())
@@ -46,5 +33,45 @@ Deno.test("partials - updates content", async () => {
     await page.goto(address);
     await page.click(".update");
     await waitForText(page, ".output", "partial update");
+  });
+});
+
+Deno.test("partials - revive island not seen before", async () => {
+  const selfCounter = getIsland("SelfCounter.tsx");
+  const app = new FreshApp()
+    .island(selfCounter, "SelfCounter", SelfCounter)
+    .use(freshStaticFiles())
+    .get("/partial", (ctx) => {
+      // FIXME: Add outer document
+      return ctx.render(
+        <Doc>
+          <Partial name="foo">
+            <SelfCounter />
+          </Partial>
+        </Doc>,
+      );
+    })
+    .get("/", (ctx) => {
+      return ctx.render(
+        <Doc>
+          <div f-client-nav>
+            <a href="/partial" class="update">update</a>
+            <Partial name="foo">
+              <p class="init">hello world</p>
+            </Partial>
+          </div>
+        </Doc>,
+      );
+    });
+
+  await withBrowserApp(app, async (page, address) => {
+    await page.goto(address);
+    await page.click(".update");
+    await page.waitForSelector(".ready");
+    await page.click(".increment");
+    await waitForText(page, ".output", "1");
+
+    const doc = parseHtml(await page.content());
+    assertNotSelector(doc, ".init");
   });
 });

@@ -6,6 +6,32 @@ import * as colors from "@std/fmt/colors";
 import { type Document, DOMParser, HTMLElement } from "linkedom";
 import { FreshDevApp } from "../src/dev/dev_app.ts";
 import { TextLineStream } from "@std/streams/text-line-stream";
+import * as path from "@std/path";
+import type { ComponentChildren } from "preact";
+import { FreshScripts } from "../src/runtime/server/preact_hooks.tsx";
+
+export function getIsland(pathname: string) {
+  return path.join(
+    import.meta.dirname!,
+    "fixtures_islands",
+    pathname,
+  );
+}
+
+export function Doc(props: { children?: ComponentChildren }) {
+  return (
+    <html>
+      <head>
+        <meta charset="utf-8" />
+        <title>Test</title>
+      </head>
+      <body>
+        {props.children}
+        <FreshScripts />
+      </body>
+    </html>
+  );
+}
 
 export async function buildProd(app: App<unknown>) {
   const outDir = await Deno.makeTempDir();
@@ -37,11 +63,11 @@ export async function withBrowserApp(
 
     const browser = await puppeteer.launch({
       args: ["--no-sandbox"],
-      // headless: false,
+      headless: false,
     });
 
     const page = await browser.newPage();
-    // page.setDefaultTimeout(1000000);
+    page.setDefaultTimeout(1000000);
     try {
       await fn(page, `http://localhost:${port}`);
     } finally {

@@ -138,7 +138,13 @@ export class FreshReqContext<T> implements FreshContext<T, unknown> {
     headers.set("Content-Type", "text/html; charset=utf-8");
     const responseInit: ResponseInit = { status: init.status ?? 200, headers };
 
-    const html = preactRender(vnode, this, this.islandRegistry);
+    let partialId = "";
+    if (this.url.searchParams.has("fresh-partial")) {
+      partialId = crypto.randomUUID();
+      headers.set("X-Fresh-Id", partialId);
+    }
+
+    const html = preactRender(vnode, this, this.islandRegistry, partialId);
     return new Response(html, responseInit);
   }
 
@@ -151,8 +157,9 @@ function preactRender<T>(
   vnode: VNode,
   ctx: FreshContext<T>,
   islandRegistry: ServerIslandRegistry,
+  partialId: string,
 ) {
-  const state = new RenderState(ctx, islandRegistry);
+  const state = new RenderState(ctx, islandRegistry, partialId);
   setRenderState(state);
   try {
     // TODO: Streaming
