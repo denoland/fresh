@@ -306,7 +306,6 @@ export async function applyPartials(res: Response): Promise<void> {
   let allProps: DeserializedProps = [];
   if (state !== null) {
     const json = JSON.parse(state.textContent!) as PartialStateJson;
-    console.log(json);
     const promises: Promise<void>[] = [];
 
     allProps = parse<DeserializedProps>(json.props, CUSTOM_PARSER);
@@ -363,17 +362,21 @@ function collectPartials(
         const container = createRootFragment(node, startNode!, sib);
 
         // FIXME: Partial keys
-        const root = h(PartialComp, { name: "foo", mode: 0, children: null });
+        const root = h(PartialComp, {
+          name: partialName,
+          mode: 0,
+          children: null,
+        });
         domToVNode(allProps, [root], [Marker.Partial], container);
 
         const instance = ACTIVE_PARTIALS.get(partialName);
         if (instance === undefined) {
+          console.warn(`Partial "${partialName}" not found. Skipping...`);
           // Partial doesn't exist on the current page
-          continue;
+        } else {
+          instance.props.children = root.props.children;
+          instance.setState({});
         }
-
-        instance.props.children = root.props.children;
-        instance.setState({});
       }
     } else if (partialCount === 0 && isElementNode(sib)) {
       // Do not recurse if we know that we are inisde a partial
