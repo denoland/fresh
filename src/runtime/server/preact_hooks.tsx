@@ -114,46 +114,51 @@ const PATCHED = new WeakSet<VNode>();
 const oldDiff = options[OptionsType.DIFF];
 options[OptionsType.DIFF] = (vnode) => {
   patchIslands: if (
-    typeof vnode.type === "function" && vnode.type !== Fragment &&
-    !PATCHED.has(vnode) && RENDER_STATE !== null &&
-    !hasIslandOwner(RENDER_STATE, vnode)
+    typeof vnode.type === "function" && vnode.type !== Fragment
   ) {
-    const island = RENDER_STATE.islandRegistry.get(vnode.type);
-    if (island === undefined) {
-      break patchIslands;
-    }
-
-    const { islands, islandProps } = RENDER_STATE;
-    islands.add(island);
-
-    const originalType = vnode.type;
-    vnode.type = (props) => {
-      for (const name in props) {
-        // deno-lint-ignore no-explicit-any
-        const value = (props as any)[name];
-        if (
-          name === "children" || (isValidElement(value) && !isSignal(value))
-        ) {
-          const slotId = RENDER_STATE!.slots.length;
-          RENDER_STATE!.slots.push({ id: slotId, name, vnode: value });
-          // deno-lint-ignore no-explicit-any
-          (props as any)[name] = h(Slot, {
-            name,
-            id: slotId,
-          }, value);
-        }
+    if (
+      !PATCHED.has(vnode) && RENDER_STATE !== null &&
+      !hasIslandOwner(RENDER_STATE, vnode)
+    ) {
+      const island = RENDER_STATE.islandRegistry.get(vnode.type);
+      if (island === undefined) {
+        break patchIslands;
       }
-      const propsIdx = islandProps.push({ slots: [], props }) - 1;
 
-      const child = h(originalType, props);
-      PATCHED.add(child);
+      const { islands, islandProps } = RENDER_STATE;
+      islands.add(island);
 
-      return wrapWithMarker(
-        child,
-        "island",
-        `${island!.name}:${propsIdx}:${vnode.key ?? ""}`,
-      );
-    };
+      const originalType = vnode.type;
+      vnode.type = (props) => {
+        for (const name in props) {
+          // deno-lint-ignore no-explicit-any
+          const value = (props as any)[name];
+          if (
+            name === "children" || (isValidElement(value) && !isSignal(value))
+          ) {
+            const slotId = RENDER_STATE!.slots.length;
+            RENDER_STATE!.slots.push({ id: slotId, name, vnode: value });
+            // deno-lint-ignore no-explicit-any
+            (props as any)[name] = h(Slot, {
+              name,
+              id: slotId,
+            }, value);
+          }
+        }
+        const propsIdx = islandProps.push({ slots: [], props }) - 1;
+
+        const child = h(originalType, props);
+        PATCHED.add(child);
+
+        return wrapWithMarker(
+          child,
+          "island",
+          `${island!.name}:${propsIdx}:${vnode.key ?? ""}`,
+        );
+      };
+    } else if (vnode.type === Partial && hasIslandOwner(RENDER_STATE!, vnode)) {
+      throw new Error(`<Partial> components cannot be used inside islands.`);
+    }
   } else if (typeof vnode.type === "string") {
     switch (vnode.type) {
       case "html":

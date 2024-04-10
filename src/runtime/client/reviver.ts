@@ -11,7 +11,13 @@ import { parse } from "../../jsonify/parse.ts";
 import { signal } from "@preact/signals";
 import type { CustomParser } from "../../jsonify/parse.ts";
 
+const enum RootKind {
+  Island,
+  Partial,
+}
+
 interface IslandReq {
+  kind: RootKind.Island;
   name: string;
   propsIdx: number;
   key: string | null;
@@ -19,6 +25,7 @@ interface IslandReq {
   end: Comment | null;
 }
 interface PartialReq {
+  kind: RootKind.Partial;
   name: string;
   key: string | null;
   start: Comment;
@@ -26,8 +33,7 @@ interface PartialReq {
 }
 
 interface ReviveContext {
-  islands: IslandReq[];
-  partials: PartialReq[];
+  roots: Array<IslandReq | PartialReq>;
   stack: Array<PartialReq | IslandReq>;
   slots: Map<number, { name: string; start: Comment; end: Comment | null }>;
   slotIdStack: number[];
@@ -128,8 +134,7 @@ export const CUSTOM_PARSER: CustomParser = {
 
 export function createReviveCtx(): ReviveContext {
   return {
-    islands: [],
-    partials: [],
+    roots: [],
     stack: [],
     slots: new Map(),
     slotIdStack: [],
@@ -141,7 +146,7 @@ export function boot(
   islandProps: string,
 ) {
   const ctx = createReviveCtx();
-  _walkInner(ctx, document.body);
+  _walkInner(ctx, document.body, false);
 
   const keys = Object.keys(initialIslands);
   for (let i = 0; i < keys.length; i++) {
@@ -153,43 +158,43 @@ export function boot(
     islandProps,
     CUSTOM_PARSER,
   );
-  for (let i = 0; i < ctx.islands.length; i++) {
-    const island = ctx.islands[i];
-    const props = allProps[island.propsIdx].props;
-    const component = ISLAND_REGISTRY.get(island.name)!;
+
+  for (let i = 0; i < ctx.roots.length; i++) {
+    const root = ctx.roots[i];
 
     const container = createRootFragment(
       // deno-lint-ignore no-explicit-any
-      island.start.parentNode as any,
-      island.start,
-      island.end!,
+      root.start.parentNode as any,
+      root.start,
+      root.end!,
     );
-    revive(props, component, container, ctx.slots, allProps);
-  }
 
-  for (let i = 0; i < ctx.partials.length; i++) {
-    const partial = ctx.partials[i];
-    const props: Record<string, unknown> = {
-      name: partial.name,
-      children: null,
-    };
+    if (root.kind === RootKind.Island) {
+      const props = allProps[root.propsIdx].props;
+      const component = ISLAND_REGISTRY.get(root.name)!;
 
-    const container = createRootFragment(
+      revive(props, component, container, ctx.slots, allProps);
+    } else if (root.kind === RootKind.Partial) {
+      const props: Record<string, unknown> = {
+        name: root.name,
+        children: null,
+      };
+
+      const domRoot = h(Fragment, null);
+      domToVNode(allProps, [domRoot], [Marker.Partial], container);
+      props.children = domRoot.props.children;
+
       // deno-lint-ignore no-explicit-any
-      partial.start.parentNode as any,
-      partial.start,
-      partial.end!,
-    );
-    const root = h(Fragment, null);
-    domToVNode(allProps, [root], [Marker.Partial], container);
-    props.children = root.props.children;
-
-    // deno-lint-ignore no-explicit-any
-    revive(props, PartialComp as any, container, ctx.slots, allProps);
+      revive(props, PartialComp as any, container, ctx.slots, allProps);
+    }
   }
 }
 
-function _walkInner(ctx: ReviveContext, node: Node | Comment) {
+function _walkInner(
+  ctx: ReviveContext,
+  node: Node | Comment,
+  insideRoot: boolean,
+) {
   if (isElementNode(node)) {
     // No need to traverse into <script> or <style> tags.
     // No need to traverse deeper if we found a slotStart marker.
@@ -203,7 +208,7 @@ function _walkInner(ctx: ReviveContext, node: Node | Comment) {
 
     for (let i = 0; i < node.childNodes.length; i++) {
       const child = node.childNodes[i];
-      _walkInner(ctx, child);
+      _walkInner(ctx, child, insideRoot);
     }
   } else if (isCommentNode(node)) {
     const comment = node.data;
@@ -215,13 +220,16 @@ function _walkInner(ctx: ReviveContext, node: Node | Comment) {
         const propsIdx = parts[3];
         const key = parts[4];
         const found: IslandReq = {
+          kind: RootKind.Island,
           name,
           propsIdx: Number(propsIdx),
           key: key === "" ? null : key,
           start: node,
           end: null,
         };
-        ctx.islands.push(found);
+        if (ctx.stack.length === 0) {
+          ctx.roots.push(found);
+        }
         ctx.stack.push(found);
       } else if (kind === "slot") {
         const id = +parts[2];
@@ -236,12 +244,15 @@ function _walkInner(ctx: ReviveContext, node: Node | Comment) {
         const name = parts[2];
         const key = parts[3];
         const found: PartialReq = {
+          kind: RootKind.Partial,
           name,
           key,
           start: node,
           end: null,
         };
-        ctx.partials.push(found);
+        if (ctx.stack.length === 0) {
+          ctx.roots.push(found);
+        }
         ctx.stack.push(found);
       }
     } else if (comment === "/frsh:island" || comment === "/frsh:partial") {
@@ -286,9 +297,9 @@ export function domToVNode(
   while (sib !== null) {
     // deno-lint-ignore no-explicit-any
     if ((sib as any)._frshRootFrag || sib instanceof DocumentFragment) {
-      for (let i = 0; i < sib.childNodes.length; i++) {
-        const child = sib.childNodes[i];
-        domToVNode(allProps, vnodeStack, markerStack, child);
+      const firstChild = sib.firstChild;
+      if (firstChild !== null) {
+        domToVNode(allProps, vnodeStack, markerStack, firstChild);
       }
     } else if (isElementNode(sib)) {
       const props: Record<string, unknown> = {};
@@ -327,6 +338,8 @@ export function domToVNode(
 
         const kind = parts[1];
         if (kind === "island") {
+          markerStack.push(Marker.Island);
+
           const name = parts[2];
           const propsIdx = parts[3];
           const island = ISLAND_REGISTRY.get(name);
@@ -334,17 +347,16 @@ export function domToVNode(
             throw new Error(`Encountered unknown island: ${name}`);
           }
 
-          markerStack.push(Marker.Island);
-
           const props = allProps[+propsIdx];
           // deno-lint-ignore no-explicit-any
           const islandVNode = h<any>(island, props);
           addVNodeChild(vnodeStack.at(-1)!, islandVNode);
           vnodeStack.push(islandVNode);
         } else if (kind === "slot") {
+          markerStack.push(Marker.Slot);
+
           const id = +parts[2];
           const slotName = parts[3];
-          markerStack.push(Marker.Slot);
           const vnode = h(ServerSlot, { id, name: slotName, children: [] });
 
           const parentVNode = vnodeStack.at(-1)!;
