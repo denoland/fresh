@@ -122,6 +122,42 @@ Deno.test("partials - warn on missing partial", async () => {
   });
 });
 
+Deno.test("partials - errors on duplicate partial name", async () => {
+  const app = new FreshApp()
+    .use(freshStaticFiles())
+    .get("/", (ctx) => {
+      return ctx.render(
+        <Doc>
+          <div f-client-nav>
+            <a href="/partial" class="update">update</a>
+            <Partial name="foo">
+              <p class="ready">foo</p>
+            </Partial>
+            <Partial name="foo">
+              <p class="ready">foo</p>
+            </Partial>
+          </div>
+        </Doc>,
+      );
+    });
+
+  const server = new FakeServer(await app.handler());
+  let checked = false;
+  try {
+    const res = await server.get("/");
+    await res.body?.cancel();
+
+    expect(res.status).toEqual(500);
+    checked = true;
+  } catch {
+    // Ignore
+  }
+
+  expect(checked).toEqual(true);
+
+  // TODO: Check error overlay
+});
+
 // See https://github.com/denoland/fresh/issues/2254
 Deno.test("partials - should not be able to override __FRSH_STATE", async () => {
   const selfCounter = getIsland("SelfCounter.tsx");
@@ -372,131 +408,91 @@ Deno.test("partials - replaces island", async () => {
   });
 });
 
-// Deno.test("updates only one partial of many", async () => {
-//   await withPageName(
-//     "./tests/fixture_partials/main.ts",
-//     async (page, address) => {
-//       await page.goto(`${address}/island_instance_multiple`);
-//       await page.waitForSelector(".output-a");
+Deno.test("partials - only updates inner partial", async () => {
+  const app = new FreshApp()
+    .use(freshStaticFiles())
+    .get("/partial", (ctx) => {
+      return ctx.render(
+        <Doc>
+          <Partial name="inner">
+            <p class="inner-update">inner update</p>
+          </Partial>
+        </Doc>,
+      );
+    })
+    .get("/", (ctx) => {
+      return ctx.render(
+        <Doc>
+          <div f-client-nav>
+            <a href="/partial" class="update">update</a>
+            <Partial name="outer">
+              <p class="outer">outer</p>
+              <Partial name="inner">
+                <p class="inner">inner</p>
+              </Partial>
+            </Partial>
+          </div>
+        </Doc>,
+      );
+    });
 
-//       // Update island state
-//       await page.click(".island-a button");
-//       await waitForText(page, ".output-a", "1");
-//       await assertNoPageComments(page);
+  await withBrowserApp(app, async (page, address) => {
+    await page.goto(address);
+    await page.waitForSelector(".inner");
 
-//       await page.click(".island-b button");
-//       await waitForText(page, ".output-b", "1");
-//       await assertNoPageComments(page);
+    await page.click(".update");
+    await page.waitForSelector(".inner-update");
+  });
+});
 
-//       await assertLogs(page, [
-//         "mount Counter A",
-//         "mount Counter B",
-//         "update Counter A",
-//         "update Counter B",
-//       ]);
+Deno.test("partials - updates sibling partials", async () => {
+  const app = new FreshApp()
+    .use(freshStaticFiles())
+    .get("/partial", (ctx) => {
+      return ctx.render(
+        <Doc>
+          <Partial name="sib-1">
+            <p class="sib-1-update">sib-1 update</p>
+          </Partial>
+          <Partial name="sib-2">
+            <p class="sib-2-update">sib-2 update</p>
+          </Partial>
+          <Partial name="sib-3">
+            <p class="sib-3-update">sib-3 update</p>
+          </Partial>
+        </Doc>,
+      );
+    })
+    .get("/", (ctx) => {
+      return ctx.render(
+        <Doc>
+          <div f-client-nav>
+            <a href="/partial" class="update">update</a>
+            <Partial name="sib-1">
+              <p class="sib-1">sib-1</p>
+            </Partial>
+            <Partial name="sib-2">
+              <p class="sib-2">sib-2</p>
+            </Partial>
+            <p>foo</p>
+            <Partial name="sib-3">
+              <p class="sib-3">sib-3</p>
+            </Partial>
+          </div>
+        </Doc>,
+      );
+    });
 
-//       const href = await page.$eval(".update-second-link", (el) => el.href);
-//       await page.click(".update-second-link");
-//       await page.waitForSelector(".status-2");
-//       await assertNoPageComments(page);
+  await withBrowserApp(app, async (page, address) => {
+    await page.goto(address);
+    await page.waitForSelector(".sib-3");
+    await page.click(".update");
 
-//       assertEquals(href, await page.url());
-
-//       // Check that island value didn't change
-//       await waitForText(page, ".output-a", "1");
-//       await waitForText(page, ".output-b", "1");
-//     },
-//   );
-// });
-
-// Deno.test("updates many partials at once", async () => {
-//   await withPageName(
-//     "./tests/fixture_partials/main.ts",
-//     async (page, address) => {
-//       await page.goto(`${address}/island_instance_multiple`);
-//       await page.waitForSelector(".output-a");
-
-//       // Update island state
-//       await page.click(".island-a button");
-//       await waitForText(page, ".output-a", "1");
-//       await assertNoPageComments(page);
-
-//       await page.click(".island-b button");
-//       await waitForText(page, ".output-b", "1");
-//       await assertNoPageComments(page);
-
-//       await assertLogs(page, [
-//         "mount Counter A",
-//         "mount Counter B",
-//         "update Counter A",
-//         "update Counter B",
-//       ]);
-
-//       const href = await page.$eval(".update-both-link", (el) => el.href);
-//       await page.click(".update-both-link");
-//       await page.waitForSelector(".status-1");
-//       await page.waitForSelector(".status-2");
-//       await assertNoPageComments(page);
-
-//       assertEquals(href, await page.url());
-
-//       // Check that island value didn't change
-//       await waitForText(page, ".output-a", "1");
-//       await waitForText(page, ".output-b", "1");
-//     },
-//   );
-// });
-
-// Deno.test("replace island if parent type changes", async () => {
-//   await withPageName(
-//     "./tests/fixture_partials/main.ts",
-//     async (page, address) => {
-//       await page.goto(`${address}/island_instance_nested`);
-//       await page.waitForSelector(".output-a");
-
-//       // Update island state
-//       await page.click(".island-a button");
-//       await waitForText(page, ".output-a", "1");
-//       await assertNoPageComments(page);
-
-//       await page.click(".island-b button");
-//       await waitForText(page, ".output-b", "1");
-//       await assertNoPageComments(page);
-
-//       await assertLogs(page, [
-//         "mount Counter A",
-//         "mount Counter B",
-//         "mount PassThrough",
-//         "mount PassThrough",
-//         "update Counter A",
-//         "update Counter B",
-//       ]);
-
-//       const href = await page.$eval(".replace-link", (el) => el.href);
-//       await page.click(".replace-link");
-//       await page.waitForSelector(".output-a");
-
-//       assertEquals(href, await page.url());
-
-//       // Check that island value was destroyed since we replaced it
-//       await waitForText(page, ".output-a", "0");
-
-//       await assertLogs(page, [
-//         "mount Counter A",
-//         "mount Counter B",
-//         "mount PassThrough",
-//         "mount PassThrough",
-//         "update Counter A",
-//         "update Counter B",
-//         "unmount PassThrough",
-//         "unmount Counter A",
-//         "unmount PassThrough",
-//         "unmount Counter B",
-//         "mount Counter A",
-//       ]);
-//     },
-//   );
-// });
+    await page.waitForSelector(".sib-1-update");
+    await page.waitForSelector(".sib-2-update");
+    await page.waitForSelector(".sib-3-update");
+  });
+});
 
 // Deno.test("reconciles keyed islands", async () => {
 //   await withPageName(
@@ -1472,98 +1468,6 @@ Deno.test("partials - replaces island", async () => {
 //       await page.click(".update-outer");
 //       await waitForText(page, ".status-outer", "updated outer");
 //       await waitForText(page, ".status-inner", "inner");
-//     },
-//   );
-// });
-
-// Deno.test("errors on duplicate partial name", async () => {
-//   await withPageName(
-//     "./tests/fixture_partials/main.ts",
-//     async (page, address) => {
-//       await page.goto(`${address}/duplicate_name`);
-//       await page.waitForSelector(".swap-link");
-
-//       const logs: string[] = [];
-//       page.on("console", (msg) => logs.push(msg.text()));
-
-//       await Promise.all([
-//         page.waitForResponse((res) => res.status() === 500),
-//         page.click(".swap-link"),
-//       ]);
-//     },
-//   );
-// });
-
-// Deno.test("normal visit to handler page", async () => {
-//   await withFakeServe(
-//     "./tests/fixture_partials/main.ts",
-//     async (server) => {
-//       const html = await server.getHtml("/isPartial/handler");
-//       assertEquals(JSON.parse(html.querySelector("pre")!.textContent!), {
-//         isPartial: false,
-//         notSetFromMiddleware: true,
-//       });
-//     },
-//   );
-// });
-
-// Deno.test("normal visit to async page", async () => {
-//   await withFakeServe(
-//     "./tests/fixture_partials/main.ts",
-//     async (server) => {
-//       const html = await server.getHtml("/isPartial/async");
-//       assertEquals(JSON.parse(html.querySelector("pre")!.textContent!), {
-//         isPartial: false,
-//         notSetFromMiddleware: true,
-//       });
-//     },
-//   );
-// });
-
-// Deno.test("partials visit to handler page", async () => {
-//   await withPageName(
-//     "./tests/fixture_partials/main.ts",
-//     async (page, address) => {
-//       await page.goto(`${address}/isPartial`);
-//       await page.waitForSelector(".output");
-
-//       const href = await page.$eval(".handler-update-link", (el) => el.href);
-//       await page.click(".handler-update-link");
-//       await page.waitForSelector("pre");
-
-//       assertEquals(href, await page.url());
-//       await assertNoPageComments(page);
-//       const result = await page.$eval("pre", (el) => {
-//         return el.textContent;
-//       });
-//       assertEquals(JSON.parse(result), {
-//         isPartial: true,
-//         setFromMiddleware: true,
-//       });
-//     },
-//   );
-// });
-
-// Deno.test("partials visit to async page", async () => {
-//   await withPageName(
-//     "./tests/fixture_partials/main.ts",
-//     async (page, address) => {
-//       await page.goto(`${address}/isPartial`);
-//       await page.waitForSelector(".output");
-
-//       const href = await page.$eval(".async-update-link", (el) => el.href);
-//       await page.click(".async-update-link");
-//       await page.waitForSelector("pre");
-
-//       assertEquals(href, await page.url());
-//       await assertNoPageComments(page);
-//       const result = await page.$eval("pre", (el) => {
-//         return el.textContent;
-//       });
-//       assertEquals(JSON.parse(result), {
-//         isPartial: true,
-//         setFromMiddleware: true,
-//       });
 //     },
 //   );
 // });

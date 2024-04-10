@@ -113,16 +113,31 @@ const PATCHED = new WeakSet<VNode>();
 
 const oldDiff = options[OptionsType.DIFF];
 options[OptionsType.DIFF] = (vnode) => {
-  patchIslands: if (
+  patcher: if (
+    RENDER_STATE !== null &&
     typeof vnode.type === "function" && vnode.type !== Fragment
   ) {
-    if (
-      !PATCHED.has(vnode) && RENDER_STATE !== null &&
-      !hasIslandOwner(RENDER_STATE, vnode)
+    if (vnode.type === Partial) {
+      const name = (vnode.props as PartialProps).name;
+      if (typeof name === "string") {
+        if (RENDER_STATE.encounteredPartials.has(name)) {
+          throw new Error(
+            `Rendered response contains duplicate partial name: "${name}"`,
+          );
+        }
+
+        RENDER_STATE.encounteredPartials.add(name);
+      }
+
+      if (hasIslandOwner(RENDER_STATE, vnode)) {
+        throw new Error(`<Partial> components cannot be used inside islands.`);
+      }
+    } else if (
+      !PATCHED.has(vnode) && !hasIslandOwner(RENDER_STATE, vnode)
     ) {
       const island = RENDER_STATE.islandRegistry.get(vnode.type);
       if (island === undefined) {
-        break patchIslands;
+        break patcher;
       }
 
       const { islands, islandProps } = RENDER_STATE;
@@ -156,8 +171,6 @@ options[OptionsType.DIFF] = (vnode) => {
           `${island!.name}:${propsIdx}:${vnode.key ?? ""}`,
         );
       };
-    } else if (vnode.type === Partial && hasIslandOwner(RENDER_STATE!, vnode)) {
-      throw new Error(`<Partial> components cannot be used inside islands.`);
     }
   } else if (typeof vnode.type === "string") {
     switch (vnode.type) {
