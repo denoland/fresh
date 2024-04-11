@@ -9,7 +9,7 @@ import {
 } from "preact";
 import { type CustomParser, parse } from "../../jsonify/parse.ts";
 import { signal } from "@preact/signals";
-import { DATA_FRESH_KEY } from "../shared_internal.tsx";
+import { DATA_FRESH_KEY, PartialMode } from "../shared_internal.tsx";
 
 const enum RootKind {
   Island,
@@ -58,7 +58,7 @@ export type DeserializedProps = {
 export const ACTIVE_PARTIALS = new Map<string, PartialComp>();
 
 export class PartialComp extends Component<
-  { children?: ComponentChildren; mode: number; name: string }
+  { children?: ComponentChildren; mode: PartialMode; name: string }
 > {
   componentDidMount() {
     ACTIVE_PARTIALS.set(this.props.name, this);
@@ -384,13 +384,39 @@ export function domToVNode(
           markerStack.push(Marker.Partial);
 
           const name = parts[2];
-          const key = parts[3];
-          // FIXME: Mode
-          const vnode = h(PartialComp, { name, key, mode: 0 });
+          const mode = +parts[3] as PartialMode;
+          const key = parts[4];
+          // deno-lint-ignore no-explicit-any
+          let vnode: VNode<any> = h(PartialComp, { name, key, mode });
           const parentVNode = vnodeStack.at(-1);
           if (parentVNode !== undefined) {
             addVNodeChild(parentVNode, vnode);
           }
+
+          if (mode === PartialMode.Append) {
+            const active = ACTIVE_PARTIALS.get(name);
+            if (active !== undefined) {
+              copyOldChildren(vnode.props, active.props.children);
+              const wrapper = h(Fragment, null);
+              addVNodeChild(vnode, wrapper);
+              vnode = wrapper;
+            }
+          } else if (mode === PartialMode.Prepend) {
+            const active = ACTIVE_PARTIALS.get(name);
+            if (active !== undefined) {
+              copyOldChildren(vnode.props, active.props.children);
+              const wrapper = h(Fragment, null);
+              if (!vnode.props.children) {
+                vnode.props.children = [];
+              }
+              // deno-lint-ignore no-explicit-any
+              (vnode.props.children as Array<VNode<any> | string>).unshift(
+                wrapper,
+              );
+              vnode = wrapper;
+            }
+          }
+
           vnodeStack.push(vnode);
         } else if (kind === "key") {
           const vnode = h(Fragment, { key: parts[2] });
@@ -418,12 +444,21 @@ export function domToVNode(
 }
 
 // deno-lint-ignore no-explicit-any
-function addVNodeChild(parent: VNode, child: VNode<any> | string) {
+function addVNodeChild(parent: VNode<any>, child: VNode<any> | string) {
   if (!parent.props.children) {
     parent.props.children = [];
   }
   // deno-lint-ignore no-explicit-any
   (parent.props.children as Array<VNode<any> | string>).push(child);
+}
+
+export function copyOldChildren(
+  props: Record<string, unknown>,
+  oldChildren: ComponentChildren,
+) {
+  props.children = oldChildren !== undefined && oldChildren !== null
+    ? Array.isArray(oldChildren) ? oldChildren : [oldChildren]
+    : [];
 }
 
 export function isCommentNode(node: Node): node is Comment {

@@ -791,48 +791,274 @@ Deno.test(
   },
 );
 
-// Deno.test("partial injection mode", async () => {
-//   await withPageName(
-//     "./tests/fixture_partials/main.ts",
-//     async (page, address) => {
-//       await page.goto(`${address}/mode`);
-//       await page.waitForSelector(".island");
+Deno.test("partials - mode replace", async () => {
+  let i = 0;
+  const app = new FreshApp()
+    .use(freshStaticFiles())
+    .get("/partial", (ctx) => {
+      const id = i++;
+      return ctx.render(
+        <Doc>
+          <Partial name="outer" mode="replace">
+            <p class={`done-${id}`}>{id}</p>
+          </Partial>
+        </Doc>,
+      );
+    })
+    .get("/", (ctx) => {
+      return ctx.render(
+        <Doc>
+          <div f-client-nav>
+            <a href="/partial" class="update">update</a>
+            <Partial name="outer">
+              <p class="init">init</p>
+            </Partial>
+          </div>
+        </Doc>,
+      );
+    });
 
-//       await page.click("button");
-//       await waitForText(page, ".output-a", "1");
-//       await assertNoPageComments(page);
+  await withBrowserApp(app, async (page, address) => {
+    await page.goto(address);
+    await page.waitForSelector(".init");
+    await page.click(".update");
 
-//       // Append
-//       await page.click(".append-link");
-//       await page.waitForSelector(".status-append");
-//       // Check that old content is still there
-//       await page.waitForSelector(".status-initial");
-//       await assertNoPageComments(page);
+    await page.waitForSelector(".done-0");
+    await page.click(".update");
+    await page.waitForSelector(".done-1");
 
-//       // Check that newly inserted island is interactive
-//       await page.click(".island-other button");
-//       await waitForText(page, ".output-other", "1");
-//       await assertNoPageComments(page);
+    const doc = parseHtml(await page.content());
+    assertNotSelector(doc, ".init");
+    assertNotSelector(doc, ".done-0");
+  });
+});
 
-//       // Prepend
-//       await page.click(".prepend-link");
-//       await page.waitForSelector(".status-prepend");
-//       // Check that old content is still there
-//       await page.waitForSelector(".status-append");
-//       await page.waitForSelector(".status-initial");
-//       await assertNoPageComments(page);
+Deno.test("partials - mode replace inner", async () => {
+  let i = 0;
+  const app = new FreshApp()
+    .use(freshStaticFiles())
+    .get("/partial", (ctx) => {
+      const id = i++;
+      return ctx.render(
+        <Doc>
+          <Partial name="outer">
+            <Partial name="inner" mode="replace">
+              <p class={`done-${id}`}>{id}</p>
+            </Partial>
+          </Partial>
+        </Doc>,
+      );
+    })
+    .get("/", (ctx) => {
+      return ctx.render(
+        <Doc>
+          <div f-client-nav>
+            <a href="/partial" class="update">update</a>
+            <Partial name="outer">
+              <Partial name="inner">
+                <p class="init">init</p>
+              </Partial>
+            </Partial>
+          </div>
+        </Doc>,
+      );
+    });
 
-//       // Replace
-//       await page.click(".replace-link");
-//       await page.waitForSelector(".status-replace");
-//       await assertNoPageComments(page);
+  await withBrowserApp(app, async (page, address) => {
+    await page.goto(address);
+    await page.waitForSelector(".init");
+    await page.click(".update");
 
-//       const doc = parseHtml(await page.content());
-//       assertNotSelector(doc, ".status-append");
-//       assertNotSelector(doc, ".status-prepend");
-//     },
-//   );
-// });
+    await page.waitForSelector(".done-0");
+    await page.click(".update");
+    await page.waitForSelector(".done-1");
+
+    const doc = parseHtml(await page.content());
+    assertNotSelector(doc, ".init");
+    assertNotSelector(doc, ".done-0");
+  });
+});
+
+Deno.test("partials - mode append", async () => {
+  let i = 0;
+  const app = new FreshApp()
+    .use(freshStaticFiles())
+    .get("/partial", (ctx) => {
+      const id = i++;
+      return ctx.render(
+        <Doc>
+          <Partial name="outer" mode="append">
+            <p class={`done-${id}`}>{id}</p>
+          </Partial>
+        </Doc>,
+      );
+    })
+    .get("/", (ctx) => {
+      return ctx.render(
+        <Doc>
+          <div f-client-nav>
+            <a href="/partial" class="update">update</a>
+            <div class="content">
+              <Partial name="outer">
+                <p class="init">init</p>
+              </Partial>
+            </div>
+          </div>
+        </Doc>,
+      );
+    });
+
+  await withBrowserApp(app, async (page, address) => {
+    await page.goto(address);
+    await page.waitForSelector(".init");
+    await page.click(".update");
+
+    await page.waitForSelector(".done-0");
+    await page.click(".update");
+    await page.waitForSelector(".done-1");
+
+    const doc = parseHtml(await page.content());
+
+    expect(doc.querySelector(".content")!.textContent).toEqual("init01");
+  });
+});
+
+Deno.test("partials - mode append inner", async () => {
+  let i = 0;
+  const app = new FreshApp()
+    .use(freshStaticFiles())
+    .get("/partial", (ctx) => {
+      const id = i++;
+      return ctx.render(
+        <Doc>
+          <Partial name="outer">
+            <Partial name="inner" mode="append">
+              <p class={`done-${id}`}>{id}</p>
+            </Partial>
+          </Partial>
+        </Doc>,
+      );
+    })
+    .get("/", (ctx) => {
+      return ctx.render(
+        <Doc>
+          <div f-client-nav>
+            <a href="/partial" class="update">update</a>
+            <div class="content">
+              <Partial name="outer">
+                <Partial name="inner">
+                  <p class="init">init</p>
+                </Partial>
+              </Partial>
+            </div>
+          </div>
+        </Doc>,
+      );
+    });
+
+  await withBrowserApp(app, async (page, address) => {
+    await page.goto(address);
+    await page.waitForSelector(".init");
+    await page.click(".update");
+
+    await page.waitForSelector(".done-0");
+    await page.click(".update");
+    await page.waitForSelector(".done-1");
+
+    const doc = parseHtml(await page.content());
+    expect(doc.querySelector(".content")!.textContent).toEqual("init01");
+  });
+});
+
+Deno.test("partials - mode prepend", async () => {
+  let i = 0;
+  const app = new FreshApp()
+    .use(freshStaticFiles())
+    .get("/partial", (ctx) => {
+      const id = i++;
+      return ctx.render(
+        <Doc>
+          <Partial name="outer" mode="prepend">
+            <p class={`done-${id}`}>{id}</p>
+          </Partial>
+        </Doc>,
+      );
+    })
+    .get("/", (ctx) => {
+      return ctx.render(
+        <Doc>
+          <div f-client-nav>
+            <a href="/partial" class="update">update</a>
+            <div class="content">
+              <Partial name="outer">
+                <p class="init">init</p>
+              </Partial>
+            </div>
+          </div>
+        </Doc>,
+      );
+    });
+
+  await withBrowserApp(app, async (page, address) => {
+    await page.goto(address);
+    await page.waitForSelector(".init");
+    await page.click(".update");
+
+    await page.waitForSelector(".done-0");
+    await page.click(".update");
+    await page.waitForSelector(".done-1");
+
+    const doc = parseHtml(await page.content());
+    expect(doc.querySelector(".content")!.textContent).toEqual("10init");
+  });
+});
+
+Deno.test("partials - mode prepend inner", async () => {
+  let i = 0;
+  const app = new FreshApp()
+    .use(freshStaticFiles())
+    .get("/partial", (ctx) => {
+      const id = i++;
+      return ctx.render(
+        <Doc>
+          <Partial name="outer">
+            <Partial name="inner" mode="prepend">
+              <p class={`done-${id}`}>{id}</p>
+            </Partial>
+          </Partial>
+        </Doc>,
+      );
+    })
+    .get("/", (ctx) => {
+      return ctx.render(
+        <Doc>
+          <div f-client-nav>
+            <a href="/partial" class="update">update</a>
+            <div class="content">
+              <Partial name="outer">
+                <Partial name="inner">
+                  <p class="init">init</p>
+                </Partial>
+              </Partial>
+            </div>
+          </div>
+        </Doc>,
+      );
+    });
+
+  await withBrowserApp(app, async (page, address) => {
+    await page.goto(address);
+    await page.waitForSelector(".init");
+    await page.click(".update");
+
+    await page.waitForSelector(".done-0");
+    await page.click(".update");
+    await page.waitForSelector(".done-1");
+
+    const doc = parseHtml(await page.content());
+    expect(doc.querySelector(".content")!.textContent).toEqual("10init");
+  });
+});
 
 // Deno.test("partial navigation", async () => {
 //   await withPageName(

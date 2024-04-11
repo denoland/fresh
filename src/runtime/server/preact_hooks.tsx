@@ -16,7 +16,7 @@ import { Partial, type PartialProps } from "../shared.ts";
 import { stringify } from "../../jsonify/stringify.ts";
 import type { ServerIslandRegistry } from "../../context.ts";
 import type { Island } from "../../context.ts";
-import { DATA_FRESH_KEY } from "../shared_internal.tsx";
+import { DATA_FRESH_KEY, PartialMode } from "../shared_internal.tsx";
 
 const enum OptionsType {
   VNODE = "vnode",
@@ -102,10 +102,15 @@ options[OptionsType.VNODE] = (vnode) => {
     if (vnode.type === Partial) {
       const props = vnode.props as PartialProps;
       const key = normalizeKey(vnode.key ?? "");
+      const mode = !props.mode || props.mode === "replace"
+        ? PartialMode.Replace
+        : props.mode === "append"
+        ? PartialMode.Append
+        : PartialMode.Prepend;
       props.children = wrapWithMarker(
         props.children,
         "partial",
-        `${props.name}:${key}`,
+        `${props.name}:${mode}:${key}`,
       );
     }
   }

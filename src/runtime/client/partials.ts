@@ -1,12 +1,14 @@
-import { h } from "preact";
+import { type ComponentChildren, h } from "preact";
 import {
   DATA_ANCESTOR,
   DATA_CURRENT,
   matchesUrl,
+  PartialMode,
   UrlMatchKind,
 } from "../shared_internal.tsx";
 import {
   ACTIVE_PARTIALS,
+  copyOldChildren,
   CUSTOM_PARSER,
   type DeserializedProps,
   domToVNode,
@@ -345,6 +347,7 @@ function revivePartials(
   let partialCount = 0;
   let partialName = "";
   let partialKey = "";
+  let partialMode = PartialMode.Replace;
   while (sib !== null) {
     if (isCommentNode(sib)) {
       const comment = sib.data;
@@ -354,13 +357,15 @@ function revivePartials(
         if (++partialCount === 1) {
           startNode = sib;
           partialName = parts[2];
-          partialKey = parts[3];
+          partialMode = +parts[3] as PartialMode;
+          partialKey = parts[4];
         }
       } else if (comment === "/frsh:partial") {
         ctx.foundPartials++;
 
         // Skip hydrating nested partials, only hydrate the outer one
         if (--partialCount > 0) {
+          sib = sib.nextSibling;
           continue;
         }
 
@@ -372,7 +377,7 @@ function revivePartials(
         const root = h(PartialComp, {
           key: partialKey !== "" ? partialKey : undefined,
           name: partialName,
-          mode: 0,
+          mode: partialMode,
           children: null,
         });
         domToVNode(allProps, [root], [Marker.Partial], container);
@@ -382,7 +387,31 @@ function revivePartials(
           console.warn(`Partial "${partialName}" not found. Skipping...`);
           // Partial doesn't exist on the current page
         } else {
-          instance.props.children = root.props.children;
+          if (partialMode === PartialMode.Replace) {
+            instance.props.children = root.props.children;
+          } else if (partialMode === PartialMode.Append) {
+            const active = ACTIVE_PARTIALS.get(partialName);
+            if (active !== undefined) {
+              copyOldChildren(instance.props, active.props.children);
+
+              (instance.props.children as ComponentChildren[]).push(
+                root.props.children,
+              );
+            } else {
+              instance.props.children = root.props.children;
+            }
+          } else if (partialMode === PartialMode.Prepend) {
+            const active = ACTIVE_PARTIALS.get(partialName);
+            if (active !== undefined) {
+              copyOldChildren(instance.props, active.props.children);
+
+              (instance.props.children as ComponentChildren[]).unshift(
+                root.props.children,
+              );
+            } else {
+              instance.props.children = root.props.children;
+            }
+          }
           instance.setState({});
         }
       }

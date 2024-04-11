@@ -47,3 +47,9 @@ export function setActiveUrl(vnode: VNode, pathname: string): void {
     }
   }
 }
+
+export const enum PartialMode {
+  Replace,
+  Append,
+  Prepend,
+}
