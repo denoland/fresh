@@ -1561,57 +1561,104 @@ Deno.test(
   },
 );
 
-// Deno.test("should apply partials if submitter parent has no client nav", async () => {
-//   await withPageName(
-//     "./tests/fixture_partials/main.ts",
-//     async (page, address) => {
-//       await page.goto(`${address}/form_submitter_partial_no_client_nav`);
-//       await page.waitForSelector(".status");
+Deno.test(
+  "partials - don't apply partials when submitter has client nav disabled",
+  async () => {
+    const selfCounter = getIsland("SelfCounter.tsx");
+    const app = new FreshApp()
+      .island(selfCounter, "SelfCounter", SelfCounter)
+      .use(freshStaticFiles())
+      .post("/partial", async (ctx) => {
+        const data = await ctx.req.formData();
+        const name = data.get("name");
+        return ctx.render(
+          <Doc>
+            <Partial name="foo">
+              <p class={"done-" + name}>done</p>
+            </Partial>
+          </Doc>,
+        );
+      })
+      .get("/", (ctx) => {
+        return ctx.render(
+          <Doc>
+            <div f-client-nav>
+              <form action="/foo" id="foo">
+                <input name="name" value="foo" />
+                <Partial name="foo">
+                  <p class="init">init</p>
+                </Partial>
+                <SelfCounter />
+                <button>
+                  nothing
+                </button>
+              </form>
+              <button
+                f-client-nav={false}
+                type="submit"
+                class="update"
+                form="foo"
+                formaction="/partial"
+                formmethod="POST"
+                f-partial="/partial"
+              >
+                submit
+              </button>
+            </div>
+          </Doc>,
+        );
+      });
 
-//       await page.type("input", "foobar");
+    await withBrowserApp(app, async (page, address) => {
+      await page.goto(address);
+      await page.waitForSelector(".ready");
 
-//       await Promise.all([
-//         page.waitForNavigation(),
-//         page.click(".submit"),
-//       ]);
+      await page.click(".increment");
+      await waitForText(page, ".output", "1");
 
-//       await page.waitForSelector(".url");
+      await Promise.all([
+        page.waitForNavigation(),
+        page.click(".update"),
+      ]);
+      await page.waitForSelector(".done-foo");
 
-//       const url = await page.$eval(".url", (el) => el.textContent);
-//       assertEquals(
-//         url,
-//         `${address}/form_submitter_partial_no_client_nav`,
-//       );
+      const doc = parseHtml(await page.content());
+      assertNotSelector(doc, "button");
+    });
+  },
+);
 
-//       await waitFor(async () => {
-//         const logEl = await page.$eval("#logs", (el) => el.textContent);
-//         return /mount Form/.test(logEl);
-//       });
+Deno.test.only(
+  "partials - fragment nav should not cause infinite loop",
+  async () => {
+    const selfCounter = getIsland("SelfCounter.tsx");
+    const app = new FreshApp()
+      .island(selfCounter, "SelfCounter", SelfCounter)
+      .use(freshStaticFiles())
+      .get("/", (ctx) => {
+        return ctx.render(
+          <Doc>
+            <div f-client-nav>
+              <h1 id="foo">Same nav</h1>
+              <a href="#foo">#foo</a>
+            </div>
+          </Doc>,
+        );
+      });
 
-//       // Server can update form value
-//       const value = await page.$eval("input", (el) => el.value);
-//       assertEquals(value, "foobar_foo");
-//     },
-//   );
-// });
+    await withBrowserApp(app, async (page, address) => {
+      const logs: string[] = [];
+      page.on("console", (msg) => logs.push(msg.text()));
 
-// Deno.test("fragment navigation should not cause loop", async () => {
-//   await withPageName(
-//     "./tests/fixture_partials/main.ts",
-//     async (page, address) => {
-//       const logs: string[] = [];
-//       page.on("console", (msg) => logs.push(msg.text()));
+      await page.goto(address);
+      await page.waitForSelector("a");
 
-//       await page.goto(`${address}/fragment_nav`);
-//       await page.waitForSelector(".partial-text");
-
-//       await page.click("a");
-
-//       await page.waitForFunction(() => location.hash === "#foo");
-//       assertEquals(logs, []);
-//     },
-//   );
-// });
+      await page.click("a");
+      await page.waitForFunction(() => location.hash === "#foo");
+      expect(logs).toEqual([]);
+    });
+  },
+);
 
 // Deno.test("fragment navigation should not scroll to top", async () => {
 //   await withPageName(
@@ -1787,19 +1834,6 @@ Deno.test(
 //         Array.from(html.matchAll(/style\.css/g)).length === 1,
 //         `Duplicate link stylesheet found`,
 //       );
-//     },
-//   );
-// });
-
-// Deno.test("applies f-partial on <button>", async () => {
-//   await withPageName(
-//     "./tests/fixture_partials/main.ts",
-//     async (page, address) => {
-//       await page.goto(`${address}/button`);
-//       await page.waitForSelector(".status-initial");
-
-//       await page.click("button");
-//       await page.waitForSelector(".status-updated");
 //     },
 //   );
 // });
