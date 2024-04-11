@@ -98,7 +98,7 @@ export class FreshReqContext<T> implements FreshContext<T, unknown> {
   state = {} as T;
   data = {} as unknown;
   error: Error | null = null;
-  islandRegistry: ServerIslandRegistry;
+  #islandRegistry: ServerIslandRegistry;
 
   constructor(
     public req: Request,
@@ -107,7 +107,7 @@ export class FreshReqContext<T> implements FreshContext<T, unknown> {
     public buildCache: BuildCache,
     islandRegistry: ServerIslandRegistry,
   ) {
-    this.islandRegistry = islandRegistry;
+    this.#islandRegistry = islandRegistry;
     this.url = new URL(req.url);
   }
 
@@ -144,7 +144,7 @@ export class FreshReqContext<T> implements FreshContext<T, unknown> {
       headers.set("X-Fresh-Id", partialId);
     }
 
-    const html = preactRender(vnode, this, this.islandRegistry, partialId);
+    const html = preactRender(vnode, this, this.#islandRegistry, partialId);
     return new Response(html, responseInit);
   }
 
