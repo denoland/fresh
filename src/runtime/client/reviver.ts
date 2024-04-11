@@ -81,19 +81,20 @@ export function revive(
     for (const propName in props) {
       const value = props[propName];
       if (isSlotRef(value)) {
-        const markers = slots.get(value.id);
-        if (markers !== undefined) {
+        const marker = slots.get(value.id);
+        if (marker !== undefined) {
           const root = h(Fragment, null);
           const slotContainer = createRootFragment(
             container,
-            markers.start,
-            markers.end!,
+            marker.start,
+            marker.end!,
           );
           domToVNode(
             allProps,
             [root],
             [Marker.Slot],
             slotContainer,
+            marker.end!,
           );
           props[propName] = root;
         } else {
@@ -102,7 +103,7 @@ export function revive(
           ) as HTMLTemplateElement | null;
           if (template !== null) {
             const root = h(Fragment, null);
-            domToVNode(allProps, [root], [Marker.Slot], template.content);
+            domToVNode(allProps, [root], [Marker.Slot], template.content, null);
             props[propName] = root;
           }
         }
@@ -181,7 +182,7 @@ export function boot(
       };
 
       const domRoot = h(Fragment, null);
-      domToVNode(allProps, [domRoot], [Marker.Partial], container);
+      domToVNode(allProps, [domRoot], [Marker.Partial], container, root.end!);
       props.children = domRoot.props.children;
 
       // deno-lint-ignore no-explicit-any
@@ -292,14 +293,17 @@ export function domToVNode(
   vnodeStack: VNode<any>[],
   markerStack: Marker[],
   node: Node | DocumentFragment,
+  end: Text | Comment | null,
 ): void {
   let sib: Node | ChildNode | null = node;
   while (sib !== null) {
+    if (sib === end) return;
+
     // deno-lint-ignore no-explicit-any
     if ((sib as any)._frshRootFrag || sib instanceof DocumentFragment) {
       const firstChild = sib.firstChild;
       if (firstChild !== null) {
-        domToVNode(allProps, vnodeStack, markerStack, firstChild);
+        domToVNode(allProps, vnodeStack, markerStack, firstChild, end);
       }
     } else if (isElementNode(sib)) {
       const props: Record<string, unknown> = {};
@@ -330,7 +334,7 @@ export function domToVNode(
 
       const firstChild = sib.firstChild;
       if (firstChild !== null) {
-        domToVNode(allProps, vnodeStack, markerStack, firstChild);
+        domToVNode(allProps, vnodeStack, markerStack, firstChild, end);
       }
 
       if (appendVNode) {

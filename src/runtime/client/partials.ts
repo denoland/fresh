@@ -1,5 +1,6 @@
 import { type ComponentChildren, h } from "preact";
 import {
+  CLIENT_NAV_ATTR,
   DATA_ANCESTOR,
   DATA_CURRENT,
   matchesUrl,
@@ -20,7 +21,6 @@ import { createRootFragment, isCommentNode, isElementNode } from "./reviver.ts";
 import type { PartialStateJson } from "../server/preact_hooks.tsx";
 import { parse } from "../../jsonify/parse.ts";
 
-export const CLIENT_NAV_ATTR = "f-client-nav";
 export const PARTIAL_ATTR = "f-partial";
 export const PARTIAL_SEARCH_PARAM = "fresh-partial";
 
@@ -328,6 +328,10 @@ export async function applyPartials(res: Response): Promise<void> {
     foundPartials: 0,
   };
 
+  if (doc.title) {
+    document.title = doc.title;
+  }
+
   revivePartials(ctx, allProps, doc.body);
 
   if (ctx.foundPartials === 0) {
@@ -380,7 +384,7 @@ function revivePartials(
           mode: partialMode,
           children: null,
         });
-        domToVNode(allProps, [root], [Marker.Partial], container);
+        domToVNode(allProps, [root], [Marker.Partial], container, sib);
 
         const instance = ACTIVE_PARTIALS.get(partialName);
         if (instance === undefined) {

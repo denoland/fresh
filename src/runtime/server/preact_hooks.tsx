@@ -16,7 +16,11 @@ import { Partial, type PartialProps } from "../shared.ts";
 import { stringify } from "../../jsonify/stringify.ts";
 import type { ServerIslandRegistry } from "../../context.ts";
 import type { Island } from "../../context.ts";
-import { DATA_FRESH_KEY, PartialMode } from "../shared_internal.tsx";
+import {
+  CLIENT_NAV_ATTR,
+  DATA_FRESH_KEY,
+  PartialMode,
+} from "../shared_internal.tsx";
 
 const enum OptionsType {
   VNODE = "vnode",
@@ -112,6 +116,10 @@ options[OptionsType.VNODE] = (vnode) => {
         "partial",
         `${props.name}:${mode}:${key}`,
       );
+    }
+  } else if (typeof vnode.type === "string") {
+    if (CLIENT_NAV_ATTR in vnode.props) {
+      vnode.props[CLIENT_NAV_ATTR] = String(vnode.props[CLIENT_NAV_ATTR]);
     }
   }
 

@@ -18,12 +18,12 @@ export function getIsland(pathname: string) {
   );
 }
 
-export function Doc(props: { children?: ComponentChildren }) {
+export function Doc(props: { children?: ComponentChildren; title?: string }) {
   return (
     <html>
       <head>
         <meta charset="utf-8" />
-        <title>Test</title>
+        <title>{props.title ?? "Test"}</title>
       </head>
       <body>
         {props.children}

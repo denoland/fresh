@@ -1057,301 +1057,230 @@ Deno.test("partials - mode prepend inner", async () => {
   });
 });
 
-// Deno.test("partial navigation", async () => {
-//   await withPageName(
-//     "./tests/fixture_partials/main.ts",
-//     async (page, address) => {
-//       const initialUrl = `${address}/mode`;
-//       await page.goto(initialUrl);
-//       await page.waitForSelector(".island");
+Deno.test("partials - navigate", async () => {
+  const selfCounter = getIsland("SelfCounter.tsx");
+  const app = new FreshApp()
+    .island(selfCounter, "SelfCounter", SelfCounter)
+    .use(freshStaticFiles())
+    .get("/partial", (ctx) => {
+      return ctx.render(
+        <Doc>
+          <Partial name="foo">
+            <p class="done">done</p>
+            <SelfCounter />
+          </Partial>
+        </Doc>,
+      );
+    })
+    .get("/", (ctx) => {
+      return ctx.render(
+        <Doc>
+          <div f-client-nav>
+            <a href="/partial" class="update">update</a>
+            <Partial name="foo">
+              <p class="init">init</p>
+              <SelfCounter />
+            </Partial>
+          </div>
+        </Doc>,
+      );
+    });
 
-//       await page.click(".append-link");
-//       await page.waitForSelector(".status-append");
-//       await assertNoPageComments(page);
+  await withBrowserApp(app, async (page, address) => {
+    await page.goto(address);
+    await page.waitForSelector(".ready");
 
-//       await page.click(".island-other button");
-//       await waitForText(page, ".output-other", "1");
-//       await assertNoPageComments(page);
+    await page.click(".increment");
+    await waitForText(page, ".output", "1");
 
-//       const url = page.url();
+    await page.click(".update");
+    await page.waitForSelector(".done");
+    let url = new URL(await page.url());
 
-//       // Click link again
-//       await page.click(".append-link");
-//       await page.waitForFunction(() =>
-//         document.querySelectorAll(".status-append").length > 1
-//       );
-//       assertEquals(page.url(), url);
-//       await assertNoPageComments(page);
+    expect(url.pathname).toEqual("/partial");
+    await waitForText(page, ".output", "1");
 
-//       // Go back
-//       await page.goBack();
-//       await page.waitForFunction(() =>
-//         document.querySelectorAll(".island").length === 1
-//       );
-//       assertEquals(page.url(), initialUrl);
-//       await waitFor(async () => {
-//         const doc = parseHtml(await page.content());
-//         return /mount Counter A/.test(doc.querySelector("pre")!.textContent!);
-//       });
-//       await assertNoPageComments(page);
-//     },
-//   );
-// });
+    await page.goBack();
 
-// Deno.test("non-partial client navigation", async () => {
-//   await withPageName(
-//     "./tests/fixture_partials/main.ts",
-//     async (page, address) => {
-//       const initialUrl = `${address}/client_nav`;
-//       await page.goto(initialUrl);
-//       await page.waitForSelector(".island");
+    await page.waitForSelector(".init");
+    url = new URL(await page.url());
+    expect(url.pathname).toEqual("/");
+  });
+});
 
-//       // Add marker to check if the page reloaded or not
-//       await page.evaluate(() => {
-//         const marker = document.createElement("fresh-nav-marker");
-//         document.body.appendChild(marker);
-//       });
+Deno.test("partials - uses f-partial instead", async () => {
+  const selfCounter = getIsland("SelfCounter.tsx");
+  const app = new FreshApp()
+    .island(selfCounter, "SelfCounter", SelfCounter)
+    .use(freshStaticFiles())
+    .get("/partial", (ctx) => {
+      return ctx.render(
+        <Doc>
+          <Partial name="foo">
+            <p class="done">done</p>
+            <SelfCounter />
+          </Partial>
+        </Doc>,
+      );
+    })
+    .get("/", (ctx) => {
+      return ctx.render(
+        <Doc>
+          <div f-client-nav>
+            <a href="/foo" f-partial="/partial" class="update">update</a>
+            <Partial name="foo">
+              <p class="init">init</p>
+              <SelfCounter />
+            </Partial>
+          </div>
+        </Doc>,
+      );
+    });
 
-//       await page.click(".island-a button");
-//       await waitForText(page, ".output-a", "1");
-//       await assertNoPageComments(page);
+  await withBrowserApp(app, async (page, address) => {
+    await page.goto(address);
+    await page.waitForSelector(".ready");
 
-//       // Go to page B
-//       await page.click(".page-b-link");
-//       await page.waitForSelector(".island-b");
+    await page.click(".increment");
+    await waitForText(page, ".output", "1");
 
-//       let doc = parseHtml(await page.content());
-//       assertNotSelector(doc, ".island-a");
-//       assertSelector(doc, "fresh-nav-marker");
-//       assertEquals(page.url(), `${address}/client_nav/page-b`);
+    await page.click(".update");
+    await page.waitForSelector(".done");
 
-//       await page.click(".island-b button");
-//       await waitForText(page, ".output-b", "1");
-//       await assertNoPageComments(page);
+    let url = new URL(await page.url());
+    expect(url.pathname).toEqual("/foo");
+    await waitForText(page, ".output", "1");
 
-//       // Go to page C
-//       await page.click(".page-c-link");
-//       await page.waitForSelector(".page-c-text");
+    await page.goBack();
 
-//       doc = parseHtml(await page.content());
-//       assertNotSelector(doc, ".island-a");
-//       assertNotSelector(doc, ".island-b");
-//       assertSelector(doc, "fresh-nav-marker");
-//       assertEquals(page.url(), `${address}/client_nav/page-c`);
+    await page.waitForSelector(".init");
+    url = new URL(await page.url());
+    expect(url.pathname).toEqual("/");
+  });
+});
 
-//       // Go back to B
-//       await page.goBack();
-//       await page.waitForSelector(".island-b");
+Deno.test("partials - opt out of parital navigation", async () => {
+  const selfCounter = getIsland("SelfCounter.tsx");
+  const app = new FreshApp()
+    .island(selfCounter, "SelfCounter", SelfCounter)
+    .use(freshStaticFiles())
+    .get("/partial", (ctx) => {
+      return ctx.render(
+        <Doc>
+          <Partial name="foo">
+            <h1 class="fail">Fail</h1>
+          </Partial>
+        </Doc>,
+      );
+    })
+    .get("/foo", (ctx) =>
+      ctx.render(
+        <Doc>
+          <Partial name="foo">
+            <h1 class="done">done</h1>
+            <SelfCounter />
+          </Partial>
+        </Doc>,
+      ))
+    .get("/", (ctx) => {
+      return ctx.render(
+        <Doc>
+          <div f-client-nav>
+            <a
+              href="/foo"
+              f-client-nav={false}
+              f-partial="/partial"
+              class="update"
+            >
+              update
+            </a>
+            <Partial name="foo">
+              <p class="init">init</p>
+              <SelfCounter />
+            </Partial>
+          </div>
+        </Doc>,
+      );
+    });
 
-//       doc = parseHtml(await page.content());
-//       assertNotSelector(doc, ".island-a");
-//       assertSelector(doc, "fresh-nav-marker");
-//       assertNotSelector(doc, ".page-c-text");
+  await withBrowserApp(app, async (page, address) => {
+    await page.goto(address);
+    await page.waitForSelector(".ready");
 
-//       // Non-shared state is reset
-//       assertTextMany(doc, ".output-b", ["0"]);
+    await page.click(".increment");
+    await waitForText(page, ".output", "1");
 
-//       // Check that island is interactive
-//       await page.click(".island-b button");
-//       await waitForText(page, ".output-b", "1");
-//       await assertNoPageComments(page);
+    await page.click(".update");
+    await page.waitForSelector(".done");
 
-//       // Go back to A
-//       await page.goBack();
-//       await page.waitForSelector(".island-a");
+    const url = new URL(await page.url());
+    expect(url.pathname).toEqual("/foo");
+    await waitForText(page, ".output", "0");
+  });
+});
 
-//       doc = parseHtml(await page.content());
-//       assertNotSelector(doc, ".island-b");
-//       assertNotSelector(doc, ".page-c-text");
-//       assertSelector(doc, "fresh-nav-marker");
+Deno.test("partials - opt out of parital navigation #2", async () => {
+  const selfCounter = getIsland("SelfCounter.tsx");
+  const app = new FreshApp()
+    .island(selfCounter, "SelfCounter", SelfCounter)
+    .use(freshStaticFiles())
+    .get("/partial", (ctx) => {
+      return ctx.render(
+        <Doc>
+          <Partial name="foo">
+            <h1 class="fail">Fail</h1>
+          </Partial>
+        </Doc>,
+      );
+    })
+    .get("/foo", (ctx) =>
+      ctx.render(
+        <Doc>
+          <Partial name="foo">
+            <h1 class="done">done</h1>
+            <SelfCounter />
+          </Partial>
+        </Doc>,
+      ))
+    .get("/", (ctx) => {
+      return ctx.render(
+        <Doc>
+          <div f-client-nav>
+            <div>
+              <div f-client-nav={false}>
+                <a
+                  href="/foo"
+                  f-partial="/partial"
+                  class="update"
+                >
+                  update
+                </a>
+              </div>
+            </div>
+            <Partial name="foo">
+              <p class="init">init</p>
+              <SelfCounter />
+            </Partial>
+          </div>
+        </Doc>,
+      );
+    });
 
-//       // Non-shared state is reset
-//       assertTextMany(doc, ".output-a", ["0"]);
+  await withBrowserApp(app, async (page, address) => {
+    await page.goto(address);
+    await page.waitForSelector(".ready");
 
-//       // Check that island is interactive
-//       await page.click(".island-a button");
-//       await waitForText(page, ".output-a", "1");
-//       await assertNoPageComments(page);
+    await page.click(".increment");
+    await waitForText(page, ".output", "1");
 
-//       // Go forward to B
-//       await page.goForward();
-//       await page.waitForSelector(".island-b");
+    await page.click(".update");
+    await page.waitForSelector(".done");
 
-//       doc = parseHtml(await page.content());
-//       assertNotSelector(doc, ".island-a");
-//       assertNotSelector(doc, ".page-c-text");
-//       assertSelector(doc, "fresh-nav-marker");
-
-//       // Non-shared state is reset
-//       assertTextMany(doc, ".output-b", ["0"]);
-
-//       // Check that island is interactive
-//       await page.click(".island-b button");
-//       await waitForText(page, ".output-b", "1");
-//       await assertNoPageComments(page);
-//     },
-//   );
-// });
-
-// Deno.test("allow opting out of client navigation", async () => {
-//   await withPageName(
-//     "./tests/fixture_partials/main.ts",
-//     async (page, address) => {
-//       const initialUrl = `${address}/client_nav_opt_out`;
-//       await page.goto(initialUrl);
-//       await page.waitForSelector(".island");
-
-//       async function addMarker() {
-//         await page.evaluate(() => {
-//           const marker = document.createElement("fresh-nav-marker");
-//           document.body.appendChild(marker);
-//         });
-//       }
-
-//       // Add marker to check if the page reloaded or not
-//       await addMarker();
-
-//       await page.click(".island-a button");
-//       await waitForText(page, ".output-a", "1");
-//       await assertNoPageComments(page);
-
-//       // Go to page B
-//       await page.click(".page-b-link");
-//       await page.waitForSelector(".island-b");
-
-//       let doc = parseHtml(await page.content());
-//       assertNotSelector(doc, ".island-a");
-//       assertNotSelector(doc, "fresh-nav-marker");
-//       assertEquals(page.url(), `${address}/client_nav_opt_out/page-b`);
-
-//       await page.click(".island-b button");
-//       await waitForText(page, ".output-b", "1");
-//       await assertNoPageComments(page);
-
-//       // Add marker to check if the page reloaded or not
-//       await addMarker();
-
-//       // Go to page C
-//       await page.click(".page-c-link");
-//       await page.waitForSelector(".page-c-text");
-
-//       doc = parseHtml(await page.content());
-//       assertNotSelector(doc, ".island-a");
-//       assertNotSelector(doc, ".island-b");
-//       assertNotSelector(doc, "fresh-nav-marker");
-//       assertEquals(page.url(), `${address}/client_nav_opt_out/page-c`);
-
-//       // Add marker to check if the page reloaded or not
-//       await addMarker();
-
-//       // Go back to B
-//       await page.goBack();
-//       await page.waitForSelector(".island-b");
-
-//       doc = parseHtml(await page.content());
-//       assertNotSelector(doc, ".island-a");
-//       assertNotSelector(doc, "fresh-nav-marker");
-//       assertNotSelector(doc, ".page-c-text");
-
-//       // Non-shared state is reset
-//       assertTextMany(doc, ".output-b", ["0"]);
-
-//       // Check that island is interactive
-//       await page.click(".island-b button");
-//       await waitForText(page, ".output-b", "1");
-//       await assertNoPageComments(page);
-
-//       // Go back to A
-//       await page.goBack();
-//       await page.waitForSelector(".island-a");
-
-//       doc = parseHtml(await page.content());
-//       assertNotSelector(doc, ".island-b");
-//       assertNotSelector(doc, ".page-c-text");
-//       assertNotSelector(doc, "fresh-nav-marker");
-
-//       // Non-shared state is reset
-//       assertTextMany(doc, ".output-a", ["0"]);
-
-//       // Check that island is interactive
-//       await page.click(".island-a button");
-//       await waitForText(page, ".output-a", "1");
-//       await assertNoPageComments(page);
-
-//       // Go forward to B
-//       await page.goForward();
-//       await page.waitForSelector(".island-b");
-
-//       doc = parseHtml(await page.content());
-//       assertNotSelector(doc, ".island-a");
-//       assertNotSelector(doc, ".page-c-text");
-//       assertNotSelector(doc, "fresh-nav-marker");
-
-//       // Non-shared state is reset
-//       assertTextMany(doc, ".output-b", ["0"]);
-
-//       // Check that island is interactive
-//       await page.click(".island-b button");
-//       await waitForText(page, ".output-b", "1");
-//     },
-//   );
-// });
-
-// Deno.test("allow opting out of client navigation if parent opted in", async () => {
-//   await withPageName(
-//     "./tests/fixture_partials/main.ts",
-//     async (page, address) => {
-//       const initialUrl = `${address}/client_nav_both`;
-//       await page.goto(initialUrl);
-//       await page.waitForSelector(".island");
-
-//       await page.click(".island-a button");
-//       await waitForText(page, ".output-a", "1");
-
-//       // Go to page B
-//       await page.click(".page-b-link");
-//       await page.waitForSelector(".island-b");
-//       await assertLogs(page, ["mount Counter B"]);
-
-//       await page.click(".island-b button");
-//       await waitForText(page, ".output-b", "1");
-//       await assertLogs(page, ["mount Counter B", "update Counter B"]);
-
-//       // Go to page C
-//       await page.click(".page-c-link");
-//       await page.waitForSelector(".page-c-text");
-//       await assertLogs(page, []);
-
-//       // Go back to B
-//       await page.goBack();
-//       await page.waitForSelector(".island-b");
-//       await assertLogs(page, ["mount Counter B"]);
-
-//       // Check that island is interactive
-//       await page.click(".island-b button");
-//       await waitForText(page, ".output-b", "1");
-
-//       // Go back to A
-//       await page.goBack();
-//       await page.waitForSelector(".island-a");
-//       await assertLogs(page, ["mount Counter A"]);
-
-//       // Check that island is interactive
-//       await page.click(".island-a button");
-//       await waitForText(page, ".output-a", "1");
-//       await assertNoPageComments(page);
-
-//       // Go forward to B
-//       await page.goForward();
-//       await page.waitForSelector(".island-b");
-//       await assertLogs(page, ["mount Counter B"]);
-
-//       // Check that island is interactive
-//       await page.click(".island-b button");
-//       await waitForText(page, ".output-b", "1");
-//     },
-//   );
-// });
+    const url = new URL(await page.url());
+    expect(url.pathname).toEqual("/foo");
+    await waitForText(page, ".output", "0");
+  });
+});
 
 // Deno.test("restore scroll position", async () => {
 //   await withPageName(
@@ -1379,200 +1308,258 @@ Deno.test("partials - mode prepend inner", async () => {
 //   );
 // });
 
-// Deno.test("shows loading indicator if trigger outside island", async () => {
-//   await withPageName(
-//     "./tests/fixture_partials/main.ts",
-//     async (page, address) => {
-//       const initialUrl = `${address}/loading`;
-//       await page.goto(initialUrl);
-//       await page.waitForSelector(".status");
+Deno.test("partials - submit form", async () => {
+  const selfCounter = getIsland("SelfCounter.tsx");
+  const app = new FreshApp()
+    .island(selfCounter, "SelfCounter", SelfCounter)
+    .use(freshStaticFiles())
+    .get("/partial", (ctx) => {
+      return ctx.render(
+        <Doc>
+          <Partial name="foo">
+            <p class={"done-" + ctx.url.searchParams.get("name")!}>done</p>
+          </Partial>
+        </Doc>,
+      );
+    })
+    .get("/", (ctx) => {
+      return ctx.render(
+        <Doc>
+          <div f-client-nav>
+            <form action="/partial">
+              <input name="name" value="foo" />
+              <Partial name="foo">
+                <p class="init">init</p>
+              </Partial>
+              <SelfCounter />
+              <button class="update">
+                update
+              </button>
+            </form>
+          </div>
+        </Doc>,
+      );
+    });
 
-//       let doc = parseHtml(await page.content());
-//       assertNotSelector(doc, ".spinner");
+  await withBrowserApp(app, async (page, address) => {
+    await page.goto(address);
+    await page.waitForSelector(".ready");
 
-//       await Promise.all([
-//         page.waitForSelector(".spinner-inner"),
-//         page.waitForSelector(".spinner-outer"),
-//         page.click(".update-link"),
-//       ]);
+    await page.click(".increment");
+    await waitForText(page, ".output", "1");
 
-//       await page.waitForSelector(".status-updated");
-//       await assertNoPageComments(page);
+    await page.click(".update");
+    await page.waitForSelector(".done-foo");
+  });
+});
 
-//       doc = parseHtml(await page.content());
-//       assertNotSelector(doc, ".spinner");
-//     },
-//   );
-// });
+Deno.test("partials - submit form f-partial", async () => {
+  const selfCounter = getIsland("SelfCounter.tsx");
+  const app = new FreshApp()
+    .island(selfCounter, "SelfCounter", SelfCounter)
+    .use(freshStaticFiles())
+    .get("/partial", (ctx) => {
+      return ctx.render(
+        <Doc>
+          <Partial name="foo">
+            <p class={"done-" + ctx.url.searchParams.get("name")!}>done</p>
+          </Partial>
+        </Doc>,
+      );
+    })
+    .get("/", (ctx) => {
+      return ctx.render(
+        <Doc>
+          <div f-client-nav>
+            <form action="/foo" f-partial="/partial">
+              <input name="name" value="foo" />
+              <Partial name="foo">
+                <p class="init">init</p>
+              </Partial>
+              <SelfCounter />
+              <button class="update">
+                update
+              </button>
+            </form>
+          </div>
+        </Doc>,
+      );
+    });
 
-// Deno.test("shows loading indicator if trigger inside island", async () => {
-//   await withPageName(
-//     "./tests/fixture_partials/main.ts",
-//     async (page, address) => {
-//       const initialUrl = `${address}/loading`;
-//       await page.goto(initialUrl);
-//       await page.waitForSelector(".status");
+  await withBrowserApp(app, async (page, address) => {
+    await page.goto(address);
+    await page.waitForSelector(".ready");
 
-//       let doc = parseHtml(await page.content());
-//       assertNotSelector(doc, ".spinner");
+    await page.click(".increment");
+    await waitForText(page, ".output", "1");
 
-//       await Promise.all([
-//         page.waitForSelector(".spinner-inner"),
-//         page.waitForSelector(".spinner-outer"),
-//         page.click(".trigger"),
-//       ]);
+    await page.click(".update");
+    await page.waitForSelector(".done-foo");
+  });
+});
 
-//       await page.waitForSelector(".status-updated");
-//       await assertNoPageComments(page);
+Deno.test("partials - submit form POST", async () => {
+  const selfCounter = getIsland("SelfCounter.tsx");
+  const app = new FreshApp()
+    .island(selfCounter, "SelfCounter", SelfCounter)
+    .use(freshStaticFiles())
+    .post("/partial", async (ctx) => {
+      const data = await ctx.req.formData();
+      const name = data.get("name");
+      return ctx.render(
+        <Doc>
+          <Partial name="foo">
+            <p class={"done-" + name}>done</p>
+          </Partial>
+        </Doc>,
+      );
+    })
+    .get("/", (ctx) => {
+      return ctx.render(
+        <Doc>
+          <div f-client-nav>
+            <form action="/partial" method="post">
+              <input name="name" value="foo" />
+              <Partial name="foo">
+                <p class="init">init</p>
+              </Partial>
+              <SelfCounter />
+              <button class="update">
+                update
+              </button>
+            </form>
+          </div>
+        </Doc>,
+      );
+    });
 
-//       doc = parseHtml(await page.content());
-//       assertNotSelector(doc, ".spinner");
-//     },
-//   );
-// });
+  await withBrowserApp(app, async (page, address) => {
+    await page.goto(address);
+    await page.waitForSelector(".ready");
 
-// Deno.test("submit form", async () => {
-//   await withPageName(
-//     "./tests/fixture_partials/main.ts",
-//     async (page, address) => {
-//       const initialUrl = `${address}/form`;
-//       await page.goto(initialUrl);
-//       await page.waitForSelector(".status");
+    await page.click(".increment");
+    await waitForText(page, ".output", "1");
 
-//       await page.click(".submit");
-//       await page.waitForSelector(".status-updated");
-//       await assertNoPageComments(page);
-//     },
-//   );
-// });
+    await page.click(".update");
+    await page.waitForSelector(".done-foo");
+  });
+});
 
-// Deno.test("submit form GET", async () => {
-//   await withPageName(
-//     "./tests/fixture_partials/main.ts",
-//     async (page, address) => {
-//       const initialUrl = `${address}/form_get`;
-//       await page.goto(initialUrl);
-//       await page.waitForSelector(".status");
+Deno.test("partials - submit form via external submitter", async () => {
+  const selfCounter = getIsland("SelfCounter.tsx");
+  const app = new FreshApp()
+    .island(selfCounter, "SelfCounter", SelfCounter)
+    .use(freshStaticFiles())
+    .post("/partial", async (ctx) => {
+      const data = await ctx.req.formData();
+      const name = data.get("name");
+      return ctx.render(
+        <Doc>
+          <Partial name="foo">
+            <p class={"done-" + name}>done</p>
+          </Partial>
+        </Doc>,
+      );
+    })
+    .get("/", (ctx) => {
+      return ctx.render(
+        <Doc>
+          <div f-client-nav>
+            <form action="/foo" id="foo">
+              <input name="name" value="foo" />
+              <Partial name="foo">
+                <p class="init">init</p>
+              </Partial>
+              <SelfCounter />
+              <button>
+                nothing
+              </button>
+            </form>
+            <button
+              type="submit"
+              class="update"
+              form="foo"
+              formaction="/partial"
+              formmethod="POST"
+            >
+              submit
+            </button>
+          </div>
+        </Doc>,
+      );
+    });
 
-//       await page.type("input", "foobar");
+  await withBrowserApp(app, async (page, address) => {
+    await page.goto(address);
+    await page.waitForSelector(".ready");
 
-//       await page.click(".submit");
-//       await waitFor(async () => {
-//         const logEl = await page.$eval("#logs", (el) => el.textContent);
-//         return /update Form/.test(logEl);
-//       });
+    await page.click(".increment");
+    await waitForText(page, ".output", "1");
 
-//       const url = await page.$eval(".url", (el) => el.textContent);
-//       assertEquals(url, `${address}/form_get?name=foobar&fresh-partial=true`);
+    await page.click(".update");
+    await page.waitForSelector(".done-foo");
+  });
+});
 
-//       const pageUrl = page.url();
-//       assertEquals(pageUrl, `${address}/form_get?name=foobar`);
+Deno.test(
+  "partials - submit form via external submitter f-partial",
+  async () => {
+    const selfCounter = getIsland("SelfCounter.tsx");
+    const app = new FreshApp()
+      .island(selfCounter, "SelfCounter", SelfCounter)
+      .use(freshStaticFiles())
+      .post("/partial", async (ctx) => {
+        const data = await ctx.req.formData();
+        const name = data.get("name");
+        return ctx.render(
+          <Doc>
+            <Partial name="foo">
+              <p class={"done-" + name}>done</p>
+            </Partial>
+          </Doc>,
+        );
+      })
+      .get("/", (ctx) => {
+        return ctx.render(
+          <Doc>
+            <div f-client-nav>
+              <form action="/foo" id="foo">
+                <input name="name" value="foo" />
+                <Partial name="foo">
+                  <p class="init">init</p>
+                </Partial>
+                <SelfCounter />
+                <button>
+                  nothing
+                </button>
+              </form>
+              <button
+                type="submit"
+                class="update"
+                form="foo"
+                formaction="/foo"
+                formmethod="POST"
+                f-partial="/partial"
+              >
+                submit
+              </button>
+            </div>
+          </Doc>,
+        );
+      });
 
-//       // Server can update form value
-//       const value = await page.$eval("input", (el) => el.value);
-//       assertEquals(value, "foobar_foo");
+    await withBrowserApp(app, async (page, address) => {
+      await page.goto(address);
+      await page.waitForSelector(".ready");
 
-//       const logs = await page.$eval("#logs", (el) => el.textContent);
-//       assertEquals(logs.split(/\n/).filter(Boolean), [
-//         "mount Form",
-//         "update Form",
-//       ]);
-//     },
-//   );
-// });
+      await page.click(".increment");
+      await waitForText(page, ".output", "1");
 
-// Deno.test("submit form POST", async () => {
-//   await withPageName(
-//     "./tests/fixture_partials/main.ts",
-//     async (page, address) => {
-//       await page.goto(`${address}/form_post`);
-//       await page.waitForSelector(".status");
-
-//       await page.type("input", "foobar");
-
-//       await page.click(".submit");
-//       await waitFor(async () => {
-//         const logEl = await page.$eval("#logs", (el) => el.textContent);
-//         return /update Form/.test(logEl);
-//       });
-
-//       const url = await page.$eval(".url", (el) => el.textContent);
-//       assertEquals(url, `${address}/form_post?fresh-partial=true`);
-
-//       const logs = await page.$eval("#logs", (el) => el.textContent);
-//       assertEquals(logs.split(/\n/).filter(Boolean), [
-//         "mount Form",
-//         "update Form",
-//       ]);
-
-//       // Server can update form value
-//       const value = await page.$eval("input", (el) => el.value);
-//       assertEquals(value, "foobar_foo");
-//     },
-//   );
-// });
-
-// Deno.test("pull values from event.submitter if set", async () => {
-//   await withPageName(
-//     "./tests/fixture_partials/main.ts",
-//     async (page, address) => {
-//       await page.goto(`${address}/form_submitter`);
-//       await page.waitForSelector(".status");
-
-//       await page.type("input", "foobar");
-
-//       await page.click(".submit");
-//       await waitFor(async () => {
-//         const logEl = await page.$eval("#logs", (el) => el.textContent);
-//         return /update Form/.test(logEl);
-//       });
-
-//       const url = await page.$eval(".url", (el) => el.textContent);
-//       assertEquals(url, `${address}/form_submitter?fresh-partial=true`);
-
-//       const logs = await page.$eval("#logs", (el) => el.textContent);
-//       assertEquals(logs.split(/\n/).filter(Boolean), [
-//         "mount Form",
-//         "update Form",
-//       ]);
-
-//       // Server can update form value
-//       const value = await page.$eval("input", (el) => el.value);
-//       assertEquals(value, "foobar_foo");
-//     },
-//   );
-// });
-
-// Deno.test("pull values from event.submitter if set with f-partial", async () => {
-//   await withPageName(
-//     "./tests/fixture_partials/main.ts",
-//     async (page, address) => {
-//       await page.goto(`${address}/form_submitter_partial`);
-//       await page.waitForSelector(".status");
-
-//       await page.type("input", "foobar");
-
-//       await page.click(".submit");
-//       await waitFor(async () => {
-//         const logEl = await page.$eval("#logs", (el) => el.textContent);
-//         return /update Form/.test(logEl);
-//       });
-
-//       const url = await page.$eval(".url", (el) => el.textContent);
-//       assertEquals(url, `${address}/form_submitter_partial?fresh-partial=true`);
-
-//       const logs = await page.$eval("#logs", (el) => el.textContent);
-//       assertEquals(logs.split(/\n/).filter(Boolean), [
-//         "mount Form",
-//         "update Form",
-//       ]);
-
-//       // Server can update form value
-//       const value = await page.$eval("input", (el) => el.value);
-//       assertEquals(value, "foobar_foo");
-//     },
-//   );
-// });
+      await page.click(".update");
+      await page.waitForSelector(".done-foo");
+    });
+  },
+);
 
 // Deno.test("should apply partials if submitter parent has no client nav", async () => {
 //   await withPageName(
@@ -1830,82 +1817,156 @@ Deno.test("partials - mode prepend inner", async () => {
 //   );
 // });
 
-// Deno.test("nested partials are able to be updated", async () => {
-//   await withPageName(
-//     "./tests/fixture_partials/main.ts",
-//     async (page, address) => {
-//       await page.goto(`${address}/nested`);
-//       await page.waitForSelector(".status-outer");
-//       await page.waitForSelector(".status-inner");
+Deno.test("partials - update stateful inner partials", async () => {
+  const selfCounter = getIsland("SelfCounter.tsx");
+  const app = new FreshApp()
+    .island(selfCounter, "SelfCounter", SelfCounter)
+    .use(freshStaticFiles())
+    .get("/partial", (ctx) => {
+      return ctx.render(
+        <Doc>
+          <Partial name="inner">
+            <p class="done">done</p>
+            <SelfCounter id="inner" />
+          </Partial>
+        </Doc>,
+      );
+    })
+    .get("/", (ctx) => {
+      return ctx.render(
+        <Doc>
+          <div f-client-nav>
+            <button f-partial="/partial" class="update">update</button>
+            <Partial name="outer">
+              <SelfCounter id="outer" />
+              <Partial name="inner">
+                <p>init</p>
+                <SelfCounter id="inner" />
+              </Partial>
+            </Partial>
+          </div>
+        </Doc>,
+      );
+    });
 
-//       await page.click(".update-outer");
-//       await waitForText(page, ".status-outer", "updated outer");
-//       await waitForText(page, ".status-inner", "inner");
+  await withBrowserApp(app, async (page, address) => {
+    await page.goto(address);
+    await page.waitForSelector(".ready");
+    await page.click("#outer .increment");
+    await page.click("#outer .increment");
 
-//       await page.click(".update-inner");
-//       await waitForText(page, ".status-outer", "updated outer");
-//       await waitForText(page, ".status-inner", "updated inner");
+    await page.click("#inner .increment");
 
-//       await page.click(".update-outer");
-//       await waitForText(page, ".status-outer", "updated outer");
-//       await waitForText(page, ".status-inner", "inner");
-//     },
-//   );
-// });
+    await waitForText(page, "#outer .output", "2");
+    await waitForText(page, "#inner .output", "1");
 
-// Deno.test("partials with redirects", async () => {
-//   await withPageName(
-//     "./tests/fixture_partials/main.ts",
-//     async (page, address) => {
-//       await page.goto(`${address}/redirected`);
-//       await page.waitForSelector(".output");
+    await page.click(".update");
+    await page.waitForSelector(".done");
 
-//       await page.click(".update-link");
-//       await page.waitForSelector(".status-updated");
-//     },
-//   );
-// });
+    await waitForText(page, "#outer .output", "2");
+    await waitForText(page, "#inner .output", "1");
+  });
+});
 
-// Deno.test("render 404 partial", async () => {
-//   await withPageName(
-//     "./tests/fixture_partials/main.ts",
-//     async (page, address) => {
-//       await page.goto(`${address}/error_404`);
-//       await page.waitForSelector(".status");
+Deno.test("partials - with redirects", async () => {
+  const app = new FreshApp()
+    .use(freshStaticFiles())
+    .get("/a", (ctx) => {
+      return ctx.render(
+        <Doc>
+          <Partial name="foo">
+            <h1 class="done">foo update</h1>
+          </Partial>
+        </Doc>,
+      );
+    })
+    .get("/partial", (ctx) => ctx.redirect("/a"))
+    .get("/", (ctx) => {
+      return ctx.render(
+        <Doc>
+          <div f-client-nav>
+            <button f-partial="/partial" class="update">update</button>
+            <Partial name="foo">
+              <h1>foo</h1>
+            </Partial>
+          </div>
+        </Doc>,
+      );
+    });
 
-//       await page.click(".update-link");
-//       await page.waitForSelector(".status-404");
-//     },
-//   );
-// });
+  await withBrowserApp(app, async (page, address) => {
+    await page.goto(address);
+    await page.waitForSelector("h1");
+    await page.click(".update");
+    await page.waitForSelector(".done");
+  });
+});
 
-// Deno.test("render partial with title", async () => {
-//   await withPageName(
-//     "./tests/fixture_partials/main.ts",
-//     async (page, address) => {
-//       await page.goto(`${address}/head_merge`);
-//       await page.waitForSelector(".status-initial");
+Deno.test("partials - render 404 partial", async () => {
+  const app = new FreshApp()
+    .use(freshStaticFiles())
+    .get("/", (ctx) => {
+      return ctx.render(
+        <Doc>
+          <div f-client-nav>
+            <button f-partial="/partial" class="update">update</button>
+            <Partial name="foo">
+              <h1>foo</h1>
+            </Partial>
+          </div>
+        </Doc>,
+      );
+    })
+    .get("*", (ctx) => {
+      return ctx.render(
+        <Doc>
+          <Partial name="foo">
+            <h1 class="error-404">404</h1>
+          </Partial>
+        </Doc>,
+      );
+    });
 
-//       await page.click(".duplicate-link");
-//       await page.waitForSelector(".status-duplicated");
+  await withBrowserApp(app, async (page, address) => {
+    await page.goto(address);
+    await page.waitForSelector("h1");
+    await page.click(".update");
+    await page.waitForSelector(".error-404");
+  });
+});
 
-//       const doc = parseHtml(await page.content());
-//       assertEquals(doc.title, "Head merge duplicated");
-//     },
-//   );
-// });
+Deno.test("partials - render with new title", async () => {
+  const app = new FreshApp()
+    .use(freshStaticFiles())
+    .get("/partial", (ctx) => {
+      return ctx.render(
+        <Doc title="after update">
+          <Partial name="foo">
+            <h1 class="done">foo update</h1>
+          </Partial>
+        </Doc>,
+      );
+    })
+    .get("/", (ctx) => {
+      return ctx.render(
+        <Doc>
+          <div f-client-nav>
+            <button f-partial="/partial" class="update">update</button>
+            <Partial name="foo">
+              <h1>foo</h1>
+            </Partial>
+          </div>
+        </Doc>,
+      );
+    });
 
-// Deno.test("render partial without title", async () => {
-//   await withPageName(
-//     "./tests/fixture_partials/main.ts",
-//     async (page, address) => {
-//       await page.goto(`${address}/head_merge`);
-//       await page.click(".without-title");
+  await withBrowserApp(app, async (page, address) => {
+    await page.goto(address);
+    await page.waitForSelector("h1");
+    await page.click(".update");
+    await page.waitForSelector(".done");
 
-//       await page.waitForSelector(".page-without-title");
-
-//       const doc = parseHtml(await page.content());
-//       assertEquals(doc.title, "Head merge");
-//     },
-//   );
-// });
+    const title = await page.evaluate(() => document.title);
+    expect(title).toEqual("after update");
+  });
+});
