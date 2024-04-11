@@ -1,7 +1,7 @@
 Fresh 2.0:
 ✔ rewrite router to accept an array of handlers @done(24-03-26 09:42)
 ✔ fix composing apps via `app.mount()` @done(24-03-26 09:42)
-☐ add back async layouts to fs router
+✔ add back async layouts to fs router @done(24-04-11 21:58)
 ✔ try publishing to JSR @done(24-03-25 12:31)
   ☐ what to do about global JSX type extensions?
 ☐ bring back partials
@@ -49,7 +49,7 @@ Fresh 2.0 compat:
 ☐ add `defineRoute`/`defineLayout`/`defineApp` helpers in compat
 
 Fresh 2.0 finishing:
-☐ delete old 1.x code
+✔ delete old 1.x code @done(24-04-11 21:59)
 ☐ update docs
 ☐ release blog post
   ☐ removal of JIT
