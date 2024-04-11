@@ -1,6 +1,7 @@
 import { expect } from "@std/expect";
 import { delay, serveMiddleware } from "../../test_utils.ts";
 import { renderMiddleware } from "./render_middleware.ts";
+import { parseHtml } from "../../../tests/test_utils.tsx";
 
 Deno.test("renderMiddleware - responds with HTML", async () => {
   const server = await serveMiddleware(
@@ -10,8 +11,8 @@ Deno.test("renderMiddleware - responds with HTML", async () => {
   const res = await server.get("/");
   expect(res.headers.get("Content-Type")).toEqual("text/html; charset=utf-8");
 
-  const body = await res.text();
-  expect(body).toEqual("<!DOCTYPE html><p>ok</p>");
+  const doc = parseHtml(await res.text());
+  expect(doc.body.innerHTML).toEqual("<p>ok</p>");
 });
 
 Deno.test("renderMiddleware - bypass rendering when handler returns Response", async () => {
@@ -49,7 +50,9 @@ Deno.test("renderMiddleware - chain components", async () => {
 
   const res = await server.get("/");
   expect(res.status).toEqual(200);
-  expect(await res.text()).toEqual("<!DOCTYPE html>c1c2c3");
+
+  const doc = parseHtml(await res.text());
+  expect(doc.body.textContent).toEqual("c1c2c3");
 });
 
 Deno.test("renderMiddleware - chain async components", async () => {
@@ -83,5 +86,7 @@ Deno.test("renderMiddleware - chain async components", async () => {
 
   const res = await server.get("/");
   expect(res.status).toEqual(200);
-  expect(await res.text()).toEqual("<!DOCTYPE html>c1c2c3");
+
+  const doc = parseHtml(await res.text());
+  expect(doc.body.textContent).toEqual("c1c2c3");
 });
