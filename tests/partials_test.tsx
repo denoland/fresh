@@ -30,7 +30,7 @@ Deno.test("partials - updates content", async () => {
       return ctx.render(
         <Doc>
           <div f-client-nav>
-            <a href="/partial" class="update">update</a>
+            <button f-partial="/partial" class="update">update</button>
             <Partial name="foo">
               <p class="output">hello world</p>
             </Partial>
@@ -65,7 +65,7 @@ Deno.test("partials - revive island not seen before", async () => {
       return ctx.render(
         <Doc>
           <div f-client-nav>
-            <a href="/partial" class="update">update</a>
+            <button f-partial="/partial" class="update">update</button>
             <Partial name="foo">
               <p class="init">hello world</p>
             </Partial>
@@ -102,7 +102,7 @@ Deno.test("partials - warn on missing partial", async () => {
       return ctx.render(
         <Doc>
           <div f-client-nav>
-            <a href="/partial" class="update">update</a>
+            <button f-partial="/partial" class="update">update</button>
             <Partial name="foo">
               <p class="init">hello world</p>
             </Partial>
@@ -129,7 +129,7 @@ Deno.test("partials - errors on duplicate partial name", async () => {
       return ctx.render(
         <Doc>
           <div f-client-nav>
-            <a href="/partial" class="update">update</a>
+            <button f-partial="/partial" class="update">update</button>
             <Partial name="foo">
               <p class="ready">foo</p>
             </Partial>
@@ -178,7 +178,7 @@ Deno.test("partials - should not be able to override __FRSH_STATE", async () => 
       return ctx.render(
         <Doc>
           <div f-client-nav>
-            <a href="/partial" class="update">update</a>
+            <button f-partial="/partial" class="update">update</button>
             <Partial name="foo">
               <p class="init">hello world</p>
             </Partial>
@@ -224,7 +224,7 @@ Deno.test("partials - finds partial nested in response", async () => {
       return ctx.render(
         <Doc>
           <div f-client-nav>
-            <a href="/partial" class="update">update</a>
+            <button f-partial="/partial" class="update">update</button>
             <Partial name="foo">
               <p>hello world</p>
             </Partial>
@@ -294,7 +294,7 @@ Deno.test("partials - unmounts island", async () => {
       return ctx.render(
         <Doc>
           <div f-client-nav>
-            <a href="/partial" class="update">update</a>
+            <button f-partial="/partial" class="update">update</button>
             <Partial name="foo">
               <SelfCounter />
             </Partial>
@@ -335,7 +335,7 @@ Deno.test("partials - keeps island state", async () => {
       return ctx.render(
         <Doc>
           <div f-client-nav>
-            <a href="/partial" class="update">update</a>
+            <button f-partial="/partial" class="update">update</button>
             <Partial name="foo">
               <p class="init">init</p>
               <SelfCounter />
@@ -381,7 +381,7 @@ Deno.test("partials - replaces island", async () => {
       return ctx.render(
         <Doc>
           <div f-client-nav>
-            <a href="/partial" class="update">update</a>
+            <button f-partial="/partial" class="update">update</button>
             <Partial name="foo">
               <p class="init">init</p>
               <SelfCounter />
@@ -424,7 +424,7 @@ Deno.test("partials - only updates inner partial", async () => {
       return ctx.render(
         <Doc>
           <div f-client-nav>
-            <a href="/partial" class="update">update</a>
+            <button f-partial="/partial" class="update">update</button>
             <Partial name="outer">
               <p class="outer">outer</p>
               <Partial name="inner">
@@ -467,7 +467,7 @@ Deno.test("partials - updates sibling partials", async () => {
       return ctx.render(
         <Doc>
           <div f-client-nav>
-            <a href="/partial" class="update">update</a>
+            <button f-partial="/partial" class="update">update</button>
             <Partial name="sib-1">
               <p class="sib-1">sib-1</p>
             </Partial>
@@ -515,7 +515,7 @@ Deno.test("partials - reconcile keyed islands in update", async () => {
       return ctx.render(
         <Doc>
           <div f-client-nav>
-            <a href="/partial" class="update">update</a>
+            <button f-partial="/partial" class="update">update</button>
             <Partial name="foo">
               <p key="p" class="init">init</p>
               <SelfCounter key="a" id="a" />
@@ -580,7 +580,7 @@ Deno.test("partials - reconcile keyed partials", async () => {
       return ctx.render(
         <Doc>
           <div f-client-nav>
-            <a href="/partial" class="update">update</a>
+            <button f-partial="/partial" class="update">update</button>
             <Partial name="outer">
               <p key="p" class="init">init</p>
 
@@ -652,7 +652,7 @@ Deno.test("partials - reconcile keyed div inside partials", async () => {
       return ctx.render(
         <Doc>
           <div f-client-nav>
-            <a href="/partial" class="update">update</a>
+            <button f-partial="/partial" class="update">update</button>
             <Partial name="outer">
               <p key="p" class="init">init</p>
 
@@ -724,7 +724,7 @@ Deno.test(
         return ctx.render(
           <Doc>
             <div f-client-nav>
-              <a href="/partial" class="update">update</a>
+              <button f-partial="/partial" class="update">update</button>
               <Partial name="outer">
                 <p key="p" class="init">init</p>
 
@@ -772,13 +772,10 @@ Deno.test(
       .get("/", (ctx) => {
         return ctx.render(
           <Doc>
-            <div f-client-nav>
-              <a href="/partial" class="update">update</a>
-              <p key="outside" class="init">outside</p>
-              <Partial name="outer">
-                <p key="inside" class="init">inside</p>
-              </Partial>
-            </div>
+            <p key="outside" class="init">outside</p>
+            <Partial name="outer">
+              <p key="inside" class="init">inside</p>
+            </Partial>
           </Doc>,
         );
       });
@@ -809,7 +806,7 @@ Deno.test("partials - mode replace", async () => {
       return ctx.render(
         <Doc>
           <div f-client-nav>
-            <a href="/partial" class="update">update</a>
+            <button f-partial="/partial" class="update">update</button>
             <Partial name="outer">
               <p class="init">init</p>
             </Partial>
@@ -853,7 +850,7 @@ Deno.test("partials - mode replace inner", async () => {
       return ctx.render(
         <Doc>
           <div f-client-nav>
-            <a href="/partial" class="update">update</a>
+            <button f-partial="/partial" class="update">update</button>
             <Partial name="outer">
               <Partial name="inner">
                 <p class="init">init</p>
@@ -897,7 +894,7 @@ Deno.test("partials - mode append", async () => {
       return ctx.render(
         <Doc>
           <div f-client-nav>
-            <a href="/partial" class="update">update</a>
+            <button f-partial="/partial" class="update">update</button>
             <div class="content">
               <Partial name="outer">
                 <p class="init">init</p>
@@ -943,7 +940,7 @@ Deno.test("partials - mode append inner", async () => {
       return ctx.render(
         <Doc>
           <div f-client-nav>
-            <a href="/partial" class="update">update</a>
+            <button f-partial="/partial" class="update">update</button>
             <div class="content">
               <Partial name="outer">
                 <Partial name="inner">
@@ -988,7 +985,7 @@ Deno.test("partials - mode prepend", async () => {
       return ctx.render(
         <Doc>
           <div f-client-nav>
-            <a href="/partial" class="update">update</a>
+            <button f-partial="/partial" class="update">update</button>
             <div class="content">
               <Partial name="outer">
                 <p class="init">init</p>
@@ -1033,7 +1030,7 @@ Deno.test("partials - mode prepend inner", async () => {
       return ctx.render(
         <Doc>
           <div f-client-nav>
-            <a href="/partial" class="update">update</a>
+            <button f-partial="/partial" class="update">update</button>
             <div class="content">
               <Partial name="outer">
                 <Partial name="inner">
