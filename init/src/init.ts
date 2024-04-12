@@ -481,9 +481,9 @@ if (Deno.args.includes("build")) {
     tasks: {
       check:
         "deno fmt --check && deno lint && deno check **/*.ts && deno check **/*.tsx",
-      start: "deno run -A --watch=static/,routes/ dev.ts",
+      dev: "deno run -A --watch=static/,routes/ dev.ts",
       build: "deno run -A dev.ts build",
-      preview: "deno run -A main.ts",
+      start: "deno run -A main.ts",
       update: "deno run -A -r https://fresh.deno.dev/update .",
     },
     lint: {
