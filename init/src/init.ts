@@ -351,11 +351,10 @@ html {
   }
 
   const MAIN_TSX =
-    `import { FreshApp, freshStaticFiles, fsRoutes } from "@fresh/core";
+    `import { FreshApp, staticFiles, fsRoutes } from "@fresh/core";
 
-export const app = new FreshApp();
-
-app.use(freshStaticFiles())
+export const app = new FreshApp()
+  .use(staticFiles())
   .get("/api/:joke", () => new Response("Hello World"))
   .get("/greet/:name", (ctx) => {
     return ctx.render(<h1>Hello {ctx.params.name}</h1>);
