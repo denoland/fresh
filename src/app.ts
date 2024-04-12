@@ -17,7 +17,6 @@ import { type BuildCache, ProdBuildCache } from "./build_cache.ts";
 import * as path from "@std/path";
 import type { ComponentType } from "preact";
 import type { ServerIslandRegistry } from "./context.ts";
-import { staticFiles } from "./middlewares/static_files.ts";
 
 export interface App<State> {
   _router: Router<Middleware<State>>;
@@ -26,8 +25,6 @@ export interface App<State> {
   readonly config: Readonly<ResolvedFreshConfig>;
 
   island(filePathOrUrl: string | URL, name: string, fn: ComponentType): void;
-
-  useStaticFiles(): this;
 
   use(middleware: Middleware<State>): this;
   get(path: string, ...middlewares: Middleware<State>[]): this;
@@ -70,11 +67,6 @@ export class FreshApp<State> implements App<State> {
 
   constructor(config: FreshConfig = {}) {
     this.config = normalizeConfig(config);
-  }
-
-  useStaticFiles(): this {
-    this.use(staticFiles());
-    return this;
   }
 
   island(

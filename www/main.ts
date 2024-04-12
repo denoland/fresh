@@ -4,11 +4,11 @@
 /// <reference lib="dom.asynciterable" />
 /// <reference lib="deno.ns" />
 
-import { FreshApp, fsRoutes } from "@fresh/core";
+import { FreshApp, fsRoutes, staticFiles } from "@fresh/core";
 
 export const app = new FreshApp();
 
-app.useStaticFiles();
+app.use(staticFiles());
 
 await fsRoutes(app, {
   dir: Deno.cwd(),

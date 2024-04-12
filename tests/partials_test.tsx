@@ -1,16 +1,16 @@
-import { type App, FreshApp } from "@fresh/core";
+import { type App, FreshApp, staticFiles } from "@fresh/core";
 import { Partial } from "@fresh/core/runtime";
 import {
+  assertNotSelector,
   buildProd,
   Doc,
   getIsland,
+  parseHtml,
   waitFor,
   waitForText,
   withBrowserApp,
 } from "./test_utils.tsx";
 import { SelfCounter } from "./fixtures_islands/SelfCounter.tsx";
-import { parseHtml } from "./test_utils.tsx";
-import { assertNotSelector } from "./test_utils.tsx";
 import { expect } from "@std/expect";
 import { PartialInIsland } from "./fixtures_islands/PartialInIsland.tsx";
 import { FakeServer } from "../src/test_utils.ts";
@@ -25,7 +25,7 @@ function testApp<T>(): App<T> {
     .island(selfCounter, "SelfCounter", SelfCounter)
     .island(partialInIsland, "PartialInIsland", PartialInIsland)
     .island(jsonIsland, "JsonIsland", JsonIsland)
-    .useStaticFiles();
+    .use(staticFiles());
 }
 
 Deno.test("partials - updates content", async () => {

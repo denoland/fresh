@@ -9,6 +9,7 @@ export { fsRoutes, type FsRoutesOptions } from "./plugins/fs_routes/mod.ts";
 export * from "./defines.ts";
 export { type RouteConfig } from "./types.ts";
 export { type Middleware } from "./middlewares/mod.ts";
+export { staticFiles } from "./middlewares/static_files.ts";
 export { type Mode } from "./runtime/server/mod.tsx";
 export { FreshScripts } from "./runtime/server/preact_hooks.tsx";
 export { type FreshConfig, type ResolvedFreshConfig } from "./config.ts";
