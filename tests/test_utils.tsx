@@ -4,7 +4,7 @@ import puppeteer, {
 } from "https://deno.land/x/puppeteer@16.2.0/mod.ts";
 import * as colors from "@std/fmt/colors";
 import { type Document, DOMParser, HTMLElement } from "linkedom";
-import { Builder } from "../src/dev/dev_app.ts";
+import { Builder } from "../src/dev/builder.ts";
 import { TextLineStream } from "@std/streams/text-line-stream";
 import * as path from "@std/path";
 import type { ComponentChildren } from "preact";

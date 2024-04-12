@@ -1,6 +1,6 @@
 import { setMode } from "../runtime/server/mod.tsx";
 
-export { Builder, type FreshBuilder } from "./dev_app.ts";
+export { Builder, type FreshBuilder } from "./builder.ts";
 export {
   type OnTransformArgs,
   type OnTransformOptions,

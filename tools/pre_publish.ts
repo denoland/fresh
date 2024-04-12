@@ -1,5 +1,5 @@
 import * as path from "@std/path";
-import type { DenoConfig } from "../src/dev/dev_app.ts";
+import type { DenoConfig } from "../src/dev/builder.ts";
 
 const denoJsonPath = path.join(import.meta.dirname!, "..", "deno.json");
 const denoJson = JSON.parse(
