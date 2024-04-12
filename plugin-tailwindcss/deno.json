@@ -1,6 +1,6 @@
 {
   "name": "@marvinh-test/fresh-tailwind",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "exports": {
     ".": "./src/mod.ts"
   },
