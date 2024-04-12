@@ -17,7 +17,7 @@ import { type BuildCache, ProdBuildCache } from "./build_cache.ts";
 import * as path from "@std/path";
 import type { ComponentType } from "preact";
 import type { ServerIslandRegistry } from "./context.ts";
-import { freshStaticFiles } from "./middlewares/static_files.ts";
+import { staticFiles } from "./middlewares/static_files.ts";
 
 export interface App<State> {
   _router: Router<Middleware<State>>;
@@ -73,11 +73,7 @@ export class FreshApp<State> implements App<State> {
   }
 
   useStaticFiles(): this {
-    // deno-lint-ignore no-this-alias
-    const self = this;
-    this.use(function serveStaticFiles(ctx) {
-      return freshStaticFiles(ctx, self._buildCache);
-    });
+    this.use(staticFiles());
     return this;
   }
 
@@ -138,6 +134,14 @@ export class FreshApp<State> implements App<State> {
     const routes = app._router._routes;
     app._islandRegistry.forEach((value, key) => {
       this._islandRegistry.set(key, value);
+    });
+
+    // deno-lint-ignore no-this-alias
+    const self = this;
+    Object.defineProperty(app, "_buildCache", {
+      get() {
+        return self._buildCache;
+      },
     });
 
     let middlewares: Middleware<State>[] = [];

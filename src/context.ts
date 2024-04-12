@@ -19,6 +19,7 @@ const NOOP = () => null;
  * The context passed to every middleware. It is unique for every request.
  */
 export interface FreshContext<State = unknown, Data = unknown> {
+  readonly _internal: BuildCache;
   /** Reference to the resolved Fresh configuration */
   readonly config: ResolvedFreshConfig;
   state: State;
@@ -95,7 +96,7 @@ export class FreshReqContext<T> implements FreshContext<T, unknown> {
   data = {} as unknown;
   error: Error | null = null;
   #islandRegistry: ServerIslandRegistry;
-  #buildCache: BuildCache;
+  _internal: BuildCache;
 
   constructor(
     public req: Request,
@@ -105,7 +106,7 @@ export class FreshReqContext<T> implements FreshContext<T, unknown> {
     islandRegistry: ServerIslandRegistry,
   ) {
     this.#islandRegistry = islandRegistry;
-    this.#buildCache = buildCache;
+    this._internal = buildCache;
     this.url = new URL(req.url);
   }
 
@@ -146,7 +147,7 @@ export class FreshReqContext<T> implements FreshContext<T, unknown> {
       vnode,
       this,
       this.#islandRegistry,
-      this.#buildCache,
+      this._internal,
       partialId,
     );
     return new Response(html, responseInit);

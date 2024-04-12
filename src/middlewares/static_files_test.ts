@@ -1,4 +1,4 @@
-import { freshStaticFiles } from "./static_files.ts";
+import { staticFiles } from "./static_files.ts";
 import { serveMiddleware } from "../test_utils.ts";
 import type { BuildCache, StaticFile } from "../build_cache.ts";
 import { expect } from "@std/expect";
@@ -34,7 +34,8 @@ Deno.test("static files - 200", async () => {
     "foo.css": { content: "body {}", hash: null },
   });
   const server = serveMiddleware(
-    (ctx) => freshStaticFiles(ctx, buildCache),
+    staticFiles(),
+    { buildCache },
   );
 
   const res = await server.get("/foo.css");
@@ -51,7 +52,8 @@ Deno.test("static files - HEAD 200", async () => {
     "foo.css": { content: "body {}", hash: null },
   });
   const server = serveMiddleware(
-    (ctx) => freshStaticFiles(ctx, buildCache),
+    staticFiles(),
+    { buildCache },
   );
 
   const res = await server.head("/foo.css");
@@ -67,7 +69,8 @@ Deno.test("static files - etag", async () => {
     "foo.css": { content: "body {}", hash: "123" },
   });
   const server = serveMiddleware(
-    (ctx) => freshStaticFiles(ctx, buildCache),
+    staticFiles(),
+    { buildCache },
   );
 
   const headers = new Headers();
@@ -86,7 +89,8 @@ Deno.test("static files - etag", async () => {
 Deno.test("static files - 404 on missing favicon.ico", async () => {
   const buildCache = new MockBuildCache({});
   const server = serveMiddleware(
-    (ctx) => freshStaticFiles(ctx, buildCache),
+    staticFiles(),
+    { buildCache },
   );
   const res = await server.get("favicon.ico");
   await res.body?.cancel();
@@ -98,7 +102,8 @@ Deno.test("static files - 405 on wrong HTTP method", async () => {
     "foo.css": { content: "body {}", hash: null },
   });
   const server = serveMiddleware(
-    (ctx) => freshStaticFiles(ctx, buildCache),
+    staticFiles(),
+    { buildCache },
   );
 
   for (const method of ["post", "patch", "put", "delete"]) {
@@ -114,8 +119,9 @@ Deno.test("static files - disables caching in development", async () => {
     "foo.css": { content: "body {}", hash: null },
   });
   const server = serveMiddleware(
-    (ctx) => freshStaticFiles(ctx, buildCache),
+    staticFiles(),
     {
+      buildCache,
       config: {
         basePath: "",
         build: {

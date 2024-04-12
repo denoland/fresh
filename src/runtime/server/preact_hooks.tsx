@@ -415,7 +415,6 @@ function FreshRuntimeScript() {
     );
   } else {
     const islandImports = islandArr.map((island) => {
-      console.log(island.name, buildCache);
       const chunk = buildCache.getIslandChunkName(island.name);
       if (chunk === null) {
         throw new Error(
