@@ -39,16 +39,6 @@ export async function bundleJs(
     }
   }
 
-  // In dev-mode we skip identifier minification to be able to show proper
-  // component names in Preact DevTools instead of single characters.
-  const minifyOptions: Partial<BuildOptions> = options.dev
-    ? {
-      minifyIdentifiers: false,
-      minifySyntax: false,
-      minifyWhitespace: false,
-    }
-    : { minify: true };
-
   const bundle = await esbuild.build({
     entryPoints: options.entryPoints,
 
@@ -60,7 +50,7 @@ export async function bundleJs(
     splitting: true,
     treeShaking: true,
     sourcemap: options.dev ? "linked" : false,
-    ...minifyOptions,
+    minify: !options.dev,
 
     jsxDev: options.dev,
     jsx: "automatic",

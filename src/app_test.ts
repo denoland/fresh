@@ -334,6 +334,30 @@ Deno.test("FreshApp - .mountApp() self mount empty", async () => {
   expect(await res.text()).toEqual("A");
 });
 
+Deno.test(
+  "FreshApp - .mountApp() self mount with middleware",
+  async () => {
+    const innerApp = new FreshApp<{ text: string }>()
+      .use((ctx) => {
+        ctx.state.text += "_Inner";
+        return ctx.next();
+      })
+      .get("/", (ctx) => new Response(ctx.state.text));
+
+    const app = new FreshApp<{ text: string }>()
+      .use((ctx) => {
+        ctx.state.text = "Outer";
+        return ctx.next();
+      })
+      .mountApp("/", innerApp);
+
+    const server = new FakeServer(await app.handler());
+
+    const res = await server.get("/");
+    expect(await res.text()).toEqual("Outer_Inner");
+  },
+);
+
 Deno.test("FreshApp - catches errors", async () => {
   let thrownErr: unknown | null = null;
   const app = new FreshApp<{ text: string }>()

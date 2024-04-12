@@ -5,38 +5,45 @@ import { type BuildCache, ProdBuildCache } from "./build_cache.ts";
 import type { ResolvedFreshConfig } from "./config.ts";
 import type { WalkEntry } from "@std/fs/walk";
 
+const STUB = {} as unknown as Deno.ServeHandlerInfo;
+
 export class FakeServer {
-  constructor(public handler: (req: Request) => Response | Promise<Response>) {}
+  constructor(
+    public handler: (
+      req: Request,
+      info: Deno.ServeHandlerInfo,
+    ) => Response | Promise<Response>,
+  ) {}
 
   async get(path: string, init?: RequestInit): Promise<Response> {
     const url = this.toUrl(path);
     const req = new Request(url, init);
-    return await this.handler(req);
+    return await this.handler(req, STUB);
   }
   async post(path: string, body?: BodyInit): Promise<Response> {
     const url = this.toUrl(path);
     const req = new Request(url, { method: "post", body });
-    return await this.handler(req);
+    return await this.handler(req, STUB);
   }
   async patch(path: string, body?: BodyInit): Promise<Response> {
     const url = this.toUrl(path);
     const req = new Request(url, { method: "patch", body });
-    return await this.handler(req);
+    return await this.handler(req, STUB);
   }
   async put(path: string, body?: BodyInit): Promise<Response> {
     const url = this.toUrl(path);
     const req = new Request(url, { method: "put", body });
-    return await this.handler(req);
+    return await this.handler(req, STUB);
   }
   async delete(path: string): Promise<Response> {
     const url = this.toUrl(path);
     const req = new Request(url, { method: "delete" });
-    return await this.handler(req);
+    return await this.handler(req, STUB);
   }
   async head(path: string): Promise<Response> {
     const url = this.toUrl(path);
     const req = new Request(url, { method: "head" });
-    return await this.handler(req);
+    return await this.handler(req, STUB);
   }
 
   private toUrl(path: string) {
@@ -56,22 +63,19 @@ const DEFAULT_CONFIG: ResolvedFreshConfig = {
 
 export function serveMiddleware<T>(
   middleware: Middleware<T>,
-  options: {
-    buildCache?: BuildCache;
-    next?: () => Response | Promise<Response>;
-    config?: ResolvedFreshConfig;
-  } = {},
+  options: { config?: ResolvedFreshConfig; buildCache?: BuildCache } = {},
 ): FakeServer {
   return new FakeServer(async (req) => {
+    const next = () => new Response("not found", { status: 404 });
     const config = options.config ?? DEFAULT_CONFIG;
+    const buildCache = options.buildCache ??
+      new ProdBuildCache(config, new Map(), new Map());
 
-    const next = options.next ??
-      (() => new Response("not found", { status: 404 }));
     const ctx = new FreshReqContext<T>(
       req,
       config,
       () => Promise.resolve(next()),
-      options.buildCache ?? new ProdBuildCache(config, new Map(), new Map()),
+      buildCache,
       new Map(),
     );
     return await middleware(ctx);

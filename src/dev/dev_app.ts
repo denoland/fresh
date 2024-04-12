@@ -1,5 +1,4 @@
 import { type App, FreshApp, type ListenOptions } from "../app.ts";
-import type { FreshConfig } from "../config.ts";
 import { fsAdapter } from "../fs.ts";
 import * as path from "@std/path";
 import * as colors from "@std/fmt/colors";
@@ -14,13 +13,6 @@ import type { TransformFn } from "./file_transformer.ts";
 import { DiskBuildCache, MemoryBuildCache } from "./dev_build_cache.ts";
 import type { Island } from "../context.ts";
 
-export interface DevApp<T> extends App<T> {
-  onTransformStaticFile(
-    options: OnTransformOptions,
-    callback: TransformFn,
-  ): void;
-}
-
 export interface BuildOptions {
   dev?: boolean;
   /**
@@ -32,14 +24,17 @@ export interface BuildOptions {
   target?: string | string[];
 }
 
-export class FreshDevApp<T> extends FreshApp<T> implements DevApp<T> {
+export interface FreshBuilder {
+  onTransformStaticFile(
+    options: OnTransformOptions,
+    callback: TransformFn,
+  ): void;
+  build<T>(app: App<T>, options?: BuildOptions): Promise<void>;
+  listen<T>(app: App<T>, options?: ListenOptions): Promise<void>;
+}
+
+export class Builder implements FreshBuilder {
   #transformer = new FreshFileTransformer(fsAdapter);
-
-  constructor(config: FreshConfig = {}) {
-    super(config);
-
-    this.use(liveReload());
-  }
 
   onTransformStaticFile(
     options: OnTransformOptions,
@@ -48,7 +43,11 @@ export class FreshDevApp<T> extends FreshApp<T> implements DevApp<T> {
     this.#transformer.onTransform(options, callback);
   }
 
-  async listen(options: ListenOptions = {}): Promise<void> {
+  async listen<T>(app: App<T>, options: ListenOptions = {}): Promise<void> {
+    const devApp = new FreshApp<T>(app.config)
+      .use(liveReload())
+      .mountApp("*", app);
+
     if (options.hostname === undefined) {
       options.hostname = "localhost";
     }
@@ -57,19 +56,19 @@ export class FreshDevApp<T> extends FreshApp<T> implements DevApp<T> {
       options.port = await getFreePort(8000, options.hostname);
     }
 
-    this.buildCache = new MemoryBuildCache(
-      this.config,
+    devApp._buildCache = new MemoryBuildCache(
+      devApp.config,
     );
 
     await Promise.all([
-      super.listen(options),
-      this.build({ dev: true }),
+      devApp.listen(options),
+      this.build(devApp, { dev: true }),
     ]);
     return;
   }
 
-  async build(options: BuildOptions = {}): Promise<void> {
-    const { staticDir, build } = this.config;
+  async build<T>(app: App<T>, options: BuildOptions = {}): Promise<void> {
+    const { staticDir, build } = app.config;
     const staticOutDir = path.join(build.outDir, "static");
 
     const target = options.target ?? ["chrome99", "firefox99", "safari15"];
@@ -80,10 +79,10 @@ export class FreshDevApp<T> extends FreshApp<T> implements DevApp<T> {
       // Ignore
     }
 
-    const buildCache = this.buildCache ?? options.dev
-      ? new MemoryBuildCache(this.config)
-      : new DiskBuildCache(this.config);
-    this.buildCache = buildCache;
+    const buildCache = app._buildCache ?? options.dev
+      ? new MemoryBuildCache(app.config)
+      : new DiskBuildCache(app.config);
+    app._buildCache = buildCache;
 
     const entryPoints: Record<string, string> = {
       "fresh-runtime": options.dev
@@ -92,7 +91,7 @@ export class FreshDevApp<T> extends FreshApp<T> implements DevApp<T> {
     };
     const seenEntries = new Map<string, Island>();
     const mapIslandToEntry = new Map<Island, string>();
-    for (const island of this._islandRegistry.values()) {
+    for (const island of app._islandRegistry.values()) {
       const filePath = island.file instanceof URL
         ? island.file.href
         : island.file;
@@ -107,7 +106,7 @@ export class FreshDevApp<T> extends FreshApp<T> implements DevApp<T> {
       }
     }
 
-    const denoJson = await readDenoConfig(this.config.root);
+    const denoJson = await readDenoConfig(app.config.root);
 
     const jsxImportSource = denoJson.config.compilerOptions?.jsxImportSource;
     if (jsxImportSource === undefined) {

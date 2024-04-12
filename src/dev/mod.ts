@@ -1,6 +1,6 @@
 import { setMode } from "../runtime/server/mod.tsx";
 
-export { type DevApp, FreshDevApp } from "./dev_app.ts";
+export { Builder, type DevApp } from "./dev_app.ts";
 export {
   type OnTransformArgs,
   type OnTransformOptions,

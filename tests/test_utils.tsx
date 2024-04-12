@@ -4,11 +4,12 @@ import puppeteer, {
 } from "https://deno.land/x/puppeteer@16.2.0/mod.ts";
 import * as colors from "@std/fmt/colors";
 import { type Document, DOMParser, HTMLElement } from "linkedom";
-import { FreshDevApp } from "../src/dev/dev_app.ts";
+import { Builder } from "../src/dev/dev_app.ts";
 import { TextLineStream } from "@std/streams/text-line-stream";
 import * as path from "@std/path";
 import type { ComponentChildren } from "preact";
 import { FreshScripts } from "../src/runtime/server/preact_hooks.tsx";
+import { ProdBuildCache } from "../src/build_cache.ts";
 
 export function getIsland(pathname: string) {
   return path.join(
@@ -42,9 +43,9 @@ export async function buildProd(app: App<unknown>) {
   const outDir = await Deno.makeTempDir();
   // FIXME: Sharing build output path is weird
   app.config.build.outDir = outDir;
-  const devApp = new FreshDevApp({ build: { outDir } })
-    .mountApp("/", app);
-  await devApp.build();
+  const builder = new Builder();
+  await builder.build(app, {});
+  app._buildCache = null;
 }
 
 export async function withBrowserApp(

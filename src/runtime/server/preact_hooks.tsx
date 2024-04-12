@@ -21,6 +21,7 @@ import {
   DATA_FRESH_KEY,
   PartialMode,
 } from "../shared_internal.tsx";
+import type { BuildCache } from "../../build_cache.ts";
 
 const enum OptionsType {
   VNODE = "vnode",
@@ -76,6 +77,7 @@ export class RenderState {
   constructor(
     public ctx: FreshContext,
     public islandRegistry: ServerIslandRegistry,
+    public buildCache: BuildCache,
     public partialId: string,
   ) {
     this.nonce = crypto.randomUUID().replace(/-/g, "");
@@ -377,14 +379,15 @@ export interface PartialStateJson {
 }
 
 function FreshRuntimeScript() {
-  const { islands, nonce, ctx, islandProps, partialId } = RENDER_STATE!;
+  const { islands, nonce, ctx, islandProps, partialId, buildCache } =
+    RENDER_STATE!;
   const basePath = ctx.config.basePath;
 
   const islandArr = Array.from(islands);
 
   if (ctx.url.searchParams.has("fresh-partial")) {
     const islands = islandArr.map((island) => {
-      const chunk = ctx.buildCache.getIslandChunkName(island.name);
+      const chunk = buildCache.getIslandChunkName(island.name);
       if (chunk === null) {
         throw new Error(
           `Could not find chunk for ${island.name} ${island.file}#${island.exportName}`,
@@ -412,7 +415,8 @@ function FreshRuntimeScript() {
     );
   } else {
     const islandImports = islandArr.map((island) => {
-      const chunk = ctx.buildCache.getIslandChunkName(island.name);
+      console.log(island.name, buildCache);
+      const chunk = buildCache.getIslandChunkName(island.name);
       if (chunk === null) {
         throw new Error(
           `Could not find chunk for ${island.name} ${island.file}#${island.exportName}`,

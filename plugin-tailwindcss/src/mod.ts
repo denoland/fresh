@@ -1,14 +1,16 @@
 import type { TailwindPluginOptions } from "./types.ts";
 import { initTailwind } from "./compiler.ts";
-import type { DevApp } from "@fresh/core/dev";
+import type { Builder } from "@fresh/core/dev";
+import type { App } from "@fresh/core";
 
 export function tailwind<T>(
-  app: DevApp<T>,
+  builder: Builder,
+  app: App<T>,
   options: TailwindPluginOptions = {},
 ): void {
   const processor = initTailwind(app.config, options);
 
-  app.onTransformStaticFile({ filter: /\.css$/ }, (args) => {
+  builder.onTransformStaticFile({ filter: /\.css$/ }, (args) => {
     return {
       content: async () => {
         const instance = await processor;

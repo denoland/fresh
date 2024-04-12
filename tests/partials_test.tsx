@@ -1,4 +1,4 @@
-import { FreshApp, freshStaticFiles } from "@fresh/core";
+import { type App, FreshApp } from "@fresh/core";
 import { Partial } from "@fresh/core/runtime";
 import {
   buildProd,
@@ -16,9 +16,20 @@ import { PartialInIsland } from "./fixtures_islands/PartialInIsland.tsx";
 import { FakeServer } from "../src/test_utils.ts";
 import { JsonIsland } from "./fixtures_islands/JsonIsland.tsx";
 
+function testApp<T>(): App<T> {
+  const selfCounter = getIsland("SelfCounter.tsx");
+  const partialInIsland = getIsland("PartialInIsland.tsx");
+  const jsonIsland = getIsland("JsonIsland.tsx");
+
+  return new FreshApp<T>()
+    .island(selfCounter, "SelfCounter", SelfCounter)
+    .island(partialInIsland, "PartialInIsland", PartialInIsland)
+    .island(jsonIsland, "JsonIsland", JsonIsland)
+    .useStaticFiles();
+}
+
 Deno.test("partials - updates content", async () => {
-  const app = new FreshApp()
-    .use(freshStaticFiles())
+  const app = testApp()
     .get("/partial", (ctx) => {
       return ctx.render(
         <Partial name="foo">
@@ -47,10 +58,7 @@ Deno.test("partials - updates content", async () => {
 });
 
 Deno.test("partials - revive island not seen before", async () => {
-  const selfCounter = getIsland("SelfCounter.tsx");
-  const app = new FreshApp()
-    .island(selfCounter, "SelfCounter", SelfCounter)
-    .use(freshStaticFiles())
+  const app = testApp()
     .get("/partial", (ctx) => {
       // FIXME: Add outer document
       return ctx.render(
@@ -87,8 +95,7 @@ Deno.test("partials - revive island not seen before", async () => {
 });
 
 Deno.test("partials - warn on missing partial", async () => {
-  const app = new FreshApp()
-    .use(freshStaticFiles())
+  const app = testApp()
     .get("/partial", (ctx) => {
       return ctx.render(
         <Doc>
@@ -123,8 +130,7 @@ Deno.test("partials - warn on missing partial", async () => {
 });
 
 Deno.test("partials - errors on duplicate partial name", async () => {
-  const app = new FreshApp()
-    .use(freshStaticFiles())
+  const app = testApp()
     .get("/", (ctx) => {
       return ctx.render(
         <Doc>
@@ -160,10 +166,7 @@ Deno.test("partials - errors on duplicate partial name", async () => {
 
 // See https://github.com/denoland/fresh/issues/2254
 Deno.test("partials - should not be able to override __FRSH_STATE", async () => {
-  const selfCounter = getIsland("SelfCounter.tsx");
-  const app = new FreshApp()
-    .island(selfCounter, "SelfCounter", SelfCounter)
-    .use(freshStaticFiles())
+  const app = testApp()
     .get("/partial", (ctx) => {
       return ctx.render(
         <Doc>
@@ -203,10 +206,7 @@ Deno.test("partials - should not be able to override __FRSH_STATE", async () => 
 });
 
 Deno.test("partials - finds partial nested in response", async () => {
-  const selfCounter = getIsland("SelfCounter.tsx");
-  const app = new FreshApp()
-    .island(selfCounter, "SelfCounter", SelfCounter)
-    .use(freshStaticFiles())
+  const app = testApp()
     .get("/partial", (ctx) => {
       return ctx.render(
         <Doc>
@@ -243,10 +243,7 @@ Deno.test("partials - finds partial nested in response", async () => {
 Deno.test(
   "partials - throws when instantiated inside island",
   async () => {
-    const partialInIsland = getIsland("PartialInIsland.tsx");
-    const app = new FreshApp()
-      .island(partialInIsland, "PartialInIsland", PartialInIsland)
-      .use(freshStaticFiles())
+    const app = testApp()
       .get("/", (ctx) => {
         return ctx.render(
           <Doc>
@@ -277,10 +274,7 @@ Deno.test(
 );
 
 Deno.test("partials - unmounts island", async () => {
-  const selfCounter = getIsland("SelfCounter.tsx");
-  const app = new FreshApp()
-    .island(selfCounter, "SelfCounter", SelfCounter)
-    .use(freshStaticFiles())
+  const app = testApp()
     .get("/partial", (ctx) => {
       return ctx.render(
         <Doc>
@@ -317,10 +311,7 @@ Deno.test("partials - unmounts island", async () => {
 });
 
 Deno.test("partials - keeps island state", async () => {
-  const selfCounter = getIsland("SelfCounter.tsx");
-  const app = new FreshApp()
-    .island(selfCounter, "SelfCounter", SelfCounter)
-    .use(freshStaticFiles())
+  const app = testApp()
     .get("/partial", (ctx) => {
       return ctx.render(
         <Doc>
@@ -361,12 +352,7 @@ Deno.test("partials - keeps island state", async () => {
 });
 
 Deno.test("partials - replaces island", async () => {
-  const selfCounter = getIsland("SelfCounter.tsx");
-  const jsonIsland = getIsland("JsonIsland.tsx");
-  const app = new FreshApp()
-    .island(selfCounter, "SelfCounter", SelfCounter)
-    .island(jsonIsland, "JsonIsland", JsonIsland)
-    .use(freshStaticFiles())
+  const app = testApp()
     .get("/partial", (ctx) => {
       return ctx.render(
         <Doc>
@@ -409,8 +395,7 @@ Deno.test("partials - replaces island", async () => {
 });
 
 Deno.test("partials - only updates inner partial", async () => {
-  const app = new FreshApp()
-    .use(freshStaticFiles())
+  const app = testApp()
     .get("/partial", (ctx) => {
       return ctx.render(
         <Doc>
@@ -446,8 +431,7 @@ Deno.test("partials - only updates inner partial", async () => {
 });
 
 Deno.test("partials - updates sibling partials", async () => {
-  const app = new FreshApp()
-    .use(freshStaticFiles())
+  const app = testApp()
     .get("/partial", (ctx) => {
       return ctx.render(
         <Doc>
@@ -495,10 +479,7 @@ Deno.test("partials - updates sibling partials", async () => {
 });
 
 Deno.test("partials - reconcile keyed islands in update", async () => {
-  const selfCounter = getIsland("SelfCounter.tsx");
-  const app = new FreshApp()
-    .island(selfCounter, "SelfCounter", SelfCounter)
-    .use(freshStaticFiles())
+  const app = testApp()
     .get("/partial", (ctx) => {
       return ctx.render(
         <Doc>
@@ -554,10 +535,7 @@ Deno.test("partials - reconcile keyed islands in update", async () => {
 });
 
 Deno.test("partials - reconcile keyed partials", async () => {
-  const selfCounter = getIsland("SelfCounter.tsx");
-  const app = new FreshApp()
-    .island(selfCounter, "SelfCounter", SelfCounter)
-    .use(freshStaticFiles())
+  const app = testApp()
     .get("/partial", (ctx) => {
       return ctx.render(
         <Doc>
@@ -626,10 +604,7 @@ Deno.test("partials - reconcile keyed partials", async () => {
 });
 
 Deno.test("partials - reconcile keyed div inside partials", async () => {
-  const selfCounter = getIsland("SelfCounter.tsx");
-  const app = new FreshApp()
-    .island(selfCounter, "SelfCounter", SelfCounter)
-    .use(freshStaticFiles())
+  const app = testApp()
     .get("/partial", (ctx) => {
       return ctx.render(
         <Doc>
@@ -704,10 +679,7 @@ Deno.test(
       return <SelfCounter id={props.id} />;
     }
 
-    const selfCounter = getIsland("SelfCounter.tsx");
-    const app = new FreshApp()
-      .island(selfCounter, "SelfCounter", SelfCounter)
-      .use(freshStaticFiles())
+    const app = testApp()
       .get("/partial", (ctx) => {
         return ctx.render(
           <Doc>
@@ -767,8 +739,7 @@ Deno.test(
 Deno.test(
   "partials - skip key serialization if outside root",
   async () => {
-    const app = new FreshApp()
-      .use(freshStaticFiles())
+    const app = testApp()
       .get("/", (ctx) => {
         return ctx.render(
           <Doc>
@@ -790,8 +761,7 @@ Deno.test(
 
 Deno.test("partials - mode replace", async () => {
   let i = 0;
-  const app = new FreshApp()
-    .use(freshStaticFiles())
+  const app = testApp()
     .get("/partial", (ctx) => {
       const id = i++;
       return ctx.render(
@@ -832,8 +802,7 @@ Deno.test("partials - mode replace", async () => {
 
 Deno.test("partials - mode replace inner", async () => {
   let i = 0;
-  const app = new FreshApp()
-    .use(freshStaticFiles())
+  const app = testApp()
     .get("/partial", (ctx) => {
       const id = i++;
       return ctx.render(
@@ -878,8 +847,7 @@ Deno.test("partials - mode replace inner", async () => {
 
 Deno.test("partials - mode append", async () => {
   let i = 0;
-  const app = new FreshApp()
-    .use(freshStaticFiles())
+  const app = testApp()
     .get("/partial", (ctx) => {
       const id = i++;
       return ctx.render(
@@ -922,8 +890,7 @@ Deno.test("partials - mode append", async () => {
 
 Deno.test("partials - mode append inner", async () => {
   let i = 0;
-  const app = new FreshApp()
-    .use(freshStaticFiles())
+  const app = testApp()
     .get("/partial", (ctx) => {
       const id = i++;
       return ctx.render(
@@ -969,8 +936,7 @@ Deno.test("partials - mode append inner", async () => {
 
 Deno.test("partials - mode prepend", async () => {
   let i = 0;
-  const app = new FreshApp()
-    .use(freshStaticFiles())
+  const app = testApp()
     .get("/partial", (ctx) => {
       const id = i++;
       return ctx.render(
@@ -1012,8 +978,7 @@ Deno.test("partials - mode prepend", async () => {
 
 Deno.test("partials - mode prepend inner", async () => {
   let i = 0;
-  const app = new FreshApp()
-    .use(freshStaticFiles())
+  const app = testApp()
     .get("/partial", (ctx) => {
       const id = i++;
       return ctx.render(
@@ -1058,10 +1023,7 @@ Deno.test("partials - mode prepend inner", async () => {
 });
 
 Deno.test("partials - navigate", async () => {
-  const selfCounter = getIsland("SelfCounter.tsx");
-  const app = new FreshApp()
-    .island(selfCounter, "SelfCounter", SelfCounter)
-    .use(freshStaticFiles())
+  const app = testApp()
     .get("/partial", (ctx) => {
       return ctx.render(
         <Doc>
@@ -1109,10 +1071,7 @@ Deno.test("partials - navigate", async () => {
 });
 
 Deno.test("partials - uses f-partial instead", async () => {
-  const selfCounter = getIsland("SelfCounter.tsx");
-  const app = new FreshApp()
-    .island(selfCounter, "SelfCounter", SelfCounter)
-    .use(freshStaticFiles())
+  const app = testApp()
     .get("/partial", (ctx) => {
       return ctx.render(
         <Doc>
@@ -1160,10 +1119,7 @@ Deno.test("partials - uses f-partial instead", async () => {
 });
 
 Deno.test("partials - opt out of parital navigation", async () => {
-  const selfCounter = getIsland("SelfCounter.tsx");
-  const app = new FreshApp()
-    .island(selfCounter, "SelfCounter", SelfCounter)
-    .use(freshStaticFiles())
+  const app = testApp()
     .get("/partial", (ctx) => {
       return ctx.render(
         <Doc>
@@ -1220,10 +1176,7 @@ Deno.test("partials - opt out of parital navigation", async () => {
 });
 
 Deno.test("partials - opt out of parital navigation #2", async () => {
-  const selfCounter = getIsland("SelfCounter.tsx");
-  const app = new FreshApp()
-    .island(selfCounter, "SelfCounter", SelfCounter)
-    .use(freshStaticFiles())
+  const app = testApp()
     .get("/partial", (ctx) => {
       return ctx.render(
         <Doc>
@@ -1309,10 +1262,7 @@ Deno.test("partials - opt out of parital navigation #2", async () => {
 // });
 
 Deno.test("partials - submit form", async () => {
-  const selfCounter = getIsland("SelfCounter.tsx");
-  const app = new FreshApp()
-    .island(selfCounter, "SelfCounter", SelfCounter)
-    .use(freshStaticFiles())
+  const app = testApp()
     .get("/partial", (ctx) => {
       return ctx.render(
         <Doc>
@@ -1354,10 +1304,7 @@ Deno.test("partials - submit form", async () => {
 });
 
 Deno.test("partials - submit form f-partial", async () => {
-  const selfCounter = getIsland("SelfCounter.tsx");
-  const app = new FreshApp()
-    .island(selfCounter, "SelfCounter", SelfCounter)
-    .use(freshStaticFiles())
+  const app = testApp()
     .get("/partial", (ctx) => {
       return ctx.render(
         <Doc>
@@ -1399,10 +1346,7 @@ Deno.test("partials - submit form f-partial", async () => {
 });
 
 Deno.test("partials - submit form POST", async () => {
-  const selfCounter = getIsland("SelfCounter.tsx");
-  const app = new FreshApp()
-    .island(selfCounter, "SelfCounter", SelfCounter)
-    .use(freshStaticFiles())
+  const app = testApp()
     .post("/partial", async (ctx) => {
       const data = await ctx.req.formData();
       const name = data.get("name");
@@ -1446,10 +1390,7 @@ Deno.test("partials - submit form POST", async () => {
 });
 
 Deno.test("partials - submit form via external submitter", async () => {
-  const selfCounter = getIsland("SelfCounter.tsx");
-  const app = new FreshApp()
-    .island(selfCounter, "SelfCounter", SelfCounter)
-    .use(freshStaticFiles())
+  const app = testApp()
     .post("/partial", async (ctx) => {
       const data = await ctx.req.formData();
       const name = data.get("name");
@@ -1504,10 +1445,7 @@ Deno.test("partials - submit form via external submitter", async () => {
 Deno.test(
   "partials - submit form via external submitter f-partial",
   async () => {
-    const selfCounter = getIsland("SelfCounter.tsx");
-    const app = new FreshApp()
-      .island(selfCounter, "SelfCounter", SelfCounter)
-      .use(freshStaticFiles())
+    const app = testApp()
       .post("/partial", async (ctx) => {
         const data = await ctx.req.formData();
         const name = data.get("name");
@@ -1564,10 +1502,7 @@ Deno.test(
 Deno.test(
   "partials - don't apply partials when submitter has client nav disabled",
   async () => {
-    const selfCounter = getIsland("SelfCounter.tsx");
-    const app = new FreshApp()
-      .island(selfCounter, "SelfCounter", SelfCounter)
-      .use(freshStaticFiles())
+    const app = testApp()
       .post("/partial", async (ctx) => {
         const data = await ctx.req.formData();
         const name = data.get("name");
@@ -1628,13 +1563,10 @@ Deno.test(
   },
 );
 
-Deno.test.only(
+Deno.test(
   "partials - fragment nav should not cause infinite loop",
   async () => {
-    const selfCounter = getIsland("SelfCounter.tsx");
-    const app = new FreshApp()
-      .island(selfCounter, "SelfCounter", SelfCounter)
-      .use(freshStaticFiles())
+    const app = testApp()
       .get("/", (ctx) => {
         return ctx.render(
           <Doc>
@@ -1852,10 +1784,7 @@ Deno.test.only(
 // });
 
 Deno.test("partials - update stateful inner partials", async () => {
-  const selfCounter = getIsland("SelfCounter.tsx");
-  const app = new FreshApp()
-    .island(selfCounter, "SelfCounter", SelfCounter)
-    .use(freshStaticFiles())
+  const app = testApp()
     .get("/partial", (ctx) => {
       return ctx.render(
         <Doc>
@@ -1903,8 +1832,7 @@ Deno.test("partials - update stateful inner partials", async () => {
 });
 
 Deno.test("partials - with redirects", async () => {
-  const app = new FreshApp()
-    .use(freshStaticFiles())
+  const app = testApp()
     .get("/a", (ctx) => {
       return ctx.render(
         <Doc>
@@ -1937,8 +1865,7 @@ Deno.test("partials - with redirects", async () => {
 });
 
 Deno.test("partials - render 404 partial", async () => {
-  const app = new FreshApp()
-    .use(freshStaticFiles())
+  const app = testApp()
     .get("/", (ctx) => {
       return ctx.render(
         <Doc>
@@ -1970,8 +1897,7 @@ Deno.test("partials - render 404 partial", async () => {
 });
 
 Deno.test("partials - render with new title", async () => {
-  const app = new FreshApp()
-    .use(freshStaticFiles())
+  const app = testApp()
     .get("/partial", (ctx) => {
       return ctx.render(
         <Doc title="after update">

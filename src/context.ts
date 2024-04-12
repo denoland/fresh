@@ -35,10 +35,6 @@ export interface FreshContext<State = unknown, Data = unknown> {
   error: unknown;
   Component: FunctionComponent;
   /**
-   * Unstable parts of fresh
-   */
-  buildCache: BuildCache;
-  /**
    * Return a redirect response to the specified path. This is the
    * preferred way to do redirects in Fresh.
    *
@@ -99,15 +95,17 @@ export class FreshReqContext<T> implements FreshContext<T, unknown> {
   data = {} as unknown;
   error: Error | null = null;
   #islandRegistry: ServerIslandRegistry;
+  #buildCache: BuildCache;
 
   constructor(
     public req: Request,
     public config: ResolvedFreshConfig,
     public next: FreshContext<T>["next"],
-    public buildCache: BuildCache,
+    buildCache: BuildCache,
     islandRegistry: ServerIslandRegistry,
   ) {
     this.#islandRegistry = islandRegistry;
+    this.#buildCache = buildCache;
     this.url = new URL(req.url);
   }
 
@@ -144,7 +142,13 @@ export class FreshReqContext<T> implements FreshContext<T, unknown> {
       headers.set("X-Fresh-Id", partialId);
     }
 
-    const html = preactRender(vnode, this, this.#islandRegistry, partialId);
+    const html = preactRender(
+      vnode,
+      this,
+      this.#islandRegistry,
+      this.#buildCache,
+      partialId,
+    );
     return new Response(html, responseInit);
   }
 
@@ -157,9 +161,10 @@ function preactRender<T>(
   vnode: VNode,
   ctx: FreshContext<T>,
   islandRegistry: ServerIslandRegistry,
+  buildCache: BuildCache,
   partialId: string,
 ) {
-  const state = new RenderState(ctx, islandRegistry, partialId);
+  const state = new RenderState(ctx, islandRegistry, buildCache, partialId);
   setRenderState(state);
   try {
     // TODO: Streaming

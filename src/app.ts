@@ -17,13 +17,17 @@ import { type BuildCache, ProdBuildCache } from "./build_cache.ts";
 import * as path from "@std/path";
 import type { ComponentType } from "preact";
 import type { ServerIslandRegistry } from "./context.ts";
+import { freshStaticFiles } from "./middlewares/static_files.ts";
 
 export interface App<State> {
-  readonly _router: Router<Middleware<State>>;
-  readonly _islandRegistry: ServerIslandRegistry;
+  _router: Router<Middleware<State>>;
+  _islandRegistry: ServerIslandRegistry;
+  _buildCache: BuildCache | null;
   readonly config: Readonly<ResolvedFreshConfig>;
 
   island(filePathOrUrl: string | URL, name: string, fn: ComponentType): void;
+
+  useStaticFiles(): this;
 
   use(middleware: Middleware<State>): this;
   get(path: string, ...middlewares: Middleware<State>[]): this;
@@ -54,6 +58,7 @@ export class FreshApp<State> implements App<State> {
     Middleware<State>
   >();
   _islandRegistry: ServerIslandRegistry = new Map();
+  _buildCache: BuildCache | null = null;
   #islandNames = new Set<string>();
   #middlewares: Middleware<State>[] = [];
   #addedMiddlewares = false;
@@ -63,10 +68,17 @@ export class FreshApp<State> implements App<State> {
    */
   config: ResolvedFreshConfig;
 
-  protected buildCache: BuildCache | null = null;
-
   constructor(config: FreshConfig = {}) {
     this.config = normalizeConfig(config);
+  }
+
+  useStaticFiles(): this {
+    // deno-lint-ignore no-this-alias
+    const self = this;
+    this.use(function serveStaticFiles(ctx) {
+      return freshStaticFiles(ctx, self._buildCache);
+    });
+    return this;
   }
 
   island(
@@ -149,11 +161,7 @@ export class FreshApp<State> implements App<State> {
       ) {
         selfRoutes[0].handlers.push(...middlewares);
       } else {
-        this._router._routes.unshift({
-          handlers: middlewares,
-          method: "ALL",
-          path: "*",
-        });
+        this.#addRoutes("ALL", "*", middlewares);
       }
     }
 
@@ -199,8 +207,8 @@ export class FreshApp<State> implements App<State> {
       this.#addRoutes("ALL", "*", this.#middlewares.concat(next));
     }
 
-    if (this.buildCache === null) {
-      this.buildCache = await ProdBuildCache.fromSnapshot(this.config);
+    if (this._buildCache === null) {
+      this._buildCache = await ProdBuildCache.fromSnapshot(this.config);
     }
 
     return async (req: Request) => {
@@ -212,7 +220,7 @@ export class FreshApp<State> implements App<State> {
         req,
         this.config,
         next,
-        this.buildCache!,
+        this._buildCache!,
         this._islandRegistry,
       );
 
