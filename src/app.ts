@@ -246,7 +246,7 @@ export class FreshApp<State> implements App<State> {
     if (!options.onListen) {
       options.onListen = (params) => {
         const pathname = (this.config.basePath) + "/";
-        const protocol = isTlsCertSettings(options) ? "https:" : "http:";
+        const protocol = options.key && options.cert ? "https:" : "http:";
         const address = colors.cyan(
           `${protocol}//${params.hostname}:${params.port}${pathname}`,
         );
@@ -277,10 +277,4 @@ export class FreshApp<State> implements App<State> {
 
     await Deno.serve(options, await this.handler());
   }
-}
-
-// deno-lint-ignore no-explicit-any
-function isTlsCertSettings(x: any): x is Deno.TlsCertifiedKeyPem {
-  return x !== null && typeof x === "object" && typeof x.key === "string" &&
-    typeof x.cert === "string";
 }
