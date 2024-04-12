@@ -26,7 +26,7 @@ export interface Router<T> {
 export const IS_PATTERN = /[*:{}+?()]/;
 
 export function mergePaths(a: string, b: string) {
-  if (a === "") return b;
+  if (a === "" || a === "/" || a === "*") return b;
   if (b === "/") return a;
   if (a.endsWith("/")) {
     return a.slice(0, -1) + b;

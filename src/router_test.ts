@@ -1,5 +1,10 @@
 import { expect } from "@std/expect";
-import { IS_PATTERN, pathToPattern, UrlPatternRouter } from "./router.ts";
+import {
+  IS_PATTERN,
+  mergePaths,
+  pathToPattern,
+  UrlPatternRouter,
+} from "./router.ts";
 
 Deno.test("IS_PATTERN", () => {
   expect(IS_PATTERN.test("/foo")).toEqual(false);
@@ -163,4 +168,13 @@ Deno.test("pathToPattern", async (t) => {
     expect(() => pathToPattern("foo/foo-[[name]]")).toThrow();
     expect(() => pathToPattern("foo/[[name]]-bar")).toThrow();
   });
+});
+
+Deno.test("mergePaths", () => {
+  expect(mergePaths("", "")).toEqual("");
+  expect(mergePaths("/", "/foo")).toEqual("/foo");
+  expect(mergePaths("*", "/foo")).toEqual("/foo");
+  expect(mergePaths("/foo/bar", "/baz")).toEqual("/foo/bar/baz");
+  expect(mergePaths("/foo/bar/", "/baz")).toEqual("/foo/bar/baz");
+  expect(mergePaths("/foo/bar", "baz")).toEqual("/foo/bar/baz");
 });
