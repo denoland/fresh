@@ -136,14 +136,6 @@ export class FreshApp<State> implements App<State> {
       this._islandRegistry.set(key, value);
     });
 
-    // deno-lint-ignore no-this-alias
-    const self = this;
-    Object.defineProperty(app, "_buildCache", {
-      get() {
-        return self._buildCache;
-      },
-    });
-
     let middlewares: Middleware<State>[] = [];
     let start = 0;
     if (
@@ -220,14 +212,6 @@ export class FreshApp<State> implements App<State> {
       // Prevent open redirect attacks
       url.pathname = url.pathname.replace(/\/+/g, "/");
 
-      const ctx = new FreshReqContext<State>(
-        req,
-        this.config,
-        next,
-        this._buildCache!,
-        this._islandRegistry,
-      );
-
       const method = req.method.toUpperCase() as Method;
       const matched = this._router.match(method, url);
 
@@ -240,6 +224,14 @@ export class FreshApp<State> implements App<State> {
           `No route handlers found. This might be a bug in Fresh.`,
         );
       }
+
+      const ctx = new FreshReqContext<State>(
+        req,
+        this.config,
+        next,
+        this._buildCache!,
+        this._islandRegistry,
+      );
 
       const { params, handlers } = matched;
       ctx.params = params;
