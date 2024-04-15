@@ -43,6 +43,8 @@ Fresh 2.0:
 ☐ next bug i ran into was that static file serving with the tailwind plugin does not seem to be working in dev mode
 ☐ new builder architecture
 ✔ Remove `GLOBAL_ISLANDS` map in favor of being scoped to render state @done(24-04-05 22:28)
+☐ Implement `Data#headers` and `Data#status`
+☐ Implement `Data#head` and `ctx.render(..., { head: ... })` with better type (not `string[]`)
 
 Fresh 2.0 compat:
 ☐ add plugin API backwards compat
