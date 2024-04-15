@@ -18,7 +18,7 @@ Fresh 2.0:
 ☐ Investigate bundling esbuild js assets with rollup
 ☐ Add back finish tailwind setup page
 ✔ think about publishing Fresh 1.x to JSR first @done(24-04-02 19:07)
-☐ config inferrence from app to devapp is confusing
+✔ config inferrence from app to devapp is confusing @done(24-04-15 15:26)
 ✔ remove UUID from context object @done(24-03-25 21:59)
 ✔ Add bundle like static file processor @done(24-03-25 23:41)
 ☐ Think of custom Fresh JSX transform, for `asset()` + active link
@@ -39,9 +39,9 @@ Fresh 2.0:
 ✔ OnStaticTransform signature has wrong return @done(24-04-05 13:31)
   ✔ Allow returning multiple files @done(24-04-05 13:31)
   ✔ Make content a callback that returns a promise -> Lazy loading @done(24-04-05 13:31)
-☐ Pass app to devApp constructor
-☐ next bug i ran into was that static file serving with the tailwind plugin does not seem to be working in dev mode
-☐ new builder architecture
+✔ Pass app to devApp constructor @done(24-04-15 15:25)
+✔ next bug i ran into was that static file serving with the tailwind plugin does not seem to be working in dev mode @done(24-04-15 15:25)
+✔ new builder architecture @done(24-04-15 15:25)
 ✔ Remove `GLOBAL_ISLANDS` map in favor of being scoped to render state @done(24-04-05 22:28)
 ☐ Implement `Data#headers` and `Data#status`
 ☐ Implement `Data#head` and `ctx.render(..., { head: ... })` with better type (not `string[]`)
