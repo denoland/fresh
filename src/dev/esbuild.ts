@@ -1,10 +1,11 @@
-import type { BuildOptions } from "esbuild-wasm";
 import { denoPlugins } from "@luca/esbuild-deno-loader";
+import type { Plugin as EsbuildPlugin } from "esbuild";
 import * as path from "@std/path";
 
 export interface FreshBundleOptions {
   dev: boolean;
   cwd: string;
+  buildId: string;
   outDir: string;
   denoJsonPath: string;
   entryPoints: Record<string, string>;
@@ -62,6 +63,7 @@ export async function bundleJs(
     metafile: true,
 
     plugins: [
+      buildIdPlugin(options.buildId),
       ...denoPlugins({ configPath: options.denoJsonPath }),
     ],
   });
@@ -118,5 +120,18 @@ export async function bundleJs(
     files,
     entryToChunk,
     dependencies,
+  };
+}
+
+function buildIdPlugin(buildId: string): EsbuildPlugin {
+  return {
+    name: "fresh-build-id",
+    setup(build) {
+      build.onLoad({ filter: /runtime\/build_id\.ts$/ }, (args) => {
+        return {
+          contents: `export const BUILD_ID = "${buildId}";`,
+        };
+      });
+    },
   };
 }

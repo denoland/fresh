@@ -1,5 +1,6 @@
 import * as path from "@std/path";
 import type { ResolvedFreshConfig } from "./config.ts";
+import { setBuildId } from "./runtime/build_id.ts";
 
 export interface FileSnapshot {
   generated: boolean;
@@ -8,6 +9,7 @@ export interface FileSnapshot {
 
 export interface BuildSnapshot {
   version: number;
+  buildId: string;
   staticFiles: Record<string, FileSnapshot>;
   islands: Record<string, string>;
 }
@@ -33,6 +35,7 @@ export class ProdBuildCache implements BuildCache {
     try {
       const content = await Deno.readTextFile(snapshotPath);
       const snapshot = JSON.parse(content) as BuildSnapshot;
+      setBuildId(snapshot.buildId);
 
       const files = Object.keys(snapshot.staticFiles);
       for (let i = 0; i < files.length; i++) {

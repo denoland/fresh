@@ -213,7 +213,6 @@ Deno.test("fsRoutes - middleware array", async () => {
 Deno.test("fsRoutes - combined", async () => {
   const server = await createServer<{ text: string }>({
     "routes/foo/bar.ts": {
-      handler: () => {},
       default: (ctx) => <>{ctx.state.text}</>,
     },
     "routes/foo/_middleware.ts": {

@@ -1,6 +1,8 @@
 import * as path from "@std/path";
 import { contentType as getContentType } from "@std/media-types/content-type";
 import type { Middleware } from "@fresh/core";
+import { ASSET_CACHE_BUST_KEY } from "../runtime/shared_internal.tsx";
+import { BUILD_ID } from "../runtime/build_id.ts";
 
 /**
  * Fresh middleware to enable file-system based routing.
@@ -28,6 +30,18 @@ export function staticFiles<T>(): Middleware<T> {
       return new Response("Method Not Allowed", { status: 405 });
     }
 
+    const cacheKey = url.searchParams.get(ASSET_CACHE_BUST_KEY);
+    if (cacheKey !== null && BUILD_ID !== cacheKey) {
+      url.searchParams.delete(ASSET_CACHE_BUST_KEY);
+      const location = url.pathname + url.search;
+      return new Response(null, {
+        status: 307,
+        headers: {
+          location,
+        },
+      });
+    }
+
     const ext = path.extname(url.pathname);
     const etag = file.hash;
 
@@ -37,8 +51,7 @@ export function staticFiles<T>(): Middleware<T> {
       vary: "If-None-Match",
     });
 
-    // FIXME buildiD
-    if (ctx.config.mode === "development" || true) {
+    if (cacheKey === null || ctx.config.mode === "development") {
       headers.append(
         "Cache-Control",
         "no-cache, no-store, max-age=0, must-revalidate",

@@ -6,6 +6,7 @@ import { encodeHex } from "@std/encoding/hex";
 import { crypto } from "@std/crypto";
 import { fsAdapter } from "../fs.ts";
 import type { LazyProcessor } from "./file_transformer.ts";
+import { BUILD_ID } from "../runtime/build_id.ts";
 
 export interface MemoryFile {
   hash: string | null;
@@ -41,6 +42,7 @@ export class MemoryBuildCache implements DevBuildCache {
 
   constructor(
     public config: ResolvedFreshConfig,
+    public buildId: string,
   ) {}
 
   async readFile(pathname: string): Promise<StaticFile | null> {
@@ -160,7 +162,7 @@ export class DiskBuildCache implements DevBuildCache {
   #processedFiles = new Map<string, string | null>();
   #unprocessedFiles = new Map<string, string>();
 
-  constructor(public config: ResolvedFreshConfig) {}
+  constructor(public config: ResolvedFreshConfig, public buildId: string) {}
 
   getIslandChunkName(islandName: string): string | null {
     return this.islands.get(islandName) ?? null;
@@ -211,6 +213,7 @@ export class DiskBuildCache implements DevBuildCache {
   async flush(): Promise<void> {
     const snapshot: BuildSnapshot = {
       version: 1,
+      buildId: this.buildId,
       islands: {},
       staticFiles: {},
     };

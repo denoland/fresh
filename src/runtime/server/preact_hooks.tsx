@@ -12,16 +12,18 @@ import {
 import type { Signal } from "@preact/signals";
 import type { Stringifiers } from "../../jsonify/stringify.ts";
 import type { FreshContext } from "../../context.ts";
-import { Partial, type PartialProps } from "../shared.ts";
+import { asset, Partial, type PartialProps } from "../shared.ts";
 import { stringify } from "../../jsonify/stringify.ts";
 import type { ServerIslandRegistry } from "../../context.ts";
 import type { Island } from "../../context.ts";
 import {
+  assetHashingHook,
   CLIENT_NAV_ATTR,
   DATA_FRESH_KEY,
   PartialMode,
 } from "../shared_internal.tsx";
 import type { BuildCache } from "../../build_cache.ts";
+import { BUILD_ID } from "../build_id.ts";
 
 const enum OptionsType {
   VNODE = "vnode",
@@ -103,6 +105,7 @@ options[OptionsType.VNODE] = (vnode) => {
   if (RENDER_STATE !== null) {
     RENDER_STATE.owners.set(vnode, RENDER_STATE!.ownerStack.at(-1)!);
   }
+  assetHashingHook(vnode, BUILD_ID);
 
   if (typeof vnode.type === "function") {
     if (vnode.type === Partial) {
@@ -424,7 +427,7 @@ function FreshRuntimeScript() {
       const named = island.exportName === "default"
         ? island.name
         : `{ ${island.exportName} }`;
-      return `import ${named} from "${chunk}";`;
+      return `import ${named} from "${asset(chunk)}";`;
     }).join("");
 
     const islandObj = "{" + islandArr.map((island) => island.name)
@@ -433,9 +436,9 @@ function FreshRuntimeScript() {
 
     const serializedProps = stringify(islandProps, stringifiers);
 
-    // TODO: integrity?
+    const runtimeUrl = asset(`${basePath}/fresh-runtime.js`);
     const scriptContent =
-      `import { boot } from "${basePath}/fresh-runtime.js";${islandImports}boot(${islandObj},\`${serializedProps}\`);`;
+      `import { boot } from "${runtimeUrl}";${islandImports}boot(${islandObj},\`${serializedProps}\`);`;
 
     return (
       <script

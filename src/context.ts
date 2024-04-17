@@ -83,10 +83,6 @@ export interface FreshContext<State = unknown, Data = unknown> {
   renderNotFound(): Promise<void>;
 }
 
-// deno-lint-ignore no-unused-vars
-const RENDER_PREACT_SLOT = (idx: number) =>
-  `<!--frsh:await:${idx}--><!--/frsh:await:${idx}-->`;
-
 export class FreshReqContext<T> implements FreshContext<T, unknown> {
   url: URL;
   Component = NOOP;
@@ -133,7 +129,6 @@ export class FreshReqContext<T> implements FreshContext<T, unknown> {
         : new Headers(init.headers)
       : new Headers();
 
-    // TODO: Add json renderer
     headers.set("Content-Type", "text/html; charset=utf-8");
     const responseInit: ResponseInit = { status: init.status ?? 200, headers };
 
@@ -168,7 +163,6 @@ function preactRender<T>(
   const state = new RenderState(ctx, islandRegistry, buildCache, partialId);
   setRenderState(state);
   try {
-    // TODO: Streaming
     let res = renderToString(vnode);
     // We require a the full outer DOM structure so that browser put
     // comment markers in the right place in the DOM.

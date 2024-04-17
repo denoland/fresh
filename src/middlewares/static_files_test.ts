@@ -2,8 +2,11 @@ import { staticFiles } from "./static_files.ts";
 import { serveMiddleware } from "../test_utils.ts";
 import type { BuildCache, StaticFile } from "../build_cache.ts";
 import { expect } from "@std/expect";
+import { ASSET_CACHE_BUST_KEY } from "../runtime/shared_internal.tsx";
+import { BUILD_ID } from "../runtime/build_id.ts";
 
 class MockBuildCache implements BuildCache {
+  buildId = "MockId";
   files = new Map<string, StaticFile>();
 
   constructor(files: Record<string, { hash: string | null; content: string }>) {
@@ -43,7 +46,9 @@ Deno.test("static files - 200", async () => {
   expect(res.status).toEqual(200);
   expect(res.headers.get("Content-Type")).toEqual("text/css; charset=UTF-8");
   expect(res.headers.get("Content-Length")).toEqual("7");
-  expect(res.headers.get("Cache-Control")).toEqual(null);
+  expect(res.headers.get("Cache-Control")).toEqual(
+    "no-cache, no-store, max-age=0, must-revalidate",
+  );
   expect(content).toEqual("body {}");
 });
 
@@ -75,13 +80,14 @@ Deno.test("static files - etag", async () => {
 
   const headers = new Headers();
   headers.append("If-None-Match", "123");
-  const res = await server.get("/foo.css", { headers });
+  const cacheUrl = `/foo.css?${ASSET_CACHE_BUST_KEY}=${BUILD_ID}`;
+  const res = await server.get(cacheUrl, { headers });
   await res.body?.cancel();
   expect(res.status).toEqual(304);
 
   const headers2 = new Headers();
   headers2.append("If-None-Match", "W/123");
-  const res2 = await server.get("/foo.css", { headers });
+  const res2 = await server.get(cacheUrl, { headers });
   await res2.body?.cancel();
   expect(res2.status).toEqual(304);
 });

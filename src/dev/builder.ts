@@ -12,6 +12,7 @@ import {
 import type { TransformFn } from "./file_transformer.ts";
 import { DiskBuildCache, MemoryBuildCache } from "./dev_build_cache.ts";
 import type { Island } from "../context.ts";
+import { BUILD_ID } from "../runtime/build_id.ts";
 
 export interface BuildOptions {
   dev?: boolean;
@@ -58,6 +59,7 @@ export class Builder implements FreshBuilder {
 
     devApp._buildCache = new MemoryBuildCache(
       devApp.config,
+      BUILD_ID,
     );
 
     await Promise.all([
@@ -80,8 +82,8 @@ export class Builder implements FreshBuilder {
     }
 
     const buildCache = app._buildCache ?? options.dev
-      ? new MemoryBuildCache(app.config)
-      : new DiskBuildCache(app.config);
+      ? new MemoryBuildCache(app.config, BUILD_ID)
+      : new DiskBuildCache(app.config, BUILD_ID);
     app._buildCache = buildCache;
 
     const entryPoints: Record<string, string> = {
@@ -120,6 +122,7 @@ export class Builder implements FreshBuilder {
       outDir: staticOutDir,
       dev: options.dev ?? false,
       target,
+      buildId: BUILD_ID,
       entryPoints,
       jsxImportSource,
       denoJsonPath: denoJson.filePath,
