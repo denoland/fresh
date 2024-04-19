@@ -217,6 +217,8 @@ options.vnode = (vnode) => {
       props.src = withBase(props.src, current?.basePath);
     }
 
+    //
+    // What is this?
     srcsetRewrite:
     if (typeof props.srcset === "string") {
       // Bail out on complex syntax that's too complicated for now
