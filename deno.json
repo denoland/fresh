@@ -1,6 +1,6 @@
 {
-  "name": "@marvinh-test/fresh",
-  "version": "2.0.0-prealpha.18",
+  "name": "@fresh/core",
+  "version": "2.0.0-alpha.1",
   "exports": {
     ".": "./src/mod.ts",
     "./runtime": "./src/runtime/shared.ts",
@@ -29,7 +29,8 @@
       "README.md",
       "LICENSE",
       "www/static/fresh-badge.svg",
-      "www/static/fresh-badge-dark.svg"
+      "www/static/fresh-badge-dark.svg",
+      "*.todo"
     ],
     "exclude": ["**/*_test.*", "src/__OLD/**", "*.todo"]
   },

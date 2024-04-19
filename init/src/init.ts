@@ -492,9 +492,8 @@ if (Deno.args.includes("build")) {
     },
     exclude: ["**/_fresh/*"],
     imports: {
-      // FIXME: Update once relased
-      "@fresh/core": "jsr:@marvinh-test/fresh@^2.0.0-prealpha.16",
-      "@fresh/plugin-tailwind": "jsr:@marvinh-test/fresh-tailwind@^0.0.1",
+      "@fresh/core": "jsr:@fresh/core@^2.0.0-alpha.1",
+      "@fresh/plugin-tailwind": "jsr:@fresh/plugin-tailwind@^0.0.1-alpha.1",
       "preact": "npm:preact@^10.20.1",
       "@preact/signals": "npm:@preact/signals@^1.2.3",
     } as Record<string, string>,
