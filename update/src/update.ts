@@ -148,7 +148,6 @@ export async function update(dir: string) {
                         }],
                       });
                     }
-                    // console.log(params);
                   }
                 }
               }
