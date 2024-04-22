@@ -127,12 +127,36 @@ async function updateFile(sourceFile: tsmorph.SourceFile): Promise<void> {
               name === "PUT" || name === "DELETE"
             ) {
               maybePrependReqVar(property);
+
+              const body = property.getBody();
+              if (body !== undefined) {
+                const stmts = body.getDescendantStatements();
+                rewriteCtxMethods(stmts);
+              }
             }
           }
         }
       } else if (tsmorph.Node.isFunctionDeclaration(decl[0])) {
         const d = decl[0];
         maybePrependReqVar(d);
+
+        const body = d.getBody();
+        if (body !== undefined) {
+          const stmts = body.getDescendantStatements();
+          rewriteCtxMethods(stmts);
+        }
+      } else if (
+        tsmorph.Node.isVariableDeclaration(decl[0]) &&
+        decl[0].getName() === "handler"
+      ) {
+        const init = decl[0].getChildAtIndex(2).asKindOrThrow(
+          tsmorph.ts.SyntaxKind.ArrowFunction,
+        );
+        const body = init.getBody();
+        if (body !== undefined) {
+          const stmts = body.getDescendantStatements();
+          rewriteCtxMethods(stmts);
+        }
       }
     }
   }
@@ -174,4 +198,54 @@ function maybePrependReqVar(
       });
     }
   }
+}
+
+function rewriteCtxMethods(
+  stmts: (
+    | tsmorph.Expression<tsmorph.ts.Expression>
+    | tsmorph.Statement<tsmorph.ts.Statement>
+  )[],
+) {
+  for (let i = 0; i < stmts.length; i++) {
+    const stmt = stmts[0];
+
+    if (stmt.isKind(tsmorph.ts.SyntaxKind.ReturnStatement)) {
+      const expr = stmt.getChildAtIndex(1);
+      if (expr) {
+        rewriteCtxRenderNotFound(expr);
+      }
+    }
+  }
+}
+
+function rewriteCtxRenderNotFound(node: tsmorph.Node<tsmorph.ts.Node>) {
+  if (node.isKind(tsmorph.ts.SyntaxKind.CallExpression)) {
+    const first = node.getFirstChild();
+    if (
+      !first || !first.isKind(tsmorph.ts.SyntaxKind.PropertyAccessExpression)
+    ) {
+      return;
+    }
+
+    const children = toMemberExpr(first.getChildren());
+    if (children !== null && children[2].getText() === "renderNotFound") {
+      children[2].rename("throw");
+      node.insertArgument(0, "404");
+    }
+  }
+}
+
+function toMemberExpr(
+  children: tsmorph.Node<tsmorph.ts.Node>[],
+): [tsmorph.Identifier, tsmorph.Node, tsmorph.Identifier] | null {
+  if (
+    children[0].isKind(tsmorph.ts.SyntaxKind.Identifier) &&
+    children[1].isKind(tsmorph.ts.SyntaxKind.DotToken) &&
+    children[2].isKind(tsmorph.ts.SyntaxKind.Identifier)
+  ) {
+    // deno-lint-ignore no-explicit-any
+    return children as any;
+  }
+
+  return null;
 }

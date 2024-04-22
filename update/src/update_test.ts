@@ -269,3 +269,42 @@ export const handler: Handlers = {
 };`);
   });
 });
+
+// TODO: Re-enable once https://github.com/dsherret/ts-morph/issues/1530 is solved
+Deno.test.ignore(
+  "update - 1.x ctx.renderNotFound() -> ctx.throw()",
+  async () => {
+    await withTmpDir(async (dir) => {
+      await writeFiles(dir, {
+        "/deno.json": `{}`,
+        "/routes/index.tsx": `import { Handlers } from "$fresh/server.ts";
+
+export const handler: Handlers = {
+  async GET(_req, ctx) {
+    return ctx.renderNotFound();
+  },
+};`,
+        "/routes/foo.tsx": `export const handler = (ctx) => {
+  return ctx.renderNotFound();
+}`,
+      });
+
+      await update(dir);
+      const files = await readFiles(dir);
+
+      expect(files["/routes/index.tsx"])
+        .toEqual(`import { Handlers } from "@fresh/core";
+
+export const handler: Handlers = {
+  async GET(ctx) {
+    return ctx.throw(404);
+  },
+};`);
+
+      expect(files["/routes/foo.tsx"])
+        .toEqual(`export const handler = (ctx) => {
+  return ctx.throw(404);
+};`);
+    });
+  },
+);
