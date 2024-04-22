@@ -58,6 +58,7 @@
     "@std/jsonc": "jsr:@std/jsonc@^0.221.0",
     "@std/media-types": "jsr:@std/media-types@^0.221.0",
     "@std/path": "jsr:@std/path@^0.221.0",
+    "@std/semver": "jsr:@std/semver@^0.223.0",
     "@std/streams": "jsr:@std/streams@^0.221.0",
     "autoprefixer": "npm:autoprefixer@10.4.17",
     "cssnano": "npm:cssnano@6.0.3",

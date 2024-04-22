@@ -3,7 +3,7 @@ import {
   FRESH_VERSION,
   PREACT_SIGNALS_VERSION,
   PREACT_VERSION,
-  update,
+  updateProject,
 } from "./update.ts";
 import { expect } from "@std/expect";
 import { walk } from "https://deno.land/std@0.93.0/fs/walk.ts";
@@ -60,7 +60,7 @@ export default function Foo() {
 }`,
     });
 
-    await update(dir);
+    await updateProject(dir);
     const files = await readFiles(dir);
 
     expect(files["/routes/index.tsx"])
@@ -76,7 +76,7 @@ Deno.test("update - 1.x project deno.json", async () => {
       "/deno.json": `{}`,
     });
 
-    await update(dir);
+    await updateProject(dir);
     const files = await readFiles(dir);
 
     expect(JSON.parse(files["/deno.json"]))
@@ -113,7 +113,7 @@ export async function handler(
 }`,
     });
 
-    await update(dir);
+    await updateProject(dir);
     const files = await readFiles(dir);
 
     expect(files["/routes/_middleware.ts"])
@@ -148,7 +148,7 @@ export default function Foo(props: PageProps) {
       "/routes/foo.tsx": `import { asset, Head } from "$fresh/runtime.ts";`,
     });
 
-    await update(dir);
+    await updateProject(dir);
     const files = await readFiles(dir);
 
     expect(files["/routes/index.tsx"])
@@ -203,7 +203,7 @@ export const handler: Handlers = {
 };`,
     });
 
-    await update(dir);
+    await updateProject(dir);
     const files = await readFiles(dir);
 
     expect(files["/routes/index.tsx"])
@@ -289,7 +289,7 @@ export const handler: Handlers = {
 }`,
       });
 
-      await update(dir);
+      await updateProject(dir);
       const files = await readFiles(dir);
 
       expect(files["/routes/index.tsx"])
@@ -321,7 +321,7 @@ Deno.test("update - 1.x remove reference comments", async () => {
 `,
     });
 
-    await update(dir);
+    await updateProject(dir);
     const files = await readFiles(dir);
 
     expect(files["/routes/main.ts"]).toEqual("");

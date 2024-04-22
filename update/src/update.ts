@@ -53,7 +53,7 @@ async function updateDenoJson(
   throw new Error(`Could not find deno.json or deno.jsonc in: ${dir}`);
 }
 
-export async function update(dir: string) {
+export async function updateProject(dir: string) {
   // Update config
   await updateDenoJson(dir, (config) => {
     if (config.imports !== null && typeof config.imports !== "object") {

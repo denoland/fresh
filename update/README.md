@@ -1,9 +1,10 @@
-# Create a new Fresh project.
+# Update an existing Fresh project.
 
-This is a CLI tool to bootstrap a new Fresh project. To do so, run this command:
+This is a CLI tool can be used to upgrade an existing Fresh project. To do so,
+run this command:
 
 ```sh
-deno run -Ar jsr:@fresh/init
+deno run -Ar jsr:@fresh/update
 ```
 
 Go to [https://fresh.deno.dev/](https://fresh.deno.dev/) for more information

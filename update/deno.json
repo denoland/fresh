@@ -18,6 +18,7 @@
     "@std/cli": "jsr:@std/cli@^0.221.0",
     "@std/fmt": "jsr:@std/fmt@^0.221.0",
     "@std/path": "jsr:@std/path@^0.221.0",
+    "@std/semver": "jsr:@std/semver@^0.223.0",
     "ts-morph": "npm:ts-morph@^22.0.0"
   }
 }
