@@ -48,6 +48,7 @@ Fresh 2.0:
 ✔ Bug in ts-morph https://github.com/dsherret/ts-morph/issues/1530 @done(24-04-22 15:28)
 ☐ Bring back error overlay
 ☐ Rewrite asset URLS in CSS
+☐ What to do with `ctx.route`
 
 Fresh 2.0 compat:
 ☐ add plugin API backwards compat
@@ -73,5 +74,7 @@ Fresh 2.0 finishing:
   ☐ Removed ctx.destination
   ☐ Removed csp hooks
   ☐ `ctx.error` is no more
+  ☐ `ctx.renderNotFound` is no more
+  ☐ `ctx.destination` is no more
 
 
