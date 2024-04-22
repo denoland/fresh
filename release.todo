@@ -47,6 +47,7 @@ Fresh 2.0:
 ☐ Implement `Data#head` and `ctx.render(..., { head: ... })` with better type (not `string[]`)
 ✔ Bug in ts-morph https://github.com/dsherret/ts-morph/issues/1530 @done(24-04-22 15:28)
 ☐ Bring back error overlay
+☐ Bring back update checker
 ☐ Rewrite asset URLS in CSS
 ☐ What to do with `ctx.route`
 
