@@ -270,8 +270,7 @@ export const handler: Handlers = {
   });
 });
 
-// TODO: Re-enable once https://github.com/dsherret/ts-morph/issues/1530 is solved
-Deno.test.ignore(
+Deno.test(
   "update - 1.x ctx.renderNotFound() -> ctx.throw()",
   async () => {
     await withTmpDir(async (dir) => {

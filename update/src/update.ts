@@ -234,7 +234,7 @@ function rewriteCtxRenderNotFound(node: tsmorph.Node<tsmorph.ts.Node>) {
 
     const children = toMemberExpr(first.getChildren());
     if (children !== null && children[2].getText() === "renderNotFound") {
-      children[2].rename("throw");
+      children[2].replaceWithText("throw");
       node.insertArgument(0, "404");
     }
   }
