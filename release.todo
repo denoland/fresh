@@ -45,6 +45,8 @@ Fresh 2.0:
 ✔ Remove `GLOBAL_ISLANDS` map in favor of being scoped to render state @done(24-04-05 22:28)
 ☐ Implement `Data#headers` and `Data#status`
 ☐ Implement `Data#head` and `ctx.render(..., { head: ... })` with better type (not `string[]`)
+☐ Bug in ts-morph https://github.com/dsherret/ts-morph/issues/1530
+
 
 Fresh 2.0 compat:
 ☐ add plugin API backwards compat
