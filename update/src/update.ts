@@ -159,19 +159,19 @@ function maybePrependReqVar(
   if (params.length > 0) {
     const paramName = params[0].getName();
 
-    hasRequestVar = paramName === "req";
+    hasRequestVar = params.length > 1 || paramName === "req";
     if (hasRequestVar || paramName === "_req") {
       params[0].remove();
     }
-  }
 
-  if (hasRequestVar) {
-    method.insertVariableStatement(0, {
-      declarationKind: tsmorph.VariableDeclarationKind.Const,
-      declarations: [{
-        name: "req",
-        initializer: "ctx.req",
-      }],
-    });
+    if (hasRequestVar && !paramName.startsWith("_")) {
+      method.insertVariableStatement(0, {
+        declarationKind: tsmorph.VariableDeclarationKind.Const,
+        declarations: [{
+          name: paramName,
+          initializer: "ctx.req",
+        }],
+      });
+    }
   }
 }

@@ -183,6 +183,24 @@ export const handler: Handlers = {
   async PUT(_req, ctx) {},
   async DELETE(_req, ctx) {},
 };`,
+      "/routes/name.tsx": `import { Handlers } from "$fresh/server.ts";
+
+export const handler: Handlers = {
+  async GET(request, ctx) {},
+  async POST(request, ctx) {},
+  async PATCH(request, ctx) {},
+  async PUT(request, ctx) {},
+  async DELETE(request, ctx) {},
+};`,
+      "/routes/name-unused.tsx": `import { Handlers } from "$fresh/server.ts";
+
+export const handler: Handlers = {
+  async GET(_request, ctx) {},
+  async POST(_request, ctx) {},
+  async PATCH(_request, ctx) {},
+  async PUT(_request, ctx) {},
+  async DELETE(_request, ctx) {},
+};`,
     });
 
     await update(dir);
@@ -209,6 +227,37 @@ export const handler: Handlers = {
   },
 };`);
     expect(files["/routes/foo.tsx"])
+      .toEqual(`import { Handlers } from "@fresh/core";
+
+export const handler: Handlers = {
+  async GET(ctx) {},
+  async POST(ctx) {},
+  async PATCH(ctx) {},
+  async PUT(ctx) {},
+  async DELETE(ctx) {},
+};`);
+
+    expect(files["/routes/name.tsx"])
+      .toEqual(`import { Handlers } from "@fresh/core";
+
+export const handler: Handlers = {
+  async GET(ctx) {
+    const request = ctx.req;
+  },
+  async POST(ctx) {
+    const request = ctx.req;
+  },
+  async PATCH(ctx) {
+    const request = ctx.req;
+  },
+  async PUT(ctx) {
+    const request = ctx.req;
+  },
+  async DELETE(ctx) {
+    const request = ctx.req;
+  },
+};`);
+    expect(files["/routes/name-unused.tsx"])
       .toEqual(`import { Handlers } from "@fresh/core";
 
 export const handler: Handlers = {
