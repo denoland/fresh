@@ -107,9 +107,14 @@ async function updateFile(sourceFile: tsmorph.SourceFile): Promise<void> {
     }
   }
 
-  let text = sourceFile.getFullText();
-  text = text.replaceAll("/** @jsx h */\n", "");
-  text = text.replaceAll("/** @jsxFrag Fragment */\n", "");
+  const text = sourceFile.getFullText()
+    .replaceAll("/** @jsx h */\n", "")
+    .replaceAll("/** @jsxFrag Fragment */\n", "")
+    .replaceAll('/// <reference no-default-lib="true" />\n', "")
+    .replaceAll('/// <reference lib="dom" />\n', "")
+    .replaceAll('/// <reference lib="dom.iterable" />\n', "")
+    .replaceAll('/// <reference lib="dom.asynciterable" />\n', "")
+    .replaceAll('/// <reference lib="deno.ns" />\n', "");
   sourceFile.replaceWithText(text);
 
   for (const [name, decl] of sourceFile.getExportedDeclarations()) {

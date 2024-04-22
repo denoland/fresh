@@ -308,3 +308,22 @@ export const handler: Handlers = {
     });
   },
 );
+
+Deno.test("update - 1.x remove reference comments", async () => {
+  await withTmpDir(async (dir) => {
+    await writeFiles(dir, {
+      "/deno.json": `{}`,
+      "/routes/main.ts": `/// <reference no-default-lib="true" />
+/// <reference lib="dom" />
+/// <reference lib="dom.iterable" />
+/// <reference lib="dom.asynciterable" />
+/// <reference lib="deno.ns" />
+`,
+    });
+
+    await update(dir);
+    const files = await readFiles(dir);
+
+    expect(files["/routes/main.ts"]).toEqual("");
+  });
+});
