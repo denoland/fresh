@@ -56,12 +56,12 @@ export const handler = defineHandlers({
 
     const match = pattern.exec("https://localhost/" + slug);
     if (!match) {
-      return ctx.renderNotFound();
+      return ctx.throw(404);
     }
 
     let { version, page = "" } = match.pathname.groups;
     if (!version) {
-      return ctx.renderNotFound();
+      return ctx.throw(404);
     }
 
     // Latest version doesn't show up in the url
@@ -74,7 +74,7 @@ export const handler = defineHandlers({
     const currentToc = TABLE_OF_CONTENTS[version];
     const entry = currentToc[page];
     if (!entry) {
-      return ctx.renderNotFound();
+      return ctx.throw(404);
     }
 
     // Build up the link map for the version selector.

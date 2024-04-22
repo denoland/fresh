@@ -75,12 +75,6 @@ export interface FreshContext<State = unknown, Data = unknown> {
    */
   next(): Promise<Response>;
   render(vnode: VNode, init?: ResponseInit): Response | Promise<Response>;
-
-  /**
-   * TODO: Remove this later
-   * @deprecated Use {@link throw} instead
-   */
-  renderNotFound(): Promise<void>;
 }
 
 export class FreshReqContext<T> implements FreshContext<T, unknown> {
