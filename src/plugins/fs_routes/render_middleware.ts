@@ -4,8 +4,12 @@ import type { HandlerFn, Render } from "../../defines.ts";
 import type { FreshContext } from "../../context.ts";
 
 export type AsyncAnyComponent<P> = {
-  // deno-lint-ignore no-explicit-any
-  (props: RenderableProps<P>, context?: any): Promise<VNode<any> | null>;
+  (
+    props: RenderableProps<P>,
+    // deno-lint-ignore no-explicit-any
+    context?: any,
+    // deno-lint-ignore no-explicit-any
+  ): Promise<VNode<any> | Response | null>;
   displayName?: string;
   defaultProps?: Partial<P> | undefined;
 };
@@ -44,7 +48,11 @@ async (ctx) => {
       typeof fn === "function" &&
       fn.constructor.name === "AsyncFunction"
     ) {
-      vnode = await fn({ ...ctx, Component });
+      const result = (await fn({ ...ctx, Component })) as VNode | Response;
+      if (result instanceof Response) {
+        return result;
+      }
+      vnode = result;
     } else {
       // deno-lint-ignore no-explicit-any
       vnode = h(components[i] as any, {

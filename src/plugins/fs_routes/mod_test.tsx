@@ -774,6 +774,62 @@ Deno.test("fsRoutes - async route components", async () => {
   expect(doc.body.textContent).toEqual("fail foo");
 });
 
+Deno.test("fsRoutes - async route components returning response", async () => {
+  const server = await createServer<{ text: string }>({
+    "routes/_app.tsx": {
+      default: async (ctx) => {
+        await delay(1);
+        if (ctx.url.searchParams.has("app")) {
+          return new Response("_app");
+        }
+        return (
+          <>
+            _app/<ctx.Component />
+          </>
+        );
+      },
+    },
+    "routes/_layout.tsx": {
+      default: async (ctx) => {
+        await delay(1);
+        if (ctx.url.searchParams.has("layout")) {
+          return new Response("_layout");
+        }
+        return (
+          <>
+            _layout/<ctx.Component />
+          </>
+        );
+      },
+    },
+    "routes/index.tsx": {
+      default: async (ctx) => {
+        await delay(1);
+        if (ctx.url.searchParams.has("index")) {
+          return new Response("index");
+        }
+        return <>index</>;
+      },
+    },
+  });
+
+  let res = await server.get("/");
+  const doc = parseHtml(await res.text());
+  expect(doc.body.textContent).toEqual("_app/_layout/index");
+
+  res = await server.get("/?app");
+  let text = await res.text();
+  expect(text).toEqual("_app");
+
+  res = await server.get("/?layout");
+  text = await res.text();
+  expect(text).toEqual("_layout");
+
+  res = await server.get("/?index");
+  text = await res.text();
+  expect(text).toEqual("index");
+});
+
 Deno.test("fsRoutes - sortRoutePaths", () => {
   let routes = [
     "/foo/[id]",

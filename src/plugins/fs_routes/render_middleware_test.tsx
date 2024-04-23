@@ -90,3 +90,36 @@ Deno.test("renderMiddleware - chain async components", async () => {
   const doc = parseHtml(await res.text());
   expect(doc.body.textContent).toEqual("c1c2c3");
 });
+
+Deno.test("renderMiddleware - async components Response bail out", async () => {
+  const server = await serveMiddleware(
+    renderMiddleware(
+      [
+        async (ctx) => {
+          await delay(1);
+          return (
+            <>
+              c1<ctx.Component />
+            </>
+          );
+        },
+        async (ctx) => {
+          await delay(1);
+
+          return new Response("foo");
+        },
+        async () => {
+          await delay(1);
+          return <>c3</>;
+        },
+      ],
+      undefined,
+    ),
+  );
+
+  const res = await server.get("/");
+  expect(res.status).toEqual(200);
+
+  const text = await res.text();
+  expect(text).toEqual("foo");
+});
