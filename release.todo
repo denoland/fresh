@@ -51,7 +51,7 @@ Fresh 2.0:
 ☐ Rewrite asset URLS in CSS
 ☐ What to do with `ctx.route`
 ☐ ie if the tailwind plugin returns something, can i process that using a different plugin?
-☐ also we shouldn't lock to a specific preact version inside of fresh core
+✔ also we shouldn't lock to a specific preact version inside of fresh core @done(24-04-23 17:48)
 ☐ OnTransformArgs.path should probably be relative to the static folder, otherwise the user needs to manually strip it out (or include both path and name or something)
 
 
