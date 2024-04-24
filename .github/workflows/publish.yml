@@ -32,3 +32,7 @@ jobs:
       - name: Publish @fresh/plugin-tailwindcss
         working-directory: ./plugin-tailwindcss
         run: deno publish --allow-dirty
+
+      - name: Publish @fresh/update
+        working-directory: ./update
+        run: deno publish --allow-dirty
