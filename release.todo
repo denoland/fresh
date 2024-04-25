@@ -21,7 +21,7 @@ Fresh 2.0:
 ✔ config inferrence from app to devapp is confusing @done(24-04-15 15:26)
 ✔ remove UUID from context object @done(24-03-25 21:59)
 ✔ Add bundle like static file processor @done(24-03-25 23:41)
-☐ Think of custom Fresh JSX transform, for `asset()` + active link
+✔ Think of custom Fresh JSX transform, for `asset()` + active link @done(24-04-25 16:22)
 ✔ Use in-memory build cache for development @done(24-03-27 07:22)
 ✔ investigate middleware signature where each middleware calls the next middleware directly @done(24-03-27 07:22)
 ✔ Fix FreshScripts signature @done(24-03-27 09:09)
@@ -48,7 +48,6 @@ Fresh 2.0:
 ✔ Bug in ts-morph https://github.com/dsherret/ts-morph/issues/1530 @done(24-04-22 15:28)
 ☐ Bring back error overlay
 ☐ Bring back update checker
-☐ Rewrite asset URLS in CSS
 ☐ What to do with `ctx.route`
 ☐ Attach `define*` helpers on `App` class to avoid typing overhead
 ☐ ie if the tailwind plugin returns something, can i process that using a different plugin?
