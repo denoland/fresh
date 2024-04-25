@@ -117,6 +117,19 @@ export class Builder implements FreshBuilder {
       );
     }
 
+    // Check precompile option
+    if (denoJson.config.compilerOptions?.jsx === "precompile") {
+      const expected = ["a", "img", "source", "body", "html", "head"];
+      const skipped = denoJson.config.compilerOptions.jsxPrecompileSkipElements;
+      if (!skipped || expected.some((name) => !skipped.includes(name))) {
+        throw new Error(
+          `Expected option compilerOptions > jsxPrecompileSkipElements to contain ${
+            expected.map((name) => `"${name}"`).join(", ")
+          }`,
+        );
+      }
+    }
+
     const output = await bundleJs({
       cwd: Deno.cwd(),
       outDir: staticOutDir,
@@ -244,6 +257,7 @@ export interface DenoConfig {
   compilerOptions?: {
     jsx?: string;
     jsxImportSource?: string;
+    jsxPrecompileSkipElements?: string[];
   };
 }
 

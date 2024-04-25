@@ -1,0 +1,18 @@
+{
+  "lock": false,
+  "compilerOptions": {
+    "jsx": "precompile",
+    "jsxImportSource": "preact"
+  },
+  "imports": {
+    "@luca/esbuild-deno-loader": "jsr:@luca/esbuild-deno-loader@^0.10.3",
+    "@std/crypto": "jsr:@std/crypto@^0.224.0",
+    "@std/encoding": "jsr:@std/encoding@^0.224.0",
+    "@std/fmt": "jsr:@std/fmt@^0.224.0",
+    "@std/fs": "jsr:@std/fs@^0.224.0",
+    "@std/jsonc": "jsr:@std/jsonc@^0.224.0",
+    "@std/path": "jsr:@std/path@^0.224.0",
+    "preact": "npm:preact@^10.20.2",
+    "preact-render-to-string": "npm:preact-render-to-string@^6.4.2"
+  }
+}

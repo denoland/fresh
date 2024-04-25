@@ -26,6 +26,7 @@ import type { BuildCache } from "../../build_cache.ts";
 import { BUILD_ID } from "../build_id.ts";
 
 const enum OptionsType {
+  ATTR = "attr",
   VNODE = "vnode",
   HOOK = "__h",
   DIFF = "__b",
@@ -35,6 +36,7 @@ const enum OptionsType {
 }
 
 interface InternalPreactOptions extends PreactOptions {
+  [OptionsType.ATTR](name: string, value: unknown): string | void;
   [OptionsType.VNODE](vnode: InternalVNode): void;
   [OptionsType.HOOK](component: Component, index: number, type: number): void;
   [OptionsType.DIFF](vnode: InternalVNode): void;
@@ -129,6 +131,15 @@ options[OptionsType.VNODE] = (vnode) => {
   }
 
   oldVNodeHook?.(vnode);
+};
+
+const oldAttrHook = options[OptionsType.ATTR];
+options[OptionsType.ATTR] = (name, value) => {
+  if (name === CLIENT_NAV_ATTR) {
+    return `${CLIENT_NAV_ATTR}="${String(Boolean(value))}"`;
+  }
+
+  return oldAttrHook?.(name, value);
 };
 
 const PATCHED = new WeakSet<VNode>();
