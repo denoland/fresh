@@ -13,7 +13,7 @@ Fresh 2.0:
 ✔ `asset()` function @done(24-04-17 11:36)
 ☐ Remove components on website
 ✔ Update init + update script @done(24-03-27 17:11)
-☐ Update update script
+✔ Update update script @done(24-04-26 14:57)
 ✔ Add tests for static file middleware @done(24-03-27 17:40)
 ☐ Investigate bundling esbuild js assets with rollup
 ☐ Add back finish tailwind setup page
@@ -47,7 +47,7 @@ Fresh 2.0:
 ☐ Implement `Data#head` and `ctx.render(..., { head: ... })` with better type (not `string[]`)
 ✔ Bug in ts-morph https://github.com/dsherret/ts-morph/issues/1530 @done(24-04-22 15:28)
 ☐ Bring back error overlay
-☐ Bring back update checker
+✔ Bring back update checker @done(24-04-26 14:57)
 ☐ What to do with `ctx.route`
 ☐ Attach `define*` helpers on `App` class to avoid typing overhead
 ☐ ie if the tailwind plugin returns something, can i process that using a different plugin?
