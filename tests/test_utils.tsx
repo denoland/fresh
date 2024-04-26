@@ -292,3 +292,15 @@ export async function waitFor(
 
   throw new Error(`Timed out`);
 }
+
+export function getStdOutput(
+  out: Deno.CommandOutput,
+): { stdout: string; stderr: string } {
+  const decoder = new TextDecoder();
+  const stdout = colors.stripColor(decoder.decode(out.stdout));
+
+  const decoderErr = new TextDecoder();
+  const stderr = colors.stripColor(decoderErr.decode(out.stderr));
+
+  return { stdout, stderr };
+}

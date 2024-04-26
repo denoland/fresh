@@ -13,6 +13,8 @@ import type { TransformFn } from "./file_transformer.ts";
 import { DiskBuildCache, MemoryBuildCache } from "./dev_build_cache.ts";
 import type { Island } from "../context.ts";
 import { BUILD_ID } from "../runtime/build_id.ts";
+import { updateCheck } from "./update_check.ts";
+import { DAY } from "@std/datetime";
 
 export interface BuildOptions {
   dev?: boolean;
@@ -45,6 +47,9 @@ export class Builder implements FreshBuilder {
   }
 
   async listen<T>(app: App<T>, options: ListenOptions = {}): Promise<void> {
+    // Run update check in background
+    updateCheck(DAY).catch(() => {});
+
     const devApp = new App<T>(app.config)
       .use(liveReload())
       .mountApp("*", app);
