@@ -110,3 +110,41 @@ routes in a folder and use a different `_layout` file for each group.
 > ```
 
 [urlpattern]: https://developer.mozilla.org/en-US/docs/Web/API/URL_Pattern_API
+
+## Co-location
+
+If you want to store components and islands closer to their routes, you may want
+to use co-location.
+
+When the name of a route group folder starts with an underscore, like
+`(_components)`, Fresh will ignore that folder and it’s effectively treated as
+private. This means you can use these private route folders to store components
+related to a particular route.
+
+Following the above example, say you have some components you only want to use
+in your marketing pages, you could create a route group folder `(_components)`
+to house these.
+
+The one special name is `(_islands)` which tells Fresh to treat all files in
+that folder as an island.
+
+```txt Project structure
+└── routes
+    ├── (marketing)
+    │   ├── _layout.tsx
+    │   ├── about.tsx
+    │   ├── career.tsx
+    │   ├── (_components)
+    │   │   └── newsletter-cta.tsx
+    │   └── (_islands)
+    │       └── interactive-stats.tsx # Fresh treats this as an island
+    └── shop
+        ├── (_components)
+        │   └── product-card.tsx
+        └── (_islands)
+            └── cart.tsx # Fresh treats this as an island
+```
+
+Combined together, this gives you the ability to organise your code on a feature
+basis and put all related components, islands or anything else into a shared
+folder.
