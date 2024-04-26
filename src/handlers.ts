@@ -142,9 +142,9 @@ export function isHandlerByMethod<D, S>(
  * export const handler = defineHandler(async (ctx) => {
  *   const [resp1, resp2] = await Promise.all([
  *     fetch("https://api.example.com/data1")
- *      .then((resp) => resp.json()),
+ *       .then((resp) => resp.json()),
  *     fetch("https://api.example.com/data2")
- *      .then((resp) => resp.json()),
+ *       .then((resp) => resp.json()),
  *   ]);
  *   return { data: { data1, data2 } };
  * });

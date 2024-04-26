@@ -1,29 +1,29 @@
 import { expect } from "@std/expect";
-import { redirectTo } from "./context.ts";
+import { FreshReqContext } from "./context.ts";
 import { App } from "@fresh/core";
 import { asset } from "@fresh/core/runtime";
 import { FakeServer } from "./test_utils.ts";
 import { BUILD_ID } from "./runtime/build_id.ts";
 import { parseHtml } from "../tests/test_utils.tsx";
 
-Deno.test("redirectTo", () => {
-  let res = redirectTo("/");
+Deno.test("FreshReqContext.prototype.redirect", () => {
+  let res = FreshReqContext.prototype.redirect("/");
   expect(res.status).toEqual(302);
   expect(res.headers.get("Location")).toEqual("/");
 
-  res = redirectTo("//evil.com");
+  res = FreshReqContext.prototype.redirect("//evil.com");
   expect(res.status).toEqual(302);
   expect(res.headers.get("Location")).toEqual("/evil.com");
 
-  res = redirectTo("//evil.com/foo//bar");
+  res = FreshReqContext.prototype.redirect("//evil.com/foo//bar");
   expect(res.status).toEqual(302);
   expect(res.headers.get("Location")).toEqual("/evil.com/foo/bar");
 
-  res = redirectTo("https://deno.com");
+  res = FreshReqContext.prototype.redirect("https://deno.com");
   expect(res.status).toEqual(302);
   expect(res.headers.get("Location")).toEqual("https://deno.com");
 
-  res = redirectTo("/", 307);
+  res = FreshReqContext.prototype.redirect("/", 307);
   expect(res.status).toEqual(307);
 });
 

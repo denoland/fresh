@@ -1,4 +1,10 @@
-import { App, type ListenOptions } from "../app.ts";
+import {
+  App,
+  getBuildCache,
+  getIslandRegistry,
+  type ListenOptions,
+  setBuildCache,
+} from "../app.ts";
 import { fsAdapter } from "../fs.ts";
 import * as path from "@std/path";
 import * as colors from "@std/fmt/colors";
@@ -62,10 +68,7 @@ export class Builder implements FreshBuilder {
       options.port = await getFreePort(8000, options.hostname);
     }
 
-    devApp._buildCache = new MemoryBuildCache(
-      devApp.config,
-      BUILD_ID,
-    );
+    setBuildCache(devApp, new MemoryBuildCache(devApp.config, BUILD_ID));
 
     await Promise.all([
       devApp.listen(options),
@@ -86,10 +89,10 @@ export class Builder implements FreshBuilder {
       // Ignore
     }
 
-    const buildCache = app._buildCache ?? options.dev
+    const buildCache = getBuildCache(app) ?? options.dev
       ? new MemoryBuildCache(app.config, BUILD_ID)
       : new DiskBuildCache(app.config, BUILD_ID);
-    app._buildCache = buildCache;
+    setBuildCache(app, buildCache);
 
     const entryPoints: Record<string, string> = {
       "fresh-runtime": options.dev
@@ -98,7 +101,8 @@ export class Builder implements FreshBuilder {
     };
     const seenEntries = new Map<string, Island>();
     const mapIslandToEntry = new Map<Island, string>();
-    for (const island of app._islandRegistry.values()) {
+    const islandRegistry = getIslandRegistry(app);
+    for (const island of islandRegistry.values()) {
       const filePath = island.file instanceof URL
         ? island.file.href
         : island.file;

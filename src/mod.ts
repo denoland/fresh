@@ -16,3 +16,4 @@ export { FreshScripts } from "./runtime/server/preact_hooks.tsx";
 export { type FreshConfig, type ResolvedFreshConfig } from "./config.ts";
 export { type FreshContext, type Island } from "./context.ts";
 export { createHelpers, type Helpers } from "./helpers.ts";
+export { type Method } from "./router.ts";

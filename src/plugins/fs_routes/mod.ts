@@ -49,16 +49,17 @@ export interface FsRoutesOptions {
   ignoreFilePattern?: RegExp[];
   loadRoute: (path: string) => Promise<unknown>;
   loadIsland: (path: string) => Promise<unknown>;
-  /**
-   * Only used for testing.
-   */
+}
+
+export interface TESTING_ONLY__FsRoutesOptions {
   _fs?: FsAdapter;
 }
 
 export async function fsRoutes<State>(
   app: App<State>,
-  options: FsRoutesOptions,
+  options_: FsRoutesOptions,
 ) {
+  const options = options_ as FsRoutesOptions & TESTING_ONLY__FsRoutesOptions;
   const ignore = options.ignoreFilePattern ?? [TEST_FILE_PATTERN];
   const fs = options._fs ?? fsAdapter;
 

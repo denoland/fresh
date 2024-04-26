@@ -27,15 +27,30 @@ export interface RouteCacheEntry<T> {
   handler: MiddlewareFn<T>;
 }
 
+export let getRouter: <State>(app: App<State>) => Router<MiddlewareFn<State>>;
+// deno-lint-ignore no-explicit-any
+export let getIslandRegistry: (app: App<any>) => ServerIslandRegistry;
+// deno-lint-ignore no-explicit-any
+export let getBuildCache: (app: App<any>) => BuildCache | null;
+// deno-lint-ignore no-explicit-any
+export let setBuildCache: (app: App<any>, cache: BuildCache | null) => void;
+
 export class App<State> {
-  _router: Router<MiddlewareFn<State>> = new UrlPatternRouter<
+  #router: Router<MiddlewareFn<State>> = new UrlPatternRouter<
     MiddlewareFn<State>
   >();
-  _islandRegistry: ServerIslandRegistry = new Map();
-  _buildCache: BuildCache | null = null;
+  #islandRegistry: ServerIslandRegistry = new Map();
+  #buildCache: BuildCache | null = null;
   #islandNames = new Set<string>();
   #middlewares: MiddlewareFn<State>[] = [];
   #addedMiddlewares = false;
+
+  static {
+    getRouter = (app) => app.#router;
+    getIslandRegistry = (app) => app.#islandRegistry;
+    getBuildCache = (app) => app.#buildCache;
+    setBuildCache = (app, cache) => app.#buildCache = cache;
+  }
 
   /**
    * The final resolved Fresh configuration.
@@ -68,7 +83,7 @@ export class App<State> {
       name = `${name}_${i}`;
     }
 
-    this._islandRegistry.set(fn, { fn, exportName, name, file: filePathOrUrl });
+    this.#islandRegistry.set(fn, { fn, exportName, name, file: filePathOrUrl });
     return this;
   }
 
@@ -100,9 +115,9 @@ export class App<State> {
   }
 
   mountApp(path: string, app: App<State>): this {
-    const routes = app._router._routes;
-    app._islandRegistry.forEach((value, key) => {
-      this._islandRegistry.set(key, value);
+    const routes = app.#router._routes;
+    app.#islandRegistry.forEach((value, key) => {
+      this.#islandRegistry.set(key, value);
     });
 
     let middlewares: MiddlewareFn<State>[] = [];
@@ -119,7 +134,7 @@ export class App<State> {
     // - `app.mounApp("*", otherApp)`
     const isSelf = path === "*" || path === "/";
     if (isSelf) {
-      const selfRoutes = this._router._routes;
+      const selfRoutes = this.#router._routes;
       if (
         selfRoutes.length > 0 && selfRoutes[0].method === "ALL" &&
         selfRoutes[0].path === "*"
@@ -139,7 +154,7 @@ export class App<State> {
       const combined = isSelf
         ? route.handlers
         : middlewares.concat(route.handlers);
-      this._router.add(route.method, merged, combined);
+      this.#router.add(route.method, merged, combined);
     }
 
     return this;
@@ -153,13 +168,13 @@ export class App<State> {
     if (!this.#addedMiddlewares) {
       this.#addedMiddlewares = true;
       if (this.#middlewares.length > 0) {
-        this._router.add("ALL", "*", this.#middlewares);
+        this.#router.add("ALL", "*", this.#middlewares);
       }
     }
     const merged = typeof pathname === "string"
       ? mergePaths(this.config.basePath, pathname)
       : pathname;
-    this._router.add(method, merged, middlewares);
+    this.#router.add(method, merged, middlewares);
     return this;
   }
 
@@ -172,8 +187,8 @@ export class App<State> {
       this.#addRoutes("ALL", "*", this.#middlewares.concat(next));
     }
 
-    if (this._buildCache === null) {
-      this._buildCache = await ProdBuildCache.fromSnapshot(this.config);
+    if (this.#buildCache === null) {
+      this.#buildCache = await ProdBuildCache.fromSnapshot(this.config);
     }
 
     return async (req: Request) => {
@@ -182,7 +197,7 @@ export class App<State> {
       url.pathname = url.pathname.replace(/\/+/g, "/");
 
       const method = req.method.toUpperCase() as Method;
-      const matched = this._router.match(method, url);
+      const matched = this.#router.match(method, url);
 
       if (matched.patternMatch && !matched.methodMatch) {
         return new Response("Method not allowed", { status: 405 });
@@ -198,8 +213,8 @@ export class App<State> {
         req,
         this.config,
         next,
-        this._buildCache!,
-        this._islandRegistry,
+        this.#islandRegistry,
+        this.#buildCache!,
       );
 
       const { params, handlers } = matched;

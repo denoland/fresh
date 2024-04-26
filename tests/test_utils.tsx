@@ -1,4 +1,4 @@
-import type { App } from "../src/app.ts";
+import { type App, setBuildCache } from "../src/app.ts";
 import puppeteer, {
   type Page,
 } from "https://deno.land/x/puppeteer@16.2.0/mod.ts";
@@ -45,7 +45,7 @@ export async function buildProd(app: App<unknown>) {
   app.config.build.outDir = outDir;
   const builder = new Builder();
   await builder.build(app, {});
-  app._buildCache = null;
+  setBuildCache(app, null);
 }
 
 export async function withBrowserApp(

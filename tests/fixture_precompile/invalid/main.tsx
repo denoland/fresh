@@ -1,6 +1,6 @@
-import { FreshApp } from "../../../src/app.ts";
+import { App } from "../../../src/app.ts";
 
-export const app = new FreshApp().get(
+export const app = new App().get(
   "/",
   () => new Response("hello"),
 );

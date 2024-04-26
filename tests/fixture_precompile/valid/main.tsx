@@ -1,6 +1,6 @@
-import { FreshApp } from "../../../src/app.ts";
+import { App } from "../../../src/app.ts";
 
-const app = new FreshApp({ staticDir: "./static" }).get(
+const app = new App({ staticDir: "./static" }).get(
   "/",
   (ctx) =>
     ctx.render(

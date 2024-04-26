@@ -1,5 +1,11 @@
 import { App } from "../../app.ts";
-import { type FreshFsItem, fsRoutes, sortRoutePaths } from "./mod.ts";
+import {
+  type FreshFsItem,
+  fsRoutes,
+  type FsRoutesOptions,
+  sortRoutePaths,
+  type TESTING_ONLY__FsRoutesOptions,
+} from "./mod.ts";
 import { delay, FakeServer } from "../../test_utils.ts";
 import * as path from "@std/path";
 import { createFakeFs } from "../../test_utils.ts";
@@ -13,19 +19,22 @@ async function createServer<T>(
 ): Promise<FakeServer> {
   const app = new App<T>();
 
-  await fsRoutes(app, {
-    dir: ".",
-    loadIsland: async () => {},
-    // deno-lint-ignore require-await
-    loadRoute: async (filePath) => {
-      const full = path.join("routes", filePath);
-      if (full in files) {
-        return files[full];
-      }
-      throw new Error(`Mock FS: file ${full} not found`);
-    },
-    _fs: createFakeFs(files),
-  });
+  await fsRoutes(
+    app,
+    {
+      dir: ".",
+      loadIsland: async () => {},
+      // deno-lint-ignore require-await
+      loadRoute: async (filePath) => {
+        const full = path.join("routes", filePath);
+        if (full in files) {
+          return files[full];
+        }
+        throw new Error(`Mock FS: file ${full} not found`);
+      },
+      _fs: createFakeFs(files),
+    } as FsRoutesOptions & TESTING_ONLY__FsRoutesOptions,
+  );
   return new FakeServer(await app.handler());
 }
 

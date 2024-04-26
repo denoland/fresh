@@ -19,7 +19,6 @@ const NOOP = () => null;
  * The context passed to every middleware. It is unique for every request.
  */
 export interface FreshContext<Data, State> {
-  readonly _internal: BuildCache;
   /** Reference to the resolved Fresh configuration */
   readonly config: ResolvedFreshConfig;
   state: State;
@@ -77,27 +76,63 @@ export interface FreshContext<Data, State> {
   render(vnode: VNode, init?: ResponseInit): Response | Promise<Response>;
 }
 
+export let getBuildCache: (ctx: FreshContext<unknown, unknown>) => BuildCache;
+
 export class FreshReqContext<State> implements FreshContext<unknown, State> {
+  req: Request;
+  config: ResolvedFreshConfig;
+  next: FreshContext<unknown, State>["next"];
   url: URL;
   Component = NOOP;
-  redirect = redirectTo;
   params = {} as Record<string, string>;
   state = {} as State;
   data = {} as never;
   error: Error | null = null;
   #islandRegistry: ServerIslandRegistry;
-  _internal: BuildCache;
+  #buildCache: BuildCache;
+
+  static {
+    getBuildCache = (ctx) => (ctx as FreshReqContext<unknown>).#buildCache;
+  }
 
   constructor(
-    public req: Request,
-    public config: ResolvedFreshConfig,
-    public next: FreshContext<unknown, State>["next"],
-    buildCache: BuildCache,
+    req: Request,
+    config: ResolvedFreshConfig,
+    next: FreshContext<unknown, State>["next"],
     islandRegistry: ServerIslandRegistry,
+    buildCache: BuildCache,
   ) {
+    this.req = req;
+    this.config = config;
+    this.next = next;
     this.#islandRegistry = islandRegistry;
-    this._internal = buildCache;
+    this.#buildCache = buildCache;
     this.url = new URL(req.url);
+  }
+
+  redirect(pathOrUrl: string, status = 302): Response {
+    let location = pathOrUrl;
+
+    // Disallow protocol relative URLs
+    if (pathOrUrl !== "/" && pathOrUrl.startsWith("/")) {
+      let idx = pathOrUrl.indexOf("?");
+      if (idx === -1) {
+        idx = pathOrUrl.indexOf("#");
+      }
+
+      const pathname = idx > -1 ? pathOrUrl.slice(0, idx) : pathOrUrl;
+      const search = idx > -1 ? pathOrUrl.slice(idx) : "";
+
+      // Remove double slashes to prevent open redirect vulnerability.
+      location = `${pathname.replaceAll(/\/+/g, "/")}${search}`;
+    }
+
+    return new Response(null, {
+      status,
+      headers: {
+        location,
+      },
+    });
   }
 
   throw(
@@ -136,7 +171,7 @@ export class FreshReqContext<State> implements FreshContext<unknown, State> {
       vnode,
       this,
       this.#islandRegistry,
-      this._internal,
+      this.#buildCache,
       partialId,
     );
     return new Response(html, responseInit);
@@ -175,29 +210,4 @@ function preactRender<State, Data>(
     state.clear();
     setRenderState(null);
   }
-}
-
-export function redirectTo(pathOrUrl: string, status = 302): Response {
-  let location = pathOrUrl;
-
-  // Disallow protocol relative URLs
-  if (pathOrUrl !== "/" && pathOrUrl.startsWith("/")) {
-    let idx = pathOrUrl.indexOf("?");
-    if (idx === -1) {
-      idx = pathOrUrl.indexOf("#");
-    }
-
-    const pathname = idx > -1 ? pathOrUrl.slice(0, idx) : pathOrUrl;
-    const search = idx > -1 ? pathOrUrl.slice(idx) : "";
-
-    // Remove double slashes to prevent open redirect vulnerability.
-    location = `${pathname.replaceAll(/\/+/g, "/")}${search}`;
-  }
-
-  return new Response(null, {
-    status,
-    headers: {
-      location,
-    },
-  });
 }
