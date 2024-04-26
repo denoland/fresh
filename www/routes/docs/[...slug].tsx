@@ -1,4 +1,3 @@
-import type { PageProps } from "$fresh/server.ts";
 import { asset, Partial } from "@fresh/core/runtime";
 import DocsSidebar from "../../components/DocsSidebar.tsx";
 import Footer from "../../components/Footer.tsx";
@@ -12,11 +11,7 @@ import {
 import { frontMatter, renderMarkdown } from "../../utils/markdown.ts";
 import toc from "../../../docs/toc.ts";
 import { TableOfContents } from "../../islands/TableOfContents.tsx";
-import { defineHandlers } from "@fresh/core";
-
-interface Data {
-  page: Page;
-}
+import { helpers } from "../../utils.ts";
 
 interface NavEntry {
   title: string;
@@ -41,7 +36,7 @@ interface Page extends TableOfContentsEntry {
 
 const pattern = new URLPattern({ pathname: "/:version/:page*" });
 
-export const handler = defineHandlers({
+export const handler = helpers.defineHandlers({
   async GET(ctx) {
     const slug = ctx.params.slug;
 
@@ -137,13 +132,13 @@ export const handler = defineHandlers({
           version,
           prevNav,
           nextNav,
-        },
+        } satisfies Page,
       },
     };
   },
 });
 
-export default function DocsPage(props: PageProps<Data>) {
+export default helpers.definePage<typeof handler>(function DocsPage(props) {
   const { page } = props.data;
 
   const { html, headings } = renderMarkdown(page.markdown);
@@ -232,7 +227,7 @@ export default function DocsPage(props: PageProps<Data>) {
       </div>
     </>
   );
-}
+});
 
 function MobileSidebar(props: { page: Page }) {
   return (

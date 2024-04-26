@@ -79,7 +79,7 @@ export class RenderState {
   renderedHtmlHead = false;
 
   constructor(
-    public ctx: FreshContext,
+    public ctx: FreshContext<unknown, unknown>,
     public islandRegistry: ServerIslandRegistry,
     public buildCache: BuildCache,
     public partialId: string,

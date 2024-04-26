@@ -1,6 +1,6 @@
 import { type AnyComponent, h, type RenderableProps, type VNode } from "preact";
-import type { Middleware } from "../../middlewares/mod.ts";
-import type { HandlerFn, Render } from "../../defines.ts";
+import type { MiddlewareFn } from "../../middlewares/mod.ts";
+import type { HandlerFn, Render } from "../../handlers.ts";
 import type { FreshContext } from "../../context.ts";
 
 export type AsyncAnyComponent<P> = {
@@ -14,14 +14,15 @@ export type AsyncAnyComponent<P> = {
   defaultProps?: Partial<P> | undefined;
 };
 
-export const renderMiddleware = <T>(
+export const renderMiddleware = <State>(
   components: Array<
-    AnyComponent<FreshContext<T>> | AsyncAnyComponent<FreshContext<T>>
+    | AnyComponent<FreshContext<unknown, State>>
+    | AsyncAnyComponent<FreshContext<unknown, State>>
   >,
-  handler: HandlerFn<unknown, T> | undefined,
-): Middleware<T> =>
+  handler: HandlerFn<unknown, State> | undefined,
+): MiddlewareFn<State> =>
 async (ctx) => {
-  let result: Render<T> | undefined;
+  let result: Render<unknown> | undefined;
   if (handler !== undefined) {
     const res = await handler(ctx);
 

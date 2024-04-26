@@ -1,5 +1,4 @@
 import { asset, Head } from "$fresh/runtime.ts";
-import type { PageProps } from "$fresh/server.ts";
 import Counter from "../islands/Counter.tsx";
 import LemonDrop from "../islands/LemonDrop.tsx";
 import Footer from "../components/Footer.tsx";
@@ -10,7 +9,7 @@ import * as Icons from "../components/Icons.tsx";
 import Projects from "../components/Projects.tsx";
 import projects from "../data/showcase.json" with { type: "json" };
 import Header from "../components/Header.tsx";
-import { defineHandlers } from "@fresh/core";
+import { helpers } from "../utils.ts";
 
 function isOpenGraphUA(header: string | null): boolean {
   if (!header) {
@@ -19,7 +18,7 @@ function isOpenGraphUA(header: string | null): boolean {
   return header.startsWith("Twitterbot") || header.startsWith("Slackbot");
 }
 
-export const handler = defineHandlers({
+export const handler = helpers.defineHandlers({
   GET(ctx) {
     const { req } = ctx;
     const accept = req.headers.get("accept");
@@ -31,6 +30,7 @@ export const handler = defineHandlers({
         status: 307,
       });
     }
+    return { data: {} };
   },
 });
 
@@ -38,7 +38,7 @@ const TITLE = "Fresh - The next-gen web framework.";
 const DESCRIPTION =
   "Just in time edge rendering, island based interactivity, and no configuration TypeScript support using Deno.";
 
-export default function MainPage(props: PageProps) {
+export default helpers.definePage<typeof handler>(function MainPage(props) {
   const ogImageUrl = new URL(asset("/home-og.png"), props.url).href;
   const origin = `${props.url.protocol}//${props.url.host}`;
 
@@ -72,7 +72,7 @@ export default function MainPage(props: PageProps) {
       </div>
     </>
   );
-}
+});
 
 function HelloBar() {
   return (

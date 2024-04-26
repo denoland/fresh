@@ -1,4 +1,3 @@
-import type { FunctionComponent } from "preact";
 import type { FreshContext } from "./context.ts";
 import type { Method } from "./router.ts";
 
@@ -57,11 +56,11 @@ export interface Render<T> {
  */
 export type RouteHandler<Data, State> =
   | HandlerFn<Data, State>
-  | HandlerMethod<Data, State>;
+  | HandlerByMethod<Data, State>;
 
-export function isHandlerMethod<D, S>(
-  handler: RouteHandler<D, S> | undefined,
-): handler is HandlerMethod<D, S> {
+export function isHandlerByMethod<D, S>(
+  handler: RouteHandler<D, S>,
+): handler is HandlerByMethod<D, S> {
   return handler !== null && typeof handler === "object";
 }
 
@@ -152,9 +151,7 @@ export function isHandlerMethod<D, S>(
  * ```
  */
 export interface HandlerFn<Data, State> {
-  (
-    ctx: FreshContext<State>,
-  ):
+  (ctx: FreshContext<Data, State>):
     | Response
     | Render<Data>
     | Promise<Response | Render<Data>>;
@@ -165,7 +162,7 @@ export interface HandlerFn<Data, State> {
  *
  * See {@link RouteHandler} for more information on how to use this type.
  */
-export type HandlerMethod<Data, State> = {
+export type HandlerByMethod<Data, State> = {
   [M in Method]?: HandlerFn<Data, State>;
 };
 
@@ -173,26 +170,3 @@ export type RouteData<
   Handler extends RouteHandler<unknown, unknown>,
 > = Handler extends (RouteHandler<infer Data, unknown>) ? Data
   : never;
-
-export interface RouteProps<Data, State> {
-  data: Data;
-  state: State;
-}
-
-export function defineHandlers<
-  State,
-  Data,
-  Handlers extends RouteHandler<Data, State>,
->(
-  handlers: Handlers,
-): typeof handlers {
-  return handlers;
-}
-
-export function definePage<
-  State,
-  Handler extends RouteHandler<unknown, State> = never,
-  Data = Handler extends HandlerMethod<infer Data, State> ? Data : never,
->(render: FunctionComponent<RouteProps<Data, State>>): typeof render {
-  return render;
-}

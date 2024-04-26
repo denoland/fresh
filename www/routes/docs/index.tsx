@@ -1,6 +1,6 @@
-import { defineHandlers } from "@fresh/core";
+import { helpers } from "../../utils.ts";
 
-export const handler = defineHandlers({
+export const handler = helpers.defineHandlers({
   GET(ctx) {
     const slug = ctx.params.slug;
 

@@ -1,4 +1,4 @@
-import type { Middleware } from "./mod.ts";
+import type { MiddlewareFn } from "./mod.ts";
 
 /**
  * Fresh middleware to force URLs to end with a slash or never end with one.
@@ -10,7 +10,9 @@ import type { Middleware } from "./mod.ts";
  * app.use(trailingSlashes("never"));
  * ```
  */
-export function trailingSlashes(mode: "always" | "never"): Middleware {
+export function trailingSlashes<State>(
+  mode: "always" | "never",
+): MiddlewareFn<State> {
   return function trailingSlashesMiddleware(ctx) {
     const url = ctx.url;
     if (url.pathname !== "/") {

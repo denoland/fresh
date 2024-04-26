@@ -1,5 +1,5 @@
 import { FreshReqContext } from "./context.ts";
-import type { Middleware } from "./middlewares/mod.ts";
+import type { MiddlewareFn } from "./middlewares/mod.ts";
 import type { FsAdapter } from "./fs.ts";
 import { type BuildCache, ProdBuildCache } from "./build_cache.ts";
 import type { ResolvedFreshConfig } from "./config.ts";
@@ -62,7 +62,7 @@ const DEFAULT_CONFIG: ResolvedFreshConfig = {
 };
 
 export function serveMiddleware<T>(
-  middleware: Middleware<T>,
+  middleware: MiddlewareFn<T>,
   options: { config?: ResolvedFreshConfig; buildCache?: BuildCache } = {},
 ): FakeServer {
   return new FakeServer(async (req) => {

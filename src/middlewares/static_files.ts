@@ -1,6 +1,6 @@
 import * as path from "@std/path";
 import { contentType as getContentType } from "@std/media-types/content-type";
-import type { Middleware } from "@fresh/core";
+import type { MiddlewareFn } from "@fresh/core";
 import { ASSET_CACHE_BUST_KEY } from "../runtime/shared_internal.tsx";
 import { BUILD_ID } from "../runtime/build_id.ts";
 
@@ -11,7 +11,7 @@ import { BUILD_ID } from "../runtime/build_id.ts";
  * app.use(freshStaticFles());
  * ```
  */
-export function staticFiles<T>(): Middleware<T> {
+export function staticFiles<T>(): MiddlewareFn<T> {
   return async function freshStaticFiles(ctx) {
     const { req, url, _internal } = ctx;
     const buildCache = _internal;

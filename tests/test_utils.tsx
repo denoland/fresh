@@ -117,7 +117,7 @@ export async function withChildProcessServer(
     args: ["run", "-A", entry],
     stdin: "null",
     stdout: "piped",
-    stderr: "piped",
+    stderr: "inherit",
     cwd: dir,
     signal: aborter.signal,
   }).spawn();

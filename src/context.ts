@@ -18,7 +18,7 @@ const NOOP = () => null;
 /**
  * The context passed to every middleware. It is unique for every request.
  */
-export interface FreshContext<State = unknown, Data = unknown> {
+export interface FreshContext<Data, State> {
   readonly _internal: BuildCache;
   /** Reference to the resolved Fresh configuration */
   readonly config: ResolvedFreshConfig;
@@ -77,13 +77,13 @@ export interface FreshContext<State = unknown, Data = unknown> {
   render(vnode: VNode, init?: ResponseInit): Response | Promise<Response>;
 }
 
-export class FreshReqContext<T> implements FreshContext<T, unknown> {
+export class FreshReqContext<State> implements FreshContext<unknown, State> {
   url: URL;
   Component = NOOP;
   redirect = redirectTo;
   params = {} as Record<string, string>;
-  state = {} as T;
-  data = {} as unknown;
+  state = {} as State;
+  data = {} as never;
   error: Error | null = null;
   #islandRegistry: ServerIslandRegistry;
   _internal: BuildCache;
@@ -91,7 +91,7 @@ export class FreshReqContext<T> implements FreshContext<T, unknown> {
   constructor(
     public req: Request,
     public config: ResolvedFreshConfig,
-    public next: FreshContext<T>["next"],
+    public next: FreshContext<unknown, State>["next"],
     buildCache: BuildCache,
     islandRegistry: ServerIslandRegistry,
   ) {
@@ -147,9 +147,9 @@ export class FreshReqContext<T> implements FreshContext<T, unknown> {
   }
 }
 
-function preactRender<T>(
+function preactRender<State, Data>(
   vnode: VNode,
-  ctx: FreshContext<T>,
+  ctx: FreshContext<Data, State>,
   islandRegistry: ServerIslandRegistry,
   buildCache: BuildCache,
   partialId: string,

@@ -3,38 +3,40 @@ import type { App } from "../../app.ts";
 import type { WalkEntry } from "@std/fs/walk";
 import * as path from "@std/path";
 import type { RouteConfig } from "../../types.ts";
-import type { RouteHandler } from "../../defines.ts";
+import type { RouteHandler } from "../../handlers.ts";
 import type { FreshContext } from "../../context.ts";
-import type { Middleware } from "../../middlewares/mod.ts";
+import type { MiddlewareFn } from "../../middlewares/mod.ts";
 import {
   type AsyncAnyComponent,
   renderMiddleware,
 } from "./render_middleware.ts";
 import { type Method, pathToPattern } from "../../router.ts";
-import { type HandlerFn, isHandlerMethod } from "../../defines.ts";
+import { type HandlerFn, isHandlerByMethod } from "../../handlers.ts";
 import { type FsAdapter, fsAdapter } from "../../fs.ts";
 
 const TEST_FILE_PATTERN = /[._]test\.(?:[tj]sx?|[mc][tj]s)$/;
 const GROUP_REG = /(^|[/\\\\])\((_[^/\\\\]+)\)[/\\\\]/;
 
-interface InternalRoute<T> {
+interface InternalRoute<State> {
   path: string;
   base: string;
   filePath: string;
   config: RouteConfig | null;
-  handlers: RouteHandler<unknown, T> | null;
-  component: AnyComponent<FreshContext<T>> | null;
+  handlers: RouteHandler<unknown, State> | null;
+  component: AnyComponent<FreshContext<unknown, State>> | null;
 }
 
-export interface FreshFsItem<T = unknown> {
+export interface FreshFsItem<State> {
   config?: RouteConfig;
-  handler?: RouteHandler<unknown, T> | HandlerFn<unknown, T>[];
-  handlers?: RouteHandler<unknown, T>;
-  default?: AnyComponent<FreshContext<T>> | AsyncAnyComponent<FreshContext<T>>;
+  handler?: RouteHandler<unknown, State> | HandlerFn<unknown, State>[];
+  handlers?: RouteHandler<unknown, State>;
+  default?:
+    | AnyComponent<FreshContext<unknown, State>>
+    | AsyncAnyComponent<FreshContext<unknown, State>>;
 }
 
 // deno-lint-ignore no-explicit-any
-function isFreshFile(mod: any): mod is FreshFsItem {
+function isFreshFile<State>(mod: any): mod is FreshFsItem<State> {
   return mod !== null && typeof mod === "object" &&
       typeof mod.default === "function" ||
     typeof mod.config === "object" || typeof mod.handlers === "object" ||
@@ -53,7 +55,10 @@ export interface FsRoutesOptions {
   _fs?: FsAdapter;
 }
 
-export async function fsRoutes<T>(app: App<T>, options: FsRoutesOptions) {
+export async function fsRoutes<State>(
+  app: App<State>,
+  options: FsRoutesOptions,
+) {
   const ignore = options.ignoreFilePattern ?? [TEST_FILE_PATTERN];
   const fs = options._fs ?? fsAdapter;
 
@@ -108,7 +113,7 @@ export async function fsRoutes<T>(app: App<T>, options: FsRoutesOptions) {
     }
   }));
 
-  const routeModules: InternalRoute<T>[] = await Promise.all(
+  const routeModules: InternalRoute<State>[] = await Promise.all(
     relRoutePaths.map(async (routePath) => {
       const mod = await options.loadRoute(routePath);
       if (!isFreshFile(mod)) {
@@ -137,13 +142,13 @@ export async function fsRoutes<T>(app: App<T>, options: FsRoutesOptions) {
         handlers: mod.handlers ?? mod.handler ?? null,
         config: mod.config ?? null,
         component: mod.default ?? null,
-      } as InternalRoute<T>;
+      } as InternalRoute<State>;
     }),
   );
 
   routeModules.sort((a, b) => sortRoutePaths(a.path, b.path));
 
-  const stack: InternalRoute<T>[] = [];
+  const stack: InternalRoute<State>[] = [];
   let hasApp = false;
 
   for (let i = 0; i < routeModules.length; i++) {
@@ -175,8 +180,8 @@ export async function fsRoutes<T>(app: App<T>, options: FsRoutesOptions) {
     }
 
     // Remove any elements not matching our parent path anymore
-    const middlewares: Middleware<T>[] = [];
-    let components: AnyComponent<FreshContext<T>>[] = [];
+    const middlewares: MiddlewareFn<State>[] = [];
+    let components: AnyComponent<FreshContext<unknown, State>>[] = [];
 
     let skipApp = !!routeMod.config?.skipAppWrapper;
     const skipLayouts = !!routeMod.config?.skipInheritedLayouts;
@@ -184,8 +189,8 @@ export async function fsRoutes<T>(app: App<T>, options: FsRoutesOptions) {
     for (let k = 0; k < stack.length; k++) {
       const mod = stack[k];
       if (mod.path.endsWith("/_middleware")) {
-        if (mod.handlers !== null && !isHandlerMethod(mod.handlers)) {
-          middlewares.push(mod.handlers as Middleware<T>);
+        if (mod.handlers !== null && !isHandlerByMethod(mod.handlers)) {
+          middlewares.push(mod.handlers as MiddlewareFn<State>);
         } else if (Array.isArray(mod.handlers)) {
           middlewares.push(...mod.handlers);
         }
@@ -219,7 +224,7 @@ export async function fsRoutes<T>(app: App<T>, options: FsRoutesOptions) {
       if (mod.path.endsWith("/_error")) {
         const handlers = mod.handlers;
         const handler = handlers === null ||
-            (isHandlerMethod(handlers) && Object.keys(handlers).length === 0)
+            (isHandlerByMethod(handlers) && Object.keys(handlers).length === 0)
           ? undefined
           : typeof handlers === "function"
           ? handlers
@@ -247,13 +252,13 @@ export async function fsRoutes<T>(app: App<T>, options: FsRoutesOptions) {
 
     if (
       handlers === null ||
-      (isHandlerMethod(handlers) && Object.keys(handlers).length === 0)
+      (isHandlerByMethod(handlers) && Object.keys(handlers).length === 0)
     ) {
       const combined = middlewares.concat(
         renderMiddleware(components, undefined),
       );
       app.get(routePath, ...combined);
-    } else if (isHandlerMethod(handlers)) {
+    } else if (isHandlerByMethod(handlers)) {
       for (const method of Object.keys(handlers) as Method[]) {
         const fn = handlers[method];
 
@@ -272,11 +277,11 @@ export async function fsRoutes<T>(app: App<T>, options: FsRoutesOptions) {
   }
 }
 
-function errorMiddleware<T>(
-  components: AnyComponent<FreshContext<T>>[],
-  handler: HandlerFn<unknown, T> | undefined,
-): Middleware<T> {
-  const mid = renderMiddleware<T>(components, handler);
+function errorMiddleware<State>(
+  components: AnyComponent<FreshContext<unknown, State>>[],
+  handler: HandlerFn<unknown, State> | undefined,
+): MiddlewareFn<State> {
+  const mid = renderMiddleware<State>(components, handler);
   return async function errorMiddleware(ctx) {
     try {
       return await ctx.next();

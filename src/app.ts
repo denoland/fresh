@@ -1,6 +1,6 @@
 import { DENO_DEPLOYMENT_ID } from "./constants.ts";
 import * as colors from "@std/fmt/colors";
-import { type Middleware, runMiddlewares } from "./middlewares/mod.ts";
+import { type MiddlewareFn, runMiddlewares } from "./middlewares/mod.ts";
 import { FreshReqContext } from "./context.ts";
 import {
   mergePaths,
@@ -18,46 +18,23 @@ import * as path from "@std/path";
 import type { ComponentType } from "preact";
 import type { ServerIslandRegistry } from "./context.ts";
 
-export interface App<State> {
-  _router: Router<Middleware<State>>;
-  _islandRegistry: ServerIslandRegistry;
-  _buildCache: BuildCache | null;
-  readonly config: Readonly<ResolvedFreshConfig>;
-
-  island(filePathOrUrl: string | URL, name: string, fn: ComponentType): void;
-
-  use(middleware: Middleware<State>): this;
-  get(path: string, ...middlewares: Middleware<State>[]): this;
-  post(path: string, ...middlewares: Middleware<State>[]): this;
-  patch(path: string, ...middlewares: Middleware<State>[]): this;
-  put(path: string, ...middlewares: Middleware<State>[]): this;
-  delete(path: string, ...middlewares: Middleware<State>[]): this;
-  head(path: string, ...middlewares: Middleware<State>[]): this;
-  all(path: string, ...middlewares: Middleware<State>[]): this;
-
-  handler(): Promise<
-    (request: Request, info: Deno.ServeHandlerInfo) => Promise<Response>
-  >;
-  listen(options?: ListenOptions): Promise<void>;
-}
-
 export type ListenOptions = Partial<Deno.ServeTlsOptions> & {
   remoteAddress?: string;
 };
 
 export interface RouteCacheEntry<T> {
   params: Record<string, string>;
-  handler: Middleware<T>;
+  handler: MiddlewareFn<T>;
 }
 
-export class FreshApp<State> implements App<State> {
-  _router: Router<Middleware<State>> = new UrlPatternRouter<
-    Middleware<State>
+export class App<State> {
+  _router: Router<MiddlewareFn<State>> = new UrlPatternRouter<
+    MiddlewareFn<State>
   >();
   _islandRegistry: ServerIslandRegistry = new Map();
   _buildCache: BuildCache | null = null;
   #islandNames = new Set<string>();
-  #middlewares: Middleware<State>[] = [];
+  #middlewares: MiddlewareFn<State>[] = [];
   #addedMiddlewares = false;
 
   /**
@@ -95,30 +72,30 @@ export class FreshApp<State> implements App<State> {
     return this;
   }
 
-  use(middleware: Middleware<State>): this {
+  use(middleware: MiddlewareFn<State>): this {
     this.#middlewares.push(middleware);
     return this;
   }
 
-  get(path: string, ...middlewares: Middleware<State>[]): this {
+  get(path: string, ...middlewares: MiddlewareFn<State>[]): this {
     return this.#addRoutes("GET", path, middlewares);
   }
-  post(path: string, ...middlewares: Middleware<State>[]): this {
+  post(path: string, ...middlewares: MiddlewareFn<State>[]): this {
     return this.#addRoutes("POST", path, middlewares);
   }
-  patch(path: string, ...middlewares: Middleware<State>[]): this {
+  patch(path: string, ...middlewares: MiddlewareFn<State>[]): this {
     return this.#addRoutes("PATCH", path, middlewares);
   }
-  put(path: string, ...middlewares: Middleware<State>[]): this {
+  put(path: string, ...middlewares: MiddlewareFn<State>[]): this {
     return this.#addRoutes("PUT", path, middlewares);
   }
-  delete(path: string, ...middlewares: Middleware<State>[]): this {
+  delete(path: string, ...middlewares: MiddlewareFn<State>[]): this {
     return this.#addRoutes("DELETE", path, middlewares);
   }
-  head(path: string, ...middlewares: Middleware<State>[]): this {
+  head(path: string, ...middlewares: MiddlewareFn<State>[]): this {
     return this.#addRoutes("HEAD", path, middlewares);
   }
-  all(path: string, ...middlewares: Middleware<State>[]): this {
+  all(path: string, ...middlewares: MiddlewareFn<State>[]): this {
     return this.#addRoutes("ALL", path, middlewares);
   }
 
@@ -128,7 +105,7 @@ export class FreshApp<State> implements App<State> {
       this._islandRegistry.set(key, value);
     });
 
-    let middlewares: Middleware<State>[] = [];
+    let middlewares: MiddlewareFn<State>[] = [];
     let start = 0;
     if (
       routes.length > 0 && routes[0].path === "*" && routes[0].method === "ALL"
@@ -171,7 +148,7 @@ export class FreshApp<State> implements App<State> {
   #addRoutes(
     method: Method | "ALL",
     pathname: string | URLPattern,
-    middlewares: Middleware<State>[],
+    middlewares: MiddlewareFn<State>[],
   ): this {
     if (!this.#addedMiddlewares) {
       this.#addedMiddlewares = true;

@@ -1,4 +1,4 @@
-import { FreshApp } from "@fresh/core";
+import { App } from "@fresh/core";
 import { Counter } from "./fixtures_islands/Counter.tsx";
 import { IslandInIsland } from "./fixtures_islands/IslandInIsland.tsx";
 import { JsonIsland } from "./fixtures_islands/JsonIsland.tsx";
@@ -21,7 +21,7 @@ import { FragmentIsland } from "./fixtures_islands/FragmentIsland.tsx";
 Deno.test("islands - should make signals interactive", async () => {
   const counterIsland = getIsland("Counter.tsx");
 
-  const app = new FreshApp()
+  const app = new App()
     .use(staticFiles())
     .island(counterIsland, "Counter", Counter)
     .get("/", (ctx) => {
@@ -46,7 +46,7 @@ Deno.test(
   async () => {
     const multipleIslands = getIsland("Multiple.tsx");
 
-    const app = new FreshApp()
+    const app = new App()
       .use(staticFiles())
       .island(multipleIslands, "Multiple1", Multiple1)
       .island(multipleIslands, "Multiple2", Multiple2)
@@ -76,7 +76,7 @@ Deno.test(
   async () => {
     const counterIsland = getIsland("Counter.tsx");
 
-    const app = new FreshApp()
+    const app = new App()
       .use(staticFiles())
       .island(counterIsland, "Counter", Counter)
       .get("/", (ctx) => {
@@ -103,7 +103,7 @@ Deno.test(
 Deno.test("islands - import json", async () => {
   const jsonIsland = getIsland("JsonIsland.tsx");
 
-  const app = new FreshApp()
+  const app = new App()
     .use(staticFiles())
     .island(jsonIsland, "JsonIsland", Counter)
     .get("/", (ctx) => {
@@ -126,7 +126,7 @@ Deno.test("islands - import json", async () => {
 Deno.test("islands - returns null", async () => {
   const nullIsland = getIsland("NullIsland.tsx");
 
-  const app = new FreshApp()
+  const app = new App()
     .use(staticFiles())
     .island(nullIsland, "NullIsland", NullIsland)
     .get("/", (ctx) => {
@@ -147,7 +147,7 @@ Deno.test("islands - only instantiate top level island", async () => {
   const counter = getIsland("Counter.tsx");
   const islandInIsland = getIsland("IslandInIsland.tsx");
 
-  const app = new FreshApp()
+  const app = new App()
     .use(staticFiles())
     .island(counter, "Counter", Counter)
     .island(islandInIsland, "IslandInIsland", IslandInIsland)
@@ -173,7 +173,7 @@ Deno.test("islands - only instantiate top level island", async () => {
 Deno.test("islands - pass null JSX props to islands", async () => {
   const jsxIsland = getIsland("JsxIsland.tsx");
 
-  const app = new FreshApp()
+  const app = new App()
     .use(staticFiles())
     .island(jsxIsland, "JsxIsland", JsxIsland)
     .get("/", (ctx) => {
@@ -198,7 +198,7 @@ Deno.test("islands - pass null JSX props to islands", async () => {
 Deno.test("islands - pass JSX props to islands", async () => {
   const jsxIsland = getIsland("JsxIsland.tsx");
 
-  const app = new FreshApp()
+  const app = new App()
     .use(staticFiles())
     .island(jsxIsland, "JsxIsland", JsxIsland)
     .get("/", (ctx) => {
@@ -223,7 +223,7 @@ Deno.test("islands - pass JSX props to islands", async () => {
 Deno.test("islands - never serialize children prop", async () => {
   const jsxChildrenIsland = getIsland("JsxChildrenIsland.tsx");
 
-  const app = new FreshApp()
+  const app = new App()
     .use(staticFiles())
     .island(jsxChildrenIsland, "JsxChildrenIsland", JsxChildrenIsland)
     .get("/", (ctx) => {
@@ -252,7 +252,7 @@ Deno.test("islands - instantiate islands in jsx children", async () => {
   const passThrough = getIsland("PassThrough.tsx");
   const selfCounter = getIsland("SelfCounter.tsx");
 
-  const app = new FreshApp()
+  const app = new App()
     .use(staticFiles())
     .island(passThrough, "PassThrough", PassThrough)
     .island(selfCounter, "SelfCounter", SelfCounter)
@@ -283,7 +283,7 @@ Deno.test(
     const counterWithSlots = getIsland("CounterWithSlots.tsx");
     const selfCounter = getIsland("SelfCounter.tsx");
 
-    const app = new FreshApp()
+    const app = new App()
       .use(staticFiles())
       .island(counterWithSlots, "CounterWithSlots", CounterWithSlots)
       .island(selfCounter, "SelfCounter", SelfCounter)
@@ -326,7 +326,7 @@ Deno.test(
     const jsxConditional = getIsland("JsxConditional.tsx");
     const selfCounter = getIsland("SelfCounter.tsx");
 
-    const app = new FreshApp()
+    const app = new App()
       .use(staticFiles())
       .island(jsxConditional, "JsxConditional", JsxConditional)
       .island(selfCounter, "SelfCounter", SelfCounter)
@@ -366,7 +366,7 @@ Deno.test(
 Deno.test("islands - revive DOM attributes", async () => {
   const jsxConditional = getIsland("JsxConditional.tsx");
 
-  const app = new FreshApp()
+  const app = new App()
     .use(staticFiles())
     .island(jsxConditional, "JsxConditional", JsxConditional)
     .get("/", (ctx) => {
@@ -441,7 +441,7 @@ Deno.test("islands - revive island with fn inside", async () => {
   const fragmentIsland = getIsland("FragmentIsland.tsx");
   const fnIsland = getIsland("FnIsland.tsx");
 
-  const app = new FreshApp()
+  const app = new App()
     .use(staticFiles())
     .island(fragmentIsland, "FragmentIsland", FragmentIsland)
     .island(fnIsland, "FnIsland", FnIsland)

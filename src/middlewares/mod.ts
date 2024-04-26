@@ -1,43 +1,88 @@
 import type { FreshContext } from "../context.ts";
+import type { App as _App } from "../app.ts";
 
 /**
- * A middleware is the basic building block of Fresh. It allows you
- * to respond to an incoming request in any way you want. You can
- * redirect routes, serve files, create APIs and much more. Middlewares
- * can be chained by calling `ctx.next()` inside it.
+ * A middleware function is the basic building block of Fresh. It allows you
+ * to respond to an incoming request in any way you want. You can redirect
+ * routes, serve files, create APIs and much more. Middlewares can be chained by
+ * calling {@linkcode FreshContext.next|ctx.next()} inside of the function.
+ *
+ * Middlewares can be synchronous or asynchronous. If a middleware returns a
+ * {@linkcode Response} object, the response will be sent back to the client. If
+ * a middleware returns a `Promise<Response>`, Fresh will wait for the promise
+ * to resolve before sending the response.
+ *
+ * A {@linkcode FreshContext} object is passed to the middleware function. This
+ * object contains the original request object, as well as any state related to
+ * the current request. The context object also contains methods to redirect
+ * the client to another URL, or to call the next middleware in the chain.
+ *
+ * Middlewares can be defined as a single function or an array of functions.
+ * When an array of middlewares is passed to
+ * {@linkcode _App.prototype.use|app.use}, Fresh will call each middleware in the
+ * order they are defined.
+ *
+ * Middlewares can also be defined using the
+ * {@linkcode _App.prototype.defineMiddleware|app.defineMiddleware} method. This
+ * method is optional, but it can be useful for type checking and code
+ * completion. It does not register the middleware with the app.
+ *
+ * ## Examples
+ *
+ * ### Logging middleware
+ *
+ * This example shows how to create a simple middleware that logs incoming
+ * requests.
  *
  * ```ts
- * // Example of a middleware to log incoming requests
- * const loggerMiddleware: Middleware = (ctx) => {
+ * // Define a middleware function that logs incoming requests. Using the
+ * // `defineMiddleware` method is optional, but it can be useful for type
+ * // checking and code completion. It does not register the middleware with the
+ * // app.
+ * const loggerMiddleware = app.defineMiddleware((ctx) => {
  *   console.log(`${ctx.req.method} ${ctx.req.url}`);
  *   // Call the next middleware
  *   return ctx.next();
- * }
+ * });
  *
- * // Redirect all users going to `/legacy/*` to `/modern/*`
- * const myRedirectMiddleware: Middleware = (ctx) => {
- *   const { url } = ctx;
- *   if (url.pathname.startsWith("/legacy/")) {
+ * // To register the middleware to the app, use `app.use`.
+ * app.use(loggerMiddleware)
+ * ```
+ *
+ * ### Redirect middleware
+ *
+ * This example shows how to create a middleware that redirects requests from
+ * one URL to another.
+ *
+ * ```ts
+ * // Any request to a URL that starts with "/legacy/" will be redirected to
+ * // "/modern".
+ * const redirectMiddleware = app.defineMiddleware((ctx) => {
+ *   if (ctx.url.pathname.startsWith("/legacy/")) {
  *     return ctx.redirect("/modern");
  *   }
  *
  *   // Otherwise call the next middleware
  *   return ctx.next();
- * }
+ * });
  *
- * // Usage
- * app
- *   .use(loggerMiddleware)
- *   .use(myRedirectMiddleware);
+ * // Again, register the middleware with the app.
+ * app.use(redirectMiddleware);
  * ```
  */
-export type Middleware<State = unknown> = (
-  ctx: FreshContext<State>,
+export type MiddlewareFn<State> = (
+  ctx: FreshContext<unknown, State>,
 ) => Response | Promise<Response>;
 
-export function runMiddlewares<T>(
-  middlewares: Middleware<T>[][],
-  ctx: FreshContext<T>,
+/**
+ * A single middleware function, or an array of middleware functions. For
+ * further information, see {@link MiddlewareFn}.
+ */
+export type Middleware<State> = MiddlewareFn<State> | MiddlewareFn<State>[];
+
+export function runMiddlewares<State>(
+  middlewares: MiddlewareFn<State>[][],
+  ctx: FreshContext<unknown, State>,
 ): Promise<Response> {
   let fn = ctx.next;
   let i = middlewares.length;
@@ -54,6 +99,5 @@ export function runMiddlewares<T>(
       };
     }
   }
-
   return fn();
 }

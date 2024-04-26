@@ -1,7 +1,7 @@
-import { defineHandlers } from "@fresh/core";
 import VERSIONS from "../../versions.json" with { type: "json" };
+import { helpers } from "../utils.ts";
 
-export const handler = defineHandlers({
+export const handler = helpers.defineHandlers({
   GET(ctx) {
     const accept = ctx.req.headers.get("accept");
     let path = "/docs/concepts/updating";

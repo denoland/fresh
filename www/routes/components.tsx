@@ -3,16 +3,15 @@ import Header from "../components/Header.tsx";
 import ComponentGallery from "../islands/ComponentGallery.tsx";
 
 import { asset, Head } from "$fresh/runtime.ts";
-import type { PageProps } from "$fresh/server.ts";
-import { defineHandlers } from "@fresh/core";
+import { helpers } from "../utils.ts";
 
 function getSource(path: string) {
   return Deno.readTextFile(new URL(path, import.meta.url));
 }
 
-export const handler = defineHandlers({
+export const handler = helpers.defineHandlers({
   async GET() {
-    const props: HomeProps = {
+    const props = {
       sources: {
         "Button": await getSource("../components/gallery/Button.tsx"),
         "LinkButton": await getSource("../components/gallery/LinkButton.tsx"),
@@ -34,11 +33,7 @@ export const handler = defineHandlers({
 const TITLE = "Components | Fresh";
 const DESCRIPTION = "A collection of components made for Fresh.";
 
-interface HomeProps {
-  sources: Record<string, string>;
-}
-
-export default function Home(props: PageProps<HomeProps>) {
+export default helpers.definePage<typeof handler>(function Home(props) {
   const ogImageUrl = new URL(asset("/home-og.png"), props.url).href;
   return (
     <div class="bg-white h-full">
@@ -90,4 +85,4 @@ export default function Home(props: PageProps<HomeProps>) {
       <PageFooter />
     </div>
   );
-}
+});

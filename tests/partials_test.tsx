@@ -1,4 +1,4 @@
-import { type App, FreshApp, staticFiles } from "@fresh/core";
+import { App, staticFiles } from "@fresh/core";
 import { Partial } from "@fresh/core/runtime";
 import {
   assertNotSelector,
@@ -21,7 +21,7 @@ function testApp<T>(): App<T> {
   const partialInIsland = getIsland("PartialInIsland.tsx");
   const jsonIsland = getIsland("JsonIsland.tsx");
 
-  return new FreshApp<T>()
+  return new App<T>()
     .island(selfCounter, "SelfCounter", SelfCounter)
     .island(partialInIsland, "PartialInIsland", PartialInIsland)
     .island(jsonIsland, "JsonIsland", JsonIsland)

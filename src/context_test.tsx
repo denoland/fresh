@@ -1,6 +1,6 @@
 import { expect } from "@std/expect";
 import { redirectTo } from "./context.ts";
-import { FreshApp } from "@fresh/core";
+import { App } from "@fresh/core";
 import { asset } from "@fresh/core/runtime";
 import { FakeServer } from "./test_utils.ts";
 import { BUILD_ID } from "./runtime/build_id.ts";
@@ -28,7 +28,7 @@ Deno.test("redirectTo", () => {
 });
 
 Deno.test("render asset()", async () => {
-  const app = new FreshApp()
+  const app = new App()
     .get("/", (ctx) =>
       ctx.render(
         <>

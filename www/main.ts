@@ -4,9 +4,9 @@
 /// <reference lib="dom.asynciterable" />
 /// <reference lib="deno.ns" />
 
-import { FreshApp, fsRoutes, staticFiles } from "@fresh/core";
+import { App, fsRoutes, staticFiles } from "@fresh/core";
 
-export const app = new FreshApp();
+export const app = new App<{}>();
 
 app.use(staticFiles());
 
@@ -17,5 +17,6 @@ await fsRoutes(app, {
 });
 
 if (import.meta.main) {
-  await app.listen();
+  
+  app.listen();
 }

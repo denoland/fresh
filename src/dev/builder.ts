@@ -1,4 +1,4 @@
-import { type App, FreshApp, type ListenOptions } from "../app.ts";
+import { App, type ListenOptions } from "../app.ts";
 import { fsAdapter } from "../fs.ts";
 import * as path from "@std/path";
 import * as colors from "@std/fmt/colors";
@@ -45,7 +45,7 @@ export class Builder implements FreshBuilder {
   }
 
   async listen<T>(app: App<T>, options: ListenOptions = {}): Promise<void> {
-    const devApp = new FreshApp<T>(app.config)
+    const devApp = new App<T>(app.config)
       .use(liveReload())
       .mountApp("*", app);
 

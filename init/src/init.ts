@@ -350,10 +350,10 @@ html {
     // Skip this and be silent if there is a network issue.
   }
 
-  const MAIN_TSX =
-    `import { FreshApp, staticFiles, fsRoutes } from "@fresh/core";
+  const MAIN_TSX = `import { App, staticFiles, fsRoutes } from "@fresh/core";
+import { State } from "./utils.ts";
 
-export const app = new FreshApp()
+export const app = new App<State>()
   .use(staticFiles())
   .get("/api/:joke", () => new Response("Hello World"))
   .get("/greet/:name", (ctx) => {
@@ -391,10 +391,20 @@ export function Button(props: ButtonProps) {
 `;
   await writeFile("components/Button.tsx", COMPONENTS_BUTTON_TSX);
 
+  const UTILS_TS = `import { createHelpers } from "@fresh/core";
+
+// deno-lint-ignore no-empty-interface
+export interface State {}
+
+export const helpers = createHelpers<State>();
+`;
+  await writeFile("utils.ts", UTILS_TS);
+
   const ROUTES_HOME = `import { useSignal } from "@preact/signals";
+import { helpers } from "../utils.ts";
 import Counter from "../islands/Counter.tsx";
 
-export default function Home() {
+export default helpers.definePage(function Home() {
   const count = useSignal(3);
 
   return (
@@ -416,7 +426,7 @@ export default function Home() {
       </div>
     </div>
   );
-}`;
+})`;
   await writeFile("routes/index.tsx", ROUTES_HOME);
 
   const APP_WRAPPER =
@@ -461,17 +471,16 @@ export default function Counter(props: CounterProps) {
 
   const DEV_TS = `#!/usr/bin/env -S deno run -A --watch=static/,routes/
 ${useTailwind ? `import { tailwind } from "@fresh/plugin-tailwind";\n` : ""};
-import { FreshDevApp } from "@fresh/core/dev";
+import { Builder } from "@fresh/core/dev";
 import { app } from "./main.tsx";
 
-const devApp = new FreshDevApp();
-${useTailwind ? "tailwind(devApp, {});\n" : "\n"}
-devApp.mountApp("/", app);
+const devApp = new Builder();
+${useTailwind ? "tailwind(builder, app, {});\n" : "\n"}
 
 if (Deno.args.includes("build")) {
-  await devApp.build();
+  await builder.build(app);
 } else {
-  await devApp.listen();
+  await builder.listen(app);
 }
 `;
   await writeFile("dev.ts", DEV_TS);
@@ -492,8 +501,8 @@ if (Deno.args.includes("build")) {
     },
     exclude: ["**/_fresh/*"],
     imports: {
-      "@fresh/core": "jsr:@fresh/core@^2.0.0-alpha.1",
-      "@fresh/plugin-tailwind": "jsr:@fresh/plugin-tailwind@^0.0.1-alpha.1",
+      "@fresh/core": "jsr:@fresh/core@^2.0.0-alpha.2",
+      "@fresh/plugin-tailwind": "jsr:@fresh/plugin-tailwind@^0.0.1-alpha.2",
       "preact": "npm:preact@^10.20.1",
       "@preact/signals": "npm:@preact/signals@^1.2.3",
     } as Record<string, string>,

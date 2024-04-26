@@ -1,9 +1,9 @@
 import { expect } from "@std/expect";
-import { FreshApp } from "./app.ts";
+import { App } from "./app.ts";
 import { FakeServer } from "./test_utils.ts";
 
 Deno.test("FreshApp - .use()", async () => {
-  const app = new FreshApp<{ text: string }>()
+  const app = new App<{ text: string }>()
     .use((ctx) => {
       ctx.state.text = "A";
       return ctx.next();
@@ -21,7 +21,7 @@ Deno.test("FreshApp - .use()", async () => {
 });
 
 Deno.test("FreshApp - .use() #2", async () => {
-  const app = new FreshApp<{ text: string }>()
+  const app = new App<{ text: string }>()
     .use(() => new Response("ok #1"))
     .get("/foo/bar", () => new Response("ok #2"));
 
@@ -32,7 +32,7 @@ Deno.test("FreshApp - .use() #2", async () => {
 });
 
 Deno.test("FreshApp - .get()", async () => {
-  const app = new FreshApp()
+  const app = new App()
     .post("/", () => new Response("ok"))
     .post("/foo", () => new Response("ok"))
     .get("/", () => new Response("ok"))
@@ -48,7 +48,7 @@ Deno.test("FreshApp - .get()", async () => {
 });
 
 Deno.test("FreshApp - .get() with basePath", async () => {
-  const app = new FreshApp({ basePath: "/foo/bar" })
+  const app = new App({ basePath: "/foo/bar" })
     .get("/", () => new Response("ok"))
     .get("/foo", () => new Response("ok"));
 
@@ -66,7 +66,7 @@ Deno.test("FreshApp - .get() with basePath", async () => {
 });
 
 Deno.test("FreshApp - .post()", async () => {
-  const app = new FreshApp<{ text: string }>()
+  const app = new App<{ text: string }>()
     .get("/", () => new Response("fail"))
     .get("/foo", () => new Response("fail"))
     .post("/", () => new Response("ok"))
@@ -82,7 +82,7 @@ Deno.test("FreshApp - .post()", async () => {
 });
 
 Deno.test("FreshApp - .post() with basePath", async () => {
-  const app = new FreshApp({ basePath: "/foo/bar" })
+  const app = new App({ basePath: "/foo/bar" })
     .post("/", () => new Response("ok"))
     .post("/foo", () => new Response("ok"));
 
@@ -100,7 +100,7 @@ Deno.test("FreshApp - .post() with basePath", async () => {
 });
 
 Deno.test("FreshApp - .patch()", async () => {
-  const app = new FreshApp<{ text: string }>()
+  const app = new App<{ text: string }>()
     .get("/", () => new Response("fail"))
     .get("/foo", () => new Response("fail"))
     .patch("/", () => new Response("ok"))
@@ -116,7 +116,7 @@ Deno.test("FreshApp - .patch()", async () => {
 });
 
 Deno.test("FreshApp - .patch() with basePath", async () => {
-  const app = new FreshApp({ basePath: "/foo/bar" })
+  const app = new App({ basePath: "/foo/bar" })
     .patch("/", () => new Response("ok"))
     .patch("/foo", () => new Response("ok"));
 
@@ -134,7 +134,7 @@ Deno.test("FreshApp - .patch() with basePath", async () => {
 });
 
 Deno.test("FreshApp - .put()", async () => {
-  const app = new FreshApp<{ text: string }>()
+  const app = new App<{ text: string }>()
     .get("/", () => new Response("fail"))
     .get("/foo", () => new Response("fail"))
     .put("/", () => new Response("ok"))
@@ -150,7 +150,7 @@ Deno.test("FreshApp - .put()", async () => {
 });
 
 Deno.test("FreshApp - .put() with basePath", async () => {
-  const app = new FreshApp({ basePath: "/foo/bar" })
+  const app = new App({ basePath: "/foo/bar" })
     .put("/", () => new Response("ok"))
     .put("/foo", () => new Response("ok"));
 
@@ -168,7 +168,7 @@ Deno.test("FreshApp - .put() with basePath", async () => {
 });
 
 Deno.test("FreshApp - .delete()", async () => {
-  const app = new FreshApp<{ text: string }>()
+  const app = new App<{ text: string }>()
     .get("/", () => new Response("fail"))
     .get("/foo", () => new Response("fail"))
     .delete("/", () => new Response("ok"))
@@ -184,7 +184,7 @@ Deno.test("FreshApp - .delete()", async () => {
 });
 
 Deno.test("FreshApp - .delete() with basePath", async () => {
-  const app = new FreshApp({ basePath: "/foo/bar" })
+  const app = new App({ basePath: "/foo/bar" })
     .delete("/", () => new Response("ok"))
     .delete("/foo", () => new Response("ok"));
 
@@ -202,7 +202,7 @@ Deno.test("FreshApp - .delete() with basePath", async () => {
 });
 
 Deno.test("FreshApp - wrong method match", async () => {
-  const app = new FreshApp<{ text: string }>()
+  const app = new App<{ text: string }>()
     .get("/", () => new Response("ok"))
     .post("/", () => new Response("ok"));
 
@@ -218,7 +218,7 @@ Deno.test("FreshApp - wrong method match", async () => {
 });
 
 Deno.test("FreshApp - methods with middleware", async () => {
-  const app = new FreshApp<{ text: string }>()
+  const app = new App<{ text: string }>()
     .use((ctx) => {
       ctx.state.text = "A";
       return ctx.next();
@@ -236,7 +236,7 @@ Deno.test("FreshApp - methods with middleware", async () => {
 });
 
 Deno.test("FreshApp - .mountApp() compose apps", async () => {
-  const innerApp = new FreshApp<{ text: string }>()
+  const innerApp = new App<{ text: string }>()
     .use((ctx) => {
       ctx.state.text = "A";
       return ctx.next();
@@ -244,7 +244,7 @@ Deno.test("FreshApp - .mountApp() compose apps", async () => {
     .get("/", (ctx) => new Response(ctx.state.text))
     .post("/", (ctx) => new Response(ctx.state.text));
 
-  const app = new FreshApp<{ text: string }>()
+  const app = new App<{ text: string }>()
     .get("/", () => new Response("ok"))
     .mountApp("/foo", innerApp);
 
@@ -261,7 +261,7 @@ Deno.test("FreshApp - .mountApp() compose apps", async () => {
 });
 
 Deno.test("FreshApp - .mountApp() self mount, no middleware", async () => {
-  const innerApp = new FreshApp<{ text: string }>()
+  const innerApp = new App<{ text: string }>()
     .use((ctx) => {
       ctx.state.text = "A";
       return ctx.next();
@@ -269,7 +269,7 @@ Deno.test("FreshApp - .mountApp() self mount, no middleware", async () => {
     .get("/foo", (ctx) => new Response(ctx.state.text))
     .post("/foo", (ctx) => new Response(ctx.state.text));
 
-  const app = new FreshApp<{ text: string }>()
+  const app = new App<{ text: string }>()
     .get("/", () => new Response("ok"))
     .mountApp("/", innerApp);
 
@@ -288,7 +288,7 @@ Deno.test("FreshApp - .mountApp() self mount, no middleware", async () => {
 Deno.test(
   "FreshApp - .mountApp() self mount, with middleware",
   async () => {
-    const innerApp = new FreshApp<{ text: string }>()
+    const innerApp = new App<{ text: string }>()
       .use(function B(ctx) {
         ctx.state.text += "B";
         return ctx.next();
@@ -296,7 +296,7 @@ Deno.test(
       .get("/foo", (ctx) => new Response(ctx.state.text))
       .post("/foo", (ctx) => new Response(ctx.state.text));
 
-    const app = new FreshApp<{ text: string }>()
+    const app = new App<{ text: string }>()
       .use(function A(ctx) {
         ctx.state.text = "A";
         return ctx.next();
@@ -318,14 +318,14 @@ Deno.test(
 );
 
 Deno.test("FreshApp - .mountApp() self mount empty", async () => {
-  const innerApp = new FreshApp<{ text: string }>()
+  const innerApp = new App<{ text: string }>()
     .use((ctx) => {
       ctx.state.text = "A";
       return ctx.next();
     })
     .get("/foo", (ctx) => new Response(ctx.state.text));
 
-  const app = new FreshApp<{ text: string }>()
+  const app = new App<{ text: string }>()
     .mountApp("/", innerApp);
 
   const server = new FakeServer(await app.handler());
@@ -337,14 +337,14 @@ Deno.test("FreshApp - .mountApp() self mount empty", async () => {
 Deno.test(
   "FreshApp - .mountApp() self mount with middleware",
   async () => {
-    const innerApp = new FreshApp<{ text: string }>()
+    const innerApp = new App<{ text: string }>()
       .use((ctx) => {
         ctx.state.text += "_Inner";
         return ctx.next();
       })
       .get("/", (ctx) => new Response(ctx.state.text));
 
-    const app = new FreshApp<{ text: string }>()
+    const app = new App<{ text: string }>()
       .use((ctx) => {
         ctx.state.text = "Outer";
         return ctx.next();
@@ -360,7 +360,7 @@ Deno.test(
 
 Deno.test("FreshApp - catches errors", async () => {
   let thrownErr: unknown | null = null;
-  const app = new FreshApp<{ text: string }>()
+  const app = new App<{ text: string }>()
     .use(async (ctx) => {
       ctx.state.text = "A";
       try {

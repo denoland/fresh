@@ -1,14 +1,14 @@
 import { asset, Head } from "$fresh/runtime.ts";
-import type { PageProps } from "$fresh/server.ts";
 import Projects, { type Project } from "../components/Projects.tsx";
 import Header from "../components/Header.tsx";
 import Footer from "../components/Footer.tsx";
 import projects from "../data/showcase.json" with { type: "json" };
+import { helpers } from "../utils.ts";
 
 const TITLE = "Showcase | Fresh";
 const DESCRIPTION = "Selection of projects that have been built with Fresh.";
 
-export default function ShowcasePage(props: PageProps) {
+export default helpers.definePage(function ShowcasePage(props) {
   const ogImageUrl = new URL(asset("/home-og.png"), props.url).href;
   return (
     <>
@@ -73,7 +73,7 @@ export default function ShowcasePage(props: PageProps) {
       </div>
     </>
   );
-}
+});
 
 function Showcase({ items }: { items: Project[] }) {
   return (

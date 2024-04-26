@@ -1,17 +1,17 @@
-import { FreshApp } from "../../app.ts";
+import { App } from "../../app.ts";
 import { type FreshFsItem, fsRoutes, sortRoutePaths } from "./mod.ts";
 import { delay, FakeServer } from "../../test_utils.ts";
 import * as path from "@std/path";
 import { createFakeFs } from "../../test_utils.ts";
 import { expect } from "@std/expect";
-import type { HandlerFn, HandlerMethod } from "../../defines.ts";
+import type { HandlerByMethod, HandlerFn } from "../../handlers.ts";
 import type { Method } from "../../router.ts";
 import { parseHtml } from "../../../tests/test_utils.tsx";
 
 async function createServer<T>(
   files: Record<string, string | Uint8Array | FreshFsItem<T>>,
 ): Promise<FakeServer> {
-  const app = new FreshApp<T>();
+  const app = new App<T>();
 
   await fsRoutes(app, {
     dir: ".",
@@ -35,7 +35,7 @@ Deno.test("fsRoutes - throws error when file has no exports", async () => {
 });
 
 Deno.test("fsRoutes - registers HTTP methods on router", async () => {
-  const methodHandler: HandlerMethod<unknown, unknown> = {
+  const methodHandler: HandlerByMethod<unknown, unknown> = {
     GET: () => new Response("GET"),
     POST: () => new Response("POST"),
     PATCH: () => new Response("PATCH"),
