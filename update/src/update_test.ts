@@ -270,6 +270,51 @@ export const handler: Handlers = {
   });
 });
 
+Deno.test("update - 1.x update define* handler signatures", async () => {
+  await withTmpDir(async (dir) => {
+    await writeFiles(dir, {
+      "/deno.json": `{}`,
+      "/routes/_app.tsx": `import { defineApp } from "$fresh/server.ts";
+export default defineApp(async (req, ctx) => {
+  return null;
+});`,
+      "/routes/_layout.tsx": `import { defineLayout } from "$fresh/server.ts";
+export default defineLayout(async (req, ctx) => {
+  return null;
+});`,
+      "/routes/foo.tsx": `import { defineRoute } from "$fresh/server.ts";
+export default defineRoute(async (req, ctx) => {
+  return null;
+});`,
+    });
+
+    await updateProject(dir);
+    const files = await readFiles(dir);
+
+    expect(files["/routes/_app.tsx"])
+      .toEqual(`import { defineApp } from "@fresh/core";
+export default defineApp(async (ctx) => {
+  const req = ctx.req;
+
+  return null;
+});`);
+    expect(files["/routes/_layout.tsx"])
+      .toEqual(`import { defineLayout } from "@fresh/core";
+export default defineLayout(async (ctx) => {
+  const req = ctx.req;
+
+  return null;
+});`);
+    expect(files["/routes/foo.tsx"])
+      .toEqual(`import { defineRoute } from "@fresh/core";
+export default defineRoute(async (ctx) => {
+  const req = ctx.req;
+
+  return null;
+});`);
+  });
+});
+
 Deno.test(
   "update - 1.x ctx.renderNotFound() -> ctx.throw()",
   async () => {

@@ -163,6 +163,31 @@ async function updateFile(sourceFile: tsmorph.SourceFile): Promise<void> {
           rewriteCtxMethods(stmts);
         }
       }
+    } else if (name === "default" && decl.length > 0) {
+      const caller = decl[0];
+      if (caller.isKind(tsmorph.ts.SyntaxKind.CallExpression)) {
+        const id = decl[0].getFirstChildByKind(
+          tsmorph.ts.SyntaxKind.Identifier,
+        );
+        if (id !== undefined) {
+          const text = id.getText();
+          if (
+            text === "defineApp" || text === "defineLayout" ||
+            text === "defineRoute"
+          ) {
+            const args = caller.getArguments();
+            if (args.length > 0) {
+              const first = args[0];
+              if (
+                first.isKind(tsmorph.ts.SyntaxKind.ArrowFunction) ||
+                first.isKind(tsmorph.ts.SyntaxKind.FunctionExpression)
+              ) {
+                maybePrependReqVar(first);
+              }
+            }
+          }
+        }
+      }
     }
   }
 
@@ -181,7 +206,11 @@ function removeEmptyImport(d: tsmorph.ImportDeclaration) {
 }
 
 function maybePrependReqVar(
-  method: tsmorph.MethodDeclaration | tsmorph.FunctionDeclaration,
+  method:
+    | tsmorph.MethodDeclaration
+    | tsmorph.FunctionDeclaration
+    | tsmorph.FunctionExpression
+    | tsmorph.ArrowFunction,
 ) {
   let hasRequestVar = false;
   const params = method.getParameters();
