@@ -78,6 +78,32 @@ export default function Home() {
 }
 ```
 
+You can also use components from your `components/` directory within islands
+too.
+
+```tsx islands/my-island.tsx
+import { useSignal } from "@preact/signals";
+import { ComponentChildren } from "preact";
+import Card from "../components/Card.tsx";
+import Button from "../components/Button.tsx";
+
+interface Props {
+  children: ComponentChildren;
+}
+
+export default function MyIsland({ children }: Props) {
+  const count = useSignal(0);
+
+  return (
+    <Card>
+      Counter is at {count}.{" "}
+      <Button onClick={() => (count.value += 1)}>+</Button>
+      {children}
+    </Card>
+  );
+}
+```
+
 ## Passing other props to islands
 
 Passing props to islands is supported, but only if the props are serializable.
