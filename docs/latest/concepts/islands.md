@@ -79,7 +79,7 @@ export default function Home() {
 ```
 
 You can also create shared components in your `components/` directory, which can
-be used in both static and interactive islands.
+be used in both static content and interactive islands.
 
 ```tsx islands/my-island.tsx
 import { useSignal } from "@preact/signals";
