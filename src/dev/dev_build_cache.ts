@@ -103,8 +103,18 @@ export class MemoryBuildCache implements DevBuildCache {
         return this.readFile(pathname);
       }
     } else {
-      this.addUnprocessedFile(pathname);
-      return this.readFile(pathname);
+      try {
+        const filePath = path.join(this.config.staticDir, pathname);
+        const relative = path.relative(this.config.staticDir, filePath);
+        if (!relative.startsWith(".") && (await Deno.stat(filePath)).isFile) {
+          this.addUnprocessedFile(pathname);
+          return this.readFile(pathname);
+        }
+      } catch (err) {
+        if (!(err instanceof Deno.errors.NotFound)) {
+          throw err;
+        }
+      }
     }
 
     return null;
