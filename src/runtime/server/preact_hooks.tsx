@@ -444,11 +444,13 @@ function FreshRuntimeScript() {
       .join(",") +
       "}";
 
-    const serializedProps = stringify(islandProps, stringifiers);
+    const serializedProps = JSON.stringify(
+      stringify(islandProps, stringifiers),
+    );
 
     const runtimeUrl = asset(`${basePath}/fresh-runtime.js`);
     const scriptContent =
-      `import { boot } from "${runtimeUrl}";${islandImports}boot(${islandObj},\`${serializedProps}\`);`;
+      `import { boot } from "${runtimeUrl}";${islandImports}boot(${islandObj},${serializedProps});`;
 
     return (
       <script

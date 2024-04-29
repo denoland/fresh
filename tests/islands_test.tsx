@@ -17,6 +17,7 @@ import { expect } from "@std/expect";
 import { JsxConditional } from "./fixtures_islands/JsxConditional.tsx";
 import { FnIsland } from "./fixtures_islands/FnIsland.tsx";
 import { FragmentIsland } from "./fixtures_islands/FragmentIsland.tsx";
+import { EscapeIsland } from "./fixtures_islands/EscapeIsland.tsx";
 
 Deno.test("islands - should make signals interactive", async () => {
   const counterIsland = getIsland("Counter.tsx");
@@ -457,6 +458,30 @@ Deno.test("islands - revive island with fn inside", async () => {
     await page.goto(address);
     await page.waitForSelector(".ready");
 
+    const text = await page.$eval(".ready", (el) => el.textContent);
+    expect(text).toEqual("it works");
+  });
+});
+
+Deno.test("islands - escape props", async () => {
+  const escapeIsland = getIsland("EscapeIsland.tsx");
+
+  const app = new App()
+    .use(staticFiles())
+    .island(escapeIsland, "EscapeIsland", EscapeIsland)
+    .get("/", (ctx) => {
+      return ctx.render(
+        <Doc>
+          <EscapeIsland str={`"foo"asdf`} />
+        </Doc>,
+      );
+    });
+
+  await withBrowserApp(app, async (page, address) => {
+    await page.goto(address);
+    await page.waitForSelector(".ready");
+
+    // Page would error here
     const text = await page.$eval(".ready", (el) => el.textContent);
     expect(text).toEqual("it works");
   });
