@@ -3,6 +3,7 @@ import { contentType as getContentType } from "@std/media-types/content-type";
 import type { MiddlewareFn } from "@fresh/core";
 import { ASSET_CACHE_BUST_KEY } from "../runtime/shared_internal.tsx";
 import { BUILD_ID } from "../runtime/build_id.ts";
+import { getBuildCache } from "../context.ts";
 
 /**
  * Fresh middleware to enable file-system based routing.
@@ -13,8 +14,8 @@ import { BUILD_ID } from "../runtime/build_id.ts";
  */
 export function staticFiles<T>(): MiddlewareFn<T> {
   return async function freshStaticFiles(ctx) {
-    const { req, url, _internal } = ctx;
-    const buildCache = _internal;
+    const { req, url } = ctx;
+    const buildCache = getBuildCache(ctx);
 
     // Fast path bail out
     const file = await buildCache.readFile(url.pathname);

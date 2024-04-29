@@ -1,8 +1,17 @@
-import type { ComponentType, FunctionComponent, VNode } from "preact";
+import {
+  type ComponentType,
+  type FunctionComponent,
+  h,
+  type VNode,
+} from "preact";
 import type { ResolvedFreshConfig } from "./config.ts";
 import { renderToString } from "preact-render-to-string";
 import type { BuildCache } from "./build_cache.ts";
-import { RenderState, setRenderState } from "./runtime/server/preact_hooks.tsx";
+import {
+  FreshScripts,
+  RenderState,
+  setRenderState,
+} from "./runtime/server/preact_hooks.tsx";
 
 export interface Island {
   file: string | URL;
@@ -196,7 +205,8 @@ function preactRender<State, Data>(
     // We require a the full outer DOM structure so that browser put
     // comment markers in the right place in the DOM.
     if (!state.renderedHtmlBody) {
-      res = `<body>${res}</body>`;
+      const scripts = renderToString(h(FreshScripts, null));
+      res = `<body>${res}${scripts}</body>`;
     }
     if (!state.renderedHtmlHead) {
       res = `<head><meta charset="utf-8"></head>${res}`;

@@ -1,3 +1,5 @@
+import * as path from "@std/path";
+
 const PERIODS = {
   year: 365 * 24 * 60 * 60 * 1000,
   month: 30 * 24 * 60 * 60 * 1000,
@@ -20,4 +22,18 @@ export function prettyTime(diff: number) {
   }
 
   return diff + "ms";
+}
+
+export function assertInDir(
+  filePath: string,
+  dir: string,
+): void {
+  let tmp = filePath;
+  if (!path.isAbsolute(tmp)) {
+    tmp = path.join(dir, filePath);
+  }
+
+  if (path.relative(dir, tmp).startsWith(".")) {
+    throw new Error(`Path "${tmp}" resolved outside of "${dir}"`);
+  }
 }

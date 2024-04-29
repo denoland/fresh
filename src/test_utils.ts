@@ -75,8 +75,8 @@ export function serveMiddleware<T>(
       req,
       config,
       () => Promise.resolve(next()),
-      buildCache,
       new Map(),
+      buildCache,
     );
     return await middleware(ctx);
   });

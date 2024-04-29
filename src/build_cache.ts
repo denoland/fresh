@@ -7,11 +7,21 @@ export interface FileSnapshot {
   hash: string | null;
 }
 
+export interface DevInputFileCache {
+  pathname: string;
+  hash: string;
+  outputFiles: string[];
+}
+
 export interface BuildSnapshot {
   version: number;
   buildId: string;
   staticFiles: Record<string, FileSnapshot>;
   islands: Record<string, string>;
+  /**
+   * Tracks input
+   */
+  devCache?: DevInputFileCache[];
 }
 
 export interface StaticFile {

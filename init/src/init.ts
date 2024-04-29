@@ -429,8 +429,7 @@ export default helpers.definePage(function Home() {
 })`;
   await writeFile("routes/index.tsx", ROUTES_HOME);
 
-  const APP_WRAPPER =
-    `import { type FreshContext, FreshScripts } from "@fresh/core";
+  const APP_WRAPPER = `import { type FreshContext } from "@fresh/core";
 
 export default function App({ Component }: FreshContext) {
   return (
@@ -443,7 +442,6 @@ export default function App({ Component }: FreshContext) {
       </head>
       <body>
         <Component />
-        <FreshScripts />
       </body>
     </html>
   );

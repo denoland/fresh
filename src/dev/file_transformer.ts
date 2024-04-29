@@ -1,28 +1,20 @@
 import type { FsAdapter } from "../fs.ts";
+import { BUILD_ID } from "../runtime/build_id.ts";
+import { assetInternal } from "../runtime/shared_internal.tsx";
 
 export type TransformMode = "development" | "production";
 
 export interface OnTransformOptions {
+  pluginName: string;
   filter: RegExp;
 }
-export type LazyProcessor = () => Promise<
-  { content: string | Uint8Array; map?: string | Uint8Array }
->;
-export interface OnTransformResultFile {
+
+export interface OnTransformResult {
   content: string | Uint8Array;
   path?: string;
   map?: string | Uint8Array;
 }
-export interface OnTransformResultLazy {
-  path?: string;
-  content: LazyProcessor;
-}
-// deno-lint-ignore no-explicit-any
-export function isLazyResult(x: any): x is OnTransformResultLazy {
-  return x !== null && typeof x === "object" && "content" in x &&
-    typeof x.content === "function";
-}
-export type OnTransformResult = OnTransformResultFile | OnTransformResultLazy;
+
 export interface OnTransformArgs {
   path: string;
   target: string | string[];
@@ -35,8 +27,12 @@ export type TransformFn = (
 ) =>
   | void
   | OnTransformResult
-  | OnTransformResult[]
-  | Promise<void | OnTransformResult | OnTransformResult[]>;
+  | Array<{ path: string } & Omit<OnTransformResult, "path">>
+  | Promise<
+    | void
+    | OnTransformResult
+    | Array<{ path: string } & Omit<OnTransformResult, "path">>
+  >;
 
 export interface Transformer {
   options: OnTransformOptions;
@@ -47,13 +43,16 @@ export interface ProcessedFile {
   path: string;
   content: Uint8Array;
   map: Uint8Array | null;
-}
-export interface LazyProcessedFile {
-  path: string;
-  content: LazyProcessor;
+  inputFiles: string[];
 }
 
-export type ProcessFileResult = ProcessedFile | LazyProcessedFile;
+interface TransformReq {
+  newFile: boolean;
+  filePath: string;
+  content: Uint8Array;
+  map: null | Uint8Array;
+  inputFiles: string[];
+}
 
 export class FreshFileTransformer {
   #transformers: Transformer[] = [];
@@ -71,62 +70,178 @@ export class FreshFileTransformer {
     filePath: string,
     mode: TransformMode,
     target: string | string[],
-  ): Promise<ProcessFileResult[] | null> {
-    let content: Uint8Array | null = null;
+  ): Promise<ProcessedFile[] | null> {
+    // Pre-check if we have any transformer for this file at all
+    let hasTransformer = false;
+    for (let i = 0; i < this.#transformers.length; i++) {
+      if (this.#transformers[i].options.filter.test(filePath)) {
+        hasTransformer = true;
+        break;
+      }
+    }
 
-    for (const { options, fn } of this.#transformers) {
-      if (options.filter.test(filePath)) {
-        if (content === null) {
-          content = await this.#fs.readFile(filePath);
+    if (!hasTransformer) {
+      return null;
+    }
+
+    let content: Uint8Array;
+    try {
+      content = await this.#fs.readFile(filePath);
+    } catch (err) {
+      if (err instanceof Deno.errors.NotFound) {
+        return null;
+      }
+
+      throw err;
+    }
+
+    const queue: TransformReq[] = [{
+      newFile: false,
+      content,
+      filePath,
+      map: null,
+      inputFiles: [filePath],
+    }];
+    const outFiles: ProcessedFile[] = [];
+
+    const seen = new Set<string>();
+
+    let req: TransformReq | undefined = undefined;
+    while ((req = queue.pop()) !== undefined) {
+      if (seen.has(req.filePath)) continue;
+      seen.add(req.filePath);
+
+      let transformed = false;
+      for (let i = 0; i < this.#transformers.length; i++) {
+        const transformer = this.#transformers[i];
+
+        const { options, fn } = transformer;
+        options.filter.lastIndex = 0;
+        if (!options.filter.test(req.filePath)) {
+          continue;
         }
+
         const result = await fn({
-          path: filePath,
+          path: req.filePath,
           mode,
           target,
-          content,
+          content: req!.content,
           get text() {
-            return new TextDecoder().decode(content!);
+            return new TextDecoder().decode(req!.content);
           },
         });
 
         if (result !== undefined) {
           if (Array.isArray(result)) {
-            const out: ProcessFileResult[] = [];
             for (let i = 0; i < result.length; i++) {
               const item = result[i];
-              if (typeof item.content === "function") {
-                out.push({
-                  content: item.content,
-                  path: item.path ?? filePath,
-                });
+              if (item.path === undefined) {
+                throw new Error(
+                  `The ".path" property must be set when returning multiple files in a transformer. [${transformer.options.pluginName}]`,
+                );
+              }
+
+              const outContent = typeof item.content === "string"
+                ? new TextEncoder().encode(item.content)
+                : item.content;
+
+              const outMap = item.map !== undefined
+                ? typeof item.map === "string"
+                  ? new TextEncoder().encode(item.map)
+                  : item.map
+                : null;
+
+              if (req.filePath === item.path) {
+                if (req.content === outContent && req.map === outMap) {
+                  continue;
+                }
+
+                transformed = true;
+                req.content = outContent;
+                req.map = outMap;
+              } else {
+                let found = false;
+                for (let i = 0; i < queue.length; i++) {
+                  const req = queue[i];
+                  if (req.filePath === item.path) {
+                    found = true;
+                    transformed = true;
+                    req.content = outContent;
+                    req.map = outMap;
+                  }
+                }
+
+                if (!found) {
+                  queue.push({
+                    newFile: true,
+                    filePath: item.path,
+                    content: outContent,
+                    map: outMap,
+                    inputFiles: req.inputFiles.slice(),
+                  });
+                }
               }
             }
-            return out;
-          } else if (isLazyResult(result)) {
-            return [{
-              content: result.content,
-              path: result.path ?? filePath,
-            }];
           } else {
             const outContent = typeof result.content === "string"
               ? new TextEncoder().encode(result.content)
               : result.content;
+
             const outMap = result.map !== undefined
               ? typeof result.map === "string"
                 ? new TextEncoder().encode(result.map)
                 : result.map
               : null;
 
-            return [{
-              content: outContent,
-              map: outMap,
-              path: filePath,
-            }];
+            if (req.content === outContent && req.map === outMap) {
+              continue;
+            }
+
+            transformed = true;
+            req.content = outContent;
+            req.map = outMap;
+            req.filePath = result.path ?? req.filePath;
           }
         }
       }
+
+      // TODO: Keep transforming until no one processes anymore
+      if (transformed || req.newFile) {
+        outFiles.push({
+          content: req.content,
+          map: req.map,
+          path: req.filePath,
+          inputFiles: req.inputFiles,
+        });
+      }
     }
 
-    return null;
+    return outFiles.length > 0 ? outFiles : null;
   }
+}
+
+const CSS_URL_REGEX = /url\((["'][^'"]+["']|[^)]+)\)/g;
+
+export function cssAssetHash(transformer: FreshFileTransformer) {
+  transformer.onTransform({
+    pluginName: "fresh-css",
+    filter: /\.css$/,
+  }, (args) => {
+    const replaced = args.text.replaceAll(CSS_URL_REGEX, (_, str) => {
+      let rawUrl = str;
+      if (str[0] === "'" || str[0] === '"') {
+        rawUrl = str.slice(1, -1);
+      }
+
+      if (rawUrl.length === 0) {
+        return str;
+      }
+
+      return `url(${JSON.stringify(assetInternal(rawUrl, BUILD_ID))})`;
+    });
+
+    return {
+      content: replaced,
+    };
+  });
 }

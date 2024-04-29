@@ -12,7 +12,8 @@ Deno.test("renderMiddleware - responds with HTML", async () => {
   expect(res.headers.get("Content-Type")).toEqual("text/html; charset=utf-8");
 
   const doc = parseHtml(await res.text());
-  expect(doc.body.innerHTML).toEqual("<p>ok</p>");
+  // deno-lint-ignore no-explicit-any
+  expect((doc.body.firstChild as any).outerHTML).toEqual("<p>ok</p>");
 });
 
 Deno.test("renderMiddleware - bypass rendering when handler returns Response", async () => {
@@ -33,9 +34,9 @@ Deno.test("renderMiddleware - chain components", async () => {
     renderMiddleware(
       [
         (ctx) => (
-          <>
+          <div>
             c1<ctx.Component />
-          </>
+          </div>
         ),
         (ctx) => (
           <>
@@ -52,7 +53,7 @@ Deno.test("renderMiddleware - chain components", async () => {
   expect(res.status).toEqual(200);
 
   const doc = parseHtml(await res.text());
-  expect(doc.body.textContent).toEqual("c1c2c3");
+  expect(doc.body.firstChild?.textContent).toEqual("c1c2c3");
 });
 
 Deno.test("renderMiddleware - chain async components", async () => {
@@ -62,9 +63,9 @@ Deno.test("renderMiddleware - chain async components", async () => {
         async (ctx) => {
           await delay(1);
           return (
-            <>
+            <div>
               c1<ctx.Component />
-            </>
+            </div>
           );
         },
         async (ctx) => {
@@ -88,7 +89,7 @@ Deno.test("renderMiddleware - chain async components", async () => {
   expect(res.status).toEqual(200);
 
   const doc = parseHtml(await res.text());
-  expect(doc.body.textContent).toEqual("c1c2c3");
+  expect(doc.body.firstChild!.textContent).toEqual("c1c2c3");
 });
 
 Deno.test("renderMiddleware - async components Response bail out", async () => {
@@ -98,9 +99,9 @@ Deno.test("renderMiddleware - async components Response bail out", async () => {
         async (ctx) => {
           await delay(1);
           return (
-            <>
+            <div>
               c1<ctx.Component />
-            </>
+            </div>
           );
         },
         async (ctx) => {
@@ -120,6 +121,5 @@ Deno.test("renderMiddleware - async components Response bail out", async () => {
   const res = await server.get("/");
   expect(res.status).toEqual(200);
 
-  const text = await res.text();
-  expect(text).toEqual("foo");
+  expect(await res.text()).toEqual("foo");
 });

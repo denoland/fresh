@@ -12,6 +12,7 @@ import { bundleJs } from "./esbuild.ts";
 import * as JSONC from "@std/jsonc";
 import { liveReload } from "./middlewares/live_reload.ts";
 import {
+  cssAssetHash,
   FreshFileTransformer,
   type OnTransformOptions,
 } from "./file_transformer.ts";
@@ -23,7 +24,6 @@ import { updateCheck } from "./update_check.ts";
 import { DAY } from "@std/datetime";
 
 export interface BuildOptions {
-  dev?: boolean;
   /**
    * This sets the target environment for the generated code. Newer
    * language constructs will be transformed to match the specified
@@ -39,11 +39,19 @@ export interface FreshBuilder {
     callback: TransformFn,
   ): void;
   build<T>(app: App<T>, options?: BuildOptions): Promise<void>;
-  listen<T>(app: App<T>, options?: ListenOptions): Promise<void>;
+  listen<T>(app: App<T>, options?: ListenOptions & BuildOptions): Promise<void>;
 }
 
 export class Builder implements FreshBuilder {
   #transformer = new FreshFileTransformer(fsAdapter);
+  #addedInternalTransforms = false;
+  #options: { target: string | string[] };
+
+  constructor(options: BuildOptions = {}) {
+    this.#options = {
+      target: options.target ?? ["chrome99", "firefox99", "safari15"],
+    };
+  }
 
   onTransformStaticFile(
     options: OnTransformOptions,
@@ -68,20 +76,46 @@ export class Builder implements FreshBuilder {
       options.port = await getFreePort(8000, options.hostname);
     }
 
-    setBuildCache(devApp, new MemoryBuildCache(devApp.config, BUILD_ID));
+    setBuildCache(
+      devApp,
+      new MemoryBuildCache(
+        devApp.config,
+        BUILD_ID,
+        this.#transformer,
+        this.#options.target,
+      ),
+    );
 
     await Promise.all([
       devApp.listen(options),
-      this.build(devApp, { dev: true }),
+      this.#build(devApp, true),
     ]);
     return;
   }
 
-  async build<T>(app: App<T>, options: BuildOptions = {}): Promise<void> {
-    const { staticDir, build } = app.config;
+  async build<T>(app: App<T>): Promise<void> {
+    setBuildCache(
+      app,
+      new DiskBuildCache(
+        app.config,
+        BUILD_ID,
+        this.#transformer,
+        this.#options.target,
+      ),
+    );
+    return await this.#build(app, false);
+  }
+
+  async #build<T>(app: App<T>, dev: boolean): Promise<void> {
+    const { build } = app.config;
     const staticOutDir = path.join(build.outDir, "static");
 
-    const target = options.target ?? ["chrome99", "firefox99", "safari15"];
+    if (!this.#addedInternalTransforms) {
+      this.#addedInternalTransforms = true;
+      cssAssetHash(this.#transformer);
+    }
+
+    const target = this.#options.target;
 
     try {
       await Deno.remove(staticOutDir);
@@ -89,15 +123,10 @@ export class Builder implements FreshBuilder {
       // Ignore
     }
 
-    const buildCache = getBuildCache(app) ?? options.dev
-      ? new MemoryBuildCache(app.config, BUILD_ID)
-      : new DiskBuildCache(app.config, BUILD_ID);
-    setBuildCache(app, buildCache);
+    const buildCache = getBuildCache(app)! as MemoryBuildCache | DiskBuildCache;
 
     const entryPoints: Record<string, string> = {
-      "fresh-runtime": options.dev
-        ? "@fresh/core/client-dev"
-        : "@fresh/core/client",
+      "fresh-runtime": dev ? "@fresh/core/client-dev" : "@fresh/core/client",
     };
     const seenEntries = new Map<string, Island>();
     const mapIslandToEntry = new Map<Island, string>();
@@ -142,7 +171,7 @@ export class Builder implements FreshBuilder {
     const output = await bundleJs({
       cwd: Deno.cwd(),
       outDir: staticOutDir,
-      dev: options.dev ?? false,
+      dev: dev ?? false,
       target,
       buildId: BUILD_ID,
       entryPoints,
@@ -167,51 +196,9 @@ export class Builder implements FreshBuilder {
       buildCache.islands.set(island.name, `/${chunk}`);
     }
 
-    // Read static files
-    if (await fsAdapter.isDirectory(staticDir)) {
-      const entries = fsAdapter.walk(staticDir, {
-        includeDirs: false,
-        includeFiles: true,
-        followSymlinks: false,
-        // Skip any folder or file starting with a "."
-        skip: [/\/\.[^/]+(\/|$)/],
-      });
-
-      for await (const entry of entries) {
-        const result = await this.#transformer.process(
-          entry.path,
-          options.dev ? "development" : "production",
-          target,
-        );
-
-        if (result !== null) {
-          for (let i = 0; i < result.length; i++) {
-            const file = result[i];
-            const relative = path.relative(staticDir, file.path);
-            if (relative.startsWith(".")) {
-              throw new Error(
-                `Processed file resolved outside of static dir ${file.path}`,
-              );
-            }
-            const pathname = `/${relative}`;
-
-            if (typeof file.content === "function") {
-              await buildCache.addLazyProcessedFile(pathname, file.content);
-            } else {
-              await buildCache.addProcessedFile(pathname, file.content, null);
-            }
-          }
-        } else {
-          const relative = path.relative(staticDir, entry.path);
-          const pathname = `/${relative}`;
-          buildCache.addUnprocessedFile(pathname);
-        }
-      }
-    }
-
     await buildCache.flush();
 
-    if (!options.dev) {
+    if (!dev) {
       console.log(
         `Assets written to: ${colors.cyan(build.outDir)}`,
       );

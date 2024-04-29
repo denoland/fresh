@@ -10,19 +10,17 @@ export function tailwind<T>(
 ): void {
   const processor = initTailwind(app.config, options);
 
-  builder.onTransformStaticFile({ filter: /\.css$/ }, (args) => {
-    return {
-      content: async () => {
-        const instance = await processor;
-        const res = await instance.process(args.text, {
-          from: args.path,
-        });
-
-        return {
-          content: res.content,
-          map: res.map?.toString(),
-        };
-      },
-    };
-  });
+  builder.onTransformStaticFile(
+    { pluginName: "tailwind", filter: /\.css$/ },
+    async (args) => {
+      const instance = await processor;
+      const res = await instance.process(args.text, {
+        from: args.path,
+      });
+      return {
+        content: res.content,
+        map: res.map?.toString(),
+      };
+    },
+  );
 }

@@ -125,6 +125,16 @@ options[OptionsType.VNODE] = (vnode) => {
       );
     }
   } else if (typeof vnode.type === "string") {
+    if (vnode.type === "body") {
+      const scripts = h(FreshScripts, null);
+      if (vnode.props.children == null) {
+        vnode.props.children = scripts;
+      } else if (Array.isArray(vnode.props.children)) {
+        vnode.props.children.push(scripts);
+      } else {
+        vnode.props.children = [vnode.props.children, scripts];
+      }
+    }
     if (CLIENT_NAV_ATTR in vnode.props) {
       vnode.props[CLIENT_NAV_ATTR] = String(vnode.props[CLIENT_NAV_ATTR]);
     }
@@ -349,18 +359,7 @@ const stringifiers: Stringifiers = {
   },
 };
 
-/**
- * Insert scripts passed to Fresh as well as the fresh runtime code into
- * the HTML. This is typically placed just before the closing body tag.
- * ```tsx
- * <body>
- *   <FreshScripts />
- * </body>
- * ```
- */
-export const FreshScripts: () => VNode = ((
-  _props: unknown,
-): VNode => {
+export function FreshScripts() {
   const { slots } = RENDER_STATE!;
 
   // Remaining slots must be rendered before creating the Fresh runtime
@@ -381,7 +380,7 @@ export const FreshScripts: () => VNode = ((
       <FreshRuntimeScript />
     </>
   );
-}) as () => VNode;
+}
 
 export interface PartialStateJson {
   islands: {

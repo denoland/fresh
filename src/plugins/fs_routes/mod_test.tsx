@@ -120,8 +120,11 @@ Deno.test("fsRoutes - renders component without handler", async () => {
   const res = await server.get("/all");
   expect(res.status).toEqual(200);
   expect(res.headers.get("Content-Type")).toEqual("text/html; charset=utf-8");
-  expect(await res.text()).toEqual(
-    '<!DOCTYPE html><html><head><meta charset="utf-8"></head><body><h1>foo</h1></body></html>',
+
+  const doc = parseHtml(await res.text());
+  // deno-lint-ignore no-explicit-any
+  expect((doc.body.firstChild as any).outerHTML).toEqual(
+    "<h1>foo</h1>",
   );
 });
 
@@ -149,7 +152,7 @@ Deno.test("fsRoutes - add middleware for function handler", async () => {
   const server = await createServer<{ text: string }>({
     "routes/[id].ts": { handler: (ctx) => new Response(ctx.state.text) },
     "routes/index.ts": { handler: (ctx) => new Response(ctx.state.text) },
-    "routes/none.ts": { default: (ctx) => <>{ctx.state.text}</> },
+    "routes/none.ts": { default: (ctx) => <div>{ctx.state.text}</div> },
     "routes/_middleware.ts": {
       handler(ctx) {
         ctx.state.text = "ok";
@@ -166,7 +169,7 @@ Deno.test("fsRoutes - add middleware for function handler", async () => {
 
   res = await server.get("/none");
   const doc = parseHtml(await res.text());
-  expect(doc.body.textContent).toEqual("ok");
+  expect(doc.body.firstChild?.textContent).toEqual("ok");
 });
 
 Deno.test("fsRoutes - nested middlewares", async () => {
@@ -183,12 +186,12 @@ Deno.test("fsRoutes - nested middlewares", async () => {
         return ctx.next();
       },
     },
-    "routes/foo/index.ts": { default: (ctx) => <>{ctx.state.text}</> },
+    "routes/foo/index.ts": { default: (ctx) => <div>{ctx.state.text}</div> },
   });
 
   const res = await server.get("/foo");
   const doc = parseHtml(await res.text());
-  expect(doc.body.textContent).toEqual("AB");
+  expect(doc.body.firstChild?.textContent).toEqual("AB");
 });
 
 Deno.test("fsRoutes - middleware array", async () => {
@@ -211,18 +214,18 @@ Deno.test("fsRoutes - middleware array", async () => {
         return ctx.next();
       },
     },
-    "routes/foo/index.ts": { default: (ctx) => <>{ctx.state.text}</> },
+    "routes/foo/index.ts": { default: (ctx) => <div>{ctx.state.text}</div> },
   });
 
   const res = await server.get("/foo");
   const doc = parseHtml(await res.text());
-  expect(doc.body.textContent).toEqual("ABC");
+  expect(doc.body.firstChild?.textContent).toEqual("ABC");
 });
 
 Deno.test("fsRoutes - combined", async () => {
   const server = await createServer<{ text: string }>({
     "routes/foo/bar.ts": {
-      default: (ctx) => <>{ctx.state.text}</>,
+      default: (ctx) => <div>{ctx.state.text}</div>,
     },
     "routes/foo/_middleware.ts": {
       handler: (ctx) => {
@@ -240,7 +243,7 @@ Deno.test("fsRoutes - combined", async () => {
 
   const res = await server.get("/foo/bar");
   const doc = parseHtml(await res.text());
-  expect(doc.body.textContent).toEqual("ok");
+  expect(doc.body.firstChild?.textContent).toEqual("ok");
 });
 
 Deno.test("fsRoutes - prepend _app", async () => {
@@ -253,20 +256,20 @@ Deno.test("fsRoutes - prepend _app", async () => {
     },
     "routes/_app.tsx": {
       default: (ctx) => (
-        <>
+        <div>
           app/<ctx.Component />
-        </>
+        </div>
       ),
     },
   });
 
   let res = await server.get("/foo/bar");
   let doc = parseHtml(await res.text());
-  expect(doc.body.textContent).toEqual("app/foo_bar");
+  expect(doc.body.firstChild?.textContent).toEqual("app/foo_bar");
 
   res = await server.get("/foo");
   doc = parseHtml(await res.text());
-  expect(doc.body.textContent).toEqual("app/foo");
+  expect(doc.body.firstChild?.textContent).toEqual("app/foo");
 });
 
 Deno.test("fsRoutes - prepend _layout", async () => {
@@ -286,20 +289,20 @@ Deno.test("fsRoutes - prepend _layout", async () => {
     },
     "routes/_app.tsx": {
       default: (ctx) => (
-        <>
+        <div>
           app/<ctx.Component />
-        </>
+        </div>
       ),
     },
   });
 
   let res = await server.get("/foo/bar");
   let doc = parseHtml(await res.text());
-  expect(doc.body.textContent).toEqual("app/layout/foo_bar");
+  expect(doc.body.firstChild?.textContent).toEqual("app/layout/foo_bar");
 
   res = await server.get("/foo");
   doc = parseHtml(await res.text());
-  expect(doc.body.textContent).toEqual("app/layout/foo");
+  expect(doc.body.firstChild?.textContent).toEqual("app/layout/foo");
 });
 
 Deno.test("fsRoutes - nested _layout", async () => {
@@ -326,20 +329,22 @@ Deno.test("fsRoutes - nested _layout", async () => {
     },
     "routes/_app.tsx": {
       default: (ctx) => (
-        <>
+        <div>
           app/<ctx.Component />
-        </>
+        </div>
       ),
     },
   });
 
   let res = await server.get("/foo/bar");
   let doc = parseHtml(await res.text());
-  expect(doc.body.textContent).toEqual("app/layout/layout_foo_bar/foo_bar");
+  expect(doc.body.firstChild?.textContent).toEqual(
+    "app/layout/layout_foo_bar/foo_bar",
+  );
 
   res = await server.get("/foo");
   doc = parseHtml(await res.text());
-  expect(doc.body.textContent).toEqual("app/layout/foo");
+  expect(doc.body.firstChild?.textContent).toEqual("app/layout/foo");
 });
 
 Deno.test("fsRoutes - _layout skip if not present", async () => {
@@ -349,16 +354,16 @@ Deno.test("fsRoutes - _layout skip if not present", async () => {
     },
     "routes/foo/_layout.tsx": {
       default: (ctx) => (
-        <>
+        <div>
           layout_foo/<ctx.Component />
-        </>
+        </div>
       ),
     },
   });
 
   const res = await server.get("/foo/bar/baz");
   const doc = parseHtml(await res.text());
-  expect(doc.body.textContent).toEqual("layout_foo/foo_bar_baz");
+  expect(doc.body.firstChild?.textContent).toEqual("layout_foo/foo_bar_baz");
 });
 
 Deno.test("fsRoutes - _layout file types", async () => {
@@ -368,9 +373,9 @@ Deno.test("fsRoutes - _layout file types", async () => {
     },
     "routes/js/_layout.js": {
       default: (ctx) => (
-        <>
+        <div>
           layout_js/<ctx.Component />
-        </>
+        </div>
       ),
     },
     "routes/jsx/index.jsx": {
@@ -378,9 +383,9 @@ Deno.test("fsRoutes - _layout file types", async () => {
     },
     "routes/jsx/_layout.jsx": {
       default: (ctx) => (
-        <>
+        <div>
           layout_jsx/<ctx.Component />
-        </>
+        </div>
       ),
     },
     "routes/ts/index.ts": {
@@ -388,9 +393,9 @@ Deno.test("fsRoutes - _layout file types", async () => {
     },
     "routes/ts/_layout.tsx": {
       default: (ctx) => (
-        <>
+        <div>
           layout_ts/<ctx.Component />
-        </>
+        </div>
       ),
     },
     "routes/tsx/index.tsx": {
@@ -398,16 +403,16 @@ Deno.test("fsRoutes - _layout file types", async () => {
     },
     "routes/tsx/_layout.tsx": {
       default: (ctx) => (
-        <>
+        <div>
           layout_tsx/<ctx.Component />
-        </>
+        </div>
       ),
     },
   });
 
   const res = await server.get("/js");
   const doc = parseHtml(await res.text());
-  expect(doc.body.textContent).toEqual("layout_js/js");
+  expect(doc.body.firstChild?.textContent).toEqual("layout_js/js");
 });
 
 Deno.test("fsRoutes - _layout disable _app", async () => {
@@ -427,16 +432,16 @@ Deno.test("fsRoutes - _layout disable _app", async () => {
     },
     "routes/_app.tsx": {
       default: (ctx) => (
-        <>
+        <div>
           app/<ctx.Component />
-        </>
+        </div>
       ),
     },
   });
 
   const res = await server.get("/");
   const doc = parseHtml(await res.text());
-  expect(doc.body.textContent).toEqual("layout/route");
+  expect(doc.body.firstChild?.textContent).toEqual("layout/route");
 });
 
 Deno.test(
@@ -473,16 +478,18 @@ Deno.test(
       },
       "routes/_app.tsx": {
         default: (ctx) => (
-          <>
+          <div>
             app/<ctx.Component />
-          </>
+          </div>
         ),
       },
     });
 
     const res = await server.get("/sub/sub2");
     const doc = parseHtml(await res.text());
-    expect(doc.body.textContent).toEqual("layout_sub/layout_sub_sub2/sub_sub2");
+    expect(doc.body.firstChild?.textContent).toEqual(
+      "layout_sub/layout_sub_sub2/sub_sub2",
+    );
   },
 );
 
@@ -496,16 +503,16 @@ Deno.test("fsRoutes - route overrides _layout", async () => {
     },
     "routes/_layout.tsx": {
       default: (ctx) => (
-        <>
+        <div>
           layout/<ctx.Component />
-        </>
+        </div>
       ),
     },
   });
 
   const res = await server.get("/");
   const doc = parseHtml(await res.text());
-  expect(doc.body.textContent).toEqual("route");
+  expect(doc.body.firstChild?.textContent).toEqual("route");
 });
 
 Deno.test("fsRoutes - route overrides _app", async () => {
@@ -518,9 +525,9 @@ Deno.test("fsRoutes - route overrides _app", async () => {
     },
     "routes/_app.tsx": {
       default: (ctx) => (
-        <>
+        <div>
           app/<ctx.Component />
-        </>
+        </div>
       ),
     },
     // Add some more routes on same level
@@ -531,14 +538,14 @@ Deno.test("fsRoutes - route overrides _app", async () => {
 
   const res = await server.get("/");
   const doc = parseHtml(await res.text());
-  expect(doc.body.textContent).toEqual("route");
+  expect(doc.body.firstChild?.textContent).toEqual("route");
 });
 
 Deno.test("fsRoutes - _error", async () => {
   const server = await createServer({
     "routes/_error.tsx": {
       default: (ctx) => {
-        return <>{(ctx.error as Error).message}</>;
+        return <div>{(ctx.error as Error).message}</div>;
       },
     },
     "routes/index.tsx": {
@@ -550,7 +557,7 @@ Deno.test("fsRoutes - _error", async () => {
 
   const res = await server.get("/");
   const doc = parseHtml(await res.text());
-  expect(doc.body.textContent).toEqual("ok");
+  expect(doc.body.firstChild?.textContent).toEqual("ok");
 });
 
 Deno.test("fsRoutes - _error nested", async () => {
@@ -603,7 +610,7 @@ Deno.test("fsRoutes - _error render component", async () => {
   const server = await createServer({
     "routes/_error.tsx": {
       default: (ctx) => {
-        return <>{(ctx.error as Error).message}</>;
+        return <div>{(ctx.error as Error).message}</div>;
       },
     },
     "routes/foo/_error.tsx": {
@@ -620,33 +627,33 @@ Deno.test("fsRoutes - _error render component", async () => {
 
   const res = await server.get("/foo");
   const doc = parseHtml(await res.text());
-  expect(doc.body.textContent).toEqual("ok");
+  expect(doc.body.firstChild?.textContent).toEqual("ok");
 });
 
 Deno.test("fsRoutes - skip _error component in non-error", async () => {
   const server = await createServer({
     "routes/_error.tsx": {
       default: function errorComp() {
-        return <>fail</>;
+        return <div>fail</div>;
       },
     },
     "routes/index.tsx": {
-      default: () => <>ok</>,
+      default: () => <div>ok</div>,
     },
   });
 
   const res = await server.get("/");
   const doc = parseHtml(await res.text());
-  expect(doc.body.textContent).toEqual("ok");
+  expect(doc.body.firstChild?.textContent).toEqual("ok");
 });
 
 Deno.test("fsRoutes - route group resolve index", async () => {
   const server = await createServer<{ text: string }>({
     "routes/(foo)/_layout.tsx": {
       default: (ctx) => (
-        <>
+        <div>
           layout/<ctx.Component />
-        </>
+        </div>
       ),
     },
     "routes/(foo)/index.tsx": {
@@ -656,34 +663,34 @@ Deno.test("fsRoutes - route group resolve index", async () => {
 
   const res = await server.get("/");
   const doc = parseHtml(await res.text());
-  expect(doc.body.textContent).toEqual("layout/ok");
+  expect(doc.body.firstChild?.textContent).toEqual("layout/ok");
 });
 
 Deno.test("fsRoutes - route group ignores (_...) folders", async () => {
   const server = await createServer<{ text: string }>({
     "routes/(_foo)/index.tsx": {
-      default: () => <>fail</>,
+      default: () => <div>fail</div>,
     },
     "routes/(foo)/index.tsx": {
-      default: () => <>ok</>,
+      default: () => <div>ok</div>,
     },
   });
 
   const res = await server.get("/");
   const doc = parseHtml(await res.text());
-  expect(doc.body.textContent).toEqual("ok");
+  expect(doc.body.firstChild?.textContent).toEqual("ok");
 });
 
 Deno.test("fsRoutes - route group specific templates", async () => {
   const server = await createServer<{ text: string }>({
     "routes/(foo)/_error.tsx": {
-      default: () => <>fail foo</>,
+      default: () => <div>fail foo</div>,
     },
     "routes/(foo)/_layout.tsx": {
       default: (ctx) => (
-        <>
+        <div>
           {ctx.state.text}/(foo)_layout/<ctx.Component />
-        </>
+        </div>
       ),
     },
     "routes/(foo)/_middleware.tsx": {
@@ -693,7 +700,7 @@ Deno.test("fsRoutes - route group specific templates", async () => {
       },
     },
     "routes/(foo)/foo.tsx": {
-      default: () => <>foo</>,
+      default: () => <div>foo</div>,
     },
     "routes/(foo)/foo_error.tsx": {
       default: () => {
@@ -701,13 +708,13 @@ Deno.test("fsRoutes - route group specific templates", async () => {
       },
     },
     "routes/(bar)/_error.tsx": {
-      default: () => <>fail bar</>,
+      default: () => <div>fail bar</div>,
     },
     "routes/(bar)/_layout.tsx": {
       default: (ctx) => (
-        <>
+        <div>
           {ctx.state.text}/(bar)_layout/<ctx.Component />
-        </>
+        </div>
       ),
     },
     "routes/(bar)/_middleware.tsx": {
@@ -717,7 +724,7 @@ Deno.test("fsRoutes - route group specific templates", async () => {
       },
     },
     "routes/(bar)/bar.tsx": {
-      default: () => <>bar</>,
+      default: () => <div>bar</div>,
     },
     "routes/(bar)/bar_error.tsx": {
       default: () => {
@@ -728,18 +735,22 @@ Deno.test("fsRoutes - route group specific templates", async () => {
 
   let res = await server.get("/foo");
   let doc = parseHtml(await res.text());
-  expect(doc.body.textContent).toEqual("(foo)_middleware/(foo)_layout/foo");
+  expect(doc.body.firstChild?.textContent).toEqual(
+    "(foo)_middleware/(foo)_layout/foo",
+  );
   res = await server.get("/foo_error");
   doc = parseHtml(await res.text());
-  expect(doc.body.textContent).toEqual("fail foo");
+  expect(doc.body.firstChild?.textContent).toEqual("fail foo");
 
   res = await server.get("/bar");
   doc = parseHtml(await res.text());
-  expect(doc.body.textContent).toEqual("(bar)_middleware/(bar)_layout/bar");
+  expect(doc.body.firstChild?.textContent).toEqual(
+    "(bar)_middleware/(bar)_layout/bar",
+  );
 
   res = await server.get("/bar_error");
   doc = parseHtml(await res.text());
-  expect(doc.body.textContent).toEqual("fail bar");
+  expect(doc.body.firstChild?.textContent).toEqual("fail bar");
 });
 
 Deno.test("fsRoutes - async route components", async () => {
@@ -747,23 +758,23 @@ Deno.test("fsRoutes - async route components", async () => {
     "routes/_error.tsx": {
       default: async () => {
         await delay(1);
-        return <>fail foo</>;
+        return <div>fail foo</div>;
       },
     },
     "routes/_layout.tsx": {
       default: async (ctx) => {
         await delay(1);
         return (
-          <>
+          <div>
             {ctx.state.text}/_layout/<ctx.Component />
-          </>
+          </div>
         );
       },
     },
     "routes/foo.tsx": {
       default: async () => {
         await delay(1);
-        return <>foo</>;
+        return <div>foo</div>;
       },
     },
     "routes/foo_error.tsx": {
@@ -776,11 +787,11 @@ Deno.test("fsRoutes - async route components", async () => {
 
   let res = await server.get("/foo");
   let doc = parseHtml(await res.text());
-  expect(doc.body.textContent).toEqual("/_layout/foo");
+  expect(doc.body.firstChild?.textContent).toEqual("/_layout/foo");
 
   res = await server.get("/foo_error");
   doc = parseHtml(await res.text());
-  expect(doc.body.textContent).toEqual("fail foo");
+  expect(doc.body.firstChild?.textContent).toEqual("fail foo");
 });
 
 Deno.test("fsRoutes - async route components returning response", async () => {
@@ -792,9 +803,9 @@ Deno.test("fsRoutes - async route components returning response", async () => {
           return new Response("_app");
         }
         return (
-          <>
+          <div>
             _app/<ctx.Component />
-          </>
+          </div>
         );
       },
     },
@@ -805,9 +816,9 @@ Deno.test("fsRoutes - async route components returning response", async () => {
           return new Response("_layout");
         }
         return (
-          <>
+          <div>
             _layout/<ctx.Component />
-          </>
+          </div>
         );
       },
     },
@@ -817,14 +828,14 @@ Deno.test("fsRoutes - async route components returning response", async () => {
         if (ctx.url.searchParams.has("index")) {
           return new Response("index");
         }
-        return <>index</>;
+        return <div>index</div>;
       },
     },
   });
 
   let res = await server.get("/");
   const doc = parseHtml(await res.text());
-  expect(doc.body.textContent).toEqual("_app/_layout/index");
+  expect(doc.body.firstChild?.textContent).toEqual("_app/_layout/index");
 
   res = await server.get("/?app");
   let text = await res.text();

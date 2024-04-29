@@ -25,9 +25,9 @@ Fresh 2.0:
 ✔ Use in-memory build cache for development @done(24-03-27 07:22)
 ✔ investigate middleware signature where each middleware calls the next middleware directly @done(24-03-27 07:22)
 ✔ Fix FreshScripts signature @done(24-03-27 09:09)
-☐ Add Static file processor plugin name
+✔ Add Static file processor plugin name @done(24-04-29 22:56)
 ✔ Fix client dev script loaded in prod @done(24-03-28 12:42)
-☐ Add caching parameter to sources in css files
+✔ Add caching parameter to sources in css files @done(24-04-29 22:56)
 ✔ Static middleware should never cache files in dev @done(24-03-28 13:04)
 ✔ need to manually update all middlewares and handlers to use the new signature. absolutely need a codemod for this @done(24-04-22 17:57)
 ☐ needed to manually remove `<Head>` everywhere

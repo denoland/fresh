@@ -1,5 +1,4 @@
 import type { PageProps } from "$fresh/server.ts";
-import { FreshScripts } from "@fresh/core";
 import { asset } from "@fresh/core/runtime";
 
 export default function App(
@@ -37,7 +36,6 @@ export default function App(
       </head>
       <body>
         <Component />
-        <FreshScripts />
       </body>
     </html>
   );

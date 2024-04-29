@@ -33,7 +33,6 @@ export function Doc(props: { children?: ComponentChildren; title?: string }) {
       </head>
       <body>
         {props.children}
-        <FreshScripts />
       </body>
     </html>
   );
@@ -43,8 +42,8 @@ export async function buildProd(app: App<unknown>) {
   const outDir = await Deno.makeTempDir();
   // FIXME: Sharing build output path is weird
   app.config.build.outDir = outDir;
-  const builder = new Builder();
-  await builder.build(app, {});
+  const builder = new Builder({});
+  await builder.build(app);
   setBuildCache(app, null);
 }
 

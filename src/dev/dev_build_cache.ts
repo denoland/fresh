@@ -5,8 +5,8 @@ import type { BuildSnapshot } from "../build_cache.ts";
 import { encodeHex } from "@std/encoding/hex";
 import { crypto } from "@std/crypto";
 import { fsAdapter } from "../fs.ts";
-import type { LazyProcessor } from "./file_transformer.ts";
-import { BUILD_ID } from "../runtime/build_id.ts";
+import type { FreshFileTransformer } from "./file_transformer.ts";
+import { assertInDir } from "../utils.ts";
 
 export interface MemoryFile {
   hash: string | null;
@@ -24,8 +24,6 @@ export interface DevBuildCache extends BuildCache {
     hash: string | null,
   ): Promise<void>;
 
-  addLazyProcessedFile(pathname: string, lazy: LazyProcessor): Promise<void>;
-
   flush(): Promise<void>;
 }
 
@@ -33,17 +31,15 @@ export class MemoryBuildCache implements DevBuildCache {
   islands = new Map<string, string>();
   #processedFiles = new Map<string, MemoryFile>();
   #unprocessedFiles = new Map<string, string>();
-  #lazyPendingFiles = new Map<string, LazyProcessor>();
-  #lazyPending = new Map<
-    string,
-    Promise<{ content: string | Uint8Array; map?: string | Uint8Array }>
-  >();
   #ready = Promise.withResolvers<void>();
 
   constructor(
     public config: ResolvedFreshConfig,
     public buildId: string,
-  ) {}
+    public transformer: FreshFileTransformer,
+    public target: string | string[],
+  ) {
+  }
 
   async readFile(pathname: string): Promise<StaticFile | null> {
     await this.#ready.promise;
@@ -74,49 +70,41 @@ export class MemoryBuildCache implements DevBuildCache {
       }
     }
 
-    const p = this.#lazyPending.get(pathname);
-    if (p !== undefined) {
-      await p;
-
-      const file = this.#processedFiles.get(pathname)!;
-
-      return {
-        hash: null,
-        readable: file.content,
-        size: file.content.byteLength,
-      };
+    let entry = pathname.startsWith("/") ? pathname.slice(1) : pathname;
+    entry = path.join(this.config.staticDir, entry);
+    const relative = path.relative(this.config.staticDir, entry);
+    if (relative.startsWith(".")) {
+      throw new Error(
+        `Processed file resolved outside of static dir ${entry}`,
+      );
     }
 
-    const lazy = this.#lazyPendingFiles.get(pathname);
-    if (lazy !== undefined) {
-      const p = lazy();
-      this.#lazyPending.set(pathname, p);
-      const res = await p;
+    // Might be a file that we still need to process
+    const transformed = await this.transformer.process(
+      entry,
+      "development",
+      this.target,
+    );
 
-      const content = typeof res.content === "string"
-        ? new TextEncoder().encode(res.content)
-        : res.content;
+    if (transformed !== null) {
+      for (let i = 0; i < transformed.length; i++) {
+        const file = transformed[i];
+        const relative = path.relative(this.config.staticDir, file.path);
+        if (relative.startsWith(".")) {
+          throw new Error(
+            `Processed file resolved outside of static dir ${file.path}`,
+          );
+        }
+        const pathname = `/${relative}`;
 
-      this.#processedFiles.set(pathname, {
-        content,
-        hash: null,
-      });
-
-      if (res.map !== undefined) {
-        const map = typeof res.map === "string"
-          ? new TextEncoder().encode(res.map)
-          : res.map;
-        this.#processedFiles.set(pathname + ".map", {
-          content: map,
-          hash: null,
-        });
+        this.addProcessedFile(pathname, file.content, null);
       }
-
-      return {
-        hash: null,
-        readable: content,
-        size: content.byteLength,
-      };
+      if (this.#processedFiles.has(pathname)) {
+        return this.readFile(pathname);
+      }
+    } else {
+      this.addUnprocessedFile(pathname);
+      return this.readFile(pathname);
     }
 
     return null;
@@ -143,14 +131,6 @@ export class MemoryBuildCache implements DevBuildCache {
   }
 
   // deno-lint-ignore require-await
-  async addLazyProcessedFile(
-    pathname: string,
-    lazy: LazyProcessor,
-  ): Promise<void> {
-    this.#lazyPendingFiles.set(pathname, lazy);
-  }
-
-  // deno-lint-ignore require-await
   async flush(): Promise<void> {
     this.#ready.resolve();
   }
@@ -161,8 +141,18 @@ export class DiskBuildCache implements DevBuildCache {
   islands = new Map<string, string>();
   #processedFiles = new Map<string, string | null>();
   #unprocessedFiles = new Map<string, string>();
+  #transformer: FreshFileTransformer;
+  #target: string | string[];
 
-  constructor(public config: ResolvedFreshConfig, public buildId: string) {}
+  constructor(
+    public config: ResolvedFreshConfig,
+    public buildId: string,
+    transformer: FreshFileTransformer,
+    target: string | string[],
+  ) {
+    this.#transformer = transformer;
+    this.#target = target;
+  }
 
   getIslandChunkName(islandName: string): string | null {
     return this.islands.get(islandName) ?? null;
@@ -186,23 +176,10 @@ export class DiskBuildCache implements DevBuildCache {
       ? this.config.build.outDir
       : path.join(this.config.build.outDir, "static");
     const filePath = path.join(outDir, pathname);
-    if (path.relative(outDir, filePath).startsWith(".")) {
-      throw new Error(`Path "${filePath}" resolved outside of "${outDir}"`);
-    }
+    assertInDir(filePath, outDir);
 
     await fsAdapter.mkdirp(path.dirname(filePath));
     await Deno.writeFile(filePath, content);
-  }
-
-  async addLazyProcessedFile(
-    pathname: string,
-    lazy: LazyProcessor,
-  ): Promise<void> {
-    const file = await lazy();
-    const buf = typeof file.content === "string"
-      ? new TextEncoder().encode(file.content)
-      : file.content;
-    this.addProcessedFile(pathname, buf, null);
   }
 
   // deno-lint-ignore require-await
@@ -211,6 +188,39 @@ export class DiskBuildCache implements DevBuildCache {
   }
 
   async flush(): Promise<void> {
+    const staticDir = this.config.staticDir;
+
+    if (await fsAdapter.isDirectory(staticDir)) {
+      const entries = fsAdapter.walk(staticDir, {
+        includeDirs: false,
+        includeFiles: true,
+        followSymlinks: false,
+        // Skip any folder or file starting with a "."
+        skip: [/\/\.[^/]+(\/|$)/],
+      });
+
+      for await (const entry of entries) {
+        const result = await this.#transformer.process(
+          entry.path,
+          "production",
+          this.#target,
+        );
+
+        if (result !== null) {
+          for (let i = 0; i < result.length; i++) {
+            const file = result[i];
+            assertInDir(file.path, staticDir);
+            const pathname = `/${path.relative(staticDir, file.path)}`;
+            await this.addProcessedFile(pathname, file.content, null);
+          }
+        } else {
+          const relative = path.relative(staticDir, entry.path);
+          const pathname = `/${relative}`;
+          this.addUnprocessedFile(pathname);
+        }
+      }
+    }
+
     const snapshot: BuildSnapshot = {
       version: 1,
       buildId: this.buildId,
