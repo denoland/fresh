@@ -81,5 +81,6 @@ Fresh 2.0 finishing:
   ☐ `ctx.error` is no more
   ☐ `ctx.renderNotFound` is no more
   ☐ `ctx.destination` is no more
+  ☐ Precompiled JSX
 
 
