@@ -28,6 +28,7 @@ export interface DevBuildCache extends BuildCache {
 }
 
 export class MemoryBuildCache implements DevBuildCache {
+  hasSnapshot = true;
   islands = new Map<string, string>();
   #processedFiles = new Map<string, MemoryFile>();
   #unprocessedFiles = new Map<string, string>();
@@ -148,6 +149,7 @@ export class MemoryBuildCache implements DevBuildCache {
 
 // await fsAdapter.mkdirp(staticOutDir);
 export class DiskBuildCache implements DevBuildCache {
+  hasSnapshot = true;
   islands = new Map<string, string>();
   #processedFiles = new Map<string, string | null>();
   #unprocessedFiles = new Map<string, string>();

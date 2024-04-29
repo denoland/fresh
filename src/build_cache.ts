@@ -31,6 +31,7 @@ export interface StaticFile {
 }
 
 export interface BuildCache {
+  hasSnapshot: boolean;
   readFile(pathname: string): Promise<StaticFile | null>;
   getIslandChunkName(islandName: string): string | null;
 }
@@ -42,9 +43,11 @@ export class ProdBuildCache implements BuildCache {
     const staticFiles = new Map<string, FileSnapshot>();
     const islandToChunk = new Map<string, string>();
 
+    let hasSnapshot = false;
     try {
       const content = await Deno.readTextFile(snapshotPath);
       const snapshot = JSON.parse(content) as BuildSnapshot;
+      hasSnapshot = true;
       setBuildId(snapshot.buildId);
 
       const files = Object.keys(snapshot.staticFiles);
@@ -65,7 +68,7 @@ export class ProdBuildCache implements BuildCache {
       }
     }
 
-    return new ProdBuildCache(config, islandToChunk, staticFiles);
+    return new ProdBuildCache(config, islandToChunk, staticFiles, hasSnapshot);
   }
 
   #islands: Map<string, string>;
@@ -76,6 +79,7 @@ export class ProdBuildCache implements BuildCache {
     config: ResolvedFreshConfig,
     islands: Map<string, string>,
     files: Map<string, FileSnapshot>,
+    public hasSnapshot: boolean,
   ) {
     this.#islands = islands;
     this.#fileInfo = files;

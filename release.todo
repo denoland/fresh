@@ -16,7 +16,7 @@ Fresh 2.0:
 ✔ Update update script @done(24-04-26 14:57)
 ✔ Add tests for static file middleware @done(24-03-27 17:40)
 ☐ Investigate bundling esbuild js assets with rollup
-☐ Add back finish tailwind setup page
+✔ Add back finish tailwind setup page @done(24-04-29 23:57)
 ✔ think about publishing Fresh 1.x to JSR first @done(24-04-02 19:07)
 ✔ config inferrence from app to devapp is confusing @done(24-04-15 15:26)
 ✔ remove UUID from context object @done(24-03-25 21:59)

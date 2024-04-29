@@ -160,99 +160,102 @@ function normalizeKey(str: string) {
 
 const oldDiff = options[OptionsType.DIFF];
 options[OptionsType.DIFF] = (vnode) => {
-  patcher: if (
-    RENDER_STATE !== null &&
-    typeof vnode.type === "function" && vnode.type !== Fragment
-  ) {
-    if (vnode.type === Partial) {
-      RENDER_STATE.partialDepth++;
+  if (RENDER_STATE !== null) {
+    patcher: if (
+      typeof vnode.type === "function" && vnode.type !== Fragment
+    ) {
+      if (vnode.type === Partial) {
+        RENDER_STATE.partialDepth++;
 
-      const name = (vnode.props as PartialProps).name;
-      if (typeof name === "string") {
-        if (RENDER_STATE.encounteredPartials.has(name)) {
+        const name = (vnode.props as PartialProps).name;
+        if (typeof name === "string") {
+          if (RENDER_STATE.encounteredPartials.has(name)) {
+            throw new Error(
+              `Rendered response contains duplicate partial name: "${name}"`,
+            );
+          }
+
+          RENDER_STATE.encounteredPartials.add(name);
+        }
+
+        if (hasIslandOwner(RENDER_STATE, vnode)) {
           throw new Error(
-            `Rendered response contains duplicate partial name: "${name}"`,
+            `<Partial> components cannot be used inside islands.`,
           );
         }
-
-        RENDER_STATE.encounteredPartials.add(name);
-      }
-
-      if (hasIslandOwner(RENDER_STATE, vnode)) {
-        throw new Error(`<Partial> components cannot be used inside islands.`);
-      }
-    } else if (
-      !PATCHED.has(vnode) && !hasIslandOwner(RENDER_STATE, vnode)
-    ) {
-      const island = RENDER_STATE.islandRegistry.get(vnode.type);
-      if (island === undefined) {
-        // Not an island, but we might need to preserve keys
-        if (vnode.key !== undefined) {
-          const key = normalizeKey(vnode.key ?? "");
-          const originalType = vnode.type;
-          vnode.type = (props) => {
-            const child = h(originalType, props);
-            PATCHED.add(child);
-            return wrapWithMarker(child, "key", key);
-          };
-        }
-
-        break patcher;
-      }
-
-      const { islands, islandProps } = RENDER_STATE;
-      islands.add(island);
-
-      const originalType = vnode.type;
-      vnode.type = (props) => {
-        for (const name in props) {
-          // deno-lint-ignore no-explicit-any
-          const value = (props as any)[name];
-          if (
-            name === "children" || (isValidElement(value) && !isSignal(value))
-          ) {
-            const slotId = RENDER_STATE!.slots.length;
-            RENDER_STATE!.slots.push({ id: slotId, name, vnode: value });
-            // deno-lint-ignore no-explicit-any
-            (props as any)[name] = h(Slot, {
-              name,
-              id: slotId,
-            }, value);
+      } else if (
+        !PATCHED.has(vnode) && !hasIslandOwner(RENDER_STATE, vnode)
+      ) {
+        const island = RENDER_STATE.islandRegistry.get(vnode.type);
+        if (island === undefined) {
+          // Not an island, but we might need to preserve keys
+          if (vnode.key !== undefined) {
+            const key = normalizeKey(vnode.key ?? "");
+            const originalType = vnode.type;
+            vnode.type = (props) => {
+              const child = h(originalType, props);
+              PATCHED.add(child);
+              return wrapWithMarker(child, "key", key);
+            };
           }
+
+          break patcher;
         }
-        const propsIdx = islandProps.push({ slots: [], props }) - 1;
 
-        const child = h(originalType, props);
-        PATCHED.add(child);
+        const { islands, islandProps } = RENDER_STATE;
+        islands.add(island);
 
-        const key = normalizeKey(vnode.key ?? "");
-        return wrapWithMarker(
-          child,
-          "island",
-          `${island!.name}:${propsIdx}:${key}`,
+        const originalType = vnode.type;
+        vnode.type = (props) => {
+          for (const name in props) {
+            // deno-lint-ignore no-explicit-any
+            const value = (props as any)[name];
+            if (
+              name === "children" || (isValidElement(value) && !isSignal(value))
+            ) {
+              const slotId = RENDER_STATE!.slots.length;
+              RENDER_STATE!.slots.push({ id: slotId, name, vnode: value });
+              // deno-lint-ignore no-explicit-any
+              (props as any)[name] = h(Slot, {
+                name,
+                id: slotId,
+              }, value);
+            }
+          }
+          const propsIdx = islandProps.push({ slots: [], props }) - 1;
+
+          const child = h(originalType, props);
+          PATCHED.add(child);
+
+          const key = normalizeKey(vnode.key ?? "");
+          return wrapWithMarker(
+            child,
+            "island",
+            `${island!.name}:${propsIdx}:${key}`,
+          );
+        };
+      }
+    } else if (typeof vnode.type === "string") {
+      switch (vnode.type) {
+        case "html":
+          RENDER_STATE!.renderedHtmlTag = true;
+          break;
+        case "head":
+          RENDER_STATE!.renderedHtmlHead = true;
+          break;
+        case "body":
+          RENDER_STATE!.renderedHtmlBody = true;
+          break;
+      }
+
+      if (
+        vnode.key !== undefined &&
+        (RENDER_STATE!.partialDepth > 0 || hasIslandOwner(RENDER_STATE!, vnode))
+      ) {
+        (vnode.props as Record<string, unknown>)[DATA_FRESH_KEY] = String(
+          vnode.key,
         );
-      };
-    }
-  } else if (typeof vnode.type === "string") {
-    switch (vnode.type) {
-      case "html":
-        RENDER_STATE!.renderedHtmlTag = true;
-        break;
-      case "head":
-        RENDER_STATE!.renderedHtmlHead = true;
-        break;
-      case "body":
-        RENDER_STATE!.renderedHtmlBody = true;
-        break;
-    }
-
-    if (
-      vnode.key !== undefined &&
-      (RENDER_STATE!.partialDepth > 0 || hasIslandOwner(RENDER_STATE!, vnode))
-    ) {
-      (vnode.props as Record<string, unknown>)[DATA_FRESH_KEY] = String(
-        vnode.key,
-      );
+      }
     }
   }
 
@@ -261,19 +264,25 @@ options[OptionsType.DIFF] = (vnode) => {
 
 const oldRender = options[OptionsType.RENDER];
 options[OptionsType.RENDER] = (vnode) => {
-  if (typeof vnode.type === "function" && vnode.type !== Fragment) {
-    RENDER_STATE!.ownerStack.push(vnode);
+  if (
+    typeof vnode.type === "function" && vnode.type !== Fragment &&
+    RENDER_STATE !== null
+  ) {
+    RENDER_STATE.ownerStack.push(vnode);
   }
   oldRender?.(vnode);
 };
 
 const oldDiffed = options[OptionsType.DIFFED];
 options[OptionsType.DIFFED] = (vnode) => {
-  if (typeof vnode.type === "function" && vnode.type !== Fragment) {
-    RENDER_STATE!.ownerStack.pop();
+  if (
+    typeof vnode.type === "function" && vnode.type !== Fragment &&
+    RENDER_STATE !== null
+  ) {
+    RENDER_STATE.ownerStack.pop();
 
     if (vnode.type === Partial) {
-      RENDER_STATE!.partialDepth--;
+      RENDER_STATE.partialDepth--;
     }
   }
   oldDiffed?.(vnode);
@@ -360,6 +369,7 @@ const stringifiers: Stringifiers = {
 };
 
 export function FreshScripts() {
+  if (RENDER_STATE === null) return null;
   const { slots } = RENDER_STATE!;
 
   // Remaining slots must be rendered before creating the Fresh runtime

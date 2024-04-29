@@ -69,7 +69,7 @@ export function serveMiddleware<T>(
     const next = () => new Response("not found", { status: 404 });
     const config = options.config ?? DEFAULT_CONFIG;
     const buildCache = options.buildCache ??
-      new ProdBuildCache(config, new Map(), new Map());
+      new ProdBuildCache(config, new Map(), new Map(), true);
 
     const ctx = new FreshReqContext<T>(
       req,

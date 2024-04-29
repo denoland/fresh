@@ -1,6 +1,7 @@
 import { expect } from "@std/expect";
-import { App } from "./app.ts";
+import { App, setBuildCache } from "./app.ts";
 import { FakeServer } from "./test_utils.ts";
+import { ProdBuildCache } from "./build_cache.ts";
 
 Deno.test("FreshApp - .use()", async () => {
   const app = new App<{ text: string }>()
@@ -379,4 +380,38 @@ Deno.test("FreshApp - catches errors", async () => {
   const res = await server.get("/");
   expect(res.status).toEqual(500);
   expect(thrownErr).toBeInstanceOf(Error);
+});
+
+Deno.test("FreshApp - finish setup", async () => {
+  let thrownErr: unknown | null = null;
+  const app = new App<{ text: string }>()
+    .use(async (ctx) => {
+      ctx.state.text = "A";
+      try {
+        return await ctx.next();
+      } catch (err) {
+        thrownErr = err;
+        throw err;
+      }
+    })
+    .get("/", (ctx) => {
+      return ctx.render(<div>ok</div>);
+    });
+
+  setBuildCache(
+    app,
+    await ProdBuildCache.fromSnapshot({
+      ...app.config,
+      build: {
+        outDir: "foo",
+      },
+    }),
+  );
+
+  const server = new FakeServer(await app.handler());
+
+  const res = await server.get("/");
+  const text = await res.text();
+  expect(text).toContain("Finish setting up");
+  expect(res.status).toEqual(500);
 });

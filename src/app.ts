@@ -15,8 +15,10 @@ import {
 } from "./config.ts";
 import { type BuildCache, ProdBuildCache } from "./build_cache.ts";
 import * as path from "@std/path";
-import type { ComponentType } from "preact";
+import { type ComponentType, h } from "preact";
 import type { ServerIslandRegistry } from "./context.ts";
+import { renderToString } from "preact-render-to-string";
+import { FinishSetup, ForgotBuild } from "./finish_setup.tsx";
 
 export type ListenOptions = Partial<Deno.ServeTlsOptions> & {
   remoteAddress?: string;
@@ -191,6 +193,10 @@ export class App<State> {
       this.#buildCache = await ProdBuildCache.fromSnapshot(this.config);
     }
 
+    if (!this.#buildCache.hasSnapshot) {
+      return missingBuildHandler;
+    }
+
     return async (req: Request) => {
       const url = new URL(req.url);
       // Prevent open redirect attacks
@@ -270,3 +276,14 @@ export class App<State> {
     await Deno.serve(options, await this.handler());
   }
 }
+
+// deno-lint-ignore require-await
+const missingBuildHandler = async (): Promise<Response> => {
+  const headers = new Headers();
+  headers.set("Content-Type", "text/html; charset=utf-8");
+
+  const html = DENO_DEPLOYMENT_ID
+    ? renderToString(h(FinishSetup, null))
+    : renderToString(h(ForgotBuild, null));
+  return new Response(html, { headers, status: 500 });
+};
