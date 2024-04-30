@@ -49,7 +49,7 @@ Fresh 2.0:
 ☐ Bring back error overlay
 ✔ Bring back update checker @done(24-04-26 14:57)
 ☐ What to do with `ctx.route`
-☐ Attach `define*` helpers on `App` class to avoid typing overhead
+✔ Attach `define*` helpers on `App` class to avoid typing overhead @done(24-04-30 11:23)
 ✔ ie if the tailwind plugin returns something, can i process that using a different plugin? @done(24-04-29 23:58)
 ✔ also we shouldn't lock to a specific preact version inside of fresh core @done(24-04-23 17:48)
 ☐ OnTransformArgs.path should probably be relative to the static folder, otherwise the user needs to manually strip it out (or include both path and name or something)
