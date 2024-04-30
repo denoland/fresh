@@ -33,8 +33,10 @@ a[aria-current='true'] {
 
 ## Tailwind / Twind
 
-In Tailwind or similar CSS frameworks like Twind, you can apply styles to elements with the ﻿aria-current attribute using bracket notation in your class definitions. However, the specific syntax varies slightly between Tailwind and Twind.
-For Tailwind, use the syntax:
+In Tailwind or similar CSS frameworks like Twind, you can apply styles to
+elements with the ﻿aria-current attribute using bracket notation in your class
+definitions. However, the specific syntax varies slightly between Tailwind and
+Twind. For Tailwind, use the syntax:
 
 ```tsx
 function Menu() {
