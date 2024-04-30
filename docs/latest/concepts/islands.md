@@ -79,7 +79,9 @@ export default function Home() {
 ```
 
 You can also create shared components in your `components/` directory, which can
-be used in both static content and interactive islands.
+be used in both static content and interactive islands. When these components
+are used within islands, interactivity can be added, such as `onClick` handlers
+(using an `onClick` handler on a button outside of an island will not fire).
 
 ```tsx islands/my-island.tsx
 import { useSignal } from "@preact/signals";
