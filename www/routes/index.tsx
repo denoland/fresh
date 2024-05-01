@@ -1,15 +1,17 @@
 import { asset, Head } from "$fresh/runtime.ts";
 import { Handlers, PageProps } from "$fresh/server.ts";
-import Counter from "../islands/Counter.tsx";
-import LemonDrop from "../islands/LemonDrop.tsx";
-import Footer from "../components/Footer.tsx";
-import VERSIONS from "../../versions.json" with { type: "json" };
-import * as FeatureIcons from "../components/FeatureIcons.tsx";
-import CopyArea from "../islands/CopyArea.tsx";
-import * as Icons from "../components/Icons.tsx";
-import Projects from "../components/Projects.tsx";
-import projects from "../data/showcase.json" with { type: "json" };
-import Header from "../components/Header.tsx";
+import Footer from "$fresh/www/components/Footer.tsx";
+import VERSIONS from "$fresh/versions.json" with { type: "json" };
+import * as FeatureIcons from "$fresh/www/components/FeatureIcons.tsx";
+import * as Icons from "$fresh/www/components/Icons.tsx";
+import Projects from "$fresh/www/components/Projects.tsx";
+import projects from "$fresh/www/data/showcase.json" with { type: "json" };
+import Header from "$fresh/www/components/Header.tsx";
+import { Hero } from "$fresh/www/components/homepage/Hero.tsx";
+import { PageSection } from "$fresh/www/components/PageSection.tsx";
+import { IntroSection } from "$fresh/www/components/homepage/Intro.tsx";
+import { RenderingSection } from "$fresh/www/components/homepage/RenderingSection.tsx";
+import { IslandsSection } from "$fresh/www/components/homepage/IslandsSection.tsx";
 
 function isOpenGraphUA(header: string | null): boolean {
   if (!header) {
@@ -55,21 +57,41 @@ export default function MainPage(props: PageProps) {
       </Head>
 
       <div class="flex flex-col min-h-screen">
-        <div class="bg-green-300 flex flex-col">
+        <div class="bg-transparent flex flex-col ">
           <HelloBar />
           <Header title="" active="/" />
 
           <Hero />
         </div>
-        <div class="flex-1">
-          <Intro origin={origin} />
-          <Example />
+        <div class="flex flex-col">
+          <IntroSection origin={origin} />
+          <Simple />
+          <RenderingSection />
+          <IslandsSection />
           <Showcase />
           <StartJourney />
         </div>
         <Footer />
       </div>
     </>
+  );
+}
+
+function Simple() {
+  return (
+    <div>
+      <PageSection>
+        <div class="text-center max-w-max mx-auto flex flex-col gap-4">
+          <h2 class="text-4xl sm:text-5xl md:text-6xl lg:text-7xl sm:tracking-tight sm:leading-[1.1]! font-extrabold text-balance">
+            The framework so simple, you know it already.
+          </h2>
+          <p class="text-xl text-balance max-w-prose mx-auto">
+            Fresh is designed to be approachable and easy to use, by building on
+            the best well-known tools and conventions.
+          </p>
+        </div>
+      </PageSection>
+    </div>
   );
 }
 
@@ -83,17 +105,6 @@ function HelloBar() {
       <b>better Plugin API</b> and more{" "}
       <span class="group-hover:underline">→</span>
     </a>
-  );
-}
-
-function Hero() {
-  return (
-    <div
-      class="w-full flex justify-center items-center flex-col bg-green-300"
-      aria-hidden="true"
-    >
-      <LemonDrop />
-    </div>
   );
 }
 
@@ -142,81 +153,9 @@ function Features() {
   );
 }
 
-function Intro(props: { origin: string }) {
-  return (
-    <section class="max-w-screen-xl mx-auto my-8 sm:my-16 px-4 sm:px-6 md:px-8 space-y-8 sm:space-y-16 lg:mb-32">
-      <div class="max-w-screen-xl mx-auto sm:my-8 md:my-16 sm:space-y-12 w-full">
-        <div class="md:flex items-center">
-          <div class="flex-1 text-center md:text-left">
-            <h2 class="py-2 text-5xl sm:text-5xl lg:text-6xl text-gray-900 sm:tracking-tight sm:leading-[1.1]! font-extrabold lg:max-w-lg mx-auto sm:mx-0">
-              The <span class="text-green-600">next-gen</span> web framework.
-            </h2>
-
-            <p class="mt-2 text-gray-600 text-xl">
-              Built for speed, reliability, and simplicity.
-            </p>
-            <div class="mt-8 flex flex-col justify-center md:justify-start sm:flex-row gap-4">
-              <div>
-                <a
-                  href="/docs/getting-started"
-                  class="inline-flex w-auto shrink-0 px-3 py-2 bg-white rounded border-gray-500 border-2 hover:bg-gray-200 active:bg-gray-300 disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
-                >
-                  Get started
-                </a>
-              </div>
-              <div class="flex justify-center">
-                <CopyArea code={`deno run -A -r ${props.origin}`} />
-              </div>
-            </div>
-          </div>
-
-          <picture class="block mt-8 md:mt-0 mx-auto w-60 md:w-96 md:mr-16 xl:mr-32">
-            <img
-              src="/illustration/lemon-squash.svg"
-              width={800}
-              height={678}
-              alt="Deno is drinking Fresh lemon squash"
-            />
-          </picture>
-        </div>
-      </div>
-      <p class="text-gray-600 text-xl">
-        Fresh embraces the tried and true design of server side rendering and
-        progressive enhancement on the client side.
-      </p>
-      <Features />
-    </section>
-  );
-}
-
-function Example() {
-  return (
-    <section class="max-w-screen-xl mx-auto my-8 sm:my-16 md:my-24 px-4 sm:px-6 md:px-8 space-y-16">
-      <div class="flex gap-4 md:gap-16 flex-col md:flex-row justify-between items-center">
-        <div class="md:basis-1/2">
-          <h2 id="example" class="text-4xl text-gray-600 font-bold mb-4">
-            <a href="#example" class="hover:underline">
-              Interactive islands
-            </a>
-          </h2>
-          <p class="text-gray-600 mb-4">
-            Fresh optimizes the page by only shipping JavaScript for areas that
-            need it. The rest is completely static HTML rendered by the server.
-            This means the browser needs to load less code and can display pages
-            more quickly.
-          </p>
-        </div>
-        <div class="md:basis-1/2">
-          <Counter start={3} />
-        </div>
-      </div>
-    </section>
-  );
-}
-
 function Showcase() {
   return (
-    <section class="max-w-screen-xl mx-auto px-4 sm:px-6 md:px-8 space-y-4">
+    <PageSection>
       <h2 id="showcase" class="text-4xl text-gray-600 font-bold mb-4">
         <a href="#showcase" class="hover:underline">
           Showcase
@@ -232,13 +171,13 @@ function Showcase() {
           View more
         </a>
       </div>
-    </section>
+    </PageSection>
   );
 }
 
 function StartJourney() {
   return (
-    <section class="max-w-screen-xl mx-auto py-16 px-4 sm:px-6 md:px-8 space-y-4 md:mb-16">
+    <PageSection>
       <h2 class="text-4xl text-gray-600 md:text-5xl font mb-4 mt-0">
         Start your Fresh journey
       </h2>
@@ -254,6 +193,6 @@ function StartJourney() {
           Get started
         </a>
       </div>
-    </section>
+    </PageSection>
   );
 }

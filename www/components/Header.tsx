@@ -19,12 +19,12 @@ export default function Header(props: { title: string; active: string }) {
               <DocsTitle />
             </div>
 
-            <NavigationBar class="hidden md:flex" active={props.active} />
+            <NavigationBar class="" active={props.active} />
           </header>
         )
         : (
           <header
-            class={"mx-auto max-w-screen-xl flex gap-3 items-center " +
+            class={"h-20 mx-auto max-w-screen-xl flex gap-3 items-center " +
               (isHome ? "justify-end" : "justify-between")}
             f-client-nav={false}
           >
@@ -34,11 +34,9 @@ export default function Header(props: { title: string; active: string }) {
                 <DocsTitle />
               </div>
             )}
-            <NavigationBar class="hidden md:flex" active={props.active} />
+            <NavigationBar class="" active={props.active} />
           </header>
         )}
-
-      <NavigationBar class="md:hidden pb-3" active={props.active} />
     </>
   );
 }
