@@ -1,4 +1,5 @@
 import type { FreshContext } from "../context.ts";
+import { HandlerByMethod } from "../handlers.ts";
 import { createHelpers, type Helpers } from "../helpers.ts";
 
 /**
@@ -33,6 +34,10 @@ export type RouteContext<T = any, S = Record<string, unknown>> = FreshContext<
   T,
   S
 >;
+
+// deno-lint-ignore no-explicit-any
+export type Handlers<T = any, State = Record<string, unknown>> =
+  HandlerByMethod<T, State>;
 
 const helpers = createHelpers();
 
