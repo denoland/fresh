@@ -2,34 +2,59 @@ import { DENO_DEPLOYMENT_ID } from "./build_id.ts";
 import { colors } from "./deps.ts";
 import { ServeHandler } from "./types.ts";
 
+const defaultOnListenFor = <T>(getAddress: (params: T) => string) => {
+  return (params: T) => {
+    const address = colors.cyan(
+      getAddress(params),
+    );
+    const localLabel = colors.bold("Local:");
+
+    // Print more concise output for deploy logs
+    if (DENO_DEPLOYMENT_ID) {
+      console.log(
+        colors.bgRgb8(colors.rgb8(" 🍋 Fresh ready ", 0), 121),
+        `${localLabel} ${address}`,
+      );
+    } else {
+      console.log();
+      console.log(
+        colors.bgRgb8(colors.rgb8(" 🍋 Fresh ready ", 0), 121),
+      );
+      console.log(`    ${localLabel} ${address}\n`);
+    }
+  };
+};
+export async function startUnixServer(
+  handler: Deno.ServeUnixHandler,
+  opts: Deno.ServeUnixOptions,
+) {
+  if (!opts.onListen) {
+    opts.onListen = defaultOnListenFor((params) => {
+      return `socket://${params.path}`;
+    });
+    // @ts-ignore Ignore type error when type checking with Deno versions
+    if (typeof Deno.serve === "function") {
+      await Deno.serve(
+        opts,
+        handler,
+      ).finished;
+    }
+    throw new Error(
+      `unix domain sockets are not supported in your current deno version.`,
+    );
+  }
+}
 export async function startServer(
   handler: Deno.ServeHandler,
   opts: Partial<Deno.ServeTlsOptions> & { basePath: string },
 ) {
   if (!opts.onListen) {
-    opts.onListen = (params) => {
+    opts.onListen = defaultOnListenFor((params) => {
       const pathname = opts.basePath + "/";
       const https = !!(opts.key && opts.cert);
       const protocol = https ? "https:" : "http:";
-      const address = colors.cyan(
-        `${protocol}//localhost:${params.port}${pathname}`,
-      );
-      const localLabel = colors.bold("Local:");
-
-      // Print more concise output for deploy logs
-      if (DENO_DEPLOYMENT_ID) {
-        console.log(
-          colors.bgRgb8(colors.rgb8(" 🍋 Fresh ready ", 0), 121),
-          `${localLabel} ${address}`,
-        );
-      } else {
-        console.log();
-        console.log(
-          colors.bgRgb8(colors.rgb8(" 🍋 Fresh ready ", 0), 121),
-        );
-        console.log(`    ${localLabel} ${address}\n`);
-      }
-    };
+      return `${protocol}//localhost:${params.port}${pathname}`;
+    });
   }
 
   const portEnv = Deno.env.get("PORT");
