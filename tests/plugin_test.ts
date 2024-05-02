@@ -29,7 +29,8 @@ const router = (req: Request) => {
       hostname: "127.0.0.1",
       port: 80,
     },
-  });
+    // deno-lint-ignore no-explicit-any
+  } as any);
 };
 
 Deno.test("/static page prerender", async () => {
@@ -98,7 +99,8 @@ Deno.test("plugin routes and middleware -- async _app", async () => {
         hostname: "127.0.0.1",
         port: 80,
       },
-    });
+      // deno-lint-ignore no-explicit-any
+    } as any);
   };
 
   const resp = await router(new Request("https://fresh.deno.dev/test"));

@@ -79,15 +79,19 @@ async function bootServer(
     // @ts-ignore Ignore type error when type checking with Deno versions
     await Deno.serve(
       opts,
-      (r, { remoteAddr }) =>
-        handler(r, {
-          remoteAddr,
-          localAddr: {
-            transport: "tcp",
-            hostname: opts.hostname ?? "localhost",
-            port: opts.port,
-          } as Deno.NetAddr,
-        }),
+      (r, info) =>
+        handler(
+          r,
+          {
+            ...info,
+            remoteAddr: info.remoteAddr,
+            localAddr: {
+              transport: "tcp",
+              hostname: opts.hostname ?? "localhost",
+              port: opts.port,
+            } as Deno.NetAddr,
+          },
+        ),
     ).finished;
   } else {
     // @ts-ignore Deprecated std serve way
