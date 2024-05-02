@@ -46,7 +46,9 @@ import { withBase } from "./router.ts";
 import { PARTIAL_SEARCH_PARAM } from "../constants.ts";
 import TailwindErrorPage from "./tailwind_aot_error_page.tsx";
 
-const DEFAULT_CONN_INFO: ServeHandlerInfo = {
+// TODO: Completed type clashes in older Deno versions
+// deno-lint-ignore no-explicit-any
+const DEFAULT_CONN_INFO: any = {
   localAddr: { transport: "tcp", hostname: "localhost", port: 8080 },
   remoteAddr: { transport: "tcp", hostname: "localhost", port: 1234 },
 };
