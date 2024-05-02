@@ -90,6 +90,30 @@ Deno.test("update - 1.x project deno.json", async () => {
   });
 });
 
+Deno.test("update - 1.x project deno.json with imports", async () => {
+  await withTmpDir(async (dir) => {
+    await writeFiles(dir, {
+      "/deno.json": `{
+        "imports": {
+          "$fresh/": "foo"
+        }
+      }`,
+    });
+
+    await updateProject(dir);
+    const files = await readFiles(dir);
+
+    expect(JSON.parse(files["/deno.json"]))
+      .toEqual({
+        imports: {
+          "@fresh/core": `jsr:@fresh/core@^${FRESH_VERSION}`,
+          "@preact/signals": `npm:@preact/signals@^${PREACT_SIGNALS_VERSION}`,
+          "preact": `npm:preact@^${PREACT_VERSION}`,
+        },
+      });
+  });
+});
+
 Deno.test("update - 1.x project middlewares", async () => {
   await withTmpDir(async (dir) => {
     await writeFiles(dir, {

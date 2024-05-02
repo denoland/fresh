@@ -64,6 +64,7 @@ export async function updateProject(dir: string) {
     config.imports["preact"] = `npm:preact@^${PREACT_VERSION}`;
     config.imports["@preact/signals"] =
       `npm:@preact/signals@^${PREACT_SIGNALS_VERSION}`;
+    delete config.imports["$fresh/"];
   });
 
   // Update routes folder
