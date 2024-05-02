@@ -161,6 +161,29 @@ export async function handler(
   });
 });
 
+Deno.test("update - 1.x project middlewares one arg", async () => {
+  await withTmpDir(async (dir) => {
+    await writeFiles(dir, {
+      "/deno.json": "{}",
+      "/routes/_middleware.ts": `export async function handler(req: Request) {
+  return new Response("hello world from: " + req.url);
+}`,
+    });
+
+    await updateProject(dir);
+    const files = await readFiles(dir);
+
+    expect(files["/routes/_middleware.ts"])
+      .toEqual(`import { FreshContext } from "@fresh/core";
+
+export async function handler(ctx: FreshContext) {
+  const req = ctx.req;
+
+  return new Response("hello world from: " + ctx.url);
+}`);
+  });
+});
+
 Deno.test("update - 1.x update '$fresh/*' imports", async () => {
   await withTmpDir(async (dir) => {
     await writeFiles(dir, {
@@ -181,7 +204,7 @@ export default function Foo(props: PageProps) {
   return null;
 }`);
     expect(files["/routes/foo.tsx"])
-      .toEqual(`import { asset } from "@fresh/core/runtime";`);
+      .toEqual(`import { asset, Head } from "@fresh/core/runtime";`);
   });
 });
 
@@ -294,7 +317,68 @@ export const handler: Handlers = {
   });
 });
 
-Deno.test.ignore(
+Deno.test(
+  "update - 1.x update handler signature method one arg",
+  async () => {
+    await withTmpDir(async (dir) => {
+      await writeFiles(dir, {
+        "/deno.json": `{}`,
+        "/routes/index.tsx": `export const handler: Handlers = {
+  GET(req) {
+    return Response.redirect(req.url);
+  },
+};`,
+      });
+      await updateProject(dir);
+      const files = await readFiles(dir);
+      expect(files["/routes/index.tsx"])
+        .toEqual(`export const handler: Handlers = {
+  GET(ctx) {
+    const req = ctx.req;
+
+    return Response.redirect(ctx.url);
+  },
+};`);
+    });
+  },
+);
+
+Deno.test(
+  "update - 1.x update handler signature variable",
+  async () => {
+    await withTmpDir(async (dir) => {
+      await writeFiles(dir, {
+        "/deno.json": `{}`,
+        "/routes/index.tsx": `export const handler: Handlers = {
+  GET: (req) => Response.redirect(req.url)
+};`,
+        "/routes/foo.tsx": `export const handler: Handlers = {
+  GET: (req, ctx) => Response.redirect(req.url),
+};`,
+      });
+      await updateProject(dir);
+      const files = await readFiles(dir);
+      expect(files["/routes/index.tsx"])
+        .toEqual(`export const handler: Handlers = {
+  GET: (ctx) => {
+    const req = ctx.req;
+
+    return Response.redirect(ctx.url);
+  },
+};`);
+      expect(files["/routes/foo.tsx"])
+        .toEqual(`export const handler: Handlers = {
+  GET: (ctx) => {
+    const req = ctx.req;
+
+    return Response.redirect(req.url);
+  },
+};`);
+    });
+  },
+);
+
+Deno.test(
   "update - 1.x update handler signature with destructure",
   async () => {
     await withTmpDir(async (dir) => {

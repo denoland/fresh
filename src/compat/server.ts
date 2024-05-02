@@ -6,6 +6,15 @@ import { createHelpers, type Helpers } from "../helpers.ts";
  */
 export type PageProps<Data = unknown, T = unknown> = FreshContext<Data, T>;
 
+/**
+ * @deprecated Use {@link FreshContext} instead
+ */
+// deno-lint-ignore no-explicit-any
+export type RouteContext<T = any, S = Record<string, unknown>> = FreshContext<
+  T,
+  S
+>;
+
 const helpers = createHelpers();
 
 /**

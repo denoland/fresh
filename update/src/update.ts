@@ -2,6 +2,8 @@ import * as path from "@std/path";
 import * as JSONC from "@std/jsonc";
 import * as tsmorph from "ts-morph";
 
+const SyntaxKind = tsmorph.ts.SyntaxKind;
+
 export const FRESH_VERSION = "2.0.0-alpha.1";
 export const PREACT_VERSION = "10.20.2";
 export const PREACT_SIGNALS_VERSION = "1.2.3";
@@ -53,6 +55,11 @@ async function updateDenoJson(
   throw new Error(`Could not find deno.json or deno.jsonc in: ${dir}`);
 }
 
+interface ImportState {
+  core: Set<string>;
+  runtime: Set<string>;
+}
+
 export async function updateProject(dir: string) {
   // Update config
   await updateDenoJson(dir, (config) => {
@@ -79,28 +86,10 @@ export async function updateProject(dir: string) {
 }
 
 async function updateFile(sourceFile: tsmorph.SourceFile): Promise<void> {
-  for (const d of sourceFile.getImportDeclarations()) {
-    const specifier = d.getModuleSpecifierValue();
-    if (specifier === "preact") {
-      for (const n of d.getNamedImports()) {
-        const name = n.getName();
-        if (name === "h" || name === "Fragment") n.remove();
-      }
-
-      removeEmptyImport(d);
-    } else if (specifier === "$fresh/server.ts") {
-      d.setModuleSpecifier("@fresh/core");
-    } else if (specifier === "$fresh/runtime.ts") {
-      d.setModuleSpecifier("@fresh/core/runtime");
-
-      for (const n of d.getNamedImports()) {
-        const name = n.getName();
-        if (name === "Head") n.remove();
-      }
-
-      removeEmptyImport(d);
-    }
-  }
+  const newImports: ImportState = {
+    core: new Set(),
+    runtime: new Set(),
+  };
 
   const text = sourceFile.getFullText()
     .replaceAll("/** @jsx h */\n", "")
@@ -115,20 +104,35 @@ async function updateFile(sourceFile: tsmorph.SourceFile): Promise<void> {
   for (const [name, decl] of sourceFile.getExportedDeclarations()) {
     if (name === "handler") {
       const maybeObjs = decl[0].getChildrenOfKind(
-        tsmorph.ts.SyntaxKind.ObjectLiteralExpression,
+        SyntaxKind.ObjectLiteralExpression,
       );
       if (maybeObjs.length > 0) {
         const obj = maybeObjs[0];
         for (const property of obj.getProperties()) {
-          if (property.isKind(tsmorph.ts.SyntaxKind.MethodDeclaration)) {
+          if (property.isKind(SyntaxKind.MethodDeclaration)) {
             const name = property.getName();
             if (
               name === "GET" || name === "POST" || name === "PATCH" ||
               name === "PUT" || name === "DELETE"
             ) {
-              maybePrependReqVar(property);
+              maybePrependReqVar(property, newImports, true);
 
               const body = property.getBody();
+              if (body !== undefined) {
+                const stmts = body.getDescendantStatements();
+                rewriteCtxMethods(stmts);
+              }
+            }
+          } else if (property.isKind(SyntaxKind.PropertyAssignment)) {
+            const init = property.getInitializer();
+            if (
+              init !== undefined &&
+              (init.isKind(SyntaxKind.ArrowFunction) ||
+                init.isKind(SyntaxKind.FunctionExpression))
+            ) {
+              maybePrependReqVar(init, newImports, true);
+
+              const body = init.getBody();
               if (body !== undefined) {
                 const stmts = body.getDescendantStatements();
                 rewriteCtxMethods(stmts);
@@ -138,7 +142,7 @@ async function updateFile(sourceFile: tsmorph.SourceFile): Promise<void> {
         }
       } else if (tsmorph.Node.isFunctionDeclaration(decl[0])) {
         const d = decl[0];
-        maybePrependReqVar(d);
+        maybePrependReqVar(d, newImports, false);
 
         const body = d.getBody();
         if (body !== undefined) {
@@ -150,7 +154,7 @@ async function updateFile(sourceFile: tsmorph.SourceFile): Promise<void> {
         decl[0].getName() === "handler"
       ) {
         const init = decl[0].getChildAtIndex(2).asKindOrThrow(
-          tsmorph.ts.SyntaxKind.ArrowFunction,
+          SyntaxKind.ArrowFunction,
         );
         const body = init.getBody();
         if (body !== undefined) {
@@ -160,9 +164,9 @@ async function updateFile(sourceFile: tsmorph.SourceFile): Promise<void> {
       }
     } else if (name === "default" && decl.length > 0) {
       const caller = decl[0];
-      if (caller.isKind(tsmorph.ts.SyntaxKind.CallExpression)) {
+      if (caller.isKind(SyntaxKind.CallExpression)) {
         const id = decl[0].getFirstChildByKind(
-          tsmorph.ts.SyntaxKind.Identifier,
+          SyntaxKind.Identifier,
         );
         if (id !== undefined) {
           const text = id.getText();
@@ -174,16 +178,75 @@ async function updateFile(sourceFile: tsmorph.SourceFile): Promise<void> {
             if (args.length > 0) {
               const first = args[0];
               if (
-                first.isKind(tsmorph.ts.SyntaxKind.ArrowFunction) ||
-                first.isKind(tsmorph.ts.SyntaxKind.FunctionExpression)
+                first.isKind(SyntaxKind.ArrowFunction) ||
+                first.isKind(SyntaxKind.FunctionExpression)
               ) {
-                maybePrependReqVar(first);
+                maybePrependReqVar(first, newImports, false);
               }
             }
           }
         }
       }
     }
+  }
+
+  let hasCoreImport = false;
+  let hasRuntimeImport = false;
+  for (const d of sourceFile.getImportDeclarations()) {
+    const specifier = d.getModuleSpecifierValue();
+    if (specifier === "preact") {
+      for (const n of d.getNamedImports()) {
+        const name = n.getName();
+        if (name === "h" || name === "Fragment") n.remove();
+      }
+
+      removeEmptyImport(d);
+    } else if (specifier === "$fresh/server.ts") {
+      hasCoreImport = true;
+      d.setModuleSpecifier("@fresh/core");
+
+      for (const n of d.getNamedImports()) {
+        const name = n.getName();
+        if (newImports.core.has(name)) {
+          newImports.core.delete(name);
+        }
+      }
+      if (newImports.core.size > 0) {
+        newImports.core.forEach((name) => {
+          d.addNamedImport(name);
+        });
+      }
+    } else if (specifier === "$fresh/runtime.ts") {
+      hasRuntimeImport = true;
+      d.setModuleSpecifier("@fresh/core/runtime");
+
+      for (const n of d.getNamedImports()) {
+        const name = n.getName();
+        if (newImports.runtime.has(name)) {
+          newImports.runtime.delete(name);
+        }
+      }
+      if (newImports.runtime.size > 0) {
+        newImports.runtime.forEach((name) => {
+          d.addNamedImport(name);
+        });
+      }
+
+      removeEmptyImport(d);
+    }
+  }
+
+  if (!hasCoreImport && newImports.core.size > 0) {
+    sourceFile.addImportDeclaration({
+      moduleSpecifier: "@fresh/core",
+      namedImports: Array.from(newImports.core),
+    });
+  }
+  if (!hasRuntimeImport && newImports.runtime.size > 0) {
+    sourceFile.addImportDeclaration({
+      moduleSpecifier: "@fresh/core/runtime",
+      namedImports: Array.from(newImports.core),
+    });
   }
 
   await sourceFile.save();
@@ -206,6 +269,8 @@ function maybePrependReqVar(
     | tsmorph.FunctionDeclaration
     | tsmorph.FunctionExpression
     | tsmorph.ArrowFunction,
+  newImports: ImportState,
+  hasInferredTypes: boolean,
 ) {
   let hasRequestVar = false;
   const params = method.getParameters();
@@ -214,16 +279,30 @@ function maybePrependReqVar(
 
     hasRequestVar = params.length > 1 || paramName === "req";
     if (hasRequestVar || paramName === "_req") {
-      params[0].remove();
+      if (hasRequestVar && params.length === 1) {
+        params[0].rename("ctx");
+        if (!hasInferredTypes && !method.isKind(SyntaxKind.MethodDeclaration)) {
+          newImports.core.add("FreshContext");
+          params[0].setType("FreshContext");
+        }
+      } else {
+        params[0].remove();
+      }
     }
 
     if (hasRequestVar && !paramName.startsWith("_")) {
       const firstChild = params.length > 1
         ? params[1].getFirstChildByKind(
-          tsmorph.ts.SyntaxKind.ObjectBindingPattern,
+          SyntaxKind.ObjectBindingPattern,
         )
         : undefined;
       if (firstChild === undefined) {
+        const body = method.getBody();
+        if (body !== undefined) {
+          if (!body.isKind(SyntaxKind.Block)) {
+            body.replaceWithText(`{ return ${body.getFullText()} }`);
+          }
+        }
         method.insertVariableStatement(0, {
           declarationKind: tsmorph.VariableDeclarationKind.Const,
           declarations: [{
@@ -232,8 +311,11 @@ function maybePrependReqVar(
           }],
         });
       } else {
-        // FIXME: Wait for ts-morph to support mutation
-        // `ObjectBindingPattern` and `ArrayBindingPattern`
+        const children = firstChild.getChildrenOfKind(SyntaxKind.SyntaxList);
+        if (children.length > 0) {
+          const list = children[0];
+          list.replaceWithText(`${list.getFullText()}, req`);
+        }
       }
     }
   }
@@ -248,7 +330,7 @@ function rewriteCtxMethods(
   for (let i = 0; i < stmts.length; i++) {
     const stmt = stmts[0];
 
-    if (stmt.isKind(tsmorph.ts.SyntaxKind.ReturnStatement)) {
+    if (stmt.isKind(SyntaxKind.ReturnStatement)) {
       const expr = stmt.getChildAtIndex(1);
       if (expr) {
         rewriteCtxRenderNotFound(expr);
@@ -258,10 +340,10 @@ function rewriteCtxMethods(
 }
 
 function rewriteCtxRenderNotFound(node: tsmorph.Node<tsmorph.ts.Node>) {
-  if (node.isKind(tsmorph.ts.SyntaxKind.CallExpression)) {
+  if (node.isKind(SyntaxKind.CallExpression)) {
     const first = node.getFirstChild();
     if (
-      !first || !first.isKind(tsmorph.ts.SyntaxKind.PropertyAccessExpression)
+      !first || !first.isKind(SyntaxKind.PropertyAccessExpression)
     ) {
       return;
     }
@@ -278,9 +360,9 @@ function toMemberExpr(
   children: tsmorph.Node<tsmorph.ts.Node>[],
 ): [tsmorph.Identifier, tsmorph.Node, tsmorph.Identifier] | null {
   if (
-    children[0].isKind(tsmorph.ts.SyntaxKind.Identifier) &&
-    children[1].isKind(tsmorph.ts.SyntaxKind.DotToken) &&
-    children[2].isKind(tsmorph.ts.SyntaxKind.Identifier)
+    children[0].isKind(SyntaxKind.Identifier) &&
+    children[1].isKind(SyntaxKind.DotToken) &&
+    children[2].isKind(SyntaxKind.Identifier)
   ) {
     // deno-lint-ignore no-explicit-any
     return children as any;

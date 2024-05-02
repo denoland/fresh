@@ -24,3 +24,8 @@ export {
   defineRoute,
   type PageProps,
 } from "./compat/server.ts";
+
+import type { HandlerByMethod } from "./handlers.ts";
+// deno-lint-ignore no-explicit-any
+export type Handlers<T = any, State = Record<string, unknown>> =
+  HandlerByMethod<T, State>;
