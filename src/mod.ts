@@ -25,6 +25,7 @@ export {
   defineRoute,
   type ErrorPageProps,
   type Handlers,
+  type Handlers as Handler,
   type LayoutProps,
   type PageProps,
   type RouteContext,
