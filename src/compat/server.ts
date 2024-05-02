@@ -1,5 +1,5 @@
 import type { FreshContext } from "../context.ts";
-import { createHelpers } from "../helpers.ts";
+import { createHelpers, type Helpers } from "../helpers.ts";
 
 /**
  * @deprecated Use {@link FreshContext} instead
@@ -11,12 +11,12 @@ const helpers = createHelpers();
 /**
  * @deprecated Use {@link definePage} instead
  */
-export const defineApp = helpers.definePage;
+export const defineApp: Helpers<unknown>["definePage"] = helpers.definePage;
 /**
  * @deprecated Use {@link definePage} instead
  */
-export const defineRoute = helpers.definePage;
+export const defineRoute: Helpers<unknown>["definePage"] = helpers.definePage;
 /**
  * @deprecated Use {@link definePage} instead
  */
-export const defineLayout = helpers.definePage;
+export const defineLayout: Helpers<unknown>["definePage"] = helpers.definePage;
