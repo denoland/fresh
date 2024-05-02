@@ -294,6 +294,38 @@ export const handler: Handlers = {
   });
 });
 
+Deno.test.ignore(
+  "update - 1.x update handler signature with destructure",
+  async () => {
+    await withTmpDir(async (dir) => {
+      await writeFiles(dir, {
+        "/deno.json": `{}`,
+        "/routes/index.tsx": `import { Handlers } from "$fresh/server.ts";
+
+export const handler: Handlers = {
+  async GET(req, { params, render, remoteAddr }) {},
+  async POST(req, { params, render, remoteAddr }) {},
+  async PATCH(req, { params, render, remoteAddr }) {},
+  async PUT(req, { params, render, remoteAddr }) {},
+  async DELETE(req, { params, render, remoteAddr }) {},
+};`,
+      });
+      await updateProject(dir);
+      const files = await readFiles(dir);
+      expect(files["/routes/index.tsx"])
+        .toEqual(`import { Handlers } from "@fresh/core";
+
+export const handler: Handlers = {
+  async GET({ params, render, remoteAddr, req }) {},
+  async POST({ params, render, remoteAddr, req }) {},
+  async PATCH({ params, render, remoteAddr, req }) {},
+  async PUT({ params, render, remoteAddr, req }) {},
+  async DELETE({ params, render, remoteAddr, req }) {},
+};`);
+    });
+  },
+);
+
 Deno.test("update - 1.x update define* handler signatures", async () => {
   await withTmpDir(async (dir) => {
     await writeFiles(dir, {

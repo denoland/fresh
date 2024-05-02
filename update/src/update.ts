@@ -69,18 +69,12 @@ export async function updateProject(dir: string) {
 
   // Update routes folder
   const routesDir = path.join(dir, "routes");
-  try {
-    await Deno.stat(routesDir);
-
+  if (await dirExists(routesDir)) {
     const project = new tsmorph.Project();
     const sfs = project.addSourceFilesAtPaths(
       path.join(routesDir, "**", "*.{js,jsx,ts,tsx}"),
     );
-    await Promise.all(sfs.map((sourceFile) => {
-      return updateFile(sourceFile);
-    }));
-  } catch (_) {
-    // TODO
+    await Promise.all(sfs.map((sourceFile) => updateFile(sourceFile)));
   }
 }
 
@@ -224,13 +218,23 @@ function maybePrependReqVar(
     }
 
     if (hasRequestVar && !paramName.startsWith("_")) {
-      method.insertVariableStatement(0, {
-        declarationKind: tsmorph.VariableDeclarationKind.Const,
-        declarations: [{
-          name: paramName,
-          initializer: "ctx.req",
-        }],
-      });
+      const firstChild = params.length > 1
+        ? params[1].getFirstChildByKind(
+          tsmorph.ts.SyntaxKind.ObjectBindingPattern,
+        )
+        : undefined;
+      if (firstChild === undefined) {
+        method.insertVariableStatement(0, {
+          declarationKind: tsmorph.VariableDeclarationKind.Const,
+          declarations: [{
+            name: paramName,
+            initializer: "ctx.req",
+          }],
+        });
+      } else {
+        // FIXME: Wait for ts-morph to support mutation
+        // `ObjectBindingPattern` and `ArrayBindingPattern`
+      }
     }
   }
 }
@@ -283,4 +287,12 @@ function toMemberExpr(
   }
 
   return null;
+}
+
+async function dirExists(dir: string): Promise<boolean> {
+  try {
+    return (await Deno.stat(dir)).isDirectory;
+  } catch (_) {
+    return false;
+  }
 }
