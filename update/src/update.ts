@@ -115,13 +115,13 @@ async function updateFile(sourceFile: tsmorph.SourceFile): Promise<void> {
               name === "GET" || name === "POST" || name === "PATCH" ||
               name === "PUT" || name === "DELETE"
             ) {
-              maybePrependReqVar(property, newImports, true);
-
               const body = property.getBody();
               if (body !== undefined) {
                 const stmts = body.getDescendantStatements();
                 rewriteCtxMethods(stmts);
               }
+
+              maybePrependReqVar(property, newImports, true);
             }
           } else if (property.isKind(SyntaxKind.PropertyAssignment)) {
             const init = property.getInitializer();
@@ -130,25 +130,26 @@ async function updateFile(sourceFile: tsmorph.SourceFile): Promise<void> {
               (init.isKind(SyntaxKind.ArrowFunction) ||
                 init.isKind(SyntaxKind.FunctionExpression))
             ) {
-              maybePrependReqVar(init, newImports, true);
-
               const body = init.getBody();
               if (body !== undefined) {
                 const stmts = body.getDescendantStatements();
                 rewriteCtxMethods(stmts);
               }
+
+              maybePrependReqVar(init, newImports, true);
             }
           }
         }
       } else if (tsmorph.Node.isFunctionDeclaration(decl[0])) {
         const d = decl[0];
-        maybePrependReqVar(d, newImports, false);
 
         const body = d.getBody();
         if (body !== undefined) {
           const stmts = body.getDescendantStatements();
           rewriteCtxMethods(stmts);
         }
+
+        maybePrependReqVar(d, newImports, false);
       } else if (
         tsmorph.Node.isVariableDeclaration(decl[0]) &&
         decl[0].getName() === "handler"
@@ -181,11 +182,25 @@ async function updateFile(sourceFile: tsmorph.SourceFile): Promise<void> {
                 first.isKind(SyntaxKind.ArrowFunction) ||
                 first.isKind(SyntaxKind.FunctionExpression)
               ) {
+                const body = first.getBody();
+                if (body !== undefined) {
+                  const stmts = body.getDescendantStatements();
+                  rewriteCtxMethods(stmts);
+                }
+
                 maybePrependReqVar(first, newImports, false);
               }
             }
           }
         }
+      } else if (caller.isKind(SyntaxKind.FunctionDeclaration)) {
+        const body = caller.getBody();
+        if (body !== undefined) {
+          const stmts = body.getDescendantStatements();
+          rewriteCtxMethods(stmts);
+        }
+
+        maybePrependReqVar(caller, newImports, false);
       }
     }
   }
@@ -292,6 +307,15 @@ function maybePrependReqVar(
         }
       } else {
         params[0].remove();
+
+        // Use proper type
+        if (params.length > 1) {
+          const initType = params[1].getTypeNode()?.getText();
+          if (initType !== undefined && initType === "RouteContext") {
+            newImports.core.add("FreshContext");
+            params[1].setType("FreshContext");
+          }
+        }
       }
     }
 
@@ -327,37 +351,43 @@ function maybePrependReqVar(
 }
 
 function rewriteCtxMethods(
-  stmts: (
-    | tsmorph.Expression<tsmorph.ts.Expression>
-    | tsmorph.Statement<tsmorph.ts.Statement>
-  )[],
+  stmts: (tsmorph.Node<tsmorph.ts.Node>)[],
 ) {
   for (let i = 0; i < stmts.length; i++) {
-    const stmt = stmts[0];
+    const node = stmts[i];
 
-    if (stmt.isKind(SyntaxKind.ReturnStatement)) {
-      const expr = stmt.getChildAtIndex(1);
-      if (expr) {
+    if (node.isKind(SyntaxKind.ExpressionStatement)) {
+      const exprs = node.getChildrenOfKind(SyntaxKind.CallExpression);
+      exprs.map((expr) => rewriteCtxRenderNotFound(expr));
+    }
+
+    if (node.isKind(SyntaxKind.ReturnStatement)) {
+      const expr = node.getChildAtIndex(1);
+      if (expr && expr.isKind(SyntaxKind.CallExpression)) {
         rewriteCtxRenderNotFound(expr);
       }
+    } else if (node.getKindName().endsWith("Statement")) {
+      const inner = node.getDescendantStatements();
+      rewriteCtxMethods(inner);
+    } else {
+      const children = node.getChildren();
+      rewriteCtxMethods(children);
     }
   }
 }
 
-function rewriteCtxRenderNotFound(node: tsmorph.Node<tsmorph.ts.Node>) {
-  if (node.isKind(SyntaxKind.CallExpression)) {
-    const first = node.getFirstChild();
-    if (
-      !first || !first.isKind(SyntaxKind.PropertyAccessExpression)
-    ) {
-      return;
-    }
+function rewriteCtxRenderNotFound(node: tsmorph.CallExpression) {
+  const first = node.getFirstChild();
+  if (
+    !first || !first.isKind(SyntaxKind.PropertyAccessExpression)
+  ) {
+    return;
+  }
 
-    const children = toMemberExpr(first.getChildren());
-    if (children !== null && children[2].getText() === "renderNotFound") {
-      children[2].replaceWithText("throw");
-      node.insertArgument(0, "404");
-    }
+  const children = toMemberExpr(first.getChildren());
+  if (children !== null && children[2].getText() === "renderNotFound") {
+    children[2].replaceWithText("throw");
+    node.insertArgument(0, "404");
   }
 }
 

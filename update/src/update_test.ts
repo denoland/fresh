@@ -482,6 +482,45 @@ export default defineRoute(async (ctx) => {
 });
 
 Deno.test(
+  "update - 1.x update component signature async",
+  async () => {
+    await withTmpDir(async (dir) => {
+      await writeFiles(dir, {
+        "/deno.json": `{}`,
+        "/routes/index.tsx":
+          `export default async function Index(req: Request, ctx: RouteContext) {
+  if (true) {
+    return ctx.renderNotFound();
+  }
+  if ("foo" === "foo" as any) {
+    ctx.renderNotFound();
+    return ctx.renderNotFound();
+  }
+  return new Response(req.url);
+}`,
+      });
+      await updateProject(dir);
+      const files = await readFiles(dir);
+      expect(files["/routes/index.tsx"])
+        .toEqual(`import { FreshContext } from "@fresh/core";
+
+export default async function Index(ctx: FreshContext) {
+  const req = ctx.req;
+
+  if (true) {
+    return ctx.throw(404);
+  }
+  if ("foo" === "foo" as any) {
+    ctx.throw(404);
+    return ctx.throw(404);
+  }
+  return new Response(req.url);
+}`);
+    });
+  },
+);
+
+Deno.test(
   "update - 1.x ctx.renderNotFound() -> ctx.throw()",
   async () => {
     await withTmpDir(async (dir) => {
