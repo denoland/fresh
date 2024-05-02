@@ -5,6 +5,25 @@ import { createHelpers, type Helpers } from "../helpers.ts";
  * @deprecated Use {@link FreshContext} instead
  */
 export type PageProps<Data = unknown, T = unknown> = FreshContext<Data, T>;
+/**
+ * @deprecated Use {@link FreshContext} instead
+ */
+export type AppProps<Data = unknown, T = unknown> = FreshContext<Data, T>;
+/**
+ * @deprecated Use {@link FreshContext} instead
+ */
+export type LayoutProps<Data = unknown, T = unknown> = FreshContext<Data, T>;
+/**
+ * @deprecated Use {@link FreshContext} instead
+ */
+export type UnkownPageProps<Data = unknown, T = unknown> = FreshContext<
+  Data,
+  T
+>;
+/**
+ * @deprecated Use {@link FreshContext} instead
+ */
+export type ErrorPageProps<Data = unknown, T = unknown> = FreshContext<Data, T>;
 
 /**
  * @deprecated Use {@link FreshContext} instead

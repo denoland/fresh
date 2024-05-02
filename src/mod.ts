@@ -19,10 +19,15 @@ export { type Method } from "./router.ts";
 
 // Compat with older Fresh versions
 export {
+  type AppProps,
   defineApp,
   defineLayout,
   defineRoute,
+  type ErrorPageProps,
+  type LayoutProps,
   type PageProps,
+  type RouteContext,
+  type UnkownPageProps,
 } from "./compat/server.ts";
 
 import type { HandlerByMethod } from "./handlers.ts";

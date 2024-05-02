@@ -277,6 +277,11 @@ function maybePrependReqVar(
   if (params.length > 0) {
     const paramName = params[0].getName();
 
+    // Add explicit types if the user did that
+    if (hasInferredTypes && params[0].getTypeNode()) {
+      hasInferredTypes = false;
+    }
+
     hasRequestVar = params.length > 1 || paramName === "req";
     if (hasRequestVar || paramName === "_req") {
       if (hasRequestVar && params.length === 1) {

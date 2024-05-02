@@ -379,6 +379,32 @@ Deno.test(
 );
 
 Deno.test(
+  "update - 1.x update handler signature non-inferred",
+  async () => {
+    await withTmpDir(async (dir) => {
+      await writeFiles(dir, {
+        "/deno.json": `{}`,
+        "/routes/index.tsx": `export const handler = {
+  GET: (req: Request) => Response.redirect(req.url)
+};`,
+      });
+      await updateProject(dir);
+      const files = await readFiles(dir);
+      expect(files["/routes/index.tsx"])
+        .toEqual(`import { FreshContext } from "@fresh/core";
+
+export const handler = {
+  GET: (ctx: FreshContext) => {
+    const req = ctx.req;
+
+    return Response.redirect(req.url);
+  },
+};`);
+    });
+  },
+);
+
+Deno.test(
   "update - 1.x update handler signature with destructure",
   async () => {
     await withTmpDir(async (dir) => {

@@ -57,6 +57,9 @@ Fresh 2.0:
 ✔ export `defineLayout/defineApp/defineRoute` from `@fresh/core` @done(24-05-02 17:17)
 ☐ rewrite imports `asset` -> `@fresh/core/runtime` instead of core
 ☐ Helpers like `defineLayout` with type args
+✔ Type `AppProps`, `LayoutProps`, `UnknownPageProps`, `ErrorPageProps` @done(24-05-02 22:08)
+✔ Type `RouteContext` @done(24-05-02 22:08)
+☐ Type `FreshContext` acts as `Deno.ServerHandlerInfo`
 
 
 Fresh 2.0 compat:
