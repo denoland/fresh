@@ -1,4 +1,4 @@
-import type { FreshContext } from "$fresh/server.ts";
+import type { FreshContext } from "@fresh/core";
 import type { Event } from "$ga4";
 import { GA4Report, isDocument, isServerError } from "$ga4";
 

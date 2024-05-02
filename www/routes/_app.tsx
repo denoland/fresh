@@ -1,4 +1,4 @@
-import type { PageProps } from "$fresh/server.ts";
+import type { PageProps } from "@fresh/core";
 import { asset } from "@fresh/core/runtime";
 
 export default function App(

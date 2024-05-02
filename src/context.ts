@@ -27,7 +27,7 @@ const NOOP = () => null;
 /**
  * The context passed to every middleware. It is unique for every request.
  */
-export interface FreshContext<Data, State> {
+export interface FreshContext<Data = unknown, State = unknown> {
   /** Reference to the resolved Fresh configuration */
   readonly config: ResolvedFreshConfig;
   state: State;

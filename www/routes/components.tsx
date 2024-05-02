@@ -2,7 +2,7 @@ import PageFooter from "../components/Footer.tsx";
 import Header from "../components/Header.tsx";
 import ComponentGallery from "../islands/ComponentGallery.tsx";
 
-import { asset, Head } from "$fresh/runtime.ts";
+import { asset, Head } from "@fresh/core/runtime";
 import { helpers } from "../utils.ts";
 
 function getSource(path: string) {

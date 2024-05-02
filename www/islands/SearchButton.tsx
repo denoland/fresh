@@ -1,4 +1,4 @@
-import { Head } from "$fresh/runtime.ts";
+import { Head } from "@fresh/core/runtime";
 import { useEffect, useRef } from "preact/hooks";
 import docsearch from "https://esm.sh/@docsearch/js@3.5.2?target=es2020";
 

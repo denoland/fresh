@@ -53,8 +53,9 @@ Fresh 2.0:
 ✔ ie if the tailwind plugin returns something, can i process that using a different plugin? @done(24-04-29 23:58)
 ✔ also we shouldn't lock to a specific preact version inside of fresh core @done(24-04-23 17:48)
 ☐ OnTransformArgs.path should probably be relative to the static folder, otherwise the user needs to manually strip it out (or include both path and name or something)
-☐ export `PageProps` from `@fresh/core`
-☐ export `defineLayout/defineApp/defineRoute` from `@fresh/core`
+✔ export `PageProps` from `@fresh/core` @done(24-05-02 17:17)
+✔ export `defineLayout/defineApp/defineRoute` from `@fresh/core` @done(24-05-02 17:17)
+☐ rewrite imports `asset` -> `@fresh/core/runtime` instead of core
 
 
 Fresh 2.0 compat:

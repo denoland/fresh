@@ -16,3 +16,11 @@ export { type FreshConfig, type ResolvedFreshConfig } from "./config.ts";
 export { type FreshContext, type Island } from "./context.ts";
 export { createHelpers, type Helpers } from "./helpers.ts";
 export { type Method } from "./router.ts";
+
+// Compat with older Fresh versions
+export {
+  defineApp,
+  defineLayout,
+  defineRoute,
+  type PageProps,
+} from "./compat/server.ts";

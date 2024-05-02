@@ -9,7 +9,6 @@
   "imports": {
     "$fresh-testing-library": "https://deno.land/x/fresh_testing_library@0.8.0/mod.ts",
     "$fresh-testing-library/": "https://deno.land/x/fresh_testing_library@0.8.0/",
-    "$fresh/": "../src/compat/",
     "$ga4": "https://raw.githubusercontent.com/denoland/ga4/main/mod.ts",
     "$marked-mangle": "https://esm.sh/marked-mangle@1.1.7",
     "$std/": "https://deno.land/std@0.216.0/",
