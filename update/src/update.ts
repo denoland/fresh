@@ -280,7 +280,7 @@ function maybePrependReqVar(
     hasRequestVar = params.length > 1 || paramName === "req";
     if (hasRequestVar || paramName === "_req") {
       if (hasRequestVar && params.length === 1) {
-        params[0].rename("ctx");
+        params[0].replaceWithText("ctx");
         if (!hasInferredTypes && !method.isKind(SyntaxKind.MethodDeclaration)) {
           newImports.core.add("FreshContext");
           params[0].setType("FreshContext");

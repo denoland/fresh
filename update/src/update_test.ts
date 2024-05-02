@@ -179,7 +179,7 @@ Deno.test("update - 1.x project middlewares one arg", async () => {
 export async function handler(ctx: FreshContext) {
   const req = ctx.req;
 
-  return new Response("hello world from: " + ctx.url);
+  return new Response("hello world from: " + req.url);
 }`);
   });
 });
@@ -336,7 +336,7 @@ Deno.test(
   GET(ctx) {
     const req = ctx.req;
 
-    return Response.redirect(ctx.url);
+    return Response.redirect(req.url);
   },
 };`);
     });
@@ -363,7 +363,7 @@ Deno.test(
   GET: (ctx) => {
     const req = ctx.req;
 
-    return Response.redirect(ctx.url);
+    return Response.redirect(req.url);
   },
 };`);
       expect(files["/routes/foo.tsx"])
