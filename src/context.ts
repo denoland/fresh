@@ -43,6 +43,7 @@ export interface FreshContext<Data = unknown, State = unknown> {
   params: Record<string, string>;
   error: unknown;
   Component: FunctionComponent;
+  info?: Deno.ServeHandlerInfo | Deno.ServeUnixHandlerInfo;
   /**
    * Return a redirect response to the specified path. This is the
    * preferred way to do redirects in Fresh.
@@ -88,9 +89,6 @@ export interface FreshContext<Data = unknown, State = unknown> {
 export let getBuildCache: (ctx: FreshContext<unknown, unknown>) => BuildCache;
 
 export class FreshReqContext<State> implements FreshContext<unknown, State> {
-  req: Request;
-  config: ResolvedFreshConfig;
-  next: FreshContext<unknown, State>["next"];
   url: URL;
   Component = NOOP;
   params = {} as Record<string, string>;
@@ -105,15 +103,13 @@ export class FreshReqContext<State> implements FreshContext<unknown, State> {
   }
 
   constructor(
-    req: Request,
-    config: ResolvedFreshConfig,
-    next: FreshContext<unknown, State>["next"],
+    public req: Request,
+    public config: ResolvedFreshConfig,
+    public next: FreshContext<unknown, State>["next"],
     islandRegistry: ServerIslandRegistry,
     buildCache: BuildCache,
+    public info?: Deno.ServeHandlerInfo | Deno.ServeUnixHandlerInfo,
   ) {
-    this.req = req;
-    this.config = config;
-    this.next = next;
     this.#islandRegistry = islandRegistry;
     this.#buildCache = buildCache;
     this.url = new URL(req.url);

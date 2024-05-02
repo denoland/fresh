@@ -60,6 +60,8 @@ Fresh 2.0:
 ✔ Type `AppProps`, `LayoutProps`, `UnknownPageProps`, `ErrorPageProps` @done(24-05-02 22:08)
 ✔ Type `RouteContext` @done(24-05-02 22:08)
 ☐ Type `FreshContext` acts as `Deno.ServerHandlerInfo`
+☐ Update ArrowFunction inserting a return breaks expr into next statement
+☐ This: `async GET({ renderNotFound }) { }`
 
 
 Fresh 2.0 compat:

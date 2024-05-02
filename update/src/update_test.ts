@@ -558,6 +558,40 @@ export const handler: Handlers = {
   },
 );
 
+Deno.test.ignore(
+  "update - 1.x ctx.remoteAddr -> ctx.throw()",
+  async () => {
+    await withTmpDir(async (dir) => {
+      await writeFiles(dir, {
+        "/deno.json": `{}`,
+        "/routes/index.tsx": `import { Handlers } from "$fresh/server.ts";
+
+export const handler: Handlers = {
+  async GET(_req, ctx) {
+    let msg = ctx.remoteAddr.transport === "tcp" ? "ok" : "not ok";
+    msg += typeof ctx.renderNotFound === "function";
+    return new Response(msg);
+  },
+};`,
+      });
+
+      await updateProject(dir);
+      const files = await readFiles(dir);
+
+      expect(files["/routes/index.tsx"])
+        .toEqual(`import { Handlers } from "@fresh/core";
+
+export const handler: Handlers = {
+  async GET(ctx) {
+    let msg = ctx.info.remoteAddr.transport === "tcp" ? "ok" : "not ok";
+    msg += typeof ctx.throw === "function";
+    return new Response(msg);
+  },
+};`);
+    });
+  },
+);
+
 Deno.test("update - 1.x remove reference comments", async () => {
   await withTmpDir(async (dir) => {
     await writeFiles(dir, {
