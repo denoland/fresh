@@ -1,6 +1,6 @@
+import type { VNode } from "preact";
 import type { FreshContext } from "../context.ts";
-import { HandlerByMethod } from "../handlers.ts";
-import { createHelpers, type Helpers } from "../helpers.ts";
+import type { HandlerByMethod } from "../handlers.ts";
 
 /**
  * @deprecated Use {@link FreshContext} instead
@@ -39,17 +39,25 @@ export type RouteContext<T = any, S = Record<string, unknown>> = FreshContext<
 export type Handlers<T = any, State = Record<string, unknown>> =
   HandlerByMethod<T, State>;
 
-const helpers = createHelpers();
+function defineFn<State>(
+  fn: (
+    ctx: FreshContext<unknown, State>,
+  ) => Request | VNode | null | Promise<Request | VNode | null>,
+): (
+  ctx: FreshContext<unknown, State>,
+) => Request | VNode | null | Promise<Request | VNode | null> {
+  return fn;
+}
 
 /**
  * @deprecated Use {@link definePage} instead
  */
-export const defineApp: Helpers<unknown>["definePage"] = helpers.definePage;
+export const defineApp = defineFn;
 /**
  * @deprecated Use {@link definePage} instead
  */
-export const defineRoute: Helpers<unknown>["definePage"] = helpers.definePage;
+export const defineRoute = defineFn;
 /**
  * @deprecated Use {@link definePage} instead
  */
-export const defineLayout: Helpers<unknown>["definePage"] = helpers.definePage;
+export const defineLayout = defineFn;
