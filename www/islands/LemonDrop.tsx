@@ -66,7 +66,7 @@ function LemonDrop() {
     const dropPosition = Math.round(
       ((widthRef.current / 2 - 30) / widthRef.current) * 100,
     );
-    waveTank.springs[dropPosition].p = -60;
+    waveTank.springs[dropPosition].p = -40;
   }
 
   useEffect(() => {
@@ -96,14 +96,14 @@ function LemonDrop() {
   return (
     <>
       <svg
-        width="150"
-        height="400"
-        viewBox="0 0 100 300"
+        width="120"
+        height="240"
+        viewBox="0 0 100 180"
         fill="none"
         xmlns="http://www.w3.org/2000/svg"
-        class="mt-32"
         role="img"
-        aria-label="Fresh logo"
+        class="mt-8"
+        alt="Fresh logo"
       >
         <circle cx="18" cy={dropy.value} r="4" fill="white"></circle>
         <path

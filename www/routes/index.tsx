@@ -14,6 +14,8 @@ import { RenderingSection } from "$fresh/www/components/homepage/RenderingSectio
 import { IslandsSection } from "$fresh/www/components/homepage/IslandsSection.tsx";
 import { RoutingSection } from "$fresh/www/components/homepage/RoutingSection.tsx";
 import { PartialsSection } from "$fresh/www/components/homepage/PartialsSection.tsx";
+import { SideBySide } from "$fresh/www/components/SideBySide.tsx";
+import { SectionHeading } from "$fresh/www/components/homepage/SectionHeading.tsx";
 
 function isOpenGraphUA(header: string | null): boolean {
   if (!header) {
@@ -72,6 +74,7 @@ export default function MainPage(props: PageProps) {
           <IslandsSection />
           <RoutingSection />
           <PartialsSection />
+          <ProdReady />
           <Showcase />
           <StartJourney />
         </div>
@@ -94,6 +97,37 @@ function Simple() {
             the best well-known tools and conventions.
           </p>
         </div>
+      </PageSection>
+    </div>
+  );
+}
+
+function ProdReady() {
+  return (
+    <div>
+      <PageSection>
+        <div class="text-center max-w-max mx-auto flex flex-col gap-4">
+          <h2 class="text-4xl sm:text-5xl md:text-6xl lg:text-7xl sm:tracking-tight sm:leading-[1.1]! font-extrabold text-balance">
+            Powering production applications at the edge
+          </h2>
+          <p class="text-xl text-balance max-w-prose mx-auto">
+            Fresh is the secret sauce behind production-grade, enterprise-ready
+            software like{" "}
+            <a href="https://deco.cx" class="underline">Deco.cx</a>, Brazil's
+            top eCommerce platform
+          </p>
+        </div>
+        <img
+          src="/showcase/deco.webp"
+          alt="Deco CX"
+          class="mx-auto mt-8"
+          loading="lazy"
+        />
+        <SideBySide mdColSplit="3/2" lgColSplit="3/2">
+          <a href="https://deno.com/blog/deco-cx-subhosting-serve-their-clients-storefronts-fast">
+            {/* TODO: fill in more on Deco here */}
+          </a>
+        </SideBySide>
       </PageSection>
     </div>
   );

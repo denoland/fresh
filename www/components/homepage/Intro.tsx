@@ -4,7 +4,7 @@ import CopyArea from "../../islands/CopyArea.tsx";
 export function IntroSection(props: { origin: string }) {
   return (
     <PageSection>
-      <div class="max-w-screen-xl mx-auto sm:my-8 md:my-16 w-full">
+      <div class="max-w-screen-xl mx-auto w-full">
         <div class="md:grid grid-cols-5 gap-8 md:gap-16 items-center">
           <div class="flex-1 text-center md:text-left md:col-span-3">
             <h2 class="text-5xl sm:text-5xl lg:text-6xl sm:tracking-tight sm:leading-[1.1]! font-extrabold bg-[linear-gradient(170deg_in_oklch,var(--tw-gradient-stops))] from-yellow-300 via-green-500 max-w-max to-blue-300 bg-clip-text text-transparent">
