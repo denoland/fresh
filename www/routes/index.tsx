@@ -12,6 +12,8 @@ import { PageSection } from "$fresh/www/components/PageSection.tsx";
 import { IntroSection } from "$fresh/www/components/homepage/Intro.tsx";
 import { RenderingSection } from "$fresh/www/components/homepage/RenderingSection.tsx";
 import { IslandsSection } from "$fresh/www/components/homepage/IslandsSection.tsx";
+import { RoutingSection } from "$fresh/www/components/homepage/RoutingSection.tsx";
+import { PartialsSection } from "$fresh/www/components/homepage/PartialsSection.tsx";
 
 function isOpenGraphUA(header: string | null): boolean {
   if (!header) {
@@ -68,6 +70,8 @@ export default function MainPage(props: PageProps) {
           <Simple />
           <RenderingSection />
           <IslandsSection />
+          <RoutingSection />
+          <PartialsSection />
           <Showcase />
           <StartJourney />
         </div>

@@ -38,6 +38,7 @@ interface HomeProps {
 }
 
 export default function Home(props: PageProps<HomeProps>) {
+  return null;
   const ogImageUrl = new URL(asset("/home-og.png"), props.url).href;
   return (
     <div class="bg-white h-full">

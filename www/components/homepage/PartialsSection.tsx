@@ -7,25 +7,25 @@ import { SectionHeading } from "$fresh/www/components/homepage/SectionHeading.ts
 import { DemoBox } from "$fresh/www/components/homepage/DemoBox.tsx";
 import { ExampleArrow } from "$fresh/www/components/homepage/ExampleArrow.tsx";
 
-const islandCode = `import { useSignal } from "@preact/signals";
+const islandCode = `+ import { Partial } from "$fresh/runtime.ts";
 
-export default function Counter(props) {
-  const count = useSignal(props.start);
-
+export default function TabList() {
   return (
-    <div>
-      <h3>Interactive island</h3>
-      <p>The server supplied the initial value of {props.start}.</p>
-      <div>
-        <button onClick={() => count.value -= 1}>-</button>
-        <div>{count}</div>
-        <button onClick={() => count.value += 1}>+</button>
-      </div>
+    <div f-client-nav>
+      <aside class="flex flex-col gap-4 underline">
+        <a href="tab/a">A</a>
+        <a href="tab/b">B</a>
+        <a href="tab/c">C</a>
+      </aside>
+      <main>
+        Streamed straight from the server:
+        <Partial name="main" />
+      </main>
     </div>
   );
 }`;
 
-export function IslandsSection() {
+export function PartialsSection() {
   return (
     <PageSection>
       <SideBySide mdColSplit="3/2" lgColSplit="3/2" reverseOnDesktop={true}>
@@ -33,17 +33,17 @@ export function IslandsSection() {
           <div
             role="img"
             alt="Desert island emoji"
-            class="leading-none text-[4rem]"
+            class="leading-none text-[4rem] font-mono"
           >
-            &#127965;
+            &lt;/&gt;
           </div>
-          <SectionHeading>Island-based architecture</SectionHeading>
-          <p class="text-gray-600 mb-4">
-            Fresh ships raw HTML to the client, and then hydrates with
-            JavaScript only where needed. Simple and fast.
+          <SectionHeading>Stream HTML straight from the server</SectionHeading>
+          <p class="text-gray-600">
+            Fresh Partials can replace only what needs to be updated on the
+            client, for app-like interactivity with zero JavaScript.
           </p>
         </div>
-        <div class="flex flex-col gap-4 relative">
+        <div class="flex flex-col gap-4">
           <CodeWindow name="Counter island component">
             <CodeBlock
               code={islandCode}

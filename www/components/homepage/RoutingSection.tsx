@@ -9,40 +9,45 @@ import { ExampleArrow } from "$fresh/www/components/homepage/ExampleArrow.tsx";
 const serverCode = `export default function() {
   const time = new Date().toLocaleString();
   return (
-    <p>Freshly server-rendered {time}</p>
+    <p>Freshly server-rendered at {time}!</p>
   );
 }`;
 
-export function RenderingSection() {
+export function RoutingSection() {
   return (
     <PageSection>
       <SideBySide mdColSplit="2/3" lgColSplit="2/3">
         <div class="flex flex-col gap-4">
-          <img
-            src="/logos/preact.svg"
-            alt="Preact logo"
-            class="w-full h-auto max-w-14"
-          />
+          <div
+            role="img"
+            alt="Arrows routing and crossing each other emoji"
+            class="leading-none text-[4rem]"
+          >
+            🔀
+          </div>
           <SectionHeading>
-            Build fast apps fast
+            Easy routing with full control
           </SectionHeading>
           <p>
-            Fresh routes are dynamically server-rendered Preact components, so
-            there's zero JavaScript shipped to the client.
+            Use file-based routing, or get as granular as you like with built-in
+            middleware and route handlers.
           </p>
-          <p>Fast to write, and fast to run.</p>
+          <p>
+            Easily build everything from websites to APIs, and anything in
+            between.
+          </p>
         </div>
         <div class="flex flex-col gap-4">
           <CodeWindow name="routes/index.tsx">
-            <CodeBlock code={serverCode} lang="jsx" />
+            <CodeBlock
+              code={`// TODO: we need some kind of code example here`}
+              lang="jsx"
+            />
           </CodeWindow>
-          <ExampleArrow class="ml-[55%]" />{" "}
+          <ExampleArrow />
           <DemoBox>
             <p>
-              Freshly server-rendered {new Date().toLocaleString("default", {
-                dateStyle: "medium",
-                timeStyle: "medium",
-              })}
+              TODO: something goes here.
             </p>
           </DemoBox>
         </div>

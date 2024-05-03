@@ -13,7 +13,7 @@ export default function Counter(props: CounterProps) {
   return (
     <div>
       <h3 class="green-300 text-2xl font-bold">
-        Interactive island 🏝️
+        Interactive island
       </h3>
       <p class="text-gray-600">
         The server supplied the initial value of 3.
