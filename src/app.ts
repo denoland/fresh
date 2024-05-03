@@ -180,7 +180,7 @@ export class App<State> {
     return this;
   }
 
-  async handler(): Promise<(request: Request) => Promise<Response>> {
+  async handler(): Promise<(request: Request, info?: Deno.ServeHandlerInfo) => Promise<Response>> {
     const next = () =>
       Promise.resolve(new Response("Not found", { status: 404 }));
 

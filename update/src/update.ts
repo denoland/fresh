@@ -81,7 +81,14 @@ export async function updateProject(dir: string) {
     const sfs = project.addSourceFilesAtPaths(
       path.join(routesDir, "**", "*.{js,jsx,ts,tsx}"),
     );
-    await Promise.all(sfs.map((sourceFile) => updateFile(sourceFile)));
+    await Promise.all(sfs.map(async (sourceFile) => {
+      try {
+        return await updateFile(sourceFile);
+      } catch (err) {
+        console.error(`Could not process ${sourceFile.getFilePath()}`);
+        throw err;
+      }
+    }));
   }
 }
 
@@ -319,31 +326,65 @@ function maybePrependReqVar(
       }
     }
 
-    if (hasRequestVar && !paramName.startsWith("_")) {
-      const firstChild = params.length > 1
-        ? params[1].getFirstChildByKind(
-          SyntaxKind.ObjectBindingPattern,
-        )
-        : undefined;
-      if (firstChild === undefined) {
-        const body = method.getBody();
-        if (body !== undefined) {
-          if (!body.isKind(SyntaxKind.Block)) {
-            body.replaceWithText(`{ return ${body.getFullText()} }`);
+    const objBinding = params.length > 1
+      ? params[1].getFirstChildByKind(
+        SyntaxKind.ObjectBindingPattern,
+      )
+      : undefined;
+
+    if (method.isKind(SyntaxKind.ArrowFunction)) {
+      const body = method.getBody();
+      if (!body.isKind(SyntaxKind.Block)) {
+        method.setBodyText(`{ return (${method.getBodyText()}) }`);
+      }
+      console.log(body.getKindName());
+      console.log(method.getBodyText());
+    }
+
+    if (
+      objBinding === undefined && hasRequestVar && !paramName.startsWith("_")
+    ) {
+      console.log("GOGO", method.getKindName());
+      method.insertVariableStatement(0, {
+        declarationKind: tsmorph.VariableDeclarationKind.Const,
+        declarations: [{
+          name: paramName,
+          initializer: "ctx.req",
+        }],
+      });
+    }
+
+    if (objBinding !== undefined) {
+      const children = objBinding.getChildrenOfKind(SyntaxKind.SyntaxList);
+      if (children.length > 0) {
+        const list = children[0];
+
+        let needsRemoteAddr = false;
+        const listChildren = list.getChildrenOfKind(SyntaxKind.BindingElement);
+        for (let i = 0; i < listChildren.length; i++) {
+          const listChild = listChildren[i];
+          const name = listChild.getName();
+          if (name === "remoteAddr") {
+            listChild.replaceWithText("info");
+            needsRemoteAddr = true;
           }
+          console.log("F", listChild.getName(), listChild.getKindName());
         }
-        method.insertVariableStatement(0, {
-          declarationKind: tsmorph.VariableDeclarationKind.Const,
-          declarations: [{
-            name: paramName,
-            initializer: "ctx.req",
-          }],
+        list.forEachChild((child) => {
+          console.log(child.getKindName());
         });
-      } else {
-        const children = firstChild.getChildrenOfKind(SyntaxKind.SyntaxList);
-        if (children.length > 0) {
-          const list = children[0];
-          list.replaceWithText(`${list.getFullText()}, req`);
+        if (hasRequestVar && !paramName.startsWith("_")) {
+          list.addChildText(", req");
+        }
+
+        if (needsRemoteAddr) {
+          method.insertVariableStatement(0, {
+            declarationKind: tsmorph.VariableDeclarationKind.Const,
+            declarations: [{
+              name: "remoteAddr",
+              initializer: "info.remoteAddr",
+            }],
+          });
         }
       }
     }

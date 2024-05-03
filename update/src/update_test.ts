@@ -592,6 +592,81 @@ export const handler: Handlers = {
   },
 );
 
+Deno.test.ignore("update - 1.x destructured ctx members", async () => {
+  await withTmpDir(async (dir) => {
+    await writeFiles(dir, {
+      "/deno.json": `{}`,
+      "/routes/index.tsx": `import { Handlers } from "$fresh/server.ts";
+
+export const handler: Handlers = {
+  async GET(_req, { url, renderNotFound, remoteAddr }) {
+    if (true) {
+      return new Response(!!remoteAddr ? "ok" : "not ok");
+    } else {
+      console.log(url.href);
+      return renderNotFound();
+    }
+  },
+};`,
+    });
+
+    await updateProject(dir);
+    const files = await readFiles(dir);
+
+    expect(files["/routes/index.tsx"])
+      .toEqual(`import { Handlers } from "@fresh/core";
+
+export const handler: Handlers = {
+  async GET({ url, throw, info }) {
+    const renderNotFound = () => throw(404);
+    const remoteAddr = info.remoteAddr;
+
+    if (true) {
+      return new Response(!!remoteAddr ? "ok" : "not ok");
+    } else {
+      console.log(url.href);
+      return renderNotFound();
+    }
+  },
+};`);
+  });
+});
+
+Deno.test.only("update - 1.x ctx rewrite", async () => {
+  await withTmpDir(async (dir) => {
+    await writeFiles(dir, {
+      "/deno.json": `{}`,
+      "/routes/index.tsx":
+        `import type { Handlers, RouteConfig } from "$fresh/server.ts";
+
+export const handler: Handlers = {
+  GET: (req, ctx) =>
+    Response.redirect(new URL("/subhosting/" + ctx.params.path, req.url), 307),
+};`,
+    });
+
+    await updateProject(dir);
+    const files = await readFiles(dir);
+
+    expect(files["/routes/index.tsx"])
+      .toEqual(`import { Handlers } from "@fresh/core";
+
+export const handler: Handlers = {
+  async GET({ url, throw, info }) {
+    const renderNotFound = () => throw(404);
+    const remoteAddr = info.remoteAddr;
+
+    if (true) {
+      return new Response(!!remoteAddr ? "ok" : "not ok");
+    } else {
+      console.log(url.href);
+      return renderNotFound();
+    }
+  },
+};`);
+  });
+});
+
 Deno.test("update - 1.x remove reference comments", async () => {
   await withTmpDir(async (dir) => {
     await writeFiles(dir, {
