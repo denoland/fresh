@@ -351,22 +351,31 @@ function maybePrependReqVar(
 }
 
 function rewriteCtxMethods(
-  stmts: (tsmorph.Node<tsmorph.ts.Node>)[],
+  nodes: (tsmorph.Node<tsmorph.ts.Node>)[],
 ) {
-  for (let i = 0; i < stmts.length; i++) {
-    const node = stmts[i];
+  for (let i = 0; i < nodes.length; i++) {
+    const node = nodes[i];
 
-    if (node.isKind(SyntaxKind.ExpressionStatement)) {
-      const exprs = node.getChildrenOfKind(SyntaxKind.CallExpression);
-      exprs.map((expr) => rewriteCtxRenderNotFound(expr));
-    }
-
-    if (node.isKind(SyntaxKind.ReturnStatement)) {
-      const expr = node.getChildAtIndex(1);
-      if (expr && expr.isKind(SyntaxKind.CallExpression)) {
-        rewriteCtxRenderNotFound(expr);
+    if (node.isKind(SyntaxKind.PropertyAccessExpression)) {
+      rewriteCtxMemberName(node);
+    } else if (node.isKind(SyntaxKind.ReturnStatement)) {
+      const expr = node.getExpression();
+      if (expr !== undefined) {
+        rewriteCtxMethods([expr]);
       }
-    } else if (node.getKindName().endsWith("Statement")) {
+    } else if (node.isKind(SyntaxKind.VariableStatement)) {
+      const decls = node.getDeclarations();
+      for (let i = 0; i < decls.length; i++) {
+        const decl = decls[i];
+        const init = decl.getInitializer();
+        if (init !== undefined) {
+          rewriteCtxMethods([init]);
+        }
+      }
+    } else if (
+      !node.isKind(SyntaxKind.ExpressionStatement) &&
+      node.getKindName().endsWith("Statement")
+    ) {
       const inner = node.getDescendantStatements();
       rewriteCtxMethods(inner);
     } else {
@@ -376,34 +385,38 @@ function rewriteCtxMethods(
   }
 }
 
-function rewriteCtxRenderNotFound(node: tsmorph.CallExpression) {
-  const first = node.getFirstChild();
-  if (
-    !first || !first.isKind(SyntaxKind.PropertyAccessExpression)
-  ) {
-    return;
-  }
+function rewriteCtxMemberName(
+  node: tsmorph.PropertyAccessExpression,
+) {
+  const children = node.getChildren();
+  if (children.length === 0) return;
+  const last = children[children.length - 1];
 
-  const children = toMemberExpr(first.getChildren());
-  if (children !== null && children[2].getText() === "renderNotFound") {
-    children[2].replaceWithText("throw");
-    node.insertArgument(0, "404");
-  }
-}
+  if (last.getText() === "remoteAddr") {
+    node.transform((visit) => {
+      const n = visit.visitChildren();
 
-function toMemberExpr(
-  children: tsmorph.Node<tsmorph.ts.Node>[],
-): [tsmorph.Identifier, tsmorph.Node, tsmorph.Identifier] | null {
-  if (
-    children[0].isKind(SyntaxKind.Identifier) &&
-    children[1].isKind(SyntaxKind.DotToken) &&
-    children[2].isKind(SyntaxKind.Identifier)
-  ) {
-    // deno-lint-ignore no-explicit-any
-    return children as any;
+      if (tsmorph.ts.isPropertyAccessExpression(n)) {
+        return visit.factory.updatePropertyAccessExpression(
+          n,
+          visit.factory.createPropertyAccessExpression(
+            visit.factory.createIdentifier("ctx"),
+            "info",
+          ),
+          visit.factory.createIdentifier("remoteAddr"),
+        );
+      }
+      return n;
+    });
+  } else if (last.getText() === "renderNotFound") {
+    last.replaceWithText("throw");
+    const caller = node.getParentIfKind(SyntaxKind.CallExpression);
+    if (caller !== undefined) {
+      caller.addArgument("404");
+    }
+  } else if (children[0].isKind(SyntaxKind.PropertyAccessExpression)) {
+    rewriteCtxMemberName(children[0]);
   }
-
-  return null;
 }
 
 async function dirExists(dir: string): Promise<boolean> {

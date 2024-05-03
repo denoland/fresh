@@ -558,7 +558,7 @@ export const handler: Handlers = {
   },
 );
 
-Deno.test.ignore(
+Deno.test(
   "update - 1.x ctx.remoteAddr -> ctx.throw()",
   async () => {
     await withTmpDir(async (dir) => {
