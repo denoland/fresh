@@ -6,12 +6,15 @@ import * as $_404 from "./routes/_404.tsx";
 import * as $_500 from "./routes/_500.tsx";
 import * as $_app from "./routes/_app.tsx";
 import * as $_middleware from "./routes/_middleware.ts";
-import * as $components from "./routes/components.tsx";
 import * as $docs_slug_ from "./routes/docs/[...slug].tsx";
 import * as $docs_middleware from "./routes/docs/_middleware.ts";
 import * as $docs_index from "./routes/docs/index.tsx";
 import * as $index from "./routes/index.tsx";
 import * as $raw from "./routes/raw.ts";
+import * as $recipes_layout from "./routes/recipes/_layout.tsx";
+import * as $recipes_lemon_honey_tea from "./routes/recipes/lemon-honey-tea.tsx";
+import * as $recipes_lemonade from "./routes/recipes/lemonade.tsx";
+import * as $recipes_lemondrop from "./routes/recipes/lemondrop.tsx";
 import * as $showcase from "./routes/showcase.tsx";
 import * as $update from "./routes/update.tsx";
 import * as $ComponentGallery from "./islands/ComponentGallery.tsx";
@@ -29,12 +32,15 @@ const manifest = {
     "./routes/_500.tsx": $_500,
     "./routes/_app.tsx": $_app,
     "./routes/_middleware.ts": $_middleware,
-    "./routes/components.tsx": $components,
     "./routes/docs/[...slug].tsx": $docs_slug_,
     "./routes/docs/_middleware.ts": $docs_middleware,
     "./routes/docs/index.tsx": $docs_index,
     "./routes/index.tsx": $index,
     "./routes/raw.ts": $raw,
+    "./routes/recipes/_layout.tsx": $recipes_layout,
+    "./routes/recipes/lemon-honey-tea.tsx": $recipes_lemon_honey_tea,
+    "./routes/recipes/lemonade.tsx": $recipes_lemonade,
+    "./routes/recipes/lemondrop.tsx": $recipes_lemondrop,
     "./routes/showcase.tsx": $showcase,
     "./routes/update.tsx": $update,
   },

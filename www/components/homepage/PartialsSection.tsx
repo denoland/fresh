@@ -6,24 +6,30 @@ import { SideBySide } from "$fresh/www/components/SideBySide.tsx";
 import { SectionHeading } from "$fresh/www/components/homepage/SectionHeading.tsx";
 import { DemoBox } from "$fresh/www/components/homepage/DemoBox.tsx";
 import { ExampleArrow } from "$fresh/www/components/homepage/ExampleArrow.tsx";
+import { RecipeDemo } from "$fresh/www/components/homepage/RecipeDemo.tsx";
 
-const islandCode = `+ import { Partial } from "$fresh/runtime.ts";
+const islandCode = `import { Partial } from "$fresh/runtime.ts";
 
-export default function TabList() {
-  return (
-    <div f-client-nav>
-      <aside class="flex flex-col gap-4 underline">
-        <a href="tab/a">A</a>
-        <a href="tab/b">B</a>
-        <a href="tab/c">C</a>
-      </aside>
-      <main>
-        Streamed straight from the server:
-        <Partial name="main" />
-      </main>
-    </div>
-  );
-}`;
+export const Recipes = () => (
+  <div f-client-nav>
+    <aside>
+      <button f-partial="/recipes/lemonade">
+        Lemonade
+      </button>
+      <button f-partial="/recipes/lemon-honey-tea">
+        Lemon-honey tea
+      </button>
+      <button f-partial="/recipes/lemondrop">
+        Lemondrop Martini
+      </button>
+    </aside>
+    <main>
+      <Partial name="recipe">
+        👈 Click a recipe to stream HTML into this spot
+      </Partial>
+    </main>
+  </div>
+);`;
 
 export function PartialsSection() {
   return (
@@ -35,16 +41,17 @@ export function PartialsSection() {
             alt="Desert island emoji"
             class="leading-none text-[4rem] font-mono"
           >
-            &lt;/&gt;
+            🍋
           </div>
           <SectionHeading>Stream HTML straight from the server</SectionHeading>
           <p class="text-gray-600">
-            Fresh Partials can replace only what needs to be updated on the
-            client, for app-like interactivity with zero JavaScript.
+            Fresh Partials let you update only elements that need to change,
+            without reloading the entire page.
           </p>
+          <p>Get SPA-like navigation the right way.</p>
         </div>
         <div class="flex flex-col gap-4">
-          <CodeWindow name="Counter island component">
+          <CodeWindow name="Loading partials">
             <CodeBlock
               code={islandCode}
               lang="jsx"
@@ -52,7 +59,7 @@ export function PartialsSection() {
           </CodeWindow>
           <ExampleArrow class="[transform:rotateY(-180deg)]" />
           <DemoBox>
-            <Counter start={3} />
+            <RecipeDemo />
           </DemoBox>
         </div>
       </SideBySide>
