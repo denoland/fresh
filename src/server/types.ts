@@ -251,13 +251,12 @@ export interface RouteConfig {
 
 export interface RenderOptions extends ResponseInit {}
 
-export type ServeHandlerInfo = {
+export type ServeHandlerInfo = Deno.ServeHandlerInfo & {
   /**
    * Backwards compatible with std/server
    * @deprecated
    */
   localAddr?: Deno.NetAddr;
-  remoteAddr: Deno.NetAddr;
 };
 
 export type ServeHandler = (

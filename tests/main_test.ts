@@ -305,7 +305,8 @@ Deno.test("static files in custom directory", async () => {
         hostname: "127.0.0.1",
         port: 80,
       },
-    });
+      // deno-lint-ignore no-explicit-any
+    } as any);
   };
 
   const resp = await newRouter(

@@ -367,6 +367,11 @@
     "image": "echo-echo"
   },
   {
+    "title": "VirtualFreight Landing Page",
+    "link": "https://virtualfreight.software/",
+    "image": "virtualfreight"
+  },
+  {
     "title": "Do not remove this, it’s for preventing conflicts by trailing comma",
     "link": "",
     "github": "",
