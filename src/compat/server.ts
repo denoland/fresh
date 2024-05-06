@@ -5,10 +5,6 @@ import type { HandlerByMethod } from "../handlers.ts";
 /**
  * @deprecated Use {@link FreshContext} instead
  */
-export type PageProps<Data = unknown, T = unknown> = FreshContext<Data, T>;
-/**
- * @deprecated Use {@link FreshContext} instead
- */
 export type AppProps<Data = unknown, T = unknown> = FreshContext<Data, T>;
 /**
  * @deprecated Use {@link FreshContext} instead
