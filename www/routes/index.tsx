@@ -126,13 +126,6 @@ function Features() {
       </div>
 
       <div class={item}>
-        <FeatureIcons.NoBuild />
-        <div class={desc}>
-          <b>No build step</b>.
-        </div>
-      </div>
-
-      <div class={item}>
         <FeatureIcons.Garbage />
         <div class={desc}>
           <b>No configuration</b> necessary.

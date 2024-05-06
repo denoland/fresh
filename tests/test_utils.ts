@@ -289,7 +289,8 @@ export async function fakeServe(
   const ctx = await ServerContext.fromManifest(manifest, config);
   const handler = ctx.handler();
 
-  const conn: ServeHandlerInfo = {
+  // deno-lint-ignore no-explicit-any
+  const conn: any = {
     remoteAddr: {
       transport: "tcp",
       hostname: "127.0.0.1",
