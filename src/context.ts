@@ -58,7 +58,6 @@ export interface FreshContext<Data = unknown, State = unknown> {
    * ```
    */
   redirect(path: string, status?: number): Response;
-  throw(status: number, messageOrError?: string | Error): never;
   /**
    * Call the next middleware.
    * ```ts
@@ -140,18 +139,6 @@ export class FreshReqContext<State> implements FreshContext<unknown, State> {
     });
   }
 
-  throw(
-    status: number,
-    messageOrError?: string | Error | undefined,
-  ): never {
-    if (messageOrError instanceof Error) {
-      // deno-lint-ignore no-explicit-any
-      (messageOrError as any).status = status;
-      throw messageOrError;
-    }
-    throw { status, message: messageOrError };
-  }
-
   render(
     // deno-lint-ignore no-explicit-any
     vnode: VNode<any>,
@@ -180,10 +167,6 @@ export class FreshReqContext<State> implements FreshContext<unknown, State> {
       partialId,
     );
     return new Response(html, responseInit);
-  }
-
-  renderNotFound(): Promise<void> {
-    return this.throw(404);
   }
 }
 
