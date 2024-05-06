@@ -32,8 +32,12 @@ export interface FreshFsItem<State> {
   handler?: RouteHandler<unknown, State> | HandlerFn<unknown, State>[];
   handlers?: RouteHandler<unknown, State>;
   default?:
-    | AnyComponent<PageProps<unknown, State>>
-    | AsyncAnyComponent<FreshContext<unknown, State>>;
+    | AnyComponent<
+      PageProps<unknown, State> & Pick<FreshContext<unknown, State>, "redirect">
+    >
+    | AsyncAnyComponent<
+      PageProps<unknown, State> & Pick<FreshContext<unknown, State>, "redirect">
+    >;
 }
 
 // deno-lint-ignore no-explicit-any
