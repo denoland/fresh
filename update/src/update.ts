@@ -110,74 +110,60 @@ async function updateFile(sourceFile: tsmorph.SourceFile): Promise<void> {
 
   for (const [name, decl] of sourceFile.getExportedDeclarations()) {
     if (name === "handler") {
-      const maybeObjs = decl[0].getChildrenOfKind(
-        SyntaxKind.ObjectLiteralExpression,
-      );
-      if (maybeObjs.length > 0) {
-        const obj = maybeObjs[0];
-        for (const property of obj.getProperties()) {
-          if (property.isKind(SyntaxKind.MethodDeclaration)) {
-            const name = property.getName();
-            if (
-              name === "GET" || name === "POST" || name === "PATCH" ||
-              name === "PUT" || name === "DELETE"
-            ) {
-              const body = property.getBody();
-              if (body !== undefined) {
-                const stmts = body.getDescendantStatements();
-                rewriteCtxMethods(stmts);
-              }
+      const node = decl[0];
+      if (node.isKind(SyntaxKind.VariableDeclaration)) {
+        const init = node.getInitializer();
+        if (
+          init !== undefined && init.isKind(SyntaxKind.ObjectLiteralExpression)
+        ) {
+          for (const property of init.getProperties()) {
+            if (property.isKind(SyntaxKind.MethodDeclaration)) {
+              const name = property.getName();
+              if (
+                name === "GET" || name === "POST" || name === "PATCH" ||
+                name === "PUT" || name === "DELETE"
+              ) {
+                const body = property.getBody();
+                if (body !== undefined) {
+                  const stmts = body.getDescendantStatements();
+                  rewriteCtxMethods(stmts);
+                }
 
-              maybePrependReqVar(property, newImports, true);
-            }
-          } else if (property.isKind(SyntaxKind.PropertyAssignment)) {
-            const init = property.getInitializer();
-            if (
-              init !== undefined &&
-              (init.isKind(SyntaxKind.ArrowFunction) ||
-                init.isKind(SyntaxKind.FunctionExpression))
-            ) {
-              const body = init.getBody();
-              if (body !== undefined) {
-                const stmts = body.getDescendantStatements();
-                rewriteCtxMethods(stmts);
+                maybePrependReqVar(property, newImports, true);
               }
+            } else if (property.isKind(SyntaxKind.PropertyAssignment)) {
+              const init = property.getInitializer();
+              if (
+                init !== undefined &&
+                (init.isKind(SyntaxKind.ArrowFunction) ||
+                  init.isKind(SyntaxKind.FunctionExpression))
+              ) {
+                const body = init.getBody();
+                if (body !== undefined) {
+                  const stmts = body.getDescendantStatements();
+                  rewriteCtxMethods(stmts);
+                }
 
-              maybePrependReqVar(init, newImports, true);
+                maybePrependReqVar(init, newImports, true);
+              }
             }
           }
         }
-      } else if (tsmorph.Node.isFunctionDeclaration(decl[0])) {
-        const d = decl[0];
-
-        const body = d.getBody();
+      } else if (node.isKind(SyntaxKind.FunctionDeclaration)) {
+        const body = node.getBody();
         if (body !== undefined) {
           const stmts = body.getDescendantStatements();
           rewriteCtxMethods(stmts);
         }
 
-        maybePrependReqVar(d, newImports, false);
-      } else if (
-        tsmorph.Node.isVariableDeclaration(decl[0]) &&
-        decl[0].getName() === "handler"
-      ) {
-        const init = decl[0].getChildAtIndex(2).asKindOrThrow(
-          SyntaxKind.ArrowFunction,
-        );
-        const body = init.getBody();
-        if (body !== undefined) {
-          const stmts = body.getDescendantStatements();
-          rewriteCtxMethods(stmts);
-        }
+        maybePrependReqVar(node, newImports, false);
       }
     } else if (name === "default" && decl.length > 0) {
       const caller = decl[0];
       if (caller.isKind(SyntaxKind.CallExpression)) {
-        const id = decl[0].getFirstChildByKind(
-          SyntaxKind.Identifier,
-        );
-        if (id !== undefined) {
-          const text = id.getText();
+        const expr = caller.getExpression();
+        if (expr.isKind(SyntaxKind.Identifier)) {
+          const text = expr.getText();
           if (
             text === "defineApp" || text === "defineLayout" ||
             text === "defineRoute"
@@ -318,6 +304,7 @@ function maybePrependReqVar(
         // Use proper type
         if (params.length > 1) {
           const initType = params[1].getTypeNode()?.getText();
+          console.log("hey");
           if (initType !== undefined && initType === "RouteContext") {
             newImports.core.add("FreshContext");
             params[1].setType("FreshContext");
@@ -325,24 +312,21 @@ function maybePrependReqVar(
         }
       }
     }
-
-    const objBinding = params.length > 1
-      ? params[1].getFirstChildByKind(
-        SyntaxKind.ObjectBindingPattern,
-      )
+    const maybeObjBinding = params.length > 1
+      ? params[1].getNameNode()
       : undefined;
 
     if (method.isKind(SyntaxKind.ArrowFunction)) {
       const body = method.getBody();
       if (!body.isKind(SyntaxKind.Block)) {
-        method.setBodyText(`{ return (${method.getBodyText()}) }`);
+        console.warn(`Cannot transform arrow function`);
+        return;
       }
-      console.log(body.getKindName());
-      console.log(method.getBodyText());
     }
 
     if (
-      objBinding === undefined && hasRequestVar && !paramName.startsWith("_")
+      maybeObjBinding === undefined && hasRequestVar &&
+      !paramName.startsWith("_")
     ) {
       console.log("GOGO", method.getKindName());
       method.insertVariableStatement(0, {
@@ -354,27 +338,24 @@ function maybePrependReqVar(
       });
     }
 
-    if (objBinding !== undefined) {
-      const children = objBinding.getChildrenOfKind(SyntaxKind.SyntaxList);
-      if (children.length > 0) {
-        const list = children[0];
-
+    if (
+      maybeObjBinding !== undefined &&
+      maybeObjBinding.isKind(SyntaxKind.ObjectBindingPattern)
+    ) {
+      const bindings = maybeObjBinding.getElements();
+      if (bindings.length > 0) {
         let needsRemoteAddr = false;
-        const listChildren = list.getChildrenOfKind(SyntaxKind.BindingElement);
-        for (let i = 0; i < listChildren.length; i++) {
-          const listChild = listChildren[i];
-          const name = listChild.getName();
+        for (let i = 0; i < bindings.length; i++) {
+          const binding = bindings[i];
+          const name = binding.getName();
           if (name === "remoteAddr") {
-            listChild.replaceWithText("info");
+            binding.replaceWithText("info");
             needsRemoteAddr = true;
           }
-          console.log("F", listChild.getName(), listChild.getKindName());
+          console.log("F", binding.getName(), binding.getKindName());
         }
-        list.forEachChild((child) => {
-          console.log(child.getKindName());
-        });
         if (hasRequestVar && !paramName.startsWith("_")) {
-          list.addChildText(", req");
+          // bindingsobj.addChildText(", req");
         }
 
         if (needsRemoteAddr) {
@@ -420,6 +401,7 @@ function rewriteCtxMethods(
       const inner = node.getDescendantStatements();
       rewriteCtxMethods(inner);
     } else {
+      console.log("NOOO", node.getKindName());
       const children = node.getChildren();
       rewriteCtxMethods(children);
     }
@@ -433,22 +415,11 @@ function rewriteCtxMemberName(
   if (children.length === 0) return;
   const last = children[children.length - 1];
 
-  if (last.getText() === "remoteAddr") {
-    node.transform((visit) => {
-      const n = visit.visitChildren();
-
-      if (tsmorph.ts.isPropertyAccessExpression(n)) {
-        return visit.factory.updatePropertyAccessExpression(
-          n,
-          visit.factory.createPropertyAccessExpression(
-            visit.factory.createIdentifier("ctx"),
-            "info",
-          ),
-          visit.factory.createIdentifier("remoteAddr"),
-        );
-      }
-      return n;
-    });
+  if (
+    node.getExpression().getText() === "ctx" &&
+    node.getName() === "remoteAddr"
+  ) {
+    node.getExpression().replaceWithText("ctx.info.remoteAddr");
   } else if (last.getText() === "renderNotFound") {
     last.replaceWithText("throw");
     const caller = node.getParentIfKind(SyntaxKind.CallExpression);
