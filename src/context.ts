@@ -1,9 +1,4 @@
-import {
-  type ComponentType,
-  type FunctionComponent,
-  h,
-  type VNode,
-} from "preact";
+import { type ComponentType, h, type VNode } from "preact";
 import type { ResolvedFreshConfig } from "./config.ts";
 import { renderToString } from "preact-render-to-string";
 import type { BuildCache } from "./build_cache.ts";
@@ -21,8 +16,6 @@ export interface Island {
 }
 
 export type ServerIslandRegistry = Map<ComponentType, Island>;
-
-const NOOP = () => null;
 
 /**
  * The context passed to every middleware. It is unique for every request.
@@ -42,7 +35,6 @@ export interface FreshContext<Data = unknown, State = unknown> {
   url: URL;
   params: Record<string, string>;
   error: unknown;
-  Component: FunctionComponent;
   info?: Deno.ServeHandlerInfo | Deno.ServeUnixHandlerInfo;
   /**
    * Return a redirect response to the specified path. This is the
@@ -89,7 +81,6 @@ export let getBuildCache: (ctx: FreshContext<unknown, unknown>) => BuildCache;
 
 export class FreshReqContext<State> implements FreshContext<unknown, State> {
   url: URL;
-  Component = NOOP;
   params = {} as Record<string, string>;
   state = {} as State;
   data = {} as never;
