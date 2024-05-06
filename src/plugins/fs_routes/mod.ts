@@ -13,6 +13,7 @@ import {
 import { type Method, pathToPattern } from "../../router.ts";
 import { type HandlerFn, isHandlerByMethod } from "../../handlers.ts";
 import { type FsAdapter, fsAdapter } from "../../fs.ts";
+import type { PageProps } from "../../runtime/server/mod.tsx";
 
 const TEST_FILE_PATTERN = /[._]test\.(?:[tj]sx?|[mc][tj]s)$/;
 const GROUP_REG = /(^|[/\\\\])\((_[^/\\\\]+)\)[/\\\\]/;
@@ -23,7 +24,7 @@ interface InternalRoute<State> {
   filePath: string;
   config: RouteConfig | null;
   handlers: RouteHandler<unknown, State> | null;
-  component: AnyComponent<FreshContext<unknown, State>> | null;
+  component: AnyComponent<PageProps<unknown, State>> | null;
 }
 
 export interface FreshFsItem<State> {
@@ -31,7 +32,7 @@ export interface FreshFsItem<State> {
   handler?: RouteHandler<unknown, State> | HandlerFn<unknown, State>[];
   handlers?: RouteHandler<unknown, State>;
   default?:
-    | AnyComponent<FreshContext<unknown, State>>
+    | AnyComponent<PageProps<unknown, State>>
     | AsyncAnyComponent<FreshContext<unknown, State>>;
 }
 
@@ -182,7 +183,7 @@ export async function fsRoutes<State>(
 
     // Remove any elements not matching our parent path anymore
     const middlewares: MiddlewareFn<State>[] = [];
-    let components: AnyComponent<FreshContext<unknown, State>>[] = [];
+    let components: AnyComponent<PageProps<unknown, State>>[] = [];
 
     let skipApp = !!routeMod.config?.skipAppWrapper;
     const skipLayouts = !!routeMod.config?.skipInheritedLayouts;
@@ -279,7 +280,7 @@ export async function fsRoutes<State>(
 }
 
 function errorMiddleware<State>(
-  components: AnyComponent<FreshContext<unknown, State>>[],
+  components: AnyComponent<PageProps<unknown, State>>[],
   handler: HandlerFn<unknown, State> | undefined,
 ): MiddlewareFn<State> {
   const mid = renderMiddleware<State>(components, handler);

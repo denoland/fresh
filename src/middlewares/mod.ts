@@ -92,10 +92,14 @@ export function runMiddlewares<State>(
     while (j--) {
       const local = fn;
       const next = stack[j];
-      // deno-lint-ignore require-await
       fn = async () => {
         ctx.next = local;
-        return next(ctx);
+        try {
+          return await next(ctx);
+        } catch (err) {
+          ctx.error = err;
+          throw err;
+        }
       };
     }
   }

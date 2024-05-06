@@ -415,3 +415,35 @@ Deno.test("FreshApp - finish setup", async () => {
   expect(text).toContain("Finish setting up");
   expect(res.status).toEqual(500);
 });
+
+Deno.test("FreshApp - sets error on context", async () => {
+  const thrown: [unknown, unknown][] = [];
+  const app = new App()
+    .use(async (ctx) => {
+      try {
+        return await ctx.next();
+      } catch (err) {
+        thrown.push([err, ctx.error]);
+        throw err;
+      }
+    })
+    .use(async (ctx) => {
+      try {
+        return await ctx.next();
+      } catch (err) {
+        thrown.push([err, ctx.error]);
+        throw err;
+      }
+    })
+    .get("/", () => {
+      throw "<mock error>";
+    });
+
+  const server = new FakeServer(await app.handler());
+
+  const res = await server.get("/");
+  await res.body?.cancel();
+  expect(thrown.length).toEqual(2);
+  expect(thrown[0][0]).toEqual(thrown[0][1]);
+  expect(thrown[1][0]).toEqual(thrown[1][1]);
+});
