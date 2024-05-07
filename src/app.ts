@@ -30,6 +30,7 @@ export interface RouteCacheEntry<T> {
 }
 
 export let getRouter: <State>(app: App<State>) => Router<MiddlewareFn<State>>;
+export let getMiddlewares: <State>(app: App<State>) => MiddlewareFn<State>[];
 // deno-lint-ignore no-explicit-any
 export let getIslandRegistry: (app: App<any>) => ServerIslandRegistry;
 // deno-lint-ignore no-explicit-any
@@ -49,6 +50,7 @@ export class App<State> {
 
   static {
     getRouter = (app) => app.#router;
+    getMiddlewares = (app) => app.#middlewares;
     getIslandRegistry = (app) => app.#islandRegistry;
     getBuildCache = (app) => app.#buildCache;
     setBuildCache = (app, cache) => app.#buildCache = cache;
@@ -122,32 +124,17 @@ export class App<State> {
       this.#islandRegistry.set(key, value);
     });
 
-    let middlewares: MiddlewareFn<State>[] = [];
-    let start = 0;
-    if (
-      routes.length > 0 && routes[0].path === "*" && routes[0].method === "ALL"
-    ) {
-      start++;
-      middlewares = routes[0].handlers;
-    }
+    const middlewares = getMiddlewares(app);
 
     // Special case when user calls one of these:
     // - `app.mounApp("/", otherApp)`
     // - `app.mounApp("*", otherApp)`
     const isSelf = path === "*" || path === "/";
-    if (isSelf) {
-      const selfRoutes = this.#router._routes;
-      if (
-        selfRoutes.length > 0 && selfRoutes[0].method === "ALL" &&
-        selfRoutes[0].path === "*"
-      ) {
-        selfRoutes[0].handlers.push(...middlewares);
-      } else {
-        this.#addRoutes("ALL", "*", middlewares);
-      }
+    if (isSelf && middlewares.length > 0) {
+      this.#middlewares.push(...middlewares);
     }
 
-    for (let i = start; i < routes.length; i++) {
+    for (let i = 0; i < routes.length; i++) {
       const route = routes[i];
 
       const merged = typeof route.path === "string"
@@ -180,7 +167,9 @@ export class App<State> {
     return this;
   }
 
-  async handler(): Promise<(request: Request, info?: Deno.ServeHandlerInfo) => Promise<Response>> {
+  async handler(): Promise<
+    (request: Request, info?: Deno.ServeHandlerInfo) => Promise<Response>
+  > {
     const next = () =>
       Promise.resolve(new Response("Not found", { status: 404 }));
 

@@ -318,6 +318,38 @@ Deno.test(
   },
 );
 
+Deno.test(
+  "FreshApp - .mountApp() self mount, different order",
+  async () => {
+    const innerApp = new App<{ text: string }>()
+      .get("/foo", (ctx) => new Response(ctx.state.text))
+      .use(function B(ctx) {
+        ctx.state.text += "B";
+        return ctx.next();
+      })
+      .post("/foo", (ctx) => new Response(ctx.state.text));
+
+    const app = new App<{ text: string }>()
+      .use(function A(ctx) {
+        ctx.state.text = "A";
+        return ctx.next();
+      })
+      .get("/", () => new Response("ok"))
+      .mountApp("/", innerApp);
+
+    const server = new FakeServer(await app.handler());
+
+    let res = await server.get("/");
+    expect(await res.text()).toEqual("ok");
+
+    res = await server.get("/foo");
+    expect(await res.text()).toEqual("AB");
+
+    res = await server.post("/foo");
+    expect(await res.text()).toEqual("AB");
+  },
+);
+
 Deno.test("FreshApp - .mountApp() self mount empty", async () => {
   const innerApp = new App<{ text: string }>()
     .use((ctx) => {
