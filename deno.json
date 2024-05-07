@@ -15,7 +15,7 @@
     "**/_fresh/*",
     "**/tmp/*"
   ],
-  "importMap": "./.vscode/import_map.json",
+  "importMap": "./import_map.json",
   "compilerOptions": {
     "jsx": "react-jsx",
     "jsxImportSource": "preact"

@@ -1,7 +1,7 @@
 {
   "deno.enable": true,
   "deno.lint": true,
-  "deno.importMap": "./.vscode/import_map.json",
+  "deno.importMap": "./import_map.json",
   "deno.codeLens.test": true,
   "deno.documentPreloadLimit": 2000,
   "editor.formatOnSave": true,
