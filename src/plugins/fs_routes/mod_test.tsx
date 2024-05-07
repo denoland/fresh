@@ -932,7 +932,6 @@ Deno.test("fsRoutes - load islands from ", async () => {
 
   await withBrowserApp(app, async (page, address) => {
     await page.goto(`${address}/foo`);
-    console.log(await page.content());
     await page.waitForSelector(".ready");
 
     // Page would error here

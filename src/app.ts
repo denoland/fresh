@@ -20,6 +20,11 @@ import type { ServerIslandRegistry } from "./context.ts";
 import { renderToString } from "preact-render-to-string";
 import { FinishSetup, ForgotBuild } from "./finish_setup.tsx";
 
+const DEFAULT_NOT_FOUND = () =>
+  Promise.resolve(new Response("Not found", { status: 404 }));
+const DEFAULT_NOT_ALLOWED_METHOD = () =>
+  Promise.resolve(new Response("Method not allowed", { status: 405 }));
+
 export type ListenOptions = Partial<Deno.ServeTlsOptions> & {
   remoteAddress?: string;
 };
@@ -30,7 +35,6 @@ export interface RouteCacheEntry<T> {
 }
 
 export let getRouter: <State>(app: App<State>) => Router<MiddlewareFn<State>>;
-export let getMiddlewares: <State>(app: App<State>) => MiddlewareFn<State>[];
 // deno-lint-ignore no-explicit-any
 export let getIslandRegistry: (app: App<any>) => ServerIslandRegistry;
 // deno-lint-ignore no-explicit-any
@@ -45,12 +49,9 @@ export class App<State> {
   #islandRegistry: ServerIslandRegistry = new Map();
   #buildCache: BuildCache | null = null;
   #islandNames = new Set<string>();
-  #middlewares: MiddlewareFn<State>[] = [];
-  #addedMiddlewares = false;
 
   static {
     getRouter = (app) => app.#router;
-    getMiddlewares = (app) => app.#middlewares;
     getIslandRegistry = (app) => app.#islandRegistry;
     getBuildCache = (app) => app.#buildCache;
     setBuildCache = (app, cache) => app.#buildCache = cache;
@@ -92,7 +93,7 @@ export class App<State> {
   }
 
   use(middleware: MiddlewareFn<State>): this {
-    this.#middlewares.push(middleware);
+    this.#router.addMiddleware(middleware);
     return this;
   }
 
@@ -124,14 +125,14 @@ export class App<State> {
       this.#islandRegistry.set(key, value);
     });
 
-    const middlewares = getMiddlewares(app);
+    const middlewares = app.#router._middlewares;
 
     // Special case when user calls one of these:
     // - `app.mounApp("/", otherApp)`
     // - `app.mounApp("*", otherApp)`
     const isSelf = path === "*" || path === "/";
     if (isSelf && middlewares.length > 0) {
-      this.#middlewares.push(...middlewares);
+      this.#router._middlewares.push(...middlewares);
     }
 
     for (let i = 0; i < routes.length; i++) {
@@ -154,12 +155,6 @@ export class App<State> {
     pathname: string | URLPattern,
     middlewares: MiddlewareFn<State>[],
   ): this {
-    if (!this.#addedMiddlewares) {
-      this.#addedMiddlewares = true;
-      if (this.#middlewares.length > 0) {
-        this.#router.add("ALL", "*", this.#middlewares);
-      }
-    }
     const merged = typeof pathname === "string"
       ? mergePaths(this.config.basePath, pathname)
       : pathname;
@@ -167,17 +162,38 @@ export class App<State> {
     return this;
   }
 
+  async #process(
+    req: Request,
+    params: Record<string, string>,
+    handlers: MiddlewareFn<State>[][],
+    next: () => Promise<Response>,
+  ) {
+    const ctx = new FreshReqContext<State>(
+      req,
+      this.config,
+      next,
+      this.#islandRegistry,
+      this.#buildCache!,
+    );
+
+    ctx.params = params;
+
+    try {
+      if (handlers.length === 1 && handlers[0].length === 1) {
+        return handlers[0][0](ctx);
+      }
+
+      ctx.next = next;
+      return await runMiddlewares(handlers, ctx);
+    } catch (err) {
+      console.error(err);
+      return new Response("Internal server error", { status: 500 });
+    }
+  }
+
   async handler(): Promise<
     (request: Request, info?: Deno.ServeHandlerInfo) => Promise<Response>
   > {
-    const next = () =>
-      Promise.resolve(new Response("Not found", { status: 404 }));
-
-    // Add default 404 if not present
-    if (this.#middlewares.length > 0) {
-      this.#addRoutes("ALL", "*", this.#middlewares.concat(next));
-    }
-
     if (this.#buildCache === null) {
       this.#buildCache = await ProdBuildCache.fromSnapshot(this.config);
     }
@@ -186,7 +202,7 @@ export class App<State> {
       return missingBuildHandler;
     }
 
-    return async (req: Request) => {
+    return (req: Request) => {
       const url = new URL(req.url);
       // Prevent open redirect attacks
       url.pathname = url.pathname.replace(/\/+/g, "/");
@@ -194,38 +210,16 @@ export class App<State> {
       const method = req.method.toUpperCase() as Method;
       const matched = this.#router.match(method, url);
 
-      if (matched.patternMatch && !matched.methodMatch) {
-        return new Response("Method not allowed", { status: 405 });
-      } else if (!matched.patternMatch && !matched.methodMatch) {
-        return next();
-      } else if (matched.handlers.length === 0) {
-        throw new Error(
-          `No route handlers found. This might be a bug in Fresh.`,
-        );
-      }
+      const fallback = matched.patternMatch && !matched.methodMatch
+        ? DEFAULT_NOT_ALLOWED_METHOD
+        : DEFAULT_NOT_FOUND;
 
-      const ctx = new FreshReqContext<State>(
+      return this.#process(
         req,
-        this.config,
-        next,
-        this.#islandRegistry,
-        this.#buildCache!,
+        matched.params,
+        matched.handlers,
+        fallback,
       );
-
-      const { params, handlers } = matched;
-      ctx.params = params;
-
-      if (handlers.length === 1 && handlers[0].length === 1) {
-        return handlers[0][0](ctx);
-      }
-
-      ctx.next = next;
-      try {
-        return await runMiddlewares(handlers, ctx);
-      } catch (err) {
-        console.error(err);
-        return new Response("Internal server error", { status: 500 });
-      }
     };
   }
 

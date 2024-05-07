@@ -15,6 +15,8 @@ export interface RouteResult<T> {
 
 export interface Router<T> {
   _routes: Route<T>[];
+  _middlewares: T[];
+  addMiddleware(fn: T): void;
   add(
     method: Method | "ALL",
     pathname: string | URLPattern,
@@ -38,6 +40,11 @@ export function mergePaths(a: string, b: string) {
 
 export class UrlPatternRouter<T> implements Router<T> {
   readonly _routes: Route<T>[] = [];
+  readonly _middlewares: T[] = [];
+
+  addMiddleware(fn: T): void {
+    this._middlewares.push(fn);
+  }
 
   add(method: Method | "ALL", pathname: string | URLPattern, handlers: T[]) {
     if (
@@ -62,6 +69,10 @@ export class UrlPatternRouter<T> implements Router<T> {
       patternMatch: false,
     };
 
+    if (this._middlewares.length > 0) {
+      result.handlers.push(this._middlewares);
+    }
+
     for (let i = 0; i < this._routes.length; i++) {
       const route = this._routes[i];
 
@@ -75,11 +86,12 @@ export class UrlPatternRouter<T> implements Router<T> {
 
         if (route.method === "ALL" || route.method === method) {
           result.handlers.push(route.handlers);
-          result.methodMatch = true;
 
           if (route.path === "*" && route.method === "ALL") {
             continue;
           }
+
+          result.methodMatch = true;
 
           return result;
         }

@@ -93,8 +93,10 @@ export async function fsRoutes<State>(
         // Any route path segment wrapped in `(_...)` is ignored
         // during route collection.
         const match = relative.match(GROUP_REG);
-        if (match && match[2] === "_islands") {
-          islandPaths.push(entry.path);
+        if (match && match[2][0] === "_") {
+          if (match[2] === "_islands") {
+            islandPaths.push(entry.path);
+          }
           return;
         }
 

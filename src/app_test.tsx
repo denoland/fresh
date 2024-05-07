@@ -13,7 +13,7 @@ Deno.test("FreshApp - .use()", async () => {
       ctx.state.text += "B";
       return ctx.next();
     })
-    .use((ctx) => new Response(ctx.state.text));
+    .get("/", (ctx) => new Response(ctx.state.text));
 
   const server = new FakeServer(await app.handler());
 
@@ -24,7 +24,8 @@ Deno.test("FreshApp - .use()", async () => {
 Deno.test("FreshApp - .use() #2", async () => {
   const app = new App<{ text: string }>()
     .use(() => new Response("ok #1"))
-    .get("/foo/bar", () => new Response("ok #2"));
+    .get("/foo/bar", () => new Response("ok #2"))
+    .get("/", () => new Response("ok #3"));
 
   const server = new FakeServer(await app.handler());
 
@@ -371,14 +372,14 @@ Deno.test(
   "FreshApp - .mountApp() self mount with middleware",
   async () => {
     const innerApp = new App<{ text: string }>()
-      .use((ctx) => {
+      .use(function Inner(ctx) {
         ctx.state.text += "_Inner";
         return ctx.next();
       })
       .get("/", (ctx) => new Response(ctx.state.text));
 
     const app = new App<{ text: string }>()
-      .use((ctx) => {
+      .use(function Outer(ctx) {
         ctx.state.text = "Outer";
         return ctx.next();
       })
