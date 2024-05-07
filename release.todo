@@ -6,7 +6,7 @@ Fresh 2.0:
   ☐ what to do about global JSX type extensions?
 ✔ bring back partials @done(24-04-17 11:36)
 ✔ nested islands + server components @done(24-04-04 10:27)
-☐ bring back old-style `ctx.render()` API
+✔ bring back old-style `ctx.render()` API @done(24-05-07 21:28)
 ✔ bring back browser polyfills @done(24-03-25 12:32)
 ☐ bring back active url handling
 ☐ preloading scripts
@@ -46,7 +46,7 @@ Fresh 2.0:
 ☐ Implement `Data#headers` and `Data#status`
 ☐ Implement `Data#head` and `ctx.render(..., { head: ... })` with better type (not `string[]`)
 ✔ Bug in ts-morph https://github.com/dsherret/ts-morph/issues/1530 @done(24-04-22 15:28)
-☐ Bring back error overlay
+✔ Bring back error overlay @done(24-05-07 21:28)
 ✔ Bring back update checker @done(24-04-26 14:57)
 ☐ What to do with `ctx.route`
 ✔ Attach `define*` helpers on `App` class to avoid typing overhead @done(24-04-30 11:23)
