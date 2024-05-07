@@ -19,6 +19,7 @@ import { type ComponentType, h } from "preact";
 import type { ServerIslandRegistry } from "./context.ts";
 import { renderToString } from "preact-render-to-string";
 import { FinishSetup, ForgotBuild } from "./finish_setup.tsx";
+import { HttpError } from "./error.ts";
 
 const DEFAULT_NOT_FOUND = () =>
   Promise.resolve(new Response("Not found", { status: 404 }));
@@ -186,6 +187,10 @@ export class App<State> {
       ctx.next = next;
       return await runMiddlewares(handlers, ctx);
     } catch (err) {
+      if (err instanceof HttpError) {
+        return new Response(null, { status: err.status });
+      }
+
       console.error(err);
       return new Response("Internal server error", { status: 500 });
     }

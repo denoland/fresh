@@ -416,17 +416,7 @@ Deno.test("FreshApp - catches errors", async () => {
 });
 
 Deno.test("FreshApp - finish setup", async () => {
-  let thrownErr: unknown | null = null;
   const app = new App<{ text: string }>()
-    .use(async (ctx) => {
-      ctx.state.text = "A";
-      try {
-        return await ctx.next();
-      } catch (err) {
-        thrownErr = err;
-        throw err;
-      }
-    })
     .get("/", (ctx) => {
       return ctx.render(<div>ok</div>);
     });
@@ -442,7 +432,6 @@ Deno.test("FreshApp - finish setup", async () => {
   );
 
   const server = new FakeServer(await app.handler());
-
   const res = await server.get("/");
   const text = await res.text();
   expect(text).toContain("Finish setting up");

@@ -22,6 +22,7 @@ import type { Island } from "../context.ts";
 import { BUILD_ID } from "../runtime/build_id.ts";
 import { updateCheck } from "./update_check.ts";
 import { DAY } from "@std/datetime";
+import { devErrorOverlay } from "./middlewares/error_overlay/middleware.tsx";
 
 export interface BuildOptions {
   /**
@@ -66,6 +67,7 @@ export class Builder implements FreshBuilder {
 
     const devApp = new App<T>(app.config)
       .use(liveReload())
+      .use(devErrorOverlay())
       .mountApp("*", app);
 
     if (options.hostname === undefined) {

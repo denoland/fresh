@@ -24,6 +24,11 @@ import {
 } from "../shared_internal.tsx";
 import type { BuildCache } from "../../build_cache.ts";
 import { BUILD_ID } from "../build_id.ts";
+import { DEV_ERROR_OVERLAY_URL } from "../../constants.ts";
+import {
+  getCodeFrame,
+} from "../../dev/middlewares/error_overlay/code_frame.tsx";
+import * as colors from "@std/fmt/colors";
 
 const enum OptionsType {
   ATTR = "attr",
@@ -77,6 +82,7 @@ export class RenderState {
   renderedHtmlTag = false;
   renderedHtmlBody = false;
   renderedHtmlHead = false;
+  hasRuntimeScript = false;
 
   constructor(
     public ctx: FreshContext<unknown, unknown>,
@@ -370,7 +376,11 @@ const stringifiers: Stringifiers = {
 
 export function FreshScripts() {
   if (RENDER_STATE === null) return null;
-  const { slots } = RENDER_STATE!;
+  if (RENDER_STATE.hasRuntimeScript) {
+    return null;
+  }
+  RENDER_STATE.hasRuntimeScript = true;
+  const { slots } = RENDER_STATE;
 
   // Remaining slots must be rendered before creating the Fresh runtime
   // script, so that we have the full list of islands rendered
@@ -463,13 +473,53 @@ function FreshRuntimeScript() {
       `import { boot } from "${runtimeUrl}";${islandImports}boot(${islandObj},${serializedProps});`;
 
     return (
-      <script
-        type="module"
-        nonce={nonce}
-        dangerouslySetInnerHTML={{
-          __html: scriptContent,
-        }}
-      />
+      <>
+        <script
+          type="module"
+          nonce={nonce}
+          dangerouslySetInnerHTML={{
+            __html: scriptContent,
+          }}
+        />
+        <ShowErrorOverlay />
+      </>
     );
   }
+}
+
+export function ShowErrorOverlay() {
+  if (RENDER_STATE === null) return null;
+
+  const { ctx } = RENDER_STATE;
+  const error = ctx.error;
+
+  if (error === null || error === undefined) return null;
+
+  const basePath = ctx.config.basePath;
+
+  const searchParams = new URLSearchParams();
+
+  if (typeof error === "object") {
+    if ("message" in error) {
+      searchParams.append("message", String(error.message));
+    }
+
+    if ("stack" in error && typeof error.stack === "string") {
+      searchParams.append("stack", error.stack);
+      const codeFrame = getCodeFrame(error.stack, ctx.config.root);
+      if (codeFrame !== undefined) {
+        searchParams.append("code-frame", colors.stripAnsiCode(codeFrame));
+      }
+    }
+  } else {
+    searchParams.append("message", String(error));
+  }
+
+  return (
+    <iframe
+      id="fresh-error-overlay"
+      src={`${basePath}${DEV_ERROR_OVERLAY_URL}?${searchParams.toString()}`}
+      style="unset: all; position: fixed; top: 0; left: 0; z-index: 99999; width: 100%; height: 100%; border: none;"
+    />
+  );
 }

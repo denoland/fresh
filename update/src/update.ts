@@ -304,7 +304,6 @@ function maybePrependReqVar(
         // Use proper type
         if (params.length > 1) {
           const initType = params[1].getTypeNode()?.getText();
-          console.log("hey");
           if (initType !== undefined && initType === "RouteContext") {
             newImports.core.add("FreshContext");
             params[1].setType("FreshContext");
@@ -328,7 +327,6 @@ function maybePrependReqVar(
       maybeObjBinding === undefined && hasRequestVar &&
       !paramName.startsWith("_")
     ) {
-      console.log("GOGO", method.getKindName());
       method.insertVariableStatement(0, {
         declarationKind: tsmorph.VariableDeclarationKind.Const,
         declarations: [{
@@ -352,7 +350,6 @@ function maybePrependReqVar(
             binding.replaceWithText("info");
             needsRemoteAddr = true;
           }
-          console.log("F", binding.getName(), binding.getKindName());
         }
         if (hasRequestVar && !paramName.startsWith("_")) {
           // bindingsobj.addChildText(", req");
@@ -401,7 +398,6 @@ function rewriteCtxMethods(
       const inner = node.getDescendantStatements();
       rewriteCtxMethods(inner);
     } else {
-      console.log("NOOO", node.getKindName());
       const children = node.getChildren();
       rewriteCtxMethods(children);
     }

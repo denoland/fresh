@@ -7,6 +7,7 @@ import {
   RenderState,
   setRenderState,
 } from "./runtime/server/preact_hooks.tsx";
+import { DEV_ERROR_OVERLAY_URL } from "./constants.ts";
 
 export interface Island {
   file: string | URL;
@@ -175,7 +176,10 @@ function preactRender<State, Data>(
     // We require a the full outer DOM structure so that browser put
     // comment markers in the right place in the DOM.
     if (!state.renderedHtmlBody) {
-      const scripts = renderToString(h(FreshScripts, null));
+      let scripts = "";
+      if (ctx.url.pathname !== ctx.config.basePath + DEV_ERROR_OVERLAY_URL) {
+        scripts = renderToString(h(FreshScripts, null));
+      }
       res = `<body>${res}${scripts}</body>`;
     }
     if (!state.renderedHtmlHead) {

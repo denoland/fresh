@@ -8,6 +8,9 @@ import { App, fsRoutes, staticFiles } from "@fresh/core";
 
 export const app = new App<{}>();
 
+app.get("/foo", (ctx) => {
+  throw new Error("FAIL");
+});
 app.use(staticFiles());
 
 await fsRoutes(app, {
@@ -17,6 +20,5 @@ await fsRoutes(app, {
 });
 
 if (import.meta.main) {
-  
   app.listen();
 }
