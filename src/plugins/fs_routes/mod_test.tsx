@@ -550,14 +550,15 @@ Deno.test("fsRoutes - handler return data", async () => {
         return { data: "foo", status: 404 };
       },
       default: (ctx) => {
-        return <p>{ctx.data}</p>;
+        // deno-lint-ignore no-explicit-any
+        return <p>{ctx.data as any}</p>;
       },
     },
   });
 
   const res = await server.get("/");
   const doc = parseHtml(await res.text());
-  expect(doc.body.firstChild.textContent).toEqual("foo");
+  expect(doc.body.firstChild?.textContent).toEqual("foo");
 });
 
 Deno.test("fsRoutes - _404", async () => {
@@ -688,17 +689,20 @@ Deno.test("fsRoutes - _error render component", async () => {
 });
 
 Deno.test("fsRoutes - _error render on 404", async () => {
-  let error: HttpError | null = null;
+  // deno-lint-ignore no-explicit-any
+  let error: any = null;
   const server = await createServer({
     "routes/_error.tsx": {
       default: (ctx) => {
-        error = ctx.error;
+        // deno-lint-ignore no-explicit-any
+        error = ctx.error as any;
         return <p>ok</p>;
       },
     },
     "routes/foo/_error.tsx": {
       default: (ctx) => {
-        error = ctx.error;
+        // deno-lint-ignore no-explicit-any
+        error = ctx.error as any;
         return <p>ok foo</p>;
       },
     },
@@ -711,12 +715,12 @@ Deno.test("fsRoutes - _error render on 404", async () => {
 
   let res = await server.get("/foo/a");
   let doc = parseHtml(await res.text());
-  expect(doc.body.firstChild.textContent).toEqual("ok foo");
+  expect(doc.body.firstChild?.textContent).toEqual("ok foo");
   expect(error?.status).toEqual(404);
 
   res = await server.get("/");
   doc = parseHtml(await res.text());
-  expect(doc.body.firstChild.textContent).toEqual("ok");
+  expect(doc.body.firstChild?.textContent).toEqual("ok");
   expect(error?.status).toEqual(404);
 });
 

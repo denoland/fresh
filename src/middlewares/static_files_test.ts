@@ -8,6 +8,7 @@ import { BUILD_ID } from "../runtime/build_id.ts";
 class MockBuildCache implements BuildCache {
   buildId = "MockId";
   files = new Map<string, StaticFile>();
+  hasSnapshot = true;
 
   constructor(files: Record<string, { hash: string | null; content: string }>) {
     const encoder = new TextEncoder();
