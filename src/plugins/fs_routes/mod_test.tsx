@@ -14,6 +14,7 @@ import type { HandlerByMethod, HandlerFn } from "../../handlers.ts";
 import type { Method } from "../../router.ts";
 import { parseHtml, withBrowserApp } from "../../../tests/test_utils.tsx";
 import { staticFiles } from "../../middlewares/static_files.ts";
+import type { HttpError } from "../../error.ts";
 
 async function createServer<T>(
   files: Record<string, string | Uint8Array | FreshFsItem<T>>,
@@ -542,6 +543,23 @@ Deno.test("fsRoutes - route overrides _app", async () => {
   expect(doc.body.firstChild?.textContent).toEqual("route");
 });
 
+Deno.test("fsRoutes - handler return data", async () => {
+  const server = await createServer({
+    "routes/index.tsx": {
+      handler: () => {
+        return { data: "foo", status: 404 };
+      },
+      default: (ctx) => {
+        return <p>{ctx.data}</p>;
+      },
+    },
+  });
+
+  const res = await server.get("/");
+  const doc = parseHtml(await res.text());
+  expect(doc.body.firstChild.textContent).toEqual("foo");
+});
+
 Deno.test("fsRoutes - _404", async () => {
   const server = await createServer({
     "routes/_404.tsx": {
@@ -667,6 +685,39 @@ Deno.test("fsRoutes - _error render component", async () => {
   const res = await server.get("/foo");
   const doc = parseHtml(await res.text());
   expect(doc.body.firstChild?.textContent).toEqual("ok");
+});
+
+Deno.test("fsRoutes - _error render on 404", async () => {
+  let error: HttpError | null = null;
+  const server = await createServer({
+    "routes/_error.tsx": {
+      default: (ctx) => {
+        error = ctx.error;
+        return <p>ok</p>;
+      },
+    },
+    "routes/foo/_error.tsx": {
+      default: (ctx) => {
+        error = ctx.error;
+        return <p>ok foo</p>;
+      },
+    },
+    "routes/foo/index.tsx": {
+      default: () => {
+        return <p>ignore</p>;
+      },
+    },
+  });
+
+  let res = await server.get("/foo/a");
+  let doc = parseHtml(await res.text());
+  expect(doc.body.firstChild.textContent).toEqual("ok foo");
+  expect(error?.status).toEqual(404);
+
+  res = await server.get("/");
+  doc = parseHtml(await res.text());
+  expect(doc.body.firstChild.textContent).toEqual("ok");
+  expect(error?.status).toEqual(404);
 });
 
 Deno.test("fsRoutes - skip _error component in non-error", async () => {
@@ -949,31 +1000,35 @@ Deno.test("fsRoutes - sortRoutePaths", () => {
   expect(routes).toEqual(sorted);
 });
 
-Deno.test("fsRoutes - load islands from ", async () => {
-  const app = new App()
-    .use(staticFiles());
+Deno.test({
+  name: "fsRoutes - load islands from group folder",
+  fn: async () => {
+    const app = new App()
+      .use(staticFiles());
 
-  await fsRoutes(app, {
-    dir: path.join(
-      import.meta.dirname!,
-      "..",
-      "..",
-      "..",
-      "tests",
-      "fixture_island_groups",
-    ),
-    loadIsland: (path) =>
-      import("../../../tests/fixture_island_groups/islands/" + path),
-    loadRoute: (path) =>
-      import("../../../tests/fixture_island_groups/routes/" + path),
-  });
+    await fsRoutes(app, {
+      dir: path.join(
+        import.meta.dirname!,
+        "..",
+        "..",
+        "..",
+        "tests",
+        "fixture_island_groups",
+      ),
+      loadIsland: (path) =>
+        import("../../../tests/fixture_island_groups/islands/" + path),
+      loadRoute: (path) =>
+        import("../../../tests/fixture_island_groups/routes/" + path),
+    });
 
-  await withBrowserApp(app, async (page, address) => {
-    await page.goto(`${address}/foo`);
-    await page.waitForSelector(".ready");
+    await withBrowserApp(app, async (page, address) => {
+      await page.goto(`${address}/foo`);
+      await page.waitForSelector(".ready");
 
-    // Page would error here
-    const text = await page.$eval(".ready", (el) => el.textContent);
-    expect(text).toEqual("it works");
-  });
+      // Page would error here
+      const text = await page.$eval(".ready", (el) => el.textContent);
+      expect(text).toEqual("it works");
+    });
+  },
+  sanitizeResources: false,
 });

@@ -1,5 +1,10 @@
 export type Method = "HEAD" | "GET" | "POST" | "PATCH" | "PUT" | "DELETE";
 
+enum RouteKind {
+  Route,
+  Middleware,
+}
+
 export interface Route<T> {
   path: string | URLPattern;
   method: Method | "ALL";
@@ -57,7 +62,11 @@ export class UrlPatternRouter<T> implements Router<T> {
         method,
       });
     } else {
-      this._routes.push({ handlers, method, path: pathname });
+      this._routes.push({
+        path: pathname,
+        handlers,
+        method,
+      });
     }
   }
 
@@ -82,7 +91,9 @@ export class UrlPatternRouter<T> implements Router<T> {
         typeof route.path === "string" &&
         (route.path === "*" || route.path === url.pathname)
       ) {
-        result.patternMatch = true;
+        if (route.method !== "ALL") {
+          result.patternMatch = true;
+        }
 
         if (route.method === "ALL" || route.method === method) {
           result.handlers.push(route.handlers);
@@ -98,7 +109,9 @@ export class UrlPatternRouter<T> implements Router<T> {
       } else if (route.path instanceof URLPattern) {
         const match = route.path.exec(url);
         if (match !== null) {
-          result.patternMatch = true;
+          if (route.method !== "ALL") {
+            result.patternMatch = true;
+          }
 
           if (route.method === "ALL" || route.method === method) {
             result.handlers.push(route.handlers);
@@ -108,6 +121,10 @@ export class UrlPatternRouter<T> implements Router<T> {
               if (value !== undefined) {
                 result.params[key] = decodeURI(value);
               }
+            }
+
+            if (route.method === "ALL") {
+              continue;
             }
 
             result.methodMatch = true;

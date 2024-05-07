@@ -8,8 +8,6 @@ import { Builder } from "../src/dev/builder.ts";
 import { TextLineStream } from "@std/streams/text-line-stream";
 import * as path from "@std/path";
 import type { ComponentChildren } from "preact";
-import { FreshScripts } from "../src/runtime/server/preact_hooks.tsx";
-import { ProdBuildCache } from "../src/build_cache.ts";
 
 export function getIsland(pathname: string) {
   return path.join(

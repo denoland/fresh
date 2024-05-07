@@ -246,6 +246,12 @@ export async function fsRoutes<State>(
         if (mod.component !== null) {
           errorComponents.push(mod.component);
         }
+        let parent = mod.path.slice(0, -"_error".length);
+        parent = parent === "/" ? "*" : parent + "*";
+        app.all(
+          parent,
+          errorMiddleware(errorComponents, handler),
+        );
         middlewares.push(errorMiddleware(errorComponents, handler));
         continue;
       }
