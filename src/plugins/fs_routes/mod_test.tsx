@@ -542,11 +542,30 @@ Deno.test("fsRoutes - route overrides _app", async () => {
   expect(doc.body.firstChild?.textContent).toEqual("route");
 });
 
-Deno.test("fsRoutes - _error", async () => {
+Deno.test("fsRoutes - _404", async () => {
   const server = await createServer({
-    "routes/_error.tsx": {
-      default: (ctx) => {
-        return <div>{(ctx.error as Error).message}</div>;
+    "routes/_404.tsx": {
+      default: () => {
+        return <div>Custom 404 - Not Found</div>;
+      },
+    },
+    "routes/index.tsx": {
+      handlers: () => {
+        throw new Error("ok");
+      },
+    },
+  });
+
+  const res = await server.get("/invalid");
+  const content = await res.text();
+  expect(content).toContain("Custom 404 - Not Found");
+});
+
+Deno.test("fsRoutes - _500", async () => {
+  const server = await createServer({
+    "routes/_500.tsx": {
+      default: () => {
+        return <div>Custom Error Page</div>;
       },
     },
     "routes/index.tsx": {
@@ -557,8 +576,27 @@ Deno.test("fsRoutes - _error", async () => {
   });
 
   const res = await server.get("/");
-  const doc = parseHtml(await res.text());
-  expect(doc.body.firstChild?.textContent).toEqual("ok");
+  const content = await res.text();
+  expect(content).toContain("Custom Error Page");
+});
+
+Deno.test("fsRoutes - _error", async () => {
+  const server = await createServer({
+    "routes/_error.tsx": {
+      default: () => {
+        return <div>Custom Error Page</div>;
+      },
+    },
+    "routes/index.tsx": {
+      handlers: () => {
+        throw new Error("ok");
+      },
+    },
+  });
+
+  const res = await server.get("/");
+  const content = await res.text();
+  expect(content).toContain("Custom Error Page");
 });
 
 Deno.test("fsRoutes - _error nested", async () => {

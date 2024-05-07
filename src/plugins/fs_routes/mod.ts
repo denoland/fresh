@@ -14,6 +14,7 @@ import { type Method, pathToPattern } from "../../router.ts";
 import { type HandlerFn, isHandlerByMethod } from "../../handlers.ts";
 import { type FsAdapter, fsAdapter } from "../../fs.ts";
 import type { PageProps } from "../../runtime/server/mod.tsx";
+import { HttpError } from "../../error.ts";
 
 const TEST_FILE_PATTERN = /[._]test\.(?:[tj]sx?|[mc][tj]s)$/;
 const GROUP_REG = /(^|[/\\\\])\((_[^/\\\\]+)\)[/\\\\]/;
@@ -183,6 +184,12 @@ export async function fsRoutes<State>(
     } else if (normalized.endsWith("/_error")) {
       stack.push(routeMod);
       continue;
+    } else if (normalized.endsWith("/_404")) {
+      stack.push(routeMod);
+      continue;
+    } else if (normalized.endsWith("/_500")) {
+      stack.push(routeMod);
+      continue;
     }
 
     // Remove any elements not matching our parent path anymore
@@ -227,7 +234,7 @@ export async function fsRoutes<State>(
         }
       }
 
-      if (mod.path.endsWith("/_error")) {
+      if (mod.path.endsWith("/_error") || mod.path.endsWith("/_500")) {
         const handlers = mod.handlers;
         const handler = handlers === null ||
             (isHandlerByMethod(handlers) && Object.keys(handlers).length === 0)
@@ -240,6 +247,22 @@ export async function fsRoutes<State>(
           errorComponents.push(mod.component);
         }
         middlewares.push(errorMiddleware(errorComponents, handler));
+        continue;
+      }
+
+      if (mod.path.endsWith("/_404")) {
+        const handlers = mod.handlers;
+        const handler = handlers === null ||
+            (isHandlerByMethod(handlers) && Object.keys(handlers).length === 0)
+          ? undefined
+          : typeof handlers === "function"
+          ? handlers
+          : undefined; // FIXME: Method handler
+        const notFoundComponents = components.slice();
+        if (mod.component !== null) {
+          notFoundComponents.push(mod.component);
+        }
+        app.use(notFoundMiddleware(notFoundComponents, handler));
         continue;
       }
 
@@ -294,6 +317,23 @@ function errorMiddleware<State>(
     } catch (err) {
       ctx.error = err;
       return mid(ctx);
+    }
+  };
+}
+
+function notFoundMiddleware<State>(
+  components: AnyComponent<PageProps<unknown, State>>[],
+  handler: HandlerFn<unknown, State> | undefined,
+): MiddlewareFn<State> {
+  const mid = renderMiddleware<State>(components, handler);
+  return async function notFoundMiddleware(ctx) {
+    try {
+      return await ctx.next();
+    } catch (err) {
+      if (err instanceof HttpError && err.status === 404) {
+        return mid(ctx);
+      }
+      throw err;
     }
   };
 }

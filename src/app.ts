@@ -21,10 +21,12 @@ import { renderToString } from "preact-render-to-string";
 import { FinishSetup, ForgotBuild } from "./finish_setup.tsx";
 import { HttpError } from "./error.ts";
 
-const DEFAULT_NOT_FOUND = () =>
-  Promise.resolve(new Response("Not found", { status: 404 }));
-const DEFAULT_NOT_ALLOWED_METHOD = () =>
-  Promise.resolve(new Response("Method not allowed", { status: 405 }));
+const DEFAULT_NOT_FOUND = () => {
+  throw new HttpError(404);
+};
+const DEFAULT_NOT_ALLOWED_METHOD = () => {
+  throw new HttpError(405);
+};
 
 export type ListenOptions = Partial<Deno.ServeTlsOptions> & {
   remoteAddress?: string;
@@ -163,39 +165,6 @@ export class App<State> {
     return this;
   }
 
-  async #process(
-    req: Request,
-    params: Record<string, string>,
-    handlers: MiddlewareFn<State>[][],
-    next: () => Promise<Response>,
-  ) {
-    const ctx = new FreshReqContext<State>(
-      req,
-      this.config,
-      next,
-      this.#islandRegistry,
-      this.#buildCache!,
-    );
-
-    ctx.params = params;
-
-    try {
-      if (handlers.length === 1 && handlers[0].length === 1) {
-        return handlers[0][0](ctx);
-      }
-
-      ctx.next = next;
-      return await runMiddlewares(handlers, ctx);
-    } catch (err) {
-      if (err instanceof HttpError) {
-        return new Response(null, { status: err.status });
-      }
-
-      console.error(err);
-      return new Response("Internal server error", { status: 500 });
-    }
-  }
-
   async handler(): Promise<
     (request: Request, info?: Deno.ServeHandlerInfo) => Promise<Response>
   > {
@@ -207,7 +176,7 @@ export class App<State> {
       return missingBuildHandler;
     }
 
-    return (req: Request) => {
+    return async (req: Request) => {
       const url = new URL(req.url);
       // Prevent open redirect attacks
       url.pathname = url.pathname.replace(/\/+/g, "/");
@@ -215,16 +184,36 @@ export class App<State> {
       const method = req.method.toUpperCase() as Method;
       const matched = this.#router.match(method, url);
 
-      const fallback = matched.patternMatch && !matched.methodMatch
+      const next = matched.patternMatch && !matched.methodMatch
         ? DEFAULT_NOT_ALLOWED_METHOD
         : DEFAULT_NOT_FOUND;
 
-      return this.#process(
+      const { params, handlers } = matched;
+      const ctx = new FreshReqContext<State>(
         req,
-        matched.params,
-        matched.handlers,
-        fallback,
+        this.config,
+        next,
+        this.#islandRegistry,
+        this.#buildCache!,
       );
+
+      ctx.params = params;
+
+      try {
+        if (handlers.length === 1 && handlers[0].length === 1) {
+          return handlers[0][0](ctx);
+        }
+
+        ctx.next = next;
+        return await runMiddlewares(handlers, ctx);
+      } catch (err) {
+        if (err instanceof HttpError) {
+          return new Response(err.message, { status: err.status });
+        }
+
+        console.error(err);
+        return new Response("Internal server error", { status: 500 });
+      }
     };
   }
 

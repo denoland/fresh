@@ -212,7 +212,7 @@ Deno.test("FreshApp - wrong method match", async () => {
 
   let res = await server.put("/");
   expect(res.status).toEqual(405);
-  expect(await res.text()).toEqual("Method not allowed");
+  expect(await res.text()).toEqual("Method Not Allowed");
 
   res = await server.post("/");
   expect(res.status).toEqual(200);
