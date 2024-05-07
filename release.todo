@@ -43,8 +43,8 @@ Fresh 2.0:
 ✔ next bug i ran into was that static file serving with the tailwind plugin does not seem to be working in dev mode @done(24-04-15 15:25)
 ✔ new builder architecture @done(24-04-15 15:25)
 ✔ Remove `GLOBAL_ISLANDS` map in favor of being scoped to render state @done(24-04-05 22:28)
-☐ Implement `Data#headers` and `Data#status`
-☐ Implement `Data#head` and `ctx.render(..., { head: ... })` with better type (not `string[]`)
+✔ Implement `Data#headers` and `Data#status` @done(24-05-08 01:54)
+✔ Implement `Data#head` and `ctx.render(..., { head: ... })` with better type (not `string[]`) @done(24-05-08 01:54)
 ✔ Bug in ts-morph https://github.com/dsherret/ts-morph/issues/1530 @done(24-04-22 15:28)
 ✔ Bring back error overlay @done(24-05-07 21:28)
 ✔ Bring back update checker @done(24-04-26 14:57)
