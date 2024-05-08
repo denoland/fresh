@@ -1,9 +1,12 @@
 import { App, staticFiles } from "@fresh/core";
 import { Partial } from "@fresh/core/runtime";
 import {
+  assertMetaContent,
   assertNotSelector,
   buildProd,
+  charset,
   Doc,
+  favicon,
   getIsland,
   parseHtml,
   waitFor,
@@ -1707,7 +1710,7 @@ Deno.test(
 );
 
 Deno.test(
-  "throws an error when response contains no partials",
+  "partials - throws an error when response contains no partials",
   async () => {
     const app = testApp()
       .get("/partial", (ctx) =>
@@ -1749,67 +1752,179 @@ Deno.test(
   },
 );
 
-// Deno.test("merges <head> content", async () => {
-//   await withPageName(
-//     "./tests/fixture_partials/main.ts",
-//     async (page, address) => {
-//       await page.goto(`${address}/head_merge`);
-//       await page.waitForSelector(".status-initial");
+Deno.test("partials - merges <head> content", async () => {
+  const app = testApp()
+    .get("/other.css", () =>
+      new Response("h1 { color: red }", {
+        headers: {
+          "Content-Type": "text/css",
+        },
+      }))
+    .get("/partial", (ctx) => {
+      return ctx.render(
+        <html>
+          <head>
+            {charset}
+            {favicon}
+            <title>Head merge updated</title>
+            <meta name="foo" content="bar baz" />
+            <meta property="og:foo" content="og value foo" />
+            <meta property="og:bar" content="og value bar" />
+            <link rel="stylesheet" href="/other.css" />
+            <style>{`p { color: green }`}</style>
+          </head>
+          <body f-client-nav>
+            <Partial name="body">
+              <h1>updated heading</h1>
+              <p class="updated">
+                updated
+              </p>
+            </Partial>
+          </body>
+        </html>,
+      );
+    })
+    .get("/", (ctx) => {
+      return ctx.render(
+        <html>
+          <head>
+            {charset}
+            {favicon}
+            <title>Head merge</title>
+            <meta name="foo" content="bar" />
+            <meta property="og:foo" content="og value foo" />
+            <style id="style-foo">{`.foo { color: red}`}</style>
+          </head>
+          <body f-client-nav>
+            <Partial name="body">
+              <p class="init">
+                init
+              </p>
+            </Partial>
+            <p>
+              <button class="update" f-partial="/partial">
+                update
+              </button>
+            </p>
+          </body>
+        </html>,
+      );
+    });
 
-//       await page.click(".update-link");
-//       await page.waitForSelector(".status-updated");
+  await withBrowserApp(app, async (page, address) => {
+    await page.goto(address);
 
-//       await waitFor(async () => {
-//         return (await page.title()) === "Head merge updated";
-//       });
+    await page.click(".update");
+    await page.waitForSelector(".updated");
 
-//       const doc = parseHtml(await page.content());
-//       assertEquals(doc.title, "Head merge updated");
+    await waitFor(async () => {
+      return (await page.title()) === "Head merge updated";
+    });
 
-//       assertMetaContent(doc, "foo", "bar baz");
-//       assertMetaContent(doc, "og:foo", "og value foo");
-//       assertMetaContent(doc, "og:bar", "og value bar");
+    const doc = parseHtml(await page.content());
+    expect(doc.title).toEqual("Head merge updated");
 
-//       const color = await page.$eval("h1", (el) => {
-//         return globalThis.getComputedStyle(el).color;
-//       });
-//       assertEquals(color, "rgb(255, 0, 0)");
+    assertMetaContent(doc, "foo", "bar baz");
+    assertMetaContent(doc, "og:foo", "og value foo");
+    assertMetaContent(doc, "og:bar", "og value bar");
 
-//       const textColor = await page.$eval("p", (el) => {
-//         return globalThis.getComputedStyle(el).color;
-//       });
-//       assertEquals(textColor, "rgb(0, 128, 0)");
-//     },
-//   );
-// });
+    const color = await page.$eval("h1", (el) => {
+      return globalThis.getComputedStyle(el).color;
+    });
+    expect(color).toEqual("rgb(255, 0, 0)");
 
-// Deno.test("does not merge duplicate <head> content", async () => {
-//   await withPageName(
-//     "./tests/fixture_partials/main.ts",
-//     async (page, address) => {
-//       await page.goto(`${address}/head_merge`);
-//       await page.waitForSelector(".status-initial");
+    const textColor = await page.$eval("p", (el) => {
+      return globalThis.getComputedStyle(el).color;
+    });
+    expect(textColor).toEqual("rgb(0, 128, 0)");
+  });
+});
 
-//       await page.click(".duplicate-link");
-//       await page.waitForSelector(".status-duplicated");
+Deno.test(
+  "partials - does not merge duplicate <head> content",
+  async () => {
+    const app = testApp()
+      .get("/style.css", () =>
+        new Response("h1 { color: red }", {
+          headers: {
+            "Content-Type": "text/css",
+          },
+        }))
+      .get("/partial", (ctx) => {
+        return ctx.render(
+          <html>
+            <head>
+              {charset}
+              {favicon}
+              <title>Head merge duplicated</title>
+              <meta name="foo" content="bar" />
+              <meta property="og:foo" content="og value foo" />
+              <link rel="stylesheet" href="/style.css" />
+              <style id="style-foo">{`.foo { color: red}`}</style>
+            </head>
+            <body f-client-nav>
+              <Partial name="body">
+                <p class="updated">
+                  updated
+                </p>
+              </Partial>
+              <p>
+                <button class="update" f-partial="/partial">
+                  update
+                </button>
+              </p>
+            </body>
+          </html>,
+        );
+      })
+      .get("/", (ctx) => {
+        return ctx.render(
+          <html>
+            <head>
+              {charset}
+              {favicon}
+              <title>Head merge</title>
+              <meta name="foo" content="bar" />
+              <meta property="og:foo" content="og value foo" />
+              <link rel="stylesheet" href="/style.css" />
+              <style id="style-foo">{`.foo { color: red}`}</style>
+            </head>
+            <body f-client-nav>
+              <Partial name="body">
+                <p class="init">
+                  init
+                </p>
+              </Partial>
+              <p>
+                <button class="update" f-partial="/partial">
+                  update
+                </button>
+              </p>
+            </body>
+          </html>,
+        );
+      });
 
-//       await waitFor(async () => {
-//         return (await page.title()) === "Head merge duplicated";
-//       });
+    await withBrowserApp(app, async (page, address) => {
+      await page.goto(address);
+      await page.click(".update");
+      await page.waitForSelector(".updated");
 
-//       const html = await page.content();
-//       assert(
-//         Array.from(html.matchAll(/id="style-foo"/g)).length === 1,
-//         `Duplicate style tag found`,
-//       );
+      await waitFor(async () => {
+        return (await page.title()) === "Head merge duplicated";
+      });
 
-//       assert(
-//         Array.from(html.matchAll(/style\.css/g)).length === 1,
-//         `Duplicate link stylesheet found`,
-//       );
-//     },
-//   );
-// });
+      const html = await page.content();
+      expect(
+        Array.from(html.matchAll(/id="style-foo"/g)).length === 1,
+      ).toEqual(true);
+
+      expect(
+        Array.from(html.matchAll(/style\.css/g)).length === 1,
+      ).toEqual(true);
+    });
+  },
+);
 
 Deno.test("supports relative links", async () => {
   const app = testApp()

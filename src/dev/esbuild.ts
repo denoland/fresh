@@ -127,7 +127,7 @@ function buildIdPlugin(buildId: string): EsbuildPlugin {
   return {
     name: "fresh-build-id",
     setup(build) {
-      build.onLoad({ filter: /runtime\/build_id\.ts$/ }, (args) => {
+      build.onLoad({ filter: /runtime\/build_id\.ts$/ }, () => {
         return {
           contents: `export const BUILD_ID = "${buildId}";`,
         };

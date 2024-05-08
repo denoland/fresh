@@ -15,11 +15,11 @@ export function SelfCounter(props: SelfCounterProps) {
 
   return (
     <div id={props.id} class={active.value ? "ready self-counter" : ""}>
-      <button class="decrement" onClick={() => count.value -= 1}>
+      <button type="button" class="decrement" onClick={() => count.value -= 1}>
         -1
       </button>
       <p class="output">{count}</p>
-      <button class="increment" onClick={() => count.value += 1}>
+      <button type="button" class="increment" onClick={() => count.value += 1}>
         +1
       </button>
     </div>

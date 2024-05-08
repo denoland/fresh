@@ -1,4 +1,4 @@
-import { DENO_DEPLOYMENT_ID } from "./constants.ts";
+import { DENO_DEPLOYMENT_ID } from "./runtime/build_id.ts";
 import * as colors from "@std/fmt/colors";
 import { type MiddlewareFn, runMiddlewares } from "./middlewares/mod.ts";
 import { FreshReqContext } from "./context.ts";

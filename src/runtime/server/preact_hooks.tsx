@@ -432,7 +432,7 @@ function FreshRuntimeScript() {
       }
       return {
         exportName: island.exportName,
-        chunk,
+        chunk: asset(chunk),
         name: island.name,
       };
     });

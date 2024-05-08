@@ -15,11 +15,13 @@ import {
   domToVNode,
   ISLAND_REGISTRY,
   Marker,
+  maybeHideMarker,
   PartialComp,
 } from "./reviver.ts";
 import { createRootFragment, isCommentNode, isElementNode } from "./reviver.ts";
 import type { PartialStateJson } from "../server/preact_hooks.tsx";
 import { parse } from "../../jsonify/parse.ts";
+import { INTERNAL_PREFIX } from "../../constants.ts";
 
 export const PARTIAL_ATTR = "f-partial";
 export const PARTIAL_SEARCH_PARAM = "fresh-partial";
@@ -332,6 +334,69 @@ export async function applyPartials(res: Response): Promise<void> {
     document.title = doc.title;
   }
 
+  // Needs to be converted to an array otherwise somehow <link>-tags
+  // are missing.
+  Array.from(doc.head.childNodes).forEach((childNode) => {
+    const child = childNode as HTMLElement;
+
+    if (child.nodeName === "TITLE") return;
+    if (child.nodeName === "META") {
+      const meta = child as HTMLMetaElement;
+
+      // Ignore charset which is usually set site wide anyway
+      if (meta.hasAttribute("charset")) return;
+
+      const name = meta.name;
+      if (name !== "") {
+        const existing = document.head.querySelector(`meta[name="${name}"]`) as
+          | HTMLMetaElement
+          | null;
+        if (existing !== null) {
+          if (existing.content !== meta.content) {
+            existing.content = meta.content;
+          }
+        } else {
+          document.head.appendChild(meta);
+        }
+      } else {
+        const property = child.getAttribute("property");
+        const existing = document.head.querySelector(
+          `meta[property="${property}"]`,
+        ) as HTMLMetaElement | null;
+        if (existing !== null) {
+          if (existing.content !== meta.content) {
+            existing.content = meta.content;
+          }
+        } else {
+          document.head.appendChild(meta);
+        }
+      }
+    } else if (child.nodeName === "LINK") {
+      const link = child as HTMLLinkElement;
+      if (link.rel === "modulepreload") return;
+      if (link.rel === "stylesheet") {
+        // The `href` attribute may be root relative. This ensures
+        // that they both have the same format
+        const existing = Array.from(document.head.querySelectorAll("link"))
+          .find((existingLink) => existingLink.href === link.href);
+        if (existing === undefined) {
+          document.head.appendChild(link);
+        }
+      }
+    } else if (child.nodeName === "SCRIPT") {
+      const script = child as HTMLScriptElement;
+      if (script.src === `${INTERNAL_PREFIX}/fresh-runtime.js`) return;
+      // TODO: What to do with script tags?
+    } else if (child.nodeName === "STYLE") {
+      const style = child as HTMLStyleElement;
+      // TODO: Do we need a smarter merging strategy?
+      // Don't overwrie existing style sheets that are flagged as unique
+      if (style.id === "") {
+        document.head.appendChild(style);
+      }
+    }
+  });
+
   revivePartials(ctx, allProps, doc.body);
 
   if (ctx.foundPartials === 0) {
@@ -356,6 +421,9 @@ function revivePartials(
     if (isCommentNode(sib)) {
       const comment = sib.data;
       const parts = comment.split(":");
+      if (parts[0] === "frsh") {
+        sib = maybeHideMarker(sib);
+      }
 
       if (parts[0] === "frsh" && parts[1] === "partial") {
         if (++partialCount === 1) {
@@ -376,7 +444,11 @@ function revivePartials(
         // Create a fake DOM node that spans the partial we discovered.
         // We need to include the partial markers itself for _walkInner
         // to register them.
-        const container = createRootFragment(node, startNode!, sib);
+        const container = createRootFragment(
+          node,
+          startNode as Comment,
+          sib as Comment,
+        );
 
         const root = h(PartialComp, {
           key: partialKey !== "" ? partialKey : undefined,
@@ -384,7 +456,13 @@ function revivePartials(
           mode: partialMode,
           children: null,
         });
-        domToVNode(allProps, [root], [Marker.Partial], container, sib);
+        domToVNode(
+          allProps,
+          [root],
+          [Marker.Partial],
+          container,
+          sib as Comment,
+        );
 
         const instance = ACTIVE_PARTIALS.get(partialName);
         if (instance === undefined) {

@@ -8,6 +8,7 @@ import { Builder } from "../src/dev/builder.ts";
 import { TextLineStream } from "@std/streams/text-line-stream";
 import * as path from "@std/path";
 import type { ComponentChildren } from "preact";
+import { expect } from "@std/expect";
 
 export function getIsland(pathname: string) {
   return path.join(
@@ -17,17 +18,23 @@ export function getIsland(pathname: string) {
   );
 }
 
+export const charset = <meta charset="utf-8" />;
+
+export const favicon = (
+  <link
+    href="data:image/x-icon;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQEAYAAABPYyMiAAAABmJLR0T///////8JWPfcAAAACXBIWXMAAABIAAAASABGyWs+AAAAF0lEQVRIx2NgGAWjYBSMglEwCkbBSAcACBAAAeaR9cIAAAAASUVORK5CYII="
+    rel="icon"
+    type="image/x-icon"
+  />
+);
+
 export function Doc(props: { children?: ComponentChildren; title?: string }) {
   return (
     <html>
       <head>
-        <meta charset="utf-8" />
+        {charset}
         <title>{props.title ?? "Test"}</title>
-        <link
-          href="data:image/x-icon;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQEAYAAABPYyMiAAAABmJLR0T///////8JWPfcAAAACXBIWXMAAABIAAAASABGyWs+AAAAF0lEQVRIx2NgGAWjYBSMglEwCkbBSAcACBAAAeaR9cIAAAAASUVORK5CYII="
-          rel="icon"
-          type="image/x-icon"
-        />
+        {favicon}
       </head>
       <body>
         {props.children}
@@ -239,6 +246,30 @@ export function assertNotSelector(doc: Document, selector: string) {
       `Selector "${selector}" found in document.\n\n${html}`,
     );
   }
+}
+
+export function assertMetaContent(
+  doc: Document,
+  nameOrProperty: string,
+  expected: string,
+) {
+  let el = doc.querySelector(`meta[name="${nameOrProperty}"]`) as
+    | HTMLMetaElement
+    | null;
+
+  if (el === null) {
+    el = doc.querySelector(`meta[property="${nameOrProperty}"]`) as
+      | HTMLMetaElement
+      | null;
+  }
+
+  if (el === null) {
+    console.log(prettyDom(doc));
+    throw new Error(
+      `No <meta>-tag found with content "${expected}"`,
+    );
+  }
+  expect(el.content).toEqual(expected);
 }
 
 export async function waitForText(

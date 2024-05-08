@@ -21,15 +21,15 @@ interface IslandReq {
   name: string;
   propsIdx: number;
   key: string | null;
-  start: Comment;
-  end: Comment | null;
+  start: Comment | Text;
+  end: Comment | Text | null;
 }
 interface PartialReq {
   kind: RootKind.Partial;
   name: string;
   key: string | null;
-  start: Comment;
-  end: Comment | null;
+  start: Comment | Text;
+  end: Comment | Text | null;
 }
 
 interface ReviveContext {
@@ -191,6 +191,31 @@ export function boot(
   }
 }
 
+const SHOW_MARKERS = false;
+
+interface FreshMarker extends Text {
+  _frshMarker: string;
+}
+
+export function isFreshMarkerText(node: Node): node is FreshMarker {
+  return node.nodeType === Node.TEXT_NODE &&
+    // deno-lint-ignore no-explicit-any
+    typeof (node as any)._frshMarker === "string";
+}
+
+/**
+ * Replace comment markers with empty text nodes to hide them
+ * in DevTools. This is done to avoid user confusion.
+ */
+export function maybeHideMarker(marker: Comment): Comment | Text {
+  if (SHOW_MARKERS) return marker;
+  const text = new Text("") as FreshMarker;
+  text._frshMarker = marker.data;
+  marker.parentNode!.insertBefore(text, marker);
+  marker.remove();
+  return text;
+}
+
 function _walkInner(
   ctx: ReviveContext,
   node: Node | Comment,
@@ -214,6 +239,7 @@ function _walkInner(
   } else if (isCommentNode(node)) {
     const comment = node.data;
     if (comment.startsWith("frsh:")) {
+      node = maybeHideMarker(node);
       const parts = comment.split(":");
       const kind = parts[1];
       if (kind === "island") {
@@ -225,7 +251,7 @@ function _walkInner(
           name,
           propsIdx: Number(propsIdx),
           key: key === "" ? null : key,
-          start: node,
+          start: node as Comment,
           end: null,
         };
         if (ctx.stack.length === 0) {
@@ -238,7 +264,7 @@ function _walkInner(
         ctx.slotIdStack.push(id);
         ctx.slots.set(id, {
           name: slotName,
-          start: node,
+          start: node as Comment,
           end: null,
         });
       } else if (kind === "partial") {
@@ -247,8 +273,8 @@ function _walkInner(
         const found: PartialReq = {
           kind: RootKind.Partial,
           name,
-          key,
-          start: node,
+          key: key === "" ? null : key,
+          start: node as Comment,
           end: null,
         };
         if (ctx.stack.length === 0) {
@@ -257,14 +283,16 @@ function _walkInner(
         ctx.stack.push(found);
       }
     } else if (comment === "/frsh:island" || comment === "/frsh:partial") {
+      node = maybeHideMarker(node);
       const item = ctx.stack.pop();
       if (item !== undefined) {
-        item.end = node;
+        item.end = node as Comment;
       }
     } else if (comment === "/frsh:slot") {
+      node = maybeHideMarker(node);
       const item = ctx.slotIdStack.pop();
       if (item !== undefined) {
-        ctx.slots.get(item)!.end = node;
+        ctx.slots.get(item)!.end = node as Comment;
       }
     }
   }
@@ -292,7 +320,7 @@ export function domToVNode(
   // deno-lint-ignore no-explicit-any
   vnodeStack: VNode<any>[],
   markerStack: Marker[],
-  node: Node | DocumentFragment,
+  node: Text | Comment | Node | DocumentFragment,
   end: Text | Comment | null,
 ): void {
   let sib: Node | ChildNode | null = node;
@@ -340,8 +368,8 @@ export function domToVNode(
       if (appendVNode) {
         vnodeStack.pop();
       }
-    } else if (isCommentNode(sib)) {
-      const comment = sib.data;
+    } else if (isCommentNode(sib) || isFreshMarkerText(sib)) {
+      const comment = isFreshMarkerText(sib) ? sib._frshMarker : sib.data;
       if (comment.startsWith("frsh:")) {
         const parts = comment.split(":");
 
@@ -358,7 +386,7 @@ export function domToVNode(
           }
 
           const props = allProps[+propsIdx].props;
-          props.key = key;
+          props.key = key === "" ? undefined : key;
 
           // deno-lint-ignore no-explicit-any
           const islandVNode = h<any>(island, props);
@@ -370,8 +398,9 @@ export function domToVNode(
           const id = +parts[2];
           const slotName = parts[3];
           const key = parts[4];
+
           const vnode = h(ServerSlot, {
-            key,
+            key: key === "" ? undefined : key,
             id,
             name: slotName,
             children: [],
@@ -391,7 +420,11 @@ export function domToVNode(
           const mode = +parts[3] as PartialMode;
           const key = parts[4];
           // deno-lint-ignore no-explicit-any
-          let vnode: VNode<any> = h(PartialComp, { name, key, mode });
+          let vnode: VNode<any> = h(PartialComp, {
+            name,
+            key: key === "" ? undefined : key,
+            mode,
+          });
           const parentVNode = vnodeStack.at(-1);
           if (parentVNode !== undefined) {
             addVNodeChild(parentVNode, vnode);
@@ -423,6 +456,7 @@ export function domToVNode(
 
           vnodeStack.push(vnode);
         } else if (kind === "key") {
+          console.log("KEY", parts);
           const vnode = h(Fragment, { key: parts[2] });
           addVNodeChild(vnodeStack.at(-1)!, vnode);
           vnodeStack.push(vnode);
