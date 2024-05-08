@@ -1,7 +1,6 @@
 import { type AnyComponent, h, type RenderableProps, type VNode } from "preact";
 import type { MiddlewareFn } from "../../middlewares/mod.ts";
 import type { HandlerFn, Render } from "../../handlers.ts";
-import type { FreshContext } from "../../context.ts";
 import type { PageProps } from "../../runtime/server/mod.tsx";
 
 export type AsyncAnyComponent<P> = {
@@ -18,7 +17,7 @@ export type AsyncAnyComponent<P> = {
 export function renderMiddleware<State>(
   components: Array<
     | AnyComponent<PageProps<unknown, State>>
-    | AsyncAnyComponent<FreshContext<unknown, State>>
+    | AsyncAnyComponent<PageProps<unknown, State>>
   >,
   handler: HandlerFn<unknown, State> | undefined,
 ): MiddlewareFn<State> {

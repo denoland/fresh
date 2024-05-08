@@ -172,7 +172,10 @@ export class App<State> {
       this.#buildCache = await ProdBuildCache.fromSnapshot(this.config);
     }
 
-    if (!this.#buildCache.hasSnapshot) {
+    if (
+      !this.#buildCache.hasSnapshot && this.config.mode === "production" &&
+      DENO_DEPLOYMENT_ID !== undefined
+    ) {
       return missingBuildHandler;
     }
 

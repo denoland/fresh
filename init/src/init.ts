@@ -472,7 +472,7 @@ ${useTailwind ? `import { tailwind } from "@fresh/plugin-tailwind";\n` : ""};
 import { Builder } from "@fresh/core/dev";
 import { app } from "./main.tsx";
 
-const devApp = new Builder();
+const builder = new Builder();
 ${useTailwind ? "tailwind(builder, app, {});\n" : "\n"}
 
 if (Deno.args.includes("build")) {
