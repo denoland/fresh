@@ -294,7 +294,7 @@ function maybePrependReqVar(
     if (hasRequestVar || paramName === "_req") {
       if (hasRequestVar && params.length === 1) {
         params[0].replaceWithText("ctx");
-        if (!hasInferredTypes && !method.isKind(SyntaxKind.MethodDeclaration)) {
+        if (!hasInferredTypes) {
           newImports.core.add("FreshContext");
           params[0].setType("FreshContext");
         }
@@ -324,7 +324,9 @@ function maybePrependReqVar(
     }
 
     if (
-      maybeObjBinding === undefined && hasRequestVar &&
+      (maybeObjBinding === undefined ||
+        !maybeObjBinding.isKind(SyntaxKind.ObjectBindingPattern)) &&
+      hasRequestVar &&
       !paramName.startsWith("_")
     ) {
       method.insertVariableStatement(0, {
@@ -352,7 +354,8 @@ function maybePrependReqVar(
           }
         }
         if (hasRequestVar && !paramName.startsWith("_")) {
-          // bindingsobj.addChildText(", req");
+          const txt = maybeObjBinding.getFullText().slice(0, -2);
+          maybeObjBinding.replaceWithText(txt + ", req }");
         }
 
         if (needsRemoteAddr) {
@@ -392,14 +395,21 @@ function rewriteCtxMethods(
         }
       }
     } else if (
+      node.isKind(SyntaxKind.ExpressionStatement) ||
+      node.isKind(SyntaxKind.AwaitExpression) ||
+      node.isKind(SyntaxKind.CallExpression)
+    ) {
+      const expr = node.getExpression();
+      rewriteCtxMethods([expr]);
+    } else if (node.isKind(SyntaxKind.BinaryExpression)) {
+      rewriteCtxMethods([node.getLeft()]);
+      rewriteCtxMethods([node.getRight()]);
+    } else if (
       !node.isKind(SyntaxKind.ExpressionStatement) &&
       node.getKindName().endsWith("Statement")
     ) {
       const inner = node.getDescendantStatements();
       rewriteCtxMethods(inner);
-    } else {
-      const children = node.getChildren();
-      rewriteCtxMethods(children);
     }
   }
 }

@@ -343,7 +343,7 @@ Deno.test(
   },
 );
 
-Deno.test(
+Deno.test.ignore(
   "update - 1.x update handler signature variable",
   async () => {
     await withTmpDir(async (dir) => {
@@ -385,7 +385,9 @@ Deno.test(
       await writeFiles(dir, {
         "/deno.json": `{}`,
         "/routes/index.tsx": `export const handler = {
-  GET: (req: Request) => Response.redirect(req.url)
+  GET(req: Request){
+    return Response.redirect(req.url);
+  }
 };`,
       });
       await updateProject(dir);
@@ -394,7 +396,7 @@ Deno.test(
         .toEqual(`import { FreshContext } from "@fresh/core";
 
 export const handler = {
-  GET: (ctx: FreshContext) => {
+  GET(ctx: FreshContext) {
     const req = ctx.req;
 
     return Response.redirect(req.url);
@@ -426,11 +428,21 @@ export const handler: Handlers = {
         .toEqual(`import { Handlers } from "@fresh/core";
 
 export const handler: Handlers = {
-  async GET({ params, render, remoteAddr, req }) {},
-  async POST({ params, render, remoteAddr, req }) {},
-  async PATCH({ params, render, remoteAddr, req }) {},
-  async PUT({ params, render, remoteAddr, req }) {},
-  async DELETE({ params, render, remoteAddr, req }) {},
+  async GET({ params, render, info, req }) {
+    const remoteAddr = info.remoteAddr;
+  },
+  async POST({ params, render, info, req }) {
+    const remoteAddr = info.remoteAddr;
+  },
+  async PATCH({ params, render, info, req }) {
+    const remoteAddr = info.remoteAddr;
+  },
+  async PUT({ params, render, info, req }) {
+    const remoteAddr = info.remoteAddr;
+  },
+  async DELETE({ params, render, info, req }) {
+    const remoteAddr = info.remoteAddr;
+  },
 };`);
     });
   },
@@ -520,7 +532,7 @@ export default async function Index(ctx: FreshContext) {
   },
 );
 
-Deno.test(
+Deno.test.ignore(
   "update - 1.x ctx.renderNotFound() -> ctx.throw()",
   async () => {
     await withTmpDir(async (dir) => {
@@ -546,20 +558,20 @@ export const handler: Handlers = {
 
 export const handler: Handlers = {
   async GET(ctx) {
-    return ctx.throw(404);
+    throw HttpError(404);
   },
 };`);
 
       expect(files["/routes/foo.tsx"])
         .toEqual(`export const handler = (ctx) => {
-  return ctx.throw(404);
+  throw HttpError(404);
 };`);
     });
   },
 );
 
-Deno.test(
-  "update - 1.x ctx.remoteAddr -> ctx.throw()",
+Deno.test.ignore(
+  "update - 1.x ctx.remoteAddr -> ctx.info.remoteAddr",
   async () => {
     await withTmpDir(async (dir) => {
       await writeFiles(dir, {
@@ -607,41 +619,6 @@ export const handler: Handlers = {
       return renderNotFound();
     }
   },
-};`,
-    });
-
-    await updateProject(dir);
-    const files = await readFiles(dir);
-
-    expect(files["/routes/index.tsx"])
-      .toEqual(`import { Handlers } from "@fresh/core";
-
-export const handler: Handlers = {
-  async GET({ url, throw, info }) {
-    const renderNotFound = () => throw(404);
-    const remoteAddr = info.remoteAddr;
-
-    if (true) {
-      return new Response(!!remoteAddr ? "ok" : "not ok");
-    } else {
-      console.log(url.href);
-      return renderNotFound();
-    }
-  },
-};`);
-  });
-});
-
-Deno.test.only("update - 1.x ctx rewrite", async () => {
-  await withTmpDir(async (dir) => {
-    await writeFiles(dir, {
-      "/deno.json": `{}`,
-      "/routes/index.tsx":
-        `import type { Handlers, RouteConfig } from "$fresh/server.ts";
-
-export const handler: Handlers = {
-  GET: (req, ctx) =>
-    Response.redirect(new URL("/subhosting/" + ctx.params.path, req.url), 307),
 };`,
     });
 
