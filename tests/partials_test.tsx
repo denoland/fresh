@@ -1235,31 +1235,84 @@ Deno.test("partials - opt out of parital navigation #2", async () => {
   });
 });
 
-// Deno.test("restore scroll position", async () => {
-//   await withPageName(
-//     "./tests/fixture_partials/main.ts",
-//     async (page, address) => {
-//       const initialUrl = `${address}/scroll_restoration`;
-//       await page.goto(initialUrl);
-//       await page.waitForSelector(".status-initial");
+Deno.test("partials - restore scroll position", async () => {
+  const app = testApp()
+    .get("/partial", (ctx) => {
+      return ctx.render(
+        <Doc>
+          <Partial name="foo">
+            <h1 class="partial-content">foo</h1>
+          </Partial>
+        </Doc>,
+      );
+    })
+    .get("/", (ctx) => {
+      return ctx.render(
+        <Doc>
+          <div f-client-nav>
+            <Partial name="foo">
+              {new Array(10).fill(0).map(() => {
+                return (
+                  <p>
+                    Lorem ipsum dolor sit amet, consectetuer adipiscing elit.
+                    Aenean commodo ligula eget dolor. Aenean massa. Cum sociis
+                    natoque penatibus et magnis dis parturient montes, nascetur
+                    ridiculus mus. Donec quam felis, ultricies nec, pellentesque
+                    eu, pretium quis, sem. Nulla consequat massa quis enim.
+                    Donec pede justo, fringilla vel, aliquet nec, vulputate
+                    eget, arcu. In enim justo, rhoncus ut, imperdiet a,
+                    venenatis vitae, justo. Nullam dictum felis eu pede mollis
+                    pretium. Integer tincidunt. Cras dapibus. Vivamus elementum
+                    semper nisi. Aenean vulputate eleifend tellus. Aenean leo
+                    ligula, porttitor eu, consequat vitae, eleifend ac, enim.
+                    Aliquam lorem ante, dapibus in, viverra quis, feugiat a,
+                    tellus. Phasellus viverra nulla ut metus varius laoreet.
+                    Quisque rutrum. Aenean imperdiet. Etiam ultricies nisi vel
+                    augue. Curabitur ullamcorper ultricies nisi. Nam eget dui.
+                    Etiam rhoncus. Maecenas tempus, tellus eget condimentum
+                    rhoncus, sem quam semper libero, sit amet adipiscing sem
+                    neque sed ipsum. Nam quam nunc, blandit vel, luctus
+                    pulvinar, hendrerit id, lorem. Maecenas nec odio et ante
+                    tincidunt tempus. Donec vitae sapien ut libero venenatis
+                    faucibus. Nullam quis ante. Etiam sit amet orci eget eros
+                    faucibus tincidunt. Duis leo. Sed fringilla mauris sit amet
+                    nibh. Donec sodales sagittis magna. Sed consequat, leo eget
+                    bibendum sodales, augue velit cursus nunc,
+                  </p>
+                );
+              })}
+              <p class="init">init</p>
+            </Partial>
+            <p>
+              <a
+                class="update"
+                href="/partial"
+              >
+                update
+              </a>
+            </p>
+          </div>
+        </Doc>,
+      );
+    });
 
-//       await page.evaluate(() => {
-//         document.querySelector(".update-link")?.scrollIntoView({
-//           behavior: "instant",
-//         });
-//       });
+  await withBrowserApp(app, async (page, address) => {
+    await page.goto(address);
+    await page.evaluate(() => {
+      document.querySelector(".update")?.scrollIntoView({
+        behavior: "instant",
+      });
+    });
+    await page.click(".update");
 
-//       await page.click(".update-link");
-//       await page.waitForSelector(".status-updated");
+    await page.waitForSelector(".partial-content");
+    await page.goBack();
+    await page.waitForSelector(".init");
+    const scroll = await page.evaluate(() => ({ scrollX, scrollY }));
 
-//       await page.goBack();
-//       await page.waitForSelector(".status-initial");
-//       const scroll = await page.evaluate(() => ({ scrollX, scrollY }));
-
-//       assert(scroll.scrollY > 100, `Page did not scroll ${scroll.scrollY}`);
-//     },
-//   );
-// });
+    expect(scroll.scrollY > 100).toEqual(true);
+  });
+});
 
 Deno.test("partials - submit form", async () => {
   const app = testApp()
@@ -1592,121 +1645,109 @@ Deno.test(
   },
 );
 
-// Deno.test("fragment navigation should not scroll to top", async () => {
-//   await withPageName(
-//     "./tests/fixture_partials/main.ts",
-//     async (page, address) => {
-//       await page.goto(`${address}/fragment_nav_scroll`);
-//       await page.waitForSelector(".partial-text");
+Deno.test(
+  "partials - fragment navigation should not scroll to top",
+  async () => {
+    const app = testApp()
+      .get("/", (ctx) => {
+        return ctx.render(
+          <Doc>
+            <div f-client-nav>
+              {new Array(10).fill(0).map(() => {
+                return (
+                  <p>
+                    Lorem ipsum dolor sit amet, consectetuer adipiscing elit.
+                    Aenean commodo ligula eget dolor. Aenean massa. Cum sociis
+                    natoque penatibus et magnis dis parturient montes, nascetur
+                    ridiculus mus. Donec quam felis, ultricies nec, pellentesque
+                    eu, pretium quis, sem. Nulla consequat massa quis enim.
+                    Donec pede justo, fringilla vel, aliquet nec, vulputate
+                    eget, arcu. In enim justo, rhoncus ut, imperdiet a,
+                    venenatis vitae, justo. Nullam dictum felis eu pede mollis
+                    pretium. Integer tincidunt. Cras dapibus. Vivamus elementum
+                    semper nisi. Aenean vulputate eleifend tellus. Aenean leo
+                    ligula, porttitor eu, consequat vitae, eleifend ac, enim.
+                    Aliquam lorem ante, dapibus in, viverra quis, feugiat a,
+                    tellus. Phasellus viverra nulla ut metus varius laoreet.
+                    Quisque rutrum. Aenean imperdiet. Etiam ultricies nisi vel
+                    augue. Curabitur ullamcorper ultricies nisi. Nam eget dui.
+                    Etiam rhoncus. Maecenas tempus, tellus eget condimentum
+                    rhoncus, sem quam semper libero, sit amet adipiscing sem
+                    neque sed ipsum. Nam quam nunc, blandit vel, luctus
+                    pulvinar, hendrerit id, lorem. Maecenas nec odio et ante
+                    tincidunt tempus. Donec vitae sapien ut libero venenatis
+                    faucibus. Nullam quis ante. Etiam sit amet orci eget eros
+                    faucibus tincidunt. Duis leo. Sed fringilla mauris sit amet
+                    nibh. Donec sodales sagittis magna. Sed consequat, leo eget
+                    bibendum sodales, augue velit cursus nunc,
+                  </p>
+                );
+              })}
+              <h1 id="foo">Same nav</h1>
+              <a href="#foo">#foo</a>
+              <Partial name="foo">
+                <p class="partial-text">
+                  foo partial
+                </p>
+              </Partial>
+            </div>
+          </Doc>,
+        );
+      });
 
-//       await page.click("a");
-//       await page.waitForFunction(() => location.hash === "#foo");
+    await withBrowserApp(app, async (page, address) => {
+      await page.goto(address);
 
-//       const scroll = await page.evaluate(() => globalThis.scrollY);
-//       assert(scroll > 0, `Did not scroll to fragment`);
-//     },
-//   );
-// });
+      await page.click("a");
+      await page.waitForFunction(() => location.hash === "#foo");
+      const scroll = await page.evaluate(() => globalThis.scrollY);
+      expect(scroll > 0).toEqual(true);
+    });
+  },
+);
 
-// Deno.test("active links without client nav", async () => {
-//   await withFakeServe(
-//     "./tests/fixture_partials/main.ts",
-//     async (server) => {
-//       let doc = await server.getHtml(`/active_nav`);
-//       assertSelector(doc, "a[href='/'][data-ancestor]");
+Deno.test(
+  "throws an error when response contains no partials",
+  async () => {
+    const app = testApp()
+      .get("/partial", (ctx) =>
+        ctx.render(
+          <Doc>
+            <p class="status-append">append content</p>
+          </Doc>,
+        ))
+      .get("/", (ctx) => {
+        return ctx.render(
+          <Doc>
+            <div f-client-nav>
+              <Partial name="body">
+                <p class="init">
+                  init
+                </p>
+              </Partial>
+              <p>
+                <button class="update" f-partial="/partial">
+                  update
+                </button>
+              </p>
+            </div>
+          </Doc>,
+        );
+      });
 
-//       // Current
-//       assertNotSelector(doc, "a[href='/active_nav'][data-ancestor]");
-//       assertSelector(doc, "a[href='/active_nav'][data-current]");
-//       assertSelector(doc, `a[href='/active_nav'][aria-current="page"]`);
+    await withBrowserApp(app, async (page, address) => {
+      await page.goto(address);
+      const logs: string[] = [];
+      page.on("pageerror", (msg) => logs.push(msg.message));
 
-//       // Unrelated links
-//       assertNotSelector(doc, "a[href='/active_nav/foo'][data-ancestor]");
-//       assertNotSelector(doc, "a[href='/active_nav/foo'][aria-current]");
-//       assertNotSelector(doc, "a[href='/active_nav/foo/bar'][data-ancestor]");
-//       assertNotSelector(doc, "a[href='/active_nav/foo/bar'][aria-current]");
+      await page.goto(address);
+      await page.click(".update");
 
-//       doc = await server.getHtml(`/active_nav/foo`);
-//       assertSelector(doc, "a[href='/active_nav/foo'][data-current]");
-//       assertSelector(doc, `a[href='/active_nav/foo'][aria-current="page"]`);
-//       assertSelector(doc, "a[href='/active_nav'][data-ancestor]");
-//       assertSelector(doc, `a[href='/active_nav'][aria-current="true"]`);
-//       assertSelector(doc, "a[href='/'][data-ancestor]");
-//       assertSelector(doc, `a[href='/'][aria-current="true"]`);
-//     },
-//   );
-// });
-
-// Deno.test("Updates active links outside of vdom", async () => {
-//   await withPageName(
-//     "./tests/fixture_partials/main.ts",
-//     async (page, address) => {
-//       await page.goto(`${address}/active_nav_partial`);
-
-//       let doc = parseHtml(await page.content());
-//       assertSelector(doc, "a[href='/'][data-ancestor]");
-
-//       // Current
-//       assertNotSelector(doc, "a[href='/active_nav_partial'][data-ancestor]");
-//       assertSelector(doc, "a[href='/active_nav_partial'][data-current]");
-//       assertSelector(doc, `a[href='/active_nav_partial'][aria-current="page"]`);
-
-//       // Unrelated links
-//       assertNotSelector(
-//         doc,
-//         "a[href='/active_nav_partial/foo'][data-ancestor]",
-//       );
-//       assertNotSelector(
-//         doc,
-//         "a[href='/active_nav_partial/foo'][aria-current]",
-//       );
-//       assertNotSelector(
-//         doc,
-//         "a[href='/active_nav_partial/foo/bar'][data-ancestor]",
-//       );
-//       assertNotSelector(
-//         doc,
-//         "a[href='/active_nav_partial/foo/bar'][aria-current]",
-//       );
-
-//       await page.goto(`${address}/active_nav_partial/foo`);
-//       doc = parseHtml(await page.content());
-//       assertSelector(doc, "a[href='/active_nav_partial/foo'][data-current]");
-//       assertSelector(
-//         doc,
-//         `a[href='/active_nav_partial/foo'][aria-current="page"]`,
-//       );
-//       assertSelector(doc, "a[href='/active_nav_partial'][data-ancestor]");
-//       assertSelector(
-//         doc,
-//         `a[href='/active_nav_partial'][data-ancestor][aria-current="true"]`,
-//       );
-//       assertSelector(doc, "a[href='/'][data-ancestor]");
-//       assertSelector(doc, `a[href='/'][aria-current="true"]`);
-//     },
-//   );
-// });
-
-// Deno.test("throws an error when response contains no partials", async () => {
-//   await withPageName(
-//     "./tests/fixture_partials/main.ts",
-//     async (page, address) => {
-//       const logs: string[] = [];
-//       page.on("pageerror", (msg) => logs.push(msg.message));
-
-//       await page.goto(`${address}/no_partial_response`);
-//       await waitFor(async () => {
-//         const logEl = await page.$eval("#logs", (el) => el.textContent);
-//         return /mount Counter/.test(logEl);
-//       });
-
-//       await page.click(".update-link");
-
-//       await waitFor(() => logs.length > 0);
-//       assertMatch(logs[0], /Found no partials/);
-//     },
-//   );
-// });
+      await waitFor(() => logs.length > 0);
+      expect(logs[0]).toMatch(/Found no partials/);
+    });
+  },
+);
 
 // Deno.test("merges <head> content", async () => {
 //   await withPageName(
@@ -1770,18 +1811,42 @@ Deno.test(
 //   );
 // });
 
-// Deno.test("supports relative links", async () => {
-//   await withPageName(
-//     "./tests/fixture_partials/main.ts",
-//     async (page, address) => {
-//       await page.goto(`${address}/relative_link`);
-//       await page.waitForSelector(".status-initial");
+Deno.test("supports relative links", async () => {
+  const app = testApp()
+    .get("/", (ctx) => {
+      const { searchParams } = ctx.url;
+      return ctx.render(
+        <Doc>
+          <div f-client-nav>
+            <Partial name="body">
+              <p
+                class={searchParams.has("refresh")
+                  ? "status-refreshed"
+                  : "status-initial"}
+              >
+                {searchParams.has("refresh")
+                  ? "Refreshed content"
+                  : "Initial content"}
+              </p>
+            </Partial>
+            <p>
+              <button f-partial="?refresh">
+                refresh
+              </button>
+            </p>
+          </div>
+        </Doc>,
+      );
+    });
 
-//       await page.click("button");
-//       await page.waitForSelector(".status-refreshed");
-//     },
-//   );
-// });
+  await withBrowserApp(app, async (page, address) => {
+    await page.goto(address);
+    await page.waitForSelector(".status-initial");
+
+    await page.click("button");
+    await page.waitForSelector(".status-refreshed");
+  });
+});
 
 Deno.test("partials - update stateful inner partials", async () => {
   const app = testApp()

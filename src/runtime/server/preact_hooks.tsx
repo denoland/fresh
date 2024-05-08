@@ -21,6 +21,7 @@ import {
   CLIENT_NAV_ATTR,
   DATA_FRESH_KEY,
   PartialMode,
+  setActiveUrl,
 } from "../shared_internal.tsx";
 import type { BuildCache } from "../../build_cache.ts";
 import { BUILD_ID } from "../build_id.ts";
@@ -112,6 +113,9 @@ const oldVNodeHook = options[OptionsType.VNODE];
 options[OptionsType.VNODE] = (vnode) => {
   if (RENDER_STATE !== null) {
     RENDER_STATE.owners.set(vnode, RENDER_STATE!.ownerStack.at(-1)!);
+    if (vnode.type === "a") {
+      setActiveUrl(vnode, RENDER_STATE.ctx.url.pathname);
+    }
   }
   assetHashingHook(vnode, BUILD_ID);
 
