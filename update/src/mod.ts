@@ -4,7 +4,7 @@ import { ensureMinDenoVersion, error } from "./utils.ts";
 import { updateProject } from "./update.ts";
 import * as colors from "@std/fmt/colors";
 
-const MIN_DENO_VERSION = "1.42.4";
+const MIN_DENO_VERSION = "1.43.1";
 
 const HELP = `@fresh/update
 
