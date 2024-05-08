@@ -222,8 +222,11 @@ export class App<State> {
       options.onListen = (params) => {
         const pathname = (this.config.basePath) + "/";
         const protocol = options.key && options.cert ? "https:" : "http:";
+        const hostname = params.hostname.startsWith("::")
+          ? `[${params.hostname}]`
+          : params.hostname;
         const address = colors.cyan(
-          `${protocol}//${params.hostname}:${params.port}${pathname}`,
+          `${protocol}//${hostname}:${params.port}${pathname}`,
         );
         const localLabel = colors.bold("Local:");
 
