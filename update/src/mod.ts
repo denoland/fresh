@@ -2,6 +2,7 @@ import { parseArgs } from "@std/cli/parse-args";
 import * as path from "@std/path";
 import { ensureMinDenoVersion, error } from "./utils.ts";
 import { updateProject } from "./update.ts";
+import * as colors from "@std/fmt/colors";
 
 const MIN_DENO_VERSION = "1.42.4";
 
@@ -20,6 +21,18 @@ USAGE:
 ensureMinDenoVersion(MIN_DENO_VERSION);
 
 const flags = parseArgs(Deno.args, {});
+
+console.log(colors.bgRgb8(
+  colors.rgb8(" 🍋 Fresh Updater ", 0),
+  121,
+));
+console.log();
+console.log(
+  colors.italic(
+    "Note: Breaking changes may require additional manual updates.",
+  ),
+);
+console.log();
 
 let unresolvedDirectory = Deno.args[0];
 if (flags._.length !== 1) {
