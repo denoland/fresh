@@ -1,5 +1,4 @@
 import { PageProps } from "$fresh/server.ts";
-import { Partial } from "$fresh/runtime.ts";
 
 export default function App({ Component }: PageProps) {
   return (
@@ -16,7 +15,6 @@ export default function App({ Component }: PageProps) {
           crossorigin="true"
         />
         <link rel="stylesheet" href="/styles.css" />
-        <link rel="stylesheet" href="/prism.css" />
       </head>
       <body>
         <Component />
