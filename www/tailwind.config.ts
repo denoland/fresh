@@ -18,4 +18,12 @@ export default {
       });
     }),
   ],
+  theme: {
+    extend: {
+      colors: {
+        fresh: "#FFDB1E",
+        "fresh-dark": "#401C00",
+      },
+    },
+  },
 } satisfies Config;

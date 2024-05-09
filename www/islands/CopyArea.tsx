@@ -31,8 +31,8 @@ export default function CopyArea(props: { code: string }) {
   }, [copied.value]);
 
   return (
-    <div class="bg-slate-800 rounded text-green-100 flex items-center min-w-0">
-      <pre class="overflow-x-auto flex-1 px-6 py-4">
+    <div class="bg-slate-800 rounded text-green-100 flex items-center min-w-0 overflow-x-auto">
+      <pre class="overflow-x-auto w-full flex-1 px-6 py-4">
         {props.code}
       </pre>
 

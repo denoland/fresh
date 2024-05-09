@@ -6,11 +6,9 @@ export const LemonHoneyTea = () => (
     <ul>
       <li>1 cup boiling water</li>
       <li>¼ tsp black tea</li>
-      <li>
-        2 tsp honey
-      </li>
+      <li>2 tsp honey</li>
       <li>1 tsp lemon juice</li>
-      <li>Lemon peel garnish (optional)</li>
+      <li>Lemon peel</li>
     </ul>
   </Partial>
 );

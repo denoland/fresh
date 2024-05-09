@@ -6,9 +6,9 @@ export const Lemonade = () => (
     <ul>
       <li>1 ¾ cups white sugar</li>
       <li>1 cup water</li>
-      <li>9 medium lemons, or more as needed</li>
-      <li>7 cups ice-cold water</li>
-      <li>ice as needed</li>
+      <li>9 lemons</li>
+      <li>7 cups ice water</li>
+      <li>Ice</li>
     </ul>
   </Partial>
 );

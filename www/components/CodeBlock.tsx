@@ -1,7 +1,7 @@
 import Prism from "$prism";
 
 export function CodeBlock(
-  { code, lang }: { code: string; lang: "js" | "ts" | "jsx" | "md" },
+  { code, lang }: { code: string; lang: "js" | "ts" | "jsx" | "md" | "bash" },
 ) {
   return (
     <pre

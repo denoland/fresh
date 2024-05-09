@@ -6,6 +6,7 @@ import { SideBySide } from "$fresh/www/components/SideBySide.tsx";
 import { SectionHeading } from "$fresh/www/components/homepage/SectionHeading.tsx";
 import { DemoBox } from "$fresh/www/components/homepage/DemoBox.tsx";
 import { ExampleArrow } from "$fresh/www/components/homepage/ExampleArrow.tsx";
+import { FancyLink } from "$fresh/www/components/FancyLink.tsx";
 
 const islandCode = `import { useSignal } from "@preact/signals";
 
@@ -30,18 +31,40 @@ export function IslandsSection() {
     <PageSection>
       <SideBySide mdColSplit="3/2" lgColSplit="3/2" reverseOnDesktop={true}>
         <div class="flex flex-col gap-4">
-          <div
-            role="img"
-            alt="Desert island emoji"
-            class="leading-none text-[4rem]"
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            class="icon icon-tabler icon-tabler-beach text-fresh"
+            width="4rem"
+            height="4rem"
+            viewBox="0 0 24 24"
+            stroke-width="1.5"
+            stroke="currentColor"
+            fill="none"
+            stroke-linecap="round"
+            stroke-linejoin="round"
           >
-            &#127965;
-          </div>
+            <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+            <path d="M17.553 16.75a7.5 7.5 0 0 0 -10.606 0" />
+            <path d="M18 3.804a6 6 0 0 0 -8.196 2.196l10.392 6a6 6 0 0 0 -2.196 -8.196z" />
+            <path d="M16.732 10c1.658 -2.87 2.225 -5.644 1.268 -6.196c-.957 -.552 -3.075 1.326 -4.732 4.196" />
+            <path d="M15 9l-3 5.196" />
+            <path d="M3 19.25a2.4 2.4 0 0 1 1 -.25a2.4 2.4 0 0 1 2 1a2.4 2.4 0 0 0 2 1a2.4 2.4 0 0 0 2 -1a2.4 2.4 0 0 1 2 -1a2.4 2.4 0 0 1 2 1a2.4 2.4 0 0 0 2 1a2.4 2.4 0 0 0 2 -1a2.4 2.4 0 0 1 2 -1a2.4 2.4 0 0 1 1 .25" />
+          </svg>
           <SectionHeading>Island-based architecture</SectionHeading>
-          <p class="text-gray-600 mb-4">
-            Fresh ships raw HTML to the client, and then hydrates with
-            JavaScript only where needed. Simple and fast.
+          <p>
+            Fresh ships plain HTML to the client, and then hydrates with
+            JavaScript only where needed.
           </p>
+          <p>
+            Because it's Preact, you get best-in-class performance, plus the
+            convenience of{" "}
+            <a href="https://preactjs.com/guide/v10/signals/" class="underline">
+              Signals
+            </a>.
+          </p>
+          <FancyLink href="/docs/concepts/islands" class="mt-2">
+            Learn more about islands
+          </FancyLink>
         </div>
         <div class="flex flex-col gap-4 relative">
           <CodeWindow name="Counter island component">

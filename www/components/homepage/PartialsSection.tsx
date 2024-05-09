@@ -7,6 +7,7 @@ import { SectionHeading } from "$fresh/www/components/homepage/SectionHeading.ts
 import { DemoBox } from "$fresh/www/components/homepage/DemoBox.tsx";
 import { ExampleArrow } from "$fresh/www/components/homepage/ExampleArrow.tsx";
 import { RecipeDemo } from "$fresh/www/components/homepage/RecipeDemo.tsx";
+import { FancyLink } from "$fresh/www/components/FancyLink.tsx";
 
 const islandCode = `import { Partial } from "$fresh/runtime.ts";
 
@@ -25,7 +26,7 @@ export const Recipes = () => (
     </aside>
     <main>
       <Partial name="recipe">
-        👈 Click a recipe to stream HTML into this spot
+        Click a recipe to stream HTML into this spot
       </Partial>
     </main>
   </div>
@@ -36,19 +37,41 @@ export function PartialsSection() {
     <PageSection>
       <SideBySide mdColSplit="3/2" lgColSplit="3/2" reverseOnDesktop={true}>
         <div class="flex flex-col gap-4">
-          <div
+          <svg
             role="img"
-            alt="Desert island emoji"
-            class="leading-none text-[4rem] font-mono"
+            alt="Arrows transferring data down "
+            xmlns="http://www.w3.org/2000/svg"
+            class="icon icon-tabler icon-tabler-arrows-transfer-down text-fresh"
+            width="4rem"
+            height="4rem"
+            viewBox="0 0 24 24"
+            stroke-width="1.5"
+            stroke="currentColor"
+            fill="none"
+            stroke-linecap="round"
+            stroke-linejoin="round"
           >
-            🍋
-          </div>
+            <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+            <path d="M17 3v6" />
+            <path d="M10 18l-3 3l-3 -3" />
+            <path d="M7 21v-18" />
+            <path d="M20 6l-3 -3l-3 3" />
+            <path d="M17 21v-2" />
+            <path d="M17 15v-2" />
+          </svg>
+
           <SectionHeading>Stream HTML straight from the server</SectionHeading>
-          <p class="text-gray-600">
-            Fresh Partials let you update only elements that need to change,
-            without reloading the entire page.
+          <p>
+            Fresh Partials let you update only the parts of the page that need
+            to change, without reloading the entire page.
           </p>
-          <p>Get SPA-like navigation the right way.</p>
+          <p>
+            Create native-like interfaces the right way, without sacrificing
+            performance or accessibility.
+          </p>
+          <FancyLink href="/docs/concepts/partials">
+            Learn more about Partials
+          </FancyLink>
         </div>
         <div class="flex flex-col gap-4">
           <CodeWindow name="Loading partials">
