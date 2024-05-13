@@ -26,7 +26,7 @@ export const handler: Handlers = {
   },
 };`;
 
-export function RoutingSection() {
+export function FormsSection() {
   return (
     <PageSection>
       <SideBySide mdColSplit="2/3" lgColSplit="2/3">
@@ -55,11 +55,16 @@ export function RoutingSection() {
             </svg>
           </div>
           <SectionHeading>
-            Built on web standards
+            Forms, the right way
           </SectionHeading>
           <p>
-            Don't fight the browser. Fresh helps you handle form submissions
-            server-side, simply and easily.
+            Don't fight the browser. Fresh helps you handle form submissions and
+            other dynamic requests server-side, simply and easily.
+          </p>
+          <p>
+            Since Fresh is built on{" "}
+            <a href="https://deno.com" class="underline">Deno</a>, it's built on
+            web standards.
           </p>
           <FancyLink href="/docs/concepts/forms" class="mt-2">
             Forms in Fresh

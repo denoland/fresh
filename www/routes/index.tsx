@@ -9,9 +9,10 @@ import { IntroSection } from "$fresh/www/components/homepage/Intro.tsx";
 import { IslandsSection } from "$fresh/www/components/homepage/IslandsSection.tsx";
 import { PartialsSection } from "$fresh/www/components/homepage/PartialsSection.tsx";
 import { RenderingSection } from "$fresh/www/components/homepage/RenderingSection.tsx";
-import { RoutingSection } from "$fresh/www/components/homepage/RoutingSection.tsx";
+import { FormsSection } from "../components/homepage/FormsSection.tsx";
 import { Simple } from "$fresh/www/components/homepage/Simple.tsx";
 import { SocialProof } from "$fresh/www/components/homepage/SocialProof.tsx";
+import { DenoSection } from "$fresh/www/components/homepage/DenoSection.tsx";
 
 function isOpenGraphUA(header: string | null): boolean {
   if (!header) {
@@ -64,14 +65,15 @@ export default function MainPage(props: PageProps) {
 
           <Hero />
         </div>
-        <div class="flex flex-col">
+        <div class="flex flex-col overflow-hidden">
           <IntroSection origin={origin} />
           <Simple />
           <RenderingSection />
           <IslandsSection />
-          <RoutingSection />
+          <FormsSection />
           <PartialsSection />
           <SocialProof />
+          <DenoSection />
           <CTA />
         </div>
         <Footer />

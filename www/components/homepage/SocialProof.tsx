@@ -24,7 +24,7 @@ export function SocialProof() {
         />
       </a>
       <div class="flex flex-col gap-8 items-center justify-center my-8">
-        <blockquote class="text-center italic text-lg md:text-xl lg:text-2xl text-gray-600 font-normal border-l-yellow-300 max-w-prose mx-auto">
+        <blockquote class="text-center italic text-lg sm:text-xl md:text-2xl lg:text-2xl xl:text-3xl max-w-screen-md text-gray-600 text-balance font-normal border-l-yellow-300 mx-auto">
           <span class="font-extrabold inline-block transform scale-[2] relative -left-3 top-2 text-fresh leading-none">
             “
           </span>The team also used{" "}
