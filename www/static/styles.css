@@ -38,3 +38,7 @@ h5,
 h6 {
   font-weight: 750;
 }
+
+.banner-bg {
+  @apply before:w-screen before:left-[calc(50%-50vw)] before:absolute before:h-2/3 before:bg-fresh before:-z-10 before:-bottom-10 md:before:-bottom-16 before:-skew-y-3 before:bg-gradient-to-r from-yellow-200 via-green-300 to-blue-200;
+}

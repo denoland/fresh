@@ -62,14 +62,10 @@ export function PartialsSection() {
 
           <SectionHeading>Stream HTML straight from the server</SectionHeading>
           <p>
-            Fresh Partials let you update only the parts of the page that need
-            to change, without reloading the entire page.
+            Fresh Partials let you fetch HTML and update only the parts of the
+            page that need to change, without reloading the entire page.
           </p>
-          <p>
-            Create native-like interfaces the right way, without sacrificing
-            performance or accessibility.
-          </p>
-          <FancyLink href="/docs/concepts/partials">
+          <FancyLink href="/docs/concepts/partials" class="mt-4">
             Learn more about Partials
           </FancyLink>
         </div>
