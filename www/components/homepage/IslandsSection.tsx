@@ -74,7 +74,7 @@ export function IslandsSection() {
             />
           </CodeWindow>
           <ExampleArrow class="[transform:rotateY(-180deg)]" />
-          <DemoBox>
+          <DemoBox flip={true}>
             <Counter start={3} />
           </DemoBox>
         </div>

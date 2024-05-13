@@ -81,7 +81,7 @@ export function PartialsSection() {
             />
           </CodeWindow>
           <ExampleArrow class="[transform:rotateY(-180deg)]" />
-          <DemoBox>
+          <DemoBox flip={true}>
             <RecipeDemo />
           </DemoBox>
         </div>

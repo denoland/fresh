@@ -6,7 +6,7 @@ import { SectionHeading } from "$fresh/www/components/homepage/SectionHeading.ts
 import { DemoBox } from "$fresh/www/components/homepage/DemoBox.tsx";
 import { ExampleArrow } from "$fresh/www/components/homepage/ExampleArrow.tsx";
 
-const serverCode = `export default function() {
+const serverCode = `export default function HomePage() {
   const time = new Date().toLocaleString();
   return (
     <p>Freshly server-rendered {time}</p>
@@ -44,7 +44,7 @@ export function RenderingSection() {
             Fresh routes are dynamically server-rendered Preact components, so
             there's zero JavaScript shipped to the browser by default.
           </p>
-          <p>Fast to write, and fast to run.</p>
+          <p>Simple to write; fast to run.</p>
         </div>
         <div class="flex flex-col gap-4">
           <CodeWindow name="routes/index.tsx">

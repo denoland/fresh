@@ -8,13 +8,12 @@ export function IntroSection(props: { origin: string }) {
       <div class="max-w-screen-xl mx-auto w-full">
         <div class="md:grid grid-cols-5 gap-8 md:gap-16 items-center">
           <div class="flex-1 text-center md:text-left md:col-span-3">
-            <h2 class="text-3xl xs:text-4xl sm:text-5xl lg:text-6xl sm:tracking-tight sm:leading-none! font-black bg-[linear-gradient(170deg_in_oklch,var(--tw-gradient-stops))] from-yellow-300 via-green-500 max-w-max to-blue-300 bg-clip-text text-transparent">
-              The simple, approachable, productive web framework.
-            </h2>
-
-            <p class="mt-2 text-gray-600 text-xl">
-              Built for speed, reliability, and simplicity.
+            <p class="italic mb-2 text-gray-600 text-xl">
+              Here's a fresh idea:
             </p>
+            <h2 class="text-3xl xs:text-4xl sm:text-5xl lg:text-6xl sm:tracking-tight sm:leading-none! font-black bg-[linear-gradient(170deg_in_oklch,var(--tw-gradient-stops))] from-yellow-300 via-green-500 max-w-max to-blue-300 bg-clip-text text-transparent">
+              Frameworks should be simple, approachable, and productive.
+            </h2>
             <div class="mt-12 flex flex-wrap justify-center items-stretch md:justify-start gap-4">
               <FancyLink href="/docs/getting-started">Get started</FancyLink>
               <CopyArea code={`deno run -A -r ${props.origin}`} />

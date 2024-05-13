@@ -7,11 +7,24 @@ import { DemoBox } from "$fresh/www/components/homepage/DemoBox.tsx";
 import { ExampleArrow } from "$fresh/www/components/homepage/ExampleArrow.tsx";
 import { FancyLink } from "$fresh/www/components/FancyLink.tsx";
 
-const routingCode = `└── routes
-  ├── _layout.tsx  # wraps all routes
-  ├── index.tsx # home page
-  ├── about.tsx # about page
-  └── contact.tsx`;
+const routingCode = `import { Handlers } from "$fresh/server.ts";
+
+export const handler: Handlers = {
+  async POST(req, ctx) {
+    const form = await req.formData();
+    const email = form.get("email")?.toString();
+
+    // Save email to database here
+
+    // Redirect user to thank you page.
+    const headers = new Headers();
+    headers.set("location", "/thanks-for-subscribing");
+    return new Response(null, {
+      status: 303,
+      headers,
+    });
+  },
+};`;
 
 export function RoutingSection() {
   return (
@@ -42,21 +55,21 @@ export function RoutingSection() {
             </svg>
           </div>
           <SectionHeading>
-            Easy routing with full control
+            Built on web standards
           </SectionHeading>
           <p>
-            If you've used other frameworks, you'll feel right at home with
-            Fresh's file-based routing, layouts, and granular control.
+            Don't fight the browser. Fresh helps you handle form submissions
+            server-side, simply and easily.
           </p>
-          <FancyLink href="/docs/concepts/routing" class="mt-2">
-            Routing in Fresh
+          <FancyLink href="/docs/concepts/forms" class="mt-2">
+            Forms in Fresh
           </FancyLink>
         </div>
         <div class="flex flex-col gap-4">
           <CodeWindow name="routes/index.tsx">
             <CodeBlock
               code={routingCode}
-              lang="bash"
+              lang="jsx"
             />
           </CodeWindow>
           {
