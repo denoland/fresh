@@ -27,7 +27,7 @@ export function SocialProof() {
       <div class="flex flex-col gap-8 items-center justify-center -mt-8 md:-mt-16 lg:-mt-32">
         <DemoBox flip={true}>
           <blockquote class="text-center italic text-lg sm:text-xl md:text-2xl lg:text-2xl xl:text-3xl max-w-screen-md text-gray-700 text-balance font-normal border-l-yellow-300 mx-auto my-4">
-            <span class="font-extrabold inline-block transform scale-[2] relative -left-3 top-2 leading-none">
+            <span class="font-semibold inline-block transform scale-150 relative -left-3 top-1 leading-none">
               “
             </span>The team also used{" "}
             <b>Fresh</b>, a next-gen Deno-native full stack web framework that
@@ -38,7 +38,7 @@ export function SocialProof() {
               5x faster page load speeds and a 30% jump in conversion rates
             </b>{" "}
             for their
-            clients.<span class="font-extrabold inline-block transform scale-[2] relative -right-2 top-2 leading-none">
+            clients.<span class="font-semibold inline-block transform scale-150 relative -right-2 top-1 leading-none">
               ”
             </span>
           </blockquote>
