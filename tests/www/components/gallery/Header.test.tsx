@@ -7,10 +7,10 @@ describe("components/gallery/Header.tsx", () => {
   beforeAll(setup);
   afterEach(cleanup);
 
-  it("should show 3 links", () => {
+  it("should show 2 links", () => {
     const screen = render(<Header active="" />);
     const links = screen.getAllByRole("link");
-    assertEquals(links.length, 3);
+    assertEquals(links.length, 2);
   });
 
   it("should show '/docs' as active", () => {
