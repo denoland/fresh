@@ -15,7 +15,7 @@ export function CTA() {
             class="w-full max-w-64 mx-auto mb-8"
           />
           <h2 class="text-3xl sm:text-4xl md:text-5xl lg:text-6xl text-gray-600 font-extrabold">
-            Start your Fresh journey
+            Time for a Fresh Start
           </h2>
           <div class="flex flex-col justify-start items-center gap-4">
             <p class="text-xl">
