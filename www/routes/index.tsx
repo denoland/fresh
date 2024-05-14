@@ -82,7 +82,7 @@ export default function MainPage(props: PageProps) {
 function HelloBar() {
   return (
     <a
-      class="bg-green-400 text-black border-b border-green-500 p-3 text-center group"
+      class="bg-gradient-to-r from-blue-200 to-yellow-200 via-green-300 text-black border-b border-green-400 p-4 text-center group"
       href="https://deno.com/blog/fresh-1.6"
     >
       <b>Fresh v1.6</b> has been released with <b>Tailwind CSS</b>,{" "}
