@@ -11,7 +11,7 @@ const waveTank = new WaveTank();
 function LemonBottom() {
   const SVG_WIDTH = 100;
   const counter = useSignal(0);
-  const dropy = useSignal(60);
+  const dropY = useSignal(60);
   const width = useSignal(SVG_WIDTH);
   const widthRef = useRef(width.value);
   const springs = useSignal(waveTank.springs);
@@ -34,10 +34,10 @@ function LemonBottom() {
     const saw = x - Math.floor(x);
     if (saw < 0.6) {
       counter.value = easeInCirc(saw) * amp;
-      dropy.value = -100;
+      dropY.value = -100;
     } else {
       counter.value = easeInCirc(1 - saw) * amp * 0.1;
-      dropy.value = 70 + Math.pow(saw - 0.6, 2) * 10000;
+      dropY.value = 70 + Math.pow(saw - 0.6, 2) * 10000;
     }
   }
 
@@ -58,7 +58,7 @@ function LemonBottom() {
   function resize() {
     width.value = document.body.clientWidth;
     lemonTop = document.querySelector("#lemon-top");
-    lemonTopLeft = lemonTop?.getBoundingClientRect().left + 25;
+    lemonTopLeft = lemonTop ? lemonTop.getBoundingClientRect().left + 25 : 50;
   }
 
   function drop() {
