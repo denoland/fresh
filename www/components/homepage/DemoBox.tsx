@@ -9,7 +9,7 @@ export function DemoBox(props: DemoBoxProps) {
   const innerFlip = props.flip ? "skew-y-2 skew-x-3" : "-skew-y-2 -skew-x-3";
   return (
     <div
-      class={`bg-[linear-gradient(135deg_in_oklch,var(--tw-gradient-stops))] from-yellow-200 via-green-300 to-blue-200 p-8 py-12 text-center items-center flex justify-center ${outerFlip}`}
+      class={`bg-[linear-gradient(135deg_in_oklch,var(--tw-gradient-stops))] font-medium from-blue-200 via-green-300 to-yellow-200 p-8 py-12 text-center items-center flex justify-center ${outerFlip}`}
     >
       <div class={`w-full ${innerFlip}`}>
         {props.children}

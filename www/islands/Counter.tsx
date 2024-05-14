@@ -1,5 +1,4 @@
 import { useSignal } from "@preact/signals";
-import { IS_BROWSER } from "$fresh/runtime.ts";
 import * as Icons from "../components/Icons.tsx";
 import { JSX } from "preact";
 
@@ -12,10 +11,10 @@ export default function Counter(props: CounterProps) {
 
   return (
     <div>
-      <h3 class="green-300 text-2xl font-bold">
+      <h3 class="text-2xl font-bold">
         Interactive island
       </h3>
-      <p class="text-gray-600">
+      <p>
         The server supplied the initial value of 3.
       </p>
       <div

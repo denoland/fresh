@@ -10,7 +10,7 @@ export function IntroSection(props: { origin: string }) {
           <p class="italic mb-4 text-gray-400 text-xl">
             Here's a Fresh idea:
           </p>
-          <h2 class="text-3xl xs:text-4xl sm:text-5xl lg:text-6xl sm:tracking-tight sm:leading-none! font-black bg-[linear-gradient(170deg_in_oklch,var(--tw-gradient-stops))] from-yellow-300 via-green-500 max-w-max to-blue-300 bg-clip-text text-transparent">
+          <h2 class="text-3xl xs:text-4xl sm:text-5xl lg:text-6xl sm:tracking-tight sm:leading-none! font-black bg-[linear-gradient(170deg_in_oklch,var(--tw-gradient-stops))] from-blue-300 via-green-500 max-w-max to-yellow-300 bg-clip-text text-transparent">
             Web frameworks should be simple, approachable, and productive.
           </h2>
           <div class="mt-12 flex flex-wrap justify-center items-stretch md:justify-start gap-4">
