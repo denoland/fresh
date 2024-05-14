@@ -1,5 +1,6 @@
 import { PageSection } from "$fresh/www/components/PageSection.tsx";
 import { FancyLink } from "$fresh/www/components/FancyLink.tsx";
+import { DemoBox } from "$fresh/www/components/homepage/DemoBox.tsx";
 
 export function SocialProof() {
   return (
@@ -23,23 +24,25 @@ export function SocialProof() {
           loading="lazy"
         />
       </a>
-      <div class="flex flex-col gap-8 items-center justify-center my-8">
-        <blockquote class="text-center italic text-lg sm:text-xl md:text-2xl lg:text-2xl xl:text-3xl max-w-screen-md text-gray-600 text-balance font-normal border-l-yellow-300 mx-auto">
-          <span class="font-extrabold inline-block transform scale-[2] relative -left-3 top-2 text-fresh leading-none">
-            “
-          </span>The team also used{" "}
-          <b>Fresh</b>, a next-gen Deno-native full stack web framework that
-          sends zero JavaScript to the client, for its modern developer
-          experience and snappy performance…<br />
-          <br />This stack unlocked{" "}
-          <b>
-            5x faster page load speeds and a 30% jump in conversion rates
-          </b>{" "}
-          for their
-          clients.<span class="font-extrabold inline-block transform scale-[2] relative -right-2 top-2 text-fresh leading-none">
-            ”
-          </span>
-        </blockquote>
+      <div class="flex flex-col gap-8 items-center justify-center -mt-8 md:-mt-16 lg:-mt-32">
+        <DemoBox flip={true}>
+          <blockquote class="text-center italic text-lg sm:text-xl md:text-2xl lg:text-2xl xl:text-3xl max-w-screen-md text-gray-700 text-balance font-normal border-l-yellow-300 mx-auto my-4">
+            <span class="font-extrabold inline-block transform scale-[2] relative -left-3 top-2 leading-none">
+              “
+            </span>The team also used{" "}
+            <b>Fresh</b>, a next-gen Deno-native full stack web framework that
+            sends zero JavaScript to the client, for its modern developer
+            experience and snappy performance…<br />
+            <br />This stack unlocked{" "}
+            <b>
+              5x faster page load speeds and a 30% jump in conversion rates
+            </b>{" "}
+            for their
+            clients.<span class="font-extrabold inline-block transform scale-[2] relative -right-2 top-2 leading-none">
+              ”
+            </span>
+          </blockquote>
+        </DemoBox>
         <FancyLink
           href="https://deno.com/blog/deco-cx-subhosting-serve-their-clients-storefronts-fast"
           class="mt-8"

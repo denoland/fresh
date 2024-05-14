@@ -20,7 +20,9 @@ import * as $update from "./routes/update.tsx";
 import * as $ComponentGallery from "./islands/ComponentGallery.tsx";
 import * as $CopyArea from "./islands/CopyArea.tsx";
 import * as $Counter from "./islands/Counter.tsx";
+import * as $LemonBottom from "./islands/LemonBottom.tsx";
 import * as $LemonDrop from "./islands/LemonDrop.tsx";
+import * as $LemonTop from "./islands/LemonTop.tsx";
 import * as $SearchButton from "./islands/SearchButton.tsx";
 import * as $TableOfContents from "./islands/TableOfContents.tsx";
 import * as $VersionSelect from "./islands/VersionSelect.tsx";
@@ -48,7 +50,9 @@ const manifest = {
     "./islands/ComponentGallery.tsx": $ComponentGallery,
     "./islands/CopyArea.tsx": $CopyArea,
     "./islands/Counter.tsx": $Counter,
+    "./islands/LemonBottom.tsx": $LemonBottom,
     "./islands/LemonDrop.tsx": $LemonDrop,
+    "./islands/LemonTop.tsx": $LemonTop,
     "./islands/SearchButton.tsx": $SearchButton,
     "./islands/TableOfContents.tsx": $TableOfContents,
     "./islands/VersionSelect.tsx": $VersionSelect,

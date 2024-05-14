@@ -10,7 +10,7 @@ export default function Header(props: { title: string; active: string }) {
       {isDocs
         ? (
           <header
-            class={"  top-0 w-full bg-white mx-auto max-w-screen-xl flex gap-3 items-center " +
+            class={" top-0 w-full bg-transparent mx-auto max-w-screen-xl flex gap-3 items-center " +
               "justify-between md:justify-end"}
             f-client-nav={false}
           >

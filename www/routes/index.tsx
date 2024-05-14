@@ -5,7 +5,6 @@ import Footer from "$fresh/www/components/Footer.tsx";
 import Header from "$fresh/www/components/Header.tsx";
 import { CTA } from "$fresh/www/components/homepage/CTA.tsx";
 import { Hero } from "$fresh/www/components/homepage/Hero.tsx";
-import { IntroSection } from "$fresh/www/components/homepage/Intro.tsx";
 import { IslandsSection } from "$fresh/www/components/homepage/IslandsSection.tsx";
 import { PartialsSection } from "$fresh/www/components/homepage/PartialsSection.tsx";
 import { RenderingSection } from "$fresh/www/components/homepage/RenderingSection.tsx";
@@ -59,14 +58,12 @@ export default function MainPage(props: PageProps) {
       </Head>
 
       <div class="flex flex-col min-h-screen">
-        <div class="bg-transparent flex flex-col ">
+        <div class="bg-transparent flex flex-col relative z-10">
           <HelloBar />
           <Header title="" active="/" />
-
-          <Hero />
         </div>
-        <div class="flex flex-col overflow-hidden">
-          <IntroSection origin={origin} />
+        <div class="flex flex-col overflow-hidden -mt-20 relative">
+          <Hero origin={origin} />
           <Simple />
           <RenderingSection />
           <IslandsSection />
@@ -76,7 +73,7 @@ export default function MainPage(props: PageProps) {
           <DenoSection />
           <CTA />
         </div>
-        <Footer />
+        <Footer class="!mt-0" />
       </div>
     </>
   );
