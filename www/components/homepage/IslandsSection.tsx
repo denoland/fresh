@@ -56,8 +56,9 @@ export function IslandsSection() {
             JavaScript only where needed.
           </p>
           <p>
-            Because it's Preact, you get best-in-class performance, plus the
-            convenience of{" "}
+            Because it's{" "}
+            <a href="https://preactjs.com/" class="underline">Preact</a>, you
+            get best-in-class performance, plus the convenience of{" "}
             <a href="https://preactjs.com/guide/v10/signals/" class="underline">
               Signals
             </a>.

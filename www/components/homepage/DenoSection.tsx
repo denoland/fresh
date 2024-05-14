@@ -6,7 +6,12 @@ import { SectionHeading } from "$fresh/www/components/homepage/SectionHeading.ts
 export function DenoSection() {
   return (
     <PageSection>
-      <SideBySide>
+      <SideBySide reverseOnDesktop={true}>
+        <img
+          src="/illustration/lemon-squash.svg"
+          class="w-full h-auto mx-auto max-w-[24rem] mt-8 mb-4"
+          alt="Deno is drinking Fresh lemon squash"
+        />
         <div class="flex flex-col gap-4">
           <SectionHeading>
             Built on Deno
@@ -23,12 +28,6 @@ export function DenoSection() {
             Learn more about Deno
           </FancyLink>
         </div>
-
-        <img
-          src="/illustration/lemon-squash.svg"
-          class="w-full h-auto mx-auto max-w-[24rem] mt-8 mb-4"
-          alt="Deno is drinking Fresh lemon squash"
-        />
       </SideBySide>
     </PageSection>
   );

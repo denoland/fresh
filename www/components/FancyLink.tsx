@@ -6,7 +6,7 @@ export function FancyLink(
   return (
     <a
       href={props.href}
-      class={`group p-4 px-5 pb-3.5 bg-gradient-to-br from-fresh/40 to-fresh font-semibold rounded leading-none flex items-center justify-center hover:bg-fresh transition-colors duration-200 ease-in-out max-w-max ${
+      class={`group p-4 px-5 pb-3.5 bg-gradient-to-br from-fresh/40 to-fresh font-semibold rounded leading-none flex items-center justify-center hover:bg-fresh transition-colors duration-200 ease-in-out max-w-max text-balance ${
         props.class ?? ""
       }`}
     >
