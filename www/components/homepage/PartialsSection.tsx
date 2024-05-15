@@ -70,7 +70,7 @@ export function PartialsSection() {
           </FancyLink>
         </div>
         <div class="flex flex-col gap-4">
-          <CodeWindow name="Loading partials">
+          <CodeWindow name="components/Recipes.tsx">
             <CodeBlock
               code={islandCode}
               lang="jsx"

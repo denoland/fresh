@@ -68,7 +68,7 @@ export function IslandsSection() {
           </FancyLink>
         </div>
         <div class="flex flex-col gap-4 relative">
-          <CodeWindow name="Counter island component">
+          <CodeWindow name="islands/Counter.tsx">
             <CodeBlock
               code={islandCode}
               lang="jsx"
