@@ -135,7 +135,7 @@ export const handler: Handlers<Data> = {
 
 export default function DocsPage(props: PageProps<Data>) {
   const { page } = props.data;
-  const ogImageUrl = new URL(asset("/home-og.png"), props.url).href;
+  const ogImageUrl = new URL(asset("/og-image.webp"), props.url).href;
   const title = `${page?.title ?? "Not Found"} | Fresh docs`;
   let description = "Fresh Document";
 

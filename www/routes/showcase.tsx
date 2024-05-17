@@ -9,7 +9,7 @@ const TITLE = "Showcase | Fresh";
 const DESCRIPTION = "Selection of projects that have been built with Fresh.";
 
 export default function ShowcasePage(props: PageProps) {
-  const ogImageUrl = new URL(asset("/home-og.png"), props.url).href;
+  const ogImageUrl = new URL(asset("/og-image.webp"), props.url).href;
   return (
     <>
       <Head>

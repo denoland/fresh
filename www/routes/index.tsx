@@ -35,12 +35,12 @@ export const handler: Handlers = {
   },
 };
 
-const TITLE = "Fresh - The next-gen web framework.";
+const TITLE = "Fresh - The simple, approachable, productive web framework.";
 const DESCRIPTION =
-  "Just in time edge rendering, island based interactivity, and no configuration TypeScript support using Deno.";
+  "Fresh features just-in-time edge rendering, island based interactivity, and zero-configuration TypeScript support. Fast to write; fast to run.";
 
 export default function MainPage(props: PageProps) {
-  const ogImageUrl = new URL(asset("/home-og.png"), props.url).href;
+  const ogImageUrl = new URL(asset("/og-image.webp"), props.url).href;
   const origin = `${props.url.protocol}//${props.url.host}`;
 
   return (
