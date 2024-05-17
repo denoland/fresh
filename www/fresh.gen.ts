@@ -17,7 +17,6 @@ import * as $recipes_lemonade from "./routes/recipes/lemonade.tsx";
 import * as $recipes_lemondrop from "./routes/recipes/lemondrop.tsx";
 import * as $showcase from "./routes/showcase.tsx";
 import * as $update from "./routes/update.tsx";
-import * as $ComponentGallery from "./islands/ComponentGallery.tsx";
 import * as $CopyArea from "./islands/CopyArea.tsx";
 import * as $Counter from "./islands/Counter.tsx";
 import * as $LemonBottom from "./islands/LemonBottom.tsx";
@@ -47,7 +46,6 @@ const manifest = {
     "./routes/update.tsx": $update,
   },
   islands: {
-    "./islands/ComponentGallery.tsx": $ComponentGallery,
     "./islands/CopyArea.tsx": $CopyArea,
     "./islands/Counter.tsx": $Counter,
     "./islands/LemonBottom.tsx": $LemonBottom,
