@@ -83,8 +83,8 @@ export default {
 +   "nodeModulesDir": true,
     "imports": {
       "$fresh/": "https://deno.land/x/fresh@1.5.2/",
-      "preact": "https://esm.sh/preact@10.19.6",
-      "preact/": "https://esm.sh/preact@10.19.6/",
+      "preact": "https://esm.sh/preact@10.22.0",
+      "preact/": "https://esm.sh/preact@10.22.0/",
 -     "twind": "https://esm.sh/twind@0.16.19",
 -     "twind/": "https://esm.sh/twind@0.16.19/",
 +     "tailwindcss": "npm:tailwindcss@3.4.1",
