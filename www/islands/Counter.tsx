@@ -1,7 +1,6 @@
 import { useSignal } from "@preact/signals";
-import { IS_BROWSER } from "$fresh/runtime.ts";
-import { RoundedButton } from "../components/Button.tsx";
 import * as Icons from "../components/Icons.tsx";
+import { JSX } from "preact";
 
 interface CounterProps {
   start: number;
@@ -11,14 +10,11 @@ export default function Counter(props: CounterProps) {
   const count = useSignal(props.start);
 
   return (
-    <div
-      class="bg-green-100 p-8 border-8 border-green-300 text-center"
-      style="border-radius: 1rem"
-    >
-      <h3 class="green-300 text-2xl font-bold text-green-700">
-        This area is interactive
+    <div>
+      <h3 class="text-2xl font-bold">
+        Interactive island
       </h3>
-      <p class="text-gray-600">
+      <p>
         The server supplied the initial value of 3.
       </p>
       <div
@@ -28,7 +24,6 @@ export default function Counter(props: CounterProps) {
         <RoundedButton
           title="Subtract 1"
           onClick={() => count.value -= 1}
-          disabled={!IS_BROWSER || count.value <= 0}
         >
           <Icons.IconMinus />
         </RoundedButton>
@@ -39,11 +34,22 @@ export default function Counter(props: CounterProps) {
         <RoundedButton
           title="Add 1"
           onClick={() => count.value += 1}
-          disabled={!IS_BROWSER}
         >
           <Icons.IconPlus />
         </RoundedButton>
       </div>
     </div>
+  );
+}
+
+function RoundedButton(props: JSX.HTMLAttributes<HTMLButtonElement>) {
+  return (
+    <button
+      style={{
+        touchAction: "manipulation",
+      }}
+      {...props}
+      class="p-3 rounded-full border-2 border-current bg-white/20 hover:bg-white/50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 disabled:bg-green-200 disabled:cursor-default"
+    />
   );
 }
