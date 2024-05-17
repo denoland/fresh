@@ -1,4 +1,10 @@
 import { Head, Partial } from "$fresh/runtime.ts";
+import { RouteConfig } from "$fresh/server.ts";
+
+export const config: RouteConfig = {
+  skipAppWrapper: true,
+  skipInheritedLayouts: true,
+};
 
 export const Lemonade = () => (
   <Partial name="recipe">
