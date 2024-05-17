@@ -1,7 +1,9 @@
 [files]
-extend-exclude = ["tests/fixture_partials/routes/scroll_restoration/index.tsx","www/static/fonts/FixelVariable.woff2","www/static/fonts/FixelVariableItalic.woff2"]
+extend-exclude = [
+  "tests/fixture_partials/routes/scroll_restoration/index.tsx",
+  "www/static/fonts/FixelVariable.woff2",
+  "www/static/fonts/FixelVariableItalic.woff2",
+]
 
 [default]
-extend-ignore-identifiers-re = [
-  "Fixel",
-]
+extend-ignore-identifiers-re = ["Fixel"]
