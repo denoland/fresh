@@ -1,0 +1,22 @@
+{
+  "name": "@fresh/init",
+  "version": "0.0.1-alpha.5",
+  "exports": {
+    ".": "./src/mod.ts"
+  },
+  "lock": false,
+  "exclude": ["**/tmp/*"],
+  "publish": {
+    "include": [
+      "src/**/*.ts",
+      "deno.json",
+      "README.md"
+    ],
+    "exclude": ["**/*_test.*", "*.todo"]
+  },
+  "imports": {
+    "@std/cli": "jsr:@std/cli@^0.221.0",
+    "@std/fmt": "jsr:@std/fmt@^0.221.0",
+    "@std/path": "jsr:@std/path@^0.221.0"
+  }
+}

@@ -1,29 +1,26 @@
-import { assertArrayIncludes, assertEquals } from "$std/assert/mod.ts";
-import { withPageName } from "../tests/test_utils.ts";
-import { dirname, join } from "$std/path/mod.ts";
 import VERSIONS from "../versions.json" with { type: "json" };
-import { createHandler } from "../server.ts";
-import manifest from "./fresh.gen.ts";
-import config from "./fresh.config.ts";
+import { app } from "./main.ts";
+import { buildProd, withBrowserApp } from "../tests/test_utils.tsx";
+import { expect } from "@std/expect";
 
-const dir = dirname(import.meta.url);
-const handler = await createHandler(manifest, config);
+const handler = await app.handler();
 
 Deno.test("CORS should not set on GET /fresh-badge.svg", async () => {
   const req = new Request("http://localhost/fresh-badge.svg");
+  await buildProd(app);
   const resp = await handler(req);
   await resp?.body?.cancel();
 
-  assertEquals(resp.headers.get("cross-origin-resource-policy"), null);
+  expect(resp.headers.get("cross-origin-resource-policy")).toEqual(null);
 });
 
 Deno.test("shows version selector", async () => {
-  await withPageName(join(dir, "./main.ts"), async (page, address) => {
+  await withBrowserApp(app, async (page, address) => {
     await page.goto(`${address}/docs`);
     await page.waitForSelector("#version");
 
     // Check that we redirected to the first page
-    assertEquals(page.url(), `${address}/docs/introduction`);
+    expect(page.url()).toEqual(`${address}/docs/introduction`);
 
     // Wait for version selector to be enabled
     await page.waitForSelector("#version:not([disabled])");
@@ -35,8 +32,7 @@ Deno.test("shows version selector", async () => {
       }));
     });
 
-    assertEquals(options.length, 2);
-    assertArrayIncludes(options, [
+    expect(options).toEqual([
       {
         value: "canary",
         label: "canary",
@@ -51,7 +47,7 @@ Deno.test("shows version selector", async () => {
       "#version",
       (el: HTMLSelectElement) => el.value,
     );
-    assertEquals(selectValue, "latest");
+    expect(selectValue).toEqual("latest");
 
     // Go to canary page
     await Promise.all([
@@ -64,8 +60,8 @@ Deno.test("shows version selector", async () => {
       "#version",
       (el: HTMLSelectElement) => el.value,
     );
-    assertEquals(selectValue2, "canary");
+    expect(selectValue2).toEqual("canary");
 
-    assertEquals(page.url(), `${address}/docs/canary/introduction`);
+    expect(page.url()).toEqual(`${address}/docs/canary/introduction`);
   });
 });

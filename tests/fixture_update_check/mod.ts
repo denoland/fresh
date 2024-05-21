@@ -1,5 +1,5 @@
-import { updateCheck } from "$fresh/src/dev/update_check.ts";
-import { DAY } from "$fresh/src/dev/deps.ts";
+import { updateCheck } from "../../src/dev/update_check.ts";
+import { DAY } from "@std/datetime";
 
 // deno-lint-ignore require-await
 async function getLatestVersion() {
