@@ -10,7 +10,7 @@ export default function Header(props: { title: string; active: string }) {
         "mx-auto flex gap-3 items-center",
         isHome ? "justify-end" : "justify-between",
         isDocs
-          ? "h-20 max-w-screen-2xl w-full sticky top-0 bg-white z-50"
+          ? "h-20 max-w-screen-2xl w-full sticky top-0 bg-white/75 z-50 backdrop-blur-sm"
           : "h-20 max-w-screen-xl",
       ].join(" ")}
       f-client-nav={false}

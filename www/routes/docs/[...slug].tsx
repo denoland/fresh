@@ -187,9 +187,9 @@ export default function DocsPage(props: PageProps<Data>) {
               <div>Table of Contents</div>
             </label>
           </div>
-          <nav class="flex-shrink-0 hidden lg:block lg:px-4">
-            <div class="fixed w-[17rem] flex h-screen overflow-hidden pt-3.5">
-              <div class="flex-1 h-screen overflow-y-auto">
+          <nav class="flex-shrink-0 hidden lg:block lg:px-4 bg-white">
+            <div class="fixed top-24 w-[17rem] flex overflow-hidden">
+              <div class="flex-1 h-[calc(100vh_-_6rem)] overflow-y-auto pb-8">
                 <SearchButton class="mr-4 sm:mr-0" />
                 <div class="mb-4">
                   <VersionSelect
