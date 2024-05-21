@@ -1,4 +1,4 @@
-import { PageSection } from "$fresh/www/components/PageSection.tsx";
+import { PageSection } from "../../components/PageSection.tsx";
 
 export function Simple() {
   return (

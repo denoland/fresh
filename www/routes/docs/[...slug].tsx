@@ -1,5 +1,5 @@
-import { Handlers, PageProps } from "$fresh/server.ts";
-import { asset, Head, Partial } from "$fresh/runtime.ts";
+import { type Handlers, HttpError, type PageProps } from "@fresh/core";
+import { asset, Partial } from "@fresh/core/runtime";
 import { SidebarCategory } from "../../components/DocsSidebar.tsx";
 import Footer from "../../components/Footer.tsx";
 import Header from "../../components/Header.tsx";
@@ -8,13 +8,13 @@ import {
   getFirstPageUrl,
   LATEST_VERSION,
   TABLE_OF_CONTENTS,
-  TableOfContentsEntry,
+  type TableOfContentsEntry,
 } from "../../data/docs.ts";
 import { frontMatter, renderMarkdown } from "../../utils/markdown.ts";
 import toc from "../../../docs/toc.ts";
 import { TableOfContents } from "../../islands/TableOfContents.tsx";
-import SearchButton from "$fresh/www/islands/SearchButton.tsx";
-import VersionSelect from "$fresh/www/islands/VersionSelect.tsx";
+import SearchButton from "../../islands/SearchButton.tsx";
+import VersionSelect from "../../islands/VersionSelect.tsx";
 
 interface Data {
   page: Page;
@@ -44,7 +44,7 @@ interface Page extends TableOfContentsEntry {
 const pattern = new URLPattern({ pathname: "/:version/:page*" });
 
 export const handler: Handlers<Data> = {
-  async GET(_req, ctx) {
+  async GET(ctx) {
     const slug = ctx.params.slug;
 
     // Check if the slug is the index page of a version tag
@@ -58,12 +58,12 @@ export const handler: Handlers<Data> = {
 
     const match = pattern.exec("https://localhost/" + slug);
     if (!match) {
-      return ctx.renderNotFound();
+      throw new HttpError(404);
     }
 
     let { version, page = "" } = match.pathname.groups;
     if (!version) {
-      return ctx.renderNotFound();
+      throw new HttpError(404);
     }
 
     // Latest version doesn't show up in the url
@@ -76,7 +76,7 @@ export const handler: Handlers<Data> = {
     const currentToc = TABLE_OF_CONTENTS[version];
     const entry = currentToc[page];
     if (!entry) {
-      return ctx.renderNotFound();
+      throw new HttpError(404);
     }
 
     // Build up the link map for the version selector.
@@ -122,137 +122,124 @@ export const handler: Handlers<Data> = {
     const fileContent = await Deno.readTextFile(url);
     const { body, attrs } = frontMatter<Record<string, unknown>>(fileContent);
 
-    return ctx.render({
-      page: {
-        ...entry,
-        markdown: body,
-        data: attrs ?? {},
-        versionLinks,
-        version,
-        prevNav,
-        nextNav,
+    ctx.state.title = `${entry.title ?? "Not Found"} | Fresh docs`;
+    ctx.state.description = attrs?.description
+      ? String(attrs.description)
+      : "Fresh Document";
+    ctx.state.ogImage = new URL(asset("/og-image.webp"), ctx.url).href;
+
+    return {
+      data: {
+        page: {
+          ...entry,
+          markdown: body,
+          data: attrs ?? {},
+          versionLinks,
+          version,
+          prevNav,
+          nextNav,
+        },
       },
-    });
+    };
   },
 };
 
 export default function DocsPage(props: PageProps<Data>) {
   const { page } = props.data;
-  const ogImageUrl = new URL(asset("/og-image.webp"), props.url).href;
-  const title = `${page?.title ?? "Not Found"} | Fresh docs`;
-  let description = "Fresh Document";
-
-  if (page.data.description) {
-    description = String(page.data.description);
-  }
-
   const { html, headings } = renderMarkdown(page.markdown);
 
   return (
-    <>
-      <Head>
-        <title>{title}</title>
-        <link rel="stylesheet" href={asset("/markdown.css")} />
-        <meta name="description" content={description} />
-        <meta property="og:title" content={title} />
-        <meta property="og:description" content={description} />
-        <meta property="og:type" content="website" />
-        <meta property="og:url" content={props.url.href} />
-        <meta property="og:image" content={ogImageUrl} />
-        <meta name="view-transition" content="same-origin" />
-      </Head>
-      <div class="flex flex-col min-h-screen mx-auto max-w-screen-2xl">
-        <Header title="docs" active="/docs" />
-        <div f-client-nav={true}>
-          <MobileSidebar page={page} />
-          <div class="flex mx-auto max-w-screen-2xl px-0 md:px-4 md:py-0 justify-start bg-gray-100">
-            <label
-              for="docs_sidebar"
-              class="px-4 py-3 lg:hidden flex items-center hover:bg-gray-100 rounded gap-2 cursor-pointer"
+    <div class="flex flex-col min-h-screen mx-auto max-w-screen-2xl">
+      <Header title="docs" active="/docs" />
+      <div f-client-nav={true}>
+        <MobileSidebar page={page} />
+        <div class="flex mx-auto max-w-screen-2xl px-0 md:px-4 md:py-0 justify-start bg-gray-100">
+          <label
+            for="docs_sidebar"
+            class="px-4 py-3 lg:hidden flex items-center hover:bg-gray-100 rounded gap-2 cursor-pointer"
+          >
+            <svg
+              class="h-6 w-6"
+              stroke="currentColor"
+              fill="none"
+              viewBox="0 0 24 24"
             >
-              <svg
-                class="h-6 w-6"
-                stroke="currentColor"
-                fill="none"
-                viewBox="0 0 24 24"
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="2"
+                d="M4 6h16M4 12h16M4 18h7"
               >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth="2"
-                  d="M4 6h16M4 12h16M4 18h7"
-                >
-                </path>
-              </svg>
-              <div>Table of Contents</div>
-            </label>
-          </div>
-          <nav class="flex-shrink-0 hidden lg:block lg:px-4 bg-white">
-            <div class="fixed top-24 w-[17rem] flex overflow-hidden">
-              <div class="flex-1 h-[calc(100vh_-_6rem)] overflow-y-auto pb-8">
-                <SearchButton class="mr-4 sm:mr-0" />
-                <div class="mb-4">
-                  <VersionSelect
-                    selectedVersion={page.version}
-                    versions={page.versionLinks}
-                  />
-                </div>
-                <ul class="list-inside font-semibold nested ml-2.5">
-                  {CATEGORIES[page.version].map((category) => (
-                    <SidebarCategory key={category.href} category={category} />
-                  ))}
-                </ul>
+              </path>
+            </svg>
+            <div>Table of Contents</div>
+          </label>
+        </div>
+        <nav class="flex-shrink-0 hidden lg:block lg:px-4 bg-white">
+          <div class="fixed top-24 w-[17rem] flex overflow-hidden">
+            <div class="flex-1 h-[calc(100vh_-_6rem)] overflow-y-auto pb-8">
+              <SearchButton class="mr-4 sm:mr-0" />
+              <div class="mb-4">
+                <VersionSelect
+                  selectedVersion={page.version}
+                  versions={page.versionLinks}
+                />
               </div>
+              <ul class="list-inside font-semibold nested ml-2.5">
+                {CATEGORIES[page.version].map((category) => (
+                  <SidebarCategory key={category.href} category={category} />
+                ))}
+              </ul>
             </div>
-          </nav>
-          <Partial name="docs-main">
-            <div class="w-full min-w-0">
-              <main class="lg:ml-[18rem] mt-4 min-w-0 mx-auto">
-                <div class="flex gap-6 md:gap-8 xl:gap-[8%] flex-col xl:flex-row md:mx-8 lg:mx-16 2xl:mx-0 lg:justify-end">
-                  <TableOfContents headings={headings} />
+          </div>
+        </nav>
+        <Partial name="docs-main">
+          <div class="w-full min-w-0">
+            <main class="lg:ml-[18rem] mt-4 min-w-0 mx-auto">
+              <div class="flex gap-6 md:gap-8 xl:gap-[8%] flex-col xl:flex-row md:mx-8 lg:mx-16 2xl:mx-0 lg:justify-end">
+                <TableOfContents headings={headings} />
 
-                  <div class="lg:order-1 min-w-0 max-w-3xl w-full">
-                    <h1 class="text-4xl text-gray-900 tracking-tight font-bold md:mt-0 px-4 md:px-0 mb-4">
-                      {page.title}
-                    </h1>
-                    <div
-                      class="markdown-body mb-8"
-                      dangerouslySetInnerHTML={{ __html: html }}
+                <div class="lg:order-1 min-w-0 max-w-3xl w-full">
+                  <h1 class="text-4xl text-gray-900 tracking-tight font-bold md:mt-0 px-4 md:px-0 mb-4">
+                    {page.title}
+                  </h1>
+                  <div
+                    class="markdown-body mb-8"
+                    dangerouslySetInnerHTML={{ __html: html }}
+                  />
+
+                  <div class="mb-8">
+                    <ForwardBackButtons
+                      slug={page.slug}
+                      version={page.version}
+                      prev={page.prevNav}
+                      next={page.nextNav}
                     />
-
-                    <div class="mb-8">
-                      <ForwardBackButtons
-                        slug={page.slug}
-                        version={page.version}
-                        prev={page.prevNav}
-                        next={page.nextNav}
-                      />
-                    </div>
-                    <hr />
-                    <div class="px-4 md:px-0 flex justify-between my-6">
-                      <a
-                        href={`https://github.com/denoland/fresh/edit/main/${page.file}`}
-                        class="text-green-600 underline flex items-center"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                      >
-                        <svg class="w-4 h-4 inline-block mr-1">
-                          <use href="/icons.svg#external" />
-                        </svg>
-                        Edit this page on GitHub
-                      </a>
-                    </div>
+                  </div>
+                  <hr />
+                  <div class="px-4 md:px-0 flex justify-between my-6">
+                    <a
+                      href={`https://github.com/denoland/fresh/edit/main/${page.file}`}
+                      class="text-green-600 underline flex items-center"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      <svg class="w-4 h-4 inline-block mr-1">
+                        <use href="/icons.svg#external" />
+                      </svg>
+                      Edit this page on GitHub
+                    </a>
                   </div>
                 </div>
-                <div class="xl:ml-[3.75rem]">
-                  <Footer />
-                </div>
-              </main>
-            </div>
-          </Partial>
-        </div>
+              </div>
+              <div class="xl:ml-[3.75rem]">
+                <Footer />
+              </div>
+            </main>
+          </div>
+        </Partial>
       </div>
-    </>
+    </div>
   );
 }
 

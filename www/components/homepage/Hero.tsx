@@ -1,9 +1,7 @@
-import { PageSection } from "$fresh/www/components/PageSection.tsx";
 import CopyArea from "../../islands/CopyArea.tsx";
-import { FancyLink } from "$fresh/www/components/FancyLink.tsx";
-import LemonDrop from "$fresh/www/islands/LemonDrop.tsx";
-import LemonTop from "$fresh/www/islands/LemonTop.tsx";
-import LemonBottom from "$fresh/www/islands/LemonBottom.tsx";
+import { FancyLink } from "../../components/FancyLink.tsx";
+import LemonTop from "../../islands/LemonTop.tsx";
+import LemonBottom from "../../islands/LemonBottom.tsx";
 
 export function Hero(props: { origin: string }) {
   return (

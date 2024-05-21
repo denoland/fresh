@@ -99,7 +99,9 @@ export interface Helpers<State> {
   definePage<
     Handler extends RouteHandler<unknown, State> = never,
     Data = Handler extends HandlerByMethod<infer Data, State> ? Data : never,
-  >(render: AnyComponent<FreshContext<Data, State>>): typeof render;
+  >(
+    render: AnyComponent<FreshContext<Data, State> & { Component: () => null }>,
+  ): typeof render;
 
   /**
    * Define a {@link Middleware} that will be used to process requests before

@@ -1,7 +1,6 @@
 import type { ComponentChildren, VNode } from "preact";
 import { BUILD_ID } from "./build_id.ts";
 import { assetInternal, assetSrcSetInternal } from "./shared_internal.tsx";
-export { Head } from "../compat/runtime.ts";
 
 /**
  * Returns true when the current runtime is the browser and false otherwise. This is used for guard runtime-dependent code.

@@ -1,4 +1,4 @@
-import { type FreshContext } from "$fresh/server.ts";
+import type { FreshContext } from "@fresh/core";
 import type { Event } from "$ga4";
 import { GA4Report, isDocument, isServerError } from "$ga4";
 
@@ -79,7 +79,6 @@ function ga4(
 }
 
 export async function handler(
-  req: Request,
   ctx: FreshContext,
 ): Promise<Response> {
   let err;
@@ -98,7 +97,7 @@ export async function handler(
     throw e;
   } finally {
     ga4(
-      req,
+      ctx.req,
       ctx,
       res!,
       start,

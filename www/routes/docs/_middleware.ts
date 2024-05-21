@@ -1,4 +1,4 @@
-import { FreshContext } from "$fresh/server.ts";
+import type { FreshContext } from "@fresh/core";
 
 const REDIRECTS: Record<string, string> = {
   "/docs/getting-started/fetching-data":
@@ -6,7 +6,6 @@ const REDIRECTS: Record<string, string> = {
 };
 
 export async function handler(
-  _req: Request,
   ctx: FreshContext,
 ) {
   // Redirect from old doc URLs to new ones

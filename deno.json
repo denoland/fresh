@@ -34,8 +34,6 @@
     "exclude": ["**/*_test.*", "src/__OLD/**", "*.todo"]
   },
   "imports": {
-    "$fresh-testing-library": "https://deno.land/x/fresh_testing_library@0.11.1/mod.ts",
-    "$fresh-testing-library/": "https://deno.land/x/fresh_testing_library@0.11.1/",
     "$ga4": "https://raw.githubusercontent.com/denoland/ga4/main/mod.ts",
     "$marked-mangle": "https://esm.sh/marked-mangle@1.0.1",
     "$std/": "https://deno.land/std@0.216.0/",
@@ -66,7 +64,7 @@
     "esbuild-wasm": "npm:esbuild-wasm@0.20.2",
     "linkedom": "npm:linkedom@^0.16.11",
     "postcss": "npm:postcss@8.4.35",
-    "preact": "npm:preact@^10.20.2",
+    "preact": "npm:preact@^10.22.0",
     "preact-render-to-string": "npm:preact-render-to-string@^6.4.2",
     "tailwindcss": "npm:tailwindcss@^3.4.1",
     "tailwindcss/plugin": "npm:/tailwindcss@^3.4.1/plugin.js",
@@ -75,8 +73,9 @@
     "twind/": "https://esm.sh/twind@0.16.19/"
   },
   "compilerOptions": {
-    "jsx": "react-jsx",
-    "jsxImportSource": "preact"
+    "jsx": "precompile",
+    "jsxImportSource": "preact",
+    "jsxPrecompileSkipElements": ["a", "img", "source", "body", "html", "head"]
   },
   "lint": {
     "rules": { "exclude": ["no-window"] }

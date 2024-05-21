@@ -3,7 +3,6 @@ import type { Method } from "./router.ts";
 
 export interface Render<T> {
   data: T;
-  head?: string[];
   headers?: HeadersInit;
   status?: number;
 }

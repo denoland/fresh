@@ -1,6 +1,6 @@
-import { PageSection } from "$fresh/www/components/PageSection.tsx";
-import { FancyLink } from "$fresh/www/components/FancyLink.tsx";
-import { DemoBox } from "$fresh/www/components/homepage/DemoBox.tsx";
+import { PageSection } from "../../components/PageSection.tsx";
+import { FancyLink } from "../../components/FancyLink.tsx";
+import { DemoBox } from "../../components/homepage/DemoBox.tsx";
 
 export function SocialProof() {
   return (

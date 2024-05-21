@@ -1,4 +1,4 @@
-import { FancyLink } from "$fresh/www/components/FancyLink.tsx";
+import { FancyLink } from "../FancyLink.tsx";
 
 export function CTA() {
   return (

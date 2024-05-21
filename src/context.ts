@@ -1,4 +1,4 @@
-import { type ComponentType, h, type VNode } from "preact";
+import { type ComponentType, h, isValidElement, type VNode } from "preact";
 import type { ResolvedFreshConfig } from "./config.ts";
 import { renderToString } from "preact-render-to-string";
 import type { BuildCache } from "./build_cache.ts";

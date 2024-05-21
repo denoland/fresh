@@ -1,11 +1,11 @@
-import { PageSection } from "$fresh/www/components/PageSection.tsx";
-import { SideBySide } from "$fresh/www/components/SideBySide.tsx";
-import { CodeWindow } from "$fresh/www/components/CodeWindow.tsx";
-import { CodeBlock } from "$fresh/www/components/CodeBlock.tsx";
-import { SectionHeading } from "$fresh/www/components/homepage/SectionHeading.tsx";
-import { DemoBox } from "$fresh/www/components/homepage/DemoBox.tsx";
-import { ExampleArrow } from "$fresh/www/components/homepage/ExampleArrow.tsx";
-import { FancyLink } from "$fresh/www/components/FancyLink.tsx";
+import { PageSection } from "../PageSection.tsx";
+import { SideBySide } from "../SideBySide.tsx";
+import { CodeWindow } from "../CodeWindow.tsx";
+import { CodeBlock } from "../CodeBlock.tsx";
+import { SectionHeading } from "../homepage/SectionHeading.tsx";
+import { DemoBox } from "../homepage/DemoBox.tsx";
+import { ExampleArrow } from "../homepage/ExampleArrow.tsx";
+import { FancyLink } from "../FancyLink.tsx";
 import { FormSubmitDemo } from "../../islands/FormSubmitDemo.tsx";
 
 const routingCode = `import { Handlers } from "$fresh/server.ts";

@@ -7,8 +7,6 @@
     "preview": "deno run -A main.ts"
   },
   "imports": {
-    "$fresh-testing-library": "https://deno.land/x/fresh_testing_library@0.8.0/mod.ts",
-    "$fresh-testing-library/": "https://deno.land/x/fresh_testing_library@0.8.0/",
     "$ga4": "https://raw.githubusercontent.com/denoland/ga4/main/mod.ts",
     "$marked-mangle": "https://esm.sh/marked-mangle@1.1.7",
     "$std/": "https://deno.land/std@0.216.0/",
@@ -34,13 +32,13 @@
     "esbuild": "npm:esbuild@0.20.2",
     "esbuild-wasm": "npm:esbuild-wasm@0.20.2",
     "postcss": "npm:postcss@8.4.35",
-    "preact": "npm:preact@^10.20.1",
+    "preact": "npm:preact@^10.22.0",
     "preact-render-to-string": "npm:preact-render-to-string@^6.4.2",
     "tailwindcss": "npm:tailwindcss@3.4.1",
     "tailwindcss/plugin": "npm:/tailwindcss@3.4.1/plugin.js"
   },
   "compilerOptions": {
-    "jsx": "precompile",
+    "jsx": "react-jsx",
     "jsxImportSource": "preact",
     "jsxPrecompileSkipElements": ["a", "img", "source", "body", "html", "head"]
   }

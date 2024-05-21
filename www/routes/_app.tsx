@@ -1,12 +1,28 @@
-import { PageProps } from "$fresh/server.ts";
+import { asset } from "@fresh/core/runtime";
+import { df } from "../utils/state.ts";
 
-export default function App({ Component }: PageProps) {
+export default df.definePage(function App({ Component, state, url }) {
   return (
     <html lang="en">
       <head>
         <meta charset="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>My Fresh app</title>
+        {state.title ? <title>{state.title}</title> : null}
+        {state.description
+          ? <meta name="description" content={state.description} />
+          : null}
+        {state.title
+          ? <meta property="og:title" content={state.title} />
+          : null}
+        {state.description
+          ? <meta property="og:description" content={state.description} />
+          : null}
+        <meta property="og:type" content="website" />
+        <meta property="og:url" content={url.href} />
+        {state.ogImage
+          ? <meta property="og:image" content={state.ogImage} />
+          : null}
+        {state.noIndex ? <meta name="robots" content="noindex" /> : null}
         <link
           rel="preload"
           href="/fonts/FixelVariable.woff2"
@@ -15,10 +31,19 @@ export default function App({ Component }: PageProps) {
           crossorigin="true"
         />
         <link rel="stylesheet" href="/styles.css" />
+        <link rel="stylesheet" href="/prism.css" />
+        {url.pathname.startsWith("/docs/")
+          ? (
+            <>
+              <link rel="stylesheet" href="/docsearch.css" />
+              <link rel="stylesheet" href={asset("/markdown.css")} />
+            </>
+          )
+          : null}
       </head>
       <body>
         <Component />
       </body>
     </html>
   );
-}
+});

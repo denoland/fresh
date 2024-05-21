@@ -1,27 +1,25 @@
-import { asset, Head } from "$fresh/runtime.ts";
-import { PageProps } from "$fresh/server.ts";
-import Projects, { Project } from "../components/Projects.tsx";
+import { asset } from "@fresh/core/runtime";
+import type { PageProps } from "@fresh/core";
+import Projects, { type Project } from "../components/Projects.tsx";
 import Header from "../components/Header.tsx";
 import Footer from "../components/Footer.tsx";
 import projects from "../data/showcase.json" with { type: "json" };
+import { df } from "../utils/state.ts";
 
 const TITLE = "Showcase | Fresh";
 const DESCRIPTION = "Selection of projects that have been built with Fresh.";
 
+export const handler = df.defineHandlers({
+  GET(ctx) {
+    ctx.state.title = TITLE;
+    ctx.state.description = DESCRIPTION;
+    ctx.state.ogImage = new URL(asset("/og-image.webp"), ctx.url).href;
+  },
+});
+
 export default function ShowcasePage(props: PageProps) {
-  const ogImageUrl = new URL(asset("/og-image.webp"), props.url).href;
   return (
     <>
-      <Head>
-        <title>{TITLE}</title>
-        <meta name="description" content={DESCRIPTION} />
-        <meta property="og:title" content={TITLE} />
-        <meta property="og:description" content={DESCRIPTION} />
-        <meta property="og:type" content="website" />
-        <meta property="og:url" content={props.url.href} />
-        <meta property="og:image" content={ogImageUrl} />
-        <meta name="view-transition" content="same-origin" />
-      </Head>
       <Header title="showcase" active="/showcase" />
 
       <div class="flex flex-col min-h-screen">

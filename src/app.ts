@@ -229,7 +229,7 @@ export class App<State> {
         const hostname = options.hostname ??
           (params.hostname.startsWith("::")
             ? `[${params.hostname}]`
-          : params.hostname;
+            : params.hostname);
         const address = colors.cyan(
           `${protocol}//${hostname}:${params.port}${pathname}`,
         );

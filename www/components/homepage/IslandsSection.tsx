@@ -1,12 +1,12 @@
-import Counter from "$fresh/www/islands/Counter.tsx";
-import { CodeBlock } from "$fresh/www/components/CodeBlock.tsx";
-import { CodeWindow } from "$fresh/www/components/CodeWindow.tsx";
-import { PageSection } from "$fresh/www/components/PageSection.tsx";
-import { SideBySide } from "$fresh/www/components/SideBySide.tsx";
-import { SectionHeading } from "$fresh/www/components/homepage/SectionHeading.tsx";
-import { DemoBox } from "$fresh/www/components/homepage/DemoBox.tsx";
-import { ExampleArrow } from "$fresh/www/components/homepage/ExampleArrow.tsx";
-import { FancyLink } from "$fresh/www/components/FancyLink.tsx";
+import Counter from "../../islands/Counter.tsx";
+import { CodeBlock } from "../../components/CodeBlock.tsx";
+import { CodeWindow } from "../../components/CodeWindow.tsx";
+import { PageSection } from "../../components/PageSection.tsx";
+import { SideBySide } from "../../components/SideBySide.tsx";
+import { SectionHeading } from "../../components/homepage/SectionHeading.tsx";
+import { DemoBox } from "../../components/homepage/DemoBox.tsx";
+import { ExampleArrow } from "../../components/homepage/ExampleArrow.tsx";
+import { FancyLink } from "../../components/FancyLink.tsx";
 
 const islandCode = `import { useSignal } from "@preact/signals";
 
