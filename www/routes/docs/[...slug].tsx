@@ -271,8 +271,8 @@ function MobileSidebar({ page }: { page: Page }) {
           for="docs_sidebar"
         />
         <div class="relative flex-1 flex flex-col w-[18rem] h-full bg-white border-r-2 border-gray-100">
-          <nav class="pt-0 pb-16 px-4 overflow-x-auto">
-            <div class="flex-1 h-screen overflow-y-auto pt-4">
+          <nav class="pt-0 pb-16 overflow-x-auto">
+            <div class="flex-1 h-screen overflow-y-auto pt-4 px-4">
               <SearchButton class="mr-4 sm:mr-0" />
               <div class="mb-4">
                 <VersionSelect
