@@ -1,16 +1,17 @@
 // islands/Dropdown.tsx
 import { ComponentChildren, createContext } from "preact";
-import { StateUpdater, useState } from "preact/hooks";
+import { useState } from "preact/hooks";
 
-const DropdownContext = createContext<[boolean, StateUpdater<boolean>]>(
-  [false, () => {}],
+const DropdownContext = createContext<[boolean, (prev: boolean) => boolean]>(
+  [false, () => false],
 );
 
 export default function Dropdown(
   { children }: { children: ComponentChildren },
 ) {
   return (
-    <DropdownContext.Provider value={useState(false)}>
+    // deno-lint-ignore no-explicit-any
+    <DropdownContext.Provider value={useState(false) as any}>
       {children}
     </DropdownContext.Provider>
   );

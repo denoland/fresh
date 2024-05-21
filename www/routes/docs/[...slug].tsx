@@ -1,9 +1,10 @@
 import { Handlers, PageProps } from "$fresh/server.ts";
 import { asset, Head, Partial } from "$fresh/runtime.ts";
-import DocsSidebar from "../../components/DocsSidebar.tsx";
+import { SidebarCategory } from "../../components/DocsSidebar.tsx";
 import Footer from "../../components/Footer.tsx";
 import Header from "../../components/Header.tsx";
 import {
+  CATEGORIES,
   getFirstPageUrl,
   LATEST_VERSION,
   TABLE_OF_CONTENTS,
@@ -12,6 +13,8 @@ import {
 import { frontMatter, renderMarkdown } from "../../utils/markdown.ts";
 import toc from "../../../docs/toc.ts";
 import { TableOfContents } from "../../islands/TableOfContents.tsx";
+import SearchButton from "$fresh/www/islands/SearchButton.tsx";
+import VersionSelect from "$fresh/www/islands/VersionSelect.tsx";
 
 interface Data {
   page: Page;
@@ -159,111 +162,130 @@ export default function DocsPage(props: PageProps<Data>) {
         <meta name="view-transition" content="same-origin" />
       </Head>
       <div class="flex flex-col min-h-screen mx-auto max-w-screen-2xl">
-        {/* Disable partial navigation until this bug in Preact is fixed https://github.com/preactjs/preact/pull/4287 */}
-        <div class="flex-1 " f-client-nav={false}>
-          <div class=" md:flex">
-            <nav class="w-[18rem] flex-shrink-0 hidden md:block px-4">
-              <DocsSidebar
-                versionLinks={page.versionLinks}
-                selectedVersion={page.version}
-              />
-            </nav>
-            <Partial name="docs-main">
-              <div class="w-full min-w-0">
-                <Header title="docs" active="/docs" />
-                <main class="mt-4 min-w-0 mx-auto">
-                  <MobileSidebar page={page} />
-                  <div class="flex mx-auto max-w-screen-2xl px-4 md:px-0 md:py-0 justify-end bg-gray-100">
-                    <label
-                      for="docs_sidebar"
-                      class="px-4 py-3 md:hidden flex items-center hover:bg-gray-100 rounded gap-2 cursor-pointer"
-                    >
-                      <svg
-                        class="h-6 w-6"
-                        stroke="currentColor"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth="2"
-                          d="M4 6h16M4 12h16M4 18h7"
-                        >
-                        </path>
-                      </svg>
-                      <div>Table of Contents</div>
-                    </label>
-                  </div>
-                  <div class="flex gap-6 md:gap-8 xl:gap-[8%] flex-col xl:flex-row md:mx-8 lg:mx-16 2xl:mx-0 lg:justify-end">
-                    <TableOfContents headings={headings} />
+        <Header title="docs" active="/docs" />
+        <div f-client-nav={true}>
+          <MobileSidebar page={page} />
+          <div class="flex mx-auto max-w-screen-2xl px-4 md:px-0 md:py-0 justify-end bg-gray-100">
+            <label
+              for="docs_sidebar"
+              class="px-4 py-3 lg:hidden flex items-center hover:bg-gray-100 rounded gap-2 cursor-pointer"
+            >
+              <svg
+                class="h-6 w-6"
+                stroke="currentColor"
+                fill="none"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="2"
+                  d="M4 6h16M4 12h16M4 18h7"
+                >
+                </path>
+              </svg>
+              <div>Table of Contents</div>
+            </label>
+          </div>
+          <nav class="flex-shrink-0 hidden lg:block lg:px-4 bg-white">
+            <div class="fixed top-24 w-[17rem] flex overflow-hidden">
+              <div class="flex-1 h-[calc(100vh_-_6rem)] overflow-y-auto pb-8">
+                <SearchButton class="mr-4 sm:mr-0" />
+                <div class="mb-4">
+                  <VersionSelect
+                    selectedVersion={page.version}
+                    versions={page.versionLinks}
+                  />
+                </div>
+                <ul class="list-inside font-semibold nested ml-2.5">
+                  {CATEGORIES[page.version].map((category) => (
+                    <SidebarCategory key={category.href} category={category} />
+                  ))}
+                </ul>
+              </div>
+            </div>
+          </nav>
+          <Partial name="docs-main">
+            <div class="w-full min-w-0">
+              <main class="lg:ml-[18rem] mt-4 min-w-0 mx-auto">
+                <div class="flex gap-6 md:gap-8 xl:gap-[8%] flex-col xl:flex-row md:mx-8 lg:mx-16 2xl:mx-0 lg:justify-end">
+                  <TableOfContents headings={headings} />
 
-                    <div class="lg:order-1 min-w-0 max-w-3xl w-full">
-                      <h1 class="text-4xl text-gray-900 tracking-tight font-bold md:mt-0 px-4 md:px-0 mb-4">
-                        {page.title}
-                      </h1>
-                      <div
-                        class="markdown-body mb-8"
-                        dangerouslySetInnerHTML={{ __html: html }}
+                  <div class="lg:order-1 min-w-0 max-w-3xl w-full">
+                    <h1 class="text-4xl text-gray-900 tracking-tight font-bold md:mt-0 px-4 md:px-0 mb-4">
+                      {page.title}
+                    </h1>
+                    <div
+                      class="markdown-body mb-8"
+                      dangerouslySetInnerHTML={{ __html: html }}
+                    />
+
+                    <div class="mb-8">
+                      <ForwardBackButtons
+                        slug={page.slug}
+                        version={page.version}
+                        prev={page.prevNav}
+                        next={page.nextNav}
                       />
-
-                      <div class="mb-8">
-                        <ForwardBackButtons
-                          slug={page.slug}
-                          version={page.version}
-                          prev={page.prevNav}
-                          next={page.nextNav}
-                        />
-                      </div>
-                      <hr />
-                      <div class="px-4 md:px-0 flex justify-between my-6">
-                        <a
-                          href={`https://github.com/denoland/fresh/edit/main/${page.file}`}
-                          class="text-green-600 underline flex items-center"
-                          target="_blank"
-                          rel="noopener noreferrer"
-                        >
-                          <svg class="w-4 h-4 inline-block mr-1">
-                            <use href="/icons.svg#external" />
-                          </svg>
-                          Edit this page on GitHub
-                        </a>
-                      </div>
+                    </div>
+                    <hr />
+                    <div class="px-4 md:px-0 flex justify-between my-6">
+                      <a
+                        href={`https://github.com/denoland/fresh/edit/main/${page.file}`}
+                        class="text-green-600 underline flex items-center"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        <svg class="w-4 h-4 inline-block mr-1">
+                          <use href="/icons.svg#external" />
+                        </svg>
+                        Edit this page on GitHub
+                      </a>
                     </div>
                   </div>
+                </div>
+                <div class="xl:ml-[3.75rem]">
                   <Footer />
-                </main>
-              </div>
-            </Partial>
-          </div>
+                </div>
+              </main>
+            </div>
+          </Partial>
         </div>
       </div>
     </>
   );
 }
 
-function MobileSidebar(props: { page: Page }) {
+function MobileSidebar({ page }: { page: Page }) {
   return (
-    <div class="md:hidden">
+    <div class="lg:hidden">
       <input
         type="checkbox"
         class="hidden toggle"
         id="docs_sidebar"
         autocomplete="off"
-      >
-      </input>
-      <div class="fixed inset-0 flex z-40 hidden toggled">
+      />
+      <div class="fixed inset-0 flex z-50 hidden toggled">
         <label
           class="absolute inset-0 bg-gray-600 opacity-75"
           for="docs_sidebar"
         />
         <div class="relative flex-1 flex flex-col w-[18rem] h-full bg-white border-r-2 border-gray-100">
-          <nav class="pt-0 pb-16 px-4 overflow-x-auto">
-            <DocsSidebar
-              mobile
-              versionLinks={props.page.versionLinks}
-              selectedVersion={props.page.version}
-            />
+          <nav class="pt-0 pb-16 overflow-x-auto">
+            <div class="flex-1 h-screen overflow-y-auto pt-4 px-4">
+              <SearchButton class="mr-4 sm:mr-0" />
+              <div class="mb-4">
+                <VersionSelect
+                  selectedVersion={page.version}
+                  versions={page.versionLinks}
+                />
+              </div>
+              <ul class="list-inside font-semibold nested ml-2.5">
+                {CATEGORIES[page.version].map((category) => (
+                  <SidebarCategory key={category.href} category={category} />
+                ))}
+              </ul>
+            </div>
           </nav>
         </div>
       </div>

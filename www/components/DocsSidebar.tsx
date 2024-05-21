@@ -1,49 +1,7 @@
 import {
-  CATEGORIES,
   TableOfContentsCategory,
   TableOfContentsCategoryEntry,
 } from "../data/docs.ts";
-import SearchButton from "../islands/SearchButton.tsx";
-import VersionSelect from "../islands/VersionSelect.tsx";
-import { type VersionLink } from "../routes/docs/[...slug].tsx";
-import { Logo } from "$fresh/www/components/Header.tsx";
-import DocsTitle from "$fresh/www/components/DocsTitle.tsx";
-
-export default function DocsSidebar(
-  props: {
-    mobile?: boolean;
-    versionLinks: VersionLink[];
-    selectedVersion: string;
-  },
-) {
-  return (
-    <>
-      <div class="fixed  w-[17rem] md:flex h-screen overflow-hidden ">
-        <div class="flex-1  h-screen overflow-y-auto">
-          <div class="sticky mb-4 top-0 bg-white z-10">
-            <div class=" py-4 flex items-center">
-              <Logo />
-              <DocsTitle />
-            </div>
-            <hr />
-          </div>
-          <SearchButton class="mr-4 sm:mr-0" />
-          <div class="mb-4">
-            <VersionSelect
-              selectedVersion={props.selectedVersion}
-              versions={props.versionLinks}
-            />
-          </div>
-          <ul class="list-inside font-semibold nested ml-2.5">
-            {CATEGORIES[props.selectedVersion].map((category) => (
-              <SidebarCategory key={category.href} category={category} />
-            ))}
-          </ul>
-        </div>
-      </div>
-    </>
-  );
-}
 
 export function SidebarCategory(props: {
   category: TableOfContentsCategory;
