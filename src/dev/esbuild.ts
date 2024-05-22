@@ -67,21 +67,7 @@ export async function bundleJs(
     plugins: [
       preactDebugger(PREACT_ENV),
       buildIdPlugin(options.buildId),
-      {
-        name: "fresh-fix-windows",
-        setup(build) {
-          if (Deno.build.os === "windows") {
-            build.onResolve({ filter: /\.*/ }, (args) => {
-              if (args.path.startsWith("\\")) {
-                const normalized = path.resolve(args.path);
-                return {
-                  path: normalized,
-                };
-              }
-            });
-          }
-        },
-      },
+      windowsPathFixer(),
       ...denoPlugins({ configPath: options.denoJsonPath }),
     ],
   });
@@ -192,6 +178,24 @@ function preactDebugger(preactPath: string | undefined): EsbuildPlugin {
           path: resolved,
         };
       });
+    },
+  };
+}
+
+function windowsPathFixer(): EsbuildPlugin {
+  return {
+    name: "fresh-fix-windows",
+    setup(build) {
+      if (Deno.build.os === "windows") {
+        build.onResolve({ filter: /\.*/ }, (args) => {
+          if (args.path.startsWith("\\")) {
+            const normalized = path.resolve(args.path);
+            return {
+              path: normalized,
+            };
+          }
+        });
+      }
     },
   };
 }
