@@ -12,7 +12,7 @@ import { createFakeFs } from "../../test_utils.ts";
 import { expect } from "@std/expect";
 import type { HandlerByMethod, HandlerFn } from "../../handlers.ts";
 import type { Method } from "../../router.ts";
-import { buildProd, parseHtml } from "../../../tests/test_utils.tsx";
+import { parseHtml, withBrowserApp } from "../../../tests/test_utils.tsx";
 import { staticFiles } from "../../middlewares/static_files.ts";
 
 async function createServer<T>(
@@ -1001,35 +1001,4 @@ Deno.test("fsRoutes - sortRoutePaths", () => {
     "/tsx/index.tsx",
   ];
   expect(routes).toEqual(sorted);
-});
-
-Deno.test({
-  name: "fsRoutes - load islands from group folder",
-  fn: async () => {
-    const app = new App()
-      .use(staticFiles());
-
-    await fsRoutes(app, {
-      dir: path.join(
-        import.meta.dirname!,
-        "..",
-        "..",
-        "..",
-        "tests",
-        "fixture_island_groups",
-      ),
-      loadIsland: (path) =>
-        import("../../../tests/fixture_island_groups/islands/" + path),
-      loadRoute: (path) =>
-        import("../../../tests/fixture_island_groups/routes/" + path),
-    });
-
-    await buildProd(app);
-
-    const server = new FakeServer(await app.handler());
-    const res = await server.get("/foo");
-    const html = await res.text();
-
-    expect(html).toContain("Foo.js?__frsh_c");
-  },
 });

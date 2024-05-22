@@ -1,4 +1,4 @@
-import { App } from "@fresh/core";
+import { App, fsRoutes } from "@fresh/core";
 import { Counter } from "./fixtures_islands/Counter.tsx";
 import { IslandInIsland } from "./fixtures_islands/IslandInIsland.tsx";
 import { JsonIsland } from "./fixtures_islands/JsonIsland.tsx";
@@ -18,6 +18,7 @@ import { JsxConditional } from "./fixtures_islands/JsxConditional.tsx";
 import { FnIsland } from "./fixtures_islands/FnIsland.tsx";
 import { FragmentIsland } from "./fixtures_islands/FragmentIsland.tsx";
 import { EscapeIsland } from "./fixtures_islands/EscapeIsland.tsx";
+import * as path from "@std/path";
 
 Deno.test("islands - should make signals interactive", async () => {
   const counterIsland = getIsland("Counter.tsx");
@@ -485,4 +486,31 @@ Deno.test("islands - escape props", async () => {
     const text = await page.$eval(".ready", (el) => el.textContent);
     expect(text).toEqual("it works");
   });
+});
+
+Deno.test({
+  name: "fsRoutes - load islands from group folder",
+  fn: async () => {
+    const app = new App()
+      .use(staticFiles());
+
+    await fsRoutes(app, {
+      dir: path.join(
+        import.meta.dirname!,
+        "fixture_island_groups",
+      ),
+      loadIsland: (path) => import("./fixture_island_groups/islands/" + path),
+      loadRoute: (path) => import("./fixture_island_groups/routes/" + path),
+    });
+
+    await withBrowserApp(app, async (page, address) => {
+      await page.goto(`${address}/foo`);
+      await page.waitForSelector(".ready");
+
+      // Page would error here
+      const text = await page.$eval(".ready", (el) => el.textContent);
+      expect(text).toEqual("it works");
+    });
+  },
+  sanitizeResources: false,
 });
