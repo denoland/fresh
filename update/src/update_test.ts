@@ -42,7 +42,7 @@ async function readFiles(dir: string): Promise<Record<string, string>> {
   ) {
     const pathname = path.relative(dir, entry.path);
     const content = await Deno.readTextFile(entry.path);
-    files[`/${pathname}`] = content.trim();
+    files[`/${pathname.replaceAll(/[\\]+/g, "/")}`] = content.trim();
   }
 
   return files;

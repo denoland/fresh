@@ -14,7 +14,6 @@ import type { HandlerByMethod, HandlerFn } from "../../handlers.ts";
 import type { Method } from "../../router.ts";
 import { parseHtml, withBrowserApp } from "../../../tests/test_utils.tsx";
 import { staticFiles } from "../../middlewares/static_files.ts";
-import type { HttpError } from "../../error.ts";
 
 async function createServer<T>(
   files: Record<string, string | Uint8Array | FreshFsItem<T>>,
@@ -28,7 +27,7 @@ async function createServer<T>(
       loadIsland: async () => {},
       // deno-lint-ignore require-await
       loadRoute: async (filePath) => {
-        const full = path.join("routes", filePath);
+        const full = `routes/${filePath.replaceAll(/[\\]+/g, "/")}`;
         if (full in files) {
           return files[full];
         }

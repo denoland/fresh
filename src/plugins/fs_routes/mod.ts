@@ -101,7 +101,8 @@ export async function fsRoutes<State>(
           return;
         }
 
-        relRoutePaths.push(relative);
+        const url = new URL(relative, "http://localhost/");
+        relRoutePaths.push(url.pathname.slice(1));
       },
       ignore,
       fs,

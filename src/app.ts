@@ -226,10 +226,9 @@ export class App<State> {
         const pathname = (this.config.basePath) + "/";
         const protocol = options.key && options.cert ? "https:" : "http:";
         // Work around https://github.com/denoland/deno/issues/23650
-        const hostname = options.hostname ??
-          (params.hostname.startsWith("::")
-            ? `[${params.hostname}]`
-            : params.hostname);
+        const hostname = params.hostname.startsWith("::")
+          ? `[${params.hostname}]`
+          : params.hostname;
         const address = colors.cyan(
           `${protocol}//${hostname}:${params.port}${pathname}`,
         );

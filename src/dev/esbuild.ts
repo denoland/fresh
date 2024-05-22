@@ -67,6 +67,21 @@ export async function bundleJs(
     plugins: [
       preactDebugger(PREACT_ENV),
       buildIdPlugin(options.buildId),
+      {
+        name: "fresh-fix-windows",
+        setup(build) {
+          if (Deno.build.os === "windows") {
+            build.onResolve({ filter: /\.*/ }, (args) => {
+              if (args.path.startsWith("\\")) {
+                const normalized = path.resolve(args.path);
+                return {
+                  path: normalized,
+                };
+              }
+            });
+          }
+        },
+      },
       ...denoPlugins({ configPath: options.denoJsonPath }),
     ],
   });
@@ -130,7 +145,16 @@ function buildIdPlugin(buildId: string): EsbuildPlugin {
   return {
     name: "fresh-build-id",
     setup(build) {
-      build.onLoad({ filter: /runtime\/build_id\.ts$/ }, () => {
+      build.onResolve({ filter: /runtime[/\\]+build_id\.ts$/ }, (args) => {
+        return {
+          path: args.path,
+          namespace: "fresh-internal",
+        };
+      });
+      build.onLoad({
+        filter: /runtime[/\\]build_id\.ts$/,
+        namespace: "fresh-internal",
+      }, () => {
         return {
           contents: `export const BUILD_ID = "${buildId}";`,
         };
