@@ -119,7 +119,7 @@ Deno.test("islands - import json", async () => {
   await withBrowserApp(app, async (page, address) => {
     await page.goto(address);
     await page.waitForSelector("pre");
-    const text = await page.$eval("pre", (el) => el.textContent);
+    const text = await page.$eval("pre", (el) => el.textContent!);
     const json = JSON.parse(text);
     expect(json).toEqual({ foo: 123 });
   });
@@ -217,7 +217,7 @@ Deno.test("islands - pass JSX props to islands", async () => {
     await page.goto(address);
     await page.waitForSelector(".ready");
 
-    const text = await page.$eval("pre", (el) => el.textContent);
+    const text = await page.$eval("pre", (el) => el.textContent!);
     expect(JSON.parse(text)).toEqual({ jsx: true, children: true });
   });
 });
