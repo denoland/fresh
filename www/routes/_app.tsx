@@ -31,7 +31,9 @@ export default df.definePage(function App({ Component, state, url }) {
           crossorigin="true"
         />
         <link rel="stylesheet" href="/styles.css" />
-        <link rel="stylesheet" href="/prism.css" />
+        {url.pathname === "/"
+          ? <link rel="stylesheet" href="/prism.css" />
+          : null}
         {url.pathname.startsWith("/docs/")
           ? (
             <>
