@@ -33,6 +33,16 @@ export const handler: Handlers = {
     }
     return ctx.render();
   },
+  async POST(req) {
+    const headers = new Headers();
+    const form = await req.formData();
+    const treat = form.get("treat");
+    headers.set("location", `/thanks?vote=${treat}`);
+    return new Response(null, {
+      status: 303,
+      headers,
+    });
+  },
 };
 
 const TITLE = "Fresh - The simple, approachable, productive web framework.";

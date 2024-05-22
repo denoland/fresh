@@ -16,9 +16,11 @@ import * as $recipes_lemon_honey_tea from "./routes/recipes/lemon-honey-tea.tsx"
 import * as $recipes_lemonade from "./routes/recipes/lemonade.tsx";
 import * as $recipes_lemondrop from "./routes/recipes/lemondrop.tsx";
 import * as $showcase from "./routes/showcase.tsx";
+import * as $thanks from "./routes/thanks.tsx";
 import * as $update from "./routes/update.tsx";
 import * as $CopyArea from "./islands/CopyArea.tsx";
 import * as $Counter from "./islands/Counter.tsx";
+import * as $FormSubmitDemo from "./islands/FormSubmitDemo.tsx";
 import * as $LemonBottom from "./islands/LemonBottom.tsx";
 import * as $LemonDrop from "./islands/LemonDrop.tsx";
 import * as $LemonTop from "./islands/LemonTop.tsx";
@@ -43,11 +45,13 @@ const manifest = {
     "./routes/recipes/lemonade.tsx": $recipes_lemonade,
     "./routes/recipes/lemondrop.tsx": $recipes_lemondrop,
     "./routes/showcase.tsx": $showcase,
+    "./routes/thanks.tsx": $thanks,
     "./routes/update.tsx": $update,
   },
   islands: {
     "./islands/CopyArea.tsx": $CopyArea,
     "./islands/Counter.tsx": $Counter,
+    "./islands/FormSubmitDemo.tsx": $FormSubmitDemo,
     "./islands/LemonBottom.tsx": $LemonBottom,
     "./islands/LemonDrop.tsx": $LemonDrop,
     "./islands/LemonTop.tsx": $LemonTop,

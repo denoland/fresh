@@ -6,19 +6,19 @@ import { SectionHeading } from "$fresh/www/components/homepage/SectionHeading.ts
 import { DemoBox } from "$fresh/www/components/homepage/DemoBox.tsx";
 import { ExampleArrow } from "$fresh/www/components/homepage/ExampleArrow.tsx";
 import { FancyLink } from "$fresh/www/components/FancyLink.tsx";
+import { FormSubmitDemo } from "../../islands/FormSubmitDemo.tsx";
 
 const routingCode = `import { Handlers } from "$fresh/server.ts";
 
 export const handler: Handlers = {
-  async POST(req, ctx) {
+  async POST(req) {
     const form = await req.formData();
-    const email = form.get("email")?.toString();
 
-    // Save email to database here
+    // Do something with the form data here,
+    // then redirect user to thank you page
 
-    // Redirect user to thank you page.
     const headers = new Headers();
-    headers.set("location", "/thanks-for-subscribing");
+    headers.set("location", "/thanks");
     return new Response(null, {
       status: 303,
       headers,
@@ -28,7 +28,7 @@ export const handler: Handlers = {
 
 export function FormsSection() {
   return (
-    <PageSection>
+    <PageSection id="forms-section">
       <SideBySide mdColSplit="2/3" lgColSplit="2/3" class="!items-start">
         <div class="flex flex-col gap-4 md:sticky md:top-4">
           <div
@@ -59,7 +59,7 @@ export function FormsSection() {
           </SectionHeading>
           <p>
             Don't fight the browser. Fresh helps you handle form submissions and
-            other dynamic requests server-side, simply and easily.
+            other dynamic requests server-side, from any route.
           </p>
           <p>
             Since Fresh is built on{" "}
@@ -77,14 +77,10 @@ export function FormsSection() {
               lang="jsx"
             />
           </CodeWindow>
-          {
-            /* <ExampleArrow />
+          <ExampleArrow />
           <DemoBox>
-            <p>
-              TODO: something goes here.
-            </p>
-          </DemoBox> */
-          }
+            <FormSubmitDemo />
+          </DemoBox>
         </div>
       </SideBySide>
     </PageSection>
