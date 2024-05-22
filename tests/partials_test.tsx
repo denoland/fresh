@@ -1126,7 +1126,7 @@ Deno.test("partials - uses f-partial instead", async () => {
   });
 });
 
-Deno.test("partials - opt out of parital navigation", async () => {
+Deno.test("partials - opt out of partial navigation", async () => {
   const app = testApp()
     .get("/partial", (ctx) => {
       return ctx.render(
@@ -1183,7 +1183,7 @@ Deno.test("partials - opt out of parital navigation", async () => {
   });
 });
 
-Deno.test("partials - opt out of parital navigation #2", async () => {
+Deno.test("partials - opt out of partial navigation #2", async () => {
   const app = testApp()
     .get("/partial", (ctx) => {
       return ctx.render(
