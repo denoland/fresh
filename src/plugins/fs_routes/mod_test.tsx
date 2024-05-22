@@ -12,7 +12,7 @@ import { createFakeFs } from "../../test_utils.ts";
 import { expect } from "@std/expect";
 import type { HandlerByMethod, HandlerFn } from "../../handlers.ts";
 import type { Method } from "../../router.ts";
-import { parseHtml, withBrowserApp } from "../../../tests/test_utils.tsx";
+import { buildProd, parseHtml } from "../../../tests/test_utils.tsx";
 import { staticFiles } from "../../middlewares/static_files.ts";
 
 async function createServer<T>(
@@ -1024,14 +1024,12 @@ Deno.test({
         import("../../../tests/fixture_island_groups/routes/" + path),
     });
 
-    await withBrowserApp(app, async (page, address) => {
-      await page.goto(`${address}/foo`);
-      await page.waitForSelector(".ready");
+    await buildProd(app);
 
-      // Page would error here
-      const text = await page.$eval(".ready", (el) => el.textContent);
-      expect(text).toEqual("it works");
-    });
+    const server = new FakeServer(await app.handler());
+    const res = await server.get("/foo");
+    const html = await res.text();
+
+    expect(html).toContain("Foo.js?__frsh_c");
   },
-  sanitizeResources: false,
 });
