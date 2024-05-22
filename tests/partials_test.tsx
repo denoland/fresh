@@ -20,6 +20,10 @@ import { FakeServer } from "../src/test_utils.ts";
 import { JsonIsland } from "./fixtures_islands/JsonIsland.tsx";
 import * as path from "@std/path";
 
+const loremIpsum = await Deno.readTextFile(
+  path.join(import.meta.dirname!, "lorem_ipsum.txt"),
+);
+
 function testApp<T>(): App<T> {
   const selfCounter = getIsland("SelfCounter.tsx");
   const partialInIsland = getIsland("PartialInIsland.tsx");
@@ -1240,10 +1244,6 @@ Deno.test("partials - opt out of parital navigation #2", async () => {
 });
 
 Deno.test("partials - restore scroll position", async () => {
-  const loremIpsum = await Deno.readTextFile(
-    path.join(import.meta.dirname!, "lorem_ipsum.txt"),
-  );
-
   const app = testApp()
     .get("/partial", (ctx) => {
       return ctx.render(
@@ -1635,34 +1635,7 @@ Deno.test(
           <Doc>
             <div f-client-nav>
               {new Array(10).fill(0).map(() => {
-                return (
-                  <p>
-                    Lorem ipsum dolor sit amet, consectetuer adipiscing elit.
-                    Aenean commodo ligula eget dolor. Aenean massa. Cum sociis
-                    natoque penatibus et magnis dis parturient montes, nascetur
-                    ridiculus mus. Donec quam felis, ultricies nec, pellentesque
-                    eu, pretium quis, sem. Nulla consequat massa quis enim.
-                    Donec pede justo, fringilla vel, aliquet nec, vulputate
-                    eget, arcu. In enim justo, rhoncus ut, imperdiet a,
-                    venenatis vitae, justo. Nullam dictum felis eu pede mollis
-                    pretium. Integer tincidunt. Cras dapibus. Vivamus elementum
-                    semper nisi. Aenean vulputate eleifend tellus. Aenean leo
-                    ligula, porttitor eu, consequat vitae, eleifend ac, enim.
-                    Aliquam lorem ante, dapibus in, viverra quis, feugiat a,
-                    tellus. Phasellus viverra nulla ut metus varius laoreet.
-                    Quisque rutrum. Aenean imperdiet. Etiam ultricies nisi vel
-                    augue. Curabitur ullamcorper ultricies nisi. Nam eget dui.
-                    Etiam rhoncus. Maecenas tempus, tellus eget condimentum
-                    rhoncus, sem quam semper libero, sit amet adipiscing sem
-                    neque sed ipsum. Nam quam nunc, blandit vel, luctus
-                    pulvinar, hendrerit id, lorem. Maecenas nec odio et ante
-                    tincidunt tempus. Donec vitae sapien ut libero venenatis
-                    faucibus. Nullam quis ante. Etiam sit amet orci eget eros
-                    faucibus tincidunt. Duis leo. Sed fringilla mauris sit amet
-                    nibh. Donec sodales sagittis magna. Sed consequat, leo eget
-                    bibendum sodales, augue velit cursus nunc,
-                  </p>
-                );
+                return <p>{loremIpsum}</p>;
               })}
               <h1 id="foo">Same nav</h1>
               <a href="#foo">#foo</a>
