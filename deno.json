@@ -10,7 +10,7 @@
   },
   "lock": false,
   "tasks": {
-    "test": "deno test -A --parallel --trace-ops",
+    "test": "deno test -A --parallel",
     "fixture": "deno run -A --watch=static/,routes/ tests/fixture/dev.ts",
     "www": "deno task --cwd=www start",
     "screenshot": "deno run -A www/utils/screenshot.ts",
