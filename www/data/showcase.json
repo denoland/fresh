@@ -1,5 +1,16 @@
 [
   {
+    "title": "JSR",
+    "link": "https://jsr.io/",
+    "github": "jsr-io/jsr",
+    "image": "jsr"
+  },
+  {
+    "title": "Deno.com",
+    "link": "https://deno.com/",
+    "image": "deno"
+  },
+  {
     "title": "OpenAI Semantic Search",
     "link": "https://supabase-openai-doc-search.deno.dev/",
     "github": "supabase-community/deno-fresh-openai-doc-search",
