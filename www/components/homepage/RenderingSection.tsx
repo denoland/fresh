@@ -42,7 +42,7 @@ export function RenderingSection() {
           </SectionHeading>
           <p>
             Fresh routes are dynamically server-rendered{" "}
-            <a href="https://preactjs.com/" class="underline">Preact</a>,
+            <a href="https://preactjs.com/" class="underline">Preact</a>{" "}
             components, so there's zero JavaScript shipped to the browser by
             default.
           </p>
