@@ -1,4 +1,3 @@
-import { PageSection } from "$fresh/www/components/PageSection.tsx";
 import { FancyLink } from "$fresh/www/components/FancyLink.tsx";
 
 export function CTA() {
