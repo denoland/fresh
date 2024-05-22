@@ -3,7 +3,7 @@ name: Publish JSR
 on:
   push:
     branches:
-      - fresh-2.0
+      - main
 
 jobs:
   publish:
