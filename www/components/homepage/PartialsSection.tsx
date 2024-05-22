@@ -35,8 +35,13 @@ export const Recipes = () => (
 export function PartialsSection() {
   return (
     <PageSection>
-      <SideBySide mdColSplit="3/2" lgColSplit="3/2" reverseOnDesktop={true}>
-        <div class="flex flex-col gap-4">
+      <SideBySide
+        mdColSplit="3/2"
+        lgColSplit="3/2"
+        reverseOnDesktop={true}
+        class="!items-start"
+      >
+        <div class="flex flex-col gap-4 md:sticky md:top-4">
           <svg
             role="img"
             alt="Arrows transferring data down "
@@ -62,8 +67,8 @@ export function PartialsSection() {
 
           <SectionHeading>Stream HTML straight from the server</SectionHeading>
           <p>
-            Fresh Partials let you fetch HTML and update only the parts of the
-            page that need to change, without reloading the entire page.
+            Fresh Partials let you fetch HTML and slot it directly into the
+            page, without a full page reload.
           </p>
           <FancyLink href="/docs/concepts/partials" class="mt-4">
             Learn more about Partials

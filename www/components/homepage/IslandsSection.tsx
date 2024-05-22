@@ -29,8 +29,13 @@ export default function Counter(props) {
 export function IslandsSection() {
   return (
     <PageSection>
-      <SideBySide mdColSplit="3/2" lgColSplit="3/2" reverseOnDesktop={true}>
-        <div class="flex flex-col gap-4">
+      <SideBySide
+        mdColSplit="3/2"
+        lgColSplit="3/2"
+        reverseOnDesktop={true}
+        class="!items-start"
+      >
+        <div class="flex flex-col gap-4 md:sticky md:top-4">
           <svg
             xmlns="http://www.w3.org/2000/svg"
             class="icon icon-tabler icon-tabler-beach text-fresh"
@@ -56,9 +61,8 @@ export function IslandsSection() {
             JavaScript only where needed.
           </p>
           <p>
-            Because it's{" "}
-            <a href="https://preactjs.com/" class="underline">Preact</a>, you
-            get best-in-class performance, plus the convenience of{" "}
+            Because it's Preact, you get best-in-class performance, plus the
+            convenience of{" "}
             <a href="https://preactjs.com/guide/v10/signals/" class="underline">
               Signals
             </a>.

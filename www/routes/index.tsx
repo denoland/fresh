@@ -26,6 +26,16 @@ export const handler: Handlers = {
     }
     return ctx.render();
   },
+  async POST(req) {
+    const headers = new Headers();
+    const form = await req.formData();
+    const treat = form.get("treat");
+    headers.set("location", `/thanks?vote=${treat}`);
+    return new Response(null, {
+      status: 303,
+      headers,
+    });
+  },
 };
 
 const TITLE = "Fresh - The simple, approachable, productive web framework.";
@@ -55,7 +65,7 @@ export default function MainPage(props: PageProps) {
           <HelloBar />
           <Header title="" active="/" />
         </div>
-        <div class="flex flex-col overflow-hidden -mt-20 relative">
+        <div class="flex flex-col -mt-20 relative">
           <Hero origin={origin} />
           <Simple />
           <RenderingSection />

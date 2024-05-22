@@ -8,7 +8,7 @@ export function CodeWindow(props: CodeWindowProps) {
   return (
     <div
       {...props}
-      class={`rounded-lg bg-slate-700 overflow-hidden w-full max-w-full [&>*]:rounded-t-none ${
+      class={`-mx-4 sm:mx-0 w-[calc(100%+2rem)] sm:w-full sm:rounded-lg bg-slate-700 overflow-hidden sm:max-w-full [&>*]:rounded-t-none ${
         props.class ?? ""
       }`}
       style={props.style}
