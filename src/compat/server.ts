@@ -13,7 +13,7 @@ export type LayoutProps<Data = unknown, T = unknown> = FreshContext<Data, T>;
 /**
  * @deprecated Use {@link FreshContext} instead
  */
-export type UnkownPageProps<Data = unknown, T = unknown> = FreshContext<
+export type UnknownPageProps<Data = unknown, T = unknown> = FreshContext<
   Data,
   T
 >;

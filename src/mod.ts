@@ -29,5 +29,5 @@ export {
   type Handlers as Handler,
   type LayoutProps,
   type RouteContext,
-  type UnkownPageProps,
+  type UnknownPageProps,
 } from "./compat/server.ts";

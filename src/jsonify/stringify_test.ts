@@ -20,7 +20,7 @@ Deno.test("stringify - undefined", () => {
   expect(stringify(undefined)).toEqual("[-1]");
 });
 
-Deno.test("stringify - Inifinity", () => {
+Deno.test("stringify - Infinity", () => {
   expect(stringify(Infinity)).toEqual("[-4]");
   expect(stringify(-Infinity)).toEqual("[-5]");
 });

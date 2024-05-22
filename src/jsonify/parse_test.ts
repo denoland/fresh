@@ -22,7 +22,7 @@ Deno.test("parse - undefined", () => {
   expect(parse("[-1]")).toEqual(undefined);
 });
 
-Deno.test("parse - Inifinity", () => {
+Deno.test("parse - Infinity", () => {
   expect(parse("[-4]")).toEqual(Infinity);
   expect(parse("[-5]")).toEqual(-Infinity);
 });
