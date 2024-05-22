@@ -1,4 +1,15 @@
 [
+	{
+		"title": "JSR",
+		"link": "https://jsr.io/",
+		"github": "jsr-io/jsr",
+		"image": "jsr"
+	},
+  {
+    "title": "Deno.com",
+    "link": "https://deno.com/",
+    "image": "deno"
+  },
   {
     "title": "JSR",
     "link": "https://jsr.io/",
