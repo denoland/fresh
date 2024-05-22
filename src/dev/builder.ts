@@ -70,14 +70,6 @@ export class Builder implements FreshBuilder {
       .use(devErrorOverlay())
       .mountApp("*", app);
 
-    if (options.hostname === undefined) {
-      options.hostname = "localhost";
-    }
-
-    if (options.port === undefined) {
-      options.port = await getFreePort(8000, options.hostname);
-    }
-
     setBuildCache(
       devApp,
       new MemoryBuildCache(
@@ -206,38 +198,6 @@ export class Builder implements FreshBuilder {
       );
     }
   }
-}
-
-export function getFreePort(
-  startPort: number,
-  hostname: string,
-  max: number = 20,
-): number {
-  // No port specified, check for a free port. Instead of picking just
-  // any port we'll check if the next one is free for UX reasons.
-  // That way the user only needs to increment a number when running
-  // multiple apps vs having to remember completely different ports.
-  let firstError;
-  for (let port = startPort; port < startPort + max; port++) {
-    try {
-      const listener = Deno.listen({ port, hostname });
-      listener.close();
-      return port;
-    } catch (err) {
-      if (err instanceof Deno.errors.AddrInUse) {
-        // Throw first EADDRINUSE error
-        // if no port is free
-        if (!firstError) {
-          firstError = err;
-        }
-        continue;
-      }
-
-      throw err;
-    }
-  }
-
-  throw firstError;
 }
 
 export interface DenoConfig {
