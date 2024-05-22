@@ -13,18 +13,11 @@ import { Simple } from "$fresh/www/components/homepage/Simple.tsx";
 import { SocialProof } from "$fresh/www/components/homepage/SocialProof.tsx";
 import { DenoSection } from "$fresh/www/components/homepage/DenoSection.tsx";
 
-function isOpenGraphUA(header: string | null): boolean {
-  if (!header) {
-    return false;
-  }
-  return header.startsWith("Twitterbot") || header.startsWith("Slackbot");
-}
-
 export const handler: Handlers = {
   GET(req, ctx) {
     const accept = req.headers.get("accept");
     const userAgent = req.headers.get("user-agent");
-    if (!accept?.includes("text/html") && !isOpenGraphUA(userAgent)) {
+    if (userAgent?.includes("Deno/") && !accept?.includes("text/html")) {
       const path = `https://deno.land/x/fresh@${VERSIONS[0]}/init.ts`;
       return new Response(`Redirecting to ${path}`, {
         headers: { "Location": path },

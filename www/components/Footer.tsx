@@ -1,5 +1,3 @@
-import PropsDemo from "$fresh/tests/fixture_partials/routes/island_props_signals/index.tsx";
-import * as Icons from "./Icons.tsx";
 import { JSX } from "preact";
 
 const LINKS = [
