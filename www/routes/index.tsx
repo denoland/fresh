@@ -49,26 +49,12 @@ export default function MainPage(props: PageProps) {
   const origin = `${props.url.protocol}//${props.url.host}`;
 
   return (
-    <>
-      <div class="flex flex-col min-h-screen">
-        <div class="bg-transparent flex flex-col relative z-10">
-          <HelloBar />
-          <Header title="" active="/" />
-        </div>
-        <div class="flex flex-col -mt-20 relative">
-          <Hero origin={origin} />
-          <Simple />
-          <RenderingSection />
-          <IslandsSection />
-          <FormsSection />
-          <PartialsSection />
-          <SocialProof />
-          <DenoSection />
-          <CTA />
-        </div>
-        <Footer class="!mt-0" />
+    <div class="flex flex-col min-h-screen">
+      <div class="bg-transparent flex flex-col relative z-10">
+        <HelloBar />
+        <Header title="" active="/" />
       </div>
-      <div class="flex flex-col overflow-hidden -mt-20 relative">
+      <div class="flex flex-col -mt-20 relative">
         <Hero origin={origin} />
         <Simple />
         <RenderingSection />
@@ -80,7 +66,7 @@ export default function MainPage(props: PageProps) {
         <CTA />
       </div>
       <Footer class="!mt-0" />
-    </>
+    </div>
   );
 }
 
