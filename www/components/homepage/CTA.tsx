@@ -12,10 +12,10 @@ export function CTA() {
           <img
             src="/lemon.svg"
             alt="Illustration of a lemon sliced cleanly in half, suspended in midair as though frozen in time the instant after the cut, the juice flung from the edges"
-            class="w-full max-w-64 mx-auto mb-8"
+            class="w-full mt-8 max-w-48 sm:max-w-64 sm:mt-0 mx-auto mb-8"
           />
           <h2 class="text-3xl sm:text-4xl md:text-5xl lg:text-6xl text-gray-600 font-extrabold">
-            Time for a Fresh Start
+            Time for a Fresh start
           </h2>
           <div class="flex flex-col justify-start items-center gap-4">
             <p class="text-xl">

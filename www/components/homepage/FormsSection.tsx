@@ -29,8 +29,8 @@ export const handler: Handlers = {
 export function FormsSection() {
   return (
     <PageSection>
-      <SideBySide mdColSplit="2/3" lgColSplit="2/3">
-        <div class="flex flex-col gap-4">
+      <SideBySide mdColSplit="2/3" lgColSplit="2/3" class="!items-start">
+        <div class="flex flex-col gap-4 md:sticky md:top-4">
           <div
             role="img"
             alt="Arrows routing and crossing each other emoji"

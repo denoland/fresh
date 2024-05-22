@@ -62,7 +62,7 @@ export default function MainPage(props: PageProps) {
           <HelloBar />
           <Header title="" active="/" />
         </div>
-        <div class="flex flex-col overflow-hidden -mt-20 relative">
+        <div class="flex flex-col -mt-20 relative">
           <Hero origin={origin} />
           <Simple />
           <RenderingSection />

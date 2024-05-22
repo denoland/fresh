@@ -24,11 +24,9 @@ export function SideBySide(props: SideBySideProps) {
     lgSplitClass = "lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]";
   }
 
-  const swapClass = props.reverseOnDesktop ? "swap-on-mobile" : "";
-
   return (
     <div
-      class={`grid grid-cols-1 items-center gap-8 md:gap-16 xl:gap-32 ${
+      class={`grid grid-cols-1 items-center gap-12 md:gap-16 xl:gap-32 ${
         props.reverseOnDesktop ? "md:first:[&>*]:order-1" : ""
       } ${mdSplitClass} ${lgSplitClass} ${props.class ?? ""}`}
     >

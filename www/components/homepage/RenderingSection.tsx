@@ -16,8 +16,8 @@ const serverCode = `export default function HomePage() {
 export function RenderingSection() {
   return (
     <PageSection>
-      <SideBySide mdColSplit="2/3" lgColSplit="2/3">
-        <div class="flex flex-col gap-4">
+      <SideBySide mdColSplit="2/3" lgColSplit="2/3" class="!items-start">
+        <div class="flex flex-col gap-4 md:sticky md:top-4">
           <svg
             xmlns="http://www.w3.org/2000/svg"
             class="icon icon-tabler icon-tabler-atom text-fresh"
@@ -41,8 +41,10 @@ export function RenderingSection() {
             Build fast apps fast
           </SectionHeading>
           <p>
-            Fresh routes are dynamically server-rendered Preact components, so
-            there's zero JavaScript shipped to the browser by default.
+            Fresh routes are dynamically server-rendered{" "}
+            <a href="https://preactjs.com/" class="underline">Preact</a>,
+            components, so there's zero JavaScript shipped to the browser by
+            default.
           </p>
           <p>Simple to write; fast to run.</p>
         </div>
