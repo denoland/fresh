@@ -1,4 +1,4 @@
-import { JSX } from "preact";
+import type { JSX } from "preact";
 
 interface DemoBoxProps extends JSX.HTMLAttributes<HTMLDivElement> {
   flip?: boolean;

@@ -1,4 +1,4 @@
-import { ComponentChildren } from "preact";
+import type { ComponentChildren } from "preact";
 import { Counter } from "./Counter.tsx";
 import { useSignal } from "@preact/signals";
 
