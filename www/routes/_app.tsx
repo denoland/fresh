@@ -25,19 +25,19 @@ export default df.definePage(function App({ Component, state, url }) {
         {state.noIndex ? <meta name="robots" content="noindex" /> : null}
         <link
           rel="preload"
-          href="/fonts/FixelVariable.woff2"
+          href={asset("/fonts/FixelVariable.woff2")}
           as="font"
           type="font/woff2"
           crossorigin="true"
         />
-        <link rel="stylesheet" href="/styles.css" />
+        <link rel="stylesheet" href={asset("/styles.css")} />
         {url.pathname === "/"
-          ? <link rel="stylesheet" href="/prism.css" />
+          ? <link rel="stylesheet" href={asset("/prism.css")} />
           : null}
         {url.pathname.startsWith("/docs/")
           ? (
             <>
-              <link rel="stylesheet" href="/docsearch.css" />
+              <link rel="stylesheet" href={asset("/docsearch.css")} />
               <link rel="stylesheet" href={asset("/markdown.css")} />
             </>
           )
