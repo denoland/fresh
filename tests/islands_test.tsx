@@ -38,7 +38,7 @@ Deno.test({
       });
 
     await withBrowserApp(app, async (page, address) => {
-      await page.goto(address);
+      await page.goto(address, { waitUntil: "load" });
       await page.waitForSelector(".ready");
       await (await page.$(".increment"))!.click();
       await waitForText(page, ".output", "4");
@@ -67,7 +67,7 @@ Deno.test({
       });
 
     await withBrowserApp(app, async (page, address) => {
-      await page.goto(address);
+      await page.goto(address, { waitUntil: "load" });
       await page.waitForSelector("#multiple-1.ready");
       await page.waitForSelector("#multiple-2.ready");
       await (await page.$("#multiple-1 .increment"))!.click();
@@ -99,7 +99,7 @@ Deno.test({
       });
 
     await withBrowserApp(app, async (page, address) => {
-      await page.goto(address);
+      await page.goto(address, { waitUntil: "load" });
       await page.waitForSelector("#counter-1.ready");
       await page.waitForSelector("#counter-2.ready");
       await (await page.$("#counter-1 .increment"))!.click();
@@ -128,7 +128,7 @@ Deno.test({
       });
 
     await withBrowserApp(app, async (page, address) => {
-      await page.goto(address);
+      await page.goto(address, { waitUntil: "load" });
       await page.waitForSelector("pre");
       const text = await (await page.$("pre"))!.evaluate((el: HTMLPreElement) =>
         el.textContent!
@@ -158,7 +158,7 @@ Deno.test({
       });
 
     await withBrowserApp(app, async (page, address) => {
-      await page.goto(address);
+      await page.goto(address, { waitUntil: "load" });
       await page.waitForSelector(".ready");
     });
   },
@@ -185,7 +185,7 @@ Deno.test({
       });
 
     await withBrowserApp(app, async (page, address) => {
-      await page.goto(address);
+      await page.goto(address, { waitUntil: "load" });
       await page.waitForSelector(".ready");
       await (await page.$(".trigger"))!.click();
       await waitForText(page, ".output", "1");
@@ -215,7 +215,7 @@ Deno.test({
       });
 
     await withBrowserApp(app, async (page, address) => {
-      await page.goto(address);
+      await page.goto(address, { waitUntil: "load" });
       await page.waitForSelector(".ready");
 
       const html = await page.content();
@@ -247,7 +247,7 @@ Deno.test({
       });
 
     await withBrowserApp(app, async (page, address) => {
-      await page.goto(address);
+      await page.goto(address, { waitUntil: "load" });
       await page.waitForSelector(".ready");
 
       const text = await (await page.$("pre"))!.evaluate((el: HTMLPreElement) =>
@@ -279,7 +279,7 @@ Deno.test({
       });
 
     await withBrowserApp(app, async (page, address) => {
-      await page.goto(address);
+      await page.goto(address, { waitUntil: "load" });
       await page.waitForSelector(".ready");
 
       const text = await (await page.$("script"))!.evaluate((
@@ -320,7 +320,7 @@ Deno.test({
       });
 
     await withBrowserApp(app, async (page, address) => {
-      await page.goto(address);
+      await page.goto(address, { waitUntil: "load" });
       await page.waitForSelector(".ready");
 
       await (await page.$(".increment"))!.click();
@@ -360,7 +360,7 @@ Deno.test({
       });
 
     await withBrowserApp(app, async (page, address) => {
-      await page.goto(address);
+      await page.goto(address, { waitUntil: "load" });
       await page.waitForSelector(".ready");
 
       await (await page.$(".jsx .increment"))!.click();
@@ -405,7 +405,7 @@ Deno.test({
       });
 
     await withBrowserApp(app, async (page, address) => {
-      await page.goto(address);
+      await page.goto(address, { waitUntil: "load" });
       await page.waitForSelector(".ready");
 
       await (await page.$(".jsx .increment"))!.click();
@@ -467,7 +467,7 @@ Deno.test({
       });
 
     await withBrowserApp(app, async (page, address) => {
-      await page.goto(address);
+      await page.goto(address, { waitUntil: "load" });
       await page.waitForSelector(".ready");
 
       await page.waitForSelector(".children > .foo");
@@ -523,7 +523,7 @@ Deno.test({
       });
 
     await withBrowserApp(app, async (page, address) => {
-      await page.goto(address);
+      await page.goto(address, { waitUntil: "load" });
       await page.waitForSelector(".ready");
 
       const text = await (await page.$(".ready"))!.evaluate((
@@ -553,7 +553,7 @@ Deno.test({
       });
 
     await withBrowserApp(app, async (page, address) => {
-      await page.goto(address);
+      await page.goto(address, { waitUntil: "load" });
       await page.waitForSelector(".ready");
 
       // Page would error here
@@ -583,7 +583,7 @@ Deno.test({
     });
 
     await withBrowserApp(app, async (page, address) => {
-      await page.goto(`${address}/foo`);
+      await page.goto(`${address}/foo`, { waitUntil: "load" });
       await page.waitForSelector(".ready");
 
       // Page would error here

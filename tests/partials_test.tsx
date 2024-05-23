@@ -61,7 +61,7 @@ Deno.test({
       });
 
     await withBrowserApp(app, async (page, address) => {
-      await page.goto(address);
+      await page.goto(address, { waitUntil: "load" });
       await page.waitForSelector(".update");
       await (await page.$(".update"))!.click();
       await waitForText(page, ".output", "partial update");
@@ -99,7 +99,7 @@ Deno.test({
       });
 
     await withBrowserApp(app, async (page, address) => {
-      await page.goto(address);
+      await page.goto(address, { waitUntil: "load" });
       await page.waitForSelector(".update");
       await (await page.$(".update"))!.click();
       await page.waitForSelector(".ready");
@@ -146,7 +146,7 @@ Deno.test({
       const logs: string[] = [];
       page.addEventListener("console", (msg) => logs.push(msg.detail.text));
 
-      await page.goto(address);
+      await page.goto(address, { waitUntil: "load" });
       await page.waitForSelector(".update");
       await (await page.$(".update"))!.click();
 
@@ -234,7 +234,7 @@ Deno.test({
         // console.log(ev);
       });
 
-      await page.goto(address);
+      await page.goto(address, { waitUntil: "load" });
       await page.waitForSelector(".update");
       await (await page.$(".update"))!.click();
       await page.waitForSelector(".ready");
@@ -277,7 +277,7 @@ Deno.test({
       });
 
     await withBrowserApp(app, async (page, address) => {
-      await page.goto(address);
+      await page.goto(address, { waitUntil: "load" });
       await page.waitForSelector(".update");
       await (await page.$(".update"))!.click();
       await page.waitForSelector(".ready");
@@ -349,7 +349,7 @@ Deno.test({
       });
 
     await withBrowserApp(app, async (page, address) => {
-      await page.goto(address);
+      await page.goto(address, { waitUntil: "load" });
       await page.waitForSelector(".ready");
       await page.waitForSelector(".update");
       await (await page.$(".update"))!.click();
@@ -394,7 +394,7 @@ Deno.test({
       });
 
     await withBrowserApp(app, async (page, address) => {
-      await page.goto(address);
+      await page.goto(address, { waitUntil: "load" });
       await page.waitForSelector(".ready");
       await page.waitForSelector(".increment");
       await (await page.$(".increment"))!.click();
@@ -442,7 +442,7 @@ Deno.test({
       });
 
     await withBrowserApp(app, async (page, address) => {
-      await page.goto(address);
+      await page.goto(address, { waitUntil: "load" });
       await page.waitForSelector(".ready");
       await page.waitForSelector(".increment");
       await (await page.$(".increment"))!.click();
@@ -493,7 +493,7 @@ Deno.test({
       });
 
     await withBrowserApp(app, async (page, address) => {
-      await page.goto(address);
+      await page.goto(address, { waitUntil: "load" });
       await page.waitForSelector(".inner");
 
       await (await page.$(".update"))!.click();
@@ -544,7 +544,7 @@ Deno.test({
       });
 
     await withBrowserApp(app, async (page, address) => {
-      await page.goto(address);
+      await page.goto(address, { waitUntil: "load" });
       await page.waitForSelector(".sib-3");
       await page.waitForSelector(".update");
       await (await page.$(".update"))!.click();
@@ -591,7 +591,7 @@ Deno.test({
       });
 
     await withBrowserApp(app, async (page, address) => {
-      await page.goto(address);
+      await page.goto(address, { waitUntil: "load" });
       await page.waitForSelector(".ready");
 
       await (await page.$("#a .increment"))!.click();
@@ -665,7 +665,7 @@ Deno.test({
       });
 
     await withBrowserApp(app, async (page, address) => {
-      await page.goto(address);
+      await page.goto(address, { waitUntil: "load" });
       await page.waitForSelector(".ready");
 
       await (await page.$("#a .increment"))!.click();
@@ -740,7 +740,7 @@ Deno.test({
       });
 
     await withBrowserApp(app, async (page, address) => {
-      await page.goto(address);
+      await page.goto(address, { waitUntil: "load" });
       await page.waitForSelector(".ready");
 
       await (await page.$("#a .increment"))!.click();
@@ -807,7 +807,7 @@ Deno.test({
       });
 
     await withBrowserApp(app, async (page, address) => {
-      await page.goto(address);
+      await page.goto(address, { waitUntil: "load" });
       await page.waitForSelector(".ready");
 
       await (await page.$("#a .increment"))!.click();
@@ -890,7 +890,7 @@ Deno.test({
       });
 
     await withBrowserApp(app, async (page, address) => {
-      await page.goto(address);
+      await page.goto(address, { waitUntil: "load" });
       await page.waitForSelector(".init");
       await page.waitForSelector(".update");
       await (await page.$(".update"))!.click();
@@ -942,7 +942,7 @@ Deno.test({
       });
 
     await withBrowserApp(app, async (page, address) => {
-      await page.goto(address);
+      await page.goto(address, { waitUntil: "load" });
       await page.waitForSelector(".init");
       await page.waitForSelector(".update");
       await (await page.$(".update"))!.click();
@@ -992,7 +992,7 @@ Deno.test({
       });
 
     await withBrowserApp(app, async (page, address) => {
-      await page.goto(address);
+      await page.goto(address, { waitUntil: "load" });
       await page.waitForSelector(".init");
       await page.waitForSelector(".update");
       await (await page.$(".update"))!.click();
@@ -1046,7 +1046,7 @@ Deno.test({
       });
 
     await withBrowserApp(app, async (page, address) => {
-      await page.goto(address);
+      await page.goto(address, { waitUntil: "load" });
       await page.waitForSelector(".init");
       await page.waitForSelector(".update");
       await (await page.$(".update"))!.click();
@@ -1095,7 +1095,7 @@ Deno.test({
       });
 
     await withBrowserApp(app, async (page, address) => {
-      await page.goto(address);
+      await page.goto(address, { waitUntil: "load" });
       await page.waitForSelector(".init");
       await page.waitForSelector(".update");
       await (await page.$(".update"))!.click();
@@ -1148,7 +1148,7 @@ Deno.test({
       });
 
     await withBrowserApp(app, async (page, address) => {
-      await page.goto(address);
+      await page.goto(address, { waitUntil: "load" });
       await page.waitForSelector(".init");
       await page.waitForSelector(".update");
       await (await page.$(".update"))!.click();
@@ -1195,7 +1195,7 @@ Deno.test({
       });
 
     await withBrowserApp(app, async (page, address) => {
-      await page.goto(address);
+      await page.goto(address, { waitUntil: "load" });
       await page.waitForSelector(".ready");
 
       await page.waitForSelector(".increment");
@@ -1255,7 +1255,7 @@ Deno.test({
       });
 
     await withBrowserApp(app, async (page, address) => {
-      await page.goto(address);
+      await page.goto(address, { waitUntil: "load" });
       await page.waitForSelector(".ready");
 
       await page.waitForSelector(".increment");
@@ -1329,7 +1329,7 @@ Deno.test({
       });
 
     await withBrowserApp(app, async (page, address) => {
-      await page.goto(address);
+      await page.goto(address, { waitUntil: "load" });
       await page.waitForSelector(".ready");
 
       await page.waitForSelector(".increment");
@@ -1399,7 +1399,7 @@ Deno.test({
       });
 
     await withBrowserApp(app, async (page, address) => {
-      await page.goto(address);
+      await page.goto(address, { waitUntil: "load" });
       await page.waitForSelector(".ready");
 
       await page.waitForSelector(".increment");
@@ -1456,7 +1456,7 @@ Deno.test({
       });
 
     await withBrowserApp(app, async (page, address) => {
-      await page.goto(address);
+      await page.goto(address, { waitUntil: "load" });
       await page.evaluate(() => {
         document.querySelector(".update")?.scrollIntoView({
           behavior: "instant",
@@ -1511,7 +1511,7 @@ Deno.test({
       });
 
     await withBrowserApp(app, async (page, address) => {
-      await page.goto(address);
+      await page.goto(address, { waitUntil: "load" });
       await page.waitForSelector(".ready");
 
       await page.waitForSelector(".increment");
@@ -1560,7 +1560,7 @@ Deno.test({
       });
 
     await withBrowserApp(app, async (page, address) => {
-      await page.goto(address);
+      await page.goto(address, { waitUntil: "load" });
       await page.waitForSelector(".ready");
 
       await page.waitForSelector(".increment");
@@ -1611,7 +1611,7 @@ Deno.test({
       });
 
     await withBrowserApp(app, async (page, address) => {
-      await page.goto(address);
+      await page.goto(address, { waitUntil: "load" });
       await page.waitForSelector(".ready");
 
       await page.waitForSelector(".increment");
@@ -1671,7 +1671,7 @@ Deno.test({
       });
 
     await withBrowserApp(app, async (page, address) => {
-      await page.goto(address);
+      await page.goto(address, { waitUntil: "load" });
       await page.waitForSelector(".ready");
 
       await page.waitForSelector(".increment");
@@ -1732,7 +1732,7 @@ Deno.test({
       });
 
     await withBrowserApp(app, async (page, address) => {
-      await page.goto(address);
+      await page.goto(address, { waitUntil: "load" });
       await page.waitForSelector(".ready");
 
       await (await page.$(".increment"))!.click();
@@ -1793,7 +1793,7 @@ Deno.test({
       });
 
     await withBrowserApp(app, async (page, address) => {
-      await page.goto(address);
+      await page.goto(address, { waitUntil: "load" });
       await page.waitForSelector(".ready");
 
       await (await page.$(".increment"))!.click();
@@ -1832,7 +1832,7 @@ Deno.test({
       const logs: string[] = [];
       page.addEventListener("console", (msg) => logs.push(msg.detail.text));
 
-      await page.goto(address);
+      await page.goto(address, { waitUntil: "load" });
       await page.waitForSelector("a");
 
       await (await page.$("a"))!.click();
@@ -1868,7 +1868,7 @@ Deno.test({
       });
 
     await withBrowserApp(app, async (page, address) => {
-      await page.goto(address);
+      await page.goto(address, { waitUntil: "load" });
 
       await page.waitForSelector("a");
       await (await page.$("a"))!.click();
@@ -1912,13 +1912,13 @@ Deno.test({
       });
 
     await withBrowserApp(app, async (page, address) => {
-      await page.goto(address);
+      await page.goto(address, { waitUntil: "load" });
       const logs: string[] = [];
       page.addEventListener("pageerror", (msg) => {
         logs.push(String(msg.detail));
       });
 
-      await page.goto(address);
+      await page.goto(address, { waitUntil: "load" });
       await page.waitForSelector(".update");
       await (await page.$(".update"))!.click();
 
@@ -1992,7 +1992,7 @@ Deno.test({
       });
 
     await withBrowserApp(app, async (page, address) => {
-      await page.goto(address);
+      await page.goto(address, { waitUntil: "load" });
 
       await page.waitForSelector(".update");
       await (await page.$(".update"))!.click();
@@ -2095,7 +2095,7 @@ Deno.test({
       });
 
     await withBrowserApp(app, async (page, address) => {
-      await page.goto(address);
+      await page.goto(address, { waitUntil: "load" });
       await page.waitForSelector(".update");
       await (await page.$(".update"))!.click();
       await page.waitForSelector(".updated");
@@ -2150,7 +2150,7 @@ Deno.test({
       });
 
     await withBrowserApp(app, async (page, address) => {
-      await page.goto(address);
+      await page.goto(address, { waitUntil: "load" });
       await page.waitForSelector(".status-initial");
 
       await (await page.$("button"))!.click();
@@ -2193,7 +2193,7 @@ Deno.test({
       });
 
     await withBrowserApp(app, async (page, address) => {
-      await page.goto(address);
+      await page.goto(address, { waitUntil: "load" });
       await page.waitForSelector(".ready");
       await (await page.$("#outer .increment"))!.click();
       await (await page.$("#outer .increment"))!.click();
@@ -2242,7 +2242,7 @@ Deno.test({
       });
 
     await withBrowserApp(app, async (page, address) => {
-      await page.goto(address);
+      await page.goto(address, { waitUntil: "load" });
       await page.waitForSelector("h1");
       await (await page.$(".update"))!.click();
       await page.waitForSelector(".done");
@@ -2279,7 +2279,7 @@ Deno.test({
       });
 
     await withBrowserApp(app, async (page, address) => {
-      await page.goto(address);
+      await page.goto(address, { waitUntil: "load" });
       await page.waitForSelector("h1");
       await (await page.$(".update"))!.click();
       await page.waitForSelector(".error-404");
@@ -2316,7 +2316,7 @@ Deno.test({
       });
 
     await withBrowserApp(app, async (page, address) => {
-      await page.goto(address);
+      await page.goto(address, { waitUntil: "load" });
       await page.waitForSelector("h1");
       await (await page.$(".update"))!.click();
       await page.waitForSelector(".done");
