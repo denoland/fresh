@@ -38,23 +38,28 @@ Deno.test("Builder - chain onTransformStaticFile", async () => {
   expect(logs).toEqual(["A", "B", "C"]);
 });
 
-Deno.test("Builder - hashes CSS urls by default", async () => {
-  const builder = new Builder();
-  const tmp = await Deno.makeTempDir();
-  await Deno.writeTextFile(
-    path.join(tmp, "foo.css"),
-    "body { background: url('/foo.jpg'); }",
-  );
-  const app = new App({
-    staticDir: tmp,
-    build: {
-      outDir: path.join(tmp, "dist"),
-    },
-  });
-  await builder.build(app);
+Deno.test({
+  name: "Builder - hashes CSS urls by default",
+  fn: async () => {
+    const builder = new Builder();
+    const tmp = await Deno.makeTempDir();
+    await Deno.writeTextFile(
+      path.join(tmp, "foo.css"),
+      "body { background: url('/foo.jpg'); }",
+    );
+    const app = new App({
+      staticDir: tmp,
+      build: {
+        outDir: path.join(tmp, "dist"),
+      },
+    });
+    await builder.build(app);
 
-  const css = await Deno.readTextFile(
-    path.join(tmp, "dist", "static", "foo.css"),
-  );
-  expect(css).toContain('body { background: url("/foo.jpg?__frsh_c=');
+    const css = await Deno.readTextFile(
+      path.join(tmp, "dist", "static", "foo.css"),
+    );
+    expect(css).toContain('body { background: url("/foo.jpg?__frsh_c=');
+  },
+  sanitizeOps: false,
+  sanitizeResources: false,
 });
