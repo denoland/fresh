@@ -62,7 +62,14 @@ function ga4(
     // Create basic report.
     const measurementId = GA4_MEASUREMENT_ID;
     // @ts-ignore GA4Report doesn't even use the localAddress parameter
-    const report = new GA4Report({ measurementId, request, response, conn });
+    const report = new GA4Report({
+      measurementId,
+      request,
+      response,
+      // Doesn't use localAddr
+      // deno-lint-ignore no-explicit-any
+      conn: conn.info as any,
+    });
 
     // Override the default (page_view) event.
     report.event = event;
