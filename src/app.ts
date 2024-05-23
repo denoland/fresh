@@ -211,6 +211,9 @@ export class App<State> {
         return await runMiddlewares(handlers, ctx);
       } catch (err) {
         if (err instanceof HttpError) {
+          if (err.status >= 500) {
+            console.error(err);
+          }
           return new Response(err.message, { status: err.status });
         }
 
