@@ -143,7 +143,6 @@ export class HttpError {
     message: string = getMessage(status),
     public options?: ErrorOptions,
   ) {
-    console.trace();
     this.message = message;
     if (MODE !== "production") {
       this.#error = new Error();
