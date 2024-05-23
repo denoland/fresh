@@ -27,14 +27,19 @@ export default function Header(props: { title: string; active: string }) {
 
 export function Logo() {
   return (
-    <a href="/" class="flex mr-3 items-center" aria-label="Top Page">
-      <img src="/logo.svg" alt="Fresh logo" width={40} height={40} />
+    <a href="/" class="flex mr-3 items-center shrink-0" aria-label="Top Page">
+      <img
+        src="/logo.svg"
+        alt="Fresh logo"
+        width={40}
+        height={40}
+      />
       <svg
         preserveAspectRatio="xMinYMin"
         viewBox="0 0 250 75"
         fill="none"
         xmlns="http://www.w3.org/2000/svg"
-        class="h-5 inline-block ml-2.5"
+        class="h-5 ml-2.5 shrink-0 hidden sm:inline-block"
         aria-label="Fresh logo"
       >
         <path

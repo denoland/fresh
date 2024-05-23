@@ -24,7 +24,7 @@ export default function ThanksForSubscribing(
       <PageSection>
         <DemoBox>
           <div class="space-y-2">
-            <h1 class="text-lg sm:text-2xl md:text-3xl lg:text-4xl">
+            <h1 class="text-2xl md:text-3xl lg:text-4xl">
               {vote
                 ? `Thanks for voting for ${vote}!`
                 : `Form submitted successfully`}
@@ -60,7 +60,7 @@ export default function ThanksForSubscribing(
                 <path d="M13 18l6 -6" />
                 <path d="M13 6l6 6" />
               </svg>
-              Back home
+              Back
             </a>
           </div>
         </DemoBox>

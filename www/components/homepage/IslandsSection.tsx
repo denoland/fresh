@@ -57,8 +57,8 @@ export function IslandsSection() {
           </svg>
           <SectionHeading>Island-based architecture</SectionHeading>
           <p>
-            Fresh ships plain HTML to the client, and then hydrates with
-            JavaScript only where needed.
+            Fresh ships plain HTML to the client, then hydrates with JavaScript
+            only where needed.
           </p>
           <p>
             Because it's Preact, you get best-in-class performance, plus the

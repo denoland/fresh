@@ -58,7 +58,7 @@ export function RenderingSection() {
               Freshly server-rendered {new Date().toLocaleString("default", {
                 dateStyle: "medium",
                 timeStyle: "medium",
-              })}
+              })} UTC
             </p>
           </DemoBox>
         </div>
