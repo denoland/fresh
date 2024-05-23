@@ -46,15 +46,6 @@ export default function tailwind(
           let text = "";
           try {
             text = await Deno.readTextFile(filePath);
-            const res = await processor.process(text, {
-              from: undefined,
-            });
-
-            cached = {
-              content: res.content,
-              map: res.map?.toString() ?? "",
-            };
-            cache.set(pathname, cached);
           } catch (err) {
             // If the file is not found than it's likely a virtual file
             // by the user that they respond to via a middleware.
@@ -68,6 +59,16 @@ export default function tailwind(
             };
             console.error(err);
           }
+
+          const res = await processor.process(text, {
+            from: undefined,
+          });
+
+          cached = {
+            content: res.content,
+            map: res.map?.toString() ?? "",
+          };
+          cache.set(pathname, cached);
         }
 
         return new Response(cached!.content, {
