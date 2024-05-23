@@ -58,6 +58,7 @@ export function RenderingSection() {
               Freshly server-rendered {new Date().toLocaleString("default", {
                 dateStyle: "medium",
                 timeStyle: "medium",
+                timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
               })}
             </p>
           </DemoBox>
