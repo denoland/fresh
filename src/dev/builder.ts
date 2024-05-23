@@ -163,7 +163,7 @@ export class Builder implements FreshBuilder {
     }
 
     const output = await bundleJs({
-      cwd: Deno.cwd(),
+      cwd: app.config.root,
       outDir: staticOutDir,
       dev: dev ?? false,
       target,

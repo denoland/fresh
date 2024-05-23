@@ -361,7 +361,6 @@ export const app = new App<State>()
   });
 
 await fsRoutes(app, {
-  dir: Deno.cwd(),
   loadIsland: (path) => import(\`./islands/\${path}\`),
   loadRoute: (path) => import(\`./routes/\${path}\`),
 });

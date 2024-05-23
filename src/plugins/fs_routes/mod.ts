@@ -15,6 +15,7 @@ import { type HandlerFn, isHandlerByMethod } from "../../handlers.ts";
 import { type FsAdapter, fsAdapter } from "../../fs.ts";
 import type { PageProps } from "../../runtime/server/mod.tsx";
 import { HttpError } from "../../error.ts";
+import { parseRootPath } from "../../config.ts";
 
 const TEST_FILE_PATTERN = /[._]test\.(?:[tj]sx?|[mc][tj]s)$/;
 const GROUP_REG = /(^|[/\\\\])\((_[^/\\\\]+)\)[/\\\\]/;
@@ -51,7 +52,7 @@ function isFreshFile<State>(mod: any): mod is FreshFsItem<State> {
 }
 
 export interface FsRoutesOptions {
-  dir: string;
+  dir?: string;
   ignoreFilePattern?: RegExp[];
   loadRoute: (path: string) => Promise<unknown>;
   loadIsland: (path: string) => Promise<unknown>;
@@ -69,8 +70,9 @@ export async function fsRoutes<State>(
   const ignore = options.ignoreFilePattern ?? [TEST_FILE_PATTERN];
   const fs = options._fs ?? fsAdapter;
 
-  const islandDir = path.join(options.dir, "islands");
-  const routesDir = path.join(options.dir, "routes");
+  const dir = options.dir ? parseRootPath(options.dir) : app.config.root;
+  const islandDir = path.join(dir, "islands");
+  const routesDir = path.join(dir, "routes");
 
   const islandPaths: string[] = [];
   const relRoutePaths: string[] = [];

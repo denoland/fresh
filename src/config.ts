@@ -39,8 +39,24 @@ export interface ResolvedFreshConfig {
   mode: Mode;
 }
 
+export function parseRootPath(root: string): string {
+  if (root.startsWith("file://")) {
+    root = path.fromFileUrl(root);
+  }
+
+  const ext = path.extname(root);
+  if (
+    ext === ".ts" || ext === ".tsx" || ext === ".js" || ext === ".jsx" ||
+    ext === ".mjs"
+  ) {
+    root = path.dirname(root);
+  }
+
+  return root;
+}
+
 export function normalizeConfig(options: FreshConfig): ResolvedFreshConfig {
-  const root = options.root ?? Deno.cwd();
+  const root = options.root ? parseRootPath(options.root) : Deno.cwd();
 
   return {
     root,
