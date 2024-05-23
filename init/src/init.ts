@@ -489,7 +489,7 @@ if (Deno.args.includes("build")) {
       dev: "deno run -A --watch=static/,routes/ dev.ts",
       build: "deno run -A dev.ts build",
       start: "deno run -A main.ts",
-      update: "deno run -A -r https://fresh.deno.dev/update .",
+      update: "deno run -A -r jsr:@fresh/update .",
     },
     lint: {
       rules: {
@@ -498,9 +498,9 @@ if (Deno.args.includes("build")) {
     },
     exclude: ["**/_fresh/*"],
     imports: {
-      "@fresh/core": "jsr:@fresh/core@^2.0.0-alpha.2",
-      "@fresh/plugin-tailwind": "jsr:@fresh/plugin-tailwind@^0.0.1-alpha.2",
-      "preact": "npm:preact@^10.20.1",
+      "@fresh/core": "jsr:@fresh/core@^2.0.0-alpha.8",
+      "@fresh/plugin-tailwind": "jsr:@fresh/plugin-tailwind@^0.0.1-alpha.6",
+      "preact": "npm:preact@^10.22.0",
       "@preact/signals": "npm:@preact/signals@^1.2.3",
     } as Record<string, string>,
     compilerOptions: {
@@ -510,9 +510,8 @@ if (Deno.args.includes("build")) {
   };
 
   if (useTailwind) {
-    denoJson.imports["tailwindcss"] = "npm:tailwindcss@3.4.1";
-    denoJson.imports["tailwindcss/plugin"] = "npm:tailwindcss@3.4.1/plugin.js";
-    denoJson.imports["tailwindcss/plugin"] = "npm:tailwindcss@3.4.1/plugin.js";
+    denoJson.imports["tailwindcss"] = "npm:tailwindcss@3.4.3";
+    denoJson.imports["tailwindcss/plugin"] = "npm:tailwindcss@3.4.3/plugin.js";
   }
 
   await writeFile("deno.json", denoJson);
