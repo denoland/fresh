@@ -165,7 +165,7 @@ export default function DocsPage(props: PageProps<Data>) {
         <Header title="docs" active="/docs" />
         <div f-client-nav={true}>
           <MobileSidebar page={page} />
-          <div class="flex mx-auto max-w-screen-2xl px-4 md:px-0 md:py-0 justify-end bg-gray-100">
+          <div class="flex mx-auto max-w-screen-2xl px-0 md:px-4 md:py-0 justify-start bg-gray-100">
             <label
               for="docs_sidebar"
               class="px-4 py-3 lg:hidden flex items-center hover:bg-gray-100 rounded gap-2 cursor-pointer"

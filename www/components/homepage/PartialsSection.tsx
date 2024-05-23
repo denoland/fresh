@@ -68,7 +68,8 @@ export function PartialsSection() {
           <SectionHeading>Stream HTML straight from the server</SectionHeading>
           <p>
             Fresh Partials let you fetch HTML and slot it directly into the
-            page, without a full page reload.
+            page, without a full page reload—perfect for interactive elements
+            and dynamic apps.
           </p>
           <FancyLink href="/docs/concepts/partials" class="mt-4">
             Learn more about Partials
