@@ -5,8 +5,8 @@ export const app = new App()
 
 await fsRoutes(app, {
   dir: import.meta.dirname!,
-  loadIsland: (path) => import("./islands/" + path),
-  loadRoute: (path) => import("./routes/" + path),
+  loadIsland: (path) => import(`./islands/${path}`),
+  loadRoute: (path) => import(`./routes/${path}`),
 });
 
 if (import.meta.main) {
