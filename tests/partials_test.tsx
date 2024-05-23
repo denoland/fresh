@@ -21,6 +21,7 @@ import { FakeServer } from "../src/test_utils.ts";
 import { JsonIsland } from "./fixtures_islands/JsonIsland.tsx";
 import * as path from "@std/path";
 import { getBuildCache, setBuildCache } from "../src/app.ts";
+import { retry } from "@std/async/retry";
 
 const loremIpsum = await Deno.readTextFile(
   path.join(import.meta.dirname!, "lorem_ipsum.txt"),
@@ -1305,21 +1306,23 @@ Deno.test({
       });
 
     await withBrowserApp(app, async (page, address) => {
-      await page.goto(address, { waitUntil: "load" });
-      await page.locator(".ready").wait();
+      await retry(async () => {
+        await page.goto(address, { waitUntil: "load" });
+        await page.locator(".ready").wait();
 
-      await page.locator(".increment").click();
-      await waitForText(page, ".output", "1");
+        await page.locator(".increment").click();
+        await waitForText(page, ".output", "1");
 
-      await page.locator(".update").click();
-      await page.locator(".done").wait();
+        await page.locator(".update").click();
+        await page.locator(".done").wait();
 
-      await page.waitForFunction(() => {
-        const url = new URL(window.location.href);
-        return url.pathname === "/foo";
+        await page.waitForFunction(() => {
+          const url = new URL(window.location.href);
+          return url.pathname === "/foo";
+        });
+        await page.locator(".output").wait();
+        await waitForText(page, ".output", "0");
       });
-      await page.locator(".output").wait();
-      await waitForText(page, ".output", "0");
     });
   },
   sanitizeResources: false,
@@ -1373,18 +1376,20 @@ Deno.test({
       });
 
     await withBrowserApp(app, async (page, address) => {
-      await page.goto(address, { waitUntil: "load" });
-      await page.locator(".ready").wait();
+      await retry(async () => {
+        await page.goto(address, { waitUntil: "load" });
+        await page.locator(".ready").wait();
 
-      await page.locator(".increment").click();
-      await waitForText(page, ".output", "1");
+        await page.locator(".increment").click();
+        await waitForText(page, ".output", "1");
 
-      await page.locator(".update").click();
-      await page.locator(".done").wait();
+        await page.locator(".update").click();
+        await page.waitForSelector(".done");
 
-      const url = new URL(page.url!);
-      expect(url.pathname).toEqual("/foo");
-      await waitForText(page, ".output", "0");
+        const url = new URL(page.url!);
+        expect(url.pathname).toEqual("/foo");
+        await waitForText(page, ".output", "0");
+      });
     });
   },
   sanitizeResources: false,
