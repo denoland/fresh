@@ -10,13 +10,12 @@
   },
   "lock": false,
   "tasks": {
-    "test": "deno test -A --parallel",
+    "test": "deno test -A --parallel src/ init/ update/ && deno test -A tests/ www/main_test.ts",
     "fixture": "deno run -A --watch=static/,routes/ tests/fixture/dev.ts",
     "www": "deno task --cwd=www start",
     "screenshot": "deno run -A www/utils/screenshot.ts",
     "check:types": "deno check src/**/*.ts src/**/*.tsx tests/**/*.ts tests/**/*.tsx",
     "ok": "deno fmt --check && deno lint && deno task check:types && deno task test",
-    "install-puppeteer": "PUPPETEER_PRODUCT=chrome deno run -A --unstable https://deno.land/x/puppeteer@16.2.0/install.ts && PUPPETEER_PRODUCT=firefox deno run -A --unstable https://deno.land/x/puppeteer@16.2.0/install.ts",
     "test:www": "deno test -A tests/www/",
     "manifests": "deno run -A genAllManifest.ts"
   },
@@ -37,6 +36,7 @@
     "$ga4": "https://raw.githubusercontent.com/denoland/ga4/main/mod.ts",
     "$marked-mangle": "https://esm.sh/marked-mangle@1.0.1",
     "$std/": "https://deno.land/std@0.216.0/",
+    "@astral/astral": "jsr:@astral/astral@^0.3.6",
     "@fresh/core": "./src/mod.ts",
     "@fresh/core/client": "./src/runtime/client/mod.tsx",
     "@fresh/core/client-dev": "./src/runtime/client/dev.ts",

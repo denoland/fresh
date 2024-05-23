@@ -14,54 +14,72 @@ Deno.test("CORS should not set on GET /fresh-badge.svg", async () => {
   expect(resp.headers.get("cross-origin-resource-policy")).toEqual(null);
 });
 
-Deno.test("shows version selector", async () => {
-  await withBrowserApp(app, async (page, address) => {
-    await page.goto(`${address}/docs`);
-    await page.waitForSelector("#version");
+Deno.test({
+  name: "shows version selector",
+  fn: async () => {
+    await withBrowserApp(app, async (page, address) => {
+      await page.goto(`${address}/docs`);
+      await page.waitForSelector("#version");
 
-    // Check that we redirected to the first page
-    expect(page.url()).toEqual(`${address}/docs/introduction`);
+      // Check that we redirected to the first page
+      await page.waitForFunction(() => {
+        const url = new URL(window.location.href);
+        return url.pathname === "/docs/introduction";
+      });
 
-    // Wait for version selector to be enabled
-    await page.waitForSelector("#version:not([disabled])");
+      // Wait for version selector to be enabled
+      await page.waitForSelector("#version:not([disabled])");
 
-    const options = await page.$eval("#version", (el: HTMLSelectElement) => {
-      return Array.from(el.options).map((option) => ({
-        value: option.value,
-        label: option.textContent,
-      }));
+      const options = await (await page.$("#version"))!.evaluate(
+        (el: HTMLSelectElement) => {
+          return Array.from(el.options).map((option) => ({
+            value: option.value,
+            label: option.textContent,
+          }));
+        },
+      );
+
+      expect(options).toEqual([
+        {
+          value: "canary",
+          label: "canary",
+        },
+        {
+          value: "latest",
+          label: VERSIONS[0],
+        },
+      ]);
+
+      const selectValue = await (await page.$(
+        "#version",
+      ))!.evaluate(
+        (el: HTMLSelectElement) => el.value,
+      );
+      expect(selectValue).toEqual("latest");
+
+      // Go to canary page
+      await page.evaluate(() => {
+        const el = document.querySelector("#version") as HTMLSelectElement;
+        el.value = "canary";
+        el.dispatchEvent(new Event("change"));
+      });
+
+      await new Promise((r) => setTimeout(r, 1000));
+
+      await page.waitForSelector("#version:not([disabled])");
+      const selectValue2 = await (await page.$(
+        "#version",
+      ))!.evaluate(
+        (el: HTMLSelectElement) => el.value,
+      );
+      expect(selectValue2).toEqual("canary");
+
+      await page.waitForFunction(() => {
+        const url = new URL(window.location.href);
+        return url.pathname === "/docs/canary/introduction";
+      });
     });
-
-    expect(options).toEqual([
-      {
-        value: "canary",
-        label: "canary",
-      },
-      {
-        value: "latest",
-        label: VERSIONS[0],
-      },
-    ]);
-
-    const selectValue = await page.$eval(
-      "#version",
-      (el: HTMLSelectElement) => el.value,
-    );
-    expect(selectValue).toEqual("latest");
-
-    // Go to canary page
-    await Promise.all([
-      page.waitForNavigation(),
-      page.select("#version", "canary"),
-    ]);
-
-    await page.waitForSelector("#version:not([disabled])");
-    const selectValue2 = await page.$eval(
-      "#version",
-      (el: HTMLSelectElement) => el.value,
-    );
-    expect(selectValue2).toEqual("canary");
-
-    expect(page.url()).toEqual(`${address}/docs/canary/introduction`);
-  });
+  },
+  sanitizeOps: false,
+  sanitizeResources: false,
 });

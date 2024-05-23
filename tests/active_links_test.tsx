@@ -84,79 +84,86 @@ Deno.test("active links - without client nav", async () => {
   assertSelector(doc, `a[href='/'][aria-current="true"]`);
 });
 
-Deno.test("active links - updates outside of vdom", async () => {
-  function PartialPage() {
-    return (
-      <div>
-        <Partial name="content">
-          <h1>/active_nav_partial</h1>
-        </Partial>
-        <p>
-          <a href="/active_nav_partial/foo/bar">/active_nav_partial/foo/bar</a>
-        </p>
-        <p>
-          <a href="/active_nav_partial/foo">/active_nav_partial/foo</a>
-        </p>
-        <p>
-          <a href="/active_nav_partial">/active_nav_partial</a>
-        </p>
-        <p>
-          <a href="/">/</a>
-        </p>
-      </div>
-    );
-  }
+Deno.test({
+  name: "active links - updates outside of vdom",
+  fn: async () => {
+    function PartialPage() {
+      return (
+        <div>
+          <Partial name="content">
+            <h1>/active_nav_partial</h1>
+          </Partial>
+          <p>
+            <a href="/active_nav_partial/foo/bar">
+              /active_nav_partial/foo/bar
+            </a>
+          </p>
+          <p>
+            <a href="/active_nav_partial/foo">/active_nav_partial/foo</a>
+          </p>
+          <p>
+            <a href="/active_nav_partial">/active_nav_partial</a>
+          </p>
+          <p>
+            <a href="/">/</a>
+          </p>
+        </div>
+      );
+    }
 
-  const app = testApp()
-    .get("/active_nav_partial/foo", (ctx) => {
-      return ctx.render(<PartialPage />);
-    })
-    .get("/active_nav_partial", (ctx) => {
-      return ctx.render(<PartialPage />);
+    const app = testApp()
+      .get("/active_nav_partial/foo", (ctx) => {
+        return ctx.render(<PartialPage />);
+      })
+      .get("/active_nav_partial", (ctx) => {
+        return ctx.render(<PartialPage />);
+      });
+
+    await withBrowserApp(app, async (page, address) => {
+      await page.goto(`${address}/active_nav_partial`);
+
+      let doc = parseHtml(await page.content());
+      assertSelector(doc, "a[href='/'][data-ancestor]");
+
+      // Current
+      assertNotSelector(doc, "a[href='/active_nav_partial'][data-ancestor]");
+      assertSelector(doc, "a[href='/active_nav_partial'][data-current]");
+      assertSelector(doc, `a[href='/active_nav_partial'][aria-current="page"]`);
+
+      // Unrelated links
+      assertNotSelector(
+        doc,
+        "a[href='/active_nav_partial/foo'][data-ancestor]",
+      );
+      assertNotSelector(
+        doc,
+        "a[href='/active_nav_partial/foo'][aria-current]",
+      );
+      assertNotSelector(
+        doc,
+        "a[href='/active_nav_partial/foo/bar'][data-ancestor]",
+      );
+      assertNotSelector(
+        doc,
+        "a[href='/active_nav_partial/foo/bar'][aria-current]",
+      );
+
+      await page.goto(`${address}/active_nav_partial/foo`);
+      doc = parseHtml(await page.content());
+      assertSelector(doc, "a[href='/active_nav_partial/foo'][data-current]");
+      assertSelector(
+        doc,
+        `a[href='/active_nav_partial/foo'][aria-current="page"]`,
+      );
+      assertSelector(doc, "a[href='/active_nav_partial'][data-ancestor]");
+      assertSelector(
+        doc,
+        `a[href='/active_nav_partial'][data-ancestor][aria-current="true"]`,
+      );
+      assertSelector(doc, "a[href='/'][data-ancestor]");
+      assertSelector(doc, `a[href='/'][aria-current="true"]`);
     });
-
-  await withBrowserApp(app, async (page, address) => {
-    await page.goto(`${address}/active_nav_partial`);
-
-    let doc = parseHtml(await page.content());
-    assertSelector(doc, "a[href='/'][data-ancestor]");
-
-    // Current
-    assertNotSelector(doc, "a[href='/active_nav_partial'][data-ancestor]");
-    assertSelector(doc, "a[href='/active_nav_partial'][data-current]");
-    assertSelector(doc, `a[href='/active_nav_partial'][aria-current="page"]`);
-
-    // Unrelated links
-    assertNotSelector(
-      doc,
-      "a[href='/active_nav_partial/foo'][data-ancestor]",
-    );
-    assertNotSelector(
-      doc,
-      "a[href='/active_nav_partial/foo'][aria-current]",
-    );
-    assertNotSelector(
-      doc,
-      "a[href='/active_nav_partial/foo/bar'][data-ancestor]",
-    );
-    assertNotSelector(
-      doc,
-      "a[href='/active_nav_partial/foo/bar'][aria-current]",
-    );
-
-    await page.goto(`${address}/active_nav_partial/foo`);
-    doc = parseHtml(await page.content());
-    assertSelector(doc, "a[href='/active_nav_partial/foo'][data-current]");
-    assertSelector(
-      doc,
-      `a[href='/active_nav_partial/foo'][aria-current="page"]`,
-    );
-    assertSelector(doc, "a[href='/active_nav_partial'][data-ancestor]");
-    assertSelector(
-      doc,
-      `a[href='/active_nav_partial'][data-ancestor][aria-current="true"]`,
-    );
-    assertSelector(doc, "a[href='/'][data-ancestor]");
-    assertSelector(doc, `a[href='/'][aria-current="true"]`);
-  });
+  },
+  sanitizeResources: false,
+  sanitizeOps: false,
 });

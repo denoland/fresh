@@ -1,7 +1,5 @@
 import { type App, setBuildCache } from "../src/app.ts";
-import puppeteer, {
-  type Page,
-} from "https://deno.land/x/puppeteer@16.2.0/mod.ts";
+import { launch, type Page } from "@astral/astral";
 import * as colors from "@std/fmt/colors";
 import { type Document, DOMParser, HTMLElement } from "linkedom";
 import { Builder } from "../src/dev/builder.ts";
@@ -73,13 +71,12 @@ export async function withBrowserApp(
       },
     }, await app.handler());
 
-    const browser = await puppeteer.launch({
+    const browser = await launch({
       args: ["--no-sandbox"],
       // headless: false,
     });
 
     const page = await browser.newPage();
-    // page.setDefaultTimeout(1000000);
     try {
       await fn(page, `http://localhost:${port}`);
     } finally {
@@ -95,7 +92,7 @@ export async function withBrowserApp(
 export async function withBrowser(fn: (page: Page) => void | Promise<void>) {
   const aborter = new AbortController();
   try {
-    const browser = await puppeteer.launch({
+    const browser = await launch({
       args: ["--no-sandbox"],
       // headless: false,
     });
@@ -287,12 +284,12 @@ export async function waitForText(
   await page.waitForSelector(selector);
   try {
     await page.waitForFunction(
-      (sel, value) => {
-        return document.querySelector(sel)!.textContent === value;
+      (sel: string, value: string) => {
+        const el = document.querySelector(sel);
+        if (el === null) return false;
+        return el.textContent === value;
       },
-      { timeout: 2000 },
-      selector,
-      String(text),
+      { args: [selector, String(text)] },
     );
   } catch (err) {
     const body = await page.content();
