@@ -21,6 +21,13 @@ import { renderToString } from "preact-render-to-string";
 import { FinishSetup, ForgotBuild } from "./finish_setup.tsx";
 import { HttpError } from "./error.ts";
 
+// TODO: Completed type clashes in older Deno versions
+// deno-lint-ignore no-explicit-any
+export const DEFAULT_CONN_INFO: any = {
+  localAddr: { transport: "tcp", hostname: "localhost", port: 8080 },
+  remoteAddr: { transport: "tcp", hostname: "localhost", port: 1234 },
+};
+
 const DEFAULT_NOT_FOUND = () => {
   throw new HttpError(404);
 };
@@ -179,7 +186,11 @@ export class App<State> {
       return missingBuildHandler;
     }
 
-    return async (req: Request) => {
+    return async (
+      req: Request,
+      conn: Deno.ServeHandlerInfo | Deno.ServeUnixHandlerInfo =
+        DEFAULT_CONN_INFO,
+    ) => {
       const url = new URL(req.url);
       // Prevent open redirect attacks
       url.pathname = url.pathname.replace(/\/+/g, "/");
@@ -198,6 +209,7 @@ export class App<State> {
         next,
         this.#islandRegistry,
         this.#buildCache!,
+        conn,
       );
 
       ctx.params = params;

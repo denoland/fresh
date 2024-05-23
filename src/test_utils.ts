@@ -4,6 +4,7 @@ import type { FsAdapter } from "./fs.ts";
 import { type BuildCache, ProdBuildCache } from "./build_cache.ts";
 import type { ResolvedFreshConfig } from "./config.ts";
 import type { WalkEntry } from "@std/fs/walk";
+import { DEFAULT_CONN_INFO } from "./app.ts";
 
 const STUB = {} as unknown as Deno.ServeHandlerInfo;
 
@@ -77,6 +78,7 @@ export function serveMiddleware<T>(
       () => Promise.resolve(next()),
       new Map(),
       buildCache,
+      DEFAULT_CONN_INFO,
     );
     return await middleware(ctx);
   });

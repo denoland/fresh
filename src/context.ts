@@ -99,7 +99,7 @@ export class FreshReqContext<State> implements FreshContext<unknown, State> {
     public next: FreshContext<unknown, State>["next"],
     islandRegistry: ServerIslandRegistry,
     buildCache: BuildCache,
-    public info?: Deno.ServeHandlerInfo | Deno.ServeUnixHandlerInfo,
+    public info: Deno.ServeHandlerInfo | Deno.ServeUnixHandlerInfo,
   ) {
     this.#islandRegistry = islandRegistry;
     this.#buildCache = buildCache;
