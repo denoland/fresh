@@ -37,7 +37,7 @@
     "$ga4": "https://raw.githubusercontent.com/denoland/ga4/main/mod.ts",
     "$marked-mangle": "https://esm.sh/marked-mangle@1.0.1",
     "$std/": "https://deno.land/std@0.216.0/",
-    "@astral/astral": "jsr:@astral/astral@^0.3.6",
+    "@astral/astral": "jsr:@astral/astral@^0.4.0",
     "@fresh/core": "./src/mod.ts",
     "@fresh/core/client": "./src/runtime/client/mod.tsx",
     "@fresh/core/client-dev": "./src/runtime/client/dev.ts",

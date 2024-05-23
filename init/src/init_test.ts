@@ -120,8 +120,7 @@ Deno.test.ignore("init - can start dev server", async () => {
       async (address) => {
         await withBrowser(async (page) => {
           await page.goto(address);
-          await page.waitForSelector("button");
-          await (await page.$("button"))!.click();
+          await page.locator("button").click();
           await waitForText(page, "button + p", "2");
         });
       },
@@ -155,8 +154,7 @@ Deno.test.ignore("init - can start build project", async () => {
         console.log({ address });
         await withBrowser(async (page) => {
           await page.goto(address);
-          await page.waitForSelector("button");
-          await (await page.$("button"))!.click();
+          await page.locator("button").click();
           await waitForText(page, "button + p", "2");
         });
       },

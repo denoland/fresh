@@ -30,14 +30,14 @@ Deno.test({
       // Wait for version selector to be enabled
       await page.waitForSelector("#version:not([disabled])");
 
-      const options = await (await page.$("#version"))!.evaluate(
-        (el: HTMLSelectElement) => {
+      const options = await page
+        .locator<HTMLSelectElement>("#version")
+        .evaluate((el) => {
           return Array.from(el.options).map((option) => ({
             value: option.value,
             label: option.textContent,
           }));
-        },
-      );
+        });
 
       expect(options).toEqual([
         {
@@ -50,11 +50,9 @@ Deno.test({
         },
       ]);
 
-      const selectValue = await (await page.$(
-        "#version",
-      ))!.evaluate(
-        (el: HTMLSelectElement) => el.value,
-      );
+      const selectValue = await page
+        .locator<HTMLSelectElement>("#version")
+        .evaluate((el) => el.value);
       expect(selectValue).toEqual("latest");
 
       // Go to canary page
@@ -67,11 +65,9 @@ Deno.test({
       await new Promise((r) => setTimeout(r, 1000));
 
       await page.waitForSelector("#version:not([disabled])");
-      const selectValue2 = await (await page.$(
-        "#version",
-      ))!.evaluate(
-        (el: HTMLSelectElement) => el.value,
-      );
+      const selectValue2 = await page
+        .locator<HTMLSelectElement>("#version")
+        .evaluate((el) => el.value);
       expect(selectValue2).toEqual("canary");
 
       await page.waitForFunction(() => {

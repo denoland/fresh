@@ -1,7 +1,9 @@
 import { App, staticFiles } from "@fresh/core";
 import {
+  allIslandApp,
   assertNotSelector,
   assertSelector,
+  buildProd,
   Doc,
   getIsland,
   parseHtml,
@@ -13,17 +15,22 @@ import { PartialInIsland } from "./fixtures_islands/PartialInIsland.tsx";
 import { JsonIsland } from "./fixtures_islands/JsonIsland.tsx";
 import { FakeServer } from "../src/test_utils.ts";
 import { Partial } from "@fresh/core/runtime";
+import { getBuildCache, setBuildCache } from "../src/app.ts";
+
+await buildProd(allIslandApp);
 
 function testApp<T>(): App<T> {
   const selfCounter = getIsland("SelfCounter.tsx");
   const partialInIsland = getIsland("PartialInIsland.tsx");
   const jsonIsland = getIsland("JsonIsland.tsx");
 
-  return new App<T>()
+  const app = new App<T>()
     .island(selfCounter, "SelfCounter", SelfCounter)
     .island(partialInIsland, "PartialInIsland", PartialInIsland)
     .island(jsonIsland, "JsonIsland", JsonIsland)
     .use(staticFiles());
+  setBuildCache(app, getBuildCache(allIslandApp));
+  return app;
 }
 
 Deno.test("active links - without client nav", async () => {

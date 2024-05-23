@@ -1,4 +1,4 @@
-import { type App, setBuildCache } from "../src/app.ts";
+import { App, setBuildCache } from "../src/app.ts";
 import { launch, type Page } from "@astral/astral";
 import * as colors from "@std/fmt/colors";
 import { type Document, DOMParser, HTMLElement } from "linkedom";
@@ -8,6 +8,22 @@ import * as path from "@std/path";
 import type { ComponentChildren } from "preact";
 import { expect } from "@std/expect";
 import { ProdBuildCache } from "../src/build_cache.ts";
+import { Counter } from "./fixtures_islands/Counter.tsx";
+import { CounterWithSlots } from "./fixtures_islands/CounterWithSlots.tsx";
+import { EscapeIsland } from "./fixtures_islands/EscapeIsland.tsx";
+import { FnIsland } from "./fixtures_islands/FnIsland.tsx";
+import { FragmentIsland } from "./fixtures_islands/FragmentIsland.tsx";
+import { IslandInIsland } from "./fixtures_islands/IslandInIsland.tsx";
+import { JsonIsland } from "./fixtures_islands/JsonIsland.tsx";
+import { JsxChildrenIsland } from "./fixtures_islands/JsxChildrenIsland.tsx";
+import { JsxConditional } from "./fixtures_islands/JsxConditional.tsx";
+import { JsxIsland } from "./fixtures_islands/JsxIsland.tsx";
+import { NullIsland } from "./fixtures_islands/NullIsland.tsx";
+import { PartialInIsland } from "./fixtures_islands/PartialInIsland.tsx";
+import { PassThrough } from "./fixtures_islands/PassThrough.tsx";
+import { SelfCounter } from "./fixtures_islands/SelfCounter.tsx";
+import { Multiple1, Multiple2 } from "./fixtures_islands/Multiple.tsx";
+import { Foo } from "./fixture_island_groups/routes/foo/(_islands)/Foo.tsx";
 
 export function getIsland(pathname: string) {
   return path.join(
@@ -56,8 +72,6 @@ export async function withBrowserApp(
   app: App<unknown>,
   fn: (page: Page, address: string) => void | Promise<void>,
 ) {
-  await buildProd(app);
-
   const aborter = new AbortController();
   let server: Deno.HttpServer | null = null;
   let port = 0;
@@ -336,3 +350,34 @@ export function getStdOutput(
 
   return { stdout, stderr };
 }
+
+export const allIslandApp = new App()
+  .island(getIsland("Counter.tsx"), "Counter", Counter)
+  .island(
+    getIsland("CounterWithSlots.tsx"),
+    "CounterWithSlots",
+    CounterWithSlots,
+  )
+  .island(getIsland("EscapeIsland.tsx"), "EscapeIsland", EscapeIsland)
+  .island(getIsland("FnIsland.tsx"), "FnIsland", FnIsland)
+  .island(getIsland("FragmentIsland.tsx"), "FragmentIsland", FragmentIsland)
+  .island(getIsland("IslandInIsland.tsx"), "IslandInIsland", IslandInIsland)
+  .island(getIsland("JsonIsland.tsx"), "JsonIsland", JsonIsland)
+  .island(
+    getIsland("JsxChildrenIsland.tsx"),
+    "JsxChildrenIsland",
+    JsxChildrenIsland,
+  )
+  .island(getIsland("JsxConditional.tsx"), "JsxConditional", JsxConditional)
+  .island(getIsland("JsxIsland.tsx"), "JsxIsland", JsxIsland)
+  .island(getIsland("Multiple.tsx"), "Multiple1", Multiple1)
+  .island(getIsland("Multiple.tsx"), "Multiple2", Multiple2)
+  .island(getIsland("NullIsland.tsx"), "NullIsland", NullIsland)
+  .island(getIsland("PartialInIsland.tsx"), "PartialInIsland", PartialInIsland)
+  .island(getIsland("PassThrough.tsx"), "PassThrough", PassThrough)
+  .island(getIsland("SelfCounter.tsx"), "SelfCounter", SelfCounter)
+  .island(
+    getIsland("../fixture_island_groups/routes/foo/(_islands)/Foo.tsx"),
+    "Foo",
+    Foo,
+  );

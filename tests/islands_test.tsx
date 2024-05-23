@@ -10,7 +10,13 @@ import { Multiple1, Multiple2 } from "./fixtures_islands/Multiple.tsx";
 import { JsxIsland } from "./fixtures_islands/JsxIsland.tsx";
 import { JsxChildrenIsland } from "./fixtures_islands/JsxChildrenIsland.tsx";
 import { signal } from "@preact/signals";
-import { Doc, getIsland, withBrowserApp } from "./test_utils.tsx";
+import {
+  allIslandApp,
+  buildProd,
+  Doc,
+  getIsland,
+  withBrowserApp,
+} from "./test_utils.tsx";
 import { parseHtml, waitForText } from "./test_utils.tsx";
 import { staticFiles } from "../src/middlewares/static_files.ts";
 import { expect } from "@std/expect";
@@ -19,13 +25,23 @@ import { FnIsland } from "./fixtures_islands/FnIsland.tsx";
 import { FragmentIsland } from "./fixtures_islands/FragmentIsland.tsx";
 import { EscapeIsland } from "./fixtures_islands/EscapeIsland.tsx";
 import * as path from "@std/path";
+import { setBuildCache } from "../src/app.ts";
+import { getBuildCache } from "../src/app.ts";
+
+await buildProd(allIslandApp);
+
+function testApp() {
+  const app = new App();
+  setBuildCache(app, getBuildCache(allIslandApp));
+  return app;
+}
 
 Deno.test({
   name: "islands - should make signals interactive",
   fn: async () => {
     const counterIsland = getIsland("Counter.tsx");
 
-    const app = new App()
+    const app = testApp()
       .use(staticFiles())
       .island(counterIsland, "Counter", Counter)
       .get("/", (ctx) => {
@@ -39,8 +55,8 @@ Deno.test({
 
     await withBrowserApp(app, async (page, address) => {
       await page.goto(address, { waitUntil: "load" });
-      await page.waitForSelector(".ready");
-      await (await page.$(".increment"))!.click();
+      await page.locator(".ready").wait();
+      await page.locator(".increment").click();
       await waitForText(page, ".output", "4");
     });
   },
@@ -53,7 +69,7 @@ Deno.test({
   fn: async () => {
     const multipleIslands = getIsland("Multiple.tsx");
 
-    const app = new App()
+    const app = testApp()
       .use(staticFiles())
       .island(multipleIslands, "Multiple1", Multiple1)
       .island(multipleIslands, "Multiple2", Multiple2)
@@ -68,10 +84,10 @@ Deno.test({
 
     await withBrowserApp(app, async (page, address) => {
       await page.goto(address, { waitUntil: "load" });
-      await page.waitForSelector("#multiple-1.ready");
-      await page.waitForSelector("#multiple-2.ready");
-      await (await page.$("#multiple-1 .increment"))!.click();
-      await (await page.$("#multiple-2 .increment"))!.click();
+      await page.locator("#multiple-1.ready").wait();
+      await page.locator("#multiple-2.ready").wait();
+      await page.locator("#multiple-1 .increment").click();
+      await page.locator("#multiple-2 .increment").click();
       await waitForText(page, "#multiple-1 .output", "1");
       await waitForText(page, "#multiple-2 .output", "1");
     });
@@ -85,7 +101,7 @@ Deno.test({
   fn: async () => {
     const counterIsland = getIsland("Counter.tsx");
 
-    const app = new App()
+    const app = testApp()
       .use(staticFiles())
       .island(counterIsland, "Counter", Counter)
       .get("/", (ctx) => {
@@ -100,9 +116,9 @@ Deno.test({
 
     await withBrowserApp(app, async (page, address) => {
       await page.goto(address, { waitUntil: "load" });
-      await page.waitForSelector("#counter-1.ready");
-      await page.waitForSelector("#counter-2.ready");
-      await (await page.$("#counter-1 .increment"))!.click();
+      await page.locator("#counter-1.ready").wait();
+      await page.locator("#counter-2.ready").wait();
+      await page.locator("#counter-1 .increment").click();
       await waitForText(page, "#counter-1 .output", "1");
       await waitForText(page, "#counter-2 .output", "1");
     });
@@ -116,7 +132,7 @@ Deno.test({
   fn: async () => {
     const jsonIsland = getIsland("JsonIsland.tsx");
 
-    const app = new App()
+    const app = testApp()
       .use(staticFiles())
       .island(jsonIsland, "JsonIsland", Counter)
       .get("/", (ctx) => {
@@ -129,10 +145,10 @@ Deno.test({
 
     await withBrowserApp(app, async (page, address) => {
       await page.goto(address, { waitUntil: "load" });
-      await page.waitForSelector("pre");
-      const text = await (await page.$("pre"))!.evaluate((el: HTMLPreElement) =>
-        el.textContent!
-      );
+      await page.locator("pre").wait();
+      const text = await page
+        .locator<HTMLPreElement>("pre")
+        .evaluate((el) => el.textContent!);
       const json = JSON.parse(text);
       expect(json).toEqual({ foo: 123 });
     });
@@ -146,7 +162,7 @@ Deno.test({
   fn: async () => {
     const nullIsland = getIsland("NullIsland.tsx");
 
-    const app = new App()
+    const app = testApp()
       .use(staticFiles())
       .island(nullIsland, "NullIsland", NullIsland)
       .get("/", (ctx) => {
@@ -159,7 +175,7 @@ Deno.test({
 
     await withBrowserApp(app, async (page, address) => {
       await page.goto(address, { waitUntil: "load" });
-      await page.waitForSelector(".ready");
+      await page.locator(".ready").wait();
     });
   },
   sanitizeResources: false,
@@ -172,7 +188,7 @@ Deno.test({
     const counter = getIsland("Counter.tsx");
     const islandInIsland = getIsland("IslandInIsland.tsx");
 
-    const app = new App()
+    const app = testApp()
       .use(staticFiles())
       .island(counter, "Counter", Counter)
       .island(islandInIsland, "IslandInIsland", IslandInIsland)
@@ -186,8 +202,8 @@ Deno.test({
 
     await withBrowserApp(app, async (page, address) => {
       await page.goto(address, { waitUntil: "load" });
-      await page.waitForSelector(".ready");
-      await (await page.$(".trigger"))!.click();
+      await page.locator(".ready").wait();
+      await page.locator(".trigger").click();
       await waitForText(page, ".output", "1");
 
       const html = await page.content();
@@ -203,7 +219,7 @@ Deno.test({
   fn: async () => {
     const jsxIsland = getIsland("JsxIsland.tsx");
 
-    const app = new App()
+    const app = testApp()
       .use(staticFiles())
       .island(jsxIsland, "JsxIsland", JsxIsland)
       .get("/", (ctx) => {
@@ -216,7 +232,7 @@ Deno.test({
 
     await withBrowserApp(app, async (page, address) => {
       await page.goto(address, { waitUntil: "load" });
-      await page.waitForSelector(".ready");
+      await page.locator(".ready").wait();
 
       const html = await page.content();
       const doc = parseHtml(html);
@@ -233,7 +249,7 @@ Deno.test({
   fn: async () => {
     const jsxIsland = getIsland("JsxIsland.tsx");
 
-    const app = new App()
+    const app = testApp()
       .use(staticFiles())
       .island(jsxIsland, "JsxIsland", JsxIsland)
       .get("/", (ctx) => {
@@ -248,11 +264,11 @@ Deno.test({
 
     await withBrowserApp(app, async (page, address) => {
       await page.goto(address, { waitUntil: "load" });
-      await page.waitForSelector(".ready");
+      await page.locator(".ready").wait();
 
-      const text = await (await page.$("pre"))!.evaluate((el: HTMLPreElement) =>
-        el.textContent!
-      );
+      const text = await page
+        .locator<HTMLPreElement>("pre")
+        .evaluate((el) => el.textContent!);
       expect(JSON.parse(text)).toEqual({ jsx: true, children: true });
     });
   },
@@ -265,7 +281,7 @@ Deno.test({
   fn: async () => {
     const jsxChildrenIsland = getIsland("JsxChildrenIsland.tsx");
 
-    const app = new App()
+    const app = testApp()
       .use(staticFiles())
       .island(jsxChildrenIsland, "JsxChildrenIsland", JsxChildrenIsland)
       .get("/", (ctx) => {
@@ -280,16 +296,16 @@ Deno.test({
 
     await withBrowserApp(app, async (page, address) => {
       await page.goto(address, { waitUntil: "load" });
-      await page.waitForSelector(".ready");
+      await page.locator(".ready").wait();
 
-      const text = await (await page.$("script"))!.evaluate((
-        el: HTMLScriptElement,
-      ) => el.textContent!);
+      const text = await page
+        .locator<HTMLScriptElement>("script")
+        .evaluate((el) => el.textContent!);
       expect(text).not.toContain("foobar");
 
-      const childText = await (await page.$(".after"))!.evaluate((
-        el: HTMLDivElement,
-      ) => el.textContent!);
+      const childText = await page
+        .locator<HTMLDivElement>(".after")
+        .evaluate((el) => el.textContent!);
       expect(childText).toEqual("foobar");
     });
   },
@@ -303,7 +319,7 @@ Deno.test({
     const passThrough = getIsland("PassThrough.tsx");
     const selfCounter = getIsland("SelfCounter.tsx");
 
-    const app = new App()
+    const app = testApp()
       .use(staticFiles())
       .island(passThrough, "PassThrough", PassThrough)
       .island(selfCounter, "SelfCounter", SelfCounter)
@@ -321,9 +337,9 @@ Deno.test({
 
     await withBrowserApp(app, async (page, address) => {
       await page.goto(address, { waitUntil: "load" });
-      await page.waitForSelector(".ready");
+      await page.locator(".ready").wait();
 
-      await (await page.$(".increment"))!.click();
+      await page.locator(".increment").click();
       await waitForText(page, ".output", "1");
     });
   },
@@ -337,7 +353,7 @@ Deno.test({
     const counterWithSlots = getIsland("CounterWithSlots.tsx");
     const selfCounter = getIsland("SelfCounter.tsx");
 
-    const app = new App()
+    const app = testApp()
       .use(staticFiles())
       .island(counterWithSlots, "CounterWithSlots", CounterWithSlots)
       .island(selfCounter, "SelfCounter", SelfCounter)
@@ -361,11 +377,11 @@ Deno.test({
 
     await withBrowserApp(app, async (page, address) => {
       await page.goto(address, { waitUntil: "load" });
-      await page.waitForSelector(".ready");
+      await page.locator(".ready").wait();
 
-      await (await page.$(".jsx .increment"))!.click();
-      await (await page.$(".children .increment"))!.click();
-      await (await page.$(".counter-with-children button"))!.click();
+      await page.locator(".jsx .increment").click();
+      await page.locator(".children .increment").click();
+      await page.locator(".counter-with-children button").click();
 
       await waitForText(page, ".counter-with-children .output", "1");
       await waitForText(page, ".jsx .output", "1");
@@ -382,7 +398,7 @@ Deno.test({
     const jsxConditional = getIsland("JsxConditional.tsx");
     const selfCounter = getIsland("SelfCounter.tsx");
 
-    const app = new App()
+    const app = testApp()
       .use(staticFiles())
       .island(jsxConditional, "JsxConditional", JsxConditional)
       .island(selfCounter, "SelfCounter", SelfCounter)
@@ -406,11 +422,11 @@ Deno.test({
 
     await withBrowserApp(app, async (page, address) => {
       await page.goto(address, { waitUntil: "load" });
-      await page.waitForSelector(".ready");
+      await page.locator(".ready").wait();
 
-      await (await page.$(".jsx .increment"))!.click();
-      await (await page.$(".children .increment"))!.click();
-      await (await page.$(".cond-update"))!.click();
+      await page.locator(".jsx .increment").click();
+      await page.locator(".children .increment").click();
+      await page.locator(".cond-update").click();
 
       await waitForText(page, ".cond-output", "1");
       await waitForText(page, ".jsx .output", "1");
@@ -426,7 +442,7 @@ Deno.test({
   fn: async () => {
     const jsxConditional = getIsland("JsxConditional.tsx");
 
-    const app = new App()
+    const app = testApp()
       .use(staticFiles())
       .island(jsxConditional, "JsxConditional", JsxConditional)
       .get("/", (ctx) => {
@@ -468,35 +484,28 @@ Deno.test({
 
     await withBrowserApp(app, async (page, address) => {
       await page.goto(address, { waitUntil: "load" });
-      await page.waitForSelector(".ready");
+      await page.locator(".ready").wait();
 
-      await page.waitForSelector(".children > .foo");
+      await page.locator(".children > .foo").wait();
 
-      const checkboxChecked = await (await page.$(
-        "input[name='check']",
-      ))!.evaluate(
-        (el: HTMLInputElement) => el.checked,
-      );
+      const checkboxChecked = await page
+        .locator<HTMLInputElement>("input[name='check']")
+        .evaluate((el) => el.checked);
       expect(checkboxChecked).toEqual(true);
 
-      const required = await (await page.$(
-        "input[name='text']",
-      ))!.evaluate(
-        (el: HTMLInputElement) => el.required,
-      );
+      const required = await page
+        .locator<HTMLInputElement>("input[name='text']")
+        .evaluate((el) => el.required);
       expect(required).toEqual(true);
 
-      const radio1 = await (await page.$(
-        "input[type='radio'][value='1']",
-      ))!.evaluate(
-        (el: HTMLInputElement) => el.checked,
-      );
+      const radio1 = await page
+        .locator<HTMLInputElement>("input[type='radio'][value='1']")
+        .evaluate((el) => el.checked);
       expect(radio1).toEqual(false);
-      const radio2 = await (await page.$(
-        "input[type='radio'][value='2']",
-      ))!.evaluate(
-        (el: HTMLInputElement) => el.checked,
-      );
+
+      const radio2 = await page
+        .locator<HTMLInputElement>("input[type='radio'][value='2']")
+        .evaluate((el) => el.checked);
       expect(radio2).toEqual(true);
     });
   },
@@ -510,7 +519,7 @@ Deno.test({
     const fragmentIsland = getIsland("FragmentIsland.tsx");
     const fnIsland = getIsland("FnIsland.tsx");
 
-    const app = new App()
+    const app = testApp()
       .use(staticFiles())
       .island(fragmentIsland, "FragmentIsland", FragmentIsland)
       .island(fnIsland, "FnIsland", FnIsland)
@@ -524,11 +533,11 @@ Deno.test({
 
     await withBrowserApp(app, async (page, address) => {
       await page.goto(address, { waitUntil: "load" });
-      await page.waitForSelector(".ready");
+      await page.locator(".ready").wait();
 
-      const text = await (await page.$(".ready"))!.evaluate((
-        el: HTMLDivElement,
-      ) => el.textContent!);
+      const text = await page
+        .locator<HTMLDivElement>(".ready")
+        .evaluate((el) => el.textContent!);
       expect(text).toEqual("it works");
     });
   },
@@ -541,7 +550,7 @@ Deno.test({
   fn: async () => {
     const escapeIsland = getIsland("EscapeIsland.tsx");
 
-    const app = new App()
+    const app = testApp()
       .use(staticFiles())
       .island(escapeIsland, "EscapeIsland", EscapeIsland)
       .get("/", (ctx) => {
@@ -554,12 +563,12 @@ Deno.test({
 
     await withBrowserApp(app, async (page, address) => {
       await page.goto(address, { waitUntil: "load" });
-      await page.waitForSelector(".ready");
+      await page.locator(".ready").wait();
 
       // Page would error here
-      const text = await (await page.$(".ready"))!.evaluate((
-        el: HTMLDivElement,
-      ) => el.textContent!);
+      const text = await page
+        .locator<HTMLDivElement>(".ready")
+        .evaluate((el) => el.textContent!);
       expect(text).toEqual("it works");
     });
   },
@@ -570,7 +579,7 @@ Deno.test({
 Deno.test({
   name: "fsRoutes - load islands from group folder",
   fn: async () => {
-    const app = new App()
+    const app = testApp()
       .use(staticFiles());
 
     await fsRoutes(app, {
@@ -584,12 +593,12 @@ Deno.test({
 
     await withBrowserApp(app, async (page, address) => {
       await page.goto(`${address}/foo`, { waitUntil: "load" });
-      await page.waitForSelector(".ready");
+      await page.locator(".ready").wait();
 
       // Page would error here
-      const text = await (await page.$(".ready"))!.evaluate((
-        el: HTMLDivElement,
-      ) => el.textContent!);
+      const text = await page
+        .locator<HTMLDivElement>(".ready")
+        .evaluate((el) => el.textContent!);
       expect(text).toEqual("it works");
     });
   },
