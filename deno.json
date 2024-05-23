@@ -74,7 +74,7 @@
     "twind/": "https://esm.sh/twind@0.16.19/"
   },
   "compilerOptions": {
-    "jsx": "react-jsx",
+    "jsx": "precompile",
     "jsxImportSource": "preact",
     "jsxPrecompileSkipElements": ["a", "img", "source", "body", "html", "head"]
   },
