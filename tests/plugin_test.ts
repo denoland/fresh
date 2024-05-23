@@ -185,6 +185,35 @@ Deno.test({
 });
 
 Deno.test({
+  name: "plugins support multiple island configs",
+  async fn(t) {
+    await withPageName(
+      "./tests/fixture_plugin/main.ts",
+      async (page, address) => {
+        async function idTest(id: string) {
+          const elem = await page.waitForSelector(`#${id}`);
+
+          const value = await elem?.evaluate((el) => el.textContent);
+          assert(value === `${id}`, `value ${value} not equal to id ${id}`);
+        }
+
+        await page.goto(`${address}/pluginroutewithislands`, {
+          waitUntil: "networkidle2",
+        });
+
+        await t.step("verify tags", async () => {
+          await idTest("csr");
+          await idTest("csr_alt_folder");
+          await idTest("csr_alt_folder2");
+        });
+      },
+    );
+  },
+  sanitizeOps: false,
+  sanitizeResources: false,
+});
+
+Deno.test({
   name: "/with-island hydration",
   async fn(t) {
     // Preparation

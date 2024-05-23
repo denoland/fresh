@@ -242,17 +242,23 @@ export async function extractRoutes(
 
   for (const plugin of config.plugins || []) {
     if (!plugin.islands) continue;
-    const base = dirname(plugin.islands.baseLocation);
+    else if (!Array.isArray(plugin.islands)) {
+      plugin.islands = [plugin.islands];
+    }
 
-    for (const specifier of plugin.islands.paths) {
-      const full = join(base, specifier);
-      const module = await import(full);
-      const name = sanitizeIslandName(basename(full, extname(full)));
-      processedIslands.push({
-        name,
-        path: full,
-        module,
-      });
+    for (const pluginIslands of plugin.islands) {
+      const base = dirname(pluginIslands.baseLocation);
+
+      for (const specifier of pluginIslands.paths) {
+        const full = join(base, specifier);
+        const module = await import(full);
+        const name = sanitizeIslandName(basename(full, extname(full)));
+        processedIslands.push({
+          name,
+          path: full,
+          module,
+        });
+      }
     }
   }
 
