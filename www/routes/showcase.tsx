@@ -1,5 +1,5 @@
 import { asset } from "@fresh/core/runtime";
-import { render } from "@fresh/core";
+import { page } from "@fresh/core";
 import Projects, { type Project } from "../components/Projects.tsx";
 import Header from "../components/Header.tsx";
 import Footer from "../components/Footer.tsx";
@@ -14,7 +14,7 @@ export const handler = define.handlers({
     ctx.state.title = TITLE;
     ctx.state.description = DESCRIPTION;
     ctx.state.ogImage = new URL(asset("/og-image.webp"), ctx.url).href;
-    return render();
+    return page();
   },
 });
 

@@ -1,21 +1,21 @@
 import type { FreshContext } from "./context.ts";
 import type { Method } from "./router.ts";
 
-export interface RenderResponse<T> {
+export interface PageResponse<T> {
   data: T;
   headers: Headers;
   status: number;
 }
 
 /**
- * Create a {@link RenderResponse} object that can be returned from a route
+ * Create a {@link PageResponse} object that can be returned from a route
  * handler. This will cause the page component to be rendered with the specified
  * data and response options.
  *
  * ```ts
  * export const handlers = define.handlers({
  *   GET: (ctx) => {
- *     return render({ message: "Hello, world!" }, {
+ *     return page({ message: "Hello, world!" }, {
  *       headers: { "Cache-Control": "public, max-age=3600" },
  *       status: 201,
  *     });
@@ -29,17 +29,17 @@ export interface RenderResponse<T> {
  *
  * @param data The data to pass to the page component to be rendered.
  * @param options Additional options to use when constructing the response object.
- * @returns A {@link RenderResponse} object that should be returned from a route handler.
+ * @returns A {@link PageResponse} object that should be returned from a route handler.
  */
-export function render<T>(data: T, options?: {
+export function page<T>(data: T, options?: {
   headers?: HeadersInit;
   status?: number;
-}): RenderResponse<T>;
-export function render(): RenderResponse<undefined>;
-export function render<T>(data?: T, options?: {
+}): PageResponse<T>;
+export function page(): PageResponse<undefined>;
+export function page<T>(data?: T, options?: {
   headers?: HeadersInit;
   status?: number;
-}): RenderResponse<T> {
+}): PageResponse<T> {
   return {
     data: data ?? undefined as T,
     headers: options?.headers instanceof Headers
@@ -194,8 +194,8 @@ export function isHandlerByMethod<D, S>(
 export interface HandlerFn<Data, State> {
   (ctx: FreshContext<Data, State>):
     | Response
-    | RenderResponse<Data>
-    | Promise<Response | RenderResponse<Data>>;
+    | PageResponse<Data>
+    | Promise<Response | PageResponse<Data>>;
 }
 
 /**

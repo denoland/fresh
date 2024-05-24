@@ -1,4 +1,4 @@
-import { render } from "@fresh/core";
+import { page } from "@fresh/core";
 import { PageSection } from "../components/PageSection.tsx";
 import { DemoBox } from "../components/homepage/DemoBox.tsx";
 import { define } from "../utils/state.ts";
@@ -8,7 +8,7 @@ export const handler = define.handlers({
     const url = new URL(ctx.req.url);
     const search = new URLSearchParams(url.search);
     const vote = search.get("vote");
-    return render({ vote });
+    return page({ vote });
   },
 });
 

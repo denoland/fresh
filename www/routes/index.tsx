@@ -1,5 +1,5 @@
 import { asset } from "@fresh/core/runtime";
-import { render } from "@fresh/core";
+import { page } from "@fresh/core";
 import VERSIONS from "../../versions.json" with { type: "json" };
 import Footer from "../components/Footer.tsx";
 import Header from "../components/Header.tsx";
@@ -33,7 +33,7 @@ export const handler = define.handlers({
       "Fresh features just-in-time edge rendering, island based interactivity, and zero-configuration TypeScript support. Fast to write; fast to run.";
     ctx.state.ogImage = new URL(asset("/og-image.webp"), ctx.url).href;
 
-    return render();
+    return page();
   },
   async POST(ctx) {
     const headers = new Headers();

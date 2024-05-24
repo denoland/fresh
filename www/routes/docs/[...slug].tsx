@@ -1,4 +1,4 @@
-import { HttpError, render } from "@fresh/core";
+import { HttpError, page } from "@fresh/core";
 import { asset, Partial } from "@fresh/core/runtime";
 import { SidebarCategory } from "../../components/DocsSidebar.tsx";
 import Footer from "../../components/Footer.tsx";
@@ -129,7 +129,7 @@ export const handler = define.handlers<Data>({
       : "Fresh Document";
     ctx.state.ogImage = new URL(asset("/og-image.webp"), ctx.url).href;
 
-    return render({
+    return page({
       page: {
         ...entry,
         markdown: body,

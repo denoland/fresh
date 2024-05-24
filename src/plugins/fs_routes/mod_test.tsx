@@ -9,11 +9,7 @@ import {
 import { delay, FakeServer } from "../../test_utils.ts";
 import { createFakeFs } from "../../test_utils.ts";
 import { expect } from "@std/expect";
-import {
-  type HandlerByMethod,
-  type HandlerFn,
-  render,
-} from "../../handlers.ts";
+import { type HandlerByMethod, type HandlerFn, page } from "../../handlers.ts";
 import type { Method } from "../../router.ts";
 import { parseHtml } from "../../../tests/test_utils.tsx";
 
@@ -548,7 +544,7 @@ Deno.test("fsRoutes - handler return data", async () => {
   const server = await createServer({
     "routes/index.tsx": {
       handler: () => {
-        return render("foo", { status: 404 });
+        return page("foo", { status: 404 });
       },
       default: (ctx) => {
         // deno-lint-ignore no-explicit-any
