@@ -7,4 +7,4 @@ export interface State {
   noIndex?: boolean;
 }
 
-export const df = createDefine<State>();
+export const define = createDefine<State>();

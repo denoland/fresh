@@ -1,6 +1,6 @@
-import { df } from "../../utils/state.ts";
+import { define } from "../../utils/state.ts";
 
-export const handler = df.defineMiddleware((ctx) => {
+export const handler = define.middleware((ctx) => {
   ctx.state.noIndex = true;
   return ctx.next();
 });

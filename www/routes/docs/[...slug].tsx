@@ -1,4 +1,4 @@
-import { type Handlers, HttpError, type PageProps } from "@fresh/core";
+import { HttpError, page } from "@fresh/core";
 import { asset, Partial } from "@fresh/core/runtime";
 import { SidebarCategory } from "../../components/DocsSidebar.tsx";
 import Footer from "../../components/Footer.tsx";
@@ -15,6 +15,7 @@ import toc from "../../../docs/toc.ts";
 import { TableOfContents } from "../../islands/TableOfContents.tsx";
 import SearchButton from "../../islands/SearchButton.tsx";
 import VersionSelect from "../../islands/VersionSelect.tsx";
+import { define } from "../../utils/state.ts";
 
 interface Data {
   page: Page;
@@ -43,7 +44,7 @@ interface Page extends TableOfContentsEntry {
 
 const pattern = new URLPattern({ pathname: "/:version/:page*" });
 
-export const handler: Handlers<Data> = {
+export const handler = define.handlers<Data>({
   async GET(ctx) {
     const slug = ctx.params.slug;
 
@@ -61,20 +62,20 @@ export const handler: Handlers<Data> = {
       throw new HttpError(404);
     }
 
-    let { version, page = "" } = match.pathname.groups;
+    let { version, page: path = "" } = match.pathname.groups;
     if (!version) {
       throw new HttpError(404);
     }
 
     // Latest version doesn't show up in the url
     if (!TABLE_OF_CONTENTS[version]) {
-      page = version + (page ? "/" + page : "");
+      path = version + (path ? "/" + path : "");
       version = LATEST_VERSION;
     }
 
     // Check if the page exists
     const currentToc = TABLE_OF_CONTENTS[version];
-    const entry = currentToc[page];
+    const entry = currentToc[path];
     if (!entry) {
       throw new HttpError(404);
     }
@@ -83,7 +84,7 @@ export const handler: Handlers<Data> = {
     const versionLinks: VersionLink[] = [];
     for (const version in TABLE_OF_CONTENTS) {
       const label = toc[version].label;
-      const maybeEntry = TABLE_OF_CONTENTS[version][page];
+      const maybeEntry = TABLE_OF_CONTENTS[version][path];
 
       // Check if the same page is available for this version and
       // link to that. Pick the index page for that version if an
@@ -128,23 +129,21 @@ export const handler: Handlers<Data> = {
       : "Fresh Document";
     ctx.state.ogImage = new URL(asset("/og-image.webp"), ctx.url).href;
 
-    return {
-      data: {
-        page: {
-          ...entry,
-          markdown: body,
-          data: attrs ?? {},
-          versionLinks,
-          version,
-          prevNav,
-          nextNav,
-        },
+    return page({
+      page: {
+        ...entry,
+        markdown: body,
+        data: attrs ?? {},
+        versionLinks,
+        version,
+        prevNav,
+        nextNav,
       },
-    };
+    });
   },
-};
+});
 
-export default function DocsPage(props: PageProps<Data>) {
+export default define.page<typeof handler>(function DocsPage(props) {
   const { page } = props.data;
   const { html, headings } = renderMarkdown(page.markdown);
 
@@ -241,7 +240,7 @@ export default function DocsPage(props: PageProps<Data>) {
       </div>
     </div>
   );
-}
+});
 
 function MobileSidebar({ page }: { page: Page }) {
   return (

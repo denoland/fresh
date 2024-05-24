@@ -1,6 +1,6 @@
 import { type AnyComponent, h, type RenderableProps, type VNode } from "preact";
 import type { MiddlewareFn } from "../../middlewares/mod.ts";
-import type { HandlerFn, Render } from "../../handlers.ts";
+import type { HandlerFn, PageResponse } from "../../handlers.ts";
 import type { PageProps } from "../../runtime/server/mod.tsx";
 
 export type AsyncAnyComponent<P> = {
@@ -22,7 +22,7 @@ export function renderMiddleware<State>(
   handler: HandlerFn<unknown, State> | undefined,
 ): MiddlewareFn<State> {
   return async (ctx) => {
-    let result: Render<unknown> | undefined;
+    let result: PageResponse<unknown> | undefined;
     if (handler !== undefined) {
       const res = await handler(ctx);
 

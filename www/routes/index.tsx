@@ -1,5 +1,5 @@
 import { asset } from "@fresh/core/runtime";
-import type { Handlers, PageProps } from "@fresh/core";
+import { page } from "@fresh/core";
 import VERSIONS from "../../versions.json" with { type: "json" };
 import Footer from "../components/Footer.tsx";
 import Header from "../components/Header.tsx";
@@ -12,9 +12,9 @@ import { FormsSection } from "../components/homepage/FormsSection.tsx";
 import { Simple } from "../components/homepage/Simple.tsx";
 import { SocialProof } from "../components/homepage/SocialProof.tsx";
 import { DenoSection } from "../components/homepage/DenoSection.tsx";
-import { df } from "../utils/state.ts";
+import { define } from "../utils/state.ts";
 
-export const handler = df.handlers({
+export const handler = define.handlers({
   GET(ctx) {
     const { req } = ctx;
     const accept = req.headers.get("accept");
@@ -32,6 +32,8 @@ export const handler = df.handlers({
     ctx.state.description =
       "Fresh features just-in-time edge rendering, island based interactivity, and zero-configuration TypeScript support. Fast to write; fast to run.";
     ctx.state.ogImage = new URL(asset("/og-image.webp"), ctx.url).href;
+
+    return page();
   },
   async POST(ctx) {
     const headers = new Headers();
@@ -45,7 +47,7 @@ export const handler = df.handlers({
   },
 });
 
-export default function MainPage(props: PageProps) {
+export default define.page<typeof handler>(function MainPage(props) {
   const origin = `${props.url.protocol}//${props.url.host}`;
 
   return (
@@ -68,7 +70,7 @@ export default function MainPage(props: PageProps) {
       <Footer class="!mt-0" />
     </div>
   );
-}
+});
 
 function HelloBar() {
   return (
