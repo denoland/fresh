@@ -66,7 +66,7 @@ Deno.test("init - create project dir", async () => {
 
     const root = path.join(dir, "fresh-init");
     await expectProjectFile(root, "deno.json");
-    await expectProjectFile(root, "main.tsx");
+    await expectProjectFile(root, "main.ts");
     await expectProjectFile(root, "dev.ts");
     await expectProjectFile(root, ".gitignore");
     await expectProjectFile(root, "static/styles.css");
@@ -84,7 +84,7 @@ Deno.test("init - with tailwind", async () => {
     const css = await readProjectFile(dir, "static/styles.css");
     expect(css).toMatch(/@tailwind/);
 
-    const main = await readProjectFile(dir, "main.tsx");
+    const main = await readProjectFile(dir, "main.ts");
     const dev = await readProjectFile(dir, "dev.ts");
     expect(main).not.toMatch(/tailwind/);
     expect(dev).toMatch(/tailwind/);
@@ -111,7 +111,7 @@ Deno.test.ignore("init - can start dev server", async () => {
       [InitStep.ProjectName]: ".",
     });
     await initProject(dir, [], {}, mock.tty);
-    await expectProjectFile(dir, "main.tsx");
+    await expectProjectFile(dir, "main.ts");
     await expectProjectFile(dir, "dev.ts");
 
     await withChildProcessServer(
@@ -135,7 +135,7 @@ Deno.test.ignore("init - can start build project", async () => {
       [InitStep.ProjectName]: ".",
     });
     await initProject(dir, [], {}, mock.tty);
-    await expectProjectFile(dir, "main.tsx");
+    await expectProjectFile(dir, "main.ts");
     await expectProjectFile(dir, "dev.ts");
 
     // Build
@@ -149,7 +149,7 @@ Deno.test.ignore("init - can start build project", async () => {
 
     await withChildProcessServer(
       dir,
-      path.join(dir, "main.tsx"),
+      path.join(dir, "main.ts"),
       async (address) => {
         console.log({ address });
         await withBrowser(async (page) => {
