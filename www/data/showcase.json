@@ -392,5 +392,11 @@
     "link": "",
     "github": "",
     "image": ""
+  },
+  {
+    "title": "Thoth-Doc",
+    "link": "https://thoth-doc.deno.dev/",
+    "github": "Octo8080X/thoth",
+    "image": "thoth-doc"
   }
 ]
