@@ -1,23 +1,24 @@
 import { asset } from "@fresh/core/runtime";
-import type { PageProps } from "@fresh/core";
+import { render } from "@fresh/core";
 import Projects, { type Project } from "../components/Projects.tsx";
 import Header from "../components/Header.tsx";
 import Footer from "../components/Footer.tsx";
 import projects from "../data/showcase.json" with { type: "json" };
-import { df } from "../utils/state.ts";
+import { define } from "../utils/state.ts";
 
 const TITLE = "Showcase | Fresh";
 const DESCRIPTION = "Selection of projects that have been built with Fresh.";
 
-export const handler = df.handlers({
+export const handler = define.handlers({
   GET(ctx) {
     ctx.state.title = TITLE;
     ctx.state.description = DESCRIPTION;
     ctx.state.ogImage = new URL(asset("/og-image.webp"), ctx.url).href;
+    return render();
   },
 });
 
-export default function ShowcasePage(props: PageProps) {
+export default define.page<typeof handler>(function ShowcasePage() {
   return (
     <>
       <Header title="showcase" active="/showcase" />
@@ -71,7 +72,7 @@ export default function ShowcasePage(props: PageProps) {
       </div>
     </>
   );
-}
+});
 
 function Showcase({ items }: { items: Project[] }) {
   return (

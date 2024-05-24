@@ -34,9 +34,14 @@ export interface RenderResponse<T> {
 export function render<T>(data: T, options?: {
   headers?: HeadersInit;
   status?: number;
+}): RenderResponse<T>;
+export function render(): RenderResponse<undefined>;
+export function render<T>(data?: T, options?: {
+  headers?: HeadersInit;
+  status?: number;
 }): RenderResponse<T> {
   return {
-    data,
+    data: data ?? undefined as T,
     headers: options?.headers instanceof Headers
       ? options.headers
       : new Headers(options?.headers),
@@ -190,8 +195,7 @@ export interface HandlerFn<Data, State> {
   (ctx: FreshContext<Data, State>):
     | Response
     | RenderResponse<Data>
-    | void
-    | Promise<Response | RenderResponse<Data> | void>;
+    | Promise<Response | RenderResponse<Data>>;
 }
 
 /**

@@ -1,7 +1,7 @@
-import type { Handlers } from "@fresh/core";
+import { define } from "../utils/state.ts";
 import VERSIONS from "../../versions.json" with { type: "json" };
 
-export const handler: Handlers = {
+export const handler = define.handlers({
   GET({ req }) {
     const accept = req.headers.get("accept");
     let path = "/docs/concepts/updating";
@@ -13,4 +13,4 @@ export const handler: Handlers = {
       status: 307,
     });
   },
-};
+});

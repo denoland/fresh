@@ -1,20 +1,21 @@
+import { render } from "@fresh/core";
 import { PageSection } from "../components/PageSection.tsx";
 import { DemoBox } from "../components/homepage/DemoBox.tsx";
-import { df } from "../utils/state.ts";
+import { define } from "../utils/state.ts";
 
-export const handler = df.handlers({
+export const handler = define.handlers({
   GET(ctx) {
     const url = new URL(ctx.req.url);
     const search = new URLSearchParams(url.search);
     const vote = search.get("vote");
-    return { data: { vote } };
+    return render({ vote });
   },
 });
 
-export default df.page<typeof handler>(function ThanksForSubscribing(
+export default define.page<typeof handler>(function ThanksForSubscribing(
   props,
 ) {
-  const vote = props?.data?.vote ? props.data.vote.replaceAll(/-/g, " ") : null;
+  const vote = props.data.vote ? props.data.vote.replaceAll(/-/g, " ") : null;
   return (
     <>
       <PageSection>

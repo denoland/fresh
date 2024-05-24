@@ -1,4 +1,4 @@
-import { type Handlers, HttpError, type PageProps } from "@fresh/core";
+import { HttpError, render } from "@fresh/core";
 import { asset, Partial } from "@fresh/core/runtime";
 import { SidebarCategory } from "../../components/DocsSidebar.tsx";
 import Footer from "../../components/Footer.tsx";
@@ -15,6 +15,7 @@ import toc from "../../../docs/toc.ts";
 import { TableOfContents } from "../../islands/TableOfContents.tsx";
 import SearchButton from "../../islands/SearchButton.tsx";
 import VersionSelect from "../../islands/VersionSelect.tsx";
+import { define } from "../../utils/state.ts";
 
 interface Data {
   page: Page;
@@ -43,7 +44,7 @@ interface Page extends TableOfContentsEntry {
 
 const pattern = new URLPattern({ pathname: "/:version/:page*" });
 
-export const handler: Handlers<Data> = {
+export const handler = define.handlers<Data>({
   async GET(ctx) {
     const slug = ctx.params.slug;
 
@@ -128,23 +129,21 @@ export const handler: Handlers<Data> = {
       : "Fresh Document";
     ctx.state.ogImage = new URL(asset("/og-image.webp"), ctx.url).href;
 
-    return {
-      data: {
-        page: {
-          ...entry,
-          markdown: body,
-          data: attrs ?? {},
-          versionLinks,
-          version,
-          prevNav,
-          nextNav,
-        },
+    return render({
+      page: {
+        ...entry,
+        markdown: body,
+        data: attrs ?? {},
+        versionLinks,
+        version,
+        prevNav,
+        nextNav,
       },
-    };
+    });
   },
-};
+});
 
-export default function DocsPage(props: PageProps<Data>) {
+export default define.page<typeof handler>(function DocsPage(props) {
   const { page } = props.data;
   const { html, headings } = renderMarkdown(page.markdown);
 
@@ -241,7 +240,7 @@ export default function DocsPage(props: PageProps<Data>) {
       </div>
     </div>
   );
-}
+});
 
 function MobileSidebar({ page }: { page: Page }) {
   return (

@@ -1,7 +1,8 @@
-import type { Handlers, RouteConfig } from "@fresh/core";
+import type { RouteConfig } from "@fresh/core";
 import { format, parse } from "$std/semver/mod.ts";
 import VERSIONS from "../../versions.json" with { type: "json" };
 import { extname } from "$std/path/mod.ts";
+import { define } from "../utils/state.ts";
 
 const BASE_URL = "https://raw.githubusercontent.com/denoland/fresh/";
 
@@ -15,7 +16,7 @@ const contentTypes = new Map([
   [".wasm", "application/wasm"],
 ]);
 
-export const handler: Handlers = {
+export const handler = define.handlers({
   async GET(ctx) {
     const accept = ctx.req.headers.get("Accept");
     const isHTML = accept?.includes("text/html");
@@ -54,7 +55,7 @@ export const handler: Handlers = {
 
     return response;
   },
-};
+});
 
 export const config: RouteConfig = {
   routeOverride: "/@:version/:path*",

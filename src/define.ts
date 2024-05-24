@@ -19,7 +19,7 @@ export interface Define<State> {
    *
    * ```ts
    * import { define } from "../utils.ts";
-   * 
+   *
    * export const handler = define.handlers((ctx) => {
    *   ctx.url; // ctx is inferred to be a FreshContext object, so this is a URL
    *   return new Response("Hello, world!");
@@ -70,7 +70,7 @@ export interface Define<State> {
    *
    * ```ts
    * import { define } from "../utils.ts";
-   * 
+   *
    * export default define.page((props) => {
    *   const slug = props.params.slug; // Because props is inferred to be a FreshContext object, slug is inferred to be a string
    *   return <h1>{slug}</h1>;
@@ -84,7 +84,7 @@ export interface Define<State> {
    * ```ts
    * import { render } from "@fresh/core";
    * import { define } from "../utils.ts";
-   * 
+   *
    * export const handler = define.handlers({
    *   async GET(ctx) {
    *     const slug = ctx.params.slug; // slug is inferred to be a string
@@ -107,7 +107,8 @@ export interface Define<State> {
    * @typeParam Data The type of data that the page component receives. This will be inferred from the handler methods if not provided. In very advanced use cases, you can specify `never` to the `Handler` type argument and provide the `Data` type explicitly.
    */
   page<
-    Handler extends RouteHandler<unknown, State> = never,
+    // deno-lint-ignore no-explicit-any
+    Handler extends RouteHandler<any, State> = never,
     Data = Handler extends HandlerByMethod<infer Data, State> ? Data : never,
   >(
     render: AnyComponent<FreshContext<Data, State> & { Component: () => null }>,
@@ -123,7 +124,7 @@ export interface Define<State> {
    *
    * ```ts
    * import { define } from "../utils.ts";
-   * 
+   *
    * export const middleware = define.middleware((ctx) => {
    *   ctx.url; // ctx is inferred to be a FreshContext object, so this is a URL
    *   return ctx.next();
@@ -134,7 +135,7 @@ export interface Define<State> {
    *
    * @typeParam M The type of the middleware function. This will be inferred from the input function. Do not manually specify this type.
    */
-  defineMiddleware<M extends Middleware<State>>(
+  middleware<M extends Middleware<State>>(
     middleware: M,
   ): typeof middleware;
 }
@@ -148,7 +149,7 @@ export interface Define<State> {
  * it to define your routes and middleware using the
  * {@link Define.handlers|define.handlers},
  * {@link Define.page|define.page}, and
- * {@link Define.defineMiddleware|define.middleware} functions.
+ * {@link Define.middleware|define.middleware} functions.
  *
  * @typeParam State The type of the state object that is passed to all middleware and route handlers.
  */
@@ -160,7 +161,7 @@ export function createDefine<State>(): Define<State> {
     page(render) {
       return render;
     },
-    defineMiddleware(middleware) {
+    middleware(middleware) {
       return middleware;
     },
   };
