@@ -43,9 +43,7 @@ for (const version in toc) {
     // only be used for canary versions. This avoids having us to copy
     // all documentation content and backport changes.
     const fileVersion = rawEntry.link ?? version;
-    const versionFilePath = fileVersion === LATEST_VERSION
-      ? "/latest"
-      : `/${fileVersion}`;
+    const versionFilePath = `/${fileVersion}`;
 
     const href = `/docs${versionSlug}/${parent}`;
     const file = `docs${versionFilePath}/${parent}/index.md`;
