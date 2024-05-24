@@ -18,6 +18,8 @@ export interface Define<State> {
    * of your route handlers. For example:
    *
    * ```ts
+   * import { define } from "../utils.ts";
+   * 
    * export const handler = define.handlers((ctx) => {
    *   ctx.url; // ctx is inferred to be a FreshContext object, so this is a URL
    *   return new Response("Hello, world!");
@@ -32,16 +34,19 @@ export interface Define<State> {
    * returned from the render function is of the correct type:
    *
    * ```ts
+   * import { render } from "@fresh/core";
+   * import { define } from "../utils.ts";
+   *
    * export const handler = define.handlers<{ slug: string }>({
    *   async GET(ctx) {
    *     const slug = ctx.params.slug; // slug is inferred to be a string
-   *      return { data: { slug } };
+   *     return render({ slug });
    *   },
    *
    *   // This method will cause a type error because the data object is missing
    *   // the required `slug` property.
    *   async POST(ctx) {
-   *     return { data: { } };
+   *     return render({ });
    *   },
    * });
    * ```
@@ -64,6 +69,8 @@ export interface Define<State> {
    * of the data that your page component receives. For example:
    *
    * ```ts
+   * import { define } from "../utils.ts";
+   * 
    * export default define.page((props) => {
    *   const slug = props.params.slug; // Because props is inferred to be a FreshContext object, slug is inferred to be a string
    *   return <h1>{slug}</h1>;
@@ -75,10 +82,13 @@ export interface Define<State> {
    * return type of the handler method.
    *
    * ```ts
+   * import { render } from "@fresh/core";
+   * import { define } from "../utils.ts";
+   * 
    * export const handler = define.handlers({
    *   async GET(ctx) {
    *     const slug = ctx.params.slug; // slug is inferred to be a string
-   *     return { data: { slug } };
+   *     return render({ slug });
    *  },
    * });
    *
@@ -112,6 +122,8 @@ export interface Define<State> {
    * of the context object that your middleware receives. For example:
    *
    * ```ts
+   * import { define } from "../utils.ts";
+   * 
    * export const middleware = define.middleware((ctx) => {
    *   ctx.url; // ctx is inferred to be a FreshContext object, so this is a URL
    *   return ctx.next();

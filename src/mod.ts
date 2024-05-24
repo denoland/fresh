@@ -4,7 +4,8 @@ export { fsRoutes, type FsRoutesOptions } from "./plugins/fs_routes/mod.ts";
 export {
   type HandlerByMethod,
   type HandlerFn,
-  type Render,
+  render,
+  type RenderResponse,
   type RouteData,
   type RouteHandler,
 } from "./handlers.ts";

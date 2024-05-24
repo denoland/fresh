@@ -1,10 +1,47 @@
 import type { FreshContext } from "./context.ts";
 import type { Method } from "./router.ts";
 
-export interface Render<T> {
+export interface RenderResponse<T> {
   data: T;
+  headers: Headers;
+  status: number;
+}
+
+/**
+ * Create a {@link RenderResponse} object that can be returned from a route
+ * handler. This will cause the page component to be rendered with the specified
+ * data and response options.
+ *
+ * ```ts
+ * export const handlers = define.handlers({
+ *   GET: (ctx) => {
+ *     return render({ message: "Hello, world!" }, {
+ *       headers: { "Cache-Control": "public, max-age=3600" },
+ *       status: 201,
+ *     });
+ *   },
+ * });
+ *
+ * export default define.page<typeof handlers>(({ data }) => {
+ *   return <h1>{data.message}</h1>;
+ * });
+ * ```
+ *
+ * @param data The data to pass to the page component to be rendered.
+ * @param options Additional options to use when constructing the response object.
+ * @returns A {@link RenderResponse} object that should be returned from a route handler.
+ */
+export function render<T>(data: T, options?: {
   headers?: HeadersInit;
   status?: number;
+}): RenderResponse<T> {
+  return {
+    data,
+    headers: options?.headers instanceof Headers
+      ? options.headers
+      : new Headers(options?.headers),
+    status: options?.status ?? 200,
+  };
 }
 
 /**
@@ -152,9 +189,9 @@ export function isHandlerByMethod<D, S>(
 export interface HandlerFn<Data, State> {
   (ctx: FreshContext<Data, State>):
     | Response
-    | Render<Data>
+    | RenderResponse<Data>
     | void
-    | Promise<Response | Render<Data> | void>;
+    | Promise<Response | RenderResponse<Data> | void>;
 }
 
 /**
