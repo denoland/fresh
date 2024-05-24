@@ -14,7 +14,7 @@ import { SocialProof } from "../components/homepage/SocialProof.tsx";
 import { DenoSection } from "../components/homepage/DenoSection.tsx";
 import { df } from "../utils/state.ts";
 
-export const handler = df.defineHandlers({
+export const handler = df.handlers({
   GET(ctx) {
     const { req } = ctx;
     const accept = req.headers.get("accept");

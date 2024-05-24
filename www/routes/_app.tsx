@@ -1,7 +1,7 @@
 import { asset } from "@fresh/core/runtime";
 import { df } from "../utils/state.ts";
 
-export default df.definePage(function App({ Component, state, url }) {
+export default df.page(function App({ Component, state, url }) {
   return (
     <html lang="en">
       <head>

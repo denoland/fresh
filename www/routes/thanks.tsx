@@ -2,7 +2,7 @@ import { PageSection } from "../components/PageSection.tsx";
 import { DemoBox } from "../components/homepage/DemoBox.tsx";
 import { df } from "../utils/state.ts";
 
-export const handler = df.defineHandlers({
+export const handler = df.handlers({
   GET(ctx) {
     const url = new URL(ctx.req.url);
     const search = new URLSearchParams(url.search);
@@ -11,7 +11,7 @@ export const handler = df.defineHandlers({
   },
 });
 
-export default df.definePage<typeof handler>(function ThanksForSubscribing(
+export default df.page<typeof handler>(function ThanksForSubscribing(
   props,
 ) {
   const vote = props?.data?.vote ? props.data.vote.replaceAll(/-/g, " ") : null;

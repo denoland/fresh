@@ -23,7 +23,7 @@ export interface Render<T> {
  * signature.
  *
  * ```ts
- * export const handlers = defineHandlers({
+ * export const handlers = define.handlers({
  *   GET: (ctx) => {
  *     return new Response("Hello from a GET request!");
  *   },
@@ -48,7 +48,7 @@ export interface Render<T> {
  * This function will be called for all requests, regardless of the method.
  *
  * ```ts
- * export const handlers = defineHandlers((ctx) => {
+ * export const handlers = define.handlers((ctx) => {
  *   return new Response(`Hello from a ${ctx.req.method} request!`);
  * });
  * ```
@@ -79,7 +79,7 @@ export function isHandlerByMethod<D, S>(
  * to redirect the client to another URL.
  *
  * ```ts
- * export const handler = defineHandler((ctx) => {
+ * export const handler = define.handlers((ctx) => {
  *   return new Response("Hello, world!");
  * });
  * ```
@@ -90,7 +90,7 @@ export function isHandlerByMethod<D, S>(
  * will be passed to the page component, where it can be rendered into HTML.
  *
  * ```ts
- * export const handler = defineHandler((ctx) => {
+ * export const handler = define.handlers((ctx) => {
  *   return { data: { message: "Hello, world!" } };
  * });
  *
@@ -105,7 +105,7 @@ export function isHandlerByMethod<D, S>(
  * code, or a list of elements to include in the `<head>`.
  *
  * ```tsx
- * export const handler = defineHandler((ctx) => {
+ * export const handler = define.handlers((ctx) => {
  *   return {
  *     data: { message: "Hello, world!" },
  *     headers: { "Cache-Control": "public, max-age=3600" },
@@ -122,7 +122,7 @@ export function isHandlerByMethod<D, S>(
  * operation before returning a response.
  *
  * ```ts
- * export const handler = defineHandler(async (ctx) => {
+ * export const handler = define.handlers(async (ctx) => {
  *   const resp = await fetch("https://api.example.com/data").;
  *   if (!resp.ok) {
  *     throw new Error("Failed to fetch data");
@@ -138,7 +138,7 @@ export function isHandlerByMethod<D, S>(
  * multiple operations concurrently.
  *
  * ```ts
- * export const handler = defineHandler(async (ctx) => {
+ * export const handler = define.handlers(async (ctx) => {
  *   const [resp1, resp2] = await Promise.all([
  *     fetch("https://api.example.com/data1")
  *       .then((resp) => resp.json()),

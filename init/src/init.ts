@@ -390,20 +390,20 @@ export function Button(props: ButtonProps) {
 `;
   await writeFile("components/Button.tsx", COMPONENTS_BUTTON_TSX);
 
-  const UTILS_TS = `import { createHelpers } from "@fresh/core";
+  const UTILS_TS = `import { createDefine } from "@fresh/core";
 
 // deno-lint-ignore no-empty-interface
 export interface State {}
 
-export const helpers = createHelpers<State>();
+export const define = createDefine<State>();
 `;
   await writeFile("utils.ts", UTILS_TS);
 
   const ROUTES_HOME = `import { useSignal } from "@preact/signals";
-import { helpers } from "../utils.ts";
+import { define } from "../utils.ts";
 import Counter from "../islands/Counter.tsx";
 
-export default helpers.definePage(function Home() {
+export default define.page(function Home() {
   const count = useSignal(3);
 
   return (

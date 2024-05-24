@@ -14,7 +14,7 @@ export { staticFiles } from "./middlewares/static_files.ts";
 export { type Mode, type PageProps } from "./runtime/server/mod.tsx";
 export { type FreshConfig, type ResolvedFreshConfig } from "./config.ts";
 export { type FreshContext, type Island } from "./context.ts";
-export { createHelpers, type Helpers } from "./helpers.ts";
+export { createDefine, type Define } from "./define.ts";
 export { type Method } from "./router.ts";
 export { HttpError } from "./error.ts";
 
