@@ -4,12 +4,12 @@ import type { FreshContext } from "./context.ts";
 import type { Middleware } from "./middlewares/mod.ts";
 
 /**
- * A set of helper functions that enable better type inference and code
+ * A set of define functions that enable better type inference and code
  * completion when defining routes and middleware.
  *
- * To create a helpers object, call {@link createHelpers}.
+ * To create a define object, call {@link createDefine}.
  */
-export interface Helpers<State> {
+export interface Define<State> {
   /**
    * Define a {@link RouteHandler} object. This function returns the passed
    * input as-is.
@@ -18,21 +18,21 @@ export interface Helpers<State> {
    * of your route handlers. For example:
    *
    * ```ts
-   * export const handler = helpers.defineHandlers((ctx) => {
+   * export const handler = define.handlers((ctx) => {
    *   ctx.url; // ctx is inferred to be a FreshContext object, so this is a URL
    *   return new Response("Hello, world!");
    * });
    * ```
    *
-   * This is particularly useful when combined with the {@link definePage}
+   * This is particularly useful when combined with the {@link Define.page}
    * helper function, which can infer the data type from the handler function.
-   * For more information, see {@link definePage}.
+   * For more information, see {@link Define.page}.
    *
    * You can also pass an explicit type argument to ensure that all data
    * returned from the render function is of the correct type:
    *
    * ```ts
-   * export const handler = helpers.defineHandlers<{ slug: string }>({
+   * export const handler = define.handlers<{ slug: string }>({
    *   async GET(ctx) {
    *     const slug = ctx.params.slug; // slug is inferred to be a string
    *      return { data: { slug } };
@@ -49,7 +49,7 @@ export interface Helpers<State> {
    * @typeParam Data The type of data that the handler returns. This will be inferred from the handler methods if not provided.
    * @typeParam Handlers This will always be inferred from the input object. Do not manually specify this type.
    */
-  defineHandlers<
+  handlers<
     Data,
     Handlers extends RouteHandler<Data, State> = RouteHandler<Data, State>,
   >(
@@ -64,25 +64,25 @@ export interface Helpers<State> {
    * of the data that your page component receives. For example:
    *
    * ```ts
-   * export default helpers.definePage((props) => {
+   * export default define.page((props) => {
    *   const slug = props.params.slug; // Because props is inferred to be a FreshContext object, slug is inferred to be a string
    *   return <h1>{slug}</h1>;
    * });
    * ```
    *
-   * This is particularly useful when combined with the {@link defineHandlers}
+   * This is particularly useful when combined with the {@link handlers}
    * helper function, in which case the data type will be inferred from the
    * return type of the handler method.
    *
    * ```ts
-   * export const handler = defineHandlers({
+   * export const handler = define.handlers({
    *   async GET(ctx) {
    *     const slug = ctx.params.slug; // slug is inferred to be a string
    *     return { data: { slug } };
    *  },
    * });
    *
-   * export default definePage<typeof handler>(({ data }) => {
+   * export default define.page<typeof handler>(({ data }) => {
    *   const slug = data.slug; // slug is inferred to be a string here
    *   return <h1>{slug}</h1>;
    * });
@@ -96,7 +96,7 @@ export interface Helpers<State> {
    * @typeParam Handler The type of the handler object that this page component is associated with. If this route has a handler, pass the handler object as a type argument to this function, e.g. `typeof handler`. If this route does not have a handler, omit this type argument.
    * @typeParam Data The type of data that the page component receives. This will be inferred from the handler methods if not provided. In very advanced use cases, you can specify `never` to the `Handler` type argument and provide the `Data` type explicitly.
    */
-  definePage<
+  page<
     Handler extends RouteHandler<unknown, State> = never,
     Data = Handler extends HandlerByMethod<infer Data, State> ? Data : never,
   >(
@@ -112,7 +112,7 @@ export interface Helpers<State> {
    * of the context object that your middleware receives. For example:
    *
    * ```ts
-   * export const middleware = helpers.defineMiddleware((ctx) => {
+   * export const middleware = define.middleware((ctx) => {
    *   ctx.url; // ctx is inferred to be a FreshContext object, so this is a URL
    *   return ctx.next();
    * });
@@ -128,24 +128,24 @@ export interface Helpers<State> {
 }
 
 /**
- * Create a set of helper functions that enable better type inference and code
+ * Create a set of define functions that enable better type inference and code
  * completion when defining routes and middleware.
  *
  * To use, call this function in a central file and export the result. In your
- * route and middleware files, import the {@link Helpers|helpers object} and use
- * them to define your routes and middleware using the
- * {@link Helpers.defineHandlers|defineHandlers},
- * {@link Helpers.definePage|definePage}, and
- * {@link Helpers.defineMiddleware|defineMiddleware} functions.
+ * route and middleware files, import the {@link Define|define object} and use
+ * it to define your routes and middleware using the
+ * {@link Define.handlers|define.handlers},
+ * {@link Define.page|define.page}, and
+ * {@link Define.defineMiddleware|define.middleware} functions.
  *
  * @typeParam State The type of the state object that is passed to all middleware and route handlers.
  */
-export function createHelpers<State>(): Helpers<State> {
+export function createDefine<State>(): Define<State> {
   return {
-    defineHandlers(handlers) {
+    handlers(handlers) {
       return handlers;
     },
-    definePage(render) {
+    page(render) {
       return render;
     },
     defineMiddleware(middleware) {

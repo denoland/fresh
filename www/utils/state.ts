@@ -1,4 +1,4 @@
-import { createHelpers } from "@fresh/core";
+import { createDefine } from "@fresh/core";
 
 export interface State {
   title?: string;
@@ -7,4 +7,4 @@ export interface State {
   noIndex?: boolean;
 }
 
-export const df = createHelpers<State>();
+export const df = createDefine<State>();

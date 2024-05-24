@@ -9,7 +9,7 @@ import { df } from "../utils/state.ts";
 const TITLE = "Showcase | Fresh";
 const DESCRIPTION = "Selection of projects that have been built with Fresh.";
 
-export const handler = df.defineHandlers({
+export const handler = df.handlers({
   GET(ctx) {
     ctx.state.title = TITLE;
     ctx.state.description = DESCRIPTION;
