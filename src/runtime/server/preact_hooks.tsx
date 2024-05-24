@@ -488,7 +488,7 @@ function FreshRuntimeScript() {
             __html: scriptContent,
           }}
         />
-        <ShowErrorOverlay />
+        {ctx.config.mode === "development" ? <ShowErrorOverlay /> : null}
       </>
     );
   }
