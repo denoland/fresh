@@ -31,22 +31,22 @@ export interface Define<State> {
    * For more information, see {@link Define.page}.
    *
    * You can also pass an explicit type argument to ensure that all data
-   * returned from the render function is of the correct type:
+   * returned from the handler is of the correct type:
    *
    * ```ts
-   * import { render } from "@fresh/core";
+   * import { page } from "@fresh/core";
    * import { define } from "../utils.ts";
    *
    * export const handler = define.handlers<{ slug: string }>({
    *   async GET(ctx) {
    *     const slug = ctx.params.slug; // slug is inferred to be a string
-   *     return render({ slug });
+   *     return page({ slug });
    *   },
    *
    *   // This method will cause a type error because the data object is missing
    *   // the required `slug` property.
    *   async POST(ctx) {
-   *     return render({ });
+   *     return page({ });
    *   },
    * });
    * ```
@@ -82,13 +82,13 @@ export interface Define<State> {
    * return type of the handler method.
    *
    * ```ts
-   * import { render } from "@fresh/core";
+   * import { page } from "@fresh/core";
    * import { define } from "../utils.ts";
    *
    * export const handler = define.handlers({
    *   async GET(ctx) {
    *     const slug = ctx.params.slug; // slug is inferred to be a string
-   *     return render({ slug });
+   *     return page({ slug });
    *  },
    * });
    *
