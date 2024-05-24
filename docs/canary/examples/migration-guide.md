@@ -90,7 +90,7 @@ await fsRoutes(app, {
   loadRoute: (path) => import(`./routes/${path}`),
 });
 
-// If this module is calld directly, start the server
+// If this module is called directly, start the server
 if (import.meta.main) {
   await app.listen();
 }
