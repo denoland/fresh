@@ -73,8 +73,8 @@ if (Deno.args.includes("build")) {
 
 ### Updating `main.ts`
 
-Similarily, configuration related to running Fresh in production can be passed
-to `new App()`:
+Similarly, configuration related to running Fresh in production can be passed to
+`new App()`:
 
 ```ts
 // main.ts
