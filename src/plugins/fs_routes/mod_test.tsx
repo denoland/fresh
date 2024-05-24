@@ -12,6 +12,7 @@ import { expect } from "@std/expect";
 import { type HandlerByMethod, type HandlerFn, page } from "../../handlers.ts";
 import type { Method } from "../../router.ts";
 import { parseHtml } from "../../../tests/test_utils.tsx";
+import { app } from "../../../www/main.ts";
 
 async function createServer<T>(
   files: Record<string, string | Uint8Array | FreshFsItem<T>>,
@@ -716,6 +717,58 @@ Deno.test("fsRoutes - _error render on 404", async () => {
   expect(error?.status).toEqual(404);
 
   res = await server.get("/");
+  doc = parseHtml(await res.text());
+  expect(doc.body.firstChild?.textContent).toEqual("ok");
+  expect(error?.status).toEqual(404);
+});
+
+Deno.test.only("fsRoutes - _error render on 404", async () => {
+  // deno-lint-ignore no-explicit-any
+  let error: any = null;
+  const server = await createServer({
+    "routes/_app.tsx": {
+      default: (ctx) => {
+        return (
+          <p>
+            <ctx.Component />
+          </p>
+        );
+      },
+    },
+    "routes/_error.tsx": {
+      default: (ctx) => {
+        console.log("called");
+        // deno-lint-ignore no-explicit-any
+        error = ctx.error as any;
+        return <p>ok</p>;
+      },
+    },
+    "routes/foo/_error.tsx": {
+      default: (ctx) => {
+        console.log("called 2");
+        // deno-lint-ignore no-explicit-any
+        error = ctx.error as any;
+        return <p>ok foo</p>;
+      },
+    },
+    "routes/foo/index.tsx": {
+      default: () => {
+        return <p>ignore</p>;
+      },
+    },
+  });
+
+  let res = await server.get("/foo/a");
+  let doc = parseHtml(await res.text());
+  expect(doc.body.firstChild?.textContent).toEqual("ok foo");
+  expect(error?.status).toEqual(404);
+
+  res = await server.get("/");
+  doc = parseHtml(await res.text());
+  expect(doc.body.firstChild?.textContent).toEqual("root");
+  expect(error?.status).toEqual(404);
+
+  res = await server.get("/asdf");
   doc = parseHtml(await res.text());
   expect(doc.body.firstChild?.textContent).toEqual("ok");
   expect(error?.status).toEqual(404);

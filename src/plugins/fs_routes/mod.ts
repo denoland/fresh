@@ -157,6 +157,10 @@ export async function fsRoutes<State>(
   );
 
   routeModules.sort((a, b) => sortRoutePaths(a.path, b.path));
+  console.log(routeModules.map((x) => x.path));
+
+  // Track which route nodes have been wrapped with an error route already
+  const errorParents = new Set<string>();
 
   const stack: InternalRoute<State>[] = [];
   let hasApp = false;
@@ -195,6 +199,8 @@ export async function fsRoutes<State>(
       continue;
     }
 
+    console.log("STACK", stack.map((x) => x.path));
+
     // Remove any elements not matching our parent path anymore
     const middlewares: MiddlewareFn<State>[] = [];
     let components: AnyComponent<PageProps<unknown, State>>[] = [];
@@ -204,6 +210,7 @@ export async function fsRoutes<State>(
 
     for (let k = 0; k < stack.length; k++) {
       const mod = stack[k];
+      console.log("  - item", mod.path);
       if (mod.path.endsWith("/_middleware")) {
         if (mod.handlers !== null && !isHandlerByMethod(mod.handlers)) {
           middlewares.push(mod.handlers as MiddlewareFn<State>);
@@ -251,11 +258,13 @@ export async function fsRoutes<State>(
         }
         let parent = mod.path.slice(0, -"_error".length);
         parent = parent === "/" ? "*" : parent + "*";
-        app.all(
-          parent,
-          errorMiddleware(errorComponents, handler),
-        );
-        middlewares.push(errorMiddleware(errorComponents, handler));
+        const mid = errorMiddleware(errorComponents, handler);
+        console.log("R", mod.path, parent);
+        if (!errorParents.has(parent)) {
+          errorParents.add(parent);
+          app.all(parent, mid);
+        }
+        middlewares.push(mid);
         continue;
       }
 
@@ -284,6 +293,7 @@ export async function fsRoutes<State>(
       components.push(routeMod.component);
     }
 
+    console.log("=====> route", routeMod.path);
     const handlers = routeMod.handlers;
     const routePath = routeMod.config?.routeOverride ??
       pathToPattern(normalized.slice(1));
@@ -320,12 +330,14 @@ function errorMiddleware<State>(
   handler: HandlerFn<unknown, State> | undefined,
 ): MiddlewareFn<State> {
   const mid = renderMiddleware<State>(components, handler);
-  return async function errorMiddleware(ctx) {
+  return async function execErrorMiddleware(ctx) {
     try {
       return await ctx.next();
     } catch (err) {
       ctx.error = err;
-      return mid(ctx);
+      const res = await mid(ctx);
+      console.log(err.status, res.status);
+      return res;
     }
   };
 }

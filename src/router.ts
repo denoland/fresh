@@ -91,6 +91,7 @@ export class UrlPatternRouter<T> implements Router<T> {
         }
 
         if (route.method === "ALL" || route.method === method) {
+          console.log("push", route.method, route.path);
           result.handlers.push(route.handlers);
 
           if (route.path === "*" && route.method === "ALL") {
@@ -109,6 +110,7 @@ export class UrlPatternRouter<T> implements Router<T> {
           }
 
           if (route.method === "ALL" || route.method === method) {
+            console.log("push2", route.method, route.path);
             result.handlers.push(route.handlers);
 
             // Decode matched params

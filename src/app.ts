@@ -198,6 +198,8 @@ export class App<State> {
       const method = req.method.toUpperCase() as Method;
       const matched = this.#router.match(method, url);
 
+      console.log(url.pathname, matched);
+
       const next = matched.patternMatch && !matched.methodMatch
         ? DEFAULT_NOT_ALLOWED_METHOD
         : DEFAULT_NOT_FOUND;
