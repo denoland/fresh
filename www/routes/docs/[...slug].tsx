@@ -62,20 +62,20 @@ export const handler = define.handlers<Data>({
       throw new HttpError(404);
     }
 
-    let { version, page = "" } = match.pathname.groups;
+    let { version, page: path = "" } = match.pathname.groups;
     if (!version) {
       throw new HttpError(404);
     }
 
     // Latest version doesn't show up in the url
     if (!TABLE_OF_CONTENTS[version]) {
-      page = version + (page ? "/" + page : "");
+      path = version + (path ? "/" + path : "");
       version = LATEST_VERSION;
     }
 
     // Check if the page exists
     const currentToc = TABLE_OF_CONTENTS[version];
-    const entry = currentToc[page];
+    const entry = currentToc[path];
     if (!entry) {
       throw new HttpError(404);
     }
@@ -84,7 +84,7 @@ export const handler = define.handlers<Data>({
     const versionLinks: VersionLink[] = [];
     for (const version in TABLE_OF_CONTENTS) {
       const label = toc[version].label;
-      const maybeEntry = TABLE_OF_CONTENTS[version][page];
+      const maybeEntry = TABLE_OF_CONTENTS[version][path];
 
       // Check if the same page is available for this version and
       // link to that. Pick the index page for that version if an
