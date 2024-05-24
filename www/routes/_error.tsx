@@ -1,3 +1,4 @@
+import { HttpError, type PageProps } from "@fresh/core";
 import LemonDrop from "../islands/LemonDrop.tsx";
 
 export function ServerCodePage(
@@ -27,9 +28,19 @@ export function ServerCodePage(
   );
 }
 
-export default function PageNotFound() {
+export default function PageNotFound(props: PageProps) {
+  const error = props.error;
+  if (error instanceof HttpError) {
+    if (error.status === 404) {
+      return ServerCodePage({
+        serverCode: 404,
+        codeDescription: "Couldn’t find what you’re looking for.",
+      });
+    }
+  }
+
   return ServerCodePage({
-    serverCode: 404,
-    codeDescription: "Couldn’t find what you’re looking for.",
+    serverCode: 500,
+    codeDescription: "Oops! Something went wrong.",
   });
 }
