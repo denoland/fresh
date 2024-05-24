@@ -31,6 +31,7 @@ import {
 } from "../../dev/middlewares/error_overlay/code_frame.tsx";
 import * as colors from "@std/fmt/colors";
 import { escape as escapeHtml } from "@std/html";
+import { HttpError } from "../../error.ts";
 
 const enum OptionsType {
   ATTR = "attr",
@@ -501,6 +502,11 @@ export function ShowErrorOverlay() {
   const error = ctx.error;
 
   if (error === null || error === undefined) return null;
+
+  // Ignore HTTP errors <500
+  if (error instanceof HttpError && error.status < 500) {
+    return null;
+  }
 
   const basePath = ctx.config.basePath;
 
