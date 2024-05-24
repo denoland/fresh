@@ -48,7 +48,7 @@ export default function AboutPage() {
       <p>This is the about page.</p>
     </main>
   );
-}
+};
 ```
 
 The new page will be visible at `http://localhost:8000/about`.

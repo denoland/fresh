@@ -69,9 +69,7 @@ for (const version in toc) {
         const pageVersion = linkedVersion
           ? linkedVersion.slice("link:".length)
           : version;
-        const versionFilePath = !pageVersion || pageVersion === LATEST_VERSION
-          ? "/latest"
-          : `/${pageVersion}`;
+        const versionFilePath = `/${pageVersion}`;
 
         const href = `/docs${versionSlug}/${slug}`;
 

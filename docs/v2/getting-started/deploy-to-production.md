@@ -18,8 +18,7 @@ one must go to the [Deno Deploy dashboard][deno-deploy-dashboard] and create a
 new project.
 
 Click on the "New Project" button and select the GitHub repository that contains
-the Fresh project. Select the "Fresh" framework preset, and click on "Advanced
-options". Enter `deno task build` in the "Build command" field. Press "Create
+the Fresh project. Select the "Fresh" framework preset, and press "Create
 project".
 
 The project will now deploy to Deno Deploy. After this is done, the project will

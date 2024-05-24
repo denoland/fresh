@@ -23,14 +23,15 @@ data, which then responds with a new page to render.
 
 Fresh can handle both `GET` and `POST` requests through the
 [custom handlers][custom-handlers] feature of routes. The handlers can perform
-any necessary processing on the form data, and then pass data to the
-`ctx.render()` call to render a new page.
+any necessary processing on the form data, and then pass data to the `page()`
+function to render a new page.
 
 Here is an example implementing a search form that filters an array of names
 server side:
 
 ```tsx routes/search.tsx
-import { Handlers, PageProps } from "$fresh/server.ts";
+import { page } from "@fresh/core";
+import { define } from "../util.ts";
 
 const NAMES = ["Alice", "Bob", "Charlie", "Dave", "Eve", "Frank"];
 
@@ -39,16 +40,16 @@ interface Data {
   query: string;
 }
 
-export const handler: Handlers<Data> = {
+export const handler = define.handlers({
   GET(req, ctx) {
     const url = new URL(req.url);
     const query = url.searchParams.get("q") || "";
     const results = NAMES.filter((name) => name.includes(query));
-    return ctx.render({ results, query });
+    return page({ results, query });
   },
-};
+});
 
-export default function Page({ data }: PageProps<Data>) {
+export default define.page<typeof handler>(function Page({ data }) {
   const { results, query } = data;
   return (
     <div>
@@ -61,7 +62,7 @@ export default function Page({ data }: PageProps<Data>) {
       </ul>
     </div>
   );
-}
+});
 ```
 
 When the user submits the form, the browser will navigate to `/search` with the
@@ -73,5 +74,5 @@ rendering.
 
 <!-- TODO(lucacasonato): link to todo app example when that is built again -->
 
-[custom-handlers]: /docs/getting-started/custom-handlers
+[custom-handlers]: /docs/getting-started/handlers-and-data-fetching
 [concepts-forms]: /docs/concepts/forms
