@@ -173,11 +173,11 @@ ENV DENO_DEPLOYMENT_ID=\${GIT_REVISION}
 WORKDIR /app
 
 COPY . .
-RUN deno cache main.tsx
+RUN deno cache main.ts
 
 EXPOSE 8000
 
-CMD ["run", "-A", "main.tsx"]
+CMD ["run", "-A", "main.ts"]
 
 `;
     await writeFile("Dockerfile", DOCKERFILE_TEXT);
@@ -350,17 +350,16 @@ html {
     // Skip this and be silent if there is a network issue.
   }
 
-  const MAIN_TSX = `import { App, staticFiles, fsRoutes } from "@fresh/core";
+  const MAIN_TS = `import { App, staticFiles, fsRoutes } from "@fresh/core";
 import { State } from "./utils.ts";
 
-export const app = new App<State>()
-  .use(staticFiles())
-  .get("/api/:joke", () => new Response("Hello World"))
-  .get("/greet/:name", (ctx) => {
-    return ctx.render(<h1>Hello {ctx.params.name}</h1>);
-  });
+export const app = new App<State>();
+app.use(staticFiles());
+
+app.get("/api/:joke", () => new Response("Hello World"));
 
 await fsRoutes(app, {
+  dir: "./",
   loadIsland: (path) => import(\`./islands/\${path}\`),
   loadRoute: (path) => import(\`./routes/\${path}\`),
 });
@@ -369,7 +368,7 @@ if (import.meta.main) {
   await app.listen();
 }
 `;
-  await writeFile("main.tsx", MAIN_TSX);
+  await writeFile("main.ts", MAIN_TS);
 
   const COMPONENTS_BUTTON_TSX = `import { ComponentChildren } from "preact";
 
@@ -469,7 +468,7 @@ export default function Counter(props: CounterProps) {
   const DEV_TS = `#!/usr/bin/env -S deno run -A --watch=static/,routes/
 ${useTailwind ? `import { tailwind } from "@fresh/plugin-tailwind";\n` : ""};
 import { Builder } from "@fresh/core/dev";
-import { app } from "./main.tsx";
+import { app } from "./main.ts";
 
 const builder = new Builder();
 ${useTailwind ? "tailwind(builder, app, {});\n" : "\n"}
