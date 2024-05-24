@@ -1,4 +1,4 @@
-import { ComponentChildren } from "preact";
+import type { ComponentChildren } from "preact";
 
 export function SectionHeading(
   { children }: { children: ComponentChildren },

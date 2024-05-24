@@ -1,4 +1,4 @@
-import { JSX } from "preact/jsx-runtime";
+import type { JSX } from "preact/jsx-runtime";
 
 type ColumnConfiguration = "1/1" | "2/3" | "3/2";
 

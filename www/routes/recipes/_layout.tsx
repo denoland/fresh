@@ -1,13 +1,9 @@
-import { PageProps } from "$fresh/server.ts";
-import { Head } from "$fresh/runtime.ts";
-import Header from "$fresh/www/components/Header.tsx";
+import type { PageProps } from "@fresh/core";
+import Header from "../../components/Header.tsx";
 
 export default function Layout({ Component, state }: PageProps) {
   return (
     <>
-      <Head>
-        <meta name="robots" content="noindex" />
-      </Head>
       <Header active="" title="" />
 
       <div class="w-full max-w-screen-xl px-4">

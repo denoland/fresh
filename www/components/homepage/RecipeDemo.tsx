@@ -1,4 +1,4 @@
-import { Partial } from "$fresh/runtime.ts";
+import { Partial } from "@fresh/core/runtime";
 
 export const RecipeDemo = () => (
   <div

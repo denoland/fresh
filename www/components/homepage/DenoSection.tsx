@@ -1,7 +1,7 @@
-import { PageSection } from "$fresh/www/components/PageSection.tsx";
-import { FancyLink } from "$fresh/www/components/FancyLink.tsx";
-import { SideBySide } from "$fresh/www/components/SideBySide.tsx";
-import { SectionHeading } from "$fresh/www/components/homepage/SectionHeading.tsx";
+import { PageSection } from "../PageSection.tsx";
+import { FancyLink } from "../FancyLink.tsx";
+import { SideBySide } from "../SideBySide.tsx";
+import { SectionHeading } from "../homepage/SectionHeading.tsx";
 
 export function DenoSection() {
   return (

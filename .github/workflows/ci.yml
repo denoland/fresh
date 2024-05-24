@@ -44,20 +44,7 @@ jobs:
       - name: Spell-check
         if: startsWith(matrix.os, 'ubuntu') && matrix.deno == 'v1.x'
         uses: crate-ci/typos@master
-
-      - name: Cache dependencies and Chrome
-        uses: actions/cache@v4
-        with:
-          path: |
-            ${{ matrix.cache_path }}deps
-            ${{ matrix.cache_path }}deno_puppeteer
-          key: ${{ runner.os }}-${{ hashFiles('**/*deps.ts', 'tests/fixture_twind_hydrate/twind.config.ts') }}
-
-      - name: Install Chromium
-        run: deno run -A --unstable https://deno.land/x/puppeteer@16.2.0/install.ts
-        env:
-          PUPPETEER_PRODUCT: chrome
-
+        
       - name: Type check project
         run: deno task check:types
 

@@ -1,10 +1,10 @@
-import { PageSection } from "$fresh/www/components/PageSection.tsx";
-import { SideBySide } from "$fresh/www/components/SideBySide.tsx";
-import { CodeWindow } from "$fresh/www/components/CodeWindow.tsx";
-import { CodeBlock } from "$fresh/www/components/CodeBlock.tsx";
-import { SectionHeading } from "$fresh/www/components/homepage/SectionHeading.tsx";
-import { DemoBox } from "$fresh/www/components/homepage/DemoBox.tsx";
-import { ExampleArrow } from "$fresh/www/components/homepage/ExampleArrow.tsx";
+import { PageSection } from "../../components/PageSection.tsx";
+import { SideBySide } from "../../components/SideBySide.tsx";
+import { CodeWindow } from "../../components/CodeWindow.tsx";
+import { CodeBlock } from "../../components/CodeBlock.tsx";
+import { SectionHeading } from "../../components/homepage/SectionHeading.tsx";
+import { DemoBox } from "../../components/homepage/DemoBox.tsx";
+import { ExampleArrow } from "../../components/homepage/ExampleArrow.tsx";
 
 const serverCode = `export default function HomePage() {
   const time = new Date().toLocaleString();

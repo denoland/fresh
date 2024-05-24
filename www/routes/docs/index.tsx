@@ -1,7 +1,7 @@
-import { MultiHandler } from "$fresh/server.ts";
+import type { Handler } from "@fresh/core";
 
-export const handler: MultiHandler<void> = {
-  GET(_req, ctx) {
+export const handler: Handler<void> = {
+  GET(ctx) {
     const slug = ctx.params.slug;
 
     if (slug === "concepts/architechture") {

@@ -1,2 +1,17 @@
-// Note: in the client build this file is replaced with a file exporting a static string
-export { BUILD_ID } from "../server/build_id.ts";
+import { encodeHex } from "@std/encoding/hex";
+
+export const DENO_DEPLOYMENT_ID = Deno.env.get("DENO_DEPLOYMENT_ID");
+const deploymentId = DENO_DEPLOYMENT_ID ||
+  // For CI
+  Deno.env.get("GITHUB_SHA") ||
+  crypto.randomUUID();
+const buildIdHash = await crypto.subtle.digest(
+  "SHA-1",
+  new TextEncoder().encode(deploymentId),
+);
+
+export let BUILD_ID = encodeHex(buildIdHash);
+
+export function setBuildId(buildId: string) {
+  BUILD_ID = buildId;
+}

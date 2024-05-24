@@ -1,20 +1,22 @@
-import { asset, Head } from "$fresh/runtime.ts";
-import { Handlers, PageProps } from "$fresh/server.ts";
-import VERSIONS from "$fresh/versions.json" with { type: "json" };
-import Footer from "$fresh/www/components/Footer.tsx";
-import Header from "$fresh/www/components/Header.tsx";
-import { CTA } from "$fresh/www/components/homepage/CTA.tsx";
-import { Hero } from "$fresh/www/components/homepage/Hero.tsx";
-import { IslandsSection } from "$fresh/www/components/homepage/IslandsSection.tsx";
-import { PartialsSection } from "$fresh/www/components/homepage/PartialsSection.tsx";
-import { RenderingSection } from "$fresh/www/components/homepage/RenderingSection.tsx";
+import { asset } from "@fresh/core/runtime";
+import type { Handlers, PageProps } from "@fresh/core";
+import VERSIONS from "../../versions.json" with { type: "json" };
+import Footer from "../components/Footer.tsx";
+import Header from "../components/Header.tsx";
+import { CTA } from "../components/homepage/CTA.tsx";
+import { Hero } from "../components/homepage/Hero.tsx";
+import { IslandsSection } from "../components/homepage/IslandsSection.tsx";
+import { PartialsSection } from "../components/homepage/PartialsSection.tsx";
+import { RenderingSection } from "../components/homepage/RenderingSection.tsx";
 import { FormsSection } from "../components/homepage/FormsSection.tsx";
-import { Simple } from "$fresh/www/components/homepage/Simple.tsx";
-import { SocialProof } from "$fresh/www/components/homepage/SocialProof.tsx";
-import { DenoSection } from "$fresh/www/components/homepage/DenoSection.tsx";
+import { Simple } from "../components/homepage/Simple.tsx";
+import { SocialProof } from "../components/homepage/SocialProof.tsx";
+import { DenoSection } from "../components/homepage/DenoSection.tsx";
+import { df } from "../utils/state.ts";
 
-export const handler: Handlers = {
-  GET(req, ctx) {
+export const handler = df.defineHandlers({
+  GET(ctx) {
+    const { req } = ctx;
     const accept = req.headers.get("accept");
     const userAgent = req.headers.get("user-agent");
     if (userAgent?.includes("Deno/") && !accept?.includes("text/html")) {
@@ -24,11 +26,16 @@ export const handler: Handlers = {
         status: 307,
       });
     }
-    return ctx.render();
+
+    ctx.state.title =
+      "Fresh - The simple, approachable, productive web framework.";
+    ctx.state.description =
+      "Fresh features just-in-time edge rendering, island based interactivity, and zero-configuration TypeScript support. Fast to write; fast to run.";
+    ctx.state.ogImage = new URL(asset("/og-image.webp"), ctx.url).href;
   },
-  async POST(req) {
+  async POST(ctx) {
     const headers = new Headers();
-    const form = await req.formData();
+    const form = await ctx.req.formData();
     const treat = form.get("treat");
     headers.set("location", `/thanks?vote=${treat}`);
     return new Response(null, {
@@ -36,49 +43,30 @@ export const handler: Handlers = {
       headers,
     });
   },
-};
-
-const TITLE = "Fresh - The simple, approachable, productive web framework.";
-const DESCRIPTION =
-  "Fresh features just-in-time edge rendering, island based interactivity, and zero-configuration TypeScript support. Fast to write; fast to run.";
+});
 
 export default function MainPage(props: PageProps) {
-  const ogImageUrl = new URL(asset("/og-image.webp"), props.url).href;
   const origin = `${props.url.protocol}//${props.url.host}`;
 
   return (
-    <>
-      <Head>
-        <title>{TITLE}</title>
-        <meta name="description" content={DESCRIPTION} />
-        <meta property="og:title" content={TITLE} />
-        <meta property="og:description" content={DESCRIPTION} />
-        <meta property="og:type" content="website" />
-        <meta property="og:url" content={props.url.href} />
-        <meta property="og:image" content={ogImageUrl} />
-        <meta name="view-transition" content="same-origin" />
-        <link rel="stylesheet" href="/prism.css" />
-      </Head>
-
-      <div class="flex flex-col min-h-screen">
-        <div class="bg-transparent flex flex-col relative z-10">
-          <HelloBar />
-          <Header title="" active="/" />
-        </div>
-        <div class="flex flex-col -mt-20 relative">
-          <Hero origin={origin} />
-          <Simple />
-          <RenderingSection />
-          <IslandsSection />
-          <FormsSection />
-          <PartialsSection />
-          <SocialProof />
-          <DenoSection />
-          <CTA />
-        </div>
-        <Footer class="!mt-0" />
+    <div class="flex flex-col min-h-screen">
+      <div class="bg-transparent flex flex-col relative z-10">
+        <HelloBar />
+        <Header title="" active="/" />
       </div>
-    </>
+      <div class="flex flex-col -mt-20 relative">
+        <Hero origin={origin} />
+        <Simple />
+        <RenderingSection />
+        <IslandsSection />
+        <FormsSection />
+        <PartialsSection />
+        <SocialProof />
+        <DenoSection />
+        <CTA />
+      </div>
+      <Footer class="!mt-0" />
+    </div>
   );
 }
 

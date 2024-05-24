@@ -1,4 +1,4 @@
-import {
+import type {
   TableOfContentsCategory,
   TableOfContentsCategoryEntry,
 } from "../data/docs.ts";

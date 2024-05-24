@@ -1,0 +1,36 @@
+name: Publish JSR
+
+on:
+  push:
+    branches:
+      - fresh-2.0-merge
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Deno
+        uses: denoland/setup-deno@v1
+        with:
+          deno-version: v1.x
+        
+      - name: Publish Fresh
+        run: deno publish
+
+      - name: Publish @fresh/init
+        working-directory: ./init
+        run: deno publish
+
+      - name: Publish @fresh/plugin-tailwindcss
+        working-directory: ./plugin-tailwindcss
+        run: deno publish
+
+      - name: Publish @fresh/update
+        working-directory: ./update
+        run: deno publish

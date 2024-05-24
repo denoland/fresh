@@ -1,6 +1,6 @@
 import { useSignal } from "@preact/signals";
 import * as Icons from "../components/Icons.tsx";
-import { JSX } from "preact";
+import type { JSX } from "preact";
 
 interface CounterProps {
   start: number;

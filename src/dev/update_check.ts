@@ -1,4 +1,6 @@
-import { colors, join, lessThan, semverParse } from "./deps.ts";
+import * as semver from "@std/semver";
+import * as colors from "@std/fmt/colors";
+import * as path from "@std/path";
 
 export interface CheckFile {
   last_checked: string;
@@ -33,7 +35,7 @@ function getHomeDir(): string | null {
 
 function getFreshCacheDir(): string | null {
   const home = getHomeDir();
-  if (home) return join(home, "fresh");
+  if (home) return path.join(home, "fresh");
   return null;
 }
 
@@ -47,10 +49,9 @@ async function fetchLatestVersion() {
 }
 
 async function readCurrentVersion() {
-  const versions = (await import("../../versions.json", {
+  return (await import("../../deno.json", {
     with: { type: "json" },
-  })).default as string[];
-  return versions[0];
+  })).default.version;
 }
 
 export async function updateCheck(
@@ -70,7 +71,7 @@ export async function updateCheck(
 
   const home = getCacheDir();
   if (!home) return;
-  const filePath = join(home, "latest.json");
+  const filePath = path.join(home, "latest.json");
   try {
     await Deno.mkdir(home, { recursive: true });
   } catch (err) {
@@ -113,12 +114,12 @@ export async function updateCheck(
   }
 
   // Only show update message if current version is smaller than latest
-  const currentVersion = semverParse(checkFile.current_version);
-  const latestVersion = semverParse(checkFile.latest_version);
+  const currentVersion = semver.parse(checkFile.current_version);
+  const latestVersion = semver.parse(checkFile.latest_version);
   if (
     (!checkFile.last_shown ||
       Date.now() >= new Date(checkFile.last_shown).getTime() + interval) &&
-    lessThan(currentVersion, latestVersion)
+    semver.lessThan(currentVersion, latestVersion)
   ) {
     checkFile.last_shown = new Date().toISOString();
 

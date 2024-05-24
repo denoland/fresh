@@ -1,26 +1,22 @@
-import { PageSection } from "$fresh/www/components/PageSection.tsx";
-import { DemoBox } from "$fresh/www/components/homepage/DemoBox.tsx";
-import { Head } from "$fresh/runtime.ts";
-import { Handlers, PageProps } from "$fresh/server.ts";
+import { PageSection } from "../components/PageSection.tsx";
+import { DemoBox } from "../components/homepage/DemoBox.tsx";
+import { df } from "../utils/state.ts";
 
-export const handler: Handlers = {
-  GET(req, ctx) {
-    const url = new URL(req.url);
+export const handler = df.defineHandlers({
+  GET(ctx) {
+    const url = new URL(ctx.req.url);
     const search = new URLSearchParams(url.search);
     const vote = search.get("vote");
-    return ctx.render({ vote });
+    return { data: { vote } };
   },
-};
+});
 
-export default function ThanksForSubscribing(
-  props: PageProps & { vote?: string },
+export default df.definePage<typeof handler>(function ThanksForSubscribing(
+  props,
 ) {
   const vote = props?.data?.vote ? props.data.vote.replaceAll(/-/g, " ") : null;
   return (
     <>
-      <Head>
-        <meta name="robots" content="noindex" />
-      </Head>
       <PageSection>
         <DemoBox>
           <div class="space-y-2">
@@ -67,4 +63,4 @@ export default function ThanksForSubscribing(
       </PageSection>
     </>
   );
-}
+});

@@ -1,4 +1,4 @@
-import Prism from "$prism";
+import Prism from "https://esm.sh/prismjs@1.29.0";
 
 export function CodeBlock(
   { code, lang }: { code: string; lang: "js" | "ts" | "jsx" | "md" | "bash" },
