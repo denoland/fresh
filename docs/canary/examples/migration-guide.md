@@ -4,7 +4,7 @@ description: |
 ---
 
 We tried to keep breaking changes in Fresh 2 as minimal as possible, but some
-changes need to be update manually. Fresh 2 comes with many quality of life
+changes need to be updated manually. Fresh 2 comes with many quality of life
 [improvements](TODO) that make it easier to extend and adapt Fresh. We've
 created this upgrade guide as part of upgrading our own apps here at Deno.
 
@@ -114,7 +114,7 @@ or status codes with the following code:
 
 ```tsx
 export default function ErrorPage(props: PageProps) {
-  const error = props.error; // Contains the throw Error or HTTPError
+  const error = props.error; // Contains the thrown Error or HTTPError
   if (error instanceof HttpError) {
     const status = error.status; // HTTP status code
 
