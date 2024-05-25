@@ -171,6 +171,21 @@ on demand. Run the `deno task build` command as part of your deployment process.
 If you have already set up Fresh's 1.x "Ahead-of-Time Builds", then no changes
 are necessary.
 
+## Trailing slash handling
+
+The handling trailing slashes has been extracted to an optional middleware that
+you can add if needed. This middleware can be used to ensure that URLs always
+have a trailing slash at the end or that they will never have one.
+
+```diff
+-  import { App, staticFiles } from "@fresh/core";
++  import { App, staticFiles, trailingSlashes } from "@fresh/core";
+
+  export const app = new App({ root: import.meta.url })
+    .use(staticFiles())
++   .use(trailingSlashes("never"));
+```
+
 ## Automatic updates
 
 > [info]: The changes listed here are applied automatically when running the
