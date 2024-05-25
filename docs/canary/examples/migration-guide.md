@@ -16,7 +16,7 @@ Most changes can be applied automatically with the update script. Start the
 update by running it in your project directory:
 
 ```sh
-deno run -Ar jsr:@fresh/udpate
+deno run -Ar jsr:@fresh/update
 ```
 
 This will apply most API changes made in Fresh 2
@@ -189,7 +189,7 @@ have a trailing slash at the end or that they will never have one.
 ## Automatic updates
 
 > [info]: The changes listed here are applied automatically when running the
-> [`@fresh/udpate`](https://jsr.io/@fresh/update) script and you shouldn't need
+> [`@fresh/update`](https://jsr.io/@fresh/update) script and you shouldn't need
 > to have to do these yourself.
 
 ### Unified middleware signatures
