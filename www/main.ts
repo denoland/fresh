@@ -1,7 +1,8 @@
-import { App, fsRoutes, staticFiles } from "@fresh/core";
+import { App, fsRoutes, staticFiles, trailingSlashes } from "@fresh/core";
 
 export const app = new App({ root: import.meta.url })
-  .use(staticFiles());
+  .use(staticFiles())
+  .use(trailingSlashes("never"));
 
 await fsRoutes(app, {
   loadIsland: (path) => import(`./islands/${path}`),
