@@ -1,5 +1,3 @@
-import { MODE } from "./runtime/server/mod.tsx";
-
 export function getMessage(status: number): string {
   switch (status) {
     case 100:
@@ -144,7 +142,7 @@ export class HttpError {
     public options?: ErrorOptions,
   ) {
     this.message = message;
-    if (MODE !== "production") {
+    if (status >= 500) {
       this.#error = new Error();
     }
   }
