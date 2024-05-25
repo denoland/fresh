@@ -39,7 +39,7 @@
     "tailwindcss/plugin": "npm:/tailwindcss@3.4.1/plugin.js"
   },
   "compilerOptions": {
-    "jsx": "react-jsx",
+    "jsx": "precompile",
     "jsxImportSource": "preact",
     "jsxPrecompileSkipElements": ["a", "img", "source", "body", "html", "head"]
   }
