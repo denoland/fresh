@@ -19,7 +19,7 @@ Some stand-out features:
 
 ## 📖 Documentation
 
-The [documentation](https://fresh.deno.dev/docs/) is available on
+The [documentation](https://fresh.deno.dev/docs/introduction) is available on
 [fresh.deno.dev](https://fresh.deno.dev/).
 
 ## 🚀 Getting started
