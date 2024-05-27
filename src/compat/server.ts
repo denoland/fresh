@@ -5,31 +5,25 @@ import type { HandlerByMethod } from "../handlers.ts";
 /**
  * @deprecated Use {@link FreshContext} instead
  */
-export type AppProps<Data = unknown, T = unknown> = FreshContext<Data, T>;
+export type AppProps<_Data = unknown, T = unknown> = FreshContext<T>;
 /**
  * @deprecated Use {@link FreshContext} instead
  */
-export type LayoutProps<Data = unknown, T = unknown> = FreshContext<Data, T>;
+export type LayoutProps<_Data = unknown, T = unknown> = FreshContext<T>;
 /**
  * @deprecated Use {@link FreshContext} instead
  */
-export type UnknownPageProps<Data = unknown, T = unknown> = FreshContext<
-  Data,
-  T
->;
+export type UnknownPageProps<_Data = unknown, T = unknown> = FreshContext<T>;
 /**
  * @deprecated Use {@link FreshContext} instead
  */
-export type ErrorPageProps<Data = unknown, T = unknown> = FreshContext<Data, T>;
+export type ErrorPageProps<_Data = unknown, T = unknown> = FreshContext<T>;
 
 /**
  * @deprecated Use {@link FreshContext} instead
  */
-// deno-lint-ignore no-explicit-any
-export type RouteContext<T = any, S = Record<string, unknown>> = FreshContext<
-  T,
-  S
->;
+export type RouteContext<_T = never, S = Record<string, unknown>> =
+  FreshContext<S>;
 
 // deno-lint-ignore no-explicit-any
 export type Handlers<T = any, State = Record<string, unknown>> =
@@ -37,10 +31,10 @@ export type Handlers<T = any, State = Record<string, unknown>> =
 
 function defineFn<State>(
   fn: (
-    ctx: FreshContext<unknown, State>,
+    ctx: FreshContext<State>,
   ) => Request | VNode | null | Promise<Request | VNode | null>,
 ): (
-  ctx: FreshContext<unknown, State>,
+  ctx: FreshContext<State>,
 ) => Request | VNode | null | Promise<Request | VNode | null> {
   return fn;
 }

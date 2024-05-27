@@ -4,7 +4,6 @@ import type { WalkEntry } from "@std/fs/walk";
 import * as path from "@std/path";
 import type { RouteConfig } from "../../types.ts";
 import type { RouteHandler } from "../../handlers.ts";
-import type { FreshContext } from "../../context.ts";
 import type { MiddlewareFn } from "../../middlewares/mod.ts";
 import {
   type AsyncAnyComponent,
@@ -13,9 +12,9 @@ import {
 import { type Method, pathToPattern } from "../../router.ts";
 import { type HandlerFn, isHandlerByMethod } from "../../handlers.ts";
 import { type FsAdapter, fsAdapter } from "../../fs.ts";
-import type { PageProps } from "../../runtime/server/mod.tsx";
 import { HttpError } from "../../error.ts";
 import { parseRootPath } from "../../config.ts";
+import type { FreshReqContext, PageProps } from "../../context.ts";
 
 const TEST_FILE_PATTERN = /[._]test\.(?:[tj]sx?|[mc][tj]s)$/;
 const GROUP_REG = /(^|[/\\\\])\((_[^/\\\\]+)\)[/\\\\]/;
@@ -34,12 +33,8 @@ export interface FreshFsItem<State> {
   handler?: RouteHandler<unknown, State> | HandlerFn<unknown, State>[];
   handlers?: RouteHandler<unknown, State>;
   default?:
-    | AnyComponent<
-      PageProps<unknown, State> & Pick<FreshContext<unknown, State>, "redirect">
-    >
-    | AsyncAnyComponent<
-      PageProps<unknown, State> & Pick<FreshContext<unknown, State>, "redirect">
-    >;
+    | AnyComponent<PageProps<unknown, State>>
+    | AsyncAnyComponent<PageProps<unknown, State>>;
 }
 
 // deno-lint-ignore no-explicit-any
@@ -324,7 +319,7 @@ function errorMiddleware<State>(
     try {
       return await ctx.next();
     } catch (err) {
-      ctx.error = err;
+      (ctx as FreshReqContext<State>).error = err;
       return mid(ctx);
     }
   };

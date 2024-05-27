@@ -12,7 +12,7 @@ export {
 export { type RouteConfig } from "./types.ts";
 export { type Middleware, type MiddlewareFn } from "./middlewares/mod.ts";
 export { staticFiles } from "./middlewares/static_files.ts";
-export { type Mode, type PageProps } from "./runtime/server/mod.tsx";
+export { type Mode } from "./runtime/server/mod.ts";
 export { type FreshConfig, type ResolvedFreshConfig } from "./config.ts";
 export { type FreshContext, type Island } from "./context.ts";
 export { createDefine, type Define } from "./define.ts";

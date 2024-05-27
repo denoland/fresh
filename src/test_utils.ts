@@ -1,5 +1,4 @@
 import { FreshReqContext } from "./context.ts";
-import type { MiddlewareFn } from "./middlewares/mod.ts";
 import type { FsAdapter } from "./fs.ts";
 import { type BuildCache, ProdBuildCache } from "./build_cache.ts";
 import type { ResolvedFreshConfig } from "./config.ts";
@@ -63,22 +62,28 @@ const DEFAULT_CONFIG: ResolvedFreshConfig = {
 };
 
 export function serveMiddleware<T>(
-  middleware: MiddlewareFn<T>,
-  options: { config?: ResolvedFreshConfig; buildCache?: BuildCache } = {},
+  middleware: (ctx: FreshReqContext<T>) => Response | Promise<Response>,
+  options: {
+    config?: ResolvedFreshConfig;
+    buildCache?: BuildCache;
+    next?: () => Promise<Response>;
+  } = {},
 ): FakeServer {
   return new FakeServer(async (req) => {
-    const next = () => new Response("not found", { status: 404 });
+    const next = options.next ??
+      (() => new Response("not found", { status: 404 }));
     const config = options.config ?? DEFAULT_CONFIG;
     const buildCache = options.buildCache ??
       new ProdBuildCache(config, new Map(), new Map(), true);
 
     const ctx = new FreshReqContext<T>(
       req,
+      DEFAULT_CONN_INFO,
+      {},
       config,
       () => Promise.resolve(next()),
       new Map(),
       buildCache,
-      DEFAULT_CONN_INFO,
     );
     return await middleware(ctx);
   });
