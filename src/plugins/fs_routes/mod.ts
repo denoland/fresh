@@ -16,6 +16,8 @@ import { type FsAdapter, fsAdapter } from "../../fs.ts";
 import type { PageProps } from "../../runtime/server/mod.tsx";
 import { HttpError } from "../../error.ts";
 import { parseRootPath } from "../../config.ts";
+import { getCodeFrameFromError } from "../../code_frame.tsx";
+import { DENO_DEPLOYMENT_ID } from "../../runtime/build_id.ts";
 
 const TEST_FILE_PATTERN = /[._]test\.(?:[tj]sx?|[mc][tj]s)$/;
 const GROUP_REG = /(^|[/\\\\])\((_[^/\\\\]+)\)[/\\\\]/;
@@ -332,6 +334,27 @@ function errorMiddleware<State>(
       return await ctx.next();
     } catch (err) {
       ctx.error = err;
+
+      if (err instanceof HttpError) {
+        if (err.status >= 500) {
+          if (DENO_DEPLOYMENT_ID === undefined) {
+            const codeFrame = getCodeFrameFromError(err, ctx.config.root);
+            if (codeFrame !== undefined) {
+              console.error(codeFrame);
+            }
+          }
+          console.error(err);
+        }
+      } else {
+        if (DENO_DEPLOYMENT_ID === undefined) {
+          const codeFrame = getCodeFrameFromError(err, ctx.config.root);
+          if (codeFrame !== undefined) {
+            console.error(codeFrame);
+          }
+        }
+        console.error(err);
+      }
+
       return mid(ctx);
     }
   };
