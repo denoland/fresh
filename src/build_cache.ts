@@ -40,6 +40,7 @@ export class ProdBuildCache implements BuildCache {
       hasSnapshot = true;
       setBuildId(snapshot.buildId);
 
+      console.log(snapshot);
       const files = Object.keys(snapshot.staticFiles);
       for (let i = 0; i < files.length; i++) {
         const pathname = files[i];
