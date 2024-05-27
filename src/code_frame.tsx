@@ -132,3 +132,13 @@ export function getCodeFrame(stack: string, rootDir: string) {
     }
   }
 }
+
+export function getCodeFrameFromError(
+  err: unknown,
+  root: string,
+): string | undefined {
+  return (err !== null && typeof err === "object" &&
+      "stack" in err && typeof err.stack === "string")
+    ? getCodeFrame(err.stack, root)
+    : undefined;
+}
