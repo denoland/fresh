@@ -26,9 +26,7 @@ import {
 import type { BuildCache } from "../../build_cache.ts";
 import { BUILD_ID } from "../build_id.ts";
 import { DEV_ERROR_OVERLAY_URL } from "../../constants.ts";
-import {
-  getCodeFrame,
-} from "../../dev/middlewares/error_overlay/code_frame.tsx";
+import { getCodeFrame } from "../../code_frame.tsx";
 import * as colors from "@std/fmt/colors";
 import { escape as escapeHtml } from "@std/html";
 import { HttpError } from "../../error.ts";

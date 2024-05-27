@@ -161,6 +161,8 @@ export async function fsRoutes<State>(
   const stack: InternalRoute<State>[] = [];
   let hasApp = false;
 
+  const specialPaths = new Set<string>();
+
   for (let i = 0; i < routeModules.length; i++) {
     const routeMod = routeModules[i];
     const normalized = routeMod.path;
@@ -251,10 +253,15 @@ export async function fsRoutes<State>(
         }
         let parent = mod.path.slice(0, -"_error".length);
         parent = parent === "/" ? "*" : parent + "*";
-        app.all(
-          parent,
-          errorMiddleware(errorComponents, handler),
-        );
+
+        // Add error route as it's own route
+        if (!specialPaths.has(mod.path)) {
+          specialPaths.add(mod.path);
+          app.all(
+            parent,
+            errorMiddleware(errorComponents, handler),
+          );
+        }
         middlewares.push(errorMiddleware(errorComponents, handler));
         continue;
       }
