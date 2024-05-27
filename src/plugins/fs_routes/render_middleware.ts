@@ -2,6 +2,7 @@ import { type AnyComponent, h, type RenderableProps, type VNode } from "preact";
 import type { MiddlewareFn } from "../../middlewares/mod.ts";
 import type { HandlerFn, PageResponse } from "../../handlers.ts";
 import type { FreshReqContext, PageProps } from "../../context.ts";
+import { HttpError } from "../../error.ts";
 
 export type AsyncAnyComponent<P> = {
   (
@@ -20,6 +21,7 @@ export function renderMiddleware<State>(
     | AsyncAnyComponent<PageProps<unknown, State>>
   >,
   handler: HandlerFn<unknown, State> | undefined,
+  init?: ResponseInit | undefined,
 ): MiddlewareFn<State> {
   return async (ctx) => {
     let result: PageResponse<unknown> | undefined;
@@ -63,6 +65,23 @@ export function renderMiddleware<State>(
       }
     }
 
-    return ctx.render(vnode!);
+    let status: number | undefined = init?.status;
+    if (
+      ctx.error !== null && ctx.error !== undefined
+    ) {
+      if (
+        ctx.error instanceof HttpError
+      ) {
+        status = ctx.error.status;
+      } else {
+        status = 500;
+      }
+    }
+
+    return ctx.render(vnode!, {
+      status,
+      statusText: init?.statusText,
+      headers: init?.headers,
+    });
   };
 }

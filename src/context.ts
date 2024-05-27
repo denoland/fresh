@@ -170,7 +170,11 @@ export class FreshReqContext<State>
       : new Headers();
 
     headers.set("Content-Type", "text/html; charset=utf-8");
-    const responseInit: ResponseInit = { status: init.status ?? 200, headers };
+    const responseInit: ResponseInit = {
+      status: init.status ?? 200,
+      headers,
+      statusText: init.statusText,
+    };
 
     let partialId = "";
     if (this.url.searchParams.has("fresh-partial")) {
