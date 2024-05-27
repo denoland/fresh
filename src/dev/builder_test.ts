@@ -39,8 +39,6 @@ Deno.test({
 
     expect(logs).toEqual(["A", "B", "C"]);
   },
-  sanitizeOps: false,
-  sanitizeResources: false,
 });
 
 Deno.test({
@@ -65,6 +63,4 @@ Deno.test({
     );
     expect(css).toContain('body { background: url("/foo.jpg?__frsh_c=');
   },
-  sanitizeOps: false,
-  sanitizeResources: false,
 });
