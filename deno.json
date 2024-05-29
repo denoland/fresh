@@ -4,7 +4,8 @@
   "exports": {
     ".": "./src/mod.ts",
     "./runtime": "./src/runtime/shared.ts",
-    "./dev": "./src/dev/mod.ts"
+    "./dev": "./src/dev/mod.ts",
+    "./compat": "./src/compat/mod.ts"
   },
   "lock": false,
   "tasks": {
