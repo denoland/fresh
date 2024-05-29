@@ -246,6 +246,8 @@ async function updateFile(sourceFile: tsmorph.SourceFile): Promise<void> {
           d.addNamedImport(name);
         });
       }
+
+      removeEmptyImport(d);
     } else if (specifier === "$fresh/runtime.ts") {
       hasRuntimeImport = true;
       d.setModuleSpecifier("@fresh/core/runtime");

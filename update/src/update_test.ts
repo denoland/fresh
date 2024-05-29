@@ -254,7 +254,7 @@ export const handler: Handlers = {
     const files = await readFiles(dir);
 
     expect(files["/routes/index.tsx"])
-      .toEqual(`import { Handlers } from "@fresh/core";
+      .toEqual(`import { Handlers } from "@fresh/core/compat";
 
 export const handler: Handlers = {
   async GET(ctx) {
@@ -274,7 +274,7 @@ export const handler: Handlers = {
   },
 };`);
     expect(files["/routes/foo.tsx"])
-      .toEqual(`import { Handlers } from "@fresh/core";
+      .toEqual(`import { Handlers } from "@fresh/core/compat";
 
 export const handler: Handlers = {
   async GET(ctx) {},
@@ -285,7 +285,7 @@ export const handler: Handlers = {
 };`);
 
     expect(files["/routes/name.tsx"])
-      .toEqual(`import { Handlers } from "@fresh/core";
+      .toEqual(`import { Handlers } from "@fresh/core/compat";
 
 export const handler: Handlers = {
   async GET(ctx) {
@@ -305,7 +305,7 @@ export const handler: Handlers = {
   },
 };`);
     expect(files["/routes/name-unused.tsx"])
-      .toEqual(`import { Handlers } from "@fresh/core";
+      .toEqual(`import { Handlers } from "@fresh/core/compat";
 
 export const handler: Handlers = {
   async GET(ctx) {},
@@ -425,7 +425,7 @@ export const handler: Handlers = {
       await updateProject(dir);
       const files = await readFiles(dir);
       expect(files["/routes/index.tsx"])
-        .toEqual(`import { Handlers } from "@fresh/core";
+        .toEqual(`import { Handlers } from "@fresh/core/compat";
 
 export const handler: Handlers = {
   async GET({ params, render, info, req }) {
@@ -470,21 +470,24 @@ export default defineRoute(async (req, ctx) => {
     const files = await readFiles(dir);
 
     expect(files["/routes/_app.tsx"])
-      .toEqual(`import { defineApp } from "@fresh/core";
+      .toEqual(`import { defineApp } from "@fresh/core/compat";
+
 export default defineApp(async (ctx) => {
   const req = ctx.req;
 
   return null;
 });`);
     expect(files["/routes/_layout.tsx"])
-      .toEqual(`import { defineLayout } from "@fresh/core";
+      .toEqual(`import { defineLayout } from "@fresh/core/compat";
+
 export default defineLayout(async (ctx) => {
   const req = ctx.req;
 
   return null;
 });`);
     expect(files["/routes/foo.tsx"])
-      .toEqual(`import { defineRoute } from "@fresh/core";
+      .toEqual(`import { defineRoute } from "@fresh/core/compat";
+
 export default defineRoute(async (ctx) => {
   const req = ctx.req;
 
