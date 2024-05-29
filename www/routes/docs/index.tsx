@@ -1,4 +1,4 @@
-import type { Handler } from "@fresh/core";
+import type { Handler } from "@fresh/core/compat";
 
 export const handler: Handler<void> = {
   GET(ctx) {
