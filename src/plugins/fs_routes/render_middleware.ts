@@ -1,7 +1,7 @@
 import { type AnyComponent, h, type RenderableProps, type VNode } from "preact";
 import type { MiddlewareFn } from "../../middlewares/mod.ts";
 import type { HandlerFn, PageResponse } from "../../handlers.ts";
-import { type FreshReqContext, type PageProps } from "../../context.ts";
+import type { FreshReqContext, PageProps } from "../../context.ts";
 
 export type AsyncAnyComponent<P> = {
   (
