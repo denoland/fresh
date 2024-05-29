@@ -11,7 +11,7 @@ import {
 } from "preact";
 import type { Signal } from "@preact/signals";
 import type { Stringifiers } from "../../jsonify/stringify.ts";
-import type { FreshContext, PageProps } from "../../context.ts";
+import type { PageProps } from "../../context.ts";
 import { asset, Partial, type PartialProps } from "../shared.ts";
 import { stringify } from "../../jsonify/stringify.ts";
 import type { ServerIslandRegistry } from "../../context.ts";
@@ -400,8 +400,9 @@ export function FreshScripts() {
           <template
             key={slot.id}
             id={`frsh-${slot.id}-${slot.name}`}
-            children={slot.vnode}
-          />
+          >
+            {slot.vnode}
+          </template>
         );
       })}
       <FreshRuntimeScript />
