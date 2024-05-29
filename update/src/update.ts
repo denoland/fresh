@@ -93,7 +93,7 @@ export async function updateProject(dir: string) {
   // Update routes folder
   const project = new tsmorph.Project();
   const sfs = project.addSourceFilesAtPaths(
-    path.join(".", "**", "*.{js,jsx,ts,tsx}"),
+    path.join(dir, "**", "*.{js,jsx,ts,tsx}"),
   );
   await Promise.all(sfs.map(async (sourceFile) => {
     try {
