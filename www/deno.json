@@ -11,8 +11,6 @@
     "$marked-mangle": "https://esm.sh/marked-mangle@1.1.7",
     "$std/": "https://deno.land/std@0.216.0/",
     "@fresh/core": "../src/mod.ts",
-    "@fresh/core/client": "../src/runtime/client/mod.tsx",
-    "@fresh/core/client-dev": "../src/runtime/client/dev.ts",
     "@fresh/core/dev": "../src/dev/mod.ts",
     "@fresh/core/runtime": "../src/runtime/shared.ts",
     "@fresh/plugin-tailwind": "../plugin-tailwindcss/src/mod.ts",
