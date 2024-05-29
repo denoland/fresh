@@ -677,7 +677,7 @@ Deno.test("update - island files", async () => {
     const files = await readFiles(dir);
 
     expect(files["/islands/foo.tsx"]).toEqual(
-      `import { IS_BROWSER } from "@fresh/core/runtime";`,
+      `import { IS_BROWSER } from "fresh/runtime";`,
     );
   });
 });

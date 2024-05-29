@@ -282,7 +282,7 @@ async function updateFile(sourceFile: tsmorph.SourceFile): Promise<void> {
   }
   if (newImports.compat.size > 0) {
     sourceFile.addImportDeclaration({
-      moduleSpecifier: "@fresh/core/compat",
+      moduleSpecifier: "fresh/compat",
       namedImports: Array.from(newImports.compat),
     });
   }
