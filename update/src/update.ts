@@ -91,7 +91,6 @@ export async function updateProject(dir: string) {
   });
 
   // Update routes folder
-  const routesDir = path.join(dir, "routes");
   const project = new tsmorph.Project();
   const sfs = project.addSourceFilesAtPaths(
     path.join(".", "**", "*.{js,jsx,ts,tsx}"),
@@ -461,13 +460,5 @@ function rewriteCtxMemberName(
     }
   } else if (children[0].isKind(SyntaxKind.PropertyAccessExpression)) {
     rewriteCtxMemberName(children[0]);
-  }
-}
-
-async function dirExists(dir: string): Promise<boolean> {
-  try {
-    return (await Deno.stat(dir)).isDirectory;
-  } catch (_) {
-    return false;
   }
 }
