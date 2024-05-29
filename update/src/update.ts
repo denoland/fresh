@@ -83,7 +83,7 @@ export async function updateProject(dir: string) {
       config.imports = {};
     }
 
-    config.imports["@fresh/core"] = `jsr:@fresh/core@^${FRESH_VERSION}`;
+    config.imports["fresh"] = `jsr:@fresh/core@^${FRESH_VERSION}`;
     config.imports["preact"] = `npm:preact@^${PREACT_VERSION}`;
     config.imports["@preact/signals"] =
       `npm:@preact/signals@^${PREACT_SIGNALS_VERSION}`;
@@ -233,7 +233,7 @@ async function updateFile(sourceFile: tsmorph.SourceFile): Promise<void> {
       removeEmptyImport(d);
     } else if (specifier === "$fresh/server.ts") {
       hasCoreImport = true;
-      d.setModuleSpecifier("@fresh/core");
+      d.setModuleSpecifier("fresh");
 
       for (const n of d.getNamedImports()) {
         const name = n.getName();
@@ -252,7 +252,7 @@ async function updateFile(sourceFile: tsmorph.SourceFile): Promise<void> {
       removeEmptyImport(d);
     } else if (specifier === "$fresh/runtime.ts") {
       hasRuntimeImport = true;
-      d.setModuleSpecifier("@fresh/core/runtime");
+      d.setModuleSpecifier("fresh/runtime");
 
       for (const n of d.getNamedImports()) {
         const name = n.getName();
@@ -270,13 +270,13 @@ async function updateFile(sourceFile: tsmorph.SourceFile): Promise<void> {
 
   if (!hasCoreImport && newImports.core.size > 0) {
     sourceFile.addImportDeclaration({
-      moduleSpecifier: "@fresh/core",
+      moduleSpecifier: "fresh",
       namedImports: Array.from(newImports.core),
     });
   }
   if (!hasRuntimeImport && newImports.runtime.size > 0) {
     sourceFile.addImportDeclaration({
-      moduleSpecifier: "@fresh/core/runtime",
+      moduleSpecifier: "fresh/runtime",
       namedImports: Array.from(newImports.core),
     });
   }

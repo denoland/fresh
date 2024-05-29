@@ -4,7 +4,7 @@ import cssnano from "cssnano";
 import autoprefixer from "autoprefixer";
 import * as path from "@std/path";
 import type { TailwindPluginOptions } from "./types.ts";
-import type { ResolvedFreshConfig } from "@fresh/core";
+import type { ResolvedFreshConfig } from "fresh";
 
 const CONFIG_EXTENSIONS = ["ts", "js", "mjs"];
 

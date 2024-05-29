@@ -1,5 +1,5 @@
-import { Partial } from "@fresh/core/runtime";
-import type { RouteConfig } from "@fresh/core";
+import { Partial } from "fresh/runtime";
+import type { RouteConfig } from "fresh";
 
 export const config: RouteConfig = {
   skipAppWrapper: true,

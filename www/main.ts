@@ -1,4 +1,4 @@
-import { App, fsRoutes, staticFiles, trailingSlashes } from "@fresh/core";
+import { App, fsRoutes, staticFiles, trailingSlashes } from "fresh";
 
 export const app = new App({ root: import.meta.url })
   .use(staticFiles())
