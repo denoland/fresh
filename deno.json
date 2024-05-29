@@ -4,8 +4,6 @@
   "exports": {
     ".": "./src/mod.ts",
     "./runtime": "./src/runtime/shared.ts",
-    "./client": "./src/runtime/client/mod.tsx",
-    "./client-dev": "./src/runtime/client/dev.ts",
     "./dev": "./src/dev/mod.ts"
   },
   "lock": false,
@@ -39,8 +37,6 @@
     "$std/": "https://deno.land/std@0.216.0/",
     "@astral/astral": "jsr:@astral/astral@^0.4.0",
     "@fresh/core": "./src/mod.ts",
-    "@fresh/core/client": "./src/runtime/client/mod.tsx",
-    "@fresh/core/client-dev": "./src/runtime/client/dev.ts",
     "@fresh/core/dev": "./src/dev/mod.ts",
     "@fresh/core/runtime": "./src/runtime/shared.ts",
     "@fresh/plugin-tailwind": "./plugin-tailwindcss/src/mod.ts",

@@ -119,8 +119,12 @@ export class Builder implements FreshBuilder {
 
     const buildCache = getBuildCache(app)! as MemoryBuildCache | DiskBuildCache;
 
+    const runtimePath = dev
+      ? "../runtime/client/dev.ts"
+      : "../runtime/client/mod.tsx";
+
     const entryPoints: Record<string, string> = {
-      "fresh-runtime": dev ? "@fresh/core/client-dev" : "@fresh/core/client",
+      "fresh-runtime": new URL(runtimePath, import.meta.url).href,
     };
     const seenEntries = new Map<string, Island>();
     const mapIslandToEntry = new Map<Island, string>();
