@@ -1,7 +1,7 @@
 import { useEffect } from "preact/hooks";
 import { useSignal } from "@preact/signals";
 
-export function EscapeIsland(props: { str: string }) {
+export function EscapeIsland(_props: { str: string }) {
   const active = useSignal(false);
 
   useEffect(() => {

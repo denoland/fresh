@@ -941,6 +941,94 @@ Deno.test("fsRoutes - async route components returning response", async () => {
   expect(text).toEqual("index");
 });
 
+Deno.test(
+  "fsRoutes - returns response code from error route",
+  async () => {
+    const server = await createServer<{ text: string }>({
+      "routes/_app.tsx": {
+        default: (ctx) => {
+          return (
+            <div>
+              _app/<ctx.Component />
+            </div>
+          );
+        },
+      },
+      "routes/_error.tsx": {
+        default: () => <div>fail</div>,
+      },
+      "routes/index.tsx": {
+        default: () => <div>index</div>,
+      },
+      "routes/bar.tsx": {
+        default: () => <div>index</div>,
+      },
+      "routes/foo/index.tsx": {
+        default: () => <div>foo/index</div>,
+      },
+      "routes/foo/_error.tsx": {
+        default: () => {
+          throw new Error("fail");
+        },
+      },
+      "routes/foo/bar.tsx": {
+        default: () => <div>foo/index</div>,
+      },
+    });
+
+    let res = await server.get("/fooa");
+    await res.body?.cancel();
+    expect(res.status).toEqual(404);
+
+    res = await server.get("/foo/asdf");
+    await res.body?.cancel();
+    expect(res.status).toEqual(500);
+  },
+);
+
+Deno.test(
+  "fsRoutes - set headers from handler",
+  async () => {
+    const server = await createServer<{ text: string }>({
+      "routes/index.tsx": {
+        handler: (ctx) => {
+          return ctx.render(<h1>hello</h1>, {
+            headers: { "X-Foo": "123" },
+            status: 418,
+            statusText: "I'm a fresh teapot",
+          });
+        },
+      },
+    });
+
+    const res = await server.get("/");
+    await res.body?.cancel();
+    expect(res.status).toEqual(418);
+    expect(res.statusText).toEqual("I'm a fresh teapot");
+    expect(res.headers.get("X-Foo")).toEqual("123");
+  },
+);
+
+Deno.test("fsRoutes - set request init from handler #2", async () => {
+  const server = await createServer({
+    "routes/index.tsx": {
+      handler: () => {
+        return page("foo", { status: 404, headers: { "X-Foo": "123" } });
+      },
+      default: (ctx) => {
+        // deno-lint-ignore no-explicit-any
+        return <p>{ctx.data as any}</p>;
+      },
+    },
+  });
+
+  const res = await server.get("/");
+  const doc = parseHtml(await res.text());
+  expect(doc.body.firstChild?.textContent).toEqual("foo");
+  expect(res.status).toEqual(404);
+  expect(res.headers.get("X-Foo")).toEqual("123");
+});
+
 Deno.test("fsRoutes - sortRoutePaths", () => {
   let routes = [
     "/foo/[id]",

@@ -225,7 +225,7 @@ Deno.test({
 
     await withBrowserApp(app, async (page, address) => {
       let didError = false;
-      page.addEventListener("pageerror", (ev) => {
+      page.addEventListener("pageerror", () => {
         didError = true;
       });
 

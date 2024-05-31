@@ -104,7 +104,7 @@ Deno.test("renderMiddleware - async components Response bail out", async () => {
             </div>
           );
         },
-        async (ctx) => {
+        async () => {
           await delay(1);
 
           return new Response("foo");
