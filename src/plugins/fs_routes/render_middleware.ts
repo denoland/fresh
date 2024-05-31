@@ -65,7 +65,7 @@ export function renderMiddleware<State>(
       }
     }
 
-    let status: number | undefined = init?.status;
+    let status: number | undefined = init?.status ?? result?.status;
     if (
       ctx.error !== null && ctx.error !== undefined
     ) {
@@ -81,7 +81,7 @@ export function renderMiddleware<State>(
     return ctx.render(vnode!, {
       status,
       statusText: init?.statusText,
-      headers: init?.headers,
+      headers: init?.headers ?? result?.headers,
     });
   };
 }

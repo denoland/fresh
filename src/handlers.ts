@@ -3,8 +3,8 @@ import type { Method } from "./router.ts";
 
 export interface PageResponse<T> {
   data: T;
-  headers: Headers;
-  status: number;
+  headers?: HeadersInit;
+  status?: number;
 }
 
 /**
@@ -42,10 +42,8 @@ export function page<T>(data?: T, options?: {
 }): PageResponse<T> {
   return {
     data: data ?? undefined as T,
-    headers: options?.headers instanceof Headers
-      ? options.headers
-      : new Headers(options?.headers),
-    status: options?.status ?? 200,
+    headers: options?.headers,
+    status: options?.status,
   };
 }
 

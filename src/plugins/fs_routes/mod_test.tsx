@@ -1009,6 +1009,26 @@ Deno.test(
   },
 );
 
+Deno.test("fsRoutes - set request init from handler #2", async () => {
+  const server = await createServer({
+    "routes/index.tsx": {
+      handler: () => {
+        return page("foo", { status: 404, headers: { "X-Foo": "123" } });
+      },
+      default: (ctx) => {
+        // deno-lint-ignore no-explicit-any
+        return <p>{ctx.data as any}</p>;
+      },
+    },
+  });
+
+  const res = await server.get("/");
+  const doc = parseHtml(await res.text());
+  expect(doc.body.firstChild?.textContent).toEqual("foo");
+  expect(res.status).toEqual(404);
+  expect(res.headers.get("X-Foo")).toEqual("123");
+});
+
 Deno.test("fsRoutes - sortRoutePaths", () => {
   let routes = [
     "/foo/[id]",
