@@ -24,6 +24,7 @@ import { PassThrough } from "./fixtures_islands/PassThrough.tsx";
 import { SelfCounter } from "./fixtures_islands/SelfCounter.tsx";
 import { Multiple1, Multiple2 } from "./fixtures_islands/Multiple.tsx";
 import { Foo } from "./fixture_island_groups/routes/foo/(_islands)/Foo.tsx";
+import { NodeProcess } from "./fixtures_islands/NodeProcess.tsx";
 
 export function getIsland(pathname: string) {
   return path.join(
@@ -87,7 +88,7 @@ export async function withBrowserApp(
 
     const browser = await launch({
       args: ["--no-sandbox"],
-      // headless: false,
+      headless: !Deno.args.includes("--headful"),
     });
 
     const page = await browser.newPage();
@@ -376,6 +377,7 @@ export const allIslandApp = new App()
   .island(getIsland("PartialInIsland.tsx"), "PartialInIsland", PartialInIsland)
   .island(getIsland("PassThrough.tsx"), "PassThrough", PassThrough)
   .island(getIsland("SelfCounter.tsx"), "SelfCounter", SelfCounter)
+  .island(getIsland("NodeProcess.tsx"), "NodeProcess", NodeProcess)
   .island(
     getIsland("../fixture_island_groups/routes/foo/(_islands)/Foo.tsx"),
     "Foo",

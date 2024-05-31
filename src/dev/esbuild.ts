@@ -60,6 +60,12 @@ export async function bundleJs(
     write: false,
     metafile: true,
 
+    define: {
+      "process.env.NODE_ENV": JSON.stringify(
+        options.dev ? "development" : "production",
+      ),
+    },
+
     plugins: [
       preactDebugger(PREACT_ENV),
       buildIdPlugin(options.buildId),
