@@ -1,4 +1,4 @@
-import type { FreshContext } from "../context.ts";
+import type { FreshContext, FreshReqContext } from "../context.ts";
 import type { App as _App } from "../app.ts";
 
 /**
@@ -71,7 +71,7 @@ import type { App as _App } from "../app.ts";
  * ```
  */
 export type MiddlewareFn<State> = (
-  ctx: FreshContext<unknown, State>,
+  ctx: FreshContext<State>,
 ) => Response | Promise<Response>;
 
 /**
@@ -82,7 +82,7 @@ export type Middleware<State> = MiddlewareFn<State> | MiddlewareFn<State>[];
 
 export function runMiddlewares<State>(
   middlewares: MiddlewareFn<State>[][],
-  ctx: FreshContext<unknown, State>,
+  ctx: FreshReqContext<State>,
 ): Promise<Response> {
   let fn = ctx.next;
   let i = middlewares.length;

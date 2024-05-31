@@ -205,21 +205,18 @@ export class App<State> {
       const { params, handlers } = matched;
       const ctx = new FreshReqContext<State>(
         req,
+        conn,
+        params,
         this.config,
         next,
         this.#islandRegistry,
         this.#buildCache!,
-        conn,
       );
-
-      ctx.params = params;
 
       try {
         if (handlers.length === 1 && handlers[0].length === 1) {
           return handlers[0][0](ctx);
         }
-
-        ctx.next = next;
         return await runMiddlewares(handlers, ctx);
       } catch (err) {
         if (err instanceof HttpError) {

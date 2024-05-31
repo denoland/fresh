@@ -192,7 +192,7 @@ export function isHandlerByMethod<D, S>(
  * ```
  */
 export interface HandlerFn<Data, State> {
-  (ctx: FreshContext<Data, State>):
+  (ctx: FreshContext<State>):
     | Response
     | PageResponse<Data>
     | Promise<Response | PageResponse<Data>>;

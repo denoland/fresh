@@ -11,7 +11,7 @@ import {
 } from "preact";
 import type { Signal } from "@preact/signals";
 import type { Stringifiers } from "../../jsonify/stringify.ts";
-import type { FreshContext } from "../../context.ts";
+import type { PageProps } from "../../context.ts";
 import { asset, Partial, type PartialProps } from "../shared.ts";
 import { stringify } from "../../jsonify/stringify.ts";
 import type { ServerIslandRegistry } from "../../context.ts";
@@ -88,7 +88,7 @@ export class RenderState {
   hasRuntimeScript = false;
 
   constructor(
-    public ctx: FreshContext<unknown, unknown>,
+    public ctx: PageProps<unknown, unknown>,
     public islandRegistry: ServerIslandRegistry,
     public buildCache: BuildCache,
     public partialId: string,
@@ -396,14 +396,14 @@ export function FreshScripts() {
     <>
       {slots.map((slot) => {
         if (slot === null) return null;
-        // FIXME: Wait for https://github.com/preactjs/preact/pull/4334 to be
-        // released
-        return h(
-          "template",
-          { key: slot.id, id: `frsh-${slot.id}-${slot.name}` },
-          slot.vnode,
-          // deno-lint-ignore no-explicit-any
-        ) as VNode<any>;
+        return (
+          <template
+            key={slot.id}
+            id={`frsh-${slot.id}-${slot.name}`}
+          >
+            {slot.vnode}
+          </template>
+        );
       })}
       <FreshRuntimeScript />
     </>

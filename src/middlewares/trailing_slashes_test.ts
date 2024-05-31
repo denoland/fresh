@@ -5,9 +5,8 @@ import { serveMiddleware } from "../test_utils.ts";
 
 Deno.test("trailingSlashes - always", async () => {
   const middleware = trailingSlashes("always");
-  const server = serveMiddleware(async (ctx) => {
-    ctx.next = async () => new Response("ok");
-    return await middleware(ctx);
+  const server = serveMiddleware(middleware, {
+    next: async () => new Response("ok"),
   });
 
   let res = await server.get("/");
@@ -33,9 +32,8 @@ Deno.test("trailingSlashes - always", async () => {
 
 Deno.test("trailingSlashes - never", async () => {
   const middleware = trailingSlashes("never");
-  const server = serveMiddleware(async (ctx) => {
-    ctx.next = async () => new Response("ok");
-    return await middleware(ctx);
+  const server = serveMiddleware(middleware, {
+    next: async () => new Response("ok"),
   });
 
   let res = await server.get("/");

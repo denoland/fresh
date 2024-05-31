@@ -1,6 +1,12 @@
-import { type ComponentType, h, isValidElement, type VNode } from "preact";
-import type { ResolvedFreshConfig } from "./config.ts";
+import {
+  type ComponentType,
+  type FunctionComponent,
+  h,
+  isValidElement,
+  type VNode,
+} from "preact";
 import { renderToString } from "preact-render-to-string";
+import type { ResolvedFreshConfig } from "./config.ts";
 import type { BuildCache } from "./build_cache.ts";
 import {
   FreshScripts,
@@ -21,22 +27,21 @@ export type ServerIslandRegistry = Map<ComponentType, Island>;
 /**
  * The context passed to every middleware. It is unique for every request.
  */
-export interface FreshContext<Data = unknown, State = unknown> {
+export interface FreshContext<State = unknown> {
   /** Reference to the resolved Fresh configuration */
   readonly config: ResolvedFreshConfig;
-  state: State;
-  data: Data;
+  readonly state: State;
   /** The original incoming `Request` object` */
-  req: Request;
+  readonly req: Request;
   /**
    * The request url parsed into an `URL` instance. This is typically used
    * to apply logic based on the pathname of the incoming url or when
    * certain search parameters are set.
    */
-  url: URL;
-  params: Record<string, string>;
-  error: unknown;
-  info?: Deno.ServeHandlerInfo | Deno.ServeUnixHandlerInfo;
+  readonly url: URL;
+  readonly params: Record<string, string>;
+  readonly error: unknown;
+  readonly info: Deno.ServeHandlerInfo | Deno.ServeUnixHandlerInfo;
   /**
    * Return a redirect response to the specified path. This is the
    * preferred way to do redirects in Fresh.
@@ -78,32 +83,48 @@ export interface FreshContext<Data = unknown, State = unknown> {
   render(vnode: VNode, init?: ResponseInit): Response | Promise<Response>;
 }
 
-export let getBuildCache: (ctx: FreshContext<unknown, unknown>) => BuildCache;
+export let getBuildCache: (ctx: FreshContext<unknown>) => BuildCache;
 
-export class FreshReqContext<State> implements FreshContext<unknown, State> {
+export class FreshReqContext<State>
+  implements FreshContext<State>, PageProps<unknown, State> {
+  config: ResolvedFreshConfig;
   url: URL;
-  params = {} as Record<string, string>;
-  state = {} as State;
-  data = {} as never;
-  error: Error | null = null;
+  req: Request;
+  params: Record<string, string>;
+  state: State = {} as State;
+  data: unknown = undefined;
+  error: unknown | null = null;
+  info: Deno.ServeHandlerInfo | Deno.ServeUnixHandlerInfo;
+
+  next: FreshContext<State>["next"];
+
   #islandRegistry: ServerIslandRegistry;
   #buildCache: BuildCache;
+
+  // FIXME: remove after switching to <Slot />
+  Component!: FunctionComponent;
 
   static {
     getBuildCache = (ctx) => (ctx as FreshReqContext<unknown>).#buildCache;
   }
 
   constructor(
-    public req: Request,
-    public config: ResolvedFreshConfig,
-    public next: FreshContext<unknown, State>["next"],
+    req: Request,
+    info: Deno.ServeHandlerInfo | Deno.ServeUnixHandlerInfo,
+    params: Record<string, string>,
+    config: ResolvedFreshConfig,
+    next: FreshContext<State>["next"],
     islandRegistry: ServerIslandRegistry,
     buildCache: BuildCache,
-    public info: Deno.ServeHandlerInfo | Deno.ServeUnixHandlerInfo,
   ) {
+    this.url = new URL(req.url);
+    this.req = req;
+    this.info = info;
+    this.params = params;
+    this.config = config;
+    this.next = next;
     this.#islandRegistry = islandRegistry;
     this.#buildCache = buildCache;
-    this.url = new URL(req.url);
   }
 
   redirect(pathOrUrl: string, status = 302): Response {
@@ -168,9 +189,21 @@ export class FreshReqContext<State> implements FreshContext<unknown, State> {
   }
 }
 
+Object.defineProperties(FreshReqContext.prototype, {
+  config: { enumerable: true },
+  url: { enumerable: true },
+  req: { enumerable: true },
+  params: { enumerable: true },
+  state: { enumerable: true },
+  data: { enumerable: true },
+  error: { enumerable: true },
+  next: { enumerable: true },
+  info: { enumerable: true },
+});
+
 function preactRender<State, Data>(
   vnode: VNode,
-  ctx: FreshContext<Data, State>,
+  ctx: PageProps<Data, State>,
   islandRegistry: ServerIslandRegistry,
   buildCache: BuildCache,
   partialId: string,
@@ -201,3 +234,7 @@ function preactRender<State, Data>(
     setRenderState(null);
   }
 }
+
+export type PageProps<Data = unknown, T = unknown> =
+  & Omit<FreshContext<T>, "next" | "render" | "redirect">
+  & { data: Data; Component: FunctionComponent };
