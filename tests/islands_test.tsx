@@ -9,6 +9,7 @@ import { NullIsland } from "./fixtures_islands/NullIsland.tsx";
 import { Multiple1, Multiple2 } from "./fixtures_islands/Multiple.tsx";
 import { JsxIsland } from "./fixtures_islands/JsxIsland.tsx";
 import { JsxChildrenIsland } from "./fixtures_islands/JsxChildrenIsland.tsx";
+import { NodeProcess } from "./fixtures_islands/NodeProcess.tsx";
 import { signal } from "@preact/signals";
 import {
   allIslandApp,
@@ -542,6 +543,34 @@ Deno.test({
         .locator<HTMLDivElement>(".ready")
         .evaluate((el) => el.textContent!);
       expect(text).toEqual("it works");
+    });
+  },
+});
+
+Deno.test({
+  name: "islands - stub Node 'process.env'",
+  fn: async () => {
+    const nodeProcess = getIsland("NodeProcess.tsx");
+
+    const app = testApp()
+      .use(staticFiles())
+      .island(nodeProcess, "NodeProcess", NodeProcess)
+      .get("/", (ctx) =>
+        ctx.render(
+          <Doc>
+            <NodeProcess />
+          </Doc>,
+        ));
+
+    await withBrowserApp(app, async (page, address) => {
+      await page.goto(`${address}/`, { waitUntil: "load" });
+      await page.locator(".ready").wait();
+
+      // Page would error here
+      const text = await page
+        .locator<HTMLDivElement>(".ready")
+        .evaluate((el) => el.textContent!);
+      expect(text).toEqual("value: production");
     });
   },
 });
