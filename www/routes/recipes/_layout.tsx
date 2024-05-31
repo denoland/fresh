@@ -1,7 +1,7 @@
 import type { PageProps } from "@fresh/core";
 import Header from "../../components/Header.tsx";
 
-export default function Layout({ Component, state }: PageProps) {
+export default function Layout({ Component }: PageProps) {
   return (
     <>
       <Header active="" title="" />

@@ -66,7 +66,7 @@ Deno.test(
       .use(async (ctx) => {
         try {
           return await ctx.next();
-        } catch (err) {
+        } catch {
           return ctx.render(<p>ok</p>);
         }
       })

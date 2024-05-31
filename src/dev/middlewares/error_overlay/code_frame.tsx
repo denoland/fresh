@@ -127,7 +127,7 @@ export function getCodeFrame(stack: string, rootDir: string) {
         file.line - 1,
         file.column - 1,
       );
-    } catch (err) {
+    } catch {
       // Ignore
     }
   }
