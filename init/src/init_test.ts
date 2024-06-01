@@ -6,13 +6,34 @@ import { waitForText } from "../../tests/test_utils.tsx";
 import { withChildProcessServer } from "../../tests/test_utils.tsx";
 
 async function withTmpDir(fn: (dir: string) => void | Promise<void>) {
-  const dir = await Deno.makeTempDir();
+  const hash = crypto.randomUUID().replaceAll(/-/g, "");
+  const dir = path.join(import.meta.dirname!, "..", "..", `tmp-${hash}`);
+  await Deno.mkdir(dir, { recursive: true });
 
   try {
     await fn(dir);
   } finally {
     await Deno.remove(dir, { recursive: true });
   }
+}
+
+// TODO: Patch project dependencies until there is an easier way
+// to link JSR dependencies
+async function patchProject(dir: string): Promise<void> {
+  const jsonPath = path.join(dir, "deno.json");
+  const json = JSON.parse(await Deno.readTextFile(jsonPath));
+  const rootJson = JSON.parse(
+    await Deno.readTextFile(
+      path.join(import.meta.dirname!, "..", "..", "deno.json"),
+    ),
+  );
+
+  json.imports = rootJson.imports;
+  json.imports["@fresh/core"] = "../src/mod.ts";
+  json.imports["@fresh/core/dev"] = "../src/dev/mod.ts";
+  json.imports["@fresh/plugin-tailwind"] = "../plugin-tailwindcss/mod.ts";
+
+  await Deno.writeTextFile(jsonPath, JSON.stringify(json, null, 2));
 }
 
 function mockUserInput(steps: Record<string, unknown>) {
@@ -104,8 +125,7 @@ Deno.test("init - with vscode", async () => {
   });
 });
 
-// TODO: Testing this with JSR isn't as easy anymore as it was before
-Deno.test.ignore("init - can start dev server", async () => {
+Deno.test("init - can start dev server", async () => {
   await withTmpDir(async (dir) => {
     const mock = mockUserInput({
       [InitStep.ProjectName]: ".",
@@ -114,6 +134,7 @@ Deno.test.ignore("init - can start dev server", async () => {
     await expectProjectFile(dir, "main.ts");
     await expectProjectFile(dir, "dev.ts");
 
+    await patchProject(dir);
     await withChildProcessServer(
       dir,
       path.join(dir, "dev.ts"),
@@ -128,8 +149,7 @@ Deno.test.ignore("init - can start dev server", async () => {
   });
 });
 
-// TODO: Testing this with JSR isn't as easy anymore as it was before
-Deno.test.ignore("init - can start build project", async () => {
+Deno.test("init - can start build project", async () => {
   await withTmpDir(async (dir) => {
     const mock = mockUserInput({
       [InitStep.ProjectName]: ".",
@@ -137,6 +157,8 @@ Deno.test.ignore("init - can start build project", async () => {
     await initProject(dir, [], {}, mock.tty);
     await expectProjectFile(dir, "main.ts");
     await expectProjectFile(dir, "dev.ts");
+
+    await patchProject(dir);
 
     // Build
     await new Deno.Command(Deno.execPath(), {
@@ -151,7 +173,6 @@ Deno.test.ignore("init - can start build project", async () => {
       dir,
       path.join(dir, "main.ts"),
       async (address) => {
-        console.log({ address });
         await withBrowser(async (page) => {
           await page.goto(address);
           await page.locator("button").click();

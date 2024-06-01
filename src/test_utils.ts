@@ -90,7 +90,14 @@ export function serveMiddleware<T>(
 }
 
 export function createFakeFs(files: Record<string, unknown>): FsAdapter {
+  for (const filePath of Object.keys(files)) {
+    if (!filePath.startsWith("/")) {
+      throw new Error(`File path must start with /: ${filePath}`);
+    }
+  }
+
   return {
+    cwd: () => "/",
     async *walk(_root) {
       // FIXME: ignore
       for (const file of Object.keys(files)) {

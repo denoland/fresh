@@ -65,7 +65,9 @@ export async function fsRoutes<State>(
   const ignore = options.ignoreFilePattern ?? [TEST_FILE_PATTERN];
   const fs = options._fs ?? fsAdapter;
 
-  const dir = options.dir ? parseRootPath(options.dir) : app.config.root;
+  const dir = options.dir
+    ? parseRootPath(options.dir, fs.cwd())
+    : app.config.root;
   const islandDir = path.join(dir, "islands");
   const routesDir = path.join(dir, "routes");
 
@@ -365,6 +367,11 @@ async function walkDir(
   });
 
   for await (const entry of entries) {
+    // TODO: STD walk sometimes returns relative,
+    // sometimes absolute paths
+    if (!path.isAbsolute(entry.path)) {
+      entry.path = path.join(dir, entry.path);
+    }
     callback(entry);
   }
 }

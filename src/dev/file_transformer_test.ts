@@ -8,6 +8,7 @@ import { delay } from "../test_utils.ts";
 
 function testTransformer(files: Record<string, string>) {
   const mockFs: FsAdapter = {
+    cwd: () => "/",
     isDirectory: () => Promise.resolve(false),
     mkdirp: () => Promise.resolve(),
     walk: async function* foo() {
