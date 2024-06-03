@@ -665,3 +665,19 @@ Deno.test("update - 1.x remove reference comments", async () => {
     expect(files["/routes/main.ts"]).toEqual("");
   });
 });
+
+Deno.test("update - island files", async () => {
+  await withTmpDir(async (dir) => {
+    await writeFiles(dir, {
+      "/deno.json": `{}`,
+      "/islands/foo.tsx": `import { IS_BROWSER } from "$fresh/runtime.ts";`,
+    });
+
+    await updateProject(dir);
+    const files = await readFiles(dir);
+
+    expect(files["/islands/foo.tsx"]).toEqual(
+      `import { IS_BROWSER } from "@fresh/core/runtime";`,
+    );
+  });
+});
