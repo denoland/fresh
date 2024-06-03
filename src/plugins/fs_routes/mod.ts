@@ -367,11 +367,6 @@ async function walkDir(
   });
 
   for await (const entry of entries) {
-    // TODO: STD walk sometimes returns relative,
-    // sometimes absolute paths
-    if (!path.isAbsolute(entry.path)) {
-      entry.path = path.join(dir, entry.path);
-    }
     callback(entry);
   }
 }
