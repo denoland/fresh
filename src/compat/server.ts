@@ -1,7 +1,6 @@
 import type { VNode } from "preact";
 import type { FreshContext } from "../context.ts";
 import type { HandlerFn, RouteHandler } from "../handlers.ts";
-import type { PageProps } from "../runtime/server/mod.tsx";
 
 /**
  * @deprecated Use {@link PageProps} instead.
