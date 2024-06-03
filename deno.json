@@ -14,7 +14,7 @@
     "www": "deno task --cwd=www start",
     "build-www": "deno task --cwd=www build",
     "screenshot": "deno run -A www/utils/screenshot.ts",
-    "check:types": "deno check src/**/*.ts src/**/*.tsx tests/**/*.ts tests/**/*.tsx",
+    "check:types": "deno check src/**/*.ts src/**/*.tsx tests/**/*.ts tests/**/*.tsx update/**/*.ts plugin-tailwindcss/**/*.ts init/**/*.ts",
     "ok": "deno fmt --check && deno lint && deno task check:types && deno task test",
     "test:www": "deno test -A tests/www/",
     "manifests": "deno run -A genAllManifest.ts"
