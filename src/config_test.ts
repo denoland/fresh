@@ -3,12 +3,13 @@ import { parseRootPath } from "./config.ts";
 
 // FIXME: Windows
 Deno.test.ignore("parseRootPath", () => {
-  expect(parseRootPath("file:///foo/bar")).toEqual("/foo/bar");
-  expect(parseRootPath("file:///foo/bar.ts")).toEqual("/foo");
-  expect(parseRootPath("/foo/bar")).toEqual("/foo/bar");
-  expect(parseRootPath("/foo/bar.ts")).toEqual("/foo");
-  expect(parseRootPath("/foo/bar.tsx")).toEqual("/foo");
-  expect(parseRootPath("/foo/bar.js")).toEqual("/foo");
-  expect(parseRootPath("/foo/bar.jsx")).toEqual("/foo");
-  expect(parseRootPath("/foo/bar.mjs")).toEqual("/foo");
+  const cwd = Deno.cwd();
+  expect(parseRootPath("file:///foo/bar", cwd)).toEqual("/foo/bar");
+  expect(parseRootPath("file:///foo/bar.ts", cwd)).toEqual("/foo");
+  expect(parseRootPath("/foo/bar", cwd)).toEqual("/foo/bar");
+  expect(parseRootPath("/foo/bar.ts", cwd)).toEqual("/foo");
+  expect(parseRootPath("/foo/bar.tsx", cwd)).toEqual("/foo");
+  expect(parseRootPath("/foo/bar.js", cwd)).toEqual("/foo");
+  expect(parseRootPath("/foo/bar.jsx", cwd)).toEqual("/foo");
+  expect(parseRootPath("/foo/bar.mjs", cwd)).toEqual("/foo");
 });
