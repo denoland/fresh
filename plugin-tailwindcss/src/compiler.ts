@@ -71,7 +71,7 @@ export async function initTailwind(
     autoprefixer(options.autoprefixer) as any,
   ];
 
-  if (config.mode === "build") {
+  if (config.mode === "production") {
     plugins.push(cssnano());
   }
 
