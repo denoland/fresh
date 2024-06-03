@@ -1,5 +1,5 @@
 import * as path from "@std/path";
-import { MODE, type Mode } from "./runtime/server/mod.ts";
+import type { Mode } from "./runtime/server/mod.ts";
 
 export interface FreshPlugin {
   name: string;
@@ -69,7 +69,7 @@ export function normalizeConfig(options: FreshConfig): ResolvedFreshConfig {
     },
     basePath: options.basePath ?? "",
     staticDir: options.staticDir ?? path.join(root, "static"),
-    mode: MODE,
+    mode: "production",
   };
 }
 

@@ -70,6 +70,8 @@ export class Builder implements FreshBuilder {
       .use(devErrorOverlay())
       .mountApp("*", app);
 
+    devApp.config.mode = "development";
+
     setBuildCache(
       devApp,
       new MemoryBuildCache(
@@ -97,6 +99,7 @@ export class Builder implements FreshBuilder {
         this.#options.target,
       ),
     );
+
     return await this.#build(app, false);
   }
 
@@ -117,7 +120,9 @@ export class Builder implements FreshBuilder {
       // Ignore
     }
 
-    const buildCache = getBuildCache(app)! as MemoryBuildCache | DiskBuildCache;
+    const buildCache = getBuildCache(app)! as
+      | MemoryBuildCache
+      | DiskBuildCache;
 
     const runtimePath = dev
       ? "../runtime/client/dev.ts"
