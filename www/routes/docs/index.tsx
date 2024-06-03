@@ -1,6 +1,6 @@
-import type { Handler } from "@fresh/core";
+import type { Handlers } from "@fresh/core/compat";
 
-export const handler: Handler<void> = {
+export const handler: Handlers<void> = {
   GET(ctx) {
     const slug = ctx.params.slug;
 

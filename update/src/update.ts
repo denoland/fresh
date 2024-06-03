@@ -58,7 +58,21 @@ async function updateDenoJson(
 interface ImportState {
   core: Set<string>;
   runtime: Set<string>;
+  compat: Set<string>;
 }
+
+const compat = new Set([
+  "defineApp",
+  "defineLayout",
+  "defineRoute",
+  "AppProps",
+  "ErrorPageProps",
+  "Handler",
+  "Handlers",
+  "LayoutProps",
+  "RouteContext",
+  "UnknownPageProps",
+]);
 
 export async function updateProject(dir: string) {
   // Update config
@@ -72,30 +86,30 @@ export async function updateProject(dir: string) {
     config.imports["@preact/signals"] =
       `npm:@preact/signals@^${PREACT_SIGNALS_VERSION}`;
     delete config.imports["$fresh/"];
+    delete config.imports["@preact/signals-core"];
+    delete config.imports["preact-render-to-string"];
   });
 
   // Update routes folder
-  const routesDir = path.join(dir, "routes");
-  if (await dirExists(routesDir)) {
-    const project = new tsmorph.Project();
-    const sfs = project.addSourceFilesAtPaths(
-      path.join(routesDir, "**", "*.{js,jsx,ts,tsx}"),
-    );
-    await Promise.all(sfs.map(async (sourceFile) => {
-      try {
-        return await updateFile(sourceFile);
-      } catch (err) {
-        console.error(`Could not process ${sourceFile.getFilePath()}`);
-        throw err;
-      }
-    }));
-  }
+  const project = new tsmorph.Project();
+  const sfs = project.addSourceFilesAtPaths(
+    path.join(dir, "**", "*.{js,jsx,ts,tsx}"),
+  );
+  await Promise.all(sfs.map(async (sourceFile) => {
+    try {
+      return await updateFile(sourceFile);
+    } catch (err) {
+      console.error(`Could not process ${sourceFile.getFilePath()}`);
+      throw err;
+    }
+  }));
 }
 
 async function updateFile(sourceFile: tsmorph.SourceFile): Promise<void> {
   const newImports: ImportState = {
     core: new Set(),
     runtime: new Set(),
+    compat: new Set(),
   };
 
   const text = sourceFile.getFullText()
@@ -108,92 +122,98 @@ async function updateFile(sourceFile: tsmorph.SourceFile): Promise<void> {
     .replaceAll('/// <reference lib="deno.ns" />\n', "");
   sourceFile.replaceWithText(text);
 
-  for (const [name, decl] of sourceFile.getExportedDeclarations()) {
-    if (name === "handler") {
-      const node = decl[0];
-      if (node.isKind(SyntaxKind.VariableDeclaration)) {
-        const init = node.getInitializer();
-        if (
-          init !== undefined && init.isKind(SyntaxKind.ObjectLiteralExpression)
-        ) {
-          for (const property of init.getProperties()) {
-            if (property.isKind(SyntaxKind.MethodDeclaration)) {
-              const name = property.getName();
-              if (
-                name === "GET" || name === "POST" || name === "PATCH" ||
-                name === "PUT" || name === "DELETE"
-              ) {
-                const body = property.getBody();
-                if (body !== undefined) {
-                  const stmts = body.getDescendantStatements();
-                  rewriteCtxMethods(stmts);
-                }
-
-                maybePrependReqVar(property, newImports, true);
-              }
-            } else if (property.isKind(SyntaxKind.PropertyAssignment)) {
-              const init = property.getInitializer();
-              if (
-                init !== undefined &&
-                (init.isKind(SyntaxKind.ArrowFunction) ||
-                  init.isKind(SyntaxKind.FunctionExpression))
-              ) {
-                const body = init.getBody();
-                if (body !== undefined) {
-                  const stmts = body.getDescendantStatements();
-                  rewriteCtxMethods(stmts);
-                }
-
-                maybePrependReqVar(init, newImports, true);
-              }
-            }
-          }
-        }
-      } else if (node.isKind(SyntaxKind.FunctionDeclaration)) {
-        const body = node.getBody();
-        if (body !== undefined) {
-          const stmts = body.getDescendantStatements();
-          rewriteCtxMethods(stmts);
-        }
-
-        maybePrependReqVar(node, newImports, false);
-      }
-    } else if (name === "default" && decl.length > 0) {
-      const caller = decl[0];
-      if (caller.isKind(SyntaxKind.CallExpression)) {
-        const expr = caller.getExpression();
-        if (expr.isKind(SyntaxKind.Identifier)) {
-          const text = expr.getText();
+  if (
+    sourceFile.getFilePath().includes("/routes/") &&
+    !sourceFile.getDirectoryPath().includes("/(_")
+  ) {
+    for (const [name, decl] of sourceFile.getExportedDeclarations()) {
+      if (name === "handler") {
+        const node = decl[0];
+        if (node.isKind(SyntaxKind.VariableDeclaration)) {
+          const init = node.getInitializer();
           if (
-            text === "defineApp" || text === "defineLayout" ||
-            text === "defineRoute"
+            init !== undefined &&
+            init.isKind(SyntaxKind.ObjectLiteralExpression)
           ) {
-            const args = caller.getArguments();
-            if (args.length > 0) {
-              const first = args[0];
-              if (
-                first.isKind(SyntaxKind.ArrowFunction) ||
-                first.isKind(SyntaxKind.FunctionExpression)
-              ) {
-                const body = first.getBody();
-                if (body !== undefined) {
-                  const stmts = body.getDescendantStatements();
-                  rewriteCtxMethods(stmts);
-                }
+            for (const property of init.getProperties()) {
+              if (property.isKind(SyntaxKind.MethodDeclaration)) {
+                const name = property.getName();
+                if (
+                  name === "GET" || name === "POST" || name === "PATCH" ||
+                  name === "PUT" || name === "DELETE"
+                ) {
+                  const body = property.getBody();
+                  if (body !== undefined) {
+                    const stmts = body.getDescendantStatements();
+                    rewriteCtxMethods(stmts);
+                  }
 
-                maybePrependReqVar(first, newImports, false);
+                  maybePrependReqVar(property, newImports, true);
+                }
+              } else if (property.isKind(SyntaxKind.PropertyAssignment)) {
+                const init = property.getInitializer();
+                if (
+                  init !== undefined &&
+                  (init.isKind(SyntaxKind.ArrowFunction) ||
+                    init.isKind(SyntaxKind.FunctionExpression))
+                ) {
+                  const body = init.getBody();
+                  if (body !== undefined) {
+                    const stmts = body.getDescendantStatements();
+                    rewriteCtxMethods(stmts);
+                  }
+
+                  maybePrependReqVar(init, newImports, true);
+                }
               }
             }
           }
-        }
-      } else if (caller.isKind(SyntaxKind.FunctionDeclaration)) {
-        const body = caller.getBody();
-        if (body !== undefined) {
-          const stmts = body.getDescendantStatements();
-          rewriteCtxMethods(stmts);
-        }
+        } else if (node.isKind(SyntaxKind.FunctionDeclaration)) {
+          const body = node.getBody();
+          if (body !== undefined) {
+            const stmts = body.getDescendantStatements();
+            rewriteCtxMethods(stmts);
+          }
 
-        maybePrependReqVar(caller, newImports, false);
+          maybePrependReqVar(node, newImports, false);
+        }
+      } else if (name === "default" && decl.length > 0) {
+        const caller = decl[0];
+        if (caller.isKind(SyntaxKind.CallExpression)) {
+          const expr = caller.getExpression();
+          if (expr.isKind(SyntaxKind.Identifier)) {
+            const text = expr.getText();
+            if (
+              text === "defineApp" || text === "defineLayout" ||
+              text === "defineRoute"
+            ) {
+              const args = caller.getArguments();
+              if (args.length > 0) {
+                const first = args[0];
+                if (
+                  first.isKind(SyntaxKind.ArrowFunction) ||
+                  first.isKind(SyntaxKind.FunctionExpression)
+                ) {
+                  const body = first.getBody();
+                  if (body !== undefined) {
+                    const stmts = body.getDescendantStatements();
+                    rewriteCtxMethods(stmts);
+                  }
+
+                  maybePrependReqVar(first, newImports, false);
+                }
+              }
+            }
+          }
+        } else if (caller.isKind(SyntaxKind.FunctionDeclaration)) {
+          const body = caller.getBody();
+          if (body !== undefined) {
+            const stmts = body.getDescendantStatements();
+            rewriteCtxMethods(stmts);
+          }
+
+          maybePrependReqVar(caller, newImports, false);
+        }
       }
     }
   }
@@ -215,8 +235,10 @@ async function updateFile(sourceFile: tsmorph.SourceFile): Promise<void> {
 
       for (const n of d.getNamedImports()) {
         const name = n.getName();
-        if (newImports.core.has(name)) {
-          newImports.core.delete(name);
+        newImports.core.delete(name);
+        if (compat.has(name)) {
+          n.remove();
+          newImports.compat.add(name);
         }
       }
       if (newImports.core.size > 0) {
@@ -224,15 +246,15 @@ async function updateFile(sourceFile: tsmorph.SourceFile): Promise<void> {
           d.addNamedImport(name);
         });
       }
+
+      removeEmptyImport(d);
     } else if (specifier === "$fresh/runtime.ts") {
       hasRuntimeImport = true;
       d.setModuleSpecifier("@fresh/core/runtime");
 
       for (const n of d.getNamedImports()) {
         const name = n.getName();
-        if (newImports.runtime.has(name)) {
-          newImports.runtime.delete(name);
-        }
+        newImports.runtime.delete(name);
       }
       if (newImports.runtime.size > 0) {
         newImports.runtime.forEach((name) => {
@@ -254,6 +276,12 @@ async function updateFile(sourceFile: tsmorph.SourceFile): Promise<void> {
     sourceFile.addImportDeclaration({
       moduleSpecifier: "@fresh/core/runtime",
       namedImports: Array.from(newImports.core),
+    });
+  }
+  if (newImports.compat.size > 0) {
+    sourceFile.addImportDeclaration({
+      moduleSpecifier: "@fresh/core/compat",
+      namedImports: Array.from(newImports.compat),
     });
   }
 
@@ -434,13 +462,5 @@ function rewriteCtxMemberName(
     }
   } else if (children[0].isKind(SyntaxKind.PropertyAccessExpression)) {
     rewriteCtxMemberName(children[0]);
-  }
-}
-
-async function dirExists(dir: string): Promise<boolean> {
-  try {
-    return (await Deno.stat(dir)).isDirectory;
-  } catch (_) {
-    return false;
   }
 }

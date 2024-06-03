@@ -18,17 +18,3 @@ export type { FreshContext, Island, PageProps } from "./context.ts";
 export { createDefine, type Define } from "./define.ts";
 export type { Method } from "./router.ts";
 export { HttpError } from "./error.ts";
-
-// Compat with older Fresh versions
-export {
-  type AppProps,
-  defineApp,
-  defineLayout,
-  defineRoute,
-  type ErrorPageProps,
-  type Handlers,
-  type Handlers as Handler,
-  type LayoutProps,
-  type RouteContext,
-  type UnknownPageProps,
-} from "./compat/server.ts";

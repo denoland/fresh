@@ -503,6 +503,7 @@ if (Deno.args.includes("build")) {
       "@preact/signals": "npm:@preact/signals@^1.2.3",
     } as Record<string, string>,
     compilerOptions: {
+      lib: ["dom", "dom.asynciterable", "deno.ns"],
       jsx: "react-jsx",
       jsxImportSource: "preact",
     },

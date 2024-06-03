@@ -4,7 +4,8 @@
   "exports": {
     ".": "./src/mod.ts",
     "./runtime": "./src/runtime/shared.ts",
-    "./dev": "./src/dev/mod.ts"
+    "./dev": "./src/dev/mod.ts",
+    "./compat": "./src/compat/mod.ts"
   },
   "lock": false,
   "tasks": {
@@ -39,6 +40,7 @@
     "@fresh/core": "./src/mod.ts",
     "@fresh/core/dev": "./src/dev/mod.ts",
     "@fresh/core/runtime": "./src/runtime/shared.ts",
+    "@fresh/core/compat": "./src/compat/mod.ts",
     "@fresh/plugin-tailwind": "./plugin-tailwindcss/src/mod.ts",
     "@luca/esbuild-deno-loader": "jsr:@luca/esbuild-deno-loader@^0.10.3",
     "@preact/signals": "npm:@preact/signals@^1.2.3",
@@ -71,6 +73,7 @@
     "twind/": "https://esm.sh/twind@0.16.19/"
   },
   "compilerOptions": {
+    "lib": ["dom", "dom.asynciterable", "deno.ns"],
     "jsx": "precompile",
     "jsxImportSource": "preact",
     "jsxPrecompileSkipElements": ["a", "img", "source", "body", "html", "head"]
