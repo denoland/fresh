@@ -1,6 +1,12 @@
 import * as colors from "@std/fmt/colors";
 import * as path from "@std/path";
 
+// Keep these as is, as we replace these version in our release script
+const FRESH_VERSION = "2.0.0-alpha.8";
+const FRESH_TAILWIND_VERSION = "0.0.1-alpha.6";
+const PREACT_VERSION = "10.22.0";
+const PREACT_SIGNALS_VERSION = "1.2.3";
+
 export const enum InitStep {
   ProjectName = "ProjectName",
   Force = "Force",
@@ -497,10 +503,11 @@ if (Deno.args.includes("build")) {
     },
     exclude: ["**/_fresh/*"],
     imports: {
-      "@fresh/core": "jsr:@fresh/core@^2.0.0-alpha.8",
-      "@fresh/plugin-tailwind": "jsr:@fresh/plugin-tailwind@^0.0.1-alpha.6",
-      "preact": "npm:preact@^10.22.0",
-      "@preact/signals": "npm:@preact/signals@^1.2.3",
+      "@fresh/core": `jsr:@fresh/core@^${FRESH_VERSION}`,
+      "@fresh/plugin-tailwind":
+        `jsr:@fresh/plugin-tailwind@^${FRESH_TAILWIND_VERSION}`,
+      "preact": `npm:preact@^${PREACT_VERSION}`,
+      "@preact/signals": `npm:@preact/signals@^${PREACT_SIGNALS_VERSION}`,
     } as Record<string, string>,
     compilerOptions: {
       lib: ["dom", "dom.asynciterable", "deno.ns"],
