@@ -9,6 +9,8 @@ export const PREACT_VERSION = "10.20.2";
 export const PREACT_SIGNALS_VERSION = "1.2.3";
 
 export interface DenoJson {
+  name?: string;
+  version?: string;
   imports?: Record<string, string>;
 }
 
