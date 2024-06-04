@@ -42,7 +42,7 @@ export function PartialsSection() {
       >
         <div class="flex flex-col gap-4 md:sticky md:top-4">
           <svg
-            role="img"
+            aria-hidden="true"
             alt="Arrows transferring data down "
             xmlns="http://www.w3.org/2000/svg"
             class="icon icon-tabler icon-tabler-arrows-transfer-down text-fresh"

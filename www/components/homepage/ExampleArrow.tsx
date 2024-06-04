@@ -5,6 +5,7 @@ export function ExampleArrow(
 ) {
   return (
     <svg
+      aria-hidden="true"
       width="100%"
       height="100%"
       viewBox="0 0 137 291"

@@ -31,12 +31,9 @@ export function FormsSection() {
     <PageSection id="forms-section">
       <SideBySide mdColSplit="2/3" lgColSplit="2/3" class="!items-start">
         <div class="flex flex-col gap-4 md:sticky md:top-4">
-          <div
-            role="img"
-            alt="Arrows routing and crossing each other emoji"
-            class="leading-none text-[4rem]"
-          >
+          <div class="leading-none text-[4rem]">
             <svg
+              aria-hidden="true"
               xmlns="http://www.w3.org/2000/svg"
               class="icon icon-tabler icon-tabler-route-square-2 text-fresh"
               width="4rem"
