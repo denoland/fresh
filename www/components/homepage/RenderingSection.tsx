@@ -19,6 +19,7 @@ export function RenderingSection() {
       <SideBySide mdColSplit="2/3" lgColSplit="2/3" class="!items-start">
         <div class="flex flex-col gap-4 md:sticky md:top-4">
           <svg
+            aria-hidden="true"
             xmlns="http://www.w3.org/2000/svg"
             class="icon icon-tabler icon-tabler-atom text-fresh"
             width="4rem"

@@ -88,6 +88,7 @@ function LemonTop() {
   return (
     <>
       <svg
+        aria-hidden="true"
         width="150"
         height="500"
         viewBox="0 0 100 300"

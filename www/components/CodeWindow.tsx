@@ -16,6 +16,7 @@ export function CodeWindow(props: CodeWindowProps) {
       <div class="flex items-stretch justify-start">
         <div class="p-4 flex items-center">
           <svg
+            aria-hidden="true"
             width="41"
             height="10"
             viewBox="0 0 41 10"
