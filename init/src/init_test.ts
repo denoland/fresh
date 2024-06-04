@@ -125,6 +125,25 @@ Deno.test("init - with vscode", async () => {
   });
 });
 
+Deno.test("init - type check project", async () => {
+  await withTmpDir(async (dir) => {
+    const mock = mockUserInput({
+      [InitStep.ProjectName]: ".",
+    });
+    await initProject(dir, [], {}, mock.tty);
+    await expectProjectFile(dir, "main.ts");
+    await expectProjectFile(dir, "dev.ts");
+
+    const check = await new Deno.Command(Deno.execPath(), {
+      args: ["check", "main.ts", "dev.ts"],
+      cwd: dir,
+      stderr: "inherit",
+      stdout: "inherit",
+    }).output();
+    expect(check.code).toEqual(0);
+  });
+});
+
 Deno.test("init - can start dev server", async () => {
   await withTmpDir(async (dir) => {
     const mock = mockUserInput({
