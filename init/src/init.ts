@@ -433,9 +433,9 @@ export default define.page(function Home() {
 })`;
   await writeFile("routes/index.tsx", ROUTES_HOME);
 
-  const APP_WRAPPER = `import { type FreshContext } from "@fresh/core";
+  const APP_WRAPPER = `import { type PageProps } from "@fresh/core";
 
-export default function App({ Component }: FreshContext) {
+export default function App({ Component }: PageProps) {
   return (
     <html>
       <head>
