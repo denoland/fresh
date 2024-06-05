@@ -1539,6 +1539,60 @@ Deno.test({
 });
 
 Deno.test({
+  name: "partials - submit form redirecct",
+  fn: async () => {
+    const app = testApp()
+      .get("/done", (ctx) => {
+        return ctx.render(
+          <Doc>
+            <Partial name="foo">
+              <h1 class="done">success</h1>
+            </Partial>
+          </Doc>,
+        );
+      })
+      .post("/partial", async (ctx) => {
+        const data = await ctx.req.formData();
+        const name = String(data.get("name"));
+
+        return new Response(null, {
+          status: 303,
+          headers: { Location: `/done?name=${encodeURIComponent(name)}` },
+        });
+      })
+      .get("/", (ctx) => {
+        return ctx.render(
+          <Doc>
+            <div f-client-nav>
+              <form action="/partial" method="post">
+                <input name="name" value="foo" />
+                <Partial name="foo">
+                  <p class="init">init</p>
+                </Partial>
+                <SelfCounter />
+                <button class="update">
+                  update
+                </button>
+              </form>
+            </div>
+          </Doc>,
+        );
+      });
+
+    await withBrowserApp(app, async (page, address) => {
+      await page.goto(address, { waitUntil: "load" });
+      await page.locator(".ready").wait();
+
+      await page.locator(".update").click();
+      await page.locator(".done").wait();
+
+      const pathname = await page.evaluate(() => window.location.pathname);
+      expect(pathname).toEqual("/done");
+    });
+  },
+});
+
+Deno.test({
   name: "partials - submit form via external submitter",
   fn: async () => {
     const app = testApp()
