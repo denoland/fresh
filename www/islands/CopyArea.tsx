@@ -1,5 +1,5 @@
 import { useEffect } from "preact/hooks";
-import { IS_BROWSER } from "@fresh/core/runtime";
+import { IS_BROWSER } from "fresh/runtime";
 import * as Icons from "../components/Icons.tsx";
 import { useSignal } from "@preact/signals";
 

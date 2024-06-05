@@ -1,4 +1,4 @@
-import { App, staticFiles } from "@fresh/core";
+import { App, staticFiles } from "fresh";
 import {
   allIslandApp,
   assertNotSelector,
@@ -14,7 +14,7 @@ import { SelfCounter } from "./fixtures_islands/SelfCounter.tsx";
 import { PartialInIsland } from "./fixtures_islands/PartialInIsland.tsx";
 import { JsonIsland } from "./fixtures_islands/JsonIsland.tsx";
 import { FakeServer } from "../src/test_utils.ts";
-import { Partial } from "@fresh/core/runtime";
+import { Partial } from "fresh/runtime";
 import { getBuildCache, setBuildCache } from "../src/app.ts";
 
 await buildProd(allIslandApp);

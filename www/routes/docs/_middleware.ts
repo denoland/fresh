@@ -1,4 +1,4 @@
-import type { FreshContext } from "@fresh/core";
+import type { FreshContext } from "fresh";
 
 const REDIRECTS: Record<string, string> = {
   "/docs/getting-started/fetching-data":

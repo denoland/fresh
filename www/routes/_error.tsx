@@ -1,4 +1,4 @@
-import { HttpError, type PageProps } from "@fresh/core";
+import { HttpError, type PageProps } from "fresh";
 import LemonDrop from "../islands/LemonDrop.tsx";
 
 export function ServerCodePage(

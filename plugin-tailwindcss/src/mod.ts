@@ -1,7 +1,7 @@
 import type { TailwindPluginOptions } from "./types.ts";
 import { initTailwind } from "./compiler.ts";
-import type { Builder } from "@fresh/core/dev";
-import type { App } from "@fresh/core";
+import type { Builder } from "fresh/dev";
+import type { App } from "fresh";
 
 export function tailwind<T>(
   builder: Builder,

@@ -29,8 +29,8 @@ async function patchProject(dir: string): Promise<void> {
   );
 
   json.imports = rootJson.imports;
-  json.imports["@fresh/core"] = "../src/mod.ts";
-  json.imports["@fresh/core/dev"] = "../src/dev/mod.ts";
+  json.imports["fresh"] = "../src/mod.ts";
+  json.imports["fresh/dev"] = "../src/dev/mod.ts";
   json.imports["@fresh/plugin-tailwind"] = "../plugin-tailwindcss/mod.ts";
 
   await Deno.writeTextFile(jsonPath, JSON.stringify(json, null, 2));

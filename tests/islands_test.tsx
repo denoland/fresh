@@ -1,4 +1,4 @@
-import { App, fsRoutes } from "@fresh/core";
+import { App, fsRoutes } from "fresh";
 import { Counter } from "./fixtures_islands/Counter.tsx";
 import { IslandInIsland } from "./fixtures_islands/IslandInIsland.tsx";
 import { JsonIsland } from "./fixtures_islands/JsonIsland.tsx";
