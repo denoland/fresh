@@ -14,14 +14,21 @@ import { getBuildCache } from "../context.ts";
  */
 export function staticFiles<T>(): MiddlewareFn<T> {
   return async function freshStaticFiles(ctx) {
-    const { req, url } = ctx;
+    const { req, url, config } = ctx;
     const buildCache = getBuildCache(ctx);
 
+    let pathname = url.pathname;
+    if (config.basePath) {
+      pathname = pathname !== config.basePath
+        ? pathname.slice(config.basePath.length)
+        : "/";
+    }
+
     // Fast path bail out
-    const file = await buildCache.readFile(url.pathname);
-    if (url.pathname === "/" || file === null) {
+    const file = await buildCache.readFile(pathname);
+    if (pathname === "/" || file === null) {
       // Optimization: Prevent long responses for favicon.ico requests
-      if (url.pathname === "/favicon.ico") {
+      if (pathname === "/favicon.ico") {
         return new Response(null, { status: 404 });
       }
       return ctx.next();
@@ -43,7 +50,7 @@ export function staticFiles<T>(): MiddlewareFn<T> {
       });
     }
 
-    const ext = path.extname(url.pathname);
+    const ext = path.extname(pathname);
     const etag = file.hash;
 
     const contentType = getContentType(ext);

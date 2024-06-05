@@ -70,7 +70,6 @@ export class RenderState {
   error: Error | null = null;
   // deno-lint-ignore no-explicit-any
   slots: Array<{ id: number; name: string; vnode: VNode<any> } | null> = [];
-  basePath = ""; // FIXME
   // deno-lint-ignore no-explicit-any
   islandProps: any[] = [];
   islands = new Set<Island>();
@@ -463,7 +462,7 @@ function FreshRuntimeScript() {
       const named = island.exportName === "default"
         ? island.name
         : `{ ${island.exportName} }`;
-      return `import ${named} from "${asset(chunk)}";`;
+      return `import ${named} from "${asset(`${basePath}${chunk}`)}";`;
     }).join("");
 
     const islandObj = "{" + islandArr.map((island) => island.name)

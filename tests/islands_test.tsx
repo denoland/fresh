@@ -28,11 +28,12 @@ import { EscapeIsland } from "./fixtures_islands/EscapeIsland.tsx";
 import * as path from "@std/path";
 import { setBuildCache } from "../src/app.ts";
 import { getBuildCache } from "../src/app.ts";
+import type { FreshConfig } from "../src/config.ts";
 
 await buildProd(allIslandApp);
 
-function testApp() {
-  const app = new App();
+function testApp(config?: FreshConfig) {
+  const app = new App(config);
   setBuildCache(app, getBuildCache(allIslandApp));
   return app;
 }
@@ -571,6 +572,31 @@ Deno.test({
         .locator<HTMLDivElement>(".ready")
         .evaluate((el) => el.textContent!);
       expect(text).toEqual("value: production");
+    });
+  },
+});
+
+Deno.test({
+  name: "islands - in base path",
+  fn: async () => {
+    const selfCounter = getIsland("SelfCounter.tsx");
+
+    const app = testApp({ basePath: "/foo" })
+      .use(staticFiles())
+      .island(selfCounter, "SelfCounter", SelfCounter)
+      .get("/", (ctx) =>
+        ctx.render(
+          <Doc>
+            <SelfCounter />
+          </Doc>,
+        ));
+
+    await withBrowserApp(app, async (page, address) => {
+      await page.goto(`${address}/foo`, { waitUntil: "load" });
+      await page.locator(".ready").wait();
+
+      await page.locator(".increment").click();
+      await waitForText(page, ".output", "1");
     });
   },
 });
