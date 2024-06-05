@@ -67,10 +67,12 @@ export function staticFiles<T>(): MiddlewareFn<T> {
     } else {
       const ifNoneMatch = req.headers.get("If-None-Match");
       if (
-        etag !== null &&
-        (ifNoneMatch === etag || ifNoneMatch === "W/" + etag)
+        ifNoneMatch !== null &&
+        (ifNoneMatch === etag || ifNoneMatch === `W/"${etag}"`)
       ) {
         return new Response(null, { status: 304, headers });
+      } else if (etag !== null) {
+        headers.set("Etag", `W/"${etag}"`);
       }
     }
 
