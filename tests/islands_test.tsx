@@ -29,6 +29,7 @@ import * as path from "@std/path";
 import { setBuildCache } from "../src/app.ts";
 import { getBuildCache } from "../src/app.ts";
 import type { FreshConfig } from "../src/config.ts";
+import { FreshAttrs } from "./fixtures_islands/FreshAttrs.tsx";
 
 await buildProd(allIslandApp);
 
@@ -597,6 +598,36 @@ Deno.test({
 
       await page.locator(".increment").click();
       await waitForText(page, ".output", "1");
+    });
+  },
+});
+
+Deno.test({
+  name: "islands - preserve f-* attributes",
+  fn: async () => {
+    const freshAttrs = getIsland("FreshAttrs.tsx");
+
+    const app = testApp()
+      .use(staticFiles())
+      .island(freshAttrs, "FreshAttrs", FreshAttrs)
+      .get("/", (ctx) =>
+        ctx.render(
+          <Doc>
+            <FreshAttrs />
+          </Doc>,
+        ));
+
+    await withBrowserApp(app, async (page, address) => {
+      await page.goto(address, { waitUntil: "load" });
+      await page.locator(".ready").wait();
+
+      const truthy = await page.locator<HTMLDivElement>(".f-client-nav-true")
+        .evaluate((el) => el.getAttribute("f-client-nav"));
+      const falsy = await page.locator<HTMLDivElement>(".f-client-nav-false")
+        .evaluate((el) => el.getAttribute("f-client-nav"));
+
+      expect(truthy).toEqual("true");
+      expect(falsy).toEqual("false");
     });
   },
 });

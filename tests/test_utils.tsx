@@ -25,6 +25,7 @@ import { SelfCounter } from "./fixtures_islands/SelfCounter.tsx";
 import { Multiple1, Multiple2 } from "./fixtures_islands/Multiple.tsx";
 import { Foo } from "./fixture_island_groups/routes/foo/(_islands)/Foo.tsx";
 import { NodeProcess } from "./fixtures_islands/NodeProcess.tsx";
+import { FreshAttrs } from "./fixtures_islands/FreshAttrs.tsx";
 
 export function getIsland(pathname: string) {
   return path.join(
@@ -378,6 +379,7 @@ export const allIslandApp = new App()
   .island(getIsland("PassThrough.tsx"), "PassThrough", PassThrough)
   .island(getIsland("SelfCounter.tsx"), "SelfCounter", SelfCounter)
   .island(getIsland("NodeProcess.tsx"), "NodeProcess", NodeProcess)
+  .island(getIsland("FreshAttrs.tsx"), "FreshAttrs", FreshAttrs)
   .island(
     getIsland("../fixture_island_groups/routes/foo/(_islands)/Foo.tsx"),
     "Foo",
