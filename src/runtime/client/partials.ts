@@ -124,7 +124,7 @@ document.addEventListener("click", async (e) => {
           partial ? partial : nextUrl.href,
           location.href,
         );
-        await fetchPartials(partialUrl);
+        await fetchPartials(nextUrl, partialUrl);
         updateLinks(nextUrl);
         scrollTo({ left: 0, top: 0, behavior: "instant" });
       } finally {
@@ -157,7 +157,7 @@ document.addEventListener("click", async (e) => {
           partial,
           location.href,
         );
-        await fetchPartials(partialUrl);
+        await fetchPartials(partialUrl, partialUrl);
       }
     }
   }
@@ -192,7 +192,7 @@ addEventListener("popstate", async (e) => {
 
   const url = new URL(location.href, location.origin);
   try {
-    await fetchPartials(url);
+    await fetchPartials(url, url);
     updateLinks(url);
     scrollTo({
       left: state.scrollX ?? 0,
@@ -257,8 +257,7 @@ document.addEventListener("submit", async (e) => {
         init = { body: new FormData(el), method: lowerMethod };
       }
 
-      maybeUpdateHistory(actionUrl);
-      await fetchPartials(partialUrl, init);
+      await fetchPartials(actionUrl, partialUrl, init);
     }
   }
 });
@@ -283,10 +282,23 @@ function updateLinks(url: URL) {
   });
 }
 
-async function fetchPartials(url: URL, init: RequestInit = {}) {
+async function fetchPartials(
+  actualUrl: URL,
+  partialUrl: URL,
+  init: RequestInit = {},
+) {
   init.redirect = "follow";
-  url.searchParams.set(PARTIAL_SEARCH_PARAM, "true");
-  const res = await fetch(url, init);
+  partialUrl.searchParams.set(PARTIAL_SEARCH_PARAM, "true");
+  const res = await fetch(partialUrl, init);
+
+  if (res.redirected) {
+    const nextUrl = new URL(res.url);
+    if (nextUrl.origin === actualUrl.origin) {
+      actualUrl = nextUrl;
+    }
+  }
+
+  maybeUpdateHistory(actualUrl);
   await applyPartials(res);
 }
 
