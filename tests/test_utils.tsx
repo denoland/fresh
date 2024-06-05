@@ -110,7 +110,7 @@ export async function withBrowser(fn: (page: Page) => void | Promise<void>) {
   try {
     const browser = await launch({
       args: ["--no-sandbox"],
-      // headless: false,
+      headless: !Deno.args.includes("--headful"),
     });
 
     const page = await browser.newPage();
