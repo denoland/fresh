@@ -30,6 +30,7 @@ import { setBuildCache } from "../src/app.ts";
 import { getBuildCache } from "../src/app.ts";
 import type { FreshConfig } from "../src/config.ts";
 import { FreshAttrs } from "./fixtures_islands/FreshAttrs.tsx";
+import { FakeServer } from "../src/test_utils.ts";
 
 await buildProd(allIslandApp);
 
@@ -657,5 +658,31 @@ Deno.test({
         .evaluate((el) => el.textContent!);
       expect(text).toEqual("it works");
     });
+  },
+});
+
+Deno.test({
+  name: "islands - adds preload HTTP headers",
+  fn: async () => {
+    const selfCounter = getIsland("SelfCounter.tsx");
+
+    const app = testApp()
+      .use(staticFiles())
+      .island(selfCounter, "SelfCounter", SelfCounter)
+      .get("/", (ctx) =>
+        ctx.render(
+          <Doc>
+            <SelfCounter />
+          </Doc>,
+        ));
+
+    const server = new FakeServer(await app.handler());
+    const res = await server.get("/");
+    await res.body?.cancel();
+
+    const link = res.headers.get("Link");
+    expect(link).toMatch(
+      /<\/fresh-runtime\.js\?__frsh_c=[^>]+>; rel="modulepreload"; as="script", <\/SelfCounter\.js\?__frsh_c=[^>]+>; rel="modulepreload"; as="script"/,
+    );
   },
 });
