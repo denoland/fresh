@@ -201,6 +201,13 @@ export default {
     await writeFile("tailwind.config.ts", TAILWIND_CONFIG_TS);
   }
 
+  const GRADIENT_CSS = `
+  .fresh-gradient {
+    background-color: rgb(134, 239, 172);
+    background-image: linear-gradient(to right bottom, rgb(219, 234, 254), rgb(187, 247, 208), rgb(254, 249, 195));
+  }
+  `;
+
   const NO_TAILWIND_STYLES = `
 *,
 *::before,
@@ -330,11 +337,15 @@ html {
 .tabular-nums {
   font-variant-numeric: tabular-nums;
 }
+
+${GRADIENT_CSS}
 `;
 
   const TAILWIND_CSS = `@tailwind base;
 @tailwind components;
-@tailwind utilities;`;
+@tailwind utilities;
+${GRADIENT_CSS}
+`;
 
   const cssStyles = useTailwind ? TAILWIND_CSS : NO_TAILWIND_STYLES;
   await writeFile("static/styles.css", cssStyles);
@@ -412,7 +423,7 @@ export default define.page(function Home() {
   const count = useSignal(3);
 
   return (
-    <div class="px-4 py-8 mx-auto bg-[#86efac]">
+    <div class="px-4 py-8 mx-auto fresh-gradient">
       <div class="max-w-screen-md mx-auto flex flex-col items-center justify-center">
         <img
           class="my-6"
