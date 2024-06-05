@@ -1484,6 +1484,9 @@ Deno.test({
 
       await page.locator(".update").click();
       await page.locator(".done-foo").wait();
+
+      const pathname = await page.evaluate(() => window.location.pathname);
+      expect(pathname).toEqual("/foo");
     });
   },
 });

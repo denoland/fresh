@@ -234,14 +234,16 @@ document.addEventListener("submit", async (e) => {
       return;
     }
 
-    const action = e.submitter?.getAttribute(PARTIAL_ATTR) ??
+    const rawPartialUrl = e.submitter?.getAttribute(PARTIAL_ATTR) ??
       e.submitter?.getAttribute("formaction") ??
       el.getAttribute(PARTIAL_ATTR) ?? el.action;
+    const rawActionUrl = e.submitter?.getAttribute("formaction") ?? el.action;
 
-    if (action !== "") {
+    if (rawPartialUrl !== "") {
       e.preventDefault();
 
-      const url = new URL(action, location.href);
+      const partialUrl = new URL(rawPartialUrl, location.href);
+      const actionUrl = new URL(rawActionUrl, location.href);
 
       let init: RequestInit | undefined;
 
@@ -250,13 +252,13 @@ document.addEventListener("submit", async (e) => {
         // TODO: Looks like constructor type for URLSearchParam is wrong
         // deno-lint-ignore no-explicit-any
         const qs = new URLSearchParams(new FormData(el) as any);
-        qs.forEach((value, key) => url.searchParams.set(key, value));
+        qs.forEach((value, key) => partialUrl.searchParams.set(key, value));
       } else {
         init = { body: new FormData(el), method: lowerMethod };
       }
 
-      maybeUpdateHistory(url);
-      await fetchPartials(url, init);
+      maybeUpdateHistory(actionUrl);
+      await fetchPartials(partialUrl, init);
     }
   }
 });
