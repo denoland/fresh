@@ -17,7 +17,7 @@
     "check:types": "deno check src/**/*.ts src/**/*.tsx tests/**/*.ts tests/**/*.tsx update/**/*.ts plugin-tailwindcss/**/*.ts init/**/*.ts",
     "ok": "deno fmt --check && deno lint && deno task check:types && deno task test",
     "test:www": "deno test -A tests/www/",
-    "manifests": "deno run -A genAllManifest.ts"
+    "release": "deno run -A tools/release.ts"
   },
   "exclude": ["**/_fresh/*", "**/tmp/*", "*/tests_OLD/**"],
   "publish": {
