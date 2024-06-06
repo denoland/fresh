@@ -1403,10 +1403,12 @@ Deno.test({
   fn: async () => {
     const app = testApp()
       .get("/partial", (ctx) => {
+        const name = ctx.url.searchParams.get("name")!;
+        const submitter = ctx.url.searchParams.get("submitter")!;
         return ctx.render(
           <Doc>
             <Partial name="foo">
-              <p class={"done-" + ctx.url.searchParams.get("name")!}>done</p>
+              <p class={`done-${name}-${submitter}`}>done</p>
             </Partial>
           </Doc>,
         );
@@ -1421,7 +1423,7 @@ Deno.test({
                   <p class="init">init</p>
                 </Partial>
                 <SelfCounter />
-                <button class="update">
+                <button class="update" name="submitter" value="sub">
                   update
                 </button>
               </form>
@@ -1438,7 +1440,7 @@ Deno.test({
       await waitForText(page, ".output", "1");
 
       await page.locator(".update").click();
-      await page.locator(".done-foo").wait();
+      await page.locator(".done-foo-sub").wait();
     });
   },
 });
@@ -1448,10 +1450,12 @@ Deno.test({
   fn: async () => {
     const app = testApp()
       .get("/partial", (ctx) => {
+        const name = ctx.url.searchParams.get("name")!;
+        const submitter = ctx.url.searchParams.get("submitter")!;
         return ctx.render(
           <Doc>
             <Partial name="foo">
-              <p class={"done-" + ctx.url.searchParams.get("name")!}>done</p>
+              <p class={`done-${name}-${submitter}`}>done</p>
             </Partial>
           </Doc>,
         );
@@ -1466,7 +1470,7 @@ Deno.test({
                   <p class="init">init</p>
                 </Partial>
                 <SelfCounter />
-                <button class="update">
+                <button class="update" name="submitter" value="sub">
                   update
                 </button>
               </form>
@@ -1483,7 +1487,7 @@ Deno.test({
       await waitForText(page, ".output", "1");
 
       await page.locator(".update").click();
-      await page.locator(".done-foo").wait();
+      await page.locator(".done-foo-sub").wait();
 
       const pathname = await page.evaluate(() => window.location.pathname);
       expect(pathname).toEqual("/foo");
@@ -1498,10 +1502,11 @@ Deno.test({
       .post("/partial", async (ctx) => {
         const data = await ctx.req.formData();
         const name = data.get("name");
+        const submitter = data.get("submitter");
         return ctx.render(
           <Doc>
             <Partial name="foo">
-              <p class={"done-" + name}>done</p>
+              <p class={`done-${name}-${submitter}`}>done</p>
             </Partial>
           </Doc>,
         );
@@ -1516,7 +1521,7 @@ Deno.test({
                   <p class="init">init</p>
                 </Partial>
                 <SelfCounter />
-                <button class="update">
+                <button class="update" name="submitter" value="sub">
                   update
                 </button>
               </form>
@@ -1533,7 +1538,7 @@ Deno.test({
       await waitForText(page, ".output", "1");
 
       await page.locator(".update").click();
-      await page.locator(".done-foo").wait();
+      await page.locator(".done-foo-sub").wait();
     });
   },
 });
@@ -1599,10 +1604,11 @@ Deno.test({
       .post("/partial", async (ctx) => {
         const data = await ctx.req.formData();
         const name = data.get("name");
+        const submitter = data.get("submitter");
         return ctx.render(
           <Doc>
             <Partial name="foo">
-              <p class={"done-" + name}>done</p>
+              <p class={`done-${name}-${submitter}`}>done</p>
             </Partial>
           </Doc>,
         );
@@ -1627,6 +1633,8 @@ Deno.test({
                 form="foo"
                 formaction="/partial"
                 formmethod="POST"
+                name="submitter"
+                value="sub"
               >
                 submit
               </button>
@@ -1643,7 +1651,7 @@ Deno.test({
       await waitForText(page, ".output", "1");
 
       await page.locator(".update").click();
-      await page.locator(".done-foo").wait();
+      await page.locator(".done-foo-sub").wait();
     });
   },
 });
@@ -1655,10 +1663,11 @@ Deno.test({
       .post("/partial", async (ctx) => {
         const data = await ctx.req.formData();
         const name = data.get("name");
+        const submitter = data.get("submitter");
         return ctx.render(
           <Doc>
             <Partial name="foo">
-              <p class={"done-" + name}>done</p>
+              <p class={`done-${name}-${submitter}`}>done</p>
             </Partial>
           </Doc>,
         );
@@ -1684,6 +1693,8 @@ Deno.test({
                 formaction="/foo"
                 formmethod="POST"
                 f-partial="/partial"
+                name="submitter"
+                value="sub"
               >
                 submit
               </button>
@@ -1700,7 +1711,7 @@ Deno.test({
       await waitForText(page, ".output", "1");
 
       await page.locator(".update").click();
-      await page.locator(".done-foo").wait();
+      await page.locator(".done-foo-sub").wait();
     });
   },
 });
@@ -1713,10 +1724,11 @@ Deno.test({
       .post("/partial", async (ctx) => {
         const data = await ctx.req.formData();
         const name = data.get("name");
+        const submitter = data.get("submitter");
         return ctx.render(
           <Doc>
             <Partial name="foo">
-              <p class={"done-" + name}>done</p>
+              <p class={`done-${name}-${submitter}`}>done</p>
             </Partial>
           </Doc>,
         );
@@ -1743,6 +1755,8 @@ Deno.test({
                 formaction="/partial"
                 formmethod="POST"
                 f-partial="/partial"
+                name="submitter"
+                value="sub"
               >
                 submit
               </button>
@@ -1762,7 +1776,7 @@ Deno.test({
         page.waitForNavigation(),
         page.locator(".update").click(),
       ]);
-      await page.locator(".done-foo").wait();
+      await page.locator(".done-foo-sub").wait();
 
       const doc = parseHtml(await page.content());
       assertNotSelector(doc, "button");
