@@ -41,7 +41,7 @@ Twind. For Tailwind, use the syntax:
 ```tsx
 function Menu() {
   return (
-    <a href="/foo" class="aria-[current]:text-green-600">
+    <a href="/foo" class="aria-[current='page']:text-green-600">
       Link to some page
     </a>
   );
