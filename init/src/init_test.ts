@@ -134,6 +134,8 @@ Deno.test("init - type check project", async () => {
     await expectProjectFile(dir, "main.ts");
     await expectProjectFile(dir, "dev.ts");
 
+    await patchProject(dir);
+
     const check = await new Deno.Command(Deno.execPath(), {
       args: ["check", "main.ts", "dev.ts"],
       cwd: dir,
