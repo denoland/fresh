@@ -7,7 +7,6 @@
     "./dev": "./src/dev/mod.ts",
     "./compat": "./src/compat/mod.ts"
   },
-  "lock": false,
   "tasks": {
     "test": "deno test -A --parallel src/ init/ update/ && deno test -A tests/ www/main_test.ts",
     "fixture": "deno run -A --watch=static/,routes/ tests/fixture/dev.ts",
