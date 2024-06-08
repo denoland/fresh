@@ -522,8 +522,16 @@ if (Deno.args.includes("build")) {
     } as Record<string, string>,
     compilerOptions: {
       lib: ["dom", "dom.asynciterable", "deno.ns"],
-      jsx: "react-jsx",
+      jsx: "precompile",
       jsxImportSource: "preact",
+      jsxPrecompileSkipElements: [
+        "a",
+        "img",
+        "source",
+        "body",
+        "html",
+        "head",
+      ],
     },
   };
 
