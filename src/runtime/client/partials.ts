@@ -288,6 +288,7 @@ async function fetchPartials(
   init: RequestInit = {},
 ) {
   init.redirect = "follow";
+  partialUrl = new URL(partialUrl);
   partialUrl.searchParams.set(PARTIAL_SEARCH_PARAM, "true");
   const res = await fetch(partialUrl, init);
 

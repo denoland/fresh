@@ -2274,3 +2274,46 @@ Deno.test({
     });
   },
 });
+
+Deno.test({
+  name: "partials - backwards navigation should keep URLs",
+  fn: async () => {
+    const app = testApp()
+      .get("/other", (ctx) => {
+        return ctx.render(
+          <Doc>
+            <Partial name="foo">
+              <h1 class="done">other</h1>
+            </Partial>
+            <SelfCounter />
+          </Doc>,
+        );
+      })
+      .get("/", (ctx) => {
+        return ctx.render(
+          <Doc>
+            <div f-client-nav>
+              <a href="/other">other</a>
+              <Partial name="foo">
+                <h1 class="init">foo</h1>
+              </Partial>
+              <SelfCounter />
+            </div>
+          </Doc>,
+        );
+      });
+
+    await withBrowserApp(app, async (page, address) => {
+      await page.goto(address, { waitUntil: "load" });
+      await page.locator(".ready").wait();
+      await page.locator("a").click();
+      await page.locator(".done").wait();
+
+      await page.evaluate(() => window.history.go(-1));
+      await page.locator(".init").wait();
+      const rawUrl = await page.evaluate(() => window.location.href);
+      const url = new URL(rawUrl);
+      expect(`${url.pathname}${url.search}`).toEqual("/");
+    });
+  },
+});
