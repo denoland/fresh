@@ -10,10 +10,10 @@ support for form submissions with the HTML `<form>` element.
 In the browser, a `<form>` submit will send an HTML action (usually `GET` or
 `POST`) to the server, which responds with a new page to render.
 
-## POST request with `multipart/form-data`
+## POST request with `application/x-www-form-urlencoded`
 
 Forms typically submit as a `GET` request with data encoded in the URL's search
-parameters, or as a `POST` request with either a
+parameters, or as a `POST` request with either an
 `application/x-www-form-urlencoded` or `multipart/form-data` body.
 
 This example demonstrates how to handle `application/x-www-form-urlencoded`
