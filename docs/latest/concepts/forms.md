@@ -10,13 +10,14 @@ support for form submissions with the HTML `<form>` element.
 In the browser, a `<form>` submit will send an HTML action (usually `GET` or
 `POST`) to the server, which responds with a new page to render.
 
-## POST request with `multipart/form-data`
+## POST request with `application/x-www-form-urlencoded`
 
-Forms can either submit as a `GET` request with URL search parameter encoding,
-or as a `POST` request with `multipart/form-data`.
+Forms typically submit as a `GET` request with data encoded in the URL's search
+parameters, or as a `POST` request with either an
+`application/x-www-form-urlencoded` or `multipart/form-data` body.
 
-This example demonstrates how to handle `multipart/form-data` `<form>`
-submissions:
+This example demonstrates how to handle `application/x-www-form-urlencoded`
+`<form>` submissions:
 
 ```tsx routes/subscribe.tsx
 import { Handlers } from "$fresh/server.ts";
@@ -53,14 +54,15 @@ export default function Subscribe() {
 }
 ```
 
-When the user submits the form, Deno will access a specific `email` value from a
-`formData()`, add the email to a list, and redirect the user to a thank you
-page.
+When the user submits the form, Deno will retrieve the `email` value using the
+request's `formData()` method, add the email to a list, and redirect the user to
+a thank you page.
 
 ## Handling file uploads
 
 File uploads can be handled in a very similar manner to the example above. Note
-that this time, we have to explicitly declare the form's encoding.
+that this time, we have to explicitly declare the form's encoding to be
+`multipart/form-data`.
 
 ```tsx routes/subscribe.tsx
 import { Handlers, type PageProps } from "$fresh/server.ts";
