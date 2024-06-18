@@ -321,7 +321,7 @@ export async function fsRoutes<State>(
 
 function errorMiddleware<State>(
   components: AnyComponent<PageProps<unknown, State>>[],
-  handler: HandlerFn<unknown, State> | undefined,
+  handler?: HandlerFn<unknown, State>,
 ): MiddlewareFn<State> {
   const mid = renderMiddleware<State>(components, handler);
   return async function errorMiddleware(ctx) {
@@ -336,7 +336,7 @@ function errorMiddleware<State>(
 
 function notFoundMiddleware<State>(
   components: AnyComponent<PageProps<unknown, State>>[],
-  handler: HandlerFn<unknown, State> | undefined,
+  handler?: HandlerFn<unknown, State>,
 ): MiddlewareFn<State> {
   const mid = renderMiddleware<State>(components, handler);
   return async function notFoundMiddleware(ctx) {

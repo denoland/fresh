@@ -156,7 +156,7 @@ export class FreshReqContext<State>
   render(
     // deno-lint-ignore no-explicit-any
     vnode: VNode<any>,
-    init: ResponseInit | undefined = {},
+    init: ResponseInit = {},
   ): Response | Promise<Response> {
     if (arguments.length === 0) {
       throw new Error(`No arguments passed to: ctx.render()`);
