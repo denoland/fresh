@@ -80,7 +80,7 @@ The `render` hook needs to synchronously return a
 [`PluginRenderResult`](https://deno.land/x/fresh/server.ts?s=PluginRenderResult)
 object. Additional CSS and JS modules can be added to be injected into the page
 by adding them to `styles`, `links` and `scripts` arrays in this object. The
-plugin can also replace the the HTML in side the `<body>`-element of the page by
+plugin can also replace the HTML in side the `<body>`-element of the page by
 including a `htmlText` string in this object.
 
 `styles` are injected into the `<head>` of the page as inline CSS. Each entry
