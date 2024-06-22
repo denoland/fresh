@@ -138,8 +138,8 @@ export class App<State> {
     const middlewares = app.#router._middlewares;
 
     // Special case when user calls one of these:
-    // - `app.mounApp("/", otherApp)`
-    // - `app.mounApp("*", otherApp)`
+    // - `app.mountApp("/", otherApp)`
+    // - `app.mountApp("*", otherApp)`
     const isSelf = path === "*" || path === "/";
     if (isSelf && middlewares.length > 0) {
       this.#router._middlewares.push(...middlewares);
