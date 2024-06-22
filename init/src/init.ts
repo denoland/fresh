@@ -189,14 +189,13 @@ CMD ["run", "-A", "main.ts"]
     await writeFile("Dockerfile", DOCKERFILE_TEXT);
   }
 
-  const TAILWIND_CONFIG_TS = `import { type Config } from "tailwindcss";
+  const TAILWIND_CONFIG_TS = `import type { Config } from "tailwindcss";
 
 export default {
   content: [
     "{routes,islands,components}/**/*.{ts,tsx}",
   ],
-} satisfies Config;
-`;
+} satisfies Config;`;
   if (useTailwind) {
     await writeFile("tailwind.config.ts", TAILWIND_CONFIG_TS);
   }
@@ -367,8 +366,8 @@ ${GRADIENT_CSS}
     // Skip this and be silent if there is a network issue.
   }
 
-  const MAIN_TS = `import { App, staticFiles, fsRoutes } from "fresh";
-import { State } from "./utils.ts";
+  const MAIN_TS = `import { App, fsRoutes, staticFiles } from "fresh";
+import type { State } from "./utils.ts";
 
 export const app = new App<State>();
 app.use(staticFiles());
@@ -383,16 +382,16 @@ await fsRoutes(app, {
 
 if (import.meta.main) {
   await app.listen();
-}
-`;
+}`;
   await writeFile("main.ts", MAIN_TS);
 
-  const COMPONENTS_BUTTON_TSX = `import { ComponentChildren } from "preact";
+  const COMPONENTS_BUTTON_TSX =
+    `import type { ComponentChildren } from "preact";
 
 export interface ButtonProps {
   onClick?: () => void;
   children?: ComponentChildren;
-  disabled?: boolean
+  disabled?: boolean;
 }
 
 export function Button(props: ButtonProps) {
@@ -402,8 +401,7 @@ export function Button(props: ButtonProps) {
       class="px-2 py-1 border-gray-500 border-2 rounded bg-white hover:bg-gray-200 transition-colors"
     />
   );
-}
-`;
+}`;
   await writeFile("components/Button.tsx", COMPONENTS_BUTTON_TSX);
 
   const UTILS_TS = `import { createDefine } from "fresh";
@@ -411,8 +409,7 @@ export function Button(props: ButtonProps) {
 // deno-lint-ignore no-empty-interface
 export interface State {}
 
-export const define = createDefine<State>();
-`;
+export const define = createDefine<State>();`;
   await writeFile("utils.ts", UTILS_TS);
 
   const ROUTES_HOME = `import { useSignal } from "@preact/signals";
@@ -441,10 +438,10 @@ export default define.page(function Home() {
       </div>
     </div>
   );
-})`;
+});`;
   await writeFile("routes/index.tsx", ROUTES_HOME);
 
-  const APP_WRAPPER = `import { type PageProps } from "fresh";
+  const APP_WRAPPER = `import type { PageProps } from "fresh";
 
 export default function App({ Component }: PageProps) {
   return (
@@ -478,24 +475,21 @@ export default function Counter(props: CounterProps) {
       <Button onClick={() => props.count.value += 1}>+1</Button>
     </div>
   );
-}
-`;
+}`;
   await writeFile("islands/Counter.tsx", ISLANDS_COUNTER_TSX);
 
   const DEV_TS = `#!/usr/bin/env -S deno run -A --watch=static/,routes/
-${useTailwind ? `import { tailwind } from "@fresh/plugin-tailwind";\n` : ""};
+${useTailwind ? `import { tailwind } from "@fresh/plugin-tailwind";\n` : ""}
 import { Builder } from "fresh/dev";
 import { app } from "./main.ts";
 
 const builder = new Builder();
-${useTailwind ? "tailwind(builder, app, {});\n" : "\n"}
-
+${useTailwind ? "tailwind(builder, app, {});" : ""}
 if (Deno.args.includes("build")) {
   await builder.build(app);
 } else {
   await builder.listen(app);
-}
-`;
+}`;
   await writeFile("dev.ts", DEV_TS);
 
   const denoJson = {
@@ -557,8 +551,7 @@ Then start the project in development mode:
 deno task dev
 \`\`\`
 
-This will watch the project directory and restart as necessary.
-`;
+This will watch the project directory and restart as necessary.`;
   await writeFile("README.md", README_MD);
 
   if (useVSCode) {
