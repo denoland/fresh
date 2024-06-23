@@ -367,12 +367,25 @@ ${GRADIENT_CSS}
   }
 
   const MAIN_TS = `import { App, fsRoutes, staticFiles } from "fresh";
-import type { State } from "./utils.ts";
+import { define, type State } from "./utils.ts";
 
 export const app = new App<State>();
 app.use(staticFiles());
 
-app.get("/api/:joke", () => new Response("Hello World"));
+// this is the same as the /api/:name route defined via a file. feel free to delete this!
+app.get("/api2/:name", (ctx) => {
+  const name = ctx.params.name;
+  return new Response(
+    \`Hello, \${name.charAt(0).toUpperCase() + name.slice(1)}!\`,
+  );
+});
+
+// this can also be defined via a file. feel free to delete this!
+const exampleLoggerMiddleware = define.middleware((ctx) => {
+  console.log(\`\${ctx.req.method} \${ctx.req.url}\`);
+  return ctx.next();
+});
+app.use(exampleLoggerMiddleware);
 
 await fsRoutes(app, {
   dir: "./",
@@ -459,6 +472,18 @@ export default function App({ Component }: PageProps) {
   );
 }`;
   await writeFile("routes/_app.tsx", APP_WRAPPER);
+
+  const API_NAME = `import { define } from "../../utils.ts";
+
+export const handler = define.handlers({
+  GET(ctx) {
+    const name = ctx.params.name;
+    return new Response(
+      \`Hello, \${name.charAt(0).toUpperCase() + name.slice(1)}!\`,
+    );
+  },
+});`;
+  await writeFile("routes/api/[name].tsx", API_NAME);
 
   const ISLANDS_COUNTER_TSX = `import type { Signal } from "@preact/signals";
 import { Button } from "../components/Button.tsx";
