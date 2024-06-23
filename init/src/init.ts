@@ -531,6 +531,7 @@ if (Deno.args.includes("build")) {
         tags: ["fresh", "recommended"],
       },
     },
+    lock: true,
     exclude: ["**/_fresh/*"],
     imports: {
       "fresh": `jsr:@fresh/core@^${FRESH_VERSION}`,
