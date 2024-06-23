@@ -1,10 +1,5 @@
 import { walk, type WalkEntry, type WalkOptions } from "@std/fs/walk";
 
-export interface FreshFile {
-  size: number;
-  readable: ReadableStream<Uint8Array>;
-}
-
 export interface FsAdapter {
   cwd(): string;
   walk(
