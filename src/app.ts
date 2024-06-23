@@ -39,11 +39,6 @@ export type ListenOptions = Partial<Deno.ServeTlsOptions> & {
   remoteAddress?: string;
 };
 
-export interface RouteCacheEntry<T> {
-  params: Record<string, string>;
-  handler: MiddlewareFn<T>;
-}
-
 export let getRouter: <State>(app: App<State>) => Router<MiddlewareFn<State>>;
 // deno-lint-ignore no-explicit-any
 export let getIslandRegistry: (app: App<any>) => ServerIslandRegistry;

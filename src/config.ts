@@ -1,10 +1,6 @@
 import * as path from "@std/path";
 import type { Mode } from "./runtime/server/mod.ts";
 
-export interface FreshPlugin {
-  name: string;
-}
-
 export interface FreshConfig {
   root?: string;
   build?: {
