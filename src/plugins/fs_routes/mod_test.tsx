@@ -1088,3 +1088,65 @@ Deno.test("fsRoutes - sortRoutePaths", () => {
   ];
   expect(routes).toEqual(sorted);
 });
+
+Deno.test("fsRoutes - registers default GET route for component without GET handler", async () => {
+  const server = await createServer<{ value: boolean }>({
+    "routes/noGetHandler.tsx": {
+      default: (ctx) => {
+        return <h1>{ctx.state.value ? "true" : "false"}</h1>;
+      },
+      handlers: {
+        POST: () => new Response("POST"),
+      },
+    },
+  });
+
+  const postRes = await server.post("/noGetHandler");
+  expect(postRes.status).toEqual(200);
+  expect(postRes.headers.get("Content-Type")).toEqual(
+    "text/plain;charset=UTF-8",
+  );
+  expect(await postRes.text()).toEqual("POST");
+
+  const getRes = await server.get("/noGetHandler");
+  expect(getRes.status).toEqual(200);
+  expect(getRes.headers.get("Content-Type")).toEqual(
+    "text/html; charset=utf-8",
+  );
+  expect(await getRes.text()).toContain(
+    "<h1>false</h1>",
+  );
+});
+
+Deno.test("fsRoutes - default GET route doesn't override existing handler", async () => {
+  const server = await createServer<{ value: boolean }>({
+    "routes/withGetHandler.tsx": {
+      default: (ctx) => {
+        return <h1>{ctx.state.value ? "true" : "false"}</h1>;
+      },
+      handlers: {
+        POST: () => new Response("POST"),
+        GET: (ctx) => {
+          ctx.state.value = true;
+          return page();
+        },
+      },
+    },
+  });
+
+  const postRes = await server.post("/withGetHandler");
+  expect(postRes.status).toEqual(200);
+  expect(postRes.headers.get("Content-Type")).toEqual(
+    "text/plain;charset=UTF-8",
+  );
+  expect(await postRes.text()).toEqual("POST");
+
+  const getRes = await server.get("/withGetHandler");
+  expect(getRes.status).toEqual(200);
+  expect(getRes.headers.get("Content-Type")).toEqual(
+    "text/html; charset=utf-8",
+  );
+  expect(await getRes.text()).toContain(
+    "<h1>true</h1>",
+  );
+});
