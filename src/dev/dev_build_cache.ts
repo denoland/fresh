@@ -143,6 +143,7 @@ export class MemoryBuildCache implements DevBuildCache {
 
   // deno-lint-ignore require-await
   async flush(): Promise<void> {
+    console.log("FLUSH MEMORY CACHE");
     this.#ready.resolve();
   }
 }
@@ -201,6 +202,7 @@ export class DiskBuildCache implements DevBuildCache {
 
   async flush(): Promise<void> {
     const staticDir = this.config.staticDir;
+    const outDir = this.config.build.outDir;
 
     if (await fsAdapter.isDirectory(staticDir)) {
       const entries = fsAdapter.walk(staticDir, {
@@ -212,6 +214,11 @@ export class DiskBuildCache implements DevBuildCache {
       });
 
       for await (const entry of entries) {
+        // OutDir might be inside static dir
+        if (!path.relative(outDir, entry.path).startsWith("..")) {
+          continue;
+        }
+
         const result = await this.#transformer.process(
           entry.path,
           "production",
