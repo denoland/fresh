@@ -102,7 +102,7 @@ export class ProdBuildCache implements BuildCache {
       hash: info.hash,
       size: stat.size,
       readable: file.readable,
-      close: file.close,
+      close: () => file.close(),
     };
   }
 
