@@ -15,6 +15,7 @@ export default function CopyArea(props: { code: string }) {
       copied.value = true;
     } catch (error) {
       copied.value = false;
+      // deno-lint-ignore no-console
       console.error((error && error.message) || "Copy failed");
     }
   }

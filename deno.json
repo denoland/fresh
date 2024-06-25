@@ -78,6 +78,6 @@
     "jsxPrecompileSkipElements": ["a", "img", "source", "body", "html", "head"]
   },
   "lint": {
-    "rules": { "exclude": ["no-window"] }
+    "rules": { "exclude": ["no-window"], "include": ["no-console"] }
   }
 }

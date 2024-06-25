@@ -22,6 +22,7 @@ export function devErrorOverlay<T>(): MiddlewareFn<T> {
         }
 
         // At this point we're pretty sure to have a server error
+        // deno-lint-ignore no-console
         console.error(err);
 
         return ctx.render(<FreshScripts />, init);

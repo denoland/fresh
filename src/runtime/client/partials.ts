@@ -481,6 +481,7 @@ function revivePartials(
 
         const instance = ACTIVE_PARTIALS.get(partialName);
         if (instance === undefined) {
+          // deno-lint-ignore no-console
           console.warn(`Partial "${partialName}" not found. Skipping...`);
           // Partial doesn't exist on the current page
         } else {

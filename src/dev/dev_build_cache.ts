@@ -143,7 +143,6 @@ export class MemoryBuildCache implements DevBuildCache {
 
   // deno-lint-ignore require-await
   async flush(): Promise<void> {
-    console.log("FLUSH MEMORY CACHE");
     this.#ready.resolve();
   }
 }

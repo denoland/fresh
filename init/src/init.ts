@@ -62,9 +62,11 @@ const realTTY: MockTTY = {
     return confirm(message);
   },
   log(...args) {
+    // deno-lint-ignore no-console
     console.log(...args);
   },
   logError(...args) {
+    // deno-lint-ignore no-console
     console.error(...args);
   },
 };

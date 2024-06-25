@@ -244,6 +244,7 @@ export function parseHtml(input: string): TestDocument {
   // deno-lint-ignore no-explicit-any
   const doc = new DOMParser().parseFromString(input, "text/html") as any;
   Object.defineProperty(doc, "debug", {
+    // deno-lint-ignore no-console
     value: () => console.log(prettyDom(doc)),
     enumerable: false,
   });
@@ -284,6 +285,7 @@ export function assertMetaContent(
   }
 
   if (el === null) {
+    // deno-lint-ignore no-console
     console.log(prettyDom(doc));
     throw new Error(
       `No <meta>-tag found with content "${expected}"`,
@@ -312,6 +314,7 @@ export async function waitForText(
     // deno-lint-ignore no-explicit-any
     const pretty = prettyDom(parseHtml(body) as any);
 
+    // deno-lint-ignore no-console
     console.log(
       `Text "${text}" not found on selector "${selector}" in html:\n\n${pretty}`,
     );
