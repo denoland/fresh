@@ -74,6 +74,7 @@ export function assetInternal(path: string, buildId: string): string {
     url.searchParams.set(ASSET_CACHE_BUST_KEY, buildId);
     return url.pathname + url.search + url.hash;
   } catch (err) {
+    // deno-lint-ignore no-console
     console.warn(
       `Failed to create asset() URL, falling back to regular path ('${path}'):`,
       err,

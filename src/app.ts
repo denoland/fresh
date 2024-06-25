@@ -216,11 +216,13 @@ export class App<State> {
       } catch (err) {
         if (err instanceof HttpError) {
           if (err.status >= 500) {
+            // deno-lint-ignore no-console
             console.error(err);
           }
           return new Response(err.message, { status: err.status });
         }
 
+        // deno-lint-ignore no-console
         console.error(err);
         return new Response("Internal server error", { status: 500 });
       }
@@ -243,16 +245,20 @@ export class App<State> {
 
         // Don't spam logs with this on live deployments
         if (!DENO_DEPLOYMENT_ID) {
+          // deno-lint-ignore no-console
           console.log();
+          // deno-lint-ignore no-console
           console.log(
             colors.bgRgb8(colors.rgb8(" 🍋 Fresh ready   ", 0), 121),
           );
           const sep = options.remoteAddress ? "" : "\n";
           const space = options.remoteAddress ? " " : "";
+          // deno-lint-ignore no-console
           console.log(`    ${localLabel}  ${space}${address}${sep}`);
           if (options.remoteAddress) {
             const remoteLabel = colors.bold("Remote:");
             const remoteAddress = colors.cyan(options.remoteAddress);
+            // deno-lint-ignore no-console
             console.log(`    ${remoteLabel}  ${remoteAddress}\n`);
           }
         }

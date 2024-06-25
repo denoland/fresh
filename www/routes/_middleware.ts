@@ -16,6 +16,7 @@ function ga4(
   if (GA4_MEASUREMENT_ID === undefined) {
     if (!showedMissingEnvWarning) {
       showedMissingEnvWarning = true;
+      // deno-lint-ignore no-console
       console.warn(
         "GA4_MEASUREMENT_ID environment variable not set. Google Analytics reporting disabled.",
       );
@@ -81,6 +82,7 @@ function ga4(
 
     await report.send();
   }).catch((err) => {
+    // deno-lint-ignore no-console
     console.error(err);
   });
 }

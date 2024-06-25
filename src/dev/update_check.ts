@@ -106,6 +106,7 @@ export async function updateCheck(
       checkFile.last_checked = new Date().toISOString();
     } catch (err) {
       // Update check is optional and shouldn't abort the program.
+      // deno-lint-ignore no-console
       console.error(
         colors.red(`    Update check failed: `) + err.message,
       );
@@ -125,12 +126,15 @@ export async function updateCheck(
 
     const current = colors.bold(colors.rgb8(checkFile.current_version, 208));
     const latest = colors.bold(colors.rgb8(checkFile.latest_version, 121));
+    // deno-lint-ignore no-console
     console.log(
       `    Fresh ${latest} is available. You're on ${current}`,
     );
+    // deno-lint-ignore no-console
     console.log(
       `    To upgrade, run: deno run -A -r https://fresh.deno.dev/update`,
     );
+    // deno-lint-ignore no-console
     console.log();
   }
 

@@ -2,7 +2,7 @@ import * as path from "@std/path";
 import * as JSONC from "@std/jsonc";
 import * as tsmorph from "ts-morph";
 
-const SyntaxKind = tsmorph.ts.SyntaxKind;
+export const SyntaxKind = tsmorph.ts.SyntaxKind;
 
 export const FRESH_VERSION = "2.0.0-alpha.16";
 export const PREACT_VERSION = "10.22.0";
@@ -57,7 +57,7 @@ async function updateDenoJson(
   throw new Error(`Could not find deno.json or deno.jsonc in: ${dir}`);
 }
 
-interface ImportState {
+export interface ImportState {
   core: Set<string>;
   runtime: Set<string>;
   compat: Set<string>;
@@ -101,6 +101,7 @@ export async function updateProject(dir: string) {
     try {
       return await updateFile(sourceFile);
     } catch (err) {
+      // deno-lint-ignore no-console
       console.error(`Could not process ${sourceFile.getFilePath()}`);
       throw err;
     }
@@ -348,6 +349,7 @@ function maybePrependReqVar(
     if (method.isKind(SyntaxKind.ArrowFunction)) {
       const body = method.getBody();
       if (!body.isKind(SyntaxKind.Block)) {
+        // deno-lint-ignore no-console
         console.warn(`Cannot transform arrow function`);
         return;
       }
