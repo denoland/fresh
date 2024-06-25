@@ -20,6 +20,7 @@ class MockBuildCache implements BuildCache {
         hash: info.hash,
         size: text.byteLength,
         readable: text,
+        close: () => {},
       });
     }
   }
