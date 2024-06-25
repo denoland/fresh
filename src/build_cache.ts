@@ -18,6 +18,7 @@ export interface StaticFile {
   hash: string | null;
   size: number;
   readable: ReadableStream<Uint8Array> | Uint8Array;
+  close(): void;
 }
 
 export interface BuildCache {
@@ -101,6 +102,7 @@ export class ProdBuildCache implements BuildCache {
       hash: info.hash,
       size: stat.size,
       readable: file.readable,
+      close: file.close,
     };
   }
 

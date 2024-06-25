@@ -50,6 +50,7 @@ export class MemoryBuildCache implements DevBuildCache {
         hash: processed.hash,
         readable: processed.content,
         size: processed.content.byteLength,
+        close: () => {},
       };
     }
 
@@ -65,6 +66,7 @@ export class MemoryBuildCache implements DevBuildCache {
           hash: null,
           size: stat.size,
           readable: file.readable,
+          close: file.close,
         };
       } catch (_err) {
         return null;

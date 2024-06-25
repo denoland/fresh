@@ -35,6 +35,7 @@ export function staticFiles<T>(): MiddlewareFn<T> {
     }
 
     if (req.method !== "GET" && req.method !== "HEAD") {
+      file.close();
       return new Response("Method Not Allowed", { status: 405 });
     }
 
@@ -42,6 +43,7 @@ export function staticFiles<T>(): MiddlewareFn<T> {
     if (cacheKey !== null && BUILD_ID !== cacheKey) {
       url.searchParams.delete(ASSET_CACHE_BUST_KEY);
       const location = url.pathname + url.search;
+      file.close();
       return new Response(null, {
         status: 307,
         headers: {
@@ -70,6 +72,7 @@ export function staticFiles<T>(): MiddlewareFn<T> {
         ifNoneMatch !== null &&
         (ifNoneMatch === etag || ifNoneMatch === `W/"${etag}"`)
       ) {
+        file.close();
         return new Response(null, { status: 304, headers });
       } else if (etag !== null) {
         headers.set("Etag", `W/"${etag}"`);
@@ -78,6 +81,7 @@ export function staticFiles<T>(): MiddlewareFn<T> {
 
     headers.set("Content-Length", String(file.size));
     if (req.method === "HEAD") {
+      file.close();
       return new Response(null, { status: 200, headers });
     }
 
