@@ -11,21 +11,18 @@ Deno.test({
     builder.onTransformStaticFile(
       { pluginName: "A", filter: /\.css$/ },
       () => {
-        console.trace();
         logs.push("A");
       },
     );
     builder.onTransformStaticFile(
       { pluginName: "B", filter: /\.css$/ },
       () => {
-        console.trace();
         logs.push("B");
       },
     );
     builder.onTransformStaticFile(
       { pluginName: "C", filter: /\.css$/ },
       () => {
-        console.trace();
         logs.push("C");
       },
     );

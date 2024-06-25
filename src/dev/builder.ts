@@ -199,7 +199,6 @@ export class Builder implements FreshBuilder {
       buildCache.islands.set(island.name, `/${chunk}`);
     }
 
-    console.trace("FLUSH");
     await buildCache.flush();
 
     if (!dev) {
