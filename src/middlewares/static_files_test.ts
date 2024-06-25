@@ -20,6 +20,7 @@ class MockBuildCache implements BuildCache {
         hash: info.hash,
         size: text.byteLength,
         readable: text,
+        close: () => {},
       });
     }
   }
@@ -79,18 +80,22 @@ Deno.test("static files - etag", async () => {
     { buildCache },
   );
 
-  const headers = new Headers();
-  headers.append("If-None-Match", "123");
   const cacheUrl = `/foo.css?${ASSET_CACHE_BUST_KEY}=${BUILD_ID}`;
-  const res = await server.get(cacheUrl, { headers });
+  let res = await server.get(cacheUrl);
+  await res.body?.cancel();
+  expect(res.headers.get("Etag")).toEqual('W/"123"');
+
+  let headers = new Headers();
+  headers.append("If-None-Match", "123");
+  res = await server.get(cacheUrl, { headers });
   await res.body?.cancel();
   expect(res.status).toEqual(304);
 
-  const headers2 = new Headers();
-  headers2.append("If-None-Match", "W/123");
-  const res2 = await server.get(cacheUrl, { headers });
-  await res2.body?.cancel();
-  expect(res2.status).toEqual(304);
+  headers = new Headers();
+  headers.append("If-None-Match", 'W/"123"');
+  res = await server.get(cacheUrl, { headers });
+  await res.body?.cancel();
+  expect(res.status).toEqual(304);
 });
 
 Deno.test("static files - 404 on missing favicon.ico", async () => {
