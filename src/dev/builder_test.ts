@@ -82,9 +82,9 @@ Deno.test({
 
     await builder.build(app);
 
-    const css = await Deno.readTextFile(
+    const code = await Deno.readTextFile(
       path.join(tmp, "dist", "static", "RemoteIsland.js"),
     );
-    expect(css).toContain('"remote-island"');
+    expect(code).toContain('"remote-island"');
   },
 });
