@@ -32,6 +32,7 @@
       "jsr:@std/path@0.223.0": "jsr:@std/path@0.223.0",
       "jsr:@std/path@^0.225.1": "jsr:@std/path@0.225.2",
       "jsr:@std/path@^0.225.2": "jsr:@std/path@0.225.2",
+      "jsr:@std/semver@^0.224.3": "jsr:@std/semver@0.224.3",
       "jsr:@std/streams@^0.224.3": "jsr:@std/streams@0.224.3",
       "jsr:@zip-js/zip-js@2.7.41": "jsr:@zip-js/zip-js@2.7.41",
       "npm:@preact/signals@1.2.3": "npm:@preact/signals@1.2.3_preact@10.22.0",
@@ -183,6 +184,9 @@
         "dependencies": [
           "jsr:@std/assert@^0.226.0"
         ]
+      },
+      "@std/semver@0.224.3": {
+        "integrity": "7bb34b5ad46de2c0c73de0ca3e30081ef64b4361f66abd57c84ff1011c6a1233"
       },
       "@std/streams@0.224.3": {
         "integrity": "38755b17defdb8a7f617acb7242ea029ac83a5deeb289b5820a3650cb031e2f6"
