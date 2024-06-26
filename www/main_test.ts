@@ -4,11 +4,11 @@ import { buildProd, withBrowserApp } from "../tests/test_utils.tsx";
 import { expect } from "@std/expect";
 import { retry } from "@std/async/retry";
 
+await buildProd(app);
 const handler = await app.handler();
 
 Deno.test("CORS should not set on GET /fresh-badge.svg", async () => {
   const req = new Request("http://localhost/fresh-badge.svg");
-  await buildProd(app);
   const resp = await handler(req);
   await resp?.body?.cancel();
 
