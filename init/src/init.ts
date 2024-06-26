@@ -164,8 +164,9 @@ export async function initProject(
 
 # Fresh build directory
 _fresh/
-# npm dependencies
+# npm + other dependencies
 node_modules/
+vendor/
 `;
 
   await writeFile(".gitignore", GITIGNORE);
