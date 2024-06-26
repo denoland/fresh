@@ -5,6 +5,8 @@
       "jsr:@astral/astral@^0.4.0": "jsr:@astral/astral@0.4.0",
       "jsr:@deno-library/progress@1.4.9": "jsr:@deno-library/progress@1.4.9",
       "jsr:@luca/esbuild-deno-loader@^0.10.3": "jsr:@luca/esbuild-deno-loader@0.10.3",
+      "jsr:@marvinh-test/fresh-island": "jsr:@marvinh-test/fresh-island@0.0.1",
+      "jsr:@marvinh-test/fresh-island@^0.0.1": "jsr:@marvinh-test/fresh-island@0.0.1",
       "jsr:@std/assert@^0.213.1": "jsr:@std/assert@0.213.1",
       "jsr:@std/assert@^0.223.0": "jsr:@std/assert@0.223.0",
       "jsr:@std/assert@^0.225.3": "jsr:@std/assert@0.225.3",
@@ -76,6 +78,13 @@
           "jsr:@std/encoding@0.213",
           "jsr:@std/jsonc@0.213",
           "jsr:@std/path@0.213"
+        ]
+      },
+      "@marvinh-test/fresh-island@0.0.1": {
+        "integrity": "890f2595e60b1aaeaa8d73c6ad2c1247d4c5b895387df230f7f3b2a4da29b585",
+        "dependencies": [
+          "npm:@preact/signals@^1.2.3",
+          "npm:preact@^10.22.0"
         ]
       },
       "@std/assert@0.213.1": {
@@ -1692,6 +1701,7 @@
     "dependencies": [
       "jsr:@astral/astral@^0.4.0",
       "jsr:@luca/esbuild-deno-loader@^0.10.3",
+      "jsr:@marvinh-test/fresh-island@^0.0.1",
       "jsr:@std/async@^0.224.1",
       "jsr:@std/cli@^0.224.5",
       "jsr:@std/crypto@1.0.0-rc.1",
