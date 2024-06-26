@@ -37,6 +37,7 @@
     "@astral/astral": "jsr:@astral/astral@^0.4.0",
     "@fresh/plugin-tailwind": "./plugin-tailwindcss/src/mod.ts",
     "@luca/esbuild-deno-loader": "jsr:@luca/esbuild-deno-loader@^0.10.3",
+    "@marvinh-test/fresh-island": "jsr:@marvinh-test/fresh-island@^0.0.1",
     "@preact/signals": "npm:@preact/signals@^1.2.3",
     "@std/async": "jsr:@std/async@^0.224.1",
     "@std/cli": "jsr:@std/cli@^0.224.5",

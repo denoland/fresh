@@ -110,7 +110,19 @@ export async function bundleJs(
       dependencies.set(entryPath, imports);
 
       if (entryPath !== "fresh-runtime.js" && entry.entryPoint !== undefined) {
-        const filePath = path.join(options.cwd, entry.entryPoint);
+        let filePath = "";
+        // Resolve back specifiers to original url. This is necessary
+        // to get JSR dependencies to match what we specified as
+        // an entry point to esbuild.
+        if (
+          entry.entryPoint.startsWith("https://") ||
+          entry.entryPoint.startsWith("http://")
+        ) {
+          const basename = path.basename(entryPath, path.extname(entryPath));
+          filePath = options.entryPoints[basename];
+        } else {
+          filePath = path.join(options.cwd, entry.entryPoint);
+        }
 
         const name = entryToName.get(filePath)!;
         entryToChunk.set(name, entryPath);
