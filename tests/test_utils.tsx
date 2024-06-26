@@ -1,4 +1,4 @@
-import { App, setBuildCache } from "../src/app.ts";
+import { App, getIslandRegistry, setBuildCache } from "../src/app.ts";
 import { launch, type Page } from "@astral/astral";
 import * as colors from "@std/fmt/colors";
 import { type Document, DOMParser, HTMLElement } from "linkedom";
@@ -66,7 +66,10 @@ export async function buildProd(app: App<unknown>) {
   app.config.build.outDir = outDir;
   const builder = new Builder({});
   await builder.build(app);
-  const cache = await ProdBuildCache.fromSnapshot(app.config);
+  const cache = await ProdBuildCache.fromSnapshot(
+    app.config,
+    getIslandRegistry(app).size,
+  );
   setBuildCache(app, cache);
 }
 

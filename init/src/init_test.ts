@@ -1,7 +1,7 @@
 import { expect } from "@std/expect";
 import { initProject, InitStep, type MockTTY } from "./init.ts";
 import * as path from "@std/path";
-import { withBrowser } from "../../tests/test_utils.tsx";
+import { getStdOutput, withBrowser } from "../../tests/test_utils.tsx";
 import { waitForText } from "../../tests/test_utils.tsx";
 import { withChildProcessServer } from "../../tests/test_utils.tsx";
 
@@ -194,7 +194,7 @@ Deno.test("init - can start dev server", async () => {
   });
 });
 
-Deno.test("init - can start build project", async () => {
+Deno.test("init - can start built project", async () => {
   await withTmpDir(async (dir) => {
     const mock = mockUserInput({
       [InitStep.ProjectName]: ".",
@@ -225,5 +225,31 @@ Deno.test("init - can start build project", async () => {
         });
       },
     );
+  });
+});
+
+Deno.test("init - errors on missing build cache in prod", async () => {
+  await withTmpDir(async (dir) => {
+    const mock = mockUserInput({
+      [InitStep.ProjectName]: ".",
+    });
+    await initProject(dir, [], {}, mock.tty);
+    await expectProjectFile(dir, "main.ts");
+    await expectProjectFile(dir, "dev.ts");
+
+    await patchProject(dir);
+
+    const cp = await new Deno.Command(Deno.execPath(), {
+      args: ["run", "-A", "main.ts"],
+      stdin: "null",
+      stdout: "piped",
+      stderr: "piped",
+      cwd: dir,
+    }).output();
+
+    const { stderr } = getStdOutput(cp);
+    expect(cp.code).toEqual(1);
+
+    expect(stderr).toMatch(/Found 1 islands, but did not/);
   });
 });
