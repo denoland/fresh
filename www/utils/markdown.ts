@@ -7,10 +7,10 @@ import "https://esm.sh/prismjs@1.29.0/components/prism-json.js?no-check";
 import "https://esm.sh/prismjs@1.29.0/components/prism-bash.js?no-check";
 import "https://esm.sh/prismjs@1.29.0/components/prism-yaml.js?no-check";
 
-export { extract as frontMatter } from "$std/front_matter/yaml.ts";
+export { extractYaml as frontMatter } from "@std/front-matter";
 
 import * as Marked from "https://esm.sh/marked@7.0.2";
-import { escape as escapeHtml } from "$std/html/entities.ts";
+import { escape as escapeHtml } from "@std/html";
 import { mangle } from "$marked-mangle";
 
 Marked.marked.use(mangle());

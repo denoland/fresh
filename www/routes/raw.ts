@@ -1,7 +1,7 @@
 import type { RouteConfig } from "fresh";
-import { format, parse } from "$std/semver/mod.ts";
+import { format, parse } from "@std/semver";
 import VERSIONS from "../../versions.json" with { type: "json" };
-import { extname } from "$std/path/mod.ts";
+import { extname } from "@std/path";
 import { define } from "../utils/state.ts";
 
 const BASE_URL = "https://raw.githubusercontent.com/denoland/fresh/";
