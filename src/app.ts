@@ -171,7 +171,10 @@ export class App<State> {
     (request: Request, info?: Deno.ServeHandlerInfo) => Promise<Response>
   > {
     if (this.#buildCache === null) {
-      this.#buildCache = await ProdBuildCache.fromSnapshot(this.config);
+      this.#buildCache = await ProdBuildCache.fromSnapshot(
+        this.config,
+        this.#islandRegistry.size,
+      );
     }
 
     if (

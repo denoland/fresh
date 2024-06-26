@@ -1,5 +1,5 @@
 import { expect } from "@std/expect";
-import { App, setBuildCache } from "./app.ts";
+import { App, getIslandRegistry, setBuildCache } from "./app.ts";
 import { FakeServer } from "./test_utils.ts";
 import { ProdBuildCache } from "./build_cache.ts";
 
@@ -429,7 +429,7 @@ Deno.test.ignore("FreshApp - finish setup", async () => {
       build: {
         outDir: "foo",
       },
-    }),
+    }, getIslandRegistry(app).size),
   );
 
   const server = new FakeServer(await app.handler());
