@@ -203,6 +203,7 @@ export class App<State> {
       const { params, handlers } = matched;
       const ctx = new FreshReqContext<State>(
         req,
+        url,
         conn,
         params,
         this.config,
