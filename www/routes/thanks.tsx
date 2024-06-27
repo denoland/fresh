@@ -5,8 +5,7 @@ import { define } from "../utils/state.ts";
 
 export const handler = define.handlers({
   GET(ctx) {
-    const url = new URL(ctx.req.url);
-    const search = new URLSearchParams(url.search);
+    const search = new URLSearchParams(ctx.url.search);
     const vote = search.get("vote");
     return page({ vote });
   },

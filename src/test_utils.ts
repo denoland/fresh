@@ -78,6 +78,7 @@ export function serveMiddleware<T>(
 
     const ctx = new FreshReqContext<T>(
       req,
+      new URL(req.url),
       DEFAULT_CONN_INFO,
       {},
       config,
