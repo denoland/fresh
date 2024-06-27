@@ -1,6 +1,6 @@
 {
   "name": "@fresh/core",
-  "version": "2.0.0-alpha.17",
+  "version": "2.0.0-alpha.18",
   "exports": {
     ".": "./src/mod.ts",
     "./runtime": "./src/runtime/shared.ts",
