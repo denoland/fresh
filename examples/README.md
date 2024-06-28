@@ -1,7 +1,7 @@
-# An example island
+# Examples for Fresh
 
-This is an example island to demo how to use islands from [JSR](https://jsr.io/)
-in Fresh.
+This is an package contains examples for using Fresh with
+[JSR](https://jsr.io/).
 
 Learn more about the Fresh framework here:
 [https://fresh.deno.dev/](https://fresh.deno.dev/)
