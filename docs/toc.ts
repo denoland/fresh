@@ -31,7 +31,6 @@ const toc: RawTableOfContents = {
         pages: [
           ["create-a-project", "Create a project", "link:canary"],
           ["tutorial", "Tutorial", "link:canary"],
-          ["dynamic-routes", "Dynamic routes", "link:latest"],
           ["form-submissions", "Form submissions", "link:latest"],
           ["deploy-to-production", "Deploy to production", "link:latest"],
         ],

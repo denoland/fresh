@@ -30,8 +30,8 @@ module is important: it is used to determine the path that the route will
 handle.
 
 ```sh
-routes
-├── blog
+routes/
+├── blog/
 |   ├── [id].tsx    # /blog/example-post, /blog/post2, etc
 |   └── search.tsx  # /blog/search
 |   └── index.tsx   # /blog
