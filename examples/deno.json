@@ -1,6 +1,6 @@
 {
   "name": "@fresh/examples",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "exports": {
     "./island": "./src/island.tsx",
     "./app1": "./src/app1.tsx",

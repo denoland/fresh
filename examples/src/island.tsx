@@ -1,7 +1,7 @@
 import { useSignal } from "@preact/signals";
 import type { JSX } from "preact";
 
-export default function DemoIsland(): JSX.Element {
+export function DemoIsland(): JSX.Element {
   const count = useSignal(0);
 
   return (
