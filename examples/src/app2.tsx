@@ -1,7 +1,7 @@
 import { App } from "fresh";
 import { Doc } from "./shared.tsx";
 
-export const app2 = new App()
+export const app2: App<unknown> = new App()
   .get("/", (ctx) =>
     ctx.render(
       <Doc>
