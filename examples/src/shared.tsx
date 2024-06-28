@@ -5,7 +5,7 @@ export function Doc(props: { children?: ComponentChildren }) {
     <html>
       <head>
         <meta charset="utf-8" />
-        <title>Finish setting up Fresh</title>
+        <title>Fresh Examples</title>
       </head>
       <body>{props.children}</body>
     </html>
