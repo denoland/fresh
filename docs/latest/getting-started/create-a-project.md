@@ -44,7 +44,7 @@ Two important folders are also created that contain your routes and islands
 respectively:
 
 - **`routes/`**: This folder contains all of the routes in your project. The
-  name of each file in this folder correspond to the path where that page will
+  name of each file in this folder corresponds to the path where that page will
   be accessed. Code inside of this folder is never directly shipped to the
   client. You'll learn more about how routes work in the next section.
 - **`islands/`**: This folder contains all of the interactive islands in your
