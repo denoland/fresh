@@ -16,7 +16,7 @@ passed a `render` function that it can call to invoke rendering a component.
 
 The component is the template for a page. It is a JSX element that is rendered
 on the server. The page component gets passed props that can be used by it to
-determine exactly what should be rendered. By default components receives props
+determine exactly what should be rendered. By default components receive props
 consisting of: the request URL, the matching route (as a string), the matches
 from the URL pattern match, any state set by middleware, and any data passed to
 the handler's `render` function.
