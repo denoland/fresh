@@ -46,10 +46,10 @@ OPTIONS:
 export interface MockTTY {
   prompt(
     step: InitStep,
-    message?: string | undefined,
-    _default?: string | undefined,
+    message?: string,
+    _default?: string,
   ): string | null;
-  confirm(step: InitStep, message?: string | undefined): boolean;
+  confirm(step: InitStep, message?: string): boolean;
   log(...args: unknown[]): void;
   logError(...args: unknown[]): void;
 }

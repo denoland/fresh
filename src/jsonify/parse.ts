@@ -13,7 +13,7 @@ export type CustomParser = Record<string, (value: any) => unknown>;
 
 export function parse<T = unknown>(
   value: string,
-  custom?: CustomParser | undefined,
+  custom?: CustomParser,
 ): T {
   const data = JSON.parse(value);
 
@@ -27,7 +27,7 @@ function unpack(
   arr: unknown[],
   hydrated: unknown[],
   idx: number,
-  custom: CustomParser | undefined,
+  custom?: CustomParser,
 ): void {
   if (idx in hydrated) return;
 

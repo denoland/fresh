@@ -45,7 +45,7 @@ function serializeInner(
   out: string[],
   indexes: Map<unknown, number>,
   value: unknown,
-  custom: Stringifiers | undefined,
+  custom?: Stringifiers,
 ): number {
   const seenIdx = indexes.get(value);
   if (seenIdx !== undefined) return seenIdx;

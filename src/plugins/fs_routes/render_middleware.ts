@@ -12,7 +12,7 @@ export type AsyncAnyComponent<P> = {
     // deno-lint-ignore no-explicit-any
   ): Promise<VNode<any> | Response | null>;
   displayName?: string;
-  defaultProps?: Partial<P> | undefined;
+  defaultProps?: Partial<P>;
 };
 
 export function renderMiddleware<State>(
@@ -20,8 +20,8 @@ export function renderMiddleware<State>(
     | AnyComponent<PageProps<unknown, State>>
     | AsyncAnyComponent<PageProps<unknown, State>>
   >,
-  handler: HandlerFn<unknown, State> | undefined,
-  init?: ResponseInit | undefined,
+  handler?: HandlerFn<unknown, State>,
+  init?: ResponseInit,
 ): MiddlewareFn<State> {
   return async (ctx) => {
     let result: PageResponse<unknown> | undefined;

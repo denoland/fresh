@@ -201,7 +201,7 @@ function toPreactModPath(mod: string): string {
   }
 }
 
-function preactDebugger(preactPath: string | undefined): EsbuildPlugin {
+function preactDebugger(preactPath?: string): EsbuildPlugin {
   return {
     name: "fresh-preact-debugger",
     setup(build) {

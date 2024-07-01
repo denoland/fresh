@@ -41,7 +41,7 @@ function checkClientNavEnabled(el: HTMLElement) {
 }
 
 // Keep track of history state to apply forward or backward animations
-let index = history.state?.index || 0;
+let index: number = history.state?.index || 0;
 if (!history.state) {
   const state: FreshHistoryState = {
     index,
