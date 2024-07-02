@@ -1810,9 +1810,6 @@ Deno.test({
                   <p class="init">init</p>
                 </Partial>
                 <SelfCounter />
-                <button>
-                  nothing
-                </button>
                 <button type="submit" class="update">
                   submit
                 </button>
