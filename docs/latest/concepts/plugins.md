@@ -211,7 +211,7 @@ export default function routePlugin(
       path: "lots-of-middleware",
     }],
     routes: [
-      { path: "no-leading-slash-here", component: SimpleRoute }
+      { path: "no-leading-slash-here", component: SimpleRoute },
     ],
   };
 }
