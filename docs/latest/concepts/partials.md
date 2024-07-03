@@ -220,7 +220,7 @@ like on a particular link, form or button, you can opt out of it by setting
 </body>;
 ```
 
-Whenver an element is clicked Fresh checks if it has the `f-client-nav`
+Whenever an element is clicked Fresh checks if it has the `f-client-nav`
 attribute and if it is set to `true`. If the element itself doesn't have such an
 attribute, it will check if any of the ancestor elements has it. If an element
 was found with a truthy `f-client-nav` attribute a partial request will be
