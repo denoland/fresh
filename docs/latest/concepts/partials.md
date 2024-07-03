@@ -214,7 +214,7 @@ like on a particular link, form or button, you can opt out of it by setting
   {/* This WONT cause a partial navigation on any elements below */}
   <div f-client-nav={false}>
     <div>
-      <a href="/docs/page1" f-client-nav={false}>No partials</a>
+      <a href="/docs/page1">No partials</a>
     </div>
   </div>
 </body>;
