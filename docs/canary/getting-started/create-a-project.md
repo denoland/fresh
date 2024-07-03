@@ -28,18 +28,18 @@ this:
 ```sh
 fresh-project/
 ├── components/         # Place components that should be re-used here
-|   └── Button.tsx      # A re-usable button component
+│   └── Button.tsx      # A re-usable button component
 ├── islands/            # Client-side components to run in the browser
-|   └── Counter.tsx     # An example Counter island component
+│   └── Counter.tsx     # An example Counter island component
 ├── routes/             # Place all your routes here
-|   ├── _app.tsx        # App wrapper template, the outer HTML structure
-|   |                   # that will always be included on every page.
-|   ├── api/
-|   |   └── [name].tsx  # /api/:name route example that responds with
-|   |                   # plain text and the name you pass in the url
-|   └── index.tsx       # / Route
+│   ├── _app.tsx        # App wrapper template, the outer HTML structure
+│   │                   # that will always be included on every page.
+│   ├── api/
+│   │   └── [name].tsx  # /api/:name route example that responds with
+│   │                   # plain text and the name you pass in the url
+│   └── index.tsx       # / Route
 ├── static/             # Place static files (images, videos, etc) here
-|   └── ...
+│   └── ...
 ├── deno.json      # Contains project dependencies, tasks, etc
 ├── dev.ts         # Development entry point
 └── main.tsx       # Production entry point (use this for Deno Deploy)
