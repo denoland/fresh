@@ -42,7 +42,7 @@ fresh-project/
 │   └── ...
 ├── deno.json      # Contains project dependencies, tasks, etc
 ├── dev.ts         # Development entry point
-└── main.tsx       # Production entry point (use this for Deno Deploy)
+└── main.ts        # Production entry point (use this for Deno Deploy)
 ```
 
 The most important fields in the `deno.json` file are the `"imports"` and
