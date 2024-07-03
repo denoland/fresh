@@ -528,7 +528,7 @@ export function createRootFragment(
   endMarker: Text | Comment,
 ): HTMLElement & { _frshRootFrag: boolean } {
   // @ts-ignore this is fine
-  return {
+  const rootFrag = {
     _frshRootFrag: true,
     nodeType: 1,
     parentNode: parent,
@@ -562,6 +562,19 @@ export function createRootFragment(
     removeChild(child: Node) {
       parent.removeChild(child);
     },
-    // deno-lint-ignore no-explicit-any
-  } as any;
+    contains(node: Node | null): boolean {
+      if (node === null) return false;
+
+      const children = rootFrag.childNodes;
+      for (let i = 0; i < children.length; i++) {
+        if (children[i].contains(node)) {
+          return true;
+        }
+      }
+      return false;
+    },
+  };
+
+  // deno-lint-ignore no-explicit-any
+  return rootFrag as any;
 }
