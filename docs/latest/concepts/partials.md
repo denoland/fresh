@@ -196,3 +196,33 @@ export default function LogView() {
 
 > [info]: When picking the `prepend` or `append` mode, make sure to add keys to
 > the elements.
+
+## Bypassing or disabling Partials
+
+If you want to exempt a particular element from triggering a partial request
+like on a particular link, form or button, you can opt out of it by setting
+`f-client-nav={false}` on the element or one of the ancestor elements.
+
+```tsx
+<body f-client-nav>
+  {/* This will cause a partial navigation */}
+  <a href="/docs/page1">With partials</a>
+
+  {/* This WONT cause a partial navigation */}
+  <a href="/docs/page1" f-client-nav={false}>No partials</a>
+
+  {/* This WONT cause a partial navigation on any elements below */}
+  <div f-client-nav={false}>
+    <div>
+      <a href="/docs/page1" f-client-nav={false}>No partials</a>
+    </div>
+  </div>
+</body>;
+```
+
+Whenver an element is clicked Fresh checks if it has the `f-client-nav`
+attribute and if it is set to `true`. If the element itself doesn't have such an
+attribute, it will check if any of the ancestor elements has it. If an element
+was found with a truthy `f-client-nav` attribute a partial request will be
+triggered. If there is no such attribute or if it's set to `false`, no partial
+request will occur.
