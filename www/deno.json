@@ -1,5 +1,4 @@
 {
-  "lock": false,
   "nodeModulesDir": true,
   "tasks": {
     "start": "deno run -A --watch=static/,routes/,../src,../docs dev.ts",
