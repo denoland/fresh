@@ -18,8 +18,12 @@ cd fresh-project
 ```
 
 This will scaffold out the new project, then switch ito the newly created
-directory. The folder structure of the newly created Fresh project will look
-roughly like this:
+directory.
+
+## Project Structure
+
+The folder structure of the newly created Fresh project will look roughly like
+this:
 
 ```sh
 fresh-project/
@@ -50,7 +54,9 @@ The most important fields in the `deno.json` file are the `"imports"` and
 - `"tasks"`: Registers [tasks](https://deno.land/manual/tools/task_runner) for
   your project. Run `deno task` to view all available tasks.
 
-> [info]: Fresh requires the following permissions to function:
+> [info]: The commands defined in the `"tasks"` section in `deno.json` pass `-A`
+> to `deno run` which enables all permissions. Fresh requires the following
+> permissions to function:
 >
 > - **`--allow-net`**: Required to start the HTTP server.
 > - **`--allow-read`**: Required to read (static) files from disk.
@@ -58,5 +64,3 @@ The most important fields in the `deno.json` file are the `"imports"` and
 >   to configure your project.
 > - **`--allow-run`**: Required to shell out to `deno` and `esbuild` under the
 >   hood generate the browser assets.
->
-> The tasks defined in `deno.json` have `-A` which allows all permissions.

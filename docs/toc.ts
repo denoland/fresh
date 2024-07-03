@@ -21,25 +21,19 @@ const toc: RawTableOfContents = {
       "the-canary-version": {
         title: "The canary version",
       },
-      introduction: {
-        title: "Introduction",
-        link: "latest",
-      },
       "getting-started": {
         title: "Getting Started",
         link: "latest",
         pages: [
+          ["introduction", "Introduction", "link:canary"],
           ["create-a-project", "Create a project", "link:canary"],
           ["tutorial", "Tutorial", "link:canary"],
-          ["form-submissions", "Form submissions", "link:latest"],
-          ["deploy-to-production", "Deploy to production", "link:latest"],
         ],
       },
       concepts: {
         title: "Concepts",
         link: "latest",
         pages: [
-          ["architecture", "Architecture", "link:latest"],
           ["server-components", "Server Components", "link:latest"],
           ["routing", "Routing", "link:latest"],
           ["routes", "Routes", "link:latest"],
@@ -57,6 +51,14 @@ const toc: RawTableOfContents = {
           ["plugins", "Plugins", "link:latest"],
           ["updating", "Updating Fresh", "link:latest"],
           ["server-configuration", "Server configuration", "link:latest"],
+        ],
+      },
+      "build-and-deploy": {
+        title: "Build and Deploy",
+        pages: [
+          ["build", "Building your app", "link:canary"],
+          ["deno-deploy", "Deno Deploy", "link:canary"],
+          ["docker", "Docker Image", "link:canary"],
         ],
       },
       integrations: {

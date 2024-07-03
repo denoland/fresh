@@ -135,7 +135,7 @@ creating a route for viewing a single post. To do so, create a
 
 ```tsx routes/blog/[id].tsx
 import { HttpError, page } from "fresh";
-import { define } from "../utils/state.ts";
+import { define } from "../../utils/state.ts";
 import { type BlogPost, posts } from "../../blog-posts.ts";
 
 // This is a handler that runs before rendering the page. It
@@ -172,9 +172,52 @@ export default define.page<typeof handler>(function Post(props) {
 });
 ```
 
-### Adding a search page
+## Adding a search page for our blog
 
-asd
+To build our search page, we'll create a standard
+[`<form>`](https://developer.mozilla.org/en-US/docs/Learn/Forms/Your_first_form)
+that upon submission adds the search query in the URL. On the server we'll pull
+out that value of the incoming request, and search if any of our blog posts
+contains the query string.
+
+Since handlers run before rendering the components they are the perfect place to
+trigger the search. Once we've filtered down the result list, we can pass it to
+our component via the `page()` function.
+
+```tsx routes/blog/search.tsx
+import { page } from "fresh";
+import { define } from "../../utils/state.ts";
+import { posts } from "../../blog-posts.ts"
+
+export const handler = define.handler({
+  GET(ctx) {
+    const query = ctx.url.searchParams.get("q") || "";
+    const results = posts.filter((post) => post.title.includes(query));
+    return page({ results, query });
+  },
+});
+
+export default define.page<typeof handler>(props => {
+  const { results, query } = props.data;
+  return (
+    <div>
+      <form>
+        <input type="text" name="q" value={query} />
+        <button type="submit">Search</button>
+      </form>
+      <ul>
+        {results.map((post) => {
+          return (
+            <li key={post}>
+              <a href={`/blog/${post.slug}`}>{post.title}</a>
+            </li>
+          )
+        })}
+      </ul>
+    </div>
+  );
+}
+```
 
 ## Your first island
 
@@ -236,3 +279,8 @@ export default function AboutPage() {
 If you now visit http://localhost:8000/about you'll see our newly created
 counter on the page. Click the "increment" and "decrement" button and see the
 number update in the UI.
+
+## Deploying
+
+Congratulations, you've built your first Fresh app! You can now continue to
+[deploy it](#) to publish it on the internet.
