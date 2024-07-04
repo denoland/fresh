@@ -163,8 +163,59 @@ To create a middleware you need to create a `MiddlewareHandler` function.
 
 And to create a route you can create both a Handler and/or component.
 
-A very basic example can be found
-[here](https://github.com/denoland/fresh/blob/main/tests/fixture_plugin/utils/route-plugin.ts).
+Below is an example plugin that creates a route and middleware
+
+```ts my-route-and-middleware-plugin.ts
+import { MiddlewareHandlerContext, Plugin } from "$fresh/server.ts";
+import { handler as testMiddleware } from "./sample_routes/_middleware.ts";
+import { SimpleRoute } from "./sample_routes/simple-route.tsx";
+export type { Options };
+
+interface Options {
+  title: string;
+}
+export type PluginMiddlewareState = {
+  num: number;
+  test: string;
+};
+
+const twoPointlessMiddlewares = [
+  async (
+    _req: Request,
+    ctx: MiddlewareHandlerContext<PluginMiddlewareState>,
+  ) => {
+    ctx.state.num = ctx.state.num === undefined ? 1 : ctx.state.num + 1;
+    return await ctx.next();
+  },
+  async (
+    _req: Request,
+    ctx: MiddlewareHandlerContext<PluginMiddlewareState>,
+  ) => {
+    ctx.state.num = ctx.state.num === undefined ? 1 : ctx.state.num + 1;
+    return await ctx.next();
+  },
+];
+
+export default function routePlugin(
+  options: Options,
+): Plugin<PluginMiddlewareState> {
+  return {
+    name: "routePlugin",
+    middlewares: [{
+      middleware: { handler: testMiddleware },
+      path: "/",
+    }, {
+      middleware: {
+        handler: twoPointlessMiddlewares,
+      },
+      path: "lots-of-middleware",
+    }],
+    routes: [
+      { path: "no-leading-slash-here", component: SimpleRoute },
+    ],
+  };
+}
+```
 
 ### Islands
 
