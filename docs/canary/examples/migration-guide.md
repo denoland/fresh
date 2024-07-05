@@ -105,7 +105,7 @@ Both the `_500.tsx` and `_404.tsx` template have been unified into a single
   routes/
 -   ├── _404.tsx
 -   ├── _500.tsx
-+   ├── _error_.tsx
++   ├── _error.tsx
     └── ...
 ```
 
