@@ -398,5 +398,11 @@
     "link": "https://thoth-doc.deno.dev/",
     "github": "Octo8080X/thoth",
     "image": "thoth-doc"
+  },
+  {
+    "title": "Pile-Up",
+    "link": "https://pile-up.deno.dev/",
+    "github": "Octo8080X/Pile-Up",
+    "image": "pile-up"
   }
 ]
