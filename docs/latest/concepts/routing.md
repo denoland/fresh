@@ -81,7 +81,7 @@ can only have one `_layout` file.
 ```
 
 We can solve this problem with route groups. A route group is a folder which has
-a name that is wrapped in parentheses. For example `(pages)` would be considered
+a name that is wrapped in parentheses. For example `(info)` would be considered
 a route group and so would `(marketing)`. This enables us to group related
 routes in a folder and use a different `_layout` file for each group.
 
