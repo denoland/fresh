@@ -398,5 +398,11 @@
     "link": "https://thoth-doc.deno.dev/",
     "github": "Octo8080X/thoth",
     "image": "thoth-doc"
+  },
+  {
+    "title": "Plan Maker",
+    "link": "https://plan-maker.deno.dev/",
+    "github": "https://github.com/mugi0096/plan-maker-frontend",
+    "image": "plan-maker"
   }
 ]
