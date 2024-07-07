@@ -1150,3 +1150,25 @@ Deno.test("fsRoutes - default GET route doesn't override existing handler", asyn
     "<h1>true</h1>",
   );
 });
+
+Deno.test("support numeric keys", async () => {
+  const TestComponent = () => <div>foo</div>;
+
+  const server = await createServer({
+    "routes/index.tsx": {
+      default: () => {
+        return (
+          <>
+            <TestComponent key={0} />
+            <TestComponent key={1} />
+            ok
+          </>
+        );
+      },
+    },
+  });
+
+  const res = await server.get("/");
+  const text = await res.text();
+  expect(text).toContain("ok");
+});

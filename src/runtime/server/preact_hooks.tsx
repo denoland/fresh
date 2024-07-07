@@ -165,8 +165,11 @@ options[OptionsType.ATTR] = (name, value) => {
 
 const PATCHED = new WeakSet<VNode>();
 
-function normalizeKey(str: string) {
-  return str.replaceAll(":", "_");
+function normalizeKey(key: string | number) {
+  if (typeof key === "number") {
+    key = key.toString();
+  }
+  return key.replaceAll(":", "_");
 }
 
 const oldDiff = options[OptionsType.DIFF];
