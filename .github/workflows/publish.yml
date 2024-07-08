@@ -34,3 +34,7 @@ jobs:
       - name: Publish @fresh/update
         working-directory: ./update
         run: deno publish
+
+      - name: Publish @fresh/examples
+        working-directory: ./examples
+        run: deno publish

@@ -22,16 +22,20 @@ ensureMinDenoVersion(MIN_DENO_VERSION);
 
 const flags = parseArgs(Deno.args, {});
 
+// deno-lint-ignore no-console
 console.log(colors.bgRgb8(
   colors.rgb8(" 🍋 Fresh Updater ", 0),
   121,
 ));
+// deno-lint-ignore no-console
 console.log();
+// deno-lint-ignore no-console
 console.log(
   colors.italic(
     "Note: Breaking changes may require additional manual updates.",
   ),
 );
+// deno-lint-ignore no-console
 console.log();
 
 let unresolvedDirectory = Deno.args[0];

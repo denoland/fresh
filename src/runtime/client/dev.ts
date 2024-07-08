@@ -33,6 +33,7 @@ function reconnect() {
 
   reconnectTimer = setTimeout(() => {
     if (backoffIdx === 0) {
+      // deno-lint-ignore no-console
       console.log(
         `%c Fresh %c Connection closed. Trying to reconnect...`,
         "background-color: #86efac; color: black",
@@ -84,6 +85,7 @@ function handleMessage(e: MessageEvent) {
   switch (data.type) {
     case "initial-state": {
       if (revision === 0) {
+        // deno-lint-ignore no-console
         console.log(
           `%c Fresh %c Connected to development server.`,
           "background-color: #86efac; color: black",

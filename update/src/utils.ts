@@ -25,6 +25,7 @@ export function ensureMinDenoVersion(minVersion: string) {
 }
 
 export function error(message: string): never {
+  // deno-lint-ignore no-console
   console.error(`%cerror%c: ${message}`, "color: red; font-weight: bold", "");
   Deno.exit(1);
 }

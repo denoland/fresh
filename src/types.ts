@@ -28,12 +28,6 @@ export interface RouteConfig {
   skipAppWrapper?: boolean;
 }
 
-export interface SignalLike<T> {
-  value: T;
-  peek(): T;
-  subscribe(fn: (value: T) => void): () => void;
-}
-
 // TODO: Uncomment once JSR supports global types
 // declare global {
 //   namespace preact.createElement.JSX {

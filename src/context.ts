@@ -111,6 +111,7 @@ export class FreshReqContext<State>
 
   constructor(
     req: Request,
+    url: URL,
     info: Deno.ServeHandlerInfo | Deno.ServeUnixHandlerInfo,
     params: Record<string, string>,
     config: ResolvedFreshConfig,
@@ -118,7 +119,7 @@ export class FreshReqContext<State>
     islandRegistry: ServerIslandRegistry,
     buildCache: BuildCache,
   ) {
-    this.url = new URL(req.url);
+    this.url = url;
     this.req = req;
     this.info = info;
     this.params = params;

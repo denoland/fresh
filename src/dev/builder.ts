@@ -202,6 +202,7 @@ export class Builder implements FreshBuilder {
     await buildCache.flush();
 
     if (!dev) {
+      // deno-lint-ignore no-console
       console.log(
         `Assets written to: ${colors.cyan(build.outDir)}`,
       );

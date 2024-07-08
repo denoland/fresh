@@ -251,7 +251,7 @@ export async function fsRoutes<State>(
         let parent = mod.path.slice(0, -"_error".length);
         parent = parent === "/" ? "*" : parent + "*";
 
-        // Add error route as it's own route
+        // Add error route as its own route
         if (!specialPaths.has(mod.path)) {
           specialPaths.add(mod.path);
           app.all(
@@ -284,13 +284,19 @@ export async function fsRoutes<State>(
       }
     }
 
-    if (routeMod.component !== null) {
-      components.push(routeMod.component);
-    }
-
     const handlers = routeMod.handlers;
     const routePath = routeMod.config?.routeOverride ??
       pathToPattern(normalized.slice(1));
+
+    if (routeMod.component !== null) {
+      components.push(routeMod.component);
+      const missingGetHandler = handlers !== null &&
+        isHandlerByMethod(handlers) &&
+        !Object.keys(handlers).includes("GET");
+      if (missingGetHandler) {
+        app.get(routePath, renderMiddleware(components, undefined));
+      }
+    }
 
     if (
       handlers === null ||

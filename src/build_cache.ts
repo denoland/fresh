@@ -1,6 +1,7 @@
 import * as path from "@std/path";
 import type { ResolvedFreshConfig } from "./config.ts";
-import { setBuildId } from "./runtime/build_id.ts";
+import { DENO_DEPLOYMENT_ID, setBuildId } from "./runtime/build_id.ts";
+import * as colors from "@std/fmt/colors";
 
 export interface FileSnapshot {
   generated: boolean;
@@ -18,6 +19,7 @@ export interface StaticFile {
   hash: string | null;
   size: number;
   readable: ReadableStream<Uint8Array> | Uint8Array;
+  close(): void;
 }
 
 export interface BuildCache {
@@ -27,7 +29,7 @@ export interface BuildCache {
 }
 
 export class ProdBuildCache implements BuildCache {
-  static async fromSnapshot(config: ResolvedFreshConfig) {
+  static async fromSnapshot(config: ResolvedFreshConfig, islandCount: number) {
     const snapshotPath = path.join(config.build.outDir, "snapshot.json");
 
     const staticFiles = new Map<string, FileSnapshot>();
@@ -52,8 +54,29 @@ export class ProdBuildCache implements BuildCache {
         const pathname = islands[i];
         islandToChunk.set(pathname, snapshot.islands[pathname]);
       }
+
+      if (!DENO_DEPLOYMENT_ID) {
+        // deno-lint-ignore no-console
+        console.log(
+          `Found snapshot at ${colors.cyan(snapshotPath)}`,
+        );
+      }
     } catch (err) {
-      if (!(err instanceof Deno.errors.NotFound)) {
+      if ((err instanceof Deno.errors.NotFound)) {
+        if (islandCount > 0) {
+          throw new Error(
+            `Found ${
+              colors.green(`${islandCount} islands`)
+            }, but did not find build snapshot at:\n${
+              colors.red(snapshotPath)
+            }.\n\nMaybe your forgot to run ${
+              colors.cyan("deno task build")
+            } before starting the production server\nor maybe you wanted to run ${
+              colors.cyan("deno task dev")
+            } to spin up a development server instead?\n`,
+          );
+        }
+      } else {
         throw err;
       }
     }
@@ -101,6 +124,7 @@ export class ProdBuildCache implements BuildCache {
       hash: info.hash,
       size: stat.size,
       readable: file.readable,
+      close: () => file.close(),
     };
   }
 

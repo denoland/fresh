@@ -1,7 +1,7 @@
 import { expect } from "@std/expect";
 import { initProject, InitStep, type MockTTY } from "./init.ts";
 import * as path from "@std/path";
-import { withBrowser } from "../../tests/test_utils.tsx";
+import { getStdOutput, withBrowser } from "../../tests/test_utils.tsx";
 import { waitForText } from "../../tests/test_utils.tsx";
 import { withChildProcessServer } from "../../tests/test_utils.tsx";
 
@@ -31,9 +31,11 @@ async function patchProject(dir: string): Promise<void> {
   json.imports = rootJson.imports;
   json.imports["fresh"] = "../src/mod.ts";
   json.imports["fresh/dev"] = "../src/dev/mod.ts";
-  json.imports["@fresh/plugin-tailwind"] = "../plugin-tailwindcss/mod.ts";
+  json.imports["@fresh/plugin-tailwind"] = "../plugin-tailwindcss/src/mod.ts";
+  // assert with this stricter rule, before adding it to initialized projects
+  json.lint.rules.include = ["verbatim-module-syntax"];
 
-  await Deno.writeTextFile(jsonPath, JSON.stringify(json, null, 2));
+  await Deno.writeTextFile(jsonPath, JSON.stringify(json, null, 2) + "\n");
 }
 
 function mockUserInput(steps: Record<string, unknown>) {
@@ -125,7 +127,7 @@ Deno.test("init - with vscode", async () => {
   });
 });
 
-Deno.test("init - type check project", async () => {
+Deno.test("init - fmt, lint, and type check project", async () => {
   await withTmpDir(async (dir) => {
     const mock = mockUserInput({
       [InitStep.ProjectName]: ".",
@@ -137,7 +139,29 @@ Deno.test("init - type check project", async () => {
     await patchProject(dir);
 
     const check = await new Deno.Command(Deno.execPath(), {
-      args: ["check", "main.ts", "dev.ts"],
+      args: ["task", "check"],
+      cwd: dir,
+      stderr: "inherit",
+      stdout: "inherit",
+    }).output();
+    expect(check.code).toEqual(0);
+  });
+});
+
+Deno.test("init with tailwind - fmt, lint, and type check project", async () => {
+  await withTmpDir(async (dir) => {
+    const mock = mockUserInput({
+      [InitStep.ProjectName]: ".",
+      [InitStep.Tailwind]: true,
+    });
+    await initProject(dir, [], {}, mock.tty);
+    await expectProjectFile(dir, "main.ts");
+    await expectProjectFile(dir, "dev.ts");
+
+    await patchProject(dir);
+
+    const check = await new Deno.Command(Deno.execPath(), {
+      args: ["task", "check"],
       cwd: dir,
       stderr: "inherit",
       stdout: "inherit",
@@ -170,7 +194,7 @@ Deno.test("init - can start dev server", async () => {
   });
 });
 
-Deno.test("init - can start build project", async () => {
+Deno.test("init - can start built project", async () => {
   await withTmpDir(async (dir) => {
     const mock = mockUserInput({
       [InitStep.ProjectName]: ".",
@@ -201,5 +225,31 @@ Deno.test("init - can start build project", async () => {
         });
       },
     );
+  });
+});
+
+Deno.test("init - errors on missing build cache in prod", async () => {
+  await withTmpDir(async (dir) => {
+    const mock = mockUserInput({
+      [InitStep.ProjectName]: ".",
+    });
+    await initProject(dir, [], {}, mock.tty);
+    await expectProjectFile(dir, "main.ts");
+    await expectProjectFile(dir, "dev.ts");
+
+    await patchProject(dir);
+
+    const cp = await new Deno.Command(Deno.execPath(), {
+      args: ["run", "-A", "main.ts"],
+      stdin: "null",
+      stdout: "piped",
+      stderr: "piped",
+      cwd: dir,
+    }).output();
+
+    const { stderr } = getStdOutput(cp);
+    expect(cp.code).toEqual(1);
+
+    expect(stderr).toMatch(/Found 1 islands, but did not/);
   });
 });

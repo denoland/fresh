@@ -50,6 +50,7 @@ export class MemoryBuildCache implements DevBuildCache {
         hash: processed.hash,
         readable: processed.content,
         size: processed.content.byteLength,
+        close: () => {},
       };
     }
 
@@ -65,6 +66,7 @@ export class MemoryBuildCache implements DevBuildCache {
           hash: null,
           size: stat.size,
           readable: file.readable,
+          close: () => file.close(),
         };
       } catch (_err) {
         return null;
@@ -201,6 +203,7 @@ export class DiskBuildCache implements DevBuildCache {
 
   async flush(): Promise<void> {
     const staticDir = this.config.staticDir;
+    const outDir = this.config.build.outDir;
 
     if (await fsAdapter.isDirectory(staticDir)) {
       const entries = fsAdapter.walk(staticDir, {
@@ -212,6 +215,11 @@ export class DiskBuildCache implements DevBuildCache {
       });
 
       for await (const entry of entries) {
+        // OutDir might be inside static dir
+        if (!path.relative(outDir, entry.path).startsWith("..")) {
+          continue;
+        }
+
         const result = await this.#transformer.process(
           entry.path,
           "production",

@@ -2,6 +2,7 @@ import { expect } from "@std/expect";
 import * as path from "@std/path";
 import { Builder } from "./builder.ts";
 import { App } from "../app.ts";
+import { RemoteIsland } from "@marvinh-test/fresh-island";
 
 Deno.test({
   name: "Builder - chain onTransformStaticFile",
@@ -62,5 +63,28 @@ Deno.test({
       path.join(tmp, "dist", "static", "foo.css"),
     );
     expect(css).toContain('body { background: url("/foo.jpg?__frsh_c=');
+  },
+});
+
+Deno.test({
+  name: "Builder - can bundle islands from JSR",
+  fn: async () => {
+    const builder = new Builder();
+    const tmp = await Deno.makeTempDir();
+    const app = new App({
+      staticDir: tmp,
+      build: {
+        outDir: path.join(tmp, "dist"),
+      },
+    });
+
+    app.island("jsr:@marvinh-test/fresh-island", "RemoteIsland", RemoteIsland);
+
+    await builder.build(app);
+
+    const code = await Deno.readTextFile(
+      path.join(tmp, "dist", "static", "RemoteIsland.js"),
+    );
+    expect(code).toContain('"remote-island"');
   },
 });

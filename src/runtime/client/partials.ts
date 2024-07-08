@@ -252,7 +252,7 @@ document.addEventListener("submit", async (e) => {
         // TODO: Looks like constructor type for URLSearchParam is wrong
         // deno-lint-ignore no-explicit-any
         const qs = new URLSearchParams(new FormData(el, e.submitter) as any);
-        qs.forEach((value, key) => partialUrl.searchParams.set(key, value));
+        qs.forEach((value, key) => partialUrl.searchParams.append(key, value));
       } else {
         init = { body: new FormData(el, e.submitter), method: lowerMethod };
       }
@@ -481,6 +481,7 @@ function revivePartials(
 
         const instance = ACTIVE_PARTIALS.get(partialName);
         if (instance === undefined) {
+          // deno-lint-ignore no-console
           console.warn(`Partial "${partialName}" not found. Skipping...`);
           // Partial doesn't exist on the current page
         } else {

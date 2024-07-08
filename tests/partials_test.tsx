@@ -1785,6 +1785,64 @@ Deno.test({
 });
 
 Deno.test({
+  name: "partials - form submit multiple values",
+  fn: async () => {
+    const app = testApp()
+      .get("/partial", (ctx) => {
+        const values = ctx.url.searchParams.getAll("name");
+        return ctx.render(
+          <Doc>
+            <Partial name="foo">
+              <p class={`done-${values.join("-")}`}>done</p>
+            </Partial>
+          </Doc>,
+        );
+      })
+      .get("/", (ctx) => {
+        return ctx.render(
+          <Doc>
+            <div f-client-nav>
+              <form action="/partial" method="get">
+                <input type="checkbox" name="name" value="a" />
+                <input type="checkbox" name="name" value="b" />
+                <input type="checkbox" name="name" value="c" />
+                <Partial name="foo">
+                  <p class="init">init</p>
+                </Partial>
+                <SelfCounter />
+                <button type="submit" class="update">
+                  submit
+                </button>
+              </form>
+            </div>
+          </Doc>,
+        );
+      });
+
+    await withBrowserApp(app, async (page, address) => {
+      await page.goto(address, { waitUntil: "load" });
+      await page.locator(".ready").wait();
+
+      await page.locator(".increment").click();
+      await waitForText(page, ".output", "1");
+
+      await page.locator<HTMLInputElement>("input[value=a]").evaluate((el) =>
+        el.checked = true
+      );
+      await page.locator<HTMLInputElement>("input[value=b]").evaluate((el) =>
+        el.checked = true
+      );
+      await page.locator<HTMLInputElement>("input[value=c]").evaluate((el) =>
+        el.checked = true
+      );
+
+      await page.locator(".update").click();
+      await page.locator(".done-a-b-c").wait();
+    });
+  },
+});
+
+Deno.test({
   name: "partials - fragment nav should not cause infinite loop",
   fn: async () => {
     const app = testApp()

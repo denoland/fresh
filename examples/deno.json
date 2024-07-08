@@ -1,0 +1,18 @@
+{
+  "name": "@fresh/examples",
+  "version": "1.0.1",
+  "exports": {
+    "./island": "./src/island.tsx",
+    "./app1": "./src/app1.tsx",
+    "./app2": "./src/app2.tsx"
+  },
+  "imports": {
+    "@preact/signals": "npm:@preact/signals@^1.2.3",
+    "preact": "npm:preact@^10.22.0",
+    "fresh": "jsr:@fresh/core@^2.0.0-alpha.18"
+  },
+  "compilerOptions": {
+    "jsx": "react-jsx",
+    "jsxImportSource": "preact"
+  }
+}
