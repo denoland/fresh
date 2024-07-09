@@ -400,6 +400,12 @@
     "image": "thoth-doc"
   },
   {
+    "title": "Pile-Up",
+    "link": "https://pile-up.deno.dev/",
+    "github": "Octo8080X/Pile-Up",
+    "image": "pile-up"
+  },
+  {
     "title": "Plan Maker",
     "link": "https://plan-maker.deno.dev/",
     "github": "https://github.com/mugi0096/plan-maker-frontend",

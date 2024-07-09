@@ -179,8 +179,8 @@ export default function MyIsland({ children, foo }: Props) {
 ```
 
 In essence, Fresh allows you to mix static and interactive parts in your app in
-a way that's most optimal for your use app. We'll keep sending only the
-JavaScript that is needed for the islands to the browser.
+a way that's most optimal for your app. We'll keep sending only the JavaScript
+that is needed for the islands to the browser.
 
 ```tsx route/index.tsx
 import MyIsland from "../islands/my-island.tsx";
