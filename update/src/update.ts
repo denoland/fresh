@@ -151,7 +151,7 @@ async function updateFile(sourceFile: tsmorph.SourceFile): Promise<void> {
                     rewriteCtxMethods(stmts);
                   }
 
-                  maybePrependRequestVar(property, newImports, true);
+                  maybePrependReqVar(property, newImports, true);
                 }
               } else if (property.isKind(SyntaxKind.PropertyAssignment)) {
                 const init = property.getInitializer();
@@ -166,7 +166,7 @@ async function updateFile(sourceFile: tsmorph.SourceFile): Promise<void> {
                     rewriteCtxMethods(stmts);
                   }
 
-                  maybePrependRequestVar(init, newImports, true);
+                  maybePrependReqVar(init, newImports, true);
                 }
               }
             }
@@ -178,7 +178,7 @@ async function updateFile(sourceFile: tsmorph.SourceFile): Promise<void> {
             rewriteCtxMethods(stmts);
           }
 
-          maybePrependRequestVar(node, newImports, false);
+          maybePrependReqVar(node, newImports, false);
         }
       } else if (name === "default" && decl.length > 0) {
         const caller = decl[0];
@@ -203,7 +203,7 @@ async function updateFile(sourceFile: tsmorph.SourceFile): Promise<void> {
                     rewriteCtxMethods(stmts);
                   }
 
-                  maybePrependRequestVar(first, newImports, false);
+                  maybePrependReqVar(first, newImports, false);
                 }
               }
             }
@@ -215,7 +215,7 @@ async function updateFile(sourceFile: tsmorph.SourceFile): Promise<void> {
             rewriteCtxMethods(stmts);
           }
 
-          maybePrependRequestVar(caller, newImports, false);
+          maybePrependReqVar(caller, newImports, false);
         }
       }
     }
@@ -302,7 +302,7 @@ function removeEmptyImport(d: tsmorph.ImportDeclaration) {
   }
 }
 
-function maybePrependRequestVar(
+function maybePrependReqVar(
   method:
     | tsmorph.MethodDeclaration
     | tsmorph.FunctionDeclaration
