@@ -321,8 +321,8 @@ function maybePrependRequestVar(
       hasInferredTypes = false;
     }
 
-    hasRequestVar = params.length > 1 || paramName === "request";
-    if (hasRequestVar || paramName === "_request") {
+    hasRequestVar = params.length > 1 || paramName === "req";
+    if (hasRequestVar || paramName === "_req") {
       if (hasRequestVar && params.length === 1) {
         params[0].replaceWithText("ctx");
         if (!hasInferredTypes) {
@@ -387,7 +387,7 @@ function maybePrependRequestVar(
         }
         if (hasRequestVar && !paramName.startsWith("_")) {
           const txt = maybeObjBinding.getFullText().slice(0, -2);
-          maybeObjBinding.replaceWithText(txt + ", request }");
+          maybeObjBinding.replaceWithText(txt + ", req }");
         }
 
         if (needsRemoteAddr) {

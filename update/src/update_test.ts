@@ -428,19 +428,19 @@ export const handler: Handlers = {
         .toEqual(`import { Handlers } from "fresh/compat";
 
 export const handler: Handlers = {
-  async GET({ params, render, info, request }) {
+  async GET({ params, render, info, req }) {
     const remoteAddr = info.remoteAddr;
   },
-  async POST({ params, render, info, request }) {
+  async POST({ params, render, info, req }) {
     const remoteAddr = info.remoteAddr;
   },
-  async PATCH({ params, render, info, request }) {
+  async PATCH({ params, render, info, req }) {
     const remoteAddr = info.remoteAddr;
   },
-  async PUT({ params, render, info, request }) {
+  async PUT({ params, render, info, req }) {
     const remoteAddr = info.remoteAddr;
   },
-  async DELETE({ params, render, info, request }) {
+  async DELETE({ params, render, info, req }) {
     const remoteAddr = info.remoteAddr;
   },
 };`);
