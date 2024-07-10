@@ -18,7 +18,7 @@ const contentTypes = new Map([
 
 export const handler = define.handlers({
   async GET(ctx) {
-    const accept = ctx.req.headers.get("Accept");
+    const accept = ctx.request.headers.get("Accept");
     const isHTML = accept?.includes("text/html");
     const { version, path } = ctx.params;
 

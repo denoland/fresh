@@ -151,7 +151,7 @@ async function updateFile(sourceFile: tsmorph.SourceFile): Promise<void> {
                     rewriteCtxMethods(stmts);
                   }
 
-                  maybePrependReqVar(property, newImports, true);
+                  maybePrependRequestVar(property, newImports, true);
                 }
               } else if (property.isKind(SyntaxKind.PropertyAssignment)) {
                 const init = property.getInitializer();
@@ -166,7 +166,7 @@ async function updateFile(sourceFile: tsmorph.SourceFile): Promise<void> {
                     rewriteCtxMethods(stmts);
                   }
 
-                  maybePrependReqVar(init, newImports, true);
+                  maybePrependRequestVar(init, newImports, true);
                 }
               }
             }
@@ -178,7 +178,7 @@ async function updateFile(sourceFile: tsmorph.SourceFile): Promise<void> {
             rewriteCtxMethods(stmts);
           }
 
-          maybePrependReqVar(node, newImports, false);
+          maybePrependRequestVar(node, newImports, false);
         }
       } else if (name === "default" && decl.length > 0) {
         const caller = decl[0];
@@ -203,7 +203,7 @@ async function updateFile(sourceFile: tsmorph.SourceFile): Promise<void> {
                     rewriteCtxMethods(stmts);
                   }
 
-                  maybePrependReqVar(first, newImports, false);
+                  maybePrependRequestVar(first, newImports, false);
                 }
               }
             }
@@ -215,7 +215,7 @@ async function updateFile(sourceFile: tsmorph.SourceFile): Promise<void> {
             rewriteCtxMethods(stmts);
           }
 
-          maybePrependReqVar(caller, newImports, false);
+          maybePrependRequestVar(caller, newImports, false);
         }
       }
     }
@@ -302,7 +302,7 @@ function removeEmptyImport(d: tsmorph.ImportDeclaration) {
   }
 }
 
-function maybePrependReqVar(
+function maybePrependRequestVar(
   method:
     | tsmorph.MethodDeclaration
     | tsmorph.FunctionDeclaration
@@ -321,8 +321,8 @@ function maybePrependReqVar(
       hasInferredTypes = false;
     }
 
-    hasRequestVar = params.length > 1 || paramName === "req";
-    if (hasRequestVar || paramName === "_req") {
+    hasRequestVar = params.length > 1 || paramName === "request";
+    if (hasRequestVar || paramName === "_request") {
       if (hasRequestVar && params.length === 1) {
         params[0].replaceWithText("ctx");
         if (!hasInferredTypes) {
@@ -365,7 +365,7 @@ function maybePrependReqVar(
         declarationKind: tsmorph.VariableDeclarationKind.Const,
         declarations: [{
           name: paramName,
-          initializer: "ctx.req",
+          initializer: "ctx.request",
         }],
       });
     }
@@ -387,7 +387,7 @@ function maybePrependReqVar(
         }
         if (hasRequestVar && !paramName.startsWith("_")) {
           const txt = maybeObjBinding.getFullText().slice(0, -2);
-          maybeObjBinding.replaceWithText(txt + ", req }");
+          maybeObjBinding.replaceWithText(txt + ", request }");
         }
 
         if (needsRemoteAddr) {

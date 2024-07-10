@@ -89,7 +89,7 @@ export function page<T>(data?: T, options?: {
  *
  * ```ts
  * export const handlers = define.handlers((ctx) => {
- *   return new Response(`Hello from a ${ctx.req.method} request!`);
+ *   return new Response(`Hello from a ${ctx.request.method} request!`);
  * });
  * ```
  */

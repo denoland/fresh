@@ -64,7 +64,7 @@ export function maybePrependReqVar(
         declarationKind: tsmorph.VariableDeclarationKind.Const,
         declarations: [{
           name: paramName,
-          initializer: "ctx.req",
+          initializer: "ctx.request",
         }],
       });
     }

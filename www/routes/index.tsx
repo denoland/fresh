@@ -16,9 +16,9 @@ import { define } from "../utils/state.ts";
 
 export const handler = define.handlers({
   GET(ctx) {
-    const { req } = ctx;
-    const accept = req.headers.get("accept");
-    const userAgent = req.headers.get("user-agent");
+    const { request } = ctx;
+    const accept = request.headers.get("accept");
+    const userAgent = request.headers.get("user-agent");
     if (userAgent?.includes("Deno/") && !accept?.includes("text/html")) {
       const path = `https://deno.land/x/fresh@${VERSIONS[0]}/init.ts`;
       return new Response(`Redirecting to ${path}`, {
@@ -37,7 +37,7 @@ export const handler = define.handlers({
   },
   async POST(ctx) {
     const headers = new Headers();
-    const form = await ctx.req.formData();
+    const form = await ctx.request.formData();
     const treat = form.get("treat");
     headers.set("location", `/thanks?vote=${treat}`);
     return new Response(null, {

@@ -41,7 +41,7 @@ import type { Define as _Define } from "../define.ts";
  * // checking and code completion. It does not register the middleware with the
  * // app.
  * const loggerMiddleware = define.middleware((ctx) => {
- *   console.log(`${ctx.req.method} ${ctx.req.url}`);
+ *   console.log(`${ctx.request.method} ${ctx.request.url}`);
  *   // Call the next middleware
  *   return ctx.next();
  * });

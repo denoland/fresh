@@ -14,7 +14,7 @@ export function devErrorOverlay<T>(): MiddlewareFn<T> {
     try {
       return await ctx.next();
     } catch (err) {
-      if (ctx.req.headers.get("accept")?.includes("text/html")) {
+      if (ctx.request.headers.get("accept")?.includes("text/html")) {
         let init: ResponseInit | undefined;
         if (err instanceof HttpError) {
           if (err.status < 500) throw err;
