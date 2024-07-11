@@ -36,7 +36,7 @@ function createRootFragment(
   endMarker: Text | Comment,
 ) {
   // @ts-ignore this is fine
-  return parent.__k = {
+  const rootFrag = parent.__k = {
     _frshRootFrag: true,
     nodeType: 1,
     parentNode: parent,
@@ -70,7 +70,20 @@ function createRootFragment(
     removeChild(child: Node) {
       parent.removeChild(child);
     },
+    contains(node: Node | null): boolean {
+      if (node === null) return false;
+
+      const children = rootFrag.childNodes;
+      for (let i = 0; i < children.length; i++) {
+        if (children[i].contains(node)) {
+          return true;
+        }
+      }
+      return false;
+    },
   };
+
+  return rootFrag;
 }
 
 function isCommentNode(node: Node): node is Comment {
