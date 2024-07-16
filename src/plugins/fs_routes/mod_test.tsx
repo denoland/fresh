@@ -831,7 +831,9 @@ Deno.test("fsRoutes - route group specific templates", async () => {
   );
   res = await server.get("/foo_error");
   doc = parseHtml(await res.text());
-  expect(doc.body.firstChild?.textContent).toEqual("fail foo");
+  expect(doc.body.firstChild?.textContent).toEqual(
+    "(foo)_middleware/(foo)_layout/fail foo",
+  );
 
   res = await server.get("/bar");
   doc = parseHtml(await res.text());
@@ -841,7 +843,9 @@ Deno.test("fsRoutes - route group specific templates", async () => {
 
   res = await server.get("/bar_error");
   doc = parseHtml(await res.text());
-  expect(doc.body.firstChild?.textContent).toEqual("fail bar");
+  expect(doc.body.firstChild?.textContent).toEqual(
+    "(bar)_middleware/(bar)_layout/fail bar",
+  );
 });
 
 Deno.test("fsRoutes - async route components", async () => {
@@ -882,7 +886,7 @@ Deno.test("fsRoutes - async route components", async () => {
 
   res = await server.get("/foo_error");
   doc = parseHtml(await res.text());
-  expect(doc.body.firstChild?.textContent).toEqual("fail foo");
+  expect(doc.body.firstChild?.textContent).toEqual("/_layout/fail foo");
 });
 
 Deno.test("fsRoutes - async route components returning response", async () => {
@@ -1048,13 +1052,13 @@ Deno.test("fsRoutes - sortRoutePaths", () => {
   ];
   let sorted = [
     "/_error",
-    "/foo/_error",
     "/foo/_middleware",
     "/foo/_layout",
+    "/foo/_error",
     "/foo/index",
-    "/foo/bar/_error",
     "/foo/bar/_middleware",
     "/foo/bar/_layout",
+    "/foo/bar/_error",
     "/foo/bar/index",
     "/foo/bar/baz",
     "/foo/bar/[...foo]",
