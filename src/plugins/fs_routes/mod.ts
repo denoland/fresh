@@ -438,10 +438,10 @@ export function sortRoutePaths(a: string, b: string) {
 function getRoutePathScore(char: string, s: string, i: number): number {
   if (char === "_") {
     if (i + 1 < s.length) {
-      if (s[i + 1] === "e") return 6;
-      if (s[i + 1] === "m") return 5;
+      if (s[i + 1] === "e") return 4;
+      if (s[i + 1] === "m") return 6;
     }
-    return 4;
+    return 5;
   } else if (char === "[") {
     if (i + 1 < s.length && s[i + 1] === ".") {
       return 0;
