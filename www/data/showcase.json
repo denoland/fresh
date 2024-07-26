@@ -404,5 +404,10 @@
     "link": "https://pile-up.deno.dev/",
     "github": "Octo8080X/Pile-Up",
     "image": "pile-up"
+  },
+  {
+    "title": "2coffee's Blog",
+    "link": "https://2coffee.dev/",
+    "image": "hicoffee"
   }
 ]
