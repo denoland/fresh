@@ -33,7 +33,7 @@ export interface FreshContext<State = unknown> {
   readonly config: ResolvedFreshConfig;
   readonly state: State;
   /** The original incoming `Request` object` */
-  readonly req: Request;
+  readonly request: Request;
   /**
    * The request url parsed into an `URL` instance. This is typically used
    * to apply logic based on the pathname of the incoming url or when
@@ -90,7 +90,7 @@ export class FreshReqContext<State>
   implements FreshContext<State>, PageProps<unknown, State> {
   config: ResolvedFreshConfig;
   url: URL;
-  req: Request;
+  request: Request;
   params: Record<string, string>;
   state: State = {} as State;
   data: unknown = undefined;
@@ -110,7 +110,7 @@ export class FreshReqContext<State>
   }
 
   constructor(
-    req: Request,
+    request: Request,
     url: URL,
     info: Deno.ServeHandlerInfo | Deno.ServeUnixHandlerInfo,
     params: Record<string, string>,
@@ -120,7 +120,7 @@ export class FreshReqContext<State>
     buildCache: BuildCache,
   ) {
     this.url = url;
-    this.req = req;
+    this.request = request;
     this.info = info;
     this.params = params;
     this.config = config;
