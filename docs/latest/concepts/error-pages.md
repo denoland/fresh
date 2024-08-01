@@ -80,3 +80,19 @@ export default function Error500Page({ error }: PageProps) {
   return <p>500 internal error: {(error as Error).message}</p>;
 }
 ```
+
+To test your 500 error page as a route, try the following template. During
+development, a closable error overlay will first appear.
+
+```tsx routes/page/500.tsx
+import { Handlers } from "$fresh/server.ts";
+
+export const handler: Handlers = {
+  GET(_req, _ctx) {
+    throw new Error("this message will appear on the 500 page");
+  },
+};
+
+export default function Page() {
+}
+```
