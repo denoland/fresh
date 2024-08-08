@@ -6,7 +6,7 @@ description: |
 Partials allow areas of the page to be updated with new content by the server
 without causing the browser to reload the page. They make your website feel more
 app-like because only the parts of the page that need to be updated will
-updated.
+update.
 
 ## Enabling partials
 
