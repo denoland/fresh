@@ -2,10 +2,10 @@ import * as colors from "@std/fmt/colors";
 import * as path from "@std/path";
 
 // Keep these as is, as we replace these version in our release script
-const FRESH_VERSION = "2.0.0-alpha.19";
+const FRESH_VERSION = "2.0.0-alpha.20";
 const FRESH_TAILWIND_VERSION = "0.0.1-alpha.7";
-const PREACT_VERSION = "10.22.1";
-const PREACT_SIGNALS_VERSION = "1.2.3";
+const PREACT_VERSION = "10.23.2";
+const PREACT_SIGNALS_VERSION = "1.3.0";
 
 export const enum InitStep {
   ProjectName = "ProjectName",
