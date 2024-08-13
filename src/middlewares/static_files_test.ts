@@ -153,3 +153,31 @@ Deno.test("static files - disables caching in development", async () => {
     "no-cache, no-store, max-age=0, must-revalidate",
   );
 });
+
+Deno.test("static files - enables caching in production", async () => {
+  const buildCache = new MockBuildCache({
+    "foo.css": { content: "body {}", hash: null },
+  });
+  const server = serveMiddleware(
+    staticFiles(),
+    {
+      buildCache,
+      config: {
+        basePath: "",
+        build: {
+          outDir: "",
+        },
+        mode: "production",
+        root: ".",
+        staticDir: "",
+      },
+    },
+  );
+
+  const res = await server.get(`/foo.css?${ASSET_CACHE_BUST_KEY}=${BUILD_ID}`);
+  await res.body?.cancel();
+  expect(res.status).toEqual(200);
+  expect(res.headers.get("Cache-Control")).toEqual(
+    "public, max-age=31536000, immutable",
+  );
+});
