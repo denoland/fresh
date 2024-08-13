@@ -155,7 +155,7 @@ export async function withChildProcessServer(
   for await (const line of lines.values({ preventCancel: true })) {
     output.push(line);
     const match = line.match(
-      /https?:\/\/localhost:\d+(\/\w+[-\w]*)*/g,
+      /https?:\/\/[^:]+:\d+(\/\w+[-\w]*)*/g,
     );
     if (match) {
       address = match[0];
