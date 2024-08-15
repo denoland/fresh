@@ -103,7 +103,7 @@ import * as $folder_subfolder_Counter from "./islands/folder/subfolder/Counter.t
 import * as $kebab_case_counter_test from "./islands/kebab-case-counter-test.tsx";
 import * as $route_groups_islands_islands_Counter from "./routes/route-groups-islands/(_islands)/Counter.tsx";
 import * as $route_groups_islands_islands_invalid from "./routes/route-groups-islands/(_islands)/invalid.tsx";
-import { type Manifest } from "$fresh/server.ts";
+import type { Manifest } from "$fresh/server.ts";
 
 const manifest = {
   routes: {

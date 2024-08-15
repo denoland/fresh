@@ -12,6 +12,11 @@ import {
 
 Deno.test("island tests", async (t) => {
   await withPage(async (page, address) => {
+    const logs = [];
+    page.on("pageerror", (ev) => {
+      logs.push(ev.message);
+    });
+
     async function counterTest(counterId: string, originalValue: number) {
       const pElem = await page.waitForSelector(`#${counterId} > p`);
 
@@ -46,6 +51,8 @@ Deno.test("island tests", async (t) => {
         ?.[1]!;
       assertStringIncludes(srcString, imgFilePath);
     });
+
+    assertEquals(logs.length, 0, "No error logs");
   });
 });
 
