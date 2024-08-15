@@ -79,6 +79,10 @@ export function staticFiles<T>(): MiddlewareFn<T> {
       }
     }
 
+    if (BUILD_ID === cacheKey) {
+      headers.append("Cache-Control", "public, max-age=31536000, immutable");
+    }
+
     headers.set("Content-Length", String(file.size));
     if (request.method === "HEAD") {
       file.close();
