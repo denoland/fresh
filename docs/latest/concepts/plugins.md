@@ -99,7 +99,7 @@ the state defined in the `scripts` entry. The state can be any arbitrary JSON
 serializable JavaScript value.
 
 For an example of a plugin that uses the `render` hook, see the first-party
-[Twind plugin](https://github.com/denoland/fresh/blob/twind-ssr/plugins/twind.ts).
+[Twind plugin](https://github.com/denoland/fresh/blob/1.x/plugins/twind.ts).
 
 ### Hook: `renderAsync`
 
