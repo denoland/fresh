@@ -1,0 +1,62 @@
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  test:
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 10
+
+    strategy:
+      fail-fast: false
+      matrix:
+        deno: ["canary", "v1.x"]
+        os: [macOS-latest, windows-latest, ubuntu-latest]
+        include:
+        - os: ubuntu-latest
+          cache_path: ~/.cache/deno/
+        - os: macos-latest
+          cache_path: ~/Library/Caches/deno/
+        - os: windows-latest
+          cache_path: ~\AppData\Local\deno\
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Setup Deno
+        uses: denoland/setup-deno@v1
+        with:
+          deno-version: ${{ matrix.deno }}
+
+      - name: Verify formatting
+        if: startsWith(matrix.os, 'ubuntu') && matrix.deno == 'v1.x'
+        env:
+          DENO_FUTURE: 1
+        run: deno fmt --check
+
+      - name: Run linter
+        if: startsWith(matrix.os, 'ubuntu') && matrix.deno == 'v1.x'
+        env:
+          DENO_FUTURE: 1
+        run: deno lint
+
+      - name: Spell-check
+        if: startsWith(matrix.os, 'ubuntu') && matrix.deno == 'v1.x'
+        env:
+          DENO_FUTURE: 1
+        uses: crate-ci/typos@master
+        
+      - name: Type check project
+        env:
+          DENO_FUTURE: 1
+        run: deno task check:types
+
+      - name: Run tests
+        env:
+          DENO_FUTURE: 1
+        run: deno task test
