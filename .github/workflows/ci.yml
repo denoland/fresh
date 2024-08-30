@@ -46,7 +46,7 @@ jobs:
         uses: crate-ci/typos@master
         
       - name: Type check project
-        run: deno task check:types
+        run: deno run check:types
 
       - name: Run tests
-        run: deno task test
+        run: deno run test

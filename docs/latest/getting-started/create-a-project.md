@@ -10,9 +10,9 @@ will scaffold out a new project with some example files to get you started.
 To create a new project, run:
 
 ```sh Terminal
-deno run -A -r https://fresh.deno.dev
+deno -A -r https://fresh.deno.dev
 cd fresh-project
-deno task start
+deno run start
 ```
 
 This will scaffold out the new project, then switch into the newly created
@@ -38,7 +38,7 @@ two things:
   used to manage dependencies for the project. This allows for easy importing
   and updating of dependencies.
 - It registers a "start" [task][task-runner] to run the project without having
-  to type a long `deno run` command.
+  to type a long `deno` command.
 
 Two important folders are also created that contain your routes and islands
 respectively:

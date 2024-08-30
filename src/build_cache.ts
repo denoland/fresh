@@ -70,9 +70,9 @@ export class ProdBuildCache implements BuildCache {
             }, but did not find build snapshot at:\n${
               colors.red(snapshotPath)
             }.\n\nMaybe your forgot to run ${
-              colors.cyan("deno task build")
+              colors.cyan("deno run build")
             } before starting the production server\nor maybe you wanted to run ${
-              colors.cyan("deno task dev")
+              colors.cyan("deno run dev")
             } to spin up a development server instead?\n`,
           );
         }

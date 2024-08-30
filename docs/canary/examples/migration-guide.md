@@ -16,7 +16,7 @@ Most changes can be applied automatically with the update script. Start the
 update by running it in your project directory:
 
 ```sh
-deno run -Ar jsr:@fresh/update
+deno -Ar jsr:@fresh/update
 ```
 
 This will apply most API changes made in Fresh 2
@@ -62,7 +62,7 @@ const builder = new Builder({ target: "safari12" });
 tailwind(builder, app, {});
 
 // Create optimized assets for the browser when
-// running `deno run -A dev.ts build`
+// running `deno -A dev.ts build`
 if (Deno.args.includes("build")) {
   await builder.build(app);
 } else {
@@ -167,7 +167,7 @@ export default function AppWrapper(ctx: FreshContext) {
 ## Update deployment settings
 
 Fresh 2 requires assets to be build during deployment instead of building them
-on demand. Run the `deno task build` command as part of your deployment process.
+on demand. Run the `deno run build` command as part of your deployment process.
 If you have already set up Fresh's 1.x "Ahead-of-Time Builds", then no changes
 are necessary.
 

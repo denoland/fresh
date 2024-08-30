@@ -28,13 +28,13 @@ Initialize a new Fresh project. This will create all the necessary files for a
 new project.
 
 To generate a project in the './foobar' subdirectory:
-  deno run -Ar jsr:@fresh/init ./foobar
+  deno -Ar jsr:@fresh/init ./foobar
 
 To generate a project in the current directory:
-  deno run -Ar jsr:@fresh/init .
+  deno -Ar jsr:@fresh/init .
 
 USAGE:
-    deno run -Ar jsr:@fresh/init [DIRECTORY]
+    deno -Ar jsr:@fresh/init [DIRECTORY]
 
 OPTIONS:
     --force      Overwrite existing files
@@ -506,7 +506,7 @@ export default function Counter(props: CounterProps) {
 }`;
   await writeFile("islands/Counter.tsx", ISLANDS_COUNTER_TSX);
 
-  const DEV_TS = `#!/usr/bin/env -S deno run -A --watch=static/,routes/
+  const DEV_TS = `#!/usr/bin/env -S deno -A --watch=static/,routes/
 ${useTailwind ? `import { tailwind } from "@fresh/plugin-tailwind";\n` : ""}
 import { Builder } from "fresh/dev";
 import { app } from "./main.ts";
@@ -524,10 +524,10 @@ if (Deno.args.includes("build")) {
     tasks: {
       check:
         "deno fmt --check && deno lint && deno check **/*.ts && deno check **/*.tsx",
-      dev: "deno run -A --watch=static/,routes/ dev.ts",
-      build: "deno run -A dev.ts build",
-      start: "deno run -A main.ts",
-      update: "deno run -A -r jsr:@fresh/update .",
+      dev: "deno -A --watch=static/,routes/ dev.ts",
+      build: "deno -A dev.ts build",
+      start: "deno -A main.ts",
+      update: "deno -A -r jsr:@fresh/update .",
     },
     lint: {
       rules: {
@@ -576,7 +576,7 @@ Make sure to install Deno: https://deno.land/manual/getting_started/installation
 Then start the project in development mode:
 
 \`\`\`
-deno task dev
+deno run dev
 \`\`\`
 
 This will watch the project directory and restart as necessary.`;
@@ -691,7 +691,7 @@ This will watch the project directory and restart as necessary.`;
     );
   }
   tty.log(
-    "Run %cdeno task start%c to start the project. %cCTRL-C%c to stop.",
+    "Run %cdeno run start%c to start the project. %cCTRL-C%c to stop.",
     "color: cyan",
     "",
     "color: cyan",

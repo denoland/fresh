@@ -84,10 +84,10 @@ have access to the complicated initialization step by calling
 
 ### Dev
 
-When you run `deno task start` you should see the following output:
+When you run `deno run start` you should see the following output:
 
 ```
-Task start deno run -A --watch=static/,routes/ dev.ts
+Task start deno -A --watch=static/,routes/ dev.ts
 Watcher Process started.
 i'm logged during initialization, and not during handling!
 The manifest has been generated for 6 routes and 1 islands.
@@ -105,10 +105,10 @@ Context { complicatedStartupValue: 42 }
 
 ### Build
 
-When you run `deno task build` you should see:
+When you run `deno run build` you should see:
 
 ```
-Task build deno run -A dev.ts build
+Task build deno -A dev.ts build
 i'm logged during initialization, and not during handling!
 The manifest has been generated for 6 routes and 1 islands.
 Assets written to: /path/to/my/project/_fresh
@@ -119,10 +119,10 @@ initialization occurred.
 
 ### Preview
 
-Finally when you run `deno task preview` you should see:
+Finally when you run `deno run preview` you should see:
 
 ```
-Task preview deno run -A main.ts
+Task preview deno -A main.ts
 i'm logged during initialization, and not during handling!
 Using snapshot found at /Users/reed/code/temp/1763/_fresh
 

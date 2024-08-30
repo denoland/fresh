@@ -6,7 +6,7 @@ import * as semver from "@std/semver";
 function showHelp() {
   // deno-lint-ignore no-console
   console.log(`
-  Usage: deno run -A release.ts <major|minor|patch|...>
+  Usage: deno -A release.ts <major|minor|patch|...>
 `);
 }
 

@@ -30,7 +30,7 @@ You can scaffold a new project by running the Fresh init script. To scaffold a
 project run the following:
 
 ```sh
-deno run -A -r https://fresh.deno.dev
+deno -A -r https://fresh.deno.dev
 ```
 
 Then navigate to the newly created project folder:
@@ -40,10 +40,10 @@ cd deno-fresh-demo
 ```
 
 From within your project folder, start the development server using the
-`deno task` command:
+`deno run` command:
 
 ```
-deno task start
+deno run start
 ```
 
 Now open http://localhost:8000 in your browser to view the page. You make
@@ -77,7 +77,7 @@ promotional purposes may not be listed.
 To take a screenshot, run the following command.
 
 ```sh
-deno task screenshot [url] [your-app-name]
+deno run screenshot [url] [your-app-name]
 ```
 
 Then add your site to

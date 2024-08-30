@@ -3,8 +3,8 @@ description: |
   Change the source directory to effectively manage your project.
 ---
 
-When you initialize a project with `deno run -A -r https://fresh.deno.dev`,
-you'll end up with a project like the following:
+When you initialize a project with `deno -A -r https://fresh.deno.dev`, you'll
+end up with a project like the following:
 
 ```txt Project Structure
 .
@@ -44,8 +44,8 @@ Here's what the diff of `deno.json` looks like:
  {
    "lock": false,
    "tasks": {
--    "start": "deno run -A --watch=static/,routes/ dev.ts"
-+    "start": "deno run -A --watch=src/static/,src/routes/ src/dev.ts"
+-    "start": "deno -A --watch=static/,routes/ dev.ts"
++    "start": "deno -A --watch=src/static/,src/routes/ src/dev.ts"
    },
    "imports": {
      "$fresh/": "file:///Users/reed/code/fresh/",

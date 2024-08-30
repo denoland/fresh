@@ -17,7 +17,7 @@ instead this one particular commit? Just make the following changes to your
 `deno.json`:
 
 ```diff deno.json
-     "update": "deno run -A -r https://fresh.deno.dev/update ."
+     "update": "deno -A -r https://fresh.deno.dev/update ."
    },
    "imports": {
 -    "$fresh/": "https://deno.land/x/fresh@1.2.0/",
@@ -34,7 +34,7 @@ Here's an example of referencing a feature in a forked repository that hasn't
 been merged yet (at the time of writing this):
 
 ```diff deno.json
-     "update": "deno run -A -r https://fresh.deno.dev/update ."
+     "update": "deno -A -r https://fresh.deno.dev/update ."
    },
    "imports": {
 -    "$fresh/": "https://deno.land/x/fresh@1.2.0/",
@@ -54,13 +54,13 @@ create a test project based on your local changes.
 Instead of doing it like this:
 
 ```sh Terminal
-deno run -A -r https://fresh.deno.dev/
+deno -A -r https://fresh.deno.dev/
 ```
 
 do it like this:
 
 ```sh Terminal
-deno run -A -r path/to/fresh/init.ts
+deno -A -r path/to/fresh/init.ts
 ```
 
 (or wherever your local code lives)
@@ -72,5 +72,5 @@ create a project from the latest commit by combining the techniques on this page
 like this:
 
 ```sh Terminal
-deno run -A -r https://raw.githubusercontent.com/denoland/fresh/main/init.ts
+deno -A -r https://raw.githubusercontent.com/denoland/fresh/main/init.ts
 ```

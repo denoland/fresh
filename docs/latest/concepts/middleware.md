@@ -144,7 +144,7 @@ for a `route`, as opposed to something like `http://localhost:8001/favicon.ico`.
 
 ### Example
 
-Initiate a new Fresh project (`deno run -A -r https://fresh.deno.dev/`) and then
+Initiate a new Fresh project (`deno -A -r https://fresh.deno.dev/`) and then
 create a `_middleware.ts` file in the `routes` folder like this:
 
 ```ts routes/_middleware.ts
@@ -158,10 +158,10 @@ export async function handler(req: Request, ctx: FreshContext) {
 }
 ```
 
-If you start up your server (`deno task start`) you'll see the following:
+If you start up your server (`deno run start`) you'll see the following:
 
 ```sh Terminal
-Task start deno run -A --watch=static/,routes/ dev.ts
+Task start deno -A --watch=static/,routes/ dev.ts
 Watcher Process started.
 The manifest has been generated for 4 routes and 1 islands.
 

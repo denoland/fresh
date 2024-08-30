@@ -51,10 +51,10 @@ Update the imports section of your `deno.json` file to include the following:
 ```
 
 Since Deno 1.38, we reading .env files is built-in and can be enabled with the
-`--env` flag. Here's the complete command to run our app:
+`--env-file` flag. Here's the complete command to run our app:
 
 ```shell
-deno run --unstable-kv --allow-env --allow-read --allow-write --allow-run --allow-net --watch=static/,routes/ dev.ts
+deno --unstable-kv --allow-env --allow-read --allow-write --allow-run --allow-net --watch=static/,routes/ dev.ts
 ```
 
 ### `@supabase/ssr`

@@ -12,7 +12,7 @@ export function FinishSetup() {
               <code>Settings</code> tab.
             </li>
             <li>
-              In the Git Integration section, enter <code>deno task build</code>
+              In the Git Integration section, enter <code>deno run build</code>
               {" "}
               in the <code>Build Command</code> input.
             </li>
@@ -33,7 +33,7 @@ export function ForgotBuild() {
         <div style="max-width: 48rem; padding: 2rem 1rem; margin: 0 auto; font-family: sans-serif">
           <h1>Missing build directory</h1>
           <p>
-            Did you forget to run <code>deno task build</code>?
+            Did you forget to run <code>deno run build</code>?
           </p>
         </div>
       </div>

@@ -24,9 +24,9 @@ To have Fresh optimize all the assets, run one of the following commands:
 
 ```sh
 # As a task in newer Fresh projects
-deno task build
+deno run build
 # or invoke it manually
-deno run -A dev.ts build
+deno -A dev.ts build
 ```
 
 This will create a `_fresh` folder in the project directory. That folder
@@ -63,7 +63,7 @@ builds to optimize the assets before deploying them. This will make your
 application load quicker.
 
 Open the Deno Deploy dashboard for your project and head to the "Git
-Integration" section in the project settings. Enter `deno task build` in the
+Integration" section in the project settings. Enter `deno run build` in the
 "Build command" field and save. This will switch your Deno Deploy project to use
 ahead-of-time builds.
 

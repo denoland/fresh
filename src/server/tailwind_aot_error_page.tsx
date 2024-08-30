@@ -16,7 +16,7 @@ export default function TailwindErrorPage() {
             <code>Settings</code> tab.
           </li>
           <li>
-            In the Git Integration section, enter <code>deno task build</code>
+            In the Git Integration section, enter <code>deno run build</code>
             {" "}
             in the <code>Build Command</code> input.
           </li>

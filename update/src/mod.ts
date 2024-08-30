@@ -12,7 +12,7 @@ Update a Fresh project. This updates dependencies and optionally performs code
 mods to update a project's source code to the latest recommended patterns.
 
 To upgrade a project in the current directory, run:
-  deno run -A jsr:@fresh/update .
+  deno -A jsr:@fresh/update .
 
 USAGE:
     @fresh/update [DIRECTORY]

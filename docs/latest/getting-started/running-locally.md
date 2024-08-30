@@ -1,22 +1,22 @@
 ---
 description: |
-  To start a Fresh project, just run `deno task start`. This will start the
+  To start a Fresh project, just run `deno run start`. This will start the
   project with default permission flags, in watch mode.
 ---
 
 The next step after scaffolding out a new project, is to actually start it. To
-do this you can just `deno task start`. Environment variables will be
+do this you can just `deno run start`. Environment variables will be
 automatically read from `.env`.
 
 ```sh Terminal
-$ deno task start
+$ deno run start
 Watcher Process started.
  🍋 Fresh ready
      Local: http://localhost:8000
 ```
 
-If you want to start manually without Deno task, `deno run` the `main.ts` with
-the appropriate flags. You will need to provide permission flags for:
+If you want to start manually without Deno task, `deno` the `main.ts` with the
+appropriate flags. You will need to provide permission flags for:
 
 - **`--allow-net`**: This is required to start the HTTP server.
 - **`--allow-read`**: This is required to read (static) files from disk.
@@ -45,13 +45,13 @@ await start(manifest, { server: { port: 3000 } });
 You can also change the port by setting the `PORT` environment variable:
 
 ```sh Terminal
-$ PORT=3000 deno task start
+$ PORT=3000 deno run start
 ```
 
-Combining all of this we get the following `deno run` command:
+Combining all of this we get the following `deno` command:
 
 ```sh Terminal
-$ deno run --allow-net --allow-read --allow-env --allow-run --watch=static/,routes/ main.ts
+$ deno --allow-net --allow-read --allow-env --allow-run --watch=static/,routes/ main.ts
 Watcher Process started.
  🍋 Fresh ready
      Local: http://localhost:8000
