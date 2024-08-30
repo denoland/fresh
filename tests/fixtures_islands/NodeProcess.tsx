@@ -1,6 +1,7 @@
 import { useEffect } from "preact/hooks";
 import { useSignal } from "@preact/signals";
 import { IS_BROWSER } from "fresh/runtime";
+import process from "node:process";
 
 export function NodeProcess() {
   const active = useSignal(false);

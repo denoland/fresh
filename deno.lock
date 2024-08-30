@@ -43,6 +43,7 @@
       "jsr:@zip-js/zip-js@2.7.41": "jsr:@zip-js/zip-js@2.7.41",
       "npm:@preact/signals@1.2.3": "npm:@preact/signals@1.2.3_preact@10.22.0",
       "npm:@preact/signals@^1.2.3": "npm:@preact/signals@1.2.3_preact@10.22.0",
+      "npm:@types/node": "npm:@types/node@18.16.19",
       "npm:autoprefixer@10.4.17": "npm:autoprefixer@10.4.17_postcss@8.4.35",
       "npm:cssnano@6.0.3": "npm:cssnano@6.0.3_postcss@8.4.35",
       "npm:esbuild-wasm@0.20.2": "npm:esbuild-wasm@0.20.2",
@@ -407,6 +408,10 @@
           "mkdirp": "mkdirp@3.0.1",
           "path-browserify": "path-browserify@1.0.1"
         }
+      },
+      "@types/node@18.16.19": {
+        "integrity": "sha512-IXl7o+R9iti9eBW4Wg2hx1xQDig183jj7YLn8F7udNceyfkbn1ZxmzZXuak20gR40D7pIkIY1kYGx5VIGbaHKA==",
+        "dependencies": {}
       },
       "ansi-regex@5.0.1": {
         "integrity": "sha512-quJQXlTSUGL2LH9SUXo8VwsY4soanhgo6LNSm84E1LBcE8s3O0wpdiRzyR9z/ZZJMlMWv37qOOb9pdJlMUEKFQ==",
