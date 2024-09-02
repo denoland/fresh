@@ -409,5 +409,10 @@
     "title": "2coffee's Blog",
     "link": "https://2coffee.dev/",
     "image": "hicoffee"
+  },
+  {
+    "title": "TicOXs",
+    "link": "https://ticoxs.deno.dev/",
+    "image": "ticoxs"
   }
 ]
