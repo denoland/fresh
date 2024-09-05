@@ -17,7 +17,7 @@ export function staticFiles<T>(): MiddlewareFn<T> {
     const { req, url, config } = ctx;
     const buildCache = getBuildCache(ctx);
 
-    let pathname = url.pathname;
+    let pathname = decodeURIComponent(url.pathname);
     if (config.basePath) {
       pathname = pathname !== config.basePath
         ? pathname.slice(config.basePath.length)

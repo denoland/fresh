@@ -181,3 +181,27 @@ Deno.test("static files - enables caching in production", async () => {
     "public, max-age=31536000, immutable",
   );
 });
+
+Deno.test("static files - decoded pathname", async () => {
+  const buildCache = new MockBuildCache({
+    "C#.svg": { content: "body {}", hash: null },
+    "西安市.png": { content: "body {}", hash: null },
+    "인천.avif": { content: "body {}", hash: null },
+  });
+  const server = serveMiddleware(
+    staticFiles(),
+    { buildCache },
+  );
+
+  for (
+    const path of [
+      "C%23.svg",
+      "%E8%A5%BF%E5%AE%89%E5%B8%82.png",
+      "%EC%9D%B8%EC%B2%9C.avif",
+    ]
+  ) {
+    const res = await server.get("/" + path);
+    await res.body?.cancel();
+    expect(res.status).toEqual(200);
+  }
+});
