@@ -128,8 +128,6 @@ That's it! Now you can use Tailwind CSS in your project.
 > | `<a class={`link-${color}`}></a>` | `  <a class={color === 'blue' ? `link-blue` : `link-green`}></a>` |
 
 
-
-
 ## Frequently Asked Questions (FAQ)
 
 ### What are the differences between twind and Tailwind CSS?
