@@ -118,6 +118,18 @@ That's it! Now you can use Tailwind CSS in your project.
 > | `[data-current]:bg-red-600` | `data-[current]:bg-red-300` |
 > | `[aria-current]:bg-red-600` | `aria-[current]:bg-red-300` |
 
+> [warn]: Tailwind CSS does not allow you to generate and apply CSS classes 
+> dynamically, which means you need to explicitly specify the class you want to apply.
+> In other words, to use dynamic classes, you need to ensure that they
+> are present in the final CSS file.
+>
+> | Twind                             | Tailwind CSS                                                      |
+> | --------------------------------- | ----------------------------------------------------------------- |
+> | `<a class={`link-${color}`}></a>` | `  <a class={color === 'blue' ? `link-blue` : `link-green`}></a>` |
+
+
+
+
 ## Frequently Asked Questions (FAQ)
 
 ### What are the differences between twind and Tailwind CSS?
