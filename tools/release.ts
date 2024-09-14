@@ -42,7 +42,7 @@ if (version === "major") {
   next.patch++;
 } else {
   if (!next.prerelease) {
-    exitError(`Unknown prelease version`);
+    exitError(`Unknown prerelease version`);
   }
 
   if (next.prerelease[0] === version) {
