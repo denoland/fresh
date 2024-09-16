@@ -415,5 +415,11 @@
     "link": "https://ticoxs.deno.dev/",
     "github": "Trid3r/ticoxs",
     "image": "ticoxs"
+  },
+  {
+    "title": "WTF Is Congress Doing Now?",
+    "link": "https://wtfiscongressdoingnow.us",
+    "github": "gibbygano/wtfiscongressdoingnow",
+    "image": "wtfcongress"
   }
 ]
