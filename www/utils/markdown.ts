@@ -25,7 +25,7 @@ export interface MarkdownHeading {
 class DefaultRenderer extends Marked.Renderer {
   headings: MarkdownHeading[] = [];
 
-  text(text: string): string {
+  override text(text: string): string {
     // Smartypants typography enhancement
     return text
       .replaceAll("...", "&#8230;")
@@ -39,7 +39,7 @@ class DefaultRenderer extends Marked.Renderer {
       .replaceAll(/['](.*?)[']/g, "&#8216;$1&#8217;");
   }
 
-  heading(
+  override heading(
     text: string,
     level: 1 | 2 | 3 | 4 | 5 | 6,
     raw: string,
@@ -50,7 +50,7 @@ class DefaultRenderer extends Marked.Renderer {
     return `<h${level} id="${slug}"><a class="md-anchor" tabindex="-1" href="#${slug}">${text}<span aria-hidden="true">#</span></a></h${level}>`;
   }
 
-  link(href: string, title: string | null, text: string) {
+  override link(href: string, title: string | null, text: string) {
     const titleAttr = title ? ` title="${title}"` : "";
     if (href.startsWith("#")) {
       return `<a href="${href}"${titleAttr}>${text}</a>`;
@@ -58,18 +58,18 @@ class DefaultRenderer extends Marked.Renderer {
     if (this.options.baseUrl) {
       try {
         href = new URL(href, this.options.baseUrl).href;
-      } catch (_) {
+      } catch {
         //
       }
     }
     return `<a href="${href}"${titleAttr} rel="noopener noreferrer">${text}</a>`;
   }
 
-  image(src: string, title: string | null, alt: string | null) {
+  override image(src: string, title: string | null, alt: string | null) {
     return `<img src="${src}" alt="${alt ?? ""}" title="${title ?? ""}" />`;
   }
 
-  code(code: string, info: string | undefined): string {
+  override code(code: string, info: string | undefined): string {
     // format: tsx
     // format: tsx my/file.ts
     // format: tsx "This is my title"
@@ -107,7 +107,7 @@ class DefaultRenderer extends Marked.Renderer {
     return out;
   }
 
-  blockquote(quote: string): string {
+  override blockquote(quote: string): string {
     const match = quote.match(ADMISSION_REG);
     if (match) {
       const label: Record<string, string> = {

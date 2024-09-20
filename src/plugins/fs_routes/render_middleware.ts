@@ -15,6 +15,11 @@ export type AsyncAnyComponent<P> = {
   defaultProps?: Partial<P> | undefined;
 };
 
+// deno-lint-ignore no-explicit-any
+export function isAsyncAnyComponent(fn: any): fn is AsyncAnyComponent<any> {
+  return typeof fn === "function" && fn.constructor.name === "AsyncFunction";
+}
+
 export function renderMiddleware<State>(
   components: Array<
     | AnyComponent<PageProps<unknown, State>>
@@ -50,10 +55,7 @@ export function renderMiddleware<State>(
 
       const fn = components[i];
 
-      if (
-        typeof fn === "function" &&
-        fn.constructor.name === "AsyncFunction"
-      ) {
+      if (isAsyncAnyComponent(fn)) {
         const result = (await fn(props)) as VNode | Response;
         if (result instanceof Response) {
           return result;
