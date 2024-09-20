@@ -1,7 +1,7 @@
 {
   "version": "4",
   "specifiers": {
-    "jsr:@astral/astral@0.4": "0.4.6",
+    "jsr:@astral/astral@~0.4.6": "0.4.6",
     "jsr:@deno-library/progress@1.4.9": "1.4.9",
     "jsr:@luca/esbuild-deno-loader@~0.10.3": "0.10.3",
     "jsr:@marvinh-test/fresh-island@*": "0.0.1",
@@ -1468,7 +1468,7 @@
   },
   "workspace": {
     "dependencies": [
-      "jsr:@astral/astral@0.4",
+      "jsr:@astral/astral@~0.4.6",
       "jsr:@luca/esbuild-deno-loader@~0.10.3",
       "jsr:@marvinh-test/fresh-island@^0.0.1",
       "jsr:@std/async@~0.224.1",
