@@ -543,7 +543,7 @@ if (Deno.args.includes("build")) {
       "@preact/signals": `npm:@preact/signals@^${PREACT_SIGNALS_VERSION}`,
     } as Record<string, string>,
     compilerOptions: {
-      lib: ["dom", "dom.asynciterable", "deno.ns"],
+      lib: ["dom", "dom.asynciterable", "dom.iterable", "deno.ns"],
       jsx: "precompile",
       jsxImportSource: "preact",
       jsxPrecompileSkipElements: [
