@@ -37,7 +37,7 @@ const DEFAULT_NOT_ALLOWED_METHOD = () => {
 
 export type ListenOptions =
   & Partial<
-    Deno.ServeTcpOptions | (Deno.ServeTcpOptions & Deno.TlsCertifiedKeyPem)
+    Deno.ServeTcpOptions & Deno.TlsCertifiedKeyPem
   >
   & {
     remoteAddress?: string;
