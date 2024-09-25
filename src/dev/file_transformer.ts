@@ -106,7 +106,7 @@ export class FreshFileTransformer {
 
     const seen = new Set<string>();
 
-    let req: TransformReq | undefined = undefined;
+    let req: TransformReq | undefined;
     while ((req = queue.pop()) !== undefined) {
       if (seen.has(req.filePath)) continue;
       seen.add(req.filePath);

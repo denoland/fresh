@@ -69,7 +69,7 @@ class DefaultRenderer extends Marked.Renderer {
     return `<img src="${src}" alt="${alt ?? ""}" title="${title ?? ""}" />`;
   }
 
-  code(code: string, info: string | undefined): string {
+  code(code: string, info?: string): string {
     // format: tsx
     // format: tsx my/file.ts
     // format: tsx "This is my title"
