@@ -35,15 +35,24 @@ const DEFAULT_NOT_ALLOWED_METHOD = () => {
   throw new HttpError(405);
 };
 
+export interface HandlerOptions {
+  /**
+   * Whether to respect `X-Forwarded-Proto`, `X-Forwarded-Host`,
+   * `X-Forwarded-Port`, and `X-Forwarded-For` headers.  This is useful when
+   * Fresh is behind a reverse proxy like Nginx or Caddy.
+   * @default {false}
+   */
+  behindProxy?: boolean;
+}
+
 export type ListenOptions =
   & Partial<
     Deno.ServeTcpOptions & Deno.TlsCertifiedKeyPem
   >
+  & HandlerOptions
   & {
     remoteAddress?: string;
   };
-
-Deno.serve;
 
 export let getRouter: <State>(app: App<State>) => Router<MiddlewareFn<State>>;
 // deno-lint-ignore no-explicit-any
@@ -173,7 +182,7 @@ export class App<State> {
     return this;
   }
 
-  async handler(): Promise<
+  async handler(options: HandlerOptions = {}): Promise<
     (request: Request, info?: Deno.ServeHandlerInfo) => Promise<Response>
   > {
     if (this.#buildCache === null) {
@@ -190,6 +199,8 @@ export class App<State> {
       return missingBuildHandler;
     }
 
+    const behindProxy = options.behindProxy ?? false;
+
     return async (
       req: Request,
       conn: Deno.ServeHandlerInfo = DEFAULT_CONN_INFO,
@@ -197,6 +208,46 @@ export class App<State> {
       const url = new URL(req.url);
       // Prevent open redirect attacks
       url.pathname = url.pathname.replace(/\/+/g, "/");
+
+      // If Fresh is behind a reverse proxy, we need to respect the headers
+      // that the proxy sets
+      if (behindProxy) {
+        const proto = req.headers.get("X-Forwarded-Proto") ?? "http";
+        const host = req.headers.get("X-Forwarded-Host");
+        const port = req.headers.get("X-Forwarded-Port");
+        if (
+          url.protocol !== `${proto}:` || host != null && url.hostname !== host
+        ) {
+          url.protocol = proto;
+          if (host != null) url.hostname = host;
+          if (
+            port != null &&
+            (proto === "http" && port !== "80" ||
+              proto === "https" && port !== "443")
+          ) url.port = port;
+
+          req = new Request(url, req);
+        }
+
+        conn = {
+          remoteAddr: {
+            transport: "tcp",
+            hostname: req.headers.get("X-Forwarded-For") ??
+              ("hostname" in conn.remoteAddr
+                ? conn.remoteAddr.hostname
+                : "localhost"),
+            port: port
+              ? parseInt(port)
+              : proto === "https"
+              ? 443
+              : proto === "http"
+              ? 80
+              : "port" in conn.remoteAddr
+              ? conn.remoteAddr.port
+              : 80,
+          },
+        };
+      }
 
       const method = req.method.toUpperCase() as Method;
       const matched = this.#router.match(method, url);
