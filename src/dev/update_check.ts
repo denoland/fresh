@@ -105,10 +105,11 @@ export async function updateCheck(
       checkFile.latest_version = await getLatestVersion();
       checkFile.last_checked = new Date().toISOString();
     } catch (err) {
+      const message = err instanceof Error ? err.message : String(err);
       // Update check is optional and shouldn't abort the program.
       // deno-lint-ignore no-console
       console.error(
-        colors.red(`    Update check failed: `) + err.message,
+        colors.red(`    Update check failed: `) + message,
       );
       return;
     }

@@ -91,7 +91,7 @@ export async function withBrowserApp(
     }, await app.handler());
 
     const browser = await launch({
-      args: ["--no-sandbox"],
+      args: ["--window-size=1280,720"],
       headless: !Deno.args.includes("--headful"),
     });
 
@@ -112,7 +112,7 @@ export async function withBrowser(fn: (page: Page) => void | Promise<void>) {
   const aborter = new AbortController();
   try {
     const browser = await launch({
-      args: ["--no-sandbox"],
+      args: ["--window-size=1280,720"],
       headless: !Deno.args.includes("--headful"),
     });
 
@@ -120,6 +120,17 @@ export async function withBrowser(fn: (page: Page) => void | Promise<void>) {
     // page.setDefaultTimeout(1000000);
     try {
       await fn(page);
+    } catch (err) {
+      try {
+        const raw = await page.content();
+        const doc = parseHtml(raw);
+        const html = prettyDom(doc);
+        // deno-lint-ignore no-console
+        console.log(html);
+      } catch {
+        // Ignore
+      }
+      throw err;
     } finally {
       await page.close();
       await browser.close();

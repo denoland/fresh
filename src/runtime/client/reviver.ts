@@ -60,7 +60,7 @@ export const ACTIVE_PARTIALS = new Map<string, PartialComp>();
 export class PartialComp extends Component<
   { children?: ComponentChildren; mode: PartialMode; name: string }
 > {
-  componentDidMount() {
+  override componentDidMount() {
     ACTIVE_PARTIALS.set(this.props.name, this);
   }
 
