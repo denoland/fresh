@@ -91,10 +91,7 @@ export async function withBrowserApp(
     }, await app.handler());
 
     const browser = await launch({
-      args: [
-        // https://github.com/puppeteer/puppeteer/issues/12857
-        "--enable-features=NetworkServiceInProcess2",
-      ],
+      args: ["--window-size=1280,720"],
       headless: !Deno.args.includes("--headful"),
     });
 
