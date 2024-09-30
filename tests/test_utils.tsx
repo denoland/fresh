@@ -91,7 +91,11 @@ export async function withBrowserApp(
     }, await app.handler());
 
     const browser = await launch({
-      args: ["--no-sandbox"],
+      args: [
+        "--no-sandbox",
+        // https://github.com/puppeteer/puppeteer/issues/12857
+        "--enable-features=NetworkServiceInProcess2",
+      ],
       headless: !Deno.args.includes("--headful"),
     });
 
