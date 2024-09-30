@@ -245,10 +245,17 @@ export class App<State> {
         const protocol = "key" in options && options.key && options.cert
           ? "https:"
           : "http:";
+
+        let hostname = params.hostname;
+        // Windows being windows...
+        if (
+          Deno.build.os === "windows" &&
+          (hostname === "0.0.0.0" || hostname === "::")
+        ) {
+          hostname = "localhost";
+        }
         // Work around https://github.com/denoland/deno/issues/23650
-        const hostname = params.hostname.startsWith("::")
-          ? `[${params.hostname}]`
-          : params.hostname;
+        hostname = hostname.startsWith("::") ? `[${hostname}]` : hostname;
         const address = colors.cyan(
           `${protocol}//${hostname}:${params.port}${pathname}`,
         );
