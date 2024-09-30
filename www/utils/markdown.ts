@@ -31,8 +31,15 @@ class DefaultRenderer extends Marked.Renderer {
   override text(
     token: Marked.Tokens.Text | Marked.Tokens.Escape | Marked.Tokens.Tag,
   ): string {
+    let text = token.text;
+    if (
+      token.type === "text" && "tokens" in token && token.tokens !== undefined
+    ) {
+      text = this.parser.parseInline(token.tokens);
+    }
+
     // Smartypants typography enhancement
-    return token.text
+    return text
       .replaceAll("...", "&#8230;")
       .replaceAll("--", "&#8212;")
       .replaceAll("---", "&#8211;")
@@ -45,16 +52,18 @@ class DefaultRenderer extends Marked.Renderer {
   }
 
   override heading({
-    text,
+    tokens,
     depth,
     raw,
   }: Marked.Tokens.Heading): string {
     const slug = slugger.slug(raw);
+    const text = this.parser.parseInline(tokens);
     this.headings.push({ id: slug, html: text });
     return `<h${depth} id="${slug}"><a class="md-anchor" tabindex="-1" href="#${slug}">${text}<span aria-hidden="true">#</span></a></h${depth}>`;
   }
 
-  override link({ href, title, text }: Marked.Tokens.Link) {
+  override link({ href, title, tokens }: Marked.Tokens.Link) {
+    const text = this.parser.parseInline(tokens);
     const titleAttr = title ? ` title="${title}"` : "";
     if (href.startsWith("#")) {
       return `<a href="${href}"${titleAttr}>${text}</a>`;
