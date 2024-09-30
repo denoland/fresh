@@ -112,7 +112,7 @@ export async function withBrowser(fn: (page: Page) => void | Promise<void>) {
   const aborter = new AbortController();
   try {
     const browser = await launch({
-      args: ["--no-sandbox"],
+      args: ["--no-sandbox", "--window-size=1280,720"],
       headless: !Deno.args.includes("--headful"),
     });
 
