@@ -421,5 +421,11 @@
     "link": "https://wtfiscongressdoingnow.us",
     "github": "gibbygano/wtfiscongressdoingnow",
     "image": "wtfcongress"
+  },
+  {
+    "title": "Scripture Compare",
+    "link": "https://scripturecompare.org/",
+    "github": "JakeAve/scripture-compare",
+    "image": "scripturecompare"
   }
 ]
