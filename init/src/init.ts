@@ -218,7 +218,12 @@ export default {
   const GRADIENT_CSS = css`
 .fresh-gradient {
   background-color: rgb(134, 239, 172);
-  background-image: linear-gradient(to right bottom, rgb(219, 234, 254), rgb(187, 247, 208), rgb(254, 249, 195));
+  background-image: linear-gradient(
+    to right bottom,
+    rgb(219, 234, 254),
+    rgb(187, 247, 208),
+    rgb(254, 249, 195)
+  );
 }
 `;
 
@@ -238,8 +243,15 @@ button, [role="button"] {
   cursor: pointer;
 }
 code {
-  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
-    "Liberation Mono", "Courier New", monospace;
+  font-family:
+    ui-monospace,
+    SFMono-Regular,
+    Menlo,
+    Monaco,
+    Consolas,
+    "Liberation Mono",
+    "Courier New",
+    monospace;
   font-size: 1em;
 }
 img,
@@ -255,9 +267,21 @@ video {
 html {
   line-height: 1.5;
   -webkit-text-size-adjust: 100%;
-  font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
-    "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif,
-    "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+  font-family:
+    ui-sans-serif,
+    system-ui,
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    Roboto,
+    "Helvetica Neue",
+    Arial,
+    "Noto Sans",
+    sans-serif,
+    "Apple Color Emoji",
+    "Segoe UI Emoji",
+    "Segoe UI Symbol",
+    "Noto Color Emoji";
 }
 .transition-colors {
   transition-property: background-color, border-color, color, fill, stroke;
