@@ -215,8 +215,7 @@ export default {
     await writeFile("tailwind.config.ts", TAILWIND_CONFIG_TS);
   }
 
-  const GRADIENT_CSS = css`
-.fresh-gradient {
+  const GRADIENT_CSS = css`.fresh-gradient {
   background-color: rgb(134, 239, 172);
   background-image: linear-gradient(
     to right bottom,
@@ -224,11 +223,9 @@ export default {
     rgb(187, 247, 208),
     rgb(254, 249, 195)
   );
-}
-`;
+}`;
 
-  const NO_TAILWIND_STYLES = css`
-*,
+  const NO_TAILWIND_STYLES = css`*,
 *::before,
 *::after {
   box-sizing: border-box;
@@ -376,14 +373,12 @@ html {
   font-variant-numeric: tabular-nums;
 }
 
-${GRADIENT_CSS}
-`;
+${GRADIENT_CSS}`;
 
   const TAILWIND_CSS = css`@tailwind base;
 @tailwind components;
 @tailwind utilities;
-${GRADIENT_CSS}
-`;
+${GRADIENT_CSS}`;
 
   const cssStyles = useTailwind ? TAILWIND_CSS : NO_TAILWIND_STYLES;
   await writeFile("static/styles.css", cssStyles);
