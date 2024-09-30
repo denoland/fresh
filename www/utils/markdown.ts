@@ -28,7 +28,7 @@ export interface MarkdownHeading {
 class DefaultRenderer extends Marked.Renderer {
   headings: MarkdownHeading[] = [];
 
-  text(
+  override text(
     token: Marked.Tokens.Text | Marked.Tokens.Escape | Marked.Tokens.Tag,
   ): string {
     // Smartypants typography enhancement
@@ -44,7 +44,7 @@ class DefaultRenderer extends Marked.Renderer {
       .replaceAll(/['](.*?)[']/g, "&#8216;$1&#8217;");
   }
 
-  heading({
+  override heading({
     text,
     depth,
     raw,
@@ -54,7 +54,7 @@ class DefaultRenderer extends Marked.Renderer {
     return `<h${depth} id="${slug}"><a class="md-anchor" tabindex="-1" href="#${slug}">${text}<span aria-hidden="true">#</span></a></h${depth}>`;
   }
 
-  link({ href, title, text }: Marked.Tokens.Link) {
+  override link({ href, title, text }: Marked.Tokens.Link) {
     const titleAttr = title ? ` title="${title}"` : "";
     if (href.startsWith("#")) {
       return `<a href="${href}"${titleAttr}>${text}</a>`;
@@ -63,11 +63,11 @@ class DefaultRenderer extends Marked.Renderer {
     return `<a href="${href}"${titleAttr} rel="noopener noreferrer">${text}</a>`;
   }
 
-  image({ href, text, title }: Marked.Tokens.Image) {
+  override image({ href, text, title }: Marked.Tokens.Image) {
     return `<img src="${href}" alt="${text ?? ""}" title="${title ?? ""}" />`;
   }
 
-  code({ lang: info, text }: Marked.Tokens.Code): string {
+  override code({ lang: info, text }: Marked.Tokens.Code): string {
     // format: tsx
     // format: tsx my/file.ts
     // format: tsx "This is my title"
@@ -105,7 +105,7 @@ class DefaultRenderer extends Marked.Renderer {
     return out;
   }
 
-  blockquote({ text }: Marked.Tokens.Blockquote): string {
+  override blockquote({ text }: Marked.Tokens.Blockquote): string {
     const match = text.match(ADMISSION_REG);
     if (match) {
       const label: Record<string, string> = {
