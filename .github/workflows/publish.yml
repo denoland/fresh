@@ -19,7 +19,7 @@ jobs:
         uses: denoland/setup-deno@v1
         with:
           deno-version: rc
-        
+
       - name: Publish Fresh
         run: deno publish
 
