@@ -68,6 +68,7 @@
     "postcss": "npm:postcss@8.4.35",
     "preact": "npm:preact@^10.24.0",
     "preact-render-to-string": "npm:preact-render-to-string@^6.5.11",
+    "prismjs": "npm:prismjs@^1.29.0",
     "tailwindcss": "npm:tailwindcss@^3.4.1",
     "tailwindcss/plugin": "npm:/tailwindcss@^3.4.1/plugin.js",
     "ts-morph": "npm:ts-morph@^22.0.0"
