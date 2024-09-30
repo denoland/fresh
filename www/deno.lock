@@ -1314,9 +1314,13 @@
       "npm:cssnano@6.0.3",
       "npm:esbuild-wasm@0.23.1",
       "npm:esbuild@0.23.1",
+      "npm:github-slugger@2",
+      "npm:marked-mangle@^1.1.9",
+      "npm:marked@^14.1.2",
       "npm:postcss@8.4.35",
       "npm:preact-render-to-string@^6.5.11",
       "npm:preact@^10.24.0",
+      "npm:prismjs@^1.29.0",
       "npm:tailwindcss@3.4.1"
     ]
   }

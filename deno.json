@@ -33,7 +33,6 @@
   },
   "imports": {
     "$ga4": "https://raw.githubusercontent.com/denoland/ga4/main/mod.ts",
-    "$marked-mangle": "https://esm.sh/marked-mangle@1.0.1",
     "@astral/astral": "jsr:@astral/astral@^0.4.6",
     "@fresh/plugin-tailwind": "./plugin-tailwindcss/src/mod.ts",
     "@luca/esbuild-deno-loader": "jsr:@luca/esbuild-deno-loader@^0.10.3",
@@ -62,15 +61,16 @@
     "fresh/compat": "./src/compat/mod.ts",
     "fresh/dev": "./src/dev/mod.ts",
     "fresh/runtime": "./src/runtime/shared.ts",
+    "github-slugger": "npm:github-slugger@^2.0.0",
     "linkedom": "npm:linkedom@^0.16.11",
+    "marked": "npm:marked@^14.1.2",
+    "marked-mangle": "npm:marked-mangle@^1.1.9",
     "postcss": "npm:postcss@8.4.35",
     "preact": "npm:preact@^10.24.0",
     "preact-render-to-string": "npm:preact-render-to-string@^6.5.11",
     "tailwindcss": "npm:tailwindcss@^3.4.1",
     "tailwindcss/plugin": "npm:/tailwindcss@^3.4.1/plugin.js",
-    "ts-morph": "npm:ts-morph@^22.0.0",
-    "twind": "https://esm.sh/twind@0.16.19",
-    "twind/": "https://esm.sh/twind@0.16.19/"
+    "ts-morph": "npm:ts-morph@^22.0.0"
   },
   "compilerOptions": {
     "lib": ["dom", "dom.asynciterable", "deno.ns"],

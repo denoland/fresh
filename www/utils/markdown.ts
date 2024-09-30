@@ -1,11 +1,11 @@
 import Prism from "prismjs";
-import "prismjs/components/prism-jsx.js?no-check";
-import "prismjs/components/prism-typescript.js?no-check";
-import "prismjs/components/prism-tsx.js?no-check";
-import "prismjs/components/prism-diff.js?no-check";
-import "prismjs/components/prism-json.js?no-check";
-import "prismjs/components/prism-bash.js?no-check";
-import "prismjs/components/prism-yaml.js?no-check";
+import "prismjs/components/prism-jsx.js";
+import "prismjs/components/prism-typescript.js";
+import "prismjs/components/prism-tsx.js";
+import "prismjs/components/prism-diff.js";
+import "prismjs/components/prism-json.js";
+import "prismjs/components/prism-bash.js";
+import "prismjs/components/prism-yaml.js";
 
 export { extractYaml as frontMatter } from "@std/front-matter";
 

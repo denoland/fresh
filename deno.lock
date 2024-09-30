@@ -49,7 +49,10 @@
     "npm:cssnano@6.0.3": "6.0.3_postcss@8.4.35",
     "npm:esbuild-wasm@0.23.1": "0.23.1",
     "npm:esbuild@0.23.1": "0.23.1",
+    "npm:github-slugger@2": "2.0.0",
     "npm:linkedom@~0.16.11": "0.16.11",
+    "npm:marked-mangle@^1.1.9": "1.1.9_marked@14.1.2",
+    "npm:marked@^14.1.2": "14.1.2",
     "npm:postcss@8.4.35": "8.4.35",
     "npm:preact-render-to-string@^6.5.11": "6.5.11_preact@10.24.0",
     "npm:preact@10.24.0": "10.24.0",
@@ -737,6 +740,9 @@
     "function-bind@1.1.2": {
       "integrity": "sha512-7XHNxH7qX9xG5mIwxkhumTox/MIRNcOgDrxWsMt2pAr23WHp6MrRlN7FBSFpCpr+oVO0F744iUgR82nJMfG2SA=="
     },
+    "github-slugger@2.0.0": {
+      "integrity": "sha512-IaOQ9puYtjrkq7Y0Ygl9KDZnrf/aiUJYUpVf89y8kyaxbRG7Y1SrX/jaumrv81vc61+kiMempujsM3Yw7w5qcw=="
+    },
     "glob-parent@5.1.2": {
       "integrity": "sha512-AOIgSQCepiJYwP3ARnGx+5VnTu2HBYdzbGP45eLw1vr3zB3vZLeyed1sC9hnbcOc9/SrMyM5RPQrkGz4aS9Zow==",
       "dependencies": [
@@ -845,6 +851,15 @@
     },
     "lru-cache@10.4.3": {
       "integrity": "sha512-JNAzZcXrCt42VGLuYz0zfAzDfAvJWW6AfYlDBQyDV5DClI2m5sAmK+OIO7s59XfsRsWHp02jAJrRadPRGTt6SQ=="
+    },
+    "marked-mangle@1.1.9_marked@14.1.2": {
+      "integrity": "sha512-eLTXr1xQzba/WZp/trPS0HkR9W02ifasH6IWPrBv++eO2m8POiwV4muQ6Tof2C5Fhdo3z8ggXs6VGw1f931Vsg==",
+      "dependencies": [
+        "marked"
+      ]
+    },
+    "marked@14.1.2": {
+      "integrity": "sha512-f3r0yqpz31VXiDB/wj9GaOB0a2PRLQl6vJmXiFrniNwjkKdvakqJRULhjFKJpxOchlCRiG5fcacoUZY5Xa6PEQ=="
     },
     "mdn-data@2.0.28": {
       "integrity": "sha512-aylIc7Z9y4yzHYAJNuESG3hfhC+0Ibp/MAMiaOZgNv4pmEdFyfZhhhny4MNiAfWdBQ1RQ2mfDWmM1x8SvGyp8g=="
@@ -1491,7 +1506,10 @@
       "npm:cssnano@6.0.3",
       "npm:esbuild-wasm@0.23.1",
       "npm:esbuild@0.23.1",
+      "npm:github-slugger@2",
       "npm:linkedom@~0.16.11",
+      "npm:marked-mangle@^1.1.9",
+      "npm:marked@^14.1.2",
       "npm:postcss@8.4.35",
       "npm:preact-render-to-string@^6.5.11",
       "npm:preact@^10.24.0",
