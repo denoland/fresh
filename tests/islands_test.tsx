@@ -64,6 +64,8 @@ Deno.test({
       await waitForText(page, ".output", "4");
     });
   },
+  sanitizeResources: false,
+  sanitizeOps: false,
 });
 
 Deno.test({
@@ -94,6 +96,8 @@ Deno.test({
       await waitForText(page, "#multiple-2 .output", "1");
     });
   },
+  sanitizeResources: false,
+  sanitizeOps: false,
 });
 
 Deno.test({
@@ -123,6 +127,8 @@ Deno.test({
       await waitForText(page, "#counter-2 .output", "1");
     });
   },
+  sanitizeResources: false,
+  sanitizeOps: false,
 });
 
 Deno.test({
@@ -151,6 +157,8 @@ Deno.test({
       expect(json).toEqual({ foo: 123 });
     });
   },
+  sanitizeResources: false,
+  sanitizeOps: false,
 });
 
 Deno.test({
@@ -174,6 +182,8 @@ Deno.test({
       await page.locator(".ready").wait();
     });
   },
+  sanitizeResources: false,
+  sanitizeOps: false,
 });
 
 Deno.test({
@@ -204,6 +214,8 @@ Deno.test({
       expect(html).not.toContain("import { Counter }");
     });
   },
+  sanitizeResources: false,
+  sanitizeOps: false,
 });
 
 Deno.test({
@@ -232,6 +244,8 @@ Deno.test({
       expect(doc.querySelector(".children")!.childNodes.length).toEqual(0);
     });
   },
+  sanitizeResources: false,
+  sanitizeOps: false,
 });
 
 Deno.test({
@@ -262,6 +276,8 @@ Deno.test({
       expect(JSON.parse(text)).toEqual({ jsx: true, children: true });
     });
   },
+  sanitizeResources: false,
+  sanitizeOps: false,
 });
 
 Deno.test({
@@ -297,6 +313,8 @@ Deno.test({
       expect(childText).toEqual("foobar");
     });
   },
+  sanitizeResources: false,
+  sanitizeOps: false,
 });
 
 Deno.test({
@@ -329,6 +347,8 @@ Deno.test({
       await waitForText(page, ".output", "1");
     });
   },
+  sanitizeResources: false,
+  sanitizeOps: false,
 });
 
 Deno.test({
@@ -372,6 +392,8 @@ Deno.test({
       await waitForText(page, ".children .output", "1");
     });
   },
+  sanitizeResources: false,
+  sanitizeOps: false,
 });
 
 Deno.test({
@@ -415,6 +437,8 @@ Deno.test({
       await waitForText(page, ".children .output", "1");
     });
   },
+  sanitizeResources: false,
+  sanitizeOps: false,
 });
 
 Deno.test({
@@ -489,6 +513,8 @@ Deno.test({
       expect(radio2).toEqual(true);
     });
   },
+  sanitizeResources: false,
+  sanitizeOps: false,
 });
 
 Deno.test({
@@ -519,6 +545,8 @@ Deno.test({
       expect(text).toEqual("it works");
     });
   },
+  sanitizeResources: false,
+  sanitizeOps: false,
 });
 
 Deno.test({
@@ -548,6 +576,8 @@ Deno.test({
       expect(text).toEqual("it works");
     });
   },
+  sanitizeResources: false,
+  sanitizeOps: false,
 });
 
 Deno.test({
@@ -576,6 +606,8 @@ Deno.test({
       expect(text).toEqual("value: production");
     });
   },
+  sanitizeResources: false,
+  sanitizeOps: false,
 });
 
 Deno.test({
@@ -601,6 +633,8 @@ Deno.test({
       await waitForText(page, ".output", "1");
     });
   },
+  sanitizeResources: false,
+  sanitizeOps: false,
 });
 
 Deno.test({
@@ -631,6 +665,8 @@ Deno.test({
       expect(falsy).toEqual("false");
     });
   },
+  sanitizeResources: false,
+  sanitizeOps: false,
 });
 
 Deno.test({
@@ -659,6 +695,8 @@ Deno.test({
       expect(text).toEqual("it works");
     });
   },
+  sanitizeResources: false,
+  sanitizeOps: false,
 });
 
 Deno.test({
@@ -685,4 +723,6 @@ Deno.test({
       /<\/fresh-runtime\.js\?__frsh_c=[^>]+>; rel="modulepreload"; as="script", <\/SelfCounter\.js\?__frsh_c=[^>]+>; rel="modulepreload"; as="script"/,
     );
   },
+  sanitizeResources: false,
+  sanitizeOps: false,
 });

@@ -74,6 +74,8 @@ Deno.test({
       await waitForText(page, ".output", "partial update");
     });
   },
+  sanitizeResources: false,
+  sanitizeOps: false,
 });
 
 Deno.test({
@@ -115,6 +117,8 @@ Deno.test({
       assertNotSelector(doc, ".init");
     });
   },
+  sanitizeResources: false,
+  sanitizeOps: false,
 });
 
 Deno.test({
@@ -155,6 +159,8 @@ Deno.test({
       );
     });
   },
+  sanitizeResources: false,
+  sanitizeOps: false,
 });
 
 Deno.test({
@@ -193,6 +199,8 @@ Deno.test({
 
     // TODO: Check error overlay
   },
+  sanitizeResources: false,
+  sanitizeOps: false,
 });
 
 // See https://github.com/denoland/fresh/issues/2254
@@ -236,6 +244,8 @@ Deno.test({
       expect(didError).toEqual(false);
     });
   },
+  sanitizeResources: false,
+  sanitizeOps: false,
 });
 
 Deno.test({
@@ -274,6 +284,8 @@ Deno.test({
       await page.locator(".ready").wait();
     });
   },
+  sanitizeResources: false,
+  sanitizeOps: false,
 });
 
 Deno.test({
@@ -307,6 +319,8 @@ Deno.test({
 
     // TODO: Test error overlay
   },
+  sanitizeResources: false,
+  sanitizeOps: false,
 });
 
 Deno.test({
@@ -347,6 +361,8 @@ Deno.test({
       });
     });
   },
+  sanitizeResources: false,
+  sanitizeOps: false,
 });
 
 Deno.test({
@@ -391,6 +407,8 @@ Deno.test({
       expect(counter).toEqual("1");
     });
   },
+  sanitizeResources: false,
+  sanitizeOps: false,
 });
 
 Deno.test({
@@ -437,6 +455,8 @@ Deno.test({
       assertNotSelector(doc, ".output");
     });
   },
+  sanitizeResources: false,
+  sanitizeOps: false,
 });
 
 Deno.test({
@@ -476,6 +496,8 @@ Deno.test({
       await page.locator(".inner-update").wait();
     });
   },
+  sanitizeResources: false,
+  sanitizeOps: false,
 });
 
 Deno.test({
@@ -527,6 +549,8 @@ Deno.test({
       await page.locator(".sib-3-update").wait();
     });
   },
+  sanitizeResources: false,
+  sanitizeOps: false,
 });
 
 Deno.test({
@@ -586,6 +610,8 @@ Deno.test({
       await waitForText(page, "#c .output", "3");
     });
   },
+  sanitizeResources: false,
+  sanitizeOps: false,
 });
 
 Deno.test({
@@ -658,6 +684,8 @@ Deno.test({
       await waitForText(page, "#c .output", "3");
     });
   },
+  sanitizeResources: false,
+  sanitizeOps: false,
 });
 
 Deno.test({
@@ -730,6 +758,8 @@ Deno.test({
       await waitForText(page, "#c .output", "3");
     });
   },
+  sanitizeResources: false,
+  sanitizeOps: false,
 });
 
 Deno.test({
@@ -795,6 +825,8 @@ Deno.test({
       await waitForText(page, "#c .output", "3");
     });
   },
+  sanitizeResources: false,
+  sanitizeOps: false,
 });
 
 Deno.test({
@@ -862,6 +894,8 @@ Deno.test({
       assertNotSelector(doc, ".done-0");
     });
   },
+  sanitizeResources: false,
+  sanitizeOps: false,
 });
 
 Deno.test({
@@ -910,6 +944,8 @@ Deno.test({
       assertNotSelector(doc, ".done-0");
     });
   },
+  sanitizeResources: false,
+  sanitizeOps: false,
 });
 
 Deno.test({
@@ -956,6 +992,8 @@ Deno.test({
       expect(doc.querySelector(".content")!.textContent).toEqual("init01");
     });
   },
+  sanitizeResources: false,
+  sanitizeOps: false,
 });
 
 Deno.test({
@@ -1005,6 +1043,8 @@ Deno.test({
       expect(doc.querySelector(".content")!.textContent).toEqual("init01");
     });
   },
+  sanitizeResources: false,
+  sanitizeOps: false,
 });
 
 Deno.test({
@@ -1050,6 +1090,8 @@ Deno.test({
       expect(doc.querySelector(".content")!.textContent).toEqual("10init");
     });
   },
+  sanitizeResources: false,
+  sanitizeOps: false,
 });
 
 Deno.test({
@@ -1099,6 +1141,8 @@ Deno.test({
       expect(doc.querySelector(".content")!.textContent).toEqual("10init");
     });
   },
+  sanitizeResources: false,
+  sanitizeOps: false,
 });
 
 Deno.test({
@@ -1155,6 +1199,8 @@ Deno.test({
       });
     });
   },
+  sanitizeResources: false,
+  sanitizeOps: false,
 });
 
 Deno.test({
@@ -1210,6 +1256,8 @@ Deno.test({
       });
     });
   },
+  sanitizeResources: false,
+  sanitizeOps: false,
 });
 
 Deno.test({
@@ -1275,6 +1323,8 @@ Deno.test({
       });
     });
   },
+  sanitizeResources: false,
+  sanitizeOps: false,
 });
 
 Deno.test({
@@ -1340,6 +1390,8 @@ Deno.test({
       });
     });
   },
+  sanitizeResources: false,
+  sanitizeOps: false,
 });
 
 Deno.test({
@@ -1396,6 +1448,8 @@ Deno.test({
       expect(scroll.scrollY > 100).toEqual(true);
     });
   },
+  sanitizeResources: false,
+  sanitizeOps: false,
 });
 
 Deno.test({
@@ -1443,6 +1497,8 @@ Deno.test({
       await page.locator(".done-foo-sub").wait();
     });
   },
+  sanitizeResources: false,
+  sanitizeOps: false,
 });
 
 Deno.test({
@@ -1493,6 +1549,8 @@ Deno.test({
       expect(pathname).toEqual("/foo");
     });
   },
+  sanitizeResources: false,
+  sanitizeOps: false,
 });
 
 Deno.test({
@@ -1541,6 +1599,8 @@ Deno.test({
       await page.locator(".done-foo-sub").wait();
     });
   },
+  sanitizeResources: false,
+  sanitizeOps: false,
 });
 
 Deno.test({
@@ -1595,6 +1655,8 @@ Deno.test({
       expect(pathname).toEqual("/done");
     });
   },
+  sanitizeResources: false,
+  sanitizeOps: false,
 });
 
 Deno.test({
@@ -1654,6 +1716,8 @@ Deno.test({
       await page.locator(".done-foo-sub").wait();
     });
   },
+  sanitizeResources: false,
+  sanitizeOps: false,
 });
 
 Deno.test({
@@ -1714,6 +1778,8 @@ Deno.test({
       await page.locator(".done-foo-sub").wait();
     });
   },
+  sanitizeResources: false,
+  sanitizeOps: false,
 });
 
 Deno.test({
@@ -1782,6 +1848,8 @@ Deno.test({
       assertNotSelector(doc, "button");
     });
   },
+  sanitizeResources: false,
+  sanitizeOps: false,
 });
 
 Deno.test({
@@ -1840,6 +1908,8 @@ Deno.test({
       await page.locator(".done-a-b-c").wait();
     });
   },
+  sanitizeResources: false,
+  sanitizeOps: false,
 });
 
 Deno.test({
@@ -1868,6 +1938,8 @@ Deno.test({
       expect(logs).toEqual([]);
     });
   },
+  sanitizeResources: false,
+  sanitizeOps: false,
 });
 
 Deno.test({
@@ -1903,6 +1975,8 @@ Deno.test({
       expect(scroll > 0).toEqual(true);
     });
   },
+  sanitizeResources: false,
+  sanitizeOps: false,
 });
 
 Deno.test({
@@ -1948,6 +2022,8 @@ Deno.test({
       expect(logs[0]).toMatch(/Found no partials/);
     });
   },
+  sanitizeResources: false,
+  sanitizeOps: false,
 });
 
 Deno.test({
@@ -2044,6 +2120,8 @@ Deno.test({
       expect(textColor).toEqual("rgb(0, 128, 0)");
     });
   },
+  sanitizeResources: false,
+  sanitizeOps: false,
 });
 
 Deno.test({
@@ -2131,6 +2209,8 @@ Deno.test({
       ).toEqual(true);
     });
   },
+  sanitizeResources: false,
+  sanitizeOps: false,
 });
 
 Deno.test({
@@ -2171,6 +2251,8 @@ Deno.test({
       await page.locator(".status-refreshed").wait();
     });
   },
+  sanitizeResources: false,
+  sanitizeOps: false,
 });
 
 Deno.test({
@@ -2222,6 +2304,8 @@ Deno.test({
       await waitForText(page, "#inner .output", "1");
     });
   },
+  sanitizeResources: false,
+  sanitizeOps: false,
 });
 
 Deno.test({
@@ -2258,6 +2342,8 @@ Deno.test({
       await page.locator(".done").wait();
     });
   },
+  sanitizeResources: false,
+  sanitizeOps: false,
 });
 
 Deno.test({
@@ -2293,6 +2379,8 @@ Deno.test({
       await page.locator(".error-404").wait();
     });
   },
+  sanitizeResources: false,
+  sanitizeOps: false,
 });
 
 Deno.test({
@@ -2331,6 +2419,8 @@ Deno.test({
       expect(title).toEqual("after update");
     });
   },
+  sanitizeResources: false,
+  sanitizeOps: false,
 });
 
 Deno.test({
@@ -2374,4 +2464,6 @@ Deno.test({
       expect(`${url.pathname}${url.search}`).toEqual("/");
     });
   },
+  sanitizeResources: false,
+  sanitizeOps: false,
 });

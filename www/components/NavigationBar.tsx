@@ -19,10 +19,10 @@ export default function NavigationBar(
   ];
   const isHome = props.active == "/";
   return (
-    <nav class={"flex " + props.class ?? ""} f-client-nav={false}>
+    <nav class={"flex " + (props.class ?? "")} f-client-nav={false}>
       <ul class="flex items-center gap-x-2 sm:gap-4 mx-4 my-2 sm:my-6 flex-wrap lg:mx-8 2xl:mr-0">
         {items.map((item) => (
-          <li>
+          <li key={item.name}>
             <a
               href={item.href}
               class={`p-1 sm:p-2 ${
