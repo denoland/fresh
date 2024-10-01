@@ -189,9 +189,14 @@ export function getParamsAndRoute(
       const res = route.pattern.exec(url);
 
       if (res !== null) {
+        const params: Record<string, string> = {};
+        for (const [key, value] of Object.entries(res.pathname.groups)) {
+          params[key] = value === undefined ? "" : value;
+        }
+
         return {
           route: route,
-          params: res.pathname.groups,
+          params,
           isPartial,
         };
       }
