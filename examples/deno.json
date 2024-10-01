@@ -1,6 +1,7 @@
 {
   "name": "@fresh/examples",
   "version": "1.0.1",
+  "license": "MIT",
   "exports": {
     "./island": "./src/island.tsx",
     "./app1": "./src/app1.tsx",

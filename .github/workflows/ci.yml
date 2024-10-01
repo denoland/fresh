@@ -14,15 +14,15 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        deno: ["canary", "v1.x"]
+        deno: ["canary", "rc"]
         os: [macOS-latest, windows-latest, ubuntu-latest]
         include:
-        - os: ubuntu-latest
-          cache_path: ~/.cache/deno/
-        - os: macos-latest
-          cache_path: ~/Library/Caches/deno/
-        - os: windows-latest
-          cache_path: ~\AppData\Local\deno\
+          - os: ubuntu-latest
+            cache_path: ~/.cache/deno/
+          - os: macos-latest
+            cache_path: ~/Library/Caches/deno/
+          - os: windows-latest
+            cache_path: ~\AppData\Local\deno\
 
     steps:
       - name: Checkout repo
@@ -44,7 +44,7 @@ jobs:
       - name: Spell-check
         if: startsWith(matrix.os, 'ubuntu') && matrix.deno == 'v1.x'
         uses: crate-ci/typos@master
-        
+
       - name: Type check project
         run: deno task check:types
 

@@ -21,12 +21,12 @@ providing a native way to visually differentiate the active link.
 
 ```css
 /* Give links pointing to the current page a green color */
-a[aria-current='page'] {
+a[aria-current="page"] {
   color: green;
 }
 
 /* Color all ancestor links of the current page */
-a[aria-current='true'] {
+a[aria-current="true"] {
   color: peachpuff;
 }
 ```

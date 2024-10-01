@@ -131,20 +131,6 @@ export async function bundleJs(
   }
 
   if (!options.dev) {
-    // deno-lint-ignore no-deprecated-deno-api
-    const children = Object.values(Deno.resources())
-      .filter((name) => name === "child").length;
-    await esbuild!.stop();
-    // To work around a bug in ESBuild, where it doesn't wait for the child
-    // process to shut down before exiting, we manually wait for the process to
-    // exit before continuing.
-    while (
-      // deno-lint-ignore no-deprecated-deno-api
-      Object.values(Deno.resources())
-        .filter((name) => name === "child").length >= children
-    ) {
-      await new Promise((r) => setTimeout(r, 100));
-    }
     esbuild = null;
   }
 
@@ -155,12 +141,17 @@ export async function bundleJs(
   };
 }
 
+let initialized = false;
+
 export async function startEsbuild() {
   esbuild = Deno.env.get("FRESH_ESBUILD_LOADER") === "portable"
     ? await import("esbuild-wasm")
     : await import("esbuild");
 
-  await esbuild.initialize({});
+  if (!initialized) {
+    await esbuild.initialize({});
+    initialized = true;
+  }
 }
 
 function buildIdPlugin(buildId: string): EsbuildPlugin {

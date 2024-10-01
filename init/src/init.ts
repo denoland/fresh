@@ -2,9 +2,9 @@ import * as colors from "@std/fmt/colors";
 import * as path from "@std/path";
 
 // Keep these as is, as we replace these version in our release script
-const FRESH_VERSION = "2.0.0-alpha.20";
+const FRESH_VERSION = "2.0.0-alpha.21";
 const FRESH_TAILWIND_VERSION = "0.0.1-alpha.7";
-const PREACT_VERSION = "10.23.2";
+const PREACT_VERSION = "10.24.1";
 const PREACT_SIGNALS_VERSION = "1.3.0";
 
 export const enum InitStep {
@@ -13,6 +13,18 @@ export const enum InitStep {
   Tailwind = "Tailwind",
   VSCode = "VSCode",
   Docker = "Docker",
+}
+
+function css(strs: TemplateStringsArray, ...exprs: string[]): string {
+  let out = "";
+
+  for (let i = 0; i < exprs.length; i++) {
+    out += strs[i];
+    out += String(exprs[i]);
+  }
+  out += strs.at(-1) ?? "";
+
+  return out;
 }
 
 export class InitError extends Error {}
@@ -203,15 +215,17 @@ export default {
     await writeFile("tailwind.config.ts", TAILWIND_CONFIG_TS);
   }
 
-  const GRADIENT_CSS = `
-  .fresh-gradient {
-    background-color: rgb(134, 239, 172);
-    background-image: linear-gradient(to right bottom, rgb(219, 234, 254), rgb(187, 247, 208), rgb(254, 249, 195));
-  }
-  `;
+  const GRADIENT_CSS = css`.fresh-gradient {
+  background-color: rgb(134, 239, 172);
+  background-image: linear-gradient(
+    to right bottom,
+    rgb(219, 234, 254),
+    rgb(187, 247, 208),
+    rgb(254, 249, 195)
+  );
+}`;
 
-  const NO_TAILWIND_STYLES = `
-*,
+  const NO_TAILWIND_STYLES = css`*,
 *::before,
 *::after {
   box-sizing: border-box;
@@ -226,8 +240,15 @@ button, [role="button"] {
   cursor: pointer;
 }
 code {
-  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
-    "Liberation Mono", "Courier New", monospace;
+  font-family:
+    ui-monospace,
+    SFMono-Regular,
+    Menlo,
+    Monaco,
+    Consolas,
+    "Liberation Mono",
+    "Courier New",
+    monospace;
   font-size: 1em;
 }
 img,
@@ -243,9 +264,21 @@ video {
 html {
   line-height: 1.5;
   -webkit-text-size-adjust: 100%;
-  font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
-    "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif,
-    "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+  font-family:
+    ui-sans-serif,
+    system-ui,
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    Roboto,
+    "Helvetica Neue",
+    Arial,
+    "Noto Sans",
+    sans-serif,
+    "Apple Color Emoji",
+    "Segoe UI Emoji",
+    "Segoe UI Symbol",
+    "Noto Color Emoji";
 }
 .transition-colors {
   transition-property: background-color, border-color, color, fill, stroke;
@@ -340,14 +373,12 @@ html {
   font-variant-numeric: tabular-nums;
 }
 
-${GRADIENT_CSS}
-`;
+${GRADIENT_CSS}`;
 
-  const TAILWIND_CSS = `@tailwind base;
+  const TAILWIND_CSS = css`@tailwind base;
 @tailwind components;
 @tailwind utilities;
-${GRADIENT_CSS}
-`;
+${GRADIENT_CSS}`;
 
   const cssStyles = useTailwind ? TAILWIND_CSS : NO_TAILWIND_STYLES;
   await writeFile("static/styles.css", cssStyles);
