@@ -13,7 +13,8 @@
       "jsr:@std/path@^0.225.2": "jsr:@std/path@0.225.2",
       "npm:@preact/signals@^1.2.3": "npm:@preact/signals@1.2.3_preact@10.22.0",
       "npm:preact-render-to-string@^6.4.2": "npm:preact-render-to-string@6.5.3_preact@10.22.0",
-      "npm:preact@^10.22.0": "npm:preact@10.22.0"
+      "npm:preact@^10.22.0": "npm:preact@10.22.0",
+      "npm:preact@^10.24.1": "npm:preact@10.24.1"
     },
     "jsr": {
       "@fresh/core@2.0.0-alpha.18": {
@@ -81,6 +82,10 @@
       },
       "preact@10.22.0": {
         "integrity": "sha512-RRurnSjJPj4rp5K6XoP45Ui33ncb7e4H7WiOHVpjbkvqvA3U+N8Z6Qbo0AE6leGYBV66n8EhEaFixvIu3SkxFw==",
+        "dependencies": {}
+      },
+      "preact@10.24.1": {
+        "integrity": "sha512-PnBAwFI3Yjxxcxw75n6VId/5TFxNW/81zexzWD9jn1+eSrOP84NdsS38H5IkF/UH3frqRPT+MvuCoVHjTDTnDw==",
         "dependencies": {}
       }
     }
