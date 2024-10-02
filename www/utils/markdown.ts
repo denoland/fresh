@@ -31,15 +31,14 @@ class DefaultRenderer extends Marked.Renderer {
   override text(
     token: Marked.Tokens.Text | Marked.Tokens.Escape | Marked.Tokens.Tag,
   ): string {
-    let text = token.text;
     if (
       token.type === "text" && "tokens" in token && token.tokens !== undefined
     ) {
-      text = this.parser.parseInline(token.tokens);
+      return this.parser.parseInline(token.tokens);
     }
 
     // Smartypants typography enhancement
-    return text
+    return token.text
       .replaceAll("...", "&#8230;")
       .replaceAll("--", "&#8212;")
       .replaceAll("---", "&#8211;")
