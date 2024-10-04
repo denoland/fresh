@@ -408,11 +408,7 @@ export function domToVNode(
           });
 
           const parentVNode = vnodeStack.at(-1)!;
-          if (slotName === "children") {
-            addVNodeChild(parentVNode, vnode);
-          } else {
-            parentVNode.props[slotName] = vnode;
-          }
+          parentVNode.props[slotName] = vnode;
           vnodeStack.push(vnode);
         } else if (kind === "partial") {
           sib = maybeHideMarker(sib);
