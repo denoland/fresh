@@ -176,10 +176,11 @@ Deno.test("fsRoutes - middleware", async () => {
   const server = await createServer<{ text: string }>({
     "routes/index.ts": { handler: (ctx) => new Response(ctx.state.text) },
     "routes/_middleware.ts": {
-      default: (ctx: FreshContext<{ text: string }>) => {
+      default: ((ctx: FreshContext<{ text: string }>) => {
         ctx.state.text = "ok";
         return ctx.next();
-      },
+        // deno-lint-ignore no-explicit-any
+      }) as any,
     },
   });
 
