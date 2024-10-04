@@ -1350,6 +1350,92 @@ Deno.test({
 });
 
 Deno.test({
+  name: "partials - with SVG in button",
+  fn: async () => {
+    const app = testApp()
+      .get("/partial", (ctx) => {
+        return ctx.render(
+          <Doc>
+            <Partial name="foo">
+              <p class="done">done</p>
+              <SelfCounter />
+            </Partial>
+          </Doc>,
+        );
+      })
+      .get("/", (ctx) => {
+        return ctx.render(
+          <Doc>
+            <div f-client-nav>
+              <button f-partial="/partial">
+                <svg
+                  width="100"
+                  height="100"
+                  viewBox="-256 -256 512 512"
+                  version="1.1"
+                  xmlns="http://www.w3.org/2000/svg"
+                  xmlnsXlink="http://www.w3.org/1999/xlink"
+                >
+                  <path
+                    class="update"
+                    d="M0,-256 221.7025033688164,-128 221.7025033688164,128 0,256 -221.7025033688164,128 -221.7025033688164,-128z"
+                    fill="#673ab8"
+                  />
+                  <ellipse
+                    cx="0"
+                    cy="0"
+                    stroke-width="16px"
+                    rx="75px"
+                    ry="196px"
+                    fill="none"
+                    stroke="white"
+                    transform="rotate(52.5)"
+                  />
+                  <ellipse
+                    cx="0"
+                    cy="0"
+                    stroke-width="16px"
+                    rx="75px"
+                    ry="196px"
+                    fill="none"
+                    stroke="white"
+                    transform="rotate(-52.5)"
+                  />
+                  <circle cx="0" cy="0" r="34" fill="white" />
+                </svg>
+                update
+              </button>
+              <Partial name="foo">
+                <p class="init">init</p>
+                <SelfCounter />
+              </Partial>
+            </div>
+          </Doc>,
+        );
+      });
+
+    await withBrowserApp(app, async (page, address) => {
+      await page.goto(address, { waitUntil: "load" });
+      await page.locator(".ready").wait();
+
+      await page.locator(".increment").click();
+      await waitForText(page, ".output", "1");
+
+      await page.locator(".update").click();
+
+      await page.waitForFunction(() => {
+        const url = new URL(window.location.href);
+        return url.pathname === "/partial";
+      });
+      await page.locator(".done").wait();
+      await waitForText(page, ".output", "1");
+    });
+  },
+  sanitizeResources: false,
+  sanitizeOps: false,
+});
+
+Deno.test({
   name: "partials - opt out of partial navigation",
   fn: async () => {
     const app = testApp()
