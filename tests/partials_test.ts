@@ -921,6 +921,28 @@ Deno.test("allow opting out of client navigation if parent opted in", async () =
   );
 });
 
+Deno.test("allow opting out of client navigation in island", async () => {
+  await withPageName(
+    "./tests/fixture_partials/main.ts",
+    async (page, address) => {
+      const initialUrl = `${address}/client_nav_opt_out_island`;
+      await page.goto(initialUrl);
+      await page.waitForSelector(".island");
+
+      await page.click(".island-a button");
+      await waitForText(page, ".output-a", "1");
+
+      await Promise.all([
+        page.waitForNavigation(),
+        page.click(".opt-out-link"),
+      ]);
+      await page.waitForSelector(".island");
+      await page.waitForSelector(".success");
+      await waitForText(page, ".output-a", "0");
+    },
+  );
+});
+
 Deno.test("restore scroll position", async () => {
   await withPageName(
     "./tests/fixture_partials/main.ts",
