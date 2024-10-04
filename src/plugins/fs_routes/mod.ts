@@ -4,7 +4,7 @@ import type { WalkEntry } from "@std/fs/walk";
 import * as path from "@std/path";
 import type { RouteConfig } from "../../types.ts";
 import type { RouteHandler } from "../../handlers.ts";
-import type { MiddlewareFn } from "../../middlewares/mod.ts";
+import type { Middleware, MiddlewareFn } from "../../middlewares/mod.ts";
 import {
   type AsyncAnyComponent,
   renderMiddleware,
@@ -34,7 +34,8 @@ export interface FreshFsItem<State> {
   handlers?: RouteHandler<unknown, State>;
   default?:
     | AnyComponent<PageProps<unknown, State>>
-    | AsyncAnyComponent<PageProps<unknown, State>>;
+    | AsyncAnyComponent<PageProps<unknown, State>>
+    | Middleware<State>;
 }
 
 // deno-lint-ignore no-explicit-any
@@ -142,13 +143,15 @@ export async function fsRoutes<State>(
         routePath.slice(0, routePath.lastIndexOf("."))
       }`;
       const base = normalizedPath.slice(0, normalizedPath.lastIndexOf("/"));
+      const isMiddleware = normalizedPath.endsWith("/_middleware");
       return {
         path: normalizedPath,
         filePath: routePath,
         base,
-        handlers: mod.handlers ?? mod.handler ?? null,
+        handlers: mod.handlers ?? mod.handler ??
+          (isMiddleware ? mod.default ?? null : null),
         config: mod.config ?? null,
-        component: mod.default ?? null,
+        component: isMiddleware ? null : mod.default ?? null,
       } as InternalRoute<State>;
     }),
   );
