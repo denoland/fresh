@@ -75,7 +75,7 @@ function maybeUpdateHistory(nextUrl: URL) {
 
 document.addEventListener("click", async (e) => {
   let el = e.target;
-  if (el && el instanceof HTMLElement) {
+  if (el && (el instanceof HTMLElement || el instanceof SVGElement)) {
     const originalEl = el;
 
     // Check if we clicked inside an anchor link
