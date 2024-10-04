@@ -868,9 +868,18 @@ const originalHook = options.vnode;
 options.vnode = (vnode) => {
   assetHashingHook(vnode);
 
-  // Mark active or ancestor links
-  if (vnode.type === "a") {
-    setActiveUrl(vnode, location.pathname);
+  if (typeof vnode.type === "string") {
+    // Mark active or ancestor links
+    if (vnode.type === "a") {
+      setActiveUrl(vnode, location.pathname);
+    }
+
+    if (CLIENT_NAV_ATTR in vnode.props) {
+      const value = vnode.props[CLIENT_NAV_ATTR];
+      if (typeof value === "boolean") {
+        vnode.props[CLIENT_NAV_ATTR] = String(value);
+      }
+    }
   }
 
   if (originalHook) originalHook(vnode);
