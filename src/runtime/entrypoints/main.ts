@@ -943,6 +943,9 @@ document.addEventListener("click", async (e) => {
     if (el.nodeName !== "A") {
       el = el.closest("a");
     }
+    if (el === null) {
+      el = originalEl.closest("button");
+    }
 
     if (
       // Check that we're still dealing with an anchor tag
@@ -993,33 +996,22 @@ document.addEventListener("click", async (e) => {
           indicator.value = false;
         }
       }
-    } else {
-      let button: HTMLButtonElement | HTMLElement | null = originalEl;
-      // Check if we clicked on a button
-      if (button.nodeName !== "A") {
-        button = button.closest("button");
+    } else if (
+      el && el instanceof HTMLButtonElement &&
+      (el.type !== "submit" || el.form === null)
+    ) {
+      const partial = el.getAttribute(PARTIAL_ATTR);
+
+      // Check if the user opted out of client side navigation.
+      if (partial === null || !checkClientNavEnabled(el)) {
+        return;
       }
 
-      if (
-        button !== null && button instanceof HTMLButtonElement &&
-        (button.type !== "submit" || button.form === null)
-      ) {
-        const partial = button.getAttribute(PARTIAL_ATTR);
-
-        // Check if the user opted out of client side navigation.
-        if (
-          partial === null ||
-          !checkClientNavEnabled(button)
-        ) {
-          return;
-        }
-
-        const partialUrl = new URL(
-          partial,
-          location.href,
-        );
-        await fetchPartials(partialUrl);
-      }
+      const partialUrl = new URL(
+        partial,
+        location.href,
+      );
+      await fetchPartials(partialUrl);
     }
   }
 });

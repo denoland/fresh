@@ -961,6 +961,24 @@ Deno.test("allow SVG inside partial links", async () => {
   );
 });
 
+Deno.test("allow SVG inside partial buttons", async () => {
+  await withPageName(
+    "./tests/fixture_partials/main.ts",
+    async (page, address) => {
+      const initialUrl = `${address}/client_svg_button`;
+      await page.goto(initialUrl);
+      await page.waitForSelector(".island");
+
+      await page.click(".island-a button");
+      await waitForText(page, ".output-a", "1");
+
+      await page.click(".update");
+      await page.waitForSelector(".success");
+      await waitForText(page, ".output-a", "1");
+    },
+  );
+});
+
 Deno.test("restore scroll position", async () => {
   await withPageName(
     "./tests/fixture_partials/main.ts",

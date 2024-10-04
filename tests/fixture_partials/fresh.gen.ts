@@ -36,6 +36,10 @@ import * as $client_nav_opt_out_island_layout from "./routes/client_nav_opt_out_
 import * as $client_nav_opt_out_island_index from "./routes/client_nav_opt_out_island/index.tsx";
 import * as $client_nav_opt_out_island_partial from "./routes/client_nav_opt_out_island/partial.tsx";
 import * as $client_nav_opt_out_island_success from "./routes/client_nav_opt_out_island/success.tsx";
+import * as $client_svg_button_layout from "./routes/client_svg_button/_layout.tsx";
+import * as $client_svg_button_fail from "./routes/client_svg_button/fail.tsx";
+import * as $client_svg_button_index from "./routes/client_svg_button/index.tsx";
+import * as $client_svg_button_success from "./routes/client_svg_button/success.tsx";
 import * as $client_svg_link_layout from "./routes/client_svg_link/_layout.tsx";
 import * as $client_svg_link_fail from "./routes/client_svg_link/fail.tsx";
 import * as $client_svg_link_index from "./routes/client_svg_link/index.tsx";
@@ -186,6 +190,10 @@ const manifest = {
       $client_nav_opt_out_island_partial,
     "./routes/client_nav_opt_out_island/success.tsx":
       $client_nav_opt_out_island_success,
+    "./routes/client_svg_button/_layout.tsx": $client_svg_button_layout,
+    "./routes/client_svg_button/fail.tsx": $client_svg_button_fail,
+    "./routes/client_svg_button/index.tsx": $client_svg_button_index,
+    "./routes/client_svg_button/success.tsx": $client_svg_button_success,
     "./routes/client_svg_link/_layout.tsx": $client_svg_link_layout,
     "./routes/client_svg_link/fail.tsx": $client_svg_link_fail,
     "./routes/client_svg_link/index.tsx": $client_svg_link_index,
