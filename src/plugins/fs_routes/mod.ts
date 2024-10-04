@@ -142,13 +142,15 @@ export async function fsRoutes<State>(
         routePath.slice(0, routePath.lastIndexOf("."))
       }`;
       const base = normalizedPath.slice(0, normalizedPath.lastIndexOf("/"));
+      const isMiddleware = normalizedPath.endsWith("/_middleware");
       return {
         path: normalizedPath,
         filePath: routePath,
         base,
-        handlers: mod.handlers ?? mod.handler ?? null,
+        handlers: mod.handlers ?? mod.handler ??
+          (isMiddleware ? mod.default ?? null : null),
         config: mod.config ?? null,
-        component: mod.default ?? null,
+        component: isMiddleware ? null : mod.default ?? null,
       } as InternalRoute<State>;
     }),
   );

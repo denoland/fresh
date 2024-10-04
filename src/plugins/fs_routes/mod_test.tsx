@@ -12,6 +12,7 @@ import { expect } from "@std/expect";
 import { type HandlerByMethod, type HandlerFn, page } from "../../handlers.ts";
 import type { Method } from "../../router.ts";
 import { parseHtml } from "../../../tests/test_utils.tsx";
+import type { FreshContext } from "fresh";
 
 async function createServer<T>(
   files: Record<string, string | Uint8Array | FreshFsItem<T>>,
@@ -169,6 +170,23 @@ Deno.test("fsRoutes - add middleware for function handler", async () => {
   res = await server.get("/none");
   const doc = parseHtml(await res.text());
   expect(doc.body.firstChild?.textContent).toEqual("ok");
+});
+
+Deno.test("fsRoutes - middleware", async () => {
+  const server = await createServer<{ text: string }>({
+    "routes/index.ts": { handler: (ctx) => new Response(ctx.state.text) },
+    "routes/_middleware.ts": {
+      default: ((ctx: FreshContext<{ text: string }>) => {
+        ctx.state.text = "ok";
+        return ctx.next();
+        // deno-lint-ignore no-explicit-any
+      }) as any,
+    },
+  });
+
+  const res = await server.get("/");
+  expect(res.status).toEqual(200);
+  expect(await res.text()).toEqual("ok");
 });
 
 Deno.test("fsRoutes - nested middlewares", async () => {

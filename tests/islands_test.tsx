@@ -397,6 +397,50 @@ Deno.test({
 });
 
 Deno.test({
+  name: "islands - nested children slots",
+  fn: async () => {
+    const passThrough = getIsland("PassThrough.tsx");
+    const selfCounter = getIsland("SelfCounter.tsx");
+
+    const app = testApp()
+      .use(staticFiles())
+      .island(passThrough, "PassThrough", PassThrough)
+      .island(selfCounter, "SelfCounter", SelfCounter)
+      .get("/", (ctx) => {
+        return ctx.render(
+          <Doc>
+            <PassThrough>
+              <PassThrough>
+                <div>
+                  <SelfCounter id="a" />
+                </div>
+              </PassThrough>
+              <PassThrough>
+                <div>
+                  <SelfCounter id="b" />
+                </div>
+              </PassThrough>
+            </PassThrough>
+          </Doc>,
+        );
+      });
+
+    await withBrowserApp(app, async (page, address) => {
+      await page.goto(address, { waitUntil: "load" });
+      await page.locator(".ready").wait();
+
+      await page.locator("#a .increment").click();
+      await page.locator("#b .increment").click();
+
+      await waitForText(page, "#a .output", "1");
+      await waitForText(page, "#b .output", "1");
+    });
+  },
+  sanitizeResources: false,
+  sanitizeOps: false,
+});
+
+Deno.test({
   name: "islands - conditional jsx children",
   fn: async () => {
     const jsxConditional = getIsland("JsxConditional.tsx");
