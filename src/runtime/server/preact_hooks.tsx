@@ -400,6 +400,7 @@ export function FreshScripts() {
           <template
             key={slot.id}
             id={`frsh-${slot.id}-${slot.name}`}
+            data-name={slot.name}
           >
             {slot.vnode}
           </template>

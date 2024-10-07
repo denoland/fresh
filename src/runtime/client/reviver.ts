@@ -8,7 +8,7 @@ import {
   type VNode,
 } from "preact";
 import { type CustomParser, parse } from "../../jsonify/parse.ts";
-import { signal } from "@preact/signals";
+import { type Signal, signal } from "@preact/signals";
 import { DATA_FRESH_KEY, PartialMode } from "../shared_internal.tsx";
 
 const enum RootKind {
@@ -35,7 +35,10 @@ interface PartialReq {
 interface ReviveContext {
   roots: Array<IslandReq | PartialReq>;
   stack: Array<PartialReq | IslandReq>;
-  slots: Map<number, { name: string; start: Comment; end: Comment | null }>;
+  slots: Map<
+    number,
+    { name: string; start: Comment | Node; end: Comment | Node | null }
+  >;
   slotIdStack: number[];
 }
 
@@ -70,6 +73,56 @@ export class PartialComp extends Component<
 }
 PartialComp.displayName = "Partial";
 
+function isSignalLike(value: unknown): value is Signal {
+  return value !== null && typeof value === "object" &&
+    "peek" in value && typeof value.peek === "function" &&
+    "value" in value;
+}
+
+function prepareSlots(
+  props: Record<string, unknown>,
+  container: HTMLElement,
+  slots: ReviveContext["slots"],
+  allProps: DeserializedProps,
+) {
+  console.log("props", props);
+  for (const propName in props) {
+    const value = props[propName];
+    if (isSlotRef(value)) {
+      console.log("slot", propName, value, value.__);
+      const marker = slots.get(value.id);
+      if (marker !== undefined) {
+        const root = h(Fragment, null);
+        const slotContainer = createRootFragment(
+          container,
+          marker.start,
+          marker.end!,
+        );
+        domToVNode(
+          allProps,
+          [root],
+          [Marker.Slot],
+          slotContainer,
+          marker.end!,
+        );
+        props[propName] = root;
+      } else {
+        const template = document.querySelector(
+          `#frsh-${value.id}-${value.name}`,
+        ) as HTMLTemplateElement | null;
+        if (template !== null) {
+          const root = h(Fragment, null);
+          domToVNode(allProps, [root], [Marker.Slot], template.content, null);
+          props[propName] = root;
+        }
+      }
+    } else if (value !== null && !isSignalLike(value)) {
+      console.log("maybe", propName, value);
+    } else {
+    }
+  }
+}
+
 export function revive(
   props: Record<string, unknown>,
   component: ComponentType,
@@ -78,37 +131,9 @@ export function revive(
   allProps: DeserializedProps,
 ) {
   const _render = () => {
-    for (const propName in props) {
-      const value = props[propName];
-      if (isSlotRef(value)) {
-        const marker = slots.get(value.id);
-        if (marker !== undefined) {
-          const root = h(Fragment, null);
-          const slotContainer = createRootFragment(
-            container,
-            marker.start,
-            marker.end!,
-          );
-          domToVNode(
-            allProps,
-            [root],
-            [Marker.Slot],
-            slotContainer,
-            marker.end!,
-          );
-          props[propName] = root;
-        } else {
-          const template = document.querySelector(
-            `#frsh-${value.id}-${value.name}`,
-          ) as HTMLTemplateElement | null;
-          if (template !== null) {
-            const root = h(Fragment, null);
-            domToVNode(allProps, [root], [Marker.Slot], template.content, null);
-            props[propName] = root;
-          }
-        }
-      }
-    }
+    prepareSlots(props, container, slots, allProps);
+
+    console.log("revive", props);
 
     // TODO: explore hydrate?
     render(h(component, props), container as unknown as HTMLElement);
@@ -129,6 +154,7 @@ export const ISLAND_REGISTRY = new Map<string, ComponentType>();
 export const CUSTOM_PARSER: CustomParser = {
   Signal: (value: unknown) => signal(value),
   Slot: (value: { name: string; id: number }): SlotRef => {
+    console.log("deserialize slot", value);
     return { kind: SLOT_SYMBOL, name: value.name, id: value.id };
   },
 };
@@ -160,6 +186,14 @@ export function boot(
     CUSTOM_PARSER,
   );
 
+  // prepare slots
+  for (let i = 0; i < allProps.length; i++) {
+    const item = allProps[i];
+    prepareSlots(item.props, document.body, ctx.slots, allProps);
+  }
+
+  console.log({ allProps });
+
   for (let i = 0; i < ctx.roots.length; i++) {
     const root = ctx.roots[i];
 
@@ -174,6 +208,7 @@ export function boot(
       const props = allProps[root.propsIdx].props;
       const component = ISLAND_REGISTRY.get(root.name)!;
 
+      console.log("revive island", props);
       revive(props, component, container, ctx.slots, allProps);
     } else if (root.kind === RootKind.Partial) {
       const props: Record<string, unknown> = {
@@ -231,6 +266,11 @@ function _walkInner(
       return;
     }
 
+    // Ignore templates
+    if (node.nodeName === "TEMPLATE") {
+      return;
+    }
+
     for (let i = 0; i < node.childNodes.length; i++) {
       const child = node.childNodes[i];
       _walkInner(ctx, child);
@@ -260,12 +300,7 @@ function _walkInner(
       } else if (kind === "slot") {
         const id = +parts[2];
         const slotName = parts[3];
-        ctx.slotIdStack.push(id);
-        ctx.slots.set(id, {
-          name: slotName,
-          start: node as Comment,
-          end: null,
-        });
+        ctx.stack.push(h(ServerSlot, { id, name: slotName, children: null }));
       } else if (kind === "partial") {
         const name = parts[2];
         const key = parts[3];
@@ -516,12 +551,12 @@ export function isElementNode(node: Node): node is HTMLElement {
 
 export function createRootFragment(
   parent: Element,
-  startMarker: Text | Comment,
+  startMarker: Text | Comment | Node,
   // We need an end marker for islands because multiple
   // islands can share the same parent node. Since
   // islands are root-level render calls any calls to
   // `.appendChild` would lead to a wrong result.
-  endMarker: Text | Comment,
+  endMarker: Text | Comment | Node,
 ): HTMLElement & { _frshRootFrag: boolean } {
   // @ts-ignore this is fine
   const rootFrag = {
