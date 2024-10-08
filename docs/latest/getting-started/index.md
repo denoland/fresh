@@ -20,5 +20,5 @@ nice with Deno. Documentation for this can also be found
 [in the manual][manual-editors].
 
 [deno-deploy]: https://deno.com/deploy
-[manual-installation]: https://deno.land/manual/getting_started/installation
-[manual-editors]: https://deno.land/manual/getting_started/setup_your_environment
+[manual-installation]: https://docs.deno.com/runtime/getting_started/installation/
+[manual-editors]: https://docs.deno.com/runtime/getting_started/setup_your_environment/
