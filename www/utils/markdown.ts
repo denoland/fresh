@@ -126,9 +126,9 @@ class DefaultRenderer extends Marked.Renderer {
       const icon = `<svg class="icon"><use href="/icons.svg#${type}" /></svg>`;
       return `<blockquote class="admonition ${type}">\n<span class="admonition-header">${icon}${
         label[type]
-      }</span>${text}</blockquote>\n`;
+      }</span>${Marked.parse(text)}</blockquote>\n`;
     }
-    return `<blockquote>\n${text}</blockquote>\n`;
+    return `<blockquote>\n${Marked.parse(text)}</blockquote>\n`;
   }
 }
 
