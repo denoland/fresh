@@ -18,7 +18,7 @@ const slugger = new GitHubSlugger();
 
 Marked.marked.use(mangle());
 
-const ADMISSION_REG = /^<p>\[(info|warn|tip)\]:\s/;
+const ADMISSION_REG = /^\[(info|warn|tip)\]:\s/;
 
 export interface MarkdownHeading {
   id: string;
