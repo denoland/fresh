@@ -617,6 +617,7 @@
   margin-right: 0.25rem;
   width: 1.2em;
   height: 1.2em;
+  margin-bottom: 0.25rem;
 }
 .markdown-body blockquote.warn {
   border-color: #ff9100;
