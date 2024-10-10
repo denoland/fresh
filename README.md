@@ -24,7 +24,7 @@ The [documentation](https://fresh.deno.dev/docs/introduction) is available on
 
 ## 🚀 Getting started
 
-Install the latest [Deno CLI](https://deno.land/) version.
+Install the latest [Deno CLI](https://deno.com/) version.
 
 You can scaffold a new project by running the Fresh init script. To scaffold a
 project run the following:
@@ -65,7 +65,7 @@ docs.
 ## Contributing
 
 We appreciate your help! To contribute, please read our
-[contributing instructions](https://deno.com/manual/references/contributing#submitting-a-pr-to-fresh).
+[contributing instructions](https://docs.deno.com/runtime/contributing/#submitting-a-pr-to-fresh).
 
 ## Adding your project to the showcase
 
