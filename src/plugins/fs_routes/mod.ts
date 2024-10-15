@@ -110,11 +110,13 @@ export async function fsRoutes<State>(
 
   await Promise.all(islandPaths.map(async (islandPath) => {
     const relative = path.relative(islandDir, islandPath);
+    console.log("islandPath", islandPath, JSON.stringify(relative));
     // deno-lint-ignore no-explicit-any
     const mod = await options.loadIsland(relative) as any;
     for (const key of Object.keys(mod)) {
       const maybeFn = mod[key];
       if (typeof maybeFn === "function") {
+        console.log("island", islandPath);
         app.island(islandPath, key, maybeFn);
       }
     }
