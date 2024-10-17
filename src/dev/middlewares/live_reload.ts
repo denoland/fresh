@@ -6,12 +6,12 @@ export function liveReload<T>(): MiddlewareFn<T> {
   const revision = Date.now();
 
   return (ctx) => {
-    const { config, req, url } = ctx;
+    const { config, request, url } = ctx;
 
     const aliveUrl = config.basePath + ALIVE_URL;
 
     if (url.pathname === aliveUrl) {
-      if (req.headers.get("upgrade") !== "websocket") {
+      if (request.headers.get("upgrade") !== "websocket") {
         return new Response(null, { status: 501 });
       }
 
@@ -20,7 +20,7 @@ export function liveReload<T>(): MiddlewareFn<T> {
       // the client to know when the server is back up. Once we
       // have HMR we'll actively start sending messages back
       // and forth.
-      const { response, socket } = Deno.upgradeWebSocket(req);
+      const { response, socket } = Deno.upgradeWebSocket(request);
 
       socket.addEventListener("open", () => {
         socket.send(
