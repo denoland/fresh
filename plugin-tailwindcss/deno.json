@@ -6,8 +6,8 @@
     ".": "./src/mod.ts"
   },
   "imports": {
-    "fresh": "jsr:@fresh/core@^2.0.0-alpha.1",
-    "@std/path": "jsr:@std/path@^0.221.0",
+    "fresh": "jsr:@fresh/core@^2.0.0-alpha.22",
+    "@std/path": "jsr:@std/path@1",
     "autoprefixer": "npm:autoprefixer@10.4.17",
     "cssnano": "npm:cssnano@6.0.3",
     "postcss": "npm:postcss@8.4.35",
