@@ -8,11 +8,12 @@ export function tailwind<T>(
   app: App<T>,
   options: TailwindPluginOptions = {},
 ): void {
-  const processor = initTailwind(app.config, options);
+  let processor: ReturnType<typeof initTailwind> | null;
 
   builder.onTransformStaticFile(
     { pluginName: "tailwind", filter: /\.css$/ },
     async (args) => {
+      if (!processor) processor = initTailwind(app.config, options);
       const instance = await processor;
       const res = await instance.process(args.text, {
         from: args.path,
