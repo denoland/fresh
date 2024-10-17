@@ -22,16 +22,10 @@ async function withTmpDir(fn: (dir: string) => void | Promise<void>) {
 async function patchProject(dir: string): Promise<void> {
   const jsonPath = path.join(dir, "deno.json");
   const json = JSON.parse(await Deno.readTextFile(jsonPath));
-  const rootJson = JSON.parse(
-    await Deno.readTextFile(
-      path.join(import.meta.dirname!, "..", "..", "deno.json"),
-    ),
-  );
 
-  json.imports = rootJson.imports;
-  json.imports["fresh"] = "../src/mod.ts";
-  json.imports["fresh/dev"] = "../src/dev/mod.ts";
-  json.imports["@fresh/plugin-tailwind"] = "../plugin-tailwindcss/src/mod.ts";
+  json.workspace = [];
+  json.patch = [path.fromFileUrl(new URL("../..", import.meta.url))];
+  
   // assert with this stricter rule, before adding it to initialized projects
   json.lint.rules.include = ["verbatim-module-syntax"];
 
