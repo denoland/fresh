@@ -637,8 +637,13 @@ if (useTailwind) {
   // Tailwind editor plugin expects the `node_modules` directory
   // to be present, otherwise intellisense doesn't work.
   // TODO: Have a better deno config type
-  // deno-lint-ignore no-explicit-any
-  (config as any).nodeModulesDir = true;
+  if (Deno.version.deno.startsWith("1")) {
+    // deno-lint-ignore no-explicit-any
+    (config as any).nodeModulesDir = true;
+  } else {
+    // deno-lint-ignore no-explicit-any
+    (config as any).nodeModulesDir = "auto";
+  }
 }
 if (useTwind) {
   twindImports(config.imports);
