@@ -29,10 +29,11 @@ this, one needs to create a new `routes/about.tsx` file. In this file, we can
 declare a component that should be rendered every time a user visits the page.
 This is done with JSX.
 
-> [info]: To learn more about JSX, you can read [this article][jsx] in the React
+> [info]: To learn more about JSX, you can read
+> [this article](https://reactjs.org/docs/introducing-jsx.html) in the React
 > documentation. Beware that Fresh does not use React, but rather
-> [Preact][preact], a lighter weight virtual dom library that works similar to
-> React.
+> [Preact](https://preactjs.com), a lighter weight virtual dom library that
+> works similar to React.
 
 ```tsx routes/about.tsx
 export default function AboutPage() {
@@ -52,7 +53,5 @@ The new page will be visible at `http://localhost:8000/about`.
 pages in the _Getting Started_ guide will also explain more features of routes. -->
 
 [concepts-routing]: /docs/concepts/routing
-[jsx]: https://reactjs.org/docs/introducing-jsx.html
-[preact]: https://preactjs.com/
 
 <!-- [concepts-routes]: /docs/concepts/routes -->
