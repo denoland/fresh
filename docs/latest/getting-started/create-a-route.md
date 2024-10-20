@@ -30,7 +30,7 @@ declare a component that should be rendered every time a user visits the page.
 This is done with JSX.
 
 > [info]: To learn more about JSX, you can read
-> [this article](https://reactjs.org/docs/introducing-jsx.html) in the React
+> [this article](https://react.dev/learn/writing-markup-with-jsx) in the React
 > documentation. Beware that Fresh does not use React, but rather
 > [Preact](https://preactjs.com), a lighter weight virtual dom library that
 > works similar to React.
