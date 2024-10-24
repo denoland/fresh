@@ -608,7 +608,6 @@ try {
 }
 
 const config = {
-  lock: false,
   tasks: {
     check:
       "deno fmt --check && deno lint && deno check **/*.ts && deno check **/*.tsx",
