@@ -52,7 +52,7 @@ The new page will be visible at `http://localhost:8000/about`.
 pages in the _Getting Started_ guide will also explain more features of routes. -->
 
 [concepts-routing]: /docs/concepts/routing
-[jsx]: https://reactjs.org/docs/introducing-jsx.html
+[jsx]:https://react.dev/learn/writing-markup-with-jsx
 [preact]: https://preactjs.com/
 
 <!-- [concepts-routes]: /docs/concepts/routes -->

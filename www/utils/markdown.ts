@@ -113,22 +113,27 @@ class DefaultRenderer extends Marked.Renderer {
     return out;
   }
 
-  override blockquote({ text }: Marked.Tokens.Blockquote): string {
+  override blockquote({ text, tokens }: Marked.Tokens.Blockquote): string {
     const match = text.match(ADMISSION_REG);
+
     if (match) {
       const label: Record<string, string> = {
         tip: "Tip",
         warn: "Warning",
         info: "Info",
       };
+      Marked.walkTokens(tokens, (token) => {
+        if (token.type === "text" && token.text.startsWith(match[0])) {
+          token.text = token.text.slice(match[0].length);
+        }
+      });
       const type = match[1];
-      text = text.slice(match[0].length);
       const icon = `<svg class="icon"><use href="/icons.svg#${type}" /></svg>`;
       return `<blockquote class="admonition ${type}">\n<span class="admonition-header">${icon}${
         label[type]
-      }</span>${Marked.parse(text)}</blockquote>\n`;
+      }</span>${Marked.parser(tokens)}</blockquote>\n`;
     }
-    return `<blockquote>\n${Marked.parse(text)}</blockquote>\n`;
+    return `<blockquote>\n${Marked.parser(tokens)}</blockquote>\n`;
   }
 }
 
