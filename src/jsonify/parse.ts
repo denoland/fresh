@@ -30,9 +30,13 @@ function unpack(
   custom: CustomParser | undefined,
 ): void {
   if (idx in hydrated) return;
-
+  
   const current = arr[idx];
   if (typeof current === "number") {
+    if(idx !== 0) {
+      hydrated[idx] = current;
+      return;
+    }
     switch (current) {
       case UNDEFINED:
         hydrated[idx] = undefined;
@@ -149,8 +153,8 @@ function unpack(
     hydrated[idx] = actual;
 
     const keys = Object.keys(current);
-    for (let i = 0; i < keys.length; i++) {
-      const key = keys[i];
+    for (const element of keys) {
+      const key = element;
       // deno-lint-ignore no-explicit-any
       const ref = (current as any)[key];
       if (ref < 0) {

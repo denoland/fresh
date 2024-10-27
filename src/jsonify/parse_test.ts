@@ -97,3 +97,7 @@ Deno.test("parse - circular references", () => {
 Deno.test("parse - object", () => {
   expect(parse('[{"foo":1},42]')).toEqual({ foo: 42 });
 });
+
+Deno.test("parse - object with number negative", () => {
+  expect(parse('[{"foo":1}, -1]')).toEqual({ foo: -1 });
+});
