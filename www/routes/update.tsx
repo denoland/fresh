@@ -1,8 +1,8 @@
-import { Handlers, PageProps } from "$fresh/server.ts";
+import { define } from "../utils/state.ts";
 import VERSIONS from "../../versions.json" with { type: "json" };
 
-export const handler: Handlers = {
-  GET(req) {
+export const handler = define.handlers({
+  GET({ req }) {
     const accept = req.headers.get("accept");
     let path = "/docs/concepts/updating";
     if (accept && !accept.includes("text/html")) {
@@ -13,4 +13,4 @@ export const handler: Handlers = {
       status: 307,
     });
   },
-};
+});

@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "preact/hooks";
-import { MarkdownHeading } from "../utils/markdown.ts";
+import type { MarkdownHeading } from "../utils/markdown.ts";
 
 export interface TableOfContentsProps {
   headings: MarkdownHeading[];
@@ -136,7 +136,7 @@ export function TableOfContents({ headings }: TableOfContentsProps) {
               </div>
             )}
           </div>
-          <div class="hidden xl:block xl:sticky top-16">
+          <div class="hidden xl:block xl:sticky xl:top-40">
             <div class="relative">
               <div
                 ref={refMarker}

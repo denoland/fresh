@@ -1,26 +1,86 @@
 {
-  "lock": false,
+  "name": "@fresh/core",
+  "version": "2.0.0-alpha.23",
+  "license": "MIT",
+  "exports": {
+    ".": "./src/mod.ts",
+    "./runtime": "./src/runtime/shared.ts",
+    "./dev": "./src/dev/mod.ts",
+    "./compat": "./src/compat/mod.ts"
+  },
   "tasks": {
-    "test": "deno test -A --parallel --trace-ops",
+    "test": "deno test -A --parallel src/ init/ update/ && deno test -A tests/ www/main_test.ts",
     "fixture": "deno run -A --watch=static/,routes/ tests/fixture/dev.ts",
     "www": "deno task --cwd=www start",
+    "build-www": "deno task --cwd=www build",
     "screenshot": "deno run -A www/utils/screenshot.ts",
-    "check:types": "deno check **/*.ts && deno check **/*.tsx",
+    "check:types": "deno check src/**/*.ts src/**/*.tsx tests/**/*.ts tests/**/*.tsx update/**/*.ts plugin-tailwindcss/**/*.ts init/**/*.ts",
     "ok": "deno fmt --check && deno lint && deno task check:types && deno task test",
-    "install-puppeteer": "PUPPETEER_PRODUCT=chrome deno run -A --unstable https://deno.land/x/puppeteer@16.2.0/install.ts && PUPPETEER_PRODUCT=firefox deno run -A --unstable https://deno.land/x/puppeteer@16.2.0/install.ts",
-    "test:www": "deno test -A tests/www/",
-    "manifests": "deno run -A genAllManifest.ts"
+    "test:www": "deno test -A www/main_test.*",
+    "release": "deno run -A tools/release.ts"
   },
-  "exclude": [
-    "**/_fresh/*",
-    "**/tmp/*"
-  ],
-  "importMap": "./.vscode/import_map.json",
+  "exclude": ["**/_fresh/*", "**/tmp/*", "*/tests_OLD/**"],
+  "publish": {
+    "include": [
+      "src/**",
+      "deno.json",
+      "README.md",
+      "LICENSE",
+      "www/static/fresh-badge.svg",
+      "www/static/fresh-badge-dark.svg",
+      "*.todo"
+    ],
+    "exclude": ["**/*_test.*", "src/__OLD/**", "*.todo"]
+  },
+  "imports": {
+    "$ga4": "https://raw.githubusercontent.com/denoland/ga4/main/mod.ts",
+    "@astral/astral": "jsr:@astral/astral@^0.4.6",
+    "@fresh/plugin-tailwind": "./plugin-tailwindcss/src/mod.ts",
+    "@luca/esbuild-deno-loader": "jsr:@luca/esbuild-deno-loader@^0.11.0",
+    "@marvinh-test/fresh-island": "jsr:@marvinh-test/fresh-island@^0.0.1",
+    "@preact/signals": "npm:@preact/signals@^1.2.3",
+    "@std/async": "jsr:@std/async@1",
+    "@std/cli": "jsr:@std/cli@1",
+    "@std/crypto": "jsr:@std/crypto@1",
+    "@std/datetime": "jsr:@std/datetime@^0.225.2",
+    "@std/encoding": "jsr:@std/encoding@1",
+    "@std/expect": "jsr:@std/expect@1",
+    "@std/fmt": "jsr:@std/fmt@1",
+    "@std/front-matter": "jsr:@std/front-matter@^1.0.5",
+    "@std/fs": "jsr:@std/fs@1",
+    "@std/html": "jsr:@std/html@1",
+    "@std/jsonc": "jsr:@std/jsonc@1",
+    "@std/media-types": "jsr:@std/media-types@1",
+    "@std/path": "jsr:@std/path@1",
+    "@std/semver": "jsr:@std/semver@1",
+    "@std/streams": "jsr:@std/streams@1",
+    "autoprefixer": "npm:autoprefixer@10.4.17",
+    "cssnano": "npm:cssnano@6.0.3",
+    "esbuild": "npm:esbuild@0.23.1",
+    "esbuild-wasm": "npm:esbuild-wasm@0.23.1",
+    "fresh": "./src/mod.ts",
+    "fresh/compat": "./src/compat/mod.ts",
+    "fresh/dev": "./src/dev/mod.ts",
+    "fresh/runtime": "./src/runtime/shared.ts",
+    "github-slugger": "npm:github-slugger@^2.0.0",
+    "linkedom": "npm:linkedom@^0.16.11",
+    "marked": "npm:marked@^14.1.2",
+    "marked-mangle": "npm:marked-mangle@^1.1.9",
+    "postcss": "npm:postcss@8.4.35",
+    "preact": "npm:preact@^10.24.1",
+    "preact-render-to-string": "npm:preact-render-to-string@^6.5.11",
+    "prismjs": "npm:prismjs@^1.29.0",
+    "tailwindcss": "npm:tailwindcss@^3.4.1",
+    "tailwindcss/plugin": "npm:/tailwindcss@^3.4.1/plugin.js",
+    "ts-morph": "npm:ts-morph@^22.0.0"
+  },
   "compilerOptions": {
-    "jsx": "react-jsx",
-    "jsxImportSource": "preact"
+    "lib": ["dom", "dom.asynciterable", "deno.ns"],
+    "jsx": "precompile",
+    "jsxImportSource": "preact",
+    "jsxPrecompileSkipElements": ["a", "img", "source", "body", "html", "head"]
   },
   "lint": {
-    "rules": { "exclude": ["no-window"] }
+    "rules": { "exclude": ["no-window"], "include": ["no-console"] }
   }
 }

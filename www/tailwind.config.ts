@@ -1,4 +1,4 @@
-import { type Config } from "tailwindcss";
+import type { Config } from "tailwindcss";
 import plugin from "tailwindcss/plugin";
 
 export default {
@@ -18,4 +18,12 @@ export default {
       });
     }),
   ],
+  theme: {
+    extend: {
+      colors: {
+        fresh: "#FFDB1E",
+        "fresh-dark": "#401C00",
+      },
+    },
+  },
 } satisfies Config;

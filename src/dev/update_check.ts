@@ -1,4 +1,6 @@
-import { colors, join, lessThan, semverParse } from "./deps.ts";
+import * as semver from "@std/semver";
+import * as colors from "@std/fmt/colors";
+import * as path from "@std/path";
 
 export interface CheckFile {
   last_checked: string;
@@ -33,7 +35,7 @@ function getHomeDir(): string | null {
 
 function getFreshCacheDir(): string | null {
   const home = getHomeDir();
-  if (home) return join(home, "fresh");
+  if (home) return path.join(home, "fresh");
   return null;
 }
 
@@ -47,10 +49,9 @@ async function fetchLatestVersion() {
 }
 
 async function readCurrentVersion() {
-  const versions = (await import("../../versions.json", {
+  return (await import("../../deno.json", {
     with: { type: "json" },
-  })).default as string[];
-  return versions[0];
+  })).default.version;
 }
 
 export async function updateCheck(
@@ -70,7 +71,7 @@ export async function updateCheck(
 
   const home = getCacheDir();
   if (!home) return;
-  const filePath = join(home, "latest.json");
+  const filePath = path.join(home, "latest.json");
   try {
     await Deno.mkdir(home, { recursive: true });
   } catch (err) {
@@ -104,32 +105,37 @@ export async function updateCheck(
       checkFile.latest_version = await getLatestVersion();
       checkFile.last_checked = new Date().toISOString();
     } catch (err) {
+      const message = err instanceof Error ? err.message : String(err);
       // Update check is optional and shouldn't abort the program.
+      // deno-lint-ignore no-console
       console.error(
-        colors.red(`    Update check failed: `) + err.message,
+        colors.red(`    Update check failed: `) + message,
       );
       return;
     }
   }
 
   // Only show update message if current version is smaller than latest
-  const currentVersion = semverParse(checkFile.current_version);
-  const latestVersion = semverParse(checkFile.latest_version);
+  const currentVersion = semver.parse(checkFile.current_version);
+  const latestVersion = semver.parse(checkFile.latest_version);
   if (
     (!checkFile.last_shown ||
       Date.now() >= new Date(checkFile.last_shown).getTime() + interval) &&
-    lessThan(currentVersion, latestVersion)
+    semver.lessThan(currentVersion, latestVersion)
   ) {
     checkFile.last_shown = new Date().toISOString();
 
     const current = colors.bold(colors.rgb8(checkFile.current_version, 208));
     const latest = colors.bold(colors.rgb8(checkFile.latest_version, 121));
+    // deno-lint-ignore no-console
     console.log(
       `    Fresh ${latest} is available. You're on ${current}`,
     );
+    // deno-lint-ignore no-console
     console.log(
       `    To upgrade, run: deno run -A -r https://fresh.deno.dev/update`,
     );
+    // deno-lint-ignore no-console
     console.log();
   }
 

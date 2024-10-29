@@ -1,5 +1,16 @@
 [
   {
+    "title": "JSR",
+    "link": "https://jsr.io/",
+    "github": "jsr-io/jsr",
+    "image": "jsr"
+  },
+  {
+    "title": "Deno.com",
+    "link": "https://deno.com/",
+    "image": "deno"
+  },
+  {
     "title": "OpenAI Semantic Search",
     "link": "https://supabase-openai-doc-search.deno.dev/",
     "github": "supabase-community/deno-fresh-openai-doc-search",
@@ -16,12 +27,6 @@
     "link": "https://merch.deno.com/",
     "github": "denoland/merch",
     "image": "merch"
-  },
-  {
-    "title": "Deno Chat",
-    "link": "https://showcase-chat.deno.dev/",
-    "github": "denoland/showcase_chat",
-    "image": "chat"
   },
   {
     "title": "Fresh Website",
@@ -48,12 +53,6 @@
     "image": "d3nodata"
   },
   {
-    "title": "Fresh Blog",
-    "link": "https://fresh-blog.littlesticks.dev/",
-    "github": "littlesticks/fresh-blog",
-    "image": "fresh-blog"
-  },
-  {
     "title": "Fresh Hacker News",
     "link": "https://fresh-hacker-news.deno.dev/",
     "github": "morinokami/fresh-hacker",
@@ -78,12 +77,6 @@
     "image": "diKnow"
   },
   {
-    "title": "Saleor + Deno Merch",
-    "link": "https://saleor-deno-merch.deno.dev/",
-    "github": "saleor/deno-merch",
-    "image": "saleor-deno"
-  },
-  {
     "title": "Fresh Strapi",
     "link": "https://fresh-strapi.deno.dev/",
     "github": "hyprtxt/fresh-strapi.deno.dev",
@@ -106,11 +99,6 @@
     "link": "https://guillaumecomte.deno.dev",
     "github": "guigui64/www",
     "image": "guigui64"
-  },
-  {
-    "title": "Joe Salinas Site",
-    "link": "https://joesalinas.dev",
-    "image": "joesalinasdev"
   },
   {
     "title": "Fresh Project Manager",
@@ -178,12 +166,6 @@
     "image": "melon"
   },
   {
-    "title": "Game Orb",
-    "link": "https://fabimc-game-orb.deno.dev/",
-    "github": "fabimc/game-orb",
-    "image": "game-orb"
-  },
-  {
     "title": "Webhook Manager",
     "link": "https://webhook-demo.deno.dev/",
     "github": "avnigenc/deno-fresh-webhook-demo",
@@ -225,10 +207,10 @@
     "image": "fresh-notion-blog"
   },
   {
-    "title": "Deno Paste",
-    "link": "https://deno-paste.deno.dev/",
-    "github": "stephenmelnicki/deno_paste",
-    "image": "deno-paste"
+    "title": "Denopaste",
+    "link": "https://denopaste.com/",
+    "github": "stephenmelnicki/denopaste",
+    "image": "denopaste"
   },
   {
     "title": "m33t",
@@ -307,12 +289,6 @@
     "image": "learn-mandarin"
   },
   {
-    "title": "Deno Place",
-    "link": "https://deno-place.arruda.dev/",
-    "github": "arrudaricardo/deno_place",
-    "image": "deno-place"
-  },
-  {
     "title": "Url shorter and Pastebin",
     "link": "https://uspb.deno.dev/",
     "github": "jneeee/uspb",
@@ -333,11 +309,6 @@
     "title": "LiberChat",
     "link": "https://liberchat.deno.dev",
     "image": "liberchat"
-  },
-  {
-    "title": "over-ip",
-    "link": "https://over-ip.dragon-vi.be",
-    "image": "over-ip"
   },
   {
     "title": "Miguel Rangel Site",
@@ -386,21 +357,9 @@
     "image": "rebstorm"
   },
   {
-    "title": "Streamdal",
-    "link": "https://streamdal.com",
-    "github": "streamdal/streamdal",
-    "image": "streamdal"
-  },
-  {
     "title": "MergePanic",
     "link": "https://mergepanic.com",
     "image": "MergePanic"
-  },
-  {
-    "title": "pyros.sh",
-    "link": "https://pyros.sh",
-    "github": "pyrossh/pyros.sh",
-    "image": "pyrossh"
   },
   {
     "title": "Living Pixel Solutions",
@@ -413,9 +372,54 @@
     "image": "rfui"
   },
   {
+    "title": "Echo-Echo",
+    "link": "https://echo-echo.deno.dev/",
+    "github": "Octo8080X/Echo-Echo",
+    "image": "echo-echo"
+  },
+  {
+    "title": "VirtualFreight Landing Page",
+    "link": "https://virtualfreight.software/",
+    "image": "virtualfreight"
+  },
+  {
+    "title": "Daniel G. Aubert's Site",
+    "link": "https://dgaubert.dev/",
+    "image": "dgaubert"
+  },
+  {
     "title": "Do not remove this, it’s for preventing conflicts by trailing comma",
     "link": "",
     "github": "",
     "image": ""
+  },
+  {
+    "title": "Thoth-Doc",
+    "link": "https://thoth-doc.deno.dev/",
+    "github": "Octo8080X/thoth",
+    "image": "thoth-doc"
+  },
+  {
+    "title": "Pile-Up",
+    "link": "https://pile-up.deno.dev/",
+    "github": "Octo8080X/Pile-Up",
+    "image": "pile-up"
+  },
+  {
+    "title": "2coffee's Blog",
+    "link": "https://2coffee.dev/",
+    "image": "hicoffee"
+  },
+  {
+    "title": "TicOXs",
+    "link": "https://ticoxs.deno.dev/",
+    "github": "Trid3r/ticoxs",
+    "image": "ticoxs"
+  },
+  {
+    "title": "WTF Is Congress Doing Now?",
+    "link": "https://wtfiscongressdoingnow.us",
+    "github": "gibbygano/wtfiscongressdoingnow",
+    "image": "wtfcongress"
   }
 ]

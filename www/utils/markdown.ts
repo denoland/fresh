@@ -1,21 +1,24 @@
-import "https://esm.sh/prismjs@1.29.0/components/prism-jsx.js?no-check";
-import "https://esm.sh/prismjs@1.29.0/components/prism-typescript.js?no-check";
-import "https://esm.sh/prismjs@1.29.0/components/prism-tsx.js?no-check";
-import "https://esm.sh/prismjs@1.29.0/components/prism-diff.js?no-check";
-import "https://esm.sh/prismjs@1.29.0/components/prism-json.js?no-check";
-import "https://esm.sh/prismjs@1.29.0/components/prism-bash.js?no-check";
-import "https://esm.sh/prismjs@1.29.0/components/prism-yaml.js?no-check";
+import Prism from "prismjs";
+import "prismjs/components/prism-jsx.js";
+import "prismjs/components/prism-typescript.js";
+import "prismjs/components/prism-tsx.js";
+import "prismjs/components/prism-diff.js";
+import "prismjs/components/prism-json.js";
+import "prismjs/components/prism-bash.js";
+import "prismjs/components/prism-yaml.js";
 
-export { extract as frontMatter } from "$std/front_matter/yaml.ts";
+export { extractYaml as frontMatter } from "@std/front-matter";
 
-import Prism from "https://esm.sh/prismjs@1.29.0";
-import * as Marked from "https://esm.sh/marked@7.0.2";
-import { escape as escapeHtml } from "$std/html/entities.ts";
-import { mangle } from "$marked-mangle";
+import * as Marked from "marked";
+import { escape as escapeHtml } from "@std/html";
+import { mangle } from "marked-mangle";
+import GitHubSlugger from "github-slugger";
+
+const slugger = new GitHubSlugger();
 
 Marked.marked.use(mangle());
 
-const ADMISSION_REG = /^<p>\[(info|warn|tip)\]:\s/;
+const ADMISSION_REG = /^\[(info|warn|tip)\]:\s/;
 
 export interface MarkdownHeading {
   id: string;
@@ -25,9 +28,17 @@ export interface MarkdownHeading {
 class DefaultRenderer extends Marked.Renderer {
   headings: MarkdownHeading[] = [];
 
-  text(text: string): string {
+  override text(
+    token: Marked.Tokens.Text | Marked.Tokens.Escape | Marked.Tokens.Tag,
+  ): string {
+    if (
+      token.type === "text" && "tokens" in token && token.tokens !== undefined
+    ) {
+      return this.parser.parseInline(token.tokens);
+    }
+
     // Smartypants typography enhancement
-    return text
+    return token.text
       .replaceAll("...", "&#8230;")
       .replaceAll("--", "&#8212;")
       .replaceAll("---", "&#8211;")
@@ -39,37 +50,32 @@ class DefaultRenderer extends Marked.Renderer {
       .replaceAll(/['](.*?)[']/g, "&#8216;$1&#8217;");
   }
 
-  heading(
-    text: string,
-    level: 1 | 2 | 3 | 4 | 5 | 6,
-    raw: string,
-    slugger: Marked.Slugger,
-  ): string {
+  override heading({
+    tokens,
+    depth,
+    raw,
+  }: Marked.Tokens.Heading): string {
     const slug = slugger.slug(raw);
+    const text = this.parser.parseInline(tokens);
     this.headings.push({ id: slug, html: text });
-    return `<h${level} id="${slug}"><a class="md-anchor" tabindex="-1" href="#${slug}">${text}<span aria-hidden="true">#</span></a></h${level}>`;
+    return `<h${depth} id="${slug}"><a class="md-anchor" tabindex="-1" href="#${slug}">${text}<span aria-hidden="true">#</span></a></h${depth}>`;
   }
 
-  link(href: string, title: string | null, text: string) {
+  override link({ href, title, tokens }: Marked.Tokens.Link) {
+    const text = this.parser.parseInline(tokens);
     const titleAttr = title ? ` title="${title}"` : "";
     if (href.startsWith("#")) {
       return `<a href="${href}"${titleAttr}>${text}</a>`;
     }
-    if (this.options.baseUrl) {
-      try {
-        href = new URL(href, this.options.baseUrl).href;
-      } catch (_) {
-        //
-      }
-    }
+
     return `<a href="${href}"${titleAttr} rel="noopener noreferrer">${text}</a>`;
   }
 
-  image(src: string, title: string | null, alt: string | null) {
-    return `<img src="${src}" alt="${alt ?? ""}" title="${title ?? ""}" />`;
+  override image({ href, text, title }: Marked.Tokens.Image) {
+    return `<img src="${href}" alt="${text ?? ""}" title="${title ?? ""}" />`;
   }
 
-  code(code: string, info: string | undefined): string {
+  override code({ lang: info, text }: Marked.Tokens.Code): string {
     // format: tsx
     // format: tsx my/file.ts
     // format: tsx "This is my title"
@@ -96,9 +102,9 @@ class DefaultRenderer extends Marked.Renderer {
       : undefined;
 
     if (grammar === undefined) {
-      out += `<pre><code class="notranslate">${escapeHtml(code)}</code></pre>`;
+      out += `<pre><code class="notranslate">${escapeHtml(text)}</code></pre>`;
     } else {
-      const html = Prism.highlight(code, grammar, lang);
+      const html = Prism.highlight(text, grammar, lang);
       out +=
         `<pre class="highlight highlight-source-${lang} notranslate lang-${lang}"><code>${html}</code></pre>`;
     }
@@ -107,22 +113,27 @@ class DefaultRenderer extends Marked.Renderer {
     return out;
   }
 
-  blockquote(quote: string): string {
-    const match = quote.match(ADMISSION_REG);
+  override blockquote({ text, tokens }: Marked.Tokens.Blockquote): string {
+    const match = text.match(ADMISSION_REG);
+
     if (match) {
       const label: Record<string, string> = {
         tip: "Tip",
         warn: "Warning",
         info: "Info",
       };
+      Marked.walkTokens(tokens, (token) => {
+        if (token.type === "text" && token.text.startsWith(match[0])) {
+          token.text = token.text.slice(match[0].length);
+        }
+      });
       const type = match[1];
-      quote = quote.slice(match[0].length);
       const icon = `<svg class="icon"><use href="/icons.svg#${type}" /></svg>`;
       return `<blockquote class="admonition ${type}">\n<span class="admonition-header">${icon}${
         label[type]
-      }</span>${quote}</blockquote>\n`;
+      }</span>${Marked.parser(tokens)}</blockquote>\n`;
     }
-    return `<blockquote>\n${quote}</blockquote>\n`;
+    return `<blockquote>\n${Marked.parser(tokens)}</blockquote>\n`;
   }
 }
 

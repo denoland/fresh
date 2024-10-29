@@ -6,16 +6,19 @@ const url = Deno.args[0];
 const id = Deno.args[1];
 
 if (Deno.args.length == 0) {
+  // deno-lint-ignore no-console
   console.log("Usage: screenshot <url> <id>");
   Deno.exit(0);
 }
 
 if (!(url.match(/^http[s]?:\/\//)) || !url) {
+  // deno-lint-ignore no-console
   console.log("Provided URL is Broken or Wrong");
   Deno.exit(0);
 }
 
 if (!id) {
+  // deno-lint-ignore no-console
   console.log("Provide id to Process");
   Deno.exit(0);
 }
@@ -31,6 +34,7 @@ const raw = await page.screenshot();
 await browser.close();
 
 if (!(raw instanceof Uint8Array)) {
+  // deno-lint-ignore no-console
   console.log("Invalid Image");
   Deno.exit(0);
 }

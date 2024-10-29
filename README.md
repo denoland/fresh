@@ -13,14 +13,13 @@ Some stand-out features:
 - Just-in-time rendering on the edge.
 - Island based client hydration for maximum interactivity.
 - Zero runtime overhead: no JS is shipped to the client by default.
-- No build step.
 - No configuration necessary.
 - TypeScript support out of the box.
 - File-system routing à la Next.js.
 
 ## 📖 Documentation
 
-The [documentation](https://fresh.deno.dev/docs/) is available on
+The [documentation](https://fresh.deno.dev/docs/introduction) is available on
 [fresh.deno.dev](https://fresh.deno.dev/).
 
 ## 🚀 Getting started

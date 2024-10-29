@@ -30,7 +30,6 @@ for the best experience.
 
 Some stand out features:
 
-- No build step
 - Zero config necessary
 - JIT rendering on the edge
 - Tiny & fast (no client JS is required by the framework)

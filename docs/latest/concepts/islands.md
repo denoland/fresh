@@ -78,6 +78,34 @@ export default function Home() {
 }
 ```
 
+You can also create shared components in your `components/` directory, which can
+be used in both static content and interactive islands. When these components
+are used within islands, interactivity can be added, such as `onClick` handlers
+(using an `onClick` handler on a button outside of an island will not fire).
+
+```tsx islands/my-island.tsx
+import { useSignal } from "@preact/signals";
+import { ComponentChildren } from "preact";
+import Card from "../components/Card.tsx";
+import Button from "../components/Button.tsx";
+
+interface Props {
+  children: ComponentChildren;
+}
+
+export default function MyIsland({ children }: Props) {
+  const count = useSignal(0);
+
+  return (
+    <Card>
+      Counter is at {count}.{" "}
+      <Button onClick={() => (count.value += 1)}>+</Button>
+      {children}
+    </Card>
+  );
+}
+```
+
 ## Passing other props to islands
 
 Passing props to islands is supported, but only if the props are serializable.
@@ -134,7 +162,7 @@ function randomNumber() {
   return Math.floor(Math.random() * 100);
 }
 
-export default function MyIsland({ children, foo }: Props) {
+export default function OtherIsland({ children, foo }: Props) {
   const number = useSignal(randomNumber());
 
   return (
@@ -151,8 +179,8 @@ export default function MyIsland({ children, foo }: Props) {
 ```
 
 In essence, Fresh allows you to mix static and interactive parts in your app in
-a way that's most optimal for your use app. We'll keep sending only the
-JavaScript that is needed for the islands to the browser.
+a way that's most optimal for your app. We'll keep sending only the JavaScript
+that is needed for the islands to the browser.
 
 ```tsx route/index.tsx
 import MyIsland from "../islands/my-island.tsx";
