@@ -40,6 +40,35 @@ Deno.test({
 
     expect(logs).toEqual(["A", "B", "C"]);
   },
+  sanitizeOps: false,
+  sanitizeResources: false,
+});
+
+Deno.test({
+  name: "Builder - handles Windows paths",
+  fn: async () => {
+    const builder = new Builder();
+    const tmp = await Deno.makeTempDir();
+    await Deno.mkdir(path.join(tmp, "images"));
+    await Deno.writeTextFile(
+      path.join(tmp, "images", "batman.svg"),
+      "<svg></svg>",
+    );
+    const app = new App({
+      staticDir: tmp,
+      build: {
+        outDir: path.join(tmp, "dist"),
+      },
+    });
+    await builder.build(app);
+
+    const snapshotJson = await Deno.readTextFile(
+      path.join(tmp, "dist", "snapshot.json"),
+    );
+    expect(snapshotJson).toContain("/images/batman.svg");
+  },
+  sanitizeOps: false,
+  sanitizeResources: false,
 });
 
 Deno.test({
@@ -64,6 +93,8 @@ Deno.test({
     );
     expect(css).toContain('body { background: url("/foo.jpg?__frsh_c=');
   },
+  sanitizeOps: false,
+  sanitizeResources: false,
 });
 
 Deno.test({
@@ -87,4 +118,6 @@ Deno.test({
     );
     expect(code).toContain('"remote-island"');
   },
+  sanitizeOps: false,
+  sanitizeResources: false,
 });

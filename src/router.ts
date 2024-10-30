@@ -113,9 +113,7 @@ export class UrlPatternRouter<T> implements Router<T> {
 
             // Decode matched params
             for (const [key, value] of Object.entries(match.pathname.groups)) {
-              if (value !== undefined) {
-                result.params[key] = decodeURI(value);
-              }
+              result.params[key] = value === undefined ? "" : decodeURI(value);
             }
 
             if (route.method === "ALL") {

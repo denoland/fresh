@@ -162,7 +162,7 @@ function randomNumber() {
   return Math.floor(Math.random() * 100);
 }
 
-export default function MyIsland({ children, foo }: Props) {
+export default function OtherIsland({ children, foo }: Props) {
   const number = useSignal(randomNumber());
 
   return (

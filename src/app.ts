@@ -35,9 +35,15 @@ const DEFAULT_NOT_ALLOWED_METHOD = () => {
   throw new HttpError(405);
 };
 
-export type ListenOptions = Partial<Deno.ServeTlsOptions> & {
-  remoteAddress?: string;
-};
+export type ListenOptions =
+  & Partial<
+    Deno.ServeTcpOptions & Deno.TlsCertifiedKeyPem
+  >
+  & {
+    remoteAddress?: string;
+  };
+
+Deno.serve;
 
 export let getRouter: <State>(app: App<State>) => Router<MiddlewareFn<State>>;
 // deno-lint-ignore no-explicit-any
@@ -186,8 +192,7 @@ export class App<State> {
 
     return async (
       req: Request,
-      conn: Deno.ServeHandlerInfo | Deno.ServeUnixHandlerInfo =
-        DEFAULT_CONN_INFO,
+      conn: Deno.ServeHandlerInfo = DEFAULT_CONN_INFO,
     ) => {
       const url = new URL(req.url);
       // Prevent open redirect attacks
@@ -237,11 +242,20 @@ export class App<State> {
     if (!options.onListen) {
       options.onListen = (params) => {
         const pathname = (this.config.basePath) + "/";
-        const protocol = options.key && options.cert ? "https:" : "http:";
+        const protocol = "key" in options && options.key && options.cert
+          ? "https:"
+          : "http:";
+
+        let hostname = params.hostname;
+        // Windows being windows...
+        if (
+          Deno.build.os === "windows" &&
+          (hostname === "0.0.0.0" || hostname === "::")
+        ) {
+          hostname = "localhost";
+        }
         // Work around https://github.com/denoland/deno/issues/23650
-        const hostname = params.hostname.startsWith("::")
-          ? `[${params.hostname}]`
-          : params.hostname;
+        hostname = hostname.startsWith("::") ? `[${hostname}]` : hostname;
         const address = colors.cyan(
           `${protocol}//${hostname}:${params.port}${pathname}`,
         );

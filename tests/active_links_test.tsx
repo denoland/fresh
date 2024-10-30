@@ -33,62 +33,67 @@ function testApp<T>(): App<T> {
   return app;
 }
 
-Deno.test("active links - without client nav", async () => {
-  function View() {
-    return (
-      <Doc>
-        <div>
-          <h1>nav</h1>
-          <p>
-            <a href="/active_nav/foo/bar">/active_nav/foo/bar</a>
-          </p>
-          <p>
-            <a href="/active_nav/foo">/active_nav/foo</a>
-          </p>
-          <p>
-            <a href="/active_nav">/active_nav</a>
-          </p>
-          <p>
-            <a href="/">/</a>
-          </p>
-        </div>
-      </Doc>
-    );
-  }
+Deno.test({
+  name: "active links - without client nav",
+  fn: async () => {
+    function View() {
+      return (
+        <Doc>
+          <div>
+            <h1>nav</h1>
+            <p>
+              <a href="/active_nav/foo/bar">/active_nav/foo/bar</a>
+            </p>
+            <p>
+              <a href="/active_nav/foo">/active_nav/foo</a>
+            </p>
+            <p>
+              <a href="/active_nav">/active_nav</a>
+            </p>
+            <p>
+              <a href="/">/</a>
+            </p>
+          </div>
+        </Doc>
+      );
+    }
 
-  const app = testApp()
-    .get("/active_nav/foo", (ctx) => {
-      return ctx.render(<View />);
-    })
-    .get("/active_nav", (ctx) => {
-      return ctx.render(<View />);
-    });
+    const app = testApp()
+      .get("/active_nav/foo", (ctx) => {
+        return ctx.render(<View />);
+      })
+      .get("/active_nav", (ctx) => {
+        return ctx.render(<View />);
+      });
 
-  const server = new FakeServer(await app.handler());
-  let res = await server.get("/active_nav");
-  let doc = parseHtml(await res.text());
+    const server = new FakeServer(await app.handler());
+    let res = await server.get("/active_nav");
+    let doc = parseHtml(await res.text());
 
-  assertSelector(doc, "a[href='/'][data-ancestor]");
+    assertSelector(doc, "a[href='/'][data-ancestor]");
 
-  // Current
-  assertNotSelector(doc, "a[href='/active_nav'][data-ancestor]");
-  assertSelector(doc, "a[href='/active_nav'][data-current]");
-  assertSelector(doc, `a[href='/active_nav'][aria-current="page"]`);
+    // Current
+    assertNotSelector(doc, "a[href='/active_nav'][data-ancestor]");
+    assertSelector(doc, "a[href='/active_nav'][data-current]");
+    assertSelector(doc, `a[href='/active_nav'][aria-current="page"]`);
 
-  // Unrelated links
-  assertNotSelector(doc, "a[href='/active_nav/foo'][data-ancestor]");
-  assertNotSelector(doc, "a[href='/active_nav/foo'][aria-current]");
-  assertNotSelector(doc, "a[href='/active_nav/foo/bar'][data-ancestor]");
-  assertNotSelector(doc, "a[href='/active_nav/foo/bar'][aria-current]");
+    // Unrelated links
+    assertNotSelector(doc, "a[href='/active_nav/foo'][data-ancestor]");
+    assertNotSelector(doc, "a[href='/active_nav/foo'][aria-current]");
+    assertNotSelector(doc, "a[href='/active_nav/foo/bar'][data-ancestor]");
+    assertNotSelector(doc, "a[href='/active_nav/foo/bar'][aria-current]");
 
-  res = await server.get(`/active_nav/foo`);
-  doc = parseHtml(await res.text());
-  assertSelector(doc, "a[href='/active_nav/foo'][data-current]");
-  assertSelector(doc, `a[href='/active_nav/foo'][aria-current="page"]`);
-  assertSelector(doc, "a[href='/active_nav'][data-ancestor]");
-  assertSelector(doc, `a[href='/active_nav'][aria-current="true"]`);
-  assertSelector(doc, "a[href='/'][data-ancestor]");
-  assertSelector(doc, `a[href='/'][aria-current="true"]`);
+    res = await server.get(`/active_nav/foo`);
+    doc = parseHtml(await res.text());
+    assertSelector(doc, "a[href='/active_nav/foo'][data-current]");
+    assertSelector(doc, `a[href='/active_nav/foo'][aria-current="page"]`);
+    assertSelector(doc, "a[href='/active_nav'][data-ancestor]");
+    assertSelector(doc, `a[href='/active_nav'][aria-current="true"]`);
+    assertSelector(doc, "a[href='/'][data-ancestor]");
+    assertSelector(doc, `a[href='/'][aria-current="true"]`);
+  },
+  sanitizeResources: false,
+  sanitizeOps: false,
 });
 
 Deno.test({
@@ -171,4 +176,6 @@ Deno.test({
       assertSelector(doc, `a[href='/'][aria-current="true"]`);
     });
   },
+  sanitizeResources: false,
+  sanitizeOps: false,
 });

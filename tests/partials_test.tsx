@@ -19,6 +19,7 @@ import { expect } from "@std/expect";
 import { PartialInIsland } from "./fixtures_islands/PartialInIsland.tsx";
 import { FakeServer } from "../src/test_utils.ts";
 import { JsonIsland } from "./fixtures_islands/JsonIsland.tsx";
+import { OptOutPartialLink } from "./fixtures_islands/OptOutPartialLink.tsx";
 import * as path from "@std/path";
 import { getBuildCache, setBuildCache } from "../src/app.ts";
 import { retry } from "@std/async/retry";
@@ -33,11 +34,13 @@ function testApp<T>(): App<T> {
   const selfCounter = getIsland("SelfCounter.tsx");
   const partialInIsland = getIsland("PartialInIsland.tsx");
   const jsonIsland = getIsland("JsonIsland.tsx");
+  const optOutPartialLink = getIsland("OptOutPartialLink.tsx");
 
   const app = new App<T>()
     .island(selfCounter, "SelfCounter", SelfCounter)
     .island(partialInIsland, "PartialInIsland", PartialInIsland)
     .island(jsonIsland, "JsonIsland", JsonIsland)
+    .island(optOutPartialLink, "OptOutPartialLink", OptOutPartialLink)
     .use(staticFiles());
 
   setBuildCache(app, getBuildCache(allIslandApp));
@@ -74,6 +77,8 @@ Deno.test({
       await waitForText(page, ".output", "partial update");
     });
   },
+  sanitizeResources: false,
+  sanitizeOps: false,
 });
 
 Deno.test({
@@ -115,6 +120,8 @@ Deno.test({
       assertNotSelector(doc, ".init");
     });
   },
+  sanitizeResources: false,
+  sanitizeOps: false,
 });
 
 Deno.test({
@@ -155,6 +162,8 @@ Deno.test({
       );
     });
   },
+  sanitizeResources: false,
+  sanitizeOps: false,
 });
 
 Deno.test({
@@ -193,6 +202,8 @@ Deno.test({
 
     // TODO: Check error overlay
   },
+  sanitizeResources: false,
+  sanitizeOps: false,
 });
 
 // See https://github.com/denoland/fresh/issues/2254
@@ -236,6 +247,8 @@ Deno.test({
       expect(didError).toEqual(false);
     });
   },
+  sanitizeResources: false,
+  sanitizeOps: false,
 });
 
 Deno.test({
@@ -274,6 +287,8 @@ Deno.test({
       await page.locator(".ready").wait();
     });
   },
+  sanitizeResources: false,
+  sanitizeOps: false,
 });
 
 Deno.test({
@@ -307,6 +322,8 @@ Deno.test({
 
     // TODO: Test error overlay
   },
+  sanitizeResources: false,
+  sanitizeOps: false,
 });
 
 Deno.test({
@@ -347,6 +364,8 @@ Deno.test({
       });
     });
   },
+  sanitizeResources: false,
+  sanitizeOps: false,
 });
 
 Deno.test({
@@ -391,6 +410,8 @@ Deno.test({
       expect(counter).toEqual("1");
     });
   },
+  sanitizeResources: false,
+  sanitizeOps: false,
 });
 
 Deno.test({
@@ -437,6 +458,8 @@ Deno.test({
       assertNotSelector(doc, ".output");
     });
   },
+  sanitizeResources: false,
+  sanitizeOps: false,
 });
 
 Deno.test({
@@ -476,6 +499,8 @@ Deno.test({
       await page.locator(".inner-update").wait();
     });
   },
+  sanitizeResources: false,
+  sanitizeOps: false,
 });
 
 Deno.test({
@@ -527,6 +552,8 @@ Deno.test({
       await page.locator(".sib-3-update").wait();
     });
   },
+  sanitizeResources: false,
+  sanitizeOps: false,
 });
 
 Deno.test({
@@ -586,6 +613,8 @@ Deno.test({
       await waitForText(page, "#c .output", "3");
     });
   },
+  sanitizeResources: false,
+  sanitizeOps: false,
 });
 
 Deno.test({
@@ -658,6 +687,8 @@ Deno.test({
       await waitForText(page, "#c .output", "3");
     });
   },
+  sanitizeResources: false,
+  sanitizeOps: false,
 });
 
 Deno.test({
@@ -730,6 +761,8 @@ Deno.test({
       await waitForText(page, "#c .output", "3");
     });
   },
+  sanitizeResources: false,
+  sanitizeOps: false,
 });
 
 Deno.test({
@@ -795,6 +828,8 @@ Deno.test({
       await waitForText(page, "#c .output", "3");
     });
   },
+  sanitizeResources: false,
+  sanitizeOps: false,
 });
 
 Deno.test({
@@ -862,6 +897,8 @@ Deno.test({
       assertNotSelector(doc, ".done-0");
     });
   },
+  sanitizeResources: false,
+  sanitizeOps: false,
 });
 
 Deno.test({
@@ -910,6 +947,8 @@ Deno.test({
       assertNotSelector(doc, ".done-0");
     });
   },
+  sanitizeResources: false,
+  sanitizeOps: false,
 });
 
 Deno.test({
@@ -956,6 +995,8 @@ Deno.test({
       expect(doc.querySelector(".content")!.textContent).toEqual("init01");
     });
   },
+  sanitizeResources: false,
+  sanitizeOps: false,
 });
 
 Deno.test({
@@ -1005,6 +1046,8 @@ Deno.test({
       expect(doc.querySelector(".content")!.textContent).toEqual("init01");
     });
   },
+  sanitizeResources: false,
+  sanitizeOps: false,
 });
 
 Deno.test({
@@ -1050,6 +1093,8 @@ Deno.test({
       expect(doc.querySelector(".content")!.textContent).toEqual("10init");
     });
   },
+  sanitizeResources: false,
+  sanitizeOps: false,
 });
 
 Deno.test({
@@ -1099,6 +1144,8 @@ Deno.test({
       expect(doc.querySelector(".content")!.textContent).toEqual("10init");
     });
   },
+  sanitizeResources: false,
+  sanitizeOps: false,
 });
 
 Deno.test({
@@ -1155,6 +1202,8 @@ Deno.test({
       });
     });
   },
+  sanitizeResources: false,
+  sanitizeOps: false,
 });
 
 Deno.test({
@@ -1210,6 +1259,180 @@ Deno.test({
       });
     });
   },
+  sanitizeResources: false,
+  sanitizeOps: false,
+});
+
+Deno.test({
+  name: "partials - with SVG in link",
+  fn: async () => {
+    const app = testApp()
+      .get("/partial", (ctx) => {
+        return ctx.render(
+          <Doc>
+            <Partial name="foo">
+              <p class="done">done</p>
+              <SelfCounter />
+            </Partial>
+          </Doc>,
+        );
+      })
+      .get("/", (ctx) => {
+        return ctx.render(
+          <Doc>
+            <div f-client-nav>
+              <a href="/foo" f-partial="/partial">
+                <svg
+                  width="100"
+                  height="100"
+                  viewBox="-256 -256 512 512"
+                  version="1.1"
+                  xmlns="http://www.w3.org/2000/svg"
+                  xmlnsXlink="http://www.w3.org/1999/xlink"
+                >
+                  <path
+                    class="update"
+                    d="M0,-256 221.7025033688164,-128 221.7025033688164,128 0,256 -221.7025033688164,128 -221.7025033688164,-128z"
+                    fill="#673ab8"
+                  />
+                  <ellipse
+                    cx="0"
+                    cy="0"
+                    stroke-width="16px"
+                    rx="75px"
+                    ry="196px"
+                    fill="none"
+                    stroke="white"
+                    transform="rotate(52.5)"
+                  />
+                  <ellipse
+                    cx="0"
+                    cy="0"
+                    stroke-width="16px"
+                    rx="75px"
+                    ry="196px"
+                    fill="none"
+                    stroke="white"
+                    transform="rotate(-52.5)"
+                  />
+                  <circle cx="0" cy="0" r="34" fill="white" />
+                </svg>
+                update
+              </a>
+              <Partial name="foo">
+                <p class="init">init</p>
+                <SelfCounter />
+              </Partial>
+            </div>
+          </Doc>,
+        );
+      });
+
+    await withBrowserApp(app, async (page, address) => {
+      await page.goto(address, { waitUntil: "load" });
+      await page.locator(".ready").wait();
+
+      await page.locator(".increment").click();
+      await waitForText(page, ".output", "1");
+
+      await page.locator(".update").click();
+
+      await page.waitForFunction(() => {
+        const url = new URL(window.location.href);
+        return url.pathname === "/foo";
+      });
+      await page.locator(".done").wait();
+      await waitForText(page, ".output", "1");
+    });
+  },
+  sanitizeResources: false,
+  sanitizeOps: false,
+});
+
+Deno.test({
+  name: "partials - with SVG in button",
+  fn: async () => {
+    const app = testApp()
+      .get("/partial", (ctx) => {
+        return ctx.render(
+          <Doc>
+            <Partial name="foo">
+              <p class="done">done</p>
+              <SelfCounter />
+            </Partial>
+          </Doc>,
+        );
+      })
+      .get("/", (ctx) => {
+        return ctx.render(
+          <Doc>
+            <div f-client-nav>
+              <button f-partial="/partial">
+                <svg
+                  width="100"
+                  height="100"
+                  viewBox="-256 -256 512 512"
+                  version="1.1"
+                  xmlns="http://www.w3.org/2000/svg"
+                  xmlnsXlink="http://www.w3.org/1999/xlink"
+                >
+                  <path
+                    class="update"
+                    d="M0,-256 221.7025033688164,-128 221.7025033688164,128 0,256 -221.7025033688164,128 -221.7025033688164,-128z"
+                    fill="#673ab8"
+                  />
+                  <ellipse
+                    cx="0"
+                    cy="0"
+                    stroke-width="16px"
+                    rx="75px"
+                    ry="196px"
+                    fill="none"
+                    stroke="white"
+                    transform="rotate(52.5)"
+                  />
+                  <ellipse
+                    cx="0"
+                    cy="0"
+                    stroke-width="16px"
+                    rx="75px"
+                    ry="196px"
+                    fill="none"
+                    stroke="white"
+                    transform="rotate(-52.5)"
+                  />
+                  <circle cx="0" cy="0" r="34" fill="white" />
+                </svg>
+                update
+              </button>
+              <Partial name="foo">
+                <p class="init">init</p>
+                <SelfCounter />
+              </Partial>
+            </div>
+          </Doc>,
+        );
+      });
+
+    await withBrowserApp(app, async (page, address) => {
+      await page.goto(address, { waitUntil: "load" });
+      await page.locator(".ready").wait();
+
+      await page.locator(".increment").click();
+      await waitForText(page, ".output", "1");
+
+      await page.locator(".update").click();
+
+      await page.waitForFunction(() => {
+        const url = new URL(window.location.href);
+        return url.pathname === "/partial";
+      });
+      await page.locator(".done").wait();
+      await waitForText(page, ".output", "1");
+    });
+  },
+  sanitizeResources: false,
+  sanitizeOps: false,
 });
 
 Deno.test({
@@ -1275,6 +1498,8 @@ Deno.test({
       });
     });
   },
+  sanitizeResources: false,
+  sanitizeOps: false,
 });
 
 Deno.test({
@@ -1340,6 +1565,70 @@ Deno.test({
       });
     });
   },
+  sanitizeResources: false,
+  sanitizeOps: false,
+});
+
+Deno.test({
+  name: "partials - opt out of partial navigation in island",
+  fn: async () => {
+    const app = testApp()
+      .get("/partial", (ctx) => {
+        return ctx.render(
+          <Doc>
+            <Partial name="foo">
+              <h1 class="fail">Fail</h1>
+            </Partial>
+          </Doc>,
+        );
+      })
+      .get("/foo", (ctx) =>
+        ctx.render(
+          <Doc>
+            <Partial name="foo">
+              <h1 class="done">done</h1>
+              <SelfCounter />
+            </Partial>
+          </Doc>,
+        ))
+      .get("/", (ctx) => {
+        return ctx.render(
+          <Doc>
+            <div f-client-nav>
+              <div>
+                <OptOutPartialLink href="/foo" partial="/partial" />
+              </div>
+              <Partial name="foo">
+                <p class="init">init</p>
+                <SelfCounter />
+              </Partial>
+            </div>
+          </Doc>,
+        );
+      });
+
+    await withBrowserApp(app, async (page, address) => {
+      await retry(async () => {
+        await page.goto(address, { waitUntil: "load" });
+        await page.locator(".ready").wait();
+
+        await page.locator(".increment").click();
+        await waitForText(page, ".output", "1");
+
+        await Promise.all([
+          page.waitForNavigation(),
+          page.locator(".update").click(),
+        ]);
+        await page.waitForSelector(".done");
+
+        const url = new URL(page.url!);
+        expect(url.pathname).toEqual("/foo");
+        await waitForText(page, ".output", "0");
+      });
+    });
+  },
+  sanitizeResources: false,
+  sanitizeOps: false,
 });
 
 Deno.test({
@@ -1396,6 +1685,8 @@ Deno.test({
       expect(scroll.scrollY > 100).toEqual(true);
     });
   },
+  sanitizeResources: false,
+  sanitizeOps: false,
 });
 
 Deno.test({
@@ -1443,6 +1734,8 @@ Deno.test({
       await page.locator(".done-foo-sub").wait();
     });
   },
+  sanitizeResources: false,
+  sanitizeOps: false,
 });
 
 Deno.test({
@@ -1493,6 +1786,8 @@ Deno.test({
       expect(pathname).toEqual("/foo");
     });
   },
+  sanitizeResources: false,
+  sanitizeOps: false,
 });
 
 Deno.test({
@@ -1541,6 +1836,8 @@ Deno.test({
       await page.locator(".done-foo-sub").wait();
     });
   },
+  sanitizeResources: false,
+  sanitizeOps: false,
 });
 
 Deno.test({
@@ -1595,6 +1892,8 @@ Deno.test({
       expect(pathname).toEqual("/done");
     });
   },
+  sanitizeResources: false,
+  sanitizeOps: false,
 });
 
 Deno.test({
@@ -1654,6 +1953,8 @@ Deno.test({
       await page.locator(".done-foo-sub").wait();
     });
   },
+  sanitizeResources: false,
+  sanitizeOps: false,
 });
 
 Deno.test({
@@ -1714,6 +2015,8 @@ Deno.test({
       await page.locator(".done-foo-sub").wait();
     });
   },
+  sanitizeResources: false,
+  sanitizeOps: false,
 });
 
 Deno.test({
@@ -1782,6 +2085,8 @@ Deno.test({
       assertNotSelector(doc, "button");
     });
   },
+  sanitizeResources: false,
+  sanitizeOps: false,
 });
 
 Deno.test({
@@ -1840,6 +2145,8 @@ Deno.test({
       await page.locator(".done-a-b-c").wait();
     });
   },
+  sanitizeResources: false,
+  sanitizeOps: false,
 });
 
 Deno.test({
@@ -1868,6 +2175,8 @@ Deno.test({
       expect(logs).toEqual([]);
     });
   },
+  sanitizeResources: false,
+  sanitizeOps: false,
 });
 
 Deno.test({
@@ -1903,6 +2212,8 @@ Deno.test({
       expect(scroll > 0).toEqual(true);
     });
   },
+  sanitizeResources: false,
+  sanitizeOps: false,
 });
 
 Deno.test({
@@ -1948,6 +2259,8 @@ Deno.test({
       expect(logs[0]).toMatch(/Found no partials/);
     });
   },
+  sanitizeResources: false,
+  sanitizeOps: false,
 });
 
 Deno.test({
@@ -2044,6 +2357,8 @@ Deno.test({
       expect(textColor).toEqual("rgb(0, 128, 0)");
     });
   },
+  sanitizeResources: false,
+  sanitizeOps: false,
 });
 
 Deno.test({
@@ -2131,6 +2446,8 @@ Deno.test({
       ).toEqual(true);
     });
   },
+  sanitizeResources: false,
+  sanitizeOps: false,
 });
 
 Deno.test({
@@ -2171,6 +2488,8 @@ Deno.test({
       await page.locator(".status-refreshed").wait();
     });
   },
+  sanitizeResources: false,
+  sanitizeOps: false,
 });
 
 Deno.test({
@@ -2222,6 +2541,8 @@ Deno.test({
       await waitForText(page, "#inner .output", "1");
     });
   },
+  sanitizeResources: false,
+  sanitizeOps: false,
 });
 
 Deno.test({
@@ -2258,6 +2579,8 @@ Deno.test({
       await page.locator(".done").wait();
     });
   },
+  sanitizeResources: false,
+  sanitizeOps: false,
 });
 
 Deno.test({
@@ -2293,6 +2616,8 @@ Deno.test({
       await page.locator(".error-404").wait();
     });
   },
+  sanitizeResources: false,
+  sanitizeOps: false,
 });
 
 Deno.test({
@@ -2331,6 +2656,8 @@ Deno.test({
       expect(title).toEqual("after update");
     });
   },
+  sanitizeResources: false,
+  sanitizeOps: false,
 });
 
 Deno.test({
@@ -2374,4 +2701,6 @@ Deno.test({
       expect(`${url.pathname}${url.search}`).toEqual("/");
     });
   },
+  sanitizeResources: false,
+  sanitizeOps: false,
 });

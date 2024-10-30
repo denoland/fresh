@@ -26,6 +26,7 @@ import { Multiple1, Multiple2 } from "./fixtures_islands/Multiple.tsx";
 import { Foo } from "./fixture_island_groups/routes/foo/(_islands)/Foo.tsx";
 import { NodeProcess } from "./fixtures_islands/NodeProcess.tsx";
 import { FreshAttrs } from "./fixtures_islands/FreshAttrs.tsx";
+import { OptOutPartialLink } from "./fixtures_islands/OptOutPartialLink.tsx";
 
 export function getIsland(pathname: string) {
   return path.join(
@@ -91,7 +92,7 @@ export async function withBrowserApp(
     }, await app.handler());
 
     const browser = await launch({
-      args: ["--no-sandbox"],
+      args: ["--window-size=1280,720"],
       headless: !Deno.args.includes("--headful"),
     });
 
@@ -112,7 +113,7 @@ export async function withBrowser(fn: (page: Page) => void | Promise<void>) {
   const aborter = new AbortController();
   try {
     const browser = await launch({
-      args: ["--no-sandbox"],
+      args: ["--window-size=1280,720"],
       headless: !Deno.args.includes("--headful"),
     });
 
@@ -120,6 +121,17 @@ export async function withBrowser(fn: (page: Page) => void | Promise<void>) {
     // page.setDefaultTimeout(1000000);
     try {
       await fn(page);
+    } catch (err) {
+      try {
+        const raw = await page.content();
+        const doc = parseHtml(raw);
+        const html = prettyDom(doc);
+        // deno-lint-ignore no-console
+        console.log(html);
+      } catch {
+        // Ignore
+      }
+      throw err;
     } finally {
       await page.close();
       await browser.close();
@@ -351,10 +363,10 @@ export function getStdOutput(
   out: Deno.CommandOutput,
 ): { stdout: string; stderr: string } {
   const decoder = new TextDecoder();
-  const stdout = colors.stripColor(decoder.decode(out.stdout));
+  const stdout = colors.stripAnsiCode(decoder.decode(out.stdout));
 
   const decoderErr = new TextDecoder();
-  const stderr = colors.stripColor(decoderErr.decode(out.stderr));
+  const stderr = colors.stripAnsiCode(decoderErr.decode(out.stderr));
 
   return { stdout, stderr };
 }
@@ -386,6 +398,11 @@ export const allIslandApp = new App()
   .island(getIsland("SelfCounter.tsx"), "SelfCounter", SelfCounter)
   .island(getIsland("NodeProcess.tsx"), "NodeProcess", NodeProcess)
   .island(getIsland("FreshAttrs.tsx"), "FreshAttrs", FreshAttrs)
+  .island(
+    getIsland("OptOutPartialLink.tsx"),
+    "OptOutPartialLink",
+    OptOutPartialLink,
+  )
   .island(
     getIsland("../fixture_island_groups/routes/foo/(_islands)/Foo.tsx"),
     "Foo",

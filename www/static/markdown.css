@@ -617,6 +617,7 @@
   margin-right: 0.25rem;
   width: 1.2em;
   height: 1.2em;
+  margin-bottom: 0.25rem;
 }
 .markdown-body blockquote.warn {
   border-color: #ff9100;
@@ -756,8 +757,15 @@ ol.nested li:before {
   border-top-right-radius: 0 !important;
 }
 .fenced-code-title {
-  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
-    "Liberation Mono", "Courier New", monospace;
+  font-family:
+    ui-monospace,
+    SFMono-Regular,
+    Menlo,
+    Monaco,
+    Consolas,
+    "Liberation Mono",
+    "Courier New",
+    monospace;
   font-size: 0.8125rem;
   line-height: 1;
 }
