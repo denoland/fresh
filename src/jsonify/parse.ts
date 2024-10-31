@@ -72,8 +72,32 @@ function unpack(
       if (custom !== undefined && name in custom) {
         const fn = custom[name];
         const ref = current[1];
-        unpack(arr, hydrated, ref, custom);
-        const value = hydrated[ref];
+        let value;
+        if (ref < 0) {
+          switch (ref) {
+            case UNDEFINED:
+              value = undefined;
+              break;
+            case NULL:
+              value = null;
+              break;
+            case NAN:
+              value = NaN;
+              break;
+            case INFINITY_POS:
+              value = Infinity;
+              break;
+            case INFINITY_NEG:
+              value = -Infinity;
+              break;
+            case ZERO_NEG:
+              value = -0;
+              break;
+          }
+        } else {
+          unpack(arr, hydrated, ref, custom);
+          value = hydrated[ref];
+        }
         hydrated[idx] = fn(value);
         return;
       }
