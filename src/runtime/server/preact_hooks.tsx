@@ -369,14 +369,16 @@ function isVNode(x: any): x is VNode {
 
 const stringifiers: Stringifiers = {
   Signal: (value: unknown) => {
-    return isSignal(value) ? value.peek() : undefined;
+    return isSignal(value) ? { value: value.peek() } : undefined;
   },
   Slot: (value: unknown) => {
     if (isVNode(value) && value.type === Slot) {
       const props = value.props as SlotProps;
       return {
-        name: props.name,
-        id: props.id,
+        value: {
+          name: props.name,
+          id: props.id,
+        },
       };
     }
   },
