@@ -14,7 +14,7 @@ import {
   setRenderState,
 } from "./runtime/server/preact_hooks.tsx";
 import { DEV_ERROR_OVERLAY_URL } from "./constants.ts";
-import { asset } from "./runtime/shared.ts";
+import { BUILD_ID } from "./runtime/build_id.ts";
 
 export interface Island {
   file: string | URL;
@@ -240,13 +240,13 @@ function preactRender<State, Data>(
   } finally {
     // Add preload headers
     const basePath = ctx.config.basePath;
-    const runtimeUrl = asset(`${basePath}/fresh-runtime.js`);
+    const runtimeUrl = `${basePath}/_fresh/js/${BUILD_ID}/fresh-runtime.js`;
     let link = `<${encodeURI(runtimeUrl)}>; rel="modulepreload"; as="script"`;
     state.islands.forEach((island) => {
       const chunk = buildCache.getIslandChunkName(island.name);
       if (chunk !== null) {
         link += `, <${
-          encodeURI(asset(`${basePath}${chunk}`))
+          encodeURI(`${basePath}${chunk}`)
         }>; rel="modulepreload"; as="script"`;
       }
     });

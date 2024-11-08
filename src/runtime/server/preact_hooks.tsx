@@ -12,7 +12,7 @@ import {
 import type { Signal } from "@preact/signals";
 import type { Stringifiers } from "../../jsonify/stringify.ts";
 import type { PageProps } from "../../context.ts";
-import { asset, Partial, type PartialProps } from "../shared.ts";
+import { Partial, type PartialProps } from "../shared.ts";
 import { stringify } from "../../jsonify/stringify.ts";
 import type { ServerIslandRegistry } from "../../context.ts";
 import type { Island } from "../../context.ts";
@@ -438,7 +438,7 @@ function FreshRuntimeScript() {
       }
       return {
         exportName: island.exportName,
-        chunk: asset(chunk),
+        chunk,
         name: island.name,
       };
     });
@@ -467,7 +467,7 @@ function FreshRuntimeScript() {
       const named = island.exportName === "default"
         ? island.name
         : `{ ${island.exportName} }`;
-      return `import ${named} from "${asset(`${basePath}${chunk}`)}";`;
+      return `import ${named} from "${`${basePath}${chunk}`}";`;
     }).join("");
 
     const islandObj = "{" + islandArr.map((island) => island.name)
@@ -478,7 +478,7 @@ function FreshRuntimeScript() {
       stringify(islandProps, stringifiers),
     );
 
-    const runtimeUrl = asset(`${basePath}/fresh-runtime.js`);
+    const runtimeUrl = `${basePath}/_fresh/js/${BUILD_ID}/fresh-runtime.js`;
     const scriptContent =
       `import { boot } from "${runtimeUrl}";${islandImports}boot(${islandObj},${serializedProps});`;
 
