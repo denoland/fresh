@@ -10,7 +10,7 @@
   "imports": {
     "@preact/signals": "npm:@preact/signals@^1.2.3",
     "preact": "npm:preact@^10.24.1",
-    "fresh": "jsr:@fresh/core@^2.0.0-alpha.18"
+    "fresh": "jsr:@fresh/core@^2.0.0-alpha.25"
   },
   "compilerOptions": {
     "jsx": "react-jsx",
