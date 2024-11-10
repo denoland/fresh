@@ -8,8 +8,11 @@ import {
 } from "./constants.ts";
 import { HOLE } from "./constants.ts";
 
-// deno-lint-ignore no-explicit-any
-export type Stringifiers = Record<string, (value: any) => any>;
+export type Stringifiers = Record<
+  string,
+  // deno-lint-ignore no-explicit-any
+  (value: any) => { value: any } | undefined
+>;
 
 /**
  * Serializes the following:
@@ -94,8 +97,8 @@ function serializeInner(
         const res = fn(value);
         if (res === undefined) continue;
 
-        serializeInner(out, indexes, res, custom);
-        str = `["${k}",${idx + 1}]`;
+        const innerIdx = serializeInner(out, indexes, res.value, custom);
+        str = `["${k}",${innerIdx}]`;
         out[idx] = str;
         return idx;
       }

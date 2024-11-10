@@ -1,6 +1,6 @@
 import * as path from "@std/path";
 import { contentType as getContentType } from "@std/media-types/content-type";
-import type { MiddlewareFn } from "fresh";
+import type { MiddlewareFn } from "./mod.ts";
 import { ASSET_CACHE_BUST_KEY } from "../runtime/shared_internal.tsx";
 import { BUILD_ID } from "../runtime/build_id.ts";
 import { getBuildCache } from "../context.ts";
@@ -61,26 +61,30 @@ export function staticFiles<T>(): MiddlewareFn<T> {
       vary: "If-None-Match",
     });
 
-    if (cacheKey === null || ctx.config.mode === "development") {
+    const ifNoneMatch = req.headers.get("If-None-Match");
+    if (
+      ifNoneMatch !== null &&
+      (ifNoneMatch === etag || ifNoneMatch === `W/"${etag}"`)
+    ) {
+      file.close();
+      return new Response(null, { status: 304, headers });
+    } else if (etag !== null) {
+      headers.set("Etag", `W/"${etag}"`);
+    }
+
+    if (
+      ctx.config.mode !== "development" &&
+      (BUILD_ID === cacheKey ||
+        url.pathname.startsWith(
+          `${ctx.config.basePath}/_fresh/js/${BUILD_ID}/`,
+        ))
+    ) {
+      headers.append("Cache-Control", "public, max-age=31536000, immutable");
+    } else {
       headers.append(
         "Cache-Control",
         "no-cache, no-store, max-age=0, must-revalidate",
       );
-    } else {
-      const ifNoneMatch = request.headers.get("If-None-Match");
-      if (
-        ifNoneMatch !== null &&
-        (ifNoneMatch === etag || ifNoneMatch === `W/"${etag}"`)
-      ) {
-        file.close();
-        return new Response(null, { status: 304, headers });
-      } else if (etag !== null) {
-        headers.set("Etag", `W/"${etag}"`);
-      }
-    }
-
-    if (BUILD_ID === cacheKey) {
-      headers.append("Cache-Control", "public, max-age=31536000, immutable");
     }
 
     headers.set("Content-Length", String(file.size));

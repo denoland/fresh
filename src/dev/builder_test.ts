@@ -3,6 +3,7 @@ import * as path from "@std/path";
 import { Builder } from "./builder.ts";
 import { App } from "../app.ts";
 import { RemoteIsland } from "@marvinh-test/fresh-island";
+import { BUILD_ID } from "../runtime/build_id.ts";
 
 Deno.test({
   name: "Builder - chain onTransformStaticFile",
@@ -39,6 +40,33 @@ Deno.test({
     await builder.build(app);
 
     expect(logs).toEqual(["A", "B", "C"]);
+  },
+  sanitizeOps: false,
+  sanitizeResources: false,
+});
+
+Deno.test({
+  name: "Builder - handles Windows paths",
+  fn: async () => {
+    const builder = new Builder();
+    const tmp = await Deno.makeTempDir();
+    await Deno.mkdir(path.join(tmp, "images"));
+    await Deno.writeTextFile(
+      path.join(tmp, "images", "batman.svg"),
+      "<svg></svg>",
+    );
+    const app = new App({
+      staticDir: tmp,
+      build: {
+        outDir: path.join(tmp, "dist"),
+      },
+    });
+    await builder.build(app);
+
+    const snapshotJson = await Deno.readTextFile(
+      path.join(tmp, "dist", "snapshot.json"),
+    );
+    expect(snapshotJson).toContain("/images/batman.svg");
   },
   sanitizeOps: false,
   sanitizeResources: false,
@@ -87,7 +115,15 @@ Deno.test({
     await builder.build(app);
 
     const code = await Deno.readTextFile(
-      path.join(tmp, "dist", "static", "RemoteIsland.js"),
+      path.join(
+        tmp,
+        "dist",
+        "static",
+        "_fresh",
+        "js",
+        BUILD_ID,
+        "RemoteIsland.js",
+      ),
     );
     expect(code).toContain('"remote-island"');
   },
