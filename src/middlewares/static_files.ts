@@ -61,7 +61,7 @@ export function staticFiles<T>(): MiddlewareFn<T> {
       vary: "If-None-Match",
     });
 
-    const ifNoneMatch = req.headers.get("If-None-Match");
+    const ifNoneMatch = request.headers.get("If-None-Match");
     if (
       ifNoneMatch !== null &&
       (ifNoneMatch === etag || ifNoneMatch === `W/"${etag}"`)
