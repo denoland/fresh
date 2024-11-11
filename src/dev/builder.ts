@@ -182,9 +182,11 @@ export class Builder implements FreshBuilder {
       denoJsonPath: denoJson.filePath,
     });
 
+    const prefix = `/_fresh/js/${BUILD_ID}/`;
+
     for (let i = 0; i < output.files.length; i++) {
       const file = output.files[i];
-      const pathname = `/${file.path}`;
+      const pathname = `${prefix}${file.path}`;
       await buildCache.addProcessedFile(pathname, file.contents, file.hash);
     }
 
@@ -196,7 +198,7 @@ export class Builder implements FreshBuilder {
           `Missing chunk for ${island.file}#${island.exportName}`,
         );
       }
-      buildCache.islands.set(island.name, `/${chunk}`);
+      buildCache.islands.set(island.name, `${prefix}${chunk}`);
     }
 
     await buildCache.flush();

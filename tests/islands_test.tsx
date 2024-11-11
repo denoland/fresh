@@ -764,7 +764,7 @@ Deno.test({
 
     const link = res.headers.get("Link");
     expect(link).toMatch(
-      /<\/fresh-runtime\.js\?__frsh_c=[^>]+>; rel="modulepreload"; as="script", <\/SelfCounter\.js\?__frsh_c=[^>]+>; rel="modulepreload"; as="script"/,
+      /<\/_fresh\/js\/[a-zA-Z0-9]+\/fresh-runtime\.js>; rel="modulepreload"; as="script", <\/_fresh\/js\/[a-zA-Z0-9]+\/SelfCounter\.js>; rel="modulepreload"; as="script"/,
     );
   },
   sanitizeResources: false,
