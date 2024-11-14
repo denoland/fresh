@@ -296,7 +296,10 @@ export async function fsRoutes<State>(
         isHandlerByMethod(handlers) &&
         !Object.keys(handlers).includes("GET");
       if (missingGetHandler) {
-        app.get(routePath, renderMiddleware(components, undefined));
+        const combined = middlewares.concat(
+          renderMiddleware(components, undefined),
+        );
+        app.get(routePath, ...combined);
       }
     }
 
