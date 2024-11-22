@@ -46,7 +46,7 @@ export const handler = define.handlers<Data>({
   async GET(ctx) {
     const { slug, version: versionFromPath } = ctx.params;
 
-    // If no slug is specfied and versionFromPath is valid, redirect to the first page of that version
+    // If no slug is specified and versionFromPath is valid, redirect to the first page of that version
     // E.g. /docs/latest redirects to /docs/latest/{first-page}
     if (!slug && TABLE_OF_CONTENTS[versionFromPath]) {
       const href = getFirstPageUrl(versionFromPath);
