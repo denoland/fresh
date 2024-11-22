@@ -1,21 +1,21 @@
 import { HttpError, page } from "fresh";
 import { asset, Partial } from "fresh/runtime";
-import { SidebarCategory } from "../../components/DocsSidebar.tsx";
-import Footer from "../../components/Footer.tsx";
-import Header from "../../components/Header.tsx";
+import { SidebarCategory } from "../../../components/DocsSidebar.tsx";
+import Footer from "../../../components/Footer.tsx";
+import Header from "../../../components/Header.tsx";
 import {
   CATEGORIES,
   getFirstPageUrl,
   LATEST_VERSION,
   TABLE_OF_CONTENTS,
   type TableOfContentsEntry,
-} from "../../data/docs.ts";
-import { frontMatter, renderMarkdown } from "../../utils/markdown.ts";
-import toc from "../../../docs/toc.ts";
-import { TableOfContents } from "../../islands/TableOfContents.tsx";
-import SearchButton from "../../islands/SearchButton.tsx";
-import VersionSelect from "../../islands/VersionSelect.tsx";
-import { define } from "../../utils/state.ts";
+} from "../../../data/docs.ts";
+import { frontMatter, renderMarkdown } from "../../../utils/markdown.ts";
+import toc from "../../../../docs/toc.ts";
+import { TableOfContents } from "../../../islands/TableOfContents.tsx";
+import SearchButton from "../../../islands/SearchButton.tsx";
+import VersionSelect from "../../../islands/VersionSelect.tsx";
+import { define } from "../../../utils/state.ts";
 
 interface Data {
   page: Page;
@@ -42,36 +42,28 @@ interface Page extends TableOfContentsEntry {
   nextNav?: NavEntry;
 }
 
-const pattern = new URLPattern({ pathname: "/:version/:page*" });
-
 export const handler = define.handlers<Data>({
   async GET(ctx) {
-    const slug = ctx.params.slug;
+    const { slug, version: versionFromPath } = ctx.params;
 
-    // Check if the slug is the index page of a version tag
-    if (TABLE_OF_CONTENTS[slug]) {
-      const href = getFirstPageUrl(slug);
+    // If no slug is specfied and versionFromPath is valid, redirect to the first page of that version
+    // E.g. /docs/latest redirects to /docs/latest/{first-page}
+    if (!slug && TABLE_OF_CONTENTS[versionFromPath]) {
+      const href = getFirstPageUrl(versionFromPath);
       return new Response("", {
         status: 307,
         headers: { location: href },
       });
     }
 
-    const match = pattern.exec("https://localhost/" + slug);
-    if (!match) {
-      throw new HttpError(404);
-    }
-
-    let { version, page: path = "" } = match.pathname.groups;
-    if (!version) {
-      throw new HttpError(404);
-    }
-
-    // Latest version doesn't show up in the url
-    if (!TABLE_OF_CONTENTS[version]) {
-      path = version + (path ? "/" + path : "");
-      version = LATEST_VERSION;
-    }
+    // If the versionFromPath is valid use that,
+    // otherwise assume version is LATEST and slug is concatenation of {:version}/:slug* params
+    const version = TABLE_OF_CONTENTS[versionFromPath]
+      ? versionFromPath
+      : LATEST_VERSION;
+    const path = TABLE_OF_CONTENTS[versionFromPath]
+      ? slug
+      : [versionFromPath, slug].filter(Boolean).join("/");
 
     // Check if the page exists
     const currentToc = TABLE_OF_CONTENTS[version];
@@ -119,7 +111,7 @@ export const handler = define.handlers<Data>({
     }
 
     // Parse markdown front matter
-    const url = new URL(`../../../${entry.file}`, import.meta.url);
+    const url = new URL(`../../../../${entry.file}`, import.meta.url);
     const fileContent = await Deno.readTextFile(url);
     const { body, attrs } = frontMatter<Record<string, unknown>>(fileContent);
 
