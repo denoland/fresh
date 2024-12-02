@@ -1,0 +1,16 @@
+{
+    "name": "fresh",
+
+    "build": {
+        "dockerfile": "../Dockerfile",
+        "args": {
+            "DENO_VERSION" : "1.28.2"
+        }
+    },
+
+    "extensions": ["denoland.vscode-deno","sastan.twind-intellisense"],
+
+    "settings": {
+        "extensions.ignoreRecommendations": true
+    }
+}
