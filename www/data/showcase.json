@@ -421,5 +421,11 @@
     "link": "https://wtfiscongressdoingnow.us",
     "github": "gibbygano/wtfiscongressdoingnow",
     "image": "wtfcongress"
+  },
+    {
+    "title": "Photography Portfolio",
+    "link": "https://arronmccror-photography-89.deno.dev/",
+    "github": "arron21/photography-ez",
+    "image": "photography-portfolio"
   }
 ]
