@@ -33,6 +33,10 @@ function unpack(
 
   const current = arr[idx];
   if (typeof current === "number") {
+    if (idx !== 0) {
+      hydrated[idx] = current;
+      return;
+    }
     switch (current) {
       case UNDEFINED:
         hydrated[idx] = undefined;
