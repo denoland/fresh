@@ -1,3 +1,8 @@
+import * as path from "@std/path";
+import { type ComponentType, h } from "preact";
+import { renderToString } from "preact-render-to-string";
+import { trace } from "@opentelemetry/api";
+
 import { DENO_DEPLOYMENT_ID } from "./runtime/build_id.ts";
 import * as colors from "@std/fmt/colors";
 import { type MiddlewareFn, runMiddlewares } from "./middlewares/mod.ts";
@@ -14,10 +19,7 @@ import {
   type ResolvedFreshConfig,
 } from "./config.ts";
 import { type BuildCache, ProdBuildCache } from "./build_cache.ts";
-import * as path from "@std/path";
-import { type ComponentType, h } from "preact";
 import type { ServerIslandRegistry } from "./context.ts";
-import { renderToString } from "preact-render-to-string";
 import { FinishSetup, ForgotBuild } from "./finish_setup.tsx";
 import { HttpError } from "./error.ts";
 
@@ -140,8 +142,8 @@ export class App<State> {
 
     // Special case when user calls one of these:
     // - `app.mountApp("/", otherApp)`
-    // - `app.mountApp("*", otherApp)`
-    const isSelf = path === "*" || path === "/";
+    // - `app.mountApp("/*", otherApp)`
+    const isSelf = path === "/*" || path === "/";
     if (isSelf && middlewares.length > 0) {
       this.#router._middlewares.push(...middlewares);
     }
@@ -205,7 +207,7 @@ export class App<State> {
         ? DEFAULT_NOT_ALLOWED_METHOD
         : DEFAULT_NOT_FOUND;
 
-      const { params, handlers } = matched;
+      const { params, handlers, pattern } = matched;
       const ctx = new FreshReqContext<State>(
         req,
         url,
@@ -216,6 +218,12 @@ export class App<State> {
         this.#islandRegistry,
         this.#buildCache!,
       );
+
+      const span = trace.getActiveSpan();
+      if (span && pattern) {
+        span.updateName(`${method} ${pattern}`);
+        span.setAttribute("http.route", pattern);
+      }
 
       try {
         if (handlers.length === 1 && handlers[0].length === 1) {

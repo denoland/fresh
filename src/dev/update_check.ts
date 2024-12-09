@@ -1,6 +1,7 @@
 import * as semver from "@std/semver";
 import * as colors from "@std/fmt/colors";
 import * as path from "@std/path";
+import { CURRENT_FRESH_VERSION } from "../otel.ts";
 
 export interface CheckFile {
   last_checked: string;
@@ -48,10 +49,8 @@ async function fetchLatestVersion() {
   throw new Error(`Could not fetch latest version.`);
 }
 
-async function readCurrentVersion() {
-  return (await import("../../deno.json", {
-    with: { type: "json" },
-  })).default.version;
+function readCurrentVersion() {
+  return CURRENT_FRESH_VERSION;
 }
 
 export async function updateCheck(
