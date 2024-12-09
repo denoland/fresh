@@ -2599,7 +2599,7 @@ Deno.test({
           </Doc>,
         );
       })
-      .get("*", (ctx) => {
+      .get("/*", (ctx) => {
         return ctx.render(
           <Doc>
             <Partial name="foo">

@@ -11,6 +11,7 @@ export interface RouteResult<T> {
   handlers: T[][];
   methodMatch: boolean;
   patternMatch: boolean;
+  pattern: string | null;
 }
 
 export interface Router<T> {
@@ -28,7 +29,7 @@ export interface Router<T> {
 export const IS_PATTERN = /[*:{}+?()]/;
 
 export function mergePaths(a: string, b: string) {
-  if (a === "" || a === "/" || a === "*") return b;
+  if (a === "" || a === "/" || a === "/*") return b;
   if (b === "/") return a;
   if (a.endsWith("/")) {
     return a.slice(0, -1) + b;
@@ -48,7 +49,7 @@ export class UrlPatternRouter<T> implements Router<T> {
 
   add(method: Method | "ALL", pathname: string | URLPattern, handlers: T[]) {
     if (
-      typeof pathname === "string" && pathname !== "*" &&
+      typeof pathname === "string" && pathname !== "/*" &&
       IS_PATTERN.test(pathname)
     ) {
       this._routes.push({
@@ -71,6 +72,7 @@ export class UrlPatternRouter<T> implements Router<T> {
       handlers: [],
       methodMatch: false,
       patternMatch: false,
+      pattern: null,
     };
 
     if (this._middlewares.length > 0) {
@@ -84,16 +86,15 @@ export class UrlPatternRouter<T> implements Router<T> {
       // to be either wildcard `*` match or an exact pathname match.
       if (
         typeof route.path === "string" &&
-        (route.path === "*" || route.path === url.pathname)
+        (route.path === "/*" || route.path === url.pathname)
       ) {
-        if (route.method !== "ALL") {
-          result.patternMatch = true;
-        }
+        if (route.method !== "ALL") result.patternMatch = true;
+        result.pattern = route.path;
 
         if (route.method === "ALL" || route.method === method) {
           result.handlers.push(route.handlers);
 
-          if (route.path === "*" && route.method === "ALL") {
+          if (route.path === "/*" && route.method === "ALL") {
             continue;
           }
 
@@ -104,9 +105,8 @@ export class UrlPatternRouter<T> implements Router<T> {
       } else if (route.path instanceof URLPattern) {
         const match = route.path.exec(url);
         if (match !== null) {
-          if (route.method !== "ALL") {
-            result.patternMatch = true;
-          }
+          if (route.method !== "ALL") result.patternMatch = true;
+          result.pattern = route.path.pathname;
 
           if (route.method === "ALL" || route.method === method) {
             result.handlers.push(route.handlers);

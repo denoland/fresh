@@ -6,6 +6,7 @@ import {
   type VNode,
 } from "preact";
 import { renderToString } from "preact-render-to-string";
+import { SpanStatusCode } from "@opentelemetry/api";
 import type { ResolvedFreshConfig } from "./config.ts";
 import type { BuildCache } from "./build_cache.ts";
 import {
@@ -15,6 +16,7 @@ import {
 } from "./runtime/server/preact_hooks.tsx";
 import { DEV_ERROR_OVERLAY_URL } from "./constants.ts";
 import { BUILD_ID } from "./runtime/build_id.ts";
+import { tracer } from "./otel.ts";
 
 export interface Island {
   file: string | URL;
@@ -184,14 +186,31 @@ export class FreshReqContext<State>
       headers.set("X-Fresh-Id", partialId);
     }
 
-    const html = preactRender(
-      vnode,
-      this,
-      this.#islandRegistry,
-      this.#buildCache,
-      partialId,
-      headers,
-    );
+    const html = tracer.startActiveSpan("render", (span) => {
+      span.setAttribute("fresh.span_type", "render");
+      try {
+        return preactRender(
+          vnode,
+          this,
+          this.#islandRegistry,
+          this.#buildCache,
+          partialId,
+          headers,
+        );
+      } catch (err) {
+        if (err instanceof Error) {
+          span.recordException(err);
+        } else {
+          span.setStatus({
+            code: SpanStatusCode.ERROR,
+            message: String(err),
+          });
+        }
+        throw err;
+      } finally {
+        span.end();
+      }
+    });
     return new Response(html, responseInit);
   }
 }

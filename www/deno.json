@@ -1,4 +1,5 @@
 {
+  "unstable": ["otel"],
   "tasks": {
     "start": "deno run -A --watch=static/,routes/,../src,../docs dev.ts",
     "build": "deno run -A dev.ts build",
@@ -20,6 +21,7 @@
     "@std/media-types": "jsr:@std/media-types@1",
     "@std/path": "jsr:@std/path@1",
     "@std/semver": "jsr:@std/semver@1",
+    "@opentelemetry/api": "npm:@opentelemetry/api@^1.9.0",
     "autoprefixer": "npm:autoprefixer@10.4.17",
     "cssnano": "npm:cssnano@6.0.3",
     "esbuild": "npm:esbuild@0.23.1",

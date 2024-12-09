@@ -177,7 +177,10 @@
       "integrity": "7c139c6076a080eeaa4252c78b95ca5302818d7eafab0470d34cafd9930c13c8"
     },
     "@std/streams@1.0.6": {
-      "integrity": "022ed94e380d06b4d91c49eb70241b7289ab78b8c2b4c4bbb7eb265e4997c25c"
+      "integrity": "022ed94e380d06b4d91c49eb70241b7289ab78b8c2b4c4bbb7eb265e4997c25c",
+      "dependencies": [
+        "jsr:@std/bytes"
+      ]
     },
     "@std/toml@1.0.1": {
       "integrity": "b55b407159930f338d384b1f8fd317c8e8a35e27ebb8946155f49e3a158d16c4",
@@ -281,6 +284,12 @@
         "@nodelib/fs.scandir",
         "fastq"
       ]
+    },
+    "@opentelemetry/api@1.9.0": {
+      "integrity": "sha512-3giAOQvZiH5F9bMlMiv8+GSPMeqg0dbaeo58/0SlA9sxSqZhnUtxzX9/2FzyhS9sWQf5S0GJE0AKBrFqjpeYcg=="
+    },
+    "@pkgjs/parseargs@0.11.0": {
+      "integrity": "sha512-+1VkjdD0QBLPodGrJUeqarH8VAIvQODIbwh9XpP5Syisf7YoQgsJKPNFoqqLQlu+VQ/tVSshMR6loPMn8U+dPg=="
     },
     "@preact/signals-core@1.8.0": {
       "integrity": "sha512-OBvUsRZqNmjzCZXWLxkZfhcgT+Fk8DDcT/8vD6a1xhDemodyy87UJRJfASMuSD8FaAIeGgGm85ydXhm7lr4fyA=="
@@ -602,6 +611,7 @@
       "jsr:@std/path@1",
       "jsr:@std/semver@1",
       "jsr:@std/streams@1",
+      "npm:@opentelemetry/api@^1.9.0",
       "npm:@preact/signals@^1.2.3",
       "npm:esbuild-wasm@0.23.1",
       "npm:esbuild@0.23.1",

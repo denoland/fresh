@@ -40,13 +40,15 @@
     "exclude": ["**/*_test.*", "src/__OLD/**", "*.todo"]
   },
   "imports": {
-    "fresh": "jsr:@fresh/core@^2.0.0-alpha.22",
+    "fresh": "jsr:@fresh/core@^2.0.0-alpha.25",
     "preact": "npm:preact@^10.24.1",
     "preact-render-to-string": "npm:preact-render-to-string@^6.5.11",
+    "$ga4": "https://raw.githubusercontent.com/denoland/ga4/main/mod.ts",
+    "@luca/esbuild-deno-loader": "jsr:@luca/esbuild-deno-loader@^0.11.0",
+    "@opentelemetry/api": "npm:@opentelemetry/api@^1.9.0",
     "@preact/signals": "npm:@preact/signals@^1.2.3",
     "esbuild": "npm:esbuild@0.23.1",
     "esbuild-wasm": "npm:esbuild-wasm@0.23.1",
-    "@luca/esbuild-deno-loader": "jsr:@luca/esbuild-deno-loader@^0.11.0",
     "@std/crypto": "jsr:@std/crypto@1",
     "@std/datetime": "jsr:@std/datetime@^0.225.2",
     "@std/encoding": "jsr:@std/encoding@1",
@@ -66,7 +68,7 @@
     "@std/expect": "jsr:@std/expect@1"
   },
   "compilerOptions": {
-    "lib": ["dom", "dom.asynciterable", "deno.ns"],
+    "lib": ["dom", "dom.asynciterable", "deno.ns", "deno.unstable"],
     "jsx": "precompile",
     "jsxImportSource": "preact",
     "jsxPrecompileSkipElements": ["a", "img", "source", "body", "html", "head"]

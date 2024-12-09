@@ -68,7 +68,7 @@ export class Builder implements FreshBuilder {
     const devApp = new App<T>(app.config)
       .use(liveReload())
       .use(devErrorOverlay())
-      .mountApp("*", app);
+      .mountApp("/*", app);
 
     devApp.config.mode = "development";
 
