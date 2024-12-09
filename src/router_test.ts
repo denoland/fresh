@@ -39,8 +39,8 @@ Deno.test("UrlPatternRouter - GET get matches with middlewares", () => {
   const A = () => {};
   const B = () => {};
   const C = () => {};
-  router.add("ALL", "*", [A]);
-  router.add("ALL", "*", [B]);
+  router.add("ALL", "/*", [A]);
+  router.add("ALL", "/*", [B]);
   router.add("GET", "/", [C]);
 
   const res = router.match("GET", new URL("/", "http://localhost"));
@@ -173,7 +173,7 @@ Deno.test("pathToPattern", async (t) => {
 Deno.test("mergePaths", () => {
   expect(mergePaths("", "")).toEqual("");
   expect(mergePaths("/", "/foo")).toEqual("/foo");
-  expect(mergePaths("*", "/foo")).toEqual("/foo");
+  expect(mergePaths("/*", "/foo")).toEqual("/foo");
   expect(mergePaths("/foo/bar", "/baz")).toEqual("/foo/bar/baz");
   expect(mergePaths("/foo/bar/", "/baz")).toEqual("/foo/bar/baz");
   expect(mergePaths("/foo/bar", "baz")).toEqual("/foo/bar/baz");
