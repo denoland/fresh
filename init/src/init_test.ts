@@ -17,15 +17,12 @@ async function withTmpDir(fn: (dir: string) => void | Promise<void>) {
   }
 }
 
-// TODO: Patch project dependencies until there is an easier way
-// to link JSR dependencies
 async function patchProject(dir: string): Promise<void> {
   const jsonPath = path.join(dir, "deno.json");
   const json = JSON.parse(await Deno.readTextFile(jsonPath));
 
   json.workspace = [];
-  json.patch = [path.fromFileUrl(new URL("../..", import.meta.url))];
-  console.log("PATCH", json.patch);
+  json.patch = [new URL("../..", import.meta.url).href];
 
   // assert with this stricter rule, before adding it to initialized projects
   json.lint.rules.include = ["verbatim-module-syntax"];
