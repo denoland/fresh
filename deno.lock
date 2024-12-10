@@ -1648,7 +1648,7 @@
   "workspace": {
     "dependencies": [
       "jsr:@astral/astral@~0.4.6",
-      "jsr:@fresh/core@^2.0.0-alpha.25",
+      "jsr:@fresh/core@^2.0.0-alpha.26",
       "jsr:@luca/esbuild-deno-loader@0.11",
       "jsr:@marvinh-test/fresh-island@^0.0.1",
       "jsr:@std/async@1",
