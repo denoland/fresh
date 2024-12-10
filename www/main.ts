@@ -1,4 +1,4 @@
-import "jsr:@deno/otel/register";
+import "./telemetry.ts";
 import { App, fsRoutes, staticFiles, trailingSlashes } from "fresh";
 
 export const app = new App({ root: import.meta.url })
