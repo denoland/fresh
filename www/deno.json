@@ -37,11 +37,5 @@
     "prismjs": "npm:prismjs@^1.29.0",
     "tailwindcss": "npm:tailwindcss@^3.4.1",
     "tailwindcss/plugin": "npm:/tailwindcss@^3.4.1/plugin.js"
-  },
-  "compilerOptions": {
-    "lib": ["dom", "dom.asynciterable", "deno.ns"],
-    "jsx": "precompile",
-    "jsxImportSource": "preact",
-    "jsxPrecompileSkipElements": ["a", "img", "source", "body", "html", "head"]
   }
 }

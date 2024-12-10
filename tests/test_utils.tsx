@@ -92,7 +92,12 @@ export async function withBrowserApp(
     }, await app.handler());
 
     const browser = await launch({
-      args: ["--window-size=1280,720"],
+      args: [
+        "--window-size=1280,720",
+        ...((Deno.env.get("CI") && Deno.build.os === "linux")
+          ? ["--no-sandbox"]
+          : []),
+      ],
       headless: !Deno.args.includes("--headful"),
     });
 
@@ -113,7 +118,12 @@ export async function withBrowser(fn: (page: Page) => void | Promise<void>) {
   const aborter = new AbortController();
   try {
     const browser = await launch({
-      args: ["--window-size=1280,720"],
+      args: [
+        "--window-size=1280,7201",
+        ...((Deno.env.get("CI") && Deno.build.os === "linux")
+          ? ["--no-sandbox"]
+          : []),
+      ],
       headless: !Deno.args.includes("--headful"),
     });
 
