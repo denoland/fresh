@@ -8,8 +8,7 @@ async function getLatestVersion() {
   return Deno.env.get("LATEST_VERSION") ?? "99.99.999";
 }
 
-// deno-lint-ignore require-await
-async function getCurrentVersion() {
+function getCurrentVersion() {
   return Deno.env.get("CURRENT_VERSION")!;
 }
 

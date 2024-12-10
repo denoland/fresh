@@ -43,7 +43,6 @@ export function PartialsSection() {
         <div class="flex flex-col gap-4 md:sticky md:top-4">
           <svg
             aria-hidden="true"
-            alt="Arrows transferring data down "
             xmlns="http://www.w3.org/2000/svg"
             class="icon icon-tabler icon-tabler-arrows-transfer-down text-fresh"
             width="4rem"
@@ -55,6 +54,7 @@ export function PartialsSection() {
             stroke-linecap="round"
             stroke-linejoin="round"
           >
+            <title>Arrows transferring data down</title>
             <path stroke="none" d="M0 0h24v24H0z" fill="none" />
             <path d="M17 3v6" />
             <path d="M10 18l-3 3l-3 -3" />
