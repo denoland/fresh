@@ -3,6 +3,7 @@
   "specifiers": {
     "jsr:@astral/astral@~0.4.6": "0.4.8",
     "jsr:@deno-library/progress@1.4.9": "1.4.9",
+    "jsr:@deno/otel@*": "0.0.2",
     "jsr:@luca/esbuild-deno-loader@0.11": "0.11.0",
     "jsr:@marvinh-test/fresh-island@*": "0.0.1",
     "jsr:@marvinh-test/fresh-island@^0.0.1": "0.0.1",
@@ -35,7 +36,9 @@
     "jsr:@std/toml@^1.0.1": "1.0.1",
     "jsr:@std/yaml@^1.0.5": "1.0.5",
     "jsr:@zip-js/zip-js@2.7.41": "2.7.41",
+    "npm:@opentelemetry/api@1": "1.9.0",
     "npm:@opentelemetry/api@^1.9.0": "1.9.0",
+    "npm:@opentelemetry/sdk-trace-base@1": "1.29.0_@opentelemetry+api@1.9.0",
     "npm:@preact/signals@1.3.0": "1.3.0_preact@10.24.3",
     "npm:@preact/signals@^1.2.3": "1.3.0_preact@10.24.3",
     "npm:@preact/signals@^1.3.0": "1.3.0_preact@10.24.3",
@@ -67,6 +70,13 @@
       "integrity": "86db695ae338cb1ae3ffa46d6f2e6a9cdef33a15c2ace6fa25354a91a9dd3909",
       "dependencies": [
         "jsr:@std/fmt@0.221.0"
+      ]
+    },
+    "@deno/otel@0.0.2": {
+      "integrity": "4ef61b7eb1c4063f8224d66fc43f25e428a566d2e18785d0dc67bb70a318f0ff",
+      "dependencies": [
+        "npm:@opentelemetry/api@1",
+        "npm:@opentelemetry/sdk-trace-base"
       ]
     },
     "@luca/esbuild-deno-loader@0.11.0": {
@@ -288,6 +298,33 @@
     },
     "@opentelemetry/api@1.9.0": {
       "integrity": "sha512-3giAOQvZiH5F9bMlMiv8+GSPMeqg0dbaeo58/0SlA9sxSqZhnUtxzX9/2FzyhS9sWQf5S0GJE0AKBrFqjpeYcg=="
+    },
+    "@opentelemetry/core@1.29.0_@opentelemetry+api@1.9.0": {
+      "integrity": "sha512-gmT7vAreXl0DTHD2rVZcw3+l2g84+5XiHIqdBUxXbExymPCvSsGOpiwMmn8nkiJur28STV31wnhIDrzWDPzjfA==",
+      "dependencies": [
+        "@opentelemetry/api",
+        "@opentelemetry/semantic-conventions"
+      ]
+    },
+    "@opentelemetry/resources@1.29.0_@opentelemetry+api@1.9.0": {
+      "integrity": "sha512-s7mLXuHZE7RQr1wwweGcaRp3Q4UJJ0wazeGlc/N5/XSe6UyXfsh1UQGMADYeg7YwD+cEdMtU1yJAUXdnFzYzyQ==",
+      "dependencies": [
+        "@opentelemetry/api",
+        "@opentelemetry/core",
+        "@opentelemetry/semantic-conventions"
+      ]
+    },
+    "@opentelemetry/sdk-trace-base@1.29.0_@opentelemetry+api@1.9.0": {
+      "integrity": "sha512-hEOpAYLKXF3wGJpXOtWsxEtqBgde0SCv+w+jvr3/UusR4ll3QrENEGnSl1WDCyRrpqOQ5NCNOvZch9UFVa7MnQ==",
+      "dependencies": [
+        "@opentelemetry/api",
+        "@opentelemetry/core",
+        "@opentelemetry/resources",
+        "@opentelemetry/semantic-conventions"
+      ]
+    },
+    "@opentelemetry/semantic-conventions@1.28.0": {
+      "integrity": "sha512-lp4qAiMTD4sNWW4DbKLBkfiMZ4jbAboJIGOQr5DvciMRI494OapieI9qiODpOt0XBr1LjIDy1xAGAnVs5supTA=="
     },
     "@pkgjs/parseargs@0.11.0": {
       "integrity": "sha512-+1VkjdD0QBLPodGrJUeqarH8VAIvQODIbwh9XpP5Syisf7YoQgsJKPNFoqqLQlu+VQ/tVSshMR6loPMn8U+dPg=="
@@ -596,7 +633,7 @@
   "workspace": {
     "dependencies": [
       "jsr:@astral/astral@~0.4.6",
-      "jsr:@fresh/core@^2.0.0-alpha.22",
+      "jsr:@fresh/core@^2.0.0-alpha.25",
       "jsr:@luca/esbuild-deno-loader@0.11",
       "jsr:@marvinh-test/fresh-island@^0.0.1",
       "jsr:@std/async@1",
@@ -662,6 +699,7 @@
           "jsr:@std/media-types@1",
           "jsr:@std/path@1",
           "jsr:@std/semver@1",
+          "npm:@opentelemetry/api@^1.9.0",
           "npm:@preact/signals@^1.3.0",
           "npm:autoprefixer@10.4.17",
           "npm:cssnano@6.0.3",

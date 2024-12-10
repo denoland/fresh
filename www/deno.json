@@ -1,5 +1,4 @@
 {
-  "unstable": ["otel"],
   "tasks": {
     "start": "deno run -A --watch=static/,routes/,../src,../docs dev.ts",
     "build": "deno run -A dev.ts build",
