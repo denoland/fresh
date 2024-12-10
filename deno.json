@@ -7,7 +7,7 @@
     "./www"
   ],
   "name": "@fresh/core",
-  "version": "2.0.0-alpha.25",
+  "version": "2.0.0-alpha.26",
   "license": "MIT",
   "exports": {
     ".": "./src/mod.ts",
@@ -40,7 +40,7 @@
     "exclude": ["**/*_test.*", "src/__OLD/**", "*.todo"]
   },
   "imports": {
-    "fresh": "jsr:@fresh/core@^2.0.0-alpha.25",
+    "fresh": "jsr:@fresh/core@^2.0.0-alpha.26",
     "preact": "npm:preact@^10.25.1",
     "preact-render-to-string": "npm:preact-render-to-string@^6.5.11",
     "$ga4": "https://raw.githubusercontent.com/denoland/ga4/main/mod.ts",
