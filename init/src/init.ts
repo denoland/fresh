@@ -589,7 +589,7 @@ if (Deno.args.includes("build")) {
   };
 
   if (useTailwind) {
-    denoJson.imports["tailwindcss"] = "npm:tailwindcss^@3.4.3";
+    denoJson.imports["tailwindcss"] = "npm:tailwindcss@^3.4.3";
   }
 
   await writeFile("deno.json", denoJson);
