@@ -25,7 +25,7 @@ async function patchProject(dir: string): Promise<void> {
 
   json.workspace = [];
   json.patch = [path.fromFileUrl(new URL("../..", import.meta.url))];
-  
+
   // assert with this stricter rule, before adding it to initialized projects
   json.lint.rules.include = ["verbatim-module-syntax"];
 
