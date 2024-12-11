@@ -4,14 +4,19 @@
     "jsr:@astral/astral@~0.4.6": "0.4.9",
     "jsr:@deno-library/progress@^1.5.1": "1.5.1",
     "jsr:@deno/otel@*": "0.0.2",
+    "jsr:@fresh/core@^2.0.0-alpha.22": "2.0.0-alpha.26",
+    "jsr:@fresh/core@^2.0.0-alpha.26": "2.0.0-alpha.26",
     "jsr:@luca/esbuild-deno-loader@0.11": "0.11.1",
     "jsr:@marvinh-test/fresh-island@*": "0.0.1",
     "jsr:@marvinh-test/fresh-island@^0.0.1": "0.0.1",
     "jsr:@std/assert@^1.0.9": "1.0.9",
     "jsr:@std/async@1": "1.0.9",
     "jsr:@std/bytes@^1.0.2": "1.0.4",
+    "jsr:@std/bytes@^1.0.3": "1.0.4",
+    "jsr:@std/cli@1": "1.0.8",
     "jsr:@std/collections@^1.0.9": "1.0.9",
     "jsr:@std/crypto@1": "1.0.3",
+    "jsr:@std/datetime@0.225.0": "0.225.0",
     "jsr:@std/datetime@~0.225.2": "0.225.2",
     "jsr:@std/encoding@1": "1.0.5",
     "jsr:@std/encoding@^1.0.5": "1.0.5",
@@ -20,6 +25,7 @@
     "jsr:@std/fmt@1.0.3": "1.0.3",
     "jsr:@std/front-matter@^1.0.5": "1.0.5",
     "jsr:@std/fs@1": "1.0.6",
+    "jsr:@std/fs@^1.0.6": "1.0.6",
     "jsr:@std/html@1": "1.0.3",
     "jsr:@std/internal@^1.0.5": "1.0.5",
     "jsr:@std/io@0.225.0": "0.225.0",
@@ -31,6 +37,7 @@
     "jsr:@std/path@^1.0.8": "1.0.8",
     "jsr:@std/semver@1": "1.0.3",
     "jsr:@std/streams@1": "1.0.8",
+    "jsr:@std/testing@1": "1.0.6",
     "jsr:@std/toml@^1.0.1": "1.0.2",
     "jsr:@std/yaml@^1.0.5": "1.0.5",
     "jsr:@zip-js/zip-js@^2.7.52": "2.7.54",
@@ -39,6 +46,7 @@
     "npm:@opentelemetry/sdk-trace-base@1": "1.29.0_@opentelemetry+api@1.9.0",
     "npm:@preact/signals@^1.2.3": "1.3.1_preact@10.25.1",
     "npm:@preact/signals@^1.3.0": "1.3.1_preact@10.25.1",
+    "npm:@types/node@*": "22.5.4",
     "npm:autoprefixer@10.4.17": "10.4.17_postcss@8.4.35",
     "npm:cssnano@6.0.3": "6.0.3_postcss@8.4.35",
     "npm:esbuild-wasm@0.23.1": "0.23.1",
@@ -62,7 +70,7 @@
       "dependencies": [
         "jsr:@deno-library/progress",
         "jsr:@std/async",
-        "jsr:@std/fs",
+        "jsr:@std/fs@1",
         "jsr:@std/path@1",
         "jsr:@zip-js/zip-js"
       ]
@@ -81,10 +89,31 @@
         "npm:@opentelemetry/sdk-trace-base"
       ]
     },
+    "@fresh/core@2.0.0-alpha.26": {
+      "integrity": "db268b66b94086eabb3cf682d8d6270e1de57664899a54f1ce35aecd1a59691d",
+      "dependencies": [
+        "jsr:@luca/esbuild-deno-loader",
+        "jsr:@std/crypto",
+        "jsr:@std/datetime@~0.225.2",
+        "jsr:@std/encoding@1",
+        "jsr:@std/fmt@1",
+        "jsr:@std/fs@1",
+        "jsr:@std/html",
+        "jsr:@std/jsonc",
+        "jsr:@std/media-types",
+        "jsr:@std/path@1",
+        "jsr:@std/semver",
+        "npm:@opentelemetry/api@^1.9.0",
+        "npm:esbuild",
+        "npm:esbuild-wasm",
+        "npm:preact-render-to-string",
+        "npm:preact@^10.25.1"
+      ]
+    },
     "@luca/esbuild-deno-loader@0.11.1": {
       "integrity": "dc020d16d75b591f679f6b9288b10f38bdb4f24345edb2f5732affa1d9885267",
       "dependencies": [
-        "jsr:@std/bytes",
+        "jsr:@std/bytes@^1.0.2",
         "jsr:@std/encoding@^1.0.5",
         "jsr:@std/path@^1.0.6"
       ]
@@ -109,11 +138,17 @@
     "@std/bytes@1.0.4": {
       "integrity": "11a0debe522707c95c7b7ef89b478c13fb1583a7cfb9a85674cd2cc2e3a28abc"
     },
+    "@std/cli@1.0.8": {
+      "integrity": "3762d8dc9a373715c08d871c38d45e637b25266f013a1d0bbe560bca409de94e"
+    },
     "@std/collections@1.0.9": {
       "integrity": "4f58104ead08a04a2199374247f07befe50ba01d9cca8cbb23ab9a0419921e71"
     },
     "@std/crypto@1.0.3": {
       "integrity": "a2a32f51ddef632d299e3879cd027c630dcd4d1d9a5285d6e6788072f4e51e7f"
+    },
+    "@std/datetime@0.225.0": {
+      "integrity": "73ee4457218e06f50d3680fb0c430ba94006305e4104c84e783b3f5c0ec78900"
     },
     "@std/datetime@0.225.2": {
       "integrity": "45f0100554a912cd65f48089ef0a33aa1eb6ea21f08090840b539ab582827eaa"
@@ -172,7 +207,19 @@
       "integrity": "7c139c6076a080eeaa4252c78b95ca5302818d7eafab0470d34cafd9930c13c8"
     },
     "@std/streams@1.0.8": {
-      "integrity": "b41332d93d2cf6a82fe4ac2153b930adf1a859392931e2a19d9fabfb6f154fb3"
+      "integrity": "b41332d93d2cf6a82fe4ac2153b930adf1a859392931e2a19d9fabfb6f154fb3",
+      "dependencies": [
+        "jsr:@std/bytes@^1.0.3"
+      ]
+    },
+    "@std/testing@1.0.6": {
+      "integrity": "9192ded2d34065f4c959fdc1921fe836770abb9194410c2cc8a0fff4eff5c893",
+      "dependencies": [
+        "jsr:@std/assert",
+        "jsr:@std/fs@^1.0.6",
+        "jsr:@std/internal",
+        "jsr:@std/path@^1.0.8"
+      ]
     },
     "@std/toml@1.0.2": {
       "integrity": "5892ba489c5b512265a384238a8fe8dddbbb9498b4b210ef1b9f0336a423a39b",
@@ -368,6 +415,12 @@
         "minimatch",
         "mkdirp",
         "path-browserify"
+      ]
+    },
+    "@types/node@22.5.4": {
+      "integrity": "sha512-FDuKUJQm/ju9fT/SeX/6+gBzoPzlVCzfzmGkwKvRHQVxi4BntVbyIwf6a4Xn62mrvndLiml6z/UBXIdEVjQLXg==",
+      "dependencies": [
+        "undici-types"
       ]
     },
     "ansi-regex@5.0.1": {
@@ -1358,6 +1411,9 @@
     "uhyphen@0.2.0": {
       "integrity": "sha512-qz3o9CHXmJJPGBdqzab7qAYuW8kQGKNEuoHFYrBwV6hWIMcpAmxDLXojcHfFr9US1Pe6zUswEIJIbLI610fuqA=="
     },
+    "undici-types@6.19.8": {
+      "integrity": "sha512-ve2KP6f/JnbPBFyobGHuerC9g1FYGn/F8n1LWTwNxCEzd6IfqTwUQcNXgEtmmQ6DlRrC1hrSrBnCZPokRrDHjw=="
+    },
     "update-browserslist-db@1.1.1_browserslist@4.24.2": {
       "integrity": "sha512-R8UzCaa9Az+38REPiJ1tXlImTJXlVfgHZsglwBD/k6nj76ctsH1E3q4doGrukiLQd3sGQYu56r5+lo5r94l29A==",
       "dependencies": [
@@ -1664,6 +1720,7 @@
       "jsr:@std/path@1",
       "jsr:@std/semver@1",
       "jsr:@std/streams@1",
+      "jsr:@std/testing@1",
       "npm:@opentelemetry/api@^1.9.0",
       "npm:@preact/signals@^1.2.3",
       "npm:esbuild-wasm@0.23.1",

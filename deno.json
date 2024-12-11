@@ -65,7 +65,8 @@
     "@marvinh-test/fresh-island": "jsr:@marvinh-test/fresh-island@^0.0.1",
     "linkedom": "npm:linkedom@^0.16.11",
     "@std/async": "jsr:@std/async@1",
-    "@std/expect": "jsr:@std/expect@1"
+    "@std/expect": "jsr:@std/expect@1",
+    "@std/testing": "jsr:@std/testing@1"
   },
   "compilerOptions": {
     "lib": ["dom", "dom.asynciterable", "deno.ns", "deno.unstable"],

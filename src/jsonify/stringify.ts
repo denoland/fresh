@@ -39,7 +39,7 @@ export function stringify(data: unknown, custom?: Stringifiers): string {
   const indexes = new Map<unknown, number>();
   const res = serializeInner(out, indexes, data, custom);
   if (res < 0) {
-    out.push(String(res));
+    return String(res)
   }
   return `[${out.join(",")}]`;
 }
