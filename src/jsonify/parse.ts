@@ -16,7 +16,7 @@ export function parse<T = unknown>(
   custom?: CustomParser | undefined,
 ): T {
   const data = JSON.parse(value);
-  if (!Array.isArray(data)) return unpack([], [], data, custom);
+  if (!Array.isArray(data)) return unpack([], [], data, custom) as T;
   const hydrated = new Array(data.length);
   unpack(data, hydrated, 0, custom);
   return hydrated[0];
@@ -27,7 +27,7 @@ function unpack(
   hydrated: unknown[],
   idx: number,
   custom: CustomParser | undefined,
-): any {
+): unknown {
   switch (idx) {
     case UNDEFINED:
       return undefined;
@@ -111,6 +111,7 @@ function unpack(
     const keys = Object.keys(current);
     for (let i = 0; i < keys.length; i++) {
       const key = keys[i];
+      // deno-lint-ignore no-explicit-any
       const ref = (current as any)[key];
       actual[key] = unpack(arr, hydrated, ref, custom);
     }
