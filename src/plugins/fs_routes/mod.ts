@@ -51,6 +51,9 @@ export interface FsRoutesOptions {
   ignoreFilePattern?: RegExp[];
   loadRoute: (path: string) => Promise<unknown>;
   loadIsland: (path: string) => Promise<unknown>;
+  islandDir?: string;
+  routesDir?: string;
+  fileExts?: string[];
 }
 
 export interface TESTING_ONLY__FsRoutesOptions {
@@ -68,8 +71,8 @@ export async function fsRoutes<State>(
   const dir = options.dir
     ? parseRootPath(options.dir, fs.cwd())
     : app.config.root;
-  const islandDir = path.join(dir, "islands");
-  const routesDir = path.join(dir, "routes");
+  const islandDir = path.join(dir, options.islandDir ?? "islands");
+  const routesDir = path.join(dir, options.routesDir ?? "routes");
 
   const islandPaths: string[] = [];
   const relRoutePaths: string[] = [];
@@ -83,6 +86,7 @@ export async function fsRoutes<State>(
       },
       ignore,
       fs,
+      options.fileExts ?? [],
     ),
     walkDir(
       routesDir,
@@ -105,6 +109,7 @@ export async function fsRoutes<State>(
       },
       ignore,
       fs,
+      options.fileExts ?? [],
     ),
   ]);
 
@@ -364,13 +369,14 @@ async function walkDir(
   callback: (entry: WalkEntry) => void,
   ignore: RegExp[],
   fs: FsAdapter,
+  exts: string[],
 ) {
   if (!await fs.isDirectory(dir)) return;
 
   const entries = fs.walk(dir, {
     includeDirs: false,
     includeFiles: true,
-    exts: ["tsx", "jsx", "ts", "js"],
+    exts: ["tsx", "jsx", "ts", "js", ...exts],
     skip: ignore,
   });
 
