@@ -35,6 +35,8 @@ export interface FreshContext<State = unknown> {
   readonly config: ResolvedFreshConfig;
   readonly state: State;
   /** The original incoming `Request` object` */
+  readonly request: Request;
+  /** @deprecated This is an alias for internal use only. Use {@linkcode FreshContext[request]} instead. */
   readonly req: Request;
   /**
    * The request url parsed into an `URL` instance. This is typically used
@@ -92,6 +94,8 @@ export class FreshReqContext<State>
   implements FreshContext<State>, PageProps<unknown, State> {
   config: ResolvedFreshConfig;
   url: URL;
+  request: Request;
+  /** @deprecated This is an alias for internal use only. Use {@linkcode FreshReqContext[request]} instead. */
   req: Request;
   params: Record<string, string>;
   state: State = {} as State;
@@ -112,7 +116,7 @@ export class FreshReqContext<State>
   }
 
   constructor(
-    req: Request,
+    request: Request,
     url: URL,
     info: Deno.ServeHandlerInfo,
     params: Record<string, string>,
@@ -122,7 +126,8 @@ export class FreshReqContext<State>
     buildCache: BuildCache,
   ) {
     this.url = url;
-    this.req = req;
+    this.request = request;
+    this.req = request;
     this.info = info;
     this.params = params;
     this.config = config;
