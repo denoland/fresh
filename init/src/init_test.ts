@@ -7,7 +7,7 @@ import { withChildProcessServer } from "../../tests/test_utils.tsx";
 
 async function withTmpDir(fn: (dir: string) => void | Promise<void>) {
   const hash = crypto.randomUUID().replaceAll(/-/g, "");
-  const dir = path.join(import.meta.dirname!, "..", "..", `tmp-${hash}`);
+  const dir = path.join(import.meta.dirname!, "..", "..", `tmp_${hash}`);
   await Deno.mkdir(dir, { recursive: true });
 
   try {
@@ -17,21 +17,15 @@ async function withTmpDir(fn: (dir: string) => void | Promise<void>) {
   }
 }
 
-// TODO: Patch project dependencies until there is an easier way
-// to link JSR dependencies
 async function patchProject(dir: string): Promise<void> {
   const jsonPath = path.join(dir, "deno.json");
   const json = JSON.parse(await Deno.readTextFile(jsonPath));
-  const rootJson = JSON.parse(
-    await Deno.readTextFile(
-      path.join(import.meta.dirname!, "..", "..", "deno.json"),
-    ),
-  );
 
-  json.imports = rootJson.imports;
-  json.imports["fresh"] = "../src/mod.ts";
-  json.imports["fresh/dev"] = "../src/dev/mod.ts";
-  json.imports["@fresh/plugin-tailwind"] = "../plugin-tailwindcss/src/mod.ts";
+  json.workspace = [];
+  // See https://github.com/denoland/deno/issues/27313
+  // json.patch = [path.fromFileURL(new URL("../..", import.meta.url))];
+  json.patch = [new URL("../..", import.meta.url).href];
+
   // assert with this stricter rule, before adding it to initialized projects
   json.lint.rules.include = ["verbatim-module-syntax"];
 

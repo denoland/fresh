@@ -1,5 +1,5 @@
 import type { Config } from "tailwindcss";
-import plugin from "tailwindcss/plugin";
+import plugin from "tailwindcss/plugin.js";
 
 export default {
   content: [

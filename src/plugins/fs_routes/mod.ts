@@ -251,7 +251,7 @@ export async function fsRoutes<State>(
           errorComponents.push(mod.component);
         }
         let parent = mod.path.slice(0, -"_error".length);
-        parent = parent === "/" ? "*" : parent + "*";
+        parent = parent + "*";
 
         // Add error route as its own route
         if (!specialPaths.has(mod.path)) {

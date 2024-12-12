@@ -28,7 +28,7 @@ export default define.page(function App({ Component, state, url }) {
           href={asset("/fonts/FixelVariable.woff2")}
           as="font"
           type="font/woff2"
-          crossorigin="true"
+          crossorigin="anonymous"
         />
         <link rel="stylesheet" href={asset("/styles.css")} />
         {url.pathname === "/"
