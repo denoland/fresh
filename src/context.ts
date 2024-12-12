@@ -36,6 +36,8 @@ export interface FreshContext<State = unknown> {
   readonly state: State;
   /** The original incoming `Request` object` */
   readonly request: Request;
+  /** @deprecated This is an alias for internal use only. Use {@linkcode FreshContext[request]} instead. */
+  readonly req: Request;
   /**
    * The request url parsed into an `URL` instance. This is typically used
    * to apply logic based on the pathname of the incoming url or when
@@ -93,6 +95,8 @@ export class FreshReqContext<State>
   config: ResolvedFreshConfig;
   url: URL;
   request: Request;
+  /** @deprecated This is an alias for internal use only. Use {@linkcode FreshReqContext[request]} instead. */
+  req: Request;
   params: Record<string, string>;
   state: State = {} as State;
   data: unknown = undefined;
@@ -123,6 +127,7 @@ export class FreshReqContext<State>
   ) {
     this.url = url;
     this.request = request;
+    this.req = request;
     this.info = info;
     this.params = params;
     this.config = config;
