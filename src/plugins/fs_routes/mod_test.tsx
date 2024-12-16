@@ -866,6 +866,36 @@ Deno.test("fsRoutes - route group specific templates", async () => {
   );
 });
 
+Deno.test("fsRoutes - route group order #2", async () => {
+  const server = await createServer({
+    "routes/(app)/[org]/[app]/index.tsx": {
+      default: () => <div>fail</div>,
+    },
+    "routes/auth/login.tsx": {
+      default: () => <div>ok</div>,
+    },
+  });
+
+  const res = await server.get("/auth/login");
+  const doc = parseHtml(await res.text());
+  expect(doc.body.firstChild?.textContent).toEqual("ok");
+});
+
+Deno.test("fsRoutes - route group order #3", async () => {
+  const server = await createServer({
+    "routes/(app)/(foo)/foo/index.tsx": {
+      default: () => <div>fail</div>,
+    },
+    "routes/(foo)/foo/bar.tsx": {
+      default: () => <div>ok</div>,
+    },
+  });
+
+  const res = await server.get("/foo/bar");
+  const doc = parseHtml(await res.text());
+  expect(doc.body.firstChild?.textContent).toEqual("ok");
+});
+
 Deno.test("fsRoutes - async route components", async () => {
   const server = await createServer<{ text: string }>({
     "routes/_error.tsx": {
@@ -1107,6 +1137,29 @@ Deno.test("fsRoutes - sortRoutePaths", () => {
     "/ts/index.ts",
     "/tsx/_layout.tsx",
     "/tsx/index.tsx",
+  ];
+  expect(routes).toEqual(sorted);
+
+  // Skip over groups
+  routes = [
+    "/(app)/[org]/[app]/index.ts",
+    "/auth/login.ts",
+  ];
+  routes.sort(sortRoutePaths);
+  sorted = [
+    "/auth/login.ts",
+    "/(app)/[org]/[app]/index.ts",
+  ];
+  expect(routes).toEqual(sorted);
+
+  routes = [
+    "/auth/login.ts",
+    "/(app)/[org]/[app]/index.ts",
+  ];
+  routes.sort(sortRoutePaths);
+  sorted = [
+    "/auth/login.ts",
+    "/(app)/[org]/[app]/index.ts",
   ];
   expect(routes).toEqual(sorted);
 });
