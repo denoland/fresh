@@ -390,16 +390,48 @@ export function sortRoutePaths(a: string, b: string) {
   if (APP_REG.test(a)) return -1;
   else if (APP_REG.test(b)) return 1;
 
-  let segmentIdx = 0;
   const aLen = a.length;
   const bLen = b.length;
-  const maxLen = aLen > bLen ? aLen : bLen;
-  for (let i = 0; i < maxLen; i++) {
-    const charA = a.charAt(i);
-    const charB = b.charAt(i);
+
+  let segment = false;
+  let aIdx = 0;
+  let bIdx = 0;
+  for (; aIdx < aLen && bIdx < bLen; aIdx++, bIdx++) {
+    let charA = a.charAt(aIdx);
+    let charB = b.charAt(bIdx);
+
+    // When comparing a grouped route with a non-grouped one, we
+    // need to skip over the group name to effectively compare the
+    // actual route.
+    if (charA === "(" && charB !== "(") {
+      aIdx++;
+
+      while (aIdx < aLen) {
+        charA = a.charAt(aIdx);
+        if (charA === ")") {
+          aIdx += 2;
+          charA = a.charAt(aIdx);
+          break;
+        }
+
+        aIdx++;
+      }
+    } else if (charB === "(" && charA !== "(") {
+      bIdx++;
+      while (bIdx < bLen) {
+        charB = b.charAt(bIdx);
+        if (charB === ")") {
+          bIdx += 2;
+          charB = b.charAt(bIdx);
+          break;
+        }
+
+        bIdx++;
+      }
+    }
 
     if (charA === "/" || charB === "/") {
-      segmentIdx = i;
+      segment = true;
 
       // If the other path doesn't close the segment
       // then we don't need to continue
@@ -409,9 +441,11 @@ export function sortRoutePaths(a: string, b: string) {
       continue;
     }
 
-    if (i === segmentIdx + 1) {
-      const scoreA = getRoutePathScore(charA, a, i);
-      const scoreB = getRoutePathScore(charB, b, i);
+    if (segment) {
+      segment = false;
+
+      const scoreA = getRoutePathScore(charA, a, aIdx);
+      const scoreB = getRoutePathScore(charB, b, bIdx);
       if (scoreA === scoreB) {
         if (charA !== charB) {
           // TODO: Do we need localeSort here or is this good enough?
@@ -426,6 +460,14 @@ export function sortRoutePaths(a: string, b: string) {
     if (charA !== charB) {
       // TODO: Do we need localeSort here or is this good enough?
       return charA < charB ? 0 : 1;
+    }
+
+    // If we're at the end of A or B, then we assume that the longer
+    // path is more specific
+    if (aIdx === aLen - 1 && bIdx < bLen - 1) {
+      return 1;
+    } else if (bIdx === bLen - 1 && aIdx < aLen - 1) {
+      return -1;
     }
   }
 
