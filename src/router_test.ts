@@ -163,6 +163,11 @@ Deno.test("pathToPattern", async (t) => {
     ).toEqual(
       "/foo{/:name}?/bar{/:bob}?",
     );
+    expect(
+      pathToPattern("(group)/[[name]]/(group2)/index"),
+    ).toEqual(
+      "/{:name}?",
+    );
   });
 
   await t.step("throws on invalid patterns", () => {
