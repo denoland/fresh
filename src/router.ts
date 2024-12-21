@@ -225,5 +225,14 @@ export function pathToPattern(path: string): string {
     route = "/";
   }
 
+  // Handles all cases where an optional parameter is the
+  // first and only non-group segment
+  // Case: /[[id]].tsx
+  // Case: /(group)/[[id]].tsx
+  // Case: /(group)/[[name]]/(group2)/index.tsx
+  if (route.startsWith(`{/`) && !/(?<!{)\//.test(route)) {
+    route = route.replace("{/", "/{");
+  }
+
   return route;
 }
