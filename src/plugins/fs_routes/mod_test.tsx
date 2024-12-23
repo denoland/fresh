@@ -13,6 +13,7 @@ import { type HandlerByMethod, type HandlerFn, page } from "../../handlers.ts";
 import type { Method } from "../../router.ts";
 import { parseHtml } from "../../../tests/test_utils.tsx";
 import type { FreshContext } from "fresh";
+import { createDefine } from "../../define.ts";
 
 async function createServer<T>(
   files: Record<string, string | Uint8Array | FreshFsItem<T>>,
@@ -189,6 +190,25 @@ Deno.test("fsRoutes - middleware", async () => {
   expect(await res.text()).toEqual("ok");
 });
 
+Deno.test("fsRoutes - middleware using define", async () => {
+  const server = await createServer<{ text: string }>({
+    "routes/index.ts": { handler: (ctx) => new Response(ctx.state.text) },
+    "routes/_middleware.ts": {
+      default: createDefine<{ text: string }>()
+        .middleware(
+          (ctx) => {
+            ctx.state.text = "A";
+            return ctx.next();
+          },
+        ),
+    },
+  });
+
+  const res = await server.get("/");
+  expect(res.status).toEqual(200);
+  expect(await res.text()).toEqual("ok");
+});
+
 Deno.test("fsRoutes - nested middlewares", async () => {
   const server = await createServer<{ text: string }>({
     "routes/_middleware.ts": {
@@ -224,6 +244,34 @@ Deno.test("fsRoutes - middleware array", async () => {
           return ctx.next();
         },
       ],
+    },
+    "routes/foo/_middleware.ts": {
+      handler: (ctx) => {
+        ctx.state.text += "C";
+        return ctx.next();
+      },
+    },
+    "routes/foo/index.ts": { default: (ctx) => <div>{ctx.state.text}</div> },
+  });
+
+  const res = await server.get("/foo");
+  const doc = parseHtml(await res.text());
+  expect(doc.body.firstChild?.textContent).toEqual("ABC");
+});
+
+Deno.test("fsRoutes - middleware array using define", async () => {
+  const server = await createServer<{ text: string }>({
+    "routes/_middleware.ts": {
+      default: createDefine<{ text: string }>().middleware([
+        (ctx) => {
+          ctx.state.text = "A";
+          return ctx.next();
+        },
+        (ctx) => {
+          ctx.state.text += "B";
+          return ctx.next();
+        },
+      ]),
     },
     "routes/foo/_middleware.ts": {
       handler: (ctx) => {
