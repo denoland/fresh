@@ -1797,7 +1797,7 @@ Deno.test({
   fn: async () => {
     const app = testApp()
       .post("/partial", async (ctx) => {
-        const data = await ctx.req.formData();
+        const data = await ctx.request.formData();
         const name = data.get("name");
         const submitter = data.get("submitter");
         return ctx.render(
@@ -1856,7 +1856,7 @@ Deno.test({
         );
       })
       .post("/partial", async (ctx) => {
-        const data = await ctx.req.formData();
+        const data = await ctx.request.formData();
         const name = String(data.get("name"));
 
         return new Response(null, {
@@ -1903,7 +1903,7 @@ Deno.test({
   fn: async () => {
     const app = testApp()
       .post("/partial", async (ctx) => {
-        const data = await ctx.req.formData();
+        const data = await ctx.request.formData();
         const name = data.get("name");
         const submitter = data.get("submitter");
         return ctx.render(
@@ -1964,7 +1964,7 @@ Deno.test({
   fn: async () => {
     const app = testApp()
       .post("/partial", async (ctx) => {
-        const data = await ctx.req.formData();
+        const data = await ctx.request.formData();
         const name = data.get("name");
         const submitter = data.get("submitter");
         return ctx.render(
@@ -2027,7 +2027,7 @@ Deno.test({
   fn: async () => {
     const app = testApp()
       .post("/partial", async (ctx) => {
-        const data = await ctx.req.formData();
+        const data = await ctx.request.formData();
         const name = data.get("name");
         const submitter = data.get("submitter");
         return ctx.render(
