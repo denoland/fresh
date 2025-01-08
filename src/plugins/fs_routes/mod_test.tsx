@@ -1193,6 +1193,47 @@ Deno.test("fsRoutes - registers default GET route for component without GET hand
   );
 });
 
+Deno.test("fsRoutes - default GET route works with nested middleware", async () => {
+  const server = await createServer<{ text: string }>({
+    "routes/_middleware.ts": {
+      handler: (ctx) => {
+        ctx.state.text = "A";
+        return ctx.next();
+      },
+    },
+    "routes/foo/_middleware.ts": {
+      handler: (ctx) => {
+        ctx.state.text += "B";
+        return ctx.next();
+      },
+    },
+    "routes/foo/noGetHandler.tsx": {
+      default: (ctx) => {
+        return <h1>{ctx.state.text}</h1>;
+      },
+      handlers: {
+        POST: () => new Response("POST"),
+      },
+    },
+  });
+
+  const postRes = await server.post("/foo/noGetHandler");
+  expect(postRes.status).toEqual(200);
+  expect(postRes.headers.get("Content-Type")).toEqual(
+    "text/plain;charset=UTF-8",
+  );
+  expect(await postRes.text()).toEqual("POST");
+
+  const getRes = await server.get("/foo/noGetHandler");
+  expect(getRes.status).toEqual(200);
+  expect(getRes.headers.get("Content-Type")).toEqual(
+    "text/html; charset=utf-8",
+  );
+  expect(await getRes.text()).toContain(
+    "<h1>AB</h1>",
+  );
+});
+
 Deno.test("fsRoutes - default GET route doesn't override existing handler", async () => {
   const server = await createServer<{ value: boolean }>({
     "routes/withGetHandler.tsx": {
