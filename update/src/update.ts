@@ -4,7 +4,7 @@ import * as tsmorph from "ts-morph";
 
 export const SyntaxKind = tsmorph.ts.SyntaxKind;
 
-export const FRESH_VERSION = "2.0.0-alpha.28";
+export const FRESH_VERSION = "2.0.0-alpha.29";
 export const PREACT_VERSION = "10.25.4";
 export const PREACT_SIGNALS_VERSION = "2.0.1";
 
