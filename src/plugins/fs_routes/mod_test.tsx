@@ -1164,6 +1164,54 @@ Deno.test("fsRoutes - sortRoutePaths", () => {
   expect(routes).toEqual(sorted);
 });
 
+Deno.test("fsRoutes - sortRoutePaths with groups", () => {
+  let routes = [
+    "/(authed)/_middleware.ts",
+    "/(authed)/index.ts",
+    "/about.tsx",
+  ];
+  routes.sort(sortRoutePaths);
+  let sorted = [
+    "/about.tsx",
+    "/(authed)/_middleware.ts",
+    "/(authed)/index.ts",
+  ];
+  expect(routes).toEqual(sorted);
+
+  routes = [
+    "/_app",
+    "/(authed)/_middleware",
+    "/(authed)/_layout",
+    "/_error",
+    "/(authed)/index",
+    "/login",
+    "/auth/login",
+    "/auth/logout",
+    "/(authed)/(account)/account",
+    "/(authed)/api/slug",
+    "/hooks/github",
+    "/(authed)/[org]/_middleware",
+    "/(authed)/[org]/index",
+  ];
+  routes.sort(sortRoutePaths);
+  sorted = [
+    "/_app",
+    "/_error",
+    "/login",
+    "/auth/login",
+    "/auth/logout",
+    "/hooks/github",
+    "/(authed)/_middleware",
+    "/(authed)/_layout",
+    "/(authed)/index",
+    "/(authed)/api/slug",
+    "/(authed)/(account)/account",
+    "/(authed)/[org]/_middleware",
+    "/(authed)/[org]/index",
+  ];
+  expect(routes).toEqual(sorted);
+});
+
 Deno.test("fsRoutes - registers default GET route for component without GET handler", async () => {
   const server = await createServer<{ value: boolean }>({
     "routes/noGetHandler.tsx": {
