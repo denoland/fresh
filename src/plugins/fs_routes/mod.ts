@@ -400,37 +400,18 @@ export function sortRoutePaths(a: string, b: string) {
   let aIdx = 0;
   let bIdx = 0;
   for (; aIdx < aLen && bIdx < bLen; aIdx++, bIdx++) {
-    let charA = a.charAt(aIdx);
-    let charB = b.charAt(bIdx);
+    const charA = a.charAt(aIdx);
+    const charB = b.charAt(bIdx);
 
     // When comparing a grouped route with a non-grouped one, we
     // need to skip over the group name to effectively compare the
     // actual route.
     if (charA === "(" && charB !== "(") {
-      aIdx++;
-
-      while (aIdx < aLen) {
-        charA = a.charAt(aIdx);
-        if (charA === ")") {
-          aIdx += 2;
-          charA = a.charAt(aIdx);
-          break;
-        }
-
-        aIdx++;
-      }
+      if (charB == "[") return -1;
+      return 1;
     } else if (charB === "(" && charA !== "(") {
-      bIdx++;
-      while (bIdx < bLen) {
-        charB = b.charAt(bIdx);
-        if (charB === ")") {
-          bIdx += 2;
-          charB = b.charAt(bIdx);
-          break;
-        }
-
-        bIdx++;
-      }
+      if (charA == "[") return 1;
+      return -1;
     }
 
     if (charA === "/" || charB === "/") {
