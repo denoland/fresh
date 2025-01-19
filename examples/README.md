@@ -1,6 +1,6 @@
 # Examples for Fresh
 
-This is an package contains examples for using Fresh with
+This package contains examples for using Fresh with
 [JSR](https://jsr.io/).
 
 Learn more about the Fresh framework here:
