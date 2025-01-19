@@ -1,7 +1,6 @@
 # Examples for Fresh
 
-This package contains examples for using Fresh with
-[JSR](https://jsr.io/).
+This package contains examples for using Fresh with [JSR](https://jsr.io/).
 
 Learn more about the Fresh framework here:
 [https://fresh.deno.dev/](https://fresh.deno.dev/)
