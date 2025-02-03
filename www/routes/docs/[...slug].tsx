@@ -178,7 +178,7 @@ export default define.page<typeof handler>(function DocsPage(props) {
           <div class="fixed top-24 w-[17rem] flex overflow-hidden">
             <div class="flex-1 h-[calc(100vh_-_6rem)] overflow-y-auto pb-8">
               <SearchButton class="mr-4 sm:mr-0" />
-              <div class="mb-4">
+              <div class="mb-4 px-1">
                 <VersionSelect
                   selectedVersion={page.version}
                   versions={page.versionLinks}
