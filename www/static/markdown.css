@@ -3,10 +3,10 @@
   --color-prettylights-syntax-comment: #6e7781;
   --color-prettylights-syntax-constant: #0550ae;
   --color-prettylights-syntax-entity: #8250df;
-  --color-prettylights-syntax-storage-modifier-import: #24292f;
+  --color-prettylights-syntax-storage-modifier-import: var(--foreground-secondary);
   --color-prettylights-syntax-entity-tag: #22863a;
   --color-prettylights-syntax-keyword: #cf222e;
-  --color-prettylights-syntax-string: #0a3069;
+  --color-prettylights-syntax-string: var(--color-prettylights-syntax-constant);
   --color-prettylights-syntax-variable: #953800;
   --color-prettylights-syntax-string-regexp: #116329;
   --color-prettylights-syntax-markup-deleted-text: #82071e;
@@ -14,12 +14,12 @@
   --color-prettylights-syntax-markup-inserted-text: #116329;
   --color-prettylights-syntax-markup-inserted-bg: #dafbe1;
   --color-prettylights-syntax-constant-other-reference-link: #0a3069;
-  --color-fg-default: #24292f;
-  --color-fg-muted: #57606a;
-  --color-canvas-default: #fff;
-  --color-canvas-subtle: #f6f8fa;
-  --color-border-default: #d0d7de;
-  --color-border-muted: #d8dee4;
+  --color-fg-default: hsla(var(--foreground-secondary));
+  --color-fg-muted: hsla(var(--foreground-tertiary));
+  --color-canvas-default: hsla(var(--background-primary));
+  --color-canvas-subtle: hsla(var(--background-secondary));
+  --color-border-default: hsla(var(--foreground-secondary), 0.3);
+  --color-border-muted: hsla(var(--foreground-secondary), 0.1);
   --color-neutral-muted: rgba(175, 184, 193, 0.2);
   --color-accent-fg: #0969da;
   --color-accent-emphasis: #0969da;
@@ -649,8 +649,13 @@
   background-color: rgb(238, 249, 253);
   border-color: rgb(25 146 184);
 }
+
+.dark .markdown-body .admonition.info {
+  background-color: hsla(var(--info), 0.1);
+  color: hsla(var(--foreground-primary))
+}
 .markdown-body .admonition.warn .admonition-header {
-  color: #dd6f04;
+  color: hsla(var(--info));
 }
 .markdown-body .admonition.warn {
   background-color: #f0900525;
@@ -703,6 +708,7 @@ ol.nested li:before {
   -moz-font-feature-settings: "kern" 1, "tnum" 1;
   content: counters(item, ".") ". ";
   counter-increment: item;
+  counter-increment: item;
 }
 
 .markdown-body ul {
@@ -747,7 +753,7 @@ ol.nested li:before {
   border-top-left-radius: 0.5rem;
   border-top-right-radius: 0.5rem;
   padding: 0.5rem;
-  background: #eaeef1;
+  background: hsla(var(--background-tertiary));
   display: flex;
   align-items: center;
   justify-content: space-between;

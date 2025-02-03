@@ -87,7 +87,7 @@ class DefaultRenderer extends Marked.Renderer {
       title = match[2] ?? "";
     }
 
-    let out = `<div class="fenced-code">`;
+    let out = `<div class="fenced-code" class="">`;
 
     if (title) {
       out += `<div class="fenced-code-header">
