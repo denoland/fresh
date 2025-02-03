@@ -3,7 +3,9 @@
   --color-prettylights-syntax-comment: #6e7781;
   --color-prettylights-syntax-constant: #0550ae;
   --color-prettylights-syntax-entity: #8250df;
-  --color-prettylights-syntax-storage-modifier-import: var(--foreground-secondary);
+  --color-prettylights-syntax-storage-modifier-import: var(
+    --foreground-secondary
+  );
   --color-prettylights-syntax-entity-tag: #22863a;
   --color-prettylights-syntax-keyword: #cf222e;
   --color-prettylights-syntax-string: var(--color-prettylights-syntax-constant);
@@ -652,7 +654,7 @@
 
 .dark .markdown-body .admonition.info {
   background-color: hsla(var(--info), 0.1);
-  color: hsla(var(--foreground-primary))
+  color: hsla(var(--foreground-primary));
 }
 .markdown-body .admonition.warn .admonition-header {
   color: hsla(var(--info));
