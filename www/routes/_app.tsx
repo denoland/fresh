@@ -3,7 +3,7 @@ import { define } from "../utils/state.ts";
 
 export default define.page(function App({ Component, state, url }) {
   return (
-    <html lang="en">
+    <html lang="en" class="dark" data-theme="dark">
       <head>
         <meta charset="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -42,6 +42,8 @@ export default define.page(function App({ Component, state, url }) {
             </>
           )
           : null}
+        <script src="/theme.client.js"></script>
+        <script type="module" src="/theme-toggle.client.js"></script>
       </head>
       <body>
         <Component />

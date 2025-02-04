@@ -48,8 +48,8 @@ export default function CopyArea(props: { code: string }) {
         <button
           aria-label="Copy to Clipboard"
           disabled={!IS_BROWSER}
-          class={`rounded p-1.5 border border-gray-300 hover:bg-gray-700 ${
-            copied.value ? "text-green-500" : ""
+          class={`rounded p-1.5 border border-foreground-secondary/30 hover:bg-foreground-secondary/70 ${
+            copied.value ? "text-fresh-green/80" : ""
           } relative`}
           onClick={handleClick}
         >

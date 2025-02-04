@@ -2,6 +2,44 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Light and dark theme variables */
+.light {
+  --fresh: 50deg, 100%, 56%;
+  --fresh-green: 142deg, 71%, 29%;
+
+  --background-primary: 215deg, 100%, 100%;
+  --background-secondary: 210deg, 29%, 97%;
+  --background-tertiary: 207deg, 33%, 95%;
+  --foreground-primary: 0deg, 0%, 9%;
+  --foreground-secondary: 0deg, 0%, 23%;
+  --foreground-tertiary: 0deg, 0%, 32%;
+  --foreground-quaternary: 0deg, 0%, 42%;
+
+  --info: 194deg, 76%, 41%;
+}
+.dark {
+  --fresh: 50deg, 100%, 56%;
+  --fresh-green: 142deg, 71%, 29%;
+
+  --background-primary: 216deg, 27.8%, 7.1%;
+  --background-secondary: 216deg, 27.7%, 12%;
+  --background-tertiary: 216deg, 27.7%, 22%;
+  --foreground-primary: 215deg, 17%, 99%;
+  --foreground-secondary: 215deg, 17%, 71%;
+  --foreground-tertiary: 215deg, 17%, 20%;
+  --foreground-quaternary: 215deg, 17%, 10%;
+
+  --info: 194deg, 76%, 41%;
+
+  color: var(--foreground-primary);
+  background-color: var(--background-primary);
+}
+
+/* Scrollbar colors that look good on light and dark theme */
+* {
+  scrollbar-color: hsla(0deg, 0%, 50%, 0.5) hsla(0deg, 0%, 50%, 0.1) !important;
+}
+
 @font-face {
   font-family: Fixel;
   font-style: normal;
@@ -57,4 +95,12 @@ h4,
 h5,
 h6 {
   font-weight: 750;
+}
+
+hr {
+  @apply border-foreground-secondary/10;
+}
+
+.dark-mode-toggle-button img {
+  @apply fill-foreground-primary;
 }
