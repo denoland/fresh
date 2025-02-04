@@ -1,3 +1,4 @@
+import ThemeToggle from "../islands/ThemeToggle.tsx";
 import * as Icons from "./Icons.tsx";
 
 export default function NavigationBar(
@@ -57,6 +58,11 @@ export default function NavigationBar(
             <Icons.Discord />
           </a>
         </li>
+        {isDocs && (
+          <li class="flex items-center">
+            <ThemeToggle />
+          </li>
+        )}
       </ul>
     </nav>
   );

@@ -20,7 +20,7 @@ export default function VersionSelect(
         </label>
         {selectedIsLatest && (
           <div class="flex absolute pointer-events-none select-none w-full h-full items-center justify-end pr-8">
-            <div class="rounded-full px-2 py-1 text-xs tag-label bg-[#056CF025] text-blue-700">
+            <div class="rounded-full px-2 py-1 text-xs tag-label bg-[#056CF025] dark:bg-[#2182ff45] text-blue-700 dark:text-blue-400">
               Latest
             </div>
           </div>

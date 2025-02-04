@@ -295,7 +295,7 @@ function ForwardBackButtons(props: {
             href={prev.href}
             class="px-4 py-2 text-left rounded border border-foreground-secondary/20 grid border-solid w-full hover:border-green-600 transition-colors"
           >
-            <span class="text-sm text-gray-600">
+            <span class="text-sm text-gray-600 dark:text-gray-500">
               Previous page
             </span>
             <span class="text-green-600 font-medium">
@@ -310,7 +310,7 @@ function ForwardBackButtons(props: {
             href={next.href}
             class="px-4 py-2 text-left rounded border border-foreground-secondary/20 grid border-solid w-full hover:border-green-600 transition-colors"
           >
-            <span class="text-sm text-gray-600">
+            <span class="text-sm text-gray-600 dark:text-gray-500">
               Next page
             </span>
             <span class="text-green-600 font-medium">

@@ -26,6 +26,27 @@
   --color-accent-fg: #0969da;
   --color-accent-emphasis: #0969da;
   --color-danger-fg: #cf222e;
+
+  --warn-border: #ff9100;
+  --warn-bg: #f0900525;
+  --warn-text: var(--color-fg-default);
+}
+
+html[data-theme="dark"] {
+  --color-accent-fg: #3d96ff;
+  --color-prettylights-syntax-keyword: #ee5b65;
+  --color-prettylights-syntax-entity: #b291f0;
+  --color-prettylights-syntax-constant: #448ce5;
+  --color-prettylights-syntax-entity-tag: #7cb78a;
+  --color-prettylights-syntax-variable: #d18253;
+  --color-prettylights-syntax-markup-deleted-text: #ffebe9;
+  --color-prettylights-syntax-markup-deleted-bg: #82071e;
+  --color-prettylights-syntax-markup-inserted-text: #dafbe1;
+  --color-prettylights-syntax-markup-inserted-bg: #116329;
+
+  --warn-border: #ff9100;
+  --warn-bg: #f0900525;
+  --warn-text: var(--color-fg-default);
 }
 
 .markdown-body {
@@ -86,7 +107,7 @@
   padding: 0;
 }
 .markdown-body blockquote {
-  color: var(--color-fg-muted);
+  color: var(--color-fg-default);
   border-left: 0.25em solid var(--color-border-default);
   padding: 0 1em;
 }
@@ -622,8 +643,9 @@
   margin-bottom: 0.25rem;
 }
 .markdown-body blockquote.warn {
-  border-color: #ff9100;
-  background: #f0900525;
+  border-color: var(--warn-border);
+  background: var(--warn-bg);
+  color: var(--warn-text);
 }
 
 .markdown-body .admonition .fenced-code {
@@ -657,11 +679,12 @@
   color: hsla(var(--foreground-primary));
 }
 .markdown-body .admonition.warn .admonition-header {
-  color: hsla(var(--info));
+  color: #dd6f04;
 }
 .markdown-body .admonition.warn {
-  background-color: #f0900525;
-  border-color: #ff9100;
+  color: var(--warn-text);
+  background-color: var(--warn-bg);
+  border-color: var(--warn-border);
 }
 
 @media screen and (min-width: 768px) {
