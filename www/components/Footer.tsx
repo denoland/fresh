@@ -1,5 +1,4 @@
 import type { JSX } from "preact";
-import * as Icons from "./Icons.tsx";
 import SocialIcons from "./SocialIcons.tsx";
 
 const LINKS = [
