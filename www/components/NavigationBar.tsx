@@ -1,5 +1,3 @@
-import * as Icons from "./Icons.tsx";
-
 export default function NavigationBar(
   props: { active: string; class?: string },
 ) {
@@ -38,25 +36,6 @@ export default function NavigationBar(
             </a>
           </li>
         ))}
-
-        <li class="hidden sm:flex items-center">
-          <a
-            href="https://github.com/denoland/fresh"
-            class="hover:text-green-600 inline-block transition"
-            aria-label="GitHub"
-          >
-            <Icons.GitHub />
-          </a>
-        </li>
-        <li class="hidden sm:flex items-center">
-          <a
-            href="https://discord.com/invite/deno"
-            class="hover:text-green-600 inline-block transition"
-            aria-label="Discord"
-          >
-            <Icons.Discord />
-          </a>
-        </li>
       </ul>
     </nav>
   );
