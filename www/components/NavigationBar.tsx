@@ -1,4 +1,3 @@
-import ThemeToggle from "../islands/ThemeToggle.tsx";
 import * as Icons from "./Icons.tsx";
 
 export default function NavigationBar(
@@ -22,7 +21,7 @@ export default function NavigationBar(
   const isDocs = props.active == "/docs";
   return (
     <nav class={"flex " + (props.class ?? "")} f-client-nav={false}>
-      <ul class="flex items-center gap-x-2 sm:gap-4 m-2 sm:my-6 flex-wrap lg:mx-8 2xl:mr-0">
+      <ul class="flex items-center gap-x-2 sm:gap-4 m-2 sm:my-6 flex-wrap sm:mx-8">
         {items.map((item) => (
           <li key={item.name} class="mt-[2px]">
             <a
@@ -58,11 +57,6 @@ export default function NavigationBar(
             <Icons.Discord />
           </a>
         </li>
-        {isDocs && (
-          <li class="flex items-center">
-            <ThemeToggle />
-          </li>
-        )}
       </ul>
     </nav>
   );

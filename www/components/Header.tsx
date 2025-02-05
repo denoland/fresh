@@ -1,3 +1,4 @@
+import ThemeToggle from "../islands/ThemeToggle.tsx";
 import NavigationBar from "./NavigationBar.tsx";
 
 export default function Header(props: { title: string; active: string }) {
@@ -22,7 +23,12 @@ export default function Header(props: { title: string; active: string }) {
           <Logo />
         </div>
       )}
-      <NavigationBar class="" active={props.active} />
+      <div class="flex justify-end">
+        <NavigationBar class="" active={props.active} />
+        <div class="flex pr-3 pl-3 sm:pl-0 sm:pr-6">
+          {isDocs && <ThemeToggle />}
+        </div>
+      </div>
     </header>
   );
 }

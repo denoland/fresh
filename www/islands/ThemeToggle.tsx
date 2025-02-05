@@ -28,7 +28,7 @@ export default function ThemeToggle() {
     <button
       type="button"
       onClick={toggleTheme}
-      class="dark-mode-toggle button p-1 sm:p-2 -m-1"
+      class="dark-mode-toggle button"
       aria-label="Toggle Theme"
     >
       {theme === "light"
