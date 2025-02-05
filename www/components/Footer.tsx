@@ -26,7 +26,7 @@ export default function Footer(props: JSX.HTMLAttributes<HTMLElement>) {
           <span>© {new Date().getFullYear()} the Fresh authors</span>
         </div>
 
-        <div class="sm:hidden">
+        <div class="text-foreground-secondary [&_li]:hover:text-green-600 hover:text-green-600 [&_ul]:space-x-5 [&_.github]:hidden">
           <SocialIcons />
         </div>
 
