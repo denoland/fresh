@@ -11,7 +11,7 @@ export default function Header(props: { title: string; active: string }) {
         "mx-auto flex gap-3 items-center",
         isHome ? "justify-end h-20 max-w-screen-xl" : "justify-between",
         isDocs
-          ? "h-20 max-w-screen-2xl w-full sticky top-0 bg-background-primary  z-50 backdrop-blur-sm"
+          ? "h-20 max-w-screen-2xl w-full sticky top-0 bg-background-primary/75 z-50 backdrop-blur-sm"
           : "",
         isShowcase ? "max-w-screen-xl w-full" : "",
       ].join(" ")}
