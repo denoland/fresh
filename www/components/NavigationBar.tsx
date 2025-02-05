@@ -40,7 +40,7 @@ export default function NavigationBar(
           </li>
         ))}
 
-        <li class="flex items-center">
+        <li class="hidden sm:flex items-center">
           <a
             href="https://github.com/denoland/fresh"
             class="hover:text-green-600 inline-block transition"
@@ -49,7 +49,7 @@ export default function NavigationBar(
             <Icons.GitHub />
           </a>
         </li>
-        <li class="flex items-center">
+        <li class="hidden sm:flex items-center">
           <a
             href="https://discord.com/invite/deno"
             class="hover:text-green-600 inline-block transition"

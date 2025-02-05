@@ -1,4 +1,5 @@
 import type { JSX } from "preact";
+import * as Icons from "./Icons.tsx";
 
 const LINKS = [
   {
@@ -24,6 +25,27 @@ export default function Footer(props: JSX.HTMLAttributes<HTMLElement>) {
         <div class="text-foreground-secondary text-center">
           <span>© {new Date().getFullYear()} the Fresh authors</span>
         </div>
+
+        <ul class="flex items-center gap-x-2 sm:gap-4 m-2 sm:my-6 flex-wrap lg:mx-8 2xl:mr-0">
+          <li class="sm:hidden items-center">
+            <a
+              href="https://github.com/denoland/fresh"
+              class="hover:text-green-600 inline-block transition"
+              aria-label="GitHub"
+            >
+              <Icons.GitHub />
+            </a>
+          </li>
+          <li class="sm:hidden items-center">
+            <a
+              href="https://discord.com/invite/deno"
+              class="hover:text-green-600 inline-block transition"
+              aria-label="Discord"
+            >
+              <Icons.Discord />
+            </a>
+          </li>
+        </ul>
 
         <div class="flex items-center gap-8">
           {LINKS.map((link) => (
