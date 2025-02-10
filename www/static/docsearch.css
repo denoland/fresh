@@ -46,7 +46,7 @@ html[data-theme="dark"] {
   --docsearch-container-background: rgba(9, 10, 17, 0.8);
   --docsearch-modal-background: #15172a;
   --docsearch-modal-shadow: inset 1px 1px 0 0 #2c2e40,0 3px 8px 0 #000309;
-  --docsearch-searchbox-background: #090a11;
+  --docsearch-searchbox-background: #2b2d3c;
   --docsearch-searchbox-focus-background: #000;
   --docsearch-hit-color: #bec3c9;
   --docsearch-hit-shadow: none;

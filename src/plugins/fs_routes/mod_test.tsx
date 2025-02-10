@@ -1164,6 +1164,54 @@ Deno.test("fsRoutes - sortRoutePaths", () => {
   expect(routes).toEqual(sorted);
 });
 
+Deno.test("fsRoutes - sortRoutePaths with groups", () => {
+  let routes = [
+    "/(authed)/_middleware.ts",
+    "/(authed)/index.ts",
+    "/about.tsx",
+  ];
+  routes.sort(sortRoutePaths);
+  let sorted = [
+    "/about.tsx",
+    "/(authed)/_middleware.ts",
+    "/(authed)/index.ts",
+  ];
+  expect(routes).toEqual(sorted);
+
+  routes = [
+    "/_app",
+    "/(authed)/_middleware",
+    "/(authed)/_layout",
+    "/_error",
+    "/(authed)/index",
+    "/login",
+    "/auth/login",
+    "/auth/logout",
+    "/(authed)/(account)/account",
+    "/(authed)/api/slug",
+    "/hooks/github",
+    "/(authed)/[org]/_middleware",
+    "/(authed)/[org]/index",
+  ];
+  routes.sort(sortRoutePaths);
+  sorted = [
+    "/_app",
+    "/_error",
+    "/login",
+    "/auth/login",
+    "/auth/logout",
+    "/hooks/github",
+    "/(authed)/_middleware",
+    "/(authed)/_layout",
+    "/(authed)/index",
+    "/(authed)/api/slug",
+    "/(authed)/(account)/account",
+    "/(authed)/[org]/_middleware",
+    "/(authed)/[org]/index",
+  ];
+  expect(routes).toEqual(sorted);
+});
+
 Deno.test("fsRoutes - registers default GET route for component without GET handler", async () => {
   const server = await createServer<{ value: boolean }>({
     "routes/noGetHandler.tsx": {
@@ -1190,6 +1238,47 @@ Deno.test("fsRoutes - registers default GET route for component without GET hand
   );
   expect(await getRes.text()).toContain(
     "<h1>false</h1>",
+  );
+});
+
+Deno.test("fsRoutes - default GET route works with nested middleware", async () => {
+  const server = await createServer<{ text: string }>({
+    "routes/_middleware.ts": {
+      handler: (ctx) => {
+        ctx.state.text = "A";
+        return ctx.next();
+      },
+    },
+    "routes/foo/_middleware.ts": {
+      handler: (ctx) => {
+        ctx.state.text += "B";
+        return ctx.next();
+      },
+    },
+    "routes/foo/noGetHandler.tsx": {
+      default: (ctx) => {
+        return <h1>{ctx.state.text}</h1>;
+      },
+      handlers: {
+        POST: () => new Response("POST"),
+      },
+    },
+  });
+
+  const postRes = await server.post("/foo/noGetHandler");
+  expect(postRes.status).toEqual(200);
+  expect(postRes.headers.get("Content-Type")).toEqual(
+    "text/plain;charset=UTF-8",
+  );
+  expect(await postRes.text()).toEqual("POST");
+
+  const getRes = await server.get("/foo/noGetHandler");
+  expect(getRes.status).toEqual(200);
+  expect(getRes.headers.get("Content-Type")).toEqual(
+    "text/html; charset=utf-8",
+  );
+  expect(await getRes.text()).toContain(
+    "<h1>AB</h1>",
   );
 });
 
