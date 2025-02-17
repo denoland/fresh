@@ -1,28 +1,19 @@
-import { useEffect, useState } from "preact/hooks";
+import { useState } from "preact/hooks";
 import { IS_BROWSER } from "fresh/runtime";
 
 export default function ThemeToggle() {
-  const getPreferredTheme = () => {
+  const [theme, setTheme] = useState(() => {
     if (!IS_BROWSER) return "light";
-    const storedTheme = localStorage.getItem("theme");
-    if (storedTheme) return storedTheme;
-    return window.matchMedia("(prefers-color-scheme: dark)").matches
-      ? "dark"
-      : "light";
-  };
-
-  const [theme, setTheme] = useState(getPreferredTheme);
-
-  useEffect(() => {
-    document.documentElement.classList.remove("light", "dark");
-    document.documentElement.classList.add(theme);
-    document.documentElement.setAttribute("data-theme", theme);
-  }, [theme]);
+    return document.documentElement.dataset.theme ?? "light";
+  });
 
   const toggleTheme = () => {
-    const newTheme = theme === "light" ? "dark" : "light";
-    setTheme(newTheme);
-    localStorage.setItem("theme", newTheme);
+    setTheme((prev) => {
+      const theme = prev === "light" ? "dark" : "light";
+      document.documentElement.setAttribute("data-theme", theme);
+      localStorage.setItem("theme", theme);
+      return theme;
+    });
   };
 
   return (
