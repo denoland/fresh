@@ -3,7 +3,7 @@ import { define } from "../utils/state.ts";
 
 export default define.page(function App({ Component, state, url }) {
   return (
-    <html lang="en" class="dark" data-theme="dark">
+    <html lang="en">
       <head>
         <meta charset="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -23,6 +23,7 @@ export default define.page(function App({ Component, state, url }) {
           ? <meta property="og:image" content={state.ogImage} />
           : null}
         {state.noIndex ? <meta name="robots" content="noindex" /> : null}
+        <meta name="color-scheme" content="light dark" />
         <link
           rel="preload"
           href={asset("/fonts/FixelVariable.woff2")}
@@ -42,8 +43,17 @@ export default define.page(function App({ Component, state, url }) {
             </>
           )
           : null}
-        <script src="/theme.client.js"></script>
-        <script type="module" src="/theme-toggle.client.js"></script>
+        <script
+          type="module"
+          dangerouslySetInnerHTML={{
+            __html: `
+const isDarkMode = localStorage.theme === "dark"
+  || (!("theme" in localStorage)
+    && window.matchMedia("(prefers-color-scheme: dark)").matches);
+document.documentElement.dataset.theme = isDarkMode ? "dark" : "light";`,
+          }}
+        >
+        </script>
       </head>
       <body>
         <Component />
