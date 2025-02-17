@@ -1,6 +1,5 @@
 import { asset } from "fresh/runtime";
 import { define } from "../utils/state.ts";
-import { headScript as themeToggleScriptString } from "../islands/ThemeToggle.tsx";
 
 export default define.page(function App({ Component, state, url }) {
   return (
@@ -24,8 +23,6 @@ export default define.page(function App({ Component, state, url }) {
           ? <meta property="og:image" content={state.ogImage} />
           : null}
         {state.noIndex ? <meta name="robots" content="noindex" /> : null}
-        <script src={`data:text/javascript, ${themeToggleScriptString}`}>
-        </script>
         <link
           rel="preload"
           href={asset("/fonts/FixelVariable.woff2")}
