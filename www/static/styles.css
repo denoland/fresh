@@ -3,7 +3,7 @@
 @tailwind utilities;
 
 /* Light and dark theme variables */
-.light {
+:root {
   --fresh: 50deg, 100%, 56%;
   --fresh-green: 142deg, 71%, 29%;
 
@@ -17,7 +17,7 @@
 
   --info: 194deg, 76%, 41%;
 }
-.dark {
+html[data-theme="dark"]:root {
   --fresh: 50deg, 100%, 56%;
   --fresh-green: 142deg, 71%, 29%;
 
@@ -57,19 +57,8 @@
 }
 
 body {
-  font-family:
-    Fixel,
-    system-ui,
-    -apple-system,
-    BlinkMacSystemFont,
-    "Segoe UI",
-    Roboto,
-    Oxygen,
-    Ubuntu,
-    Cantarell,
-    "Open Sans",
-    "Helvetica Neue",
-    sans-serif;
+  font-family: Fixel, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+    Roboto, Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
   font-weight: 450;
   font-size: 1.125rem;
   line-height: 1.5;
@@ -103,4 +92,12 @@ hr {
 
 .dark-mode-toggle-button img {
   @apply fill-foreground-primary;
+}
+
+::selection {
+  background-color: #b1d5ff;
+}
+
+html[data-theme="dark"] ::selection {
+  background-color: #064c9c;
 }
