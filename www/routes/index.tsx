@@ -51,7 +51,7 @@ export default define.page<typeof handler>(function MainPage(props) {
   const origin = `${props.url.protocol}//${props.url.host}`;
 
   return (
-    <div class="flex flex-col min-h-screen">
+    <div class="flex flex-col min-h-screen bg-white">
       <div class="bg-transparent flex flex-col relative z-10">
         <HelloBar />
         <Header title="" active="/" />
