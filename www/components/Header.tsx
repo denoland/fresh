@@ -29,7 +29,7 @@ export default function Header(props: { title: string; active: string }) {
         <div class="flex [&_.github]:hidden [&_.github]:sm:flex [&_ul]:space-x-2 [&_ul]:sm:space-x-4 [&_li:hover]:text-green-600">
           <SocialIcons />
         </div>
-        <div class="flex px-3 sm:px-6 fill-foreground-primary hover:fill-fresh [&_*]:transition ">
+        <div class="flex px-3 sm:px-4 sm:sr-6 fill-foreground-primary hover:fill-fresh [&_*]:transition ">
           {isDocs && <ThemeToggle />}
         </div>
       </div>
