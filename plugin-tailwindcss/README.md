@@ -2,26 +2,23 @@
 
 A Tailwind CSS plugin to use in Fresh.
 
+> **Note:** This plugin **only** supports Tailwind CSS v4
+
 ```ts
 // dev.ts
 
-import { tailwind } from "@fresh/plugin-tailwind";
-import { FreshDevApp } from "fresh/dev";
+import { Builder } from "fresh/dev";
 import { app } from "./main.ts";
+import { tailwind } from "@fresh/plugin-tailwind";
 
-const devApp = new FreshDevApp();
-
+const builder = new Builder({ target: "safari12" });
 // Enable Tailwind CSS
-tailwind(devApp);
-
-devApp.mountApp("/", app);
+tailwind(builder, app);
 
 if (Deno.args.includes("build")) {
-  await devApp.build({
-    target: "safari12",
-  });
+  await builder.build(app);
 } else {
-  await devApp.listen();
+  await builder.listen(app);
 }
 ```
 
