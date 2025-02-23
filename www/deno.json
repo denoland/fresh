@@ -6,7 +6,7 @@
   },
   "imports": {
     "$ga4": "https://raw.githubusercontent.com/denoland/ga4/main/mod.ts",
-    "@fresh/plugin-tailwind": "../plugin-tailwindcss/src/mod.ts",
+    "@fresh/plugin-tailwind": "jsr:@fresh/plugin-tailwind@0.0.1-alpha.7",
     "@luca/esbuild-deno-loader": "jsr:@luca/esbuild-deno-loader@^0.11.0",
     "@preact/signals": "npm:@preact/signals@^1.3.0",
     "@std/crypto": "jsr:@std/crypto@1",
