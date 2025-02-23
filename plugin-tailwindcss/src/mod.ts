@@ -12,13 +12,14 @@ export function tailwind<T>(
     { pluginName: "tailwind", filter: /\.css$/ },
     async (args) => {
       if (!processor) processor = initTailwind(app.config);
-      const instance = await processor;
+      const instance = processor;
       const res = await instance.process(args.text, {
         from: args.path,
       });
+
       return {
         content: res.content,
-        map: res.map?.toString(),
+        map: res.map.toString(),
       };
     },
   );
