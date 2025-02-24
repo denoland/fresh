@@ -109,7 +109,7 @@ function serializeInner(
     } else if (value instanceof RegExp) {
       str += `["RegExp",${JSON.stringify(value.source)}, "${value.flags}"]`;
     } else if (value instanceof Uint8Array) {
-      str += `["Uint8Array","${b64encode(value)}"]`;
+      str += `["Uint8Array","${b64encode(value.buffer as ArrayBuffer)}"]`;
     } else if (value instanceof Set) {
       const items = new Array(value.size);
       let i = 0;
