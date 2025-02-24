@@ -101,3 +101,7 @@ Deno.test("parse - object", () => {
 Deno.test("parse - object with number negative", () => {
   expect(parse('[{"foo":1}, -1]')).toEqual({ foo: -1 });
 });
+
+Deno.test("parse - object with number negative", () => {
+  expect(parse('[{"foo":1}, -1]')).toEqual({ foo: -1 });
+});
