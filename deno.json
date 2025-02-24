@@ -1,6 +1,13 @@
 {
+  "workspace": [
+    "./examples",
+    "./init",
+    "./plugin-tailwindcss",
+    "./update",
+    "./www"
+  ],
   "name": "@fresh/core",
-  "version": "2.0.0-alpha.25",
+  "version": "2.0.0-alpha.29",
   "license": "MIT",
   "exports": {
     ".": "./src/mod.ts",
@@ -33,20 +40,19 @@
     "exclude": ["**/*_test.*", "src/__OLD/**", "*.todo"]
   },
   "imports": {
+    "fresh": "jsr:@fresh/core@^2.0.0-alpha.26",
+    "preact": "npm:preact@^10.25.1",
+    "preact-render-to-string": "npm:preact-render-to-string@^6.5.11",
     "$ga4": "https://raw.githubusercontent.com/denoland/ga4/main/mod.ts",
-    "@astral/astral": "jsr:@astral/astral@^0.4.6",
-    "@fresh/plugin-tailwind": "./plugin-tailwindcss/src/mod.ts",
     "@luca/esbuild-deno-loader": "jsr:@luca/esbuild-deno-loader@^0.11.0",
-    "@marvinh-test/fresh-island": "jsr:@marvinh-test/fresh-island@^0.0.1",
+    "@opentelemetry/api": "npm:@opentelemetry/api@^1.9.0",
     "@preact/signals": "npm:@preact/signals@^1.2.3",
-    "@std/async": "jsr:@std/async@1",
-    "@std/cli": "jsr:@std/cli@1",
+    "esbuild": "npm:esbuild@0.23.1",
+    "esbuild-wasm": "npm:esbuild-wasm@0.23.1",
     "@std/crypto": "jsr:@std/crypto@1",
     "@std/datetime": "jsr:@std/datetime@^0.225.2",
     "@std/encoding": "jsr:@std/encoding@1",
-    "@std/expect": "jsr:@std/expect@1",
     "@std/fmt": "jsr:@std/fmt@1",
-    "@std/front-matter": "jsr:@std/front-matter@^1.0.5",
     "@std/fs": "jsr:@std/fs@1",
     "@std/html": "jsr:@std/html@1",
     "@std/jsonc": "jsr:@std/jsonc@1",
@@ -54,33 +60,24 @@
     "@std/path": "jsr:@std/path@1",
     "@std/semver": "jsr:@std/semver@1",
     "@std/streams": "jsr:@std/streams@1",
-    "autoprefixer": "npm:autoprefixer@10.4.17",
-    "cssnano": "npm:cssnano@6.0.3",
-    "esbuild": "npm:esbuild@0.23.1",
-    "esbuild-wasm": "npm:esbuild-wasm@0.23.1",
-    "fresh": "./src/mod.ts",
-    "fresh/compat": "./src/compat/mod.ts",
-    "fresh/dev": "./src/dev/mod.ts",
-    "fresh/runtime": "./src/runtime/shared.ts",
-    "github-slugger": "npm:github-slugger@^2.0.0",
+
+    "@astral/astral": "jsr:@astral/astral@^0.4.6",
+    "@marvinh-test/fresh-island": "jsr:@marvinh-test/fresh-island@^0.0.1",
     "linkedom": "npm:linkedom@^0.16.11",
-    "marked": "npm:marked@^14.1.2",
-    "marked-mangle": "npm:marked-mangle@^1.1.9",
-    "postcss": "npm:postcss@8.4.35",
-    "preact": "npm:preact@^10.24.1",
-    "preact-render-to-string": "npm:preact-render-to-string@^6.5.11",
-    "prismjs": "npm:prismjs@^1.29.0",
-    "tailwindcss": "npm:tailwindcss@^3.4.1",
-    "tailwindcss/plugin": "npm:/tailwindcss@^3.4.1/plugin.js",
-    "ts-morph": "npm:ts-morph@^22.0.0"
+    "@std/async": "jsr:@std/async@1",
+    "@std/expect": "jsr:@std/expect@1",
+    "@std/testing": "jsr:@std/testing@1"
   },
   "compilerOptions": {
-    "lib": ["dom", "dom.asynciterable", "deno.ns"],
+    "lib": ["dom", "dom.asynciterable", "deno.ns", "deno.unstable"],
     "jsx": "precompile",
     "jsxImportSource": "preact",
     "jsxPrecompileSkipElements": ["a", "img", "source", "body", "html", "head"]
   },
   "lint": {
-    "rules": { "exclude": ["no-window"], "include": ["no-console"] }
+    "rules": {
+      "exclude": ["no-window"],
+      "include": ["no-console"]
+    }
   }
 }

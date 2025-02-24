@@ -152,10 +152,10 @@ export default define.page<typeof handler>(function DocsPage(props) {
       <Header title="docs" active="/docs" />
       <div f-client-nav={true}>
         <MobileSidebar page={page} />
-        <div class="flex mx-auto max-w-screen-2xl px-0 md:px-4 md:py-0 justify-start bg-gray-100">
+        <div class="flex mx-auto max-w-screen-2xl px-0 md:px-4 md:py-0 justify-start bg-background-secondary">
           <label
             for="docs_sidebar"
-            class="px-4 py-3 lg:hidden flex items-center hover:bg-gray-100 rounded gap-2 cursor-pointer"
+            class="px-4 py-3 lg:hidden flex items-center  rounded gap-2 cursor-pointer"
           >
             <svg
               class="h-6 w-6"
@@ -178,7 +178,7 @@ export default define.page<typeof handler>(function DocsPage(props) {
           <div class="fixed top-24 w-[17rem] flex overflow-hidden">
             <div class="flex-1 h-[calc(100vh_-_6rem)] overflow-y-auto pb-8">
               <SearchButton class="mr-4 sm:mr-0" />
-              <div class="mb-4">
+              <div class="mb-4 px-1">
                 <VersionSelect
                   selectedVersion={page.version}
                   versions={page.versionLinks}
@@ -199,7 +199,7 @@ export default define.page<typeof handler>(function DocsPage(props) {
                 <TableOfContents headings={headings} />
 
                 <div class="lg:order-1 min-w-0 max-w-3xl w-full">
-                  <h1 class="text-4xl text-gray-900 tracking-tight font-bold md:mt-0 px-4 md:px-0 mb-4">
+                  <h1 class="text-4xl text-foreground-primary tracking-tight font-bold md:mt-0 px-4 md:px-0 mb-4">
                     {page.title}
                   </h1>
                   <div
@@ -256,7 +256,7 @@ function MobileSidebar({ page }: { page: Page }) {
           class="absolute inset-0 bg-gray-600 opacity-75"
           for="docs_sidebar"
         />
-        <div class="relative flex-1 flex flex-col w-[18rem] h-full bg-white border-r-2 border-gray-100">
+        <div class="relative flex-1 flex flex-col w-[18rem] h-full bg-background-primary border-r-2 border-foreground-secondary">
           <nav class="pt-0 pb-16 overflow-x-auto">
             <div class="flex-1 h-screen overflow-y-auto pt-4 px-4">
               <SearchButton class="mr-4 sm:mr-0" />
@@ -293,9 +293,9 @@ function ForwardBackButtons(props: {
         ? (
           <a
             href={prev.href}
-            class="px-4 py-2 text-left rounded border border-gray-200 grid border-solid w-full hover:border-green-600 transition-colors"
+            class="px-4 py-2 text-left rounded border border-foreground-secondary/20 grid border-solid w-full hover:border-green-600 transition-colors"
           >
-            <span class="text-sm text-gray-600">
+            <span class="text-sm text-gray-600 dark:text-gray-500">
               Previous page
             </span>
             <span class="text-green-600 font-medium">
@@ -308,9 +308,9 @@ function ForwardBackButtons(props: {
         ? (
           <a
             href={next.href}
-            class="px-4 py-2 text-right rounded border border-gray-200 border-solid grid w-full hover:border-green-600 transition-colors"
+            class="px-4 py-2 text-left rounded border border-foreground-secondary/20 grid border-solid w-full hover:border-green-600 transition-colors"
           >
-            <span class="text-sm text-gray-600">
+            <span class="text-sm text-gray-600 dark:text-gray-500">
               Next page
             </span>
             <span class="text-green-600 font-medium">

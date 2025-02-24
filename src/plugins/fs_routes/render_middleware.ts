@@ -3,6 +3,8 @@ import type { MiddlewareFn } from "../../middlewares/mod.ts";
 import type { HandlerFn, PageResponse } from "../../handlers.ts";
 import type { FreshReqContext, PageProps } from "../../context.ts";
 import { HttpError } from "../../error.ts";
+import { tracer } from "../../otel.ts";
+import { SpanStatusCode } from "@opentelemetry/api";
 
 export type AsyncAnyComponent<P> = {
   (
@@ -31,7 +33,30 @@ export function renderMiddleware<State>(
   return async (ctx) => {
     let result: PageResponse<unknown> | undefined;
     if (handler !== undefined) {
-      const res = await handler(ctx);
+      const res = await tracer.startActiveSpan("handler", {
+        attributes: { "fresh.span_type": "fs_routes/handler" },
+      }, async (span) => {
+        try {
+          const res = await handler(ctx);
+          span.setAttribute(
+            "fresh.handler_response",
+            res instanceof Response ? "http" : "data",
+          );
+          return res;
+        } catch (err) {
+          if (err instanceof Error) {
+            span.recordException(err);
+          } else {
+            span.setStatus({
+              code: SpanStatusCode.ERROR,
+              message: String(err),
+            });
+          }
+          throw err;
+        } finally {
+          span.end();
+        }
+      });
 
       if (res instanceof Response) {
         return res;
@@ -56,7 +81,32 @@ export function renderMiddleware<State>(
       const fn = components[i];
 
       if (isAsyncAnyComponent(fn)) {
-        const result = (await fn(props)) as VNode | Response;
+        const result = await tracer.startActiveSpan(
+          "invoke async component",
+          async (span) => {
+            span.setAttribute("fresh.span_type", "fs_routes/async_component");
+            try {
+              const result = (await fn(props)) as VNode | Response;
+              span.setAttribute(
+                "fresh.component_response",
+                result instanceof Response ? "http" : "jsx",
+              );
+              return result;
+            } catch (err) {
+              if (err instanceof Error) {
+                span.recordException(err);
+              } else {
+                span.setStatus({
+                  code: SpanStatusCode.ERROR,
+                  message: String(err),
+                });
+              }
+              throw err;
+            } finally {
+              span.end();
+            }
+          },
+        );
         if (result instanceof Response) {
           return result;
         }

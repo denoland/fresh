@@ -30,6 +30,7 @@ Deno.test("UrlPatternRouter - GET get first match", () => {
     params: {},
     handlers: [[A]],
     methodMatch: true,
+    pattern: "/",
     patternMatch: true,
   });
 });
@@ -39,8 +40,8 @@ Deno.test("UrlPatternRouter - GET get matches with middlewares", () => {
   const A = () => {};
   const B = () => {};
   const C = () => {};
-  router.add("ALL", "*", [A]);
-  router.add("ALL", "*", [B]);
+  router.add("ALL", "/*", [A]);
+  router.add("ALL", "/*", [B]);
   router.add("GET", "/", [C]);
 
   const res = router.match("GET", new URL("/", "http://localhost"));
@@ -48,6 +49,7 @@ Deno.test("UrlPatternRouter - GET get matches with middlewares", () => {
     params: {},
     handlers: [[A], [B], [C]],
     methodMatch: true,
+    pattern: "/",
     patternMatch: true,
   });
 });
@@ -62,6 +64,7 @@ Deno.test("UrlPatternRouter - GET extract params", () => {
     params: { foo: "a", bar: "b" },
     handlers: [[A]],
     methodMatch: true,
+    pattern: "/:foo/:bar/c",
     patternMatch: true,
   });
 
@@ -71,6 +74,7 @@ Deno.test("UrlPatternRouter - GET extract params", () => {
     params: { foo: "a a", bar: "b" },
     handlers: [[A]],
     methodMatch: true,
+    pattern: "/:foo/:bar/c",
     patternMatch: true,
   });
 });
@@ -85,6 +89,7 @@ Deno.test("UrlPatternRouter - Wrong method match", () => {
     params: {},
     handlers: [],
     methodMatch: false,
+    pattern: "/foo",
     patternMatch: true,
   });
 });
@@ -101,6 +106,7 @@ Deno.test("UrlPatternRouter - wrong + correct method", () => {
     params: {},
     handlers: [[B]],
     methodMatch: true,
+    pattern: "/foo",
     patternMatch: true,
   });
 });
@@ -117,6 +123,7 @@ Deno.test("UrlPatternRouter - convert patterns automatically", () => {
     },
     handlers: [[A]],
     methodMatch: true,
+    pattern: "/books/:id",
     patternMatch: true,
   });
 });
@@ -173,7 +180,7 @@ Deno.test("pathToPattern", async (t) => {
 Deno.test("mergePaths", () => {
   expect(mergePaths("", "")).toEqual("");
   expect(mergePaths("/", "/foo")).toEqual("/foo");
-  expect(mergePaths("*", "/foo")).toEqual("/foo");
+  expect(mergePaths("/*", "/foo")).toEqual("/foo");
   expect(mergePaths("/foo/bar", "/baz")).toEqual("/foo/bar/baz");
   expect(mergePaths("/foo/bar/", "/baz")).toEqual("/foo/bar/baz");
   expect(mergePaths("/foo/bar", "baz")).toEqual("/foo/bar/baz");

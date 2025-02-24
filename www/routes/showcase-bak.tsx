@@ -20,10 +20,10 @@ export const handler = define.handlers({
 
 export default define.page<typeof handler>(function ShowcasePage() {
   return (
-    <div class="bg-white">
+    <>
       <Header title="showcase" active="/showcase" />
 
-      <div class="flex flex-col min-h-screen">
+      <div class="flex flex-col min-h-screen bg-white text-black">
         <div class="flex-1">
           <Showcase items={projects} />
 
@@ -70,17 +70,17 @@ export default define.page<typeof handler>(function ShowcasePage() {
 
         <Footer />
       </div>
-    </div>
+    </>
   );
 });
 
 function Showcase({ items }: { items: Project[] }) {
   return (
     <section class="max-w-screen-lg mx-auto my-16 px-4 sm:px-6 md:px-8 space-y-4">
-      <h2 class="text-3xl text-gray-600 font-bold">
+      <h2 class="text-3xl text-foreground-primary font-bold ">
         Showcase
       </h2>
-      <p class="text-gray-600">
+      <p class="text-foreground-secondary">
         Below is a selection of projects that have been built with Fresh.{" "}
         <a
           href="https://github.com/denoland/fresh/blob/main/www/data/showcase.json"

@@ -86,10 +86,8 @@ export default {
       "preact": "https://esm.sh/preact@10.22.0",
       "preact/": "https://esm.sh/preact@10.22.0/",
 -     "twind": "https://esm.sh/twind@0.16.19",
--     "twind/": "https://esm.sh/twind@0.16.19/",
-+     "tailwindcss": "npm:tailwindcss@3.4.1",
-+     "tailwindcss/": "npm:/tailwindcss@3.4.1/",
-+     "tailwindcss/plugin": "npm:/tailwindcss@3.4.1/plugin.js"
+-     "twind/": "https://esm.sh/twind@0.16.19/"
++     "tailwindcss": "npm:tailwindcss@3.4.1"
     }
   }
 ```
