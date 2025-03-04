@@ -103,6 +103,7 @@ export function TableOfContents({ headings }: TableOfContentsProps) {
         <>
           <div class="xl:hidden mx-4 md:mx-0 mt-4 md:mt-0">
             <button
+              type="button"
               id="toc-outline-btn"
               onClick={() => setIsOpen((v) => !v)}
               class="bg-background-primary py-2 px-4 rounded border border-foreground-secondary/30 flex items-center hover:border-fresh-green/80 transition-colors text-sm"

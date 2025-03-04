@@ -46,6 +46,7 @@ export default function CopyArea(props: { code: string }) {
           Copied!
         </div>
         <button
+          type="button"
           aria-label="Copy to Clipboard"
           disabled={!IS_BROWSER}
           class={`rounded p-1.5 border border-foreground-secondary/30 hover:bg-foreground-secondary/70 ${

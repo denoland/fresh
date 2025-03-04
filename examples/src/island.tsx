@@ -6,9 +6,9 @@ export function DemoIsland(): JSX.Element {
 
   return (
     <div style="display: flex; gap: 1rem; padding: 2rem;">
-      <button onClick={() => (count.value -= 1)}>-1</button>
+      <button type="button" onClick={() => (count.value -= 1)}>-1</button>
       <p style="font-variant-numeric: tabular-nums;">{count}</p>
-      <button onClick={() => (count.value += 1)}>+1</button>
+      <button type="button" onClick={() => (count.value += 1)}>+1</button>
     </div>
   );
 }

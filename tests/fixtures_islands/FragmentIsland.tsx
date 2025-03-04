@@ -1,3 +1,4 @@
+// deno-lint-ignore-file jsx-curly-braces
 export function FragmentIsland() {
   return (
     <>

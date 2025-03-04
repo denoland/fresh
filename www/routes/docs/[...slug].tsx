@@ -150,7 +150,7 @@ export default define.page<typeof handler>(function DocsPage(props) {
   return (
     <div class="flex flex-col min-h-screen mx-auto max-w-screen-2xl">
       <Header title="docs" active="/docs" />
-      <div f-client-nav={true}>
+      <div f-client-nav>
         <MobileSidebar page={page} />
         <div class="flex mx-auto max-w-screen-2xl px-0 md:px-4 md:py-0 justify-start bg-background-secondary">
           <label
