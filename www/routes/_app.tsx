@@ -23,6 +23,7 @@ export default define.page(function App({ Component, state, url }) {
           ? <meta property="og:image" content={state.ogImage} />
           : null}
         {state.noIndex ? <meta name="robots" content="noindex" /> : null}
+        <meta name="color-scheme" content="light dark" />
         <link
           rel="preload"
           href={asset("/fonts/FixelVariable.woff2")}
@@ -42,6 +43,17 @@ export default define.page(function App({ Component, state, url }) {
             </>
           )
           : null}
+        <script
+          type="module"
+          dangerouslySetInnerHTML={{
+            __html: `
+const isDarkMode = localStorage.theme === "dark"
+  || (!("theme" in localStorage)
+    && window.matchMedia("(prefers-color-scheme: dark)").matches);
+document.documentElement.dataset.theme = isDarkMode ? "dark" : "light";`,
+          }}
+        >
+        </script>
       </head>
       <body>
         <Component />
