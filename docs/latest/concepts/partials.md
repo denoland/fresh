@@ -176,6 +176,8 @@ achieved by adding the `mode` prop to a `Partial` component.
 - `replace` - Swap out the content of the existing partial (default)
 - `prepend` - Insert the new content before the existing content
 - `append` - Insert the new content after the existing content
+- `upsert` - Will swap out direct child nodes with matching `key` prop. If no
+  match is found, then append the new content.
 
 Personally, we’ve found that the `append` mode is really useful when you have an
 UI which displays log messages or similar list-like data.
@@ -194,8 +196,8 @@ export default function LogView() {
 }
 ```
 
-> [info]: When picking the `prepend` or `append` mode, make sure to add keys to
-> the elements.
+> [info]: When picking the `prepend`, `upsert` or `append` mode, make sure to
+> add keys to the elements.
 
 ## Bypassing or disabling Partials
 
