@@ -18,7 +18,11 @@ export function JsxConditional(props: JsxConditionalProps) {
   return (
     <div class={active.value ? "ready" : ""}>
       <p class="cond-output">{sig}</p>
-      <button class="cond-update" onClick={() => sig.value = sig.peek() + 1}>
+      <button
+        type="button"
+        class="cond-update"
+        onClick={() => sig.value = sig.peek() + 1}
+      >
         update
       </button>
       <div class="jsx">{active.value ? props.jsx : null}</div>

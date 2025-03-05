@@ -14,11 +14,19 @@ export function Counter(props: CounterProps) {
 
   return (
     <div id={props.id} class={active.value ? "ready" : ""}>
-      <button class="decrement" onClick={() => props.count.value -= 1}>
+      <button
+        type="button"
+        class="decrement"
+        onClick={() => props.count.value -= 1}
+      >
         -1
       </button>
       <p class="output">{props.count}</p>
-      <button class="increment" onClick={() => props.count.value += 1}>
+      <button
+        type="button"
+        class="increment"
+        onClick={() => props.count.value += 1}
+      >
         +1
       </button>
     </div>
