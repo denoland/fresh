@@ -1759,7 +1759,7 @@ Deno.test({
                 </Partial>
                 <SelfCounter />
                 <button
-                  type="button"
+                  type="submit"
                   class="update"
                   name="submitter"
                   value="sub"
@@ -1813,7 +1813,7 @@ Deno.test({
                 </Partial>
                 <SelfCounter />
                 <button
-                  type="button"
+                  type="submit"
                   class="update"
                   name="submitter"
                   value="sub"
@@ -1871,7 +1871,7 @@ Deno.test({
                 </Partial>
                 <SelfCounter />
                 <button
-                  type="button"
+                  type="submit"
                   class="update"
                   name="submitter"
                   value="sub"
@@ -1931,7 +1931,7 @@ Deno.test({
                   <p class="init">init</p>
                 </Partial>
                 <SelfCounter />
-                <button type="button" class="update">
+                <button type="submit" class="update">
                   update
                 </button>
               </form>
