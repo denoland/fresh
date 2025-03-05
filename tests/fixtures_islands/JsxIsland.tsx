@@ -17,7 +17,11 @@ export function JsxIsland(props: JsxIslandProps) {
   return (
     <div class={active.value ? "ready" : ""}>
       <p class="output">{sig}</p>
-      <button class="update" onClick={() => sig.value = sig.peek() + 1}>
+      <button
+        type="button"
+        class="update"
+        onClick={() => sig.value = sig.peek() + 1}
+      >
         update
       </button>
       <div class="jsx">{props.jsx}</div>

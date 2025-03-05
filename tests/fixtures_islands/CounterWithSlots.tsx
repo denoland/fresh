@@ -16,7 +16,9 @@ export function CounterWithSlots(
     <div class={active.value ? "ready" : ""}>
       <div class="counter-with-children">
         <p class="output">{sig}</p>
-        <button onClick={() => sig.value = sig.peek() + 1}>update</button>
+        <button type="button" onClick={() => sig.value = sig.peek() + 1}>
+          update
+        </button>
       </div>
       <div class="children">
         {props.children}
