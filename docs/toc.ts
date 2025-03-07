@@ -36,6 +36,7 @@ const toc: RawTableOfContents = {
           ["custom-handlers", "Custom handlers", "link:latest"],
           ["form-submissions", "Form submissions", "link:latest"],
           ["adding-interactivity", "Adding interactivity", "link:latest"],
+          ["configuring-auth", "Configuring Auth", "link:latest"],
           ["deploy-to-production", "Deploy to production", "link:latest"],
         ],
       },
