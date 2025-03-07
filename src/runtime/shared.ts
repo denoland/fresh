@@ -44,7 +44,7 @@ export interface PartialProps {
    * Define how the new HTML should be applied.
    * @default {"replace"}
    */
-  mode?: "replace" | "prepend" | "append";
+  mode?: "replace" | "prepend" | "append" | "upsert";
 }
 
 export function Partial(props: PartialProps): VNode {
