@@ -421,5 +421,11 @@
     "link": "https://wtfiscongressdoingnow.us",
     "github": "gibbygano/wtfiscongressdoingnow",
     "image": "wtfcongress"
+  },
+  {
+    "title": "UnQR",
+    "link": "https://unqr.deno.dev/",
+    "github": "https://github.com/EGAMAGZ/unqr",
+    "image": "UNQR"
   }
 ]
