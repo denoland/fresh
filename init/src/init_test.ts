@@ -138,6 +138,7 @@ Deno.test("init - fmt, lint, and type check project", async () => {
       stdout: "piped",
     }).output();
     const out = getStdOutput(check);
+    // deno-lint-ignore no-console
     console.log(out);
     expect(check.code).toEqual(0);
   });
