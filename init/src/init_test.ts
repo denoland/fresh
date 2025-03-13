@@ -132,7 +132,7 @@ Deno.test("init - fmt, lint, and type check project", async () => {
     await patchProject(dir);
 
     const check = await new Deno.Command(Deno.execPath(), {
-      args: ["task", "check"],
+      args: ["task", "check", "--config", "deno.json"],
       cwd: dir,
       stderr: "inherit",
       stdout: "inherit",
@@ -154,7 +154,7 @@ Deno.test("init with tailwind - fmt, lint, and type check project", async () => 
     await patchProject(dir);
 
     const check = await new Deno.Command(Deno.execPath(), {
-      args: ["task", "check"],
+      args: ["task", "check", "--config", "deno.json"],
       cwd: dir,
       stderr: "inherit",
       stdout: "inherit",
