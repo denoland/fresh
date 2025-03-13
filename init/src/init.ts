@@ -553,7 +553,7 @@ if (Deno.args.includes("build")) {
 
   const denoJson = {
     tasks: {
-      check: "deno fmt --check && deno lint && deno check .",
+      check: "deno fmt --check && deno lint && deno check --config deno.json .",
       dev: "deno run -A --watch=static/,routes/ dev.ts",
       build: "deno run -A dev.ts build",
       start: "deno run -A main.ts",
