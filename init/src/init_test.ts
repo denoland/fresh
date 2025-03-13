@@ -6,8 +6,7 @@ import { waitForText } from "../../tests/test_utils.tsx";
 import { withChildProcessServer } from "../../tests/test_utils.tsx";
 
 async function withTmpDir(fn: (dir: string) => void | Promise<void>) {
-  const hash = crypto.randomUUID().replaceAll(/-/g, "");
-  const dir = path.join(import.meta.dirname!, "..", "..", `tmp_${hash}`);
+  const dir = await Deno.makeTempDir({ prefix: "fresh-" });
   await Deno.mkdir(dir, { recursive: true });
 
   try {
@@ -135,9 +134,12 @@ Deno.test("init - fmt, lint, and type check project", async () => {
     const check = await new Deno.Command(Deno.execPath(), {
       args: ["task", "check"],
       cwd: dir,
-      stderr: "inherit",
-      stdout: "inherit",
+      stderr: "piped",
+      stdout: "piped",
     }).output();
+    const out = getStdOutput(check);
+    // deno-lint-ignore no-console
+    console.log(out);
     expect(check.code).toEqual(0);
   });
 });
