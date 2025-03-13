@@ -134,9 +134,11 @@ Deno.test("init - fmt, lint, and type check project", async () => {
     const check = await new Deno.Command(Deno.execPath(), {
       args: ["task", "check"],
       cwd: dir,
-      stderr: "inherit",
-      stdout: "inherit",
+      stderr: "piped",
+      stdout: "piped",
     }).output();
+    const out = getStdOutput(check);
+    console.log(out);
     expect(check.code).toEqual(0);
   });
 });
