@@ -12,8 +12,8 @@ Each middleware gets passed a `next` function in the context argument that is
 used to trigger child handlers. The `ctx` also has a `state` property that can
 be used to pass arbitrary data to downstream (or upstream) handlers. This
 `state` is included in `PageProps` by default, which is available to both the
-special [\_app](/docs/concepts/app-wrapper.md) wrapper and normal
-[routes](/docs/concepts/routes.md). `ctx.state` is normally set by modifying its
+special [\_app](/docs/concepts/app-wrapper) wrapper and normal
+[routes](/docs/concepts/routes). `ctx.state` is normally set by modifying its
 properties, e.g. `ctx.state.loggedIn = true`, but you can also replace the
 entire object like `ctx.state = { loggedIn: true }`.
 
