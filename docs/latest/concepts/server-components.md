@@ -7,7 +7,7 @@ If you've read about Fresh's [architecture](/docs/concepts/architecture) then
 you know that it's based on the islands architecture pattern. The flip side of
 this is that everything else is, by default, a server component. When you
 [create a route](/docs/getting-started/create-a-route), all of the components
-used are rendered on the server. No javascript is sent to the client, unless you
+used are rendered on the server. No JavaScript is sent to the client, unless you
 specifically include something from the `/islands/` folder.
 
 Internally, Fresh's rendering heavily leverages

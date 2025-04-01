@@ -1,5 +1,5 @@
-import { type Config } from "tailwindcss";
-import plugin from "tailwindcss/plugin";
+import type { Config } from "tailwindcss";
+import plugin from "tailwindcss/plugin.js";
 
 export default {
   content: [
@@ -18,4 +18,23 @@ export default {
       });
     }),
   ],
+  theme: {
+    extend: {
+      colors: {
+        // Dark/light with Tailwind done right using CSS variables:
+        "fresh": "hsla(var(--fresh))",
+        "fresh-green": "hsla(var(--fresh-green))",
+
+        "background-primary": "hsla(var(--background-primary))",
+        "background-secondary": "hsla(var(--background-secondary))",
+        "background-tertiary": "hsla(var(--background-tertiary))",
+        "foreground-primary": "hsla(var(--foreground-primary))",
+        "foreground-secondary": "hsla(var(--foreground-secondary))",
+        "foreground-tertiary": "hsla(var(--foreground-tertiary))",
+        "foreground-quaternary": "hsla(var(--foreground-quaternary))",
+
+        "info": "hsla(var(--info))",
+      },
+    },
+  },
 } satisfies Config;

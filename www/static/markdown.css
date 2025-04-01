@@ -3,10 +3,12 @@
   --color-prettylights-syntax-comment: #6e7781;
   --color-prettylights-syntax-constant: #0550ae;
   --color-prettylights-syntax-entity: #8250df;
-  --color-prettylights-syntax-storage-modifier-import: #24292f;
+  --color-prettylights-syntax-storage-modifier-import: var(
+    --foreground-secondary
+  );
   --color-prettylights-syntax-entity-tag: #22863a;
   --color-prettylights-syntax-keyword: #cf222e;
-  --color-prettylights-syntax-string: #0a3069;
+  --color-prettylights-syntax-string: var(--color-prettylights-syntax-constant);
   --color-prettylights-syntax-variable: #953800;
   --color-prettylights-syntax-string-regexp: #116329;
   --color-prettylights-syntax-markup-deleted-text: #82071e;
@@ -14,23 +16,43 @@
   --color-prettylights-syntax-markup-inserted-text: #116329;
   --color-prettylights-syntax-markup-inserted-bg: #dafbe1;
   --color-prettylights-syntax-constant-other-reference-link: #0a3069;
-  --color-fg-default: #24292f;
-  --color-fg-muted: #57606a;
-  --color-canvas-default: #fff;
-  --color-canvas-subtle: #f6f8fa;
-  --color-border-default: #d0d7de;
-  --color-border-muted: #d8dee4;
+  --color-fg-default: hsla(var(--foreground-secondary));
+  --color-fg-muted: hsla(var(--foreground-tertiary));
+  --color-canvas-default: hsla(var(--background-primary));
+  --color-canvas-subtle: hsla(var(--background-secondary));
+  --color-border-default: hsla(var(--foreground-secondary), 0.3);
+  --color-border-muted: hsla(var(--foreground-secondary), 0.1);
   --color-neutral-muted: rgba(175, 184, 193, 0.2);
   --color-accent-fg: #0969da;
   --color-accent-emphasis: #0969da;
   --color-danger-fg: #cf222e;
+
+  --warn-border: #ff9100;
+  --warn-bg: #f0900525;
+  --warn-text: var(--color-fg-default);
+}
+
+html[data-theme="dark"] {
+  --color-accent-fg: #3d96ff;
+  --color-prettylights-syntax-keyword: #ee5b65;
+  --color-prettylights-syntax-entity: #b291f0;
+  --color-prettylights-syntax-constant: #448ce5;
+  --color-prettylights-syntax-entity-tag: #7cb78a;
+  --color-prettylights-syntax-variable: #d18253;
+  --color-prettylights-syntax-markup-deleted-text: #ffebe9;
+  --color-prettylights-syntax-markup-deleted-bg: #82071e;
+  --color-prettylights-syntax-markup-inserted-text: #dafbe1;
+  --color-prettylights-syntax-markup-inserted-bg: #116329;
+
+  --warn-border: #ff9100;
+  --warn-bg: #f0900525;
+  --warn-text: var(--color-fg-default);
 }
 
 .markdown-body {
   word-wrap: break-word;
-  font-family: -apple-system, BlinkMacSystemFont, Segoe UI, Noto Sans, Helvetica,
-    Arial, sans-serif, Apple Color Emoji, Segoe UI Emoji;
-  font-size: 16px;
+  font-family: inherit;
+  font-size: 1.125rem;
   line-height: 1.75;
 }
 .markdown-body:before {
@@ -85,7 +107,7 @@
   padding: 0;
 }
 .markdown-body blockquote {
-  color: var(--color-fg-muted);
+  color: var(--color-fg-default);
   border-left: 0.25em solid var(--color-border-default);
   padding: 0 1em;
 }
@@ -429,7 +451,7 @@
   text-align: left;
   white-space: nowrap;
   padding: 5px;
-  font-size: 12px;
+  font-size: 0.75rem;
   line-height: 1;
   overflow: hidden;
 }
@@ -456,7 +478,7 @@
 .markdown-body .footnotes {
   color: var(--color-fg-muted);
   border-top: 1px solid var(--color-border-default);
-  font-size: 12px;
+  font-size: 0.75rem;
 }
 .markdown-body .footnotes ol {
   padding-left: 16px;
@@ -618,10 +640,12 @@
   margin-right: 0.25rem;
   width: 1.2em;
   height: 1.2em;
+  margin-bottom: 0.25rem;
 }
 .markdown-body blockquote.warn {
-  border-color: #ff9100;
-  background: #f0900525;
+  border-color: var(--warn-border);
+  background: var(--warn-bg);
+  color: var(--warn-text);
 }
 
 .markdown-body .admonition .fenced-code {
@@ -649,12 +673,18 @@
   background-color: rgb(238, 249, 253);
   border-color: rgb(25 146 184);
 }
+
+.dark .markdown-body .admonition.info {
+  background-color: hsla(var(--info), 0.1);
+  color: hsla(var(--foreground-primary));
+}
 .markdown-body .admonition.warn .admonition-header {
   color: #dd6f04;
 }
 .markdown-body .admonition.warn {
-  background-color: #f0900525;
-  border-color: #ff9100;
+  color: var(--warn-text);
+  background-color: var(--warn-bg);
+  border-color: var(--warn-border);
 }
 
 @media screen and (min-width: 768px) {
@@ -703,6 +733,7 @@ ol.nested li:before {
   -moz-font-feature-settings: "kern" 1, "tnum" 1;
   content: counters(item, ".") ". ";
   counter-increment: item;
+  counter-increment: item;
 }
 
 .markdown-body ul {
@@ -747,7 +778,7 @@ ol.nested li:before {
   border-top-left-radius: 0.5rem;
   border-top-right-radius: 0.5rem;
   padding: 0.5rem;
-  background: #eaeef1;
+  background: hsla(var(--background-tertiary));
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -757,8 +788,15 @@ ol.nested li:before {
   border-top-right-radius: 0 !important;
 }
 .fenced-code-title {
-  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
-    "Liberation Mono", "Courier New", monospace;
+  font-family:
+    ui-monospace,
+    SFMono-Regular,
+    Menlo,
+    Monaco,
+    Consolas,
+    "Liberation Mono",
+    "Courier New",
+    monospace;
   font-size: 0.8125rem;
   line-height: 1;
 }

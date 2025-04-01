@@ -122,4 +122,4 @@ export interface FreshConfig {
 ```
 
 For more on how these work, see the page about
-[server configuration](/docs/examples/server-configuration).
+[server configuration](/docs/concepts/server-configuration).

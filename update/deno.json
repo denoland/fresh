@@ -1,0 +1,25 @@
+{
+  "name": "@fresh/update",
+  "version": "2.0.0-alpha.29",
+  "license": "MIT",
+  "exports": {
+    ".": "./src/mod.ts"
+  },
+  "exclude": ["**/tmp/*"],
+  "publish": {
+    "include": [
+      "src/**/*.ts",
+      "deno.json",
+      "README.md"
+    ],
+    "exclude": ["**/*_test.*", "*.todo"]
+  },
+  "imports": {
+    "@std/cli": "jsr:@std/cli@1",
+    "@std/fmt": "jsr:@std/fmt@1",
+    "@std/jsonc": "jsr:@std/jsonc@1",
+    "@std/path": "jsr:@std/path@1",
+    "@std/semver": "jsr:@std/semver@1",
+    "ts-morph": "npm:ts-morph@^22.0.0"
+  }
+}

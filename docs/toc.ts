@@ -71,7 +71,8 @@ const toc: RawTableOfContents = {
         title: "Examples",
         link: "latest",
         pages: [
-          ["migrating-to-tailwind", "Migrating to Tailwind", "link:canary"],
+          ["migration-guide", "Migration Guide", "link:canary"],
+          ["migrating-to-tailwind", "Migrating to Tailwind", "link:latest"],
           ["modifying-the-head", "Modifying the <head>", "link:latest"],
           ["writing-tests", "Writing tests", "link:latest"],
           [
@@ -90,6 +91,7 @@ const toc: RawTableOfContents = {
           ["creating-a-crud-api", "Creating a CRUD API", "link:latest"],
           ["handling-complex-routes", "Handling complex routes", "link:latest"],
           ["rendering-markdown", "Rendering markdown", "link:latest"],
+          ["rendering-raw-html", "Rendering raw HTML", "link:latest"],
           [
             "sharing-state-between-islands",
             "Sharing state between islands",
@@ -160,6 +162,7 @@ const toc: RawTableOfContents = {
           ["creating-a-crud-api", "Creating a CRUD API"],
           ["handling-complex-routes", "Handling complex routes"],
           ["rendering-markdown", "Rendering markdown"],
+          ["rendering-raw-html", "Rendering raw HTML"],
           ["sharing-state-between-islands", "Sharing state between islands"],
           ["using-csp", "Using CSP"],
           ["active-links", "Styling active links"],

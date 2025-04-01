@@ -21,26 +21,40 @@ providing a native way to visually differentiate the active link.
 
 ```css
 /* Give links pointing to the current page a green color */
-a[aria-current='page'] {
+a[aria-current="page"] {
   color: green;
 }
 
 /* Color all ancestor links of the current page */
-a[aria-current='true'] {
+a[aria-current="true"] {
   color: peachpuff;
 }
 ```
 
 ## Tailwind / Twind
 
-In Tailwind or similar CSS frameworks, you can apply styles to elements with the
-aria-current attribute by using bracket notation in your class definitions.
+In Tailwind or similar CSS frameworks like Twind, you can apply styles to
+elements with the ﻿aria-current attribute using bracket notation in your class
+definitions. However, the specific syntax varies slightly between Tailwind and
+Twind. For Tailwind, use the syntax:
+
+```tsx
+function Menu() {
+  return (
+    <a href="/foo" class="aria-[current]:text-green-600">
+      Link to some page
+    </a>
+  );
+}
+```
+
+For Twind, the syntax is:
 
 ```tsx
 function Menu() {
   return (
     <a href="/foo" class="[aria-current]:text-green-600">
-      link to some page
+      Link to some page
     </a>
   );
 }

@@ -1,4 +1,4 @@
-import { type FreshContext } from "$fresh/server.ts";
+import type { FreshContext } from "fresh";
 import type { Event } from "$ga4";
 import { GA4Report, isDocument, isServerError } from "$ga4";
 
@@ -16,6 +16,7 @@ function ga4(
   if (GA4_MEASUREMENT_ID === undefined) {
     if (!showedMissingEnvWarning) {
       showedMissingEnvWarning = true;
+      // deno-lint-ignore no-console
       console.warn(
         "GA4_MEASUREMENT_ID environment variable not set. Google Analytics reporting disabled.",
       );
@@ -62,7 +63,14 @@ function ga4(
     // Create basic report.
     const measurementId = GA4_MEASUREMENT_ID;
     // @ts-ignore GA4Report doesn't even use the localAddress parameter
-    const report = new GA4Report({ measurementId, request, response, conn });
+    const report = new GA4Report({
+      measurementId,
+      request,
+      response,
+      // Doesn't use localAddr
+      // deno-lint-ignore no-explicit-any
+      conn: conn.info as any,
+    });
 
     // Override the default (page_view) event.
     report.event = event;
@@ -74,12 +82,12 @@ function ga4(
 
     await report.send();
   }).catch((err) => {
-    console.error(`Internal error: ${err}`);
+    // deno-lint-ignore no-console
+    console.error(err);
   });
 }
 
 export async function handler(
-  req: Request,
   ctx: FreshContext,
 ): Promise<Response> {
   let err;
@@ -98,7 +106,7 @@ export async function handler(
     throw e;
   } finally {
     ga4(
-      req,
+      ctx.req,
       ctx,
       res!,
       start,

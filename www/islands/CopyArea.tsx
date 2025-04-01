@@ -1,6 +1,5 @@
-import { ComponentChildren } from "preact";
 import { useEffect } from "preact/hooks";
-import { IS_BROWSER } from "$fresh/runtime.ts";
+import { IS_BROWSER } from "fresh/runtime";
 import * as Icons from "../components/Icons.tsx";
 import { useSignal } from "@preact/signals";
 
@@ -16,7 +15,9 @@ export default function CopyArea(props: { code: string }) {
       copied.value = true;
     } catch (error) {
       copied.value = false;
-      console.error((error && error.message) || "Copy failed");
+      const message = error instanceof Error ? error.message : String(error);
+      // deno-lint-ignore no-console
+      console.error(message || "Copy failed");
     }
   }
 
@@ -26,17 +27,17 @@ export default function CopyArea(props: { code: string }) {
     }
     const timer = setTimeout(() => {
       copied.value = false;
-    }, 2000);
+    }, 1000);
     return () => clearTimeout(timer);
   }, [copied.value]);
 
   return (
-    <div class="bg-gray-800 rounded text-white flex items-center min-w-0">
-      <pre class="overflow-x-auto flex-1 py-2 px-4">
+    <div class="bg-slate-800 rounded text-green-100 flex items-center min-w-0 overflow-x-auto">
+      <pre class="overflow-x-auto w-full flex-1 px-6 py-4">
         {props.code}
       </pre>
 
-      <div class="relative my-2 mr-4">
+      <div class="relative my-2 mr-4 sm:mr-6">
         <div
           class={`hidden transition ease-in-out absolute pointer-events-none bg-gray-900 text-white p-2 -top-1/3 left-1/2 transform -translate-x-1/2 -translate-y-full box-border rounded opacity-0 ${
             copied.value && "block opacity-100"
@@ -45,10 +46,11 @@ export default function CopyArea(props: { code: string }) {
           Copied!
         </div>
         <button
+          type="button"
           aria-label="Copy to Clipboard"
           disabled={!IS_BROWSER}
-          class={`rounded p-1.5 border border-gray-300 hover:bg-gray-700 ${
-            copied.value ? "text-green-500" : ""
+          class={`rounded p-1.5 border border-foreground-secondary/30 hover:bg-foreground-secondary/70 ${
+            copied.value ? "text-fresh-green/80" : ""
           } relative`}
           onClick={handleClick}
         >

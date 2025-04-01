@@ -24,13 +24,12 @@ necessary transpilation of TypeScript or JSX to plain JavaScript is done on the
 fly, just when it is needed. This allows for insanely fast iteration loops and
 very very fast deployments.
 
-Fresh projects can be deployed manually to any platform with `deno`, but it is
-intended to be deployed to an edge runtime like [Deno Deploy][deno-deploy] for
-the best experience.
+Fresh projects can be deployed manually to any platform with [Deno][deno], but
+it is intended to be deployed to an edge runtime like [Deno Deploy][deno-deploy]
+for the best experience.
 
 Some stand out features:
 
-- No build step
 - Zero config necessary
 - JIT rendering on the edge
 - Tiny & fast (no client JS is required by the framework)
@@ -41,4 +40,5 @@ Some stand out features:
 - File-system routing à la Next.js
 
 [preact]: https://preactjs.com
+[deno]: https://deno.com
 [deno-deploy]: https://deno.com/deploy

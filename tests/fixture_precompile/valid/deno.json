@@ -1,0 +1,10 @@
+{
+  "workspace": [],
+  "lock": false,
+  "patch": ["../../.."],
+  "compilerOptions": {
+    "jsx": "precompile",
+    "jsxImportSource": "preact",
+    "jsxPrecompileSkipElements": ["a", "img", "source", "body", "html", "head"]
+  }
+}

@@ -1,4 +1,3 @@
-import { Head } from "$fresh/runtime.ts";
 import { useEffect, useRef } from "preact/hooks";
 import docsearch from "https://esm.sh/@docsearch/js@3.5.2?target=es2020";
 
@@ -25,19 +24,11 @@ export default function SearchButton(
     }
   }, [ref.current]);
   return (
-    <>
-      <Head>
-        <link
-          rel="stylesheet"
-          href="/docsearch.css"
-        />
-      </Head>
-      <div
-        title="Search Button"
-        class={"h-9 mb-6 " + (props.class ?? "")}
-        ref={ref}
-      >
-      </div>
-    </>
+    <div
+      title="Search Button"
+      class={"h-9 mb-6 " + (props.class ?? "")}
+      ref={ref}
+    >
+    </div>
   );
 }

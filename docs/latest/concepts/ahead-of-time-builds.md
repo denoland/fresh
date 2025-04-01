@@ -7,7 +7,7 @@ Fresh enables you to pre-optimize frontend assets before the code is deployed.
 During that process the code for Islands will be compressed and optimized, so
 that Fresh can send as little code as possible to the browser. Depending on the
 amount of code an island needs, this process can take several seconds if done on
-the fly serverside.
+the fly server-side.
 
 Doing those optimizations ahead-of-time and deploying the already optimized
 assets alongside with your code, allows Fresh to treat them as like any other
@@ -16,7 +16,7 @@ pages with islands, having to do no processing greatly speeds up page load
 times.
 
 Plugins can build static assets during ahead-of-time builds. This can be used to
-preprocess or generate CSS files, for example.
+pre-process or generate CSS files, for example.
 
 ## Creating an optimized build
 
@@ -58,61 +58,14 @@ Using snapshot found at /path/to/project/_fresh
 
 ## Deploying an optimized Fresh project
 
-To generate optimized assets whenever you push changes to the `main` branch of
-your project, copy the following GitHub action and add it under
-`.github/workflows/deploy.yml` in your project.
+If you are deploying a Fresh project to Deno Deploy, you can use ahead-of-time
+builds to optimize the assets before deploying them. This will make your
+application load quicker.
 
-```yml .github/workflows/deploy.yml
-name: Deploy
-on:
-  push:
-    branches: [main]
-  pull_request:
-    branches: main
-
-jobs:
-  deploy:
-    name: Deploy
-    runs-on: ubuntu-latest
-
-    permissions:
-      id-token: write # Needed for auth with Deno Deploy
-      contents: read # Needed to clone the repository
-
-    steps:
-      - name: Clone repository
-        uses: actions/checkout@v3
-
-      - name: Install Deno
-        uses: denoland/setup-deno@v1
-        with:
-          deno-version: v1.x
-
-      - name: Build step
-        run: "deno task build" # 📝 Update the build command(s) if necessary
-
-      - name: Upload to Deno Deploy
-        uses: denoland/deployctl@v1
-        with:
-          project: "example-project" # 📝 Update the deploy project name if necessary
-          entrypoint: "./main.ts" # 📝 Update the entrypoint if necessary
-```
-
-> [info]: The project name here must match the project name you've picked in
-> Deno Deploy under<br/> `Settings -> Project Name`.
-
-On the Deno Deploy side change the GitHub integration mode to GitHub Actions.
-You need to unlink first, if you have an existing project that's linked with the
-"Automatic" mode.
-
-![Deno Deploy UI screenshot that shows the project dropdown and highlights the GitHub Action option](/docs/deno-deploy-gh-action.jpg)
-
-Once this is set up you're ready for your next deployment. Whenever a new PR is
-merged into the `main` branch on GitHub the deploy action will be executed and
-deploy the optimized assets to Deno Deploy.
-
-> [info]: If the project is already linked in "Automatic" mode, unlink the
-> repository first and re-link it again.
+Open the Deno Deploy dashboard for your project and head to the "Git
+Integration" section in the project settings. Enter `deno task build` in the
+"Build command" field and save. This will switch your Deno Deploy project to use
+ahead-of-time builds.
 
 ## Migrating existing projects with Plugins
 

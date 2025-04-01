@@ -75,21 +75,19 @@ export default {
 5. Update your `deno.json` file and add the following `tailwindcss` imports. To
    make the
    [vscode Tailwind CSS extension](https://marketplace.visualstudio.com/items?itemName=bradlc.vscode-tailwindcss)
-   work, we also need to set `"nodeModulesDir": true`. This will create a
+   work, we also need to set `"nodeModulesDir": "auto"`. This will create a
    `node_modules` directory in your project folder:
 
 ```diff deno.json
   {
-+   "nodeModulesDir": true,
++   "nodeModulesDir": "auto",
     "imports": {
       "$fresh/": "https://deno.land/x/fresh@1.5.2/",
-      "preact": "https://esm.sh/preact@10.19.2",
-      "preact/": "https://esm.sh/preact@10.19.2/",
+      "preact": "https://esm.sh/preact@10.22.0",
+      "preact/": "https://esm.sh/preact@10.22.0/",
 -     "twind": "https://esm.sh/twind@0.16.19",
--     "twind/": "https://esm.sh/twind@0.16.19/",
-+     "tailwindcss": "npm:tailwindcss@3.3.5",
-+     "tailwindcss/": "npm:/tailwindcss@3.3.5/",
-+     "tailwindcss/plugin": "npm:/tailwindcss@3.3.5/plugin.js"
+-     "twind/": "https://esm.sh/twind@0.16.19/"
++     "tailwindcss": "npm:tailwindcss@3.4.1"
     }
   }
 ```
@@ -106,7 +104,7 @@ That's it! Now you can use Tailwind CSS in your project.
 > [info]: If you're a vscode user, be sure to install the
 > [official Tailwind CSS extension](https://marketplace.visualstudio.com/items?itemName=bradlc.vscode-tailwindcss)
 > to get full intellisense support. For it to work you also need to set
-> `"nodeModulesDir": true` in your `deno.json`.
+> `"nodeModulesDir": "auto"` in your `deno.json`.
 
 > [warn]: Tailwind CSS doesn't support the grouping syntax from twind:
 > `text(lg uppercase gray-100)`. These need to be rewritten to their expanded
@@ -117,6 +115,15 @@ That's it! Now you can use Tailwind CSS in your project.
 > | --------------------------- | --------------------------- |
 > | `[data-current]:bg-red-600` | `data-[current]:bg-red-300` |
 > | `[aria-current]:bg-red-600` | `aria-[current]:bg-red-300` |
+
+> [warn]: Tailwind CSS does not allow you to generate and apply CSS classes
+> dynamically, which means you need to explicitly specify the class you want to
+> apply. In other words, to use dynamic classes, you need to ensure that they
+> are present in the final CSS file.
+>
+> | Twind                             | Tailwind CSS                                                 |
+> | --------------------------------- | ------------------------------------------------------------ |
+> | `<a class={`link-${color}`}></a>` | `<a class={color === 'blue' ?`link-blue`:`link-green`}></a>` |
 
 ## Frequently Asked Questions (FAQ)
 

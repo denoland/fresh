@@ -1,7 +1,6 @@
 {
   "deno.enable": true,
   "deno.lint": true,
-  "deno.importMap": "./.vscode/import_map.json",
   "deno.codeLens.test": true,
   "deno.documentPreloadLimit": 2000,
   "editor.formatOnSave": true,
@@ -21,5 +20,10 @@
   "[markdown]": {
     "editor.defaultFormatter": "denoland.vscode-deno"
   },
-  "css.customData": [".vscode/tailwind.json"]
+  "css.customData": [
+    ".vscode/tailwind.json"
+  ],
+  "[json]": {
+    "editor.defaultFormatter": "denoland.vscode-deno"
+  }
 }
