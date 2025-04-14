@@ -554,7 +554,9 @@ if (Deno.args.includes("build")) {
   const denoJson = {
     tasks: {
       check:
-        "deno fmt --check && deno lint && deno check **/*.ts && deno check **/*.tsx",
+        // TODO(iuioiua): revert once https://github.com/denoland/deno/pull/28655 is added in Deno 2.3.0
+        // "deno fmt --check && deno lint && deno check **/*.ts && deno check **/*.tsx",
+        "deno fmt --check . && deno lint . && deno check **/*.ts && deno check **/*.tsx",
       dev: "deno run -A --watch=static/,routes/ dev.ts",
       build: "deno run -A dev.ts build",
       start: "deno run -A main.ts",
