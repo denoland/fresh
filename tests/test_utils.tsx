@@ -179,7 +179,9 @@ export async function withChildProcessServer(
     const match = line.match(
       /https?:\/\/[^:]+:\d+(\/\w+[-\w]*)*/g,
     );
+    // deno-lint-ignore no-console
     console.log(line);
+    // deno-lint-ignore no-console
     console.log(match);
     if (match) {
       address = match[0];
