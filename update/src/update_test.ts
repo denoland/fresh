@@ -9,7 +9,7 @@ import { expect } from "@std/expect";
 import { walk } from "https://deno.land/std@0.93.0/fs/walk.ts";
 
 async function withTmpDir(fn: (dir: string) => void | Promise<void>) {
-  const dir = await Deno.makeTempDir({ prefix: "fresh" });
+  const dir = await Deno.makeTempDir();
 
   try {
     await fn(dir);

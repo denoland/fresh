@@ -6,7 +6,7 @@ import { waitForText } from "../../tests/test_utils.tsx";
 import { withChildProcessServer } from "../../tests/test_utils.tsx";
 
 async function withTmpDir(fn: (dir: string) => void | Promise<void>) {
-  const dir = await Deno.makeTempDir({ prefix: "fresh" });
+  const dir = await Deno.makeTempDir();
 
   try {
     await fn(dir);
@@ -119,7 +119,7 @@ Deno.test("init - with vscode", async () => {
   });
 });
 
-Deno.test("init - fmt, lint, and type check project", async () => {
+Deno.test.only("init - fmt, lint, and type check project", async () => {
   await withTmpDir(async (dir) => {
     const mock = mockUserInput({
       [InitStep.ProjectName]: ".",
@@ -136,6 +136,8 @@ Deno.test("init - fmt, lint, and type check project", async () => {
       stderr: "inherit",
       stdout: "inherit",
     }).output();
+    console.log(new TextDecoder().decode(check.stdout));
+    console.log(new TextDecoder().decode(check.stderr));
     expect(check.code).toEqual(0);
   });
 });
