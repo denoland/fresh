@@ -6,10 +6,10 @@ import { waitForText } from "../../tests/test_utils.tsx";
 import { withChildProcessServer } from "../../tests/test_utils.tsx";
 
 async function withTmpDir(fn: (dir: string) => void | Promise<void>) {
-  // const hash = crypto.randomUUID().replaceAll(/-/g, "");
-  // const dir = path.join(import.meta.dirname!, "..", "..", `tmp_${hash}`);
-  // await Deno.mkdir(dir, { recursive: true });
-  const dir = await Deno.makeTempDir();
+  const hash = crypto.randomUUID().replaceAll(/-/g, "");
+  const dir = path.join(import.meta.dirname!, "..", "..", `tmp_${hash}`);
+  await Deno.mkdir(dir, { recursive: true });
+  console.log(dir);
 
   try {
     await fn(dir);
@@ -28,8 +28,6 @@ async function patchProject(dir: string): Promise<void> {
   json.patch = [new URL("../..", import.meta.url).href];
   // deno-lint-ignore no-console
   console.log(json.patch[0]);
-  // deno-lint-ignore no-console
-  console.log(import.meta.resolve("../.."));
 
   // assert with this stricter rule, before adding it to initialized projects
   json.lint.rules.include = ["verbatim-module-syntax"];
