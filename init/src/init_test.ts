@@ -119,7 +119,7 @@ Deno.test("init - with vscode", async () => {
   });
 });
 
-Deno.test.only("init - fmt, lint, and type check project", async () => {
+Deno.test("init - fmt, lint, and type check project", async () => {
   await withTmpDir(async (dir) => {
     const mock = mockUserInput({
       [InitStep.ProjectName]: ".",
