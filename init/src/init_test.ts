@@ -136,7 +136,9 @@ Deno.test.only("init - fmt, lint, and type check project", async () => {
       stderr: "inherit",
       stdout: "inherit",
     }).output();
+    // deno-lint-ignore no-console
     console.log(new TextDecoder().decode(check.stdout));
+    // deno-lint-ignore no-console
     console.log(new TextDecoder().decode(check.stderr));
     expect(check.code).toEqual(0);
   });
