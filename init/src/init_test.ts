@@ -6,11 +6,8 @@ import { waitForText } from "../../tests/test_utils.tsx";
 import { withChildProcessServer } from "../../tests/test_utils.tsx";
 
 async function withTmpDir(fn: (dir: string) => void | Promise<void>) {
-  const hash = crypto.randomUUID().replaceAll(/-/g, "");
-  const dirOld = path.join(import.meta.dirname!, "..", "..", `tmp_${hash}`);
   const dir = await Deno.makeTempDir();
-  // deno-lint-ignore no-console
-  console.log({ dirOld, dir });
+  console.log(dir);
 
   try {
     await fn(dir);
@@ -26,7 +23,9 @@ async function patchProject(dir: string): Promise<void> {
   json.workspace = [];
   // See https://github.com/denoland/deno/issues/27313
   // json.patch = [path.fromFileURL(new URL("../..", import.meta.url))];
-  json.patch = [path.fromFileUrl(import.meta.resolve("../../"))];
+  json.patch = [new URL("../..", import.meta.url).href];
+  // deno-lint-ignore no-console
+  console.log(json.patch[0]);
 
   // assert with this stricter rule, before adding it to initialized projects
   json.lint.rules.include = ["verbatim-module-syntax"];
