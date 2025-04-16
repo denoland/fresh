@@ -179,6 +179,8 @@ export async function withChildProcessServer(
     const match = line.match(
       /https?:\/\/[^:]+:\d+(\/\w+[-\w]*)*/g,
     );
+    console.log(line);
+    console.log(match);
     if (match) {
       address = match[0];
       found = true;
