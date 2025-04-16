@@ -9,6 +9,7 @@ async function withTmpDir(fn: (dir: string) => void | Promise<void>) {
   const hash = crypto.randomUUID().replaceAll(/-/g, "");
   const dir = path.join(import.meta.dirname!, "..", "..", `tmp_${hash}`);
   await Deno.mkdir(dir, { recursive: true });
+  // deno-lint-ignore no-console
   console.log(dir);
 
   try {
