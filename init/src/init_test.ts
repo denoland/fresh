@@ -26,7 +26,7 @@ async function patchProject(dir: string): Promise<void> {
   json.workspace = [];
   // See https://github.com/denoland/deno/issues/27313
   // json.patch = [path.fromFileURL(new URL("../..", import.meta.url))];
-  json.patch = [import.meta.resolve("../../")];
+  json.patch = [path.fromFileUrl(import.meta.resolve("../../"))];
 
   // assert with this stricter rule, before adding it to initialized projects
   json.lint.rules.include = ["verbatim-module-syntax"];
