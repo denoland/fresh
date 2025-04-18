@@ -62,7 +62,9 @@ Deno.test({
         return ctx.render(
           <Doc>
             <div f-client-nav>
-              <button f-partial="/partial" class="update">update</button>
+              <button type="button" f-partial="/partial" class="update">
+                update
+              </button>
               <Partial name="foo">
                 <p class="output">hello world</p>
               </Partial>
@@ -99,7 +101,9 @@ Deno.test({
         return ctx.render(
           <Doc>
             <div f-client-nav>
-              <button f-partial="/partial" class="update">update</button>
+              <button type="button" f-partial="/partial" class="update">
+                update
+              </button>
               <Partial name="foo">
                 <p class="init">hello world</p>
               </Partial>
@@ -141,7 +145,9 @@ Deno.test({
         return ctx.render(
           <Doc>
             <div f-client-nav>
-              <button f-partial="/partial" class="update">update</button>
+              <button type="button" f-partial="/partial" class="update">
+                update
+              </button>
               <Partial name="foo">
                 <p class="init">hello world</p>
               </Partial>
@@ -174,7 +180,9 @@ Deno.test({
         return ctx.render(
           <Doc>
             <div f-client-nav>
-              <button f-partial="/partial" class="update">update</button>
+              <button type="button" f-partial="/partial" class="update">
+                update
+              </button>
               <Partial name="foo">
                 <p class="ready">foo</p>
               </Partial>
@@ -225,7 +233,9 @@ Deno.test({
         return ctx.render(
           <Doc>
             <div f-client-nav>
-              <button f-partial="/partial" class="update">update</button>
+              <button type="button" f-partial="/partial" class="update">
+                update
+              </button>
               <Partial name="foo">
                 <p class="init">hello world</p>
               </Partial>
@@ -272,7 +282,9 @@ Deno.test({
         return ctx.render(
           <Doc>
             <div f-client-nav>
-              <button f-partial="/partial" class="update">update</button>
+              <button type="button" f-partial="/partial" class="update">
+                update
+              </button>
               <Partial name="foo">
                 <p>hello world</p>
               </Partial>
@@ -343,7 +355,9 @@ Deno.test({
         return ctx.render(
           <Doc>
             <div f-client-nav>
-              <button f-partial="/partial" class="update">update</button>
+              <button type="button" f-partial="/partial" class="update">
+                update
+              </button>
               <Partial name="foo">
                 <SelfCounter />
               </Partial>
@@ -386,7 +400,9 @@ Deno.test({
         return ctx.render(
           <Doc>
             <div f-client-nav>
-              <button f-partial="/partial" class="update">update</button>
+              <button type="button" f-partial="/partial" class="update">
+                update
+              </button>
               <Partial name="foo">
                 <p class="init">init</p>
                 <SelfCounter />
@@ -432,7 +448,9 @@ Deno.test({
         return ctx.render(
           <Doc>
             <div f-client-nav>
-              <button f-partial="/partial" class="update">update</button>
+              <button type="button" f-partial="/partial" class="update">
+                update
+              </button>
               <Partial name="foo">
                 <p class="init">init</p>
                 <SelfCounter />
@@ -479,7 +497,9 @@ Deno.test({
         return ctx.render(
           <Doc>
             <div f-client-nav>
-              <button f-partial="/partial" class="update">update</button>
+              <button type="button" f-partial="/partial" class="update">
+                update
+              </button>
               <Partial name="outer">
                 <p class="outer">outer</p>
                 <Partial name="inner">
@@ -526,7 +546,9 @@ Deno.test({
         return ctx.render(
           <Doc>
             <div f-client-nav>
-              <button f-partial="/partial" class="update">update</button>
+              <button type="button" f-partial="/partial" class="update">
+                update
+              </button>
               <Partial name="sib-1">
                 <p class="sib-1">sib-1</p>
               </Partial>
@@ -576,7 +598,9 @@ Deno.test({
         return ctx.render(
           <Doc>
             <div f-client-nav>
-              <button f-partial="/partial" class="update">update</button>
+              <button type="button" f-partial="/partial" class="update">
+                update
+              </button>
               <Partial name="foo">
                 <p key="p" class="init">init</p>
                 <SelfCounter key="a" id="a" />
@@ -643,7 +667,9 @@ Deno.test({
         return ctx.render(
           <Doc>
             <div f-client-nav>
-              <button f-partial="/partial" class="update">update</button>
+              <button type="button" f-partial="/partial" class="update">
+                update
+              </button>
               <Partial name="outer">
                 <p key="p" class="init">init</p>
 
@@ -717,7 +743,9 @@ Deno.test({
         return ctx.render(
           <Doc>
             <div f-client-nav>
-              <button f-partial="/partial" class="update">update</button>
+              <button type="button" f-partial="/partial" class="update">
+                update
+              </button>
               <Partial name="outer">
                 <p key="p" class="init">init</p>
 
@@ -789,7 +817,9 @@ Deno.test({
         return ctx.render(
           <Doc>
             <div f-client-nav>
-              <button f-partial="/partial" class="update">update</button>
+              <button type="button" f-partial="/partial" class="update">
+                update
+              </button>
               <Partial name="outer">
                 <p key="p" class="init">init</p>
 
@@ -874,7 +904,9 @@ Deno.test({
         return ctx.render(
           <Doc>
             <div f-client-nav>
-              <button f-partial="/partial" class="update">update</button>
+              <button type="button" f-partial="/partial" class="update">
+                update
+              </button>
               <Partial name="outer">
                 <p class="init">init</p>
               </Partial>
@@ -922,7 +954,9 @@ Deno.test({
         return ctx.render(
           <Doc>
             <div f-client-nav>
-              <button f-partial="/partial" class="update">update</button>
+              <button type="button" f-partial="/partial" class="update">
+                update
+              </button>
               <Partial name="outer">
                 <Partial name="inner">
                   <p class="init">init</p>
@@ -970,7 +1004,9 @@ Deno.test({
         return ctx.render(
           <Doc>
             <div f-client-nav>
-              <button f-partial="/partial" class="update">update</button>
+              <button type="button" f-partial="/partial" class="update">
+                update
+              </button>
               <div class="content">
                 <Partial name="outer">
                   <p class="init">init</p>
@@ -1020,7 +1056,9 @@ Deno.test({
         return ctx.render(
           <Doc>
             <div f-client-nav>
-              <button f-partial="/partial" class="update">update</button>
+              <button type="button" f-partial="/partial" class="update">
+                update
+              </button>
               <div class="content">
                 <Partial name="outer">
                   <Partial name="inner">
@@ -1069,7 +1107,9 @@ Deno.test({
         return ctx.render(
           <Doc>
             <div f-client-nav>
-              <button f-partial="/partial" class="update">update</button>
+              <button type="button" f-partial="/partial" class="update">
+                update
+              </button>
               <div class="content">
                 <Partial name="outer">
                   <p class="init">init</p>
@@ -1118,7 +1158,9 @@ Deno.test({
         return ctx.render(
           <Doc>
             <div f-client-nav>
-              <button f-partial="/partial" class="update">update</button>
+              <button type="button" f-partial="/partial" class="update">
+                update
+              </button>
               <div class="content">
                 <Partial name="outer">
                   <Partial name="inner">
@@ -1367,7 +1409,7 @@ Deno.test({
         return ctx.render(
           <Doc>
             <div f-client-nav>
-              <button f-partial="/partial">
+              <button type="button" f-partial="/partial">
                 <svg
                   width="100"
                   height="100"
@@ -1651,8 +1693,8 @@ Deno.test({
           <Doc>
             <div f-client-nav>
               <Partial name="foo">
-                {new Array(10).fill(0).map(() => {
-                  return <p>{loremIpsum}</p>;
+                {new Array(10).fill(0).map((it) => {
+                  return <p key={it}>{loremIpsum}</p>;
                 })}
                 <p class="init">init</p>
               </Partial>
@@ -1716,7 +1758,12 @@ Deno.test({
                   <p class="init">init</p>
                 </Partial>
                 <SelfCounter />
-                <button class="update" name="submitter" value="sub">
+                <button
+                  type="submit"
+                  class="update"
+                  name="submitter"
+                  value="sub"
+                >
                   update
                 </button>
               </form>
@@ -1765,7 +1812,12 @@ Deno.test({
                   <p class="init">init</p>
                 </Partial>
                 <SelfCounter />
-                <button class="update" name="submitter" value="sub">
+                <button
+                  type="submit"
+                  class="update"
+                  name="submitter"
+                  value="sub"
+                >
                   update
                 </button>
               </form>
@@ -1818,7 +1870,12 @@ Deno.test({
                   <p class="init">init</p>
                 </Partial>
                 <SelfCounter />
-                <button class="update" name="submitter" value="sub">
+                <button
+                  type="submit"
+                  class="update"
+                  name="submitter"
+                  value="sub"
+                >
                   update
                 </button>
               </form>
@@ -1874,7 +1931,7 @@ Deno.test({
                   <p class="init">init</p>
                 </Partial>
                 <SelfCounter />
-                <button class="update">
+                <button type="submit" class="update">
                   update
                 </button>
               </form>
@@ -1924,7 +1981,7 @@ Deno.test({
                   <p class="init">init</p>
                 </Partial>
                 <SelfCounter />
-                <button>
+                <button type="button">
                   nothing
                 </button>
               </form>
@@ -1985,7 +2042,7 @@ Deno.test({
                   <p class="init">init</p>
                 </Partial>
                 <SelfCounter />
-                <button>
+                <button type="button">
                   nothing
                 </button>
               </form>
@@ -2048,7 +2105,7 @@ Deno.test({
                   <p class="init">init</p>
                 </Partial>
                 <SelfCounter />
-                <button>
+                <button type="button">
                   nothing
                 </button>
               </form>
@@ -2189,8 +2246,8 @@ Deno.test({
         return ctx.render(
           <Doc>
             <div f-client-nav>
-              {new Array(10).fill(0).map(() => {
-                return <p>{loremIpsum}</p>;
+              {new Array(10).fill(0).map((it) => {
+                return <p key={it}>{loremIpsum}</p>;
               })}
               <h1 id="foo">Same nav</h1>
               <a href="#foo">#foo</a>
@@ -2238,7 +2295,7 @@ Deno.test({
                 </p>
               </Partial>
               <p>
-                <button class="update" f-partial="/partial">
+                <button type="button" class="update" f-partial="/partial">
                   update
                 </button>
               </p>
@@ -2317,7 +2374,7 @@ Deno.test({
                 </p>
               </Partial>
               <p>
-                <button class="update" f-partial="/partial">
+                <button type="button" class="update" f-partial="/partial">
                   update
                 </button>
               </p>
@@ -2392,7 +2449,7 @@ Deno.test({
                 </p>
               </Partial>
               <p>
-                <button class="update" f-partial="/partial">
+                <button type="button" class="update" f-partial="/partial">
                   update
                 </button>
               </p>
@@ -2419,7 +2476,7 @@ Deno.test({
                 </p>
               </Partial>
               <p>
-                <button class="update" f-partial="/partial">
+                <button type="button" class="update" f-partial="/partial">
                   update
                 </button>
               </p>
@@ -2473,7 +2530,7 @@ Deno.test({
                 </p>
               </Partial>
               <p>
-                <button f-partial="?refresh">
+                <button type="button" f-partial="?refresh">
                   refresh
                 </button>
               </p>
@@ -2512,7 +2569,9 @@ Deno.test({
         return ctx.render(
           <Doc>
             <div f-client-nav>
-              <button f-partial="/partial" class="update">update</button>
+              <button type="button" f-partial="/partial" class="update">
+                update
+              </button>
               <Partial name="outer">
                 <SelfCounter id="outer" />
                 <Partial name="inner">
@@ -2565,7 +2624,9 @@ Deno.test({
         return ctx.render(
           <Doc>
             <div f-client-nav>
-              <button f-partial="/partial" class="update">update</button>
+              <button type="button" f-partial="/partial" class="update">
+                update
+              </button>
               <Partial name="foo">
                 <h1>foo</h1>
               </Partial>
@@ -2593,7 +2654,9 @@ Deno.test({
         return ctx.render(
           <Doc>
             <div f-client-nav>
-              <button f-partial="/partial" class="update">update</button>
+              <button type="button" f-partial="/partial" class="update">
+                update
+              </button>
               <Partial name="foo">
                 <h1>foo</h1>
               </Partial>
@@ -2639,7 +2702,9 @@ Deno.test({
         return ctx.render(
           <Doc>
             <div f-client-nav>
-              <button f-partial="/partial" class="update">update</button>
+              <button type="button" f-partial="/partial" class="update">
+                update
+              </button>
               <Partial name="foo">
                 <h1>foo</h1>
               </Partial>

@@ -14,7 +14,7 @@ export function FreshAttrs(props: FreshAttrs) {
   return (
     <div id={props.id} class={active.value ? "ready" : ""}>
       <h1>Fresh attrs</h1>
-      <div class="f-client-nav-true" f-client-nav={true}>f-client-nav=true</div>
+      <div class="f-client-nav-true" f-client-nav>f-client-nav=true</div>
       <div class="f-client-nav-false" f-client-nav={false}>
         f-client-nav=false
       </div>

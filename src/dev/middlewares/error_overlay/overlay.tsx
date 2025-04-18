@@ -134,7 +134,12 @@ export function ErrorOverlay(props: { url: URL }) {
         <style dangerouslySetInnerHTML={{ __html: errorCss }} />
         <div class="inner">
           <div class="header">
-            <button class="close-btn" aria-label="close" id="close-btn">
+            <button
+              type="button"
+              class="close-btn"
+              aria-label="close"
+              id="close-btn"
+            >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 fill="none"

@@ -6,7 +6,7 @@ import { SectionHeading } from "../homepage/SectionHeading.tsx";
 export function DenoSection() {
   return (
     <PageSection>
-      <SideBySide reverseOnDesktop={true}>
+      <SideBySide reverseOnDesktop>
         <img
           src="/illustration/lemon-squash.svg"
           class="w-full h-auto mx-auto max-w-[24rem] mt-8 mb-4"

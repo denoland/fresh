@@ -10,7 +10,7 @@ export function FormSubmitDemo() {
             value="lemon-meringue-pie"
             id="lemon-meringue-pie"
             name="treat"
-            checked={true}
+            checked
           />
           Lemon meringue pie
         </label>

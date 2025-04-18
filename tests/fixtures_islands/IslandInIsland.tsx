@@ -6,7 +6,11 @@ export function IslandInIsland() {
 
   return (
     <div>
-      <button class="trigger" onClick={() => sig.value = sig.peek() + 1}>
+      <button
+        type="button"
+        class="trigger"
+        onClick={() => sig.value = sig.peek() + 1}
+      >
         trigger
       </button>
       <Counter count={sig} />

@@ -10,7 +10,7 @@ export function NodeProcess() {
   }, []);
 
   // @ts-ignore bundling
-  // deno-lint-ignore no-process-globals
+  // deno-lint-ignore no-process-global
   const value = IS_BROWSER ? process.env.NODE_ENV : "no";
 
   return (
