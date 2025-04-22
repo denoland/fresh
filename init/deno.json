@@ -5,6 +5,7 @@
   "exports": {
     ".": "./src/mod.ts"
   },
+  "exclude": ["**/tmp/*"],
   "publish": {
     "include": [
       "src/**/*.ts",

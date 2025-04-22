@@ -3,3 +3,4 @@ vendor/
 node_modules/
 .docs/
 .DS_Store
+tmp_*

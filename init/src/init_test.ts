@@ -6,9 +6,9 @@ import { waitForText } from "../../tests/test_utils.tsx";
 import { withChildProcessServer } from "../../tests/test_utils.tsx";
 
 async function withTmpDir(fn: (dir: string) => void | Promise<void>) {
-  const dir = await Deno.makeTempDir();
-  // deno-lint-ignore no-console
-  console.log(dir);
+  const hash = crypto.randomUUID().replaceAll(/-/g, "");
+  const dir = path.join(import.meta.dirname!, "..", "..", `tmp_${hash}`);
+  await Deno.mkdir(dir, { recursive: true });
 
   try {
     await fn(dir);
