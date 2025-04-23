@@ -17,7 +17,7 @@ handle the three cases. It's assumed this file is called `[slug].tsx`:
 ```ts routes/[slug].tsx
 import { Handlers, PageProps } from "$fresh/server.ts";
 import { extract } from "$std/front_matter/yaml.ts";
-import { CSS, render } from "$gfm";
+import { CSS, render } from "@deno/gfm";
 import { Head } from "$fresh/runtime.ts";
 
 interface Page {
@@ -93,7 +93,7 @@ description: testFromText
 You'll also need to import the `Github Flavored Markdown` module:
 
 ```bash
-deno add @deno/gfm
+deno add jsr:@deno/gfm
 ```
 
 Andy has a helpful [post](https://deno.com/blog/build-a-blog-with-fresh) on the
