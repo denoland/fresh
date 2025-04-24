@@ -458,7 +458,8 @@ function revivePartials(
         );
 
         // Always generate a unique key for PartialComp to avoid vnode reuse when switching partials, which fixes input value leakage issues.
-        const uniqueKey = (partialKey !== "" ? partialKey : "partial") + "-" + Date.now();
+        const uniqueKey = (partialKey !== "" ? partialKey : "partial") + "-" +
+          Date.now();
         const root = h(PartialComp, {
           key: uniqueKey,
           name: partialName,
