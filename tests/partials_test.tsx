@@ -1900,7 +1900,7 @@ Deno.test({
 });
 
 Deno.test({
-  name: "partials - submit form redirecct",
+  name: "partials - submit form redirect",
   fn: async () => {
     const app = testApp()
       .get("/done", (ctx) => {
