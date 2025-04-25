@@ -142,8 +142,5 @@ export class HttpError extends Error {
     super(message, options);
     this.name = this.constructor.name;
     this.status = status;
-    if (status >= 500) {
-      this.stack = new Error().stack;
-    }
   }
 }
