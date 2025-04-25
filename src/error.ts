@@ -131,23 +131,19 @@ export function getMessage(status: number): string {
   }
 }
 
-export class HttpError {
-  #error: Error | null = null;
-  name = "HttpError";
-  message: string;
+export class HttpError extends Error {
+  status: number;
 
   constructor(
-    public status: number,
+    status: number,
     message: string = getMessage(status),
-    public options?: ErrorOptions,
+    options?: ErrorOptions,
   ) {
-    this.message = message;
+    super(message, options);
+    this.name = this.constructor.name;
+    this.status = status;
     if (status >= 500) {
-      this.#error = new Error();
+      this.stack = new Error().stack;
     }
-  }
-
-  get stack(): string | undefined {
-    return this.#error?.stack;
   }
 }
