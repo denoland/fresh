@@ -26,8 +26,14 @@ async function patchProject(dir: string): Promise<void> {
   // json.patch = [path.fromFileURL(new URL("../..", import.meta.url))];
   json.patch = [new URL("../..", import.meta.url).href];
 
-  // assert with this stricter rule, before adding it to initialized projects
+  // Ensure the tasks field for check/fmt/lint can correctly find ts/tsx files
   json.lint.rules.include = ["verbatim-module-syntax"];
+  json.tasks = {
+    ...json.tasks,
+    check: "deno fmt --check . && deno lint . && deno check **/*.ts **/*.tsx",
+    fmt: "deno fmt --check .",
+    lint: "deno lint ."
+  };
 
   await Deno.writeTextFile(jsonPath, JSON.stringify(json, null, 2) + "\n");
 }

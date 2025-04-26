@@ -422,15 +422,15 @@
     "github": "gibbygano/wtfiscongressdoingnow",
     "image": "wtfcongress"
   },
-    {
+  {
     "title": "freshpress",
     "link": "https://freshpress.deno.dev",
     "github": "https://github.com/SisyphusZheng/freshpress",
     "image": "freshpress"
   },
-    {
+  {
     "title": "zhizheng's website",
-    "link": "https://zhizheng.deno.dev",
+    "link": "https://zhi.deno.dev",
     "github": "https://github.com/SisyphusZheng/me",
     "image": "zhizheng"
   }
