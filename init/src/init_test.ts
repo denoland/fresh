@@ -32,7 +32,7 @@ async function patchProject(dir: string): Promise<void> {
     ...json.tasks,
     check: "deno fmt --check . && deno lint . && deno check **/*.ts **/*.tsx",
     fmt: "deno fmt --check .",
-    lint: "deno lint ."
+    lint: "deno lint .",
   };
 
   await Deno.writeTextFile(jsonPath, JSON.stringify(json, null, 2) + "\n");
