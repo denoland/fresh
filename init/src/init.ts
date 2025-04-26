@@ -554,7 +554,8 @@ if (Deno.args.includes("build")) {
   const denoJson = {
     tasks: {
       check:
-        "deno fmt --check && deno lint && deno check **/*.ts && deno check **/*.tsx",
+        // Revert once https://github.com/denoland/deno/issues/28923 is fixed
+        "deno fmt --check . && deno lint . && deno check **/*.ts && deno check **/*.tsx",
       dev: "deno run -A --watch=static/,routes/ dev.ts",
       build: "deno run -A dev.ts build",
       start: "deno run -A main.ts",
