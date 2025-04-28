@@ -43,7 +43,7 @@ export function staticFiles<T>(): MiddlewareFn<T> {
 
     const parentSpan = trace.getActiveSpan();
     if (parentSpan) {
-      parentSpan.updateName(`${req.method} /*`);
+      parentSpan.updateName(`${request.method} /*`);
       parentSpan.setAttribute("http.route", "/*");
     }
 
