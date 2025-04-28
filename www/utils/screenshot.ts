@@ -1,6 +1,6 @@
-import puppeteer from "https://deno.land/x/puppeteer@16.2.0/mod.ts";
+import puppeteer from "npm:puppeteer@22.4.1";
 import { Image } from "https://deno.land/x/imagescript@1.2.17/mod.ts";
-import { join } from "https://deno.land/std@0.216.0/path/mod.ts";
+import { join } from "@std/path";
 
 const url = Deno.args[0];
 const id = Deno.args[1];
@@ -26,6 +26,7 @@ if (!id) {
 const outDir = "./www/static/showcase";
 const browser = await puppeteer.launch({
   defaultViewport: { width: 1200, height: 675 },
+  headless: "new",
 });
 const page = await browser.newPage();
 await page.goto(url, { waitUntil: "networkidle2" });
