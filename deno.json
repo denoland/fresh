@@ -40,6 +40,7 @@
     "exclude": ["**/*_test.*", "src/__OLD/**", "*.todo"]
   },
   "imports": {
+    "@std/http": "jsr:@std/http@^1.0.15",
     "fresh": "jsr:@fresh/core@^2.0.0-alpha.26",
     "preact": "npm:preact@^10.25.1",
     "preact-render-to-string": "npm:preact-render-to-string@^6.5.11",
