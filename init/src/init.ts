@@ -15,18 +15,6 @@ export const enum InitStep {
   Docker = "Docker",
 }
 
-function css(strs: TemplateStringsArray, ...exprs: string[]): string {
-  let out = "";
-
-  for (let i = 0; i < exprs.length; i++) {
-    out += strs[i];
-    out += String(exprs[i]);
-  }
-  out += strs.at(-1) ?? "";
-
-  return out;
-}
-
 export class InitError extends Error {}
 
 function error(tty: MockTTY, message: string): never {
@@ -215,7 +203,7 @@ export default {
     await writeFile("tailwind.config.ts", TAILWIND_CONFIG_TS);
   }
 
-  const GRADIENT_CSS = css`.fresh-gradient {
+  const GRADIENT_CSS = `.fresh-gradient {
   background-color: rgb(134, 239, 172);
   background-image: linear-gradient(
     to right bottom,
@@ -225,7 +213,7 @@ export default {
   );
 }`;
 
-  const NO_TAILWIND_STYLES = css`*,
+  const NO_TAILWIND_STYLES = `*,
 *::before,
 *::after {
   box-sizing: border-box;
@@ -375,7 +363,7 @@ html {
 
 ${GRADIENT_CSS}`;
 
-  const TAILWIND_CSS = css`@tailwind base;
+  const TAILWIND_CSS = `@tailwind base;
 @tailwind components;
 @tailwind utilities;
 ${GRADIENT_CSS}`;
