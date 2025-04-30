@@ -1,7 +1,7 @@
 import type { BuildCache, StaticFile } from "../build_cache.ts";
 import * as path from "@std/path";
 import { SEPARATOR as WINDOWS_SEPARATOR } from "@std/path/windows/constants";
-import type { ResolvedFreshConfig } from "../config.ts";
+import { getSnapshotPath, type ResolvedFreshConfig } from "../config.ts";
 import type { BuildSnapshot } from "../build_cache.ts";
 import { encodeHex } from "@std/encoding/hex";
 import { crypto } from "@std/crypto";
@@ -284,7 +284,7 @@ export class DiskBuildCache implements DevBuildCache {
     }
 
     await Deno.writeTextFile(
-      path.join(this.config.build.outDir, "snapshot.json"),
+      getSnapshotPath(this.config),
       JSON.stringify(snapshot, null, 2),
     );
   }
