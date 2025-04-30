@@ -1,5 +1,5 @@
-import { checkDocs } from "https://raw.githubusercontent.com/denoland/std/abb5a28306999b182f20532e7b2646e00d652b77/_tools/check_docs.ts";
+import { checkDocs } from "https://raw.githubusercontent.com/denoland/std/74deffe2048df8e17a356b9bc756431544e73382/_tools/check_docs.ts";
 
 await checkDocs([
-  "./src/error.ts",
+  import.meta.resolve("../src/error.ts"),
 ]);
