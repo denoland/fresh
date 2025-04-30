@@ -33,9 +33,7 @@ Deno.test({
     await Deno.writeTextFile(path.join(tmp, "foo.css"), "body { color: red; }");
     const app = new App({
       staticDir: tmp,
-      build: {
-        outDir: path.join(tmp, "dist"),
-      },
+      buildOutDir: path.join(tmp, "dist"),
     });
     await builder.build(app);
 
@@ -57,9 +55,7 @@ Deno.test({
     );
     const app = new App({
       staticDir: tmp,
-      build: {
-        outDir: path.join(tmp, "dist"),
-      },
+      buildOutDir: path.join(tmp, "dist"),
     });
     await builder.build(app);
 
@@ -83,9 +79,7 @@ Deno.test({
     );
     const app = new App({
       staticDir: tmp,
-      build: {
-        outDir: path.join(tmp, "dist"),
-      },
+      buildOutDir: path.join(tmp, "dist"),
     });
     await builder.build(app);
 
@@ -105,9 +99,7 @@ Deno.test({
     const tmp = await Deno.makeTempDir();
     const app = new App({
       staticDir: tmp,
-      build: {
-        outDir: path.join(tmp, "dist"),
-      },
+      buildOutDir: path.join(tmp, "dist"),
     });
 
     app.island("jsr:@marvinh-test/fresh-island", "RemoteIsland", RemoteIsland);

@@ -3,13 +3,11 @@ import type { Mode } from "./runtime/server/mod.ts";
 
 export interface FreshConfig {
   root?: string;
-  build?: {
-    /**
-     * The directory to write generated files to when `dev.ts build` is run.
-     * This can be an absolute path, a file URL or a relative path.
-     */
-    outDir?: string;
-  };
+  /**
+   * The directory to write generated files to when `dev.ts build` is run.
+   * This can be an absolute path, a file URL or a relative path.
+   */
+  buildOutDir?: string;
   /**
    * Serve fresh from a base path instead of from the root.
    *   "/foo/bar" -> http://localhost:8000/foo/bar
@@ -61,7 +59,7 @@ export function normalizeConfig(options: FreshConfig): ResolvedFreshConfig {
   return {
     root,
     build: {
-      outDir: options.build?.outDir ?? path.join(root, "_fresh"),
+      outDir: options.buildOutDir ?? path.join(root, "_fresh"),
     },
     basePath: options.basePath ?? "",
     staticDir: options.staticDir ?? path.join(root, "static"),
