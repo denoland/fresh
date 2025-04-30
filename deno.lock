@@ -1471,6 +1471,9 @@
       "integrity": "sha512-10ULxpnOCQXxJvBgxsn9ptjq6uviG/htZKk9veJGhlqn3w/DxQ631zFF+nlQXLwmImeS5amR2dl2U8sg6U9jsQ=="
     }
   },
+  "redirects": {
+    "https://github.com/denoland/std/raw/bf039fef9c09624141539d25b71e1b9241d1d879/_tools/check_docs.ts": "https://raw.githubusercontent.com/denoland/std/bf039fef9c09624141539d25b71e1b9241d1d879/_tools/check_docs.ts"
+  },
   "remote": {
     "https://deno.land/std@0.120.0/async/deadline.ts": "1d6ac7aeaee22f75eb86e4e105d6161118aad7b41ae2dd14f4cfd3bf97472b93",
     "https://deno.land/std@0.120.0/async/debounce.ts": "b2f693e4baa16b62793fd618de6c003b63228db50ecfe3bd51fc5f6dc0bc264b",
@@ -1495,10 +1498,14 @@
     "https://deno.land/x/case@2.1.1/vendor/camelCaseUpperRegexp.ts": "292de54a698370f90adcdf95727993d09888b7f33d17f72f8e54ba75f7791787",
     "https://deno.land/x/case@2.1.1/vendor/nonWordRegexp.ts": "c1a052629a694144b48c66b0175a22a83f4d61cb40f4e45293fc5d6b123f927e",
     "https://raw.githubusercontent.com/denoland/ga4/main/mod.ts": "36f72ba1c90b5ebdb811427f367cd95fa6772d2de2fb45d6e57550501ee6d476",
+    "https://raw.githubusercontent.com/denoland/std/59d3d87463e33d60f03bc93b2856549d3b17c7cc/_tools/check_docs.ts": "1deca124df664ac35f1e36724ad7d869b605e67391ba7d3d8b5480887adb133d",
+    "https://raw.githubusercontent.com/denoland/std/59d3d87463e33d60f03bc93b2856549d3b17c7cc/_tools/utils.ts": "c2e38ed7e7a9a8c0fbaf8d70aa808fb02f2cbb5e71ef18d634feb4b479c6a001",
     "https://raw.githubusercontent.com/denoland/std/74deffe2048df8e17a356b9bc756431544e73382/_tools/check_docs.ts": "fc049ece5db615959d5ccbcb75013c7ab5a2001b52c75e9944a49820fce69153",
     "https://raw.githubusercontent.com/denoland/std/74deffe2048df8e17a356b9bc756431544e73382/_tools/utils.ts": "c2e38ed7e7a9a8c0fbaf8d70aa808fb02f2cbb5e71ef18d634feb4b479c6a001",
     "https://raw.githubusercontent.com/denoland/std/abb5a28306999b182f20532e7b2646e00d652b77/_tools/check_docs.ts": "b90ec6504af5b7df6e606475600177aeca0d45e92f0f0ae52f49ecebeb571d41",
-    "https://raw.githubusercontent.com/denoland/std/abb5a28306999b182f20532e7b2646e00d652b77/_tools/utils.ts": "c2e38ed7e7a9a8c0fbaf8d70aa808fb02f2cbb5e71ef18d634feb4b479c6a001"
+    "https://raw.githubusercontent.com/denoland/std/abb5a28306999b182f20532e7b2646e00d652b77/_tools/utils.ts": "c2e38ed7e7a9a8c0fbaf8d70aa808fb02f2cbb5e71ef18d634feb4b479c6a001",
+    "https://raw.githubusercontent.com/denoland/std/bf039fef9c09624141539d25b71e1b9241d1d879/_tools/check_docs.ts": "1be6a9e091b48c49c77da1e9a939a147d3aa5eecc1b91b99736248f9159b1ae5",
+    "https://raw.githubusercontent.com/denoland/std/bf039fef9c09624141539d25b71e1b9241d1d879/_tools/utils.ts": "c2e38ed7e7a9a8c0fbaf8d70aa808fb02f2cbb5e71ef18d634feb4b479c6a001"
   },
   "workspace": {
     "dependencies": [

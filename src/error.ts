@@ -21,6 +21,22 @@ import { STATUS_TEXT } from "@std/http/status";
 export class HttpError extends Error {
   /**
    * The HTTP status code.
+   *
+   * @example Basic usage
+   * ```ts
+   * import { App, HttpError } from "fresh";
+   * import { expect } from "@std/expect";
+   *
+   * const app = new App()
+   *   .get("/", () => new Response("ok"))
+   *   .get("/not-found", () => {
+   *      throw new HttpError(404, "Nothing here");
+   *    });
+   *
+   * const handler = await app.handler();
+   *
+   * const response = await handler(new Request("http://localhost/not-found"));
+   * ```
    */
   status: number;
 
