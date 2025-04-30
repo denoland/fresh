@@ -215,15 +215,17 @@ export default {
     await writeFile("tailwind.config.ts", TAILWIND_CONFIG_TS);
   }
 
-  const GRADIENT_CSS = css`.fresh-gradient {
-  background-color: rgb(134, 239, 172);
-  background-image: linear-gradient(
-    to right bottom,
-    rgb(219, 234, 254),
-    rgb(187, 247, 208),
-    rgb(254, 249, 195)
-  );
-}`;
+  const GRADIENT_CSS = css`
+    .fresh-gradient {
+      background-color: rgb(134, 239, 172);
+      background-image: linear-gradient(
+        to right bottom,
+        rgb(219, 234, 254),
+        rgb(187, 247, 208),
+        rgb(254, 249, 195)
+      );
+    }
+  `;
 
   const NO_TAILWIND_STYLES = css`*,
 *::before,
