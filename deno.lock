@@ -1472,7 +1472,8 @@
     }
   },
   "redirects": {
-    "https://github.com/denoland/std/raw/bf039fef9c09624141539d25b71e1b9241d1d879/_tools/check_docs.ts": "https://raw.githubusercontent.com/denoland/std/bf039fef9c09624141539d25b71e1b9241d1d879/_tools/check_docs.ts"
+    "https://github.com/denoland/std/raw/bf039fef9c09624141539d25b71e1b9241d1d879/_tools/check_docs.ts": "https://raw.githubusercontent.com/denoland/std/bf039fef9c09624141539d25b71e1b9241d1d879/_tools/check_docs.ts",
+    "https://github.com/denoland/std/raw/refs/heads/main/_tools/check_docs.ts": "https://raw.githubusercontent.com/denoland/std/refs/heads/main/_tools/check_docs.ts"
   },
   "remote": {
     "https://deno.land/std@0.120.0/async/deadline.ts": "1d6ac7aeaee22f75eb86e4e105d6161118aad7b41ae2dd14f4cfd3bf97472b93",
@@ -1505,7 +1506,9 @@
     "https://raw.githubusercontent.com/denoland/std/abb5a28306999b182f20532e7b2646e00d652b77/_tools/check_docs.ts": "b90ec6504af5b7df6e606475600177aeca0d45e92f0f0ae52f49ecebeb571d41",
     "https://raw.githubusercontent.com/denoland/std/abb5a28306999b182f20532e7b2646e00d652b77/_tools/utils.ts": "c2e38ed7e7a9a8c0fbaf8d70aa808fb02f2cbb5e71ef18d634feb4b479c6a001",
     "https://raw.githubusercontent.com/denoland/std/bf039fef9c09624141539d25b71e1b9241d1d879/_tools/check_docs.ts": "1be6a9e091b48c49c77da1e9a939a147d3aa5eecc1b91b99736248f9159b1ae5",
-    "https://raw.githubusercontent.com/denoland/std/bf039fef9c09624141539d25b71e1b9241d1d879/_tools/utils.ts": "c2e38ed7e7a9a8c0fbaf8d70aa808fb02f2cbb5e71ef18d634feb4b479c6a001"
+    "https://raw.githubusercontent.com/denoland/std/bf039fef9c09624141539d25b71e1b9241d1d879/_tools/utils.ts": "c2e38ed7e7a9a8c0fbaf8d70aa808fb02f2cbb5e71ef18d634feb4b479c6a001",
+    "https://raw.githubusercontent.com/denoland/std/refs/heads/main/_tools/check_docs.ts": "59c29d6a5de45d04c5cab1078c4aacbed9edd0a6b83a6469f55318665e5be6b2",
+    "https://raw.githubusercontent.com/denoland/std/refs/heads/main/_tools/utils.ts": "c2e38ed7e7a9a8c0fbaf8d70aa808fb02f2cbb5e71ef18d634feb4b479c6a001"
   },
   "workspace": {
     "dependencies": [
