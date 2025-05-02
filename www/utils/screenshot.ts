@@ -7,7 +7,7 @@ if (Deno.args.length !== 2) {
 
 const [url, id] = Deno.args;
 const parsedUrl = new URL(url);
-if (parsedUrl.protocol !== "http:" || parsedUrl.protocol !== "https:") {
+if (parsedUrl.protocol !== "http:" && parsedUrl.protocol !== "https:") {
   throw new Error("Invalid URL");
 }
 
