@@ -104,7 +104,7 @@ export class ProdBuildCache implements BuildCache {
     if (info === undefined) return null;
 
     const base = info.generated
-      ? this.#config.build.outDir
+      ? this.#config.buildOutDir
       : this.#config.staticDir;
     const filePath = info.generated
       ? path.join(base, "static", pathname)

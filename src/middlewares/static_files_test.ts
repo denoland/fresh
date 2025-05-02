@@ -136,9 +136,7 @@ Deno.test("static files - disables caching in development", async () => {
       buildCache,
       config: {
         basePath: "",
-        build: {
-          outDir: "",
-        },
+        buildOutDir: "",
         mode: "development",
         root: ".",
         staticDir: "",
@@ -164,9 +162,7 @@ Deno.test("static files - enables caching in production", async () => {
       buildCache,
       config: {
         basePath: "",
-        build: {
-          outDir: "",
-        },
+        buildOutDir: "",
         mode: "production",
         root: ".",
         staticDir: "",

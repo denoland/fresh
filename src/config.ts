@@ -20,13 +20,7 @@ export interface FreshConfig {
 /**
  * The final resolved Fresh configuration where fields the user didn't specify are set to the default values.
  */
-export interface ResolvedFreshConfig {
-  root: string;
-  build: {
-    outDir: string;
-  };
-  basePath: string;
-  staticDir: string;
+export interface ResolvedFreshConfig extends Required<FreshConfig> {
   /**
    * Tells you in which mode Fresh is currently running in.
    */
@@ -58,9 +52,7 @@ export function normalizeConfig(options: FreshConfig): ResolvedFreshConfig {
 
   return {
     root,
-    build: {
-      outDir: options.buildOutDir ?? path.join(root, "_fresh"),
-    },
+    buildOutDir: options.buildOutDir ?? path.join(root, "_fresh"),
     basePath: options.basePath ?? "",
     staticDir: options.staticDir ?? path.join(root, "static"),
     mode: "production",
@@ -68,5 +60,5 @@ export function normalizeConfig(options: FreshConfig): ResolvedFreshConfig {
 }
 
 export function getSnapshotPath(config: ResolvedFreshConfig): string {
-  return path.join(config.build.outDir, "snapshot.json");
+  return path.join(config.buildOutDir, "snapshot.json");
 }

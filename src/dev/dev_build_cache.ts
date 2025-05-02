@@ -188,8 +188,8 @@ export class DiskBuildCache implements DevBuildCache {
     this.#processedFiles.set(pathname, hash);
 
     const outDir = pathname === "/metafile.json"
-      ? this.config.build.outDir
-      : path.join(this.config.build.outDir, "static");
+      ? this.config.buildOutDir
+      : path.join(this.config.buildOutDir, "static");
     const filePath = path.join(outDir, pathname);
     assertInDir(filePath, outDir);
 
@@ -204,7 +204,7 @@ export class DiskBuildCache implements DevBuildCache {
 
   async flush(): Promise<void> {
     const staticDir = this.config.staticDir;
-    const outDir = this.config.build.outDir;
+    const outDir = this.config.buildOutDir;
 
     if (await fsAdapter.isDirectory(staticDir)) {
       const entries = fsAdapter.walk(staticDir, {
@@ -272,7 +272,7 @@ export class DiskBuildCache implements DevBuildCache {
       }
 
       if (maybeHash === null) {
-        const filePath = path.join(this.config.build.outDir, "static", name);
+        const filePath = path.join(this.config.buildOutDir, "static", name);
         const file = await Deno.open(filePath);
         hash = await hashContent(file.readable);
       }

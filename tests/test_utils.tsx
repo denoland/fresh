@@ -64,7 +64,7 @@ export function Doc(props: { children?: ComponentChildren; title?: string }) {
 export async function buildProd(app: App<unknown>) {
   const outDir = await Deno.makeTempDir();
   // FIXME: Sharing build output path is weird
-  app.config.build.outDir = outDir;
+  app.config.buildOutDir = outDir;
   const builder = new Builder({});
   await builder.build(app);
   const cache = await ProdBuildCache.fromSnapshot(
