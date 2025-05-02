@@ -11,7 +11,6 @@ if (parsedUrl.protocol !== "http:" && parsedUrl.protocol !== "https:") {
   throw new Error("Invalid URL");
 }
 
-const outDir = new URL("../static/showcase", import.meta.url);
 const browser = await puppeteer.launch({
   defaultViewport: { width: 1200, height: 675 },
   headless: true,
@@ -23,9 +22,9 @@ await browser.close();
 
 // convert to jpeg
 const image2x = await Image.decode(raw);
-const jpeg2x = new URL(`./${id}2x.jpg`, outDir);
+const jpeg2x = import.meta.resolve(`../static/showcase/${id}2x.jpg`);
 await Deno.writeFile(jpeg2x, await image2x.encodeJPEG(80));
 
-const jpeg1x = new URL(`./${id}1x.jpg`, outDir);
+const jpeg1x = import.meta.resolve(`../static/showcase/${id}1x.jpg`);
 const image1x = image2x.resize(image2x.width / 2, Image.RESIZE_AUTO);
 await Deno.writeFile(jpeg1x, await image1x.encodeJPEG(80));
