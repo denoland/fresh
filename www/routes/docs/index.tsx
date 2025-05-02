@@ -1,19 +1,9 @@
-import type { Handlers } from "fresh/compat";
+import { define } from "../../utils/state.ts";
 
-export const handler: Handlers<void> = {
+export const hander = define.handlers({
   GET(ctx) {
-    const slug = ctx.params.slug;
-
-    if (slug === "concepts/architechture") {
-      return new Response("", {
-        status: 307,
-        headers: { location: "/docs/concepts/architecture" },
-      });
-    }
-
-    return new Response("", {
-      status: 307,
-      headers: { location: "/docs/introduction" },
-    });
+    return ctx.url.pathname === "/concepts/architechture"
+      ? ctx.redirect("/docs/concepts/architecture")
+      : ctx.redirect("/docs/introduction");
   },
-};
+});
