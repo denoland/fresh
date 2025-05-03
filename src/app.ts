@@ -13,11 +13,7 @@ import {
   type Router,
   UrlPatternRouter,
 } from "./router.ts";
-import {
-  type FreshConfig,
-  normalizeConfig,
-  type ResolvedFreshConfig,
-} from "./config.ts";
+import { type FreshConfig, normalizeConfig } from "./config.ts";
 import { type BuildCache, ProdBuildCache } from "./build_cache.ts";
 import type { ServerIslandRegistry } from "./context.ts";
 import { FinishSetup, ForgotBuild } from "./finish_setup.tsx";
@@ -73,9 +69,9 @@ export class App<State> {
   /**
    * The final resolved Fresh configuration.
    */
-  config: ResolvedFreshConfig;
+  config: FreshConfig;
 
-  constructor(config: FreshConfig = {}) {
+  constructor(config: Partial<FreshConfig> = {}) {
     this.config = normalizeConfig(config);
   }
 

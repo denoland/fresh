@@ -7,7 +7,7 @@ import {
 } from "preact";
 import { renderToString } from "preact-render-to-string";
 import { SpanStatusCode } from "@opentelemetry/api";
-import type { ResolvedFreshConfig } from "./config.ts";
+import type { FreshConfig } from "./config.ts";
 import type { BuildCache } from "./build_cache.ts";
 import {
   FreshScripts,
@@ -32,7 +32,7 @@ export type ServerIslandRegistry = Map<ComponentType, Island>;
  */
 export interface FreshContext<State = unknown> {
   /** Reference to the resolved Fresh configuration */
-  readonly config: ResolvedFreshConfig;
+  readonly config: FreshConfig;
   readonly state: State;
   /** The original incoming `Request` object` */
   readonly req: Request;
@@ -90,7 +90,7 @@ export let getBuildCache: (ctx: FreshContext<unknown>) => BuildCache;
 
 export class FreshReqContext<State>
   implements FreshContext<State>, PageProps<unknown, State> {
-  config: ResolvedFreshConfig;
+  config: FreshConfig;
   url: URL;
   req: Request;
   params: Record<string, string>;
@@ -116,7 +116,7 @@ export class FreshReqContext<State>
     url: URL,
     info: Deno.ServeHandlerInfo,
     params: Record<string, string>,
-    config: ResolvedFreshConfig,
+    config: FreshConfig,
     next: FreshContext<State>["next"],
     islandRegistry: ServerIslandRegistry,
     buildCache: BuildCache,

@@ -1,5 +1,5 @@
 import * as path from "@std/path";
-import { getSnapshotPath, type ResolvedFreshConfig } from "./config.ts";
+import { type FreshConfig, getSnapshotPath } from "./config.ts";
 import { DENO_DEPLOYMENT_ID, setBuildId } from "./runtime/build_id.ts";
 import * as colors from "@std/fmt/colors";
 
@@ -29,7 +29,7 @@ export interface BuildCache {
 }
 
 export class ProdBuildCache implements BuildCache {
-  static async fromSnapshot(config: ResolvedFreshConfig, islandCount: number) {
+  static async fromSnapshot(config: FreshConfig, islandCount: number) {
     const snapshotPath = getSnapshotPath(config);
 
     const staticFiles = new Map<string, FileSnapshot>();
@@ -86,10 +86,10 @@ export class ProdBuildCache implements BuildCache {
 
   #islands: Map<string, string>;
   #fileInfo: Map<string, FileSnapshot>;
-  #config: ResolvedFreshConfig;
+  #config: FreshConfig;
 
   constructor(
-    config: ResolvedFreshConfig,
+    config: FreshConfig,
     islands: Map<string, string>,
     files: Map<string, FileSnapshot>,
     public hasSnapshot: boolean,

@@ -1,7 +1,7 @@
 import type { BuildCache, StaticFile } from "../build_cache.ts";
 import * as path from "@std/path";
 import { SEPARATOR as WINDOWS_SEPARATOR } from "@std/path/windows/constants";
-import { getSnapshotPath, type ResolvedFreshConfig } from "../config.ts";
+import { type FreshConfig, getSnapshotPath } from "../config.ts";
 import type { BuildSnapshot } from "../build_cache.ts";
 import { encodeHex } from "@std/encoding/hex";
 import { crypto } from "@std/crypto";
@@ -36,7 +36,7 @@ export class MemoryBuildCache implements DevBuildCache {
   #ready = Promise.withResolvers<void>();
 
   constructor(
-    public config: ResolvedFreshConfig,
+    public config: FreshConfig,
     public buildId: string,
     public transformer: FreshFileTransformer,
     public target: string | string[],
@@ -160,7 +160,7 @@ export class DiskBuildCache implements DevBuildCache {
   #target: string | string[];
 
   constructor(
-    public config: ResolvedFreshConfig,
+    public config: FreshConfig,
     public buildId: string,
     transformer: FreshFileTransformer,
     target: string | string[],
