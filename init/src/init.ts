@@ -215,6 +215,7 @@ export default {
     await writeFile("tailwind.config.ts", TAILWIND_CONFIG_TS);
   }
 
+  // deno-fmt-ignore
   const GRADIENT_CSS = css`.fresh-gradient {
   background-color: rgb(134, 239, 172);
   background-image: linear-gradient(
