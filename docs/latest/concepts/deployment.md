@@ -76,7 +76,7 @@ that includes all assets and dependencies. This executable can run on any
 platform without requiring Deno to be installed.
 
 ```sh Terminal
-$ deno build
+$ deno task build
 $ deno compile --include static --include _fresh --include deno.json -A main.ts
 ```
 
