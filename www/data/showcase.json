@@ -421,5 +421,11 @@
     "link": "https://wtfiscongressdoingnow.us",
     "github": "gibbygano/wtfiscongressdoingnow",
     "image": "wtfcongress"
+  },
+  {
+    "title": "Fresh Auth",
+    "link": "https://fresh-auth.deno.dev",
+    "github": "iupiew/fresh-auth",
+    "image": "fresh"
   }
 ]
