@@ -2,7 +2,6 @@ import { parseArgs } from "@std/cli/parse-args";
 import * as path from "@std/path";
 import { ensureMinDenoVersion, error } from "./utils.ts";
 import { updateProject } from "./update.ts";
-import * as colors from "@std/fmt/colors";
 
 const MIN_DENO_VERSION = "1.43.1";
 
@@ -23,17 +22,13 @@ ensureMinDenoVersion(MIN_DENO_VERSION);
 const flags = parseArgs(Deno.args, {});
 
 // deno-lint-ignore no-console
-console.log(colors.bgRgb8(
-  colors.rgb8(" 🍋 Fresh Updater ", 0),
-  121,
-));
+console.log("%c 🍋 Fresh Updater ", "background-color: #87ffaf; color: black;");
 // deno-lint-ignore no-console
 console.log();
 // deno-lint-ignore no-console
 console.log(
-  colors.italic(
-    "Note: Breaking changes may require additional manual updates.",
-  ),
+  "%cNote: Breaking changes may require additional manual updates.",
+  "font-style: italic;",
 );
 // deno-lint-ignore no-console
 console.log();
