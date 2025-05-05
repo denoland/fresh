@@ -35,18 +35,22 @@ export interface ResolvedFreshConfig {
 }
 
 export function parseRootPath(root: string, cwd: string): string {
-  if (root.startsWith("file://")) {
+  if (root === "\\" || root === "/") {
+    return cwd;
+  } else if (root.startsWith("file://")) {
     root = path.fromFileUrl(root);
   } else if (!path.isAbsolute(root)) {
     root = path.join(cwd, root);
   }
 
   const ext = path.extname(root);
-  if (
-    ext === ".ts" || ext === ".tsx" || ext === ".js" || ext === ".jsx" ||
-    ext === ".mjs"
-  ) {
+
+  if (ext) {
     root = path.dirname(root);
+  }
+
+  if (root.endsWith("/") || root.endsWith("\\")) {
+    root = root.slice(0, -1);
   }
 
   return root;
