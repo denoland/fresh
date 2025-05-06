@@ -242,14 +242,8 @@ button, [role="button"] {
 }
 code {
   font-family:
-    ui-monospace,
-    SFMono-Regular,
-    Menlo,
-    Monaco,
-    Consolas,
-    "Liberation Mono",
-    "Courier New",
-    monospace;
+    ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono",
+    "Courier New", monospace;
   font-size: 1em;
 }
 img,
@@ -266,20 +260,9 @@ html {
   line-height: 1.5;
   -webkit-text-size-adjust: 100%;
   font-family:
-    ui-sans-serif,
-    system-ui,
-    -apple-system,
-    BlinkMacSystemFont,
-    "Segoe UI",
-    Roboto,
-    "Helvetica Neue",
-    Arial,
-    "Noto Sans",
-    sans-serif,
-    "Apple Color Emoji",
-    "Segoe UI Emoji",
-    "Segoe UI Symbol",
-    "Noto Color Emoji";
+    ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+    Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif,
+    "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", ;
 }
 .transition-colors {
   transition-property: background-color, border-color, color, fill, stroke;
@@ -553,7 +536,8 @@ if (Deno.args.includes("build")) {
   const denoJson = {
     tasks: {
       check:
-        "deno fmt --check && deno lint && deno check **/*.ts && deno check **/*.tsx",
+        // Revert once https://github.com/denoland/deno/issues/28923 is fixed
+        "deno fmt --check . && deno lint . && deno check **/*.ts && deno check **/*.tsx",
       dev: "deno run -A --watch=static/,routes/ dev.ts",
       build: "deno run -A dev.ts build",
       start: "deno run -A main.ts",
