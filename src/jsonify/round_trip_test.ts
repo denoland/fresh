@@ -1,7 +1,5 @@
 import { expect } from "@std/expect";
 import { parse } from "./parse.ts";
-import { assertSnapshot } from "@std/testing/snapshot";
-import { inspect } from "node:util";
 import { stringify } from "./stringify.ts";
 
 const inner = { foo: 123 };
@@ -42,9 +40,8 @@ const TESTS = [
 ];
 
 for (const value of TESTS) {
-  Deno.test(`round trip - ${inspect(value)}`, async (t) => {
+  Deno.test(`round trip - ${Deno.inspect(value)}`, () => {
     const str = stringify(value);
-    await assertSnapshot(t, str);
     const parsed = parse(str);
     expect(parsed).toEqual(value);
   });

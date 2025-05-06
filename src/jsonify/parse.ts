@@ -1,3 +1,4 @@
+import { decodeBase64 } from "@std/encoding/base64";
 import {
   HOLE,
   INFINITY_NEG,
@@ -90,7 +91,7 @@ function unpack(
           return hydrated[idx] = set;
         }
         case "Uint8Array":
-          return hydrated[idx] = b64decode(current[1]);
+          return hydrated[idx] = decodeBase64(current[1]);
       }
     } else {
       const actual = new Array(current.length);
@@ -117,14 +118,4 @@ function unpack(
     }
     return actual;
   }
-}
-
-function b64decode(b64: string): Uint8Array {
-  const binString = atob(b64);
-  const size = binString.length;
-  const bytes = new Uint8Array(size);
-  for (let i = 0; i < size; i++) {
-    bytes[i] = binString.charCodeAt(i);
-  }
-  return bytes;
 }
