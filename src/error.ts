@@ -1,5 +1,7 @@
 import { type ErrorStatus, STATUS_TEXT } from "@std/http/status";
 
+export type { ErrorStatus };
+
 /**
  * Error that's thrown when a request fails. Correlates to a
  * {@link https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Status | HTTP status}.
