@@ -91,6 +91,8 @@ function unpack(
           return hydrated[idx] = set;
         }
         case "Uint8Array":
+          // TODO(iuioiua): use `Uint8Array.prototype.fromBase64()` once
+          // available (https://github.com/denoland/deno/issues/25051)
           return hydrated[idx] = decodeBase64(current[1]);
       }
     } else {

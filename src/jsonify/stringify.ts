@@ -110,6 +110,8 @@ function serializeInner(
     } else if (value instanceof RegExp) {
       str += `["RegExp",${JSON.stringify(value.source)}, "${value.flags}"]`;
     } else if (value instanceof Uint8Array) {
+      // TODO(iuioiua): use `Uint8Array.prototype.toBase64()` once available
+      // (https://github.com/denoland/deno/issues/25051)
       str += `["Uint8Array","${encodeBase64(value)}"]`;
     } else if (value instanceof Set) {
       const items = new Array(value.size);
