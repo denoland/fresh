@@ -1,4 +1,3 @@
-import { encodeBase64 } from "@std/encoding/base64";
 import {
   HOLE,
   INFINITY_NEG,
@@ -111,7 +110,9 @@ function serializeInner(
       str += `["RegExp",${JSON.stringify(value.source)}, "${value.flags}"]`;
     } else if (value instanceof Uint8Array) {
       // TODO(iuioiua): use `Uint8Array.prototype.toBase64()` once available
-      // (https://github.com/denoland/deno/issues/25051)
+      // in Deno (https://github.com/denoland/deno/issues/25051) and
+      // sufficiently supported in browsers
+      // (https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint8Array/toBase64#browser_compatibility)
       str += `["Uint8Array","${encodeBase64(value)}"]`;
     } else if (value instanceof Set) {
       const items = new Array(value.size);
@@ -149,4 +150,9 @@ function serializeInner(
 
   out[idx] = str;
   return idx;
+}
+
+function encodeBase64(bytes: Uint8Array): string {
+  const binary = String.fromCharCode(...bytes);
+  return btoa(binary);
 }

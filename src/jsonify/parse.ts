@@ -1,4 +1,3 @@
-import { decodeBase64 } from "@std/encoding/base64";
 import {
   HOLE,
   INFINITY_NEG,
@@ -92,7 +91,9 @@ function unpack(
         }
         case "Uint8Array":
           // TODO(iuioiua): use `Uint8Array.prototype.fromBase64()` once
-          // available (https://github.com/denoland/deno/issues/25051)
+          // available in Deno (https://github.com/denoland/deno/issues/25051)
+          // and sufficiently supported in browsers
+          // (https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint8Array/fromBase64#browser_compatibility)
           return hydrated[idx] = decodeBase64(current[1]);
       }
     } else {
@@ -120,4 +121,13 @@ function unpack(
     }
     return actual;
   }
+}
+
+function decodeBase64(base64: string): Uint8Array {
+  const binary = atob(base64);
+  const bytes = new Uint8Array(binary.length);
+  for (let i = 0; i < binary.length; i++) {
+    bytes[i] = binary.charCodeAt(i);
+  }
+  return bytes;
 }
