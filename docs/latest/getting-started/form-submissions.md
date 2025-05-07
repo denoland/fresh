@@ -53,11 +53,15 @@ export default function Page({ data }: PageProps<Data>) {
   return (
     <div>
       <form>
-        <input type="text" name="q" value={query} />
-        <button type="submit">Search</button>
+        <input type="text" name="q" value={query} class="border p-1" />
+        <button type="submit" class="ml-1 px-2 py-1 bg-gray-100 border">
+          Search
+        </button>
       </form>
       <ul>
-        {results.map((name) => <li key={name}>{name}</li>)}
+        {results.map((name) => (
+          <li key={name}>{name}</li>
+        ))}
       </ul>
     </div>
   );
