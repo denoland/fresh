@@ -1,5 +1,4 @@
 import * as path from "@std/path";
-import type { Mode } from "./runtime/server/mod.ts";
 
 export interface FreshConfig {
   root: string;
@@ -16,9 +15,9 @@ export interface FreshConfig {
   basePath: string;
   staticDir: string;
   /**
-   * Tells you in which mode Fresh is currently running in.
+   * The mode Fresh can run in.
    */
-  mode: Mode;
+  mode: "development" | "production";
 }
 
 export function parseRootPath(root: string, cwd: string): string {
