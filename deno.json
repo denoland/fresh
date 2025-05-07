@@ -84,12 +84,5 @@
       "exclude": ["no-window"],
       "include": ["no-console"]
     }
-  },
-  "fmt": {
-    "exclude": [
-      "init/src/init.ts",
-      "www/static/markdown.css",
-      "www/static/styles.css"
-    ]
   }
 }
