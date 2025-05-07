@@ -115,50 +115,44 @@ export async function withBrowserApp(
 }
 
 export async function withBrowser(fn: (page: Page) => void | Promise<void>) {
-  const aborter = new AbortController();
+  const browser = await launch({
+    args: [
+      "--window-size=1280,7201",
+      ...((Deno.env.get("CI") && Deno.build.os === "linux")
+        ? ["--no-sandbox"]
+        : []),
+    ],
+    headless: !Deno.args.includes("--headful"),
+  });
+  const page = await browser.newPage();
+  // page.setDefaultTimeout(1000000);
   try {
-    const browser = await launch({
-      args: [
-        "--window-size=1280,7201",
-        ...((Deno.env.get("CI") && Deno.build.os === "linux")
-          ? ["--no-sandbox"]
-          : []),
-      ],
-      headless: !Deno.args.includes("--headful"),
-    });
-
-    const page = await browser.newPage();
-    // page.setDefaultTimeout(1000000);
+    await fn(page);
+  } catch (err) {
     try {
-      await fn(page);
-    } catch (err) {
-      try {
-        const raw = await page.content();
-        const doc = parseHtml(raw);
-        const html = prettyDom(doc);
-        // deno-lint-ignore no-console
-        console.log(html);
-      } catch {
-        // Ignore
-      }
-      throw err;
-    } finally {
-      await page.close();
-      await browser.close();
+      const raw = await page.content();
+      const doc = parseHtml(raw);
+      const html = prettyDom(doc);
+      // deno-lint-ignore no-console
+      console.log(html);
+    } catch {
+      // Ignore
     }
+    throw err;
   } finally {
-    aborter.abort();
+    await page.close();
+    await browser.close();
   }
 }
 
 export async function withChildProcessServer(
   dir: string,
-  entry: string,
+  task: string,
   fn: (address: string) => void | Promise<void>,
 ) {
   const aborter = new AbortController();
   const cp = await new Deno.Command(Deno.execPath(), {
-    args: ["run", "-A", entry],
+    args: ["task", task],
     stdin: "null",
     stdout: "piped",
     stderr: "inherit",
