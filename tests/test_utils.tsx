@@ -28,6 +28,20 @@ import { NodeProcess } from "./fixtures_islands/NodeProcess.tsx";
 import { FreshAttrs } from "./fixtures_islands/FreshAttrs.tsx";
 import { OptOutPartialLink } from "./fixtures_islands/OptOutPartialLink.tsx";
 
+const browser = await launch({
+  args: [
+    "--window-size=1280,7201",
+    ...((Deno.env.get("CI") && Deno.build.os === "linux")
+      ? ["--no-sandbox"]
+      : []),
+  ],
+  headless: true,
+});
+
+addEventListener("unload", async () => {
+  await browser.close();
+});
+
 export function getIsland(pathname: string) {
   return path.join(
     import.meta.dirname!,
@@ -85,37 +99,17 @@ export async function withBrowserApp(
     signal: aborter.signal,
   }, await app.handler());
 
-  const browser = await launch({
-    args: [
-      "--window-size=1280,720",
-      ...((Deno.env.get("CI") && Deno.build.os === "linux")
-        ? ["--no-sandbox"]
-        : []),
-    ],
-    headless: true,
-  });
-
   const page = await browser.newPage();
   try {
     await fn(page, `http://localhost:${server.addr.port}`);
   } finally {
     await page.close();
-    await browser.close();
     aborter.abort();
     await server?.finished;
   }
 }
 
 export async function withBrowser(fn: (page: Page) => void | Promise<void>) {
-  const browser = await launch({
-    args: [
-      "--window-size=1280,7201",
-      ...((Deno.env.get("CI") && Deno.build.os === "linux")
-        ? ["--no-sandbox"]
-        : []),
-    ],
-    headless: true,
-  });
   const page = await browser.newPage();
   try {
     await fn(page);
@@ -128,7 +122,6 @@ export async function withBrowser(fn: (page: Page) => void | Promise<void>) {
     throw err;
   } finally {
     await page.close();
-    await browser.close();
   }
 }
 
