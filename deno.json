@@ -42,6 +42,7 @@
   },
   "imports": {
     "@deno/doc": "jsr:@deno/doc@^0.172.0",
+    "@std/cli": "jsr:@std/cli@^1.0.17",
     "@std/collections": "jsr:@std/collections@^1.0.11",
     "@std/http": "jsr:@std/http@^1.0.15",
     "fresh": "jsr:@fresh/core@^2.0.0-alpha.26",
@@ -56,7 +57,7 @@
     "@std/crypto": "jsr:@std/crypto@1",
     "@std/datetime": "jsr:@std/datetime@^0.225.2",
     "@std/encoding": "jsr:@std/encoding@1",
-    "@std/fmt": "jsr:@std/fmt@1",
+    "@std/fmt": "jsr:@std/fmt@^1.0.7",
     "@std/fs": "jsr:@std/fs@1",
     "@std/html": "jsr:@std/html@1",
     "@std/jsonc": "jsr:@std/jsonc@1",
@@ -70,7 +71,24 @@
     "linkedom": "npm:linkedom@^0.16.11",
     "@std/async": "jsr:@std/async@1",
     "@std/expect": "jsr:@std/expect@1",
-    "@std/testing": "jsr:@std/testing@1"
+    "@std/testing": "jsr:@std/testing@1",
+
+    "autoprefixer": "npm:autoprefixer@10.4.17",
+    "cssnano": "npm:cssnano@6.0.3",
+    "postcss": "npm:postcss@8.4.35",
+    "tailwindcss": "npm:tailwindcss@^3.4.1",
+
+    "ts-morph": "npm:ts-morph@^22.0.0",
+
+    "@fresh/plugin-tailwind": "./plugin-tailwindcss/src/mod.ts",
+    "@std/front-matter": "jsr:@std/front-matter@^1.0.5",
+    "fresh/compat": "./src/compat/mod.ts",
+    "fresh/dev": "./src/dev/mod.ts",
+    "fresh/runtime": "./src/runtime/shared.ts",
+    "github-slugger": "npm:github-slugger@^2.0.0",
+    "marked": "npm:marked@^14.1.2",
+    "marked-mangle": "npm:marked-mangle@^1.1.9",
+    "prismjs": "npm:prismjs@^1.29.0"
   },
   "compilerOptions": {
     "lib": ["dom", "dom.asynciterable", "deno.ns", "deno.unstable"],
