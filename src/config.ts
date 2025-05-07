@@ -17,8 +17,7 @@ export interface FreshConfig {
   basePath?: string;
   staticDir?: string;
   /**
-   * Server-side cache that stores responses for corresponding requests. If
-   * defined, GET requests will be cached and reused for the same request.
+   * Server-side cache that stores responses for corresponding GET requests.
    */
   cache?: Cache;
 }
@@ -38,8 +37,7 @@ export interface ResolvedFreshConfig {
    */
   mode: "development" | "production";
   /**
-   * Server-side cache that stores responses for corresponding requests. If
-   * defined, GET requests will be cached and reused for the same request.
+   * Server-side cache that stores responses for corresponding GET requests.
    */
   cache?: Cache;
 }
