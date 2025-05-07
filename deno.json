@@ -1,4 +1,5 @@
 {
+  "lock": false,
   "workspace": [
     "./examples",
     "./init",
