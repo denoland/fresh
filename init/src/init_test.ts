@@ -176,7 +176,7 @@ Deno.test("init - can start dev server", async () => {
     await patchProject(dir);
     await withChildProcessServer(
       dir,
-      ["run", "-A", path.join(dir, "dev.ts")],
+      "dev",
       async (address) => {
         await withBrowser(async (page) => {
           await page.goto(address);
