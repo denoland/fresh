@@ -10,6 +10,8 @@ await fsRoutes(app, {
   loadRoute: (path) => import(`./routes/${path}`),
 });
 
-if (import.meta.main) {
-  await app.listen();
-}
+const handler = await app.handler();
+
+export default {
+  fetch: handler,
+} satisfies Deno.ServeDefaultExport;

@@ -90,11 +90,16 @@ await fsRoutes(app, {
   loadRoute: (path) => import(`./routes/${path}`),
 });
 
-// If this module is called directly, start the server
-if (import.meta.main) {
-  await app.listen();
-}
+const handler = await app.handler();
+
+export default {
+  fetch: handler,
+} satisfies Deno.ServeDefaultExport;
 ```
+
+This script is now executed using
+[`deno serve`](https://docs.deno.com/runtime/reference/cli/serve/) instead of
+`deno run`.
 
 ## Merging error pages
 
