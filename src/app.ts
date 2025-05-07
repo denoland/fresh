@@ -196,6 +196,11 @@ export class App<State> {
       req: Request,
       conn: Deno.ServeHandlerInfo = DEFAULT_CONN_INFO,
     ) => {
+      if (this.config.cache && req.method === "GET") {
+        const cachedResponse = await this.config.cache.match(req);
+        if (cachedResponse) return cachedResponse;
+      }
+
       const url = new URL(req.url);
       // Prevent open redirect attacks
       url.pathname = url.pathname.replace(/\/+/g, "/");
@@ -225,24 +230,28 @@ export class App<State> {
         span.setAttribute("http.route", pattern);
       }
 
+      let response: Response;
       try {
-        if (handlers.length === 1 && handlers[0].length === 1) {
-          return handlers[0][0](ctx);
-        }
-        return await runMiddlewares(handlers, ctx);
+        response = handlers.length === 1 && handlers[0].length === 1
+          ? await handlers[0][0](ctx)
+          : await runMiddlewares(handlers, ctx);
       } catch (err) {
         if (err instanceof HttpError) {
           if (err.status >= 500) {
             // deno-lint-ignore no-console
             console.error(err);
           }
-          return new Response(err.message, { status: err.status });
+          response = new Response(err.message, { status: err.status });
         }
 
         // deno-lint-ignore no-console
         console.error(err);
-        return new Response("Internal server error", { status: 500 });
+        response = new Response("Internal server error", { status: 500 });
       }
+      if (this.config.cache && req.method === "GET") {
+        this.config.cache.put(req, response.clone());
+      }
+      return response;
     };
   }
 
