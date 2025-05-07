@@ -133,9 +133,8 @@ This hook is run at the start of the Fresh
 [ahead-of-time build task](/docs/concepts/ahead-of-time-builds). It may be
 synchronous or asynchronous.
 
-The build start hook is called with the
-[`ResolvedFreshConfig`](https://deno.land/x/fresh/src/server/types.ts?s=ResolvedFreshConfig)
-object, which contains the full Fresh configuration.
+The build start hook is called with the `FreshConfig` object, which contains the
+full Fresh configuration.
 
 This hook may be used to generate precompiled static assets. Any files saved to
 the `static` subfolder of `config.build.outDir` (typically `_fresh`) will be

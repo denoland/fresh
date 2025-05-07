@@ -1,7 +1,7 @@
 import type { BuildCache, StaticFile } from "../build_cache.ts";
 import * as path from "@std/path";
 import { SEPARATOR as WINDOWS_SEPARATOR } from "@std/path/windows/constants";
-import { getSnapshotPath, type ResolvedFreshConfig } from "../config.ts";
+import { type FreshConfig, getSnapshotPath } from "../config.ts";
 import type { BuildSnapshot } from "../build_cache.ts";
 import { encodeHex } from "@std/encoding/hex";
 import { crypto } from "@std/crypto";
@@ -36,7 +36,7 @@ export class MemoryBuildCache implements DevBuildCache {
   #ready = Promise.withResolvers<void>();
 
   constructor(
-    public config: ResolvedFreshConfig,
+    public config: FreshConfig,
     public buildId: string,
     public transformer: FreshFileTransformer,
     public target: string | string[],
@@ -160,7 +160,7 @@ export class DiskBuildCache implements DevBuildCache {
   #target: string | string[];
 
   constructor(
-    public config: ResolvedFreshConfig,
+    public config: FreshConfig,
     public buildId: string,
     transformer: FreshFileTransformer,
     target: string | string[],
@@ -188,8 +188,8 @@ export class DiskBuildCache implements DevBuildCache {
     this.#processedFiles.set(pathname, hash);
 
     const outDir = pathname === "/metafile.json"
-      ? this.config.build.outDir
-      : path.join(this.config.build.outDir, "static");
+      ? this.config.buildOutDir
+      : path.join(this.config.buildOutDir, "static");
     const filePath = path.join(outDir, pathname);
     assertInDir(filePath, outDir);
 
@@ -204,7 +204,7 @@ export class DiskBuildCache implements DevBuildCache {
 
   async flush(): Promise<void> {
     const staticDir = this.config.staticDir;
-    const outDir = this.config.build.outDir;
+    const outDir = this.config.buildOutDir;
 
     if (await fsAdapter.isDirectory(staticDir)) {
       const entries = fsAdapter.walk(staticDir, {
@@ -272,7 +272,7 @@ export class DiskBuildCache implements DevBuildCache {
       }
 
       if (maybeHash === null) {
-        const filePath = path.join(this.config.build.outDir, "static", name);
+        const filePath = path.join(this.config.buildOutDir, "static", name);
         const file = await Deno.open(filePath);
         hash = await hashContent(file.readable);
       }

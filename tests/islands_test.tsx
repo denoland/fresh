@@ -34,7 +34,7 @@ import { FakeServer } from "../src/test_utils.ts";
 
 await buildProd(allIslandApp);
 
-function testApp(config?: FreshConfig) {
+function testApp(config?: Partial<FreshConfig>) {
   const app = new App(config);
   setBuildCache(app, getBuildCache(allIslandApp));
   return app;

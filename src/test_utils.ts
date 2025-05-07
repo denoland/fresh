@@ -1,7 +1,7 @@
 import { FreshReqContext } from "./context.ts";
 import type { FsAdapter } from "./fs.ts";
 import { type BuildCache, ProdBuildCache } from "./build_cache.ts";
-import type { ResolvedFreshConfig } from "./config.ts";
+import type { FreshConfig } from "./config.ts";
 import type { WalkEntry } from "@std/fs/walk";
 import { DEFAULT_CONN_INFO } from "./app.ts";
 
@@ -51,10 +51,8 @@ export class FakeServer {
   }
 }
 
-const DEFAULT_CONFIG: ResolvedFreshConfig = {
-  build: {
-    outDir: "",
-  },
+const DEFAULT_CONFIG: FreshConfig = {
+  buildOutDir: "",
   mode: "production",
   basePath: "",
   root: "",
@@ -64,7 +62,7 @@ const DEFAULT_CONFIG: ResolvedFreshConfig = {
 export function serveMiddleware<T>(
   middleware: (ctx: FreshReqContext<T>) => Response | Promise<Response>,
   options: {
-    config?: ResolvedFreshConfig;
+    config?: FreshConfig;
     buildCache?: BuildCache;
     next?: () => Promise<Response>;
   } = {},

@@ -3,7 +3,7 @@ import postcss from "postcss";
 import autoprefixer from "autoprefixer";
 import * as path from "@std/path";
 import type { TailwindPluginOptions } from "./types.ts";
-import type { ResolvedFreshConfig } from "fresh";
+import type { FreshConfig } from "fresh";
 
 const CONFIG_EXTENSIONS = ["ts", "js", "mjs"];
 
@@ -37,7 +37,7 @@ async function findTailwindConfigFile(directory: string): Promise<string> {
 }
 
 export async function initTailwind(
-  config: ResolvedFreshConfig,
+  config: FreshConfig,
   options: TailwindPluginOptions,
 ): Promise<postcss.Processor> {
   const root = path.dirname(config.staticDir);
