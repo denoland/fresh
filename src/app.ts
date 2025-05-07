@@ -242,14 +242,14 @@ export class App<State> {
             console.error(err);
           }
           response = new Response(err.message, { status: err.status });
+        } else {
+          // deno-lint-ignore no-console
+          console.error(err);
+          response = new Response("Internal server error", { status: 500 });
         }
-
-        // deno-lint-ignore no-console
-        console.error(err);
-        response = new Response("Internal server error", { status: 500 });
       }
       if (this.config.cache && req.method === "GET") {
-        this.config.cache.put(req, response.clone());
+        await this.config.cache.put(req, response.clone());
       }
       return response;
     };
