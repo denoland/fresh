@@ -153,12 +153,12 @@ export async function withBrowser(fn: (page: Page) => void | Promise<void>) {
 
 export async function withChildProcessServer(
   dir: string,
-  entry: string,
+  args: string[],
   fn: (address: string) => void | Promise<void>,
 ) {
   const aborter = new AbortController();
   const cp = await new Deno.Command(Deno.execPath(), {
-    args: ["run", "-A", entry],
+    args,
     stdin: "null",
     stdout: "piped",
     stderr: "inherit",
@@ -187,7 +187,7 @@ export async function withChildProcessServer(
   }
 
   if (!found) {
-    throw new Error(`Could not find server address`);
+    throw new Error("Could not find server address");
   }
 
   try {
