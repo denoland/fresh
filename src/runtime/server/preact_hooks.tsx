@@ -474,9 +474,7 @@ function FreshRuntimeScript() {
       .join(",") +
       "}";
 
-    const serializedProps = JSON.stringify(
-      stringify(islandProps, stringifiers),
-    );
+    const serializedProps = stringify(islandProps, stringifiers);
 
     const runtimeUrl = `${basePath}/_fresh/js/${BUILD_ID}/fresh-runtime.js`;
     const scriptContent =

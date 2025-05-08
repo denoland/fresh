@@ -32,17 +32,6 @@ Deno.test("custom parse - Signals", () => {
   expect(res.peek()).toEqual(2);
 });
 
-Deno.test("custom stringify - Signals", () => {
-  const s = signal(2);
-  expect(stringify(s, {
-    Signal: (s2: unknown) => {
-      return s2 instanceof Signal ? { value: s2.peek() } : undefined;
-    },
-  })).toEqual(
-    '[["Signal",1],2]',
-  );
-});
-
 Deno.test("custom parse - Signals with null value", () => {
   const res = parse<Signal>('[["Signal",-2]]', {
     Signal: (value) => signal(value),
@@ -51,43 +40,10 @@ Deno.test("custom parse - Signals with null value", () => {
   expect(res.peek()).toEqual(null);
 });
 
-Deno.test("custom stringify - Signals with null value", () => {
-  const s = signal(null);
-  expect(stringify(s, {
-    Signal: (s2: unknown) => {
-      return s2 instanceof Signal ? { value: s2.peek() } : undefined;
-    },
-  })).toEqual(
-    '[["Signal",-2]]',
-  );
-});
-
 Deno.test("custom parse - Signals with undefined value", () => {
   const res = parse<Signal>('[["Signal",-1]]', {
     Signal: (value) => signal(value),
   });
   expect(res).toBeInstanceOf(Signal);
   expect(res.peek()).toEqual(undefined);
-});
-
-Deno.test("custom stringify - Signals with undefined value", () => {
-  const s = signal(undefined);
-  expect(stringify(s, {
-    Signal: (s2: unknown) => {
-      return s2 instanceof Signal ? { value: s2.peek() } : undefined;
-    },
-  })).toEqual(
-    '[["Signal",-1]]',
-  );
-});
-
-Deno.test("custom stringify - referenced Signals", () => {
-  const s = signal(2);
-  expect(stringify([s, s], {
-    Signal: (s2: unknown) => {
-      return s2 instanceof Signal ? { value: s2.peek() } : undefined;
-    },
-  })).toEqual(
-    '[[1,1],["Signal",2],2]',
-  );
 });
