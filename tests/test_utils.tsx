@@ -168,7 +168,7 @@ export async function withChildProcessServer(
   }
 
   if (!found) {
-    throw new Error(`Could not find server address`);
+    throw new Error("Could not find server address");
   }
 
   try {

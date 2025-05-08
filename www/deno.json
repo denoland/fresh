@@ -2,7 +2,7 @@
   "tasks": {
     "start": "deno run -A --watch=static/,routes/,../src,../docs dev.ts",
     "build": "deno run -A dev.ts build",
-    "preview": "deno run -A main.ts"
+    "preview": "deno serve -A --parallel main.ts"
   },
   "imports": {
     "$ga4": "https://raw.githubusercontent.com/denoland/ga4/main/mod.ts",

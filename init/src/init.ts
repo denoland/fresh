@@ -198,7 +198,7 @@ RUN deno cache main.ts
 
 EXPOSE 8000
 
-CMD ["run", "-A", "main.ts"]
+CMD ["task", "start"]
 
 `;
     await writeFile("Dockerfile", DOCKERFILE_TEXT);
@@ -426,9 +426,11 @@ await fsRoutes(app, {
   loadRoute: (path) => import(\`./routes/\${path}\`),
 });
 
-if (import.meta.main) {
-  await app.listen();
-}`;
+const handler = await app.handler();
+
+export default {
+  fetch: handler,
+} satisfies Deno.ServeDefaultExport;`;
   await writeFile("main.ts", MAIN_TS);
 
   const COMPONENTS_BUTTON_TSX =
@@ -557,7 +559,7 @@ if (Deno.args.includes("build")) {
         "deno fmt --check . && deno lint . && deno check **/*.ts && deno check **/*.tsx",
       dev: "deno run -A --watch=static/,routes/ dev.ts",
       build: "deno run -A dev.ts build",
-      start: "deno run -A main.ts",
+      start: "deno serve -A --parallel main.ts",
       update: "deno run -A -r jsr:@fresh/update .",
     },
     lint: {
