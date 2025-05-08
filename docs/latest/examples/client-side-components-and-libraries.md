@@ -53,7 +53,7 @@ function LeafletProvider(props: { children: ComponentChildren }) {
       <p>Leaflet must be loaded on the client. No children will render</p>
     );
   }
-  const [value, setValue] = useState<typeof Leaflet | null>(null);
+  const value = useSignal<typeof Leaflet | null>(null)
   return (
     <>
       {/* Load Leaflet CSS */}
@@ -65,7 +65,7 @@ function LeafletProvider(props: { children: ComponentChildren }) {
       />
       {/* Load Leaflet JS */}
       <script
-        onLoad={() => setValue(window.L)}
+        onLoad={() => value.value = window.L}
         src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
         integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
         crossorigin=""
@@ -120,8 +120,9 @@ export default function MapIsland() {
 ```tsx MapIsland.tsx
 import * as Leaflet from "https://esm.sh/v135/@types/leaflet@1.9.4/index.d.ts";
 import { IS_BROWSER } from "$fresh/runtime.ts";
-import { useContext, useEffect, useState } from "preact/hooks";
+import { useContext, useEffect } from "preact/hooks";
 import { ComponentChildren, createContext } from "preact";
+import { useSignal } from "@preact/signals";
 
 // Create a context to hold Leaflet data/functions
 const LeafletContext = createContext<typeof Leaflet | null>(null);
@@ -131,7 +132,7 @@ function LeafletProvider(props: { children: ComponentChildren }) {
   if (!IS_BROWSER) {
     return <p>Leaflet must be loaded on the client. No children will render</p>;
   }
-  const [value, setValue] = useState<typeof Leaflet | null>(null);
+  const value = useSignal<typeof Leaflet | null>(null);
   return (
     <>
       {/* Load Leaflet CSS */}
@@ -143,7 +144,7 @@ function LeafletProvider(props: { children: ComponentChildren }) {
       />
       {/* Load Leaflet JS */}
       <script
-        onLoad={() => setValue(window.L)}
+        onLoad={() => value.value = window.L}
         src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
         integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
         crossorigin=""
