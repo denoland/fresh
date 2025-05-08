@@ -58,7 +58,7 @@ Watcher Process started.
 ```
 
 If you now visit http://localhost:8000, you can see the running project. Try
-change some of the text in `routes/index.tsx` and see how the page updates
+changing some of the text in `routes/index.tsx` and see how the page updates
 automatically when you save the file.
 
 [--watch]: https://deno.land/manual/getting_started/command_line_interface#watch-mode
