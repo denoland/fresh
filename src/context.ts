@@ -35,7 +35,7 @@ export interface FreshContext<State = unknown> {
   readonly config: ResolvedFreshConfig;
   readonly state: State;
   /** The original incoming `Request` object` */
-  readonly req: Request;
+  req: Request;
   /**
    * The request url parsed into an `URL` instance. This is typically used
    * to apply logic based on the pathname of the incoming url or when
