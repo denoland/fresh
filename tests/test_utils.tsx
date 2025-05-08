@@ -1,7 +1,7 @@
 import { App, getIslandRegistry, setBuildCache } from "../src/app.ts";
 import { launch, type Page } from "@astral/astral";
 import * as colors from "@std/fmt/colors";
-import { type Document, DOMParser, HTMLElement } from "linkedom";
+import { DOMParser, HTMLElement } from "linkedom";
 import { Builder } from "../src/dev/builder.ts";
 import { TextLineStream } from "@std/streams/text-line-stream";
 import * as path from "@std/path";
@@ -27,6 +27,23 @@ import { Foo } from "./fixture_island_groups/routes/foo/(_islands)/Foo.tsx";
 import { NodeProcess } from "./fixtures_islands/NodeProcess.tsx";
 import { FreshAttrs } from "./fixtures_islands/FreshAttrs.tsx";
 import { OptOutPartialLink } from "./fixtures_islands/OptOutPartialLink.tsx";
+
+/**
+ * If on Linux, disable `AppArmor` before running tests:
+ * ```sh
+ * echo 0 | sudo tee /proc/sys/kernel/apparmor_restrict_unprivileged_userns
+ * ```
+ *
+ * @see {@link https://github.com/lino-levan/astral#no-usable-sandbox-with-user-namespace-cloning-enabled}
+ */
+const browser = await launch({
+  args: ["--window-size=1280,720"],
+  headless: true,
+});
+
+addEventListener("unload", async () => {
+  await browser.close();
+});
 
 export function getIsland(pathname: string) {
   return path.join(
@@ -79,44 +96,22 @@ export async function withBrowserApp(
   fn: (page: Page, address: string) => void | Promise<void>,
 ) {
   const aborter = new AbortController();
-  const server = Deno.serve({
+  await using server = Deno.serve({
     hostname: "localhost",
     port: 0,
     signal: aborter.signal,
   }, await app.handler());
 
-  const browser = await launch({
-    args: [
-      "--window-size=1280,720",
-      ...((Deno.env.get("CI") && Deno.build.os === "linux")
-        ? ["--no-sandbox"]
-        : []),
-    ],
-    headless: true,
-  });
-
-  const page = await browser.newPage();
   try {
+    await using page = await browser.newPage();
     await fn(page, `http://localhost:${server.addr.port}`);
   } finally {
-    await page.close();
-    await browser.close();
     aborter.abort();
-    await server?.finished;
   }
 }
 
 export async function withBrowser(fn: (page: Page) => void | Promise<void>) {
-  const browser = await launch({
-    args: [
-      "--window-size=1280,7201",
-      ...((Deno.env.get("CI") && Deno.build.os === "linux")
-        ? ["--no-sandbox"]
-        : []),
-    ],
-    headless: true,
-  });
-  const page = await browser.newPage();
+  await using page = await browser.newPage();
   try {
     await fn(page);
   } catch (err) {
@@ -126,9 +121,6 @@ export async function withBrowser(fn: (page: Page) => void | Promise<void>) {
     // deno-lint-ignore no-console
     console.log(html);
     throw err;
-  } finally {
-    await page.close();
-    await browser.close();
   }
 }
 
