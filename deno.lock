@@ -1,7 +1,7 @@
 {
   "version": "5",
   "specifiers": {
-    "jsr:@astral/astral@~0.5.2": "0.5.2",
+    "jsr:@astral/astral@~0.5.3": "0.5.3",
     "jsr:@deno-library/progress@^1.5.1": "1.5.1",
     "jsr:@deno/cache-dir@0.14": "0.14.0",
     "jsr:@deno/doc@0.172": "0.172.0",
@@ -77,8 +77,8 @@
     "npm:ts-morph@22": "22.0.0"
   },
   "jsr": {
-    "@astral/astral@0.5.2": {
-      "integrity": "dc4b7e0ea5d8186fcd9e33e2c54e62913d7eb99d5a2d4f987b1c5399d8e295de",
+    "@astral/astral@0.5.3": {
+      "integrity": "d6a4628313d8be99aac0f51005c1dc090fa3b4c6b5c8335c26a52d4842aa1276",
       "dependencies": [
         "jsr:@deno-library/progress",
         "jsr:@std/async",
@@ -1620,7 +1620,7 @@
   },
   "workspace": {
     "dependencies": [
-      "jsr:@astral/astral@~0.5.2",
+      "jsr:@astral/astral@~0.5.3",
       "jsr:@deno/doc@0.172",
       "jsr:@fresh/core@^2.0.0-alpha.26",
       "jsr:@luca/esbuild-deno-loader@0.11",
