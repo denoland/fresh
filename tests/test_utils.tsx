@@ -29,7 +29,10 @@ import { FreshAttrs } from "./fixtures_islands/FreshAttrs.tsx";
 import { OptOutPartialLink } from "./fixtures_islands/OptOutPartialLink.tsx";
 
 const browser = await launch({
-  args: ["--window-size=1280,720"],
+  args: [
+    "--window-size=1280,720",
+    ...(Deno.build.os === "linux" ? ["--no-sandbox"] : []),
+  ],
   headless: true,
 });
 
