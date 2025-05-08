@@ -29,12 +29,7 @@ import { FreshAttrs } from "./fixtures_islands/FreshAttrs.tsx";
 import { OptOutPartialLink } from "./fixtures_islands/OptOutPartialLink.tsx";
 
 const browser = await launch({
-  args: [
-    "--window-size=1280,7201",
-    ...((Deno.env.get("CI") && Deno.build.os === "linux")
-      ? ["--no-sandbox"]
-      : []),
-  ],
+  args: ["--window-size=1280,720"],
   headless: true,
 });
 
@@ -93,24 +88,22 @@ export async function withBrowserApp(
   fn: (page: Page, address: string) => void | Promise<void>,
 ) {
   const aborter = new AbortController();
-  const server = Deno.serve({
+  await using server = Deno.serve({
     hostname: "localhost",
     port: 0,
     signal: aborter.signal,
   }, await app.handler());
 
-  const page = await browser.newPage();
   try {
+    await using page = await browser.newPage();
     await fn(page, `http://localhost:${server.addr.port}`);
   } finally {
-    await page.close();
     aborter.abort();
-    await server?.finished;
   }
 }
 
 export async function withBrowser(fn: (page: Page) => void | Promise<void>) {
-  const page = await browser.newPage();
+  await using page = await browser.newPage();
   try {
     await fn(page);
   } catch (err) {
@@ -120,8 +113,6 @@ export async function withBrowser(fn: (page: Page) => void | Promise<void>) {
     // deno-lint-ignore no-console
     console.log(html);
     throw err;
-  } finally {
-    await page.close();
   }
 }
 
