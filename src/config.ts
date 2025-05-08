@@ -2,13 +2,11 @@ import * as path from "@std/path";
 
 export interface FreshConfig {
   root?: string;
-  build?: {
-    /**
-     * The directory to write generated files to when `dev.ts build` is run.
-     * This can be an absolute path, a file URL or a relative path.
-     */
-    outDir?: string;
-  };
+  /**
+   * The directory to write generated files to when `dev.ts build` is run.
+   * This can be an absolute path, a file URL or a relative path.
+   */
+  buildOutDir?: string;
   /**
    * Serve fresh from a base path instead of from the root.
    *   "/foo/bar" -> http://localhost:8000/foo/bar
@@ -21,13 +19,7 @@ export interface FreshConfig {
 /**
  * The final resolved Fresh configuration where fields the user didn't specify are set to the default values.
  */
-export interface ResolvedFreshConfig {
-  root: string;
-  build: {
-    outDir: string;
-  };
-  basePath: string;
-  staticDir: string;
+export interface ResolvedFreshConfig extends Required<FreshConfig> {
   /**
    * The mode Fresh can run in.
    */
@@ -59,9 +51,7 @@ export function normalizeConfig(options: FreshConfig): ResolvedFreshConfig {
 
   return {
     root,
-    build: {
-      outDir: options.build?.outDir ?? path.join(root, "_fresh"),
-    },
+    buildOutDir: options.buildOutDir ?? path.join(root, "_fresh"),
     basePath: options.basePath ?? "",
     staticDir: options.staticDir ?? path.join(root, "static"),
     mode: "production",
@@ -69,5 +59,5 @@ export function normalizeConfig(options: FreshConfig): ResolvedFreshConfig {
 }
 
 export function getSnapshotPath(config: ResolvedFreshConfig): string {
-  return path.join(config.build.outDir, "snapshot.json");
+  return path.join(config.buildOutDir, "snapshot.json");
 }

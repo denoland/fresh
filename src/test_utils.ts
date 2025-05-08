@@ -52,9 +52,7 @@ export class FakeServer {
 }
 
 const DEFAULT_CONFIG: ResolvedFreshConfig = {
-  build: {
-    outDir: "",
-  },
+  buildOutDir: "",
   mode: "production",
   basePath: "",
   root: "",
