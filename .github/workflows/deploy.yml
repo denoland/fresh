@@ -5,7 +5,19 @@ on:
   pull_request:
     branches: main
 
-	@@ -21,15 +21,16 @@ jobs:
+jobs:
+  deploy:
+    name: Deploy
+    runs-on: ubuntu-latest
+
+    permissions:
+      id-token: write # Needed for auth with Deno Deploy
+      contents: read # Needed to clone the repository
+
+    steps:
+      - name: Clone repository
+        uses: actions/checkout@v4
+
       - name: Install Deno
         uses: denoland/setup-deno@v2
         with:
