@@ -1,3 +1,5 @@
+Original file line number	Original file line	Diff line number	Diff line change
+	@@ -1,7 +1,7 @@
 name: Deploy
 on:
   push:
@@ -5,27 +7,19 @@ on:
   pull_request:
     branches: main
 
-jobs:
-  deploy:
-    name: Deploy
-    runs-on: ubuntu-latest
 
-    permissions:
-      id-token: write # Needed for auth with Deno Deploy
-      contents: read # Needed to clone the repository
 
-    steps:
-      - name: Clone repository
-        uses: actions/checkout@v4
-
+	@@ -21,15 +21,16 @@ jobs:
       - name: Install Deno
         uses: denoland/setup-deno@v2
         with:
           deno-version: rc
 
+
       - name: Build step
         working-directory: ./www
         run: "deno task build" # 📝 Update the build command(s) if necessary
+
 
       - name: Upload to Deno Deploy
         uses: denoland/deployctl@v1
