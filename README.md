@@ -65,7 +65,7 @@ docs.
 ## Contributing
 
 We appreciate your help! To contribute, please read our
-[contributing instructions](https://deno.com/manual/references/contributing#submitting-a-pr-to-fresh).
+[contributing guideline](./.github/CONTRIBUTING.md).
 
 ## Adding your project to the showcase
 

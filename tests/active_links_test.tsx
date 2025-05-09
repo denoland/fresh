@@ -92,8 +92,6 @@ Deno.test({
     assertSelector(doc, "a[href='/'][data-ancestor]");
     assertSelector(doc, `a[href='/'][aria-current="true"]`);
   },
-  sanitizeResources: false,
-  sanitizeOps: false,
 });
 
 Deno.test({
@@ -176,6 +174,4 @@ Deno.test({
       assertSelector(doc, `a[href='/'][aria-current="true"]`);
     });
   },
-  sanitizeResources: false,
-  sanitizeOps: false,
 });

@@ -50,3 +50,6 @@ jobs:
 
       - name: Run tests
         run: deno task test
+
+      - name: Check docs
+        run: deno task check:docs
