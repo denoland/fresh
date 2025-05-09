@@ -44,6 +44,4 @@ export default {
       },
     },
   },
-  // 添加支持暗色主题的方式
-  darkMode: ["class", '[data-theme="dark"]'],
 } satisfies Config;
