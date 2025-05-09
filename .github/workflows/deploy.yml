@@ -31,6 +31,6 @@ jobs:
         with:
           project: "test-plugin"
           entrypoint: "main.ts"
-          root: "/www"
+          root: ""
           
           
