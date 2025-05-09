@@ -32,5 +32,3 @@ jobs:
           project: "test-plugin"
           entrypoint: "./www/main.ts"
           root: "."
-          
-          
