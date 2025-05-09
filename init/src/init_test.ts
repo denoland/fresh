@@ -160,6 +160,7 @@ Deno.test("init with tailwind - fmt, lint, and type check project", async () => 
       stderr: "inherit",
       stdout: "inherit",
     }).output();
+
     expect(check.code).toEqual(0);
   });
 });
