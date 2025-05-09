@@ -1,6 +1,6 @@
 {
   "name": "@fresh/plugin-tailwind",
-  "version": "0.0.1-alpha.7",
+  "version": "0.0.1-alpha.8",
   "license": "MIT",
   "exports": {
     ".": "./src/mod.ts"
@@ -8,9 +8,9 @@
   "imports": {
     "fresh": "jsr:@fresh/core@^2.0.0-alpha.22",
     "@std/path": "jsr:@std/path@1",
-    "autoprefixer": "npm:autoprefixer@10.4.17",
-    "cssnano": "npm:cssnano@6.0.3",
-    "postcss": "npm:postcss@8.4.35",
-    "tailwindcss": "npm:tailwindcss@^3.4.1"
+    "cssnano": "npm:cssnano@^7.0.6",
+    "postcss": "npm:postcss@^8.5.3",
+    "@tailwindcss/postcss": "npm:@tailwindcss/postcss@^4.0.8",
+    "tailwindcss": "npm:tailwindcss@^4.0.0"
   }
 }

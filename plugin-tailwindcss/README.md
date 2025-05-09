@@ -1,6 +1,6 @@
 # Tailwind CSS plugin for Fresh
 
-A Tailwind CSS plugin to use in Fresh.
+A Tailwind CSS v4 plugin to use in Fresh.
 
 ```ts
 // dev.ts
@@ -12,7 +12,7 @@ import { app } from "./main.ts";
 const devApp = new FreshDevApp();
 
 // Enable Tailwind CSS
-tailwind(devApp);
+tailwind(devApp, app);
 
 devApp.mountApp("/", app);
 
