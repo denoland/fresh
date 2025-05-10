@@ -49,13 +49,15 @@ export function parseRootPath(root: string, cwd: string): string {
     root = path.dirname(root);
   }
 
+  if (Deno.build.os === "windows") {
+    root = root.replaceAll("\\", "/");
+  }
+
   return root;
 }
 
 export function normalizeConfig(options: FreshConfig): ResolvedFreshConfig {
-  const root = options.root
-    ? parseRootPath(options.root, Deno.cwd())
-    : Deno.cwd();
+  const root = parseRootPath(options.root ?? ".", Deno.cwd());
 
   return {
     root,
