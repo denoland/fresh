@@ -1,7 +1,7 @@
 name: Deploy
 on:
   push:
-    branches: main
+    branches: [main]
   pull_request:
     branches: main
 
@@ -21,14 +21,15 @@ jobs:
       - name: Install Deno
         uses: denoland/setup-deno@v2
         with:
-          deno-version: v2.x
+          deno-version: rc
 
       - name: Build step
-        run: "deno task build"
+        working-directory: ./www
+        run: "deno task build" # 📝 Update the build command(s) if necessary
 
       - name: Upload to Deno Deploy
         uses: denoland/deployctl@v1
         with:
-          project: "test-plugin"
-          entrypoint: "./www/main.ts"
+          project: "fresh" # 📝 Update the deploy project name if necessary
+          entrypoint: "./www/main.ts" # 📝 Update the entrypoint if necessary
           root: "."
