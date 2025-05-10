@@ -7,12 +7,7 @@ import { DENO_DEPLOYMENT_ID } from "./runtime/build_id.ts";
 import * as colors from "@std/fmt/colors";
 import { type MiddlewareFn, runMiddlewares } from "./middlewares/mod.ts";
 import { FreshReqContext } from "./context.ts";
-import {
-  mergePaths,
-  type Method,
-  type Router,
-  UrlPatternRouter,
-} from "./router.ts";
+import { type Method, type Router, UrlPatternRouter } from "./router.ts";
 import {
   type FreshConfig,
   normalizeConfig,
@@ -22,6 +17,7 @@ import { type BuildCache, ProdBuildCache } from "./build_cache.ts";
 import type { ServerIslandRegistry } from "./context.ts";
 import { FinishSetup, ForgotBuild } from "./finish_setup.tsx";
 import { HttpError } from "./error.ts";
+import { mergePaths } from "./utils.ts";
 
 // TODO: Completed type clashes in older Deno versions
 // deno-lint-ignore no-explicit-any
