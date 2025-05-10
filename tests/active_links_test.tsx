@@ -66,7 +66,7 @@ Deno.test({
         return ctx.render(<View />);
       });
 
-    const server = new FakeServer(await app.handler());
+    const server = new FakeServer(app.handler());
     let res = await server.get("/active_nav");
     let doc = parseHtml(await res.text());
 

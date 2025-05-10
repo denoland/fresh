@@ -29,7 +29,7 @@ export interface BuildCache {
 }
 
 export class ProdBuildCache implements BuildCache {
-  static async fromSnapshot(config: ResolvedFreshConfig, islandCount: number) {
+  static fromSnapshot(config: ResolvedFreshConfig, islandCount: number) {
     const snapshotPath = getSnapshotPath(config);
 
     const staticFiles = new Map<string, FileSnapshot>();
@@ -37,7 +37,7 @@ export class ProdBuildCache implements BuildCache {
 
     let hasSnapshot = false;
     try {
-      const content = await Deno.readTextFile(snapshotPath);
+      const content = Deno.readTextFileSync(snapshotPath);
       const snapshot = JSON.parse(content) as BuildSnapshot;
       hasSnapshot = true;
       setBuildId(snapshot.buildId);

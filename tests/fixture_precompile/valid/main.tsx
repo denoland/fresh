@@ -25,7 +25,7 @@ const app = new App({ staticDir: "./static" }).get(
     ),
 );
 
-const handler = await app.handler();
+const handler = app.handler();
 const res = await handler(new Request("http://localhost/"));
 // deno-lint-ignore no-console
 console.log(await res.text());
