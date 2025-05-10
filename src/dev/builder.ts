@@ -1,10 +1,4 @@
-import {
-  App,
-  getBuildCache,
-  getIslandRegistry,
-  type ListenOptions,
-  setBuildCache,
-} from "../app.ts";
+import { App, type ListenOptions } from "../app.ts";
 import { fsAdapter } from "../fs.ts";
 import * as path from "@std/path";
 import * as colors from "@std/fmt/colors";
@@ -72,14 +66,11 @@ export class Builder implements FreshBuilder {
 
     devApp.config.mode = "development";
 
-    setBuildCache(
-      devApp,
-      new MemoryBuildCache(
-        devApp.config,
-        BUILD_ID,
-        this.#transformer,
-        this.#options.target,
-      ),
+    devApp.buildCache = new MemoryBuildCache(
+      devApp.config,
+      BUILD_ID,
+      this.#transformer,
+      this.#options.target,
     );
 
     await Promise.all([
@@ -90,14 +81,11 @@ export class Builder implements FreshBuilder {
   }
 
   async build<T>(app: App<T>): Promise<void> {
-    setBuildCache(
-      app,
-      new DiskBuildCache(
-        app.config,
-        BUILD_ID,
-        this.#transformer,
-        this.#options.target,
-      ),
+    app.buildCache = new DiskBuildCache(
+      app.config,
+      BUILD_ID,
+      this.#transformer,
+      this.#options.target,
     );
 
     return await this.#build(app, false);
@@ -120,7 +108,7 @@ export class Builder implements FreshBuilder {
       // Ignore
     }
 
-    const buildCache = getBuildCache(app)! as
+    const buildCache = app.buildCache! as
       | MemoryBuildCache
       | DiskBuildCache;
 
@@ -133,7 +121,7 @@ export class Builder implements FreshBuilder {
     };
     const seenEntries = new Map<string, Island>();
     const mapIslandToEntry = new Map<Island, string>();
-    const islandRegistry = getIslandRegistry(app);
+    const islandRegistry = app.islandRegistry;
     for (const island of islandRegistry.values()) {
       const filePath = island.file instanceof URL
         ? island.file.href
