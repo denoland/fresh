@@ -3,7 +3,7 @@ import * as path from "@std/path";
 
 // Keep these as is, as we replace these version in our release script
 const FRESH_VERSION = "2.0.0-alpha.29";
-const FRESH_TAILWIND_VERSION = "0.0.1-alpha.7";
+const FRESH_TAILWIND_VERSION = "0.0.1-alpha.8";
 const PREACT_VERSION = "10.25.4";
 const PREACT_SIGNALS_VERSION = "2.0.1";
 
@@ -589,7 +589,7 @@ if (Deno.args.includes("build")) {
   };
 
   if (useTailwind) {
-    denoJson.imports["tailwindcss"] = "npm:tailwindcss@^3.4.3";
+    denoJson.imports["tailwindcss"] = "npm:tailwindcss@^4.0.0";
   }
 
   await writeFile("deno.json", denoJson);
