@@ -37,7 +37,7 @@ Some stand out features:
 - Highly resilient because of progressive enhancement and use of native browser
   features
 - TypeScript out of the box
-- File-system routing à la Next.js
+- File-system routing inspired by Next.js
 
 [preact]: https://preactjs.com
 [deno]: https://deno.com
