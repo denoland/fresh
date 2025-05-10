@@ -14,6 +14,7 @@
     "jsr:@std/async@1": "1.0.12",
     "jsr:@std/bytes@^1.0.2": "1.0.5",
     "jsr:@std/bytes@^1.0.5": "1.0.5",
+    "jsr:@std/cli@1": "1.0.17",
     "jsr:@std/cli@^1.0.17": "1.0.17",
     "jsr:@std/collections@^1.0.11": "1.0.11",
     "jsr:@std/crypto@1": "1.0.4",
@@ -215,7 +216,7 @@
     "@std/http@1.0.15": {
       "integrity": "435a4934b4e196e82a8233f724da525f7b7112f3566502f28815e94764c19159",
       "dependencies": [
-        "jsr:@std/cli",
+        "jsr:@std/cli@^1.0.17",
         "jsr:@std/encoding@^1.0.10",
         "jsr:@std/fmt@^1.0.7",
         "jsr:@std/html@^1.0.3",
