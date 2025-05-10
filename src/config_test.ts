@@ -1,5 +1,5 @@
 import { expect } from "@std/expect";
-import { parseRootPath } from "./config.ts";
+import { normalizeConfig, parseRootPath } from "./config.ts";
 
 Deno.test("parseRootPath", () => {
   const cwd = Deno.cwd().replaceAll("\\", "/");
@@ -26,5 +26,22 @@ Deno.test("parseRootPath", () => {
   if (Deno.build.os === "windows") {
     expect(parseRootPath("C:/foo/bar", cwd)).toEqual("C:/foo/bar");
     expect(parseRootPath("C:/foo/bar.ts", cwd)).toEqual("C:/foo");
+  }
+});
+
+Deno.test("normalizeConfig - root", () => {
+  const cwd = Deno.cwd().replaceAll("\\", "/");
+  const configRoot = (root?: string) => normalizeConfig({ root }).root;
+
+  expect(configRoot()).toEqual(cwd);
+  expect(configRoot("/foo/bar")).toEqual("/foo/bar");
+  expect(configRoot("/foo/bar.ts")).toEqual("/foo");
+  expect(configRoot("file:///foo/bar")).toEqual("/foo/bar");
+  expect(configRoot("./foo/bar")).toEqual(`${cwd}/foo/bar`);
+  expect(configRoot("./foo/bar.ts")).toEqual(`${cwd}/foo`);
+
+  if (Deno.build.os === "windows") {
+    expect(configRoot("C:/foo/bar.ts")).toEqual("C:/foo");
+    expect(configRoot("file:///C:/foo/bar")).toEqual("C:/foo/bar");
   }
 });
