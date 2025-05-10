@@ -26,8 +26,6 @@ import { FnIsland } from "./fixtures_islands/FnIsland.tsx";
 import { FragmentIsland } from "./fixtures_islands/FragmentIsland.tsx";
 import { EscapeIsland } from "./fixtures_islands/EscapeIsland.tsx";
 import * as path from "@std/path";
-import { setBuildCache } from "../src/app.ts";
-import { getBuildCache } from "../src/app.ts";
 import type { FreshConfig } from "../src/config.ts";
 import { FreshAttrs } from "./fixtures_islands/FreshAttrs.tsx";
 import { FakeServer } from "../src/test_utils.ts";
@@ -36,7 +34,7 @@ await buildProd(allIslandApp);
 
 function testApp(config?: FreshConfig) {
   const app = new App(config);
-  setBuildCache(app, getBuildCache(allIslandApp));
+  app.buildCache = allIslandApp.buildCache;
   return app;
 }
 

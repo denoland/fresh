@@ -1,5 +1,5 @@
 import { expect } from "@std/expect";
-import { App, getIslandRegistry, setBuildCache } from "./app.ts";
+import { App } from "./app.ts";
 import { FakeServer } from "./test_utils.ts";
 import { ProdBuildCache } from "./build_cache.ts";
 
@@ -422,15 +422,10 @@ Deno.test.ignore("FreshApp - finish setup", async () => {
       return ctx.render(<div>ok</div>);
     });
 
-  setBuildCache(
-    app,
-    await ProdBuildCache.fromSnapshot({
-      ...app.config,
-      build: {
-        outDir: "foo",
-      },
-    }, getIslandRegistry(app).size),
-  );
+  app.buildCache = await ProdBuildCache.fromSnapshot({
+    ...app.config,
+    build: { outDir: "foo" },
+  }, app.islandRegistry.size);
 
   const server = new FakeServer(await app.handler());
   const res = await server.get("/");

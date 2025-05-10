@@ -47,27 +47,19 @@ export type ListenOptions =
 
 Deno.serve;
 
-export let getRouter: <State>(app: App<State>) => Router<MiddlewareFn<State>>;
-// deno-lint-ignore no-explicit-any
-export let getIslandRegistry: (app: App<any>) => ServerIslandRegistry;
-// deno-lint-ignore no-explicit-any
-export let getBuildCache: (app: App<any>) => BuildCache | null;
-// deno-lint-ignore no-explicit-any
-export let setBuildCache: (app: App<any>, cache: BuildCache | null) => void;
-
 export class App<State> {
   #router: Router<MiddlewareFn<State>> = new UrlPatternRouter<
     MiddlewareFn<State>
   >();
   #islandRegistry: ServerIslandRegistry = new Map();
-  #buildCache: BuildCache | null = null;
+  buildCache: BuildCache | null = null;
   #islandNames = new Set<string>();
 
-  static {
-    getRouter = (app) => app.#router;
-    getIslandRegistry = (app) => app.#islandRegistry;
-    getBuildCache = (app) => app.#buildCache;
-    setBuildCache = (app, cache) => app.#buildCache = cache;
+  get router(): Router<MiddlewareFn<State>> {
+    return this.#router;
+  }
+  get islandRegistry(): ServerIslandRegistry {
+    return this.#islandRegistry;
   }
 
   /**
@@ -178,15 +170,15 @@ export class App<State> {
   async handler(): Promise<
     (request: Request, info?: Deno.ServeHandlerInfo) => Promise<Response>
   > {
-    if (this.#buildCache === null) {
-      this.#buildCache = await ProdBuildCache.fromSnapshot(
+    if (this.buildCache === null) {
+      this.buildCache = await ProdBuildCache.fromSnapshot(
         this.config,
         this.#islandRegistry.size,
       );
     }
 
     if (
-      !this.#buildCache.hasSnapshot && this.config.mode === "production" &&
+      !this.buildCache.hasSnapshot && this.config.mode === "production" &&
       DENO_DEPLOYMENT_ID !== undefined
     ) {
       return missingBuildHandler;
@@ -216,7 +208,7 @@ export class App<State> {
         this.config,
         next,
         this.#islandRegistry,
-        this.#buildCache!,
+        this.buildCache!,
       );
 
       const span = trace.getActiveSpan();

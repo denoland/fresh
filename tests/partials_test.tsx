@@ -21,7 +21,7 @@ import { FakeServer } from "../src/test_utils.ts";
 import { JsonIsland } from "./fixtures_islands/JsonIsland.tsx";
 import { OptOutPartialLink } from "./fixtures_islands/OptOutPartialLink.tsx";
 import * as path from "@std/path";
-import { getBuildCache, setBuildCache } from "../src/app.ts";
+
 import { retry } from "@std/async/retry";
 
 const loremIpsum = await Deno.readTextFile(
@@ -43,7 +43,7 @@ function testApp<T>(): App<T> {
     .island(optOutPartialLink, "OptOutPartialLink", OptOutPartialLink)
     .use(staticFiles());
 
-  setBuildCache(app, getBuildCache(allIslandApp));
+  app.buildCache = allIslandApp.buildCache;
   return app;
 }
 
