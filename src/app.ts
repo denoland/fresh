@@ -176,7 +176,10 @@ export class App<State> {
   }
 
   async handler(): Promise<
-    (request: Request, info?: Deno.ServeHandlerInfo) => Promise<Response>
+    (
+      request: Request,
+      info?: Deno.ServeHandlerInfo,
+    ) => Response | Promise<Response>
   > {
     if (this.#buildCache === null) {
       this.#buildCache = await ProdBuildCache.fromSnapshot(
@@ -326,8 +329,7 @@ export class App<State> {
   }
 }
 
-// deno-lint-ignore require-await
-const missingBuildHandler = async (): Promise<Response> => {
+function missingBuildHandler() {
   const headers = new Headers();
   headers.set("Content-Type", "text/html; charset=utf-8");
 
@@ -335,4 +337,4 @@ const missingBuildHandler = async (): Promise<Response> => {
     ? renderToString(h(FinishSetup, null))
     : renderToString(h(ForgotBuild, null));
   return new Response(html, { headers, status: 500 });
-};
+}
