@@ -35,25 +35,35 @@ export interface ResolvedFreshConfig {
 }
 
 export function parseRootPath(root: string, cwd: string): string {
-  if (root.startsWith("file://")) {
-    root = path.fromFileUrl(root);
-  } else if (!path.isAbsolute(root)) {
-    root = path.join(cwd, root);
+  return parseDirPath(root, cwd, true);
+}
+
+function parseDirPath(
+  dirPath: string,
+  root: string,
+  fileToDir = false,
+): string {
+  if (dirPath.startsWith("file://")) {
+    dirPath = path.fromFileUrl(dirPath);
+  } else if (!path.isAbsolute(dirPath)) {
+    dirPath = path.join(root, dirPath);
   }
 
-  const ext = path.extname(root);
-  if (
-    ext === ".ts" || ext === ".tsx" || ext === ".js" || ext === ".jsx" ||
-    ext === ".mjs"
-  ) {
-    root = path.dirname(root);
+  if (fileToDir) {
+    const ext = path.extname(dirPath);
+    if (
+      ext === ".ts" || ext === ".tsx" || ext === ".js" || ext === ".jsx" ||
+      ext === ".mjs"
+    ) {
+      dirPath = path.dirname(dirPath);
+    }
   }
 
   if (Deno.build.os === "windows") {
-    root = root.replaceAll("\\", "/");
+    dirPath = dirPath.replaceAll("\\", "/");
   }
 
-  return root;
+  return dirPath;
 }
 
 export function normalizeConfig(options: FreshConfig): ResolvedFreshConfig {
@@ -62,10 +72,10 @@ export function normalizeConfig(options: FreshConfig): ResolvedFreshConfig {
   return {
     root,
     build: {
-      outDir: options.build?.outDir ?? path.join(root, "_fresh"),
+      outDir: parseDirPath(options.build?.outDir ?? "_fresh", root),
     },
     basePath: options.basePath ?? "",
-    staticDir: options.staticDir ?? path.join(root, "static"),
+    staticDir: parseDirPath(options.staticDir ?? "static", root),
     mode: "production",
   };
 }

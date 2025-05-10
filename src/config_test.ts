@@ -1,5 +1,6 @@
 import { expect } from "@std/expect";
 import { normalizeConfig, parseRootPath } from "./config.ts";
+import type { FreshConfig } from "./mod.ts";
 
 Deno.test("parseRootPath", () => {
   const cwd = Deno.cwd().replaceAll("\\", "/");
@@ -44,4 +45,64 @@ Deno.test("normalizeConfig - root", () => {
     expect(configRoot("C:/foo/bar.ts")).toEqual("C:/foo");
     expect(configRoot("file:///C:/foo/bar")).toEqual("C:/foo/bar");
   }
+});
+
+Deno.test("normalizeConfig - build.outDir", () => {
+  const cwd = Deno.cwd().replaceAll("\\", "/");
+  const outDir = (options: FreshConfig) =>
+    normalizeConfig(options).build.outDir;
+
+  // Default outDir
+  expect(outDir({ root: "./src" })).toEqual(`${cwd}/src/_fresh`);
+  expect(outDir({ root: "/src" })).toEqual("/src/_fresh");
+  expect(outDir({ root: "file:///src" })).toEqual("/src/_fresh");
+
+  // Relative outDir
+  expect(outDir({ root: "/src", build: { outDir: "dist" } })).toEqual(
+    "/src/dist",
+  );
+  expect(outDir({ root: "/src", build: { outDir: "./dist" } })).toEqual(
+    "/src/dist",
+  );
+
+  // Absolute outDir
+  expect(outDir({ root: "/src", build: { outDir: "/dist" } })).toEqual(
+    "/dist",
+  );
+  expect(outDir({ root: "/src", build: { outDir: "/dist/fresh" } })).toEqual(
+    "/dist/fresh",
+  );
+  expect(outDir({ root: "/src", build: { outDir: "file:///dist" } })).toEqual(
+    "/dist",
+  );
+});
+
+Deno.test("normalizeConfig - staticDir", () => {
+  const cwd = Deno.cwd().replaceAll("\\", "/");
+  const staticDir = (options: FreshConfig) =>
+    normalizeConfig(options).staticDir;
+
+  // Default staticDir
+  expect(staticDir({ root: "./src" })).toEqual(`${cwd}/src/static`);
+  expect(staticDir({ root: "/src" })).toEqual("/src/static");
+  expect(staticDir({ root: "file:///src" })).toEqual("/src/static");
+
+  // Relative staticDir
+  expect(staticDir({ root: "/src", staticDir: "public" })).toEqual(
+    "/src/public",
+  );
+  expect(staticDir({ root: "/src", staticDir: "./public" })).toEqual(
+    "/src/public",
+  );
+
+  // Absolute staticDir
+  expect(staticDir({ root: "/src", staticDir: "/public" })).toEqual(
+    "/public",
+  );
+  expect(staticDir({ root: "/src", staticDir: "/public/assets" })).toEqual(
+    "/public/assets",
+  );
+  expect(staticDir({ root: "/src", staticDir: "file:///public" })).toEqual(
+    "/public",
+  );
 });
