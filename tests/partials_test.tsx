@@ -188,7 +188,7 @@ Deno.test({
         );
       });
 
-    const server = new FakeServer(await app.handler());
+    const server = new FakeServer(app.handler());
     let checked = false;
     try {
       const res = await server.get("/");
@@ -306,7 +306,7 @@ Deno.test({
       });
 
     await buildProd(app);
-    const server = new FakeServer(await app.handler());
+    const server = new FakeServer(app.handler());
     let checked = false;
     try {
       const res = await server.get("/");
@@ -845,7 +845,7 @@ Deno.test({
         );
       });
 
-    const server = new FakeServer(await app.handler());
+    const server = new FakeServer(app.handler());
     const res = await server.get("/");
     const html = await res.text();
 

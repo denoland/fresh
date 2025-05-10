@@ -35,7 +35,7 @@ async function createServer<T>(
       _fs: createFakeFs(files),
     } as FsRoutesOptions & TESTING_ONLY__FsRoutesOptions,
   );
-  return new FakeServer(await app.handler());
+  return new FakeServer(app.handler());
 }
 
 Deno.test("fsRoutes - throws error when file has no exports", async () => {
