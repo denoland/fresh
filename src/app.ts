@@ -1,6 +1,5 @@
 import * as path from "@std/path";
-import { type ComponentType, h } from "preact";
-import { renderToString } from "preact-render-to-string";
+import type { ComponentType } from "preact";
 import { trace } from "@opentelemetry/api";
 
 import { DENO_DEPLOYMENT_ID } from "./runtime/build_id.ts";
@@ -20,8 +19,7 @@ import {
 } from "./config.ts";
 import { type BuildCache, ProdBuildCache } from "./build_cache.ts";
 import type { ServerIslandRegistry } from "./context.ts";
-import { FinishSetup, ForgotBuild } from "./finish_setup.tsx";
-import { HttpError } from "./error.ts";
+import { HttpError, SetupError } from "./error.ts";
 
 // TODO: Completed type clashes in older Deno versions
 // deno-lint-ignore no-explicit-any
@@ -189,7 +187,10 @@ export class App<State> {
       !this.#buildCache.hasSnapshot && this.config.mode === "production" &&
       DENO_DEPLOYMENT_ID !== undefined
     ) {
-      return missingBuildHandler;
+      const message = DENO_DEPLOYMENT_ID
+        ? '`deno task build` must be run before starting the server. Go to "Settings" in Deno Deploy and set the build command to `deno task build`.'
+        : "`deno task build` must be run before starting the server.";
+      throw new SetupError(message);
     }
 
     return async (
@@ -325,14 +326,3 @@ export class App<State> {
     }
   }
 }
-
-// deno-lint-ignore require-await
-const missingBuildHandler = async (): Promise<Response> => {
-  const headers = new Headers();
-  headers.set("Content-Type", "text/html; charset=utf-8");
-
-  const html = DENO_DEPLOYMENT_ID
-    ? renderToString(h(FinishSetup, null))
-    : renderToString(h(ForgotBuild, null));
-  return new Response(html, { headers, status: 500 });
-};
