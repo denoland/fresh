@@ -18,13 +18,17 @@ const browser = await puppeteer.launch({
 const page = await browser.newPage();
 await page.goto(url, { waitUntil: "networkidle2" });
 const raw = await page.screenshot();
+
 await browser.close();
 
 // convert to jpeg
 const image2x = await Image.decode(raw);
-const jpeg2x = import.meta.resolve(`../static/showcase/${id}2x.jpg`);
+
+const outputDir = new URL("../static/showcase/", import.meta.url);
+
+const jpeg2x = new URL(`${id}2x.jpg`, outputDir).pathname;
 await Deno.writeFile(jpeg2x, await image2x.encodeJPEG(80));
 
-const jpeg1x = import.meta.resolve(`../static/showcase/${id}1x.jpg`);
+const jpeg1x = new URL(`${id}1x.jpg`, outputDir).pathname;
 const image1x = image2x.resize(image2x.width / 2, Image.RESIZE_AUTO);
 await Deno.writeFile(jpeg1x, await image1x.encodeJPEG(80));
