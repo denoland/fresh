@@ -421,5 +421,11 @@
     "link": "https://wtfiscongressdoingnow.us",
     "github": "gibbygano/wtfiscongressdoingnow",
     "image": "wtfcongress"
+  },
+  {
+    "title": "Zhi's Blog",
+    "link": "https://zhi.deno.dev",
+    "github": "SisyphusZheng/me",
+    "image": "zhiblog"
   }
 ]
