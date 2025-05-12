@@ -7,12 +7,7 @@ import { DENO_DEPLOYMENT_ID } from "./runtime/build_id.ts";
 import * as colors from "@std/fmt/colors";
 import { type MiddlewareFn, runMiddlewares } from "./middlewares/mod.ts";
 import { FreshReqContext } from "./context.ts";
-import {
-  mergePaths,
-  type Method,
-  type Router,
-  UrlPatternRouter,
-} from "./router.ts";
+import { type Method, type Router, UrlPatternRouter } from "./router.ts";
 import {
   type FreshConfig,
   normalizeConfig,
@@ -22,6 +17,7 @@ import { type BuildCache, ProdBuildCache } from "./build_cache.ts";
 import type { ServerIslandRegistry } from "./context.ts";
 import { FinishSetup, ForgotBuild } from "./finish_setup.tsx";
 import { HttpError } from "./error.ts";
+import { mergePaths } from "./utils.ts";
 
 // TODO: Completed type clashes in older Deno versions
 // deno-lint-ignore no-explicit-any
@@ -44,8 +40,80 @@ export type ListenOptions =
   & {
     remoteAddress?: string;
   };
+function createOnListen(
+  basePath: string,
+  options: ListenOptions,
+): (localAddr: Deno.NetAddr) => void {
+  return (params) => {
+    // Don't spam logs with this on live deployments
+    if (DENO_DEPLOYMENT_ID) return;
 
-Deno.serve;
+    const pathname = basePath + "/";
+    const protocol = "key" in options && options.key && options.cert
+      ? "https:"
+      : "http:";
+
+    let hostname = params.hostname;
+    // Windows being windows...
+    if (
+      Deno.build.os === "windows" &&
+      (hostname === "0.0.0.0" || hostname === "::")
+    ) {
+      hostname = "localhost";
+    }
+    // Work around https://github.com/denoland/deno/issues/23650
+    hostname = hostname.startsWith("::") ? `[${hostname}]` : hostname;
+
+    // deno-lint-ignore no-console
+    console.log();
+    // deno-lint-ignore no-console
+    console.log(
+      colors.bgRgb8(colors.rgb8(" 🍋 Fresh ready   ", 0), 121),
+    );
+    const sep = options.remoteAddress ? "" : "\n";
+    const space = options.remoteAddress ? " " : "";
+
+    const localLabel = colors.bold("Local:");
+    const address = colors.cyan(
+      `${protocol}//${hostname}:${params.port}${pathname}`,
+    );
+    // deno-lint-ignore no-console
+    console.log(`    ${localLabel}  ${space}${address}${sep}`);
+    if (options.remoteAddress) {
+      const remoteLabel = colors.bold("Remote:");
+      const remoteAddress = colors.cyan(options.remoteAddress);
+      // deno-lint-ignore no-console
+      console.log(`    ${remoteLabel}  ${remoteAddress}\n`);
+    }
+  };
+}
+
+async function listenOnFreePort(
+  options: ListenOptions,
+  handler: (
+    request: Request,
+    info?: Deno.ServeHandlerInfo,
+  ) => Promise<Response>,
+) {
+  // No port specified, check for a free port. Instead of picking just
+  // any port we'll check if the next one is free for UX reasons.
+  // That way the user only needs to increment a number when running
+  // multiple apps vs having to remember completely different ports.
+  let firstError = null;
+  for (let port = 8000; port < 8020; port++) {
+    try {
+      return await Deno.serve({ ...options, port }, handler);
+    } catch (err) {
+      if (err instanceof Deno.errors.AddrInUse) {
+        // Throw first EADDRINUSE error if no port is free
+        if (!firstError) firstError = err;
+        continue;
+      }
+      throw err;
+    }
+  }
+  throw firstError;
+}
 
 export let getRouter: <State>(app: App<State>) => Router<MiddlewareFn<State>>;
 // deno-lint-ignore no-explicit-any
@@ -175,11 +243,12 @@ export class App<State> {
     return this;
   }
 
-  async handler(): Promise<
-    (request: Request, info?: Deno.ServeHandlerInfo) => Promise<Response>
-  > {
+  handler(): (
+    request: Request,
+    info?: Deno.ServeHandlerInfo,
+  ) => Promise<Response> {
     if (this.#buildCache === null) {
-      this.#buildCache = await ProdBuildCache.fromSnapshot(
+      this.#buildCache = ProdBuildCache.fromSnapshot(
         this.config,
         this.#islandRegistry.size,
       );
@@ -248,81 +317,16 @@ export class App<State> {
 
   async listen(options: ListenOptions = {}): Promise<void> {
     if (!options.onListen) {
-      options.onListen = (params) => {
-        const pathname = (this.config.basePath) + "/";
-        const protocol = "key" in options && options.key && options.cert
-          ? "https:"
-          : "http:";
-
-        let hostname = params.hostname;
-        // Windows being windows...
-        if (
-          Deno.build.os === "windows" &&
-          (hostname === "0.0.0.0" || hostname === "::")
-        ) {
-          hostname = "localhost";
-        }
-        // Work around https://github.com/denoland/deno/issues/23650
-        hostname = hostname.startsWith("::") ? `[${hostname}]` : hostname;
-        const address = colors.cyan(
-          `${protocol}//${hostname}:${params.port}${pathname}`,
-        );
-        const localLabel = colors.bold("Local:");
-
-        // Don't spam logs with this on live deployments
-        if (!DENO_DEPLOYMENT_ID) {
-          // deno-lint-ignore no-console
-          console.log();
-          // deno-lint-ignore no-console
-          console.log(
-            colors.bgRgb8(colors.rgb8(" 🍋 Fresh ready   ", 0), 121),
-          );
-          const sep = options.remoteAddress ? "" : "\n";
-          const space = options.remoteAddress ? " " : "";
-          // deno-lint-ignore no-console
-          console.log(`    ${localLabel}  ${space}${address}${sep}`);
-          if (options.remoteAddress) {
-            const remoteLabel = colors.bold("Remote:");
-            const remoteAddress = colors.cyan(options.remoteAddress);
-            // deno-lint-ignore no-console
-            console.log(`    ${remoteLabel}  ${remoteAddress}\n`);
-          }
-        }
-      };
+      options.onListen = createOnListen(this.config.basePath, options);
     }
 
     const handler = await this.handler();
     if (options.port) {
       await Deno.serve(options, handler);
-    } else {
-      // No port specified, check for a free port. Instead of picking just
-      // any port we'll check if the next one is free for UX reasons.
-      // That way the user only needs to increment a number when running
-      // multiple apps vs having to remember completely different ports.
-      let firstError;
-      for (let port = 8000; port < 8020; port++) {
-        try {
-          await Deno.serve({ ...options, port }, handler);
-          firstError = undefined;
-          break;
-        } catch (err) {
-          if (err instanceof Deno.errors.AddrInUse) {
-            // Throw first EADDRINUSE error
-            // if no port is free
-            if (!firstError) {
-              firstError = err;
-            }
-            continue;
-          }
-
-          throw err;
-        }
-      }
-
-      if (firstError) {
-        throw firstError;
-      }
+      return;
     }
+
+    await listenOnFreePort(options, handler);
   }
 }
 
