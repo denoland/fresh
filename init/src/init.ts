@@ -426,10 +426,8 @@ await fsRoutes(app, {
   loadRoute: (path) => import(\`./routes/\${path}\`),
 });
 
-const handler = await app.handler();
-
 export default {
-  fetch: handler,
+  fetch: app.handler(),
 } satisfies Deno.ServeDefaultExport;`;
   await writeFile("main.ts", MAIN_TS);
 
