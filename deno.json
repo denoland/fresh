@@ -45,7 +45,7 @@
     "@std/cli": "jsr:@std/cli@^1.0.17",
     "@std/collections": "jsr:@std/collections@^1.0.11",
     "@std/http": "jsr:@std/http@^1.0.15",
-    "fresh": "jsr:@fresh/core@^2.0.0-alpha.26",
+    "fresh": "jsr:@fresh/core@^2.0.0-alpha.29",
     "preact": "npm:preact@^10.25.1",
     "preact-render-to-string": "npm:preact-render-to-string@^6.5.11",
     "$ga4": "https://raw.githubusercontent.com/denoland/ga4/main/mod.ts",
@@ -80,7 +80,7 @@
 
     "ts-morph": "npm:ts-morph@^22.0.0",
 
-    "@fresh/plugin-tailwind": "./plugin-tailwindcss/src/mod.ts",
+    "@fresh/plugin-tailwind": "jsr:@fresh/plugin-tailwind@^0.0.1-alpha.7",
     "@std/front-matter": "jsr:@std/front-matter@^1.0.5",
     "fresh/compat": "./src/compat/mod.ts",
     "fresh/dev": "./src/dev/mod.ts",
