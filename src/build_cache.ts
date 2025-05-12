@@ -1,5 +1,5 @@
 import * as path from "@std/path";
-import type { ResolvedFreshConfig } from "./config.ts";
+import { getSnapshotPath, type ResolvedFreshConfig } from "./config.ts";
 import { DENO_DEPLOYMENT_ID, setBuildId } from "./runtime/build_id.ts";
 import * as colors from "@std/fmt/colors";
 
@@ -29,15 +29,15 @@ export interface BuildCache {
 }
 
 export class ProdBuildCache implements BuildCache {
-  static async fromSnapshot(config: ResolvedFreshConfig, islandCount: number) {
-    const snapshotPath = path.join(config.build.outDir, "snapshot.json");
+  static fromSnapshot(config: ResolvedFreshConfig, islandCount: number) {
+    const snapshotPath = getSnapshotPath(config);
 
     const staticFiles = new Map<string, FileSnapshot>();
     const islandToChunk = new Map<string, string>();
 
     let hasSnapshot = false;
     try {
-      const content = await Deno.readTextFile(snapshotPath);
+      const content = Deno.readTextFileSync(snapshotPath);
       const snapshot = JSON.parse(content) as BuildSnapshot;
       hasSnapshot = true;
       setBuildId(snapshot.buildId);

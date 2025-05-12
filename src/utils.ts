@@ -1,29 +1,5 @@
 import * as path from "@std/path";
 
-const PERIODS = {
-  year: 365 * 24 * 60 * 60 * 1000,
-  month: 30 * 24 * 60 * 60 * 1000,
-  week: 7 * 24 * 60 * 60 * 1000,
-  day: 24 * 60 * 60 * 1000,
-  hour: 60 * 60 * 1000,
-  minute: 60 * 1000,
-  seconds: 1000,
-};
-
-export function prettyTime(diff: number) {
-  if (diff > PERIODS.day) {
-    return Math.floor(diff / PERIODS.day) + "d";
-  } else if (diff > PERIODS.hour) {
-    return Math.floor(diff / PERIODS.hour) + "h";
-  } else if (diff > PERIODS.minute) {
-    return Math.floor(diff / PERIODS.minute) + "m";
-  } else if (diff > PERIODS.seconds) {
-    return Math.floor(diff / PERIODS.seconds) + "s";
-  }
-
-  return diff + "ms";
-}
-
 export function assertInDir(
   filePath: string,
   dir: string,
@@ -36,4 +12,23 @@ export function assertInDir(
   if (path.relative(dir, tmp).startsWith(".")) {
     throw new Error(`Path "${tmp}" resolved outside of "${dir}"`);
   }
+}
+
+/**
+ * Joins two path segments into a single normalized path.
+ * @example
+ * ```ts
+ * mergePaths("/api", "users");       // "/api/users"
+ * mergePaths("/api/", "/users");     // "/api/users"
+ * mergePaths("/", "/users");         // "/users"
+ * mergePaths("", "/users");          // "/users"
+ * mergePaths("/api", "/users");      // "/api/users"
+ * ```
+ */
+export function mergePaths(a: string, b: string) {
+  if (a === "" || a === "/" || a === "/*") return b;
+  if (b === "/") return a;
+  if (a.endsWith("/")) return a.slice(0, -1) + b;
+  if (!b.startsWith("/")) return a + "/" + b;
+  return a + b;
 }

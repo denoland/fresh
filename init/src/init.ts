@@ -215,6 +215,7 @@ export default {
     await writeFile("tailwind.config.ts", TAILWIND_CONFIG_TS);
   }
 
+  // deno-fmt-ignore
   const GRADIENT_CSS = css`.fresh-gradient {
   background-color: rgb(134, 239, 172);
   background-image: linear-gradient(
@@ -391,19 +392,18 @@ ${GRADIENT_CSS}`;
   <path d="M14.297 16.49c.985-.747 1.644-1.01 2.099-2.526.566.121.841-.08 1.29-.701.324.466 1.657.608 2.453.701-.715.451-1.057.852-1.452 2.106-1.464-.611-3.167-.302-4.39.42Z" fill="#fff"/>
 </svg>`;
   await writeFile("static/logo.svg", STATIC_LOGO);
-
-  try {
-    const res = await fetch("https://fresh.deno.dev/favicon.ico");
-    const buf = await res.arrayBuffer();
-    await writeFile("static/favicon.ico", new Uint8Array(buf));
-  } catch {
-    // Skip this and be silent if there is a network issue.
-  }
+  await writeFile(
+    "static/favicon.ico",
+    await Deno.readFile(
+      new URL(import.meta.resolve("../../www/static/favicon.ico")),
+    ),
+  );
 
   const MAIN_TS = `import { App, fsRoutes, staticFiles } from "fresh";
 import { define, type State } from "./utils.ts";
 
 export const app = new App<State>();
+
 app.use(staticFiles());
 
 // this is the same as the /api/:name route defined via a file. feel free to delete this!
@@ -422,7 +422,6 @@ const exampleLoggerMiddleware = define.middleware((ctx) => {
 app.use(exampleLoggerMiddleware);
 
 await fsRoutes(app, {
-  dir: "./",
   loadIsland: (path) => import(\`./islands/\${path}\`),
   loadRoute: (path) => import(\`./routes/\${path}\`),
 });

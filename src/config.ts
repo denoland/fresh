@@ -1,21 +1,37 @@
 import * as path from "@std/path";
-import type { Mode } from "./runtime/server/mod.ts";
 
 export interface FreshConfig {
+  /**
+   * The root directory of the Fresh project.
+   *
+   * Other paths, such as `build.outDir`, `staticDir`, and `fsRoutes()`
+   * are resolved relative to this directory.
+   * @default Deno.cwd()
+   */
   root?: string;
   build?: {
     /**
      * The directory to write generated files to when `dev.ts build` is run.
+     *
      * This can be an absolute path, a file URL or a relative path.
+     * Relative paths are resolved against the `root` option.
+     * @default "_fresh"
      */
     outDir?: string;
   };
   /**
    * Serve fresh from a base path instead of from the root.
    *   "/foo/bar" -> http://localhost:8000/foo/bar
-   * @default {undefined}
+   * @default undefined
    */
   basePath?: string;
+  /**
+   * The directory to serve static files from.
+   *
+   * This can be an absolute path, a file URL or a relative path.
+   * Relative paths are resolved against the `root` option.
+   * @default "static"
+   */
   staticDir?: string;
 }
 
@@ -30,41 +46,53 @@ export interface ResolvedFreshConfig {
   basePath: string;
   staticDir: string;
   /**
-   * Tells you in which mode Fresh is currently running in.
+   * The mode Fresh can run in.
    */
-  mode: Mode;
+  mode: "development" | "production";
 }
 
 export function parseRootPath(root: string, cwd: string): string {
-  if (root.startsWith("file://")) {
-    root = path.fromFileUrl(root);
-  } else if (!path.isAbsolute(root)) {
-    root = path.join(cwd, root);
+  return parseDirPath(root, cwd, true);
+}
+
+function parseDirPath(
+  dirPath: string,
+  root: string,
+  fileToDir = false,
+): string {
+  if (dirPath.startsWith("file://")) {
+    dirPath = path.fromFileUrl(dirPath);
+  } else if (!path.isAbsolute(dirPath)) {
+    dirPath = path.join(root, dirPath);
   }
 
-  const ext = path.extname(root);
-  if (
-    ext === ".ts" || ext === ".tsx" || ext === ".js" || ext === ".jsx" ||
-    ext === ".mjs"
-  ) {
-    root = path.dirname(root);
+  if (fileToDir) {
+    const ext = path.extname(dirPath);
+    if (
+      ext === ".ts" || ext === ".tsx" || ext === ".js" || ext === ".jsx" ||
+      ext === ".mjs"
+    ) {
+      dirPath = path.dirname(dirPath);
+    }
   }
 
-  return root;
+  if (Deno.build.os === "windows") {
+    dirPath = dirPath.replaceAll("\\", "/");
+  }
+
+  return dirPath;
 }
 
 export function normalizeConfig(options: FreshConfig): ResolvedFreshConfig {
-  const root = options.root
-    ? parseRootPath(options.root, Deno.cwd())
-    : Deno.cwd();
+  const root = parseRootPath(options.root ?? ".", Deno.cwd());
 
   return {
     root,
     build: {
-      outDir: options.build?.outDir ?? path.join(root, "_fresh"),
+      outDir: parseDirPath(options.build?.outDir ?? "_fresh", root),
     },
     basePath: options.basePath ?? "",
-    staticDir: options.staticDir ?? path.join(root, "static"),
+    staticDir: parseDirPath(options.staticDir ?? "static", root),
     mode: "production",
   };
 }
