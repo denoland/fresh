@@ -403,6 +403,7 @@ ${GRADIENT_CSS}`;
 import { define, type State } from "./utils.ts";
 
 export const app = new App<State>();
+
 app.use(staticFiles());
 
 // this is the same as the /api/:name route defined via a file. feel free to delete this!
@@ -421,7 +422,6 @@ const exampleLoggerMiddleware = define.middleware((ctx) => {
 app.use(exampleLoggerMiddleware);
 
 await fsRoutes(app, {
-  dir: "./",
   loadIsland: (path) => import(\`./islands/\${path}\`),
   loadRoute: (path) => import(\`./routes/\${path}\`),
 });
