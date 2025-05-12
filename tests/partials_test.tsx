@@ -188,7 +188,7 @@ Deno.test({
         );
       });
 
-    const server = new FakeServer(await app.handler());
+    const server = new FakeServer(app.handler());
     let checked = false;
     try {
       const res = await server.get("/");
@@ -306,7 +306,7 @@ Deno.test({
       });
 
     await buildProd(app);
-    const server = new FakeServer(await app.handler());
+    const server = new FakeServer(app.handler());
     let checked = false;
     try {
       const res = await server.get("/");
@@ -845,7 +845,7 @@ Deno.test({
         );
       });
 
-    const server = new FakeServer(await app.handler());
+    const server = new FakeServer(app.handler());
     const res = await server.get("/");
     const html = await res.text();
 
@@ -1829,6 +1829,45 @@ Deno.test({
 
       await page.locator(".update").click();
       await page.locator(".done-foo-sub").wait();
+    });
+  },
+});
+
+Deno.test({
+  name: "partials - submit form dialog should do nothing",
+  fn: async () => {
+    const app = testApp()
+      .post("/partial", () => {
+        throw new Error("FAIL");
+      })
+      .get("/", (ctx) => {
+        return ctx.render(
+          <Doc>
+            <div f-client-nav>
+              <dialog open>
+                <p>Greetings, one and all!</p>
+                <form method="dialog">
+                  <Partial name="foo">
+                    <p class="init">init</p>
+                  </Partial>
+                  <SelfCounter />
+                  <button type="submit" class="update">OK</button>
+                </form>
+              </dialog>
+            </div>
+          </Doc>,
+        );
+      });
+
+    await withBrowserApp(app, async (page, address) => {
+      await page.goto(address, { waitUntil: "load" });
+      await page.locator(".ready").wait();
+
+      await page.locator(".increment").click();
+      await waitForText(page, ".output", "1");
+
+      await page.locator(".update").click();
+      await page.locator("dialog:not([open])").wait();
     });
   },
 });

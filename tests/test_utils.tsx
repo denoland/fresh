@@ -93,7 +93,8 @@ export async function withBrowserApp(
     hostname: "localhost",
     port: 0,
     signal: aborter.signal,
-  }, await app.handler());
+    onListen: () => {}, // Don't spam terminal with "Listening on..."
+  }, app.handler());
 
   try {
     await using page = await browser.newPage();

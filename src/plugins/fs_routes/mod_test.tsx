@@ -35,7 +35,7 @@ async function createServer<T>(
       _fs: createFakeFs(files),
     } as FsRoutesOptions & TESTING_ONLY__FsRoutesOptions,
   );
-  return new FakeServer(await app.handler());
+  return new FakeServer(app.handler());
 }
 
 Deno.test("fsRoutes - throws error when file has no exports", async () => {
@@ -1335,4 +1335,27 @@ Deno.test("support numeric keys", async () => {
   const res = await server.get("/");
   const text = await res.text();
   expect(text).toContain("ok");
+});
+
+// Issue https://github.com/denoland/fresh/issues/2802
+Deno.test("support bigint keys", async () => {
+  const TestComponent = () => <div>foo</div>;
+
+  const server = await createServer({
+    "routes/index.tsx": {
+      default: () => {
+        return (
+          <>
+            <TestComponent key={9007199254740991n} />
+            ok
+          </>
+        );
+      },
+    },
+  });
+
+  const res = await server.get("/");
+  const text = await res.text();
+  expect(text).toContain("ok");
+  expect(text).toContain("key:9007199254740991");
 });

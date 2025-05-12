@@ -1,5 +1,5 @@
 import type { AnyComponent } from "preact";
-import type { HandlerByMethod, RouteHandler } from "./handlers.ts";
+import type { HandlerByMethod, HandlerFn, RouteHandler } from "./handlers.ts";
 import type { Middleware } from "./middlewares/mod.ts";
 import type { PageProps } from "./context.ts";
 
@@ -107,7 +107,9 @@ export interface Define<State> {
   page<
     // deno-lint-ignore no-explicit-any
     Handler extends RouteHandler<any, State> = never,
-    Data = Handler extends HandlerByMethod<infer Data, State> ? Data : never,
+    Data = Handler extends HandlerFn<infer Data, State> ? Data
+      : Handler extends HandlerByMethod<infer Data, State> ? Data
+      : never,
   >(render: AnyComponent<PageProps<Data, State>>): typeof render;
 
   /**

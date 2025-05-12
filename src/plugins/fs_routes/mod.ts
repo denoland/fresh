@@ -47,6 +47,12 @@ function isFreshFile<State>(mod: any): mod is FreshFsItem<State> {
 }
 
 export interface FsRoutesOptions {
+  /**
+   * Parent directory for the `/routes` and `/islands` folders.
+   *
+   * By default, the `root` config option of the provided app is used.
+   * @default app.config.root
+   */
   dir?: string;
   ignoreFilePattern?: RegExp[];
   loadRoute: (path: string) => Promise<unknown>;
