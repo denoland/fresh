@@ -1,4 +1,7 @@
 import { App } from "../../../src/app.ts";
+import { Builder } from "../../../src/dev/mod.ts";
+
+const builder = new Builder();
 
 const app = new App({ staticDir: "./static" }).get(
   "/",
@@ -24,6 +27,8 @@ const app = new App({ staticDir: "./static" }).get(
       </html>,
     ),
 );
+
+await builder.build(app);
 
 const handler = app.handler();
 const res = await handler(new Request("http://localhost/"));

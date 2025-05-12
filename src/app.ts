@@ -255,9 +255,9 @@ export class App<State> {
     if (!this.#buildCache.hasSnapshot && this.config.mode === "production") {
       let message =
         "The build cache is not set up. Run `deno task build` before starting the server.";
-      if (DENO_DEPLOYMENT_ID) {
+      if (DENO_DEPLOYMENT_ID !== undefined) {
         message +=
-          'Go to "Settings" in Deno Deploy and set the build command to `deno task build`.';
+          ' Go to "Settings" in Deno Deploy and set the build command to `deno task build`.';
       }
       throw new SetupError(message);
     }
