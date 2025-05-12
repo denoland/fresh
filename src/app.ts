@@ -256,10 +256,9 @@ export class App<State> {
       !this.#buildCache.hasSnapshot && this.config.mode === "production" &&
       DENO_DEPLOYMENT_ID !== undefined
     ) {
-      const message = DENO_DEPLOYMENT_ID
-        ? '`deno task build` must be run before starting the server. Go to "Settings" in Deno Deploy and set the build command to `deno task build`.'
-        : "`deno task build` must be run before starting the server.";
-      throw new SetupError(message);
+      throw new SetupError(
+        '`deno task build` must be run before starting the server. Go to "Settings" in Deno Deploy and set the build command to `deno task build`.',
+      );
     }
 
     return async (
