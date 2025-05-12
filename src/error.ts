@@ -96,15 +96,4 @@ export class HttpError extends Error {
  * }
  * ```
  */
-export class SetupError extends Error {
-  /**
-   * Constructs a new instance.
-   *
-   * @param message The error message.
-   * @param options Optional error options.
-   */
-  constructor(message: string, options?: ErrorOptions) {
-    super(message, options);
-    this.name = this.constructor.name;
-  }
-}
+export class SetupError extends Error {}
