@@ -1,6 +1,7 @@
 import type { FreshContext, FreshReqContext } from "../context.ts";
 import type { App as _App } from "../app.ts";
 import type { Define as _Define } from "../define.ts";
+import type { HttpError } from "../error.ts";
 
 /**
  * A middleware function is the basic building block of Fresh. It allows you
@@ -98,7 +99,7 @@ export function runMiddlewares<State>(
         try {
           return await next(ctx);
         } catch (err) {
-          ctx.error = err;
+          ctx.error = err as HttpError;
           throw err;
         }
       };

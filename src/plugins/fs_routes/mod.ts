@@ -339,7 +339,7 @@ function errorMiddleware<State>(
     try {
       return await ctx.next();
     } catch (err) {
-      (ctx as FreshReqContext<State>).error = err;
+      (ctx as FreshReqContext<State>).error = err as HttpError;
       return mid(ctx);
     }
   };
