@@ -241,11 +241,12 @@ export class App<State> {
     return this;
   }
 
-  async handler(): Promise<
-    (request: Request, info?: Deno.ServeHandlerInfo) => Promise<Response>
-  > {
+  handler(): (
+    request: Request,
+    info?: Deno.ServeHandlerInfo,
+  ) => Promise<Response> {
     if (this.#buildCache === null) {
-      this.#buildCache = await ProdBuildCache.fromSnapshot(
+      this.#buildCache = ProdBuildCache.fromSnapshot(
         this.config,
         this.#islandRegistry.size,
       );
