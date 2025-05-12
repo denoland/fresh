@@ -48,11 +48,6 @@ jobs:
       - name: Type check project
         run: deno task check:types
 
-      # See `tests/test_utils.tsx` where `browser` is defined for details
-      - name: Disable AppArmor
-        if: ${{ matrix.os == 'ubuntu-latest' }}
-        run: echo 0 | sudo tee /proc/sys/kernel/apparmor_restrict_unprivileged_userns
-
       - name: Run tests
         run: deno task test
 

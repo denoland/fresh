@@ -28,21 +28,14 @@ import { NodeProcess } from "./fixtures_islands/NodeProcess.tsx";
 import { FreshAttrs } from "./fixtures_islands/FreshAttrs.tsx";
 import { OptOutPartialLink } from "./fixtures_islands/OptOutPartialLink.tsx";
 
-/**
- * If on Linux, disable `AppArmor` before running tests:
- * ```sh
- * echo 0 | sudo tee /proc/sys/kernel/apparmor_restrict_unprivileged_userns
- * ```
- *
- * @see {@link https://github.com/lino-levan/astral#no-usable-sandbox-with-user-namespace-cloning-enabled}
- */
 const browser = await launch({
-  args: ["--window-size=1280,720"],
+  args: [
+    "--window-size=1280,720",
+    ...((Deno.env.get("CI") && Deno.build.os === "linux")
+      ? ["--no-sandbox"]
+      : []),
+  ],
   headless: true,
-});
-
-addEventListener("unload", async () => {
-  await browser.close();
 });
 
 export function getIsland(pathname: string) {
