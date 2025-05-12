@@ -24,10 +24,7 @@ await browser.close();
 // convert to jpeg
 const image2x = await Image.decode(raw);
 
-const outputDir = new URL("../static/showcase/", import.meta.url);
-
-const jpeg2x = new URL(`${id}2x.jpg`, outputDir).pathname;
-await Deno.writeFile(jpeg2x, await image2x.encodeJPEG(80));
+await Deno.writeFile(`./www/static/showcase/${id}2x.jpg`, await image2x.encodeJPEG(80));
 
 const jpeg1x = new URL(`${id}1x.jpg`, outputDir).pathname;
 const image1x = image2x.resize(image2x.width / 2, Image.RESIZE_AUTO);
