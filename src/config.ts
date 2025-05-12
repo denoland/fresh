@@ -33,6 +33,10 @@ export interface FreshConfig {
    * @default "static"
    */
   staticDir?: string;
+  /**
+   * Server-side cache that stores responses for corresponding GET requests.
+   */
+  cache?: Cache;
 }
 
 /**
@@ -49,6 +53,10 @@ export interface ResolvedFreshConfig {
    * The mode Fresh can run in.
    */
   mode: "development" | "production";
+  /**
+   * Server-side cache that stores responses for corresponding GET requests.
+   */
+  cache?: Cache;
 }
 
 export function parseRootPath(root: string, cwd: string): string {
@@ -94,6 +102,7 @@ export function normalizeConfig(options: FreshConfig): ResolvedFreshConfig {
     basePath: options.basePath ?? "",
     staticDir: parseDirPath(options.staticDir ?? "static", root),
     mode: "production",
+    cache: options.cache,
   };
 }
 
