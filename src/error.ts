@@ -80,20 +80,16 @@ export class HttpError extends Error {
  * `deno task build` not being run before starting the server.
  *
  * @example Basic usage
- * ```ts
+ * ```ts ignore
  * import { App, SetupError } from "fresh";
  * import { expect } from "@std/expect";
  *
  * const app = new App()
  *   .get("/", () => new Response("ok"))
- *   .get("/not-found", () => {
- *     throw new SetupError("App not setup");
- *   });
- *
- * const handler = await app.handler();
  *
  * try {
- *   await handler(new Request("http://localhost/not-found"))
+ *   // Throws if `deno task build` was not run beforehand
+ *   const handler = await app.handler();
  * } catch (error) {
  *   expect(error).toBeInstanceOf(SetupError);
  *   expect(error.message).toBe("App not setup");
