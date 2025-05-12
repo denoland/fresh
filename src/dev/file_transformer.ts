@@ -220,7 +220,7 @@ export class FreshFileTransformer {
   }
 }
 
-const CSS_URL_REGEX = /url\((["'][^'"]+["']|[^)]+)\)/g;
+const CSS_URL_REGEX = /url\(("[^"]+"|'[^']+'|[^)]+)\)/g;
 
 export function cssAssetHash(transformer: FreshFileTransformer) {
   transformer.onTransform({

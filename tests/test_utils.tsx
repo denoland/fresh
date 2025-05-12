@@ -83,7 +83,7 @@ export async function withBrowserApp(
     hostname: "localhost",
     port: 0,
     signal: aborter.signal,
-  }, await app.handler());
+  }, app.handler());
 
   const browser = await launch({
     args: [
