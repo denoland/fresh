@@ -21,8 +21,7 @@
     "@std/path": "jsr:@std/path@1",
     "@std/semver": "jsr:@std/semver@1",
     "@opentelemetry/api": "npm:@opentelemetry/api@^1.9.0",
-    "autoprefixer": "npm:autoprefixer@10.4.17",
-    "cssnano": "npm:cssnano@6.0.3",
+    "cssnano": "npm:cssnano@7.0.7",
     "esbuild": "npm:esbuild@0.23.1",
     "esbuild-wasm": "npm:esbuild-wasm@0.23.1",
     "fresh": "../src/mod.ts",
@@ -32,10 +31,10 @@
     "github-slugger": "npm:github-slugger@^2.0.0",
     "marked": "npm:marked@^14.1.2",
     "marked-mangle": "npm:marked-mangle@^1.1.9",
-    "postcss": "npm:postcss@8.4.35",
+    "postcss": "npm:postcss@^8.5.3",
     "preact": "npm:preact@^10.24.1",
     "preact-render-to-string": "npm:preact-render-to-string@^6.5.11",
     "prismjs": "npm:prismjs@^1.29.0",
-    "tailwindcss": "npm:tailwindcss@^3.4.1"
+    "tailwindcss": "npm:tailwindcss@^4.0.0"
   }
 }
