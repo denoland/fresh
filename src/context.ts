@@ -17,7 +17,6 @@ import {
 import { DEV_ERROR_OVERLAY_URL } from "./constants.ts";
 import { BUILD_ID } from "./runtime/build_id.ts";
 import { tracer } from "./otel.ts";
-import type { HttpError } from "./error.ts";
 
 export interface Island {
   file: string | URL;
@@ -44,7 +43,7 @@ export interface FreshContext<State = unknown> {
    */
   readonly url: URL;
   readonly params: Record<string, string>;
-  readonly error: HttpError | null;
+  readonly error: Error | null;
   readonly info: Deno.ServeHandlerInfo;
   /**
    * Return a redirect response to the specified path. This is the
@@ -97,7 +96,7 @@ export class FreshReqContext<State>
   params: Record<string, string>;
   state: State = {} as State;
   data: unknown = undefined;
-  error: HttpError | null = null;
+  error: Error | null = null;
   info: Deno.ServeHandlerInfo | Deno.ServeHandlerInfo;
 
   next: FreshContext<State>["next"];
