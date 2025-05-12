@@ -219,10 +219,7 @@ document.addEventListener("submit", async (e) => {
     const lowerMethod =
       e.submitter?.getAttribute("formmethod")?.toLowerCase() ??
         el.method.toLowerCase();
-    if (
-      lowerMethod !== "get" && lowerMethod !== "post" &&
-      lowerMethod !== "dialog"
-    ) {
+    if (lowerMethod !== "get" && lowerMethod !== "post") {
       return;
     }
 

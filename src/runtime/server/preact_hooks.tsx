@@ -121,7 +121,7 @@ options[OptionsType.VNODE] = (vnode) => {
   if (typeof vnode.type === "function") {
     if (vnode.type === Partial) {
       const props = vnode.props as PartialProps;
-      const key = normalizeKey(vnode.key ?? "");
+      const key = normalizeKey(vnode.key);
       const mode = !props.mode || props.mode === "replace"
         ? PartialMode.Replace
         : props.mode === "append"
@@ -165,11 +165,10 @@ options[OptionsType.ATTR] = (name, value) => {
 
 const PATCHED = new WeakSet<VNode>();
 
-function normalizeKey(key: string | number) {
-  if (typeof key === "number") {
-    key = key.toString();
-  }
-  return key.replaceAll(":", "_");
+function normalizeKey(key: unknown): string {
+  const value = key ?? "";
+  const s = (typeof value !== "string") ? String(value) : value;
+  return s.replaceAll(":", "_");
 }
 
 const oldDiff = options[OptionsType.DIFF];
@@ -204,7 +203,7 @@ options[OptionsType.DIFF] = (vnode) => {
         if (island === undefined) {
           // Not an island, but we might need to preserve keys
           if (vnode.key !== undefined) {
-            const key = normalizeKey(vnode.key ?? "");
+            const key = normalizeKey(vnode.key);
             const originalType = vnode.type;
             vnode.type = (props) => {
               const child = h(originalType, props);
@@ -241,7 +240,7 @@ options[OptionsType.DIFF] = (vnode) => {
           const child = h(originalType, props);
           PATCHED.add(child);
 
-          const key = normalizeKey(vnode.key ?? "");
+          const key = normalizeKey(vnode.key);
           return wrapWithMarker(
             child,
             "island",
