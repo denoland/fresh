@@ -111,7 +111,7 @@ export class ProdBuildCache implements BuildCache {
       : path.join(base, pathname);
 
     // Check if path resolves outside of intended directory.
-    if (path.relative(base, filePath).startsWith(".")) {
+    if (path.relative(base, filePath).startsWith("..")) {
       return null;
     }
 
