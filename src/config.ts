@@ -80,7 +80,7 @@ export function normalizeConfig(options: FreshConfig): ResolvedFreshConfig {
 
   return {
     root,
-    buildOutDir: parseDirPath(options.build?.outDir ?? "_fresh", root),
+    buildOutDir: parseDirPath(options.buildOutDir ?? "_fresh", root),
     basePath: options.basePath ?? "",
     staticDir: parseDirPath(options.staticDir ?? "static", root),
     mode: "production",

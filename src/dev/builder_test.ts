@@ -104,9 +104,7 @@ Deno.test({
     );
     const app = new App({
       staticDir: tmp,
-      build: {
-        outDir: path.join(tmp, "dist"),
-      },
+      buildOutDir: path.join(tmp, "dist"),
     });
     await builder.build(app);
 
