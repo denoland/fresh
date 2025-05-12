@@ -486,3 +486,18 @@ Deno.test("FreshApp - support setting request init in ctx.render()", async () =>
   expect(res.status).toEqual(416);
   expect(res.headers.get("X-Foo")).toEqual("foo");
 });
+
+Deno.test("FreshApp - throw when middleware returns no response", async () => {
+  const app = new App<{ text: string }>()
+    .get(
+      "/",
+      // deno-lint-ignore no-explicit-any
+      (() => {}) as any,
+    );
+
+  const server = new FakeServer(app.handler());
+  const res = await server.get("/");
+  const text = await res.text();
+  expect(res.status).toEqual(500);
+  expect(text).toContain("Internal server error");
+});
