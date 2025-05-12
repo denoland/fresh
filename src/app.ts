@@ -320,7 +320,7 @@ export class App<State> {
       options.onListen = createOnListen(this.config.basePath, options);
     }
 
-    const handler = await this.handler();
+    const handler = this.handler();
     if (options.port) {
       await Deno.serve(options, handler);
       return;

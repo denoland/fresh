@@ -424,7 +424,7 @@ Deno.test.ignore("FreshApp - finish setup", async () => {
 
   setBuildCache(
     app,
-    await ProdBuildCache.fromSnapshot({
+    ProdBuildCache.fromSnapshot({
       ...app.config,
       build: {
         outDir: "foo",

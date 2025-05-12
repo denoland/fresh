@@ -67,7 +67,7 @@ export async function buildProd(app: App<unknown>) {
   app.config.build.outDir = outDir;
   const builder = new Builder({});
   await builder.build(app);
-  const cache = await ProdBuildCache.fromSnapshot(
+  const cache = ProdBuildCache.fromSnapshot(
     app.config,
     getIslandRegistry(app).size,
   );
