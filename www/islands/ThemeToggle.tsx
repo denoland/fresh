@@ -1,19 +1,15 @@
-import { useState } from "preact/hooks";
 import { IS_BROWSER } from "fresh/runtime";
+import { useSignal } from "@preact/signals";
 
 export default function ThemeToggle() {
-  const [theme, setTheme] = useState(() => {
-    if (!IS_BROWSER) return "light";
-    return document.documentElement.dataset.theme ?? "light";
-  });
+  const theme = useSignal(
+    !IS_BROWSER ? "light" : document.documentElement.dataset.theme ?? "light",
+  );
 
   const toggleTheme = () => {
-    setTheme((prev) => {
-      const theme = prev === "light" ? "dark" : "light";
-      document.documentElement.setAttribute("data-theme", theme);
-      localStorage.setItem("theme", theme);
-      return theme;
-    });
+    theme.value = theme.value === "light" ? "dark" : "light";
+    document.documentElement.setAttribute("data-theme", theme.value);
+    localStorage.setItem("theme", theme.value);
   };
 
   return (
@@ -23,7 +19,7 @@ export default function ThemeToggle() {
       class="dark-mode-toggle button p-1 -m-1"
       aria-label="Toggle Theme"
     >
-      {theme === "light"
+      {theme.value === "light"
         ? (
           <svg
             class="fill-foreground-primary hover:fill-fresh w-6 h-6"
