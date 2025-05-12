@@ -121,25 +121,31 @@ Deno.test("init - with vscode", async () => {
   });
 });
 
-Deno.test("init - fmt, lint, and type check project", async () => {
-  await withTmpDir(async (dir) => {
-    const mock = mockUserInput({
-      [InitStep.ProjectName]: ".",
+Deno.test({
+  name: "init - fmt, lint, and type check project",
+  // Ignore this test on canary due to different formatting
+  // behaviours when the formatter changes.
+  ignore: Deno.version.deno.includes("+"),
+  fn: async () => {
+    await withTmpDir(async (dir) => {
+      const mock = mockUserInput({
+        [InitStep.ProjectName]: ".",
+      });
+      await initProject(dir, [], {}, mock.tty);
+      await expectProjectFile(dir, "main.ts");
+      await expectProjectFile(dir, "dev.ts");
+
+      await patchProject(dir);
+
+      const check = await new Deno.Command(Deno.execPath(), {
+        args: ["task", "check"],
+        cwd: dir,
+        stderr: "inherit",
+        stdout: "inherit",
+      }).output();
+      expect(check.code).toEqual(0);
     });
-    await initProject(dir, [], {}, mock.tty);
-    await expectProjectFile(dir, "main.ts");
-    await expectProjectFile(dir, "dev.ts");
-
-    await patchProject(dir);
-
-    const check = await new Deno.Command(Deno.execPath(), {
-      args: ["task", "check"],
-      cwd: dir,
-      stderr: "inherit",
-      stdout: "inherit",
-    }).output();
-    expect(check.code).toEqual(0);
-  });
+  },
 });
 
 Deno.test("init with tailwind - fmt, lint, and type check project", async () => {

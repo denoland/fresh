@@ -1336,3 +1336,26 @@ Deno.test("support numeric keys", async () => {
   const text = await res.text();
   expect(text).toContain("ok");
 });
+
+// Issue https://github.com/denoland/fresh/issues/2802
+Deno.test("support bigint keys", async () => {
+  const TestComponent = () => <div>foo</div>;
+
+  const server = await createServer({
+    "routes/index.tsx": {
+      default: () => {
+        return (
+          <>
+            <TestComponent key={9007199254740991n} />
+            ok
+          </>
+        );
+      },
+    },
+  });
+
+  const res = await server.get("/");
+  const text = await res.text();
+  expect(text).toContain("ok");
+  expect(text).toContain("key:9007199254740991");
+});
