@@ -296,10 +296,19 @@ export class App<State> {
       }
 
       try {
+        let result: unknown;
         if (handlers.length === 1 && handlers[0].length === 1) {
-          return handlers[0][0](ctx);
+          result = await handlers[0][0](ctx);
+        } else {
+          result = await runMiddlewares(handlers, ctx);
         }
-        return await runMiddlewares(handlers, ctx);
+        if (!(result instanceof Response)) {
+          throw new Error(
+            `Expected a "Response" instance to be returned, but got: ${result}`,
+          );
+        }
+
+        return result;
       } catch (err) {
         if (err instanceof HttpError) {
           if (err.status >= 500) {
