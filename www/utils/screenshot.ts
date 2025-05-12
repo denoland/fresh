@@ -24,7 +24,13 @@ await browser.close();
 // convert to jpeg
 const image2x = await Image.decode(raw);
 
-await Deno.writeFile(`./www/static/showcase/${id}2x.jpg`, await image2x.encodeJPEG(80));
+await Deno.writeFile(
+  `./www/static/showcase/${id}2x.jpg`,
+  await image2x.encodeJPEG(80),
+);
 
 const image1x = image2x.resize(image2x.width / 2, Image.RESIZE_AUTO);
-await Deno.writeFile(`./www/static/showcase/${id}1x.jpg`, await image1x.encodeJPEG(80));
+await Deno.writeFile(
+  `./www/static/showcase/${id}1x.jpg`,
+  await image1x.encodeJPEG(80),
+);
