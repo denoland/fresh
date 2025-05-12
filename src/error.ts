@@ -19,7 +19,7 @@ export type { ErrorStatus };
  *      throw new HttpError(404, "Nothing here");
  *    });
  *
- * const handler = await app.handler();
+ * const handler = app.handler();
  *
  * try {
  *   await handler(new Request("http://localhost/not-found"))
@@ -45,7 +45,7 @@ export class HttpError extends Error {
    *      throw new HttpError(404, "Nothing here");
    *    });
    *
-   * const handler = await app.handler();
+   * const handler = app.handler();
    *
    * try {
    *   await handler(new Request("http://localhost/not-found"))
