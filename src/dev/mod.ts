@@ -1,4 +1,4 @@
-export { Builder, type FreshBuilder } from "./builder.ts";
+export { Builder } from "./builder.ts";
 export {
   type OnTransformArgs,
   type OnTransformOptions,
