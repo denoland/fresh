@@ -72,7 +72,7 @@ export async function fsRoutes<State>(
   const fs = options._fs ?? fsAdapter;
 
   const dir = options.dir
-    ? parseRootPath(options.dir, fs.cwd())
+    ? parseRootPath(options.dir, Deno.cwd())
     : app.config.root;
   const islandDir = path.join(dir, "islands");
   const routesDir = path.join(dir, "routes");

@@ -1,7 +1,6 @@
 import { walk, type WalkEntry, type WalkOptions } from "@std/fs/walk";
 
 export interface FsAdapter {
-  cwd(): string;
   walk(
     root: string | URL,
     options?: WalkOptions,
@@ -12,7 +11,6 @@ export interface FsAdapter {
 
 export const fsAdapter: FsAdapter = {
   walk,
-  cwd: Deno.cwd,
   async isDirectory(path) {
     try {
       const stat = await Deno.stat(path);

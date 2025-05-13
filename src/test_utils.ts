@@ -92,7 +92,6 @@ export function serveMiddleware<T>(
 
 export function createFakeFs(files: Record<string, unknown>): FsAdapter {
   return {
-    cwd: () => ".",
     async *walk(_root) {
       // FIXME: ignore
       for (const file of Object.keys(files)) {
