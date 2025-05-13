@@ -5,7 +5,6 @@ import {
   type ListenOptions,
   setBuildCache,
 } from "../app.ts";
-import { fsAdapter } from "../fs.ts";
 import * as path from "@std/path";
 import * as colors from "@std/fmt/colors";
 import { bundleJs } from "./esbuild.ts";
@@ -44,7 +43,7 @@ export interface FreshBuilder {
 }
 
 export class Builder implements FreshBuilder {
-  #transformer = new FreshFileTransformer(fsAdapter);
+  #transformer = new FreshFileTransformer();
   #addedInternalTransforms = false;
   #options: { target: string | string[] };
 

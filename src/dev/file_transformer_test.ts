@@ -1,27 +1,17 @@
 import { expect } from "@std/expect";
-import type { FsAdapter } from "../fs.ts";
 import {
   FreshFileTransformer,
   type ProcessedFile,
 } from "./file_transformer.ts";
 import { delay } from "../test_utils.ts";
+import { stub } from "@std/testing/mock";
 
-function testTransformer(files: Record<string, string>) {
-  const mockFs: FsAdapter = {
-    cwd: () => "/",
-    isDirectory: () => Promise.resolve(false),
-    mkdirp: () => Promise.resolve(),
-    walk: async function* foo() {
-    },
-    readFile: (file) => {
-      if (file instanceof URL) throw new Error("Not supported");
-      // deno-lint-ignore no-explicit-any
-      const content = (files as any)[file];
-      const buf = new TextEncoder().encode(content);
-      return Promise.resolve(buf);
-    },
-  };
-  return new FreshFileTransformer(mockFs);
+function stubDenoReadFile(content: string) {
+  return stub(Deno, "readFile", () => {
+    return Promise.resolve(
+      new TextEncoder().encode(content) as Uint8Array<ArrayBuffer>,
+    );
+  });
 }
 
 function consumeResult(result: ProcessedFile[]) {
@@ -52,9 +42,8 @@ function consumeResult(result: ProcessedFile[]) {
 }
 
 Deno.test("FileTransformer - transform sync", async () => {
-  const transformer = testTransformer({
-    "foo.txt": "foo",
-  });
+  const transformer = new FreshFileTransformer();
+  using _stub = stubDenoReadFile("foo");
 
   transformer.onTransform({ pluginName: "foo", filter: /.*/ }, (args) => {
     return {
@@ -70,9 +59,8 @@ Deno.test("FileTransformer - transform sync", async () => {
 });
 
 Deno.test("FileTransformer - transform async", async () => {
-  const transformer = testTransformer({
-    "foo.txt": "foo",
-  });
+  const transformer = new FreshFileTransformer();
+  using _stub = stubDenoReadFile("foo");
 
   transformer.onTransform({ pluginName: "foo", filter: /.*/ }, async (args) => {
     await delay(1);
@@ -89,9 +77,8 @@ Deno.test("FileTransformer - transform async", async () => {
 });
 
 Deno.test("FileTransformer - transform return Uint8Array", async () => {
-  const transformer = testTransformer({
-    "foo.txt": "foo",
-  });
+  const transformer = new FreshFileTransformer();
+  using _stub = stubDenoReadFile("foo");
 
   transformer.onTransform({ pluginName: "foo", filter: /.*/ }, () => {
     return {
@@ -107,9 +94,8 @@ Deno.test("FileTransformer - transform return Uint8Array", async () => {
 });
 
 Deno.test("FileTransformer - pass transformed content", async () => {
-  const transformer = testTransformer({
-    "input.txt": "input",
-  });
+  const transformer = new FreshFileTransformer();
+  using _stub = stubDenoReadFile("input");
 
   transformer.onTransform({ pluginName: "A", filter: /.*/ }, (args) => {
     return {
@@ -137,9 +123,8 @@ Deno.test("FileTransformer - pass transformed content", async () => {
 Deno.test(
   "FileTransformer - pass transformed content with multiple",
   async () => {
-    const transformer = testTransformer({
-      "input.txt": "input",
-    });
+    const transformer = new FreshFileTransformer();
+    using _stub = stubDenoReadFile("input");
 
     transformer.onTransform({ pluginName: "A", filter: /.*/ }, (args) => {
       return [{
@@ -167,9 +152,8 @@ Deno.test(
 );
 
 Deno.test("FileTransformer - return multiple results", async () => {
-  const transformer = testTransformer({
-    "foo.txt": "foo",
-  });
+  const transformer = new FreshFileTransformer();
+  using _stub = stubDenoReadFile("foo");
 
   const received: string[] = [];
   transformer.onTransform({ pluginName: "A", filter: /foo\.txt$/ }, () => {
@@ -197,9 +181,8 @@ Deno.test("FileTransformer - return multiple results", async () => {
 Deno.test(
   "FileTransformer - track input files through temporary results",
   async () => {
-    const transformer = testTransformer({
-      "foo.txt": "foo",
-    });
+    const transformer = new FreshFileTransformer();
+    using _stub = stubDenoReadFile("foo");
 
     transformer.onTransform({ pluginName: "A", filter: /foo\.txt$/ }, () => {
       return [{
