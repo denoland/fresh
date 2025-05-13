@@ -7,7 +7,7 @@ import { DENO_DEPLOYMENT_ID } from "./runtime/build_id.ts";
 import * as colors from "@std/fmt/colors";
 import { type MiddlewareFn, runMiddlewares } from "./middlewares/mod.ts";
 import { FreshReqContext } from "./context.ts";
-import { type Method, type Router, UrlPatternRouter } from "./router.ts";
+import { type Method, Router } from "./router.ts";
 import {
   type FreshConfig,
   normalizeConfig,
@@ -124,7 +124,7 @@ export let getBuildCache: (app: App<any>) => BuildCache | null;
 export let setBuildCache: (app: App<any>, cache: BuildCache | null) => void;
 
 export class App<State> {
-  #router: Router<MiddlewareFn<State>> = new UrlPatternRouter<
+  #router: Router<MiddlewareFn<State>> = new Router<
     MiddlewareFn<State>
   >();
   #islandRegistry: ServerIslandRegistry = new Map();
@@ -201,19 +201,19 @@ export class App<State> {
   }
 
   mountApp(path: string, app: App<State>): this {
-    const routes = app.#router._routes;
+    const routes = app.#router.routes;
     app.#islandRegistry.forEach((value, key) => {
       this.#islandRegistry.set(key, value);
     });
 
-    const middlewares = app.#router._middlewares;
+    const middlewares = app.#router.middlewares;
 
     // Special case when user calls one of these:
     // - `app.mountApp("/", otherApp)`
     // - `app.mountApp("/*", otherApp)`
     const isSelf = path === "/*" || path === "/";
     if (isSelf && middlewares.length > 0) {
-      this.#router._middlewares.push(...middlewares);
+      this.#router.middlewares.push(...middlewares);
     }
 
     for (let i = 0; i < routes.length; i++) {

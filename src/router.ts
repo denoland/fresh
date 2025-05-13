@@ -14,26 +14,14 @@ export interface RouteResult<T> {
   pattern: string | null;
 }
 
-export interface Router<T> {
-  _routes: Route<T>[];
-  _middlewares: T[];
-  addMiddleware(fn: T): void;
-  add(
-    method: Method | "ALL",
-    pathname: string | URLPattern,
-    handlers: T[],
-  ): void;
-  match(method: Method, url: URL): RouteResult<T>;
-}
-
 export const IS_PATTERN = /[*:{}+?()]/;
 
-export class UrlPatternRouter<T> implements Router<T> {
-  readonly _routes: Route<T>[] = [];
-  readonly _middlewares: T[] = [];
+export class Router<T> {
+  readonly routes: Route<T>[] = [];
+  readonly middlewares: T[] = [];
 
   addMiddleware(fn: T): void {
-    this._middlewares.push(fn);
+    this.middlewares.push(fn);
   }
 
   add(method: Method | "ALL", pathname: string | URLPattern, handlers: T[]) {
@@ -41,13 +29,13 @@ export class UrlPatternRouter<T> implements Router<T> {
       typeof pathname === "string" && pathname !== "/*" &&
       IS_PATTERN.test(pathname)
     ) {
-      this._routes.push({
+      this.routes.push({
         path: new URLPattern({ pathname }),
         handlers,
         method,
       });
     } else {
-      this._routes.push({
+      this.routes.push({
         path: pathname,
         handlers,
         method,
@@ -64,12 +52,12 @@ export class UrlPatternRouter<T> implements Router<T> {
       pattern: null,
     };
 
-    if (this._middlewares.length > 0) {
-      result.handlers.push(this._middlewares);
+    if (this.middlewares.length > 0) {
+      result.handlers.push(this.middlewares);
     }
 
-    for (let i = 0; i < this._routes.length; i++) {
-      const route = this._routes[i];
+    for (let i = 0; i < this.routes.length; i++) {
+      const route = this.routes[i];
 
       // Fast path for string based routes which are expected
       // to be either wildcard `*` match or an exact pathname match.
