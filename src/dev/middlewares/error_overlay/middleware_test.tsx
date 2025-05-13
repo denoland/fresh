@@ -13,7 +13,7 @@ Deno.test("error overlay - show when error is thrown", async () => {
     throw new Error("fail");
   });
 
-  const server = new FakeServer(app.handler());
+  const server = new FakeServer(app.handler);
   const res = await server.get("/", {
     headers: {
       accept: "text/html",
@@ -36,7 +36,7 @@ Deno.test("error overlay - should not be visible for HttpError <500", async () =
       throw new HttpError(500);
     });
 
-  const server = new FakeServer(app.handler());
+  const server = new FakeServer(app.handler);
   let res = await server.get("/", {
     headers: {
       accept: "text/html",
@@ -74,7 +74,7 @@ Deno.test(
         throw new HttpError(404);
       });
 
-    const server = new FakeServer(app.handler());
+    const server = new FakeServer(app.handler);
     const res = await server.get("/", {
       headers: {
         accept: "text/html",
@@ -94,7 +94,7 @@ Deno.test("error overlay - should not be visible in prod", async () => {
     throw new HttpError(500);
   });
 
-  const server = new FakeServer(app.handler());
+  const server = new FakeServer(app.handler);
   const res = await server.get("/", {
     headers: {
       accept: "text/html",

@@ -84,7 +84,7 @@ export async function withBrowserApp(
     port: 0,
     signal: aborter.signal,
     onListen: () => {}, // Don't spam terminal with "Listening on..."
-  }, app.handler());
+  }, app.handler);
 
   const browser = await launch({
     args: [

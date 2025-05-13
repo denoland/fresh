@@ -3,13 +3,13 @@ import { app } from "./main.ts";
 import { buildProd, withBrowserApp } from "../tests/test_utils.tsx";
 import { expect } from "@std/expect";
 import { retry } from "@std/async/retry";
+import { DEFAULT_CONN_INFO } from "../src/app.ts";
 
 await buildProd(app);
-const handler = app.handler();
 
 Deno.test("CORS should not set on GET /fresh-badge.svg", async () => {
   const req = new Request("http://localhost/fresh-badge.svg");
-  const resp = await handler(req);
+  const resp = await app.handler(req, DEFAULT_CONN_INFO);
   await resp?.body?.cancel();
 
   expect(resp.headers.get("cross-origin-resource-policy")).toEqual(null);

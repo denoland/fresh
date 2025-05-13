@@ -718,7 +718,7 @@ Deno.test({
           </Doc>,
         ));
 
-    const server = new FakeServer(app.handler());
+    const server = new FakeServer(app.handler);
     const res = await server.get("/");
     await res.body?.cancel();
 

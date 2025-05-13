@@ -1,4 +1,5 @@
 import { App } from "../../../src/app.ts";
+import { DEFAULT_CONN_INFO } from "../../../src/app.ts";
 
 const app = new App({ staticDir: "./static" }).get(
   "/",
@@ -25,7 +26,7 @@ const app = new App({ staticDir: "./static" }).get(
     ),
 );
 
-const handler = app.handler();
-const res = await handler(new Request("http://localhost/"));
+const handler = app.handler;
+const res = await handler(new Request("http://localhost/"), DEFAULT_CONN_INFO);
 // deno-lint-ignore no-console
 console.log(await res.text());

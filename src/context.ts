@@ -97,7 +97,7 @@ export class FreshReqContext<State>
   state: State = {} as State;
   data: unknown = undefined;
   error: unknown | null = null;
-  info: Deno.ServeHandlerInfo | Deno.ServeHandlerInfo;
+  info: Deno.ServeHandlerInfo;
 
   next: FreshContext<State>["next"];
 

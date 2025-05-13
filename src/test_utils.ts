@@ -12,38 +12,38 @@ export class FakeServer {
     public handler: (
       req: Request,
       info: Deno.ServeHandlerInfo,
-    ) => Response | Promise<Response>,
+    ) => Promise<Response>,
   ) {}
 
-  async get(path: string, init?: RequestInit): Promise<Response> {
+  get(path: string, init?: RequestInit): Promise<Response> {
     const url = this.toUrl(path);
     const req = new Request(url, init);
-    return await this.handler(req, STUB);
+    return this.handler(req, STUB);
   }
-  async post(path: string, body?: BodyInit): Promise<Response> {
+  post(path: string, body?: BodyInit): Promise<Response> {
     const url = this.toUrl(path);
     const req = new Request(url, { method: "post", body });
-    return await this.handler(req, STUB);
+    return this.handler(req, STUB);
   }
-  async patch(path: string, body?: BodyInit): Promise<Response> {
+  patch(path: string, body?: BodyInit): Promise<Response> {
     const url = this.toUrl(path);
     const req = new Request(url, { method: "patch", body });
-    return await this.handler(req, STUB);
+    return this.handler(req, STUB);
   }
-  async put(path: string, body?: BodyInit): Promise<Response> {
+  put(path: string, body?: BodyInit): Promise<Response> {
     const url = this.toUrl(path);
     const req = new Request(url, { method: "put", body });
-    return await this.handler(req, STUB);
+    return this.handler(req, STUB);
   }
-  async delete(path: string): Promise<Response> {
+  delete(path: string): Promise<Response> {
     const url = this.toUrl(path);
     const req = new Request(url, { method: "delete" });
-    return await this.handler(req, STUB);
+    return this.handler(req, STUB);
   }
-  async head(path: string): Promise<Response> {
+  head(path: string): Promise<Response> {
     const url = this.toUrl(path);
     const req = new Request(url, { method: "head" });
-    return await this.handler(req, STUB);
+    return this.handler(req, STUB);
   }
 
   private toUrl(path: string) {

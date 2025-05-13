@@ -92,7 +92,7 @@ async function listenOnFreePort(
   options: ListenOptions,
   handler: (
     request: Request,
-    info?: Deno.ServeHandlerInfo,
+    info: Deno.ServeHandlerInfo,
   ) => Promise<Response>,
 ) {
   // No port specified, check for a free port. Instead of picking just
@@ -145,6 +145,8 @@ export class App<State> {
 
   constructor(config: FreshConfig = {}) {
     this.config = normalizeConfig(config);
+    // Needed to make `FakeServer` work
+    this.handler = this.handler.bind(this);
   }
 
   island(
@@ -243,85 +245,66 @@ export class App<State> {
     return this;
   }
 
-  handler(): (
+  async handler(
     request: Request,
-    info?: Deno.ServeHandlerInfo,
-  ) => Promise<Response> {
-    if (this.#buildCache === null) {
-      this.#buildCache = ProdBuildCache.fromSnapshot(
-        this.config,
-        this.#islandRegistry.size,
-      );
+    info: Deno.ServeHandlerInfo,
+  ): Promise<Response> {
+    const url = new URL(request.url);
+    // Prevent open redirect attacks
+    url.pathname = url.pathname.replace(/\/+/g, "/");
+
+    const method = request.method.toUpperCase() as Method;
+    const matched = this.#router.match(method, url);
+
+    const next = matched.patternMatch && !matched.methodMatch
+      ? DEFAULT_NOT_ALLOWED_METHOD
+      : DEFAULT_NOT_FOUND;
+
+    const { params, handlers, pattern } = matched;
+    const ctx = new FreshReqContext<State>(
+      request,
+      url,
+      info,
+      params,
+      this.config,
+      next,
+      this.#islandRegistry,
+      this.#buildCache!,
+    );
+
+    const span = trace.getActiveSpan();
+    if (span && pattern) {
+      span.updateName(`${method} ${pattern}`);
+      span.setAttribute("http.route", pattern);
     }
 
-    if (
-      !this.#buildCache.hasSnapshot && this.config.mode === "production" &&
-      DENO_DEPLOYMENT_ID !== undefined
-    ) {
-      return missingBuildHandler;
+    try {
+      let result: unknown;
+      if (handlers.length === 1 && handlers[0].length === 1) {
+        result = await handlers[0][0](ctx);
+      } else {
+        result = await runMiddlewares(handlers, ctx);
+      }
+      if (!(result instanceof Response)) {
+        throw new Error(
+          `Expected a "Response" instance to be returned, but got: ${result}`,
+        );
+      }
+
+      return result;
+    } catch (err) {
+      if (err instanceof HttpError) {
+        if (err.status >= 500) {
+          // deno-lint-ignore no-console
+          console.error(err);
+        }
+        return new Response(err.message, { status: err.status });
+      }
+
+      // deno-lint-ignore no-console
+      console.error(err);
+      return new Response("Internal server error", { status: 500 });
     }
-
-    return async (
-      req: Request,
-      conn: Deno.ServeHandlerInfo = DEFAULT_CONN_INFO,
-    ) => {
-      const url = new URL(req.url);
-      // Prevent open redirect attacks
-      url.pathname = url.pathname.replace(/\/+/g, "/");
-
-      const method = req.method.toUpperCase() as Method;
-      const matched = this.#router.match(method, url);
-
-      const next = matched.patternMatch && !matched.methodMatch
-        ? DEFAULT_NOT_ALLOWED_METHOD
-        : DEFAULT_NOT_FOUND;
-
-      const { params, handlers, pattern } = matched;
-      const ctx = new FreshReqContext<State>(
-        req,
-        url,
-        conn,
-        params,
-        this.config,
-        next,
-        this.#islandRegistry,
-        this.#buildCache!,
-      );
-
-      const span = trace.getActiveSpan();
-      if (span && pattern) {
-        span.updateName(`${method} ${pattern}`);
-        span.setAttribute("http.route", pattern);
-      }
-
-      try {
-        let result: unknown;
-        if (handlers.length === 1 && handlers[0].length === 1) {
-          result = await handlers[0][0](ctx);
-        } else {
-          result = await runMiddlewares(handlers, ctx);
-        }
-        if (!(result instanceof Response)) {
-          throw new Error(
-            `Expected a "Response" instance to be returned, but got: ${result}`,
-          );
-        }
-
-        return result;
-      } catch (err) {
-        if (err instanceof HttpError) {
-          if (err.status >= 500) {
-            // deno-lint-ignore no-console
-            console.error(err);
-          }
-          return new Response(err.message, { status: err.status });
-        }
-
-        // deno-lint-ignore no-console
-        console.error(err);
-        return new Response("Internal server error", { status: 500 });
-      }
-    };
   }
 
   async listen(options: ListenOptions = {}): Promise<void> {
@@ -329,7 +312,19 @@ export class App<State> {
       options.onListen = createOnListen(this.config.basePath, options);
     }
 
-    const handler = await this.handler();
+    if (this.#buildCache === null) {
+      this.#buildCache = ProdBuildCache.fromSnapshot(
+        this.config,
+        this.#islandRegistry.size,
+      );
+    }
+
+    const handler =
+      !this.#buildCache.hasSnapshot && this.config.mode === "production" &&
+        DENO_DEPLOYMENT_ID !== undefined
+        ? missingBuildHandler
+        : this.handler;
+
     if (options.port) {
       await Deno.serve(options, handler);
       return;

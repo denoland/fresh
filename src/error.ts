@@ -17,10 +17,8 @@ import { STATUS_TEXT } from "@std/http/status";
  *      throw new HttpError(404, "Nothing here");
  *    });
  *
- * const handler = app.handler();
- *
  * try {
- *   await handler(new Request("http://localhost/not-found"))
+ *   await app.handler(new Request("http://localhost/not-found"))
  * } catch (error) {
  *   expect(error).toBeInstanceOf(HttpError);
  *   expect(error.status).toBe(404);
@@ -43,10 +41,8 @@ export class HttpError extends Error {
    *      throw new HttpError(404, "Nothing here");
    *    });
    *
-   * const handler = app.handler();
-   *
    * try {
-   *   await handler(new Request("http://localhost/not-found"))
+   *   await app.handler(new Request("http://localhost/not-found"))
    * } catch (error) {
    *   expect(error).toBeInstanceOf(HttpError);
    *   expect(error.status).toBe(404);
