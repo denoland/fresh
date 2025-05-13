@@ -5,7 +5,7 @@ import { getSnapshotPath, type ResolvedFreshConfig } from "../config.ts";
 import type { BuildSnapshot } from "../build_cache.ts";
 import { encodeHex } from "@std/encoding/hex";
 import { crypto } from "@std/crypto";
-import { fsAdapter } from "../fs.ts";
+import { fsAdapter, isDirectory } from "../fs.ts";
 import type { FreshFileTransformer } from "./file_transformer.ts";
 import { assertInDir } from "../utils.ts";
 
@@ -206,7 +206,7 @@ export class DiskBuildCache implements DevBuildCache {
     const staticDir = this.config.staticDir;
     const outDir = this.config.build.outDir;
 
-    if (await fsAdapter.isDirectory(staticDir)) {
+    if (await isDirectory(staticDir)) {
       const entries = fsAdapter.walk(staticDir, {
         includeDirs: false,
         includeFiles: true,

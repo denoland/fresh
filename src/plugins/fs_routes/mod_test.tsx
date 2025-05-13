@@ -20,6 +20,16 @@ async function createServer<T>(
 ): Promise<FakeServer> {
   const app = new App<T>();
   using _stub = stub(Deno, "cwd", () => ".");
+  using _stub2 = stub(
+    Deno,
+    "stat",
+    (dir) =>
+      Promise.resolve({
+        isDirectory: Object.keys(files).some((file) =>
+          file.startsWith(dir + "/")
+        ),
+      } as Deno.FileInfo),
+  );
 
   await fsRoutes(
     app,

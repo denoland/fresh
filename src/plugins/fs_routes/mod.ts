@@ -11,7 +11,7 @@ import {
 } from "./render_middleware.ts";
 import { type Method, pathToPattern } from "../../router.ts";
 import { type HandlerFn, isHandlerByMethod } from "../../handlers.ts";
-import { type FsAdapter, fsAdapter } from "../../fs.ts";
+import { type FsAdapter, fsAdapter, isDirectory } from "../../fs.ts";
 import { HttpError } from "../../error.ts";
 import { parseRootPath } from "../../config.ts";
 import type { FreshReqContext, PageProps } from "../../context.ts";
@@ -374,7 +374,7 @@ async function walkDir(
   ignore: RegExp[],
   fs: FsAdapter,
 ) {
-  if (!await fs.isDirectory(dir)) return;
+  if (!await isDirectory(dir)) return;
 
   const entries = fs.walk(dir, {
     includeDirs: false,

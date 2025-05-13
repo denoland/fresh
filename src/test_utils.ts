@@ -105,10 +105,6 @@ export function createFakeFs(files: Record<string, unknown>): FsAdapter {
         yield entry;
       }
     },
-    // deno-lint-ignore require-await
-    async isDirectory(dir) {
-      return Object.keys(files).some((file) => file.startsWith(dir + "/"));
-    },
     async mkdirp(_dir: string) {
     },
   };
