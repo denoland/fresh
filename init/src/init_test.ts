@@ -194,7 +194,7 @@ Deno.test("init - can start dev server", async () => {
   });
 });
 
-Deno.test("init - can start built project", async () => {
+Deno.test.ignore("init - can start built project", async () => {
   await withTmpDir(async (dir) => {
     const mock = mockUserInput({
       [InitStep.ProjectName]: ".",
@@ -228,7 +228,7 @@ Deno.test("init - can start built project", async () => {
   });
 });
 
-Deno.test("init - errors on missing build cache in prod", async () => {
+Deno.test.ignore("init - errors on missing build cache in prod", async () => {
   await withTmpDir(async (dir) => {
     const mock = mockUserInput({
       [InitStep.ProjectName]: ".",

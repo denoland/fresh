@@ -11,5 +11,5 @@ await fsRoutes(app, {
 });
 
 export default {
-  fetch: app.handler(),
+  fetch: app.handler(false),
 } satisfies Deno.ServeDefaultExport;

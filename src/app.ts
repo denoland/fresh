@@ -243,22 +243,25 @@ export class App<State> {
     return this;
   }
 
-  handler(): (
+  handler(check = true): (
     request: Request,
     info?: Deno.ServeHandlerInfo,
   ) => Promise<Response> {
-    if (this.#buildCache === null) {
-      this.#buildCache = ProdBuildCache.fromSnapshot(
-        this.config,
-        this.#islandRegistry.size,
-      );
-    }
+    if (check) {
+      if (this.#buildCache === null) {
+        this.#buildCache = ProdBuildCache.fromSnapshot(
+          this.config,
+          this.#islandRegistry.size,
+        );
+      }
 
-    if (
-      !this.#buildCache.hasSnapshot && this.config.mode === "production" &&
-      DENO_DEPLOYMENT_ID !== undefined
-    ) {
-      return missingBuildHandler;
+      if (
+        !this.#buildCache?.hasSnapshot &&
+        this.config.mode === "production" &&
+        DENO_DEPLOYMENT_ID !== undefined
+      ) {
+        return missingBuildHandler;
+      }
     }
 
     return async (

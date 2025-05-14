@@ -427,7 +427,7 @@ await fsRoutes(app, {
 });
 
 export default {
-  fetch: app.handler(),
+  fetch: app.handler(false),
 } satisfies Deno.ServeDefaultExport;`;
   await writeFile("main.ts", MAIN_TS);
 
