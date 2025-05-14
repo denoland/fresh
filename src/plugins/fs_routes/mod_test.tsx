@@ -28,6 +28,20 @@ async function createServer<T>(
         ),
       } as Deno.FileInfo),
   );
+  using _denoReadDirStub = stub(
+    Deno,
+    "readDir",
+    async function* () {
+      for (const file of Object.keys(files)) {
+        yield {
+          isDirectory: false,
+          isFile: true,
+          isSymlink: false,
+          name: file,
+        };
+      }
+    },
+  );
 
   await fsRoutes(
     app,
