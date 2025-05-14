@@ -1,7 +1,7 @@
 {
   "version": "5",
   "specifiers": {
-    "jsr:@astral/astral@~0.5.2": "0.5.3",
+    "jsr:@astral/astral@~0.5.3": "0.5.3",
     "jsr:@deno-library/progress@^1.5.1": "1.5.1",
     "jsr:@deno/otel@*": "0.0.2",
     "jsr:@luca/esbuild-deno-loader@0.11": "0.11.1",
@@ -1547,7 +1547,7 @@
   },
   "workspace": {
     "dependencies": [
-      "jsr:@astral/astral@~0.5.2",
+      "jsr:@astral/astral@~0.5.3",
       "jsr:@deno/doc@0.172",
       "jsr:@fresh/core@^2.0.0-alpha.26",
       "jsr:@luca/esbuild-deno-loader@0.11",
