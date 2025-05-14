@@ -72,15 +72,7 @@ export class FreshFileTransformer {
     target: string | string[],
   ): Promise<ProcessedFile[] | null> {
     // Pre-check if we have any transformer for this file at all
-    let hasTransformer = false;
-    for (let i = 0; i < this.#transformers.length; i++) {
-      if (this.#transformers[i].options.filter.test(filePath)) {
-        hasTransformer = true;
-        break;
-      }
-    }
-
-    if (!hasTransformer) {
+    if (!this.#transformers.some((t) => t.options.filter.test(filePath))) {
       return null;
     }
 
@@ -112,9 +104,7 @@ export class FreshFileTransformer {
       seen.add(req.filePath);
 
       let transformed = false;
-      for (let i = 0; i < this.#transformers.length; i++) {
-        const transformer = this.#transformers[i];
-
+      for (const transformer of this.#transformers) {
         const { options, fn } = transformer;
         options.filter.lastIndex = 0;
         if (!options.filter.test(req.filePath)) {
@@ -133,8 +123,7 @@ export class FreshFileTransformer {
 
         if (result !== undefined) {
           if (Array.isArray(result)) {
-            for (let i = 0; i < result.length; i++) {
-              const item = result[i];
+            for (const item of result) {
               if (item.path === undefined) {
                 throw new Error(
                   `The ".path" property must be set when returning multiple files in a transformer. [${transformer.options.pluginName}]`,
