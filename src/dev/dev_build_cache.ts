@@ -5,13 +5,24 @@ import { getSnapshotPath, type ResolvedFreshConfig } from "../config.ts";
 import type { BuildSnapshot } from "../build_cache.ts";
 import { encodeHex } from "@std/encoding/hex";
 import { crypto } from "@std/crypto";
-import { fsAdapter, isDirectory } from "../fs.ts";
 import type { FreshFileTransformer } from "./file_transformer.ts";
 import { assertInDir } from "../utils.ts";
+import { ensureDir } from "@std/fs/ensure-dir";
+import { walk } from "@std/fs/walk";
 
 export interface MemoryFile {
   hash: string | null;
   content: Uint8Array;
+}
+
+async function isDirectory(path: string | URL): Promise<boolean> {
+  try {
+    const stat = await Deno.stat(path);
+    return stat.isDirectory;
+  } catch (err) {
+    if (err instanceof Deno.errors.NotFound) return false;
+    throw err;
+  }
 }
 
 export interface DevBuildCache extends BuildCache {
@@ -193,7 +204,7 @@ export class DiskBuildCache implements DevBuildCache {
     const filePath = path.join(outDir, pathname);
     assertInDir(filePath, outDir);
 
-    await fsAdapter.mkdirp(path.dirname(filePath));
+    await ensureDir(path.dirname(filePath));
     await Deno.writeFile(filePath, content);
   }
 
@@ -207,7 +218,7 @@ export class DiskBuildCache implements DevBuildCache {
     const outDir = this.config.build.outDir;
 
     if (await isDirectory(staticDir)) {
-      const entries = fsAdapter.walk(staticDir, {
+      const entries = walk(staticDir, {
         includeDirs: false,
         includeFiles: true,
         followSymlinks: false,

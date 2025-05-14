@@ -4,10 +4,8 @@ import {
   fsRoutes,
   type FsRoutesOptions,
   sortRoutePaths,
-  type TESTING_ONLY__FsRoutesOptions,
 } from "./mod.ts";
 import { delay, FakeServer } from "../../test_utils.ts";
-import { createFakeFs } from "../../test_utils.ts";
 import { expect } from "@std/expect";
 import { type HandlerByMethod, type HandlerFn, page } from "../../handlers.ts";
 import type { Method } from "../../router.ts";
@@ -44,8 +42,7 @@ async function createServer<T>(
         }
         throw new Error(`Mock FS: file ${full} not found`);
       },
-      _fs: createFakeFs(files),
-    } as FsRoutesOptions & TESTING_ONLY__FsRoutesOptions,
+    } as FsRoutesOptions,
   );
   return new FakeServer(app.handler());
 }
