@@ -1,9 +1,83 @@
+import { MiddlewareFn } from "./middlewares/mod.ts";
+
 export type Method = "HEAD" | "GET" | "POST" | "PATCH" | "PUT" | "DELETE";
 
 export interface Route<T> {
   path: string | URLPattern;
   method: Method | "ALL";
   handlers: T[];
+}
+
+export const enum RouteSegmentType {
+  Segment,
+  Group,
+}
+
+export interface RouteSegment<T> {
+  type: RouteSegmentType;
+  path: string | RegExp;
+  method: Method | "ALL";
+  next: RouteSegment<T>[];
+  middlewares: MiddlewareFn<T>[];
+  error: null;
+  layout: null;
+}
+
+export class SegmentRouter<T> {
+  _routes: Route<T>[] = [];
+  root: RouteSegment<T> = {
+    type: RouteSegmentType.Segment,
+    path: "",
+    error: null,
+    layout: null,
+    method: "ALL",
+    middlewares: [],
+    next: [],
+  };
+
+  _middlewares: T[] = [];
+
+  addMiddleware(fn: T): void {
+    this._middlewares.push(fn);
+  }
+
+  add(
+    method: Method | "ALL",
+    pathname: string | URLPattern,
+    handlers: T[],
+  ): void {
+    // TODO: Ignore URLPattern
+    let pattern = typeof pathname === "string" ? pathname : pathname.pathname;
+
+    if (!pattern.startsWith("/")) {
+      throw new Error(
+        `Route pattern must start with a "/", but got: ${pattern}`,
+      );
+    }
+    if (pattern.endsWith("/")) {
+      pattern += "index";
+    }
+
+    let current: RouteSegment<T> = this.root;
+    for (let i = 0; i < pattern.length; i++) {
+      const ch = pattern[i];
+
+      if (ch === "/") {
+        current.next.push({
+          path: pattern,
+          error: null,
+          layout: null,
+        });
+      }
+    }
+
+    // Walk over segments
+
+    throw new Error("Method not implemented.");
+  }
+  match(method: Method, url: URL): RouteResult<T> {
+    throw new Error("Method not implemented.");
+  }
 }
 
 export interface RouteResult<T> {

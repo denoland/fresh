@@ -1,5 +1,10 @@
 import { expect } from "@std/expect";
-import { IS_PATTERN, pathToPattern, UrlPatternRouter } from "./router.ts";
+import {
+  IS_PATTERN,
+  pathToPattern,
+  SegmentRouter,
+  UrlPatternRouter,
+} from "./router.ts";
 
 Deno.test("IS_PATTERN", () => {
   expect(IS_PATTERN.test("/foo")).toEqual(false);
@@ -9,6 +14,22 @@ Deno.test("IS_PATTERN", () => {
   expect(IS_PATTERN.test("/foo{/bar}?")).toEqual(true);
   expect(IS_PATTERN.test("/foo/(\\d+)")).toEqual(true);
   expect(IS_PATTERN.test("/foo/(a)")).toEqual(true);
+});
+
+Deno.test.only("SegmentRouter", () => {
+  const router = new SegmentRouter();
+  expect(router.root).toEqual([]);
+
+  router.add("GET", "/", []);
+
+  expect(router.root).toEqual([{
+    path: "/",
+    method: "GET",
+    next: [],
+    middlewares: [],
+    error: null,
+    layout: null,
+  }]);
 });
 
 Deno.test("UrlPatternRouter - GET get first match", () => {
