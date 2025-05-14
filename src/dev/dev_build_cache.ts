@@ -88,7 +88,7 @@ export class MemoryBuildCache implements DevBuildCache {
     let entry = pathname.startsWith("/") ? pathname.slice(1) : pathname;
     entry = path.join(this.config.staticDir, entry);
     const relative = path.relative(this.config.staticDir, entry);
-    if (relative.startsWith(".")) {
+    if (relative.startsWith("..")) {
       throw new Error(
         `Processed file resolved outside of static dir ${entry}`,
       );

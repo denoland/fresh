@@ -211,12 +211,10 @@ export async function fsRoutes<State>(
 
       // _app template
       if (skipApp && mod.path === "/_app") {
-        hasApp = false;
         continue;
       } else if (!skipApp && mod.config?.skipAppWrapper) {
         skipApp = true;
         if (hasApp) {
-          hasApp = false;
           // _app component is always first
           components.shift();
         }

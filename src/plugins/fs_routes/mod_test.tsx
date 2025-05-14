@@ -567,6 +567,56 @@ Deno.test("fsRoutes - route overrides _app", async () => {
   expect(doc.body.firstChild?.textContent).toEqual("route");
 });
 
+Deno.test("fsRoutes - route overrides _app does not affect other routes", async () => {
+  const server = await createServer({
+    "routes/_500.tsx": {
+      config: { skipInheritedLayouts: true },
+      default: () => <>error!</>,
+    },
+    "routes/_app.tsx": {
+      default: (ctx) => (
+        <div>
+          app/<ctx.Component />
+        </div>
+      ),
+    },
+    "routes/_layout.tsx": {
+      default: (ctx) => (
+        <>
+          layout/<ctx.Component />
+        </>
+      ),
+    },
+    // By having "bar" come before "foo", this results in a bug
+    // where the app wrapper is missing from "foo".
+    "routes/bar.tsx": {
+      config: {
+        skipAppWrapper: true,
+        skipInheritedLayouts: true,
+      },
+      default: () => <>bar</>,
+    },
+    "routes/index.tsx": { default: () => <>index</> },
+    "routes/foo.tsx": { default: () => <>foo</> },
+  });
+
+  const [indexRes, fooRes, barRes] = await Promise.all([
+    server.get("/"),
+    server.get("/foo"),
+    server.get("/bar"),
+  ]);
+  const [index, foo, bar] = await Promise.all([
+    indexRes.text(),
+    fooRes.text(),
+    barRes.text(),
+  ]);
+  expect(parseHtml(index).body.firstChild?.textContent).toEqual(
+    "app/layout/index",
+  );
+  expect(parseHtml(foo).body.firstChild?.textContent).toEqual("app/layout/foo");
+  expect(parseHtml(bar).body.firstChild?.textContent).toEqual("bar");
+});
+
 Deno.test("fsRoutes - handler return data", async () => {
   const server = await createServer({
     "routes/index.tsx": {
