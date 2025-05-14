@@ -395,7 +395,7 @@ ${GRADIENT_CSS}`;
   await writeFile(
     "static/favicon.ico",
     await Deno.readFile(
-      new URL(import.meta.resolve("../../www/static/favicon.ico")),
+      path.join(import.meta.dirname!, "assets", "favicon.ico"),
     ),
   );
 
