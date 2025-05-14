@@ -5,7 +5,7 @@ import { expect } from "@std/expect";
 import { retry } from "@std/async/retry";
 
 await buildProd(app);
-const handler = app.handler();
+const handler = app.handler(false);
 
 Deno.test("CORS should not set on GET /fresh-badge.svg", async () => {
   const req = new Request("http://localhost/fresh-badge.svg");
