@@ -14,9 +14,7 @@ Deno.test({
       mode: "development",
       basePath: "/",
       staticDir: path.join(tmp, "static"),
-      build: {
-        outDir: path.join(tmp, "dist"),
-      },
+      buildOutDir: path.join(tmp, "dist"),
     };
     const fileTransformer = new FreshFileTransformer(createFakeFs({}));
     const buildCache = new MemoryBuildCache(

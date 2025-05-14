@@ -49,8 +49,7 @@ Deno.test("normalizeConfig - root", () => {
 
 Deno.test("normalizeConfig - build.outDir", () => {
   const cwd = Deno.cwd().replaceAll("\\", "/");
-  const outDir = (options: FreshConfig) =>
-    normalizeConfig(options).build.outDir;
+  const outDir = (options: FreshConfig) => normalizeConfig(options).buildOutDir;
 
   // Default outDir
   expect(outDir({ root: "./src" })).toEqual(`${cwd}/src/_fresh`);
@@ -58,21 +57,21 @@ Deno.test("normalizeConfig - build.outDir", () => {
   expect(outDir({ root: "file:///src" })).toEqual("/src/_fresh");
 
   // Relative outDir
-  expect(outDir({ root: "/src", build: { outDir: "dist" } })).toEqual(
+  expect(outDir({ root: "/src", buildOutDir: "dist" })).toEqual(
     "/src/dist",
   );
-  expect(outDir({ root: "/src", build: { outDir: "./dist" } })).toEqual(
+  expect(outDir({ root: "/src", buildOutDir: "./dist" })).toEqual(
     "/src/dist",
   );
 
   // Absolute outDir
-  expect(outDir({ root: "/src", build: { outDir: "/dist" } })).toEqual(
+  expect(outDir({ root: "/src", buildOutDir: "/dist" })).toEqual(
     "/dist",
   );
-  expect(outDir({ root: "/src", build: { outDir: "/dist/fresh" } })).toEqual(
+  expect(outDir({ root: "/src", buildOutDir: "/dist/fresh" })).toEqual(
     "/dist/fresh",
   );
-  expect(outDir({ root: "/src", build: { outDir: "file:///dist" } })).toEqual(
+  expect(outDir({ root: "/src", buildOutDir: "file:///dist" })).toEqual(
     "/dist",
   );
 });
