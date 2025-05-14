@@ -17,8 +17,8 @@ async function createServer<T>(
   files: Record<string, string | Uint8Array | FreshFsItem<T>>,
 ): Promise<FakeServer> {
   const app = new App<T>();
-  using _stub = stub(Deno, "cwd", () => ".");
-  using _stub2 = stub(
+  using _denoCwdStub = stub(Deno, "cwd", () => ".");
+  using _denoStatStub = stub(
     Deno,
     "stat",
     (dir) =>

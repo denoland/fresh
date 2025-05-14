@@ -43,7 +43,7 @@ function consumeResult(result: ProcessedFile[]) {
 
 Deno.test("FileTransformer - transform sync", async () => {
   const transformer = new FreshFileTransformer();
-  using _stub = stubDenoReadFile("foo");
+  using _denoReadFileStub = stubDenoReadFile("foo");
 
   transformer.onTransform({ pluginName: "foo", filter: /.*/ }, (args) => {
     return {
@@ -60,7 +60,7 @@ Deno.test("FileTransformer - transform sync", async () => {
 
 Deno.test("FileTransformer - transform async", async () => {
   const transformer = new FreshFileTransformer();
-  using _stub = stubDenoReadFile("foo");
+  using _denoReadFileStub = stubDenoReadFile("foo");
 
   transformer.onTransform({ pluginName: "foo", filter: /.*/ }, async (args) => {
     await delay(1);
@@ -78,7 +78,7 @@ Deno.test("FileTransformer - transform async", async () => {
 
 Deno.test("FileTransformer - transform return Uint8Array", async () => {
   const transformer = new FreshFileTransformer();
-  using _stub = stubDenoReadFile("foo");
+  using _denoReadFileStub = stubDenoReadFile("foo");
 
   transformer.onTransform({ pluginName: "foo", filter: /.*/ }, () => {
     return {
@@ -95,7 +95,7 @@ Deno.test("FileTransformer - transform return Uint8Array", async () => {
 
 Deno.test("FileTransformer - pass transformed content", async () => {
   const transformer = new FreshFileTransformer();
-  using _stub = stubDenoReadFile("input");
+  using _denoReadFileStub = stubDenoReadFile("input");
 
   transformer.onTransform({ pluginName: "A", filter: /.*/ }, (args) => {
     return {
@@ -124,7 +124,7 @@ Deno.test(
   "FileTransformer - pass transformed content with multiple",
   async () => {
     const transformer = new FreshFileTransformer();
-    using _stub = stubDenoReadFile("input");
+    using _denoReadFileStub = stubDenoReadFile("input");
 
     transformer.onTransform({ pluginName: "A", filter: /.*/ }, (args) => {
       return [{
@@ -153,7 +153,7 @@ Deno.test(
 
 Deno.test("FileTransformer - return multiple results", async () => {
   const transformer = new FreshFileTransformer();
-  using _stub = stubDenoReadFile("foo");
+  using _denoReadFileStub = stubDenoReadFile("foo");
 
   const received: string[] = [];
   transformer.onTransform({ pluginName: "A", filter: /foo\.txt$/ }, () => {
@@ -182,7 +182,7 @@ Deno.test(
   "FileTransformer - track input files through temporary results",
   async () => {
     const transformer = new FreshFileTransformer();
-    using _stub = stubDenoReadFile("foo");
+    using _denoReadFileStub = stubDenoReadFile("foo");
 
     transformer.onTransform({ pluginName: "A", filter: /foo\.txt$/ }, () => {
       return [{
