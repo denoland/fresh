@@ -19,9 +19,7 @@ Deno.test({
       mode: "production",
       basePath: "/",
       staticDir: path.join(tmp, "static"),
-      build: {
-        outDir: path.join(tmp, "dist"),
-      },
+      buildOutDir: path.join(tmp, "dist"),
     };
     await Deno.mkdir(path.join(tmp, "static", ".well-known"), {
       recursive: true,
