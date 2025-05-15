@@ -258,7 +258,14 @@ export async function fsRoutes<State>(
           ? undefined
           : typeof handlers === "function"
           ? handlers
-          : undefined; // FIXME: Method handler
+          : ((ctx) => {
+            const { method } = ctx.req;
+            const maybeFn = handlers[method as Method];
+            if (maybeFn !== undefined) {
+              return maybeFn(ctx);
+            }
+            return ctx.next();
+          }) as HandlerFn<unknown, State>;
         const errorComponents = components.slice();
         if (mod.component !== null) {
           errorComponents.push(mod.component);
@@ -285,7 +292,14 @@ export async function fsRoutes<State>(
           ? undefined
           : typeof handlers === "function"
           ? handlers
-          : undefined; // FIXME: Method handler
+          : ((ctx) => {
+            const { method } = ctx.req;
+            const maybeFn = handlers[method as Method];
+            if (maybeFn !== undefined) {
+              return maybeFn(ctx);
+            }
+            return ctx.next();
+          }) as HandlerFn<unknown, State>;
         const notFoundComponents = components.slice();
         if (mod.component !== null) {
           notFoundComponents.push(mod.component);
