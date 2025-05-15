@@ -646,6 +646,28 @@ Deno.test("fsRoutes - _404", async () => {
   expect(content).toContain("Custom 404 - Not Found");
 });
 
+Deno.test("fsRoutes - _404 method handler", async () => {
+  const server = await createServer({
+    "routes/_404.tsx": {
+      handlers: {
+        GET() {
+          return new Response("ok");
+        },
+      },
+    },
+    "routes/index.tsx": {
+      handlers: {
+        GET() {
+          return new Response("fail");
+        },
+      },
+    },
+  });
+
+  const res = await server.get("/invalid");
+  expect(await res.text()).toEqual("ok");
+});
+
 Deno.test("fsRoutes - _500", async () => {
   const server = await createServer({
     "routes/_500.tsx": {
@@ -663,6 +685,26 @@ Deno.test("fsRoutes - _500", async () => {
   const res = await server.get("/");
   const content = await res.text();
   expect(content).toContain("Custom Error Page");
+});
+
+Deno.test("fsRoutes - _500 method handler", async () => {
+  const server = await createServer({
+    "routes/_500.tsx": {
+      handlers: {
+        GET() {
+          return new Response("ok");
+        },
+      },
+    },
+    "routes/index.tsx": {
+      handlers: () => {
+        throw new Error("fail");
+      },
+    },
+  });
+
+  const res = await server.get("/");
+  expect(await res.text()).toEqual("ok");
 });
 
 Deno.test("fsRoutes - _error", async () => {
@@ -727,6 +769,26 @@ Deno.test("fsRoutes - _error nested throw", async () => {
   });
 
   const res = await server.get("/foo");
+  expect(await res.text()).toEqual("ok");
+});
+
+Deno.test("fsRoutes - _error method handler", async () => {
+  const server = await createServer({
+    "routes/_error.tsx": {
+      handlers: {
+        GET() {
+          return new Response("ok");
+        },
+      },
+    },
+    "routes/index.tsx": {
+      handlers: () => {
+        throw new Error("fail");
+      },
+    },
+  });
+
+  const res = await server.get("/");
   expect(await res.text()).toEqual("ok");
 });
 
