@@ -219,6 +219,10 @@ export async function fsRoutes<State>(
           middlewares.push(...(mod.handlers as MiddlewareFn<State>[]));
         } else if (typeof mod.handlers === "function") {
           middlewares.push(mod.handlers as MiddlewareFn<State>);
+        } else if (isHandlerByMethod(mod.handlers)) {
+          warnInvalidRoute(
+            "Middleware does not support object handlers with GET, POST, etc.",
+          );
         }
       }
 
@@ -236,6 +240,8 @@ export async function fsRoutes<State>(
       // _layouts
       if (skipLayouts && mod.path.endsWith("/_layout")) {
         continue;
+      } else if (mod.handlers !== null && mod.path.endsWith("/_layout")) {
+        warnInvalidRoute("Layout does not support handlers");
       } else if (!skipLayouts && mod.config?.skipInheritedLayouts) {
         const first = components.length > 0 ? components[0] : null;
         components = [];
@@ -366,6 +372,14 @@ function notFoundMiddleware<State>(
       throw err;
     }
   };
+}
+
+function warnInvalidRoute(message: string) {
+  // deno-lint-ignore no-console
+  console.warn(
+    `🍋 %c[WARNING] Unsupported route config: ${message}`,
+    "color:rgb(251, 184, 0)",
+  );
 }
 
 async function walkDir(
