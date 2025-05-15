@@ -24,7 +24,10 @@ interface InternalRoute<State> {
   base: string;
   filePath: string;
   config: RouteConfig | null;
-  handlers: RouteHandler<unknown, State> | null;
+  handlers:
+    | RouteHandler<unknown, State>[]
+    | RouteHandler<unknown, State>
+    | null;
   component: AnyComponent<PageProps<unknown, State>> | null;
 }
 
@@ -212,10 +215,10 @@ export async function fsRoutes<State>(
     for (let k = 0; k < stack.length; k++) {
       const mod = stack[k];
       if (mod.path.endsWith("/_middleware")) {
-        if (mod.handlers !== null && !isHandlerByMethod(mod.handlers)) {
+        if (Array.isArray(mod.handlers)) {
+          middlewares.push(...(mod.handlers as MiddlewareFn<State>[]));
+        } else if (typeof mod.handlers === "function") {
           middlewares.push(mod.handlers as MiddlewareFn<State>);
-        } else if (Array.isArray(mod.handlers)) {
-          middlewares.push(...mod.handlers);
         }
       }
 
@@ -296,8 +299,7 @@ export async function fsRoutes<State>(
 
     if (routeMod.component !== null) {
       components.push(routeMod.component);
-      const missingGetHandler = handlers !== null &&
-        isHandlerByMethod(handlers) &&
+      const missingGetHandler = isHandlerByMethod(handlers) &&
         !Object.keys(handlers).includes("GET");
       if (missingGetHandler) {
         const combined = middlewares.concat(
