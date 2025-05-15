@@ -260,9 +260,11 @@ export async function fsRoutes<State>(
           ? handlers
           : ((ctx) => {
             const { method } = ctx.req;
-            const maybeFn = handlers[method as Method];
-            if (maybeFn !== undefined) {
-              return maybeFn(ctx);
+            if (!Array.isArray(handlers)) {
+              const maybeFn = handlers[method as Method];
+              if (maybeFn !== undefined) {
+                return maybeFn(ctx);
+              }
             }
             return ctx.next();
           }) as HandlerFn<unknown, State>;
@@ -294,9 +296,11 @@ export async function fsRoutes<State>(
           ? handlers
           : ((ctx) => {
             const { method } = ctx.req;
-            const maybeFn = handlers[method as Method];
-            if (maybeFn !== undefined) {
-              return maybeFn(ctx);
+            if (!Array.isArray(handlers)) {
+              const maybeFn = handlers[method as Method];
+              if (maybeFn !== undefined) {
+                return maybeFn(ctx);
+              }
             }
             return ctx.next();
           }) as HandlerFn<unknown, State>;
