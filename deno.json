@@ -13,7 +13,8 @@
     ".": "./src/mod.ts",
     "./runtime": "./src/runtime/shared.ts",
     "./dev": "./src/dev/mod.ts",
-    "./compat": "./src/compat/mod.ts"
+    "./compat": "./src/compat/mod.ts",
+    "./lint-plugin": "./src/lint_plugin.ts"
   },
   "tasks": {
     "test": "deno test -A --parallel",
@@ -79,6 +80,7 @@
     "jsxPrecompileSkipElements": ["a", "img", "source", "body", "html", "head"]
   },
   "lint": {
+    "plugins": ["./src/lint_plugin.ts"],
     "rules": {
       "exclude": ["no-window"],
       "include": ["no-console"]
