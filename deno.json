@@ -80,6 +80,7 @@
   },
   "lint": {
     "rules": {
+      "tags": ["recommended", "fresh", "jsr", "jsx", "react"],
       "exclude": ["no-window"],
       "include": ["no-console"]
     }

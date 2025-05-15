@@ -128,6 +128,7 @@ export function TableOfContents({ headings }: TableOfContentsProps) {
                           <a
                             href={`#${heading.id}`}
                             class="block truncatetext-gray-600"
+                            // deno-lint-ignore react-no-danger
                             dangerouslySetInnerHTML={{ __html: heading.html }}
                           />
                         </li>
@@ -166,6 +167,7 @@ export function TableOfContents({ headings }: TableOfContentsProps) {
                                 heading.id,
                               );
                             }}
+                            // deno-lint-ignore react-no-danger
                             dangerouslySetInnerHTML={{ __html: heading.html }}
                           />
                         </li>
