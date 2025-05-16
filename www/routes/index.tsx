@@ -76,10 +76,9 @@ function HelloBar() {
   return (
     <a
       class="bg-gradient-to-r from-blue-200 to-yellow-200 via-green-300 text-black border-b border-green-400 p-4 text-center group"
-      href="https://deno.com/blog/fresh-1.6"
+      href="https://deno.com/blog/an-update-on-fresh"
     >
-      <b>Fresh v1.6</b> has been released with <b>Tailwind CSS</b>,{" "}
-      <b>better Plugin API</b> and more{" "}
+      News about <b>the upcoming Fresh 2</b>
       <span class="group-hover:underline">→</span>
     </a>
   );
