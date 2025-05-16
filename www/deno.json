@@ -35,7 +35,7 @@
     "marked": "npm:marked@^14.1.2",
     "marked-mangle": "npm:marked-mangle@^1.1.9",
     "postcss": "npm:postcss@8.4.35",
-    "preact": "npm:preact@^10.24.1",
+    "preact": "npm:preact@^10.26.6",
     "preact-render-to-string": "npm:preact-render-to-string@^6.5.11",
     "prismjs": "npm:prismjs@^1.29.0",
     "tailwindcss": "npm:tailwindcss@^3.4.1"
