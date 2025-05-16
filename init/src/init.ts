@@ -225,7 +225,7 @@ export default {
     rgb(254, 249, 195)
   );
 }`;
-
+  // deno-fmt-ignore
   const NO_TAILWIND_STYLES = css`*,
 *::before,
 *::after {
@@ -376,6 +376,7 @@ html {
 
 ${GRADIENT_CSS}`;
 
+  // deno-fmt-ignore
   const TAILWIND_CSS = css`@tailwind base;
 @tailwind components;
 @tailwind utilities;
