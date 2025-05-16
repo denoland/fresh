@@ -8,27 +8,27 @@ complicated setup that runs once, before the server is started. This is,
 fortunately, quite easy. Here's how. Modify your `fresh.config.ts` like this:
 
 ```diff fresh.config.ts
- import twindConfig from "./twind.config.ts";
+ import tailwindConfig from "./tailwind.config.ts";
 +import { Context } from "./routes/_middleware.ts";
 +
 +await Context.init();
 
  export default defineConfig({
-   plugins: [twindPlugin(twindConfig)],
+   plugins: [tailwind(tailwindConfig)],
 ```
 
 So your full `fresh.config.ts` should look like this:
 
 ```ts fresh.config.ts
 import { defineConfig } from "$fresh/server.ts";
-import twindPlugin from "$fresh/plugins/twind.ts";
-import twindConfig from "./twind.config.ts";
+import tailwind from "$fresh/plugins/tailwind.ts";
+import tailwindConfig from "./tailwind.config.ts";
 import { Context } from "./routes/_middleware.ts";
 
 await Context.init();
 
 export default defineConfig({
-  plugins: [twindPlugin(twindConfig)],
+  plugins: [tailwind(tailwindConfig)],
 });
 ```
 

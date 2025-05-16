@@ -80,7 +80,6 @@ const toc: RawTableOfContents = {
             "Changing the source directory",
             "link:latest",
           ],
-          ["using-twind-v1", "Using Twind v1", "link:latest"],
           ["init-the-server", "Initializing the server", "link:latest"],
           [
             "using-fresh-canary-version",
@@ -155,7 +154,6 @@ const toc: RawTableOfContents = {
           ["modifying-the-head", "Modifying the <head>"],
           ["writing-tests", "Writing tests"],
           ["changing-the-src-dir", "Changing the source directory"],
-          ["using-twind-v1", "Using Twind v1"],
           ["init-the-server", "Initializing the server"],
           ["using-fresh-canary-version", "Using Fresh canary version"],
           ["dealing-with-cors", "Dealing with CORS"],
