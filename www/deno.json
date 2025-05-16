@@ -8,7 +8,7 @@
     "$ga4": "https://raw.githubusercontent.com/denoland/ga4/main/mod.ts",
     "@fresh/plugin-tailwind": "../plugin-tailwindcss/src/mod.ts",
     "@luca/esbuild-deno-loader": "jsr:@luca/esbuild-deno-loader@^0.11.0",
-    "@preact/signals": "npm:@preact/signals@^1.3.0",
+    "@preact/signals": "npm:@preact/signals@^2.0.4",
     "@std/crypto": "jsr:@std/crypto@1",
     "@std/datetime": "jsr:@std/datetime@0.225.0",
     "@std/encoding": "jsr:@std/encoding@1",
