@@ -131,7 +131,10 @@ export function ErrorOverlay(props: { url: URL }) {
   return (
     <>
       <div class="frsh-error-page">
-        <style dangerouslySetInnerHTML={{ __html: errorCss }} />
+        <style
+          // deno-lint-ignore react-no-danger
+          dangerouslySetInnerHTML={{ __html: errorCss }}
+        />
         <div class="inner">
           <div class="header">
             <button
@@ -163,6 +166,7 @@ export function ErrorOverlay(props: { url: URL }) {
         </div>
       </div>
       <script
+        // deno-lint-ignore react-no-danger
         dangerouslySetInnerHTML={{
           __html:
             `document.querySelector("#close-btn").addEventListener("click", () => parent.postMessage("close-error-overlay"));`,

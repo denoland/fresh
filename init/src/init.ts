@@ -2,10 +2,10 @@ import * as colors from "@std/fmt/colors";
 import * as path from "@std/path";
 
 // Keep these as is, as we replace these version in our release script
-const FRESH_VERSION = "2.0.0-alpha.29";
+const FRESH_VERSION = "2.0.0-alpha.33";
 const FRESH_TAILWIND_VERSION = "0.0.1-alpha.7";
-const PREACT_VERSION = "10.25.4";
-const PREACT_SIGNALS_VERSION = "2.0.1";
+const PREACT_VERSION = "10.26.6";
+const PREACT_SIGNALS_VERSION = "2.0.4";
 
 export const enum InitStep {
   ProjectName = "ProjectName",
@@ -392,12 +392,14 @@ ${GRADIENT_CSS}`;
   <path d="M14.297 16.49c.985-.747 1.644-1.01 2.099-2.526.566.121.841-.08 1.29-.701.324.466 1.657.608 2.453.701-.715.451-1.057.852-1.452 2.106-1.464-.611-3.167-.302-4.39.42Z" fill="#fff"/>
 </svg>`;
   await writeFile("static/logo.svg", STATIC_LOGO);
-  await writeFile(
-    "static/favicon.ico",
-    await Deno.readFile(
-      new URL(import.meta.resolve("../../www/static/favicon.ico")),
-    ),
-  );
+
+  try {
+    const res = await fetch("https://fresh.deno.dev/favicon.ico");
+    const buf = await res.arrayBuffer();
+    await writeFile("static/favicon.ico", new Uint8Array(buf));
+  } catch {
+    // Skip this and be silent if there is a network issue.
+  }
 
   const MAIN_TS = `import { App, fsRoutes, staticFiles } from "fresh";
 import { define, type State } from "./utils.ts";
@@ -601,7 +603,8 @@ Started" guide here: https://fresh.deno.dev/docs/getting-started
 
 ### Usage
 
-Make sure to install Deno: https://deno.land/manual/getting_started/installation
+Make sure to install Deno:
+https://docs.deno.com/runtime/getting_started/installation
 
 Then start the project in development mode:
 

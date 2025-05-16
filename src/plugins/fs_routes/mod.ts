@@ -23,7 +23,10 @@ interface InternalRoute<State> {
   base: string;
   filePath: string;
   config: RouteConfig | null;
-  handlers: RouteHandler<unknown, State> | null;
+  handlers:
+    | RouteHandler<unknown, State>[]
+    | RouteHandler<unknown, State>
+    | null;
   component: AnyComponent<PageProps<unknown, State>> | null;
 }
 
@@ -202,10 +205,14 @@ export async function fsRoutes<State>(
     for (let k = 0; k < stack.length; k++) {
       const mod = stack[k];
       if (mod.path.endsWith("/_middleware")) {
-        if (mod.handlers !== null && !isHandlerByMethod(mod.handlers)) {
+        if (Array.isArray(mod.handlers)) {
+          middlewares.push(...(mod.handlers as MiddlewareFn<State>[]));
+        } else if (typeof mod.handlers === "function") {
           middlewares.push(mod.handlers as MiddlewareFn<State>);
-        } else if (Array.isArray(mod.handlers)) {
-          middlewares.push(...mod.handlers);
+        } else if (isHandlerByMethod(mod.handlers)) {
+          warnInvalidRoute(
+            "Middleware does not support object handlers with GET, POST, etc.",
+          );
         }
       }
 
@@ -223,6 +230,8 @@ export async function fsRoutes<State>(
       // _layouts
       if (skipLayouts && mod.path.endsWith("/_layout")) {
         continue;
+      } else if (mod.handlers !== null && mod.path.endsWith("/_layout")) {
+        warnInvalidRoute("Layout does not support handlers");
       } else if (!skipLayouts && mod.config?.skipInheritedLayouts) {
         const first = components.length > 0 ? components[0] : null;
         components = [];
@@ -239,7 +248,16 @@ export async function fsRoutes<State>(
           ? undefined
           : typeof handlers === "function"
           ? handlers
-          : undefined; // FIXME: Method handler
+          : ((ctx) => {
+            const { method } = ctx.req;
+            if (!Array.isArray(handlers)) {
+              const maybeFn = handlers[method as Method];
+              if (maybeFn !== undefined) {
+                return maybeFn(ctx);
+              }
+            }
+            return ctx.next();
+          }) as HandlerFn<unknown, State>;
         const errorComponents = components.slice();
         if (mod.component !== null) {
           errorComponents.push(mod.component);
@@ -266,7 +284,16 @@ export async function fsRoutes<State>(
           ? undefined
           : typeof handlers === "function"
           ? handlers
-          : undefined; // FIXME: Method handler
+          : ((ctx) => {
+            const { method } = ctx.req;
+            if (!Array.isArray(handlers)) {
+              const maybeFn = handlers[method as Method];
+              if (maybeFn !== undefined) {
+                return maybeFn(ctx);
+              }
+            }
+            return ctx.next();
+          }) as HandlerFn<unknown, State>;
         const notFoundComponents = components.slice();
         if (mod.component !== null) {
           notFoundComponents.push(mod.component);
@@ -286,8 +313,7 @@ export async function fsRoutes<State>(
 
     if (routeMod.component !== null) {
       components.push(routeMod.component);
-      const missingGetHandler = handlers !== null &&
-        isHandlerByMethod(handlers) &&
+      const missingGetHandler = isHandlerByMethod(handlers) &&
         !Object.keys(handlers).includes("GET");
       if (missingGetHandler) {
         const combined = middlewares.concat(
@@ -354,6 +380,14 @@ function notFoundMiddleware<State>(
       throw err;
     }
   };
+}
+
+function warnInvalidRoute(message: string) {
+  // deno-lint-ignore no-console
+  console.warn(
+    `🍋 %c[WARNING] Unsupported route config: ${message}`,
+    "color:rgb(251, 184, 0)",
+  );
 }
 
 const APP_REG = /_app(?!\.[tj]sx?)?$/;
