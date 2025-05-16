@@ -151,6 +151,29 @@ function updateVersions(content: string): string {
   return replaced;
 }
 
+function replaceDepVersion(
+  registry: "jsr" | "npm",
+  name: string,
+  version: string,
+) {
+  return (content: string) => {
+    return content.replace(
+      new RegExp(`"${name}":\\s"[^"]+"`),
+      `"${name}": "${registry}:${name}@^${version}"`,
+    );
+  };
+}
+
+// Update preact + @preact/signals version
+await replaceInFile(
+  denoJsonPath,
+  replaceDepVersion("npm", "preact", preactVersion),
+);
+await replaceInFile(
+  denoJsonPath,
+  replaceDepVersion("npm", "@preact/signals", preactSignalsVersion),
+);
+
 const updateScriptPath = path.join(ROOT_DIR, "update", "src", "update.ts");
 await replaceInFile(updateScriptPath, updateVersions);
 
