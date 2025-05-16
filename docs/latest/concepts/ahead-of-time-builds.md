@@ -74,11 +74,11 @@ that both the `dev.ts` and `main.ts` script have access to them.
 
 ```ts fresh.config.ts
 import { defineConfig } from "$fresh/server.ts";
-import tailwind from "$fresh/plugins/tailwind.ts";
-import tailwindConfig from "./tailwind.config.ts";
+import twindPlugin from "$fresh/plugins/twind.ts";
+import twindConfig from "./twind.config.ts";
 
 export default defineConfig({
-  plugins: [tailwind(tailwindConfig)],
+  plugins: [twindPlugin(twindConfig)],
 });
 ```
 

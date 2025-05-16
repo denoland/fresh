@@ -72,7 +72,6 @@ const toc: RawTableOfContents = {
         link: "latest",
         pages: [
           ["migration-guide", "Migration Guide", "link:canary"],
-          ["migrating-to-tailwind", "Migrating to Tailwind", "link:latest"],
           ["modifying-the-head", "Modifying the <head>", "link:latest"],
           ["writing-tests", "Writing tests", "link:latest"],
           [
@@ -81,11 +80,6 @@ const toc: RawTableOfContents = {
             "link:latest",
           ],
           ["init-the-server", "Initializing the server", "link:latest"],
-          [
-            "using-fresh-canary-version",
-            "Using Fresh canary version",
-            "link:latest",
-          ],
           ["dealing-with-cors", "Dealing with CORS", "link:latest"],
           ["creating-a-crud-api", "Creating a CRUD API", "link:latest"],
           ["handling-complex-routes", "Handling complex routes", "link:latest"],
@@ -154,6 +148,7 @@ const toc: RawTableOfContents = {
           ["modifying-the-head", "Modifying the <head>"],
           ["writing-tests", "Writing tests"],
           ["changing-the-src-dir", "Changing the source directory"],
+          ["using-twind-v1", "Using Twind v1"],
           ["init-the-server", "Initializing the server"],
           ["using-fresh-canary-version", "Using Fresh canary version"],
           ["dealing-with-cors", "Dealing with CORS"],

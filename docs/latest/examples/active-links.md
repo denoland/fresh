@@ -31,10 +31,12 @@ a[aria-current="true"] {
 }
 ```
 
-## Tailwind
+## Tailwind / Twind
 
-In Tailwind CSS, you can apply styles to elements with the ﻿aria-current attribute 
-using bracket notation in your class definitions:
+In Tailwind or similar CSS frameworks like Twind, you can apply styles to
+elements with the ﻿aria-current attribute using bracket notation in your class
+definitions. However, the specific syntax varies slightly between Tailwind and
+Twind. For Tailwind, use the syntax:
 
 ```tsx
 function Menu() {
@@ -46,7 +48,31 @@ function Menu() {
 }
 ```
 
-You can also target specific values:
+For Twind, the syntax is:
+
+```tsx
+function Menu() {
+  return (
+    <a href="/foo" class="[aria-current]:text-green-600">
+      Link to some page
+    </a>
+  );
+}
+```
+
+### Twind Plugin
+
+The original twind plugin (`import twindPlugin from "$fresh/plugins/twind.ts";`)
+supports the above style:
+
+```tsx
+class="[aria-current='page']:text-green-600"
+```
+
+### TwindV1 Plugin
+
+The new twind plugin (`import twindPlugin from "$fresh/plugins/twindv1.ts";`)
+requires a slightly different syntax (note the position of the left bracket):
 
 ```tsx
 class="aria-[current='page']:text-green-600"

@@ -15,22 +15,32 @@ you'll end up with a `main.ts` like the following:
 
 import { start } from "$fresh/server.ts";
 import manifest from "./fresh.gen.ts";
-import config from "./fresh.config.ts";
 
-await start(manifest, config);
+import twindPlugin from "$fresh/plugins/twind.ts";
+import twindConfig from "./twind.config.ts";
+
+await start(manifest, { plugins: [twindPlugin(twindConfig)] });
 ```
 
 This is a great start if your site is in English, but let's say you want to
 change the language, as per the `<html lang=asdf>` tag. Then you'll need to do
-something like this in your `fresh.config.ts`:
+something like this:
 
-```ts fresh.config.ts
-import { defineConfig } from "$fresh/server.ts";
-import tailwind from "$fresh/plugins/tailwind.ts";
-import tailwindConfig from "./tailwind.config.ts";
+```ts main.ts
+/// <reference no-default-lib="true" />
+/// <reference lib="dom" />
+/// <reference lib="dom.iterable" />
+/// <reference lib="dom.asynciterable" />
+/// <reference lib="deno.ns" />
 
-export default defineConfig({
-  plugins: [tailwind(tailwindConfig)],
+import { start } from "$fresh/server.ts";
+import manifest from "./fresh.gen.ts";
+
+import twindPlugin from "$fresh/plugins/twind.ts";
+import twindConfig from "./twind.config.ts";
+
+await start(manifest, {
+  plugins: [twindPlugin(twindConfig)],
   render: (ctx, render) => {
     ctx.lang = "de";
     render();

@@ -12,6 +12,8 @@ released.
 
 Some plugins also have their own dependencies that can be updated independently.
 
+- Twind (https://esm.sh/twind) (for the twind plugin)
+
 For the most part these pieces can be updated independently. Certain versions of
 Fresh may require a minimum version of a given dependency. This is documented
 below.
@@ -65,6 +67,9 @@ Fresh 1.0.2 to 1.1.3, and update Preact to the latest version:
 
 -     "preact-render-to-string": "https://esm.sh/*preact-render-to-string@5.2.0",
 +     "preact-render-to-string": "https://esm.sh/*preact-render-to-string@6.1.0",
+
+      "twind": "https://esm.sh/twind@0.16.17",
+      "twind/": "https://esm.sh/twind@0.16.17/"
     }
   }
 ```
