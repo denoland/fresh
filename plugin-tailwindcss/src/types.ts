@@ -41,4 +41,5 @@ export interface AutoprefixerOptions {
 
 export interface TailwindPluginOptions {
   autoprefixer?: AutoprefixerOptions;
+  excludePaths?: string[];
 }
