@@ -159,3 +159,53 @@ Deno.test({
   sanitizeOps: false,
   sanitizeResources: false,
 });
+
+Deno.test({
+  name: "Builder - exclude files",
+  fn: async () => {
+    const logs: string[] = [];
+    const builder = new Builder();
+
+    // String
+    builder.onTransformStaticFile(
+      { pluginName: "A", filter: /\.css$/, exclude: ["foo.css"] },
+      (args) => {
+        logs.push(`A: ${path.basename(args.path)}`);
+      },
+    );
+
+    // Regex
+    builder.onTransformStaticFile(
+      { pluginName: "B", filter: /\.css$/, exclude: [/foo\.css$/] },
+      (args) => {
+        logs.push(`B: ${path.basename(args.path)}`);
+      },
+    );
+
+    // Glob
+    builder.onTransformStaticFile(
+      { pluginName: "C", filter: /\.css$/, exclude: ["**/foo.css"] },
+      (args) => {
+        logs.push(`C: ${path.basename(args.path)}`);
+      },
+    );
+
+    const tmp = await Deno.makeTempDir();
+    await Deno.writeTextFile(path.join(tmp, "foo.css"), "body { color: red; }");
+    await Deno.writeTextFile(
+      path.join(tmp, "bar.css"),
+      "body { color: blue; }",
+    );
+    const app = new App({
+      staticDir: tmp,
+      build: {
+        outDir: path.join(tmp, "dist"),
+      },
+    });
+    await builder.build(app);
+
+    expect(logs).toEqual(["A: bar.css", "B: bar.css", "C: bar.css"]);
+  },
+  sanitizeOps: false,
+  sanitizeResources: false,
+});

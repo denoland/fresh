@@ -52,6 +52,7 @@ export async function bundleJs(
     minify: !options.dev,
     logOverride: {
       "suspicious-nullish-coalescing": "silent",
+      "unsupported-jsx-comment": "silent",
     },
 
     jsxDev: options.dev,

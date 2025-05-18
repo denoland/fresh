@@ -17,6 +17,8 @@ jobs:
 
       - name: Install Deno
         uses: denoland/setup-deno@v2
+        with:
+          cache: true
 
       - name: Publish Fresh
         run: deno publish

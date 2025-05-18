@@ -8,7 +8,8 @@ import {
 } from "./mod.ts";
 import { delay, FakeServer } from "../../test_utils.ts";
 import { createFakeFs } from "../../test_utils.ts";
-import { expect } from "@std/expect";
+import { expect, fn } from "@std/expect";
+import { stub } from "@std/testing/mock";
 import { type HandlerByMethod, type HandlerFn, page } from "../../handlers.ts";
 import type { Method } from "../../router.ts";
 import { parseHtml } from "../../../tests/test_utils.tsx";
@@ -645,6 +646,28 @@ Deno.test("fsRoutes - _404", async () => {
   expect(content).toContain("Custom 404 - Not Found");
 });
 
+Deno.test("fsRoutes - _404 method handler", async () => {
+  const server = await createServer({
+    "routes/_404.tsx": {
+      handlers: {
+        GET() {
+          return new Response("ok");
+        },
+      },
+    },
+    "routes/index.tsx": {
+      handlers: {
+        GET() {
+          return new Response("fail");
+        },
+      },
+    },
+  });
+
+  const res = await server.get("/invalid");
+  expect(await res.text()).toEqual("ok");
+});
+
 Deno.test("fsRoutes - _500", async () => {
   const server = await createServer({
     "routes/_500.tsx": {
@@ -662,6 +685,26 @@ Deno.test("fsRoutes - _500", async () => {
   const res = await server.get("/");
   const content = await res.text();
   expect(content).toContain("Custom Error Page");
+});
+
+Deno.test("fsRoutes - _500 method handler", async () => {
+  const server = await createServer({
+    "routes/_500.tsx": {
+      handlers: {
+        GET() {
+          return new Response("ok");
+        },
+      },
+    },
+    "routes/index.tsx": {
+      handlers: () => {
+        throw new Error("fail");
+      },
+    },
+  });
+
+  const res = await server.get("/");
+  expect(await res.text()).toEqual("ok");
 });
 
 Deno.test("fsRoutes - _error", async () => {
@@ -726,6 +769,26 @@ Deno.test("fsRoutes - _error nested throw", async () => {
   });
 
   const res = await server.get("/foo");
+  expect(await res.text()).toEqual("ok");
+});
+
+Deno.test("fsRoutes - _error method handler", async () => {
+  const server = await createServer({
+    "routes/_error.tsx": {
+      handlers: {
+        GET() {
+          return new Response("ok");
+        },
+      },
+    },
+    "routes/index.tsx": {
+      handlers: () => {
+        throw new Error("fail");
+      },
+    },
+  });
+
+  const res = await server.get("/");
   expect(await res.text()).toEqual("ok");
 });
 
@@ -1408,4 +1471,45 @@ Deno.test("support bigint keys", async () => {
   const text = await res.text();
   expect(text).toContain("ok");
   expect(text).toContain("key:9007199254740991");
+});
+
+Deno.test("fsRoutes - warn on _middleware with object handler", async () => {
+  // deno-lint-ignore no-explicit-any
+  using warnSpy = stub(console, "warn", fn(() => {}) as any);
+  const server = await createServer({
+    "routes/_middleware.ts": { handler: { GET: () => new Response("ok") } },
+    "routes/index.ts": { handler: () => new Response("ok") },
+  });
+
+  await server.get("/");
+
+  expect(warnSpy.fake).toHaveBeenCalledTimes(1);
+  expect(warnSpy.fake).toHaveBeenLastCalledWith(
+    "🍋 %c[WARNING] Unsupported route config: Middleware does not support object handlers with GET, POST, etc.",
+    expect.any(String),
+  );
+});
+
+Deno.test("fsRoutes - warn on _layout handler", async () => {
+  // deno-lint-ignore no-explicit-any
+  using warnSpy = stub(console, "warn", fn(() => {}) as any);
+  const server = await createServer({
+    "routes/_layout.ts": {
+      handler: () => new Response("ok"),
+      default: (ctx) => (
+        <div>
+          <ctx.Component />
+        </div>
+      ),
+    },
+    "routes/index.ts": { default: () => <>ok</> },
+  });
+
+  await server.get("/");
+
+  expect(warnSpy.fake).toHaveBeenCalledTimes(1);
+  expect(warnSpy.fake).toHaveBeenLastCalledWith(
+    "🍋 %c[WARNING] Unsupported route config: Layout does not support handlers",
+    expect.any(String),
+  );
 });

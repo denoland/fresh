@@ -7,7 +7,7 @@
     "./www"
   ],
   "name": "@fresh/core",
-  "version": "2.0.0-alpha.29",
+  "version": "2.0.0-alpha.34",
   "license": "MIT",
   "exports": {
     ".": "./src/mod.ts",
@@ -16,12 +16,12 @@
     "./compat": "./src/compat/mod.ts"
   },
   "tasks": {
-    "test": "deno test -A --parallel src/ init/ update/ && deno test -A tests/ www/main_test.ts",
+    "test": "deno test -A --parallel",
     "fixture": "deno run -A --watch=static/,routes/ tests/fixture/dev.ts",
     "www": "deno task --cwd=www start",
     "build-www": "deno task --cwd=www build",
     "screenshot": "deno run -A www/utils/screenshot.ts",
-    "check:types": "deno check src/**/*.ts src/**/*.tsx tests/**/*.ts tests/**/*.tsx update/**/*.ts plugin-tailwindcss/**/*.ts init/**/*.ts",
+    "check:types": "deno check --allow-import",
     "check:docs": "deno run -A tools/check_docs.ts",
     "ok": "deno fmt --check && deno lint && deno task check:types && deno task test",
     "test:www": "deno test -A www/main_test.*",
@@ -45,12 +45,12 @@
     "@std/collections": "jsr:@std/collections@^1.0.11",
     "@std/http": "jsr:@std/http@^1.0.15",
     "fresh": "jsr:@fresh/core@^2.0.0-alpha.26",
-    "preact": "npm:preact@^10.25.1",
+    "preact": "npm:preact@^10.26.6",
     "preact-render-to-string": "npm:preact-render-to-string@^6.5.11",
     "$ga4": "https://raw.githubusercontent.com/denoland/ga4/main/mod.ts",
     "@luca/esbuild-deno-loader": "jsr:@luca/esbuild-deno-loader@^0.11.0",
     "@opentelemetry/api": "npm:@opentelemetry/api@^1.9.0",
-    "@preact/signals": "npm:@preact/signals@^1.2.3",
+    "@preact/signals": "npm:@preact/signals@^2.0.4",
     "esbuild": "npm:esbuild@0.23.1",
     "esbuild-wasm": "npm:esbuild-wasm@0.23.1",
     "@std/crypto": "jsr:@std/crypto@1",
@@ -80,6 +80,7 @@
   },
   "lint": {
     "rules": {
+      "tags": ["recommended", "fresh", "jsr", "jsx", "react"],
       "exclude": ["no-window"],
       "include": ["no-console"]
     }

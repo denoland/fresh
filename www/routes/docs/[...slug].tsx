@@ -204,6 +204,7 @@ export default define.page<typeof handler>(function DocsPage(props) {
                   </h1>
                   <div
                     class="markdown-body mb-8"
+                    // deno-lint-ignore react-no-danger
                     dangerouslySetInnerHTML={{ __html: html }}
                   />
 
