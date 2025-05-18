@@ -452,6 +452,7 @@ function FreshRuntimeScript() {
       <script
         id={`__FRSH_STATE_${partialId}`}
         type="application/json"
+        // deno-lint-ignore react-no-danger
         dangerouslySetInnerHTML={{ __html: JSON.stringify(json) }}
       />
     );
@@ -486,6 +487,7 @@ function FreshRuntimeScript() {
         <script
           type="module"
           nonce={nonce}
+          // deno-lint-ignore react-no-danger
           dangerouslySetInnerHTML={{
             __html: scriptContent,
           }}
