@@ -1,7 +1,7 @@
 import { expect } from "@std/expect";
 import { initProject, InitStep, type MockTTY } from "./init.ts";
 import * as path from "@std/path";
-import { getStdOutput, withBrowser } from "../../tests/test_utils.tsx";
+import { withBrowser } from "../../tests/test_utils.tsx";
 import { waitForText } from "../../tests/test_utils.tsx";
 import { withChildProcessServer } from "../../tests/test_utils.tsx";
 
@@ -245,9 +245,12 @@ Deno.test("init - errors on missing build cache in prod", async () => {
       stdout: "piped",
       stderr: "piped",
       cwd: dir,
+      env: {
+        NO_COLOR: "true",
+      },
     }).output();
 
-    const { stderr } = getStdOutput(cp);
+    const stderr = new TextDecoder().decode(cp.stderr);
     expect(cp.code).toEqual(1);
 
     expect(stderr).toMatch(/Found 1 islands, but did not/);
