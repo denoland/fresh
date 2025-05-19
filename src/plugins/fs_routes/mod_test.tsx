@@ -3,6 +3,7 @@ import {
   type FreshFsItem,
   fsRoutes,
   type FsRoutesOptions,
+  internals,
   sortRoutePaths,
 } from "./mod.ts";
 import { delay, FakeServer } from "../../test_utils.ts";
@@ -28,13 +29,17 @@ async function createServer<T>(
         ),
       } as Deno.FileInfo),
   );
-  // Just for `islandPaths` to return an empty array. Might need to be updated
-  // if more logic is added that uses `Array.fromAsync`.
-  using _arrayFromAsyncStub = stub(
-    Array,
-    "fromAsync",
-    () => Promise.resolve([]),
-  );
+  using _walkStub = stub(internals, "walk", async function* () {
+    for (const file of Object.keys(files)) {
+      yield {
+        isDirectory: false,
+        isFile: true,
+        isSymlink: false,
+        name: file,
+        path: file,
+      };
+    }
+  });
 
   await fsRoutes(
     app,

@@ -39,6 +39,19 @@ export interface FreshFsItem<State> {
     | AsyncAnyComponent<PageProps<unknown, State>>;
 }
 
+// For stubbing
+export const internals = { walk };
+
+async function isDirectory(path: string | URL): Promise<boolean> {
+  try {
+    const stat = await Deno.stat(path);
+    return stat.isDirectory;
+  } catch (err) {
+    if (err instanceof Deno.errors.NotFound) return false;
+    throw err;
+  }
+}
+
 // deno-lint-ignore no-explicit-any
 function isFreshFile<State>(mod: any): mod is FreshFsItem<State> {
   return mod !== null && typeof mod === "object" &&
@@ -73,38 +86,42 @@ export async function fsRoutes<State>(
   const islandDir = path.join(dir, "islands");
   const routesDir = path.join(dir, "routes");
 
-  const islandPaths = await Array.fromAsync(
-    walk(islandDir, {
-      includeDirs: false,
-      exts: ["tsx", "jsx", "ts", "js"],
-      skip,
-    }),
-    (entry) => entry.path,
-  );
+  const islandPaths = await isDirectory(islandDir)
+    ? await Array.fromAsync(
+      internals.walk(islandDir, {
+        includeDirs: false,
+        exts: ["tsx", "jsx", "ts", "js"],
+        skip,
+      }),
+      (entry) => entry.path,
+    )
+    : [];
 
   const relRoutePaths: string[] = [];
-  for await (
-    const entry of walk(routesDir, {
-      includeDirs: false,
-      exts: ["tsx", "jsx", "ts", "js"],
-      skip,
-    })
-  ) {
-    const relative = path.relative(routesDir, entry.path);
+  if (await isDirectory(routesDir)) {
+    for await (
+      const entry of internals.walk(routesDir, {
+        includeDirs: false,
+        exts: ["tsx", "jsx", "ts", "js"],
+        skip,
+      })
+    ) {
+      const relative = path.relative(routesDir, entry.path);
 
-    // A `(_islands)` path segment is a local island folder.
-    // Any route path segment wrapped in `(_...)` is ignored
-    // during route collection.
-    const match = relative.match(GROUP_REG);
-    if (match && match[2][0] === "_") {
-      if (match[2] === "_islands") {
-        islandPaths.push(entry.path);
+      // A `(_islands)` path segment is a local island folder.
+      // Any route path segment wrapped in `(_...)` is ignored
+      // during route collection.
+      const match = relative.match(GROUP_REG);
+      if (match && match[2][0] === "_") {
+        if (match[2] === "_islands") {
+          islandPaths.push(entry.path);
+        }
+        return;
       }
-      return;
-    }
 
-    const url = new URL(relative, "http://localhost/");
-    relRoutePaths.push(url.pathname.slice(1));
+      const url = new URL(relative, "http://localhost/");
+      relRoutePaths.push(url.pathname.slice(1));
+    }
   }
 
   await Promise.all(islandPaths.map(async (islandPath) => {
