@@ -16,4 +16,3 @@ export interface TailwindPluginOptions {
    */
   // deno-lint-ignore no-explicit-any
   cssnanoOptions?: Record<string, any>;
-}

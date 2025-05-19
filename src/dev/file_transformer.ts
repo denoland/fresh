@@ -1,3 +1,4 @@
+import { globToRegExp, isGlob } from "@std/path";
 import type { FsAdapter } from "../fs.ts";
 import { BUILD_ID } from "../runtime/build_id.ts";
 import { assetInternal } from "../runtime/shared_internal.tsx";
@@ -7,6 +8,7 @@ export type TransformMode = "development" | "production";
 export interface OnTransformOptions {
   pluginName: string;
   filter: RegExp;
+  exclude?: Array<string | RegExp>;
 }
 
 export interface OnTransformResult {
@@ -112,13 +114,32 @@ export class FreshFileTransformer {
       seen.add(req.filePath);
 
       let transformed = false;
-      for (let i = 0; i < this.#transformers.length; i++) {
+      outer: for (let i = 0; i < this.#transformers.length; i++) {
         const transformer = this.#transformers[i];
 
         const { options, fn } = transformer;
         options.filter.lastIndex = 0;
         if (!options.filter.test(req.filePath)) {
           continue;
+        }
+
+        // Check if file is excluded
+        if (options.exclude !== undefined) {
+          for (let j = 0; j < options.exclude.length; j++) {
+            const exclude = options.exclude[j];
+            if (exclude instanceof RegExp) {
+              if (exclude.test(filePath)) {
+                continue outer;
+              }
+            } else if (isGlob(exclude)) {
+              const regex = globToRegExp(exclude);
+              if (regex.test(filePath)) {
+                continue outer;
+              }
+            } else if (filePath.includes(exclude)) {
+              continue outer;
+            }
+          }
         }
 
         const result = await fn({
@@ -220,7 +241,7 @@ export class FreshFileTransformer {
   }
 }
 
-const CSS_URL_REGEX = /url\((["'][^'"]+["']|[^)]+)\)/g;
+const CSS_URL_REGEX = /url\(("[^"]+"|'[^']+'|[^)]+)\)/g;
 
 export function cssAssetHash(transformer: FreshFileTransformer) {
   transformer.onTransform({

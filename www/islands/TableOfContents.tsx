@@ -1,5 +1,6 @@
-import { useEffect, useRef, useState } from "preact/hooks";
+import { useEffect, useRef } from "preact/hooks";
 import type { MarkdownHeading } from "../utils/markdown.ts";
+import { useSignal } from "@preact/signals";
 
 export interface TableOfContentsProps {
   headings: MarkdownHeading[];
@@ -33,7 +34,7 @@ function setActiveLink(
 export function TableOfContents({ headings }: TableOfContentsProps) {
   const ref = useRef<HTMLDivElement>(null);
   const refMarker = useRef<HTMLDivElement>(null);
-  const [isOpen, setIsOpen] = useState(false);
+  const isOpen = useSignal(false);
 
   useEffect(() => {
     if (!ref.current) return;
@@ -105,7 +106,7 @@ export function TableOfContents({ headings }: TableOfContentsProps) {
             <button
               type="button"
               id="toc-outline-btn"
-              onClick={() => setIsOpen((v) => !v)}
+              onClick={() => isOpen.value = !isOpen.value}
               class="bg-background-primary py-2 px-4 rounded border border-foreground-secondary/30 flex items-center hover:border-fresh-green/80 transition-colors text-sm"
             >
               On this page
@@ -127,6 +128,7 @@ export function TableOfContents({ headings }: TableOfContentsProps) {
                           <a
                             href={`#${heading.id}`}
                             class="block truncatetext-gray-600"
+                            // deno-lint-ignore react-no-danger
                             dangerouslySetInnerHTML={{ __html: heading.html }}
                           />
                         </li>
@@ -165,6 +167,7 @@ export function TableOfContents({ headings }: TableOfContentsProps) {
                                 heading.id,
                               );
                             }}
+                            // deno-lint-ignore react-no-danger
                             dangerouslySetInnerHTML={{ __html: heading.html }}
                           />
                         </li>

@@ -25,6 +25,7 @@ if (Deno.args.length === 0) {
 
 const ROOT_DIR = path.join(import.meta.dirname!, "..");
 const denoJsonPath = path.join(ROOT_DIR, "deno.json");
+const wwwDenoJsonPath = path.join(ROOT_DIR, "www", "deno.json");
 const denoJson = JSON.parse(await Deno.readTextFile(denoJsonPath)) as DenoJson;
 
 const version = Deno.args[0];
@@ -150,6 +151,37 @@ function updateVersions(content: string): string {
 
   return replaced;
 }
+
+function replaceDepVersion(
+  registry: "jsr" | "npm",
+  name: string,
+  version: string,
+) {
+  return (content: string) => {
+    return content.replace(
+      new RegExp(`"${name}":\\s"[^"]+"`),
+      `"${name}": "${registry}:${name}@^${version}"`,
+    );
+  };
+}
+
+// Update preact + @preact/signals version
+await replaceInFile(
+  denoJsonPath,
+  replaceDepVersion("npm", "preact", preactVersion),
+);
+await replaceInFile(
+  denoJsonPath,
+  replaceDepVersion("npm", "@preact/signals", preactSignalsVersion),
+);
+await replaceInFile(
+  wwwDenoJsonPath,
+  replaceDepVersion("npm", "preact", preactVersion),
+);
+await replaceInFile(
+  wwwDenoJsonPath,
+  replaceDepVersion("npm", "@preact/signals", preactSignalsVersion),
+);
 
 const updateScriptPath = path.join(ROOT_DIR, "update", "src", "update.ts");
 await replaceInFile(updateScriptPath, updateVersions);
