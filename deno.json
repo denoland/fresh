@@ -73,7 +73,7 @@
     "@std/async": "jsr:@std/async@^1.0.13",
     "@std/expect": "jsr:@std/expect@^1.0.16",
     "@std/testing": "jsr:@std/testing@^1.0.12",
-    "postcss": "npm:postcss@8.4.35",
+    "postcss": "npm:postcss@8.5.3",
     "tailwindcss": "npm:tailwindcss@^4.0.0",
     "ts-morph": "npm:ts-morph@^25.0.1",
     "@fresh/plugin-tailwind": "./plugin-tailwindcss/src/mod.ts",
@@ -82,10 +82,12 @@
     "fresh/dev": "./src/dev/mod.ts",
     "fresh/runtime": "./src/runtime/shared.ts",
     "github-slugger": "npm:github-slugger@^2.0.0",
+    "imagescript": "https://deno.land/x/imagescript@1.3.0/mod.ts",
+    "astral": "jsr:@astral/astral",
     "marked": "npm:marked@^15.0.11",
     "marked-mangle": "npm:marked-mangle@^1.1.9",
     "prismjs": "npm:prismjs@^1.29.0"
-  },  
+  },
   "compilerOptions": {
     "lib": ["dom", "dom.asynciterable", "deno.ns", "deno.unstable"],
     "jsx": "precompile",
