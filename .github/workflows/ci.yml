@@ -16,13 +16,6 @@ jobs:
       matrix:
         deno: ["v2.x", "canary"]
         os: [macOS-latest, windows-latest, ubuntu-latest]
-        include:
-          - os: ubuntu-latest
-            cache_path: ~/.cache/deno/
-          - os: macos-latest
-            cache_path: ~/Library/Caches/deno/
-          - os: windows-latest
-            cache_path: ~\AppData\Local\deno\
 
     steps:
       - name: Checkout repo

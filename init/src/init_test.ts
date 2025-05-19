@@ -23,9 +23,7 @@ function stubConfirm(steps: Record<string, boolean> = {}) {
 }
 
 async function withTmpDir(fn: (dir: string) => void | Promise<void>) {
-  const hash = crypto.randomUUID().replaceAll(/-/g, "");
-  const dir = path.join(import.meta.dirname!, "..", "..", `tmp_${hash}`);
-  await Deno.mkdir(dir, { recursive: true });
+  const dir = await Deno.makeTempDir();
 
   try {
     await fn(dir);
