@@ -30,7 +30,7 @@ rendering might not be feasible.
 > define our own types or not use types at all.
 
 ```ts
-export const leafletContext = createContext<typeof Leaflet | null>(null);
+export const LeafletContext = createContext<typeof Leaflet | null>(null);
 ```
 
 Then, we should implement a Provider Component, this will handle loading and
@@ -71,7 +71,7 @@ function LeafletProvider(props: { children: ComponentChildren }) {
         crossorigin=""
       />
       {/* Provide Leaflet context to children */}
-      <leafletContext.Provider value={value}>
+      <LeafletContext.Provider value={value}>
         {props.children}
       </LeafletContext.Provider>
     </>
