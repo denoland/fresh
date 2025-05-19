@@ -1,9 +1,26 @@
 import { expect } from "@std/expect";
-import { initProject, InitStep, type MockTTY } from "./init.ts";
+import {
+  CONFIRM_TAILWIND_MESSAGE,
+  CONFIRM_VSCODE_MESSAGE,
+  initProject,
+} from "./init.ts";
 import * as path from "@std/path";
 import { getStdOutput, withBrowser } from "../../tests/test_utils.tsx";
 import { waitForText } from "../../tests/test_utils.tsx";
 import { withChildProcessServer } from "../../tests/test_utils.tsx";
+import { stub } from "@std/testing/mock";
+
+function stubPrompt(result: string) {
+  return stub(globalThis, "prompt", () => result);
+}
+
+function stubConfirm(steps: Record<string, boolean> = {}) {
+  return stub(
+    globalThis,
+    "confirm",
+    (message) => message ? steps[message] : false,
+  );
+}
 
 async function withTmpDir(fn: (dir: string) => void | Promise<void>) {
   const hash = crypto.randomUUID().replaceAll(/-/g, "");
@@ -32,29 +49,6 @@ async function patchProject(dir: string): Promise<void> {
   await Deno.writeTextFile(jsonPath, JSON.stringify(json, null, 2) + "\n");
 }
 
-function mockUserInput(steps: Record<string, unknown>) {
-  const errorOutput: unknown[][] = [];
-  const tty: MockTTY = {
-    confirm(step, _msg) {
-      return Boolean(steps[step]);
-    },
-    prompt(step, _msg, def) {
-      const setting = typeof steps[step] === "string"
-        ? steps[step] as string
-        : null;
-      return setting ?? def ?? null;
-    },
-    log: () => {},
-    logError: (...args) => {
-      errorOutput.push(args);
-    },
-  };
-  return {
-    errorOutput,
-    tty,
-  };
-}
-
 async function expectProjectFile(dir: string, pathname: string) {
   const filePath = path.join(dir, ...pathname.split("/").filter(Boolean));
   const stat = await Deno.stat(filePath);
@@ -71,15 +65,17 @@ async function readProjectFile(dir: string, pathname: string): Promise<string> {
 
 Deno.test("init - new project", async () => {
   await withTmpDir(async (dir) => {
-    const mock = mockUserInput({});
-    await initProject(dir, [], {}, mock.tty);
+    using _promptStub = stubPrompt("fresh-init");
+    using _confirmStub = stubConfirm();
+    await initProject(dir, [], {});
   });
 });
 
 Deno.test("init - create project dir", async () => {
   await withTmpDir(async (dir) => {
-    const mock = mockUserInput({ [InitStep.ProjectName]: "fresh-init" });
-    await initProject(dir, [], {}, mock.tty);
+    using _promptStub = stubPrompt("fresh-init");
+    using _confirmStub = stubConfirm();
+    await initProject(dir, [], {});
 
     const root = path.join(dir, "fresh-init");
     await expectProjectFile(root, "deno.json");
@@ -92,11 +88,11 @@ Deno.test("init - create project dir", async () => {
 
 Deno.test("init - with tailwind", async () => {
   await withTmpDir(async (dir) => {
-    const mock = mockUserInput({
-      [InitStep.ProjectName]: ".",
-      [InitStep.Tailwind]: true,
+    using _promptStub = stubPrompt(".");
+    using _confirmStub = stubConfirm({
+      [CONFIRM_TAILWIND_MESSAGE]: true,
     });
-    await initProject(dir, [], {}, mock.tty);
+    await initProject(dir, [], {});
 
     const css = await readProjectFile(dir, "static/styles.css");
     expect(css).toMatch(/@tailwind/);
@@ -110,45 +106,51 @@ Deno.test("init - with tailwind", async () => {
 
 Deno.test("init - with vscode", async () => {
   await withTmpDir(async (dir) => {
-    const mock = mockUserInput({
-      [InitStep.ProjectName]: ".",
-      [InitStep.VSCode]: true,
+    using _promptStub = stubPrompt(".");
+    using _confirmStub = stubConfirm({
+      [CONFIRM_VSCODE_MESSAGE]: true,
     });
-    await initProject(dir, [], {}, mock.tty);
+    await initProject(dir, [], {});
 
     await expectProjectFile(dir, ".vscode/settings.json");
     await expectProjectFile(dir, ".vscode/extensions.json");
   });
 });
 
-Deno.test("init - fmt, lint, and type check project", async () => {
-  await withTmpDir(async (dir) => {
-    const mock = mockUserInput({
-      [InitStep.ProjectName]: ".",
+Deno.test({
+  name: "init - fmt, lint, and type check project",
+  // Ignore this test on canary due to different formatting
+  // behaviours when the formatter changes.
+  ignore: Deno.version.deno.includes("+"),
+  fn: async () => {
+    await withTmpDir(async (dir) => {
+      using _promptStub = stubPrompt(".");
+      using _confirmStub = stubConfirm();
+      await initProject(dir, [], {});
+      await expectProjectFile(dir, "main.ts");
+      await expectProjectFile(dir, "dev.ts");
+
+      await patchProject(dir);
+
+      const check = await new Deno.Command(Deno.execPath(), {
+        args: ["task", "check"],
+        cwd: dir,
+        stderr: "inherit",
+        stdout: "inherit",
+      }).output();
+      expect(check.code).toEqual(0);
     });
-    await initProject(dir, [], {}, mock.tty);
-    await expectProjectFile(dir, "main.ts");
-    await expectProjectFile(dir, "dev.ts");
-
-    await patchProject(dir);
-
-    const check = await new Deno.Command(Deno.execPath(), {
-      args: ["task", "check"],
-      cwd: dir,
-      stderr: "inherit",
-      stdout: "inherit",
-    }).output();
-    expect(check.code).toEqual(0);
-  });
+  },
 });
 
 Deno.test("init with tailwind - fmt, lint, and type check project", async () => {
   await withTmpDir(async (dir) => {
-    const mock = mockUserInput({
-      [InitStep.ProjectName]: ".",
-      [InitStep.Tailwind]: true,
+    using _promptStub = stubPrompt(".");
+    using _confirmStub = stubConfirm({
+      [CONFIRM_TAILWIND_MESSAGE]: true,
     });
-    await initProject(dir, [], {}, mock.tty);
+
+    await initProject(dir, [], {});
     await expectProjectFile(dir, "main.ts");
     await expectProjectFile(dir, "dev.ts");
 
@@ -166,10 +168,9 @@ Deno.test("init with tailwind - fmt, lint, and type check project", async () => 
 
 Deno.test("init - can start dev server", async () => {
   await withTmpDir(async (dir) => {
-    const mock = mockUserInput({
-      [InitStep.ProjectName]: ".",
-    });
-    await initProject(dir, [], {}, mock.tty);
+    using _promptStub = stubPrompt(".");
+    using _confirmStub = stubConfirm();
+    await initProject(dir, [], {});
     await expectProjectFile(dir, "main.ts");
     await expectProjectFile(dir, "dev.ts");
 
@@ -190,10 +191,9 @@ Deno.test("init - can start dev server", async () => {
 
 Deno.test("init - can start built project", async () => {
   await withTmpDir(async (dir) => {
-    const mock = mockUserInput({
-      [InitStep.ProjectName]: ".",
-    });
-    await initProject(dir, [], {}, mock.tty);
+    using _promptStub = stubPrompt(".");
+    using _confirmStub = stubConfirm();
+    await initProject(dir, [], {});
     await expectProjectFile(dir, "main.ts");
     await expectProjectFile(dir, "dev.ts");
 
@@ -224,10 +224,9 @@ Deno.test("init - can start built project", async () => {
 
 Deno.test("init - errors on missing build cache in prod", async () => {
   await withTmpDir(async (dir) => {
-    const mock = mockUserInput({
-      [InitStep.ProjectName]: ".",
-    });
-    await initProject(dir, [], {}, mock.tty);
+    using _promptStub = stubPrompt(".");
+    using _confirmStub = stubConfirm();
+    await initProject(dir, [], {});
     await expectProjectFile(dir, "main.ts");
     await expectProjectFile(dir, "dev.ts");
 

@@ -50,6 +50,10 @@ export async function bundleJs(
     treeShaking: true,
     sourcemap: options.dev ? "linked" : false,
     minify: !options.dev,
+    logOverride: {
+      "suspicious-nullish-coalescing": "silent",
+      "unsupported-jsx-comment": "silent",
+    },
 
     jsxDev: options.dev,
     jsx: "automatic",

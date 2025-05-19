@@ -4,9 +4,9 @@ import * as tsmorph from "ts-morph";
 
 export const SyntaxKind = tsmorph.ts.SyntaxKind;
 
-export const FRESH_VERSION = "2.0.0-alpha.29";
-export const PREACT_VERSION = "10.25.4";
-export const PREACT_SIGNALS_VERSION = "2.0.1";
+export const FRESH_VERSION = "2.0.0-alpha.34";
+export const PREACT_VERSION = "10.26.6";
+export const PREACT_SIGNALS_VERSION = "2.0.4";
 
 export interface DenoJson {
   name?: string;
