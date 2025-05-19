@@ -28,19 +28,12 @@ async function createServer<T>(
         ),
       } as Deno.FileInfo),
   );
-  using _denoReadDirStub = stub(
-    Deno,
-    "readDir",
-    async function* () {
-      for (const file of Object.keys(files)) {
-        yield {
-          isDirectory: false,
-          isFile: true,
-          isSymlink: false,
-          name: file,
-        };
-      }
-    },
+  // Just for `islandPaths` to return an empty array. Might need to be updated
+  // if more logic is added that uses `Array.fromAsync`.
+  using _arrayFromAsyncStub = stub(
+    Array,
+    "fromAsync",
+    () => Promise.resolve([]),
   );
 
   await fsRoutes(
