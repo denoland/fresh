@@ -1,3 +1,4 @@
+// deno-lint-ignore-file no-console
 import * as colors from "@std/fmt/colors";
 import * as path from "@std/path";
 
@@ -29,8 +30,8 @@ function css(strs: TemplateStringsArray, ...exprs: string[]): string {
 
 export class InitError extends Error {}
 
-function error(tty: MockTTY, message: string): never {
-  tty.logError(`%cerror%c: ${message}`, "color: red; font-weight: bold", "");
+function error(message: string): never {
+  console.error(`%cerror%c: ${message}`, "color: red; font-weight: bold", "");
   throw new InitError();
 }
 
@@ -55,33 +56,12 @@ OPTIONS:
     --docker     Setup Project to use Docker
 `;
 
-export interface MockTTY {
-  prompt(
-    step: InitStep,
-    message?: string | undefined,
-    _default?: string | undefined,
-  ): string | null;
-  confirm(step: InitStep, message?: string | undefined): boolean;
-  log(...args: unknown[]): void;
-  logError(...args: unknown[]): void;
-}
-
-const realTTY: MockTTY = {
-  prompt(_step, message, _default) {
-    return prompt(message, _default);
-  },
-  confirm(_step, message) {
-    return confirm(message);
-  },
-  log(...args) {
-    // deno-lint-ignore no-console
-    console.log(...args);
-  },
-  logError(...args) {
-    // deno-lint-ignore no-console
-    console.error(...args);
-  },
-};
+export const CONFIRM_EMPTY_MESSAGE =
+  "The target directory is not empty (files could get overwritten). Do you want to continue anyway?";
+export const CONFIRM_TAILWIND_MESSAGE = `Set up ${
+  colors.cyan("Tailwind CSS")
+} for styling?`;
+export const CONFIRM_VSCODE_MESSAGE = `Do you use ${colors.cyan("VS Code")}?`;
 
 export async function initProject(
   cwd = Deno.cwd(),
@@ -92,33 +72,28 @@ export async function initProject(
     tailwind?: boolean | null;
     vscode?: boolean | null;
   } = {},
-  tty: MockTTY = realTTY,
 ): Promise<void> {
-  tty.log();
-  tty.log(
+  console.log();
+  console.log(
     colors.bgRgb8(
       colors.rgb8(" 🍋 Fresh: The next-gen web framework. ", 0),
       121,
     ),
   );
-  tty.log();
+  console.log();
 
   let unresolvedDirectory = Deno.args[0];
   if (input.length !== 1) {
-    const userInput = tty.prompt(
-      InitStep.ProjectName,
+    const userInput = prompt(
       "Project Name:",
       "fresh-project",
     );
     if (!userInput) {
-      error(tty, HELP_TEXT);
+      error(HELP_TEXT);
     }
 
     unresolvedDirectory = userInput;
   }
-
-  const CONFIRM_EMPTY_MESSAGE =
-    "The target directory is not empty (files could get overwritten). Do you want to continue anyway?";
 
   const projectDir = path.resolve(cwd, unresolvedDirectory);
 
@@ -128,11 +103,9 @@ export async function initProject(
       dir.length === 1 && dir[0].name === ".git";
     if (
       !isEmpty &&
-      !(flags.force === null
-        ? tty.confirm(InitStep.Force, CONFIRM_EMPTY_MESSAGE)
-        : flags.force)
+      !(flags.force === null ? confirm(CONFIRM_EMPTY_MESSAGE) : flags.force)
     ) {
-      error(tty, "Directory is not empty.");
+      error("Directory is not empty.");
     }
   } catch (err) {
     if (!(err instanceof Deno.errors.NotFound)) {
@@ -144,18 +117,14 @@ export async function initProject(
   let useTailwind = flags.tailwind || false;
   if (flags.tailwind == null) {
     if (
-      tty.confirm(
-        InitStep.Tailwind,
-        `Set up ${colors.cyan("Tailwind CSS")} for styling?`,
-      )
+      confirm(CONFIRM_TAILWIND_MESSAGE)
     ) {
       useTailwind = true;
     }
   }
 
-  const USE_VSCODE_MESSAGE = `Do you use ${colors.cyan("VS Code")}?`;
   const useVSCode = flags.vscode == null
-    ? tty.confirm(InitStep.VSCode, USE_VSCODE_MESSAGE)
+    ? confirm(CONFIRM_VSCODE_MESSAGE)
     : flags.vscode;
 
   const writeFile = async (
@@ -715,30 +684,30 @@ This will watch the project directory and restart as necessary.`;
 
   // Specifically print unresolvedDirectory, rather than resolvedDirectory in order to
   // not leak personal info (e.g. `/Users/MyName`)
-  tty.log("\n%cProject initialized!\n", "color: green; font-weight: bold");
+  console.log("\n%cProject initialized!\n", "color: green; font-weight: bold");
 
   if (unresolvedDirectory !== ".") {
-    tty.log(
+    console.log(
       `Enter your project directory using %ccd ${unresolvedDirectory}%c.`,
       "color: cyan",
       "",
     );
   }
-  tty.log(
+  console.log(
     "Run %cdeno task start%c to start the project. %cCTRL-C%c to stop.",
     "color: cyan",
     "",
     "color: cyan",
     "",
   );
-  tty.log();
-  tty.log(
+  console.log();
+  console.log(
     "Stuck? Join our Discord %chttps://discord.gg/deno",
     "color: cyan",
     "",
   );
-  tty.log();
-  tty.log(
+  console.log();
+  console.log(
     "%cHappy hacking! 🦕",
     "color: gray",
   );
