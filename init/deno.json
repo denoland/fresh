@@ -1,10 +1,8 @@
 {
   "name": "@fresh/init",
-  "version": "2.0.0-alpha.33",
+  "version": "2.0.0-alpha.34",
   "license": "MIT",
-  "exports": {
-    ".": "./src/mod.ts"
-  },
+  "exports": "./src/mod.ts",
   "exclude": ["**/tmp/*"],
   "publish": {
     "include": [
@@ -13,10 +11,5 @@
       "README.md"
     ],
     "exclude": ["**/*_test.*", "*.todo"]
-  },
-  "imports": {
-    "@std/cli": "jsr:@std/cli@1",
-    "@std/fmt": "jsr:@std/fmt@1",
-    "@std/path": "jsr:@std/path@1"
   }
 }
