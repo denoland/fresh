@@ -123,6 +123,11 @@ export let getBuildCache: (app: App<any>) => BuildCache | null;
 // deno-lint-ignore no-explicit-any
 export let setBuildCache: (app: App<any>, cache: BuildCache | null) => void;
 
+export interface Manifest {
+  islands: any;
+  routes: any;
+}
+
 export class App<State> {
   #router: Router<MiddlewareFn<State>> = new UrlPatternRouter<
     MiddlewareFn<State>
@@ -130,6 +135,7 @@ export class App<State> {
   #islandRegistry: ServerIslandRegistry = new Map();
   #buildCache: BuildCache | null = null;
   #islandNames = new Set<string>();
+  #manifest: Manifest | null = null;
 
   static {
     getRouter = (app) => app.#router;

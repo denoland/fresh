@@ -97,6 +97,6 @@ export function normalizeConfig(options: FreshConfig): ResolvedFreshConfig {
   };
 }
 
-export function getSnapshotPath(config: ResolvedFreshConfig): string {
-  return path.join(config.build.outDir, "snapshot.json");
+export function getManifestPath(config: ResolvedFreshConfig): string {
+  return path.join(config.build.outDir, "manifest.ts");
 }

@@ -405,7 +405,9 @@ ${GRADIENT_CSS}`;
   const MAIN_TS = `import { App, fsRoutes, staticFiles } from "fresh";
 import { define, type State } from "./utils.ts";
 
-export const app = new App<State>();
+export const app = new App<State>({
+  manifest: () => import("./_fresh/manfiest.ts"),
+});
 
 app.use(staticFiles());
 
@@ -424,10 +426,7 @@ const exampleLoggerMiddleware = define.middleware((ctx) => {
 });
 app.use(exampleLoggerMiddleware);
 
-await fsRoutes(app, {
-  loadIsland: (path) => import(\`./islands/\${path}\`),
-  loadRoute: (path) => import(\`./routes/\${path}\`),
-});
+fsRoutes(app);
 
 if (import.meta.main) {
   await app.listen();

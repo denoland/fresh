@@ -64,7 +64,7 @@ Deno.test({
     await builder.build(app);
 
     const snapshotJson = await Deno.readTextFile(
-      path.join(tmp, "dist", "snapshot.json"),
+      path.join(tmp, "dist", "manifest.ts"),
     );
     expect(snapshotJson).toContain("/images/batman.svg");
   },
