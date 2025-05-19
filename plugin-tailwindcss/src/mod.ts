@@ -1,17 +1,17 @@
 import { initTailwind } from "./compiler.ts";
-import type { FreshBuilder } from "fresh/dev";
+import type { Builder } from "fresh/dev";
 import type { App } from "fresh";
 import type { TailwindPluginOptions } from "./types.ts";
 
 export function tailwind<T>(
-  builder: FreshBuilder,
+  builder: Builder,
   app: App<T>,
   options: TailwindPluginOptions = {},
 ): void {
-  let processor: ReturnType<typeof initTailwind> | null;
+  let processor: ReturnType<typeof initTailwind> | null = null;
 
   builder.onTransformStaticFile(
-    { pluginName: "tailwind", filter: /\.css$/, exclude: options.exclude },
+    { pluginName: "tailwind", filter: /\.css$/ },
     async (args) => {
       if (!processor) processor = initTailwind(app.config, options);
       const instance = await processor;
