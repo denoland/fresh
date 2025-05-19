@@ -2,7 +2,6 @@ import { App } from "../../app.ts";
 import {
   type FreshFsItem,
   fsRoutes,
-  type FsRoutesOptions,
   internals,
   sortRoutePaths,
 } from "./mod.ts";
@@ -54,7 +53,7 @@ async function createServer<T>(
         }
         throw new Error(`Mock FS: file ${full} not found`);
       },
-    } as FsRoutesOptions,
+    },
   );
   return new FakeServer(app.handler());
 }

@@ -14,6 +14,7 @@ import { type HandlerFn, isHandlerByMethod } from "../../handlers.ts";
 import { HttpError } from "../../error.ts";
 import { parseRootPath } from "../../config.ts";
 import type { FreshReqContext, PageProps } from "../../context.ts";
+import { isDirectory } from "../../fs.ts";
 
 const TEST_FILE_PATTERN = /[._]test\.(?:[tj]sx?|[mc][tj]s)$/;
 const GROUP_REG = /(^|[/\\\\])\((_[^/\\\\]+)\)[/\\\\]/;
@@ -41,16 +42,6 @@ export interface FreshFsItem<State> {
 
 // For stubbing
 export const internals = { walk };
-
-async function isDirectory(path: string | URL): Promise<boolean> {
-  try {
-    const stat = await Deno.stat(path);
-    return stat.isDirectory;
-  } catch (err) {
-    if (err instanceof Deno.errors.NotFound) return false;
-    throw err;
-  }
-}
 
 // deno-lint-ignore no-explicit-any
 function isFreshFile<State>(mod: any): mod is FreshFsItem<State> {

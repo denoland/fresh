@@ -9,20 +9,11 @@ import type { FreshFileTransformer } from "./file_transformer.ts";
 import { assertInDir } from "../utils.ts";
 import { ensureDir } from "@std/fs/ensure-dir";
 import { walk } from "@std/fs/walk";
+import { isDirectory } from "../fs.ts";
 
 export interface MemoryFile {
   hash: string | null;
   content: Uint8Array;
-}
-
-async function isDirectory(path: string | URL): Promise<boolean> {
-  try {
-    const stat = await Deno.stat(path);
-    return stat.isDirectory;
-  } catch (err) {
-    if (err instanceof Deno.errors.NotFound) return false;
-    throw err;
-  }
 }
 
 export interface DevBuildCache extends BuildCache {
