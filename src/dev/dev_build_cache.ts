@@ -9,7 +9,6 @@ import type { FreshFileTransformer } from "./file_transformer.ts";
 import { assertInDir } from "../utils.ts";
 import { ensureDir } from "@std/fs/ensure-dir";
 import { walk } from "@std/fs/walk";
-import { isDirectory } from "../fs.ts";
 
 export interface MemoryFile {
   hash: string | null;
@@ -208,7 +207,7 @@ export class DiskBuildCache implements DevBuildCache {
     const staticDir = this.config.staticDir;
     const outDir = this.config.build.outDir;
 
-    if (await isDirectory(staticDir)) {
+    try {
       const entries = walk(staticDir, {
         includeDirs: false,
         includeFiles: true,
@@ -241,6 +240,10 @@ export class DiskBuildCache implements DevBuildCache {
           const pathname = `/${relative}`;
           this.addUnprocessedFile(pathname);
         }
+      }
+    } catch (error) {
+      if (!(error instanceof Deno.errors.NotFound)) {
+        throw error;
       }
     }
 

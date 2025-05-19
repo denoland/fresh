@@ -14,7 +14,6 @@ import { type HandlerFn, isHandlerByMethod } from "../../handlers.ts";
 import { HttpError } from "../../error.ts";
 import { parseRootPath } from "../../config.ts";
 import type { FreshReqContext, PageProps } from "../../context.ts";
-import { isDirectory } from "../../fs.ts";
 
 const TEST_FILE_PATTERN = /[._]test\.(?:[tj]sx?|[mc][tj]s)$/;
 const GROUP_REG = /(^|[/\\\\])\((_[^/\\\\]+)\)[/\\\\]/;
@@ -77,19 +76,26 @@ export async function fsRoutes<State>(
   const islandDir = path.join(dir, "islands");
   const routesDir = path.join(dir, "routes");
 
-  const islandPaths = await isDirectory(islandDir)
-    ? await Array.fromAsync(
-      internals.walk(islandDir, {
+  const islandPaths: string[] = [];
+  const relRoutePaths: string[] = [];
+
+  try {
+    for await (
+      const entry of walk(islandDir, {
         includeDirs: false,
         exts: ["tsx", "jsx", "ts", "js"],
         skip,
-      }),
-      (entry) => entry.path,
-    )
-    : [];
+      })
+    ) {
+      islandPaths.push(entry.path);
+    }
+  } catch (error) {
+    if (!(error instanceof Deno.errors.NotFound)) {
+      throw error;
+    }
+  }
 
-  const relRoutePaths: string[] = [];
-  if (await isDirectory(routesDir)) {
+  try {
     for await (
       const entry of internals.walk(routesDir, {
         includeDirs: false,
@@ -112,6 +118,11 @@ export async function fsRoutes<State>(
 
       const url = new URL(relative, "http://localhost/");
       relRoutePaths.push(url.pathname.slice(1));
+    }
+  } catch (error) {
+    // `islandDir` or `routesDir` does not exist, so we can skip it
+    if (!(error instanceof Deno.errors.NotFound)) {
+      throw error;
     }
   }
 
