@@ -36,7 +36,7 @@ caching **will** cause your project to not function correctly.
 Here is an example `Dockerfile` for a Fresh project:
 
 ```dockerfile Dockerfile
-FROM denoland/deno:1.38.3
+FROM denoland/deno:2.0.6
 
 ARG GIT_REVISION
 ENV DENO_DEPLOYMENT_ID=${GIT_REVISION}
