@@ -8,14 +8,6 @@ const FRESH_TAILWIND_VERSION = "0.0.1-alpha.7";
 const PREACT_VERSION = "10.26.6";
 const PREACT_SIGNALS_VERSION = "2.0.4";
 
-export const enum InitStep {
-  ProjectName = "ProjectName",
-  Force = "Force",
-  Tailwind = "Tailwind",
-  VSCode = "VSCode",
-  Docker = "Docker",
-}
-
 function css(strs: TemplateStringsArray, ...exprs: string[]): string {
   let out = "";
 
