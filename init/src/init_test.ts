@@ -14,7 +14,7 @@ function stubPrompt(result: string) {
   return stub(globalThis, "prompt", () => result);
 }
 
-function stubConfirm(steps: Record<string, boolean>) {
+function stubConfirm(steps: Record<string, boolean> = {}) {
   return stub(
     globalThis,
     "confirm",
@@ -66,6 +66,7 @@ async function readProjectFile(dir: string, pathname: string): Promise<string> {
 Deno.test("init - new project", async () => {
   await withTmpDir(async (dir) => {
     using _promptStub = stubPrompt("fresh-init");
+    using _confirmStub = stubConfirm();
     await initProject(dir, [], {});
   });
 });
@@ -73,6 +74,7 @@ Deno.test("init - new project", async () => {
 Deno.test("init - create project dir", async () => {
   await withTmpDir(async (dir) => {
     using _promptStub = stubPrompt("fresh-init");
+    using _confirmStub = stubConfirm();
     await initProject(dir, [], {});
 
     const root = path.join(dir, "fresh-init");
@@ -123,6 +125,7 @@ Deno.test({
   fn: async () => {
     await withTmpDir(async (dir) => {
       using _promptStub = stubPrompt(".");
+      using _confirmStub = stubConfirm();
       await initProject(dir, [], {});
       await expectProjectFile(dir, "main.ts");
       await expectProjectFile(dir, "dev.ts");
@@ -166,6 +169,7 @@ Deno.test("init with tailwind - fmt, lint, and type check project", async () => 
 Deno.test("init - can start dev server", async () => {
   await withTmpDir(async (dir) => {
     using _promptStub = stubPrompt(".");
+    using _confirmStub = stubConfirm();
     await initProject(dir, [], {});
     await expectProjectFile(dir, "main.ts");
     await expectProjectFile(dir, "dev.ts");
@@ -188,6 +192,7 @@ Deno.test("init - can start dev server", async () => {
 Deno.test("init - can start built project", async () => {
   await withTmpDir(async (dir) => {
     using _promptStub = stubPrompt(".");
+    using _confirmStub = stubConfirm();
     await initProject(dir, [], {});
     await expectProjectFile(dir, "main.ts");
     await expectProjectFile(dir, "dev.ts");
@@ -220,6 +225,7 @@ Deno.test("init - can start built project", async () => {
 Deno.test("init - errors on missing build cache in prod", async () => {
   await withTmpDir(async (dir) => {
     using _promptStub = stubPrompt(".");
+    using _confirmStub = stubConfirm();
     await initProject(dir, [], {});
     await expectProjectFile(dir, "main.ts");
     await expectProjectFile(dir, "dev.ts");
