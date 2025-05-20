@@ -12,8 +12,9 @@ export interface TailwindPluginOptions {
   postcssOptions?: Record<string, unknown>;
 
   /**
-   * Whether to minify the CSS in production mode
-   * @default true
+   * Whether to minify the CSS. If Fresh is in production mode (`config.mode === "production"`) and this undefined, this is automatically set to `true`.
+   *
+   * @default {true}
    */
   minify?: boolean;
 }
