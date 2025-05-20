@@ -1,7 +1,6 @@
 {
   "version": "5",
   "specifiers": {
-    "jsr:@astral/astral@*": "0.5.3",
     "jsr:@astral/astral@~0.5.2": "0.5.3",
     "jsr:@deno-library/progress@^1.5.1": "1.5.1",
     "jsr:@deno/cache-dir@0.14": "0.14.0",
@@ -58,19 +57,19 @@
     "npm:@preact/signals@^2.0.4": "2.0.4_preact@10.26.6",
     "npm:@tailwindcss/oxide@^4.1.7": "4.1.7",
     "npm:@tailwindcss/postcss@^4.1.7": "4.1.7",
-    "npm:@types/node@*": "22.12.0",
+    "npm:@types/node@*": "22.15.15",
     "npm:esbuild-wasm@0.25.4": "0.25.4",
     "npm:esbuild@0.25.4": "0.25.4",
     "npm:github-slugger@2": "2.0.0",
     "npm:linkedom@~0.18.10": "0.18.10",
-    "npm:marked-mangle@^1.1.9": "1.1.10_marked@15.0.11",
-    "npm:marked@^15.0.11": "15.0.11",
+    "npm:marked-mangle@^1.1.9": "1.1.10_marked@15.0.12",
+    "npm:marked@^15.0.11": "15.0.12",
     "npm:postcss@8.5.3": "8.5.3",
     "npm:preact-render-to-string@^6.5.11": "6.5.13_preact@10.26.6",
     "npm:preact@^10.22.0": "10.26.6",
     "npm:preact@^10.26.6": "10.26.6",
     "npm:prismjs@^1.29.0": "1.30.0",
-    "npm:tailwindcss@4": "4.1.7",
+    "npm:tailwindcss@^4.1.7": "4.1.7",
     "npm:ts-morph@^25.0.1": "25.0.1"
   },
   "jsr": {
@@ -633,8 +632,8 @@
         "tslib"
       ]
     },
-    "@types/node@22.12.0": {
-      "integrity": "sha512-Fll2FZ1riMjNmlmJOdAyY5pUbkftXslB5DgEzlIuNaiWhXd00FhWxVC/r4yV/4wBb9JfImTu+jiSvXTkJ7F/gA==",
+    "@types/node@22.15.15": {
+      "integrity": "sha512-R5muMcZob3/Jjchn5LcO8jdKwSCbzqmPB6ruBxMcf9kbxtniZHP327s6C37iOfuw8mbKK3cAQa7sEl7afLrQ8A==",
       "dependencies": [
         "undici-types"
       ]
@@ -902,14 +901,14 @@
         "@jridgewell/sourcemap-codec"
       ]
     },
-    "marked-mangle@1.1.10_marked@15.0.11": {
+    "marked-mangle@1.1.10_marked@15.0.12": {
       "integrity": "sha512-TrpN67SMJJdzXXWIzOd/QmnpsC5o1B44PUYaG2bh1XEbqVjA0UCI2ijFuE5LWESwKeI2gCP5FqcUHRGQwFtDIA==",
       "dependencies": [
         "marked"
       ]
     },
-    "marked@15.0.11": {
-      "integrity": "sha512-1BEXAU2euRCG3xwgLVT1y0xbJEld1XOrmRJpUwRCcy7rxhSCwMrmEu9LXoPhHSCJG41V7YcQ2mjKRr5BA3ITIA==",
+    "marked@15.0.12": {
+      "integrity": "sha512-8dD6FusOQSrpv9Z1rdNMdlSgQOIP880DHqnohobOmYLElGEqAL/JvxvuxZO16r4HtjTlfPRDC1hbvxC9dPN2nA==",
       "bin": true
     },
     "merge2@1.4.1": {
@@ -998,8 +997,8 @@
     "tailwindcss@4.1.7": {
       "integrity": "sha512-kr1o/ErIdNhTz8uzAYL7TpaUuzKIE6QPQ4qmSdxnoX/lo+5wmUHQA6h3L5yIqEImSRnAAURDirLu/BgiXGPAhg=="
     },
-    "tapable@2.2.1": {
-      "integrity": "sha512-GNzQvQTOIP6RyTfE2Qxb8ZVlNmw0n88vp1szwWRimP02mnTsx3Wtn5qRdqY9w2XduFNUgvOwhNnQsjwCp+kqaQ=="
+    "tapable@2.2.2": {
+      "integrity": "sha512-Re10+NauLTMCudc7T5WLFLAwDhQ0JWdrMK+9B2M8zR5hRExKmsRDCBA7/aV/pNJFltmBFO5BAMlQFi/vq3nKOg=="
     },
     "tar@7.4.3": {
       "integrity": "sha512-5S7Va8hKfV7W5U6g3aYxXmlPoZVAwUMy9AOKyF2fVuZa2UD3qZjg578OrLRt8PcNN1PleVaL/5/yYATNL0ICUw==",
@@ -1031,8 +1030,8 @@
     "uhyphen@0.2.0": {
       "integrity": "sha512-qz3o9CHXmJJPGBdqzab7qAYuW8kQGKNEuoHFYrBwV6hWIMcpAmxDLXojcHfFr9US1Pe6zUswEIJIbLI610fuqA=="
     },
-    "undici-types@6.20.0": {
-      "integrity": "sha512-Ny6QZ2Nju20vw1SRHe3d9jVu6gJ+4e3+MMpqu7pqE5HT6WsTSlce++GQmK5UXS8mzV8DSYHrQH+Xrf2jVcuKNg=="
+    "undici-types@6.21.0": {
+      "integrity": "sha512-iwDZqg0QAGrg9Rav5H4n0M64c3mkR59cJ6wQp+7C4nI0gsmExaedaYLNO44eT4AtBBwjbTiGPMlt2Md0T9H9JQ=="
     },
     "yallist@5.0.0": {
       "integrity": "sha512-YgvUTfwqyc7UXVMrB+SImsVYSmTS8X/tSrtdNZMImM+n7+QTriRXyXim0mBrTXNeqzVF0KWGgHPeiyViFFrNDw=="
@@ -1113,7 +1112,6 @@
   },
   "workspace": {
     "dependencies": [
-      "jsr:@astral/astral@*",
       "jsr:@astral/astral@~0.5.2",
       "jsr:@deno/doc@0.172",
       "jsr:@fresh/core@^2.0.0-alpha.29",
@@ -1151,7 +1149,7 @@
       "npm:preact-render-to-string@^6.5.11",
       "npm:preact@^10.26.6",
       "npm:prismjs@^1.29.0",
-      "npm:tailwindcss@4",
+      "npm:tailwindcss@^4.1.7",
       "npm:ts-morph@^25.0.1"
     ]
   }
