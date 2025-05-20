@@ -113,7 +113,7 @@ export async function fsRoutes<State>(
         if (match[2] === "_islands") {
           islandPaths.push(entry.path);
         }
-        return;
+        continue;
       }
 
       const url = new URL(relative, "http://localhost/");
