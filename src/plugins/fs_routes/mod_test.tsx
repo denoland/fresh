@@ -18,16 +18,6 @@ async function createServer<T>(
 ): Promise<FakeServer> {
   const app = new App<T>();
   using _denoCwdStub = stub(Deno, "cwd", () => ".");
-  using _denoStatStub = stub(
-    Deno,
-    "stat",
-    (dir) =>
-      Promise.resolve({
-        isDirectory: Object.keys(files).some((file) =>
-          file.startsWith(dir + "/")
-        ),
-      } as Deno.FileInfo),
-  );
   using _walkStub = stub(internals, "walk", async function* () {
     for (const file of Object.keys(files)) {
       yield {
