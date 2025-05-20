@@ -9,7 +9,7 @@ export function tailwind<T>(
   let processor: ReturnType<typeof initTailwind> | null = null;
 
   builder.onTransformStaticFile(
-    { pluginName: "tailwind", filter: /\.css$/ },
+    { pluginName: "tailwind", filter: /\.css$/, exclude: options.exclude },
     async (args) => {
       if (!processor) processor = initTailwind(app.config);
       const instance = await processor;
