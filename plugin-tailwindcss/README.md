@@ -1,6 +1,6 @@
 # Tailwind CSS plugin for Fresh
 
-A Tailwind CSS v4 plugin to use in Fresh.
+A Tailwind CSS plugin to use in Fresh.
 
 ```ts
 // dev.ts
