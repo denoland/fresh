@@ -1,10 +1,12 @@
 import { initTailwind } from "./compiler.ts";
-import type { Builder } from "fresh/dev";
+import type { FreshBuilder } from "fresh/dev";
 import type { App } from "fresh";
+import type { TailwindPluginOptions } from "./types.ts";
 
 export function tailwind<T>(
-  builder: Builder,
+  builder: FreshBuilder,
   app: App<T>,
+  options: TailwindPluginOptions = {},
 ): void {
   let processor: ReturnType<typeof initTailwind> | null = null;
 
