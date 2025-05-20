@@ -1,4 +1,4 @@
-import { page } from "fresh";
+import { page } from "@fresh/core";
 import { PageSection } from "../components/PageSection.tsx";
 import { DemoBox } from "../components/homepage/DemoBox.tsx";
 import { define } from "../utils/state.ts";

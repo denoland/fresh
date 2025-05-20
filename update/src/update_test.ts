@@ -82,7 +82,7 @@ Deno.test("update - 1.x project deno.json", async () => {
     expect(JSON.parse(files["/deno.json"]))
       .toEqual({
         imports: {
-          "fresh": `jsr:@fresh/core@^${FRESH_VERSION}`,
+          "@fresh/core": `jsr:@fresh/core@^${FRESH_VERSION}`,
           "@preact/signals": `npm:@preact/signals@^${PREACT_SIGNALS_VERSION}`,
           "preact": `npm:preact@^${PREACT_VERSION}`,
         },
@@ -106,7 +106,7 @@ Deno.test("update - 1.x project deno.json with imports", async () => {
     expect(JSON.parse(files["/deno.json"]))
       .toEqual({
         imports: {
-          "fresh": `jsr:@fresh/core@^${FRESH_VERSION}`,
+          "@fresh/core": `jsr:@fresh/core@^${FRESH_VERSION}`,
           "@preact/signals": `npm:@preact/signals@^${PREACT_SIGNALS_VERSION}`,
           "preact": `npm:preact@^${PREACT_VERSION}`,
         },
@@ -141,7 +141,7 @@ export async function handler(
     const files = await readFiles(dir);
 
     expect(files["/routes/_middleware.ts"])
-      .toEqual(`import { FreshContext } from "fresh";
+      .toEqual(`import { FreshContext } from "@fresh/core";
 
 interface State {
   data: string;
@@ -174,7 +174,7 @@ Deno.test("update - 1.x project middlewares one arg", async () => {
     const files = await readFiles(dir);
 
     expect(files["/routes/_middleware.ts"])
-      .toEqual(`import { FreshContext } from "fresh";
+      .toEqual(`import { FreshContext } from "@fresh/core";
 
 export async function handler(ctx: FreshContext) {
   const req = ctx.req;
@@ -199,12 +199,12 @@ export default function Foo(props: PageProps) {
     const files = await readFiles(dir);
 
     expect(files["/routes/index.tsx"])
-      .toEqual(`import { PageProps } from "fresh";
+      .toEqual(`import { PageProps } from "@fresh/core";
 export default function Foo(props: PageProps) {
   return null;
 }`);
     expect(files["/routes/foo.tsx"])
-      .toEqual(`import { asset, Head } from "fresh/runtime";`);
+      .toEqual(`import { asset, Head } from "@fresh/core/runtime";`);
   });
 });
 
@@ -254,7 +254,7 @@ export const handler: Handlers = {
     const files = await readFiles(dir);
 
     expect(files["/routes/index.tsx"])
-      .toEqual(`import { Handlers } from "fresh/compat";
+      .toEqual(`import { Handlers } from "@fresh/core/compat";
 
 export const handler: Handlers = {
   async GET(ctx) {
@@ -274,7 +274,7 @@ export const handler: Handlers = {
   },
 };`);
     expect(files["/routes/foo.tsx"])
-      .toEqual(`import { Handlers } from "fresh/compat";
+      .toEqual(`import { Handlers } from "@fresh/core/compat";
 
 export const handler: Handlers = {
   async GET(ctx) {},
@@ -285,7 +285,7 @@ export const handler: Handlers = {
 };`);
 
     expect(files["/routes/name.tsx"])
-      .toEqual(`import { Handlers } from "fresh/compat";
+      .toEqual(`import { Handlers } from "@fresh/core/compat";
 
 export const handler: Handlers = {
   async GET(ctx) {
@@ -305,7 +305,7 @@ export const handler: Handlers = {
   },
 };`);
     expect(files["/routes/name-unused.tsx"])
-      .toEqual(`import { Handlers } from "fresh/compat";
+      .toEqual(`import { Handlers } from "@fresh/core/compat";
 
 export const handler: Handlers = {
   async GET(ctx) {},
@@ -393,7 +393,7 @@ Deno.test(
       await updateProject(dir);
       const files = await readFiles(dir);
       expect(files["/routes/index.tsx"])
-        .toEqual(`import { FreshContext } from "fresh";
+        .toEqual(`import { FreshContext } from "@fresh/core";
 
 export const handler = {
   GET(ctx: FreshContext) {
@@ -425,7 +425,7 @@ export const handler: Handlers = {
       await updateProject(dir);
       const files = await readFiles(dir);
       expect(files["/routes/index.tsx"])
-        .toEqual(`import { Handlers } from "fresh/compat";
+        .toEqual(`import { Handlers } from "@fresh/core/compat";
 
 export const handler: Handlers = {
   async GET({ params, render, info, req }) {
@@ -470,7 +470,7 @@ export default defineRoute(async (req, ctx) => {
     const files = await readFiles(dir);
 
     expect(files["/routes/_app.tsx"])
-      .toEqual(`import { defineApp } from "fresh/compat";
+      .toEqual(`import { defineApp } from "@fresh/core/compat";
 
 export default defineApp(async (ctx) => {
   const req = ctx.req;
@@ -478,7 +478,7 @@ export default defineApp(async (ctx) => {
   return null;
 });`);
     expect(files["/routes/_layout.tsx"])
-      .toEqual(`import { defineLayout } from "fresh/compat";
+      .toEqual(`import { defineLayout } from "@fresh/core/compat";
 
 export default defineLayout(async (ctx) => {
   const req = ctx.req;
@@ -486,7 +486,7 @@ export default defineLayout(async (ctx) => {
   return null;
 });`);
     expect(files["/routes/foo.tsx"])
-      .toEqual(`import { defineRoute } from "fresh/compat";
+      .toEqual(`import { defineRoute } from "@fresh/core/compat";
 
 export default defineRoute(async (ctx) => {
   const req = ctx.req;
@@ -517,7 +517,7 @@ Deno.test(
       await updateProject(dir);
       const files = await readFiles(dir);
       expect(files["/routes/index.tsx"])
-        .toEqual(`import { FreshContext } from "fresh";
+        .toEqual(`import { FreshContext } from "@fresh/core";
 
 export default async function Index(ctx: FreshContext) {
   const req = ctx.req;
@@ -557,7 +557,7 @@ export const handler: Handlers = {
       const files = await readFiles(dir);
 
       expect(files["/routes/index.tsx"])
-        .toEqual(`import { Handlers } from "fresh";
+        .toEqual(`import { Handlers } from "@fresh/core";
 
 export const handler: Handlers = {
   async GET(ctx) {
@@ -594,7 +594,7 @@ export const handler: Handlers = {
       const files = await readFiles(dir);
 
       expect(files["/routes/index.tsx"])
-        .toEqual(`import { Handlers } from "fresh";
+        .toEqual(`import { Handlers } from "@fresh/core";
 
 export const handler: Handlers = {
   async GET(ctx) {
@@ -629,7 +629,7 @@ export const handler: Handlers = {
     const files = await readFiles(dir);
 
     expect(files["/routes/index.tsx"])
-      .toEqual(`import { Handlers } from "fresh";
+      .toEqual(`import { Handlers } from "@fresh/core";
 
 export const handler: Handlers = {
   async GET({ url, throw, info }) {
@@ -677,7 +677,7 @@ Deno.test("update - island files", async () => {
     const files = await readFiles(dir);
 
     expect(files["/islands/foo.tsx"]).toEqual(
-      `import { IS_BROWSER } from "fresh/runtime";`,
+      `import { IS_BROWSER } from "@fresh/core/runtime";`,
     );
   });
 });

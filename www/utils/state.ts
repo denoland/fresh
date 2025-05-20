@@ -1,4 +1,4 @@
-import { createDefine } from "fresh";
+import { createDefine } from "@fresh/core";
 
 export interface State {
   title?: string;

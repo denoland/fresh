@@ -1,5 +1,5 @@
-import { App, staticFiles } from "fresh";
-import { Partial } from "fresh/runtime";
+import { App, staticFiles } from "@fresh/core";
+import { Partial } from "@fresh/core/runtime";
 import {
   allIslandApp,
   assertMetaContent,

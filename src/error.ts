@@ -8,7 +8,7 @@ import { STATUS_TEXT } from "@std/http/status";
  *
  * @example Basic usage
  * ```ts
- * import { App, HttpError } from "fresh";
+ * import { App, HttpError } from "@fresh/core";
  * import { expect } from "@std/expect";
  *
  * const app = new App()
@@ -34,7 +34,7 @@ export class HttpError extends Error {
    *
    * @example Basic usage
    * ```ts
-   * import { App, HttpError } from "fresh";
+   * import { App, HttpError } from "@fresh/core";
    * import { expect } from "@std/expect";
    *
    * const app = new App()

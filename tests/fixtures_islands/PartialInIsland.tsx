@@ -1,4 +1,4 @@
-import { Partial } from "fresh/runtime";
+import { Partial } from "@fresh/core/runtime";
 
 export function PartialInIsland() {
   return (

@@ -34,7 +34,7 @@ export interface Define<State> {
    * returned from the handler is of the correct type:
    *
    * ```ts
-   * import { page } from "fresh";
+   * import { page } from "@fresh/core";
    * import { define } from "../utils.ts";
    *
    * export const handler = define.handlers<{ slug: string }>({
@@ -80,7 +80,7 @@ export interface Define<State> {
    * return type of the handler method.
    *
    * ```ts
-   * import { page } from "fresh";
+   * import { page } from "@fresh/core";
    * import { define } from "../utils.ts";
    *
    * export const handler = define.handlers({

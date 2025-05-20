@@ -8,7 +8,7 @@ Learn more about the Fresh framework here:
 ## Usage: Island example
 
 ```tsx
-import { App } from "fresh";
+import { App } from "@fresh/core";
 // Import the island function
 import { DemoIsland } from "jsr:@fresh/examples/island";
 
@@ -34,7 +34,7 @@ await app.listen();
 ## Usage: App1 or App2 example
 
 ```tsx
-import { App } from "fresh";
+import { App } from "@fresh/core";
 // Import the example apps
 import { app1 } from "jsr:@fresh/examples/app1";
 import { app2 } from "jsr:@fresh/examples/app2";

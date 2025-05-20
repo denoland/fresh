@@ -1,4 +1,4 @@
-import { IS_BROWSER } from "fresh/runtime";
+import { IS_BROWSER } from "@fresh/core/runtime";
 import { useSignal } from "@preact/signals";
 
 export default function ThemeToggle() {
