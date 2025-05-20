@@ -1,4 +1,4 @@
-import type { RouteConfig } from "fresh";
+import type { RouteConfig } from "@fresh/core";
 import { format, parse } from "@std/semver";
 import VERSIONS from "../../versions.json" with { type: "json" };
 import { extname } from "@std/path";

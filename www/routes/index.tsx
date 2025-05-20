@@ -1,5 +1,5 @@
-import { asset } from "fresh/runtime";
-import { page } from "fresh";
+import { asset } from "@fresh/core/runtime";
+import { page } from "@fresh/core";
 import VERSIONS from "../../versions.json" with { type: "json" };
 import Footer from "../components/Footer.tsx";
 import Header from "../components/Header.tsx";

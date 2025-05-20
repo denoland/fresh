@@ -1,7 +1,7 @@
 import { expect } from "@std/expect";
 import { FreshReqContext } from "./context.ts";
-import { App } from "fresh";
-import { asset } from "fresh/runtime";
+import { App } from "@fresh/core";
+import { asset } from "@fresh/core/runtime";
 import { FakeServer } from "./test_utils.ts";
 import { BUILD_ID } from "./runtime/build_id.ts";
 import { parseHtml } from "../tests/test_utils.tsx";

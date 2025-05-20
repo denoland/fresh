@@ -1,4 +1,4 @@
-import { asset } from "fresh/runtime";
+import { asset } from "@fresh/core/runtime";
 import { define } from "../utils/state.ts";
 
 export default define.page(function App({ Component, state, url }) {

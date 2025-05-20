@@ -1,4 +1,4 @@
-import { App } from "fresh";
+import { App } from "@fresh/core";
 import { Doc } from "./shared.tsx";
 
 export const app2: App<unknown> = new App()

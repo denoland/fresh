@@ -3,7 +3,7 @@ import postcss from "postcss";
 import autoprefixer from "autoprefixer";
 import * as path from "@std/path";
 import type { TailwindPluginOptions } from "./types.ts";
-import type { ResolvedFreshConfig } from "fresh";
+import type { ResolvedFreshConfig } from "@fresh/core";
 
 const CONFIG_EXTENSIONS = ["ts", "js", "mjs"];
 

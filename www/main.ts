@@ -1,5 +1,5 @@
 import "./telemetry.ts";
-import { App, fsRoutes, staticFiles, trailingSlashes } from "fresh";
+import { App, fsRoutes, staticFiles, trailingSlashes } from "@fresh/core";
 
 export const app = new App({ root: import.meta.url })
   .use(staticFiles())

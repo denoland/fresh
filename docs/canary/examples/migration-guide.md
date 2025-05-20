@@ -51,7 +51,7 @@ plugins like [tailwindcss](https://tailwindcss.com/).
 The full `dev.ts` file for newly generated Fresh 2 projects looks like this:
 
 ```ts
-import { Builder } from "fresh/dev";
+import { Builder } from "@fresh/core/dev";
 import { tailwind } from "@fresh/plugin-tailwind";
 import { app } from "./main.ts";
 
@@ -78,7 +78,7 @@ Similarly, configuration related to running Fresh in production can be passed to
 
 ```ts
 // main.ts
-import { App, fsRoutes, staticFiles } from "fresh";
+import { App, fsRoutes, staticFiles } from "@fresh/core";
 
 export const app = new App()
   // Add static file serving middleware
@@ -178,8 +178,8 @@ you can add if needed. This middleware can be used to ensure that URLs always
 have a trailing slash at the end or that they will never have one.
 
 ```diff
--  import { App, staticFiles } from "fresh";
-+  import { App, staticFiles, trailingSlashes } from "fresh";
+-  import { App, staticFiles } from "@fresh/core";
++  import { App, staticFiles, trailingSlashes } from "@fresh/core";
 
   export const app = new App({ root: import.meta.url })
     .use(staticFiles())

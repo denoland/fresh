@@ -363,7 +363,7 @@ ${GRADIENT_CSS}`;
     // Skip this and be silent if there is a network issue.
   }
 
-  const MAIN_TS = `import { App, fsRoutes, staticFiles } from "fresh";
+  const MAIN_TS = `import { App, fsRoutes, staticFiles } from "@fresh/core";
 import { define, type State } from "./utils.ts";
 
 export const app = new App<State>();
@@ -414,7 +414,7 @@ export function Button(props: ButtonProps) {
 }`;
   await writeFile("components/Button.tsx", COMPONENTS_BUTTON_TSX);
 
-  const UTILS_TS = `import { createDefine } from "fresh";
+  const UTILS_TS = `import { createDefine } from "@fresh/core";
 
 // deno-lint-ignore no-empty-interface
 export interface State {}
@@ -451,7 +451,7 @@ export default define.page(function Home() {
 });`;
   await writeFile("routes/index.tsx", ROUTES_HOME);
 
-  const APP_WRAPPER = `import type { PageProps } from "fresh";
+  const APP_WRAPPER = `import type { PageProps } from "@fresh/core";
 
 export default function App({ Component }: PageProps) {
   return (
@@ -502,7 +502,7 @@ export default function Counter(props: CounterProps) {
 
   const DEV_TS = `#!/usr/bin/env -S deno run -A --watch=static/,routes/
 ${useTailwind ? `import { tailwind } from "@fresh/plugin-tailwind";\n` : ""}
-import { Builder } from "fresh/dev";
+import { Builder } from "@fresh/core/dev";
 import { app } from "./main.ts";
 
 const builder = new Builder();
