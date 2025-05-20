@@ -74,3 +74,26 @@ export class HttpError extends Error {
     this.status = status;
   }
 }
+
+/**
+ * Error that's throw when the app setup fails. Usually caused by
+ * `deno task build` not being run before starting the server.
+ *
+ * @example Basic usage
+ * ```ts ignore
+ * import { App, SetupError } from "fresh";
+ * import { expect } from "@std/expect";
+ *
+ * const app = new App()
+ *   .get("/", () => new Response("ok"))
+ *
+ * try {
+ *   // Throws if `deno task build` was not run beforehand
+ *   const handler = await app.handler();
+ * } catch (error) {
+ *   expect(error).toBeInstanceOf(SetupError);
+ *   expect(error.message).toBe("App not setup");
+ * }
+ * ```
+ */
+export class SetupError extends Error {}
