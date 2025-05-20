@@ -1,7 +1,6 @@
 import * as path from "@std/path";
 import denoJson from "../../deno.json" with { type: "json" };
 import { WEEK } from "@std/datetime";
-import { getStdOutput } from "../../tests/test_utils.tsx";
 import { expect } from "@std/expect";
 import type { CheckFile } from "./update_check.ts";
 
@@ -59,7 +58,7 @@ Deno.test("skips update check on specific environment variables", async (t) => {
         stdout: "piped",
       }).output();
 
-      const { stdout } = getStdOutput(out);
+      const stdout = new TextDecoder().decode(out.stdout);
       expect(stdout).not.toMatch(/Fresh 1\.30\.0 is available/);
 
       await Deno.remove(tmpDirName, { recursive: true });
@@ -91,12 +90,13 @@ Deno.test("shows update message on version mismatch", async () => {
       CI: "false",
       TEST_HOME: tmpDirName,
       LATEST_VERSION: "999.999.0",
+      NO_COLOR: "true",
     },
     stderr: "piped",
     stdout: "piped",
   }).output();
 
-  const { stdout } = getStdOutput(out);
+  const stdout = new TextDecoder().decode(out.stdout);
   expect(stdout).toMatch(/Fresh 999\.999\.0 is available/);
 
   // Updates check file
@@ -132,7 +132,7 @@ Deno.test("only fetch new version defined by interval", async (t) => {
       stdout: "piped",
     }).output();
 
-    const { stdout } = getStdOutput(out);
+    const stdout = new TextDecoder().decode(out.stdout);
     expect(stdout).toMatch(/fetching latest version/);
   });
 
@@ -154,7 +154,7 @@ Deno.test("only fetch new version defined by interval", async (t) => {
       stdout: "piped",
     }).output();
 
-    const { stdout } = getStdOutput(out);
+    const stdout = new TextDecoder().decode(out.stdout);
     expect(stdout).not.toMatch(/fetching latest version/);
   });
 
@@ -174,7 +174,7 @@ Deno.test("only fetch new version defined by interval", async (t) => {
       },
     }).output();
 
-    const { stdout } = getStdOutput(out);
+    const stdout = new TextDecoder().decode(out.stdout);
     expect(stdout).toMatch(/fetching latest version/);
   });
 
@@ -211,7 +211,7 @@ Deno.test("updates current version in cache file", async () => {
     stdout: "piped",
   }).output();
 
-  const { stdout } = getStdOutput(out);
+  const stdout = new TextDecoder().decode(out.stdout);
   expect(stdout).not.toMatch(/Fresh .* is available/);
 
   await Deno.remove(tmpDirName, { recursive: true });
@@ -248,7 +248,7 @@ Deno.test("only shows update message when current < latest", async () => {
     stdout: "piped",
   }).output();
 
-  const { stdout } = getStdOutput(out);
+  const stdout = new TextDecoder().decode(out.stdout);
   expect(stdout).not.toMatch(/Fresh .* is available/);
 
   await Deno.remove(tmpDirName, { recursive: true });
@@ -285,7 +285,7 @@ Deno.test("migrates to last_shown property", async () => {
     stdout: "piped",
   }).output();
 
-  const { stdout } = getStdOutput(out);
+  const stdout = new TextDecoder().decode(out.stdout);
   expect(stdout).toMatch(/Fresh .* is available/);
 
   const checkFileAfter = JSON.parse(
@@ -335,7 +335,7 @@ Deno.test("doesn't show update if last_shown + interval >= today", async () => {
     stdout: "piped",
   }).output();
 
-  const { stdout } = getStdOutput(out);
+  const stdout = new TextDecoder().decode(out.stdout);
   expect(stdout).not.toMatch(/Fresh .* is available/);
 
   await Deno.remove(tmpDirName, { recursive: true });
@@ -378,7 +378,7 @@ Deno.test(
       stdout: "piped",
     }).output();
 
-    const { stdout } = getStdOutput(out);
+    const stdout = new TextDecoder().decode(out.stdout);
     expect(stdout).toMatch(/Fresh .* is available/);
 
     const checkFileAfter = JSON.parse(

@@ -351,18 +351,6 @@ export async function waitFor(
   throw new Error(`Timed out`);
 }
 
-export function getStdOutput(
-  out: Deno.CommandOutput,
-): { stdout: string; stderr: string } {
-  const decoder = new TextDecoder();
-  const stdout = colors.stripAnsiCode(decoder.decode(out.stdout));
-
-  const decoderErr = new TextDecoder();
-  const stderr = colors.stripAnsiCode(decoderErr.decode(out.stderr));
-
-  return { stdout, stderr };
-}
-
 export const allIslandApp = new App()
   .island(getIsland("Counter.tsx"), "Counter", Counter)
   .island(
