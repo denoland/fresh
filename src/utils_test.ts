@@ -16,4 +16,7 @@ Deno.test("filenameToExportName", () => {
   expect(pathToExportName("/islands/nav-bar.tsx")).toBe("nav_bar");
   expect(pathToExportName("/islands/_.$bar.tsx")).toBe("_$bar");
   expect(pathToExportName("/islands/1.hello.tsx")).toBe("_hello");
+  expect(pathToExportName("/islands/collapse...repeat_-dash.tsx")).toBe(
+    "collapse_repeat_dash",
+  );
 });

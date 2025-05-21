@@ -43,6 +43,8 @@ export function mergePaths(a: string, b: string) {
  * pathToExportName("/islands/nav-bar.tsx"); // "nav_bar"
  * pathToExportName("/islands/_.$bar.tsx");  // "_$bar"
  * pathToExportName("/islands/1.hello.tsx"); // "_hello"
+ * pathToExportName("/islands/collapse...repeat_-dash.tsx");
+ * // "collapse_repeat_dash"
  * ```
  */
 export function pathToExportName(filePath: string): string {
