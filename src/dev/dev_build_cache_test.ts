@@ -2,13 +2,14 @@ import { expect } from "@std/expect";
 import * as path from "@std/path";
 import { MemoryBuildCache } from "./dev_build_cache.ts";
 import { FreshFileTransformer } from "./file_transformer.ts";
-import { createFakeFs } from "../test_utils.ts";
+import { createFakeFs, withTmpDir } from "../test_utils.ts";
 import type { ResolvedFreshConfig } from "../mod.ts";
 
 Deno.test({
   name: "MemoryBuildCache - should error if reading outside of staticDir",
   fn: async () => {
-    const tmp = await Deno.makeTempDir();
+    await using _tmp = await withTmpDir();
+    const tmp = _tmp.dir;
     const config: ResolvedFreshConfig = {
       root: tmp,
       mode: "development",

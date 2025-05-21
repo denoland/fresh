@@ -13,7 +13,7 @@
     ".": "./src/mod.ts",
     "./runtime": "./src/runtime/shared.ts",
     "./dev": "./src/dev/mod.ts",
-    "./compat": "./src/compat/mod.ts"
+    "./compat": "./src/compat.ts"
   },
   "tasks": {
     "test": "deno test -A --parallel",
@@ -42,21 +42,23 @@
   },
   "imports": {
     "@deno/doc": "jsr:@deno/doc@^0.172.0",
+    "@std/cli": "jsr:@std/cli@^1.0.17",
     "@std/collections": "jsr:@std/collections@^1.0.11",
     "@std/http": "jsr:@std/http@^1.0.15",
-    "fresh": "jsr:@fresh/core@^2.0.0-alpha.26",
+    "@std/uuid": "jsr:@std/uuid@^1.0.7",
+    "fresh": "jsr:@fresh/core@^2.0.0-alpha.29",
     "preact": "npm:preact@^10.26.6",
     "preact-render-to-string": "npm:preact-render-to-string@^6.5.11",
     "$ga4": "https://raw.githubusercontent.com/denoland/ga4/main/mod.ts",
     "@luca/esbuild-deno-loader": "jsr:@luca/esbuild-deno-loader@^0.11.0",
     "@opentelemetry/api": "npm:@opentelemetry/api@^1.9.0",
     "@preact/signals": "npm:@preact/signals@^2.0.4",
-    "esbuild": "npm:esbuild@0.23.1",
-    "esbuild-wasm": "npm:esbuild-wasm@0.23.1",
+    "esbuild": "npm:esbuild@0.25.4",
+    "esbuild-wasm": "npm:esbuild-wasm@0.25.4",
     "@std/crypto": "jsr:@std/crypto@1",
     "@std/datetime": "jsr:@std/datetime@^0.225.2",
     "@std/encoding": "jsr:@std/encoding@1",
-    "@std/fmt": "jsr:@std/fmt@1",
+    "@std/fmt": "jsr:@std/fmt@^1.0.7",
     "@std/fs": "jsr:@std/fs@1",
     "@std/html": "jsr:@std/html@1",
     "@std/jsonc": "jsr:@std/jsonc@1",
@@ -67,10 +69,27 @@
 
     "@astral/astral": "jsr:@astral/astral@^0.5.3",
     "@marvinh-test/fresh-island": "jsr:@marvinh-test/fresh-island@^0.0.1",
-    "linkedom": "npm:linkedom@^0.16.11",
-    "@std/async": "jsr:@std/async@1",
-    "@std/expect": "jsr:@std/expect@1",
-    "@std/testing": "jsr:@std/testing@1"
+    "linkedom": "npm:linkedom@^0.18.10",
+    "@std/async": "jsr:@std/async@^1.0.13",
+    "@std/expect": "jsr:@std/expect@^1.0.16",
+    "@std/testing": "jsr:@std/testing@^1.0.12",
+
+    "autoprefixer": "npm:autoprefixer@10.4.17",
+    "cssnano": "npm:cssnano@6.0.3",
+    "postcss": "npm:postcss@8.4.35",
+    "tailwindcss": "npm:tailwindcss@^3.4.1",
+
+    "ts-morph": "npm:ts-morph@^25.0.1",
+
+    "@fresh/plugin-tailwind": "jsr:@fresh/plugin-tailwind@^0.0.1-alpha.7",
+    "@std/front-matter": "jsr:@std/front-matter@^1.0.5",
+    "fresh/compat": "./src/compat/mod.ts",
+    "fresh/dev": "./src/dev/mod.ts",
+    "fresh/runtime": "./src/runtime/shared.ts",
+    "github-slugger": "npm:github-slugger@^2.0.0",
+    "marked": "npm:marked@^15.0.11",
+    "marked-mangle": "npm:marked-mangle@^1.1.9",
+    "prismjs": "npm:prismjs@^1.29.0"
   },
   "compilerOptions": {
     "lib": ["dom", "dom.asynciterable", "deno.ns", "deno.unstable"],
