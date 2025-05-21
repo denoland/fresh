@@ -22,7 +22,9 @@ jobs:
         uses: denoland/setup-deno@v2
         with:
           cache: true
-          deno-version: rc
+
+      - name: Install deps
+        run: deno install
 
       - name: Build step
         working-directory: ./www
