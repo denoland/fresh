@@ -67,7 +67,7 @@
     "@std/semver": "jsr:@std/semver@1",
     "@std/streams": "jsr:@std/streams@1",
 
-    "@astral/astral": "jsr:@astral/astral@^0.5.2",
+    "@astral/astral": "jsr:@astral/astral@^0.5.3",
     "@marvinh-test/fresh-island": "jsr:@marvinh-test/fresh-island@^0.0.1",
     "linkedom": "npm:linkedom@^0.18.10",
     "@std/async": "jsr:@std/async@^1.0.13",
