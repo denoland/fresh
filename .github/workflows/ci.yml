@@ -36,7 +36,7 @@ jobs:
 
       - name: Instal deps
         run: deno install
-        
+
       - name: Verify formatting
         if: startsWith(matrix.os, 'ubuntu') && matrix.deno == 'v2.x'
         run: deno fmt --check
