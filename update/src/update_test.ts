@@ -105,6 +105,38 @@ Deno.test("update - 1.x project deno.json with imports", async () => {
     });
 });
 
+Deno.test("update - 1.x project deno.json tasks + lock", async () => {
+  await using tmp = await withTmpDir();
+  await writeFiles(tmp.dir, {
+    "/deno.json": `{
+      "lock": false,
+      "tasks": {
+        "check": "deno fmt --check && deno lint && deno check **/*.ts && deno check **/*.tsx",
+        "cli": "echo \\"import '$fresh/src/dev/cli.ts'\\" | deno run --unstable -A -",
+        "manifest": "deno task cli manifest $(pwd)",
+        "start": "deno run -A --allow-scripts --watch=static/,routes/ dev.ts",
+        "build": "deno run -A dev.ts build",
+        "preview": "deno run -A main.ts",
+        "update": "deno run -A -r https://fresh.deno.dev/update ."
+      }
+    }`,
+  });
+
+  await updateProject(tmp.dir);
+  const files = await readFiles(tmp.dir);
+
+  const updated = JSON.parse(files["/deno.json"]);
+  expect(updated.lock).toEqual(undefined);
+  expect(updated.tasks)
+    .toEqual({
+      build: "deno run -A dev.ts build",
+      check: "deno fmt --check && deno lint && deno check",
+      preview: "deno run -A main.ts",
+      start: "deno run -A --allow-scripts --watch=static/,routes/ dev.ts",
+      update: "deno run -A -r jsr:@fresh/update .",
+    });
+});
+
 Deno.test("update - 1.x project middlewares", async () => {
   await using _tmp = await withTmpDir();
   const dir = _tmp.dir;
