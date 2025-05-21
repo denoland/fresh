@@ -6,18 +6,22 @@ A Tailwind CSS plugin to use in Fresh.
 // dev.ts
 
 import { tailwind } from "@fresh/plugin-tailwind";
-import { Builder } from "fresh/dev";
+import { FreshDevApp } from "fresh/dev";
 import { app } from "./main.ts";
 
-const devApp = new Builder();
+const devApp = new FreshDevApp();
 
 // Enable Tailwind CSS
-tailwind(builder, app);
+tailwind(devApp);
+
+devApp.mountApp("/", app);
 
 if (Deno.args.includes("build")) {
-  await builder.build();
+  await devApp.build({
+    target: "safari12",
+  });
 } else {
-  await builder.listen();
+  await devApp.listen();
 }
 ```
 
