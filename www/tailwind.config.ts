@@ -21,26 +21,19 @@ export default {
   theme: {
     extend: {
       colors: {
-        // use RGB variables with alpha value
-        "fresh": "rgb(var(--fresh-rgb) / <alpha-value>)",
-        "fresh-green": "rgb(var(--fresh-green-rgb) / <alpha-value>)",
+        // Dark/light with Tailwind done right using CSS variables:
+        "fresh": "hsla(var(--fresh))",
+        "fresh-green": "hsla(var(--fresh-green))",
 
-        "background-primary":
-          "rgb(var(--background-primary-rgb) / <alpha-value>)",
-        "background-secondary":
-          "rgb(var(--background-secondary-rgb) / <alpha-value>)",
-        "background-tertiary":
-          "rgb(var(--background-tertiary-rgb) / <alpha-value>)",
-        "foreground-primary":
-          "rgb(var(--foreground-primary-rgb) / <alpha-value>)",
-        "foreground-secondary":
-          "rgb(var(--foreground-secondary-rgb) / <alpha-value>)",
-        "foreground-tertiary":
-          "rgb(var(--foreground-tertiary-rgb) / <alpha-value>)",
-        "foreground-quaternary":
-          "rgb(var(--foreground-quaternary-rgb) / <alpha-value>)",
+        "background-primary": "hsla(var(--background-primary))",
+        "background-secondary": "hsla(var(--background-secondary))",
+        "background-tertiary": "hsla(var(--background-tertiary))",
+        "foreground-primary": "hsla(var(--foreground-primary))",
+        "foreground-secondary": "hsla(var(--foreground-secondary))",
+        "foreground-tertiary": "hsla(var(--foreground-tertiary))",
+        "foreground-quaternary": "hsla(var(--foreground-quaternary))",
 
-        "info": "rgb(var(--info-rgb) / <alpha-value>)",
+        "info": "hsla(var(--info))",
       },
     },
   },

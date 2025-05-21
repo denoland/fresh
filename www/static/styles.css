@@ -1,33 +1,35 @@
-@import "tailwindcss";
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
 /* Light and dark theme variables */
 :root {
-  --fresh: hsla(50, 100%, 56%, 1);
-  --fresh-green: hsla(142, 71%, 29%, 1);
+  --fresh: 50deg, 100%, 56%;
+  --fresh-green: 142deg, 71%, 29%;
 
   --background-primary: 215deg, 100%, 100%;
-  --background-secondary: hsla(210, 29%, 97%, 1);
-  --background-tertiary: hsla(207, 33%, 95%, 1);
-  --foreground-primary: hsla(0, 0%, 9%, 1);
-  --foreground-secondary: hsla(0, 0%, 23%, 1);
-  --foreground-tertiary: hsla(0, 0%, 32%, 1);
-  --foreground-quaternary: hsla(0, 0%, 42%, 1);
+  --background-secondary: 210deg, 29%, 97%;
+  --background-tertiary: 207deg, 33%, 95%;
+  --foreground-primary: 0deg, 0%, 9%;
+  --foreground-secondary: 0deg, 0%, 23%;
+  --foreground-tertiary: 0deg, 0%, 32%;
+  --foreground-quaternary: 0deg, 0%, 42%;
 
-  --info: hsla(194, 76%, 41%, 1);
+  --info: 194deg, 76%, 41%;
 }
 html[data-theme="dark"]:root {
-  --fresh: hsla(50, 100%, 56%, 1);
-  --fresh-green: hsla(142, 71%, 29%, 1);
+  --fresh: 50deg, 100%, 56%;
+  --fresh-green: 142deg, 71%, 29%;
 
-  --background-primary: hsla(216, 27.8%, 7.1%, 1);
-  --background-secondary: hsla(216, 27.7%, 12%, 1);
-  --background-tertiary: hsla(216, 27.7%, 22%, 1);
-  --foreground-primary: hsla(215, 17%, 99%, 1);
-  --foreground-secondary: hsla(215, 17%, 71%, 1);
-  --foreground-tertiary: hsla(215, 17%, 20%, 1);
-  --foreground-quaternary: hsla(215, 17%, 10%, 1);
+  --background-primary: 216deg, 27.8%, 7.1%;
+  --background-secondary: 216deg, 27.7%, 12%;
+  --background-tertiary: 216deg, 27.7%, 22%;
+  --foreground-primary: 215deg, 17%, 99%;
+  --foreground-secondary: 215deg, 17%, 71%;
+  --foreground-tertiary: 215deg, 17%, 20%;
+  --foreground-quaternary: 215deg, 17%, 10%;
 
-  --info: hsla(194, 76%, 41%, 1);
+  --info: 194deg, 76%, 41%;
 
   color: var(--foreground-primary);
   background-color: var(--background-primary);
@@ -96,13 +98,11 @@ h6 {
 }
 
 hr {
-  /* @apply border-foreground-secondary/10; */
-  border-color: hsla(var(--foreground-secondary), 0.1);
+  @apply border-foreground-secondary/10;
 }
 
 .dark-mode-toggle-button img {
-  /* @apply fill-foreground-primary; */
-  fill: var(--foreground-primary);
+  @apply fill-foreground-primary;
 }
 
 ::selection {
