@@ -209,3 +209,38 @@ Deno.test({
   sanitizeOps: false,
   sanitizeResources: false,
 });
+
+Deno.test({
+  name: "Builder - workspace folder middleware on listen",
+  fn: async () => {
+    const builder = new Builder();
+    const tmp = await Deno.makeTempDir();
+    const app = new App({
+      staticDir: tmp,
+      build: {
+        outDir: path.join(tmp, "dist"),
+      },
+    });
+    const abort = new AbortController();
+    const port = 8011;
+    await builder.listen(app, { port, signal: abort.signal });
+
+    const res = await fetch(
+      `http://localhost:${port}/.well-known/appspecific/com.chrome.devtools.json`,
+    );
+    const json = await res.json();
+    await abort.abort();
+
+    expect(res.ok).toBe(true);
+    expect(res.status).toBe(200);
+    expect(res.headers.get("etag")).toEqual(expect.any(String));
+    expect(json).toEqual({
+      workspace: {
+        root: app.config.root,
+        uuid: expect.any(String),
+      },
+    });
+  },
+  sanitizeOps: false,
+  sanitizeResources: false,
+});
