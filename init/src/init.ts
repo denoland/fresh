@@ -8,6 +8,22 @@ const FRESH_TAILWIND_VERSION = "0.0.1-alpha.8";
 const PREACT_VERSION = "10.26.6";
 const PREACT_SIGNALS_VERSION = "2.0.4";
 
+interface DenoJson {
+  nodeModulesDir?: "auto" | "manual" | "none";
+  lock?: boolean;
+  tasks?: Record<string, string>;
+  lint?: {
+    rules?: {
+      tags?: string[];
+    };
+  };
+  exclude?: string[];
+  name?: string;
+  version?: string;
+  imports?: Record<string, string>;
+  compilerOptions?: Record<string, unknown>;
+}
+
 function css(strs: TemplateStringsArray, ...exprs: string[]): string {
   let out = "";
 
@@ -512,7 +528,7 @@ if (Deno.args.includes("build")) {
 }`;
   await writeFile("dev.ts", DEV_TS);
 
-  const denoJson = {
+  const denoJson: DenoJson = {
     tasks: {
       check: "deno fmt --check . && deno lint . && deno check",
       dev: "deno run -A --watch=static/,routes/ dev.ts",
@@ -532,7 +548,7 @@ if (Deno.args.includes("build")) {
         `jsr:@fresh/plugin-tailwind@^${FRESH_TAILWIND_VERSION}`,
       "preact": `npm:preact@^${PREACT_VERSION}`,
       "@preact/signals": `npm:@preact/signals@^${PREACT_SIGNALS_VERSION}`,
-    } as Record<string, string>,
+    },
     compilerOptions: {
       lib: ["dom", "dom.asynciterable", "dom.iterable", "deno.ns"],
       jsx: "precompile",
@@ -549,10 +565,11 @@ if (Deno.args.includes("build")) {
   };
 
   if (useTailwind) {
-    denoJson.imports["tailwindcss"] = "npm:tailwindcss@^4.1.7";
+    denoJson.nodeModulesDir = "auto";
+    denoJson.imports!["tailwindcss"] = "npm:tailwindcss@^4.1.7";
   }
 
-  await writeFile("deno.json", denoJson);
+  await writeFile("deno.json", JSON.stringify(denoJson, null, 2));
 
   const README_MD = `# Fresh project
 
