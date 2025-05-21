@@ -3,6 +3,7 @@ import denoJson from "../../deno.json" with { type: "json" };
 import { WEEK } from "@std/datetime";
 import { getStdOutput } from "../../tests/test_utils.tsx";
 import { expect } from "@std/expect";
+import { withTmpDir } from "../test_utils.ts";
 import type { CheckFile } from "./update_check.ts";
 
 const CURRENT_VERSION = denoJson.version;
@@ -10,8 +11,8 @@ const CURRENT_VERSION = denoJson.version;
 const cwd = import.meta.dirname!;
 
 Deno.test("stores update check file in $HOME/fresh", async () => {
-  const tmpDirName = await Deno.makeTempDir();
-  const filePath = path.join(tmpDirName, "latest.json");
+  await using tmp = await withTmpDir();
+  const filePath = path.join(tmp.dir, "latest.json");
 
   await new Deno.Command(Deno.execPath(), {
     args: [
@@ -22,7 +23,7 @@ Deno.test("stores update check file in $HOME/fresh", async () => {
     cwd,
     env: {
       CI: "false",
-      TEST_HOME: tmpDirName,
+      TEST_HOME: tmp.dir,
     },
   }).output();
 
@@ -33,8 +34,6 @@ Deno.test("stores update check file in $HOME/fresh", async () => {
     last_checked: text.last_checked,
     last_shown: text.last_shown,
   });
-
-  await Deno.remove(tmpDirName, { recursive: true });
 });
 
 Deno.test("skips update check on specific environment variables", async (t) => {
@@ -42,7 +41,7 @@ Deno.test("skips update check on specific environment variables", async (t) => {
 
   for (const env of envs) {
     await t.step(`checking ${env}`, async () => {
-      const tmpDirName = await Deno.makeTempDir();
+      await using tmp = await withTmpDir();
       const out = await new Deno.Command(Deno.execPath(), {
         args: [
           "run",
@@ -52,7 +51,7 @@ Deno.test("skips update check on specific environment variables", async (t) => {
         cwd,
         env: {
           [env]: "true",
-          TEST_HOME: tmpDirName,
+          TEST_HOME: tmp.dir,
           LATEST_VERSION: "1.30.0",
         },
         stderr: "piped",
@@ -61,15 +60,13 @@ Deno.test("skips update check on specific environment variables", async (t) => {
 
       const { stdout } = getStdOutput(out);
       expect(stdout).not.toMatch(/Fresh 1\.30\.0 is available/);
-
-      await Deno.remove(tmpDirName, { recursive: true });
     });
   }
 });
 
 Deno.test("shows update message on version mismatch", async () => {
-  const tmpDirName = await Deno.makeTempDir();
-  const filePath = path.join(tmpDirName, "latest.json");
+  await using tmp = await withTmpDir();
+  const filePath = path.join(tmp.dir, "latest.json");
 
   await Deno.writeTextFile(
     filePath,
@@ -89,7 +86,7 @@ Deno.test("shows update message on version mismatch", async () => {
     cwd,
     env: {
       CI: "false",
-      TEST_HOME: tmpDirName,
+      TEST_HOME: tmp.dir,
       LATEST_VERSION: "999.999.0",
     },
     stderr: "piped",
@@ -107,12 +104,10 @@ Deno.test("shows update message on version mismatch", async () => {
     last_checked: text.last_checked,
     last_shown: text.last_shown,
   });
-
-  await Deno.remove(tmpDirName, { recursive: true });
 });
 
 Deno.test("only fetch new version defined by interval", async (t) => {
-  const tmpDirName = await Deno.makeTempDir();
+  await using tmp = await withTmpDir();
 
   await t.step("fetches latest version initially", async () => {
     const out = await new Deno.Command(Deno.execPath(), {
@@ -125,7 +120,7 @@ Deno.test("only fetch new version defined by interval", async (t) => {
       env: {
         CI: "false",
         UPDATE_INTERVAL: "100000",
-        TEST_HOME: tmpDirName,
+        TEST_HOME: tmp.dir,
         LATEST_VERSION: "1.30.0",
       },
       stderr: "piped",
@@ -147,7 +142,7 @@ Deno.test("only fetch new version defined by interval", async (t) => {
       env: {
         CI: "false",
         UPDATE_INTERVAL: "100000",
-        TEST_HOME: tmpDirName,
+        TEST_HOME: tmp.dir,
         LATEST_VERSION: "1.30.0",
       },
       stderr: "piped",
@@ -169,7 +164,7 @@ Deno.test("only fetch new version defined by interval", async (t) => {
       env: {
         CI: "false",
         UPDATE_INTERVAL: "1 ",
-        TEST_HOME: tmpDirName,
+        TEST_HOME: tmp.dir,
         LATEST_VERSION: "1.30.0",
       },
     }).output();
@@ -177,12 +172,10 @@ Deno.test("only fetch new version defined by interval", async (t) => {
     const { stdout } = getStdOutput(out);
     expect(stdout).toMatch(/fetching latest version/);
   });
-
-  await Deno.remove(tmpDirName, { recursive: true });
 });
 
 Deno.test("updates current version in cache file", async () => {
-  const tmpDirName = await Deno.makeTempDir();
+  await using tmp = await withTmpDir();
 
   const checkFile: CheckFile = {
     current_version: "1.2.0",
@@ -191,7 +184,7 @@ Deno.test("updates current version in cache file", async () => {
   };
 
   await Deno.writeTextFile(
-    path.join(tmpDirName, "latest.json"),
+    path.join(tmp.dir, "latest.json"),
     JSON.stringify(checkFile, null, 2),
   );
 
@@ -204,7 +197,7 @@ Deno.test("updates current version in cache file", async () => {
     cwd,
     env: {
       CI: "false",
-      TEST_HOME: tmpDirName,
+      TEST_HOME: tmp.dir,
       LATEST_VERSION: CURRENT_VERSION,
     },
     stderr: "piped",
@@ -213,12 +206,10 @@ Deno.test("updates current version in cache file", async () => {
 
   const { stdout } = getStdOutput(out);
   expect(stdout).not.toMatch(/Fresh .* is available/);
-
-  await Deno.remove(tmpDirName, { recursive: true });
 });
 
 Deno.test("only shows update message when current < latest", async () => {
-  const tmpDirName = await Deno.makeTempDir();
+  await using tmp = await withTmpDir();
 
   const checkFile: CheckFile = {
     current_version: "9999.999.0",
@@ -227,7 +218,7 @@ Deno.test("only shows update message when current < latest", async () => {
   };
 
   await Deno.writeTextFile(
-    path.join(tmpDirName, "latest.json"),
+    path.join(tmp.dir, "latest.json"),
     JSON.stringify(checkFile, null, 2),
   );
 
@@ -240,7 +231,7 @@ Deno.test("only shows update message when current < latest", async () => {
     cwd,
     env: {
       CI: "false",
-      TEST_HOME: tmpDirName,
+      TEST_HOME: tmp.dir,
       LATEST_VERSION: CURRENT_VERSION,
       CURRENT_VERSION: "99999.9999.0",
     },
@@ -250,12 +241,10 @@ Deno.test("only shows update message when current < latest", async () => {
 
   const { stdout } = getStdOutput(out);
   expect(stdout).not.toMatch(/Fresh .* is available/);
-
-  await Deno.remove(tmpDirName, { recursive: true });
 });
 
 Deno.test("migrates to last_shown property", async () => {
-  const tmpDirName = await Deno.makeTempDir();
+  await using tmp = await withTmpDir();
 
   const checkFile: CheckFile = {
     latest_version: "1.4.0",
@@ -264,7 +253,7 @@ Deno.test("migrates to last_shown property", async () => {
   };
 
   await Deno.writeTextFile(
-    path.join(tmpDirName, "latest.json"),
+    path.join(tmp.dir, "latest.json"),
     JSON.stringify(checkFile, null, 2),
   );
 
@@ -277,7 +266,7 @@ Deno.test("migrates to last_shown property", async () => {
     cwd,
     env: {
       CI: "false",
-      TEST_HOME: tmpDirName,
+      TEST_HOME: tmp.dir,
       CURRENT_VERSION: "1.2.0",
       LATEST_VERSION: "99999.9999.0",
     },
@@ -290,18 +279,16 @@ Deno.test("migrates to last_shown property", async () => {
 
   const checkFileAfter = JSON.parse(
     await Deno.readTextFile(
-      path.join(tmpDirName, "latest.json"),
+      path.join(tmp.dir, "latest.json"),
     ),
   );
 
   // Check if last version was written
   expect(typeof checkFileAfter.last_shown).toEqual("string");
-
-  await Deno.remove(tmpDirName, { recursive: true });
 });
 
 Deno.test("doesn't show update if last_shown + interval >= today", async () => {
-  const tmpDirName = await Deno.makeTempDir();
+  await using tmp = await withTmpDir();
 
   const todayMinus1Hour = new Date();
   todayMinus1Hour.setHours(todayMinus1Hour.getHours() - 1);
@@ -314,7 +301,7 @@ Deno.test("doesn't show update if last_shown + interval >= today", async () => {
   };
 
   await Deno.writeTextFile(
-    path.join(tmpDirName, "latest.json"),
+    path.join(tmp.dir, "latest.json"),
     JSON.stringify(checkFile, null, 2),
   );
 
@@ -327,7 +314,7 @@ Deno.test("doesn't show update if last_shown + interval >= today", async () => {
     cwd,
     env: {
       CI: "false",
-      TEST_HOME: tmpDirName,
+      TEST_HOME: tmp.dir,
       CURRENT_VERSION: "1.2.0",
       LATEST_VERSION: "99999.9999.0",
     },
@@ -337,14 +324,12 @@ Deno.test("doesn't show update if last_shown + interval >= today", async () => {
 
   const { stdout } = getStdOutput(out);
   expect(stdout).not.toMatch(/Fresh .* is available/);
-
-  await Deno.remove(tmpDirName, { recursive: true });
 });
 
 Deno.test(
   "shows update if last_shown + interval < today",
   async () => {
-    const tmpDirName = await Deno.makeTempDir();
+    await using tmp = await withTmpDir();
 
     const yesterday = new Date();
     yesterday.setDate(yesterday.getDate() - 1);
@@ -357,7 +342,7 @@ Deno.test(
     };
 
     await Deno.writeTextFile(
-      path.join(tmpDirName, "latest.json"),
+      path.join(tmp.dir, "latest.json"),
       JSON.stringify(checkFile, null, 2),
     );
 
@@ -370,7 +355,7 @@ Deno.test(
       cwd,
       env: {
         CI: "false",
-        TEST_HOME: tmpDirName,
+        TEST_HOME: tmp.dir,
         CURRENT_VERSION: CURRENT_VERSION,
         LATEST_VERSION: "99999.9999.0",
       },
@@ -383,12 +368,10 @@ Deno.test(
 
     const checkFileAfter = JSON.parse(
       await Deno.readTextFile(
-        path.join(tmpDirName, "latest.json"),
+        path.join(tmp.dir, "latest.json"),
       ),
     );
 
     expect(checkFileAfter.last_shown).not.toEqual(yesterday.toISOString());
-
-    await Deno.remove(tmpDirName, { recursive: true });
   },
 );
