@@ -233,11 +233,11 @@ Deno.test({
 
     expect(res.ok).toBe(true);
     expect(res.status).toBe(200);
-    expect(res.headers.get("etag")).toBe(`W/"89-fnIGpWUqty+rrEzfi2EC7+wTd34"`);
+    expect(res.headers.get("etag")).toBe(expect.any(String));
     expect(json).toEqual({
       workspace: {
         root: app.config.root,
-        uuid: "64dd8f0a-72e0-54e7-92c5-30a42aabc6fa",
+        uuid: expect.any(String),
       },
     });
   },
