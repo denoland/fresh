@@ -50,7 +50,7 @@ jobs:
         run: deno task check:types
 
       - name: Run tests
-        run: deno task test
+        run: deno test -A
 
       - name: Check docs
         run: deno task check:docs
