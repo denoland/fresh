@@ -33,6 +33,7 @@ const TESTS = [
   { a: 1, b: null, c: -2 },
   new Uint8Array([1, 2, 3]),
   new Date("1990-05-31"),
+  new Date("Invalid Date"),
   new Map([[1, null], [undefined, -2]]),
   new Set([1, 2, null, -2, NaN]),
   [1, , 3],
