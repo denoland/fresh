@@ -28,6 +28,20 @@ export interface RouteConfig {
   skipAppWrapper?: boolean;
 }
 
+export interface LayoutConfig {
+  /**
+   * Skip already inherited layouts
+   * Default: `false`
+   */
+  skipInheritedLayouts?: boolean;
+
+  /**
+   * Skip rendering the `routes/_app` template
+   * Default: `false`
+   */
+  skipAppWrapper?: boolean;
+}
+
 // TODO: Uncomment once JSR supports global types
 // declare global {
 //   namespace preact.createElement.JSX {
