@@ -233,7 +233,7 @@ Deno.test({
 
     expect(res.ok).toBe(true);
     expect(res.status).toBe(200);
-    expect(res.headers.get("etag")).toBe(expect.any(String));
+    expect(res.headers.get("etag")).toEqual(expect.any(String));
     expect(json).toEqual({
       workspace: {
         root: app.config.root,
