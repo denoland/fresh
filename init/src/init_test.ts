@@ -92,7 +92,7 @@ Deno.test("init - with tailwind", async () => {
   await initProject(dir, [], {});
 
   const css = await readProjectFile(dir, "static/styles.css");
-  expect(css).toMatch(/@tailwind/);
+  expect(css).toMatch(/tailwindcss/);
 
   const main = await readProjectFile(dir, "main.ts");
   const dev = await readProjectFile(dir, "dev.ts");
