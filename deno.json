@@ -1,5 +1,4 @@
 {
-  "nodeModulesDir": "auto",
   "workspace": [
     "./examples",
     "./init",

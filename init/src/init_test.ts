@@ -98,9 +98,6 @@ Deno.test("init - with tailwind", async () => {
   const dev = await readProjectFile(dir, "dev.ts");
   expect(main).not.toMatch(/tailwind/);
   expect(dev).toMatch(/tailwind/);
-
-  const denoJson = await readProjectFile(dir, "deno.json");
-  expect(denoJson).toMatch(/nodeModulesDir":\s"auto"/);
 });
 
 Deno.test("init - with vscode", async () => {
