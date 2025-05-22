@@ -221,7 +221,7 @@ export default define.page<typeof handler>(function DocsPage(props) {
                   <div class="px-4 md:px-0 flex justify-between my-6">
                     <a
                       href={`https://github.com/denoland/fresh/edit/main/${page.file}`}
-                      class="dark:text-white text-md flex items-center bg-[#ebedf0] dark:bg-[#2b2d3c] px-4 py-2 rounded"
+                      class="text-gray-700 dark:text-gray-200 text-md flex items-center bg-[#ebedf0] dark:bg-[#1e1f2a] px-4 py-2 rounded hover:bg-gray-200 dark:hover:bg-[#36394c] transition-colors"
                       target="_blank"
                       rel="noopener noreferrer"
                     >
