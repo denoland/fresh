@@ -29,7 +29,7 @@ export interface CacheOptions<State> {
 }
 
 /**
- * Middlware to cache `GET` requests, based on the
+ * Middleware to cache `GET` requests, based on the
  * {@link https://developer.mozilla.org/en-US/docs/Web/API/Cache | Cache API}.
  * The underlying caching mechanism does not yet respect the
  * {@linkcode https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Vary | Vary}
