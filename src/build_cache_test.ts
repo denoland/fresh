@@ -1,6 +1,7 @@
 import { expect } from "@std/expect";
 import * as path from "@std/path";
 import { ProdBuildCache, type StaticFile } from "./build_cache.ts";
+import { withTmpDir } from "./test_utils.ts";
 import type { ResolvedFreshConfig } from "./mod.ts";
 
 async function getContent(readResult: Promise<StaticFile | null>) {
@@ -13,7 +14,8 @@ async function getContent(readResult: Promise<StaticFile | null>) {
 Deno.test({
   name: "ProdBuildCache - should error if reading outside of staticDir",
   fn: async () => {
-    const tmp = await Deno.makeTempDir();
+    await using _tmp = await withTmpDir();
+    const tmp = _tmp.dir;
     const config: ResolvedFreshConfig = {
       root: tmp,
       mode: "production",
