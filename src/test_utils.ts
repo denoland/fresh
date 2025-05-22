@@ -162,7 +162,7 @@ export async function withTmpDir(
       try {
         await safeRemoveWithTimeout(dir, 5000);
       } catch (e) {
-        console.error("Failed to cleanup temp dir:", e);
+        throw e;
       }
     },
   };
