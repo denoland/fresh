@@ -3,6 +3,7 @@ import { asset, Partial } from "fresh/runtime";
 import { SidebarCategory } from "../../components/DocsSidebar.tsx";
 import Footer from "../../components/Footer.tsx";
 import Header from "../../components/Header.tsx";
+import * as Icons from "../../components/Icons.tsx";
 import {
   CATEGORIES,
   getFirstPageUrl,
@@ -220,14 +221,12 @@ export default define.page<typeof handler>(function DocsPage(props) {
                   <div class="px-4 md:px-0 flex justify-between my-6">
                     <a
                       href={`https://github.com/denoland/fresh/edit/main/${page.file}`}
-                      class="text-green-600 underline flex items-center"
+                      class="dark:text-white text-md flex items-center bg-[#ebedf0] dark:bg-[#2b2d3c] px-4 py-2 rounded"
                       target="_blank"
                       rel="noopener noreferrer"
                     >
-                      <svg class="w-4 h-4 inline-block mr-1">
-                        <use href="/icons.svg#external" />
-                      </svg>
-                      Edit this page on GitHub
+                      <span class="mr-2 inline-flex">Edit this page</span>
+                      <Icons.GitHub />
                     </a>
                   </div>
                 </div>
