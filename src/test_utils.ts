@@ -66,7 +66,7 @@ export function serveMiddleware<T>(
   options: {
     config?: ResolvedFreshConfig;
     buildCache?: BuildCache;
-    next?: () => Promise<Response>;
+    next?: () => Promise<Response> | Response;
   } = {},
 ): FakeServer {
   return new FakeServer(async (req) => {
