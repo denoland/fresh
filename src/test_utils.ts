@@ -122,10 +122,27 @@ export async function withTmpDir(
   options?: Deno.MakeTempOptions,
 ): Promise<{ dir: string } & AsyncDisposable> {
   const dir = await Deno.makeTempDir(options);
+
+  async function safeRemove(dir: string) {
+    for (let i = 0; i < 5; i++) {
+      try {
+        await Deno.remove(dir, { recursive: true });
+        return;
+      } catch (e) {
+        if (e instanceof Deno.errors.PermissionDenied) {
+          await new Promise((r) => setTimeout(r, 100));
+        } else {
+          throw e;
+        }
+      }
+    }
+    throw new Error("Failed to remove directory after several retries: " + dir);
+  }
+
   return {
     dir,
     async [Symbol.asyncDispose]() {
-      await Deno.remove(dir, { recursive: true });
+      await safeRemove(dir);
     },
   };
 }
