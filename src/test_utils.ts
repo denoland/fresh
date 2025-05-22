@@ -139,10 +139,31 @@ export async function withTmpDir(
     throw new Error("Failed to remove directory after several retries: " + dir);
   }
 
+  async function safeRemoveWithTimeout(dir: string, timeout = 5000) {
+    let timer: number | undefined;
+    try {
+      return await Promise.race([
+        safeRemove(dir),
+        new Promise((_, reject) => {
+          timer = setTimeout(
+            () => reject(new Error("Timeout removing directory")),
+            timeout,
+          );
+        }),
+      ]);
+    } finally {
+      if (timer !== undefined) clearTimeout(timer);
+    }
+  }
+
   return {
     dir,
     async [Symbol.asyncDispose]() {
-      await safeRemove(dir);
+      try {
+        await safeRemoveWithTimeout(dir, 5000);
+      } catch (e) {
+        console.error("Failed to cleanup temp dir:", e);
+      }
     },
   };
 }
