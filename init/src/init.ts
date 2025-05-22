@@ -548,6 +548,7 @@ if (Deno.args.includes("build")) {
         "head",
       ],
     },
+    nodeModulesDir:"auto"
   };
 
   if (useTailwind) {
