@@ -69,3 +69,18 @@ Deno.test("ctx.render - throw with invalid first arg", async () => {
   await res.body?.cancel();
   expect(res.status).toEqual(500);
 });
+
+Deno.test("ctx.isPartial - should indicate whether request is partial or not", async () => {
+  const isPartials: boolean[] = [];
+  const app = new App()
+    .get("/", (ctx) => {
+      isPartials.push(ctx.isPartial);
+      return new Response("ok");
+    });
+  const server = new FakeServer(app.handler());
+
+  await server.get("/");
+  await server.get("/?fresh-partial");
+
+  expect(isPartials).toEqual([false, true]);
+});

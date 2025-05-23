@@ -25,7 +25,10 @@ import {
 } from "../shared_internal.tsx";
 import type { BuildCache } from "../../build_cache.ts";
 import { BUILD_ID } from "../build_id.ts";
-import { DEV_ERROR_OVERLAY_URL } from "../../constants.ts";
+import {
+  DEV_ERROR_OVERLAY_URL,
+  PARTIAL_SEARCH_PARAM,
+} from "../../constants.ts";
 import * as colors from "@std/fmt/colors";
 import { escape as escapeHtml } from "@std/html";
 import { HttpError } from "../../error.ts";
@@ -427,7 +430,7 @@ function FreshRuntimeScript() {
 
   const islandArr = Array.from(islands);
 
-  if (ctx.url.searchParams.has("fresh-partial")) {
+  if (ctx.url.searchParams.has(PARTIAL_SEARCH_PARAM)) {
     const islands = islandArr.map((island) => {
       const chunk = buildCache.getIslandChunkName(island.name);
       if (chunk === null) {
