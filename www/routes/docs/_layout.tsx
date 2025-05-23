@@ -1,4 +1,4 @@
-import { PageProps } from "../../../src/context.ts";
+import type { PageProps } from "../../../src/context.ts";
 
 export default function Layout({ Component }: PageProps) {
   return (
