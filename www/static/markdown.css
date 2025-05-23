@@ -674,7 +674,7 @@ html[data-theme="dark"] {
   border-color: rgb(25 146 184);
 }
 
-.dark .markdown-body .admonition.info {
+html[data-theme="dark"] .markdown-body .admonition.info {
   background-color: hsla(var(--info), 0.1);
   color: hsla(var(--foreground-primary));
 }

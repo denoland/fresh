@@ -32,3 +32,24 @@ export function mergePaths(a: string, b: string) {
   if (!b.startsWith("/")) return a + "/" + b;
   return a + b;
 }
+
+/**
+ * Converts a file path to a valid JS export name.
+ *
+ * @example
+ * ```ts
+ * pathToExportName("/islands/foo.tsx");     // "foo"
+ * pathToExportName("/islands/foo.v2.tsx");  // "foo_v2"
+ * pathToExportName("/islands/nav-bar.tsx"); // "nav_bar"
+ * pathToExportName("/islands/_.$bar.tsx");  // "_$bar"
+ * pathToExportName("/islands/1.hello.tsx"); // "_hello"
+ * pathToExportName("/islands/collapse...repeat_-dash.tsx");
+ * // "collapse_repeat_dash"
+ * ```
+ */
+export function pathToExportName(filePath: string): string {
+  const name = path.basename(filePath, path.extname(filePath));
+  // Regex for valid JS identifier characters
+  const regex = /^[^a-z_$]|[^a-z0-9_$]/gi;
+  return name.replaceAll(regex, "_").replaceAll(/_{2,}/g, "_");
+}

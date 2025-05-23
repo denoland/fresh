@@ -45,6 +45,7 @@ export default define.page(function App({ Component, state, url }) {
           : null}
         <script
           type="module"
+          // deno-lint-ignore react-no-danger
           dangerouslySetInnerHTML={{
             __html: `
 const isDarkMode = localStorage.theme === "dark"
