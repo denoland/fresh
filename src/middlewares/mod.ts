@@ -98,7 +98,7 @@ export function runMiddlewares<State>(
         try {
           return await next(ctx);
         } catch (err) {
-          ctx.error = err as Error;
+          ctx.error = err;
           throw err;
         }
       };

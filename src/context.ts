@@ -43,7 +43,7 @@ export interface FreshContext<State = unknown> {
    */
   readonly url: URL;
   readonly params: Record<string, string>;
-  readonly error: Error | null;
+  readonly error: unknown;
   readonly info: Deno.ServeHandlerInfo;
   /**
    * Return a redirect response to the specified path. This is the
@@ -96,7 +96,7 @@ export class FreshReqContext<State>
   params: Record<string, string>;
   state: State = {} as State;
   data: unknown = undefined;
-  error: Error | null = null;
+  error: unknown | null = null;
   info: Deno.ServeHandlerInfo | Deno.ServeHandlerInfo;
 
   next: FreshContext<State>["next"];
