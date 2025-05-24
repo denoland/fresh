@@ -90,7 +90,11 @@ function unpack(
           return hydrated[idx] = set;
         }
         case "Uint8Array":
-          return hydrated[idx] = b64decode(current[1]);
+          // TODO(iuioiua): use `Uint8Array.prototype.fromBase64()` once
+          // available in Deno (https://github.com/denoland/deno/issues/25051)
+          // and sufficiently supported in browsers
+          // (https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint8Array/fromBase64#browser_compatibility)
+          return hydrated[idx] = decodeBase64(current[1]);
       }
     } else {
       const actual = new Array(current.length);
@@ -119,12 +123,11 @@ function unpack(
   }
 }
 
-function b64decode(b64: string): Uint8Array {
-  const binString = atob(b64);
-  const size = binString.length;
-  const bytes = new Uint8Array(size);
-  for (let i = 0; i < size; i++) {
-    bytes[i] = binString.charCodeAt(i);
+function decodeBase64(base64: string): Uint8Array {
+  const binary = atob(base64);
+  const bytes = new Uint8Array(binary.length);
+  for (let i = 0; i < binary.length; i++) {
+    bytes[i] = binary.charCodeAt(i);
   }
   return bytes;
 }
