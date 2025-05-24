@@ -421,5 +421,11 @@
     "link": "https://wtfiscongressdoingnow.us",
     "github": "gibbygano/wtfiscongressdoingnow",
     "image": "wtfcongress"
+  },
+  {
+    "title": "Left Of Life",
+    "link": "https://leftof.life",
+    "github": "j0si/howmuchlife",
+    "image": "left-of-life"
   }
 ]
