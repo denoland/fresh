@@ -684,7 +684,7 @@ This will watch the project directory and restart as necessary.`;
     );
   }
   console.log(
-    "Run %cdeno task start%c to start the project. %cCTRL-C%c to stop.",
+    "Run %cdeno task dev%c to start the project. %cCTRL-C%c to stop.",
     "color: cyan",
     "",
     "color: cyan",
