@@ -1,4 +1,6 @@
+import ThemeToggle from "../islands/ThemeToggle.tsx";
 import NavigationBar from "./NavigationBar.tsx";
+import SocialIcons from "./SocialIcons.tsx";
 
 export default function Header(props: { title: string; active: string }) {
   const isHome = props.active == "/";
@@ -8,28 +10,40 @@ export default function Header(props: { title: string; active: string }) {
   return (
     <header
       class={[
-        "mx-auto flex gap-3 items-center",
+        "mx-auto flex gap-1 sm:gap-3 items-center",
         isHome ? "justify-end h-20 max-w-screen-xl" : "justify-between",
         isDocs
-          ? "h-20 max-w-screen-2xl w-full sticky top-0 bg-background-primary  z-50 backdrop-blur-sm"
+          ? "h-20 max-w-screen-2xl w-full sticky top-0 bg-background-primary/75 z-50 backdrop-blur-sm"
           : "",
         isShowcase ? "max-w-screen-xl w-full" : "",
       ].join(" ")}
       f-client-nav={false}
     >
       {!isHome && (
-        <div class="p-4 flex items-center">
+        <div class="p-2 md:p-4 flex items-center">
           <Logo />
         </div>
       )}
-      <NavigationBar class="" active={props.active} />
+      <div class="flex justify-end">
+        <NavigationBar class="" active={props.active} />
+        <div class="flex [&_.github]:hidden [&_.github]:sm:flex [&_ul]:space-x-2 [&_ul]:sm:space-x-4 [&_li:hover]:text-green-600">
+          <SocialIcons />
+        </div>
+        <div class="flex px-3 sm:px-4 sm:sr-6 fill-foreground-primary hover:fill-fresh [&_*]:transition ">
+          {isDocs && <ThemeToggle />}
+        </div>
+      </div>
     </header>
   );
 }
 
 export function Logo() {
   return (
-    <a href="/" class="flex mr-3 items-center shrink-0" aria-label="Top Page">
+    <a
+      href="/"
+      class="flex sm:mr-3 items-center shrink-0"
+      aria-label="Top Page"
+    >
       <img
         src="/logo.svg"
         alt="Fresh logo"
