@@ -12,7 +12,10 @@ export {
 export type { LayoutConfig, RouteConfig } from "./types.ts";
 export type { Middleware, MiddlewareFn } from "./middlewares/mod.ts";
 export { staticFiles } from "./middlewares/static_files.ts";
-export { cache, type CacheOptions } from "./middlewares/cache.ts";
+export {
+  serverCache,
+  type ServerCacheOptions,
+} from "./middlewares/server_cache.ts";
 export type { FreshConfig, ResolvedFreshConfig } from "./config.ts";
 export type { FreshContext, Island, PageProps } from "./context.ts";
 export { createDefine, type Define } from "./define.ts";

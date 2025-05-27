@@ -4,7 +4,7 @@ import type { FreshContext } from "../mod.ts";
 /**
  * Options for {@linkcode cache}.
  */
-export interface CacheOptions<State> {
+export interface ServerCacheOptions<State> {
   /**
    * Whether the cache should be used for the request.
    *
@@ -13,10 +13,10 @@ export interface CacheOptions<State> {
    *
    * @example Basic usage
    * ```ts
-   * import { App, cache } from "fresh";
+   * import { App, serverCache } from "fresh";
    *
    * const app = new App()
-   *  .use(cache(await caches.open("my-cache"), {
+   *  .use(serverCache(await caches.open("my-cache"), {
    *    include: (ctx) => ctx.url.pathname === "/cacheable",
    *  }))
    *  .get("/cacheable", () => new Response("Cached!"))
@@ -35,7 +35,11 @@ export interface CacheOptions<State> {
  * {@linkcode https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Vary | Vary}
  * header and takes search parameters into account.
  *
- * The {@linkcode CacheOptions.include} option can be used to determine whether
+ * The Cache API is a best-effort storage system used for caching responses and
+ * is purely a performance optimization. Data may be evicted by the browser at
+ * any time, so it shouldn't be relied on for guaranteed persistence.
+ *
+ * The {@linkcode ServerCacheOptions.include} option can be used to determine whether
  * the current request should be cached or not based on the context argument.
  *
  * @param cache The cache to use.
@@ -44,13 +48,15 @@ export interface CacheOptions<State> {
  *
  * @example Cache the whole site
  *
- * Here, `GET` requests to `/` will return the same response.
+ * All `GET` requests will be cached, including file system routes.
+ * Thus requests to `/` will return the same response as long as
+ * a cache entry for the `Request` exists.
  *
  * ```ts
- * import { App, cache } from "fresh";
+ * import { App, serverCache } from "fresh";
  *
  * const app = new App()
- *  .use(cache(await caches.open("my-cache")))
+ *  .use(serverCache(await caches.open("my-cache")))
  *  .get("/", () => new Response(crypto.randomUUID()));
  *
  * await app.listen();
@@ -59,25 +65,23 @@ export interface CacheOptions<State> {
  * @example Cache specific routes
  *
  * ```ts
- * import { App, cache } from "fresh";
+ * import { App, serverCache } from "fresh";
  *
- * const webCache = await caches.open("my-cache");
+ * const cache = await caches.open("my-cache");
  *
  * const app = new App()
- *   .use("/cacheable", cache(webCache), () => new Response("Cached!"))
+ *   .get("/cacheable", serverCache(cache), () => new Response("Cached!"))
  *   .use("/uncacheable", () => new Response("Not cached!"));
  *
  * await app.listen();
  * ```
  */
-export function cache<State>(
+export function serverCache<State>(
   cache: Cache,
-  options?: CacheOptions<State>,
+  options?: ServerCacheOptions<State>,
 ): MiddlewareFn<State> {
   return async (ctx) => {
-    if (
-      ctx.req.method !== "GET" || (options?.include && !options.include(ctx))
-    ) return ctx.next();
+    if (ctx.req.method !== "GET") return ctx.next();
 
     // TODO(iuioiua): Add support for cache query options once available in Deno
     const cachedRes = await cache.match(ctx.req);
@@ -86,7 +90,7 @@ export function cache<State>(
     }
 
     const res = await ctx.next();
-    await cache.put(ctx.req, res.clone());
+    if (options?.include?.(ctx) ?? true) await cache.put(ctx.req, res.clone());
     return res;
   };
 }
