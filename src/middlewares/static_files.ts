@@ -15,7 +15,7 @@ import { trace, tracer } from "../otel.ts";
  */
 export function staticFiles<T>(): MiddlewareFn<T> {
   return async function freshStaticFiles(ctx) {
-    const { req, url, config } = ctx;
+    const { request, url, config } = ctx;
     const buildCache = getBuildCache(ctx);
 
     let pathname = decodeURIComponent(url.pathname);
@@ -36,14 +36,14 @@ export function staticFiles<T>(): MiddlewareFn<T> {
       return ctx.next();
     }
 
-    if (req.method !== "GET" && req.method !== "HEAD") {
+    if (request.method !== "GET" && request.method !== "HEAD") {
       file.close();
       return new Response("Method Not Allowed", { status: 405 });
     }
 
     const parentSpan = trace.getActiveSpan();
     if (parentSpan) {
-      parentSpan.updateName(`${req.method} /*`);
+      parentSpan.updateName(`${request.method} /*`);
       parentSpan.setAttribute("http.route", "/*");
     }
 
@@ -77,7 +77,7 @@ export function staticFiles<T>(): MiddlewareFn<T> {
         vary: "If-None-Match",
       });
 
-      const ifNoneMatch = req.headers.get("If-None-Match");
+      const ifNoneMatch = request.headers.get("If-None-Match");
       if (
         ifNoneMatch !== null &&
         (ifNoneMatch === etag || ifNoneMatch === `W/"${etag}"`)
@@ -107,7 +107,7 @@ export function staticFiles<T>(): MiddlewareFn<T> {
       }
 
       headers.set("Content-Length", String(file.size));
-      if (req.method === "HEAD") {
+      if (request.method === "HEAD") {
         file.close();
         return new Response(null, { status: 200, headers });
       }
