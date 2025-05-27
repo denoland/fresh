@@ -75,6 +75,19 @@ export interface ServerCacheOptions<State> {
  *
  * await app.listen();
  * ```
+ *
+ * @example Cache everything under `/route/docs`
+ *
+ * Add the `cache()` middleware via file `/route/docs/_middleware.ts`.
+ * Any GET requests under `/route/docs/*` will automatically be cached.
+ *
+ * ```ts
+ * import { serverCache } from "fresh";
+ *
+ * export default [
+ *   serverCache(await caches.open("my-cache"))
+ * ];
+ * ```
  */
 export function serverCache<State>(
   cache: Cache,
