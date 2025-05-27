@@ -1,7 +1,14 @@
 import "./telemetry.ts";
-import { App, fsRoutes, staticFiles, trailingSlashes } from "fresh";
+import {
+  App,
+  fsRoutes,
+  serverCache,
+  staticFiles,
+  trailingSlashes,
+} from "fresh";
 
 export const app = new App({ root: import.meta.url })
+  .use(serverCache(await caches.open("fresh-cache")))
   .use(staticFiles())
   .use(trailingSlashes("never"));
 
