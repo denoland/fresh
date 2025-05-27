@@ -1,5 +1,5 @@
-import puppeteer from "npm:puppeteer@24.7.2";
-import { Image } from "https://deno.land/x/imagescript@1.3.0/mod.ts";
+import { launch } from "astral";
+import { Image } from "imagescript";
 
 if (Deno.args.length !== 2) {
   throw new Error("Usage: screenshot <url> <id>");
@@ -11,20 +11,22 @@ if (parsedUrl.protocol !== "http:" && parsedUrl.protocol !== "https:") {
   throw new Error("Invalid URL");
 }
 
-const browser = await puppeteer.launch({
-  defaultViewport: { width: 1200, height: 675 },
-  headless: true,
-});
-const page = await browser.newPage();
-await page.goto(url, { waitUntil: "networkidle2" });
+const browser = await launch();
+const page = await browser.newPage(url);
+await page.waitForNetworkIdle();
 const raw = await page.screenshot();
+
 await browser.close();
 
 // convert to jpeg
 const image2x = await Image.decode(raw);
-const jpeg2x = import.meta.resolve(`../static/showcase/${id}2x.jpg`);
-await Deno.writeFile(jpeg2x, await image2x.encodeJPEG(80));
+await Deno.writeFile(
+  `./www/static/showcase/${id}2x.jpg`,
+  await image2x.encodeJPEG(80),
+);
 
-const jpeg1x = import.meta.resolve(`../static/showcase/${id}1x.jpg`);
 const image1x = image2x.resize(image2x.width / 2, Image.RESIZE_AUTO);
-await Deno.writeFile(jpeg1x, await image1x.encodeJPEG(80));
+await Deno.writeFile(
+  `./www/static/showcase/${id}1x.jpg`,
+  await image1x.encodeJPEG(80),
+);

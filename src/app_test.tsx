@@ -486,3 +486,49 @@ Deno.test("FreshApp - support setting request init in ctx.render()", async () =>
   expect(res.status).toEqual(416);
   expect(res.headers.get("X-Foo")).toEqual("foo");
 });
+
+Deno.test("FreshApp - throw when middleware returns no response", async () => {
+  const app = new App<{ text: string }>()
+    .get(
+      "/",
+      // deno-lint-ignore no-explicit-any
+      (() => {}) as any,
+    );
+
+  const server = new FakeServer(app.handler());
+  const res = await server.get("/");
+  const text = await res.text();
+  expect(res.status).toEqual(500);
+  expect(text).toContain("Internal server error");
+});
+
+Deno.test("FreshApp - adding Island should convert to valid export names", () => {
+  const app = new App();
+  const islands = getIslandRegistry(app);
+
+  const component1 = () => <>OK</>;
+  const component2 = () => <>OK</>;
+  const component3 = () => <>OK</>;
+  app.island("/islands/foo.v2.tsx", "default", component1);
+  app.island("/islands/_bar-baz-...-$.tsx", "default", component2);
+  app.island("/islands/1_hello.tsx", "default", component3);
+
+  expect(islands.get(component1)!).toEqual({
+    file: "/islands/foo.v2.tsx",
+    name: "foo_v2",
+    exportName: "default",
+    fn: component1,
+  });
+  expect(islands.get(component2)!).toEqual({
+    file: "/islands/_bar-baz-...-$.tsx",
+    name: "_bar_baz_$",
+    exportName: "default",
+    fn: component2,
+  });
+  expect(islands.get(component3)!).toEqual({
+    file: "/islands/1_hello.tsx",
+    name: "_hello",
+    exportName: "default",
+    fn: component3,
+  });
+});

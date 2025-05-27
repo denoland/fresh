@@ -25,7 +25,10 @@ import {
 } from "../shared_internal.tsx";
 import type { BuildCache } from "../../build_cache.ts";
 import { BUILD_ID } from "../build_id.ts";
-import { DEV_ERROR_OVERLAY_URL } from "../../constants.ts";
+import {
+  DEV_ERROR_OVERLAY_URL,
+  PARTIAL_SEARCH_PARAM,
+} from "../../constants.ts";
 import * as colors from "@std/fmt/colors";
 import { escape as escapeHtml } from "@std/html";
 import { HttpError } from "../../error.ts";
@@ -121,7 +124,7 @@ options[OptionsType.VNODE] = (vnode) => {
   if (typeof vnode.type === "function") {
     if (vnode.type === Partial) {
       const props = vnode.props as PartialProps;
-      const key = normalizeKey(vnode.key ?? "");
+      const key = normalizeKey(vnode.key);
       const mode = !props.mode || props.mode === "replace"
         ? PartialMode.Replace
         : props.mode === "append"
@@ -165,11 +168,10 @@ options[OptionsType.ATTR] = (name, value) => {
 
 const PATCHED = new WeakSet<VNode>();
 
-function normalizeKey(key: string | number) {
-  if (typeof key === "number") {
-    key = key.toString();
-  }
-  return key.replaceAll(":", "_");
+function normalizeKey(key: unknown): string {
+  const value = key ?? "";
+  const s = (typeof value !== "string") ? String(value) : value;
+  return s.replaceAll(":", "_");
 }
 
 const oldDiff = options[OptionsType.DIFF];
@@ -204,7 +206,7 @@ options[OptionsType.DIFF] = (vnode) => {
         if (island === undefined) {
           // Not an island, but we might need to preserve keys
           if (vnode.key !== undefined) {
-            const key = normalizeKey(vnode.key ?? "");
+            const key = normalizeKey(vnode.key);
             const originalType = vnode.type;
             vnode.type = (props) => {
               const child = h(originalType, props);
@@ -241,7 +243,7 @@ options[OptionsType.DIFF] = (vnode) => {
           const child = h(originalType, props);
           PATCHED.add(child);
 
-          const key = normalizeKey(vnode.key ?? "");
+          const key = normalizeKey(vnode.key);
           return wrapWithMarker(
             child,
             "island",
@@ -428,7 +430,7 @@ function FreshRuntimeScript() {
 
   const islandArr = Array.from(islands);
 
-  if (ctx.url.searchParams.has("fresh-partial")) {
+  if (ctx.url.searchParams.has(PARTIAL_SEARCH_PARAM)) {
     const islands = islandArr.map((island) => {
       const chunk = buildCache.getIslandChunkName(island.name);
       if (chunk === null) {
@@ -453,6 +455,7 @@ function FreshRuntimeScript() {
       <script
         id={`__FRSH_STATE_${partialId}`}
         type="application/json"
+        // deno-lint-ignore react-no-danger
         dangerouslySetInnerHTML={{ __html: JSON.stringify(json) }}
       />
     );
@@ -487,6 +490,7 @@ function FreshRuntimeScript() {
         <script
           type="module"
           nonce={nonce}
+          // deno-lint-ignore react-no-danger
           dangerouslySetInnerHTML={{
             __html: scriptContent,
           }}

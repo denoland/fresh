@@ -167,10 +167,10 @@ The `basePath` is also applied to the `src` and `srcset` attribute of
 
 ## Server
 
-Now that Deno has stabilized [Deno.serve](https://deno.land/api?s=Deno.serve)
-and Fresh has switched to using this API, all server configuration options are
-embedded in `server` inside the `FreshConfig`. The fully expanded set of
-parameters looks like this:
+Now that Deno has stabilized
+[Deno.serve](https://docs.deno.com/api/deno/~/Deno.serve) and Fresh has switched
+to using this API, all server configuration options are embedded in `server`
+inside the `FreshConfig`. The fully expanded set of parameters looks like this:
 
 ```ts
 server: {

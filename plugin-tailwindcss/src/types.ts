@@ -1,3 +1,5 @@
+import type { OnTransformOptions } from "@fresh/core/dev";
+
 export interface AutoprefixerOptions {
   /** environment for `Browserslist` */
   env?: string;
@@ -41,4 +43,6 @@ export interface AutoprefixerOptions {
 
 export interface TailwindPluginOptions {
   autoprefixer?: AutoprefixerOptions;
+  /** Exclude paths or globs that should not be processed */
+  exclude?: OnTransformOptions["exclude"];
 }

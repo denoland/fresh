@@ -21,10 +21,9 @@ import {
 import { createRootFragment, isCommentNode, isElementNode } from "./reviver.ts";
 import type { PartialStateJson } from "../server/preact_hooks.tsx";
 import { parse } from "../../jsonify/parse.ts";
-import { INTERNAL_PREFIX } from "../../constants.ts";
+import { INTERNAL_PREFIX, PARTIAL_SEARCH_PARAM } from "../../constants.ts";
 
 export const PARTIAL_ATTR = "f-partial";
-export const PARTIAL_SEARCH_PARAM = "fresh-partial";
 
 class NoPartialsError extends Error {}
 
@@ -219,10 +218,7 @@ document.addEventListener("submit", async (e) => {
     const lowerMethod =
       e.submitter?.getAttribute("formmethod")?.toLowerCase() ??
         el.method.toLowerCase();
-    if (
-      lowerMethod !== "get" && lowerMethod !== "post" &&
-      lowerMethod !== "dialog"
-    ) {
+    if (lowerMethod !== "get" && lowerMethod !== "post") {
       return;
     }
 

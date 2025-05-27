@@ -14,7 +14,7 @@ import {
   RenderState,
   setRenderState,
 } from "./runtime/server/preact_hooks.tsx";
-import { DEV_ERROR_OVERLAY_URL } from "./constants.ts";
+import { DEV_ERROR_OVERLAY_URL, PARTIAL_SEARCH_PARAM } from "./constants.ts";
 import { BUILD_ID } from "./runtime/build_id.ts";
 import { tracer } from "./otel.ts";
 
@@ -47,6 +47,14 @@ export interface FreshContext<State = unknown> {
   readonly params: Record<string, string>;
   readonly error: unknown;
   readonly info: Deno.ServeHandlerInfo;
+  /**
+   * Whether the current Request is a partial request.
+   *
+   * Partials in Fresh will append the query parameter
+   * {@linkcode PARTIAL_SEARCH_PARAM} to the URL. This property can
+   * be used to determine if only `<Partial>`'s need to be rendered.
+   */
+  readonly isPartial: boolean;
   /**
    * Return a redirect response to the specified path. This is the
    * preferred way to do redirects in Fresh.
@@ -92,16 +100,17 @@ export let getBuildCache: (ctx: FreshContext<unknown>) => BuildCache;
 
 export class FreshReqContext<State>
   implements FreshContext<State>, PageProps<unknown, State> {
-  config: ResolvedFreshConfig;
-  url: URL;
+  readonly config: ResolvedFreshConfig;
+  readonly url: URL;
   request: Request;
   /** @deprecated This is an alias for internal use only. Use {@linkcode FreshReqContext[request]} instead. */
   req: Request;
-  params: Record<string, string>;
-  state: State = {} as State;
+  readonly params: Record<string, string>;
+  readonly state: State = {} as State;
   data: unknown = undefined;
   error: unknown | null = null;
-  info: Deno.ServeHandlerInfo | Deno.ServeHandlerInfo;
+  readonly info: Deno.ServeHandlerInfo | Deno.ServeHandlerInfo;
+  readonly isPartial: boolean;
 
   next: FreshContext<State>["next"];
 
@@ -131,6 +140,7 @@ export class FreshReqContext<State>
     this.info = info;
     this.params = params;
     this.config = config;
+    this.isPartial = url.searchParams.has(PARTIAL_SEARCH_PARAM);
     this.next = next;
     this.#islandRegistry = islandRegistry;
     this.#buildCache = buildCache;
@@ -186,7 +196,7 @@ export class FreshReqContext<State>
     };
 
     let partialId = "";
-    if (this.url.searchParams.has("fresh-partial")) {
+    if (this.url.searchParams.has(PARTIAL_SEARCH_PARAM)) {
       partialId = crypto.randomUUID();
       headers.set("X-Fresh-Id", partialId);
     }

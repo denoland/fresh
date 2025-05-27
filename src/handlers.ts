@@ -98,9 +98,10 @@ export type RouteHandler<Data, State> =
   | HandlerByMethod<Data, State>;
 
 export function isHandlerByMethod<D, S>(
-  handler: RouteHandler<D, S>,
+  handler: RouteHandler<D, S> | RouteHandler<D, S>[] | null,
 ): handler is HandlerByMethod<D, S> {
-  return handler !== null && typeof handler === "object";
+  return handler !== null && !Array.isArray(handler) &&
+    typeof handler === "object";
 }
 
 /**

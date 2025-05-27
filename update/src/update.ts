@@ -4,11 +4,13 @@ import * as tsmorph from "ts-morph";
 
 export const SyntaxKind = tsmorph.ts.SyntaxKind;
 
-export const FRESH_VERSION = "2.0.0-alpha.29";
-export const PREACT_VERSION = "10.25.4";
-export const PREACT_SIGNALS_VERSION = "2.0.1";
+export const FRESH_VERSION = "2.0.0-alpha.34";
+export const PREACT_VERSION = "10.26.6";
+export const PREACT_SIGNALS_VERSION = "2.0.4";
 
 export interface DenoJson {
+  lock?: boolean;
+  tasks?: Record<string, string>;
   name?: string;
   version?: string;
   imports?: Record<string, string>;
@@ -90,6 +92,39 @@ export async function updateProject(dir: string) {
     delete config.imports["$fresh/"];
     delete config.imports["@preact/signals-core"];
     delete config.imports["preact-render-to-string"];
+
+    // We should always use a lockfile going forwards
+    if ("lock" in config) {
+      delete config.lock;
+    }
+
+    // Update Fresh 1.x tasks
+    const tasks = config.tasks;
+    if (tasks !== undefined) {
+      if (tasks.manifest === "deno task cli manifest $(pwd)") {
+        delete tasks.manifest;
+      }
+
+      if (
+        tasks.cli ===
+          "echo \"import '\\$fresh/src/dev/cli.ts'\" | deno run --unstable -A -" ||
+        tasks.cli ===
+          "echo \"import '$fresh/src/dev/cli.ts'\" | deno run --unstable -A -"
+      ) {
+        delete tasks.cli;
+      }
+
+      if (tasks.update === "deno run -A -r https://fresh.deno.dev/update .") {
+        tasks.update = "deno run -A -r jsr:@fresh/update .";
+      }
+
+      if (
+        tasks.check ===
+          "deno fmt --check && deno lint && deno check **/*.ts && deno check **/*.tsx"
+      ) {
+        tasks.check = "deno fmt --check && deno lint && deno check";
+      }
+    }
   });
 
   // Update routes folder

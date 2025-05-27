@@ -1,4 +1,3 @@
-import * as path from "@std/path";
 import { type ComponentType, h } from "preact";
 import { renderToString } from "preact-render-to-string";
 import { trace } from "@opentelemetry/api";
@@ -17,7 +16,7 @@ import { type BuildCache, ProdBuildCache } from "./build_cache.ts";
 import type { ServerIslandRegistry } from "./context.ts";
 import { FinishSetup, ForgotBuild } from "./finish_setup.tsx";
 import { HttpError } from "./error.ts";
-import { mergePaths } from "./utils.ts";
+import { mergePaths, pathToExportName } from "./utils.ts";
 
 // TODO: Completed type clashes in older Deno versions
 // deno-lint-ignore no-explicit-any
@@ -159,7 +158,7 @@ export class App<State> {
 
     // Create unique island name
     let name = exportName === "default"
-      ? path.basename(filePath, path.extname(filePath))
+      ? pathToExportName(filePath)
       : exportName;
     if (this.#islandNames.has(name)) {
       let i = 0;
@@ -295,10 +294,19 @@ export class App<State> {
       }
 
       try {
+        let result: unknown;
         if (handlers.length === 1 && handlers[0].length === 1) {
-          return handlers[0][0](ctx);
+          result = await handlers[0][0](ctx);
+        } else {
+          result = await runMiddlewares(handlers, ctx);
         }
-        return await runMiddlewares(handlers, ctx);
+        if (!(result instanceof Response)) {
+          throw new Error(
+            `Expected a "Response" instance to be returned, but got: ${result}`,
+          );
+        }
+
+        return result;
       } catch (err) {
         if (err instanceof HttpError) {
           if (err.status >= 500) {
