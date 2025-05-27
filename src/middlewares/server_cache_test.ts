@@ -3,9 +3,7 @@ import { expect } from "@std/expect";
 import { serveMiddleware } from "../test_utils.ts";
 import { type MiddlewareFn, runMiddlewares } from "./mod.ts";
 
-// TODO(iuioiua): Use the same cache but delete all keys once
-// https://github.com/denoland/deno/issues/29460 is fixed
-const webCache = await caches.open(crypto.randomUUID());
+const webCache = await caches.open("test");
 
 Deno.test("serverCache - caches GET requests", async () => {
   const middleware = serverCache(webCache);
