@@ -17,6 +17,8 @@ import { TableOfContents } from "../../islands/TableOfContents.tsx";
 import SearchButton from "../../islands/SearchButton.tsx";
 import VersionSelect from "../../islands/VersionSelect.tsx";
 import { define } from "../../utils/state.ts";
+import HelloBar from "../../components/HelloBar.tsx";
+import DynamicSidebar from "../../islands/DynamicSidebar.tsx";
 
 interface Data {
   page: Page;
@@ -149,96 +151,84 @@ export default define.page<typeof handler>(function DocsPage(props) {
   const { html, headings } = renderMarkdown(page.markdown);
 
   return (
-    <div class="flex flex-col min-h-screen mx-auto max-w-screen-2xl">
-      <Header title="docs" active="/docs" />
-      <div f-client-nav>
-        <MobileSidebar page={page} />
-        <div class="flex mx-auto max-w-screen-2xl px-0 md:px-4 md:py-0 justify-start bg-background-secondary">
-          <label
-            for="docs_sidebar"
-            class="px-4 py-3 lg:hidden flex items-center  rounded gap-2 cursor-pointer"
-          >
-            <svg
-              class="h-6 w-6"
-              stroke="currentColor"
-              fill="none"
-              viewBox="0 0 24 24"
+    <>
+      <div class="flex flex-col mx-auto">
+        <HelloBar />
+      </div>
+      <div class="flex flex-col min-h-screen mx-auto max-w-screen-2xl">
+        <Header title="docs" active="/docs" />
+        <div f-client-nav>
+          <MobileSidebar page={page} />
+          <div class="flex mx-auto max-w-screen-2xl px-0 md:px-4 md:py-0 justify-start bg-background-secondary">
+            <label
+              for="docs_sidebar"
+              class="px-4 py-3 lg:hidden flex items-center  rounded gap-2 cursor-pointer"
             >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth="2"
-                d="M4 6h16M4 12h16M4 18h7"
+              <svg
+                class="h-6 w-6"
+                stroke="currentColor"
+                fill="none"
+                viewBox="0 0 24 24"
               >
-              </path>
-            </svg>
-            <div>Table of Contents</div>
-          </label>
-        </div>
-        <nav class="flex-shrink-0 hidden lg:block lg:px-4 bg-white">
-          <div class="fixed top-24 w-[17rem] flex overflow-hidden">
-            <div class="flex-1 h-[calc(100vh_-_6rem)] overflow-y-auto pb-8">
-              <SearchButton class="mr-4 sm:mr-0" />
-              <div class="mb-4 px-1">
-                <VersionSelect
-                  selectedVersion={page.version}
-                  versions={page.versionLinks}
-                />
-              </div>
-              <ul class="list-inside font-semibold nested ml-2.5">
-                {CATEGORIES[page.version].map((category) => (
-                  <SidebarCategory key={category.href} category={category} />
-                ))}
-              </ul>
-            </div>
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="2"
+                  d="M4 6h16M4 12h16M4 18h7"
+                >
+                </path>
+              </svg>
+              <div>Table of Contents</div>
+            </label>
           </div>
-        </nav>
-        <Partial name="docs-main">
-          <div class="w-full min-w-0">
-            <main class="lg:ml-[18rem] mt-4 min-w-0 mx-auto">
-              <div class="flex gap-6 md:gap-8 xl:gap-[8%] flex-col xl:flex-row md:mx-8 lg:mx-16 2xl:mx-0 lg:justify-end">
-                <TableOfContents headings={headings} />
+          <DynamicSidebar page={page} categories={CATEGORIES[page.version]} />
+          <Partial name="docs-main">
+            <div class="w-full min-w-0">
+              <main class="lg:ml-[18rem] mt-4 min-w-0 mx-auto">
+                <div class="flex gap-6 md:gap-8 xl:gap-[8%] flex-col xl:flex-row md:mx-8 lg:mx-16 2xl:mx-0 lg:justify-end">
+                  <TableOfContents headings={headings} />
 
-                <div class="lg:order-1 min-w-0 max-w-3xl w-full">
-                  <h1 class="text-4xl text-foreground-primary tracking-tight font-bold md:mt-0 px-4 md:px-0 mb-4">
-                    {page.title}
-                  </h1>
-                  <div
-                    class="markdown-body mb-8"
-                    // deno-lint-ignore react-no-danger
-                    dangerouslySetInnerHTML={{ __html: html }}
-                  />
-
-                  <div class="mb-8">
-                    <ForwardBackButtons
-                      slug={page.slug}
-                      version={page.version}
-                      prev={page.prevNav}
-                      next={page.nextNav}
+                  <div class="lg:order-1 min-w-0 max-w-3xl w-full">
+                    <h1 class="text-4xl text-foreground-primary tracking-tight font-bold md:mt-0 px-4 md:px-0 mb-4">
+                      {page.title}
+                    </h1>
+                    <div
+                      class="markdown-body mb-8"
+                      // deno-lint-ignore react-no-danger
+                      dangerouslySetInnerHTML={{ __html: html }}
                     />
-                  </div>
-                  <hr />
-                  <div class="px-4 md:px-0 flex justify-between my-6">
-                    <a
-                      href={`https://github.com/denoland/fresh/edit/main/${page.file}`}
-                      class="text-gray-700 dark:text-gray-200 text-md flex items-center bg-[#ebedf0] dark:bg-[#1e1f2a] px-4 py-2 rounded hover:bg-gray-200 dark:hover:bg-[#36394c] transition-colors"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                    >
-                      <span class="mr-2 inline-flex">Edit this page</span>
-                      <Icons.GitHub />
-                    </a>
+
+                    <div class="mb-8">
+                      <ForwardBackButtons
+                        slug={page.slug}
+                        version={page.version}
+                        prev={page.prevNav}
+                        next={page.nextNav}
+                      />
+                    </div>
+                    <hr />
+                    <div class="px-4 md:px-0 flex justify-between my-6">
+                      <a
+                        href={`https://github.com/denoland/fresh/edit/main/${page.file}`}
+                        class="text-gray-700 dark:text-gray-200 text-md flex items-center bg-[#ebedf0] dark:bg-[#1e1f2a] px-4 py-2 rounded hover:bg-gray-200 dark:hover:bg-[#36394c] transition-colors"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        <span class="mr-2 inline-flex">Edit this page</span>
+                        <Icons.GitHub />
+                      </a>
+                    </div>
                   </div>
                 </div>
-              </div>
-              <div class="xl:ml-[3.75rem]">
-                <Footer />
-              </div>
-            </main>
-          </div>
-        </Partial>
+                <div class="xl:ml-[3.75rem]">
+                  <Footer />
+                </div>
+              </main>
+            </div>
+          </Partial>
+        </div>
       </div>
-    </div>
+    </>
   );
 });
 
