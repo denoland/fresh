@@ -2,6 +2,7 @@ import { useEffect, useRef } from "preact/hooks";
 import { SidebarCategory } from "../components/DocsSidebar.tsx";
 import SearchButton from "./SearchButton.tsx";
 import VersionSelect from "./VersionSelect.tsx";
+import type { TableOfContentsCategory } from "../data/docs.ts";
 
 interface DynamicSidebarProps {
   page: {
@@ -12,7 +13,7 @@ interface DynamicSidebarProps {
       value: string;
     }>;
   };
-  categories: any[];
+  categories: TableOfContentsCategory[];
 }
 
 export default function DynamicSidebar(
