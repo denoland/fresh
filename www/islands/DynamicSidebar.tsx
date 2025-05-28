@@ -29,6 +29,7 @@ export default function DynamicSidebar(
       if (!ticking) {
         requestAnimationFrame(() => {
           if (!sidebarRef.current) return;
+
           const scrollY = globalThis.scrollY || 0;
           const helloBarHeight = 60; // HelloBar height
           const headerHeight = 80; // Header height
@@ -73,11 +74,11 @@ export default function DynamicSidebar(
       <div
         ref={sidebarRef}
         class="fixed top-[9.75rem] w-[17rem] flex overflow-hidden z-40"
-        style="transition: top 0.2s cubic-bezier(0.4, 0, 0.2, 1);"
+        style="will-change: transform; backface-visibility: hidden;"
       >
         <div
-          class="sidebar-content flex-1 overflow-y-auto pb-8"
-          style="height: calc(100vh - 9.75rem); transition: height 0.2s cubic-bezier(0.4, 0, 0.2, 1);"
+          class="sidebar-content flex-1 overflow-y-auto pb-8 pt-4"
+          style="height: calc(100vh - 9.75rem);"
         >
           <SearchButton class="mr-4 sm:mr-0" />
           <div class="mb-4 px-1">
