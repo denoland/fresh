@@ -78,7 +78,7 @@ export default function DynamicSidebar(
         style="will-change: transform; backface-visibility: hidden;"
       >
         <div
-          class="sidebar-content flex-1 overflow-y-auto pb-8 pt-4"
+          class="sidebar-content flex-1 overflow-y-auto pb-8"
           style="height: calc(100vh - 9.75rem);"
         >
           <SearchButton class="mr-4 sm:mr-0" />
