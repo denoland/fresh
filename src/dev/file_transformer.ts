@@ -1,5 +1,4 @@
 import { globToRegExp, isGlob } from "@std/path";
-import type { FsAdapter } from "../fs.ts";
 import { BUILD_ID } from "../runtime/build_id.ts";
 import { assetInternal } from "../runtime/shared_internal.tsx";
 
@@ -58,11 +57,6 @@ interface TransformReq {
 
 export class FreshFileTransformer {
   #transformers: Transformer[] = [];
-  #fs: FsAdapter;
-
-  constructor(fs: FsAdapter) {
-    this.#fs = fs;
-  }
 
   onTransform(options: OnTransformOptions, callback: TransformFn): void {
     this.#transformers.push({ options, fn: callback });
@@ -88,7 +82,7 @@ export class FreshFileTransformer {
 
     let content: Uint8Array;
     try {
-      content = await this.#fs.readFile(filePath);
+      content = await Deno.readFile(filePath);
     } catch (err) {
       if (err instanceof Deno.errors.NotFound) {
         return null;
