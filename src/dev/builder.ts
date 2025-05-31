@@ -228,7 +228,7 @@ export async function readDenoConfigForCompilerOptions(
 ): Promise<{ config: DenoConfig; filePath: string }> {
   let dir = directory;
   const configs: { config: DenoConfig; filePath: string }[] = [];
-  
+
   // Collect all config files from current directory up to workspace root
   outer: while (true) {
     for (const name of ["deno.json", "deno.jsonc"]) {
@@ -242,7 +242,7 @@ export async function readDenoConfigForCompilerOptions(
           config = JSON.parse(file);
         }
         configs.push({ config, filePath });
-        
+
         // Stop at workspace root (config with workspace property)
         if (config.workspace) {
           break outer;
@@ -270,12 +270,12 @@ export async function readDenoConfigForCompilerOptions(
   const mergedConfig: DenoConfig = {};
   const rootConfig = configs[configs.length - 1]; // workspace root config
   const appConfig = configs[0]; // application config
-  
+
   // Start with workspace root config as base
   if (rootConfig.config.compilerOptions) {
     mergedConfig.compilerOptions = { ...rootConfig.config.compilerOptions };
   }
-  
+
   // Override with application-specific config, giving priority to JSX settings
   if (appConfig.config.compilerOptions) {
     mergedConfig.compilerOptions = {
@@ -283,7 +283,7 @@ export async function readDenoConfigForCompilerOptions(
       ...appConfig.config.compilerOptions,
     };
   }
-  
+
   // Always preserve workspace setting from the appropriate config
   if (appConfig.config.workspace !== undefined) {
     mergedConfig.workspace = appConfig.config.workspace;
