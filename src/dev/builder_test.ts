@@ -1,6 +1,6 @@
 import { expect } from "@std/expect";
 import * as path from "@std/path";
-import { Builder } from "./builder.ts";
+import { Builder, readDenoConfigForCompilerOptions } from "./builder.ts";
 import { App } from "../app.ts";
 import { RemoteIsland } from "@marvinh-test/fresh-island";
 import { BUILD_ID } from "../runtime/build_id.ts";
@@ -247,6 +247,245 @@ Deno.test({
         uuid: expect.any(String),
       },
     });
+  },
+  sanitizeOps: false,
+  sanitizeResources: false,
+});
+
+// Add tests for the improved config inheritance logic
+Deno.test({
+  name: "readDenoConfigForCompilerOptions - workspace config inheritance",
+  fn: async () => {
+    await using _tmp = await withTmpDir();
+    const tmp = _tmp.dir;
+
+    // Create workspace root with JSX config
+    const workspaceRoot = path.join(tmp, "workspace");
+    await Deno.mkdir(workspaceRoot, { recursive: true });
+    await Deno.writeTextFile(
+      path.join(workspaceRoot, "deno.json"),
+      JSON.stringify(
+        {
+          workspace: ["./apps/*"],
+          compilerOptions: {
+            jsx: "precompile",
+            jsxImportSource: "preact",
+            jsxPrecompileSkipElements: ["a", "img"],
+          },
+        },
+        null,
+        2,
+      ),
+    );
+
+    // Create app with specific JSX config that should override workspace
+    const appDir = path.join(workspaceRoot, "apps", "my-app");
+    await Deno.mkdir(appDir, { recursive: true });
+    await Deno.writeTextFile(
+      path.join(appDir, "deno.json"),
+      JSON.stringify(
+        {
+          compilerOptions: {
+            jsxImportSource: "react", // Different from workspace
+            jsxPrecompileSkipElements: [
+              "a",
+              "img",
+              "source",
+              "body",
+              "html",
+              "head",
+            ], // Extended list
+          },
+        },
+        null,
+        2,
+      ),
+    );
+
+    const result = await readDenoConfigForCompilerOptions(appDir);
+
+    // Should merge configs with app-level taking precedence
+    expect(result.config.compilerOptions?.jsx).toEqual("precompile"); // From workspace
+    expect(result.config.compilerOptions?.jsxImportSource).toEqual("react"); // From app (overrides workspace)
+    expect(result.config.compilerOptions?.jsxPrecompileSkipElements).toEqual([
+      "a",
+      "img",
+      "source",
+      "body",
+      "html",
+      "head",
+    ]); // From app (overrides workspace)
+    expect(result.filePath).toEqual(path.join(appDir, "deno.json")); // Should return app config path
+  },
+  sanitizeOps: false,
+  sanitizeResources: false,
+});
+
+Deno.test({
+  name: "readDenoConfigForCompilerOptions - empty workspace disconnection",
+  fn: async () => {
+    await using _tmp = await withTmpDir();
+    const tmp = _tmp.dir;
+
+    // Create workspace root
+    const workspaceRoot = path.join(tmp, "workspace");
+    await Deno.mkdir(workspaceRoot, { recursive: true });
+    await Deno.writeTextFile(
+      path.join(workspaceRoot, "deno.json"),
+      JSON.stringify(
+        {
+          workspace: ["./apps/*"],
+          compilerOptions: {
+            jsx: "precompile",
+            jsxImportSource: "preact",
+          },
+        },
+        null,
+        2,
+      ),
+    );
+
+    // Create app that disconnects from workspace using empty workspace array
+    const appDir = path.join(workspaceRoot, "apps", "disconnected-app");
+    await Deno.mkdir(appDir, { recursive: true });
+    await Deno.writeTextFile(
+      path.join(appDir, "deno.json"),
+      JSON.stringify(
+        {
+          workspace: [], // Empty array disconnects from workspace
+          compilerOptions: {
+            jsx: "react-jsx",
+            jsxImportSource: "react",
+          },
+        },
+        null,
+        2,
+      ),
+    );
+
+    const result = await readDenoConfigForCompilerOptions(appDir);
+
+    // Should use only app config, not inherit from workspace
+    expect(result.config.compilerOptions?.jsx).toEqual("react-jsx");
+    expect(result.config.compilerOptions?.jsxImportSource).toEqual("react");
+    expect(result.config.workspace).toEqual([]);
+    expect(result.filePath).toEqual(path.join(appDir, "deno.json"));
+  },
+  sanitizeOps: false,
+  sanitizeResources: false,
+});
+
+Deno.test({
+  name: "readDenoConfigForCompilerOptions - app-only config",
+  fn: async () => {
+    await using _tmp = await withTmpDir();
+    const tmp = _tmp.dir;
+
+    // Create standalone app without workspace
+    await Deno.writeTextFile(
+      path.join(tmp, "deno.json"),
+      JSON.stringify(
+        {
+          compilerOptions: {
+            jsx: "precompile",
+            jsxImportSource: "preact",
+            jsxPrecompileSkipElements: [
+              "a",
+              "img",
+              "source",
+              "body",
+              "html",
+              "head",
+            ],
+          },
+        },
+        null,
+        2,
+      ),
+    );
+
+    const result = await readDenoConfigForCompilerOptions(tmp);
+
+    // Should use app config as-is
+    expect(result.config.compilerOptions?.jsx).toEqual("precompile");
+    expect(result.config.compilerOptions?.jsxImportSource).toEqual("preact");
+    expect(result.config.compilerOptions?.jsxPrecompileSkipElements).toEqual([
+      "a",
+      "img",
+      "source",
+      "body",
+      "html",
+      "head",
+    ]);
+    expect(result.filePath).toEqual(path.join(tmp, "deno.json"));
+  },
+  sanitizeOps: false,
+  sanitizeResources: false,
+});
+
+Deno.test({
+  name: "readDenoConfigForCompilerOptions - partial app config inheritance",
+  fn: async () => {
+    await using _tmp = await withTmpDir();
+    const tmp = _tmp.dir;
+
+    // Create workspace root with full JSX config
+    const workspaceRoot = path.join(tmp, "workspace");
+    await Deno.mkdir(workspaceRoot, { recursive: true });
+    await Deno.writeTextFile(
+      path.join(workspaceRoot, "deno.json"),
+      JSON.stringify(
+        {
+          workspace: ["./packages/*"],
+          compilerOptions: {
+            jsx: "precompile",
+            jsxImportSource: "preact",
+            jsxPrecompileSkipElements: ["a", "img", "source"],
+          },
+        },
+        null,
+        2,
+      ),
+    );
+
+    // Create app with partial JSX config
+    const appDir = path.join(workspaceRoot, "packages", "partial-app");
+    await Deno.mkdir(appDir, { recursive: true });
+    await Deno.writeTextFile(
+      path.join(appDir, "deno.json"),
+      JSON.stringify(
+        {
+          compilerOptions: {
+            // Only override specific properties
+            jsxPrecompileSkipElements: [
+              "a",
+              "img",
+              "source",
+              "body",
+              "html",
+              "head",
+            ],
+          },
+        },
+        null,
+        2,
+      ),
+    );
+
+    const result = await readDenoConfigForCompilerOptions(appDir);
+
+    // Should inherit jsx and jsxImportSource from workspace, but override jsxPrecompileSkipElements
+    expect(result.config.compilerOptions?.jsx).toEqual("precompile"); // From workspace
+    expect(result.config.compilerOptions?.jsxImportSource).toEqual("preact"); // From workspace
+    expect(result.config.compilerOptions?.jsxPrecompileSkipElements).toEqual([
+      "a",
+      "img",
+      "source",
+      "body",
+      "html",
+      "head",
+    ]); // From app (overrides workspace)
+    expect(result.filePath).toEqual(path.join(appDir, "deno.json"));
   },
   sanitizeOps: false,
   sanitizeResources: false,
