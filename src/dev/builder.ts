@@ -228,6 +228,8 @@ export async function readDenoConfigForCompilerOptions(
 ): Promise<{ config: DenoConfig; filePath: string }> {
   let dir = directory;
   const configs: { config: DenoConfig; filePath: string }[] = [];
+  
+  // Collect all config files from current directory up to workspace root
   outer: while (true) {
     for (const name of ["deno.json", "deno.jsonc"]) {
       const filePath = path.join(dir, name);
@@ -240,6 +242,8 @@ export async function readDenoConfigForCompilerOptions(
           config = JSON.parse(file);
         }
         configs.push({ config, filePath });
+        
+        // Stop at workspace root (config with workspace property)
         if (config.workspace) {
           break outer;
         }
@@ -261,30 +265,36 @@ export async function readDenoConfigForCompilerOptions(
     );
   }
 
-  const firstConfig = configs[0];
-  const lastConfig = configs.at(-1);
-  if (lastConfig?.config.workspace) {
-    if (lastConfig === firstConfig) return lastConfig;
-    if (!Array.isArray(lastConfig.config.workspace)) {
-      throw new Error(
-        `Expected "workspace" option to be an array in: ${lastConfig.filePath}`,
-      );
-    }
-    const members = lastConfig.config.workspace.map((member) => {
-      if (typeof member !== "string") {
-        throw new Error(
-          `Expected "workspace" member to be a string in: ${lastConfig.filePath}`,
-        );
-      }
-      return path.join(lastConfig.filePath, "..", member);
-    });
-    const parent = path.dirname(firstConfig.filePath);
-    if (!members.includes(parent)) {
-      return firstConfig;
-    } else {
-      return lastConfig;
-    }
+  // Merge configurations: app-level takes precedence over workspace-level
+  // This ensures Fresh apps can override JSX settings while still inheriting other configs
+  const mergedConfig: DenoConfig = {};
+  const rootConfig = configs[configs.length - 1]; // workspace root config
+  const appConfig = configs[0]; // application config
+  
+  // Start with workspace root config as base
+  if (rootConfig.config.compilerOptions) {
+    mergedConfig.compilerOptions = { ...rootConfig.config.compilerOptions };
+  }
+  
+  // Override with application-specific config, giving priority to JSX settings
+  if (appConfig.config.compilerOptions) {
+    mergedConfig.compilerOptions = {
+      ...mergedConfig.compilerOptions,
+      ...appConfig.config.compilerOptions,
+    };
+  }
+  
+  // Always preserve workspace setting from the appropriate config
+  if (appConfig.config.workspace !== undefined) {
+    mergedConfig.workspace = appConfig.config.workspace;
+  } else if (rootConfig.config.workspace !== undefined) {
+    mergedConfig.workspace = rootConfig.config.workspace;
   }
 
-  return firstConfig;
+  // Return the merged config with the app-level file path
+  // (for error reporting purposes, as it's most relevant to the user)
+  return {
+    config: mergedConfig,
+    filePath: appConfig.filePath,
+  };
 }
