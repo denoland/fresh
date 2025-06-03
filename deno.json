@@ -16,7 +16,7 @@
     "./compat": "./src/compat.ts"
   },
   "tasks": {
-    "test": "deno test -A --parallel",
+    "test": "DENO_CACHE_DB_MODE=memory deno test -A --parallel",
     "fixture": "deno run -A --watch=static/,routes/ tests/fixture/dev.ts",
     "www": "deno task --cwd=www start",
     "build-www": "deno task --cwd=www build",
