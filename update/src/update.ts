@@ -413,7 +413,7 @@ async function updateFile(sourceFile: tsmorph.SourceFile): Promise<boolean> {
   if (!hasRuntimeImport && newImports.runtime.size > 0) {
     sourceFile.addImportDeclaration({
       moduleSpecifier: "fresh/runtime",
-      namedImports: Array.from(newImports.core),
+      namedImports: Array.from(newImports.runtime),
     });
   }
   if (newImports.compat.size > 0) {
