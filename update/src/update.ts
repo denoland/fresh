@@ -179,30 +179,23 @@ export async function updateProject(dir: string) {
   await Promise.all(sfs.map(async (sourceFile) => {
     try {
       const wasModified = await updateFile(sourceFile);
-      completedFiles++;
       if (wasModified) {
         modifiedFilesList.push(sourceFile.getFilePath());
       }
+
+      return wasModified;
+    } catch (err) {
+      // deno-lint-ignore no-console
+      console.error(`Could not process ${sourceFile.getFilePath()}`);
+      throw err;
+    } finally {
+      completedFiles++;
 
       // update progress bar
       const progress = createProgressBar(completedFiles, sfs.length);
       Deno.stdout.writeSync(
         new TextEncoder().encode(`\r${colors.blue(progress)} Complete!`),
       );
-
-      return wasModified;
-    } catch (err) {
-      completedFiles++;
-
-      // update progress bar (even on failure)
-      const progress = createProgressBar(completedFiles, sfs.length);
-      Deno.stdout.writeSync(
-        new TextEncoder().encode(`\r${colors.blue(progress)} Complete!`),
-      );
-
-      // deno-lint-ignore no-console
-      console.error(`Could not process ${sourceFile.getFilePath()}`);
-      throw err;
     }
   }));
 
