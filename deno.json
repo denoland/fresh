@@ -42,6 +42,7 @@
   },
   "imports": {
     "@deno/doc": "jsr:@deno/doc@^0.172.0",
+    "@deno/loader": "jsr:@deno/loader@^0.0.1",
     "@std/cli": "jsr:@std/cli@^1.0.17",
     "@std/collections": "jsr:@std/collections@^1.0.11",
     "@std/http": "jsr:@std/http@^1.0.15",

@@ -1,6 +1,16 @@
 import { denoPlugins } from "@luca/esbuild-deno-loader";
-import type { Plugin as EsbuildPlugin } from "esbuild";
+import type {
+  Loader,
+  OnLoadArgs,
+  OnLoadResult,
+  OnResolveArgs,
+  Plugin as EsbuildPlugin,
+} from "esbuild";
 import * as path from "@std/path";
+import { DenoWorkspace, MediaType, ResolutionMode } from "@deno/loader";
+import { isBuiltin } from "node:module";
+
+const workspace = new DenoWorkspace({});
 
 export interface FreshBundleOptions {
   dev: boolean;
@@ -38,6 +48,10 @@ export async function bundleJs(
     }
   }
 
+  const loader = await workspace.createLoader({
+    entrypoints: Object.values(options.entryPoints),
+  });
+
   const bundle = await esbuild!.build({
     entryPoints: options.entryPoints,
 
@@ -74,6 +88,86 @@ export async function bundleJs(
       preactDebugger(PREACT_ENV),
       buildIdPlugin(options.buildId),
       windowsPathFixer(),
+      {
+        name: "deno",
+        setup(ctx) {
+          const onResolve = async (args: OnResolveArgs) => {
+            if (isBuiltin(args.path)) {
+              return {
+                path: args.path,
+                external: true,
+              };
+            }
+            const kind =
+              args.kind === "require-call" || args.kind === "require-resolve"
+                ? ResolutionMode.Require
+                : ResolutionMode.Import;
+
+            const res = await loader.resolve(args.path, args.importer, kind);
+
+            return {
+              path: res,
+            };
+          };
+
+          ctx.onResolve({ filter: /.*/, namespace: "file" }, onResolve);
+          ctx.onResolve({ filter: /.*/, namespace: "http" }, onResolve);
+          ctx.onResolve({ filter: /.*/, namespace: "https" }, onResolve);
+          ctx.onResolve({ filter: /.*/, namespace: "data" }, onResolve);
+          ctx.onResolve({ filter: /.*/, namespace: "npm" }, onResolve);
+          ctx.onResolve({ filter: /.*/, namespace: "jsr" }, onResolve);
+          ctx.onResolve({ filter: /.*/, namespace: "node" }, onResolve);
+
+          function mediaToLoader(type: MediaType): Loader {
+            switch (type) {
+              case MediaType.Jsx:
+                return "jsx";
+              case MediaType.JavaScript:
+              case MediaType.Mjs:
+              case MediaType.Cjs:
+                return "js";
+              case MediaType.TypeScript:
+              case MediaType.Mts:
+              case MediaType.Dmts:
+              case MediaType.Dcts:
+                return "ts";
+              case MediaType.Tsx:
+                return "tsx";
+              case MediaType.Css:
+                return "css";
+              case MediaType.Json:
+                return "json";
+              case MediaType.Html:
+                return "default";
+              case MediaType.Sql:
+                return "default";
+              case MediaType.Wasm:
+                return "binary";
+              case MediaType.SourceMap:
+                return "json";
+              case MediaType.Unknown:
+                return "default";
+              default:
+                return "default";
+            }
+          }
+
+          const onLoad = async (
+            args: OnLoadArgs,
+          ): Promise<OnLoadResult | null> => {
+            const res = await loader.load(args.path);
+
+            return {
+              contents: res.code,
+              loader: mediaToLoader(res.mediaType),
+            };
+          };
+          ctx.onLoad({ filter: /.*/, namespace: "file" }, onLoad);
+          ctx.onLoad({ filter: /.*/, namespace: "http" }, onLoad);
+          ctx.onLoad({ filter: /.*/, namespace: "https" }, onLoad);
+          ctx.onLoad({ filter: /.*/, namespace: "data" }, onLoad);
+        },
+      },
       ...denoPlugins({ configPath: options.denoJsonPath }),
     ],
   });
