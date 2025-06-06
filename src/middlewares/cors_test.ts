@@ -163,13 +163,13 @@ describe("CORS by Middleware", () => {
       },
     });
     // Added FakeServer
-    let res = await new FakeServer(app.handler()).handler(req, CONN_INFO); // Used new FakeServer(app.handler()).handler
+    let res = await new FakeServer(app.handler()).handler(req, CONN_INFO);
     expect(res.headers.get("Access-Control-Allow-Origin")).toBe(
       "http://example.org",
     );
 
     req = new Request("http://localhost/api3/abc");
-    res = await new FakeServer(app.handler()).handler(req, CONN_INFO); // Used new FakeServer(app.handler()).handler
+    res = await new FakeServer(app.handler()).handler(req, CONN_INFO);
     expect(
       res.headers.has("Access-Control-Allow-Origin"),
       "An unmatched origin should be disallowed",
@@ -180,7 +180,7 @@ describe("CORS by Middleware", () => {
         Referer: "http://example.net/",
       },
     });
-    res = await new FakeServer(app.handler()).handler(req, CONN_INFO); // Used new FakeServer(app.handler()).handler
+    res = await new FakeServer(app.handler()).handler(req, CONN_INFO);
     expect(
       res.headers.has("Access-Control-Allow-Origin"),
       "An unmatched origin should be disallowed",
@@ -195,7 +195,7 @@ describe("CORS by Middleware", () => {
         Origin: "http://example.com",
       },
     });
-    const res = await new FakeServer(app.handler()).handler(req, CONN_INFO); // Used new FakeServer(app.handler()).handler
+    const res = await new FakeServer(app.handler()).handler(req, CONN_INFO);
 
     expect(res.status).toBe(200);
     expect(res.headers.get("Access-Control-Allow-Origin")).toBe(
@@ -211,13 +211,13 @@ describe("CORS by Middleware", () => {
         Origin: "http://subdomain.example.com",
       },
     });
-    let res = await new FakeServer(app.handler()).handler(req, CONN_INFO); // Used new FakeServer(app.handler()).handler
+    let res = await new FakeServer(app.handler()).handler(req, CONN_INFO);
     expect(res.headers.get("Access-Control-Allow-Origin")).toBe(
       "http://subdomain.example.com",
     );
 
     req = new Request("http://localhost/api4/abc");
-    res = await new FakeServer(app.handler()).handler(req, CONN_INFO); // Used new FakeServer(app.handler()).handler
+    res = await new FakeServer(app.handler()).handler(req, CONN_INFO);
     expect(res.headers.get("Access-Control-Allow-Origin")).toBe(
       "http://example.com",
     );
@@ -227,7 +227,7 @@ describe("CORS by Middleware", () => {
         Referer: "http://evil-example.com/",
       },
     });
-    res = await new FakeServer(app.handler()).handler(req, CONN_INFO); // Used new FakeServer(app.handler()).handler
+    res = await new FakeServer(app.handler()).handler(req, CONN_INFO);
     expect(res.headers.get("Access-Control-Allow-Origin")).toBe(
       "http://example.com",
     );
@@ -236,7 +236,7 @@ describe("CORS by Middleware", () => {
   it("With raw Response object", async () => {
     // Added FakeServer
     const req = new Request("http://localhost/api5/abc"); // Created a request object
-    const res = await new FakeServer(app.handler()).handler(req, CONN_INFO); // Used new FakeServer(app.handler()).handler
+    const res = await new FakeServer(app.handler()).handler(req, CONN_INFO);
 
     expect(res.headers.get("Access-Control-Allow-Origin")).toBe("*");
     expect(res.headers.get("Vary")).toBeNull();
@@ -249,7 +249,7 @@ describe("CORS by Middleware", () => {
         origin: "http://example.com",
       },
     });
-    const res = await new FakeServer(app.handler()).handler(req, CONN_INFO); // Used new FakeServer(app.handler()).handler
+    const res = await new FakeServer(app.handler()).handler(req, CONN_INFO);
 
     expect(res.headers.get("Access-Control-Allow-Origin")).toBe(
       "http://example.com",
