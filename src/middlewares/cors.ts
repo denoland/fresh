@@ -157,7 +157,6 @@ export const cors = (options?: CORSOptions) => {
       });
     }
 
-    console.log(`CORS Middleware: ${ctx.req.method} ${ctx.req.url}`);
     // For non-OPTIONS requests
     const actualResponse = await ctx.next();
 
