@@ -196,7 +196,7 @@ have a trailing slash at the end or that they will never have one.
 
 Middleware, handler and route component signatures have been unified to all look
 the same. Instead of receiving two arguments, they receive one. The `Request`
-object is stored on the context object as `ctx.req`.
+object is stored on the context object as `ctx.request`.
 
 ```diff
 - const middleware = (req, ctx) => new Response("ok");
