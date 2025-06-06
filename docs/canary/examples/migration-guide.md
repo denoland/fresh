@@ -5,8 +5,9 @@ description: |
 
 We tried to keep breaking changes in Fresh 2 as minimal as possible, but some
 changes need to be updated manually. Fresh 2 comes with many quality of life
-[improvements](TODO) that make it easier to extend and adapt Fresh. We've
-created this upgrade guide as part of upgrading our own apps here at Deno.
+[improvements](https://deno.com/blog/an-update-on-fresh) that make it easier to
+extend and adapt Fresh. We've created this upgrade guide as part of upgrading
+our own apps here at Deno.
 
 Use this guide to migrate a Fresh 1.x app to Fresh 2.
 
@@ -19,9 +20,8 @@ update by running it in your project directory:
 deno run -Ar jsr:@fresh/update
 ```
 
-This will apply most API changes made in Fresh 2
-[automatically](#automatic-updates) like changing `$fresh/server.ts` imports to
-`fresh`.
+This will apply most API changes made in Fresh 2 automatically update like
+changing `$fresh/server.ts` imports to `fresh`.
 
 ## Getting `main.ts` and `dev.ts` ready
 
