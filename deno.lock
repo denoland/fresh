@@ -7,7 +7,7 @@
     "jsr:@deno/doc@0.172": "0.172.0",
     "jsr:@deno/graph@0.86": "0.86.9",
     "jsr:@deno/graph@~0.82.3": "0.82.3",
-    "jsr:@deno/loader@^0.0.1": "0.0.1",
+    "jsr:@deno/loader@^0.0.5": "0.0.5",
     "jsr:@deno/otel@*": "0.0.2",
     "jsr:@fresh/core@^2.0.0-alpha.29": "2.0.0-alpha.34",
     "jsr:@fresh/plugin-tailwind@^0.0.1-alpha.7": "0.0.1-alpha.7",
@@ -132,8 +132,8 @@
     "@deno/graph@0.86.9": {
       "integrity": "c4f353a695bcc5246c099602977dabc6534eacea9999a35a8cb24e807192e6a1"
     },
-    "@deno/loader@0.0.1": {
-      "integrity": "5129ed6270540893e4c6cd75f1969810fba93a663e437b5f5d767168bb105536"
+    "@deno/loader@0.0.5": {
+      "integrity": "cef2318f72e6da9ffbd14e20822c276298e3431c0e0eb8513c0cd20f5e680730"
     },
     "@deno/otel@0.0.2": {
       "integrity": "4ef61b7eb1c4063f8224d66fc43f25e428a566d2e18785d0dc67bb70a318f0ff",
@@ -1880,7 +1880,7 @@
     "dependencies": [
       "jsr:@astral/astral@~0.5.3",
       "jsr:@deno/doc@0.172",
-      "jsr:@deno/loader@^0.0.1",
+      "jsr:@deno/loader@^0.0.5",
       "jsr:@fresh/core@^2.0.0-alpha.29",
       "jsr:@fresh/plugin-tailwind@^0.0.1-alpha.7",
       "jsr:@luca/esbuild-deno-loader@0.11",

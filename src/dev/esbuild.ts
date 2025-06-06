@@ -1,4 +1,3 @@
-import { denoPlugins } from "@luca/esbuild-deno-loader";
 import type {
   Loader,
   OnLoadArgs,
@@ -10,7 +9,9 @@ import * as path from "@std/path";
 import { DenoWorkspace, MediaType, ResolutionMode } from "@deno/loader";
 import { isBuiltin } from "node:module";
 
-const workspace = new DenoWorkspace({});
+const workspace = new DenoWorkspace({
+  debug: true,
+});
 
 export interface FreshBundleOptions {
   dev: boolean;
@@ -168,7 +169,6 @@ export async function bundleJs(
           ctx.onLoad({ filter: /.*/, namespace: "data" }, onLoad);
         },
       },
-      ...denoPlugins({ configPath: options.denoJsonPath }),
     ],
   });
 
