@@ -1,4 +1,5 @@
-import { FreshContext } from "fresh";
+import type { FreshContext } from "fresh";
+import type { MiddlewareFn } from "./mod.ts";
 
 type CORSOptions = {
   origin:
@@ -51,7 +52,7 @@ type CORSOptions = {
  * // ];
  * ```
  */
-export const cors = (options?: CORSOptions) => {
+export function cors<T>(options?: CORSOptions): MiddlewareFn<T> {
   const defaults: Partial<CORSOptions> = {
     origin: "*",
     allowMethods: ["GET", "HEAD", "PUT", "POST", "DELETE", "PATCH"],
@@ -181,4 +182,4 @@ export const cors = (options?: CORSOptions) => {
 
     return actualResponse;
   };
-};
+}
