@@ -13,6 +13,7 @@ import { Simple } from "../components/homepage/Simple.tsx";
 import { SocialProof } from "../components/homepage/SocialProof.tsx";
 import { DenoSection } from "../components/homepage/DenoSection.tsx";
 import { define } from "../utils/state.ts";
+import HelloBar from "../components/HelloBar.tsx";
 
 export const handler = define.handlers({
   GET(ctx) {
@@ -71,15 +72,3 @@ export default define.page<typeof handler>(function MainPage(props) {
     </div>
   );
 });
-
-function HelloBar() {
-  return (
-    <a
-      class="bg-gradient-to-r from-blue-200 to-yellow-200 via-green-300 text-black border-b border-green-400 p-4 text-center group"
-      href="https://deno.com/blog/an-update-on-fresh"
-    >
-      News about <b>the upcoming Fresh 2</b>{" "}
-      <span class="group-hover:underline">→</span>
-    </a>
-  );
-}
