@@ -80,26 +80,91 @@ export function cors<T>(options?: CORSOptions): MiddlewareFn<T> {
     }
   })(opts.origin);
 
-  return async (ctx: FreshContext): Promise<Response> => {
-    const responseHeaders = new Headers();
-
-    const requestOrigin = ctx.req.headers.get("origin") || "";
-    const allowOrigin = findAllowOrigin(requestOrigin, ctx);
-
+  const addHeaderProperties = (
+    headers: Headers,
+    allowOrigin: string | null | undefined,
+    opts: CORSOptions,
+  ) => {
     if (allowOrigin) {
-      responseHeaders.set("Access-Control-Allow-Origin", allowOrigin);
+      headers.set("Access-Control-Allow-Origin", allowOrigin);
     }
 
     if (opts.credentials) {
-      responseHeaders.set("Access-Control-Allow-Credentials", "true");
+      headers.set("Access-Control-Allow-Credentials", "true");
     }
 
     if (opts.exposeHeaders?.length) {
-      responseHeaders.set(
+      headers.set(
         "Access-Control-Expose-Headers",
         opts.exposeHeaders.join(","),
       );
     }
+  };
+
+  const OptionsResponse = (
+    ctx: FreshContext,
+    allowOrigin: string | null | undefined,
+    opts: CORSOptions,
+    varyValues: Set<string>,
+  ) => {
+    const responseHeaders = new Headers();
+
+    addHeaderProperties(
+      responseHeaders,
+      allowOrigin,
+      opts,
+    );
+
+    if (opts.maxAge != null) {
+      responseHeaders.set("Access-Control-Max-Age", opts.maxAge.toString());
+    }
+
+    if (opts.allowMethods?.length) {
+      responseHeaders.set(
+        "Access-Control-Allow-Methods",
+        opts.allowMethods.join(","),
+      );
+    }
+
+    let effectiveAllowHeaders = opts.allowHeaders;
+    if (!effectiveAllowHeaders?.length) {
+      const reqHeaders = ctx.req.headers.get(
+        "Access-Control-Request-Headers",
+      );
+      if (reqHeaders) {
+        effectiveAllowHeaders = reqHeaders.split(/\s*,\s*/);
+      }
+    }
+
+    if (effectiveAllowHeaders?.length) {
+      responseHeaders.set(
+        "Access-Control-Allow-Headers",
+        effectiveAllowHeaders.join(","),
+      );
+      varyValues.add("Access-Control-Request-Headers");
+    }
+
+    if (varyValues.size > 0) {
+      responseHeaders.set("Vary", Array.from(varyValues).join(", "));
+    } else {
+      responseHeaders.delete("Vary"); // Ensure Vary is not set if no conditions met
+    }
+
+    responseHeaders.delete("Content-Length");
+    responseHeaders.delete("Content-Type");
+
+    return new Response(null, {
+      status: 204,
+      statusText: "No Content",
+      headers: responseHeaders,
+    });
+  };
+
+  return async (ctx: FreshContext): Promise<Response> => {
+    //    const responseHeaders = new Headers();
+
+    const requestOrigin = ctx.req.headers.get("origin") || "";
+    const allowOrigin = findAllowOrigin(requestOrigin, ctx);
 
     const varyValues = new Set<string>();
     // Add 'Origin' to Vary if a specific origin is allowed, not '*'
@@ -108,61 +173,17 @@ export function cors<T>(options?: CORSOptions): MiddlewareFn<T> {
     }
 
     if (ctx.req.method === "OPTIONS") {
-      if (opts.maxAge != null) {
-        responseHeaders.set("Access-Control-Max-Age", opts.maxAge.toString());
-      }
-
-      if (opts.allowMethods?.length) {
-        responseHeaders.set(
-          "Access-Control-Allow-Methods",
-          opts.allowMethods.join(","),
-        );
-      }
-
-      let effectiveAllowHeaders = opts.allowHeaders;
-      if (!effectiveAllowHeaders?.length) {
-        const reqHeaders = ctx.req.headers.get(
-          "Access-Control-Request-Headers",
-        );
-        if (reqHeaders) {
-          effectiveAllowHeaders = reqHeaders.split(/\s*,\s*/);
-        }
-      }
-
-      if (effectiveAllowHeaders?.length) {
-        responseHeaders.set(
-          "Access-Control-Allow-Headers",
-          effectiveAllowHeaders.join(","),
-        );
-        varyValues.add("Access-Control-Request-Headers");
-      }
-
-      if (varyValues.size > 0) {
-        responseHeaders.set("Vary", Array.from(varyValues).join(", "));
-      } else {
-        responseHeaders.delete("Vary"); // Ensure Vary is not set if no conditions met
-      }
-
-      responseHeaders.delete("Content-Length");
-      responseHeaders.delete("Content-Type");
-
-      return new Response(null, {
-        status: 204,
-        statusText: "No Content",
-        headers: responseHeaders,
-      });
+      return OptionsResponse(ctx, allowOrigin, opts, varyValues);
     }
 
     // For non-OPTIONS requests
     const actualResponse = await ctx.next();
 
-    // Apply common CORS headers (ACAO, Credentials, ExposeHeaders)
-    responseHeaders.forEach((value, key) => {
-      // Do not overwrite Vary if it was set by downstream, merge instead
-      if (key.toLowerCase() !== "vary") {
-        actualResponse.headers.set(key, value);
-      }
-    });
+    addHeaderProperties(
+      actualResponse.headers,
+      allowOrigin,
+      opts,
+    );
 
     // Merge our calculated varyValues with any existing Vary from downstream response
     const existingVary = actualResponse.headers.get("Vary");
