@@ -81,7 +81,7 @@
 
     "ts-morph": "npm:ts-morph@^25.0.1",
 
-    "@fresh/plugin-tailwind": "jsr:@fresh/plugin-tailwind@^0.0.1-alpha.7",
+    "@fresh/plugin-tailwind": "./plugin-tailwindcss/src/mod.ts",
     "@std/front-matter": "jsr:@std/front-matter@^1.0.5",
     "fresh/compat": "./src/compat/mod.ts",
     "fresh/dev": "./src/dev/mod.ts",
