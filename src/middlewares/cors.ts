@@ -1,4 +1,4 @@
-import type { FreshContext } from "fresh";
+import type { FreshContext } from "../context.ts";
 import type { MiddlewareFn } from "./mod.ts";
 
 type CORSOptions = {
@@ -16,8 +16,7 @@ type CORSOptions = {
 /**
  * CORS Middleware for Fresh.
  * Adapted from Hono's CORS middleware.
- *
- * @see {@link https://hono.dev/docs/middleware/builtin/cors}
+ * Would like to express my gratitude to all the developers of Hono.
  *
  * @param {CORSOptions} [options] - The options for the CORS middleware.
  * @param {string | string[] | ((requestOrigin: string, ctx: FreshContext) => string | undefined | null)} [options.origin='*'] - The value of "Access-Control-Allow-Origin" CORS header.
