@@ -1,4 +1,4 @@
-import { launch } from "astral";
+import { launch } from "@astral/astral";
 import { Image } from "imagescript";
 
 if (Deno.args.length !== 2) {
