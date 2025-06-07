@@ -122,10 +122,31 @@ export async function withTmpDir(
   options?: Deno.MakeTempOptions,
 ): Promise<{ dir: string } & AsyncDisposable> {
   const dir = await Deno.makeTempDir(options);
+
   return {
     dir,
     async [Symbol.asyncDispose]() {
-      await Deno.remove(dir, { recursive: true });
+      // Skip cleanup in CI to avoid permission errors
+      if (Deno.env.get("CI") === "true") {
+        // deno-lint-ignore no-console
+        console.log(`Skipping cleanup of temp dir in CI: ${dir}`);
+        return;
+      }
+
+      let retries = 3;
+      while (retries > 0) {
+        try {
+          await Deno.remove(dir, { recursive: true });
+          return;
+        } catch (e) {
+          if (!(e instanceof Deno.errors.PermissionDenied)) break;
+          retries--;
+          await delay(100);
+        }
+      }
+
+      // deno-lint-ignore no-console
+      console.warn(`Failed to remove temp dir: ${dir}`);
     },
   };
 }
