@@ -83,23 +83,19 @@ export function cors<T>(options?: CORSOptions): MiddlewareFn<T> {
   return async (ctx: FreshContext): Promise<Response> => {
     const responseHeaders = new Headers();
 
-    function setResponseHeader(key: string, value: string) {
-      responseHeaders.set(key, value);
-    }
-
     const requestOrigin = ctx.req.headers.get("origin") || "";
     const allowOrigin = findAllowOrigin(requestOrigin, ctx);
 
     if (allowOrigin) {
-      setResponseHeader("Access-Control-Allow-Origin", allowOrigin);
+      responseHeaders.set("Access-Control-Allow-Origin", allowOrigin);
     }
 
     if (opts.credentials) {
-      setResponseHeader("Access-Control-Allow-Credentials", "true");
+      responseHeaders.set("Access-Control-Allow-Credentials", "true");
     }
 
     if (opts.exposeHeaders?.length) {
-      setResponseHeader(
+      responseHeaders.set(
         "Access-Control-Expose-Headers",
         opts.exposeHeaders.join(","),
       );
@@ -113,11 +109,11 @@ export function cors<T>(options?: CORSOptions): MiddlewareFn<T> {
 
     if (ctx.req.method === "OPTIONS") {
       if (opts.maxAge != null) {
-        setResponseHeader("Access-Control-Max-Age", opts.maxAge.toString());
+        responseHeaders.set("Access-Control-Max-Age", opts.maxAge.toString());
       }
 
       if (opts.allowMethods?.length) {
-        setResponseHeader(
+        responseHeaders.set(
           "Access-Control-Allow-Methods",
           opts.allowMethods.join(","),
         );
@@ -134,7 +130,7 @@ export function cors<T>(options?: CORSOptions): MiddlewareFn<T> {
       }
 
       if (effectiveAllowHeaders?.length) {
-        setResponseHeader(
+        responseHeaders.set(
           "Access-Control-Allow-Headers",
           effectiveAllowHeaders.join(","),
         );
@@ -142,7 +138,7 @@ export function cors<T>(options?: CORSOptions): MiddlewareFn<T> {
       }
 
       if (varyValues.size > 0) {
-        setResponseHeader("Vary", Array.from(varyValues).join(", "));
+        responseHeaders.set("Vary", Array.from(varyValues).join(", "));
       } else {
         responseHeaders.delete("Vary"); // Ensure Vary is not set if no conditions met
       }
