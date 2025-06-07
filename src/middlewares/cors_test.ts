@@ -73,8 +73,10 @@ describe("CORS by Middleware", () => {
     return Response.json({ success: true });
   });
 
+  const handler = app.handler();
+
   it("GET default", async () => {
-    const res = await app.handler()(
+    const res = await handler(
       new Request("https://localhost/api/abc"),
     );
 
@@ -90,7 +92,7 @@ describe("CORS by Middleware", () => {
       "X-PINGOTHER, Content-Type",
     );
 
-    const res = await app.handler()(req);
+    const res = await handler(req);
 
     expect(res.status).toBe(204);
     expect(res.statusText).toBe("No Content");
@@ -111,7 +113,7 @@ describe("CORS by Middleware", () => {
       headers: { origin: "http://example.com" },
     });
 
-    const res = await app.handler()(req);
+    const res = await handler(req);
 
     expect(res.headers.get("Access-Control-Allow-Origin")).toBe(
       "http://example.com",
@@ -145,7 +147,7 @@ describe("CORS by Middleware", () => {
       headers: { origin: "http://example.net" },
     });
 
-    const res = await app.handler()(req);
+    const res = await handler(req);
     expect(res.headers.has("Access-Control-Allow-Origin")).toBeFalsy();
   });
 
@@ -155,13 +157,13 @@ describe("CORS by Middleware", () => {
         Origin: "http://example.org",
       },
     });
-    let res = await app.handler()(req);
+    let res = await handler(req);
     expect(res.headers.get("Access-Control-Allow-Origin")).toBe(
       "http://example.org",
     );
 
     req = new Request("http://localhost/api3/abc");
-    res = await app.handler()(req);
+    res = await handler(req);
     expect(
       res.headers.has("Access-Control-Allow-Origin"),
       "An unmatched origin should be disallowed",
@@ -172,7 +174,7 @@ describe("CORS by Middleware", () => {
         Referer: "http://example.net/",
       },
     });
-    res = await app.handler()(req);
+    res = await handler(req);
     expect(
       res.headers.has("Access-Control-Allow-Origin"),
       "An unmatched origin should be disallowed",
@@ -186,7 +188,7 @@ describe("CORS by Middleware", () => {
         Origin: "http://example.com",
       },
     });
-    const res = await app.handler()(req);
+    const res = await handler(req);
 
     expect(res.status).toBe(200);
     expect(res.headers.get("Access-Control-Allow-Origin")).toBe(
@@ -201,13 +203,13 @@ describe("CORS by Middleware", () => {
         Origin: "http://subdomain.example.com",
       },
     });
-    let res = await app.handler()(req);
+    let res = await handler(req);
     expect(res.headers.get("Access-Control-Allow-Origin")).toBe(
       "http://subdomain.example.com",
     );
 
     req = new Request("http://localhost/api4/abc");
-    res = await app.handler()(req);
+    res = await handler(req);
     expect(res.headers.get("Access-Control-Allow-Origin")).toBe(
       "http://example.com",
     );
@@ -217,7 +219,7 @@ describe("CORS by Middleware", () => {
         Referer: "http://evil-example.com/",
       },
     });
-    res = await app.handler()(req);
+    res = await handler(req);
     expect(res.headers.get("Access-Control-Allow-Origin")).toBe(
       "http://example.com",
     );
@@ -225,7 +227,7 @@ describe("CORS by Middleware", () => {
 
   it("With raw Response object", async () => {
     const req = new Request("http://localhost/api5/abc");
-    const res = await app.handler()(req);
+    const res = await handler(req);
 
     expect(res.headers.get("Access-Control-Allow-Origin")).toBe("*");
     expect(res.headers.get("Vary")).toBeNull();
@@ -237,7 +239,7 @@ describe("CORS by Middleware", () => {
         origin: "http://example.com",
       },
     });
-    const res = await app.handler()(req);
+    const res = await handler(req);
 
     expect(res.headers.get("Access-Control-Allow-Origin")).toBe(
       "http://example.com",
