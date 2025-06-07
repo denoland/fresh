@@ -1,4 +1,5 @@
-import { App, type FreshContext } from "fresh";
+import { App } from "../app.ts";
+import type { FreshContext } from "../context.ts";
 import { cors } from "./cors.ts";
 import { describe, it } from "@std/testing/bdd";
 import { expect } from "@std/expect";
