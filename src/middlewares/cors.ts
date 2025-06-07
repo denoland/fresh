@@ -1,7 +1,7 @@
 import type { FreshContext } from "../context.ts";
 import type { MiddlewareFn } from "./mod.ts";
 
-type CORSOptions = {
+export type CORSOptions = {
   origin:
     | string
     | string[]
