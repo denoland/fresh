@@ -19,237 +19,238 @@ describe("CSRF by Middleware", () => {
     simplePostHandler = spy(rawSimplePostHandler);
   });
 
-  //  describe('simple usage', () => {
-  const app = new App();
+  describe("simple usage", () => {
+    const app = new App();
 
-  //
-  app.all("*", csrf());
-  app.get("/form", (_ctx: FreshContext) => new Response("<form></form>"));
-  app.post("/form", simplePostHandler);
-  app.put("/form", (_ctx: FreshContext) => new Response("OK"));
-  app.delete("/form", (_ctx: FreshContext) => new Response("OK"));
-  app.patch("/form", (_ctx: FreshContext) => new Response("OK"));
-  app.head("/form", (_ctx: FreshContext) => new Response("OK"));
+    //
+    app.all("*", csrf());
+    app.get("/form", (_ctx: FreshContext) => new Response("<form></form>"));
+    app.post("/form", simplePostHandler);
+    app.put("/form", (_ctx: FreshContext) => new Response("OK"));
+    app.delete("/form", (_ctx: FreshContext) => new Response("OK"));
+    app.patch("/form", (_ctx: FreshContext) => new Response("OK"));
+    app.head("/form", (_ctx: FreshContext) => new Response("OK"));
 
-  const handler = app.handler();
+    const handler = app.handler();
 
-  describe("GET /form", () => {
-    it("should be 200 for any request", async () => {
-      const res = await handler(new Request("http://localhost/form"));
+    describe("GET /form", () => {
+      it("should be 200 for any request", async () => {
+        const res = await handler(new Request("http://localhost/form"));
 
-      expect(res.status).toBe(200);
-      expect(await res.text()).toBe("<form></form>");
-    });
-  });
-
-  describe("HEAD /form", () => {
-    it("should be 200 for any request", async () => {
-      const res = await handler(
-        new Request("http://localhost/form", {
-          method: "HEAD",
-        }),
-      );
-
-      expect(res.status).toBe(200);
-    });
-  });
-
-  describe("POST /form", () => {
-    it("should be 200 for local request", async () => {
-      /*
-       * <form action="/form" method="POST"><input name="name" value="hono" /></form>
-       * or
-       * <script>
-       * fetch('/form', {
-       *   method: 'POST',
-       *   headers: {
-       *     'content-type': 'application/x-www-form-urlencoded',
-       *   },
-       *   body: 'name=hono',
-       * });
-       * </script>
-       */
-      const res = await handler(
-        new Request("http://localhost/form", {
-          method: "POST",
-          headers: {
-            "content-type": "application/x-www-form-urlencoded",
-            "origin": "http://localhost",
-          },
-          body: "name=fresh",
-        }),
-      );
-
-      expect(res.status).toBe(200);
-      expect(await res.text()).toBe("fresh");
+        expect(res.status).toBe(200);
+        expect(await res.text()).toBe("<form></form>");
+      });
     });
 
-    it('should be 403 for "application/x-www-form-urlencoded" cross origin', async () => {
-      /*
-       * via http://example.com
-       *
-       * <form action="http://localhost/form" method="POST">
-       *   <input name="name" value="hono" />
-       * </form>
-       * or
-       * <script>
-       * fetch('http://localhost/form', {
-       *   method: 'POST',
-       *   headers: {
-       *     'content-type': 'application/x-www-form-urlencoded',
-       *   },
-       *   body: 'name=hono',
-       * });
-       * </script>
-       */
-      const res = await handler(
-        new Request("http://localhost/form", {
-          method: "POST",
-          headers: {
-            "content-type": "application/x-www-form-urlencoded",
-            "origin": "http://example.com",
-          },
-          body: "name=fresh",
-        }),
-      );
+    describe("HEAD /form", () => {
+      it("should be 200 for any request", async () => {
+        const res = await handler(
+          new Request("http://localhost/form", {
+            method: "HEAD",
+          }),
+        );
 
-      expect(res.status).toBe(403);
-      expect(simplePostHandler.calls.length).toBe(0);
-    });
-    it('should be 403 for "multipart/form-data" cross origin', async () => {
-      /*
-       * via http://example.com
-       *
-       * <form action="http://localhost/form" method="POST" enctype="multipart/form-data">
-       *   <input name="name" value="hono" />
-       * </form>
-       * or
-       * <script>
-       * fetch('http://localhost/form', {
-       *   method: 'POST',
-       *   headers: {
-       *     'content-type': 'multipart/form-data',
-       *   },
-       *   body: 'name=fresh',
-       * });
-       * </script>
-       */
-      const res = await handler(
-        new Request("http://localhost/form", {
-          method: "POST",
-          headers: {
-            "content-type": "multipart/form-data",
-            "origin": "http://example.com",
-          },
-          body: "name=fresh",
-        }),
-      );
-
-      expect(res.status).toBe(403);
-      expect(simplePostHandler.calls.length).toBe(0);
+        expect(res.status).toBe(200);
+      });
     });
 
-    it('should be 403 for "text/plain" cross origin', async () => {
-      /*
-       * via http://example.com
-       *
-       * <form action="http://localhost/form" method="POST" enctype="text/plain">
-       *   <input name="name" value="hono" />
-       * </form>
-       * or
-       * <script>
-       * fetch('http://localhost/form', {
-       *   method: 'POST',
-       *   headers: {
-       *     'content-type': 'text/plain',
-       *   },
-       *   body: 'name=hono',
-       * });
-       * </script>
-       */
-      const res = await handler(
-        new Request("http://localhost/form", {
-          method: "POST",
-          headers: {
-            "content-type": "text/plain",
-            "origin": "http://example.com",
-          },
-          body: "name=fresh",
-        }),
-      );
+    describe("POST /form", () => {
+      it("should be 200 for local request", async () => {
+        /*
+         * <form action="/form" method="POST"><input name="name" value="hono" /></form>
+         * or
+         * <script>
+         * fetch('/form', {
+         *   method: 'POST',
+         *   headers: {
+         *     'content-type': 'application/x-www-form-urlencoded',
+         *   },
+         *   body: 'name=hono',
+         * });
+         * </script>
+         */
+        const res = await handler(
+          new Request("http://localhost/form", {
+            method: "POST",
+            headers: {
+              "content-type": "application/x-www-form-urlencoded",
+              "origin": "http://localhost",
+            },
+            body: "name=fresh",
+          }),
+        );
 
-      expect(res.status).toBe(403);
-      expect(simplePostHandler.calls.length).toBe(0);
-    });
+        expect(res.status).toBe(200);
+        expect(await res.text()).toBe("fresh");
+      });
 
-    it("should be 403 if request has no origin header", async () => {
-      const res = await app.handler()(
-        new Request("http://localhost/form", {
-          method: "POST",
-          headers: {
-            "content-type": "application/x-www-form-urlencoded",
-          },
-          body: "name=fresh",
-        }),
-      );
+      it('should be 403 for "application/x-www-form-urlencoded" cross origin', async () => {
+        /*
+         * via http://example.com
+         *
+         * <form action="http://localhost/form" method="POST">
+         *   <input name="name" value="hono" />
+         * </form>
+         * or
+         * <script>
+         * fetch('http://localhost/form', {
+         *   method: 'POST',
+         *   headers: {
+         *     'content-type': 'application/x-www-form-urlencoded',
+         *   },
+         *   body: 'name=hono',
+         * });
+         * </script>
+         */
+        const res = await handler(
+          new Request("http://localhost/form", {
+            method: "POST",
+            headers: {
+              "content-type": "application/x-www-form-urlencoded",
+              "origin": "http://example.com",
+            },
+            body: "name=fresh",
+          }),
+        );
 
-      expect(res.status).toBe(403);
-      expect(simplePostHandler.calls.length).toBe(0);
-    });
+        expect(res.status).toBe(403);
+        expect(simplePostHandler.calls.length).toBe(0);
+      });
+      it('should be 403 for "multipart/form-data" cross origin', async () => {
+        /*
+         * via http://example.com
+         *
+         * <form action="http://localhost/form" method="POST" enctype="multipart/form-data">
+         *   <input name="name" value="hono" />
+         * </form>
+         * or
+         * <script>
+         * fetch('http://localhost/form', {
+         *   method: 'POST',
+         *   headers: {
+         *     'content-type': 'multipart/form-data',
+         *   },
+         *   body: 'name=fresh',
+         * });
+         * </script>
+         */
+        const res = await handler(
+          new Request("http://localhost/form", {
+            method: "POST",
+            headers: {
+              "content-type": "multipart/form-data",
+              "origin": "http://example.com",
+            },
+            body: "name=fresh",
+          }),
+        );
 
-    it("should be 200 for application/json", async () => {
-      /*
-       * via http://example.com
-       * Assume localhost allows cross origin POST
-       *
-       * <script>
-       * fetch('http://localhost/form', {
-       *   method: 'POST',
-       *   headers: {
-       *     'content-type': 'application/json',
-       *   },
-       *   body: JSON.stringify({ name: 'fresh' }),
-       * });
-       * </script>
-       */
-      const res = await handler(
-        new Request("http://localhost/form", {
-          method: "POST",
-          headers: {
-            "content-type": "application/json",
-            origin: "http://example.com",
-          },
-          body: JSON.stringify({ name: "fresh" }),
-        }),
-      );
+        expect(res.status).toBe(403);
+        expect(simplePostHandler.calls.length).toBe(0);
+      });
 
-      expect(res.status).toBe(200);
-      expect(await res.text()).toBe("fresh");
-    });
+      it('should be 403 for "text/plain" cross origin', async () => {
+        /*
+         * via http://example.com
+         *
+         * <form action="http://localhost/form" method="POST" enctype="text/plain">
+         *   <input name="name" value="hono" />
+         * </form>
+         * or
+         * <script>
+         * fetch('http://localhost/form', {
+         *   method: 'POST',
+         *   headers: {
+         *     'content-type': 'text/plain',
+         *   },
+         *   body: 'name=hono',
+         * });
+         * </script>
+         */
+        const res = await handler(
+          new Request("http://localhost/form", {
+            method: "POST",
+            headers: {
+              "content-type": "text/plain",
+              "origin": "http://example.com",
+            },
+            body: "name=fresh",
+          }),
+        );
 
-    it('should be 403 for "Application/x-www-form-urlencoded" cross origin', async () => {
-      const res = await app.handler()(
-        new Request("http://localhost/form", {
-          method: "POST",
-          headers: {
-            "content-type": "Application/x-www-form-urlencoded",
-          },
-          body: "name=fresh",
-        }),
-      );
-      expect(res.status).toBe(403);
-      expect(simplePostHandler.calls.length).toBe(0);
-    });
+        expect(res.status).toBe(403);
+        expect(simplePostHandler.calls.length).toBe(0);
+      });
 
-    it("should be 403 if the content-type is not set", async () => {
-      const res = await handler(
-        new Request("http://localhost/form", {
-          method: "POST",
-          body: new Blob(["test"], {}),
-        }),
-      );
-      expect(res.status).toBe(403);
-      expect(simplePostHandler.calls.length).toBe(0);
+      it("should be 403 if request has no origin header", async () => {
+        const res = await app.handler()(
+          new Request("http://localhost/form", {
+            method: "POST",
+            headers: {
+              "content-type": "application/x-www-form-urlencoded",
+            },
+            body: "name=fresh",
+          }),
+        );
+
+        expect(res.status).toBe(403);
+        expect(simplePostHandler.calls.length).toBe(0);
+      });
+
+      it("should be 200 for application/json", async () => {
+        /*
+         * via http://example.com
+         * Assume localhost allows cross origin POST
+         *
+         * <script>
+         * fetch('http://localhost/form', {
+         *   method: 'POST',
+         *   headers: {
+         *     'content-type': 'application/json',
+         *   },
+         *   body: JSON.stringify({ name: 'fresh' }),
+         * });
+         * </script>
+         */
+        const res = await handler(
+          new Request("http://localhost/form", {
+            method: "POST",
+            headers: {
+              "content-type": "application/json",
+              origin: "http://example.com",
+            },
+            body: JSON.stringify({ name: "fresh" }),
+          }),
+        );
+
+        expect(res.status).toBe(200);
+        expect(await res.text()).toBe("fresh");
+      });
+
+      it('should be 403 for "Application/x-www-form-urlencoded" cross origin', async () => {
+        const res = await app.handler()(
+          new Request("http://localhost/form", {
+            method: "POST",
+            headers: {
+              "content-type": "Application/x-www-form-urlencoded",
+            },
+            body: "name=fresh",
+          }),
+        );
+        expect(res.status).toBe(403);
+        expect(simplePostHandler.calls.length).toBe(0);
+      });
+
+      it("should be 403 if the content-type is not set", async () => {
+        const res = await handler(
+          new Request("http://localhost/form", {
+            method: "POST",
+            body: new Blob(["test"], {}),
+          }),
+        );
+        expect(res.status).toBe(403);
+        expect(simplePostHandler.calls.length).toBe(0);
+      });
     });
   });
 
