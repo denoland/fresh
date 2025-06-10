@@ -3,7 +3,6 @@ import type {
   OnLoadArgs,
   OnLoadResult,
   OnResolveArgs,
-  OnResolveResult,
   Plugin as EsbuildPlugin,
 } from "esbuild";
 import * as path from "@std/path";
@@ -93,9 +92,7 @@ export async function bundleJs(
       {
         name: "deno",
         setup(ctx) {
-          const onResolve = async (
-            args: OnResolveArgs,
-          ): Promise<OnResolveResult | null | undefined> => {
+          const onResolve = async (args: OnResolveArgs) => {
             if (isBuiltin(args.path)) {
               return {
                 path: args.path,
@@ -107,14 +104,20 @@ export async function bundleJs(
                 ? ResolutionMode.Require
                 : ResolutionMode.Import;
 
-            let resolved = await loader.resolve(args.path, args.importer, kind);
-
-            if (resolved.startsWith("file://")) {
-              resolved = path.fromFileUrl(resolved);
-            }
-
+            const res = await loader.resolve(args.path, args.importer, kind);
             return {
-              path: resolved,
+              path: res.startsWith("file:") ? path.fromFileUrl(res) : res,
+              namespace: res.startsWith("file:")
+                ? "file"
+                : res.startsWith("https:")
+                ? "https"
+                : res.startsWith("http:")
+                ? "http"
+                : res.startsWith("npm:")
+                ? "npm"
+                : (() => {
+                  throw new Error(`Not implemented file type: ${res}`);
+                })(),
             };
           };
 
@@ -163,7 +166,12 @@ export async function bundleJs(
           const onLoad = async (
             args: OnLoadArgs,
           ): Promise<OnLoadResult | null> => {
-            const res = await loader.load(args.path);
+            const url =
+              args.path.startsWith("http:") || args.path.startsWith("https:") ||
+                args.path.startsWith("npm:")
+                ? args.path
+                : path.toFileUrl(args.path).toString();
+            const res = await loader.load(url);
 
             return {
               contents: res.code,
