@@ -1,4 +1,4 @@
-import { FreshContext } from "fresh";
+import type { FreshContext } from "fresh";
 
 type IsAllowedOriginHandler = (
   origin: string,
