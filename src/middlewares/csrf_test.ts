@@ -57,7 +57,7 @@ describe("CSRF by Middleware", () => {
     describe("POST /form", () => {
       it("should be 200 for local request", async () => {
         /*
-         * <form action="/form" method="POST"><input name="name" value="hono" /></form>
+         * <form action="/form" method="POST"><input name="name" value="fresh" /></form>
          * or
          * <script>
          * fetch('/form', {
@@ -65,7 +65,7 @@ describe("CSRF by Middleware", () => {
          *   headers: {
          *     'content-type': 'application/x-www-form-urlencoded',
          *   },
-         *   body: 'name=hono',
+         *   body: 'name=fresh',
          * });
          * </script>
          */
@@ -89,7 +89,7 @@ describe("CSRF by Middleware", () => {
          * via http://example.com
          *
          * <form action="http://localhost/form" method="POST">
-         *   <input name="name" value="hono" />
+         *   <input name="name" value="fresh" />
          * </form>
          * or
          * <script>
@@ -98,7 +98,7 @@ describe("CSRF by Middleware", () => {
          *   headers: {
          *     'content-type': 'application/x-www-form-urlencoded',
          *   },
-         *   body: 'name=hono',
+         *   body: 'name=fresh',
          * });
          * </script>
          */
@@ -121,7 +121,7 @@ describe("CSRF by Middleware", () => {
          * via http://example.com
          *
          * <form action="http://localhost/form" method="POST" enctype="multipart/form-data">
-         *   <input name="name" value="hono" />
+         *   <input name="name" value="fresh" />
          * </form>
          * or
          * <script>
@@ -154,7 +154,7 @@ describe("CSRF by Middleware", () => {
          * via http://example.com
          *
          * <form action="http://localhost/form" method="POST" enctype="text/plain">
-         *   <input name="name" value="hono" />
+         *   <input name="name" value="fresh" />
          * </form>
          * or
          * <script>
@@ -163,7 +163,7 @@ describe("CSRF by Middleware", () => {
          *   headers: {
          *     'content-type': 'text/plain',
          *   },
-         *   body: 'name=hono',
+         *   body: 'name=fresh',
          * });
          * </script>
          */
