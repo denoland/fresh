@@ -3,6 +3,7 @@ import type {
   OnLoadArgs,
   OnLoadResult,
   OnResolveArgs,
+  OnResolveResult,
   Plugin as EsbuildPlugin,
 } from "esbuild";
 import * as path from "@std/path";
@@ -92,7 +93,9 @@ export async function bundleJs(
       {
         name: "deno",
         setup(ctx) {
-          const onResolve = async (args: OnResolveArgs) => {
+          const onResolve = async (
+            args: OnResolveArgs,
+          ): Promise<OnResolveResult | null | undefined> => {
             if (isBuiltin(args.path)) {
               return {
                 path: args.path,
@@ -104,10 +107,14 @@ export async function bundleJs(
                 ? ResolutionMode.Require
                 : ResolutionMode.Import;
 
-            const res = await loader.resolve(args.path, args.importer, kind);
+            let resolved = await loader.resolve(args.path, args.importer, kind);
+
+            if (resolved.startsWith("file://")) {
+              resolved = path.fromFileUrl(resolved);
+            }
 
             return {
-              path: res,
+              path: resolved,
             };
           };
 
