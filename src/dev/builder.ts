@@ -131,7 +131,9 @@ export class Builder implements FreshBuilder {
       : "../runtime/client/mod.tsx";
 
     const entryPoints: Record<string, string> = {
-      "fresh-runtime": new URL(runtimePath, import.meta.url).href,
+      "fresh-runtime": path.fromFileUrl(
+        new URL(runtimePath, import.meta.url).href,
+      ),
     };
     const seenEntries = new Map<string, Island>();
     const mapIslandToEntry = new Map<Island, string>();

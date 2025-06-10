@@ -3,6 +3,7 @@ import type {
   OnLoadArgs,
   OnLoadResult,
   OnResolveArgs,
+  OnResolveResult,
   Plugin as EsbuildPlugin,
 } from "esbuild";
 import * as path from "@std/path";
@@ -92,7 +93,18 @@ export async function bundleJs(
       {
         name: "deno",
         setup(ctx) {
-          const onResolve = async (args: OnResolveArgs) => {
+          const seen = new Set<string>();
+
+          ctx.onStart(() => {
+            // Ensure each build has an empty cache
+            seen.clear();
+          });
+
+          const onResolve = async (
+            args: OnResolveArgs,
+          ): Promise<OnResolveResult | null> => {
+            if (seen.has(args.path + args.importer)) return null;
+
             if (isBuiltin(args.path)) {
               return {
                 path: args.path,
@@ -105,19 +117,41 @@ export async function bundleJs(
                 : ResolutionMode.Import;
 
             const res = await loader.resolve(args.path, args.importer, kind);
+
+            let namespace: string | undefined;
+            if (res.startsWith("file:")) {
+              namespace = "file";
+            } else if (res.startsWith("http:")) {
+              namespace = "http";
+            } else if (res.startsWith("https:")) {
+              namespace = "https";
+            } else if (res.startsWith("npm:")) {
+              namespace = "npm";
+            }
+
+            const resolved = res.startsWith("file:")
+              ? path.fromFileUrl(res)
+              : res;
+
+            if (resolved === args.path) return null;
+
+            // We'll call resolvers recursively and need a way to
+            // bail out if we're getting called with the same args.
+            // Esbuild key's on current path + importer
+            seen.add(resolved + args.importer);
+
+            // Ensure other plugins can participate in resolution
+            // as well.
+            const other = await ctx.resolve(resolved, {
+              importer: args.importer,
+              kind: args.kind,
+              namespace,
+              resolveDir: path.dirname(resolved),
+            });
+
             return {
-              path: res.startsWith("file:") ? path.fromFileUrl(res) : res,
-              namespace: res.startsWith("file:")
-                ? "file"
-                : res.startsWith("https:")
-                ? "https"
-                : res.startsWith("http:")
-                ? "http"
-                : res.startsWith("npm:")
-                ? "npm"
-                : (() => {
-                  throw new Error(`Not implemented file type: ${res}`);
-                })(),
+              path: other.path,
+              namespace: other.namespace,
             };
           };
 
@@ -172,6 +206,10 @@ export async function bundleJs(
                 ? args.path
                 : path.toFileUrl(args.path).toString();
             const res = await loader.load(url);
+
+            if (res.kind === "external") {
+              return null;
+            }
 
             return {
               contents: res.code,
