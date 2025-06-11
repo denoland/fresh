@@ -1,6 +1,7 @@
 import * as path from "@std/path";
 import * as JSONC from "@std/jsonc";
 import * as tsmorph from "ts-morph";
+import * as colors from "@std/fmt/colors";
 
 export const SyntaxKind = tsmorph.ts.SyntaxKind;
 
@@ -14,6 +15,17 @@ export interface DenoJson {
   name?: string;
   version?: string;
   imports?: Record<string, string>;
+}
+
+// add a progress bar function
+function createProgressBar(current: number, total: number): string {
+  const percentage = Math.round((current / total) * 100);
+  const progressLength = 40;
+  const filled = Math.round((percentage / 100) * progressLength);
+  const empty = progressLength - filled;
+
+  const bar = "█".repeat(filled) + "░".repeat(empty);
+  return `[${bar}] ${percentage}% (${current}/${total})`;
 }
 
 async function format(filePath: string) {
@@ -79,6 +91,13 @@ const compat = new Set([
 ]);
 
 export async function updateProject(dir: string) {
+  // add initial log
+  // deno-lint-ignore no-console
+  console.log(colors.blue("🚀 Starting Fresh 1 to Fresh 2 migration..."));
+
+  // deno-lint-ignore no-console
+  console.log(colors.yellow("📝 Updating configuration files..."));
+
   // Update config
   await updateDenoJson(dir, (config) => {
     if (config.imports !== null && typeof config.imports !== "object") {
@@ -127,23 +146,97 @@ export async function updateProject(dir: string) {
     }
   });
 
+  // add completion log
+  // deno-lint-ignore no-console
+  console.log(colors.green("✅ Configuration updated successfully"));
+
+  // deno-lint-ignore no-console
+  console.log(colors.cyan("🔍 Scanning for source files..."));
+
   // Update routes folder
   const project = new tsmorph.Project();
   const sfs = project.addSourceFilesAtPaths(
     path.join(dir, "**", "*.{js,jsx,ts,tsx}"),
   );
+
+  // deno-lint-ignore no-console
+  console.log(colors.cyan(`📁 Found ${sfs.length} files to process`));
+
+  if (sfs.length === 0) {
+    // deno-lint-ignore no-console
+    console.log(colors.green("🎉 Migration completed successfully!"));
+    return;
+  }
+
+  // deno-lint-ignore no-console
+  console.log(colors.yellow("🔄 Processing files..."));
+
+  // Track progress with a single counter
+  let completedFiles = 0;
+  const modifiedFilesList: string[] = [];
+
+  // process files sequentially to show proper pro
   await Promise.all(sfs.map(async (sourceFile) => {
     try {
-      return await updateFile(sourceFile);
+      const wasModified = await updateFile(sourceFile);
+      if (wasModified) {
+        modifiedFilesList.push(sourceFile.getFilePath());
+      }
+
+      return wasModified;
     } catch (err) {
       // deno-lint-ignore no-console
       console.error(`Could not process ${sourceFile.getFilePath()}`);
       throw err;
+    } finally {
+      completedFiles++;
+
+      // update progress bar
+      const progress = createProgressBar(completedFiles, sfs.length);
+      Deno.stdout.writeSync(
+        new TextEncoder().encode(`\r${colors.blue(progress)} Complete!`),
+      );
     }
   }));
+
+  // add completion log
+  // deno-lint-ignore no-console
+  console.log("");
+
+  // add migration summary
+  // deno-lint-ignore no-console
+  console.log("\n" + colors.bold("📊 Migration Summary:"));
+  // deno-lint-ignore no-console
+  console.log(`   Total files processed: ${sfs.length}`);
+  // deno-lint-ignore no-console
+  console.log(`   Successfully modified: ${modifiedFilesList.length}`);
+  // deno-lint-ignore no-console
+  console.log(
+    `   Unmodified (no changes needed): ${
+      sfs.length - modifiedFilesList.length
+    }`,
+  );
+
+  // Display modified files list
+  if (modifiedFilesList.length > 0) {
+    // deno-lint-ignore no-console
+    console.log("\n" + colors.bold("📝 Modified Files:"));
+    modifiedFilesList.forEach((filePath) => {
+      // show relative path
+      const relativePath = path.relative(dir, filePath);
+      // deno-lint-ignore no-console
+      console.log(colors.green(`   ✓ ${relativePath}`));
+    });
+  }
+
+  // deno-lint-ignore no-console
+  console.log("\n" + colors.green("🎉 Migration completed successfully!"));
 }
 
-async function updateFile(sourceFile: tsmorph.SourceFile): Promise<void> {
+async function updateFile(sourceFile: tsmorph.SourceFile): Promise<boolean> {
+  // keep original text for comparison
+  const originalText = sourceFile.getFullText();
+
   const newImports: ImportState = {
     core: new Set(),
     runtime: new Set(),
@@ -325,6 +418,10 @@ async function updateFile(sourceFile: tsmorph.SourceFile): Promise<void> {
 
   await sourceFile.save();
   await format(sourceFile.getFilePath());
+
+  // Check if the file was actually modified
+  const finalText = sourceFile.getFullText();
+  return originalText !== finalText;
 }
 
 function removeEmptyImport(d: tsmorph.ImportDeclaration) {
