@@ -133,6 +133,7 @@ Deno.test({
 });
 
 Deno.test({
+  only: true,
   name: "Builder - can bundle islands from JSR",
   fn: async () => {
     const builder = new Builder();

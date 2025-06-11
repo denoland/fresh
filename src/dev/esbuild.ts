@@ -1,18 +1,6 @@
-import type {
-  Loader,
-  OnLoadArgs,
-  OnLoadResult,
-  OnResolveArgs,
-  OnResolveResult,
-  Plugin as EsbuildPlugin,
-} from "esbuild";
+import type { Plugin as EsbuildPlugin } from "esbuild";
+import { denoPlugin } from "@deno/esbuild-plugin";
 import * as path from "@std/path";
-import { DenoWorkspace, MediaType, ResolutionMode } from "@deno/loader";
-import { isBuiltin } from "node:module";
-
-const workspace = new DenoWorkspace({
-  debug: true,
-});
 
 export interface FreshBundleOptions {
   dev: boolean;
@@ -50,10 +38,6 @@ export async function bundleJs(
     }
   }
 
-  const loader = await workspace.createLoader({
-    entrypoints: Object.values(options.entryPoints),
-  });
-
   const bundle = await esbuild!.build({
     entryPoints: options.entryPoints,
 
@@ -90,138 +74,7 @@ export async function bundleJs(
       preactDebugger(PREACT_ENV),
       buildIdPlugin(options.buildId),
       windowsPathFixer(),
-      {
-        name: "deno",
-        setup(ctx) {
-          const seen = new Set<string>();
-
-          ctx.onStart(() => {
-            // Ensure each build has an empty cache
-            seen.clear();
-          });
-
-          const onResolve = async (
-            args: OnResolveArgs,
-          ): Promise<OnResolveResult | null> => {
-            if (seen.has(args.path + args.importer)) return null;
-
-            if (isBuiltin(args.path)) {
-              return {
-                path: args.path,
-                external: true,
-              };
-            }
-            const kind =
-              args.kind === "require-call" || args.kind === "require-resolve"
-                ? ResolutionMode.Require
-                : ResolutionMode.Import;
-
-            const res = await loader.resolve(args.path, args.importer, kind);
-
-            let namespace: string | undefined;
-            if (res.startsWith("file:")) {
-              namespace = "file";
-            } else if (res.startsWith("http:")) {
-              namespace = "http";
-            } else if (res.startsWith("https:")) {
-              namespace = "https";
-            } else if (res.startsWith("npm:")) {
-              namespace = "npm";
-            }
-
-            const resolved = res.startsWith("file:")
-              ? path.fromFileUrl(res)
-              : res;
-
-            if (resolved === args.path) return null;
-
-            // We'll call resolvers recursively and need a way to
-            // bail out if we're getting called with the same args.
-            // Esbuild key's on current path + importer
-            seen.add(resolved + args.importer);
-
-            // Ensure other plugins can participate in resolution
-            // as well.
-            const other = await ctx.resolve(resolved, {
-              importer: args.importer,
-              kind: args.kind,
-              namespace,
-              resolveDir: path.dirname(resolved),
-            });
-
-            return {
-              path: other.path,
-              namespace: other.namespace,
-            };
-          };
-
-          ctx.onResolve({ filter: /.*/, namespace: "file" }, onResolve);
-          ctx.onResolve({ filter: /.*/, namespace: "http" }, onResolve);
-          ctx.onResolve({ filter: /.*/, namespace: "https" }, onResolve);
-          ctx.onResolve({ filter: /.*/, namespace: "data" }, onResolve);
-          ctx.onResolve({ filter: /.*/, namespace: "npm" }, onResolve);
-          ctx.onResolve({ filter: /.*/, namespace: "jsr" }, onResolve);
-          ctx.onResolve({ filter: /.*/, namespace: "node" }, onResolve);
-
-          function mediaToLoader(type: MediaType): Loader {
-            switch (type) {
-              case MediaType.Jsx:
-                return "jsx";
-              case MediaType.JavaScript:
-              case MediaType.Mjs:
-              case MediaType.Cjs:
-                return "js";
-              case MediaType.TypeScript:
-              case MediaType.Mts:
-              case MediaType.Dmts:
-              case MediaType.Dcts:
-                return "ts";
-              case MediaType.Tsx:
-                return "tsx";
-              case MediaType.Css:
-                return "css";
-              case MediaType.Json:
-                return "json";
-              case MediaType.Html:
-                return "default";
-              case MediaType.Sql:
-                return "default";
-              case MediaType.Wasm:
-                return "binary";
-              case MediaType.SourceMap:
-                return "json";
-              case MediaType.Unknown:
-                return "default";
-              default:
-                return "default";
-            }
-          }
-
-          const onLoad = async (
-            args: OnLoadArgs,
-          ): Promise<OnLoadResult | null> => {
-            const url =
-              args.path.startsWith("http:") || args.path.startsWith("https:") ||
-                args.path.startsWith("npm:")
-                ? args.path
-                : path.toFileUrl(args.path).toString();
-            const res = await loader.load(url);
-
-            if (res.kind === "external") {
-              return null;
-            }
-
-            return {
-              contents: res.code,
-              loader: mediaToLoader(res.mediaType),
-            };
-          };
-          ctx.onLoad({ filter: /.*/, namespace: "file" }, onLoad);
-          ctx.onLoad({ filter: /.*/, namespace: "http" }, onLoad);
-          ctx.onLoad({ filter: /.*/, namespace: "https" }, onLoad);
-          ctx.onLoad({ filter: /.*/, namespace: "data" }, onLoad);
-        },
-      },
+      denoPlugin(),
     ],
   });
 

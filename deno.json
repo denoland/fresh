@@ -67,6 +67,7 @@
     "@std/path": "jsr:@std/path@1",
     "@std/semver": "jsr:@std/semver@1",
     "@std/streams": "jsr:@std/streams@1",
+    "@deno/esbuild-plugin": "jsr:@deno/esbuild-plugin@^0.0.1",
 
     "@astral/astral": "jsr:@astral/astral@^0.5.3",
     "@marvinh-test/fresh-island": "jsr:@marvinh-test/fresh-island@^0.0.1",
@@ -104,5 +105,8 @@
       "exclude": ["no-window"],
       "include": ["no-console"]
     }
-  }
+  },
+  "patch": [
+    "../esbuild-plugin-deno"
+  ]
 }
