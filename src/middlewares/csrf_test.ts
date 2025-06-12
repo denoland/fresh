@@ -24,12 +24,12 @@ describe("CSRF by Middleware", () => {
     const app = new App();
 
     app.all("*", csrf());
-    app.get("/form", (_ctx: FreshContext) => new Response("<form></form>"));
+    app.get("/form", () => new Response("<form></form>"));
     app.post("/form", simplePostHandler);
-    app.put("/form", (_ctx: FreshContext) => new Response("OK"));
-    app.delete("/form", (_ctx: FreshContext) => new Response("OK"));
-    app.patch("/form", (_ctx: FreshContext) => new Response("OK"));
-    app.head("/form", (_ctx: FreshContext) => new Response("OK"));
+    app.put("/form", () => new Response("OK"));
+    app.delete("/form", () => new Response("OK"));
+    app.patch("/form", () => new Response("OK"));
+    app.head("/form", () => new Response("OK"));
 
     const handler = app.handler();
 
