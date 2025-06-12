@@ -56,19 +56,6 @@ describe("CSRF by Middleware", () => {
 
     describe("POST /form", () => {
       it("should be 200 for local request", async () => {
-        /*
-         * <form action="/form" method="POST"><input name="name" value="fresh" /></form>
-         * or
-         * <script>
-         * fetch('/form', {
-         *   method: 'POST',
-         *   headers: {
-         *     'content-type': 'application/x-www-form-urlencoded',
-         *   },
-         *   body: 'name=fresh',
-         * });
-         * </script>
-         */
         const res = await handler(
           new Request("http://localhost/form", {
             method: "POST",
@@ -85,23 +72,6 @@ describe("CSRF by Middleware", () => {
       });
 
       it('should be 403 for "application/x-www-form-urlencoded" cross origin', async () => {
-        /*
-         * via http://example.com
-         *
-         * <form action="http://localhost/form" method="POST">
-         *   <input name="name" value="fresh" />
-         * </form>
-         * or
-         * <script>
-         * fetch('http://localhost/form', {
-         *   method: 'POST',
-         *   headers: {
-         *     'content-type': 'application/x-www-form-urlencoded',
-         *   },
-         *   body: 'name=fresh',
-         * });
-         * </script>
-         */
         const res = await handler(
           new Request("http://localhost/form", {
             method: "POST",
@@ -117,23 +87,6 @@ describe("CSRF by Middleware", () => {
         expect(simplePostHandler.calls.length).toBe(0);
       });
       it('should be 403 for "multipart/form-data" cross origin', async () => {
-        /*
-         * via http://example.com
-         *
-         * <form action="http://localhost/form" method="POST" enctype="multipart/form-data">
-         *   <input name="name" value="fresh" />
-         * </form>
-         * or
-         * <script>
-         * fetch('http://localhost/form', {
-         *   method: 'POST',
-         *   headers: {
-         *     'content-type': 'multipart/form-data',
-         *   },
-         *   body: 'name=fresh',
-         * });
-         * </script>
-         */
         const res = await handler(
           new Request("http://localhost/form", {
             method: "POST",
@@ -150,23 +103,6 @@ describe("CSRF by Middleware", () => {
       });
 
       it('should be 403 for "text/plain" cross origin', async () => {
-        /*
-         * via http://example.com
-         *
-         * <form action="http://localhost/form" method="POST" enctype="text/plain">
-         *   <input name="name" value="fresh" />
-         * </form>
-         * or
-         * <script>
-         * fetch('http://localhost/form', {
-         *   method: 'POST',
-         *   headers: {
-         *     'content-type': 'text/plain',
-         *   },
-         *   body: 'name=fresh',
-         * });
-         * </script>
-         */
         const res = await handler(
           new Request("http://localhost/form", {
             method: "POST",
@@ -198,20 +134,6 @@ describe("CSRF by Middleware", () => {
       });
 
       it("should be 200 for application/json", async () => {
-        /*
-         * via http://example.com
-         * Assume localhost allows cross origin POST
-         *
-         * <script>
-         * fetch('http://localhost/form', {
-         *   method: 'POST',
-         *   headers: {
-         *     'content-type': 'application/json',
-         *   },
-         *   body: JSON.stringify({ name: 'fresh' }),
-         * });
-         * </script>
-         */
         const res = await handler(
           new Request("http://localhost/form", {
             method: "POST",
