@@ -150,6 +150,24 @@ export async function updateProject(dir: string) {
   // deno-lint-ignore no-console
   console.log(colors.green("✅ Configuration updated successfully"));
 
+  // Delete fresh.gen.ts if it exists (no longer needed in Fresh 2.0)
+  const freshGenPath = path.join(dir, "fresh.gen.ts");
+  try {
+    await Deno.remove(freshGenPath);
+    // deno-lint-ignore no-console
+    console.log(colors.cyan("🗑️ Deleted fresh.gen.ts (no longer needed)"));
+  } catch (err) {
+    if (!(err instanceof Deno.errors.NotFound)) {
+      // deno-lint-ignore no-console
+      console.error(
+        `Could not delete fresh.gen.ts: ${
+          err instanceof Error ? err.message : String(err)
+        }`,
+      );
+    }
+    // If file doesn't exist, that's fine - nothing to do
+  }
+
   // deno-lint-ignore no-console
   console.log(colors.cyan("🔍 Scanning for source files..."));
 
