@@ -23,7 +23,6 @@ describe("CSRF by Middleware", () => {
   describe("simple usage", () => {
     const app = new App();
 
-    //
     app.all("*", csrf());
     app.get("/form", (_ctx: FreshContext) => new Response("<form></form>"));
     app.post("/form", simplePostHandler);
@@ -184,7 +183,7 @@ describe("CSRF by Middleware", () => {
       });
 
       it("should be 403 if request has no origin header", async () => {
-        const res = await app.handler()(
+        const res = await handler(
           new Request("http://localhost/form", {
             method: "POST",
             headers: {
