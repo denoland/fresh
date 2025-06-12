@@ -228,7 +228,7 @@ describe("CSRF by Middleware", () => {
       });
 
       it('should be 403 for "Application/x-www-form-urlencoded" cross origin', async () => {
-        const res = await app.handler()(
+        const res = await handler(
           new Request("http://localhost/form", {
             method: "POST",
             headers: {
