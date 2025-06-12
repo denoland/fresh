@@ -46,10 +46,10 @@ export type Handler<T = any, State = Record<string, unknown>> = HandlerFn<
 function defineFn<State>(
   fn: (
     ctx: FreshContext<State>,
-  ) => Request | VNode | null | Promise<Request | VNode | null>,
+  ) => Response | VNode | null | Promise<Response | VNode | null>,
 ): (
   ctx: FreshContext<State>,
-) => Request | VNode | null | Promise<Request | VNode | null> {
+) => Response | VNode | null | Promise<Response | VNode | null> {
   return fn;
 }
 
