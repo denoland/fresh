@@ -8,7 +8,6 @@
     "jsr:@deno/graph@0.86": "0.86.9",
     "jsr:@deno/graph@~0.82.3": "0.82.3",
     "jsr:@deno/otel@*": "0.0.2",
-    "jsr:@fresh/core@^2.0.0-alpha.29": "2.0.0-alpha.34",
     "jsr:@fresh/plugin-tailwind@^0.0.1-alpha.7": "0.0.1-alpha.7",
     "jsr:@luca/esbuild-deno-loader@0.11": "0.11.1",
     "jsr:@marvinh-test/fresh-island@*": "0.0.1",
@@ -37,6 +36,7 @@
     "jsr:@std/fmt@^1.0.7": "1.0.8",
     "jsr:@std/fmt@^1.0.8": "1.0.8",
     "jsr:@std/front-matter@^1.0.5": "1.0.9",
+    "jsr:@std/fs@*": "1.0.17",
     "jsr:@std/fs@1": "1.0.17",
     "jsr:@std/fs@^1.0.16": "1.0.17",
     "jsr:@std/fs@^1.0.17": "1.0.17",
@@ -55,6 +55,7 @@
     "jsr:@std/media-types@1": "1.1.0",
     "jsr:@std/media-types@^1.1.0": "1.1.0",
     "jsr:@std/net@^1.0.4": "1.0.4",
+    "jsr:@std/path@*": "1.1.0",
     "jsr:@std/path@0.221": "0.221.0",
     "jsr:@std/path@1": "1.0.9",
     "jsr:@std/path@^1.0.6": "1.0.9",
@@ -77,9 +78,7 @@
     "npm:@types/node@*": "22.15.15",
     "npm:autoprefixer@10.4.17": "10.4.17_postcss@8.4.35",
     "npm:cssnano@6.0.3": "6.0.3_postcss@8.4.35",
-    "npm:esbuild-wasm@0.23.1": "0.23.1",
     "npm:esbuild-wasm@0.25.4": "0.25.4",
-    "npm:esbuild@0.23.1": "0.23.1",
     "npm:esbuild@0.25.4": "0.25.4",
     "npm:github-slugger@2": "2.0.0",
     "npm:linkedom@~0.18.10": "0.18.10",
@@ -139,29 +138,6 @@
       "dependencies": [
         "npm:@opentelemetry/api@1",
         "npm:@opentelemetry/sdk-trace-base"
-      ]
-    },
-    "@fresh/core@2.0.0-alpha.34": {
-      "integrity": "e177fc69b049b04128de87d243bd7de76582417d80d8d12dc19dd6786f196efa",
-      "dependencies": [
-        "jsr:@luca/esbuild-deno-loader",
-        "jsr:@std/crypto@1",
-        "jsr:@std/datetime",
-        "jsr:@std/encoding@1",
-        "jsr:@std/fmt@1",
-        "jsr:@std/fs@1",
-        "jsr:@std/html@1",
-        "jsr:@std/http",
-        "jsr:@std/jsonc@1",
-        "jsr:@std/media-types@1",
-        "jsr:@std/path@1",
-        "jsr:@std/semver",
-        "npm:@opentelemetry/api@^1.9.0",
-        "npm:@preact/signals@^2.0.4",
-        "npm:esbuild-wasm@0.23.1",
-        "npm:esbuild@0.23.1",
-        "npm:preact-render-to-string",
-        "npm:preact@^10.26.6"
       ]
     },
     "@fresh/plugin-tailwind@0.0.1-alpha.7": {
@@ -986,43 +962,8 @@
     "entities@6.0.0": {
       "integrity": "sha512-aKstq2TDOndCn4diEyp9Uq/Flu2i1GlLkc6XIDQSDMuaFE3OPW5OphLCyQ5SpSJZTb4reN+kTcYru5yIfXoRPw=="
     },
-    "esbuild-wasm@0.23.1": {
-      "integrity": "sha512-L3vn7ctvBrtScRfoB0zG1eOCiV4xYvpLYWfe6PDZuV+iDFDm4Mt3xeLIDllG8cDHQ8clUouK3XekulE+cxgkgw==",
-      "bin": true
-    },
     "esbuild-wasm@0.25.4": {
       "integrity": "sha512-2HlCS6rNvKWaSKhWaG/YIyRsTsL3gUrMP2ToZMBIjw9LM7vVcIs+rz8kE2vExvTJgvM8OKPqNpcHawY/BQc/qQ==",
-      "bin": true
-    },
-    "esbuild@0.23.1": {
-      "integrity": "sha512-VVNz/9Sa0bs5SELtn3f7qhJCDPCF5oMEl5cO9/SSinpE9hbPVvxbd572HH5AKiP7WD8INO53GgfDDhRjkylHEg==",
-      "optionalDependencies": [
-        "@esbuild/aix-ppc64@0.23.1",
-        "@esbuild/android-arm@0.23.1",
-        "@esbuild/android-arm64@0.23.1",
-        "@esbuild/android-x64@0.23.1",
-        "@esbuild/darwin-arm64@0.23.1",
-        "@esbuild/darwin-x64@0.23.1",
-        "@esbuild/freebsd-arm64@0.23.1",
-        "@esbuild/freebsd-x64@0.23.1",
-        "@esbuild/linux-arm@0.23.1",
-        "@esbuild/linux-arm64@0.23.1",
-        "@esbuild/linux-ia32@0.23.1",
-        "@esbuild/linux-loong64@0.23.1",
-        "@esbuild/linux-mips64el@0.23.1",
-        "@esbuild/linux-ppc64@0.23.1",
-        "@esbuild/linux-riscv64@0.23.1",
-        "@esbuild/linux-s390x@0.23.1",
-        "@esbuild/linux-x64@0.23.1",
-        "@esbuild/netbsd-x64@0.23.1",
-        "@esbuild/openbsd-arm64@0.23.1",
-        "@esbuild/openbsd-x64@0.23.1",
-        "@esbuild/sunos-x64@0.23.1",
-        "@esbuild/win32-arm64@0.23.1",
-        "@esbuild/win32-ia32@0.23.1",
-        "@esbuild/win32-x64@0.23.1"
-      ],
-      "scripts": true,
       "bin": true
     },
     "esbuild@0.25.4": {
