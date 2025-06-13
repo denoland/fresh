@@ -8,8 +8,7 @@ Deno.test("Fresh version consistency", async () => {
   // get the version from the fresh import
   const freshImport = config.imports?.fresh;
 
-  const match = freshImport.match(/@fresh\/core@\^?([^/]+)/);
-  const actualVersion = match?.[1];
+  const [_, actualVersion] = freshImport.split("@^");
 
   assertEquals(
     actualVersion,
