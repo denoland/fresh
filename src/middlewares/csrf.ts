@@ -8,9 +8,17 @@ export interface CSRFOptions {
   origin?: string | string[] | IsAllowedOriginHandler;
 }
 
-const isSafeMethodRe = /^(GET|HEAD)$/;
-const isRequestedByFormElementRe =
-  /^\b(application\/x-www-form-urlencoded|multipart\/form-data|text\/plain)\b/i;
+function isSafeMethod(method: string): boolean {
+  return method === "GET" || method === "HEAD";
+}
+
+function isRequestedByFormElement(contentType: string): boolean {
+  const contentTypeLower = contentType.toLowerCase();
+
+  return contentTypeLower === "application/x-www-form-urlencoded" ||
+    contentTypeLower === "multipart/form-data" ||
+    contentTypeLower === "text/plain";
+}
 
 /**
  * CSRF Protection Middleware for Fresh.
@@ -75,8 +83,8 @@ export function csrf(
 
   return async (ctx: FreshContext): Promise<Response> => {
     if (
-      !isSafeMethodRe.test(ctx.req.method) &&
-      isRequestedByFormElementRe.test(
+      !isSafeMethod(ctx.req.method) &&
+      isRequestedByFormElement(
         ctx.req.headers.get("content-type") || "text/plain",
       ) &&
       !isAllowedOrigin(ctx.req.headers.get("origin"), ctx)
