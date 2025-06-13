@@ -12,6 +12,7 @@
     "jsr:@luca/esbuild-deno-loader@0.11": "0.11.1",
     "jsr:@marvinh-test/fresh-island@*": "0.0.1",
     "jsr:@marvinh-test/fresh-island@^0.0.1": "0.0.1",
+    "jsr:@std/assert@*": "1.0.13",
     "jsr:@std/assert@0.221": "0.221.0",
     "jsr:@std/assert@^1.0.13": "1.0.13",
     "jsr:@std/async@1": "1.0.13",
