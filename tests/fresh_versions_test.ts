@@ -7,9 +7,6 @@ Deno.test("Fresh version consistency", async () => {
 
   // get the version from the fresh import
   const freshImport = config.imports?.fresh;
-  if (!freshImport) {
-    throw new Error("No fresh import found in deno.json");
-  }
 
   const match = freshImport.match(/@fresh\/core@\^?([^/]+)/);
   const actualVersion = match?.[1];
