@@ -6,7 +6,7 @@ Deno.test("Fresh version consistency", async () => {
   const expectedVersion = config.version;
 
   // get the version from the fresh import
-  const freshImport = config.imports?.fresh;
+  const freshImport = config.imports.fresh;
 
   const [_, actualVersion] = freshImport.split("@^");
 
