@@ -83,7 +83,6 @@
 
     "@fresh/plugin-tailwind": "jsr:@fresh/plugin-tailwind@^0.0.1-alpha.7",
     "@std/front-matter": "jsr:@std/front-matter@^1.0.5",
-    "github-slugger": "npm:github-slugger@^2.0.0",
     "fresh/compat": "./src/compat/mod.ts",
     "fresh/dev": "./src/dev/mod.ts",
     "fresh/runtime": "./src/runtime/shared.ts",

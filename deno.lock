@@ -81,7 +81,6 @@
     "npm:esbuild-wasm@0.25.4": "0.25.4",
     "npm:esbuild@0.23.1": "0.23.1",
     "npm:esbuild@0.25.4": "0.25.4",
-    "npm:github-slugger@2": "2.0.0",
     "npm:linkedom@~0.18.10": "0.18.10",
     "npm:marked-mangle@^1.1.9": "1.1.10_marked@15.0.12",
     "npm:marked@^15.0.11": "15.0.12",
@@ -1100,9 +1099,6 @@
     "function-bind@1.1.2": {
       "integrity": "sha512-7XHNxH7qX9xG5mIwxkhumTox/MIRNcOgDrxWsMt2pAr23WHp6MrRlN7FBSFpCpr+oVO0F744iUgR82nJMfG2SA=="
     },
-    "github-slugger@2.0.0": {
-      "integrity": "sha512-IaOQ9puYtjrkq7Y0Ygl9KDZnrf/aiUJYUpVf89y8kyaxbRG7Y1SrX/jaumrv81vc61+kiMempujsM3Yw7w5qcw=="
-    },
     "glob-parent@5.1.2": {
       "integrity": "sha512-AOIgSQCepiJYwP3ARnGx+5VnTu2HBYdzbGP45eLw1vr3zB3vZLeyed1sC9hnbcOc9/SrMyM5RPQrkGz4aS9Zow==",
       "dependencies": [
@@ -1906,7 +1902,6 @@
       "npm:cssnano@6.0.3",
       "npm:esbuild-wasm@0.25.4",
       "npm:esbuild@0.25.4",
-      "npm:github-slugger@2",
       "npm:linkedom@~0.18.10",
       "npm:marked-mangle@^1.1.9",
       "npm:marked@^15.0.11",
