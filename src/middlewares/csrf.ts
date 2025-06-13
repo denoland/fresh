@@ -25,9 +25,8 @@ function isRequestedByFormElement(contentType: string): boolean {
  * Adapted from Hono's CORS middleware.
  * Would like to express my gratitude to all the developers of Hono.
  *
- * @param {CSRFOptions} [options] - The options for the CSRF protection middleware.
- * @param {string|string[]|(origin: string, context: Context) => boolean} [options.origin] - Specify origins.
- * @returns {MiddlewareHandler} The middleware handler function.
+ * @param options Options for the CSRF protection middleware.
+ * @returns The middleware handler function.
  *
  * @example
  * ```ts
