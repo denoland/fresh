@@ -1,7 +1,7 @@
 import { assertEquals } from "jsr:@std/assert";
 import config from "../deno.json" with { type: "json" };
 
-Deno.test("Fresh version consistency", async () => {
+Deno.test("Fresh version consistency",() => {
   // get the expected version from the deno.json file
   const expectedVersion = config.version;
 
