@@ -2,6 +2,7 @@ import * as path from "@std/path";
 import * as JSONC from "@std/jsonc";
 import * as tsmorph from "ts-morph";
 import * as colors from "@std/fmt/colors";
+import { ProgressBar } from "@std/cli/unstable-progress-bar";
 
 export const SyntaxKind = tsmorph.ts.SyntaxKind;
 
@@ -15,17 +16,6 @@ export interface DenoJson {
   name?: string;
   version?: string;
   imports?: Record<string, string>;
-}
-
-// add a progress bar function
-function createProgressBar(current: number, total: number): string {
-  const percentage = Math.round((current / total) * 100);
-  const progressLength = 40;
-  const filled = Math.round((percentage / 100) * progressLength);
-  const empty = progressLength - filled;
-
-  const bar = "█".repeat(filled) + "░".repeat(empty);
-  return `[${bar}] ${percentage}% (${current}/${total})`;
 }
 
 async function format(filePath: string) {
@@ -150,6 +140,24 @@ export async function updateProject(dir: string) {
   // deno-lint-ignore no-console
   console.log(colors.green("✅ Configuration updated successfully"));
 
+  // Delete fresh.gen.ts if it exists (no longer needed in Fresh 2.0)
+  const freshGenPath = path.join(dir, "fresh.gen.ts");
+  try {
+    await Deno.remove(freshGenPath);
+    // deno-lint-ignore no-console
+    console.log(colors.cyan("🗑️ Deleted fresh.gen.ts (no longer needed)"));
+  } catch (err) {
+    if (!(err instanceof Deno.errors.NotFound)) {
+      // deno-lint-ignore no-console
+      console.error(
+        `Could not delete fresh.gen.ts: ${
+          err instanceof Error ? err.message : String(err)
+        }`,
+      );
+    }
+    // If file doesn't exist, that's fine - nothing to do
+  }
+
   // deno-lint-ignore no-console
   console.log(colors.cyan("🔍 Scanning for source files..."));
 
@@ -175,7 +183,15 @@ export async function updateProject(dir: string) {
   let completedFiles = 0;
   const modifiedFilesList: string[] = [];
 
-  // process files sequentially to show proper pro
+  // Create a progress bar
+  const bar = new ProgressBar({
+    max: sfs.length,
+    fmt(x) {
+      return `[${x.styledTime}] [${x.progressBar}] [${x.value}/${x.max} files]`;
+    },
+  });
+
+  // process files sequentially to show proper progress
   await Promise.all(sfs.map(async (sourceFile) => {
     try {
       const wasModified = await updateFile(sourceFile);
@@ -190,18 +206,12 @@ export async function updateProject(dir: string) {
       throw err;
     } finally {
       completedFiles++;
-
-      // update progress bar
-      const progress = createProgressBar(completedFiles, sfs.length);
-      Deno.stdout.writeSync(
-        new TextEncoder().encode(`\r${colors.blue(progress)} Complete!`),
-      );
+      bar.value = completedFiles;
     }
   }));
 
-  // add completion log
-  // deno-lint-ignore no-console
-  console.log("");
+  // Clear the progress line and add a newline
+  await bar.stop();
 
   // add migration summary
   // deno-lint-ignore no-console
