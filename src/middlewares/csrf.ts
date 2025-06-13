@@ -1,9 +1,25 @@
 import type { FreshContext } from "../context.ts";
 
+/**
+ * Determines whether a given origin is allowed for CSRF protection.
+ *
+ * @param origin - The origin of the incoming request.
+ * @param context - The FreshContext object for the current request.
+ * @returns A boolean indicating if the origin is allowed.
+ */
 export type IsAllowedOriginHandler = (
   origin: string,
   context: FreshContext,
 ) => boolean;
+
+/**
+ * Options for configuring the CSRF protection middleware.
+ *
+ * @property origin - Specifies the allowed origin(s) for requests. Can be a string, an array of strings, or a custom handler function.
+ *   - string: A single allowed origin.
+ *   - string[]: Multiple allowed origins.
+ *   - IsAllowedOriginHandler: A function to determine if an origin is allowed.
+ */
 export interface CSRFOptions {
   origin?: string | string[] | IsAllowedOriginHandler;
 }
