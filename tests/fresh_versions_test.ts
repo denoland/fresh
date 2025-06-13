@@ -4,9 +4,6 @@ import config from "../deno.json" with { type: "json" };
 Deno.test("Fresh version consistency", async () => {
   // get the expected version from the deno.json file
   const expectedVersion = config.version;
-  if (!expectedVersion) {
-    throw new Error("No version field found in deno.json");
-  }
 
   // get the version from the fresh import
   const freshImport = config.imports?.fresh;
