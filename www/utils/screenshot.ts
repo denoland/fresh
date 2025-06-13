@@ -48,9 +48,9 @@ export async function captureScreenshot(
 
 // only run the script if it's the main module
 if (import.meta.main) {
-    const [url, id] = validateArgs(Deno.args);
-    validateUrl(url);
-    await captureScreenshot(url, id);
-    // deno-lint-ignore no-console
-    console.log(`Screenshot saved as ${id}1x.jpg and ${id}2x.jpg`);
+  const [url, id] = validateArgs(Deno.args);
+  validateUrl(url);
+  await captureScreenshot(url, id);
+  // deno-lint-ignore no-console
+  console.log(`Screenshot saved as ${id}1x.jpg and ${id}2x.jpg`);
 }
