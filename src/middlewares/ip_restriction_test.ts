@@ -11,7 +11,7 @@ import {
   expandIPv6,
   ipRestriction,
   type IPRestrictionRule,
-} from "./ip-restriction.ts";
+} from "./ip_restriction.ts";
 
 import { beforeEach, describe, it } from "@std/testing/bdd";
 import { expect } from "@std/expect";
