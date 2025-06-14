@@ -703,3 +703,62 @@ Deno.test("update - island files", async () => {
     `import { IS_BROWSER } from "fresh/runtime";`,
   );
 });
+
+Deno.test("fresh/compat - defineFn mixed return types", async () => {
+  await using _tmp = await withTmpDir();
+  const dir = _tmp.dir;
+  await writeFiles(dir, {
+    "/deno.json": `{}`,
+    "/routes/compat_mixed.tsx": `import { defineFn } from "fresh/compat";
+import type { FreshContext } from "$fresh/server.ts";
+
+// test all supported return types
+export const responseHandler = defineFn(() => new Response("response"));
+export const vnodeHandler = defineFn(() => <span>vnode</span>);
+export const nullHandler = defineFn(() => null);
+export const promiseResponseHandler = defineFn(async () => new Response("async"));
+export const promiseVnodeHandler = defineFn(async () => <div>async vnode</div>);
+export const promiseNullHandler = defineFn(async () => null);
+
+// test with FreshContext parameter
+export const contextHandler = defineFn((ctx: FreshContext) => {
+  return new Response("Hello World");
+});
+
+export const asyncContextHandler = defineFn(async (ctx: FreshContext) => {
+  return new Response("Async Hello");
+});`,
+  });
+
+  await updateProject(dir);
+  const files = await readFiles(dir);
+
+  expect(files["/routes/compat_mixed.tsx"]).toContain('from "fresh/compat"');
+  expect(files["/routes/compat_mixed.tsx"]).toContain("new Response(");
+  expect(files["/routes/compat_mixed.tsx"]).toContain("<span>vnode</span>");
+  expect(files["/routes/compat_mixed.tsx"]).toContain("<div>async vnode</div>");
+  expect(files["/routes/compat_mixed.tsx"]).toContain("() => null");
+  expect(files["/routes/compat_mixed.tsx"]).toContain("(ctx: FreshContext)");
+});
+
+Deno.test("fresh/compat - multiple compat imports", async () => {
+  await using _tmp = await withTmpDir();
+  const dir = _tmp.dir;
+  await writeFiles(dir, {
+    "/deno.json": `{}`,
+    "/routes/multi_compat.ts":
+      `import { defineFn, defineRoute, defineLayout } from "fresh/compat";
+
+export const fn = defineFn(() => new Response("test"));
+export const route = defineRoute(() => <div>test</div>);
+export const layout = defineLayout(() => <main>layout</main>);`,
+  });
+
+  await updateProject(dir);
+  const files = await readFiles(dir);
+
+  expect(files["/routes/multi_compat.ts"]).toContain(
+    "defineFn, defineLayout, defineRoute",
+  );
+  expect(files["/routes/multi_compat.ts"]).toContain('from "fresh/compat"');
+});
