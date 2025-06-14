@@ -9,8 +9,8 @@ import { expect } from "@std/expect";
 import { walk } from "@std/fs/walk";
 import { withTmpDir } from "../../src/test_utils.ts";
 import type { FreshContext } from "../../src/context.ts";
-import { h, VNode } from "preact";
-import { assertType, IsExact, IsNullable } from "@std/testing/types";
+import { h, type VNode } from "preact";
+import { assertType, type IsExact, type IsNullable } from "@std/testing/types";
 import { assertEquals, assertInstanceOf } from "@std/assert";
 import { spy } from "@std/testing/mock";
 
@@ -729,11 +729,13 @@ Deno.test("fresh/compat - defineFn mixed return types", async () => {
   const handlerSpy = spy(responseHandler);
   const nullSpy = spy(nullHandler);
 
-  assertInstanceOf(responseHandler(mockCtx), Response);
-  assertEquals(nullHandler(mockCtx), null);
+  assertInstanceOf(handlerSpy(mockCtx), Response);
 
-  assertEquals(handlerSpy.calls.length >= 0, true);
-  assertEquals(nullSpy.calls.length >= 0, true);
+  vnodeHandler(mockCtx);
+  assertEquals(nullSpy(mockCtx), null);
+
+  assertEquals(handlerSpy.calls.length, 1);
+  assertEquals(nullSpy.calls.length, 1);
 });
 
 Deno.test("fresh/compat - multiple compat imports", async () => {
@@ -749,9 +751,11 @@ Deno.test("fresh/compat - multiple compat imports", async () => {
   const handler3 = defineLayout(() => new Response("ok"));
 
   assertType<IsExact<typeof handler1, typeof handler2>>(true);
+  assertType<IsExact<typeof handler2, typeof handler3>>(true);
 
   const handlerSpy = spy(handler1);
 
   const mockCtx = {} as FreshContext<unknown>;
-  assertInstanceOf(handler1(mockCtx), Response);
+  assertInstanceOf(handlerSpy(mockCtx), Response);
+  assertEquals(handlerSpy.calls.length, 1);
 });
