@@ -16,7 +16,6 @@ export { cors, type CORSOptions } from "./middlewares/cors.ts";
 export {
   type AddressType,
   type ConnInfo,
-  getIP,
   ipRestriction,
   type IPRestrictionRule,
   type IPRestrictionRules,
