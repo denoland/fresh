@@ -1,4 +1,4 @@
-import { assertEquals, assertThrows } from "jsr:@std/assert";
+import { assertEquals, assertThrows } from "@std/assert";
 import { generateFilePaths, validateArgs, validateUrl } from "./screenshot.ts";
 
 Deno.test("validateArgs - accepts 2 arguments", () => {
