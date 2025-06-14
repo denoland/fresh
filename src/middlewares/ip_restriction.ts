@@ -313,7 +313,7 @@ function blockError(): Response {
  * @returns The connection information.
  * @throws {TypeError} If the transport protocol is not TCP.
  */
-export function getIP(
+function getIP(
   ctx: FreshContext,
   distinctRemoteAddr: (addr: string) => AddressType | undefined,
 ): ConnInfo | never {
@@ -338,21 +338,31 @@ export function getIP(
 /**
  * IP restriction middleware for Fresh.
  *
- * @param getIP - Function to extract connection info from the context.
- * @param rules - IP restriction rules (allow/deny lists).
- * @param onError - Optional error handler for denied requests.
- * @returns Middleware function for IP restriction.
+ * Allows or denies requests based on allowList and denyList rules.
+ *
+ * @template T Middleware type parameter
+ * @param rules Object containing IP restriction rules:
+ *   - denyList: List of rules to explicitly deny (default: [])
+ *   - allowList: List of rules to explicitly allow (default: [])
+ * @param options Optional settings:
+ *   - onError: Function to handle denied requests
+ *     (remote, ctx) => Response | Promise<Response>
+ *   - getIP: Function to extract connection info from context
+ *     (ctx, distinctRemoteAddr) => ConnInfo | never
+ * @returns Middleware function for Fresh
  */
 export function ipRestriction<T>(
-  getIP: (
-    ctx: FreshContext,
-    distinctRemoteAddr: (addr: string) => AddressType | undefined,
-  ) => ConnInfo | never,
   { denyList = [], allowList = [] }: IPRestrictionRules,
-  onError?: (
-    remote: { addr: string; type: AddressType },
-    ctx: FreshContext,
-  ) => Response | Promise<Response>,
+  options?: {
+    onError?: (
+      remote: { addr: string; type: AddressType },
+      ctx: FreshContext,
+    ) => Response | Promise<Response>;
+    getIP?: (
+      ctx: FreshContext,
+      distinctRemoteAddr: (addr: string) => AddressType | undefined,
+    ) => ConnInfo | never;
+  },
 ): MiddlewareFn<T> {
   const allowLength = allowList.length;
 
@@ -360,12 +370,12 @@ export function ipRestriction<T>(
   const allowMatcher = buildMatcher(allowList);
 
   return async function ipRestriction(ctx: FreshContext) {
-    const connInfo = getIP(ctx, distinctRemoteAddr);
-    const addr = connInfo.remote.address;
+    const connInfo = (options?.getIP || getIP)(ctx, distinctRemoteAddr);
+    const addr = connInfo?.remote.address;
     if (!addr) {
       return blockError();
     }
-    const type = connInfo.remote.addressType;
+    const type = connInfo?.remote.addressType;
     if (!type) {
       return blockError();
     }
@@ -373,8 +383,8 @@ export function ipRestriction<T>(
     const remoteData = { addr, type, isIPv4: type === "IPv4" };
 
     if (denyMatcher(remoteData)) {
-      if (onError) {
-        return onError({ addr, type }, ctx);
+      if (options?.onError) {
+        return options.onError({ addr, type }, ctx);
       }
       return blockError();
     }
@@ -386,8 +396,8 @@ export function ipRestriction<T>(
     if (allowLength === 0) {
       return await ctx.next();
     } else {
-      if (onError) {
-        return await onError({ addr, type }, ctx);
+      if (options?.onError) {
+        return await options.onError({ addr, type }, ctx);
       }
       return blockError();
     }

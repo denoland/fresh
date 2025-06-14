@@ -127,10 +127,12 @@ describe("ipRestriction middleware", () => {
   app.all(
     "/basic/*",
     ipRestriction(
-      dummyGetIp,
       {
         allowList: ["192.168.1.0", "192.168.2.0/24"],
         denyList: ["192.168.2.10"],
+      },
+      {
+        getIP: dummyGetIp,
       },
     ),
   );
@@ -140,8 +142,10 @@ describe("ipRestriction middleware", () => {
 
   app.all(
     "/allow-empty/*",
-    ipRestriction(dummyGetIp, {
+    ipRestriction({
       denyList: ["192.168.1.0"],
+    }, {
+      getIP: dummyGetIp,
     }),
   );
   app.get("/allow-empty/", () => new Response("Hello World!"));
@@ -216,11 +220,13 @@ describe("isMatchForRule", () => {
   app.all(
     "*",
     ipRestriction(
-      dummyGetIp,
       {
         denyList: ["0.0.0.0"],
       },
-      () => new Response("error"),
+      {
+        getIP: dummyGetIp,
+        onError: () => new Response("error"),
+      },
     ),
   );
   app.get("*", () => new Response("ok"));
@@ -240,16 +246,18 @@ describe("isMatchForRule", () => {
     rule: IPRestrictionRule,
   ) => {
     const middleware = ipRestriction(
-      () => ({
-        remote: {
-          transport: "tcp",
-          port: 12345,
-          address: info.addr,
-          addressType: info.type,
-        },
-      }),
       {
         allowList: [rule],
+      },
+      {
+        getIP: () => ({
+          remote: {
+            transport: "tcp",
+            port: 12345,
+            address: info.addr,
+            addressType: info.type,
+          },
+        }),
       },
     );
     const mockContext = {
