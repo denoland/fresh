@@ -14,7 +14,7 @@ export type { Middleware, MiddlewareFn } from "./middlewares/mod.ts";
 export { staticFiles } from "./middlewares/static_files.ts";
 export {
   csrf,
-  type CSRFOptions,
+  type CsrfOptions,
   type IsAllowedOriginHandler,
 } from "./middlewares/csrf.ts";
 export { cors, type CORSOptions } from "./middlewares/cors.ts";

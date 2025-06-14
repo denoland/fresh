@@ -20,7 +20,7 @@ export type IsAllowedOriginHandler = (
  *   - string[]: Multiple allowed origins.
  *   - IsAllowedOriginHandler: A function to determine if an origin is allowed.
  */
-export interface CSRFOptions {
+export interface CsrfOptions {
   origin?: string | string[] | IsAllowedOriginHandler;
 }
 
@@ -73,7 +73,7 @@ function isRequestedByFormElement(contentType: string): boolean {
  * ```
  */
 export function csrf(
-  options?: CSRFOptions,
+  options?: CsrfOptions,
 ): (ctx: FreshContext) => Promise<Response> {
   const handler: IsAllowedOriginHandler = ((optsOrigin) => {
     if (!optsOrigin) {
