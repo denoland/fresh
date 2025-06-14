@@ -326,55 +326,35 @@ export function ipRestriction<T>(
   const allowMatcher = buildMatcher(allowList);
 
   return async function ipRestriction(ctx: FreshContext) {
-    //return blockError();
-    //return await ctx.next();
-
     const connInfo = getIP(ctx, distinctRemoteAddr);
-    console.debug(connInfo);
     const addr = connInfo.remote.address;
-    console.log("1-1");
     if (!addr) {
-      console.log(4);
       return blockError();
     }
-    console.log("1-2");
     const type = connInfo.remote.addressType;
     if (!type) {
-      console.log(3);
       return blockError();
     }
-    console.log("1-3");
 
     const remoteData = { addr, type, isIPv4: type === "IPv4" };
 
-    console.log("1-4");
     if (denyMatcher(remoteData)) {
       if (onError) {
         return onError({ addr, type }, ctx);
       }
       return blockError();
     }
-    console.log("1-5");
     if (allowMatcher(remoteData)) {
-      console.log(1);
-      //console.log(ctx.req.method, ctx.req.url);
-      //console.log(ctx.req);
       const res = await ctx.next();
-      console.log("****");
-
       return res;
     }
 
-    console.log("1-6");
     if (allowLength === 0) {
-      console.log(2);
       return await ctx.next();
     } else {
-      console.log(3);
       if (onError) {
         return await onError({ addr, type }, ctx);
       }
-      console.log(5);
       return blockError();
     }
   };
