@@ -1,7 +1,6 @@
 import { App } from "../app.ts";
 import type { FreshContext } from "../context.ts";
 import { csrf } from "./csrf.ts";
-import { beforeEach, describe, it } from "@std/testing/bdd";
 import { expect } from "@std/expect";
 import { spy } from "@std/testing/mock";
 
@@ -13,14 +12,15 @@ const rawSimplePostHandler = async (ctx: FreshContext) => {
   }
 };
 
-describe("CSRF by Middleware", () => {
+Deno.test("CSRF by Middleware", async (t) => {
   let simplePostHandler = spy(rawSimplePostHandler);
 
-  beforeEach(() => {
-    simplePostHandler = spy(rawSimplePostHandler);
-  });
+  //beforeEach(() => {
+  //  console.log("Resetting simplePostHandler spy");
+  //  simplePostHandler = spy(rawSimplePostHandler);
+  //});
 
-  describe("simple usage", () => {
+  await t.step("simple usage", async (t) => {
     const app = new App();
 
     app.all("*", csrf());
@@ -33,45 +33,47 @@ describe("CSRF by Middleware", () => {
 
     const handler = app.handler();
 
-    describe("GET /form", () => {
-      it("should be 200 for any request", async () => {
-        const res = await handler(new Request("http://localhost/form"));
+    await t.step("GET /form - should be 200 for any request", async () => {
+      simplePostHandler = spy(rawSimplePostHandler);
+      const res = await handler(new Request("http://localhost/form"));
 
-        expect(res.status).toBe(200);
-        expect(await res.text()).toBe("<form></form>");
-      });
+      expect(res.status).toBe(200);
+      expect(await res.text()).toBe("<form></form>");
     });
 
-    describe("HEAD /form", () => {
-      it("should be 200 for any request", async () => {
-        const res = await handler(
-          new Request("http://localhost/form", {
-            method: "HEAD",
-          }),
-        );
+    await t.step("HEAD /form - should be 200 for any request", async () => {
+      simplePostHandler = spy(rawSimplePostHandler);
+      const res = await handler(
+        new Request("http://localhost/form", {
+          method: "HEAD",
+        }),
+      );
 
-        expect(res.status).toBe(200);
-      });
+      expect(res.status).toBe(200);
     });
 
-    describe("POST /form", () => {
-      it("should be 200 for local request", async () => {
-        const res = await handler(
-          new Request("http://localhost/form", {
-            method: "POST",
-            headers: {
-              "content-type": "application/x-www-form-urlencoded",
-              "origin": "http://localhost",
-            },
-            body: "name=fresh",
-          }),
-        );
+    await t.step("POST /form - should be 200 for local request", async () => {
+      simplePostHandler = spy(rawSimplePostHandler);
 
-        expect(res.status).toBe(200);
-        expect(await res.text()).toBe("fresh");
-      });
+      const res = await handler(
+        new Request("http://localhost/form", {
+          method: "POST",
+          headers: {
+            "content-type": "application/x-www-form-urlencoded",
+            "origin": "http://localhost",
+          },
+          body: "name=fresh",
+        }),
+      );
 
-      it('should be 403 for "application/x-www-form-urlencoded" cross origin', async () => {
+      expect(res.status).toBe(200);
+      expect(await res.text()).toBe("fresh");
+    });
+
+    await t.step(
+      'should be 403 for "application/x-www-form-urlencoded" cross origin',
+      async () => {
+        simplePostHandler = spy(rawSimplePostHandler);
         const res = await handler(
           new Request("http://localhost/form", {
             method: "POST",
@@ -85,8 +87,12 @@ describe("CSRF by Middleware", () => {
 
         expect(res.status).toBe(403);
         expect(simplePostHandler.calls.length).toBe(0);
-      });
-      it('should be 403 for "multipart/form-data" cross origin', async () => {
+      },
+    );
+    await t.step(
+      'should be 403 for "multipart/form-data" cross origin',
+      async () => {
+        simplePostHandler = spy(rawSimplePostHandler);
         const res = await handler(
           new Request("http://localhost/form", {
             method: "POST",
@@ -100,25 +106,30 @@ describe("CSRF by Middleware", () => {
 
         expect(res.status).toBe(403);
         expect(simplePostHandler.calls.length).toBe(0);
-      });
+      },
+    );
 
-      it('should be 403 for "text/plain" cross origin', async () => {
-        const res = await handler(
-          new Request("http://localhost/form", {
-            method: "POST",
-            headers: {
-              "content-type": "text/plain",
-              "origin": "http://example.com",
-            },
-            body: "name=fresh",
-          }),
-        );
+    await t.step('should be 403 for "text/plain" cross origin', async () => {
+      simplePostHandler = spy(rawSimplePostHandler);
+      const res = await handler(
+        new Request("http://localhost/form", {
+          method: "POST",
+          headers: {
+            "content-type": "text/plain",
+            "origin": "http://example.com",
+          },
+          body: "name=fresh",
+        }),
+      );
 
-        expect(res.status).toBe(403);
-        expect(simplePostHandler.calls.length).toBe(0);
-      });
+      expect(res.status).toBe(403);
+      expect(simplePostHandler.calls.length).toBe(0);
+    });
 
-      it("should be 403 if request has no origin header", async () => {
+    await t.step(
+      "should be 403 if request has no origin header",
+      async () => {
+        simplePostHandler = spy(rawSimplePostHandler);
         const res = await handler(
           new Request("http://localhost/form", {
             method: "POST",
@@ -131,25 +142,29 @@ describe("CSRF by Middleware", () => {
 
         expect(res.status).toBe(403);
         expect(simplePostHandler.calls.length).toBe(0);
-      });
+      },
+    );
 
-      it("should be 200 for application/json", async () => {
-        const res = await handler(
-          new Request("http://localhost/form", {
-            method: "POST",
-            headers: {
-              "content-type": "application/json",
-              origin: "http://example.com",
-            },
-            body: JSON.stringify({ name: "fresh" }),
-          }),
-        );
+    await t.step("should be 200 for application/json", async () => {
+      const res = await handler(
+        new Request("http://localhost/form", {
+          method: "POST",
+          headers: {
+            "content-type": "application/json",
+            origin: "http://example.com",
+          },
+          body: JSON.stringify({ name: "fresh" }),
+        }),
+      );
 
-        expect(res.status).toBe(200);
-        expect(await res.text()).toBe("fresh");
-      });
+      expect(res.status).toBe(200);
+      expect(await res.text()).toBe("fresh");
+    });
 
-      it('should be 403 for "Application/x-www-form-urlencoded" cross origin', async () => {
+    await t.step(
+      'should be 403 for "Application/x-www-form-urlencoded" cross origin',
+      async () => {
+        simplePostHandler = spy(rawSimplePostHandler);
         const res = await handler(
           new Request("http://localhost/form", {
             method: "POST",
@@ -161,23 +176,24 @@ describe("CSRF by Middleware", () => {
         );
         expect(res.status).toBe(403);
         expect(simplePostHandler.calls.length).toBe(0);
-      });
+      },
+    );
 
-      it("should be 403 if the content-type is not set", async () => {
-        const res = await handler(
-          new Request("http://localhost/form", {
-            method: "POST",
-            body: new Blob(["test"], {}),
-          }),
-        );
-        expect(res.status).toBe(403);
-        expect(simplePostHandler.calls.length).toBe(0);
-      });
+    await t.step("should be 403 if the content-type is not set", async () => {
+      simplePostHandler = spy(rawSimplePostHandler);
+      const res = await handler(
+        new Request("http://localhost/form", {
+          method: "POST",
+          body: new Blob(["test"], {}),
+        }),
+      );
+      expect(res.status).toBe(403);
+      expect(simplePostHandler.calls.length).toBe(0);
     });
   });
 
-  describe("with origin option", () => {
-    describe("string", () => {
+  await t.step("with origin option", async (t) => {
+    await t.step("string", async (t) => {
       const app = new App();
 
       app.all(
@@ -190,7 +206,7 @@ describe("CSRF by Middleware", () => {
 
       const handler = app.handler();
 
-      it("should be 200 for allowed origin", async () => {
+      await t.step("should be 200 for allowed origin", async () => {
         const res = await handler(
           new Request("https://example.com/form", {
             method: "POST",
@@ -204,7 +220,8 @@ describe("CSRF by Middleware", () => {
         expect(res.status).toBe(200);
       });
 
-      it("should be 403 for not allowed origin", async () => {
+      await t.step("should be 403 for not allowed origin", async () => {
+        simplePostHandler = spy(rawSimplePostHandler);
         const res = await handler(
           new Request("https://example.jp/form", {
             method: "POST",
@@ -220,7 +237,7 @@ describe("CSRF by Middleware", () => {
       });
     });
 
-    describe("string[]", () => {
+    await t.step("string[]", async (t) => {
       const app = new App();
 
       app.all(
@@ -233,7 +250,7 @@ describe("CSRF by Middleware", () => {
 
       const handler = app.handler();
 
-      it("should be 200 for allowed origin", async () => {
+      await t.step("should be 200 for allowed origin", async () => {
         let res = await handler(
           new Request("https://fresh.example.com/form", {
             method: "POST",
@@ -259,7 +276,8 @@ describe("CSRF by Middleware", () => {
         expect(res.status).toBe(200);
       });
 
-      it("should be 403 for not allowed origin", async () => {
+      await t.step("should be 403 for not allowed origin", async () => {
+        simplePostHandler = spy(rawSimplePostHandler);
         const res = await handler(
           new Request("http://example.jp/form", {
             method: "POST",
@@ -275,7 +293,7 @@ describe("CSRF by Middleware", () => {
       });
     });
 
-    describe("IsAllowedOriginHandler", () => {
+    await t.step("IsAllowedOriginHandler", async (t) => {
       const app = new App();
 
       app.all(
@@ -287,7 +305,7 @@ describe("CSRF by Middleware", () => {
       app.post("/form", simplePostHandler);
 
       const handler = app.handler();
-      it("should be 200 for allowed origin", async () => {
+      await t.step("should be 200 for allowed origin", async () => {
         let res = await handler(
           new Request("https://fresh.example.com/form", {
             method: "POST",
@@ -312,7 +330,8 @@ describe("CSRF by Middleware", () => {
         expect(res.status).toBe(200);
       });
 
-      it("should be 403 for not allowed origin", async () => {
+      await t.step("should be 403 for not allowed origin", async () => {
+        simplePostHandler = spy(rawSimplePostHandler);
         let res = await handler(
           new Request("http://deno.fresh.example.jp/form", {
             method: "POST",
