@@ -1,4 +1,5 @@
 import type { FreshContext } from "../context.ts";
+import { HttpError } from "../error.ts";
 
 /**
  * Determines whether a given origin is allowed for CSRF protection.
@@ -104,11 +105,9 @@ export function csrf(
       ) &&
       !isAllowedOrigin(ctx.req.headers.get("origin"), ctx)
     ) {
-      return new Response(
-        "Forbidden: CSRF protection failed. The request is not allowed from this origin.",
-        {
-          status: 403,
-        },
+      throw new HttpError(
+        403,
+        "CSRF protection failed. The request is not allowed from this origin.",
       );
     }
 
