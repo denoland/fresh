@@ -45,14 +45,15 @@ function isRequestedByFormElement(contentType: string): boolean {
  * @param options Options for the CSRF protection middleware.
  * @returns The middleware handler function.
  *
- * @example
+ * @example Specifying origins with using `origin` option: default
  * ```ts
  * const app = new App<State>()
  *
  * app.use(csrf())
+ * ```
  *
- * // Specifying origins with using `origin` option
- * // string
+ * @example Specifying origins with using `origin` option: string
+ * ```ts
  * app.use(csrf({ origin: 'https://myapp.example.com' }))
  *
  * // string[]
@@ -61,10 +62,13 @@ function isRequestedByFormElement(contentType: string): boolean {
  *     origin: ['https://myapp.example.com', 'http://development.myapp.example.com'],
  *   })
  * )
+ * ```
  *
- * // Function
- * // It is strongly recommended that the protocol be verified to ensure a match to `$`.
- * // You should *never* do a forward match.
+ * @example Specifying origins with using `origin` option: function
+ * It is strongly recommended that the protocol be verified to ensure a match to `$`.
+ * You should *never* do a forward match.
+ *
+ * ```ts
  * app.use(
  *   '*',
  *   csrf({
