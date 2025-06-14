@@ -1916,7 +1916,7 @@
       "jsr:@fresh/plugin-tailwind@^0.0.1-alpha.7",
       "jsr:@luca/esbuild-deno-loader@0.11",
       "jsr:@marvinh-test/fresh-island@^0.0.1",
-      "jsr:@std/assert@^1.0.16",
+      "jsr:@std/assert@^1.0.13",
       "jsr:@std/async@^1.0.13",
       "jsr:@std/cli@^1.0.19",
       "jsr:@std/collections@^1.0.11",
