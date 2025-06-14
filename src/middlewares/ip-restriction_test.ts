@@ -1,8 +1,8 @@
 import { App } from "../app.ts";
 import type { FreshContext } from "../context.ts";
 import {
-  AddressType,
-  ConnInfo,
+  type AddressType,
+  type ConnInfo,
   convertIPv4BinaryToString,
   convertIPv4ToBinary,
   convertIPv6BinaryToString,
@@ -10,13 +10,11 @@ import {
   distinctRemoteAddr,
   expandIPv6,
   ipRestriction,
-  IPRestrictionRule,
-  NetAddrInfo,
+  type IPRestrictionRule,
 } from "./ip-restriction.ts";
 
 import { beforeEach, describe, it } from "@std/testing/bdd";
 import { expect } from "@std/expect";
-import { spy } from "@std/testing/mock";
 
 describe("expandIPv6", () => {
   it("Should result be valid", () => {
@@ -103,23 +101,7 @@ describe("convertIPv6ToString", () => {
     .toBe("::ffff:127.0.0.1");
 });
 
-//
-//import { Context } from '../../context'
-//import type { AddressType, GetConnInfo } from '../../helper/conninfo'
-//import { Hono } from '../../hono'
-//import { ipRestriction } from '.'
-//import type { IPRestrictionRule } from '.'
-//import { handler } from './../../www/routes/thanks';
-
 describe("ipRestriction middleware", () => {
-  //const getConnInfo: GetConnInfo = (c) => {
-  //  return {
-  //    remote: {
-  //      address: c.env.ip,
-  //    },
-  //  };
-  //};
-
   const app = new App();
 
   let hostname = "hogehoge";
@@ -132,7 +114,6 @@ describe("ipRestriction middleware", () => {
     _ctx: FreshContext,
     distinctRemoteAddr: (addr: string) => AddressType | undefined,
   ): ConnInfo | never {
-    console.log("dummyGetIp called with hostname:", hostname);
     return {
       remote: {
         transport: "tcp",
@@ -154,7 +135,6 @@ describe("ipRestriction middleware", () => {
     ),
   );
   app.get("/basic/", () => {
-    console.log("Basic route accessed");
     return new Response("Hello World!");
   });
 
@@ -171,74 +151,42 @@ describe("ipRestriction middleware", () => {
   beforeEach(() => {
     setDummyHostName("hoge");
   });
-
-  //expect((await handler("/basic", {}, { ip: "0.0.0.0" })).status).toBe(
-  //  403,
-  //);
-
-  //  it("Should restrict", async () => {
   it("GET /basic with! 0.0.0.0", async () => {
     setDummyHostName("0.0.0.0");
     const res = await handler(new Request("http://localhost/basic/"));
     expect(res.status).toBe(403);
   });
-  //
-  //    expect((await app.request("/basic", {}, { ip: "192.168.1.0" })).status)
-  //      .toBe(200);
-  //
   it("GET /basic with! 192.168.1.0", async () => {
     setDummyHostName("192.168.1.0");
     const res = await handler(new Request("http://localhost/basic/"));
     expect(res.status).toBe(200);
   });
 
-  //    expect((await app.request("/basic", {}, { ip: "192.168.2.5" })).status)
-  //      .toBe(200);
   it("GET /basic with! 192.168.2.5", async () => {
     setDummyHostName("192.168.2.5");
     const res = await handler(new Request("http://localhost/basic/"));
     expect(res.status).toBe(200);
   });
-
-  //    expect((await app.request("/basic", {}, { ip: "192.168.2.10" })).status)
-  //      .toBe(403);
   it("GET /basic with! 192.168.2.10", async () => {
     setDummyHostName("192.168.2.10");
     const res = await handler(new Request("http://localhost/basic/"));
     expect(res.status).toBe(403);
   });
-
-  //    expect((await app.request("/allow-empty", {}, { ip: "0.0.0.0" })).status)
-  //      .toBe(200);
-  //
   it("GET /basic with! 0.0.0.0", async () => {
     setDummyHostName("0.0.0.0");
     const res = await handler(new Request("http://localhost/allow-empty/"));
     expect(res.status).toBe(200);
   });
-
-  //    expect(
-  //      (await app.request("/allow-empty", {}, { ip: "192.168.1.0" })).status,
-  //    ).toBe(403);
-  //
   it("GET /basic with! 192.168.1.0", async () => {
     setDummyHostName("192.168.1.0");
     const res = await handler(new Request("http://localhost/allow-empty/"));
     expect(res.status).toBe(403);
   });
-
-  //    expect(
-  //      (await app.request("/allow-empty", {}, { ip: "192.168.2.5" })).status,
-  //    ).toBe(200);
   it("GET /basic with! 192.168.2.5", async () => {
     setDummyHostName("192.168.2.5");
     const res = await handler(new Request("http://localhost/allow-empty/"));
     expect(res.status).toBe(200);
   });
-
-  //    expect(
-  //      (await app.request("/allow-empty", {}, { ip: "192.168.2.10" })).status,
-  //    ).toBe(200);
   it("GET /basic with! 192.168.2.10", async () => {
     setDummyHostName("192.168.2.10");
     const res = await handler(new Request("http://localhost/allow-empty/"));
@@ -255,7 +203,6 @@ describe("isMatchForRule", () => {
     _ctx: FreshContext,
     distinctRemoteAddr: (addr: string) => AddressType | undefined,
   ): ConnInfo | never {
-    console.log("dummyGetIp called with hostname:", hostname);
     return {
       remote: {
         transport: "tcp",
