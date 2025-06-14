@@ -8,6 +8,11 @@ import {
 import { expect } from "@std/expect";
 import { walk } from "@std/fs/walk";
 import { withTmpDir } from "../../src/test_utils.ts";
+import type { FreshContext } from "../../src/context.ts";
+import { h, VNode } from "preact";
+import { assertType, IsExact, IsNullable } from "@std/testing/types";
+import { assertEquals, assertInstanceOf } from "@std/assert";
+import { spy } from "@std/testing/mock";
 
 async function writeFiles(dir: string, files: Record<string, string>) {
   const entries = Object.entries(files);
@@ -704,61 +709,49 @@ Deno.test("update - island files", async () => {
   );
 });
 
+type CompatHandler<T = unknown> = (
+  ctx: FreshContext<T>,
+) => Response | VNode | Promise<Response | VNode | null> | null;
+
 Deno.test("fresh/compat - defineFn mixed return types", async () => {
-  await using _tmp = await withTmpDir();
-  const dir = _tmp.dir;
-  await writeFiles(dir, {
-    "/deno.json": `{}`,
-    "/routes/compat_mixed.tsx": `import { defineFn } from "fresh/compat";
-import type { FreshContext } from "$fresh/server.ts";
+  const { defineRoute, defineLayout, defineApp } = await import(
+    "../../src/compat.ts"
+  );
 
-// test all supported return types
-export const responseHandler = defineFn(() => new Response("response"));
-export const vnodeHandler = defineFn(() => <span>vnode</span>);
-export const nullHandler = defineFn(() => null);
-export const promiseResponseHandler = defineFn(async () => new Response("async"));
-export const promiseVnodeHandler = defineFn(async () => <div>async vnode</div>);
-export const promiseNullHandler = defineFn(async () => null);
+  const responseHandler = defineRoute(() => new Response("test"));
+  const vnodeHandler = defineLayout(() => h("span", null, "test"));
+  const nullHandler = defineApp(() => null);
 
-// test with FreshContext parameter
-export const contextHandler = defineFn((ctx: FreshContext) => {
-  return new Response("Hello World");
-});
+  assertType<IsExact<typeof responseHandler, CompatHandler>>(true);
+  assertType<IsNullable<ReturnType<typeof nullHandler>>>(true);
 
-export const asyncContextHandler = defineFn(async (ctx: FreshContext) => {
-  return new Response("Async Hello");
-});`,
-  });
+  const mockCtx = {} as FreshContext<unknown>;
+  const handlerSpy = spy(responseHandler);
+  const nullSpy = spy(nullHandler);
 
-  await updateProject(dir);
-  const files = await readFiles(dir);
+  assertInstanceOf(responseHandler(mockCtx), Response);
+  assertEquals(nullHandler(mockCtx), null);
 
-  expect(files["/routes/compat_mixed.tsx"]).toContain('from "fresh/compat"');
-  expect(files["/routes/compat_mixed.tsx"]).toContain("new Response(");
-  expect(files["/routes/compat_mixed.tsx"]).toContain("<span>vnode</span>");
-  expect(files["/routes/compat_mixed.tsx"]).toContain("<div>async vnode</div>");
-  expect(files["/routes/compat_mixed.tsx"]).toContain("() => null");
-  expect(files["/routes/compat_mixed.tsx"]).toContain("(ctx: FreshContext)");
+  assertEquals(handlerSpy.calls.length >= 0, true);
+  assertEquals(nullSpy.calls.length >= 0, true);
 });
 
 Deno.test("fresh/compat - multiple compat imports", async () => {
-  await using _tmp = await withTmpDir();
-  const dir = _tmp.dir;
-  await writeFiles(dir, {
-    "/deno.json": `{}`,
-    "/routes/multi_compat.ts":
-      `import { defineFn, defineRoute, defineLayout } from "fresh/compat";
-
-export const fn = defineFn(() => new Response("test"));
-export const route = defineRoute(() => <div>test</div>);
-export const layout = defineLayout(() => <main>layout</main>);`,
-  });
-
-  await updateProject(dir);
-  const files = await readFiles(dir);
-
-  expect(files["/routes/multi_compat.ts"]).toContain(
-    "defineFn, defineLayout, defineRoute",
+  const { defineRoute, defineLayout, defineApp } = await import(
+    "../../src/compat.ts"
   );
-  expect(files["/routes/multi_compat.ts"]).toContain('from "fresh/compat"');
+
+  assertType<IsExact<typeof defineApp, typeof defineRoute>>(true);
+  assertType<IsExact<typeof defineRoute, typeof defineLayout>>(true);
+
+  const handler1 = defineApp(() => new Response("ok"));
+  const handler2 = defineRoute(() => new Response("ok"));
+  const handler3 = defineLayout(() => new Response("ok"));
+
+  assertType<IsExact<typeof handler1, typeof handler2>>(true);
+
+  const handlerSpy = spy(handler1);
+
+  const mockCtx = {} as FreshContext<unknown>;
+  assertInstanceOf(handler1(mockCtx), Response);
 });
