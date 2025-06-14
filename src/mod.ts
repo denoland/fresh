@@ -18,6 +18,7 @@ export {
   type ConnInfo,
   ipRestriction,
   type IPRestrictionRule,
+  type IPRestrictionRules,
 } from "./middlewares/ip_restriction.ts";
 export type { FreshConfig, ResolvedFreshConfig } from "./config.ts";
 export type { FreshContext, Island, PageProps } from "./context.ts";
