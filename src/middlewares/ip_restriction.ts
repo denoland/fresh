@@ -62,8 +62,10 @@ export const expandIPv6 = (ipV6: string): string => {
 const IPV4_REGEX = /^[0-9]{0,3}\.[0-9]{0,3}\.[0-9]{0,3}\.[0-9]{0,3}$/;
 
 /**
- * Distinct Remote Addr
- * @param remoteAddr Remote Addr
+ * Returns the address type ("IPv4" or "IPv6") for a given remote address string.
+ *
+ * @param remoteAddr - The remote address as a string.
+ * @returns The address type ("IPv4" | "IPv6") or undefined if not recognized.
  */
 export const distinctRemoteAddr = (
   remoteAddr: string,
@@ -77,9 +79,10 @@ export const distinctRemoteAddr = (
 };
 
 /**
- * Convert IPv4 to Uint8Array
- * @param ipv4 IPv4 Address
- * @returns BigInt
+ * Converts an IPv4 address string to a bigint binary representation.
+ *
+ * @param ipv4 - The IPv4 address as a string (e.g., "192.168.0.1").
+ * @returns The IPv4 address as a bigint.
  */
 export const convertIPv4ToBinary = (ipv4: string): bigint => {
   const parts = ipv4.split(".");
@@ -92,9 +95,10 @@ export const convertIPv4ToBinary = (ipv4: string): bigint => {
 };
 
 /**
- * Convert IPv6 to Uint8Array
- * @param ipv6 IPv6 Address
- * @returns BigInt
+ * Converts an IPv6 address string to a bigint binary representation.
+ *
+ * @param ipv6 - The IPv6 address as a string (e.g., "2001:db8::1").
+ * @returns The IPv6 address as a bigint.
  */
 export const convertIPv6ToBinary = (ipv6: string): bigint => {
   const sections = expandIPv6(ipv6).split(":");
@@ -107,9 +111,10 @@ export const convertIPv6ToBinary = (ipv6: string): bigint => {
 };
 
 /**
- * Convert a binary representation of an IPv4 address to a string.
- * @param ipV4 binary IPv4 Address
- * @return IPv4 Address in string
+ * Converts a binary representation of an IPv4 address to its string form.
+ *
+ * @param ipV4 - The IPv4 address as a bigint.
+ * @returns The IPv4 address as a string (e.g., "192.168.0.1").
  */
 export const convertIPv4BinaryToString = (ipV4: bigint): string => {
   const sections = [];
@@ -120,9 +125,10 @@ export const convertIPv4BinaryToString = (ipV4: bigint): string => {
 };
 
 /**
- * Convert a binary representation of an IPv6 address to a string.
- * @param ipV6 binary IPv6 Address
- * @return normalized IPv6 Address in string
+ * Converts a binary representation of an IPv6 address to its normalized string form.
+ *
+ * @param ipV6 - The IPv6 address as a bigint.
+ * @returns The normalized IPv6 address as a string (e.g., "2001:db8::1").
  */
 export const convertIPv6BinaryToString = (ipV6: bigint): string => {
   // IPv6-mapped IPv4 address
@@ -178,10 +184,19 @@ export const convertIPv6BinaryToString = (ipV6: bigint): string => {
  * - `::1` static
  * - `::1/10` CIDR Notation
  */
+/**
+ * Type for a function that matches an IP restriction rule.
+ *
+ * @param addr - The address and its type to check.
+ * @returns True if the rule matches, false otherwise.
+ */
 type IPRestrictionRuleFunction = (
   addr: { addr: string; type: AddressType },
 ) => boolean;
 
+/**
+ * IP restriction rule, which can be a string or a function.
+ */
 export type IPRestrictionRule =
   | string
   | ((addr: { addr: string; type: AddressType }) => boolean);
@@ -271,7 +286,10 @@ const buildMatcher = (
 };
 
 /**
- * Rules for IP Restriction Middleware
+ * Interface for configuring IP restriction middleware rules.
+ *
+ * @property denyList - List of rules to explicitly deny.
+ * @property allowList - List of rules to explicitly allow.
  */
 export interface IPRestrictionRules {
   denyList?: IPRestrictionRule[];
@@ -287,6 +305,14 @@ function blockError(): Response {
   });
 }
 
+/**
+ * Retrieves connection information from the Fresh context.
+ *
+ * @param ctx - The Fresh context object.
+ * @param distinctRemoteAddr - Function to determine the address type.
+ * @returns The connection information.
+ * @throws {TypeError} If the transport protocol is not TCP.
+ */
 export function getIP(
   ctx: FreshContext,
   distinctRemoteAddr: (addr: string) => AddressType | undefined,
@@ -309,6 +335,14 @@ export function getIP(
   };
 }
 
+/**
+ * IP restriction middleware for Fresh.
+ *
+ * @param getIP - Function to extract connection info from the context.
+ * @param rules - IP restriction rules (allow/deny lists).
+ * @param onError - Optional error handler for denied requests.
+ * @returns Middleware function for IP restriction.
+ */
 export function ipRestriction<T>(
   getIP: (
     ctx: FreshContext,
