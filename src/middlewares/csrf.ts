@@ -76,25 +76,26 @@ function isRequestedByFormElement(contentType: string): boolean {
 export function csrf(
   options?: CsrfOptions,
 ): (ctx: FreshContext) => Promise<Response> {
-  const handler: IsAllowedOriginHandler = ((optsOrigin) => {
-    if (!optsOrigin) {
-      return (origin, ctx) => origin === new URL(ctx.req.url).origin;
-    } else if (typeof optsOrigin === "string") {
-      return (origin) => origin === optsOrigin;
-    } else if (typeof optsOrigin === "function") {
-      return optsOrigin;
-    } else {
-      return (origin) => optsOrigin.includes(origin);
-    }
-  })(options?.origin);
   const isAllowedOrigin = (
     origin: string | undefined | null,
     ctx: FreshContext,
   ) => {
-    if (origin === undefined || origin === null) {
+    if (!origin) {
       return false;
     }
-    return handler(origin, ctx);
+
+    const optsOrigin = options?.origin;
+
+    if (!optsOrigin) {
+      return origin === ctx.url.origin;
+    }
+    if (typeof optsOrigin === "string") {
+      return origin === optsOrigin;
+    }
+    if (typeof optsOrigin === "function") {
+      return optsOrigin(origin, ctx);
+    }
+    return Array.isArray(optsOrigin) && optsOrigin.includes(origin);
   };
 
   return async (ctx: FreshContext): Promise<Response> => {
