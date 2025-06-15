@@ -41,7 +41,9 @@
     "exclude": ["**/*_test.*", "src/__OLD/**", "*.todo"]
   },
   "imports": {
+    "@deno/doc": "jsr:@deno/doc@^0.172.0",
     "@std/cli": "jsr:@std/cli@^1.0.19",
+    "@std/collections": "jsr:@std/collections@^1.0.11",
     "@std/http": "jsr:@std/http@^1.0.15",
     "@std/uuid": "jsr:@std/uuid@^1.0.7",
     "fresh": "jsr:@fresh/core@^2.0.0-alpha.29",

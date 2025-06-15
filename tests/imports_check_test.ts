@@ -1,12 +1,17 @@
 import { walk } from "jsr:@std/fs";
 import config from "../deno.json" with { type: "json" };
-import { dim, green, red } from "@std/fmt/colors";
+import { dim, green, red, yellow } from "@std/fmt/colors";
 import { assert } from "@std/assert";
 import { relative } from "@std/path";
 
 Deno.test("unused imports check", async () => {
   const imports = config.imports;
   const unusedImports = [];
+
+  const INDIRECT_DEPENDENCIES = [
+    "@std/collections", // Used by remote std/_tools/check_docs.ts
+    "@deno/doc", // Used by remote std/_tools/check_docs.ts
+  ];
 
   let allContent = "";
   let fileCount = 0;
@@ -40,7 +45,6 @@ Deno.test("unused imports check", async () => {
 
   for (const [key, value] of Object.entries(imports)) {
     const patterns = [
-      `"${key}"`,
       `"${key}/`,
       `from "${key}"`,
       `import("${key}")`,
@@ -49,9 +53,14 @@ Deno.test("unused imports check", async () => {
     const isUsed = patterns.some((pattern) => allContent.includes(pattern));
 
     if (!isUsed) {
-      // deno-lint-ignore no-console
-      console.log(red(`Unused:`), `${key} -> ${value}`);
-      unusedImports.push(key);
+      if (INDIRECT_DEPENDENCIES.includes(key)) {
+        // deno-lint-ignore no-console
+        console.log(yellow(`Indirect (tool dependency):`), `${key}`);
+      } else {
+        // deno-lint-ignore no-console
+        console.log(red(`Unused:`), `${key} -> ${value}`);
+        unusedImports.push(key);
+      }
     } else {
       // deno-lint-ignore no-console
       console.log(green(`Used:`), `${key}`);
