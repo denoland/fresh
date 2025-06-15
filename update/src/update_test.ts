@@ -8,6 +8,10 @@ import {
 import { expect } from "@std/expect";
 import { walk } from "@std/fs/walk";
 import { withTmpDir } from "../../src/test_utils.ts";
+import type { FreshContext } from "../../src/context.ts";
+import { h, type VNode } from "preact";
+import { assertType, type IsExact } from "@std/testing/types";
+import { assertEquals, assertInstanceOf } from "@std/assert";
 
 async function writeFiles(dir: string, files: Record<string, string>) {
   const entries = Object.entries(files);
@@ -702,4 +706,38 @@ Deno.test("update - island files", async () => {
   expect(files["/islands/foo.tsx"]).toEqual(
     `import { IS_BROWSER } from "fresh/runtime";`,
   );
+});
+
+type CompatHandler<T = unknown> = (
+  ctx: FreshContext<T>,
+) => Response | VNode | Promise<Response | VNode | null> | null;
+
+Deno.test("compat - defineFn works", async () => {
+  const { defineRoute, defineLayout, defineApp } = await import(
+    "../../src/compat.ts"
+  );
+
+  const handlers = {
+    response: defineRoute(() => new Response("test")),
+    vnode: defineLayout(() => h("span", null, "test")),
+    null: defineApp(() => null),
+  };
+
+  assertType<IsExact<typeof handlers.response, CompatHandler>>(true);
+
+  const ctx = {} as FreshContext<unknown>;
+  assertInstanceOf(handlers.response(ctx), Response);
+  assertEquals(handlers.null(ctx), null);
+});
+
+Deno.test("compat - functions equivalent", async () => {
+  const { defineRoute, defineLayout, defineApp } = await import(
+    "../../src/compat.ts"
+  );
+
+  assertType<IsExact<typeof defineApp, typeof defineRoute>>(true);
+  assertType<IsExact<typeof defineRoute, typeof defineLayout>>(true);
+
+  const handler = defineApp(() => new Response("ok"));
+  assertInstanceOf(handler({} as FreshContext<unknown>), Response);
 });
