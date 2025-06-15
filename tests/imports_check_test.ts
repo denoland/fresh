@@ -55,7 +55,7 @@ Deno.test("unused imports check", async () => {
     if (!isUsed) {
       if (INDIRECT_DEPENDENCIES.includes(key)) {
         // deno-lint-ignore no-console
-        console.log(yellow(`Indirect (tool dependency):`), `${key}`);
+        console.log(yellow(`Indirect:`), `${key}`);
       } else {
         // deno-lint-ignore no-console
         console.log(red(`Unused:`), `${key} -> ${value}`);
