@@ -3,7 +3,7 @@ import { launch, type Page } from "@astral/astral";
 import * as colors from "@std/fmt/colors";
 import { DOMParser, HTMLElement } from "linkedom";
 import { Builder } from "../src/dev/builder.ts";
-import { TextLineStream } from "@std/streams/text-line-stream";
+import { TextLineStream } from "@std/streams";
 import * as path from "@std/path";
 import type { ComponentChildren } from "preact";
 import { expect } from "@std/expect";
