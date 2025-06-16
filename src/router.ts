@@ -83,40 +83,21 @@ export class UrlPatternRouter<T> implements Router<T> {
       pattern: null,
     };
 
-    //if (this._middlewares.length > 0) {
-    //  result.handlers.push(this._middlewares);
-    //}
-
-    console.log(
-      `Matching ${method} ${url.pathname} against ${this._routes.length} routes`,
-    );
-    console.log(this._middlewares.length, this._middlewares);
     for (let i = 0; i < this._middlewares.length; i++) {
       const middleware = this._middlewares[i];
 
-      // Fast path for string based routes which are expected
-      // to be either wildcard `*` match or an exact pathname match.
       if (
         typeof middleware.path === "string" &&
         (middleware.path === "/*" || middleware.path === url.pathname)
       ) {
-        console.log("1");
-        console.log(middleware.handlers);
         result.handlers.push(middleware.handlers);
-        console.log(middleware.handlers);
       } else if (middleware.path instanceof URLPattern) {
-        console.log("2");
         const match = middleware.path.exec(url);
         if (match !== null) {
           result.handlers.push(middleware.handlers);
         }
       }
-      console.log("3");
     }
-    console.log(result.handlers);
-    console.log(
-      `Matched ${result.handlers.length} middleware handlers for ${method} ${url.pathname}`,
-    );
 
     for (let i = 0; i < this._routes.length; i++) {
       const route = this._routes[i];
@@ -131,9 +112,7 @@ export class UrlPatternRouter<T> implements Router<T> {
         result.pattern = route.path;
 
         if (route.method === "ALL" || route.method === method) {
-          console.log(result.handlers);
           result.handlers.push(route.handlers);
-          console.log(result.handlers);
 
           if (route.path === "/*" && route.method === "ALL") {
             continue;
@@ -150,11 +129,8 @@ export class UrlPatternRouter<T> implements Router<T> {
           result.pattern = route.path.pathname;
 
           if (route.method === "ALL" || route.method === method) {
-            console.log(result.handlers);
             result.handlers.push(route.handlers);
-            console.log(result.handlers);
 
-            // Decode matched params
             for (const [key, value] of Object.entries(match.pathname.groups)) {
               result.params[key] = value === undefined ? "" : decodeURI(value);
             }
