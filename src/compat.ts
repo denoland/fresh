@@ -1,4 +1,3 @@
-// deno-lint-ignore-file no-explicit-any
 import type { ComponentChildren } from "preact";
 import type { FreshContext } from "./context.ts";
 import type { HandlerFn, RouteHandler } from "./handlers.ts";
@@ -29,6 +28,7 @@ export type RouteContext<_T = never, S = Record<string, unknown>> =
 /**
  * @deprecated Use {@linkcode RouteHandler} instead.
  */
+// deno-lint-ignore no-explicit-any
 export type Handlers<T = any, State = Record<string, unknown>> = RouteHandler<
   T,
   State
@@ -37,6 +37,7 @@ export type Handlers<T = any, State = Record<string, unknown>> = RouteHandler<
 /**
  * @deprecated Use {@linkcode HandlerFn} instead.
  */
+// deno-lint-ignore no-explicit-any
 export type Handler<T = any, State = Record<string, unknown>> = HandlerFn<
   T,
   State
