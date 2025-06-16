@@ -49,6 +49,30 @@ Deno.test("UrlPatternRouter - GET get matches with middlewares", () => {
   });
 });
 
+Deno.test("UrlPatternRouter - GET get matches with middlewares A", () => {
+  const router = new UrlPatternRouter();
+  const A = () => {};
+  const B = () => {};
+  const C = () => {};
+  const D = () => {};
+  router.addMiddleware("/", D);
+  router.add("ALL", "/*", [A]);
+  router.add("ALL", "/*", [B]);
+  router.add("GET", "/", [C]);
+
+  const res = router.match("GET", new URL("/", "http://localhost"));
+
+  console.log(res);
+
+  expect(res).toEqual({
+    params: {},
+    handlers: [[D], [A], [B], [C]],
+    methodMatch: true,
+    pattern: "/",
+    patternMatch: true,
+  });
+});
+
 Deno.test("UrlPatternRouter - GET extract params", () => {
   const router = new UrlPatternRouter();
   const A = () => {};

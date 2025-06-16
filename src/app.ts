@@ -172,8 +172,8 @@ export class App<State> {
     return this;
   }
 
-  use(middleware: MiddlewareFn<State>): this {
-    this.#router.addMiddleware(middleware);
+  use(path: string, middleware: MiddlewareFn<State>): this {
+    this.#router.addMiddleware(path, middleware);
     return this;
   }
 
@@ -212,7 +212,10 @@ export class App<State> {
     // - `app.mountApp("/*", otherApp)`
     const isSelf = path === "/*" || path === "/";
     if (isSelf && middlewares.length > 0) {
-      this.#router._middlewares.push(...middlewares);
+      // Add each middleware individually to maintain the structure
+      for (const middleware of middlewares) {
+        this.#router._middlewares.push(middleware);
+      }
     }
 
     for (let i = 0; i < routes.length; i++) {
@@ -221,10 +224,21 @@ export class App<State> {
       const merged = typeof route.path === "string"
         ? mergePaths(path, route.path)
         : route.path;
-      const combined = isSelf
-        ? route.handlers
-        : middlewares.concat(route.handlers);
-      this.#router.add(route.method, merged, combined);
+      
+      // Handle the middleware combination correctly
+      let handlers = route.handlers;
+      if (!isSelf) {
+        // Instead of trying to concat middleware routes directly, extract the handlers
+        // from each middleware and concat those to the route handlers
+        const middlewareHandlers: MiddlewareFn<State>[] = [];
+        for (const middleware of middlewares) {
+          middlewareHandlers.push(...middleware.handlers);
+        }
+        // Create a new array by spreading both arrays instead of using concat
+        handlers = [...middlewareHandlers, ...route.handlers];
+      }
+      
+      this.#router.add(route.method, merged, handlers);
     }
 
     return this;
