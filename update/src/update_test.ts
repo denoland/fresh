@@ -8,13 +8,6 @@ import {
 import { expect } from "@std/expect";
 import { walk } from "@std/fs/walk";
 import { withTmpDir } from "../../src/test_utils.ts";
-import type { FreshContext } from "../../src/context.ts";
-import { assertType, type IsExact } from "@std/testing/types";
-import {
-  type defineApp,
-  type defineLayout,
-  defineRoute,
-} from "../../src/compat.ts";
 
 async function writeFiles(dir: string, files: Record<string, string>) {
   const entries = Object.entries(files);
@@ -709,16 +702,4 @@ Deno.test("update - island files", async () => {
   expect(files["/islands/foo.tsx"]).toEqual(
     `import { IS_BROWSER } from "fresh/runtime";`,
   );
-});
-
-Deno.test("compat - defineFn works", () => {
-  const ctx = {} as FreshContext<unknown>;
-  expect(defineRoute(() => new Response("test"))(ctx)).toBeInstanceOf(Response);
-  expect(defineRoute(() => <span>test</span>)(ctx)).toBeInstanceOf(Object);
-  expect(defineRoute(() => null)(ctx)).toEqual(null);
-});
-
-Deno.test("compat - functions equivalent", () => {
-  assertType<IsExact<typeof defineApp, typeof defineRoute>>(true);
-  assertType<IsExact<typeof defineRoute, typeof defineLayout>>(true);
 });
