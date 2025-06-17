@@ -70,7 +70,7 @@ function isRequestedByFormElement(contentType: string): boolean {
  * app.use(
  *   '*',
  *   csrf({
- *     origin: (origin) => /https:\/\/(\w+\.)?myapp\.example\.com$/.test(origin),
+ *     origin: (origin) => ['https://myapp.example.com', 'http://development.myapp.example.com'].includes(origin),
  *   })
  * )
  * ```
