@@ -27,7 +27,11 @@ export const PARTIAL_ATTR = "f-partial";
 
 class NoPartialsError extends Error {}
 
+// Fresh partials history updates set the fClientNav flag
+// and prevent reloads in the popstate handler when
+// user-code triggers history navigation events.
 export interface FreshHistoryState {
+  fClientNav: boolean;
   index: number;
   scrollX: number;
   scrollY: number;
@@ -43,6 +47,7 @@ function checkClientNavEnabled(el: HTMLElement) {
 let index = history.state?.index || 0;
 if (!history.state) {
   const state: FreshHistoryState = {
+    fClientNav: true,
     index,
     scrollX,
     scrollY,
@@ -56,6 +61,7 @@ function maybeUpdateHistory(nextUrl: URL) {
   // "refresh" the current page.
   if (nextUrl.href !== globalThis.location.href) {
     const state: FreshHistoryState = {
+      fClientNav: true,
       index,
       scrollX: globalThis.scrollX,
       scrollY: globalThis.scrollY,
@@ -164,6 +170,9 @@ addEventListener("popstate", async (e) => {
     }
     return;
   }
+  // Do nothing if Fresh navigation is not explicitly opted-in.
+  // Other applications might manage scrollRestoration individually.
+  if (!e.state.fClientNav) return;
 
   const state: FreshHistoryState = history.state;
   const nextIdx = state.index ?? index + 1;
