@@ -55,7 +55,6 @@
     "@preact/signals": "npm:@preact/signals@^2.0.4",
     "esbuild": "npm:esbuild@0.25.4",
     "esbuild-wasm": "npm:esbuild-wasm@0.25.4",
-    "@std/assert": "jsr:@std/assert@^1.0.13",
     "@std/crypto": "jsr:@std/crypto@1",
     "@std/datetime": "jsr:@std/datetime@^0.225.2",
     "@std/encoding": "jsr:@std/encoding@1",
