@@ -62,10 +62,7 @@ function isRequestedByFormElement(contentType: string): boolean {
  * )
  * ```
  *
- * @example Specifying origins with using `origin` option: function
- * It is strongly recommended that the protocol be verified to ensure a match to `$`.
- * You should *never* do a forward match.
- *
+ * @example Specifying more complex origins
  * ```ts
  * app.use(
  *   '*',
