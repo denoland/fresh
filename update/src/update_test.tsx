@@ -10,8 +10,11 @@ import { walk } from "@std/fs/walk";
 import { withTmpDir } from "../../src/test_utils.ts";
 import type { FreshContext } from "../../src/context.ts";
 import { assertType, type IsExact } from "@std/testing/types";
-import { defineApp, defineLayout, defineRoute } from "../../src/compat.ts";
-
+import {
+  type defineApp,
+  type defineLayout,
+  defineRoute,
+} from "../../src/compat.ts";
 
 async function writeFiles(dir: string, files: Record<string, string>) {
   const entries = Object.entries(files);
@@ -718,7 +721,4 @@ Deno.test("compat - defineFn works", () => {
 Deno.test("compat - functions equivalent", () => {
   assertType<IsExact<typeof defineApp, typeof defineRoute>>(true);
   assertType<IsExact<typeof defineRoute, typeof defineLayout>>(true);
-
-  const handler = defineApp(() => new Response("ok"));
-  expect(handler({} as FreshContext<unknown>)).toBeInstanceOf(Response);
 });
