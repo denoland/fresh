@@ -39,20 +39,18 @@ function isRequestedByFormElement(contentType: string): boolean {
 
 /**
  * CSRF Protection Middleware for Fresh.
- * Adapted from Hono's CORS middleware.
- * Would like to express my gratitude to all the developers of Hono.
  *
  * @param options Options for the CSRF protection middleware.
  * @returns The middleware handler function.
  *
- * @example Specifying origins with using `origin` option: default
+ * @example Basic usage (with defaults)
  * ```ts
  * const app = new App<State>()
  *
  * app.use(csrf())
  * ```
  *
- * @example Specifying origins with using `origin` option: string
+ * @example Specifying static origins
  * ```ts
  * app.use(csrf({ origin: 'https://myapp.example.com' }))
  *
