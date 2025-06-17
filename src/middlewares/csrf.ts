@@ -13,15 +13,14 @@ export type IsAllowedOriginHandler = (
   context: FreshContext,
 ) => boolean;
 
-/**
- * Options for configuring the CSRF protection middleware.
- *
- * @property origin - Specifies the allowed origin(s) for requests. Can be a string, an array of strings, or a custom handler function.
- *   - string: A single allowed origin.
- *   - string[]: Multiple allowed origins.
- *   - IsAllowedOriginHandler: A function to determine if an origin is allowed.
- */
+/** Options for configuring the CSRF protection middleware. **/
 export interface CsrfOptions {
+  /**
+   * origin - Specifies the allowed origin(s) for requests.
+   *  - string: A single allowed origin.
+   *  - string[]: static allowed origins.
+   *  - IsAllowedOriginHandler: A function to determine if an origin is allowed.
+   */
   origin?: string | string[] | IsAllowedOriginHandler;
 }
 
