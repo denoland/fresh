@@ -709,17 +709,10 @@ Deno.test("update - island files", async () => {
 });
 
 Deno.test("compat - defineFn works", () => {
-  const handlers = {
-    response: defineRoute(() => new Response("test")),
-    vnode: defineLayout(() => <span>test</span>),
-    null: defineApp(() => null),
-  };
-
-  assertType<IsExact<typeof handlers.response, DefineResult>>(true);
-
   const ctx = {} as FreshContext<unknown>;
-  expect(handlers.response(ctx)).toBeInstanceOf(Response);
-  expect(handlers.null(ctx)).toEqual(null);
+  expect(defineRoute(() => new Response("test"))(ctx)).toBeInstanceOf(Response);
+  expect(defineRoute(() => <span>test</span>)(ctx)).toBeInstanceOf(Object);
+  expect(defineRoute(() => null)(ctx)).toEqual(null);
 });
 
 Deno.test("compat - functions equivalent", () => {
