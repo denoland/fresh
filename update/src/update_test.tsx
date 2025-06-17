@@ -12,7 +12,6 @@ import type { FreshContext } from "../../src/context.ts";
 import { assertType, type IsExact } from "@std/testing/types";
 import { defineApp, defineLayout, defineRoute } from "../../src/compat.ts";
 
-type DefineResult = ReturnType<typeof defineRoute>;
 
 async function writeFiles(dir: string, files: Record<string, string>) {
   const entries = Object.entries(files);
