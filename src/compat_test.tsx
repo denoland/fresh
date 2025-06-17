@@ -1,11 +1,7 @@
-import type { FreshContext } from "../../src/context.ts";
+import type { FreshContext } from "./context.ts";
 import { assertType, type IsExact } from "@std/testing/types";
 import { expect } from "@std/expect";
-import {
-  type defineApp,
-  type defineLayout,
-  defineRoute,
-} from "../../src/compat.ts";
+import { type defineApp, type defineLayout, defineRoute } from "./compat.ts";
 
 Deno.test("compat - defineFn works", () => {
   const ctx = {} as FreshContext<unknown>;
