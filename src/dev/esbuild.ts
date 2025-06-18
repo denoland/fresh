@@ -55,10 +55,7 @@ export async function bundleJs(
       "unsupported-jsx-comment": "silent",
     },
 
-    // TODO: Infer from `options.dev`. We can change this once
-    // the esbuild deno loader has fixed resolving never seen
-    // before npm requests.
-    jsxDev: false,
+    jsxDev: options.dev,
     jsx: "automatic",
     jsxImportSource: options.jsxImportSource ?? "preact",
 
