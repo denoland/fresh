@@ -1,5 +1,4 @@
 import * as path from "@std/path";
-import * as colors from "@std/fmt/colors";
 
 function tabs2Spaces(str: string) {
   return str.replace(/^\t+/, (tabs) => "  ".repeat(tabs.length));
@@ -55,21 +54,18 @@ export function createCodeFrame(
     activeLine.length - lines[lineNum].length + columnNum,
   );
 
-  const sep = colors.dim("|");
+  const sep = "|";
   let out = "";
 
   for (let i = 0; i < spaceLines.length; i++) {
     const line = spaceLines[i];
-    const currentLine = colors.dim(
-      (padding + (i + start + 1)).slice(-maxLineNum),
-    );
+    const currentLine = (padding + (i + start + 1)).slice(-maxLineNum);
 
     // Line where the error occurred
     if (i === lineNum - start) {
-      out += colors.red(">") +
-        ` ${currentLine} ${sep} ${line}\n`;
+      out += ">" + ` ${currentLine} ${sep} ${line}\n`;
 
-      const columnMarker = colors.bold(colors.red("^"));
+      const columnMarker = "^";
       out += `  ${padding} ${sep} ${" ".repeat(count)}${columnMarker}\n`;
     } else {
       out += `  ${currentLine} ${sep} ${line}\n`;
