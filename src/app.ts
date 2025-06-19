@@ -172,21 +172,22 @@ export class App<State> {
     return this;
   }
 
+  use(pathOrMiddleware: MiddlewareFn<State>): this;
+  use(
+    pathOrMiddleware: string | URLPattern,
+    middleware: MiddlewareFn<State>,
+  ): this;
   use(
     pathOrMiddleware: string | URLPattern | MiddlewareFn<State>,
     middleware?: MiddlewareFn<State>,
   ): this {
-    if (
-      typeof pathOrMiddleware === "string" ||
-      pathOrMiddleware instanceof URLPattern
-    ) {
-      // First argument is a path
+    if (typeof pathOrMiddleware === "function") {
+      this.#router.addMiddleware("/*", pathOrMiddleware);
+    } else {
       if (!middleware) {
         throw new Error("Middleware is required when path is provided");
       }
       this.#router.addMiddleware(pathOrMiddleware, middleware);
-    } else {
-      this.#router.addMiddleware("/*", pathOrMiddleware);
     }
     return this;
   }
@@ -252,18 +253,14 @@ export class App<State> {
 
         // When there are middlewares, we need to add middleware handlers to each route
         // Extract middleware handlers into a flat array ensuring we get the right type
-        const middlewareHandlers: Array<MiddlewareFn<State>> = [];
-        for (const middleware of middlewares) {
-          for (const handler of middleware.handlers) {
-            // We need to safely cast here to handle the type properly
-            middlewareHandlers.push(handler as unknown as MiddlewareFn<State>);
-          }
-        }
+        const middlewareHandlers = middlewares.flatMap((middleware) =>
+          middleware.handlers
+        );
 
         // Create a new array of handlers with the correct type
         const combinedHandlers: Array<MiddlewareFn<State>> = [
           ...middlewareHandlers,
-          ...route.handlers.map((h) => h as unknown as MiddlewareFn<State>),
+          ...route.handlers,
         ];
 
         this.#router.add(route.method, merged, combinedHandlers);

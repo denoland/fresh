@@ -2,7 +2,7 @@ export type Method = "HEAD" | "GET" | "POST" | "PATCH" | "PUT" | "DELETE";
 
 export interface Route<T> {
   path: string | URLPattern;
-  method: Method | "ALL" | "MIDDLEWARE";
+  method: Method | "ALL";
   handlers: T[];
 }
 
@@ -19,7 +19,7 @@ export interface Router<T> {
   _middlewares: Route<T>[];
   addMiddleware(pathname: string | URLPattern, fn: T): void;
   add(
-    method: Method | "ALL" | "MIDDLEWARE",
+    method: Method | "ALL",
     pathname: string | URLPattern,
     handlers: T[],
   ): void;
@@ -40,19 +40,19 @@ export class UrlPatternRouter<T> implements Router<T> {
       this._middlewares.push({
         path: new URLPattern({ pathname }),
         handlers: [handler],
-        method: "MIDDLEWARE",
+        method: "ALL",
       });
     } else {
       this._middlewares.push({
         path: pathname,
         handlers: [handler],
-        method: "MIDDLEWARE",
+        method: "ALL",
       });
     }
   }
 
   add(
-    method: Method | "ALL" | "MIDDLEWARE",
+    method: Method | "ALL",
     pathname: string | URLPattern,
     handlers: T[],
   ) {
