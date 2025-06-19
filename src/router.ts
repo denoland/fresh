@@ -33,22 +33,15 @@ export class UrlPatternRouter<T> implements Router<T> {
   readonly _middlewares: Route<T>[] = [];
 
   addMiddleware(pathname: string | URLPattern, handler: T): void {
-    if (
-      typeof pathname === "string" && pathname !== "/*" &&
-      IS_PATTERN.test(pathname)
-    ) {
-      this._middlewares.push({
-        path: new URLPattern({ pathname }),
-        handlers: [handler],
-        method: "ALL",
-      });
-    } else {
-      this._middlewares.push({
-        path: pathname,
-        handlers: [handler],
-        method: "ALL",
-      });
-    }
+    const isURLPattern = (value: unknown): value is URLPattern => {
+      return value instanceof URLPattern;
+    };
+
+    this._middlewares.push({
+      path: isURLPattern(pathname) ? pathname : new URLPattern({ pathname }),
+      handlers: [handler],
+      method: "ALL",
+    });
   }
 
   add(
