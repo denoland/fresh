@@ -2,12 +2,10 @@ import { App } from "../../app.ts";
 import {
   type FreshFsItem,
   fsRoutes,
-  type FsRoutesOptions,
+  internals,
   sortRoutePaths,
-  type TESTING_ONLY__FsRoutesOptions,
 } from "./mod.ts";
 import { delay, FakeServer } from "../../test_utils.ts";
-import { createFakeFs } from "../../test_utils.ts";
 import { expect, fn } from "@std/expect";
 import { stub } from "@std/testing/mock";
 import { type HandlerByMethod, type HandlerFn, page } from "../../handlers.ts";
@@ -19,6 +17,18 @@ async function createServer<T>(
   files: Record<string, string | Uint8Array | FreshFsItem<T>>,
 ): Promise<FakeServer> {
   const app = new App<T>();
+  using _denoCwdStub = stub(Deno, "cwd", () => ".");
+  using _walkStub = stub(internals, "walk", async function* () {
+    for (const file of Object.keys(files)) {
+      yield {
+        isDirectory: false,
+        isFile: true,
+        isSymlink: false,
+        name: file,
+        path: file,
+      };
+    }
+  });
 
   await fsRoutes(
     app,
@@ -33,8 +43,7 @@ async function createServer<T>(
         }
         throw new Error(`Mock FS: file ${full} not found`);
       },
-      _fs: createFakeFs(files),
-    } as FsRoutesOptions & TESTING_ONLY__FsRoutesOptions,
+    },
   );
   return new FakeServer(app.handler());
 }

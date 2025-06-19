@@ -5,9 +5,10 @@ import { getSnapshotPath, type ResolvedFreshConfig } from "../config.ts";
 import type { BuildSnapshot } from "../build_cache.ts";
 import { encodeHex } from "@std/encoding/hex";
 import { crypto } from "@std/crypto";
-import { fsAdapter } from "../fs.ts";
 import type { FreshFileTransformer } from "./file_transformer.ts";
 import { assertInDir } from "../utils.ts";
+import { ensureDir } from "@std/fs/ensure-dir";
+import { walk } from "@std/fs/walk";
 
 export interface MemoryFile {
   hash: string | null;
@@ -193,7 +194,7 @@ export class DiskBuildCache implements DevBuildCache {
     const filePath = path.join(outDir, pathname);
     assertInDir(filePath, outDir);
 
-    await fsAdapter.mkdirp(path.dirname(filePath));
+    await ensureDir(path.dirname(filePath));
     await Deno.writeFile(filePath, content);
   }
 
@@ -206,8 +207,8 @@ export class DiskBuildCache implements DevBuildCache {
     const staticDir = this.config.staticDir;
     const outDir = this.config.build.outDir;
 
-    if (await fsAdapter.isDirectory(staticDir)) {
-      const entries = fsAdapter.walk(staticDir, {
+    try {
+      const entries = walk(staticDir, {
         includeDirs: false,
         includeFiles: true,
         followSymlinks: false,
@@ -239,6 +240,10 @@ export class DiskBuildCache implements DevBuildCache {
           const pathname = `/${relative}`;
           this.addUnprocessedFile(pathname);
         }
+      }
+    } catch (error) {
+      if (!(error instanceof Deno.errors.NotFound)) {
+        throw error;
       }
     }
 
