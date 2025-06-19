@@ -530,8 +530,6 @@ if (Deno.args.includes("build")) {
     exclude: ["**/_fresh/*"],
     imports: {
       "fresh": `jsr:@fresh/core@^${FRESH_VERSION}`,
-      "@fresh/plugin-tailwind":
-        `jsr:@fresh/plugin-tailwind@^${FRESH_TAILWIND_VERSION}`,
       "preact": `npm:preact@^${PREACT_VERSION}`,
       "@preact/signals": `npm:@preact/signals@^${PREACT_SIGNALS_VERSION}`,
     } as Record<string, string>,
@@ -552,6 +550,7 @@ if (Deno.args.includes("build")) {
 
   if (useTailwind) {
     denoJson.imports["tailwindcss"] = "npm:tailwindcss@^3.4.3";
+    denoJson.imports["@fresh/plugin-tailwind"] = `jsr:@fresh/plugin-tailwind@^${FRESH_TAILWIND_VERSION}`;
   }
 
   await writeFile("deno.json", denoJson);
