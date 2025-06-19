@@ -328,7 +328,13 @@ Deno.test(
         ctx.state.text += "B";
         return ctx.next();
       })
-      .post("/foo", (ctx) => new Response(ctx.state.text));
+      .use("/bar", function C(ctx) {
+        ctx.state.text += "C";
+        return ctx.next();
+      })
+      .post("/foo", (ctx) => new Response(ctx.state.text))
+      .get("/bar", (ctx) => new Response(ctx.state.text))
+      .post("/bar", (ctx) => new Response(ctx.state.text));
 
     const app = new App<{ text: string }>()
       .use(function A(ctx) {
@@ -348,6 +354,12 @@ Deno.test(
 
     res = await server.post("/foo");
     expect(await res.text()).toEqual("AB");
+
+    res = await server.get("/bar");
+    expect(await res.text()).toEqual("ABC");
+
+    res = await server.post("/bar");
+    expect(await res.text()).toEqual("ABC");
   },
 );
 
@@ -365,6 +377,31 @@ Deno.test("FreshApp - .mountApp() self mount empty", async () => {
   const server = new FakeServer(app.handler());
 
   const res = await server.get("/foo");
+  expect(await res.text()).toEqual("A");
+});
+
+Deno.test("FreshApp - .mountApp() self mount sub path", async () => {
+  const innerApp = new App<{ text: string }>()
+    .use((ctx) => {
+      ctx.state.text = "B";
+      return ctx.next();
+    })
+    .get("/foo", (ctx) => new Response(ctx.state.text));
+
+  const app = new App<{ text: string }>()
+    .use((ctx) => {
+      ctx.state.text = "A";
+      return ctx.next();
+    })
+    .get("/foo", (ctx) => new Response(ctx.state.text))
+    .mountApp("/aaa", innerApp);
+
+  const server = new FakeServer(app.handler());
+
+  let res = await server.get("/aaa/foo");
+  expect(await res.text()).toEqual("B");
+
+  res = await server.get("/foo");
   expect(await res.text()).toEqual("A");
 });
 

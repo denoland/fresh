@@ -49,7 +49,7 @@ Deno.test("UrlPatternRouter - GET get matches with middlewares", () => {
   });
 });
 
-Deno.test("UrlPatternRouter - GET get matches with middlewares A", () => {
+Deno.test("UrlPatternRouter - GET get matches with middlewares with Path", () => {
   const router = new UrlPatternRouter();
   const A = () => {};
   const B = () => {};
@@ -71,13 +71,13 @@ Deno.test("UrlPatternRouter - GET get matches with middlewares A", () => {
   });
 });
 
-Deno.test("UrlPatternRouter - GET get matches with middlewares B", () => {
+Deno.test("UrlPatternRouter - GET get matches with middlewares with Path(eq endpoint path)", () => {
   const router = new UrlPatternRouter();
   const A = () => {};
   const B = () => {};
   const C = () => {};
   const D = () => {};
-  router.addMiddleware("/", D);
+  router.addMiddleware("/a/1", D);
   router.add("ALL", "/*", [A]);
   router.add("ALL", "/*", [B]);
   router.add("GET", "/a/1", [C]);
@@ -86,7 +86,7 @@ Deno.test("UrlPatternRouter - GET get matches with middlewares B", () => {
 
   expect(res).toEqual({
     params: {},
-    handlers: [[A], [B], [C]],
+    handlers: [[D], [A], [B], [C]],
     methodMatch: true,
     pattern: "/a/1",
     patternMatch: true,
