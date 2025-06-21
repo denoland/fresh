@@ -32,13 +32,15 @@ export class UrlPatternRouter<T> implements Router<T> {
   readonly _routes: Route<T>[] = [];
   readonly _middlewares: Route<T>[] = [];
 
-  addMiddleware(pathname: string | URLPattern, handler: T): void {
-    const isURLPattern = (value: unknown): value is URLPattern => {
-      return value instanceof URLPattern;
-    };
+  isURLPattern(value: unknown): value is URLPattern {
+    return value instanceof URLPattern;
+  }
 
+  addMiddleware(pathname: string | URLPattern, handler: T): void {
     this._middlewares.push({
-      path: isURLPattern(pathname) ? pathname : new URLPattern({ pathname }),
+      path: this.isURLPattern(pathname)
+        ? pathname
+        : new URLPattern({ pathname }),
       handlers: [handler],
       method: "ALL",
     });
@@ -48,23 +50,14 @@ export class UrlPatternRouter<T> implements Router<T> {
     method: Method | "ALL",
     pathname: string | URLPattern,
     handlers: T[],
-  ) {
-    if (
-      typeof pathname === "string" && pathname !== "/*" &&
-      IS_PATTERN.test(pathname)
-    ) {
-      this._routes.push({
-        path: new URLPattern({ pathname }),
-        handlers,
-        method,
-      });
-    } else {
-      this._routes.push({
-        path: pathname,
-        handlers,
-        method,
-      });
-    }
+  ): void {
+    this._routes.push({
+      path: this.isURLPattern(pathname)
+        ? pathname
+        : new URLPattern({ pathname }),
+      handlers,
+      method,
+    });
   }
 
   match(method: Method, url: URL): RouteResult<T> {
