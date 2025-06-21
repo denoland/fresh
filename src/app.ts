@@ -8,6 +8,7 @@ import { type MiddlewareFn, runMiddlewares } from "./middlewares/mod.ts";
 import { FreshReqContext } from "./context.ts";
 import { type Method, type Router, UrlPatternRouter } from "./router.ts";
 import {
+  checkUnstableRouter,
   type FreshConfig,
   normalizeConfig,
   type ResolvedFreshConfig,
@@ -17,6 +18,14 @@ import type { ServerIslandRegistry } from "./context.ts";
 import { FinishSetup, ForgotBuild } from "./finish_setup.tsx";
 import { HttpError } from "./error.ts";
 import { mergePaths, pathToExportName } from "./utils.ts";
+import {
+  addAppWrapper,
+  addLayout,
+  addMiddleware,
+  addRoute,
+  newRouter,
+  type RouterState,
+} from "./router2.ts";
 
 // TODO: Completed type clashes in older Deno versions
 // deno-lint-ignore no-explicit-any
@@ -126,6 +135,7 @@ export class App<State> {
   #router: Router<MiddlewareFn<State>> = new UrlPatternRouter<
     MiddlewareFn<State>
   >();
+  #router2: RouterState<State> = newRouter<State>();
   #islandRegistry: ServerIslandRegistry = new Map();
   #buildCache: BuildCache | null = null;
   #islandNames = new Set<string>();
@@ -172,9 +182,34 @@ export class App<State> {
     return this;
   }
 
-  use(middleware: MiddlewareFn<State>): this {
-    this.#router.addMiddleware(middleware);
+  use(middleware: MiddlewareFn<State>): this;
+  use(path: string, middleware: MiddlewareFn<State>): this;
+  use(
+    pathOrMiddleware: string | MiddlewareFn<State>,
+    middleware?: MiddlewareFn<State>,
+  ): this {
+    if (typeof pathOrMiddleware === "string") {
+      checkUnstableRouter(this.config);
+      addMiddleware(this.#router2, pathOrMiddleware, middleware!);
+    } else {
+      this.#router.addMiddleware(pathOrMiddleware);
+    }
     return this;
+  }
+
+  appWrapper(fn: any) {
+    checkUnstableRouter(this.config);
+    addAppWrapper(this.#router2, fn);
+  }
+
+  layout(path: string, layout: any) {
+    checkUnstableRouter(this.config);
+    addLayout(this.#router2, path, layout);
+  }
+
+  route(path: string, route: any) {
+    checkUnstableRouter(this.config);
+    addRoute(this.#router2, path, route);
   }
 
   get(path: string, ...middlewares: MiddlewareFn<State>[]): this {
