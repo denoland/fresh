@@ -52,9 +52,12 @@ export class UrlPatternRouter<T> implements Router<T> {
     handlers: T[],
   ): void {
     this._routes.push({
-      path: this.isURLPattern(pathname)
-        ? pathname
-        : new URLPattern({ pathname }),
+      path: (
+          typeof pathname === "string" && pathname !== "/*" &&
+          !this.isURLPattern(pathname)
+        )
+        ? new URLPattern({ pathname })
+        : pathname,
       handlers,
       method,
     });
