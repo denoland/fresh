@@ -27,7 +27,6 @@ Deno.test("CSRF by Middleware", async (t) => {
     const handler = app.handler();
 
     await t.step("GET /form - should be 200 for any request", async () => {
-      simplePostHandler = spy(rawSimplePostHandler);
       const res = await handler(new Request("http://localhost/form"));
 
       expect(res.status).toBe(200);
@@ -35,7 +34,6 @@ Deno.test("CSRF by Middleware", async (t) => {
     });
 
     await t.step("HEAD /form - should be 200 for any request", async () => {
-      simplePostHandler = spy(rawSimplePostHandler);
       const res = await handler(
         new Request("http://localhost/form", {
           method: "HEAD",
@@ -46,8 +44,6 @@ Deno.test("CSRF by Middleware", async (t) => {
     });
 
     await t.step("POST /form - should be 200 for local request", async () => {
-      simplePostHandler = spy(rawSimplePostHandler);
-
       const res = await handler(
         new Request("http://localhost/form", {
           method: "POST",
