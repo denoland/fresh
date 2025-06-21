@@ -5,20 +5,13 @@ import { expect } from "@std/expect";
 import { spy } from "@std/testing/mock";
 
 const rawSimplePostHandler = async (ctx: FreshContext) => {
-  if (ctx.req.headers.get("content-type") === "application/json") {
-    return new Response((await ctx.req.json())["name"]);
-  } else {
-    return new Response((await ctx.req.formData()).get("name"));
-  }
+  return ctx.req.headers.get("content-type") === "application/json"
+    ? new Response((await ctx.req.json())["name"])
+    : new Response((await ctx.req.formData()).get("name"));
 };
 
 Deno.test("CSRF by Middleware", async (t) => {
   let simplePostHandler = spy(rawSimplePostHandler);
-
-  //beforeEach(() => {
-  //  console.log("Resetting simplePostHandler spy");
-  //  simplePostHandler = spy(rawSimplePostHandler);
-  //});
 
   await t.step("simple usage", async (t) => {
     const app = new App();

@@ -13,7 +13,7 @@ export type IsAllowedOriginHandler = (
   context: FreshContext,
 ) => boolean;
 
-/** Options for configuring the CSRF protection middleware. **/
+/** Options for {@linkcode csrf}. **/
 export interface CsrfOptions {
   /**
    * origin - Specifies the allowed origin(s) for requests.
@@ -75,7 +75,7 @@ export function csrf(
   options?: CsrfOptions,
 ): (ctx: FreshContext) => Promise<Response> {
   const isAllowedOrigin = (
-    origin: string | undefined | null,
+    origin: string | null,
     ctx: FreshContext,
   ) => {
     if (!origin) {
