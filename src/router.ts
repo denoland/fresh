@@ -16,8 +16,8 @@ export interface RouteResult<T> {
 
 export interface Router<T> {
   _routes: Route<T>[];
-  _middlewares: T[];
-  addMiddleware(fn: T): void;
+  _middlewares: Route<T>[];
+  addMiddleware(pathname: string | URLPattern, fn: T): void;
   add(
     method: Method | "ALL",
     pathname: string | URLPattern,
@@ -28,31 +28,36 @@ export interface Router<T> {
 
 export const IS_PATTERN = /[*:{}+?()]/;
 
+function isURLPatternParam(value: unknown): value is string {
+  return typeof value === "string" && value !== "/*" && IS_PATTERN.test(value);
+}
+
 export class UrlPatternRouter<T> implements Router<T> {
   readonly _routes: Route<T>[] = [];
-  readonly _middlewares: T[] = [];
+  readonly _middlewares: Route<T>[] = [];
 
-  addMiddleware(fn: T): void {
-    this._middlewares.push(fn);
+  addMiddleware(pathname: string | URLPattern, handler: T): void {
+    this._middlewares.push({
+      path: isURLPatternParam(pathname)
+        ? new URLPattern({ pathname })
+        : pathname,
+      handlers: [handler],
+      method: "ALL",
+    });
   }
 
-  add(method: Method | "ALL", pathname: string | URLPattern, handlers: T[]) {
-    if (
-      typeof pathname === "string" && pathname !== "/*" &&
-      IS_PATTERN.test(pathname)
-    ) {
-      this._routes.push({
-        path: new URLPattern({ pathname }),
-        handlers,
-        method,
-      });
-    } else {
-      this._routes.push({
-        path: pathname,
-        handlers,
-        method,
-      });
-    }
+  add(
+    method: Method | "ALL",
+    pathname: string | URLPattern,
+    handlers: T[],
+  ): void {
+    this._routes.push({
+      path: isURLPatternParam(pathname)
+        ? new URLPattern({ pathname })
+        : pathname,
+      handlers,
+      method,
+    });
   }
 
   match(method: Method, url: URL): RouteResult<T> {
@@ -64,8 +69,20 @@ export class UrlPatternRouter<T> implements Router<T> {
       pattern: null,
     };
 
-    if (this._middlewares.length > 0) {
-      result.handlers.push(this._middlewares);
+    for (let i = 0; i < this._middlewares.length; i++) {
+      const middleware = this._middlewares[i];
+
+      if (
+        typeof middleware.path === "string" &&
+        (middleware.path === "/*" || middleware.path === url.pathname)
+      ) {
+        result.handlers.push(middleware.handlers);
+      } else if (middleware.path instanceof URLPattern) {
+        const match = middleware.path.exec(url);
+        if (match !== null) {
+          result.handlers.push(middleware.handlers);
+        }
+      }
     }
 
     for (let i = 0; i < this._routes.length; i++) {
@@ -100,7 +117,6 @@ export class UrlPatternRouter<T> implements Router<T> {
           if (route.method === "ALL" || route.method === method) {
             result.handlers.push(route.handlers);
 
-            // Decode matched params
             for (const [key, value] of Object.entries(match.pathname.groups)) {
               result.params[key] = value === undefined ? "" : decodeURI(value);
             }
