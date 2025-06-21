@@ -2,6 +2,7 @@ import { expect } from "@std/expect";
 import { App, getIslandRegistry, setBuildCache } from "./app.ts";
 import { FakeServer } from "./test_utils.ts";
 import { ProdBuildCache } from "./build_cache.ts";
+import { HttpError } from "./error.ts";
 
 Deno.test("App - .use()", async () => {
   const app = new App<{ text: string }>()
@@ -35,8 +36,6 @@ Deno.test("App - .use() #2", async () => {
 
 Deno.test("App - .get()", async () => {
   const app = new App()
-    .post("/", () => new Response("ok"))
-    .post("/foo", () => new Response("ok"))
     .get("/", () => new Response("ok"))
     .get("/foo", () => new Response("ok"));
 
@@ -323,11 +322,11 @@ Deno.test(
   "App - .mountApp() self mount, different order",
   async () => {
     const innerApp = new App<{ text: string }>()
-      .get("/foo", (ctx) => new Response(ctx.state.text))
       .use(function B(ctx) {
         ctx.state.text += "B";
         return ctx.next();
       })
+      .get("/foo", (ctx) => new Response(ctx.state.text))
       .post("/foo", (ctx) => new Response(ctx.state.text));
 
     const app = new App<{ text: string }>()
@@ -389,6 +388,27 @@ Deno.test(
 
     const res = await server.get("/");
     expect(await res.text()).toEqual("Outer_Inner");
+  },
+);
+
+// https://github.com/denoland/fresh/issues/3033
+Deno.test(
+  "App - .mountApp() self mount with dynamic routes",
+  async () => {
+    const innerApp = new App<{ text: string }>()
+      .get("/", () => new Response("list authors"))
+      .get("/:name", (ctx) => new Response(`show: ${ctx.params.name}`));
+
+    const app = new App<{ text: string }>()
+      .mountApp("/api/authors", innerApp);
+
+    const server = new FakeServer(app.handler());
+
+    let res = await server.get("/api/authors");
+    expect(await res.text()).toEqual("list authors");
+
+    res = await server.get("/api/authors/foo");
+    expect(await res.text()).toEqual("show: foo");
   },
 );
 
@@ -531,4 +551,60 @@ Deno.test("App - adding Island should convert to valid export names", () => {
     exportName: "default",
     fn: component3,
   });
+});
+
+Deno.test("App - overwrite default 404 handler", async () => {
+  const app = new App()
+    .notFound(() => new Response("bar", { status: 404 }))
+    .get("/foo", () => new Response("foo"))
+    .get("/thrower", () => {
+      throw new HttpError(404);
+    });
+
+  const server = new FakeServer(app.handler());
+
+  let res = await server.get("/invalid");
+  expect(await res.text()).toEqual("bar");
+
+  res = await server.get("/thrower");
+  expect(await res.text()).toEqual("bar");
+});
+
+Deno.test("App - uses error route", async () => {
+  const app = new App()
+    .onError("*", () => new Response("error route", { status: 200 }))
+    .get("/thrower", () => {
+      throw new HttpError(404);
+    });
+
+  const server = new FakeServer(app.handler());
+
+  let res = await server.get("/invalid");
+  expect(await res.text()).toEqual("error route");
+
+  res = await server.get("/thrower");
+  expect(await res.text()).toEqual("error route");
+});
+
+Deno.test("App - uses notFound route on 404", async () => {
+  const app = new App()
+    .notFound(() => new Response("not found route", { status: 404 }))
+    .onError("*", () => new Response("error route", { status: 500 }))
+    .get("/thrower", () => {
+      throw new HttpError(404);
+    })
+    .get("/thrower_2", () => {
+      throw new HttpError(500);
+    });
+
+  const server = new FakeServer(app.handler());
+
+  let res = await server.get("/invalid");
+  expect(await res.text()).toEqual("not found route");
+
+  res = await server.get("/thrower");
+  expect(await res.text()).toEqual("not found route");
+
+  res = await server.get("/thrower_2");
+  expect(await res.text()).toEqual("error route");
 });

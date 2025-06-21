@@ -11,7 +11,7 @@ import {
 } from "preact";
 import type { Signal } from "@preact/signals";
 import type { Stringifiers } from "../../jsonify/stringify.ts";
-import type { PageProps } from "../../context.ts";
+import type { PageProps } from "../../render.ts";
 import { Partial, type PartialProps } from "../shared.ts";
 import { stringify } from "../../jsonify/stringify.ts";
 import type { ServerIslandRegistry } from "../../context.ts";
@@ -88,7 +88,8 @@ export class RenderState {
   hasRuntimeScript = false;
 
   constructor(
-    public ctx: PageProps<unknown, unknown>,
+    // deno-lint-ignore no-explicit-any
+    public ctx: PageProps<any, any>,
     public islandRegistry: ServerIslandRegistry,
     public buildCache: BuildCache,
     public partialId: string,

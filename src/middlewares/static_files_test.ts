@@ -1,4 +1,4 @@
-import { staticFiles } from "./static_files.ts";
+import { serveInternalStaticFiles } from "./static_files.ts";
 import { serveMiddleware } from "../test_utils.ts";
 import type { BuildCache, StaticFile } from "../build_cache.ts";
 import { expect } from "@std/expect";
@@ -39,7 +39,7 @@ Deno.test("static files - 200", async () => {
     "foo.css": { content: "body {}", hash: null },
   });
   const server = serveMiddleware(
-    staticFiles(),
+    serveInternalStaticFiles(),
     { buildCache },
   );
 
@@ -59,7 +59,7 @@ Deno.test("static files - HEAD 200", async () => {
     "foo.css": { content: "body {}", hash: null },
   });
   const server = serveMiddleware(
-    staticFiles(),
+    serveInternalStaticFiles(),
     { buildCache },
   );
 
@@ -76,7 +76,7 @@ Deno.test("static files - etag", async () => {
     "foo.css": { content: "body {}", hash: "123" },
   });
   const server = serveMiddleware(
-    staticFiles(),
+    serveInternalStaticFiles(),
     { buildCache },
   );
 
@@ -101,7 +101,7 @@ Deno.test("static files - etag", async () => {
 Deno.test("static files - 404 on missing favicon.ico", async () => {
   const buildCache = new MockBuildCache({});
   const server = serveMiddleware(
-    staticFiles(),
+    serveInternalStaticFiles(),
     { buildCache },
   );
   const res = await server.get("favicon.ico");
@@ -114,7 +114,7 @@ Deno.test("static files - 405 on wrong HTTP method", async () => {
     "foo.css": { content: "body {}", hash: null },
   });
   const server = serveMiddleware(
-    staticFiles(),
+    serveInternalStaticFiles(),
     { buildCache },
   );
 
@@ -131,7 +131,7 @@ Deno.test("static files - disables caching in development", async () => {
     "foo.css": { content: "body {}", hash: null },
   });
   const server = serveMiddleware(
-    staticFiles(),
+    serveInternalStaticFiles(),
     {
       buildCache,
       config: {
@@ -159,7 +159,7 @@ Deno.test("static files - enables caching in production", async () => {
     "foo.css": { content: "body {}", hash: null },
   });
   const server = serveMiddleware(
-    staticFiles(),
+    serveInternalStaticFiles(),
     {
       buildCache,
       config: {
@@ -189,7 +189,7 @@ Deno.test("static files - decoded pathname", async () => {
     "인천.avif": { content: "body {}", hash: null },
   });
   const server = serveMiddleware(
-    staticFiles(),
+    serveInternalStaticFiles(),
     { buildCache },
   );
 
