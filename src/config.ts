@@ -33,6 +33,18 @@ export interface FreshConfig {
    * @default "static"
    */
   staticDir?: string;
+  /**
+   * Enable unstable experimental features of Fresh.
+   * USE AT YOUR OWN RISK.
+   * @unstable
+   */
+  unstable?: {
+    /**
+     * TODO
+     * @unstable
+     */
+    appRouter?: boolean;
+  };
 }
 
 /**
@@ -49,6 +61,9 @@ export interface ResolvedFreshConfig {
    * The mode Fresh can run in.
    */
   mode: "development" | "production";
+  unstable: {
+    appConfig: boolean;
+  };
 }
 
 export function parseRootPath(root: string, cwd: string): string {
@@ -94,9 +109,20 @@ export function normalizeConfig(options: FreshConfig): ResolvedFreshConfig {
     basePath: options.basePath ?? "",
     staticDir: parseDirPath(options.staticDir ?? "static", root),
     mode: "production",
+    unstable: {
+      appConfig: Boolean(options.unstable?.appRouter),
+    },
   };
 }
 
 export function getSnapshotPath(config: ResolvedFreshConfig): string {
   return path.join(config.build.outDir, "snapshot.json");
+}
+
+export function checkUnstableRouter(config: ResolvedFreshConfig) {
+  if (!config.unstable.appConfig) {
+    throw new Error(
+      `This feature is only available when 'unstable.appRouter' is enabled`,
+    );
+  }
 }
