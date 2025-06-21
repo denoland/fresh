@@ -28,19 +28,19 @@ export interface Router<T> {
 
 export const IS_PATTERN = /[*:{}+?()]/;
 
+function isURLPatternParam(value: unknown): value is string {
+  return typeof value === "string" && value !== "/*" && IS_PATTERN.test(value);
+}
+
 export class UrlPatternRouter<T> implements Router<T> {
   readonly _routes: Route<T>[] = [];
   readonly _middlewares: Route<T>[] = [];
 
-  isURLPattern(value: unknown): value is URLPattern {
-    return value instanceof URLPattern;
-  }
-
   addMiddleware(pathname: string | URLPattern, handler: T): void {
     this._middlewares.push({
-      path: this.isURLPattern(pathname)
-        ? pathname
-        : new URLPattern({ pathname }),
+      path: isURLPatternParam(pathname)
+        ? new URLPattern({ pathname })
+        : pathname,
       handlers: [handler],
       method: "ALL",
     });
@@ -52,10 +52,7 @@ export class UrlPatternRouter<T> implements Router<T> {
     handlers: T[],
   ): void {
     this._routes.push({
-      path: (
-          typeof pathname === "string" && pathname !== "/*" &&
-          !this.isURLPattern(pathname)
-        )
+      path: isURLPatternParam(pathname)
         ? new URLPattern({ pathname })
         : pathname,
       handlers,
