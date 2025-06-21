@@ -243,7 +243,7 @@ export class App<State> {
         const route = routes[i];
         const merged = typeof route.path === "string"
           ? mergePaths(path, route.path)
-          : route.path;
+          : mergePaths(path, route.path.pathname);
 
         // If there are no middlewares, just add the route as-is with the merged path
         if (middlewares.length === 0) {
