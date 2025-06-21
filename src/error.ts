@@ -1,4 +1,6 @@
-import { STATUS_TEXT } from "@std/http/status";
+import { type ErrorStatus, STATUS_TEXT } from "@std/http/status";
+
+export type { ErrorStatus };
 
 /**
  * Error that's thrown when a request fails. Correlates to a
@@ -54,7 +56,7 @@ export class HttpError extends Error {
    * }
    * ```
    */
-  status: number;
+  status: ErrorStatus;
 
   /**
    * Constructs a new instance.
@@ -65,7 +67,7 @@ export class HttpError extends Error {
    * @param options Optional error options.
    */
   constructor(
-    status: keyof typeof STATUS_TEXT,
+    status: ErrorStatus,
     message: string = STATUS_TEXT[status],
     options?: ErrorOptions,
   ) {
