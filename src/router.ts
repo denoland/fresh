@@ -134,6 +134,7 @@ export function pathToPattern(path: string): string {
 
   let route = "";
 
+  let nonOptionalSegments = 0;
   for (let i = 0; i < parts.length; i++) {
     const part = parts[i];
 
@@ -206,12 +207,27 @@ export function pathToPattern(path: string): string {
       }
     }
 
-    route += (optional ? "" : "/") + pattern;
+    if (optional) {
+      route += pattern;
+    } else {
+      nonOptionalSegments++;
+      route += "/" + pattern;
+    }
   }
 
   // Case: /(group)/index.tsx
   if (route === "") {
     route = "/";
+  }
+
+  // Handles all cases where a route starts with
+  // an optional parameter and does not contain
+  // any non-group and non-optional segments after
+  // Case: /[[id]].tsx
+  // Case: /(group)/[[id]].tsx
+  // Case: /(group)/[[name]]/(group2)/index.tsx
+  if (route.startsWith(`{/`) && nonOptionalSegments === 0) {
+    route = route.replace("{/", "/{");
   }
 
   return route;
