@@ -75,15 +75,15 @@
     "@std/expect": "jsr:@std/expect@^1.0.16",
     "@std/testing": "jsr:@std/testing@^1.0.12",
 
-    "@tailwindcss/postcss": "npm:@tailwindcss/postcss@^4.1.7",
+    "@tailwindcss/postcss": "npm:@tailwindcss/postcss@^4.1.10",
     "@tailwindcss/oxide": "npm:@tailwindcss/oxide@^4.1.10",
-    "postcss": "npm:postcss@8.5.3",
-    "tailwindcss": "npm:tailwindcss@^4.1.7",
+    "tailwindcss": "npm:tailwindcss@^4.1.10",
+    "postcss": "npm:postcss@8.5.6",
 
     "ts-morph": "npm:ts-morph@^25.0.1",
 
-    "@fresh/plugin-tailwind": "./plugin-tailwindcss/src/mod.ts",
     "@std/front-matter": "jsr:@std/front-matter@^1.0.5",
+    "@fresh/plugin-tailwind": "./plugin-tailwindcss/src/mod.ts",
     "fresh/compat": "./src/compat/mod.ts",
     "fresh/dev": "./src/dev/mod.ts",
     "fresh/runtime": "./src/runtime/shared.ts",
