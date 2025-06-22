@@ -54,6 +54,7 @@ export const enum PartialMode {
   Replace,
   Append,
   Prepend,
+  Upsert,
 }
 
 /**

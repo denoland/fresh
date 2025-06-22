@@ -128,7 +128,9 @@ options[OptionsType.VNODE] = (vnode) => {
         ? PartialMode.Replace
         : props.mode === "append"
         ? PartialMode.Append
-        : PartialMode.Prepend;
+        : props.mode === "prepend"
+        ? PartialMode.Prepend
+        : PartialMode.Upsert;
       props.children = wrapWithMarker(
         props.children,
         "partial",

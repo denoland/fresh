@@ -1,4 +1,4 @@
-import { type ComponentChildren, h } from "preact";
+import { type ComponentChildren, h, toChildArray } from "preact";
 import {
   CLIENT_NAV_ATTR,
   DATA_ANCESTOR,
@@ -493,6 +493,50 @@ function revivePartials(
 
               (instance.props.children as ComponentChildren[]).unshift(
                 root.props.children,
+              );
+            } else {
+              instance.props.children = root.props.children;
+            }
+          } else if (partialMode === PartialMode.Upsert) {
+            const active = ACTIVE_PARTIALS.get(partialName);
+            if (active !== undefined) {
+              copyOldChildren(
+                instance.props,
+                toChildArray(active.props.children),
+              );
+
+              toChildArray(root.props.children).forEach(
+                (newChild) => {
+                  if (
+                    newChild && typeof newChild === "object" &&
+                    "key" in newChild
+                  ) {
+                    const replaceAtIndex =
+                      (instance.props.children as ComponentChildren[])
+                        .findIndex(
+                          (oldChild) => {
+                            if (
+                              oldChild && typeof oldChild === "object" &&
+                              "key" in oldChild
+                            ) {
+                              return newChild.key === oldChild.key;
+                            }
+                            return false;
+                          },
+                        );
+                    if (replaceAtIndex === -1) {
+                      (instance.props.children as ComponentChildren[]).push(
+                        newChild,
+                      );
+                    } else {
+                      (instance.props.children as ComponentChildren[]).splice(
+                        replaceAtIndex,
+                        1,
+                        newChild,
+                      );
+                    }
+                  }
+                },
               );
             } else {
               instance.props.children = root.props.children;
