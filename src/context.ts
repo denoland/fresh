@@ -253,7 +253,7 @@ function preactRender<State, Data>(
     if (!state.renderedHtmlBody) {
       let scripts = "";
       if (ctx.url.pathname !== ctx.config.basePath + DEV_ERROR_OVERLAY_URL) {
-        scripts = renderToString(h(FreshScripts, null));
+        scripts = renderToString(<FreshScripts />);
       }
       res = `<body>${res}${scripts}</body>`;
     }
