@@ -1,7 +1,6 @@
 import {
   type ComponentType,
   type FunctionComponent,
-  h,
   isValidElement,
   type VNode,
 } from "preact";
