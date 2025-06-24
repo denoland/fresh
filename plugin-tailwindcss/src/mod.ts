@@ -8,7 +8,10 @@ export function tailwind<T>(
   app: App<T>,
   options: TailwindPluginOptions = {},
 ): void {
-  let processor: ReturnType<typeof initTailwind> | null = null;
+  const instance = await postcss(twPostcss({
+    optimize: app.config.mode === "production",
+    ...options,
+  }));
 
   builder.onTransformStaticFile(
     { pluginName: "tailwind", filter: /\.css$/, exclude: options.exclude },
