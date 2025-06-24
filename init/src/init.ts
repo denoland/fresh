@@ -5,6 +5,7 @@ import * as path from "@std/path";
 // Keep these as is, as we replace these version in our release script
 const FRESH_VERSION = "2.0.0-alpha.34";
 const FRESH_TAILWIND_VERSION = "0.0.1-alpha.8";
+const TAILWINDCSS_VERSION = "4.1.10";
 const PREACT_VERSION = "10.26.6";
 const PREACT_SIGNALS_VERSION = "2.0.4";
 
@@ -513,6 +514,7 @@ if (Deno.args.includes("build")) {
   await writeFile("dev.ts", DEV_TS);
 
   const denoJson = {
+    node_modules: "auto",
     tasks: {
       check: "deno fmt --check . && deno lint . && deno check",
       dev: "deno run -A --watch=static/,routes/ dev.ts",
@@ -547,7 +549,7 @@ if (Deno.args.includes("build")) {
   };
 
   if (useTailwind) {
-    denoJson.imports["tailwindcss"] = "npm:tailwindcss@^4.1.7";
+    denoJson.imports["tailwindcss"] = `npm:tailwindcss@^${TAILWINDCSS_VERSION}`;
     denoJson.imports["@fresh/plugin-tailwind"] =
       `jsr:@fresh/plugin-tailwind@^${FRESH_TAILWIND_VERSION}`;
   }

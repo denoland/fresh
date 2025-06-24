@@ -1,13 +1,14 @@
-import { initTailwind } from "./compiler.ts";
 import type { FreshBuilder } from "fresh/dev";
 import type { App } from "fresh";
 import type { TailwindPluginOptions } from "./types.ts";
+import twPostcss from "@tailwindcss/postcss";
+import postcss from "postcss";
 
-export function tailwind<T>(
+export async function tailwind<T>(
   builder: FreshBuilder,
   app: App<T>,
   options: TailwindPluginOptions = {},
-): void {
+): Promise<void> {
   const instance = await postcss(twPostcss({
     optimize: app.config.mode === "production",
     ...options,
@@ -16,8 +17,6 @@ export function tailwind<T>(
   builder.onTransformStaticFile(
     { pluginName: "tailwind", filter: /\.css$/, exclude: options.exclude },
     async (args) => {
-      if (!processor) processor = initTailwind(app.config);
-      const instance = await processor;
       const res = await instance.process(args.text, {
         from: args.path,
       });
