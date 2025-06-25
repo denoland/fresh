@@ -76,7 +76,6 @@
     "@std/testing": "jsr:@std/testing@^1.0.12",
 
     "@tailwindcss/postcss": "npm:@tailwindcss/postcss@^4.1.10",
-    "@tailwindcss/oxide": "npm:@tailwindcss/oxide@^4.1.10",
     "tailwindcss": "npm:tailwindcss@^4.1.10",
     "postcss": "npm:postcss@8.5.6",
 

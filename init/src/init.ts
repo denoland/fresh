@@ -514,7 +514,7 @@ if (Deno.args.includes("build")) {
   await writeFile("dev.ts", DEV_TS);
 
   const denoJson = {
-    node_modules: "auto",
+    nodeModulesDir: "auto",
     tasks: {
       check: "deno fmt --check . && deno lint . && deno check",
       dev: "deno run -A --watch=static/,routes/ dev.ts",
