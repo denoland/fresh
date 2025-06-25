@@ -5,9 +5,11 @@ import * as path from "@std/path";
 // Keep these as is, as we replace these version in our release script
 const FRESH_VERSION = "2.0.0-alpha.34";
 const FRESH_TAILWIND_VERSION = "0.0.1-alpha.8";
-const TAILWINDCSS_VERSION = "4.1.10";
 const PREACT_VERSION = "10.26.6";
 const PREACT_SIGNALS_VERSION = "2.0.4";
+const TAILWINDCSS_VERSION = "4.1.10";
+const TAILWINDCSS_POSTCSS_VERSION = "4.1.10";
+const POSTCSS_VERSION = "8.5.6";
 
 function css(strs: TemplateStringsArray, ...exprs: string[]): string {
   let out = "";
@@ -544,6 +546,9 @@ if (Deno.args.includes("build")) {
       "fresh": `jsr:@fresh/core@^${FRESH_VERSION}`,
       "preact": `npm:preact@^${PREACT_VERSION}`,
       "@preact/signals": `npm:@preact/signals@^${PREACT_SIGNALS_VERSION}`,
+      "postcss": `npm:postcss@^${POSTCSS_VERSION}`,
+      "@tailwindcss/postcss":
+        `npm:@tailwindcss/postcss@^${TAILWINDCSS_POSTCSS_VERSION}`,
     } as Record<string, string>,
     compilerOptions: {
       lib: ["dom", "dom.asynciterable", "dom.iterable", "deno.ns"],
