@@ -337,7 +337,6 @@ html {
 }
 
 ${GRADIENT_CSS}`;
-
   // deno-fmt-ignore
   const TAILWIND_CSS = css`@import "tailwindcss";
 ${GRADIENT_CSS}`;
