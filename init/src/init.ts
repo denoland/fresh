@@ -546,9 +546,6 @@ if (Deno.args.includes("build")) {
       "fresh": `jsr:@fresh/core@^${FRESH_VERSION}`,
       "preact": `npm:preact@^${PREACT_VERSION}`,
       "@preact/signals": `npm:@preact/signals@^${PREACT_SIGNALS_VERSION}`,
-      "postcss": `npm:postcss@^${POSTCSS_VERSION}`,
-      "@tailwindcss/postcss":
-        `npm:@tailwindcss/postcss@^${TAILWINDCSS_POSTCSS_VERSION}`,
     } as Record<string, string>,
     compilerOptions: {
       lib: ["dom", "dom.asynciterable", "dom.iterable", "deno.ns"],
@@ -569,6 +566,9 @@ if (Deno.args.includes("build")) {
     denoJson.imports["tailwindcss"] = `npm:tailwindcss@^${TAILWINDCSS_VERSION}`;
     denoJson.imports["@fresh/plugin-tailwind"] =
       `jsr:@fresh/plugin-tailwind@^${FRESH_TAILWIND_VERSION}`;
+    denoJson.imports["@tailwindcss/postcss"] =
+      `npm:@tailwindcss/postcss@^${TAILWINDCSS_POSTCSS_VERSION}`;
+    denoJson.imports["postcss"] = `npm:postcss@^${POSTCSS_VERSION}`;
   }
 
   await writeFile("deno.json", denoJson);
