@@ -29,7 +29,6 @@ import {
   DEV_ERROR_OVERLAY_URL,
   PARTIAL_SEARCH_PARAM,
 } from "../../constants.ts";
-import * as colors from "@std/fmt/colors";
 import { escape as escapeHtml } from "@std/html";
 import { HttpError } from "../../error.ts";
 import { getCodeFrame } from "../../dev/middlewares/error_overlay/code_frame.tsx";
@@ -527,7 +526,7 @@ export function ShowErrorOverlay() {
       searchParams.append("stack", error.stack);
       const codeFrame = getCodeFrame(error.stack, ctx.config.root);
       if (codeFrame !== undefined) {
-        searchParams.append("code-frame", colors.stripAnsiCode(codeFrame));
+        searchParams.append("code-frame", codeFrame);
       }
     }
   } else {
