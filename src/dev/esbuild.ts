@@ -1,4 +1,4 @@
-import { denoPlugins } from "@luca/esbuild-deno-loader";
+import { denoPlugin } from "@deno/esbuild-plugin";
 import type { Plugin as EsbuildPlugin } from "esbuild";
 import * as path from "@std/path";
 
@@ -74,7 +74,7 @@ export async function bundleJs(
       preactDebugger(PREACT_ENV),
       buildIdPlugin(options.buildId),
       windowsPathFixer(),
-      ...denoPlugins({ configPath: options.denoJsonPath }),
+      denoPlugin({ preserveJsx: true, debug: false }),
     ],
   });
 
@@ -113,20 +113,14 @@ export async function bundleJs(
         .map(({ path }) => path);
       dependencies.set(entryPath, imports);
 
+      // Map entries to chunks
       if (entryPath !== "fresh-runtime.js" && entry.entryPoint !== undefined) {
-        let filePath = "";
-        // Resolve back specifiers to original url. This is necessary
-        // to get JSR dependencies to match what we specified as
-        // an entry point to esbuild.
-        if (
-          entry.entryPoint.startsWith("https://") ||
-          entry.entryPoint.startsWith("http://")
-        ) {
-          const basename = path.basename(entryPath, path.extname(entryPath));
-          filePath = options.entryPoints[basename];
-        } else {
-          filePath = path.join(options.cwd, entry.entryPoint);
-        }
+        const basename = path.basename(
+          entryPath,
+          path.extname(entryPath),
+        );
+
+        const filePath = options.entryPoints[basename];
 
         const name = entryToName.get(filePath)!;
         entryToChunk.set(name, entryPath);
@@ -162,14 +156,14 @@ function buildIdPlugin(buildId: string): EsbuildPlugin {
   return {
     name: "fresh-build-id",
     setup(build) {
-      build.onResolve({ filter: /runtime[/\\]+build_id\.ts$/ }, (args) => {
+      build.onResolve({ filter: /[/\\]+build_id\.ts$/ }, (args) => {
         return {
           path: args.path,
           namespace: "fresh-internal",
         };
       });
       build.onLoad({
-        filter: /runtime[/\\]build_id\.ts$/,
+        filter: /[/\\]build_id\.ts$/,
         namespace: "fresh-internal",
       }, () => {
         return {
