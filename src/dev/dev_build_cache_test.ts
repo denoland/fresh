@@ -2,7 +2,7 @@ import { expect } from "@std/expect";
 import * as path from "@std/path";
 import { MemoryBuildCache } from "./dev_build_cache.ts";
 import { FreshFileTransformer } from "./file_transformer.ts";
-import { createFakeFs, withTmpDir } from "../test_utils.ts";
+import { withTmpDir } from "../test_utils.ts";
 import type { ResolvedFreshConfig } from "../mod.ts";
 
 Deno.test({
@@ -19,7 +19,7 @@ Deno.test({
         outDir: path.join(tmp, "dist"),
       },
     };
-    const fileTransformer = new FreshFileTransformer(createFakeFs({}));
+    const fileTransformer = new FreshFileTransformer();
     const buildCache = new MemoryBuildCache(
       config,
       "testing",

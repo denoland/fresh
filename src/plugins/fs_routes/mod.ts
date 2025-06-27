@@ -1,6 +1,6 @@
 import type { AnyComponent } from "preact";
 import type { App } from "../../app.ts";
-import type { WalkEntry } from "@std/fs/walk";
+import { walk } from "@std/fs/walk";
 import * as path from "@std/path";
 import type { RouteConfig } from "../../types.ts";
 import type { RouteHandler } from "../../handlers.ts";
@@ -11,7 +11,6 @@ import {
 } from "./render_middleware.ts";
 import { type Method, pathToPattern } from "../../router.ts";
 import { type HandlerFn, isHandlerByMethod } from "../../handlers.ts";
-import { type FsAdapter, fsAdapter } from "../../fs.ts";
 import { HttpError } from "../../error.ts";
 import { parseRootPath } from "../../config.ts";
 import type { FreshReqContext, PageProps } from "../../context.ts";
@@ -40,6 +39,9 @@ export interface FreshFsItem<State> {
     | AsyncAnyComponent<PageProps<unknown, State>>;
 }
 
+// For stubbing
+export const internals = { walk };
+
 // deno-lint-ignore no-explicit-any
 function isFreshFile<State>(mod: any): mod is FreshFsItem<State> {
   return mod !== null && typeof mod === "object" &&
@@ -62,20 +64,14 @@ export interface FsRoutesOptions {
   loadIsland: (path: string) => Promise<unknown>;
 }
 
-export interface TESTING_ONLY__FsRoutesOptions {
-  _fs?: FsAdapter;
-}
-
 export async function fsRoutes<State>(
   app: App<State>,
-  options_: FsRoutesOptions,
+  options: FsRoutesOptions,
 ) {
-  const options = options_ as FsRoutesOptions & TESTING_ONLY__FsRoutesOptions;
-  const ignore = options.ignoreFilePattern ?? [TEST_FILE_PATTERN];
-  const fs = options._fs ?? fsAdapter;
+  const skip = options.ignoreFilePattern ?? [TEST_FILE_PATTERN];
 
   const dir = options.dir
-    ? parseRootPath(options.dir, fs.cwd())
+    ? parseRootPath(options.dir, Deno.cwd())
     : app.config.root;
   const islandDir = path.join(dir, "islands");
   const routesDir = path.join(dir, "routes");
@@ -83,39 +79,52 @@ export async function fsRoutes<State>(
   const islandPaths: string[] = [];
   const relRoutePaths: string[] = [];
 
-  // Walk routes folder
-  await Promise.all([
-    walkDir(
-      islandDir,
-      (entry) => {
-        islandPaths.push(entry.path);
-      },
-      ignore,
-      fs,
-    ),
-    walkDir(
-      routesDir,
-      (entry) => {
-        const relative = path.relative(routesDir, entry.path);
+  try {
+    for await (
+      const entry of walk(islandDir, {
+        includeDirs: false,
+        exts: ["tsx", "jsx", "ts", "js"],
+        skip,
+      })
+    ) {
+      islandPaths.push(entry.path);
+    }
+  } catch (error) {
+    if (!(error instanceof Deno.errors.NotFound)) {
+      throw error;
+    }
+  }
 
-        // A `(_islands)` path segment is a local island folder.
-        // Any route path segment wrapped in `(_...)` is ignored
-        // during route collection.
-        const match = relative.match(GROUP_REG);
-        if (match && match[2][0] === "_") {
-          if (match[2] === "_islands") {
-            islandPaths.push(entry.path);
-          }
-          return;
+  try {
+    for await (
+      const entry of internals.walk(routesDir, {
+        includeDirs: false,
+        exts: ["tsx", "jsx", "ts", "js"],
+        skip,
+      })
+    ) {
+      const relative = path.relative(routesDir, entry.path);
+
+      // A `(_islands)` path segment is a local island folder.
+      // Any route path segment wrapped in `(_...)` is ignored
+      // during route collection.
+      const match = relative.match(GROUP_REG);
+      if (match && match[2][0] === "_") {
+        if (match[2] === "_islands") {
+          islandPaths.push(entry.path);
         }
+        continue;
+      }
 
-        const url = new URL(relative, "http://localhost/");
-        relRoutePaths.push(url.pathname.slice(1));
-      },
-      ignore,
-      fs,
-    ),
-  ]);
+      const url = new URL(relative, "http://localhost/");
+      relRoutePaths.push(url.pathname.slice(1));
+    }
+  } catch (error) {
+    // `islandDir` or `routesDir` does not exist, so we can skip it
+    if (!(error instanceof Deno.errors.NotFound)) {
+      throw error;
+    }
+  }
 
   await Promise.all(islandPaths.map(async (islandPath) => {
     const relative = path.relative(islandDir, islandPath);
@@ -398,26 +407,6 @@ function warnInvalidRoute(message: string) {
     `🍋 %c[WARNING] Unsupported route config: ${message}`,
     "color:rgb(251, 184, 0)",
   );
-}
-
-async function walkDir(
-  dir: string,
-  callback: (entry: WalkEntry) => void,
-  ignore: RegExp[],
-  fs: FsAdapter,
-) {
-  if (!await fs.isDirectory(dir)) return;
-
-  const entries = fs.walk(dir, {
-    includeDirs: false,
-    includeFiles: true,
-    exts: ["tsx", "jsx", "ts", "js"],
-    skip: ignore,
-  });
-
-  for await (const entry of entries) {
-    callback(entry);
-  }
 }
 
 const APP_REG = /_app(?!\.[tj]sx?)?$/;
