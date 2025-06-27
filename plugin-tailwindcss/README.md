@@ -32,10 +32,10 @@ const builder = new Builder();
 await tailwind(builder, app, {
   // Exclude certain files from processing
   exclude: ["/admin/**", "*.temp.css"],
-  
+
   // Force optimization (defaults to production mode)
   optimize: true,
-  
+
   // Exclude base styles
   base: null,
 });
