@@ -8,7 +8,7 @@
     "./www"
   ],
   "name": "@fresh/core",
-  "version": "2.0.0-alpha.34",
+  "version": "2.0.0-alpha.35",
   "license": "MIT",
   "exports": {
     ".": "./src/mod.ts",
@@ -49,11 +49,11 @@
     "@std/http": "jsr:@std/http@^1.0.15",
     "@std/uuid": "jsr:@std/uuid@^1.0.7",
     "fresh": "jsr:@fresh/core@^2.0.0-alpha.29",
-    "preact": "npm:preact@^10.26.6",
+    "preact": "npm:preact@^10.26.9",
     "preact-render-to-string": "npm:preact-render-to-string@^6.5.11",
     "$ga4": "https://raw.githubusercontent.com/denoland/ga4/main/mod.ts",
     "@opentelemetry/api": "npm:@opentelemetry/api@^1.9.0",
-    "@preact/signals": "npm:@preact/signals@^2.0.4",
+    "@preact/signals": "npm:@preact/signals@^2.2.0",
     "esbuild": "npm:esbuild@0.25.4",
     "esbuild-wasm": "npm:esbuild-wasm@0.25.4",
     "@std/crypto": "jsr:@std/crypto@1",
