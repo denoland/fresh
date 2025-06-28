@@ -43,7 +43,8 @@ export default function Countdown(props: { target: string }) {
   // Set up an interval to update the `now` date every second with the current
   // date as long as the component is mounted.
   useEffect(() => {
-    const timer = setInterval(() => {
+    let timer: number = -1;
+    timer = setInterval(() => {
       if (now.value > target) {
         clearInterval(timer);
       }
