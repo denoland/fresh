@@ -9,16 +9,14 @@ export interface FreshConfig {
    * @default Deno.cwd()
    */
   root?: string;
-  build?: {
-    /**
-     * The directory to write generated files to when `dev.ts build` is run.
-     *
-     * This can be an absolute path, a file URL or a relative path.
-     * Relative paths are resolved against the `root` option.
-     * @default "_fresh"
-     */
-    outDir?: string;
-  };
+  /**
+   * The directory to write generated files to when `dev.ts build` is run.
+   *
+   * This can be an absolute path, a file URL or a relative path.
+   * Relative paths are resolved against the `root` option.
+   * @default "_fresh"
+   */
+  buildOutDir?: string;
   /**
    * Serve fresh from a base path instead of from the root.
    *   "/foo/bar" -> http://localhost:8000/foo/bar
@@ -38,13 +36,7 @@ export interface FreshConfig {
 /**
  * The final resolved Fresh configuration where fields the user didn't specify are set to the default values.
  */
-export interface ResolvedFreshConfig {
-  root: string;
-  build: {
-    outDir: string;
-  };
-  basePath: string;
-  staticDir: string;
+export interface ResolvedFreshConfig extends Required<FreshConfig> {
   /**
    * The mode Fresh can run in.
    */
@@ -88,9 +80,7 @@ export function normalizeConfig(options: FreshConfig): ResolvedFreshConfig {
 
   return {
     root,
-    build: {
-      outDir: parseDirPath(options.build?.outDir ?? "_fresh", root),
-    },
+    buildOutDir: parseDirPath(options.buildOutDir ?? "_fresh", root),
     basePath: options.basePath ?? "",
     staticDir: parseDirPath(options.staticDir ?? "static", root),
     mode: "production",
@@ -98,5 +88,5 @@ export function normalizeConfig(options: FreshConfig): ResolvedFreshConfig {
 }
 
 export function getSnapshotPath(config: ResolvedFreshConfig): string {
-  return path.join(config.build.outDir, "snapshot.json");
+  return path.join(config.buildOutDir, "snapshot.json");
 }

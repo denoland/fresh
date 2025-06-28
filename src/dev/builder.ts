@@ -106,8 +106,8 @@ export class Builder implements FreshBuilder {
   }
 
   async #build<T>(app: App<T>, dev: boolean): Promise<void> {
-    const { build } = app.config;
-    const staticOutDir = path.join(build.outDir, "static");
+    const { buildOutDir } = app.config;
+    const staticOutDir = path.join(buildOutDir, "static");
 
     if (!this.#addedInternalTransforms) {
       this.#addedInternalTransforms = true;
@@ -208,7 +208,7 @@ export class Builder implements FreshBuilder {
     if (!dev) {
       // deno-lint-ignore no-console
       console.log(
-        `Assets written to: ${colors.cyan(build.outDir)}`,
+        `Assets written to: ${colors.cyan(buildOutDir)}`,
       );
     }
   }
