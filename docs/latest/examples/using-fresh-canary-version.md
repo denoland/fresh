@@ -9,7 +9,7 @@ script. This page has you covered.
 
 ## Canary Fresh in `deno.json`
 
-### Latest alpha version 
+### Latest alpha version
 
 The easiest way to use Fresh 2 canary is with the update command:
 
@@ -17,7 +17,8 @@ The easiest way to use Fresh 2 canary is with the update command:
 deno run -A -r jsr:@fresh/update@2.0.0-alpha.35 .
 ```
 
-This will automatically update your `deno.json` to use the specified canary version.
+This will automatically update your `deno.json` to use the specified canary
+version.
 
 ### Specific commit
 
@@ -55,7 +56,7 @@ For testing your own fork or PR:
 
 ## Creating a new project
 
-### Using JSR 
+### Using JSR
 
 ```sh Terminal
 deno run -A -r jsr:@fresh/init@2.0.0-alpha.35
