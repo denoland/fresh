@@ -23,6 +23,7 @@ import { BUILD_ID } from "../runtime/build_id.ts";
 import { updateCheck } from "./update_check.ts";
 import { DAY } from "@std/datetime";
 import { devErrorOverlay } from "./middlewares/error_overlay/middleware.tsx";
+import { automaticWorkspaceFolders } from "./middlewares/automatic_workspace_folders.ts";
 
 export interface BuildOptions {
   /**
@@ -68,6 +69,7 @@ export class Builder implements FreshBuilder {
     const devApp = new App<T>(app.config)
       .use(liveReload())
       .use(devErrorOverlay())
+      .use(automaticWorkspaceFolders(app.config.root))
       .mountApp("/*", app);
 
     devApp.config.mode = "development";

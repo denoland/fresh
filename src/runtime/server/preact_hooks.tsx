@@ -25,8 +25,10 @@ import {
 } from "../shared_internal.tsx";
 import type { BuildCache } from "../../build_cache.ts";
 import { BUILD_ID } from "../build_id.ts";
-import { DEV_ERROR_OVERLAY_URL } from "../../constants.ts";
-import * as colors from "@std/fmt/colors";
+import {
+  DEV_ERROR_OVERLAY_URL,
+  PARTIAL_SEARCH_PARAM,
+} from "../../constants.ts";
 import { escape as escapeHtml } from "@std/html";
 import { HttpError } from "../../error.ts";
 import { getCodeFrame } from "../../dev/middlewares/error_overlay/code_frame.tsx";
@@ -427,7 +429,7 @@ function FreshRuntimeScript() {
 
   const islandArr = Array.from(islands);
 
-  if (ctx.url.searchParams.has("fresh-partial")) {
+  if (ctx.url.searchParams.has(PARTIAL_SEARCH_PARAM)) {
     const islands = islandArr.map((island) => {
       const chunk = buildCache.getIslandChunkName(island.name);
       if (chunk === null) {
@@ -452,6 +454,7 @@ function FreshRuntimeScript() {
       <script
         id={`__FRSH_STATE_${partialId}`}
         type="application/json"
+        // deno-lint-ignore react-no-danger
         dangerouslySetInnerHTML={{ __html: JSON.stringify(json) }}
       />
     );
@@ -486,6 +489,7 @@ function FreshRuntimeScript() {
         <script
           type="module"
           nonce={nonce}
+          // deno-lint-ignore react-no-danger
           dangerouslySetInnerHTML={{
             __html: scriptContent,
           }}
@@ -522,7 +526,7 @@ export function ShowErrorOverlay() {
       searchParams.append("stack", error.stack);
       const codeFrame = getCodeFrame(error.stack, ctx.config.root);
       if (codeFrame !== undefined) {
-        searchParams.append("code-frame", colors.stripAnsiCode(codeFrame));
+        searchParams.append("code-frame", codeFrame);
       }
     }
   } else {

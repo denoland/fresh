@@ -115,3 +115,15 @@ export function createFakeFs(files: Record<string, unknown>): FsAdapter {
 }
 
 export const delay = (ms: number) => new Promise((r) => setTimeout(r, ms));
+
+export async function withTmpDir(
+  options?: Deno.MakeTempOptions,
+): Promise<{ dir: string } & AsyncDisposable> {
+  const dir = await Deno.makeTempDir(options);
+  return {
+    dir,
+    async [Symbol.asyncDispose]() {
+      await Deno.remove(dir, { recursive: true });
+    },
+  };
+}
