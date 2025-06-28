@@ -9,68 +9,67 @@ script. This page has you covered.
 
 ## Canary Fresh in `deno.json`
 
+### Latest alpha version 
+
+The easiest way to use Fresh 2 canary is with the update command:
+
+```sh Terminal
+deno run -A -r jsr:@fresh/update@2.0.0-alpha.35 .
+```
+
+This will automatically update your `deno.json` to use the specified canary version.
+
 ### Specific commit
 
-Let's say you like living life in the fast lane, and want a particular commit.
-How can you modify your project to no longer use the current release, but
-instead this one particular commit? Just make the following changes to your
-`deno.json`:
+If you need a particular commit (for testing specific fixes or features):
 
 ```diff deno.json
-     "update": "deno run -A -r https://fresh.deno.dev/update ."
+   "tasks": {
+     "update": "deno run -A -r jsr:@fresh/update ."
    },
    "imports": {
--    "$fresh/": "https://deno.land/x/fresh@1.2.0/",
-+    "$fresh/": "https://raw.githubusercontent.com/denoland/fresh/the-particular-commit-hash-here/",
-     "preact": "https://esm.sh/preact@10.22.0",
-     "preact/": "https://esm.sh/preact@10.22.0/",
+-    "$fresh/": "jsr:@fresh/core@^2.0.0",
++    "$fresh/": "https://raw.githubusercontent.com/denoland/fresh/your-commit-hash/",
+     "preact": "npm:preact@^10.26.9",
+     "@preact/signals": "npm:@preact/signals@^2.2.0"
+   }
 ```
+
+Replace `your-commit-hash` with your desired commit hash.
 
 ### Forked Fresh
 
-Or what if you have a PR created but it's not getting merged into `main`. Don't
-worry, you can use the same approach to reference any branch in a fork as well.
-Here's an example of referencing a feature in a forked repository that hasn't
-been merged yet (at the time of writing this):
+For testing your own fork or PR:
 
 ```diff deno.json
-     "update": "deno run -A -r https://fresh.deno.dev/update ."
+   "tasks": {
+     "update": "deno run -A -r jsr:@fresh/update ."
    },
    "imports": {
--    "$fresh/": "https://deno.land/x/fresh@1.2.0/",
-+    "$fresh/": "https://raw.githubusercontent.com/deer/fresh/state_in_props/",
-     "preact": "https://esm.sh/preact@10.22.0",
+-    "$fresh/": "https://deno.land/x/fresh@1.7.3/",
++    "$fresh/": "https://raw.githubusercontent.com/your-username/fresh/your-branch/",
+     "preact": "https://esm.sh/preact@10.26.9",
      "preact/": "https://esm.sh/preact@10.22.0/",
+   }
 ```
 
 ## Creating a new project
 
-What if you're getting into open source development, and you've of course
-decided to contribute to the best, freshest project around. Maybe you want to
-create a test project based on your local changes.
-
-### Creating a project from source
-
-Instead of doing it like this:
+### Using JSR 
 
 ```sh Terminal
-deno run -A -r https://fresh.deno.dev/
+deno run -A -r jsr:@fresh/init@2.0.0-alpha.35
 ```
 
-do it like this:
+### From local source
+
+If you're developing Fresh itself:
 
 ```sh Terminal
-deno run -A -r path/to/fresh/init.ts
+deno run -A -r ./init/src/init.ts
 ```
 
-(or wherever your local code lives)
+### Recommended reading
 
-### Creating a project from the latest commit
-
-Of course there's no reason why you have to check out the Fresh source. You can
-create a project from the latest commit by combining the techniques on this page
-like this:
-
-```sh Terminal
-deno run -A -r https://raw.githubusercontent.com/denoland/fresh/main/init.ts
-```
+- [Fresh v2 blog](https://deno.com/blog/fresh-2)
+- [Migration guide](../../migration-guide.md)
