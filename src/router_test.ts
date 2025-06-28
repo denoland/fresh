@@ -1,5 +1,5 @@
 import { expect } from "@std/expect";
-import { IS_PATTERN, pathToPattern, UrlPatternRouter } from "./router.ts";
+import { IS_PATTERN, pathToPattern, Router } from "./router.ts";
 
 Deno.test("IS_PATTERN", () => {
   expect(IS_PATTERN.test("/foo")).toEqual(false);
@@ -11,8 +11,8 @@ Deno.test("IS_PATTERN", () => {
   expect(IS_PATTERN.test("/foo/(a)")).toEqual(true);
 });
 
-Deno.test("UrlPatternRouter - GET get first match", () => {
-  const router = new UrlPatternRouter();
+Deno.test("Router - GET get first match", () => {
+  const router = new Router();
   const A = () => {};
   const B = () => {};
   const C = () => {};
@@ -30,8 +30,8 @@ Deno.test("UrlPatternRouter - GET get first match", () => {
   });
 });
 
-Deno.test("UrlPatternRouter - GET get matches with middlewares", () => {
-  const router = new UrlPatternRouter();
+Deno.test("Router - GET get matches with middlewares", () => {
+  const router = new Router();
   const A = () => {};
   const B = () => {};
   const C = () => {};
@@ -49,8 +49,8 @@ Deno.test("UrlPatternRouter - GET get matches with middlewares", () => {
   });
 });
 
-Deno.test("UrlPatternRouter - GET extract params", () => {
-  const router = new UrlPatternRouter();
+Deno.test("Router - GET extract params", () => {
+  const router = new Router();
   const A = () => {};
   router.add("GET", new URLPattern({ pathname: "/:foo/:bar/c" }), [A]);
 
@@ -74,8 +74,8 @@ Deno.test("UrlPatternRouter - GET extract params", () => {
   });
 });
 
-Deno.test("UrlPatternRouter - Wrong method match", () => {
-  const router = new UrlPatternRouter();
+Deno.test("Router - Wrong method match", () => {
+  const router = new Router();
   const A = () => {};
   router.add("GET", "/foo", [A]);
 
@@ -89,8 +89,8 @@ Deno.test("UrlPatternRouter - Wrong method match", () => {
   });
 });
 
-Deno.test("UrlPatternRouter - wrong + correct method", () => {
-  const router = new UrlPatternRouter();
+Deno.test("Router - wrong + correct method", () => {
+  const router = new Router();
   const A = () => {};
   const B = () => {};
   router.add("GET", "/foo", [A]);
@@ -106,8 +106,8 @@ Deno.test("UrlPatternRouter - wrong + correct method", () => {
   });
 });
 
-Deno.test("UrlPatternRouter - convert patterns automatically", () => {
-  const router = new UrlPatternRouter();
+Deno.test("Router - convert patterns automatically", () => {
+  const router = new Router();
   const A = () => {};
   router.add("GET", "/books/:id", [A]);
 
