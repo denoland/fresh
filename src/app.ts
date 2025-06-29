@@ -8,7 +8,6 @@ import { type MiddlewareFn, runMiddlewares } from "./middlewares/mod.ts";
 import { FreshReqContext } from "./context.ts";
 import { type Method, type Router, UrlPatternRouter } from "./router.ts";
 import {
-  checkUnstableRouter,
   type FreshConfig,
   normalizeConfig,
   type ResolvedFreshConfig,
@@ -19,13 +18,19 @@ import { FinishSetup, ForgotBuild } from "./finish_setup.tsx";
 import { HttpError } from "./error.ts";
 import { mergePaths, pathToExportName } from "./utils.ts";
 import {
-  addAppWrapper,
-  addLayout,
-  addMiddleware,
-  addRoute,
-  newRouter,
-  type RouterState,
-} from "./router2.ts";
+  AppSegments,
+  findOrCreateSegment,
+  getOrCreateHandlers,
+  InternalRoute,
+  newRoute,
+  newSegment,
+  registerRoutes,
+  routeToMiddlewares,
+  Segment,
+  SegmentData,
+} from "./segments.ts";
+import { FreshFsItem } from "./plugins/fs_routes/mod.ts";
+import { HandlerFn, isHandlerByMethod } from "./handlers.ts";
 
 // TODO: Completed type clashes in older Deno versions
 // deno-lint-ignore no-explicit-any
@@ -123,7 +128,6 @@ async function listenOnFreePort(
   throw firstError;
 }
 
-export let getRouter: <State>(app: App<State>) => Router<MiddlewareFn<State>>;
 // deno-lint-ignore no-explicit-any
 export let getIslandRegistry: (app: App<any>) => ServerIslandRegistry;
 // deno-lint-ignore no-explicit-any
@@ -132,16 +136,15 @@ export let getBuildCache: (app: App<any>) => BuildCache | null;
 export let setBuildCache: (app: App<any>, cache: BuildCache | null) => void;
 
 export class App<State> {
-  #router: Router<MiddlewareFn<State>> = new UrlPatternRouter<
-    MiddlewareFn<State>
+  #router: Router<InternalRoute<State>> = new UrlPatternRouter<
+    InternalRoute<State>
   >();
-  #router2: RouterState<State> = newRouter<State>();
+  #root: Segment<State>;
   #islandRegistry: ServerIslandRegistry = new Map();
   #buildCache: BuildCache | null = null;
   #islandNames = new Set<string>();
 
   static {
-    getRouter = (app) => app.#router;
     getIslandRegistry = (app) => app.#islandRegistry;
     getBuildCache = (app) => app.#buildCache;
     setBuildCache = (app, cache) => app.#buildCache = cache;
@@ -154,6 +157,7 @@ export class App<State> {
 
   constructor(config: FreshConfig = {}) {
     this.config = normalizeConfig(config);
+    this.#root = newSegment(this.config.basePath, null);
   }
 
   island(
@@ -188,50 +192,111 @@ export class App<State> {
     pathOrMiddleware: string | MiddlewareFn<State>,
     middleware?: MiddlewareFn<State>,
   ): this {
+    let pathname: string;
+    let fn: MiddlewareFn<State>;
     if (typeof pathOrMiddleware === "string") {
-      checkUnstableRouter(this.config);
-      addMiddleware(this.#router2, pathOrMiddleware, middleware!);
+      pathname = pathOrMiddleware;
+      fn = middleware!;
     } else {
-      this.#router.addMiddleware(pathOrMiddleware);
+      pathname = "";
+      fn = pathOrMiddleware;
     }
+
+    const segment = findOrCreateSegment<State>(this.#root, pathname);
+    segment.middlewares.push(fn);
+
     return this;
   }
 
-  appWrapper(fn: any) {
-    checkUnstableRouter(this.config);
-    addAppWrapper(this.#router2, fn);
+  appWrapper(fn: any): this {
+    this.#root.app = fn;
+    return this;
   }
 
-  layout(path: string, layout: any) {
-    checkUnstableRouter(this.config);
-    addLayout(this.#router2, path, layout);
+  layout(path: string, layout: any): this {
+    const segment = findOrCreateSegment<State>(this.#root, path);
+    segment.layout = layout;
+    return this;
   }
 
-  route(path: string, route: any) {
-    checkUnstableRouter(this.config);
-    addRoute(this.#router2, path, route);
+  route(path: string, route: FreshFsItem<State>): this {
+    const { route: sRoute, handlers } = getOrCreateHandlers<State>(
+      this.#root,
+      path,
+    );
+
+    sRoute.component = route.default ?? null;
+    const raw = route.handlers ?? route.handler ?? null;
+    if (isHandlerByMethod(raw)) {
+      if (raw.GET) handlers.GET.fns.push(wrapRender(raw.GET));
+      if (raw.DELETE) handlers.DELETE.fns.push(wrapRender(raw.DELETE));
+      if (raw.HEAD) handlers.HEAD.fns.push(wrapRender(raw.HEAD));
+      if (raw.PATCH) handlers.PATCH.fns.push(wrapRender(raw.PATCH));
+      if (raw.POST) handlers.POST.fns.push(wrapRender(raw.POST));
+      if (raw.PUT) handlers.PUT.fns.push(wrapRender(raw.PUT));
+    } else if (typeof raw === "function") {
+      handlers.DELETE.fns.push(wrapRender(raw));
+      handlers.GET.fns.push(wrapRender(raw));
+      handlers.HEAD.fns.push(wrapRender(raw));
+      handlers.PATCH.fns.push(wrapRender(raw));
+      handlers.POST.fns.push(wrapRender(raw));
+      handlers.PUT.fns.push(wrapRender(raw));
+    } else if (Array.isArray(raw)) {
+      const normalized = raw.map((fn) => wrapRender(fn));
+      handlers.DELETE.fns.push(...normalized);
+      handlers.GET.fns.push(...normalized);
+      handlers.HEAD.fns.push(...normalized);
+      handlers.PATCH.fns.push(...normalized);
+      handlers.POST.fns.push(...normalized);
+      handlers.PUT.fns.push(...normalized);
+    }
+    sRoute.config = route.config ?? null;
+
+    return this;
   }
 
   get(path: string, ...middlewares: MiddlewareFn<State>[]): this {
-    return this.#addRoutes("GET", path, middlewares);
+    const { handlers } = getOrCreateHandlers<State>(this.#root, path);
+    handlers.GET.fns.push(...middlewares);
+    return this;
   }
   post(path: string, ...middlewares: MiddlewareFn<State>[]): this {
-    return this.#addRoutes("POST", path, middlewares);
+    const { handlers } = getOrCreateHandlers<State>(this.#root, path);
+    handlers.POST.fns.push(...middlewares);
+
+    return this;
   }
   patch(path: string, ...middlewares: MiddlewareFn<State>[]): this {
-    return this.#addRoutes("PATCH", path, middlewares);
+    const { handlers } = getOrCreateHandlers<State>(this.#root, path);
+    handlers.PATCH.fns.push(...middlewares);
+    return this;
   }
   put(path: string, ...middlewares: MiddlewareFn<State>[]): this {
-    return this.#addRoutes("PUT", path, middlewares);
+    const { handlers } = getOrCreateHandlers<State>(this.#root, path);
+    handlers.PUT.fns.push(...middlewares);
+    return this;
   }
   delete(path: string, ...middlewares: MiddlewareFn<State>[]): this {
-    return this.#addRoutes("DELETE", path, middlewares);
+    const { handlers } = getOrCreateHandlers<State>(this.#root, path);
+    handlers.DELETE.fns.push(...middlewares);
+    return this;
   }
   head(path: string, ...middlewares: MiddlewareFn<State>[]): this {
-    return this.#addRoutes("HEAD", path, middlewares);
+    const { handlers } = getOrCreateHandlers<State>(this.#root, path);
+    handlers.HEAD.fns.push(...middlewares);
+    return this;
   }
   all(path: string, ...middlewares: MiddlewareFn<State>[]): this {
-    return this.#addRoutes("ALL", path, middlewares);
+    const { handlers } = getOrCreateHandlers<State>(this.#root, path);
+
+    handlers.DELETE.fns.push(...middlewares);
+    handlers.GET.fns.push(...middlewares);
+    handlers.HEAD.fns.push(...middlewares);
+    handlers.PATCH.fns.push(...middlewares);
+    handlers.POST.fns.push(...middlewares);
+    handlers.PUT.fns.push(...middlewares);
+
+    return this;
   }
 
   mountApp(path: string, app: App<State>): this {
@@ -265,18 +330,6 @@ export class App<State> {
     return this;
   }
 
-  #addRoutes(
-    method: Method | "ALL",
-    pathname: string | URLPattern,
-    middlewares: MiddlewareFn<State>[],
-  ): this {
-    const merged = typeof pathname === "string"
-      ? mergePaths(this.config.basePath, pathname)
-      : pathname;
-    this.#router.add(method, merged, middlewares);
-    return this;
-  }
-
   handler(): (
     request: Request,
     info?: Deno.ServeHandlerInfo,
@@ -295,6 +348,8 @@ export class App<State> {
       return missingBuildHandler;
     }
 
+    registerRoutes(this.#router, this.#root, "");
+
     return async (
       req: Request,
       conn: Deno.ServeHandlerInfo = DEFAULT_CONN_INFO,
@@ -310,7 +365,7 @@ export class App<State> {
         ? DEFAULT_NOT_ALLOWED_METHOD
         : DEFAULT_NOT_FOUND;
 
-      const { params, handlers, pattern } = matched;
+      const { params, pattern } = matched;
       const ctx = new FreshReqContext<State>(
         req,
         url,
@@ -328,10 +383,15 @@ export class App<State> {
         span.setAttribute("http.route", pattern);
       }
 
+      const handlers = matched.item === null
+        ? this.#root.middlewares
+        : routeToMiddlewares<State>(matched.item, method);
+
+      console.log({ handlers, url: url.pathname, method });
       try {
         let result: unknown;
-        if (handlers.length === 1 && handlers[0].length === 1) {
-          result = await handlers[0][0](ctx);
+        if (handlers.length === 1) {
+          result = await handlers[0](ctx);
         } else {
           result = await runMiddlewares(handlers, ctx);
         }
@@ -383,3 +443,14 @@ const missingBuildHandler = async (): Promise<Response> => {
     : renderToString(h(ForgotBuild, null));
   return new Response(html, { headers, status: 500 });
 };
+
+function wrapRender<State>(fn: HandlerFn<unknown, State>): MiddlewareFn<State> {
+  return async (ctx) => {
+    const res = await fn(ctx);
+    if (res instanceof Response) {
+      return res;
+    }
+
+    throw new Error("TODO");
+  };
+}

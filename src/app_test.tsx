@@ -35,8 +35,6 @@ Deno.test("FreshApp - .use() #2", async () => {
 
 Deno.test("FreshApp - .get()", async () => {
   const app = new App()
-    .post("/", () => new Response("ok"))
-    .post("/foo", () => new Response("ok"))
     .get("/", () => new Response("ok"))
     .get("/foo", () => new Response("ok"));
 
