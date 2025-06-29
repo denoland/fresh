@@ -50,7 +50,7 @@ export class UrlPatternRouter<T> implements Router<T> {
     method: Method | "ALL",
     pathname: string | URLPattern,
     handlers: T[],
-  ): void {
+  ) {
     this._routes.push({
       path: isURLPatternParam(pathname)
         ? new URLPattern({ pathname })

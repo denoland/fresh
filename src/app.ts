@@ -185,7 +185,7 @@ export class App<State> {
       this.#router.addMiddleware("/*", pathOrMiddleware);
     } else {
       if (!middleware) {
-        throw new Error("Middleware is required when path is provided");
+        throw new TypeError("Middleware is required when path is provided");
       }
       this.#router.addMiddleware(pathOrMiddleware, middleware);
     }
@@ -258,7 +258,7 @@ export class App<State> {
         );
 
         // Create a new array of handlers with the correct type
-        const combinedHandlers: Array<MiddlewareFn<State>> = [
+        const combinedHandlers = [
           ...middlewareHandlers,
           ...route.handlers,
         ];
