@@ -164,34 +164,31 @@ export async function fsRoutes<State>(
     }),
   );
 
-  routeModules.sort((a, b) => sortRoutePaths(a.path, b.path));
-
-  const stack: InternalRoute<State>[] = [];
-  let hasApp = false;
-
-  const specialPaths = new Set<string>();
-
   for (let i = 0; i < routeModules.length; i++) {
     const routeMod = routeModules[i];
     const normalized = routeMod.path;
 
-    let j = stack.length - 1;
-    while (
-      j >= 0 && stack[j].base !== "" &&
-      !routeMod.path.startsWith(stack[j].base + "/")
-    ) {
-      j--;
-      stack.pop();
-    }
+    const stack: any[] = [];
 
+    console.log(routeMod);
     if (normalized.endsWith("/_app")) {
-      hasApp = true;
-      stack.push(routeMod);
+      app.appWrapper(routeMod.component);
       continue;
     } else if (normalized.endsWith("/_middleware")) {
+      if (isHandlerByMethod(routeMod.handlers)) {
+        warnInvalidRoute(
+          "Middleware does not support object handlers with GET, POST, etc.",
+        );
+      }
+      const pattern = pathToPattern(
+        normalized.slice(0, -"/_middleware".length),
+      );
       stack.push(routeMod);
       continue;
     } else if (normalized.endsWith("/_layout")) {
+      if (routeMod.handlers !== null) {
+        warnInvalidRoute("Layout does not support handlers");
+      }
       stack.push(routeMod);
       continue;
     } else if (normalized.endsWith("/_error")) {
@@ -204,6 +201,15 @@ export async function fsRoutes<State>(
       stack.push(routeMod);
       continue;
     }
+
+    const pattern = pathToPattern(normalized.slice(1));
+    app.route(pattern, {
+      config: routeMod.config ?? undefined,
+      default: routeMod.component ?? undefined,
+      handler: routeMod.handlers ?? undefined,
+    });
+
+    continue;
 
     // Remove any elements not matching our parent path anymore
     const middlewares: MiddlewareFn<State>[] = [];
