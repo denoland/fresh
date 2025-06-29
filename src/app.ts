@@ -172,8 +172,23 @@ export class App<State> {
     return this;
   }
 
-  use(middleware: MiddlewareFn<State>): this {
-    this.#router.addMiddleware(middleware);
+  use(pathOrMiddleware: MiddlewareFn<State>): this;
+  use(
+    pathOrMiddleware: string | URLPattern,
+    middleware: MiddlewareFn<State>,
+  ): this;
+  use(
+    pathOrMiddleware: string | URLPattern | MiddlewareFn<State>,
+    middleware?: MiddlewareFn<State>,
+  ): this {
+    if (typeof pathOrMiddleware === "function") {
+      this.#router.addMiddleware("/*", pathOrMiddleware);
+    } else {
+      if (!middleware) {
+        throw new TypeError("Middleware is required when path is provided");
+      }
+      this.#router.addMiddleware(pathOrMiddleware, middleware);
+    }
     return this;
   }
 
@@ -212,19 +227,44 @@ export class App<State> {
     // - `app.mountApp("/*", otherApp)`
     const isSelf = path === "/*" || path === "/";
     if (isSelf && middlewares.length > 0) {
-      this.#router._middlewares.push(...middlewares);
-    }
+      // When mounting at the root, add middleware directly to the host app
+      for (const middleware of middlewares) {
+        this.#router._middlewares.push(middleware);
+      }
 
-    for (let i = 0; i < routes.length; i++) {
-      const route = routes[i];
+      // Add routes as-is since we're mounting at the root
+      for (let i = 0; i < routes.length; i++) {
+        const route = routes[i];
+        this.#router.add(route.method, route.path, [...route.handlers]);
+      }
+    } else {
+      // For non-root mounts, we need to merge paths and apply middlewares to routes
+      for (let i = 0; i < routes.length; i++) {
+        const route = routes[i];
+        const merged = typeof route.path === "string"
+          ? mergePaths(path, route.path)
+          : mergePaths(path, route.path.pathname);
 
-      const merged = typeof route.path === "string"
-        ? mergePaths(path, route.path)
-        : route.path;
-      const combined = isSelf
-        ? route.handlers
-        : middlewares.concat(route.handlers);
-      this.#router.add(route.method, merged, combined);
+        // If there are no middlewares, just add the route as-is with the merged path
+        if (middlewares.length === 0) {
+          this.#router.add(route.method, merged, [...route.handlers]);
+          continue;
+        }
+
+        // When there are middlewares, we need to add middleware handlers to each route
+        // Extract middleware handlers into a flat array ensuring we get the right type
+        const middlewareHandlers = middlewares.flatMap((middleware) =>
+          middleware.handlers
+        );
+
+        // Create a new array of handlers with the correct type
+        const combinedHandlers = [
+          ...middlewareHandlers,
+          ...route.handlers,
+        ];
+
+        this.#router.add(route.method, merged, combinedHandlers);
+      }
     }
 
     return this;

@@ -49,6 +49,50 @@ Deno.test("UrlPatternRouter - GET get matches with middlewares", () => {
   });
 });
 
+Deno.test("UrlPatternRouter - GET get matches with middlewares with Path", () => {
+  const router = new UrlPatternRouter();
+  const A = () => {};
+  const B = () => {};
+  const C = () => {};
+  const D = () => {};
+  router.addMiddleware("/*", D);
+  router.add("ALL", "/*", [A]);
+  router.add("ALL", "/*", [B]);
+  router.add("GET", "/", [C]);
+
+  const res = router.match("GET", new URL("/", "http://localhost"));
+
+  expect(res).toEqual({
+    params: {},
+    handlers: [[D], [A], [B], [C]],
+    methodMatch: true,
+    pattern: "/",
+    patternMatch: true,
+  });
+});
+
+Deno.test("UrlPatternRouter - GET get matches with middlewares with Path(eq endpoint path)", () => {
+  const router = new UrlPatternRouter();
+  const A = () => {};
+  const B = () => {};
+  const C = () => {};
+  const D = () => {};
+  router.addMiddleware("/a/1", D);
+  router.add("ALL", "/*", [A]);
+  router.add("ALL", "/*", [B]);
+  router.add("GET", "/a/1", [C]);
+
+  const res = router.match("GET", new URL("/a/1", "http://localhost"));
+
+  expect(res).toEqual({
+    params: {},
+    handlers: [[D], [A], [B], [C]],
+    methodMatch: true,
+    pattern: "/a/1",
+    patternMatch: true,
+  });
+});
+
 Deno.test("UrlPatternRouter - GET extract params", () => {
   const router = new UrlPatternRouter();
   const A = () => {};
