@@ -32,7 +32,7 @@ If you need a particular commit (for testing specific fixes or features):
 -    "$fresh/": "jsr:@fresh/core@^2.0.0",
 +    "$fresh/": "https://raw.githubusercontent.com/denoland/fresh/your-commit-hash/",
      "preact": "npm:preact@^10.26.9",
-     "@preact/signals": "npm:@preact/signals@^2.2.0"
+     "@preact/signals": "npm:@preact/signals@^2.2.1"
    }
 ```
 
