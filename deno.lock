@@ -53,8 +53,8 @@
     "npm:@opentelemetry/api@^1.9.0": "1.9.0",
     "npm:@preact/signals@^1.2.3": "1.3.2_preact@10.26.9",
     "npm:@preact/signals@^2.0.4": "2.2.0_preact@10.26.9",
-    "npm:@tailwindcss/postcss@^4.1.10": "4.1.11",
     "npm:@preact/signals@^2.2.0": "2.2.0_preact@10.26.9",
+    "npm:@tailwindcss/postcss@^4.1.10": "4.1.11",
     "npm:@types/node@*": "22.15.15",
     "npm:esbuild-wasm@0.25.4": "0.25.4",
     "npm:esbuild@0.25.4": "0.25.4",
@@ -129,7 +129,8 @@
       "dependencies": [
         "npm:@preact/signals@^1.2.3",
         "npm:preact@^10.22.0",
-        "npm:preact@^10.26.6"
+        "npm:preact@^10.26.6",
+        "npm:preact@^10.26.9"
       ]
     },
     "@std/assert@1.0.13": {
@@ -1260,8 +1261,8 @@
       "jsr:@std/testing@^1.0.12",
       "jsr:@std/uuid@^1.0.7",
       "npm:@opentelemetry/api@^1.9.0",
-      "npm:@tailwindcss/postcss@^4.1.10",
       "npm:@preact/signals@^2.2.0",
+      "npm:@tailwindcss/postcss@^4.1.10",
       "npm:esbuild-wasm@0.25.4",
       "npm:esbuild@0.25.4",
       "npm:github-slugger@2",
