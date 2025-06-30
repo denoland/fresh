@@ -7,7 +7,7 @@
     "./www"
   ],
   "name": "@fresh/core",
-  "version": "2.0.0-alpha.35",
+  "version": "2.0.0-alpha.36",
   "license": "MIT",
   "exports": {
     ".": "./src/mod.ts",
@@ -52,7 +52,7 @@
     "preact-render-to-string": "npm:preact-render-to-string@^6.5.11",
     "$ga4": "https://raw.githubusercontent.com/denoland/ga4/main/mod.ts",
     "@opentelemetry/api": "npm:@opentelemetry/api@^1.9.0",
-    "@preact/signals": "npm:@preact/signals@^2.2.0",
+    "@preact/signals": "npm:@preact/signals@^2.2.1",
     "esbuild": "npm:esbuild@0.25.4",
     "esbuild-wasm": "npm:esbuild-wasm@0.25.4",
     "@std/crypto": "jsr:@std/crypto@1",
