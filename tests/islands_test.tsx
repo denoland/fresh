@@ -31,6 +31,7 @@ import { getBuildCache } from "../src/app.ts";
 import type { FreshConfig } from "../src/config.ts";
 import { FreshAttrs } from "./fixtures_islands/FreshAttrs.tsx";
 import { FakeServer } from "../src/test_utils.ts";
+import { PARTIAL_SEARCH_PARAM } from "../src/constants.ts";
 
 await buildProd(allIslandApp);
 
@@ -577,6 +578,20 @@ Deno.test({
             <EscapeIsland str={`"foo"asdf`} />
           </Doc>,
         );
+      })
+      .get("/foo", (ctx) => {
+        return ctx.render(
+          <Doc>
+            <EscapeIsland str={`<script>alert('hey')</script>`} />
+          </Doc>,
+        );
+      })
+      .get("/bar", (ctx) => {
+        return ctx.render(
+          <Doc>
+            <EscapeIsland str={`<!--<script>alert('hey')</script>`} />
+          </Doc>,
+        );
       });
 
     await withBrowserApp(app, async (page, address) => {
@@ -585,9 +600,63 @@ Deno.test({
 
       // Page would error here
       const text = await page
-        .locator<HTMLDivElement>(".ready")
+        .locator<HTMLDivElement>(".ready p")
         .evaluate((el) => el.textContent!);
       expect(text).toEqual("it works");
+
+      // Page would error here
+      const text2 = await page
+        .locator<HTMLDivElement>(".ready div")
+        .evaluate((el) => el.textContent!);
+      expect(text2).toEqual(`"foo"asdf`);
+    });
+
+    // Check escaping of `</`
+    await withBrowserApp(app, async (page, address) => {
+      await page.goto(`${address}/foo`, { waitUntil: "load" });
+
+      await page.locator(".ready").wait();
+
+      const text = await page
+        .locator<HTMLDivElement>(".ready p")
+        .evaluate((el) => el.textContent!);
+      expect(text).toEqual("it works");
+
+      const text2 = await page
+        .locator<HTMLDivElement>(".ready div")
+        .evaluate((el) => el.textContent!);
+      expect(text2).toEqual(`<script>alert('hey')</script>`);
+    });
+
+    // Check escaping of `<!--`
+    await withBrowserApp(app, async (page, address) => {
+      await page.goto(`${address}/bar`, { waitUntil: "load" });
+
+      await page.locator(".ready").wait();
+
+      const text = await page
+        .locator<HTMLDivElement>(".ready p")
+        .evaluate((el) => el.textContent!);
+      expect(text).toEqual("it works");
+
+      const text2 = await page
+        .locator<HTMLDivElement>(".ready div")
+        .evaluate((el) => el.textContent!);
+      expect(text2).toEqual(`<!--<script>alert('hey')</script>`);
+    });
+
+    // Partials (they use a different code path)
+    await withBrowserApp(app, async (page, address) => {
+      await page.goto(`${address}/foo?${PARTIAL_SEARCH_PARAM}`, {
+        waitUntil: "load",
+      });
+
+      const text = await page
+        .locator<HTMLScriptElement>("script[type='application/json']")
+        .evaluate((el) => el.textContent!);
+
+      const json = JSON.parse(text);
+      expect(json.props).toContain("<script>alert('hey')</script>");
     });
   },
 });
