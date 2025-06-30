@@ -5,10 +5,10 @@ import { app } from "./main.ts";
 import { tailwind } from "@fresh/plugin-tailwind";
 
 const builder = new Builder({ target: "safari12" });
-await tailwind(builder, app);
+tailwind(builder, app);
 
 if (Deno.args.includes("build")) {
-  await builder.build(app);
+  builder.build(app);
 } else {
-  await builder.listen(app);
+  builder.listen(app);
 }

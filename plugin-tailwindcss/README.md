@@ -11,12 +11,12 @@ import { app } from "./main.ts";
 import { tailwind } from "@fresh/plugin-tailwind";
 
 const builder = new Builder();
-await tailwind(builder, app);
+tailwind(builder, app);
 
 if (Deno.args.includes("build")) {
-  await builder.build(app);
+  builder.build(app);
 } else {
-  await builder.listen(app);
+  builder.listen(app);
 }
 ```
 
@@ -29,7 +29,7 @@ import { app } from "./main.ts";
 import { tailwind } from "@fresh/plugin-tailwind";
 
 const builder = new Builder();
-await tailwind(builder, app, {
+tailwind(builder, app, {
   // Exclude certain files from processing
   exclude: ["/admin/**", "*.temp.css"],
 
@@ -41,9 +41,9 @@ await tailwind(builder, app, {
 });
 
 if (Deno.args.includes("build")) {
-  await builder.build(app);
+  builder.build(app);
 } else {
-  await builder.listen(app);
+  builder.listen(app);
 }
 ```
 

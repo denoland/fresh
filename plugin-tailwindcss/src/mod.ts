@@ -7,13 +7,13 @@ import type { TailwindPluginOptions } from "./types.ts";
 // Re-export types for public API
 export type { TailwindPluginOptions } from "./types.ts";
 
-export async function tailwind<T>(
+export function tailwind<T>(
   builder: FreshBuilder,
   app: App<T>,
   options: TailwindPluginOptions = {},
-): Promise<void> {
+): void {
   const { exclude, ...tailwindOptions } = options;
-  const instance = await postcss(twPostcss({
+  const instance = postcss(twPostcss({
     optimize: app.config.mode === "production",
     ...tailwindOptions,
   }));
