@@ -426,9 +426,7 @@ Deno.test.ignore("FreshApp - finish setup", async () => {
     app,
     await ProdBuildCache.fromSnapshot({
       ...app.config,
-      build: {
-        outDir: "foo",
-      },
+      buildOutDir: "foo",
     }, getIslandRegistry(app).size),
   );
 
