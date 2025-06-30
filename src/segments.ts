@@ -1,8 +1,11 @@
-import type { AnyComponent } from "preact";
-import type { MiddlewareFn } from "./middlewares/mod.ts";
+import { type AnyComponent, h } from "preact";
+import { type MiddlewareFn, runMiddlewares } from "./middlewares/mod.ts";
 import { type Method, patternToSegments, type Router } from "./router.ts";
 import type { RouteConfig } from "./types.ts";
-import type { PageProps } from "./context.ts";
+import { FreshContext, internals, type PageProps } from "./context.ts";
+import { error } from "node:console";
+import { recordSpanError, tracer } from "./otel.ts";
+import { SpanStatusCode } from "@opentelemetry/api";
 
 export type InternalHandler<State> = {
   [M in Method]: { route: InternalRoute<State>; fns: MiddlewareFn<State>[] };
@@ -147,7 +150,6 @@ export function getOrCreateHandlers<State>(root: Segment<State>, path: string) {
 
 export function routeToMiddlewares<State>(
   route: InternalRoute<State>,
-  method: Method,
 ): MiddlewareFn<State>[] {
   const stack: Segment<State>[] = [];
   let current: Segment<State> | null = route.parent;
@@ -160,17 +162,91 @@ export function routeToMiddlewares<State>(
 
   for (let i = 0; i < stack.length; i++) {
     const segment = stack[i];
+
+    const { layout, app, error: errorRoute } = segment;
+
+    result.push((ctx) => {
+      if (app !== null) {
+        ctx[internals].app = app.component;
+      }
+
+      if (layout !== null) {
+        if (layout.config?.skipAppWrapper) {
+          ctx[internals].app = null;
+        }
+        if (layout.config?.skipInheritedLayouts) {
+          ctx[internals].layouts = [];
+        }
+
+        if (layout.component !== null) {
+          ctx[internals].layouts.push(layout.component);
+        }
+      }
+      return ctx.next();
+    });
+
+    if (errorRoute !== null) {
+      result.push(async (ctx) => {
+        const { app, layouts } = ctx[internals];
+        try {
+          return await ctx.next();
+        } catch (err) {
+          ctx.error = err;
+
+          ctx[internals].app = app;
+          ctx[internals].layouts = layouts;
+
+          return await renderInternalRoute(ctx, errorRoute);
+        }
+      });
+    }
+
     if (segment.middlewares.length > 0) {
       result.push(...segment.middlewares);
     }
   }
 
   if (route.handlers !== null) {
-    const handler = route.handlers[method] ?? route.handlers.ALL ?? null;
-    if (handler !== null) {
-      result.push(...handler.fns);
-    }
+    result.push((ctx) => renderInternalRoute(ctx, route));
   }
 
   return result;
+}
+
+export async function renderInternalRoute<State>(
+  ctx: FreshContext<State>,
+  route: InternalRoute<State>,
+): Promise<Response> {
+  // deno-lint-ignore no-explicit-any
+  let props: any = null;
+
+  const { handlers } = route;
+  if (handlers !== null) {
+    const res = await tracer.startActiveSpan("handler", {
+      attributes: { "fresh.span_type": "fs_routes/handler" },
+    }, async (span) => {
+      try {
+        const middlewares = handlers[ctx.req.method as Method].fns;
+        return await runMiddlewares(middlewares, ctx);
+      } catch (err) {
+        recordSpanError(span, err);
+        throw err;
+      } finally {
+        span.end();
+      }
+    });
+
+    if (res instanceof Response) {
+      return res;
+    }
+
+    props = res;
+  }
+
+  const vnode = route.component !== null
+    // deno-lint-ignore no-explicit-any
+    ? h(route.component as any, props)
+    : null;
+
+  return ctx.render(vnode);
 }

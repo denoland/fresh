@@ -1,4 +1,5 @@
 import {
+  AnyComponent,
   type ComponentType,
   type FunctionComponent,
   h,
@@ -27,10 +28,19 @@ export interface Island {
 
 export type ServerIslandRegistry = Map<ComponentType, Island>;
 
+export const internals: unique symbol = Symbol("fresh_internal");
+
+export interface ComponentDef<Data, State> {
+  app: AnyComponent<PageProps<Data, State>> | null;
+  layouts: AnyComponent<PageProps<Data, State>>[];
+}
+
 /**
  * The context passed to every middleware. It is unique for every request.
  */
 export interface FreshContext<State = unknown> {
+  [internals]: ComponentDef<unknown, State>;
+
   /** Reference to the resolved Fresh configuration */
   readonly config: ResolvedFreshConfig;
   readonly state: State;
@@ -43,8 +53,8 @@ export interface FreshContext<State = unknown> {
    */
   readonly url: URL;
   readonly params: Record<string, string>;
-  readonly error: unknown;
   readonly info: Deno.ServeHandlerInfo;
+  error: unknown;
   /**
    * Whether the current Request is a partial request.
    *
@@ -98,6 +108,10 @@ export let getBuildCache: (ctx: FreshContext<unknown>) => BuildCache;
 
 export class FreshReqContext<State>
   implements FreshContext<State>, PageProps<unknown, State> {
+  [internals] = {
+    app: null,
+    layouts: [],
+  };
   readonly config: ResolvedFreshConfig;
   readonly url: URL;
   readonly req: Request;
