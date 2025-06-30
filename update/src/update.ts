@@ -6,9 +6,9 @@ import { ProgressBar } from "@std/cli/unstable-progress-bar";
 
 export const SyntaxKind = tsmorph.ts.SyntaxKind;
 
-export const FRESH_VERSION = "2.0.0-alpha.35";
+export const FRESH_VERSION = "2.0.0-alpha.36";
 export const PREACT_VERSION = "10.26.9";
-export const PREACT_SIGNALS_VERSION = "2.2.0";
+export const PREACT_SIGNALS_VERSION = "2.2.1";
 
 export interface DenoJson {
   lock?: boolean;
