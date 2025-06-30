@@ -1,5 +1,5 @@
 import { expect } from "@std/expect";
-import { mergePaths, pathToExportName } from "./utils.ts";
+import { escapeScript, mergePaths, pathToExportName } from "./utils.ts";
 
 Deno.test("mergePaths", () => {
   expect(mergePaths("", "")).toEqual("");
@@ -18,5 +18,46 @@ Deno.test("filenameToExportName", () => {
   expect(pathToExportName("/islands/1.hello.tsx")).toBe("_hello");
   expect(pathToExportName("/islands/collapse...repeat_-dash.tsx")).toBe(
     "collapse_repeat_dash",
+  );
+});
+
+Deno.test("escapeScriptContent - closing </script> + </style>", () => {
+  expect(
+    escapeScript(
+      "foo</script>bar</style>baz</script>foobar",
+    ),
+  ).toEqual(
+    "foo<\\/script>bar<\\/style>baz<\\/script>foobar",
+  );
+  expect(
+    escapeScript(
+      "foo</ScRIpT>bar</StYLe>baz</SCRIPT>foobar",
+    ),
+  ).toEqual(
+    "foo<\\/ScRIpT>bar<\\/StYLe>baz<\\/SCRIPT>foobar",
+  );
+});
+
+Deno.test("escapeScript - legacy <!--", () => {
+  expect(escapeScript("<!--<script>")).toEqual("\\x3C!--<script>");
+  expect(escapeScript("<!--</script>")).toEqual("\\x3C!--<\\/script>");
+});
+
+Deno.test("escapeScript - script combined", () => {
+  expect(escapeScript(`// This is a comment containing <!--
+let foo = x <!--y; // That's valid JS operators
+const s = "This is a string containing <!--";`)).toEqual(
+    `// This is a comment containing \\x3C!--
+let foo = x \\x3C!--y; // That's valid JS operators
+const s = "This is a string containing \\x3C!--";`,
+  );
+});
+
+Deno.test("escapeScript - json", () => {
+  expect(escapeScript("<!--<script>", { json: true })).toEqual(
+    "\\u003C!--<script>",
+  );
+  expect(escapeScript("<!--</ScRIpt>", { json: true })).toEqual(
+    "\\u003C!--<\\/ScRIpt>",
   );
 });

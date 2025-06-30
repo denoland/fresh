@@ -32,6 +32,7 @@ import {
 import { escape as escapeHtml } from "@std/html";
 import { HttpError } from "../../error.ts";
 import { getCodeFrame } from "../../dev/middlewares/error_overlay/code_frame.tsx";
+import { escapeScript } from "../../utils.ts";
 
 const enum OptionsType {
   ATTR = "attr",
@@ -455,7 +456,9 @@ function FreshRuntimeScript() {
         id={`__FRSH_STATE_${partialId}`}
         type="application/json"
         // deno-lint-ignore react-no-danger
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(json) }}
+        dangerouslySetInnerHTML={{
+          __html: escapeScript(JSON.stringify(json), { json: true }),
+        }}
       />
     );
   } else {
@@ -476,8 +479,9 @@ function FreshRuntimeScript() {
       .join(",") +
       "}";
 
-    const serializedProps = JSON.stringify(
-      stringify(islandProps, stringifiers),
+    const serializedProps = escapeScript(
+      JSON.stringify(stringify(islandProps, stringifiers)),
+      { json: true },
     );
 
     const runtimeUrl = `${basePath}/_fresh/js/${BUILD_ID}/fresh-runtime.js`;
