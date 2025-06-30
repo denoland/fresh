@@ -88,7 +88,8 @@ export class RenderState {
   hasRuntimeScript = false;
 
   constructor(
-    public ctx: PageProps<unknown, unknown>,
+    // deno-lint-ignore no-explicit-any
+    public ctx: PageProps<any, any>,
     public islandRegistry: ServerIslandRegistry,
     public buildCache: BuildCache,
     public partialId: string,

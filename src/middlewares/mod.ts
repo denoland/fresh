@@ -83,7 +83,7 @@ export type Middleware<State> = MiddlewareFn<State> | MiddlewareFn<State>[];
 
 export function runMiddlewares<State>(
   middlewares: MiddlewareFn<State>[],
-  ctx: FreshReqContext<State>,
+  ctx: FreshContext<State>,
 ): Promise<Response> {
   let fn = ctx.next;
   let i = middlewares.length;
@@ -92,12 +92,7 @@ export function runMiddlewares<State>(
     const next = middlewares[i];
     fn = async () => {
       ctx.next = local;
-      try {
-        return await next(ctx);
-      } catch (err) {
-        ctx.error = err;
-        throw err;
-      }
+      return await next(ctx);
     };
   }
   return fn();
