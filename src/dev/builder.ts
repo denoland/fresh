@@ -35,23 +35,14 @@ export interface BuildOptions {
   target?: string | string[];
 }
 
-export interface FreshBuilder {
-  onTransformStaticFile(
-    options: OnTransformOptions,
-    callback: TransformFn,
-  ): void;
-  build<T>(app: App<T>, options?: BuildOptions): Promise<void>;
-  listen<T>(app: App<T>, options?: ListenOptions & BuildOptions): Promise<void>;
-}
-
-export class Builder implements FreshBuilder {
+export class Builder {
   #transformer = new FreshFileTransformer(fsAdapter);
   #addedInternalTransforms = false;
-  #options: { target: string | string[] };
+  #options: Required<BuildOptions>;
 
-  constructor(options: BuildOptions = {}) {
+  constructor(options?: BuildOptions) {
     this.#options = {
-      target: options.target ?? ["chrome99", "firefox99", "safari15"],
+      target: options?.target ?? ["chrome99", "firefox99", "safari15"],
     };
   }
 
