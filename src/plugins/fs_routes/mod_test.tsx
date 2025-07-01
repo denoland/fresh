@@ -149,7 +149,7 @@ Deno.test("fsRoutes - serve index", async () => {
   expect(await res.text()).toEqual("ok");
 });
 
-Deno.test("fsRoutes - add middleware for function handler", async () => {
+Deno.test.only("fsRoutes - add middleware for function handler", async () => {
   const server = await createServer<{ text: string }>({
     "routes/[id].ts": { handler: (ctx) => new Response(ctx.state.text) },
     "routes/index.ts": { handler: (ctx) => new Response(ctx.state.text) },
