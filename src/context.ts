@@ -1,11 +1,14 @@
 import {
-  AnyComponent,
+  type AnyComponent,
   type ComponentType,
+  Fragment,
   type FunctionComponent,
   h,
   isValidElement,
+  type RenderableProps,
   type VNode,
 } from "preact";
+import { jsxTemplate } from "preact/jsx-runtime";
 import { renderToString } from "preact-render-to-string";
 import { SpanStatusCode } from "@opentelemetry/api";
 import type { ResolvedFreshConfig } from "./config.ts";
@@ -17,7 +20,12 @@ import {
 } from "./runtime/server/preact_hooks.tsx";
 import { DEV_ERROR_OVERLAY_URL, PARTIAL_SEARCH_PARAM } from "./constants.ts";
 import { BUILD_ID } from "./runtime/build_id.ts";
-import { tracer } from "./otel.ts";
+import { recordSpanError, tracer } from "./otel.ts";
+import {
+  type AsyncAnyComponent,
+  isAsyncAnyComponent,
+} from "./plugins/fs_routes/render_middleware.ts";
+import { wrap } from "node:module";
 
 export interface Island {
   file: string | URL;
@@ -30,16 +38,21 @@ export type ServerIslandRegistry = Map<ComponentType, Island>;
 
 export const internals: unique symbol = Symbol("fresh_internal");
 
-export interface ComponentDef<Data, State> {
+export interface SegmentLayout<Data, State> {
   app: AnyComponent<PageProps<Data, State>> | null;
-  layouts: AnyComponent<PageProps<Data, State>>[];
+  layouts: ComponentDef<Data, State>[];
+}
+
+export interface ComponentDef<Data, State> {
+  props: PageProps<Data, State> | null;
+  component: AnyComponent<PageProps<Data, State>>;
 }
 
 /**
  * The context passed to every middleware. It is unique for every request.
  */
 export interface FreshContext<State = unknown> {
-  [internals]: ComponentDef<unknown, State>;
+  readonly __internal: SegmentLayout<unknown, State>;
 
   /** Reference to the resolved Fresh configuration */
   readonly config: ResolvedFreshConfig;
@@ -101,14 +114,17 @@ export interface FreshContext<State = unknown> {
    * }
    */
   next(): Promise<Response>;
-  render(vnode: VNode, init?: ResponseInit): Response | Promise<Response>;
+  render(
+    vnode: VNode | null,
+    init?: ResponseInit,
+  ): Response | Promise<Response>;
 }
 
 export let getBuildCache: (ctx: FreshContext<unknown>) => BuildCache;
 
 export class FreshReqContext<State>
   implements FreshContext<State>, PageProps<unknown, State> {
-  [internals] = {
+  readonly __internal: SegmentLayout<unknown, State> = {
     app: null,
     layouts: [],
   };
@@ -180,15 +196,74 @@ export class FreshReqContext<State>
     });
   }
 
-  render(
+  async render(
     // deno-lint-ignore no-explicit-any
-    vnode: VNode<any>,
+    vnode: VNode<any> | null,
     init: ResponseInit | undefined = {},
-  ): Response | Promise<Response> {
+  ): Promise<Response> {
     if (arguments.length === 0) {
       throw new Error(`No arguments passed to: ctx.render()`);
     } else if (vnode !== null && !isValidElement(vnode)) {
       throw new Error(`Non-JSX element passed to: ctx.render()`);
+    }
+
+    const defs = this.__internal.layouts;
+    const appDef = this.__internal.app;
+    const props = this as FreshReqContext<State>;
+
+    // deno-lint-ignore no-explicit-any
+    let appVNode: VNode<any> | null = null;
+    if (isAsyncAnyComponent(appDef)) {
+      const result = await renderAsyncAnyComponent(appDef, props);
+      if (result instanceof Response) {
+        return result;
+      }
+
+      appVNode = result;
+    } else if (appDef !== null) {
+      appVNode = h(appDef, {
+        Component: props.Component,
+        config: this.config,
+        data: null,
+        error: this.error,
+        info: this.info,
+        isPartial: this.isPartial,
+        params: this.params,
+        req: this.req,
+        state: this.state,
+        url: this.url,
+      });
+    }
+
+    // Compose final vnode tree
+    for (let i = defs.length - 1; i >= 0; i--) {
+      const child = vnode;
+      props.Component = () => child;
+
+      const def = defs[i];
+
+      if (isAsyncAnyComponent(def.component)) {
+        props.data = def.props;
+        const result = await renderAsyncAnyComponent(def.component, props);
+        if (result instanceof Response) {
+          return result;
+        }
+        vnode = result;
+      } else {
+        const vnodeProps: PageProps<unknown, State> = {
+          Component: props.Component,
+          config: this.config,
+          data: def.props,
+          error: this.error,
+          info: this.info,
+          isPartial: this.isPartial,
+          params: this.params,
+          req: this.req,
+          state: this.state,
+          url: this.url,
+        };
+        vnode = h(def.component, vnodeProps) as VNode;
+      }
     }
 
     const headers = init.headers !== undefined
@@ -212,13 +287,29 @@ export class FreshReqContext<State>
 
     const html = tracer.startActiveSpan("render", (span) => {
       span.setAttribute("fresh.span_type", "render");
+      const state = new RenderState(
+        this,
+        this.#islandRegistry,
+        this.#buildCache,
+        partialId,
+      );
+
       try {
+        setRenderState(state);
+
+        const body = vnode !== null ? renderToString(vnode) : "";
+
+        const wrapper = jsxTemplate([body]);
+
+        if (appVNode !== null) {
+          appVNode.props.Component = () => wrapper;
+        }
+
         return preactRender(
-          vnode,
+          appVNode !== null ? appVNode : wrapper,
           this,
-          this.#islandRegistry,
+          state,
           this.#buildCache,
-          partialId,
           headers,
         );
       } catch (err) {
@@ -232,6 +323,9 @@ export class FreshReqContext<State>
         }
         throw err;
       } finally {
+        state.clear();
+        setRenderState(null);
+
         span.end();
       }
     });
@@ -251,16 +345,38 @@ Object.defineProperties(FreshReqContext.prototype, {
   info: { enumerable: true },
 });
 
+async function renderAsyncAnyComponent<Props>(
+  fn: AsyncAnyComponent<Props>,
+  props: RenderableProps<Props>,
+) {
+  return await tracer.startActiveSpan(
+    "invoke async component",
+    async (span) => {
+      span.setAttribute("fresh.span_type", "fs_routes/async_component");
+      try {
+        const result = (await fn(props)) as VNode | Response;
+        span.setAttribute(
+          "fresh.component_response",
+          result instanceof Response ? "http" : "jsx",
+        );
+        return result;
+      } catch (err) {
+        recordSpanError(span, err);
+        throw err;
+      } finally {
+        span.end();
+      }
+    },
+  );
+}
+
 function preactRender<State, Data>(
   vnode: VNode,
   ctx: PageProps<Data, State>,
-  islandRegistry: ServerIslandRegistry,
+  state: RenderState,
   buildCache: BuildCache,
-  partialId: string,
   headers: Headers,
 ) {
-  const state = new RenderState(ctx, islandRegistry, buildCache, partialId);
-  setRenderState(state);
   try {
     let res = renderToString(vnode);
     // We require a the full outer DOM structure so that browser put
@@ -304,5 +420,8 @@ function preactRender<State, Data>(
 }
 
 export type PageProps<Data = unknown, T = unknown> =
-  & Omit<FreshContext<T>, "next" | "render" | "redirect">
+  & Omit<
+    FreshContext<T>,
+    "next" | "render" | "redirect" | "__internal"
+  >
   & { data: Data; Component: FunctionComponent };

@@ -183,13 +183,21 @@ export async function fsRoutes<State>(
       const pattern = pathToPattern(
         normalized.slice(0, -"/_middleware".length),
       );
-      stack.push(routeMod);
+      if (pattern === "/") {
+        // FIXME: Type
+        app.use(routeMod.handlers as any);
+      } else {
+        // FIXME: Type
+        app.use(pattern, routeMod.handlers as any);
+      }
       continue;
     } else if (normalized.endsWith("/_layout")) {
       if (routeMod.handlers !== null) {
         warnInvalidRoute("Layout does not support handlers");
       }
-      stack.push(routeMod);
+
+      const pattern = pathToPattern(normalized.slice(0, -"/_layout".length));
+      app.layout(pattern, routeMod.component);
       continue;
     } else if (normalized.endsWith("/_error")) {
       stack.push(routeMod);

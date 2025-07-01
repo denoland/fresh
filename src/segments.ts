@@ -2,20 +2,20 @@ import { type AnyComponent, h } from "preact";
 import { type MiddlewareFn, runMiddlewares } from "./middlewares/mod.ts";
 import { type Method, patternToSegments, type Router } from "./router.ts";
 import type { RouteConfig } from "./types.ts";
-import { FreshContext, internals, type PageProps } from "./context.ts";
-import { error } from "node:console";
+import { type FreshContext, internals, type PageProps } from "./context.ts";
 import { recordSpanError, tracer } from "./otel.ts";
-import { SpanStatusCode } from "@opentelemetry/api";
-
-export type InternalHandler<State> = {
-  [M in Method]: { route: InternalRoute<State>; fns: MiddlewareFn<State>[] };
-};
+import {
+  type HandlerFn,
+  isHandlerByMethod,
+  type RouteHandler,
+} from "./handlers.ts";
 
 export interface InternalRoute<State> {
   pattern: string;
   filePath: string | null;
   config: RouteConfig | null;
-  handlers: InternalHandler<State> | null;
+  handlers: RouteHandler<unknown, State> | HandlerFn<unknown, State> | null;
+  middlewareHandlers: { [M in Method]: MiddlewareFn<State>[] };
   component: AnyComponent<PageProps<unknown, State>> | null;
   parent: Segment<State>;
 }
@@ -35,14 +35,24 @@ export function newRoute<T>(
   parent: Segment<T>,
   pattern: string,
 ): InternalRoute<T> {
-  return {
+  const route: InternalRoute<T> = {
     parent,
     filePath: null,
     component: null,
     handlers: null,
+    middlewareHandlers: {
+      GET: [],
+      DELETE: [],
+      HEAD: [],
+      PATCH: [],
+      POST: [],
+      PUT: [],
+    },
     pattern,
     config: null,
   };
+
+  return route;
 }
 
 export function newSegment<State>(
@@ -75,24 +85,54 @@ export function registerRoutes<State>(
     pattern += segment.pattern;
   }
 
-  if (route !== null && route.handlers !== null) {
-    if (route.handlers.GET.fns.length > 0) {
+  if (route !== null) {
+    if (isHandlerByMethod(route.handlers)) {
+      if (route.handlers.GET !== undefined) {
+        router.add("GET", pattern, route);
+      }
+      if (route.handlers.POST !== undefined) {
+        router.add("POST", pattern, route);
+      }
+      if (route.handlers.PATCH !== undefined) {
+        router.add("PATCH", pattern, route);
+      }
+      if (route.handlers.PUT !== undefined) {
+        router.add("PUT", pattern, route);
+      }
+      if (route.handlers.DELETE !== undefined) {
+        router.add("DELETE", pattern, route);
+      }
+      if (route.handlers.HEAD !== undefined) {
+        router.add("HEAD", pattern, route);
+      }
+    } else if (
+      typeof route.handlers === "function" || route.component !== null
+    ) {
       router.add("GET", pattern, route);
-    }
-    if (route.handlers.POST.fns.length > 0) {
       router.add("POST", pattern, route);
-    }
-    if (route.handlers.PATCH.fns.length > 0) {
       router.add("PATCH", pattern, route);
-    }
-    if (route.handlers.PUT.fns.length > 0) {
       router.add("PUT", pattern, route);
-    }
-    if (route.handlers.DELETE.fns.length > 0) {
       router.add("DELETE", pattern, route);
-    }
-    if (route.handlers.HEAD.fns.length > 0) {
       router.add("HEAD", pattern, route);
+    } else {
+      if (route.middlewareHandlers.GET !== undefined) {
+        router.add("GET", pattern, route);
+      }
+      if (route.middlewareHandlers.POST !== undefined) {
+        router.add("POST", pattern, route);
+      }
+      if (route.middlewareHandlers.PATCH !== undefined) {
+        router.add("PATCH", pattern, route);
+      }
+      if (route.middlewareHandlers.PUT !== undefined) {
+        router.add("PUT", pattern, route);
+      }
+      if (route.middlewareHandlers.DELETE !== undefined) {
+        router.add("DELETE", pattern, route);
+      }
+      if (route.middlewareHandlers.HEAD !== undefined) {
+        router.add("HEAD", pattern, route);
+      }
     }
   }
 
@@ -126,26 +166,13 @@ export function findOrCreateSegment<State>(
   return current;
 }
 
-export function getOrCreateHandlers<State>(root: Segment<State>, path: string) {
+export function getOrCreateRoute<State>(root: Segment<State>, path: string) {
   const segment = findOrCreateSegment<State>(root, path);
   if (segment.route === null) {
     segment.route = newRoute(segment, path);
   }
 
-  let handlers = segment.route.handlers;
-  if (handlers === null) {
-    handlers = {
-      GET: { route: segment.route, fns: [] },
-      DELETE: { route: segment.route, fns: [] },
-      HEAD: { route: segment.route, fns: [] },
-      PATCH: { route: segment.route, fns: [] },
-      POST: { route: segment.route, fns: [] },
-      PUT: { route: segment.route, fns: [] },
-    };
-    segment.route.handlers = handlers;
-  }
-
-  return { segment, route: segment.route, handlers };
+  return { segment, route: segment.route };
 }
 
 export function routeToMiddlewares<State>(
@@ -165,38 +192,45 @@ export function routeToMiddlewares<State>(
 
     const { layout, app, error: errorRoute } = segment;
 
-    result.push((ctx) => {
-      if (app !== null) {
-        ctx[internals].app = app.component;
-      }
-
-      if (layout !== null) {
-        if (layout.config?.skipAppWrapper) {
-          ctx[internals].app = null;
-        }
-        if (layout.config?.skipInheritedLayouts) {
-          ctx[internals].layouts = [];
-        }
-
-        if (layout.component !== null) {
-          ctx[internals].layouts.push(layout.component);
-        }
-      }
-      return ctx.next();
-    });
-
-    if (errorRoute !== null) {
+    if (layout !== null || app !== null || errorRoute !== null) {
       result.push(async (ctx) => {
-        const { app, layouts } = ctx[internals];
+        const internal = ctx.__internal;
+        if (app !== null) {
+          internal.app = app.component;
+        }
+
+        if (layout !== null) {
+          if (layout.config?.skipAppWrapper) {
+            internal.app = null;
+          }
+          if (layout.config?.skipInheritedLayouts) {
+            internal.layouts = [];
+          }
+
+          if (layout.component !== null) {
+            internal.layouts.push({
+              props: null,
+              component: layout.component,
+            });
+          }
+        }
+
+        const prevApp = internal.app;
+        const prevLayouts = internal.layouts;
+
         try {
           return await ctx.next();
         } catch (err) {
           ctx.error = err;
 
-          ctx[internals].app = app;
-          ctx[internals].layouts = layouts;
+          internal.app = prevApp;
+          internal.layouts = prevLayouts;
 
-          return await renderInternalRoute(ctx, errorRoute);
+          if (errorRoute !== null) {
+            return await renderInternalRoute(ctx, errorRoute);
+          }
+
+          throw err;
         }
       });
     }
@@ -206,7 +240,7 @@ export function routeToMiddlewares<State>(
     }
   }
 
-  if (route.handlers !== null) {
+  if (route.handlers !== null || route.component !== null) {
     result.push((ctx) => renderInternalRoute(ctx, route));
   }
 
@@ -220,14 +254,26 @@ export async function renderInternalRoute<State>(
   // deno-lint-ignore no-explicit-any
   let props: any = null;
 
-  const { handlers } = route;
+  const method = ctx.req.method as Method;
+
+  const { handlers, middlewareHandlers } = route;
+
+  if (middlewareHandlers[method].length > 0) {
+    return await runMiddlewares(middlewareHandlers[method], ctx);
+  }
+
   if (handlers !== null) {
     const res = await tracer.startActiveSpan("handler", {
       attributes: { "fresh.span_type": "fs_routes/handler" },
     }, async (span) => {
       try {
-        const middlewares = handlers[ctx.req.method as Method].fns;
-        return await runMiddlewares(middlewares, ctx);
+        const fn = isHandlerByMethod(handlers)
+          ? handlers[method] ?? null
+          : handlers;
+
+        if (fn === null) return ctx.next();
+
+        return await fn(ctx);
       } catch (err) {
         recordSpanError(span, err);
         throw err;
@@ -243,10 +289,12 @@ export async function renderInternalRoute<State>(
     props = res;
   }
 
-  const vnode = route.component !== null
-    // deno-lint-ignore no-explicit-any
-    ? h(route.component as any, props)
-    : null;
+  if (route.component !== null) {
+    ctx.__internal.layouts.push({
+      props,
+      component: route.component,
+    });
+  }
 
-  return ctx.render(vnode);
+  return ctx.render(null);
 }

@@ -20,11 +20,12 @@ import { mergePaths, pathToExportName } from "./utils.ts";
 import {
   AppSegments,
   findOrCreateSegment,
-  getOrCreateHandlers,
+  getOrCreateRoute,
   InternalRoute,
   newRoute,
   newSegment,
   registerRoutes,
+  renderInternalRoute,
   routeToMiddlewares,
   Segment,
   SegmentData,
@@ -220,81 +221,63 @@ export class App<State> {
   }
 
   route(path: string, route: FreshFsItem<State>): this {
-    const { route: sRoute, handlers } = getOrCreateHandlers<State>(
+    const { route: sRoute } = getOrCreateRoute<State>(
       this.#root,
       path,
     );
 
-    sRoute.component = route.default ?? null;
-    const raw = route.handlers ?? route.handler ?? null;
-    if (isHandlerByMethod(raw)) {
-      if (raw.GET) handlers.GET.fns.push(wrapRender(raw.GET));
-      if (raw.DELETE) handlers.DELETE.fns.push(wrapRender(raw.DELETE));
-      if (raw.HEAD) handlers.HEAD.fns.push(wrapRender(raw.HEAD));
-      if (raw.PATCH) handlers.PATCH.fns.push(wrapRender(raw.PATCH));
-      if (raw.POST) handlers.POST.fns.push(wrapRender(raw.POST));
-      if (raw.PUT) handlers.PUT.fns.push(wrapRender(raw.PUT));
-    } else if (typeof raw === "function") {
-      handlers.DELETE.fns.push(wrapRender(raw));
-      handlers.GET.fns.push(wrapRender(raw));
-      handlers.HEAD.fns.push(wrapRender(raw));
-      handlers.PATCH.fns.push(wrapRender(raw));
-      handlers.POST.fns.push(wrapRender(raw));
-      handlers.PUT.fns.push(wrapRender(raw));
-    } else if (Array.isArray(raw)) {
-      const normalized = raw.map((fn) => wrapRender(fn));
-      handlers.DELETE.fns.push(...normalized);
-      handlers.GET.fns.push(...normalized);
-      handlers.HEAD.fns.push(...normalized);
-      handlers.PATCH.fns.push(...normalized);
-      handlers.POST.fns.push(...normalized);
-      handlers.PUT.fns.push(...normalized);
+    const handlers = route.handlers ?? route.handler ?? null;
+    if (Array.isArray(handlers)) {
+      throw new Error(`Route handlers cannot be an array`);
     }
+
+    sRoute.handlers = handlers;
+    sRoute.component = route.default ?? null;
     sRoute.config = route.config ?? null;
 
     return this;
   }
 
   get(path: string, ...middlewares: MiddlewareFn<State>[]): this {
-    const { handlers } = getOrCreateHandlers<State>(this.#root, path);
-    handlers.GET.fns.push(...middlewares);
+    const { route } = getOrCreateRoute<State>(this.#root, path);
+    route.middlewareHandlers.GET.push(...middlewares);
     return this;
   }
   post(path: string, ...middlewares: MiddlewareFn<State>[]): this {
-    const { handlers } = getOrCreateHandlers<State>(this.#root, path);
-    handlers.POST.fns.push(...middlewares);
+    const { route } = getOrCreateRoute<State>(this.#root, path);
+    route.middlewareHandlers.POST.push(...middlewares);
 
     return this;
   }
   patch(path: string, ...middlewares: MiddlewareFn<State>[]): this {
-    const { handlers } = getOrCreateHandlers<State>(this.#root, path);
-    handlers.PATCH.fns.push(...middlewares);
+    const { route } = getOrCreateRoute<State>(this.#root, path);
+    route.middlewareHandlers.PATCH.push(...middlewares);
     return this;
   }
   put(path: string, ...middlewares: MiddlewareFn<State>[]): this {
-    const { handlers } = getOrCreateHandlers<State>(this.#root, path);
-    handlers.PUT.fns.push(...middlewares);
+    const { route } = getOrCreateRoute<State>(this.#root, path);
+    route.middlewareHandlers.PUT.push(...middlewares);
     return this;
   }
   delete(path: string, ...middlewares: MiddlewareFn<State>[]): this {
-    const { handlers } = getOrCreateHandlers<State>(this.#root, path);
-    handlers.DELETE.fns.push(...middlewares);
+    const { route } = getOrCreateRoute<State>(this.#root, path);
+    route.middlewareHandlers.DELETE.push(...middlewares);
     return this;
   }
   head(path: string, ...middlewares: MiddlewareFn<State>[]): this {
-    const { handlers } = getOrCreateHandlers<State>(this.#root, path);
-    handlers.HEAD.fns.push(...middlewares);
+    const { route } = getOrCreateRoute<State>(this.#root, path);
+    route.middlewareHandlers.HEAD.push(...middlewares);
     return this;
   }
   all(path: string, ...middlewares: MiddlewareFn<State>[]): this {
-    const { handlers } = getOrCreateHandlers<State>(this.#root, path);
+    const { route } = getOrCreateRoute<State>(this.#root, path);
 
-    handlers.DELETE.fns.push(...middlewares);
-    handlers.GET.fns.push(...middlewares);
-    handlers.HEAD.fns.push(...middlewares);
-    handlers.PATCH.fns.push(...middlewares);
-    handlers.POST.fns.push(...middlewares);
-    handlers.PUT.fns.push(...middlewares);
+    route.middlewareHandlers.DELETE.push(...middlewares);
+    route.middlewareHandlers.GET.push(...middlewares);
+    route.middlewareHandlers.HEAD.push(...middlewares);
+    route.middlewareHandlers.PATCH.push(...middlewares);
+    route.middlewareHandlers.POST.push(...middlewares);
+    route.middlewareHandlers.PUT.push(...middlewares);
 
     return this;
   }
@@ -385,9 +368,10 @@ export class App<State> {
 
       const handlers = matched.item === null
         ? this.#root.middlewares
-        : routeToMiddlewares<State>(matched.item, method);
+        : routeToMiddlewares<State>(matched.item);
 
       console.log({ handlers, url: url.pathname, method });
+      debugger;
       try {
         let result: unknown;
         if (handlers.length === 1) {
@@ -446,6 +430,7 @@ const missingBuildHandler = async (): Promise<Response> => {
 
 function wrapRender<State>(fn: HandlerFn<unknown, State>): MiddlewareFn<State> {
   return async (ctx) => {
+    console.log("WRAPPED");
     const res = await fn(ctx);
     if (res instanceof Response) {
       return res;
