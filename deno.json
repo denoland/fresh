@@ -104,5 +104,8 @@
       "exclude": ["no-window"],
       "include": ["no-console"]
     }
+  },
+  "fmt": {
+    "exclude": ["./www/static/**/*.svg"]
   }
 }
