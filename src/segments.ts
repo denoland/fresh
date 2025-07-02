@@ -1,14 +1,19 @@
-import { type AnyComponent, h } from "preact";
+import type { AnyComponent } from "preact";
 import { type MiddlewareFn, runMiddlewares } from "./middlewares/mod.ts";
 import { type Method, patternToSegments, type Router } from "./router.ts";
 import type { RouteConfig } from "./types.ts";
-import { type FreshContext, internals, type PageProps } from "./context.ts";
+import type { FreshContext, PageProps } from "./context.ts";
 import { recordSpanError, tracer } from "./otel.ts";
 import {
   type HandlerFn,
   isHandlerByMethod,
   type RouteHandler,
 } from "./handlers.ts";
+import type { AsyncAnyComponent } from "./plugins/fs_routes/render_middleware.ts";
+
+export type RouteComponent<State> =
+  | AsyncAnyComponent<PageProps<unknown, State>>
+  | AnyComponent<PageProps<unknown, State>>;
 
 export interface InternalRoute<State> {
   pattern: string;
@@ -16,7 +21,7 @@ export interface InternalRoute<State> {
   config: RouteConfig | null;
   handlers: RouteHandler<unknown, State> | HandlerFn<unknown, State> | null;
   middlewareHandlers: { [M in Method]: MiddlewareFn<State>[] };
-  component: AnyComponent<PageProps<unknown, State>> | null;
+  component: RouteComponent<State> | null;
   parent: Segment<State>;
 }
 
@@ -24,9 +29,12 @@ export interface Segment<State> {
   pattern: string;
   middlewares: MiddlewareFn<State>[];
   route: InternalRoute<State> | null;
-  layout: InternalRoute<State> | null;
+  layout: {
+    component: RouteComponent<State>;
+    config: Pick<RouteConfig, "skipAppWrapper" | "skipInheritedLayouts">;
+  } | null;
   error: InternalRoute<State> | null;
-  app: InternalRoute<State> | null;
+  app: RouteComponent<State> | null;
   children: Map<string, Segment<State>>;
   parent: Segment<State> | null;
 }
@@ -187,7 +195,7 @@ export function routeToMiddlewares<State>(
 
   const result: MiddlewareFn<State>[] = [];
 
-  for (let i = 0; i < stack.length; i++) {
+  for (let i = stack.length - 1; i >= 0; i--) {
     const segment = stack[i];
 
     const { layout, app, error: errorRoute } = segment;
@@ -196,7 +204,7 @@ export function routeToMiddlewares<State>(
       result.push(async (ctx) => {
         const internal = ctx.__internal;
         if (app !== null) {
-          internal.app = app.component;
+          internal.app = app;
         }
 
         if (layout !== null) {

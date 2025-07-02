@@ -18,20 +18,16 @@ import { FinishSetup, ForgotBuild } from "./finish_setup.tsx";
 import { HttpError } from "./error.ts";
 import { mergePaths, pathToExportName } from "./utils.ts";
 import {
-  AppSegments,
   findOrCreateSegment,
   getOrCreateRoute,
-  InternalRoute,
-  newRoute,
+  type InternalRoute,
   newSegment,
   registerRoutes,
-  renderInternalRoute,
+  type RouteComponent,
   routeToMiddlewares,
-  Segment,
-  SegmentData,
+  type Segment,
 } from "./segments.ts";
-import { FreshFsItem } from "./plugins/fs_routes/mod.ts";
-import { HandlerFn, isHandlerByMethod } from "./handlers.ts";
+import type { FreshFsItem } from "./plugins/fs_routes/mod.ts";
 
 // TODO: Completed type clashes in older Deno versions
 // deno-lint-ignore no-explicit-any
@@ -190,36 +186,43 @@ export class App<State> {
     return this;
   }
 
-  use(middleware: MiddlewareFn<State>): this;
-  use(path: string, middleware: MiddlewareFn<State>): this;
+  use(...middleware: MiddlewareFn<State>[]): this;
+  use(path: string, ...middleware: MiddlewareFn<State>[]): this;
   use(
     pathOrMiddleware: string | MiddlewareFn<State>,
-    middleware?: MiddlewareFn<State>,
+    ...middleware: MiddlewareFn<State>[]
   ): this {
     let pathname: string;
-    let fn: MiddlewareFn<State>;
+    let fns: MiddlewareFn<State>[];
     if (typeof pathOrMiddleware === "string") {
       pathname = pathOrMiddleware;
-      fn = middleware!;
+      fns = middleware!;
     } else {
       pathname = "";
-      fn = pathOrMiddleware;
+      fns = [pathOrMiddleware, ...middleware];
     }
 
     const segment = findOrCreateSegment<State>(this.#root, pathname);
-    segment.middlewares.push(fn);
+    segment.middlewares.push(...fns);
 
     return this;
   }
 
-  appWrapper(fn: any): this {
+  appWrapper(fn: RouteComponent<State>): this {
     this.#root.app = fn;
     return this;
   }
 
-  layout(path: string, layout: any): this {
+  layout(
+    path: string,
+    layout: RouteComponent<State>,
+    options: { skipInheritedLayouts?: boolean; skipAppWrapper?: boolean } = {},
+  ): this {
     const segment = findOrCreateSegment<State>(this.#root, path);
-    segment.layout = layout;
+    segment.layout = {
+      component: layout,
+      config: options,
+    };
     return this;
   }
 
@@ -380,6 +383,7 @@ export class App<State> {
         : routeToMiddlewares<State>(matched.item);
 
       console.log({ handlers, url: url.pathname, method });
+      console.log(this.#root);
       debugger;
       try {
         let result: unknown;
@@ -436,15 +440,3 @@ const missingBuildHandler = async (): Promise<Response> => {
     : renderToString(h(ForgotBuild, null));
   return new Response(html, { headers, status: 500 });
 };
-
-function wrapRender<State>(fn: HandlerFn<unknown, State>): MiddlewareFn<State> {
-  return async (ctx) => {
-    console.log("WRAPPED");
-    const res = await fn(ctx);
-    if (res instanceof Response) {
-      return res;
-    }
-
-    throw new Error("TODO");
-  };
-}
