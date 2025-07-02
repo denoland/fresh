@@ -164,17 +164,20 @@ export async function fsRoutes<State>(
     }),
   );
 
+  routeModules.sort((a, b) => sortRoutePaths(a.path, b.path));
+
   for (let i = 0; i < routeModules.length; i++) {
     const routeMod = routeModules[i];
     const normalized = routeMod.path;
 
     const stack: any[] = [];
 
-    console.log(routeMod);
     if (normalized.endsWith("/_app")) {
       app.appWrapper(routeMod.component);
       continue;
     } else if (normalized.endsWith("/_middleware")) {
+      if (routeMod.handlers === null) continue;
+
       if (isHandlerByMethod(routeMod.handlers)) {
         warnInvalidRoute(
           "Middleware does not support object handlers with GET, POST, etc.",
@@ -183,13 +186,13 @@ export async function fsRoutes<State>(
       const pattern = pathToPattern(
         normalized.slice(0, -"/_middleware".length),
       );
-      if (pattern === "/") {
-        // FIXME: Type
-        app.use(routeMod.handlers as any);
-      } else {
-        // FIXME: Type
-        app.use(pattern, routeMod.handlers as any);
-      }
+
+      const handlers = (Array.isArray(routeMod.handlers)
+        ? routeMod.handlers
+        : [routeMod.handlers]) as MiddlewareFn<State>[];
+
+      app.use(pattern, ...handlers);
+
       continue;
     } else if (normalized.endsWith("/_layout")) {
       if (routeMod.handlers !== null) {
@@ -200,6 +203,8 @@ export async function fsRoutes<State>(
       app.layout(pattern, routeMod.component);
       continue;
     } else if (normalized.endsWith("/_error")) {
+      // const pattern = pathToPattern(normalized.slice(0, -"/_error".length));
+      // app.error(pattern, routeMod.component);
       stack.push(routeMod);
       continue;
     } else if (normalized.endsWith("/_404")) {

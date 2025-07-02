@@ -149,7 +149,7 @@ Deno.test("fsRoutes - serve index", async () => {
   expect(await res.text()).toEqual("ok");
 });
 
-Deno.test.only("fsRoutes - add middleware for function handler", async () => {
+Deno.test("fsRoutes - add middleware for function handler", async () => {
   const server = await createServer<{ text: string }>({
     "routes/[id].ts": { handler: (ctx) => new Response(ctx.state.text) },
     "routes/index.ts": { handler: (ctx) => new Response(ctx.state.text) },
@@ -323,7 +323,7 @@ Deno.test("fsRoutes - prepend _layout", async () => {
   expect(doc.body.firstChild?.textContent).toEqual("app/layout/foo");
 });
 
-Deno.test("fsRoutes - nested _layout", async () => {
+Deno.test.only("fsRoutes - nested _layout", async () => {
   const server = await createServer({
     "routes/foo/bar.ts": {
       default: () => <>foo_bar</>,
