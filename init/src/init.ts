@@ -329,7 +329,7 @@ ${GRADIENT_CSS}`;
 
   const cssStyles = useTailwind ? TAILWIND_CSS : NO_TAILWIND_STYLES;
   await writeFile("static/styles.css", cssStyles);
-
+  // deno-fmt-ignore
   const STATIC_LOGO =
     `<svg width="40" height="40" fill="none" xmlns="http://www.w3.org/2000/svg">
   <path
