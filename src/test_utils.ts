@@ -125,7 +125,13 @@ export async function withTmpDir(
   return {
     dir,
     async [Symbol.asyncDispose]() {
-      await Deno.remove(dir, { recursive: true });
+      try {
+        await Deno.remove(dir, { recursive: true });
+      } catch (error) {
+        if (!(error instanceof Deno.errors.PermissionDenied)) {
+          throw error;
+        }
+      }
     },
   };
 }
