@@ -76,8 +76,11 @@ function createOnListen(
     const address = colors.cyan(
       `${protocol}//${hostname}:${params.port}${pathname}`,
     );
+    const helper = hostname === "0.0.0.0" || hostname === "::"
+      ? colors.cyan(` (${protocol}//localhost:${params.port}${pathname})`)
+      : "";
     // deno-lint-ignore no-console
-    console.log(`    ${localLabel}  ${space}${address}${sep}`);
+    console.log(`    ${localLabel}  ${space}${address}${helper}${sep}`);
     if (options.remoteAddress) {
       const remoteLabel = colors.bold("Remote:");
       const remoteAddress = colors.cyan(options.remoteAddress);
