@@ -53,3 +53,16 @@ export function pathToExportName(filePath: string): string {
   const regex = /^[^a-z_$]|[^a-z0-9_$]/gi;
   return name.replaceAll(regex, "_").replaceAll(/_{2,}/g, "_");
 }
+
+const SCRIPT_ESCAPE = /<\/(style|script)/gi;
+const COMMENT_ESCAPE = /<!--/gi;
+
+// See https://html.spec.whatwg.org/multipage/scripting.html#restrictions-for-contents-of-script-elements
+export function escapeScript(
+  content: string,
+  options: { json?: boolean } = {},
+): string {
+  return content
+    .replaceAll(SCRIPT_ESCAPE, "<\\/$1")
+    .replaceAll(COMMENT_ESCAPE, options.json ? "\\u003C!--" : "\\x3C!--");
+}

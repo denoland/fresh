@@ -1,7 +1,7 @@
 import { useEffect } from "preact/hooks";
 import { useSignal } from "@preact/signals";
 
-export function EscapeIsland(_props: { str: string }) {
+export function EscapeIsland(props: { str: string }) {
   const active = useSignal(false);
 
   useEffect(() => {
@@ -10,7 +10,8 @@ export function EscapeIsland(_props: { str: string }) {
 
   return (
     <div class={active.value ? "ready" : ""}>
-      it works
+      <p>it works</p>
+      <div>{props.str}</div>
     </div>
   );
 }
