@@ -234,7 +234,10 @@ export function routeToMiddlewares<State>(
 
     const { layout, app, error: errorRoute, error404, error500 } = segment;
 
-    if (layout !== null || app !== null || errorRoute !== null) {
+    if (
+      layout !== null || app !== null || errorRoute !== null ||
+      error404 !== null || error500 !== null
+    ) {
       result.push(async (ctx) => {
         const internal = ctx.__internal;
         if (app !== null) {
