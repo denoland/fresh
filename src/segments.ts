@@ -10,6 +10,7 @@ import {
   type RouteHandler,
 } from "./handlers.ts";
 import type { AsyncAnyComponent } from "./plugins/fs_routes/render_middleware.ts";
+import { HttpError } from "./error.ts";
 
 export type RouteComponent<State> =
   | AsyncAnyComponent<PageProps<unknown, State>>
@@ -34,6 +35,8 @@ export interface Segment<State> {
     config: Pick<RouteConfig, "skipAppWrapper" | "skipInheritedLayouts">;
   } | null;
   error: InternalRoute<State> | null;
+  error404: InternalRoute<State> | null;
+  error500: InternalRoute<State> | null;
   app: RouteComponent<State> | null;
   children: Map<string, Segment<State>>;
   parent: Segment<State> | null;
@@ -74,6 +77,8 @@ export function newSegment<State>(
     routes: new Map(),
     app: null,
     error: null,
+    error404: null,
+    error500: null,
     parent,
     children: new Map(),
   };
@@ -150,6 +155,18 @@ export function registerRoutes<State>(
   for (const child of segment.children.values()) {
     registerRoutes(router, child, sPattern);
   }
+
+  if (segment.error !== null) {
+    const route = segment.error;
+    const pattern = sPattern + "/*";
+    // FIXME: Don't overwrite
+    router.add("GET", pattern, route);
+    router.add("POST", pattern, route);
+    router.add("PATCH", pattern, route);
+    router.add("PUT", pattern, route);
+    router.add("DELETE", pattern, route);
+    router.add("HEAD", pattern, route);
+  }
 }
 
 export function findOrCreateSegment<State>(
@@ -212,12 +229,10 @@ export function routeToMiddlewares<State>(
 
   const result: MiddlewareFn<State>[] = [];
 
-  console.log(stack);
-
   for (let i = stack.length - 1; i >= 0; i--) {
     const segment = stack[i];
 
-    const { layout, app, error: errorRoute } = segment;
+    const { layout, app, error: errorRoute, error404, error500 } = segment;
 
     if (layout !== null || app !== null || errorRoute !== null) {
       result.push(async (ctx) => {
@@ -225,6 +240,8 @@ export function routeToMiddlewares<State>(
         if (app !== null) {
           internal.app = app;
         }
+
+        console.log("gogo");
 
         if (layout !== null) {
           if (layout.config?.skipAppWrapper) {
@@ -248,6 +265,7 @@ export function routeToMiddlewares<State>(
         try {
           return await ctx.next();
         } catch (err) {
+          console.log("CAUGHT", err);
           ctx.error = err;
 
           internal.app = prevApp;
@@ -255,6 +273,16 @@ export function routeToMiddlewares<State>(
 
           if (errorRoute !== null) {
             return await renderInternalRoute(ctx, errorRoute);
+          } else if (err instanceof HttpError) {
+            if (err.status >= 500) {
+              if (error500 !== null) {
+                return await renderInternalRoute(ctx, error500);
+              }
+            } else if (err.status === 404) {
+              if (error404 !== null) {
+                return await renderInternalRoute(ctx, error404);
+              }
+            }
           }
 
           throw err;
@@ -284,6 +312,7 @@ export async function renderInternalRoute<State>(
   ctx: FreshContext<State>,
   route: InternalRoute<State>,
 ): Promise<Response> {
+  console.log("RENDER", ctx.error);
   // deno-lint-ignore no-explicit-any
   let props: any = null;
 
@@ -341,6 +370,9 @@ export async function renderInternalRoute<State>(
       component: route.component,
     });
   }
+
+  console.log(ctx.__internal);
+  console.log(ctx.url.pathname);
 
   return ctx.render(null, { headers, status });
 }

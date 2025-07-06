@@ -13,14 +13,15 @@ import {
   type ResolvedFreshConfig,
 } from "./config.ts";
 import { type BuildCache, ProdBuildCache } from "./build_cache.ts";
-import type { ServerIslandRegistry } from "./context.ts";
+import type { FreshContext, ServerIslandRegistry } from "./context.ts";
 import { FinishSetup, ForgotBuild } from "./finish_setup.tsx";
 import { HttpError } from "./error.ts";
-import { mergePaths, pathToExportName } from "./utils.ts";
+import { pathToExportName } from "./utils.ts";
 import {
   findOrCreateSegment,
   getOrCreateRoute,
   type InternalRoute,
+  newRoute,
   newSegment,
   registerRoutes,
   type RouteComponent,
@@ -36,11 +37,28 @@ export const DEFAULT_CONN_INFO: any = {
   remoteAddr: { transport: "tcp", hostname: "localhost", port: 1234 },
 };
 
-const DEFAULT_NOT_FOUND = () => {
+const DEFAULT_NOT_FOUND = (): Promise<Response> => {
   throw new HttpError(404);
 };
-const DEFAULT_NOT_ALLOWED_METHOD = () => {
+const DEFAULT_NOT_ALLOWED_METHOD = (): Promise<Response> => {
   throw new HttpError(405);
+};
+// deno-lint-ignore require-await
+const DEFAULT_ERROR_HANDLER = async <State>(ctx: FreshContext<State>) => {
+  const { error } = ctx;
+
+  console.log("GG", error);
+  if (error instanceof HttpError) {
+    if (error.status >= 500) {
+      // deno-lint-ignore no-console
+      console.error(error);
+    }
+    return new Response(error.message, { status: error.status });
+  }
+
+  // deno-lint-ignore no-console
+  console.error(error);
+  return new Response("Internal server error", { status: 500 });
 };
 
 export type ListenOptions =
@@ -229,20 +247,46 @@ export class App<State> {
     return this;
   }
 
+  error(
+    path: string,
+    errorRoute: FreshFsItem<State>,
+  ): this {
+    const segment = findOrCreateSegment<State>(this.#root, path);
+
+    const route = newRoute(segment, "");
+    assignRoute(route, errorRoute);
+    segment.error = route;
+
+    return this;
+  }
+
+  /**
+   * @deprecated Use {@linkcode App.error} instead.
+   */
+  error404(errorRoute: FreshFsItem<State>) {
+    const segment = this.#root;
+    const route = newRoute(segment, "");
+    assignRoute(route, errorRoute);
+    segment.error404 = route;
+  }
+
+  /**
+   * @deprecated Use {@linkcode App.error} instead.
+   */
+  error500(errorRoute: FreshFsItem<State>) {
+    const segment = this.#root;
+    const route = newRoute(segment, "");
+    assignRoute(route, errorRoute);
+    segment.error500 = route;
+  }
+
   route(path: string, route: FreshFsItem<State>): this {
     const { route: sRoute } = getOrCreateRoute<State>(
       this.#root,
       path,
     );
 
-    const handlers = route.handlers ?? route.handler ?? null;
-    if (Array.isArray(handlers)) {
-      throw new Error(`Route handlers cannot be an array`);
-    }
-
-    sRoute.handlers = handlers;
-    sRoute.component = route.default ?? null;
-    sRoute.config = route.config ?? null;
+    assignRoute(sRoute, route);
 
     return this;
   }
@@ -351,7 +395,21 @@ export class App<State> {
       return missingBuildHandler;
     }
 
+    if (
+      this.#root.error === null && this.#root.error404 === null &&
+      this.#root.error500 === null
+    ) {
+      const route = newRoute(this.#root, "");
+      route.handlers = DEFAULT_ERROR_HANDLER;
+      this.#root.error = route;
+    }
+
     registerRoutes(this.#router, this.#root, "");
+
+    const error404Route = this.#root.error ?? this.#root.error404 ?? null;
+
+    const notAllowedMethod = [DEFAULT_NOT_ALLOWED_METHOD];
+    const notFound = [DEFAULT_NOT_FOUND];
 
     return async (
       req: Request,
@@ -386,12 +444,24 @@ export class App<State> {
         span.setAttribute("http.route", pattern);
       }
 
-      const handlers = matched.item === null
-        ? this.#root.middlewares
-        : routeToMiddlewares<State>(matched.item);
+      let handlers: MiddlewareFn<State>[];
+      if (matched.item === null) {
+        if (matched.patternMatch && !matched.methodMatch) {
+          ctx.error = new HttpError(405);
+          handlers = notAllowedMethod;
+        } else {
+          ctx.error = new HttpError(404);
+          handlers = error404Route !== null
+            ? routeToMiddlewares<State>(error404Route)
+            : notFound;
+        }
+      } else {
+        handlers = routeToMiddlewares<State>(matched.item);
+      }
 
       console.log({ handlers, url: url.pathname, method });
       console.log(matched);
+      console.log(ctx.error);
       debugger;
       try {
         let result: unknown;
@@ -408,17 +478,16 @@ export class App<State> {
 
         return result;
       } catch (err) {
-        if (err instanceof HttpError) {
-          if (err.status >= 500) {
-            // deno-lint-ignore no-console
-            console.error(err);
-          }
-          return new Response(err.message, { status: err.status });
+        console.log("thrown");
+        ctx.error = err;
+        if (this.#root.error !== null) {
+          const mids = routeToMiddlewares<State>(this.#root.error);
+          return await runMiddlewares(mids, ctx);
+        } else if (this.#root.error500 !== null) {
+          const mids = routeToMiddlewares<State>(this.#root.error500);
+          return await runMiddlewares(mids, ctx);
         }
-
-        // deno-lint-ignore no-console
-        console.error(err);
-        return new Response("Internal server error", { status: 500 });
+        return DEFAULT_ERROR_HANDLER(ctx);
       }
     };
   }
@@ -448,3 +517,17 @@ const missingBuildHandler = async (): Promise<Response> => {
     : renderToString(h(ForgotBuild, null));
   return new Response(html, { headers, status: 500 });
 };
+
+function assignRoute<State>(
+  route: InternalRoute<State>,
+  def: FreshFsItem<State>,
+) {
+  const handlers = def.handlers ?? def.handler ?? null;
+  if (Array.isArray(handlers)) {
+    throw new Error(`Route handlers cannot be an array`);
+  }
+
+  route.handlers = handlers;
+  route.component = def.default ?? null;
+  route.config = def.config ?? null;
+}

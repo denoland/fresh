@@ -816,7 +816,7 @@ Deno.test("fsRoutes - _error render component", async () => {
   expect(doc.body.firstChild?.textContent).toEqual("ok");
 });
 
-Deno.test("fsRoutes - _error render on 404", async () => {
+Deno.test.only("fsRoutes - _error render on 404", async () => {
   // deno-lint-ignore no-explicit-any
   let error: any = null;
   const server = await createServer({
@@ -828,7 +828,8 @@ Deno.test("fsRoutes - _error render on 404", async () => {
       },
     },
     "routes/foo/_error.tsx": {
-      default: (ctx) => {
+      default: function foo2(ctx) {
+        console.log("yeah", ctx.error);
         // deno-lint-ignore no-explicit-any
         error = ctx.error as any;
         return <p>ok foo</p>;
@@ -845,6 +846,8 @@ Deno.test("fsRoutes - _error render on 404", async () => {
   let doc = parseHtml(await res.text());
   expect(doc.body.firstChild?.textContent).toEqual("ok foo");
   expect(error?.status).toEqual(404);
+
+  console.log("============================");
 
   res = await server.get("/");
   doc = parseHtml(await res.text());
