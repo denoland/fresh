@@ -173,7 +173,9 @@ export async function fsRoutes<State>(
     const stack: any[] = [];
 
     if (normalized.endsWith("/_app")) {
-      app.appWrapper(routeMod.component);
+      if (routeMod.component !== null) {
+        app.appWrapper(routeMod.component);
+      }
       continue;
     } else if (normalized.endsWith("/_middleware")) {
       if (routeMod.handlers === null) continue;
@@ -200,7 +202,9 @@ export async function fsRoutes<State>(
       }
 
       const pattern = pathToPattern(normalized.slice(0, -"/_layout".length));
-      app.layout(pattern, routeMod.component);
+      if (routeMod.component !== null) {
+        app.layout(pattern, routeMod.component, routeMod.config ?? undefined);
+      }
       continue;
     } else if (normalized.endsWith("/_error")) {
       // const pattern = pathToPattern(normalized.slice(0, -"/_error".length));

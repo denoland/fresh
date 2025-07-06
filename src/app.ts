@@ -129,6 +129,8 @@ async function listenOnFreePort(
 }
 
 // deno-lint-ignore no-explicit-any
+export let getRouteTree: (app: App<any>) => Segment<any>;
+// deno-lint-ignore no-explicit-any
 export let getIslandRegistry: (app: App<any>) => ServerIslandRegistry;
 // deno-lint-ignore no-explicit-any
 export let getBuildCache: (app: App<any>) => BuildCache | null;
@@ -145,6 +147,7 @@ export class App<State> {
   #islandNames = new Set<string>();
 
   static {
+    getRouteTree = (app) => app.#root;
     getIslandRegistry = (app) => app.#islandRegistry;
     getBuildCache = (app) => app.#buildCache;
     setBuildCache = (app, cache) => app.#buildCache = cache;
@@ -157,7 +160,7 @@ export class App<State> {
 
   constructor(config: FreshConfig = {}) {
     this.config = normalizeConfig(config);
-    this.#root = newSegment(this.config.basePath, null);
+    this.#root = newSegment("", null);
   }
 
   island(
@@ -245,76 +248,81 @@ export class App<State> {
   }
 
   get(path: string, ...middlewares: MiddlewareFn<State>[]): this {
-    const { route } = getOrCreateRoute<State>(this.#root, path);
-    route.middlewareHandlers.GET.push(...middlewares);
+    this.#registerMiddleware("GET", path, middlewares);
     return this;
   }
   post(path: string, ...middlewares: MiddlewareFn<State>[]): this {
-    const { route } = getOrCreateRoute<State>(this.#root, path);
-    route.middlewareHandlers.POST.push(...middlewares);
-
+    this.#registerMiddleware("POST", path, middlewares);
     return this;
   }
   patch(path: string, ...middlewares: MiddlewareFn<State>[]): this {
-    const { route } = getOrCreateRoute<State>(this.#root, path);
-    route.middlewareHandlers.PATCH.push(...middlewares);
+    this.#registerMiddleware("PATCH", path, middlewares);
     return this;
   }
   put(path: string, ...middlewares: MiddlewareFn<State>[]): this {
-    const { route } = getOrCreateRoute<State>(this.#root, path);
-    route.middlewareHandlers.PUT.push(...middlewares);
+    this.#registerMiddleware("PUT", path, middlewares);
     return this;
   }
   delete(path: string, ...middlewares: MiddlewareFn<State>[]): this {
-    const { route } = getOrCreateRoute<State>(this.#root, path);
-    route.middlewareHandlers.DELETE.push(...middlewares);
+    this.#registerMiddleware("DELETE", path, middlewares);
     return this;
   }
   head(path: string, ...middlewares: MiddlewareFn<State>[]): this {
-    const { route } = getOrCreateRoute<State>(this.#root, path);
-    route.middlewareHandlers.HEAD.push(...middlewares);
+    this.#registerMiddleware("HEAD", path, middlewares);
     return this;
   }
   all(path: string, ...middlewares: MiddlewareFn<State>[]): this {
-    const { route } = getOrCreateRoute<State>(this.#root, path);
-
-    route.middlewareHandlers.DELETE.push(...middlewares);
-    route.middlewareHandlers.GET.push(...middlewares);
-    route.middlewareHandlers.HEAD.push(...middlewares);
-    route.middlewareHandlers.PATCH.push(...middlewares);
-    route.middlewareHandlers.POST.push(...middlewares);
-    route.middlewareHandlers.PUT.push(...middlewares);
+    this.#registerMiddleware("DELETE", path, middlewares);
+    this.#registerMiddleware("GET", path, middlewares);
+    this.#registerMiddleware("HEAD", path, middlewares);
+    this.#registerMiddleware("POST", path, middlewares);
+    this.#registerMiddleware("PATCH", path, middlewares);
+    this.#registerMiddleware("PUT", path, middlewares);
 
     return this;
   }
 
+  #registerMiddleware(
+    method: Method,
+    path: string,
+    middlewares: MiddlewareFn<State>[],
+  ) {
+    const routePath = this.config.basePath + path;
+    const { route } = getOrCreateRoute<State>(this.#root, routePath);
+    route.middlewareHandlers[method].push(...middlewares);
+  }
+
   mountApp(path: string, app: App<State>): this {
-    const routes = app.#router._routes;
+    const segment = findOrCreateSegment(this.#root, path);
+
+    const root = app.#root;
+    if (root.app) segment.app = root.app;
+    if (root.layout) segment.layout = root.layout;
+    if (root.error) {
+      root.error.parent = segment;
+      segment.error = root.error;
+    }
+    if (root.middlewares.length > 0) {
+      segment.middlewares.push(...root.middlewares);
+    }
+    if (root.children.size > 0) {
+      root.children.forEach((value, key) => {
+        const clone = { ...value };
+        clone.parent = segment;
+        segment.children.set(key, clone);
+      });
+    }
+    if (root.routes.size > 0) {
+      root.routes.forEach((value, key) => {
+        const clone = { ...value };
+        clone.parent = segment;
+        segment.routes.set(key, clone);
+      });
+    }
+
     app.#islandRegistry.forEach((value, key) => {
       this.#islandRegistry.set(key, value);
     });
-
-    const middlewares = app.#router._middlewares;
-
-    // Special case when user calls one of these:
-    // - `app.mountApp("/", otherApp)`
-    // - `app.mountApp("/*", otherApp)`
-    const isSelf = path === "/*" || path === "/";
-    if (isSelf && middlewares.length > 0) {
-      this.#router._middlewares.push(...middlewares);
-    }
-
-    for (let i = 0; i < routes.length; i++) {
-      const route = routes[i];
-
-      const merged = typeof route.path === "string"
-        ? mergePaths(path, route.path)
-        : route.path;
-      const combined = isSelf
-        ? route.handlers
-        : middlewares.concat(route.handlers);
-      this.#router.add(route.method, merged, combined);
-    }
 
     return this;
   }
@@ -383,7 +391,6 @@ export class App<State> {
         : routeToMiddlewares<State>(matched.item);
 
       console.log({ handlers, url: url.pathname, method });
-      console.log(this.#root);
       console.log(matched);
       debugger;
       try {

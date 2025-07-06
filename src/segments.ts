@@ -93,8 +93,9 @@ export function registerRoutes<State>(
     let pattern = sPattern;
     if (route.pattern !== "_index") {
       pattern += "/" + route.pattern;
+    } else if (sPattern === "") {
+      pattern += "/";
     }
-    console.log({ pattern, r: route.pattern, s: sPattern });
 
     if (isHandlerByMethod(route.handlers)) {
       if (route.handlers.GET !== undefined) {
@@ -125,22 +126,22 @@ export function registerRoutes<State>(
       router.add("DELETE", pattern, route);
       router.add("HEAD", pattern, route);
     } else {
-      if (route.middlewareHandlers.GET !== undefined) {
+      if (route.middlewareHandlers.GET.length > 0) {
         router.add("GET", pattern, route);
       }
-      if (route.middlewareHandlers.POST !== undefined) {
+      if (route.middlewareHandlers.POST.length > 0) {
         router.add("POST", pattern, route);
       }
-      if (route.middlewareHandlers.PATCH !== undefined) {
+      if (route.middlewareHandlers.PATCH.length > 0) {
         router.add("PATCH", pattern, route);
       }
-      if (route.middlewareHandlers.PUT !== undefined) {
+      if (route.middlewareHandlers.PUT.length > 0) {
         router.add("PUT", pattern, route);
       }
-      if (route.middlewareHandlers.DELETE !== undefined) {
+      if (route.middlewareHandlers.DELETE.length > 0) {
         router.add("DELETE", pattern, route);
       }
-      if (route.middlewareHandlers.HEAD !== undefined) {
+      if (route.middlewareHandlers.HEAD.length > 0) {
         router.add("HEAD", pattern, route);
       }
     }
@@ -211,6 +212,8 @@ export function routeToMiddlewares<State>(
 
   const result: MiddlewareFn<State>[] = [];
 
+  console.log(stack);
+
   for (let i = stack.length - 1; i >= 0; i--) {
     const segment = stack[i];
 
@@ -264,9 +267,15 @@ export function routeToMiddlewares<State>(
     }
   }
 
-  if (route.handlers !== null || route.component !== null) {
-    result.push((ctx) => renderInternalRoute(ctx, route));
-  }
+  result.push((ctx) => {
+    if (route.config?.skipAppWrapper) {
+      ctx.__internal.app = null;
+    }
+    if (route.config?.skipInheritedLayouts) {
+      ctx.__internal.layouts = [];
+    }
+    return renderInternalRoute(ctx, route);
+  });
 
   return result;
 }
@@ -285,6 +294,10 @@ export async function renderInternalRoute<State>(
   if (middlewareHandlers[method].length > 0) {
     return await runMiddlewares(middlewareHandlers[method], ctx);
   }
+
+  let status = 200;
+  const headers = new Headers();
+  headers.set("Content-Type", "text/html;charset=utf-8");
 
   if (handlers !== null) {
     const res = await tracer.startActiveSpan("handler", {
@@ -310,7 +323,16 @@ export async function renderInternalRoute<State>(
       return res;
     }
 
-    props = res;
+    if (typeof res.status === "number") {
+      status = res.status;
+    }
+    if (res.headers) {
+      for (const [name, value] of Object.entries(res.headers)) {
+        headers.set(name, value);
+      }
+    }
+
+    props = res.data;
   }
 
   if (route.component !== null) {
@@ -320,5 +342,5 @@ export async function renderInternalRoute<State>(
     });
   }
 
-  return ctx.render(null);
+  return ctx.render(null, { headers, status });
 }

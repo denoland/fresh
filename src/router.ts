@@ -82,6 +82,7 @@ export class UrlPatternRouter<T> implements Router<T> {
           result.pattern = route.path.pathname;
 
           if (route.method === "ALL" || route.method === method) {
+            result.methodMatch = true;
             result.item = route.item;
 
             // Decode matched params
@@ -89,7 +90,6 @@ export class UrlPatternRouter<T> implements Router<T> {
               result.params[key] = value === undefined ? "" : decodeURI(value);
             }
 
-            result.methodMatch = true;
             return result;
           }
         }

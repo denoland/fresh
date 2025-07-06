@@ -1,4 +1,4 @@
-import type { FreshContext, FreshReqContext } from "../context.ts";
+import type { FreshContext } from "../context.ts";
 import type { App as _App } from "../app.ts";
 import type { Define as _Define } from "../define.ts";
 
@@ -92,7 +92,12 @@ export function runMiddlewares<State>(
     const next = middlewares[i];
     fn = async () => {
       ctx.next = local;
-      return await next(ctx);
+      try {
+        return await next(ctx);
+      } catch (err) {
+        ctx.error = err;
+        throw err;
+      }
     };
   }
   return fn();
