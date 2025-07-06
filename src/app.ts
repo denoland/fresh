@@ -384,6 +384,7 @@ export class App<State> {
 
       console.log({ handlers, url: url.pathname, method });
       console.log(this.#root);
+      console.log(matched);
       debugger;
       try {
         let result: unknown;

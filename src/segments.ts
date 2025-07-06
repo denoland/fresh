@@ -28,7 +28,7 @@ export interface InternalRoute<State> {
 export interface Segment<State> {
   pattern: string;
   middlewares: MiddlewareFn<State>[];
-  route: InternalRoute<State> | null;
+  routes: Map<string, InternalRoute<State>>;
   layout: {
     component: RouteComponent<State>;
     config: Pick<RouteConfig, "skipAppWrapper" | "skipInheritedLayouts">;
@@ -71,7 +71,7 @@ export function newSegment<State>(
     pattern,
     middlewares: [],
     layout: null,
-    route: null,
+    routes: new Map(),
     app: null,
     error: null,
     parent,
@@ -82,18 +82,20 @@ export function newSegment<State>(
 export function registerRoutes<State>(
   router: Router<InternalRoute<State>>,
   segment: Segment<State>,
-  pattern: string,
+  sPattern: string,
 ) {
-  const { route } = segment;
-
-  if (!segment.pattern.startsWith("(_")) {
-    if (!segment.pattern.startsWith("/") && !pattern.endsWith("/")) {
-      pattern += "/";
-    }
-    pattern += segment.pattern;
+  if (segment.pattern !== "" && !segment.pattern.startsWith("(_")) {
+    sPattern += "/";
+    sPattern += segment.pattern;
   }
 
-  if (route !== null) {
+  for (const route of segment.routes.values()) {
+    let pattern = sPattern;
+    if (route.pattern !== "_index") {
+      pattern += "/" + route.pattern;
+    }
+    console.log({ pattern, r: route.pattern, s: sPattern });
+
     if (isHandlerByMethod(route.handlers)) {
       if (route.handlers.GET !== undefined) {
         router.add("GET", pattern, route);
@@ -145,7 +147,7 @@ export function registerRoutes<State>(
   }
 
   for (const child of segment.children.values()) {
-    registerRoutes(router, child, pattern);
+    registerRoutes(router, child, sPattern);
   }
 }
 
@@ -175,12 +177,26 @@ export function findOrCreateSegment<State>(
 }
 
 export function getOrCreateRoute<State>(root: Segment<State>, path: string) {
-  const segment = findOrCreateSegment<State>(root, path);
-  if (segment.route === null) {
-    segment.route = newRoute(segment, path);
+  let routePath = "";
+  let segmentPath = "";
+  if (path.endsWith("/")) {
+    routePath = "_index";
+    segmentPath = path.slice(0, -1);
+  } else {
+    const idx = path.lastIndexOf("/");
+    if (idx === -1) throw new Error(`Invalid route path: ${path}`);
+    routePath = path.slice(idx + 1);
+    segmentPath = path.slice(0, idx);
   }
 
-  return { segment, route: segment.route };
+  const segment = findOrCreateSegment<State>(root, segmentPath);
+  let route = segment.routes.get(routePath);
+  if (route === undefined) {
+    route = newRoute(segment, routePath);
+    segment.routes.set(routePath, route);
+  }
+
+  return { segment, route };
 }
 
 export function routeToMiddlewares<State>(

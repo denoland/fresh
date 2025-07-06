@@ -215,7 +215,11 @@ export async function fsRoutes<State>(
       continue;
     }
 
-    const pattern = pathToPattern(normalized.slice(1));
+    let pattern = pathToPattern(normalized.slice(1));
+    if (normalized.endsWith("/index")) {
+      pattern += "/_index";
+    }
+
     app.route(pattern, {
       config: routeMod.config ?? undefined,
       default: routeMod.component ?? undefined,

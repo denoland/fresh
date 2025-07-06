@@ -29,6 +29,7 @@ export class UrlPatternRouter<T> implements Router<T> {
   #routes: Route<T>[] = [];
 
   add(method: Method | "ALL", pathname: string | URLPattern, item: T) {
+    console.log("ADD", method, pathname);
     if (
       typeof pathname === "string" && pathname !== "/*" &&
       IS_PATTERN.test(pathname)
