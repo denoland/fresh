@@ -76,8 +76,11 @@ function createOnListen(
     const address = colors.cyan(
       `${protocol}//${hostname}:${params.port}${pathname}`,
     );
+    const helper = hostname === "0.0.0.0" || hostname === "::"
+      ? colors.cyan(` (${protocol}//localhost:${params.port}${pathname})`)
+      : "";
     // deno-lint-ignore no-console
-    console.log(`    ${localLabel}  ${space}${address}${sep}`);
+    console.log(`    ${localLabel}  ${space}${address}${helper}${sep}`);
     if (options.remoteAddress) {
       const remoteLabel = colors.bold("Remote:");
       const remoteAddress = colors.cyan(options.remoteAddress);
@@ -242,7 +245,13 @@ export class App<State> {
     return this;
   }
 
-  handler(): (
+  /**
+   * Create handler function for `Deno.serve` or to be used in
+   * testing.
+   * @param {() => Promise<Response>} [nextFn] overwrite default 404 handler
+   * @returns {Deno.ServeHandler}
+   */
+  handler(nextFn?: () => Promise<Response>): (
     request: Request,
     info?: Deno.ServeHandlerInfo,
   ) => Promise<Response> {
@@ -273,7 +282,7 @@ export class App<State> {
 
       const next = matched.patternMatch && !matched.methodMatch
         ? DEFAULT_NOT_ALLOWED_METHOD
-        : DEFAULT_NOT_FOUND;
+        : nextFn ?? DEFAULT_NOT_FOUND;
 
       const { params, handlers, pattern } = matched;
       const ctx = new FreshReqContext<State>(

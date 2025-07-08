@@ -53,11 +53,15 @@
     "npm:@opentelemetry/api@^1.9.0": "1.9.0",
     "npm:@preact/signals@^1.2.3": "1.3.2_preact@10.26.9",
     "npm:@preact/signals@^2.0.4": "2.2.0_preact@10.26.9",
+    "npm:@preact/signals@^2.2.0": "2.2.0_preact@10.26.9",
+    "npm:@preact/signals@^2.2.1": "2.2.1_preact@10.26.9",
     "npm:@types/node@*": "22.15.15",
     "npm:autoprefixer@10.4.17": "10.4.17_postcss@8.4.35",
     "npm:cssnano@6.0.3": "6.0.3_postcss@8.4.35",
-    "npm:esbuild-wasm@0.25.4": "0.25.4",
-    "npm:esbuild@0.25.4": "0.25.4",
+    "npm:esbuild-wasm@0.23.1": "0.23.1",
+    "npm:esbuild-wasm@~0.25.5": "0.25.5",
+    "npm:esbuild@0.23.1": "0.23.1",
+    "npm:esbuild@~0.25.4": "0.25.5",
     "npm:esbuild@~0.25.5": "0.25.5",
     "npm:github-slugger@2": "2.0.0",
     "npm:linkedom@~0.18.10": "0.18.11",
@@ -67,6 +71,7 @@
     "npm:preact-render-to-string@^6.5.11": "6.5.13_preact@10.26.9",
     "npm:preact@^10.22.0": "10.26.9",
     "npm:preact@^10.26.6": "10.26.9",
+    "npm:preact@^10.26.9": "10.26.9",
     "npm:prismjs@^1.29.0": "1.30.0",
     "npm:tailwindcss@^3.4.1": "3.4.17_postcss@8.5.6",
     "npm:ts-morph@^25.0.1": "25.0.1"
@@ -128,7 +133,8 @@
       "dependencies": [
         "npm:@preact/signals@^1.2.3",
         "npm:preact@^10.22.0",
-        "npm:preact@^10.26.6"
+        "npm:preact@^10.26.6",
+        "npm:preact@^10.26.9"
       ]
     },
     "@std/assert@1.0.13": {
@@ -569,17 +575,27 @@
     "@preact/signals-core@1.10.0": {
       "integrity": "sha512-qlKeXlfqtlC+sjxCPHt6Sk0/dXBrKZVcPlianqjNc/vW263YBFiP5mRrgKpHoO0q222Thm1TdYQWfCKpbbgvwA=="
     },
+    "@preact/signals-core@1.11.0": {
+      "integrity": "sha512-jglbibeWHuFRzEWVFY/TT7wB1PppJxmcSfUHcK+2J9vBRtiooMfw6tAPttojNYrrpdGViqAYCbPpmWYlMm+eMQ=="
+    },
     "@preact/signals@1.3.2_preact@10.26.9": {
       "integrity": "sha512-naxcJgUJ6BTOROJ7C3QML7KvwKwCXQJYTc5L/b0eEsdYgPB6SxwoQ1vDGcS0Q7GVjAenVq/tXrybVdFShHYZWg==",
       "dependencies": [
-        "@preact/signals-core",
+        "@preact/signals-core@1.10.0",
         "preact"
       ]
     },
     "@preact/signals@2.2.0_preact@10.26.9": {
       "integrity": "sha512-P3KPcEYyVk9Wiwfw68QQzRpPkt0H+zjfH3X4AaGCDlc86GuRBYFGiAxT1nC5F5qlsVIEmjNJ9yVYe7C91z3L+g==",
       "dependencies": [
-        "@preact/signals-core",
+        "@preact/signals-core@1.10.0",
+        "preact"
+      ]
+    },
+    "@preact/signals@2.2.1_preact@10.26.9": {
+      "integrity": "sha512-cX3mijdjHbbz3dBoJ6z687CGYEOp9ifj3uFnm4UKW+DxXKPMvE2y/VSdm0PXhXmHnr6F0iSnDJ+dLwmV7CYT5A==",
+      "dependencies": [
+        "@preact/signals-core@1.11.0",
         "preact"
       ]
     },
@@ -876,38 +892,41 @@
     "entities@6.0.1": {
       "integrity": "sha512-aN97NXWF6AWBTahfVOIrB/NShkzi5H7F9r1s9mD3cDj4Ko5f2qhhVoYMibXF7GlLveb/D2ioWay8lxI97Ven3g=="
     },
-    "esbuild-wasm@0.25.4": {
-      "integrity": "sha512-2HlCS6rNvKWaSKhWaG/YIyRsTsL3gUrMP2ToZMBIjw9LM7vVcIs+rz8kE2vExvTJgvM8OKPqNpcHawY/BQc/qQ==",
+    "esbuild-wasm@0.23.1": {
+      "integrity": "sha512-L3vn7ctvBrtScRfoB0zG1eOCiV4xYvpLYWfe6PDZuV+iDFDm4Mt3xeLIDllG8cDHQ8clUouK3XekulE+cxgkgw==",
       "bin": true
     },
-    "esbuild@0.25.4": {
-      "integrity": "sha512-8pgjLUcUjcgDg+2Q4NYXnPbo/vncAY4UmyaCm0jZevERqCHZIaWwdJHkf8XQtu4AxSKCdvrUbT0XUr1IdZzI8Q==",
+    "esbuild-wasm@0.25.5": {
+      "integrity": "sha512-V/rbdOws2gDcnCAECfPrajhuafI0WY4WumUgc8ZHwOLnvmM0doLQ+dqvVFI2qkVxQsvo6880aC9IjpyDqcwwTw==",
+      "bin": true
+    },
+    "esbuild@0.23.1": {
+      "integrity": "sha512-VVNz/9Sa0bs5SELtn3f7qhJCDPCF5oMEl5cO9/SSinpE9hbPVvxbd572HH5AKiP7WD8INO53GgfDDhRjkylHEg==",
       "optionalDependencies": [
-        "@esbuild/aix-ppc64@0.25.4",
-        "@esbuild/android-arm@0.25.4",
-        "@esbuild/android-arm64@0.25.4",
-        "@esbuild/android-x64@0.25.4",
-        "@esbuild/darwin-arm64@0.25.4",
-        "@esbuild/darwin-x64@0.25.4",
-        "@esbuild/freebsd-arm64@0.25.4",
-        "@esbuild/freebsd-x64@0.25.4",
-        "@esbuild/linux-arm@0.25.4",
-        "@esbuild/linux-arm64@0.25.4",
-        "@esbuild/linux-ia32@0.25.4",
-        "@esbuild/linux-loong64@0.25.4",
-        "@esbuild/linux-mips64el@0.25.4",
-        "@esbuild/linux-ppc64@0.25.4",
-        "@esbuild/linux-riscv64@0.25.4",
-        "@esbuild/linux-s390x@0.25.4",
-        "@esbuild/linux-x64@0.25.4",
-        "@esbuild/netbsd-arm64@0.25.4",
-        "@esbuild/netbsd-x64@0.25.4",
-        "@esbuild/openbsd-arm64@0.25.4",
-        "@esbuild/openbsd-x64@0.25.4",
-        "@esbuild/sunos-x64@0.25.4",
-        "@esbuild/win32-arm64@0.25.4",
-        "@esbuild/win32-ia32@0.25.4",
-        "@esbuild/win32-x64@0.25.4"
+        "@esbuild/aix-ppc64@0.23.1",
+        "@esbuild/android-arm@0.23.1",
+        "@esbuild/android-arm64@0.23.1",
+        "@esbuild/android-x64@0.23.1",
+        "@esbuild/darwin-arm64@0.23.1",
+        "@esbuild/darwin-x64@0.23.1",
+        "@esbuild/freebsd-arm64@0.23.1",
+        "@esbuild/freebsd-x64@0.23.1",
+        "@esbuild/linux-arm@0.23.1",
+        "@esbuild/linux-arm64@0.23.1",
+        "@esbuild/linux-ia32@0.23.1",
+        "@esbuild/linux-loong64@0.23.1",
+        "@esbuild/linux-mips64el@0.23.1",
+        "@esbuild/linux-ppc64@0.23.1",
+        "@esbuild/linux-riscv64@0.23.1",
+        "@esbuild/linux-s390x@0.23.1",
+        "@esbuild/linux-x64@0.23.1",
+        "@esbuild/netbsd-x64@0.23.1",
+        "@esbuild/openbsd-arm64@0.23.1",
+        "@esbuild/openbsd-x64@0.23.1",
+        "@esbuild/sunos-x64@0.23.1",
+        "@esbuild/win32-arm64@0.23.1",
+        "@esbuild/win32-ia32@0.23.1",
+        "@esbuild/win32-x64@0.23.1"
       ],
       "scripts": true,
       "bin": true
@@ -1776,18 +1795,18 @@
       "jsr:@std/testing@^1.0.12",
       "jsr:@std/uuid@^1.0.7",
       "npm:@opentelemetry/api@^1.9.0",
-      "npm:@preact/signals@^2.0.4",
+      "npm:@preact/signals@^2.2.1",
       "npm:autoprefixer@10.4.17",
       "npm:cssnano@6.0.3",
-      "npm:esbuild-wasm@0.25.4",
-      "npm:esbuild@0.25.4",
+      "npm:esbuild-wasm@~0.25.5",
+      "npm:esbuild@~0.25.5",
       "npm:github-slugger@2",
       "npm:linkedom@~0.18.10",
       "npm:marked-mangle@^1.1.9",
       "npm:marked@^15.0.11",
       "npm:postcss@8.4.35",
       "npm:preact-render-to-string@^6.5.11",
-      "npm:preact@^10.26.6",
+      "npm:preact@^10.26.9",
       "npm:prismjs@^1.29.0",
       "npm:tailwindcss@^3.4.1",
       "npm:ts-morph@^25.0.1"
