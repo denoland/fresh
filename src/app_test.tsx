@@ -540,7 +540,7 @@ Deno.test("FreshApp - overwrite default 404 handler", async () => {
     app.handler(() => Promise.resolve(new Response("bar"))),
   );
 
-  const res = await server.get("/invaid");
+  const res = await server.get("/invalid");
   const text = await res.text();
   expect(text).toEqual("bar");
 });
