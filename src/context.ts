@@ -118,7 +118,7 @@ export interface FreshContext<State = unknown> {
   ): Response | Promise<Response>;
 }
 
-export let getBuildCache: (ctx: FreshContext<unknown>) => BuildCache;
+export let getBuildCache: <T>(ctx: FreshContext<T>) => BuildCache;
 
 export class FreshReqContext<State>
   implements FreshContext<State>, PageProps<unknown, State> {

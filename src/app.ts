@@ -417,9 +417,19 @@ export class App<State> {
       return missingBuildHandler;
     }
 
+    if (this.#root.error) {
+      this.#root.error404 = { ...this.#root.error };
+    } else if (this.#root.error404 === null) {
+      this.#root.error404 = newRoute(this.#root, "");
+    }
+
+    if (nextFn !== undefined) {
+      this.#root.error404.handlers = nextFn;
+    }
+
     registerRoutes(this.#router, this.#root, this.config.basePath, []);
 
-    const error404Route = this.#root.error ?? this.#root.error404 ?? null;
+    const error404Route = this.#root.error404 ?? null;
     const errorRoute = this.#root.error ?? this.#root.error500 ?? null;
 
     const errorHandler = errorRoute !== null
@@ -466,7 +476,8 @@ export class App<State> {
         if (!matched.methodMatch && matched.pattern !== null) {
           throw new HttpError(405);
         } else if (matched.item === null) {
-          throw new HttpError(404);
+          ctx.error = new HttpError(404);
+          return await runMiddlewares(handler404, ctx);
         }
 
         const handlers = matched.item.finalized;

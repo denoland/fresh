@@ -158,12 +158,6 @@ export function registerRoutes<State>(
       return await renderInternalRoute(ctx, errorPage, status);
     });
   } else {
-    if (error404 !== null) {
-      error404.pattern = sPattern;
-      error404.finalized.push(async function errorPage404Middleware(ctx) {
-        return await renderInternalRoute(ctx, error404, 404);
-      });
-    }
     if (error500 !== null) {
       error500.pattern = sPattern;
       error500.finalized.push(async function errorPage500Middleware(ctx) {
@@ -171,6 +165,18 @@ export function registerRoutes<State>(
         return await renderInternalRoute(ctx, error500, status);
       });
     }
+  }
+
+  if (error404 !== null) {
+    error404.pattern = sPattern;
+
+    if (segment.middlewares.length > 0) {
+      error404.finalized.push(...segment.middlewares);
+    }
+
+    error404.finalized.push(async function errorPage404Middleware(ctx) {
+      return await renderInternalRoute(ctx, error404, 404);
+    });
   }
 
   if (segment.middlewares.length > 0) {
