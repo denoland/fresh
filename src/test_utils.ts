@@ -45,6 +45,11 @@ export class FakeServer {
     const req = new Request(url, { method: "head" });
     return await this.handler(req, STUB);
   }
+  async options(path: string): Promise<Response> {
+    const url = this.toUrl(path);
+    const req = new Request(url, { method: "options" });
+    return await this.handler(req, STUB);
+  }
 
   async request(req: Request): Promise<Response> {
     return await this.handler(req, STUB);

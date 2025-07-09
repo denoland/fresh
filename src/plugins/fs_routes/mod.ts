@@ -181,6 +181,7 @@ export async function fsRoutes<State>(
       }
       const pattern = pathToPattern(
         normalized.slice(1, -"/_middleware".length),
+        { keepGroups: true },
       );
 
       const handlers = (Array.isArray(routeMod.handlers)
@@ -195,13 +196,17 @@ export async function fsRoutes<State>(
         warnInvalidRoute("Layout does not support handlers");
       }
 
-      const pattern = pathToPattern(normalized.slice(1, -"/_layout".length));
+      const pattern = pathToPattern(normalized.slice(1, -"/_layout".length), {
+        keepGroups: true,
+      });
       if (routeMod.component !== null) {
         app.layout(pattern, routeMod.component, routeMod.config ?? undefined);
       }
       continue;
     } else if (normalized.endsWith("/_error")) {
-      const pattern = pathToPattern(normalized.slice(1, -"/_error".length));
+      const pattern = pathToPattern(normalized.slice(1, -"/_error".length), {
+        keepGroups: true,
+      });
       app.error(pattern, {
         config: routeMod.config ?? undefined,
         default: routeMod.component ?? undefined,
@@ -224,13 +229,18 @@ export async function fsRoutes<State>(
       continue;
     }
 
-    let pattern = pathToPattern(normalized.slice(1));
+    let pattern = pathToPattern(normalized.slice(1), { keepGroups: true });
     if (normalized.endsWith("/index")) {
       pattern += "/_index";
     }
 
+    const routePattern = pathToPattern(normalized.slice(1));
+
     app.page(pattern, {
-      config: routeMod.config ?? undefined,
+      config: {
+        ...routeMod.config ?? undefined,
+        routeOverride: routeMod.config?.routeOverride ?? routePattern,
+      },
       default: routeMod.component ?? undefined,
       handler: routeMod.handlers ?? undefined,
     });

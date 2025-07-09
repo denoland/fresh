@@ -255,7 +255,6 @@ export function findOrCreateSegment<State>(
   let current = root;
 
   const segments = patternToSegments(path, root.pattern);
-  console.log({ path, segments });
   for (let i = 0; i < segments.length; i++) {
     const seg = segments[i];
     if (seg === root.pattern) {

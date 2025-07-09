@@ -132,6 +132,12 @@ Deno.test("pathToPattern", async (t) => {
     expect(() => pathToPattern("foo/foo-[[name]]")).toThrow();
     expect(() => pathToPattern("foo/[[name]]-bar")).toThrow();
   });
+
+  await t.step("keep groups", () => {
+    expect(pathToPattern("foo/(foo)/bar", { keepGroups: true })).toEqual(
+      "/foo/(foo)/bar",
+    );
+  });
 });
 
 Deno.test("patternToSegments", () => {

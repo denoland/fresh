@@ -28,6 +28,7 @@ import {
   type Segment,
 } from "./segments.ts";
 import type { FreshFsItem } from "./plugins/fs_routes/mod.ts";
+import { isHandlerByMethod } from "./handlers.ts";
 
 // TODO: Completed type clashes in older Deno versions
 // deno-lint-ignore no-explicit-any
@@ -35,6 +36,8 @@ export const DEFAULT_CONN_INFO: any = {
   localAddr: { transport: "tcp", hostname: "localhost", port: 8080 },
   remoteAddr: { transport: "tcp", hostname: "localhost", port: 1234 },
 };
+
+const DEFAULT_RENDER = () => ({ data: {} });
 
 const DEFAULT_NOT_FOUND = (): Promise<Response> => {
   throw new HttpError(404);
@@ -222,7 +225,12 @@ export class App<State> {
     }
 
     const segment = findOrCreateSegment<State>(this.#root, pathname);
-    segment.middlewares.push(...fns);
+    for (let i = 0; i < fns.length; i++) {
+      const fn = fns[i];
+      if (typeof fn === "function") {
+        segment.middlewares.push(fn);
+      }
+    }
 
     return this;
   }
@@ -279,12 +287,19 @@ export class App<State> {
   }
 
   page(path: string, page: FreshFsItem<State>): this {
-    const { route: sRoute } = getOrCreateRoute<State>(
+    const { route } = getOrCreateRoute<State>(
       this.#root,
       path,
     );
 
-    assignRoute(sRoute, page);
+    assignRoute(route, page);
+
+    if (
+      route.component !== null && isHandlerByMethod(route.handlers) &&
+      route.handlers.GET === undefined
+    ) {
+      route.handlers.GET = DEFAULT_RENDER;
+    }
 
     return this;
   }

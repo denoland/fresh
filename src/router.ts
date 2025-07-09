@@ -143,7 +143,10 @@ export class UrlPatternRouter<T> implements Router<T> {
 /**
  * Transform a filesystem URL path to a `path-to-regex` style matcher.
  */
-export function pathToPattern(path: string): string {
+export function pathToPattern(
+  path: string,
+  options?: { keepGroups: boolean },
+): string {
   const parts = path.split("/");
   if (parts[parts.length - 1] === "index") {
     if (parts.length === 1) {
@@ -168,7 +171,7 @@ export function pathToPattern(path: string): string {
     // Case: /foo/(bar) -> /foo
     // Case: /foo/(bar)/bob -> /foo/bob
     // Case: /(foo)/bar -> /bar
-    if (part.startsWith("(") && part.endsWith(")")) {
+    if (!options?.keepGroups && part.startsWith("(") && part.endsWith(")")) {
       continue;
     }
 
