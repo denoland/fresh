@@ -8,7 +8,6 @@ import {
   type RenderableProps,
   type VNode,
 } from "preact";
-import { jsxTemplate } from "preact/jsx-runtime";
 import { renderToString } from "preact-render-to-string";
 import { SpanStatusCode } from "@opentelemetry/api";
 import type { ResolvedFreshConfig } from "./config.ts";
@@ -25,7 +24,6 @@ import {
   type AsyncAnyComponent,
   isAsyncAnyComponent,
 } from "./plugins/fs_routes/render_middleware.ts";
-import { wrap } from "node:module";
 
 export interface Island {
   file: string | URL;
