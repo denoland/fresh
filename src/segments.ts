@@ -24,6 +24,7 @@ export interface InternalRoute<State> {
   middlewareHandlers: { [M in Method]: MiddlewareFn<State>[] };
   component: RouteComponent<State> | null;
   parent: Segment<State>;
+  finalized: MiddlewareFn<State>[];
 }
 
 export interface Segment<State> {
@@ -61,6 +62,7 @@ export function newRoute<T>(
     },
     pattern,
     config: null,
+    finalized: [],
   };
 
   return route;
@@ -88,13 +90,76 @@ export function registerRoutes<State>(
   router: Router<InternalRoute<State>>,
   segment: Segment<State>,
   sPattern: string,
+  stack: MiddlewareFn<State>[],
 ) {
   if (segment.pattern !== "" && !segment.pattern.startsWith("(_")) {
     sPattern += "/";
     sPattern += segment.pattern;
   }
 
+  stack.push(async function prepareSegment(ctx) {
+    const { layout, app, error: errorRoute, error404, error500 } = segment;
+
+    const internal = ctx.__internal;
+    if (app !== null) {
+      internal.app = app;
+    }
+
+    if (layout !== null) {
+      if (layout.config?.skipAppWrapper) {
+        internal.app = null;
+      }
+      if (layout.config?.skipInheritedLayouts) {
+        internal.layouts = [];
+      }
+
+      if (layout.component !== null) {
+        internal.layouts.push({
+          props: null,
+          component: layout.component,
+        });
+      }
+    }
+
+    const prevApp = internal.app;
+    const prevLayouts = internal.layouts;
+
+    try {
+      return await ctx.next();
+    } catch (err) {
+      ctx.error = err;
+
+      internal.app = prevApp;
+      internal.layouts = prevLayouts;
+
+      if (errorRoute !== null) {
+        return await renderInternalRoute(ctx, errorRoute);
+      } else if (err instanceof HttpError) {
+        if (err.status >= 500) {
+          if (error500 !== null) {
+            return await renderInternalRoute(ctx, error500);
+          }
+        } else if (err.status === 404) {
+          if (error404 !== null) {
+            return await renderInternalRoute(ctx, error404);
+          }
+        }
+      }
+
+      throw err;
+    }
+  });
+
+  if (segment.middlewares.length > 0) {
+    stack.push(...segment.middlewares);
+  }
+
   for (const route of segment.routes.values()) {
+    route.finalized = stack.slice();
+    route.finalized.push(function renderPage(ctx) {
+      return renderInternalRoute(ctx, route);
+    });
+
     let pattern = sPattern;
     if (route.pattern !== "_index") {
       pattern += "/" + route.pattern;
@@ -153,19 +218,7 @@ export function registerRoutes<State>(
   }
 
   for (const child of segment.children.values()) {
-    registerRoutes(router, child, sPattern);
-  }
-
-  if (segment.error !== null) {
-    const route = segment.error;
-    const pattern = sPattern + "/*";
-    // FIXME: Don't overwrite
-    router.add("GET", pattern, route);
-    router.add("POST", pattern, route);
-    router.add("PATCH", pattern, route);
-    router.add("PUT", pattern, route);
-    router.add("DELETE", pattern, route);
-    router.add("HEAD", pattern, route);
+    registerRoutes(router, child, sPattern, stack.slice());
   }
 }
 
@@ -217,105 +270,17 @@ export function getOrCreateRoute<State>(root: Segment<State>, path: string) {
   return { segment, route };
 }
 
-export function routeToMiddlewares<State>(
-  route: InternalRoute<State>,
-): MiddlewareFn<State>[] {
-  const stack: Segment<State>[] = [];
-  let current: Segment<State> | null = route.parent;
-  while (current !== null) {
-    stack.push(current);
-    current = current.parent;
-  }
-
-  const result: MiddlewareFn<State>[] = [];
-
-  for (let i = stack.length - 1; i >= 0; i--) {
-    const segment = stack[i];
-
-    const { layout, app, error: errorRoute, error404, error500 } = segment;
-
-    if (
-      layout !== null || app !== null || errorRoute !== null ||
-      error404 !== null || error500 !== null
-    ) {
-      result.push(async (ctx) => {
-        const internal = ctx.__internal;
-        if (app !== null) {
-          internal.app = app;
-        }
-
-        console.log("gogo");
-
-        if (layout !== null) {
-          if (layout.config?.skipAppWrapper) {
-            internal.app = null;
-          }
-          if (layout.config?.skipInheritedLayouts) {
-            internal.layouts = [];
-          }
-
-          if (layout.component !== null) {
-            internal.layouts.push({
-              props: null,
-              component: layout.component,
-            });
-          }
-        }
-
-        const prevApp = internal.app;
-        const prevLayouts = internal.layouts;
-
-        try {
-          return await ctx.next();
-        } catch (err) {
-          console.log("CAUGHT", err);
-          ctx.error = err;
-
-          internal.app = prevApp;
-          internal.layouts = prevLayouts;
-
-          if (errorRoute !== null) {
-            return await renderInternalRoute(ctx, errorRoute);
-          } else if (err instanceof HttpError) {
-            if (err.status >= 500) {
-              if (error500 !== null) {
-                return await renderInternalRoute(ctx, error500);
-              }
-            } else if (err.status === 404) {
-              if (error404 !== null) {
-                return await renderInternalRoute(ctx, error404);
-              }
-            }
-          }
-
-          throw err;
-        }
-      });
-    }
-
-    if (segment.middlewares.length > 0) {
-      result.push(...segment.middlewares);
-    }
-  }
-
-  result.push((ctx) => {
-    if (route.config?.skipAppWrapper) {
-      ctx.__internal.app = null;
-    }
-    if (route.config?.skipInheritedLayouts) {
-      ctx.__internal.layouts = [];
-    }
-    return renderInternalRoute(ctx, route);
-  });
-
-  return result;
-}
-
 export async function renderInternalRoute<State>(
   ctx: FreshContext<State>,
   route: InternalRoute<State>,
 ): Promise<Response> {
-  console.log("RENDER", ctx.error);
+  if (route.config?.skipAppWrapper) {
+    ctx.__internal.app = null;
+  }
+  if (route.config?.skipInheritedLayouts) {
+    ctx.__internal.layouts = [];
+  }
+
   // deno-lint-ignore no-explicit-any
   let props: any = null;
 

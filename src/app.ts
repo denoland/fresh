@@ -25,7 +25,6 @@ import {
   newSegment,
   registerRoutes,
   type RouteComponent,
-  routeToMiddlewares,
   type Segment,
 } from "./segments.ts";
 import type { FreshFsItem } from "./plugins/fs_routes/mod.ts";
@@ -47,7 +46,6 @@ const DEFAULT_NOT_ALLOWED_METHOD = (): Promise<Response> => {
 const DEFAULT_ERROR_HANDLER = async <State>(ctx: FreshContext<State>) => {
   const { error } = ctx;
 
-  console.log("GG", error);
   if (error instanceof HttpError) {
     if (error.status >= 500) {
       // deno-lint-ignore no-console
@@ -60,6 +58,17 @@ const DEFAULT_ERROR_HANDLER = async <State>(ctx: FreshContext<State>) => {
   console.error(error);
   return new Response("Internal server error", { status: 500 });
 };
+
+async function outerErrorMiddleware<State>(
+  ctx: FreshContext<State>,
+): Promise<Response> {
+  try {
+    return await ctx.next();
+  } catch (err) {
+    ctx.error = err;
+    return DEFAULT_ERROR_HANDLER(ctx);
+  }
+}
 
 export type ListenOptions =
   & Partial<
@@ -331,8 +340,7 @@ export class App<State> {
     path: string,
     middlewares: MiddlewareFn<State>[],
   ) {
-    const routePath = this.config.basePath + path;
-    const { route } = getOrCreateRoute<State>(this.#root, routePath);
+    const { route } = getOrCreateRoute<State>(this.#root, path);
     route.middlewareHandlers[method].push(...middlewares);
   }
 
@@ -346,9 +354,19 @@ export class App<State> {
       root.error.parent = segment;
       segment.error = root.error;
     }
+    if (root.error404) {
+      root.error404.parent = segment;
+      segment.error404 = root.error404;
+    }
+    if (root.error500) {
+      root.error500.parent = segment;
+      segment.error500 = root.error500;
+    }
+
     if (root.middlewares.length > 0) {
       segment.middlewares.push(...root.middlewares);
     }
+
     if (root.children.size > 0) {
       root.children.forEach((value, key) => {
         const clone = { ...value };
@@ -395,21 +413,16 @@ export class App<State> {
       return missingBuildHandler;
     }
 
-    if (
-      this.#root.error === null && this.#root.error404 === null &&
-      this.#root.error500 === null
-    ) {
-      const route = newRoute(this.#root, "");
-      route.handlers = DEFAULT_ERROR_HANDLER;
-      this.#root.error = route;
-    }
-
-    registerRoutes(this.#router, this.#root, "");
+    registerRoutes(this.#router, this.#root, this.config.basePath, [
+      outerErrorMiddleware,
+    ]);
 
     const error404Route = this.#root.error ?? this.#root.error404 ?? null;
 
-    const notAllowedMethod = [DEFAULT_NOT_ALLOWED_METHOD];
-    const notFound = [DEFAULT_NOT_FOUND];
+    const errorHandler = [DEFAULT_ERROR_HANDLER];
+    const handler404 = error404Route !== null
+      ? error404Route.finalized
+      : [nextFn ?? DEFAULT_ERROR_HANDLER];
 
     return async (
       req: Request,
@@ -422,7 +435,7 @@ export class App<State> {
       const method = req.method.toUpperCase() as Method;
       const matched = this.#router.match(method, url);
 
-      const next = matched.patternMatch && !matched.methodMatch
+      const next = matched.pattern !== null && !matched.methodMatch
         ? DEFAULT_NOT_ALLOWED_METHOD
         : nextFn ?? DEFAULT_NOT_FOUND;
 
@@ -445,24 +458,16 @@ export class App<State> {
       }
 
       let handlers: MiddlewareFn<State>[];
-      if (matched.item === null) {
-        if (matched.patternMatch && !matched.methodMatch) {
-          ctx.error = new HttpError(405);
-          handlers = notAllowedMethod;
-        } else {
-          ctx.error = new HttpError(404);
-          handlers = error404Route !== null
-            ? routeToMiddlewares<State>(error404Route)
-            : notFound;
-        }
+      if (!matched.methodMatch && matched.pattern !== null) {
+        ctx.error = new HttpError(405);
+        handlers = errorHandler;
+      } else if (matched.item === null) {
+        ctx.error = new HttpError(404);
+        handlers = handler404;
       } else {
-        handlers = routeToMiddlewares<State>(matched.item);
+        handlers = matched.item.finalized;
       }
 
-      console.log({ handlers, url: url.pathname, method });
-      console.log(matched);
-      console.log(ctx.error);
-      debugger;
       try {
         let result: unknown;
         if (handlers.length === 1) {
@@ -478,16 +483,12 @@ export class App<State> {
 
         return result;
       } catch (err) {
-        console.log("thrown");
         ctx.error = err;
-        if (this.#root.error !== null) {
-          const mids = routeToMiddlewares<State>(this.#root.error);
-          return await runMiddlewares(mids, ctx);
-        } else if (this.#root.error500 !== null) {
-          const mids = routeToMiddlewares<State>(this.#root.error500);
-          return await runMiddlewares(mids, ctx);
+        if (err instanceof HttpError && err.status === 404) {
+          return await runMiddlewares(handler404, ctx);
         }
-        return DEFAULT_ERROR_HANDLER(ctx);
+
+        return runMiddlewares(errorHandler, ctx);
       }
     };
   }
