@@ -1,249 +1,255 @@
 import { App } from "../app.ts";
-import type { FreshContext } from "../context.ts";
 import { cors } from "./cors.ts";
-import { describe, it } from "@std/testing/bdd";
 import { expect } from "@std/expect";
 
-describe("CORS by Middleware", () => {
-  const app = new App();
+Deno.test("CORS - GET default", async () => {
+  const handler = new App()
+    .use(cors())
+    .get("/", () => new Response("ok"))
+    .handler();
 
-  app.all("/api/*", cors());
+  const res = await handler(new Request("https://localhost/"));
 
-  app.all(
-    "/api2/*",
-    cors({
-      origin: "http://example.com",
-      allowHeaders: ["X-Custom-Header", "Upgrade-Insecure-Requests"],
-      allowMethods: ["POST", "GET", "OPTIONS"],
-      exposeHeaders: ["Content-Length", "X-Kuma-Revision"],
-      maxAge: 600,
-      credentials: true,
+  expect(res.status).toBe(200);
+  expect(res.headers.get("Access-Control-Allow-Origin")).toBe("*");
+  expect(res.headers.get("Vary")).toBeNull();
+});
+
+Deno.test("CORS - Preflight default", async () => {
+  const handler = new App()
+    .use(cors())
+    .get("/", () => new Response("ok"))
+    .handler();
+
+  const req = new Request("https://localhost/", { method: "OPTIONS" });
+  req.headers.append(
+    "Access-Control-Request-Headers",
+    "X-PINGOTHER, Content-Type",
+  );
+
+  const res = await handler(req);
+
+  expect(res.status).toBe(204);
+  expect(res.statusText).toBe("No Content");
+  expect(res.headers.get("Access-Control-Allow-Methods")?.split(",")[0]).toBe(
+    "GET",
+  );
+  expect(res.headers.get("Access-Control-Allow-Headers")?.split(",")).toEqual(
+    [
+      "X-PINGOTHER",
+      "Content-Type",
+    ],
+  );
+});
+
+Deno.test("CORS - Preflight with options", async () => {
+  const handler = new App()
+    .use(
+      cors({
+        origin: "http://example.com",
+        allowHeaders: ["X-Custom-Header", "Upgrade-Insecure-Requests"],
+        allowMethods: ["POST", "GET", "OPTIONS"],
+        exposeHeaders: ["Content-Length", "X-Kuma-Revision"],
+        maxAge: 600,
+        credentials: true,
+      }),
+    )
+    .get("/", () => new Response("ok"))
+    .handler();
+
+  const res = await handler(
+    new Request("https://localhost/", {
+      method: "OPTIONS",
+      headers: { origin: "http://example.com" },
     }),
   );
 
-  app.all(
-    "/api3/*",
-    cors({
+  expect(res.headers.get("Access-Control-Allow-Origin")).toBe(
+    "http://example.com",
+  );
+  expect(res.headers.get("Vary")?.split(/\s*,\s*/)).toEqual(
+    expect.arrayContaining(["Origin"]),
+  );
+  expect(res.headers.get("Access-Control-Allow-Headers")?.split(/\s*,\s*/))
+    .toEqual([
+      "X-Custom-Header",
+      "Upgrade-Insecure-Requests",
+    ]);
+  expect(res.headers.get("Access-Control-Allow-Methods")?.split(/\s*,\s*/))
+    .toEqual([
+      "POST",
+      "GET",
+      "OPTIONS",
+    ]);
+  expect(res.headers.get("Access-Control-Expose-Headers")?.split(/\s*,\s*/))
+    .toEqual([
+      "Content-Length",
+      "X-Kuma-Revision",
+    ]);
+  expect(res.headers.get("Access-Control-Max-Age")).toBe("600");
+  expect(res.headers.get("Access-Control-Allow-Credentials")).toBe("true");
+});
+
+Deno.test("CORS - Disallow an unmatched origin", async () => {
+  const handler = new App()
+    .use(
+      cors({
+        origin: "http://example.com",
+        allowHeaders: ["X-Custom-Header", "Upgrade-Insecure-Requests"],
+        allowMethods: ["POST", "GET", "OPTIONS"],
+        exposeHeaders: ["Content-Length", "X-Kuma-Revision"],
+        maxAge: 600,
+        credentials: true,
+      }),
+    )
+    .get("/", () => new Response("ok"))
+    .handler();
+
+  const res = await handler(
+    new Request("https://localhost/", {
+      method: "OPTIONS",
+      headers: { origin: "http://example.net" },
+    }),
+  );
+
+  expect(res.headers.has("Access-Control-Allow-Origin")).toBeFalsy();
+});
+
+Deno.test("CORS - Allow multiple origins", async () => {
+  const handler = new App()
+    .use(cors({
       origin: [
         "http://example.com",
         "http://example.org",
         "http://example.dev",
       ],
-    }),
-  );
+    }))
+    .get("/", () => new Response("ok"))
+    .handler();
 
-  app.all(
-    "/api4/*",
-    cors({
-      origin: (
-        origin,
-      ) => (origin.endsWith(".example.com") ? origin : "http://example.com"),
-    }),
-  );
-
-  app.all("/api5/*", cors());
-
-  app.all(
-    "/api6/*",
-    cors({
-      origin: "http://example.com",
-    }),
-  );
-  //
-  app.get("/api/abc", (_ctx: FreshContext) => {
-    return Response.json({ success: true });
-  });
-
-  app.get("/api2/abc", (_ctx: FreshContext) => {
-    return Response.json({ success: true });
-  });
-
-  app.get("/api3/abc", (_ctx: FreshContext) => {
-    return Response.json({ success: true });
-  });
-
-  app.get("/api4/abc", (_ctx: FreshContext) => {
-    return Response.json({ success: true });
-  });
-
-  app.get("/api5/abc", () => {
-    return new Response(JSON.stringify({ success: true }));
-  });
-
-  app.get("/api6/abc", (_ctx: FreshContext) => {
-    return Response.json({ success: true });
-  });
-
-  const handler = app.handler();
-
-  it("GET default", async () => {
-    const res = await handler(
-      new Request("https://localhost/api/abc"),
-    );
-
-    expect(res.status).toBe(200);
-    expect(res.headers.get("Access-Control-Allow-Origin")).toBe("*");
-    expect(res.headers.get("Vary")).toBeNull();
-  });
-
-  it("Preflight default", async () => {
-    const req = new Request("https://localhost/api/abc", { method: "OPTIONS" });
-    req.headers.append(
-      "Access-Control-Request-Headers",
-      "X-PINGOTHER, Content-Type",
-    );
-
-    const res = await handler(req);
-
-    expect(res.status).toBe(204);
-    expect(res.statusText).toBe("No Content");
-    expect(res.headers.get("Access-Control-Allow-Methods")?.split(",")[0]).toBe(
-      "GET",
-    );
-    expect(res.headers.get("Access-Control-Allow-Headers")?.split(",")).toEqual(
-      [
-        "X-PINGOTHER",
-        "Content-Type",
-      ],
-    );
-  });
-
-  it("Preflight with options", async () => {
-    const req = new Request("https://localhost/api2/abc", {
-      method: "OPTIONS",
-      headers: { origin: "http://example.com" },
-    });
-
-    const res = await handler(req);
-
-    expect(res.headers.get("Access-Control-Allow-Origin")).toBe(
-      "http://example.com",
-    );
-    expect(res.headers.get("Vary")?.split(/\s*,\s*/)).toEqual(
-      expect.arrayContaining(["Origin"]),
-    );
-    expect(res.headers.get("Access-Control-Allow-Headers")?.split(/\s*,\s*/))
-      .toEqual([
-        "X-Custom-Header",
-        "Upgrade-Insecure-Requests",
-      ]);
-    expect(res.headers.get("Access-Control-Allow-Methods")?.split(/\s*,\s*/))
-      .toEqual([
-        "POST",
-        "GET",
-        "OPTIONS",
-      ]);
-    expect(res.headers.get("Access-Control-Expose-Headers")?.split(/\s*,\s*/))
-      .toEqual([
-        "Content-Length",
-        "X-Kuma-Revision",
-      ]);
-    expect(res.headers.get("Access-Control-Max-Age")).toBe("600");
-    expect(res.headers.get("Access-Control-Allow-Credentials")).toBe("true");
-  });
-
-  it("Disallow an unmatched origin", async () => {
-    const req = new Request("https://localhost/api2/abc", {
-      method: "OPTIONS",
-      headers: { origin: "http://example.net" },
-    });
-
-    const res = await handler(req);
-    expect(res.headers.has("Access-Control-Allow-Origin")).toBeFalsy();
-  });
-
-  it("Allow multiple origins", async () => {
-    let req = new Request("http://localhost/api3/abc", {
+  let res = await handler(
+    new Request("http://localhost/", {
       headers: {
         Origin: "http://example.org",
       },
-    });
-    let res = await handler(req);
-    expect(res.headers.get("Access-Control-Allow-Origin")).toBe(
-      "http://example.org",
-    );
+    }),
+  );
+  expect(res.headers.get("Access-Control-Allow-Origin")).toBe(
+    "http://example.org",
+  );
 
-    req = new Request("http://localhost/api3/abc");
-    res = await handler(req);
-    expect(
-      res.headers.has("Access-Control-Allow-Origin"),
-      "An unmatched origin should be disallowed",
-    ).toBeFalsy();
+  res = await handler(new Request("http://localhost/"));
+  expect(
+    res.headers.has("Access-Control-Allow-Origin"),
+    "An unmatched origin should be disallowed",
+  ).toBeFalsy();
 
-    req = new Request("http://localhost/api3/abc", {
+  res = await handler(
+    new Request("http://localhost/api3/abc", {
       headers: {
         Referer: "http://example.net/",
       },
-    });
-    res = await handler(req);
-    expect(
-      res.headers.has("Access-Control-Allow-Origin"),
-      "An unmatched origin should be disallowed",
-    ).toBeFalsy();
-  });
+    }),
+  );
+  expect(
+    res.headers.has("Access-Control-Allow-Origin"),
+    "An unmatched origin should be disallowed",
+  ).toBeFalsy();
+});
 
-  it("Allow different Vary header value", async () => {
-    const req = new Request("http://localhost/api3/abc", {
+Deno.test("CORS - Allow different Vary header value", async () => {
+  const handler = new App()
+    .use(cors({
+      origin: [
+        "http://example.com",
+        "http://example.org",
+        "http://example.dev",
+      ],
+    }))
+    .get("/", () => new Response("ok"))
+    .handler();
+
+  const res = await handler(
+    new Request("http://localhost/", {
       headers: {
         Vary: "accept-encoding",
         Origin: "http://example.com",
       },
-    });
-    const res = await handler(req);
+    }),
+  );
 
-    expect(res.status).toBe(200);
-    expect(res.headers.get("Access-Control-Allow-Origin")).toBe(
-      "http://example.com",
-    );
-    expect(res.headers.get("Vary")).toBe("Origin");
-  });
+  expect(res.status).toBe(200);
+  expect(res.headers.get("Access-Control-Allow-Origin")).toBe(
+    "http://example.com",
+  );
+  expect(res.headers.get("Vary")).toBe("Origin");
+});
 
-  it("Allow origins by function", async () => {
-    let req = new Request("http://localhost/api4/abc", {
+Deno.test("CORS - Allow origins by function", async () => {
+  const handler = new App()
+    .use(cors({
+      origin: (
+        origin,
+      ) => (origin.endsWith(".example.com") ? origin : "http://example.com"),
+    }))
+    .get("/", () => new Response("ok"))
+    .handler();
+
+  let res = await handler(
+    new Request("http://localhost/", {
       headers: {
         Origin: "http://subdomain.example.com",
       },
-    });
-    let res = await handler(req);
-    expect(res.headers.get("Access-Control-Allow-Origin")).toBe(
-      "http://subdomain.example.com",
-    );
+    }),
+  );
+  expect(res.headers.get("Access-Control-Allow-Origin")).toBe(
+    "http://subdomain.example.com",
+  );
 
-    req = new Request("http://localhost/api4/abc");
-    res = await handler(req);
-    expect(res.headers.get("Access-Control-Allow-Origin")).toBe(
-      "http://example.com",
-    );
+  res = await handler(new Request("http://localhost/"));
+  expect(res.headers.get("Access-Control-Allow-Origin")).toBe(
+    "http://example.com",
+  );
 
-    req = new Request("http://localhost/api4/abc", {
+  res = await handler(
+    new Request("http://localhost/", {
       headers: {
         Referer: "http://evil-example.com/",
       },
-    });
-    res = await handler(req);
-    expect(res.headers.get("Access-Control-Allow-Origin")).toBe(
-      "http://example.com",
-    );
-  });
+    }),
+  );
+  expect(res.headers.get("Access-Control-Allow-Origin")).toBe(
+    "http://example.com",
+  );
+});
 
-  it("With raw Response object", async () => {
-    const req = new Request("http://localhost/api5/abc");
-    const res = await handler(req);
+Deno.test("CORS - With raw Response object", async () => {
+  const handler = new App()
+    .use(cors())
+    .get("/", () => new Response("ok"))
+    .handler();
 
-    expect(res.headers.get("Access-Control-Allow-Origin")).toBe("*");
-    expect(res.headers.get("Vary")).toBeNull();
-  });
+  const res = await handler(new Request("http://localhost/"));
 
-  it("Should not return duplicate header values", async () => {
-    const req = new Request("http://localhost/api6/abc", {
+  expect(res.headers.get("Access-Control-Allow-Origin")).toBe("*");
+  expect(res.headers.get("Vary")).toBeNull();
+});
+
+Deno.test("CORS - Should not return duplicate header values", async () => {
+  const handler = new App()
+    .use(cors({ origin: "http://example.com" }))
+    .get("/", () => new Response("ok"))
+    .handler();
+
+  const res = await handler(
+    new Request("http://localhost/", {
       headers: {
         origin: "http://example.com",
       },
-    });
-    const res = await handler(req);
+    }),
+  );
 
-    expect(res.headers.get("Access-Control-Allow-Origin")).toBe(
-      "http://example.com",
-    );
-  });
+  expect(res.headers.get("Access-Control-Allow-Origin")).toBe(
+    "http://example.com",
+  );
 });
