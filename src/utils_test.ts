@@ -1,5 +1,5 @@
 import { expect } from "@std/expect";
-import { pathToExportName } from "./utils.ts";
+import { escapeScript, pathToExportName } from "./utils.ts";
 
 Deno.test("filenameToExportName", () => {
   expect(pathToExportName("/islands/foo.tsx")).toBe("foo");
