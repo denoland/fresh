@@ -816,7 +816,7 @@ Deno.test("fsRoutes - _error render component", async () => {
   expect(doc.body.firstChild?.textContent).toEqual("ok");
 });
 
-Deno.test.only("fsRoutes - _error render on 404", async () => {
+Deno.test("fsRoutes - _error render on 404", async () => {
   // deno-lint-ignore no-explicit-any
   let error: any = null;
   const server = await createServer({

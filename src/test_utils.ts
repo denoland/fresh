@@ -46,6 +46,10 @@ export class FakeServer {
     return await this.handler(req, STUB);
   }
 
+  async request(req: Request): Promise<Response> {
+    return await this.handler(req, STUB);
+  }
+
   private toUrl(path: string) {
     return new URL(path, "http://localhost/");
   }

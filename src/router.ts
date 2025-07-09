@@ -1,4 +1,11 @@
-export type Method = "HEAD" | "GET" | "POST" | "PATCH" | "PUT" | "DELETE";
+export type Method =
+  | "HEAD"
+  | "GET"
+  | "POST"
+  | "PATCH"
+  | "PUT"
+  | "DELETE"
+  | "OPTIONS";
 
 export type MethodDefs<T> = { [m in Method | "ALL"]: T | null };
 
@@ -21,6 +28,7 @@ function newMethodDefs<T>(): MethodDefs<T> {
     POST: null,
     PUT: null,
     ALL: null,
+    OPTIONS: null,
   };
 }
 
@@ -32,7 +40,7 @@ export interface RouteResult<T> {
 }
 
 export interface Router<T> {
-  add(method: Method | "ALL", pathname: string, value: T): void;
+  add(method: Method | "OPTIONS" | "ALL", pathname: string, value: T): void;
   match(method: Method, url: URL): RouteResult<T>;
 }
 

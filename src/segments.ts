@@ -186,6 +186,7 @@ export function registerRoutes<State>(
       if (route.handlers.HEAD !== undefined) {
         router.add("HEAD", pattern, route);
       }
+      router.add("OPTIONS", pattern, route);
     } else if (
       typeof route.handlers === "function" || route.component !== null
     ) {
@@ -195,6 +196,7 @@ export function registerRoutes<State>(
       router.add("PUT", pattern, route);
       router.add("DELETE", pattern, route);
       router.add("HEAD", pattern, route);
+      router.add("OPTIONS", pattern, route);
     } else {
       if (route.middlewareHandlers.GET.length > 0) {
         router.add("GET", pattern, route);
@@ -214,6 +216,7 @@ export function registerRoutes<State>(
       if (route.middlewareHandlers.HEAD.length > 0) {
         router.add("HEAD", pattern, route);
       }
+      router.add("OPTIONS", pattern, route);
     }
   }
 
