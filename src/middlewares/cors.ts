@@ -1,11 +1,14 @@
 import type { FreshContext } from "../context.ts";
 import type { MiddlewareFn } from "./mod.ts";
 
-export type CORSOptions = {
+export type CORSOptions<State> = {
   origin:
     | string
     | string[]
-    | ((requestOrigin: string, ctx: FreshContext) => string | undefined | null);
+    | ((
+      requestOrigin: string,
+      ctx: FreshContext<State>,
+    ) => string | undefined | null);
   allowMethods?: string[];
   allowHeaders?: string[];
   maxAge?: number;
@@ -51,8 +54,8 @@ export type CORSOptions = {
  * // ];
  * ```
  */
-export function cors<T>(options?: CORSOptions): MiddlewareFn<T> {
-  const opts: CORSOptions = {
+export function cors<State>(options?: CORSOptions<State>): MiddlewareFn<State> {
+  const opts: CORSOptions<State> = {
     origin: "*",
     allowMethods: ["GET", "HEAD", "PUT", "POST", "DELETE", "PATCH"],
     allowHeaders: [],
@@ -60,27 +63,10 @@ export function cors<T>(options?: CORSOptions): MiddlewareFn<T> {
     ...options,
   };
 
-  const findAllowOrigin = ((optsOrigin: CORSOptions["origin"]) => {
-    if (typeof optsOrigin === "string") {
-      if (optsOrigin === "*") {
-        return (_requestOrigin: string, _ctx: FreshContext) => optsOrigin;
-      } else {
-        return (requestOrigin: string, _ctx: FreshContext) =>
-          optsOrigin === requestOrigin ? requestOrigin : null;
-      }
-    } else if (typeof optsOrigin === "function") {
-      return (requestOrigin: string, ctx: FreshContext) =>
-        optsOrigin(requestOrigin, ctx);
-    } else {
-      return (requestOrigin: string, _ctx: FreshContext) =>
-        optsOrigin.includes(requestOrigin) ? requestOrigin : null;
-    }
-  })(opts.origin);
-
   const addHeaderProperties = (
     headers: Headers,
     allowOrigin: string | null | undefined,
-    opts: CORSOptions,
+    opts: CORSOptions<State>,
   ) => {
     if (allowOrigin) {
       headers.set("Access-Control-Allow-Origin", allowOrigin);
@@ -98,77 +84,82 @@ export function cors<T>(options?: CORSOptions): MiddlewareFn<T> {
     }
   };
 
-  const OptionsResponse = (
-    ctx: FreshContext,
-    allowOrigin: string | null | undefined,
-    opts: CORSOptions,
-    varyValues: Set<string>,
-  ) => {
-    const headers = new Headers();
+  const optsOrigin = opts.origin;
 
-    addHeaderProperties(
-      headers,
-      allowOrigin,
-      opts,
-    );
-
-    if (opts.maxAge != null) {
-      headers.set("Access-Control-Max-Age", opts.maxAge.toString());
-    }
-
-    if (opts.allowMethods?.length) {
-      headers.set(
-        "Access-Control-Allow-Methods",
-        opts.allowMethods.join(","),
-      );
-    }
-
-    let effectiveAllowHeaders = opts.allowHeaders;
-    if (!effectiveAllowHeaders?.length) {
-      const reqHeaders = ctx.req.headers.get(
-        "Access-Control-Request-Headers",
-      );
-      if (reqHeaders) {
-        effectiveAllowHeaders = reqHeaders.split(/\s*,\s*/);
-      }
-    }
-
-    if (effectiveAllowHeaders?.length) {
-      headers.set(
-        "Access-Control-Allow-Headers",
-        effectiveAllowHeaders.join(","),
-      );
-      varyValues.add("Access-Control-Request-Headers");
-    }
-
-    if (varyValues.size > 0) {
-      headers.set("Vary", Array.from(varyValues).join(", "));
-    } else {
-      headers.delete("Vary"); // Ensure Vary is not set if no conditions met
-    }
-
-    headers.delete("Content-Length");
-    headers.delete("Content-Type");
-
-    return new Response(null, {
-      status: 204,
-      statusText: "No Content",
-      headers,
-    });
-  };
-
-  return async (ctx: FreshContext): Promise<Response> => {
+  return async (ctx) => {
     const requestOrigin = ctx.req.headers.get("origin") || "";
-    const allowOrigin = findAllowOrigin(requestOrigin, ctx);
 
-    const varyValues = new Set<string>();
+    let allowOrigin: string | null = null;
+    if (typeof optsOrigin === "string") {
+      if (optsOrigin === "*") {
+        allowOrigin = optsOrigin;
+      } else {
+        allowOrigin = optsOrigin === requestOrigin ? requestOrigin : null;
+      }
+    } else if (typeof optsOrigin === "function") {
+      allowOrigin = optsOrigin(requestOrigin, ctx) ?? null;
+    } else {
+      allowOrigin = optsOrigin.includes(requestOrigin) ? requestOrigin : null;
+    }
+
+    const vary = new Set<string>();
     // Add 'Origin' to Vary if a specific origin is allowed, not '*'
     if (opts.origin !== "*" && allowOrigin && allowOrigin !== "*") {
-      varyValues.add("Origin");
+      vary.add("Origin");
     }
 
     if (ctx.req.method === "OPTIONS") {
-      return OptionsResponse(ctx, allowOrigin, opts, varyValues);
+      const headers = new Headers();
+
+      addHeaderProperties(
+        headers,
+        allowOrigin,
+        opts,
+      );
+
+      if (opts.maxAge != null) {
+        headers.set("Access-Control-Max-Age", opts.maxAge.toString());
+      }
+
+      if (opts.allowMethods?.length) {
+        headers.set(
+          "Access-Control-Allow-Methods",
+          opts.allowMethods.join(","),
+        );
+      }
+
+      let allowHeaders = opts.allowHeaders;
+      if (!allowHeaders?.length) {
+        const reqHeaders = ctx.req.headers.get(
+          "Access-Control-Request-Headers",
+        );
+        if (reqHeaders) {
+          allowHeaders = reqHeaders.split(/\s*,\s*/);
+        }
+      }
+
+      if (allowHeaders?.length) {
+        headers.set(
+          "Access-Control-Allow-Headers",
+          allowHeaders.join(","),
+        );
+        vary.add("Access-Control-Request-Headers");
+      }
+
+      if (vary.size > 0) {
+        headers.set("Vary", Array.from(vary).join(", "));
+      } else {
+        headers.delete("Vary"); // Ensure Vary is not set if no conditions met
+      }
+
+      headers.delete("Content-Length");
+      headers.delete("Content-Type");
+
+      return new Response(null, {
+        status: 204,
+        statusText: "No Content",
+        headers,
+      });
     }
 
     // For non-OPTIONS requests
@@ -181,13 +172,13 @@ export function cors<T>(options?: CORSOptions): MiddlewareFn<T> {
     );
 
     // Merge our calculated varyValues with any existing Vary from downstream response
-    if (varyValues.size > 0) {
-      const existingVary = res.headers.get("Vary");
-      if (existingVary) {
-        existingVary.split(/\s*,\s*/).forEach((v) => varyValues.add(v));
+    if (vary.size > 0) {
+      const existing = res.headers.get("Vary");
+      if (existing) {
+        existing.split(/\s*,\s*/).forEach((v) => vary.add(v));
       }
 
-      res.headers.set("Vary", Array.from(varyValues).join(", "));
+      res.headers.set("Vary", Array.from(vary).join(", "));
     }
 
     return res;
