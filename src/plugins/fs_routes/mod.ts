@@ -5,16 +5,12 @@ import * as path from "@std/path";
 import type { RouteConfig } from "../../types.ts";
 import type { RouteHandler } from "../../handlers.ts";
 import type { MiddlewareFn } from "../../middlewares/mod.ts";
-import {
-  type AsyncAnyComponent,
-  renderMiddleware,
-} from "./render_middleware.ts";
+import type { AsyncAnyComponent } from "./render_middleware.ts";
 import { pathToPattern } from "../../router.ts";
 import { type HandlerFn, isHandlerByMethod } from "../../handlers.ts";
 import { type FsAdapter, fsAdapter } from "../../fs.ts";
-import { HttpError } from "../../error.ts";
 import { parseRootPath } from "../../config.ts";
-import type { FreshReqContext, PageProps } from "../../context.ts";
+import type { PageProps } from "../../context.ts";
 
 const TEST_FILE_PATTERN = /[._]test\.(?:[tj]sx?|[mc][tj]s)$/;
 const GROUP_REG = /(^|[/\\\\])\((_[^/\\\\]+)\)[/\\\\]/;
@@ -166,8 +162,6 @@ export async function fsRoutes<State>(
 
   routeModules.sort((a, b) => sortRoutePaths(a.path, b.path));
 
-  console.log(routeModules.map((x) => x.path));
-
   for (let i = 0; i < routeModules.length; i++) {
     const routeMod = routeModules[i];
     const normalized = routeMod.path;
@@ -208,12 +202,6 @@ export async function fsRoutes<State>(
       continue;
     } else if (normalized.endsWith("/_error")) {
       const pattern = pathToPattern(normalized.slice(1, -"/_error".length));
-      console.log(
-        "erropp",
-        pattern,
-        normalized,
-        normalized.slice(0, -"/_error".length),
-      );
       app.error(pattern, {
         config: routeMod.config ?? undefined,
         default: routeMod.component ?? undefined,
