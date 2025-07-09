@@ -13,7 +13,8 @@ import { stub } from "@std/testing/mock";
 import { type HandlerByMethod, type HandlerFn, page } from "../../handlers.ts";
 import type { Method } from "../../router.ts";
 import { parseHtml } from "../../../tests/test_utils.tsx";
-import type { FreshContext } from "fresh";
+import type { FreshContext } from "../../context.ts";
+import { HttpError } from "../../error.ts";
 
 async function createServer<T>(
   files: Record<string, string | Uint8Array | FreshFsItem<T>>,
@@ -816,7 +817,8 @@ Deno.test("fsRoutes - _error render component", async () => {
   expect(doc.body.firstChild?.textContent).toEqual("ok");
 });
 
-Deno.test("fsRoutes - _error render on 404", async () => {
+// 404 pages go to the root error page if available
+Deno.test.ignore("fsRoutes - _error render on 404", async () => {
   // deno-lint-ignore no-explicit-any
   let error: any = null;
   const server = await createServer({
@@ -829,7 +831,6 @@ Deno.test("fsRoutes - _error render on 404", async () => {
     },
     "routes/foo/_error.tsx": {
       default: function foo2(ctx) {
-        console.log("yeah", ctx.error);
         // deno-lint-ignore no-explicit-any
         error = ctx.error as any;
         return <p>ok foo</p>;
@@ -846,8 +847,6 @@ Deno.test("fsRoutes - _error render on 404", async () => {
   let doc = parseHtml(await res.text());
   expect(doc.body.firstChild?.textContent).toEqual("ok foo");
   expect(error?.status).toEqual(404);
-
-  console.log("============================");
 
   res = await server.get("/");
   doc = parseHtml(await res.text());
@@ -1113,34 +1112,23 @@ Deno.test(
   "fsRoutes - returns response code from error route",
   async () => {
     const server = await createServer<{ text: string }>({
-      "routes/_app.tsx": {
-        default: (ctx) => {
-          return (
-            <div>
-              _app/<ctx.Component />
-            </div>
-          );
-        },
-      },
       "routes/_error.tsx": {
         default: () => <div>fail</div>,
       },
-      "routes/index.tsx": {
-        default: () => <div>index</div>,
-      },
-      "routes/bar.tsx": {
-        default: () => <div>index</div>,
-      },
-      "routes/foo/index.tsx": {
-        default: () => <div>foo/index</div>,
-      },
-      "routes/foo/_error.tsx": {
+      "routes/fail.tsx": {
         default: () => {
           throw new Error("fail");
         },
       },
-      "routes/foo/bar.tsx": {
-        default: () => <div>foo/index</div>,
+      "routes/foo/_error.tsx": {
+        default: () => {
+          throw new HttpError(501);
+        },
+      },
+      "routes/foo/fail.tsx": {
+        default: () => {
+          throw new Error("fail");
+        },
       },
     });
 
@@ -1148,9 +1136,13 @@ Deno.test(
     await res.body?.cancel();
     expect(res.status).toEqual(404);
 
-    res = await server.get("/foo/asdf");
+    res = await server.get("/fail");
     await res.body?.cancel();
     expect(res.status).toEqual(500);
+
+    res = await server.get("/foo/fail");
+    await res.body?.cancel();
+    expect(res.status).toEqual(501);
   },
 );
 

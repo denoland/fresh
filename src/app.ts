@@ -59,17 +59,6 @@ const DEFAULT_ERROR_HANDLER = async <State>(ctx: FreshContext<State>) => {
   return new Response("Internal server error", { status: 500 });
 };
 
-async function outerErrorMiddleware<State>(
-  ctx: FreshContext<State>,
-): Promise<Response> {
-  try {
-    return await ctx.next();
-  } catch (err) {
-    ctx.error = err;
-    return DEFAULT_ERROR_HANDLER(ctx);
-  }
-}
-
 export type ListenOptions =
   & Partial<
     Deno.ServeTcpOptions & Deno.TlsCertifiedKeyPem
@@ -289,13 +278,13 @@ export class App<State> {
     segment.error500 = route;
   }
 
-  route(path: string, route: FreshFsItem<State>): this {
+  page(path: string, page: FreshFsItem<State>): this {
     const { route: sRoute } = getOrCreateRoute<State>(
       this.#root,
       path,
     );
 
-    assignRoute(sRoute, route);
+    assignRoute(sRoute, page);
 
     return this;
   }
@@ -413,13 +402,14 @@ export class App<State> {
       return missingBuildHandler;
     }
 
-    registerRoutes(this.#router, this.#root, this.config.basePath, [
-      outerErrorMiddleware,
-    ]);
+    registerRoutes(this.#router, this.#root, this.config.basePath, []);
 
     const error404Route = this.#root.error ?? this.#root.error404 ?? null;
+    const errorRoute = this.#root.error ?? this.#root.error500 ?? null;
 
-    const errorHandler = [DEFAULT_ERROR_HANDLER];
+    const errorHandler = errorRoute !== null
+      ? errorRoute.finalized
+      : [DEFAULT_ERROR_HANDLER];
     const handler404 = error404Route !== null
       ? error404Route.finalized
       : [nextFn ?? DEFAULT_ERROR_HANDLER];
@@ -457,18 +447,15 @@ export class App<State> {
         span.setAttribute("http.route", pattern);
       }
 
-      let handlers: MiddlewareFn<State>[];
-      if (!matched.methodMatch && matched.pattern !== null) {
-        ctx.error = new HttpError(405);
-        handlers = errorHandler;
-      } else if (matched.item === null) {
-        ctx.error = new HttpError(404);
-        handlers = handler404;
-      } else {
-        handlers = matched.item.finalized;
-      }
-
       try {
+        if (!matched.methodMatch && matched.pattern !== null) {
+          throw new HttpError(405);
+        } else if (matched.item === null) {
+          throw new HttpError(404);
+        }
+
+        const handlers = matched.item.finalized;
+
         let result: unknown;
         if (handlers.length === 1) {
           result = await handlers[0](ctx);
@@ -485,10 +472,10 @@ export class App<State> {
       } catch (err) {
         ctx.error = err;
         if (err instanceof HttpError && err.status === 404) {
-          return await runMiddlewares(handler404, ctx);
+          return await handler404[0](ctx);
         }
 
-        return runMiddlewares(errorHandler, ctx);
+        return errorHandler[0](ctx);
       }
     };
   }

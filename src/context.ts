@@ -211,30 +211,6 @@ export class FreshReqContext<State>
     const appDef = this.__internal.app;
     const props = this as FreshReqContext<State>;
 
-    // deno-lint-ignore no-explicit-any
-    let appVNode: VNode<any> | null = null;
-    if (isAsyncAnyComponent(appDef)) {
-      const result = await renderAsyncAnyComponent(appDef, props);
-      if (result instanceof Response) {
-        return result;
-      }
-
-      appVNode = result;
-    } else if (appDef !== null) {
-      appVNode = h(appDef, {
-        Component: props.Component,
-        config: this.config,
-        data: null,
-        error: this.error,
-        info: this.info,
-        isPartial: this.isPartial,
-        params: this.params,
-        req: this.req,
-        state: this.state,
-        url: this.url,
-      });
-    }
-
     // Compose final vnode tree
     for (let i = defs.length - 1; i >= 0; i--) {
       const child = vnode;
@@ -264,6 +240,31 @@ export class FreshReqContext<State>
         };
         vnode = h(def.component, vnodeProps) as VNode;
       }
+    }
+
+    if (isAsyncAnyComponent(appDef)) {
+      const child = vnode;
+      props.Component = () => child;
+      const result = await renderAsyncAnyComponent(appDef, props);
+      if (result instanceof Response) {
+        return result;
+      }
+
+      vnode = result;
+    } else if (appDef !== null) {
+      const child = vnode;
+      vnode = h(appDef, {
+        Component: () => child,
+        config: this.config,
+        data: null,
+        error: this.error,
+        info: this.info,
+        isPartial: this.isPartial,
+        params: this.params,
+        req: this.req,
+        state: this.state,
+        url: this.url,
+      });
     }
 
     const headers = init.headers !== undefined
@@ -297,16 +298,8 @@ export class FreshReqContext<State>
       try {
         setRenderState(state);
 
-        const body = vnode !== null ? renderToString(vnode) : "";
-
-        const wrapper = jsxTemplate([body]);
-
-        if (appVNode !== null) {
-          appVNode.props.Component = () => wrapper;
-        }
-
         return preactRender(
-          appVNode !== null ? appVNode : wrapper,
+          vnode ?? h(Fragment, null),
           this,
           state,
           this.#buildCache,

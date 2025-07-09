@@ -229,7 +229,7 @@ export async function fsRoutes<State>(
       pattern += "/_index";
     }
 
-    app.route(pattern, {
+    app.page(pattern, {
       config: routeMod.config ?? undefined,
       default: routeMod.component ?? undefined,
       handler: routeMod.handlers ?? undefined,

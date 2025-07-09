@@ -59,6 +59,7 @@ export function newRoute<T>(
       PATCH: [],
       POST: [],
       PUT: [],
+      OPTIONS: [],
     },
     pattern,
     config: null,
@@ -92,14 +93,13 @@ export function registerRoutes<State>(
   sPattern: string,
   stack: MiddlewareFn<State>[],
 ) {
-  if (segment.pattern !== "" && !segment.pattern.startsWith("(_")) {
+  if (segment.pattern !== "" && !segment.pattern.startsWith("(")) {
     sPattern += "/";
     sPattern += segment.pattern;
   }
+  const { layout, app, error: errorPage, error404, error500 } = segment;
 
   stack.push(async function prepareSegment(ctx) {
-    const { layout, app, error: errorRoute, error404, error500 } = segment;
-
     const internal = ctx.__internal;
     if (app !== null) {
       internal.app = app;
@@ -122,7 +122,7 @@ export function registerRoutes<State>(
     }
 
     const prevApp = internal.app;
-    const prevLayouts = internal.layouts;
+    const prevLayouts = internal.layouts.slice();
 
     try {
       return await ctx.next();
@@ -132,16 +132,17 @@ export function registerRoutes<State>(
       internal.app = prevApp;
       internal.layouts = prevLayouts;
 
-      if (errorRoute !== null) {
-        return await renderInternalRoute(ctx, errorRoute);
+      if (errorPage !== null) {
+        const status = err instanceof HttpError ? err.status : 500;
+        return await renderInternalRoute(ctx, errorPage, status);
       } else if (err instanceof HttpError) {
         if (err.status >= 500) {
           if (error500 !== null) {
-            return await renderInternalRoute(ctx, error500);
+            return await renderInternalRoute(ctx, error500, err.status);
           }
         } else if (err.status === 404) {
           if (error404 !== null) {
-            return await renderInternalRoute(ctx, error404);
+            return await renderInternalRoute(ctx, error404, err.status);
           }
         }
       }
@@ -150,14 +151,36 @@ export function registerRoutes<State>(
     }
   });
 
+  if (errorPage !== null) {
+    errorPage.pattern = sPattern;
+    errorPage.finalized.push(async function errorPageMiddleware(ctx) {
+      const status = ctx.error instanceof HttpError ? ctx.error.status : 500;
+      return await renderInternalRoute(ctx, errorPage, status);
+    });
+  } else {
+    if (error404 !== null) {
+      error404.pattern = sPattern;
+      error404.finalized.push(async function errorPage404Middleware(ctx) {
+        return await renderInternalRoute(ctx, error404, 404);
+      });
+    }
+    if (error500 !== null) {
+      error500.pattern = sPattern;
+      error500.finalized.push(async function errorPage500Middleware(ctx) {
+        const status = ctx.error instanceof HttpError ? ctx.error.status : 500;
+        return await renderInternalRoute(ctx, error500, status);
+      });
+    }
+  }
+
   if (segment.middlewares.length > 0) {
     stack.push(...segment.middlewares);
   }
 
   for (const route of segment.routes.values()) {
     route.finalized = stack.slice();
-    route.finalized.push(function renderPage(ctx) {
-      return renderInternalRoute(ctx, route);
+    route.finalized.push(async function renderPage(ctx) {
+      return await renderInternalRoute(ctx, route);
     });
 
     let pattern = sPattern;
@@ -232,6 +255,7 @@ export function findOrCreateSegment<State>(
   let current = root;
 
   const segments = patternToSegments(path, root.pattern);
+  console.log({ path, segments });
   for (let i = 0; i < segments.length; i++) {
     const seg = segments[i];
     if (seg === root.pattern) {
@@ -276,6 +300,7 @@ export function getOrCreateRoute<State>(root: Segment<State>, path: string) {
 export async function renderInternalRoute<State>(
   ctx: FreshContext<State>,
   route: InternalRoute<State>,
+  status = 200,
 ): Promise<Response> {
   if (route.config?.skipAppWrapper) {
     ctx.__internal.app = null;
@@ -295,7 +320,6 @@ export async function renderInternalRoute<State>(
     return await runMiddlewares(middlewareHandlers[method], ctx);
   }
 
-  let status = 200;
   const headers = new Headers();
   headers.set("Content-Type", "text/html;charset=utf-8");
 
@@ -341,9 +365,6 @@ export async function renderInternalRoute<State>(
       component: route.component,
     });
   }
-
-  console.log(ctx.__internal);
-  console.log(ctx.url.pathname);
 
   return ctx.render(null, { headers, status });
 }
