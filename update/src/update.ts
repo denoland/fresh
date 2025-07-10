@@ -248,7 +248,9 @@ export async function updateProject(dir: string) {
     console.log("\n" + colors.bold("📝 Modified Files:"));
     modifiedFilesToShow.forEach((filePath) => {
       // show relative path
-      const relativePath = path.relative(dir, filePath);
+      let relativePath = path.relative(dir, filePath);
+      // Ensure consistent path separators for logging
+      relativePath = relativePath.replace(/\\/g, "/");
       // deno-lint-ignore no-console
       console.log(colors.green(`   ✓ ${relativePath}`));
     });
