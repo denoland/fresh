@@ -11,12 +11,7 @@ export const PREACT_VERSION = "10.26.9";
 export const PREACT_SIGNALS_VERSION = "2.2.1";
 
 // Function to filter out node_modules and vendor directories from logs
-function shouldHideFromLogs(filePath: string): boolean {
-  const normalizedPath = filePath.replace(/\\/g, "/");
-  return normalizedPath.includes("/node_modules/") ||
-    normalizedPath.includes("/vendor/");
-}
-
+const HIDE_FILES = /[\\/]+(node_modules|vendor)[\\/]+/;
 export interface DenoJson {
   lock?: boolean;
   tasks?: Record<string, string>;
