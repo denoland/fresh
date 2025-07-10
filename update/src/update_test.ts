@@ -6,6 +6,7 @@ import {
   updateProject,
 } from "./update.ts";
 import { expect } from "@std/expect";
+import { type SpyCall, spy } from "@std/testing/mock";
 import { walk } from "@std/fs/walk";
 import { withTmpDir } from "../../src/test_utils.ts";
 
@@ -365,9 +366,10 @@ Deno.test(
   },
 );
 
-Deno.test.ignore(
-  "update - 1.x update handler signature variable",
-  async () => {
+Deno.test({
+  ignore: true,
+  name: "update - 1.x update handler signature variable",
+  fn: async () => {
     await using _tmp = await withTmpDir();
     const dir = _tmp.dir;
     await writeFiles(dir, {
@@ -398,11 +400,12 @@ Deno.test.ignore(
   },
 };`);
   },
-);
+});
 
-Deno.test(
-  "update - 1.x update handler signature non-inferred",
-  async () => {
+Deno.test({
+  ignore: true,
+  name: "update - 1.x update handler signature non-inferred",
+  fn: async () => {
     await using _tmp = await withTmpDir();
     const dir = _tmp.dir;
     await writeFiles(dir, {
@@ -426,11 +429,12 @@ export const handler = {
   },
 };`);
   },
-);
+});
 
-Deno.test(
-  "update - 1.x update handler signature with destructure",
-  async () => {
+Deno.test({
+  ignore: true,
+  name: "update - 1.x update handler signature with destructure",
+  fn: async () => {
     await using _tmp = await withTmpDir();
     const dir = _tmp.dir;
     await writeFiles(dir, {
@@ -468,7 +472,7 @@ export const handler: Handlers = {
   },
 };`);
   },
-);
+});
 
 Deno.test("update - 1.x update define* handler signatures", async () => {
   await using _tmp = await withTmpDir();
@@ -557,9 +561,10 @@ export default async function Index(ctx: FreshContext) {
   },
 );
 
-Deno.test.ignore(
-  "update - 1.x ctx.renderNotFound() -> ctx.throw()",
-  async () => {
+Deno.test({
+  ignore: true,
+  name: "update - 1.x ctx.renderNotFound() -> ctx.throw()",
+  fn: async () => {
     await using _tmp = await withTmpDir();
     const dir = _tmp.dir;
     await writeFiles(dir, {
@@ -593,11 +598,12 @@ export const handler: Handlers = {
   throw HttpError(404);
 };`);
   },
-);
+});
 
-Deno.test.ignore(
-  "update - 1.x ctx.remoteAddr -> ctx.info.remoteAddr",
-  async () => {
+Deno.test({
+  ignore: true,
+  name: "update - 1.x ctx.remoteAddr -> ctx.info.remoteAddr",
+  fn: async () => {
     await using _tmp = await withTmpDir();
     const dir = _tmp.dir;
     await writeFiles(dir, {
@@ -627,14 +633,17 @@ export const handler: Handlers = {
   },
 };`);
   },
-);
+});
 
-Deno.test.ignore("update - 1.x destructured ctx members", async () => {
-  await using _tmp = await withTmpDir();
-  const dir = _tmp.dir;
-  await writeFiles(dir, {
-    "/deno.json": `{}`,
-    "/routes/index.tsx": `import { Handlers } from "$fresh/server.ts";
+Deno.test({
+  ignore: true,
+  name: "update - 1.x destructured ctx members",
+  fn: async () => {
+    await using _tmp = await withTmpDir();
+    const dir = _tmp.dir;
+    await writeFiles(dir, {
+      "/deno.json": `{}`,
+      "/routes/index.tsx": `import { Handlers } from "$fresh/server.ts";
 
 export const handler: Handlers = {
   async GET(_req, { url, renderNotFound, remoteAddr }) {
@@ -646,13 +655,13 @@ export const handler: Handlers = {
     }
   },
 };`,
-  });
+    });
 
-  await updateProject(dir);
-  const files = await readFiles(dir);
+    await updateProject(dir);
+    const files = await readFiles(dir);
 
-  expect(files["/routes/index.tsx"])
-    .toEqual(`import { Handlers } from "fresh";
+    expect(files["/routes/index.tsx"])
+      .toEqual(`import { Handlers } from "fresh";
 
 export const handler: Handlers = {
   async GET({ url, throw, info }) {
@@ -667,6 +676,7 @@ export const handler: Handlers = {
     }
   },
 };`);
+  },
 });
 
 Deno.test("update - 1.x remove reference comments", async () => {
@@ -702,4 +712,53 @@ Deno.test("update - island files", async () => {
   expect(files["/islands/foo.tsx"]).toEqual(
     `import { IS_BROWSER } from "fresh/runtime";`,
   );
+});
+
+Deno.test("update - ignores node_modules and vendor in logs", async () => {
+  await using _tmp = await withTmpDir();
+  const dir = _tmp.dir;
+  await writeFiles(dir, {
+    "/deno.json": `{}`,
+    "/routes/index.tsx": `import { PageProps } from "$fresh/server.ts";
+export default function Foo(props: PageProps) {
+  return null;
+}`,
+    "/node_modules/foo/bar.ts":
+      `import { IS_BROWSER } from "$fresh/runtime.ts";`,
+    "/vendor/foo/bar.ts": `import { IS_BROWSER } from "$fresh/runtime.ts";`,
+  });
+
+  const consoleLogSpy = spy(console, "log");
+
+  try {
+    await updateProject(dir);
+  } finally {
+    consoleLogSpy.restore();
+  }
+
+  const files = await readFiles(dir);
+
+  expect(files["/node_modules/foo/bar.ts"]).toEqual(
+    `import { IS_BROWSER } from "fresh/runtime";`,
+  );
+  expect(files["/vendor/foo/bar.ts"]).toEqual(
+    `import { IS_BROWSER } from "fresh/runtime";`,
+  );
+  expect(files["/routes/index.tsx"]).toEqual(
+    `import { PageProps } from "fresh";
+export default function Foo(props: PageProps) {
+  return null;
+}`,
+  );
+
+  const fullLog = consoleLogSpy.calls.map((call: SpyCall) => call.args.join(" ")).join(
+    "\n",
+  );
+
+  expect(fullLog).toMatch(/Total files processed: 1/);
+  expect(fullLog).toMatch(/Successfully modified: 1/);
+  expect(fullLog).toMatch(/Unmodified \(no changes needed\): 0/);
+  expect(fullLog).not.toMatch(/node_modules/);
+  expect(fullLog).not.toMatch(/vendor/);
+  expect(fullLog).toMatch(/✓ routes\/index.tsx/);
 });
