@@ -255,37 +255,37 @@ export class App<State> {
 
   error(
     path: string,
-    errorRoute: FreshFsItem<State>,
+    route: FreshFsItem<State>,
   ): this {
     const segment = findOrCreateSegment<State>(this.#root, path);
 
-    const route = newRoute(segment, "");
-    assignRoute(route, errorRoute);
-    segment.error = route;
+    const sRoute = newRoute(segment, "");
+    assignRoute(sRoute, route);
+    segment.error = sRoute;
 
     return this;
   }
 
-  error404(errorRoute: FreshFsItem<State>) {
+  error404(route: FreshFsItem<State>) {
     const segment = this.#root;
-    const route = newRoute(segment, "");
-    assignRoute(route, errorRoute);
-    segment.error404 = route;
+    const sRoute = newRoute(segment, "");
+    assignRoute(sRoute, route);
+    segment.error404 = sRoute;
   }
 
-  page(path: string, page: FreshFsItem<State>): this {
-    const { route } = getOrCreateRoute<State>(
+  route(path: string, route: FreshFsItem<State>): this {
+    const { route: sRoute } = getOrCreateRoute<State>(
       this.#root,
       path,
     );
 
-    assignRoute(route, page);
+    assignRoute(sRoute, route);
 
     if (
-      route.component !== null && isHandlerByMethod(route.handlers) &&
-      route.handlers.GET === undefined
+      sRoute.component !== null && isHandlerByMethod(sRoute.handlers) &&
+      sRoute.handlers.GET === undefined
     ) {
-      route.handlers.GET = DEFAULT_RENDER;
+      sRoute.handlers.GET = DEFAULT_RENDER;
     }
 
     return this;

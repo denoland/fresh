@@ -246,7 +246,7 @@ export async function fsRoutes<State>(
 
     const routePattern = pathToPattern(normalized.slice(1));
 
-    app.page(pattern, {
+    app.route(pattern, {
       config: {
         ...routeMod.config ?? undefined,
         routeOverride: routeMod.config?.routeOverride ?? routePattern,
