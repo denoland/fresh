@@ -127,10 +127,8 @@ export async function withTmpDir(
     async [Symbol.asyncDispose]() {
       try {
         await Deno.remove(dir, { recursive: true });
-      } catch (error) {
-        if (!(error instanceof Deno.errors.PermissionDenied)) {
-          throw error;
-        }
+      } catch {
+        // Ignore errors Files in tmp will be cleaned up by the OS
       }
     },
   };
