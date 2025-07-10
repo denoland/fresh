@@ -99,12 +99,16 @@ export class MemoryBuildCache implements DevBuildCache {
             `Processed file resolved outside of static dir ${file.path}`,
           );
         }
-        const pathname = `/${relative}`;
+        const transformedPathname = `/${relative}`;
 
-        this.addProcessedFile(pathname, file.content, null);
-      }
-      if (this.#processedFiles.has(pathname)) {
-        return this.readFile(pathname);
+        this.addProcessedFile(transformedPathname, file.content, null);
+
+        if (
+          transformedPathname === pathname &&
+          this.#processedFiles.has(transformedPathname)
+        ) {
+          return this.readFile(transformedPathname);
+        }
       }
     } else {
       try {
