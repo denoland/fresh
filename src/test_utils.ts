@@ -1,8 +1,6 @@
 import { FreshReqContext } from "./context.ts";
-import type { FsAdapter } from "./fs.ts";
 import { type BuildCache, ProdBuildCache } from "./build_cache.ts";
 import type { ResolvedFreshConfig } from "./config.ts";
-import type { WalkEntry } from "@std/fs/walk";
 import { DEFAULT_CONN_INFO } from "./app.ts";
 
 const STUB = {} as unknown as Deno.ServeHandlerInfo;
@@ -88,32 +86,6 @@ export function serveMiddleware<T>(
     );
     return await middleware(ctx);
   });
-}
-
-export function createFakeFs(files: Record<string, unknown>): FsAdapter {
-  return {
-    cwd: () => ".",
-    async *walk(_root) {
-      // FIXME: ignore
-      for (const file of Object.keys(files)) {
-        const entry: WalkEntry = {
-          isDirectory: false,
-          isFile: true,
-          isSymlink: false,
-          name: file, // FIXME?
-          path: file,
-        };
-        yield entry;
-      }
-    },
-    // deno-lint-ignore require-await
-    async isDirectory(dir) {
-      return Object.keys(files).some((file) => file.startsWith(dir + "/"));
-    },
-    async mkdirp(_dir: string) {
-    },
-    readFile: Deno.readFile,
-  };
 }
 
 export const delay = (ms: number) => new Promise((r) => setTimeout(r, ms));
