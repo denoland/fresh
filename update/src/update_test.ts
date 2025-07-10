@@ -6,7 +6,7 @@ import {
   updateProject,
 } from "./update.ts";
 import { expect } from "@std/expect";
-import { type SpyCall, spy } from "@std/testing/mock";
+import { spy, type SpyCall } from "@std/testing/mock";
 import { walk } from "@std/fs/walk";
 import { withTmpDir } from "../../src/test_utils.ts";
 
@@ -751,7 +751,9 @@ export default function Foo(props: PageProps) {
 }`,
   );
 
-  const fullLog = consoleLogSpy.calls.map((call: SpyCall) => call.args.join(" ")).join(
+  const fullLog = consoleLogSpy.calls.map((call: SpyCall) =>
+    call.args.join(" ")
+  ).join(
     "\n",
   );
 
