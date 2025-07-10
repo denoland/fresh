@@ -366,10 +366,9 @@ Deno.test(
   },
 );
 
-Deno.test({
-  ignore: true,
-  name: "update - 1.x update handler signature variable",
-  fn: async () => {
+Deno.test.ignore(
+  "update - 1.x update handler signature variable",
+  async () => {
     await using _tmp = await withTmpDir();
     const dir = _tmp.dir;
     await writeFiles(dir, {
@@ -400,12 +399,11 @@ Deno.test({
   },
 };`);
   },
-});
+);
 
-Deno.test({
-  ignore: true,
-  name: "update - 1.x update handler signature non-inferred",
-  fn: async () => {
+Deno.test(
+  "update - 1.x update handler signature non-inferred",
+  async () => {
     await using _tmp = await withTmpDir();
     const dir = _tmp.dir;
     await writeFiles(dir, {
@@ -429,12 +427,11 @@ export const handler = {
   },
 };`);
   },
-});
+);
 
-Deno.test({
-  ignore: true,
-  name: "update - 1.x update handler signature with destructure",
-  fn: async () => {
+Deno.test(
+  "update - 1.x update handler signature with destructure",
+  async () => {
     await using _tmp = await withTmpDir();
     const dir = _tmp.dir;
     await writeFiles(dir, {
@@ -472,7 +469,7 @@ export const handler: Handlers = {
   },
 };`);
   },
-});
+);
 
 Deno.test("update - 1.x update define* handler signatures", async () => {
   await using _tmp = await withTmpDir();
@@ -561,10 +558,9 @@ export default async function Index(ctx: FreshContext) {
   },
 );
 
-Deno.test({
-  ignore: true,
-  name: "update - 1.x ctx.renderNotFound() -> ctx.throw()",
-  fn: async () => {
+Deno.test.ignore(
+  "update - 1.x ctx.renderNotFound() -> ctx.throw()",
+  async () => {
     await using _tmp = await withTmpDir();
     const dir = _tmp.dir;
     await writeFiles(dir, {
@@ -598,12 +594,11 @@ export const handler: Handlers = {
   throw HttpError(404);
 };`);
   },
-});
+);
 
-Deno.test({
-  ignore: true,
-  name: "update - 1.x ctx.remoteAddr -> ctx.info.remoteAddr",
-  fn: async () => {
+Deno.test.ignore(
+  "update - 1.x ctx.remoteAddr -> ctx.info.remoteAddr",
+  async () => {
     await using _tmp = await withTmpDir();
     const dir = _tmp.dir;
     await writeFiles(dir, {
@@ -633,17 +628,14 @@ export const handler: Handlers = {
   },
 };`);
   },
-});
+);
 
-Deno.test({
-  ignore: true,
-  name: "update - 1.x destructured ctx members",
-  fn: async () => {
-    await using _tmp = await withTmpDir();
-    const dir = _tmp.dir;
-    await writeFiles(dir, {
-      "/deno.json": `{}`,
-      "/routes/index.tsx": `import { Handlers } from "$fresh/server.ts";
+Deno.test.ignore("update - 1.x destructured ctx members", async () => {
+  await using _tmp = await withTmpDir();
+  const dir = _tmp.dir;
+  await writeFiles(dir, {
+    "/deno.json": `{}`,
+    "/routes/index.tsx": `import { Handlers } from "$fresh/server.ts";
 
 export const handler: Handlers = {
   async GET(_req, { url, renderNotFound, remoteAddr }) {
@@ -655,13 +647,13 @@ export const handler: Handlers = {
     }
   },
 };`,
-    });
+  });
 
-    await updateProject(dir);
-    const files = await readFiles(dir);
+  await updateProject(dir);
+  const files = await readFiles(dir);
 
-    expect(files["/routes/index.tsx"])
-      .toEqual(`import { Handlers } from "fresh";
+  expect(files["/routes/index.tsx"])
+    .toEqual(`import { Handlers } from "fresh";
 
 export const handler: Handlers = {
   async GET({ url, throw, info }) {
@@ -676,7 +668,6 @@ export const handler: Handlers = {
     }
   },
 };`);
-  },
 });
 
 Deno.test("update - 1.x remove reference comments", async () => {

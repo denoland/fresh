@@ -170,7 +170,7 @@ export async function updateProject(dir: string) {
   );
 
   // Filter out node_modules and vendor files for user display
-  const userFiles = sfs.filter((sf) => !shouldHideFromLogs(sf.getFilePath()));
+  const userFiles = sfs.filter((sf) => !HIDE_FILES.test(sf.getFilePath()));
 
   // deno-lint-ignore no-console
   console.log(colors.cyan(`📁 Found ${userFiles.length} files to process`));
@@ -220,7 +220,7 @@ export async function updateProject(dir: string) {
 
   // Filter modified files to show only user files
   const modifiedFilesToShow = modifiedFilesList.filter((filePath) =>
-    !shouldHideFromLogs(filePath)
+    !HIDE_FILES.test(filePath)
   );
 
   // add migration summary
