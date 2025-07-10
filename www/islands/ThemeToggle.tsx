@@ -16,7 +16,7 @@ export default function ThemeToggle() {
     <button
       type="button"
       onClick={toggleTheme}
-      class="dark-mode-toggle button p-1 -m-1"
+      class="dark-mode-toggle button"
       aria-label="Toggle Theme"
     >
       {theme.value === "light"
@@ -32,7 +32,7 @@ export default function ThemeToggle() {
         )
         : (
           <svg
-            class="fill-foreground-primary hover:fill-fresh w-6 h-6"
+            class="w-6 h-6"
             viewBox="0 0 20 20"
             xmlns="http://www.w3.org/2000/svg"
           >
