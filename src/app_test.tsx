@@ -390,6 +390,27 @@ Deno.test(
   },
 );
 
+// https://github.com/denoland/fresh/issues/3033
+Deno.test(
+  "App - .mountApp() self mount with dynamic routes",
+  async () => {
+    const innerApp = new App<{ text: string }>()
+      .get("/", () => new Response("list authors"))
+      .get("/:name", (ctx) => new Response(`show: ${ctx.params.name}`));
+
+    const app = new App<{ text: string }>()
+      .mountApp("/api/authors", innerApp);
+
+    const server = new FakeServer(app.handler());
+
+    let res = await server.get("/api/authors");
+    expect(await res.text()).toEqual("list authors");
+
+    res = await server.get("/api/authors/foo");
+    expect(await res.text()).toEqual("show: foo");
+  },
+);
+
 Deno.test("App - catches errors", async () => {
   let thrownErr: unknown | null = null;
   const app = new App<{ text: string }>()
