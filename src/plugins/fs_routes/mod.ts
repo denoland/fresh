@@ -161,6 +161,7 @@ export async function fsRoutes<State>(
   );
 
   routeModules.sort((a, b) => sortRoutePaths(a.path, b.path));
+  const errorPaths = new Set<string>();
 
   for (let i = 0; i < routeModules.length; i++) {
     const routeMod = routeModules[i];
@@ -207,6 +208,7 @@ export async function fsRoutes<State>(
       const pattern = pathToPattern(normalized.slice(1, -"/_error".length), {
         keepGroups: true,
       });
+      errorPaths.add(pattern);
       app.error(pattern, {
         config: routeMod.config ?? undefined,
         default: routeMod.component ?? undefined,
@@ -221,7 +223,12 @@ export async function fsRoutes<State>(
       });
       continue;
     } else if (normalized.endsWith("/_500")) {
-      app.error500({
+      const pattern = pathToPattern(normalized.slice(1, -"/_500".length), {
+        keepGroups: true,
+      });
+      if (errorPaths.has(pattern)) continue;
+
+      app.error(pattern, {
         config: routeMod.config ?? undefined,
         default: routeMod.component ?? undefined,
         handler: routeMod.handlers ?? undefined,

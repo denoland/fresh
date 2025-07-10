@@ -266,24 +266,11 @@ export class App<State> {
     return this;
   }
 
-  /**
-   * @deprecated Use {@linkcode App.error} instead.
-   */
   error404(errorRoute: FreshFsItem<State>) {
     const segment = this.#root;
     const route = newRoute(segment, "");
     assignRoute(route, errorRoute);
     segment.error404 = route;
-  }
-
-  /**
-   * @deprecated Use {@linkcode App.error} instead.
-   */
-  error500(errorRoute: FreshFsItem<State>) {
-    const segment = this.#root;
-    const route = newRoute(segment, "");
-    assignRoute(route, errorRoute);
-    segment.error500 = route;
   }
 
   page(path: string, page: FreshFsItem<State>): this {
@@ -364,10 +351,6 @@ export class App<State> {
       root.error404.parent = segment;
       segment.error404 = root.error404;
     }
-    if (root.error500) {
-      root.error500.parent = segment;
-      segment.error500 = root.error500;
-    }
 
     if (root.middlewares.length > 0) {
       segment.middlewares.push(...root.middlewares);
@@ -432,7 +415,7 @@ export class App<State> {
     registerRoutes(this.#router, this.#root, this.config.basePath, []);
 
     const error404Route = this.#root.error404 ?? null;
-    const errorRoute = this.#root.error ?? this.#root.error500 ?? null;
+    const errorRoute = this.#root.error ?? null;
 
     const errorHandler = errorRoute !== null
       ? errorRoute.finalized
