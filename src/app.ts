@@ -349,7 +349,9 @@ export class App<State> {
   }
 
   mountApp(path: string, app: App<State>): this {
-    const segment = findOrCreateSegment(this.#root, path);
+    const segment = path === "*" || path === "/*"
+      ? this.#root
+      : findOrCreateSegment(this.#root, path);
 
     const root = app.#root;
     if (root.app) segment.app = root.app;

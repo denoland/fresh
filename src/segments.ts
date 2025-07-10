@@ -169,6 +169,7 @@ export function registerRoutes<State>(
 
   if (error404 !== null) {
     error404.pattern = sPattern;
+    error404.finalized = [];
 
     if (segment.middlewares.length > 0) {
       error404.finalized.push(...segment.middlewares);

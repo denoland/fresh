@@ -231,7 +231,10 @@ export async function fsRoutes<State>(
 
     let pattern = pathToPattern(normalized.slice(1), { keepGroups: true });
     if (normalized.endsWith("/index")) {
-      pattern += "/_index";
+      if (!pattern.endsWith("/")) {
+        pattern += "/";
+      }
+      pattern += "_index";
     }
 
     const routePattern = pathToPattern(normalized.slice(1));
