@@ -105,7 +105,13 @@ function serializeInner(
     }
 
     if (value instanceof Date) {
-      str += `["Date","${value.toISOString()}"]`;
+      let iso: string;
+      try {
+        iso = value.toISOString();
+      } catch {
+        iso = "Invalid Date";
+      }
+      str += `["Date","${iso}"]`;
     } else if (value instanceof RegExp) {
       str += `["RegExp",${JSON.stringify(value.source)}, "${value.flags}"]`;
     } else if (value instanceof Uint8Array) {
