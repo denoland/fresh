@@ -1,7 +1,7 @@
 import { type AnyComponent, h, type RenderableProps, type VNode } from "preact";
 import type { MiddlewareFn } from "../../middlewares/mod.ts";
 import type { HandlerFn, PageResponse } from "../../handlers.ts";
-import type { FreshReqContext, PageProps } from "../../context.ts";
+import type { Context, PageProps } from "../../context.ts";
 import { HttpError } from "../../error.ts";
 import { tracer } from "../../otel.ts";
 import { SpanStatusCode } from "@opentelemetry/api";
@@ -69,7 +69,7 @@ export function renderMiddleware<State>(
       throw new Error(`Did not receive any components to render.`);
     }
 
-    const props = ctx as FreshReqContext<State>;
+    const props = ctx as Context<State>;
     props.data = result?.data;
 
     let vnode: VNode | null = null;

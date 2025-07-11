@@ -32,6 +32,7 @@ export class UrlPatternRouter<T> implements Router<T> {
   #routes: RouteDef<T>[] = [];
 
   add(method: Method | "ALL", pathname: string, value: T) {
+    console.log("add", method, pathname);
     const last = this.#routes.at(-1);
 
     if (IS_PATTERN.test(pathname)) {
@@ -70,7 +71,7 @@ export class UrlPatternRouter<T> implements Router<T> {
         if (route.pattern === url.pathname) {
           result.patternMatch = true;
 
-          if (route.method === method) {
+          if (route.method === "ALL" || route.method === method) {
             result.methodMatch = true;
 
             result.handlers.push(...route.handlers);
@@ -81,11 +82,12 @@ export class UrlPatternRouter<T> implements Router<T> {
           }
         }
       } else {
-        const match = route.pattern.exec(url.pathname);
+        const match = route.pattern.exec(url);
+        console.log(route.pattern.pathname, match !== null);
         if (match !== null) {
           result.patternMatch = true;
 
-          if (route.method === method) {
+          if (route.method === "ALL" || route.method === method) {
             result.methodMatch = true;
             result.handlers.push(...route.handlers);
 

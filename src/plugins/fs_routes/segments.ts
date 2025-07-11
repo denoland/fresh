@@ -1,16 +1,16 @@
 import type { AnyComponent } from "preact";
-import { type MiddlewareFn, runMiddlewares } from "./middlewares/mod.ts";
-import { type Method, patternToSegments, type Router } from "./router.ts";
-import type { RouteConfig } from "./types.ts";
-import type { FreshContext, PageProps } from "./context.ts";
-import { recordSpanError, tracer } from "./otel.ts";
+import { type MiddlewareFn, runMiddlewares } from "../../middlewares/mod.ts";
+import { type Method, patternToSegments, type Router } from "../../router.ts";
+import type { RouteConfig } from "../../types.ts";
+import type { FreshContext, PageProps } from "../../context.ts";
+import { recordSpanError, tracer } from "../../otel.ts";
 import {
   type HandlerFn,
   isHandlerByMethod,
   type RouteHandler,
-} from "./handlers.ts";
-import type { AsyncAnyComponent } from "./plugins/fs_routes/render_middleware.ts";
-import { HttpError } from "./error.ts";
+} from "../../handlers.ts";
+import type { AsyncAnyComponent } from "./render_middleware.ts";
+import { HttpError } from "../../error.ts";
 
 export type RouteComponent<State> =
   | AsyncAnyComponent<PageProps<unknown, State>>
@@ -100,7 +100,7 @@ export function registerRoutes<State>(
   const { layout, app, error: errorPage, error404, error500 } = segment;
 
   stack.push(async function prepareSegment(ctx) {
-    const internal = ctx.__internal;
+    const internal = ctx.#internal;
     if (app !== null) {
       internal.app = app;
     }
@@ -309,10 +309,10 @@ export async function renderInternalRoute<State>(
   status = 200,
 ): Promise<Response> {
   if (route.config?.skipAppWrapper) {
-    ctx.__internal.app = null;
+    ctx.#internal.app = null;
   }
   if (route.config?.skipInheritedLayouts) {
-    ctx.__internal.layouts = [];
+    ctx.#internal.layouts = [];
   }
 
   // deno-lint-ignore no-explicit-any
@@ -366,7 +366,7 @@ export async function renderInternalRoute<State>(
   }
 
   if (route.component !== null) {
-    ctx.__internal.layouts.push({
+    ctx.#internal.layouts.push({
       props,
       component: route.component,
     });

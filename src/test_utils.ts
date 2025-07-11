@@ -1,4 +1,4 @@
-import { FreshReqContext } from "./context.ts";
+import { Context } from "./context.ts";
 import type { FsAdapter } from "./fs.ts";
 import { type BuildCache, ProdBuildCache } from "./build_cache.ts";
 import type { ResolvedFreshConfig } from "./config.ts";
@@ -71,7 +71,7 @@ const DEFAULT_CONFIG: ResolvedFreshConfig = {
 };
 
 export function serveMiddleware<T>(
-  middleware: (ctx: FreshReqContext<T>) => Response | Promise<Response>,
+  middleware: (ctx: Context<T>) => Response | Promise<Response>,
   options: {
     config?: ResolvedFreshConfig;
     buildCache?: BuildCache;
@@ -85,7 +85,7 @@ export function serveMiddleware<T>(
     const buildCache = options.buildCache ??
       new ProdBuildCache(config, new Map(), new Map(), true);
 
-    const ctx = new FreshReqContext<T>(
+    const ctx = new Context<T>(
       req,
       new URL(req.url),
       DEFAULT_CONN_INFO,

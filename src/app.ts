@@ -5,7 +5,7 @@ import { trace } from "@opentelemetry/api";
 import { DENO_DEPLOYMENT_ID } from "./runtime/build_id.ts";
 import * as colors from "@std/fmt/colors";
 import { type MiddlewareFn, runMiddlewares } from "./middlewares/mod.ts";
-import { FreshReqContext } from "./context.ts";
+import { Context, getInternals, type ServerIslandRegistry } from "./context.ts";
 import { type Method, type Router, UrlPatternRouter } from "./router.ts";
 import {
   type FreshConfig,
@@ -13,17 +13,11 @@ import {
   type ResolvedFreshConfig,
 } from "./config.ts";
 import { type BuildCache, ProdBuildCache } from "./build_cache.ts";
-import type {
-  FreshContext,
-  PageProps,
-  ServerIslandRegistry,
-} from "./context.ts";
 import { FinishSetup, ForgotBuild } from "./finish_setup.tsx";
 import { HttpError } from "./error.ts";
 import { pathToExportName } from "./utils.ts";
-import { findOrCreateSegment } from "./segments.ts";
 import type { Route } from "./types.ts";
-import { isHandlerByMethod, PageResponse } from "./handlers.ts";
+import { isHandlerByMethod, type PageResponse } from "./handlers.ts";
 
 // TODO: Completed type clashes in older Deno versions
 // deno-lint-ignore no-explicit-any
@@ -41,7 +35,7 @@ const DEFAULT_NOT_ALLOWED_METHOD = (): Promise<Response> => {
   throw new HttpError(405);
 };
 // deno-lint-ignore require-await
-const DEFAULT_ERROR_HANDLER = async <State>(ctx: FreshContext<State>) => {
+const DEFAULT_ERROR_HANDLER = async <State>(ctx: Context<State>) => {
   const { error } = ctx;
 
   if (error instanceof HttpError) {
@@ -157,6 +151,7 @@ export class App<State> {
   #buildCache: BuildCache | null = null;
   #islandNames = new Set<string>();
   #errorMiddleware: MiddlewareFn<State> | null = null;
+  #notFoundMiddleware: MiddlewareFn<State> | null = null;
 
   static {
     getIslandRegistry = (app) => app.#islandRegistry;
@@ -221,23 +216,53 @@ export class App<State> {
     return this;
   }
 
+  notFound(routeOrMiddleware: Route<State> | MiddlewareFn<State>): this {
+    const handler = typeof routeOrMiddleware === "function"
+      ? routeOrMiddleware
+      : routeToMiddleware(routeOrMiddleware!);
+
+    this.#notFoundMiddleware = handler;
+    return this;
+  }
+
+  error(
+    routeOrMiddleware: Route<State> | MiddlewareFn<State>,
+  ): this;
   error(
     path: string,
     routeOrMiddleware: Route<State> | MiddlewareFn<State>,
+  ): this;
+  error(
+    pathOrRouteMiddleware: string | Route<State> | MiddlewareFn<State>,
+    routeOrMiddleware?: Route<State> | MiddlewareFn<State>,
   ): this {
+    let path = "*";
+    if (typeof pathOrRouteMiddleware === "string") {
+      path = pathOrRouteMiddleware;
+    } else {
+      routeOrMiddleware = pathOrRouteMiddleware;
+    }
+
     const handler = typeof routeOrMiddleware === "function"
       ? routeOrMiddleware
-      : routeToMiddleware(routeOrMiddleware);
+      : routeToMiddleware(routeOrMiddleware!);
 
     const fn: MiddlewareFn<State> = async (ctx) => {
-      const prevApp = ctx.__internal.app;
-      const prevLayouts = ctx.__internal.layouts.slice();
+      const internals = getInternals(ctx);
+      const { app: prevApp, layouts: prevLayouts } = internals;
 
       try {
         return await ctx.next();
-      } catch {
-        ctx.__internal.app = prevApp;
-        ctx.__internal.layouts = prevLayouts;
+      } catch (err) {
+        internals.app = prevApp;
+        internals.layouts = prevLayouts;
+
+        if (
+          this.#notFoundMiddleware !== null && err instanceof HttpError &&
+          err.status === 404
+        ) {
+          throw err;
+        }
 
         return await handler(ctx);
       }
@@ -345,10 +370,8 @@ export class App<State> {
   /**
    * Create handler function for `Deno.serve` or to be used in
    * testing.
-   * @param {() => Promise<Response>} [nextFn] overwrite default 404 handler
-   * @returns {Deno.ServeHandler}
    */
-  handler(nextFn?: MiddlewareFn<State>): (
+  handler(): (
     request: Request,
     info?: Deno.ServeHandlerInfo,
   ) => Promise<Response> {
@@ -366,7 +389,24 @@ export class App<State> {
       return missingBuildHandler;
     }
 
-    const initHandlers = this.#errorMiddleware !== null
+    if (this.#errorMiddleware === null && this.#notFoundMiddleware !== null) {
+      this.#errorMiddleware = async (ctx) => {
+        try {
+          return await ctx.next();
+        } catch (err) {
+          if (
+            this.#notFoundMiddleware !== null && err instanceof HttpError &&
+            err.status === 404
+          ) {
+            return await this.#notFoundMiddleware(ctx);
+          }
+
+          throw err;
+        }
+      };
+    }
+
+    const initHandlers: MiddlewareFn<State>[] = this.#errorMiddleware !== null
       ? [this.#errorMiddleware]
       : [];
 
@@ -392,7 +432,7 @@ export class App<State> {
         ? DEFAULT_NOT_ALLOWED_METHOD
         : DEFAULT_NOT_FOUND;
 
-      const ctx = new FreshReqContext<State>(
+      const ctx = new Context<State>(
         req,
         url,
         conn,
@@ -406,8 +446,11 @@ export class App<State> {
       try {
         if (!matched.methodMatch && matched.pattern !== null) {
           handlers.push(DEFAULT_NOT_ALLOWED_METHOD);
-        } else if (matched.handlers.length === 0) {
-          handlers.push(nextFn ?? DEFAULT_NOT_FOUND);
+        } else {
+          if (this.#notFoundMiddleware !== null) {
+            handlers.push(this.#notFoundMiddleware);
+          }
+          handlers.push(DEFAULT_NOT_FOUND);
         }
 
         const result = await runMiddlewares(handlers, ctx);
@@ -499,9 +542,9 @@ function routeToMiddleware<State>(route: Route<State>): MiddlewareFn<State> {
     }
 
     if (route.component !== undefined) {
-      ctx.__internal.layouts.push({
-        props: res.data as PageProps<unknown, State>,
-        component: route.component,
+      ctx.setLayout(route.component, {
+        skipAppWrapper: route.config?.skipAppWrapper,
+        skipInheritedLayouts: route.config?.skipInheritedLayouts,
       });
     }
 

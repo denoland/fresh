@@ -168,8 +168,12 @@ export async function fsRoutes<State>(
     const normalized = routeMod.path;
 
     if (normalized.endsWith("/_app")) {
-      if (routeMod.component !== null) {
-        app.appWrapper(routeMod.component);
+      const component = routeMod.component;
+      if (component !== null) {
+        app.use("*", (ctx) => {
+          ctx.setAppWrapper(component);
+          return ctx.next();
+        });
       }
       continue;
     } else if (normalized.endsWith("/_middleware")) {
@@ -200,8 +204,12 @@ export async function fsRoutes<State>(
       const pattern = pathToPattern(normalized.slice(1, -"/_layout".length), {
         keepGroups: true,
       });
-      if (routeMod.component !== null) {
-        app.layout(pattern, routeMod.component, routeMod.config ?? undefined);
+      const { component, config } = routeMod;
+      if (component !== null) {
+        app.use(pattern, async (ctx) => {
+          ctx.setLayout(component, config ?? undefined);
+          return await ctx.next();
+        });
       }
       continue;
     } else if (normalized.endsWith("/_error")) {
@@ -211,14 +219,14 @@ export async function fsRoutes<State>(
       errorPaths.add(pattern);
       app.error(pattern, {
         config: routeMod.config ?? undefined,
-        default: routeMod.component ?? undefined,
+        component: routeMod.component ?? undefined,
         handler: routeMod.handlers ?? undefined,
       });
       continue;
     } else if (normalized.endsWith("/_404")) {
       app.notFound({
         config: routeMod.config ?? undefined,
-        default: routeMod.component ?? undefined,
+        component: routeMod.component ?? undefined,
         handler: routeMod.handlers ?? undefined,
       });
       continue;
@@ -230,7 +238,7 @@ export async function fsRoutes<State>(
 
       app.error(pattern, {
         config: routeMod.config ?? undefined,
-        default: routeMod.component ?? undefined,
+        component: routeMod.component ?? undefined,
         handler: routeMod.handlers ?? undefined,
       });
       continue;
@@ -241,17 +249,18 @@ export async function fsRoutes<State>(
       if (!pattern.endsWith("/")) {
         pattern += "/";
       }
-      pattern += "_index";
     }
 
     const routePattern = pathToPattern(normalized.slice(1));
+
+    console.log("route");
 
     app.route(pattern, {
       config: {
         ...routeMod.config ?? undefined,
         routeOverride: routeMod.config?.routeOverride ?? routePattern,
       },
-      default: routeMod.component ?? undefined,
+      component: routeMod.component ?? undefined,
       handler: routeMod.handlers ?? undefined,
     });
   }
