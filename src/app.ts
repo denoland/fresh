@@ -6,7 +6,12 @@ import { DENO_DEPLOYMENT_ID } from "./runtime/build_id.ts";
 import * as colors from "@std/fmt/colors";
 import { type MiddlewareFn, runMiddlewares } from "./middlewares/mod.ts";
 import { Context, getInternals, type ServerIslandRegistry } from "./context.ts";
-import { type Method, type Router, UrlPatternRouter } from "./router.ts";
+import {
+  mergePath,
+  type Method,
+  type Router,
+  UrlPatternRouter,
+} from "./router.ts";
 import {
   type FreshConfig,
   normalizeConfig,
@@ -16,7 +21,14 @@ import { type BuildCache, ProdBuildCache } from "./build_cache.ts";
 import { FinishSetup, ForgotBuild } from "./finish_setup.tsx";
 import { HttpError } from "./error.ts";
 import { pathToExportName } from "./utils.ts";
-import type { Route } from "./types.ts";
+import type { LayoutConfig, Route } from "./types.ts";
+import {
+  getOrCreateSegment,
+  newSegment,
+  renderRoute,
+  type RouteComponent,
+  segmentToMiddlewares,
+} from "./segments.ts";
 import { isHandlerByMethod, type PageResponse } from "./handlers.ts";
 
 // TODO: Completed type clashes in older Deno versions
@@ -26,13 +38,24 @@ export const DEFAULT_CONN_INFO: any = {
   remoteAddr: { transport: "tcp", hostname: "localhost", port: 1234 },
 };
 
-const DEFAULT_RENDER = () => ({ data: {} });
+const DEFAULT_RENDER = <State>(): Promise<PageResponse<State>> =>
+  // deno-lint-ignore no-explicit-any
+  Promise.resolve({ data: {} as any });
 
 const DEFAULT_NOT_FOUND = (): Promise<Response> => {
   throw new HttpError(404);
 };
 const DEFAULT_NOT_ALLOWED_METHOD = (): Promise<Response> => {
   throw new HttpError(405);
+};
+const defaultOptionsHandler = (methods: string[]): () => Promise<Response> => {
+  return () =>
+    Promise.resolve(
+      new Response(null, {
+        status: 204,
+        headers: { Allow: methods.join(", ") },
+      }),
+    );
 };
 // deno-lint-ignore require-await
 const DEFAULT_ERROR_HANDLER = async <State>(ctx: Context<State>) => {
@@ -152,6 +175,7 @@ export class App<State> {
   #islandNames = new Set<string>();
   #errorMiddleware: MiddlewareFn<State> | null = null;
   #notFoundMiddleware: MiddlewareFn<State> | null = null;
+  #root = newSegment<State>("", null);
 
   static {
     getIslandRegistry = (app) => app.#islandRegistry;
@@ -211,12 +235,18 @@ export class App<State> {
       fns = middlewares;
     }
 
-    this.#addMiddleware("ALL", path, fns);
+    const segment = getOrCreateSegment(this.#root, path);
+    segment.middlewares.push(...fns);
 
     return this;
   }
 
   notFound(routeOrMiddleware: Route<State> | MiddlewareFn<State>): this {
+    const segment = getOrCreateSegment(this.#root, "*");
+    segment.errorRoute = typeof routeOrMiddleware === "function"
+      ? { handler: routeOrMiddleware }
+      : routeOrMiddleware;
+
     const handler = typeof routeOrMiddleware === "function"
       ? routeOrMiddleware
       : routeToMiddleware(routeOrMiddleware!);
@@ -226,60 +256,53 @@ export class App<State> {
   }
 
   error(
-    routeOrMiddleware: Route<State> | MiddlewareFn<State>,
-  ): this;
-  error(
     path: string,
     routeOrMiddleware: Route<State> | MiddlewareFn<State>,
-  ): this;
-  error(
-    pathOrRouteMiddleware: string | Route<State> | MiddlewareFn<State>,
-    routeOrMiddleware?: Route<State> | MiddlewareFn<State>,
   ): this {
-    let path = "*";
-    if (typeof pathOrRouteMiddleware === "string") {
-      path = pathOrRouteMiddleware;
-    } else {
-      routeOrMiddleware = pathOrRouteMiddleware;
-    }
+    if (!path.endsWith("/")) path += "/";
+    const segment = getOrCreateSegment(this.#root, path);
+    segment.errorRoute = typeof routeOrMiddleware === "function"
+      ? { handler: routeOrMiddleware }
+      : routeOrMiddleware;
 
-    const handler = typeof routeOrMiddleware === "function"
-      ? routeOrMiddleware
-      : routeToMiddleware(routeOrMiddleware!);
+    ensureHandler(segment.errorRoute);
 
-    const fn: MiddlewareFn<State> = async (ctx) => {
-      const internals = getInternals(ctx);
-      const { app: prevApp, layouts: prevLayouts } = internals;
+    return this;
+  }
 
-      try {
-        return await ctx.next();
-      } catch (err) {
-        internals.app = prevApp;
-        internals.layouts = prevLayouts;
+  appWrapper(component: RouteComponent<State>) {
+    const segment = getOrCreateSegment<State>(this.#root, "");
+    segment.app = component;
+  }
 
-        if (
-          this.#notFoundMiddleware !== null && err instanceof HttpError &&
-          err.status === 404
-        ) {
-          throw err;
-        }
-
-        return await handler(ctx);
-      }
-    };
-
-    if (path === "*") {
-      this.#errorMiddleware = fn;
-    } else {
-      this.#router.add("ALL", path, fn);
-    }
+  layout(
+    path: string,
+    component: RouteComponent<State>,
+    config?: LayoutConfig,
+  ): this {
+    if (!path.endsWith("/")) path += "/";
+    const segment = getOrCreateSegment<State>(this.#root, path);
+    segment.layout = { component, config: config ?? null };
 
     return this;
   }
 
   route(path: string, route: Route<State>): this {
-    const fn = routeToMiddleware(route);
-    this.#router.add("ALL", path, fn);
+    const segment = getOrCreateSegment<State>(this.#root, path);
+    const middlewares = segmentToMiddlewares(segment);
+
+    ensureHandler(route);
+    middlewares.push((ctx) => renderRoute(ctx, route));
+
+    const routePath = route.config?.routeOverride ?? path;
+
+    if (typeof route.handler === "function") {
+      this.#router.add("ALL", routePath, middlewares);
+    } else if (isHandlerByMethod(route.handler!)) {
+      for (const method of Object.keys(route.handler)) {
+        this.#router.add(method as Method, routePath, middlewares);
+      }
+    }
 
     return this;
   }
@@ -309,9 +332,9 @@ export class App<State> {
     return this;
   }
 
-  // TODO: Deprecate in favor of .use()
   all(path: string, ...middlewares: MiddlewareFn<State>[]): this {
-    return this.use(path, ...middlewares);
+    this.#addMiddleware("ALL", path, middlewares);
+    return this;
   }
 
   #addMiddleware(
@@ -319,9 +342,13 @@ export class App<State> {
     path: string,
     fns: MiddlewareFn<State>[],
   ) {
-    for (let i = 0; i < fns.length; i++) {
-      this.#router.add(method, path, fns[i]);
-    }
+    const segment = getOrCreateSegment<State>(this.#root, path);
+    const result = segmentToMiddlewares(segment);
+
+    result.push(...fns);
+
+    const resPath = mergePath(this.config.basePath, path);
+    this.#router.add(method, resPath, result);
   }
 
   mountApp(path: string, app: App<State>): this {
@@ -406,10 +433,6 @@ export class App<State> {
       };
     }
 
-    const initHandlers: MiddlewareFn<State>[] = this.#errorMiddleware !== null
-      ? [this.#errorMiddleware]
-      : [];
-
     return async (
       req: Request,
       conn: Deno.ServeHandlerInfo = DEFAULT_CONN_INFO,
@@ -419,8 +442,8 @@ export class App<State> {
       url.pathname = url.pathname.replace(/\/+/g, "/");
 
       const method = req.method.toUpperCase() as Method;
-      const matched = this.#router.match(method, url, initHandlers);
-      const { params, pattern, handlers } = matched;
+      const matched = this.#router.match(method, url);
+      const { params, pattern, handlers, methodMatch } = matched;
 
       const span = trace.getActiveSpan();
       if (span && pattern) {
@@ -428,9 +451,27 @@ export class App<State> {
         span.setAttribute("http.route", pattern);
       }
 
-      const next = matched.patternMatch && !matched.methodMatch
-        ? DEFAULT_NOT_ALLOWED_METHOD
-        : DEFAULT_NOT_FOUND;
+      let next: () => Promise<Response>;
+
+      if (pattern === null || !methodMatch) {
+        const rootMiddlewares = this.#root.middlewares;
+        if (rootMiddlewares.length > 0) {
+          handlers.push(...rootMiddlewares);
+        }
+      }
+
+      if (matched.pattern !== null) {
+        if (!methodMatch && method === "OPTIONS") {
+          const allowed = this.#router.getAllowedMethods(matched.pattern);
+          next = defaultOptionsHandler(allowed);
+        } else {
+          next = DEFAULT_NOT_ALLOWED_METHOD;
+        }
+      } else {
+        next = DEFAULT_NOT_FOUND;
+      }
+
+      handlers.push(next);
 
       const ctx = new Context<State>(
         req,
@@ -444,15 +485,6 @@ export class App<State> {
       );
 
       try {
-        if (!matched.methodMatch && matched.pattern !== null) {
-          handlers.push(DEFAULT_NOT_ALLOWED_METHOD);
-        } else {
-          if (this.#notFoundMiddleware !== null) {
-            handlers.push(this.#notFoundMiddleware);
-          }
-          handlers.push(DEFAULT_NOT_FOUND);
-        }
-
         const result = await runMiddlewares(handlers, ctx);
         if (!(result instanceof Response)) {
           throw new Error(
@@ -494,60 +526,14 @@ const missingBuildHandler = async (): Promise<Response> => {
   return new Response(html, { headers, status: 500 });
 };
 
-function routeToMiddleware<State>(route: Route<State>): MiddlewareFn<State> {
-  const def = route.handler ?? DEFAULT_RENDER;
-
-  return async function routeHandler(ctx) {
-    const method = ctx.req.method as Method;
-
-    let res: Response | PageResponse<unknown> | undefined;
-
-    if (isHandlerByMethod(def)) {
-      if (def.GET === undefined) {
-        def.GET = DEFAULT_RENDER;
-      }
-
-      const fn = def[method];
-      if (fn !== undefined) {
-        res = await fn(ctx);
-      }
-    } else {
-      res = await def(ctx);
+function ensureHandler<State>(route: Route<State>) {
+  if (route.handler === undefined) {
+    route.handler = route.component !== undefined
+      ? DEFAULT_RENDER
+      : DEFAULT_NOT_FOUND;
+  } else if (isHandlerByMethod(route.handler)) {
+    if (route.component !== undefined && !route.handler.GET) {
+      route.handler.GET = DEFAULT_RENDER;
     }
-
-    if (res === undefined) {
-      throw new Error(
-        `Expected route handler to return a "Response" or page data, but got: ${res}`,
-      );
-    }
-
-    if (res instanceof Response) {
-      return res;
-    }
-
-    let status = 200;
-    const headers = new Headers();
-
-    if (typeof res.status === "number") {
-      status = res.status;
-    }
-    if (res.headers) {
-      for (const [name, value] of Object.entries(res.headers)) {
-        if (value !== null && value !== undefined) {
-          headers.set(name, String(value));
-        } else {
-          headers.delete(name);
-        }
-      }
-    }
-
-    if (route.component !== undefined) {
-      ctx.setLayout(route.component, {
-        skipAppWrapper: route.config?.skipAppWrapper,
-        skipInheritedLayouts: route.config?.skipInheritedLayouts,
-      });
-    }
-
-    return ctx.render(null, { headers, status });
-  };
+  }
 }

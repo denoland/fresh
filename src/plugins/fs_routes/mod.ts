@@ -170,10 +170,7 @@ export async function fsRoutes<State>(
     if (normalized.endsWith("/_app")) {
       const component = routeMod.component;
       if (component !== null) {
-        app.use("*", (ctx) => {
-          ctx.setAppWrapper(component);
-          return ctx.next();
-        });
+        app.appWrapper(component);
       }
       continue;
     } else if (normalized.endsWith("/_middleware")) {
@@ -206,10 +203,7 @@ export async function fsRoutes<State>(
       });
       const { component, config } = routeMod;
       if (component !== null) {
-        app.use(pattern, async (ctx) => {
-          ctx.setLayout(component, config ?? undefined);
-          return await ctx.next();
-        });
+        app.layout(pattern, component, config ?? undefined);
       }
       continue;
     } else if (normalized.endsWith("/_error")) {
@@ -252,8 +246,6 @@ export async function fsRoutes<State>(
     }
 
     const routePattern = pathToPattern(normalized.slice(1));
-
-    console.log("route");
 
     app.route(pattern, {
       config: {

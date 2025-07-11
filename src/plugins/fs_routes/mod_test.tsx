@@ -194,13 +194,13 @@ Deno.test("fsRoutes - middleware", async () => {
 Deno.test("fsRoutes - nested middlewares", async () => {
   const server = await createServer<{ text: string }>({
     "routes/_middleware.ts": {
-      handler: (ctx) => {
+      handler: function A(ctx) {
         ctx.state.text = "A";
         return ctx.next();
       },
     },
     "routes/foo/_middleware.ts": {
-      handler: (ctx) => {
+      handler: function B(ctx) {
         ctx.state.text += "B";
         return ctx.next();
       },
@@ -324,7 +324,7 @@ Deno.test("fsRoutes - prepend _layout", async () => {
   expect(doc.body.firstChild?.textContent).toEqual("app/layout/foo");
 });
 
-Deno.test("fsRoutes - nested _layout", async () => {
+Deno.test.only("fsRoutes - nested _layout", async () => {
   const server = await createServer({
     "routes/foo/bar.ts": {
       default: () => <>foo_bar</>,
@@ -333,18 +333,22 @@ Deno.test("fsRoutes - nested _layout", async () => {
       default: () => <>foo</>,
     },
     "routes/foo/_layout.tsx": {
-      default: (ctx) => (
-        <>
-          layout_foo_bar/<ctx.Component />
-        </>
-      ),
+      default: function fooBar(ctx) {
+        return (
+          <>
+            layout_foo_bar/<ctx.Component />
+          </>
+        );
+      },
     },
     "routes/_layout.tsx": {
-      default: (ctx) => (
-        <>
-          layout/<ctx.Component />
-        </>
-      ),
+      default: function rootLayout(ctx) {
+        return (
+          <>
+            layout/<ctx.Component />
+          </>
+        );
+      },
     },
     "routes/_app.tsx": {
       default: (ctx) => (
@@ -807,7 +811,7 @@ Deno.test("fsRoutes - _error render component", async () => {
     },
     "routes/foo/index.tsx": {
       handlers: () => {
-        throw new Error("ok");
+        throw new Error("failing");
       },
     },
   });

@@ -24,7 +24,7 @@ Deno.test("UrlPatternRouter - GET extract params", () => {
   let res = router.match("GET", new URL("/a/b/c", "http://localhost"));
   expect(res).toEqual({
     params: { foo: "a", bar: "b" },
-    item: [A],
+    handlers: [A],
     methodMatch: true,
     pattern: "/:foo/:bar/c",
   });
@@ -33,7 +33,7 @@ Deno.test("UrlPatternRouter - GET extract params", () => {
   res = router.match("GET", new URL("/a%20a/b/c", "http://localhost"));
   expect(res).toEqual({
     params: { foo: "a a", bar: "b" },
-    item: [A],
+    handlers: [A],
     methodMatch: true,
     pattern: "/:foo/:bar/c",
   });
@@ -47,7 +47,7 @@ Deno.test("UrlPatternRouter - Wrong method match", () => {
   const res = router.match("POST", new URL("/foo", "http://localhost"));
   expect(res).toEqual({
     params: Object.create(null),
-    item: null,
+    handlers: [],
     methodMatch: false,
     pattern: "/foo",
   });
@@ -63,7 +63,7 @@ Deno.test("UrlPatternRouter - wrong + correct method", () => {
   const res = router.match("POST", new URL("/foo", "http://localhost"));
   expect(res).toEqual({
     params: Object.create(null),
-    item: [B],
+    handlers: [B],
     methodMatch: true,
     pattern: "/foo",
   });
@@ -79,7 +79,7 @@ Deno.test("UrlPatternRouter - convert patterns automatically", () => {
     params: {
       id: "foo",
     },
-    item: [A],
+    handlers: [A],
     methodMatch: true,
     pattern: "/books/:id",
   });
@@ -142,10 +142,11 @@ Deno.test("pathToPattern", async (t) => {
 
 Deno.test("patternToSegments", () => {
   expect(patternToSegments("/", "")).toEqual([""]);
-  expect(patternToSegments("/foo", "")).toEqual(["", "foo"]);
-  expect(patternToSegments("/foo/bar", "")).toEqual(["", "foo", "bar"]);
+  expect(patternToSegments("/foo", "")).toEqual([""]);
+  expect(patternToSegments("/foo/bar", "")).toEqual(["", "foo"]);
 
-  expect(patternToSegments("/:foo", "")).toEqual(["", ":foo"]);
-  expect(patternToSegments("/:foo/:bar", "")).toEqual(["", ":foo", ":bar"]);
-  expect(patternToSegments("/:foo-:bar", "")).toEqual(["", ":foo-:bar"]);
+  expect(patternToSegments("/:foo", "")).toEqual([""]);
+  expect(patternToSegments("/:foo/:bar", "")).toEqual(["", ":foo"]);
+  expect(patternToSegments("/:foo-:bar/foo", "")).toEqual(["", ":foo-:bar"]);
+  expect(patternToSegments("/foo/", "")).toEqual(["", "foo"]);
 });

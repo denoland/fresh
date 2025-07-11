@@ -24,8 +24,6 @@ import {
   type AsyncAnyComponent,
   isAsyncAnyComponent,
 } from "./plugins/fs_routes/render_middleware.ts";
-import type { RouteComponent } from "./plugins/fs_routes/segments.ts";
-import type { LayoutConfig } from "./types.ts";
 
 export interface Island {
   file: string | URL;
@@ -206,28 +204,12 @@ export class Context<State> {
 
       const def = defs[i];
 
-      if (isAsyncAnyComponent(def.component)) {
-        props.data = def.props;
-        const result = await renderAsyncAnyComponent(def.component, props);
-        if (result instanceof Response) {
-          return result;
-        }
-        vnode = result;
-      } else {
-        const vnodeProps: PageProps<unknown, State> = {
-          Component: props.Component,
-          config: this.config,
-          data: def.props,
-          error: this.error,
-          info: this.info,
-          isPartial: this.isPartial,
-          params: this.params,
-          req: this.req,
-          state: this.state,
-          url: this.url,
-        };
-        vnode = h(def.component, vnodeProps) as VNode;
+      const result = await renderRouteComponent(this, def, () => child);
+      if (result instanceof Response) {
+        return result;
       }
+
+      vnode = result;
     }
 
     if (isAsyncAnyComponent(appDef)) {
@@ -311,25 +293,6 @@ export class Context<State> {
       }
     });
     return new Response(html, responseInit);
-  }
-
-  setAppWrapper(component: RouteComponent<State>) {
-    this.#internal.app = component;
-  }
-
-  setLayout(component: RouteComponent<State>, config?: LayoutConfig) {
-    if (config?.skipAppWrapper) {
-      this.#internal.app = null;
-    }
-
-    const def = { component, props: null };
-    if (config?.skipInheritedLayouts) {
-      this.#internal.layouts = [def];
-    } else {
-      const clone = this.#internal.layouts.slice();
-      clone.push(def);
-      this.#internal.layouts = clone;
-    }
   }
 }
 
@@ -433,3 +396,33 @@ export type PageProps<Data = unknown, T = unknown> =
     | "error"
   >
   & { data: Data };
+
+export async function renderRouteComponent<State>(
+  ctx: Context<State>,
+  def: ComponentDef<unknown, State>,
+  child: FunctionComponent,
+): Promise<VNode | Response> {
+  const vnodeProps: PageProps<unknown, State> = {
+    Component: child,
+    config: ctx.config,
+    data: def.props,
+    error: ctx.error,
+    info: ctx.info,
+    isPartial: ctx.isPartial,
+    params: ctx.params,
+    req: ctx.req,
+    state: ctx.state,
+    url: ctx.url,
+  };
+
+  if (isAsyncAnyComponent(def.component)) {
+    const result = await renderAsyncAnyComponent(def.component, vnodeProps);
+    if (result instanceof Response) {
+      return result;
+    }
+
+    return result;
+  }
+
+  return h(def.component, vnodeProps) as VNode;
+}

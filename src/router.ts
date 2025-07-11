@@ -7,51 +7,89 @@ export type Method =
   | "DELETE"
   | "OPTIONS";
 
-export interface RouteDef<T> {
+export interface RouteDefItem<T> {
   method: Method | "ALL";
-  pattern: string | URLPattern;
   handlers: T[];
+}
+
+export interface StaticRouteDef<T> {
+  pattern: string | URLPattern;
+  items: RouteDefItem<T>[];
+}
+
+export interface DynamicRouteDef<T> {
+  pattern: URLPattern;
+  items: RouteDefItem<T>[];
 }
 
 export interface RouteResult<T> {
   params: Record<string, string>;
   handlers: T[];
   methodMatch: boolean;
-  patternMatch: boolean;
   pattern: string | null;
 }
 
 export interface Router<T> {
-  add(method: Method | "OPTIONS" | "ALL", pathname: string, value: T): void;
+  add(
+    method: Method | "OPTIONS" | "ALL",
+    pathname: string,
+    handlers: T[],
+  ): void;
   match(method: Method, url: URL, init?: T[]): RouteResult<T>;
+  getAllowedMethods(pattern: string): string[];
 }
 
 export const IS_PATTERN = /[*:{}+?()]/;
 
-export class UrlPatternRouter<T> implements Router<T> {
-  #routes: RouteDef<T>[] = [];
+const EMPTY: string[] = [];
 
-  add(method: Method | "ALL", pathname: string, value: T) {
-    console.log("add", method, pathname);
-    const last = this.#routes.at(-1);
+export class UrlPatternRouter<T> implements Router<T> {
+  #statics = new Map<string, StaticRouteDef<T>>();
+  #dynamics = new Map<string, DynamicRouteDef<T>>();
+  #dynamicArr: DynamicRouteDef<T>[] = [];
+  #allowed = new Map<string, Set<string>>();
+
+  getAllowedMethods(pattern: string): string[] {
+    const allowed = this.#allowed.get(pattern);
+    if (allowed === undefined) return EMPTY;
+    return Array.from(allowed);
+  }
+
+  add(method: Method | "ALL", pathname: string, handlers: T[]) {
+    let allowed = this.#allowed.get(pathname);
+    if (allowed === undefined) {
+      allowed = new Set();
+      this.#allowed.set(pathname, allowed);
+    }
+    if (method === "ALL") {
+      allowed.add("GET");
+      allowed.add("POST");
+      allowed.add("PATCH");
+      allowed.add("PUT");
+      allowed.add("DELETE");
+      allowed.add("HEAD");
+      allowed.add("OPTIONS");
+    } else {
+      allowed.add(method);
+    }
 
     if (IS_PATTERN.test(pathname)) {
-      if (
-        last !== undefined && last.method === method &&
-        typeof last.pattern !== "string" && last.pattern.pathname === pathname
-      ) {
-        last.handlers.push(value);
-      } else {
-        const pattern = new URLPattern({ pathname });
-        this.#routes.push({ method, pattern, handlers: [value] });
+      let def = this.#dynamics.get(pathname);
+      if (def === undefined) {
+        def = { pattern: new URLPattern({ pathname }), items: [] };
+        this.#dynamics.set(pathname, def);
       }
-    } else if (
-      last !== undefined && last.method === method &&
-      last.pattern === pathname
-    ) {
-      last.handlers.push(value);
+
+      def.items.push({ method, handlers });
+
+      this.#dynamicArr.push(def);
     } else {
-      this.#routes.push({ method, pattern: pathname, handlers: [value] });
+      let def = this.#statics.get(pathname);
+      if (def === undefined) {
+        def = { pattern: pathname, items: [] };
+        this.#statics.set(pathname, def);
+      }
+      def.items.push({ method, handlers });
     }
   }
 
@@ -60,47 +98,49 @@ export class UrlPatternRouter<T> implements Router<T> {
       params: Object.create(null),
       handlers: init,
       methodMatch: false,
-      patternMatch: false,
       pattern: null,
     };
 
-    for (let i = 0; i < this.#routes.length; i++) {
-      const route = this.#routes[i];
+    const staticMatch = this.#statics.get(url.pathname);
+    if (staticMatch !== undefined) {
+      result.pattern = url.pathname;
 
-      if (typeof route.pattern === "string") {
-        if (route.pattern === url.pathname) {
-          result.patternMatch = true;
-
-          if (route.method === "ALL" || route.method === method) {
-            result.methodMatch = true;
-
-            result.handlers.push(...route.handlers);
-
-            if (result.pattern === null) {
-              result.pattern = route.pattern;
-            }
-          }
+      for (let i = 0; i < staticMatch.items.length; i++) {
+        const item = staticMatch.items[i];
+        if (item.method === "ALL" || item.method === method) {
+          result.methodMatch = true;
+          result.handlers.push(...item.handlers);
+          break;
         }
-      } else {
-        const match = route.pattern.exec(url);
-        console.log(route.pattern.pathname, match !== null);
-        if (match !== null) {
-          result.patternMatch = true;
+      }
 
-          if (route.method === "ALL" || route.method === method) {
-            result.methodMatch = true;
-            result.handlers.push(...route.handlers);
+      return result;
+    }
 
-            // Decode matched params
-            for (const [key, value] of Object.entries(match.pathname.groups)) {
-              result.params[key] = value === undefined ? "" : decodeURI(value);
-            }
+    for (let i = 0; i < this.#dynamicArr.length; i++) {
+      const route = this.#dynamicArr[i];
 
-            if (result.pattern === null) {
-              result.pattern = route.pattern.pathname;
-            }
-          }
+      const match = route.pattern.exec(url);
+      if (match === null) continue;
+
+      result.pattern = route.pattern.pathname;
+
+      for (let j = 0; j < route.items.length; j++) {
+        const item = route.items[i];
+
+        if (item.method !== "ALL" && item.method !== method) {
+          continue;
         }
+
+        result.methodMatch = true;
+        result.handlers.push(...item.handlers);
+
+        // Decode matched params
+        for (const [key, value] of Object.entries(match.pathname.groups)) {
+          result.params[key] = value === undefined ? "" : decodeURI(value);
+        }
+
+        break;
       }
     }
 
@@ -226,10 +266,10 @@ export function patternToSegments(path: string, root: string): string[] {
     }
   }
 
-  if (start > -1) {
-    const raw = path.slice(start + 1);
-    out.push(raw);
-  }
-
   return out;
+}
+
+export function mergePath(basePath: string, path: string): string {
+  const s = basePath !== "" && path === "/" ? "" : path;
+  return basePath + s;
 }
