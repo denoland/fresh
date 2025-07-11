@@ -24,6 +24,8 @@ import {
   type AsyncAnyComponent,
   isAsyncAnyComponent,
 } from "./plugins/fs_routes/render_middleware.ts";
+import { RouteComponent } from "./segments.ts";
+import { LayoutConfig } from "./types.ts";
 
 export interface Island {
   file: string | URL;
@@ -321,6 +323,23 @@ export class FreshReqContext<State>
       }
     });
     return new Response(html, responseInit);
+  }
+
+  setAppWrapper(component: RouteComponent<State>) {
+    this.__internal.app = component;
+  }
+
+  setLayout(component: RouteComponent<State>, config?: LayoutConfig) {
+    if (config?.skipAppWrapper) {
+      this.__internal.app = null;
+    }
+
+    const def = { component, props: null };
+    if (config?.skipInheritedLayouts) {
+      this.__internal.layouts = [def];
+    } else {
+      this.__internal.layouts.push(def);
+    }
   }
 }
 

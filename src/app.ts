@@ -13,22 +13,17 @@ import {
   type ResolvedFreshConfig,
 } from "./config.ts";
 import { type BuildCache, ProdBuildCache } from "./build_cache.ts";
-import type { FreshContext, ServerIslandRegistry } from "./context.ts";
+import type {
+  FreshContext,
+  PageProps,
+  ServerIslandRegistry,
+} from "./context.ts";
 import { FinishSetup, ForgotBuild } from "./finish_setup.tsx";
 import { HttpError } from "./error.ts";
 import { pathToExportName } from "./utils.ts";
-import {
-  findOrCreateSegment,
-  getOrCreateRoute,
-  type InternalRoute,
-  newRoute,
-  newSegment,
-  registerRoutes,
-  type RouteComponent,
-  type Segment,
-} from "./segments.ts";
-import type { FreshFsItem } from "./plugins/fs_routes/mod.ts";
-import { isHandlerByMethod } from "./handlers.ts";
+import { findOrCreateSegment } from "./segments.ts";
+import type { Route } from "./types.ts";
+import { isHandlerByMethod, PageResponse } from "./handlers.ts";
 
 // TODO: Completed type clashes in older Deno versions
 // deno-lint-ignore no-explicit-any
@@ -148,8 +143,6 @@ async function listenOnFreePort(
 }
 
 // deno-lint-ignore no-explicit-any
-export let getRouteTree: (app: App<any>) => Segment<any>;
-// deno-lint-ignore no-explicit-any
 export let getIslandRegistry: (app: App<any>) => ServerIslandRegistry;
 // deno-lint-ignore no-explicit-any
 export let getBuildCache: (app: App<any>) => BuildCache | null;
@@ -157,16 +150,15 @@ export let getBuildCache: (app: App<any>) => BuildCache | null;
 export let setBuildCache: (app: App<any>, cache: BuildCache | null) => void;
 
 export class App<State> {
-  #router: Router<InternalRoute<State>> = new UrlPatternRouter<
-    InternalRoute<State>
+  #router: Router<MiddlewareFn<State>> = new UrlPatternRouter<
+    MiddlewareFn<State>
   >();
-  #root: Segment<State>;
   #islandRegistry: ServerIslandRegistry = new Map();
   #buildCache: BuildCache | null = null;
   #islandNames = new Set<string>();
+  #errorMiddleware: MiddlewareFn<State> | null = null;
 
   static {
-    getRouteTree = (app) => app.#root;
     getIslandRegistry = (app) => app.#islandRegistry;
     getBuildCache = (app) => app.#buildCache;
     setBuildCache = (app, cache) => app.#buildCache = cache;
@@ -179,7 +171,6 @@ export class App<State> {
 
   constructor(config: FreshConfig = {}) {
     this.config = normalizeConfig(config);
-    this.#root = newSegment("", null);
   }
 
   island(
@@ -212,164 +203,137 @@ export class App<State> {
   use(path: string, ...middleware: MiddlewareFn<State>[]): this;
   use(
     pathOrMiddleware: string | MiddlewareFn<State>,
-    ...middleware: MiddlewareFn<State>[]
+    ...middlewares: MiddlewareFn<State>[]
   ): this {
-    let pathname: string;
+    let path: string;
     let fns: MiddlewareFn<State>[];
     if (typeof pathOrMiddleware === "string") {
-      pathname = pathOrMiddleware;
-      fns = middleware!;
+      path = pathOrMiddleware;
+      fns = middlewares!;
     } else {
-      pathname = "";
-      fns = [pathOrMiddleware, ...middleware];
+      path = "*";
+      middlewares.unshift(pathOrMiddleware);
+      fns = middlewares;
     }
 
-    const segment = findOrCreateSegment<State>(this.#root, pathname);
-    for (let i = 0; i < fns.length; i++) {
-      const fn = fns[i];
-      if (typeof fn === "function") {
-        segment.middlewares.push(fn);
-      }
-    }
+    this.#addMiddleware("ALL", path, fns);
 
-    return this;
-  }
-
-  appWrapper(fn: RouteComponent<State>): this {
-    this.#root.app = fn;
-    return this;
-  }
-
-  layout(
-    path: string,
-    layout: RouteComponent<State>,
-    options: { skipInheritedLayouts?: boolean; skipAppWrapper?: boolean } = {},
-  ): this {
-    const segment = findOrCreateSegment<State>(this.#root, path);
-    segment.layout = {
-      component: layout,
-      config: options,
-    };
     return this;
   }
 
   error(
     path: string,
-    route: FreshFsItem<State>,
+    routeOrMiddleware: Route<State> | MiddlewareFn<State>,
   ): this {
-    const segment = findOrCreateSegment<State>(this.#root, path);
+    const handler = typeof routeOrMiddleware === "function"
+      ? routeOrMiddleware
+      : routeToMiddleware(routeOrMiddleware);
 
-    const sRoute = newRoute(segment, "");
-    assignRoute(sRoute, route);
-    segment.error = sRoute;
+    const fn: MiddlewareFn<State> = async (ctx) => {
+      const prevApp = ctx.__internal.app;
+      const prevLayouts = ctx.__internal.layouts.slice();
+
+      try {
+        return await ctx.next();
+      } catch {
+        ctx.__internal.app = prevApp;
+        ctx.__internal.layouts = prevLayouts;
+
+        return await handler(ctx);
+      }
+    };
+
+    if (path === "*") {
+      this.#errorMiddleware = fn;
+    } else {
+      this.#router.add("ALL", path, fn);
+    }
 
     return this;
   }
 
-  error404(route: FreshFsItem<State>) {
-    const segment = this.#root;
-    const sRoute = newRoute(segment, "");
-    assignRoute(sRoute, route);
-    segment.error404 = sRoute;
-  }
-
-  route(path: string, route: FreshFsItem<State>): this {
-    const { route: sRoute } = getOrCreateRoute<State>(
-      this.#root,
-      path,
-    );
-
-    assignRoute(sRoute, route);
-
-    if (
-      sRoute.component !== null && isHandlerByMethod(sRoute.handlers) &&
-      sRoute.handlers.GET === undefined
-    ) {
-      sRoute.handlers.GET = DEFAULT_RENDER;
-    }
+  route(path: string, route: Route<State>): this {
+    const fn = routeToMiddleware(route);
+    this.#router.add("ALL", path, fn);
 
     return this;
   }
 
   get(path: string, ...middlewares: MiddlewareFn<State>[]): this {
-    this.#registerMiddleware("GET", path, middlewares);
+    this.#addMiddleware("GET", path, middlewares);
     return this;
   }
   post(path: string, ...middlewares: MiddlewareFn<State>[]): this {
-    this.#registerMiddleware("POST", path, middlewares);
+    this.#addMiddleware("POST", path, middlewares);
     return this;
   }
   patch(path: string, ...middlewares: MiddlewareFn<State>[]): this {
-    this.#registerMiddleware("PATCH", path, middlewares);
+    this.#addMiddleware("PATCH", path, middlewares);
     return this;
   }
   put(path: string, ...middlewares: MiddlewareFn<State>[]): this {
-    this.#registerMiddleware("PUT", path, middlewares);
+    this.#addMiddleware("PUT", path, middlewares);
     return this;
   }
   delete(path: string, ...middlewares: MiddlewareFn<State>[]): this {
-    this.#registerMiddleware("DELETE", path, middlewares);
+    this.#addMiddleware("DELETE", path, middlewares);
     return this;
   }
   head(path: string, ...middlewares: MiddlewareFn<State>[]): this {
-    this.#registerMiddleware("HEAD", path, middlewares);
+    this.#addMiddleware("HEAD", path, middlewares);
     return this;
   }
+
+  // TODO: Deprecate in favor of .use()
   all(path: string, ...middlewares: MiddlewareFn<State>[]): this {
-    this.#registerMiddleware("DELETE", path, middlewares);
-    this.#registerMiddleware("GET", path, middlewares);
-    this.#registerMiddleware("HEAD", path, middlewares);
-    this.#registerMiddleware("POST", path, middlewares);
-    this.#registerMiddleware("PATCH", path, middlewares);
-    this.#registerMiddleware("PUT", path, middlewares);
-
-    return this;
+    return this.use(path, ...middlewares);
   }
 
-  #registerMiddleware(
-    method: Method,
+  #addMiddleware(
+    method: Method | "ALL",
     path: string,
-    middlewares: MiddlewareFn<State>[],
+    fns: MiddlewareFn<State>[],
   ) {
-    const { route } = getOrCreateRoute<State>(this.#root, path);
-    route.middlewareHandlers[method].push(...middlewares);
+    for (let i = 0; i < fns.length; i++) {
+      this.#router.add(method, path, fns[i]);
+    }
   }
 
   mountApp(path: string, app: App<State>): this {
-    const segment = path === "*" || path === "/*"
-      ? this.#root
-      : findOrCreateSegment(this.#root, path);
+    // const segment = path === "*" || path === "/*"
+    //   ? this.#root
+    //   : findOrCreateSegment(this.#root, path);
 
-    const root = app.#root;
-    if (root.app) segment.app = root.app;
-    if (root.layout) segment.layout = root.layout;
-    if (root.error) {
-      root.error.parent = segment;
-      segment.error = root.error;
-    }
-    if (root.error404) {
-      root.error404.parent = segment;
-      segment.error404 = root.error404;
-    }
+    // const root = app.#root;
+    // if (root.app) segment.app = root.app;
+    // if (root.layout) segment.layout = root.layout;
+    // if (root.error) {
+    //   root.error.parent = segment;
+    //   segment.error = root.error;
+    // }
+    // if (root.error404) {
+    //   root.error404.parent = segment;
+    //   segment.error404 = root.error404;
+    // }
 
-    if (root.middlewares.length > 0) {
-      segment.middlewares.push(...root.middlewares);
-    }
+    // if (root.middlewares.length > 0) {
+    //   segment.middlewares.push(...root.middlewares);
+    // }
 
-    if (root.children.size > 0) {
-      root.children.forEach((value, key) => {
-        const clone = { ...value };
-        clone.parent = segment;
-        segment.children.set(key, clone);
-      });
-    }
-    if (root.routes.size > 0) {
-      root.routes.forEach((value, key) => {
-        const clone = { ...value };
-        clone.parent = segment;
-        segment.routes.set(key, clone);
-      });
-    }
+    // if (root.children.size > 0) {
+    //   root.children.forEach((value, key) => {
+    //     const clone = { ...value };
+    //     clone.parent = segment;
+    //     segment.children.set(key, clone);
+    //   });
+    // }
+    // if (root.routes.size > 0) {
+    //   root.routes.forEach((value, key) => {
+    //     const clone = { ...value };
+    //     clone.parent = segment;
+    //     segment.routes.set(key, clone);
+    //   });
+    // }
 
     app.#islandRegistry.forEach((value, key) => {
       this.#islandRegistry.set(key, value);
@@ -384,7 +348,7 @@ export class App<State> {
    * @param {() => Promise<Response>} [nextFn] overwrite default 404 handler
    * @returns {Deno.ServeHandler}
    */
-  handler(nextFn?: () => Promise<Response>): (
+  handler(nextFn?: MiddlewareFn<State>): (
     request: Request,
     info?: Deno.ServeHandlerInfo,
   ) => Promise<Response> {
@@ -402,27 +366,9 @@ export class App<State> {
       return missingBuildHandler;
     }
 
-    if (this.#root.error) {
-      this.#root.error404 = { ...this.#root.error };
-    } else if (this.#root.error404 === null) {
-      this.#root.error404 = newRoute(this.#root, "");
-    }
-
-    if (nextFn !== undefined) {
-      this.#root.error404.handlers = nextFn;
-    }
-
-    registerRoutes(this.#router, this.#root, this.config.basePath, []);
-
-    const error404Route = this.#root.error404 ?? null;
-    const errorRoute = this.#root.error ?? null;
-
-    const errorHandler = errorRoute !== null
-      ? errorRoute.finalized
-      : [DEFAULT_ERROR_HANDLER];
-    const handler404 = error404Route !== null
-      ? error404Route.finalized
-      : [nextFn ?? DEFAULT_ERROR_HANDLER];
+    const initHandlers = this.#errorMiddleware !== null
+      ? [this.#errorMiddleware]
+      : [];
 
     return async (
       req: Request,
@@ -433,13 +379,19 @@ export class App<State> {
       url.pathname = url.pathname.replace(/\/+/g, "/");
 
       const method = req.method.toUpperCase() as Method;
-      const matched = this.#router.match(method, url);
+      const matched = this.#router.match(method, url, initHandlers);
+      const { params, pattern, handlers } = matched;
 
-      const next = matched.pattern !== null && !matched.methodMatch
+      const span = trace.getActiveSpan();
+      if (span && pattern) {
+        span.updateName(`${method} ${pattern}`);
+        span.setAttribute("http.route", pattern);
+      }
+
+      const next = matched.patternMatch && !matched.methodMatch
         ? DEFAULT_NOT_ALLOWED_METHOD
-        : nextFn ?? DEFAULT_NOT_FOUND;
+        : DEFAULT_NOT_FOUND;
 
-      const { params, pattern } = matched;
       const ctx = new FreshReqContext<State>(
         req,
         url,
@@ -451,28 +403,14 @@ export class App<State> {
         this.#buildCache!,
       );
 
-      const span = trace.getActiveSpan();
-      if (span && pattern) {
-        span.updateName(`${method} ${pattern}`);
-        span.setAttribute("http.route", pattern);
-      }
-
       try {
         if (!matched.methodMatch && matched.pattern !== null) {
-          throw new HttpError(405);
-        } else if (matched.item === null) {
-          ctx.error = new HttpError(404);
-          return await runMiddlewares(handler404, ctx);
+          handlers.push(DEFAULT_NOT_ALLOWED_METHOD);
+        } else if (matched.handlers.length === 0) {
+          handlers.push(nextFn ?? DEFAULT_NOT_FOUND);
         }
 
-        const handlers = matched.item.finalized;
-
-        let result: unknown;
-        if (handlers.length === 1) {
-          result = await handlers[0](ctx);
-        } else {
-          result = await runMiddlewares(handlers, ctx);
-        }
+        const result = await runMiddlewares(handlers, ctx);
         if (!(result instanceof Response)) {
           throw new Error(
             `Expected a "Response" instance to be returned, but got: ${result}`,
@@ -482,11 +420,7 @@ export class App<State> {
         return result;
       } catch (err) {
         ctx.error = err;
-        if (err instanceof HttpError && err.status === 404) {
-          return await handler404[0](ctx);
-        }
-
-        return errorHandler[0](ctx);
+        return await DEFAULT_ERROR_HANDLER(ctx);
       }
     };
   }
@@ -517,16 +451,60 @@ const missingBuildHandler = async (): Promise<Response> => {
   return new Response(html, { headers, status: 500 });
 };
 
-function assignRoute<State>(
-  route: InternalRoute<State>,
-  def: FreshFsItem<State>,
-) {
-  const handlers = def.handlers ?? def.handler ?? null;
-  if (Array.isArray(handlers)) {
-    throw new Error(`Route handlers cannot be an array`);
-  }
+function routeToMiddleware<State>(route: Route<State>): MiddlewareFn<State> {
+  const def = route.handler ?? DEFAULT_RENDER;
 
-  route.handlers = handlers;
-  route.component = def.default ?? null;
-  route.config = def.config ?? null;
+  return async function routeHandler(ctx) {
+    const method = ctx.req.method as Method;
+
+    let res: Response | PageResponse<unknown> | undefined;
+
+    if (isHandlerByMethod(def)) {
+      if (def.GET === undefined) {
+        def.GET = DEFAULT_RENDER;
+      }
+
+      const fn = def[method];
+      if (fn !== undefined) {
+        res = await fn(ctx);
+      }
+    } else {
+      res = await def(ctx);
+    }
+
+    if (res === undefined) {
+      throw new Error(
+        `Expected route handler to return a "Response" or page data, but got: ${res}`,
+      );
+    }
+
+    if (res instanceof Response) {
+      return res;
+    }
+
+    let status = 200;
+    const headers = new Headers();
+
+    if (typeof res.status === "number") {
+      status = res.status;
+    }
+    if (res.headers) {
+      for (const [name, value] of Object.entries(res.headers)) {
+        if (value !== null && value !== undefined) {
+          headers.set(name, String(value));
+        } else {
+          headers.delete(name);
+        }
+      }
+    }
+
+    if (route.component !== undefined) {
+      ctx.__internal.layouts.push({
+        props: res.data as PageProps<unknown, State>,
+        component: route.component,
+      });
+    }
+
+    return ctx.render(null, { headers, status });
+  };
 }

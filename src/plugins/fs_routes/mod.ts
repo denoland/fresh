@@ -216,7 +216,7 @@ export async function fsRoutes<State>(
       });
       continue;
     } else if (normalized.endsWith("/_404")) {
-      app.error404({
+      app.notFound({
         config: routeMod.config ?? undefined,
         default: routeMod.component ?? undefined,
         handler: routeMod.handlers ?? undefined,
