@@ -5,7 +5,7 @@ import { trace } from "@opentelemetry/api";
 import { DENO_DEPLOYMENT_ID } from "./runtime/build_id.ts";
 import * as colors from "@std/fmt/colors";
 import { type MiddlewareFn, runMiddlewares } from "./middlewares/mod.ts";
-import { Context, getInternals, type ServerIslandRegistry } from "./context.ts";
+import { Context, type ServerIslandRegistry } from "./context.ts";
 import {
   mergePath,
   type Method,
@@ -37,6 +37,9 @@ export const DEFAULT_CONN_INFO: any = {
   localAddr: { transport: "tcp", hostname: "localhost", port: 8080 },
   remoteAddr: { transport: "tcp", hostname: "localhost", port: 1234 },
 };
+
+/** Used to group mounted apps. Only internal */
+let INTERNAL_ID = 0;
 
 const DEFAULT_RENDER = <State>(): Promise<PageResponse<State>> =>
   // deno-lint-ignore no-explicit-any
@@ -173,9 +176,12 @@ export class App<State> {
   #islandRegistry: ServerIslandRegistry = new Map();
   #buildCache: BuildCache | null = null;
   #islandNames = new Set<string>();
-  #errorMiddleware: MiddlewareFn<State> | null = null;
-  #notFoundMiddleware: MiddlewareFn<State> | null = null;
   #root = newSegment<State>("", null);
+  #routeDefs: {
+    method: Method | "ALL";
+    pattern: string;
+    fns: MiddlewareFn<State>[];
+  }[] = [];
 
   static {
     getIslandRegistry = (app) => app.#islandRegistry;
@@ -242,16 +248,12 @@ export class App<State> {
   }
 
   notFound(routeOrMiddleware: Route<State> | MiddlewareFn<State>): this {
-    const segment = getOrCreateSegment(this.#root, "*");
-    segment.errorRoute = typeof routeOrMiddleware === "function"
+    const route = typeof routeOrMiddleware === "function"
       ? { handler: routeOrMiddleware }
       : routeOrMiddleware;
+    ensureHandler(route);
+    this.#root.notFound = (ctx) => renderRoute(ctx, route);
 
-    const handler = typeof routeOrMiddleware === "function"
-      ? routeOrMiddleware
-      : routeToMiddleware(routeOrMiddleware!);
-
-    this.#notFoundMiddleware = handler;
     return this;
   }
 
@@ -297,10 +299,10 @@ export class App<State> {
     const routePath = route.config?.routeOverride ?? path;
 
     if (typeof route.handler === "function") {
-      this.#router.add("ALL", routePath, middlewares);
+      this.#addRoute("ALL", routePath, middlewares);
     } else if (isHandlerByMethod(route.handler!)) {
       for (const method of Object.keys(route.handler)) {
-        this.#router.add(method as Method, routePath, middlewares);
+        this.#addRoute(method as Method, routePath, middlewares);
       }
     }
 
@@ -348,44 +350,27 @@ export class App<State> {
     result.push(...fns);
 
     const resPath = mergePath(this.config.basePath, path);
-    this.#router.add(method, resPath, result);
+    this.#addRoute(method, resPath, result);
+  }
+
+  #addRoute(method: Method | "ALL", path: string, fns: MiddlewareFn<State>[]) {
+    this.#routeDefs.push({ method, pattern: path, fns });
+    this.#router.add(method, path, fns);
   }
 
   mountApp(path: string, app: App<State>): this {
-    // const segment = path === "*" || path === "/*"
-    //   ? this.#root
-    //   : findOrCreateSegment(this.#root, path);
+    const segmentPath = mergePath(path, `/__${INTERNAL_ID++}/`);
+    const segment = getOrCreateSegment(this.#root, segmentPath);
+    const fns = segmentToMiddlewares(segment);
 
-    // const root = app.#root;
-    // if (root.app) segment.app = root.app;
-    // if (root.layout) segment.layout = root.layout;
-    // if (root.error) {
-    //   root.error.parent = segment;
-    //   segment.error = root.error;
-    // }
-    // if (root.error404) {
-    //   root.error404.parent = segment;
-    //   segment.error404 = root.error404;
-    // }
+    const routes = app.#routeDefs;
+    for (let i = 0; i < routes.length; i++) {
+      const route = routes[i];
 
-    // if (root.middlewares.length > 0) {
-    //   segment.middlewares.push(...root.middlewares);
-    // }
-
-    // if (root.children.size > 0) {
-    //   root.children.forEach((value, key) => {
-    //     const clone = { ...value };
-    //     clone.parent = segment;
-    //     segment.children.set(key, clone);
-    //   });
-    // }
-    // if (root.routes.size > 0) {
-    //   root.routes.forEach((value, key) => {
-    //     const clone = { ...value };
-    //     clone.parent = segment;
-    //     segment.routes.set(key, clone);
-    //   });
-    // }
+      const merged = mergePath(path, route.pattern);
+      const mergedFns = [...fns, ...route.fns];
+      this.#addRoute(route.method, merged, mergedFns);
+    }
 
     app.#islandRegistry.forEach((value, key) => {
       this.#islandRegistry.set(key, value);
@@ -416,23 +401,6 @@ export class App<State> {
       return missingBuildHandler;
     }
 
-    if (this.#errorMiddleware === null && this.#notFoundMiddleware !== null) {
-      this.#errorMiddleware = async (ctx) => {
-        try {
-          return await ctx.next();
-        } catch (err) {
-          if (
-            this.#notFoundMiddleware !== null && err instanceof HttpError &&
-            err.status === 404
-          ) {
-            return await this.#notFoundMiddleware(ctx);
-          }
-
-          throw err;
-        }
-      };
-    }
-
     return async (
       req: Request,
       conn: Deno.ServeHandlerInfo = DEFAULT_CONN_INFO,
@@ -449,6 +417,10 @@ export class App<State> {
       if (span && pattern) {
         span.updateName(`${method} ${pattern}`);
         span.setAttribute("http.route", pattern);
+      }
+
+      if (this.#root.notFound !== null) {
+        handlers.unshift(this.#root.notFound);
       }
 
       let next: () => Promise<Response>;
@@ -468,6 +440,9 @@ export class App<State> {
           next = DEFAULT_NOT_ALLOWED_METHOD;
         }
       } else {
+        if (this.#root.notFound !== null) {
+          handlers.push(this.#root.notFound);
+        }
         next = DEFAULT_NOT_FOUND;
       }
 

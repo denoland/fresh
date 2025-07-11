@@ -270,6 +270,7 @@ export function patternToSegments(path: string, root: string): string[] {
 }
 
 export function mergePath(basePath: string, path: string): string {
-  const s = basePath !== "" && path === "/" ? "" : path;
+  if (basePath === "/") basePath = "";
+  const s = (basePath !== "" && path === "/") ? "" : path;
   return basePath + s;
 }

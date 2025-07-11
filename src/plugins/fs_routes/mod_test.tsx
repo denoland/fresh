@@ -324,7 +324,7 @@ Deno.test("fsRoutes - prepend _layout", async () => {
   expect(doc.body.firstChild?.textContent).toEqual("app/layout/foo");
 });
 
-Deno.test.only("fsRoutes - nested _layout", async () => {
+Deno.test("fsRoutes - nested _layout", async () => {
   const server = await createServer({
     "routes/foo/bar.ts": {
       default: () => <>foo_bar</>,

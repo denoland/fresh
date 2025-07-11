@@ -1,7 +1,7 @@
 import type { AnyComponent } from "preact";
 import type { MiddlewareFn } from "./middlewares/mod.ts";
 import { type Method, patternToSegments } from "./router.ts";
-import type { LayoutConfig, Route, RouteConfig } from "./types.ts";
+import type { LayoutConfig, Route } from "./types.ts";
 import {
   type Context,
   getInternals,
@@ -9,32 +9,15 @@ import {
   renderRouteComponent,
 } from "./context.ts";
 import { recordSpanError, tracer } from "./otel.ts";
-import {
-  type HandlerFn,
-  isHandlerByMethod,
-  type PageResponse,
-  type RouteHandler,
-} from "./handlers.ts";
-import {
-  type AsyncAnyComponent,
-  isAsyncAnyComponent,
+import { isHandlerByMethod } from "./handlers.ts";
+import type {
+  AsyncAnyComponent,
 } from "./plugins/fs_routes/render_middleware.ts";
 import { HttpError } from "./error.ts";
 
 export type RouteComponent<State> =
   | AsyncAnyComponent<PageProps<unknown, State>>
   | AnyComponent<PageProps<unknown, State>>;
-
-export interface InternalRoute<State> {
-  pattern: string;
-  filePath: string | null;
-  config: RouteConfig | null;
-  handlers: RouteHandler<unknown, State> | HandlerFn<unknown, State> | null;
-  middlewareHandlers: { [M in Method]: MiddlewareFn<State>[] };
-  component: RouteComponent<State> | null;
-  parent: Segment<State>;
-  finalized: MiddlewareFn<State>[];
-}
 
 export interface Segment<State> {
   pattern: string;
@@ -44,8 +27,7 @@ export interface Segment<State> {
     config: LayoutConfig | null;
   } | null;
   errorRoute: Route<State> | null;
-  error404: InternalRoute<State> | null;
-  error500: InternalRoute<State> | null;
+  notFound: MiddlewareFn<State> | null;
   app: RouteComponent<State> | null;
   children: Map<string, Segment<State>>;
   parent: Segment<State> | null;
@@ -61,8 +43,7 @@ export function newSegment<State>(
     layout: null,
     app: null,
     errorRoute: null,
-    error404: null,
-    error500: null,
+    notFound: null,
     parent,
     children: new Map(),
   };
@@ -105,6 +86,8 @@ export function segmentToMiddlewares<State>(
     current = current.parent;
   }
 
+  const root = stack.at(-1)!;
+
   for (let i = stack.length - 1; i >= 0; i--) {
     const seg = stack[i];
     const { layout, app, errorRoute } = seg;
@@ -137,6 +120,10 @@ export function segmentToMiddlewares<State>(
       } catch (err) {
         if (errorRoute !== null) {
           const status = err instanceof HttpError ? err.status : 500;
+          if (root.notFound !== null && status === 404) {
+            return await root.notFound(ctx);
+          }
+
           return await renderRoute(ctx, errorRoute, status);
         }
 

@@ -1,6 +1,7 @@
 import { expect } from "@std/expect";
 import {
   IS_PATTERN,
+  mergePath,
   pathToPattern,
   patternToSegments,
   UrlPatternRouter,
@@ -149,4 +150,11 @@ Deno.test("patternToSegments", () => {
   expect(patternToSegments("/:foo/:bar", "")).toEqual(["", ":foo"]);
   expect(patternToSegments("/:foo-:bar/foo", "")).toEqual(["", ":foo-:bar"]);
   expect(patternToSegments("/foo/", "")).toEqual(["", "foo"]);
+});
+
+Deno.test("mergePath", () => {
+  expect(mergePath("", "/foo")).toEqual("/foo");
+  expect(mergePath("/", "/foo")).toEqual("/foo");
+  expect(mergePath("/foo/bar", "/")).toEqual("/foo/bar");
+  expect(mergePath("/foo/bar", "/baz")).toEqual("/foo/bar/baz");
 });

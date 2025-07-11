@@ -21,7 +21,7 @@ interface InternalRoute<State> {
   filePath: string;
   config: RouteConfig | null;
   handlers:
-    | RouteHandler<unknown, State>[]
+    | MiddlewareFn<State>[]
     | RouteHandler<unknown, State>
     | null;
   component: AnyComponent<PageProps<unknown, State>> | null;
@@ -180,6 +180,7 @@ export async function fsRoutes<State>(
         warnInvalidRoute(
           "Middleware does not support object handlers with GET, POST, etc.",
         );
+        continue;
       }
       const pattern = pathToPattern(
         normalized.slice(1, -"/_middleware".length),
@@ -214,14 +215,16 @@ export async function fsRoutes<State>(
       app.error(pattern, {
         config: routeMod.config ?? undefined,
         component: routeMod.component ?? undefined,
-        handler: routeMod.handlers ?? undefined,
+        // deno-lint-ignore no-explicit-any
+        handler: routeMod.handlers as any ?? undefined,
       });
       continue;
     } else if (normalized.endsWith("/_404")) {
       app.notFound({
         config: routeMod.config ?? undefined,
         component: routeMod.component ?? undefined,
-        handler: routeMod.handlers ?? undefined,
+        // deno-lint-ignore no-explicit-any
+        handler: routeMod.handlers as any ?? undefined,
       });
       continue;
     } else if (normalized.endsWith("/_500")) {
@@ -233,7 +236,8 @@ export async function fsRoutes<State>(
       app.error(pattern, {
         config: routeMod.config ?? undefined,
         component: routeMod.component ?? undefined,
-        handler: routeMod.handlers ?? undefined,
+        // deno-lint-ignore no-explicit-any
+        handler: routeMod.handlers as any ?? undefined,
       });
       continue;
     }
@@ -253,7 +257,8 @@ export async function fsRoutes<State>(
         routeOverride: routeMod.config?.routeOverride ?? routePattern,
       },
       component: routeMod.component ?? undefined,
-      handler: routeMod.handlers ?? undefined,
+      // deno-lint-ignore no-explicit-any
+      handler: routeMod.handlers as any ?? undefined,
     });
   }
 }

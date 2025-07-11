@@ -2,6 +2,7 @@ import { expect } from "@std/expect";
 import { App, getIslandRegistry, setBuildCache } from "./app.ts";
 import { FakeServer } from "./test_utils.ts";
 import { ProdBuildCache } from "./build_cache.ts";
+import { HttpError } from "./error.ts";
 
 Deno.test("App - .use()", async () => {
   const app = new App<{ text: string }>()
@@ -321,11 +322,11 @@ Deno.test(
   "App - .mountApp() self mount, different order",
   async () => {
     const innerApp = new App<{ text: string }>()
-      .get("/foo", (ctx) => new Response(ctx.state.text))
       .use(function B(ctx) {
         ctx.state.text += "B";
         return ctx.next();
       })
+      .get("/foo", (ctx) => new Response(ctx.state.text))
       .post("/foo", (ctx) => new Response(ctx.state.text));
 
     const app = new App<{ text: string }>()
@@ -553,13 +554,18 @@ Deno.test("App - adding Island should convert to valid export names", () => {
 });
 
 Deno.test("App - overwrite default 404 handler", async () => {
-  const app = new App().get("/foo", () => new Response("foo"));
+  const app = new App()
+    .notFound(() => new Response("bar", { status: 404 }))
+    .get("/foo", () => new Response("foo"))
+    .get("/thrower", () => {
+      throw new HttpError(404);
+    });
 
-  const server = new FakeServer(
-    app.handler(() => Promise.resolve(new Response("bar"))),
-  );
+  const server = new FakeServer(app.handler());
 
-  const res = await server.get("/invalid");
-  const text = await res.text();
-  expect(text).toEqual("bar");
+  let res = await server.get("/invalid");
+  expect(await res.text()).toEqual("bar");
+
+  res = await server.get("/thrower");
+  expect(await res.text()).toEqual("bar");
 });
