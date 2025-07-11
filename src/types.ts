@@ -1,5 +1,5 @@
-import { HandlerFn, RouteHandler } from "./handlers.ts";
-import { RouteComponent } from "./segments.ts";
+import type { RouteHandler } from "./handlers.ts";
+import type { RouteComponent } from "./segments.ts";
 
 export interface RouteConfig {
   /**
