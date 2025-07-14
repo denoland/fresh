@@ -245,13 +245,7 @@ export class App<State> {
     return this;
   }
 
-  /**
-   * Create handler function for `Deno.serve` or to be used in
-   * testing.
-   * @param {() => Promise<Response>} [nextFn] overwrite default 404 handler
-   * @returns {Deno.ServeHandler}
-   */
-  handler(nextFn?: () => Promise<Response>): (
+  handler(): (
     request: Request,
     info?: Deno.ServeHandlerInfo,
   ) => Promise<Response> {
@@ -282,7 +276,7 @@ export class App<State> {
 
       const next = matched.patternMatch && !matched.methodMatch
         ? DEFAULT_NOT_ALLOWED_METHOD
-        : nextFn ?? DEFAULT_NOT_FOUND;
+        : DEFAULT_NOT_FOUND;
 
       const { params, handlers, pattern } = matched;
       const ctx = new FreshReqContext<State>(
