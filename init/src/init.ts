@@ -360,12 +360,10 @@ ${GRADIENT_CSS}`;
     // Skip this and be silent if there is a network issue.
   }
 
-  const MAIN_TS = `import { App, fsRoutes, staticFiles } from "fresh";
+  const MAIN_TS = `import { App, fsRoutes } from "fresh";
 import { define, type State } from "./utils.ts";
 
 export const app = new App<State>();
-
-app.use(staticFiles());
 
 // this is the same as the /api/:name route defined via a file. feel free to delete this!
 app.get("/api2/:name", (ctx) => {
