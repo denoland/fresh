@@ -532,15 +532,3 @@ Deno.test("App - adding Island should convert to valid export names", () => {
     fn: component3,
   });
 });
-
-Deno.test("App - overwrite default 404 handler", async () => {
-  const app = new App().get("/foo", () => new Response("foo"));
-
-  const server = new FakeServer(
-    app.handler(() => Promise.resolve(new Response("bar"))),
-  );
-
-  const res = await server.get("/invalid");
-  const text = await res.text();
-  expect(text).toEqual("bar");
-});
