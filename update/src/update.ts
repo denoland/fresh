@@ -10,6 +10,8 @@ export const FRESH_VERSION = "2.0.0-alpha.37";
 export const PREACT_VERSION = "10.26.9";
 export const PREACT_SIGNALS_VERSION = "2.2.1";
 
+// Function to filter out node_modules and vendor directories from logs
+const HIDE_FILES = /[\\/]+(node_modules|vendor)[\\/]+/;
 export interface DenoJson {
   lock?: boolean;
   tasks?: Record<string, string>;
@@ -167,8 +169,11 @@ export async function updateProject(dir: string) {
     path.join(dir, "**", "*.{js,jsx,ts,tsx}"),
   );
 
+  // Filter out node_modules and vendor files for user display
+  const userFiles = sfs.filter((sf) => !HIDE_FILES.test(sf.getFilePath()));
+
   // deno-lint-ignore no-console
-  console.log(colors.cyan(`📁 Found ${sfs.length} files to process`));
+  console.log(colors.cyan(`📁 Found ${userFiles.length} files to process`));
 
   if (sfs.length === 0) {
     // deno-lint-ignore no-console
@@ -213,27 +218,34 @@ export async function updateProject(dir: string) {
   // Clear the progress line and add a newline
   await bar.stop();
 
+  // Filter modified files to show only user files
+  const modifiedFilesToShow = modifiedFilesList.filter((filePath) =>
+    !HIDE_FILES.test(filePath)
+  );
+
   // add migration summary
   // deno-lint-ignore no-console
   console.log("\n" + colors.bold("📊 Migration Summary:"));
   // deno-lint-ignore no-console
-  console.log(`   Total files processed: ${sfs.length}`);
+  console.log(`   Total files processed: ${userFiles.length}`);
   // deno-lint-ignore no-console
-  console.log(`   Successfully modified: ${modifiedFilesList.length}`);
+  console.log(`   Successfully modified: ${modifiedFilesToShow.length}`);
   // deno-lint-ignore no-console
   console.log(
     `   Unmodified (no changes needed): ${
-      sfs.length - modifiedFilesList.length
+      userFiles.length - modifiedFilesToShow.length
     }`,
   );
 
-  // Display modified files list
-  if (modifiedFilesList.length > 0) {
+  // Display modified files list (filtered)
+  if (modifiedFilesToShow.length > 0) {
     // deno-lint-ignore no-console
     console.log("\n" + colors.bold("📝 Modified Files:"));
-    modifiedFilesList.forEach((filePath) => {
+    modifiedFilesToShow.forEach((filePath) => {
       // show relative path
-      const relativePath = path.relative(dir, filePath);
+      let relativePath = path.relative(dir, filePath);
+      // Ensure consistent path separators for logging
+      relativePath = relativePath.replace(/\\/g, "/");
       // deno-lint-ignore no-console
       console.log(colors.green(`   ✓ ${relativePath}`));
     });
