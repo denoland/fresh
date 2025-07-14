@@ -1,4 +1,4 @@
-import { App, staticFiles } from "fresh";
+import { App } from "fresh";
 import { Partial } from "fresh/runtime";
 import {
   allIslandApp,
@@ -40,8 +40,7 @@ function testApp<T>(): App<T> {
     .island(selfCounter, "SelfCounter", SelfCounter)
     .island(partialInIsland, "PartialInIsland", PartialInIsland)
     .island(jsonIsland, "JsonIsland", JsonIsland)
-    .island(optOutPartialLink, "OptOutPartialLink", OptOutPartialLink)
-    .use(staticFiles());
+    .island(optOutPartialLink, "OptOutPartialLink", OptOutPartialLink);
 
   setBuildCache(app, getBuildCache(allIslandApp));
   return app;

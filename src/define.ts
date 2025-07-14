@@ -1,7 +1,7 @@
 import type { AnyComponent } from "preact";
 import type { HandlerByMethod, HandlerFn, RouteHandler } from "./handlers.ts";
 import type { Middleware } from "./middlewares/mod.ts";
-import type { PageProps } from "./context.ts";
+import type { PageProps } from "./render.ts";
 
 /**
  * A set of define functions that enable better type inference and code

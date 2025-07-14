@@ -1,4 +1,4 @@
-import type { PageProps } from "./context.ts";
+import type { PageProps } from "./render.ts";
 import { assertType, type IsExact } from "@std/testing/types";
 import { expect } from "@std/expect";
 import { type defineApp, type defineLayout, defineRoute } from "./compat.ts";

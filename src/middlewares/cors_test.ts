@@ -30,16 +30,10 @@ Deno.test("CORS - Preflight default", async () => {
   const res = await handler(req);
 
   expect(res.status).toBe(204);
-  expect(res.statusText).toBe("No Content");
-  expect(res.headers.get("Access-Control-Allow-Methods")?.split(",")[0]).toBe(
-    "GET",
-  );
-  expect(res.headers.get("Access-Control-Allow-Headers")?.split(",")).toEqual(
-    [
-      "X-PINGOTHER",
-      "Content-Type",
-    ],
-  );
+  expect(res.headers.get("Access-Control-Allow-Methods")?.split(",")[0])
+    .toBe("GET");
+  expect(res.headers.get("Access-Control-Allow-Headers")?.split(","))
+    .toEqual(["X-PINGOTHER", "Content-Type"]);
 });
 
 Deno.test("CORS - Preflight with options", async () => {

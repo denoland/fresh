@@ -3,8 +3,8 @@ import { contentType as getContentType } from "@std/media-types/content-type";
 import type { MiddlewareFn } from "./mod.ts";
 import { ASSET_CACHE_BUST_KEY } from "../runtime/shared_internal.tsx";
 import { BUILD_ID } from "../runtime/build_id.ts";
+import { tracer } from "../otel.ts";
 import { getBuildCache } from "../context.ts";
-import { trace, tracer } from "../otel.ts";
 
 /**
  * Fresh middleware to enable file-system based routing.
@@ -12,11 +12,20 @@ import { trace, tracer } from "../otel.ts";
  * // Enable Fresh static file serving
  * app.use(staticFiles());
  * ```
+ * @deprecated This is not needed anymore. Remove this middleware.
  */
 export function staticFiles<T>(): MiddlewareFn<T> {
   return async function freshStaticFiles(ctx) {
+    return await ctx.next();
+  };
+}
+
+export function serveInternalStaticFiles<T>(): MiddlewareFn<T> {
+  return async function freshServeStaticFiles(ctx) {
     const { req, url, config } = ctx;
+
     const buildCache = getBuildCache(ctx);
+    if (buildCache === null) return await ctx.next();
 
     let pathname = decodeURIComponent(url.pathname);
     if (config.basePath) {
@@ -33,18 +42,12 @@ export function staticFiles<T>(): MiddlewareFn<T> {
       if (pathname === "/favicon.ico") {
         return new Response(null, { status: 404 });
       }
-      return ctx.next();
+      return await ctx.next();
     }
 
     if (req.method !== "GET" && req.method !== "HEAD") {
       file.close();
       return new Response("Method Not Allowed", { status: 405 });
-    }
-
-    const parentSpan = trace.getActiveSpan();
-    if (parentSpan) {
-      parentSpan.updateName(`${req.method} /*`);
-      parentSpan.setAttribute("http.route", "/*");
     }
 
     const span = tracer.startSpan("static file", {

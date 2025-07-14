@@ -48,6 +48,7 @@ export class Builder implements FreshBuilder {
   #transformer = new FreshFileTransformer(fsAdapter);
   #addedInternalTransforms = false;
   #options: { target: string | string[] };
+  #chunksReady = Promise.withResolvers<void>();
 
   constructor(options: BuildOptions = {}) {
     this.#options = {
@@ -70,6 +71,11 @@ export class Builder implements FreshBuilder {
       .use(liveReload())
       .use(devErrorOverlay())
       .use(automaticWorkspaceFolders(app.config.root))
+      // Wait for island chunks to be ready before attempting to serve them
+      .use(async (ctx) => {
+        await this.#chunksReady.promise;
+        return await ctx.next();
+      })
       .mountApp("/*", app);
 
     devApp.config.mode = "development";
@@ -204,6 +210,8 @@ export class Builder implements FreshBuilder {
     }
 
     await buildCache.flush();
+
+    this.#chunksReady.resolve();
 
     if (!dev) {
       // deno-lint-ignore no-console
