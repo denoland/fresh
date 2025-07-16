@@ -30,7 +30,6 @@ import {
   segmentToMiddlewares,
 } from "./segments.ts";
 import { isHandlerByMethod, type PageResponse } from "./handlers.ts";
-import { staticFiles } from "./middlewares/static_files.ts";
 
 // TODO: Completed type clashes in older Deno versions
 // deno-lint-ignore no-explicit-any
@@ -408,20 +407,15 @@ export class App<State> {
       return missingBuildHandler;
     }
 
+    const rootMiddlewares = this.#root.middlewares;
+
     // Fallthrough
-    this.#addMiddleware(
-      "ALL",
-      "*",
-      [...this.#root.middlewares, staticFiles()],
-      true,
-    );
+    this.#addMiddleware("ALL", "*", rootMiddlewares, true);
 
     for (let i = 0; i < this.#routeDefs.length; i++) {
       const route = this.#routeDefs[i];
       this.#router.add(route.method, route.pattern, route.fns, route.unshift);
     }
-
-    const rootMiddlewares = this.#root.middlewares;
 
     return async (
       req: Request,
