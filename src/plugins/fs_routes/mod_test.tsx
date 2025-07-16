@@ -1512,3 +1512,37 @@ Deno.test("fsRoutes - warn on _layout handler", async () => {
     expect.any(String),
   );
 });
+
+// Middleware issue in 2.0.0-alpha.40
+Deno.test("fsRoutes - call correct middleware", async () => {
+  const server = await createServer<{ text: string }>({
+    "routes/_middleware.ts": {
+      handler: async function middleware(ctx) {
+        ctx.state.text = "_middleware";
+        return await ctx.next();
+      },
+    },
+    "routes/index.ts": {
+      default: async (ctx) => await new Response(ctx.state.text),
+    },
+    "routes/admin/_middleware.ts": {
+      handler: async function adminMiddleware(ctx) {
+        ctx.state.text += "admin/_middleware";
+        return await ctx.next();
+      },
+    },
+    "routes/foo/index.ts": {
+      handler: (ctx) => {
+        return new Response(ctx.state.text);
+      },
+    },
+  });
+
+  let res = await server.get("/");
+  let text = await res.text();
+  expect(text).toEqual("_middleware");
+
+  res = await server.get("/foo");
+  text = await res.text();
+  expect(text).toEqual("_middleware");
+});
