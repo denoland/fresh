@@ -407,20 +407,15 @@ export class App<State> {
       return missingBuildHandler;
     }
 
+    const rootMiddlewares = this.#root.middlewares;
+
     // Fallthrough
-    this.#addMiddleware(
-      "ALL",
-      "*",
-      this.#root.middlewares,
-      true,
-    );
+    this.#addMiddleware("ALL", "*", rootMiddlewares, true);
 
     for (let i = 0; i < this.#routeDefs.length; i++) {
       const route = this.#routeDefs[i];
       this.#router.add(route.method, route.pattern, route.fns, route.unshift);
     }
-
-    const rootMiddlewares = this.#root.middlewares;
 
     return async (
       req: Request,
