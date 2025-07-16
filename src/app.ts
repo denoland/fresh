@@ -243,7 +243,7 @@ export class App<State> {
       fns = middlewares;
     }
 
-    const segment = getOrCreateSegment(this.#root, path, false);
+    const segment = getOrCreateSegment(this.#root, path, true);
     segment.middlewares.push(...fns);
 
     return this;
