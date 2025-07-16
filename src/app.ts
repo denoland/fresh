@@ -30,7 +30,7 @@ import {
   segmentToMiddlewares,
 } from "./segments.ts";
 import { isHandlerByMethod, type PageResponse } from "./handlers.ts";
-import { serveInternalStaticFiles } from "./middlewares/static_files.ts";
+import { staticFiles } from "./middlewares/static_files.ts";
 
 // TODO: Completed type clashes in older Deno versions
 // deno-lint-ignore no-explicit-any
@@ -408,17 +408,11 @@ export class App<State> {
       return missingBuildHandler;
     }
 
-    const staticMids: MiddlewareFn<State>[] = [];
-    if (this.#root.middlewares.length > 0) {
-      staticMids.push(...this.#root.middlewares);
-    }
-
-    staticMids.push(serveInternalStaticFiles());
-
+    // Fallthrough
     this.#addMiddleware(
       "ALL",
       "*",
-      staticMids,
+      [...this.#root.middlewares, staticFiles()],
       true,
     );
 

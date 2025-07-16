@@ -7,20 +7,13 @@ import { tracer } from "../otel.ts";
 import { getBuildCache } from "../context.ts";
 
 /**
- * Fresh middleware to enable file-system based routing.
+ * Fresh middleware to serve static files from the `static/` directory.
  * ```ts
  * // Enable Fresh static file serving
  * app.use(staticFiles());
  * ```
- * @deprecated This is not needed anymore. Remove this middleware.
  */
 export function staticFiles<T>(): MiddlewareFn<T> {
-  return async function freshStaticFiles(ctx) {
-    return await ctx.next();
-  };
-}
-
-export function serveInternalStaticFiles<T>(): MiddlewareFn<T> {
   return async function freshServeStaticFiles(ctx) {
     const { req, url, config } = ctx;
 
