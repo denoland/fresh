@@ -23,7 +23,7 @@
   --color-border-default: hsla(var(--foreground-secondary), 0.3);
   --color-border-muted: hsla(var(--foreground-secondary), 0.1);
   --color-neutral-muted: rgba(175, 184, 193, 0.2);
-  --color-accent-fg: #0969da;
+  --color-accent-fg: #02aa6f;
   --color-accent-emphasis: #0969da;
   --color-danger-fg: #cf222e;
 
@@ -33,12 +33,12 @@
 }
 
 html[data-theme="dark"] {
-  --color-accent-fg: #3d96ff;
-  --color-prettylights-syntax-keyword: #ee5b65;
-  --color-prettylights-syntax-entity: #b291f0;
-  --color-prettylights-syntax-constant: #448ce5;
+  --color-accent-fg: #75eea1;
+  --color-prettylights-syntax-keyword: #f86d76;
+  --color-prettylights-syntax-entity: #b392f0;
+  --color-prettylights-syntax-constant: #8fc0fb;
   --color-prettylights-syntax-entity-tag: #7cb78a;
-  --color-prettylights-syntax-variable: #d18253;
+  --color-prettylights-syntax-variable: #f7955c;
   --color-prettylights-syntax-markup-deleted-text: #ffebe9;
   --color-prettylights-syntax-markup-deleted-bg: #82071e;
   --color-prettylights-syntax-markup-inserted-text: #dafbe1;
@@ -52,7 +52,7 @@ html[data-theme="dark"] {
 .markdown-body {
   word-wrap: break-word;
   font-family: inherit;
-  font-size: 1.125rem;
+  font-size: 1rem;
   line-height: 1.75;
 }
 .markdown-body:before {
@@ -98,6 +98,10 @@ html[data-theme="dark"] {
 .markdown-body pre,
 .markdown-body details {
   margin-bottom: 1rem;
+}
+.markdown-body ul,
+.markdown-body ol {
+  margin-top: 1rem;
 }
 .markdown-body hr {
   height: 0.25em;
@@ -209,9 +213,12 @@ html[data-theme="dark"] {
   border-bottom: 0;
   padding-bottom: 0;
 }
+.markdown-body strong {
+  font-weight: 600;
+}
 .markdown-body ul,
 .markdown-body ol {
-  padding-left: 2em;
+  padding-left: 1em;
 }
 .markdown-body ul.no-list,
 .markdown-body ol.no-list {
@@ -431,7 +438,7 @@ html[data-theme="dark"] {
   border-radius: 6px;
   padding: 1.25rem 1.5rem;
   font-size: 85%;
-  line-height: 1.45;
+  line-height: 1.75;
   overflow: auto;
 }
 .markdown-body pre code,
@@ -514,7 +521,8 @@ html[data-theme="dark"] {
 }
 .markdown-body a {
   color: var(--color-accent-fg);
-  text-decoration: none;
+  text-decoration: underline;
+  text-underline-offset: 2px;
 }
 .markdown-body a:hover {
   text-decoration: underline;
@@ -633,7 +641,6 @@ html[data-theme="dark"] {
   display: flex;
   align-items: center;
   font-size: 1rem;
-  padding-bottom: 0.5rem;
 }
 .markdown-body .admonition .icon {
   display: inline-flex;
@@ -704,6 +711,8 @@ html[data-theme="dark"] .markdown-body .admonition.info {
   }
 
   .markdown-body .fenced-code,
+  .markdown-body ol,
+  .markdown-body ul,
   .markdown-body h1,
   .markdown-body h2,
   .markdown-body h4,
