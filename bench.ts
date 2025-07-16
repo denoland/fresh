@@ -20,15 +20,15 @@ const fresh: MiddlewareFn<{ count: number }>[] = [
   (ctx) => Promise.resolve(new Response(String(ctx.state.count))),
 ];
 
-const freshContext = {
-  state: { count: 0 },
-  next: () => Promise.resolve({}),
-};
-
 Deno.bench("fresh", async () => {
+  const freshContext = {
+    state: { count: 0 },
+    next: () => Promise.resolve({}),
+  };
+
   const res = await runMiddlewares(fresh, freshContext as any);
   const txt = await res.text();
-  if (txt !== "10") throw new Error("failed");
+  if (txt !== "10") throw new Error("failed " + txt);
 });
 
 type PrependMid = (
@@ -52,17 +52,96 @@ const preparedRaw: PrependMid[] = [
   prependMid,
   prependMid,
   prependMid,
-  (ctx) => Promise.resolve(new Response(String(ctx.state.count))),
+  prependMid,
 ];
 
-let prepared = preparedRaw.at(-1)!;
+let prepared: (ctx: { state: { count: number } }) => Promise<Response>;
 
 for (let i = preparedRaw.length - 1; i >= 0; i--) {
-  prepared = (ctx) => preparedRaw[i];
+  if (i === preparedRaw.length - 1) {
+    prepared = (ctx) => Promise.resolve(new Response(String(ctx.state.count)));
+  } else {
+    let prev = prepared;
+    prepared = (ctx) => preparedRaw[i](ctx, () => prev(ctx));
+  }
 }
 
 Deno.bench("prepared", async () => {
-  const res = await runMiddlewares(fresh, freshContext as any);
+  const freshContext = {
+    state: { count: 0 },
+    next: () => Promise.resolve({}),
+  };
+
+  const res = await prepared(freshContext);
   const txt = await res.text();
-  if (txt !== "foo") throw new Error("failed");
+  if (txt !== "10") throw new Error("failed " + txt);
 });
+
+type BoundMid = (
+  next: () => Promise<Response>,
+  ctx: { state: { count: number } },
+) => Promise<Response>;
+
+const boundMid: BoundMid = async (next, ctx) => {
+  ctx.state.count++;
+  return await next();
+};
+
+const boundRaw: BoundMid[] = [
+  boundMid,
+  boundMid,
+  boundMid,
+  boundMid,
+  boundMid,
+  boundMid,
+  boundMid,
+  boundMid,
+  boundMid,
+  boundMid,
+];
+
+// let boundFn: BoundMid;
+
+// for (let i = boundRaw.length - 1; i >= 0; i--) {
+//   if (i === boundRaw.length - 1) {
+//     boundFn = (_, ctx) =>
+//       Promise.resolve(new Response(String(ctx.state.count)));
+//   } else {
+//     const prev = boundFn;
+//     boundFn = boundRaw[i].bind(null, () => prev(ctx));
+//   }
+// }
+// const boundRaw: BoundMid[] = [
+//   boundMid,
+//   boundMid,
+//   boundMid,
+//   boundMid,
+//   boundMid,
+//   boundMid,
+//   boundMid,
+//   boundMid,
+//   boundMid,
+//   boundMid,
+// ];
+
+// let boundFn: BoundMid
+
+// for (let i = boundRaw.length - 1; i >= 0; i--) {
+//   if (i === boundRaw.length - 1) {
+//     boundFn = (_, ctx) => Promise.resolve(new Response(String(ctx.state.count)));
+//   } else {
+//     const prev = boundFn
+//     boundFn = boundRaw[i].bind(null, () => prev(ctx))
+//   }
+// }
+
+// Deno.bench("bind", async () => {
+//     const freshContext = {
+//     state: { count: 0 },
+//     next: () => Promise.resolve({}),
+//   };
+
+//   const res = await prepared(freshContext);
+//   const txt = await res.text();
+//   if (txt !== "10") throw new Error("failed");
+// });

@@ -91,8 +91,8 @@ export function runMiddlewares<State>(
     const local = fn;
     const next = middlewares[i];
     fn = async () => {
-      const internals = getInternals(ctx);
-      const { app: prevApp, layouts: prevLayouts } = internals;
+      // const internals = getInternals(ctx);
+      // const { app: prevApp, layouts: prevLayouts } = internals;
 
       ctx.next = local;
       try {
@@ -101,8 +101,8 @@ export function runMiddlewares<State>(
         ctx.error = err;
         throw err;
       } finally {
-        internals.app = prevApp;
-        internals.layouts = prevLayouts;
+        // internals.app = prevApp;
+        // internals.layouts = prevLayouts;
       }
     };
   }
