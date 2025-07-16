@@ -30,7 +30,6 @@ import {
   segmentToMiddlewares,
 } from "./segments.ts";
 import { isHandlerByMethod, type PageResponse } from "./handlers.ts";
-import { staticFiles } from "./middlewares/static_files.ts";
 
 // TODO: Completed type clashes in older Deno versions
 // deno-lint-ignore no-explicit-any
@@ -412,7 +411,7 @@ export class App<State> {
     this.#addMiddleware(
       "ALL",
       "*",
-      [...this.#root.middlewares, staticFiles()],
+      this.#root.middlewares,
       true,
     );
 
