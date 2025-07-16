@@ -4,7 +4,7 @@ import { trace } from "@opentelemetry/api";
 
 import { DENO_DEPLOYMENT_ID } from "./runtime/build_id.ts";
 import * as colors from "@std/fmt/colors";
-import { type MiddlewareFn, runMiddlewares } from "./middlewares/mod.ts";
+import { compileMiddlewares, type MiddlewareFn } from "./middlewares/mod.ts";
 import { Context, type ServerIslandRegistry } from "./context.ts";
 import {
   mergePath,
@@ -46,6 +46,10 @@ const DEFAULT_RENDER = <State>(): Promise<PageResponse<State>> =>
   // deno-lint-ignore no-explicit-any
   Promise.resolve({ data: {} as any });
 
+// deno-lint-ignore no-explicit-any
+const PASS_THROUGH: MiddlewareFn<any> = (ctx) => {
+  return ctx.next();
+};
 const DEFAULT_NOT_FOUND = (): Promise<Response> => {
   throw new HttpError(404);
 };
@@ -418,10 +422,25 @@ export class App<State> {
 
     for (let i = 0; i < this.#routeDefs.length; i++) {
       const route = this.#routeDefs[i];
-      this.#router.add(route.method, route.pattern, route.fns, route.unshift);
+
+      const compiled = compileMiddlewares(route.fns, DEFAULT_NOT_FOUND);
+      if (route.method === "ALL") {
+        this.#router.add("GET", route.pattern, compiled);
+        this.#router.add("DELETE", route.pattern, compiled);
+        this.#router.add("HEAD", route.pattern, compiled);
+        this.#router.add("OPTIONS", route.pattern, compiled);
+        this.#router.add("PATCH", route.pattern, compiled);
+        this.#router.add("POST", route.pattern, compiled);
+        this.#router.add("PUT", route.pattern, compiled);
+      } else {
+        this.#router.add(route.method, route.pattern, compiled);
+      }
     }
 
-    const rootMiddlewares = this.#root.middlewares;
+    const rootHandler = compileMiddlewares(
+      this.#root.middlewares,
+      PASS_THROUGH,
+    );
 
     return async (
       req: Request,
@@ -433,7 +452,7 @@ export class App<State> {
 
       const method = req.method.toUpperCase() as Method;
       const matched = this.#router.match(method, url);
-      let { params, pattern, handlers, methodMatch } = matched;
+      let { params, pattern, item: handlers, methodMatch } = matched;
 
       const span = trace.getActiveSpan();
       if (span && pattern) {
@@ -444,18 +463,22 @@ export class App<State> {
       let next: () => Promise<Response>;
 
       if (pattern === null || !methodMatch) {
-        handlers = rootMiddlewares;
+        handlers = rootHandler;
       }
 
-      if (matched.pattern !== null && !methodMatch) {
+      if (pattern !== null && !methodMatch) {
         if (method === "OPTIONS") {
-          const allowed = this.#router.getAllowedMethods(matched.pattern);
+          const allowed = this.#router.getAllowedMethods(pattern);
           next = defaultOptionsHandler(allowed);
         } else {
           next = DEFAULT_NOT_ALLOWED_METHOD;
         }
       } else {
         next = DEFAULT_NOT_FOUND;
+      }
+
+      if (handlers === null) {
+        handlers = next;
       }
 
       const ctx = new Context<State>(
@@ -470,9 +493,7 @@ export class App<State> {
       );
 
       try {
-        if (handlers.length === 0) return await next();
-
-        const result = await runMiddlewares(handlers, ctx);
+        const result = await handlers(ctx);
         if (!(result instanceof Response)) {
           throw new Error(
             `Expected a "Response" instance to be returned, but got: ${result}`,
