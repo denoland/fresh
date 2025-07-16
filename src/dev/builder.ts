@@ -157,7 +157,9 @@ export class Builder implements FreshBuilder {
       }
     }
 
-    const denoJson = await findNearestDenoConfigWithCompilerOptions(app.config.root);
+    const denoJson = await findNearestDenoConfigWithCompilerOptions(
+      app.config.root,
+    );
 
     const jsxImportSource = denoJson.config.compilerOptions?.jsxImportSource;
     if (jsxImportSource === undefined) {
