@@ -81,22 +81,23 @@ export type MiddlewareFn<State> = (
  */
 export type Middleware<State> = MiddlewareFn<State> | MiddlewareFn<State>[];
 
-export function runMiddlewares<State>(
+export function compileMiddlewares<State>(
   middlewares: MiddlewareFn<State>[],
-  ctx: Context<State>,
-): Promise<Response> {
-  let fn = ctx.next;
-  let i = middlewares.length;
-  while (i--) {
-    const local = fn;
-    const next = middlewares[i];
-    fn = async () => {
+  init: MiddlewareFn<State>,
+): MiddlewareFn<State> {
+  let fn: MiddlewareFn<State> = init;
+
+  for (let i = middlewares.length - 1; i >= 0; i--) {
+    const local = middlewares[i];
+    const next = fn;
+
+    fn = async (ctx) => {
       const internals = getInternals(ctx);
       const { app: prevApp, layouts: prevLayouts } = internals;
 
-      ctx.next = local;
+      ctx.next = async () => await next(ctx);
       try {
-        return await next(ctx);
+        return await local(ctx);
       } catch (err) {
         ctx.error = err;
         throw err;
@@ -106,5 +107,6 @@ export function runMiddlewares<State>(
       }
     };
   }
-  return fn();
+
+  return fn;
 }

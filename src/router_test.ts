@@ -20,12 +20,12 @@ Deno.test("IS_PATTERN", () => {
 Deno.test("UrlPatternRouter - GET extract params", () => {
   const router = new UrlPatternRouter();
   const A = () => {};
-  router.add("GET", "/:foo/:bar/c", [A]);
+  router.add("GET", "/:foo/:bar/c", A);
 
   let res = router.match("GET", new URL("/a/b/c", "http://localhost"));
   expect(res).toEqual({
     params: { foo: "a", bar: "b" },
-    handlers: [A],
+    item: A,
     methodMatch: true,
     pattern: "/:foo/:bar/c",
   });
@@ -34,7 +34,7 @@ Deno.test("UrlPatternRouter - GET extract params", () => {
   res = router.match("GET", new URL("/a%20a/b/c", "http://localhost"));
   expect(res).toEqual({
     params: { foo: "a a", bar: "b" },
-    handlers: [A],
+    item: A,
     methodMatch: true,
     pattern: "/:foo/:bar/c",
   });
@@ -43,12 +43,12 @@ Deno.test("UrlPatternRouter - GET extract params", () => {
 Deno.test("UrlPatternRouter - Wrong method match", () => {
   const router = new UrlPatternRouter();
   const A = () => {};
-  router.add("GET", "/foo", [A]);
+  router.add("GET", "/foo", A);
 
   const res = router.match("POST", new URL("/foo", "http://localhost"));
   expect(res).toEqual({
     params: Object.create(null),
-    handlers: [],
+    item: null,
     methodMatch: false,
     pattern: "/foo",
   });
@@ -58,13 +58,13 @@ Deno.test("UrlPatternRouter - wrong + correct method", () => {
   const router = new UrlPatternRouter();
   const A = () => {};
   const B = () => {};
-  router.add("GET", "/foo", [A]);
-  router.add("POST", "/foo", [B]);
+  router.add("GET", "/foo", A);
+  router.add("POST", "/foo", B);
 
   const res = router.match("POST", new URL("/foo", "http://localhost"));
   expect(res).toEqual({
     params: Object.create(null),
-    handlers: [B],
+    item: B,
     methodMatch: true,
     pattern: "/foo",
   });
@@ -73,14 +73,14 @@ Deno.test("UrlPatternRouter - wrong + correct method", () => {
 Deno.test("UrlPatternRouter - convert patterns automatically", () => {
   const router = new UrlPatternRouter();
   const A = () => {};
-  router.add("GET", "/books/:id", [A]);
+  router.add("GET", "/books/:id", A);
 
   const res = router.match("GET", new URL("/books/foo", "http://localhost"));
   expect(res).toEqual({
     params: {
       id: "foo",
     },
-    handlers: [A],
+    item: A,
     methodMatch: true,
     pattern: "/books/:id",
   });
