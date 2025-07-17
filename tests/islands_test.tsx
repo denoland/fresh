@@ -1,4 +1,4 @@
-import { App, fsRoutes } from "fresh";
+import { App, fsRoutes, staticFiles } from "fresh";
 import { Counter } from "./fixtures_islands/Counter.tsx";
 import { IslandInIsland } from "./fixtures_islands/IslandInIsland.tsx";
 import { JsonIsland } from "./fixtures_islands/JsonIsland.tsx";
@@ -37,6 +37,7 @@ await buildProd(allIslandApp);
 function testApp(config?: FreshConfig) {
   const app = new App(config);
   setBuildCache(app, getBuildCache(allIslandApp));
+  app.use(staticFiles());
   return app;
 }
 

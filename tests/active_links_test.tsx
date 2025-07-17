@@ -1,4 +1,4 @@
-import { App } from "fresh";
+import { App, staticFiles } from "fresh";
 import {
   allIslandApp,
   assertNotSelector,
@@ -27,7 +27,8 @@ function testApp<T>(): App<T> {
   const app = new App<T>()
     .island(selfCounter, "SelfCounter", SelfCounter)
     .island(partialInIsland, "PartialInIsland", PartialInIsland)
-    .island(jsonIsland, "JsonIsland", JsonIsland);
+    .island(jsonIsland, "JsonIsland", JsonIsland)
+    .use(staticFiles());
   setBuildCache(app, getBuildCache(allIslandApp));
   return app;
 }

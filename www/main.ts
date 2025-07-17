@@ -1,6 +1,7 @@
-import { App, fsRoutes, trailingSlashes } from "fresh";
+import { App, fsRoutes, staticFiles, trailingSlashes } from "fresh";
 
 export const app = new App({ root: import.meta.url })
+  .use(staticFiles())
   .use(trailingSlashes("never"));
 
 await fsRoutes(app, {
