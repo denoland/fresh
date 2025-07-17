@@ -33,7 +33,6 @@ export interface Router<T> {
     method: Method | "OPTIONS" | "ALL",
     pathname: string,
     handlers: T[],
-    unshift?: boolean,
   ): void;
   match(method: Method, url: URL, init?: T[]): RouteResult<T>;
   getAllowedMethods(pattern: string): string[];
@@ -56,27 +55,17 @@ export class UrlPatternRouter<T> implements Router<T> {
   }
 
   add(
-    method: Method | "ALL",
+    method: Method,
     pathname: string,
     handlers: T[],
-    unshift = false,
   ) {
     let allowed = this.#allowed.get(pathname);
     if (allowed === undefined) {
       allowed = new Set();
       this.#allowed.set(pathname, allowed);
     }
-    if (method === "ALL") {
-      allowed.add("GET");
-      allowed.add("POST");
-      allowed.add("PATCH");
-      allowed.add("PUT");
-      allowed.add("DELETE");
-      allowed.add("HEAD");
-      allowed.add("OPTIONS");
-    } else {
-      allowed.add(method);
-    }
+
+    allowed.add(method);
 
     let byMethod: RouteByMethod<T>;
     if (IS_PATTERN.test(pathname)) {
@@ -120,18 +109,7 @@ export class UrlPatternRouter<T> implements Router<T> {
       byMethod = def.byMethod;
     }
 
-    const fn = unshift ? "unshift" : "push";
-    if (method === "ALL") {
-      byMethod.DELETE[fn](...handlers);
-      byMethod.GET[fn](...handlers);
-      byMethod.HEAD[fn](...handlers);
-      byMethod.OPTIONS[fn](...handlers);
-      byMethod.PATCH[fn](...handlers);
-      byMethod.POST[fn](...handlers);
-      byMethod.PUT[fn](...handlers);
-    } else {
-      byMethod[method][fn](...handlers);
-    }
+    byMethod[method].push(...handlers);
   }
 
   match(method: Method, url: URL, init: T[] = []): RouteResult<T> {
