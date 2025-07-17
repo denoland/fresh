@@ -30,7 +30,6 @@ import {
   segmentToMiddlewares,
 } from "./segments.ts";
 import { isHandlerByMethod, type PageResponse } from "./handlers.ts";
-import { staticFiles } from "./middlewares/static_files.ts";
 
 // TODO: Completed type clashes in older Deno versions
 // deno-lint-ignore no-explicit-any
@@ -38,9 +37,6 @@ export const DEFAULT_CONN_INFO: any = {
   localAddr: { transport: "tcp", hostname: "localhost", port: 8080 },
   remoteAddr: { transport: "tcp", hostname: "localhost", port: 1234 },
 };
-
-/** Used to group mounted apps. Only internal */
-let INTERNAL_ID = 0;
 
 const DEFAULT_RENDER = <State>(): Promise<PageResponse<State>> =>
   // deno-lint-ignore no-explicit-any
@@ -182,7 +178,6 @@ export class App<State> {
     method: Method | "ALL";
     pattern: string;
     fns: MiddlewareFn<State>[];
-    unshift: boolean;
   }[] = [];
 
   static {
@@ -343,7 +338,6 @@ export class App<State> {
     method: Method | "ALL",
     path: string,
     fns: MiddlewareFn<State>[],
-    unshift = false,
   ) {
     const segment = getOrCreateSegment<State>(this.#root, path, false);
     const result = segmentToMiddlewares(segment);
@@ -351,22 +345,23 @@ export class App<State> {
     result.push(...fns);
 
     const resPath = mergePath(this.config.basePath, path);
-    this.#addRoute(method, resPath, result, unshift);
+    this.#addRoute(method, resPath, result);
   }
 
   #addRoute(
     method: Method | "ALL",
     path: string,
     fns: MiddlewareFn<State>[],
-    unshift = false,
   ) {
-    this.#routeDefs.push({ method, pattern: path, fns, unshift });
+    this.#routeDefs.push({ method, pattern: path, fns });
   }
 
   mountApp(path: string, app: App<State>): this {
-    const segmentPath = mergePath(path, `/__${INTERNAL_ID++}/`);
+    const segmentPath = mergePath("", path);
     const segment = getOrCreateSegment(this.#root, segmentPath, true);
     const fns = segmentToMiddlewares(segment);
+
+    segment.middlewares.push(...app.#root.middlewares);
 
     const routes = app.#routeDefs;
     for (let i = 0; i < routes.length; i++) {
@@ -374,7 +369,7 @@ export class App<State> {
 
       const merged = mergePath(path, route.pattern);
       const mergedFns = [...fns, ...route.fns];
-      this.#addRoute(route.method, merged, mergedFns, route.unshift);
+      this.#addRoute(route.method, merged, mergedFns);
     }
 
     app.#islandRegistry.forEach((value, key) => {
@@ -408,20 +403,22 @@ export class App<State> {
       return missingBuildHandler;
     }
 
-    // Fallthrough
-    this.#addMiddleware(
-      "ALL",
-      "*",
-      [...this.#root.middlewares, staticFiles()],
-      true,
-    );
-
     for (let i = 0; i < this.#routeDefs.length; i++) {
       const route = this.#routeDefs[i];
-      this.#router.add(route.method, route.pattern, route.fns, route.unshift);
+      if (route.method === "ALL") {
+        this.#router.add("GET", route.pattern, route.fns);
+        this.#router.add("DELETE", route.pattern, route.fns);
+        this.#router.add("HEAD", route.pattern, route.fns);
+        this.#router.add("OPTIONS", route.pattern, route.fns);
+        this.#router.add("PATCH", route.pattern, route.fns);
+        this.#router.add("POST", route.pattern, route.fns);
+        this.#router.add("PUT", route.pattern, route.fns);
+      } else {
+        this.#router.add(route.method, route.pattern, route.fns);
+      }
     }
 
-    const rootMiddlewares = this.#root.middlewares;
+    const rootMiddlewares = segmentToMiddlewares(this.#root);
 
     return async (
       req: Request,

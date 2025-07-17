@@ -412,6 +412,29 @@ Deno.test(
   },
 );
 
+Deno.test("App - .mountApp() fallback route", async () => {
+  let called = "";
+  const innerApp = new App<{ text: string }>()
+    .use(function Inner(ctx) {
+      called += "_Inner";
+      return ctx.next();
+    })
+    .get("/", (ctx) => new Response(ctx.state.text));
+
+  const app = new App<{ text: string }>()
+    .use(function Outer(ctx) {
+      called += "Outer";
+      return ctx.next();
+    })
+    .mountApp("/", innerApp);
+
+  const server = new FakeServer(app.handler());
+
+  const res = await server.get("/invalid");
+  await res.body?.cancel();
+  expect(called).toEqual("Outer_Inner");
+});
+
 Deno.test("App - catches errors", async () => {
   let thrownErr: unknown | null = null;
   const app = new App<{ text: string }>()
