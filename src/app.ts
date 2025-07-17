@@ -418,7 +418,7 @@ export class App<State> {
       }
     }
 
-    const rootMiddlewares = this.#root.middlewares;
+    const rootMiddlewares = segmentToMiddlewares(this.#root);
 
     return async (
       req: Request,
