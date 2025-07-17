@@ -21,6 +21,18 @@ export interface DynamicRouteDef<T> {
   byMethod: RouteByMethod<T>;
 }
 
+function newByMethod<T>(): RouteByMethod<T> {
+  return {
+    GET: [],
+    POST: [],
+    PATCH: [],
+    DELETE: [],
+    PUT: [],
+    HEAD: [],
+    OPTIONS: [],
+  };
+}
+
 export interface RouteResult<T> {
   params: Record<string, string>;
   handlers: T[];
@@ -73,15 +85,7 @@ export class UrlPatternRouter<T> implements Router<T> {
       if (def === undefined) {
         def = {
           pattern: new URLPattern({ pathname }),
-          byMethod: {
-            DELETE: [],
-            GET: [],
-            HEAD: [],
-            OPTIONS: [],
-            PATCH: [],
-            POST: [],
-            PUT: [],
-          },
+          byMethod: newByMethod(),
         };
         this.#dynamics.set(pathname, def);
         this.#dynamicArr.push(def);
@@ -93,15 +97,7 @@ export class UrlPatternRouter<T> implements Router<T> {
       if (def === undefined) {
         def = {
           pattern: pathname,
-          byMethod: {
-            DELETE: [],
-            GET: [],
-            HEAD: [],
-            OPTIONS: [],
-            PATCH: [],
-            POST: [],
-            PUT: [],
-          },
+          byMethod: newByMethod(),
         };
         this.#statics.set(pathname, def);
       }
