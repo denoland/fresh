@@ -39,9 +39,6 @@ export const DEFAULT_CONN_INFO: any = {
   remoteAddr: { transport: "tcp", hostname: "localhost", port: 1234 },
 };
 
-/** Used to group mounted apps. Only internal */
-let INTERNAL_ID = 0;
-
 const DEFAULT_RENDER = <State>(): Promise<PageResponse<State>> =>
   // deno-lint-ignore no-explicit-any
   Promise.resolve({ data: {} as any });
@@ -364,9 +361,11 @@ export class App<State> {
   }
 
   mountApp(path: string, app: App<State>): this {
-    const segmentPath = mergePath(path, `/__${INTERNAL_ID++}/`);
+    const segmentPath = mergePath("", path);
     const segment = getOrCreateSegment(this.#root, segmentPath, true);
     const fns = segmentToMiddlewares(segment);
+
+    segment.middlewares.push(...app.#root.middlewares);
 
     const routes = app.#routeDefs;
     for (let i = 0; i < routes.length; i++) {
@@ -407,14 +406,6 @@ export class App<State> {
     ) {
       return missingBuildHandler;
     }
-
-    // Fallthrough
-    this.#addMiddleware(
-      "ALL",
-      "*",
-      [...this.#root.middlewares, staticFiles()],
-      true,
-    );
 
     for (let i = 0; i < this.#routeDefs.length; i++) {
       const route = this.#routeDefs[i];
