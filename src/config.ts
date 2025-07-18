@@ -2,24 +2,6 @@ import * as path from "@std/path";
 
 export interface FreshConfig {
   /**
-   * The root directory of the Fresh project.
-   *
-   * Other paths, such as `build.outDir`, `staticDir`, and `fsRoutes()`
-   * are resolved relative to this directory.
-   * @default Deno.cwd()
-   */
-  root?: string;
-  build?: {
-    /**
-     * The directory to write generated files to when `dev.ts build` is run.
-     *
-     * This can be an absolute path, a file URL or a relative path.
-     * Relative paths are resolved against the `root` option.
-     * @default "_fresh"
-     */
-    outDir?: string;
-  };
-  /**
    * Serve fresh from a base path instead of from the root.
    *   "/foo/bar" -> http://localhost:8000/foo/bar
    * @default undefined
@@ -59,7 +41,7 @@ export function parseRootPath(root: string, cwd: string): string {
   return parseDirPath(root, cwd, true);
 }
 
-function parseDirPath(
+export function parseDirPath(
   dirPath: string,
   root: string,
   fileToDir = false,

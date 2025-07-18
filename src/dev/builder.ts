@@ -24,6 +24,7 @@ import { updateCheck } from "./update_check.ts";
 import { DAY } from "@std/datetime";
 import { devErrorOverlay } from "./middlewares/error_overlay/middleware.tsx";
 import { automaticWorkspaceFolders } from "./middlewares/automatic_workspace_folders.ts";
+import { parseDirPath, parseRootPath } from "../config.ts";
 
 export interface BuildOptions {
   /**
@@ -33,18 +34,44 @@ export interface BuildOptions {
    * @default {"es2022"}
    */
   target?: string | string[];
+  /**
+   * The root directory of the Fresh project.
+   *
+   * Other paths, such as `build.outDir`, `staticDir`, and `fsRoutes()`
+   * are resolved relative to this directory.
+   * @default Deno.cwd()
+   */
+  root?: string;
+  /**
+   * The directory to write generated files to when `dev.ts build` is run.
+   *
+   * This can be an absolute path, a file URL or a relative path.
+   * Relative paths are resolved against the `root` option.
+   * @default "_fresh"
+   */
+  outDir?: string;
 }
 
 export class Builder {
   #transformer = new FreshFileTransformer(fsAdapter);
   #addedInternalTransforms = false;
   #options: Required<BuildOptions>;
+  #islandSpecifiers = new Set<string>();
   #chunksReady = Promise.withResolvers<void>();
 
   constructor(options?: BuildOptions) {
+    const root = parseRootPath(options?.root ?? ".", Deno.cwd());
+    const outDir = parseDirPath(options?.outDir ?? "_fresh", root);
+
     this.#options = {
       target: options?.target ?? ["chrome99", "firefox99", "safari15"],
+      root,
+      outDir,
     };
+  }
+
+  registerIsland(specifier: string): void {
+    this.#islandSpecifiers.add(specifier);
   }
 
   onTransformStaticFile(
@@ -130,10 +157,8 @@ export class Builder {
     const entryPoints: Record<string, string> = {
       "fresh-runtime": new URL(runtimePath, import.meta.url).href,
     };
-    const seenEntries = new Map<string, Island>();
     const mapIslandToEntry = new Map<Island, string>();
-    const islandRegistry = getIslandRegistry(app);
-    for (const island of islandRegistry.values()) {
+    for (const island of this.#islandSpecifiers) {
       const filePath = island.file instanceof URL
         ? island.file.href
         : island.file;

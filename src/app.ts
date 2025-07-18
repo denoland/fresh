@@ -1,4 +1,4 @@
-import { type ComponentType, h } from "preact";
+import { h } from "preact";
 import { renderToString } from "preact-render-to-string";
 import { trace } from "@opentelemetry/api";
 
@@ -20,7 +20,6 @@ import {
 import { type BuildCache, ProdBuildCache } from "./build_cache.ts";
 import { FinishSetup, ForgotBuild } from "./finish_setup.tsx";
 import { HttpError } from "./error.ts";
-import { pathToExportName } from "./utils.ts";
 import type { LayoutConfig, Route } from "./types.ts";
 import {
   getOrCreateSegment,
@@ -159,8 +158,11 @@ async function listenOnFreePort(
   throw firstError;
 }
 
-// deno-lint-ignore no-explicit-any
-export let getIslandRegistry: (app: App<any>) => ServerIslandRegistry;
+export let setIslandRegistry: (
+  // deno-lint-ignore no-explicit-any
+  app: App<any>,
+  registry: ServerIslandRegistry,
+) => void;
 // deno-lint-ignore no-explicit-any
 export let getBuildCache: (app: App<any>) => BuildCache | null;
 // deno-lint-ignore no-explicit-any
@@ -176,7 +178,6 @@ export class App<State> {
   >();
   #islandRegistry: ServerIslandRegistry = new Map();
   #buildCache: BuildCache | null = null;
-  #islandNames = new Set<string>();
   #root = newSegment<State>("", null);
   #routeDefs: {
     method: Method | "ALL";
@@ -185,7 +186,7 @@ export class App<State> {
   }[] = [];
 
   static {
-    getIslandRegistry = (app) => app.#islandRegistry;
+    setIslandRegistry = (app, registry) => app.#islandRegistry = registry;
     getBuildCache = (app) => app.#buildCache;
     setBuildCache = (app, cache) => app.#buildCache = cache;
   }
@@ -197,32 +198,6 @@ export class App<State> {
 
   constructor(config: FreshConfig = {}) {
     this.config = normalizeConfig(config);
-  }
-
-  island(
-    filePathOrUrl: string | URL,
-    exportName: string,
-    // deno-lint-ignore no-explicit-any
-    fn: ComponentType<any>,
-  ): this {
-    const filePath = filePathOrUrl instanceof URL
-      ? filePathOrUrl.href
-      : filePathOrUrl;
-
-    // Create unique island name
-    let name = exportName === "default"
-      ? pathToExportName(filePath)
-      : exportName;
-    if (this.#islandNames.has(name)) {
-      let i = 0;
-      while (this.#islandNames.has(`${name}_${i}`)) {
-        i++;
-      }
-      name = `${name}_${i}`;
-    }
-
-    this.#islandRegistry.set(fn, { fn, exportName, name, file: filePathOrUrl });
-    return this;
   }
 
   /**
