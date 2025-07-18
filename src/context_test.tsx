@@ -92,6 +92,7 @@ Deno.test("ctx.route - should contain matched route", async () => {
       route = ctx.route;
       return ctx.next();
     })
+    .get("/foo/bar", () => new Response("ok"))
     .get("/foo/:id", () => new Response("ok"));
 
   const server = new FakeServer(app.handler());
@@ -100,5 +101,8 @@ Deno.test("ctx.route - should contain matched route", async () => {
   expect(route).toEqual(null);
 
   await server.get("/foo/bar");
+  expect(route).toEqual("/foo/bar");
+
+  await server.get("/foo/123");
   expect(route).toEqual("/foo/:id");
 });
