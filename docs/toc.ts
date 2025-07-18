@@ -88,7 +88,6 @@ const toc: RawTableOfContents = {
             "Sharing state between islands",
             "link:latest",
           ],
-          ["using-csp", "Using CSP", "link:latest"],
           ["active-links", "Styling active links", "link:latest"],
         ],
       },
