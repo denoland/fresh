@@ -47,3 +47,23 @@ export function escapeScript(
     .replaceAll(SCRIPT_ESCAPE, "<\\/$1")
     .replaceAll(COMMENT_ESCAPE, options.json ? "\\u003C!--" : "\\x3C!--");
 }
+
+export class UniqueNamer {
+  seen = new Map<string, number>();
+
+  getUniqueName(name: string): string {
+    const count = this.seen.get(name);
+    if (count === undefined) {
+      this.seen.set(name, 1);
+    } else {
+      this.seen.set(name, count + 1);
+      name = `${name}_${count}`;
+    }
+
+    return name;
+  }
+
+  getNames() {
+    return this.seen.keys();
+  }
+}

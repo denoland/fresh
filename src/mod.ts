@@ -1,6 +1,5 @@
 export { App, type ListenOptions } from "./app.ts";
 export { trailingSlashes } from "./middlewares/trailing_slashes.ts";
-export { fsRoutes, type FsRoutesOptions } from "./plugins/fs_routes/mod.ts";
 export {
   type HandlerByMethod,
   type HandlerFn,

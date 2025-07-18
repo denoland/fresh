@@ -1,35 +1,30 @@
-import { type ComponentType, h } from "preact";
-import { renderToString } from "preact-render-to-string";
 import { trace } from "@opentelemetry/api";
 
 import { DENO_DEPLOYMENT_ID } from "./runtime/build_id.ts";
 import * as colors from "@std/fmt/colors";
 import { type MiddlewareFn, runMiddlewares } from "./middlewares/mod.ts";
-import { Context, type ServerIslandRegistry } from "./context.ts";
-import {
-  mergePath,
-  type Method,
-  type Router,
-  UrlPatternRouter,
-} from "./router.ts";
-import {
-  type FreshConfig,
-  normalizeConfig,
-  type ResolvedFreshConfig,
-} from "./config.ts";
-import { type BuildCache, ProdBuildCache } from "./build_cache.ts";
-import { FinishSetup, ForgotBuild } from "./finish_setup.tsx";
+import { Context } from "./context.ts";
+import { mergePath, type Method, UrlPatternRouter } from "./router.ts";
+import type { FreshConfig, ResolvedFreshConfig } from "./config.ts";
+import type { BuildCache } from "./build_cache.ts";
 import { HttpError } from "./error.ts";
-import { pathToExportName } from "./utils.ts";
 import type { LayoutConfig, Route } from "./types.ts";
+import type { RouteComponent } from "./segments.ts";
 import {
-  getOrCreateSegment,
-  newSegment,
-  renderRoute,
-  type RouteComponent,
-  segmentToMiddlewares,
-} from "./segments.ts";
-import { isHandlerByMethod, type PageResponse } from "./handlers.ts";
+  applyComands,
+  type Command,
+  CommandType,
+  DEFAULT_NOT_ALLOWED_METHOD,
+  DEFAULT_NOT_FOUND,
+  newAppCmd,
+  newErrorCmd,
+  newHandlerCmd,
+  newLayoutCmd,
+  newMiddlewareCmd,
+  newNotFoundCmd,
+  newRouteCmd,
+} from "./commands.ts";
+import { MockBuildCache } from "./test_utils.ts";
 
 // TODO: Completed type clashes in older Deno versions
 // deno-lint-ignore no-explicit-any
@@ -38,16 +33,6 @@ export const DEFAULT_CONN_INFO: any = {
   remoteAddr: { transport: "tcp", hostname: "localhost", port: 1234 },
 };
 
-const DEFAULT_RENDER = <State>(): Promise<PageResponse<State>> =>
-  // deno-lint-ignore no-explicit-any
-  Promise.resolve({ data: {} as any });
-
-const DEFAULT_NOT_FOUND = (): Promise<Response> => {
-  throw new HttpError(404);
-};
-const DEFAULT_NOT_ALLOWED_METHOD = (): Promise<Response> => {
-  throw new HttpError(405);
-};
 const defaultOptionsHandler = (methods: string[]): () => Promise<Response> => {
   return () =>
     Promise.resolve(
@@ -159,35 +144,26 @@ async function listenOnFreePort(
   throw firstError;
 }
 
-// deno-lint-ignore no-explicit-any
-export let getIslandRegistry: (app: App<any>) => ServerIslandRegistry;
-// deno-lint-ignore no-explicit-any
-export let getBuildCache: (app: App<any>) => BuildCache | null;
-// deno-lint-ignore no-explicit-any
-export let setBuildCache: (app: App<any>, cache: BuildCache | null) => void;
+export let getBuildCache: <State>(app: App<State>) => BuildCache<State> | null;
+export let setBuildCache: <State>(
+  app: App<State>,
+  cache: BuildCache<State>,
+) => void;
 
 /**
  * Create an application instance that passes the incoming `Request`
  * instance through middlewares and routes.
  */
 export class App<State> {
-  #router: Router<MiddlewareFn<State>> = new UrlPatternRouter<
-    MiddlewareFn<State>
-  >();
-  #islandRegistry: ServerIslandRegistry = new Map();
-  #buildCache: BuildCache | null = null;
-  #islandNames = new Set<string>();
-  #root = newSegment<State>("", null);
-  #routeDefs: {
-    method: Method | "ALL";
-    pattern: string;
-    fns: MiddlewareFn<State>[];
-  }[] = [];
+  #getBuildCache: () => BuildCache<State> | null = () => null;
+  #commands: Command<State>[] = [];
 
   static {
-    getIslandRegistry = (app) => app.#islandRegistry;
-    getBuildCache = (app) => app.#buildCache;
-    setBuildCache = (app, cache) => app.#buildCache = cache;
+    getBuildCache = (app) => app.#getBuildCache();
+    setBuildCache = (app, cache) => {
+      app.config.root = cache.root;
+      app.#getBuildCache = () => cache;
+    };
   }
 
   /**
@@ -196,33 +172,11 @@ export class App<State> {
   config: ResolvedFreshConfig;
 
   constructor(config: FreshConfig = {}) {
-    this.config = normalizeConfig(config);
-  }
-
-  island(
-    filePathOrUrl: string | URL,
-    exportName: string,
-    // deno-lint-ignore no-explicit-any
-    fn: ComponentType<any>,
-  ): this {
-    const filePath = filePathOrUrl instanceof URL
-      ? filePathOrUrl.href
-      : filePathOrUrl;
-
-    // Create unique island name
-    let name = exportName === "default"
-      ? pathToExportName(filePath)
-      : exportName;
-    if (this.#islandNames.has(name)) {
-      let i = 0;
-      while (this.#islandNames.has(`${name}_${i}`)) {
-        i++;
-      }
-      name = `${name}_${i}`;
-    }
-
-    this.#islandRegistry.set(fn, { fn, exportName, name, file: filePathOrUrl });
-    return this;
+    this.config = {
+      root: Deno.cwd(),
+      basePath: config.basePath ?? "",
+      mode: "production",
+    };
   }
 
   /**
@@ -234,19 +188,18 @@ export class App<State> {
     pathOrMiddleware: string | MiddlewareFn<State>,
     ...middlewares: MiddlewareFn<State>[]
   ): this {
-    let path: string;
+    let pattern: string;
     let fns: MiddlewareFn<State>[];
     if (typeof pathOrMiddleware === "string") {
-      path = pathOrMiddleware;
+      pattern = pathOrMiddleware;
       fns = middlewares!;
     } else {
-      path = "*";
+      pattern = "*";
       middlewares.unshift(pathOrMiddleware);
       fns = middlewares;
     }
 
-    const segment = getOrCreateSegment(this.#root, path, true);
-    segment.middlewares.push(...fns);
+    this.#commands.push(newMiddlewareCmd(pattern, fns, true));
 
     return this;
   }
@@ -255,12 +208,7 @@ export class App<State> {
    * Set the app's 404 error handler. Can be a {@linkcode Route} or a {@linkcode MiddlewareFn}.
    */
   notFound(routeOrMiddleware: Route<State> | MiddlewareFn<State>): this {
-    const route = typeof routeOrMiddleware === "function"
-      ? { handler: routeOrMiddleware }
-      : routeOrMiddleware;
-    ensureHandler(route);
-    this.#root.notFound = (ctx) => renderRoute(ctx, route);
-
+    this.#commands.push(newNotFoundCmd(routeOrMiddleware));
     return this;
   }
 
@@ -268,19 +216,13 @@ export class App<State> {
     path: string,
     routeOrMiddleware: Route<State> | MiddlewareFn<State>,
   ): this {
-    const segment = getOrCreateSegment(this.#root, path, true);
-    segment.errorRoute = typeof routeOrMiddleware === "function"
-      ? { handler: routeOrMiddleware }
-      : routeOrMiddleware;
-
-    ensureHandler(segment.errorRoute);
-
+    this.#commands.push(newErrorCmd(path, routeOrMiddleware, true));
     return this;
   }
 
-  appWrapper(component: RouteComponent<State>) {
-    const segment = getOrCreateSegment<State>(this.#root, "", false);
-    segment.app = component;
+  appWrapper(component: RouteComponent<State>): this {
+    this.#commands.push(newAppCmd(component));
+    return this;
   }
 
   layout(
@@ -288,32 +230,12 @@ export class App<State> {
     component: RouteComponent<State>,
     config?: LayoutConfig,
   ): this {
-    const segment = getOrCreateSegment<State>(this.#root, path, true);
-    segment.layout = { component, config: config ?? null };
-
+    this.#commands.push(newLayoutCmd(path, component, config, true));
     return this;
   }
 
   route(path: string, route: Route<State>): this {
-    const segment = getOrCreateSegment<State>(this.#root, path, false);
-    const middlewares = segmentToMiddlewares(segment);
-
-    ensureHandler(route);
-    middlewares.push((ctx) => renderRoute(ctx, route));
-
-    const routePath = mergePath(
-      this.config.basePath,
-      route.config?.routeOverride ?? path,
-    );
-
-    if (typeof route.handler === "function") {
-      this.#addRoute("ALL", routePath, middlewares);
-    } else if (isHandlerByMethod(route.handler!)) {
-      for (const method of Object.keys(route.handler)) {
-        this.#addRoute(method as Method, routePath, middlewares);
-      }
-    }
-
+    this.#commands.push(newRouteCmd(path, route, false));
     return this;
   }
 
@@ -321,42 +243,42 @@ export class App<State> {
    * Add middlewares for GET requests at the specified path.
    */
   get(path: string, ...middlewares: MiddlewareFn<State>[]): this {
-    this.#addMiddleware("GET", path, middlewares);
+    this.#commands.push(newHandlerCmd("GET", path, middlewares, false));
     return this;
   }
   /**
    * Add middlewares for POST requests at the specified path.
    */
   post(path: string, ...middlewares: MiddlewareFn<State>[]): this {
-    this.#addMiddleware("POST", path, middlewares);
+    this.#commands.push(newHandlerCmd("POST", path, middlewares, false));
     return this;
   }
   /**
    * Add middlewares for PATCH requests at the specified path.
    */
   patch(path: string, ...middlewares: MiddlewareFn<State>[]): this {
-    this.#addMiddleware("PATCH", path, middlewares);
+    this.#commands.push(newHandlerCmd("PATCH", path, middlewares, false));
     return this;
   }
   /**
    * Add middlewares for PUT requests at the specified path.
    */
   put(path: string, ...middlewares: MiddlewareFn<State>[]): this {
-    this.#addMiddleware("PUT", path, middlewares);
+    this.#commands.push(newHandlerCmd("PUT", path, middlewares, false));
     return this;
   }
   /**
    * Add middlewares for DELETE requests at the specified path.
    */
   delete(path: string, ...middlewares: MiddlewareFn<State>[]): this {
-    this.#addMiddleware("DELETE", path, middlewares);
+    this.#commands.push(newHandlerCmd("DELETE", path, middlewares, false));
     return this;
   }
   /**
    * Add middlewares for HEAD requests at the specified path.
    */
   head(path: string, ...middlewares: MiddlewareFn<State>[]): this {
-    this.#addMiddleware("HEAD", path, middlewares);
+    this.#commands.push(newHandlerCmd("HEAD", path, middlewares, false));
     return this;
   }
 
@@ -364,30 +286,22 @@ export class App<State> {
    * Add middlewares for all HTTP verbs at the specified path.
    */
   all(path: string, ...middlewares: MiddlewareFn<State>[]): this {
-    this.#addMiddleware("ALL", path, middlewares);
+    this.#commands.push(newHandlerCmd("ALL", path, middlewares, false));
     return this;
   }
 
-  #addMiddleware(
-    method: Method | "ALL",
-    path: string,
-    fns: MiddlewareFn<State>[],
-  ) {
-    const segment = getOrCreateSegment<State>(this.#root, path, false);
-    const result = segmentToMiddlewares(segment);
-
-    result.push(...fns);
-
-    const resPath = mergePath(this.config.basePath, path);
-    this.#addRoute(method, resPath, result);
-  }
-
-  #addRoute(
-    method: Method | "ALL",
-    path: string,
-    fns: MiddlewareFn<State>[],
-  ) {
-    this.#routeDefs.push({ method, pattern: path, fns });
+  fsRoutes(pattern = "*"): this {
+    this.#commands.push({
+      type: CommandType.FsRoute,
+      pattern,
+      getItems: () => {
+        const buildCache = this.#getBuildCache();
+        if (buildCache === null) return [];
+        return buildCache.getFsRoutes();
+      },
+      includeLastSegment: false,
+    });
+    return this;
   }
 
   /**
@@ -395,26 +309,25 @@ export class App<State> {
    * specified path.
    */
   mountApp(path: string, app: App<State>): this {
-    const segmentPath = mergePath("", path);
-    const segment = getOrCreateSegment(this.#root, segmentPath, true);
-    const fns = segmentToMiddlewares(segment);
+    for (let i = 0; i < app.#commands.length; i++) {
+      const cmd = app.#commands[i];
 
-    segment.middlewares.push(...app.#root.middlewares);
+      if (cmd.type !== CommandType.App && cmd.type !== CommandType.NotFound) {
+        const clone = {
+          ...cmd,
+          pattern: mergePath(path, cmd.pattern),
+          includeLastSegment: cmd.pattern === "/" || cmd.includeLastSegment,
+        };
+        this.#commands.push(clone);
+        continue;
+      }
 
-    const routes = app.#routeDefs;
-    for (let i = 0; i < routes.length; i++) {
-      const route = routes[i];
-
-      const merged = mergePath(path, route.pattern);
-      const mergedFns = [...fns, ...route.fns];
-      this.#addRoute(route.method, merged, mergedFns);
+      this.#commands.push(cmd);
     }
 
-    app.#islandRegistry.forEach((value, key) => {
-      this.#islandRegistry.set(key, value);
-    });
-
-    app.#root.notFound = this.#root.notFound;
+    // deno-lint-ignore no-this-alias
+    const self = this;
+    app.#getBuildCache = () => self.#getBuildCache();
 
     return this;
   }
@@ -427,36 +340,27 @@ export class App<State> {
     request: Request,
     info?: Deno.ServeHandlerInfo,
   ) => Promise<Response> {
-    if (this.#buildCache === null) {
-      this.#buildCache = ProdBuildCache.fromSnapshot(
-        this.config,
-        this.#islandRegistry.size,
-      );
-    }
-
-    if (
-      !this.#buildCache.hasSnapshot && this.config.mode === "production" &&
-      DENO_DEPLOYMENT_ID !== undefined
-    ) {
-      return missingBuildHandler;
-    }
-
-    for (let i = 0; i < this.#routeDefs.length; i++) {
-      const route = this.#routeDefs[i];
-      if (route.method === "ALL") {
-        this.#router.add("GET", route.pattern, route.fns);
-        this.#router.add("DELETE", route.pattern, route.fns);
-        this.#router.add("HEAD", route.pattern, route.fns);
-        this.#router.add("OPTIONS", route.pattern, route.fns);
-        this.#router.add("PATCH", route.pattern, route.fns);
-        this.#router.add("POST", route.pattern, route.fns);
-        this.#router.add("PUT", route.pattern, route.fns);
+    let buildCache = this.#getBuildCache();
+    if (buildCache === null) {
+      if (
+        this.config.mode === "production" &&
+        DENO_DEPLOYMENT_ID !== undefined
+      ) {
+        throw new Error(
+          `Could not find _fresh directory. Maybe you forgot to run "deno task build"?`,
+        );
       } else {
-        this.#router.add(route.method, route.pattern, route.fns);
+        buildCache = new MockBuildCache([]);
       }
     }
 
-    const rootMiddlewares = segmentToMiddlewares(this.#root);
+    const router = new UrlPatternRouter<MiddlewareFn<State>>();
+
+    const { rootMiddlewares } = applyComands(
+      router,
+      this.#commands,
+      this.config.basePath,
+    );
 
     return async (
       req: Request,
@@ -467,7 +371,7 @@ export class App<State> {
       url.pathname = url.pathname.replace(/\/+/g, "/");
 
       const method = req.method.toUpperCase() as Method;
-      const matched = this.#router.match(method, url);
+      const matched = router.match(method, url);
       let { params, pattern, handlers, methodMatch } = matched;
 
       const span = trace.getActiveSpan();
@@ -484,7 +388,7 @@ export class App<State> {
 
       if (matched.pattern !== null && !methodMatch) {
         if (method === "OPTIONS") {
-          const allowed = this.#router.getAllowedMethods(matched.pattern);
+          const allowed = router.getAllowedMethods(matched.pattern);
           next = defaultOptionsHandler(allowed);
         } else {
           next = DEFAULT_NOT_ALLOWED_METHOD;
@@ -501,8 +405,7 @@ export class App<State> {
         params,
         this.config,
         next,
-        this.#islandRegistry,
-        this.#buildCache!,
+        buildCache!,
       );
 
       try {
@@ -538,28 +441,5 @@ export class App<State> {
     }
 
     await listenOnFreePort(options, handler);
-  }
-}
-
-// deno-lint-ignore require-await
-const missingBuildHandler = async (): Promise<Response> => {
-  const headers = new Headers();
-  headers.set("Content-Type", "text/html; charset=utf-8");
-
-  const html = DENO_DEPLOYMENT_ID
-    ? renderToString(h(FinishSetup, null))
-    : renderToString(h(ForgotBuild, null));
-  return new Response(html, { headers, status: 500 });
-};
-
-function ensureHandler<State>(route: Route<State>) {
-  if (route.handler === undefined) {
-    route.handler = route.component !== undefined
-      ? DEFAULT_RENDER
-      : DEFAULT_NOT_FOUND;
-  } else if (isHandlerByMethod(route.handler)) {
-    if (route.component !== undefined && !route.handler.GET) {
-      route.handler.GET = DEFAULT_RENDER;
-    }
   }
 }

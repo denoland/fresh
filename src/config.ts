@@ -2,24 +2,6 @@ import * as path from "@std/path";
 
 export interface FreshConfig {
   /**
-   * The root directory of the Fresh project.
-   *
-   * Other paths, such as `build.outDir`, `staticDir`, and `fsRoutes()`
-   * are resolved relative to this directory.
-   * @default Deno.cwd()
-   */
-  root?: string;
-  build?: {
-    /**
-     * The directory to write generated files to when `dev.ts build` is run.
-     *
-     * This can be an absolute path, a file URL or a relative path.
-     * Relative paths are resolved against the `root` option.
-     * @default "_fresh"
-     */
-    outDir?: string;
-  };
-  /**
    * Serve fresh from a base path instead of from the root.
    *   "/foo/bar" -> http://localhost:8000/foo/bar
    * @default undefined
@@ -40,29 +22,20 @@ export interface FreshConfig {
  */
 export interface ResolvedFreshConfig {
   root: string;
-  build: {
-    outDir: string;
-  };
   /**
    * Serve fresh from a base path instead of from the root.
    * "/foo/bar" -> http://localhost:8000/foo/bar
    */
   basePath: string;
-  staticDir: string;
   /**
    * The mode Fresh can run in.
    */
   mode: "development" | "production";
 }
 
-export function parseRootPath(root: string, cwd: string): string {
-  return parseDirPath(root, cwd, true);
-}
-
-function parseDirPath(
+export function parseDirPath(
   dirPath: string,
   root: string,
-  fileToDir = false,
 ): string {
   if (dirPath.startsWith("file://")) {
     dirPath = path.fromFileUrl(dirPath);
@@ -70,37 +43,9 @@ function parseDirPath(
     dirPath = path.join(root, dirPath);
   }
 
-  if (fileToDir) {
-    const ext = path.extname(dirPath);
-    if (
-      ext === ".ts" || ext === ".tsx" || ext === ".js" || ext === ".jsx" ||
-      ext === ".mjs"
-    ) {
-      dirPath = path.dirname(dirPath);
-    }
-  }
-
   if (Deno.build.os === "windows") {
     dirPath = dirPath.replaceAll("\\", "/");
   }
 
   return dirPath;
-}
-
-export function normalizeConfig(options: FreshConfig): ResolvedFreshConfig {
-  const root = parseRootPath(options.root ?? ".", Deno.cwd());
-
-  return {
-    root,
-    build: {
-      outDir: parseDirPath(options.build?.outDir ?? "_fresh", root),
-    },
-    basePath: options.basePath ?? "",
-    staticDir: parseDirPath(options.staticDir ?? "static", root),
-    mode: "production",
-  };
-}
-
-export function getSnapshotPath(config: ResolvedFreshConfig): string {
-  return path.join(config.build.outDir, "snapshot.json");
 }

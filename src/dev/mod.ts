@@ -1,4 +1,8 @@
-export { Builder } from "./builder.ts";
+export {
+  Builder,
+  type BuildOptions,
+  type ResolvedBuildConfig,
+} from "./builder.ts";
 export {
   type OnTransformArgs,
   type OnTransformOptions,

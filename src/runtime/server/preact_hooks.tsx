@@ -14,7 +14,6 @@ import type { Stringifiers } from "../../jsonify/stringify.ts";
 import type { PageProps } from "../../render.ts";
 import { Partial, type PartialProps } from "../shared.ts";
 import { stringify } from "../../jsonify/stringify.ts";
-import type { ServerIslandRegistry } from "../../context.ts";
 import type { Island } from "../../context.ts";
 import {
   assetHashingHook,
@@ -90,7 +89,6 @@ export class RenderState {
   constructor(
     // deno-lint-ignore no-explicit-any
     public ctx: PageProps<any, any>,
-    public islandRegistry: ServerIslandRegistry,
     public buildCache: BuildCache,
     public partialId: string,
   ) {
@@ -203,7 +201,7 @@ options[OptionsType.DIFF] = (vnode) => {
       } else if (
         !PATCHED.has(vnode) && !hasIslandOwner(RENDER_STATE, vnode)
       ) {
-        const island = RENDER_STATE.islandRegistry.get(vnode.type);
+        const island = RENDER_STATE.buildCache.islandRegistry.get(vnode.type);
         if (island === undefined) {
           // Not an island, but we might need to preserve keys
           if (vnode.key !== undefined) {
@@ -324,7 +322,7 @@ function hasIslandOwner(current: RenderState, vnode: VNode): boolean {
   let tmpVNode = vnode;
   let owner;
   while ((owner = current.owners.get(tmpVNode)) !== undefined) {
-    if (current.islandRegistry.has(owner.type as ComponentType)) {
+    if (current.buildCache.islandRegistry.has(owner.type as ComponentType)) {
       return true;
     }
     tmpVNode = owner;
@@ -425,23 +423,16 @@ export interface PartialStateJson {
 }
 
 function FreshRuntimeScript() {
-  const { islands, nonce, ctx, islandProps, partialId, buildCache } =
-    RENDER_STATE!;
+  const { islands, nonce, ctx, islandProps, partialId } = RENDER_STATE!;
   const basePath = ctx.config.basePath;
 
   const islandArr = Array.from(islands);
 
   if (ctx.url.searchParams.has(PARTIAL_SEARCH_PARAM)) {
     const islands = islandArr.map((island) => {
-      const chunk = buildCache.getIslandChunkName(island.name);
-      if (chunk === null) {
-        throw new Error(
-          `Could not find chunk for ${island.name} ${island.file}#${island.exportName}`,
-        );
-      }
       return {
         exportName: island.exportName,
-        chunk,
+        chunk: island.file,
         name: island.name,
       };
     });
@@ -464,16 +455,10 @@ function FreshRuntimeScript() {
     );
   } else {
     const islandImports = islandArr.map((island) => {
-      const chunk = buildCache.getIslandChunkName(island.name);
-      if (chunk === null) {
-        throw new Error(
-          `Could not find chunk for ${island.name} ${island.file}#${island.exportName}`,
-        );
-      }
       const named = island.exportName === "default"
         ? island.name
         : `{ ${island.exportName} }`;
-      return `import ${named} from "${`${basePath}${chunk}`}";`;
+      return `import ${named} from "${`${basePath}${island.file}`}";`;
     }).join("");
 
     const islandObj = "{" + islandArr.map((island) => island.name)

@@ -288,7 +288,8 @@ export function mergePath(basePath: string, path: string): string {
   if (basePath.endsWith("*")) basePath = basePath.slice(0, -1);
   if (basePath === "/") basePath = "";
 
-  if (path === "*" || path === "/*") path = "/*";
+  if (path === "*") path = "";
+  else if (path === "/*") path = "/*";
 
   const s = (basePath !== "" && path === "/") ? "" : path;
   return basePath + s;

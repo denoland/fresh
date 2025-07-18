@@ -56,7 +56,16 @@ interface TransformReq {
   inputFiles: string[];
 }
 
-export class FreshFileTransformer {
+export interface FileTransformer {
+  onTransform(options: OnTransformOptions, callback: TransformFn): void;
+  process(
+    filePath: string,
+    mode: TransformMode,
+    target: string | string[],
+  ): Promise<ProcessedFile[] | null>;
+}
+
+export class FreshFileTransformer implements FileTransformer {
   #transformers: Transformer[] = [];
   #fs: FsAdapter;
 

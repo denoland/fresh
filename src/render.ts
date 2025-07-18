@@ -90,12 +90,9 @@ export function preactRender<State, Data>(
     const runtimeUrl = `${basePath}/_fresh/js/${BUILD_ID}/fresh-runtime.js`;
     let link = `<${encodeURI(runtimeUrl)}>; rel="modulepreload"; as="script"`;
     state.islands.forEach((island) => {
-      const chunk = buildCache.getIslandChunkName(island.name);
-      if (chunk !== null) {
-        link += `, <${
-          encodeURI(`${basePath}${chunk}`)
-        }>; rel="modulepreload"; as="script"`;
-      }
+      link += `, <${
+        encodeURI(`${basePath}${island.file}`)
+      }>; rel="modulepreload"; as="script"`;
     });
 
     if (link !== "") {

@@ -1,32 +1,13 @@
-import { App, getIslandRegistry, setBuildCache } from "../src/app.ts";
+import { type App, setBuildCache } from "../src/app.ts";
 import { launch, type Page } from "@astral/astral";
 import * as colors from "@std/fmt/colors";
 import { DOMParser, HTMLElement } from "linkedom";
-import { Builder } from "../src/dev/builder.ts";
+import { Builder, type BuildOptions } from "../src/dev/builder.ts";
 import { TextLineStream } from "@std/streams/text-line-stream";
 import * as path from "@std/path";
 import type { ComponentChildren } from "preact";
 import { expect } from "@std/expect";
-import { ProdBuildCache } from "../src/build_cache.ts";
-import { Counter } from "./fixtures_islands/Counter.tsx";
-import { CounterWithSlots } from "./fixtures_islands/CounterWithSlots.tsx";
-import { EscapeIsland } from "./fixtures_islands/EscapeIsland.tsx";
-import { FnIsland } from "./fixtures_islands/FnIsland.tsx";
-import { FragmentIsland } from "./fixtures_islands/FragmentIsland.tsx";
-import { IslandInIsland } from "./fixtures_islands/IslandInIsland.tsx";
-import { JsonIsland } from "./fixtures_islands/JsonIsland.tsx";
-import { JsxChildrenIsland } from "./fixtures_islands/JsxChildrenIsland.tsx";
-import { JsxConditional } from "./fixtures_islands/JsxConditional.tsx";
-import { JsxIsland } from "./fixtures_islands/JsxIsland.tsx";
-import { NullIsland } from "./fixtures_islands/NullIsland.tsx";
-import { PartialInIsland } from "./fixtures_islands/PartialInIsland.tsx";
-import { PassThrough } from "./fixtures_islands/PassThrough.tsx";
-import { SelfCounter } from "./fixtures_islands/SelfCounter.tsx";
-import { Multiple1, Multiple2 } from "./fixtures_islands/Multiple.tsx";
-import { Foo } from "./fixture_island_groups/routes/foo/(_islands)/Foo.tsx";
-import { NodeProcess } from "./fixtures_islands/NodeProcess.tsx";
-import { FreshAttrs } from "./fixtures_islands/FreshAttrs.tsx";
-import { OptOutPartialLink } from "./fixtures_islands/OptOutPartialLink.tsx";
+import { mergeReadableStreams } from "@std/streams";
 
 const browser = await launch({
   args: [
@@ -35,16 +16,8 @@ const browser = await launch({
       ? ["--no-sandbox"]
       : []),
   ],
-  headless: true,
+  headless: Deno.env.get("HEADLESS") !== "false",
 });
-
-export function getIsland(pathname: string) {
-  return path.join(
-    import.meta.dirname!,
-    "fixtures_islands",
-    pathname,
-  );
-}
 
 export const charset = <meta charset="utf-8" />;
 
@@ -71,17 +44,23 @@ export function Doc(props: { children?: ComponentChildren; title?: string }) {
   );
 }
 
-export async function buildProd(app: App<unknown>) {
+export const ALL_ISLAND_DIR = path.join(
+  import.meta.dirname!,
+  "fixtures_islands",
+);
+export const ISLAND_GROUP_DIR = path.join(
+  import.meta.dirname!,
+  "fixture_island_groups",
+);
+
+export async function buildProd(
+  options: Omit<BuildOptions, "outDir">,
+): Promise<<T>(app: App<T>) => void> {
   const outDir = await Deno.makeTempDir();
-  // FIXME: Sharing build output path is weird
-  app.config.build.outDir = outDir;
-  const builder = new Builder({});
-  await builder.build(app);
-  const cache = await ProdBuildCache.fromSnapshot(
-    app.config,
-    getIslandRegistry(app).size,
-  );
-  setBuildCache(app, cache);
+  const builder = new Builder({ outDir, ...options });
+  const cache = await builder.buildForTests();
+
+  return (app) => setBuildCache(app, cache);
 }
 
 export async function withBrowserApp(
@@ -128,14 +107,20 @@ export async function withChildProcessServer(
     args: ["task", task],
     stdin: "null",
     stdout: "piped",
-    stderr: "inherit",
+    stderr: "piped",
     cwd: dir,
     signal: aborter.signal,
   }).spawn();
 
-  const lines: ReadableStream<string> = cp.stdout
+  const linesStdout: ReadableStream<string> = cp.stdout
     .pipeThrough(new TextDecoderStream())
     .pipeThrough(new TextLineStream());
+
+  const linesStderr: ReadableStream<string> = cp.stderr
+    .pipeThrough(new TextDecoderStream())
+    .pipeThrough(new TextLineStream());
+
+  const lines = mergeReadableStreams(linesStdout, linesStderr);
 
   const output: string[] = [];
   let address = "";
@@ -348,40 +333,49 @@ export function getStdOutput(
   return { stdout, stderr };
 }
 
-export const allIslandApp = new App()
-  .island(getIsland("Counter.tsx"), "Counter", Counter)
-  .island(
-    getIsland("CounterWithSlots.tsx"),
-    "CounterWithSlots",
-    CounterWithSlots,
-  )
-  .island(getIsland("EscapeIsland.tsx"), "EscapeIsland", EscapeIsland)
-  .island(getIsland("FnIsland.tsx"), "FnIsland", FnIsland)
-  .island(getIsland("FragmentIsland.tsx"), "FragmentIsland", FragmentIsland)
-  .island(getIsland("IslandInIsland.tsx"), "IslandInIsland", IslandInIsland)
-  .island(getIsland("JsonIsland.tsx"), "JsonIsland", JsonIsland)
-  .island(
-    getIsland("JsxChildrenIsland.tsx"),
-    "JsxChildrenIsland",
-    JsxChildrenIsland,
-  )
-  .island(getIsland("JsxConditional.tsx"), "JsxConditional", JsxConditional)
-  .island(getIsland("JsxIsland.tsx"), "JsxIsland", JsxIsland)
-  .island(getIsland("Multiple.tsx"), "Multiple1", Multiple1)
-  .island(getIsland("Multiple.tsx"), "Multiple2", Multiple2)
-  .island(getIsland("NullIsland.tsx"), "NullIsland", NullIsland)
-  .island(getIsland("PartialInIsland.tsx"), "PartialInIsland", PartialInIsland)
-  .island(getIsland("PassThrough.tsx"), "PassThrough", PassThrough)
-  .island(getIsland("SelfCounter.tsx"), "SelfCounter", SelfCounter)
-  .island(getIsland("NodeProcess.tsx"), "NodeProcess", NodeProcess)
-  .island(getIsland("FreshAttrs.tsx"), "FreshAttrs", FreshAttrs)
-  .island(
-    getIsland("OptOutPartialLink.tsx"),
-    "OptOutPartialLink",
-    OptOutPartialLink,
-  )
-  .island(
-    getIsland("../fixture_island_groups/routes/foo/(_islands)/Foo.tsx"),
-    "Foo",
-    Foo,
-  );
+const ISLAND_FIXTURE_DIR = path.join(import.meta.dirname!, "fixtures_islands");
+const allIslandBuilder = new Builder({});
+for await (const entry of Deno.readDirSync(ISLAND_FIXTURE_DIR)) {
+  if (entry.name.endsWith(".json")) continue;
+
+  const spec = path.join(ISLAND_FIXTURE_DIR, entry.name);
+  allIslandBuilder.registerIsland(spec);
+}
+
+// export const allIslandApp = new App()
+//   .island(getIsland("Counter.tsx"), "Counter", Counter)
+//   .island(
+//     getIsland("CounterWithSlots.tsx"),
+//     "CounterWithSlots",
+//     CounterWithSlots,
+//   )
+//   .island(getIsland("EscapeIsland.tsx"), "EscapeIsland", EscapeIsland)
+//   .island(getIsland("FnIsland.tsx"), "FnIsland", FnIsland)
+//   .island(getIsland("FragmentIsland.tsx"), "FragmentIsland", FragmentIsland)
+//   .island(getIsland("IslandInIsland.tsx"), "IslandInIsland", IslandInIsland)
+//   .island(getIsland("JsonIsland.tsx"), "JsonIsland", JsonIsland)
+//   .island(
+//     getIsland("JsxChildrenIsland.tsx"),
+//     "JsxChildrenIsland",
+//     JsxChildrenIsland,
+//   )
+//   .island(getIsland("JsxConditional.tsx"), "JsxConditional", JsxConditional)
+//   .island(getIsland("JsxIsland.tsx"), "JsxIsland", JsxIsland)
+//   .island(getIsland("Multiple.tsx"), "Multiple1", Multiple1)
+//   .island(getIsland("Multiple.tsx"), "Multiple2", Multiple2)
+//   .island(getIsland("NullIsland.tsx"), "NullIsland", NullIsland)
+//   .island(getIsland("PartialInIsland.tsx"), "PartialInIsland", PartialInIsland)
+//   .island(getIsland("PassThrough.tsx"), "PassThrough", PassThrough)
+//   .island(getIsland("SelfCounter.tsx"), "SelfCounter", SelfCounter)
+//   .island(getIsland("NodeProcess.tsx"), "NodeProcess", NodeProcess)
+//   .island(getIsland("FreshAttrs.tsx"), "FreshAttrs", FreshAttrs)
+//   .island(
+//     getIsland("OptOutPartialLink.tsx"),
+//     "OptOutPartialLink",
+//     OptOutPartialLink,
+//   )
+//   .island(
+//     getIsland("../fixture_island_groups/routes/foo/(_islands)/Foo.tsx"),
+//     "Foo",
+//     Foo,
+//   );

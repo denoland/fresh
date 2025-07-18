@@ -4,11 +4,15 @@ import type { BuildCache, StaticFile } from "../build_cache.ts";
 import { expect } from "@std/expect";
 import { ASSET_CACHE_BUST_KEY } from "../runtime/shared_internal.tsx";
 import { BUILD_ID } from "../runtime/build_id.ts";
+import type { AnyComponent } from "preact";
+import type { Command } from "../commands.ts";
+import type { ServerIslandRegistry } from "../context.ts";
 
 class MockBuildCache implements BuildCache {
+  root = "";
   buildId = "MockId";
   files = new Map<string, StaticFile>();
-  hasSnapshot = true;
+  islandRegistry: ServerIslandRegistry = new Map();
 
   constructor(files: Record<string, { hash: string | null; content: string }>) {
     const encoder = new TextEncoder();
@@ -25,11 +29,16 @@ class MockBuildCache implements BuildCache {
     }
   }
 
+  // deno-lint-ignore no-explicit-any
+  getFsRoutes(): Command<any>[] {
+    return [];
+  }
+
   // deno-lint-ignore require-await
   async readFile(pathname: string): Promise<StaticFile | null> {
     return this.files.get(pathname) ?? null;
   }
-  getIslandChunkName(_islandName: string): string | null {
+  getIslandChunkName(_islandName: AnyComponent): string | null {
     return null;
   }
 }
@@ -135,13 +144,9 @@ Deno.test("static files - disables caching in development", async () => {
     {
       buildCache,
       config: {
+        root: "",
         basePath: "",
-        build: {
-          outDir: "",
-        },
         mode: "development",
-        root: ".",
-        staticDir: "",
       },
     },
   );
@@ -163,13 +168,9 @@ Deno.test("static files - enables caching in production", async () => {
     {
       buildCache,
       config: {
+        root: "",
         basePath: "",
-        build: {
-          outDir: "",
-        },
         mode: "production",
-        root: ".",
-        staticDir: "",
       },
     },
   );

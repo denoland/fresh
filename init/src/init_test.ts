@@ -240,5 +240,5 @@ Deno.test("init - errors on missing build cache in prod", async () => {
   const { stderr } = getStdOutput(cp);
   expect(cp.code).toEqual(1);
 
-  expect(stderr).toMatch(/Found 1 islands, but did not/);
+  expect(stderr).toMatch(/Module not found/);
 });

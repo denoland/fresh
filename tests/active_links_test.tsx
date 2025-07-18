@@ -1,35 +1,24 @@
 import { App, staticFiles } from "fresh";
 import {
-  allIslandApp,
+  ALL_ISLAND_DIR,
   assertNotSelector,
   assertSelector,
   buildProd,
   Doc,
-  getIsland,
   parseHtml,
   withBrowserApp,
 } from "./test_utils.tsx";
 
-import { SelfCounter } from "./fixtures_islands/SelfCounter.tsx";
-import { PartialInIsland } from "./fixtures_islands/PartialInIsland.tsx";
-import { JsonIsland } from "./fixtures_islands/JsonIsland.tsx";
 import { FakeServer } from "../src/test_utils.ts";
 import { Partial } from "fresh/runtime";
-import { getBuildCache, setBuildCache } from "../src/app.ts";
 
-await buildProd(allIslandApp);
+const allIslandCache = await buildProd({ islandDir: ALL_ISLAND_DIR });
 
 function testApp<T>(): App<T> {
-  const selfCounter = getIsland("SelfCounter.tsx");
-  const partialInIsland = getIsland("PartialInIsland.tsx");
-  const jsonIsland = getIsland("JsonIsland.tsx");
-
   const app = new App<T>()
-    .island(selfCounter, "SelfCounter", SelfCounter)
-    .island(partialInIsland, "PartialInIsland", PartialInIsland)
-    .island(jsonIsland, "JsonIsland", JsonIsland)
     .use(staticFiles());
-  setBuildCache(app, getBuildCache(allIslandApp));
+
+  allIslandCache(app);
   return app;
 }
 

@@ -1,18 +1,22 @@
 import * as path from "@std/path";
-import { getSnapshotPath, type ResolvedFreshConfig } from "./config.ts";
-import { DENO_DEPLOYMENT_ID, setBuildId } from "./runtime/build_id.ts";
-import * as colors from "@std/fmt/colors";
+import { setBuildId } from "./runtime/build_id.ts";
+import type { Command } from "./commands.ts";
+import { fsItemsToCommands, type FsRouteFile } from "./fs_routes.ts";
+import type { ServerIslandRegistry } from "./context.ts";
+import type { AnyComponent } from "preact";
+import { UniqueNamer } from "./utils.ts";
 
 export interface FileSnapshot {
-  generated: boolean;
+  name: string;
+  filePath: string;
   hash: string | null;
 }
 
-export interface BuildSnapshot {
-  version: number;
-  buildId: string;
-  staticFiles: Record<string, FileSnapshot>;
-  islands: Record<string, string>;
+export interface BuildSnapshot<State> {
+  version: string;
+  fsRoutes: FsRouteFile<State>[];
+  staticFiles: Map<string, FileSnapshot>;
+  islands: ServerIslandRegistry;
 }
 
 export interface StaticFile {
@@ -22,98 +26,35 @@ export interface StaticFile {
   close(): void;
 }
 
-export interface BuildCache {
-  hasSnapshot: boolean;
+// deno-lint-ignore no-explicit-any
+export interface BuildCache<State = any> {
+  root: string;
+  islandRegistry: ServerIslandRegistry;
+  getFsRoutes(): Command<State>[];
   readFile(pathname: string): Promise<StaticFile | null>;
-  getIslandChunkName(islandName: string): string | null;
 }
 
-export class ProdBuildCache implements BuildCache {
-  static fromSnapshot(config: ResolvedFreshConfig, islandCount: number) {
-    const snapshotPath = getSnapshotPath(config);
+export class ProdBuildCache<State> implements BuildCache<State> {
+  #snapshot: BuildSnapshot<State>;
+  islandRegistry: ServerIslandRegistry;
 
-    const staticFiles = new Map<string, FileSnapshot>();
-    const islandToChunk = new Map<string, string>();
-
-    let hasSnapshot = false;
-    try {
-      const content = Deno.readTextFileSync(snapshotPath);
-      const snapshot = JSON.parse(content) as BuildSnapshot;
-      hasSnapshot = true;
-      setBuildId(snapshot.buildId);
-
-      const files = Object.keys(snapshot.staticFiles);
-      for (let i = 0; i < files.length; i++) {
-        const pathname = files[i];
-        const info = snapshot.staticFiles[pathname];
-        staticFiles.set(pathname, info);
-      }
-
-      const islands = Object.keys(snapshot.islands);
-      for (let i = 0; i < islands.length; i++) {
-        const pathname = islands[i];
-        islandToChunk.set(pathname, snapshot.islands[pathname]);
-      }
-
-      if (!DENO_DEPLOYMENT_ID) {
-        // deno-lint-ignore no-console
-        console.log(
-          `Found snapshot at ${colors.cyan(snapshotPath)}`,
-        );
-      }
-    } catch (err) {
-      if ((err instanceof Deno.errors.NotFound)) {
-        if (islandCount > 0) {
-          throw new Error(
-            `Found ${
-              colors.green(`${islandCount} islands`)
-            }, but did not find build snapshot at:\n${
-              colors.red(snapshotPath)
-            }.\n\nMaybe your forgot to run ${
-              colors.cyan("deno task build")
-            } before starting the production server\nor maybe you wanted to run ${
-              colors.cyan("deno task dev")
-            } to spin up a development server instead?\n`,
-          );
-        }
-      } else {
-        throw err;
-      }
-    }
-
-    return new ProdBuildCache(config, islandToChunk, staticFiles, hasSnapshot);
+  constructor(public root: string, snapshot: BuildSnapshot<State>) {
+    setBuildId(snapshot.version);
+    this.#snapshot = snapshot;
+    this.islandRegistry = snapshot.islands;
   }
 
-  #islands: Map<string, string>;
-  #fileInfo: Map<string, FileSnapshot>;
-  #config: ResolvedFreshConfig;
-
-  constructor(
-    config: ResolvedFreshConfig,
-    islands: Map<string, string>,
-    files: Map<string, FileSnapshot>,
-    public hasSnapshot: boolean,
-  ) {
-    this.#islands = islands;
-    this.#fileInfo = files;
-    this.#config = config;
+  getFsRoutes(): Command<State>[] {
+    return fsItemsToCommands(this.#snapshot.fsRoutes);
   }
 
   async readFile(pathname: string): Promise<StaticFile | null> {
-    const info = this.#fileInfo.get(pathname);
+    const { staticFiles } = this.#snapshot;
+
+    const info = staticFiles.get(pathname);
     if (info === undefined) return null;
 
-    const base = info.generated
-      ? this.#config.build.outDir
-      : this.#config.staticDir;
-    const filePath = info.generated
-      ? path.join(base, "static", pathname)
-      : path.join(base, pathname);
-
-    // Check if path resolves outside of intended directory.
-    if (path.relative(base, filePath).startsWith("..")) {
-      return null;
-    }
+    const filePath = path.join(this.root, info.filePath);
 
     const [stat, file] = await Promise.all([
       Deno.stat(filePath),
@@ -127,8 +68,30 @@ export class ProdBuildCache implements BuildCache {
       close: () => file.close(),
     };
   }
+}
 
-  getIslandChunkName(islandName: string): string | null {
-    return this.#islands.get(islandName) ?? null;
+export class IslandPreparer {
+  namer = new UniqueNamer();
+
+  prepare(
+    registry: ServerIslandRegistry,
+    mod: Record<string, unknown>,
+    chunkName: string,
+    modName: string,
+  ) {
+    for (const [name, value] of Object.entries(mod)) {
+      if (typeof value !== "function") continue;
+
+      const islandName = name === "default" ? modName : name;
+      const uniqueName = this.namer.getUniqueName(islandName);
+
+      const fn = value as AnyComponent;
+      registry.set(fn, {
+        exportName: name,
+        file: chunkName,
+        fn,
+        name: uniqueName,
+      });
+    }
   }
 }

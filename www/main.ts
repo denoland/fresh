@@ -1,13 +1,9 @@
-import { App, fsRoutes, staticFiles, trailingSlashes } from "fresh";
+import { App, staticFiles, trailingSlashes } from "fresh";
 
-export const app = new App({ root: import.meta.url })
+export const app = new App()
   .use(staticFiles())
-  .use(trailingSlashes("never"));
-
-await fsRoutes(app, {
-  loadIsland: (path) => import(`./islands/${path}`),
-  loadRoute: (path) => import(`./routes/${path}`),
-});
+  .use(trailingSlashes("never"))
+  .fsRoutes();
 
 if (import.meta.main) {
   await app.listen();
