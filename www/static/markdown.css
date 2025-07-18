@@ -669,6 +669,13 @@ html[data-theme="dark"] {
 .markdown-body .admonition.tip .admonition-header {
   color: rgb(0, 148, 0);
 }
+html[data-theme="dark"] .markdown-body .admonition.tip {
+  background-color: #1f331f;
+  border-color: var(--color-accent-fg);
+}
+html[data-theme="dark"] .markdown-body .admonition.tip .admonition-header {
+  color: var(--color-accent-fg);
+}
 .markdown-body .admonition.tip {
   background-color: rgb(230, 246, 230);
   border-color: rgb(0, 148, 0);
