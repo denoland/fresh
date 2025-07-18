@@ -3,80 +3,100 @@ description: |
   Error pages can be used to customize the page that is shown when an error occurs in the application.
 ---
 
-Fresh supports customizing the `404 Not Found`, and the
-`500 Internal Server Error` pages. These are shown when a request is made but no
-matching route exists, and when a middleware, route handler, or page component
-throws an error respectively.
+Error pages are used to ensure that your app keeps working and display relevant
+feedback to the one who made the request.
 
-### 404: Not Found
+Fresh supports two kind of error pages:
 
-The 404 page can be customized by creating a `_404.tsx` file in the `routes/`
-folder. The file must have a default export that is a regular Preact component.
-A props object of type `PageProps` is passed in as an argument.
+1. Generic error pages
+2. 404 Not found error pages
 
-```tsx routes/_404.tsx
-import { PageProps } from "$fresh/server.ts";
+> [tip]: Be sure to return the appropriate
+> [HTTP Status](https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Status)
+> code. This makes it a lot easier for clients of your app to act appropriately.
+> It also makes it easier to find failed requests when going through traces.
 
-export default function NotFoundPage({ url }: PageProps) {
-  return <p>404 not found: {url.pathname}</p>;
+## Generic error pages
+
+To add an error page use [`app.onError()`](/docs/canary/concepts/app#onerror).
+
+```ts
+const app = new App()
+  .onError("*", (ctx) => {
+    console.log(`Error: ${ctx.error}`);
+    return new Response("Oops!", { status: 500 });
+  })
+  .get("/thrower", () => {
+    throw new Error("fail");
+  });
+```
+
+When you access `/thrower` the error will be caught and the `onError` callback
+will be invoked.
+
+You can also nest error pages:
+
+```ts
+const app = new App()
+  // Top level error page
+  .onError("*", (ctx) => {
+    return new Response("Oops!", { status: 500 });
+  })
+  .onError("/foo/bar", (ctx) => {
+    return new Response("nested error!", { status: 500 });
+  })
+  .get("/foo/bar/thrower", () => {
+    throw new Error("fail");
+  });
+```
+
+## Not found error
+
+Not found errors are often treated differently than generic errors. You can both
+treat them with the `.onError()` way, but by adding a specific `.notFound()`
+handler, Fresh ensures that every 404 error will invoke this callback.
+
+```ts
+const app = new App()
+  // Top level error page
+  .notFound((ctx) => {
+    return new Response("Page not found", { status: 404 });
+  })
+  .get("/", () => new Response("foo"));
+```
+
+Accessing an unknown route like `/invalid` will trigger the `notFound`
+middleware. Contrary to generic error pages this handler cannot be nested.
+
+## Throwing HTTP errors
+
+If you need to bail out of execution and need to respond with a particular HTTP
+error code, you can use Fresh's `HttpError` class.
+
+```ts
+import { HttpError } from "fresh";
+
+async function authMiddleware(ctx) {
+  const user = ctx.state.user;
+
+  // Check if user is authenticated, throw 404 error if not
+  if (!isAuthenticated(user)) {
+    throw new HttpError(404);
+  }
+
+  return await ctx.next();
 }
 ```
 
-#### Manually render 404 pages
+You can check the status code of the thrown `HttpError` in your error handler:
 
-The `_404.tsx` file will be invoked automatically when no route matches the URL.
-In some cases, one needs to manually trigger the rendering of the 404 page, for
-example when the route did match, but the requested resource does not exist.
-This can be achieved with `ctx.renderNotFound`.
+```ts
+app.onError((ctx) => {
+  if (ctx.error instanceof HttpError) {
+    const status = ctx.error.status;
+    return new Response("oops", { status });
+  }
 
-```tsx routes/blog/[slug].tsx
-import { Handlers, PageProps } from "$fresh/server.ts";
-
-export const handler: Handlers = {
-  async GET(req, ctx) {
-    const blogpost = await fetchBlogpost(ctx.params.slug);
-    if (!blogpost) {
-      return ctx.renderNotFound({
-        custom: "prop",
-      });
-    }
-    return ctx.render({ blogpost });
-  },
-};
-
-export default function BlogpostPage({ data }) {
-  return (
-    <article>
-      <h1>{data.blogpost.title}</h1>
-      {/* rest of your page */}
-    </article>
-  );
-}
-```
-
-This can also be achieved by throwing an error, if you're uninterested in
-passing specific data to your 404 page:
-
-```tsx
-import { Handlers } from "$fresh/server.ts";
-
-export const handler: Handlers = {
-  GET(_req, _ctx) {
-    throw new Deno.errors.NotFound();
-  },
-};
-```
-
-### 500: Internal Server Error
-
-The 500 page can be customized by creating a `_500.tsx` file in the `routes/`
-folder. The file must have a default export that is a regular Preact component.
-A props object of type `PageProps` is passed in as an argument.
-
-```tsx routes/_500.tsx
-import { PageProps } from "$fresh/server.ts";
-
-export default function Error500Page({ error }: PageProps) {
-  return <p>500 internal error: {(error as Error).message}</p>;
-}
+  // ...
+});
 ```
