@@ -62,11 +62,14 @@ export class Context<State> {
    * certain search parameters are set.
    */
   readonly url: URL;
-  /** The original incoming `Request` object` */
+  /** The original incoming {@linkcode Request} object. */
   readonly req: Request;
+  /** The url parameters of the matched route pattern. */
   readonly params: Record<string, string>;
+  /** State object that is shared with all middlewares. */
   readonly state: State = {} as State;
   data: unknown = undefined;
+  /** Error value if an error was caught (Default: null) */
   error: unknown | null = null;
   readonly info: Deno.ServeHandlerInfo | Deno.ServeHandlerInfo;
   /**
@@ -174,6 +177,12 @@ export class Context<State> {
     });
   }
 
+  /**
+   * Render JSX and return an HTML `Response` instance.
+   * ```tsx
+   * ctx.render(<h1>hello world</h1>);
+   * ```
+   */
   async render(
     // deno-lint-ignore no-explicit-any
     vnode: VNode<any> | null,
