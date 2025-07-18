@@ -30,6 +30,7 @@ import {
   segmentToMiddlewares,
 } from "./segments.ts";
 import { isHandlerByMethod, type PageResponse } from "./handlers.ts";
+import { STATUS_TEXT } from "@std/http/status";
 
 // TODO: Completed type clashes in older Deno versions
 // deno-lint-ignore no-explicit-any
@@ -66,7 +67,9 @@ const DEFAULT_ERROR_HANDLER = async <State>(ctx: Context<State>) => {
       // deno-lint-ignore no-console
       console.error(error);
     }
-    return new Response(error.message, { status: error.status });
+
+    const message = error.message || STATUS_TEXT[error.status];
+    return new Response(message, { status: error.status });
   }
 
   // deno-lint-ignore no-console
