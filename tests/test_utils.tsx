@@ -35,7 +35,7 @@ const browser = await launch({
       ? ["--no-sandbox"]
       : []),
   ],
-  headless: true,
+  headless: false,
 });
 
 export function getIsland(pathname: string) {

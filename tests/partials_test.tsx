@@ -2593,6 +2593,7 @@ Deno.test({
 });
 
 Deno.test({
+  only: true,
   name: "partials - render 404 partial",
   fn: async () => {
     const app = testApp()

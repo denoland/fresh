@@ -3,10 +3,6 @@ import { expect } from "@std/expect";
 import { serveMiddleware } from "../test_utils.ts";
 import type { MiddlewareFn } from "./mod.ts";
 
-const THROWER = () => {
-  throw new Error("fail");
-};
-
 Deno.test("compileMiddlewares", async () => {
   const middlewares: MiddlewareFn<{ text: string }>[] = [
     (ctx) => {
@@ -28,7 +24,7 @@ Deno.test("compileMiddlewares", async () => {
   ];
 
   const server = serveMiddleware<{ text: string }>(
-    compileMiddlewares(middlewares, THROWER),
+    compileMiddlewares(middlewares),
   );
 
   const res = await server.get("/");
@@ -50,7 +46,7 @@ Deno.test("compileMiddlewares - middlewares should only be called once", async (
     new Response(String(ctx.state.count));
 
   const server = serveMiddleware<{ count: number }>(
-    compileMiddlewares([A], final),
+    compileMiddlewares([A, final]),
   );
 
   const res = await server.get("/");
@@ -80,8 +76,7 @@ Deno.test("runMiddleware - runs multiple stacks", async () => {
     new Response(String(ctx.state.text));
 
   const server = serveMiddleware<State>(compileMiddlewares(
-    [A, B, C, D],
-    final,
+    [A, B, C, D, final],
   ));
 
   const res = await server.get("/");
@@ -118,14 +113,13 @@ Deno.test("runMiddleware - throws errors", async () => {
         throw err;
       }
     },
+    () => {
+      throw new Error("fail");
+    },
   ];
 
-  const final = () => {
-    throw new Error("fail");
-  };
-
   const server = serveMiddleware<{ text: string }>(
-    compileMiddlewares(middlewares, final),
+    compileMiddlewares(middlewares),
   );
 
   try {
@@ -136,4 +130,20 @@ Deno.test("runMiddleware - throws errors", async () => {
   expect(thrownA).toBeInstanceOf(Error);
   expect(thrownB).toBeInstanceOf(Error);
   expect(thrownC).toBeInstanceOf(Error);
+});
+
+Deno.test("compileMiddlewares - calls last next", async () => {
+  const middlewares: MiddlewareFn<{ text: string }>[] = [
+    (ctx) => ctx.next(),
+  ];
+
+  const next = () => Promise.resolve(new Response("next"));
+
+  const server = serveMiddleware<{ text: string }>(
+    compileMiddlewares(middlewares),
+    { next },
+  );
+
+  const res = await server.get("/");
+  expect(await res.text()).toEqual("next");
 });

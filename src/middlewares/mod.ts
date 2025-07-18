@@ -83,21 +83,22 @@ export type Middleware<State> = MiddlewareFn<State> | MiddlewareFn<State>[];
 
 export function compileMiddlewares<State>(
   middlewares: MiddlewareFn<State>[],
-  init: MiddlewareFn<State>,
 ): MiddlewareFn<State> {
-  let fn: MiddlewareFn<State> = init;
+  if (middlewares.length === 0) return (ctx) => ctx.next();
+
+  let fn: MiddlewareFn<State>;
+  let last: MiddlewareFn<State>;
 
   for (let i = middlewares.length - 1; i >= 0; i--) {
-    const local = middlewares[i];
-    const next = fn;
-
     fn = async (ctx) => {
       const internals = getInternals(ctx);
       const { app: prevApp, layouts: prevLayouts } = internals;
 
-      ctx.next = async () => await next(ctx);
+      ctx.next = i < middlewares.length - 1
+        ? async () => await middlewares[i + 1](ctx)
+        : async () => await last(ctx);
       try {
-        return await local(ctx);
+        return await middlewares[i](ctx);
       } catch (err) {
         ctx.error = err;
         throw err;
@@ -108,5 +109,8 @@ export function compileMiddlewares<State>(
     };
   }
 
-  return fn;
+  return (ctx) => {
+    last = ctx.next;
+    return fn(ctx);
+  };
 }
