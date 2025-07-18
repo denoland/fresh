@@ -1,4 +1,5 @@
 import type { JSX } from "preact";
+import SocialIcons from "./SocialIcons.tsx";
 
 const LINKS = [
   {
@@ -23,6 +24,10 @@ export default function Footer(props: JSX.HTMLAttributes<HTMLElement>) {
       <div class="flex flex-col sm:flex-row gap-4 justify-between items-center max-w-screen-xl mx-auto w-full sm:px-6 md:px-8 p-4 text-base">
         <div class="text-foreground-secondary text-center">
           <span>© {new Date().getFullYear()} the Fresh authors</span>
+        </div>
+
+        <div class="text-foreground-secondary [&_li]:hover:text-green-600 hover:text-green-600 [&_ul]:space-x-5 [&_.github]:hidden">
+          <SocialIcons />
         </div>
 
         <div class="flex items-center gap-8">
