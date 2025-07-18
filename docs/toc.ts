@@ -82,7 +82,7 @@ const toc: RawTableOfContents = {
           ["modifying-the-head", "Modifying the <head>", "link:latest"],
           ["creating-a-crud-api", "Creating a CRUD API", "link:latest"],
           ["rendering-markdown", "Rendering markdown", "link:latest"],
-          ["rendering-raw-html", "Rendering raw HTML", "link:latest"],
+          ["rendering-raw-html", "Rendering raw HTML", "link:canary"],
           [
             "sharing-state-between-islands",
             "Sharing state between islands",
