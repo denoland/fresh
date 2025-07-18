@@ -43,6 +43,10 @@ export interface ResolvedFreshConfig {
   build: {
     outDir: string;
   };
+  /**
+   * Serve fresh from a base path instead of from the root.
+   * "/foo/bar" -> http://localhost:8000/foo/bar
+   */
   basePath: string;
   staticDir: string;
   /**

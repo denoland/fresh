@@ -166,6 +166,10 @@ export let getBuildCache: (app: App<any>) => BuildCache | null;
 // deno-lint-ignore no-explicit-any
 export let setBuildCache: (app: App<any>, cache: BuildCache | null) => void;
 
+/**
+ * Create an application instance that passes the incoming `Request`
+ * instance through middlewares and routes.
+ */
 export class App<State> {
   #router: Router<MiddlewareFn<State>> = new UrlPatternRouter<
     MiddlewareFn<State>
@@ -221,6 +225,9 @@ export class App<State> {
     return this;
   }
 
+  /**
+   * Add one or more middlewares at the top or the specified path.
+   */
   use(...middleware: MiddlewareFn<State>[]): this;
   use(path: string, ...middleware: MiddlewareFn<State>[]): this;
   use(
@@ -244,6 +251,9 @@ export class App<State> {
     return this;
   }
 
+  /**
+   * Set the app's 404 error handler. Can be a {@linkcode Route} or a {@linkcode MiddlewareFn}.
+   */
   notFound(routeOrMiddleware: Route<State> | MiddlewareFn<State>): this {
     const route = typeof routeOrMiddleware === "function"
       ? { handler: routeOrMiddleware }
@@ -304,31 +314,52 @@ export class App<State> {
     return this;
   }
 
+  /**
+   * Add middlewares for GET requests at the specified path.
+   */
   get(path: string, ...middlewares: MiddlewareFn<State>[]): this {
     this.#addMiddleware("GET", path, middlewares);
     return this;
   }
+  /**
+   * Add middlewares for POST requests at the specified path.
+   */
   post(path: string, ...middlewares: MiddlewareFn<State>[]): this {
     this.#addMiddleware("POST", path, middlewares);
     return this;
   }
+  /**
+   * Add middlewares for PATCH requests at the specified path.
+   */
   patch(path: string, ...middlewares: MiddlewareFn<State>[]): this {
     this.#addMiddleware("PATCH", path, middlewares);
     return this;
   }
+  /**
+   * Add middlewares for PUT requests at the specified path.
+   */
   put(path: string, ...middlewares: MiddlewareFn<State>[]): this {
     this.#addMiddleware("PUT", path, middlewares);
     return this;
   }
+  /**
+   * Add middlewares for DELETE requests at the specified path.
+   */
   delete(path: string, ...middlewares: MiddlewareFn<State>[]): this {
     this.#addMiddleware("DELETE", path, middlewares);
     return this;
   }
+  /**
+   * Add middlewares for HEAD requests at the specified path.
+   */
   head(path: string, ...middlewares: MiddlewareFn<State>[]): this {
     this.#addMiddleware("HEAD", path, middlewares);
     return this;
   }
 
+  /**
+   * Add middlewares for all HTTP verbs at the specified path.
+   */
   all(path: string, ...middlewares: MiddlewareFn<State>[]): this {
     this.#addMiddleware("ALL", path, middlewares);
     return this;
@@ -356,6 +387,10 @@ export class App<State> {
     this.#routeDefs.push({ method, pattern: path, fns });
   }
 
+  /**
+   * Merge another {@linkcode App} instance into this app at the
+   * specified path.
+   */
   mountApp(path: string, app: App<State>): this {
     const segmentPath = mergePath("", path);
     const segment = getOrCreateSegment(this.#root, segmentPath, true);
@@ -484,6 +519,9 @@ export class App<State> {
     };
   }
 
+  /**
+   * Spawn a server for this app.
+   */
   async listen(options: ListenOptions = {}): Promise<void> {
     if (!options.onListen) {
       options.onListen = createOnListen(this.config.basePath, options);

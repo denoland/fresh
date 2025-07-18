@@ -1,33 +1,40 @@
-import type { FreshContext } from "../context.ts";
+import type { Context } from "../context.ts";
 import type { MiddlewareFn } from "./mod.ts";
 
 export type CORSOptions<State> = {
+  /**
+   * The value of [`Access-Control-Allow-Origin`](https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Access-Control-Allow-Origin) CORS header
+   */
   origin:
     | string
     | string[]
-    | ((
-      requestOrigin: string,
-      ctx: FreshContext<State>,
-    ) => string | undefined | null);
+    | ((origin: string, ctx: Context<State>) => string | undefined | null);
+  /**
+   * Sets the permitted methods for the [`Access-Control-Allow-Methods`](https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Access-Control-Allow-Methods) CORS header.
+   */
   allowMethods?: string[];
+  /**
+   * Indicate the HTTP headers that can be used during the actual request. Sets the [`Access-Control-Allow-Headers`](https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Access-Control-Allow-Headers) header
+   */
   allowHeaders?: string[];
+  /**
+   * The value of [`Access-Control-Max-Age`](https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Access-Control-Max-Age) CORS header
+   */
   maxAge?: number;
+  /**
+   * The value of [`Access-Control-Allow-Credentials`](https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Access-Control-Allow-Credentials) CORS header
+   */
   credentials?: boolean;
+  /**
+   * The value of [`Access-Control-Expose-Headers`](https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Access-Control-Expose-Headers) CORS header
+   */
   exposeHeaders?: string[];
 };
 
 /**
- * CORS Middleware for Fresh.
- * Adapted from Hono's CORS middleware.
- * Would like to express my gratitude to all the developers of Hono.
+ * CORS Middleware to set [`Cross-Origin-Resource-Sharing`](https://developer.mozilla.org/en-US/docs/Web/HTTP/Guides/CORS) headers.
  *
  * @param {CORSOptions} [options] - The options for the CORS middleware.
- * @param {string | string[] | ((requestOrigin: string, ctx: FreshContext) => string | undefined | null)} [options.origin='*'] - The value of "Access-Control-Allow-Origin" CORS header.
- * @param {string[]} [options.allowMethods=['GET', 'HEAD', 'PUT', 'POST', 'DELETE', 'PATCH']] - The value of "Access-Control-Allow-Methods" CORS header.
- * @param {string[]} [options.allowHeaders=[]] - The value of "Access-Control-Allow-Headers" CORS header.
- * @param {number} [options.maxAge] - The value of "Access-Control-Max-Age" CORS header.
- * @param {boolean} [options.credentials] - The value of "Access-Control-Allow-Credentials" CORS header.
- * @param {string[]} [options.exposeHeaders=[]] - The value of "Access-Control-Expose-Headers" CORS header.
  * @returns {(req: Request, ctx: FreshContext) => Promise<Response>} The Fresh middleware handler function.
  *
  * @example
