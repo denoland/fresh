@@ -76,6 +76,7 @@ export function serveMiddleware<T>(
     config?: ResolvedFreshConfig;
     buildCache?: BuildCache;
     next?: () => Promise<Response>;
+    route?: string | null;
   } = {},
 ): FakeServer {
   return new FakeServer(async (req) => {
@@ -89,6 +90,7 @@ export function serveMiddleware<T>(
       req,
       new URL(req.url),
       DEFAULT_CONN_INFO,
+      options.route ?? null,
       {},
       config,
       () => Promise.resolve(next()),

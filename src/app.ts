@@ -494,6 +494,7 @@ export class App<State> {
         req,
         url,
         conn,
+        matched.pattern,
         params,
         this.config,
         next,
