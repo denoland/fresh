@@ -64,6 +64,8 @@ export class Context<State> {
   readonly url: URL;
   /** The original incoming {@linkcode Request} object. */
   readonly req: Request;
+  /** The matched route pattern. */
+  readonly route: string | null;
   /** The url parameters of the matched route pattern. */
   readonly params: Record<string, string>;
   /** State object that is shared with all middlewares. */
@@ -122,6 +124,7 @@ export class Context<State> {
     req: Request,
     url: URL,
     info: Deno.ServeHandlerInfo,
+    route: string | null,
     params: Record<string, string>,
     config: ResolvedFreshConfig,
     next: () => Promise<Response>,
@@ -132,6 +135,7 @@ export class Context<State> {
     this.req = req;
     this.info = info;
     this.params = params;
+    this.route = route;
     this.config = config;
     this.isPartial = url.searchParams.has(PARTIAL_SEARCH_PARAM);
     this.next = next;

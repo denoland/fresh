@@ -49,6 +49,18 @@ app.get("/", (ctx) => {
 });
 ```
 
+## `.route`
+
+Contains the matched route pattern as a `string`. Will be `null` if no pattern
+matched.
+
+```ts
+app.get("/foo/:id", (ctx) => {
+  console.log(ctx.route); // Logs: "/foo/:id
+  // ...
+});
+```
+
 ## `.params`
 
 Contains the params of the matched route pattern.

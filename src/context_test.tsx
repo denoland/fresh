@@ -84,3 +84,21 @@ Deno.test("ctx.isPartial - should indicate whether request is partial or not", a
 
   expect(isPartials).toEqual([false, true]);
 });
+
+Deno.test("ctx.route - should contain matched route", async () => {
+  let route: string | null = null;
+  const app = new App()
+    .use((ctx) => {
+      route = ctx.route;
+      return ctx.next();
+    })
+    .get("/foo/:id", () => new Response("ok"));
+
+  const server = new FakeServer(app.handler());
+
+  await server.get("/invalid");
+  expect(route).toEqual(null);
+
+  await server.get("/foo/bar");
+  expect(route).toEqual("/foo/:id");
+});
