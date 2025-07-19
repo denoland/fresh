@@ -3,10 +3,12 @@
   --color-prettylights-syntax-comment: #6e7781;
   --color-prettylights-syntax-constant: #0550ae;
   --color-prettylights-syntax-entity: #8250df;
-  --color-prettylights-syntax-storage-modifier-import: #24292f;
+  --color-prettylights-syntax-storage-modifier-import: var(
+    --foreground-secondary
+  );
   --color-prettylights-syntax-entity-tag: #22863a;
   --color-prettylights-syntax-keyword: #cf222e;
-  --color-prettylights-syntax-string: #0a3069;
+  --color-prettylights-syntax-string: var(--color-prettylights-syntax-constant);
   --color-prettylights-syntax-variable: #953800;
   --color-prettylights-syntax-string-regexp: #116329;
   --color-prettylights-syntax-markup-deleted-text: #82071e;
@@ -14,22 +16,43 @@
   --color-prettylights-syntax-markup-inserted-text: #116329;
   --color-prettylights-syntax-markup-inserted-bg: #dafbe1;
   --color-prettylights-syntax-constant-other-reference-link: #0a3069;
-  --color-fg-default: #24292f;
-  --color-fg-muted: #57606a;
-  --color-canvas-default: #fff;
-  --color-canvas-subtle: #f6f8fa;
-  --color-border-default: #d0d7de;
-  --color-border-muted: #d8dee4;
+  --color-fg-default: hsla(var(--foreground-secondary));
+  --color-fg-muted: hsla(var(--foreground-tertiary));
+  --color-canvas-default: hsla(var(--background-primary));
+  --color-canvas-subtle: hsla(var(--background-secondary));
+  --color-border-default: hsla(var(--foreground-secondary), 0.3);
+  --color-border-muted: hsla(var(--foreground-secondary), 0.1);
   --color-neutral-muted: rgba(175, 184, 193, 0.2);
-  --color-accent-fg: #0969da;
+  --color-accent-fg: #02aa6f;
   --color-accent-emphasis: #0969da;
   --color-danger-fg: #cf222e;
+
+  --warn-border: #ff9100;
+  --warn-bg: #f0900525;
+  --warn-text: var(--color-fg-default);
+}
+
+html[data-theme="dark"] {
+  --color-accent-fg: #75eea1;
+  --color-prettylights-syntax-keyword: #f86d76;
+  --color-prettylights-syntax-entity: #b392f0;
+  --color-prettylights-syntax-constant: #8fc0fb;
+  --color-prettylights-syntax-entity-tag: #7cb78a;
+  --color-prettylights-syntax-variable: #f7955c;
+  --color-prettylights-syntax-markup-deleted-text: #ffebe9;
+  --color-prettylights-syntax-markup-deleted-bg: #82071e;
+  --color-prettylights-syntax-markup-inserted-text: #dafbe1;
+  --color-prettylights-syntax-markup-inserted-bg: #116329;
+
+  --warn-border: #ff9100;
+  --warn-bg: #f0900525;
+  --warn-text: var(--color-fg-default);
 }
 
 .markdown-body {
   word-wrap: break-word;
   font-family: inherit;
-  font-size: 1.125rem;
+  font-size: 1rem;
   line-height: 1.75;
 }
 .markdown-body:before {
@@ -76,6 +99,10 @@
 .markdown-body details {
   margin-bottom: 1rem;
 }
+.markdown-body ul,
+.markdown-body ol {
+  margin-top: 1rem;
+}
 .markdown-body hr {
   height: 0.25em;
   background-color: var(--color-border-default);
@@ -84,7 +111,7 @@
   padding: 0;
 }
 .markdown-body blockquote {
-  color: var(--color-fg-muted);
+  color: var(--color-fg-default);
   border-left: 0.25em solid var(--color-border-default);
   padding: 0 1em;
 }
@@ -186,9 +213,12 @@
   border-bottom: 0;
   padding-bottom: 0;
 }
+.markdown-body strong {
+  font-weight: 600;
+}
 .markdown-body ul,
 .markdown-body ol {
-  padding-left: 2em;
+  padding-left: 1em;
 }
 .markdown-body ul.no-list,
 .markdown-body ol.no-list {
@@ -408,7 +438,7 @@
   border-radius: 6px;
   padding: 1.25rem 1.5rem;
   font-size: 85%;
-  line-height: 1.45;
+  line-height: 1.75;
   overflow: auto;
 }
 .markdown-body pre code,
@@ -491,7 +521,8 @@
 }
 .markdown-body a {
   color: var(--color-accent-fg);
-  text-decoration: none;
+  text-decoration: underline;
+  text-underline-offset: 2px;
 }
 .markdown-body a:hover {
   text-decoration: underline;
@@ -610,17 +641,18 @@
   display: flex;
   align-items: center;
   font-size: 1rem;
-  padding-bottom: 0.5rem;
 }
 .markdown-body .admonition .icon {
   display: inline-flex;
   margin-right: 0.25rem;
   width: 1.2em;
   height: 1.2em;
+  margin-bottom: 0.25rem;
 }
 .markdown-body blockquote.warn {
-  border-color: #ff9100;
-  background: #f0900525;
+  border-color: var(--warn-border);
+  background: var(--warn-bg);
+  color: var(--warn-text);
 }
 
 .markdown-body .admonition .fenced-code {
@@ -637,6 +669,13 @@
 .markdown-body .admonition.tip .admonition-header {
   color: rgb(0, 148, 0);
 }
+html[data-theme="dark"] .markdown-body .admonition.tip {
+  background-color: #1f331f;
+  border-color: var(--color-accent-fg);
+}
+html[data-theme="dark"] .markdown-body .admonition.tip .admonition-header {
+  color: var(--color-accent-fg);
+}
 .markdown-body .admonition.tip {
   background-color: rgb(230, 246, 230);
   border-color: rgb(0, 148, 0);
@@ -648,12 +687,18 @@
   background-color: rgb(238, 249, 253);
   border-color: rgb(25 146 184);
 }
+
+html[data-theme="dark"] .markdown-body .admonition.info {
+  background-color: hsla(var(--info), 0.1);
+  color: hsla(var(--foreground-primary));
+}
 .markdown-body .admonition.warn .admonition-header {
   color: #dd6f04;
 }
 .markdown-body .admonition.warn {
-  background-color: #f0900525;
-  border-color: #ff9100;
+  color: var(--warn-text);
+  background-color: var(--warn-bg);
+  border-color: var(--warn-border);
 }
 
 @media screen and (min-width: 768px) {
@@ -673,6 +718,8 @@
   }
 
   .markdown-body .fenced-code,
+  .markdown-body ol,
+  .markdown-body ul,
   .markdown-body h1,
   .markdown-body h2,
   .markdown-body h4,
@@ -701,6 +748,7 @@ ol.nested li:before {
   -ms-font-feature-settings: "kern" 1, "tnum" 1;
   -moz-font-feature-settings: "kern" 1, "tnum" 1;
   content: counters(item, ".") ". ";
+  counter-increment: item;
   counter-increment: item;
 }
 
@@ -746,7 +794,7 @@ ol.nested li:before {
   border-top-left-radius: 0.5rem;
   border-top-right-radius: 0.5rem;
   padding: 0.5rem;
-  background: #eaeef1;
+  background: hsla(var(--background-tertiary));
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -757,14 +805,8 @@ ol.nested li:before {
 }
 .fenced-code-title {
   font-family:
-    ui-monospace,
-    SFMono-Regular,
-    Menlo,
-    Monaco,
-    Consolas,
-    "Liberation Mono",
-    "Courier New",
-    monospace;
+    ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono",
+    "Courier New", monospace;
   font-size: 0.8125rem;
   line-height: 1;
 }

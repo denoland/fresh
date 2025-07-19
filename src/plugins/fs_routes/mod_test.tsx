@@ -8,11 +8,13 @@ import {
 } from "./mod.ts";
 import { delay, FakeServer } from "../../test_utils.ts";
 import { createFakeFs } from "../../test_utils.ts";
-import { expect } from "@std/expect";
+import { expect, fn } from "@std/expect";
+import { stub } from "@std/testing/mock";
 import { type HandlerByMethod, type HandlerFn, page } from "../../handlers.ts";
 import type { Method } from "../../router.ts";
 import { parseHtml } from "../../../tests/test_utils.tsx";
-import type { FreshContext } from "fresh";
+import type { FreshContext } from "../../context.ts";
+import { HttpError } from "../../error.ts";
 
 async function createServer<T>(
   files: Record<string, string | Uint8Array | FreshFsItem<T>>,
@@ -35,7 +37,7 @@ async function createServer<T>(
       _fs: createFakeFs(files),
     } as FsRoutesOptions & TESTING_ONLY__FsRoutesOptions,
   );
-  return new FakeServer(await app.handler());
+  return new FakeServer(app.handler());
 }
 
 Deno.test("fsRoutes - throws error when file has no exports", async () => {
@@ -192,13 +194,13 @@ Deno.test("fsRoutes - middleware", async () => {
 Deno.test("fsRoutes - nested middlewares", async () => {
   const server = await createServer<{ text: string }>({
     "routes/_middleware.ts": {
-      handler: (ctx) => {
+      handler: function A(ctx) {
         ctx.state.text = "A";
         return ctx.next();
       },
     },
     "routes/foo/_middleware.ts": {
-      handler: (ctx) => {
+      handler: function B(ctx) {
         ctx.state.text += "B";
         return ctx.next();
       },
@@ -331,18 +333,22 @@ Deno.test("fsRoutes - nested _layout", async () => {
       default: () => <>foo</>,
     },
     "routes/foo/_layout.tsx": {
-      default: (ctx) => (
-        <>
-          layout_foo_bar/<ctx.Component />
-        </>
-      ),
+      default: function fooBar(ctx) {
+        return (
+          <>
+            layout_foo_bar/<ctx.Component />
+          </>
+        );
+      },
     },
     "routes/_layout.tsx": {
-      default: (ctx) => (
-        <>
-          layout/<ctx.Component />
-        </>
-      ),
+      default: function rootLayout(ctx) {
+        return (
+          <>
+            layout/<ctx.Component />
+          </>
+        );
+      },
     },
     "routes/_app.tsx": {
       default: (ctx) => (
@@ -558,6 +564,56 @@ Deno.test("fsRoutes - route overrides _app", async () => {
   expect(doc.body.firstChild?.textContent).toEqual("route");
 });
 
+Deno.test("fsRoutes - route overrides _app does not affect other routes", async () => {
+  const server = await createServer({
+    "routes/_500.tsx": {
+      config: { skipInheritedLayouts: true },
+      default: () => <>error!</>,
+    },
+    "routes/_app.tsx": {
+      default: (ctx) => (
+        <div>
+          app/<ctx.Component />
+        </div>
+      ),
+    },
+    "routes/_layout.tsx": {
+      default: (ctx) => (
+        <>
+          layout/<ctx.Component />
+        </>
+      ),
+    },
+    // By having "bar" come before "foo", this results in a bug
+    // where the app wrapper is missing from "foo".
+    "routes/bar.tsx": {
+      config: {
+        skipAppWrapper: true,
+        skipInheritedLayouts: true,
+      },
+      default: () => <>bar</>,
+    },
+    "routes/index.tsx": { default: () => <>index</> },
+    "routes/foo.tsx": { default: () => <>foo</> },
+  });
+
+  const [indexRes, fooRes, barRes] = await Promise.all([
+    server.get("/"),
+    server.get("/foo"),
+    server.get("/bar"),
+  ]);
+  const [index, foo, bar] = await Promise.all([
+    indexRes.text(),
+    fooRes.text(),
+    barRes.text(),
+  ]);
+  expect(parseHtml(index).body.firstChild?.textContent).toEqual(
+    "app/layout/index",
+  );
+  expect(parseHtml(foo).body.firstChild?.textContent).toEqual("app/layout/foo");
+  expect(parseHtml(bar).body.firstChild?.textContent).toEqual("bar");
+});
+
 Deno.test("fsRoutes - handler return data", async () => {
   const server = await createServer({
     "routes/index.tsx": {
@@ -595,6 +651,28 @@ Deno.test("fsRoutes - _404", async () => {
   expect(content).toContain("Custom 404 - Not Found");
 });
 
+Deno.test("fsRoutes - _404 method handler", async () => {
+  const server = await createServer({
+    "routes/_404.tsx": {
+      handlers: {
+        GET() {
+          return new Response("ok");
+        },
+      },
+    },
+    "routes/index.tsx": {
+      handlers: {
+        GET() {
+          return new Response("fail");
+        },
+      },
+    },
+  });
+
+  const res = await server.get("/invalid");
+  expect(await res.text()).toEqual("ok");
+});
+
 Deno.test("fsRoutes - _500", async () => {
   const server = await createServer({
     "routes/_500.tsx": {
@@ -612,6 +690,26 @@ Deno.test("fsRoutes - _500", async () => {
   const res = await server.get("/");
   const content = await res.text();
   expect(content).toContain("Custom Error Page");
+});
+
+Deno.test("fsRoutes - _500 method handler", async () => {
+  const server = await createServer({
+    "routes/_500.tsx": {
+      handlers: {
+        GET() {
+          return new Response("ok");
+        },
+      },
+    },
+    "routes/index.tsx": {
+      handlers: () => {
+        throw new Error("fail");
+      },
+    },
+  });
+
+  const res = await server.get("/");
+  expect(await res.text()).toEqual("ok");
 });
 
 Deno.test("fsRoutes - _error", async () => {
@@ -679,6 +777,26 @@ Deno.test("fsRoutes - _error nested throw", async () => {
   expect(await res.text()).toEqual("ok");
 });
 
+Deno.test("fsRoutes - _error method handler", async () => {
+  const server = await createServer({
+    "routes/_error.tsx": {
+      handlers: {
+        GET() {
+          return new Response("ok");
+        },
+      },
+    },
+    "routes/index.tsx": {
+      handlers: () => {
+        throw new Error("fail");
+      },
+    },
+  });
+
+  const res = await server.get("/");
+  expect(await res.text()).toEqual("ok");
+});
+
 Deno.test("fsRoutes - _error render component", async () => {
   const server = await createServer({
     "routes/_error.tsx": {
@@ -693,7 +811,7 @@ Deno.test("fsRoutes - _error render component", async () => {
     },
     "routes/foo/index.tsx": {
       handlers: () => {
-        throw new Error("ok");
+        throw new Error("failing");
       },
     },
   });
@@ -703,7 +821,8 @@ Deno.test("fsRoutes - _error render component", async () => {
   expect(doc.body.firstChild?.textContent).toEqual("ok");
 });
 
-Deno.test("fsRoutes - _error render on 404", async () => {
+// 404 pages go to the root error page if available
+Deno.test.ignore("fsRoutes - _error render on 404", async () => {
   // deno-lint-ignore no-explicit-any
   let error: any = null;
   const server = await createServer({
@@ -715,7 +834,7 @@ Deno.test("fsRoutes - _error render on 404", async () => {
       },
     },
     "routes/foo/_error.tsx": {
-      default: (ctx) => {
+      default: function foo2(ctx) {
         // deno-lint-ignore no-explicit-any
         error = ctx.error as any;
         return <p>ok foo</p>;
@@ -866,6 +985,36 @@ Deno.test("fsRoutes - route group specific templates", async () => {
   );
 });
 
+Deno.test("fsRoutes - route group order #2", async () => {
+  const server = await createServer({
+    "routes/(app)/[org]/[app]/index.tsx": {
+      default: () => <div>fail</div>,
+    },
+    "routes/auth/login.tsx": {
+      default: () => <div>ok</div>,
+    },
+  });
+
+  const res = await server.get("/auth/login");
+  const doc = parseHtml(await res.text());
+  expect(doc.body.firstChild?.textContent).toEqual("ok");
+});
+
+Deno.test("fsRoutes - route group order #3", async () => {
+  const server = await createServer({
+    "routes/(app)/(foo)/foo/index.tsx": {
+      default: () => <div>fail</div>,
+    },
+    "routes/(foo)/foo/bar.tsx": {
+      default: () => <div>ok</div>,
+    },
+  });
+
+  const res = await server.get("/foo/bar");
+  const doc = parseHtml(await res.text());
+  expect(doc.body.firstChild?.textContent).toEqual("ok");
+});
+
 Deno.test("fsRoutes - async route components", async () => {
   const server = await createServer<{ text: string }>({
     "routes/_error.tsx": {
@@ -967,34 +1116,23 @@ Deno.test(
   "fsRoutes - returns response code from error route",
   async () => {
     const server = await createServer<{ text: string }>({
-      "routes/_app.tsx": {
-        default: (ctx) => {
-          return (
-            <div>
-              _app/<ctx.Component />
-            </div>
-          );
-        },
-      },
       "routes/_error.tsx": {
         default: () => <div>fail</div>,
       },
-      "routes/index.tsx": {
-        default: () => <div>index</div>,
-      },
-      "routes/bar.tsx": {
-        default: () => <div>index</div>,
-      },
-      "routes/foo/index.tsx": {
-        default: () => <div>foo/index</div>,
-      },
-      "routes/foo/_error.tsx": {
+      "routes/fail.tsx": {
         default: () => {
           throw new Error("fail");
         },
       },
-      "routes/foo/bar.tsx": {
-        default: () => <div>foo/index</div>,
+      "routes/foo/_error.tsx": {
+        default: () => {
+          throw new HttpError(501);
+        },
+      },
+      "routes/foo/fail.tsx": {
+        default: () => {
+          throw new Error("fail");
+        },
       },
     });
 
@@ -1002,9 +1140,13 @@ Deno.test(
     await res.body?.cancel();
     expect(res.status).toEqual(404);
 
-    res = await server.get("/foo/asdf");
+    res = await server.get("/fail");
     await res.body?.cancel();
     expect(res.status).toEqual(500);
+
+    res = await server.get("/foo/fail");
+    await res.body?.cancel();
+    expect(res.status).toEqual(501);
   },
 );
 
@@ -1109,6 +1251,77 @@ Deno.test("fsRoutes - sortRoutePaths", () => {
     "/tsx/index.tsx",
   ];
   expect(routes).toEqual(sorted);
+
+  // Skip over groups
+  routes = [
+    "/(app)/[org]/[app]/index.ts",
+    "/auth/login.ts",
+  ];
+  routes.sort(sortRoutePaths);
+  sorted = [
+    "/auth/login.ts",
+    "/(app)/[org]/[app]/index.ts",
+  ];
+  expect(routes).toEqual(sorted);
+
+  routes = [
+    "/auth/login.ts",
+    "/(app)/[org]/[app]/index.ts",
+  ];
+  routes.sort(sortRoutePaths);
+  sorted = [
+    "/auth/login.ts",
+    "/(app)/[org]/[app]/index.ts",
+  ];
+  expect(routes).toEqual(sorted);
+});
+
+Deno.test("fsRoutes - sortRoutePaths with groups", () => {
+  let routes = [
+    "/(authed)/_middleware.ts",
+    "/(authed)/index.ts",
+    "/about.tsx",
+  ];
+  routes.sort(sortRoutePaths);
+  let sorted = [
+    "/about.tsx",
+    "/(authed)/_middleware.ts",
+    "/(authed)/index.ts",
+  ];
+  expect(routes).toEqual(sorted);
+
+  routes = [
+    "/_app",
+    "/(authed)/_middleware",
+    "/(authed)/_layout",
+    "/_error",
+    "/(authed)/index",
+    "/login",
+    "/auth/login",
+    "/auth/logout",
+    "/(authed)/(account)/account",
+    "/(authed)/api/slug",
+    "/hooks/github",
+    "/(authed)/[org]/_middleware",
+    "/(authed)/[org]/index",
+  ];
+  routes.sort(sortRoutePaths);
+  sorted = [
+    "/_app",
+    "/_error",
+    "/login",
+    "/auth/login",
+    "/auth/logout",
+    "/hooks/github",
+    "/(authed)/_middleware",
+    "/(authed)/_layout",
+    "/(authed)/index",
+    "/(authed)/api/slug",
+    "/(authed)/(account)/account",
+    "/(authed)/[org]/_middleware",
+    "/(authed)/[org]/index",
+  ];
+  expect(routes).toEqual(sorted);
 });
 
 Deno.test("fsRoutes - registers default GET route for component without GET handler", async () => {
@@ -1137,6 +1350,47 @@ Deno.test("fsRoutes - registers default GET route for component without GET hand
   );
   expect(await getRes.text()).toContain(
     "<h1>false</h1>",
+  );
+});
+
+Deno.test("fsRoutes - default GET route works with nested middleware", async () => {
+  const server = await createServer<{ text: string }>({
+    "routes/_middleware.ts": {
+      handler: (ctx) => {
+        ctx.state.text = "A";
+        return ctx.next();
+      },
+    },
+    "routes/foo/_middleware.ts": {
+      handler: (ctx) => {
+        ctx.state.text += "B";
+        return ctx.next();
+      },
+    },
+    "routes/foo/noGetHandler.tsx": {
+      default: (ctx) => {
+        return <h1>{ctx.state.text}</h1>;
+      },
+      handlers: {
+        POST: () => new Response("POST"),
+      },
+    },
+  });
+
+  const postRes = await server.post("/foo/noGetHandler");
+  expect(postRes.status).toEqual(200);
+  expect(postRes.headers.get("Content-Type")).toEqual(
+    "text/plain;charset=UTF-8",
+  );
+  expect(await postRes.text()).toEqual("POST");
+
+  const getRes = await server.get("/foo/noGetHandler");
+  expect(getRes.status).toEqual(200);
+  expect(getRes.headers.get("Content-Type")).toEqual(
+    "text/html; charset=utf-8",
+  );
+  expect(await getRes.text()).toContain(
+    "<h1>AB</h1>",
   );
 });
 
@@ -1193,4 +1447,102 @@ Deno.test("support numeric keys", async () => {
   const res = await server.get("/");
   const text = await res.text();
   expect(text).toContain("ok");
+});
+
+// Issue https://github.com/denoland/fresh/issues/2802
+Deno.test("support bigint keys", async () => {
+  const TestComponent = () => <div>foo</div>;
+
+  const server = await createServer({
+    "routes/index.tsx": {
+      default: () => {
+        return (
+          <>
+            <TestComponent key={9007199254740991n} />
+            ok
+          </>
+        );
+      },
+    },
+  });
+
+  const res = await server.get("/");
+  const text = await res.text();
+  expect(text).toContain("ok");
+  expect(text).toContain("key:9007199254740991");
+});
+
+Deno.test("fsRoutes - warn on _middleware with object handler", async () => {
+  // deno-lint-ignore no-explicit-any
+  using warnSpy = stub(console, "warn", fn(() => {}) as any);
+  const server = await createServer({
+    "routes/_middleware.ts": { handler: { GET: () => new Response("ok") } },
+    "routes/index.ts": { handler: () => new Response("ok") },
+  });
+
+  await server.get("/");
+
+  expect(warnSpy.fake).toHaveBeenCalledTimes(1);
+  expect(warnSpy.fake).toHaveBeenLastCalledWith(
+    "🍋 %c[WARNING] Unsupported route config: Middleware does not support object handlers with GET, POST, etc.",
+    expect.any(String),
+  );
+});
+
+Deno.test("fsRoutes - warn on _layout handler", async () => {
+  // deno-lint-ignore no-explicit-any
+  using warnSpy = stub(console, "warn", fn(() => {}) as any);
+  const server = await createServer({
+    "routes/_layout.ts": {
+      handler: () => new Response("ok"),
+      default: (ctx) => (
+        <div>
+          <ctx.Component />
+        </div>
+      ),
+    },
+    "routes/index.ts": { default: () => <>ok</> },
+  });
+
+  await server.get("/");
+
+  expect(warnSpy.fake).toHaveBeenCalledTimes(1);
+  expect(warnSpy.fake).toHaveBeenLastCalledWith(
+    "🍋 %c[WARNING] Unsupported route config: Layout does not support handlers",
+    expect.any(String),
+  );
+});
+
+// Middleware issue in 2.0.0-alpha.40
+Deno.test("fsRoutes - call correct middleware", async () => {
+  const server = await createServer<{ text: string }>({
+    "routes/_middleware.ts": {
+      handler: async function middleware(ctx) {
+        ctx.state.text = "_middleware";
+        return await ctx.next();
+      },
+    },
+    "routes/index.ts": {
+      default: async (ctx) => await new Response(ctx.state.text),
+    },
+    "routes/admin/_middleware.ts": {
+      handler: async function adminMiddleware(ctx) {
+        ctx.state.text += "admin/_middleware";
+        return await ctx.next();
+      },
+    },
+    "routes/foo/index.ts": {
+      handler: (ctx) => {
+        return new Response(ctx.state.text);
+      },
+    },
+  });
+
+  let res = await server.get("/");
+  let text = await res.text();
+  expect(text).toEqual("_middleware");
+
+  res = await server.get("/foo");
+  text = await res.text();
+  expect(text).toEqual("_middleware");
 });

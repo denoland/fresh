@@ -2,6 +2,44 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Light and dark theme variables */
+:root {
+  --fresh: 50deg, 100%, 56%;
+  --fresh-green: 142deg, 71%, 29%;
+
+  --background-primary: 215deg, 100%, 100%;
+  --background-secondary: 210deg, 29%, 97%;
+  --background-tertiary: 207deg, 33%, 95%;
+  --foreground-primary: 0deg, 0%, 9%;
+  --foreground-secondary: 0deg, 0%, 23%;
+  --foreground-tertiary: 0deg, 0%, 32%;
+  --foreground-quaternary: 0deg, 0%, 42%;
+
+  --info: 194deg, 76%, 41%;
+}
+html[data-theme="dark"]:root {
+  --fresh: 50deg, 100%, 56%;
+  --fresh-green: 142deg, 71%, 29%;
+
+  --background-primary: 220deg, 11%, 11%;
+  --background-secondary: 216deg, 19%, 18%;
+  --background-tertiary: 216deg, 27.7%, 22%;
+  --foreground-primary: 215deg, 17%, 99%;
+  --foreground-secondary: 215deg, 17%, 83%;
+  --foreground-tertiary: 215deg, 17%, 20%;
+  --foreground-quaternary: 215deg, 17%, 10%;
+
+  --info: 194deg, 76%, 41%;
+
+  color: var(--foreground-primary);
+  background-color: var(--background-primary);
+}
+
+/* Scrollbar colors that look good on light and dark theme */
+* {
+  scrollbar-color: hsla(0deg, 0%, 50%, 0.5) hsla(0deg, 0%, 50%, 0.1) !important;
+}
+
 @font-face {
   font-family: Fixel;
   font-style: normal;
@@ -20,18 +58,8 @@
 
 body {
   font-family:
-    Fixel,
-    system-ui,
-    -apple-system,
-    BlinkMacSystemFont,
-    "Segoe UI",
-    Roboto,
-    Oxygen,
-    Ubuntu,
-    Cantarell,
-    "Open Sans",
-    "Helvetica Neue",
-    sans-serif;
+    Fixel, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+    Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
   font-weight: 450;
   font-size: 1.125rem;
   line-height: 1.5;
@@ -57,4 +85,20 @@ h4,
 h5,
 h6 {
   font-weight: 750;
+}
+
+hr {
+  @apply border-foreground-secondary/10;
+}
+
+.dark-mode-toggle-button img {
+  @apply fill-foreground-primary;
+}
+
+::selection {
+  background-color: #b1d5ff;
+}
+
+html[data-theme="dark"] ::selection {
+  background-color: #064c9c;
 }

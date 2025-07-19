@@ -1,6 +1,5 @@
 import tailwindCss, { type Config } from "tailwindcss";
 import postcss from "postcss";
-import cssnano from "cssnano";
 import autoprefixer from "autoprefixer";
 import * as path from "@std/path";
 import type { TailwindPluginOptions } from "./types.ts";
@@ -72,8 +71,10 @@ export async function initTailwind(
   ];
 
   if (config.mode === "production") {
+    const { default: cssnano } = await import("cssnano");
     plugins.push(cssnano());
   }
 
-  return postcss(plugins);
+  const res = postcss(plugins);
+  return res;
 }

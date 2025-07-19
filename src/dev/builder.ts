@@ -23,6 +23,7 @@ import { BUILD_ID } from "../runtime/build_id.ts";
 import { updateCheck } from "./update_check.ts";
 import { DAY } from "@std/datetime";
 import { devErrorOverlay } from "./middlewares/error_overlay/middleware.tsx";
+import { automaticWorkspaceFolders } from "./middlewares/automatic_workspace_folders.ts";
 
 export interface BuildOptions {
   /**
@@ -34,23 +35,15 @@ export interface BuildOptions {
   target?: string | string[];
 }
 
-export interface FreshBuilder {
-  onTransformStaticFile(
-    options: OnTransformOptions,
-    callback: TransformFn,
-  ): void;
-  build<T>(app: App<T>, options?: BuildOptions): Promise<void>;
-  listen<T>(app: App<T>, options?: ListenOptions & BuildOptions): Promise<void>;
-}
-
-export class Builder implements FreshBuilder {
+export class Builder {
   #transformer = new FreshFileTransformer(fsAdapter);
   #addedInternalTransforms = false;
-  #options: { target: string | string[] };
+  #options: Required<BuildOptions>;
+  #chunksReady = Promise.withResolvers<void>();
 
-  constructor(options: BuildOptions = {}) {
+  constructor(options?: BuildOptions) {
     this.#options = {
-      target: options.target ?? ["chrome99", "firefox99", "safari15"],
+      target: options?.target ?? ["chrome99", "firefox99", "safari15"],
     };
   }
 
@@ -68,7 +61,13 @@ export class Builder implements FreshBuilder {
     const devApp = new App<T>(app.config)
       .use(liveReload())
       .use(devErrorOverlay())
-      .mountApp("*", app);
+      .use(automaticWorkspaceFolders(app.config.root))
+      // Wait for island chunks to be ready before attempting to serve them
+      .use(async (ctx) => {
+        await this.#chunksReady.promise;
+        return await ctx.next();
+      })
+      .mountApp("/*", app);
 
     devApp.config.mode = "development";
 
@@ -149,7 +148,9 @@ export class Builder implements FreshBuilder {
       }
     }
 
-    const denoJson = await readDenoConfig(app.config.root);
+    const denoJson = await findNearestDenoConfigWithCompilerOptions(
+      app.config.root,
+    );
 
     const jsxImportSource = denoJson.config.compilerOptions?.jsxImportSource;
     if (jsxImportSource === undefined) {
@@ -182,9 +183,11 @@ export class Builder implements FreshBuilder {
       denoJsonPath: denoJson.filePath,
     });
 
+    const prefix = `/_fresh/js/${BUILD_ID}/`;
+
     for (let i = 0; i < output.files.length; i++) {
       const file = output.files[i];
-      const pathname = `/${file.path}`;
+      const pathname = `${prefix}${file.path}`;
       await buildCache.addProcessedFile(pathname, file.contents, file.hash);
     }
 
@@ -196,10 +199,12 @@ export class Builder implements FreshBuilder {
           `Missing chunk for ${island.file}#${island.exportName}`,
         );
       }
-      buildCache.islands.set(island.name, `/${chunk}`);
+      buildCache.islands.set(island.name, `${prefix}${chunk}`);
     }
 
     await buildCache.flush();
+
+    this.#chunksReady.resolve();
 
     if (!dev) {
       // deno-lint-ignore no-console
@@ -211,17 +216,7 @@ export class Builder implements FreshBuilder {
 }
 
 export interface DenoConfig {
-  imports?: Record<string, string>;
-  importMap?: string;
-  tasks?: Record<string, string>;
-  lint?: {
-    rules: { tags?: string[] };
-    exclude?: string[];
-  };
-  fmt?: {
-    exclude?: string[];
-  };
-  exclude?: string[];
+  workspace?: string[];
   compilerOptions?: {
     jsx?: string;
     jsxImportSource?: string;
@@ -229,7 +224,7 @@ export interface DenoConfig {
   };
 }
 
-export async function readDenoConfig(
+export async function findNearestDenoConfigWithCompilerOptions(
   directory: string,
 ): Promise<{ config: DenoConfig; filePath: string }> {
   let dir = directory;
@@ -238,11 +233,15 @@ export async function readDenoConfig(
       const filePath = path.join(dir, name);
       try {
         const file = await Deno.readTextFile(filePath);
+        let config;
         if (name.endsWith(".jsonc")) {
-          return { config: JSONC.parse(file) as DenoConfig, filePath };
+          config = JSONC.parse(file);
         } else {
-          return { config: JSON.parse(file), filePath };
+          config = JSON.parse(file);
         }
+        if (config.compilerOptions) return { config, filePath };
+        if (config.workspace) break;
+        break;
       } catch (err) {
         if (!(err instanceof Deno.errors.NotFound)) {
           throw err;
@@ -250,11 +249,11 @@ export async function readDenoConfig(
       }
     }
     const parent = path.dirname(dir);
-    if (parent === dir) {
-      throw new Error(
-        `Could not find a deno.json file in the current directory or any parent directory.`,
-      );
-    }
+    if (parent === dir) break;
     dir = parent;
   }
+
+  throw new Error(
+    `Could not find a deno.json or deno.jsonc file in the current directory or any parent directory that contains a 'compilerOptions' field.`,
+  );
 }

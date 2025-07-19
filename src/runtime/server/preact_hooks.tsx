@@ -11,8 +11,8 @@ import {
 } from "preact";
 import type { Signal } from "@preact/signals";
 import type { Stringifiers } from "../../jsonify/stringify.ts";
-import type { PageProps } from "../../context.ts";
-import { asset, Partial, type PartialProps } from "../shared.ts";
+import type { PageProps } from "../../render.ts";
+import { Partial, type PartialProps } from "../shared.ts";
 import { stringify } from "../../jsonify/stringify.ts";
 import type { ServerIslandRegistry } from "../../context.ts";
 import type { Island } from "../../context.ts";
@@ -25,11 +25,14 @@ import {
 } from "../shared_internal.tsx";
 import type { BuildCache } from "../../build_cache.ts";
 import { BUILD_ID } from "../build_id.ts";
-import { DEV_ERROR_OVERLAY_URL } from "../../constants.ts";
-import * as colors from "@std/fmt/colors";
+import {
+  DEV_ERROR_OVERLAY_URL,
+  PARTIAL_SEARCH_PARAM,
+} from "../../constants.ts";
 import { escape as escapeHtml } from "@std/html";
 import { HttpError } from "../../error.ts";
 import { getCodeFrame } from "../../dev/middlewares/error_overlay/code_frame.tsx";
+import { escapeScript } from "../../utils.ts";
 
 const enum OptionsType {
   ATTR = "attr",
@@ -85,7 +88,8 @@ export class RenderState {
   hasRuntimeScript = false;
 
   constructor(
-    public ctx: PageProps<unknown, unknown>,
+    // deno-lint-ignore no-explicit-any
+    public ctx: PageProps<any, any>,
     public islandRegistry: ServerIslandRegistry,
     public buildCache: BuildCache,
     public partialId: string,
@@ -121,7 +125,7 @@ options[OptionsType.VNODE] = (vnode) => {
   if (typeof vnode.type === "function") {
     if (vnode.type === Partial) {
       const props = vnode.props as PartialProps;
-      const key = normalizeKey(vnode.key ?? "");
+      const key = normalizeKey(vnode.key);
       const mode = !props.mode || props.mode === "replace"
         ? PartialMode.Replace
         : props.mode === "append"
@@ -165,11 +169,10 @@ options[OptionsType.ATTR] = (name, value) => {
 
 const PATCHED = new WeakSet<VNode>();
 
-function normalizeKey(key: string | number) {
-  if (typeof key === "number") {
-    key = key.toString();
-  }
-  return key.replaceAll(":", "_");
+function normalizeKey(key: unknown): string {
+  const value = key ?? "";
+  const s = (typeof value !== "string") ? String(value) : value;
+  return s.replaceAll(":", "_");
 }
 
 const oldDiff = options[OptionsType.DIFF];
@@ -204,7 +207,7 @@ options[OptionsType.DIFF] = (vnode) => {
         if (island === undefined) {
           // Not an island, but we might need to preserve keys
           if (vnode.key !== undefined) {
-            const key = normalizeKey(vnode.key ?? "");
+            const key = normalizeKey(vnode.key);
             const originalType = vnode.type;
             vnode.type = (props) => {
               const child = h(originalType, props);
@@ -241,7 +244,7 @@ options[OptionsType.DIFF] = (vnode) => {
           const child = h(originalType, props);
           PATCHED.add(child);
 
-          const key = normalizeKey(vnode.key ?? "");
+          const key = normalizeKey(vnode.key);
           return wrapWithMarker(
             child,
             "island",
@@ -369,14 +372,16 @@ function isVNode(x: any): x is VNode {
 
 const stringifiers: Stringifiers = {
   Signal: (value: unknown) => {
-    return isSignal(value) ? value.peek() : undefined;
+    return isSignal(value) ? { value: value.peek() } : undefined;
   },
   Slot: (value: unknown) => {
     if (isVNode(value) && value.type === Slot) {
       const props = value.props as SlotProps;
       return {
-        name: props.name,
-        id: props.id,
+        value: {
+          name: props.name,
+          id: props.id,
+        },
       };
     }
   },
@@ -426,7 +431,7 @@ function FreshRuntimeScript() {
 
   const islandArr = Array.from(islands);
 
-  if (ctx.url.searchParams.has("fresh-partial")) {
+  if (ctx.url.searchParams.has(PARTIAL_SEARCH_PARAM)) {
     const islands = islandArr.map((island) => {
       const chunk = buildCache.getIslandChunkName(island.name);
       if (chunk === null) {
@@ -436,7 +441,7 @@ function FreshRuntimeScript() {
       }
       return {
         exportName: island.exportName,
-        chunk: asset(chunk),
+        chunk,
         name: island.name,
       };
     });
@@ -451,7 +456,10 @@ function FreshRuntimeScript() {
       <script
         id={`__FRSH_STATE_${partialId}`}
         type="application/json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(json) }}
+        // deno-lint-ignore react-no-danger
+        dangerouslySetInnerHTML={{
+          __html: escapeScript(JSON.stringify(json), { json: true }),
+        }}
       />
     );
   } else {
@@ -465,18 +473,19 @@ function FreshRuntimeScript() {
       const named = island.exportName === "default"
         ? island.name
         : `{ ${island.exportName} }`;
-      return `import ${named} from "${asset(`${basePath}${chunk}`)}";`;
+      return `import ${named} from "${`${basePath}${chunk}`}";`;
     }).join("");
 
     const islandObj = "{" + islandArr.map((island) => island.name)
       .join(",") +
       "}";
 
-    const serializedProps = JSON.stringify(
-      stringify(islandProps, stringifiers),
+    const serializedProps = escapeScript(
+      JSON.stringify(stringify(islandProps, stringifiers)),
+      { json: true },
     );
 
-    const runtimeUrl = asset(`${basePath}/fresh-runtime.js`);
+    const runtimeUrl = `${basePath}/_fresh/js/${BUILD_ID}/fresh-runtime.js`;
     const scriptContent =
       `import { boot } from "${runtimeUrl}";${islandImports}boot(${islandObj},${serializedProps});`;
 
@@ -485,6 +494,7 @@ function FreshRuntimeScript() {
         <script
           type="module"
           nonce={nonce}
+          // deno-lint-ignore react-no-danger
           dangerouslySetInnerHTML={{
             __html: scriptContent,
           }}
@@ -521,7 +531,7 @@ export function ShowErrorOverlay() {
       searchParams.append("stack", error.stack);
       const codeFrame = getCodeFrame(error.stack, ctx.config.root);
       if (codeFrame !== undefined) {
-        searchParams.append("code-frame", colors.stripAnsiCode(codeFrame));
+        searchParams.append("code-frame", codeFrame);
       }
     }
   } else {

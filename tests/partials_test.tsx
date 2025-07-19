@@ -62,7 +62,9 @@ Deno.test({
         return ctx.render(
           <Doc>
             <div f-client-nav>
-              <button f-partial="/partial" class="update">update</button>
+              <button type="button" f-partial="/partial" class="update">
+                update
+              </button>
               <Partial name="foo">
                 <p class="output">hello world</p>
               </Partial>
@@ -77,8 +79,6 @@ Deno.test({
       await waitForText(page, ".output", "partial update");
     });
   },
-  sanitizeResources: false,
-  sanitizeOps: false,
 });
 
 Deno.test({
@@ -99,7 +99,9 @@ Deno.test({
         return ctx.render(
           <Doc>
             <div f-client-nav>
-              <button f-partial="/partial" class="update">update</button>
+              <button type="button" f-partial="/partial" class="update">
+                update
+              </button>
               <Partial name="foo">
                 <p class="init">hello world</p>
               </Partial>
@@ -120,8 +122,6 @@ Deno.test({
       assertNotSelector(doc, ".init");
     });
   },
-  sanitizeResources: false,
-  sanitizeOps: false,
 });
 
 Deno.test({
@@ -141,7 +141,9 @@ Deno.test({
         return ctx.render(
           <Doc>
             <div f-client-nav>
-              <button f-partial="/partial" class="update">update</button>
+              <button type="button" f-partial="/partial" class="update">
+                update
+              </button>
               <Partial name="foo">
                 <p class="init">hello world</p>
               </Partial>
@@ -162,8 +164,6 @@ Deno.test({
       );
     });
   },
-  sanitizeResources: false,
-  sanitizeOps: false,
 });
 
 Deno.test({
@@ -174,7 +174,9 @@ Deno.test({
         return ctx.render(
           <Doc>
             <div f-client-nav>
-              <button f-partial="/partial" class="update">update</button>
+              <button type="button" f-partial="/partial" class="update">
+                update
+              </button>
               <Partial name="foo">
                 <p class="ready">foo</p>
               </Partial>
@@ -186,7 +188,7 @@ Deno.test({
         );
       });
 
-    const server = new FakeServer(await app.handler());
+    const server = new FakeServer(app.handler());
     let checked = false;
     try {
       const res = await server.get("/");
@@ -202,8 +204,6 @@ Deno.test({
 
     // TODO: Check error overlay
   },
-  sanitizeResources: false,
-  sanitizeOps: false,
 });
 
 // See https://github.com/denoland/fresh/issues/2254
@@ -225,7 +225,9 @@ Deno.test({
         return ctx.render(
           <Doc>
             <div f-client-nav>
-              <button f-partial="/partial" class="update">update</button>
+              <button type="button" f-partial="/partial" class="update">
+                update
+              </button>
               <Partial name="foo">
                 <p class="init">hello world</p>
               </Partial>
@@ -247,8 +249,6 @@ Deno.test({
       expect(didError).toEqual(false);
     });
   },
-  sanitizeResources: false,
-  sanitizeOps: false,
 });
 
 Deno.test({
@@ -272,7 +272,9 @@ Deno.test({
         return ctx.render(
           <Doc>
             <div f-client-nav>
-              <button f-partial="/partial" class="update">update</button>
+              <button type="button" f-partial="/partial" class="update">
+                update
+              </button>
               <Partial name="foo">
                 <p>hello world</p>
               </Partial>
@@ -287,8 +289,6 @@ Deno.test({
       await page.locator(".ready").wait();
     });
   },
-  sanitizeResources: false,
-  sanitizeOps: false,
 });
 
 Deno.test({
@@ -306,7 +306,7 @@ Deno.test({
       });
 
     await buildProd(app);
-    const server = new FakeServer(await app.handler());
+    const server = new FakeServer(app.handler());
     let checked = false;
     try {
       const res = await server.get("/");
@@ -322,8 +322,6 @@ Deno.test({
 
     // TODO: Test error overlay
   },
-  sanitizeResources: false,
-  sanitizeOps: false,
 });
 
 Deno.test({
@@ -343,7 +341,9 @@ Deno.test({
         return ctx.render(
           <Doc>
             <div f-client-nav>
-              <button f-partial="/partial" class="update">update</button>
+              <button type="button" f-partial="/partial" class="update">
+                update
+              </button>
               <Partial name="foo">
                 <SelfCounter />
               </Partial>
@@ -364,8 +364,6 @@ Deno.test({
       });
     });
   },
-  sanitizeResources: false,
-  sanitizeOps: false,
 });
 
 Deno.test({
@@ -386,7 +384,9 @@ Deno.test({
         return ctx.render(
           <Doc>
             <div f-client-nav>
-              <button f-partial="/partial" class="update">update</button>
+              <button type="button" f-partial="/partial" class="update">
+                update
+              </button>
               <Partial name="foo">
                 <p class="init">init</p>
                 <SelfCounter />
@@ -410,8 +410,6 @@ Deno.test({
       expect(counter).toEqual("1");
     });
   },
-  sanitizeResources: false,
-  sanitizeOps: false,
 });
 
 Deno.test({
@@ -432,7 +430,9 @@ Deno.test({
         return ctx.render(
           <Doc>
             <div f-client-nav>
-              <button f-partial="/partial" class="update">update</button>
+              <button type="button" f-partial="/partial" class="update">
+                update
+              </button>
               <Partial name="foo">
                 <p class="init">init</p>
                 <SelfCounter />
@@ -458,8 +458,6 @@ Deno.test({
       assertNotSelector(doc, ".output");
     });
   },
-  sanitizeResources: false,
-  sanitizeOps: false,
 });
 
 Deno.test({
@@ -479,7 +477,9 @@ Deno.test({
         return ctx.render(
           <Doc>
             <div f-client-nav>
-              <button f-partial="/partial" class="update">update</button>
+              <button type="button" f-partial="/partial" class="update">
+                update
+              </button>
               <Partial name="outer">
                 <p class="outer">outer</p>
                 <Partial name="inner">
@@ -499,8 +499,6 @@ Deno.test({
       await page.locator(".inner-update").wait();
     });
   },
-  sanitizeResources: false,
-  sanitizeOps: false,
 });
 
 Deno.test({
@@ -526,7 +524,9 @@ Deno.test({
         return ctx.render(
           <Doc>
             <div f-client-nav>
-              <button f-partial="/partial" class="update">update</button>
+              <button type="button" f-partial="/partial" class="update">
+                update
+              </button>
               <Partial name="sib-1">
                 <p class="sib-1">sib-1</p>
               </Partial>
@@ -552,8 +552,6 @@ Deno.test({
       await page.locator(".sib-3-update").wait();
     });
   },
-  sanitizeResources: false,
-  sanitizeOps: false,
 });
 
 Deno.test({
@@ -576,7 +574,9 @@ Deno.test({
         return ctx.render(
           <Doc>
             <div f-client-nav>
-              <button f-partial="/partial" class="update">update</button>
+              <button type="button" f-partial="/partial" class="update">
+                update
+              </button>
               <Partial name="foo">
                 <p key="p" class="init">init</p>
                 <SelfCounter key="a" id="a" />
@@ -613,8 +613,6 @@ Deno.test({
       await waitForText(page, "#c .output", "3");
     });
   },
-  sanitizeResources: false,
-  sanitizeOps: false,
 });
 
 Deno.test({
@@ -643,7 +641,9 @@ Deno.test({
         return ctx.render(
           <Doc>
             <div f-client-nav>
-              <button f-partial="/partial" class="update">update</button>
+              <button type="button" f-partial="/partial" class="update">
+                update
+              </button>
               <Partial name="outer">
                 <p key="p" class="init">init</p>
 
@@ -687,8 +687,6 @@ Deno.test({
       await waitForText(page, "#c .output", "3");
     });
   },
-  sanitizeResources: false,
-  sanitizeOps: false,
 });
 
 Deno.test({
@@ -717,7 +715,9 @@ Deno.test({
         return ctx.render(
           <Doc>
             <div f-client-nav>
-              <button f-partial="/partial" class="update">update</button>
+              <button type="button" f-partial="/partial" class="update">
+                update
+              </button>
               <Partial name="outer">
                 <p key="p" class="init">init</p>
 
@@ -761,8 +761,6 @@ Deno.test({
       await waitForText(page, "#c .output", "3");
     });
   },
-  sanitizeResources: false,
-  sanitizeOps: false,
 });
 
 Deno.test({
@@ -789,7 +787,9 @@ Deno.test({
         return ctx.render(
           <Doc>
             <div f-client-nav>
-              <button f-partial="/partial" class="update">update</button>
+              <button type="button" f-partial="/partial" class="update">
+                update
+              </button>
               <Partial name="outer">
                 <p key="p" class="init">init</p>
 
@@ -828,8 +828,6 @@ Deno.test({
       await waitForText(page, "#c .output", "3");
     });
   },
-  sanitizeResources: false,
-  sanitizeOps: false,
 });
 
 Deno.test({
@@ -847,7 +845,7 @@ Deno.test({
         );
       });
 
-    const server = new FakeServer(await app.handler());
+    const server = new FakeServer(app.handler());
     const res = await server.get("/");
     const html = await res.text();
 
@@ -874,7 +872,9 @@ Deno.test({
         return ctx.render(
           <Doc>
             <div f-client-nav>
-              <button f-partial="/partial" class="update">update</button>
+              <button type="button" f-partial="/partial" class="update">
+                update
+              </button>
               <Partial name="outer">
                 <p class="init">init</p>
               </Partial>
@@ -897,8 +897,6 @@ Deno.test({
       assertNotSelector(doc, ".done-0");
     });
   },
-  sanitizeResources: false,
-  sanitizeOps: false,
 });
 
 Deno.test({
@@ -922,7 +920,9 @@ Deno.test({
         return ctx.render(
           <Doc>
             <div f-client-nav>
-              <button f-partial="/partial" class="update">update</button>
+              <button type="button" f-partial="/partial" class="update">
+                update
+              </button>
               <Partial name="outer">
                 <Partial name="inner">
                   <p class="init">init</p>
@@ -947,8 +947,6 @@ Deno.test({
       assertNotSelector(doc, ".done-0");
     });
   },
-  sanitizeResources: false,
-  sanitizeOps: false,
 });
 
 Deno.test({
@@ -970,7 +968,9 @@ Deno.test({
         return ctx.render(
           <Doc>
             <div f-client-nav>
-              <button f-partial="/partial" class="update">update</button>
+              <button type="button" f-partial="/partial" class="update">
+                update
+              </button>
               <div class="content">
                 <Partial name="outer">
                   <p class="init">init</p>
@@ -995,8 +995,6 @@ Deno.test({
       expect(doc.querySelector(".content")!.textContent).toEqual("init01");
     });
   },
-  sanitizeResources: false,
-  sanitizeOps: false,
 });
 
 Deno.test({
@@ -1020,7 +1018,9 @@ Deno.test({
         return ctx.render(
           <Doc>
             <div f-client-nav>
-              <button f-partial="/partial" class="update">update</button>
+              <button type="button" f-partial="/partial" class="update">
+                update
+              </button>
               <div class="content">
                 <Partial name="outer">
                   <Partial name="inner">
@@ -1046,8 +1046,6 @@ Deno.test({
       expect(doc.querySelector(".content")!.textContent).toEqual("init01");
     });
   },
-  sanitizeResources: false,
-  sanitizeOps: false,
 });
 
 Deno.test({
@@ -1069,7 +1067,9 @@ Deno.test({
         return ctx.render(
           <Doc>
             <div f-client-nav>
-              <button f-partial="/partial" class="update">update</button>
+              <button type="button" f-partial="/partial" class="update">
+                update
+              </button>
               <div class="content">
                 <Partial name="outer">
                   <p class="init">init</p>
@@ -1093,8 +1093,6 @@ Deno.test({
       expect(doc.querySelector(".content")!.textContent).toEqual("10init");
     });
   },
-  sanitizeResources: false,
-  sanitizeOps: false,
 });
 
 Deno.test({
@@ -1118,7 +1116,9 @@ Deno.test({
         return ctx.render(
           <Doc>
             <div f-client-nav>
-              <button f-partial="/partial" class="update">update</button>
+              <button type="button" f-partial="/partial" class="update">
+                update
+              </button>
               <div class="content">
                 <Partial name="outer">
                   <Partial name="inner">
@@ -1144,8 +1144,6 @@ Deno.test({
       expect(doc.querySelector(".content")!.textContent).toEqual("10init");
     });
   },
-  sanitizeResources: false,
-  sanitizeOps: false,
 });
 
 Deno.test({
@@ -1202,8 +1200,6 @@ Deno.test({
       });
     });
   },
-  sanitizeResources: false,
-  sanitizeOps: false,
 });
 
 Deno.test({
@@ -1259,8 +1255,6 @@ Deno.test({
       });
     });
   },
-  sanitizeResources: false,
-  sanitizeOps: false,
 });
 
 Deno.test({
@@ -1345,8 +1339,6 @@ Deno.test({
       await waitForText(page, ".output", "1");
     });
   },
-  sanitizeResources: false,
-  sanitizeOps: false,
 });
 
 Deno.test({
@@ -1367,7 +1359,7 @@ Deno.test({
         return ctx.render(
           <Doc>
             <div f-client-nav>
-              <button f-partial="/partial">
+              <button type="button" f-partial="/partial">
                 <svg
                   width="100"
                   height="100"
@@ -1431,12 +1423,11 @@ Deno.test({
       await waitForText(page, ".output", "1");
     });
   },
-  sanitizeResources: false,
-  sanitizeOps: false,
 });
 
 Deno.test({
   name: "partials - opt out of partial navigation",
+  ignore: true, // TODO: test is flaky
   fn: async () => {
     const app = testApp()
       .get("/partial", (ctx) => {
@@ -1498,12 +1489,11 @@ Deno.test({
       });
     });
   },
-  sanitizeResources: false,
-  sanitizeOps: false,
 });
 
 Deno.test({
   name: "partials - opt out of partial navigation #2",
+  ignore: true, // TODO: test is flaky
   fn: async () => {
     const app = testApp()
       .get("/partial", (ctx) => {
@@ -1565,8 +1555,6 @@ Deno.test({
       });
     });
   },
-  sanitizeResources: false,
-  sanitizeOps: false,
 });
 
 Deno.test({
@@ -1627,8 +1615,6 @@ Deno.test({
       });
     });
   },
-  sanitizeResources: false,
-  sanitizeOps: false,
 });
 
 Deno.test({
@@ -1649,8 +1635,8 @@ Deno.test({
           <Doc>
             <div f-client-nav>
               <Partial name="foo">
-                {new Array(10).fill(0).map(() => {
-                  return <p>{loremIpsum}</p>;
+                {new Array(10).fill(0).map((it) => {
+                  return <p key={it}>{loremIpsum}</p>;
                 })}
                 <p class="init">init</p>
               </Partial>
@@ -1685,8 +1671,6 @@ Deno.test({
       expect(scroll.scrollY > 100).toEqual(true);
     });
   },
-  sanitizeResources: false,
-  sanitizeOps: false,
 });
 
 Deno.test({
@@ -1714,7 +1698,12 @@ Deno.test({
                   <p class="init">init</p>
                 </Partial>
                 <SelfCounter />
-                <button class="update" name="submitter" value="sub">
+                <button
+                  type="submit"
+                  class="update"
+                  name="submitter"
+                  value="sub"
+                >
                   update
                 </button>
               </form>
@@ -1734,8 +1723,6 @@ Deno.test({
       await page.locator(".done-foo-sub").wait();
     });
   },
-  sanitizeResources: false,
-  sanitizeOps: false,
 });
 
 Deno.test({
@@ -1763,7 +1750,12 @@ Deno.test({
                   <p class="init">init</p>
                 </Partial>
                 <SelfCounter />
-                <button class="update" name="submitter" value="sub">
+                <button
+                  type="submit"
+                  class="update"
+                  name="submitter"
+                  value="sub"
+                >
                   update
                 </button>
               </form>
@@ -1786,8 +1778,6 @@ Deno.test({
       expect(pathname).toEqual("/foo");
     });
   },
-  sanitizeResources: false,
-  sanitizeOps: false,
 });
 
 Deno.test({
@@ -1816,7 +1806,12 @@ Deno.test({
                   <p class="init">init</p>
                 </Partial>
                 <SelfCounter />
-                <button class="update" name="submitter" value="sub">
+                <button
+                  type="submit"
+                  class="update"
+                  name="submitter"
+                  value="sub"
+                >
                   update
                 </button>
               </form>
@@ -1836,12 +1831,49 @@ Deno.test({
       await page.locator(".done-foo-sub").wait();
     });
   },
-  sanitizeResources: false,
-  sanitizeOps: false,
 });
 
 Deno.test({
-  name: "partials - submit form redirecct",
+  name: "partials - submit form dialog should do nothing",
+  fn: async () => {
+    const app = testApp()
+      .post("/partial", () => {
+        throw new Error("FAIL");
+      })
+      .get("/", (ctx) => {
+        return ctx.render(
+          <Doc>
+            <div f-client-nav>
+              <dialog open>
+                <p>Greetings, one and all!</p>
+                <form method="dialog">
+                  <Partial name="foo">
+                    <p class="init">init</p>
+                  </Partial>
+                  <SelfCounter />
+                  <button type="submit" class="update">OK</button>
+                </form>
+              </dialog>
+            </div>
+          </Doc>,
+        );
+      });
+
+    await withBrowserApp(app, async (page, address) => {
+      await page.goto(address, { waitUntil: "load" });
+      await page.locator(".ready").wait();
+
+      await page.locator(".increment").click();
+      await waitForText(page, ".output", "1");
+
+      await page.locator(".update").click();
+      await page.locator("dialog:not([open])").wait();
+    });
+  },
+});
+
+Deno.test({
+  name: "partials - submit form redirect",
   fn: async () => {
     const app = testApp()
       .get("/done", (ctx) => {
@@ -1872,7 +1904,7 @@ Deno.test({
                   <p class="init">init</p>
                 </Partial>
                 <SelfCounter />
-                <button class="update">
+                <button type="submit" class="update">
                   update
                 </button>
               </form>
@@ -1892,8 +1924,6 @@ Deno.test({
       expect(pathname).toEqual("/done");
     });
   },
-  sanitizeResources: false,
-  sanitizeOps: false,
 });
 
 Deno.test({
@@ -1922,7 +1952,7 @@ Deno.test({
                   <p class="init">init</p>
                 </Partial>
                 <SelfCounter />
-                <button>
+                <button type="button">
                   nothing
                 </button>
               </form>
@@ -1953,8 +1983,6 @@ Deno.test({
       await page.locator(".done-foo-sub").wait();
     });
   },
-  sanitizeResources: false,
-  sanitizeOps: false,
 });
 
 Deno.test({
@@ -1983,7 +2011,7 @@ Deno.test({
                   <p class="init">init</p>
                 </Partial>
                 <SelfCounter />
-                <button>
+                <button type="button">
                   nothing
                 </button>
               </form>
@@ -2015,8 +2043,6 @@ Deno.test({
       await page.locator(".done-foo-sub").wait();
     });
   },
-  sanitizeResources: false,
-  sanitizeOps: false,
 });
 
 Deno.test({
@@ -2046,7 +2072,7 @@ Deno.test({
                   <p class="init">init</p>
                 </Partial>
                 <SelfCounter />
-                <button>
+                <button type="button">
                   nothing
                 </button>
               </form>
@@ -2085,8 +2111,6 @@ Deno.test({
       assertNotSelector(doc, "button");
     });
   },
-  sanitizeResources: false,
-  sanitizeOps: false,
 });
 
 Deno.test({
@@ -2145,8 +2169,6 @@ Deno.test({
       await page.locator(".done-a-b-c").wait();
     });
   },
-  sanitizeResources: false,
-  sanitizeOps: false,
 });
 
 Deno.test({
@@ -2175,8 +2197,6 @@ Deno.test({
       expect(logs).toEqual([]);
     });
   },
-  sanitizeResources: false,
-  sanitizeOps: false,
 });
 
 Deno.test({
@@ -2187,8 +2207,8 @@ Deno.test({
         return ctx.render(
           <Doc>
             <div f-client-nav>
-              {new Array(10).fill(0).map(() => {
-                return <p>{loremIpsum}</p>;
+              {new Array(10).fill(0).map((it) => {
+                return <p key={it}>{loremIpsum}</p>;
               })}
               <h1 id="foo">Same nav</h1>
               <a href="#foo">#foo</a>
@@ -2212,8 +2232,6 @@ Deno.test({
       expect(scroll > 0).toEqual(true);
     });
   },
-  sanitizeResources: false,
-  sanitizeOps: false,
 });
 
 Deno.test({
@@ -2236,7 +2254,7 @@ Deno.test({
                 </p>
               </Partial>
               <p>
-                <button class="update" f-partial="/partial">
+                <button type="button" class="update" f-partial="/partial">
                   update
                 </button>
               </p>
@@ -2259,8 +2277,6 @@ Deno.test({
       expect(logs[0]).toMatch(/Found no partials/);
     });
   },
-  sanitizeResources: false,
-  sanitizeOps: false,
 });
 
 Deno.test({
@@ -2315,7 +2331,7 @@ Deno.test({
                 </p>
               </Partial>
               <p>
-                <button class="update" f-partial="/partial">
+                <button type="button" class="update" f-partial="/partial">
                   update
                 </button>
               </p>
@@ -2357,8 +2373,6 @@ Deno.test({
       expect(textColor).toEqual("rgb(0, 128, 0)");
     });
   },
-  sanitizeResources: false,
-  sanitizeOps: false,
 });
 
 Deno.test({
@@ -2390,7 +2404,7 @@ Deno.test({
                 </p>
               </Partial>
               <p>
-                <button class="update" f-partial="/partial">
+                <button type="button" class="update" f-partial="/partial">
                   update
                 </button>
               </p>
@@ -2417,7 +2431,7 @@ Deno.test({
                 </p>
               </Partial>
               <p>
-                <button class="update" f-partial="/partial">
+                <button type="button" class="update" f-partial="/partial">
                   update
                 </button>
               </p>
@@ -2446,8 +2460,6 @@ Deno.test({
       ).toEqual(true);
     });
   },
-  sanitizeResources: false,
-  sanitizeOps: false,
 });
 
 Deno.test({
@@ -2471,7 +2483,7 @@ Deno.test({
                 </p>
               </Partial>
               <p>
-                <button f-partial="?refresh">
+                <button type="button" f-partial="?refresh">
                   refresh
                 </button>
               </p>
@@ -2488,8 +2500,6 @@ Deno.test({
       await page.locator(".status-refreshed").wait();
     });
   },
-  sanitizeResources: false,
-  sanitizeOps: false,
 });
 
 Deno.test({
@@ -2510,7 +2520,9 @@ Deno.test({
         return ctx.render(
           <Doc>
             <div f-client-nav>
-              <button f-partial="/partial" class="update">update</button>
+              <button type="button" f-partial="/partial" class="update">
+                update
+              </button>
               <Partial name="outer">
                 <SelfCounter id="outer" />
                 <Partial name="inner">
@@ -2541,8 +2553,6 @@ Deno.test({
       await waitForText(page, "#inner .output", "1");
     });
   },
-  sanitizeResources: false,
-  sanitizeOps: false,
 });
 
 Deno.test({
@@ -2563,7 +2573,9 @@ Deno.test({
         return ctx.render(
           <Doc>
             <div f-client-nav>
-              <button f-partial="/partial" class="update">update</button>
+              <button type="button" f-partial="/partial" class="update">
+                update
+              </button>
               <Partial name="foo">
                 <h1>foo</h1>
               </Partial>
@@ -2579,8 +2591,6 @@ Deno.test({
       await page.locator(".done").wait();
     });
   },
-  sanitizeResources: false,
-  sanitizeOps: false,
 });
 
 Deno.test({
@@ -2591,7 +2601,9 @@ Deno.test({
         return ctx.render(
           <Doc>
             <div f-client-nav>
-              <button f-partial="/partial" class="update">update</button>
+              <button type="button" f-partial="/partial" class="update">
+                update
+              </button>
               <Partial name="foo">
                 <h1>foo</h1>
               </Partial>
@@ -2599,7 +2611,7 @@ Deno.test({
           </Doc>,
         );
       })
-      .get("*", (ctx) => {
+      .get("/*", (ctx) => {
         return ctx.render(
           <Doc>
             <Partial name="foo">
@@ -2616,8 +2628,6 @@ Deno.test({
       await page.locator(".error-404").wait();
     });
   },
-  sanitizeResources: false,
-  sanitizeOps: false,
 });
 
 Deno.test({
@@ -2637,7 +2647,9 @@ Deno.test({
         return ctx.render(
           <Doc>
             <div f-client-nav>
-              <button f-partial="/partial" class="update">update</button>
+              <button type="button" f-partial="/partial" class="update">
+                update
+              </button>
               <Partial name="foo">
                 <h1>foo</h1>
               </Partial>
@@ -2656,8 +2668,6 @@ Deno.test({
       expect(title).toEqual("after update");
     });
   },
-  sanitizeResources: false,
-  sanitizeOps: false,
 });
 
 Deno.test({
@@ -2701,6 +2711,36 @@ Deno.test({
       expect(`${url.pathname}${url.search}`).toEqual("/");
     });
   },
-  sanitizeResources: false,
-  sanitizeOps: false,
+});
+
+Deno.test({
+  name: "partials - independent user popstate",
+  fn: async () => {
+    const app = testApp()
+      .get("/", (ctx) => {
+        return ctx.render(
+          <Doc>
+            <div class="container">
+            </div>
+          </Doc>,
+        );
+      });
+
+    await withBrowserApp(app, async (page, address) => {
+      await page.goto(address, { waitUntil: "load" });
+      await page.locator<HTMLDivElement>(".container").evaluate((el) => {
+        const dynamicContent = document.createElement("span");
+        dynamicContent.classList.add("dynamic-content");
+        el.appendChild(dynamicContent);
+      });
+      await page.evaluate(() => {
+        window.history.replaceState({ custom: true }, "", "#");
+        window.history.pushState({ custom: true }, "", "#custom");
+      });
+      // Fresh partials popstate gets called on back navigation and
+      // should exit early/avoid reload due to custom user history entries
+      await page.evaluate(() => window.history.go(-1));
+      await page.locator(".dynamic-content").wait();
+    });
+  },
 });

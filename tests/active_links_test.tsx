@@ -66,7 +66,7 @@ Deno.test({
         return ctx.render(<View />);
       });
 
-    const server = new FakeServer(await app.handler());
+    const server = new FakeServer(app.handler());
     let res = await server.get("/active_nav");
     let doc = parseHtml(await res.text());
 
@@ -92,8 +92,6 @@ Deno.test({
     assertSelector(doc, "a[href='/'][data-ancestor]");
     assertSelector(doc, `a[href='/'][aria-current="true"]`);
   },
-  sanitizeResources: false,
-  sanitizeOps: false,
 });
 
 Deno.test({
@@ -176,6 +174,4 @@ Deno.test({
       assertSelector(doc, `a[href='/'][aria-current="true"]`);
     });
   },
-  sanitizeResources: false,
-  sanitizeOps: false,
 });

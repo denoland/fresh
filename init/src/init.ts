@@ -1,19 +1,12 @@
+// deno-lint-ignore-file no-console
 import * as colors from "@std/fmt/colors";
 import * as path from "@std/path";
 
 // Keep these as is, as we replace these version in our release script
-const FRESH_VERSION = "2.0.0-alpha.22";
+const FRESH_VERSION = "2.0.0-alpha.43";
 const FRESH_TAILWIND_VERSION = "0.0.1-alpha.7";
-const PREACT_VERSION = "10.24.2";
-const PREACT_SIGNALS_VERSION = "1.3.0";
-
-export const enum InitStep {
-  ProjectName = "ProjectName",
-  Force = "Force",
-  Tailwind = "Tailwind",
-  VSCode = "VSCode",
-  Docker = "Docker",
-}
+const PREACT_VERSION = "10.26.9";
+const PREACT_SIGNALS_VERSION = "2.2.1";
 
 function css(strs: TemplateStringsArray, ...exprs: string[]): string {
   let out = "";
@@ -29,8 +22,8 @@ function css(strs: TemplateStringsArray, ...exprs: string[]): string {
 
 export class InitError extends Error {}
 
-function error(tty: MockTTY, message: string): never {
-  tty.logError(`%cerror%c: ${message}`, "color: red; font-weight: bold", "");
+function error(message: string): never {
+  console.error(`%cerror%c: ${message}`, "color: red; font-weight: bold", "");
   throw new InitError();
 }
 
@@ -55,33 +48,12 @@ OPTIONS:
     --docker     Setup Project to use Docker
 `;
 
-export interface MockTTY {
-  prompt(
-    step: InitStep,
-    message?: string | undefined,
-    _default?: string | undefined,
-  ): string | null;
-  confirm(step: InitStep, message?: string | undefined): boolean;
-  log(...args: unknown[]): void;
-  logError(...args: unknown[]): void;
-}
-
-const realTTY: MockTTY = {
-  prompt(_step, message, _default) {
-    return prompt(message, _default);
-  },
-  confirm(_step, message) {
-    return confirm(message);
-  },
-  log(...args) {
-    // deno-lint-ignore no-console
-    console.log(...args);
-  },
-  logError(...args) {
-    // deno-lint-ignore no-console
-    console.error(...args);
-  },
-};
+export const CONFIRM_EMPTY_MESSAGE =
+  "The target directory is not empty (files could get overwritten). Do you want to continue anyway?";
+export const CONFIRM_TAILWIND_MESSAGE = `Set up ${
+  colors.cyan("Tailwind CSS")
+} for styling?`;
+export const CONFIRM_VSCODE_MESSAGE = `Do you use ${colors.cyan("VS Code")}?`;
 
 export async function initProject(
   cwd = Deno.cwd(),
@@ -92,33 +64,28 @@ export async function initProject(
     tailwind?: boolean | null;
     vscode?: boolean | null;
   } = {},
-  tty: MockTTY = realTTY,
 ): Promise<void> {
-  tty.log();
-  tty.log(
+  console.log();
+  console.log(
     colors.bgRgb8(
       colors.rgb8(" 🍋 Fresh: The next-gen web framework. ", 0),
       121,
     ),
   );
-  tty.log();
+  console.log();
 
   let unresolvedDirectory = Deno.args[0];
   if (input.length !== 1) {
-    const userInput = tty.prompt(
-      InitStep.ProjectName,
+    const userInput = prompt(
       "Project Name:",
       "fresh-project",
     );
     if (!userInput) {
-      error(tty, HELP_TEXT);
+      error(HELP_TEXT);
     }
 
     unresolvedDirectory = userInput;
   }
-
-  const CONFIRM_EMPTY_MESSAGE =
-    "The target directory is not empty (files could get overwritten). Do you want to continue anyway?";
 
   const projectDir = path.resolve(cwd, unresolvedDirectory);
 
@@ -128,11 +95,9 @@ export async function initProject(
       dir.length === 1 && dir[0].name === ".git";
     if (
       !isEmpty &&
-      !(flags.force === null
-        ? tty.confirm(InitStep.Force, CONFIRM_EMPTY_MESSAGE)
-        : flags.force)
+      !(flags.force === null ? confirm(CONFIRM_EMPTY_MESSAGE) : flags.force)
     ) {
-      error(tty, "Directory is not empty.");
+      error("Directory is not empty.");
     }
   } catch (err) {
     if (!(err instanceof Deno.errors.NotFound)) {
@@ -144,18 +109,14 @@ export async function initProject(
   let useTailwind = flags.tailwind || false;
   if (flags.tailwind == null) {
     if (
-      tty.confirm(
-        InitStep.Tailwind,
-        `Set up ${colors.cyan("Tailwind CSS")} for styling?`,
-      )
+      confirm(CONFIRM_TAILWIND_MESSAGE)
     ) {
       useTailwind = true;
     }
   }
 
-  const USE_VSCODE_MESSAGE = `Do you use ${colors.cyan("VS Code")}?`;
   const useVSCode = flags.vscode == null
-    ? tty.confirm(InitStep.VSCode, USE_VSCODE_MESSAGE)
+    ? confirm(CONFIRM_VSCODE_MESSAGE)
     : flags.vscode;
 
   const writeFile = async (
@@ -215,6 +176,7 @@ export default {
     await writeFile("tailwind.config.ts", TAILWIND_CONFIG_TS);
   }
 
+  // deno-fmt-ignore
   const GRADIENT_CSS = css`.fresh-gradient {
   background-color: rgb(134, 239, 172);
   background-image: linear-gradient(
@@ -224,7 +186,7 @@ export default {
     rgb(254, 249, 195)
   );
 }`;
-
+  // deno-fmt-ignore
   const NO_TAILWIND_STYLES = css`*,
 *::before,
 *::after {
@@ -241,14 +203,8 @@ button, [role="button"] {
 }
 code {
   font-family:
-    ui-monospace,
-    SFMono-Regular,
-    Menlo,
-    Monaco,
-    Consolas,
-    "Liberation Mono",
-    "Courier New",
-    monospace;
+    ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono",
+    "Courier New", monospace;
   font-size: 1em;
 }
 img,
@@ -265,19 +221,9 @@ html {
   line-height: 1.5;
   -webkit-text-size-adjust: 100%;
   font-family:
-    ui-sans-serif,
-    system-ui,
-    -apple-system,
-    BlinkMacSystemFont,
-    "Segoe UI",
-    Roboto,
-    "Helvetica Neue",
-    Arial,
-    "Noto Sans",
-    sans-serif,
-    "Apple Color Emoji",
-    "Segoe UI Emoji",
-    "Segoe UI Symbol",
+    ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+    Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif,
+    "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol",
     "Noto Color Emoji";
 }
 .transition-colors {
@@ -375,6 +321,7 @@ html {
 
 ${GRADIENT_CSS}`;
 
+  // deno-fmt-ignore
   const TAILWIND_CSS = css`@tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -382,13 +329,26 @@ ${GRADIENT_CSS}`;
 
   const cssStyles = useTailwind ? TAILWIND_CSS : NO_TAILWIND_STYLES;
   await writeFile("static/styles.css", cssStyles);
-
+  // deno-fmt-ignore
   const STATIC_LOGO =
     `<svg width="40" height="40" fill="none" xmlns="http://www.w3.org/2000/svg">
-  <path d="M34.092 8.845C38.929 20.652 34.092 27 30 30.5c1 3.5-2.986 4.222-4.5 2.5-4.457 1.537-13.512 1.487-20-5C2 24.5 4.73 16.714 14 11.5c8-4.5 16-7 20.092-2.655Z" fill="#FFDB1E"/>
-  <path d="M14 11.5c6.848-4.497 15.025-6.38 18.368-3.47C37.5 12.5 21.5 22.612 15.5 25c-6.5 2.587-3 8.5-6.5 8.5-3 0-2.5-4-5.183-7.75C2.232 23.535 6.16 16.648 14 11.5Z" fill="#fff" stroke="#FFDB1E"/>
-  <path d="M28.535 8.772c4.645 1.25-.365 5.695-4.303 8.536-3.732 2.692-6.606 4.21-7.923 4.83-.366.173-1.617-2.252-1.617-1 0 .417-.7 2.238-.934 2.326-1.365.512-4.223 1.29-5.835 1.29-3.491 0-1.923-4.754 3.014-9.122.892-.789 1.478-.645 2.283-.645-.537-.773-.534-.917.403-1.546C17.79 10.64 23 8.77 25.212 8.42c.366.014.82.35.82.629.41-.14 2.095-.388 2.503-.278Z" fill="#FFE600"/>
-  <path d="M14.297 16.49c.985-.747 1.644-1.01 2.099-2.526.566.121.841-.08 1.29-.701.324.466 1.657.608 2.453.701-.715.451-1.057.852-1.452 2.106-1.464-.611-3.167-.302-4.39.42Z" fill="#fff"/>
+  <path
+    d="M34.092 8.845C38.929 20.652 34.092 27 30 30.5c1 3.5-2.986 4.222-4.5 2.5-4.457 1.537-13.512 1.487-20-5C2 24.5 4.73 16.714 14 11.5c8-4.5 16-7 20.092-2.655Z"
+    fill="#FFDB1E"
+  />
+  <path
+    d="M14 11.5c6.848-4.497 15.025-6.38 18.368-3.47C37.5 12.5 21.5 22.612 15.5 25c-6.5 2.587-3 8.5-6.5 8.5-3 0-2.5-4-5.183-7.75C2.232 23.535 6.16 16.648 14 11.5Z"
+    fill="#fff"
+    stroke="#FFDB1E"
+  />
+  <path
+    d="M28.535 8.772c4.645 1.25-.365 5.695-4.303 8.536-3.732 2.692-6.606 4.21-7.923 4.83-.366.173-1.617-2.252-1.617-1 0 .417-.7 2.238-.934 2.326-1.365.512-4.223 1.29-5.835 1.29-3.491 0-1.923-4.754 3.014-9.122.892-.789 1.478-.645 2.283-.645-.537-.773-.534-.917.403-1.546C17.79 10.64 23 8.77 25.212 8.42c.366.014.82.35.82.629.41-.14 2.095-.388 2.503-.278Z"
+    fill="#FFE600"
+  />
+  <path
+    d="M14.297 16.49c.985-.747 1.644-1.01 2.099-2.526.566.121.841-.08 1.29-.701.324.466 1.657.608 2.453.701-.715.451-1.057.852-1.452 2.106-1.464-.611-3.167-.302-4.39.42Z"
+    fill="#fff"
+  />
 </svg>`;
   await writeFile("static/logo.svg", STATIC_LOGO);
 
@@ -404,6 +364,7 @@ ${GRADIENT_CSS}`;
 import { define, type State } from "./utils.ts";
 
 export const app = new App<State>();
+
 app.use(staticFiles());
 
 // this is the same as the /api/:name route defined via a file. feel free to delete this!
@@ -422,7 +383,6 @@ const exampleLoggerMiddleware = define.middleware((ctx) => {
 app.use(exampleLoggerMiddleware);
 
 await fsRoutes(app, {
-  dir: "./",
   loadIsland: (path) => import(\`./islands/\${path}\`),
   loadRoute: (path) => import(\`./routes/\${path}\`),
 });
@@ -553,8 +513,7 @@ if (Deno.args.includes("build")) {
 
   const denoJson = {
     tasks: {
-      check:
-        "deno fmt --check && deno lint && deno check **/*.ts && deno check **/*.tsx",
+      check: "deno fmt --check . && deno lint . && deno check",
       dev: "deno run -A --watch=static/,routes/ dev.ts",
       build: "deno run -A dev.ts build",
       start: "deno run -A main.ts",
@@ -568,8 +527,6 @@ if (Deno.args.includes("build")) {
     exclude: ["**/_fresh/*"],
     imports: {
       "fresh": `jsr:@fresh/core@^${FRESH_VERSION}`,
-      "@fresh/plugin-tailwind":
-        `jsr:@fresh/plugin-tailwind@^${FRESH_TAILWIND_VERSION}`,
       "preact": `npm:preact@^${PREACT_VERSION}`,
       "@preact/signals": `npm:@preact/signals@^${PREACT_SIGNALS_VERSION}`,
     } as Record<string, string>,
@@ -589,8 +546,9 @@ if (Deno.args.includes("build")) {
   };
 
   if (useTailwind) {
-    denoJson.imports["tailwindcss"] = "npm:tailwindcss@3.4.3";
-    denoJson.imports["tailwindcss/plugin"] = "npm:tailwindcss@3.4.3/plugin.js";
+    denoJson.imports["tailwindcss"] = "npm:tailwindcss@^3.4.3";
+    denoJson.imports["@fresh/plugin-tailwind"] =
+      `jsr:@fresh/plugin-tailwind@^${FRESH_TAILWIND_VERSION}`;
   }
 
   await writeFile("deno.json", denoJson);
@@ -602,7 +560,8 @@ Started" guide here: https://fresh.deno.dev/docs/getting-started
 
 ### Usage
 
-Make sure to install Deno: https://deno.land/manual/getting_started/installation
+Make sure to install Deno:
+https://docs.deno.com/runtime/getting_started/installation
 
 Then start the project in development mode:
 
@@ -712,30 +671,33 @@ This will watch the project directory and restart as necessary.`;
 
   // Specifically print unresolvedDirectory, rather than resolvedDirectory in order to
   // not leak personal info (e.g. `/Users/MyName`)
-  tty.log("\n%cProject initialized!\n", "color: green; font-weight: bold");
+  console.log(
+    "\n%cProject initialized!\n",
+    "color: green; font-weight: bold",
+  );
 
   if (unresolvedDirectory !== ".") {
-    tty.log(
+    console.log(
       `Enter your project directory using %ccd ${unresolvedDirectory}%c.`,
       "color: cyan",
       "",
     );
   }
-  tty.log(
-    "Run %cdeno task start%c to start the project. %cCTRL-C%c to stop.",
+  console.log(
+    "Run %cdeno task dev%c to start the project. %cCTRL-C%c to stop.",
     "color: cyan",
     "",
     "color: cyan",
     "",
   );
-  tty.log();
-  tty.log(
+  console.log();
+  console.log(
     "Stuck? Join our Discord %chttps://discord.gg/deno",
     "color: cyan",
     "",
   );
-  tty.log();
-  tty.log(
+  console.log();
+  console.log(
     "%cHappy hacking! 🦕",
     "color: gray",
   );

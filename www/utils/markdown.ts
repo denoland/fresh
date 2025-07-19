@@ -6,6 +6,7 @@ import "prismjs/components/prism-diff.js";
 import "prismjs/components/prism-json.js";
 import "prismjs/components/prism-bash.js";
 import "prismjs/components/prism-yaml.js";
+import denoJson from "../../deno.json" with { type: "json" };
 
 export { extractYaml as frontMatter } from "@std/front-matter";
 
@@ -18,7 +19,7 @@ const slugger = new GitHubSlugger();
 
 Marked.marked.use(mangle());
 
-const ADMISSION_REG = /^<p>\[(info|warn|tip)\]:\s/;
+const ADMISSION_REG = /^\[(info|warn|tip)\]:\s/;
 
 export interface MarkdownHeading {
   id: string;
@@ -55,7 +56,15 @@ class DefaultRenderer extends Marked.Renderer {
     depth,
     raw,
   }: Marked.Tokens.Heading): string {
-    const slug = slugger.slug(raw);
+    let slugInput = tokens.length === 1 && tokens[0].type === "codespan"
+      ? tokens[0].text
+      : raw;
+
+    if (/^\..*\(\)$/.test(slugInput)) {
+      slugInput = slugInput.slice(1, -2);
+    }
+
+    const slug = slugger.slug(slugInput);
     const text = this.parser.parseInline(tokens);
     this.headings.push({ id: slug, html: text });
     return `<h${depth} id="${slug}"><a class="md-anchor" tabindex="-1" href="#${slug}">${text}<span aria-hidden="true">#</span></a></h${depth}>`;
@@ -76,6 +85,12 @@ class DefaultRenderer extends Marked.Renderer {
   }
 
   override code({ lang: info, text }: Marked.Tokens.Code): string {
+    // For canary only
+    text = text.replaceAll(
+      /(@fresh\/init)/g,
+      `@fresh/init@${denoJson.version}`,
+    );
+
     // format: tsx
     // format: tsx my/file.ts
     // format: tsx "This is my title"
@@ -113,22 +128,27 @@ class DefaultRenderer extends Marked.Renderer {
     return out;
   }
 
-  override blockquote({ text }: Marked.Tokens.Blockquote): string {
+  override blockquote({ text, tokens }: Marked.Tokens.Blockquote): string {
     const match = text.match(ADMISSION_REG);
+
     if (match) {
       const label: Record<string, string> = {
         tip: "Tip",
         warn: "Warning",
         info: "Info",
       };
+      Marked.walkTokens(tokens, (token) => {
+        if (token.type === "text" && token.text.startsWith(match[0])) {
+          token.text = token.text.slice(match[0].length);
+        }
+      });
       const type = match[1];
-      text = text.slice(match[0].length);
       const icon = `<svg class="icon"><use href="/icons.svg#${type}" /></svg>`;
       return `<blockquote class="admonition ${type}">\n<span class="admonition-header">${icon}${
         label[type]
-      }</span>${text}</blockquote>\n`;
+      }</span>${Marked.parser(tokens)}</blockquote>\n`;
     }
-    return `<blockquote>\n${text}</blockquote>\n`;
+    return `<blockquote>\n${Marked.parser(tokens)}</blockquote>\n`;
   }
 }
 

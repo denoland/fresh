@@ -20,7 +20,7 @@ export const handler = define.handlers({
 
 export default define.page<typeof handler>(function ShowcasePage() {
   return (
-    <>
+    <div class="bg-white">
       <Header title="showcase" active="/showcase" />
 
       <div class="flex flex-col min-h-screen">
@@ -70,7 +70,7 @@ export default define.page<typeof handler>(function ShowcasePage() {
 
         <Footer />
       </div>
-    </>
+    </div>
   );
 });
 

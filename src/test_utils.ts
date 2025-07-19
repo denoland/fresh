@@ -1,4 +1,4 @@
-import { FreshReqContext } from "./context.ts";
+import { Context } from "./context.ts";
 import type { FsAdapter } from "./fs.ts";
 import { type BuildCache, ProdBuildCache } from "./build_cache.ts";
 import type { ResolvedFreshConfig } from "./config.ts";
@@ -45,6 +45,15 @@ export class FakeServer {
     const req = new Request(url, { method: "head" });
     return await this.handler(req, STUB);
   }
+  async options(path: string): Promise<Response> {
+    const url = this.toUrl(path);
+    const req = new Request(url, { method: "options" });
+    return await this.handler(req, STUB);
+  }
+
+  async request(req: Request): Promise<Response> {
+    return await this.handler(req, STUB);
+  }
 
   private toUrl(path: string) {
     return new URL(path, "http://localhost/");
@@ -62,11 +71,12 @@ const DEFAULT_CONFIG: ResolvedFreshConfig = {
 };
 
 export function serveMiddleware<T>(
-  middleware: (ctx: FreshReqContext<T>) => Response | Promise<Response>,
+  middleware: (ctx: Context<T>) => Response | Promise<Response>,
   options: {
     config?: ResolvedFreshConfig;
     buildCache?: BuildCache;
     next?: () => Promise<Response>;
+    route?: string | null;
   } = {},
 ): FakeServer {
   return new FakeServer(async (req) => {
@@ -76,10 +86,11 @@ export function serveMiddleware<T>(
     const buildCache = options.buildCache ??
       new ProdBuildCache(config, new Map(), new Map(), true);
 
-    const ctx = new FreshReqContext<T>(
+    const ctx = new Context<T>(
       req,
       new URL(req.url),
       DEFAULT_CONN_INFO,
+      options.route ?? null,
       {},
       config,
       () => Promise.resolve(next()),
@@ -117,3 +128,19 @@ export function createFakeFs(files: Record<string, unknown>): FsAdapter {
 }
 
 export const delay = (ms: number) => new Promise((r) => setTimeout(r, ms));
+
+export async function withTmpDir(
+  options?: Deno.MakeTempOptions,
+): Promise<{ dir: string } & AsyncDisposable> {
+  const dir = await Deno.makeTempDir(options);
+  return {
+    dir,
+    async [Symbol.asyncDispose]() {
+      try {
+        await Deno.remove(dir, { recursive: true });
+      } catch {
+        // Ignore errors Files in tmp will be cleaned up by the OS
+      }
+    },
+  };
+}

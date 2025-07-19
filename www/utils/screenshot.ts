@@ -1,48 +1,56 @@
-import puppeteer from "https://deno.land/x/puppeteer@16.2.0/mod.ts";
-import { Image } from "https://deno.land/x/imagescript@1.2.17/mod.ts";
-import { join } from "https://deno.land/std@0.216.0/path/mod.ts";
+import { launch } from "@astral/astral";
+import { Image } from "imagescript";
 
-const url = Deno.args[0];
-const id = Deno.args[1];
-
-if (Deno.args.length == 0) {
-  // deno-lint-ignore no-console
-  console.log("Usage: screenshot <url> <id>");
-  Deno.exit(0);
+export function validateArgs(args: string[]): [string, string] {
+  if (args.length !== 2) {
+    throw new Error("Usage: screenshot <url> <id>");
+  }
+  return [args[0], args[1]];
 }
 
-if (!(url.match(/^http[s]?:\/\//)) || !url) {
-  // deno-lint-ignore no-console
-  console.log("Provided URL is Broken or Wrong");
-  Deno.exit(0);
+export function validateUrl(url: string): URL {
+  const parsedUrl = new URL(url);
+  if (parsedUrl.protocol !== "http:" && parsedUrl.protocol !== "https:") {
+    throw new Error("Invalid URL");
+  }
+  return parsedUrl;
 }
 
-if (!id) {
-  // deno-lint-ignore no-console
-  console.log("Provide id to Process");
-  Deno.exit(0);
+export function generateFilePaths(
+  id: string,
+): { image2x: string; image1x: string } {
+  return {
+    image2x: `./www/static/showcase/${id}2x.jpg`,
+    image1x: `./www/static/showcase/${id}1x.jpg`,
+  };
 }
 
-const outDir = "./www/static/showcase";
-const browser = await puppeteer.launch({
-  defaultViewport: { width: 1200, height: 675 },
-});
-const page = await browser.newPage();
-await page.goto(url, { waitUntil: "networkidle2" });
-const raw = await page.screenshot();
+export async function captureScreenshot(
+  url: string,
+  id: string,
+): Promise<void> {
+  const browser = await launch();
+  try {
+    const page = await browser.newPage(url);
+    await page.waitForNetworkIdle();
+    const raw = await page.screenshot();
 
-await browser.close();
+    const image2x = await Image.decode(raw);
+    const { image2x: path2x, image1x: path1x } = generateFilePaths(id);
 
-if (!(raw instanceof Uint8Array)) {
-  // deno-lint-ignore no-console
-  console.log("Invalid Image");
-  Deno.exit(0);
+    await Deno.writeFile(path2x, await image2x.encodeJPEG(80));
+    const image1x = image2x.resize(image2x.width / 2, Image.RESIZE_AUTO);
+    await Deno.writeFile(path1x, await image1x.encodeJPEG(80));
+  } finally {
+    await browser.close();
+  }
 }
-// convert to jpeg
-const image2x = await Image.decode(raw);
-const jpeg2x = join(outDir, `${id}2x.jpg`);
-await Deno.writeFile(jpeg2x, await image2x.encodeJPEG(80));
 
-const jpeg1x = join(outDir, `${id}1x.jpg`);
-const image1x = image2x.resize(image2x.width / 2, Image.RESIZE_AUTO);
-await Deno.writeFile(jpeg1x, await image1x.encodeJPEG(80));
+// only run the script if it's the main module
+if (import.meta.main) {
+  const [url, id] = validateArgs(Deno.args);
+  validateUrl(url);
+  await captureScreenshot(url, id);
+  // deno-lint-ignore no-console
+  console.log(`Screenshot saved as ${id}1x.jpg and ${id}2x.jpg`);
+}

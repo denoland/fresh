@@ -1,37 +1,26 @@
-import * as path from "@std/path";
 import { expect } from "@std/expect";
 
 Deno.test("JSX precompile - check config", async () => {
-  const cwd = path.join(import.meta.dirname!, "fixture_precompile", "invalid");
-  const output = await new Deno.Command(Deno.execPath(), {
-    args: [
-      "run",
-      "-A",
-      path.join(cwd, "dev.ts"),
-    ],
-    cwd,
+  const { stderr, success } = await new Deno.Command(Deno.execPath(), {
+    args: ["run", "-A", "dev.ts"],
+    cwd: new URL("./fixture_precompile/invalid", import.meta.url),
   }).output();
 
-  const stderr = new TextDecoder().decode(output.stderr);
-  expect(stderr).toContain("jsxPrecompileSkipElements to contain");
-  expect(output.code).toEqual(1);
+  const stderrText = new TextDecoder().decode(stderr);
+  expect(stderrText).toContain("jsxPrecompileSkipElements to contain");
+  expect(success).toEqual(false);
 });
 
 Deno.test("JSX precompile - run vnode hooks", async () => {
-  const cwd = path.join(import.meta.dirname!, "fixture_precompile", "valid");
-  const output = await new Deno.Command(Deno.execPath(), {
-    args: [
-      "run",
-      "-A",
-      path.join(cwd, "main.tsx"),
-    ],
-    cwd,
+  const { stdout, success } = await new Deno.Command(Deno.execPath(), {
+    args: ["run", "-A", "main.tsx"],
+    cwd: new URL("./fixture_precompile/valid", import.meta.url),
   }).output();
 
-  const stdout = new TextDecoder().decode(output.stdout);
-  expect(stdout).toContain('<img src="/foo.jpg?__frsh_c=');
-  expect(stdout).toContain('<source src="/bar.jpg?__frsh_c=');
-  expect(stdout).toContain('<div f-client-nav="true">');
-  expect(stdout).toContain('<span f-client-nav="false">');
-  expect(output.code).toEqual(0);
+  const stdoutText = new TextDecoder().decode(stdout);
+  expect(stdoutText).toContain('<img src="/foo.jpg?__frsh_c=');
+  expect(stdoutText).toContain('<source src="/bar.jpg?__frsh_c=');
+  expect(stdoutText).toContain('<div f-client-nav="true">');
+  expect(stdoutText).toContain('<span f-client-nav="false">');
+  expect(success).toEqual(true);
 });

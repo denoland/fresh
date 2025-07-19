@@ -3,7 +3,7 @@ on:
   push:
     branches: [main]
   pull_request:
-    branches: main
+    branches: [main]
 
 jobs:
   deploy:
@@ -19,17 +19,18 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Install Deno
-        uses: denoland/setup-deno@v1
+        uses: denoland/setup-deno@v2
         with:
+          cache: true
           deno-version: rc
 
       - name: Build step
         working-directory: ./www
-        run: "deno task build" # 📝 Update the build command(s) if necessary
+        run: "deno task build"
 
       - name: Upload to Deno Deploy
         uses: denoland/deployctl@v1
         with:
-          project: "fresh" # 📝 Update the deploy project name if necessary
-          entrypoint: "./www/main.ts" # 📝 Update the entrypoint if necessary
+          project: "fresh"
+          entrypoint: "./www/main.ts"
           root: "."

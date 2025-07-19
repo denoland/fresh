@@ -1,21 +1,24 @@
 import * as path from "@std/path";
 import { contentType as getContentType } from "@std/media-types/content-type";
-import type { MiddlewareFn } from "fresh";
+import type { MiddlewareFn } from "./mod.ts";
 import { ASSET_CACHE_BUST_KEY } from "../runtime/shared_internal.tsx";
 import { BUILD_ID } from "../runtime/build_id.ts";
+import { tracer } from "../otel.ts";
 import { getBuildCache } from "../context.ts";
 
 /**
- * Fresh middleware to enable file-system based routing.
+ * Fresh middleware to serve static files from the `static/` directory.
  * ```ts
  * // Enable Fresh static file serving
- * app.use(freshStaticFles());
+ * app.use(staticFiles());
  * ```
  */
 export function staticFiles<T>(): MiddlewareFn<T> {
-  return async function freshStaticFiles(ctx) {
+  return async function freshServeStaticFiles(ctx) {
     const { req, url, config } = ctx;
+
     const buildCache = getBuildCache(ctx);
+    if (buildCache === null) return await ctx.next();
 
     let pathname = decodeURIComponent(url.pathname);
     if (config.basePath) {
@@ -25,13 +28,14 @@ export function staticFiles<T>(): MiddlewareFn<T> {
     }
 
     // Fast path bail out
+    const startTime = performance.now() + performance.timeOrigin;
     const file = await buildCache.readFile(pathname);
     if (pathname === "/" || file === null) {
       // Optimization: Prevent long responses for favicon.ico requests
       if (pathname === "/favicon.ico") {
         return new Response(null, { status: 404 });
       }
-      return ctx.next();
+      return await ctx.next();
     }
 
     if (req.method !== "GET" && req.method !== "HEAD") {
@@ -39,56 +43,74 @@ export function staticFiles<T>(): MiddlewareFn<T> {
       return new Response("Method Not Allowed", { status: 405 });
     }
 
-    const cacheKey = url.searchParams.get(ASSET_CACHE_BUST_KEY);
-    if (cacheKey !== null && BUILD_ID !== cacheKey) {
-      url.searchParams.delete(ASSET_CACHE_BUST_KEY);
-      const location = url.pathname + url.search;
-      file.close();
-      return new Response(null, {
-        status: 307,
-        headers: {
-          location,
-        },
-      });
-    }
-
-    const ext = path.extname(pathname);
-    const etag = file.hash;
-
-    const contentType = getContentType(ext);
-    const headers = new Headers({
-      "Content-Type": contentType ?? "text/plain",
-      vary: "If-None-Match",
+    const span = tracer.startSpan("static file", {
+      attributes: { "fresh.span_type": "static_file" },
+      startTime,
     });
 
-    if (cacheKey === null || ctx.config.mode === "development") {
-      headers.append(
-        "Cache-Control",
-        "no-cache, no-store, max-age=0, must-revalidate",
-      );
-    } else {
+    try {
+      const cacheKey = url.searchParams.get(ASSET_CACHE_BUST_KEY);
+      if (cacheKey !== null && BUILD_ID !== cacheKey) {
+        url.searchParams.delete(ASSET_CACHE_BUST_KEY);
+        const location = url.pathname + url.search;
+        file.close();
+        span.setAttribute("fresh.cache", "invalid_bust_key");
+        span.setAttribute("fresh.cache_key", cacheKey);
+        return new Response(null, {
+          status: 307,
+          headers: {
+            location,
+          },
+        });
+      }
+
+      const ext = path.extname(pathname);
+      const etag = file.hash;
+
+      const contentType = getContentType(ext);
+      const headers = new Headers({
+        "Content-Type": contentType ?? "text/plain",
+        vary: "If-None-Match",
+      });
+
       const ifNoneMatch = req.headers.get("If-None-Match");
       if (
         ifNoneMatch !== null &&
         (ifNoneMatch === etag || ifNoneMatch === `W/"${etag}"`)
       ) {
         file.close();
+        span.setAttribute("fresh.cache", "not_modified");
         return new Response(null, { status: 304, headers });
       } else if (etag !== null) {
         headers.set("Etag", `W/"${etag}"`);
       }
-    }
 
-    if (BUILD_ID === cacheKey) {
-      headers.append("Cache-Control", "public, max-age=31536000, immutable");
-    }
+      if (
+        ctx.config.mode !== "development" &&
+        (BUILD_ID === cacheKey ||
+          url.pathname.startsWith(
+            `${ctx.config.basePath}/_fresh/js/${BUILD_ID}/`,
+          ))
+      ) {
+        span.setAttribute("fresh.cache", "immutable");
+        headers.append("Cache-Control", "public, max-age=31536000, immutable");
+      } else {
+        span.setAttribute("fresh.cache", "no_cache");
+        headers.append(
+          "Cache-Control",
+          "no-cache, no-store, max-age=0, must-revalidate",
+        );
+      }
 
-    headers.set("Content-Length", String(file.size));
-    if (req.method === "HEAD") {
-      file.close();
-      return new Response(null, { status: 200, headers });
-    }
+      headers.set("Content-Length", String(file.size));
+      if (req.method === "HEAD") {
+        file.close();
+        return new Response(null, { status: 200, headers });
+      }
 
-    return new Response(file.readable, { headers });
+      return new Response(file.readable, { headers });
+    } finally {
+      span.end();
+    }
   };
 }

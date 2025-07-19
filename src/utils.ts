@@ -1,29 +1,5 @@
 import * as path from "@std/path";
 
-const PERIODS = {
-  year: 365 * 24 * 60 * 60 * 1000,
-  month: 30 * 24 * 60 * 60 * 1000,
-  week: 7 * 24 * 60 * 60 * 1000,
-  day: 24 * 60 * 60 * 1000,
-  hour: 60 * 60 * 1000,
-  minute: 60 * 1000,
-  seconds: 1000,
-};
-
-export function prettyTime(diff: number) {
-  if (diff > PERIODS.day) {
-    return Math.floor(diff / PERIODS.day) + "d";
-  } else if (diff > PERIODS.hour) {
-    return Math.floor(diff / PERIODS.hour) + "h";
-  } else if (diff > PERIODS.minute) {
-    return Math.floor(diff / PERIODS.minute) + "m";
-  } else if (diff > PERIODS.seconds) {
-    return Math.floor(diff / PERIODS.seconds) + "s";
-  }
-
-  return diff + "ms";
-}
-
 export function assertInDir(
   filePath: string,
   dir: string,
@@ -36,4 +12,38 @@ export function assertInDir(
   if (path.relative(dir, tmp).startsWith(".")) {
     throw new Error(`Path "${tmp}" resolved outside of "${dir}"`);
   }
+}
+
+/**
+ * Converts a file path to a valid JS export name.
+ *
+ * @example
+ * ```ts
+ * pathToExportName("/islands/foo.tsx");     // "foo"
+ * pathToExportName("/islands/foo.v2.tsx");  // "foo_v2"
+ * pathToExportName("/islands/nav-bar.tsx"); // "nav_bar"
+ * pathToExportName("/islands/_.$bar.tsx");  // "_$bar"
+ * pathToExportName("/islands/1.hello.tsx"); // "_hello"
+ * pathToExportName("/islands/collapse...repeat_-dash.tsx");
+ * // "collapse_repeat_dash"
+ * ```
+ */
+export function pathToExportName(filePath: string): string {
+  const name = path.basename(filePath, path.extname(filePath));
+  // Regex for valid JS identifier characters
+  const regex = /^[^a-z_$]|[^a-z0-9_$]/gi;
+  return name.replaceAll(regex, "_").replaceAll(/_{2,}/g, "_");
+}
+
+const SCRIPT_ESCAPE = /<\/(style|script)/gi;
+const COMMENT_ESCAPE = /<!--/gi;
+
+// See https://html.spec.whatwg.org/multipage/scripting.html#restrictions-for-contents-of-script-elements
+export function escapeScript(
+  content: string,
+  options: { json?: boolean } = {},
+): string {
+  return content
+    .replaceAll(SCRIPT_ESCAPE, "<\\/$1")
+    .replaceAll(COMMENT_ESCAPE, options.json ? "\\u003C!--" : "\\x3C!--");
 }

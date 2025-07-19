@@ -426,5 +426,11 @@
     "title": "PUBG Items",
     "link": "https://pubgitems.info",
     "image": "pubgitems"
+  },
+  {
+    "title": "Zhi's Blog",
+    "link": "https://zhi.deno.dev",
+    "github": "SisyphusZheng/me",
+    "image": "zhiblog"
   }
 ]

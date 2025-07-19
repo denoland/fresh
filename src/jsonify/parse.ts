@@ -16,10 +16,9 @@ export function parse<T = unknown>(
   custom?: CustomParser | undefined,
 ): T {
   const data = JSON.parse(value);
-
+  if (!Array.isArray(data)) return unpack([], [], data, custom) as T;
   const hydrated = new Array(data.length);
-  // deno-lint-ignore no-explicit-any
-  unpack(data, hydrated, 0, custom) as any;
+  unpack(data, hydrated, 0, custom);
   return hydrated[0];
 }
 
@@ -28,157 +27,95 @@ function unpack(
   hydrated: unknown[],
   idx: number,
   custom: CustomParser | undefined,
-): void {
-  if (idx in hydrated) return;
+): unknown {
+  switch (idx) {
+    case UNDEFINED:
+      return undefined;
+    case NULL:
+      return null;
+    case NAN:
+      return NaN;
+    case INFINITY_POS:
+      return Infinity;
+    case INFINITY_NEG:
+      return -Infinity;
+    case ZERO_NEG:
+      return -0;
+  }
+
+  if (idx in hydrated) return hydrated[idx];
 
   const current = arr[idx];
   if (typeof current === "number") {
-    switch (current) {
-      case UNDEFINED:
-        hydrated[idx] = undefined;
-        return;
-      case NULL:
-        hydrated[idx] = null;
-        return;
-      case NAN:
-        hydrated[idx] = NaN;
-        return;
-      case INFINITY_POS:
-        hydrated[idx] = Infinity;
-        return;
-      case INFINITY_NEG:
-        hydrated[idx] = -Infinity;
-        return;
-      case ZERO_NEG:
-        hydrated[idx] = -0;
-        return;
-      default:
-        hydrated[idx] = current;
-        return;
-    }
+    return hydrated[idx] = current;
   } else if (
     typeof current === "string" || typeof current === "boolean" ||
     current === null
   ) {
-    hydrated[idx] = current;
-    return;
+    return hydrated[idx] = current;
   } else if (Array.isArray(current)) {
     if (current.length > 0 && typeof current[0] === "string") {
       const name = current[0];
       if (custom !== undefined && name in custom) {
         const fn = custom[name];
         const ref = current[1];
-        unpack(arr, hydrated, ref, custom);
-        const value = hydrated[ref];
-        hydrated[idx] = fn(value);
-        return;
+        const value = unpack(arr, hydrated, ref, custom);
+        return hydrated[idx] = fn(value);
       }
       switch (name) {
         case "BigInt":
-          hydrated[idx] = BigInt(current[1]);
-          return;
+          return hydrated[idx] = BigInt(current[1]);
         case "Date":
-          hydrated[idx] = new Date(current[1]);
-          return;
+          return hydrated[idx] = new Date(current[1]);
         case "RegExp":
-          hydrated[idx] = new RegExp(current[1], current[2]);
-          return;
+          return hydrated[idx] = new RegExp(current[1], current[2]);
         case "Set": {
           const set = new Set();
           for (let i = 0; i < current[1].length; i++) {
             const ref = current[1][i];
-            unpack(arr, hydrated, ref, custom);
-            set.add(hydrated[ref]);
+            set.add(unpack(arr, hydrated, ref, custom));
           }
-          hydrated[idx] = set;
-          return;
+          return hydrated[idx] = set;
         }
         case "Map": {
           const set = new Map();
           for (let i = 0; i < current[1].length; i++) {
             const refKey = current[1][i++];
-            unpack(arr, hydrated, refKey, custom);
+            const key = unpack(arr, hydrated, refKey, custom);
             const refValue = current[1][i];
-            unpack(arr, hydrated, refValue, custom);
+            const value = unpack(arr, hydrated, refValue, custom);
 
-            set.set(hydrated[refKey], hydrated[refValue]);
+            set.set(key, value);
           }
-          hydrated[idx] = set;
-          return;
+          return hydrated[idx] = set;
         }
         case "Uint8Array":
-          hydrated[idx] = b64decode(current[1]);
-          return;
+          return hydrated[idx] = b64decode(current[1]);
       }
     } else {
       const actual = new Array(current.length);
       hydrated[idx] = actual;
       for (let i = 0; i < current.length; i++) {
         const ref = current[i];
-        if (ref < 0) {
-          switch (ref) {
-            case UNDEFINED:
-              actual[i] = undefined;
-              break;
-            case NULL:
-              actual[i] = null;
-              break;
-            case NAN:
-              actual[i] = NaN;
-              break;
-            case INFINITY_POS:
-              actual[i] = Infinity;
-              break;
-            case INFINITY_NEG:
-              actual[i] = -Infinity;
-              break;
-            case ZERO_NEG:
-              actual[i] = -0;
-              break;
-            case HOLE:
-              continue;
-          }
+        if (ref === HOLE) {
+          continue;
         } else {
-          unpack(arr, hydrated, ref, custom);
-          actual[i] = hydrated[ref];
+          actual[i] = unpack(arr, hydrated, ref, custom);
         }
       }
+      return actual;
     }
   } else if (typeof current === "object") {
     const actual: Record<string, unknown> = {};
     hydrated[idx] = actual;
-
     const keys = Object.keys(current);
     for (let i = 0; i < keys.length; i++) {
       const key = keys[i];
       // deno-lint-ignore no-explicit-any
       const ref = (current as any)[key];
-      if (ref < 0) {
-        switch (ref) {
-          case UNDEFINED:
-            actual[key] = undefined;
-            break;
-          case NULL:
-            actual[key] = null;
-            break;
-          case NAN:
-            actual[key] = NaN;
-            break;
-          case INFINITY_POS:
-            actual[key] = Infinity;
-            break;
-          case INFINITY_NEG:
-            actual[key] = -Infinity;
-            break;
-          case ZERO_NEG:
-            actual[key] = -0;
-            break;
-        }
-      } else {
-        unpack(arr, hydrated, ref, custom);
-        actual[key] = hydrated[ref];
-      }
+      actual[key] = unpack(arr, hydrated, ref, custom);
     }
+    return actual;
   }
 }
 

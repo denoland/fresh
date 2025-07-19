@@ -55,6 +55,6 @@ respectively:
 Finally a **`static/`** folder is created that contains static files that are
 automatically served "as is". [Learn more about static files][static-files].
 
-[import-map]: https://docs.deno.com/runtime/manual/basics/import_maps
-[task-runner]: https://deno.land/manual/tools/task_runner
+[import-map]: https://docs.deno.com/runtime/fundamentals/modules
+[task-runner]: https://docs.deno.com/runtime/reference/cli/task
 [static-files]: ../concepts/static-files

@@ -1,6 +1,7 @@
 import type { BuildCache, StaticFile } from "../build_cache.ts";
 import * as path from "@std/path";
-import type { ResolvedFreshConfig } from "../config.ts";
+import { SEPARATOR as WINDOWS_SEPARATOR } from "@std/path/windows/constants";
+import { getSnapshotPath, type ResolvedFreshConfig } from "../config.ts";
 import type { BuildSnapshot } from "../build_cache.ts";
 import { encodeHex } from "@std/encoding/hex";
 import { crypto } from "@std/crypto";
@@ -76,7 +77,7 @@ export class MemoryBuildCache implements DevBuildCache {
     let entry = pathname.startsWith("/") ? pathname.slice(1) : pathname;
     entry = path.join(this.config.staticDir, entry);
     const relative = path.relative(this.config.staticDir, entry);
-    if (relative.startsWith(".")) {
+    if (relative.startsWith("..")) {
       throw new Error(
         `Processed file resolved outside of static dir ${entry}`,
       );
@@ -174,7 +175,7 @@ export class DiskBuildCache implements DevBuildCache {
 
   addUnprocessedFile(pathname: string): void {
     this.#unprocessedFiles.set(
-      pathname,
+      pathname.replaceAll(WINDOWS_SEPARATOR, "/"),
       path.join(this.config.staticDir, pathname),
     );
   }
@@ -283,7 +284,7 @@ export class DiskBuildCache implements DevBuildCache {
     }
 
     await Deno.writeTextFile(
-      path.join(this.config.build.outDir, "snapshot.json"),
+      getSnapshotPath(this.config),
       JSON.stringify(snapshot, null, 2),
     );
   }

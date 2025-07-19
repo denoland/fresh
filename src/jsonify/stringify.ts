@@ -8,8 +8,11 @@ import {
 } from "./constants.ts";
 import { HOLE } from "./constants.ts";
 
-// deno-lint-ignore no-explicit-any
-export type Stringifiers = Record<string, (value: any) => any>;
+export type Stringifiers = Record<
+  string,
+  // deno-lint-ignore no-explicit-any
+  (value: any) => { value: any } | undefined
+>;
 
 /**
  * Serializes the following:
@@ -36,7 +39,7 @@ export function stringify(data: unknown, custom?: Stringifiers): string {
   const indexes = new Map<unknown, number>();
   const res = serializeInner(out, indexes, data, custom);
   if (res < 0) {
-    out.push(String(res));
+    return String(res);
   }
   return `[${out.join(",")}]`;
 }
@@ -94,8 +97,8 @@ function serializeInner(
         const res = fn(value);
         if (res === undefined) continue;
 
-        serializeInner(out, indexes, res, custom);
-        str = `["${k}",${idx + 1}]`;
+        const innerIdx = serializeInner(out, indexes, res.value, custom);
+        str = `["${k}",${innerIdx}]`;
         out[idx] = str;
         return idx;
       }
@@ -106,7 +109,7 @@ function serializeInner(
     } else if (value instanceof RegExp) {
       str += `["RegExp",${JSON.stringify(value.source)}, "${value.flags}"]`;
     } else if (value instanceof Uint8Array) {
-      str += `["Uint8Array","${b64encode(value)}"]`;
+      str += `["Uint8Array","${b64encode(value.buffer)}"]`;
     } else if (value instanceof Set) {
       const items = new Array(value.size);
       let i = 0;
@@ -158,7 +161,7 @@ const base64abc = [
  * CREDIT: https://gist.github.com/enepomnyaschih/72c423f727d395eeaa09697058238727
  * Encodes a given Uint8Array, ArrayBuffer or string into RFC4648 base64 representation
  */
-export function b64encode(buffer: ArrayBuffer): string {
+export function b64encode(buffer: ArrayBufferLike): string {
   const uint8 = new Uint8Array(buffer);
   let result = "",
     i;

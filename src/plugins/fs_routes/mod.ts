@@ -5,16 +5,12 @@ import * as path from "@std/path";
 import type { RouteConfig } from "../../types.ts";
 import type { RouteHandler } from "../../handlers.ts";
 import type { MiddlewareFn } from "../../middlewares/mod.ts";
-import {
-  type AsyncAnyComponent,
-  renderMiddleware,
-} from "./render_middleware.ts";
-import { type Method, pathToPattern } from "../../router.ts";
+import type { AsyncAnyComponent } from "../../render.ts";
+import { pathToPattern } from "../../router.ts";
 import { type HandlerFn, isHandlerByMethod } from "../../handlers.ts";
 import { type FsAdapter, fsAdapter } from "../../fs.ts";
-import { HttpError } from "../../error.ts";
 import { parseRootPath } from "../../config.ts";
-import type { FreshReqContext, PageProps } from "../../context.ts";
+import type { PageProps } from "../../render.ts";
 
 const TEST_FILE_PATTERN = /[._]test\.(?:[tj]sx?|[mc][tj]s)$/;
 const GROUP_REG = /(^|[/\\\\])\((_[^/\\\\]+)\)[/\\\\]/;
@@ -24,7 +20,10 @@ interface InternalRoute<State> {
   base: string;
   filePath: string;
   config: RouteConfig | null;
-  handlers: RouteHandler<unknown, State> | null;
+  handlers:
+    | MiddlewareFn<State>[]
+    | RouteHandler<unknown, State>
+    | null;
   component: AnyComponent<PageProps<unknown, State>> | null;
 }
 
@@ -47,6 +46,12 @@ function isFreshFile<State>(mod: any): mod is FreshFsItem<State> {
 }
 
 export interface FsRoutesOptions {
+  /**
+   * Parent directory for the `/routes` and `/islands` folders.
+   *
+   * By default, the `root` config option of the provided app is used.
+   * @default app.config.root
+   */
   dir?: string;
   ignoreFilePattern?: RegExp[];
   loadRoute: (path: string) => Promise<unknown>;
@@ -156,207 +161,114 @@ export async function fsRoutes<State>(
   );
 
   routeModules.sort((a, b) => sortRoutePaths(a.path, b.path));
-
-  const stack: InternalRoute<State>[] = [];
-  let hasApp = false;
-
-  const specialPaths = new Set<string>();
+  const errorPaths = new Set<string>();
 
   for (let i = 0; i < routeModules.length; i++) {
     const routeMod = routeModules[i];
     const normalized = routeMod.path;
 
-    let j = stack.length - 1;
-    while (
-      j >= 0 && stack[j].base !== "" &&
-      !routeMod.path.startsWith(stack[j].base + "/")
-    ) {
-      j--;
-      stack.pop();
-    }
-
     if (normalized.endsWith("/_app")) {
-      hasApp = true;
-      stack.push(routeMod);
+      const component = routeMod.component;
+      if (component !== null) {
+        app.appWrapper(component);
+      }
       continue;
     } else if (normalized.endsWith("/_middleware")) {
-      stack.push(routeMod);
+      if (routeMod.handlers === null) continue;
+
+      if (isHandlerByMethod(routeMod.handlers)) {
+        warnInvalidRoute(
+          "Middleware does not support object handlers with GET, POST, etc.",
+        );
+        continue;
+      }
+      const pattern = pathToPattern(
+        normalized.slice(1, -"/_middleware".length),
+        { keepGroups: true },
+      );
+
+      const handlers = (Array.isArray(routeMod.handlers)
+        ? routeMod.handlers
+        : [routeMod.handlers]) as MiddlewareFn<State>[];
+
+      app.use(pattern, ...handlers);
+
       continue;
     } else if (normalized.endsWith("/_layout")) {
-      stack.push(routeMod);
+      if (routeMod.handlers !== null) {
+        warnInvalidRoute("Layout does not support handlers");
+      }
+
+      const pattern = pathToPattern(normalized.slice(1, -"/_layout".length), {
+        keepGroups: true,
+      });
+      const { component, config } = routeMod;
+      if (component !== null) {
+        app.layout(pattern, component, config ?? undefined);
+      }
       continue;
     } else if (normalized.endsWith("/_error")) {
-      stack.push(routeMod);
+      const pattern = pathToPattern(normalized.slice(1, -"/_error".length), {
+        keepGroups: true,
+      });
+      errorPaths.add(pattern);
+      app.onError(pattern, {
+        config: routeMod.config ?? undefined,
+        component: routeMod.component ?? undefined,
+        // deno-lint-ignore no-explicit-any
+        handler: routeMod.handlers as any ?? undefined,
+      });
       continue;
     } else if (normalized.endsWith("/_404")) {
-      stack.push(routeMod);
+      app.notFound({
+        config: routeMod.config ?? undefined,
+        component: routeMod.component ?? undefined,
+        // deno-lint-ignore no-explicit-any
+        handler: routeMod.handlers as any ?? undefined,
+      });
       continue;
     } else if (normalized.endsWith("/_500")) {
-      stack.push(routeMod);
+      const pattern = pathToPattern(normalized.slice(1, -"/_500".length), {
+        keepGroups: true,
+      });
+      if (errorPaths.has(pattern)) continue;
+
+      app.onError(pattern, {
+        config: routeMod.config ?? undefined,
+        component: routeMod.component ?? undefined,
+        // deno-lint-ignore no-explicit-any
+        handler: routeMod.handlers as any ?? undefined,
+      });
       continue;
     }
 
-    // Remove any elements not matching our parent path anymore
-    const middlewares: MiddlewareFn<State>[] = [];
-    let components: AnyComponent<PageProps<unknown, State>>[] = [];
-
-    let skipApp = !!routeMod.config?.skipAppWrapper;
-    const skipLayouts = !!routeMod.config?.skipInheritedLayouts;
-
-    for (let k = 0; k < stack.length; k++) {
-      const mod = stack[k];
-      if (mod.path.endsWith("/_middleware")) {
-        if (mod.handlers !== null && !isHandlerByMethod(mod.handlers)) {
-          middlewares.push(mod.handlers as MiddlewareFn<State>);
-        } else if (Array.isArray(mod.handlers)) {
-          middlewares.push(...mod.handlers);
-        }
-      }
-
-      // _app template
-      if (skipApp && mod.path === "/_app") {
-        hasApp = false;
-        continue;
-      } else if (!skipApp && mod.config?.skipAppWrapper) {
-        skipApp = true;
-        if (hasApp) {
-          hasApp = false;
-          // _app component is always first
-          components.shift();
-        }
-      }
-
-      // _layouts
-      if (skipLayouts && mod.path.endsWith("/_layout")) {
-        continue;
-      } else if (!skipLayouts && mod.config?.skipInheritedLayouts) {
-        const first = components.length > 0 ? components[0] : null;
-        components = [];
-
-        if (!skipApp && hasApp && first !== null) {
-          components.push(first);
-        }
-      }
-
-      if (mod.path.endsWith("/_error") || mod.path.endsWith("/_500")) {
-        const handlers = mod.handlers;
-        const handler = handlers === null ||
-            (isHandlerByMethod(handlers) && Object.keys(handlers).length === 0)
-          ? undefined
-          : typeof handlers === "function"
-          ? handlers
-          : undefined; // FIXME: Method handler
-        const errorComponents = components.slice();
-        if (mod.component !== null) {
-          errorComponents.push(mod.component);
-        }
-        let parent = mod.path.slice(0, -"_error".length);
-        parent = parent === "/" ? "*" : parent + "*";
-
-        // Add error route as its own route
-        if (!specialPaths.has(mod.path)) {
-          specialPaths.add(mod.path);
-          app.all(
-            parent,
-            errorMiddleware(errorComponents, handler),
-          );
-        }
-        middlewares.push(errorMiddleware(errorComponents, handler));
-        continue;
-      }
-
-      if (mod.path.endsWith("/_404")) {
-        const handlers = mod.handlers;
-        const handler = handlers === null ||
-            (isHandlerByMethod(handlers) && Object.keys(handlers).length === 0)
-          ? undefined
-          : typeof handlers === "function"
-          ? handlers
-          : undefined; // FIXME: Method handler
-        const notFoundComponents = components.slice();
-        if (mod.component !== null) {
-          notFoundComponents.push(mod.component);
-        }
-        app.use(notFoundMiddleware(notFoundComponents, handler));
-        continue;
-      }
-
-      if (mod.component !== null) {
-        components.push(mod.component);
+    let pattern = pathToPattern(normalized.slice(1), { keepGroups: true });
+    if (normalized.endsWith("/index")) {
+      if (!pattern.endsWith("/")) {
+        pattern += "/";
       }
     }
 
-    const handlers = routeMod.handlers;
-    const routePath = routeMod.config?.routeOverride ??
-      pathToPattern(normalized.slice(1));
+    const routePattern = pathToPattern(normalized.slice(1));
 
-    if (routeMod.component !== null) {
-      components.push(routeMod.component);
-      const missingGetHandler = handlers !== null &&
-        isHandlerByMethod(handlers) &&
-        !Object.keys(handlers).includes("GET");
-      if (missingGetHandler) {
-        app.get(routePath, renderMiddleware(components, undefined));
-      }
-    }
-
-    if (
-      handlers === null ||
-      (isHandlerByMethod(handlers) && Object.keys(handlers).length === 0)
-    ) {
-      const combined = middlewares.concat(
-        renderMiddleware(components, undefined),
-      );
-      app.get(routePath, ...combined);
-    } else if (isHandlerByMethod(handlers)) {
-      for (const method of Object.keys(handlers) as Method[]) {
-        const fn = handlers[method];
-
-        if (fn !== undefined) {
-          const combined = middlewares.concat(renderMiddleware(components, fn));
-          const lower = method.toLowerCase() as Lowercase<Method>;
-          app[lower](routePath, ...combined);
-        }
-      }
-    } else if (typeof handlers === "function") {
-      const combined = middlewares.concat(
-        renderMiddleware(components, handlers),
-      );
-      app.all(routePath, ...combined);
-    }
+    app.route(pattern, {
+      config: {
+        ...routeMod.config ?? undefined,
+        routeOverride: routeMod.config?.routeOverride ?? routePattern,
+      },
+      component: routeMod.component ?? undefined,
+      // deno-lint-ignore no-explicit-any
+      handler: routeMod.handlers as any ?? undefined,
+    });
   }
 }
 
-function errorMiddleware<State>(
-  components: AnyComponent<PageProps<unknown, State>>[],
-  handler: HandlerFn<unknown, State> | undefined,
-): MiddlewareFn<State> {
-  const mid = renderMiddleware<State>(components, handler);
-  return async function errorMiddleware(ctx) {
-    try {
-      return await ctx.next();
-    } catch (err) {
-      (ctx as FreshReqContext<State>).error = err;
-      return mid(ctx);
-    }
-  };
-}
-
-function notFoundMiddleware<State>(
-  components: AnyComponent<PageProps<unknown, State>>[],
-  handler: HandlerFn<unknown, State> | undefined,
-): MiddlewareFn<State> {
-  const mid = renderMiddleware<State>(components, handler);
-  return async function notFoundMiddleware(ctx) {
-    try {
-      return await ctx.next();
-    } catch (err) {
-      if (err instanceof HttpError && err.status === 404) {
-        return mid(ctx);
-      }
-      throw err;
-    }
-  };
+function warnInvalidRoute(message: string) {
+  // deno-lint-ignore no-console
+  console.warn(
+    `🍋 %c[WARNING] Unsupported route config: ${message}`,
+    "color:rgb(251, 184, 0)",
+  );
 }
 
 async function walkDir(
@@ -390,16 +302,29 @@ export function sortRoutePaths(a: string, b: string) {
   if (APP_REG.test(a)) return -1;
   else if (APP_REG.test(b)) return 1;
 
-  let segmentIdx = 0;
   const aLen = a.length;
   const bLen = b.length;
-  const maxLen = aLen > bLen ? aLen : bLen;
-  for (let i = 0; i < maxLen; i++) {
-    const charA = a.charAt(i);
-    const charB = b.charAt(i);
+
+  let segment = false;
+  let aIdx = 0;
+  let bIdx = 0;
+  for (; aIdx < aLen && bIdx < bLen; aIdx++, bIdx++) {
+    const charA = a.charAt(aIdx);
+    const charB = b.charAt(bIdx);
+
+    // When comparing a grouped route with a non-grouped one, we
+    // need to skip over the group name to effectively compare the
+    // actual route.
+    if (charA === "(" && charB !== "(") {
+      if (charB == "[") return -1;
+      return 1;
+    } else if (charB === "(" && charA !== "(") {
+      if (charA == "[") return 1;
+      return -1;
+    }
 
     if (charA === "/" || charB === "/") {
-      segmentIdx = i;
+      segment = true;
 
       // If the other path doesn't close the segment
       // then we don't need to continue
@@ -409,9 +334,11 @@ export function sortRoutePaths(a: string, b: string) {
       continue;
     }
 
-    if (i === segmentIdx + 1) {
-      const scoreA = getRoutePathScore(charA, a, i);
-      const scoreB = getRoutePathScore(charB, b, i);
+    if (segment) {
+      segment = false;
+
+      const scoreA = getRoutePathScore(charA, a, aIdx);
+      const scoreB = getRoutePathScore(charB, b, bIdx);
       if (scoreA === scoreB) {
         if (charA !== charB) {
           // TODO: Do we need localeSort here or is this good enough?
@@ -426,6 +353,14 @@ export function sortRoutePaths(a: string, b: string) {
     if (charA !== charB) {
       // TODO: Do we need localeSort here or is this good enough?
       return charA < charB ? 0 : 1;
+    }
+
+    // If we're at the end of A or B, then we assume that the longer
+    // path is more specific
+    if (aIdx === aLen - 1 && bIdx < bLen - 1) {
+      return 1;
+    } else if (bIdx === bLen - 1 && aIdx < aLen - 1) {
+      return -1;
     }
   }
 
