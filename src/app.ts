@@ -301,7 +301,10 @@ export class App<State> {
     ensureHandler(route);
     middlewares.push((ctx) => renderRoute(ctx, route));
 
-    const routePath = route.config?.routeOverride ?? path;
+    const routePath = mergePath(
+      this.config.basePath,
+      route.config?.routeOverride ?? path,
+    );
 
     if (typeof route.handler === "function") {
       this.#addRoute("ALL", routePath, middlewares);

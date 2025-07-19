@@ -631,3 +631,23 @@ Deno.test("App - uses notFound route on 404", async () => {
   res = await server.get("/thrower_2");
   expect(await res.text()).toEqual("error route");
 });
+
+// Issue: https://github.com/denoland/fresh/issues/3115
+Deno.test("App - .route() with basePath", async () => {
+  const app = new App({ basePath: "/foo/bar" })
+    .route("/", { handler: () => new Response("ok") });
+
+  const server = new FakeServer(app.handler());
+
+  let res = await server.delete("/");
+  await res.body?.cancel();
+  expect(res.status).toEqual(404);
+
+  res = await server.delete("/foo");
+  await res.body?.cancel();
+  expect(res.status).toEqual(404);
+
+  res = await server.delete("/foo/bar");
+  expect(await res.text()).toEqual("ok");
+  expect(res.status).toEqual(200);
+});
