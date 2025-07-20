@@ -427,5 +427,11 @@
     "link": "https://zhi.deno.dev",
     "github": "SisyphusZheng/me",
     "image": "zhiblog"
+  },
+  {
+    "title": "Moatez's desktop",
+    "link": "https://moatez-bejaoui.deno.dev",
+    "github": "https://github.com/MoatezNG",
+    "image": "moatez-desktop"
   }
 ]
