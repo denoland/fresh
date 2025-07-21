@@ -8,7 +8,7 @@ const builder = new Builder({ target: "safari12" });
 tailwind(builder, app);
 
 if (Deno.args.includes("build")) {
-  builder.build(app);
+  await builder.build(app);
 } else {
-  builder.listen(app);
+  await builder.listen(app);
 }
