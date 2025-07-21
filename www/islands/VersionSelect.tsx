@@ -36,7 +36,7 @@ export default function VersionSelect(
           id="version"
           class={`rounded-md block border border-foreground-primary/20 appearance-none bg-background-primary form-select-bg font-semibold ${
             selectedIsLatest ? "pr-22" : "pr-10"
-          } py-2 pl-3 w-full h-full leading-none sm:(text-sm leading-5) focus:(outline-hidden border-blue-300) hover:bg-background-secondary`}
+          } py-2 pl-3 w-full h-full leading-none sm:text-sm sm:leading-5 focus:outline-hidden focus:border-blue-300 hover:bg-background-secondary`}
           value={selectedVersion}
           onChange={(e) => {
             if (e.currentTarget.value !== selectedVersion) {
