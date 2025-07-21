@@ -312,7 +312,7 @@ html {
 .border-2 {
   border-width: 2px;
 }
-.rounded {
+.rounded-sm {
   border-radius: 0.25rem;
 }
 .hover\\:bg-gray-200:hover {
@@ -405,7 +405,7 @@ export function Button(props: ButtonProps) {
   return (
     <button
       {...props}
-      class="px-2 py-1 border-gray-500 border-2 rounded bg-white hover:bg-gray-200 transition-colors"
+      class="px-2 py-1 border-gray-500 border-2 rounded-sm bg-white hover:bg-gray-200 transition-colors"
     />
   );
 }`;

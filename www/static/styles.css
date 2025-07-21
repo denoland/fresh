@@ -5,7 +5,7 @@
   --fresh: hsla(50, 100%, 56%, 1);
   --fresh-green: hsla(142, 71%, 29%, 1);
 
-  --background-primary: 215deg, 100%, 100%;
+  --background-primary: hsla(215deg, 100%, 100%, 1);
   --background-secondary: hsla(210, 29%, 97%, 1);
   --background-tertiary: hsla(207, 33%, 95%, 1);
   --foreground-primary: hsla(0, 0%, 9%, 1);
@@ -19,13 +19,13 @@ html[data-theme="dark"]:root {
   --fresh: hsla(50, 100%, 56%, 1);
   --fresh-green: hsla(142, 71%, 29%, 1);
 
-  --background-primary: 220deg, 11%, 11%;
-  --background-secondary: 216deg, 19%, 18%;
-  --background-tertiary: 216deg, 27.7%, 22%;
-  --foreground-primary: 215deg, 17%, 99%;
-  --foreground-secondary: 215deg, 17%, 83%;
-  --foreground-tertiary: 215deg, 17%, 20%;
-  --foreground-quaternary: 215deg, 17%, 10%;
+  --background-primary: hsla(220deg, 11%, 11%, 1);
+  --background-secondary: hsla(216deg, 19%, 18%, 1);
+  --background-tertiary: hsla(216deg, 27.7%, 22%, 1);
+  --foreground-primary: hsla(215deg, 17%, 99%, 1);
+  --foreground-secondary: hsla(215deg, 17%, 83%, 1);
+  --foreground-tertiary: hsla(215deg, 17%, 20%, 1);
+  --foreground-quaternary: hsla(215deg, 17%, 10%, 1);
 
   --info: hsla(194, 76%, 41%, 1);
 
