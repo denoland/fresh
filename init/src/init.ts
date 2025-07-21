@@ -3,10 +3,13 @@ import * as colors from "@std/fmt/colors";
 import * as path from "@std/path";
 
 // Keep these as is, as we replace these version in our release script
-const FRESH_VERSION = "2.0.0-alpha.37";
-const FRESH_TAILWIND_VERSION = "0.0.1-alpha.7";
+const FRESH_VERSION = "2.0.0-alpha.43";
+const FRESH_TAILWIND_VERSION = "0.0.1-alpha.8";
 const PREACT_VERSION = "10.26.9";
 const PREACT_SIGNALS_VERSION = "2.2.1";
+const TAILWINDCSS_VERSION = "4.1.10";
+const TAILWINDCSS_POSTCSS_VERSION = "4.1.10";
+const POSTCSS_VERSION = "8.5.6";
 
 function css(strs: TemplateStringsArray, ...exprs: string[]): string {
   let out = "";
@@ -309,7 +312,7 @@ html {
 .border-2 {
   border-width: 2px;
 }
-.rounded {
+.rounded-sm {
   border-radius: 0.25rem;
 }
 .hover\\:bg-gray-200:hover {
@@ -320,11 +323,8 @@ html {
 }
 
 ${GRADIENT_CSS}`;
-
   // deno-fmt-ignore
-  const TAILWIND_CSS = css`@tailwind base;
-@tailwind components;
-@tailwind utilities;
+  const TAILWIND_CSS = css`@import "tailwindcss";
 ${GRADIENT_CSS}`;
 
   const cssStyles = useTailwind ? TAILWIND_CSS : NO_TAILWIND_STYLES;
@@ -405,7 +405,7 @@ export function Button(props: ButtonProps) {
   return (
     <button
       {...props}
-      class="px-2 py-1 border-gray-500 border-2 rounded bg-white hover:bg-gray-200 transition-colors"
+      class="px-2 py-1 border-gray-500 border-2 rounded-sm bg-white hover:bg-gray-200 transition-colors"
     />
   );
 }`;
@@ -503,7 +503,7 @@ import { Builder } from "fresh/dev";
 import { app } from "./main.ts";
 
 const builder = new Builder();
-${useTailwind ? "tailwind(builder, app, {});" : ""}
+${useTailwind ? "tailwind(builder, app);" : ""}
 if (Deno.args.includes("build")) {
   await builder.build(app);
 } else {
@@ -512,6 +512,7 @@ if (Deno.args.includes("build")) {
   await writeFile("dev.ts", DEV_TS);
 
   const denoJson = {
+    nodeModulesDir: "auto",
     tasks: {
       check: "deno fmt --check . && deno lint . && deno check",
       dev: "deno run -A --watch=static/,routes/ dev.ts",
@@ -546,9 +547,12 @@ if (Deno.args.includes("build")) {
   };
 
   if (useTailwind) {
-    denoJson.imports["tailwindcss"] = "npm:tailwindcss@^3.4.3";
+    denoJson.imports["tailwindcss"] = `npm:tailwindcss@^${TAILWINDCSS_VERSION}`;
     denoJson.imports["@fresh/plugin-tailwind"] =
       `jsr:@fresh/plugin-tailwind@^${FRESH_TAILWIND_VERSION}`;
+    denoJson.imports["@tailwindcss/postcss"] =
+      `npm:@tailwindcss/postcss@^${TAILWINDCSS_POSTCSS_VERSION}`;
+    denoJson.imports["postcss"] = `npm:postcss@^${POSTCSS_VERSION}`;
   }
 
   await writeFile("deno.json", denoJson);

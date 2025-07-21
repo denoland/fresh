@@ -205,3 +205,22 @@ Deno.test("static files - decoded pathname", async () => {
     expect(res.status).toEqual(200);
   }
 });
+
+Deno.test("static files - fallthrough", async () => {
+  const buildCache = new MockBuildCache({
+    "foo.css": { content: "body {}", hash: null },
+  });
+
+  const server = serveMiddleware(
+    staticFiles(),
+    { buildCache, next: () => Promise.resolve(new Response("it works")) },
+  );
+
+  let res = await server.get("foo.css");
+  let text = await res.text();
+  expect(text).toEqual("body {}");
+
+  res = await server.get("/");
+  text = await res.text();
+  expect(text).toEqual("it works");
+});

@@ -2712,3 +2712,35 @@ Deno.test({
     });
   },
 });
+
+Deno.test({
+  name: "partials - independent user popstate",
+  fn: async () => {
+    const app = testApp()
+      .get("/", (ctx) => {
+        return ctx.render(
+          <Doc>
+            <div class="container">
+            </div>
+          </Doc>,
+        );
+      });
+
+    await withBrowserApp(app, async (page, address) => {
+      await page.goto(address, { waitUntil: "load" });
+      await page.locator<HTMLDivElement>(".container").evaluate((el) => {
+        const dynamicContent = document.createElement("span");
+        dynamicContent.classList.add("dynamic-content");
+        el.appendChild(dynamicContent);
+      });
+      await page.evaluate(() => {
+        window.history.replaceState({ custom: true }, "", "#");
+        window.history.pushState({ custom: true }, "", "#custom");
+      });
+      // Fresh partials popstate gets called on back navigation and
+      // should exit early/avoid reload due to custom user history entries
+      await page.evaluate(() => window.history.go(-1));
+      await page.locator(".dynamic-content").wait();
+    });
+  },
+});

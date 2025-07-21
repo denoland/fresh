@@ -1,14 +1,5 @@
 import { expect } from "@std/expect";
-import { escapeScript, mergePaths, pathToExportName } from "./utils.ts";
-
-Deno.test("mergePaths", () => {
-  expect(mergePaths("", "")).toEqual("");
-  expect(mergePaths("/", "/foo")).toEqual("/foo");
-  expect(mergePaths("/*", "/foo")).toEqual("/foo");
-  expect(mergePaths("/foo/bar", "/baz")).toEqual("/foo/bar/baz");
-  expect(mergePaths("/foo/bar/", "/baz")).toEqual("/foo/bar/baz");
-  expect(mergePaths("/foo/bar", "baz")).toEqual("/foo/bar/baz");
-});
+import { escapeScript, pathToExportName } from "./utils.ts";
 
 Deno.test("filenameToExportName", () => {
   expect(pathToExportName("/islands/foo.tsx")).toBe("foo");

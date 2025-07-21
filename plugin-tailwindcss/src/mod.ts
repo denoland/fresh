@@ -1,20 +1,26 @@
-import type { TailwindPluginOptions } from "./types.ts";
-import { initTailwind } from "./compiler.ts";
-import type { FreshBuilder } from "fresh/dev";
+import type { Builder } from "fresh/dev";
 import type { App } from "fresh";
+import twPostcss from "@tailwindcss/postcss";
+import postcss from "postcss";
+import type { TailwindPluginOptions } from "./types.ts";
+
+// Re-export types for public API
+export type { TailwindPluginOptions } from "./types.ts";
 
 export function tailwind<T>(
-  builder: FreshBuilder,
+  builder: Builder,
   app: App<T>,
   options: TailwindPluginOptions = {},
 ): void {
-  let processor: ReturnType<typeof initTailwind> | null;
+  const { exclude, ...tailwindOptions } = options;
+  const instance = postcss(twPostcss({
+    optimize: app.config.mode === "production",
+    ...tailwindOptions,
+  }));
 
   builder.onTransformStaticFile(
-    { pluginName: "tailwind", filter: /\.css$/, exclude: options.exclude },
+    { pluginName: "tailwind", filter: /\.css$/, exclude },
     async (args) => {
-      if (!processor) processor = initTailwind(app.config, options);
-      const instance = await processor;
       const res = await instance.process(args.text, {
         from: args.path,
       });
