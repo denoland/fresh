@@ -1,3 +1,6 @@
+import type { RouteHandler } from "./handlers.ts";
+import type { RouteComponent } from "./segments.ts";
+
 export interface RouteConfig {
   /**
    * A route override for the page. This is useful for pages where the route
@@ -40,6 +43,12 @@ export interface LayoutConfig {
    * Default: `false`
    */
   skipAppWrapper?: boolean;
+}
+
+export interface Route<State> {
+  component?: RouteComponent<State>;
+  config?: RouteConfig;
+  handler?: RouteHandler<unknown, State>;
 }
 
 // TODO: Uncomment once JSR supports global types

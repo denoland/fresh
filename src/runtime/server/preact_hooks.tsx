@@ -11,7 +11,7 @@ import {
 } from "preact";
 import type { Signal } from "@preact/signals";
 import type { Stringifiers } from "../../jsonify/stringify.ts";
-import type { PageProps } from "../../context.ts";
+import type { PageProps } from "../../render.ts";
 import { Partial, type PartialProps } from "../shared.ts";
 import { stringify } from "../../jsonify/stringify.ts";
 import type { ServerIslandRegistry } from "../../context.ts";
@@ -32,6 +32,7 @@ import {
 import { escape as escapeHtml } from "@std/html";
 import { HttpError } from "../../error.ts";
 import { getCodeFrame } from "../../dev/middlewares/error_overlay/code_frame.tsx";
+import { escapeScript } from "../../utils.ts";
 
 const enum OptionsType {
   ATTR = "attr",
@@ -87,7 +88,8 @@ export class RenderState {
   hasRuntimeScript = false;
 
   constructor(
-    public ctx: PageProps<unknown, unknown>,
+    // deno-lint-ignore no-explicit-any
+    public ctx: PageProps<any, any>,
     public islandRegistry: ServerIslandRegistry,
     public buildCache: BuildCache,
     public partialId: string,
@@ -455,7 +457,9 @@ function FreshRuntimeScript() {
         id={`__FRSH_STATE_${partialId}`}
         type="application/json"
         // deno-lint-ignore react-no-danger
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(json) }}
+        dangerouslySetInnerHTML={{
+          __html: escapeScript(JSON.stringify(json), { json: true }),
+        }}
       />
     );
   } else {
@@ -476,8 +480,9 @@ function FreshRuntimeScript() {
       .join(",") +
       "}";
 
-    const serializedProps = JSON.stringify(
-      stringify(islandProps, stringifiers),
+    const serializedProps = escapeScript(
+      JSON.stringify(stringify(islandProps, stringifiers)),
+      { json: true },
     );
 
     const runtimeUrl = `${basePath}/_fresh/js/${BUILD_ID}/fresh-runtime.js`;

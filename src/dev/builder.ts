@@ -35,23 +35,15 @@ export interface BuildOptions {
   target?: string | string[];
 }
 
-export interface FreshBuilder {
-  onTransformStaticFile(
-    options: OnTransformOptions,
-    callback: TransformFn,
-  ): void;
-  build<T>(app: App<T>, options?: BuildOptions): Promise<void>;
-  listen<T>(app: App<T>, options?: ListenOptions & BuildOptions): Promise<void>;
-}
-
-export class Builder implements FreshBuilder {
+export class Builder {
   #transformer = new FreshFileTransformer(fsAdapter);
   #addedInternalTransforms = false;
-  #options: { target: string | string[] };
+  #options: Required<BuildOptions>;
+  #chunksReady = Promise.withResolvers<void>();
 
-  constructor(options: BuildOptions = {}) {
+  constructor(options?: BuildOptions) {
     this.#options = {
-      target: options.target ?? ["chrome99", "firefox99", "safari15"],
+      target: options?.target ?? ["chrome99", "firefox99", "safari15"],
     };
   }
 
@@ -70,6 +62,11 @@ export class Builder implements FreshBuilder {
       .use(liveReload())
       .use(devErrorOverlay())
       .use(automaticWorkspaceFolders(app.config.root))
+      // Wait for island chunks to be ready before attempting to serve them
+      .use(async (ctx) => {
+        await this.#chunksReady.promise;
+        return await ctx.next();
+      })
       .mountApp("/*", app);
 
     devApp.config.mode = "development";
@@ -151,7 +148,9 @@ export class Builder implements FreshBuilder {
       }
     }
 
-    const denoJson = await readDenoConfigForCompilerOptions(app.config.root);
+    const denoJson = await findNearestDenoConfigWithCompilerOptions(
+      app.config.root,
+    );
 
     const jsxImportSource = denoJson.config.compilerOptions?.jsxImportSource;
     if (jsxImportSource === undefined) {
@@ -205,6 +204,8 @@ export class Builder implements FreshBuilder {
 
     await buildCache.flush();
 
+    this.#chunksReady.resolve();
+
     if (!dev) {
       // deno-lint-ignore no-console
       console.log(
@@ -223,12 +224,11 @@ export interface DenoConfig {
   };
 }
 
-export async function readDenoConfigForCompilerOptions(
+export async function findNearestDenoConfigWithCompilerOptions(
   directory: string,
 ): Promise<{ config: DenoConfig; filePath: string }> {
   let dir = directory;
-  const configs: { config: DenoConfig; filePath: string }[] = [];
-  outer: while (true) {
+  while (true) {
     for (const name of ["deno.json", "deno.jsonc"]) {
       const filePath = path.join(dir, name);
       try {
@@ -239,10 +239,8 @@ export async function readDenoConfigForCompilerOptions(
         } else {
           config = JSON.parse(file);
         }
-        configs.push({ config, filePath });
-        if (config.workspace) {
-          break outer;
-        }
+        if (config.compilerOptions) return { config, filePath };
+        if (config.workspace) break;
         break;
       } catch (err) {
         if (!(err instanceof Deno.errors.NotFound)) {
@@ -255,36 +253,7 @@ export async function readDenoConfigForCompilerOptions(
     dir = parent;
   }
 
-  if (configs.length === 0) {
-    throw new Error(
-      `Could not find a deno.json or deno.jsonc file in the current directory or any parent directory.`,
-    );
-  }
-
-  const firstConfig = configs[0];
-  const lastConfig = configs.at(-1);
-  if (lastConfig?.config.workspace) {
-    if (lastConfig === firstConfig) return lastConfig;
-    if (!Array.isArray(lastConfig.config.workspace)) {
-      throw new Error(
-        `Expected "workspace" option to be an array in: ${lastConfig.filePath}`,
-      );
-    }
-    const members = lastConfig.config.workspace.map((member) => {
-      if (typeof member !== "string") {
-        throw new Error(
-          `Expected "workspace" member to be a string in: ${lastConfig.filePath}`,
-        );
-      }
-      return path.join(lastConfig.filePath, "..", member);
-    });
-    const parent = path.dirname(firstConfig.filePath);
-    if (!members.includes(parent)) {
-      return firstConfig;
-    } else {
-      return lastConfig;
-    }
-  }
-
-  return firstConfig;
+  throw new Error(
+    `Could not find a deno.json or deno.jsonc file in the current directory or any parent directory that contains a 'compilerOptions' field.`,
+  );
 }

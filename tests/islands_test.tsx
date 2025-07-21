@@ -1,4 +1,4 @@
-import { App, fsRoutes } from "fresh";
+import { App, fsRoutes, staticFiles } from "fresh";
 import { Counter } from "./fixtures_islands/Counter.tsx";
 import { IslandInIsland } from "./fixtures_islands/IslandInIsland.tsx";
 import { JsonIsland } from "./fixtures_islands/JsonIsland.tsx";
@@ -19,7 +19,6 @@ import {
   withBrowserApp,
 } from "./test_utils.tsx";
 import { parseHtml, waitForText } from "./test_utils.tsx";
-import { staticFiles } from "../src/middlewares/static_files.ts";
 import { expect } from "@std/expect";
 import { JsxConditional } from "./fixtures_islands/JsxConditional.tsx";
 import { FnIsland } from "./fixtures_islands/FnIsland.tsx";
@@ -31,12 +30,14 @@ import { getBuildCache } from "../src/app.ts";
 import type { FreshConfig } from "../src/config.ts";
 import { FreshAttrs } from "./fixtures_islands/FreshAttrs.tsx";
 import { FakeServer } from "../src/test_utils.ts";
+import { PARTIAL_SEARCH_PARAM } from "../src/constants.ts";
 
 await buildProd(allIslandApp);
 
 function testApp(config?: FreshConfig) {
   const app = new App(config);
   setBuildCache(app, getBuildCache(allIslandApp));
+  app.use(staticFiles());
   return app;
 }
 
@@ -46,7 +47,6 @@ Deno.test({
     const counterIsland = getIsland("Counter.tsx");
 
     const app = testApp()
-      .use(staticFiles())
       .island(counterIsland, "Counter", Counter)
       .get("/", (ctx) => {
         const sig = signal(3);
@@ -72,7 +72,6 @@ Deno.test({
     const multipleIslands = getIsland("Multiple.tsx");
 
     const app = testApp()
-      .use(staticFiles())
       .island(multipleIslands, "Multiple1", Multiple1)
       .island(multipleIslands, "Multiple2", Multiple2)
       .get("/", (ctx) => {
@@ -102,7 +101,6 @@ Deno.test({
     const counterIsland = getIsland("Counter.tsx");
 
     const app = testApp()
-      .use(staticFiles())
       .island(counterIsland, "Counter", Counter)
       .get("/", (ctx) => {
         const sig = signal(0);
@@ -131,7 +129,6 @@ Deno.test({
     const jsonIsland = getIsland("JsonIsland.tsx");
 
     const app = testApp()
-      .use(staticFiles())
       .island(jsonIsland, "JsonIsland", Counter)
       .get("/", (ctx) => {
         return ctx.render(
@@ -159,7 +156,6 @@ Deno.test({
     const nullIsland = getIsland("NullIsland.tsx");
 
     const app = testApp()
-      .use(staticFiles())
       .island(nullIsland, "NullIsland", NullIsland)
       .get("/", (ctx) => {
         return ctx.render(
@@ -183,7 +179,6 @@ Deno.test({
     const islandInIsland = getIsland("IslandInIsland.tsx");
 
     const app = testApp()
-      .use(staticFiles())
       .island(counter, "Counter", Counter)
       .island(islandInIsland, "IslandInIsland", IslandInIsland)
       .get("/", (ctx) => {
@@ -212,7 +207,6 @@ Deno.test({
     const jsxIsland = getIsland("JsxIsland.tsx");
 
     const app = testApp()
-      .use(staticFiles())
       .island(jsxIsland, "JsxIsland", JsxIsland)
       .get("/", (ctx) => {
         return ctx.render(
@@ -240,7 +234,6 @@ Deno.test({
     const jsxIsland = getIsland("JsxIsland.tsx");
 
     const app = testApp()
-      .use(staticFiles())
       .island(jsxIsland, "JsxIsland", JsxIsland)
       .get("/", (ctx) => {
         return ctx.render(
@@ -270,7 +263,6 @@ Deno.test({
     const jsxChildrenIsland = getIsland("JsxChildrenIsland.tsx");
 
     const app = testApp()
-      .use(staticFiles())
       .island(jsxChildrenIsland, "JsxChildrenIsland", JsxChildrenIsland)
       .get("/", (ctx) => {
         return ctx.render(
@@ -306,7 +298,6 @@ Deno.test({
     const selfCounter = getIsland("SelfCounter.tsx");
 
     const app = testApp()
-      .use(staticFiles())
       .island(passThrough, "PassThrough", PassThrough)
       .island(selfCounter, "SelfCounter", SelfCounter)
       .get("/", (ctx) => {
@@ -338,7 +329,6 @@ Deno.test({
     const selfCounter = getIsland("SelfCounter.tsx");
 
     const app = testApp()
-      .use(staticFiles())
       .island(counterWithSlots, "CounterWithSlots", CounterWithSlots)
       .island(selfCounter, "SelfCounter", SelfCounter)
       .get("/", (ctx) => {
@@ -381,7 +371,6 @@ Deno.test({
     const selfCounter = getIsland("SelfCounter.tsx");
 
     const app = testApp()
-      .use(staticFiles())
       .island(passThrough, "PassThrough", PassThrough)
       .island(selfCounter, "SelfCounter", SelfCounter)
       .get("/", (ctx) => {
@@ -423,7 +412,6 @@ Deno.test({
     const selfCounter = getIsland("SelfCounter.tsx");
 
     const app = testApp()
-      .use(staticFiles())
       .island(jsxConditional, "JsxConditional", JsxConditional)
       .island(selfCounter, "SelfCounter", SelfCounter)
       .get("/", (ctx) => {
@@ -465,7 +453,6 @@ Deno.test({
     const jsxConditional = getIsland("JsxConditional.tsx");
 
     const app = testApp()
-      .use(staticFiles())
       .island(jsxConditional, "JsxConditional", JsxConditional)
       .get("/", (ctx) => {
         return ctx.render(
@@ -540,7 +527,6 @@ Deno.test({
     const fnIsland = getIsland("FnIsland.tsx");
 
     const app = testApp()
-      .use(staticFiles())
       .island(fragmentIsland, "FragmentIsland", FragmentIsland)
       .island(fnIsland, "FnIsland", FnIsland)
       .get("/", (ctx) => {
@@ -569,12 +555,25 @@ Deno.test({
     const escapeIsland = getIsland("EscapeIsland.tsx");
 
     const app = testApp()
-      .use(staticFiles())
       .island(escapeIsland, "EscapeIsland", EscapeIsland)
       .get("/", (ctx) => {
         return ctx.render(
           <Doc>
             <EscapeIsland str={`"foo"asdf`} />
+          </Doc>,
+        );
+      })
+      .get("/foo", (ctx) => {
+        return ctx.render(
+          <Doc>
+            <EscapeIsland str={`<script>alert('hey')</script>`} />
+          </Doc>,
+        );
+      })
+      .get("/bar", (ctx) => {
+        return ctx.render(
+          <Doc>
+            <EscapeIsland str={`<!--<script>alert('hey')</script>`} />
           </Doc>,
         );
       });
@@ -585,9 +584,63 @@ Deno.test({
 
       // Page would error here
       const text = await page
-        .locator<HTMLDivElement>(".ready")
+        .locator<HTMLDivElement>(".ready p")
         .evaluate((el) => el.textContent!);
       expect(text).toEqual("it works");
+
+      // Page would error here
+      const text2 = await page
+        .locator<HTMLDivElement>(".ready div")
+        .evaluate((el) => el.textContent!);
+      expect(text2).toEqual(`"foo"asdf`);
+    });
+
+    // Check escaping of `</`
+    await withBrowserApp(app, async (page, address) => {
+      await page.goto(`${address}/foo`, { waitUntil: "load" });
+
+      await page.locator(".ready").wait();
+
+      const text = await page
+        .locator<HTMLDivElement>(".ready p")
+        .evaluate((el) => el.textContent!);
+      expect(text).toEqual("it works");
+
+      const text2 = await page
+        .locator<HTMLDivElement>(".ready div")
+        .evaluate((el) => el.textContent!);
+      expect(text2).toEqual(`<script>alert('hey')</script>`);
+    });
+
+    // Check escaping of `<!--`
+    await withBrowserApp(app, async (page, address) => {
+      await page.goto(`${address}/bar`, { waitUntil: "load" });
+
+      await page.locator(".ready").wait();
+
+      const text = await page
+        .locator<HTMLDivElement>(".ready p")
+        .evaluate((el) => el.textContent!);
+      expect(text).toEqual("it works");
+
+      const text2 = await page
+        .locator<HTMLDivElement>(".ready div")
+        .evaluate((el) => el.textContent!);
+      expect(text2).toEqual(`<!--<script>alert('hey')</script>`);
+    });
+
+    // Partials (they use a different code path)
+    await withBrowserApp(app, async (page, address) => {
+      await page.goto(`${address}/foo?${PARTIAL_SEARCH_PARAM}`, {
+        waitUntil: "load",
+      });
+
+      const text = await page
+        .locator<HTMLScriptElement>("script[type='application/json']")
+        .evaluate((el) => el.textContent!);
+
+      const json = JSON.parse(text);
+      expect(json.props).toContain("<script>alert('hey')</script>");
     });
   },
 });
@@ -598,7 +651,6 @@ Deno.test({
     const nodeProcess = getIsland("NodeProcess.tsx");
 
     const app = testApp()
-      .use(staticFiles())
       .island(nodeProcess, "NodeProcess", NodeProcess)
       .get("/", (ctx) =>
         ctx.render(
@@ -626,7 +678,6 @@ Deno.test({
     const selfCounter = getIsland("SelfCounter.tsx");
 
     const app = testApp({ basePath: "/foo" })
-      .use(staticFiles())
       .island(selfCounter, "SelfCounter", SelfCounter)
       .get("/", (ctx) =>
         ctx.render(
@@ -651,7 +702,6 @@ Deno.test({
     const freshAttrs = getIsland("FreshAttrs.tsx");
 
     const app = testApp()
-      .use(staticFiles())
       .island(freshAttrs, "FreshAttrs", FreshAttrs)
       .get("/", (ctx) =>
         ctx.render(
@@ -678,8 +728,7 @@ Deno.test({
 Deno.test({
   name: "fsRoutes - load islands from group folder",
   fn: async () => {
-    const app = testApp()
-      .use(staticFiles());
+    const app = testApp();
 
     await fsRoutes(app, {
       dir: path.join(
@@ -709,7 +758,6 @@ Deno.test({
     const selfCounter = getIsland("SelfCounter.tsx");
 
     const app = testApp()
-      .use(staticFiles())
       .island(selfCounter, "SelfCounter", SelfCounter)
       .get("/", (ctx) =>
         ctx.render(

@@ -15,25 +15,6 @@ export function assertInDir(
 }
 
 /**
- * Joins two path segments into a single normalized path.
- * @example
- * ```ts
- * mergePaths("/api", "users");       // "/api/users"
- * mergePaths("/api/", "/users");     // "/api/users"
- * mergePaths("/", "/users");         // "/users"
- * mergePaths("", "/users");          // "/users"
- * mergePaths("/api", "/users");      // "/api/users"
- * ```
- */
-export function mergePaths(a: string, b: string) {
-  if (a === "" || a === "/" || a === "/*") return b;
-  if (b === "/") return a;
-  if (a.endsWith("/")) return a.slice(0, -1) + b;
-  if (!b.startsWith("/")) return a + "/" + b;
-  return a + b;
-}
-
-/**
  * Converts a file path to a valid JS export name.
  *
  * @example
@@ -52,4 +33,17 @@ export function pathToExportName(filePath: string): string {
   // Regex for valid JS identifier characters
   const regex = /^[^a-z_$]|[^a-z0-9_$]/gi;
   return name.replaceAll(regex, "_").replaceAll(/_{2,}/g, "_");
+}
+
+const SCRIPT_ESCAPE = /<\/(style|script)/gi;
+const COMMENT_ESCAPE = /<!--/gi;
+
+// See https://html.spec.whatwg.org/multipage/scripting.html#restrictions-for-contents-of-script-elements
+export function escapeScript(
+  content: string,
+  options: { json?: boolean } = {},
+): string {
+  return content
+    .replaceAll(SCRIPT_ESCAPE, "<\\/$1")
+    .replaceAll(COMMENT_ESCAPE, options.json ? "\\u003C!--" : "\\x3C!--");
 }
