@@ -21,7 +21,13 @@
   --color-canvas-default: var(--color-background-primary);
   --color-canvas-subtle: var(--color-background-secondary);
   --color-border-default: hsl(
-    from var(--color-foreground-secondary) h s l / 0.3
+    from
+    var(--color-foreground-secondary)
+    h
+    s
+    l
+    /
+    0.3
   );
   --color-border-muted: hsl(from var(--color-foreground-secondary) h s l / 0.1);
   --color-neutral-muted: rgba(175, 184, 193, 0.2);
@@ -806,8 +812,9 @@ ol.nested li:before {
   border-top-right-radius: 0 !important;
 }
 .fenced-code-title {
-  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
-    "Liberation Mono", "Courier New", monospace;
+  font-family:
+    ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono",
+    "Courier New", monospace;
   font-size: 0.8125rem;
   line-height: 1;
 }
