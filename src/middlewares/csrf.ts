@@ -1,17 +1,6 @@
 import type { FreshContext } from "../context.ts";
 import { HttpError } from "../error.ts";
-
-/**
- * Determines whether a given origin is allowed for CSRF protection.
- *
- * @param origin - The origin of the incoming request.
- * @param context - The FreshContext object for the current request.
- * @returns A boolean indicating if the origin is allowed.
- */
-export type IsAllowedOriginHandler = (
-  origin: string,
-  context: FreshContext,
-) => boolean;
+import type { MiddlewareFn } from "./mod.ts";
 
 /** Options for {@linkcode csrf}. **/
 export interface CsrfOptions {
@@ -19,21 +8,12 @@ export interface CsrfOptions {
    * origin - Specifies the allowed origin(s) for requests.
    *  - string: A single allowed origin.
    *  - string[]: static allowed origins.
-   *  - IsAllowedOriginHandler: A function to determine if an origin is allowed.
+   *  - function: A function to determine if an origin is allowed.
    */
-  origin?: string | string[] | IsAllowedOriginHandler;
-}
-
-function isSafeMethod(method: string): boolean {
-  return method === "GET" || method === "HEAD";
-}
-
-function isRequestedByFormElement(contentType: string): boolean {
-  const contentTypeLower = contentType.toLowerCase();
-
-  return contentTypeLower === "application/x-www-form-urlencoded" ||
-    contentTypeLower === "multipart/form-data" ||
-    contentTypeLower === "text/plain";
+  origin?:
+    | string
+    | string[]
+    | ((origin: string, context: FreshContext) => boolean);
 }
 
 /**
@@ -71,12 +51,12 @@ function isRequestedByFormElement(contentType: string): boolean {
  * )
  * ```
  */
-export function csrf(
+export function csrf<State>(
   options?: CsrfOptions,
-): (ctx: FreshContext) => Promise<Response> {
+): MiddlewareFn<State> {
   const isAllowedOrigin = (
     origin: string | null,
-    ctx: FreshContext,
+    ctx: FreshContext<State>,
   ) => {
     if (!origin) {
       return false;
@@ -96,13 +76,23 @@ export function csrf(
     return Array.isArray(optsOrigin) && optsOrigin.includes(origin);
   };
 
-  return async (ctx: FreshContext): Promise<Response> => {
+  return async (ctx) => {
+    const { method, headers } = ctx.req;
+
+    // Safe methods
+    if (method === "GET" || method === "HEAD") {
+      return await ctx.next();
+    }
+
+    const contentType = headers.get("content-type")?.toLowerCase() ??
+      "text/plain";
+
+    // Check if initiated by form
     if (
-      !isSafeMethod(ctx.req.method) &&
-      isRequestedByFormElement(
-        ctx.req.headers.get("content-type") || "text/plain",
-      ) &&
-      !isAllowedOrigin(ctx.req.headers.get("origin"), ctx)
+      (contentType === "application/x-www-form-urlencoded" ||
+        contentType === "multipart/form-data" ||
+        contentType === "text/plain") &&
+      !isAllowedOrigin(headers.get("origin"), ctx)
     ) {
       throw new HttpError(
         403,
