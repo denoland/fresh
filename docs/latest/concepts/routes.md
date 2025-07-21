@@ -68,10 +68,10 @@ In the below example, a custom handler is used to add a custom header to the
 response after rendering the page component.
 
 ```tsx routes/html.tsx
-import { HandlerContext, Handlers, PageProps } from "$fresh/server.ts";
+import { FreshContext, Handlers, PageProps } from "$fresh/server.ts";
 
 export const handler: Handlers = {
-  async GET(_req: Request, ctx: HandlerContext) {
+  async GET(_req: Request, ctx: FreshContext) {
     const resp = await ctx.render();
     resp.headers.set("X-Custom-Header", "Hello World");
     return resp;

@@ -1,5 +1,6 @@
 import type { ComponentChildren } from "preact";
-import type { FreshContext, PageProps } from "./context.ts";
+import type { FreshContext } from "./context.ts";
+import type { PageProps } from "./render.ts";
 import type { HandlerFn, RouteHandler } from "./handlers.ts";
 
 /**

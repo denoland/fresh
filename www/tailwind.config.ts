@@ -2,6 +2,7 @@ import type { Config } from "tailwindcss";
 import plugin from "tailwindcss/plugin.js";
 
 export default {
+  darkMode: ["selector", '[data-theme="dark"]'],
   content: [
     "{routes,islands,components}/**/*.{ts,tsx}",
   ],

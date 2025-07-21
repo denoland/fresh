@@ -1,6 +1,6 @@
 {
   "name": "@fresh/update",
-  "version": "2.0.0-alpha.36",
+  "version": "2.0.0-alpha.43",
   "license": "MIT",
   "exports": "./src/mod.ts",
   "exclude": ["**/tmp/*"],

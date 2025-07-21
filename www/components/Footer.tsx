@@ -20,7 +20,7 @@ export default function Footer(props: JSX.HTMLAttributes<HTMLElement>) {
     <footer
       class={`border-t-2 border-foreground-secondary/20 md:h-16 flex mt-16 justify-center md:mx-16 ${props.class}`}
     >
-      <div class="flex flex-col sm:flex-row gap-4 justify-between items-center max-w-screen-xl mx-auto w-full sm:px-6 md:px-8 p-4">
+      <div class="flex flex-col sm:flex-row gap-4 justify-between items-center max-w-screen-xl mx-auto w-full sm:px-6 md:px-8 p-4 text-base">
         <div class="text-foreground-secondary text-center">
           <span>© {new Date().getFullYear()} the Fresh authors</span>
         </div>

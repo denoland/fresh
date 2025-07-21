@@ -3,7 +3,7 @@ import * as colors from "@std/fmt/colors";
 import * as path from "@std/path";
 
 // Keep these as is, as we replace these version in our release script
-const FRESH_VERSION = "2.0.0-alpha.35";
+const FRESH_VERSION = "2.0.0-alpha.43";
 const FRESH_TAILWIND_VERSION = "0.0.1-alpha.8";
 const PREACT_VERSION = "10.26.9";
 const PREACT_SIGNALS_VERSION = "2.2.1";
@@ -206,14 +206,8 @@ button, [role="button"] {
 }
 code {
   font-family:
-    ui-monospace,
-    SFMono-Regular,
-    Menlo,
-    Monaco,
-    Consolas,
-    "Liberation Mono",
-    "Courier New",
-    monospace;
+    ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono",
+    "Courier New", monospace;
   font-size: 1em;
 }
 img,
@@ -230,19 +224,9 @@ html {
   line-height: 1.5;
   -webkit-text-size-adjust: 100%;
   font-family:
-    ui-sans-serif,
-    system-ui,
-    -apple-system,
-    BlinkMacSystemFont,
-    "Segoe UI",
-    Roboto,
-    "Helvetica Neue",
-    Arial,
-    "Noto Sans",
-    sans-serif,
-    "Apple Color Emoji",
-    "Segoe UI Emoji",
-    "Segoe UI Symbol",
+    ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+    Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif,
+    "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol",
     "Noto Color Emoji";
 }
 .transition-colors {
@@ -345,7 +329,7 @@ ${GRADIENT_CSS}`;
 
   const cssStyles = useTailwind ? TAILWIND_CSS : NO_TAILWIND_STYLES;
   await writeFile("static/styles.css", cssStyles);
-
+  // deno-fmt-ignore
   const STATIC_LOGO =
     `<svg width="40" height="40" fill="none" xmlns="http://www.w3.org/2000/svg">
   <path
@@ -691,7 +675,10 @@ This will watch the project directory and restart as necessary.`;
 
   // Specifically print unresolvedDirectory, rather than resolvedDirectory in order to
   // not leak personal info (e.g. `/Users/MyName`)
-  console.log("\n%cProject initialized!\n", "color: green; font-weight: bold");
+  console.log(
+    "\n%cProject initialized!\n",
+    "color: green; font-weight: bold",
+  );
 
   if (unresolvedDirectory !== ".") {
     console.log(
