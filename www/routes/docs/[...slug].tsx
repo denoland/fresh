@@ -158,7 +158,7 @@ export default define.page<typeof handler>(function DocsPage(props) {
         <div class="flex mx-auto max-w-screen-2xl px-0 md:px-4 md:py-0 justify-start bg-background-secondary">
           <label
             for="docs_sidebar"
-            class="px-4 py-3 lg:hidden flex items-center  rounded gap-2 cursor-pointer"
+            class="px-4 py-3 lg:hidden flex items-center  rounded-sm gap-2 cursor-pointer"
           >
             <svg
               class="h-6 w-6"
@@ -204,7 +204,7 @@ export default define.page<typeof handler>(function DocsPage(props) {
                 <div class="lg:order-1 min-w-0 max-w-3xl w-full">
                   {isCanary
                     ? (
-                      <div class="bg-[#F0900525] p-4 rounded text-base text-yellow-700 dark:text-yellow-500 mb-8">
+                      <div class="bg-[#F0900525] p-4 rounded-sm text-base text-yellow-700 dark:text-yellow-500 mb-8">
                         🚧 This documentation is work in progress and for an
                         unreleased version of Fresh.
                       </div>
@@ -231,7 +231,7 @@ export default define.page<typeof handler>(function DocsPage(props) {
                   <div class="px-4 md:px-0 flex justify-between my-6">
                     <a
                       href={`https://github.com/denoland/fresh/edit/main/${page.file}`}
-                      class="text-gray-700 dark:text-gray-200 text-md flex items-center bg-[#ebedf0] dark:bg-[#2c2d39] px-4 py-2 rounded hover:bg-gray-200 dark:hover:bg-[#36394c] transition-colors"
+                      class="text-gray-700 dark:text-gray-200 text-md flex items-center bg-[#ebedf0] dark:bg-[#2c2d39] px-4 py-2 rounded-sm hover:bg-gray-200 dark:hover:bg-[#36394c] transition-colors"
                       target="_blank"
                       rel="noopener noreferrer"
                     >
@@ -303,7 +303,7 @@ function ForwardBackButtons(props: {
         ? (
           <a
             href={prev.href}
-            class="px-4 py-2 text-left rounded border border-foreground-secondary/20 grid border-solid w-full hover:border-green-600 transition-colors"
+            class="px-4 py-2 text-left rounded-sm border border-foreground-secondary/20 grid border-solid w-full hover:border-green-600 transition-colors"
           >
             <span class="text-sm text-gray-600 dark:text-gray-500">
               Previous page
@@ -318,7 +318,7 @@ function ForwardBackButtons(props: {
         ? (
           <a
             href={next.href}
-            class="px-4 py-2 text-left rounded border border-foreground-secondary/20 grid border-solid w-full hover:border-green-600 transition-colors"
+            class="px-4 py-2 text-left rounded-sm border border-foreground-secondary/20 grid border-solid w-full hover:border-green-600 transition-colors"
           >
             <span class="text-sm text-gray-600 dark:text-gray-500">
               Next page

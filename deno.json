@@ -1,4 +1,5 @@
 {
+  "nodeModulesDir": "auto",
   "workspace": [
     "./examples",
     "./init",
@@ -74,14 +75,12 @@
     "@std/expect": "jsr:@std/expect@^1.0.16",
     "@std/testing": "jsr:@std/testing@^1.0.12",
 
-    "autoprefixer": "npm:autoprefixer@10.4.17",
-    "cssnano": "npm:cssnano@6.0.3",
-    "postcss": "npm:postcss@8.4.35",
-    "tailwindcss": "npm:tailwindcss@^3.4.1",
+    "@tailwindcss/postcss": "npm:@tailwindcss/postcss@^4.1.10",
+    "tailwindcss": "npm:tailwindcss@^4.1.10",
+    "postcss": "npm:postcss@8.5.6",
 
     "ts-morph": "npm:ts-morph@^25.0.1",
 
-    "@fresh/plugin-tailwind": "jsr:@fresh/plugin-tailwind@^0.0.1-alpha.7",
     "@std/front-matter": "jsr:@std/front-matter@^1.0.5",
     "github-slugger": "npm:github-slugger@^2.0.0",
     "imagescript": "https://deno.land/x/imagescript@1.3.0/mod.ts",

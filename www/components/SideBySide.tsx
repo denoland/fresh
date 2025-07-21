@@ -27,7 +27,7 @@ export function SideBySide(props: SideBySideProps) {
   return (
     <div
       class={`grid grid-cols-1 items-center gap-12 md:gap-16 xl:gap-32 ${
-        props.reverseOnDesktop ? "md:first:[&>*]:order-1" : ""
+        props.reverseOnDesktop ? "[&>*]:md:first:order-1" : ""
       } ${mdSplitClass} ${lgSplitClass} ${props.class ?? ""}`}
     >
       {props.children}
