@@ -168,17 +168,6 @@ CMD ["run", "-A", "main.ts"]
     await writeFile("Dockerfile", DOCKERFILE_TEXT);
   }
 
-  const TAILWIND_CONFIG_TS = `import type { Config } from "tailwindcss";
-
-export default {
-  content: [
-    "{routes,islands,components}/**/*.{ts,tsx}",
-  ],
-} satisfies Config;`;
-  if (useTailwind) {
-    await writeFile("tailwind.config.ts", TAILWIND_CONFIG_TS);
-  }
-
   // deno-fmt-ignore
   const GRADIENT_CSS = css`.fresh-gradient {
   background-color: rgb(134, 239, 172);
