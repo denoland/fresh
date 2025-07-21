@@ -72,6 +72,7 @@ const toc: RawTableOfContents = {
         pages: [
           ["cors", "cors", "link:canary"],
           ["trailing-slashes", "trailingSlashes", "link:canary"],
+          ["tailwindcss", "tailwindcss", "link:canary"],
         ],
       },
       examples: {
