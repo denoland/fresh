@@ -62,8 +62,4 @@ export class UniqueNamer {
 
     return name;
   }
-
-  getNames(): string[] {
-    return Array.from(this.#seen.keys());
-  }
 }

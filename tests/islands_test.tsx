@@ -32,10 +32,21 @@ const allIslandCache = await buildProd({ islandDir: ALL_ISLAND_DIR });
 const islandGroupdCache = await buildProd({ root: ISLAND_GROUP_DIR });
 
 function testApp(config?: FreshConfig): App<unknown> {
-  const app = new App(config);
-  app.use(staticFiles());
+  const app = new App(config)
+    .use(staticFiles())
+    .fsRoutes();
 
   allIslandCache(app);
+
+  return app;
+}
+
+function testGroupApp(config?: FreshConfig): App<unknown> {
+  const app = new App(config)
+    .use(staticFiles())
+    .fsRoutes();
+
+  islandGroupdCache(app);
 
   return app;
 }
@@ -657,11 +668,7 @@ Deno.test({
 Deno.test({
   name: "fsRoutes - load islands from group folder",
   fn: async () => {
-    const app = new App()
-      .use(staticFiles())
-      .fsRoutes();
-
-    islandGroupdCache(app);
+    const app = testGroupApp();
 
     await withBrowserApp(app, async (page, address) => {
       await page.goto(`${address}/foo`, { waitUntil: "load" });
@@ -670,6 +677,30 @@ Deno.test({
       // Page would error here
       const text = await page
         .locator<HTMLDivElement>(".ready")
+        .evaluate((el) => el.textContent!);
+      expect(text).toEqual("it works");
+    });
+  },
+});
+
+Deno.test({
+  name: "fsRoutes - load islands from group folder with same name",
+  fn: async () => {
+    const app = testGroupApp();
+
+    await withBrowserApp(app, async (page, address) => {
+      await page.goto(`${address}/both`, { waitUntil: "load" });
+
+      await page.locator(".ready").wait();
+
+      // Page would error here
+      let text = await page
+        .locator<HTMLDivElement>("#foo.ready")
+        .evaluate((el) => el.textContent!);
+      expect(text).toEqual("it works");
+
+      text = await page
+        .locator<HTMLDivElement>("#foo-both.ready")
         .evaluate((el) => el.textContent!);
       expect(text).toEqual("it works");
     });

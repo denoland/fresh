@@ -457,7 +457,9 @@ function FreshRuntimeScript() {
     const islandImports = islandArr.map((island) => {
       const named = island.exportName === "default"
         ? island.name
-        : `{ ${island.exportName} }`;
+        : island.exportName === island.name
+        ? `{ ${island.exportName} }`
+        : `{ ${island.exportName} as ${island.name} }`;
       return `import ${named} from "${`${basePath}${island.file}`}";`;
     }).join("");
 

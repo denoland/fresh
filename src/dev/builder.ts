@@ -280,7 +280,7 @@ export class Builder<State = any> {
 
     const prefix = `/_fresh/js/${BUILD_ID}/`;
 
-    for (const name of namer.getNames()) {
+    for (const name of buildCache.islandModNameToChunk.keys()) {
       const chunkName = output.entryToChunk.get(name);
       if (chunkName === undefined) {
         throw new Error(`Could not find chunk for island ${name}`);
