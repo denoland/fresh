@@ -71,7 +71,7 @@ export class ProdBuildCache<State> implements BuildCache<State> {
 }
 
 export class IslandPreparer {
-  namer = new UniqueNamer();
+  #namer = new UniqueNamer();
 
   prepare(
     registry: ServerIslandRegistry,
@@ -83,7 +83,7 @@ export class IslandPreparer {
       if (typeof value !== "function") continue;
 
       const islandName = name === "default" ? modName : name;
-      const uniqueName = this.namer.getUniqueName(islandName);
+      const uniqueName = this.#namer.getUniqueName(islandName);
 
       const fn = value as AnyComponent;
       registry.set(fn, {

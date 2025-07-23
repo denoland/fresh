@@ -12,7 +12,6 @@ import {
 } from "./runtime/server/preact_hooks.tsx";
 import type { Context } from "./context.ts";
 import { recordSpanError, tracer } from "./otel.ts";
-import type { BuildCache } from "./build_cache.ts";
 import { DEV_ERROR_OVERLAY_URL } from "./constants.ts";
 import { renderToString } from "preact-render-to-string";
 import { BUILD_ID } from "./runtime/build_id.ts";
@@ -62,7 +61,6 @@ export function preactRender<State, Data>(
   vnode: VNode,
   ctx: PageProps<Data, State>,
   state: RenderState,
-  buildCache: BuildCache,
   headers: Headers,
 ) {
   try {

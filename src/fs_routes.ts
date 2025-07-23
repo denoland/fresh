@@ -116,6 +116,7 @@ export function fsItemsToCommands<State>(
           {
             component: mod.default ?? undefined,
             config: mod.config ?? undefined,
+            // deno-lint-ignore no-explicit-any
             handler: (handlers as any) ?? undefined,
           },
           true,
@@ -126,6 +127,7 @@ export function fsItemsToCommands<State>(
         commands.push(newNotFoundCmd({
           config: mod.config,
           component: mod.default,
+          // deno-lint-ignore no-explicit-any
           handler: handlers as any ?? undefined,
         }));
         continue;
@@ -144,6 +146,7 @@ export function fsItemsToCommands<State>(
               ...mod.config,
               routeOverride: mod.config?.routeOverride ?? routePattern,
             },
+            // deno-lint-ignore no-explicit-any
             handler: (handlers as any) ?? undefined,
             component: mod.default,
           },

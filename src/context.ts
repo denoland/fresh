@@ -273,7 +273,6 @@ export class Context<State> {
           vnode ?? h(Fragment, null),
           this,
           state,
-          this.#buildCache,
           headers,
         );
       } catch (err) {

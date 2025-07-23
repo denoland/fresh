@@ -49,21 +49,21 @@ export function escapeScript(
 }
 
 export class UniqueNamer {
-  seen = new Map<string, number>();
+  #seen = new Map<string, number>();
 
   getUniqueName(name: string): string {
-    const count = this.seen.get(name);
+    const count = this.#seen.get(name);
     if (count === undefined) {
-      this.seen.set(name, 1);
+      this.#seen.set(name, 1);
     } else {
-      this.seen.set(name, count + 1);
+      this.#seen.set(name, count + 1);
       name = `${name}_${count}`;
     }
 
     return name;
   }
 
-  getNames() {
-    return this.seen.keys();
+  getNames(): string[] {
+    return Array.from(this.#seen.keys());
   }
 }
