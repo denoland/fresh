@@ -11,7 +11,7 @@ import { HttpError } from "./error.ts";
 import type { LayoutConfig, Route } from "./types.ts";
 import type { RouteComponent } from "./segments.ts";
 import {
-  applyComands,
+  applyCommands,
   type Command,
   CommandType,
   DEFAULT_NOT_ALLOWED_METHOD,
@@ -356,7 +356,7 @@ export class App<State> {
 
     const router = new UrlPatternRouter<MiddlewareFn<State>>();
 
-    const { rootMiddlewares } = applyComands(
+    const { rootMiddlewares } = applyCommands(
       router,
       this.#commands,
       this.config.basePath,

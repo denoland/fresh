@@ -29,7 +29,7 @@ import { FakeServer } from "../src/test_utils.ts";
 import { PARTIAL_SEARCH_PARAM } from "../src/constants.ts";
 
 const allIslandCache = await buildProd({ islandDir: ALL_ISLAND_DIR });
-const islandGroupdCache = await buildProd({ root: ISLAND_GROUP_DIR });
+const islandGroupCache = await buildProd({ root: ISLAND_GROUP_DIR });
 
 function testApp(config?: FreshConfig): App<unknown> {
   const app = new App(config)
@@ -46,7 +46,7 @@ function testGroupApp(config?: FreshConfig): App<unknown> {
     .use(staticFiles())
     .fsRoutes();
 
-  islandGroupdCache(app);
+  islandGroupCache(app);
 
   return app;
 }

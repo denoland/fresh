@@ -180,7 +180,7 @@ export type Command<State> =
   | HandlerCommand<State>
   | FsRouteCommand<State>;
 
-export function applyComands<State>(
+export function applyCommands<State>(
   router: Router<MiddlewareFn<State>>,
   commands: Command<State>[],
   basePath: string,
