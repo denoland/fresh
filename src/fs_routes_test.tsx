@@ -1542,3 +1542,25 @@ Deno.test("fsRoutes - call correct middleware", async () => {
   text = await res.text();
   expect(text).toEqual("_middleware");
 });
+
+// Issue: https://github.com/denoland/fresh/issues/2045
+Deno.test("fsRoutes - merge group methods", async () => {
+  const server = await createServer({
+    "routes/(foo)/bar/index.ts": {
+      handler: {
+        POST: () => new Response("POST ok"),
+      },
+    },
+    "routes/bar/index.ts": {
+      handler: {
+        GET: () => new Response("GET ok"),
+      },
+    },
+  });
+
+  let res = await server.get("/bar");
+  expect(await res.text()).toEqual("GET ok");
+
+  res = await server.post("/bar");
+  expect(await res.text()).toEqual("POST ok");
+});
