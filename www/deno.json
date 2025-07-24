@@ -2,6 +2,6 @@
   "tasks": {
     "start": "deno run -A --watch=static/,routes/,../src,../docs dev.ts",
     "build": "deno run -A dev.ts build",
-    "preview": "deno run -A main.ts"
+    "preview": "deno serve -A _fresh/server.js"
   }
 }

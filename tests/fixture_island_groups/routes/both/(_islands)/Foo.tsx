@@ -8,7 +8,7 @@ export function Foo() {
   }, []);
 
   return (
-    <div id="foo" class={active.value ? "ready" : ""}>
+    <div id="foo-both" class={active.value ? "ready" : ""}>
       {active.value ? "it works" : "it doesn't work"}
     </div>
   );

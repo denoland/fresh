@@ -1,50 +1,79 @@
-import type { BuildCache, StaticFile } from "../build_cache.ts";
+import {
+  type BuildCache,
+  type FileSnapshot,
+  IslandPreparer,
+  type StaticFile,
+} from "../build_cache.ts";
 import * as path from "@std/path";
 import { SEPARATOR as WINDOWS_SEPARATOR } from "@std/path/windows/constants";
-import { getSnapshotPath, type ResolvedFreshConfig } from "../config.ts";
-import type { BuildSnapshot } from "../build_cache.ts";
 import { encodeHex } from "@std/encoding/hex";
 import { crypto } from "@std/crypto";
 import { fsAdapter } from "../fs.ts";
-import type { FreshFileTransformer } from "./file_transformer.ts";
-import { assertInDir } from "../utils.ts";
+import type { FileTransformer } from "./file_transformer.ts";
+import { assertInDir, pathToSpec } from "../utils.ts";
+import type { ResolvedBuildConfig } from "./builder.ts";
+import { fsItemsToCommands, type FsRouteFile } from "../fs_routes.ts";
+import type { Command } from "../commands.ts";
+import type { ServerIslandRegistry } from "../context.ts";
 
 export interface MemoryFile {
   hash: string | null;
   content: Uint8Array;
 }
 
-export interface DevBuildCache extends BuildCache {
-  islands: Map<string, string>;
+export interface IslandModChunk {
+  name: string;
+  server: string;
+  browser: string | null;
+}
 
-  addUnprocessedFile(pathname: string): void;
+export type FsRouteFileNoMod<State> = Omit<FsRouteFile<State>, "mod">;
 
+export interface FsRoute<State> {
+  id: string;
+  dir: string;
+  files: FsRouteFileNoMod<State>[];
+}
+
+export interface DevBuildCache<State> extends BuildCache<State> {
+  islandModNameToChunk: Map<string, IslandModChunk>;
+  addUnprocessedFile(pathname: string, dir: string): void;
   addProcessedFile(
     pathname: string,
     content: Uint8Array,
     hash: string | null,
   ): Promise<void>;
-
   flush(): Promise<void>;
+  prepare(): Promise<void>;
 }
 
-export class MemoryBuildCache implements DevBuildCache {
-  hasSnapshot = true;
-  islands = new Map<string, string>();
+export class MemoryBuildCache<State> implements DevBuildCache<State> {
   #processedFiles = new Map<string, MemoryFile>();
   #unprocessedFiles = new Map<string, string>();
-  #ready = Promise.withResolvers<void>();
+  #config: ResolvedBuildConfig;
+  #transformer: FileTransformer;
+  islandModNameToChunk = new Map<string, IslandModChunk>();
+  #fsRoutes: FsRoute<State>;
+  #commands: Command<State>[] = [];
+  root: string;
+  islandRegistry: ServerIslandRegistry = new Map();
 
   constructor(
-    public config: ResolvedFreshConfig,
-    public buildId: string,
-    public transformer: FreshFileTransformer,
-    public target: string | string[],
+    config: ResolvedBuildConfig,
+    fsRoutes: FsRoute<State>,
+    transformer: FileTransformer,
   ) {
+    this.#config = config;
+    this.#fsRoutes = fsRoutes;
+    this.#transformer = transformer;
+    this.root = config.root;
+  }
+
+  getFsRoutes(): Command<State>[] {
+    return this.#commands;
   }
 
   async readFile(pathname: string): Promise<StaticFile | null> {
-    await this.#ready.promise;
     const processed = this.#processedFiles.get(pathname);
     if (processed !== undefined) {
       return {
@@ -69,14 +98,14 @@ export class MemoryBuildCache implements DevBuildCache {
           readable: file.readable,
           close: () => file.close(),
         };
-      } catch (_err) {
+      } catch {
         return null;
       }
     }
 
     let entry = pathname.startsWith("/") ? pathname.slice(1) : pathname;
-    entry = path.join(this.config.staticDir, entry);
-    const relative = path.relative(this.config.staticDir, entry);
+    entry = path.join(this.#config.staticDir, entry);
+    const relative = path.relative(this.#config.staticDir, entry);
     if (relative.startsWith("..")) {
       throw new Error(
         `Processed file resolved outside of static dir ${entry}`,
@@ -84,16 +113,16 @@ export class MemoryBuildCache implements DevBuildCache {
     }
 
     // Might be a file that we still need to process
-    const transformed = await this.transformer.process(
+    const transformed = await this.#transformer.process(
       entry,
       "development",
-      this.target,
+      this.#config.target,
     );
 
     if (transformed !== null) {
       for (let i = 0; i < transformed.length; i++) {
         const file = transformed[i];
-        const relative = path.relative(this.config.staticDir, file.path);
+        const relative = path.relative(this.#config.staticDir, file.path);
         if (relative.startsWith(".")) {
           throw new Error(
             `Processed file resolved outside of static dir ${file.path}`,
@@ -108,10 +137,10 @@ export class MemoryBuildCache implements DevBuildCache {
       }
     } else {
       try {
-        const filePath = path.join(this.config.staticDir, pathname);
-        const relative = path.relative(this.config.staticDir, filePath);
+        const filePath = path.join(this.#config.staticDir, pathname);
+        const relative = path.relative(this.#config.staticDir, filePath);
         if (!relative.startsWith(".") && (await Deno.stat(filePath)).isFile) {
-          this.addUnprocessedFile(pathname);
+          this.addUnprocessedFile(pathname, this.#config.staticDir);
           return this.readFile(pathname);
         }
       } catch (err) {
@@ -124,14 +153,10 @@ export class MemoryBuildCache implements DevBuildCache {
     return null;
   }
 
-  getIslandChunkName(islandName: string): string | null {
-    return this.islands.get(islandName) ?? null;
-  }
-
-  addUnprocessedFile(pathname: string): void {
+  addUnprocessedFile(pathname: string, dir: string): void {
     this.#unprocessedFiles.set(
       pathname,
-      path.join(this.config.staticDir, pathname),
+      path.join(dir, pathname),
     );
   }
 
@@ -144,39 +169,68 @@ export class MemoryBuildCache implements DevBuildCache {
     this.#processedFiles.set(pathname, { content, hash });
   }
 
-  // deno-lint-ignore require-await
   async flush(): Promise<void> {
-    this.#ready.resolve();
+    const preparer = new IslandPreparer();
+
+    // Load islands
+    await Promise.all(
+      Array.from(this.islandModNameToChunk.entries()).map(
+        async ([name, chunk]) => {
+          const fileUrl = path.toFileUrl(chunk.server);
+          const mod = await import(fileUrl.href);
+
+          if (chunk.browser === null) {
+            throw new Error(`Unexpected missing browser chunk`);
+          }
+
+          preparer.prepare(this.islandRegistry, mod, chunk.browser, name);
+        },
+      ),
+    );
+  }
+
+  async prepare(): Promise<void> {
+    // Load FS routes
+    const files = await Promise.all(this.#fsRoutes.files.map(async (file) => {
+      const fileUrl = path.toFileUrl(file.filePath);
+      return {
+        ...file,
+        mod: await import(fileUrl.href),
+      };
+    }));
+    this.#commands = fsItemsToCommands(files);
   }
 }
 
-// await fsAdapter.mkdirp(staticOutDir);
-export class DiskBuildCache implements DevBuildCache {
-  hasSnapshot = true;
-  islands = new Map<string, string>();
+export class DiskBuildCache<State> implements DevBuildCache<State> {
   #processedFiles = new Map<string, string | null>();
   #unprocessedFiles = new Map<string, string>();
-  #transformer: FreshFileTransformer;
-  #target: string | string[];
+  #transformer: FileTransformer;
+  #config: ResolvedBuildConfig;
+  islandModNameToChunk = new Map<string, IslandModChunk>();
+  #fsRoutes: FsRoute<State>;
+  root: string;
+  islandRegistry: ServerIslandRegistry = new Map();
 
   constructor(
-    public config: ResolvedFreshConfig,
-    public buildId: string,
-    transformer: FreshFileTransformer,
-    target: string | string[],
+    config: ResolvedBuildConfig,
+    fsRoutes: FsRoute<State>,
+    transformer: FileTransformer,
   ) {
+    this.#fsRoutes = fsRoutes;
     this.#transformer = transformer;
-    this.#target = target;
+    this.#config = config;
+    this.root = config.root;
   }
 
-  getIslandChunkName(islandName: string): string | null {
-    return this.islands.get(islandName) ?? null;
+  getFsRoutes(): Command<State>[] {
+    return [];
   }
 
-  addUnprocessedFile(pathname: string): void {
+  addUnprocessedFile(pathname: string, dir: string): void {
     this.#unprocessedFiles.set(
       pathname.replaceAll(WINDOWS_SEPARATOR, "/"),
-      path.join(this.config.staticDir, pathname),
+      path.join(dir, pathname),
     );
   }
 
@@ -188,8 +242,8 @@ export class DiskBuildCache implements DevBuildCache {
     this.#processedFiles.set(pathname, hash);
 
     const outDir = pathname === "/metafile.json"
-      ? this.config.build.outDir
-      : path.join(this.config.build.outDir, "static");
+      ? this.#config.outDir
+      : path.join(this.#config.outDir, "static");
     const filePath = path.join(outDir, pathname);
     assertInDir(filePath, outDir);
 
@@ -202,9 +256,12 @@ export class DiskBuildCache implements DevBuildCache {
     throw new Error("Not implemented in build mode");
   }
 
+  async prepare(): Promise<void> {
+    // not needed
+  }
+
   async flush(): Promise<void> {
-    const staticDir = this.config.staticDir;
-    const outDir = this.config.build.outDir;
+    const { staticDir, outDir, target, root } = this.#config;
 
     if (await fsAdapter.isDirectory(staticDir)) {
       const entries = fsAdapter.walk(staticDir, {
@@ -224,7 +281,7 @@ export class DiskBuildCache implements DevBuildCache {
         const result = await this.#transformer.process(
           entry.path,
           "production",
-          this.#target,
+          target,
         );
 
         if (result !== null) {
@@ -237,30 +294,21 @@ export class DiskBuildCache implements DevBuildCache {
         } else {
           const relative = path.relative(staticDir, entry.path);
           const pathname = `/${relative}`;
-          this.addUnprocessedFile(pathname);
+          this.addUnprocessedFile(pathname, staticDir);
         }
       }
     }
 
-    const snapshot: BuildSnapshot = {
-      version: 1,
-      buildId: this.buildId,
-      islands: {},
-      staticFiles: {},
-    };
-
-    for (const [name, chunk] of this.islands.entries()) {
-      snapshot.islands[name] = chunk;
-    }
-
+    const staticFiles = new Map<string, FileSnapshot>();
     for (const [name, filePath] of this.#unprocessedFiles.entries()) {
       const file = await Deno.open(filePath);
       const hash = await hashContent(file.readable);
 
-      snapshot.staticFiles[name] = {
+      staticFiles.set(name, {
+        name,
         hash,
-        generated: false,
-      };
+        filePath: path.relative(root, filePath),
+      });
     }
 
     for (const [name, maybeHash] of this.#processedFiles.entries()) {
@@ -271,21 +319,118 @@ export class DiskBuildCache implements DevBuildCache {
         continue;
       }
 
+      const filePath = path.join(outDir, "static", name);
       if (maybeHash === null) {
-        const filePath = path.join(this.config.build.outDir, "static", name);
         const file = await Deno.open(filePath);
         hash = await hashContent(file.readable);
       }
 
-      snapshot.staticFiles[name] = {
+      staticFiles.set(name, {
+        name,
         hash,
-        generated: true,
-      };
+        filePath: path.relative(root, filePath),
+      });
     }
 
     await Deno.writeTextFile(
-      getSnapshotPath(this.config),
-      JSON.stringify(snapshot, null, 2),
+      path.join(outDir, "static-files.json"),
+      JSON.stringify(Array.from(staticFiles.values()), null, 2),
+    );
+
+    const islandSpecifiers: string[] = [];
+    for (const spec of this.islandModNameToChunk.keys()) {
+      islandSpecifiers.push(spec);
+    }
+
+    const editWarning =
+      `// WARNING: DO NOT EDIT THIS FILE. It is autogenerated by Fresh.`;
+
+    const islands = Array.from(this.islandModNameToChunk.values());
+
+    await Deno.writeTextFile(
+      path.join(outDir, "snapshot.js"),
+      `${editWarning}
+
+import { IslandPreparer } from "fresh/do-not-use";
+import staticFileData from "./static-files.json" with { type: "json" };
+
+// Import islands
+${
+        islands
+          .map((item) => {
+            const spec = pathToSpec(path.relative(outDir, item.server));
+            return `import * as ${item.name} from "${spec}";`;
+          })
+          .join("\n")
+      }
+
+// Import routes
+${
+        this.#fsRoutes.files
+          .map((item, i) => {
+            const spec = pathToSpec(path.relative(outDir, item.filePath));
+            return `import * as fsRoute_${i} from "${spec}"`;
+          })
+          .join("\n")
+      }
+
+export const version = ${JSON.stringify(this.#config.buildId)};
+
+const prefix = \`/_fresh/js/\${version}\`;
+
+export const islands = new Map();
+const islandPreparer = new IslandPreparer();
+${
+        islands.map((item) => {
+          // Strip prefix
+          const prefix = `/_fresh/js/${this.#config.buildId}`;
+          const chunkName = item.browser
+            ? item.browser.slice(prefix.length)
+            : item.browser;
+          return `islandPreparer.prepare(islands, ${item.name}, \`\${prefix}${chunkName}\`, ${
+            JSON.stringify(item.name)
+          });`;
+        }).join("\n")
+      }
+
+export const staticFiles = new Map();
+for (let i = 0; i < staticFileData.length; i++) {
+  const data = staticFileData[i];
+  staticFiles.set(data.name, data);
+}
+
+export const fsRoutes = [
+${
+        this.#fsRoutes.files
+          .map((item, i) => {
+            const id = JSON.stringify(item.id);
+            const pattern = JSON.stringify(item.pattern);
+
+            return `  { id: ${id}, mod: fsRoute_${i}, type: ${
+              JSON.stringify(item.type)
+            }, pattern: ${pattern} },`;
+          })
+          .join("\n")
+      }
+];
+`,
+    );
+
+    // TODO: Make main file configurable
+    const appPath = path.relative(outDir, root);
+    await Deno.writeTextFile(
+      path.join(outDir, "server.js"),
+      `${editWarning}
+import { setBuildCache, ProdBuildCache, path } from "fresh/do-not-use";
+import * as snapshot from "./snapshot.js";
+import { app } from "${appPath}/main.ts";
+
+const root = path.join(import.meta.dirname, ${JSON.stringify(appPath)});
+setBuildCache(app, new ProdBuildCache(root, snapshot));
+
+export default {
+  fetch: app.handler()
+}`,
     );
   }
 }

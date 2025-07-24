@@ -1,6 +1,6 @@
 import { App } from "../../../src/app.ts";
 
-const app = new App({ staticDir: "./static" }).get(
+const app = new App().get(
   "/",
   (ctx) =>
     ctx.render(

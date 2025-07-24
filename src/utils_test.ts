@@ -1,5 +1,5 @@
 import { expect } from "@std/expect";
-import { escapeScript, pathToExportName } from "./utils.ts";
+import { escapeScript, pathToExportName, pathToSpec } from "./utils.ts";
 
 Deno.test("filenameToExportName", () => {
   expect(pathToExportName("/islands/foo.tsx")).toBe("foo");
@@ -51,4 +51,10 @@ Deno.test("escapeScript - json", () => {
   expect(escapeScript("<!--</ScRIpt>", { json: true })).toEqual(
     "\\u003C!--<\\/ScRIpt>",
   );
+});
+
+Deno.test("pathToSpec", () => {
+  expect(pathToSpec("/foo/bar")).toEqual("/foo/bar");
+  expect(pathToSpec("\\foo\\bar")).toEqual("/foo/bar");
+  expect(pathToSpec("\\\\foo//bar")).toEqual("/foo/bar");
 });

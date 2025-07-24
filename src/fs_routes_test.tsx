@@ -1,42 +1,38 @@
-import { App } from "../../app.ts";
-import {
-  type FreshFsItem,
-  fsRoutes,
-  type FsRoutesOptions,
-  sortRoutePaths,
-  type TESTING_ONLY__FsRoutesOptions,
-} from "./mod.ts";
-import { delay, FakeServer } from "../../test_utils.ts";
-import { createFakeFs } from "../../test_utils.ts";
+import { App, setBuildCache } from "./app.ts";
+import { type FreshFsMod, sortRoutePaths } from "./fs_routes.ts";
+import { delay, FakeServer, MockBuildCache } from "./test_utils.ts";
+import { createFakeFs } from "./test_utils.ts";
 import { expect, fn } from "@std/expect";
 import { stub } from "@std/testing/mock";
-import { type HandlerByMethod, type HandlerFn, page } from "../../handlers.ts";
-import type { Method } from "../../router.ts";
-import { parseHtml } from "../../../tests/test_utils.tsx";
-import type { FreshContext } from "../../context.ts";
-import { HttpError } from "../../error.ts";
+import { type HandlerByMethod, type HandlerFn, page } from "./handlers.ts";
+import type { Method } from "./router.ts";
+import { parseHtml } from "../tests/test_utils.tsx";
+import type { Context } from "./context.ts";
+import { HttpError } from "./error.ts";
+import type { FsRouteFileNoMod } from "./dev/dev_build_cache.ts";
+import { crawlRouteDir } from "./dev/fs_crawl.ts";
+import * as path from "@std/path";
 
 async function createServer<T>(
-  files: Record<string, string | Uint8Array | FreshFsItem<T>>,
+  files: Record<string, string | Uint8Array | FreshFsMod<T>>,
 ): Promise<FakeServer> {
-  const app = new App<T>();
+  const fs = createFakeFs(files);
 
-  await fsRoutes(
-    app,
-    {
-      dir: ".",
-      loadIsland: async () => {},
-      // deno-lint-ignore require-await
-      loadRoute: async (filePath) => {
-        const full = `routes/${filePath.replaceAll(/[\\]+/g, "/")}`;
-        if (full in files) {
-          return files[full];
-        }
-        throw new Error(`Mock FS: file ${full} not found`);
-      },
-      _fs: createFakeFs(files),
-    } as FsRoutesOptions & TESTING_ONLY__FsRoutesOptions,
-  );
+  const routeDir = path.join(fs.cwd(), "routes");
+  const rawFiles: FsRouteFileNoMod<T>[] = [];
+  await crawlRouteDir(fs, routeDir, [], () => {}, rawFiles);
+
+  const fsFiles = rawFiles.map((file) => {
+    // deno-lint-ignore no-explicit-any
+    return { ...file, mod: files[file.filePath] as any };
+  });
+
+  const app = new App<T>()
+    .fsRoutes();
+
+  const buildCache = new MockBuildCache<T>(fsFiles);
+  setBuildCache<T>(app, buildCache);
+
   return new FakeServer(app.handler());
 }
 
@@ -178,7 +174,7 @@ Deno.test("fsRoutes - middleware", async () => {
   const server = await createServer<{ text: string }>({
     "routes/index.ts": { handler: (ctx) => new Response(ctx.state.text) },
     "routes/_middleware.ts": {
-      default: ((ctx: FreshContext<{ text: string }>) => {
+      default: ((ctx: Context<{ text: string }>) => {
         ctx.state.text = "ok";
         return ctx.next();
         // deno-lint-ignore no-explicit-any
@@ -1545,4 +1541,26 @@ Deno.test("fsRoutes - call correct middleware", async () => {
   res = await server.get("/foo");
   text = await res.text();
   expect(text).toEqual("_middleware");
+});
+
+// Issue: https://github.com/denoland/fresh/issues/2045
+Deno.test("fsRoutes - merge group methods", async () => {
+  const server = await createServer({
+    "routes/(foo)/bar/index.ts": {
+      handler: {
+        POST: () => new Response("POST ok"),
+      },
+    },
+    "routes/bar/index.ts": {
+      handler: {
+        GET: () => new Response("GET ok"),
+      },
+    },
+  });
+
+  let res = await server.get("/bar");
+  expect(await res.text()).toEqual("GET ok");
+
+  res = await server.post("/bar");
+  expect(await res.text()).toEqual("POST ok");
 });

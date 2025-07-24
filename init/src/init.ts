@@ -158,11 +158,11 @@ ENV DENO_DEPLOYMENT_ID=\${GIT_REVISION}
 WORKDIR /app
 
 COPY . .
-RUN deno cache main.ts
+RUN deno cache _fresh/server.js
 
 EXPOSE 8000
 
-CMD ["run", "-A", "main.ts"]
+CMD ["serve", "-A", "_fresh/server.js"]
 
 `;
     await writeFile("Dockerfile", DOCKERFILE_TEXT);
@@ -349,7 +349,7 @@ ${GRADIENT_CSS}`;
     // Skip this and be silent if there is a network issue.
   }
 
-  const MAIN_TS = `import { App, fsRoutes, staticFiles } from "fresh";
+  const MAIN_TS = `import { App, staticFiles } from "fresh";
 import { define, type State } from "./utils.ts";
 
 export const app = new App<State>();
@@ -371,14 +371,8 @@ const exampleLoggerMiddleware = define.middleware((ctx) => {
 });
 app.use(exampleLoggerMiddleware);
 
-await fsRoutes(app, {
-  loadIsland: (path) => import(\`./islands/\${path}\`),
-  loadRoute: (path) => import(\`./routes/\${path}\`),
-});
-
-if (import.meta.main) {
-  await app.listen();
-}`;
+// Include file-system based routes here
+app.fsRoutes();`;
   await writeFile("main.ts", MAIN_TS);
 
   const COMPONENTS_BUTTON_TSX =
@@ -489,14 +483,13 @@ export default function Counter(props: CounterProps) {
   const DEV_TS = `#!/usr/bin/env -S deno run -A --watch=static/,routes/
 ${useTailwind ? `import { tailwind } from "@fresh/plugin-tailwind";\n` : ""}
 import { Builder } from "fresh/dev";
-import { app } from "./main.ts";
 
 const builder = new Builder();
-${useTailwind ? "tailwind(builder, app);" : ""}
+${useTailwind ? "tailwind(builder);" : ""}
 if (Deno.args.includes("build")) {
-  await builder.build(app);
+  await builder.build();
 } else {
-  await builder.listen(app);
+  await builder.listen(() => import("./main.ts"));
 }`;
   await writeFile("dev.ts", DEV_TS);
 
@@ -506,7 +499,7 @@ if (Deno.args.includes("build")) {
       check: "deno fmt --check . && deno lint . && deno check",
       dev: "deno run -A --watch=static/,routes/ dev.ts",
       build: "deno run -A dev.ts build",
-      start: "deno run -A main.ts",
+      start: "deno serve -A _fresh/server.js",
       update: "deno run -A -r jsr:@fresh/update .",
     },
     lint: {
