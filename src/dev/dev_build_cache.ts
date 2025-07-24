@@ -176,7 +176,8 @@ export class MemoryBuildCache<State> implements DevBuildCache<State> {
     await Promise.all(
       Array.from(this.islandModNameToChunk.entries()).map(
         async ([name, chunk]) => {
-          const mod = await import(chunk.server);
+          const fileUrl = path.toFileUrl(chunk.server);
+          const mod = await import(fileUrl.href);
 
           if (chunk.browser === null) {
             throw new Error(`Unexpected missing browser chunk`);
@@ -191,9 +192,10 @@ export class MemoryBuildCache<State> implements DevBuildCache<State> {
   async prepare(): Promise<void> {
     // Load FS routes
     const files = await Promise.all(this.#fsRoutes.files.map(async (file) => {
+      const fileUrl = path.toFileUrl(file.filePath);
       return {
         ...file,
-        mod: await import(file.filePath),
+        mod: await import(fileUrl.href),
       };
     }));
     this.#commands = fsItemsToCommands(files);
