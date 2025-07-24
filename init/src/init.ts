@@ -158,11 +158,11 @@ ENV DENO_DEPLOYMENT_ID=\${GIT_REVISION}
 WORKDIR /app
 
 COPY . .
-RUN deno cache main.ts
+RUN deno cache _fresh/server.js
 
 EXPOSE 8000
 
-CMD ["run", "-A", "main.ts"]
+CMD ["run", "-A", "_fresh/server.ts"]
 
 `;
     await writeFile("Dockerfile", DOCKERFILE_TEXT);
@@ -372,8 +372,7 @@ const exampleLoggerMiddleware = define.middleware((ctx) => {
 app.use(exampleLoggerMiddleware);
 
 // Include file-system based routes here
-app.fsRoutes();
-`;
+app.fsRoutes();`;
   await writeFile("main.ts", MAIN_TS);
 
   const COMPONENTS_BUTTON_TSX =

@@ -139,28 +139,31 @@ Deno.test({
   },
 });
 
-Deno.test("init with tailwind - fmt, lint, and type check project", async () => {
-  await using tmp = await withTmpDir();
-  const dir = tmp.dir;
-  using _promptStub = stubPrompt(".");
-  using _confirmStub = stubConfirm({
-    [CONFIRM_TAILWIND_MESSAGE]: true,
-  });
+Deno.test(
+  "init with tailwind - fmt, lint, and type check project",
+  async () => {
+    await using tmp = await withTmpDir();
+    const dir = tmp.dir;
+    using _promptStub = stubPrompt(".");
+    using _confirmStub = stubConfirm({
+      [CONFIRM_TAILWIND_MESSAGE]: true,
+    });
 
-  await initProject(dir, [], {});
-  await expectProjectFile(dir, "main.ts");
-  await expectProjectFile(dir, "dev.ts");
+    await initProject(dir, [], {});
+    await expectProjectFile(dir, "main.ts");
+    await expectProjectFile(dir, "dev.ts");
 
-  await patchProject(dir);
+    await patchProject(dir);
 
-  const check = await new Deno.Command(Deno.execPath(), {
-    args: ["task", "check"],
-    cwd: dir,
-    stderr: "inherit",
-    stdout: "inherit",
-  }).output();
-  expect(check.code).toEqual(0);
-});
+    const check = await new Deno.Command(Deno.execPath(), {
+      args: ["task", "check"],
+      cwd: dir,
+      stderr: "inherit",
+      stdout: "inherit",
+    }).output();
+    expect(check.code).toEqual(0);
+  },
+);
 
 Deno.test("init - can start dev server", async () => {
   await using tmp = await withTmpDir();

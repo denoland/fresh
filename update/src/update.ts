@@ -135,6 +135,10 @@ export async function updateProject(dir: string) {
       ) {
         tasks.check = "deno fmt --check && deno lint && deno check";
       }
+
+      if (tasks.preview === "deno run -A main.ts") {
+        tasks.preview = "deno run -A _fresh/server.js";
+      }
     }
   });
 
