@@ -6,6 +6,7 @@ import type { WalkEntry } from "@std/fs/walk";
 import { DEFAULT_CONN_INFO } from "./app.ts";
 import type { Command } from "./commands.ts";
 import { fsItemsToCommands, type FsRouteFile } from "./fs_routes.ts";
+import * as path from "@std/path";
 
 const STUB = {} as unknown as Deno.ServeHandlerInfo;
 
@@ -158,4 +159,20 @@ export class MockBuildCache<State> implements BuildCache<State> {
   readFile(_pathname: string): Promise<StaticFile | null> {
     return Promise.resolve(null);
   }
+}
+
+export async function writeFiles(dir: string, files: Record<string, string>) {
+  const entries = Object.entries(files);
+  await Promise.all(entries.map(async (entry) => {
+    const [pathname, content] = entry;
+    const fullPath = path.join(dir, pathname);
+    try {
+      await Deno.mkdir(path.dirname(fullPath), { recursive: true });
+      await Deno.writeTextFile(fullPath, content);
+    } catch (err) {
+      if (!(err instanceof Deno.errors.AlreadyExists)) {
+        throw err;
+      }
+    }
+  }));
 }

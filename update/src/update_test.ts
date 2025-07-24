@@ -8,23 +8,7 @@ import {
 import { expect } from "@std/expect";
 import { spy, type SpyCall } from "@std/testing/mock";
 import { walk } from "@std/fs/walk";
-import { withTmpDir } from "../../src/test_utils.ts";
-
-async function writeFiles(dir: string, files: Record<string, string>) {
-  const entries = Object.entries(files);
-  await Promise.all(entries.map(async (entry) => {
-    const [pathname, content] = entry;
-    const fullPath = path.join(dir, pathname);
-    try {
-      await Deno.mkdir(path.dirname(fullPath), { recursive: true });
-      await Deno.writeTextFile(fullPath, content);
-    } catch (err) {
-      if (!(err instanceof Deno.errors.AlreadyExists)) {
-        throw err;
-      }
-    }
-  }));
-}
+import { withTmpDir, writeFiles } from "../../src/test_utils.ts";
 
 async function readFiles(dir: string): Promise<Record<string, string>> {
   const files: Record<string, string> = {};

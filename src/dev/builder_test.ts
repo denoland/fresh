@@ -3,7 +3,8 @@ import * as path from "@std/path";
 import { Builder, specToName } from "./builder.ts";
 import { App } from "../app.ts";
 import { BUILD_ID } from "../runtime/build_id.ts";
-import { withTmpDir } from "../test_utils.ts";
+import { withTmpDir, writeFiles } from "../test_utils.ts";
+import { withChildProcessServer } from "../../tests/test_utils.tsx";
 
 Deno.test({
   name: "Builder - chain onTransformStaticFile",
@@ -236,6 +237,42 @@ Deno.test({
         uuid: expect.any(String),
       },
     });
+  },
+  sanitizeOps: false,
+  sanitizeResources: false,
+});
+
+Deno.test({
+  name: "Builder - write prod routePattern",
+  fn: async () => {
+    const root = path.join(import.meta.dirname!, "..", "..");
+    await using _tmp = await withTmpDir({ dir: root, prefix: "tmp_builder_" });
+    const tmp = _tmp.dir;
+
+    await writeFiles(tmp, {
+      "routes/foo/index.ts": `export const handler = () => new Response("ok")`,
+      "main.ts": `import { App } from "fresh";
+export const app = new App().fsRoutes()`,
+    });
+
+    const builder = new Builder({
+      root: tmp,
+      outDir: path.join(tmp, "dist"),
+    });
+
+    await builder.build();
+
+    let text = "fail";
+    await withChildProcessServer(
+      tmp,
+      ["serve", "-A", "dist/server.js"],
+      async (address) => {
+        const res = await fetch(`${address}/foo`);
+        text = await res.text();
+      },
+    );
+
+    expect(text).toEqual("ok");
   },
   sanitizeOps: false,
   sanitizeResources: false,

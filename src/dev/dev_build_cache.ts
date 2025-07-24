@@ -405,10 +405,10 @@ ${
           .map((item, i) => {
             const id = JSON.stringify(item.id);
             const pattern = JSON.stringify(item.pattern);
+            const type = JSON.stringify(item.type);
+            const routePattern = JSON.stringify(item.routePattern);
 
-            return `  { id: ${id}, mod: fsRoute_${i}, type: ${
-              JSON.stringify(item.type)
-            }, pattern: ${pattern} },`;
+            return `  { id: ${id}, mod: fsRoute_${i}, type: ${type}, pattern: ${pattern}, routePattern: ${routePattern} },`;
           })
           .join("\n")
       }
