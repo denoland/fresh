@@ -6,7 +6,6 @@ import type { WalkEntry } from "@std/fs/walk";
 import { DEFAULT_CONN_INFO } from "./app.ts";
 import type { Command } from "./commands.ts";
 import { fsItemsToCommands, type FsRouteFile } from "./fs_routes.ts";
-import type { AnyComponent } from "preact";
 
 const STUB = {} as unknown as Deno.ServeHandlerInfo;
 
@@ -158,9 +157,5 @@ export class MockBuildCache<State> implements BuildCache<State> {
 
   readFile(_pathname: string): Promise<StaticFile | null> {
     return Promise.resolve(null);
-  }
-
-  getIslandChunkName(_fn: AnyComponent): string | null {
-    return null;
   }
 }

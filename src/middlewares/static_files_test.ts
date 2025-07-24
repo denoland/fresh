@@ -4,7 +4,6 @@ import type { BuildCache, StaticFile } from "../build_cache.ts";
 import { expect } from "@std/expect";
 import { ASSET_CACHE_BUST_KEY } from "../runtime/shared_internal.tsx";
 import { BUILD_ID } from "../runtime/build_id.ts";
-import type { AnyComponent } from "preact";
 import type { Command } from "../commands.ts";
 import type { ServerIslandRegistry } from "../context.ts";
 
@@ -37,9 +36,6 @@ class MockBuildCache implements BuildCache {
   // deno-lint-ignore require-await
   async readFile(pathname: string): Promise<StaticFile | null> {
     return this.files.get(pathname) ?? null;
-  }
-  getIslandChunkName(_islandName: AnyComponent): string | null {
-    return null;
   }
 }
 

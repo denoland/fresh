@@ -12,7 +12,6 @@ import { fsAdapter } from "../fs.ts";
 import type { FileTransformer } from "./file_transformer.ts";
 import { assertInDir } from "../utils.ts";
 import type { ResolvedBuildConfig } from "./builder.ts";
-import type { AnyComponent } from "preact";
 import { fsItemsToCommands, type FsRouteFile } from "../fs_routes.ts";
 import type { Command } from "../commands.ts";
 import type { ServerIslandRegistry } from "../context.ts";
@@ -154,12 +153,6 @@ export class MemoryBuildCache<State> implements DevBuildCache<State> {
     return null;
   }
 
-  getIslandChunkName(_fn: AnyComponent): string | null {
-    // FIXME
-    // return this.#islands.get(fn) ?? null;
-    return null;
-  }
-
   addUnprocessedFile(pathname: string, dir: string): void {
     this.#unprocessedFiles.set(
       pathname,
@@ -230,10 +223,6 @@ export class DiskBuildCache<State> implements DevBuildCache<State> {
 
   getFsRoutes(): Command<State>[] {
     return [];
-  }
-
-  getIslandChunkName(_fn: AnyComponent): string | null {
-    return null;
   }
 
   addUnprocessedFile(pathname: string, dir: string): void {
