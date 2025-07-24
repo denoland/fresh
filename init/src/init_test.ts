@@ -177,11 +177,11 @@ Deno.test("init - can start dev server", async () => {
   await patchProject(dir);
   await withChildProcessServer(
     dir,
-    "dev",
+    ["task", "dev"],
     async (address) => {
       await withBrowser(async (page) => {
         await page.goto(address);
-        await page.locator("button").click();
+        await page.locator("#decrement").click();
         await waitForText(page, "button + p", "2");
       });
     },
@@ -210,7 +210,7 @@ Deno.test("init - can start built project", async () => {
 
   await withChildProcessServer(
     dir,
-    "start",
+    ["task", "start"],
     async (address) => {
       await withBrowser(async (page) => {
         await page.goto(address);
