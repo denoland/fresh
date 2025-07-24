@@ -36,8 +36,9 @@ export interface FsRouteFile<State> {
 
 // deno-lint-ignore no-explicit-any
 function isFreshFile<State>(mod: any): mod is FreshFsMod<State> {
-  return mod !== null && typeof mod === "object" &&
-      typeof mod.default === "function" ||
+  if (mod === null || typeof mod !== "object") return false;
+
+  return typeof mod.default === "function" ||
     typeof mod.config === "object" || typeof mod.handlers === "object" ||
     typeof mod.handlers === "function" || typeof mod.handler === "object" ||
     typeof mod.handler === "function";
