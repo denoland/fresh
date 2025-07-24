@@ -10,7 +10,7 @@ import { encodeHex } from "@std/encoding/hex";
 import { crypto } from "@std/crypto";
 import { fsAdapter } from "../fs.ts";
 import type { FileTransformer } from "./file_transformer.ts";
-import { assertInDir } from "../utils.ts";
+import { assertInDir, pathToSpec } from "../utils.ts";
 import type { ResolvedBuildConfig } from "./builder.ts";
 import { fsItemsToCommands, type FsRouteFile } from "../fs_routes.ts";
 import type { Command } from "../commands.ts";
@@ -358,7 +358,7 @@ import staticFileData from "./static-files.json" with { type: "json" };
 ${
         islands
           .map((item) => {
-            const spec = path.relative(outDir, item.server);
+            const spec = pathToSpec(path.relative(outDir, item.server));
             return `import * as ${item.name} from "${spec}";`;
           })
           .join("\n")
@@ -368,7 +368,7 @@ ${
 ${
         this.#fsRoutes.files
           .map((item, i) => {
-            const spec = path.relative(outDir, item.filePath);
+            const spec = pathToSpec(path.relative(outDir, item.filePath));
             return `import * as fsRoute_${i} from "${spec}"`;
           })
           .join("\n")

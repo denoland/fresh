@@ -63,3 +63,8 @@ export class UniqueNamer {
     return name;
   }
 }
+
+const PATH_TO_SPEC = /[\\/]+/g;
+export function pathToSpec(str: string): string {
+  return str.replaceAll(PATH_TO_SPEC, "/");
+}
