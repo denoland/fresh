@@ -7,14 +7,6 @@ export interface FreshConfig {
    * @default undefined
    */
   basePath?: string;
-  /**
-   * The directory to serve static files from.
-   *
-   * This can be an absolute path, a file URL or a relative path.
-   * Relative paths are resolved against the `root` option.
-   * @default "static"
-   */
-  staticDir?: string;
 }
 
 /**

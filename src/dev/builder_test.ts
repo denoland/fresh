@@ -213,9 +213,7 @@ Deno.test({
       outDir: path.join(tmp, "dist"),
       staticDir: tmp,
     });
-    const app = new App({
-      staticDir: tmp,
-    });
+    const app = new App();
     const abort = new AbortController();
     const port = 8011;
     await builder.listen(() => Promise.resolve(app), {
