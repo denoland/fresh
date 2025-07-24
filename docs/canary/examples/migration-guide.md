@@ -233,6 +233,36 @@ re-use existing objects internally as a minor performance optimization.
 | `ctx.basePath`         | `ctx.config.basePath`      |
 | `ctx.remoteAddr`       | `ctx.info.remoteAddr`      |
 
+## `createHandler`
+
+The `createHandler` function was often used to launch Fresh for tests. This can
+be now done via the [`Builder`](/docs/canary/concepts/builder).
+
+```ts
+// Best to do this once instead of for every test case for
+// performance reasons.
+const builder = new Builder();
+const applySnapshot = await builder.build({ snapshot: "memory" });
+
+function testApp() {
+  const app = new App()
+    .get("/", () => new Response("hello"));
+  // Applies build snapshot to this app instance.
+  applySnapshot(app);
+}
+
+Deno.test("My Test", () => {
+  const handler = testApp().handler();
+
+  const response = await handler(new Request("http://localhost"));
+  const text = await response.text();
+
+  if (text !== "hello") {
+    throw new Error("fail");
+  }
+});
+```
+
 ## Getting help
 
 If you run into problems with upgrading your app, reach out to us by creating an
