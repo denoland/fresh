@@ -53,21 +53,20 @@ The full `dev.ts` file for newly generated Fresh 2 projects looks like this:
 ```ts
 import { Builder } from "fresh/dev";
 import { tailwind } from "@fresh/plugin-tailwind";
-import { app } from "./main.ts";
 
 // Pass development only configuration here
 const builder = new Builder({ target: "safari12" });
 
 // Example: Enabling the tailwind plugin for Fresh
-tailwind(builder, app);
+tailwind(builder);
 
 // Create optimized assets for the browser when
 // running `deno run -A dev.ts build`
 if (Deno.args.includes("build")) {
-  await builder.build(app);
+  await builder.build();
 } else {
   // ...otherwise start the development server
-  await builder.listen(app);
+  await builder.listen(() => import("./main.ts"));
 }
 ```
 
@@ -82,18 +81,9 @@ import { App, fsRoutes, staticFiles } from "fresh";
 
 export const app = new App()
   // Add static file serving middleware
-  .use(staticFiles());
-
-// Enable file-system based routing
-await fsRoutes(app, {
-  loadIsland: (path) => import(`./islands/${path}`),
-  loadRoute: (path) => import(`./routes/${path}`),
-});
-
-// If this module is called directly, start the server
-if (import.meta.main) {
-  await app.listen();
-}
+  .use(staticFiles())
+  // Enable file-system based routing
+  .fsRoutes();
 ```
 
 ## Merging error pages
@@ -226,9 +216,9 @@ Same is true for handlers:
 
 All the various context interfaces have been consolidated and simplified:
 
-| Fresh 1.x                                     | Fresh 2.x      |
-| --------------------------------------------- | -------------- |
-| `AppContext`, `LayoutContext`, `RouteContext` | `FreshContext` |
+| Fresh 1.x                                     | Fresh 2.x                                  |
+| --------------------------------------------- | ------------------------------------------ |
+| `AppContext`, `LayoutContext`, `RouteContext` | [`Context`](/docs/canary/concepts/context) |
 
 ### Context methods
 
