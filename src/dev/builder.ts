@@ -7,7 +7,7 @@ import { bundleJs } from "./esbuild.ts";
 import { liveReload } from "./middlewares/live_reload.ts";
 import {
   cssAssetHash,
-  FreshFileTransformer,
+  FileTransformer,
   type OnTransformOptions,
 } from "./file_transformer.ts";
 import type { TransformFn } from "./file_transformer.ts";
@@ -93,7 +93,7 @@ const TEST_FILE_PATTERN = /[._]test\.(?:[tj]sx?|[mc][tj]s)$/;
 
 // deno-lint-ignore no-explicit-any
 export class Builder<State = any> {
-  #transformer = new FreshFileTransformer(fsAdapter);
+  #transformer: FileTransformer;
   #addedInternalTransforms = false;
   config: ResolvedBuildConfig;
   #islandSpecifiers = new Set<string>();
@@ -108,6 +108,8 @@ export class Builder<State = any> {
     const routeDir = parseDirPath(options?.routeDir ?? "routes", root);
 
     this.#fsRoutes = { dir: routeDir, files: [], id: "default" };
+
+    this.#transformer = new FileTransformer(fsAdapter, root);
 
     this.config = {
       target: options?.target ?? ["chrome99", "firefox99", "safari15"],

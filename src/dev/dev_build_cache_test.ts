@@ -1,6 +1,6 @@
 import { expect } from "@std/expect";
 import { MemoryBuildCache } from "./dev_build_cache.ts";
-import { FreshFileTransformer } from "./file_transformer.ts";
+import { FileTransformer } from "./file_transformer.ts";
 import { createFakeFs, withTmpDir } from "../test_utils.ts";
 import type { ResolvedBuildConfig } from "./builder.ts";
 
@@ -20,7 +20,7 @@ Deno.test({
       staticDir: "",
       target: "latest",
     };
-    const fileTransformer = new FreshFileTransformer(createFakeFs({}));
+    const fileTransformer = new FileTransformer(createFakeFs({}), tmp);
     const buildCache = new MemoryBuildCache(
       config,
       { dir: "", files: [], id: "" },
