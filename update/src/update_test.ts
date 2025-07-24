@@ -542,16 +542,17 @@ Deno.test(
     const files = await readFiles(dir);
     expect(files["/routes/index.tsx"])
       .toEqual(`import { FreshContext } from "fresh";
+import { HttpError } from "fresh";
 
 export default async function Index(ctx: FreshContext) {
   const req = ctx.req;
 
   if (true) {
-    return ctx.throw(404);
+    throw new HttpError(404);
   }
   if ("foo" === "foo" as any) {
-    ctx.throw(404);
-    return ctx.throw(404);
+    throw new HttpError(404);
+    throw new HttpError(404);
   }
   return new Response(req.url);
 }`);
@@ -559,7 +560,7 @@ export default async function Index(ctx: FreshContext) {
 );
 
 Deno.test.ignore(
-  "update - 1.x ctx.renderNotFound() -> ctx.throw()",
+  "update - 1.x ctx.renderNotFound() -> throw new HttpError(404)",
   async () => {
     await using _tmp = await withTmpDir();
     const dir = _tmp.dir;

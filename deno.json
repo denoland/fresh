@@ -80,7 +80,7 @@
     "tailwindcss": "npm:tailwindcss@^4.1.10",
     "postcss": "npm:postcss@8.5.6",
 
-    "ts-morph": "npm:ts-morph@^25.0.1",
+    "ts-morph": "npm:ts-morph@^26.0.0",
 
     "@std/front-matter": "jsr:@std/front-matter@^1.0.5",
     "github-slugger": "npm:github-slugger@^2.0.0",
