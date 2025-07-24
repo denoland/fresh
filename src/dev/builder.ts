@@ -173,6 +173,8 @@ export class Builder<State = any> {
 
     setBuildCache(devApp, buildCache);
 
+    // Boot in parallel to spin up the server quicker. We'll hold
+    // requests until the required assets are processed.
     await Promise.all([
       devApp.listen(options),
       this.#build(buildCache, true),
@@ -180,34 +182,58 @@ export class Builder<State = any> {
     return;
   }
 
-  async build(): Promise<void> {
-    this.config.mode = "production";
+  /**
+   * Build optimized assets for your app. By default this will create
+   * a production build.
+   *
+   * This can also be used for testing to apply a snapshot to a particular
+   * {@linkcode App} instance.
+   *
+   * @example
+   * ```ts
+   * const builder = new Builder();
+   * const applySnapshot = await builder.build({ snapshot: "memory" });
+   *
+   * Deno.test("My Test", () => {
+   *   const app = new App()
+   *     .get("/", () => new Response("hello"))
+   *
+   *   applySnapshot(app)
+   *
+   *   // ... your usual testing
+   * })
+   * ```
+   * @param options
+   * @returns Apply a snapshot to a particular {@linkcode App} instance.
+   */
+  async build(
+    options?: {
+      mode?: ResolvedBuildConfig["mode"];
+      snapshot?: "disk" | "memory";
+    },
+  ): Promise<(app: App<State>) => void> {
+    this.config.mode = options?.mode ?? "production";
 
     await this.#crawlFsItems();
 
-    const buildCache = new DiskBuildCache(
-      this.config,
-      this.#fsRoutes,
-      this.#transformer,
-    );
+    const buildCache = options?.snapshot === "memory"
+      ? new MemoryBuildCache(
+        this.config,
+        this.#fsRoutes,
+        this.#transformer,
+      )
+      : new DiskBuildCache(
+        this.config,
+        this.#fsRoutes,
+        this.#transformer,
+      );
 
-    return await this.#build(buildCache, false);
-  }
-
-  async buildForTests(): Promise<DevBuildCache<State>> {
-    this.config.mode = "production";
-
-    await this.#crawlFsItems();
-
-    const buildCache = new MemoryBuildCache(
-      this.config,
-      this.#fsRoutes,
-      this.#transformer,
-    );
-
-    await this.#build(buildCache, false);
+    await this.#build(buildCache, this.config.mode === "development");
     await buildCache.prepare();
-    return buildCache;
+
+    return (app) => {
+      setBuildCache(app, buildCache);
+    };
   }
 
   async #crawlFsItems() {

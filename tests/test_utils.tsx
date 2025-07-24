@@ -1,4 +1,4 @@
-import { type App, setBuildCache } from "../src/app.ts";
+import type { App } from "../src/app.ts";
 import { launch, type Page } from "@astral/astral";
 import * as colors from "@std/fmt/colors";
 import { DOMParser, HTMLElement } from "linkedom";
@@ -58,9 +58,7 @@ export async function buildProd(
 ): Promise<<T>(app: App<T>) => void> {
   const outDir = await Deno.makeTempDir();
   const builder = new Builder({ outDir, ...options });
-  const cache = await builder.buildForTests();
-
-  return (app) => setBuildCache(app, cache);
+  return await builder.build({ mode: "production", snapshot: "memory" });
 }
 
 export async function withBrowserApp(
