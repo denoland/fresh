@@ -22,7 +22,6 @@ jobs:
         uses: denoland/setup-deno@v2
         with:
           cache: true
-          deno-version: rc
 
       - name: Build step
         working-directory: ./www
@@ -32,5 +31,5 @@ jobs:
         uses: denoland/deployctl@v1
         with:
           project: "fresh"
-          entrypoint: "./www/main.ts"
+          entrypoint: "./www/_fresh/server.js"
           root: "."
