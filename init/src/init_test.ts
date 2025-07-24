@@ -181,7 +181,7 @@ Deno.test("init - can start dev server", async () => {
     async (address) => {
       await withBrowser(async (page) => {
         await page.goto(address);
-        await page.locator("button").click();
+        await page.locator("#decrement").click();
         await waitForText(page, "button + p", "2");
       });
     },

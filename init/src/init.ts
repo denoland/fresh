@@ -379,6 +379,7 @@ app.fsRoutes();`;
     `import type { ComponentChildren } from "preact";
 
 export interface ButtonProps {
+  id?: string;
   onClick?: () => void;
   children?: ComponentChildren;
   disabled?: boolean;
@@ -472,9 +473,9 @@ interface CounterProps {
 export default function Counter(props: CounterProps) {
   return (
     <div class="flex gap-8 py-6">
-      <Button onClick={() => props.count.value -= 1}>-1</Button>
+      <Button id="decrement" onClick={() => props.count.value -= 1}>-1</Button>
       <p class="text-3xl tabular-nums">{props.count}</p>
-      <Button onClick={() => props.count.value += 1}>+1</Button>
+      <Button id="increment" onClick={() => props.count.value += 1}>+1</Button>
     </div>
   );
 }`;
