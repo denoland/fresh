@@ -3,20 +3,31 @@ description: |
   Routes are the basic building block of Fresh applications. They are used to define the behaviour the application when a given path is requested.
 ---
 
-Fresh ships with the `fsRoutes` helper which automatically adds routes based on
-the structure in the `routes/` folder in your project. When you add a new file
-there, it will register a new route automatically.
+Use the `.fsRoutes()` helper on the [`App`](/docs/canary/concepts/app) instance
+to specify where file based routes should be inserted. It adds routes based on
+the structure in the `routes/` folder in your project (or any other folder you
+have set in `dev.ts`). When you add a new file there, it will register a new
+route automatically.
 
-```ts
-import { App, fsRoutes, staticFiles } from "fresh";
+```ts main.ts
+import { Builder } from "fresh/dev";
+
+// Optionally set a custom route dir (will be `<root>/routes` by default)
+const builder = new Builder({ routeDir: "path/to/routes" });
+
+if (Deno.args.includes("build")) {
+  await builder.build();
+} else {
+  await builder.listen(() => import("./main.ts"));
+}
+```
+
+```ts main.ts
+import { App, staticFiles } from "fresh";
 
 const app = new App({ root: import.meta.url })
-  .use(staticFiles());
-
-await fsRoutes(app, {
-  loadIsland: (path) => import(`./islands/${path}`),
-  loadRoute: (path) => import(`./routes/${path}`),
-});
+  .use(staticFiles())
+  .fsRoutes(); // This inserts all file based routes here
 ```
 
 > [info]: The `staticFiles()` middleware is required when using file based
@@ -26,6 +37,9 @@ await fsRoutes(app, {
 Example project structure:
 
 ```sh Project structure
+├── deno.json
+├── main.ts
+├── dev.ts
 └── routes
     ├── (marketing)  # Route group, used to group related routes
     │   ├── _layout.tsx  # Apply layout to all routes in this directory

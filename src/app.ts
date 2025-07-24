@@ -290,6 +290,11 @@ export class App<State> {
     return this;
   }
 
+  /**
+   * Insert file routes collected in {@linkcode Buidler} at this point.
+   * @param pattern Append file routes at this pattern instead of the root
+   * @returns
+   */
   fsRoutes(pattern = "*"): this {
     this.#commands.push({
       type: CommandType.FsRoute,
