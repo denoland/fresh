@@ -63,7 +63,7 @@ builder.registerIsland("jsr:@marvinh-test/fresh-island");
 
 ## Adding build plugins
 
-The buidler has a very simple processing mechanism for static files.
+The `Builder` has a very simple processing mechanism for static files.
 
 ```ts
 builder.onTransformStaticFile({
