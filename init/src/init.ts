@@ -373,10 +373,7 @@ app.use(exampleLoggerMiddleware);
 
 // Include file-system based routes here
 app.fsRoutes();
-
-if (import.meta.main) {
-  await app.listen();
-}`;
+`;
   await writeFile("main.ts", MAIN_TS);
 
   const COMPONENTS_BUTTON_TSX =
