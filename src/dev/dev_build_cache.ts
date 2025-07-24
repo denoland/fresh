@@ -365,7 +365,11 @@ import staticFileData from "./static-files.json" with { type: "json" };
 
 // Import islands
 ${
-        islands.map((item) => `import * as ${item.name} from "${item.server}";`)
+        islands
+          .map((item) => {
+            const spec = path.relative(outDir, item.server);
+            return `import * as ${item.name} from "${spec}";`;
+          })
           .join("\n")
       }
 
