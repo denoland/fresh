@@ -29,7 +29,7 @@ To run Fresh in production mode, run the `start` task:
 ```sh Terminal
 deno task start
 # or
-deno run -A _fresh/server.js
+deno serve -A _fresh/server.js
 ```
 
 Fresh will automatically pick up the optimized assets in the `_fresh` directory.

@@ -137,7 +137,7 @@ export async function updateProject(dir: string) {
       }
 
       if (tasks.preview === "deno run -A main.ts") {
-        tasks.preview = "deno run -A _fresh/server.js";
+        tasks.preview = "deno serve -A _fresh/server.js";
       }
     }
   });
