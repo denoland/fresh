@@ -7,7 +7,6 @@ import {
 import * as path from "@std/path";
 import { SEPARATOR as WINDOWS_SEPARATOR } from "@std/path/windows/constants";
 import { encodeHex } from "@std/encoding/hex";
-import { crypto } from "@std/crypto";
 import { fsAdapter } from "../fs.ts";
 import type { FileTransformer } from "./file_transformer.ts";
 import { assertInDir, pathToSpec } from "../utils.ts";
@@ -452,9 +451,11 @@ export default {
 async function hashContent(
   content: Uint8Array | ReadableStream<Uint8Array>,
 ): Promise<string> {
+  const buffer = await new Response(content).arrayBuffer();
+
   const hashBuf = await crypto.subtle.digest(
     "SHA-256",
-    content,
+    buffer,
   );
   return encodeHex(hashBuf);
 }
