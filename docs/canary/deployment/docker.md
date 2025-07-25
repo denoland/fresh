@@ -16,7 +16,7 @@ caching **will** cause your project to not function correctly.
 Here is an example `Dockerfile` for a Fresh project:
 
 ```dockerfile Dockerfile
-FROM denoland/deno:1.38.3
+FROM denoland/deno:latest
 
 ARG GIT_REVISION
 ENV DENO_DEPLOYMENT_ID=${GIT_REVISION}
@@ -24,11 +24,12 @@ ENV DENO_DEPLOYMENT_ID=${GIT_REVISION}
 WORKDIR /app
 
 COPY . .
-RUN deno cache main.ts
+RUN deno task build
+RUN deno cache _fresh/server.js
 
 EXPOSE 8000
 
-CMD ["run", "-A", "main.ts"]
+CMD ["serve", "-A", "_fresh/server.js"]
 ```
 
 To build your Docker image inside of a Git repository:
