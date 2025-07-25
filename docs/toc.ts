@@ -52,6 +52,7 @@ const toc: RawTableOfContents = {
           ["error-handling", "Error handling", "link:canary"],
           ["partials", "Partials", "link:canary"],
           ["forms", "Forms", "link:canary"],
+          ["define", "Define Helpers", "link:canary"],
         ],
       },
       deployment: {
