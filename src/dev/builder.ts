@@ -19,13 +19,13 @@ import {
 } from "./dev_build_cache.ts";
 import { BUILD_ID } from "../runtime/build_id.ts";
 import { updateCheck } from "./update_check.ts";
-import { DAY } from "@std/datetime";
 import { devErrorOverlay } from "./middlewares/error_overlay/middleware.tsx";
 import { automaticWorkspaceFolders } from "./middlewares/automatic_workspace_folders.ts";
 import { parseDirPath } from "../config.ts";
 import { pathToExportName, UniqueNamer } from "../utils.ts";
 import { checkDenoCompilerOptions } from "./check.ts";
 import { crawlRouteDir, walkDir } from "./fs_crawl.ts";
+import { DAY } from "../constants.ts";
 
 export interface BuildOptions {
   /**
