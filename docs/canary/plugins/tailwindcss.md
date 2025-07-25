@@ -26,11 +26,10 @@ that.
 
 ```diff dev.ts
   import { Builder } from "fresh/dev";
-  import { app } from "./main.ts";
 + import { tailwind } from "@fresh/plugin-tailwind";
   
   const builder = new Builder();
-+ tailwind(builder, app);
++ tailwind(builder);
 ```
 
 4. Add `@import "tailwindcss";` at the top of your main stylesheet.
@@ -51,4 +50,17 @@ tailwind(builder, app, {
   // Exclude base styles
   base: null,
 });
+```
+
+## Tailwindcss v3
+
+If can't update to the current version of tailwindcss we have a dedicated
+`@fresh/plugin-tailwindcss-v3` plugin that uses tailwindcss v3. That way you can
+decided on your own when it's best to update to v4.
+
+```ts dev.ts
+import { Builder } from "fresh/dev";
+import { tailwind } from "@fresh/plugin-tailwindcss-v3";
+
+tailwind(builder, {});
 ```
