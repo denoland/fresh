@@ -106,9 +106,7 @@ async function initTailwind(
   config: ResolvedBuildConfig,
   options: TailwindPluginOptions,
 ): Promise<postcss.Processor> {
-  const root = path.dirname(config.staticDir);
-
-  const configPath = await findTailwindConfigFile(root);
+  const configPath = await findTailwindConfigFile(config.root);
   const url = path.toFileUrl(configPath).href;
   const tailwindConfig = (await import(url)).default as Config;
 

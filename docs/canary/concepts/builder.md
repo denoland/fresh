@@ -34,8 +34,9 @@ const builder = new Builder({
   // Where to write generated files when doing a production build.
   // (default: `<root>/_fresh/`)
   outDir?: string;
-  // Path to static file directory. (Default: `<root>/static/`)
-  staticDir?: string;
+  // Path to one or more static file directories.
+  // (Default: `<root>/static/`)
+  staticDir?: string | string[];
   // Path to island directory. (Default: `<root>/islands`)
   islandDir?: string;
   // Path to routes directory. (Default: `<root>/routes`)

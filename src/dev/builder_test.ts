@@ -15,7 +15,7 @@ Deno.test({
     const logs: string[] = [];
     const builder = new Builder({
       outDir: path.join(tmp, "dist"),
-      staticDir: tmp,
+      staticDirs: tmp,
     });
     builder.onTransformStaticFile(
       { pluginName: "A", filter: /\.css$/ },
@@ -53,7 +53,7 @@ Deno.test({
 
     const builder = new Builder({
       outDir: path.join(tmp, "dist"),
-      staticDir: tmp,
+      staticDirs: tmp,
     });
     await Deno.mkdir(path.join(tmp, "images"));
     await Deno.writeTextFile(
@@ -78,7 +78,7 @@ Deno.test({
     const tmp = _tmp.dir;
     const builder = new Builder({
       outDir: path.join(tmp, "dist"),
-      staticDir: tmp,
+      staticDirs: tmp,
     });
 
     await Deno.writeTextFile(
@@ -104,7 +104,7 @@ Deno.test({
     const tmp = _tmp.dir;
     const builder = new Builder({
       outDir: path.join(tmp, "dist"),
-      staticDir: tmp,
+      staticDirs: tmp,
     });
     await Deno.writeTextFile(
       path.join(tmp, "foo.css"),
@@ -164,7 +164,7 @@ Deno.test({
     const logs: string[] = [];
     const builder = new Builder({
       outDir: path.join(tmp, "dist"),
-      staticDir: tmp,
+      staticDirs: tmp,
     });
 
     // String
@@ -212,7 +212,7 @@ Deno.test({
 
     const builder = new Builder({
       outDir: path.join(tmp, "dist"),
-      staticDir: tmp,
+      staticDirs: tmp,
     });
     const app = new App();
     const abort = new AbortController();

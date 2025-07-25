@@ -58,7 +58,7 @@ export interface BuildOptions {
    * Relative paths are resolved against the `root` option.
    * @default "static"
    */
-  staticDir?: string;
+  staticDirs?: string | string[];
   /**
    * The directory which contains islands.
    *
@@ -84,9 +84,10 @@ export interface BuildOptions {
 /**
  * The final resolved Builder configuration.
  */
-export type ResolvedBuildConfig = Required<BuildOptions> & {
+export type ResolvedBuildConfig = Required<Omit<BuildOptions, "staticDir">> & {
   mode: "development" | "production";
   buildId: string;
+  staticDirs: string[];
 };
 
 const TEST_FILE_PATTERN = /[._]test\.(?:[tj]sx?|[mc][tj]s)$/;
@@ -103,7 +104,10 @@ export class Builder<State = any> {
   constructor(options?: BuildOptions) {
     const root = parseDirPath(options?.root ?? ".", Deno.cwd());
     const outDir = parseDirPath(options?.outDir ?? "_fresh", root);
-    const staticDir = parseDirPath(options?.staticDir ?? "static", root);
+    const rawStaticDirs = Array.isArray(options?.staticDirs)
+      ? options?.staticDirs
+      : [options?.staticDirs ?? "static"];
+    const staticDirs = rawStaticDirs.map((dir) => parseDirPath(dir, root));
     const islandDir = parseDirPath(options?.islandDir ?? "islands", root);
     const routeDir = parseDirPath(options?.routeDir ?? "routes", root);
 
@@ -115,7 +119,7 @@ export class Builder<State = any> {
       target: options?.target ?? ["chrome99", "firefox99", "safari15"],
       root,
       outDir,
-      staticDir,
+      staticDirs: staticDirs,
       islandDir,
       routeDir,
       ignore: options?.ignore ?? [TEST_FILE_PATTERN],

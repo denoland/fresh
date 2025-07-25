@@ -104,12 +104,28 @@ export class MemoryBuildCache<State> implements DevBuildCache<State> {
     }
 
     let entry = pathname.startsWith("/") ? pathname.slice(1) : pathname;
-    entry = path.join(this.#config.staticDir, entry);
-    const relative = path.relative(this.#config.staticDir, entry);
-    if (relative.startsWith("..")) {
-      throw new Error(
-        `Processed file resolved outside of static dir ${entry}`,
-      );
+
+    // Check which static dir a file is in
+    let foundDir: string | null = null;
+    for (let i = 0; i < this.#config.staticDirs.length; i++) {
+      const staticDir = this.#config.staticDirs[i];
+
+      const maybe = path.join(staticDir, entry);
+      const relative = path.relative(staticDir, entry);
+      if (relative.startsWith("..")) {
+        continue;
+      }
+
+      try {
+        await Deno.stat(maybe);
+        entry = maybe;
+        foundDir = staticDir;
+        break;
+      } catch (err) {
+        if (!(err instanceof Deno.errors.NotFound)) {
+          throw err;
+        }
+      }
     }
 
     // Might be a file that we still need to process
@@ -122,7 +138,7 @@ export class MemoryBuildCache<State> implements DevBuildCache<State> {
     if (transformed !== null) {
       for (let i = 0; i < transformed.length; i++) {
         const file = transformed[i];
-        const relative = path.relative(this.#config.staticDir, file.path);
+        const relative = path.relative(this.#config.staticDirs, file.path);
         if (relative.startsWith(".")) {
           throw new Error(
             `Processed file resolved outside of static dir ${file.path}`,
@@ -137,10 +153,10 @@ export class MemoryBuildCache<State> implements DevBuildCache<State> {
       }
     } else {
       try {
-        const filePath = path.join(this.#config.staticDir, pathname);
-        const relative = path.relative(this.#config.staticDir, filePath);
+        const filePath = path.join(this.#config.staticDirs, pathname);
+        const relative = path.relative(this.#config.staticDirs, filePath);
         if (!relative.startsWith(".") && (await Deno.stat(filePath)).isFile) {
-          this.addUnprocessedFile(pathname, this.#config.staticDir);
+          this.addUnprocessedFile(pathname, this.#config.staticDirs);
           return this.readFile(pathname);
         }
       } catch (err) {
@@ -261,40 +277,43 @@ export class DiskBuildCache<State> implements DevBuildCache<State> {
   }
 
   async flush(): Promise<void> {
-    const { staticDir, outDir, target, root } = this.#config;
+    const { staticDirs, outDir, target, root } = this.#config;
 
-    if (await fsAdapter.isDirectory(staticDir)) {
-      const entries = fsAdapter.walk(staticDir, {
-        includeDirs: false,
-        includeFiles: true,
-        followSymlinks: false,
-        // Skip any folder or file starting with a "."
-        skip: [/\/\.[^/]+(\/|$)/],
-      });
+    for (let i = 0; i < staticDirs.length; i++) {
+      const staticDir = staticDirs[i];
+      if (await fsAdapter.isDirectory(staticDir)) {
+        const entries = fsAdapter.walk(staticDir, {
+          includeDirs: false,
+          includeFiles: true,
+          followSymlinks: false,
+          // Skip any folder or file starting with a "."
+          skip: [/\/\.[^/]+(\/|$)/],
+        });
 
-      for await (const entry of entries) {
-        // OutDir might be inside static dir
-        if (!path.relative(outDir, entry.path).startsWith("..")) {
-          continue;
-        }
-
-        const result = await this.#transformer.process(
-          entry.path,
-          "production",
-          target,
-        );
-
-        if (result !== null) {
-          for (let i = 0; i < result.length; i++) {
-            const file = result[i];
-            assertInDir(file.path, staticDir);
-            const pathname = `/${path.relative(staticDir, file.path)}`;
-            await this.addProcessedFile(pathname, file.content, null);
+        for await (const entry of entries) {
+          // OutDir might be inside static dir
+          if (!path.relative(outDir, entry.path).startsWith("..")) {
+            continue;
           }
-        } else {
-          const relative = path.relative(staticDir, entry.path);
-          const pathname = `/${relative}`;
-          this.addUnprocessedFile(pathname, staticDir);
+
+          const result = await this.#transformer.process(
+            entry.path,
+            "production",
+            target,
+          );
+
+          if (result !== null) {
+            for (let i = 0; i < result.length; i++) {
+              const file = result[i];
+              assertInDir(file.path, staticDir);
+              const pathname = `/${path.relative(staticDir, file.path)}`;
+              await this.addProcessedFile(pathname, file.content, null);
+            }
+          } else {
+            const relative = path.relative(staticDir, entry.path);
+            const pathname = `/${relative}`;
+            this.addUnprocessedFile(pathname, staticDir);
+          }
         }
       }
     }

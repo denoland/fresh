@@ -17,7 +17,7 @@ Deno.test({
       islandDir: "",
       outDir: "",
       routeDir: "",
-      staticDir: "",
+      staticDirs: [""],
       target: "latest",
     };
     const fileTransformer = new FileTransformer(createFakeFs({}), tmp);
