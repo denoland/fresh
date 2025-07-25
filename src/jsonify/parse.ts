@@ -91,6 +91,22 @@ function unpack(
         }
         case "Uint8Array":
           return hydrated[idx] = b64decode(current[1]);
+        case "Temporal.Instant":
+          return hydrated[idx] = Temporal.Instant.from(current[1]);
+        case "Temporal.ZonedDateTime":
+          return hydrated[idx] = Temporal.ZonedDateTime.from(current[1]);
+        case "Temporal.PlainDate":
+          return hydrated[idx] = Temporal.PlainDate.from(current[1]);
+        case "Temporal.PlainTime":
+          return hydrated[idx] = Temporal.PlainTime.from(current[1]);
+        case "Temporal.PlainDateTime":
+          return hydrated[idx] = Temporal.PlainDateTime.from(current[1]);
+        case "Temporal.PlainYearMonth":
+          return hydrated[idx] = Temporal.PlainYearMonth.from(current[1]);
+        case "Temporal.PlainMonthDay":
+          return hydrated[idx] = Temporal.PlainMonthDay.from(current[1]);
+        case "Temporal.Duration":
+          return hydrated[idx] = Temporal.Duration.from(current[1]);
       }
     } else {
       const actual = new Array(current.length);
