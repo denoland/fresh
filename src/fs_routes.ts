@@ -1,7 +1,7 @@
 import type { AnyComponent } from "preact";
 import type { MaybeLazy, Route, RouteConfig } from "./types.ts";
 import type { HandlerByMethod, RouteHandler } from "./handlers.ts";
-import type { MiddlewareFn } from "./middlewares/mod.ts";
+import type { Middleware } from "./middlewares/mod.ts";
 import type { AsyncAnyComponent } from "./render.ts";
 import { type HandlerFn, isHandlerByMethod } from "./handlers.ts";
 import type { PageProps } from "./render.ts";
@@ -73,8 +73,8 @@ export function fsItemsToCommands<State>(
         const { handlers, mod } = validateFsMod(filePath, rawMod);
 
         let middlewares = (handlers ?? mod.default) as unknown as
-          | MiddlewareFn<State>
-          | MiddlewareFn<State>[]
+          | Middleware<State>
+          | Middleware<State>[]
           | HandlerByMethod<unknown, State> ??
           null;
         if (middlewares === null) continue;

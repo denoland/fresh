@@ -1,6 +1,6 @@
 import { HttpError } from "./error.ts";
 import { isHandlerByMethod, type PageResponse } from "./handlers.ts";
-import type { MaybeLazyMiddleware, MiddlewareFn } from "./middlewares/mod.ts";
+import type { MaybeLazyMiddleware, Middleware } from "./middlewares/mod.ts";
 import { mergePath, type Method, type Router } from "./router.ts";
 import {
   getOrCreateSegment,
@@ -55,7 +55,7 @@ export interface ErrorCmd<State> {
 }
 export function newErrorCmd<State>(
   pattern: string,
-  routeOrMiddleware: Route<State> | MiddlewareFn<State>,
+  routeOrMiddleware: Route<State> | Middleware<State>,
   includeLastSegment: boolean,
 ): ErrorCmd<State> {
   const route = typeof routeOrMiddleware === "function"
@@ -114,10 +114,10 @@ export function newMiddlewareCmd<State>(
 
 export interface NotFoundCmd<State> {
   type: CommandType.NotFound;
-  fn: MiddlewareFn<State>;
+  fn: Middleware<State>;
 }
 export function newNotFoundCmd<State>(
-  routeOrMiddleware: Route<State> | MiddlewareFn<State>,
+  routeOrMiddleware: Route<State> | Middleware<State>,
 ): NotFoundCmd<State> {
   const route = typeof routeOrMiddleware === "function"
     ? { handler: routeOrMiddleware }
@@ -165,13 +165,13 @@ export interface HandlerCommand<State> {
   type: CommandType.Handler;
   pattern: string;
   method: Method | "ALL";
-  fns: MaybeLazy<MiddlewareFn<State>>[];
+  fns: MaybeLazy<Middleware<State>>[];
   includeLastSegment: boolean;
 }
 export function newHandlerCmd<State>(
   method: Method | "ALL",
   pattern: string,
-  fns: MaybeLazy<MiddlewareFn<State>>[],
+  fns: MaybeLazy<Middleware<State>>[],
   includeLastSegment: boolean,
 ): HandlerCommand<State> {
   return {

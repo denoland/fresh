@@ -1,5 +1,5 @@
 import type { Context } from "../context.ts";
-import type { MiddlewareFn } from "./mod.ts";
+import type { Middleware } from "./mod.ts";
 
 export type CORSOptions<State> = {
   /**
@@ -61,7 +61,7 @@ export type CORSOptions<State> = {
  * // ];
  * ```
  */
-export function cors<State>(options?: CORSOptions<State>): MiddlewareFn<State> {
+export function cors<State>(options?: CORSOptions<State>): Middleware<State> {
   const opts: CORSOptions<State> = {
     origin: "*",
     allowMethods: ["GET", "HEAD", "PUT", "POST", "DELETE", "PATCH"],

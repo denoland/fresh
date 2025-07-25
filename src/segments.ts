@@ -1,5 +1,5 @@
 import type { AnyComponent } from "preact";
-import type { MaybeLazyMiddleware, MiddlewareFn } from "./middlewares/mod.ts";
+import type { MaybeLazyMiddleware, Middleware } from "./middlewares/mod.ts";
 import { type Method, patternToSegments } from "./router.ts";
 import type { LayoutConfig, Route } from "./types.ts";
 import { type Context, getInternals } from "./context.ts";
@@ -24,7 +24,7 @@ export interface Segment<State> {
     config: LayoutConfig | null;
   } | null;
   errorRoute: Route<State> | null;
-  notFound: MiddlewareFn<State> | null;
+  notFound: Middleware<State> | null;
   app: RouteComponent<State> | null;
   children: Map<string, Segment<State>>;
   parent: Segment<State> | null;

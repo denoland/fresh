@@ -4,7 +4,7 @@ import { DENO_DEPLOYMENT_ID } from "./runtime/build_id.ts";
 import * as colors from "@std/fmt/colors";
 import {
   type MaybeLazyMiddleware,
-  type MiddlewareFn,
+  type Middleware,
   runMiddlewares,
 } from "./middlewares/mod.ts";
 import { Context } from "./context.ts";
@@ -209,16 +209,16 @@ export class App<State> {
   }
 
   /**
-   * Set the app's 404 error handler. Can be a {@linkcode Route} or a {@linkcode MiddlewareFn}.
+   * Set the app's 404 error handler. Can be a {@linkcode Route} or a {@linkcode Middleware}.
    */
-  notFound(routeOrMiddleware: Route<State> | MiddlewareFn<State>): this {
+  notFound(routeOrMiddleware: Route<State> | Middleware<State>): this {
     this.#commands.push(newNotFoundCmd(routeOrMiddleware));
     return this;
   }
 
   onError(
     path: string,
-    routeOrMiddleware: Route<State> | MiddlewareFn<State>,
+    routeOrMiddleware: Route<State> | Middleware<State>,
   ): this {
     this.#commands.push(newErrorCmd(path, routeOrMiddleware, true));
     return this;
@@ -250,42 +250,42 @@ export class App<State> {
   /**
    * Add middlewares for GET requests at the specified path.
    */
-  get(path: string, ...middlewares: MaybeLazy<MiddlewareFn<State>>[]): this {
+  get(path: string, ...middlewares: MaybeLazy<Middleware<State>>[]): this {
     this.#commands.push(newHandlerCmd("GET", path, middlewares, false));
     return this;
   }
   /**
    * Add middlewares for POST requests at the specified path.
    */
-  post(path: string, ...middlewares: MaybeLazy<MiddlewareFn<State>>[]): this {
+  post(path: string, ...middlewares: MaybeLazy<Middleware<State>>[]): this {
     this.#commands.push(newHandlerCmd("POST", path, middlewares, false));
     return this;
   }
   /**
    * Add middlewares for PATCH requests at the specified path.
    */
-  patch(path: string, ...middlewares: MaybeLazy<MiddlewareFn<State>>[]): this {
+  patch(path: string, ...middlewares: MaybeLazy<Middleware<State>>[]): this {
     this.#commands.push(newHandlerCmd("PATCH", path, middlewares, false));
     return this;
   }
   /**
    * Add middlewares for PUT requests at the specified path.
    */
-  put(path: string, ...middlewares: MaybeLazy<MiddlewareFn<State>>[]): this {
+  put(path: string, ...middlewares: MaybeLazy<Middleware<State>>[]): this {
     this.#commands.push(newHandlerCmd("PUT", path, middlewares, false));
     return this;
   }
   /**
    * Add middlewares for DELETE requests at the specified path.
    */
-  delete(path: string, ...middlewares: MaybeLazy<MiddlewareFn<State>>[]): this {
+  delete(path: string, ...middlewares: MaybeLazy<Middleware<State>>[]): this {
     this.#commands.push(newHandlerCmd("DELETE", path, middlewares, false));
     return this;
   }
   /**
    * Add middlewares for HEAD requests at the specified path.
    */
-  head(path: string, ...middlewares: MaybeLazy<MiddlewareFn<State>>[]): this {
+  head(path: string, ...middlewares: MaybeLazy<Middleware<State>>[]): this {
     this.#commands.push(newHandlerCmd("HEAD", path, middlewares, false));
     return this;
   }
@@ -293,7 +293,7 @@ export class App<State> {
   /**
    * Add middlewares for all HTTP verbs at the specified path.
    */
-  all(path: string, ...middlewares: MaybeLazy<MiddlewareFn<State>>[]): this {
+  all(path: string, ...middlewares: MaybeLazy<Middleware<State>>[]): this {
     this.#commands.push(newHandlerCmd("ALL", path, middlewares, false));
     return this;
   }
