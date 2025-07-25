@@ -103,13 +103,12 @@ export function createFakeFs(files: Record<string, unknown>): FsAdapter {
   return {
     cwd: () => ".",
     async *walk(_root) {
-      // FIXME: ignore
       for (const file of Object.keys(files)) {
         const entry: WalkEntry = {
           isDirectory: false,
           isFile: true,
           isSymlink: false,
-          name: file, // FIXME?
+          name: file,
           path: file,
         };
         yield entry;
@@ -122,6 +121,10 @@ export function createFakeFs(files: Record<string, unknown>): FsAdapter {
     async mkdirp(_dir: string) {
     },
     readFile: Deno.readFile,
+    // deno-lint-ignore require-await
+    async readTextFile(path) {
+      return String(files[String(path)]);
+    },
   };
 }
 

@@ -110,7 +110,6 @@ export class Context<State> {
 
   #buildCache: BuildCache<State>;
 
-  // FIXME: remove after switching to <Slot />
   Component!: FunctionComponent;
 
   static {

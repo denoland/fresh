@@ -1,5 +1,5 @@
 import type { AnyComponent } from "preact";
-import type { MiddlewareFn } from "./middlewares/mod.ts";
+import type { MaybeLazyMiddleware, MiddlewareFn } from "./middlewares/mod.ts";
 import { type Method, patternToSegments } from "./router.ts";
 import type { LayoutConfig, Route } from "./types.ts";
 import { type Context, getInternals } from "./context.ts";
@@ -18,7 +18,7 @@ export type RouteComponent<State> =
 
 export interface Segment<State> {
   pattern: string;
-  middlewares: MiddlewareFn<State>[];
+  middlewares: MaybeLazyMiddleware<State>[];
   layout: {
     component: RouteComponent<State>;
     config: LayoutConfig | null;
@@ -74,8 +74,8 @@ export function getOrCreateSegment<State>(
 
 export function segmentToMiddlewares<State>(
   segment: Segment<State>,
-): MiddlewareFn<State>[] {
-  const result: MiddlewareFn<State>[] = [];
+): MaybeLazyMiddleware<State>[] {
+  const result: MaybeLazyMiddleware<State>[] = [];
 
   const stack: Segment<State>[] = [];
   let current: Segment<State> | null = segment;

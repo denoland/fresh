@@ -76,7 +76,6 @@ Deno.test({
   fn: async () => {
     const app = testApp()
       .get("/partial", (ctx) => {
-        // FIXME: Add outer document
         return ctx.render(
           <Doc>
             <Partial name="foo">

@@ -27,7 +27,9 @@ export interface IslandModChunk {
   browser: string | null;
 }
 
-export type FsRouteFileNoMod<State> = Omit<FsRouteFile<State>, "mod">;
+export type FsRouteFileNoMod<State> = Omit<FsRouteFile<State>, "mod"> & {
+  lazy: boolean;
+};
 
 export interface FsRoute<State> {
   id: string;
@@ -195,7 +197,9 @@ export class MemoryBuildCache<State> implements DevBuildCache<State> {
       const fileUrl = path.toFileUrl(file.filePath);
       return {
         ...file,
-        mod: await import(fileUrl.href),
+        mod: file.lazy
+          ? () => import(fileUrl.href)
+          : await import(fileUrl.href),
       };
     }));
     this.#commands = fsItemsToCommands(files);
@@ -368,9 +372,11 @@ ${
 ${
         this.#fsRoutes.files
           .map((item, i) => {
+            if (item.lazy) return null;
             const spec = pathToSpec(path.relative(outDir, item.filePath));
             return `import * as fsRoute_${i} from "${spec}"`;
           })
+          .filter(Boolean)
           .join("\n")
       }
 
@@ -408,7 +414,15 @@ ${
             const type = JSON.stringify(item.type);
             const routePattern = JSON.stringify(item.routePattern);
 
-            return `  { id: ${id}, mod: fsRoute_${i}, type: ${type}, pattern: ${pattern}, routePattern: ${routePattern} },`;
+            let mod = "";
+            if (item.lazy) {
+              const spec = pathToSpec(path.relative(outDir, item.filePath));
+              mod = `() => import(${JSON.stringify(spec)})`;
+            } else {
+              mod = `fsRoute_${i}`;
+            }
+
+            return `  { id: ${id}, mod: ${mod}, type: ${type}, pattern: ${pattern}, routePattern: ${routePattern} },`;
           })
           .join("\n")
       }

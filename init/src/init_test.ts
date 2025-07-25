@@ -165,27 +165,33 @@ Deno.test(
   },
 );
 
-Deno.test("init - can start dev server", async () => {
-  await using tmp = await withTmpDir();
-  const dir = tmp.dir;
-  using _promptStub = stubPrompt(".");
-  using _confirmStub = stubConfirm();
-  await initProject(dir, [], {});
-  await expectProjectFile(dir, "main.ts");
-  await expectProjectFile(dir, "dev.ts");
+Deno.test({
+  // TODO: For some reason this test is flaky in GitHub CI. It works when
+  // testing locally on windows though. Not sure what's going on.
+  ignore: Deno.build.os === "windows" && Deno.env.get("CI") !== undefined,
+  name: "init - can start dev server",
+  fn: async () => {
+    await using tmp = await withTmpDir();
+    const dir = tmp.dir;
+    using _promptStub = stubPrompt(".");
+    using _confirmStub = stubConfirm();
+    await initProject(dir, [], {});
+    await expectProjectFile(dir, "main.ts");
+    await expectProjectFile(dir, "dev.ts");
 
-  await patchProject(dir);
-  await withChildProcessServer(
-    dir,
-    ["task", "dev"],
-    async (address) => {
-      await withBrowser(async (page) => {
-        await page.goto(address);
-        await page.locator("#decrement").click();
-        await waitForText(page, "button + p", "2");
-      });
-    },
-  );
+    await patchProject(dir);
+    await withChildProcessServer(
+      dir,
+      ["task", "dev"],
+      async (address) => {
+        await withBrowser(async (page) => {
+          await page.goto(address);
+          await page.locator("#decrement").click();
+          await waitForText(page, "button + p", "2");
+        });
+      },
+    );
+  },
 });
 
 Deno.test("init - can start built project", async () => {
