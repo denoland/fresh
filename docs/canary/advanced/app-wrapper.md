@@ -26,8 +26,8 @@ function AppWrapper({ Component }) {
 app.appWrapper(AppWrapper);
 ```
 
-Every `ctx.render()` call will include the app wrapper component by default,
-unless opted out.
+Every [`ctx.render()`](/docs/canary/concepts/context#render-1) call will include
+the app wrapper component by default, unless opted out.
 
 Note that only one app wrapper component is supported per
 [`App`](/docs/canary/concepts/app) instance.
