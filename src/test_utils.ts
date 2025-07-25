@@ -121,6 +121,10 @@ export function createFakeFs(files: Record<string, unknown>): FsAdapter {
     async mkdirp(_dir: string) {
     },
     readFile: Deno.readFile,
+    // deno-lint-ignore require-await
+    async readTextFile(path) {
+      return String(files[String(path)]);
+    },
   };
 }
 

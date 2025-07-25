@@ -1480,7 +1480,7 @@ Deno.test("fsRoutes - warn on _middleware with object handler", async () => {
 
   expect(warnSpy.fake).toHaveBeenCalledTimes(1);
   expect(warnSpy.fake).toHaveBeenLastCalledWith(
-    "🍋 %c[WARNING] Unsupported route config: Middleware does not support object handlers with GET, POST, etc.",
+    "🍋 %c[WARNING] Unsupported route config: Middleware does not support object handlers with GET, POST, etc. in routes/_middleware.ts",
     expect.any(String),
   );
 });

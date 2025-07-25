@@ -17,6 +17,12 @@ function testTransformer(files: Record<string, string>, root = "/") {
       const buf = new TextEncoder().encode(content);
       return Promise.resolve(buf);
     },
+    readTextFile: (file) => {
+      if (file instanceof URL) throw new Error("Not supported");
+      // deno-lint-ignore no-explicit-any
+      const content = (files as any)[file];
+      return Promise.resolve(content);
+    },
   };
   return new FileTransformer(mockFs, root);
 }
