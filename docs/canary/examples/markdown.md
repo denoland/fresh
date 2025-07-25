@@ -52,8 +52,8 @@ app.get("/", async (ctx) => {
 
 ## Other libraries
 
-There are several other popular libaries besides `@deno/gfm` that can be used to
-render markdown. The most common ones are:
+There are several other popular libraries besides `@deno/gfm` that can be used
+to render markdown. The most common ones are:
 
 - [marked](https://marked.js.org/)
 - [remark](https://remark.js.org/)
