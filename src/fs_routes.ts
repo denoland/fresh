@@ -136,17 +136,26 @@ export function fsItemsToCommands<State>(
       }
       case CommandType.Route: {
         let normalized;
+        // Merge configs
+        let config: RouteConfig = {};
         if (isLazy(rawMod)) {
           normalized = async () => {
             const result = await rawMod();
             return normalizeRoute(filePath, result, routePattern);
           };
+
+          config.methods = item.overrideConfig?.methods ?? "ALL";
+          config.routeOverride = item.overrideConfig?.routeOverride ??
+            routePattern;
         } else {
           normalized = normalizeRoute(filePath, rawMod, routePattern);
+          if (rawMod.config) {
+            config = rawMod.config;
+          }
         }
 
         commands.push(
-          newRouteCmd(pattern, normalized, item.overrideConfig, false),
+          newRouteCmd(pattern, normalized, config, false),
         );
         continue;
       }
