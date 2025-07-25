@@ -17,6 +17,23 @@ const app = new App()
 app.listen();
 ```
 
+All items are applied from top to bottom. This means that when you defined a
+middleware _after_ a `.get()` handler, it won't be included.
+
+```ts
+const app = new App()
+  .use((ctx) => {
+    // Will be called for all middlewares
+    return ctx.next();
+  })
+  .get("/", () => new Response("hello"))
+  .use((ctx) => {
+    // Will only be called for `/about
+    return ctx.next();
+  })
+  .get("/about", (ctx) => ctx.render(<h1>About me</h1>));
+```
+
 ## `.use()`
 
 Add one or more [middlewares](/docs/canary/concepts/middleware). Middlewares are
@@ -42,6 +59,15 @@ Adding middlewares at a specific path:
 app.use("/foo/bar", middleware);
 ```
 
+Middlewares can also be instantiated lazily:
+
+```ts
+app.use("/foo/bar", async () => {
+  const mod = await import("./path/to/my/middleware.ts");
+  return mod.default;
+});
+```
+
 ## `.get()`
 
 Respond to a `GET` request with the specified middlewares.
@@ -57,6 +83,15 @@ Respond with multiple middlewares:
 ```ts
 app.get("/about", middleware1, middleware2, async (ctx) => {
   return new Response(`GET: ${ctx.url.pathname}`);
+});
+```
+
+You can also pass lazy middlewares:
+
+```ts
+app.get("/about", async () => {
+  const mod = await import("./middleware-or-handler.ts");
+  return mod.default;
 });
 ```
 
@@ -80,6 +115,15 @@ app.post("/api/user/:id", middleware1, middleware2, async (ctx) => {
 });
 ```
 
+You can also pass lazy middlewares:
+
+```ts
+app.post("/api/user/:id", async () => {
+  const mod = await import("./middleware-or-handler.ts");
+  return mod.default;
+});
+```
+
 ## `.put()`
 
 Respond to a `PUT` request with the specified middlewares.
@@ -97,6 +141,15 @@ Respond with multiple middlewares:
 app.put("/api/user/:id", middleware1, middleware2, async (ctx) => {
   await somehowSaveUser(ctx.params.id);
   return new Response(`Updated user`);
+});
+```
+
+You can also pass lazy middlewares:
+
+```ts
+app.put("/api/user/:id", async () => {
+  const mod = await import("./middleware-or-handler.ts");
+  return mod.default;
 });
 ```
 
@@ -120,6 +173,15 @@ app.delete("/api/user/:id", middleware1, middleware2, async (ctx) => {
 });
 ```
 
+You can also pass lazy middlewares:
+
+```ts
+app.delete("/api/user/:id", async () => {
+  const mod = await import("./middleware-or-handler.ts");
+  return mod.default;
+});
+```
+
 ## `.head()`
 
 Respond to a `HEAD` request with the specified middlewares.
@@ -135,6 +197,15 @@ Respond with multiple middlewares:
 ```ts
 app.head("/api/user/:id", middleware1, middleware2, async (ctx) => {
   return new Response(null, { status: 200 });
+});
+```
+
+You can also pass lazy middlewares:
+
+```ts
+app.head("/api/user/:id", async () => {
+  const mod = await import("./middleware-or-handler.ts");
+  return mod.default;
 });
 ```
 
@@ -155,6 +226,34 @@ app.all("/api/foo", middleware1, middleware2, async (ctx) => {
   return new Response("hehe");
 });
 ```
+
+You can also pass lazy middlewares:
+
+```ts
+app.all("/api/foo", async () => {
+  const mod = await import("./middleware-or-handler.ts");
+  return mod.default;
+});
+```
+
+## `.fsRoute()`
+
+Injects all file-based routes, middlewares, layouts and error pages to the app
+instance.
+
+```ts
+app.fsRoutes();
+```
+
+You can optionally pass a path where they should be mounted.
+
+```ts
+app.fsRoutes("/foo/bar");
+```
+
+> [info]: If possible, routes are lazily loaded. Routes that set a route config
+> and set `routeOverride` in particular, are never lazily loaded as Fresh would
+> need to load the file to get the route pattern.
 
 ## `.route()`
 
