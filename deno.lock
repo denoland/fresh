@@ -2202,6 +2202,7 @@
       "jsr:@astral/astral@~0.5.3",
       "jsr:@deno/doc@0.172",
       "jsr:@deno/esbuild-plugin@^1.1.1",
+      "jsr:@deno/loader@~0.2.1",
       "jsr:@fresh/core@^2.0.0-alpha.37",
       "jsr:@marvinh-test/fresh-island@^0.0.1",
       "jsr:@std/async@^1.0.13",

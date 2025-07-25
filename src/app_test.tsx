@@ -616,3 +616,64 @@ Deno.test("App - .route() with basePath", async () => {
   expect(await res.text()).toEqual("ok");
   expect(res.status).toEqual(200);
 });
+
+Deno.test("App - .use() - lazy", async () => {
+  const app = new App<{ text: string }>()
+    // deno-lint-ignore require-await
+    .use(async () => {
+      return (ctx) => {
+        ctx.state.text = "ok";
+        return ctx.next();
+      };
+    })
+    .get("/", (ctx) => new Response(ctx.state.text));
+
+  const server = new FakeServer(app.handler());
+
+  const res = await server.get("/");
+  expect(await res.text()).toEqual("ok");
+});
+
+Deno.test("App - .route() - lazy", async () => {
+  const app = new App()
+    // deno-lint-ignore require-await
+    .route("/", async () => {
+      return { handler: () => new Response("ok") };
+    });
+
+  const server = new FakeServer(app.handler());
+
+  const res = await server.get("/");
+  expect(await res.text()).toEqual("ok");
+});
+
+Deno.test("App - .get/post/patch/put/delete/head/all() - lazy", async () => {
+  const app = new App()
+    .get("/", () => Promise.resolve(() => new Response("ok")))
+    .post("/", () => Promise.resolve(() => new Response("ok")))
+    .patch("/", () => Promise.resolve(() => new Response("ok")))
+    .delete("/", () => Promise.resolve(() => new Response("ok")))
+    .put("/", () => Promise.resolve(() => new Response("ok")))
+    .head("/", () => Promise.resolve(() => new Response("ok")))
+    .all("/", () => Promise.resolve(() => new Response("ok")));
+
+  const server = new FakeServer(app.handler());
+
+  let res = await server.get("/");
+  expect(await res.text()).toEqual("ok");
+
+  res = await server.post("/");
+  expect(await res.text()).toEqual("ok");
+
+  res = await server.put("/");
+  expect(await res.text()).toEqual("ok");
+
+  res = await server.patch("/");
+  expect(await res.text()).toEqual("ok");
+
+  res = await server.delete("/");
+  expect(await res.text()).toEqual("ok");
+
+  res = await server.head("/");
+  expect(await res.text()).toEqual("ok");
+});

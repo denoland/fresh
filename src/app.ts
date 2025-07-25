@@ -2,13 +2,17 @@ import { trace } from "@opentelemetry/api";
 
 import { DENO_DEPLOYMENT_ID } from "./runtime/build_id.ts";
 import * as colors from "@std/fmt/colors";
-import { type MiddlewareFn, runMiddlewares } from "./middlewares/mod.ts";
+import {
+  type MaybeLazyMiddleware,
+  type MiddlewareFn,
+  runMiddlewares,
+} from "./middlewares/mod.ts";
 import { Context } from "./context.ts";
 import { mergePath, type Method, UrlPatternRouter } from "./router.ts";
 import type { FreshConfig, ResolvedFreshConfig } from "./config.ts";
 import type { BuildCache } from "./build_cache.ts";
 import { HttpError } from "./error.ts";
-import type { LayoutConfig, Route } from "./types.ts";
+import type { LayoutConfig, MaybeLazy, Route, RouteConfig } from "./types.ts";
 import type { RouteComponent } from "./segments.ts";
 import {
   applyCommands,
@@ -182,14 +186,14 @@ export class App<State> {
   /**
    * Add one or more middlewares at the top or the specified path.
    */
-  use(...middleware: MiddlewareFn<State>[]): this;
-  use(path: string, ...middleware: MiddlewareFn<State>[]): this;
+  use(...middleware: MaybeLazyMiddleware<State>[]): this;
+  use(path: string, ...middleware: MaybeLazyMiddleware<State>[]): this;
   use(
-    pathOrMiddleware: string | MiddlewareFn<State>,
-    ...middlewares: MiddlewareFn<State>[]
+    pathOrMiddleware: string | MaybeLazyMiddleware<State>,
+    ...middlewares: MaybeLazyMiddleware<State>[]
   ): this {
     let pattern: string;
-    let fns: MiddlewareFn<State>[];
+    let fns: MaybeLazyMiddleware<State>[];
     if (typeof pathOrMiddleware === "string") {
       pattern = pathOrMiddleware;
       fns = middlewares!;
@@ -234,50 +238,54 @@ export class App<State> {
     return this;
   }
 
-  route(path: string, route: Route<State>): this {
-    this.#commands.push(newRouteCmd(path, route, false));
+  route(
+    path: string,
+    route: MaybeLazy<Route<State>>,
+    config?: RouteConfig,
+  ): this {
+    this.#commands.push(newRouteCmd(path, route, config, false));
     return this;
   }
 
   /**
    * Add middlewares for GET requests at the specified path.
    */
-  get(path: string, ...middlewares: MiddlewareFn<State>[]): this {
+  get(path: string, ...middlewares: MaybeLazy<MiddlewareFn<State>>[]): this {
     this.#commands.push(newHandlerCmd("GET", path, middlewares, false));
     return this;
   }
   /**
    * Add middlewares for POST requests at the specified path.
    */
-  post(path: string, ...middlewares: MiddlewareFn<State>[]): this {
+  post(path: string, ...middlewares: MaybeLazy<MiddlewareFn<State>>[]): this {
     this.#commands.push(newHandlerCmd("POST", path, middlewares, false));
     return this;
   }
   /**
    * Add middlewares for PATCH requests at the specified path.
    */
-  patch(path: string, ...middlewares: MiddlewareFn<State>[]): this {
+  patch(path: string, ...middlewares: MaybeLazy<MiddlewareFn<State>>[]): this {
     this.#commands.push(newHandlerCmd("PATCH", path, middlewares, false));
     return this;
   }
   /**
    * Add middlewares for PUT requests at the specified path.
    */
-  put(path: string, ...middlewares: MiddlewareFn<State>[]): this {
+  put(path: string, ...middlewares: MaybeLazy<MiddlewareFn<State>>[]): this {
     this.#commands.push(newHandlerCmd("PUT", path, middlewares, false));
     return this;
   }
   /**
    * Add middlewares for DELETE requests at the specified path.
    */
-  delete(path: string, ...middlewares: MiddlewareFn<State>[]): this {
+  delete(path: string, ...middlewares: MaybeLazy<MiddlewareFn<State>>[]): this {
     this.#commands.push(newHandlerCmd("DELETE", path, middlewares, false));
     return this;
   }
   /**
    * Add middlewares for HEAD requests at the specified path.
    */
-  head(path: string, ...middlewares: MiddlewareFn<State>[]): this {
+  head(path: string, ...middlewares: MaybeLazy<MiddlewareFn<State>>[]): this {
     this.#commands.push(newHandlerCmd("HEAD", path, middlewares, false));
     return this;
   }
@@ -285,7 +293,7 @@ export class App<State> {
   /**
    * Add middlewares for all HTTP verbs at the specified path.
    */
-  all(path: string, ...middlewares: MiddlewareFn<State>[]): this {
+  all(path: string, ...middlewares: MaybeLazy<MiddlewareFn<State>>[]): this {
     this.#commands.push(newHandlerCmd("ALL", path, middlewares, false));
     return this;
   }
@@ -359,7 +367,7 @@ export class App<State> {
       }
     }
 
-    const router = new UrlPatternRouter<MiddlewareFn<State>>();
+    const router = new UrlPatternRouter<MaybeLazyMiddleware<State>>();
 
     const { rootMiddlewares } = applyCommands(
       router,

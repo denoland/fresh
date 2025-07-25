@@ -1,5 +1,5 @@
 import type { AnyComponent } from "preact";
-import type { RouteConfig } from "./types.ts";
+import type { MaybeLazy, Route, RouteConfig } from "./types.ts";
 import type { HandlerByMethod, RouteHandler } from "./handlers.ts";
 import type { MiddlewareFn } from "./middlewares/mod.ts";
 import type { AsyncAnyComponent } from "./render.ts";
@@ -15,6 +15,7 @@ import {
   newNotFoundCmd,
   newRouteCmd,
 } from "./commands.ts";
+import { isLazy } from "./utils.ts";
 
 export interface FreshFsMod<State> {
   config?: RouteConfig;
@@ -26,12 +27,13 @@ export interface FreshFsMod<State> {
 }
 
 export interface FsRouteFile<State> {
-  id: string; // FIXME remove?
+  id: string;
   filePath: string;
-  mod: FreshFsMod<State>;
+  mod: MaybeLazy<FreshFsMod<State>>;
   pattern: string;
   type: CommandType;
   routePattern: string;
+  overrideConfig: RouteConfig | undefined;
 }
 
 // deno-lint-ignore no-explicit-any
@@ -62,23 +64,14 @@ export function fsItemsToCommands<State>(
   const commands: Command<State>[] = [];
 
   for (let i = 0; i < items.length; i++) {
-    const { filePath, type, mod, pattern, routePattern } = items[i];
-
-    if (!isFreshFile<State>(mod)) {
-      throw new Error(
-        `Expected a route, middleware, layout or error template, but couldn't find relevant exports in: ${filePath}`,
-      );
-    }
-
-    const handlers = mod.handlers ?? mod.handler ?? null;
-    if (typeof handlers === "function" && handlers.length > 1) {
-      throw new Error(
-        `Handlers must only have one argument but found more than one. Check the function signature in: ${filePath}`,
-      );
-    }
+    const item = items[i];
+    const { filePath, type, mod: rawMod, pattern, routePattern } = item;
 
     switch (type) {
       case CommandType.Middleware: {
+        if (isLazy(rawMod)) continue;
+        const { handlers, mod } = validateFsMod(filePath, rawMod);
+
         let middlewares = (handlers ?? mod.default) as unknown as
           | MiddlewareFn<State>
           | MiddlewareFn<State>[]
@@ -88,7 +81,7 @@ export function fsItemsToCommands<State>(
 
         if (isHandlerByMethod(middlewares)) {
           warnInvalidRoute(
-            "Middleware does not support object handlers with GET, POST, etc.",
+            `Middleware does not support object handlers with GET, POST, etc. in ${filePath}`,
           );
           continue;
         }
@@ -97,12 +90,11 @@ export function fsItemsToCommands<State>(
           middlewares = [middlewares];
         }
 
-        commands.push(
-          newMiddlewareCmd(pattern, middlewares, true),
-        );
+        commands.push(newMiddlewareCmd(pattern, middlewares, true));
         continue;
       }
       case CommandType.Layout: {
+        const { handlers, mod } = validateFsMod<State>(filePath, rawMod);
         if (handlers !== null) {
           warnInvalidRoute("Layout does not support handlers");
         }
@@ -112,6 +104,7 @@ export function fsItemsToCommands<State>(
         continue;
       }
       case CommandType.Error: {
+        const { handlers, mod } = validateFsMod<State>(filePath, rawMod);
         commands.push(newErrorCmd(
           pattern,
           {
@@ -125,6 +118,7 @@ export function fsItemsToCommands<State>(
         continue;
       }
       case CommandType.NotFound: {
+        const { handlers, mod } = validateFsMod<State>(filePath, rawMod);
         commands.push(newNotFoundCmd({
           config: mod.config,
           component: mod.default,
@@ -134,25 +128,26 @@ export function fsItemsToCommands<State>(
         continue;
       }
       case CommandType.App: {
+        const { mod } = validateFsMod<State>(filePath, rawMod);
         if (mod.default === undefined) continue;
 
         commands.push(newAppCmd(mod.default));
         continue;
       }
       case CommandType.Route: {
-        commands.push(newRouteCmd(
-          pattern,
-          {
-            config: {
-              ...mod.config,
-              routeOverride: mod.config?.routeOverride ?? routePattern,
-            },
-            // deno-lint-ignore no-explicit-any
-            handler: (handlers as any) ?? undefined,
-            component: mod.default,
-          },
-          false,
-        ));
+        let normalized;
+        if (isLazy(rawMod)) {
+          normalized = async () => {
+            const result = await rawMod();
+            return normalizeRoute(filePath, result, routePattern);
+          };
+        } else {
+          normalized = normalizeRoute(filePath, rawMod, routePattern);
+        }
+
+        commands.push(
+          newRouteCmd(pattern, normalized, item.overrideConfig, false),
+        );
         continue;
       }
       case CommandType.Handler:
@@ -278,4 +273,45 @@ function getRoutePathScore(char: string, s: string, i: number): number {
   }
 
   return 2;
+}
+
+export function validateFsMod<State>(
+  filePath: string,
+  mod: unknown,
+): {
+  handlers: RouteHandler<unknown, State> | HandlerFn<unknown, State>[] | null;
+  mod: FreshFsMod<State>;
+} {
+  if (!isFreshFile<State>(mod)) {
+    throw new Error(
+      `Expected a route, middleware, layout or error template, but couldn't find relevant exports in: ${filePath}`,
+    );
+  }
+
+  const handlers = mod.handlers ?? mod.handler ?? null;
+  if (typeof handlers === "function" && handlers.length > 1) {
+    throw new Error(
+      `Handlers must only have one argument but found more than one. Check the function signature in: ${filePath}`,
+    );
+  }
+
+  return { handlers, mod };
+}
+
+function normalizeRoute<State>(
+  filePath: string,
+  rawMod: FreshFsMod<State>,
+  routePattern: string,
+): Route<State> {
+  const { handlers, mod } = validateFsMod<State>(filePath, rawMod);
+
+  return {
+    config: {
+      ...mod.config,
+      routeOverride: mod.config?.routeOverride ?? routePattern,
+    },
+    // deno-lint-ignore no-explicit-any
+    handler: (handlers as any) ?? undefined,
+    component: mod.default,
+  };
 }

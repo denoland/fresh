@@ -5,6 +5,8 @@ import * as path from "@std/path";
 import { pathToPattern } from "../router.ts";
 import { CommandType } from "../commands.ts";
 import { sortRoutePaths } from "../fs_routes.ts";
+import { RequestedModuleType, ResolutionMode, Workspace } from "@deno/loader";
+import type { RouteConfig } from "../types.ts";
 
 const GROUP_REG = /[/\\\\]\((_[^/\\\\]+)\)[/\\\\]/;
 
@@ -15,10 +17,16 @@ export async function crawlRouteDir<State>(
   onIslandSpecifier: (spec: string) => void,
   files: FsRouteFileNoMod<State>[],
 ) {
+  const workspace = await new Workspace({
+    noTranspile: true,
+    preserveJsx: true,
+  });
+  const loader = await workspace.createLoader({ entrypoints: [] });
+
   await walkDir(
     fs,
     routeDir,
-    (entry) => {
+    async (entry) => {
       // A `(_islands)` path segment is a local island folder.
       // Any route path segment wrapped in `(_...)` is ignored
       // during route collection.
@@ -30,10 +38,12 @@ export async function crawlRouteDir<State>(
         return;
       }
 
+      let lazy = false;
       const relative = path.relative(routeDir, entry.path);
       const url = new URL(relative, "http://localhost/");
       const id = url.pathname.slice(0, url.pathname.lastIndexOf("."));
 
+      let overrideConfig: RouteConfig | undefined;
       let pattern = "*";
       let routePattern = pattern;
       let type = CommandType.Route;
@@ -71,9 +81,35 @@ export async function crawlRouteDir<State>(
         }
 
         routePattern = pathToPattern(id.slice(1));
+
+        const resolved = loader.resolve(
+          entry.path,
+          undefined,
+          ResolutionMode.Import,
+        );
+        const loaded = await loader.load(resolved, RequestedModuleType.Text);
+        if (loaded.kind !== "external") {
+          const text = new TextDecoder().decode(loaded.code);
+          lazy = !text.includes("routeOverride");
+
+          // TODO: We could do an AST parse here to detect the
+          // kind of handler that's used to get a more accurate
+          // list of methods this route supports.
+          overrideConfig = {
+            methods: "ALL",
+          };
+        }
       }
 
-      files.push({ id, filePath: entry.path, type, pattern, routePattern });
+      files.push({
+        id,
+        filePath: entry.path,
+        type,
+        pattern,
+        routePattern,
+        lazy,
+        overrideConfig,
+      });
     },
     ignore,
   );

@@ -1,6 +1,6 @@
 import { HttpError } from "./error.ts";
 import { isHandlerByMethod, type PageResponse } from "./handlers.ts";
-import type { MiddlewareFn } from "./middlewares/mod.ts";
+import type { MaybeLazyMiddleware, MiddlewareFn } from "./middlewares/mod.ts";
 import { mergePath, type Method, type Router } from "./router.ts";
 import {
   getOrCreateSegment,
@@ -10,7 +10,8 @@ import {
   type Segment,
   segmentToMiddlewares,
 } from "./segments.ts";
-import type { LayoutConfig, Route } from "./types.ts";
+import type { LayoutConfig, MaybeLazy, Route, RouteConfig } from "./types.ts";
+import { isLazy } from "./utils.ts";
 
 export const DEFAULT_NOT_FOUND = (): Promise<Response> => {
   throw new HttpError(404);
@@ -100,12 +101,12 @@ export function newLayoutCmd<State>(
 export interface MiddlewareCmd<State> {
   type: CommandType.Middleware;
   pattern: string;
-  fns: MiddlewareFn<State>[];
+  fns: MaybeLazyMiddleware<State>[];
   includeLastSegment: boolean;
 }
 export function newMiddlewareCmd<State>(
   pattern: string,
-  fns: MiddlewareFn<State>[],
+  fns: MaybeLazyMiddleware<State>[],
   includeLastSegment: boolean,
 ): MiddlewareCmd<State> {
   return { type: CommandType.Middleware, pattern, fns, includeLastSegment };
@@ -129,29 +130,48 @@ export function newNotFoundCmd<State>(
 export interface RouteCommand<State> {
   type: CommandType.Route;
   pattern: string;
-  route: Route<State>;
+  route: MaybeLazy<Route<State>>;
+  config: RouteConfig | undefined;
   includeLastSegment: boolean;
 }
 export function newRouteCmd<State>(
   pattern: string,
-  route: Route<State>,
+  route: MaybeLazy<Route<State>>,
+  config: RouteConfig | undefined,
   includeLastSegment: boolean,
 ): RouteCommand<State> {
-  ensureHandler(route);
-  return { type: CommandType.Route, pattern, route, includeLastSegment };
+  let normalized;
+  if (isLazy(route)) {
+    normalized = async () => {
+      const result = await route();
+      ensureHandler(result);
+      return result;
+    };
+  } else {
+    ensureHandler(route);
+    normalized = route;
+  }
+
+  return {
+    type: CommandType.Route,
+    pattern,
+    route: normalized,
+    config,
+    includeLastSegment,
+  };
 }
 
 export interface HandlerCommand<State> {
   type: CommandType.Handler;
   pattern: string;
   method: Method | "ALL";
-  fns: MiddlewareFn<State>[];
+  fns: MaybeLazy<MiddlewareFn<State>>[];
   includeLastSegment: boolean;
 }
 export function newHandlerCmd<State>(
   method: Method | "ALL",
   pattern: string,
-  fns: MiddlewareFn<State>[],
+  fns: MaybeLazy<MiddlewareFn<State>>[],
   includeLastSegment: boolean,
 ): HandlerCommand<State> {
   return {
@@ -181,10 +201,10 @@ export type Command<State> =
   | FsRouteCommand<State>;
 
 export function applyCommands<State>(
-  router: Router<MiddlewareFn<State>>,
+  router: Router<MaybeLazyMiddleware<State>>,
   commands: Command<State>[],
   basePath: string,
-): { rootMiddlewares: MiddlewareFn<State>[] } {
+): { rootMiddlewares: MaybeLazyMiddleware<State>[] } {
   const root = newSegment<State>("", null);
 
   applyCommandsInner(root, router, commands, basePath);
@@ -194,7 +214,7 @@ export function applyCommands<State>(
 
 function applyCommandsInner<State>(
   root: Segment<State>,
-  router: Router<MiddlewareFn<State>>,
+  router: Router<MaybeLazyMiddleware<State>>,
   commands: Command<State>[],
   basePath: string,
 ) {
@@ -241,7 +261,7 @@ function applyCommandsInner<State>(
         break;
       }
       case CommandType.Route: {
-        const { pattern, route } = cmd;
+        const { pattern, route, config } = cmd;
         const segment = getOrCreateSegment(
           root,
           pattern,
@@ -249,24 +269,55 @@ function applyCommandsInner<State>(
         );
         const fns = segmentToMiddlewares(segment);
 
-        fns.push((ctx) => renderRoute(ctx, route));
+        if (isLazy(route)) {
+          const routePath = mergePath(
+            basePath,
+            config?.routeOverride ?? pattern,
+          );
 
-        const routePath = mergePath(
-          basePath,
-          route.config?.routeOverride ?? pattern,
-        );
+          let def: Route<State>;
+          fns.push(async (ctx) => {
+            if (def === undefined) {
+              def = await route();
+            }
 
-        if (typeof route.handler === "function") {
-          router.add("GET", routePath, fns);
-          router.add("DELETE", routePath, fns);
-          router.add("HEAD", routePath, fns);
-          router.add("OPTIONS", routePath, fns);
-          router.add("PATCH", routePath, fns);
-          router.add("POST", routePath, fns);
-          router.add("PUT", routePath, fns);
-        } else if (isHandlerByMethod(route.handler!)) {
-          for (const method of Object.keys(route.handler)) {
-            router.add(method as Method, routePath, fns);
+            return renderRoute(ctx, def);
+          });
+
+          if (config === undefined || config.methods === "ALL") {
+            router.add("GET", routePath, fns);
+            router.add("DELETE", routePath, fns);
+            router.add("HEAD", routePath, fns);
+            router.add("OPTIONS", routePath, fns);
+            router.add("PATCH", routePath, fns);
+            router.add("POST", routePath, fns);
+            router.add("PUT", routePath, fns);
+          } else if (Array.isArray(config.methods)) {
+            for (let i = 0; i < config.methods.length; i++) {
+              const method = config.methods[i];
+              router.add(method, routePath, fns);
+            }
+          }
+        } else {
+          fns.push((ctx) => renderRoute(ctx, route));
+
+          const routePath = mergePath(
+            basePath,
+            route.config?.routeOverride ?? pattern,
+          );
+
+          if (typeof route.handler === "function") {
+            router.add("GET", routePath, fns);
+            router.add("DELETE", routePath, fns);
+            router.add("HEAD", routePath, fns);
+            router.add("OPTIONS", routePath, fns);
+            router.add("PATCH", routePath, fns);
+            router.add("POST", routePath, fns);
+            router.add("PUT", routePath, fns);
+          } else if (isHandlerByMethod(route.handler!)) {
+            for (const method of Object.keys(route.handler)) {
+              router.add(method as Method, routePath, fns);
+            }
           }
         }
         break;

@@ -1,11 +1,3 @@
-import Prism from "prismjs";
-import "prismjs/components/prism-jsx.js";
-import "prismjs/components/prism-typescript.js";
-import "prismjs/components/prism-tsx.js";
-import "prismjs/components/prism-diff.js";
-import "prismjs/components/prism-json.js";
-import "prismjs/components/prism-bash.js";
-import "prismjs/components/prism-yaml.js";
 import denoJson from "../../deno.json" with { type: "json" };
 
 export { extractYaml as frontMatter } from "@std/front-matter";
@@ -14,6 +6,7 @@ import * as Marked from "marked";
 import { escape as escapeHtml } from "@std/html";
 import { mangle } from "marked-mangle";
 import GitHubSlugger from "github-slugger";
+import { Prism } from "./prism.ts";
 
 const slugger = new GitHubSlugger();
 

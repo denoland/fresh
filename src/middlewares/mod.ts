@@ -75,28 +75,40 @@ export type MiddlewareFn<State> = (
   ctx: Context<State>,
 ) => Response | Promise<Response>;
 
+export type MaybeLazyMiddleware<State> = (
+  ctx: Context<State>,
+) => Response | Promise<Response | MiddlewareFn<State>>;
+
 /**
- * A single middleware function, or an array of middleware functions. For
+ * A single middleware function or a lazy middleware function, or an array of middleware functions. For
  * further information, see {@link MiddlewareFn}.
  */
 export type Middleware<State> = MiddlewareFn<State> | MiddlewareFn<State>[];
 
 export function runMiddlewares<State>(
-  middlewares: MiddlewareFn<State>[],
+  middlewares: MaybeLazyMiddleware<State>[],
   ctx: Context<State>,
 ): Promise<Response> {
   let fn = ctx.next;
   let i = middlewares.length;
   while (i--) {
     const local = fn;
-    const next = middlewares[i];
+    let next = middlewares[i];
+    const idx = i;
     fn = async () => {
       const internals = getInternals(ctx);
       const { app: prevApp, layouts: prevLayouts } = internals;
 
       ctx.next = local;
       try {
-        return await next(ctx);
+        const result = await next(ctx);
+        if (typeof result === "function") {
+          middlewares[idx] = result;
+          next = result;
+          return await result(ctx);
+        }
+
+        return result;
       } catch (err) {
         ctx.error = err;
         throw err;
