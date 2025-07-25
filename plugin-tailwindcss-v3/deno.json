@@ -1,6 +1,6 @@
 {
   "name": "@fresh/plugin-tailwind-v3",
-  "version": "0.0.1-alpha.9",
+  "version": "1.0.0",
   "license": "MIT",
   "exports": "./src/mod.ts",
   "imports": {
