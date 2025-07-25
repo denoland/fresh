@@ -71,19 +71,21 @@ import type { Define as _Define } from "../define.ts";
  * app.use(redirectMiddleware);
  * ```
  */
-export type MiddlewareFn<State> = (
+export type Middleware<State> = (
   ctx: Context<State>,
 ) => Response | Promise<Response>;
 
+/**
+ * @deprecated Use {@linkcode Middleware} instead.
+ */
+export type MiddlewareFn<State> = Middleware<State>;
+
+/**
+ * A lazy {@linkcode Middleware}
+ */
 export type MaybeLazyMiddleware<State> = (
   ctx: Context<State>,
 ) => Response | Promise<Response | MiddlewareFn<State>>;
-
-/**
- * A single middleware function or a lazy middleware function, or an array of middleware functions. For
- * further information, see {@link MiddlewareFn}.
- */
-export type Middleware<State> = MiddlewareFn<State> | MiddlewareFn<State>[];
 
 export function runMiddlewares<State>(
   middlewares: MaybeLazyMiddleware<State>[],
