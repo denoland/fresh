@@ -2,6 +2,7 @@ import { runMiddlewares } from "./mod.ts";
 import { expect } from "@std/expect";
 import { serveMiddleware } from "../test_utils.ts";
 import type { MiddlewareFn } from "./mod.ts";
+import type { Lazy, MaybeLazy } from "../types.ts";
 
 Deno.test("runMiddleware", async () => {
   const middlewares: MiddlewareFn<{ text: string }>[] = [
@@ -136,4 +137,43 @@ Deno.test("runMiddleware - throws errors", async () => {
   expect(thrownA).toBeInstanceOf(Error);
   expect(thrownB).toBeInstanceOf(Error);
   expect(thrownC).toBeInstanceOf(Error);
+});
+
+Deno.test("runMiddleware - lazy middlewares", async () => {
+  type State = { text: string };
+
+  let called = 0;
+  // deno-lint-ignore require-await
+  const lazy: Lazy<MiddlewareFn<State>> = async () => {
+    called++;
+    return (ctx) => {
+      ctx.state.text += "_lazy";
+      return ctx.next();
+    };
+  };
+
+  const middlewares: MaybeLazy<MiddlewareFn<State>>[] = [
+    async (ctx) => {
+      ctx.state.text = "A";
+      return await ctx.next();
+    },
+    lazy,
+    (ctx) => {
+      ctx.state.text += "_B";
+      return new Response(ctx.state.text);
+    },
+  ];
+
+  const server = serveMiddleware<{ text: string }>((ctx) =>
+    runMiddlewares(middlewares, ctx)
+  );
+
+  let res = await server.get("/");
+  expect(await res.text()).toEqual("A_lazy_B");
+  expect(called).toEqual(1);
+
+  // Lazy middlewares should only be initialized ones
+  res = await server.get("/");
+  expect(await res.text()).toEqual("A_lazy_B");
+  expect(called).toEqual(1);
 });

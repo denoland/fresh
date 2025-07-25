@@ -8,23 +8,7 @@ import {
 import { expect } from "@std/expect";
 import { spy, type SpyCall } from "@std/testing/mock";
 import { walk } from "@std/fs/walk";
-import { withTmpDir } from "../../src/test_utils.ts";
-
-async function writeFiles(dir: string, files: Record<string, string>) {
-  const entries = Object.entries(files);
-  await Promise.all(entries.map(async (entry) => {
-    const [pathname, content] = entry;
-    const fullPath = path.join(dir, pathname);
-    try {
-      await Deno.mkdir(path.dirname(fullPath), { recursive: true });
-      await Deno.writeTextFile(fullPath, content);
-    } catch (err) {
-      if (!(err instanceof Deno.errors.AlreadyExists)) {
-        throw err;
-      }
-    }
-  }));
-}
+import { withTmpDir, writeFiles } from "../../src/test_utils.ts";
 
 async function readFiles(dir: string): Promise<Record<string, string>> {
   const files: Record<string, string> = {};
@@ -132,7 +116,7 @@ Deno.test("update - 1.x project deno.json tasks + lock", async () => {
     .toEqual({
       build: "deno run -A dev.ts build",
       check: "deno fmt --check && deno lint && deno check",
-      preview: "deno run -A main.ts",
+      preview: "deno serve -A _fresh/server.js",
       start: "deno run -A --watch=static/,routes/ dev.ts",
       update: "deno run -A -r jsr:@fresh/update .",
     });
@@ -542,16 +526,17 @@ Deno.test(
     const files = await readFiles(dir);
     expect(files["/routes/index.tsx"])
       .toEqual(`import { FreshContext } from "fresh";
+import { HttpError } from "fresh";
 
 export default async function Index(ctx: FreshContext) {
   const req = ctx.req;
 
   if (true) {
-    return ctx.throw(404);
+    throw new HttpError(404);
   }
   if ("foo" === "foo" as any) {
-    ctx.throw(404);
-    return ctx.throw(404);
+    throw new HttpError(404);
+    throw new HttpError(404);
   }
   return new Response(req.url);
 }`);
@@ -559,7 +544,7 @@ export default async function Index(ctx: FreshContext) {
 );
 
 Deno.test.ignore(
-  "update - 1.x ctx.renderNotFound() -> ctx.throw()",
+  "update - 1.x ctx.renderNotFound() -> throw new HttpError(404)",
   async () => {
     await using _tmp = await withTmpDir();
     const dir = _tmp.dir;

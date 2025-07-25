@@ -1,14 +1,13 @@
 import { App, staticFiles } from "fresh";
 import { Partial } from "fresh/runtime";
 import {
-  allIslandApp,
+  ALL_ISLAND_DIR,
   assertMetaContent,
   assertNotSelector,
   buildProd,
   charset,
   Doc,
   favicon,
-  getIsland,
   parseHtml,
   waitFor,
   waitForText,
@@ -21,29 +20,20 @@ import { FakeServer } from "../src/test_utils.ts";
 import { JsonIsland } from "./fixtures_islands/JsonIsland.tsx";
 import { OptOutPartialLink } from "./fixtures_islands/OptOutPartialLink.tsx";
 import * as path from "@std/path";
-import { getBuildCache, setBuildCache } from "../src/app.ts";
 import { retry } from "@std/async/retry";
 
 const loremIpsum = await Deno.readTextFile(
   path.join(import.meta.dirname!, "lorem_ipsum.txt"),
 );
 
-await buildProd(allIslandApp);
+const applyBuildCache = await buildProd({ islandDir: ALL_ISLAND_DIR });
 
 function testApp<T>(): App<T> {
-  const selfCounter = getIsland("SelfCounter.tsx");
-  const partialInIsland = getIsland("PartialInIsland.tsx");
-  const jsonIsland = getIsland("JsonIsland.tsx");
-  const optOutPartialLink = getIsland("OptOutPartialLink.tsx");
-
   const app = new App<T>()
-    .island(selfCounter, "SelfCounter", SelfCounter)
-    .island(partialInIsland, "PartialInIsland", PartialInIsland)
-    .island(jsonIsland, "JsonIsland", JsonIsland)
-    .island(optOutPartialLink, "OptOutPartialLink", OptOutPartialLink)
     .use(staticFiles());
 
-  setBuildCache(app, getBuildCache(allIslandApp));
+  applyBuildCache<T>(app);
+
   return app;
 }
 
@@ -86,7 +76,6 @@ Deno.test({
   fn: async () => {
     const app = testApp()
       .get("/partial", (ctx) => {
-        // FIXME: Add outer document
         return ctx.render(
           <Doc>
             <Partial name="foo">
@@ -305,7 +294,7 @@ Deno.test({
         );
       });
 
-    await buildProd(app);
+    applyBuildCache(app);
     const server = new FakeServer(app.handler());
     let checked = false;
     try {
@@ -452,7 +441,7 @@ Deno.test({
       await page.locator(".partial-update").wait();
 
       const doc = parseHtml(await page.content());
-      const raw = JSON.parse(doc.querySelector("pre")?.textContent!);
+      const raw = JSON.parse(doc.querySelector("pre")!.textContent!);
       expect(raw).toEqual({ foo: 123 });
 
       assertNotSelector(doc, ".output");

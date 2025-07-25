@@ -1,16 +1,22 @@
 import { expect } from "@std/expect";
 import * as path from "@std/path";
-import { Builder } from "./builder.ts";
+import { Builder, specToName } from "./builder.ts";
 import { App } from "../app.ts";
-import { RemoteIsland } from "@marvinh-test/fresh-island";
 import { BUILD_ID } from "../runtime/build_id.ts";
-import { withTmpDir } from "../test_utils.ts";
+import { withTmpDir, writeFiles } from "../test_utils.ts";
+import { withChildProcessServer } from "../../tests/test_utils.tsx";
 
 Deno.test({
   name: "Builder - chain onTransformStaticFile",
   fn: async () => {
+    await using _tmp = await withTmpDir();
+    const tmp = _tmp.dir;
+
     const logs: string[] = [];
-    const builder = new Builder();
+    const builder = new Builder({
+      outDir: path.join(tmp, "dist"),
+      staticDir: tmp,
+    });
     builder.onTransformStaticFile(
       { pluginName: "A", filter: /\.css$/ },
       () => {
@@ -30,16 +36,8 @@ Deno.test({
       },
     );
 
-    await using _tmp = await withTmpDir();
-    const tmp = _tmp.dir;
     await Deno.writeTextFile(path.join(tmp, "foo.css"), "body { color: red; }");
-    const app = new App({
-      staticDir: tmp,
-      build: {
-        outDir: path.join(tmp, "dist"),
-      },
-    });
-    await builder.build(app);
+    await builder.build();
 
     expect(logs).toEqual(["A", "B", "C"]);
   },
@@ -50,24 +48,22 @@ Deno.test({
 Deno.test({
   name: "Builder - handles Windows paths",
   fn: async () => {
-    const builder = new Builder();
     await using _tmp = await withTmpDir();
     const tmp = _tmp.dir;
+
+    const builder = new Builder({
+      outDir: path.join(tmp, "dist"),
+      staticDir: tmp,
+    });
     await Deno.mkdir(path.join(tmp, "images"));
     await Deno.writeTextFile(
       path.join(tmp, "images", "batman.svg"),
       "<svg></svg>",
     );
-    const app = new App({
-      staticDir: tmp,
-      build: {
-        outDir: path.join(tmp, "dist"),
-      },
-    });
-    await builder.build(app);
+    await builder.build();
 
     const snapshotJson = await Deno.readTextFile(
-      path.join(tmp, "dist", "snapshot.json"),
+      path.join(tmp, "dist", "static-files.json"),
     );
     expect(snapshotJson).toContain("/images/batman.svg");
   },
@@ -78,20 +74,18 @@ Deno.test({
 Deno.test({
   name: "Builder - hashes CSS urls by default",
   fn: async () => {
-    const builder = new Builder();
     await using _tmp = await withTmpDir();
     const tmp = _tmp.dir;
+    const builder = new Builder({
+      outDir: path.join(tmp, "dist"),
+      staticDir: tmp,
+    });
+
     await Deno.writeTextFile(
       path.join(tmp, "foo.css"),
       "body { background: url('/foo.jpg'); }",
     );
-    const app = new App({
-      staticDir: tmp,
-      build: {
-        outDir: path.join(tmp, "dist"),
-      },
-    });
-    await builder.build(app);
+    await builder.build();
 
     const css = await Deno.readTextFile(
       path.join(tmp, "dist", "static", "foo.css"),
@@ -106,20 +100,17 @@ Deno.test({
 Deno.test({
   name: "Builder - hashes CSS urls by default",
   fn: async () => {
-    const builder = new Builder();
     await using _tmp = await withTmpDir();
     const tmp = _tmp.dir;
+    const builder = new Builder({
+      outDir: path.join(tmp, "dist"),
+      staticDir: tmp,
+    });
     await Deno.writeTextFile(
       path.join(tmp, "foo.css"),
       `:root { --icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='rgb(76, 154.5, 137.5)' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='20 6 9 17 4 12'%3E%3C/polyline%3E%3C/svg%3E"); }`,
     );
-    const app = new App({
-      staticDir: tmp,
-      build: {
-        outDir: path.join(tmp, "dist"),
-      },
-    });
-    await builder.build(app);
+    await builder.build();
 
     const css = await Deno.readTextFile(
       path.join(tmp, "dist", "static", "foo.css"),
@@ -135,20 +126,18 @@ Deno.test({
 Deno.test({
   name: "Builder - can bundle islands from JSR",
   fn: async () => {
-    const builder = new Builder();
     await using _tmp = await withTmpDir();
     const tmp = _tmp.dir;
-    const app = new App({
-      staticDir: tmp,
-      build: {
-        outDir: path.join(tmp, "dist"),
-      },
-    });
 
-    app.island("jsr:@marvinh-test/fresh-island", "RemoteIsland", RemoteIsland);
+    const outDir = path.join(tmp, "dist");
+    const builder = new Builder({ outDir });
 
-    await builder.build(app);
+    const specifier = "jsr:@marvinh-test/fresh-island";
+    builder.registerIsland(specifier);
 
+    await builder.build();
+
+    const name = specToName(specifier);
     const code = await Deno.readTextFile(
       path.join(
         tmp,
@@ -157,7 +146,7 @@ Deno.test({
         "_fresh",
         "js",
         BUILD_ID,
-        "RemoteIsland.js",
+        `${name}.js`,
       ),
     );
     expect(code).toContain('"remote-island"');
@@ -169,8 +158,14 @@ Deno.test({
 Deno.test({
   name: "Builder - exclude files",
   fn: async () => {
+    await using _tmp = await withTmpDir();
+    const tmp = _tmp.dir;
+
     const logs: string[] = [];
-    const builder = new Builder();
+    const builder = new Builder({
+      outDir: path.join(tmp, "dist"),
+      staticDir: tmp,
+    });
 
     // String
     builder.onTransformStaticFile(
@@ -196,20 +191,12 @@ Deno.test({
       },
     );
 
-    await using _tmp = await withTmpDir();
-    const tmp = _tmp.dir;
     await Deno.writeTextFile(path.join(tmp, "foo.css"), "body { color: red; }");
     await Deno.writeTextFile(
       path.join(tmp, "bar.css"),
       "body { color: blue; }",
     );
-    const app = new App({
-      staticDir: tmp,
-      build: {
-        outDir: path.join(tmp, "dist"),
-      },
-    });
-    await builder.build(app);
+    await builder.build();
 
     expect(logs).toEqual(["A: bar.css", "B: bar.css", "C: bar.css"]);
   },
@@ -220,17 +207,20 @@ Deno.test({
 Deno.test({
   name: "Builder - workspace folder middleware on listen",
   fn: async () => {
-    const builder = new Builder();
-    const tmp = await Deno.makeTempDir();
-    const app = new App({
+    await using _tmp = await withTmpDir();
+    const tmp = _tmp.dir;
+
+    const builder = new Builder({
+      outDir: path.join(tmp, "dist"),
       staticDir: tmp,
-      build: {
-        outDir: path.join(tmp, "dist"),
-      },
     });
+    const app = new App();
     const abort = new AbortController();
     const port = 8011;
-    await builder.listen(app, { port, signal: abort.signal });
+    await builder.listen(() => Promise.resolve(app), {
+      port,
+      signal: abort.signal,
+    });
 
     const res = await fetch(
       `http://localhost:${port}/.well-known/appspecific/com.chrome.devtools.json`,
@@ -243,11 +233,94 @@ Deno.test({
     expect(res.headers.get("etag")).toEqual(expect.any(String));
     expect(json).toEqual({
       workspace: {
-        root: app.config.root,
+        root: builder.config.root,
         uuid: expect.any(String),
       },
     });
   },
   sanitizeOps: false,
   sanitizeResources: false,
+});
+
+Deno.test({
+  name: "Builder - write prod routePattern",
+  fn: async () => {
+    const root = path.join(import.meta.dirname!, "..", "..");
+    await using _tmp = await withTmpDir({ dir: root, prefix: "tmp_builder_" });
+    const tmp = _tmp.dir;
+
+    await writeFiles(tmp, {
+      "routes/foo/index.ts": `export const handler = () => new Response("ok")`,
+      "main.ts": `import { App } from "fresh";
+export const app = new App().fsRoutes()`,
+    });
+
+    const builder = new Builder({
+      root: tmp,
+      outDir: path.join(tmp, "dist"),
+    });
+
+    await builder.build();
+
+    let text = "fail";
+    await withChildProcessServer(
+      tmp,
+      ["serve", "-A", "dist/server.js"],
+      async (address) => {
+        const res = await fetch(`${address}/foo`);
+        text = await res.text();
+      },
+    );
+
+    expect(text).toEqual("ok");
+  },
+  sanitizeOps: false,
+  sanitizeResources: false,
+});
+
+Deno.test("specToName", () => {
+  // HTTP
+  expect(specToName("http://example.com")).toEqual("example");
+  expect(specToName("http://example.com:8000")).toEqual("example");
+  expect(specToName("http://example.com:8000/foo/bar")).toEqual(
+    "bar",
+  );
+
+  // HTTPS
+  expect(specToName("https://example.com")).toEqual("example");
+  expect(specToName("https://example.com:8000")).toEqual("example");
+  expect(specToName("https://example.com:8000/foo/bar")).toEqual(
+    "bar",
+  );
+
+  // JSR
+  expect(specToName("jsr:@foo/bar")).toEqual("foo_bar");
+  expect(specToName("jsr:@foo/bar@1.0.0")).toEqual("foo_bar");
+  expect(specToName("jsr:@foo/bar@^1.0.0")).toEqual("foo_bar");
+  expect(specToName("jsr:@foo/bar@~1.0.0")).toEqual("foo_bar");
+  expect(specToName("jsr:@foo/bar@~1.0.0-alpha.32")).toEqual("foo_bar");
+  expect(specToName("jsr:@foo/bar@~1.0.0-alpha.32/asdf")).toEqual("asdf");
+  expect(specToName("jsr:@foo/bar/asdf")).toEqual("asdf");
+
+  // npm
+  expect(specToName("npm:foo")).toEqual("foo");
+  expect(specToName("npm:foo/bar")).toEqual("bar");
+  expect(specToName("npm:foo@1.0.0")).toEqual("foo");
+  expect(specToName("npm:foo@^1.0.0")).toEqual("foo");
+  expect(specToName("npm:foo@~1.0.0-alpha.32")).toEqual("foo");
+  expect(specToName("npm:@foo/bar")).toEqual("foo_bar");
+  expect(specToName("npm:@foo/bar/asdf")).toEqual("asdf");
+  expect(specToName("npm:@foo/bar@1.0.0")).toEqual("foo_bar");
+  expect(specToName("npm:@foo/bar@^1.0.0")).toEqual("foo_bar");
+  expect(specToName("npm:@foo/bar@~1.0.0-alpha.32")).toEqual("foo_bar");
+
+  // other
+  expect(specToName("foo")).toEqual("foo");
+  expect(specToName("@foo/bar")).toEqual("foo_bar");
+  expect(specToName("foo/bar")).toEqual("bar");
+  expect(specToName("@foo/bar/asdf")).toEqual("asdf");
+
+  expect(specToName("islands/foo.v2.tsx")).toEqual("foo_v2");
+  expect(specToName("/islands/_bar-baz-...-$.tsx")).toEqual("_bar_baz_$");
+  expect(specToName("/islands/1_hello.tsx")).toEqual("_hello");
 });

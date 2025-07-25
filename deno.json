@@ -4,17 +4,19 @@
     "./examples",
     "./init",
     "./plugin-tailwindcss",
+    "./plugin-tailwindcss-v3",
     "./update",
     "./www"
   ],
   "name": "@fresh/core",
-  "version": "2.0.0-alpha.43",
+  "version": "2.0.0-alpha.46",
   "license": "MIT",
   "exports": {
     ".": "./src/mod.ts",
     "./runtime": "./src/runtime/shared.ts",
     "./dev": "./src/dev/mod.ts",
-    "./compat": "./src/compat.ts"
+    "./compat": "./src/compat.ts",
+    "./do-not-use": "./src/internals.ts"
   },
   "tasks": {
     "test": "deno test -A --parallel",
@@ -79,7 +81,7 @@
     "tailwindcss": "npm:tailwindcss@^4.1.10",
     "postcss": "npm:postcss@8.5.6",
 
-    "ts-morph": "npm:ts-morph@^25.0.1",
+    "ts-morph": "npm:ts-morph@^26.0.0",
 
     "@std/front-matter": "jsr:@std/front-matter@^1.0.5",
     "github-slugger": "npm:github-slugger@^2.0.0",

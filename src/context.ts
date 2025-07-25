@@ -23,7 +23,7 @@ import {
 } from "./render.ts";
 
 export interface Island {
-  file: string | URL;
+  file: string;
   name: string;
   exportName: string;
   fn: ComponentType;
@@ -43,7 +43,7 @@ export interface UiTree<Data, State> {
  */
 export type FreshContext<State = unknown> = Context<State>;
 
-export let getBuildCache: <T>(ctx: Context<T>) => BuildCache;
+export let getBuildCache: <T>(ctx: Context<T>) => BuildCache<T>;
 export let getInternals: <T>(ctx: Context<T>) => UiTree<unknown, T>;
 
 /**
@@ -108,16 +108,14 @@ export class Context<State> {
    */
   next: () => Promise<Response>;
 
-  #islandRegistry: ServerIslandRegistry;
-  #buildCache: BuildCache;
+  #buildCache: BuildCache<State>;
 
-  // FIXME: remove after switching to <Slot />
   Component!: FunctionComponent;
 
   static {
     // deno-lint-ignore no-explicit-any
-    getInternals = (ctx) => (ctx as Context<unknown>).#internal as any;
-    getBuildCache = (ctx) => (ctx as Context<unknown>).#buildCache;
+    getInternals = <T>(ctx: Context<T>) => ctx.#internal as any;
+    getBuildCache = <T>(ctx: Context<T>) => ctx.#buildCache;
   }
 
   constructor(
@@ -128,8 +126,7 @@ export class Context<State> {
     params: Record<string, string>,
     config: ResolvedFreshConfig,
     next: () => Promise<Response>,
-    islandRegistry: ServerIslandRegistry,
-    buildCache: BuildCache,
+    buildCache: BuildCache<State>,
   ) {
     this.url = url;
     this.req = req;
@@ -139,7 +136,6 @@ export class Context<State> {
     this.config = config;
     this.isPartial = url.searchParams.has(PARTIAL_SEARCH_PARAM);
     this.next = next;
-    this.#islandRegistry = islandRegistry;
     this.#buildCache = buildCache;
   }
 
@@ -265,7 +261,6 @@ export class Context<State> {
       span.setAttribute("fresh.span_type", "render");
       const state = new RenderState(
         this,
-        this.#islandRegistry,
         this.#buildCache,
         partialId,
       );
@@ -277,7 +272,6 @@ export class Context<State> {
           vnode ?? h(Fragment, null),
           this,
           state,
-          this.#buildCache,
           headers,
         );
       } catch (err) {

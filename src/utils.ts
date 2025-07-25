@@ -1,4 +1,5 @@
 import * as path from "@std/path";
+import type { Lazy, MaybeLazy } from "./types.ts";
 
 export function assertInDir(
   filePath: string,
@@ -46,4 +47,29 @@ export function escapeScript(
   return content
     .replaceAll(SCRIPT_ESCAPE, "<\\/$1")
     .replaceAll(COMMENT_ESCAPE, options.json ? "\\u003C!--" : "\\x3C!--");
+}
+
+export class UniqueNamer {
+  #seen = new Map<string, number>();
+
+  getUniqueName(name: string): string {
+    const count = this.#seen.get(name);
+    if (count === undefined) {
+      this.#seen.set(name, 1);
+    } else {
+      this.#seen.set(name, count + 1);
+      name = `${name}_${count}`;
+    }
+
+    return name;
+  }
+}
+
+const PATH_TO_SPEC = /[\\/]+/g;
+export function pathToSpec(str: string): string {
+  return str.replaceAll(PATH_TO_SPEC, "/");
+}
+
+export function isLazy<T>(value: MaybeLazy<T>): value is Lazy<T> {
+  return typeof value === "function";
 }

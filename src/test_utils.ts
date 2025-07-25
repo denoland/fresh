@@ -1,9 +1,12 @@
-import { Context } from "./context.ts";
+import { Context, type ServerIslandRegistry } from "./context.ts";
 import type { FsAdapter } from "./fs.ts";
-import { type BuildCache, ProdBuildCache } from "./build_cache.ts";
+import type { BuildCache, StaticFile } from "./build_cache.ts";
 import type { ResolvedFreshConfig } from "./config.ts";
 import type { WalkEntry } from "@std/fs/walk";
 import { DEFAULT_CONN_INFO } from "./app.ts";
+import type { Command } from "./commands.ts";
+import { fsItemsToCommands, type FsRouteFile } from "./fs_routes.ts";
+import * as path from "@std/path";
 
 const STUB = {} as unknown as Deno.ServeHandlerInfo;
 
@@ -61,20 +64,16 @@ export class FakeServer {
 }
 
 const DEFAULT_CONFIG: ResolvedFreshConfig = {
-  build: {
-    outDir: "",
-  },
+  root: "",
   mode: "production",
   basePath: "",
-  root: "",
-  staticDir: "",
 };
 
 export function serveMiddleware<T>(
   middleware: (ctx: Context<T>) => Response | Promise<Response>,
   options: {
     config?: ResolvedFreshConfig;
-    buildCache?: BuildCache;
+    buildCache?: BuildCache<T>;
     next?: () => Promise<Response>;
     route?: string | null;
   } = {},
@@ -84,7 +83,7 @@ export function serveMiddleware<T>(
       (() => new Response("not found", { status: 404 }));
     const config = options.config ?? DEFAULT_CONFIG;
     const buildCache = options.buildCache ??
-      new ProdBuildCache(config, new Map(), new Map(), true);
+      new MockBuildCache<T>([]);
 
     const ctx = new Context<T>(
       req,
@@ -94,7 +93,6 @@ export function serveMiddleware<T>(
       {},
       config,
       () => Promise.resolve(next()),
-      new Map(),
       buildCache,
     );
     return await middleware(ctx);
@@ -105,13 +103,12 @@ export function createFakeFs(files: Record<string, unknown>): FsAdapter {
   return {
     cwd: () => ".",
     async *walk(_root) {
-      // FIXME: ignore
       for (const file of Object.keys(files)) {
         const entry: WalkEntry = {
           isDirectory: false,
           isFile: true,
           isSymlink: false,
-          name: file, // FIXME?
+          name: file,
           path: file,
         };
         yield entry;
@@ -124,6 +121,10 @@ export function createFakeFs(files: Record<string, unknown>): FsAdapter {
     async mkdirp(_dir: string) {
     },
     readFile: Deno.readFile,
+    // deno-lint-ignore require-await
+    async readTextFile(path) {
+      return String(files[String(path)]);
+    },
   };
 }
 
@@ -143,4 +144,38 @@ export async function withTmpDir(
       }
     },
   };
+}
+
+export class MockBuildCache<State> implements BuildCache<State> {
+  #files: FsRouteFile<State>[];
+  root = "";
+  islandRegistry: ServerIslandRegistry = new Map();
+
+  constructor(files: FsRouteFile<State>[]) {
+    this.#files = files;
+  }
+
+  getFsRoutes(): Command<State>[] {
+    return fsItemsToCommands(this.#files);
+  }
+
+  readFile(_pathname: string): Promise<StaticFile | null> {
+    return Promise.resolve(null);
+  }
+}
+
+export async function writeFiles(dir: string, files: Record<string, string>) {
+  const entries = Object.entries(files);
+  await Promise.all(entries.map(async (entry) => {
+    const [pathname, content] = entry;
+    const fullPath = path.join(dir, pathname);
+    try {
+      await Deno.mkdir(path.dirname(fullPath), { recursive: true });
+      await Deno.writeTextFile(fullPath, content);
+    } catch (err) {
+      if (!(err instanceof Deno.errors.AlreadyExists)) {
+        throw err;
+      }
+    }
+  }));
 }

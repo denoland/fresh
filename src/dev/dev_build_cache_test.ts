@@ -1,30 +1,30 @@
 import { expect } from "@std/expect";
-import * as path from "@std/path";
 import { MemoryBuildCache } from "./dev_build_cache.ts";
-import { FreshFileTransformer } from "./file_transformer.ts";
+import { FileTransformer } from "./file_transformer.ts";
 import { createFakeFs, withTmpDir } from "../test_utils.ts";
-import type { ResolvedFreshConfig } from "../mod.ts";
+import type { ResolvedBuildConfig } from "./builder.ts";
 
 Deno.test({
   name: "MemoryBuildCache - should error if reading outside of staticDir",
   fn: async () => {
     await using _tmp = await withTmpDir();
     const tmp = _tmp.dir;
-    const config: ResolvedFreshConfig = {
+    const config: ResolvedBuildConfig = {
       root: tmp,
       mode: "development",
-      basePath: "/",
-      staticDir: path.join(tmp, "static"),
-      build: {
-        outDir: path.join(tmp, "dist"),
-      },
+      buildId: "",
+      ignore: [],
+      islandDir: "",
+      outDir: "",
+      routeDir: "",
+      staticDir: "",
+      target: "latest",
     };
-    const fileTransformer = new FreshFileTransformer(createFakeFs({}));
+    const fileTransformer = new FileTransformer(createFakeFs({}), tmp);
     const buildCache = new MemoryBuildCache(
       config,
-      "testing",
+      { dir: "", files: [], id: "" },
       fileTransformer,
-      "latest",
     );
 
     const thrown = buildCache.readFile("../SECRETS.txt");

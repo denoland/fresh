@@ -1,14 +1,11 @@
 import { expect } from "@std/expect";
 import type { FsAdapter } from "../fs.ts";
-import {
-  FreshFileTransformer,
-  type ProcessedFile,
-} from "./file_transformer.ts";
+import { FileTransformer, type ProcessedFile } from "./file_transformer.ts";
 import { delay } from "../test_utils.ts";
 
-function testTransformer(files: Record<string, string>) {
+function testTransformer(files: Record<string, string>, root = "/") {
   const mockFs: FsAdapter = {
-    cwd: () => "/",
+    cwd: () => root,
     isDirectory: () => Promise.resolve(false),
     mkdirp: () => Promise.resolve(),
     walk: async function* foo() {
@@ -20,8 +17,14 @@ function testTransformer(files: Record<string, string>) {
       const buf = new TextEncoder().encode(content);
       return Promise.resolve(buf);
     },
+    readTextFile: (file) => {
+      if (file instanceof URL) throw new Error("Not supported");
+      // deno-lint-ignore no-explicit-any
+      const content = (files as any)[file];
+      return Promise.resolve(content);
+    },
   };
-  return new FreshFileTransformer(mockFs);
+  return new FileTransformer(mockFs, root);
 }
 
 function consumeResult(result: ProcessedFile[]) {
@@ -228,3 +231,17 @@ Deno.test(
     ]);
   },
 );
+
+Deno.test("FileTransformer - pass root to args", async () => {
+  const transformer = testTransformer({ "foo.txt": "foo" }, "/<root>/");
+
+  let root = "";
+  transformer.onTransform({ pluginName: "A", filter: /.*/ }, (args) => {
+    root = args.root;
+    return undefined;
+  });
+
+  await transformer.process("foo.txt", "development", "");
+
+  expect(root).toEqual("/<root>/");
+});

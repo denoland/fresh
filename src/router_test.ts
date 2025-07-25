@@ -161,6 +161,6 @@ Deno.test("mergePath", () => {
   expect(mergePath("/foo/bar", "/baz")).toEqual("/foo/bar/baz");
   expect(mergePath("*", "/baz")).toEqual("/baz");
   expect(mergePath("/*", "/baz")).toEqual("/baz");
-  expect(mergePath("/foo", "*")).toEqual("/foo/*");
+  expect(mergePath("/foo", "*")).toEqual("/foo");
   expect(mergePath("/foo", "/*")).toEqual("/foo/*");
 });

@@ -103,3 +103,37 @@ Deno.test("MyLayout - renders heading and content", async () => {
   expect(text).toContain("Hello");
 });
 ```
+
+## Testing with file routes and islands
+
+[File routes](/docs/canary/concepts//file-routing) are collected by the
+[`Builder`](/docs/canary/concepts/builder) class and not just by
+[`App`](/docs/concepts/app) alone. We can generate a snapshot and re-use it for
+many app instances in our test suite.
+
+```ts my-app.test.ts
+// Best to do this once instead of for every test case for
+// performance reasons.
+const builder = new Builder();
+const applySnapshot = await builder.build({ snapshot: "memory" });
+
+function testApp() {
+  const app = new App()
+    .get("/", () => new Response("hello"))
+    .fsRoutes();
+
+  // Applies build snapshot to this app instance.
+  applySnapshot(app);
+}
+
+Deno.test("My Test", () => {
+  const handler = testApp().handler();
+
+  const response = await handler(new Request("http://localhost"));
+  const text = await response.text();
+
+  if (text !== "hello") {
+    throw new Error("fail");
+  }
+});
+```

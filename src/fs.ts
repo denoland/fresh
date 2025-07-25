@@ -9,6 +9,7 @@ export interface FsAdapter {
   isDirectory(path: string | URL): Promise<boolean>;
   mkdirp(dir: string): Promise<void>;
   readFile(path: string | URL): Promise<Uint8Array>;
+  readTextFile(path: string | URL): Promise<string>;
 }
 
 export const fsAdapter: FsAdapter = {
@@ -33,4 +34,5 @@ export const fsAdapter: FsAdapter = {
     }
   },
   readFile: Deno.readFile,
+  readTextFile: Deno.readTextFile,
 };

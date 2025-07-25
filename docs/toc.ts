@@ -39,6 +39,7 @@ const toc: RawTableOfContents = {
           ["islands", "Islands", "link:canary"],
           ["static-files", "Static files", "link:canary"],
 
+          ["builder", "Builder", "link:canary"],
           ["file-routing", "File routing", "link:canary"],
         ],
       },
@@ -72,6 +73,7 @@ const toc: RawTableOfContents = {
         pages: [
           ["cors", "cors", "link:canary"],
           ["trailing-slashes", "trailingSlashes", "link:canary"],
+          ["tailwindcss", "tailwindcss", "link:canary"],
         ],
       },
       examples: {

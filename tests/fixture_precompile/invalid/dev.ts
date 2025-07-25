@@ -1,8 +1,7 @@
 import { Builder } from "../../../src/dev/mod.ts";
-import { app } from "./main.tsx";
 
 const builder = new Builder();
 
-await builder.listen(app, {
+await builder.listen(() => import("./main.tsx"), {
   port: 4001,
 });

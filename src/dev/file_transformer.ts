@@ -23,6 +23,7 @@ export interface OnTransformArgs {
   text: string;
   content: Uint8Array;
   mode: TransformMode;
+  root: string;
 }
 export type TransformFn = (
   args: OnTransformArgs,
@@ -56,12 +57,14 @@ interface TransformReq {
   inputFiles: string[];
 }
 
-export class FreshFileTransformer {
+export class FileTransformer {
   #transformers: Transformer[] = [];
   #fs: FsAdapter;
+  #root: string;
 
-  constructor(fs: FsAdapter) {
+  constructor(fs: FsAdapter, root: string) {
     this.#fs = fs;
+    this.#root = root;
   }
 
   onTransform(options: OnTransformOptions, callback: TransformFn): void {
@@ -147,6 +150,7 @@ export class FreshFileTransformer {
           mode,
           target,
           content: req!.content,
+          root: this.#root,
           get text() {
             return new TextDecoder().decode(req!.content);
           },
@@ -243,7 +247,7 @@ export class FreshFileTransformer {
 
 const CSS_URL_REGEX = /url\(("[^"]+"|'[^']+'|[^)]+)\)/g;
 
-export function cssAssetHash(transformer: FreshFileTransformer) {
+export function cssAssetHash(transformer: FileTransformer) {
   transformer.onTransform({
     pluginName: "fresh-css",
     filter: /\.css$/,

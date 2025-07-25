@@ -1,4 +1,4 @@
-import { App, fsRoutes, staticFiles } from "fresh";
+import { App, staticFiles } from "fresh";
 import { Counter } from "./fixtures_islands/Counter.tsx";
 import { IslandInIsland } from "./fixtures_islands/IslandInIsland.tsx";
 import { JsonIsland } from "./fixtures_islands/JsonIsland.tsx";
@@ -12,42 +12,49 @@ import { JsxChildrenIsland } from "./fixtures_islands/JsxChildrenIsland.tsx";
 import { NodeProcess } from "./fixtures_islands/NodeProcess.tsx";
 import { signal } from "@preact/signals";
 import {
-  allIslandApp,
+  ALL_ISLAND_DIR,
   buildProd,
   Doc,
-  getIsland,
+  ISLAND_GROUP_DIR,
   withBrowserApp,
 } from "./test_utils.tsx";
 import { parseHtml, waitForText } from "./test_utils.tsx";
 import { expect } from "@std/expect";
 import { JsxConditional } from "./fixtures_islands/JsxConditional.tsx";
 import { FnIsland } from "./fixtures_islands/FnIsland.tsx";
-import { FragmentIsland } from "./fixtures_islands/FragmentIsland.tsx";
 import { EscapeIsland } from "./fixtures_islands/EscapeIsland.tsx";
-import * as path from "@std/path";
-import { setBuildCache } from "../src/app.ts";
-import { getBuildCache } from "../src/app.ts";
 import type { FreshConfig } from "../src/config.ts";
 import { FreshAttrs } from "./fixtures_islands/FreshAttrs.tsx";
 import { FakeServer } from "../src/test_utils.ts";
 import { PARTIAL_SEARCH_PARAM } from "../src/constants.ts";
 
-await buildProd(allIslandApp);
+const allIslandCache = await buildProd({ islandDir: ALL_ISLAND_DIR });
+const islandGroupCache = await buildProd({ root: ISLAND_GROUP_DIR });
 
-function testApp(config?: FreshConfig) {
-  const app = new App(config);
-  setBuildCache(app, getBuildCache(allIslandApp));
-  app.use(staticFiles());
+function testApp(config?: FreshConfig): App<unknown> {
+  const app = new App(config)
+    .use(staticFiles())
+    .fsRoutes();
+
+  allIslandCache(app);
+
+  return app;
+}
+
+function testGroupApp(config?: FreshConfig): App<unknown> {
+  const app = new App(config)
+    .use(staticFiles())
+    .fsRoutes();
+
+  islandGroupCache(app);
+
   return app;
 }
 
 Deno.test({
   name: "islands - should make signals interactive",
   fn: async () => {
-    const counterIsland = getIsland("Counter.tsx");
-
     const app = testApp()
-      .island(counterIsland, "Counter", Counter)
       .get("/", (ctx) => {
         const sig = signal(3);
         return ctx.render(
@@ -69,11 +76,7 @@ Deno.test({
 Deno.test({
   name: "islands - revive multiple islands from one island file",
   fn: async () => {
-    const multipleIslands = getIsland("Multiple.tsx");
-
     const app = testApp()
-      .island(multipleIslands, "Multiple1", Multiple1)
-      .island(multipleIslands, "Multiple2", Multiple2)
       .get("/", (ctx) => {
         return ctx.render(
           <Doc>
@@ -98,10 +101,7 @@ Deno.test({
 Deno.test({
   name: "islands - revive multiple islands with shared signal",
   fn: async () => {
-    const counterIsland = getIsland("Counter.tsx");
-
     const app = testApp()
-      .island(counterIsland, "Counter", Counter)
       .get("/", (ctx) => {
         const sig = signal(0);
         return ctx.render(
@@ -126,10 +126,7 @@ Deno.test({
 Deno.test({
   name: "islands - import json",
   fn: async () => {
-    const jsonIsland = getIsland("JsonIsland.tsx");
-
     const app = testApp()
-      .island(jsonIsland, "JsonIsland", Counter)
       .get("/", (ctx) => {
         return ctx.render(
           <Doc>
@@ -153,10 +150,7 @@ Deno.test({
 Deno.test({
   name: "islands - returns null",
   fn: async () => {
-    const nullIsland = getIsland("NullIsland.tsx");
-
     const app = testApp()
-      .island(nullIsland, "NullIsland", NullIsland)
       .get("/", (ctx) => {
         return ctx.render(
           <Doc>
@@ -175,12 +169,7 @@ Deno.test({
 Deno.test({
   name: "islands - only instantiate top level island",
   fn: async () => {
-    const counter = getIsland("Counter.tsx");
-    const islandInIsland = getIsland("IslandInIsland.tsx");
-
     const app = testApp()
-      .island(counter, "Counter", Counter)
-      .island(islandInIsland, "IslandInIsland", IslandInIsland)
       .get("/", (ctx) => {
         return ctx.render(
           <Doc>
@@ -204,10 +193,7 @@ Deno.test({
 Deno.test({
   name: "islands - pass null JSX props to islands",
   fn: async () => {
-    const jsxIsland = getIsland("JsxIsland.tsx");
-
     const app = testApp()
-      .island(jsxIsland, "JsxIsland", JsxIsland)
       .get("/", (ctx) => {
         return ctx.render(
           <Doc>
@@ -231,10 +217,7 @@ Deno.test({
 Deno.test({
   name: "islands - pass JSX props to islands",
   fn: async () => {
-    const jsxIsland = getIsland("JsxIsland.tsx");
-
     const app = testApp()
-      .island(jsxIsland, "JsxIsland", JsxIsland)
       .get("/", (ctx) => {
         return ctx.render(
           <Doc>
@@ -260,10 +243,7 @@ Deno.test({
 Deno.test({
   name: "islands - never serialize children prop",
   fn: async () => {
-    const jsxChildrenIsland = getIsland("JsxChildrenIsland.tsx");
-
     const app = testApp()
-      .island(jsxChildrenIsland, "JsxChildrenIsland", JsxChildrenIsland)
       .get("/", (ctx) => {
         return ctx.render(
           <Doc>
@@ -294,12 +274,7 @@ Deno.test({
 Deno.test({
   name: "islands - instantiate islands in jsx children",
   fn: async () => {
-    const passThrough = getIsland("PassThrough.tsx");
-    const selfCounter = getIsland("SelfCounter.tsx");
-
     const app = testApp()
-      .island(passThrough, "PassThrough", PassThrough)
-      .island(selfCounter, "SelfCounter", SelfCounter)
       .get("/", (ctx) => {
         return ctx.render(
           <Doc>
@@ -325,12 +300,7 @@ Deno.test({
 Deno.test({
   name: "islands - instantiate islands in jsx children with slots",
   fn: async () => {
-    const counterWithSlots = getIsland("CounterWithSlots.tsx");
-    const selfCounter = getIsland("SelfCounter.tsx");
-
     const app = testApp()
-      .island(counterWithSlots, "CounterWithSlots", CounterWithSlots)
-      .island(selfCounter, "SelfCounter", SelfCounter)
       .get("/", (ctx) => {
         return ctx.render(
           <Doc>
@@ -367,12 +337,7 @@ Deno.test({
 Deno.test({
   name: "islands - nested children slots",
   fn: async () => {
-    const passThrough = getIsland("PassThrough.tsx");
-    const selfCounter = getIsland("SelfCounter.tsx");
-
     const app = testApp()
-      .island(passThrough, "PassThrough", PassThrough)
-      .island(selfCounter, "SelfCounter", SelfCounter)
       .get("/", (ctx) => {
         return ctx.render(
           <Doc>
@@ -408,12 +373,7 @@ Deno.test({
 Deno.test({
   name: "islands - conditional jsx children",
   fn: async () => {
-    const jsxConditional = getIsland("JsxConditional.tsx");
-    const selfCounter = getIsland("SelfCounter.tsx");
-
     const app = testApp()
-      .island(jsxConditional, "JsxConditional", JsxConditional)
-      .island(selfCounter, "SelfCounter", SelfCounter)
       .get("/", (ctx) => {
         return ctx.render(
           <Doc>
@@ -450,10 +410,7 @@ Deno.test({
 Deno.test({
   name: "islands - revive DOM attributes",
   fn: async () => {
-    const jsxConditional = getIsland("JsxConditional.tsx");
-
     const app = testApp()
-      .island(jsxConditional, "JsxConditional", JsxConditional)
       .get("/", (ctx) => {
         return ctx.render(
           <Doc>
@@ -523,12 +480,7 @@ Deno.test({
 Deno.test({
   name: "islands - revive island with fn inside",
   fn: async () => {
-    const fragmentIsland = getIsland("FragmentIsland.tsx");
-    const fnIsland = getIsland("FnIsland.tsx");
-
     const app = testApp()
-      .island(fragmentIsland, "FragmentIsland", FragmentIsland)
-      .island(fnIsland, "FnIsland", FnIsland)
       .get("/", (ctx) => {
         return ctx.render(
           <Doc>
@@ -552,10 +504,7 @@ Deno.test({
 Deno.test({
   name: "islands - escape props",
   fn: async () => {
-    const escapeIsland = getIsland("EscapeIsland.tsx");
-
     const app = testApp()
-      .island(escapeIsland, "EscapeIsland", EscapeIsland)
       .get("/", (ctx) => {
         return ctx.render(
           <Doc>
@@ -648,10 +597,7 @@ Deno.test({
 Deno.test({
   name: "islands - stub Node 'process.env'",
   fn: async () => {
-    const nodeProcess = getIsland("NodeProcess.tsx");
-
     const app = testApp()
-      .island(nodeProcess, "NodeProcess", NodeProcess)
       .get("/", (ctx) =>
         ctx.render(
           <Doc>
@@ -675,10 +621,7 @@ Deno.test({
 Deno.test({
   name: "islands - in base path",
   fn: async () => {
-    const selfCounter = getIsland("SelfCounter.tsx");
-
     const app = testApp({ basePath: "/foo" })
-      .island(selfCounter, "SelfCounter", SelfCounter)
       .get("/", (ctx) =>
         ctx.render(
           <Doc>
@@ -699,10 +642,7 @@ Deno.test({
 Deno.test({
   name: "islands - preserve f-* attributes",
   fn: async () => {
-    const freshAttrs = getIsland("FreshAttrs.tsx");
-
     const app = testApp()
-      .island(freshAttrs, "FreshAttrs", FreshAttrs)
       .get("/", (ctx) =>
         ctx.render(
           <Doc>
@@ -728,16 +668,7 @@ Deno.test({
 Deno.test({
   name: "fsRoutes - load islands from group folder",
   fn: async () => {
-    const app = testApp();
-
-    await fsRoutes(app, {
-      dir: path.join(
-        import.meta.dirname!,
-        "fixture_island_groups",
-      ),
-      loadIsland: (path) => import("./fixture_island_groups/islands/" + path),
-      loadRoute: (path) => import("./fixture_island_groups/routes/" + path),
-    });
+    const app = testGroupApp();
 
     await withBrowserApp(app, async (page, address) => {
       await page.goto(`${address}/foo`, { waitUntil: "load" });
@@ -753,12 +684,33 @@ Deno.test({
 });
 
 Deno.test({
+  name: "fsRoutes - load islands from group folder with same name",
+  fn: async () => {
+    const app = testGroupApp();
+
+    await withBrowserApp(app, async (page, address) => {
+      await page.goto(`${address}/both`, { waitUntil: "load" });
+
+      await page.locator(".ready").wait();
+
+      // Page would error here
+      let text = await page
+        .locator<HTMLDivElement>("#foo.ready")
+        .evaluate((el) => el.textContent!);
+      expect(text).toEqual("it works");
+
+      text = await page
+        .locator<HTMLDivElement>("#foo-both.ready")
+        .evaluate((el) => el.textContent!);
+      expect(text).toEqual("it works");
+    });
+  },
+});
+
+Deno.test({
   name: "islands - adds preload HTTP headers",
   fn: async () => {
-    const selfCounter = getIsland("SelfCounter.tsx");
-
     const app = testApp()
-      .island(selfCounter, "SelfCounter", SelfCounter)
       .get("/", (ctx) =>
         ctx.render(
           <Doc>
@@ -771,6 +723,7 @@ Deno.test({
     await res.body?.cancel();
 
     const link = res.headers.get("Link");
+
     expect(link).toMatch(
       /<\/_fresh\/js\/[a-zA-Z0-9]+\/fresh-runtime\.js>; rel="modulepreload"; as="script", <\/_fresh\/js\/[a-zA-Z0-9]+\/SelfCounter\.js>; rel="modulepreload"; as="script"/,
     );

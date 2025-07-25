@@ -12,7 +12,6 @@ import {
 } from "./runtime/server/preact_hooks.tsx";
 import type { Context } from "./context.ts";
 import { recordSpanError, tracer } from "./otel.ts";
-import type { BuildCache } from "./build_cache.ts";
 import { DEV_ERROR_OVERLAY_URL } from "./constants.ts";
 import { renderToString } from "preact-render-to-string";
 import { BUILD_ID } from "./runtime/build_id.ts";
@@ -62,7 +61,6 @@ export function preactRender<State, Data>(
   vnode: VNode,
   ctx: PageProps<Data, State>,
   state: RenderState,
-  buildCache: BuildCache,
   headers: Headers,
 ) {
   try {
@@ -90,12 +88,9 @@ export function preactRender<State, Data>(
     const runtimeUrl = `${basePath}/_fresh/js/${BUILD_ID}/fresh-runtime.js`;
     let link = `<${encodeURI(runtimeUrl)}>; rel="modulepreload"; as="script"`;
     state.islands.forEach((island) => {
-      const chunk = buildCache.getIslandChunkName(island.name);
-      if (chunk !== null) {
-        link += `, <${
-          encodeURI(`${basePath}${chunk}`)
-        }>; rel="modulepreload"; as="script"`;
-      }
+      link += `, <${
+        encodeURI(`${basePath}${island.file}`)
+      }>; rel="modulepreload"; as="script"`;
     });
 
     if (link !== "") {
