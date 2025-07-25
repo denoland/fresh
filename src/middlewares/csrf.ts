@@ -1,9 +1,10 @@
-import type { FreshContext } from "../context.ts";
+import type { Context } from "../context.ts";
 import { HttpError } from "../error.ts";
-import type { MiddlewareFn } from "./mod.ts";
+import type { Middleware } from "./mod.ts";
 
 /** Options for {@linkcode csrf}. **/
-export interface CsrfOptions {
+// deno-lint-ignore no-explicit-any
+export interface CsrfOptions<State = any> {
   /**
    * origin - Specifies the allowed origin(s) for requests.
    *  - string: A single allowed origin.
@@ -13,7 +14,7 @@ export interface CsrfOptions {
   origin?:
     | string
     | string[]
-    | ((origin: string, context: FreshContext) => boolean);
+    | ((origin: string, context: Context<State>) => boolean);
 }
 
 /**
@@ -53,12 +54,12 @@ export interface CsrfOptions {
  */
 export function csrf<State>(
   options?: CsrfOptions,
-): MiddlewareFn<State> {
+): Middleware<State> {
   const isAllowedOrigin = (
     origin: string | null,
-    ctx: FreshContext<State>,
+    ctx: Context<State>,
   ) => {
-    if (!origin) {
+    if (origin === null) {
       return false;
     }
 
@@ -80,26 +81,33 @@ export function csrf<State>(
     const { method, headers } = ctx.req;
 
     // Safe methods
-    if (method === "GET" || method === "HEAD") {
+    if (method === "GET" || method === "HEAD" || method === "OPTIONS") {
       return await ctx.next();
     }
 
-    const contentType = headers.get("content-type")?.toLowerCase() ??
-      "text/plain";
+    const secFetchSite = headers.get("Sec-Fetch-Site");
+    const origin = headers.get("origin");
 
-    // Check if initiated by form
-    if (
-      (contentType === "application/x-www-form-urlencoded" ||
-        contentType === "multipart/form-data" ||
-        contentType === "text/plain") &&
-      !isAllowedOrigin(headers.get("origin"), ctx)
-    ) {
-      throw new HttpError(
-        403,
-        "CSRF protection failed. The request is not allowed from this origin.",
-      );
+    if (secFetchSite !== null) {
+      if (
+        secFetchSite === "same-origin" || secFetchSite === "none" ||
+        isAllowedOrigin(origin, ctx)
+      ) {
+        return await ctx.next();
+      }
+
+      throw new HttpError(403);
     }
 
-    return await ctx.next();
+    // Neither `Sec-Fetch-Site` or `Origin` is set
+    if (origin === null) {
+      return await ctx.next();
+    }
+
+    if (isAllowedOrigin(origin, ctx)) {
+      return await ctx.next();
+    }
+
+    throw new HttpError(403);
   };
 }
