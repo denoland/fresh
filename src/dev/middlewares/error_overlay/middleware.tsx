@@ -1,10 +1,10 @@
 import { DEV_ERROR_OVERLAY_URL } from "../../../constants.ts";
 import { HttpError } from "../../../error.ts";
-import type { MiddlewareFn } from "../../../middlewares/mod.ts";
+import type { Middleware } from "../../../middlewares/mod.ts";
 import { FreshScripts } from "../../../runtime/server/preact_hooks.tsx";
 import { ErrorOverlay } from "./overlay.tsx";
 
-export function devErrorOverlay<T>(): MiddlewareFn<T> {
+export function devErrorOverlay<T>(): Middleware<T> {
   return async (ctx) => {
     const { config, url } = ctx;
     if (url.pathname === config.basePath + DEV_ERROR_OVERLAY_URL) {

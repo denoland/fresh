@@ -1,8 +1,8 @@
-import type { MiddlewareFn } from "../../middlewares/mod.ts";
+import type { Middleware } from "../../middlewares/mod.ts";
 import { ALIVE_URL } from "../../constants.ts";
 
 // Live reload: Send updates to browser
-export function liveReload<T>(): MiddlewareFn<T> {
+export function liveReload<T>(): Middleware<T> {
   const revision = Date.now();
 
   return (ctx) => {
