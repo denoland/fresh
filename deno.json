@@ -4,6 +4,7 @@
     "./examples",
     "./init",
     "./plugin-tailwindcss",
+    "./plugin-tailwindcss-v3",
     "./update",
     "./www"
   ],
