@@ -3,10 +3,10 @@ title: Install daisyUI for Deno Fresh
 desc: How to install Tailwind CSS and daisyUI in a Deno Fresh project
 ---
 
-daisyUI is a component library for Tailwind CSS that provides semantic class
-names for common UI components like buttons, cards, and modals. It makes
-building beautiful interfaces faster while maintaining full Tailwind CSS
-compatibility.
+[daisyUI](https://daisyui.com/) is a component library for
+[Tailwind CSS](https://tailwindcss.com/) that provides semantic class names for
+common UI components like buttons, cards, and modals. It makes building
+beautiful interfaces faster while maintaining full Tailwind CSS compatibility.
 
 ## Installation
 
@@ -50,9 +50,9 @@ export function Button(props: ButtonProps) {
 
 ### Display Effect
 
-![DaisyUI Showcase](./www/static/docs/fresh-daisyui-showcase.png)
+![DaisyUI Showcase](/docs/fresh-daisyui-showcase.jpg)
 
 ### daisyUI Class Name Reference
 
-- For more components and usage, please refer to the
-  [daisyUI official documentation](https://daisyui.com/)
+For more components and usage, please refer to the
+[daisyUI official documentation](https://daisyui.com/)

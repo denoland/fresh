@@ -82,6 +82,7 @@ const toc: RawTableOfContents = {
         link: "latest",
         pages: [
           ["migration-guide", "Migration Guide", "link:canary"],
+          ["daisyui", "daisyUI", "link:canary"],
           ["modifying-the-head", "Modifying the <head>", "link:latest"],
           ["creating-a-crud-api", "Creating a CRUD API", "link:latest"],
           ["rendering-raw-html", "Rendering raw HTML", "link:canary"],
