@@ -311,6 +311,10 @@ html {
   font-variant-numeric: tabular-nums;
 }
 
+.fulll-height {
+  height: 100vh;
+}
+
 ${GRADIENT_CSS}`;
   // deno-fmt-ignore
   const TAILWIND_CSS = css`@import "tailwindcss";
@@ -412,7 +416,7 @@ export default define.page(function Home() {
 
   return (
     <div class="px-4 py-8 mx-auto fresh-gradient">
-      <div class="max-w-screen-md mx-auto flex flex-col items-center justify-center">
+      <div class="max-w-screen-md mx-auto flex flex-col items-center justify-center full-height">
         <img
           class="my-6"
           src="/logo.svg"
