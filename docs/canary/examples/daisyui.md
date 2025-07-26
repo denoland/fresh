@@ -77,8 +77,7 @@ deno task dev
 Create a button component in the `components` directory, using daisyUI's style
 classes for reference.
 
-```tsx
-// components/Button.tsx
+```tsx components/Button.tsx
 import type { ComponentChildren } from "preact";
 
 export interface ButtonProps {
