@@ -310,7 +310,7 @@ html {
 .tabular-nums {
   font-variant-numeric: tabular-nums;
 }
-.full-height {
+.min-h-screen {
   min-height: 100vh;
 }
 
