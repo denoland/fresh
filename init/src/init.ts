@@ -310,6 +310,9 @@ html {
 .tabular-nums {
   font-variant-numeric: tabular-nums;
 }
+.min-h-screen {
+  min-height: 100vh;
+}
 
 ${GRADIENT_CSS}`;
   // deno-fmt-ignore
@@ -411,7 +414,7 @@ export default define.page(function Home() {
   const count = useSignal(3);
 
   return (
-    <div class="px-4 py-8 mx-auto fresh-gradient">
+    <div class="px-4 py-8 mx-auto fresh-gradient min-h-screen">
       <div class="max-w-screen-md mx-auto flex flex-col items-center justify-center">
         <img
           class="my-6"
