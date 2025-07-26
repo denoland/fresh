@@ -3,8 +3,10 @@ title: Install daisyUI for Deno Fresh
 desc: How to install Tailwind CSS and daisyUI in a Deno Fresh project
 ---
 
-This document records the complete process of integrating and using daisyUI in a Fresh v2.0 alpha project.
-The Fresh framework now supports the new Tailwind CSS plugin and Deno loader, with "nodeModulesDir": "auto" set by default, making the integration of daisyUI simpler and more efficient.
+This document records the complete process of integrating and using daisyUI in a
+Fresh v2.0 alpha project. The Fresh framework now supports the new Tailwind CSS
+plugin and Deno loader, with "nodeModulesDir": "auto" set by default, making the
+integration of daisyUI simpler and more efficient.
 
 ## Project Initialization
 
@@ -41,7 +43,8 @@ deno i -D npm:daisyui@latest
 **Installation Result:**
 
 - Successfully installed `daisyui@5.0.47`
-- Received a warning about npm lifecycle scripts (can be ignored in the current scenario)
+- Received a warning about npm lifecycle scripts (can be ignored in the current
+  scenario)
 
 ### 4. Configure Tailwind CSS
 
@@ -71,7 +74,8 @@ deno task dev
 
 ### 6. Create a Button Component Example
 
-Create a button component in the `components` directory, using daisyUI's style classes for reference.
+Create a button component in the `components` directory, using daisyUI's style
+classes for reference.
 
 ```tsx
 // components/Button.tsx
@@ -99,7 +103,7 @@ export function Button(props: ButtonProps) {
 
 <img width="1006" height="406" alt="image" src="https://github.com/user-attachments/assets/291e283c-04e4-46d3-abcb-51198ad5183a" />
 
-
 ### daisyUI Class Name Reference
 
-- For more components and usage, please refer to the [daisyUI official documentation](https://daisyui.com/)
+- For more components and usage, please refer to the
+  [daisyUI official documentation](https://daisyui.com/)
