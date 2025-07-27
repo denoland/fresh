@@ -58,7 +58,7 @@ export default define.page(() => {
       <p>This is the about page.</p>
     </main>
   );
-})
+});
 ```
 
 If we navigate to `/about` in the browser we'll see our newly created page.
@@ -110,7 +110,7 @@ export default define.page(() => {
       <Countdown />
     </main>
   );
-})
+});
 ```
 
 Now, we can see our countdown in action:
