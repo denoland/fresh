@@ -400,8 +400,9 @@ export function Button(props: ButtonProps) {
 
   const UTILS_TS = `import { createDefine } from "fresh";
 
-// deno-lint-ignore no-empty-interface
-export interface State {}
+export interface State {
+  title: string;
+}
 
 export const define = createDefine<State>();`;
   await writeFile("utils.ts", UTILS_TS);
@@ -410,8 +411,11 @@ export const define = createDefine<State>();`;
 import { define } from "../utils.ts";
 import Counter from "../islands/Counter.tsx";
 
-export default define.page(function Home() {
+export default define.page(function Home(ctx) {
   const count = useSignal(3);
+
+  ctx.state.title = count.value + " Fresh Counter" +
+    (Math.abs(count.value) === 1 ? "" : "s");
 
   return (
     <div class="px-4 py-8 mx-auto fresh-gradient min-h-screen">
@@ -435,15 +439,15 @@ export default define.page(function Home() {
 });`;
   await writeFile("routes/index.tsx", ROUTES_HOME);
 
-  const APP_WRAPPER = `import type { PageProps } from "fresh";
+  const APP_WRAPPER = `import { define } from "../utils.ts";
 
-export default function App({ Component }: PageProps) {
+export default define.page(function App({ Component, state }) {
   return (
     <html>
       <head>
         <meta charset="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>${path.basename(projectDir)}</title>
+        <title>{state.title ?? "${path.basename(projectDir)}"}</title>
         <link rel="stylesheet" href="/styles.css" />
       </head>
       <body>
@@ -451,7 +455,7 @@ export default function App({ Component }: PageProps) {
       </body>
     </html>
   );
-}`;
+});`;
   await writeFile("routes/_app.tsx", APP_WRAPPER);
 
   const API_NAME = `import { define } from "../../utils.ts";
