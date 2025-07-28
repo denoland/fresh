@@ -53,10 +53,10 @@ export const handler = define.handlers({
 });
 
 // When you type `ctx.state.*` you'll get autocompletion
-export default define.page((ctx) => {
+export default define.page<typeof handler>((props) => {
   return (
     <div>
-      <h1>I like {ctx.state.foo}</h1>
+      <h1>I like {props.data.foo}</h1>
     </div>
   );
 });
