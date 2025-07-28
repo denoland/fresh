@@ -131,7 +131,7 @@ easily set through the [define helper](/docs/canary/advanced/define).
 ```tsx
 // utils.ts
 export interface State {
-  title: string;
+  title?: string;
 }
 export const define = createDefine<State>();
 
