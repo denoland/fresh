@@ -1,7 +1,6 @@
 import { trace } from "@opentelemetry/api";
 
-import { DENO_DEPLOYMENT_ID } from "./runtime/build_id.ts";
-import * as colors from "@std/fmt/colors";
+// import * as colors from "@std/fmt/colors";
 import {
   type MaybeLazyMiddleware,
   type Middleware,
@@ -75,49 +74,46 @@ function createOnListen(
   options: ListenOptions,
 ): (localAddr: Deno.NetAddr) => void {
   return (params) => {
-    // Don't spam logs with this on live deployments
-    if (DENO_DEPLOYMENT_ID) return;
+    //   const pathname = basePath + "/";
+    //   const protocol = "key" in options && options.key && options.cert
+    //     ? "https:"
+    //     : "http:";
 
-    const pathname = basePath + "/";
-    const protocol = "key" in options && options.key && options.cert
-      ? "https:"
-      : "http:";
+    //   let hostname = params.hostname;
+    //   // Windows being windows...
+    //   if (
+    //     Deno.build.os === "windows" &&
+    //     (hostname === "0.0.0.0" || hostname === "::")
+    //   ) {
+    //     hostname = "localhost";
+    //   }
+    //   // Work around https://github.com/denoland/deno/issues/23650
+    //   hostname = hostname.startsWith("::") ? `[${hostname}]` : hostname;
 
-    let hostname = params.hostname;
-    // Windows being windows...
-    if (
-      Deno.build.os === "windows" &&
-      (hostname === "0.0.0.0" || hostname === "::")
-    ) {
-      hostname = "localhost";
-    }
-    // Work around https://github.com/denoland/deno/issues/23650
-    hostname = hostname.startsWith("::") ? `[${hostname}]` : hostname;
+    //   // deno-lint-ignore no-console
+    //   console.log();
+    //   // deno-lint-ignore no-console
+    //   console.log(
+    //     colors.bgRgb8(colors.rgb8(" 🍋 Fresh ready   ", 0), 121),
+    //   );
+    //   const sep = options.remoteAddress ? "" : "\n";
+    //   const space = options.remoteAddress ? " " : "";
 
-    // deno-lint-ignore no-console
-    console.log();
-    // deno-lint-ignore no-console
-    console.log(
-      colors.bgRgb8(colors.rgb8(" 🍋 Fresh ready   ", 0), 121),
-    );
-    const sep = options.remoteAddress ? "" : "\n";
-    const space = options.remoteAddress ? " " : "";
-
-    const localLabel = colors.bold("Local:");
-    const address = colors.cyan(
-      `${protocol}//${hostname}:${params.port}${pathname}`,
-    );
-    const helper = hostname === "0.0.0.0" || hostname === "::"
-      ? colors.cyan(` (${protocol}//localhost:${params.port}${pathname})`)
-      : "";
-    // deno-lint-ignore no-console
-    console.log(`    ${localLabel}  ${space}${address}${helper}${sep}`);
-    if (options.remoteAddress) {
-      const remoteLabel = colors.bold("Remote:");
-      const remoteAddress = colors.cyan(options.remoteAddress);
-      // deno-lint-ignore no-console
-      console.log(`    ${remoteLabel}  ${remoteAddress}\n`);
-    }
+    //   const localLabel = colors.bold("Local:");
+    //   const address = colors.cyan(
+    //     `${protocol}//${hostname}:${params.port}${pathname}`,
+    //   );
+    //   const helper = hostname === "0.0.0.0" || hostname === "::"
+    //     ? colors.cyan(` (${protocol}//localhost:${params.port}${pathname})`)
+    //     : "";
+    //   // deno-lint-ignore no-console
+    //   console.log(`    ${localLabel}  ${space}${address}${helper}${sep}`);
+    //   if (options.remoteAddress) {
+    //     const remoteLabel = colors.bold("Remote:");
+    //     const remoteAddress = colors.cyan(options.remoteAddress);
+    //     // deno-lint-ignore no-console
+    //     console.log(`    ${remoteLabel}  ${remoteAddress}\n`);
+    //   }
   };
 }
 
@@ -177,7 +173,8 @@ export class App<State> {
 
   constructor(config: FreshConfig = {}) {
     this.config = {
-      root: Deno.cwd(),
+      // root: Deno.cwd(),
+      root: "",
       basePath: config.basePath ?? "",
       mode: "production",
     };
@@ -356,8 +353,8 @@ export class App<State> {
     let buildCache = this.#getBuildCache();
     if (buildCache === null) {
       if (
-        this.config.mode === "production" &&
-        DENO_DEPLOYMENT_ID !== undefined
+        this.config.mode === "production"
+        // DENO_DEPLOYMENT_ID !== undefined
       ) {
         throw new Error(
           `Could not find _fresh directory. Maybe you forgot to run "deno task build"?`,
@@ -374,6 +371,8 @@ export class App<State> {
       this.#commands,
       this.config.basePath,
     );
+
+    console.log(performance.now());
 
     return async (
       req: Request,

@@ -1,6 +1,6 @@
 import { App, type ListenOptions, setBuildCache } from "../app.ts";
 import { fsAdapter } from "../fs.ts";
-import * as path from "@std/path";
+import * as path from "node:path";
 import * as colors from "@std/fmt/colors";
 import { bundleJs, type FreshBundleOptions } from "./esbuild.ts";
 
@@ -17,15 +17,15 @@ import {
   type FsRoute,
   MemoryBuildCache,
 } from "./dev_build_cache.ts";
-import { BUILD_ID } from "../runtime/build_id.ts";
 import { updateCheck } from "./update_check.ts";
 import { devErrorOverlay } from "./middlewares/error_overlay/middleware.tsx";
 import { automaticWorkspaceFolders } from "./middlewares/automatic_workspace_folders.ts";
 import { parseDirPath } from "../config.ts";
 import { pathToExportName, UniqueNamer } from "../utils.ts";
 import { checkDenoCompilerOptions } from "./check.ts";
-import { crawlRouteDir, walkDir } from "./fs_crawl.ts";
+import { crawlFsItem } from "./fs_crawl.ts";
 import { DAY } from "../constants.ts";
+import { BUILD_ID } from "../runtime/build_id.ts";
 
 export interface BuildOptions {
   /**
@@ -253,21 +253,19 @@ export class Builder<State = any> {
   }
 
   async #crawlFsItems() {
-    await Promise.all([
-      walkDir(
-        fsAdapter,
-        this.config.islandDir,
-        (entry) => this.registerIsland(entry.path),
-        this.config.ignore,
-      ),
-      crawlRouteDir(
-        fsAdapter,
-        this.config.routeDir,
-        this.config.ignore,
-        (entry) => this.registerIsland(entry),
-        this.#fsRoutes.files,
-      ),
-    ]);
+    const { islands, routes } = await crawlFsItem(
+      {
+        islandDir: this.config.islandDir,
+        routeDir: this.config.routeDir,
+        ignore: this.config.ignore,
+      },
+    );
+
+    for (let i = 0; i < islands.length; i++) {
+      this.registerIsland(islands[i]);
+    }
+
+    this.#fsRoutes.files = routes;
   }
 
   async #build<T>(buildCache: DevBuildCache<T>, dev: boolean): Promise<void> {

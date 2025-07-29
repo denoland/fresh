@@ -1,6 +1,6 @@
 // deno-lint-ignore-file no-console
 import * as colors from "@std/fmt/colors";
-import * as path from "@std/path";
+import * as path from "node:path";
 
 // Keep these as is, as we replace these version in our release script
 const FRESH_VERSION = "2.0.0-alpha.52";

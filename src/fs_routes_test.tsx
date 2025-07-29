@@ -229,7 +229,9 @@ Deno.test("fsRoutes - middleware array", async () => {
         return ctx.next();
       },
     },
-    "routes/foo/index.ts": { default: (ctx) => <div>{ctx.state.text}</div> },
+    "routes/foo/index.ts": {
+      default: (ctx) => <div class="full-">{ctx.state.text}</div>,
+    },
   });
 
   const res = await server.get("/foo");

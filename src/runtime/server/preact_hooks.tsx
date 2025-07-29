@@ -23,7 +23,7 @@ import {
   setActiveUrl,
 } from "../shared_internal.tsx";
 import type { BuildCache } from "../../build_cache.ts";
-import { BUILD_ID } from "../build_id.ts";
+import { BUILD_ID } from "fresh/build-id";
 import {
   DEV_ERROR_OVERLAY_URL,
   PARTIAL_SEARCH_PARAM,
@@ -423,7 +423,8 @@ export interface PartialStateJson {
 }
 
 function FreshRuntimeScript() {
-  const { islands, nonce, ctx, islandProps, partialId } = RENDER_STATE!;
+  const { islands, nonce, ctx, islandProps, partialId, buildCache } =
+    RENDER_STATE!;
   const basePath = ctx.config.basePath;
 
   const islandArr = Array.from(islands);
@@ -472,7 +473,8 @@ function FreshRuntimeScript() {
       { json: true },
     );
 
-    const runtimeUrl = `${basePath}/_fresh/js/${BUILD_ID}/fresh-runtime.js`;
+    // const runtimeUrl = `${basePath}/_fresh/js/${BUILD_ID}/fresh-runtime.js`;
+    const runtimeUrl = buildCache.clientEntry;
     const scriptContent =
       `import { boot } from "${runtimeUrl}";${islandImports}boot(${islandObj},${serializedProps});`;
 
@@ -486,7 +488,7 @@ function FreshRuntimeScript() {
             __html: scriptContent,
           }}
         />
-        {ctx.config.mode === "development" ? <ShowErrorOverlay /> : null}
+        {/* {ctx.config.mode === "development" ? <ShowErrorOverlay /> : null} */}
       </>
     );
   }

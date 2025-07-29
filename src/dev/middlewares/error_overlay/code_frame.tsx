@@ -1,4 +1,5 @@
-import * as path from "@std/path";
+import * as path from "node:path";
+import { fileURLToPath } from "node:url";
 
 function tabs2Spaces(str: string) {
   return str.replace(/^\t+/, (tabs) => "  ".repeat(tabs.length));
@@ -89,14 +90,14 @@ function getFirstUserFile(
   const lines = stack.split("\n");
   for (let i = 0; i < lines.length; i++) {
     const match = lines[i].match(STACK_FRAME);
-    if (match && match) {
+    if (match) {
       const fnName = match[1] ?? "";
       const file = match[2];
       const line = +match[3];
       const column = +match[4];
 
       if (file.startsWith("file://")) {
-        const filePath = path.fromFileUrl(file);
+        const filePath = fileURLToPath(file);
         if (path.relative(rootDir, filePath).startsWith(".")) {
           continue;
         }
@@ -116,7 +117,7 @@ export function getCodeFrame(stack: string, rootDir: string) {
   const file = getFirstUserFile(stack, rootDir);
   if (file) {
     try {
-      const filePath = path.fromFileUrl(file.file);
+      const filePath = fileURLToPath(file.file);
       const text = Deno.readTextFileSync(filePath);
       return createCodeFrame(
         text,

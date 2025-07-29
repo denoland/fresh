@@ -1,5 +1,5 @@
 import { parseArgs } from "@std/cli/parse-args";
-import * as path from "@std/path";
+import * as path from "node:path";
 import { ensureMinDenoVersion, error } from "./utils.ts";
 import { updateProject } from "./update.ts";
 import * as colors from "@std/fmt/colors";

@@ -1,4 +1,4 @@
-import * as path from "@std/path";
+import * as path from "node:path";
 import type { Lazy, MaybeLazy } from "./types.ts";
 import { pathToFileUrl, relativeUrl } from "./file_url.ts";
 

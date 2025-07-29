@@ -4,7 +4,7 @@ import * as colors from "@std/fmt/colors";
 import { DOMParser, HTMLElement } from "linkedom";
 import { Builder, type BuildOptions } from "../src/dev/builder.ts";
 import { TextLineStream } from "@std/streams/text-line-stream";
-import * as path from "@std/path";
+import * as path from "node:path";
 import type { ComponentChildren } from "preact";
 import { expect } from "@std/expect";
 import { mergeReadableStreams } from "@std/streams";

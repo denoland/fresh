@@ -6,7 +6,7 @@ import type { WalkEntry } from "@std/fs/walk";
 import { DEFAULT_CONN_INFO } from "./app.ts";
 import type { Command } from "./commands.ts";
 import { fsItemsToCommands, type FsRouteFile } from "./fs_routes.ts";
-import * as path from "@std/path";
+import * as path from "node:path";
 
 const STUB = {} as unknown as Deno.ServeHandlerInfo;
 
@@ -149,6 +149,7 @@ export async function withTmpDir(
 export class MockBuildCache<State> implements BuildCache<State> {
   #files: FsRouteFile<State>[];
   root = "";
+  clientEntry = "";
   islandRegistry: ServerIslandRegistry = new Map();
 
   constructor(files: FsRouteFile<State>[]) {

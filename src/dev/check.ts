@@ -1,5 +1,5 @@
 import * as JSONC from "@std/jsonc";
-import * as path from "@std/path";
+import * as path from "node:path";
 
 export interface DenoConfig {
   workspace?: string[];

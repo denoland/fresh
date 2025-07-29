@@ -1,4 +1,5 @@
 import * as path from "@std/path";
+import { fileURLToPath } from "node:url";
 
 export interface FreshConfig {
   /**
@@ -30,7 +31,7 @@ export function parseDirPath(
   root: string,
 ): string {
   if (dirPath.startsWith("file://")) {
-    dirPath = path.fromFileUrl(dirPath);
+    dirPath = fileURLToPath(dirPath);
   } else if (!path.isAbsolute(dirPath)) {
     dirPath = path.join(root, dirPath);
   }

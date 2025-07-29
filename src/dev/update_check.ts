@@ -1,6 +1,6 @@
 import * as semver from "@std/semver";
 import * as colors from "@std/fmt/colors";
-import * as path from "@std/path";
+import * as path from "node:path";
 import { CURRENT_FRESH_VERSION } from "../otel.ts";
 
 export interface CheckFile {

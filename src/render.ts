@@ -14,7 +14,6 @@ import type { Context } from "./context.ts";
 import { recordSpanError, tracer } from "./otel.ts";
 import { DEV_ERROR_OVERLAY_URL } from "./constants.ts";
 import { renderToString } from "preact-render-to-string";
-import { BUILD_ID } from "./runtime/build_id.ts";
 
 export type AsyncAnyComponent<P> = {
   (
@@ -85,7 +84,7 @@ export function preactRender<State, Data>(
   } finally {
     // Add preload headers
     const basePath = ctx.config.basePath;
-    const runtimeUrl = `${basePath}/_fresh/js/${BUILD_ID}/fresh-runtime.js`;
+    const runtimeUrl = state.buildCache.clientEntry;
     let link = `<${encodeURI(runtimeUrl)}>; rel="modulepreload"; as="script"`;
     state.islands.forEach((island) => {
       link += `, <${

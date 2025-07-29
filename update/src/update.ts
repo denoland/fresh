@@ -1,4 +1,4 @@
-import * as path from "@std/path";
+import * as path from "node:path";
 import * as JSONC from "@std/jsonc";
 import * as tsmorph from "ts-morph";
 import * as colors from "@std/fmt/colors";

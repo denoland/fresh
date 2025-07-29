@@ -1,0 +1,9 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "my-react-app",
+  "compatibility_date": "2025-04-01",
+  "main": "./_fresh/server/server-entry.mjs",
+  "assets": {
+    "directory": "_fresh/client/"
+  }
+}

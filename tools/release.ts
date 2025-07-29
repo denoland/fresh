@@ -1,5 +1,5 @@
 import * as cl from "@std/fmt/colors";
-import * as path from "@std/path";
+import * as path from "node:path";
 import type { DenoJson } from "../update/src/update.ts";
 import * as semver from "@std/semver";
 
