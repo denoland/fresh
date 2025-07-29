@@ -42,6 +42,13 @@ const builder = new Builder({
   routeDir?: string;
   // File paths which should be ignored 
   ignore?: RegExp[];
+  // Optionally generate production source maps
+  // See https://esbuild.github.io/api/#source-maps
+  sourceMap?: {
+    kind?: boolean | 'linked' | 'inline' | 'external' | 'both';
+    sourceRoot?: string;
+    sourcesContent?: boolean;
+  };
 })
 ```
 

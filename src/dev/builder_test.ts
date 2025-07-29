@@ -278,6 +278,63 @@ export const app = new App().fsRoutes()`,
   sanitizeResources: false,
 });
 
+Deno.test({
+  name: "Builder - source maps",
+  fn: async () => {
+    const root = path.join(import.meta.dirname!, "..", "..");
+    await using _tmp = await withTmpDir({ dir: root, prefix: "tmp_builder_" });
+    const tmp = _tmp.dir;
+
+    await writeFiles(tmp, {
+      "islands/Foo.tsx": `export const Foo = () => <h1>hello</h1>`,
+      "routes/index.ts": `export const handler = () => new Response("ok")`,
+      "main.ts": `import { App } from "fresh";
+export const app = new App().fsRoutes()`,
+    });
+
+    const builder = new Builder({
+      root: tmp,
+      outDir: path.join(tmp, "dist"),
+      sourceMap: {
+        kind: "external",
+        sourceRoot: "foo",
+        sourcesContent: true,
+      },
+    });
+    await builder.build();
+
+    const assetDir = path.join(
+      builder.config.outDir,
+      "static",
+      "_fresh",
+      "js",
+      builder.config.buildId,
+    );
+    const entries = await Array.fromAsync(Deno.readDir(assetDir));
+
+    const map = entries.find((entry) =>
+      entry.isFile && entry.name.endsWith(".js.map")
+    );
+    if (!map) throw new Error(`Sourcemap not found`);
+
+    const content = await Deno.readTextFile(path.join(assetDir, map.name));
+
+    const json = JSON.parse(content) as {
+      version: 3;
+      sources: string[];
+      sourceRoot?: string;
+      sourcesContent: string[];
+      mappings: string;
+      names?: string[];
+    };
+
+    expect(json.sourcesContent.length).toBeGreaterThan(0);
+    expect(json.sourcesContent.length).toBeGreaterThan(0);
+  },
+  sanitizeOps: false,
+  sanitizeResources: false,
+});
+
 Deno.test("specToName", () => {
   // HTTP
   expect(specToName("http://example.com")).toEqual("example");
