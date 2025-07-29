@@ -1,5 +1,3 @@
-import * as path from "@std/path";
-import { contentType as getContentType } from "@std/media-types/content-type";
 import type { Middleware } from "./mod.ts";
 import { ASSET_CACHE_BUST_KEY } from "../runtime/shared_internal.tsx";
 import { BUILD_ID } from "../runtime/build_id.ts";
@@ -64,12 +62,9 @@ export function staticFiles<T>(): Middleware<T> {
         });
       }
 
-      const ext = path.extname(pathname);
       const etag = file.hash;
-
-      const contentType = getContentType(ext);
       const headers = new Headers({
-        "Content-Type": contentType ?? "text/plain",
+        "Content-Type": file.contentType,
         vary: "If-None-Match",
       });
 
