@@ -14,9 +14,11 @@ import type { ResolvedBuildConfig } from "./builder.ts";
 import { fsItemsToCommands, type FsRouteFile } from "../fs_routes.ts";
 import type { Command } from "../commands.ts";
 import type { ServerIslandRegistry } from "../context.ts";
+import { contentType as getStdContentType } from "@std/media-types/content-type";
 
 export interface MemoryFile {
   hash: string | null;
+  contentType: string;
   content: Uint8Array;
 }
 
@@ -81,6 +83,7 @@ export class MemoryBuildCache<State> implements DevBuildCache<State> {
         hash: processed.hash,
         readable: processed.content,
         size: processed.content.byteLength,
+        contentType: processed.contentType,
         close: () => {},
       };
     }
@@ -97,6 +100,7 @@ export class MemoryBuildCache<State> implements DevBuildCache<State> {
           hash: null,
           size: stat.size,
           readable: file.readable,
+          contentType: getContentType(unprocessed),
           close: () => file.close(),
         };
       } catch {
@@ -167,7 +171,11 @@ export class MemoryBuildCache<State> implements DevBuildCache<State> {
     content: Uint8Array,
     hash: string | null,
   ): Promise<void> {
-    this.#processedFiles.set(pathname, { content, hash });
+    this.#processedFiles.set(pathname, {
+      content,
+      hash,
+      contentType: getContentType(pathname),
+    });
   }
 
   async flush(): Promise<void> {
@@ -311,6 +319,7 @@ export class DiskBuildCache<State> implements DevBuildCache<State> {
         name,
         hash,
         filePath: path.relative(root, filePath),
+        contentType: getContentType(filePath),
       });
     }
 
@@ -332,6 +341,7 @@ export class DiskBuildCache<State> implements DevBuildCache<State> {
         name,
         hash,
         filePath: path.relative(root, filePath),
+        contentType: getContentType(filePath),
       });
     }
 
@@ -458,4 +468,9 @@ async function hashContent(
     buffer,
   );
   return encodeHex(hashBuf);
+}
+
+export function getContentType(filePath: string): string {
+  const ext = path.extname(filePath);
+  return getStdContentType(ext) ?? "text/plain";
 }
