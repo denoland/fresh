@@ -78,7 +78,7 @@ export function csrf<State>(
   };
 
   return async (ctx) => {
-    const { method, headers } = ctx.req;
+    const { method, headers } = ctx.request;
 
     // Safe methods
     if (method === "GET" || method === "HEAD" || method === "OPTIONS") {
