@@ -1,13 +1,17 @@
 import * as path from "@std/path";
 import * as JSONC from "@std/jsonc";
 import * as tsmorph from "ts-morph";
+import * as colors from "@std/fmt/colors";
+import { ProgressBar } from "@std/cli/unstable-progress-bar";
 
 export const SyntaxKind = tsmorph.ts.SyntaxKind;
 
-export const FRESH_VERSION = "2.0.0-alpha.34";
-export const PREACT_VERSION = "10.26.6";
-export const PREACT_SIGNALS_VERSION = "2.0.4";
+export const FRESH_VERSION = "2.0.0-alpha.46";
+export const PREACT_VERSION = "10.26.9";
+export const PREACT_SIGNALS_VERSION = "2.2.1";
 
+// Function to filter out node_modules and vendor directories from logs
+const HIDE_FILES = /[\\/]+(node_modules|vendor)[\\/]+/;
 export interface DenoJson {
   lock?: boolean;
   tasks?: Record<string, string>;
@@ -63,6 +67,7 @@ export interface ImportState {
   core: Set<string>;
   runtime: Set<string>;
   compat: Set<string>;
+  httpError: number;
 }
 
 const compat = new Set([
@@ -79,6 +84,13 @@ const compat = new Set([
 ]);
 
 export async function updateProject(dir: string) {
+  // add initial log
+  // deno-lint-ignore no-console
+  console.log(colors.blue("🚀 Starting Fresh 1 to Fresh 2 migration..."));
+
+  // deno-lint-ignore no-console
+  console.log(colors.yellow("📝 Updating configuration files..."));
+
   // Update config
   await updateDenoJson(dir, (config) => {
     if (config.imports !== null && typeof config.imports !== "object") {
@@ -124,30 +136,139 @@ export async function updateProject(dir: string) {
       ) {
         tasks.check = "deno fmt --check && deno lint && deno check";
       }
+
+      if (tasks.preview === "deno run -A main.ts") {
+        tasks.preview = "deno serve -A _fresh/server.js";
+      }
     }
   });
+
+  // add completion log
+  // deno-lint-ignore no-console
+  console.log(colors.green("✅ Configuration updated successfully"));
+
+  // Delete fresh.gen.ts if it exists (no longer needed in Fresh 2.0)
+  const freshGenPath = path.join(dir, "fresh.gen.ts");
+  try {
+    await Deno.remove(freshGenPath);
+    // deno-lint-ignore no-console
+    console.log(colors.cyan("🗑️ Deleted fresh.gen.ts (no longer needed)"));
+  } catch (err) {
+    if (!(err instanceof Deno.errors.NotFound)) {
+      // deno-lint-ignore no-console
+      console.error(
+        `Could not delete fresh.gen.ts: ${
+          err instanceof Error ? err.message : String(err)
+        }`,
+      );
+    }
+    // If file doesn't exist, that's fine - nothing to do
+  }
+
+  // deno-lint-ignore no-console
+  console.log(colors.cyan("🔍 Scanning for source files..."));
 
   // Update routes folder
   const project = new tsmorph.Project();
   const sfs = project.addSourceFilesAtPaths(
     path.join(dir, "**", "*.{js,jsx,ts,tsx}"),
   );
+
+  // Filter out node_modules and vendor files for user display
+  const userFiles = sfs.filter((sf) => !HIDE_FILES.test(sf.getFilePath()));
+
+  // deno-lint-ignore no-console
+  console.log(colors.cyan(`📁 Found ${userFiles.length} files to process`));
+
+  if (sfs.length === 0) {
+    // deno-lint-ignore no-console
+    console.log(colors.green("🎉 Migration completed successfully!"));
+    return;
+  }
+
+  // deno-lint-ignore no-console
+  console.log(colors.yellow("🔄 Processing files..."));
+
+  // Track progress with a single counter
+  let completedFiles = 0;
+  const modifiedFilesList: string[] = [];
+
+  // Create a progress bar
+  const bar = new ProgressBar({
+    max: sfs.length,
+    fmt(x) {
+      return `[${x.styledTime}] [${x.progressBar}] [${x.value}/${x.max} files]`;
+    },
+  });
+
+  // process files sequentially to show proper progress
   await Promise.all(sfs.map(async (sourceFile) => {
     try {
-      return await updateFile(sourceFile);
+      const wasModified = await updateFile(sourceFile);
+      if (wasModified) {
+        modifiedFilesList.push(sourceFile.getFilePath());
+      }
+
+      return wasModified;
     } catch (err) {
       // deno-lint-ignore no-console
       console.error(`Could not process ${sourceFile.getFilePath()}`);
       throw err;
+    } finally {
+      completedFiles++;
+      bar.value = completedFiles;
     }
   }));
+
+  // Clear the progress line and add a newline
+  await bar.stop();
+
+  // Filter modified files to show only user files
+  const modifiedFilesToShow = modifiedFilesList.filter((filePath) =>
+    !HIDE_FILES.test(filePath)
+  );
+
+  // add migration summary
+  // deno-lint-ignore no-console
+  console.log("\n" + colors.bold("📊 Migration Summary:"));
+  // deno-lint-ignore no-console
+  console.log(`   Total files processed: ${userFiles.length}`);
+  // deno-lint-ignore no-console
+  console.log(`   Successfully modified: ${modifiedFilesToShow.length}`);
+  // deno-lint-ignore no-console
+  console.log(
+    `   Unmodified (no changes needed): ${
+      userFiles.length - modifiedFilesToShow.length
+    }`,
+  );
+
+  // Display modified files list (filtered)
+  if (modifiedFilesToShow.length > 0) {
+    // deno-lint-ignore no-console
+    console.log("\n" + colors.bold("📝 Modified Files:"));
+    modifiedFilesToShow.forEach((filePath) => {
+      // show relative path
+      let relativePath = path.relative(dir, filePath);
+      // Ensure consistent path separators for logging
+      relativePath = relativePath.replace(/\\/g, "/");
+      // deno-lint-ignore no-console
+      console.log(colors.green(`   ✓ ${relativePath}`));
+    });
+  }
+
+  // deno-lint-ignore no-console
+  console.log("\n" + colors.green("🎉 Migration completed successfully!"));
 }
 
-async function updateFile(sourceFile: tsmorph.SourceFile): Promise<void> {
+async function updateFile(sourceFile: tsmorph.SourceFile): Promise<boolean> {
+  // keep original text for comparison
+  const originalText = sourceFile.getFullText();
+
   const newImports: ImportState = {
     core: new Set(),
     runtime: new Set(),
     compat: new Set(),
+    httpError: 0,
   };
 
   const text = sourceFile.getFullText()
@@ -183,7 +304,7 @@ async function updateFile(sourceFile: tsmorph.SourceFile): Promise<void> {
                   const body = property.getBody();
                   if (body !== undefined) {
                     const stmts = body.getDescendantStatements();
-                    rewriteCtxMethods(stmts);
+                    rewriteCtxMethods(newImports, stmts);
                   }
 
                   maybePrependReqVar(property, newImports, true);
@@ -198,7 +319,7 @@ async function updateFile(sourceFile: tsmorph.SourceFile): Promise<void> {
                   const body = init.getBody();
                   if (body !== undefined) {
                     const stmts = body.getDescendantStatements();
-                    rewriteCtxMethods(stmts);
+                    rewriteCtxMethods(newImports, stmts);
                   }
 
                   maybePrependReqVar(init, newImports, true);
@@ -210,7 +331,7 @@ async function updateFile(sourceFile: tsmorph.SourceFile): Promise<void> {
           const body = node.getBody();
           if (body !== undefined) {
             const stmts = body.getDescendantStatements();
-            rewriteCtxMethods(stmts);
+            rewriteCtxMethods(newImports, stmts);
           }
 
           maybePrependReqVar(node, newImports, false);
@@ -235,7 +356,7 @@ async function updateFile(sourceFile: tsmorph.SourceFile): Promise<void> {
                   const body = first.getBody();
                   if (body !== undefined) {
                     const stmts = body.getDescendantStatements();
-                    rewriteCtxMethods(stmts);
+                    rewriteCtxMethods(newImports, stmts);
                   }
 
                   maybePrependReqVar(first, newImports, false);
@@ -247,7 +368,7 @@ async function updateFile(sourceFile: tsmorph.SourceFile): Promise<void> {
           const body = caller.getBody();
           if (body !== undefined) {
             const stmts = body.getDescendantStatements();
-            rewriteCtxMethods(stmts);
+            rewriteCtxMethods(newImports, stmts);
           }
 
           maybePrependReqVar(caller, newImports, false);
@@ -322,9 +443,19 @@ async function updateFile(sourceFile: tsmorph.SourceFile): Promise<void> {
       namedImports: Array.from(newImports.compat),
     });
   }
+  if (newImports.httpError > 0) {
+    sourceFile.addImportDeclaration({
+      moduleSpecifier: "fresh",
+      namedImports: ["HttpError"],
+    });
+  }
 
   await sourceFile.save();
   await format(sourceFile.getFilePath());
+
+  // Check if the file was actually modified
+  const finalText = sourceFile.getFullText();
+  return originalText !== finalText;
 }
 
 function removeEmptyImport(d: tsmorph.ImportDeclaration) {
@@ -440,17 +571,35 @@ function maybePrependReqVar(
 }
 
 function rewriteCtxMethods(
+  importState: ImportState,
   nodes: (tsmorph.Node<tsmorph.ts.Node>)[],
 ) {
   for (let i = 0; i < nodes.length; i++) {
     const node = nodes[i];
 
+    if (node.wasForgotten()) continue;
+
+    if (
+      node.isKind(SyntaxKind.ExpressionStatement) &&
+      node.getText() === "ctx.renderNotFound();"
+    ) {
+      importState.httpError++;
+      node.replaceWithText("throw new HttpError(404);");
+      continue;
+    }
+
     if (node.isKind(SyntaxKind.PropertyAccessExpression)) {
       rewriteCtxMemberName(node);
     } else if (node.isKind(SyntaxKind.ReturnStatement)) {
-      const expr = node.getExpression();
-      if (expr !== undefined) {
-        rewriteCtxMethods([expr]);
+      if (node.getText() === "return ctx.renderNotFound();") {
+        importState.httpError++;
+        node.replaceWithText(`throw new HttpError(404)`);
+        continue;
+      } else {
+        const expr = node.getExpression();
+        if (expr !== undefined) {
+          rewriteCtxMethods(importState, [expr]);
+        }
       }
     } else if (node.isKind(SyntaxKind.VariableStatement)) {
       const decls = node.getDeclarations();
@@ -458,7 +607,7 @@ function rewriteCtxMethods(
         const decl = decls[i];
         const init = decl.getInitializer();
         if (init !== undefined) {
-          rewriteCtxMethods([init]);
+          rewriteCtxMethods(importState, [init]);
         }
       }
     } else if (
@@ -467,16 +616,16 @@ function rewriteCtxMethods(
       node.isKind(SyntaxKind.CallExpression)
     ) {
       const expr = node.getExpression();
-      rewriteCtxMethods([expr]);
+      rewriteCtxMethods(importState, [expr]);
     } else if (node.isKind(SyntaxKind.BinaryExpression)) {
-      rewriteCtxMethods([node.getLeft()]);
-      rewriteCtxMethods([node.getRight()]);
+      rewriteCtxMethods(importState, [node.getLeft()]);
+      rewriteCtxMethods(importState, [node.getRight()]);
     } else if (
       !node.isKind(SyntaxKind.ExpressionStatement) &&
       node.getKindName().endsWith("Statement")
     ) {
       const inner = node.getDescendantStatements();
-      rewriteCtxMethods(inner);
+      rewriteCtxMethods(importState, inner);
     }
   }
 }
@@ -486,19 +635,12 @@ function rewriteCtxMemberName(
 ) {
   const children = node.getChildren();
   if (children.length === 0) return;
-  const last = children[children.length - 1];
 
   if (
     node.getExpression().getText() === "ctx" &&
     node.getName() === "remoteAddr"
   ) {
     node.getExpression().replaceWithText("ctx.info.remoteAddr");
-  } else if (last.getText() === "renderNotFound") {
-    last.replaceWithText("throw");
-    const caller = node.getParentIfKind(SyntaxKind.CallExpression);
-    if (caller !== undefined) {
-      caller.addArgument("404");
-    }
   } else if (children[0].isKind(SyntaxKind.PropertyAccessExpression)) {
     rewriteCtxMemberName(children[0]);
   }

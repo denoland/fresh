@@ -3,10 +3,13 @@ import * as colors from "@std/fmt/colors";
 import * as path from "@std/path";
 
 // Keep these as is, as we replace these version in our release script
-const FRESH_VERSION = "2.0.0-alpha.34";
-const FRESH_TAILWIND_VERSION = "0.0.1-alpha.7";
-const PREACT_VERSION = "10.26.6";
-const PREACT_SIGNALS_VERSION = "2.0.4";
+const FRESH_VERSION = "2.0.0-alpha.46";
+const FRESH_TAILWIND_VERSION = "0.0.1-alpha.9";
+const PREACT_VERSION = "10.26.9";
+const PREACT_SIGNALS_VERSION = "2.2.1";
+const TAILWINDCSS_VERSION = "4.1.10";
+const TAILWINDCSS_POSTCSS_VERSION = "4.1.10";
+const POSTCSS_VERSION = "8.5.6";
 
 function css(strs: TemplateStringsArray, ...exprs: string[]): string {
   let out = "";
@@ -155,25 +158,14 @@ ENV DENO_DEPLOYMENT_ID=\${GIT_REVISION}
 WORKDIR /app
 
 COPY . .
-RUN deno cache main.ts
+RUN deno cache _fresh/server.js
 
 EXPOSE 8000
 
-CMD ["run", "-A", "main.ts"]
+CMD ["serve", "-A", "_fresh/server.js"]
 
 `;
     await writeFile("Dockerfile", DOCKERFILE_TEXT);
-  }
-
-  const TAILWIND_CONFIG_TS = `import type { Config } from "tailwindcss";
-
-export default {
-  content: [
-    "{routes,islands,components}/**/*.{ts,tsx}",
-  ],
-} satisfies Config;`;
-  if (useTailwind) {
-    await writeFile("tailwind.config.ts", TAILWIND_CONFIG_TS);
   }
 
   // deno-fmt-ignore
@@ -203,14 +195,8 @@ button, [role="button"] {
 }
 code {
   font-family:
-    ui-monospace,
-    SFMono-Regular,
-    Menlo,
-    Monaco,
-    Consolas,
-    "Liberation Mono",
-    "Courier New",
-    monospace;
+    ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono",
+    "Courier New", monospace;
   font-size: 1em;
 }
 img,
@@ -227,19 +213,9 @@ html {
   line-height: 1.5;
   -webkit-text-size-adjust: 100%;
   font-family:
-    ui-sans-serif,
-    system-ui,
-    -apple-system,
-    BlinkMacSystemFont,
-    "Segoe UI",
-    Roboto,
-    "Helvetica Neue",
-    Arial,
-    "Noto Sans",
-    sans-serif,
-    "Apple Color Emoji",
-    "Segoe UI Emoji",
-    "Segoe UI Symbol",
+    ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+    Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif,
+    "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol",
     "Noto Color Emoji";
 }
 .transition-colors {
@@ -325,7 +301,7 @@ html {
 .border-2 {
   border-width: 2px;
 }
-.rounded {
+.rounded-sm {
   border-radius: 0.25rem;
 }
 .hover\\:bg-gray-200:hover {
@@ -334,24 +310,37 @@ html {
 .tabular-nums {
   font-variant-numeric: tabular-nums;
 }
+.min-h-screen {
+  min-height: 100vh;
+}
 
 ${GRADIENT_CSS}`;
-
   // deno-fmt-ignore
-  const TAILWIND_CSS = css`@tailwind base;
-@tailwind components;
-@tailwind utilities;
+  const TAILWIND_CSS = css`@import "tailwindcss";
 ${GRADIENT_CSS}`;
 
   const cssStyles = useTailwind ? TAILWIND_CSS : NO_TAILWIND_STYLES;
   await writeFile("static/styles.css", cssStyles);
-
+  // deno-fmt-ignore
   const STATIC_LOGO =
     `<svg width="40" height="40" fill="none" xmlns="http://www.w3.org/2000/svg">
-  <path d="M34.092 8.845C38.929 20.652 34.092 27 30 30.5c1 3.5-2.986 4.222-4.5 2.5-4.457 1.537-13.512 1.487-20-5C2 24.5 4.73 16.714 14 11.5c8-4.5 16-7 20.092-2.655Z" fill="#FFDB1E"/>
-  <path d="M14 11.5c6.848-4.497 15.025-6.38 18.368-3.47C37.5 12.5 21.5 22.612 15.5 25c-6.5 2.587-3 8.5-6.5 8.5-3 0-2.5-4-5.183-7.75C2.232 23.535 6.16 16.648 14 11.5Z" fill="#fff" stroke="#FFDB1E"/>
-  <path d="M28.535 8.772c4.645 1.25-.365 5.695-4.303 8.536-3.732 2.692-6.606 4.21-7.923 4.83-.366.173-1.617-2.252-1.617-1 0 .417-.7 2.238-.934 2.326-1.365.512-4.223 1.29-5.835 1.29-3.491 0-1.923-4.754 3.014-9.122.892-.789 1.478-.645 2.283-.645-.537-.773-.534-.917.403-1.546C17.79 10.64 23 8.77 25.212 8.42c.366.014.82.35.82.629.41-.14 2.095-.388 2.503-.278Z" fill="#FFE600"/>
-  <path d="M14.297 16.49c.985-.747 1.644-1.01 2.099-2.526.566.121.841-.08 1.29-.701.324.466 1.657.608 2.453.701-.715.451-1.057.852-1.452 2.106-1.464-.611-3.167-.302-4.39.42Z" fill="#fff"/>
+  <path
+    d="M34.092 8.845C38.929 20.652 34.092 27 30 30.5c1 3.5-2.986 4.222-4.5 2.5-4.457 1.537-13.512 1.487-20-5C2 24.5 4.73 16.714 14 11.5c8-4.5 16-7 20.092-2.655Z"
+    fill="#FFDB1E"
+  />
+  <path
+    d="M14 11.5c6.848-4.497 15.025-6.38 18.368-3.47C37.5 12.5 21.5 22.612 15.5 25c-6.5 2.587-3 8.5-6.5 8.5-3 0-2.5-4-5.183-7.75C2.232 23.535 6.16 16.648 14 11.5Z"
+    fill="#fff"
+    stroke="#FFDB1E"
+  />
+  <path
+    d="M28.535 8.772c4.645 1.25-.365 5.695-4.303 8.536-3.732 2.692-6.606 4.21-7.923 4.83-.366.173-1.617-2.252-1.617-1 0 .417-.7 2.238-.934 2.326-1.365.512-4.223 1.29-5.835 1.29-3.491 0-1.923-4.754 3.014-9.122.892-.789 1.478-.645 2.283-.645-.537-.773-.534-.917.403-1.546C17.79 10.64 23 8.77 25.212 8.42c.366.014.82.35.82.629.41-.14 2.095-.388 2.503-.278Z"
+    fill="#FFE600"
+  />
+  <path
+    d="M14.297 16.49c.985-.747 1.644-1.01 2.099-2.526.566.121.841-.08 1.29-.701.324.466 1.657.608 2.453.701-.715.451-1.057.852-1.452 2.106-1.464-.611-3.167-.302-4.39.42Z"
+    fill="#fff"
+  />
 </svg>`;
   await writeFile("static/logo.svg", STATIC_LOGO);
 
@@ -363,7 +352,7 @@ ${GRADIENT_CSS}`;
     // Skip this and be silent if there is a network issue.
   }
 
-  const MAIN_TS = `import { App, fsRoutes, staticFiles } from "fresh";
+  const MAIN_TS = `import { App, staticFiles } from "fresh";
 import { define, type State } from "./utils.ts";
 
 export const app = new App<State>();
@@ -385,20 +374,15 @@ const exampleLoggerMiddleware = define.middleware((ctx) => {
 });
 app.use(exampleLoggerMiddleware);
 
-await fsRoutes(app, {
-  loadIsland: (path) => import(\`./islands/\${path}\`),
-  loadRoute: (path) => import(\`./routes/\${path}\`),
-});
-
-if (import.meta.main) {
-  await app.listen();
-}`;
+// Include file-system based routes here
+app.fsRoutes();`;
   await writeFile("main.ts", MAIN_TS);
 
   const COMPONENTS_BUTTON_TSX =
     `import type { ComponentChildren } from "preact";
 
 export interface ButtonProps {
+  id?: string;
   onClick?: () => void;
   children?: ComponentChildren;
   disabled?: boolean;
@@ -408,7 +392,7 @@ export function Button(props: ButtonProps) {
   return (
     <button
       {...props}
-      class="px-2 py-1 border-gray-500 border-2 rounded bg-white hover:bg-gray-200 transition-colors"
+      class="px-2 py-1 border-gray-500 border-2 rounded-sm bg-white hover:bg-gray-200 transition-colors"
     />
   );
 }`;
@@ -430,7 +414,7 @@ export default define.page(function Home() {
   const count = useSignal(3);
 
   return (
-    <div class="px-4 py-8 mx-auto fresh-gradient">
+    <div class="px-4 py-8 mx-auto fresh-gradient min-h-screen">
       <div class="max-w-screen-md mx-auto flex flex-col items-center justify-center">
         <img
           class="my-6"
@@ -492,9 +476,9 @@ interface CounterProps {
 export default function Counter(props: CounterProps) {
   return (
     <div class="flex gap-8 py-6">
-      <Button onClick={() => props.count.value -= 1}>-1</Button>
+      <Button id="decrement" onClick={() => props.count.value -= 1}>-1</Button>
       <p class="text-3xl tabular-nums">{props.count}</p>
-      <Button onClick={() => props.count.value += 1}>+1</Button>
+      <Button id="increment" onClick={() => props.count.value += 1}>+1</Button>
     </div>
   );
 }`;
@@ -503,23 +487,23 @@ export default function Counter(props: CounterProps) {
   const DEV_TS = `#!/usr/bin/env -S deno run -A --watch=static/,routes/
 ${useTailwind ? `import { tailwind } from "@fresh/plugin-tailwind";\n` : ""}
 import { Builder } from "fresh/dev";
-import { app } from "./main.ts";
 
 const builder = new Builder();
-${useTailwind ? "tailwind(builder, app, {});" : ""}
+${useTailwind ? "tailwind(builder);" : ""}
 if (Deno.args.includes("build")) {
-  await builder.build(app);
+  await builder.build();
 } else {
-  await builder.listen(app);
+  await builder.listen(() => import("./main.ts"));
 }`;
   await writeFile("dev.ts", DEV_TS);
 
   const denoJson = {
+    nodeModulesDir: "auto",
     tasks: {
       check: "deno fmt --check . && deno lint . && deno check",
       dev: "deno run -A --watch=static/,routes/ dev.ts",
       build: "deno run -A dev.ts build",
-      start: "deno run -A main.ts",
+      start: "deno serve -A _fresh/server.js",
       update: "deno run -A -r jsr:@fresh/update .",
     },
     lint: {
@@ -530,8 +514,6 @@ if (Deno.args.includes("build")) {
     exclude: ["**/_fresh/*"],
     imports: {
       "fresh": `jsr:@fresh/core@^${FRESH_VERSION}`,
-      "@fresh/plugin-tailwind":
-        `jsr:@fresh/plugin-tailwind@^${FRESH_TAILWIND_VERSION}`,
       "preact": `npm:preact@^${PREACT_VERSION}`,
       "@preact/signals": `npm:@preact/signals@^${PREACT_SIGNALS_VERSION}`,
     } as Record<string, string>,
@@ -551,7 +533,12 @@ if (Deno.args.includes("build")) {
   };
 
   if (useTailwind) {
-    denoJson.imports["tailwindcss"] = "npm:tailwindcss@^3.4.3";
+    denoJson.imports["tailwindcss"] = `npm:tailwindcss@^${TAILWINDCSS_VERSION}`;
+    denoJson.imports["@fresh/plugin-tailwind"] =
+      `jsr:@fresh/plugin-tailwind@^${FRESH_TAILWIND_VERSION}`;
+    denoJson.imports["@tailwindcss/postcss"] =
+      `npm:@tailwindcss/postcss@^${TAILWINDCSS_POSTCSS_VERSION}`;
+    denoJson.imports["postcss"] = `npm:postcss@^${POSTCSS_VERSION}`;
   }
 
   await writeFile("deno.json", denoJson);
@@ -674,7 +661,10 @@ This will watch the project directory and restart as necessary.`;
 
   // Specifically print unresolvedDirectory, rather than resolvedDirectory in order to
   // not leak personal info (e.g. `/Users/MyName`)
-  console.log("\n%cProject initialized!\n", "color: green; font-weight: bold");
+  console.log(
+    "\n%cProject initialized!\n",
+    "color: green; font-weight: bold",
+  );
 
   if (unresolvedDirectory !== ".") {
     console.log(

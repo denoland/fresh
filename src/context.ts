@@ -1,25 +1,29 @@
 import {
+  type AnyComponent,
   type ComponentType,
+  Fragment,
   type FunctionComponent,
   h,
   isValidElement,
   type VNode,
 } from "preact";
-import { renderToString } from "preact-render-to-string";
 import { SpanStatusCode } from "@opentelemetry/api";
 import type { ResolvedFreshConfig } from "./config.ts";
 import type { BuildCache } from "./build_cache.ts";
-import {
-  FreshScripts,
-  RenderState,
-  setRenderState,
-} from "./runtime/server/preact_hooks.tsx";
-import { DEV_ERROR_OVERLAY_URL, PARTIAL_SEARCH_PARAM } from "./constants.ts";
-import { BUILD_ID } from "./runtime/build_id.ts";
+import { RenderState, setRenderState } from "./runtime/server/preact_hooks.tsx";
+import { PARTIAL_SEARCH_PARAM } from "./constants.ts";
 import { tracer } from "./otel.ts";
+import {
+  type ComponentDef,
+  isAsyncAnyComponent,
+  type PageProps,
+  preactRender,
+  renderAsyncAnyComponent,
+  renderRouteComponent,
+} from "./render.ts";
 
 export interface Island {
-  file: string | URL;
+  file: string;
   name: string;
   exportName: string;
   fn: ComponentType;
@@ -27,26 +31,51 @@ export interface Island {
 
 export type ServerIslandRegistry = Map<ComponentType, Island>;
 
+export const internals: unique symbol = Symbol("fresh_internal");
+
+export interface UiTree<Data, State> {
+  app: AnyComponent<PageProps<Data, State>> | null;
+  layouts: ComponentDef<Data, State>[];
+}
+
+/**
+ * @deprecated Use {@linkcode Context} instead.
+ */
+export type FreshContext<State = unknown> = Context<State>;
+
+export let getBuildCache: <T>(ctx: Context<T>) => BuildCache<T>;
+export let getInternals: <T>(ctx: Context<T>) => UiTree<unknown, T>;
+
 /**
  * The context passed to every middleware. It is unique for every request.
  */
-export interface FreshContext<State = unknown> {
+export class Context<State> {
+  #internal: UiTree<unknown, State> = {
+    app: null,
+    layouts: [],
+  };
   /** Reference to the resolved Fresh configuration */
   readonly config: ResolvedFreshConfig;
-  readonly state: State;
-  /** The original incoming `Request` object` */
-  readonly request: Request;
-  /** @deprecated This is an alias for internal use only. Use {@linkcode FreshContext[request]} instead. */
-  readonly req: Request;
   /**
    * The request url parsed into an `URL` instance. This is typically used
    * to apply logic based on the pathname of the incoming url or when
    * certain search parameters are set.
    */
   readonly url: URL;
+  /** The original incoming `Request` object` */
+  readonly request: Request;
+  /** @deprecated This is an alias for internal use only. Use {@linkcode FreshContext[request]} instead. */
+  readonly req: Request;
+  /** The matched route pattern. */
+  readonly route: string | null;
+  /** The url parameters of the matched route pattern. */
   readonly params: Record<string, string>;
-  readonly error: unknown;
-  readonly info: Deno.ServeHandlerInfo;
+  /** State object that is shared with all middlewares. */
+  readonly state: State = {} as State;
+  data: unknown = undefined;
+  /** Error value if an error was caught (Default: null) */
+  error: unknown | null = null;
+  readonly info: Deno.ServeHandlerInfo | Deno.ServeHandlerInfo;
   /**
    * Whether the current Request is a partial request.
    *
@@ -55,20 +84,7 @@ export interface FreshContext<State = unknown> {
    * be used to determine if only `<Partial>`'s need to be rendered.
    */
   readonly isPartial: boolean;
-  /**
-   * Return a redirect response to the specified path. This is the
-   * preferred way to do redirects in Fresh.
-   *
-   * ```ts
-   * ctx.redirect("/foo/bar") // redirect user to "<yoursite>/foo/bar"
-   *
-   * // Disallows protocol relative URLs for improved security. This
-   * // redirects the user to `<yoursite>/evil.com` which is safe,
-   * // instead of redirecting to `http://evil.com`.
-   * ctx.redirect("//evil.com/");
-   * ```
-   */
-  redirect(path: string, status?: number): Response;
+
   /**
    * Call the next middleware.
    * ```ts
@@ -92,60 +108,53 @@ export interface FreshContext<State = unknown> {
    *   return res
    * }
    */
-  next(): Promise<Response>;
-  render(vnode: VNode, init?: ResponseInit): Response | Promise<Response>;
-}
+  next: () => Promise<Response>;
 
-export let getBuildCache: (ctx: FreshContext<unknown>) => BuildCache;
+  #buildCache: BuildCache<State>;
 
-export class FreshReqContext<State>
-  implements FreshContext<State>, PageProps<unknown, State> {
-  readonly config: ResolvedFreshConfig;
-  readonly url: URL;
-  request: Request;
-  /** @deprecated This is an alias for internal use only. Use {@linkcode FreshReqContext[request]} instead. */
-  req: Request;
-  readonly params: Record<string, string>;
-  readonly state: State = {} as State;
-  data: unknown = undefined;
-  error: unknown | null = null;
-  readonly info: Deno.ServeHandlerInfo | Deno.ServeHandlerInfo;
-  readonly isPartial: boolean;
-
-  next: FreshContext<State>["next"];
-
-  #islandRegistry: ServerIslandRegistry;
-  #buildCache: BuildCache;
-
-  // FIXME: remove after switching to <Slot />
   Component!: FunctionComponent;
 
   static {
-    getBuildCache = (ctx) => (ctx as FreshReqContext<unknown>).#buildCache;
+    // deno-lint-ignore no-explicit-any
+    getInternals = <T>(ctx: Context<T>) => ctx.#internal as any;
+    getBuildCache = <T>(ctx: Context<T>) => ctx.#buildCache;
   }
 
   constructor(
     request: Request,
     url: URL,
     info: Deno.ServeHandlerInfo,
+    route: string | null,
     params: Record<string, string>,
     config: ResolvedFreshConfig,
-    next: FreshContext<State>["next"],
-    islandRegistry: ServerIslandRegistry,
-    buildCache: BuildCache,
+    next: () => Promise<Response>,
+    buildCache: BuildCache<State>,
   ) {
     this.url = url;
     this.request = request;
     this.req = request;
     this.info = info;
     this.params = params;
+    this.route = route;
     this.config = config;
     this.isPartial = url.searchParams.has(PARTIAL_SEARCH_PARAM);
     this.next = next;
-    this.#islandRegistry = islandRegistry;
     this.#buildCache = buildCache;
   }
 
+  /**
+   * Return a redirect response to the specified path. This is the
+   * preferred way to do redirects in Fresh.
+   *
+   * ```ts
+   * ctx.redirect("/foo/bar") // redirect user to "<yoursite>/foo/bar"
+   *
+   * // Disallows protocol relative URLs for improved security. This
+   * // redirects the user to `<yoursite>/evil.com` which is safe,
+   * // instead of redirecting to `http://evil.com`.
+   * ctx.redirect("//evil.com/");
+   * ```
+   */
   redirect(pathOrUrl: string, status = 302): Response {
     let location = pathOrUrl;
 
@@ -171,15 +180,65 @@ export class FreshReqContext<State>
     });
   }
 
-  render(
+  /**
+   * Render JSX and return an HTML `Response` instance.
+   * ```tsx
+   * ctx.render(<h1>hello world</h1>);
+   * ```
+   */
+  async render(
     // deno-lint-ignore no-explicit-any
-    vnode: VNode<any>,
+    vnode: VNode<any> | null,
     init: ResponseInit | undefined = {},
-  ): Response | Promise<Response> {
+  ): Promise<Response> {
     if (arguments.length === 0) {
       throw new Error(`No arguments passed to: ctx.render()`);
     } else if (vnode !== null && !isValidElement(vnode)) {
       throw new Error(`Non-JSX element passed to: ctx.render()`);
+    }
+
+    const defs = this.#internal.layouts;
+    const appDef = this.#internal.app;
+    const props = this as Context<State>;
+
+    // Compose final vnode tree
+    for (let i = defs.length - 1; i >= 0; i--) {
+      const child = vnode;
+      props.Component = () => child;
+
+      const def = defs[i];
+
+      const result = await renderRouteComponent(this, def, () => child);
+      if (result instanceof Response) {
+        return result;
+      }
+
+      vnode = result;
+    }
+
+    if (isAsyncAnyComponent(appDef)) {
+      const child = vnode;
+      props.Component = () => child;
+      const result = await renderAsyncAnyComponent(appDef, props);
+      if (result instanceof Response) {
+        return result;
+      }
+
+      vnode = result;
+    } else if (appDef !== null) {
+      const child = vnode;
+      vnode = h(appDef, {
+        Component: () => child,
+        config: this.config,
+        data: null,
+        error: this.error,
+        info: this.info,
+        isPartial: this.isPartial,
+        params: this.params,
+        req: this.req,
+        state: this.state,
+        url: this.url,
+      });
     }
 
     const headers = init.headers !== undefined
@@ -203,13 +262,19 @@ export class FreshReqContext<State>
 
     const html = tracer.startActiveSpan("render", (span) => {
       span.setAttribute("fresh.span_type", "render");
+      const state = new RenderState(
+        this,
+        this.#buildCache,
+        partialId,
+      );
+
       try {
+        setRenderState(state);
+
         return preactRender(
-          vnode,
+          vnode ?? h(Fragment, null),
           this,
-          this.#islandRegistry,
-          this.#buildCache,
-          partialId,
+          state,
           headers,
         );
       } catch (err) {
@@ -223,6 +288,9 @@ export class FreshReqContext<State>
         }
         throw err;
       } finally {
+        state.clear();
+        setRenderState(null);
+
         span.end();
       }
     });
@@ -230,7 +298,7 @@ export class FreshReqContext<State>
   }
 }
 
-Object.defineProperties(FreshReqContext.prototype, {
+Object.defineProperties(Context.prototype, {
   config: { enumerable: true },
   url: { enumerable: true },
   req: { enumerable: true },
@@ -241,59 +309,3 @@ Object.defineProperties(FreshReqContext.prototype, {
   next: { enumerable: true },
   info: { enumerable: true },
 });
-
-function preactRender<State, Data>(
-  vnode: VNode,
-  ctx: PageProps<Data, State>,
-  islandRegistry: ServerIslandRegistry,
-  buildCache: BuildCache,
-  partialId: string,
-  headers: Headers,
-) {
-  const state = new RenderState(ctx, islandRegistry, buildCache, partialId);
-  setRenderState(state);
-  try {
-    let res = renderToString(vnode);
-    // We require a the full outer DOM structure so that browser put
-    // comment markers in the right place in the DOM.
-    if (!state.renderedHtmlBody) {
-      let scripts = "";
-      if (ctx.url.pathname !== ctx.config.basePath + DEV_ERROR_OVERLAY_URL) {
-        scripts = renderToString(h(FreshScripts, null));
-      }
-      res = `<body>${res}${scripts}</body>`;
-    }
-    if (!state.renderedHtmlHead) {
-      res = `<head><meta charset="utf-8"></head>${res}`;
-    }
-    if (!state.renderedHtmlTag) {
-      res = `<html>${res}</html>`;
-    }
-
-    return `<!DOCTYPE html>${res}`;
-  } finally {
-    // Add preload headers
-    const basePath = ctx.config.basePath;
-    const runtimeUrl = `${basePath}/_fresh/js/${BUILD_ID}/fresh-runtime.js`;
-    let link = `<${encodeURI(runtimeUrl)}>; rel="modulepreload"; as="script"`;
-    state.islands.forEach((island) => {
-      const chunk = buildCache.getIslandChunkName(island.name);
-      if (chunk !== null) {
-        link += `, <${
-          encodeURI(`${basePath}${chunk}`)
-        }>; rel="modulepreload"; as="script"`;
-      }
-    });
-
-    if (link !== "") {
-      headers.append("Link", link);
-    }
-
-    state.clear();
-    setRenderState(null);
-  }
-}
-
-export type PageProps<Data = unknown, T = unknown> =
-  & Omit<FreshContext<T>, "next" | "render" | "redirect">
-  & { data: Data; Component: FunctionComponent };

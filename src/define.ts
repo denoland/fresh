@@ -1,7 +1,7 @@
 import type { AnyComponent } from "preact";
 import type { HandlerByMethod, HandlerFn, RouteHandler } from "./handlers.ts";
 import type { Middleware } from "./middlewares/mod.ts";
-import type { PageProps } from "./context.ts";
+import type { PageProps } from "./render.ts";
 
 /**
  * A set of define functions that enable better type inference and code
@@ -133,7 +133,9 @@ export interface Define<State> {
    *
    * @typeParam M The type of the middleware function. This will be inferred from the input function. Do not manually specify this type.
    */
-  middleware<M extends Middleware<State>>(middleware: M): typeof middleware;
+  middleware<M extends Middleware<State> | Middleware<State>[]>(
+    middleware: M,
+  ): typeof middleware;
 }
 
 /**

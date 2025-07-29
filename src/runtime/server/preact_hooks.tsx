@@ -11,10 +11,9 @@ import {
 } from "preact";
 import type { Signal } from "@preact/signals";
 import type { Stringifiers } from "../../jsonify/stringify.ts";
-import type { PageProps } from "../../context.ts";
+import type { PageProps } from "../../render.ts";
 import { Partial, type PartialProps } from "../shared.ts";
 import { stringify } from "../../jsonify/stringify.ts";
-import type { ServerIslandRegistry } from "../../context.ts";
 import type { Island } from "../../context.ts";
 import {
   assetHashingHook,
@@ -29,10 +28,10 @@ import {
   DEV_ERROR_OVERLAY_URL,
   PARTIAL_SEARCH_PARAM,
 } from "../../constants.ts";
-import * as colors from "@std/fmt/colors";
 import { escape as escapeHtml } from "@std/html";
 import { HttpError } from "../../error.ts";
 import { getCodeFrame } from "../../dev/middlewares/error_overlay/code_frame.tsx";
+import { escapeScript } from "../../utils.ts";
 
 const enum OptionsType {
   ATTR = "attr",
@@ -88,8 +87,8 @@ export class RenderState {
   hasRuntimeScript = false;
 
   constructor(
-    public ctx: PageProps<unknown, unknown>,
-    public islandRegistry: ServerIslandRegistry,
+    // deno-lint-ignore no-explicit-any
+    public ctx: PageProps<any, any>,
     public buildCache: BuildCache,
     public partialId: string,
   ) {
@@ -202,7 +201,7 @@ options[OptionsType.DIFF] = (vnode) => {
       } else if (
         !PATCHED.has(vnode) && !hasIslandOwner(RENDER_STATE, vnode)
       ) {
-        const island = RENDER_STATE.islandRegistry.get(vnode.type);
+        const island = RENDER_STATE.buildCache.islandRegistry.get(vnode.type);
         if (island === undefined) {
           // Not an island, but we might need to preserve keys
           if (vnode.key !== undefined) {
@@ -323,7 +322,7 @@ function hasIslandOwner(current: RenderState, vnode: VNode): boolean {
   let tmpVNode = vnode;
   let owner;
   while ((owner = current.owners.get(tmpVNode)) !== undefined) {
-    if (current.islandRegistry.has(owner.type as ComponentType)) {
+    if (current.buildCache.islandRegistry.has(owner.type as ComponentType)) {
       return true;
     }
     tmpVNode = owner;
@@ -424,23 +423,16 @@ export interface PartialStateJson {
 }
 
 function FreshRuntimeScript() {
-  const { islands, nonce, ctx, islandProps, partialId, buildCache } =
-    RENDER_STATE!;
+  const { islands, nonce, ctx, islandProps, partialId } = RENDER_STATE!;
   const basePath = ctx.config.basePath;
 
   const islandArr = Array.from(islands);
 
   if (ctx.url.searchParams.has(PARTIAL_SEARCH_PARAM)) {
     const islands = islandArr.map((island) => {
-      const chunk = buildCache.getIslandChunkName(island.name);
-      if (chunk === null) {
-        throw new Error(
-          `Could not find chunk for ${island.name} ${island.file}#${island.exportName}`,
-        );
-      }
       return {
         exportName: island.exportName,
-        chunk,
+        chunk: island.file,
         name: island.name,
       };
     });
@@ -456,29 +448,28 @@ function FreshRuntimeScript() {
         id={`__FRSH_STATE_${partialId}`}
         type="application/json"
         // deno-lint-ignore react-no-danger
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(json) }}
+        dangerouslySetInnerHTML={{
+          __html: escapeScript(JSON.stringify(json), { json: true }),
+        }}
       />
     );
   } else {
     const islandImports = islandArr.map((island) => {
-      const chunk = buildCache.getIslandChunkName(island.name);
-      if (chunk === null) {
-        throw new Error(
-          `Could not find chunk for ${island.name} ${island.file}#${island.exportName}`,
-        );
-      }
       const named = island.exportName === "default"
         ? island.name
-        : `{ ${island.exportName} }`;
-      return `import ${named} from "${`${basePath}${chunk}`}";`;
+        : island.exportName === island.name
+        ? `{ ${island.exportName} }`
+        : `{ ${island.exportName} as ${island.name} }`;
+      return `import ${named} from "${`${basePath}${island.file}`}";`;
     }).join("");
 
     const islandObj = "{" + islandArr.map((island) => island.name)
       .join(",") +
       "}";
 
-    const serializedProps = JSON.stringify(
-      stringify(islandProps, stringifiers),
+    const serializedProps = escapeScript(
+      JSON.stringify(stringify(islandProps, stringifiers)),
+      { json: true },
     );
 
     const runtimeUrl = `${basePath}/_fresh/js/${BUILD_ID}/fresh-runtime.js`;
@@ -527,7 +518,7 @@ export function ShowErrorOverlay() {
       searchParams.append("stack", error.stack);
       const codeFrame = getCodeFrame(error.stack, ctx.config.root);
       if (codeFrame !== undefined) {
-        searchParams.append("code-frame", colors.stripAnsiCode(codeFrame));
+        searchParams.append("code-frame", codeFrame);
       }
     }
   } else {

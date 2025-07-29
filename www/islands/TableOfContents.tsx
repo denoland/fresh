@@ -107,7 +107,7 @@ export function TableOfContents({ headings }: TableOfContentsProps) {
               type="button"
               id="toc-outline-btn"
               onClick={() => isOpen.value = !isOpen.value}
-              class="bg-background-primary py-2 px-4 rounded border border-foreground-secondary/30 flex items-center hover:border-fresh-green/80 transition-colors text-sm"
+              class="bg-background-primary py-2 px-4 rounded-sm border border-foreground-secondary/30 flex items-center hover:border-fresh-green/80 transition-colors text-sm"
             >
               On this page
               <svg
@@ -118,7 +118,7 @@ export function TableOfContents({ headings }: TableOfContentsProps) {
                 <use href="/icons.svg#arrow-down" />
               </svg>
             </button>
-            {isOpen && (
+            {isOpen.value && (
               <div class="mt-2 pl-4 border-l border-foreground-primary/20 text-[13px] leading-7">
                 <nav aria-labelledby="toc-outline-btn">
                   <ul>
@@ -127,7 +127,7 @@ export function TableOfContents({ headings }: TableOfContentsProps) {
                         <li key={heading.id}>
                           <a
                             href={`#${heading.id}`}
-                            class="block truncatetext-gray-600"
+                            class="block truncatetext-gray-600 dark:text-gray-400"
                             // deno-lint-ignore react-no-danger
                             dangerouslySetInnerHTML={{ __html: heading.html }}
                           />
@@ -159,7 +159,7 @@ export function TableOfContents({ headings }: TableOfContentsProps) {
                         <li key={heading.id}>
                           <a
                             href={`#${heading.id}`}
-                            class="block truncate transition-colors text-gray-600 [&.active]:text-green-600"
+                            class="block truncate transition-colors text-gray-600 dark:text-gray-400 [&.active]:text-green-600 dark:[&.active]:text-green-300"
                             onClick={() => {
                               setActiveLink(
                                 ref.current!,

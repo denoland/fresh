@@ -6,24 +6,9 @@ import {
   updateProject,
 } from "./update.ts";
 import { expect } from "@std/expect";
+import { spy, type SpyCall } from "@std/testing/mock";
 import { walk } from "@std/fs/walk";
-import { withTmpDir } from "../../src/test_utils.ts";
-
-async function writeFiles(dir: string, files: Record<string, string>) {
-  const entries = Object.entries(files);
-  await Promise.all(entries.map(async (entry) => {
-    const [pathname, content] = entry;
-    const fullPath = path.join(dir, pathname);
-    try {
-      await Deno.mkdir(path.dirname(fullPath), { recursive: true });
-      await Deno.writeTextFile(fullPath, content);
-    } catch (err) {
-      if (!(err instanceof Deno.errors.AlreadyExists)) {
-        throw err;
-      }
-    }
-  }));
-}
+import { withTmpDir, writeFiles } from "../../src/test_utils.ts";
 
 async function readFiles(dir: string): Promise<Record<string, string>> {
   const files: Record<string, string> = {};
@@ -114,7 +99,7 @@ Deno.test("update - 1.x project deno.json tasks + lock", async () => {
         "check": "deno fmt --check && deno lint && deno check **/*.ts && deno check **/*.tsx",
         "cli": "echo \\"import '$fresh/src/dev/cli.ts'\\" | deno run --unstable -A -",
         "manifest": "deno task cli manifest $(pwd)",
-        "start": "deno run -A --allow-scripts --watch=static/,routes/ dev.ts",
+        "start": "deno run -A --watch=static/,routes/ dev.ts",
         "build": "deno run -A dev.ts build",
         "preview": "deno run -A main.ts",
         "update": "deno run -A -r https://fresh.deno.dev/update ."
@@ -131,8 +116,8 @@ Deno.test("update - 1.x project deno.json tasks + lock", async () => {
     .toEqual({
       build: "deno run -A dev.ts build",
       check: "deno fmt --check && deno lint && deno check",
-      preview: "deno run -A main.ts",
-      start: "deno run -A --allow-scripts --watch=static/,routes/ dev.ts",
+      preview: "deno serve -A _fresh/server.js",
+      start: "deno run -A --watch=static/,routes/ dev.ts",
       update: "deno run -A -r jsr:@fresh/update .",
     });
 });
@@ -541,16 +526,17 @@ Deno.test(
     const files = await readFiles(dir);
     expect(files["/routes/index.tsx"])
       .toEqual(`import { FreshContext } from "fresh";
+import { HttpError } from "fresh";
 
 export default async function Index(ctx: FreshContext) {
   const req = ctx.request;
 
   if (true) {
-    return ctx.throw(404);
+    throw new HttpError(404);
   }
   if ("foo" === "foo" as any) {
-    ctx.throw(404);
-    return ctx.throw(404);
+    throw new HttpError(404);
+    throw new HttpError(404);
   }
   return new Response(req.url);
 }`);
@@ -558,7 +544,7 @@ export default async function Index(ctx: FreshContext) {
 );
 
 Deno.test.ignore(
-  "update - 1.x ctx.renderNotFound() -> ctx.throw()",
+  "update - 1.x ctx.renderNotFound() -> throw new HttpError(404)",
   async () => {
     await using _tmp = await withTmpDir();
     const dir = _tmp.dir;
@@ -702,4 +688,55 @@ Deno.test("update - island files", async () => {
   expect(files["/islands/foo.tsx"]).toEqual(
     `import { IS_BROWSER } from "fresh/runtime";`,
   );
+});
+
+Deno.test("update - ignores node_modules and vendor in logs", async () => {
+  await using _tmp = await withTmpDir();
+  const dir = _tmp.dir;
+  await writeFiles(dir, {
+    "/deno.json": `{}`,
+    "/routes/index.tsx": `import { PageProps } from "$fresh/server.ts";
+export default function Foo(props: PageProps) {
+  return null;
+}`,
+    "/node_modules/foo/bar.ts":
+      `import { IS_BROWSER } from "$fresh/runtime.ts";`,
+    "/vendor/foo/bar.ts": `import { IS_BROWSER } from "$fresh/runtime.ts";`,
+  });
+
+  const consoleLogSpy = spy(console, "log");
+
+  try {
+    await updateProject(dir);
+  } finally {
+    consoleLogSpy.restore();
+  }
+
+  const files = await readFiles(dir);
+
+  expect(files["/node_modules/foo/bar.ts"]).toEqual(
+    `import { IS_BROWSER } from "fresh/runtime";`,
+  );
+  expect(files["/vendor/foo/bar.ts"]).toEqual(
+    `import { IS_BROWSER } from "fresh/runtime";`,
+  );
+  expect(files["/routes/index.tsx"]).toEqual(
+    `import { PageProps } from "fresh";
+export default function Foo(props: PageProps) {
+  return null;
+}`,
+  );
+
+  const fullLog = consoleLogSpy.calls.map((call: SpyCall) =>
+    call.args.join(" ")
+  ).join(
+    "\n",
+  );
+
+  expect(fullLog).toMatch(/Total files processed: 1/);
+  expect(fullLog).toMatch(/Successfully modified: 1/);
+  expect(fullLog).toMatch(/Unmodified \(no changes needed\): 0/);
+  expect(fullLog).not.toMatch(/node_modules/);
+  expect(fullLog).not.toMatch(/vendor/);
+  expect(fullLog).toMatch(/✓ routes\/index.tsx/);
 });

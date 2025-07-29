@@ -31,6 +31,10 @@ jobs:
         working-directory: ./plugin-tailwindcss
         run: deno publish
 
+      - name: Publish @fresh/plugin-tailwindcss-v3
+        working-directory: ./plugin-tailwindcss-v3
+        run: deno publish
+
       - name: Publish @fresh/update
         working-directory: ./update
         run: deno publish

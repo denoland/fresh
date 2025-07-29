@@ -1,9 +1,75 @@
+import type { Builder, ResolvedBuildConfig } from "fresh/dev";
 import tailwindCss, { type Config } from "tailwindcss";
 import postcss from "postcss";
+import cssnano from "cssnano";
 import autoprefixer from "autoprefixer";
 import * as path from "@std/path";
-import type { TailwindPluginOptions } from "./types.ts";
-import type { ResolvedFreshConfig } from "fresh";
+
+export interface AutoprefixerOptions {
+  /** environment for `Browserslist` */
+  env?: string;
+
+  /** should Autoprefixer use Visual Cascade, if CSS is uncompressed */
+  cascade?: boolean;
+
+  /** should Autoprefixer add prefixes. */
+  add?: boolean;
+
+  /** should Autoprefixer [remove outdated] prefixes */
+  remove?: boolean;
+
+  /** should Autoprefixer add prefixes for @supports parameters. */
+  supports?: boolean;
+
+  /** should Autoprefixer add prefixes for flexbox properties */
+  flexbox?: boolean | "no-2009";
+
+  /** should Autoprefixer add IE 10-11 prefixes for Grid Layout properties */
+  grid?: boolean | "autoplace" | "no-autoplace";
+
+  /** custom usage statistics for > 10% in my stats browsers query */
+  stats?: {
+    [browser: string]: {
+      [version: string]: number;
+    };
+  };
+
+  /**
+   * list of queries for target browsers.
+   * Try to not use it.
+   * The best practice is to use `.browserslistrc` config or `browserslist` key in `package.json`
+   * to share target browsers with Babel, ESLint and Stylelint
+   */
+  overrideBrowserslist?: string | string[];
+
+  /** do not raise error on unknown browser version in `Browserslist` config. */
+  ignoreUnknownVersions?: boolean;
+}
+
+export interface TailwindPluginOptions {
+  autoprefixer?: AutoprefixerOptions;
+}
+
+export function tailwind(
+  builder: Builder,
+  options: TailwindPluginOptions = {},
+): void {
+  const processor = initTailwind(builder.config, options);
+
+  builder.onTransformStaticFile(
+    { pluginName: "tailwind", filter: /\.css$/ },
+    async (args) => {
+      const instance = await processor;
+      const res = await instance.process(args.text, {
+        from: args.path,
+      });
+      return {
+        content: res.content,
+        map: res.map?.toString(),
+      };
+    },
+  );
+}
 
 const CONFIG_EXTENSIONS = ["ts", "js", "mjs"];
 
@@ -36,8 +102,8 @@ async function findTailwindConfigFile(directory: string): Promise<string> {
   }
 }
 
-export async function initTailwind(
-  config: ResolvedFreshConfig,
+async function initTailwind(
+  config: ResolvedBuildConfig,
   options: TailwindPluginOptions,
 ): Promise<postcss.Processor> {
   const root = path.dirname(config.staticDir);
@@ -71,10 +137,8 @@ export async function initTailwind(
   ];
 
   if (config.mode === "production") {
-    const { default: cssnano } = await import("cssnano");
     plugins.push(cssnano());
   }
 
-  const res = postcss(plugins);
-  return res;
+  return postcss(plugins);
 }

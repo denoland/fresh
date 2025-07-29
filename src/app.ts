@@ -1,22 +1,34 @@
-import { type ComponentType, h } from "preact";
-import { renderToString } from "preact-render-to-string";
 import { trace } from "@opentelemetry/api";
 
 import { DENO_DEPLOYMENT_ID } from "./runtime/build_id.ts";
 import * as colors from "@std/fmt/colors";
-import { type MiddlewareFn, runMiddlewares } from "./middlewares/mod.ts";
-import { FreshReqContext } from "./context.ts";
-import { type Method, type Router, UrlPatternRouter } from "./router.ts";
 import {
-  type FreshConfig,
-  normalizeConfig,
-  type ResolvedFreshConfig,
-} from "./config.ts";
-import { type BuildCache, ProdBuildCache } from "./build_cache.ts";
-import type { ServerIslandRegistry } from "./context.ts";
-import { FinishSetup, ForgotBuild } from "./finish_setup.tsx";
+  type MaybeLazyMiddleware,
+  type Middleware,
+  runMiddlewares,
+} from "./middlewares/mod.ts";
+import { Context } from "./context.ts";
+import { mergePath, type Method, UrlPatternRouter } from "./router.ts";
+import type { FreshConfig, ResolvedFreshConfig } from "./config.ts";
+import type { BuildCache } from "./build_cache.ts";
 import { HttpError } from "./error.ts";
-import { mergePaths, pathToExportName } from "./utils.ts";
+import type { LayoutConfig, MaybeLazy, Route, RouteConfig } from "./types.ts";
+import type { RouteComponent } from "./segments.ts";
+import {
+  applyCommands,
+  type Command,
+  CommandType,
+  DEFAULT_NOT_ALLOWED_METHOD,
+  DEFAULT_NOT_FOUND,
+  newAppCmd,
+  newErrorCmd,
+  newHandlerCmd,
+  newLayoutCmd,
+  newMiddlewareCmd,
+  newNotFoundCmd,
+  newRouteCmd,
+} from "./commands.ts";
+import { MockBuildCache } from "./test_utils.ts";
 
 // TODO: Completed type clashes in older Deno versions
 // deno-lint-ignore no-explicit-any
@@ -25,11 +37,30 @@ export const DEFAULT_CONN_INFO: any = {
   remoteAddr: { transport: "tcp", hostname: "localhost", port: 1234 },
 };
 
-const DEFAULT_NOT_FOUND = () => {
-  throw new HttpError(404);
+const defaultOptionsHandler = (methods: string[]): () => Promise<Response> => {
+  return () =>
+    Promise.resolve(
+      new Response(null, {
+        status: 204,
+        headers: { Allow: methods.join(", ") },
+      }),
+    );
 };
-const DEFAULT_NOT_ALLOWED_METHOD = () => {
-  throw new HttpError(405);
+// deno-lint-ignore require-await
+const DEFAULT_ERROR_HANDLER = async <State>(ctx: Context<State>) => {
+  const { error } = ctx;
+
+  if (error instanceof HttpError) {
+    if (error.status >= 500) {
+      // deno-lint-ignore no-console
+      console.error(error);
+    }
+    return new Response(error.message, { status: error.status });
+  }
+
+  // deno-lint-ignore no-console
+  console.error(error);
+  return new Response("Internal server error", { status: 500 });
 };
 
 export type ListenOptions =
@@ -76,8 +107,11 @@ function createOnListen(
     const address = colors.cyan(
       `${protocol}//${hostname}:${params.port}${pathname}`,
     );
+    const helper = hostname === "0.0.0.0" || hostname === "::"
+      ? colors.cyan(` (${protocol}//localhost:${params.port}${pathname})`)
+      : "";
     // deno-lint-ignore no-console
-    console.log(`    ${localLabel}  ${space}${address}${sep}`);
+    console.log(`    ${localLabel}  ${space}${address}${helper}${sep}`);
     if (options.remoteAddress) {
       const remoteLabel = colors.bold("Remote:");
       const remoteAddress = colors.cyan(options.remoteAddress);
@@ -114,27 +148,26 @@ async function listenOnFreePort(
   throw firstError;
 }
 
-export let getRouter: <State>(app: App<State>) => Router<MiddlewareFn<State>>;
-// deno-lint-ignore no-explicit-any
-export let getIslandRegistry: (app: App<any>) => ServerIslandRegistry;
-// deno-lint-ignore no-explicit-any
-export let getBuildCache: (app: App<any>) => BuildCache | null;
-// deno-lint-ignore no-explicit-any
-export let setBuildCache: (app: App<any>, cache: BuildCache | null) => void;
+export let getBuildCache: <State>(app: App<State>) => BuildCache<State> | null;
+export let setBuildCache: <State>(
+  app: App<State>,
+  cache: BuildCache<State>,
+) => void;
 
+/**
+ * Create an application instance that passes the incoming `Request`
+ * instance through middlewares and routes.
+ */
 export class App<State> {
-  #router: Router<MiddlewareFn<State>> = new UrlPatternRouter<
-    MiddlewareFn<State>
-  >();
-  #islandRegistry: ServerIslandRegistry = new Map();
-  #buildCache: BuildCache | null = null;
-  #islandNames = new Set<string>();
+  #getBuildCache: () => BuildCache<State> | null = () => null;
+  #commands: Command<State>[] = [];
 
   static {
-    getRouter = (app) => app.#router;
-    getIslandRegistry = (app) => app.#islandRegistry;
-    getBuildCache = (app) => app.#buildCache;
-    setBuildCache = (app, cache) => app.#buildCache = cache;
+    getBuildCache = (app) => app.#getBuildCache();
+    setBuildCache = (app, cache) => {
+      app.config.root = cache.root;
+      app.#getBuildCache = () => cache;
+    };
   }
 
   /**
@@ -143,122 +176,204 @@ export class App<State> {
   config: ResolvedFreshConfig;
 
   constructor(config: FreshConfig = {}) {
-    this.config = normalizeConfig(config);
+    this.config = {
+      root: Deno.cwd(),
+      basePath: config.basePath ?? "",
+      mode: "production",
+    };
   }
 
-  island(
-    filePathOrUrl: string | URL,
-    exportName: string,
-    // deno-lint-ignore no-explicit-any
-    fn: ComponentType<any>,
+  /**
+   * Add one or more middlewares at the top or the specified path.
+   */
+  use(...middleware: MaybeLazyMiddleware<State>[]): this;
+  use(path: string, ...middleware: MaybeLazyMiddleware<State>[]): this;
+  use(
+    pathOrMiddleware: string | MaybeLazyMiddleware<State>,
+    ...middlewares: MaybeLazyMiddleware<State>[]
   ): this {
-    const filePath = filePathOrUrl instanceof URL
-      ? filePathOrUrl.href
-      : filePathOrUrl;
-
-    // Create unique island name
-    let name = exportName === "default"
-      ? pathToExportName(filePath)
-      : exportName;
-    if (this.#islandNames.has(name)) {
-      let i = 0;
-      while (this.#islandNames.has(`${name}_${i}`)) {
-        i++;
-      }
-      name = `${name}_${i}`;
+    let pattern: string;
+    let fns: MaybeLazyMiddleware<State>[];
+    if (typeof pathOrMiddleware === "string") {
+      pattern = pathOrMiddleware;
+      fns = middlewares!;
+    } else {
+      pattern = "*";
+      middlewares.unshift(pathOrMiddleware);
+      fns = middlewares;
     }
 
-    this.#islandRegistry.set(fn, { fn, exportName, name, file: filePathOrUrl });
+    this.#commands.push(newMiddlewareCmd(pattern, fns, true));
+
     return this;
   }
 
-  use(middleware: MiddlewareFn<State>): this {
-    this.#router.addMiddleware(middleware);
+  /**
+   * Set the app's 404 error handler. Can be a {@linkcode Route} or a {@linkcode Middleware}.
+   */
+  notFound(routeOrMiddleware: Route<State> | Middleware<State>): this {
+    this.#commands.push(newNotFoundCmd(routeOrMiddleware));
     return this;
   }
 
-  get(path: string, ...middlewares: MiddlewareFn<State>[]): this {
-    return this.#addRoutes("GET", path, middlewares);
-  }
-  post(path: string, ...middlewares: MiddlewareFn<State>[]): this {
-    return this.#addRoutes("POST", path, middlewares);
-  }
-  patch(path: string, ...middlewares: MiddlewareFn<State>[]): this {
-    return this.#addRoutes("PATCH", path, middlewares);
-  }
-  put(path: string, ...middlewares: MiddlewareFn<State>[]): this {
-    return this.#addRoutes("PUT", path, middlewares);
-  }
-  delete(path: string, ...middlewares: MiddlewareFn<State>[]): this {
-    return this.#addRoutes("DELETE", path, middlewares);
-  }
-  head(path: string, ...middlewares: MiddlewareFn<State>[]): this {
-    return this.#addRoutes("HEAD", path, middlewares);
-  }
-  all(path: string, ...middlewares: MiddlewareFn<State>[]): this {
-    return this.#addRoutes("ALL", path, middlewares);
+  onError(
+    path: string,
+    routeOrMiddleware: Route<State> | Middleware<State>,
+  ): this {
+    this.#commands.push(newErrorCmd(path, routeOrMiddleware, true));
+    return this;
   }
 
-  mountApp(path: string, app: App<State>): this {
-    const routes = app.#router._routes;
-    app.#islandRegistry.forEach((value, key) => {
-      this.#islandRegistry.set(key, value);
+  appWrapper(component: RouteComponent<State>): this {
+    this.#commands.push(newAppCmd(component));
+    return this;
+  }
+
+  layout(
+    path: string,
+    component: RouteComponent<State>,
+    config?: LayoutConfig,
+  ): this {
+    this.#commands.push(newLayoutCmd(path, component, config, true));
+    return this;
+  }
+
+  route(
+    path: string,
+    route: MaybeLazy<Route<State>>,
+    config?: RouteConfig,
+  ): this {
+    this.#commands.push(newRouteCmd(path, route, config, false));
+    return this;
+  }
+
+  /**
+   * Add middlewares for GET requests at the specified path.
+   */
+  get(path: string, ...middlewares: MaybeLazy<Middleware<State>>[]): this {
+    this.#commands.push(newHandlerCmd("GET", path, middlewares, false));
+    return this;
+  }
+  /**
+   * Add middlewares for POST requests at the specified path.
+   */
+  post(path: string, ...middlewares: MaybeLazy<Middleware<State>>[]): this {
+    this.#commands.push(newHandlerCmd("POST", path, middlewares, false));
+    return this;
+  }
+  /**
+   * Add middlewares for PATCH requests at the specified path.
+   */
+  patch(path: string, ...middlewares: MaybeLazy<Middleware<State>>[]): this {
+    this.#commands.push(newHandlerCmd("PATCH", path, middlewares, false));
+    return this;
+  }
+  /**
+   * Add middlewares for PUT requests at the specified path.
+   */
+  put(path: string, ...middlewares: MaybeLazy<Middleware<State>>[]): this {
+    this.#commands.push(newHandlerCmd("PUT", path, middlewares, false));
+    return this;
+  }
+  /**
+   * Add middlewares for DELETE requests at the specified path.
+   */
+  delete(path: string, ...middlewares: MaybeLazy<Middleware<State>>[]): this {
+    this.#commands.push(newHandlerCmd("DELETE", path, middlewares, false));
+    return this;
+  }
+  /**
+   * Add middlewares for HEAD requests at the specified path.
+   */
+  head(path: string, ...middlewares: MaybeLazy<Middleware<State>>[]): this {
+    this.#commands.push(newHandlerCmd("HEAD", path, middlewares, false));
+    return this;
+  }
+
+  /**
+   * Add middlewares for all HTTP verbs at the specified path.
+   */
+  all(path: string, ...middlewares: MaybeLazy<Middleware<State>>[]): this {
+    this.#commands.push(newHandlerCmd("ALL", path, middlewares, false));
+    return this;
+  }
+
+  /**
+   * Insert file routes collected in {@linkcode Builder} at this point.
+   * @param pattern Append file routes at this pattern instead of the root
+   * @returns
+   */
+  fsRoutes(pattern = "*"): this {
+    this.#commands.push({
+      type: CommandType.FsRoute,
+      pattern,
+      getItems: () => {
+        const buildCache = this.#getBuildCache();
+        if (buildCache === null) return [];
+        return buildCache.getFsRoutes();
+      },
+      includeLastSegment: false,
     });
+    return this;
+  }
 
-    const middlewares = app.#router._middlewares;
+  /**
+   * Merge another {@linkcode App} instance into this app at the
+   * specified path.
+   */
+  mountApp(path: string, app: App<State>): this {
+    for (let i = 0; i < app.#commands.length; i++) {
+      const cmd = app.#commands[i];
 
-    // Special case when user calls one of these:
-    // - `app.mountApp("/", otherApp)`
-    // - `app.mountApp("/*", otherApp)`
-    const isSelf = path === "/*" || path === "/";
-    if (isSelf && middlewares.length > 0) {
-      this.#router._middlewares.push(...middlewares);
+      if (cmd.type !== CommandType.App && cmd.type !== CommandType.NotFound) {
+        const clone = {
+          ...cmd,
+          pattern: mergePath(path, cmd.pattern),
+          includeLastSegment: cmd.pattern === "/" || cmd.includeLastSegment,
+        };
+        this.#commands.push(clone);
+        continue;
+      }
+
+      this.#commands.push(cmd);
     }
 
-    for (let i = 0; i < routes.length; i++) {
-      const route = routes[i];
-
-      const merged = typeof route.path === "string"
-        ? mergePaths(path, route.path)
-        : route.path;
-      const combined = isSelf
-        ? route.handlers
-        : middlewares.concat(route.handlers);
-      this.#router.add(route.method, merged, combined);
-    }
+    // deno-lint-ignore no-this-alias
+    const self = this;
+    app.#getBuildCache = () => self.#getBuildCache();
 
     return this;
   }
 
-  #addRoutes(
-    method: Method | "ALL",
-    pathname: string | URLPattern,
-    middlewares: MiddlewareFn<State>[],
-  ): this {
-    const merged = typeof pathname === "string"
-      ? mergePaths(this.config.basePath, pathname)
-      : pathname;
-    this.#router.add(method, merged, middlewares);
-    return this;
-  }
-
+  /**
+   * Create handler function for `Deno.serve` or to be used in
+   * testing.
+   */
   handler(): (
     request: Request,
     info?: Deno.ServeHandlerInfo,
   ) => Promise<Response> {
-    if (this.#buildCache === null) {
-      this.#buildCache = ProdBuildCache.fromSnapshot(
-        this.config,
-        this.#islandRegistry.size,
-      );
+    let buildCache = this.#getBuildCache();
+    if (buildCache === null) {
+      if (
+        this.config.mode === "production" &&
+        DENO_DEPLOYMENT_ID !== undefined
+      ) {
+        throw new Error(
+          `Could not find _fresh directory. Maybe you forgot to run "deno task build"?`,
+        );
+      } else {
+        buildCache = new MockBuildCache([]);
+      }
     }
 
-    if (
-      !this.#buildCache.hasSnapshot && this.config.mode === "production" &&
-      DENO_DEPLOYMENT_ID !== undefined
-    ) {
-      return missingBuildHandler;
-    }
+    const router = new UrlPatternRouter<MaybeLazyMiddleware<State>>();
+
+    const { rootMiddlewares } = applyCommands(
+      router,
+      this.#commands,
+      this.config.basePath,
+    );
 
     return async (
       req: Request,
@@ -269,23 +384,8 @@ export class App<State> {
       url.pathname = url.pathname.replace(/\/+/g, "/");
 
       const method = req.method.toUpperCase() as Method;
-      const matched = this.#router.match(method, url);
-
-      const next = matched.patternMatch && !matched.methodMatch
-        ? DEFAULT_NOT_ALLOWED_METHOD
-        : DEFAULT_NOT_FOUND;
-
-      const { params, handlers, pattern } = matched;
-      const ctx = new FreshReqContext<State>(
-        req,
-        url,
-        conn,
-        params,
-        this.config,
-        next,
-        this.#islandRegistry,
-        this.#buildCache!,
-      );
+      const matched = router.match(method, url);
+      let { params, pattern, handlers, methodMatch } = matched;
 
       const span = trace.getActiveSpan();
       if (span && pattern) {
@@ -293,13 +393,38 @@ export class App<State> {
         span.setAttribute("http.route", pattern);
       }
 
-      try {
-        let result: unknown;
-        if (handlers.length === 1 && handlers[0].length === 1) {
-          result = await handlers[0][0](ctx);
+      let next: () => Promise<Response>;
+
+      if (pattern === null || !methodMatch) {
+        handlers = rootMiddlewares;
+      }
+
+      if (matched.pattern !== null && !methodMatch) {
+        if (method === "OPTIONS") {
+          const allowed = router.getAllowedMethods(matched.pattern);
+          next = defaultOptionsHandler(allowed);
         } else {
-          result = await runMiddlewares(handlers, ctx);
+          next = DEFAULT_NOT_ALLOWED_METHOD;
         }
+      } else {
+        next = DEFAULT_NOT_FOUND;
+      }
+
+      const ctx = new Context<State>(
+        req,
+        url,
+        conn,
+        matched.pattern,
+        params,
+        this.config,
+        next,
+        buildCache!,
+      );
+
+      try {
+        if (handlers.length === 0) return await next();
+
+        const result = await runMiddlewares(handlers, ctx);
         if (!(result instanceof Response)) {
           throw new Error(
             `Expected a "Response" instance to be returned, but got: ${result}`,
@@ -308,27 +433,21 @@ export class App<State> {
 
         return result;
       } catch (err) {
-        if (err instanceof HttpError) {
-          if (err.status >= 500) {
-            // deno-lint-ignore no-console
-            console.error(err);
-          }
-          return new Response(err.message, { status: err.status });
-        }
-
-        // deno-lint-ignore no-console
-        console.error(err);
-        return new Response("Internal server error", { status: 500 });
+        ctx.error = err;
+        return await DEFAULT_ERROR_HANDLER(ctx);
       }
     };
   }
 
+  /**
+   * Spawn a server for this app.
+   */
   async listen(options: ListenOptions = {}): Promise<void> {
     if (!options.onListen) {
       options.onListen = createOnListen(this.config.basePath, options);
     }
 
-    const handler = await this.handler();
+    const handler = this.handler();
     if (options.port) {
       await Deno.serve(options, handler);
       return;
@@ -337,14 +456,3 @@ export class App<State> {
     await listenOnFreePort(options, handler);
   }
 }
-
-// deno-lint-ignore require-await
-const missingBuildHandler = async (): Promise<Response> => {
-  const headers = new Headers();
-  headers.set("Content-Type", "text/html; charset=utf-8");
-
-  const html = DENO_DEPLOYMENT_ID
-    ? renderToString(h(FinishSetup, null))
-    : renderToString(h(ForgotBuild, null));
-  return new Response(html, { headers, status: 500 });
-};

@@ -1,11 +1,4 @@
-import Prism from "prismjs";
-import "prismjs/components/prism-jsx.js";
-import "prismjs/components/prism-typescript.js";
-import "prismjs/components/prism-tsx.js";
-import "prismjs/components/prism-diff.js";
-import "prismjs/components/prism-json.js";
-import "prismjs/components/prism-bash.js";
-import "prismjs/components/prism-yaml.js";
+import denoJson from "../../deno.json" with { type: "json" };
 
 export { extractYaml as frontMatter } from "@std/front-matter";
 
@@ -13,6 +6,7 @@ import * as Marked from "marked";
 import { escape as escapeHtml } from "@std/html";
 import { mangle } from "marked-mangle";
 import GitHubSlugger from "github-slugger";
+import { Prism } from "./prism.ts";
 
 const slugger = new GitHubSlugger();
 
@@ -55,7 +49,15 @@ class DefaultRenderer extends Marked.Renderer {
     depth,
     raw,
   }: Marked.Tokens.Heading): string {
-    const slug = slugger.slug(raw);
+    let slugInput = tokens.length === 1 && tokens[0].type === "codespan"
+      ? tokens[0].text
+      : raw;
+
+    if (/^\..*\(\)$/.test(slugInput)) {
+      slugInput = slugInput.slice(1, -2);
+    }
+
+    const slug = slugger.slug(slugInput);
     const text = this.parser.parseInline(tokens);
     this.headings.push({ id: slug, html: text });
     return `<h${depth} id="${slug}"><a class="md-anchor" tabindex="-1" href="#${slug}">${text}<span aria-hidden="true">#</span></a></h${depth}>`;
@@ -76,6 +78,12 @@ class DefaultRenderer extends Marked.Renderer {
   }
 
   override code({ lang: info, text }: Marked.Tokens.Code): string {
+    // For canary only
+    text = text.replaceAll(
+      /(@fresh\/init)/g,
+      `@fresh/init@${denoJson.version}`,
+    );
+
     // format: tsx
     // format: tsx my/file.ts
     // format: tsx "This is my title"

@@ -1,5 +1,6 @@
-import type { VNode } from "preact";
+import type { ComponentChildren } from "preact";
 import type { FreshContext } from "./context.ts";
+import type { PageProps } from "./render.ts";
 import type { HandlerFn, RouteHandler } from "./handlers.ts";
 
 /**
@@ -45,11 +46,17 @@ export type Handler<T = any, State = Record<string, unknown>> = HandlerFn<
 
 function defineFn<State>(
   fn: (
-    ctx: FreshContext<State>,
-  ) => Request | VNode | null | Promise<Request | VNode | null>,
+    ctx: PageProps<State>,
+  ) =>
+    | ComponentChildren
+    | Response
+    | Promise<Response | ComponentChildren>,
 ): (
-  ctx: FreshContext<State>,
-) => Request | VNode | null | Promise<Request | VNode | null> {
+  ctx: PageProps<State>,
+) =>
+  | ComponentChildren
+  | Response
+  | Promise<Response | ComponentChildren> {
   return fn;
 }
 

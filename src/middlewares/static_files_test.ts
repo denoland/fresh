@@ -4,11 +4,14 @@ import type { BuildCache, StaticFile } from "../build_cache.ts";
 import { expect } from "@std/expect";
 import { ASSET_CACHE_BUST_KEY } from "../runtime/shared_internal.tsx";
 import { BUILD_ID } from "../runtime/build_id.ts";
+import type { Command } from "../commands.ts";
+import type { ServerIslandRegistry } from "../context.ts";
 
 class MockBuildCache implements BuildCache {
+  root = "";
   buildId = "MockId";
   files = new Map<string, StaticFile>();
-  hasSnapshot = true;
+  islandRegistry: ServerIslandRegistry = new Map();
 
   constructor(files: Record<string, { hash: string | null; content: string }>) {
     const encoder = new TextEncoder();
@@ -25,12 +28,14 @@ class MockBuildCache implements BuildCache {
     }
   }
 
+  // deno-lint-ignore no-explicit-any
+  getFsRoutes(): Command<any>[] {
+    return [];
+  }
+
   // deno-lint-ignore require-await
   async readFile(pathname: string): Promise<StaticFile | null> {
     return this.files.get(pathname) ?? null;
-  }
-  getIslandChunkName(_islandName: string): string | null {
-    return null;
   }
 }
 
@@ -135,13 +140,9 @@ Deno.test("static files - disables caching in development", async () => {
     {
       buildCache,
       config: {
+        root: "",
         basePath: "",
-        build: {
-          outDir: "",
-        },
         mode: "development",
-        root: ".",
-        staticDir: "",
       },
     },
   );
@@ -163,13 +164,9 @@ Deno.test("static files - enables caching in production", async () => {
     {
       buildCache,
       config: {
+        root: "",
         basePath: "",
-        build: {
-          outDir: "",
-        },
         mode: "production",
-        root: ".",
-        staticDir: "",
       },
     },
   );
@@ -204,4 +201,23 @@ Deno.test("static files - decoded pathname", async () => {
     await res.body?.cancel();
     expect(res.status).toEqual(200);
   }
+});
+
+Deno.test("static files - fallthrough", async () => {
+  const buildCache = new MockBuildCache({
+    "foo.css": { content: "body {}", hash: null },
+  });
+
+  const server = serveMiddleware(
+    staticFiles(),
+    { buildCache, next: () => Promise.resolve(new Response("it works")) },
+  );
+
+  let res = await server.get("foo.css");
+  let text = await res.text();
+  expect(text).toEqual("body {}");
+
+  res = await server.get("/");
+  text = await res.text();
+  expect(text).toEqual("it works");
 });

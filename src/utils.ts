@@ -1,4 +1,5 @@
 import * as path from "@std/path";
+import type { Lazy, MaybeLazy } from "./types.ts";
 
 export function assertInDir(
   filePath: string,
@@ -12,25 +13,6 @@ export function assertInDir(
   if (path.relative(dir, tmp).startsWith(".")) {
     throw new Error(`Path "${tmp}" resolved outside of "${dir}"`);
   }
-}
-
-/**
- * Joins two path segments into a single normalized path.
- * @example
- * ```ts
- * mergePaths("/api", "users");       // "/api/users"
- * mergePaths("/api/", "/users");     // "/api/users"
- * mergePaths("/", "/users");         // "/users"
- * mergePaths("", "/users");          // "/users"
- * mergePaths("/api", "/users");      // "/api/users"
- * ```
- */
-export function mergePaths(a: string, b: string) {
-  if (a === "" || a === "/" || a === "/*") return b;
-  if (b === "/") return a;
-  if (a.endsWith("/")) return a.slice(0, -1) + b;
-  if (!b.startsWith("/")) return a + "/" + b;
-  return a + b;
 }
 
 /**
@@ -52,4 +34,42 @@ export function pathToExportName(filePath: string): string {
   // Regex for valid JS identifier characters
   const regex = /^[^a-z_$]|[^a-z0-9_$]/gi;
   return name.replaceAll(regex, "_").replaceAll(/_{2,}/g, "_");
+}
+
+const SCRIPT_ESCAPE = /<\/(style|script)/gi;
+const COMMENT_ESCAPE = /<!--/gi;
+
+// See https://html.spec.whatwg.org/multipage/scripting.html#restrictions-for-contents-of-script-elements
+export function escapeScript(
+  content: string,
+  options: { json?: boolean } = {},
+): string {
+  return content
+    .replaceAll(SCRIPT_ESCAPE, "<\\/$1")
+    .replaceAll(COMMENT_ESCAPE, options.json ? "\\u003C!--" : "\\x3C!--");
+}
+
+export class UniqueNamer {
+  #seen = new Map<string, number>();
+
+  getUniqueName(name: string): string {
+    const count = this.#seen.get(name);
+    if (count === undefined) {
+      this.#seen.set(name, 1);
+    } else {
+      this.#seen.set(name, count + 1);
+      name = `${name}_${count}`;
+    }
+
+    return name;
+  }
+}
+
+const PATH_TO_SPEC = /[\\/]+/g;
+export function pathToSpec(str: string): string {
+  return str.replaceAll(PATH_TO_SPEC, "/");
+}
+
+export function isLazy<T>(value: MaybeLazy<T>): value is Lazy<T> {
+  return typeof value === "function";
 }

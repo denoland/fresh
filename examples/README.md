@@ -15,16 +15,6 @@ import { DemoIsland } from "jsr:@fresh/examples/island";
 export const app = new App({ root: import.meta.url })
   .use(staticFiles());
 
-// Register the island
-app.island(
-  // Module specifier for esbuild, could also be a file path
-  "jsr:@fresh/examples/island",
-  // Name of the island
-  "DemoIsland",
-  // Island component function
-  DemoIsland,
-);
-
 // Use the island somewhere in your components
 app.get("/", (ctx) => ctx.render(<DemoIsland />));
 

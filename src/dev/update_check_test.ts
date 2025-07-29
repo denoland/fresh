@@ -1,10 +1,10 @@
 import * as path from "@std/path";
 import denoJson from "../../deno.json" with { type: "json" };
-import { WEEK } from "@std/datetime";
 import { getStdOutput } from "../../tests/test_utils.tsx";
 import { expect } from "@std/expect";
 import { withTmpDir } from "../test_utils.ts";
 import type { CheckFile } from "./update_check.ts";
+import { WEEK } from "../constants.ts";
 
 const CURRENT_VERSION = denoJson.version;
 

@@ -1,3 +1,7 @@
+import type { RouteHandler } from "./handlers.ts";
+import type { Method } from "./router.ts";
+import type { RouteComponent } from "./segments.ts";
+
 export interface RouteConfig {
   /**
    * A route override for the page. This is useful for pages where the route
@@ -26,6 +30,12 @@ export interface RouteConfig {
    * Default: `false`
    */
   skipAppWrapper?: boolean;
+  /**
+   * Which method to use when loading this route lazily. This is only used
+   * for lazy routes.
+   * Default: `ALL`
+   */
+  methods?: "ALL" | Method[];
 }
 
 export interface LayoutConfig {
@@ -41,6 +51,23 @@ export interface LayoutConfig {
    */
   skipAppWrapper?: boolean;
 }
+
+export interface Route<State> {
+  component?: RouteComponent<State>;
+  config?: RouteConfig;
+  handler?: RouteHandler<unknown, State>;
+}
+
+/**
+ * Lazily construct items like middlewares, handlers, etc by wrapping them
+ * in a function.
+ */
+export type Lazy<T> = () => Promise<T>;
+
+/**
+ * Return T or lazy version of T
+ */
+export type MaybeLazy<T> = T | Lazy<T>;
 
 // TODO: Uncomment once JSR supports global types
 // declare global {

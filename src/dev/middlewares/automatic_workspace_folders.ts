@@ -1,7 +1,7 @@
 import { eTag, ifNoneMatch } from "@std/http/etag";
 import { generate } from "@std/uuid/v5";
 import { NAMESPACE_URL } from "@std/uuid/constants";
-import type { MiddlewareFn } from "../../middlewares/mod.ts";
+import type { Middleware } from "../../middlewares/mod.ts";
 
 /**
  * Automatically detects workspace folders for DevTools in Chromium browsers.
@@ -19,7 +19,7 @@ import type { MiddlewareFn } from "../../middlewares/mod.ts";
  *
  * @see https://chromium.googlesource.com/devtools/devtools-frontend/+/main/docs/ecosystem/automatic_workspace_folders.md
  */
-export function automaticWorkspaceFolders<T>(root: string): MiddlewareFn<T> {
+export function automaticWorkspaceFolders<T>(root: string): Middleware<T> {
   let uuid: string | undefined;
   let etag: string | undefined;
   let content: string | undefined;
@@ -34,7 +34,7 @@ export function automaticWorkspaceFolders<T>(root: string): MiddlewareFn<T> {
     uuid ??= await generate(
       NAMESPACE_URL,
       new TextEncoder().encode(
-        `https://fresh.com?root=${encodeURIComponent(root)}&v=${0}`,
+        `https://fresh.deno.dev?root=${encodeURIComponent(root)}&v=${0}`,
       ),
     );
     content ??= JSON.stringify({ workspace: { root, uuid } }, undefined, 2);

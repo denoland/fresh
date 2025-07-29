@@ -1,4 +1,4 @@
-import type { FreshContext, FreshReqContext } from "../context.ts";
+import { type Context, getInternals } from "../context.ts";
 import type { App as _App } from "../app.ts";
 import type { Define as _Define } from "../define.ts";
 
@@ -6,14 +6,14 @@ import type { Define as _Define } from "../define.ts";
  * A middleware function is the basic building block of Fresh. It allows you
  * to respond to an incoming request in any way you want. You can redirect
  * routes, serve files, create APIs and much more. Middlewares can be chained by
- * calling {@linkcode FreshContext.next|ctx.next()} inside of the function.
+ * calling {@linkcode Context.next|ctx.next()} inside of the function.
  *
  * Middlewares can be synchronous or asynchronous. If a middleware returns a
  * {@linkcode Response} object, the response will be sent back to the client. If
  * a middleware returns a `Promise<Response>`, Fresh will wait for the promise
  * to resolve before sending the response.
  *
- * A {@linkcode FreshContext} object is passed to the middleware function. This
+ * A {@linkcode Context} object is passed to the middleware function. This
  * object contains the original request object, as well as any state related to
  * the current request. The context object also contains methods to redirect
  * the client to another URL, or to call the next middleware in the chain.
@@ -71,38 +71,54 @@ import type { Define as _Define } from "../define.ts";
  * app.use(redirectMiddleware);
  * ```
  */
-export type MiddlewareFn<State> = (
-  ctx: FreshContext<State>,
+export type Middleware<State> = (
+  ctx: Context<State>,
 ) => Response | Promise<Response>;
 
 /**
- * A single middleware function, or an array of middleware functions. For
- * further information, see {@link MiddlewareFn}.
+ * @deprecated Use {@linkcode Middleware} instead.
  */
-export type Middleware<State> = MiddlewareFn<State> | MiddlewareFn<State>[];
+export type MiddlewareFn<State> = Middleware<State>;
+
+/**
+ * A lazy {@linkcode Middleware}
+ */
+export type MaybeLazyMiddleware<State> = (
+  ctx: Context<State>,
+) => Response | Promise<Response | Middleware<State>>;
 
 export function runMiddlewares<State>(
-  middlewares: MiddlewareFn<State>[][],
-  ctx: FreshReqContext<State>,
+  middlewares: MaybeLazyMiddleware<State>[],
+  ctx: Context<State>,
 ): Promise<Response> {
   let fn = ctx.next;
   let i = middlewares.length;
   while (i--) {
-    const stack = middlewares[i];
-    let j = stack.length;
-    while (j--) {
-      const local = fn;
-      const next = stack[j];
-      fn = async () => {
-        ctx.next = local;
-        try {
-          return await next(ctx);
-        } catch (err) {
-          ctx.error = err;
-          throw err;
+    const local = fn;
+    let next = middlewares[i];
+    const idx = i;
+    fn = async () => {
+      const internals = getInternals(ctx);
+      const { app: prevApp, layouts: prevLayouts } = internals;
+
+      ctx.next = local;
+      try {
+        const result = await next(ctx);
+        if (typeof result === "function") {
+          middlewares[idx] = result;
+          next = result;
+          return await result(ctx);
         }
-      };
-    }
+
+        return result;
+      } catch (err) {
+        ctx.error = err;
+        throw err;
+      } finally {
+        internals.app = prevApp;
+        internals.layouts = prevLayouts;
+      }
+    };
   }
   return fn();
 }
