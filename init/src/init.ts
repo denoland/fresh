@@ -3,7 +3,7 @@ import * as colors from "@std/fmt/colors";
 import * as path from "@std/path";
 
 // Keep these as is, as we replace these version in our release script
-const FRESH_VERSION = "2.0.0-alpha.47";
+const FRESH_VERSION = "2.0.0-alpha.48";
 const FRESH_TAILWIND_VERSION = "0.0.1-alpha.9";
 const PREACT_VERSION = "10.27.0";
 const PREACT_SIGNALS_VERSION = "2.2.1";
