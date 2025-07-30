@@ -6,8 +6,8 @@ import { ProgressBar } from "@std/cli/unstable-progress-bar";
 
 export const SyntaxKind = tsmorph.ts.SyntaxKind;
 
-export const FRESH_VERSION = "2.0.0-alpha.46";
-export const PREACT_VERSION = "10.26.9";
+export const FRESH_VERSION = "2.0.0-alpha.47";
+export const PREACT_VERSION = "10.27.0";
 export const PREACT_SIGNALS_VERSION = "2.2.1";
 
 // Function to filter out node_modules and vendor directories from logs
@@ -196,7 +196,7 @@ export async function updateProject(dir: string) {
   // Create a progress bar
   const bar = new ProgressBar({
     max: sfs.length,
-    fmt(x) {
+    formatter(x) {
       return `[${x.styledTime}] [${x.progressBar}] [${x.value}/${x.max} files]`;
     },
   });
