@@ -185,7 +185,7 @@ export class MemoryBuildCache<State> implements DevBuildCache<State> {
     await Promise.all(
       Array.from(this.islandModNameToChunk.entries()).map(
         async ([name, chunk]) => {
-          const fileUrl = mabyeToFileUrl(chunk.server);
+          const fileUrl = maybeToFileUrl(chunk.server);
           const mod = await import(fileUrl);
 
           if (chunk.browser === null) {
@@ -201,7 +201,7 @@ export class MemoryBuildCache<State> implements DevBuildCache<State> {
   async prepare(): Promise<void> {
     // Load FS routes
     const files = await Promise.all(this.#fsRoutes.files.map(async (file) => {
-      const fileUrl = mabyeToFileUrl(file.filePath);
+      const fileUrl = maybeToFileUrl(file.filePath);
       return {
         ...file,
         mod: file.lazy ? () => import(fileUrl) : await import(fileUrl),
@@ -473,6 +473,6 @@ export function getContentType(filePath: string): string {
   return getStdContentType(ext) ?? "text/plain";
 }
 
-function mabyeToFileUrl(file: string) {
+function maybeToFileUrl(file: string) {
   return file.startsWith("file://") ? file : path.toFileUrl(file).href;
 }
