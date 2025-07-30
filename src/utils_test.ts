@@ -55,7 +55,7 @@ Deno.test("escapeScript - json", () => {
 
 Deno.test("pathToSpec", () => {
   expect(pathToSpec("/foo", "/foo/bar")).toEqual("./bar");
-  expect(pathToSpec("/", "\\foo\\bar")).toEqual("/foo/bar");
+  expect(pathToSpec("/", "C:\\foo\\bar")).toEqual("/foo/bar");
   expect(pathToSpec("/", "\\\\foo//bar")).toEqual("/foo/bar");
   expect(pathToSpec("/foo", "bar")).toEqual("./bar");
   expect(pathToSpec("/foo/bar", "/foo/baz")).toEqual("../baz");
