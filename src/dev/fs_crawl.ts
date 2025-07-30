@@ -105,7 +105,7 @@ export async function crawlRouteDir<State>(
 export async function walkDir(
   fs: FsAdapter,
   dir: string,
-  callback: (entry: WalkEntry) => void,
+  callback: (entry: WalkEntry) => void | Promise<void>,
   ignore: RegExp[],
 ) {
   if (!await fs.isDirectory(dir)) return;
@@ -118,6 +118,6 @@ export async function walkDir(
   });
 
   for await (const entry of entries) {
-    callback(entry);
+    await callback(entry);
   }
 }
