@@ -66,8 +66,31 @@ export class UniqueNamer {
 }
 
 const PATH_TO_SPEC = /[\\/]+/g;
-export function pathToSpec(str: string): string {
-  return str.replaceAll(PATH_TO_SPEC, "/");
+export function pathToSpec(outDir: string, spec: string): string {
+  if (
+    spec.startsWith("http:") || spec.startsWith("https:") ||
+    spec.startsWith("jsr:")
+  ) {
+    return spec;
+  } else if (spec.startsWith("file://")) {
+    spec = path.fromFileUrl(spec);
+    spec = path.relative(outDir, spec);
+    return maybeDot(spec);
+  } else if (path.isAbsolute(spec)) {
+    spec = path.relative(outDir, spec);
+    spec = spec.replaceAll(PATH_TO_SPEC, "/");
+    return maybeDot(spec);
+  }
+
+  spec = spec.replaceAll(PATH_TO_SPEC, "/");
+  if (!spec.startsWith("/")) {
+    spec = `./${spec}`;
+  }
+  return spec;
+}
+
+function maybeDot(spec: string): string {
+  return spec.startsWith(".") ? spec : `./${spec}`;
 }
 
 export function isLazy<T>(value: MaybeLazy<T>): value is Lazy<T> {

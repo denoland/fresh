@@ -313,6 +313,93 @@ export const app = new App().fsRoutes()`,
 });
 
 Deno.test({
+  name: "Builder - file:// islands",
+  fn: async () => {
+    const root = path.join(import.meta.dirname!, "..", "..");
+    await using _tmp = await withTmpDir({ dir: root, prefix: "tmp_builder_" });
+    const tmp = _tmp.dir;
+
+    await writeFiles(tmp, {
+      "other/Foo.tsx": `export default () => <h1>ok</h1>;`,
+      "routes/index.tsx": `import Foo from "../other/Foo.tsx";
+      export default () => <Foo />;`,
+      "main.ts": `import { App } from "fresh";
+export const app = new App().fsRoutes()`,
+    });
+
+    const builder = new Builder({
+      root: tmp,
+      outDir: path.join(tmp, "dist"),
+    });
+
+    const islandPath = path.join(tmp, "other", "Foo.tsx");
+    builder.registerIsland(path.toFileUrl(islandPath).href);
+
+    await builder.build();
+
+    let text = "fail";
+    await withChildProcessServer(
+      tmp,
+      ["serve", "-A", "dist/server.js"],
+      async (address) => {
+        const res = await fetch(address);
+        text = await res.text();
+      },
+    );
+
+    expect(text).toContain("<h1>ok</h1>");
+  },
+  sanitizeOps: false,
+  sanitizeResources: false,
+});
+
+Deno.test({
+  // Currently waiting on bug fixes in @deno/loader
+  // to support resolving without passing entry points
+  ignore: true,
+  name: "Builder - mapped islands",
+  fn: async () => {
+    const root = path.join(import.meta.dirname!, "..", "..");
+    await using _tmp = await withTmpDir({ dir: root, prefix: "tmp_builder_" });
+    const tmp = _tmp.dir;
+
+    await writeFiles(tmp, {
+      "other/Foo.tsx": `export default () => <h1>ok</h1>;`,
+      "routes/index.tsx": `import Foo from "foo-island";
+      export default () => <Foo />;`,
+      "main.ts": `import { App } from "fresh";
+export const app = new App().fsRoutes()`,
+      "deno.json": JSON.stringify({
+        imports: { "foo-island": "other/Foo.tsx" },
+      }),
+    });
+
+    const builder = new Builder({
+      root: tmp,
+      outDir: path.join(tmp, "dist"),
+    });
+
+    builder.registerIsland("foo-island");
+
+    await builder.build();
+
+    let text = "fail";
+    await withChildProcessServer(
+      tmp,
+      ["serve", "-A", "dist/server.js"],
+      async (address) => {
+        const res = await fetch(address);
+        text = await res.text();
+      },
+    );
+
+    expect(text).toContain("<h1>ok</h1>");
+  },
+  sanitizeOps: false,
+  sanitizeResources: false,
+});
+
+Deno.test({
   name: "Builder - source maps",
   fn: async () => {
     const root = path.join(import.meta.dirname!, "..", "..");
