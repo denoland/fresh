@@ -156,6 +156,40 @@ Deno.test({
 });
 
 Deno.test({
+  name: "Builder - can bundle islands with import.meta.resolve()",
+  fn: async () => {
+    await using _tmp = await withTmpDir();
+    const tmp = _tmp.dir;
+
+    const outDir = path.join(tmp, "dist");
+    const builder = new Builder({ outDir });
+
+    const specifier = import.meta.resolve(
+      "../../tests/fixtures_islands/Counter.tsx",
+    );
+    builder.registerIsland(specifier);
+
+    await builder.build({ mode: "production", snapshot: "disk" });
+
+    const name = specToName(specifier);
+    const code = await Deno.readTextFile(
+      path.join(
+        tmp,
+        "dist",
+        "static",
+        "_fresh",
+        "js",
+        BUILD_ID,
+        `${name}.js`,
+      ),
+    );
+    expect(code).toContain('"decrement"');
+  },
+  sanitizeOps: false,
+  sanitizeResources: false,
+});
+
+Deno.test({
   name: "Builder - exclude files",
   fn: async () => {
     await using _tmp = await withTmpDir();
