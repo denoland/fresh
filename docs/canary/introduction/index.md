@@ -9,7 +9,7 @@ Fresh is a small, fast and extensible full stack web framework built on Web
 Standards. It's designed for building high-quality, performant, and personalized
 web applications.
 
-```tsx
+```tsx main.tsx
 import { App } from "fresh";
 
 const app = new App()

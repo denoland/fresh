@@ -46,6 +46,10 @@ and `<source>` HTML tags. These will automatically use "locked" paths if Fresh
 deems it safe to do so. You can always opt out of this behaviour per tag, by
 adding the `data-fresh-disable-lock` attribute.
 
-```tsx
+```tsx routes/user.tsx
+{/* Locked URL source */}
 <img src="/user.png" />;
+
+{/* Preserve URL source and disable lock */}
+<img src="/user.png" data-fresh-disable-lock />;
 ```

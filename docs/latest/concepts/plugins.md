@@ -40,7 +40,7 @@ A Fresh plugin is just a JavaScript object that conforms to the
 required property of a plugin is its name. Names must only contain the
 characters `a`-`z`, and `_`.
 
-```ts
+```ts my-plugin.ts
 import { Plugin } from "$fresh/server.ts";
 
 const plugin: Plugin = {

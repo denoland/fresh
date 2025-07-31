@@ -35,7 +35,7 @@ Now if we hit the server with a request like
 `http://localhost:8000/x/bestModule@1.33.7/asdf`, then logging the params will
 show the following:
 
-```
+```txt Console output
 {
   module: "bestModule",
   version: "1.33.7",
@@ -66,18 +66,18 @@ Values are available via `params.resource` and `params.id`.
 
 Here are some example URLs that match this:
 
-- /api/db/bar/1
-- /api/db/jobs/1
-- /api/db/job/1
-- /api/db/job
-- /api/db/jobs
-- /api/db/bar
+- `/api/db/bar/1`
+- `/api/db/jobs/1`
+- `/api/db/job/1`
+- `/api/db/job`
+- `/api/db/jobs`
+- `/api/db/bar`
 
 Here are some that don't:
 
-- /api/db/other/123
-- /api/db/jobs/abc
-- /api/db
+- `/api/db/other/123`
+- `/api/db/jobs/abc`
+- `/api/db`
 
 ## Regex
 

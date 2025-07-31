@@ -11,7 +11,7 @@ returns a
 are typically used to set HTTP Headers, measure response times or fetch data and
 pass it to another middleware.
 
-```tsx
+```tsx main.ts
 const app = new App<{ greeting: string }>()
   .use((ctx) => {
     // Middleware to pass data
@@ -38,7 +38,7 @@ excellent way to make http-related logic reusable on the server.
 
 Use the `define.middleware()` helper to get typings out of the box:
 
-```ts
+```ts middleware/my-middleware.ts
 import { define } from "./utils.ts";
 
 const middleware = define.middleware(async (ctx) => {

@@ -29,7 +29,7 @@ rendering might not be feasible.
 > [warn]: Proper typing might not be easily available, so we might need to
 > define our own types or not use types at all.
 
-```ts
+```ts context.ts
 export const leafletContext = createContext<typeof Leaflet | null>(null);
 ```
 
@@ -46,7 +46,7 @@ state, and this value will be handled/shared with our other components.
 > script and css may cause issues. Leaflet, for instance, will throw errors if
 > we try to load it again.
 
-```tsx
+```tsx context.ts
 function LeafletProvider(props: { children: ComponentChildren }) {
   if (!IS_BROWSER) {
     return (
@@ -85,7 +85,7 @@ cases where the context has not loaded values yet is a good practice as well, in
 this way we can have a smooth integration and manipulation of client-side data
 and logic on our server-side code.
 
-```tsx
+```tsx component/Map.tsx
 function MapComponent() {
   const leaf = useContext(leafletContext);
   if (!leaf) return <p>Context not ready. Component placeholder</p>;
@@ -105,7 +105,7 @@ to demonstrate a simple usage. In real cases, it's usually better to add the
 Provider directly to our Page and then use Components that depend on that
 provider inside it.
 
-```tsx
+```tsx islands/MapIsland.tsx
 export default function MapIsland() {
   return (
     <LeafletProvider>
@@ -117,7 +117,7 @@ export default function MapIsland() {
 
 ## Full code:
 
-```tsx MapIsland.tsx
+```tsx islands/MapIsland.tsx
 import * as Leaflet from "https://esm.sh/v135/@types/leaflet@1.9.4/index.d.ts";
 import { IS_BROWSER } from "$fresh/runtime.ts";
 import { useContext, useEffect } from "preact/hooks";

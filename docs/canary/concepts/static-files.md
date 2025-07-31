@@ -9,7 +9,7 @@ disk for optimal performance with
 [`ETag`](https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/ETag)
 headers.
 
-```ts
+```ts main.ts
 import { staticFiles } from "fresh";
 
 const app = new App()
@@ -30,17 +30,17 @@ const builder = new Builder({ staticDir: "path/to/staticDir" });
 By default, Fresh adds caching headers for the `src` and `srcset` attributes on
 `<img>` and `<source>` tags.
 
-```tsx
+```tsx main.tsx
 // Caching headers will be automatically added
-<img src="/user.png" />;
+app.get("/user", () => <img src="/user.png" />);
 ```
 
 You can always opt out of this behaviour per tag, by adding the
 `data-fresh-disable-lock` attribute.
 
-```tsx
+```tsx main.tsx
 // Opt-out of automatic caching headers
-<img src="/user.png" data-fresh-disable-lock />;
+app.get("/user", () => <img src="/user.png" data-fresh-disable-lock />);
 ```
 
 ## Adding caching headers manually
@@ -48,9 +48,11 @@ You can always opt out of this behaviour per tag, by adding the
 Use the `asset()` function to add caching headers manually. It will be served
 with a cache lifetime of one year.
 
-```tsx
+```tsx routes/about.tsx
 import { asset } from "fresh/runtime";
 
-// Adding caching headers manually
-<a href={asset("/brochure.pdf")}>View brochure</a>;
+export default function About() {
+  // Adding caching headers manually
+  return <a href={asset("/brochure.pdf")}>View brochure</a>;
+}
 ```

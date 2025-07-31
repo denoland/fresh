@@ -36,7 +36,7 @@ export default function Counter(props: CounterProps) {
 Note how `useSignal` is within the `Counter` component. Then if we instantiate
 some counters like this...
 
-```tsx
+```tsx routes/index.tsx
 <Counter start={3} />
 <Counter start={4} />
 ```
@@ -179,7 +179,7 @@ function CartItem(props: CartItemProps) {
 
 Now we can add the islands to our site by doing the following:
 
-```tsx
+```tsx routes/cart.tsx
 <AddToCart product="Lemon" />
 <AddToCart product="Lime" />
 <Cart />

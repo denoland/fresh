@@ -8,8 +8,8 @@ deployed to any system or platform that can run a Deno based web server.
 
 Here are instructions for specific providers / systems:
 
-- [Deno Deploy](#deno-deploy)
-- [Docker](#docker)
+- [Deno Deploy](#-deno-deploy)
+- [Docker](#-docker)
 
 ## Deno Deploy
 

@@ -834,3 +834,10 @@ ol.nested li:before {
 .highlight-source-yml .string {
   color: var(--color-prettylights-syntax-string);
 }
+
+.markdown-body pre.highlight-source-txt-files {
+  line-height: 1.35;
+}
+.highlight-source-txt-files .function {
+  font-weight: 600;
+}

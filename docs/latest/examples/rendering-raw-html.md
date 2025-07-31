@@ -22,7 +22,7 @@ you trust.
 Suppose we need to add some microdata markup to a page. The following will
 result in **escaped characters, and will not work**:
 
-```tsx
+```tsx components/json-ld.tsx
 const json = `
 {
   "@context": "http://schema.org",
@@ -40,7 +40,7 @@ export default function JsonLd() {
 
 Instead, we can use `dangerouslySetInnerHTML`:
 
-```tsx
+```tsx components/json-ld.tsx
 export default function JsonLd() {
   return (
     <script
@@ -57,7 +57,7 @@ Syntax highlighters parse strings into HTML tags, allowing them to be
 individually styled with CSS. We can build a simple Preact syntax highlighter
 like so:
 
-```tsx
+```tsx components/code.tsx
 import Prism from "https://esm.sh/prismjs@1.29.0";
 
 interface Props {

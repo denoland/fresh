@@ -28,7 +28,7 @@ export default function MyIsland() {
 An island can be used anywhere like a regular Preact component. Fresh will take
 care of making it interactive on the client.
 
-```tsx
+```tsx main.tsx
 import MyIsland from "../islands/my-island.tsx";
 
 const app = new App()
@@ -56,9 +56,11 @@ deserialization.
 
 > [warn]: Passing functions to an island is not supported.
 >
-> ```tsx
-> // WRONG
-> <MyIsland onClick={() => console.log("hey")} />;
+> ```tsx routes/example.tsx
+> export default function () {
+>   // WRONG
+>   return <MyIsland onClick={() => console.log("hey")} />;
+> }
 > ```
 
 ### Passing JSX

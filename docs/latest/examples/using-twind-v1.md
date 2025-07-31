@@ -36,12 +36,7 @@ export default defineConfig({
 
 Let's bump that up to v1:
 
-```diff
-diff --git a/fresh.config.ts b/fresh.config.ts
-index 548e16a..e00d557 100644
---- a/fresh.config.ts
-+++ b/fresh.config.ts
-@@ -1,5 +1,5 @@
+```diff fresh.config.ts
  import { defineConfig } from "$fresh/server.ts";
 -import twindPlugin from "$fresh/plugins/twind.ts";
 +import twindPlugin from "$fresh/plugins/twindv1.ts";

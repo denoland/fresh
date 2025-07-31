@@ -6,7 +6,7 @@ description: |
 Routing defines which middlewares and routes should respond to a particular
 request.
 
-```ts
+```ts main.ts
 const app = new App()
   .get("/", () => new Response("hello")) // Responds to: GET /
   .get("/other", () => new Response("other")) // Responds to: GET /other
