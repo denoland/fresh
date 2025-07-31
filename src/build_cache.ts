@@ -10,6 +10,7 @@ export interface FileSnapshot {
   name: string;
   filePath: string;
   hash: string | null;
+  contentType: string;
 }
 
 export interface BuildSnapshot<State> {
@@ -22,6 +23,7 @@ export interface BuildSnapshot<State> {
 export interface StaticFile {
   hash: string | null;
   size: number;
+  contentType: string;
   readable: ReadableStream<Uint8Array> | Uint8Array;
   close(): void;
 }
@@ -63,6 +65,7 @@ export class ProdBuildCache<State> implements BuildCache<State> {
 
     return {
       hash: info.hash,
+      contentType: info.contentType,
       size: stat.size,
       readable: file.readable,
       close: () => file.close(),

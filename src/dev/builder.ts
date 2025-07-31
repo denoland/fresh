@@ -2,7 +2,7 @@ import { App, type ListenOptions, setBuildCache } from "../app.ts";
 import { fsAdapter } from "../fs.ts";
 import * as path from "@std/path";
 import * as colors from "@std/fmt/colors";
-import { bundleJs } from "./esbuild.ts";
+import { bundleJs, type FreshBundleOptions } from "./esbuild.ts";
 
 import { liveReload } from "./middlewares/live_reload.ts";
 import {
@@ -79,14 +79,21 @@ export interface BuildOptions {
    * File paths which should be ignored when crawling the file system.
    */
   ignore?: RegExp[];
+
+  /**
+   * Control if/how production source maps should be handled.
+   * See https://esbuild.github.io/api/#source-maps for more information.
+   */
+  sourceMap?: FreshBundleOptions["sourceMap"];
 }
 
 /**
  * The final resolved Builder configuration.
  */
-export type ResolvedBuildConfig = Required<BuildOptions> & {
+export type ResolvedBuildConfig = Required<Omit<BuildOptions, "sourceMap">> & {
   mode: "development" | "production";
   buildId: string;
+  sourceMap?: FreshBundleOptions["sourceMap"];
 };
 
 const TEST_FILE_PATTERN = /[._]test\.(?:[tj]sx?|[mc][tj]s)$/;
@@ -121,6 +128,7 @@ export class Builder<State = any> {
       ignore: options?.ignore ?? [TEST_FILE_PATTERN],
       mode: "production",
       buildId: BUILD_ID,
+      sourceMap: options?.sourceMap,
     };
   }
 
@@ -304,6 +312,7 @@ export class Builder<State = any> {
       entryPoints,
       jsxImportSource,
       denoJsonPath: denoJson,
+      sourceMap: this.config.sourceMap,
     });
 
     const prefix = `/_fresh/js/${BUILD_ID}/`;
@@ -345,7 +354,7 @@ export function specToName(spec: string): string {
     }
 
     const idx = spec.lastIndexOf("/");
-    return spec.slice(idx + 1);
+    return pathToExportName(spec.slice(idx + 1));
   } else if (spec.startsWith("jsr:")) {
     const match = spec.match(
       /jsr:@([^/]+)\/([^@/]+)(@[\^~]?\d+\.\d+\.\d+([^/]+)?)?(\/.*)?$/,

@@ -9,7 +9,7 @@
     "./www"
   ],
   "name": "@fresh/core",
-  "version": "2.0.0-alpha.46",
+  "version": "2.0.0-alpha.50",
   "license": "MIT",
   "exports": {
     ".": "./src/mod.ts",
@@ -54,7 +54,7 @@
     "esbuild": "npm:esbuild@^0.25.8",
     "esbuild-wasm": "npm:esbuild-wasm@^0.25.8",
     "fresh": "jsr:@fresh/core@^2.0.0-alpha.37",
-    "preact": "npm:preact@^10.26.9",
+    "preact": "npm:preact@^10.27.0",
     "preact-render-to-string": "npm:preact-render-to-string@^6.5.11",
     "$ga4": "https://raw.githubusercontent.com/denoland/ga4/main/mod.ts",
     "@opentelemetry/api": "npm:@opentelemetry/api@^1.9.0",

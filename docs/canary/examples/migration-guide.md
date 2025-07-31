@@ -70,14 +70,16 @@ if (Deno.args.includes("build")) {
 }
 ```
 
+> [info]: Fresh 1.x used Tailwind CSS v3. To keep using v3 use the
+> `@fresh/plugin-tailwind-v3` instead.
+
 ### Updating `main.ts`
 
 Similarly, configuration related to running Fresh in production can be passed to
 `new App()`:
 
-```ts
-// main.ts
-import { App, fsRoutes, staticFiles } from "fresh";
+```ts main.ts
+import { App, staticFiles } from "fresh";
 
 export const app = new App()
   // Add static file serving middleware
@@ -102,7 +104,7 @@ Both the `_500.tsx` and `_404.tsx` template have been unified into a single
 Inside the `_error.tsx` template you can show different content based on errors
 or status codes with the following code:
 
-```tsx
+```tsx routes/_error.tsx
 export default function ErrorPage(props: PageProps) {
   const error = props.error; // Contains the thrown Error or HTTPError
   if (error instanceof HttpError) {
@@ -138,7 +140,7 @@ export const handler = {
 };
 
 // Render that in _app.tsx
-export default function AppWrapper(ctx: FreshContext) {
+export default function AppWrapper(ctx: Context) {
   return (
     <html lang="en">
       <head>

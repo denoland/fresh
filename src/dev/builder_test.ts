@@ -156,6 +156,40 @@ Deno.test({
 });
 
 Deno.test({
+  name: "Builder - can bundle islands with import.meta.resolve()",
+  fn: async () => {
+    await using _tmp = await withTmpDir();
+    const tmp = _tmp.dir;
+
+    const outDir = path.join(tmp, "dist");
+    const builder = new Builder({ outDir });
+
+    const specifier = import.meta.resolve(
+      "../../tests/fixtures_islands/Counter.tsx",
+    );
+    builder.registerIsland(specifier);
+
+    await builder.build({ mode: "production", snapshot: "disk" });
+
+    const name = specToName(specifier);
+    const code = await Deno.readTextFile(
+      path.join(
+        tmp,
+        "dist",
+        "static",
+        "_fresh",
+        "js",
+        BUILD_ID,
+        `${name}.js`,
+      ),
+    );
+    expect(code).toContain('"decrement"');
+  },
+  sanitizeOps: false,
+  sanitizeResources: false,
+});
+
+Deno.test({
   name: "Builder - exclude files",
   fn: async () => {
     await using _tmp = await withTmpDir();
@@ -273,6 +307,150 @@ export const app = new App().fsRoutes()`,
     );
 
     expect(text).toEqual("ok");
+  },
+  sanitizeOps: false,
+  sanitizeResources: false,
+});
+
+Deno.test({
+  name: "Builder - file:// islands",
+  fn: async () => {
+    const root = path.join(import.meta.dirname!, "..", "..");
+    await using _tmp = await withTmpDir({ dir: root, prefix: "tmp_builder_" });
+    const tmp = _tmp.dir;
+
+    await writeFiles(tmp, {
+      "other/Foo.tsx": `export default () => <h1>ok</h1>;`,
+      "routes/index.tsx": `import Foo from "../other/Foo.tsx";
+      export default () => <Foo />;`,
+      "main.ts": `import { App } from "fresh";
+export const app = new App().fsRoutes()`,
+    });
+
+    const builder = new Builder({
+      root: tmp,
+      outDir: path.join(tmp, "dist"),
+    });
+
+    const islandPath = path.join(tmp, "other", "Foo.tsx");
+    builder.registerIsland(path.toFileUrl(islandPath).href);
+
+    await builder.build();
+
+    let text = "fail";
+    await withChildProcessServer(
+      tmp,
+      ["serve", "-A", "dist/server.js"],
+      async (address) => {
+        const res = await fetch(address);
+        text = await res.text();
+      },
+    );
+
+    expect(text).toContain("<h1>ok</h1>");
+  },
+  sanitizeOps: false,
+  sanitizeResources: false,
+});
+
+Deno.test({
+  // Currently waiting on bug fixes in @deno/loader
+  // to support resolving without passing entry points
+  ignore: true,
+  name: "Builder - mapped islands",
+  fn: async () => {
+    const root = path.join(import.meta.dirname!, "..", "..");
+    await using _tmp = await withTmpDir({ dir: root, prefix: "tmp_builder_" });
+    const tmp = _tmp.dir;
+
+    await writeFiles(tmp, {
+      "other/Foo.tsx": `export default () => <h1>ok</h1>;`,
+      "routes/index.tsx": `import Foo from "foo-island";
+      export default () => <Foo />;`,
+      "main.ts": `import { App } from "fresh";
+export const app = new App().fsRoutes()`,
+      "deno.json": JSON.stringify({
+        imports: { "foo-island": "other/Foo.tsx" },
+      }),
+    });
+
+    const builder = new Builder({
+      root: tmp,
+      outDir: path.join(tmp, "dist"),
+    });
+
+    builder.registerIsland("foo-island");
+
+    await builder.build();
+
+    let text = "fail";
+    await withChildProcessServer(
+      tmp,
+      ["serve", "-A", "dist/server.js"],
+      async (address) => {
+        const res = await fetch(address);
+        text = await res.text();
+      },
+    );
+
+    expect(text).toContain("<h1>ok</h1>");
+  },
+  sanitizeOps: false,
+  sanitizeResources: false,
+});
+
+Deno.test({
+  name: "Builder - source maps",
+  fn: async () => {
+    const root = path.join(import.meta.dirname!, "..", "..");
+    await using _tmp = await withTmpDir({ dir: root, prefix: "tmp_builder_" });
+    const tmp = _tmp.dir;
+
+    await writeFiles(tmp, {
+      "islands/Foo.tsx": `export const Foo = () => <h1>hello</h1>`,
+      "routes/index.ts": `export const handler = () => new Response("ok")`,
+      "main.ts": `import { App } from "fresh";
+export const app = new App().fsRoutes()`,
+    });
+
+    const builder = new Builder({
+      root: tmp,
+      outDir: path.join(tmp, "dist"),
+      sourceMap: {
+        kind: "external",
+        sourceRoot: "foo",
+        sourcesContent: true,
+      },
+    });
+    await builder.build();
+
+    const assetDir = path.join(
+      builder.config.outDir,
+      "static",
+      "_fresh",
+      "js",
+      builder.config.buildId,
+    );
+    const entries = await Array.fromAsync(Deno.readDir(assetDir));
+
+    const map = entries.find((entry) =>
+      entry.isFile && entry.name.endsWith(".js.map")
+    );
+    if (!map) throw new Error(`Sourcemap not found`);
+
+    const content = await Deno.readTextFile(path.join(assetDir, map.name));
+
+    const json = JSON.parse(content) as {
+      version: 3;
+      sources: string[];
+      sourceRoot?: string;
+      sourcesContent: string[];
+      mappings: string;
+      names?: string[];
+    };
+
+    expect(json.sourcesContent.length).toBeGreaterThan(0);
+    expect(json.sourcesContent.length).toBeGreaterThan(0);
   },
   sanitizeOps: false,
   sanitizeResources: false,
