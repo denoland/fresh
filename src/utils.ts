@@ -75,16 +75,27 @@ export function pathToSpec(outDir: string, spec: string): string {
     spec.startsWith("jsr:")
   ) {
     return spec;
-  } else if (spec.startsWith("file://") || path.isAbsolute(spec)) {
+  } else if (spec.startsWith("file://")) {
+    const fileUrl = pathToFileUrl(spec);
+    spec = relativeUrl(outDirUrl, fileUrl);
+    return maybeDot(spec);
+  }
+
+  spec = path.normalize(spec);
+  if (path.isAbsolute(spec)) {
     const fileUrl = pathToFileUrl(spec);
     spec = relativeUrl(outDirUrl, fileUrl);
     return maybeDot(spec);
   }
 
   spec = spec.replaceAll(PATH_TO_SPEC, "/");
-  if (!spec.startsWith("/")) {
-    spec = maybeDot(spec);
+  if (spec.startsWith("/")) {
+    const fileUrl = pathToFileUrl(spec);
+    spec = relativeUrl(outDirUrl, fileUrl);
+    return maybeDot(spec);
   }
+
+  spec = maybeDot(spec);
   return spec;
 }
 
