@@ -4,6 +4,7 @@ import {
   mergePath,
   pathToPattern,
   patternToSegments,
+  removeLastSegment,
   UrlPatternRouter,
 } from "./router.ts";
 
@@ -143,15 +144,17 @@ Deno.test("pathToPattern", async (t) => {
 
 Deno.test("patternToSegments", () => {
   expect(patternToSegments("/", "")).toEqual([""]);
-  expect(patternToSegments("/foo", "")).toEqual([""]);
-  expect(patternToSegments("/foo/bar", "")).toEqual(["", "foo"]);
+  expect(patternToSegments("/foo", "")).toEqual(["", "foo"]);
+  expect(patternToSegments("/foo/bar", "")).toEqual(["", "foo", "bar"]);
 
-  expect(patternToSegments("/:foo", "")).toEqual([""]);
-  expect(patternToSegments("/:foo/:bar", "")).toEqual(["", ":foo"]);
-  expect(patternToSegments("/:foo-:bar/foo", "")).toEqual(["", ":foo-:bar"]);
+  expect(patternToSegments("/:foo", "")).toEqual(["", ":foo"]);
+  expect(patternToSegments("/:foo/:bar", "")).toEqual(["", ":foo", ":bar"]);
+  expect(patternToSegments("/:foo-:bar/foo", "")).toEqual([
+    "",
+    ":foo-:bar",
+    "foo",
+  ]);
   expect(patternToSegments("/foo/", "")).toEqual(["", "foo"]);
-
-  expect(patternToSegments("/foo/bar", "", true)).toEqual(["", "foo", "bar"]);
 });
 
 Deno.test("mergePath", () => {
@@ -163,4 +166,15 @@ Deno.test("mergePath", () => {
   expect(mergePath("/*", "/baz")).toEqual("/baz");
   expect(mergePath("/foo", "*")).toEqual("/foo");
   expect(mergePath("/foo", "/*")).toEqual("/foo/*");
+});
+
+Deno.test("removeLastSegment", () => {
+  expect(removeLastSegment("")).toEqual("");
+  expect(removeLastSegment("*")).toEqual("*");
+  expect(removeLastSegment("/*")).toEqual("/*");
+  expect(removeLastSegment("/")).toEqual("/");
+
+  expect(removeLastSegment("/foo")).toEqual("/");
+  expect(removeLastSegment("/foo/bar")).toEqual("/foo");
+  expect(removeLastSegment("/foo/bar/baz")).toEqual("/foo/bar");
 });

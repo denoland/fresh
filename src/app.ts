@@ -8,7 +8,12 @@ import {
   runMiddlewares,
 } from "./middlewares/mod.ts";
 import { Context } from "./context.ts";
-import { mergePath, type Method, UrlPatternRouter } from "./router.ts";
+import {
+  mergePath,
+  type Method,
+  removeLastSegment,
+  UrlPatternRouter,
+} from "./router.ts";
 import type { FreshConfig, ResolvedFreshConfig } from "./config.ts";
 import type { BuildCache } from "./build_cache.ts";
 import { HttpError } from "./error.ts";
@@ -20,11 +25,13 @@ import {
   CommandType,
   DEFAULT_NOT_ALLOWED_METHOD,
   DEFAULT_NOT_FOUND,
+  getAppSegmentName,
   newAppCmd,
   newErrorCmd,
   newHandlerCmd,
   newLayoutCmd,
   newMiddlewareCmd,
+  newMountCmd,
   newNotFoundCmd,
   newRouteCmd,
 } from "./commands.ts";
@@ -203,7 +210,7 @@ export class App<State> {
       fns = middlewares;
     }
 
-    this.#commands.push(newMiddlewareCmd(pattern, fns, true));
+    this.#commands.push(newMiddlewareCmd(pattern, fns));
 
     return this;
   }
@@ -220,7 +227,7 @@ export class App<State> {
     path: string,
     routeOrMiddleware: Route<State> | Middleware<State>,
   ): this {
-    this.#commands.push(newErrorCmd(path, routeOrMiddleware, true));
+    this.#commands.push(newErrorCmd(path, routeOrMiddleware));
     return this;
   }
 
@@ -234,7 +241,7 @@ export class App<State> {
     component: RouteComponent<State>,
     config?: LayoutConfig,
   ): this {
-    this.#commands.push(newLayoutCmd(path, component, config, true));
+    this.#commands.push(newLayoutCmd(path, component, config));
     return this;
   }
 
@@ -243,7 +250,8 @@ export class App<State> {
     route: MaybeLazy<Route<State>>,
     config?: RouteConfig,
   ): this {
-    this.#commands.push(newRouteCmd(path, route, config, false));
+    // FIXME
+    this.#commands.push(newRouteCmd(path, path, route, config));
     return this;
   }
 
@@ -251,42 +259,48 @@ export class App<State> {
    * Add middlewares for GET requests at the specified path.
    */
   get(path: string, ...middlewares: MaybeLazy<Middleware<State>>[]): this {
-    this.#commands.push(newHandlerCmd("GET", path, middlewares, false));
+    const pattern = removeLastSegment(path);
+    this.#commands.push(newHandlerCmd("GET", pattern, path, middlewares));
     return this;
   }
   /**
    * Add middlewares for POST requests at the specified path.
    */
   post(path: string, ...middlewares: MaybeLazy<Middleware<State>>[]): this {
-    this.#commands.push(newHandlerCmd("POST", path, middlewares, false));
+    const pattern = removeLastSegment(path);
+    this.#commands.push(newHandlerCmd("POST", pattern, path, middlewares));
     return this;
   }
   /**
    * Add middlewares for PATCH requests at the specified path.
    */
   patch(path: string, ...middlewares: MaybeLazy<Middleware<State>>[]): this {
-    this.#commands.push(newHandlerCmd("PATCH", path, middlewares, false));
+    const pattern = removeLastSegment(path);
+    this.#commands.push(newHandlerCmd("PATCH", pattern, path, middlewares));
     return this;
   }
   /**
    * Add middlewares for PUT requests at the specified path.
    */
   put(path: string, ...middlewares: MaybeLazy<Middleware<State>>[]): this {
-    this.#commands.push(newHandlerCmd("PUT", path, middlewares, false));
+    const pattern = removeLastSegment(path);
+    this.#commands.push(newHandlerCmd("PUT", pattern, path, middlewares));
     return this;
   }
   /**
    * Add middlewares for DELETE requests at the specified path.
    */
   delete(path: string, ...middlewares: MaybeLazy<Middleware<State>>[]): this {
-    this.#commands.push(newHandlerCmd("DELETE", path, middlewares, false));
+    const pattern = removeLastSegment(path);
+    this.#commands.push(newHandlerCmd("DELETE", pattern, path, middlewares));
     return this;
   }
   /**
    * Add middlewares for HEAD requests at the specified path.
    */
   head(path: string, ...middlewares: MaybeLazy<Middleware<State>>[]): this {
-    this.#commands.push(newHandlerCmd("HEAD", path, middlewares, false));
+    const pattern = removeLastSegment(path);
+    this.#commands.push(newHandlerCmd("HEAD", pattern, path, middlewares));
     return this;
   }
 
@@ -294,7 +308,8 @@ export class App<State> {
    * Add middlewares for all HTTP verbs at the specified path.
    */
   all(path: string, ...middlewares: MaybeLazy<Middleware<State>>[]): this {
-    this.#commands.push(newHandlerCmd("ALL", path, middlewares, false));
+    const pattern = removeLastSegment(path);
+    this.#commands.push(newHandlerCmd("ALL", pattern, path, middlewares));
     return this;
   }
 
@@ -307,12 +322,12 @@ export class App<State> {
     this.#commands.push({
       type: CommandType.FsRoute,
       pattern,
+      routeOverride: null,
       getItems: () => {
         const buildCache = this.#getBuildCache();
         if (buildCache === null) return [];
         return buildCache.getFsRoutes();
       },
-      includeLastSegment: false,
     });
     return this;
   }
@@ -322,20 +337,26 @@ export class App<State> {
    * specified path.
    */
   mountApp(path: string, app: App<State>): this {
-    for (let i = 0; i < app.#commands.length; i++) {
-      const cmd = app.#commands[i];
+    const merged = mergePath(getAppSegmentName(), path);
 
-      if (cmd.type !== CommandType.App && cmd.type !== CommandType.NotFound) {
-        const clone = {
-          ...cmd,
-          pattern: mergePath(path, cmd.pattern),
-          includeLastSegment: cmd.pattern === "/" || cmd.includeLastSegment,
-        };
-        this.#commands.push(clone);
-        continue;
+    const mount = newMountCmd(
+      merged,
+      path,
+      app.#commands.map((cmd) => ({ ...cmd })),
+    );
+    this.#commands.push(mount);
+
+    for (let i = 0; i < mount.items.length; i++) {
+      const cmd = mount.items[i];
+      if (
+        cmd.type !== CommandType.App && cmd.type !== CommandType.NotFound
+      ) {
+        cmd.routeOverride = mergePath(
+          path,
+          cmd.routeOverride ?? cmd.pattern,
+        ) || null;
+        cmd.pattern = mergePath(merged, cmd.pattern);
       }
-
-      this.#commands.push(cmd);
     }
 
     // deno-lint-ignore no-this-alias

@@ -36,6 +36,11 @@ function ensureHandler<State>(route: Route<State>) {
   }
 }
 
+let appCounter = 0;
+export function getAppSegmentName() {
+  return `/<App_${appCounter++}>`;
+}
+
 export const enum CommandType {
   Middleware = "middleware",
   Layout = "layout",
@@ -45,25 +50,30 @@ export const enum CommandType {
   NotFound = "notFound",
   Handler = "handler",
   FsRoute = "fsRoute",
+  Mount = "group",
 }
 
 export interface ErrorCmd<State> {
   type: CommandType.Error;
   pattern: string;
+  routeOverride: string | null;
   item: Route<State>;
-  includeLastSegment: boolean;
 }
 export function newErrorCmd<State>(
   pattern: string,
   routeOrMiddleware: Route<State> | Middleware<State>,
-  includeLastSegment: boolean,
 ): ErrorCmd<State> {
   const route = typeof routeOrMiddleware === "function"
     ? { handler: routeOrMiddleware }
     : routeOrMiddleware;
   ensureHandler(route);
 
-  return { type: CommandType.Error, pattern, item: route, includeLastSegment };
+  return {
+    type: CommandType.Error,
+    pattern,
+    routeOverride: null,
+    item: route,
+  };
 }
 
 export interface AppCommand<State> {
@@ -79,37 +89,40 @@ export function newAppCmd<State>(
 export interface LayoutCommand<State> {
   type: CommandType.Layout;
   pattern: string;
+  routeOverride: string | null;
   component: RouteComponent<State>;
   config?: LayoutConfig;
-  includeLastSegment: boolean;
 }
 export function newLayoutCmd<State>(
   pattern: string,
   component: RouteComponent<State>,
   config: LayoutConfig | undefined,
-  includeLastSegment: boolean,
 ): LayoutCommand<State> {
   return {
     type: CommandType.Layout,
     pattern,
+    routeOverride: null,
     component,
     config,
-    includeLastSegment,
   };
 }
 
 export interface MiddlewareCmd<State> {
   type: CommandType.Middleware;
   pattern: string;
+  routeOverride: string | null;
   fns: MaybeLazyMiddleware<State>[];
-  includeLastSegment: boolean;
 }
 export function newMiddlewareCmd<State>(
   pattern: string,
   fns: MaybeLazyMiddleware<State>[],
-  includeLastSegment: boolean,
 ): MiddlewareCmd<State> {
-  return { type: CommandType.Middleware, pattern, fns, includeLastSegment };
+  return {
+    type: CommandType.Middleware,
+    pattern,
+    routeOverride: null,
+    fns,
+  };
 }
 
 export interface NotFoundCmd<State> {
@@ -130,15 +143,15 @@ export function newNotFoundCmd<State>(
 export interface RouteCommand<State> {
   type: CommandType.Route;
   pattern: string;
+  routeOverride: string | null;
   route: MaybeLazy<Route<State>>;
   config: RouteConfig | undefined;
-  includeLastSegment: boolean;
 }
 export function newRouteCmd<State>(
   pattern: string,
+  routeOverride: string,
   route: MaybeLazy<Route<State>>,
   config: RouteConfig | undefined,
-  includeLastSegment: boolean,
 ): RouteCommand<State> {
   let normalized;
   if (isLazy(route)) {
@@ -155,9 +168,9 @@ export function newRouteCmd<State>(
   return {
     type: CommandType.Route,
     pattern,
+    routeOverride: config?.routeOverride ?? routeOverride ?? null,
     route: normalized,
     config,
-    includeLastSegment,
   };
 }
 
@@ -165,29 +178,48 @@ export interface HandlerCommand<State> {
   type: CommandType.Handler;
   pattern: string;
   method: Method | "ALL";
+  routeOverride: string | null;
   fns: MaybeLazy<Middleware<State>>[];
-  includeLastSegment: boolean;
 }
 export function newHandlerCmd<State>(
   method: Method | "ALL",
   pattern: string,
+  routeOverride: string,
   fns: MaybeLazy<Middleware<State>>[],
-  includeLastSegment: boolean,
 ): HandlerCommand<State> {
   return {
     type: CommandType.Handler,
     pattern,
+    routeOverride,
     method,
     fns,
-    includeLastSegment,
+  };
+}
+
+export interface MountCommand<State> {
+  type: CommandType.Mount;
+  pattern: string;
+  routeOverride: string | null;
+  items: Command<State>[];
+}
+export function newMountCmd<State>(
+  pattern: string,
+  routeOverride: string,
+  items: Command<State>[],
+): MountCommand<State> {
+  return {
+    type: CommandType.Mount,
+    pattern,
+    routeOverride,
+    items,
   };
 }
 
 export interface FsRouteCommand<State> {
   type: CommandType.FsRoute;
   pattern: string;
+  routeOverride: string | null;
   getItems: () => Command<State>[];
-  includeLastSegment: boolean;
 }
 
 export type Command<State> =
@@ -198,24 +230,30 @@ export type Command<State> =
   | MiddlewareCmd<State>
   | RouteCommand<State>
   | HandlerCommand<State>
-  | FsRouteCommand<State>;
+  | FsRouteCommand<State>
+  | MountCommand<State>;
 
 export function applyCommands<State>(
   router: Router<MaybeLazyMiddleware<State>>,
   commands: Command<State>[],
   basePath: string,
 ): { rootMiddlewares: MaybeLazyMiddleware<State>[] } {
-  const root = newSegment<State>("", null);
+  const root = newSegment<State>("<root>", null);
 
-  applyCommandsInner(root, router, commands, basePath);
+  const rootMounted: MaybeLazyMiddleware<State>[] = [];
+  applyCommandsInner(root, router, commands, rootMounted, basePath);
 
-  return { rootMiddlewares: segmentToMiddlewares(root) };
+  const rootMiddlewares = segmentToMiddlewares(root);
+  rootMiddlewares.push(...rootMounted);
+
+  return { rootMiddlewares };
 }
 
 function applyCommandsInner<State>(
   root: Segment<State>,
   router: Router<MaybeLazyMiddleware<State>>,
   commands: Command<State>[],
+  rootMounted: MaybeLazyMiddleware<State>[],
   basePath: string,
 ) {
   for (let i = 0; i < commands.length; i++) {
@@ -226,9 +264,9 @@ function applyCommandsInner<State>(
         const segment = getOrCreateSegment(
           root,
           cmd.pattern,
-          cmd.includeLastSegment,
         );
         segment.middlewares.push(...cmd.fns);
+        addRootIfMounted(segment, rootMounted, cmd.fns);
         break;
       }
       case CommandType.NotFound: {
@@ -239,7 +277,6 @@ function applyCommandsInner<State>(
         const segment = getOrCreateSegment(
           root,
           cmd.pattern,
-          cmd.includeLastSegment,
         );
         segment.errorRoute = cmd.item;
         break;
@@ -252,7 +289,6 @@ function applyCommandsInner<State>(
         const segment = getOrCreateSegment(
           root,
           cmd.pattern,
-          cmd.includeLastSegment,
         );
         segment.layout = {
           component: cmd.component,
@@ -261,19 +297,15 @@ function applyCommandsInner<State>(
         break;
       }
       case CommandType.Route: {
-        const { pattern, route, config } = cmd;
+        const { pattern, routeOverride, route, config } = cmd;
         const segment = getOrCreateSegment(
           root,
           pattern,
-          cmd.includeLastSegment,
         );
         const fns = segmentToMiddlewares(segment);
 
         if (isLazy(route)) {
-          const routePath = mergePath(
-            basePath,
-            config?.routeOverride ?? pattern,
-          );
+          const routePath = mergePath(basePath, routeOverride ?? pattern);
 
           let def: Route<State>;
           fns.push(async (ctx) => {
@@ -301,10 +333,7 @@ function applyCommandsInner<State>(
         } else {
           fns.push((ctx) => renderRoute(ctx, route));
 
-          const routePath = mergePath(
-            basePath,
-            route.config?.routeOverride ?? pattern,
-          );
+          const routePath = mergePath(basePath, routeOverride ?? pattern);
 
           if (typeof route.handler === "function") {
             router.add("GET", routePath, fns);
@@ -323,17 +352,16 @@ function applyCommandsInner<State>(
         break;
       }
       case CommandType.Handler: {
-        const { pattern, fns, method } = cmd;
+        const { pattern, routeOverride, fns, method } = cmd;
         const segment = getOrCreateSegment(
           root,
           pattern,
-          cmd.includeLastSegment,
         );
         const result = segmentToMiddlewares(segment);
 
         result.push(...fns);
 
-        const resPath = mergePath(basePath, pattern);
+        const resPath = mergePath(basePath, routeOverride ?? pattern);
         if (method === "ALL") {
           router.add("GET", resPath, result);
           router.add("DELETE", resPath, result);
@@ -350,11 +378,29 @@ function applyCommandsInner<State>(
       }
       case CommandType.FsRoute: {
         const items = cmd.getItems();
-        applyCommandsInner(root, router, items, basePath);
+        applyCommandsInner(root, router, items, rootMounted, basePath);
+        break;
+      }
+      case CommandType.Mount: {
+        const { items } = cmd;
+        applyCommandsInner(root, router, items, rootMounted, basePath);
         break;
       }
       default:
         throw new Error(`Unknown command: ${JSON.stringify(cmd)}`);
     }
+  }
+}
+
+export function addRootIfMounted<State>(
+  segment: Segment<State>,
+  rootMiddlewares: MaybeLazyMiddleware<State>[],
+  middlewares: MaybeLazyMiddleware<State>[],
+) {
+  if (
+    segment.parent?.pattern === "<root>" &&
+    segment.pattern.startsWith("<App_")
+  ) {
+    rootMiddlewares.push(...middlewares);
   }
 }

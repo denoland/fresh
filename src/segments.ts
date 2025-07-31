@@ -49,11 +49,10 @@ export function newSegment<State>(
 export function getOrCreateSegment<State>(
   root: Segment<State>,
   path: string,
-  includeLast: boolean,
 ): Segment<State> {
   let current = root;
 
-  const segments = patternToSegments(path, root.pattern, includeLast);
+  const segments = patternToSegments(path, root.pattern);
   for (let i = 0; i < segments.length; i++) {
     const seg = segments[i];
     if (seg === root.pattern) {

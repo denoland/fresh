@@ -90,7 +90,7 @@ export function fsItemsToCommands<State>(
           middlewares = [middlewares];
         }
 
-        commands.push(newMiddlewareCmd(pattern, middlewares, true));
+        commands.push(newMiddlewareCmd(pattern, middlewares));
         continue;
       }
       case CommandType.Layout: {
@@ -100,7 +100,7 @@ export function fsItemsToCommands<State>(
         }
         if (!mod.default) continue;
 
-        commands.push(newLayoutCmd(pattern, mod.default, mod.config, true));
+        commands.push(newLayoutCmd(pattern, mod.default, mod.config));
         continue;
       }
       case CommandType.Error: {
@@ -113,7 +113,6 @@ export function fsItemsToCommands<State>(
             // deno-lint-ignore no-explicit-any
             handler: (handlers as any) ?? undefined,
           },
-          true,
         ));
         continue;
       }
@@ -155,7 +154,12 @@ export function fsItemsToCommands<State>(
         }
 
         commands.push(
-          newRouteCmd(pattern, normalized, config, false),
+          newRouteCmd(
+            pattern,
+            config.routeOverride ?? pattern,
+            normalized,
+            config,
+          ),
         );
         continue;
       }

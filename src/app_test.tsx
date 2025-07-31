@@ -455,6 +455,30 @@ Deno.test("App - .mountApp() fallback route", async () => {
   expect(called).toEqual("Outer_Inner");
 });
 
+Deno.test("App - .mountApp() with error handler", async () => {
+  const innerApp = new App<{ text: string }>()
+    .onError("*", () => new Response("it works"))
+    .get("/", () => {
+      throw new Error("fail");
+    });
+
+  const app = new App<{ text: string }>()
+    .get("/foo", () => new Response("foo"))
+    .use(async (ctx) => {
+      try {
+        return await ctx.next();
+      } catch {
+        return new Response("it doesn't work");
+      }
+    })
+    .mountApp("*", innerApp);
+
+  const server = new FakeServer(app.handler());
+
+  const res = await server.get("/");
+  expect(await res.text()).toEqual("it works");
+});
+
 Deno.test("App - catches errors", async () => {
   let thrownErr: unknown | null = null;
   const app = new App<{ text: string }>()

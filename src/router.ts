@@ -255,10 +255,23 @@ export function pathToPattern(
   return route;
 }
 
+export function removeLastSegment(path: string): string {
+  if (path === "" || path === "/" || path === "*" || path === "/*") {
+    return path;
+  }
+
+  const idx = path.lastIndexOf("/");
+  if (idx === 0) return path[0];
+  else if (idx > -1) {
+    return path.slice(0, idx);
+  }
+
+  return path;
+}
+
 export function patternToSegments(
   path: string,
   root: string,
-  includeLast: boolean = false,
 ): string[] {
   const out: string[] = [root];
 
@@ -277,7 +290,7 @@ export function patternToSegments(
     }
   }
 
-  if (includeLast && start < path.length - 1) {
+  if (start < path.length - 1) {
     out.push(path.slice(start + 1));
   }
 
