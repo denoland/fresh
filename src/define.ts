@@ -21,7 +21,7 @@ export interface Define<State> {
    * import { define } from "../utils.ts";
    *
    * export const handler = define.handlers((ctx) => {
-   *   ctx.url; // ctx is inferred to be a FreshContext object, so this is a URL
+   *   ctx.url; // ctx is inferred to be a Context object, so this is a URL
    *   return new Response("Hello, world!");
    * });
    * ```
@@ -70,7 +70,7 @@ export interface Define<State> {
    * import { define } from "../utils.ts";
    *
    * export default define.page((props) => {
-   *   const slug = props.params.slug; // Because props is inferred to be a FreshContext object, slug is inferred to be a string
+   *   const slug = props.params.slug; // Because props is inferred to be a Context object, slug is inferred to be a string
    *   return <h1>{slug}</h1>;
    * });
    * ```
@@ -124,7 +124,7 @@ export interface Define<State> {
    * import { define } from "../utils.ts";
    *
    * export const middleware = define.middleware((ctx) => {
-   *   ctx.url; // ctx is inferred to be a FreshContext object, so this is a URL
+   *   ctx.url; // ctx is inferred to be a Context object, so this is a URL
    *   return ctx.next();
    * });
    * ```

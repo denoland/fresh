@@ -1,4 +1,4 @@
-import type { FreshContext } from "./context.ts";
+import type { Context } from "./context.ts";
 import type { Method } from "./router.ts";
 
 export interface PageResponse<T> {
@@ -106,7 +106,7 @@ export function isHandlerByMethod<D, S>(
 
 /**
  * A handler function that is invoked when a request is made to a route. The
- * handler function is passed a {@link FreshContext} object that contains the
+ * handler function is passed a {@link Context} object that contains the
  * original request object, as well as any state related to the current request.
  *
  * The handler function can either return a {@link Response} object, which will
@@ -191,7 +191,7 @@ export function isHandlerByMethod<D, S>(
  * ```
  */
 export interface HandlerFn<Data, State> {
-  (ctx: FreshContext<State>):
+  (ctx: Context<State>):
     | Response
     | PageResponse<Data>
     | Promise<Response | PageResponse<Data>>;
