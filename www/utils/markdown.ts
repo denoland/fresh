@@ -3,6 +3,7 @@ import denoJson from "../../deno.json" with { type: "json" };
 export { extractYaml as frontMatter } from "@std/front-matter";
 
 import * as Marked from "marked";
+import { asset } from "fresh/runtime";
 import { escape as escapeHtml } from "@std/html";
 import { mangle } from "marked-mangle";
 import GitHubSlugger from "github-slugger";
@@ -13,6 +14,69 @@ const slugger = new GitHubSlugger();
 Marked.marked.use(mangle());
 
 const ADMISSION_REG = /^\[(info|warn|tip)\]:\s/;
+
+const LOGOS = [
+  {
+    lang: /^tsx?$/,
+    file: /\.tsx?$/,
+    src: asset("/logos/typescript.svg"),
+    text: "Typescript",
+  },
+  {
+    lang: /^css$/,
+    file: /\.css$/,
+    src: asset("/logos/css.svg"),
+    text: "CSS",
+  },
+  {
+    lang: /^html$/,
+    file: /\.html$/,
+    src: asset("/logos/html.svg"),
+    text: "HTML",
+  },
+  {
+    lang: /^jsonc?$/,
+    file: /\.jsonc?$/,
+    src: asset("/logos/json.svg"),
+    text: "JSON",
+  },
+  {
+    lang: /^(sh|bash)$/,
+    file: /\.sh$/,
+    src: asset("/logos/shell.svg"),
+    text: "Terminal (Shell/Bash)",
+  },
+  {
+    lang: /^md$/,
+    file: /\.md$/,
+    src: asset("/logos/markdown.svg"),
+    text: "Markdown",
+  },
+  {
+    lang: /^txt$/,
+    file: /\.txt$/,
+    src: asset("/logos/text.svg"),
+    text: "Text",
+  },
+  {
+    lang: /^diff$/,
+    file: /\.diff$/,
+    src: asset("/logos/diff.svg"),
+    text: "File diff",
+  },
+  {
+    lang: /^gitignore$/,
+    file: /^\.gitignore$/,
+    src: asset("/logos/git.svg"),
+    text: "Git",
+  },
+  {
+    lang: /^dockerfile$/,
+    file: /^Dockerfile$/,
+    src: asset("/logos/docker.svg"),
+    text: "Docker",
+  },
+];
 
 export interface MarkdownHeading {
   id: string;
@@ -95,11 +159,20 @@ class DefaultRenderer extends Marked.Renderer {
       title = match[2] ?? "";
     }
 
+    // Find icon by filename first, then by markdown block language.
+    const icon = LOGOS.find((l) => l.file.test(title)) ??
+      LOGOS.find((l) => l.lang.test(lang));
+
     let out = `<div class="fenced-code">`;
 
-    if (title) {
+    if (title || icon) {
+      const image = icon
+        ? `<img src="${icon.src}" alt="${icon.text}" title="${icon.text}">`
+        : "";
+
       out += `<div class="fenced-code-header">
         <span class="fenced-code-title lang-${lang}">
+          ${image}
           ${title ? escapeHtml(String(title)) : "&nbsp;"}
         </span>
       </div>`;
@@ -139,9 +212,9 @@ class DefaultRenderer extends Marked.Renderer {
       const icon = `<svg class="icon"><use href="/icons.svg#${type}" /></svg>`;
       return `<blockquote class="admonition ${type}">\n<span class="admonition-header">${icon}${
         label[type]
-      }</span>${Marked.parser(tokens)}</blockquote>\n`;
+      }</span>${this.parser.parse(tokens)}</blockquote>\n`;
     }
-    return `<blockquote>\n${Marked.parser(tokens)}</blockquote>\n`;
+    return `<blockquote>\n${this.parser.parse(tokens)}</blockquote>\n`;
   }
 }
 

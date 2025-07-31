@@ -38,7 +38,7 @@ you add a new route.
 If you want to change the port or host, modify the config bag of the `start()`
 call in `main.ts` to include an explicit port number:
 
-```js main.ts
+```ts main.ts
 await start(manifest, { server: { port: 3000 } });
 ```
 

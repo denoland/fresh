@@ -30,7 +30,7 @@ const builder = new Builder({ staticDir: "path/to/staticDir" });
 By default, Fresh adds caching headers for the `src` and `srcset` attributes on
 `<img>` and `<source>` tags.
 
-```jsx
+```tsx
 // Caching headers will be automatically added
 <img src="/user.png" />;
 ```
@@ -38,7 +38,7 @@ By default, Fresh adds caching headers for the `src` and `srcset` attributes on
 You can always opt out of this behaviour per tag, by adding the
 `data-fresh-disable-lock` attribute.
 
-```jsx
+```tsx
 // Opt-out of automatic caching headers
 <img src="/user.png" data-fresh-disable-lock />;
 ```
@@ -48,7 +48,7 @@ You can always opt out of this behaviour per tag, by adding the
 Use the `asset()` function to add caching headers manually. It will be served
 with a cache lifetime of one year.
 
-```jsx
+```tsx
 import { asset } from "fresh/runtime";
 
 // Adding caching headers manually

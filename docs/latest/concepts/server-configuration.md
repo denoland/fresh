@@ -151,7 +151,7 @@ The `basePath` will be automatically applied to absolute links in your app. For
 example, when the `basePath` is `/foo/bar`, linking to `/about` will
 automatically become `/foo/bar/about`.
 
-```jsx
+```tsx
 <a href="/about">About</a>;
 ```
 
