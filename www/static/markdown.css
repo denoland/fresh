@@ -812,11 +812,20 @@ ol.nested li:before {
   border-top-right-radius: 0 !important;
 }
 .fenced-code-title {
+  display: grid;
   font-family:
     ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono",
     "Courier New", monospace;
   font-size: 0.8125rem;
   line-height: 1;
+  grid-auto-flow: column;
+  align-items: center;
+  gap: 0.625rem;
+}
+.fenced-code-title > img {
+  background-color: transparent;
+  margin: -0.2rem 0;
+  width: 1.25rem;
 }
 
 .highlight-source-yml .atrule {
