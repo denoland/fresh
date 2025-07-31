@@ -354,7 +354,7 @@ export function specToName(spec: string): string {
     }
 
     const idx = spec.lastIndexOf("/");
-    return spec.slice(idx + 1);
+    return pathToExportName(spec.slice(idx + 1));
   } else if (spec.startsWith("jsr:")) {
     const match = spec.match(
       /jsr:@([^/]+)\/([^@/]+)(@[\^~]?\d+\.\d+\.\d+([^/]+)?)?(\/.*)?$/,

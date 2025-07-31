@@ -369,7 +369,7 @@ import staticFileData from "./static-files.json" with { type: "json" };
 ${
         islands
           .map((item) => {
-            const spec = pathToSpec(path.relative(outDir, item.server));
+            const spec = pathToSpec(outDir, item.server);
             return `import * as ${item.name} from "${spec}";`;
           })
           .join("\n")
@@ -380,7 +380,7 @@ ${
         this.#fsRoutes.files
           .map((item, i) => {
             if (item.lazy) return null;
-            const spec = pathToSpec(path.relative(outDir, item.filePath));
+            const spec = pathToSpec(outDir, item.filePath);
             return `import * as fsRoute_${i} from "${spec}"`;
           })
           .filter(Boolean)
@@ -423,7 +423,7 @@ ${
 
             let mod = "";
             if (item.lazy) {
-              const spec = pathToSpec(path.relative(outDir, item.filePath));
+              const spec = pathToSpec(outDir, item.filePath);
               mod = `() => import(${JSON.stringify(spec)})`;
             } else {
               mod = `fsRoute_${i}`;
