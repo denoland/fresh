@@ -135,7 +135,7 @@ export async function renderRouteComponent<State>(
     info: ctx.info,
     isPartial: ctx.isPartial,
     params: ctx.params,
-    req: ctx.req,
+    req: ctx.request,
     state: ctx.state,
     url: ctx.url,
   };
