@@ -121,6 +121,26 @@ export default function ErrorPage(props: PageProps) {
 }
 ```
 
+## Update ignored files
+
+The default folder for build assets changed from `<root>/_fresh` to
+`<root>/.fresh`. Thus, the `.gitignore` files should be updated to change the
+path.
+
+```diff .gitignore
+  # Fresh build directory
++ .fresh/
+- _fresh/
+```
+
+It's also possible to keep `_fresh` if preferred by updating the `dev.ts`
+`Builder` configuration.
+
+```diff dev.ts
+- const builder = new Builder();
++ const builder = new Builder({ outDir: "_fresh" });
+```
+
 ## Removal of `<Head>` component
 
 The `<Head>` component was used in Fresh 1.x to add additional tags to the

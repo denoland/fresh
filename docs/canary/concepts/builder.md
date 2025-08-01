@@ -32,7 +32,7 @@ const builder = new Builder({
   // against this if they're relative. (Default: `Deno.cwd()`)
   root?: string;
   // Where to write generated files when doing a production build.
-  // (default: `<root>/_fresh/`)
+  // (default: `<root>/.fresh/`)
   outDir?: string;
   // Path to static file directory. (Default: `<root>/static/`)
   staticDir?: string;
