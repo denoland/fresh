@@ -373,7 +373,7 @@ Deno.test({
     await builder.listen(() => Promise.resolve<App<unknown>>(app), {
       signal: controller.signal,
       async onListen(addr) {
-        const res = await fetch(`http://${addr.hostname}:${addr.port}/invalid`);
+        const res = await fetch(`http://localhost:${addr.port}/invalid`);
 
         const text = await res.text();
         expect(text).toEqual("it works");
