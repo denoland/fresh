@@ -32,7 +32,7 @@ By default, Fresh adds caching headers for the `src` and `srcset` attributes on
 
 ```tsx main.tsx
 // Caching headers will be automatically added
-app.get("/user", () => <img src="/user.png" />);
+app.get("/user", (ctx) => ctx.render(<img src="/user.png" />));
 ```
 
 You can always opt out of this behaviour per tag, by adding the
@@ -40,7 +40,10 @@ You can always opt out of this behaviour per tag, by adding the
 
 ```tsx main.tsx
 // Opt-out of automatic caching headers
-app.get("/user", () => <img src="/user.png" data-fresh-disable-lock />);
+app.get(
+  "/user",
+  (ctx) => ctx.render(<img src="/user.png" data-fresh-disable-lock />),
+);
 ```
 
 ## Adding caching headers manually
