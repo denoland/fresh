@@ -30,7 +30,7 @@
     "test:www": "deno test -A www/main_test.*",
     "release": "deno run -A tools/release.ts"
   },
-  "exclude": ["**/_fresh/*", "**/tmp/*", "*/tests_OLD/**"],
+  "exclude": ["**/.fresh/*", "**/tmp/*", "*/tests_OLD/**"],
   "publish": {
     "include": [
       "src/**",

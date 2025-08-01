@@ -139,7 +139,7 @@ export async function initProject(
 .env.local
 
 # Fresh build directory
-_fresh/
+.fresh/
 # npm + other dependencies
 node_modules/
 vendor/
@@ -158,11 +158,11 @@ ENV DENO_DEPLOYMENT_ID=\${GIT_REVISION}
 WORKDIR /app
 
 COPY . .
-RUN deno cache _fresh/server.js
+RUN deno cache .fresh/server.js
 
 EXPOSE 8000
 
-CMD ["serve", "-A", "_fresh/server.js"]
+CMD ["serve", "-A", ".fresh/server.js"]
 
 `;
     await writeFile("Dockerfile", DOCKERFILE_TEXT);
@@ -507,7 +507,7 @@ if (Deno.args.includes("build")) {
       check: "deno fmt --check . && deno lint . && deno check",
       dev: "deno run -A --watch=static/,routes/ dev.ts",
       build: "deno run -A dev.ts build",
-      start: "deno serve -A _fresh/server.js",
+      start: "deno serve -A .fresh/server.js",
       update: "deno run -A -r jsr:@fresh/update .",
     },
     lint: {
@@ -515,7 +515,7 @@ if (Deno.args.includes("build")) {
         tags: ["fresh", "recommended"],
       },
     },
-    exclude: ["**/_fresh/*"],
+    exclude: ["**/.fresh/*"],
     imports: {
       "fresh": `jsr:@fresh/core@^${FRESH_VERSION}`,
       "preact": `npm:preact@^${PREACT_VERSION}`,
