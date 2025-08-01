@@ -12,6 +12,9 @@ jobs:
       contents: read
       id-token: write
 
+    # Skip publishing for forks
+    if: github.repository_owner == 'denoland'
+
     steps:
       - uses: actions/checkout@v4
 
