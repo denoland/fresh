@@ -1,6 +1,6 @@
 {
   "tasks": {
-    "start": "deno serve -A _fresh/server.js",
+    "start": "deno serve -A .fresh/server.js",
     "dev": "vite",
     "build": "vite build"
   },

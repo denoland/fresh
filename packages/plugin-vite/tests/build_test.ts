@@ -455,7 +455,7 @@ Deno.test({
 
     // Read the generated server.js to check asset paths
     const serverJs = await Deno.readTextFile(
-      path.join(res.tmp, "_fresh", "server.js"),
+      path.join(res.tmp, ".fresh", "server.js"),
     );
 
     // Asset paths should include the base path /my-app/

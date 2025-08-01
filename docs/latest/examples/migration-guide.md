@@ -136,7 +136,7 @@ To launch Fresh in production mode:
 
 ```diff
 - deno run -A main.ts
-+ deno serve -A _fresh/server.js
++ deno serve -A .fresh/server.js
 ```
 
 You'll likely have that command inside your `deno.json` as a task. Update it
@@ -150,7 +150,7 @@ accordingly.
 -     "preview": "deno run -A main.ts"
 +     "dev": "vite",
 +     "build": "vite build",
-+     "preview": "deno serve -A _fresh/server.js"
++     "preview": "deno serve -A .fresh/server.js"
    }
   }
 ```

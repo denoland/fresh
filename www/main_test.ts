@@ -12,7 +12,7 @@ Deno.test("CORS should not set on GET /fresh-badge.svg", async () => {
   await withChildProcessServer(
     {
       cwd: result.tmp,
-      args: ["serve", "-A", "--port", "0", "_fresh/server.js"],
+      args: ["serve", "-A", "--port", "0", ".fresh/server.js"],
     },
     async (address) => {
       const resp = await fetch(`${address}/fresh-badge.svg`);
@@ -29,7 +29,7 @@ Deno.test({
       await withChildProcessServer(
         {
           cwd: result.tmp,
-          args: ["serve", "-A", "--port", "0", "_fresh/server.js"],
+          args: ["serve", "-A", "--port", "0", ".fresh/server.js"],
         },
         async (address) => {
           await withBrowser(async (page) => {
