@@ -697,3 +697,83 @@ Deno.test("App - .get/post/patch/put/delete/head/all() - lazy", async () => {
   res = await server.head("/");
   expect(await res.text()).toEqual("ok");
 });
+
+Deno.test("App - .appWrapper()", async () => {
+  const app = new App()
+    .appWrapper(({ Component }) => (
+      <>
+        app/<Component />
+      </>
+    ))
+    .get("/", (ctx) => ctx.render(<>index</>));
+
+  const server = new FakeServer(app.handler());
+
+  const res = await server.get("/");
+  expect(await res.text()).toContain("<body>app/index<");
+});
+
+Deno.test.ignore("App - .layout()", async () => {
+  const app = new App()
+    .layout("/", ({ Component }) => (
+      <>
+        layout/<Component />
+      </>
+    ))
+    .layout("/foo", ({ Component }) => (
+      <>
+        foo/<Component />
+      </>
+    ))
+    .get("/foo", (ctx) => ctx.render(<>index</>));
+
+  const server = new FakeServer(app.handler());
+
+  // The `/foo` layout is not applied for GET `/foo`, is that correct?
+  const res = await server.get("/foo");
+  expect(await res.text()).toContain("<body>layout/foo/index<");
+});
+
+Deno.test("App - .appWrapper() + .layout()", async () => {
+  const app = new App()
+    .appWrapper(({ Component }) => (
+      <>
+        app/<Component />
+      </>
+    ))
+    .layout("/", ({ Component }) => (
+      <>
+        layout/<Component />
+      </>
+    ))
+    .get("/", (ctx) => ctx.render(<>index</>));
+
+  const server = new FakeServer(app.handler());
+
+  const res = await server.get("/");
+  expect(await res.text()).toContain("<body>app/layout/index<");
+});
+
+Deno.test("App - ctx.render() without app wrapper or layout", async () => {
+  const app = new App()
+    .appWrapper(({ Component }) => (
+      <>
+        app/<Component />
+      </>
+    ))
+    .layout("/", ({ Component }) => (
+      <>
+        layout/<Component />
+      </>
+    ))
+    .get("/", (ctx) =>
+      ctx.render(<>index</>, undefined, {
+        skipAppWrapper: true,
+        skipInheritedLayouts: true,
+      }));
+
+  const server = new FakeServer(app.handler());
+
+  const res = await server.get("/");
+  expect(await res.text()).toContain("<body>index<");
+});
