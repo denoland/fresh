@@ -10,6 +10,7 @@ import {
 import { SpanStatusCode } from "@opentelemetry/api";
 import type { ResolvedFreshConfig } from "./config.ts";
 import type { BuildCache } from "./build_cache.ts";
+import type { LayoutConfig } from "./types.ts";
 import { RenderState, setRenderState } from "./runtime/server/preact_hooks.tsx";
 import { PARTIAL_SEARCH_PARAM } from "./constants.ts";
 import { tracer } from "./otel.ts";
@@ -187,6 +188,7 @@ export class Context<State> {
     // deno-lint-ignore no-explicit-any
     vnode: VNode<any> | null,
     init: ResponseInit | undefined = {},
+    config: LayoutConfig = {},
   ): Promise<Response> {
     if (arguments.length === 0) {
       throw new Error(`No arguments passed to: ctx.render()`);
@@ -194,8 +196,8 @@ export class Context<State> {
       throw new Error(`Non-JSX element passed to: ctx.render()`);
     }
 
-    const defs = this.#internal.layouts;
-    const appDef = this.#internal.app;
+    const defs = config.skipInheritedLayouts ? [] : this.#internal.layouts;
+    const appDef = config.skipAppWrapper ? null : this.#internal.app;
     const props = this as Context<State>;
 
     // Compose final vnode tree
