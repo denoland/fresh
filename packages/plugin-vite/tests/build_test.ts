@@ -15,7 +15,7 @@ Deno.test({
     await withChildProcessServer(
       {
         cwd: res.tmp,
-        args: ["serve", "-A", "--port", "0", "_fresh/server.js"],
+        args: ["serve", "-A", "--port", "0", ".fresh/server.js"],
       },
       async (address) => {
         const res = await fetch(address);
@@ -36,7 +36,7 @@ Deno.test({
     await withChildProcessServer(
       {
         cwd: viteResult.tmp,
-        args: ["serve", "-A", "--port", "0", "_fresh/server.js"],
+        args: ["serve", "-A", "--port", "0", ".fresh/server.js"],
       },
       async (address) => {
         const res = await fetch(`${address}/test_static/foo.txt`);
@@ -57,7 +57,7 @@ Deno.test({
     await withChildProcessServer(
       {
         cwd: res.tmp,
-        args: ["serve", "-A", "--port", "0", "_fresh/server.js"],
+        args: ["serve", "-A", "--port", "0", ".fresh/server.js"],
       },
       async (address) => {
         await withBrowser(async (page) => {
@@ -86,7 +86,7 @@ Deno.test({
     await withChildProcessServer(
       {
         cwd: res.tmp,
-        args: ["serve", "-A", "--port", "0", "_fresh/server.js"],
+        args: ["serve", "-A", "--port", "0", ".fresh/server.js"],
       },
       async (address) => {
         const res = await fetch(`${address}/ok`);
@@ -108,7 +108,7 @@ Deno.test({
     await withChildProcessServer(
       {
         cwd: res.tmp,
-        args: ["serve", "-A", "--port", "0", "_fresh/server.js"],
+        args: ["serve", "-A", "--port", "0", ".fresh/server.js"],
       },
       async (address) => {
         const res = await fetch(`${address}`);
@@ -130,7 +130,7 @@ Deno.test({
     await withChildProcessServer(
       {
         cwd: res.tmp,
-        args: ["serve", "-A", "--port", "0", "_fresh/server.js"],
+        args: ["serve", "-A", "--port", "0", ".fresh/server.js"],
       },
       async (address) => {
         const res = await fetch(`${address}`);
@@ -151,7 +151,7 @@ Deno.test({
     await withChildProcessServer(
       {
         cwd: res.tmp,
-        args: ["serve", "-A", "--port", "0", "_fresh/server.js"],
+        args: ["serve", "-A", "--port", "0", ".fresh/server.js"],
       },
       async (address) => {
         await withBrowser(async (page) => {

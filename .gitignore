@@ -1,4 +1,4 @@
-_fresh/
+.fresh/
 .vite/
 vendor/
 node_modules/

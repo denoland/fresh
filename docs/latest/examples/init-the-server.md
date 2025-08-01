@@ -111,7 +111,7 @@ When you run `deno task build` you should see:
 Task build deno run -A dev.ts build
 i'm logged during initialization, and not during handling!
 The manifest has been generated for 6 routes and 1 islands.
-Assets written to: /path/to/my/project/_fresh
+Assets written to: /path/to/my/project/.fresh
 ```
 
 There's no handling of routes associated with this, but note that the
@@ -124,7 +124,7 @@ Finally when you run `deno task preview` you should see:
 ```txt Terminal output
 Task preview deno run -A main.ts
 i'm logged during initialization, and not during handling!
-Using snapshot found at /Users/reed/code/temp/1763/_fresh
+Using snapshot found at /Users/reed/code/temp/1763/.fresh
 
  🍋 Fresh ready
     Local: http://localhost:8000/

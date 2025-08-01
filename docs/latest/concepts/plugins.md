@@ -138,7 +138,7 @@ The build start hook is called with the
 object, which contains the full Fresh configuration.
 
 This hook may be used to generate precompiled static assets. Any files saved to
-the `static` subfolder of `config.build.outDir` (typically `_fresh`) will be
+the `static` subfolder of `BuildOptions.outDir` (typically `.fresh`) will be
 served the same as other [static files](/docs/concepts/static-files).
 
 ### Hook: `buildEnd`
