@@ -31,5 +31,5 @@ jobs:
         uses: denoland/deployctl@v1
         with:
           project: "fresh"
-          entrypoint: "./www/_fresh/server.js"
+          entrypoint: "./www/.fresh/server.js"
           root: "."
