@@ -102,6 +102,9 @@
       "include": ["no-console"]
     }
   },
+  "unstable": [
+    "temporal"
+  ],
   "fmt": {
     "exclude": ["./www/static/**/*.svg"]
   }
