@@ -85,8 +85,8 @@ const toc: RawTableOfContents = {
           ["daisyui", "daisyUI", "link:canary"],
           ["modifying-the-head", "Modifying the <head>", "link:latest"],
           ["creating-a-crud-api", "Creating a CRUD API", "link:latest"],
+          ["markdown", "Rendering Markdown", "link:canary"],
           ["rendering-raw-html", "Rendering raw HTML", "link:canary"],
-          ["markdown", "Markdown", "link:canary"],
           [
             "sharing-state-between-islands",
             "Sharing state between islands",
