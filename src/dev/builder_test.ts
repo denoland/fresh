@@ -1,7 +1,8 @@
-import { expect } from "@std/expect";
+import { expect, fn } from "@std/expect";
 import * as path from "@std/path";
 import { Builder, specToName } from "./builder.ts";
 import { App } from "../app.ts";
+import { DEV_ERROR_OVERLAY_URL } from "../constants.ts";
 import { BUILD_ID } from "../runtime/build_id.ts";
 import { withTmpDir, writeFiles } from "../test_utils.ts";
 import { withChildProcessServer } from "../../tests/test_utils.tsx";
@@ -377,6 +378,45 @@ Deno.test({
 
         const text = await res.text();
         expect(text).toEqual("it works");
+
+        controller.abort();
+      },
+    });
+
+    // expect(text).toContain("<h1>ok</h1>");
+  },
+  sanitizeOps: false,
+  sanitizeResources: false,
+});
+
+Deno.test({
+  name: "Builder - dev server error_overlay ignores _app and _layout",
+  fn: async () => {
+    const root = path.join(import.meta.dirname!, "..", "..");
+    await using _tmp = await withTmpDir({ dir: root, prefix: "tmp_builder_" });
+    const tmp = _tmp.dir;
+    const appLayoutSpy = fn(() => "app or layout") as () => string;
+
+    const app = new App()
+      .appWrapper(appLayoutSpy)
+      .layout("/", appLayoutSpy);
+
+    const builder = new Builder({
+      root: tmp,
+      outDir: path.join(tmp, "dist"),
+    });
+
+    const controller = new AbortController();
+    await builder.listen(() => Promise.resolve<App<unknown>>(app), {
+      signal: controller.signal,
+      async onListen(addr) {
+        const res = await fetch(
+          `http://localhost:${addr.port}/${DEV_ERROR_OVERLAY_URL}?message=__ok__`,
+        );
+
+        const text = await res.text();
+        expect(text).toMatch(/__ok__/);
+        expect(appLayoutSpy).toHaveBeenCalledTimes(0);
 
         controller.abort();
       },
