@@ -167,6 +167,12 @@ export class Builder<State = any> {
 
     await buildCache.prepare();
 
+    app.config.root = this.config.root;
+    app.config.mode = "development";
+    setBuildCache(app, buildCache);
+
+    const appHandler = app.handler();
+
     const devApp = new App<State>(app.config)
       .use(liveReload())
       .use(devErrorOverlay())
@@ -176,7 +182,7 @@ export class Builder<State = any> {
         await this.#ready.promise;
         return ctx.next();
       })
-      .mountApp("/*", app);
+      .all("*", (ctx) => appHandler(ctx.req, ctx.info));
 
     devApp.config.root = this.config.root;
     devApp.config.mode = "development";

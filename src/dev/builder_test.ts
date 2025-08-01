@@ -354,6 +354,41 @@ export const app = new App().fsRoutes()`,
 });
 
 Deno.test({
+  name: "Builder - dev server doesn't overtake _error handler",
+  fn: async () => {
+    const root = path.join(import.meta.dirname!, "..", "..");
+    await using _tmp = await withTmpDir({ dir: root, prefix: "tmp_builder_" });
+    const tmp = _tmp.dir;
+
+    const app = new App()
+      .onError("*", () => new Response("it works"))
+      .get("/", () => new Response("no"));
+
+    const builder = new Builder({
+      root: tmp,
+      outDir: path.join(tmp, "dist"),
+    });
+
+    const controller = new AbortController();
+    await builder.listen(() => Promise.resolve<App<unknown>>(app), {
+      signal: controller.signal,
+      async onListen(addr) {
+        const res = await fetch(`http://localhost:${addr.port}/invalid`);
+
+        const text = await res.text();
+        expect(text).toEqual("it works");
+
+        controller.abort();
+      },
+    });
+
+    // expect(text).toContain("<h1>ok</h1>");
+  },
+  sanitizeOps: false,
+  sanitizeResources: false,
+});
+
+Deno.test({
   // Currently waiting on bug fixes in @deno/loader
   // to support resolving without passing entry points
   ignore: true,
