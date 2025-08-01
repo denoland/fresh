@@ -382,8 +382,6 @@ Deno.test({
         controller.abort();
       },
     });
-
-    // expect(text).toContain("<h1>ok</h1>");
   },
   sanitizeOps: false,
   sanitizeResources: false,
@@ -421,8 +419,6 @@ Deno.test({
         controller.abort();
       },
     });
-
-    // expect(text).toContain("<h1>ok</h1>");
   },
   sanitizeOps: false,
   sanitizeResources: false,
