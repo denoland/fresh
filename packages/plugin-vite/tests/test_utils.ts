@@ -26,7 +26,9 @@ async function copyDir(from: string, to: string) {
   const entries = walk(from, {
     includeFiles: true,
     includeDirs: false,
-    skip: [/([\\/]+(_fresh|node_modules|vendor)[\\/]+|[\\/]+vite\.config\.ts)/],
+    skip: [
+      /([\\/]+(\.fresh|node_modules|vendor)[\\/]+|[\\/]+vite\.config\.ts)/,
+    ],
   });
 
   for await (const entry of entries) {
@@ -92,12 +94,12 @@ export async function buildVite(fixtureDir: string) {
     environments: {
       ssr: {
         build: {
-          outDir: path.join(tmp.dir, "_fresh", "server"),
+          outDir: path.join(tmp.dir, ".fresh", "server"),
         },
       },
       client: {
         build: {
-          outDir: path.join(tmp.dir, "_fresh", "client"),
+          outDir: path.join(tmp.dir, ".fresh", "client"),
         },
       },
     },

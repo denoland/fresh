@@ -130,7 +130,7 @@ To launch Fresh in production mode:
 
 ```diff
 - deno run -A main.ts
-+ deno serve -A _fresh/server.js
++ deno serve -A .fresh/server.js
 ```
 
 You'll likely have that command inside your `deno.json` as a task. Update it
@@ -138,13 +138,33 @@ accordingly.
 
 ```diff deno.json
   {
-    "tasks":
+    "tasks": {
       "dev": "deno run -A dev.ts",
       "build": "deno run -A dev.ts build",
 -     "preview": "deno run -A main.ts"
-+     "preview": "deno serve -A _fresh/server.js"
-   }
++     "preview": "deno serve -A .fresh/server.js"
+    }
   }
+```
+
+## Update ignored files
+
+The default folder for build assets changed from `<root>/_fresh` to
+`<root>/.fresh`. Thus, the `.gitignore` files should be updated to change the
+path.
+
+```diff .gitignore
+  # Fresh build directory
++ .fresh/
+- _fresh/
+```
+
+It's also possible to keep `_fresh` if preferred by updating the `dev.ts`
+`Builder` configuration.
+
+```diff dev.ts
+- const builder = new Builder();
++ const builder = new Builder({ outDir: "_fresh" });
 ```
 
 ## Removal of `<Head>` component

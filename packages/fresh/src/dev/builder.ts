@@ -48,7 +48,7 @@ export interface BuildOptions {
    *
    * This can be an absolute path, a file URL or a relative path.
    * Relative paths are resolved against the `root` option.
-   * @default "_fresh"
+   * @default ".fresh"
    */
   outDir?: string;
   /**
@@ -118,7 +118,7 @@ export class Builder<State = any> {
   constructor(options?: BuildOptions) {
     const root = parseDirPath(options?.root ?? ".", Deno.cwd());
     const serverEntry = parseDirPath(options?.serverEntry ?? "main.ts", root);
-    const outDir = parseDirPath(options?.outDir ?? "_fresh", root);
+    const outDir = parseDirPath(options?.outDir ?? ".fresh", root);
     const staticDir = parseDirPath(options?.staticDir ?? "static", root);
     const islandDir = parseDirPath(options?.islandDir ?? "islands", root);
     const routeDir = parseDirPath(options?.routeDir ?? "routes", root);
