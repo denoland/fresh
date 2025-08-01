@@ -52,6 +52,7 @@ const middleware = define.middleware(async (ctx) => {
 Fresh ships with the following middlewares built-in:
 
 - [cors()](/docs/canary/plugins/cors) - Set CORS HTTP headers
+- [csrf()](/docs/canary/plugins/cors) - Set CSRF HTTP headers
 - [trailingSlash()](/docs/canary/plugins/trailing-slashes) - Enforce trailing
   slashes
 

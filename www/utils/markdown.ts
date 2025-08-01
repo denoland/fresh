@@ -3,6 +3,7 @@ import denoJson from "../../deno.json" with { type: "json" };
 export { extractYaml as frontMatter } from "@std/front-matter";
 
 import * as Marked from "marked";
+import { HttpError } from "fresh";
 import { asset } from "fresh/runtime";
 import { escape as escapeHtml } from "@std/html";
 import { mangle } from "marked-mangle";
@@ -108,15 +109,18 @@ class DefaultRenderer extends Marked.Renderer {
       .replaceAll(/['](.*?)[']/g, "&#8216;$1&#8217;");
   }
 
-  override heading({
-    tokens,
-    depth,
-    raw,
-  }: Marked.Tokens.Heading): string {
-    let slugInput = tokens.length === 1 && tokens[0].type === "codespan"
-      ? tokens[0].text
-      : raw;
+  override heading({ tokens, depth }: Marked.Tokens.Heading): string {
+    this.#assert(tokens.length > 0, "Markdown heading tokens unexpected value");
 
+    const content = tokens[0];
+    this.#assert(
+      content.type === "text" || content.type === "codespan",
+      "Markdown heading tokens unexpected value",
+    );
+
+    let slugInput = content.text;
+
+    // Rewrites e.g. `.get()` to `get`
     if (/^\..*\(\)$/.test(slugInput)) {
       slugInput = slugInput.slice(1, -2);
     }
@@ -216,6 +220,10 @@ class DefaultRenderer extends Marked.Renderer {
     }
     return `<blockquote>\n${this.parser.parse(tokens)}</blockquote>\n`;
   }
+
+  #assert(expr: unknown, msg: string): asserts expr {
+    if (!expr) throw new Error(msg);
+  }
 }
 
 export interface MarkdownOptions {
@@ -231,9 +239,15 @@ export function renderMarkdown(
     renderer,
   };
 
-  const html = opts.inline
-    ? Marked.parseInline(input, markedOpts) as string
-    : Marked.parse(input, markedOpts) as string;
+  try {
+    const html = opts.inline
+      ? Marked.parseInline(input, markedOpts) as string
+      : Marked.parse(input, markedOpts) as string;
 
-  return { headings: renderer.headings, html };
+    return { headings: renderer.headings, html };
+  } catch (err) {
+    throw new HttpError(500, "Markdown parsing error", {
+      cause: err,
+    });
+  }
 }
