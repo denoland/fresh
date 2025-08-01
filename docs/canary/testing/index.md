@@ -13,7 +13,7 @@ write tests.
 To test [middlewares](/docs/canary/concepts/middleware) we're going to create a
 dummy app and return the relevant info we want to check in a custom `/` handler.
 
-```ts
+```ts middleware.test.ts
 import { expect } from "@std/expect";
 import { App } from "fresh";
 
@@ -43,7 +43,7 @@ that adds a header to the returned response, you can assert against that too.
 Both the [app wrapper](/docs/canary/advanced/app-wrapper) component and
 [layouts](/docs/canary/advanced/layouts) can be tested in the same way.
 
-```tsx
+```tsx routes/_app.test.tsx
 import { expect } from "@std/expect";
 import { App } from "fresh";
 
@@ -77,7 +77,7 @@ Deno.test("App Wrapper - renders title and content", async () => {
 
 Same can be done for layouts.
 
-```tsx
+```tsx routes/_layout.test.tsx
 import { expect } from "@std/expect";
 import { App } from "fresh";
 

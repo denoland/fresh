@@ -12,7 +12,7 @@ If you need to modify requests, add HTTP headers or pass additional data to
 other middlewares via `ctx.state`, then going with a middleware is the way to
 go.
 
-```ts
+```ts middleware/fresh.ts
 const addXFreshHeader = define.middleware(async (ctx) => {
   const res = await ctx.next();
   res.headers.set("X-Fresh", "served by Fresh");

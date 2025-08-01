@@ -14,7 +14,7 @@ can transform markdown to html.
 1. Run `deno install jsr:@deno/gfm`
 2. Create a markdown file like `content.md`:
 
-```md
+```md path/to/content.md
 ## some heading
 
 and some interesting text here
@@ -24,7 +24,7 @@ and some interesting text here
 
 4. Add a route that renders that file
 
-```tsx
+```tsx main.ts
 import { CSS, render as renderMarkdown } from "@deno/gfm";
 
 const CONTENT = `## some heading

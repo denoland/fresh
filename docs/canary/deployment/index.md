@@ -17,7 +17,7 @@ which contains the optimized assets.
 > [info]: The `_fresh` folder should not be committed to git. Exclude it via
 > `.gitignore`.
 >
-> ```sh .gitignore
+> ```gitignore .gitignore
 > # Ignore fresh build directory
 > _fresh/
 > ```

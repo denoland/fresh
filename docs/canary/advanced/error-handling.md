@@ -20,7 +20,7 @@ Fresh supports two kind of error pages:
 
 To add an error page use [`app.onError()`](/docs/canary/concepts/app#onerror).
 
-```ts
+```ts main.ts
 const app = new App()
   .onError("*", (ctx) => {
     console.log(`Error: ${ctx.error}`);
@@ -36,7 +36,7 @@ will be invoked.
 
 You can also nest error pages:
 
-```ts
+```ts main.ts
 const app = new App()
   // Top level error page
   .onError("*", (ctx) => {
@@ -56,7 +56,7 @@ Not found errors are often treated differently than generic errors. You can both
 treat them with the `.onError()` way, but by adding a specific `.notFound()`
 handler, Fresh ensures that every 404 error will invoke this callback.
 
-```ts
+```ts main.ts
 const app = new App()
   // Top level error page
   .notFound((ctx) => {
@@ -73,7 +73,7 @@ middleware. Contrary to generic error pages this handler cannot be nested.
 If you need to bail out of execution and need to respond with a particular HTTP
 error code, you can use Fresh's `HttpError` class.
 
-```ts
+```ts middleware/auth.ts
 import { HttpError } from "fresh";
 
 async function authMiddleware(ctx) {
@@ -90,7 +90,7 @@ async function authMiddleware(ctx) {
 
 You can check the status code of the thrown `HttpError` in your error handler:
 
-```ts
+```ts main.ts
 app.onError((ctx) => {
   if (ctx.error instanceof HttpError) {
     const status = ctx.error.status;

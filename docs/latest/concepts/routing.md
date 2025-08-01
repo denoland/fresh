@@ -61,7 +61,7 @@ suggested by the URL segment.
 
 Let's illustrate that with an example:
 
-```txt
+```txt Example page layout
 /about -> layout A
 /career -> layout A
 /archive -> layout B
@@ -71,7 +71,8 @@ Let's illustrate that with an example:
 Without any way to group routes this is a problem because every route segment
 can only have one `_layout` file.
 
-```txt Project structure
+```txt-files Project structure
+<project root>
 └── routes
     ├── _layout.tsx  # applies to all routes here :(
     ├── about.tsx
@@ -85,8 +86,8 @@ a name that is wrapped in parentheses. For example `(info)` would be considered
 a route group and so would `(marketing)`. This enables us to group related
 routes in a folder and use a different `_layout` file for each group.
 
-```txt Project structure
-└── routes
+```txt-files Project structure
+└── <root>/routes
     ├── (marketing)
     │   ├── _layout.tsx  # only applies to about.tsx and career.tsx
     │   ├── about.tsx
@@ -101,8 +102,8 @@ routes in a folder and use a different `_layout` file for each group.
 > URL. Such scenarios will lead to ambiguity as to which route file should be
 > picked.
 >
-> ```txt Project structure
-> └── routes
+> ```txt-files Project structure
+> └── <root>/routes
 >     ├── (group-1)
 >     │   └── about.tsx  # Bad: Maps to same `/about` url
 >     └── (group-2)
@@ -128,8 +129,8 @@ to house these.
 The one special name is `(_islands)` which tells Fresh to treat all files in
 that folder as an island.
 
-```txt Project structure
-└── routes
+```txt-files Project structure
+└── <root>/routes
     ├── (marketing)
     │   ├── _layout.tsx
     │   ├── about.tsx

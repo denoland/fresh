@@ -24,7 +24,7 @@ if (Deno.args.includes("build")) {
 
 You can customize the builder by passing options.
 
-```ts
+```ts dev.ts
 const builder = new Builder({
   // Browser target for generated code. Maps to https://esbuild.github.io/api/#target
   target?: string | string[];
@@ -57,7 +57,7 @@ const builder = new Builder({
 The builder is where you'll register files that contain islands. This is the
 same API that Fresh uses internally.
 
-```ts
+```ts dev.ts
 const builder = new Builder();
 
 // Path to local island
@@ -72,7 +72,7 @@ builder.registerIsland("jsr:@marvinh-test/fresh-island");
 
 The `Builder` has a very simple processing mechanism for static files.
 
-```ts
+```ts dev.ts
 builder.onTransformStaticFile({
   pluginName: "My cool plugin",
   filter: /\.css$/,

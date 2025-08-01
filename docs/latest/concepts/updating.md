@@ -97,7 +97,7 @@ the recommended way to use JSX in Fresh projects. Instead, starting with version
 1.1.0, Fresh projects should use the automatic JSX transform that requires no
 JSX pragma or preact import.
 
-```diff
+```diff routes/hello-world.tsx
 - /** @jsx h */
 - import { h } from "preact";
 

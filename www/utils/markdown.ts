@@ -53,7 +53,7 @@ const LOGOS = [
     text: "Markdown",
   },
   {
-    lang: /^txt$/,
+    lang: /^txt(-files)?$/,
     file: /\.txt$/,
     src: asset("/logos/text.svg"),
     text: "Text",

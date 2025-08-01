@@ -18,7 +18,7 @@ things get interesting.
 [`FreshConfig`](https://deno.land/x/fresh/server.ts?s=FreshConfig) looks like
 this:
 
-```ts
+```ts fresh 🍋
 export interface FreshConfig {
   build?: {
     /**
@@ -44,7 +44,7 @@ export interface FreshConfig {
 
 And for completeness here are the remaining two types:
 
-```ts
+```ts fresh 🍋
 export type RenderFunction = (
   ctx: RenderContext,
   render: InnerRenderFunction,
@@ -81,7 +81,7 @@ export interface RouterOptions {
 As the comment suggests, this can be used to configure where generated files are
 written:
 
-```tsx
+```tsx dev.ts
 await dev(import.meta.url, "./main.ts", {
   build: {
     outDir: Deno.env.get("FRESH_TEST_OUTDIR") ?? undefined,
@@ -93,7 +93,7 @@ await dev(import.meta.url, "./main.ts", {
 
 This should be a valid ES Build target.
 
-```tsx
+```tsx dev.ts
 await dev(import.meta.url, "./main.ts", {
   build: {
     target: "es2015",

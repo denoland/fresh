@@ -121,9 +121,9 @@ That's it! Now you can use Tailwind CSS in your project.
 > apply. In other words, to use dynamic classes, you need to ensure that they
 > are present in the final CSS file.
 >
-> | Twind                             | Tailwind CSS                                                 |
-> | --------------------------------- | ------------------------------------------------------------ |
-> | `<a class={`link-${color}`}></a>` | `<a class={color === 'blue' ?`link-blue`:`link-green`}></a>` |
+> | Twind                               | Tailwind CSS                                                   |
+> | ----------------------------------- | -------------------------------------------------------------- |
+> | ``<a class={`link-${color}`}></a>`` | ``<a class={color === 'blue' ?`link-blue`:`link-green`}></a>`` |
 
 ## Frequently Asked Questions (FAQ)
 

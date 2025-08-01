@@ -13,7 +13,7 @@ header. to HTTP requests. These allow the server to indicate which origins
 (domains, scheme or port) other than its own is permitted to load resources
 from.
 
-```ts
+```ts main.ts
 const app = new App();
 
 app.use(csrf());

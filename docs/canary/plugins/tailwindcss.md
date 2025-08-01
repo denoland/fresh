@@ -41,7 +41,7 @@ For more information on how to use tailwindcss, check out
 
 You can customize the tailwind plugin via the following options:
 
-```ts
+```ts dev.ts
 tailwind(builder, app, {
   // Exclude certain files from processing
   exclude: ["/admin/**", "*.temp.css"],
