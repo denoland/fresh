@@ -30,6 +30,8 @@ export async function otherMiddleware(ctx: Context<State>): Promise<Response> {
 With define helpers:
 
 ```ts util.ts
+import { createDefine } from "fresh";
+
 // Setup, do this once in a file and import it everywhere else.
 export const define = createDefine<{ foo: string }>();
 ```

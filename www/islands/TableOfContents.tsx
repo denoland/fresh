@@ -31,6 +31,12 @@ function setActiveLink(
   marker.style.cssText = `transform: translate3d(0, ${top}px, 0); opacity: 1`;
 }
 
+function hLevelToClass(level: number): string {
+  if (level === 3) return "ml-4";
+  if (level === 4) return "ml-8";
+  return "";
+}
+
 export function TableOfContents({ headings }: TableOfContentsProps) {
   const ref = useRef<HTMLDivElement>(null);
   const refMarker = useRef<HTMLDivElement>(null);
@@ -127,7 +133,9 @@ export function TableOfContents({ headings }: TableOfContentsProps) {
                         <li key={heading.id}>
                           <a
                             href={`#${heading.id}`}
-                            class="block truncatetext-gray-600 dark:text-gray-400"
+                            class={`block ${
+                              hLevelToClass(heading.level)
+                            } truncate text-gray-600 dark:text-gray-400`}
                             // deno-lint-ignore react-no-danger
                             dangerouslySetInnerHTML={{ __html: heading.html }}
                           />
@@ -159,7 +167,9 @@ export function TableOfContents({ headings }: TableOfContentsProps) {
                         <li key={heading.id}>
                           <a
                             href={`#${heading.id}`}
-                            class="block truncate transition-colors text-gray-600 dark:text-gray-400 [&.active]:text-green-600 dark:[&.active]:text-green-300"
+                            class={`block truncate transition-colors ${
+                              hLevelToClass(heading.level)
+                            } text-gray-600 dark:text-gray-400 [&.active]:text-green-600 dark:[&.active]:text-green-300`}
                             onClick={() => {
                               setActiveLink(
                                 ref.current!,

@@ -82,6 +82,7 @@ const LOGOS = [
 export interface MarkdownHeading {
   id: string;
   html: string;
+  level: number;
 }
 
 class DefaultRenderer extends Marked.Renderer {
@@ -127,7 +128,7 @@ class DefaultRenderer extends Marked.Renderer {
 
     const slug = slugger.slug(slugInput);
     const text = this.parser.parseInline(tokens);
-    this.headings.push({ id: slug, html: text });
+    this.headings.push({ id: slug, html: text, level: depth });
     return `<h${depth} id="${slug}"><a class="md-anchor" tabindex="-1" href="#${slug}">${text}<span aria-hidden="true">#</span></a></h${depth}>`;
   }
 
