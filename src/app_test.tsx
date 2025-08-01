@@ -617,6 +617,26 @@ Deno.test("App - .route() with basePath", async () => {
   expect(res.status).toEqual(200);
 });
 
+Deno.test("App - .all() with *", async () => {
+  const app = new App()
+    .all("*", () => new Response("ok"));
+
+  const server = new FakeServer(app.handler());
+
+  const res = await server.get("/");
+  expect(await res.text()).toEqual("ok");
+});
+
+Deno.test("App - .route() with *", async () => {
+  const app = new App()
+    .route("*", { handler: () => new Response("ok") });
+
+  const server = new FakeServer(app.handler());
+
+  const res = await server.get("/");
+  expect(await res.text()).toEqual("ok");
+});
+
 Deno.test("App - .use() - lazy", async () => {
   const app = new App<{ text: string }>()
     // deno-lint-ignore require-await
