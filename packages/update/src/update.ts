@@ -7,6 +7,7 @@ import { ProgressBar } from "@std/cli/unstable-progress-bar";
 export const SyntaxKind = tsmorph.ts.SyntaxKind;
 
 export const FRESH_VERSION = "2.0.0";
+export const FRESH_LINT_VERSION = "0.0.0";
 export const PREACT_VERSION = "10.27.1";
 export const PREACT_SIGNALS_VERSION = "2.3.1";
 
@@ -104,6 +105,10 @@ export async function updateProject(dir: string) {
     delete config.imports["$fresh/"];
     delete config.imports["@preact/signals-core"];
     delete config.imports["preact-render-to-string"];
+
+    if (config.imports["@fresh/lint"]) {
+      config.imports["@fresh/lint"] = `jsr:@fresh/lint@^${FRESH_LINT_VERSION}`;
+    }
 
     // We should always use a lockfile going forwards
     if ("lock" in config) {
