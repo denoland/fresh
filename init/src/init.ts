@@ -4,6 +4,7 @@ import * as path from "@std/path";
 
 // Keep these as is, as we replace these version in our release script
 const FRESH_VERSION = "2.0.0-alpha.54";
+const FRESH_LINT_VERSION = "0.0.0";
 const FRESH_TAILWIND_VERSION = "0.0.1-alpha.9";
 const PREACT_VERSION = "10.27.0";
 const PREACT_SIGNALS_VERSION = "2.2.1";
@@ -507,6 +508,7 @@ if (Deno.args.includes("build")) {
       update: "deno run -A -r jsr:@fresh/update .",
     },
     lint: {
+      plugins: ["@fresh/lint"],
       rules: {
         tags: ["fresh", "recommended"],
       },
@@ -514,6 +516,7 @@ if (Deno.args.includes("build")) {
     exclude: ["**/_fresh/*"],
     imports: {
       "fresh": `jsr:@fresh/core@^${FRESH_VERSION}`,
+      "@fresh/lint": `jsr:@fresh/lint@^${FRESH_LINT_VERSION}`,
       "preact": `npm:preact@^${PREACT_VERSION}`,
       "@preact/signals": `npm:@preact/signals@^${PREACT_SIGNALS_VERSION}`,
     } as Record<string, string>,
