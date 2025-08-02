@@ -1,0 +1,13 @@
+{
+  "name": "@fresh/lint",
+  "version": "0.0.0",
+  "license": "MIT",
+  "exports": "./src/plugin.ts",
+  "publish": {
+    "include": [
+      "src/**/*.ts",
+      "deno.json",
+      "README.md"
+    ]
+  }
+}

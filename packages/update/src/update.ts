@@ -8,6 +8,7 @@ import { walk } from "@std/fs/walk";
 export const SyntaxKind = tsmorph.ts.SyntaxKind;
 
 export const FRESH_VERSION = "2.2.2";
+export const FRESH_LINT_VERSION = "0.0.0";
 export const PREACT_VERSION = "10.28.3";
 export const PREACT_SIGNALS_VERSION = "2.7.1";
 
@@ -141,6 +142,10 @@ export async function updateProject(dir: string) {
     delete config.imports["$fresh/"];
     delete config.imports["@preact/signals-core"];
     delete config.imports["preact-render-to-string"];
+
+    if (config.imports["@fresh/lint"]) {
+      config.imports["@fresh/lint"] = `jsr:@fresh/lint@^${FRESH_LINT_VERSION}`;
+    }
 
     // We should always use a lockfile going forwards
     if ("lock" in config) {
@@ -290,7 +295,7 @@ export async function updateProject(dir: string) {
   // deno-lint-ignore no-console
   console.log(
     `   Unmodified (no changes needed): ${
-      filesToProcess.length - modifiedFilesList.length
+      userFiles.length - modifiedFilesToShow.length
     }`,
   );
 
