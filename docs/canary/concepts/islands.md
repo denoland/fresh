@@ -29,7 +29,7 @@ An island can be used anywhere like a regular Preact component. Fresh will take
 care of making it interactive on the client.
 
 ```tsx main.tsx
-import MyIsland from "../islands/my-island.tsx";
+import MyIsland from "./islands/my-island.tsx";
 
 const app = new App()
   .get("/", (ctx) => ctx.render(<MyIsland />));
@@ -90,6 +90,10 @@ were present.
 In essence, Fresh allows you to mix static and interactive parts in your app in
 a way that's most optimal for your app. We'll keep sending only the JavaScript
 that is needed for the islands to the browser.
+
+```tsx islands/other-island.tsx
+export default (props: { foo: string }) => <>{props.foo}</>;
+```
 
 ```tsx route/index.tsx
 import MyIsland from "../islands/my-island.tsx";

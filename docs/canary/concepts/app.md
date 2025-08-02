@@ -20,7 +20,7 @@ app.listen();
 All items are applied from top to bottom. This means that when you defined a
 middleware _after_ a `.get()` handler, it won't be included.
 
-```ts main.ts
+```tsx main.tsx
 const app = new App()
   .use((ctx) => {
     // Will be called for all middlewares
@@ -278,9 +278,9 @@ Setting a middleware:
 
 ```ts
 // top level error handler
-app.onError("*", ctx => {
-  return new Response(String(ctx.error), { status: 500 })
-}))
+app.onError("*", (ctx) => {
+  return new Response(String(ctx.error), { status: 500 });
+});
 ```
 
 Setting a route:

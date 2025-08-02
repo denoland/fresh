@@ -252,9 +252,10 @@ function testApp() {
     .get("/", () => new Response("hello"));
   // Applies build snapshot to this app instance.
   applySnapshot(app);
+  return app;
 }
 
-Deno.test("My Test", () => {
+Deno.test("My Test", async () => {
   const handler = testApp().handler();
 
   const response = await handler(new Request("http://localhost"));

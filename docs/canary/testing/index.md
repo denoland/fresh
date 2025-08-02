@@ -19,7 +19,7 @@ import { App } from "fresh";
 
 const middleware = define.middleware((ctx) => {
   ctx.state.text = "middleware text";
-  return await ctx.next();
+  return ctx.next();
 });
 
 Deno.test("My middleware - sets ctx.state.text", async () => {
@@ -124,9 +124,10 @@ function testApp() {
 
   // Applies build snapshot to this app instance.
   applySnapshot(app);
+  return app;
 }
 
-Deno.test("My Test", () => {
+Deno.test("My Test", async () => {
   const handler = testApp().handler();
 
   const response = await handler(new Request("http://localhost"));
