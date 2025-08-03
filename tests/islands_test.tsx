@@ -27,6 +27,7 @@ import type { FreshConfig } from "../src/config.ts";
 import { FreshAttrs } from "./fixtures_islands/FreshAttrs.tsx";
 import { FakeServer } from "../src/test_utils.ts";
 import { PARTIAL_SEARCH_PARAM } from "../src/constants.ts";
+import { ComputedSignal } from "./fixtures_islands/Computed.tsx";
 
 const allIslandCache = await buildProd({ islandDir: ALL_ISLAND_DIR });
 const islandGroupCache = await buildProd({ root: ISLAND_GROUP_DIR });
@@ -119,6 +120,29 @@ Deno.test({
       await page.locator("#counter-1 .increment").click();
       await waitForText(page, "#counter-1 .output", "1");
       await waitForText(page, "#counter-2 .output", "1");
+    });
+  },
+});
+
+Deno.test({
+  // Note that computed signals are detached because we cannot
+  // serialize the whole signal tree at the moment.
+  name: "islands - should serialize computed",
+  fn: async () => {
+    const app = testApp()
+      .get("/", (ctx) => {
+        return ctx.render(
+          <Doc>
+            <ComputedSignal id="comp" />
+          </Doc>,
+        );
+      });
+
+    await withBrowserApp(app, async (page, address) => {
+      await page.goto(address, { waitUntil: "load" });
+      await page.locator("#comp.ready").wait();
+      await page.locator("#comp .trigger").click();
+      await waitForText(page, "#comp .output", "it works");
     });
   },
 });

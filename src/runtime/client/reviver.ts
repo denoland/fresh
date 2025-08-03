@@ -8,7 +8,7 @@ import {
   type VNode,
 } from "preact";
 import { type CustomParser, parse } from "../../jsonify/parse.ts";
-import { signal } from "@preact/signals";
+import { computed, signal } from "@preact/signals";
 import { DATA_FRESH_KEY, PartialMode } from "../shared_internal.tsx";
 
 const enum RootKind {
@@ -128,6 +128,7 @@ export const ISLAND_REGISTRY = new Map<string, ComponentType>();
 
 export const CUSTOM_PARSER: CustomParser = {
   Signal: (value: unknown) => signal(value),
+  Computed: (value: unknown) => computed(() => value),
   Slot: (value: { name: string; id: number }): SlotRef => {
     return { kind: SLOT_SYMBOL, name: value.name, id: value.id };
   },
