@@ -26,6 +26,7 @@ export type Stringifiers = Record<
  * - `array`
  * - `object` (no prototypes)
  * - `Uint8Array`
+ * - `URL`
  * - `Date`
  * - `RegExp`
  * - `Set`
@@ -104,7 +105,9 @@ function serializeInner(
       }
     }
 
-    if (value instanceof Date) {
+    if (value instanceof URL) {
+      str += `["URL","${value.href}"]`;
+    } else if (value instanceof Date) {
       str += `["Date","${value.toISOString()}"]`;
     } else if (value instanceof RegExp) {
       str += `["RegExp",${JSON.stringify(value.source)}, "${value.flags}"]`;
