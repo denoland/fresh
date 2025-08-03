@@ -9,7 +9,7 @@ import {
   options as preactOptions,
   type VNode,
 } from "preact";
-import type { Signal } from "@preact/signals";
+import type { ReadonlySignal, Signal } from "@preact/signals";
 import type { Stringifiers } from "../../jsonify/stringify.ts";
 import type { PageProps } from "../../render.ts";
 import { Partial, type PartialProps } from "../shared.ts";
@@ -362,6 +362,13 @@ function isSignal(x: any): x is Signal {
 }
 
 // deno-lint-ignore no-explicit-any
+function isComputedSignal(x: any): x is ReadonlySignal {
+  return isSignal(x) &&
+    (("x" in x && typeof x.x === "function") ||
+      "_fn" in x && typeof x._fn === "function");
+}
+
+// deno-lint-ignore no-explicit-any
 function isVNode(x: any): x is VNode {
   return x !== null && typeof x === "object" && "type" in x && "ref" in x &&
     "__k" in x &&
@@ -369,6 +376,9 @@ function isVNode(x: any): x is VNode {
 }
 
 const stringifiers: Stringifiers = {
+  Computed: (value: unknown) => {
+    return isComputedSignal(value) ? { value: value.peek() } : undefined;
+  },
   Signal: (value: unknown) => {
     return isSignal(value) ? { value: value.peek() } : undefined;
   },
