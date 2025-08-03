@@ -40,12 +40,15 @@ const app = new App()
 Passing props to islands is supported, but only if the props are serializable.
 Fresh can serialize the following types of values:
 
-- Primitive types `string`, `number`, `boolean`, `bigint`, and `null`
-- `Infinity`, `-Infinity`, and `NaN`
+- Primitive types `string`, `number`, `boolean`, `bigint`, `undefined`, and
+  `null`
+- `Infinity`, `-Infinity`, `-0`, and `NaN`
 - `Uint8Array`
+- `URL`
 - `Date`
 - `RegExp`
 - `JSX` Elements
+- Collections `Map` and `Set`
 - Plain objects with string keys and serializable values
 - Arrays containing serializable values
 - Preact Signals (if the inner value is serializable)

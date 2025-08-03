@@ -32,6 +32,7 @@ const TESTS = [
   [null, undefined, -2],
   { a: 1, b: null, c: -2 },
   new Uint8Array([1, 2, 3]),
+  new URL("https://fresh.deno.dev"),
   new Date("1990-05-31"),
   new Map([[1, null], [undefined, -2]]),
   new Set([1, 2, null, -2, NaN]),
