@@ -40,7 +40,7 @@ export function serverEntryPlugin(
 
       let code = generateServerEntry({
         root,
-        serverEntry,
+        serverEntry: path.toFileUrl(serverEntry).href,
         snapshotSpecifier: "fresh:server-snapshot",
       });
 

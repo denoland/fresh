@@ -91,6 +91,7 @@
     "npm:tailwindcss@^4.1.10": "4.1.11",
     "npm:ts-morph@26": "26.0.0",
     "npm:vite-plugin-inspect@^11.3.2": "11.3.2_vite@7.0.6__@types+node@22.15.15__picomatch@4.0.3_@types+node@22.15.15",
+    "npm:vite@7.0.6": "7.0.6_@types+node@22.15.15_picomatch@4.0.3",
     "npm:vite@^7.0.6": "7.0.6_@types+node@22.15.15_picomatch@4.0.3"
   },
   "jsr": {
