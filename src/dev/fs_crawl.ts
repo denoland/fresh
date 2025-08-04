@@ -122,7 +122,7 @@ export async function walkDir(
 
 export async function crawlFsItem(
   options: { islandDir: string; routeDir: string; ignore: RegExp[] },
-) {
+): Promise<{ islands: string[]; routes: FsRouteFileNoMod<unknown>[] }> {
   const islands: string[] = [];
 
   const [, routes] = await Promise.all([
