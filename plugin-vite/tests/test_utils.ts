@@ -25,7 +25,7 @@ async function copyDir(from: string, to: string) {
   const entries = walk(from, {
     includeFiles: true,
     includeDirs: false,
-    skip: [/[\\/]+(_fresh|node_modules|vendor)[\\/]+/],
+    skip: [/([\\/]+(_fresh|node_modules|vendor)[\\/]+|[\\/]+vite\.config\.ts)/],
   });
 
   for await (const entry of entries) {
