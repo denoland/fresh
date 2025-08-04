@@ -118,6 +118,9 @@ export function deno(): Plugin {
         const { specifier } = parseDenoSpecifier(id);
         actualId = specifier;
       }
+      if (path.isAbsolute(actualId)) {
+        actualId = path.toFileUrl(actualId).href;
+      }
 
       const resolved = await loader.resolve(
         actualId,
