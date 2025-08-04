@@ -527,6 +527,27 @@ export const app = new App().fsRoutes()`,
   sanitizeResources: false,
 });
 
+Deno.test({
+  name: "Builder - generate 'deno compile' entry",
+  fn: async () => {
+    const root = path.join(import.meta.dirname!, "..", "..");
+    await using _tmp = await withTmpDir({ dir: root, prefix: "tmp_builder_" });
+    const tmp = _tmp.dir;
+
+    const app = new App()
+      .get("/", () => new Response("it works"));
+
+    const outDir = path.join(tmp, "dist");
+
+    await new Builder({ root: tmp, outDir }).build();
+
+    const bin = Deno.build.os === "windows" ? "deno.exe" : "deno";
+    const cp = new Deno.Command(bin, { args: ["compile"] });
+  },
+  sanitizeOps: false,
+  sanitizeResources: false,
+});
+
 Deno.test("specToName", () => {
   // HTTP
   expect(specToName("http://example.com")).toEqual("example");
