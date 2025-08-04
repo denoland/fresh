@@ -39,7 +39,7 @@ export function serverEntryPlugin(
       if (id !== `\0${modName}`) return;
 
       let code = generateServerEntry({
-        root,
+        root: path.relative(serverOutDir, root),
         serverEntry: path.toFileUrl(serverEntry).href,
         snapshotSpecifier: "fresh:server-snapshot",
       });

@@ -519,7 +519,7 @@ import { setBuildCache, ProdBuildCache, path } from "fresh/internal";
 import * as snapshot from "${options.snapshotSpecifier}";
 import { app } from "${options.serverEntry}";
 
-const root = "";
+const root = path.join(import.meta.dirname, ${JSON.stringify(options.root)});
 setBuildCache(app, new ProdBuildCache(root, snapshot), "production");
 
 export default {
