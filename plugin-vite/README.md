@@ -5,7 +5,7 @@
 
 ## Usage
 
-1. Run `deno install jsr:@fresh/plugin-vite`
+1. Run `deno install jsr:@fresh/plugin-vite npm:vite`
 2. Ensure that your `deno.json` has the `fresh` import mapping:
 
 ```json
@@ -19,7 +19,7 @@
 3. Update your `vite.config.ts` file:
 
 ```diff
-  import { defineConfig } from "npm:vite@^7.0.6";
+  import { defineConfig } from "vite";
 + import { fresh } from "@fresh/plugin-vite";
   
   export default defineConfig({
@@ -28,3 +28,8 @@
     ],
   });
 ```
+
+4. Update your deno tasks respectively:
+
+- Dev: `vite`
+- Build: `vite build`
