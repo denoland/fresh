@@ -1,10 +1,10 @@
 import * as path from "@std/path";
-import { setBuildId } from "./runtime/build_id.ts";
 import type { Command } from "./commands.ts";
 import { fsItemsToCommands, type FsRouteFile } from "./fs_routes.ts";
 import type { ServerIslandRegistry } from "./context.ts";
 import type { AnyComponent } from "preact";
 import { UniqueNamer } from "./utils.ts";
+import { setBuildId } from "fresh/build-id";
 
 export interface FileSnapshot {
   name: string;
@@ -15,6 +15,7 @@ export interface FileSnapshot {
 
 export interface BuildSnapshot<State> {
   version: string;
+  clientEntry: string;
   fsRoutes: FsRouteFile<State>[];
   staticFiles: Map<string, FileSnapshot>;
   islands: ServerIslandRegistry;
@@ -32,6 +33,10 @@ export interface StaticFile {
 export interface BuildCache<State = any> {
   root: string;
   islandRegistry: ServerIslandRegistry;
+  clientEntry: string;
+  features: {
+    errorOverlay: boolean;
+  };
   getFsRoutes(): Command<State>[];
   readFile(pathname: string): Promise<StaticFile | null>;
 }
@@ -39,11 +44,14 @@ export interface BuildCache<State = any> {
 export class ProdBuildCache<State> implements BuildCache<State> {
   #snapshot: BuildSnapshot<State>;
   islandRegistry: ServerIslandRegistry;
+  clientEntry: string;
+  features = { errorOverlay: false };
 
   constructor(public root: string, snapshot: BuildSnapshot<State>) {
     setBuildId(snapshot.version);
     this.#snapshot = snapshot;
     this.islandRegistry = snapshot.islands;
+    this.clientEntry = snapshot.clientEntry;
   }
 
   getFsRoutes(): Command<State>[] {

@@ -24,7 +24,7 @@ import { automaticWorkspaceFolders } from "./middlewares/automatic_workspace_fol
 import { parseDirPath } from "../config.ts";
 import { pathToExportName, UniqueNamer } from "../utils.ts";
 import { checkDenoCompilerOptions } from "./check.ts";
-import { crawlRouteDir, walkDir } from "./fs_crawl.ts";
+import { crawlFsItem } from "./fs_crawl.ts";
 import { DAY } from "../constants.ts";
 
 export interface BuildOptions {
@@ -169,7 +169,7 @@ export class Builder<State = any> {
 
     app.config.root = this.config.root;
     app.config.mode = "development";
-    setBuildCache(app, buildCache);
+    setBuildCache(app, buildCache, "development");
 
     const appHandler = app.handler();
 
@@ -187,7 +187,7 @@ export class Builder<State = any> {
     devApp.config.root = this.config.root;
     devApp.config.mode = "development";
 
-    setBuildCache(devApp, buildCache);
+    setBuildCache(devApp, buildCache, "development");
 
     // Boot in parallel to spin up the server quicker. We'll hold
     // requests until the required assets are processed.
@@ -248,26 +248,24 @@ export class Builder<State = any> {
     await buildCache.prepare();
 
     return (app) => {
-      setBuildCache(app, buildCache);
+      setBuildCache(app, buildCache, app.config.mode);
     };
   }
 
   async #crawlFsItems() {
-    await Promise.all([
-      walkDir(
-        fsAdapter,
-        this.config.islandDir,
-        (entry) => this.registerIsland(entry.path),
-        this.config.ignore,
-      ),
-      crawlRouteDir(
-        fsAdapter,
-        this.config.routeDir,
-        this.config.ignore,
-        (entry) => this.registerIsland(entry),
-        this.#fsRoutes.files,
-      ),
-    ]);
+    const { islands, routes } = await crawlFsItem(
+      {
+        islandDir: this.config.islandDir,
+        routeDir: this.config.routeDir,
+        ignore: this.config.ignore,
+      },
+    );
+
+    for (let i = 0; i < islands.length; i++) {
+      this.registerIsland(islands[i]);
+    }
+
+    this.#fsRoutes.files = routes;
   }
 
   async #build<T>(buildCache: DevBuildCache<T>, dev: boolean): Promise<void> {

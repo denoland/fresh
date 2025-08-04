@@ -3,7 +3,7 @@ import { Context } from "./context.ts";
 import { App } from "fresh";
 import { asset } from "fresh/runtime";
 import { FakeServer } from "./test_utils.ts";
-import { BUILD_ID } from "./runtime/build_id.ts";
+import { BUILD_ID } from "fresh/build-id";
 import { parseHtml } from "../tests/test_utils.tsx";
 
 Deno.test("FreshReqContext.prototype.redirect", () => {
