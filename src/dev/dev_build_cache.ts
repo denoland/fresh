@@ -365,7 +365,9 @@ export class DiskBuildCache<State> implements DevBuildCache<State> {
       path.join(outDir, "server.js"),
       generateServerEntry({
         root: appPath,
-        serverEntry: path.join(appPath, "main.ts"),
+        serverEntry: path
+          .join(appPath, "main.ts")
+          .replaceAll(/[\\/]+/g, "/"),
         snapshotSpecifier: "./snapshot.js",
       }),
     );
