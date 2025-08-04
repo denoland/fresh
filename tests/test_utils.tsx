@@ -129,7 +129,8 @@ export async function withChildProcessServer(
   let address = "";
   let found = false;
   // @ts-ignore yes it does
-  for await (const line of lines.values({ preventCancel: true })) {
+  for await (const raw of lines.values({ preventCancel: true })) {
+    const line = colors.stripAnsiCode(raw);
     output.push(line);
     const match = line.match(
       /https?:\/\/[^:]+:\d+(\/\w+[-\w]*)*/g,
@@ -149,6 +150,10 @@ export async function withChildProcessServer(
 
   try {
     await fn(address);
+  } catch (err) {
+    // deno-lint-ignore no-console
+    console.log(output);
+    throw err;
   } finally {
     aborter.abort();
     await cp.status;

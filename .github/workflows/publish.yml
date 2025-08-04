@@ -42,6 +42,10 @@ jobs:
         working-directory: ./update
         run: deno publish
 
+      - name: Publish @fresh/plugin-vite
+        working-directory: ./plugin-vite
+        run: deno publish
+
       - name: Publish @fresh/examples
         working-directory: ./examples
         run: deno publish

@@ -9,7 +9,6 @@ import type { Method } from "./router.ts";
 import { parseHtml } from "../tests/test_utils.tsx";
 import type { Context } from "./context.ts";
 import { HttpError } from "./error.ts";
-import type { FsRouteFileNoMod } from "./dev/dev_build_cache.ts";
 import { crawlRouteDir } from "./dev/fs_crawl.ts";
 import * as path from "@std/path";
 
@@ -19,8 +18,7 @@ async function createServer<T>(
   const fs = createFakeFs(files);
 
   const routeDir = path.join(fs.cwd(), "routes");
-  const rawFiles: FsRouteFileNoMod<T>[] = [];
-  await crawlRouteDir(fs, routeDir, [], () => {}, rawFiles);
+  const rawFiles = await crawlRouteDir(fs, routeDir, [], () => {});
 
   const fsFiles = rawFiles.map((file) => {
     // deno-lint-ignore no-explicit-any
@@ -30,8 +28,8 @@ async function createServer<T>(
   const app = new App<T>()
     .fsRoutes();
 
-  const buildCache = new MockBuildCache<T>(fsFiles);
-  setBuildCache<T>(app, buildCache);
+  const buildCache = new MockBuildCache<T>(fsFiles, "development");
+  setBuildCache<T>(app, buildCache, "development");
 
   return new FakeServer(app.handler());
 }
@@ -229,7 +227,9 @@ Deno.test("fsRoutes - middleware array", async () => {
         return ctx.next();
       },
     },
-    "routes/foo/index.ts": { default: (ctx) => <div>{ctx.state.text}</div> },
+    "routes/foo/index.ts": {
+      default: (ctx) => <div class="full-">{ctx.state.text}</div>,
+    },
   });
 
   const res = await server.get("/foo");
