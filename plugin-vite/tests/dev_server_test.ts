@@ -1,7 +1,7 @@
 import * as path from "@std/path";
 import { expect } from "@std/expect";
 import { waitForText, withBrowser } from "../../tests/test_utils.tsx";
-import { DEMO_DIR, updateFile, withDevServer } from "./test_utils.ts";
+import { updateFile, withDevServer } from "./test_utils.ts";
 
 Deno.test({
   name: "vite dev - launches",
@@ -52,7 +52,7 @@ Deno.test({
   name: "vite dev - can apply HMR to islands (hooks)",
   ignore: true, // Test is very flaky
   fn: async () => {
-    await withDevServer(async (address) => {
+    await withDevServer(async (address, dir) => {
       await withBrowser(async (page) => {
         await page.goto(`${address}/tests/island_hooks`, {
           waitUntil: "networkidle2",
@@ -62,7 +62,7 @@ Deno.test({
         await waitForText(page, "button", "count: 1");
 
         const island = path.join(
-          DEMO_DIR,
+          dir,
           "islands",
           "tests",
           "CounterHooks.tsx",
