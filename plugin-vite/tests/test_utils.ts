@@ -69,10 +69,6 @@ export default defineConfig({
 `,
   );
 
-  const cmd = Deno.build.os === "windows" ? "deno.exe" : "deno";
-  await new Deno.Command(cmd, { args: ["install"], cwd: tmp.dir })
-    .output();
-
   await withChildProcessServer(
     tmp.dir,
     ["run", "-A", "npm:vite"],
