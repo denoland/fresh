@@ -4,7 +4,7 @@ export function nodeToRequest(node: IncomingMessage, url: URL): Request {
   const controller = new AbortController();
   node.once("aborted", () => controller.abort());
 
-  let body = undefined;
+  const body = undefined;
 
   if (
     node.method !== "HEAD" && node.method !== "GET" && node.method !== "OPTIONS"
