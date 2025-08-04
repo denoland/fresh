@@ -1,0 +1,27 @@
+{
+  "name": "@fresh/plugin-vite",
+  "version": "0.0.1",
+  "license": "MIT",
+  "exports": {
+    ".": "./src/mod.ts"
+  },
+  "compilerOptions": {
+    "jsx": "precompile",
+    "jsxImportSource": "preact"
+  },
+  "tasks": {
+    "demo": "vite demo",
+    "debug": "deno run -A --inspect-brk npm:vite demo",
+    "demo:build": "vite build demo",
+    "demo:start": "cd demo && deno serve -A _fresh/server/server-entry.mjs"
+  },
+  "imports": {
+    "@deno/loader": "jsr:@deno/loader@^0.3.2",
+    "@prefresh/vite": "npm:@prefresh/vite@^2.4.8",
+    "@types/babel__core": "npm:@types/babel__core@^7.20.5",
+    "@types/node": "npm:@types/node@^24.1.0",
+    "preact": "npm:preact@^10.26.9",
+    "vite": "npm:vite@^7.0.6",
+    "vite-plugin-inspect": "npm:vite-plugin-inspect@^11.3.2"
+  }
+}
