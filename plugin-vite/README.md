@@ -20,7 +20,7 @@
 
 ```diff
   import { defineConfig } from "npm:vite@^7.0.6";
-+ import { fresh } from "fresh/plugin-vite";
++ import { fresh } from "@fresh/plugin-vite";
   
   export default defineConfig({
     plugins: [
