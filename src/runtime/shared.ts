@@ -1,5 +1,5 @@
 import type { ComponentChildren, VNode } from "preact";
-import { BUILD_ID } from "fresh/build-id";
+import { BUILD_ID } from "./build_id.ts";
 import { assetInternal, assetSrcSetInternal } from "./shared_internal.tsx";
 
 /**

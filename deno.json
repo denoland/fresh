@@ -5,7 +5,6 @@
     "./init",
     "./plugin-tailwindcss",
     "./plugin-tailwindcss-v3",
-    "./plugin-vite",
     "./update",
     "./www"
   ],
@@ -15,12 +14,9 @@
   "exports": {
     ".": "./src/mod.ts",
     "./runtime": "./src/runtime/shared.ts",
-    "./runtime-client": "./src/runtime/client/mod.tsx",
     "./dev": "./src/dev/mod.ts",
     "./compat": "./src/compat.ts",
-    "./internal": "./src/internals.ts",
-    "./internal-dev": "./src/internals_dev.ts",
-    "./build-id": "./src/runtime/build_id.ts"
+    "./do-not-use": "./src/internals.ts"
   },
   "tasks": {
     "test": "deno test -A --parallel",
@@ -34,14 +30,7 @@
     "test:www": "deno test -A www/main_test.*",
     "release": "deno run -A tools/release.ts"
   },
-  "exclude": [
-    "**/_fresh/*",
-    "**/tmp/*",
-    "*/tests_OLD/**",
-    "**/vite.config.ts.*",
-    "*/vite.config.ts.*",
-    "vite.config.ts.*"
-  ],
+  "exclude": ["**/_fresh/*", "**/tmp/*", "*/tests_OLD/**"],
   "publish": {
     "include": [
       "src/**",

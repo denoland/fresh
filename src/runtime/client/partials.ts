@@ -329,7 +329,7 @@ export async function applyPartials(res: Response): Promise<void> {
     for (let i = 0; i < json.islands.length; i++) {
       const island = json.islands[i];
       promises.push(
-        import(/* @vite-ignore */ island.chunk).then((mod) => {
+        import(island.chunk).then((mod) => {
           ISLAND_REGISTRY.set(island.name, mod[island.exportName]);
         }),
       );

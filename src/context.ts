@@ -296,3 +296,15 @@ export class Context<State> {
     return new Response(html, responseInit);
   }
 }
+
+Object.defineProperties(Context.prototype, {
+  config: { enumerable: true },
+  url: { enumerable: true },
+  req: { enumerable: true },
+  params: { enumerable: true },
+  state: { enumerable: true },
+  data: { enumerable: true },
+  error: { enumerable: true },
+  next: { enumerable: true },
+  info: { enumerable: true },
+});

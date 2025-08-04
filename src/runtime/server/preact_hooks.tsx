@@ -23,7 +23,7 @@ import {
   setActiveUrl,
 } from "../shared_internal.tsx";
 import type { BuildCache } from "../../build_cache.ts";
-import { BUILD_ID } from "fresh/build-id";
+import { BUILD_ID } from "../build_id.ts";
 import {
   DEV_ERROR_OVERLAY_URL,
   PARTIAL_SEARCH_PARAM,
@@ -433,8 +433,7 @@ export interface PartialStateJson {
 }
 
 function FreshRuntimeScript() {
-  const { islands, nonce, ctx, islandProps, partialId, buildCache } =
-    RENDER_STATE!;
+  const { islands, nonce, ctx, islandProps, partialId } = RENDER_STATE!;
   const basePath = ctx.config.basePath;
 
   const islandArr = Array.from(islands);
@@ -471,11 +470,7 @@ function FreshRuntimeScript() {
         : island.exportName === island.name
         ? `{ ${island.exportName} }`
         : `{ ${island.exportName} as ${island.name} }`;
-
-      const islandSpec = island.file.startsWith(".")
-        ? island.file.slice(1)
-        : island.file;
-      return `import ${named} from "${basePath}${islandSpec}";`;
+      return `import ${named} from "${`${basePath}${island.file}`}";`;
     }).join("");
 
     const islandObj = "{" + islandArr.map((island) => island.name)
@@ -487,12 +482,9 @@ function FreshRuntimeScript() {
       { json: true },
     );
 
-    // const runtimeUrl = `${basePath}/_fresh/js/${BUILD_ID}/fresh-runtime.js`;
-    const runtimeUrl = buildCache.clientEntry.startsWith(".")
-      ? buildCache.clientEntry.slice(1)
-      : buildCache.clientEntry;
+    const runtimeUrl = `${basePath}/_fresh/js/${BUILD_ID}/fresh-runtime.js`;
     const scriptContent =
-      `import { boot } from "${basePath}${runtimeUrl}";${islandImports}boot(${islandObj},${serializedProps});`;
+      `import { boot } from "${runtimeUrl}";${islandImports}boot(${islandObj},${serializedProps});`;
 
     return (
       <>
@@ -504,7 +496,7 @@ function FreshRuntimeScript() {
             __html: scriptContent,
           }}
         />
-        {buildCache.features.errorOverlay ? <ShowErrorOverlay /> : null}
+        {ctx.config.mode === "development" ? <ShowErrorOverlay /> : null}
       </>
     );
   }

@@ -1,6 +1,6 @@
 import { trace } from "@opentelemetry/api";
 
-import { DENO_DEPLOYMENT_ID } from "fresh/build-id";
+import { DENO_DEPLOYMENT_ID } from "./runtime/build_id.ts";
 import * as colors from "@std/fmt/colors";
 import {
   type MaybeLazyMiddleware,
@@ -152,7 +152,6 @@ export let getBuildCache: <State>(app: App<State>) => BuildCache<State> | null;
 export let setBuildCache: <State>(
   app: App<State>,
   cache: BuildCache<State>,
-  mode: "development" | "production",
 ) => void;
 
 /**
@@ -165,9 +164,8 @@ export class App<State> {
 
   static {
     getBuildCache = (app) => app.#getBuildCache();
-    setBuildCache = (app, cache, mode: "development" | "production") => {
+    setBuildCache = (app, cache) => {
       app.config.root = cache.root;
-      app.config.mode = mode;
       app.#getBuildCache = () => cache;
     };
   }
@@ -181,7 +179,7 @@ export class App<State> {
     this.config = {
       root: Deno.cwd(),
       basePath: config.basePath ?? "",
-      mode: config.mode ?? "production",
+      mode: "production",
     };
   }
 
@@ -365,7 +363,7 @@ export class App<State> {
           `Could not find _fresh directory. Maybe you forgot to run "deno task build"?`,
         );
       } else {
-        buildCache = new MockBuildCache([], this.config.mode);
+        buildCache = new MockBuildCache([]);
       }
     }
 
