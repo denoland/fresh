@@ -38,7 +38,9 @@ export async function launchDevServer() {
     addr: `http://localhost:${(addr as AddressInfo).port}`,
     vite: devServer,
     async [Symbol.asyncDispose]() {
-      return await devServer.close();
+      await new Promise((r) => setTimeout(r, 100));
+      await devServer.close();
+      await new Promise((r) => setTimeout(r, 100));
     },
   };
 }
