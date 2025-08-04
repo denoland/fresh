@@ -13,7 +13,7 @@ import { pathWithRoot, type ResolvedFreshViteConfig } from "../utils.ts";
 import * as path from "@std/path";
 import { getBuildId } from "./build_id.ts";
 
-export function serverSnapshot(options: ResolvedFreshViteConfig): Plugin {
+export function serverSnapshot(options: ResolvedFreshViteConfig): Plugin[] {
   const modName = "fresh:server-snapshot";
 
   let isDev = false;
@@ -25,7 +25,10 @@ export function serverSnapshot(options: ResolvedFreshViteConfig): Plugin {
   let root = "";
   let publicDir = "";
 
-  return {
+  const islands = new Map<string, { name: string; chunk: string | null }>();
+  const islandSpecByName = new Map<string, string>();
+
+  return [{
     name: "fresh:server-snapshot",
     applyToEnvironment(env) {
       return env.name === "ssr";
@@ -61,12 +64,13 @@ export function serverSnapshot(options: ResolvedFreshViteConfig): Plugin {
         ignore: options.ignore,
       });
 
-      const islands = new Map<string, { name: string; chunk: string | null }>();
       for (let i = 0; i < result.islands.length; i++) {
         const spec = result.islands[i];
         const specName = specToName(spec);
         const name = namer.getUniqueName(specName);
+
         islands.set(spec, { name, chunk: null });
+        islandSpecByName.set(name, spec);
       }
 
       const staticFiles: PendingStaticFile[] = [];
@@ -86,12 +90,10 @@ export function serverSnapshot(options: ResolvedFreshViteConfig): Plugin {
         }
 
         islandMods = Array.from(islands.entries()).map(([id, def]) => {
-          const url = path.toFileUrl(id);
-
           return {
             name: def.name,
             server: id,
-            browser: def.chunk ?? `/@id/${url.pathname}`,
+            browser: def.chunk ?? `/@id/fresh-island::${def.name}`,
           };
         });
       } else {
@@ -174,5 +176,14 @@ export function serverSnapshot(options: ResolvedFreshViteConfig): Plugin {
 
       return code;
     },
-  };
+  }, {
+    name: "fresh:island-resolver",
+    resolveId(id) {
+      if (id.startsWith("fresh-island::")) {
+        const name = id.slice("fresh-island::".length);
+        const spec = islandSpecByName.get(name);
+        if (spec !== undefined) return spec;
+      }
+    },
+  }];
 }

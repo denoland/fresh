@@ -109,7 +109,7 @@ export function fresh(config?: FreshViteConfig): Plugin[] {
       },
     },
     serverEntryPlugin(fConfig),
-    serverSnapshot(fConfig),
+    ...serverSnapshot(fConfig),
     clientEntryPlugin(),
     clientSnapshot(fConfig),
     buildIdPlugin(),
