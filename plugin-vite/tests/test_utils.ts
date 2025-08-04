@@ -1,7 +1,8 @@
-import type { AddressInfo } from "node:net";
-import { createBuilder, createServer } from "vite";
+import { createBuilder } from "vite";
 import * as path from "@std/path";
+import { walk } from "@std/fs/walk";
 import { withTmpDir } from "../../src/test_utils.ts";
+import { withChildProcessServer } from "../../tests/test_utils.tsx";
 
 export const DEMO_DIR = path.join(import.meta.dirname!, "..", "demo");
 
@@ -20,29 +21,63 @@ export async function updateFile(
   };
 }
 
-export async function launchDevServer() {
-  const server = await createServer({
-    root: DEMO_DIR,
-    clearScreen: false,
-    build: {
-      // Vite types don't match rollup
-      // deno-lint-ignore no-explicit-any
-      watch: false as any,
-    },
+async function copyDir(from: string, to: string) {
+  const entries = walk(from, {
+    includeFiles: true,
+    includeDirs: false,
+    skip: [/[\\/]+(_fresh|node_modules|vendor)[\\/]+/],
   });
 
-  const devServer = await server.listen();
-  const addr = devServer.httpServer?.address();
+  for await (const entry of entries) {
+    if (entry.isFile) {
+      const relative = path.relative(from, entry.path);
+      const target = path.join(to, relative);
 
-  return {
-    addr: `http://localhost:${(addr as AddressInfo).port}`,
-    vite: devServer,
-    async [Symbol.asyncDispose]() {
-      await new Promise((r) => setTimeout(r, 100));
-      await devServer.close();
-      await new Promise((r) => setTimeout(r, 100));
-    },
-  };
+      try {
+        await Deno.mkdir(path.dirname(target), { recursive: true });
+      } catch (err) {
+        if (!(err instanceof Deno.errors.NotFound)) {
+          throw err;
+        }
+      }
+
+      await Deno.copyFile(entry.path, target);
+    }
+  }
+}
+
+export async function withDevServer(
+  fn: (address: string, dir: string) => void | Promise<void>,
+) {
+  await using tmp = await withTmpDir({
+    dir: path.join(import.meta.dirname!, ".."),
+    prefix: "tmp_",
+  });
+
+  await copyDir(DEMO_DIR, tmp.dir);
+
+  await Deno.writeTextFile(
+    path.join(tmp.dir, "vite.config.ts"),
+    `import { defineConfig } from "vite";
+import { fresh } from "@fresh/plugin-vite";
+
+export default defineConfig({
+  plugins: [
+    fresh(),
+  ],
+});
+`,
+  );
+
+  const cmd = Deno.build.os === "windows" ? "deno.exe" : "deno";
+  await new Deno.Command(cmd, { args: ["install"], cwd: tmp.dir })
+    .output();
+
+  await withChildProcessServer(
+    tmp.dir,
+    ["run", "-A", "npm:vite"],
+    (address) => fn(address, tmp.dir),
+  );
 }
 
 export async function buildVite() {

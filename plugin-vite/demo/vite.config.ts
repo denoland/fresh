@@ -1,5 +1,5 @@
-import { defineConfig } from "npm:vite@^7.0.6";
-import { fresh } from "../src/mod.ts";
+import { defineConfig } from "vite";
+import { fresh } from "@fresh/plugin-vite";
 import inspect from "vite-plugin-inspect";
 
 export default defineConfig({
