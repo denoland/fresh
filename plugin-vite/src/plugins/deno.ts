@@ -113,8 +113,14 @@ export function deno(): Plugin {
         return;
       }
 
+      let actualId = id;
+      if (isDenoSpecifier(id)) {
+        const { specifier } = parseDenoSpecifier(id);
+        actualId = specifier;
+      }
+
       const resolved = await loader.resolve(
-        id,
+        actualId,
         undefined,
         ResolutionMode.Import,
       );
