@@ -17,6 +17,7 @@ import {
   type FsRoute,
   MemoryBuildCache,
 } from "./dev_build_cache.ts";
+import { BUILD_ID } from "../runtime/build_id.ts";
 import { updateCheck } from "./update_check.ts";
 import { devErrorOverlay } from "./middlewares/error_overlay/middleware.tsx";
 import { automaticWorkspaceFolders } from "./middlewares/automatic_workspace_folders.ts";
@@ -25,7 +26,6 @@ import { pathToExportName, UniqueNamer } from "../utils.ts";
 import { checkDenoCompilerOptions } from "./check.ts";
 import { crawlFsItem } from "./fs_crawl.ts";
 import { DAY } from "../constants.ts";
-import { BUILD_ID } from "../runtime/build_id.ts";
 
 export interface BuildOptions {
   /**

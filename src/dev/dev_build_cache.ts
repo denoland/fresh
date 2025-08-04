@@ -5,7 +5,6 @@ import {
 } from "../build_cache.ts";
 import * as path from "@std/path";
 import * as pathWin32 from "@std/path/windows";
-import { pathToFileURL } from "node:url";
 import { encodeHex } from "@std/encoding/hex";
 import { fsAdapter } from "../fs.ts";
 import type { FileTransformer } from "./file_transformer.ts";
@@ -394,7 +393,7 @@ export function getContentType(filePath: string): string {
 }
 
 function maybeToFileUrl(file: string) {
-  return file.startsWith("file://") ? file : pathToFileURL(file).href;
+  return file.startsWith("file://") ? file : path.toFileUrl(file).href;
 }
 
 export interface PendingStaticFile {

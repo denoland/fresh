@@ -1,5 +1,6 @@
 import { trace } from "@opentelemetry/api";
 
+import { DENO_DEPLOYMENT_ID } from "fresh/build-id";
 import * as colors from "@std/fmt/colors";
 import {
   type MaybeLazyMiddleware,
@@ -28,7 +29,6 @@ import {
   newRouteCmd,
 } from "./commands.ts";
 import { MockBuildCache } from "./test_utils.ts";
-import { DENO_DEPLOYMENT_ID } from "fresh/build-id";
 
 // TODO: Completed type clashes in older Deno versions
 // deno-lint-ignore no-explicit-any
@@ -75,6 +75,9 @@ function createOnListen(
   options: ListenOptions,
 ): (localAddr: Deno.NetAddr) => void {
   return (params) => {
+    // Don't spam logs with this on live deployments
+    if (DENO_DEPLOYMENT_ID) return;
+
     const pathname = basePath + "/";
     const protocol = "key" in options && options.key && options.cert
       ? "https:"
@@ -176,7 +179,7 @@ export class App<State> {
 
   constructor(config: FreshConfig = {}) {
     this.config = {
-      root: "",
+      root: Deno.cwd(),
       basePath: config.basePath ?? "",
       mode: config.mode ?? "production",
     };

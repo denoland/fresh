@@ -1,8 +1,8 @@
 import type { Middleware } from "./mod.ts";
 import { ASSET_CACHE_BUST_KEY } from "../runtime/shared_internal.tsx";
+import { BUILD_ID } from "fresh/build-id";
 import { tracer } from "../otel.ts";
 import { getBuildCache } from "../context.ts";
-import { BUILD_ID } from "fresh/build-id";
 
 /**
  * Fresh middleware to serve static files from the `static/` directory.
