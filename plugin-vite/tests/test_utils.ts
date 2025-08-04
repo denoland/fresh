@@ -23,6 +23,7 @@ export async function updateFile(
 export async function launchDevServer() {
   const server = await createServer({
     root: DEMO_DIR,
+    clearScreen: false,
     build: {
       // Vite types don't match rollup
       // deno-lint-ignore no-explicit-any
