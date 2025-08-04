@@ -25,6 +25,16 @@ export function devServer(): Plugin[] {
             `${protocol}://${host}:${port}${nodeReq.url ?? "/"}`,
           );
 
+          // Check if it's a vite url
+          if (
+            IGNORE_URLS.test(url.pathname) ||
+            server.environments.client.moduleGraph.urlToModuleMap.has(
+              url.pathname,
+            )
+          ) {
+            return next();
+          }
+
           // Check if it's a static file first
           // FIXME: Should this still go through fresh?
           if (url.pathname !== "/") {
@@ -36,16 +46,6 @@ export function devServer(): Plugin[] {
                 return next(err);
               }
             }
-          }
-
-          // Check if it's a vite url
-          if (
-            IGNORE_URLS.test(url.pathname) ||
-            server.environments.client.moduleGraph.urlToModuleMap.has(
-              url.pathname,
-            )
-          ) {
-            return next();
           }
 
           const mod = await server.ssrLoadModule("fresh:server_entry");

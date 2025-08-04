@@ -86,10 +86,12 @@ export function serverSnapshot(options: ResolvedFreshViteConfig): Plugin {
         }
 
         islandMods = Array.from(islands.entries()).map(([id, def]) => {
+          const url = path.toFileUrl(id);
+
           return {
             name: def.name,
             server: id,
-            browser: def.chunk ?? `/@id/${id}`,
+            browser: def.chunk ?? `/@id/${url.pathname}`,
           };
         });
       } else {
