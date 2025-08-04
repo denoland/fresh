@@ -1,8 +1,6 @@
 import { encodeHex } from "@std/encoding/hex";
 
-export const DENO_DEPLOYMENT_ID: string | undefined = Deno.env.get(
-  "DENO_DEPLOYMENT_ID",
-);
+export const DENO_DEPLOYMENT_ID = Deno.env.get("DENO_DEPLOYMENT_ID");
 const deploymentId = DENO_DEPLOYMENT_ID ||
   // For CI
   Deno.env.get("GITHUB_SHA") ||
@@ -12,8 +10,8 @@ const buildIdHash = await crypto.subtle.digest(
   new TextEncoder().encode(deploymentId),
 );
 
-export let BUILD_ID: string = encodeHex(buildIdHash);
+export let BUILD_ID = encodeHex(buildIdHash);
 
-export function setBuildId(buildId: string): void {
+export function setBuildId(buildId: string) {
   BUILD_ID = buildId;
 }

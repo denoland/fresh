@@ -7,10 +7,6 @@ export interface FreshConfig {
    * @default undefined
    */
   basePath?: string;
-  /**
-   * The mode Fresh can run in.
-   */
-  mode?: "development" | "production";
 }
 
 /**

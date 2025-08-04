@@ -124,8 +124,7 @@ export async function withChildProcessServer(
   let address = "";
   let found = false;
   // @ts-ignore yes it does
-  for await (const raw of lines.values({ preventCancel: true })) {
-    const line = colors.stripAnsiCode(raw);
+  for await (const line of lines.values({ preventCancel: true })) {
     output.push(line);
     const match = line.match(
       /https?:\/\/[^:]+:\d+(\/\w+[-\w]*)*/g,

@@ -3,7 +3,7 @@ import * as path from "@std/path";
 import { Builder, specToName } from "./builder.ts";
 import { App } from "../app.ts";
 import { DEV_ERROR_OVERLAY_URL } from "../constants.ts";
-import { BUILD_ID } from "fresh/build-id";
+import { BUILD_ID } from "../runtime/build_id.ts";
 import { withTmpDir, writeFiles } from "../test_utils.ts";
 import { withChildProcessServer } from "../../tests/test_utils.tsx";
 
@@ -64,7 +64,7 @@ Deno.test({
     await builder.build();
 
     const snapshotJson = await Deno.readTextFile(
-      path.join(tmp, "dist", "snapshot.js"),
+      path.join(tmp, "dist", "static-files.json"),
     );
     expect(snapshotJson).toContain("/images/batman.svg");
   },

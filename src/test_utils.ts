@@ -83,7 +83,7 @@ export function serveMiddleware<T>(
       (() => new Response("not found", { status: 404 }));
     const config = options.config ?? DEFAULT_CONFIG;
     const buildCache = options.buildCache ??
-      new MockBuildCache<T>([], options.config?.mode ?? "production");
+      new MockBuildCache<T>([]);
 
     const ctx = new Context<T>(
       req,
@@ -149,12 +149,9 @@ export async function withTmpDir(
 export class MockBuildCache<State> implements BuildCache<State> {
   #files: FsRouteFile<State>[];
   root = "";
-  clientEntry = "";
   islandRegistry: ServerIslandRegistry = new Map();
-  features = { errorOverlay: false };
 
-  constructor(files: FsRouteFile<State>[], mode: "development" | "production") {
-    this.features.errorOverlay = mode === "development";
+  constructor(files: FsRouteFile<State>[]) {
     this.#files = files;
   }
 
