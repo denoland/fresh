@@ -139,15 +139,13 @@ export const define = createDefine<State>();
 import { define } from "../utils.ts";
 
 export default define.page(function AboutPage(ctx) {
-  GET(ctx) {
-    // Set a route specific data in a handler
-    ctx.state.title = "About Me";
-    return (
-      <div>
-        <h1>About Me</h1>
-      </div>
-    );
-  },
+  // Set a route specific data in a handler
+  ctx.state.title = "About Me";
+  return (
+    <div>
+      <h1>About Me</h1>
+    </div>
+  );
 });
 
 // Render that in _app.tsx
