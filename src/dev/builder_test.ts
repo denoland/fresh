@@ -453,8 +453,7 @@ export const app = new App()
     await new Builder({ root: tmp }).build();
 
     await withChildProcessServer(
-      tmp,
-      ["serve", "-A", "_fresh/server.js"],
+      { cwd: tmp, args: ["serve", "-A", "_fresh/server.js"] },
       async (address) => {
         let res = await fetch(`${address}/foo.txt`);
         expect(await res.text()).toEqual("ok");
