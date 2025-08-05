@@ -79,10 +79,6 @@ hr {
   border-color: hsl(from var(--color-foreground-secondary) h s l / 0.1);
 }
 
-.dark-mode-toggle-button img {
-  fill: var(--color-foreground-primary);
-}
-
 ::selection {
   background-color: #b1d5ff;
 }
