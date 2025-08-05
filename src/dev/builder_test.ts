@@ -705,7 +705,7 @@ Deno.test({
           "fresh": "jsr:@fresh/core@*",
           "preact": "npm:preact@*",
           "@preact/signals": "npm:@preact/signals@*",
-          "mime-db": "npm:mime-db:@*",
+          "mime-db": "npm:mime-db@*",
         },
       }),
       "islands/Foo.tsx": `import * as mime from "mime-db"
