@@ -5,7 +5,10 @@ import { App } from "../app.ts";
 import { DEV_ERROR_OVERLAY_URL } from "../constants.ts";
 import { BUILD_ID } from "../runtime/build_id.ts";
 import { withTmpDir, writeFiles } from "../test_utils.ts";
-import { withChildProcessServer } from "../../tests/test_utils.tsx";
+import {
+  getStdOutput,
+  withChildProcessServer,
+} from "../../tests/test_utils.tsx";
 
 Deno.test({
   name: "Builder - chain onTransformStaticFile",
@@ -522,6 +525,64 @@ export const app = new App().fsRoutes()`,
 
     expect(json.sourcesContent.length).toBeGreaterThan(0);
     expect(json.sourcesContent.length).toBeGreaterThan(0);
+  },
+  sanitizeOps: false,
+  sanitizeResources: false,
+});
+
+Deno.test({
+  name: "Builder - compile entry",
+  fn: async () => {
+    const root = path.join(import.meta.dirname!, "..", "..");
+    await using _tmp = await withTmpDir({ dir: root, prefix: "tmp_builder_" });
+    await using _outDir = await withTmpDir();
+    const tmp = _tmp.dir;
+
+    await writeFiles(tmp, {
+      "islands/Foo.tsx": `export const Foo = () => <h1>hello</h1>`,
+      "routes/index.ts": `export const handler = () => new Response("ok")`,
+      "static/foo.txt": "ok",
+      "main.ts": `import { App, staticFiles } from "fresh";
+export const app = new App()
+  .use(staticFiles())
+  .fsRoutes();`,
+    });
+
+    const builder = new Builder({
+      root: tmp,
+    });
+    await builder.build();
+
+    const outBin = path.join(_outDir.dir, "fresh-compiled");
+    const bin = Deno.build.os === "windows" ? "deno.exe" : "deno";
+    const cp = await new Deno.Command(bin, {
+      args: [
+        "compile",
+        "-A",
+        "--include",
+        "static/",
+        "--include",
+        "_fresh",
+        "--output",
+        outBin,
+        path.join("_fresh", "compiled-entry.js"),
+      ],
+      cwd: tmp,
+    }).output();
+
+    const { stderr, stdout } = getStdOutput(cp);
+    // deno-lint-ignore no-console
+    console.log(stdout);
+    // deno-lint-ignore no-console
+    console.log(stderr);
+
+    await withChildProcessServer(_outDir.dir, [], async (address) => {
+      let res = await fetch(address);
+      expect(await res.text()).toEqual("ok");
+
+      res = await fetch(`${address}/foo.txt`);
+      expect(await res.text()).toEqual("ok");
+    }, outBin);
   },
   sanitizeOps: false,
   sanitizeResources: false,

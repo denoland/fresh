@@ -99,9 +99,10 @@ export async function withChildProcessServer(
   dir: string,
   args: string[],
   fn: (address: string) => void | Promise<void>,
+  bin = Deno.execPath(),
 ) {
   const aborter = new AbortController();
-  const cp = await new Deno.Command(Deno.execPath(), {
+  const cp = await new Deno.Command(bin, {
     args,
     stdin: "null",
     stdout: "piped",
