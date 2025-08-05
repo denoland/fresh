@@ -96,18 +96,23 @@ export async function withBrowser(fn: (page: Page) => void | Promise<void>) {
 }
 
 export async function withChildProcessServer(
-  dir: string,
-  args: string[],
+  options: {
+    cwd: string;
+    args: string[];
+    bin?: string;
+    env?: Record<string, string>;
+  },
   fn: (address: string) => void | Promise<void>,
 ) {
   const aborter = new AbortController();
-  const cp = await new Deno.Command(Deno.execPath(), {
-    args,
+  const cp = await new Deno.Command(options.bin ?? Deno.execPath(), {
+    args: options.args,
     stdin: "null",
     stdout: "piped",
     stderr: "piped",
-    cwd: dir,
+    cwd: options.cwd,
     signal: aborter.signal,
+    env: options.env,
   }).spawn();
 
   const linesStdout: ReadableStream<string> = cp.stdout

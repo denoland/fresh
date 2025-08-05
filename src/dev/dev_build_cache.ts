@@ -453,6 +453,16 @@ export default {
   fetch: app.handler()
 }`,
     );
+
+    await Deno.writeTextFile(
+      path.join(outDir, "compiled-entry.js"),
+      `import fetcher from "./server.js";
+
+Deno.serve(
+  { port: Deno.env.get("PORT"), hostname: Deno.env.get("HOSTNAME") },
+  fetcher.fetch
+);`,
+    );
   }
 }
 
