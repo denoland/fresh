@@ -25,7 +25,7 @@ if (Deno.args.includes("build")) {
 ```ts main.ts
 import { App, staticFiles } from "fresh";
 
-const app = new App({ root: import.meta.url })
+const app = new App({ basePath: "/foo" })
   .use(staticFiles())
   .fsRoutes(); // This inserts all file based routes here
 ```

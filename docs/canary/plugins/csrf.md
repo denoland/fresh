@@ -14,6 +14,8 @@ header. to HTTP requests. These allow the server to indicate which origins
 from.
 
 ```ts main.ts
+import { app, csrf } from "fresh";
+
 const app = new App();
 
 app.use(csrf());

@@ -13,8 +13,8 @@ web applications.
 import { App } from "fresh";
 
 const app = new App()
-  .get("/", () => new Response("hello world"));
-  .get("/jsx", ctx => ctx.render(<h1>render JSX!</h1>));
+  .get("/", () => new Response("hello world"))
+  .get("/jsx", (ctx) => ctx.render(<h1>render JSX!</h1>));
 
 app.listen();
 ```

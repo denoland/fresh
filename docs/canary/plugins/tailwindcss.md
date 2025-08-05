@@ -60,7 +60,7 @@ decided on your own when it's best to update to v4.
 
 ```ts dev.ts
 import { Builder } from "fresh/dev";
-import { tailwind } from "@fresh/plugin-tailwindcss-v3";
+import { tailwind } from "@fresh/plugin-tailwind-v3";
 
 tailwind(builder, {});
 ```

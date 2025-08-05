@@ -235,15 +235,16 @@ export function renderMarkdown(
   opts: MarkdownOptions = {},
 ): { headings: MarkdownHeading[]; html: string } {
   const renderer = new DefaultRenderer();
-  const markedOpts: Marked.MarkedOptions = {
+  const markedOpts: Marked.MarkedOptions & { async: false } = {
     gfm: true,
+    async: false,
     renderer,
   };
 
   try {
     const html = opts.inline
-      ? Marked.parseInline(input, markedOpts) as string
-      : Marked.parse(input, markedOpts) as string;
+      ? Marked.parseInline(input, markedOpts)
+      : Marked.parse(input, markedOpts);
 
     return { headings: renderer.headings, html };
   } catch (err) {

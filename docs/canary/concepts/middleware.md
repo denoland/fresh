@@ -80,7 +80,7 @@ const middleware1 = define.middleware(async (ctx) => {
   return await ctx.next();
 });
 
-const middleware1 = define.middleware(async (ctx) => {
+const middleware2 = define.middleware(async (ctx) => {
   console.log("B");
   return await ctx.next();
 });
