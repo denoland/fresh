@@ -9,6 +9,7 @@ import {
   getStdOutput,
   withChildProcessServer,
 } from "../../tests/test_utils.tsx";
+import { staticFiles } from "../middlewares/static_files.ts";
 
 Deno.test({
   name: "Builder - chain onTransformStaticFile",
@@ -383,6 +384,85 @@ Deno.test({
         controller.abort();
       },
     });
+  },
+  sanitizeOps: false,
+  sanitizeResources: false,
+});
+
+Deno.test({
+  name: "Builder - serves static files in subdir",
+  fn: async () => {
+    const root = path.join(import.meta.dirname!, "..", "..");
+    await using _tmp = await withTmpDir({ dir: root, prefix: "tmp_builder_" });
+    const tmp = _tmp.dir;
+
+    const app = new App()
+      .use(staticFiles())
+      .get("/", () => new Response("no"));
+
+    await writeFiles(tmp, {
+      "static/foo.txt": "ok",
+      "static/test/foo.txt": "ok",
+    });
+
+    const builder = new Builder({
+      root: tmp,
+    });
+
+    const controller = new AbortController();
+    const waiter = Promise.withResolvers<void>();
+    await builder.listen(() => Promise.resolve<App<unknown>>(app), {
+      signal: controller.signal,
+      async onListen(addr) {
+        try {
+          let res = await fetch(`http://localhost:${addr.port}/foo.txt`);
+          expect(await res.text()).toEqual("ok");
+
+          res = await fetch(`http://localhost:${addr.port}/test/foo.txt`);
+          expect(await res.text()).toEqual("ok");
+
+          controller.abort();
+          waiter.resolve();
+        } catch (err) {
+          waiter.reject(err);
+        }
+      },
+    });
+
+    await waiter.promise;
+  },
+  sanitizeOps: false,
+  sanitizeResources: false,
+});
+
+Deno.test({
+  name: "Builder - serves static files in subdir in prod",
+  fn: async () => {
+    const root = path.join(import.meta.dirname!, "..", "..");
+    await using _tmp = await withTmpDir({ dir: root, prefix: "tmp_builder_" });
+    const tmp = _tmp.dir;
+
+    await writeFiles(tmp, {
+      "main.ts": `import { App, staticFiles } from "fresh";
+export const app = new App()
+  .use(staticFiles());`,
+      "static/foo.txt": "ok",
+      "static/test/foo.txt": "ok",
+    });
+
+    await new Builder({ root: tmp }).build();
+
+    await withChildProcessServer(
+      tmp,
+      ["serve", "-A", "_fresh/server.js"],
+      async (address) => {
+        let res = await fetch(`${address}/foo.txt`);
+        expect(await res.text()).toEqual("ok");
+
+        res = await fetch(`${address}/test/foo.txt`);
+        expect(await res.text()).toEqual("ok");
+      },
+    );
   },
   sanitizeOps: false,
   sanitizeResources: false,
