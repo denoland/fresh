@@ -128,33 +128,44 @@ The `<Head>` component was used in Fresh 1.x to add additional tags to the
 removed in preparation and due to performance concerns as it required a complex
 machinery in the background to work.
 
-Instead, passing head-related data is best done via `ctx.state`
+Instead, passing head-related data is best done via `ctx.state`, which can be
+easily set through the [define helper](/docs/canary/advanced/define).
 
-```tsx routes/about.tsx
-export const handler = {
-  GET(ctx) {
-    // Set a route specific data in a handler
-    ctx.state.title = "About Me";
-    return page();
-  },
-};
-```
+```tsx
+// utils.ts
+export interface State {
+  title?: string;
+}
+export const define = createDefine<State>();
 
-```tsx routes/_app.tsx
-export default function AppWrapper(ctx: Context) {
+// routes/about.tsx
+import { define } from "../utils.ts";
+
+export default define.page(function AboutPage(ctx) {
+  // Set a route specific data in a handler
+  ctx.state.title = "About Me";
+  return (
+    <div>
+      <h1>About Me</h1>
+    </div>
+  );
+});
+
+// Render that in _app.tsx
+export default define.page(function App({ Component, state }) {
   return (
     <html lang="en">
       <head>
         <meta charset="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        {ctx.state.title ? <title>{ctx.state.title}</title> : null}
+        {state.title ? <title>{state.title}</title> : null}
       </head>
       <body>
-        <ctx.Component />
+        <Component />
       </body>
     </html>
   );
-}
+});
 ```
 
 ## Update deployment settings
