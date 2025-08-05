@@ -3,6 +3,7 @@
   "workspace": [
     "./examples",
     "./init",
+    "./lint",
     "./plugin-tailwindcss",
     "./plugin-tailwindcss-v3",
     "./update",
@@ -13,8 +14,8 @@
   "license": "MIT",
   "exports": {
     ".": "./src/mod.ts",
-    "./runtime": "./src/runtime/shared.ts",
     "./dev": "./src/dev/mod.ts",
+    "./runtime": "./src/runtime/shared.ts",
     "./compat": "./src/compat.ts",
     "./do-not-use": "./src/internals.ts"
   },
