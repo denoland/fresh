@@ -302,8 +302,7 @@ export const app = new App().fsRoutes()`,
 
     let text = "fail";
     await withChildProcessServer(
-      tmp,
-      ["serve", "-A", "dist/server.js"],
+      { cwd: tmp, args: ["serve", "-A", "dist/server.js"] },
       async (address) => {
         const res = await fetch(`${address}/foo`);
         text = await res.text();
@@ -343,8 +342,7 @@ export const app = new App().fsRoutes()`,
 
     let text = "fail";
     await withChildProcessServer(
-      tmp,
-      ["serve", "-A", "dist/server.js"],
+      { cwd: tmp, args: ["serve", "-A", "dist/server.js"] },
       async (address) => {
         const res = await fetch(address);
         text = await res.text();
@@ -459,8 +457,7 @@ export const app = new App().fsRoutes()`,
 
     let text = "fail";
     await withChildProcessServer(
-      tmp,
-      ["serve", "-A", "dist/server.js"],
+      { cwd: tmp, args: ["serve", "-A", "dist/server.js"] },
       async (address) => {
         const res = await fetch(address);
         text = await res.text();
@@ -539,6 +536,19 @@ Deno.test({
     const tmp = _tmp.dir;
 
     await writeFiles(tmp, {
+      "deno.json": JSON.stringify({
+        links: [path.relative(tmp, root)],
+        workspace: [],
+        compilerOptions: {
+          jsx: "react-jsx",
+          jsxImportSource: "preact",
+        },
+        imports: {
+          "fresh": "jsr:@fresh/core@*",
+          "preact": "npm:preact@*",
+          "@preact/signals": "npm:@preact/signals@*",
+        },
+      }),
       "islands/Foo.tsx": `export const Foo = () => <h1>hello</h1>`,
       "routes/index.ts": `export const handler = () => new Response("ok")`,
       "static/foo.txt": "ok",
@@ -576,13 +586,21 @@ export const app = new App()
     // deno-lint-ignore no-console
     console.log(stderr);
 
-    await withChildProcessServer(_outDir.dir, [], async (address) => {
+    await withChildProcessServer({
+      bin: outBin,
+      cwd: _outDir.dir,
+      args: [],
+      env: {
+        PORT: "0",
+        HOSTNAME: "127.0.0.1",
+      },
+    }, async (address) => {
       let res = await fetch(address);
       expect(await res.text()).toEqual("ok");
 
       res = await fetch(`${address}/foo.txt`);
       expect(await res.text()).toEqual("ok");
-    }, outBin);
+    });
   },
   sanitizeOps: false,
   sanitizeResources: false,

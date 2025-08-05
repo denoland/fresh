@@ -11,5 +11,10 @@ platform without requiring Deno to be installed.
 # Build your app first
 $ deno task build
 # Generate self-contained executable
-deno compile --include static --include _fresh --include deno.json -A _fresh/compiled-entry.js
+deno compile --include static --include _fresh --include deno.json -A my-app _fresh/compiled-entry.js
 ```
+
+The compiled entry supports two environment variables out of the box:
+
+- `PORT` to set the port number (`PORT=4000 my-app`)
+- `HOSTNAME` to set the host name number (`HOSTNAME=4000 my-app`)

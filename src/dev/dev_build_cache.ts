@@ -458,7 +458,10 @@ export default {
       path.join(outDir, "compiled-entry.js"),
       `import fetcher from "./server.js";
 
-Deno.serve(fetcher.fetch);`,
+Deno.serve(
+  { port: Deno.env.get("PORT"), hostname: Deno.env.get("HOSTNAME") },
+  fetcher.fetch
+);`,
     );
   }
 }
