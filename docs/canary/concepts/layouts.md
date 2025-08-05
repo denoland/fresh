@@ -7,7 +7,8 @@ A layout is defined in a `_layout.tsx` file in any sub directory (at any level)
 under the `routes/` folder. It must contain a default export that is a regular
 Preact component. Only one such layout is allowed per sub directory.
 
-```txt Project structure
+```txt-files Project structure
+<project root>
 └── routes
     ├── sub
     │   ├── page.tsx
@@ -85,8 +86,8 @@ Sometimes you want to opt out of the layout inheritance mechanism for a
 particular route. This can be done via route configuration. Picture a directory
 structure like this:
 
-```txt Project structure
-└── routes
+```txt-files Project structure
+└── <root>/routes
     ├── sub
     │   ├── _layout_.tsx
     │   ├── special.tsx  # should not inherit layouts

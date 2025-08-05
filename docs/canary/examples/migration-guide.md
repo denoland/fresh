@@ -16,7 +16,7 @@ Use this guide to migrate a Fresh 1.x app to Fresh 2.
 Most changes can be applied automatically with the update script. Start the
 update by running it in your project directory:
 
-```sh
+```sh Terminal
 deno run -Ar jsr:@fresh/update
 ```
 
@@ -29,12 +29,13 @@ Configuring Fresh doesn't require a dedicated config file anymore. You can
 delete the `fresh.config.ts` file. The `fresh.gen.ts` manifest file isn't needed
 anymore either.
 
-```diff
-  routes/
-  dev.ts
-- fresh.gen.ts
-- fresh.config.ts
-  main.ts
+```diff Project structure
+  <project root>
+  ├── routes/
+  ├── dev.ts
+- ├── fresh.gen.ts
+- ├── fresh.config.ts
+  └── main.ts
 ```
 
 Fresh 2 takes great care in ensuring that code that's only needed during
@@ -50,7 +51,7 @@ plugins like [tailwindcss](https://tailwindcss.com/).
 
 The full `dev.ts` file for newly generated Fresh 2 projects looks like this:
 
-```ts
+```ts dev.ts
 import { Builder } from "fresh/dev";
 import { tailwind } from "@fresh/plugin-tailwind";
 
@@ -70,14 +71,16 @@ if (Deno.args.includes("build")) {
 }
 ```
 
+> [info]: Fresh 1.x used Tailwind CSS v3. To keep using v3 use the
+> `@fresh/plugin-tailwind-v3` instead.
+
 ### Updating `main.ts`
 
 Similarly, configuration related to running Fresh in production can be passed to
 `new App()`:
 
-```ts
-// main.ts
-import { App, fsRoutes, staticFiles } from "fresh";
+```ts main.ts
+import { App, staticFiles } from "fresh";
 
 export const app = new App()
   // Add static file serving middleware
@@ -91,18 +94,18 @@ export const app = new App()
 Both the `_500.tsx` and `_404.tsx` template have been unified into a single
 `_error.tsx` template.
 
-```diff
-  routes/
--   ├── _404.tsx
--   ├── _500.tsx
-+   ├── _error.tsx
-    └── ...
+```diff Project structure
+  └── <root>/routes/
+-     ├── _404.tsx
+-     ├── _500.tsx
++     ├── _error.tsx
+      └── ...
 ```
 
 Inside the `_error.tsx` template you can show different content based on errors
 or status codes with the following code:
 
-```tsx
+```tsx routes/_error.tsx
 export default function ErrorPage(props: PageProps) {
   const error = props.error; // Contains the thrown Error or HTTPError
   if (error instanceof HttpError) {
@@ -178,7 +181,7 @@ The handling trailing slashes has been extracted to an optional middleware that
 you can add if needed. This middleware can be used to ensure that URLs always
 have a trailing slash at the end or that they will never have one.
 
-```diff
+```diff main.ts
 -  import { App, staticFiles } from "fresh";
 +  import { App, staticFiles, trailingSlashes } from "fresh";
 
@@ -199,14 +202,14 @@ Middleware, handler and route component signatures have been unified to all look
 the same. Instead of receiving two arguments, they receive one. The `Request`
 object is stored on the context object as `ctx.req`.
 
-```diff
+```diff middleware.ts
 - const middleware = (req, ctx) => new Response("ok");
 + const middleware = (ctx) => new Response("ok");
 ```
 
 Same is true for handlers:
 
-```diff
+```diff route/page.tsx
   export const handler = {
 -   GET(req, ctx) {
 +   GET(ctx) {
@@ -217,7 +220,7 @@ Same is true for handlers:
 
 ...and async route components:
 
-```diff
+```diff routes/my-page.tsx
 -  export default async function MyPage(req: Request, ctx: RouteContext) {
 +  export default async function MyPage(props: PageProps) {
     const value = await loadFooValue();
@@ -249,7 +252,7 @@ re-use existing objects internally as a minor performance optimization.
 The `createHandler` function was often used to launch Fresh for tests. This can
 be now done via the [`Builder`](/docs/canary/concepts/builder).
 
-```ts
+```ts main.test.ts
 // Best to do this once instead of for every test case for
 // performance reasons.
 const builder = new Builder();
@@ -260,9 +263,10 @@ function testApp() {
     .get("/", () => new Response("hello"));
   // Applies build snapshot to this app instance.
   applySnapshot(app);
+  return app;
 }
 
-Deno.test("My Test", () => {
+Deno.test("My Test", async () => {
   const handler = testApp().handler();
 
   const response = await handler(new Request("http://localhost"));

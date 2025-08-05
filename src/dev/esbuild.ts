@@ -1,5 +1,5 @@
 import { denoPlugin } from "@deno/esbuild-plugin";
-import type { Plugin as EsbuildPlugin } from "esbuild";
+import type { BuildOptions, Plugin as EsbuildPlugin } from "esbuild";
 import * as path from "@std/path";
 
 export interface FreshBundleOptions {
@@ -11,6 +11,14 @@ export interface FreshBundleOptions {
   entryPoints: Record<string, string>;
   target: string | string[];
   jsxImportSource?: string;
+  sourceMap?: {
+    /** Documentation: https://esbuild.github.io/api/#sourcemap */
+    kind: BuildOptions["sourcemap"];
+    /** Documentation: https://esbuild.github.io/api/#source-root */
+    sourceRoot?: BuildOptions["sourceRoot"];
+    /** Documentation: https://esbuild.github.io/api/#sources-content */
+    sourcesContent?: BuildOptions["sourcesContent"];
+  };
 }
 
 export interface BuildOutput {
@@ -48,7 +56,9 @@ export async function bundleJs(
     bundle: true,
     splitting: true,
     treeShaking: true,
-    sourcemap: options.dev ? "linked" : false,
+    sourcemap: options.dev ? "linked" : options.sourceMap?.kind,
+    sourceRoot: options.dev ? undefined : options.sourceMap?.sourceRoot,
+    sourcesContent: options.dev ? undefined : options.sourceMap?.sourcesContent,
     minify: !options.dev,
     logOverride: {
       "suspicious-nullish-coalescing": "silent",

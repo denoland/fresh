@@ -23,6 +23,12 @@
     "image": "deno-saaskit"
   },
   {
+    "title": "Shoaib Hossain Portfolio",
+    "link": "https://sihab.deno.dev",
+    "github": "mrsihab/fresh-portfolio",
+    "image": "mrsihab"
+  },
+  {
     "title": "Deno Merch",
     "link": "https://merch.deno.com/",
     "github": "denoland/merch",

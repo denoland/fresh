@@ -1,7 +1,7 @@
 import { HttpError } from "./error.ts";
 import { isHandlerByMethod, type PageResponse } from "./handlers.ts";
 import type { MaybeLazyMiddleware, Middleware } from "./middlewares/mod.ts";
-import { mergePath, type Method, type Router } from "./router.ts";
+import { mergePath, type Method, type Router, toRoutePath } from "./router.ts";
 import {
   getOrCreateSegment,
   newSegment,
@@ -301,10 +301,10 @@ function applyCommandsInner<State>(
         } else {
           fns.push((ctx) => renderRoute(ctx, route));
 
-          const routePath = mergePath(
+          const routePath = toRoutePath(mergePath(
             basePath,
             route.config?.routeOverride ?? pattern,
-          );
+          ));
 
           if (typeof route.handler === "function") {
             router.add("GET", routePath, fns);
@@ -333,7 +333,7 @@ function applyCommandsInner<State>(
 
         result.push(...fns);
 
-        const resPath = mergePath(basePath, pattern);
+        const resPath = toRoutePath(mergePath(basePath, pattern));
         if (method === "ALL") {
           router.add("GET", resPath, result);
           router.add("DELETE", resPath, result);

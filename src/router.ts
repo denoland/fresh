@@ -294,3 +294,8 @@ export function mergePath(basePath: string, path: string): string {
   const s = (basePath !== "" && path === "/") ? "" : path;
   return basePath + s;
 }
+
+export function toRoutePath(path: string): string {
+  if (path === "") return "*";
+  return path;
+}

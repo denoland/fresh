@@ -34,8 +34,8 @@ export type CORSOptions<State> = {
 /**
  * CORS Middleware to set [`Cross-Origin-Resource-Sharing`](https://developer.mozilla.org/en-US/docs/Web/HTTP/Guides/CORS) headers.
  *
- * @param {CORSOptions} [options] - The options for the CORS middleware.
- * @returns {(req: Request, ctx: FreshContext) => Promise<Response>} The Fresh middleware handler function.
+ * @param [options] - The options for the CORS middleware.
+ * @returns The Fresh middleware handler function.
  *
  * @example
  * ```ts

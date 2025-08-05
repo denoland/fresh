@@ -6,7 +6,7 @@ The `trailingSlashes()` middleware can be used to ensure URL pathnames always
 end with a slash character or will never end with one. It redirects the user's
 request respectively.
 
-```ts
+```ts main.ts
 import { trailingSlashes } from "fresh";
 
 const app = new App()
@@ -16,7 +16,7 @@ const app = new App()
 
 Always append a trailing slash:
 
-```ts
+```ts main.ts
 import { trailingSlashes } from "fresh";
 
 const app = new App()

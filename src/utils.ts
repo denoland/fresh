@@ -1,5 +1,6 @@
 import * as path from "@std/path";
 import type { Lazy, MaybeLazy } from "./types.ts";
+import { pathToFileUrl, relativeUrl } from "./file_url.ts";
 
 export function assertInDir(
   filePath: string,
@@ -66,8 +67,40 @@ export class UniqueNamer {
 }
 
 const PATH_TO_SPEC = /[\\/]+/g;
-export function pathToSpec(str: string): string {
-  return str.replaceAll(PATH_TO_SPEC, "/");
+export function pathToSpec(outDir: string, spec: string): string {
+  const outDirUrl = pathToFileUrl(outDir);
+
+  if (
+    spec.startsWith("http:") || spec.startsWith("https:") ||
+    spec.startsWith("jsr:")
+  ) {
+    return spec;
+  } else if (spec.startsWith("file://")) {
+    const fileUrl = pathToFileUrl(spec);
+    spec = relativeUrl(outDirUrl, fileUrl);
+    return maybeDot(spec);
+  }
+
+  spec = path.normalize(spec);
+  if (path.isAbsolute(spec)) {
+    const fileUrl = pathToFileUrl(spec);
+    spec = relativeUrl(outDirUrl, fileUrl);
+    return maybeDot(spec);
+  }
+
+  spec = spec.replaceAll(PATH_TO_SPEC, "/");
+  if (spec.startsWith("/")) {
+    const fileUrl = pathToFileUrl(spec);
+    spec = relativeUrl(outDirUrl, fileUrl);
+    return maybeDot(spec);
+  }
+
+  spec = maybeDot(spec);
+  return spec;
+}
+
+function maybeDot(spec: string): string {
+  return spec.startsWith(".") ? spec : `./${spec}`;
 }
 
 export function isLazy<T>(value: MaybeLazy<T>): value is Lazy<T> {

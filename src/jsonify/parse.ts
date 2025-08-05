@@ -65,6 +65,8 @@ function unpack(
       switch (name) {
         case "BigInt":
           return hydrated[idx] = BigInt(current[1]);
+        case "URL":
+          return hydrated[idx] = new URL(current[1]);
         case "Date":
           return hydrated[idx] = new Date(current[1]);
         case "RegExp":

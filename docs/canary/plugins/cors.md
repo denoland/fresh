@@ -7,7 +7,7 @@ The `cors()` middleware can be used to add
 to HTTP requests. These allow the server to indicate which origins (domains,
 scheme or port) other than its own is permitted to load resources from.
 
-```ts
+```ts main.ts
 import { cors } from "fresh";
 
 const app = new App()

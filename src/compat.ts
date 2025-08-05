@@ -1,30 +1,29 @@
 import type { ComponentChildren } from "preact";
-import type { FreshContext } from "./context.ts";
+import type { Context } from "./context.ts";
 import type { PageProps } from "./render.ts";
 import type { HandlerFn, RouteHandler } from "./handlers.ts";
 
 /**
  * @deprecated Use {@linkcode PageProps} instead.
  */
-export type AppProps<_Data = unknown, T = unknown> = FreshContext<T>;
+export type AppProps<_Data = unknown, T = unknown> = Context<T>;
 /**
  * @deprecated Use {@linkcode PageProps} instead.
  */
-export type LayoutProps<_Data = unknown, T = unknown> = FreshContext<T>;
+export type LayoutProps<_Data = unknown, T = unknown> = Context<T>;
 /**
  * @deprecated Use {@linkcode PageProps} instead.
  */
-export type UnknownPageProps<_Data = unknown, T = unknown> = FreshContext<T>;
+export type UnknownPageProps<_Data = unknown, T = unknown> = Context<T>;
 /**
  * @deprecated Use {@linkcode PageProps} instead.
  */
-export type ErrorPageProps<_Data = unknown, T = unknown> = FreshContext<T>;
+export type ErrorPageProps<_Data = unknown, T = unknown> = Context<T>;
 
 /**
  * @deprecated Use {@linkcode FreshContext} instead.
  */
-export type RouteContext<_T = never, S = Record<string, unknown>> =
-  FreshContext<S>;
+export type RouteContext<_T = never, S = Record<string, unknown>> = Context<S>;
 
 /**
  * @deprecated Use {@linkcode RouteHandler} instead.

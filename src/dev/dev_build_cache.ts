@@ -14,9 +14,11 @@ import type { ResolvedBuildConfig } from "./builder.ts";
 import { fsItemsToCommands, type FsRouteFile } from "../fs_routes.ts";
 import type { Command } from "../commands.ts";
 import type { ServerIslandRegistry } from "../context.ts";
+import { contentType as getStdContentType } from "@std/media-types/content-type";
 
 export interface MemoryFile {
   hash: string | null;
+  contentType: string;
   content: Uint8Array;
 }
 
@@ -81,6 +83,7 @@ export class MemoryBuildCache<State> implements DevBuildCache<State> {
         hash: processed.hash,
         readable: processed.content,
         size: processed.content.byteLength,
+        contentType: processed.contentType,
         close: () => {},
       };
     }
@@ -97,6 +100,7 @@ export class MemoryBuildCache<State> implements DevBuildCache<State> {
           hash: null,
           size: stat.size,
           readable: file.readable,
+          contentType: getContentType(unprocessed),
           close: () => file.close(),
         };
       } catch {
@@ -129,7 +133,7 @@ export class MemoryBuildCache<State> implements DevBuildCache<State> {
             `Processed file resolved outside of static dir ${file.path}`,
           );
         }
-        const pathname = `/${relative}`;
+        const pathname = new URL(relative, "http://localhost").pathname;
 
         this.addProcessedFile(pathname, file.content, null);
       }
@@ -141,6 +145,7 @@ export class MemoryBuildCache<State> implements DevBuildCache<State> {
         const filePath = path.join(this.#config.staticDir, pathname);
         const relative = path.relative(this.#config.staticDir, filePath);
         if (!relative.startsWith(".") && (await Deno.stat(filePath)).isFile) {
+          const pathname = new URL(relative, "http://localhost").pathname;
           this.addUnprocessedFile(pathname, this.#config.staticDir);
           return this.readFile(pathname);
         }
@@ -167,7 +172,11 @@ export class MemoryBuildCache<State> implements DevBuildCache<State> {
     content: Uint8Array,
     hash: string | null,
   ): Promise<void> {
-    this.#processedFiles.set(pathname, { content, hash });
+    this.#processedFiles.set(pathname, {
+      content,
+      hash,
+      contentType: getContentType(pathname),
+    });
   }
 
   async flush(): Promise<void> {
@@ -177,8 +186,8 @@ export class MemoryBuildCache<State> implements DevBuildCache<State> {
     await Promise.all(
       Array.from(this.islandModNameToChunk.entries()).map(
         async ([name, chunk]) => {
-          const fileUrl = path.toFileUrl(chunk.server);
-          const mod = await import(fileUrl.href);
+          const fileUrl = maybeToFileUrl(chunk.server);
+          const mod = await import(fileUrl);
 
           if (chunk.browser === null) {
             throw new Error(`Unexpected missing browser chunk`);
@@ -193,12 +202,10 @@ export class MemoryBuildCache<State> implements DevBuildCache<State> {
   async prepare(): Promise<void> {
     // Load FS routes
     const files = await Promise.all(this.#fsRoutes.files.map(async (file) => {
-      const fileUrl = path.toFileUrl(file.filePath);
+      const fileUrl = maybeToFileUrl(file.filePath);
       return {
         ...file,
-        mod: file.lazy
-          ? () => import(fileUrl.href)
-          : await import(fileUrl.href),
+        mod: file.lazy ? () => import(fileUrl) : await import(fileUrl),
       };
     }));
     this.#commands = fsItemsToCommands(files);
@@ -311,6 +318,7 @@ export class DiskBuildCache<State> implements DevBuildCache<State> {
         name,
         hash,
         filePath: path.relative(root, filePath),
+        contentType: getContentType(filePath),
       });
     }
 
@@ -332,6 +340,7 @@ export class DiskBuildCache<State> implements DevBuildCache<State> {
         name,
         hash,
         filePath: path.relative(root, filePath),
+        contentType: getContentType(filePath),
       });
     }
 
@@ -361,7 +370,7 @@ import staticFileData from "./static-files.json" with { type: "json" };
 ${
         islands
           .map((item) => {
-            const spec = pathToSpec(path.relative(outDir, item.server));
+            const spec = pathToSpec(outDir, item.server);
             return `import * as ${item.name} from "${spec}";`;
           })
           .join("\n")
@@ -372,7 +381,7 @@ ${
         this.#fsRoutes.files
           .map((item, i) => {
             if (item.lazy) return null;
-            const spec = pathToSpec(path.relative(outDir, item.filePath));
+            const spec = pathToSpec(outDir, item.filePath);
             return `import * as fsRoute_${i} from "${spec}"`;
           })
           .filter(Boolean)
@@ -415,7 +424,7 @@ ${
 
             let mod = "";
             if (item.lazy) {
-              const spec = pathToSpec(path.relative(outDir, item.filePath));
+              const spec = pathToSpec(outDir, item.filePath);
               mod = `() => import(${JSON.stringify(spec)})`;
             } else {
               mod = `fsRoute_${i}`;
@@ -445,6 +454,16 @@ export default {
   fetch: app.handler()
 }`,
     );
+
+    await Deno.writeTextFile(
+      path.join(outDir, "compiled-entry.js"),
+      `import fetcher from "./server.js";
+
+Deno.serve(
+  { port: Deno.env.get("PORT"), hostname: Deno.env.get("HOSTNAME") },
+  fetcher.fetch
+);`,
+    );
   }
 }
 
@@ -458,4 +477,13 @@ async function hashContent(
     buffer,
   );
   return encodeHex(hashBuf);
+}
+
+export function getContentType(filePath: string): string {
+  const ext = path.extname(filePath);
+  return getStdContentType(ext) ?? "text/plain";
+}
+
+function maybeToFileUrl(file: string) {
+  return file.startsWith("file://") ? file : path.toFileUrl(file).href;
 }

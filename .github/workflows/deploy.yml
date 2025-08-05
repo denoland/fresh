@@ -29,6 +29,8 @@ jobs:
 
       - name: Upload to Deno Deploy
         uses: denoland/deployctl@v1
+        # Skip publishing for forks
+        if: github.repository_owner == 'denoland'
         with:
           project: "fresh"
           entrypoint: "./www/_fresh/server.js"

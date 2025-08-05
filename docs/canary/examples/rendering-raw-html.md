@@ -10,13 +10,13 @@ situations.
 To address this you can render raw HTML via Preact's `dangerouslySetInnerHTML`
 prop:
 
-```tsx
+```tsx routes/dynamic-html.tsx
 <div dangerouslySetInnerHTML={{ __html: "<h1>This is raw HTML</h1>" }} />;
 ```
 
 This will output:
 
-```html
+```html Response body
 <div>
   <h1>This is raw HTML</h1>
 </div>

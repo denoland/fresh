@@ -40,6 +40,8 @@ snapshot[`round trip - { a: 1, b: null, c: -2 } 1`] = `'[{"a":1,"b":-2,"c":2},1,
 
 snapshot[`round trip - Uint8Array(3) [ 1, 2, 3 ] 1`] = `'[["Uint8Array","AQID"]]'`;
 
+snapshot[`round trip - URL {\\n  href: 'https://fresh.deno.dev/',\\n  origin: 'https://fresh.deno.dev',\\n  protocol: 'https:',\\n  username: '',\\n  password: '',\\n  host: 'fresh.deno.dev',\\n  hostname: 'fresh.deno.dev',\\n  port: '',\\n  pathname: '/',\\n  hash: '',\\n  search: ''\\n} 1`] = `'[["URL","https://fresh.deno.dev/"]]'`;
+
 snapshot[`round trip - 1990-05-31T00:00:00.000Z 1`] = `'[["Date","1990-05-31T00:00:00.000Z"]]'`;
 
 snapshot[`round trip - Map(2) { 1 => null, undefined => -2 } 1`] = `'[["Map",[1,-2,-1,2]],1,-2]'`;

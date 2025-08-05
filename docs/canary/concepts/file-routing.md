@@ -25,7 +25,7 @@ if (Deno.args.includes("build")) {
 ```ts main.ts
 import { App, staticFiles } from "fresh";
 
-const app = new App({ root: import.meta.url })
+const app = new App({ basePath: "/foo" })
   .use(staticFiles())
   .fsRoutes(); // This inserts all file based routes here
 ```
@@ -36,7 +36,8 @@ const app = new App({ root: import.meta.url })
 
 Example project structure:
 
-```sh Project structure
+```txt-files Project structure
+<project root>
 ├── deno.json
 ├── main.ts
 ├── dev.ts
@@ -104,7 +105,7 @@ suggested by the URL segment.
 
 Let's illustrate that with an example:
 
-```txt
+```txt Example page layout
 /about -> layout A
 /career -> layout A
 /archive -> layout B
@@ -114,8 +115,8 @@ Let's illustrate that with an example:
 Without any way to group routes this is a problem because every route segment
 can only have one `_layout` file.
 
-```txt Project structure
-└── routes
+```txt-files Project structure
+└── <root>/routes
     ├── _layout.tsx  # applies to all routes here :(
     ├── about.tsx
     ├── career.tsx
@@ -128,8 +129,8 @@ a name that is wrapped in parentheses. For example `(info)` would be considered
 a route group and so would `(marketing)`. This enables us to group related
 routes in a folder and use a different `_layout` file for each group.
 
-```txt Project structure
-└── routes
+```txt-files Project structure
+└── <root>/routes
     ├── (marketing)
     │   ├── _layout.tsx  # only applies to about.tsx and career.tsx
     │   ├── about.tsx
@@ -144,8 +145,8 @@ routes in a folder and use a different `_layout` file for each group.
 > URL. Such scenarios will lead to ambiguity as to which route file should be
 > picked.
 >
-> ```txt Project structure
-> └── routes
+> ```txt-files Project structure
+> └── <root>/routes
 >     ├── (group-1)
 >     │   └── about.tsx  # Bad: Maps to same `/about` url
 >     └── (group-2)

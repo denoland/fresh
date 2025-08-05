@@ -25,7 +25,7 @@ Fresh's CSP implementation supports the following
 <details>
 <summary>directives</summary>
 
-```ts
+```ts fresh 🍋
 export interface ContentSecurityPolicyDirectives {
   // Fetch directives
   /**
@@ -175,7 +175,7 @@ export default function Home(req: Request, ctx: RouteContext) {
 
 We can hit `http://localhost:8000/noCSP` and we should see the following:
 
-```txt
+```txt Response body
 This page doesn't use CSP at all. Styles will be applied.
 ```
 
@@ -212,7 +212,7 @@ export const config: RouteConfig = {
 
 We can hit `http://localhost:8000/incorrectCSP` and we should see the following:
 
-```txt
+```txt Response body
 This page violates our configured CSP. Styles won't be applied.
 ```
 
@@ -247,7 +247,7 @@ export const config: RouteConfig = {
 
 We can hit `http://localhost:8000/correctCSP` and we should see the following:
 
-```txt
+```txt Response body
 This page adheres to our configured CSP. Styles will be applied.
 ```
 
@@ -282,7 +282,7 @@ export default function Home(req: Request, ctx: RouteContext) {
 We can hit `http://localhost:8000/cspNoRouteConfig` and we should see the
 following:
 
-```txt
+```txt Response body
 This page violates our configured CSP. But we don't have a RouteConfig enabled, so Fresh doesn't know to use the CSP. Styles will be applied.
 ```
 
@@ -342,7 +342,7 @@ export const handler = {
 We can hit `http://localhost:8000/incorrectCSPwithReport` and we should see the
 following:
 
-```txt
+```txt Response body
 This page violates our configured CSP. But we're using "reportOnly". Styles will be applied.
 ```
 

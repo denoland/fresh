@@ -28,8 +28,8 @@ export default function MyIsland() {
 An island can be used anywhere like a regular Preact component. Fresh will take
 care of making it interactive on the client.
 
-```tsx
-import MyIsland from "../islands/my-island.tsx";
+```tsx main.tsx
+import MyIsland from "./islands/my-island.tsx";
 
 const app = new App()
   .get("/", (ctx) => ctx.render(<MyIsland />));
@@ -40,12 +40,15 @@ const app = new App()
 Passing props to islands is supported, but only if the props are serializable.
 Fresh can serialize the following types of values:
 
-- Primitive types `string`, `number`, `boolean`, `bigint`, and `null`
-- `Infinity`, `-Infinity`, and `NaN`
+- Primitive types `string`, `number`, `boolean`, `bigint`, `undefined`, and
+  `null`
+- `Infinity`, `-Infinity`, `-0`, and `NaN`
 - `Uint8Array`
+- `URL`
 - `Date`
 - `RegExp`
 - `JSX` Elements
+- Collections `Map` and `Set`
 - Plain objects with string keys and serializable values
 - Arrays containing serializable values
 - Preact Signals (if the inner value is serializable)
@@ -56,9 +59,11 @@ deserialization.
 
 > [warn]: Passing functions to an island is not supported.
 >
-> ```tsx
-> // WRONG
-> <MyIsland onClick={() => console.log("hey")} />;
+> ```tsx routes/example.tsx
+> export default function () {
+>   // WRONG
+>   return <MyIsland onClick={() => console.log("hey")} />;
+> }
 > ```
 
 ### Passing JSX
@@ -88,6 +93,10 @@ were present.
 In essence, Fresh allows you to mix static and interactive parts in your app in
 a way that's most optimal for your app. We'll keep sending only the JavaScript
 that is needed for the islands to the browser.
+
+```tsx islands/other-island.tsx
+export default (props: { foo: string }) => <>{props.foo}</>;
+```
 
 ```tsx route/index.tsx
 import MyIsland from "../islands/my-island.tsx";
