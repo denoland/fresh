@@ -152,7 +152,7 @@ export default define.page(function AboutPage(ctx) {
 });
 
 // Render that in _app.tsx
-export default define.page(function App({Component, state}) {
+export default define.page(function App({ Component, state }) {
   return (
     <html lang="en">
       <head>
