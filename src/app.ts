@@ -360,7 +360,7 @@ export class App<State> {
         DENO_DEPLOYMENT_ID !== undefined
       ) {
         throw new Error(
-          `Could not find _fresh directory. Maybe you forgot to run "deno task build"?`,
+          `Could not find .fresh directory. Maybe you forgot to run "deno task build"?`,
         );
       } else {
         buildCache = new MockBuildCache([]);
