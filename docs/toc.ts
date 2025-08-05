@@ -60,6 +60,7 @@ const toc: RawTableOfContents = {
         link: "canary",
         pages: [
           ["deno-deploy", "Deno Deploy", "link:canary"],
+          ["deno-compile", "deno compile", "link:canary"],
           ["docker", "Docker", "link:canary"],
         ],
       },
