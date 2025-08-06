@@ -5,18 +5,17 @@
     "jsr:@deno-library/progress@^1.5.1": "1.5.1",
     "jsr:@deno/cache-dir@0.14": "0.14.0",
     "jsr:@deno/doc@0.172": "0.172.0",
-    "jsr:@deno/esbuild-plugin@^1.1.4": "1.1.5",
     "jsr:@deno/esbuild-plugin@^1.1.5": "1.1.5",
     "jsr:@deno/graph@0.86": "0.86.9",
     "jsr:@deno/graph@~0.82.3": "0.82.3",
     "jsr:@deno/loader@~0.3.2": "0.3.3",
     "jsr:@deno/loader@~0.3.3": "0.3.3",
-    "jsr:@fresh/core@^2.0.0-alpha.37": "2.0.0-alpha.53",
+    "jsr:@fresh/core@^2.0.0-alpha.37": "2.0.0-alpha.54",
     "jsr:@marvinh-test/fresh-island@^0.0.1": "0.0.1",
     "jsr:@std/assert@^1.0.13": "1.0.13",
     "jsr:@std/async@1": "1.0.14",
     "jsr:@std/async@^1.0.13": "1.0.14",
-    "jsr:@std/bytes@^1.0.2": "1.0.6",
+    "jsr:@std/bytes@^1.0.5": "1.0.6",
     "jsr:@std/bytes@^1.0.6": "1.0.6",
     "jsr:@std/cli@^1.0.19": "1.0.21",
     "jsr:@std/cli@^1.0.21": "1.0.21",
@@ -43,7 +42,7 @@
     "jsr:@std/internal@^1.0.6": "1.0.10",
     "jsr:@std/internal@^1.0.7": "1.0.10",
     "jsr:@std/internal@^1.0.9": "1.0.10",
-    "jsr:@std/io@0.225": "0.225.0",
+    "jsr:@std/io@0.225": "0.225.2",
     "jsr:@std/io@0.225.0": "0.225.0",
     "jsr:@std/json@^1.0.2": "1.0.2",
     "jsr:@std/jsonc@1": "1.0.2",
@@ -64,7 +63,7 @@
     "npm:@opentelemetry/api@^1.9.0": "1.9.0",
     "npm:@preact/signals@^1.2.3": "1.3.2_preact@10.27.0",
     "npm:@preact/signals@^2.2.1": "2.2.1_preact@10.27.0",
-    "npm:@prefresh/vite@^2.4.8": "2.4.8_preact@10.27.0_vite@7.0.6__@types+node@22.15.15__picomatch@4.0.3_@types+node@22.15.15",
+    "npm:@prefresh/vite@^2.4.8": "2.4.8_preact@10.27.0_vite@7.0.6__@types+node@24.1.0__picomatch@4.0.3_@types+node@24.1.0_@types+node@22.15.15",
     "npm:@tailwindcss/postcss@^4.1.10": "4.1.11",
     "npm:@types/node@*": "22.15.15",
     "npm:@types/node@^24.1.0": "24.1.0",
@@ -89,10 +88,8 @@
     "npm:tailwindcss@^3.4.17": "3.4.17_postcss@8.5.6",
     "npm:tailwindcss@^4.1.10": "4.1.11",
     "npm:ts-morph@26": "26.0.0",
-    "npm:vite-plugin-inspect@^11.3.2": "11.3.2_vite@7.0.6__@types+node@22.15.15__picomatch@4.0.3_@types+node@22.15.15",
-    "npm:vite@*": "7.0.6_@types+node@22.15.15_picomatch@4.0.3",
-    "npm:vite@7.0.6": "7.0.6_@types+node@22.15.15_picomatch@4.0.3",
-    "npm:vite@^7.0.6": "7.0.6_@types+node@22.15.15_picomatch@4.0.3"
+    "npm:vite-plugin-inspect@^11.3.2": "11.3.2_vite@7.0.6__@types+node@24.1.0__picomatch@4.0.3_@types+node@24.1.0_@types+node@22.15.15",
+    "npm:vite@^7.0.6": "7.0.6_@types+node@24.1.0_picomatch@4.0.3_@types+node@22.15.15"
   },
   "jsr": {
     "@astral/astral@0.5.3": {
@@ -146,10 +143,10 @@
     "@deno/loader@0.3.3": {
       "integrity": "983a2b3694e0acecadd6825531ec9dd8b2f92ea0ef0db45c221dda4c81aa5925"
     },
-    "@fresh/core@2.0.0-alpha.53": {
-      "integrity": "45babdca77a00847eb69474e7f8517c92fe5f77029c844230f861113cab6ebd3",
+    "@fresh/core@2.0.0-alpha.54": {
+      "integrity": "599c79bb291a473e0eebe2256ee6fbaab89ddc2edf5da4e7cf9a6c19ebc34969",
       "dependencies": [
-        "jsr:@deno/esbuild-plugin@^1.1.4",
+        "jsr:@deno/esbuild-plugin",
         "jsr:@std/encoding@1",
         "jsr:@std/fmt@^1.0.7",
         "jsr:@std/fs@1",
@@ -257,9 +254,12 @@
       "integrity": "e3be62ce42cab0e177c27698e5d9800122f67b766a0bea6ca4867886cbde8cf7"
     },
     "@std/io@0.225.0": {
-      "integrity": "c1db7c5e5a231629b32d64b9a53139445b2ca640d828c26bf23e1c55f8c079b3",
+      "integrity": "c1db7c5e5a231629b32d64b9a53139445b2ca640d828c26bf23e1c55f8c079b3"
+    },
+    "@std/io@0.225.2": {
+      "integrity": "3c740cd4ee4c082e6cfc86458f47e2ab7cb353dc6234d5e9b1f91a2de5f4d6c7",
       "dependencies": [
-        "jsr:@std/bytes@^1.0.2"
+        "jsr:@std/bytes@^1.0.5"
       ]
     },
     "@std/json@1.0.2": {
@@ -1101,7 +1101,7 @@
     "@prefresh/utils@1.2.1": {
       "integrity": "sha512-vq/sIuN5nYfYzvyayXI4C2QkprfNaHUQ9ZX+3xLD8nL3rWyzpxOm1+K7RtMbhd+66QcaISViK7amjnheQ/4WZw=="
     },
-    "@prefresh/vite@2.4.8_preact@10.27.0_vite@7.0.6__@types+node@22.15.15__picomatch@4.0.3_@types+node@22.15.15": {
+    "@prefresh/vite@2.4.8_preact@10.27.0_vite@7.0.6__@types+node@24.1.0__picomatch@4.0.3_@types+node@24.1.0": {
       "integrity": "sha512-H7vlo9UbJInuRbZhRQrdgVqLP7qKjDoX7TgYWWwIVhEHeHO0hZ4zyicvwBrV1wX5A3EPOmArgRkUaN7cPI2VXQ==",
       "dependencies": [
         "@babel/core",
@@ -1110,7 +1110,19 @@
         "@prefresh/utils",
         "@rollup/pluginutils",
         "preact",
-        "vite"
+        "vite@7.0.6_@types+node@24.1.0_picomatch@4.0.3"
+      ]
+    },
+    "@prefresh/vite@2.4.8_preact@10.27.0_vite@7.0.6__@types+node@24.1.0__picomatch@4.0.3_@types+node@24.1.0_@types+node@22.15.15": {
+      "integrity": "sha512-H7vlo9UbJInuRbZhRQrdgVqLP7qKjDoX7TgYWWwIVhEHeHO0hZ4zyicvwBrV1wX5A3EPOmArgRkUaN7cPI2VXQ==",
+      "dependencies": [
+        "@babel/core",
+        "@prefresh/babel-plugin",
+        "@prefresh/core",
+        "@prefresh/utils",
+        "@rollup/pluginutils",
+        "preact",
+        "vite@7.0.6_@types+node@24.1.0_picomatch@4.0.3_@types+node@22.15.15"
       ]
     },
     "@rollup/pluginutils@4.2.1": {
@@ -2703,21 +2715,35 @@
     "util-deprecate@1.0.2": {
       "integrity": "sha512-EPD5q1uXyFxJpCrLnCc1nHnq3gOa6DZBocAIiI2TaSCA7VCJ1UJDMagCzIkXNsUYfD1daK//LTEQ8xiIbrHtcw=="
     },
-    "vite-dev-rpc@1.1.0_vite@7.0.6__@types+node@22.15.15__picomatch@4.0.3_@types+node@22.15.15": {
+    "vite-dev-rpc@1.1.0_vite@7.0.6__@types+node@24.1.0__picomatch@4.0.3_@types+node@24.1.0": {
       "integrity": "sha512-pKXZlgoXGoE8sEKiKJSng4hI1sQ4wi5YT24FCrwrLt6opmkjlqPPVmiPWWJn8M8byMxRGzp1CrFuqQs4M/Z39A==",
       "dependencies": [
         "birpc",
-        "vite",
-        "vite-hot-client"
+        "vite@7.0.6_@types+node@24.1.0_picomatch@4.0.3",
+        "vite-hot-client@2.1.0_vite@7.0.6__@types+node@24.1.0__picomatch@4.0.3_@types+node@24.1.0"
       ]
     },
-    "vite-hot-client@2.1.0_vite@7.0.6__@types+node@22.15.15__picomatch@4.0.3_@types+node@22.15.15": {
+    "vite-dev-rpc@1.1.0_vite@7.0.6__@types+node@24.1.0__picomatch@4.0.3_@types+node@24.1.0_@types+node@22.15.15": {
+      "integrity": "sha512-pKXZlgoXGoE8sEKiKJSng4hI1sQ4wi5YT24FCrwrLt6opmkjlqPPVmiPWWJn8M8byMxRGzp1CrFuqQs4M/Z39A==",
+      "dependencies": [
+        "birpc",
+        "vite@7.0.6_@types+node@24.1.0_picomatch@4.0.3_@types+node@22.15.15",
+        "vite-hot-client@2.1.0_vite@7.0.6__@types+node@24.1.0__picomatch@4.0.3_@types+node@24.1.0_@types+node@22.15.15"
+      ]
+    },
+    "vite-hot-client@2.1.0_vite@7.0.6__@types+node@24.1.0__picomatch@4.0.3_@types+node@24.1.0": {
       "integrity": "sha512-7SpgZmU7R+dDnSmvXE1mfDtnHLHQSisdySVR7lO8ceAXvM0otZeuQQ6C8LrS5d/aYyP/QZ0hI0L+dIPrm4YlFQ==",
       "dependencies": [
-        "vite"
+        "vite@7.0.6_@types+node@24.1.0_picomatch@4.0.3"
       ]
     },
-    "vite-plugin-inspect@11.3.2_vite@7.0.6__@types+node@22.15.15__picomatch@4.0.3_@types+node@22.15.15": {
+    "vite-hot-client@2.1.0_vite@7.0.6__@types+node@24.1.0__picomatch@4.0.3_@types+node@24.1.0_@types+node@22.15.15": {
+      "integrity": "sha512-7SpgZmU7R+dDnSmvXE1mfDtnHLHQSisdySVR7lO8ceAXvM0otZeuQQ6C8LrS5d/aYyP/QZ0hI0L+dIPrm4YlFQ==",
+      "dependencies": [
+        "vite@7.0.6_@types+node@24.1.0_picomatch@4.0.3_@types+node@22.15.15"
+      ]
+    },
+    "vite-plugin-inspect@11.3.2_vite@7.0.6__@types+node@24.1.0__picomatch@4.0.3_@types+node@24.1.0": {
       "integrity": "sha512-nzwvyFQg58XSMAmKVLr2uekAxNYvAbz1lyPmCAFVIBncCgN9S/HPM+2UM9Q9cvc4JEbC5ZBgwLAdaE2onmQuKg==",
       "dependencies": [
         "ansis",
@@ -2728,11 +2754,45 @@
         "perfect-debounce",
         "sirv",
         "unplugin-utils",
-        "vite",
-        "vite-dev-rpc"
+        "vite@7.0.6_@types+node@24.1.0_picomatch@4.0.3",
+        "vite-dev-rpc@1.1.0_vite@7.0.6__@types+node@24.1.0__picomatch@4.0.3_@types+node@24.1.0"
       ]
     },
-    "vite@7.0.6_@types+node@22.15.15_picomatch@4.0.3": {
+    "vite-plugin-inspect@11.3.2_vite@7.0.6__@types+node@24.1.0__picomatch@4.0.3_@types+node@24.1.0_@types+node@22.15.15": {
+      "integrity": "sha512-nzwvyFQg58XSMAmKVLr2uekAxNYvAbz1lyPmCAFVIBncCgN9S/HPM+2UM9Q9cvc4JEbC5ZBgwLAdaE2onmQuKg==",
+      "dependencies": [
+        "ansis",
+        "debug",
+        "error-stack-parser-es",
+        "ohash",
+        "open",
+        "perfect-debounce",
+        "sirv",
+        "unplugin-utils",
+        "vite@7.0.6_@types+node@24.1.0_picomatch@4.0.3_@types+node@22.15.15",
+        "vite-dev-rpc@1.1.0_vite@7.0.6__@types+node@24.1.0__picomatch@4.0.3_@types+node@24.1.0_@types+node@22.15.15"
+      ]
+    },
+    "vite@7.0.6_@types+node@24.1.0_picomatch@4.0.3": {
+      "integrity": "sha512-MHFiOENNBd+Bd9uvc8GEsIzdkn1JxMmEeYX35tI3fv0sJBUTfW5tQsoaOwuY4KhBI09A3dUJ/DXf2yxPVPUceg==",
+      "dependencies": [
+        "@types/node@24.1.0",
+        "esbuild",
+        "fdir",
+        "picomatch@4.0.3",
+        "postcss",
+        "rollup",
+        "tinyglobby"
+      ],
+      "optionalDependencies": [
+        "fsevents"
+      ],
+      "optionalPeers": [
+        "@types/node@24.1.0"
+      ],
+      "bin": true
+    },
+    "vite@7.0.6_@types+node@24.1.0_picomatch@4.0.3_@types+node@22.15.15": {
       "integrity": "sha512-MHFiOENNBd+Bd9uvc8GEsIzdkn1JxMmEeYX35tI3fv0sJBUTfW5tQsoaOwuY4KhBI09A3dUJ/DXf2yxPVPUceg==",
       "dependencies": [
         "@types/node@22.15.15",
