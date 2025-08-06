@@ -2978,13 +2978,6 @@
           "npm:vite-plugin-inspect@^11.3.2",
           "npm:vite@^7.0.6"
         ]
-      },
-      "packages/tmp_85abd883e9ebda0c": {
-        "dependencies": [
-          "jsr:@fresh/core@^2.0.0-alpha.56",
-          "npm:@preact/signals@^2.2.1",
-          "npm:preact@^10.27.0"
-        ]
       }
     }
   }

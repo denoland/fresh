@@ -8,7 +8,7 @@ import * as path from "@std/path";
 import { getStdOutput, withBrowser } from "../../fresh/tests/test_utils.tsx";
 import { waitForText } from "../../fresh/tests/test_utils.tsx";
 import { withChildProcessServer } from "../../fresh/tests/test_utils.tsx";
-import { withTmpDir as withTmpDirBase } from "../../fresh/src/test_utils.ts";
+import { withTmpDir } from "../../fresh/src/test_utils.ts";
 import { stub } from "@std/testing/mock";
 
 function stubPrompt(result: string) {
@@ -23,13 +23,6 @@ function stubConfirm(steps: Record<string, boolean> = {}) {
   );
 }
 
-function withTmpDir(): Promise<{ dir: string } & AsyncDisposable> {
-  return withTmpDirBase({
-    dir: path.join(import.meta.dirname!, "..", ".."),
-    prefix: "tmp_",
-  });
-}
-
 async function patchProject(dir: string): Promise<void> {
   const jsonPath = path.join(dir, "deno.json");
   const json = JSON.parse(await Deno.readTextFile(jsonPath));
@@ -37,7 +30,7 @@ async function patchProject(dir: string): Promise<void> {
   json.workspace = [];
   // See https://github.com/denoland/deno/issues/27313
   // json.links = [path.fromFileURL(new URL("../..", import.meta.url))];
-  json.links = [new URL("../..", import.meta.url).href];
+  json.links = [new URL("../../fresh", import.meta.url).href];
 
   // assert with this stricter rule, before adding it to initialized projects
   json.lint.rules.include = ["verbatim-module-syntax"];

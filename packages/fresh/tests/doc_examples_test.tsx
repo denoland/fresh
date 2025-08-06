@@ -65,7 +65,14 @@ Deno.test("Docs Code example checks", async () => {
 
 async function* docsMarkdownFiles() {
   // Limit to checking Fresh v2 (canary) docs for now
-  const docsDir = join(import.meta.dirname!, "..", "docs", "canary");
+  const docsDir = join(
+    import.meta.dirname!,
+    "..",
+    "..",
+    "..",
+    "docs",
+    "canary",
+  );
   const docsIter = walk(docsDir, { exts: [".md"], includeDirs: false });
 
   for await (const entry of docsIter) {
