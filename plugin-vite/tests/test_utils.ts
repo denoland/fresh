@@ -51,7 +51,7 @@ export async function withDevServer(
 ) {
   await using tmp = await withTmpDir({
     dir: path.join(import.meta.dirname!, ".."),
-    prefix: "tmp_",
+    prefix: "tmp_vite_",
   });
 
   await copyDir(DEMO_DIR, tmp.dir);

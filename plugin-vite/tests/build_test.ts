@@ -41,14 +41,6 @@ Deno.test({
       async (address) => {
         const res = await fetch(`${address}/test_static/foo.txt`);
         const text = await res.text();
-        // deno-lint-ignore no-console
-        console.log(
-          Array.from(
-            await Deno.readDirSync(
-              path.join(viteResult.tmp, "_fresh"),
-            ),
-          ),
-        );
         expect(text).toEqual("it works");
       },
     );
