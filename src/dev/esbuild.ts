@@ -166,14 +166,14 @@ function buildIdPlugin(buildId: string): EsbuildPlugin {
   return {
     name: "fresh-build-id",
     setup(build) {
-      build.onResolve({ filter: /^fresh\/build-id$/ }, (args) => {
+      build.onResolve({ filter: /^(jsr:)?@fresh\/build-id(@.*)?$/ }, (args) => {
         return {
           path: args.path,
           namespace: "fresh-internal",
         };
       });
       build.onLoad({
-        filter: /^fresh\/build-id$/,
+        filter: /^(jsr:)?@fresh\/build-id$/,
         namespace: "fresh-internal",
       }, () => {
         return {

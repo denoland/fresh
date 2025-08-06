@@ -1,6 +1,6 @@
 import { globToRegExp, isGlob } from "@std/path";
 import type { FsAdapter } from "../fs.ts";
-import { BUILD_ID } from "../runtime/build_id.ts";
+import { BUILD_ID } from "@fresh/build-id";
 import { assetInternal } from "../runtime/shared_internal.tsx";
 
 export type TransformMode = "development" | "production";

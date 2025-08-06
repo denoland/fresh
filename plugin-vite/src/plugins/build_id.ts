@@ -3,6 +3,8 @@ import type { Plugin } from "vite";
 export function buildIdPlugin(): Plugin {
   let buildId = "";
 
+  const regex = /^(jsr:)?@fresh\/build-id(@.*)?$/;
+
   return {
     name: "fresh:build-id",
     async config(_, env) {
@@ -20,7 +22,7 @@ export function buildIdPlugin(): Plugin {
       return true;
     },
     resolveId(id) {
-      if (id === "fresh/build-id") {
+      if (regex.test(id)) {
         return `\0fresh/build-id`;
       }
     },

@@ -1,6 +1,7 @@
 {
   "nodeModulesDir": "auto",
   "workspace": [
+    "./build-id",
     "./examples",
     "./init",
     "./plugin-tailwindcss",
@@ -19,8 +20,7 @@
     "./dev": "./src/dev/mod.ts",
     "./compat": "./src/compat.ts",
     "./internal": "./src/internals.ts",
-    "./internal-dev": "./src/internals_dev.ts",
-    "./build-id": "./src/runtime/build_id.ts"
+    "./internal-dev": "./src/internals_dev.ts"
   },
   "tasks": {
     "test": "deno test -A --parallel",
@@ -57,6 +57,7 @@
   "imports": {
     "@deno/doc": "jsr:@deno/doc@^0.172.0",
     "@deno/esbuild-plugin": "jsr:@deno/esbuild-plugin@^1.1.5",
+    "@fresh/build-id": "jsr:@fresh/build-id@^1.0.0",
     "@std/cli": "jsr:@std/cli@^1.0.19",
     "@std/collections": "jsr:@std/collections@^1.1.2",
     "@std/http": "jsr:@std/http@^1.0.15",
