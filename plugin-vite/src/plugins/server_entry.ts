@@ -38,6 +38,7 @@ export function serverEntryPlugin(
     load(id) {
       if (id !== `\0${modName}`) return;
 
+      console.log("vite gen server entry", { serverOutDir, root });
       let code = generateServerEntry({
         root: path.relative(serverOutDir, root),
         serverEntry: path.toFileUrl(serverEntry).href,

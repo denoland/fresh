@@ -525,6 +525,9 @@ export function generateServerEntry(
     snapshotSpecifier: string;
   },
 ): string {
+  console.log("server entry", {
+    root: options.root,
+  });
   return `${EDIT_WARNING}
 import { setBuildCache, ProdBuildCache, path } from "fresh/internal";
 import * as snapshot from "${options.snapshotSpecifier}";
