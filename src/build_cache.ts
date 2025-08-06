@@ -64,6 +64,7 @@ export class ProdBuildCache<State> implements BuildCache<State> {
     const info = staticFiles.get(pathname);
     if (info === undefined) return null;
 
+    console.log("reading", { root: this.root, filePath: info.filePath });
     const filePath = path.join(this.root, info.filePath);
 
     const [stat, file] = await Promise.all([
