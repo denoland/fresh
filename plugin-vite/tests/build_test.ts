@@ -5,7 +5,6 @@ import {
   withChildProcessServer,
 } from "../../tests/test_utils.tsx";
 import { buildVite } from "./test_utils.ts";
-import * as path from "@std/path";
 
 Deno.test({
   name: "vite build - launches",
