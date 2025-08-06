@@ -71,3 +71,15 @@ export default define.page<typeof handler>((props) => {
   );
 });
 ```
+
+There is also a `define.layout()` helper for layouts:
+
+```tsx
+export default define.layout((props) => {
+  return (
+    <div>
+      <h1>I like {props.state.foo}</h1>
+    </div>
+  );
+});
+```
