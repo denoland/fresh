@@ -23,11 +23,12 @@ jobs:
         with:
           cache: true
 
-      - name: Publish Fresh
-        run: deno publish
 
       - name: Publish @fresh/build-id
         working-directory: ./build-id
+        run: deno publish
+
+      - name: Publish Fresh
         run: deno publish
 
       - name: Publish @fresh/init
