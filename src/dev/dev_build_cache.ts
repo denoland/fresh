@@ -525,6 +525,7 @@ export function generateServerEntry(
     snapshotSpecifier: string;
   },
 ): string {
+  // deno-lint-ignore no-console
   console.log("server entry", {
     root: options.root,
   });
