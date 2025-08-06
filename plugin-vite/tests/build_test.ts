@@ -29,7 +29,6 @@ Deno.test({
 });
 
 Deno.test({
-  only: true,
   name: "vite build - serves static files",
   fn: async () => {
     await using viteResult = await buildVite();
