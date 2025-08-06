@@ -148,16 +148,25 @@ export async function withChildProcessServer(
     throw new Error(`Could not find server address`);
   }
 
+  let failed = false;
   try {
     await fn(address);
   } catch (err) {
     // deno-lint-ignore no-console
     console.log(output);
+    failed = true;
     throw err;
   } finally {
     aborter.abort();
     await cp.status;
-    for await (const _ of lines) { /* noop */ }
+    for await (const line of lines) {
+      output.push(line);
+    }
+
+    if (failed) {
+      // deno-lint-ignore no-console
+      console.log(output);
+    }
   }
 }
 
