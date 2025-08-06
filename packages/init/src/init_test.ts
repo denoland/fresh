@@ -8,7 +8,7 @@ import * as path from "@std/path";
 import { getStdOutput, withBrowser } from "../../fresh/tests/test_utils.tsx";
 import { waitForText } from "../../fresh/tests/test_utils.tsx";
 import { withChildProcessServer } from "../../fresh/tests/test_utils.tsx";
-import { withTmpDir } from "../../fresh/src/test_utils.ts";
+import { withTmpDir as withTmpDirBase } from "../../fresh/src/test_utils.ts";
 import { stub } from "@std/testing/mock";
 
 function stubPrompt(result: string) {
@@ -21,6 +21,11 @@ function stubConfirm(steps: Record<string, boolean> = {}) {
     "confirm",
     (message) => message ? steps[message] : false,
   );
+}
+
+function withTmpDir(): Promise<{ dir: string } & AsyncDisposable> {
+  const dir = path.join(import.meta.dirname!, "..", "..", "..", "..");
+  return withTmpDirBase({ dir, prefix: "tmp_" });
 }
 
 async function patchProject(dir: string): Promise<void> {
