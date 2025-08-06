@@ -66,7 +66,9 @@ export class ProdBuildCache<State> implements BuildCache<State> {
 
     // deno-lint-ignore no-console
     console.log("reading", { root: this.root, filePath: info.filePath });
-    const filePath = path.join(this.root, info.filePath);
+    const filePath = path.isAbsolute(info.filePath)
+      ? info.filePath
+      : path.join(this.root, info.filePath);
 
     const [stat, file] = await Promise.all([
       Deno.stat(filePath),

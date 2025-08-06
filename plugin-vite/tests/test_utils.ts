@@ -76,7 +76,10 @@ export default defineConfig({
 }
 
 export async function buildVite() {
-  const tmp = await withTmpDir();
+  const tmp = await withTmpDir({
+    dir: path.join(import.meta.dirname!, ".."),
+    prefix: "tmp_vite_",
+  });
 
   const builder = await createBuilder({
     root: DEMO_DIR,

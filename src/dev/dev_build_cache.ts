@@ -529,12 +529,25 @@ export function generateServerEntry(
   console.log("server entry", {
     root: options.root,
   });
+
+  let rootPath = `path.join(import.meta.dirname, ${
+    JSON.stringify(options.root)
+  })`;
+  if (path.isAbsolute(options.root)) {
+    // deno-lint-ignore no-console
+    console.warn(
+      `WARN: using absolute root path in snapshot: "${options.root}"`,
+    );
+
+    rootPath = JSON.stringify(options.root);
+  }
+
   return `${EDIT_WARNING}
 import { setBuildCache, ProdBuildCache, path } from "fresh/internal";
 import * as snapshot from "${options.snapshotSpecifier}";
 import { app } from "${options.serverEntry}";
 
-const root = path.join(import.meta.dirname, ${JSON.stringify(options.root)});
+const root = ${rootPath};
 setBuildCache(app, new ProdBuildCache(root, snapshot), "production");
 
 export default {
