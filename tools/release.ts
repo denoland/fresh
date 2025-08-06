@@ -1,6 +1,6 @@
 import * as cl from "@std/fmt/colors";
 import * as path from "@std/path";
-import type { DenoJson } from "../update/src/update.ts";
+import type { DenoJson } from "../packages/update/src/update.ts";
 import * as semver from "@std/semver";
 
 function showHelp() {
@@ -24,7 +24,7 @@ if (Deno.args.length === 0) {
 }
 
 const ROOT_DIR = path.join(import.meta.dirname!, "..");
-const denoJsonPath = path.join(ROOT_DIR, "deno.json");
+const denoJsonPath = path.join(ROOT_DIR, "packages", "fresh", "deno.json");
 const wwwDenoJsonPath = path.join(ROOT_DIR, "www", "deno.json");
 const denoJson = JSON.parse(await Deno.readTextFile(denoJsonPath)) as DenoJson;
 
@@ -54,11 +54,11 @@ if (version === "major") {
   }
 }
 
-const initJsonPath = path.join(ROOT_DIR, "init", "deno.json");
+const initJsonPath = path.join(ROOT_DIR, "packages", "init", "deno.json");
 const initJson = JSON.parse(await Deno.readTextFile(initJsonPath));
 const currentInit = semver.parse(initJson.version);
 
-const updateJsonPath = path.join(ROOT_DIR, "update", "deno.json");
+const updateJsonPath = path.join(ROOT_DIR, "packages", "update", "deno.json");
 const updateJson = JSON.parse(await Deno.readTextFile(updateJsonPath));
 const currentUpdate = semver.parse(updateJson.version);
 
@@ -87,7 +87,7 @@ if (!confirm("Proceed with update?")) {
 
 const denoTailwindJson = JSON.parse(
   await Deno.readTextFile(
-    path.join(ROOT_DIR, "plugin-tailwindcss", "deno.json"),
+    path.join(ROOT_DIR, "packages", "plugin-tailwindcss", "deno.json"),
   ),
 ) as DenoJson;
 
@@ -183,8 +183,20 @@ await replaceInFile(
   replaceDepVersion("npm", "@preact/signals", preactSignalsVersion),
 );
 
-const updateScriptPath = path.join(ROOT_DIR, "update", "src", "update.ts");
+const updateScriptPath = path.join(
+  ROOT_DIR,
+  "packages",
+  "update",
+  "src",
+  "update.ts",
+);
 await replaceInFile(updateScriptPath, updateVersions);
 
-const initScriptPath = path.join(ROOT_DIR, "init", "src", "init.ts");
+const initScriptPath = path.join(
+  ROOT_DIR,
+  "packages",
+  "init",
+  "src",
+  "init.ts",
+);
 await replaceInFile(initScriptPath, updateVersions);

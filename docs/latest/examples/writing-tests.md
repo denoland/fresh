@@ -93,7 +93,7 @@ ok | 1 passed (3 steps) | 0 failed (236ms)
 
 This function is typed as follows:
 
-```ts
+```ts fresh 🍋
 export async function createHandler(
   manifest: Manifest,
   config: FreshConfig = {},
@@ -107,7 +107,7 @@ free to provide your own bag of options.
 [`FreshConfig`](https://deno.land/x/fresh/server.ts?s=FreshConfig) is declared
 as follows:
 
-```ts
+```ts fresh 🍋
 export interface FreshConfig {
   build?: {
     outDir?: string;

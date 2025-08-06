@@ -131,7 +131,7 @@ enough information to put the islands where they are supposed to go without
 requiring hydration for the static children of interactive islands. No
 Javascript is sent to the client when no interactivity is needed.
 
-```html
+```html Response body
 <!--frsh-myisland_default:default:0-->
 <div>
   Counter is at 0.

@@ -148,6 +148,8 @@ export default define.page<typeof handler>(function DocsPage(props) {
   const { page } = props.data;
   const { html, headings } = renderMarkdown(page.markdown);
 
+  const isCanary = page.href.includes("/canary");
+
   return (
     <div class="flex flex-col min-h-screen mx-auto max-w-screen-2xl">
       <Header title="docs" active="/docs" />
@@ -156,7 +158,7 @@ export default define.page<typeof handler>(function DocsPage(props) {
         <div class="flex mx-auto max-w-screen-2xl px-0 md:px-4 md:py-0 justify-start bg-background-secondary">
           <label
             for="docs_sidebar"
-            class="px-4 py-3 lg:hidden flex items-center  rounded gap-2 cursor-pointer"
+            class="px-4 py-3 lg:hidden flex items-center  rounded-sm gap-2 cursor-pointer"
           >
             <svg
               class="h-6 w-6"
@@ -176,7 +178,7 @@ export default define.page<typeof handler>(function DocsPage(props) {
           </label>
         </div>
         <nav class="flex-shrink-0 hidden lg:block lg:px-4 bg-white">
-          <div class="fixed top-24 w-[17rem] flex overflow-hidden">
+          <div class="fixed top-24 w-[17rem] flex overflow-hidden text-base">
             <div class="flex-1 h-[calc(100vh_-_6rem)] overflow-y-auto pb-8">
               <SearchButton class="mr-4 sm:mr-0" />
               <div class="mb-4 px-1">
@@ -200,6 +202,14 @@ export default define.page<typeof handler>(function DocsPage(props) {
                 <TableOfContents headings={headings} />
 
                 <div class="lg:order-1 min-w-0 max-w-3xl w-full">
+                  {isCanary
+                    ? (
+                      <div class="bg-[#F0900525] p-4 rounded-sm text-base text-yellow-700 dark:text-yellow-500 mb-8">
+                        🚧 This documentation is work in progress and for an
+                        unreleased version of Fresh.
+                      </div>
+                    )
+                    : null}
                   <h1 class="text-4xl text-foreground-primary tracking-tight font-bold md:mt-0 px-4 md:px-0 mb-4">
                     {page.title}
                   </h1>
@@ -221,7 +231,7 @@ export default define.page<typeof handler>(function DocsPage(props) {
                   <div class="px-4 md:px-0 flex justify-between my-6">
                     <a
                       href={`https://github.com/denoland/fresh/edit/main/${page.file}`}
-                      class="text-gray-700 dark:text-gray-200 text-md flex items-center bg-[#ebedf0] dark:bg-[#1e1f2a] px-4 py-2 rounded hover:bg-gray-200 dark:hover:bg-[#36394c] transition-colors"
+                      class="text-gray-700 dark:text-gray-200 text-md flex items-center bg-[#ebedf0] dark:bg-[#2c2d39] px-4 py-2 rounded-sm hover:bg-gray-200 dark:hover:bg-[#36394c] transition-colors"
                       target="_blank"
                       rel="noopener noreferrer"
                     >
@@ -293,12 +303,12 @@ function ForwardBackButtons(props: {
         ? (
           <a
             href={prev.href}
-            class="px-4 py-2 text-left rounded border border-foreground-secondary/20 grid border-solid w-full hover:border-green-600 transition-colors"
+            class="px-4 py-2 text-left rounded-sm border border-foreground-secondary/20 grid border-solid w-full hover:border-green-600 transition-colors"
           >
             <span class="text-sm text-gray-600 dark:text-gray-500">
               Previous page
             </span>
-            <span class="text-green-600 font-medium">
+            <span class="text-green-600 dark:text-green-400 font-medium">
               {prev.title}
             </span>
           </a>
@@ -308,12 +318,12 @@ function ForwardBackButtons(props: {
         ? (
           <a
             href={next.href}
-            class="px-4 py-2 text-left rounded border border-foreground-secondary/20 grid border-solid w-full hover:border-green-600 transition-colors"
+            class="px-4 py-2 text-left rounded-sm border border-foreground-secondary/20 grid border-solid w-full hover:border-green-600 transition-colors"
           >
             <span class="text-sm text-gray-600 dark:text-gray-500">
               Next page
             </span>
-            <span class="text-green-600 font-medium">
+            <span class="text-green-600 dark:text-green-400 font-medium">
               {next.title}
             </span>
           </a>

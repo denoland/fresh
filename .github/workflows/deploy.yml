@@ -22,7 +22,6 @@ jobs:
         uses: denoland/setup-deno@v2
         with:
           cache: true
-          deno-version: rc
 
       - name: Build step
         working-directory: ./www
@@ -30,7 +29,9 @@ jobs:
 
       - name: Upload to Deno Deploy
         uses: denoland/deployctl@v1
+        # Skip publishing for forks
+        if: github.repository_owner == 'denoland'
         with:
           project: "fresh"
-          entrypoint: "./www/main.ts"
+          entrypoint: "./www/_fresh/server.js"
           root: "."

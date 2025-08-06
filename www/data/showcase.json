@@ -23,6 +23,12 @@
     "image": "deno-saaskit"
   },
   {
+    "title": "Shoaib Hossain Portfolio",
+    "link": "https://sihab.deno.dev",
+    "github": "mrsihab/fresh-portfolio",
+    "image": "mrsihab"
+  },
+  {
     "title": "Deno Merch",
     "link": "https://merch.deno.com/",
     "github": "denoland/merch",
@@ -423,9 +429,20 @@
     "image": "wtfcongress"
   },
   {
+    "title": "PUBG Items",
+    "link": "https://pubgitems.info",
+    "image": "pubgitems"
+  },
+  {
     "title": "Zhi's Blog",
     "link": "https://zhi.deno.dev",
     "github": "SisyphusZheng/me",
     "image": "zhiblog"
+  },
+  {
+    "title": "Moatez's desktop",
+    "link": "https://moatez-bejaoui.deno.dev",
+    "github": "https://github.com/MoatezNG",
+    "image": "moatez-desktop"
   }
 ]

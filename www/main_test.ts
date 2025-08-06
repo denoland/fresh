@@ -1,10 +1,15 @@
 import VERSIONS from "../versions.json" with { type: "json" };
 import { app } from "./main.ts";
-import { buildProd, withBrowserApp } from "../tests/test_utils.tsx";
+import {
+  buildProd,
+  withBrowserApp,
+} from "../packages/fresh/tests/test_utils.tsx";
 import { expect } from "@std/expect";
 import { retry } from "@std/async/retry";
 
-await buildProd(app);
+const applyCache = await buildProd({ root: import.meta.dirname! });
+applyCache(app);
+
 const handler = app.handler();
 
 Deno.test("CORS should not set on GET /fresh-badge.svg", async () => {

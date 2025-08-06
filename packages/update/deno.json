@@ -1,0 +1,15 @@
+{
+  "name": "@fresh/update",
+  "version": "2.0.0-alpha.56",
+  "license": "MIT",
+  "exports": "./src/mod.ts",
+  "exclude": ["**/tmp/*"],
+  "publish": {
+    "include": [
+      "src/**/*.ts",
+      "deno.json",
+      "README.md"
+    ],
+    "exclude": ["**/*_test.*", "*.todo"]
+  }
+}

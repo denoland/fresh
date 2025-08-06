@@ -38,7 +38,7 @@ you add a new route.
 If you want to change the port or host, modify the config bag of the `start()`
 call in `main.ts` to include an explicit port number:
 
-```js main.ts
+```ts main.ts
 await start(manifest, { server: { port: 3000 } });
 ```
 
@@ -54,10 +54,10 @@ Combining all of this we get the following `deno run` command:
 $ deno run --allow-net --allow-read --allow-env --allow-run --watch=static/,routes/ main.ts
 Watcher Process started.
  🍋 Fresh ready
-     Local: http://localhost:8000
+     Local: http://localhost:3000
 ```
 
-If you now visit http://localhost:8000, you can see the running project. Try
+If you now visit http://localhost:3000, you can see the running project. Try
 change some of the text in `routes/index.tsx` and see how the page updates
 automatically when you save the file.
 

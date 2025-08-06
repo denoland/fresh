@@ -1,9 +1,9 @@
 [files]
 extend-exclude = [
-  "tests/fixture_partials/routes/scroll_restoration/index.tsx",
+  "packages/fresh/tests/fixture_partials/routes/scroll_restoration/index.tsx",
   "www/static/fonts/FixelVariable.woff2",
   "www/static/fonts/FixelVariableItalic.woff2",
-  "tests/lorem_ipsum.txt",
+  "packages/fresh/tests/lorem_ipsum.txt",
 ]
 
 [default]

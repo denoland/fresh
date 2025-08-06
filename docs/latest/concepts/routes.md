@@ -68,10 +68,10 @@ In the below example, a custom handler is used to add a custom header to the
 response after rendering the page component.
 
 ```tsx routes/html.tsx
-import { HandlerContext, Handlers, PageProps } from "$fresh/server.ts";
+import { FreshContext, Handlers, PageProps } from "$fresh/server.ts";
 
 export const handler: Handlers = {
-  async GET(_req: Request, ctx: HandlerContext) {
+  async GET(_req: Request, ctx: FreshContext) {
     const resp = await ctx.render();
     resp.headers.set("X-Custom-Header", "Hello World");
     return resp;
@@ -172,7 +172,7 @@ To make it a little quicker to write async routes, Fresh ships with a
 `defineRoute` helper which automatically infers the correct types for the
 function arguments.
 
-```tsx
+```tsx routes/hello.tsx
 import { defineRoute } from "$fresh/server.ts";
 
 export default defineRoute(async (req, ctx) => {

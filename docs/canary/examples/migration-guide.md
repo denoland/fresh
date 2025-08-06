@@ -16,7 +16,7 @@ Use this guide to migrate a Fresh 1.x app to Fresh 2.
 Most changes can be applied automatically with the update script. Start the
 update by running it in your project directory:
 
-```sh
+```sh Terminal
 deno run -Ar jsr:@fresh/update
 ```
 
@@ -29,12 +29,13 @@ Configuring Fresh doesn't require a dedicated config file anymore. You can
 delete the `fresh.config.ts` file. The `fresh.gen.ts` manifest file isn't needed
 anymore either.
 
-```diff
-  routes/
-  dev.ts
-- fresh.gen.ts
-- fresh.config.ts
-  main.ts
+```diff Project structure
+  <project root>
+  ├── routes/
+  ├── dev.ts
+- ├── fresh.gen.ts
+- ├── fresh.config.ts
+  └── main.ts
 ```
 
 Fresh 2 takes great care in ensuring that code that's only needed during
@@ -50,50 +51,42 @@ plugins like [tailwindcss](https://tailwindcss.com/).
 
 The full `dev.ts` file for newly generated Fresh 2 projects looks like this:
 
-```ts
+```ts dev.ts
 import { Builder } from "fresh/dev";
 import { tailwind } from "@fresh/plugin-tailwind";
-import { app } from "./main.ts";
 
 // Pass development only configuration here
 const builder = new Builder({ target: "safari12" });
 
 // Example: Enabling the tailwind plugin for Fresh
-tailwind(builder, app, {});
+tailwind(builder);
 
 // Create optimized assets for the browser when
 // running `deno run -A dev.ts build`
 if (Deno.args.includes("build")) {
-  await builder.build(app);
+  await builder.build();
 } else {
   // ...otherwise start the development server
-  await builder.listen(app);
+  await builder.listen(() => import("./main.ts"));
 }
 ```
+
+> [info]: Fresh 1.x used Tailwind CSS v3. To keep using v3 use the
+> `@fresh/plugin-tailwind-v3` instead.
 
 ### Updating `main.ts`
 
 Similarly, configuration related to running Fresh in production can be passed to
 `new App()`:
 
-```ts
-// main.ts
-import { App, fsRoutes, staticFiles } from "fresh";
+```ts main.ts
+import { App, staticFiles } from "fresh";
 
 export const app = new App()
   // Add static file serving middleware
-  .use(staticFiles());
-
-// Enable file-system based routing
-await fsRoutes(app, {
-  loadIsland: (path) => import(`./islands/${path}`),
-  loadRoute: (path) => import(`./routes/${path}`),
-});
-
-// If this module is called directly, start the server
-if (import.meta.main) {
-  await app.listen();
-}
+  .use(staticFiles())
+  // Enable file-system based routing
+  .fsRoutes();
 ```
 
 ## Merging error pages
@@ -101,18 +94,18 @@ if (import.meta.main) {
 Both the `_500.tsx` and `_404.tsx` template have been unified into a single
 `_error.tsx` template.
 
-```diff
-  routes/
--   ├── _404.tsx
--   ├── _500.tsx
-+   ├── _error.tsx
-    └── ...
+```diff Project structure
+  └── <root>/routes/
+-     ├── _404.tsx
+-     ├── _500.tsx
++     ├── _error.tsx
+      └── ...
 ```
 
 Inside the `_error.tsx` template you can show different content based on errors
 or status codes with the following code:
 
-```tsx
+```tsx routes/_error.tsx
 export default function ErrorPage(props: PageProps) {
   const error = props.error; // Contains the thrown Error or HTTPError
   if (error instanceof HttpError) {
@@ -135,33 +128,44 @@ The `<Head>` component was used in Fresh 1.x to add additional tags to the
 removed in preparation and due to performance concerns as it required a complex
 machinery in the background to work.
 
-Instead, passing head-related data is best done via `ctx.state`
+Instead, passing head-related data is best done via `ctx.state`, which can be
+easily set through the [define helper](/docs/canary/advanced/define).
 
 ```tsx
-// about.tsx
-export const handler = {
-  GET(ctx) {
-    // Set a route specific data in a handler
-    ctx.state.title = "About Me";
-    return page();
-  },
-};
+// utils.ts
+export interface State {
+  title?: string;
+}
+export const define = createDefine<State>();
+
+// routes/about.tsx
+import { define } from "../utils.ts";
+
+export default define.page(function AboutPage(ctx) {
+  // Set a route specific data in a handler
+  ctx.state.title = "About Me";
+  return (
+    <div>
+      <h1>About Me</h1>
+    </div>
+  );
+});
 
 // Render that in _app.tsx
-export default function AppWrapper(ctx: FreshContext) {
+export default define.page(function App({ Component, state }) {
   return (
     <html lang="en">
       <head>
         <meta charset="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        {ctx.state.title ? <title>{ctx.state.title}</title> : null}
+        {state.title ? <title>{state.title}</title> : null}
       </head>
       <body>
-        <ctx.Component />
+        <Component />
       </body>
     </html>
   );
-}
+});
 ```
 
 ## Update deployment settings
@@ -177,7 +181,7 @@ The handling trailing slashes has been extracted to an optional middleware that
 you can add if needed. This middleware can be used to ensure that URLs always
 have a trailing slash at the end or that they will never have one.
 
-```diff
+```diff main.ts
 -  import { App, staticFiles } from "fresh";
 +  import { App, staticFiles, trailingSlashes } from "fresh";
 
@@ -198,14 +202,14 @@ Middleware, handler and route component signatures have been unified to all look
 the same. Instead of receiving two arguments, they receive one. The `Request`
 object is stored on the context object as `ctx.req`.
 
-```diff
+```diff middleware.ts
 - const middleware = (req, ctx) => new Response("ok");
 + const middleware = (ctx) => new Response("ok");
 ```
 
 Same is true for handlers:
 
-```diff
+```diff route/page.tsx
   export const handler = {
 -   GET(req, ctx) {
 +   GET(ctx) {
@@ -216,7 +220,7 @@ Same is true for handlers:
 
 ...and async route components:
 
-```diff
+```diff routes/my-page.tsx
 -  export default async function MyPage(req: Request, ctx: RouteContext) {
 +  export default async function MyPage(props: PageProps) {
     const value = await loadFooValue();
@@ -226,9 +230,9 @@ Same is true for handlers:
 
 All the various context interfaces have been consolidated and simplified:
 
-| Fresh 1.x                                     | Fresh 2.x      |
-| --------------------------------------------- | -------------- |
-| `AppContext`, `LayoutContext`, `RouteContext` | `FreshContext` |
+| Fresh 1.x                                     | Fresh 2.x                                  |
+| --------------------------------------------- | ------------------------------------------ |
+| `AppContext`, `LayoutContext`, `RouteContext` | [`Context`](/docs/canary/concepts/context) |
 
 ### Context methods
 
@@ -242,6 +246,37 @@ re-use existing objects internally as a minor performance optimization.
 | `ctx.renderNotFound()` | `throw new HttpError(404)` |
 | `ctx.basePath`         | `ctx.config.basePath`      |
 | `ctx.remoteAddr`       | `ctx.info.remoteAddr`      |
+
+## `createHandler`
+
+The `createHandler` function was often used to launch Fresh for tests. This can
+be now done via the [`Builder`](/docs/canary/concepts/builder).
+
+```ts main.test.ts
+// Best to do this once instead of for every test case for
+// performance reasons.
+const builder = new Builder();
+const applySnapshot = await builder.build({ snapshot: "memory" });
+
+function testApp() {
+  const app = new App()
+    .get("/", () => new Response("hello"));
+  // Applies build snapshot to this app instance.
+  applySnapshot(app);
+  return app;
+}
+
+Deno.test("My Test", async () => {
+  const handler = testApp().handler();
+
+  const response = await handler(new Request("http://localhost"));
+  const text = await response.text();
+
+  if (text !== "hello") {
+    throw new Error("fail");
+  }
+});
+```
 
 ## Getting help
 
