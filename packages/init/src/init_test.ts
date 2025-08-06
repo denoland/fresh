@@ -5,10 +5,10 @@ import {
   initProject,
 } from "./init.ts";
 import * as path from "@std/path";
-import { getStdOutput, withBrowser } from "../../tests/test_utils.tsx";
-import { waitForText } from "../../tests/test_utils.tsx";
-import { withChildProcessServer } from "../../tests/test_utils.tsx";
-import { withTmpDir as withTmpDirBase } from "../../src/test_utils.ts";
+import { getStdOutput, withBrowser } from "../../fresh/tests/test_utils.tsx";
+import { waitForText } from "../../fresh/tests/test_utils.tsx";
+import { withChildProcessServer } from "../../fresh/tests/test_utils.tsx";
+import { withTmpDir as withTmpDirBase } from "../../fresh/src/test_utils.ts";
 import { stub } from "@std/testing/mock";
 
 function stubPrompt(result: string) {

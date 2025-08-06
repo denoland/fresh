@@ -1,8 +1,8 @@
 import { createBuilder } from "vite";
 import * as path from "@std/path";
 import { walk } from "@std/fs/walk";
-import { withTmpDir } from "../../src/test_utils.ts";
-import { withChildProcessServer } from "../../tests/test_utils.tsx";
+import { withTmpDir } from "../../fresh/src/test_utils.ts";
+import { withChildProcessServer } from "../../fresh/tests/test_utils.tsx";
 
 export const DEMO_DIR = path.join(import.meta.dirname!, "..", "demo");
 

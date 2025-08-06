@@ -1,4 +1,4 @@
-import denoJson from "../../deno.json" with { type: "json" };
+import denoJson from "../../packages/fresh/deno.json" with { type: "json" };
 
 export { extractYaml as frontMatter } from "@std/front-matter";
 

@@ -1,27 +1,9 @@
 {
   "nodeModulesDir": "auto",
   "workspace": [
-    "./build-id",
-    "./examples",
-    "./init",
-    "./plugin-tailwindcss",
-    "./plugin-tailwindcss-v3",
-    "./plugin-vite",
-    "./update",
+    "./packages/*",
     "./www"
   ],
-  "name": "@fresh/core",
-  "version": "2.0.0-alpha.56",
-  "license": "MIT",
-  "exports": {
-    ".": "./src/mod.ts",
-    "./runtime": "./src/runtime/shared.ts",
-    "./runtime-client": "./src/runtime/client/mod.tsx",
-    "./dev": "./src/dev/mod.ts",
-    "./compat": "./src/compat.ts",
-    "./internal": "./src/internals.ts",
-    "./internal-dev": "./src/internals_dev.ts"
-  },
   "tasks": {
     "test": "deno test -A --parallel",
     "fixture": "deno run -A --watch=static/,routes/ tests/fixture/dev.ts",
