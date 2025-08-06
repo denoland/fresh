@@ -23,7 +23,7 @@ import {
   setActiveUrl,
 } from "../shared_internal.tsx";
 import type { BuildCache } from "../../build_cache.ts";
-import { BUILD_ID } from "fresh/build-id";
+import { BUILD_ID } from "@fresh/build-id";
 import {
   DEV_ERROR_OVERLAY_URL,
   PARTIAL_SEARCH_PARAM,

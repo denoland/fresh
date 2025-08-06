@@ -3,7 +3,7 @@ import { serveMiddleware } from "../test_utils.ts";
 import type { BuildCache, StaticFile } from "../build_cache.ts";
 import { expect } from "@std/expect";
 import { ASSET_CACHE_BUST_KEY } from "../runtime/shared_internal.tsx";
-import { BUILD_ID } from "fresh/build-id";
+import { BUILD_ID } from "@fresh/build-id";
 import type { Command } from "../commands.ts";
 import type { ServerIslandRegistry } from "../context.ts";
 import { getContentType } from "../dev/dev_build_cache.ts";

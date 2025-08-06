@@ -1,6 +1,6 @@
 import { trace } from "@opentelemetry/api";
 
-import { DENO_DEPLOYMENT_ID } from "fresh/build-id";
+import { DENO_DEPLOYMENT_ID } from "@fresh/build-id";
 import * as colors from "@std/fmt/colors";
 import {
   type MaybeLazyMiddleware,

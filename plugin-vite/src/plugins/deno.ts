@@ -44,6 +44,10 @@ export function deno(): Plugin {
           return id;
         }
 
+        if (resolved.includes("build_id")) {
+          console.log("deno", { resolved });
+        }
+
         const type = getDenoType(options.attributes.type ?? "default");
         if (
           type !== RequestedModuleType.Default ||
