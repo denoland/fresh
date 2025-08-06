@@ -214,7 +214,7 @@ Deno.test("init - can start built project", async () => {
   }).output();
 
   await withChildProcessServer(
-    { cwd: dir, args: ["task", "start"] },
+    { cwd: dir, env: { PORT: "0" }, args: ["task", "start"] },
     async (address) => {
       await withBrowser(async (page) => {
         await page.goto(address);

@@ -86,9 +86,8 @@ Deno.test(
 );
 
 Deno.test("error overlay - should not be visible in prod", async () => {
-  const app = new App();
+  const app = new App({ mode: "production" });
   app.use(devErrorOverlay());
-  app.config.mode = "production";
 
   app.get("/", () => {
     throw new HttpError(500);

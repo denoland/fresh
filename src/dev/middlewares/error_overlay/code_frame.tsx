@@ -89,7 +89,7 @@ function getFirstUserFile(
   const lines = stack.split("\n");
   for (let i = 0; i < lines.length; i++) {
     const match = lines[i].match(STACK_FRAME);
-    if (match && match) {
+    if (match) {
       const fnName = match[1] ?? "";
       const file = match[2];
       const line = +match[3];
