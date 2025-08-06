@@ -2968,6 +2968,11 @@
           "jsr:@std/encoding@^1.0.10"
         ]
       },
+      "packages/fresh": {
+        "dependencies": [
+          "jsr:@std/fmt@^1.0.8"
+        ]
+      },
       "packages/plugin-tailwindcss-v3": {
         "dependencies": [
           "npm:autoprefixer@^10.4.21",
