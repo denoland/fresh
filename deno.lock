@@ -10,6 +10,7 @@
     "jsr:@deno/graph@~0.82.3": "0.82.3",
     "jsr:@deno/loader@~0.3.2": "0.3.3",
     "jsr:@deno/loader@~0.3.3": "0.3.3",
+    "jsr:@fresh/build-id@1": "1.0.0",
     "jsr:@fresh/core@^2.0.0-alpha.37": "2.0.0-alpha.54",
     "jsr:@marvinh-test/fresh-island@^0.0.1": "0.0.1",
     "jsr:@std/assert@^1.0.13": "1.0.13",
@@ -143,6 +144,12 @@
     },
     "@deno/loader@0.3.3": {
       "integrity": "983a2b3694e0acecadd6825531ec9dd8b2f92ea0ef0db45c221dda4c81aa5925"
+    },
+    "@fresh/build-id@1.0.0": {
+      "integrity": "c42a1dab0b0b8bcddf93657edf03f404d537ba8e1d44144b3c749727c5671d5a",
+      "dependencies": [
+        "jsr:@std/encoding@^1.0.10"
+      ]
     },
     "@fresh/core@2.0.0-alpha.54": {
       "integrity": "599c79bb291a473e0eebe2256ee6fbaab89ddc2edf5da4e7cf9a6c19ebc34969",
