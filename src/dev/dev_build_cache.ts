@@ -525,11 +525,6 @@ export function generateServerEntry(
     snapshotSpecifier: string;
   },
 ): string {
-  // deno-lint-ignore no-console
-  console.log("server entry", {
-    root: options.root,
-  });
-
   let rootPath = `path.join(import.meta.dirname, ${
     JSON.stringify(options.root)
   })`;
