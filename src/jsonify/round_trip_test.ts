@@ -38,6 +38,16 @@ const TESTS = [
   new Set([1, 2, null, -2, NaN]),
   [1, , 3],
   /foo["]/,
+  Temporal.Instant.from("2020-01-01T12:34:56.789101112Z"),
+  Temporal.ZonedDateTime.from(
+    "2020-01-01T12:34:56.789101112Z[UTC]",
+  ),
+  Temporal.PlainDate.from("2020-01-01"),
+  Temporal.PlainTime.from("12:34:56.789101112"),
+  Temporal.PlainDateTime.from("2020-01-01T12:34:56.789101112"),
+  Temporal.PlainYearMonth.from("2020-01"),
+  Temporal.PlainMonthDay.from("2020-01-01"),
+  Temporal.Duration.from("P1Y2M3W4DT5H6M7.00800901S"),
   references,
   circular,
 ];

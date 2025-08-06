@@ -31,6 +31,14 @@ export type Stringifiers = Record<
  * - `RegExp`
  * - `Set`
  * - `Map`
+ * - `Temoporal.Instant`
+ * - `Temporal.ZonedDateTime`
+ * - `Temporal.PlainDate`
+ * - `Temporal.PlainTime`
+ * - `Temporal.PlainDateTime`
+ * - `Temporal.PlainYearMonth`
+ * - `Temporal.PlainMonthDay`
+ * - `Temporal.Duration`
  *
  * Circular references are supported and objects with the same reference are
  * serialized only once.
@@ -128,6 +136,22 @@ function serializeInner(
         items[i++] = serializeInner(out, indexes, v, custom);
       });
       str += `["Map",[${items.join(",")}]]`;
+    } else if (value instanceof Temporal.Instant) {
+      str += `["Temporal.Instant","${value.toString()}"]`;
+    } else if (value instanceof Temporal.ZonedDateTime) {
+      str += `["Temporal.ZonedDateTime","${value.toString()}"]`;
+    } else if (value instanceof Temporal.PlainDate) {
+      str += `["Temporal.PlainDate","${value.toString()}"]`;
+    } else if (value instanceof Temporal.PlainTime) {
+      str += `["Temporal.PlainTime","${value.toString()}"]`;
+    } else if (value instanceof Temporal.PlainDateTime) {
+      str += `["Temporal.PlainDateTime","${value.toString()}"]`;
+    } else if (value instanceof Temporal.PlainYearMonth) {
+      str += `["Temporal.PlainYearMonth","${value.toString()}"]`;
+    } else if (value instanceof Temporal.PlainMonthDay) {
+      str += `["Temporal.PlainMonthDay","${value.toString()}"]`;
+    } else if (value instanceof Temporal.Duration) {
+      str += `["Temporal.Duration","${value.toString()}"]`;
     } else {
       str += "{";
       const keys = Object.keys(value);
