@@ -1,6 +1,6 @@
 import { options } from "preact";
 import { assetHashingHook, CLIENT_NAV_ATTR } from "../shared_internal.tsx";
-import { BUILD_ID } from "fresh/build-id";
+import { BUILD_ID } from "@fresh/build-id";
 
 const oldVNodeHook = options.vnode;
 options.vnode = (vnode) => {
