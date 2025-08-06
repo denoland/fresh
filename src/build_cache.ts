@@ -64,6 +64,7 @@ export class ProdBuildCache<State> implements BuildCache<State> {
     const info = staticFiles.get(pathname);
     if (info === undefined) return null;
 
+    // deno-lint-ignore no-console
     console.log("reading", { root: this.root, filePath: info.filePath });
     const filePath = path.join(this.root, info.filePath);
 
