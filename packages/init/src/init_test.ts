@@ -5,10 +5,10 @@ import {
   initProject,
 } from "./init.ts";
 import * as path from "@std/path";
-import { getStdOutput, withBrowser } from "../../tests/test_utils.tsx";
-import { waitForText } from "../../tests/test_utils.tsx";
-import { withChildProcessServer } from "../../tests/test_utils.tsx";
-import { withTmpDir as withTmpDirBase } from "../../src/test_utils.ts";
+import { getStdOutput, withBrowser } from "../../fresh/tests/test_utils.tsx";
+import { waitForText } from "../../fresh/tests/test_utils.tsx";
+import { withChildProcessServer } from "../../fresh/tests/test_utils.tsx";
+import { withTmpDir as withTmpDirBase } from "../../fresh/src/test_utils.ts";
 import { stub } from "@std/testing/mock";
 
 function stubPrompt(result: string) {
@@ -24,10 +24,8 @@ function stubConfirm(steps: Record<string, boolean> = {}) {
 }
 
 function withTmpDir(): Promise<{ dir: string } & AsyncDisposable> {
-  return withTmpDirBase({
-    dir: path.join(import.meta.dirname!, "..", ".."),
-    prefix: "tmp_",
-  });
+  const dir = path.join(import.meta.dirname!, "..", "..", "..", "..");
+  return withTmpDirBase({ dir, prefix: "tmp_" });
 }
 
 async function patchProject(dir: string): Promise<void> {
@@ -37,7 +35,7 @@ async function patchProject(dir: string): Promise<void> {
   json.workspace = [];
   // See https://github.com/denoland/deno/issues/27313
   // json.links = [path.fromFileURL(new URL("../..", import.meta.url))];
-  json.links = [new URL("../..", import.meta.url).href];
+  json.links = [new URL("../../fresh", import.meta.url).href];
 
   // assert with this stricter rule, before adding it to initialized projects
   json.lint.rules.include = ["verbatim-module-syntax"];

@@ -23,33 +23,5 @@ jobs:
         with:
           cache: true
 
-      - name: Publish Fresh
-        run: deno publish
-
-      - name: Publish @fresh/build-id
-        working-directory: ./build-id
-        run: deno publish
-
-      - name: Publish @fresh/init
-        working-directory: ./init
-        run: deno publish
-
-      - name: Publish @fresh/plugin-tailwindcss
-        working-directory: ./plugin-tailwindcss
-        run: deno publish
-
-      - name: Publish @fresh/plugin-tailwindcss-v3
-        working-directory: ./plugin-tailwindcss-v3
-        run: deno publish
-
-      - name: Publish @fresh/update
-        working-directory: ./update
-        run: deno publish
-
-      - name: Publish @fresh/plugin-vite
-        working-directory: ./plugin-vite
-        run: deno publish
-
-      - name: Publish @fresh/examples
-        working-directory: ./examples
+      - name: Publish
         run: deno publish

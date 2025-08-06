@@ -3,7 +3,7 @@ import {
   waitForText,
   withBrowser,
   withChildProcessServer,
-} from "../../tests/test_utils.tsx";
+} from "../../fresh/tests/test_utils.tsx";
 import { buildVite } from "./test_utils.ts";
 
 Deno.test({

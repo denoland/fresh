@@ -10,6 +10,7 @@
     "jsr:@deno/graph@~0.82.3": "0.82.3",
     "jsr:@deno/loader@~0.3.2": "0.3.3",
     "jsr:@deno/loader@~0.3.3": "0.3.3",
+    "jsr:@fresh/build-id@1": "1.0.0",
     "jsr:@fresh/core@^2.0.0-alpha.37": "2.0.0-alpha.54",
     "jsr:@marvinh-test/fresh-island@^0.0.1": "0.0.1",
     "jsr:@std/assert@^1.0.13": "1.0.13",
@@ -89,6 +90,7 @@
     "npm:tailwindcss@^4.1.10": "4.1.11",
     "npm:ts-morph@26": "26.0.0",
     "npm:vite-plugin-inspect@^11.3.2": "11.3.2_vite@7.0.6__@types+node@24.1.0__picomatch@4.0.3_@types+node@24.1.0_@types+node@22.15.15",
+    "npm:vite@*": "7.0.6_@types+node@24.1.0_picomatch@4.0.3_@types+node@22.15.15",
     "npm:vite@^7.0.6": "7.0.6_@types+node@24.1.0_picomatch@4.0.3_@types+node@22.15.15"
   },
   "jsr": {
@@ -142,6 +144,12 @@
     },
     "@deno/loader@0.3.3": {
       "integrity": "983a2b3694e0acecadd6825531ec9dd8b2f92ea0ef0db45c221dda4c81aa5925"
+    },
+    "@fresh/build-id@1.0.0": {
+      "integrity": "c42a1dab0b0b8bcddf93657edf03f404d537ba8e1d44144b3c749727c5671d5a",
+      "dependencies": [
+        "jsr:@std/encoding@^1.0.10"
+      ]
     },
     "@fresh/core@2.0.0-alpha.54": {
       "integrity": "599c79bb291a473e0eebe2256ee6fbaab89ddc2edf5da4e7cf9a6c19ebc34969",
@@ -2955,12 +2963,17 @@
       "npm:ts-morph@26"
     ],
     "members": {
-      "build-id": {
+      "packages/build-id": {
         "dependencies": [
           "jsr:@std/encoding@^1.0.10"
         ]
       },
-      "plugin-tailwindcss-v3": {
+      "packages/fresh": {
+        "dependencies": [
+          "jsr:@std/fmt@^1.0.8"
+        ]
+      },
+      "packages/plugin-tailwindcss-v3": {
         "dependencies": [
           "npm:autoprefixer@^10.4.21",
           "npm:cssnano@^6.1.2",
@@ -2968,7 +2981,7 @@
           "npm:tailwindcss@^3.4.17"
         ]
       },
-      "plugin-vite": {
+      "packages/plugin-vite": {
         "dependencies": [
           "jsr:@deno/loader@~0.3.2",
           "npm:@prefresh/vite@^2.4.8",

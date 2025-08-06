@@ -1,6 +1,6 @@
 import * as path from "@std/path";
 import { expect } from "@std/expect";
-import { waitForText, withBrowser } from "../../tests/test_utils.tsx";
+import { waitForText, withBrowser } from "../../fresh/tests/test_utils.tsx";
 import { updateFile, withDevServer } from "./test_utils.ts";
 
 Deno.test({
