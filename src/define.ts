@@ -136,6 +136,22 @@ export interface Define<State> {
   middleware<M extends Middleware<State> | Middleware<State>[]>(
     middleware: M,
   ): typeof middleware;
+  /**
+   * Define a layout component. This function returns the passed input as-is.
+   *
+   * You can use this function to help the TypeScript compiler infer the types
+   * of `props` that your component receives. For example:
+   *
+   * ```ts
+   * import { define } from "../utils.ts";
+   *
+   * export default define.layout((props) => {
+   *   const slug = props.params.slug; // Because props is inferred to be a Context object, slug is inferred to be a string
+   *   return <h1>{slug}</h1>;
+   * });
+   * ```
+   */
+  layout(render: AnyComponent<PageProps<unknown, State>>): typeof render;
 }
 
 /**
@@ -157,6 +173,9 @@ export function createDefine<State>(): Define<State> {
       return handlers;
     },
     page(render) {
+      return render;
+    },
+    layout(render) {
       return render;
     },
     middleware(middleware) {
