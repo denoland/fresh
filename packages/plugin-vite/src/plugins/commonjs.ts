@@ -1,0 +1,206 @@
+import type { Plugin } from "vite";
+import * as babel from "@babel/core";
+
+export function commonjs(): Plugin {
+  return {
+    name: "cjs",
+    applyToEnvironment() {
+      return true;
+    },
+    transform(code, id) {
+      const res = babel.transformSync(code, {
+        filename: id,
+        babelrc: false,
+        plugins: [cjsPlugin],
+      });
+
+      if (res?.code) {
+        return {
+          code: res.code,
+          map: res.map,
+        };
+      }
+    },
+  };
+}
+
+export function cjsPlugin(
+  { types: t }: { types: typeof babel.types },
+): babel.PluginObj {
+  const HAS_ES_MODULE = "esModule";
+  const REQUIRE_CALLS = "requireCalls";
+  const ROOT_SCOPE = "rootScope";
+
+  return {
+    name: "fresh-cjs-esm",
+    visitor: {
+      Program: {
+        enter(path, state) {
+          state.set(ROOT_SCOPE, path.scope);
+        },
+        exit(path, state) {
+          const body = path.get("body");
+
+          const requires = state.get(REQUIRE_CALLS);
+          if (requires !== undefined) {
+            for (let i = 0; i < requires.length; i++) {
+              const { specifier, id } = requires[i];
+              path.unshiftContainer(
+                "body",
+                t.importDeclaration(
+                  [t.importNamespaceSpecifier(id)],
+                  specifier,
+                ),
+              );
+            }
+          }
+
+          if (body.length === 0 && state.get(HAS_ES_MODULE)) {
+            path.pushContainer("body", t.exportNamedDeclaration(null));
+          }
+        },
+      },
+      CallExpression(path, state) {
+        if (isObjEsModuleFlag(t, path.node)) {
+          state.set(HAS_ES_MODULE, true);
+          path.remove();
+          return;
+        }
+
+        if (
+          t.isIdentifier(path.node.callee) &&
+          path.node.callee.name === "require"
+        ) {
+          const root = state.get(ROOT_SCOPE);
+          const id = root.generateUidIdentifier("mod");
+
+          const mods = state.get(REQUIRE_CALLS) ?? [];
+          state.set(REQUIRE_CALLS, mods);
+
+          mods.push({
+            id,
+            specifier: t.cloneNode(path.node.arguments[0], true),
+          });
+
+          if (
+            path.parentPath?.isVariableDeclarator() &&
+              path.parentPath?.get("id").isIdentifier() ||
+            path.parentPath?.isCallExpression()
+          ) {
+            path.replaceWith(
+              t.logicalExpression(
+                "??",
+                t.memberExpression(
+                  t.cloneNode(id, true),
+                  t.identifier("default"),
+                ),
+                t.cloneNode(id, true),
+              ),
+            );
+            return;
+          }
+
+          path.replaceWith(t.cloneNode(id, true));
+        }
+      },
+      ExpressionStatement(path, state) {
+        const expr = path.get("expression");
+        if (expr.isAssignmentExpression()) {
+          const left = expr.get("left");
+
+          if (isEsModuleFlag(t, expr.node)) {
+            state.set(HAS_ES_MODULE, true);
+            path.remove();
+          } else if (left.isMemberExpression()) {
+            if (isModuleExports(t, left.node)) {
+              const right = t.cloneNode(expr.node.right, true);
+
+              path.replaceWith(t.exportDefaultDeclaration(right));
+            } else {
+              const named = getExportsAssignName(t, left.node);
+              if (named === null) return;
+
+              const right = t.cloneNode(expr.node.right, true);
+
+              if (named === "default") {
+                path.replaceWith(t.exportDefaultDeclaration(right));
+              } else {
+                path.scope.rename(named);
+                path.replaceWith(
+                  t.exportNamedDeclaration(
+                    t.variableDeclaration("let", [
+                      t.variableDeclarator(t.identifier(named), right),
+                    ]),
+                  ),
+                );
+              }
+            }
+          }
+        }
+      },
+    },
+  };
+}
+
+function isModuleExports(
+  t: typeof babel.types,
+  node: babel.types.MemberExpression,
+): boolean {
+  return t.isIdentifier(node.object) && node.object.name === "module" &&
+    t.isIdentifier(node.property) && node.property.name === "exports";
+}
+
+function getExportsAssignName(
+  t: typeof babel.types,
+  node: babel.types.MemberExpression,
+): string | null {
+  if (
+    (t.isMemberExpression(node.object) &&
+        isModuleExports(t, node.object) ||
+      t.isIdentifier(node.object) && node.object.name === "exports") &&
+    t.isIdentifier(node.property)
+  ) {
+    return node.property.name;
+  }
+
+  return null;
+}
+
+/**
+ * Detect `exports.__esModule = true;`
+ */
+function isEsModuleFlag(
+  t: typeof babel.types,
+  node: babel.types.AssignmentExpression,
+): boolean {
+  if (!t.isMemberExpression(node.left)) return false;
+
+  const { left, right } = node;
+  return (t.isMemberExpression(left.object) &&
+      isModuleExports(t, left.object) ||
+    t.isIdentifier(left.object) && left.object.name === "exports") &&
+    t.isIdentifier(left.property) && left.property.name === "__esModule" &&
+    t.isBooleanLiteral(right);
+}
+
+/**
+ * Check for `Object.defineProperty(exports, '__esModule', { value: true })`
+ */
+function isObjEsModuleFlag(
+  t: typeof babel.types,
+  node: babel.types.CallExpression,
+): boolean {
+  return t.isMemberExpression(node.callee) &&
+    t.isIdentifier(node.callee.object) &&
+    node.callee.object.name === "Object" &&
+    t.isIdentifier(node.callee.property) &&
+    node.callee.property.name === "defineProperty" &&
+    node.arguments.length === 3 &&
+    (t.isMemberExpression(node.arguments[0]) &&
+        isModuleExports(t, node.arguments[0]) ||
+      t.isIdentifier(node.arguments[0]) &&
+        node.arguments[0].name === "exports") &&
+    t.isStringLiteral(node.arguments[1]) &&
+    node.arguments[1].value === "__esModule" &&
+    t.isObjectExpression(node.arguments[2]);
+}

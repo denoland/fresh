@@ -12,6 +12,7 @@ import { devServer } from "./plugins/dev_server.ts";
 import { buildIdPlugin } from "./plugins/build_id.ts";
 import { clientSnapshot } from "./plugins/client_snapshot.ts";
 import { serverSnapshot } from "./plugins/server_snapshot.ts";
+import { commonjs } from "./plugins/commonjs.ts";
 
 export function fresh(config?: FreshViteConfig): Plugin[] {
   const fConfig: ResolvedFreshViteConfig = {
@@ -108,6 +109,7 @@ export function fresh(config?: FreshViteConfig): Plugin[] {
         fConfig.routeDir = pathWithRoot(fConfig.routeDir, config.root);
       },
     },
+    commonjs(),
     serverEntryPlugin(fConfig),
     ...serverSnapshot(fConfig),
     clientEntryPlugin(),
