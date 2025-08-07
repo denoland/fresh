@@ -1,31 +1,7 @@
-import type { Plugin } from "vite";
-import * as babel from "@babel/core";
-
-export function commonjs(): Plugin {
-  return {
-    name: "cjs",
-    applyToEnvironment() {
-      return true;
-    },
-    transform(code, id) {
-      const res = babel.transformSync(code, {
-        filename: id,
-        babelrc: false,
-        plugins: [cjsPlugin],
-      });
-
-      if (res?.code) {
-        return {
-          code: res.code,
-          map: res.map,
-        };
-      }
-    },
-  };
-}
+import type { types } from "@babel/core";
 
 export function cjsPlugin(
-  { types: t }: { types: typeof babel.types },
+  { types: t }: { types: typeof types },
 ): babel.PluginObj {
   const HAS_ES_MODULE = "esModule";
   const REQUIRE_CALLS = "requireCalls";
@@ -143,16 +119,16 @@ export function cjsPlugin(
 }
 
 function isModuleExports(
-  t: typeof babel.types,
-  node: babel.types.MemberExpression,
+  t: typeof types,
+  node: types.MemberExpression,
 ): boolean {
   return t.isIdentifier(node.object) && node.object.name === "module" &&
     t.isIdentifier(node.property) && node.property.name === "exports";
 }
 
 function getExportsAssignName(
-  t: typeof babel.types,
-  node: babel.types.MemberExpression,
+  t: typeof types,
+  node: types.MemberExpression,
 ): string | null {
   if (
     (t.isMemberExpression(node.object) &&
@@ -170,8 +146,8 @@ function getExportsAssignName(
  * Detect `exports.__esModule = true;`
  */
 function isEsModuleFlag(
-  t: typeof babel.types,
-  node: babel.types.AssignmentExpression,
+  t: typeof types,
+  node: types.AssignmentExpression,
 ): boolean {
   if (!t.isMemberExpression(node.left)) return false;
 
@@ -187,8 +163,8 @@ function isEsModuleFlag(
  * Check for `Object.defineProperty(exports, '__esModule', { value: true })`
  */
 function isObjEsModuleFlag(
-  t: typeof babel.types,
-  node: babel.types.CallExpression,
+  t: typeof types,
+  node: types.CallExpression,
 ): boolean {
   return t.isMemberExpression(node.callee) &&
     t.isIdentifier(node.callee.object) &&
