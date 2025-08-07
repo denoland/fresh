@@ -131,34 +131,36 @@ export function serverSnapshot(options: ResolvedFreshViteConfig): Plugin[] {
           }
         }
 
-        const entries = await fsAdapter.walk(
-          publicDir,
-          {
-            followSymlinks: false,
-            includeDirs: false,
-            includeFiles: true,
-            skip: options.ignore,
-          },
-        );
+        if (await fsAdapter.isDirectory(publicDir)) {
+          const entries = await fsAdapter.walk(
+            publicDir,
+            {
+              followSymlinks: false,
+              includeDirs: false,
+              includeFiles: true,
+              skip: options.ignore,
+            },
+          );
 
-        for await (const entry of entries) {
-          const relative = path.relative(publicDir, entry.path);
-          const filePath = path.join(clientOutDir, relative);
+          for await (const entry of entries) {
+            const relative = path.relative(publicDir, entry.path);
+            const filePath = path.join(clientOutDir, relative);
 
-          try {
-            await Deno.mkdir(path.dirname(filePath), { recursive: true });
-          } catch (err) {
-            if (!(err instanceof Deno.errors.AlreadyExists)) {
-              throw err;
+            try {
+              await Deno.mkdir(path.dirname(filePath), { recursive: true });
+            } catch (err) {
+              if (!(err instanceof Deno.errors.AlreadyExists)) {
+                throw err;
+              }
             }
-          }
-          await Deno.copyFile(entry.path, filePath);
+            await Deno.copyFile(entry.path, filePath);
 
-          staticFiles.push({
-            filePath,
-            hash: null,
-            pathname: relative,
-          });
+            staticFiles.push({
+              filePath,
+              hash: null,
+              pathname: relative,
+            });
+          }
         }
       }
 
