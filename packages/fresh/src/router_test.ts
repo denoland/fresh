@@ -155,12 +155,22 @@ Deno.test("patternToSegments", () => {
 });
 
 Deno.test("mergePath", () => {
-  expect(mergePath("", "/foo")).toEqual("/foo");
-  expect(mergePath("/", "/foo")).toEqual("/foo");
-  expect(mergePath("/foo/bar", "/")).toEqual("/foo/bar");
-  expect(mergePath("/foo/bar", "/baz")).toEqual("/foo/bar/baz");
-  expect(mergePath("*", "/baz")).toEqual("/baz");
-  expect(mergePath("/*", "/baz")).toEqual("/baz");
-  expect(mergePath("/foo", "*")).toEqual("/foo");
-  expect(mergePath("/foo", "/*")).toEqual("/foo/*");
+  expect(mergePath("", "/foo", false)).toEqual("/foo");
+  expect(mergePath("/", "/foo", false)).toEqual("/foo");
+  expect(mergePath("/foo/bar", "/", false)).toEqual("/foo/bar");
+  expect(mergePath("/foo/bar", "/baz", false)).toEqual("/foo/bar/baz");
+  expect(mergePath("*", "/baz", false)).toEqual("/baz");
+  expect(mergePath("/*", "/baz", false)).toEqual("/baz");
+  expect(mergePath("/foo", "*", false)).toEqual("/foo/*");
+  expect(mergePath("/foo", "/*", false)).toEqual("/foo/*");
+
+  // mounting
+  expect(mergePath("", "/foo", true)).toEqual("/foo");
+  expect(mergePath("/", "/foo", true)).toEqual("/foo");
+  expect(mergePath("/foo/bar", "/", true)).toEqual("/foo/bar");
+  expect(mergePath("/foo/bar", "/baz", true)).toEqual("/foo/bar/baz");
+  expect(mergePath("*", "/baz", true)).toEqual("/baz");
+  expect(mergePath("/*", "/baz", true)).toEqual("/baz");
+  expect(mergePath("/foo", "*", true)).toEqual("/foo");
+  expect(mergePath("/foo", "/*", true)).toEqual("/foo/*");
 });
