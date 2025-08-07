@@ -16,8 +16,10 @@
     "demo:start": "cd demo && deno serve -A _fresh/server/server-entry.mjs"
   },
   "imports": {
+    "@babel/core": "npm:@babel/core@^7.28.0",
     "@deno/loader": "jsr:@deno/loader@^0.3.2",
     "@prefresh/vite": "npm:@prefresh/vite@^2.4.8",
+    "@types/babel__core": "npm:@types/babel__core@^7.20.5",
     "@types/node": "npm:@types/node@^24.1.0",
     "preact": "npm:preact@^10.26.9",
     "vite": "npm:vite@^7.0.6",
