@@ -284,11 +284,15 @@ export function patternToSegments(
   return out;
 }
 
-export function mergePath(basePath: string, path: string): string {
+export function mergePath(
+  basePath: string,
+  path: string,
+  isMounting: boolean,
+): string {
   if (basePath.endsWith("*")) basePath = basePath.slice(0, -1);
   if (basePath === "/") basePath = "";
 
-  if (path === "*") path = "";
+  if (path === "*") path = isMounting ? "" : "/*";
   else if (path === "/*") path = "/*";
 
   const s = (basePath !== "" && path === "/") ? "" : path;

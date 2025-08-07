@@ -390,6 +390,42 @@ Deno.test({
 });
 
 Deno.test({
+  name: "Builder - dev server supports basePath",
+  fn: async () => {
+    const root = path.join(import.meta.dirname!, "..", "..");
+    await using _tmp = await withTmpDir({ dir: root, prefix: "tmp_builder_" });
+    const tmp = _tmp.dir;
+
+    const app = new App({ basePath: "/foo/bar" })
+      .get("/", () => new Response("ok"))
+      .get("/asdf", () => new Response("ok"));
+
+    const builder = new Builder({
+      root: tmp,
+      outDir: path.join(tmp, "dist"),
+    });
+
+    const controller = new AbortController();
+    let address;
+    await builder.listen(() => Promise.resolve<App<unknown>>(app), {
+      signal: controller.signal,
+      onListen(addr) {
+        address = `http://localhost:${addr.port}`;
+      },
+    });
+
+    const res = await fetch(`${address}/foo/bar/asdf`);
+
+    const text = await res.text();
+    expect(text).toEqual("ok");
+
+    controller.abort();
+  },
+  sanitizeOps: false,
+  sanitizeResources: false,
+});
+
+Deno.test({
   name: "Builder - serves static files in subdir",
   fn: async () => {
     const root = path.join(import.meta.dirname!, "..", "..");
