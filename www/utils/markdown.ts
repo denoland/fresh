@@ -1,8 +1,10 @@
-import denoJson from "../../deno.json" with { type: "json" };
+import denoJson from "../../packages/fresh/deno.json" with { type: "json" };
 
 export { extractYaml as frontMatter } from "@std/front-matter";
 
 import * as Marked from "marked";
+import { HttpError } from "fresh";
+import { asset } from "fresh/runtime";
 import { escape as escapeHtml } from "@std/html";
 import { mangle } from "marked-mangle";
 import GitHubSlugger from "github-slugger";
@@ -14,9 +16,73 @@ Marked.marked.use(mangle());
 
 const ADMISSION_REG = /^\[(info|warn|tip)\]:\s/;
 
+const LOGOS = [
+  {
+    lang: /^tsx?$/,
+    file: /\.tsx?$/,
+    src: asset("/logos/typescript.svg"),
+    text: "Typescript",
+  },
+  {
+    lang: /^css$/,
+    file: /\.css$/,
+    src: asset("/logos/css.svg"),
+    text: "CSS",
+  },
+  {
+    lang: /^html$/,
+    file: /\.html$/,
+    src: asset("/logos/html.svg"),
+    text: "HTML",
+  },
+  {
+    lang: /^jsonc?$/,
+    file: /\.jsonc?$/,
+    src: asset("/logos/json.svg"),
+    text: "JSON",
+  },
+  {
+    lang: /^(sh|bash)$/,
+    file: /\.sh$/,
+    src: asset("/logos/shell.svg"),
+    text: "Terminal (Shell/Bash)",
+  },
+  {
+    lang: /^md$/,
+    file: /\.md$/,
+    src: asset("/logos/markdown.svg"),
+    text: "Markdown",
+  },
+  {
+    lang: /^txt(-files)?$/,
+    file: /\.txt$/,
+    src: asset("/logos/text.svg"),
+    text: "Text",
+  },
+  {
+    lang: /^diff$/,
+    file: /\.diff$/,
+    src: asset("/logos/diff.svg"),
+    text: "File diff",
+  },
+  {
+    lang: /^gitignore$/,
+    file: /^\.gitignore$/,
+    src: asset("/logos/git.svg"),
+    text: "Git",
+  },
+  {
+    lang: /^dockerfile$/,
+    file: /^Dockerfile$/,
+    src: asset("/logos/docker.svg"),
+    text: "Docker",
+  },
+];
+
 export interface MarkdownHeading {
   id: string;
   html: string;
+  level: number;
 }
 
 class DefaultRenderer extends Marked.Renderer {
@@ -44,22 +110,25 @@ class DefaultRenderer extends Marked.Renderer {
       .replaceAll(/['](.*?)[']/g, "&#8216;$1&#8217;");
   }
 
-  override heading({
-    tokens,
-    depth,
-    raw,
-  }: Marked.Tokens.Heading): string {
-    let slugInput = tokens.length === 1 && tokens[0].type === "codespan"
-      ? tokens[0].text
-      : raw;
+  override heading({ tokens, depth }: Marked.Tokens.Heading): string {
+    this.#assert(tokens.length > 0, "Markdown heading tokens unexpected value");
 
+    const content = tokens[0];
+    this.#assert(
+      content.type === "text" || content.type === "codespan",
+      "Markdown heading tokens unexpected value",
+    );
+
+    let slugInput = content.text;
+
+    // Rewrites e.g. `.get()` to `get`
     if (/^\..*\(\)$/.test(slugInput)) {
       slugInput = slugInput.slice(1, -2);
     }
 
     const slug = slugger.slug(slugInput);
     const text = this.parser.parseInline(tokens);
-    this.headings.push({ id: slug, html: text });
+    this.headings.push({ id: slug, html: text, level: depth });
     return `<h${depth} id="${slug}"><a class="md-anchor" tabindex="-1" href="#${slug}">${text}<span aria-hidden="true">#</span></a></h${depth}>`;
   }
 
@@ -95,11 +164,20 @@ class DefaultRenderer extends Marked.Renderer {
       title = match[2] ?? "";
     }
 
+    // Find icon by filename first, then by markdown block language.
+    const icon = LOGOS.find((l) => l.file.test(title)) ??
+      LOGOS.find((l) => l.lang.test(lang));
+
     let out = `<div class="fenced-code">`;
 
-    if (title) {
+    if (title || icon) {
+      const image = icon
+        ? `<img src="${icon.src}" alt="${icon.text}" title="${icon.text}">`
+        : "";
+
       out += `<div class="fenced-code-header">
         <span class="fenced-code-title lang-${lang}">
+          ${image}
           ${title ? escapeHtml(String(title)) : "&nbsp;"}
         </span>
       </div>`;
@@ -139,9 +217,13 @@ class DefaultRenderer extends Marked.Renderer {
       const icon = `<svg class="icon"><use href="/icons.svg#${type}" /></svg>`;
       return `<blockquote class="admonition ${type}">\n<span class="admonition-header">${icon}${
         label[type]
-      }</span>${Marked.parser(tokens)}</blockquote>\n`;
+      }</span>${this.parser.parse(tokens)}</blockquote>\n`;
     }
-    return `<blockquote>\n${Marked.parser(tokens)}</blockquote>\n`;
+    return `<blockquote>\n${this.parser.parse(tokens)}</blockquote>\n`;
+  }
+
+  #assert(expr: unknown, msg: string): asserts expr {
+    if (!expr) throw new Error(msg);
   }
 }
 
@@ -153,14 +235,21 @@ export function renderMarkdown(
   opts: MarkdownOptions = {},
 ): { headings: MarkdownHeading[]; html: string } {
   const renderer = new DefaultRenderer();
-  const markedOpts: Marked.MarkedOptions = {
+  const markedOpts: Marked.MarkedOptions & { async: false } = {
     gfm: true,
+    async: false,
     renderer,
   };
 
-  const html = opts.inline
-    ? Marked.parseInline(input, markedOpts) as string
-    : Marked.parse(input, markedOpts) as string;
+  try {
+    const html = opts.inline
+      ? Marked.parseInline(input, markedOpts)
+      : Marked.parse(input, markedOpts);
 
-  return { headings: renderer.headings, html };
+    return { headings: renderer.headings, html };
+  } catch (err) {
+    throw new HttpError(500, "Markdown parsing error", {
+      cause: err,
+    });
+  }
 }

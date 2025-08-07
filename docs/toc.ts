@@ -60,6 +60,7 @@ const toc: RawTableOfContents = {
         link: "canary",
         pages: [
           ["deno-deploy", "Deno Deploy", "link:canary"],
+          ["deno-compile", "deno compile", "link:canary"],
           ["docker", "Docker", "link:canary"],
         ],
       },
@@ -83,10 +84,10 @@ const toc: RawTableOfContents = {
         pages: [
           ["migration-guide", "Migration Guide", "link:canary"],
           ["daisyui", "daisyUI", "link:canary"],
-          ["modifying-the-head", "Modifying the <head>", "link:latest"],
+          ["modifying-the-head", "Modifying the <head>", "link:canary"],
           ["creating-a-crud-api", "Creating a CRUD API", "link:latest"],
+          ["markdown", "Rendering Markdown", "link:canary"],
           ["rendering-raw-html", "Rendering raw HTML", "link:canary"],
-          ["markdown", "Markdown", "link:canary"],
           [
             "sharing-state-between-islands",
             "Sharing state between islands",

@@ -22,7 +22,7 @@ pre-process or generate CSS files, for example.
 
 To have Fresh optimize all the assets, run one of the following commands:
 
-```sh
+```sh Terminal
 # As a task in newer Fresh projects
 deno task build
 # or invoke it manually

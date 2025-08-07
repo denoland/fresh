@@ -57,7 +57,7 @@ export default function BlogpostPage({ data }) {
 This can also be achieved by throwing an error, if you're uninterested in
 passing specific data to your 404 page:
 
-```tsx
+```tsx routes/missing-page.tsx
 import { Handlers } from "$fresh/server.ts";
 
 export const handler: Handlers = {

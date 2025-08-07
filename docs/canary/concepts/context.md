@@ -28,7 +28,7 @@ app.get("/", (ctx) => {
   console.log("path: ", ctx.url.pathname);
 
   const hasParam = ctx.url.searchParams.has("q");
-  return new Response(`Has q param: ${String(hasParam)});
+  return new Response(`Has q param: ${hasParam}`);
 });
 ```
 

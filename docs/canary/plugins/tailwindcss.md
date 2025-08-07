@@ -41,7 +41,7 @@ For more information on how to use tailwindcss, check out
 
 You can customize the tailwind plugin via the following options:
 
-```ts
+```ts dev.ts
 tailwind(builder, app, {
   // Exclude certain files from processing
   exclude: ["/admin/**", "*.temp.css"],
@@ -60,7 +60,7 @@ decided on your own when it's best to update to v4.
 
 ```ts dev.ts
 import { Builder } from "fresh/dev";
-import { tailwind } from "@fresh/plugin-tailwindcss-v3";
+import { tailwind } from "@fresh/plugin-tailwind-v3";
 
 tailwind(builder, {});
 ```

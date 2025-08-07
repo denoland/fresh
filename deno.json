@@ -1,26 +1,11 @@
 {
   "nodeModulesDir": "auto",
   "workspace": [
-    "./examples",
-    "./init",
-    "./plugin-tailwindcss",
-    "./plugin-tailwindcss-v3",
-    "./update",
+    "./packages/*",
     "./www"
   ],
-  "name": "@fresh/core",
-  "version": "2.0.0-alpha.46",
-  "license": "MIT",
-  "exports": {
-    ".": "./src/mod.ts",
-    "./runtime": "./src/runtime/shared.ts",
-    "./dev": "./src/dev/mod.ts",
-    "./compat": "./src/compat.ts",
-    "./do-not-use": "./src/internals.ts"
-  },
   "tasks": {
     "test": "deno test -A --parallel",
-    "fixture": "deno run -A --watch=static/,routes/ tests/fixture/dev.ts",
     "www": "deno task --cwd=www start",
     "build-www": "deno task --cwd=www build",
     "screenshot": "deno run -A www/utils/screenshot.ts",
@@ -30,7 +15,14 @@
     "test:www": "deno test -A www/main_test.*",
     "release": "deno run -A tools/release.ts"
   },
-  "exclude": ["**/_fresh/*", "**/tmp/*", "*/tests_OLD/**"],
+  "exclude": [
+    "**/_fresh/*",
+    "**/tmp/*",
+    "*/tests_OLD/**",
+    "**/vite.config.ts.*",
+    "*/vite.config.ts.*",
+    "vite.config.ts.*"
+  ],
   "publish": {
     "include": [
       "src/**",
@@ -45,16 +37,18 @@
   },
   "imports": {
     "@deno/doc": "jsr:@deno/doc@^0.172.0",
-    "@deno/esbuild-plugin": "jsr:@deno/esbuild-plugin@^1.1.1",
+    "@deno/esbuild-plugin": "jsr:@deno/esbuild-plugin@^1.1.5",
+    "@fresh/build-id": "jsr:@fresh/build-id@^1.0.0",
     "@std/cli": "jsr:@std/cli@^1.0.19",
     "@std/collections": "jsr:@std/collections@^1.1.2",
     "@std/http": "jsr:@std/http@^1.0.15",
     "@std/uuid": "jsr:@std/uuid@^1.0.7",
     "docsearch": "https://esm.sh/@docsearch/js@3.5.2?target=es2020",
-    "esbuild": "npm:esbuild@^0.25.8",
-    "esbuild-wasm": "npm:esbuild-wasm@^0.25.8",
+    "esbuild": "npm:esbuild@0.25.7",
+    "esbuild-wasm": "npm:esbuild-wasm@0.25.7",
     "fresh": "jsr:@fresh/core@^2.0.0-alpha.37",
-    "preact": "npm:preact@^10.26.9",
+    "mime-db": "npm:mime-db@^1.54.0",
+    "preact": "npm:preact@^10.27.0",
     "preact-render-to-string": "npm:preact-render-to-string@^6.5.11",
     "$ga4": "https://raw.githubusercontent.com/denoland/ga4/main/mod.ts",
     "@opentelemetry/api": "npm:@opentelemetry/api@^1.9.0",

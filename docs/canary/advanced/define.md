@@ -9,32 +9,42 @@ expliciteness of types, other's like the convenience of `define.*` helpers.
 
 Without define helpers:
 
-```ts
-interface State {
+```ts util.ts
+export interface State {
   foo: string;
 }
+```
 
-async function myMiddleware(ctx: Context<State>): Promise<Response> {
+```ts middleware.ts
+import type { State } from "./util.ts";
+
+export async function myMiddleware(ctx: Context<State>): Promise<Response> {
   return new Response("hello " + ctx.state.foo);
 }
 
-async function otherMiddleware(ctx: Context<State>): Promise<Response> {
+export async function otherMiddleware(ctx: Context<State>): Promise<Response> {
   return new Response("other " + ctx.state.foo);
 }
 ```
 
 With define helpers:
 
-```ts
+```ts util.ts
+import { createDefine } from "fresh";
+
 // Setup, do this once in a file and import it everywhere else.
-const define = createDefine<{ foo: string }>();
+export const define = createDefine<{ foo: string }>();
+```
+
+```ts middleware.ts
+import { define } from "./util.ts";
 
 // Usage
-const myMiddleware = define.middleware((ctx) => {
+export const myMiddleware = define.middleware((ctx) => {
   return new Response("hello " + ctx.state.foo);
 });
 
-const otherMiddleware = define.middleware((ctx) => {
+export const otherMiddleware = define.middleware((ctx) => {
   return new Response("other " + ctx.state.foo);
 });
 ```
@@ -57,6 +67,18 @@ export default define.page<typeof handler>((props) => {
   return (
     <div>
       <h1>I like {props.data.foo}</h1>
+    </div>
+  );
+});
+```
+
+There is also a `define.layout()` helper for layouts:
+
+```tsx
+export default define.layout((props) => {
+  return (
+    <div>
+      <h1>I like {props.state.foo}</h1>
     </div>
   );
 });

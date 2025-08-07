@@ -86,7 +86,7 @@ have access to the complicated initialization step by calling
 
 When you run `deno task start` you should see the following output:
 
-```
+```txt Terminal output
 Task start deno run -A --watch=static/,routes/ dev.ts
 Watcher Process started.
 i'm logged during initialization, and not during handling!
@@ -98,7 +98,7 @@ The manifest has been generated for 6 routes and 1 islands.
 
 Going to `http://localhost:8000/` should produce:
 
-```
+```txt Terminal output
 i'm logged during a request!
 Context { complicatedStartupValue: 42 }
 ```
@@ -107,7 +107,7 @@ Context { complicatedStartupValue: 42 }
 
 When you run `deno task build` you should see:
 
-```
+```txt Terminal output
 Task build deno run -A dev.ts build
 i'm logged during initialization, and not during handling!
 The manifest has been generated for 6 routes and 1 islands.
@@ -121,7 +121,7 @@ initialization occurred.
 
 Finally when you run `deno task preview` you should see:
 
-```
+```txt Terminal output
 Task preview deno run -A main.ts
 i'm logged during initialization, and not during handling!
 Using snapshot found at /Users/reed/code/temp/1763/_fresh
@@ -132,7 +132,7 @@ Using snapshot found at /Users/reed/code/temp/1763/_fresh
 
 Going to `http://localhost:8000/` should produce:
 
-```
+```txt Terminal output
 i'm logged during a request!
 Context { complicatedStartupValue: 42 }
 ```

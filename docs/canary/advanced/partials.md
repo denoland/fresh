@@ -62,7 +62,7 @@ picks out the relevant parts of the response. We can optimize this pattern
 further by only rendering the parts we need, instead of always rendering the
 full page. This is done by adding the `f-partial` attribute to a link.
 
-```diff
+```diff routes/_app.tsx
 - <a href="/docs/routes">Routes</a>
 + <a href="/docs/routes" f-partial="/partials/docs/routes">Routes</a>
 ```
@@ -180,7 +180,7 @@ achieved by adding the `mode` prop to a `Partial` component.
 Personally, we’ve found that the `append` mode is really useful when you have an
 UI which displays log messages or similar list-like data.
 
-```tsx
+```tsx routes/log.tsx
 export default function LogView() {
   const lines = getNewLogLines();
 
@@ -203,7 +203,7 @@ If you want to exempt a particular element from triggering a partial request
 like on a particular link, form or button, you can opt out of it by setting
 `f-client-nav={false}` on the element or one of the ancestor elements.
 
-```tsx
+```tsx routes/_app.tsx
 <body f-client-nav>
   {/* This will cause a partial navigation */}
   <a href="/docs/page1">With partials</a>

@@ -19,7 +19,7 @@ styling current links where applicable.
 The aria-current attribute is easily styled with CSS using attribute selectors,
 providing a native way to visually differentiate the active link.
 
-```css
+```css static/styles.css
 /* Give links pointing to the current page a green color */
 a[aria-current="page"] {
   color: green;
@@ -37,7 +37,7 @@ In Tailwindcss or similar CSS frameworks, you can apply styles to elements with
 the `aria-current` attribute using bracket notation in your class definitions.
 For Tailwindcss, use the syntax:
 
-```tsx
+```tsx components/Menu.tsx
 function Menu() {
   return (
     <a href="/foo" class="aria-[current]:text-green-600">

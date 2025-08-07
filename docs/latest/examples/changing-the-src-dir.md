@@ -6,8 +6,8 @@ description: |
 When you initialize a project with `deno run -A -r https://fresh.deno.dev`,
 you'll end up with a project like the following:
 
-```txt Project Structure
-.
+```txt-files Project Structure
+<project root>
 ├── README.md
 ├── components
 │   └── Button.tsx
@@ -53,8 +53,8 @@ Here's what the diff of `deno.json` looks like:
 
 The resulting file structure looks like this:
 
-```txt Project Structure
-.
+```txt-files Project Structure
+<project root>
 ├── README.md
 ├── deno.json
 └── src

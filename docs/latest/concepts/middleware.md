@@ -50,8 +50,8 @@ specific first).
 
 For example, take a project with the following routes:
 
-```txt Project Structure
-└── routes
+```txt-files Project Structure
+└── <root>/routes
     ├── _middleware.ts
     ├── index.ts
     └── admin
@@ -118,7 +118,7 @@ the value of `acme` in your middleware.
 To set the stage for this section, let's focus on the part of `FreshContext`
 that looks like this:
 
-```ts
+```ts fresh 🍋
 export interface FreshContext<State = Record<string, unknown>> {
   ...
   next: () => Promise<Response>;
@@ -135,7 +135,7 @@ export interface FreshContext<State = Record<string, unknown>> {
 
 and `router.DestinationKind` is defined like this:
 
-```ts
+```ts fresh 🍋
 export type DestinationKind = "internal" | "static" | "route" | "notFound";
 ```
 
@@ -203,7 +203,7 @@ is only supposed to deal with routes.
 
 If you want to redirect a request from a middleware, you can do so by returning:
 
-```ts
+```ts routes/_middleware.ts
 export function handler(req: Request): Response {
   return Response.redirect("https://example.com", 307);
 }
@@ -212,7 +212,7 @@ export function handler(req: Request): Response {
 `307` stands for temporary redirect. You can also use `301` for permanent
 redirect. You can also redirect to a relative path by doing:
 
-```ts
+```ts routes/_middleware.ts
 export function handler(req: Request): Response {
   return new Response("", {
     status: 307,

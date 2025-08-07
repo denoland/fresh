@@ -92,7 +92,7 @@ description: testFromText
 
 You'll also need to import the `Github Flavored Markdown` module:
 
-```bash
+```sh Terminal
 deno add jsr:@deno/gfm
 ```
 

@@ -8,7 +8,7 @@ HTML structure and only the content changes, a layout is a neat way to abstract
 this. Layouts only ever render on the server. The passed `Component` value
 represents the children of this component.
 
-```tsx
+```tsx main.tsx
 function PageLayout({ Component }) {
   return (
     <div>
@@ -25,7 +25,7 @@ const app = new App()
 
 If you browse to the `/` route, Fresh will render the following HTML
 
-```html
+```html Response body
 <div>
   <h1>hello world</h1>
   <aside>Here is some sidebar content</aside>
@@ -36,12 +36,12 @@ If you browse to the `/` route, Fresh will render the following HTML
 
 Add a layout and ignore all previously inherited ones.
 
-```ts
+```ts main.ts
 app.layout("/foo/bar", MyComponent, { skipInheritedLayouts: true });
 ```
 
 Ignore the app wrapper component:
 
-```ts
+```ts main.ts
 app.layout("/foo/bar", MyComponent, { skipAppWrapper: true });
 ```

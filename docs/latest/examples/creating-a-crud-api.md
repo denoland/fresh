@@ -19,12 +19,13 @@ In this example we'll be creating a small API that uses
 Our project structure will look like this (in addition to the rest of the Fresh
 code from a new project):
 
-```txt Project Structure
-routes
-└── api
-    └── users
-        ├── [id].ts
-        └── index.ts
+```txt-files Project Structure
+<project root>
+└── routes
+    └── api
+        └── users
+            ├── [id].ts
+            └── index.ts
 ```
 
 In each section about a method, only the relevant handler will be shown. The
@@ -50,7 +51,7 @@ Test this with Postman (or your favorite client) with a URL like
 `http://localhost:8000/api/users` and a method of `POST`. Make sure to have a
 payload like:
 
-```json
+```json Request body
 {
   "id": "2",
   "name": "TestUserName"
@@ -59,7 +60,7 @@ payload like:
 
 You should receive the same thing back:
 
-```json
+```json Response body
 { "id": "2", "name": "TestUserName" }
 ```
 
@@ -82,7 +83,7 @@ export const handler: Handlers<User | null> = {
 Let's practice retrieving our user! A `GET` request to
 `http://localhost:8000/api/users/2` should return:
 
-```json
+```json Response body
 { "id": "2", "name": "TestUserName" }
 ```
 
@@ -116,7 +117,7 @@ export const handler: Handlers<User | null> = {
 Time to change their name. We'll now `PUT` a request to
 `http://localhost:8000/api/users/2` like:
 
-```json
+```json Request body
 {
   "id": "2",
   "name": "New Name"
@@ -125,14 +126,14 @@ Time to change their name. We'll now `PUT` a request to
 
 We should receive:
 
-```json
+```json Response body
 { "id": "2", "name": "New Name" }
 ```
 
 If, on the other hand, we chose to implement this as a `PATCH` operation, the
 request would just involve the changed property like this:
 
-```json
+```json Response body
 {
   "name": "New Name"
 }
@@ -161,7 +162,7 @@ export const handler: Handlers<User | null> = {
 Try sending `DELETE` to `http://localhost:8000/api/users/2` without a body.
 We'll get back:
 
-```txt
+```txt Response body
 user 2 deleted
 ```
 
@@ -174,9 +175,9 @@ request checks for complex CORS use cases. See more on the
 ## Full File Reference
 
 <details>
-<summary>[id].ts</summary>
+<summary><code>[id].ts</code></summary>
 
-```ts
+```ts routes/api/users/[id].ts
 import { Handlers } from "$fresh/server.ts";
 
 type User = {
@@ -218,9 +219,9 @@ export const handler: Handlers<User | null> = {
 </details>
 
 <details>
-<summary>index.ts</summary>
+<summary><code>index.ts</code></summary>
 
-```ts
+```ts routes/api/users/index.ts
 import { Handlers } from "$fresh/server.ts";
 
 type User = {
