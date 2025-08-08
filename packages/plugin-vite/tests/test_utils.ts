@@ -5,6 +5,7 @@ import { withTmpDir } from "../../fresh/src/test_utils.ts";
 import { withChildProcessServer } from "../../fresh/tests/test_utils.tsx";
 
 export const DEMO_DIR = path.join(import.meta.dirname!, "..", "demo");
+export const FIXTURE_DIR = path.join(import.meta.dirname!, "fixtures");
 
 export async function updateFile(
   filePath: string,
@@ -47,6 +48,7 @@ async function copyDir(from: string, to: string) {
 }
 
 export async function withDevServer(
+  fixtureDir: string,
   fn: (address: string, dir: string) => void | Promise<void>,
 ) {
   await using tmp = await withTmpDir({
@@ -54,7 +56,7 @@ export async function withDevServer(
     prefix: "tmp_vite_",
   });
 
-  await copyDir(DEMO_DIR, tmp.dir);
+  await copyDir(fixtureDir, tmp.dir);
 
   await Deno.writeTextFile(
     path.join(tmp.dir, "vite.config.ts"),
@@ -75,14 +77,14 @@ export default defineConfig({
   );
 }
 
-export async function buildVite() {
+export async function buildVite(fixtureDir: string) {
   const tmp = await withTmpDir({
     dir: path.join(import.meta.dirname!, ".."),
     prefix: "tmp_vite_",
   });
 
   const builder = await createBuilder({
-    root: DEMO_DIR,
+    root: fixtureDir,
     build: {
       emptyOutDir: true,
     },
