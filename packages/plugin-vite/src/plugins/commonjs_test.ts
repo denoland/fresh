@@ -165,6 +165,15 @@ var a = _mod.default ?? _mod,
   });
 });
 
+Deno.test("commonjs - duplicate exports", () => {
+  runTest({
+    input: `Object.defineProperty(exports, "__esModule", { value: true });
+exports.trace = void 0;
+exports.trace = 'foo'`,
+    expected: `export let trace = 'foo';`,
+  });
+});
+
 // I've never seen this, seems rare. Skipping for now.
 Deno.test.ignore("commonjs - require", () => {
   runTest({

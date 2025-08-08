@@ -33,6 +33,28 @@ export function cjsPlugin(
 
           if (body.length === 0 && state.get(HAS_ES_MODULE)) {
             path.pushContainer("body", t.exportNamedDeclaration(null));
+          } else {
+            const seen = new Set<string>();
+
+            const children = path.get("body");
+            for (let i = children.length - 1; i >= 0; i--) {
+              const child = children[i];
+              if (child.isExportNamedDeclaration()) {
+                if (
+                  t.isVariableDeclaration(child.node.declaration) &&
+                  child.node.declaration.declarations.length > 0 &&
+                  t.isIdentifier(child.node.declaration.declarations[0].id)
+                ) {
+                  const name = child.node.declaration.declarations[0].id.name;
+
+                  if (seen.has(name)) {
+                    child.remove();
+                  } else {
+                    seen.add(name);
+                  }
+                }
+              }
+            }
           }
         },
       },
