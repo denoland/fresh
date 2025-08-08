@@ -273,6 +273,7 @@ function applyCommandsInner<State>(
           const routePath = mergePath(
             basePath,
             config?.routeOverride ?? pattern,
+            false,
           );
 
           let def: Route<State>;
@@ -304,6 +305,7 @@ function applyCommandsInner<State>(
           const routePath = toRoutePath(mergePath(
             basePath,
             route.config?.routeOverride ?? pattern,
+            false,
           ));
 
           if (typeof route.handler === "function") {
@@ -333,7 +335,7 @@ function applyCommandsInner<State>(
 
         result.push(...fns);
 
-        const resPath = toRoutePath(mergePath(basePath, pattern));
+        const resPath = toRoutePath(mergePath(basePath, pattern, false));
         if (method === "ALL") {
           router.add("GET", resPath, result);
           router.add("DELETE", resPath, result);

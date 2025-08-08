@@ -330,7 +330,7 @@ export class App<State> {
       if (cmd.type !== CommandType.App && cmd.type !== CommandType.NotFound) {
         const clone = {
           ...cmd,
-          pattern: mergePath(path, cmd.pattern),
+          pattern: mergePath(path, cmd.pattern, true),
           includeLastSegment: cmd.pattern === "/" || cmd.includeLastSegment,
         };
         this.#commands.push(clone);
