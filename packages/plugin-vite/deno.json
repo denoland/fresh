@@ -5,6 +5,9 @@
   "exports": {
     ".": "./src/mod.ts"
   },
+  "publish": {
+    "include": ["./src", "README.md"]
+  },
   "compilerOptions": {
     "jsx": "precompile",
     "jsxImportSource": "preact"
