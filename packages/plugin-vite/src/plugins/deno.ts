@@ -6,6 +6,8 @@ import {
   Workspace,
 } from "@deno/loader";
 import * as path from "@std/path";
+import * as babel from "@babel/core";
+import { npmWorkaround } from "./patches/npm_workaround.ts";
 
 interface DenoState {
   type: RequestedModuleType;
@@ -139,6 +141,21 @@ export function deno(): Plugin {
       }
 
       const code = new TextDecoder().decode(result.code);
+
+      // Ensure vite never sees `npm:` specifiers. The load call here
+      // can potentially insert JSX pragmas which refer to `npm:`
+      // specifiers.
+      const res = babel.transformSync(code, {
+        filename: id,
+        babelrc: false,
+        plugins: [npmWorkaround],
+      });
+      if (res?.code) {
+        return {
+          code: res.code,
+          map: res.map,
+        };
+      }
 
       return {
         code,
