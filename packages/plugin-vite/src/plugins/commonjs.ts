@@ -134,6 +134,70 @@ export function cjsPlugin(
               }
             }
           }
+        } else if (expr.isCallExpression()) {
+          if (
+            t.isMemberExpression(expr.node.callee) &&
+            t.isIdentifier(expr.node.callee.object) &&
+            expr.node.callee.object.name === "Object" &&
+            t.isIdentifier(expr.node.callee.property) &&
+            expr.node.callee.property.name === "defineProperty" &&
+            expr.node.arguments.length === 3 &&
+            t.isIdentifier(expr.node.arguments[0]) &&
+            expr.node.arguments[0].name === "exports" &&
+            t.isStringLiteral(expr.node.arguments[1]) &&
+            expr.node.arguments[1].value !== "__esModule" &&
+            t.isObjectExpression(expr.node.arguments[2])
+          ) {
+            const named = expr.node.arguments[1].value;
+            const obj = expr.node.arguments[2];
+
+            let right: types.Expression = t.nullLiteral();
+
+            for (let i = 0; i < obj.properties.length; i++) {
+              const prop = obj.properties[i];
+
+              if (t.isObjectProperty(prop)) {
+                if (t.isIdentifier(prop.key)) {
+                  if (prop.key.name === "get") {
+                    if (
+                      t.isFunctionExpression(prop.value) ||
+                      t.isArrowFunctionExpression(prop.value)
+                    ) {
+                      right = t.callExpression(
+                        t.parenthesizedExpression(
+                          t.cloneNode(prop.value, true),
+                        ),
+                        [],
+                      );
+                    }
+                  }
+                }
+              } else if (t.isObjectMethod(prop)) {
+                if (t.isIdentifier(prop.key)) {
+                  if (prop.key.name === "get") {
+                    right = t.callExpression(
+                      t.parenthesizedExpression(
+                        t.functionExpression(
+                          null,
+                          [],
+                          t.cloneNode(prop.body, true),
+                        ),
+                      ),
+                      [],
+                    );
+                  }
+                }
+              }
+            }
+
+            path.replaceWith(
+              t.exportNamedDeclaration(
+                t.variableDeclaration("let", [
+                  t.variableDeclarator(t.identifier(named), right),
+                ]),
+              ),
+            );
+          }
         }
       },
     },
