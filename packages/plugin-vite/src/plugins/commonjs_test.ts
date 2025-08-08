@@ -165,6 +165,58 @@ var a = _mod.default ?? _mod,
   });
 });
 
+Deno.test("commonjs - duplicate exports", () => {
+  runTest({
+    input: `Object.defineProperty(exports, "__esModule", { value: true });
+exports.trace = void 0;
+exports.trace = 'foo'`,
+    expected: `export let trace = 'foo';`,
+  });
+});
+
+Deno.test("commonjs - cleared exports", () => {
+  runTest({
+    input: `Object.defineProperty(exports, "__esModule", { value: true });
+exports.foo = exports.bar = void 0;
+exports.foo = 'foo'`,
+    expected: `export let foo = 'foo';`,
+  });
+});
+
+Deno.test("commonjs - define exports", () => {
+  runTest({
+    input: `var utils_1 = require("./bar");
+Object.defineProperty(exports, "foo", { enumerable: true, get: function () { return utils_1.foo; } });`,
+    expected: `import * as _mod from "./bar";
+var utils_1 = _mod.default ?? _mod;
+export let foo = (function () {
+  return utils_1.foo;
+})();`,
+  });
+});
+
+Deno.test("commonjs - define exports #2", () => {
+  runTest({
+    input: `var utils_1 = require("./bar");
+Object.defineProperty(exports, "foo", { enumerable: true, get() { return utils_1.foo; } });`,
+    expected: `import * as _mod from "./bar";
+var utils_1 = _mod.default ?? _mod;
+export let foo = (function () {
+  return utils_1.foo;
+})();`,
+  });
+});
+
+Deno.test("commonjs - define exports #3", () => {
+  runTest({
+    input: `Object.defineProperty(exports, "__esModule", { value: true });
+exports._globalThis = void 0;
+exports._globalThis = typeof globalThis === 'object' ? globalThis : global;`,
+    expected:
+      `export let _globalThis = typeof globalThis === 'object' ? globalThis : global;`,
+  });
+});
+
 // I've never seen this, seems rare. Skipping for now.
 Deno.test.ignore("commonjs - require", () => {
   runTest({

@@ -38,7 +38,6 @@ export function fresh(config?: FreshViteConfig): Plugin[] {
               "react-dom": "preact/compat",
               react: "preact/compat",
             },
-            noExternal: true,
           },
           optimizeDeps: {
             include: [

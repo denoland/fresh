@@ -1,6 +1,5 @@
 import type { Plugin } from "vite";
 import * as babel from "@babel/core";
-import { cjsPlugin } from "./commonjs.ts";
 import { npmWorkaround } from "./npm_workaround.ts";
 
 export function patches(): Plugin {
@@ -9,16 +8,11 @@ export function patches(): Plugin {
     applyToEnvironment() {
       return true;
     },
-    resolveId(id) {
-      if (id.startsWith("deno-npm:")) {
-        return id.slice("deno-".length);
-      }
-    },
     transform(code, id) {
       const res = babel.transformSync(code, {
         filename: id,
         babelrc: false,
-        plugins: [npmWorkaround, cjsPlugin],
+        plugins: [npmWorkaround],
       });
 
       if (res?.code) {
