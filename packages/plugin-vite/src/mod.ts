@@ -49,6 +49,7 @@ export function fresh(config?: FreshViteConfig): Plugin[] {
               "preact/jsx-runtime",
               "preact/jsx-dev-runtime",
               "@preact/signals",
+              "@preact/signals-core",
             ],
           },
 
