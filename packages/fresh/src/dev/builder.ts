@@ -182,7 +182,7 @@ export class Builder<State = any> {
         await this.#ready.promise;
         return ctx.next();
       })
-      .all("*", (ctx) => appHandler(ctx.req, ctx.info));
+      .all("*", (ctx) => appHandler(ctx.request, ctx.info));
 
     devApp.config.root = this.config.root;
     devApp.config.mode = "development";

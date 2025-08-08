@@ -39,9 +39,9 @@ Contains the incoming
 
 ```ts
 app.get("/", (ctx) => {
-  console.log("Request: ", ctx.req);
+  console.log("Request: ", ctx.request);
 
-  if (ctx.req.headers.has("X-Foo")) {
+  if (ctx.request.headers.has("X-Foo")) {
     // do something
   }
 
