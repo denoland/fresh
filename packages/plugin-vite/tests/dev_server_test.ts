@@ -128,3 +128,19 @@ Deno.test({
   sanitizeResources: false,
   sanitizeOps: false,
 });
+
+Deno.test({
+  name: "vite dev - can import json in npm package",
+  fn: async () => {
+    await withDevServer(DEMO_DIR, async (address) => {
+      await withBrowser(async (page) => {
+        await page.goto(`${address}/tests/mime`, {
+          waitUntil: "networkidle2",
+        });
+        await page.locator(".ready").wait();
+      });
+    });
+  },
+  sanitizeResources: false,
+  sanitizeOps: false,
+});

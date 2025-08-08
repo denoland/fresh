@@ -142,3 +142,28 @@ Deno.test({
   sanitizeOps: false,
   sanitizeResources: false,
 });
+
+Deno.test({
+  name: "vite build - load json inside npm package",
+  fn: async () => {
+    await using res = await buildVite(DEMO_DIR);
+
+    await withChildProcessServer(
+      {
+        cwd: res.tmp,
+        args: ["serve", "-A", "--port", "0", "_fresh/server.js"],
+      },
+      async (address) => {
+        await withBrowser(async (page) => {
+          await page.goto(`${address}/tests/mime`, {
+            waitUntil: "networkidle2",
+          });
+
+          await page.locator(".ready").wait();
+        });
+      },
+    );
+  },
+  sanitizeOps: false,
+  sanitizeResources: false,
+});

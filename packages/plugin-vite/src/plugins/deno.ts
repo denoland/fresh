@@ -50,7 +50,7 @@ export function deno(): Plugin {
           return id;
         }
 
-        const type = getDenoType(options.attributes.type ?? "default");
+        const type = getDenoType(id, options.attributes.type ?? "default");
         if (
           type !== RequestedModuleType.Default ||
           /^(https?|jsr|npm):/.test(resolved) ||
@@ -179,7 +179,7 @@ function parseDenoSpecifier(
   return { type: +match[1], specifier };
 }
 
-function getDenoType(type: string): RequestedModuleType {
+function getDenoType(id: string, type: string): RequestedModuleType {
   switch (type) {
     case "json":
       return RequestedModuleType.Json;
@@ -188,6 +188,9 @@ function getDenoType(type: string): RequestedModuleType {
     case "text":
       return RequestedModuleType.Text;
     default:
+      if (id.endsWith(".json")) {
+        return RequestedModuleType.Json;
+      }
       return RequestedModuleType.Default;
   }
 }
