@@ -24,6 +24,12 @@ export function deno(): Plugin {
       return true;
     },
     async resolveId(id, importer, options) {
+      // Workaround until upstream PR is merged and released,
+      // see: https://github.com/vitejs/vite/pull/20558
+      if (id.startsWith("deno-npm:")) {
+        id = id.slice("deno-".length);
+      }
+
       importer = isDenoSpecifier(importer)
         ? parseDenoSpecifier(importer).specifier
         : importer;

@@ -9,11 +9,6 @@ export function patches(): Plugin {
     applyToEnvironment() {
       return true;
     },
-    resolveId(id) {
-      if (id.startsWith("deno-npm:")) {
-        return id.slice("deno-".length);
-      }
-    },
     transform(code, id) {
       const res = babel.transformSync(code, {
         filename: id,
