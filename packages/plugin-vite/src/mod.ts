@@ -42,12 +42,6 @@ export function fresh(config?: FreshViteConfig): Plugin[] {
           optimizeDeps: {
             include: [
               "preact",
-              "preact/compat",
-              "preact/debug",
-              "preact/devtools",
-              "preact/hooks",
-              "preact/jsx-runtime",
-              "preact/jsx-dev-runtime",
               "@preact/signals",
               "@preact/signals-core",
             ],

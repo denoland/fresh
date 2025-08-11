@@ -8,24 +8,38 @@ import {
 import * as path from "@std/path";
 import * as babel from "@babel/core";
 import { npmWorkaround } from "./patches/npm_workaround.ts";
+import babelReact from "@babel/preset-react";
 
 interface DenoState {
   type: RequestedModuleType;
 }
 
 export function deno(): Plugin {
-  let loader: Loader;
+  let ssrLoader: Loader;
+  let browserLoader: Loader;
+
+  let isDev = false;
+
+  let optimizeDeps: string[] | undefined;
 
   return {
     name: "deno",
-    async configResolved() {
+    config(_, env) {
+      isDev = env.command === "serve";
+    },
+    async configResolved(cfg) {
+      optimizeDeps = cfg.optimizeDeps.include;
       // TODO: Pass conditions
-      loader = await new Workspace({}).createLoader();
+      ssrLoader = await new Workspace({}).createLoader();
+      browserLoader = await new Workspace({ preserveJsx: true })
+        .createLoader();
     },
     applyToEnvironment() {
       return true;
     },
     async resolveId(id, importer, options) {
+      const loader = options?.ssr ? ssrLoader : browserLoader;
+
       // Workaround until upstream PR is merged and released,
       // see: https://github.com/vitejs/vite/pull/20558
       if (id.startsWith("deno-npm:")) {
@@ -35,6 +49,18 @@ export function deno(): Plugin {
       importer = isDenoSpecifier(importer)
         ? parseDenoSpecifier(importer).specifier
         : importer;
+
+      if (optimizeDeps) {
+        const match = id.match(/^npm:(@[^/]+\/[^/@]+|[^/@]+)/);
+        if (match !== null) {
+          if (optimizeDeps.includes(match[1])) {
+            return await this.resolve(match[1], importer, options);
+          }
+        }
+      }
+      if (id.includes("@preact/signals")) {
+        return this.resolve(`@preact/signals`, importer, options);
+      }
 
       try {
         // Ensure we're passing a valid importer that Deno understands
@@ -78,7 +104,9 @@ export function deno(): Plugin {
         // ignore
       }
     },
-    async load(id) {
+    async load(id, options) {
+      const loader = options?.ssr ? ssrLoader : browserLoader;
+
       if (isDenoSpecifier(id)) {
         const { type, specifier } = parseDenoSpecifier(id);
 
@@ -110,8 +138,36 @@ export function deno(): Plugin {
         return null;
       }
 
+      const code = new TextDecoder().decode(result.code);
+
+      if (!options?.ssr) {
+        if (url.pathname.endsWith(".jsx") || url.pathname.endsWith(".tsx")) {
+          const result = babel.transform(code, {
+            sourceMaps: "inline",
+            filename: id,
+            presets: [
+              [
+                babelReact,
+                {
+                  runtime: "automatic",
+                  importSource: "preact",
+                  development: isDev,
+                },
+              ],
+            ],
+          });
+
+          if (result !== null && result.code) {
+            return {
+              code: result.code,
+              map: result.map,
+            };
+          }
+        }
+      }
+
       return {
-        code: new TextDecoder().decode(result.code),
+        code,
       };
     },
     async transform(_, id, options) {
@@ -130,12 +186,15 @@ export function deno(): Plugin {
         actualId = path.toFileUrl(actualId).href;
       }
 
-      const resolved = await loader.resolve(
+      const resolved = await ssrLoader.resolve(
         actualId,
         undefined,
         ResolutionMode.Import,
       );
-      const result = await loader.load(resolved, RequestedModuleType.Default);
+      const result = await ssrLoader.load(
+        resolved,
+        RequestedModuleType.Default,
+      );
       if (result.kind === "external") {
         return;
       }
