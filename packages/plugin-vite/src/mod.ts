@@ -38,16 +38,27 @@ export function fresh(config?: FreshViteConfig): Plugin[] {
               "react-dom": "preact/compat",
               react: "preact/compat",
             },
-          },
-          optimizeDeps: {
-            include: [
+            dedupe: [
               "preact",
               "preact/hooks",
               "preact/jsx-runtime",
               "preact/jsx-dev-runtime",
               "preact/compat",
               "@preact/signals",
+              "@preact/signals-core",
             ],
+          },
+          optimizeDeps: {
+            exclude: [
+              "preact",
+              "preact/hooks",
+              "preact/jsx-runtime",
+              "preact/jsx-dev-runtime",
+              "preact/compat",
+              "@preact/signals",
+              "@preact/signals-core",
+            ],
+            noDiscovery: true,
           },
 
           publicDir: pathWithRoot("static", config.root),

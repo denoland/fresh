@@ -20,18 +20,18 @@ export function deno(): Plugin {
 
   let isDev = false;
 
-  let optimizeDeps: string[] | undefined;
-
   return {
     name: "deno",
     config(_, env) {
       isDev = env.command === "serve";
     },
-    async configResolved(cfg) {
-      optimizeDeps = cfg.optimizeDeps.include;
+    async configResolved() {
       // TODO: Pass conditions
       ssrLoader = await new Workspace({}).createLoader();
-      browserLoader = await new Workspace({ preserveJsx: true })
+      browserLoader = await new Workspace({
+        platform: "browser",
+        preserveJsx: true,
+      })
         .createLoader();
     },
     applyToEnvironment() {
@@ -49,18 +49,6 @@ export function deno(): Plugin {
       importer = isDenoSpecifier(importer)
         ? parseDenoSpecifier(importer).specifier
         : importer;
-
-      if (optimizeDeps) {
-        const match = id.match(/^npm:(@[^/]+\/[^/@]+|[^/@]+)/);
-        if (match !== null) {
-          if (optimizeDeps.includes(match[1])) {
-            return await this.resolve(match[1], importer, options);
-          }
-        }
-      }
-      if (id.includes("@preact/signals")) {
-        return this.resolve(`@preact/signals`, importer, options);
-      }
 
       try {
         // Ensure we're passing a valid importer that Deno understands
