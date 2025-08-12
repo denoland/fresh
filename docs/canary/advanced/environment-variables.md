@@ -3,7 +3,7 @@ description: |
   Error pages can be used to customize the page that is shown when an error occurs in the application.
 ---
 
-Envrionment variables in Deno are typically read via `Deno.env.get()` or
+Environment variables in Deno are typically read via `Deno.env.get()` or
 `process.env.*` calls or via an `.env` file if the `--env-file` flag is used,
 see
 [how to use Environment Variables in Deno](https://docs.deno.com/runtime/reference/env_variables/).
