@@ -28,7 +28,10 @@ import { FreshAttrs } from "./fixtures_islands/FreshAttrs.tsx";
 import { FakeServer } from "../src/test_utils.ts";
 import { PARTIAL_SEARCH_PARAM } from "../src/constants.ts";
 import { ComputedSignal } from "./fixtures_islands/Computed.tsx";
+import { EnvIsland } from "./fixtures_islands/EnvIsland.tsx";
 
+Deno.env.set("FRESH_PUBLIC_TEST_FOO", "test-env-value");
+Deno.env.set("FRESH_PRIVATE_TEST_FOO", "i-should-not-be-visible");
 const allIslandCache = await buildProd({ islandDir: ALL_ISLAND_DIR });
 const islandGroupCache = await buildProd({ root: ISLAND_GROUP_DIR });
 
@@ -685,6 +688,52 @@ Deno.test({
 
       expect(truthy).toEqual("true");
       expect(falsy).toEqual("false");
+    });
+  },
+});
+
+Deno.test({
+  name: "islands - inlines FRESH_PUBLIC_* env vars",
+  fn: async () => {
+    const app = testApp()
+      .get("/", (ctx) =>
+        ctx.render(
+          <Doc>
+            <EnvIsland id="test" />
+          </Doc>,
+        ));
+
+    await withBrowserApp(app, async (page, address) => {
+      await page.goto(address, { waitUntil: "load" });
+      await page.locator(".ready").wait();
+
+      const denoEnv = await page.locator<HTMLDivElement>(".deno-env")
+        .evaluate((el) => el.textContent);
+      const denoEnv2 = await page.locator<HTMLDivElement>(".deno-env-2")
+        .evaluate((el) => el.textContent);
+      const processEnv = await page.locator<HTMLDivElement>(".process-env")
+        .evaluate((el) => el.textContent);
+
+      const denoEnvPrivate = await page.locator<HTMLDivElement>(
+        ".deno-env-private",
+      )
+        .evaluate((el) => el.textContent);
+      const denoEnvPrivate2 = await page.locator<HTMLDivElement>(
+        ".deno-env-private-2",
+      )
+        .evaluate((el) => el.textContent);
+      const processEnvPrivate = await page.locator<HTMLDivElement>(
+        ".process-env-private",
+      )
+        .evaluate((el) => el.textContent);
+
+      expect(denoEnv).toEqual("test-env-value");
+      expect(denoEnv2).toEqual("test-env-value");
+      expect(processEnv).toEqual("test-env-value");
+
+      expect(denoEnvPrivate).toEqual("ok");
+      expect(denoEnvPrivate2).toEqual("ok");
+      expect(processEnvPrivate).toEqual("ok");
     });
   },
 });
