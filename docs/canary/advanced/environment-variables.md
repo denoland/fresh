@@ -45,7 +45,6 @@ This way you can use specific environment variables in the browser.
 > ```ts MyIsland.tsx
 > // CORRECT
 > Deno.env.get("FRESH_PUBLIC_FOO");
-> Deno.env.get("FRESH_PUBLIC_FOO");
 > process.env.FRESH_PUBLIC_FOO;
 >
 > // WRONG
