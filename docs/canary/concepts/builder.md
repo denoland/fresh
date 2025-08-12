@@ -31,6 +31,8 @@ const builder = new Builder({
   // The root directory of the project. All other paths will be resolved
   // against this if they're relative. (Default: `Deno.cwd()`)
   root?: string;
+  // The path to your server entry point. (Default: `<root>/main.ts`)
+  serverEntry?: string;
   // Where to write generated files when doing a production build.
   // (default: `<root>/_fresh/`)
   outDir?: string;

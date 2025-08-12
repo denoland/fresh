@@ -10,6 +10,7 @@ Deno.test({
     await using _tmp = await withTmpDir();
     const tmp = _tmp.dir;
     const config: ResolvedBuildConfig = {
+      serverEntry: "main.ts",
       root: tmp,
       mode: "development",
       buildId: "",
