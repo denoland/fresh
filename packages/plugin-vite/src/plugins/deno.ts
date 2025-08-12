@@ -7,7 +7,6 @@ import {
 } from "@deno/loader";
 import * as path from "@std/path";
 import * as babel from "@babel/core";
-import { npmWorkaround } from "./patches/npm_workaround.ts";
 import babelReact from "@babel/preset-react";
 
 interface DenoState {
@@ -39,12 +38,6 @@ export function deno(): Plugin {
     },
     async resolveId(id, importer, options) {
       const loader = options?.ssr ? ssrLoader : browserLoader;
-
-      // Workaround until upstream PR is merged and released,
-      // see: https://github.com/vitejs/vite/pull/20558
-      if (id.startsWith("deno-npm:")) {
-        id = id.slice("deno-".length);
-      }
 
       importer = isDenoSpecifier(importer)
         ? parseDenoSpecifier(importer).specifier
@@ -188,21 +181,6 @@ export function deno(): Plugin {
       }
 
       const code = new TextDecoder().decode(result.code);
-
-      // Ensure vite never sees `npm:` specifiers. The load call here
-      // can potentially insert JSX pragmas which refer to `npm:`
-      // specifiers.
-      const res = babel.transformSync(code, {
-        filename: id,
-        babelrc: false,
-        plugins: [npmWorkaround],
-      });
-      if (res?.code) {
-        return {
-          code: res.code,
-          map: res.map,
-        };
-      }
 
       return {
         code,

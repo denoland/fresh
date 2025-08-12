@@ -27,7 +27,7 @@
     "@types/node": "npm:@types/node@^24.1.0",
     "mime-db": "npm:mime-db@^1.54.0",
     "preact": "npm:preact@^10.26.9",
-    "vite": "npm:vite@^7.0.6",
+    "vite": "npm:vite@^7.1.2",
     "vite-plugin-inspect": "npm:vite-plugin-inspect@^11.3.2"
   }
 }
