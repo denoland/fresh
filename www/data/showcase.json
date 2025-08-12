@@ -444,5 +444,11 @@
     "link": "https://moatez-bejaoui.deno.dev",
     "github": "https://github.com/MoatezNG",
     "image": "moatez-desktop"
+  },
+  {
+    "title": "WeeWoo Study",
+    "link": "https://weewoo.study",
+    "github": "https://github.com/briansimoni/weewoo.study",
+    "image": "weewoo.study"
   }
 ]
