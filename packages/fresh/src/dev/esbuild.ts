@@ -84,7 +84,11 @@ export async function bundleJs(
       preactDebugger(PREACT_ENV),
       buildIdPlugin(options.buildId),
       windowsPathFixer(),
-      denoPlugin({ preserveJsx: true, debug: false }),
+      denoPlugin({
+        preserveJsx: true,
+        debug: false,
+        publicEnvVarPrefix: "FRESH_PUBLIC_",
+      }),
     ],
   });
 
