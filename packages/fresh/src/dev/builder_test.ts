@@ -504,6 +504,33 @@ export const app = new App()
 });
 
 Deno.test({
+  name: "Builder - custom server entry",
+  fn: async () => {
+    const root = path.join(import.meta.dirname!, "..", "..");
+    await using _tmp = await withTmpDir({ dir: root, prefix: "tmp_builder_" });
+    const tmp = _tmp.dir;
+
+    await writeFiles(tmp, {
+      "other.ts": `import { App, staticFiles } from "fresh";
+export const app = new App()
+  .get("/", () => new Response("ok"));`,
+    });
+
+    await new Builder({ root: tmp, serverEntry: "other.ts" }).build();
+
+    await withChildProcessServer(
+      { cwd: tmp, args: ["serve", "-A", "--port=0", "_fresh/server.js"] },
+      async (address) => {
+        const res = await fetch(`${address}`);
+        expect(await res.text()).toEqual("ok");
+      },
+    );
+  },
+  sanitizeOps: false,
+  sanitizeResources: false,
+});
+
+Deno.test({
   name: "Builder - dev server error_overlay ignores _app and _layout",
   fn: async () => {
     const root = path.join(import.meta.dirname!, "..", "..");
