@@ -65,6 +65,12 @@ export function deno(): Plugin {
         id = tmp.id;
       }
 
+      // Plugins may return lower cased drive letters on windows
+      if (path.isAbsolute(id)) {
+        id = path.toFileUrl(path.normalize(id))
+          .href;
+      }
+
       try {
         // Ensure we're passing a valid importer that Deno understands
         const denoImporter = importer && !importer.startsWith("\0")
@@ -92,8 +98,6 @@ export function deno(): Plugin {
         if (resolved.startsWith("file://")) {
           resolved = path.fromFileUrl(resolved);
         }
-
-        resolved = fixWindowsDriveLetter(resolved);
 
         return {
           id: resolved,
@@ -287,19 +291,4 @@ function maybeTransformJsxBrowser(
   }
 
   return null;
-}
-
-function fixWindowsDriveLetter(filePath: string) {
-  if (Deno.build.os === "windows") {
-    // Vite does strict equality checks on absolute file paths
-    // to load the client script. Ensure we match their casing.
-    const match = filePath.match(/^(\w+):(.*)/);
-    if (match !== null) {
-      const drive = match[1];
-      const rest = match[2];
-      return `${drive.toUpperCase()}:${rest}`;
-    }
-  }
-
-  return filePath;
 }
