@@ -94,7 +94,7 @@ export function cors<State>(options?: CORSOptions<State>): Middleware<State> {
   const optsOrigin = opts.origin;
 
   return async (ctx) => {
-    const requestOrigin = ctx.req.headers.get("origin") || "";
+    const requestOrigin = ctx.request.headers.get("origin") || "";
 
     let allowOrigin: string | null = null;
     if (typeof optsOrigin === "string") {
@@ -115,7 +115,7 @@ export function cors<State>(options?: CORSOptions<State>): Middleware<State> {
       vary.add("Origin");
     }
 
-    if (ctx.req.method === "OPTIONS") {
+    if (ctx.request.method === "OPTIONS") {
       const headers = new Headers();
 
       addHeaderProperties(
@@ -137,7 +137,7 @@ export function cors<State>(options?: CORSOptions<State>): Middleware<State> {
 
       let allowHeaders = opts.allowHeaders;
       if (!allowHeaders?.length) {
-        const reqHeaders = ctx.req.headers.get(
+        const reqHeaders = ctx.request.headers.get(
           "Access-Control-Request-Headers",
         );
         if (reqHeaders) {
