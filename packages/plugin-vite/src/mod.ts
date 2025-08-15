@@ -12,7 +12,6 @@ import { devServer } from "./plugins/dev_server.ts";
 import { buildIdPlugin } from "./plugins/build_id.ts";
 import { clientSnapshot } from "./plugins/client_snapshot.ts";
 import { serverSnapshot } from "./plugins/server_snapshot.ts";
-import { patches } from "./plugins/patches.ts";
 
 export function fresh(config?: FreshViteConfig): Plugin[] {
   const fConfig: ResolvedFreshViteConfig = {
@@ -38,27 +37,6 @@ export function fresh(config?: FreshViteConfig): Plugin[] {
               "react-dom": "preact/compat",
               react: "preact/compat",
             },
-            dedupe: [
-              "preact",
-              "preact/hooks",
-              "preact/jsx-runtime",
-              "preact/jsx-dev-runtime",
-              "preact/compat",
-              "@preact/signals",
-              "@preact/signals-core",
-            ],
-          },
-          optimizeDeps: {
-            exclude: [
-              "preact",
-              "preact/hooks",
-              "preact/jsx-runtime",
-              "preact/jsx-dev-runtime",
-              "preact/compat",
-              "@preact/signals",
-              "@preact/signals-core",
-            ],
-            noDiscovery: true,
           },
 
           publicDir: pathWithRoot("static", config.root),
@@ -97,7 +75,7 @@ export function fresh(config?: FreshViteConfig): Plugin[] {
             },
             ssr: {
               build: {
-                manifest: false,
+                manifest: true,
                 copyPublicDir: false,
 
                 outDir: config.environments?.ssr?.build?.outDir ??
@@ -117,7 +95,6 @@ export function fresh(config?: FreshViteConfig): Plugin[] {
         fConfig.routeDir = pathWithRoot(fConfig.routeDir, config.root);
       },
     },
-    patches(),
     serverEntryPlugin(fConfig),
     ...serverSnapshot(fConfig),
     clientEntryPlugin(),

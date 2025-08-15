@@ -21,6 +21,10 @@ export function deno(): Plugin {
 
   return {
     name: "deno",
+    // We must be first to be able to resolve before the
+    // Vite's own`vite:resolve` plugin. It always treats bare
+    // specifiers as external during SSR.
+    enforce: "pre",
     config(_, env) {
       isDev = env.command === "serve";
     },
@@ -43,6 +47,24 @@ export function deno(): Plugin {
         ? parseDenoSpecifier(importer).specifier
         : importer;
 
+      // We still want to allow other plugins to participate in
+      // resolution, with us being in front due to `enforce: "pre"`.
+      // But we still want to ignore everything `vite:resolve` does
+      // because we're kinda replacing that plugin here.
+      const tmp = await this.resolve(id, importer, options);
+      if (tmp && tmp.resolvedBy !== "vite:resolve") {
+        if (tmp.external) {
+          return tmp;
+        }
+
+        // A plugin namespaced it, we should not attempt to resolve it.
+        if (tmp.id.startsWith("\0")) {
+          return tmp;
+        }
+
+        id = tmp.id;
+      }
+
       try {
         // Ensure we're passing a valid importer that Deno understands
         const denoImporter = importer && !importer.startsWith("\0")
@@ -56,7 +78,7 @@ export function deno(): Plugin {
         );
 
         if (id === resolved) {
-          return id;
+          return null;
         }
 
         const type = getDenoType(id, options.attributes.type ?? "default");
@@ -96,8 +118,20 @@ export function deno(): Plugin {
           return null;
         }
 
+        const code = new TextDecoder().decode(result.code);
+
+        const maybeJsx = maybeTransformJsxBrowser({
+          ssr: !!options?.ssr,
+          code,
+          id: specifier,
+          isDev,
+        });
+        if (maybeJsx !== null) {
+          return maybeJsx;
+        }
+
         return {
-          code: new TextDecoder().decode(result.code),
+          code,
         };
       }
 
@@ -121,30 +155,14 @@ export function deno(): Plugin {
 
       const code = new TextDecoder().decode(result.code);
 
-      if (!options?.ssr) {
-        if (url.pathname.endsWith(".jsx") || url.pathname.endsWith(".tsx")) {
-          const result = babel.transform(code, {
-            sourceMaps: "inline",
-            filename: id,
-            presets: [
-              [
-                babelReact,
-                {
-                  runtime: "automatic",
-                  importSource: "preact",
-                  development: isDev,
-                },
-              ],
-            ],
-          });
-
-          if (result !== null && result.code) {
-            return {
-              code: result.code,
-              map: result.map,
-            };
-          }
-        }
+      const maybeJsx = maybeTransformJsxBrowser({
+        ssr: !!options?.ssr,
+        id,
+        code,
+        isDev,
+      });
+      if (maybeJsx) {
+        return maybeJsx;
       }
 
       return {
@@ -235,4 +253,34 @@ function getDenoType(id: string, type: string): RequestedModuleType {
       }
       return RequestedModuleType.Default;
   }
+}
+
+function maybeTransformJsxBrowser(
+  options: { ssr: boolean; code: string; id: string; isDev: boolean },
+) {
+  const { ssr, code, id, isDev } = options;
+
+  if (
+    !ssr && id.endsWith(".tsx") || id.endsWith(".jsx")
+  ) {
+    const babelResult = babel.transformSync(code, {
+      filename: id,
+      babelrc: false,
+      sourceMaps: "inline",
+      presets: [[babelReact, {
+        runtime: "automatic",
+        importSource: "preact",
+        development: isDev,
+      }]],
+    });
+
+    if (babelResult !== null && babelResult.code) {
+      return {
+        code: babelResult.code,
+        map: babelResult.map,
+      };
+    }
+  }
+
+  return null;
 }
