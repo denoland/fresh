@@ -93,6 +93,8 @@ export function deno(): Plugin {
           resolved = path.fromFileUrl(resolved);
         }
 
+        resolved = fixWindowsDriveLetter(resolved);
+
         return {
           id: resolved,
           meta: {
@@ -285,4 +287,19 @@ function maybeTransformJsxBrowser(
   }
 
   return null;
+}
+
+function fixWindowsDriveLetter(filePath: string) {
+  if (Deno.build.os === "windows") {
+    // Vite does strict equality checks on absolute file paths
+    // to load the client script. Ensure we match their casing.
+    const match = filePath.match(/^(\w+):(.*)/);
+    if (match !== null) {
+      const drive = match[1];
+      const rest = match[2];
+      return `${drive.toUpperCase()}:${rest}`;
+    }
+  }
+
+  return filePath;
 }
