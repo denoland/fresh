@@ -16,7 +16,9 @@ export function patches(): Plugin {
       return true;
     },
     transform(code, id, options) {
-      if (code.includes("__commonJS")) return;
+      if (code.includes("__commonJS") || /\.(tsx?|m[jt]s)$/.test(id)) {
+        return;
+      }
 
       const presets = [];
       if (!options?.ssr) {
