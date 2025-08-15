@@ -41,7 +41,7 @@ export function fresh(config?: FreshViteConfig): Plugin[] {
             noExternal: true,
           },
           optimizeDeps: {
-            // Optmize deps somehow leads to duplicate modules or them
+            // Optimize deps somehow leads to duplicate modules or them
             // being placed in the wrong chunks...
             noDiscovery: true,
           },
