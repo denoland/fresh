@@ -6,11 +6,10 @@ export function liveReload<T>(): Middleware<T> {
   const revision = Date.now();
 
   return (ctx) => {
-    const { config, req, url } = ctx;
+    const { req, url } = ctx;
 
-    const aliveUrl = config.basePath + ALIVE_URL;
-
-    if (url.pathname === aliveUrl) {
+    // In dev mode, basePath is always "/" so we check the URL directly
+    if (url.pathname === ALIVE_URL) {
       if (req.headers.get("upgrade") !== "websocket") {
         return new Response(null, { status: 501 });
       }

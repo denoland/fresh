@@ -6,8 +6,9 @@ import { ErrorOverlay } from "./overlay.tsx";
 
 export function devErrorOverlay<T>(): Middleware<T> {
   return async (ctx) => {
-    const { config, url } = ctx;
-    if (url.pathname === config.basePath + DEV_ERROR_OVERLAY_URL) {
+    const { url } = ctx;
+    // In dev mode, basePath is always "/" so we check the URL directly
+    if (url.pathname === DEV_ERROR_OVERLAY_URL) {
       return ctx.render(<ErrorOverlay url={url} />);
     }
 
