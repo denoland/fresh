@@ -84,9 +84,7 @@ export function deno(): Plugin {
         const type = getDenoType(id, options.attributes.type ?? "default");
         if (
           type !== RequestedModuleType.Default ||
-          /^(https?|jsr|npm):/.test(resolved) ||
-          // Vite does weird things to windows file paths
-          Deno.build.os === "windows"
+          /^(https?|jsr|npm):/.test(resolved)
         ) {
           return toDenoSpecifier(resolved, type);
         }
