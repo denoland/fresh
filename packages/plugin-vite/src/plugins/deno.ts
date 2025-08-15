@@ -234,6 +234,10 @@ function parseDenoSpecifier(
     specifier = `${protocol}://${rest}`;
   }
 
+  if (path.isAbsolute(specifier)) {
+    specifier = path.toFileUrl(specifier).href;
+  }
+
   return { type: +match[1], specifier };
 }
 
