@@ -183,7 +183,8 @@ export class Builder<State = any> {
 
     const appHandler = app.handler();
 
-    const devApp = new App<State>(app.config)
+    const devConfig = { ...app.config, basePath: "/" };
+    const devApp = new App<State>(devConfig)
       .use(liveReload())
       .use(devErrorOverlay())
       .use(automaticWorkspaceFolders(this.config.root))
