@@ -116,7 +116,7 @@ Deno.test("update - 1.x project deno.json tasks + lock", async () => {
     .toEqual({
       build: "deno run -A dev.ts build",
       check: "deno fmt --check && deno lint && deno check",
-      preview: "deno serve -A _fresh/server.js",
+      preview: "deno serve -A .fresh/server.js",
       start: "deno run -A --watch=static/,routes/ dev.ts",
       update: "deno run -A -r jsr:@fresh/update .",
     });
