@@ -10,6 +10,8 @@
     "jsr:@deno/graph@~0.82.3": "0.82.3",
     "jsr:@deno/loader@~0.3.2": "0.3.4",
     "jsr:@deno/loader@~0.3.3": "0.3.4",
+    "jsr:@fresh/build-id@1": "1.0.0",
+    "jsr:@fresh/core@^2.0.0-alpha.37": "2.0.0-alpha.58",
     "jsr:@marvinh-test/fresh-island@^0.0.2": "0.0.2",
     "jsr:@std/assert@^1.0.13": "1.0.14",
     "jsr:@std/async@1": "1.0.14",
@@ -147,6 +149,34 @@
     },
     "@deno/loader@0.3.4": {
       "integrity": "c56003bc7027606301c3fe62704723b207a9e508c9fb154cf5131abb9d4d2673"
+    },
+    "@fresh/build-id@1.0.0": {
+      "integrity": "c42a1dab0b0b8bcddf93657edf03f404d537ba8e1d44144b3c749727c5671d5a",
+      "dependencies": [
+        "jsr:@std/encoding@^1.0.10"
+      ]
+    },
+    "@fresh/core@2.0.0-alpha.58": {
+      "integrity": "368b579ff0da5badd232916f021a458c9c9ccb35ffe4247df6ff5757cffedc82",
+      "dependencies": [
+        "jsr:@deno/esbuild-plugin",
+        "jsr:@std/encoding@1",
+        "jsr:@std/fmt@^1.0.8",
+        "jsr:@std/fs@1",
+        "jsr:@std/html@1",
+        "jsr:@std/http",
+        "jsr:@std/jsonc",
+        "jsr:@std/media-types@1",
+        "jsr:@std/path@1",
+        "jsr:@std/semver",
+        "jsr:@std/uuid",
+        "npm:@opentelemetry/api",
+        "npm:@preact/signals@^2.2.1",
+        "npm:esbuild-wasm",
+        "npm:esbuild@0.25.7",
+        "npm:preact-render-to-string",
+        "npm:preact@^10.27.0"
+      ]
     },
     "@marvinh-test/fresh-island@0.0.2": {
       "integrity": "77fc811a677de22d7149e326aa99e03530e4ce06fb8ce3ea296c16729ef65a54",

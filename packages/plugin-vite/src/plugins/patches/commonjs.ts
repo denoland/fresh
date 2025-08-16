@@ -56,12 +56,52 @@ export function cjsPlugin(
             );
           }
 
+          const exportNamed = new Map<string, string>();
+
           const idExports: types.ExportSpecifier[] = [];
           for (const name of exported) {
             if (name === "default") {
-              path.pushContainer(
-                "body",
-                t.exportDefaultDeclaration(
+              exportNamed.set(name, name);
+              continue;
+            }
+
+            const id = path.scope.generateUidIdentifier(name);
+
+            exportNamed.set(id.name, name);
+
+            path.pushContainer(
+              "body",
+              t.variableDeclaration(
+                "var",
+                [t.variableDeclarator(
+                  id,
+                  t.memberExpression(
+                    t.identifier("exports"),
+                    t.identifier(name),
+                  ),
+                )],
+              ),
+            );
+            idExports.push(
+              t.exportSpecifier(id, t.identifier(name)),
+            );
+          }
+
+          if (idExports.length > 0) {
+            path.pushContainer(
+              "body",
+              t.exportNamedDeclaration(null, idExports),
+            );
+          }
+
+          if (exportNamed.size > 0) {
+            const id = path.scope.generateUidIdentifier("__default");
+
+            path.pushContainer(
+              "body",
+              t.variableDeclaration("const", [
+                t.variableDeclarator(
+                  id,
                   t.logicalExpression(
                     "??",
                     t.logicalExpression(
@@ -84,33 +124,25 @@ export function cjsPlugin(
                     ),
                   ),
                 ),
-              );
-            } else {
-              const id = path.scope.generateUidIdentifier(name);
+              ]),
+            );
+
+            for (const [local, exported] of exportNamed.entries()) {
+              if (exported === "default") continue;
+
               path.pushContainer(
                 "body",
-                t.variableDeclaration(
-                  "var",
-                  [t.variableDeclarator(
-                    id,
-                    t.memberExpression(
-                      t.identifier("exports"),
-                      t.identifier(name),
-                    ),
-                  )],
+                t.expressionStatement(
+                  t.assignmentExpression(
+                    "=",
+                    t.memberExpression(id, t.identifier(exported)),
+                    t.identifier(local),
+                  ),
                 ),
               );
-              idExports.push(
-                t.exportSpecifier(id, t.identifier(name)),
-              );
             }
-          }
 
-          if (idExports.length > 0) {
-            path.pushContainer(
-              "body",
-              t.exportNamedDeclaration(null, idExports),
-            );
+            path.pushContainer("body", t.exportDefaultDeclaration(id));
           }
 
           if (body.length === 0 && state.get(HAS_ES_MODULE)) {

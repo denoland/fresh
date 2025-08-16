@@ -19,14 +19,16 @@ const INIT = `var exports = {},
   };`;
 
 const DEFAULT_EXPORT =
-  `export default module.exports.default ?? exports.default ?? module.exports;`;
+  `const _default = module.exports.default ?? exports.default ?? module.exports;`;
+const DEFAULT_EXPORT_END = `export default _default;`;
 
 Deno.test("commonjs - module.exports default", () => {
   runTest({
     input: `module.exports = async function () {};`,
     expected: `${INIT}
 module.exports = async function () {};
-${DEFAULT_EXPORT}`,
+${DEFAULT_EXPORT}
+${DEFAULT_EXPORT_END}`,
   });
 });
 
@@ -35,7 +37,8 @@ Deno.test("commonjs - module.exports default primitive", () => {
     input: `module.exports = 42;`,
     expected: `${INIT}
 module.exports = 42;
-${DEFAULT_EXPORT}`,
+${DEFAULT_EXPORT}
+${DEFAULT_EXPORT_END}`,
   });
 });
 
@@ -47,9 +50,11 @@ exports.foo = 'foo';`,
     expected: `${INIT}
 exports.default = 'x';
 exports.foo = 'foo';
-${DEFAULT_EXPORT}
 var _foo = exports.foo;
-export { _foo as foo };`,
+export { _foo as foo };
+${DEFAULT_EXPORT}
+_default.foo = _foo;
+${DEFAULT_EXPORT_END}`,
   });
 });
 
@@ -61,9 +66,11 @@ module.exports.foo = 'foo';`,
     expected: `${INIT}
 module.exports.default = 'x';
 module.exports.foo = 'foo';
-${DEFAULT_EXPORT}
 var _foo = exports.foo;
-export { _foo as foo };`,
+export { _foo as foo };
+${DEFAULT_EXPORT}
+_default.foo = _foo;
+${DEFAULT_EXPORT_END}`,
   });
 });
 
@@ -77,7 +84,10 @@ const foo = 'also bar';
 exports.foo = 'bar';
 const foo = 'also bar';
 var _foo = exports.foo;
-export { _foo as foo };`,
+export { _foo as foo };
+${DEFAULT_EXPORT}
+_default.foo = _foo;
+${DEFAULT_EXPORT_END}`,
   });
 });
 
@@ -90,9 +100,11 @@ exports.foo = 'bar';
     expected: `${INIT}
 exports.default = 'foo';
 exports.foo = 'bar';
-${DEFAULT_EXPORT}
 var _foo = exports.foo;
-export { _foo as foo };`,
+export { _foo as foo };
+${DEFAULT_EXPORT}
+_default.foo = _foo;
+${DEFAULT_EXPORT_END}`,
   });
 });
 
@@ -129,7 +141,11 @@ exports.foo = 'bar';
 exports.bar = 'foo';
 var _foo = exports.foo;
 var _bar = exports.bar;
-export { _foo as foo, _bar as bar };`,
+export { _foo as foo, _bar as bar };
+${DEFAULT_EXPORT}
+_default.foo = _foo;
+_default.bar = _bar;
+${DEFAULT_EXPORT_END}`,
   });
 });
 
@@ -205,7 +221,10 @@ exports.trace = 'foo'`,
 exports.trace = void 0;
 exports.trace = 'foo';
 var _trace = exports.trace;
-export { _trace as trace };`,
+export { _trace as trace };
+${DEFAULT_EXPORT}
+_default.trace = _trace;
+${DEFAULT_EXPORT_END}`,
   });
 });
 
@@ -219,7 +238,11 @@ exports.foo = exports.bar = void 0;
 exports.foo = 'foo';
 var _foo = exports.foo;
 var _bar = exports.bar;
-export { _foo as foo, _bar as bar };`,
+export { _foo as foo, _bar as bar };
+${DEFAULT_EXPORT}
+_default.foo = _foo;
+_default.bar = _bar;
+${DEFAULT_EXPORT_END}`,
   });
 });
 
@@ -237,7 +260,10 @@ Object.defineProperty(exports, "foo", {
   }
 });
 var _foo = exports.foo;
-export { _foo as foo };`,
+export { _foo as foo };
+${DEFAULT_EXPORT}
+_default.foo = _foo;
+${DEFAULT_EXPORT_END}`,
   });
 });
 
@@ -255,7 +281,10 @@ Object.defineProperty(exports, "foo", {
   }
 });
 var _foo = exports.foo;
-export { _foo as foo };`,
+export { _foo as foo };
+${DEFAULT_EXPORT}
+_default.foo = _foo;
+${DEFAULT_EXPORT_END}`,
   });
 });
 
@@ -268,7 +297,10 @@ exports._globalThis = typeof globalThis === 'object' ? globalThis : global;`,
 exports._globalThis = void 0;
 exports._globalThis = typeof globalThis === 'object' ? globalThis : global;
 var _globalThis = exports._globalThis;
-export { _globalThis };`,
+export { _globalThis };
+${DEFAULT_EXPORT}
+_default._globalThis = _globalThis;
+${DEFAULT_EXPORT_END}`,
   });
 });
 
@@ -281,7 +313,10 @@ exports.foo = foo;`,
 function foo() {}
 exports.foo = foo;
 var _foo = exports.foo;
-export { _foo as foo };`,
+export { _foo as foo };
+${DEFAULT_EXPORT}
+_default.foo = _foo;
+${DEFAULT_EXPORT_END}`,
   });
 });
 
@@ -297,7 +332,8 @@ Deno.test("commonjs - exports.default", () => {
     input: `exports.default = {}`,
     expected: `${INIT}
 exports.default = {};
-${DEFAULT_EXPORT}`,
+${DEFAULT_EXPORT}
+${DEFAULT_EXPORT_END}`,
   });
 });
 
@@ -309,7 +345,10 @@ exports.VERSION = '1.9.0';`,
 exports.VERSION = void 0;
 exports.VERSION = '1.9.0';
 var _VERSION = exports.VERSION;
-export { _VERSION as VERSION };`,
+export { _VERSION as VERSION };
+${DEFAULT_EXPORT}
+_default.VERSION = _VERSION;
+${DEFAULT_EXPORT_END}`,
   });
 });
 
@@ -328,16 +367,25 @@ var DiagLogLevel;
   DiagLogLevel[DiagLogLevel["ALL"] = 9999] = "ALL";
 })(DiagLogLevel = exports.DiagLogLevel || (exports.DiagLogLevel = {}));
 var _DiagLogLevel = exports.DiagLogLevel;
-export { _DiagLogLevel as DiagLogLevel };`,
+export { _DiagLogLevel as DiagLogLevel };
+${DEFAULT_EXPORT}
+_default.DiagLogLevel = _DiagLogLevel;
+${DEFAULT_EXPORT_END}`,
   });
 });
 
-// I've never seen this, seems rare. Skipping for now.
-Deno.test.ignore("commonjs - require", () => {
+Deno.test("commonjs - require", () => {
   runTest({
     input: `module.exports = { __esModule: true, default: { foo: 'bar' }}`,
-    expected: `import * as foo from "tape";
-console.log(foo)`,
+    expected: `${INIT}
+module.exports = {
+  __esModule: true,
+  default: {
+    foo: 'bar'
+  }
+};
+${DEFAULT_EXPORT}
+${DEFAULT_EXPORT_END}`,
   });
 });
 
@@ -347,7 +395,14 @@ Deno.test.ignore("commonjs - export default object", () => {
     input: `Object.defineProperty(exports, '__esModule', { value: true });
 module.exports = { foo: 'bar' };
 `,
-    expected: `export let foo = 'bar';
-export let bar = 'foo';`,
+    expected: `${INIT}
+module.exports = {
+  foo: 'bar'
+};
+var _foo = module.exports.foo;
+export let foo = _foo;
+${DEFAULT_EXPORT}
+_default.foo = _foo;
+${DEFAULT_EXPORT_END}`,
   });
 });
