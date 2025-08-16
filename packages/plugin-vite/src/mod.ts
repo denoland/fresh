@@ -38,6 +38,9 @@ export function fresh(config?: FreshViteConfig): Plugin[] {
               "react-dom": "preact/compat",
               react: "preact/compat",
             },
+            // Disallow externals, because it leads to duplicate
+            // modules with `preact` vs `npm:preact@*` in the server
+            // environment.
             noExternal: true,
           },
           optimizeDeps: {
