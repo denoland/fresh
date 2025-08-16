@@ -26,6 +26,8 @@ import { pathToExportName, UniqueNamer } from "../utils.ts";
 import { checkDenoCompilerOptions } from "./check.ts";
 import { crawlFsItem } from "./fs_crawl.ts";
 import { DAY } from "../constants.ts";
+import { DOMParser } from "linkedom";
+import { Domain } from "node:domain";
 
 export interface BuildOptions {
   /**
@@ -103,6 +105,11 @@ export type ResolvedBuildConfig = Required<Omit<BuildOptions, "sourceMap">> & {
   buildId: string;
   sourceMap?: FreshBundleOptions["sourceMap"];
 };
+
+export interface StaticSiteOptions<State> {
+  entryUrls: string[];
+  getApp: () => Promise<{ app: App<State> } | App<State>>;
+}
 
 const TEST_FILE_PATTERN = /[._]test\.(?:[tj]sx?|[mc][tj]s)$/;
 
@@ -260,6 +267,60 @@ export class Builder<State = any> {
     return (app) => {
       setBuildCache(app, buildCache, app.config.mode);
     };
+  }
+
+  async generateStaticSite(options: StaticSiteOptions<State>) {
+    const mod = await options.getApp();
+    const app = "app" in mod ? mod.app : mod;
+
+    // const applySnapshot = await this.build();
+    // applySnapshot(app);
+
+    const handler = app.handler();
+
+    const dom = new DOMParser();
+
+    const seen = new Set<string>();
+    const queue: URL[] = options.entryUrls.map((url) =>
+      new URL(url, "http://localhost")
+    );
+
+    let url: URL | undefined;
+    while ((url = queue.pop()) !== undefined) {
+      if (seen.has(url.href)) continue;
+
+      seen.add(url.href);
+
+      const req = new Request(url.href);
+      const res = await handler(req);
+
+      if (res.ok) {
+        const text = await res.text();
+
+        const contentType = res.headers.get("Content-Type");
+        if (contentType?.includes("text/html")) {
+          const doc = dom.parseFromString(text, "text/html");
+          const links = doc.querySelectorAll("a");
+          for (let i = 0; i < links.length; i++) {
+            const link = links[i];
+
+            if (link.href) {
+              const nextUrl = new URL(link.href, url.href);
+              queue.push(nextUrl);
+            }
+          }
+        }
+
+        const dir = path.join(this.config.outDir, url.pathname);
+        await fsAdapter.mkdirp(dir);
+
+        console.log("write", path.join(dir, "index.html"));
+        await Deno.writeTextFile(
+          path.join(dir, "index.html"),
+          text,
+        );
+      }
+    }
   }
 
   async #crawlFsItems() {
