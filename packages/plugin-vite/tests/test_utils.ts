@@ -50,6 +50,7 @@ async function copyDir(from: string, to: string) {
 export async function withDevServer(
   fixtureDir: string,
   fn: (address: string, dir: string) => void | Promise<void>,
+  env: Record<string, string> = {},
 ) {
   await using tmp = await withTmpDir({
     dir: path.join(import.meta.dirname!, ".."),
@@ -72,7 +73,7 @@ export default defineConfig({
   );
 
   await withChildProcessServer(
-    { cwd: tmp.dir, args: ["run", "-A", "npm:vite", "--port", "0"] },
+    { cwd: tmp.dir, args: ["run", "-A", "npm:vite", "--port", "0"], env },
     async (address) => await fn(address, tmp.dir),
   );
 }
@@ -107,6 +108,15 @@ export async function buildVite(fixtureDir: string) {
     tmp: tmp.dir,
     async [Symbol.asyncDispose]() {
       return await tmp[Symbol.asyncDispose]();
+    },
+  };
+}
+
+export function usingEnv(name: string, value: string) {
+  Deno.env.set(name, value);
+  return {
+    [Symbol.dispose]: () => {
+      Deno.env.delete(name);
     },
   };
 }

@@ -144,3 +144,26 @@ Deno.test({
   sanitizeResources: false,
   sanitizeOps: false,
 });
+
+Deno.test({
+  name: "vite dev - inline env vars",
+  fn: async () => {
+    await withDevServer(DEMO_DIR, async (address) => {
+      await withBrowser(async (page) => {
+        await page.goto(`${address}/tests/env`, {
+          waitUntil: "networkidle2",
+        });
+        await page.locator(".ready").wait();
+
+        const res = await page.locator("pre").evaluate((el) =>
+          // deno-lint-ignore no-explicit-any
+          (el as any).textContent ?? ""
+        );
+
+        expect(JSON.parse(res)).toEqual({ deno: "foobar", nodeEnv: "foobar" });
+      });
+    }, { FRESH_PUBLIC_FOO: "foobar" });
+  },
+  sanitizeResources: false,
+  sanitizeOps: false,
+});
