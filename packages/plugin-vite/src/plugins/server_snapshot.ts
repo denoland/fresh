@@ -172,6 +172,10 @@ export function serverSnapshot(options: ResolvedFreshViteConfig): Plugin[] {
         fsRoutesFiles: result.routes,
         islands: islandMods,
         writeSpecifier: (file) => {
+          const def = islands.get(file);
+          if (def) {
+            return `fresh-island::${def.name}`;
+          }
           return path.toFileUrl(file).href;
         },
       });

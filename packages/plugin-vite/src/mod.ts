@@ -38,18 +38,15 @@ export function fresh(config?: FreshViteConfig): Plugin[] {
               "react-dom": "preact/compat",
               react: "preact/compat",
             },
+            // Disallow externals, because it leads to duplicate
+            // modules with `preact` vs `npm:preact@*` in the server
+            // environment.
+            noExternal: true,
           },
           optimizeDeps: {
-            include: [
-              "preact",
-              "preact/compat",
-              "preact/debug",
-              "preact/devtools",
-              "preact/hooks",
-              "preact/jsx-runtime",
-              "preact/jsx-dev-runtime",
-              "@preact/signals",
-            ],
+            // Optimize deps somehow leads to duplicate modules or them
+            // being placed in the wrong chunks...
+            noDiscovery: true,
           },
 
           publicDir: pathWithRoot("static", config.root),
@@ -88,7 +85,7 @@ export function fresh(config?: FreshViteConfig): Plugin[] {
             },
             ssr: {
               build: {
-                manifest: false,
+                manifest: true,
                 copyPublicDir: false,
 
                 outDir: config.environments?.ssr?.build?.outDir ??
@@ -108,8 +105,8 @@ export function fresh(config?: FreshViteConfig): Plugin[] {
         fConfig.routeDir = pathWithRoot(fConfig.routeDir, config.root);
       },
     },
-    patches(),
     serverEntryPlugin(fConfig),
+    patches(),
     ...serverSnapshot(fConfig),
     clientEntryPlugin(),
     clientSnapshot(fConfig),

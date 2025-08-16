@@ -1,12 +1,11 @@
-import * as mime from "mime-db";
+import mime from "mime-db";
 import { useEffect, useState } from "preact/hooks";
 
 export function MimeIsland() {
-  // deno-lint-ignore no-console
-  console.log(mime);
-
   const [ready, setReady] = useState(false);
   useEffect(() => {
+    // deno-lint-ignore no-console
+    console.log(mime);
     setReady(true);
   }, []);
 

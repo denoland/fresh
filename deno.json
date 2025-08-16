@@ -64,7 +64,7 @@
     "@std/streams": "jsr:@std/streams@1",
 
     "@astral/astral": "jsr:@astral/astral@^0.5.3",
-    "@marvinh-test/fresh-island": "jsr:@marvinh-test/fresh-island@^0.0.1",
+    "@marvinh-test/fresh-island": "jsr:@marvinh-test/fresh-island@^0.0.2",
     "linkedom": "npm:linkedom@^0.18.10",
     "@std/async": "jsr:@std/async@^1.0.13",
     "@std/expect": "jsr:@std/expect@^1.0.16",
