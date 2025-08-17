@@ -1,8 +1,8 @@
-import type { types } from "@babel/core";
+import type { PluginObj, types } from "@babel/core";
 
 export function cjsPlugin(
   { types: t }: { types: typeof types },
-): babel.PluginObj {
+): PluginObj {
   const HAS_ES_MODULE = "esModule";
   const REQUIRE_CALLS = "requireCalls";
   const ROOT_SCOPE = "rootScope";
