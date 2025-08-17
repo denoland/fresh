@@ -17,6 +17,8 @@ export function patches(): Plugin {
       return true;
     },
     transform(code, id, options) {
+      if (!/\.([tj]sx?|[mc][tj]s)$/.test(id)) return;
+
       const presets = [];
       if (!options?.ssr && /\.(tsx?|m[jt]s)$/.test(id)) {
         presets.push([babelReact, {
