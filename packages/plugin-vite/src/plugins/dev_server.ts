@@ -77,6 +77,17 @@ export function devServer(): Plugin[] {
 
         if (clientMod === undefined) {
           options.server.hot.send("fresh:reload");
+          return;
+        }
+
+        const ssrMod = options.server.environments.ssr.moduleGraph
+          .getModulesByFile(options.file);
+        if (ssrMod !== undefined) {
+          // SSR-only module. Might still be a route.
+          // deno-lint-ignore no-console
+          console.log("hmr", options.file);
+
+          options.server.hot.send("fresh:reload");
         }
       },
     },
