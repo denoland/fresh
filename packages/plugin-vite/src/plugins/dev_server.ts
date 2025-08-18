@@ -2,6 +2,7 @@ import type { Plugin } from "vite";
 import { nodeToRequest, responseToNode } from "../request.ts";
 import * as path from "@std/path";
 import { pathWithRoot } from "../utils.ts";
+import { ASSET_CACHE_BUST_KEY } from "fresh/internal";
 
 export function devServer(): Plugin[] {
   let publicDir = "";
@@ -25,6 +26,9 @@ export function devServer(): Plugin[] {
             `${protocol}://${host}:${port}${nodeReq.url ?? "/"}`,
           );
 
+          // Don't cache in dev
+          url.searchParams.delete(ASSET_CACHE_BUST_KEY);
+
           // Check if it's a vite url
           if (
             IGNORE_URLS.test(url.pathname) ||
@@ -37,7 +41,10 @@ export function devServer(): Plugin[] {
 
           // Check if it's a static file first
           // FIXME: Should this still go through fresh?
-          if (url.pathname !== "/") {
+          if (
+            url.pathname !== "/" &&
+            url.pathname !== "/.well-known/appspecific/com.chrome.devtools.json"
+          ) {
             try {
               await Deno.stat(path.join(publicDir, url.pathname));
               return next();
