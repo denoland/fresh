@@ -34,17 +34,15 @@ export function devServer(): Plugin[] {
             IGNORE_URLS.test(url.pathname) ||
             server.environments.client.moduleGraph.urlToModuleMap.has(
               url.pathname,
-            )
+            ) ||
+            url.pathname === "/.well-known/appspecific/com.chrome.devtools.json"
           ) {
             return next();
           }
 
           // Check if it's a static file first
           // FIXME: Should this still go through fresh?
-          if (
-            url.pathname !== "/" &&
-            url.pathname !== "/.well-known/appspecific/com.chrome.devtools.json"
-          ) {
+          if (url.pathname !== "/") {
             try {
               await Deno.stat(path.join(publicDir, url.pathname));
               return next();
