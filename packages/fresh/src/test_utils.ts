@@ -163,6 +163,10 @@ export class MockBuildCache<State> implements BuildCache<State> {
     this.#files = files;
   }
 
+  getEntryAssets(): string[] {
+    return [];
+  }
+
   getFsRoutes(): Command<State>[] {
     return fsItemsToCommands(this.#files);
   }

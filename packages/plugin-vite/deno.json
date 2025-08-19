@@ -23,6 +23,7 @@
     "@babel/preset-react": "npm:@babel/preset-react@^7.27.1",
     "@deno/loader": "jsr:@deno/loader@^0.3.2",
     "@prefresh/vite": "npm:@prefresh/vite@^2.4.8",
+    "@tailwindcss/vite": "npm:@tailwindcss/vite@^4.1.12",
     "@types/babel__core": "npm:@types/babel__core@^7.20.5",
     "@types/node": "npm:@types/node@^24.1.0",
     "mime-db": "npm:mime-db@^1.54.0",

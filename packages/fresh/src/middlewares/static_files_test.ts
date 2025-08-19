@@ -32,6 +32,10 @@ class MockBuildCache implements BuildCache {
     }
   }
 
+  getEntryAssets(): string[] {
+    return [];
+  }
+
   // deno-lint-ignore no-explicit-any
   getFsRoutes(): Command<any>[] {
     return [];

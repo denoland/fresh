@@ -81,6 +81,10 @@ export class MemoryBuildCache<State> implements DevBuildCache<State> {
     this.clientEntry = getClientEntry(config.buildId);
   }
 
+  getEntryAssets(): string[] {
+    return [];
+  }
+
   getFsRoutes(): Command<State>[] {
     return this.#commands;
   }
@@ -247,6 +251,10 @@ export class DiskBuildCache<State> implements DevBuildCache<State> {
     this.root = config.root;
   }
 
+  getEntryAssets(): string[] {
+    return [];
+  }
+
   getFsRoutes(): Command<State>[] {
     return [];
   }
@@ -357,6 +365,7 @@ export class DiskBuildCache<State> implements DevBuildCache<State> {
         },
         fsRoutesFiles: this.#fsRoutes.files,
         outDir: root,
+        entryAssets: [],
       }),
     );
 
@@ -422,6 +431,7 @@ export async function generateSnapshotServer(
     // deno-lint-ignore no-explicit-any
     fsRoutesFiles: FsRouteFileNoMod<any>[];
     staticFiles: PendingStaticFile[];
+    entryAssets: string[];
     writeSpecifier: (filePath: string) => string;
   },
 ): Promise<string> {
@@ -479,6 +489,9 @@ export async function generateSnapshotServer(
     }),
   );
 
+  const entryAssets = options.entryAssets.map((url) => JSON.stringify(url))
+    .join(",\n");
+
   return `${EDIT_WARNING}
 import { IslandPreparer } from "fresh/internal";
 ${islandImports}
@@ -498,6 +511,8 @@ ${
     ).join(",\n")
   }
 ]);
+
+export const entryAssets = [${entryAssets}];
 
 export const fsRoutes = [
 ${serializedFsRoutes}

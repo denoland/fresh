@@ -19,6 +19,7 @@ export interface BuildSnapshot<State> {
   fsRoutes: FsRouteFile<State>[];
   staticFiles: Map<string, FileSnapshot>;
   islands: ServerIslandRegistry;
+  entryAssets: string[];
 }
 
 export interface StaticFile {
@@ -39,6 +40,7 @@ export interface BuildCache<State = any> {
   };
   getFsRoutes(): Command<State>[];
   readFile(pathname: string): Promise<StaticFile | null>;
+  getEntryAssets(): string[];
 }
 
 export class ProdBuildCache<State> implements BuildCache<State> {
@@ -52,6 +54,10 @@ export class ProdBuildCache<State> implements BuildCache<State> {
     this.#snapshot = snapshot;
     this.islandRegistry = snapshot.islands;
     this.clientEntry = snapshot.clientEntry;
+  }
+
+  getEntryAssets(): string[] {
+    return this.#snapshot.entryAssets;
   }
 
   getFsRoutes(): Command<State>[] {

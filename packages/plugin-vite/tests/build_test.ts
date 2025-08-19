@@ -200,3 +200,69 @@ Deno.test({
   sanitizeOps: false,
   sanitizeResources: false,
 });
+
+Deno.test({
+  name: "vite build - tailwind no _app",
+  fn: async () => {
+    const fixture = path.join(FIXTURE_DIR, "tailwind_no_app");
+    await using res = await buildVite(fixture);
+
+    await withChildProcessServer(
+      {
+        cwd: res.tmp,
+        args: ["serve", "-A", "--port", "0", "_fresh/server.js"],
+      },
+      async (address) => {
+        await withBrowser(async (page) => {
+          await page.goto(`${address}`, {
+            waitUntil: "networkidle2",
+          });
+
+          const href = await page
+            .locator("link[rel='stylesheet']")
+            .evaluate((el) => {
+              // deno-lint-ignore no-explicit-any
+              return (el as any).href;
+            });
+
+          expect(href).toMatch(/\/assets\/client-entry-.*\.css$/);
+        });
+      },
+    );
+  },
+  sanitizeOps: false,
+  sanitizeResources: false,
+});
+
+Deno.test({
+  name: "vite build - tailwind _app",
+  fn: async () => {
+    const fixture = path.join(FIXTURE_DIR, "tailwind_app");
+    await using res = await buildVite(fixture);
+
+    await withChildProcessServer(
+      {
+        cwd: res.tmp,
+        args: ["serve", "-A", "--port", "0", "_fresh/server.js"],
+      },
+      async (address) => {
+        await withBrowser(async (page) => {
+          await page.goto(`${address}`, {
+            waitUntil: "networkidle2",
+          });
+
+          const href = await page
+            .locator("link[rel='stylesheet']")
+            .evaluate((el) => {
+              // deno-lint-ignore no-explicit-any
+              return (el as any).href;
+            });
+
+          expect(href).toMatch(/\/assets\/client-entry-.*\.css/);
+        });
+      },
+    );
+  },
+  sanitizeOps: false,
+  sanitizeResources: false,
+});
