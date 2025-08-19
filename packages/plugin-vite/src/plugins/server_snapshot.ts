@@ -142,10 +142,16 @@ export function serverSnapshot(options: ResolvedFreshViteConfig): Plugin[] {
               const mod = manifest[id];
               const serverPath = path.join(root, mod.src ?? id);
 
+              let spec = pathToSpec(clientOutDir, mod.file);
+
+              if (spec.startsWith("./")) {
+                spec = spec.slice(1);
+              }
+
               const name = namer.getUniqueName(specToName(id));
               islandMods.push({
                 name,
-                browser: pathToSpec(clientOutDir, mod.file),
+                browser: spec,
                 server: serverPath,
               });
             }
