@@ -5,8 +5,6 @@ import { pathWithRoot } from "../utils.ts";
 import { ASSET_CACHE_BUST_KEY } from "fresh/internal";
 
 export function devServer(): Plugin[] {
-  let publicDir = "";
-
   return [
     {
       name: "fresh:dev_server",

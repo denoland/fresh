@@ -523,7 +523,9 @@ ${serializedFsRoutes}
 export async function prepareStaticFile(
   item: PendingStaticFile,
   outDir: string,
-) {
+): Promise<
+  { name: string; hash: string; filePath: string; contentType: string }
+> {
   const file = await Deno.open(item.filePath);
   const hash = item.hash ? item.hash : await hashContent(file.readable);
   const url = new URL(item.pathname, "http://localhost");
