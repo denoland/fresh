@@ -266,3 +266,33 @@ Deno.test({
   sanitizeOps: false,
   sanitizeResources: false,
 });
+
+Deno.test({
+  name: "vite build - partial island",
+  fn: async () => {
+    await using res = await buildVite(DEMO_DIR);
+
+    await withChildProcessServer(
+      {
+        cwd: res.tmp,
+        args: ["serve", "-A", "--port", "0", "_fresh/server.js"],
+      },
+      async (address) => {
+        await withBrowser(async (page) => {
+          await page.goto(`${address}/tests/partial`, {
+            waitUntil: "networkidle2",
+          });
+
+          await page.locator(".ready").wait();
+          await page.locator("a").click();
+          await page.locator(".counter-hooks").wait();
+
+          await page.locator(".counter-hooks button").click();
+          await waitForText(page, ".counter-hooks button", "count: 1");
+        });
+      },
+    );
+  },
+  sanitizeOps: false,
+  sanitizeResources: false,
+});
