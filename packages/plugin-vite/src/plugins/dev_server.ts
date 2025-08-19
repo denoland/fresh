@@ -1,16 +1,12 @@
 import type { Plugin } from "vite";
 import { nodeToRequest, responseToNode } from "../request.ts";
 import * as path from "@std/path";
-import { pathWithRoot } from "../utils.ts";
 import { ASSET_CACHE_BUST_KEY } from "fresh/internal";
 
 export function devServer(): Plugin[] {
   return [
     {
       name: "fresh:dev_server",
-      configResolved(cfg) {
-        publicDir = pathWithRoot(cfg.publicDir, cfg.root);
-      },
       configureServer(server) {
         const IGNORE_URLS = /^\/(@(vite|fs|id)|\.vite)\//;
 
