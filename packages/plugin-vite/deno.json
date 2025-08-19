@@ -1,6 +1,6 @@
 {
   "name": "@fresh/plugin-vite",
-  "version": "0.0.3",
+  "version": "0.9.0",
   "license": "MIT",
   "exports": {
     ".": "./src/mod.ts"
