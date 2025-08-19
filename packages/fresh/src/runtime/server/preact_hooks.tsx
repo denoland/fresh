@@ -12,7 +12,7 @@ import {
 import type { ReadonlySignal, Signal } from "@preact/signals";
 import type { Stringifiers } from "../../jsonify/stringify.ts";
 import type { PageProps } from "../../render.ts";
-import { Partial, type PartialProps } from "../shared.ts";
+import { asset, Partial, type PartialProps } from "../shared.ts";
 import { stringify } from "../../jsonify/stringify.ts";
 import type { Island } from "../../context.ts";
 import {
@@ -255,9 +255,39 @@ options[OptionsType.DIFF] = (vnode) => {
         case "html":
           RENDER_STATE!.renderedHtmlTag = true;
           break;
-        case "head":
+        case "head": {
           RENDER_STATE!.renderedHtmlHead = true;
+
+          const entryAssets = RENDER_STATE.buildCache.getEntryAssets();
+          if (entryAssets.length > 0) {
+            const items: VNode[] = [];
+            for (let i = 0; i < entryAssets.length; i++) {
+              const id = entryAssets[i];
+
+              if (id.endsWith(".css")) {
+                items.push(
+                  // deno-lint-ignore no-explicit-any
+                  h("link", { rel: "stylesheet", href: asset(id) } as any),
+                );
+              }
+            }
+
+            if (Array.isArray(vnode.props.children)) {
+              vnode.props.children.push(...items);
+            } else if (
+              vnode.props.children !== null &&
+              typeof vnode.props.children === "object"
+            ) {
+              // deno-lint-ignore no-explicit-any
+              items.push(vnode.props.children as any);
+              vnode.props.children = items;
+            } else {
+              vnode.props.children = items;
+            }
+          }
+
           break;
+        }
         case "body":
           RENDER_STATE!.renderedHtmlBody = true;
           break;
@@ -487,7 +517,6 @@ function FreshRuntimeScript() {
       { json: true },
     );
 
-    // const runtimeUrl = `${basePath}/_fresh/js/${BUILD_ID}/fresh-runtime.js`;
     const runtimeUrl = buildCache.clientEntry.startsWith(".")
       ? buildCache.clientEntry.slice(1)
       : buildCache.clientEntry;

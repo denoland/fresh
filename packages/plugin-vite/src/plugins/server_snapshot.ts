@@ -77,6 +77,7 @@ export function serverSnapshot(options: ResolvedFreshViteConfig): Plugin[] {
       let islandMods: IslandModChunk[] = [];
       let clientEntry = "/@id/fresh:client-entry";
       let buildId = "";
+      const entryAssets: string[] = [];
 
       if (isDev && server !== undefined) {
         for (const id of islands.keys()) {
@@ -104,8 +105,10 @@ export function serverSnapshot(options: ResolvedFreshViteConfig): Plugin[] {
           ),
         ) as Manifest;
 
+        const clientEntryName = "client-entry";
+
         for (const chunk of Object.values(manifest)) {
-          if (chunk.name === "client-entry") {
+          if (chunk.name === clientEntryName) {
             clientEntry = pathToSpec(clientOutDir, chunk.file);
           }
 
@@ -115,16 +118,40 @@ export function serverSnapshot(options: ResolvedFreshViteConfig): Plugin[] {
             hash: null,
           });
 
+          if (chunk.css !== undefined) {
+            for (let i = 0; i < chunk.css.length; i++) {
+              const id = chunk.css[i];
+
+              const pathname = `/${id}`;
+
+              staticFiles.push({
+                filePath: path.join(clientOutDir, id),
+                hash: null,
+                pathname,
+              });
+
+              if (chunk.name === clientEntryName) {
+                entryAssets.push(pathname);
+              }
+            }
+          }
+
           const namer = new UniqueNamer();
           if (chunk.name === "client-snapshot") {
             for (const id of chunk.dynamicImports ?? []) {
               const mod = manifest[id];
               const serverPath = path.join(root, mod.src ?? id);
 
+              let spec = pathToSpec(clientOutDir, mod.file);
+
+              if (spec.startsWith("./")) {
+                spec = spec.slice(1);
+              }
+
               const name = namer.getUniqueName(specToName(id));
               islandMods.push({
                 name,
-                browser: pathToSpec(clientOutDir, mod.file),
+                browser: spec,
                 server: serverPath,
               });
             }
@@ -165,13 +192,18 @@ export function serverSnapshot(options: ResolvedFreshViteConfig): Plugin[] {
       }
 
       const code = await generateSnapshotServer({
-        outDir: root,
+        outDir: path.join(clientOutDir, ".."),
         staticFiles,
         buildId,
         clientEntry,
+        entryAssets,
         fsRoutesFiles: result.routes,
         islands: islandMods,
         writeSpecifier: (file) => {
+          const def = islands.get(file);
+          if (def) {
+            return `fresh-island::${def.name}`;
+          }
           return path.toFileUrl(file).href;
         },
       });

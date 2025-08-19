@@ -33,6 +33,7 @@ export interface ClientSnapshot {
 
 export interface FreshViteConfig {
   serverEntry?: string;
+  clientEntry?: string;
   islandsDir?: string;
   routeDir?: string;
   ignore?: RegExp[];

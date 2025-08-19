@@ -81,6 +81,10 @@ export class MemoryBuildCache<State> implements DevBuildCache<State> {
     this.clientEntry = getClientEntry(config.buildId);
   }
 
+  getEntryAssets(): string[] {
+    return [];
+  }
+
   getFsRoutes(): Command<State>[] {
     return this.#commands;
   }
@@ -247,6 +251,10 @@ export class DiskBuildCache<State> implements DevBuildCache<State> {
     this.root = config.root;
   }
 
+  getEntryAssets(): string[] {
+    return [];
+  }
+
   getFsRoutes(): Command<State>[] {
     return [];
   }
@@ -357,6 +365,7 @@ export class DiskBuildCache<State> implements DevBuildCache<State> {
         },
         fsRoutesFiles: this.#fsRoutes.files,
         outDir: root,
+        entryAssets: [],
       }),
     );
 
@@ -366,9 +375,7 @@ export class DiskBuildCache<State> implements DevBuildCache<State> {
       path.join(outDir, "server.js"),
       generateServerEntry({
         root: appPath,
-        serverEntry: path
-          .join(appPath, "main.ts")
-          .replaceAll(/[\\/]+/g, "/"),
+        serverEntry: pathToSpec(outDir, this.#config.serverEntry),
         snapshotSpecifier: "./snapshot.js",
       }),
     );
@@ -424,6 +431,7 @@ export async function generateSnapshotServer(
     // deno-lint-ignore no-explicit-any
     fsRoutesFiles: FsRouteFileNoMod<any>[];
     staticFiles: PendingStaticFile[];
+    entryAssets: string[];
     writeSpecifier: (filePath: string) => string;
   },
 ): Promise<string> {
@@ -477,20 +485,12 @@ export async function generateSnapshotServer(
 
   const staticFiles = await Promise.all(
     options.staticFiles.map(async (item) => {
-      const file = await Deno.open(item.filePath);
-      const hash = item.hash ? item.hash : await hashContent(file.readable);
-      const url = new URL(item.pathname, "http://localhost");
-
-      return {
-        name: url.pathname,
-        hash,
-        filePath: path.isAbsolute(item.filePath)
-          ? path.relative(outDir, item.filePath)
-          : item.filePath,
-        contentType: getContentType(item.filePath),
-      };
+      return await prepareStaticFile(item, outDir);
     }),
   );
+
+  const entryAssets = options.entryAssets.map((url) => JSON.stringify(url))
+    .join(",\n");
 
   return `${EDIT_WARNING}
 import { IslandPreparer } from "fresh/internal";
@@ -512,10 +512,32 @@ ${
   }
 ]);
 
+export const entryAssets = [${entryAssets}];
+
 export const fsRoutes = [
 ${serializedFsRoutes}
 ];
 `.replaceAll(/\n[\n]+/g, "\n\n");
+}
+
+export async function prepareStaticFile(
+  item: PendingStaticFile,
+  outDir: string,
+): Promise<
+  { name: string; hash: string; filePath: string; contentType: string }
+> {
+  const file = await Deno.open(item.filePath);
+  const hash = item.hash ? item.hash : await hashContent(file.readable);
+  const url = new URL(item.pathname, "http://localhost");
+
+  return {
+    name: url.pathname,
+    hash,
+    filePath: path.isAbsolute(item.filePath)
+      ? path.relative(outDir, item.filePath)
+      : item.filePath,
+    contentType: getContentType(item.filePath),
+  };
 }
 
 export function generateServerEntry(

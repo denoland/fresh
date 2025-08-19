@@ -76,6 +76,14 @@ export interface BuildOptions {
    */
   routeDir?: string;
   /**
+   * The entrypoint for your server.
+   *
+   * This can be an absolute path, a file URL or a relative path.
+   * Relative paths are resolved against the `root` option.
+   * @default "main.ts"
+   */
+  serverEntry?: string;
+  /**
    * File paths which should be ignored when crawling the file system.
    */
   ignore?: RegExp[];
@@ -109,6 +117,7 @@ export class Builder<State = any> {
 
   constructor(options?: BuildOptions) {
     const root = parseDirPath(options?.root ?? ".", Deno.cwd());
+    const serverEntry = parseDirPath(options?.serverEntry ?? "main.ts", root);
     const outDir = parseDirPath(options?.outDir ?? "_fresh", root);
     const staticDir = parseDirPath(options?.staticDir ?? "static", root);
     const islandDir = parseDirPath(options?.islandDir ?? "islands", root);
@@ -119,6 +128,7 @@ export class Builder<State = any> {
     this.#transformer = new FileTransformer(fsAdapter, root);
 
     this.config = {
+      serverEntry,
       target: options?.target ?? ["chrome99", "firefox99", "safari15"],
       root,
       outDir,

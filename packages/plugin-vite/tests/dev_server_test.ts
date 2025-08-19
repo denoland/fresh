@@ -128,3 +128,113 @@ Deno.test({
   sanitizeResources: false,
   sanitizeOps: false,
 });
+
+Deno.test({
+  name: "vite dev - can import json in npm package",
+  fn: async () => {
+    await withDevServer(DEMO_DIR, async (address) => {
+      await withBrowser(async (page) => {
+        await page.goto(`${address}/tests/mime`, {
+          waitUntil: "networkidle2",
+        });
+        await page.locator(".ready").wait();
+      });
+    });
+  },
+  sanitizeResources: false,
+  sanitizeOps: false,
+});
+
+Deno.test({
+  name: "vite dev - inline env vars",
+  fn: async () => {
+    await withDevServer(DEMO_DIR, async (address) => {
+      await withBrowser(async (page) => {
+        await page.goto(`${address}/tests/env`, {
+          waitUntil: "networkidle2",
+        });
+        await page.locator(".ready").wait();
+
+        const res = await page.locator("pre").evaluate((el) =>
+          // deno-lint-ignore no-explicit-any
+          (el as any).textContent ?? ""
+        );
+
+        expect(JSON.parse(res)).toEqual({ deno: "foobar", nodeEnv: "foobar" });
+      });
+    }, { FRESH_PUBLIC_FOO: "foobar" });
+  },
+  sanitizeResources: false,
+  sanitizeOps: false,
+});
+
+Deno.test({
+  name: "vite dev - serves imported assets",
+  fn: async () => {
+    await withDevServer(DEMO_DIR, async (address) => {
+      const res = await fetch(`${address}/assets/deno-logo.png`);
+      expect(res.status).toEqual(200);
+      expect(res.headers.get("Content-Type")).toEqual("image/png");
+    });
+  },
+  sanitizeResources: false,
+  sanitizeOps: false,
+});
+
+Deno.test({
+  name: "vite dev - tailwind no _app",
+  fn: async () => {
+    const fixture = path.join(FIXTURE_DIR, "tailwind_no_app");
+    await withDevServer(fixture, async (address) => {
+      await withBrowser(async (page) => {
+        await page.goto(`${address}`, {
+          waitUntil: "networkidle2",
+        });
+
+        await page.locator("style[data-vite-dev-id$='style.css']").wait();
+      });
+    });
+  },
+  sanitizeResources: false,
+  sanitizeOps: false,
+});
+
+Deno.test({
+  name: "vite dev - tailwind _app",
+  fn: async () => {
+    const fixture = path.join(FIXTURE_DIR, "tailwind_app");
+    await withDevServer(fixture, async (address) => {
+      await withBrowser(async (page) => {
+        await page.goto(`${address}`, {
+          waitUntil: "networkidle2",
+        });
+
+        await page.locator("style[data-vite-dev-id$='style.css']").wait();
+      });
+    });
+  },
+  sanitizeResources: false,
+  sanitizeOps: false,
+});
+
+Deno.test({
+  name: "vite dev - partial island",
+  fn: async () => {
+    await withDevServer(DEMO_DIR, async (address) => {
+      await withBrowser(async (page) => {
+        await page.goto(`${address}/tests/partial`, {
+          waitUntil: "networkidle2",
+        });
+
+        await page.locator(".ready").wait();
+        await page.locator("a").click();
+        await page.locator(".counter-hooks").wait();
+
+        await page.locator(".counter-hooks button").click();
+        await waitForText(page, ".counter-hooks button", "count: 1");
+      });
+    });
+  },
+  sanitizeResources: false,
+  sanitizeOps: false,
+});

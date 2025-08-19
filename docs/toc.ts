@@ -53,6 +53,7 @@ const toc: RawTableOfContents = {
           ["partials", "Partials", "link:canary"],
           ["forms", "Forms", "link:canary"],
           ["define", "Define Helpers", "link:canary"],
+          ["environment-variables", "Environment Variables", "link:canary"],
         ],
       },
       deployment: {

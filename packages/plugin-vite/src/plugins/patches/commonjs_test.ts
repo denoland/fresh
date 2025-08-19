@@ -1,6 +1,6 @@
 import { expect } from "@std/expect/expect";
 import * as babel from "@babel/core";
-import { cjsPlugin } from "./commonjs.ts";
+import { cjsPlugin } from "../patches/commonjs.ts";
 
 function runTest(options: { input: string; expected: string }) {
   const res = babel.transformSync(options.input, {
@@ -13,17 +13,32 @@ function runTest(options: { input: string; expected: string }) {
   expect(output).toEqual(options.expected);
 }
 
+const INIT = `var exports = {},
+  module = {
+    exports
+  };`;
+
+const DEFAULT_EXPORT =
+  `const _default = module.exports.default ?? exports.default ?? module.exports;`;
+const DEFAULT_EXPORT_END = `export default _default;`;
+
 Deno.test("commonjs - module.exports default", () => {
   runTest({
     input: `module.exports = async function () {};`,
-    expected: "export default (async function () {});",
+    expected: `${INIT}
+module.exports = async function () {};
+${DEFAULT_EXPORT}
+${DEFAULT_EXPORT_END}`,
   });
 });
 
 Deno.test("commonjs - module.exports default primitive", () => {
   runTest({
     input: `module.exports = 42;`,
-    expected: "export default 42;",
+    expected: `${INIT}
+module.exports = 42;
+${DEFAULT_EXPORT}
+${DEFAULT_EXPORT_END}`,
   });
 });
 
@@ -32,8 +47,14 @@ Deno.test("commonjs - exports with default + named", () => {
     input: `exports.__esModule = true;
 exports.default = 'x';
 exports.foo = 'foo';`,
-    expected: `export default 'x';
-export let foo = 'foo';`,
+    expected: `${INIT}
+exports.default = 'x';
+exports.foo = 'foo';
+var _foo = exports.foo;
+export { _foo as foo };
+${DEFAULT_EXPORT}
+_default.foo = _foo;
+${DEFAULT_EXPORT_END}`,
   });
 });
 
@@ -42,8 +63,14 @@ Deno.test("commonjs - module.exports with default + named", () => {
     input: `module.exports.__esModule = true;
 module.exports.default = 'x';
 module.exports.foo = 'foo';`,
-    expected: `export default 'x';
-export let foo = 'foo';`,
+    expected: `${INIT}
+module.exports.default = 'x';
+module.exports.foo = 'foo';
+var _foo = exports.foo;
+export { _foo as foo };
+${DEFAULT_EXPORT}
+_default.foo = _foo;
+${DEFAULT_EXPORT_END}`,
   });
 });
 
@@ -53,8 +80,14 @@ Deno.test("commonjs - Object es module flag with named clash", () => {
 exports.foo = 'bar';
 const foo = 'also bar';
 `,
-    expected: `export let foo = 'bar';
-const _foo = 'also bar';`,
+    expected: `${INIT}
+exports.foo = 'bar';
+const foo = 'also bar';
+var _foo = exports.foo;
+export { _foo as foo };
+${DEFAULT_EXPORT}
+_default.foo = _foo;
+${DEFAULT_EXPORT_END}`,
   });
 });
 
@@ -64,8 +97,14 @@ Deno.test("commonjs - Object es module flag with named + default", () => {
 exports.default = 'foo';
 exports.foo = 'bar';
 `,
-    expected: `export default 'foo';
-export let foo = 'bar';`,
+    expected: `${INIT}
+exports.default = 'foo';
+exports.foo = 'bar';
+var _foo = exports.foo;
+export { _foo as foo };
+${DEFAULT_EXPORT}
+_default.foo = _foo;
+${DEFAULT_EXPORT_END}`,
   });
 });
 
@@ -97,8 +136,16 @@ Deno.test("commonjs - exports only named", () => {
 exports.foo = 'bar';
 exports.bar = 'foo';
 `,
-    expected: `export let foo = 'bar';
-export let bar = 'foo';`,
+    expected: `${INIT}
+exports.foo = 'bar';
+exports.bar = 'foo';
+var _foo = exports.foo;
+var _bar = exports.bar;
+export { _foo as foo, _bar as bar };
+${DEFAULT_EXPORT}
+_default.foo = _foo;
+_default.bar = _bar;
+${DEFAULT_EXPORT_END}`,
   });
 });
 
@@ -170,7 +217,14 @@ Deno.test("commonjs - duplicate exports", () => {
     input: `Object.defineProperty(exports, "__esModule", { value: true });
 exports.trace = void 0;
 exports.trace = 'foo'`,
-    expected: `export let trace = 'foo';`,
+    expected: `${INIT}
+exports.trace = void 0;
+exports.trace = 'foo';
+var _trace = exports.trace;
+export { _trace as trace };
+${DEFAULT_EXPORT}
+_default.trace = _trace;
+${DEFAULT_EXPORT_END}`,
   });
 });
 
@@ -179,7 +233,16 @@ Deno.test("commonjs - cleared exports", () => {
     input: `Object.defineProperty(exports, "__esModule", { value: true });
 exports.foo = exports.bar = void 0;
 exports.foo = 'foo'`,
-    expected: `export let foo = 'foo';`,
+    expected: `${INIT}
+exports.foo = exports.bar = void 0;
+exports.foo = 'foo';
+var _foo = exports.foo;
+var _bar = exports.bar;
+export { _foo as foo, _bar as bar };
+${DEFAULT_EXPORT}
+_default.foo = _foo;
+_default.bar = _bar;
+${DEFAULT_EXPORT_END}`,
   });
 });
 
@@ -187,11 +250,20 @@ Deno.test("commonjs - define exports", () => {
   runTest({
     input: `var utils_1 = require("./bar");
 Object.defineProperty(exports, "foo", { enumerable: true, get: function () { return utils_1.foo; } });`,
-    expected: `import * as _mod from "./bar";
+    expected: `${INIT}
+import * as _mod from "./bar";
 var utils_1 = _mod.default ?? _mod;
-export let foo = (function () {
-  return utils_1.foo;
-})();`,
+Object.defineProperty(exports, "foo", {
+  enumerable: true,
+  get: function () {
+    return utils_1.foo;
+  }
+});
+var _foo = exports.foo;
+export { _foo as foo };
+${DEFAULT_EXPORT}
+_default.foo = _foo;
+${DEFAULT_EXPORT_END}`,
   });
 });
 
@@ -199,11 +271,20 @@ Deno.test("commonjs - define exports #2", () => {
   runTest({
     input: `var utils_1 = require("./bar");
 Object.defineProperty(exports, "foo", { enumerable: true, get() { return utils_1.foo; } });`,
-    expected: `import * as _mod from "./bar";
+    expected: `${INIT}
+import * as _mod from "./bar";
 var utils_1 = _mod.default ?? _mod;
-export let foo = (function () {
-  return utils_1.foo;
-})();`,
+Object.defineProperty(exports, "foo", {
+  enumerable: true,
+  get() {
+    return utils_1.foo;
+  }
+});
+var _foo = exports.foo;
+export { _foo as foo };
+${DEFAULT_EXPORT}
+_default.foo = _foo;
+${DEFAULT_EXPORT_END}`,
   });
 });
 
@@ -212,17 +293,99 @@ Deno.test("commonjs - define exports #3", () => {
     input: `Object.defineProperty(exports, "__esModule", { value: true });
 exports._globalThis = void 0;
 exports._globalThis = typeof globalThis === 'object' ? globalThis : global;`,
-    expected:
-      `export let _globalThis = typeof globalThis === 'object' ? globalThis : global;`,
+    expected: `${INIT}
+exports._globalThis = void 0;
+exports._globalThis = typeof globalThis === 'object' ? globalThis : global;
+var _globalThis = exports._globalThis;
+export { _globalThis };
+${DEFAULT_EXPORT}
+_default._globalThis = _globalThis;
+${DEFAULT_EXPORT_END}`,
   });
 });
 
-// I've never seen this, seems rare. Skipping for now.
-Deno.test.ignore("commonjs - require", () => {
+Deno.test("commonjs - named function", () => {
+  runTest({
+    input: `Object.defineProperty(exports, "__esModule", { value: true });
+function foo() {};
+exports.foo = foo;`,
+    expected: `${INIT}
+function foo() {}
+exports.foo = foo;
+var _foo = exports.foo;
+export { _foo as foo };
+${DEFAULT_EXPORT}
+_default.foo = _foo;
+${DEFAULT_EXPORT_END}`,
+  });
+});
+
+Deno.test("commonjs - detect esbuild shims", () => {
+  runTest({
+    input: `__exportStar(require("./globalThis"), exports);`,
+    expected: `export * from "./globalThis";`,
+  });
+});
+
+Deno.test("commonjs - exports.default", () => {
+  runTest({
+    input: `exports.default = {}`,
+    expected: `${INIT}
+exports.default = {};
+${DEFAULT_EXPORT}
+${DEFAULT_EXPORT_END}`,
+  });
+});
+
+Deno.test("commonjs - multiple same name", () => {
+  runTest({
+    input: `exports.VERSION = void 0;
+exports.VERSION = '1.9.0';`,
+    expected: `${INIT}
+exports.VERSION = void 0;
+exports.VERSION = '1.9.0';
+var _VERSION = exports.VERSION;
+export { _VERSION as VERSION };
+${DEFAULT_EXPORT}
+_default.VERSION = _VERSION;
+${DEFAULT_EXPORT_END}`,
+  });
+});
+
+Deno.test("commonjs - export enum", () => {
+  runTest({
+    input: `Object.defineProperty(exports, "__esModule", { value: true });
+exports.DiagLogLevel = void 0;
+var DiagLogLevel;
+(function (DiagLogLevel) {
+    DiagLogLevel[DiagLogLevel["ALL"] = 9999] = "ALL";
+})(DiagLogLevel = exports.DiagLogLevel || (exports.DiagLogLevel = {}));`,
+    expected: `${INIT}
+exports.DiagLogLevel = void 0;
+var DiagLogLevel;
+(function (DiagLogLevel) {
+  DiagLogLevel[DiagLogLevel["ALL"] = 9999] = "ALL";
+})(DiagLogLevel = exports.DiagLogLevel || (exports.DiagLogLevel = {}));
+var _DiagLogLevel = exports.DiagLogLevel;
+export { _DiagLogLevel as DiagLogLevel };
+${DEFAULT_EXPORT}
+_default.DiagLogLevel = _DiagLogLevel;
+${DEFAULT_EXPORT_END}`,
+  });
+});
+
+Deno.test("commonjs - require", () => {
   runTest({
     input: `module.exports = { __esModule: true, default: { foo: 'bar' }}`,
-    expected: `import * as foo from "tape";
-console.log(foo)`,
+    expected: `${INIT}
+module.exports = {
+  __esModule: true,
+  default: {
+    foo: 'bar'
+  }
+};
+${DEFAULT_EXPORT}
+${DEFAULT_EXPORT_END}`,
   });
 });
 
@@ -232,7 +395,14 @@ Deno.test.ignore("commonjs - export default object", () => {
     input: `Object.defineProperty(exports, '__esModule', { value: true });
 module.exports = { foo: 'bar' };
 `,
-    expected: `export let foo = 'bar';
-export let bar = 'foo';`,
+    expected: `${INIT}
+module.exports = {
+  foo: 'bar'
+};
+var _foo = module.exports.foo;
+export let foo = _foo;
+${DEFAULT_EXPORT}
+_default.foo = _foo;
+${DEFAULT_EXPORT_END}`,
   });
 });

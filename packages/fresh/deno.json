@@ -1,6 +1,6 @@
 {
   "name": "@fresh/core",
-  "version": "2.0.0-alpha.57",
+  "version": "2.0.0-alpha.58",
   "license": "MIT",
   "exports": {
     ".": "./src/mod.ts",
@@ -12,6 +12,7 @@
     "./internal-dev": "./src/internals_dev.ts"
   },
   "imports": {
-    "@std/fmt": "jsr:@std/fmt@^1.0.8"
+    "@std/fmt": "jsr:@std/fmt@^1.0.8",
+    "@types/node": "npm:@types/node@^24.2.1"
   }
 }
