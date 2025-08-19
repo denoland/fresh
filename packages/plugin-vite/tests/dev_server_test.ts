@@ -167,3 +167,52 @@ Deno.test({
   sanitizeResources: false,
   sanitizeOps: false,
 });
+
+Deno.test({
+  name: "vite dev - serves imported assets",
+  fn: async () => {
+    await withDevServer(DEMO_DIR, async (address) => {
+      const res = await fetch(`${address}/assets/deno-logo.png`);
+      expect(res.status).toEqual(200);
+      expect(res.headers.get("Content-Type")).toEqual("image/png");
+    });
+  },
+  sanitizeResources: false,
+  sanitizeOps: false,
+});
+
+Deno.test({
+  name: "vite dev - tailwind no _app",
+  fn: async () => {
+    const fixture = path.join(FIXTURE_DIR, "tailwind_no_app");
+    await withDevServer(fixture, async (address) => {
+      await withBrowser(async (page) => {
+        await page.goto(`${address}`, {
+          waitUntil: "networkidle2",
+        });
+
+        await page.locator("style[data-vite-dev-id$='style.css']").wait();
+      });
+    });
+  },
+  sanitizeResources: false,
+  sanitizeOps: false,
+});
+
+Deno.test({
+  name: "vite dev - tailwind _app",
+  fn: async () => {
+    const fixture = path.join(FIXTURE_DIR, "tailwind_app");
+    await withDevServer(fixture, async (address) => {
+      await withBrowser(async (page) => {
+        await page.goto(`${address}`, {
+          waitUntil: "networkidle2",
+        });
+
+        await page.locator("style[data-vite-dev-id$='style.css']").wait();
+      });
+    });
+  },
+  sanitizeResources: false,
+  sanitizeOps: false,
+});

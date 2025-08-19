@@ -1,6 +1,6 @@
-import type { types } from "@babel/core";
+import type { PluginObj, types } from "@babel/core";
 
-export function jsxComments(): babel.PluginObj {
+export function jsxComments(): PluginObj {
   return {
     name: "fresh-jsx-comment",
     visitor: {

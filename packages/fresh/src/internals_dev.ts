@@ -6,6 +6,7 @@ export {
   generateSnapshotServer,
   type IslandModChunk,
   type PendingStaticFile,
+  prepareStaticFile,
 } from "./dev/dev_build_cache.ts";
 export { specToName } from "./dev/builder.ts";
 export { pathToSpec, UniqueNamer } from "./utils.ts";

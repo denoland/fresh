@@ -14,6 +14,7 @@ import type { Context } from "./context.ts";
 import { recordSpanError, tracer } from "./otel.ts";
 import { DEV_ERROR_OVERLAY_URL } from "./constants.ts";
 import { renderToString } from "preact-render-to-string";
+import { escape as escapeHtml } from "@std/html";
 
 export type AsyncAnyComponent<P> = {
   (
@@ -74,7 +75,18 @@ export function preactRender<State, Data>(
       res = `<body>${res}${scripts}</body>`;
     }
     if (!state.renderedHtmlHead) {
-      res = `<head><meta charset="utf-8"></head>${res}`;
+      let head = `<head><meta charset="utf-8">`;
+
+      const entryAssets = state.buildCache.getEntryAssets();
+      for (let i = 0; i < entryAssets.length; i++) {
+        const asset = entryAssets[i];
+
+        if (asset.endsWith(".css")) {
+          head += `<link rel="stylesheet" href="${escapeHtml(asset)}">`;
+        }
+      }
+
+      res = `${head}</head>${res}`;
     }
     if (!state.renderedHtmlTag) {
       res = `<html>${res}</html>`;

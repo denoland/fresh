@@ -1,10 +1,10 @@
 import type { VNode } from "preact";
+import { ASSET_CACHE_BUST_KEY } from "../constants.ts";
 
 export const DATA_CURRENT = "data-current";
 export const DATA_ANCESTOR = "data-ancestor";
 export const DATA_FRESH_KEY = "data-frsh-key";
 export const CLIENT_NAV_ATTR = "f-client-nav";
-export const ASSET_CACHE_BUST_KEY = "__frsh_c";
 
 export const enum UrlMatchKind {
   None,

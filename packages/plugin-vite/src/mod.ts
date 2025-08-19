@@ -17,6 +17,7 @@ import { patches } from "./plugins/patches.ts";
 export function fresh(config?: FreshViteConfig): Plugin[] {
   const fConfig: ResolvedFreshViteConfig = {
     serverEntry: config?.serverEntry ?? "main.ts",
+    clientEntry: config?.clientEntry ?? "client.ts",
     islandsDir: config?.islandsDir ?? "islands",
     routeDir: config?.routeDir ?? "routes",
     ignore: config?.ignore ?? [],
@@ -86,6 +87,7 @@ export function fresh(config?: FreshViteConfig): Plugin[] {
             ssr: {
               build: {
                 manifest: true,
+                emitAssets: true,
                 copyPublicDir: false,
 
                 outDir: config.environments?.ssr?.build?.outDir ??
@@ -108,7 +110,7 @@ export function fresh(config?: FreshViteConfig): Plugin[] {
     serverEntryPlugin(fConfig),
     patches(),
     ...serverSnapshot(fConfig),
-    clientEntryPlugin(),
+    clientEntryPlugin(fConfig),
     clientSnapshot(fConfig),
     buildIdPlugin(),
     ...devServer(),

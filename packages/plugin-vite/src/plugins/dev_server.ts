@@ -1,17 +1,12 @@
 import type { Plugin } from "vite";
 import { nodeToRequest, responseToNode } from "../request.ts";
 import * as path from "@std/path";
-import { pathWithRoot } from "../utils.ts";
+import { ASSET_CACHE_BUST_KEY } from "fresh/internal";
 
 export function devServer(): Plugin[] {
-  let publicDir = "";
-
   return [
     {
       name: "fresh:dev_server",
-      configResolved(cfg) {
-        publicDir = pathWithRoot(cfg.publicDir, cfg.root);
-      },
       configureServer(server) {
         const IGNORE_URLS = /^\/(@(vite|fs|id)|\.vite)\//;
 
@@ -25,26 +20,25 @@ export function devServer(): Plugin[] {
             `${protocol}://${host}:${port}${nodeReq.url ?? "/"}`,
           );
 
+          // Don't cache in dev
+          url.searchParams.delete(ASSET_CACHE_BUST_KEY);
+
           // Check if it's a vite url
           if (
             IGNORE_URLS.test(url.pathname) ||
             server.environments.client.moduleGraph.urlToModuleMap.has(
               url.pathname,
-            )
+            ) ||
+            url.pathname === "/.well-known/appspecific/com.chrome.devtools.json"
           ) {
             return next();
           }
 
           // Check if it's a static file first
-          // FIXME: Should this still go through fresh?
           if (url.pathname !== "/") {
-            try {
-              await Deno.stat(path.join(publicDir, url.pathname));
+            const ext = path.extname(url.pathname);
+            if (ext !== "") {
               return next();
-            } catch (err) {
-              if (!(err instanceof Deno.errors.NotFound)) {
-                return next(err);
-              }
             }
           }
 
@@ -71,6 +65,17 @@ export function devServer(): Plugin[] {
           .getModulesByFile(options.file);
 
         if (clientMod === undefined) {
+          options.server.hot.send("fresh:reload");
+          return;
+        }
+
+        const ssrMod = options.server.environments.ssr.moduleGraph
+          .getModulesByFile(options.file);
+        if (ssrMod !== undefined) {
+          // SSR-only module. Might still be a route.
+          // deno-lint-ignore no-console
+          console.log("hmr", options.file);
+
           options.server.hot.send("fresh:reload");
         }
       },

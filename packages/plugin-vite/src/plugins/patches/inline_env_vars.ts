@@ -1,4 +1,4 @@
-import type { NodePath, types } from "@babel/core";
+import type { NodePath, PluginObj, types } from "@babel/core";
 
 export function inlineEnvVarsPlugin(mode: string) {
   const allowed = new Map<string, string>();
@@ -12,7 +12,7 @@ export function inlineEnvVarsPlugin(mode: string) {
 
   return (
     { types: t }: { types: typeof types },
-  ): babel.PluginObj => {
+  ): PluginObj => {
     function replace(path: NodePath, name: string) {
       if (allowed.has(name)) {
         const value = allowed.get(name);

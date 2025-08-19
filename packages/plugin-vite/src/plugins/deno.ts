@@ -8,6 +8,7 @@ import {
 import * as path from "@std/path";
 import * as babel from "@babel/core";
 import babelReact from "@babel/preset-react";
+import { httpAbsolute } from "./patches/http_absolute.ts";
 
 interface DenoState {
   type: RequestedModuleType;
@@ -43,9 +44,22 @@ export function deno(): Plugin {
     async resolveId(id, importer, options) {
       const loader = options?.ssr ? ssrLoader : browserLoader;
 
+      const original = id;
+
+      let isHttp = false;
+      if (id.startsWith("deno-http::")) {
+        isHttp = true;
+        id = id.slice("deno-http::".length);
+      }
+
       importer = isDenoSpecifier(importer)
         ? parseDenoSpecifier(importer).specifier
         : importer;
+
+      if (id.startsWith("/") && importer && /^https?:\/\//g.test(importer)) {
+        const url = new URL(importer);
+        id = `${url.origin}${id}`;
+      }
 
       // We still want to allow other plugins to participate in
       // resolution, with us being in front due to `enforce: "pre"`.
@@ -53,7 +67,7 @@ export function deno(): Plugin {
       // because we're kinda replacing that plugin here.
       const tmp = await this.resolve(id, importer, options);
       if (tmp && tmp.resolvedBy !== "vite:resolve") {
-        if (tmp.external) {
+        if (tmp.external && !/^https?:\/\//.test(tmp.id)) {
           return tmp;
         }
 
@@ -66,7 +80,7 @@ export function deno(): Plugin {
       }
 
       // Plugins may return lower cased drive letters on windows
-      if (path.isAbsolute(id)) {
+      if (!isHttp && path.isAbsolute(id)) {
         id = path.toFileUrl(path.normalize(id))
           .href;
       }
@@ -83,7 +97,7 @@ export function deno(): Plugin {
           ResolutionMode.Import,
         );
 
-        if (id === resolved) {
+        if (original === resolved) {
           return null;
         }
 
@@ -124,7 +138,7 @@ export function deno(): Plugin {
 
         const code = new TextDecoder().decode(result.code);
 
-        const maybeJsx = maybeTransformJsxBrowser({
+        const maybeJsx = babelTransform({
           ssr: !!options?.ssr,
           code,
           id: specifier,
@@ -150,6 +164,14 @@ export function deno(): Plugin {
 
       if (meta === null || meta === undefined) return;
 
+      // Skip for non-js files like `.css`
+      if (
+        meta.type === RequestedModuleType.Default &&
+        !/\.([tj]sx?|[mc]?[tj]s)$/.test(id)
+      ) {
+        return;
+      }
+
       const url = path.toFileUrl(id);
 
       const result = await loader.load(url.href, meta.type);
@@ -159,7 +181,7 @@ export function deno(): Plugin {
 
       const code = new TextDecoder().decode(result.code);
 
-      const maybeJsx = maybeTransformJsxBrowser({
+      const maybeJsx = babelTransform({
         ssr: !!options?.ssr,
         id,
         code,
@@ -263,31 +285,44 @@ function getDenoType(id: string, type: string): RequestedModuleType {
   }
 }
 
-function maybeTransformJsxBrowser(
+function babelTransform(
   options: { ssr: boolean; code: string; id: string; isDev: boolean },
 ) {
+  if (
+    !/\.([tj]sx?|[mc[jt]s)$/.test(options.id) &&
+    !/^https?:\/\//.test(options.id)
+  ) {
+    return null;
+  }
+
   const { ssr, code, id, isDev } = options;
 
+  const presets: babel.PluginItem[] = [];
   if (
     !ssr && id.endsWith(".tsx") || id.endsWith(".jsx")
   ) {
-    const babelResult = babel.transformSync(code, {
-      filename: id,
-      babelrc: false,
-      sourceMaps: "inline",
-      presets: [[babelReact, {
-        runtime: "automatic",
-        importSource: "preact",
-        development: isDev,
-      }]],
-    });
+    presets.push([babelReact, {
+      runtime: "automatic",
+      importSource: "preact",
+      development: isDev,
+    }]);
+  }
 
-    if (babelResult !== null && babelResult.code) {
-      return {
-        code: babelResult.code,
-        map: babelResult.map,
-      };
-    }
+  const url = URL.canParse(id) ? new URL(id) : null;
+
+  const result = babel.transformSync(code, {
+    filename: id,
+    babelrc: false,
+    sourceMaps: "inline",
+    presets: presets,
+    plugins: [httpAbsolute(url)],
+  });
+
+  if (result !== null && result.code) {
+    return {
+      code: result.code,
+      map: result.map,
+    };
   }
 
   return null;
