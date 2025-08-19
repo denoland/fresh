@@ -87,6 +87,7 @@ export function fresh(config?: FreshViteConfig): Plugin[] {
             ssr: {
               build: {
                 manifest: true,
+                emitAssets: true,
                 copyPublicDir: false,
 
                 outDir: config.environments?.ssr?.build?.outDir ??

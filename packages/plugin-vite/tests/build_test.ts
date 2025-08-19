@@ -167,3 +167,36 @@ Deno.test({
   sanitizeOps: false,
   sanitizeResources: false,
 });
+
+Deno.test({
+  name: "vite build - fetch static assets",
+  fn: async () => {
+    await using res = await buildVite(DEMO_DIR);
+
+    await withChildProcessServer(
+      {
+        cwd: res.tmp,
+        args: ["serve", "-A", "--port", "0", "_fresh/server.js"],
+      },
+      async (address) => {
+        await withBrowser(async (page) => {
+          await page.goto(`${address}/tests/assets`, {
+            waitUntil: "networkidle2",
+          });
+
+          const url = await page.locator("img").evaluate((el) =>
+            // deno-lint-ignore no-explicit-any
+            (el as any).src
+          );
+
+          const res = await fetch(url);
+          await res.body?.cancel();
+          expect(res.status).toEqual(200);
+          expect(res.headers.get("Content-Type")).toEqual("image/png");
+        });
+      },
+    );
+  },
+  sanitizeOps: false,
+  sanitizeResources: false,
+});

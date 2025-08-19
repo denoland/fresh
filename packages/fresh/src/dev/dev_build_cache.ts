@@ -475,18 +475,7 @@ export async function generateSnapshotServer(
 
   const staticFiles = await Promise.all(
     options.staticFiles.map(async (item) => {
-      const file = await Deno.open(item.filePath);
-      const hash = item.hash ? item.hash : await hashContent(file.readable);
-      const url = new URL(item.pathname, "http://localhost");
-
-      return {
-        name: url.pathname,
-        hash,
-        filePath: path.isAbsolute(item.filePath)
-          ? path.relative(outDir, item.filePath)
-          : item.filePath,
-        contentType: getContentType(item.filePath),
-      };
+      return await prepareStaticFile(item, outDir);
     }),
   );
 
@@ -514,6 +503,24 @@ export const fsRoutes = [
 ${serializedFsRoutes}
 ];
 `.replaceAll(/\n[\n]+/g, "\n\n");
+}
+
+export async function prepareStaticFile(
+  item: PendingStaticFile,
+  outDir: string,
+) {
+  const file = await Deno.open(item.filePath);
+  const hash = item.hash ? item.hash : await hashContent(file.readable);
+  const url = new URL(item.pathname, "http://localhost");
+
+  return {
+    name: url.pathname,
+    hash,
+    filePath: path.isAbsolute(item.filePath)
+      ? path.relative(outDir, item.filePath)
+      : item.filePath,
+    contentType: getContentType(item.filePath),
+  };
 }
 
 export function generateServerEntry(

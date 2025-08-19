@@ -41,15 +41,10 @@ export function devServer(): Plugin[] {
           }
 
           // Check if it's a static file first
-          // FIXME: Should this still go through fresh?
           if (url.pathname !== "/") {
-            try {
-              await Deno.stat(path.join(publicDir, url.pathname));
+            const ext = path.extname(url.pathname);
+            if (ext !== "") {
               return next();
-            } catch (err) {
-              if (!(err instanceof Deno.errors.NotFound)) {
-                return next(err);
-              }
             }
           }
 

@@ -167,3 +167,16 @@ Deno.test({
   sanitizeResources: false,
   sanitizeOps: false,
 });
+
+Deno.test({
+  name: "vite dev - serves imported assets",
+  fn: async () => {
+    await withDevServer(DEMO_DIR, async (address) => {
+      const res = await fetch(`${address}/assets/deno-logo.png`);
+      expect(res.status).toEqual(200);
+      expect(res.headers.get("Content-Type")).toEqual("image/png");
+    });
+  },
+  sanitizeResources: false,
+  sanitizeOps: false,
+});

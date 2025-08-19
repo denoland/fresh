@@ -164,6 +164,14 @@ export function deno(): Plugin {
 
       if (meta === null || meta === undefined) return;
 
+      // Skip for non-js files like `.css`
+      if (
+        meta.type === RequestedModuleType.Default &&
+        !/\.([tj]sx?|[mc]?[tj]s)$/.test(id)
+      ) {
+        return;
+      }
+
       const url = path.toFileUrl(id);
 
       const result = await loader.load(url.href, meta.type);
