@@ -16,7 +16,7 @@ function runTest(options: { input: string; expected: string; url?: URL }) {
 Deno.test("http absolute - change import sources", () => {
   runTest({
     input: `import foo from "/foo.js"`,
-    expected: `import foo from "http://localhost/foo.js";`,
+    expected: `import foo from "deno-http::http://localhost/foo.js";`,
     url: new URL("http://localhost"),
   });
 });
@@ -24,7 +24,7 @@ Deno.test("http absolute - change import sources", () => {
 Deno.test("http absolute - change export all sources", () => {
   runTest({
     input: `export * as foo from "/foo.js"`,
-    expected: `export * as foo from "http://localhost/foo.js";`,
+    expected: `export * as foo from "deno-http::http://localhost/foo.js";`,
     url: new URL("http://localhost"),
   });
 });
@@ -32,7 +32,7 @@ Deno.test("http absolute - change export all sources", () => {
 Deno.test("http absolute - change export sources", () => {
   runTest({
     input: `export { foo } from "/foo.js"`,
-    expected: `export { foo } from "http://localhost/foo.js";`,
+    expected: `export { foo } from "deno-http::http://localhost/foo.js";`,
     url: new URL("http://localhost"),
   });
 });
@@ -40,7 +40,7 @@ Deno.test("http absolute - change export sources", () => {
 Deno.test("http absolute - change import()", () => {
   runTest({
     input: `import("/foo.js")`,
-    expected: `import("http://localhost/foo.js");`,
+    expected: `import("deno-http::http://localhost/foo.js");`,
     url: new URL("http://localhost"),
   });
 });
