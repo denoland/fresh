@@ -186,7 +186,7 @@ export function serverSnapshot(options: ResolvedFreshViteConfig): Plugin[] {
       }
 
       const code = await generateSnapshotServer({
-        outDir: root,
+        outDir: path.join(clientOutDir, ".."),
         staticFiles,
         buildId,
         clientEntry,

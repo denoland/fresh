@@ -48,7 +48,7 @@ export function serverEntryPlugin(
       if (id !== `\0${modName}`) return;
 
       let code = generateServerEntry({
-        root: path.relative(serverOutDir, root),
+        root: isDev ? path.relative(serverOutDir, root) : "..",
         serverEntry: path.toFileUrl(serverEntry).href,
         snapshotSpecifier: "fresh:server-snapshot",
       });
@@ -101,7 +101,7 @@ export function registerStaticFile(prepared) {
         const target = path.join(clientOutDir, rel);
         await Deno.rename(file.filePath, target);
 
-        prepared.filePath = path.join("_fresh", "client", prepared.filePath);
+        prepared.filePath = path.join("client", prepared.filePath);
 
         return `registerStaticFile(${JSON.stringify(prepared)});`;
       }));
