@@ -517,7 +517,6 @@ function FreshRuntimeScript() {
       { json: true },
     );
 
-    // const runtimeUrl = `${basePath}/_fresh/js/${BUILD_ID}/fresh-runtime.js`;
     const runtimeUrl = buildCache.clientEntry.startsWith(".")
       ? buildCache.clientEntry.slice(1)
       : buildCache.clientEntry;
