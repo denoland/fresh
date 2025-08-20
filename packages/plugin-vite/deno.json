@@ -20,6 +20,7 @@
   },
   "imports": {
     "@babel/core": "npm:@babel/core@^7.28.0",
+    "@babel/plugin-syntax-jsx": "npm:@babel/plugin-syntax-jsx@^7.27.1",
     "@babel/preset-react": "npm:@babel/preset-react@^7.27.1",
     "@deno/loader": "jsr:@deno/loader@^0.3.2",
     "@prefresh/vite": "npm:@prefresh/vite@^2.4.8",

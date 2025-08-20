@@ -61,6 +61,7 @@
     "jsr:@std/yaml@^1.0.5": "1.0.9",
     "jsr:@zip-js/zip-js@^2.7.52": "2.7.72",
     "npm:@babel/core@^7.28.0": "7.28.0",
+    "npm:@babel/plugin-syntax-jsx@^7.27.1": "7.27.1_@babel+core@7.28.0",
     "npm:@babel/preset-react@^7.27.1": "7.27.1_@babel+core@7.28.0",
     "npm:@opentelemetry/api@^1.9.0": "1.9.0",
     "npm:@preact/signals@2": "2.2.1_preact@10.27.0",
@@ -3257,6 +3258,7 @@
         "dependencies": [
           "jsr:@deno/loader@~0.3.2",
           "npm:@babel/core@^7.28.0",
+          "npm:@babel/plugin-syntax-jsx@^7.27.1",
           "npm:@babel/preset-react@^7.27.1",
           "npm:@prefresh/vite@^2.4.8",
           "npm:@tailwindcss/vite@^4.1.12",
