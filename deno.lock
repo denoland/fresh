@@ -61,8 +61,10 @@
     "jsr:@std/yaml@^1.0.5": "1.0.9",
     "jsr:@zip-js/zip-js@^2.7.52": "2.7.72",
     "npm:@babel/core@^7.28.0": "7.28.0",
+    "npm:@babel/helper-validator-identifier@^7.27.1": "7.27.1",
     "npm:@babel/plugin-syntax-jsx@^7.27.1": "7.27.1_@babel+core@7.28.0",
     "npm:@babel/preset-react@^7.27.1": "7.27.1_@babel+core@7.28.0",
+    "npm:@babel/types@^7.28.2": "7.28.2",
     "npm:@opentelemetry/api@^1.9.0": "1.9.0",
     "npm:@preact/signals@2": "2.2.1_preact@10.27.0",
     "npm:@preact/signals@^2.2.1": "2.2.1_preact@10.27.0",
@@ -70,6 +72,7 @@
     "npm:@tailwindcss/postcss@^4.1.10": "4.1.11",
     "npm:@tailwindcss/vite@^4.1.12": "4.1.12_vite@7.1.2__@types+node@24.2.1__picomatch@4.0.3__@types+node@24.2.0_@types+node@24.2.0",
     "npm:@types/babel__core@^7.20.5": "7.20.5",
+    "npm:@types/babel__helper-validator-identifier@^7.15.2": "7.15.2",
     "npm:@types/node@*": "24.2.0",
     "npm:@types/node@^24.1.0": "24.2.1",
     "npm:@types/node@^24.2.1": "24.2.1",
@@ -1566,6 +1569,9 @@
       "dependencies": [
         "@babel/types"
       ]
+    },
+    "@types/babel__helper-validator-identifier@7.15.2": {
+      "integrity": "sha512-l3dkwCt890NFhMwPKXbxsWXC0Por0/+KaFIiQP1j38/vWSH2P3Tn6m+IuJHkx2SBI3VLFqincFe9JtBk2NFHOw=="
     },
     "@types/babel__template@7.4.4": {
       "integrity": "sha512-h/NUaSyG5EyxBIp8YRxo4RMe2/qQgvyowRwVMzhYhBCONbW8PUsg4lkFMrhgZhUe5z3L3MiLDuvyJ/CaPa2A8A==",
@@ -3258,11 +3264,14 @@
         "dependencies": [
           "jsr:@deno/loader@~0.3.2",
           "npm:@babel/core@^7.28.0",
+          "npm:@babel/helper-validator-identifier@^7.27.1",
           "npm:@babel/plugin-syntax-jsx@^7.27.1",
           "npm:@babel/preset-react@^7.27.1",
+          "npm:@babel/types@^7.28.2",
           "npm:@prefresh/vite@^2.4.8",
           "npm:@tailwindcss/vite@^4.1.12",
           "npm:@types/babel__core@^7.20.5",
+          "npm:@types/babel__helper-validator-identifier@^7.15.2",
           "npm:@types/node@^24.1.0",
           "npm:mime-db@^1.54.0",
           "npm:preact@^10.26.9",

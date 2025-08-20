@@ -1,4 +1,8 @@
-import type { PluginObj, PluginPass, types } from "@babel/core";
+import type { PluginObj, types } from "@babel/core";
+import {
+  isIdentifierName,
+  isReservedWord,
+} from "@babel/helper-validator-identifier";
 import jsxSyntax from "@babel/plugin-syntax-jsx";
 
 const VOID_ELEMENTS = new Set([
@@ -46,13 +50,6 @@ const BOOLEAN_ATTR = new Set([
   "selected",
 ]);
 
-const JSX_TEMPLATES = "jsxTemplates";
-const JSX_TEMPLATE_ID = "jsxTemplateId";
-const JSX_TEMPLATE_NAME = "jsxTemplateName";
-const JSX_ESCAPE_NAME = "jsxEscapeName";
-const JSX_ATTR_NAME = "jsxAttrName";
-const JSX_HAS_ATTR = "jsxHasAttr";
-
 export interface PrecompileOptions {
   // The import path to import the jsx runtime from. Will be
   // `<import_source>/jsx-runtime`.
@@ -70,59 +67,119 @@ interface ResolvedPrecompileOptions {
   skipSerializeProperties: Set<string>;
 }
 
+interface PluginState {
+  idx: number;
+  options: ResolvedPrecompileOptions;
+  jsxTemplateId: string;
+  jsxEscapeId: string;
+  jsxAttrId: string;
+  jsxId: string;
+  templateId: string;
+  hasJsxTemplate: boolean;
+  hasJsxEscape: boolean;
+  hasJsxAttr: boolean;
+  hasJsx: boolean;
+  templates: types.VariableDeclaration[];
+}
+
+const INTERNAL = "internal_state";
+
 export function precompileJsx(
   { types: t }: { types: typeof types },
 ): PluginObj {
-  let tplIdx = 1;
-
-  const options: ResolvedPrecompileOptions = {
-    importSource: "react",
-    skipSerializeElements: new Set(),
-    skipSerializeProperties: new Set(),
-  };
-
   return {
     inherits: jsxSyntax.default,
     name: "fresh:precompile-jsx",
     pre() {
+      // deno-lint-ignore no-explicit-any
       const opts = (this.opts) as any;
-      if (opts.skipSerializeProperties) {
-        options.skipSerializeProperties = new Set(opts.skipSerializeProperties);
-      }
-      if (opts.skipSerializeElements) {
-        options.skipSerializeElements = new Set(opts.skipSerializeElements);
-      }
-      if (opts.importSource) {
-        options.importSource = opts.importSource;
-      }
+
+      const pluginState: PluginState = {
+        idx: 1,
+        hasJsx: false,
+        hasJsxAttr: false,
+        hasJsxEscape: false,
+        hasJsxTemplate: false,
+        jsxAttrId: "",
+        jsxEscapeId: "",
+        jsxId: "",
+        jsxTemplateId: "",
+        templateId: "",
+        templates: [],
+        options: {
+          importSource: opts.importSource ?? "react",
+          skipSerializeElements: new Set(opts.skipSerializeElements ?? []),
+          skipSerializeProperties: new Set(opts.skipSerializeProperties ?? []),
+        },
+      };
+
+      this.set(INTERNAL, pluginState);
     },
     visitor: {
       Program: {
         enter(path, state) {
-          const tpl = path.scope.generateUid("jsxTemplate");
-          const escape = path.scope.generateUid("jsxEscape");
-          const attr = path.scope.generateUid("jsxAttr");
-          const tplId = path.scope.generateUid("$$_tpl");
-
-          state.set(JSX_TEMPLATE_NAME, tpl);
-          state.set(JSX_ESCAPE_NAME, escape);
-          state.set(JSX_ATTR_NAME, attr);
-          state.set(JSX_TEMPLATE_ID, tplId);
-          state.set(JSX_TEMPLATES, []);
+          const internal = state.get(INTERNAL) as PluginState;
+          internal.templateId = path.scope.generateUid("$$_tpl");
+          internal.jsxAttrId = path.scope.generateUid("jsxAttr");
+          internal.jsxEscapeId = path.scope.generateUid("jsxEscape");
+          internal.jsxTemplateId = path.scope.generateUid("jsxTemplate");
+          internal.jsxId = path.scope.generateUid("jsx");
         },
         exit(path, state) {
-          const templates = state.get(JSX_TEMPLATES);
-
+          const internal = state.get(
+            INTERNAL,
+          ) as PluginState;
+          const { templates, options } = internal;
           const specifiers: types.ImportSpecifier[] = [];
 
-          if (templates.length > 0) {
-            const id = state.get(JSX_TEMPLATE_NAME);
+          if (internal.hasJsx) {
             specifiers.push(
-              t.importSpecifier(t.identifier(id), t.identifier("jsxTemplate")),
+              t.importSpecifier(
+                t.identifier(internal.jsxId),
+                t.identifier("jsx"),
+              ),
             );
+          }
 
+          if (templates.length > 0) {
+            specifiers.push(
+              t.importSpecifier(
+                t.identifier(internal.jsxTemplateId),
+                t.identifier("jsxTemplate"),
+              ),
+            );
+          }
+
+          if (internal.hasJsxAttr) {
+            specifiers.push(
+              t.importSpecifier(
+                t.identifier(internal.jsxAttrId),
+                t.identifier("jsxAttr"),
+              ),
+            );
+          }
+
+          if (internal.hasJsxEscape) {
+            specifiers.push(
+              t.importSpecifier(
+                t.identifier(internal.jsxEscapeId),
+                t.identifier("jsxEscape"),
+              ),
+            );
+          }
+
+          if (specifiers.length > 0) {
+            const source = `${options.importSource}/jsx-runtime`;
+            path.unshiftContainer(
+              "body",
+              t.importDeclaration(specifiers, t.stringLiteral(source)),
+            );
+          }
+
+          if (templates.length > 0) {
             let found = false;
             const children = path.get("body");
+
             for (let i = 0; i < children.length; i++) {
               const child = children[i];
               if (
@@ -133,6 +190,7 @@ export function precompileJsx(
               }
 
               found = true;
+
               child.insertBefore(templates);
 
               break;
@@ -142,61 +200,29 @@ export function precompileJsx(
               path.unshiftContainer("body", templates);
             }
           }
-
-          if (state.get(JSX_HAS_ATTR)) {
-            const id = state.get(JSX_ATTR_NAME);
-            specifiers.push(
-              t.importSpecifier(t.identifier(id), t.identifier("jsxAttr")),
-            );
-          }
-
-          if (specifiers.length > 0) {
-            const source = `${options.importSource ?? "react"}/jsx-runtime`;
-
-            path.unshiftContainer(
-              "body",
-              t.importDeclaration(specifiers, t.stringLiteral(source)),
-            );
-          }
         },
       },
       JSXElement: {
         enter(path, state) {
           const ctx: SerializeCtx = {
-            options,
-            state,
+            state: state.get(INTERNAL) as PluginState,
             t,
             template: [],
             args: [],
           };
           serializeJsx(ctx, path.node);
 
-          if (ctx.template.length > 0) {
-            const id = state.get(JSX_TEMPLATE_NAME);
-            const tplId = `${state.get(JSX_TEMPLATE_ID)}_${tplIdx++}`;
-
-            path.replaceWith(
-              t.callExpression(t.identifier(id), [
-                t.identifier(tplId),
-                ...ctx.args,
-              ]),
-            );
-
-            state.get(JSX_TEMPLATES).push(
-              t.variableDeclaration(
-                "const",
-                [
-                  t.variableDeclarator(
-                    t.identifier(tplId),
-                    t.arrayExpression(ctx.template),
-                  ),
-                ],
-              ),
-            );
+          const node = ctxToNode(ctx);
+          if (node !== null) {
+            path.replaceWith(node);
           }
-
-          if (ctx.args.length > 0) {
-            state.set(JSX_HAS_ATTR, true);
+        },
+      },
+      JSXFragment: {
+        enter(path, state) {
+          if (path.node.children.length === 0) {
+            path.replaceWith(t.nullLiteral());
+            return;
           }
         },
       },
@@ -206,106 +232,313 @@ export function precompileJsx(
 
 interface SerializeCtx {
   t: typeof types;
-  state: PluginPass;
-  options: ResolvedPrecompileOptions;
+  state: PluginState;
   template: types.StringLiteral[];
   args: types.Expression[];
+}
+
+function ctxToNode(ctx: SerializeCtx): types.Expression | null {
+  const { t, args, template, state } = ctx;
+  if (args.length === 1 && template.length === 1) {
+    return args[0];
+  }
+
+  if (template.length > 0) {
+    const tplId = `${state.templateId}_${state.idx++}`;
+
+    state.templates.push(
+      t.variableDeclaration(
+        "const",
+        [
+          t.variableDeclarator(
+            t.identifier(tplId),
+            t.arrayExpression(ctx.template),
+          ),
+        ],
+      ),
+    );
+
+    return t.callExpression(t.identifier(ctx.state.jsxTemplateId), [
+      t.identifier(tplId),
+      ...ctx.args,
+    ]);
+  }
+
+  return null;
 }
 
 function serializeJsx(ctx: SerializeCtx, node: types.JSXElement) {
   const { t } = ctx;
 
+  if (
+    t.isJSXNamespacedName(node.openingElement.name) ||
+    t.isJSXMemberExpression(node.openingElement.name)
+  ) {
+    const callExpr = jsxToRuntime(ctx, node);
+    ctx.args.push(callExpr);
+    ctx.template.push(t.stringLiteral(""));
+    return;
+  }
+
   if (t.isJSXIdentifier(node.openingElement.name)) {
     const name = node.openingElement.name.name;
 
-    if (name.toLowerCase() === name) {
-      const attrs = node.openingElement.attributes;
+    if (name.toLowerCase() !== name) {
+      const callExpr = jsxToRuntime(ctx, node);
+      ctx.args.push(callExpr);
+      ctx.template.push(t.stringLiteral(""));
+      return;
+    }
 
-      // We can't serialize if we encounter a spreaded attribute
-      let canSerialize = true;
-      for (let i = 0; i < attrs.length; i++) {
-        const attr = attrs[i];
-        if (t.isJSXSpreadAttribute(attr)) {
-          canSerialize = false;
-          break;
-        }
-      }
+    if (ctx.state.options.skipSerializeElements.has(name)) {
+      const callExpr = jsxToRuntime(ctx, node);
+      ctx.args.push(callExpr);
+      ctx.template.push(t.stringLiteral(""));
+      return;
+    }
 
-      if (canSerialize) {
-        appendString(ctx, `<${name}`);
+    const attrs = node.openingElement.attributes;
 
-        for (let i = 0; i < attrs.length; i++) {
-          const attr = attrs[i];
+    // We can't serialize if we encounter a spreaded attribute
+    for (let i = 0; i < attrs.length; i++) {
+      const attr = attrs[i];
+      if (t.isJSXSpreadAttribute(attr)) {
+        const callExpr = jsxToRuntime(ctx, node);
+        ctx.args.push(callExpr);
+        ctx.template.push(t.stringLiteral(""));
 
-          if (!t.isJSXAttribute(attr)) {
-            throw new Error(`Unexpected node: ${attr.type}`);
-          }
-
-          const name = typeof attr.name.name === "string"
-            ? attr.name.name
-            : attr.name.name.name;
-
-          if (ctx.options.skipSerializeProperties.has(name)) {
-            let value:
-              | types.ArgumentPlaceholder
-              | types.SpreadElement
-              | types.Expression;
-            if (
-              t.isStringLiteral(attr.value) || t.isJSXElement(attr.value) ||
-              t.isJSXFragment(attr.value)
-            ) {
-              value = t.cloneNode(attr.value);
-            } else if (attr.value === null) {
-              value = t.nullLiteral();
-            } else if (attr.value === undefined) {
-              value = t.identifier("undefined");
-            } else if (t.isJSXExpressionContainer(attr.value)) {
-              if (t.isJSXEmptyExpression(attr.value.expression)) {
-                value = t.identifier("undefined");
-              } else {
-                value = attr.value.expression;
-              }
-            } else {
-              throw new Error(`Unknown JSX attribute value: ${attr.value}`);
-            }
-
-            const id = ctx.state.get(JSX_ATTR_NAME);
-            ctx.args.push(
-              t.callExpression(t.identifier(id), [
-                t.stringLiteral(name),
-                value,
-              ]),
-            );
-            ctx.template.push(t.stringLiteral(""));
-            continue;
-          }
-
-          if (t.isStringLiteral(attr.value)) {
-            const attrName = normalizeDomAttrName(name);
-            appendString(ctx, ` ${attrName}="${attr.value.value}"`);
-          }
-        }
-
-        appendString(ctx, `>`);
-        if (VOID_ELEMENTS.has(name)) {
-          return;
-        }
-
-        for (let i = 0; i < node.children.length; i++) {
-          const child = node.children[i];
-          if (t.isJSXElement(child)) {
-            serializeJsx(ctx, child);
-          } else if (t.isJSXExpressionContainer(child)) {
-            continue;
-          } else if (t.isJSXText(child)) {
-            appendString(ctx, child.value);
-          }
-        }
-
-        appendString(ctx, `</${name}>`);
+        return;
       }
     }
+
+    appendString(ctx, `<${name}`);
+
+    for (let i = 0; i < attrs.length; i++) {
+      const attr = attrs[i];
+
+      if (!t.isJSXAttribute(attr)) {
+        throw new Error(`Unexpected node: ${attr.type}`);
+      }
+
+      const name = typeof attr.name.name === "string"
+        ? attr.name.name
+        : attr.name.name.name;
+
+      if (ctx.state.options.skipSerializeProperties.has(name)) {
+        let value:
+          | types.ArgumentPlaceholder
+          | types.SpreadElement
+          | types.Expression;
+        if (
+          t.isStringLiteral(attr.value) || t.isJSXElement(attr.value) ||
+          t.isJSXFragment(attr.value)
+        ) {
+          value = t.cloneNode(attr.value, true);
+        } else if (attr.value === null) {
+          value = t.nullLiteral();
+        } else if (attr.value === undefined) {
+          value = t.identifier("undefined");
+        } else if (t.isJSXExpressionContainer(attr.value)) {
+          if (t.isJSXEmptyExpression(attr.value.expression)) {
+            value = t.identifier("undefined");
+          } else {
+            value = t.cloneNode(attr.value.expression, true);
+          }
+        } else {
+          throw new Error(`Unknown JSX attribute value: ${attr.value}`);
+        }
+
+        ctx.state.hasJsxAttr = true;
+
+        ctx.args.push(
+          t.callExpression(t.identifier(ctx.state.jsxAttrId), [
+            t.stringLiteral(name),
+            value,
+          ]),
+        );
+        ctx.template.push(t.stringLiteral(""));
+        continue;
+      }
+
+      if (t.isStringLiteral(attr.value)) {
+        const attrName = normalizeDomAttrName(name);
+        appendString(ctx, ` ${attrName}="${attr.value.value}"`);
+      }
+    }
+
+    appendString(ctx, `>`);
+    if (VOID_ELEMENTS.has(name)) {
+      return;
+    }
+
+    for (let i = 0; i < node.children.length; i++) {
+      const child = node.children[i];
+      if (t.isJSXElement(child)) {
+        serializeJsx(ctx, child);
+      } else if (t.isJSXExpressionContainer(child)) {
+        if (t.isJSXEmptyExpression(child.expression)) {
+          continue;
+        } else if (t.isStringLiteral(child.expression)) {
+          const escaped = escapeHtml(child.expression.value);
+          appendString(ctx, escaped);
+          continue;
+        }
+
+        ctx.state.hasJsxEscape = true;
+
+        ctx.args.push(
+          t.callExpression(t.identifier(ctx.state.jsxEscapeId), [
+            t.cloneNode(child.expression, true),
+          ]),
+        );
+        ctx.template.push(t.stringLiteral(""));
+
+        continue;
+      } else if (t.isJSXText(child)) {
+        const escaped = escapeHtml(child.value);
+        appendString(ctx, escaped);
+      }
+    }
+
+    appendString(ctx, `</${name}>`);
   }
+}
+
+function jsxToRuntime(ctx: SerializeCtx, node: types.JSXElement) {
+  const { t, state } = ctx;
+
+  ctx.state.hasJsx = true;
+
+  let isComponent = true;
+  const openName = node.openingElement.name;
+  let tag;
+  if (t.isJSXIdentifier(openName)) {
+    if (openName.name === openName.name.toLowerCase()) {
+      isComponent = false;
+      tag = t.stringLiteral(openName.name);
+    } else {
+      tag = t.identifier(openName.name);
+    }
+  } else if (t.isJSXMemberExpression(openName)) {
+    tag = jsxMemberToMemberExpr(t, openName);
+  } else if (t.isMemberExpression(openName)) {
+    tag = t.cloneNode(openName, true);
+  } else if (t.isJSXNamespacedName(openName)) {
+    const { name, namespace } = openName;
+    tag = t.stringLiteral(`${namespace.name}:${name.name}`);
+  } else {
+    throw new Error(`Unexpected node: ${openName}`);
+  }
+
+  const props: Array<types.ObjectProperty | types.SpreadElement> = [];
+
+  for (let i = 0; i < node.openingElement.attributes.length; i++) {
+    const attr = node.openingElement.attributes[i];
+
+    if (t.isJSXSpreadAttribute(attr)) {
+      props.push(t.spreadElement(t.cloneNode(attr.argument, true)));
+    } else {
+      let key;
+      if (t.isJSXIdentifier(attr.name)) {
+        const name = isComponent
+          ? attr.name.name
+          : normalizeDomAttrName(attr.name.name);
+
+        if (isIdentifierName(name) || isReservedWord(name)) {
+          key = t.identifier(name);
+        } else {
+          key = t.stringLiteral(name);
+        }
+
+        if (
+          BOOLEAN_ATTR.has(name) &&
+          (attr.value === null || attr.value === undefined)
+        ) {
+          props.push(t.objectProperty(key, t.booleanLiteral(true)));
+          continue;
+        }
+      } else if (t.isJSXNamespacedName(attr.name)) {
+        key = t.stringLiteral(
+          `${attr.name.name.name}:${attr.name.namespace.name}`,
+        );
+      } else {
+        throw new Error(`Unexpected node: ${attr.name}`);
+      }
+
+      let value;
+      if (t.isJSXExpressionContainer(attr.value)) {
+        if (t.isJSXEmptyExpression(attr.value.expression)) {
+          value = t.identifier("undefined");
+        } else {
+          value = attr.value.expression;
+        }
+      } else {
+        value = attr.value ?? t.identifier("undefined");
+      }
+
+      props.push(t.objectProperty(key, value));
+    }
+  }
+
+  const children: types.Expression[] = [];
+  for (let i = 0; i < node.children.length; i++) {
+    const child = node.children[i];
+
+    if (t.isJSXText(child)) {
+      const last = children.at(-1);
+      if (last !== undefined && t.isStringLiteral(last)) {
+        last.value += " " + child.value;
+      } else {
+        children.push(t.stringLiteral(child.value));
+      }
+    } else if (t.isJSXElement(child)) {
+      const newCtx: SerializeCtx = {
+        state: ctx.state,
+        t: ctx.t,
+        template: [],
+        args: [],
+      };
+
+      serializeJsx(newCtx, child);
+
+      const innerNode = ctxToNode(newCtx);
+      if (innerNode !== null) {
+        children.push(innerNode);
+      }
+    } else if (t.isJSXExpressionContainer(child)) {
+      if (t.isJSXEmptyExpression(child.expression)) {
+        continue;
+      }
+
+      children.push(t.cloneNode(child.expression, true));
+    }
+  }
+
+  if (children.length > 0) {
+    props.push(
+      t.objectProperty(
+        t.identifier("children"),
+        children.length === 1 ? children[0] : t.arrayExpression(children),
+      ),
+    );
+  }
+
+  return t.callExpression(t.identifier(state.jsxId), [
+    tag,
+    props.length === 0 ? t.nullLiteral() : t.objectExpression(props),
+  ]);
+}
+
+function jsxMemberToMemberExpr(
+  t: typeof types,
+  node: types.JSXMemberExpression,
+): types.MemberExpression {
+  const left = t.isJSXIdentifier(node.object)
+    ? t.identifier(node.object.name)
+    : jsxMemberToMemberExpr(t, node.object);
+  const right = t.identifier(node.property.name);
+
+  return t.memberExpression(left, right);
 }
 
 function appendString(
@@ -524,4 +757,13 @@ function normalizeDomAttrName(name: string): string {
       // Devs expect attributes in the HTML document to be lowercased.
       return name.toLowerCase();
   }
+}
+
+function escapeHtml(str: string) {
+  return str
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll("'", "&#39;")
+    .replaceAll('"', "&quot;");
 }

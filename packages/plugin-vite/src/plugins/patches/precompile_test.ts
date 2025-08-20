@@ -25,21 +25,12 @@ const b = <div>Hello {name}!</div>;
 const c = <button class="btn" onClick={onClick}>Hello {name}!</button>;
 `,
     `import { jsxTemplate as _jsxTemplate, jsxAttr as _jsxAttr, jsxEscape as _jsxEscape } from "react/jsx-runtime";
-const $$_tpl_1 = [
-  "<div>Hello!</div>"
-];
-const $$_tpl_2 = [
-  "<div>Hello ",
-  "!</div>"
-];
-const $$_tpl_3 = [
-  '<button class="btn" ',
-  ">Hello ",
-  "!</button>"
-];
-const a = _jsxTemplate($$_tpl_1);
-const b = _jsxTemplate($$_tpl_2, _jsxEscape(name));
-const c = _jsxTemplate($$_tpl_3, _jsxAttr("onclick", onClick), _jsxEscape(name));`,
+const _$$_tpl_1 = ["<div>Hello!</div>"];
+const _$$_tpl_2 = ["<div>Hello ", "!</div>"];
+const _$$_tpl_3 = ["<button class=\\"btn\\" ", ">Hello ", "!</button>"];
+const a = _jsxTemplate(_$$_tpl_1);
+const b = _jsxTemplate(_$$_tpl_2, _jsxEscape(name));
+const c = _jsxTemplate(_$$_tpl_3, _jsxAttr("onclick", onClick), _jsxEscape(name));`,
   );
 });
 
@@ -48,10 +39,8 @@ Deno.test("precompile - convert self closing", () => {
     {},
     `const a = <div />;`,
     `import { jsxTemplate as _jsxTemplate } from "react/jsx-runtime";
-const $$_tpl_1 = [
-  "<div></div>"
-];
-const a = _jsxTemplate($$_tpl_1);`,
+const _$$_tpl_1 = ["<div></div>"];
+const a = _jsxTemplate(_$$_tpl_1);`,
   );
 
   // Void elements
@@ -59,10 +48,8 @@ const a = _jsxTemplate($$_tpl_1);`,
     {},
     `const a = <br></br>;`,
     `import { jsxTemplate as _jsxTemplate } from "react/jsx-runtime";
-const $$_tpl_1 = [
-  "<br>"
-];
-const a = _jsxTemplate($$_tpl_1);`,
+const _$$_tpl_1 = ["<br>"];
+const a = _jsxTemplate(_$$_tpl_1);`,
   );
 });
 
@@ -79,8 +66,9 @@ Deno.test("precompile - normalize attr name", () => {
     runTest(
       {},
       `const a = <label ${key}="foo">label</label>`,
-      `import { jsxTemplate as _jsxTemplate } from "react/jsx-runtime";\nconst $$_tpl_1 = [\n  '<label ${value}="foo">label</label>'\n];\nconst a = _jsxTemplate($$_tpl_1);",
-          "import { jsxTemplate as _jsxTemplate } from "react/jsx-runtime";`,
+      `import { jsxTemplate as _jsxTemplate } from "react/jsx-runtime";
+const _$$_tpl_1 = ["<label ${value}=\\"foo\\">label</label>"];
+const a = _jsxTemplate(_$$_tpl_1);`,
     );
 
     let quoted = value;
@@ -92,19 +80,25 @@ Deno.test("precompile - normalize attr name", () => {
     // be serialized
     runTest(
       {},
-      `const a = <label ${key}="foo" {{...foo}} />"`,
+      `const a = <label ${key}="foo" {...foo} />`,
       `import { jsx as _jsx } from "react/jsx-runtime";
-const a = _jsx("label", {{\n  ${quoted}: "foo",\n  ...foo\n}});`,
+const a = _jsx("label", {
+  ${quoted}: "foo",
+  ...foo
+});`,
     );
   }
 
   // Component props should never be normalized
-  for (const [key, value] of Object.entries(mappings)) {
+  for (const [key, _] of Object.entries(mappings)) {
     runTest(
       {},
       `const a = <Foo ${key}="foo">foo</Foo>`,
       `import { jsx as _jsx } from "react/jsx-runtime";
-const a = _jsx(Foo, {{\n  ${value}: "foo",\n  children: "foo"\n}});`,
+const a = _jsx(Foo, {
+  ${key}: "foo",
+  children: "foo"
+});`,
     );
   }
 });
@@ -351,10 +345,8 @@ Deno.test("precompile - escape children", () => {
     {},
     `const a = <div>"a&>'</div>;`,
     `import { jsxTemplate as _jsxTemplate } from "react/jsx-runtime";
-const $$_tpl_1 = [
-  "<div>&quot;a&amp;&gt;&#39;</div>"
-];
-const a = _jsxTemplate($$_tpl_1);`,
+const _$$_tpl_1 = ["<div>&quot;a&amp;&gt;&#39;</div>"];
+const a = _jsxTemplate(_$$_tpl_1);`,
   );
 
   runTest(
@@ -362,36 +354,25 @@ const a = _jsxTemplate($$_tpl_1);`,
     `const child = [\`"a&>'\`].join("");
 const a = <div>{child}</div>;`,
     `import { jsxTemplate as _jsxTemplate, jsxEscape as _jsxEscape } from "react/jsx-runtime";
-const $$_tpl_1 = [
-  "<div>",
-  "</div>"
-];
-const child = [
-  \`"a&>'\`
-].join("");
-const a = _jsxTemplate($$_tpl_1, _jsxEscape(child));`,
+const _$$_tpl_1 = ["<div>", "</div>"];
+const child = [\`"a&>'\`].join("");
+const a = _jsxTemplate(_$$_tpl_1, _jsxEscape(child));`,
   );
 
   runTest(
     {},
     `const a = <div>{foo}{bar}</div>;`,
     `import { jsxTemplate as _jsxTemplate, jsxEscape as _jsxEscape } from "react/jsx-runtime";
-const $$_tpl_1 = [
-  "<div>",
-  "",
-  "</div>"
-];
-const a = _jsxTemplate($$_tpl_1, _jsxEscape(foo), _jsxEscape(bar));`,
+const _$$_tpl_1 = ["<div>", "", "</div>"];
+const a = _jsxTemplate(_$$_tpl_1, _jsxEscape(foo), _jsxEscape(bar));`,
   );
 
   runTest(
     {},
     `const a = <div>{"\\"a&>'"}</div>;`,
     `import { jsxTemplate as _jsxTemplate } from "react/jsx-runtime";
-const $$_tpl_1 = [
-  "<div>&quot;a&amp;&gt;&#39;</div>"
-];
-const a = _jsxTemplate($$_tpl_1);`,
+const _$$_tpl_1 = ["<div>&quot;a&amp;&gt;&#39;</div>"];
+const a = _jsxTemplate(_$$_tpl_1);`,
   );
 });
 
@@ -412,10 +393,8 @@ Deno.test("precompile - empty jsx child", () => {
     {},
     `const a = <p>{}</p>;`,
     `import { jsxTemplate as _jsxTemplate } from "react/jsx-runtime";
-const $$_tpl_1 = [
-  "<p></p>"
-];
-const a = _jsxTemplate($$_tpl_1);`,
+const _$$_tpl_1 = ["<p></p>"];
+const a = _jsxTemplate(_$$_tpl_1);`,
   );
 });
 
@@ -488,11 +467,8 @@ Deno.test("precompile - child expr", () => {
     {},
     `const a = <p>{2 + 2}</p>;`,
     `import { jsxTemplate as _jsxTemplate, jsxEscape as _jsxEscape } from "react/jsx-runtime";
-const $$_tpl_1 = [
-  "<p>",
-  "</p>"
-];
-const a = _jsxTemplate($$_tpl_1, _jsxEscape(2 + 2));`,
+const _$$_tpl_1 = ["<p>", "</p>"];
+const a = _jsxTemplate(_$$_tpl_1, _jsxEscape(2 + 2));`,
   );
 });
 
@@ -691,10 +667,8 @@ Deno.test("precompile - nested elements", () => {
     {},
     `const a = <div>foo<p>bar</p></div>;`,
     `import { jsxTemplate as _jsxTemplate } from "react/jsx-runtime";
-const $$_tpl_1 = [
-  "<div>foo<p>bar</p></div>"
-];
-const a = _jsxTemplate($$_tpl_1);`,
+const _$$_tpl_1 = ["<div>foo<p>bar</p></div>"];
+const a = _jsxTemplate(_$$_tpl_1);`,
   );
 });
 
@@ -740,11 +714,8 @@ Deno.test("precompile - component", () => {
     {},
     `const a = <div><Foo /></div>;`,
     `import { jsx as _jsx, jsxTemplate as _jsxTemplate } from "react/jsx-runtime";
-const $$_tpl_1 = [
-  "<div>",
-  "</div>"
-];
-const a = _jsxTemplate($$_tpl_1, _jsx(Foo, null));`,
+const _$$_tpl_1 = ["<div>", "</div>"];
+const a = _jsxTemplate(_$$_tpl_1, _jsx(Foo, null));`,
   );
 });
 
@@ -798,11 +769,9 @@ Deno.test("precompile - component with children", () => {
     {},
     `const a = <Foo><span>hello</span></Foo>;`,
     `import { jsx as _jsx, jsxTemplate as _jsxTemplate } from "react/jsx-runtime";
-const $$_tpl_1 = [
-  "<span>hello</span>"
-];
+const _$$_tpl_1 = ["<span>hello</span>"];
 const a = _jsx(Foo, {
-  children: _jsxTemplate($$_tpl_1)
+  children: _jsxTemplate(_$$_tpl_1)
 });`,
   );
 });
@@ -858,11 +827,9 @@ Deno.test("precompile - component with jsx attr", () => {
     {},
     `const a = <Foo bar={<div>hello</div>} />;`,
     `import { jsx as _jsx, jsxTemplate as _jsxTemplate } from "react/jsx-runtime";
-const $$_tpl_1 = [
-  "<div>hello</div>"
-];
+const _$$_tpl_1 = ["<div>hello</div>"];
 const a = _jsx(Foo, {
-  bar: _jsxTemplate($$_tpl_1)
+  bar: _jsxTemplate(_$$_tpl_1)
 });`,
   );
 
@@ -961,13 +928,11 @@ const a = _jsx(MyIsland.Foo, {
 
 Deno.test("precompile - import source option", () => {
   runTest(
-    { jsxImportSource: "foobar" },
+    { importSource: "foobar" },
     `const a = <div>foo</div>;`,
     `import { jsxTemplate as _jsxTemplate } from "foobar/jsx-runtime";
-const $$_tpl_1 = [
-  "<div>foo</div>"
-];
-const a = _jsxTemplate($$_tpl_1);`,
+const _$$_tpl_1 = ["<div>foo</div>"];
+const a = _jsxTemplate(_$$_tpl_1);`,
   );
 });
 
@@ -976,15 +941,10 @@ Deno.test("precompile - template index", () => {
     {},
     `<div><Foo><span /></Foo></div>;`,
     `import { jsx as _jsx, jsxTemplate as _jsxTemplate } from "react/jsx-runtime";
-const $$_tpl_2 = [
-  "<span></span>"
-];
-const $$_tpl_1 = [
-  "<div>",
-  "</div>"
-];
-_jsxTemplate($$_tpl_1, _jsx(Foo, {
-  children: _jsxTemplate($$_tpl_2)
+const _$$_tpl_1 = ["<span></span>"];
+const _$$_tpl_2 = ["<div>", "</div>"];
+_jsxTemplate(_$$_tpl_2, _jsx(Foo, {
+  children: _jsxTemplate(_$$_tpl_1)
 }));`,
   );
 });
@@ -1015,10 +975,8 @@ const a = <div />`,
     `import { jsxTemplate as _jsxTemplate } from "react/jsx-runtime";
 import Foo from "./foo.ts";
 import Bar from "./bar.ts";
-const $$_tpl_1 = [
-  "<div></div>"
-];
-const a = _jsxTemplate($$_tpl_1);`,
+const _$$_tpl_1 = ["<div></div>"];
+const a = _jsxTemplate(_$$_tpl_1);`,
   );
 
   runTest(
@@ -1030,11 +988,9 @@ export function foo() {
 }`,
     `import { jsxTemplate as _jsxTemplate } from "react/jsx-runtime";
 import Foo from "./foo.ts";
-const $$_tpl_1 = [
-  "<div></div>"
-];
+const _$$_tpl_1 = ["<div></div>"];
 export function foo() {
-  return _jsxTemplate($$_tpl_1);
+  return _jsxTemplate(_$$_tpl_1);
 }`,
   );
 
@@ -1047,11 +1003,9 @@ export default function foo() {
 }`,
     `import { jsxTemplate as _jsxTemplate } from "react/jsx-runtime";
 import Foo from "./foo.ts";
-const $$_tpl_1 = [
-  "<div></div>"
-];
+const _$$_tpl_1 = ["<div></div>"];
 export default function foo() {
-  return _jsxTemplate($$_tpl_1);
+  return _jsxTemplate(_$$_tpl_1);
 }`,
   );
 });
@@ -1093,10 +1047,8 @@ Deno.test("precompile - merge element text children", () => {
     {},
     `const a = <div>foo{" "}bar{' '}</div>`,
     `import { jsxTemplate as _jsxTemplate } from "react/jsx-runtime";
-const $$_tpl_1 = [
-  "<div>foo bar </div>"
-];
-const a = _jsxTemplate($$_tpl_1);`,
+const _$$_tpl_1 = ["<div>foo bar </div>"];
+const a = _jsxTemplate(_$$_tpl_1);`,
   );
 });
 
@@ -1107,15 +1059,11 @@ Deno.test("precompile - skip serialization", () => {
     },
     `const a = <div><img src="foo.jpg"/><a href="#">foo</a></div>`,
     `import { jsx as _jsx, jsxTemplate as _jsxTemplate } from "react/jsx-runtime";
-const $$_tpl_1 = [
-  "<div>",
-  "",
-  "</div>"
-];
-const a = _jsxTemplate($$_tpl_1, _jsx("img", {
+const _$$_tpl_1 = ["<div>", "", "</div>"];
+const a = _jsxTemplate(_$$_tpl_1, _jsx("img", {
   src: "foo.jpg"
 }), _jsx("a", {
-  href: "\\#",
+  href: "#",
   children: "foo"
 }));`,
   );
