@@ -78,31 +78,52 @@ export default defineConfig({
   );
 }
 
-export async function buildVite(fixtureDir: string) {
+export async function buildVite(
+  fixtureDir: string,
+  env: Record<string, string> = {},
+) {
   const tmp = await withTmpDir({
     dir: path.join(import.meta.dirname!, ".."),
     prefix: "tmp_vite_",
   });
 
-  const builder = await createBuilder({
-    root: fixtureDir,
-    build: {
-      emptyOutDir: true,
-    },
-    environments: {
-      ssr: {
-        build: {
-          outDir: path.join(tmp.dir, "_fresh", "server"),
+  // Set environment variables for the build process
+  const originalEnv: Record<string, string | undefined> = {};
+  for (const [key, value] of Object.entries(env)) {
+    originalEnv[key] = Deno.env.get(key);
+    Deno.env.set(key, value);
+  }
+
+  try {
+    const builder = await createBuilder({
+      root: fixtureDir,
+      build: {
+        emptyOutDir: true,
+      },
+      environments: {
+        ssr: {
+          build: {
+            outDir: path.join(tmp.dir, "_fresh", "server"),
+          },
+        },
+        client: {
+          build: {
+            outDir: path.join(tmp.dir, "_fresh", "client"),
+          },
         },
       },
-      client: {
-        build: {
-          outDir: path.join(tmp.dir, "_fresh", "client"),
-        },
-      },
-    },
-  });
-  await builder.buildApp();
+    });
+    await builder.buildApp();
+  } finally {
+    // Restore original environment variables
+    for (const [key, originalValue] of Object.entries(originalEnv)) {
+      if (originalValue === undefined) {
+        Deno.env.delete(key);
+      } else {
+        Deno.env.set(key, originalValue);
+      }
+    }
+  }
 
   return {
     tmp: tmp.dir,

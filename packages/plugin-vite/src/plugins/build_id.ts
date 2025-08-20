@@ -39,6 +39,12 @@ export function setBuildId(id) {
 }
 
 export async function getBuildId(dev: boolean): Promise<string> {
+  // Check for GIT_REVISION environment variable first
+  const gitRevision = Deno.env.get("GIT_REVISION");
+  if (gitRevision !== undefined) {
+    return gitRevision;
+  }
+
   if (!dev) {
     const bin = Deno.build.os === "windows" ? "git.exe" : "git";
     const res = await new Deno.Command(bin, { args: ["rev-parse", "HEAD"] })
