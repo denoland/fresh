@@ -113,10 +113,15 @@ export async function buildVite(fixtureDir: string) {
 }
 
 export function usingEnv(name: string, value: string) {
+  const prev = Deno.env.get(name);
   Deno.env.set(name, value);
   return {
     [Symbol.dispose]: () => {
-      Deno.env.delete(name);
+      if (prev === undefined) {
+        Deno.env.delete(name);
+      } else {
+        Deno.env.set(name, prev);
+      }
     },
   };
 }

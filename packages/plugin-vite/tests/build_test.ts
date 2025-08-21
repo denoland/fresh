@@ -4,7 +4,7 @@ import {
   withBrowser,
   withChildProcessServer,
 } from "../../fresh/tests/test_utils.tsx";
-import { buildVite, DEMO_DIR, FIXTURE_DIR } from "./test_utils.ts";
+import { buildVite, DEMO_DIR, FIXTURE_DIR, usingEnv } from "./test_utils.ts";
 import * as path from "@std/path";
 
 Deno.test({
@@ -292,6 +292,50 @@ Deno.test({
         });
       },
     );
+  },
+  sanitizeOps: false,
+  sanitizeResources: false,
+});
+
+Deno.test({
+  name: "vite build - build ID uses env variables when set",
+  fn: async () => {
+    const revision = "test-commit-hash-123";
+
+    // We're running on GitHub Actions, so GITHUB_SHA will always
+    // be set
+    Deno.env.delete("GITHUB_SHA");
+
+    for (
+      const key of [
+        "DENO_DEPLOYMENT_ID",
+        "GITHUB_SHA",
+        "CI_COMMIT_SHA",
+        "OTHER",
+      ]
+    ) {
+      using _ = usingEnv(key, revision);
+      // deno-lint-ignore no-console
+      console.log("Checking...", key, Deno.env.get(key));
+      await using res = await buildVite(DEMO_DIR);
+
+      await withChildProcessServer(
+        {
+          cwd: res.tmp,
+          args: ["serve", "-A", "--port", "0", "_fresh/server.js"],
+        },
+        async (address) => {
+          const res = await fetch(`${address}/tests/build_id`);
+          const text = await res.text();
+
+          if (key === "OTHER") {
+            expect(text).not.toEqual(revision);
+          } else {
+            expect(text).toEqual(revision);
+          }
+        },
+      );
+    }
   },
   sanitizeOps: false,
   sanitizeResources: false,
