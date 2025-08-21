@@ -317,6 +317,9 @@ Deno.test({
         {
           cwd: res.tmp,
           args: ["serve", "-A", "--port", "0", "_fresh/server.js"],
+          env: {
+            [key]: revision,
+          },
         },
         async (address) => {
           const res = await fetch(`${address}/tests/build_id`);
