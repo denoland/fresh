@@ -302,6 +302,10 @@ Deno.test({
   fn: async () => {
     const revision = "test-commit-hash-123";
 
+    // We're running on GitHub Actions, so GITHUB_SHA will always
+    // be set
+    Deno.env.delete("GITHUB_SHA");
+
     for (
       const key of [
         "DENO_DEPLOYMENT_ID",
