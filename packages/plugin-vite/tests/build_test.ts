@@ -298,7 +298,6 @@ Deno.test({
 });
 
 Deno.test({
-  only: true,
   name: "vite build - build ID uses env variables when set",
   fn: async () => {
     const revision = "test-commit-hash-123";
