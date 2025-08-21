@@ -4,7 +4,7 @@ import {
   withBrowser,
   withChildProcessServer,
 } from "../../fresh/tests/test_utils.tsx";
-import { buildVite, DEMO_DIR, FIXTURE_DIR } from "./test_utils.ts";
+import { buildVite, DEMO_DIR, FIXTURE_DIR, usingEnv } from "./test_utils.ts";
 import * as path from "@std/path";
 
 Deno.test({
@@ -298,96 +298,39 @@ Deno.test({
 });
 
 Deno.test({
-  name: "vite build - build ID uses GIT_REVISION when set",
+  only: true,
+  name: "vite build - build ID uses env variables when set",
   fn: async () => {
-    const testRevision = "test-commit-hash-123";
-    await using res = await buildVite(DEMO_DIR, { GIT_REVISION: testRevision });
+    const revision = "test-commit-hash-123";
 
-    await withChildProcessServer(
-      {
-        cwd: res.tmp,
-        args: ["serve", "-A", "--port", "0", "_fresh/server.js"],
-      },
-      async (address) => {
-        await withBrowser(async (page) => {
-          await page.goto(`${address}/tests/build_id`, {
-            waitUntil: "networkidle2",
-          });
+    for (
+      const key of [
+        "DENO_DEPLOYMENT_ID",
+        "GITHUB_SHA",
+        "CI_COMMIT_SHA",
+        "OTHER",
+      ]
+    ) {
+      using _ = usingEnv(key, revision);
+      await using res = await buildVite(DEMO_DIR);
 
-          await page.locator(".ready").wait();
-          const buildId = await page.locator("#build-id").evaluate((el) =>
-            // deno-lint-ignore no-explicit-any
-            (el as any).textContent?.trim()
-          );
-          expect(buildId).toEqual(testRevision);
-        });
-      },
-    );
-  },
-  sanitizeOps: false,
-  sanitizeResources: false,
-});
+      await withChildProcessServer(
+        {
+          cwd: res.tmp,
+          args: ["serve", "-A", "--port", "0", "_fresh/server.js"],
+        },
+        async (address) => {
+          const res = await fetch(`${address}/tests/build_id`);
+          const text = await res.text();
 
-Deno.test({
-  name:
-    "vite build - build ID generates unique value when GIT_REVISION not set",
-  fn: async () => {
-    await using res = await buildVite(DEMO_DIR);
-
-    await withChildProcessServer(
-      {
-        cwd: res.tmp,
-        args: ["serve", "-A", "--port", "0", "_fresh/server.js"],
-      },
-      async (address) => {
-        await withBrowser(async (page) => {
-          await page.goto(`${address}/tests/build_id`, {
-            waitUntil: "networkidle2",
-          });
-
-          await page.locator(".ready").wait();
-          const buildId = await page.locator("#build-id").evaluate((el) =>
-            // deno-lint-ignore no-explicit-any
-            (el as any).textContent?.trim()
-          );
-
-          // Should be a non-empty string
-          expect(buildId).toBeTruthy();
-          expect(typeof buildId).toEqual("string");
-          expect(buildId!.length).toBeGreaterThan(0);
-        });
-      },
-    );
-  },
-  sanitizeOps: false,
-  sanitizeResources: false,
-});
-
-Deno.test({
-  name: "vite build - build ID handles empty GIT_REVISION",
-  fn: async () => {
-    await using res = await buildVite(DEMO_DIR, { GIT_REVISION: "" });
-
-    await withChildProcessServer(
-      {
-        cwd: res.tmp,
-        args: ["serve", "-A", "--port", "0", "_fresh/server.js"],
-      },
-      async (address) => {
-        await withBrowser(async (page) => {
-          await page.goto(`${address}/tests/build_id`, {
-            waitUntil: "networkidle2",
-          });
-
-          await page.locator(".ready").wait();
-          const buildId = await page.locator("#build-id").evaluate((el) =>
-            // deno-lint-ignore no-explicit-any
-            (el as any).textContent?.trim()
-          );
-          expect(buildId).toEqual("");
-        });
-      },
-    );
+          if (key === "OTHER") {
+            expect(text).not.toEqual(revision);
+          } else {
+            expect(text).toEqual(revision);
+          }
+        },
+      );
+    }
   },
   sanitizeOps: false,
   sanitizeResources: false,
