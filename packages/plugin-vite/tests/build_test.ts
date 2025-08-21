@@ -310,9 +310,9 @@ Deno.test({
         "OTHER",
       ]
     ) {
-      // deno-lint-ignore no-console
-      console.log("Checking...", key);
       using _ = usingEnv(key, revision);
+      // deno-lint-ignore no-console
+      console.log("Checking...", key, Deno.env.get(key));
       await using res = await buildVite(DEMO_DIR);
 
       await withChildProcessServer(
