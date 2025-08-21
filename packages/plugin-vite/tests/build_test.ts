@@ -310,6 +310,8 @@ Deno.test({
         "OTHER",
       ]
     ) {
+      // deno-lint-ignore no-console
+      console.log("Checking...", key);
       using _ = usingEnv(key, revision);
       await using res = await buildVite(DEMO_DIR);
 
