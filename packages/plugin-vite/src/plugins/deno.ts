@@ -32,8 +32,11 @@ export function deno(): Plugin {
     },
     async configResolved() {
       // TODO: Pass conditions
-      ssrLoader = await new Workspace({}).createLoader();
+      ssrLoader = await new Workspace({
+        cachedOnly: true,
+      }).createLoader();
       browserLoader = await new Workspace({
+        cachedOnly: true,
         platform: "browser",
         preserveJsx: true,
       })
