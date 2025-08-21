@@ -22,6 +22,7 @@
     "@babel/core": "npm:@babel/core@^7.28.0",
     "@babel/preset-react": "npm:@babel/preset-react@^7.27.1",
     "@deno/loader": "jsr:@deno/loader@^0.3.2",
+    "@marvinh-test/import-json": "jsr:@marvinh-test/import-json@^0.0.1",
     "@prefresh/vite": "npm:@prefresh/vite@^2.4.8",
     "@tailwindcss/vite": "npm:@tailwindcss/vite@^4.1.12",
     "@types/babel__core": "npm:@types/babel__core@^7.20.5",

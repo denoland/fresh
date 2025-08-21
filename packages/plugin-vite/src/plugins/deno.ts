@@ -323,10 +323,7 @@ function babelTransform(
     isDev: boolean;
   },
 ) {
-  if (
-    !isJsMediaType(options.media) &&
-    !/^https?:\/\//.test(options.id)
-  ) {
+  if (!isJsMediaType(options.media)) {
     return null;
   }
 
