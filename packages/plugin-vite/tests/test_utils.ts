@@ -78,9 +78,7 @@ export default defineConfig({
   );
 }
 
-export async function buildVite(
-  fixtureDir: string,
-) {
+export async function buildVite(fixtureDir: string) {
   const tmp = await withTmpDir({
     dir: path.join(import.meta.dirname!, ".."),
     prefix: "tmp_vite_",
