@@ -3256,6 +3256,7 @@
       "packages/plugin-vite": {
         "dependencies": [
           "jsr:@deno/loader@~0.3.2",
+          "jsr:@marvinh-test/import-json@^0.0.1",
           "npm:@babel/core@^7.28.0",
           "npm:@babel/preset-react@^7.27.1",
           "npm:@prefresh/vite@^2.4.8",

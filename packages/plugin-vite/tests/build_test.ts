@@ -340,3 +340,24 @@ Deno.test({
   sanitizeOps: false,
   sanitizeResources: false,
 });
+
+Deno.test({
+  name: "vite build - import json from jsr dependency",
+  fn: async () => {
+    await using res = await buildVite(DEMO_DIR);
+
+    await withChildProcessServer(
+      {
+        cwd: res.tmp,
+        args: ["serve", "-A", "--port", "0", "_fresh/server.js"],
+      },
+      async (address) => {
+        const res = await fetch(`${address}/tests/dep_json`);
+        const json = await res.json();
+        expect(json.name).toEqual("@marvinh-test/import-json");
+      },
+    );
+  },
+  sanitizeOps: false,
+  sanitizeResources: false,
+});
