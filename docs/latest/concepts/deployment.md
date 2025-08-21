@@ -77,7 +77,7 @@ platform without requiring Deno to be installed.
 
 ```sh Terminal
 $ deno task build
-$ deno compile --include static --include _fresh --include deno.json -A main.ts
+$ deno compile --include static --include .fresh --include deno.json -A main.ts
 ```
 
 [aws-container-registry]: https://docs.aws.amazon.com/AmazonECS/latest/userguide/create-container-image.html#create-container-image-push-ecr

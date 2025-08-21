@@ -11,15 +11,15 @@ deno task build
 deno run -A dev.ts build
 ```
 
-Once completed, it will have created a `_fresh` folder in the project directory
+Once completed, it will have created a `.fresh` folder in the project directory
 which contains the optimized assets.
 
-> [info]: The `_fresh` folder should not be committed to git. Exclude it via
+> [info]: The `.fresh` folder should not be committed to git. Exclude it via
 > `.gitignore`.
 >
 > ```gitignore .gitignore
 > # Ignore fresh build directory
-> _fresh/
+> .fresh/
 > ```
 
 ## Running a production build
@@ -29,7 +29,7 @@ To run Fresh in production mode, run the `start` task:
 ```sh Terminal
 deno task start
 # or
-deno serve -A _fresh/server.js
+deno serve -A .fresh/server.js
 ```
 
-Fresh will automatically pick up the optimized assets in the `_fresh` directory.
+Fresh will automatically pick up the optimized assets in the `.fresh` directory.
