@@ -251,3 +251,16 @@ Deno.test({
   sanitizeResources: false,
   sanitizeOps: false,
 });
+
+Deno.test({
+  name: "vite dev - import node:*",
+  fn: async () => {
+    await withDevServer(DEMO_DIR, async (address) => {
+      const res = await fetch(`${address}/tests/feed`);
+      await res.body?.cancel();
+      expect(res.status).toEqual(200);
+    });
+  },
+  sanitizeResources: false,
+  sanitizeOps: false,
+});

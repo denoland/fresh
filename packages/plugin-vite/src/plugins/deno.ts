@@ -102,6 +102,13 @@ export function deno(): Plugin {
           ResolutionMode.Import,
         );
 
+        if (resolved.startsWith("node:")) {
+          return {
+            id: resolved,
+            external: true,
+          };
+        }
+
         if (original === resolved) {
           return null;
         }
