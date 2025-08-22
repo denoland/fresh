@@ -7,6 +7,8 @@ export function cjsPlugin(
   const REQUIRE_CALLS = "requireCalls";
   const ROOT_SCOPE = "rootScope";
   const EXPORTED = "exported";
+  const EXPORTED_NAMESPACES = "exported_namespaces";
+  const ALIASED = "aliased";
 
   return {
     name: "fresh-cjs-esm",
@@ -15,6 +17,7 @@ export function cjsPlugin(
         enter(path, state) {
           state.set(ROOT_SCOPE, path.scope);
           state.set(EXPORTED, new Set<string>());
+          state.set(EXPORTED_NAMESPACES, new Set<string>());
         },
         exit(path, state) {
           const body = path.get("body");
@@ -33,7 +36,24 @@ export function cjsPlugin(
           }
 
           const exported = state.get(EXPORTED);
-          if (exported.size > 0) {
+          const exportedNs = state.get(EXPORTED_NAMESPACES);
+
+          const mappedNs: string[] = [];
+
+          for (const spec of exportedNs.values()) {
+            const id = path.scope.generateUidIdentifier("__ns");
+            mappedNs.push(id.name);
+
+            path.unshiftContainer(
+              "body",
+              t.importDeclaration(
+                [t.importNamespaceSpecifier(id)],
+                t.stringLiteral(spec),
+              ),
+            );
+          }
+
+          if (exported.size > 0 || exportedNs.size > 0) {
             path.unshiftContainer(
               "body",
               t.variableDeclaration("var", [
@@ -94,7 +114,7 @@ export function cjsPlugin(
             );
           }
 
-          if (exportNamed.size > 0) {
+          if (exportNamed.size > 0 || exportedNs.size > 0) {
             const id = path.scope.generateUidIdentifier("__default");
 
             path.pushContainer(
@@ -142,6 +162,22 @@ export function cjsPlugin(
               );
             }
 
+            for (let i = 0; i < mappedNs.length; i++) {
+              const mapped = mappedNs[i];
+              path.pushContainer(
+                "body",
+                t.expressionStatement(
+                  t.callExpression(
+                    t.memberExpression(
+                      t.identifier("Object"),
+                      t.identifier("assign"),
+                    ),
+                    [t.cloneNode(id, true), t.identifier(mapped)],
+                  ),
+                ),
+              );
+            }
+
             path.pushContainer("body", t.exportDefaultDeclaration(id));
           }
 
@@ -158,6 +194,7 @@ export function cjsPlugin(
           path.remove();
           return;
         }
+
         if (
           t.isIdentifier(path.node.callee) &&
           path.node.callee.name === "require"
@@ -226,7 +263,7 @@ export function cjsPlugin(
         },
       },
       ExpressionStatement: {
-        enter(path) {
+        enter(path, state) {
           if (
             t.isExpressionStatement(path.node) &&
             t.isCallExpression(path.node.expression) &&
@@ -242,7 +279,20 @@ export function cjsPlugin(
               path.node.expression.arguments[0].arguments[0],
               true,
             );
+            state.get(EXPORTED_NAMESPACES).add(spec.value);
             path.replaceWith(t.exportAllDeclaration(spec));
+          } else if (
+            t.isExpressionStatement(path.node) &&
+            t.isCallExpression(path.node.expression) &&
+            t.isFunctionExpression(path.node.expression.callee)
+          ) {
+            if (
+              path.node.expression.callee.params.length > 0 &&
+              t.isIdentifier(path.node.expression.callee.params[0])
+            ) {
+              const alias = path.node.expression.callee.params[0].name;
+              state.set(ALIASED, alias);
+            }
           }
         },
         exit(path, state) {
@@ -258,6 +308,22 @@ export function cjsPlugin(
             } else if (left.isMemberExpression()) {
               if (isModuleExports(t, left.node)) {
                 exported.add("default");
+
+                if (t.isObjectExpression(expr.node.right)) {
+                  const properties = expr.node.right.properties;
+                  for (let i = 0; i < properties.length; i++) {
+                    const prop = properties[i];
+                    if (t.isObjectProperty(prop)) {
+                      if (t.isIdentifier(prop.key)) {
+                        if (prop.key.name === "__esModule") {
+                          continue;
+                        }
+
+                        exported.add(prop.key.name);
+                      }
+                    }
+                  }
+                }
               } else {
                 const named = getExportsAssignName(t, left.node);
                 if (named === null) return;
@@ -271,6 +337,48 @@ export function cjsPlugin(
             }
           }
         },
+      },
+      VariableDeclaration(path) {
+        if (path.node.declarations.length === 0) {
+          path.remove();
+        }
+      },
+      VariableDeclarator(path) {
+        // Esbuild CJS shims
+        if (
+          t.isIdentifier(path.node.id) &&
+          (path.node.id.name === "__exportStar" ||
+            path.node.id.name === "__createBinding")
+        ) {
+          path.remove();
+        }
+      },
+      ConditionalExpression(path) {
+        if (
+          t.isBinaryExpression(path.node.test) &&
+          t.isUnaryExpression(path.node.test.left) &&
+          path.node.test.left.operator === "typeof" &&
+          t.isIdentifier(path.node.test.left.argument) &&
+          path.node.test.left.argument.name === "exports" &&
+          path.node.test.operator === "==="
+        ) {
+          path.replaceWith(t.cloneNode(path.node.alternate, true));
+        }
+      },
+      AssignmentExpression(path, state) {
+        const exported = state.get(EXPORTED);
+        const aliased = state.get(ALIASED);
+        if (aliased === undefined) return;
+
+        if (
+          path.node.operator === "=" && t.isMemberExpression(path.node.left) &&
+          t.isIdentifier(path.node.left.object) &&
+          path.node.left.object.name === aliased &&
+          t.isIdentifier(path.node.left.property)
+        ) {
+          const name = path.node.left.property.name;
+          exported.add(name);
+        }
       },
     },
   };
