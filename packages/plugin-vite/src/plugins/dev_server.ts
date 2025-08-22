@@ -64,8 +64,8 @@ export function devServer(): Plugin[] {
         const clientMod = options.server.environments.client.moduleGraph
           .getModulesByFile(options.file);
 
-        if (clientMod === undefined) {
-          options.server.hot.send("fresh:reload");
+        if (clientMod !== undefined) {
+          // Vite can do HMR here
           return;
         }
 
@@ -73,9 +73,7 @@ export function devServer(): Plugin[] {
           .getModulesByFile(options.file);
         if (ssrMod !== undefined) {
           // SSR-only module. Might still be a route.
-          // deno-lint-ignore no-console
-          console.log("hmr", options.file);
-
+          // TODO: Implement proper ssr hmr
           options.server.hot.send("fresh:reload");
         }
       },
