@@ -4,6 +4,7 @@ import { cjsPlugin } from "./patches/commonjs.ts";
 import { jsxComments } from "./patches/jsx_comment.ts";
 import babelReact from "@babel/preset-react";
 import { inlineEnvVarsPlugin } from "./patches/inline_env_vars.ts";
+import { removePolyfills } from "./patches/remove_polyfills.ts";
 
 export function patches(): Plugin {
   let isDev = false;
@@ -33,6 +34,7 @@ export function patches(): Plugin {
         babelrc: false,
         plugins: [
           cjsPlugin,
+          removePolyfills,
           jsxComments,
           inlineEnvVarsPlugin(
             isDev ? "development" : "production",
