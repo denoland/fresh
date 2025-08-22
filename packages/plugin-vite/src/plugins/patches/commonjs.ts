@@ -258,6 +258,22 @@ export function cjsPlugin(
             } else if (left.isMemberExpression()) {
               if (isModuleExports(t, left.node)) {
                 exported.add("default");
+
+                if (t.isObjectExpression(expr.node.right)) {
+                  const properties = expr.node.right.properties;
+                  for (let i = 0; i < properties.length; i++) {
+                    const prop = properties[i];
+                    if (t.isObjectProperty(prop)) {
+                      if (t.isIdentifier(prop.key)) {
+                        if (prop.key.name === "__esModule") {
+                          continue;
+                        }
+
+                        exported.add(prop.key.name);
+                      }
+                    }
+                  }
+                }
               } else {
                 const named = getExportsAssignName(t, left.node);
                 if (named === null) return;

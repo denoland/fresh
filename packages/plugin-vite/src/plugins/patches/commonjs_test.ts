@@ -389,8 +389,7 @@ ${DEFAULT_EXPORT_END}`,
   });
 });
 
-// TODO
-Deno.test.ignore("commonjs - export default object", () => {
+Deno.test("commonjs - export default object", () => {
   runTest({
     input: `Object.defineProperty(exports, '__esModule', { value: true });
 module.exports = { foo: 'bar' };
@@ -399,8 +398,8 @@ module.exports = { foo: 'bar' };
 module.exports = {
   foo: 'bar'
 };
-var _foo = module.exports.foo;
-export let foo = _foo;
+var _foo = exports.foo;
+export { _foo as foo };
 ${DEFAULT_EXPORT}
 _default.foo = _foo;
 ${DEFAULT_EXPORT_END}`,
