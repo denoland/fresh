@@ -323,7 +323,12 @@ ${DEFAULT_EXPORT_END}`,
 Deno.test("commonjs - detect esbuild shims", () => {
   runTest({
     input: `__exportStar(require("./globalThis"), exports);`,
-    expected: `export * from "./globalThis";`,
+    expected: `${INIT}
+import * as _ns from "./globalThis";
+export * from "./globalThis";
+${DEFAULT_EXPORT}
+Object.assign(_default, _ns);
+${DEFAULT_EXPORT_END}`,
   });
 });
 
@@ -402,6 +407,47 @@ var _foo = exports.foo;
 export { _foo as foo };
 ${DEFAULT_EXPORT}
 _default.foo = _foo;
+${DEFAULT_EXPORT_END}`,
+  });
+});
+
+Deno.test("commonjs - detect iife wrapper", () => {
+  runTest({
+    input: `;(function (sax) {
+  sax.foo = "foo";
+})(typeof exports === 'undefined' ? this.sax = {} : exports);`,
+    expected: `${INIT}
+(function (sax) {
+  sax.foo = "foo";
+})(exports);
+var _foo = exports.foo;
+export { _foo as foo };
+${DEFAULT_EXPORT}
+_default.foo = _foo;
+${DEFAULT_EXPORT_END}`,
+  });
+});
+
+Deno.test("commonjs - re-export", () => {
+  runTest({
+    input:
+      `;var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    Object.defineProperty(o, k2, { enumerable: true, get: function() { return m[k]; } });
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __exportStar = (this && this.__exportStar) || function(m, exports) {
+    for (var p in m) if (p !== "default" && !Object.prototype.hasOwnProperty.call(exports, p)) __createBinding(exports, m, p);
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+__exportStar(require("./node"), exports);`,
+    expected: `${INIT}
+import * as _ns from "./node";
+export * from "./node";
+${DEFAULT_EXPORT}
+Object.assign(_default, _ns);
 ${DEFAULT_EXPORT_END}`,
   });
 });
