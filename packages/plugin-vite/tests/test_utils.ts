@@ -73,7 +73,11 @@ export default defineConfig({
   );
 
   await withChildProcessServer(
-    { cwd: tmp.dir, args: ["run", "-A", "npm:vite", "--port", "0"], env },
+    {
+      cwd: tmp.dir,
+      args: ["run", "-A", "--cached-only", "npm:vite", "--port", "0"],
+      env,
+    },
     async (address) => await fn(address, tmp.dir),
   );
 }
@@ -85,6 +89,7 @@ export async function buildVite(fixtureDir: string) {
   });
 
   const builder = await createBuilder({
+    logLevel: "error",
     root: fixtureDir,
     build: {
       emptyOutDir: true,
@@ -124,4 +129,25 @@ export function usingEnv(name: string, value: string) {
       }
     },
   };
+}
+
+export interface ProdOptions {
+  cwd: string;
+  args?: string[];
+  bin?: string;
+  env?: Record<string, string>;
+}
+
+export async function launchProd(
+  options: ProdOptions,
+  fn: (address: string) => void | Promise<void>,
+) {
+  return await withChildProcessServer(
+    {
+      cwd: options.cwd,
+      args: options.args ??
+        ["serve", "-A", "--cached-only", "--port", "0", "_fresh/server.js"],
+    },
+    fn,
+  );
 }
