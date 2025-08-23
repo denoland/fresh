@@ -1,10 +1,12 @@
 import { expect } from "@std/expect";
+import { waitForText, withBrowser } from "../../fresh/tests/test_utils.tsx";
 import {
-  waitForText,
-  withBrowser,
-  withChildProcessServer,
-} from "../../fresh/tests/test_utils.tsx";
-import { buildVite, DEMO_DIR, FIXTURE_DIR } from "./test_utils.ts";
+  buildVite,
+  DEMO_DIR,
+  FIXTURE_DIR,
+  launchProd,
+  usingEnv,
+} from "./test_utils.ts";
 import * as path from "@std/path";
 
 Deno.test({
@@ -12,11 +14,8 @@ Deno.test({
   fn: async () => {
     await using res = await buildVite(DEMO_DIR);
 
-    await withChildProcessServer(
-      {
-        cwd: res.tmp,
-        args: ["serve", "-A", "--port", "0", "_fresh/server.js"],
-      },
+    await launchProd(
+      { cwd: res.tmp },
       async (address) => {
         const res = await fetch(address);
         const text = await res.text();
@@ -33,11 +32,8 @@ Deno.test({
   fn: async () => {
     await using viteResult = await buildVite(DEMO_DIR);
 
-    await withChildProcessServer(
-      {
-        cwd: viteResult.tmp,
-        args: ["serve", "-A", "--port", "0", "_fresh/server.js"],
-      },
+    await launchProd(
+      { cwd: viteResult.tmp },
       async (address) => {
         const res = await fetch(`${address}/test_static/foo.txt`);
         const text = await res.text();
@@ -54,11 +50,8 @@ Deno.test({
   fn: async () => {
     await using res = await buildVite(DEMO_DIR);
 
-    await withChildProcessServer(
-      {
-        cwd: res.tmp,
-        args: ["serve", "-A", "--port", "0", "_fresh/server.js"],
-      },
+    await launchProd(
+      { cwd: res.tmp },
       async (address) => {
         await withBrowser(async (page) => {
           await page.goto(`${address}/tests/island_hooks`, {
@@ -83,11 +76,8 @@ Deno.test({
     const fixture = path.join(FIXTURE_DIR, "no_static");
     await using res = await buildVite(fixture);
 
-    await withChildProcessServer(
-      {
-        cwd: res.tmp,
-        args: ["serve", "-A", "--port", "0", "_fresh/server.js"],
-      },
+    await launchProd(
+      { cwd: res.tmp },
       async (address) => {
         const res = await fetch(`${address}/ok`);
         const text = await res.text();
@@ -105,11 +95,8 @@ Deno.test({
     const fixture = path.join(FIXTURE_DIR, "no_islands");
     await using res = await buildVite(fixture);
 
-    await withChildProcessServer(
-      {
-        cwd: res.tmp,
-        args: ["serve", "-A", "--port", "0", "_fresh/server.js"],
-      },
+    await launchProd(
+      { cwd: res.tmp },
       async (address) => {
         const res = await fetch(`${address}`);
         const text = await res.text();
@@ -127,11 +114,8 @@ Deno.test({
     const fixture = path.join(FIXTURE_DIR, "no_routes");
     await using res = await buildVite(fixture);
 
-    await withChildProcessServer(
-      {
-        cwd: res.tmp,
-        args: ["serve", "-A", "--port", "0", "_fresh/server.js"],
-      },
+    await launchProd(
+      { cwd: res.tmp },
       async (address) => {
         const res = await fetch(`${address}`);
         const text = await res.text();
@@ -148,11 +132,8 @@ Deno.test({
   fn: async () => {
     await using res = await buildVite(DEMO_DIR);
 
-    await withChildProcessServer(
-      {
-        cwd: res.tmp,
-        args: ["serve", "-A", "--port", "0", "_fresh/server.js"],
-      },
+    await launchProd(
+      { cwd: res.tmp },
       async (address) => {
         await withBrowser(async (page) => {
           await page.goto(`${address}/tests/mime`, {
@@ -173,11 +154,8 @@ Deno.test({
   fn: async () => {
     await using res = await buildVite(DEMO_DIR);
 
-    await withChildProcessServer(
-      {
-        cwd: res.tmp,
-        args: ["serve", "-A", "--port", "0", "_fresh/server.js"],
-      },
+    await launchProd(
+      { cwd: res.tmp },
       async (address) => {
         await withBrowser(async (page) => {
           await page.goto(`${address}/tests/assets`, {
@@ -207,11 +185,8 @@ Deno.test({
     const fixture = path.join(FIXTURE_DIR, "tailwind_no_app");
     await using res = await buildVite(fixture);
 
-    await withChildProcessServer(
-      {
-        cwd: res.tmp,
-        args: ["serve", "-A", "--port", "0", "_fresh/server.js"],
-      },
+    await launchProd(
+      { cwd: res.tmp },
       async (address) => {
         await withBrowser(async (page) => {
           await page.goto(`${address}`, {
@@ -240,11 +215,8 @@ Deno.test({
     const fixture = path.join(FIXTURE_DIR, "tailwind_app");
     await using res = await buildVite(fixture);
 
-    await withChildProcessServer(
-      {
-        cwd: res.tmp,
-        args: ["serve", "-A", "--port", "0", "_fresh/server.js"],
-      },
+    await launchProd(
+      { cwd: res.tmp },
       async (address) => {
         await withBrowser(async (page) => {
           await page.goto(`${address}`, {
@@ -272,11 +244,8 @@ Deno.test({
   fn: async () => {
     await using res = await buildVite(DEMO_DIR);
 
-    await withChildProcessServer(
-      {
-        cwd: res.tmp,
-        args: ["serve", "-A", "--port", "0", "_fresh/server.js"],
-      },
+    await launchProd(
+      { cwd: res.tmp },
       async (address) => {
         await withBrowser(async (page) => {
           await page.goto(`${address}/tests/partial`, {
@@ -290,6 +259,81 @@ Deno.test({
           await page.locator(".counter-hooks button").click();
           await waitForText(page, ".counter-hooks button", "count: 1");
         });
+      },
+    );
+  },
+  sanitizeOps: false,
+  sanitizeResources: false,
+});
+
+Deno.test({
+  name: "vite build - build ID uses env variables when set",
+  fn: async () => {
+    const revision = "test-commit-hash-123";
+
+    // We're running on GitHub Actions, so GITHUB_SHA will always
+    // be set
+    Deno.env.delete("GITHUB_SHA");
+
+    for (
+      const key of [
+        "DENO_DEPLOYMENT_ID",
+        "GITHUB_SHA",
+        "CI_COMMIT_SHA",
+        "OTHER",
+      ]
+    ) {
+      using _ = usingEnv(key, revision);
+      await using res = await buildVite(DEMO_DIR);
+
+      await launchProd(
+        { cwd: res.tmp },
+        async (address) => {
+          const res = await fetch(`${address}/tests/build_id`);
+          const text = await res.text();
+
+          if (key === "OTHER") {
+            expect(text).not.toEqual(revision);
+          } else {
+            expect(text).toEqual(revision);
+          }
+        },
+      );
+    }
+  },
+  sanitizeOps: false,
+  sanitizeResources: false,
+});
+
+Deno.test({
+  name: "vite build - import json from jsr dependency",
+  fn: async () => {
+    await using res = await buildVite(DEMO_DIR);
+
+    await launchProd(
+      { cwd: res.tmp },
+      async (address) => {
+        const res = await fetch(`${address}/tests/dep_json`);
+        const json = await res.json();
+        expect(json.name).toEqual("@marvinh-test/import-json");
+      },
+    );
+  },
+  sanitizeOps: false,
+  sanitizeResources: false,
+});
+
+Deno.test({
+  name: "vite build - import node:*",
+  fn: async () => {
+    await using res = await buildVite(DEMO_DIR);
+
+    await launchProd(
+      { cwd: res.tmp },
+      async (address) => {
+        const res = await fetch(`${address}/tests/feed`);
+        await res.body?.cancel();
+        expect(res.status).toEqual(200);
       },
     );
   },

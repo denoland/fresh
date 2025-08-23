@@ -238,3 +238,29 @@ Deno.test({
   sanitizeResources: false,
   sanitizeOps: false,
 });
+
+Deno.test({
+  name: "vite dev - json from jsr dependency",
+  fn: async () => {
+    await withDevServer(DEMO_DIR, async (address) => {
+      const res = await fetch(`${address}/tests/dep_json`);
+      const json = await res.json();
+      expect(json.name).toEqual("@marvinh-test/import-json");
+    });
+  },
+  sanitizeResources: false,
+  sanitizeOps: false,
+});
+
+Deno.test({
+  name: "vite dev - import node:*",
+  fn: async () => {
+    await withDevServer(DEMO_DIR, async (address) => {
+      const res = await fetch(`${address}/tests/feed`);
+      await res.body?.cancel();
+      expect(res.status).toEqual(200);
+    });
+  },
+  sanitizeResources: false,
+  sanitizeOps: false,
+});

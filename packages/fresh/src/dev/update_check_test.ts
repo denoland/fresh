@@ -274,7 +274,11 @@ Deno.test("migrates to last_shown property", async () => {
     stdout: "piped",
   }).output();
 
-  const { stdout } = getStdOutput(out);
+  const { stdout, stderr } = getStdOutput(out);
+  if (stdout === "") {
+    // deno-lint-ignore no-console
+    console.log(stderr);
+  }
   expect(stdout).toMatch(/Fresh .* is available/);
 
   const checkFileAfter = JSON.parse(

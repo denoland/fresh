@@ -39,12 +39,22 @@ export function setBuildId(id) {
 }
 
 export async function getBuildId(dev: boolean): Promise<string> {
-  if (!dev) {
-    const bin = Deno.build.os === "windows" ? "git.exe" : "git";
-    const res = await new Deno.Command(bin, { args: ["rev-parse", "HEAD"] })
-      .output();
+  const gitRevision = Deno.env.get("DENO_DEPLOYMENT_ID") ??
+    Deno.env.get("GITHUB_SHA") ?? Deno.env.get("CI_COMMIT_SHA");
+  if (gitRevision !== undefined) {
+    return gitRevision;
+  }
 
-    return new TextDecoder().decode(res.stdout);
+  if (!dev) {
+    try {
+      const bin = Deno.build.os === "windows" ? "git.exe" : "git";
+      const res = await new Deno.Command(bin, { args: ["rev-parse", "HEAD"] })
+        .output();
+
+      return new TextDecoder().decode(res.stdout);
+    } catch {
+      // ignore
+    }
   }
 
   const arr = new Uint32Array(1);

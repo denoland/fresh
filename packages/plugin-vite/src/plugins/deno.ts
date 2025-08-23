@@ -1,6 +1,7 @@
 import type { Plugin } from "vite";
 import {
   type Loader,
+  MediaType,
   RequestedModuleType,
   ResolutionMode,
   Workspace,
@@ -31,10 +32,14 @@ export function deno(): Plugin {
     },
     async configResolved() {
       // TODO: Pass conditions
-      ssrLoader = await new Workspace({}).createLoader();
+      ssrLoader = await new Workspace({
+        platform: "node",
+        cachedOnly: true,
+      }).createLoader();
       browserLoader = await new Workspace({
         platform: "browser",
         preserveJsx: true,
+        cachedOnly: true,
       })
         .createLoader();
     },
@@ -97,6 +102,13 @@ export function deno(): Plugin {
           ResolutionMode.Import,
         );
 
+        if (resolved.startsWith("node:")) {
+          return {
+            id: resolved,
+            external: true,
+          };
+        }
+
         if (original === resolved) {
           return null;
         }
@@ -140,6 +152,7 @@ export function deno(): Plugin {
 
         const maybeJsx = babelTransform({
           ssr: !!options?.ssr,
+          media: result.mediaType,
           code,
           id: specifier,
           isDev,
@@ -183,6 +196,7 @@ export function deno(): Plugin {
 
       const maybeJsx = babelTransform({
         ssr: !!options?.ssr,
+        media: result.mediaType,
         id,
         code,
         isDev,
@@ -231,6 +245,32 @@ export function deno(): Plugin {
       };
     },
   };
+}
+
+function isJsMediaType(media: MediaType): boolean {
+  switch (media) {
+    case MediaType.JavaScript:
+    case MediaType.Jsx:
+    case MediaType.Mjs:
+    case MediaType.Cjs:
+    case MediaType.TypeScript:
+    case MediaType.Mts:
+    case MediaType.Cts:
+    case MediaType.Tsx:
+      return true;
+
+    case MediaType.Dts:
+    case MediaType.Dmts:
+    case MediaType.Dcts:
+    case MediaType.Css:
+    case MediaType.Json:
+    case MediaType.Html:
+    case MediaType.Sql:
+    case MediaType.Wasm:
+    case MediaType.SourceMap:
+    case MediaType.Unknown:
+      return false;
+  }
 }
 
 export type DenoSpecifier = string & { __deno: string };
@@ -286,12 +326,15 @@ function getDenoType(id: string, type: string): RequestedModuleType {
 }
 
 function babelTransform(
-  options: { ssr: boolean; code: string; id: string; isDev: boolean },
+  options: {
+    media: MediaType;
+    ssr: boolean;
+    code: string;
+    id: string;
+    isDev: boolean;
+  },
 ) {
-  if (
-    !/\.([tj]sx?|[mc[jt]s)$/.test(options.id) &&
-    !/^https?:\/\//.test(options.id)
-  ) {
+  if (!isJsMediaType(options.media)) {
     return null;
   }
 

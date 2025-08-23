@@ -95,13 +95,15 @@ export async function withBrowser(fn: (page: Page) => void | Promise<void>) {
   }
 }
 
+export interface TestChildServerOptions {
+  cwd: string;
+  args: string[];
+  bin?: string;
+  env?: Record<string, string>;
+}
+
 export async function withChildProcessServer(
-  options: {
-    cwd: string;
-    args: string[];
-    bin?: string;
-    env?: Record<string, string>;
-  },
+  options: TestChildServerOptions,
   fn: (address: string) => void | Promise<void>,
 ) {
   const aborter = new AbortController();
