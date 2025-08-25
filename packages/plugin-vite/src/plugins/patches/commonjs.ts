@@ -56,6 +56,45 @@ export function cjsPlugin(
           if (exported.size > 0 || exportedNs.size > 0) {
             path.unshiftContainer(
               "body",
+              t.expressionStatement(
+                t.callExpression(
+                  t.memberExpression(
+                    t.identifier("Object"),
+                    t.identifier("defineProperty"),
+                  ),
+                  [
+                    t.identifier("module"),
+                    t.stringLiteral("exports"),
+                    t.objectExpression([
+                      t.objectMethod(
+                        "method",
+                        t.identifier("get"),
+                        [],
+                        t.blockStatement([
+                          t.returnStatement(t.identifier("exports")),
+                        ]),
+                      ),
+                      t.objectMethod(
+                        "method",
+                        t.identifier("set"),
+                        [t.identifier("value")],
+                        t.blockStatement([
+                          t.expressionStatement(
+                            t.assignmentExpression(
+                              "=",
+                              t.identifier("exports"),
+                              t.identifier("value"),
+                            ),
+                          ),
+                        ]),
+                      ),
+                    ]),
+                  ],
+                ),
+              ),
+            );
+            path.unshiftContainer(
+              "body",
               t.variableDeclaration("var", [
                 t.variableDeclarator(
                   t.identifier("exports"),
@@ -63,14 +102,7 @@ export function cjsPlugin(
                 ),
                 t.variableDeclarator(
                   t.identifier("module"),
-                  t.objectExpression([
-                    t.objectProperty(
-                      t.identifier("exports"),
-                      t.identifier("exports"),
-                      false,
-                      true,
-                    ),
-                  ]),
+                  t.objectExpression([]),
                 ),
               ]),
             );
@@ -124,24 +156,11 @@ export function cjsPlugin(
                   id,
                   t.logicalExpression(
                     "??",
-                    t.logicalExpression(
-                      "??",
-                      t.memberExpression(
-                        t.memberExpression(
-                          t.identifier("module"),
-                          t.identifier("exports"),
-                        ),
-                        t.identifier("default"),
-                      ),
-                      t.memberExpression(
-                        t.identifier("exports"),
-                        t.identifier("default"),
-                      ),
-                    ),
                     t.memberExpression(
-                      t.identifier("module"),
                       t.identifier("exports"),
+                      t.identifier("default"),
                     ),
+                    t.identifier("exports"),
                   ),
                 ),
               ]),

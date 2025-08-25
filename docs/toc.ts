@@ -54,6 +54,7 @@ const toc: RawTableOfContents = {
           ["forms", "Forms", "link:canary"],
           ["define", "Define Helpers", "link:canary"],
           ["environment-variables", "Environment Variables", "link:canary"],
+          ["head", "Modifying <head>", "link:canary"],
         ],
       },
       deployment: {
@@ -85,7 +86,6 @@ const toc: RawTableOfContents = {
         pages: [
           ["migration-guide", "Migration Guide", "link:canary"],
           ["daisyui", "daisyUI", "link:canary"],
-          ["modifying-the-head", "Modifying the <head>", "link:canary"],
           ["creating-a-crud-api", "Creating a CRUD API", "link:latest"],
           ["markdown", "Rendering Markdown", "link:canary"],
           ["rendering-raw-html", "Rendering raw HTML", "link:canary"],

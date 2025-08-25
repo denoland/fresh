@@ -1,10 +1,39 @@
-import type { VNode } from "preact";
+import type { Component, Options as PreactOptions, VNode } from "preact";
 import { ASSET_CACHE_BUST_KEY } from "../constants.ts";
 
 export const DATA_CURRENT = "data-current";
 export const DATA_ANCESTOR = "data-ancestor";
 export const DATA_FRESH_KEY = "data-frsh-key";
 export const CLIENT_NAV_ATTR = "f-client-nav";
+
+export const enum OptionsType {
+  ATTR = "attr",
+  VNODE = "vnode",
+  HOOK = "__h",
+  DIFF = "__b",
+  RENDER = "__r",
+  DIFFED = "diffed",
+  ERROR = "__e",
+}
+
+export interface InternalVNode extends VNode {
+  __c: Component | null;
+  __: InternalVNode | null;
+}
+
+export interface InternalPreactOptions extends PreactOptions {
+  [OptionsType.ATTR](name: string, value: unknown): string | void;
+  [OptionsType.VNODE](vnode: InternalVNode): void;
+  [OptionsType.HOOK](component: Component, index: number, type: number): void;
+  [OptionsType.DIFF](vnode: InternalVNode): void;
+  [OptionsType.RENDER](vnode: InternalVNode): void;
+  [OptionsType.DIFFED](vnode: InternalVNode): void;
+  [OptionsType.ERROR](
+    error: unknown,
+    vnode: InternalVNode,
+    oldVNode: InternalVNode,
+  ): void;
+}
 
 export const enum UrlMatchKind {
   None,
