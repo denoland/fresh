@@ -173,6 +173,7 @@ Deno.test({
 
       await waitFor(async () => {
         const title = await page.evaluate(() => document.title);
+        console.log({ title });
         return title === "Count: 1";
       });
     });
@@ -205,6 +206,9 @@ Deno.test({
             el: HTMLMetaElement,
           ) => ({ name: el.name, content: el.content }));
         });
+
+        // deno-lint-ignore no-console
+        console.log(metas);
 
         expect(metas).toEqual([
           { name: "foo", content: "ok" },
@@ -242,6 +246,9 @@ Deno.test({
             el: HTMLStyleElement,
           ) => ({ id: el.id, text: el.textContent }));
         });
+
+        // deno-lint-ignore no-console
+        console.log(styles);
 
         expect(styles).toEqual([
           { id: "", text: "not ok" },
@@ -283,16 +290,15 @@ Deno.test({
           }));
         });
 
-        try {
-          expect(tpls).toEqual([
-            { key: "a", text: "ok" },
-            { key: "b", text: "not ok" },
-            { key: null, text: "not ok" },
-          ]);
-          return true;
-        } catch {
-          return false;
-        }
+        // deno-lint-ignore no-console
+        console.log(tpls);
+
+        expect(tpls).toEqual([
+          { key: "a", text: "ok" },
+          { key: "b", text: "not ok" },
+          { key: null, text: "not ok" },
+        ]);
+        return true;
       });
     });
   },
