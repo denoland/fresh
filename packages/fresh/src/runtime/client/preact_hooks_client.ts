@@ -37,53 +37,56 @@ options.vnode = (vnode) => {
       case "base":
       case "noscript":
       case "template":
-        // deno-lint-ignore no-explicit-any
-        vnode.type = (props: any) => {
-          useEffect(() => {
-            const text = renderToString(h(Fragment, null, props.children));
+        // deno-lint-ignore no-constant-condition
+        if (false) {
+          // deno-lint-ignore no-explicit-any
+          vnode.type = (props: any) => {
+            useEffect(() => {
+              const text = renderToString(h(Fragment, null, props.children));
 
-            if (originalType === "title") {
-              document.title = text;
-              return;
-            }
-
-            let matched: HTMLElement | null = null;
-            if (vnode.key) {
-              matched = document.head.querySelector(
-                `head [data-key="${vnode.key}"]`,
-              ) as HTMLElement ?? null;
-            }
-
-            if (matched === null && props.id) {
-              matched = document.head.querySelector(
-                `#${props.name}`,
-              ) as HTMLElement ??
-                null;
-            }
-
-            if (matched === null) {
-              if (originalType === "meta") {
-                matched = document.head.querySelector(
-                  `head [name="${props.name}"]`,
-                ) as HTMLElement ?? null;
-              } else if (originalType === "base") {
-                matched = document.head.querySelector(originalType) ?? null;
+              if (originalType === "title") {
+                document.title = text;
+                return;
               }
-            }
 
-            if (matched === null) {
-              matched = document.createElement(originalType);
-            }
+              let matched: HTMLElement | null = null;
+              if (vnode.key) {
+                matched = document.head.querySelector(
+                  `head [data-key="${vnode.key}"]`,
+                ) as HTMLElement ?? null;
+              }
 
-            if (matched.textContent !== text) {
-              matched.textContent = text;
-            }
+              if (matched === null && props.id) {
+                matched = document.head.querySelector(
+                  `#${props.name}`,
+                ) as HTMLElement ??
+                  null;
+              }
 
-            applyProps(props, matched);
-          }, []);
+              if (matched === null) {
+                if (originalType === "meta") {
+                  matched = document.head.querySelector(
+                    `head [name="${props.name}"]`,
+                  ) as HTMLElement ?? null;
+                } else if (originalType === "base") {
+                  matched = document.head.querySelector(originalType) ?? null;
+                }
+              }
 
-          return null;
-        };
+              if (matched === null) {
+                matched = document.createElement(originalType as string);
+              }
+
+              if (matched.textContent !== text) {
+                matched.textContent = text;
+              }
+
+              applyProps(props, matched);
+            }, []);
+
+            return null;
+          };
+        }
         break;
     }
   }
