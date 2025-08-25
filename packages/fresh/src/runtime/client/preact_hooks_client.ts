@@ -64,34 +64,29 @@ function WrappedHead(
     }
 
     applyProps(props, matched);
-  }, []);
+  }, [originalType, props, key]);
 
   if (enabled) {
     return null;
+  } else {
+    const inner = h(originalType, props);
+    PATCHED.add(inner);
+    return inner;
   }
-
-  const inner = h(originalType, props);
-  PATCHED.add(inner);
-  return inner;
 }
 
 const oldVNodeHook = options.vnode;
 options.vnode = (vnode) => {
   assetHashingHook(vnode, BUILD_ID);
 
-  if (typeof vnode.type === "string") {
+  const originalType = vnode.type;
+  if (typeof originalType === "string") {
     if (CLIENT_NAV_ATTR in vnode.props) {
       const value = vnode.props[CLIENT_NAV_ATTR];
       if (typeof value === "boolean") {
         vnode.props[CLIENT_NAV_ATTR] = String(value);
       }
-    }
-  }
-
-  const originalType = vnode.type;
-
-  if (typeof originalType === "string") {
-    if (!PATCHED.has(vnode)) {
+    } else if (!PATCHED.has(vnode)) {
       switch (originalType) {
         case "title":
         case "meta":
@@ -100,14 +95,19 @@ options.vnode = (vnode) => {
         case "style":
         case "base":
         case "noscript":
-        case "template":
-          vnode = h(WrappedHead, {
+        case "template": {
+          // deno-lint-ignore no-explicit-any
+          const v = vnode as VNode<any>;
+          const props = vnode.props;
+          const key = vnode.key;
+          v.type = WrappedHead;
+          v.props = {
             originalType,
-            props: vnode.props,
-            key: vnode.key,
-            // deno-lint-ignore no-explicit-any
-          }) as any;
+            props,
+            key,
+          };
           break;
+        }
       }
     }
   }
