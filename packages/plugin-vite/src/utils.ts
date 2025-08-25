@@ -1,6 +1,9 @@
 import * as path from "@std/path";
 import type { FsRouteFileNoMod, UniqueNamer } from "fresh/internal-dev";
 
+export const JS_REG = /\.([tj]sx?|[mc][tj]s)(\?.*)?$/;
+export const JSX_REG = /\.([tj]sx?)(\?.*)?$/;
+
 export function pathWithRoot(fileOrDir: string, root?: string): string {
   if (path.isAbsolute(fileOrDir)) return fileOrDir;
 
