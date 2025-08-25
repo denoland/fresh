@@ -10,6 +10,10 @@ import { expect } from "@std/expect";
 import { FakeServer } from "../src/test_utils.ts";
 import * as path from "@std/path";
 
+const applyHeadCache = await buildProd({
+  root: path.join(import.meta.dirname!, "fixture_head"),
+});
+
 Deno.test("Head - ssr - updates title", async () => {
   const handler = new App()
     .appWrapper(({ Component }) => {
@@ -155,15 +159,11 @@ Deno.test({
   ignore: true, // Temporarily until client perf is fixed
   name: "Head - client - set title",
   fn: async () => {
-    const applyCache = await buildProd({
-      root: path.join(import.meta.dirname!, "fixture_head"),
-    });
-
     const app = new App({})
       .use(staticFiles())
       .fsRoutes();
 
-    applyCache(app);
+    applyHeadCache(app);
 
     await withBrowserApp(app, async (page, address) => {
       await page.goto(`${address}/title`);
@@ -185,15 +185,11 @@ Deno.test({
   ignore: true, // Temporarily until client perf is fixed
   name: "Head - client - match meta",
   fn: async () => {
-    const applyCache = await buildProd({
-      root: path.join(import.meta.dirname!, "fixture_head"),
-    });
-
     const app = new App({})
       .use(staticFiles())
       .fsRoutes();
 
-    applyCache(app);
+    applyHeadCache(app);
 
     await withBrowserApp(app, async (page, address) => {
       await page.goto(`${address}/meta`);
@@ -226,15 +222,11 @@ Deno.test({
   ignore: true, // Temporarily until client perf is fixed
   name: "Head - client - match style by id",
   fn: async () => {
-    const applyCache = await buildProd({
-      root: path.join(import.meta.dirname!, "fixture_head"),
-    });
-
     const app = new App({})
       .use(staticFiles())
       .fsRoutes();
 
-    applyCache(app);
+    applyHeadCache(app);
 
     await withBrowserApp(app, async (page, address) => {
       await page.goto(`${address}/id`);
@@ -267,15 +259,11 @@ Deno.test({
   ignore: true, // Temporarily until client perf is fixed
   name: "Head - client - match key",
   fn: async () => {
-    const applyCache = await buildProd({
-      root: path.join(import.meta.dirname!, "fixture_head"),
-    });
-
     const app = new App({})
       .use(staticFiles())
       .fsRoutes();
 
-    applyCache(app);
+    applyHeadCache(app);
 
     await withBrowserApp(app, async (page, address) => {
       await page.goto(`${address}/key`);
