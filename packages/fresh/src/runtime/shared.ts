@@ -52,3 +52,5 @@ export function Partial(props: PartialProps): VNode {
   return props.children as any;
 }
 Partial.displayName = "Partial";
+
+export { Head, type HeadProps } from "./head.tsx";

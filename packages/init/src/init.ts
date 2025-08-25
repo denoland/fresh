@@ -359,6 +359,12 @@ export const app = new App<State>();
 
 app.use(staticFiles());
 
+// Pass a shared value from a middleware
+app.use(async (ctx) => {
+  ctx.state.shared = "hello";
+  return await ctx.next();
+});
+
 // this is the same as the /api/:name route defined via a file. feel free to delete this!
 app.get("/api2/:name", (ctx) => {
   const name = ctx.params.name;
@@ -400,25 +406,30 @@ export function Button(props: ButtonProps) {
 
   const UTILS_TS = `import { createDefine } from "fresh";
 
+// This specifies the type of "ctx.state" which is used to share
+// data among middlewares, layouts and routes.
 export interface State {
-  title: string;
+  shared: string;
 }
 
 export const define = createDefine<State>();`;
   await writeFile("utils.ts", UTILS_TS);
 
   const ROUTES_HOME = `import { useSignal } from "@preact/signals";
+import { Head } from "fresh/runtime";
 import { define } from "../utils.ts";
 import Counter from "../islands/Counter.tsx";
 
 export default define.page(function Home(ctx) {
   const count = useSignal(3);
 
-  ctx.state.title = count.value + " Fresh Counter" +
-    (Math.abs(count.value) === 1 ? "" : "s");
+  console.log("Shared value " + ctx.state.shared);
 
   return (
     <div class="px-4 py-8 mx-auto fresh-gradient min-h-screen">
+      <Head>
+        <title>Fresh counter: {count}</title>
+      </Head>
       <div class="max-w-screen-md mx-auto flex flex-col items-center justify-center">
         <img
           class="my-6"
@@ -441,13 +452,13 @@ export default define.page(function Home(ctx) {
 
   const APP_WRAPPER = `import { define } from "../utils.ts";
 
-export default define.page(function App({ Component, state }) {
+export default define.page(function App({ Component }) {
   return (
     <html>
       <head>
         <meta charset="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>{state.title ?? "${path.basename(projectDir)}"}</title>
+        <title>${path.basename(projectDir)}</title>
         <link rel="stylesheet" href="/styles.css" />
       </head>
       <body>
@@ -532,6 +543,14 @@ if (Deno.args.includes("build")) {
         "body",
         "html",
         "head",
+        "title",
+        "meta",
+        "script",
+        "link",
+        "style",
+        "base",
+        "noscript",
+        "template",
       ],
     },
   };

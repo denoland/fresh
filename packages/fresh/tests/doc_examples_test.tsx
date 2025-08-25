@@ -33,7 +33,22 @@ Deno.test("Docs Code example checks", async () => {
       lib: ["dom", "dom.asynciterable", "deno.ns", "deno.unstable"],
       jsx: "precompile",
       jsxImportSource: "preact",
-      jsxPrecompileSkipElements: ["a", "img", "source", "body", "html", "head"],
+      jsxPrecompileSkipElements: [
+        "a",
+        "img",
+        "source",
+        "body",
+        "html",
+        "head",
+        "title",
+        "meta",
+        "script",
+        "link",
+        "style",
+        "base",
+        "noscript",
+        "template",
+      ],
     },
   };
   await Deno.writeTextFile(

@@ -19,6 +19,7 @@ import {
   assetHashingHook,
   CLIENT_NAV_ATTR,
   DATA_FRESH_KEY,
+  OptionsType,
   PartialMode,
   setActiveUrl,
 } from "../shared_internal.tsx";
@@ -32,16 +33,8 @@ import { escape as escapeHtml } from "@std/html";
 import { HttpError } from "../../error.ts";
 import { getCodeFrame } from "../../dev/middlewares/error_overlay/code_frame.tsx";
 import { escapeScript } from "../../utils.ts";
-
-const enum OptionsType {
-  ATTR = "attr",
-  VNODE = "vnode",
-  HOOK = "__h",
-  DIFF = "__b",
-  RENDER = "__r",
-  DIFFED = "diffed",
-  ERROR = "__e",
-}
+import { HeadContext } from "../head.tsx";
+import { useContext } from "preact/hooks";
 
 interface InternalPreactOptions extends PreactOptions {
   [OptionsType.ATTR](name: string, value: unknown): string | void;
@@ -79,6 +72,8 @@ export class RenderState {
   encounteredPartials = new Set<any>();
   owners = new Map<VNode, VNode>();
   ownerStack: InternalVNode[] = [];
+
+  headComponents = new Map<string, VNode>();
 
   // TODO: merge into bitmask field
   renderedHtmlTag = false;
@@ -286,10 +281,93 @@ options[OptionsType.DIFF] = (vnode) => {
             }
           }
 
+          // Append component to render remaining head nodes
+          const remaining = h(RemainingHead, null);
+          if (Array.isArray(vnode.props.children)) {
+            vnode.props.children.push(remaining);
+          } else if (
+            vnode.props.children !== null &&
+            typeof vnode.props.children === "object"
+          ) {
+            vnode.props.children = [vnode.props.children, remaining];
+          } else {
+            vnode.props.children = remaining;
+          }
+
           break;
         }
         case "body":
           RENDER_STATE!.renderedHtmlBody = true;
+          break;
+        case "title":
+        case "meta":
+        case "link":
+        case "script":
+        case "style":
+        case "base":
+        case "noscript":
+        case "template":
+          {
+            if (PATCHED.has(vnode)) {
+              break;
+            }
+
+            const originalType = vnode.type;
+
+            let cacheKey: string | null = vnode.key ??
+              (originalType === "title" ? "title" : null);
+
+            if (cacheKey === null) {
+              // deno-lint-ignore no-explicit-any
+              const props = vnode.props as any;
+
+              const keys = Object.keys(vnode.props);
+              keys.sort();
+              cacheKey = `${originalType}`;
+              for (let i = 0; i < keys.length; i++) {
+                const key = keys[i];
+                if (key === "children" || key === "nonce" || key === "ref") {
+                  continue;
+                } else if (key === "dangerouslySetInnerHTML") {
+                  cacheKey += String(props[key].__html);
+                  continue;
+                } else if (originalType === "meta" && key === "content") {
+                  continue;
+                }
+
+                cacheKey += `::${props[key]}`;
+              }
+            }
+
+            const originalKey = vnode.key;
+
+            // deno-lint-ignore no-explicit-any
+            (vnode as any).type = (props: any) => {
+              const value = useContext(HeadContext);
+
+              if (originalKey) {
+                props["data-key"] = originalKey;
+              }
+
+              const vnode = h(originalType, props);
+              PATCHED.add(vnode);
+
+              if (RENDER_STATE !== null) {
+                if (value) {
+                  RENDER_STATE.headComponents.set(cacheKey, vnode);
+                  return null;
+                } else if (value !== undefined) {
+                  const cached = RENDER_STATE.headComponents.get(cacheKey);
+                  if (cached !== undefined) {
+                    RENDER_STATE.headComponents.delete(cacheKey);
+                    return cached;
+                  }
+                }
+              }
+
+              return vnode;
+            };
+          }
           break;
       }
 
@@ -332,6 +410,13 @@ options[OptionsType.DIFFED] = (vnode) => {
   }
   oldDiffed?.(vnode);
 };
+
+function RemainingHead() {
+  if (RENDER_STATE !== null && RENDER_STATE.headComponents.size > 0) {
+    return h(Fragment, null, ...RENDER_STATE.headComponents.values());
+  }
+  return null;
+}
 
 interface SlotProps {
   name: string;
