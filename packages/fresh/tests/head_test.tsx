@@ -4,6 +4,7 @@ import {
   buildProd,
   parseHtml,
   waitFor,
+  waitForText,
   withBrowserApp,
 } from "./test_utils.tsx";
 import { expect } from "@std/expect";
@@ -171,12 +172,7 @@ Deno.test({
       await page.locator(".ready").wait();
       await page.locator("button").click();
 
-      await waitFor(async () => {
-        const title = await page.evaluate(() => document.title);
-        // deno-lint-ignore no-console
-        console.log({ title });
-        return title === "Count: 1";
-      });
+      await waitForText(page, "title", "Count: 1");
     });
   },
   sanitizeOps: false,
