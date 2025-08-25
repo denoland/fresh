@@ -31,7 +31,6 @@ export default define.page(function App({ Component, state, url }) {
           type="font/woff2"
           crossorigin="anonymous"
         />
-        <link rel="stylesheet" href={asset("/styles.css")} />
         {url.pathname === "/"
           ? <link rel="stylesheet" href={asset("/prism.css")} />
           : null}

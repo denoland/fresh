@@ -33,5 +33,5 @@ jobs:
         if: github.repository_owner == 'denoland'
         with:
           project: "fresh"
-          entrypoint: "./www/_fresh/server.js"
-          root: "."
+          entrypoint: "server.js"
+          root: "./www/_fresh/"
