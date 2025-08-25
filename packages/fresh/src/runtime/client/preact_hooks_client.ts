@@ -1,4 +1,4 @@
-import { Fragment, h, options as preactOptions } from "preact";
+import { Fragment, h, options as preactOptions, type VNode } from "preact";
 import {
   assetHashingHook,
   CLIENT_NAV_ATTR,
@@ -7,10 +7,73 @@ import {
 } from "../shared_internal.ts";
 import { BUILD_ID } from "@fresh/build-id";
 import { renderToString } from "preact-render-to-string";
-import { useEffect } from "preact/hooks";
+import { useContext, useEffect } from "preact/hooks";
+import { HeadContext } from "../head.tsx";
 
 // deno-lint-ignore no-explicit-any
 const options: InternalPreactOptions = preactOptions as any;
+
+const PATCHED = new WeakSet<VNode>();
+
+function WrappedHead(
+  // deno-lint-ignore no-explicit-any
+  { originalType, props, key }: { originalType: string; props: any; key: any },
+) {
+  const enabled = useContext(HeadContext);
+
+  useEffect(() => {
+    if (!enabled) return;
+
+    const text = renderToString(h(Fragment, null, props.children));
+
+    if (originalType === "title") {
+      document.title = text;
+      return;
+    }
+
+    let matched: HTMLElement | null = null;
+    if (key) {
+      matched = document.head.querySelector(
+        `head [data-key="${key}"]`,
+      ) as HTMLElement ?? null;
+    }
+
+    if (matched === null && props.id) {
+      matched = document.head.querySelector(
+        `#${props.name}`,
+      ) as HTMLElement ??
+        null;
+    }
+
+    if (matched === null) {
+      if (originalType === "meta") {
+        matched = document.head.querySelector(
+          `head [name="${props.name}"]`,
+        ) as HTMLElement ?? null;
+      } else if (originalType === "base") {
+        matched = document.head.querySelector(originalType) ?? null;
+      }
+    }
+
+    if (matched === null) {
+      matched = document.createElement(originalType);
+    }
+
+    if (matched.textContent !== text) {
+      matched.textContent = text;
+    }
+
+    applyProps(props, matched);
+  }, []);
+
+  if (enabled) {
+    return null;
+  }
+
+  const inner = h(originalType, props);
+  PATCHED.add(inner);
+  return inner;
+}
 
 const oldVNodeHook = options.vnode;
 options.vnode = (vnode) => {
@@ -28,66 +91,24 @@ options.vnode = (vnode) => {
   const originalType = vnode.type;
 
   if (typeof originalType === "string") {
-    switch (originalType) {
-      case "title":
-      case "meta":
-      case "link":
-      case "script":
-      case "style":
-      case "base":
-      case "noscript":
-      case "template":
-        // deno-lint-ignore no-constant-condition
-        if (false) {
-          // deno-lint-ignore no-explicit-any
-          vnode.type = (props: any) => {
-            useEffect(() => {
-              const text = renderToString(h(Fragment, null, props.children));
-
-              if (originalType === "title") {
-                document.title = text;
-                return;
-              }
-
-              let matched: HTMLElement | null = null;
-              if (vnode.key) {
-                matched = document.head.querySelector(
-                  `head [data-key="${vnode.key}"]`,
-                ) as HTMLElement ?? null;
-              }
-
-              if (matched === null && props.id) {
-                matched = document.head.querySelector(
-                  `#${props.name}`,
-                ) as HTMLElement ??
-                  null;
-              }
-
-              if (matched === null) {
-                if (originalType === "meta") {
-                  matched = document.head.querySelector(
-                    `head [name="${props.name}"]`,
-                  ) as HTMLElement ?? null;
-                } else if (originalType === "base") {
-                  matched = document.head.querySelector(originalType) ?? null;
-                }
-              }
-
-              if (matched === null) {
-                matched = document.createElement(originalType as string);
-              }
-
-              if (matched.textContent !== text) {
-                matched.textContent = text;
-              }
-
-              applyProps(props, matched);
-            }, []);
-
-            return null;
-          };
-        }
-        break;
+    if (!PATCHED.has(vnode)) {
+      switch (originalType) {
+        case "title":
+        case "meta":
+        case "link":
+        case "script":
+        case "style":
+        case "base":
+        case "noscript":
+        case "template":
+          vnode = h(WrappedHead, {
+            originalType,
+            props: vnode.props,
+            key: vnode.key,
+            // deno-lint-ignore no-explicit-any
+          }) as any;
+          break;
+      }
     }
   }
 
