@@ -40,6 +40,13 @@ options.vnode = (vnode) => {
         // deno-lint-ignore no-explicit-any
         vnode.type = (props: any) => {
           useEffect(() => {
+            const text = renderToString(h(Fragment, null, props.children));
+
+            if (originalType === "title") {
+              document.title = text;
+              return;
+            }
+
             let matched: HTMLElement | null = null;
             if (vnode.key) {
               matched = document.head.querySelector(
@@ -47,18 +54,20 @@ options.vnode = (vnode) => {
               ) as HTMLElement ?? null;
             }
 
+            if (matched === null && props.id) {
+              matched = document.head.querySelector(
+                `#${props.name}`,
+              ) as HTMLElement ??
+                null;
+            }
+
             if (matched === null) {
               if (originalType === "meta") {
                 matched = document.head.querySelector(
                   `head [name="${props.name}"]`,
                 ) as HTMLElement ?? null;
-              } else if (originalType === "title" || originalType === "base") {
+              } else if (originalType === "base") {
                 matched = document.head.querySelector(originalType) ?? null;
-              } else if (props.id) {
-                matched = document.head.querySelector(
-                  `#${props.name}`,
-                ) as HTMLElement ??
-                  null;
               }
             }
 
@@ -66,7 +75,6 @@ options.vnode = (vnode) => {
               matched = document.createElement(originalType);
             }
 
-            const text = renderToString(h(Fragment, null, props.children));
             if (matched.textContent !== text) {
               matched.textContent = text;
             }
