@@ -24,7 +24,22 @@ export async function checkDenoCompilerOptions(root: string) {
 
   // Check precompile option
   if (denoJson.config.compilerOptions?.jsx === "precompile") {
-    const expected = ["a", "img", "source", "body", "html", "head"];
+    const expected = [
+      "a",
+      "img",
+      "source",
+      "body",
+      "html",
+      "head",
+      "title",
+      "meta",
+      "script",
+      "link",
+      "style",
+      "base",
+      "noscript",
+      "template",
+    ];
     const skipped = denoJson.config.compilerOptions.jsxPrecompileSkipElements;
     if (!skipped || expected.some((name) => !skipped.includes(name))) {
       throw new Error(

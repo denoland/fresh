@@ -7,6 +7,7 @@ import {
   isValidElement,
   type VNode,
 } from "preact";
+import { jsxTemplate } from "preact/jsx-runtime";
 import { SpanStatusCode } from "@opentelemetry/api";
 import type { ResolvedFreshConfig } from "./config.ts";
 import type { BuildCache } from "./build_cache.ts";
@@ -215,19 +216,21 @@ export class Context<State> {
       vnode = result;
     }
 
+    let appChild = vnode;
+    // deno-lint-ignore no-explicit-any
+    let appVNode: VNode<any>;
+
     if (isAsyncAnyComponent(appDef)) {
-      const child = vnode;
-      props.Component = () => child;
+      props.Component = () => appChild;
       const result = await renderAsyncAnyComponent(appDef, props);
       if (result instanceof Response) {
         return result;
       }
 
-      vnode = result;
+      appVNode = result;
     } else if (appDef !== null) {
-      const child = vnode;
-      vnode = h(appDef, {
-        Component: () => child,
+      appVNode = h(appDef, {
+        Component: () => appChild,
         config: this.config,
         data: null,
         error: this.error,
@@ -238,6 +241,8 @@ export class Context<State> {
         state: this.state,
         url: this.url,
       });
+    } else {
+      appVNode = appChild ?? h(Fragment, null);
     }
 
     const headers = init.headers !== undefined
@@ -270,12 +275,18 @@ export class Context<State> {
       try {
         setRenderState(state);
 
-        return preactRender(
+        const innerHtml = preactRender(
           vnode ?? h(Fragment, null),
           this,
           state,
-          headers,
+          false,
         );
+
+        appChild = jsxTemplate([innerHtml]);
+
+        const html = preactRender(appVNode, this, state, true);
+
+        return html;
       } catch (err) {
         if (err instanceof Error) {
           span.recordException(err);
@@ -287,6 +298,27 @@ export class Context<State> {
         }
         throw err;
       } finally {
+        // Add preload headers
+        const basePath = this.config.basePath;
+        const runtimeUrl = state.buildCache.clientEntry.startsWith(".")
+          ? state.buildCache.clientEntry.slice(1)
+          : state.buildCache.clientEntry;
+        let link = `<${
+          encodeURI(`${basePath}${runtimeUrl}`)
+        }>; rel="modulepreload"; as="script"`;
+        state.islands.forEach((island) => {
+          const specifier = `${basePath}${
+            island.file.startsWith(".") ? island.file.slice(1) : island.file
+          }`;
+          link += `, <${
+            encodeURI(specifier)
+          }>; rel="modulepreload"; as="script"`;
+        });
+
+        if (link !== "") {
+          headers.append("Link", link);
+        }
+
         state.clear();
         setRenderState(null);
 
