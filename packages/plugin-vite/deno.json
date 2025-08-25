@@ -28,6 +28,7 @@
     "@types/babel__core": "npm:@types/babel__core@^7.20.5",
     "@types/node": "npm:@types/node@^24.1.0",
     "feed": "npm:feed@^5.1.0",
+    "fresh": "jsr:@fresh/core@^2.0.0-alpha.60",
     "mime-db": "npm:mime-db@^1.54.0",
     "preact": "npm:preact@^10.26.9",
     "rollup-plugin-visualizer": "npm:rollup-plugin-visualizer@^6.0.3",
