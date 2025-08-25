@@ -74,7 +74,7 @@ options.vnode = (vnode) => {
               }
 
               if (matched === null) {
-                matched = document.createElement(originalType);
+                matched = document.createElement(originalType as string);
               }
 
               if (matched.textContent !== text) {
