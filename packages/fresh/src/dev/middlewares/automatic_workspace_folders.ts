@@ -40,7 +40,7 @@ export function automaticWorkspaceFolders<T>(root: string): Middleware<T> {
     content ??= JSON.stringify({ workspace: { root, uuid } }, undefined, 2);
     etag ??= await eTag(content);
 
-    const noneMatchValue = ctx.req.headers.get("if-none-match");
+    const noneMatchValue = ctx.request.headers.get("if-none-match");
     if (!ifNoneMatch(noneMatchValue, etag)) {
       return new Response(undefined, { status: 304, headers: { etag } });
     }

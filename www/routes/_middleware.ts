@@ -106,7 +106,7 @@ export async function handler<T>(
     throw e;
   } finally {
     ga4(
-      ctx.req,
+      ctx.request,
       ctx,
       res!,
       start,
