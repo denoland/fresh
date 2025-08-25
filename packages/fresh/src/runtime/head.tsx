@@ -6,6 +6,6 @@ export interface HeadProps {
   children?: ComponentChildren;
 }
 
-export function Head(props: HeadProps) {
+export function Head(props: HeadProps): ComponentChildren {
   return <HeadContext value>{props.children}</HeadContext>;
 }

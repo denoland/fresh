@@ -19,6 +19,7 @@ import {
   assetHashingHook,
   CLIENT_NAV_ATTR,
   DATA_FRESH_KEY,
+  OptionsType,
   PartialMode,
   setActiveUrl,
 } from "../shared_internal.tsx";
@@ -34,16 +35,6 @@ import { getCodeFrame } from "../../dev/middlewares/error_overlay/code_frame.tsx
 import { escapeScript } from "../../utils.ts";
 import { HeadContext } from "../head.tsx";
 import { useContext } from "preact/hooks";
-
-const enum OptionsType {
-  ATTR = "attr",
-  VNODE = "vnode",
-  HOOK = "__h",
-  DIFF = "__b",
-  RENDER = "__r",
-  DIFFED = "diffed",
-  ERROR = "__e",
-}
 
 interface InternalPreactOptions extends PreactOptions {
   [OptionsType.ATTR](name: string, value: unknown): string | void;
@@ -348,9 +339,16 @@ options[OptionsType.DIFF] = (vnode) => {
               }
             }
 
+            const originalKey = vnode.key;
+
             // deno-lint-ignore no-explicit-any
             (vnode as any).type = (props: any) => {
               const value = useContext(HeadContext);
+
+              if (originalKey) {
+                props["data-key"] = originalKey;
+              }
+
               const vnode = h(originalType, props);
               PATCHED.add(vnode);
 
