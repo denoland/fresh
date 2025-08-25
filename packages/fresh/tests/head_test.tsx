@@ -208,15 +208,11 @@ Deno.test({
           ) => ({ name: el.name, content: el.content }));
         });
 
-        try {
-          expect(metas).toEqual([
-            { name: "foo", content: "ok" },
-            { name: "bar", content: "not ok" },
-          ]);
-          return true;
-        } catch {
-          return false;
-        }
+        expect(metas).toEqual([
+          { name: "foo", content: "ok" },
+          { name: "bar", content: "not ok" },
+        ]);
+        return true;
       });
     });
   },
@@ -252,15 +248,11 @@ Deno.test({
           ) => ({ id: el.id, text: el.textContent }));
         });
 
-        try {
-          expect(styles).toEqual([
-            { id: "", text: "not ok" },
-            { id: "style-id", text: "ok" },
-          ]);
-          return true;
-        } catch {
-          return false;
-        }
+        expect(styles).toEqual([
+          { id: "", text: "not ok" },
+          { id: "style-id", text: "ok" },
+        ]);
+        return true;
       });
     });
   },
