@@ -14,12 +14,17 @@ function runTest(options: { input: string; expected: string }) {
 }
 
 const INIT = `var exports = {},
-  module = {
-    exports
-  };`;
+  module = {};
+Object.defineProperty(module, "exports", {
+  get() {
+    return exports;
+  },
+  set(value) {
+    exports = value;
+  }
+});`;
 
-const DEFAULT_EXPORT =
-  `const _default = module.exports.default ?? exports.default ?? module.exports;`;
+const DEFAULT_EXPORT = `const _default = exports.default ?? exports;`;
 const DEFAULT_EXPORT_END = `export default _default;`;
 
 Deno.test("commonjs - module.exports default", () => {
@@ -448,6 +453,21 @@ import * as _ns from "./node";
 export * from "./node";
 ${DEFAULT_EXPORT}
 Object.assign(_default, _ns);
+${DEFAULT_EXPORT_END}`,
+  });
+});
+
+Deno.test("commonjs - assign module.exports", () => {
+  runTest({
+    input: `module.exports = { foo: 1 };`,
+    expected: `${INIT}
+module.exports = {
+  foo: 1
+};
+var _foo = exports.foo;
+export { _foo as foo };
+${DEFAULT_EXPORT}
+_default.foo = _foo;
 ${DEFAULT_EXPORT_END}`,
   });
 });
