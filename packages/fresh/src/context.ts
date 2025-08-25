@@ -220,6 +220,8 @@ export class Context<State> {
     // deno-lint-ignore no-explicit-any
     let appVNode: VNode<any>;
 
+    let hasApp = true;
+
     if (isAsyncAnyComponent(appDef)) {
       props.Component = () => appChild;
       const result = await renderAsyncAnyComponent(appDef, props);
@@ -242,6 +244,7 @@ export class Context<State> {
         url: this.url,
       });
     } else {
+      hasApp = false;
       appVNode = appChild ?? h(Fragment, null);
     }
 
@@ -275,18 +278,22 @@ export class Context<State> {
       try {
         setRenderState(state);
 
-        const innerHtml = preactRender(
+        const inner = preactRender(
           vnode ?? h(Fragment, null),
           this,
           state,
-          false,
+          !hasApp,
         );
 
-        appChild = jsxTemplate([innerHtml]);
+        if (!hasApp) {
+          return inner;
+        }
 
-        const html = preactRender(appVNode, this, state, true);
+        appChild = jsxTemplate([inner]);
 
-        return html;
+        const outer = preactRender(appVNode, this, state, true);
+
+        return outer;
       } catch (err) {
         if (err instanceof Error) {
           span.recordException(err);
