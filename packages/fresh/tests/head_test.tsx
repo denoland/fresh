@@ -173,6 +173,7 @@ Deno.test({
 
       await waitFor(async () => {
         const title = await page.evaluate(() => document.title);
+        // deno-lint-ignore no-console
         console.log({ title });
         return title === "Count: 1";
       });
