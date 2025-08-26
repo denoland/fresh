@@ -179,7 +179,7 @@ export class App<State> {
 
   constructor(config: FreshConfig = {}) {
     this.config = {
-      root: Deno.cwd(),
+      root: ".",
       basePath: config.basePath ?? "",
       mode: config.mode ?? "production",
     };
