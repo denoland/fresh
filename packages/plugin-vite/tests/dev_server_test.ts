@@ -4,14 +4,18 @@ import { waitForText, withBrowser } from "../../fresh/tests/test_utils.tsx";
 import {
   DEMO_DIR,
   FIXTURE_DIR,
+  launchDevServer,
+  prepareDevServer,
   updateFile,
   withDevServer,
 } from "./test_utils.ts";
 
+const tmp = await prepareDevServer(DEMO_DIR);
+
 Deno.test({
   name: "vite dev - launches",
   fn: async () => {
-    await withDevServer(DEMO_DIR, async (address) => {
+    await launchDevServer(tmp.dir, async (address) => {
       const res = await fetch(`${address}/tests/it_works`);
       const text = await res.text();
       expect(text).toContain("it works");
@@ -24,7 +28,7 @@ Deno.test({
 Deno.test({
   name: "vite dev - serves static files",
   fn: async () => {
-    await withDevServer(DEMO_DIR, async (address) => {
+    await launchDevServer(tmp.dir, async (address) => {
       const res = await fetch(`${address}/test_static/foo.txt`);
       const text = await res.text();
       expect(text).toContain("it works");
@@ -37,7 +41,7 @@ Deno.test({
 Deno.test({
   name: "vite dev - loads islands",
   fn: async () => {
-    await withDevServer(DEMO_DIR, async (address) => {
+    await launchDevServer(tmp.dir, async (address) => {
       await withBrowser(async (page) => {
         await page.goto(`${address}/tests/island_hooks`, {
           waitUntil: "networkidle2",
@@ -99,7 +103,7 @@ Deno.test({
   name: "vite dev - can apply HMR to islands (hooks)",
   ignore: true, // Test is very flaky
   fn: async () => {
-    await withDevServer(DEMO_DIR, async (address, dir) => {
+    await launchDevServer(tmp.dir, async (address, dir) => {
       await withBrowser(async (page) => {
         await page.goto(`${address}/tests/island_hooks`, {
           waitUntil: "networkidle2",
@@ -132,7 +136,7 @@ Deno.test({
 Deno.test({
   name: "vite dev - can import json in npm package",
   fn: async () => {
-    await withDevServer(DEMO_DIR, async (address) => {
+    await launchDevServer(tmp.dir, async (address) => {
       await withBrowser(async (page) => {
         await page.goto(`${address}/tests/mime`, {
           waitUntil: "networkidle2",
@@ -148,7 +152,7 @@ Deno.test({
 Deno.test({
   name: "vite dev - inline env vars",
   fn: async () => {
-    await withDevServer(DEMO_DIR, async (address) => {
+    await launchDevServer(tmp.dir, async (address) => {
       await withBrowser(async (page) => {
         await page.goto(`${address}/tests/env`, {
           waitUntil: "networkidle2",
@@ -171,7 +175,7 @@ Deno.test({
 Deno.test({
   name: "vite dev - serves imported assets",
   fn: async () => {
-    await withDevServer(DEMO_DIR, async (address) => {
+    await launchDevServer(tmp.dir, async (address) => {
       const res = await fetch(`${address}/assets/deno-logo.png`);
       expect(res.status).toEqual(200);
       expect(res.headers.get("Content-Type")).toEqual("image/png");
@@ -220,7 +224,7 @@ Deno.test({
 Deno.test({
   name: "vite dev - partial island",
   fn: async () => {
-    await withDevServer(DEMO_DIR, async (address) => {
+    await launchDevServer(tmp.dir, async (address) => {
       await withBrowser(async (page) => {
         await page.goto(`${address}/tests/partial`, {
           waitUntil: "networkidle2",
@@ -242,7 +246,7 @@ Deno.test({
 Deno.test({
   name: "vite dev - json from jsr dependency",
   fn: async () => {
-    await withDevServer(DEMO_DIR, async (address) => {
+    await launchDevServer(tmp.dir, async (address) => {
       const res = await fetch(`${address}/tests/dep_json`);
       const json = await res.json();
       expect(json.name).toEqual("@marvinh-test/import-json");
@@ -255,7 +259,7 @@ Deno.test({
 Deno.test({
   name: "vite dev - import node:*",
   fn: async () => {
-    await withDevServer(DEMO_DIR, async (address) => {
+    await launchDevServer(tmp.dir, async (address) => {
       const res = await fetch(`${address}/tests/feed`);
       await res.body?.cancel();
       expect(res.status).toEqual(200);
