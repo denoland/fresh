@@ -82,6 +82,6 @@ Here are some that don't:
 ## Regex
 
 At this point is should be clear that this is essentially an exercise in
-understanding regex. There are [numerous](https://regexr.com/)
+understanding regex. There are [numerous](https://regexr.com/) [valuable](https://extendsclass.com/regex-tester.html) 
 [resources](https://regex101.com/) [available](https://chat.openai.com/) for
 getting assistance with regex.
