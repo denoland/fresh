@@ -1,4 +1,9 @@
-import type { Manifest, Plugin, ViteDevServer } from "vite";
+import type {
+  EnvironmentModuleNode,
+  Manifest,
+  Plugin,
+  ViteDevServer,
+} from "vite";
 import {
   crawlFsItem,
   fsAdapter,
@@ -26,6 +31,7 @@ export function serverSnapshot(options: ResolvedFreshViteConfig): Plugin[] {
   let publicDir = "";
 
   const islands = new Map<string, { name: string; chunk: string | null }>();
+  const islandsByFile = new Set<string>();
   const islandSpecByName = new Map<string, string>();
 
   return [{
@@ -47,8 +53,55 @@ export function serverSnapshot(options: ResolvedFreshViteConfig): Plugin[] {
     },
     configureServer(viteServer) {
       server = viteServer;
-    },
-    async buildStart() {
+
+      viteServer.watcher.on("all", (ev, filePath) => {
+        const { client, ssr } = viteServer.environments;
+
+        // We can't just check if it's in the client module graph
+        // because plugins like tailwindcss import _everything_.
+        // Instead, we walk up the module graph to see if the file
+        // is imported by an island or the client entry file.
+        const mods = client.moduleGraph.getModulesByFile(filePath);
+        if (mods !== undefined) {
+          const seen = new Set<EnvironmentModuleNode>();
+          const maybe = Array.from(mods);
+          for (let i = 0; i < maybe.length; i++) {
+            const mod = maybe[i];
+
+            const isIslandFile = walkUp(
+              mod,
+              (m) => m.file !== null && islandsByFile.has(m.file),
+              seen,
+            );
+
+            // No need to notify manually, vite takes care of this.
+            if (isIslandFile) return;
+          }
+        }
+
+        // Check for route files. We need to invalidate the snapshot if
+        // they are removed or added.
+        if (
+          (ev === "add" || ev === "unlink") &&
+          !/[\\/]+\(_[^)]+\)[\\/]+/.test(filePath)
+        ) {
+          const relRoutes = path.relative(options.routeDir, filePath);
+          if (!relRoutes.startsWith("..")) {
+            const mod = ssr.moduleGraph.getModuleById(`\0${modName}`);
+            if (mod !== undefined) {
+              // Clear state
+              islands.clear();
+              islandsByFile.clear();
+              islandSpecByName.clear();
+
+              ssr.moduleGraph.invalidateModule(mod);
+            }
+          }
+        }
+
+        // Finally, notify the client
+        viteServer.ws.send("fresh:reload");
+      });
     },
     resolveId(id) {
       if (id === modName) {
@@ -71,6 +124,7 @@ export function serverSnapshot(options: ResolvedFreshViteConfig): Plugin[] {
 
         islands.set(spec, { name, chunk: null });
         islandSpecByName.set(name, spec);
+        islandsByFile.add(spec);
       }
 
       const staticFiles: PendingStaticFile[] = [];
@@ -220,4 +274,22 @@ export function serverSnapshot(options: ResolvedFreshViteConfig): Plugin[] {
       }
     },
   }];
+}
+
+function walkUp(
+  mod: EnvironmentModuleNode,
+  fn: (mod: EnvironmentModuleNode) => boolean,
+  seen: Set<EnvironmentModuleNode>,
+): boolean {
+  if (seen.has(mod)) return false;
+
+  if (fn(mod)) return true;
+
+  const importers = Array.from(mod.importers);
+  for (let i = 0; i < importers.length; i++) {
+    const imp = importers[i];
+    if (walkUp(imp, fn, seen)) return true;
+  }
+
+  return false;
 }
