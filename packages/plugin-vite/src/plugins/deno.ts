@@ -10,6 +10,7 @@ import * as path from "@std/path";
 import * as babel from "@babel/core";
 import babelReact from "@babel/preset-react";
 import { httpAbsolute } from "./patches/http_absolute.ts";
+import { JS_REG } from "../utils.ts";
 
 interface DenoState {
   type: RequestedModuleType;
@@ -180,7 +181,7 @@ export function deno(): Plugin {
       // Skip for non-js files like `.css`
       if (
         meta.type === RequestedModuleType.Default &&
-        !/\.([tj]sx?|[mc]?[tj]s)$/.test(id)
+        !JS_REG.test(id)
       ) {
         return;
       }
