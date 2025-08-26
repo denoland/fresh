@@ -192,7 +192,7 @@ Deno.test({
               return (el as any).href;
             });
 
-          expect(href).toMatch(/\/assets\/client-entry-.*\.css$/);
+          expect(href).toMatch(/\/assets\/client-entry-.*\.css(\?.*)?$/);
         });
       },
     );
