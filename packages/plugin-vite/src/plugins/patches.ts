@@ -33,6 +33,7 @@ export function patches(): Plugin {
       const res = babel.transformSync(code, {
         filename: id,
         babelrc: false,
+        compact: true,
         plugins: [
           cjsPlugin,
           removePolyfills,
