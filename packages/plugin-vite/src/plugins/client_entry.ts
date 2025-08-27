@@ -6,9 +6,13 @@ export function clientEntryPlugin(options: ResolvedFreshViteConfig): Plugin {
   const modNameUser = "fresh:client-entry-user";
 
   let clientEntry = "";
+  let isDev = false;
 
   return {
     name: "fresh:client-entry",
+    config(_, env) {
+      isDev = env.command === "serve";
+    },
     applyToEnvironment(env) {
       return env.name === "client";
     },
@@ -33,7 +37,9 @@ export function clientEntryPlugin(options: ResolvedFreshViteConfig): Plugin {
         exists = false;
       }
 
-      return `export * from "fresh/runtime-client";
+      return `
+${isDev ? 'import "preact/debug"' : ""}
+export * from "fresh/runtime-client";
 ${exists ? `import "fresh:client-entry-user";` : ""}
 
 if (import.meta.hot) {

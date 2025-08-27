@@ -65,7 +65,9 @@ export function registerStaticFile(prepared) {
 `;
 
       if (isDev) {
-        code += `if (import.meta.hot) import.meta.hot.accept();\n`;
+        code = `import "preact/debug";
+${code}
+if (import.meta.hot) import.meta.hot.accept();`;
       }
 
       return code;
