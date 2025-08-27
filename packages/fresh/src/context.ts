@@ -12,17 +12,21 @@ import { SpanStatusCode } from "@opentelemetry/api";
 import type { ResolvedFreshConfig } from "./config.ts";
 import type { BuildCache } from "./build_cache.ts";
 import type { LayoutConfig } from "./types.ts";
-import { RenderState, setRenderState } from "./runtime/server/preact_hooks.tsx";
-import { PARTIAL_SEARCH_PARAM } from "./constants.ts";
+import {
+  FreshScripts,
+  RenderState,
+  setRenderState,
+} from "./runtime/server/preact_hooks.tsx";
+import { DEV_ERROR_OVERLAY_URL, PARTIAL_SEARCH_PARAM } from "./constants.ts";
 import { tracer } from "./otel.ts";
 import {
   type ComponentDef,
   isAsyncAnyComponent,
   type PageProps,
-  preactRender,
   renderAsyncAnyComponent,
   renderRouteComponent,
 } from "./render.ts";
+import { renderToString } from "preact-render-to-string";
 
 export interface Island {
   file: string;
@@ -281,22 +285,47 @@ export class Context<State> {
       try {
         setRenderState(state);
 
-        const inner = preactRender(
+        let html = renderToString(
           vnode ?? h(Fragment, null),
-          this,
-          state,
-          !hasApp,
         );
 
-        if (!hasApp) {
-          return inner;
+        if (hasApp) {
+          appChild = jsxTemplate([html]);
+          html = renderToString(appVNode);
         }
 
-        appChild = jsxTemplate([inner]);
+        if (
+          !state.renderedHtmlBody || !state.renderedHtmlHead ||
+          !state.renderedHtmlTag
+        ) {
+          let fallback: VNode = jsxTemplate([html]);
+          if (!state.renderedHtmlBody) {
+            let scripts: VNode | null = null;
 
-        const outer = preactRender(appVNode, this, state, true);
+            if (
+              this.url.pathname !== this.config.basePath + DEV_ERROR_OVERLAY_URL
+            ) {
+              scripts = h(FreshScripts, null) as VNode;
+            }
 
-        return outer;
+            fallback = h("body", null, fallback, scripts);
+          }
+          if (!state.renderedHtmlHead) {
+            fallback = h(
+              Fragment,
+              null,
+              h("head", null, h("meta", { charset: "utf-8" })),
+              fallback,
+            );
+          }
+          if (!state.renderedHtmlTag) {
+            fallback = h("html", null, fallback);
+          }
+
+          html = renderToString(fallback);
+        }
+
+        return `<!DOCTYPE html>${html}`;
       } catch (err) {
         if (err instanceof Error) {
           span.recordException(err);

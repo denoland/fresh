@@ -9,13 +9,13 @@ import {
 } from "./test_utils.ts";
 import * as path from "@std/path";
 
+const viteResult = await buildVite(DEMO_DIR);
+
 Deno.test({
   name: "vite build - launches",
   fn: async () => {
-    await using res = await buildVite(DEMO_DIR);
-
     await launchProd(
-      { cwd: res.tmp },
+      { cwd: viteResult.tmp },
       async (address) => {
         const res = await fetch(address);
         const text = await res.text();
@@ -30,8 +30,6 @@ Deno.test({
 Deno.test({
   name: "vite build - serves static files",
   fn: async () => {
-    await using viteResult = await buildVite(DEMO_DIR);
-
     await launchProd(
       { cwd: viteResult.tmp },
       async (address) => {
@@ -48,10 +46,8 @@ Deno.test({
 Deno.test({
   name: "vite build - loads islands",
   fn: async () => {
-    await using res = await buildVite(DEMO_DIR);
-
     await launchProd(
-      { cwd: res.tmp },
+      { cwd: viteResult.tmp },
       async (address) => {
         await withBrowser(async (page) => {
           await page.goto(`${address}/tests/island_hooks`, {
@@ -130,10 +126,8 @@ Deno.test({
 Deno.test({
   name: "vite build - load json inside npm package",
   fn: async () => {
-    await using res = await buildVite(DEMO_DIR);
-
     await launchProd(
-      { cwd: res.tmp },
+      { cwd: viteResult.tmp },
       async (address) => {
         await withBrowser(async (page) => {
           await page.goto(`${address}/tests/mime`, {
@@ -152,10 +146,8 @@ Deno.test({
 Deno.test({
   name: "vite build - fetch static assets",
   fn: async () => {
-    await using res = await buildVite(DEMO_DIR);
-
     await launchProd(
-      { cwd: res.tmp },
+      { cwd: viteResult.tmp },
       async (address) => {
         await withBrowser(async (page) => {
           await page.goto(`${address}/tests/assets`, {
@@ -200,7 +192,7 @@ Deno.test({
               return (el as any).href;
             });
 
-          expect(href).toMatch(/\/assets\/client-entry-.*\.css$/);
+          expect(href).toMatch(/\/assets\/client-entry-.*\.css(\?.*)?$/);
         });
       },
     );
@@ -242,10 +234,8 @@ Deno.test({
 Deno.test({
   name: "vite build - partial island",
   fn: async () => {
-    await using res = await buildVite(DEMO_DIR);
-
     await launchProd(
-      { cwd: res.tmp },
+      { cwd: viteResult.tmp },
       async (address) => {
         await withBrowser(async (page) => {
           await page.goto(`${address}/tests/partial`, {
@@ -308,10 +298,8 @@ Deno.test({
 Deno.test({
   name: "vite build - import json from jsr dependency",
   fn: async () => {
-    await using res = await buildVite(DEMO_DIR);
-
     await launchProd(
-      { cwd: res.tmp },
+      { cwd: viteResult.tmp },
       async (address) => {
         const res = await fetch(`${address}/tests/dep_json`);
         const json = await res.json();
@@ -326,10 +314,8 @@ Deno.test({
 Deno.test({
   name: "vite build - import node:*",
   fn: async () => {
-    await using res = await buildVite(DEMO_DIR);
-
     await launchProd(
-      { cwd: res.tmp },
+      { cwd: viteResult.tmp },
       async (address) => {
         const res = await fetch(`${address}/tests/feed`);
         await res.body?.cancel();

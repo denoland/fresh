@@ -5,6 +5,7 @@ import { jsxComments } from "./patches/jsx_comment.ts";
 import babelReact from "@babel/preset-react";
 import { inlineEnvVarsPlugin } from "./patches/inline_env_vars.ts";
 import { removePolyfills } from "./patches/remove_polyfills.ts";
+import { JS_REG, JSX_REG } from "../utils.ts";
 
 export function patches(): Plugin {
   let isDev = false;
@@ -18,10 +19,10 @@ export function patches(): Plugin {
       return true;
     },
     transform(code, id, options) {
-      if (!/\.([tj]sx?|[mc][tj]s)$/.test(id)) return;
+      if (!JS_REG.test(id)) return;
 
       const presets = [];
-      if (!options?.ssr && /\.(tsx?|m[jt]s)$/.test(id)) {
+      if (!options?.ssr && JSX_REG.test(id)) {
         presets.push([babelReact, {
           runtime: "automatic",
           importSource: "preact",
@@ -32,6 +33,7 @@ export function patches(): Plugin {
       const res = babel.transformSync(code, {
         filename: id,
         babelrc: false,
+        compact: true,
         plugins: [
           cjsPlugin,
           removePolyfills,

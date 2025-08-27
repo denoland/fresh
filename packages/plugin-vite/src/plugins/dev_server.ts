@@ -1,7 +1,7 @@
 import type { Plugin } from "vite";
-import { nodeToRequest, responseToNode } from "../request.ts";
 import * as path from "@std/path";
 import { ASSET_CACHE_BUST_KEY } from "fresh/internal";
+import { createRequest, sendResponse } from "@mjackson/node-fetch-server";
 
 export function devServer(): Plugin[] {
   return [
@@ -45,10 +45,9 @@ export function devServer(): Plugin[] {
           const mod = await server.ssrLoadModule("fresh:server_entry");
 
           try {
-            const req = nodeToRequest(nodeReq, url);
+            const req = createRequest(nodeReq, nodeRes);
             const res = await mod.default.fetch(req);
-            await responseToNode(res, nodeRes);
-            return nodeRes;
+            await sendResponse(nodeRes, res);
           } catch (err) {
             return next(err);
           }
