@@ -360,6 +360,7 @@ function babelTransform(
     sourceMaps: "inline",
     presets: presets,
     plugins: [httpAbsolute(url)],
+    compact: true,
   });
 
   if (result !== null && result.code) {
