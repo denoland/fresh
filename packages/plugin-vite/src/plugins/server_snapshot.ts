@@ -14,7 +14,11 @@ import {
   specToName,
   UniqueNamer,
 } from "fresh/internal-dev";
-import { pathWithRoot, type ResolvedFreshViteConfig } from "../utils.ts";
+import {
+  JS_REG,
+  pathWithRoot,
+  type ResolvedFreshViteConfig,
+} from "../utils.ts";
 import * as path from "@std/path";
 import { getBuildId } from "./build_id.ts";
 
@@ -268,7 +272,12 @@ export function serverSnapshot(options: ResolvedFreshViteConfig): Plugin[] {
     name: "fresh:island-resolver",
     resolveId(id) {
       if (id.startsWith("fresh-island::")) {
-        const name = id.slice("fresh-island::".length);
+        let name = id.slice("fresh-island::".length);
+
+        if (JS_REG.test(name)) {
+          name = name.slice(0, name.lastIndexOf("."));
+        }
+
         const spec = islandSpecByName.get(name);
         if (spec !== undefined) return spec;
       }

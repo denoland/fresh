@@ -3,12 +3,13 @@ import { initProject } from "./init.ts";
 import { InitError } from "./init.ts";
 
 const flags = parseArgs(Deno.args, {
-  boolean: ["force", "tailwind", "vscode", "docker", "help"],
+  boolean: ["force", "tailwind", "vscode", "docker", "help", "vite"],
   default: {
     force: null,
     tailwind: null,
     vscode: null,
     docker: null,
+    vite: null,
   },
   alias: {
     help: "h",

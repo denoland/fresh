@@ -51,6 +51,20 @@ async function expectProjectFile(dir: string, pathname: string) {
   }
 }
 
+async function expectNotProjectFile(dir: string, pathname: string) {
+  const filePath = path.join(dir, ...pathname.split("/").filter(Boolean));
+  try {
+    const stat = await Deno.stat(filePath);
+    if (stat.isFile) {
+      throw new Error(`A project file but expected it not to be: ${filePath}`);
+    }
+  } catch (err) {
+    if (!(err instanceof Deno.errors.NotFound)) {
+      throw err;
+    }
+  }
+}
+
 async function readProjectFile(dir: string, pathname: string): Promise<string> {
   const filePath = path.join(dir, ...pathname.split("/").filter(Boolean));
   const content = await Deno.readTextFile(filePath);
@@ -246,4 +260,62 @@ Deno.test("init - errors on missing build cache in prod", async () => {
   expect(cp.code).toEqual(1);
 
   expect(stderr).toMatch(/Module not found/);
+});
+
+// There is a peerDependency issue with links
+Deno.test.ignore("init - vite dev server", async () => {
+  await using tmp = await withTmpDir();
+  const dir = tmp.dir;
+  using _promptStub = stubPrompt(".");
+  using _confirmStub = stubConfirm();
+  await initProject(dir, [], { vite: true });
+
+  await expectProjectFile(dir, "vite.config.ts");
+  await expectNotProjectFile(dir, "dev.ts");
+
+  await patchProject(dir);
+
+  await withChildProcessServer(
+    { cwd: dir, args: ["task", "dev"] },
+    async (address) => {
+      await withBrowser(async (page) => {
+        await page.goto(address);
+        await page.locator("#decrement").click();
+        await waitForText(page, "button + p", "2");
+      });
+    },
+  );
+});
+
+// There is a peerDependency issue with links
+Deno.test.ignore("init - vite build", async () => {
+  await using tmp = await withTmpDir();
+  const dir = tmp.dir;
+  using _promptStub = stubPrompt(".");
+  using _confirmStub = stubConfirm();
+  await initProject(dir, [], { vite: true });
+
+  await expectProjectFile(dir, "vite.config.ts");
+
+  await patchProject(dir);
+
+  // Build
+  await new Deno.Command(Deno.execPath(), {
+    args: ["task", "build"],
+    stdin: "null",
+    stdout: "piped",
+    stderr: "piped",
+    cwd: dir,
+  }).output();
+
+  await withChildProcessServer(
+    { cwd: dir, env: { PORT: "0" }, args: ["task", "start"] },
+    async (address) => {
+      await withBrowser(async (page) => {
+        await page.goto(address);
+        await page.locator("button").click();
+        await waitForText(page, "button + p", "2");
+      });
+    },
+  );
 });
