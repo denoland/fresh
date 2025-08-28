@@ -56,7 +56,7 @@ async function expectNotProjectFile(dir: string, pathname: string) {
   try {
     const stat = await Deno.stat(filePath);
     if (stat.isFile) {
-      throw new Error(`A project file but exepected it not to be: ${filePath}`);
+      throw new Error(`A project file but expected it not to be: ${filePath}`);
     }
   } catch (err) {
     if (!(err instanceof Deno.errors.NotFound)) {
