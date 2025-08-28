@@ -66,6 +66,7 @@ export async function initProject(
     force?: boolean | null;
     tailwind?: boolean | null;
     vscode?: boolean | null;
+    vite?: boolean | null;
   } = {},
 ): Promise<void> {
   console.log();
@@ -107,6 +108,8 @@ export async function initProject(
       throw err;
     }
   }
+
+  const useVite = flags.vite ?? false;
 
   const useDocker = flags.docker;
   let useTailwind = flags.tailwind || false;
@@ -320,7 +323,13 @@ ${GRADIENT_CSS}`;
 ${GRADIENT_CSS}`;
 
   const cssStyles = useTailwind ? TAILWIND_CSS : NO_TAILWIND_STYLES;
-  await writeFile("static/styles.css", cssStyles);
+
+  if (useVite) {
+    await writeFile("assets/styles.css", cssStyles);
+    await writeFile("client.ts", `import "./assets/styles.css";`);
+  } else {
+    await writeFile("static/styles.css", cssStyles);
+  }
   // deno-fmt-ignore
   const STATIC_LOGO =
     `<svg width="40" height="40" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -458,8 +467,9 @@ export default define.page(function App({ Component }) {
       <head>
         <meta charset="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>${path.basename(projectDir)}</title>
-        <link rel="stylesheet" href="/styles.css" />
+        <title>${path.basename(projectDir)}</title>${
+    useVite ? "" : `\n        <link rel="stylesheet" href="/styles.css" />`
+  }
       </head>
       <body>
         <Component />
@@ -510,7 +520,9 @@ if (Deno.args.includes("build")) {
 } else {
   await builder.listen(() => import("./main.ts"));
 }`;
-  await writeFile("dev.ts", DEV_TS);
+  if (!useVite) {
+    await writeFile("dev.ts", DEV_TS);
+  }
 
   const denoJson = {
     nodeModulesDir: "auto",
@@ -555,7 +567,19 @@ if (Deno.args.includes("build")) {
     },
   };
 
-  if (useTailwind) {
+  if (useVite) {
+    denoJson.tasks.dev = "vite";
+    denoJson.tasks.build = "vite build";
+
+    denoJson.imports["@fresh/plugin-vite"] = "jsr:@fresh/plugin-vite@^0.9.5";
+    denoJson.imports["vite"] = "npm:vite@^7.1.3";
+
+    if (useTailwind) {
+      denoJson.imports["tailwindcss"] =
+        `npm:tailwindcss@^${TAILWINDCSS_VERSION}`;
+      denoJson.imports["@tailwindcss/vite"] = `npm:@tailwindcss/vite@^4.1.12`;
+    }
+  } else if (useTailwind) {
     denoJson.imports["tailwindcss"] = `npm:tailwindcss@^${TAILWINDCSS_VERSION}`;
     denoJson.imports["@fresh/plugin-tailwind"] =
       `jsr:@fresh/plugin-tailwind@^${FRESH_TAILWIND_VERSION}`;
@@ -565,6 +589,21 @@ if (Deno.args.includes("build")) {
   }
 
   await writeFile("deno.json", denoJson);
+
+  if (useVite) {
+    let viteConfig = `import { defineConfig } from "vite";
+import { fresh } from "@fresh/plugin-vite";\n`;
+
+    if (useTailwind) {
+      viteConfig += `import tailwindcss from "@tailwindcss/vite";\n`;
+    }
+
+    viteConfig += `\nexport default defineConfig({
+  plugins: [fresh()${useTailwind ? ", tailwindcss()" : ""}],
+});`;
+
+    await writeFile("vite.config.ts", viteConfig);
+  }
 
   const README_MD = `# Fresh project
 
