@@ -49,6 +49,7 @@ OPTIONS:
     --tailwind   Use Tailwind for styling
     --vscode     Setup project for VS Code
     --docker     Setup Project to use Docker
+    --vite       Setup as a vite project
 `;
 
 export const CONFIRM_EMPTY_MESSAGE =
