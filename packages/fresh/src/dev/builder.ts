@@ -314,6 +314,7 @@ export class Builder<State = any> {
         name,
         server: spec,
         browser: null,
+        css: [],
       });
     }
 

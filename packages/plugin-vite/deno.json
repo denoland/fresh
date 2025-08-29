@@ -10,7 +10,8 @@
   },
   "compilerOptions": {
     "jsx": "precompile",
-    "jsxImportSource": "preact"
+    "jsxImportSource": "preact",
+    "types": ["../../global.d.ts"]
   },
   "tasks": {
     "demo": "vite demo",

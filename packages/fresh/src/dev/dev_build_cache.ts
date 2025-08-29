@@ -27,6 +27,7 @@ export interface IslandModChunk {
   name: string;
   server: string;
   browser: string | null;
+  css: string[];
 }
 
 export type FsRouteFileNoMod<State> = Omit<FsRouteFile<State>, "mod"> & {
@@ -206,7 +207,7 @@ export class MemoryBuildCache<State> implements DevBuildCache<State> {
             throw new Error(`Unexpected missing browser chunk`);
           }
 
-          preparer.prepare(this.islandRegistry, mod, chunk.browser, name);
+          preparer.prepare(this.islandRegistry, mod, chunk.browser, name, []);
         },
       ),
     );
@@ -461,7 +462,8 @@ export async function generateSnapshotServer(
   const islandMarkers = islands.map((item) => {
     const browser = JSON.stringify(item.browser);
     const name = JSON.stringify(item.name);
-    return `islandPreparer.prepare(islands, ${item.name}, ${browser}, ${name});`;
+    const css = JSON.stringify(item.css);
+    return `islandPreparer.prepare(islands, ${item.name}, ${browser}, ${name}, ${css});`;
   }).join("\n");
 
   const serializedFsRoutes = fsRoutesFiles
