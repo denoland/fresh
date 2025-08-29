@@ -54,10 +54,6 @@ if (version === "major") {
   }
 }
 
-const initJsonPath = path.join(ROOT_DIR, "packages", "init", "deno.json");
-const initJson = JSON.parse(await Deno.readTextFile(initJsonPath));
-const currentInit = semver.parse(initJson.version);
-
 const updateJsonPath = path.join(ROOT_DIR, "packages", "update", "deno.json");
 const updateJson = JSON.parse(await Deno.readTextFile(updateJsonPath));
 const currentUpdate = semver.parse(updateJson.version);
@@ -76,8 +72,6 @@ function formatUpgradeMsg(
 
 // deno-lint-ignore no-console
 console.log(formatUpgradeMsg(denoJson.name!, current, next));
-// deno-lint-ignore no-console
-console.log(formatUpgradeMsg(initJson.name!, currentInit, next));
 // deno-lint-ignore no-console
 console.log(formatUpgradeMsg(updateJson.name!, currentUpdate, next));
 
@@ -107,7 +101,6 @@ function replaceJsonVersion(version: string) {
     content.replace(/"version":\s"[^"]+"/, `"version": "${version}"`);
 }
 await replaceInFile(denoJsonPath, replaceJsonVersion(nextVersion));
-await replaceInFile(initJsonPath, replaceJsonVersion(nextVersion));
 await replaceInFile(updateJsonPath, replaceJsonVersion(nextVersion));
 
 async function getNpmVersion(name: string) {
