@@ -153,6 +153,7 @@ export function serverSnapshot(options: ResolvedFreshViteConfig): Plugin[] {
             name: def.name,
             server: id,
             browser: def.chunk ?? `/@id/fresh-island::${def.name}`,
+            css: [],
           };
         });
       } else {
@@ -206,11 +207,14 @@ export function serverSnapshot(options: ResolvedFreshViteConfig): Plugin[] {
                 spec = spec.slice(1);
               }
 
+              const chunkCss = mod.css?.map((id) => `/${id}`) ?? [];
+
               const name = namer.getUniqueName(specToName(id));
               islandMods.push({
                 name,
                 browser: spec,
                 server: serverPath,
+                css: chunkCss,
               });
             }
           }

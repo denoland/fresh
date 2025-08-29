@@ -97,6 +97,7 @@ export class IslandPreparer {
     mod: Record<string, unknown>,
     chunkName: string,
     modName: string,
+    css: string[],
   ) {
     for (const [name, value] of Object.entries(mod)) {
       if (typeof value !== "function") continue;
@@ -110,6 +111,7 @@ export class IslandPreparer {
         file: chunkName,
         fn,
         name: uniqueName,
+        css,
       });
     }
   }

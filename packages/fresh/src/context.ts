@@ -33,6 +33,7 @@ export interface Island {
   name: string;
   exportName: string;
   fn: ComponentType;
+  css: string[];
 }
 
 export type ServerIslandRegistry = Map<ComponentType, Island>;
