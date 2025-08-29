@@ -6,7 +6,7 @@
   ],
   "tasks": {
     "test": "deno test -A --parallel",
-    "www": "deno task --cwd=www start",
+    "www": "deno task --cwd=www dev",
     "build-www": "deno task --cwd=www build",
     "screenshot": "deno run -A www/utils/screenshot.ts",
     "check:types": "deno check --allow-import",
