@@ -1,6 +1,7 @@
 // deno-lint-ignore-file no-console
 import * as colors from "@std/fmt/colors";
 import * as path from "@std/path";
+import * as semver from "@std/semver";
 
 // Keep these as is, as we replace these version in our release script
 const FRESH_VERSION = "2.0.0-beta.1";
@@ -524,6 +525,8 @@ if (Deno.args.includes("build")) {
     await writeFile("dev.ts", DEV_TS);
   }
 
+  const freshVersion = await getFreshVersion();
+
   const denoJson = {
     nodeModulesDir: "auto",
     tasks: {
@@ -540,7 +543,7 @@ if (Deno.args.includes("build")) {
     },
     exclude: ["**/_fresh/*"],
     imports: {
-      "fresh": `jsr:@fresh/core@^${FRESH_VERSION}`,
+      "fresh": `jsr:@fresh/core@^${freshVersion}`,
       "preact": `npm:preact@^${PREACT_VERSION}`,
       "@preact/signals": `npm:@preact/signals@^${PREACT_SIGNALS_VERSION}`,
     } as Record<string, string>,
@@ -793,5 +796,44 @@ async function writeProjectFile(
     if (!(err instanceof Deno.errors.AlreadyExists)) {
       throw err;
     }
+  }
+}
+
+interface JsrMeta {
+  scope: string;
+  name: string;
+  latest: string | null;
+  versions: Record<string, unknown>;
+}
+
+async function getFreshVersion(): Promise<string> {
+  // deno-lint-ignore no-explicit-any
+  if ((globalThis as any).INIT_TEST) {
+    return FRESH_VERSION;
+  }
+
+  try {
+    const res = await fetch("https://jsr.io/@fresh/core/meta.json");
+    const json = (await res.json()) as JsrMeta;
+
+    if (json.latest !== null) {
+      return json.latest;
+    }
+
+    const versions = Object.keys(json.versions);
+    if (versions.length === 0) throw new Error("No versions");
+
+    versions.sort((a, b) => {
+      const s1 = semver.parse(a);
+      const s2 = semver.parse(b);
+      return semver.compare(s1, s2);
+    });
+
+    return versions.at(-1)!;
+  } catch {
+    console.log(
+      `Could not fetch latest Fresh version. Falling back to: ${FRESH_VERSION}`,
+    );
+    return FRESH_VERSION;
   }
 }

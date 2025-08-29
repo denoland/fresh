@@ -11,6 +11,9 @@ import { withChildProcessServer } from "../../fresh/tests/test_utils.tsx";
 import { withTmpDir as withTmpDirBase } from "../../fresh/src/test_utils.ts";
 import { stub } from "@std/testing/mock";
 
+// deno-lint-ignore no-explicit-any
+(globalThis as any).INIT_TEST = true;
+
 function stubPrompt(result: string) {
   return stub(globalThis, "prompt", () => result);
 }
