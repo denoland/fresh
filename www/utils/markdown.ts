@@ -147,12 +147,6 @@ class DefaultRenderer extends Marked.Renderer {
   }
 
   override code({ lang: info, text }: Marked.Tokens.Code): string {
-    // For canary only
-    text = text.replaceAll(
-      /(@fresh\/init)/g,
-      `@fresh/init@${denoJson.version}`,
-    );
-
     // format: tsx
     // format: tsx my/file.ts
     // format: tsx "This is my title"
