@@ -326,3 +326,27 @@ Deno.test({
   sanitizeOps: false,
   sanitizeResources: false,
 });
+
+Deno.test({
+  name: "vite build - island css modules",
+  fn: async () => {
+    await launchProd(
+      { cwd: viteResult.tmp },
+      async (address) => {
+        await withBrowser(async (page) => {
+          await page.goto(`${address}/tests/css_modules`, {
+            waitUntil: "networkidle2",
+          });
+
+          const color = await page
+            .locator("h1")
+            // deno-lint-ignore no-explicit-any
+            .evaluate((el) => window.getComputedStyle(el as any).color);
+          expect(color).toEqual("rgb(255, 0, 0)");
+        });
+      },
+    );
+  },
+  sanitizeOps: false,
+  sanitizeResources: false,
+});

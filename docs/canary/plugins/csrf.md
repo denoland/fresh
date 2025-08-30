@@ -28,11 +28,6 @@ app.use(
   csrf({ origin: ["https://example.com", "https://trusted.example.com"] }),
 );
 
-// Specify multiple origins
-app.use(
-  csrf({ origin: ["https://example.com", "https://trusted.example.com"] }),
-);
-
 // Use a function
 app.use(
   csrf({

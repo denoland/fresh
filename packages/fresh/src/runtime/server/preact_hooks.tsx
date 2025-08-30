@@ -254,8 +254,9 @@ options[OptionsType.DIFF] = (vnode) => {
           RENDER_STATE!.renderedHtmlHead = true;
 
           const entryAssets = RENDER_STATE.buildCache.getEntryAssets();
+          // deno-lint-ignore no-explicit-any
+          const items: VNode<any>[] = [];
           if (entryAssets.length > 0) {
-            const items: VNode[] = [];
             for (let i = 0; i < entryAssets.length; i++) {
               const id = entryAssets[i];
 
@@ -266,32 +267,22 @@ options[OptionsType.DIFF] = (vnode) => {
                 );
               }
             }
-
-            if (Array.isArray(vnode.props.children)) {
-              vnode.props.children.push(...items);
-            } else if (
-              vnode.props.children !== null &&
-              typeof vnode.props.children === "object"
-            ) {
-              // deno-lint-ignore no-explicit-any
-              items.push(vnode.props.children as any);
-              vnode.props.children = items;
-            } else {
-              vnode.props.children = items;
-            }
           }
 
-          // Append component to render remaining head nodes
-          const remaining = h(RemainingHead, null);
+          // deno-lint-ignore no-explicit-any
+          items.push(h(RemainingHead, null) as VNode<any>);
+
           if (Array.isArray(vnode.props.children)) {
-            vnode.props.children.push(remaining);
+            vnode.props.children.push(...items);
           } else if (
             vnode.props.children !== null &&
             typeof vnode.props.children === "object"
           ) {
-            vnode.props.children = [vnode.props.children, remaining];
+            // deno-lint-ignore no-explicit-any
+            items.unshift(vnode.props.children as any);
+            vnode.props.children = items;
           } else {
-            vnode.props.children = remaining;
+            vnode.props.children = items;
           }
 
           break;
@@ -412,8 +403,25 @@ options[OptionsType.DIFFED] = (vnode) => {
 };
 
 function RemainingHead() {
-  if (RENDER_STATE !== null && RENDER_STATE.headComponents.size > 0) {
-    return h(Fragment, null, ...RENDER_STATE.headComponents.values());
+  if (RENDER_STATE !== null) {
+    // deno-lint-ignore no-explicit-any
+    const items: VNode<any>[] = [];
+    if (RENDER_STATE.headComponents.size > 0) {
+      items.push(...RENDER_STATE.headComponents.values());
+    }
+
+    RENDER_STATE.islands.forEach((island) => {
+      if (island.css.length > 0) {
+        for (let i = 0; i < island.css.length; i++) {
+          const css = island.css[i];
+          items.push(h("link", { rel: "stylesheet", href: css }));
+        }
+      }
+    });
+
+    if (items.length > 0) {
+      return h(Fragment, null, items);
+    }
   }
   return null;
 }
