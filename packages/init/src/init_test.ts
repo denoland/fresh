@@ -1,6 +1,7 @@
 import { expect } from "@std/expect";
 import {
   CONFIRM_TAILWIND_MESSAGE,
+  CONFIRM_VITE_MESSAGE,
   CONFIRM_VSCODE_MESSAGE,
   initProject,
 } from "./init.ts";
@@ -123,6 +124,19 @@ Deno.test("init - with vscode", async () => {
 
   await expectProjectFile(dir, ".vscode/settings.json");
   await expectProjectFile(dir, ".vscode/extensions.json");
+});
+
+Deno.test("init - with vite", async () => {
+  await using tmp = await withTmpDir();
+  const dir = tmp.dir;
+  using _promptStub = stubPrompt(".");
+  using _confirmStub = stubConfirm({
+    [CONFIRM_VITE_MESSAGE]: true,
+  });
+  await initProject(dir, [], {});
+
+  await expectProjectFile(dir, "vite.config.ts");
+  await expectNotProjectFile(dir, "dev.ts");
 });
 
 Deno.test({
