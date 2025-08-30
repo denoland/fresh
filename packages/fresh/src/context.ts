@@ -69,7 +69,9 @@ export class Context<State> {
    * certain search parameters are set.
    */
   readonly url: URL;
-  /** The original incoming {@linkcode Request} object. */
+  /** The original incoming `Request` object` */
+  readonly request: Request;
+  /** @deprecated This is an alias for internal use only. Use {@linkcode FreshContext[request]} instead. */
   readonly req: Request;
   /** The matched route pattern. */
   readonly route: string | null;
@@ -126,7 +128,7 @@ export class Context<State> {
   }
 
   constructor(
-    req: Request,
+    request: Request,
     url: URL,
     info: Deno.ServeHandlerInfo,
     route: string | null,
@@ -136,7 +138,8 @@ export class Context<State> {
     buildCache: BuildCache<State>,
   ) {
     this.url = url;
-    this.req = req;
+    this.request = request;
+    this.req = request;
     this.info = info;
     this.params = params;
     this.route = route;
