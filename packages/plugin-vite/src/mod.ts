@@ -15,6 +15,8 @@ import { serverSnapshot } from "./plugins/server_snapshot.ts";
 import { patches } from "./plugins/patches.ts";
 import process from "node:process";
 import { specToName, UniqueNamer } from "@fresh/core/internal-dev";
+import { checkImports } from "./plugins/verify_imports.ts";
+import { isBuiltin } from "node:module";
 
 export function fresh(config?: FreshViteConfig): Plugin[] {
   const fConfig: ResolvedFreshViteConfig = {
@@ -25,7 +27,21 @@ export function fresh(config?: FreshViteConfig): Plugin[] {
     ignore: config?.ignore ?? [],
     islandSpecifiers: new Map(),
     namer: new UniqueNamer(),
+    checkImports: config?.checkImports ?? [],
   };
+
+  fConfig.checkImports.push((id, env) => {
+    if (env === "client") {
+      if (isBuiltin(id)) {
+        return {
+          type: "error",
+          message: "Node built-in modules cannot be imported in the browser.",
+          description:
+            "This is an error in your application code or in one of its dependencies.",
+        };
+      }
+    }
+  });
 
   const plugins: Plugin[] = [
     {
@@ -133,6 +149,7 @@ export function fresh(config?: FreshViteConfig): Plugin[] {
         "topLevelAwait",
       ],
     }),
+    checkImports({ checks: fConfig.checkImports }),
   ];
 
   if (typeof process.versions.deno === "string") {

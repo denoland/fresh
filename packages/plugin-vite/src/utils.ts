@@ -1,5 +1,6 @@
 import * as path from "@std/path";
 import type { FsRouteFileNoMod, UniqueNamer } from "fresh/internal-dev";
+import type { ImportCheck } from "./plugins/verify_imports.ts";
 
 export const JS_REG = /\.([tj]sx?|[mc]?[tj]s)(\?.*)?$/;
 export const JSX_REG = /\.[tj]sx?(\?.*)?$/;
@@ -41,6 +42,7 @@ export interface FreshViteConfig {
   routeDir?: string;
   ignore?: RegExp[];
   islandSpecifiers?: string[];
+  checkImports?: ImportCheck[];
 }
 
 export type ResolvedFreshViteConfig =
