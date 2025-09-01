@@ -33,7 +33,7 @@
       "www/static/fresh-badge-dark.svg",
       "*.todo"
     ],
-    "exclude": ["**/*_test.*", "src/__OLD/**", "*.todo", "tests/**"]
+    "exclude": ["**/*_test.*", "src/__OLD/**", "*.todo", "**/tests/**"]
   },
   "imports": {
     "@deno/doc": "jsr:@deno/doc@^0.172.0",
