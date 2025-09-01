@@ -1,6 +1,6 @@
 import type { ComponentChildren, VNode } from "preact";
 import { BUILD_ID } from "@fresh/build-id";
-import { assetInternal, assetSrcSetInternal } from "./shared_internal.tsx";
+import { assetInternal, assetSrcSetInternal } from "./shared_internal.ts";
 
 /**
  * Returns true when the current runtime is the browser and false otherwise. This is used for guard runtime-dependent code.

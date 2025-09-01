@@ -22,7 +22,7 @@ import {
   OptionsType,
   PartialMode,
   setActiveUrl,
-} from "../shared_internal.tsx";
+} from "../shared_internal.ts";
 import type { BuildCache } from "../../build_cache.ts";
 import { BUILD_ID } from "@fresh/build-id";
 import {
