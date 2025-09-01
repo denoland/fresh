@@ -350,3 +350,28 @@ Deno.test({
   sanitizeOps: false,
   sanitizeResources: false,
 });
+
+Deno.test({
+  name: "vite build - remote island",
+  fn: async () => {
+    const fixture = path.join(FIXTURE_DIR, "remote_island");
+    await using res = await buildVite(fixture);
+
+    await launchProd(
+      { cwd: res.tmp },
+      async (address) => {
+        await withBrowser(async (page) => {
+          await page.goto(`${address}`, {
+            waitUntil: "networkidle2",
+          });
+
+          await page.locator(".remote-island").wait();
+          await page.locator(".increment").click();
+          await waitForText(page, ".result", "Count: 1");
+        });
+      },
+    );
+  },
+  sanitizeOps: false,
+  sanitizeResources: false,
+});

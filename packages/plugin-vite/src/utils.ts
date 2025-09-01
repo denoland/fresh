@@ -40,6 +40,11 @@ export interface FreshViteConfig {
   islandsDir?: string;
   routeDir?: string;
   ignore?: RegExp[];
+  islandSpecifiers?: string[];
 }
 
-export type ResolvedFreshViteConfig = Required<FreshViteConfig>;
+export type ResolvedFreshViteConfig =
+  & Required<
+    Omit<FreshViteConfig, "islandSpecifiers">
+  >
+  & { islandSpecifiers: Map<string, string>; namer: UniqueNamer };
