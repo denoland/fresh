@@ -2,7 +2,6 @@ import type { Plugin } from "vite";
 import * as cl from "@std/fmt/colors";
 import type { PluginContext } from "rollup";
 import path from "node:path";
-import { config } from "node:process";
 import { pathWithRoot } from "../utils.ts";
 
 export interface ImportCheckDiagnostic {
