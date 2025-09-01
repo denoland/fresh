@@ -1,5 +1,3 @@
-import denoJson from "../../packages/fresh/deno.json" with { type: "json" };
-
 export { extractYaml as frontMatter } from "@std/front-matter";
 
 import * as Marked from "marked";
