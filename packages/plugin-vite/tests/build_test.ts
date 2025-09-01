@@ -388,3 +388,27 @@ Deno.test({
   sanitizeOps: false,
   sanitizeResources: false,
 });
+
+Deno.test({
+  name: "vite build - throw when using Deno.* global inside an island",
+  fn: async () => {
+    const fixture = path.join(FIXTURE_DIR, "deno_global_island");
+
+    await expect(buildVite(fixture)).rejects.toThrow(
+      "The Deno.* global cannot be used in the browser",
+    );
+  },
+  sanitizeOps: false,
+  sanitizeResources: false,
+});
+
+Deno.test({
+  name: "vite build - don't throw when using Deno.* global in ssr",
+  fn: async () => {
+    const fixture = path.join(FIXTURE_DIR, "deno_global_ssr");
+
+    await buildVite(fixture);
+  },
+  sanitizeOps: false,
+  sanitizeResources: false,
+});
