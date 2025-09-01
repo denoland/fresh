@@ -375,3 +375,16 @@ Deno.test({
   sanitizeOps: false,
   sanitizeResources: false,
 });
+
+Deno.test({
+  name: "vite build - error on 'node:process' import",
+  fn: async () => {
+    const fixture = path.join(FIXTURE_DIR, "node_builtin");
+
+    await expect(buildVite(fixture)).rejects.toThrow(
+      "Node built-in modules cannot be imported in the browser",
+    );
+  },
+  sanitizeOps: false,
+  sanitizeResources: false,
+});

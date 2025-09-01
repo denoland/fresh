@@ -309,3 +309,22 @@ Deno.test({
   sanitizeResources: false,
   sanitizeOps: false,
 });
+
+Deno.test({
+  name: "vite dev - error on 'node:process' import",
+  fn: async () => {
+    const fixture = path.join(FIXTURE_DIR, "node_builtin");
+
+    await launchDevServer(fixture, async (address) => {
+      let res = await fetch(`${address}`);
+      await res.body?.cancel();
+
+      res = await fetch(`${address}/@id/fresh-island::NodeIsland`);
+      await res.body?.cancel();
+
+      expect(res.status).toEqual(500);
+    });
+  },
+  sanitizeOps: false,
+  sanitizeResources: false,
+});
