@@ -16,7 +16,7 @@ import {
   FreshScripts,
   RenderState,
   setRenderState,
-} from "./runtime/server/preact_hooks.tsx";
+} from "./runtime/server/preact_hooks.ts";
 import { DEV_ERROR_OVERLAY_URL, PARTIAL_SEARCH_PARAM } from "./constants.ts";
 import { tracer } from "./otel.ts";
 import {
