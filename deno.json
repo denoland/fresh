@@ -26,7 +26,6 @@
   "publish": {
     "include": [
       "src/**",
-      "tests/**",
       "deno.json",
       "README.md",
       "LICENSE",
@@ -34,7 +33,7 @@
       "www/static/fresh-badge-dark.svg",
       "*.todo"
     ],
-    "exclude": ["**/*_test.*", "src/__OLD/**", "*.todo"]
+    "exclude": ["**/*_test.*", "src/__OLD/**", "*.todo", "tests/**"]
   },
   "imports": {
     "@deno/doc": "jsr:@deno/doc@^0.172.0",
