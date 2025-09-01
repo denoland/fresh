@@ -58,6 +58,9 @@ export const CONFIRM_TAILWIND_MESSAGE = `Set up ${
   colors.cyan("Tailwind CSS")
 } for styling?`;
 export const CONFIRM_VSCODE_MESSAGE = `Do you use ${colors.cyan("VS Code")}?`;
+export const CONFIRM_VITE_MESSAGE = `Set up ${
+  colors.cyan("Vite")
+} for build tooling?`;
 
 export async function initProject(
   cwd = Deno.cwd(),
@@ -110,7 +113,14 @@ export async function initProject(
     }
   }
 
-  const useVite = flags.vite ?? false;
+  let useVite = flags.vite || false;
+  if (flags.vite == null) {
+    if (
+      confirm(CONFIRM_VITE_MESSAGE)
+    ) {
+      useVite = true;
+    }
+  }
 
   const useDocker = flags.docker;
   let useTailwind = flags.tailwind || false;
